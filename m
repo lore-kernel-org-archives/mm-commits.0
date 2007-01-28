@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + isdn-rename-some-debugging-macros-to-not-resemble-config.patch added to -mm tree
-Date: Sun, 28 Jan 2007 15:58:05 -0800
-Message-ID: <200701282358.l0SNw5Yo006451@shell0.pdx.osdl.net>
+Subject: + isdn-remove-defunct-test-emulator.patch added to -mm tree
+Date: Sun, 28 Jan 2007 15:58:09 -0800
+Message-ID: <200701282358.l0SNw9Ul006457@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42602 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42607 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932982AbXA1X6L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 18:58:11 -0500
+	id S932991AbXA1X6P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 18:58:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rpjday@mindspring.com, kkeil@suse.de
 
 
 The patch titled
-     ISDN: Rename some debugging macros to not resemble CONFIG options
+     ISDN: Remove defunct test emulator
 has been added to the -mm tree.  Its filename is
-     isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+     isdn-remove-defunct-test-emulator.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,141 +25,119 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ISDN: Rename some debugging macros to not resemble CONFIG options
+Subject: ISDN: Remove defunct test emulator
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Rename some of the debugging macros for ISDN AVM so that they don't resemble
-kernel config settings, as they're primarily for author debugging instead.
+Based on advice from K.  Keil, get rid of remaining traces of defunct test
+emulator for HISAX.
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/isdn/hardware/avm/b1dma.c |   14 +++++++-------
- drivers/isdn/hardware/avm/c4.c    |   16 ++++++++--------
- 2 files changed, 15 insertions(+), 15 deletions(-)
+ drivers/isdn/hisax/Kconfig  |    2 --
+ drivers/isdn/hisax/Makefile |    1 -
+ drivers/isdn/hisax/config.c |    9 ---------
+ drivers/isdn/hisax/hisax.h  |   25 -------------------------
+ 4 files changed, 37 deletions(-)
 
-diff -puN drivers/isdn/hardware/avm/b1dma.c~isdn-rename-some-debugging-macros-to-not-resemble-config drivers/isdn/hardware/avm/b1dma.c
---- a/drivers/isdn/hardware/avm/b1dma.c~isdn-rename-some-debugging-macros-to-not-resemble-config
-+++ a/drivers/isdn/hardware/avm/b1dma.c
-@@ -29,7 +29,7 @@
+diff -puN drivers/isdn/hisax/Kconfig~isdn-remove-defunct-test-emulator drivers/isdn/hisax/Kconfig
+--- a/drivers/isdn/hisax/Kconfig~isdn-remove-defunct-test-emulator
++++ a/drivers/isdn/hisax/Kconfig
+@@ -340,8 +340,6 @@ config HISAX_HFC_SX
+ 	  This enables HiSax support for the HFC-S+, HFC-SP and HFC-PCMCIA
+ 	  cards. This code is not finished yet.
  
- static char *revision = "$Revision: 1.1.2.3 $";
+-#      bool '  TESTEMULATOR (EXPERIMENTAL)' CONFIG_HISAX_TESTEMU
+-
+ config HISAX_ENTERNOW_PCI
+ 	bool "Formula-n enter:now PCI card"
+ 	depends on HISAX_NETJET && PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
+diff -puN drivers/isdn/hisax/Makefile~isdn-remove-defunct-test-emulator drivers/isdn/hisax/Makefile
+--- a/drivers/isdn/hisax/Makefile~isdn-remove-defunct-test-emulator
++++ a/drivers/isdn/hisax/Makefile
+@@ -60,5 +60,4 @@ hisax-$(CONFIG_HISAX_SCT_QUADRO)	+= bkm_
+ hisax-$(CONFIG_HISAX_GAZEL)		+= gazel.o isac.o arcofi.o hscx.o
+ hisax-$(CONFIG_HISAX_W6692)		+= w6692.o
+ hisax-$(CONFIG_HISAX_ENTERNOW_PCI)	+= enternow_pci.o amd7930_fn.o
+-#hisax-$(CONFIG_HISAX_TESTEMU)		+= testemu.o
  
--#undef CONFIG_B1DMA_DEBUG
-+#undef AVM_B1DMA_DEBUG
- 
- /* ------------------------------------------------------------- */
- 
-@@ -391,16 +391,16 @@ static void b1dma_dispatch_tx(avmcard *c
- 			_put_slice(&p, skb->data, len);
- 		}
- 		txlen = (u8 *)p - (u8 *)dma->sendbuf.dmabuf;
--#ifdef CONFIG_B1DMA_DEBUG
-+#ifdef AVM_B1DMA_DEBUG
- 		printk(KERN_DEBUG "tx: put msg len=%d\n", txlen);
+diff -puN drivers/isdn/hisax/config.c~isdn-remove-defunct-test-emulator drivers/isdn/hisax/config.c
+--- a/drivers/isdn/hisax/config.c~isdn-remove-defunct-test-emulator
++++ a/drivers/isdn/hisax/config.c
+@@ -549,10 +549,6 @@ extern int setup_isurf(struct IsdnCard *
+ extern int setup_saphir(struct IsdnCard *card);
  #endif
- 	} else {
- 		txlen = skb->len-2;
--#ifdef CONFIG_B1DMA_POLLDEBUG
-+#ifdef AVM_B1DMA_POLLDEBUG
- 		if (skb->data[2] == SEND_POLLACK)
- 			printk(KERN_INFO "%s: send ack\n", card->name);
- #endif
--#ifdef CONFIG_B1DMA_DEBUG
-+#ifdef AVM_B1DMA_DEBUG
- 		printk(KERN_DEBUG "tx: put 0x%x len=%d\n", 
- 		       skb->data[2], txlen);
- #endif
-@@ -450,7 +450,7 @@ static void b1dma_handle_rx(avmcard *car
- 	u32 ApplId, MsgLen, DataB3Len, NCCI, WindowSize;
- 	u8 b1cmd =  _get_byte(&p);
  
--#ifdef CONFIG_B1DMA_DEBUG
-+#ifdef AVM_B1DMA_DEBUG
- 	printk(KERN_DEBUG "rx: 0x%x %lu\n", b1cmd, (unsigned long)dma->recvlen);
+-#if CARD_TESTEMU
+-extern int setup_testemu(struct IsdnCard *card);
+-#endif
+-
+ #if CARD_BKM_A4T
+ extern int setup_bkm_a4t(struct IsdnCard *card);
  #endif
- 	
-@@ -515,7 +515,7 @@ static void b1dma_handle_rx(avmcard *car
+@@ -1061,11 +1057,6 @@ static int checkcard(int cardnr, char *i
+ 		ret = setup_saphir(card);
  		break;
- 
- 	case RECEIVE_START:
--#ifdef CONFIG_B1DMA_POLLDEBUG
-+#ifdef AVM_B1DMA_POLLDEBUG
- 		printk(KERN_INFO "%s: receive poll\n", card->name);
  #endif
- 		if (!suppress_pollack)
-@@ -601,7 +601,7 @@ static void b1dma_handle_interrupt(avmca
- 				rxlen = (dma->recvlen + 3) & ~3;
- 				b1dma_writel(card, dma->recvbuf.dmaaddr+4, AMCC_RXPTR);
- 				b1dma_writel(card, rxlen, AMCC_RXLEN);
--#ifdef CONFIG_B1DMA_DEBUG
-+#ifdef AVM_B1DMA_DEBUG
- 			} else {
- 				printk(KERN_ERR "%s: rx not complete (%d).\n",
- 					card->name, rxlen);
-diff -puN drivers/isdn/hardware/avm/c4.c~isdn-rename-some-debugging-macros-to-not-resemble-config drivers/isdn/hardware/avm/c4.c
---- a/drivers/isdn/hardware/avm/c4.c~isdn-rename-some-debugging-macros-to-not-resemble-config
-+++ a/drivers/isdn/hardware/avm/c4.c
-@@ -28,8 +28,8 @@
- #include <linux/isdn/capilli.h>
- #include "avmcard.h"
+-#if CARD_TESTEMU
+-	case ISDN_CTYPE_TESTEMU:
+-		ret = setup_testemu(card);
+-		break;
+-#endif
+ #if	CARD_BKM_A4T
+ 	case ISDN_CTYPE_BKM_A4T:
+ 		ret = setup_bkm_a4t(card);
+diff -puN drivers/isdn/hisax/hisax.h~isdn-remove-defunct-test-emulator drivers/isdn/hisax/hisax.h
+--- a/drivers/isdn/hisax/hisax.h~isdn-remove-defunct-test-emulator
++++ a/drivers/isdn/hisax/hisax.h
+@@ -795,19 +795,6 @@ struct w6692_hw {
+ 	struct timer_list timer;
+ };
  
--#undef CONFIG_C4_DEBUG
--#undef CONFIG_C4_POLLDEBUG
-+#undef AVM_C4_DEBUG
-+#undef AVM_C4_POLLDEBUG
- 
- /* ------------------------------------------------------------- */
- 
-@@ -420,7 +420,7 @@ static void c4_dispatch_tx(avmcard *card
- 
- 	skb = skb_dequeue(&dma->send_queue);
- 	if (!skb) {
--#ifdef CONFIG_C4_DEBUG
-+#ifdef AVM_C4_DEBUG
- 		printk(KERN_DEBUG "%s: tx underrun\n", card->name);
+-#ifdef  CONFIG_HISAX_TESTEMU
+-struct te_hw {
+-	unsigned char *sfifo;
+-	unsigned char *sfifo_w;
+-	unsigned char *sfifo_r;
+-	unsigned char *sfifo_e;
+-	int sfifo_cnt;
+-	unsigned int stat;
+-	wait_queue_head_t rwaitq;
+-	wait_queue_head_t swaitq;
+-};
+-#endif
+-
+ struct arcofi_msg {
+ 	struct arcofi_msg *next;
+ 	u_char receive;
+@@ -916,9 +903,6 @@ struct IsdnCardState {
+ 		struct ix1_hw niccy;
+ 		struct isurf_hw isurf;
+ 		struct saphir_hw saphir;
+-#ifdef CONFIG_HISAX_TESTEMU
+-		struct te_hw te;
+-#endif
+ 		struct bkm_hw ax;
+ 		struct gazel_hw gazel;
+ 		struct w6692_hw w6692;
+@@ -1175,15 +1159,6 @@ struct IsdnCardState {
+ #define CARD_HSTSAPHIR 0
  #endif
- 		return;
-@@ -444,16 +444,16 @@ static void c4_dispatch_tx(avmcard *card
- 			_put_slice(&p, skb->data, len);
- 		}
- 		txlen = (u8 *)p - (u8 *)dma->sendbuf.dmabuf;
--#ifdef CONFIG_C4_DEBUG
-+#ifdef AVM_C4_DEBUG
- 		printk(KERN_DEBUG "%s: tx put msg len=%d\n", card->name, txlen);
- #endif
- 	} else {
- 		txlen = skb->len-2;
--#ifdef CONFIG_C4_POLLDEBUG
-+#ifdef AVM_C4_POLLDEBUG
- 		if (skb->data[2] == SEND_POLLACK)
- 			printk(KERN_INFO "%s: ack to c4\n", card->name);
- #endif
--#ifdef CONFIG_C4_DEBUG
-+#ifdef AVM_C4_DEBUG
- 		printk(KERN_DEBUG "%s: tx put 0x%x len=%d\n",
- 				card->name, skb->data[2], txlen);
- #endif
-@@ -508,7 +508,7 @@ static void c4_handle_rx(avmcard *card)
- 	u32 cidx;
  
- 
--#ifdef CONFIG_C4_DEBUG
-+#ifdef AVM_C4_DEBUG
- 	printk(KERN_DEBUG "%s: rx 0x%x len=%lu\n", card->name,
- 				b1cmd, (unsigned long)dma->recvlen);
- #endif
-@@ -586,7 +586,7 @@ static void c4_handle_rx(avmcard *card)
- 		break;
- 
- 	case RECEIVE_START:
--#ifdef CONFIG_C4_POLLDEBUG
-+#ifdef AVM_C4_POLLDEBUG
- 		printk(KERN_INFO "%s: poll from c4\n", card->name);
- #endif
- 		if (!suppress_pollack)
+-#ifdef	CONFIG_HISAX_TESTEMU
+-#define	CARD_TESTEMU 1
+-#define ISDN_CTYPE_TESTEMU 99
+-#undef ISDN_CTYPE_COUNT
+-#define  ISDN_CTYPE_COUNT ISDN_CTYPE_TESTEMU
+-#else
+-#define CARD_TESTEMU 0
+-#endif
+-
+ #ifdef	CONFIG_HISAX_BKM_A4T
+ #define	CARD_BKM_A4T 1
+ #ifndef ISDN_CHIP_ISAC
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
