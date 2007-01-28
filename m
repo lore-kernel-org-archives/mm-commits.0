@@ -1,50 +1,60 @@
 From: akpm@osdl.org
-Subject: - clocksource-add-verification-watchdog-helper-fix-2.patch removed from -mm tree
-Date: Sun, 28 Jan 2007 15:34:46 -0800
-Message-ID: <200701282334.l0SNYkU5006014@shell0.pdx.osdl.net>
+Subject: - clocksource-add-verification-watchdog-helper-fix-3.patch removed from -mm tree
+Date: Sun, 28 Jan 2007 15:34:55 -0800
+Message-ID: <200701282334.l0SNYuca006021@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41773 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41782 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932978AbXA1Xey (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 18:34:54 -0500
+	id S932981AbXA1XfT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 18:35:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clocksource-add-verification-watchdog-helper fix 2
+     clocksource-add-verification-watchdog-helper fix 3
 has been removed from the -mm tree.  Its filename was
-     clocksource-add-verification-watchdog-helper-fix-2.patch
+     clocksource-add-verification-watchdog-helper-fix-3.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: clocksource-add-verification-watchdog-helper fix 2
+Subject: clocksource-add-verification-watchdog-helper fix 3
 From: Andrew Morton <akpm@osdl.org>
 
-Try to make this patch series bisectable.
+Try to make this patch series bisectable
 
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/timer.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/time/clocksource.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/timer.c~clocksource-add-verification-watchdog-helper-fix-2 kernel/timer.c
---- a/kernel/timer.c~clocksource-add-verification-watchdog-helper-fix-2
-+++ a/kernel/timer.c
-@@ -854,7 +854,6 @@ static void change_clocksource(void)
- 	clock->xtime_nsec = 0;
- 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
+diff -puN include/linux/clocksource.h~clocksource-add-verification-watchdog-helper-fix-3 include/linux/clocksource.h
+diff -puN kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper-fix-3 kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper-fix-3
++++ a/kernel/time/clocksource.c
+@@ -28,7 +28,6 @@
+ #include <linux/sysdev.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+-#include <linux/tick.h>
  
--	hrtimer_clock_notify();
- 	printk(KERN_INFO "Time: %s clocksource has been installed.\n",
- 	       clock->name);
- }
+ /* XXX - Would like a better way for initializing curr_clocksource */
+ extern struct clocksource clocksource_jiffies;
+@@ -115,7 +114,7 @@ static void clocksource_watchdog(unsigne
+ 				 * system as well so that we transition
+ 				 * into high-res mode:
+ 				 */
+-				tick_clock_notify();
++//				tick_clock_notify();
+ 			}
+ 			cs->flags |= CLOCK_SOURCE_WATCHDOG;
+ 			cs->wd_last = csnow;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -145,7 +155,6 @@ mips-convert-to-use-shared-apm-emulation-fix.patch
 vmi-versus-hrtimers.patch
 add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
 i386-use-gtod-persistent-clock-support.patch
-clocksource-add-verification-watchdog-helper-fix-2.patch
 clocksource-add-verification-watchdog-helper-fix-3.patch
 hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
 hrtimers-cleanup-locking.patch
