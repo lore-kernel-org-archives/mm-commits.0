@@ -1,93 +1,93 @@
 From: akpm@osdl.org
-Subject: - ehca-avoid-crash-on-kthread_create-failure.patch removed from -mm tree
-Date: Sun, 28 Jan 2007 11:02:15 -0800
-Message-ID: <200701281902.l0SJ2Ffd001410@shell0.pdx.osdl.net>
+Subject: + m68k-work-around-binutils-tokenizer-change.patch added to -mm tree
+Date: Sun, 28 Jan 2007 14:30:51 -0800
+Message-ID: <200701282230.l0SMUpLr004848@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35016 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40153 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752482AbXA1TC2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 14:02:28 -0500
+	id S932929AbXA1WbW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 17:31:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, heiko.carstens@de.ibm.com, hnguyen@de.ibm.com, muli@il.ibm.com, raisch@de.ibm.com, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: viro@ftp.linux.org.uk, geert@linux-m68k.org, viro@zeniv.linux.org.uk, zippel@linux-m68k.org
 
 
 The patch titled
-     ehca: avoid crash on kthread_create() failure
-has been removed from the -mm tree.  Its filename was
-     ehca-avoid-crash-on-kthread_create-failure.patch
+     m68k: work around binutils tokenizer change
+has been added to the -mm tree.  Its filename is
+     m68k-work-around-binutils-tokenizer-change.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ehca: avoid crash on kthread_create() failure
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: m68k: work around binutils tokenizer change
+From: Al Viro <viro@ftp.linux.org.uk>
 
-This patch disallows invalid task_struct pointer returned by
-kthread_create() to be written to percpu data to avoid crash.
+Recent as(1) doesn't think that .  terminates a macro name, so getuser.l is
+_not_ treated as invoking getuser with .l as the first argument. 
+arch/m68k/math-emu relies on old behaviour, so it gets a lot of undefined
+macros with more or less current binutils.
 
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Note that this behaviour remains in all recent versions and is unrelated to
+another binutils problems we used to have for a while (having (%a0)+ parsed
+as two arguments).  This one is there to stay; it's an intentional and
+documented change.
+
+.irp <identifier> <words>
+[text]
+.endr
+expands to a copy of text per each word, with \<identifier> replaced with
+corresponding word.  Again, what happens depends on whether gas_ident.x
+is treated as one or as two tokens; in the former case we'll get old_gas
+incremented once, in the latter - twice.  The rest is obvious.
+
+Unlike .macro argument list _anything_ is explicitly allowed after
+.irp <identifier>; here we are on very safe ground.  And yes, it does
+work with all gas variants I've got here (including vanilla 2.15, 2.16,
+2.16.1 and 2.17, plus debian and FC binutils).
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/infiniband/hw/ehca/ehca_irq.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ include/asm-m68k/math-emu.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_irq.c~ehca-avoid-crash-on-kthread_create-failure drivers/infiniband/hw/ehca/ehca_irq.c
---- a/drivers/infiniband/hw/ehca/ehca_irq.c~ehca-avoid-crash-on-kthread_create-failure
-+++ a/drivers/infiniband/hw/ehca/ehca_irq.c
-@@ -607,15 +607,20 @@ static int comp_task(void *__cct)
- static struct task_struct *create_comp_task(struct ehca_comp_pool *pool,
- 					    int cpu)
- {
-+	struct task_struct *task;
- 	struct ehca_cpu_comp_task *cct;
+diff -puN include/asm-m68k/math-emu.h~m68k-work-around-binutils-tokenizer-change include/asm-m68k/math-emu.h
+--- a/include/asm-m68k/math-emu.h~m68k-work-around-binutils-tokenizer-change
++++ a/include/asm-m68k/math-emu.h
+@@ -226,6 +226,21 @@ extern unsigned int fp_debugprint;
+ 	.previous
+ .endm
  
- 	cct = per_cpu_ptr(pool->cpu_comp_tasks, cpu);
- 	spin_lock_init(&cct->task_lock);
- 	INIT_LIST_HEAD(&cct->cq_list);
- 	init_waitqueue_head(&cct->wait_queue);
--	cct->task = kthread_create(comp_task, cct, "ehca_comp/%d", cpu);
-+	task = kthread_create(comp_task, cct, "ehca_comp/%d", cpu);
-+	if (!IS_ERR(task))
-+		cct->task = task;
-+	else
-+		cct->task = NULL;
++/* work around binutils idiocy */
++old_gas=-1
++.irp    gas_ident.x .x
++old_gas=old_gas+1
++.endr
++.if !old_gas
++.irp	m b,w,l
++.macro	getuser.\m src,dest,label,addr
++	getuser .\m,\src,\dest,\label,\addr
++.endm
++.macro	putuser.\m src,dest,label,addr
++	putuser .\m,\src,\dest,\label,\addr
++.endm
++.endr
++.endif
  
--	return cct->task;
-+	return task;
- }
- 
- static void destroy_comp_task(struct ehca_comp_pool *pool,
-@@ -683,8 +688,10 @@ static int comp_pool_callback(struct not
- 	case CPU_UP_CANCELED:
- 		ehca_gen_dbg("CPU: %x (CPU_CANCELED)", cpu);
- 		cct = per_cpu_ptr(pool->cpu_comp_tasks, cpu);
--		kthread_bind(cct->task, any_online_cpu(cpu_online_map));
--		destroy_comp_task(pool, cpu);
-+		if (cct->task) {
-+			kthread_bind(cct->task, any_online_cpu(cpu_online_map));
-+			destroy_comp_task(pool, cpu);
-+		}
- 		break;
- 	case CPU_ONLINE:
- 		ehca_gen_dbg("CPU: %x (CPU_ONLINE)", cpu);
+ .macro	movestack	nr,arg1,arg2,arg3,arg4,arg5
+ 	.if	\nr
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from viro@ftp.linux.org.uk are
 
-git-powerpc.patch
-ehca-avoid-crash-on-kthread_create-failure.patch
-ehca-fix-memleak-on-module-unloading.patch
-git-input.patch
-git-netdev-all.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-git-s390.patch
-git-watchdog.patch
-simplify-the-stacktrace-code.patch
+m68k-work-around-binutils-tokenizer-change.patch
+slab-leaks3-default-y.patch
