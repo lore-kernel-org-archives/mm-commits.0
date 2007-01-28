@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 17:07:55 -0800
-Message-ID: <200701280108.l0S18kat019907@shell0.pdx.osdl.net>
+Subject: + clockevents-i383-drivers-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 17:39:06 -0800
+Message-ID: <200701280139.l0S1dvYT020300@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41399 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42259 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932294AbXA1BJB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 20:09:01 -0500
+	id S932248AbXA1BkJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 20:40:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ak@suse.de, benh@kernel.crashing.org, joerg@hydrops.han.de, lethal@linux-sh.org, parag.warudkar@gmail.com, paulus@samba.org
+Cc: akpm@osdl.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86-fix-vdso-mapping-for-aout-executables-sh-fix
+     clockevents-i383-drivers-fix
 has been added to the -mm tree.  Its filename is
-     x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch
+     clockevents-i383-drivers-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-fix-vdso-mapping-for-aout-executables-sh-fix
+Subject: clockevents-i383-drivers-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Parag Warudkar <parag.warudkar@gmail.com>
-Cc: Joerg Ahrens <joerg@hydrops.han.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+arch/i386/kernel/built-in.o: In function `send_IPI_mask':
+include/asm-i386/mach-default/mach_ipi.h:14: undefined reference to `send_IPI_mask_bitmask'
+
+So it wasn't tested much on uniprocessor.
+
+This patch is a bit hacky.
+
+I see no reason why kernel/time/tick-broadcast.c is compiled at all on
+uniporocessor machines.
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sh/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/apic.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/sh/Kconfig~x86-fix-vdso-mapping-for-aout-executables-sh-fix arch/sh/Kconfig
---- a/arch/sh/Kconfig~x86-fix-vdso-mapping-for-aout-executables-sh-fix
-+++ a/arch/sh/Kconfig
-@@ -73,7 +73,7 @@ config ARCH_HAS_ILOG2_U64
- config ARCH_HAS_SETUP_ADDITIONAL_PAGES
- 	bool
- 	default y
--	depends on SUPERH
-+	depends on SUPERH && VSYSCALL
+diff -puN arch/i386/kernel/apic.c~clockevents-i383-drivers-fix arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~clockevents-i383-drivers-fix
++++ a/arch/i386/kernel/apic.c
+@@ -301,7 +301,9 @@ static void lapic_timer_setup(enum clock
+  */
+ static void lapic_timer_broadcast(cpumask_t mask)
+ {
++#ifdef CONFIG_SMP
+ 	send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
++#endif
+ }
  
- source "init/Kconfig"
- 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -61,6 +68,7 @@ x86-fix-vdso-mapping-for-aout-executables-fixes.patch
 x86-fix-vdso-mapping-for-aout-executables-fixes-2.patch
 x86-fix-vdso-mapping-for-aout-executables-cleanups.patch
 x86-fix-vdso-mapping-for-aout-executables-doh.patch
+x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch
 mm-show-bounce-pages-in-oom-killer-output.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
@@ -159,6 +167,7 @@ hrtimers-cleanup-locking.patch
 hrtimers-add-state-tracking.patch
 tick-management-dyntick--highres-functionality-fix.patch
 clockevents-i383-drivers.patch
+clockevents-i383-drivers-fix.patch
 hrt-dynticks-hotplug-fix-fix.patch
 generic-vsyscall-gtod-support-for-generic_time-tidy.patch
 revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
@@ -252,4 +261,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch
