@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + x86-fix-vdso-mapping-for-aout-executables-fixes-2.patch added to -mm tree
-Date: Sat, 27 Jan 2007 16:17:04 -0800
-Message-ID: <200701280017.l0S0HtTQ019324@shell0.pdx.osdl.net>
+Subject: + x86-fix-vdso-mapping-for-aout-executables-cleanups.patch added to -mm tree
+Date: Sat, 27 Jan 2007 16:20:09 -0800
+Message-ID: <200701280021.l0S0L0ZF019359@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39754 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39905 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932189AbXA1ASP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 19:18:15 -0500
+	id S932153AbXA1AVO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 19:21:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@osdl.org, ak@suse.de, benh@kernel.crashing.org, joerg@hydrops.han.de, l
 
 
 The patch titled
-     x86-fix-vdso-mapping-for-aout-executables-fixes-2
+     x86-fix-vdso-mapping-for-aout-executables-cleanups
 has been added to the -mm tree.  Its filename is
-     x86-fix-vdso-mapping-for-aout-executables-fixes-2.patch
+     x86-fix-vdso-mapping-for-aout-executables-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,8 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-fix-vdso-mapping-for-aout-executables-fixes-2
+Subject: x86-fix-vdso-mapping-for-aout-executables-cleanups
 From: Andrew Morton <akpm@osdl.org>
+
+Tabs, please.
 
 Cc: Parag Warudkar <parag.warudkar@gmail.com>
 Cc: Joerg Ahrens <joerg@hydrops.han.de>
@@ -37,21 +39,114 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/ia32/syscall32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/Kconfig            |    6 +++---
+ arch/powerpc/Kconfig         |    6 +++---
+ arch/sh/Kconfig              |    6 +++---
+ arch/x86_64/Kconfig          |    6 +++---
+ arch/x86_64/ia32/ia32_aout.c |    8 ++++----
+ fs/binfmt_aout.c             |    8 ++++----
+ 6 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN arch/x86_64/ia32/syscall32.c~x86-fix-vdso-mapping-for-aout-executables-fixes-2 arch/x86_64/ia32/syscall32.c
---- a/arch/x86_64/ia32/syscall32.c~x86-fix-vdso-mapping-for-aout-executables-fixes-2
-+++ a/arch/x86_64/ia32/syscall32.c
-@@ -93,7 +93,7 @@ const char *arch_vma_name(struct vm_area
+diff -puN arch/i386/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups arch/i386/Kconfig
+--- a/arch/i386/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/arch/i386/Kconfig
+@@ -626,9 +626,9 @@ config ARCH_POPULATES_NODE_MAP
+ 	def_bool y
  
- int arch_setup_additional_pages(struct linux_binprm *bprm, int exstack)
- {
--	return syscall32_setup_pages(struct linux_binprm *bprm, int exstack);
-+	return syscall32_setup_pages(bprm, int exstack);
- }
- EXPORT_SYMBOL(arch_setup_additional_pages);
+ config ARCH_HAS_SETUP_ADDITIONAL_PAGES
+-       bool
+-       default y
+-       depends on X86_32
++	bool
++	default y
++	depends on X86_32
  
+ source "mm/Kconfig"
+ 
+diff -puN arch/powerpc/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/arch/powerpc/Kconfig
+@@ -46,9 +46,9 @@ config ARCH_HAS_ILOG2_U32
+ 	default y
+ 
+ config ARCH_HAS_SETUP_ADDITIONAL_PAGES
+-       bool
+-       default y
+-       depends on PPC32 || PPC64
++	bool
++	default y
++	depends on PPC32 || PPC64
+ 
+ config ARCH_HAS_ILOG2_U64
+ 	bool
+diff -puN arch/sh/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups arch/sh/Kconfig
+--- a/arch/sh/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/arch/sh/Kconfig
+@@ -68,9 +68,9 @@ config ARCH_HAS_ILOG2_U64
+ 	default n
+ 
+ config ARCH_HAS_SETUP_ADDITIONAL_PAGES
+-       bool
+-       default y
+-       depends on SUPERH
++	bool
++	default y
++	depends on SUPERH
+ 
+ source "init/Kconfig"
+ 
+diff -puN arch/x86_64/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/arch/x86_64/Kconfig
+@@ -399,9 +399,9 @@ config HAVE_ARCH_EARLY_PFN_TO_NID
+ 	depends on NUMA
+ 
+ config ARCH_HAS_SETUP_ADDITIONAL_PAGES
+-       bool
+-       default y
+-       depends on X86_64
++	bool
++	default y
++	depends on X86_64
+ 
+ config OUT_OF_LINE_PFN_TO_PAGE
+ 	def_bool y
+diff -puN arch/x86_64/ia32/ia32_aout.c~x86-fix-vdso-mapping-for-aout-executables-cleanups arch/x86_64/ia32/ia32_aout.c
+--- a/arch/x86_64/ia32/ia32_aout.c~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/arch/x86_64/ia32/ia32_aout.c
+@@ -415,10 +415,10 @@ beyond_if:
+ 	retval = arch_setup_additional_pages(bprm, EXSTACK_DEFAULT);
+ 
+ 	if (retval < 0) {
+-                /* Someone check-me: is this error path enough? */
+-                send_sig(SIGKILL, current, 0);
+-                return retval;
+-        }
++		/* Someone check-me: is this error path enough? */
++		send_sig(SIGKILL, current, 0);
++		return retval;
++	}
+ 
+ 	current->mm->start_stack =
+ 		(unsigned long)create_aout_tables((char __user *)bprm->p, bprm);
+diff -puN fs/binfmt_aout.c~x86-fix-vdso-mapping-for-aout-executables-cleanups fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/fs/binfmt_aout.c
+@@ -435,10 +435,10 @@ beyond_if:
+ 	set_binfmt(&aout_format);
+ 
+ 	retval = arch_setup_additional_pages(bprm, executable_stack);
+-        if (retval < 0) {
+-                send_sig(SIGKILL, current, 0);
+-                return retval;
+-        }
++	if (retval < 0) {
++		send_sig(SIGKILL, current, 0);
++		return retval;
++	}
+ 
+ 	retval = set_brk(current->mm->start_brk, current->mm->brk);
+ 	if (retval < 0) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -59,6 +154,7 @@ Patches currently in -mm which might be from akpm@osdl.org are
 origin.patch
 x86-fix-vdso-mapping-for-aout-executables-fixes.patch
 x86-fix-vdso-mapping-for-aout-executables-fixes-2.patch
+x86-fix-vdso-mapping-for-aout-executables-cleanups.patch
 mm-show-bounce-pages-in-oom-killer-output.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
