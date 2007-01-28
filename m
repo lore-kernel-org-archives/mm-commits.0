@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + tick-management-dyntick--highres-functionality-fix.patch added to -mm tree
-Date: Sat, 27 Jan 2007 17:05:08 -0800
-Message-ID: <200701280105.l0S15xlX019870@shell0.pdx.osdl.net>
+Subject: + clocksource-add-verification-watchdog-helper-fix-3.patch added to -mm tree
+Date: Sat, 27 Jan 2007 17:05:21 -0800
+Message-ID: <200701280106.l0S16CG3019873@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41346 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41357 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932310AbXA1BGJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 20:06:09 -0500
+	id S932257AbXA1BGi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 20:06:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@osdl.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     tick-management-dyntick--highres-functionality fix
+     clocksource-add-verification-watchdog-helper fix 3
 has been added to the -mm tree.  Its filename is
-     tick-management-dyntick--highres-functionality-fix.patch
+     clocksource-add-verification-watchdog-helper-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tick-management-dyntick--highres-functionality fix
+Subject: clocksource-add-verification-watchdog-helper fix 3
 From: Andrew Morton <akpm@osdl.org>
 
-Bisectability.
+Try to make this patch series bisectable
 
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/clocksource.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/time/clocksource.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/time/clocksource.c~tick-management-dyntick--highres-functionality-fix kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~tick-management-dyntick--highres-functionality-fix
+diff -puN include/linux/clocksource.h~clocksource-add-verification-watchdog-helper-fix-3 include/linux/clocksource.h
+diff -puN kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper-fix-3 kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper-fix-3
 +++ a/kernel/time/clocksource.c
-@@ -28,6 +28,7 @@
+@@ -28,7 +28,6 @@
  #include <linux/sysdev.h>
  #include <linux/init.h>
  #include <linux/module.h>
-+#include <linux/tick.h>
+-#include <linux/tick.h>
  
  /* XXX - Would like a better way for initializing curr_clocksource */
  extern struct clocksource clocksource_jiffies;
-@@ -114,7 +115,7 @@ static void clocksource_watchdog(unsigne
+@@ -115,7 +114,7 @@ static void clocksource_watchdog(unsigne
  				 * system as well so that we transition
  				 * into high-res mode:
  				 */
--//				tick_clock_notify();
-+				tick_clock_notify();
+-				tick_clock_notify();
++//				tick_clock_notify();
  			}
  			cs->flags |= CLOCK_SOURCE_WATCHDOG;
  			cs->wd_last = csnow;
@@ -258,4 +259,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-a.patch
