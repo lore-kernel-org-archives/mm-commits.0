@@ -1,407 +1,120 @@
 From: akpm@osdl.org
-Subject: - hrt-dynticks-hotplug-fix.patch removed from -mm tree
-Date: Sun, 28 Jan 2007 15:35:56 -0800
-Message-ID: <200701282335.l0SNZuZN006046@shell0.pdx.osdl.net>
+Subject: - acpi-keep-track-of-timer-broadcasting-fix.patch removed from -mm tree
+Date: Sun, 28 Jan 2007 15:35:30 -0800
+Message-ID: <200701282335.l0SNZUO6006032@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41837 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41856 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932991AbXA1Xg3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 18:36:29 -0500
+	id S932996AbXA1XhE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 18:37:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: mingo@elte.hu, ak@muc.de, johnstul@us.ibm.com, lenb@kernel.org, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrt/dynticks hotplug fix
+     ACPI: keep track of timer broadcasting, fix
 has been removed from the -mm tree.  Its filename was
-     hrt-dynticks-hotplug-fix.patch
+     acpi-keep-track-of-timer-broadcasting-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into acpi-keep-track-of-timer-broadcasting.patch
 
 ------------------------------------------------------
-Subject: hrt/dynticks hotplug fix
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: ACPI: keep track of timer broadcasting, fix
+From: Ingo Molnar <mingo@elte.hu>
 
-The clockevents code didn't do CPU hotplug (and thus SMP resume/suspend)
-logistics properly.  [read: resume under highres+dynticks didnt work] There
-were multiple problems:
+Many BIOSes offer C2 state but in reality they enter C3 - and hence the
+local APIC stops working.  So make acpi_timer_check_state() more
+conservative and assume that the lapic-stops workaround is needed even in
+C2.
 
- - the local APIC clockevents driver was not unregistered on CPU-down, 
-   but the CPU bootup sequence reinitialized it. This was mostly latent
-   before but now that it's list managed it became a double list_add():
+This is a bug in the upstream ACPI code that, on the affected systems made
+process statistics unreliable on SMP kernels.  With the tick infrastructure
+focusing all the splintered timer implementations this problem got
+propagated to UP kernels too which either had the APIC enabled by the BIOS,
+or used the 'lapic' boot option.  Thus the existing regression got visible
+on previously working configs too.
 
-    [<c023b8fb>] list_add+0xa/0xf
-    [<c01420ff>] clockevents_register_device+0x4e/0x6b
-    [<c0119793>] setup_APIC_timer+0x47/0x4c
-    [<c01197a0>] setup_secondary_APIC_clock+0x8/0xa
-    [<c0118964>] start_secondary+0xe4/0x346
-
- - secondly, when bringing a CPU down we didnt clear its scheduler-tick 
-   hrtimer status, which on one box resulted in a NULL pointer 
-   dereference during CPU hot-unplug:
-
-   EIP is at clockevents_program_event+0x38/0xac
-   Call Trace:
-     [<c0142df1>] tick_program_event+0x2d/0x55
-     [<c013ed19>] hrtimer_reprogram+0x60/0x84
-     [<c013edd5>] enqueue_hrtimer+0x98/0x11e
-     [<c013f866>] hrtimer_start+0xdd/0xf4
-     [<c01435a4>] tick_nohz_stop_sched_tick+0x179/0x1f2
-     [<c012e83d>] irq_exit+0x76/0x83
-     [<c010671b>] do_IRQ+0xf3/0x10c
-     [<c0104a76>] common_interrupt+0x2e/0x34
-     [<c011f88f>] native_safe_halt+0x5/0x7
-     [<c0102e9c>] cpu_idle+0xca/0x143
-     [<c0118bbe>] start_secondary+0x33e/0x346
-
- - thirdly, the double hrtimer init also resulted in the sched-tick 
-   hrtimer expiry being executed in softirq context, which is bad 
-   locking-wise and lockdep warned about that:
-
-    =================================
-    [ INFO: inconsistent lock state ]
-    [ 2.6.20-rc6-rt2 #26
-    ---------------------------------
-    inconsistent {in-hardirq-W} -> {hardirq-on-W} usage.
-    softirq-timer/1/2031 [HC0[0]:SC0[0]:HE1:SE1] takes:
-     (xtime_lock){+...}, at: [<c0143217>] tick_do_update_jiffies64+0x17/0xd0
-
-All these problems are gone with this patch, we now properly get notified of
-CPU dead events and properly use/unuse register/unregister the clockevent
-devices.  The suspend/resume bits of the clockevents code survived from a
-really old version and only worked by miracle.  It's now pretty OK. 
-Suspend/resume with high-res and dynticks enabled was successfully tested on
-multiple boxes, including SMP ones.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@muc.de>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/clockchips.h   |    2 -
- kernel/hrtimer.c             |    1 
- kernel/time/clockevents.c    |   35 ++++++++++++-----------
- kernel/time/tick-broadcast.c |   49 ++++++++++++++++++++++-----------
- kernel/time/tick-common.c    |   28 ++++++++++++++++--
- kernel/time/tick-internal.h  |   20 +++----------
- kernel/time/tick-sched.c     |    2 +
- kernel/timer.c               |    2 -
- 8 files changed, 86 insertions(+), 53 deletions(-)
+ drivers/acpi/processor_idle.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/clockchips.h~hrt-dynticks-hotplug-fix include/linux/clockchips.h
---- a/include/linux/clockchips.h~hrt-dynticks-hotplug-fix
-+++ a/include/linux/clockchips.h
-@@ -34,6 +34,7 @@ enum clock_event_nofitiers {
- 	CLOCK_EVT_NOTIFY_BROADCAST_EXIT,
- 	CLOCK_EVT_NOTIFY_SUSPEND,
- 	CLOCK_EVT_NOTIFY_RESUME,
-+	CLOCK_EVT_NOTIFY_CPU_DEAD,
- };
+diff -puN drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcasting-fix drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcasting-fix
++++ a/drivers/acpi/processor_idle.c
+@@ -253,8 +253,10 @@ static void acpi_cstate_enter(struct acp
+ #ifdef ARCH_APICTIMER_STOPS_ON_C3
  
  /*
-@@ -129,7 +130,6 @@ extern void clockevents_unregister_notif
- extern int clockevents_program_event(struct clock_event_device *dev,
- 				     ktime_t expires);
- 
--extern void clockevents_resume_events(void);
- extern void clockevents_notify(unsigned long reason, void *arg);
- 
- #else
-diff -puN kernel/hrtimer.c~hrt-dynticks-hotplug-fix kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrt-dynticks-hotplug-fix
-+++ a/kernel/hrtimer.c
-@@ -1384,6 +1384,7 @@ static int __cpuinit hrtimer_cpu_notify(
- 
- #ifdef CONFIG_HOTPLUG_CPU
- 	case CPU_DEAD:
-+		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DEAD, &cpu);
- 		migrate_hrtimers(cpu);
- 		break;
- #endif
-diff -puN kernel/time/clockevents.c~hrt-dynticks-hotplug-fix kernel/time/clockevents.c
---- a/kernel/time/clockevents.c~hrt-dynticks-hotplug-fix
-+++ a/kernel/time/clockevents.c
-@@ -248,26 +248,27 @@ void clockevents_notify(unsigned long re
- {
- 	spin_lock(&clockevents_lock);
- 	clockevents_do_notify(reason, arg);
--	spin_unlock(&clockevents_lock);
--}
--EXPORT_SYMBOL_GPL(clockevents_notify);
- 
--void clockevents_do_resume_events(void *arg)
--{
--	spin_lock(&clockevents_lock);
--	clockevents_notify(CLOCK_EVT_NOTIFY_RESUME, NULL);
-+	switch (reason) {
-+	case CLOCK_EVT_NOTIFY_CPU_DEAD:
-+		/*
-+		 * Unregister the clock event devices which were
-+		 * released from the users in the notify chain.
-+		 */
-+		while (!list_empty(&clockevents_released)) {
-+			struct clock_event_device *dev;
-+
-+			dev = list_entry(clockevents_released.next,
-+					 struct clock_event_device, list);
-+			list_del(&dev->list);
-+		}
-+		break;
-+	default:
-+		break;
-+	}
- 	spin_unlock(&clockevents_lock);
- }
--
--/**
-- * clockevents_resume_events - resume the active clock devices
-- *
-- * Called after timekeeping is functional again
-- */
--void clockevents_resume_events(void)
--{
--	on_each_cpu(clockevents_do_resume_events, NULL, 0, 1);
--}
-+EXPORT_SYMBOL_GPL(clockevents_notify);
- 
- #ifdef CONFIG_SYSFS
- 
-diff -puN kernel/timer.c~hrt-dynticks-hotplug-fix kernel/timer.c
---- a/kernel/timer.c~hrt-dynticks-hotplug-fix
-+++ a/kernel/timer.c
-@@ -995,7 +995,7 @@ static int timekeeping_resume(struct sys
- 	timekeeping_suspended = 0;
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
- 
--	clockevents_resume_events();
-+	clockevents_notify(CLOCK_EVT_NOTIFY_RESUME, NULL);
- 	/* Resume hrtimers */
- 	clock_was_set();
- 
-diff -puN kernel/time/tick-broadcast.c~hrt-dynticks-hotplug-fix kernel/time/tick-broadcast.c
---- a/kernel/time/tick-broadcast.c~hrt-dynticks-hotplug-fix
-+++ a/kernel/time/tick-broadcast.c
-@@ -261,17 +261,25 @@ void tick_set_periodic_handler(struct cl
- }
- 
- /*
-- * Called with irqs disabled
-+ * Remove a CPU from broadcasting
+- * Some BIOS implementations switch to C3 in the published C2 state. This seems
+- * to be a common problem on AMD boxen.
++ * Some BIOS implementations switch to C3 in the published C2 state.
++ * This seems to be a common problem on AMD boxen, but other vendors
++ * are affected too. We pick the most conservative approach: we assume
++ * that the local APIC stops in both C2 and C3.
   */
--void tick_do_resume(int cpu)
-+void tick_shutdown_broadcast(unsigned int *cpup)
- {
--	unsigned long reason;
-+	struct clock_event_device *bc;
-+	unsigned long flags;
-+	unsigned int cpu = *cpup;
-+
-+	spin_lock_irqsave(&tick_broadcast_lock, flags);
+ static void acpi_timer_check_state(int state, struct acpi_processor *pr,
+ 				   struct acpi_processor_cx *cx)
+@@ -268,11 +270,8 @@ static void acpi_timer_check_state(int s
+ 	if (pwr->timer_broadcast_on_state < state)
+ 		return;
  
--	reason = cpu_isset(cpu, tick_broadcast_mask) ?
--		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
--	tick_do_broadcast_on_off(&reason);
-+	bc = tick_broadcast_device.evtdev;
-+	cpu_clear(cpu, tick_broadcast_mask);
- 
--	tick_oneshot_resume(cpu);
-+	if (tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC) {
-+		if (bc && cpus_empty(tick_broadcast_mask))
-+			clockevents_set_mode(bc, CLOCK_EVT_MODE_SHUTDOWN);
-+	}
-+
-+	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
+-	if(cx->type == ACPI_STATE_C3 ||
+-	   boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
++	if (cx->type >= ACPI_STATE_C2)
+ 		pr->power.timer_broadcast_on_state = state;
+-		return;
+-	}
  }
  
- #ifdef CONFIG_TICK_ONESHOT
-@@ -434,16 +442,27 @@ void tick_broadcast_switch_to_oneshot(vo
- 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
- }
- 
--/**
-- * Called with irqs disabled
-+
-+/*
-+ * Remove a dead CPU from broadcasting
-  */
--void tick_oneshot_resume(int cpu)
-+void tick_shutdown_broadcast_oneshot(unsigned int *cpup)
- {
--	unsigned long reason;
-+	struct clock_event_device *bc;
-+	unsigned long flags;
-+	unsigned int cpu = *cpup;
-+
-+	spin_lock_irqsave(&tick_broadcast_lock, flags);
-+
-+	bc = tick_broadcast_device.evtdev;
-+	cpu_clear(cpu, tick_broadcast_oneshot_mask);
-+
-+	if (tick_broadcast_device.mode == TICKDEV_MODE_ONESHOT) {
-+		if (bc && cpus_empty(tick_broadcast_oneshot_mask))
-+			clockevents_set_mode(bc, CLOCK_EVT_MODE_SHUTDOWN);
-+	}
- 
--	reason = cpu_isset(cpu, tick_broadcast_oneshot_mask) ?
--		CLOCK_EVT_NOTIFY_BROADCAST_ENTER :
--		CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
--	tick_broadcast_oneshot_control(reason);
-+	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
- }
-+
- #endif
-diff -puN kernel/time/tick-common.c~hrt-dynticks-hotplug-fix kernel/time/tick-common.c
---- a/kernel/time/tick-common.c~hrt-dynticks-hotplug-fix
-+++ a/kernel/time/tick-common.c
-@@ -271,14 +271,29 @@ out:
- }
- 
- /*
-- * Resume tick devices
-+ * Shutdown an event device on a given cpu:
-+ *
-+ * This is called on a life CPU, when a CPU is dead. So we cannot
-+ * access the hardware device itself.
-+ * We just set the mode and remove it from the lists.
-  */
--static void tick_resume(void)
-+static void tick_shutdown(unsigned int *cpup)
- {
-+	struct tick_device *td = &per_cpu(tick_cpu_device, *cpup);
-+	struct clock_event_device *dev = td->evtdev;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&tick_device_lock, flags);
--	tick_do_resume(smp_processor_id());
-+	td->mode = TICKDEV_MODE_PERIODIC;
-+	if (dev) {
-+		/*
-+		 * Prevent that the clock events layer tries to call
-+		 * the set mode function!
-+		 */
-+		dev->mode = CLOCK_EVT_MODE_UNUSED;
-+		clockevents_exchange_device(dev, NULL);
-+		td->evtdev = NULL;
-+	}
- 	spin_unlock_irqrestore(&tick_device_lock, flags);
- }
- 
-@@ -305,7 +320,12 @@ static int tick_notify(struct notifier_b
- 
- 	case CLOCK_EVT_NOTIFY_RESUME:
- 		tick_resume_jiffy_update();
--		tick_resume();
-+		break;
-+
-+	case CLOCK_EVT_NOTIFY_CPU_DEAD:
-+		tick_shutdown_broadcast_oneshot(dev);
-+		tick_shutdown_broadcast(dev);
-+		tick_shutdown(dev);
- 		break;
- 
- 	default:
-diff -puN kernel/time/tick-internal.h~hrt-dynticks-hotplug-fix kernel/time/tick-internal.h
---- a/kernel/time/tick-internal.h~hrt-dynticks-hotplug-fix
-+++ a/kernel/time/tick-internal.h
-@@ -20,12 +20,12 @@ extern void tick_resume_jiffy_update(voi
- extern int tick_program_event(ktime_t expires, int force);
- extern void tick_oneshot_notify(void);
- extern int tick_switch_to_oneshot(void (*handler)(struct clock_event_device *));
--extern void tick_oneshot_resume(int cpu);
- 
- # ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
- extern void tick_broadcast_setup_oneshot(struct clock_event_device *bc);
- extern void tick_broadcast_oneshot_control(unsigned long reason);
- extern void tick_broadcast_switch_to_oneshot(void);
-+extern void tick_shutdown_broadcast_oneshot(unsigned int *cpup);
- # else /* BROADCAST */
- static inline void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
- {
-@@ -33,6 +33,7 @@ static inline void tick_broadcast_setup_
- }
- static inline void tick_broadcast_oneshot_control(unsigned long reason) { }
- static inline void tick_broadcast_switch_to_oneshot(void) { }
-+static inline void tick_shutdown_broadcast_oneshot(unsigned int *cpup) { }
- # endif /* !BROADCAST */
- 
- #else /* !ONESHOT */
-@@ -48,13 +49,13 @@ static inline int tick_program_event(kti
- 	return 0;
- }
- static inline void tick_resume_jiffy_update(void) { }
--static inline void tick_oneshot_resume(int cpu) { }
- static inline void tick_oneshot_notify(void) { }
- static inline void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
- {
- 	BUG();
- }
- static inline void tick_broadcast_oneshot_control(unsigned long reason) { }
-+static inline void tick_shutdown_broadcast_oneshot(unsigned int *cpup) { }
- #endif /* !TICK_ONESHOT */
- 
- /*
-@@ -67,10 +68,10 @@ extern int tick_device_uses_broadcast(st
- extern int tick_check_broadcast_device(struct clock_event_device *dev);
- extern int tick_is_broadcast_device(struct clock_event_device *dev);
- extern void tick_broadcast_on_off(unsigned long reason, int *oncpu);
-+extern void tick_shutdown_broadcast(unsigned int *cpup);
- 
- extern void
- tick_set_periodic_handler(struct clock_event_device *dev, int broadcast);
--extern void tick_do_resume(int cpu);
- 
- #else /* !BROADCAST */
- 
-@@ -90,6 +91,7 @@ static inline int tick_device_uses_broad
- }
- static inline void tick_do_periodic_broadcast(struct clock_event_device *d) { }
- static inline void tick_broadcast_on_off(unsigned long reason, int *oncpu) { }
-+static inline void tick_shutdown_broadcast(unsigned int *cpup) { }
- 
- /*
-  * Set the periodic handler in non broadcast mode
-@@ -99,18 +101,6 @@ static inline void tick_set_periodic_han
- {
- 	dev->event_handler = tick_handle_periodic;
- }
--/*
-- * Called with irqs disabled
-- */
--static inline void tick_do_resume(int cpu)
--{
--	struct tick_device *td = &per_cpu(tick_cpu_device, cpu);
--
--	if (td->mode == TICKDEV_MODE_PERIODIC)
--		tick_setup_periodic(td->evtdev, 0);
--	else
--		tick_oneshot_resume(cpu);
--}
- #endif /* !BROADCAST */
- 
- /*
-diff -puN kernel/time/tick-sched.c~hrt-dynticks-hotplug-fix kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~hrt-dynticks-hotplug-fix
-+++ a/kernel/time/tick-sched.c
-@@ -502,6 +502,8 @@ void tick_cancel_sched_timer(int cpu)
- 
- 	if (ts->sched_timer.base)
- 		hrtimer_cancel(&ts->sched_timer);
-+	ts->tick_stopped = 0;
-+	ts->nohz_mode = NOHZ_MODE_INACTIVE;
- }
- #endif /* HIGH_RES_TIMERS */
- 
+ static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from mingo@elte.hu are
 
+origin.patch
+add-install_special_mapping.patch
+i386-vdso-use-install_special_mapping.patch
+x86_64-ia32-vdso-use-install_special_mapping.patch
+powerpc-vdso-use-install_special_mapping.patch
+use-correct-macros-in-raid-code-not-raw-asm.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+sata_sis-build-fix.patch
+fix-for-crash-in-adummy_init.patch
 bugfixes-pci-devices-get-assigned-redundant-irqs.patch
+fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
+i386-kwatch-kernel-watchpoints-using-cpu-debug-registers-fix.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
+lockdep-more-unlock-on-error-fixes.patch
+lockdep-more-unlock-on-error-fixes-fix.patch
+lockdep-add-graph-depth-information-to-proc-lockdep.patch
+consolidate-default-sched_clock.patch
 use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
 proc-remove-useless-and-buggy-nlink-settings.patch
+simplify-the-stacktrace-code.patch
+audit-fix-audit_filter_user_rules-initialization-bug.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
+minimize-lockdep_on-off-side-effect.patch
+fix-apparent-typo-config_lockdep_debug.patch
 add-irq-flag-to-disable-balancing-for-an-interrupt.patch
 add-a-functions-to-handle-interrupt-affinity-setting.patch
 add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
@@ -434,16 +147,20 @@ hrtimers-clean-up-callback-tracking.patch
 hrtimers-move-and-add-documentation.patch
 acpi-fix-missing-include-for-up.patch
 acpi-keep-track-of-timer-broadcasting.patch
+acpi-keep-track-of-timer-broadcasting-fix.patch
 allow-early-access-to-the-power-management-timer.patch
 i386-apic-clean-up-the-apic-code.patch
 clockevents-add-core-functionality.patch
 tick-management-core-functionality.patch
 tick-management-broadcast-functionality.patch
 tick-management-dyntick--highres-functionality.patch
+tick-management-dyntick--highres-functionality-fix.patch
 clockevents-i383-drivers.patch
+clockevents-i383-drivers-fix.patch
 i386-rework-local-apic-timer-calibration.patch
 i386-prepare-for-dyntick.patch
 i386-prepare-nmi-watchdog-for-dynticks.patch
+i386-enable-dynticks-in-kconfig.patch
 hrtimers-add-high-resolution-timer-support.patch
 hrtimers-prevent-possible-itimer-dos.patch
 add-debugging-feature-proc-timer_stat.patch
@@ -466,6 +183,25 @@ time-x86_64-hpet-fixup-clocksource-changes.patch
 time-x86_64-tsc-fixup-clocksource-changes.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
 time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+aio-is-unlikely.patch
+sched-avoid-div-in-rebalance_tick.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
 scheduled-removal-of-sa_xxx-interrupt-flags.patch
+detect-atomic-counter-underflows.patch
+debug-shared-irqs.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
