@@ -1,207 +1,133 @@
 From: akpm@osdl.org
-Subject: - acpi-keep-track-of-timer-broadcasting-fix.patch removed from -mm tree
-Date: Sun, 28 Jan 2007 15:35:30 -0800
-Message-ID: <200701282335.l0SNZUO6006032@shell0.pdx.osdl.net>
+Subject: + nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch added to -mm tree
+Date: Sun, 28 Jan 2007 15:40:24 -0800
+Message-ID: <200701282340.l0SNeOwk006127@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41856 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41935 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932996AbXA1XhE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 18:37:04 -0500
+	id S932995AbXA1Xkl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 18:40:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, ak@muc.de, johnstul@us.ibm.com, lenb@kernel.org, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bunk@stusta.de, davem@davemloft.net, kaber@trash.net
 
 
 The patch titled
-     ACPI: keep track of timer broadcasting, fix
-has been removed from the -mm tree.  Its filename was
-     acpi-keep-track-of-timer-broadcasting-fix.patch
+     From: Adrian Bunk <bunk@stusta.de>
+has been added to the -mm tree.  Its filename is
+     nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
 
-This patch was dropped because it was folded into acpi-keep-track-of-timer-broadcasting.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: keep track of timer broadcasting, fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: From: Adrian Bunk <bunk@stusta.de>
 
-Many BIOSes offer C2 state but in reality they enter C3 - and hence the
-local APIC stops working.  So make acpi_timer_check_state() more
-conservative and assume that the lapic-stops workaround is needed even in
-C2.
 
-This is a bug in the upstream ACPI code that, on the affected systems made
-process statistics unreliable on SMP kernels.  With the tick infrastructure
-focusing all the splintered timer implementations this problem got
-propagated to UP kernels too which either had the APIC enabled by the BIOS,
-or used the 'lapic' boot option.  Thus the existing regression got visible
-on previously working configs too.
+net/built-in.o: In function `q931_help':
+nf_conntrack_h323_main.c:(.text.q931_help+0x6ad): undefined reference to `ip6_route_output'
+nf_conntrack_h323_main.c:(.text.q931_help+0x6c3): undefined reference to `ip6_route_output'
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Len Brown <lenb@kernel.org>
+CONFIG_IPV6=m, CONFIG_NF_CONNTRACK_H323=y results in a compile error.
+
+Fix this by letting NF_CONNTRACK_H323 depend on (IPV6 || IPV6=n).
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_idle.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ net/netfilter/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcasting-fix drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcasting-fix
-+++ a/drivers/acpi/processor_idle.c
-@@ -253,8 +253,10 @@ static void acpi_cstate_enter(struct acp
- #ifdef ARCH_APICTIMER_STOPS_ON_C3
+diff -puN net/netfilter/Kconfig~nf_conntrack_h323-must-depend-on-ipv6-ipv6=n net/netfilter/Kconfig
+--- a/net/netfilter/Kconfig~nf_conntrack_h323-must-depend-on-ipv6-ipv6=n
++++ a/net/netfilter/Kconfig
+@@ -165,7 +165,7 @@ config NF_CONNTRACK_FTP
  
- /*
-- * Some BIOS implementations switch to C3 in the published C2 state. This seems
-- * to be a common problem on AMD boxen.
-+ * Some BIOS implementations switch to C3 in the published C2 state.
-+ * This seems to be a common problem on AMD boxen, but other vendors
-+ * are affected too. We pick the most conservative approach: we assume
-+ * that the local APIC stops in both C2 and C3.
-  */
- static void acpi_timer_check_state(int state, struct acpi_processor *pr,
- 				   struct acpi_processor_cx *cx)
-@@ -268,11 +270,8 @@ static void acpi_timer_check_state(int s
- 	if (pwr->timer_broadcast_on_state < state)
- 		return;
- 
--	if(cx->type == ACPI_STATE_C3 ||
--	   boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
-+	if (cx->type >= ACPI_STATE_C2)
- 		pr->power.timer_broadcast_on_state = state;
--		return;
--	}
- }
- 
- static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
+ config NF_CONNTRACK_H323
+ 	tristate "H.323 protocol support (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && NF_CONNTRACK
++	depends on EXPERIMENTAL && NF_CONNTRACK && (IPV6 || IPV6=n)
+ 	help
+ 	  H.323 is a VoIP signalling protocol from ITU-T. As one of the most
+ 	  important VoIP protocols, it is widely used by voice hardware and
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-add-install_special_mapping.patch
-i386-vdso-use-install_special_mapping.patch
-x86_64-ia32-vdso-use-install_special_mapping.patch
-powerpc-vdso-use-install_special_mapping.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-sata_sis-build-fix.patch
-fix-for-crash-in-adummy_init.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers-fix.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-consolidate-default-sched_clock.patch
-use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-simplify-the-stacktrace-code.patch
-audit-fix-audit_filter_user_rules-initialization-bug.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
-minimize-lockdep_on-off-side-effect.patch
-fix-apparent-typo-config_lockdep_debug.patch
-add-irq-flag-to-disable-balancing-for-an-interrupt.patch
-add-a-functions-to-handle-interrupt-affinity-setting.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-hz-free-ntp.patch
-uninline-jiffiesh-functions.patch
-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-fix-timeout-overflow-with-jiffies.patch
+git-acpi.patch
+git-alsa.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+git-powerpc.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
+git-dvb.patch
+drivers-media-dvb-frontends-make-4-functions-static.patch
+git-gfs2-nmw.patch
+ia64-add-pci_get_legacy_ide_irq.patch
+git-ieee1394.patch
+git-libata-all.patch
+mips-remove-smp_tune_scheduling.patch
+git-mmc.patch
+mtd_ck804xrom-must-depend-on-pci.patch
+git-ubi.patch
+git-netdev-all.patch
+remove-one-remaining-define-bcm_tso-1.patch
+net-irda-proper-prototypes.patch
+net-wanrouter-wanmainc-cleanups.patch
+nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+usb_rtl8150-must-select-mii.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
 gtod-persistent-clock-support.patch
 i386-use-gtod-persistent-clock-support.patch
-i386-remove-useless-code-in-tscc.patch
-simplify-the-registration-of-clocksources.patch
-x86-rewrite-smp-tsc-sync-code.patch
-clocksource-replace-is_continuous-by-a-flag-field.patch
-clocksource-replace-is_continuous-by-a-flag-field-fix.patch
-clocksource-fixup-is_continous-changes-on-arm.patch
-clocksource-fixup-is_continous-changes-on-avr32.patch
-clocksource-fixup-is_continous-changes-on-s390.patch
-clocksource-fixup-is_continous-changes-on-mips.patch
-clocksource-remove-the-update-callback.patch
-clocksource-add-verification-watchdog-helper.patch
-mark-tsc-on-geodelx-reliable.patch
-uninline-irq_enter.patch
-fix-cascade-lookup-of-next_timer_interrupt.patch
 extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-fix-missing-include-for-up.patch
-acpi-keep-track-of-timer-broadcasting.patch
-acpi-keep-track-of-timer-broadcasting-fix.patch
-allow-early-access-to-the-power-management-timer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-add-core-functionality.patch
-tick-management-core-functionality.patch
-tick-management-broadcast-functionality.patch
-tick-management-dyntick--highres-functionality.patch
-tick-management-dyntick--highres-functionality-fix.patch
 clockevents-i383-drivers.patch
-clockevents-i383-drivers-fix.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-for-dyntick.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-i386-enable-dynticks-in-kconfig.patch
-hrtimers-add-high-resolution-timer-support.patch
-hrtimers-prevent-possible-itimer-dos.patch
-add-debugging-feature-proc-timer_stat.patch
-add-debugging-feature-proc-timer_list.patch
-add-sysrq-q-to-print-timer_list-debug-info.patch
-hrt-dynticks-hotplug-fix.patch
-hrt-dynticks-hotplug-fix-fix.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-hpet-fixup-clocksource-changes.patch
-time-x86_64-tsc-fixup-clocksource-changes.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-aio-is-unlikely.patch
-sched-avoid-div-in-rebalance_tick.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
-scheduled-removal-of-sa_xxx-interrupt-flags.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
 mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
