@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + clocksource-add-verification-watchdog-helper-fix-3.patch added to -mm tree
-Date: Sat, 27 Jan 2007 17:05:21 -0800
-Message-ID: <200701280106.l0S16CG3019873@shell0.pdx.osdl.net>
+Subject: + x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch added to -mm tree
+Date: Sat, 27 Jan 2007 17:07:55 -0800
+Message-ID: <200701280108.l0S18kat019907@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41357 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41399 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932257AbXA1BGi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Jan 2007 20:06:38 -0500
+	id S932294AbXA1BJB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 27 Jan 2007 20:09:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@osdl.org, ak@suse.de, benh@kernel.crashing.org, joerg@hydrops.han.de, lethal@linux-sh.org, parag.warudkar@gmail.com, paulus@samba.org
 
 
 The patch titled
-     clocksource-add-verification-watchdog-helper fix 3
+     x86-fix-vdso-mapping-for-aout-executables-sh-fix
 has been added to the -mm tree.  Its filename is
-     clocksource-add-verification-watchdog-helper-fix-3.patch
+     x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clocksource-add-verification-watchdog-helper fix 3
+Subject: x86-fix-vdso-mapping-for-aout-executables-sh-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Try to make this patch series bisectable
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Parag Warudkar <parag.warudkar@gmail.com>
+Cc: Joerg Ahrens <joerg@hydrops.han.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/clocksource.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/sh/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/clocksource.h~clocksource-add-verification-watchdog-helper-fix-3 include/linux/clocksource.h
-diff -puN kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper-fix-3 kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-add-verification-watchdog-helper-fix-3
-+++ a/kernel/time/clocksource.c
-@@ -28,7 +28,6 @@
- #include <linux/sysdev.h>
- #include <linux/init.h>
- #include <linux/module.h>
--#include <linux/tick.h>
+diff -puN arch/sh/Kconfig~x86-fix-vdso-mapping-for-aout-executables-sh-fix arch/sh/Kconfig
+--- a/arch/sh/Kconfig~x86-fix-vdso-mapping-for-aout-executables-sh-fix
++++ a/arch/sh/Kconfig
+@@ -73,7 +73,7 @@ config ARCH_HAS_ILOG2_U64
+ config ARCH_HAS_SETUP_ADDITIONAL_PAGES
+ 	bool
+ 	default y
+-	depends on SUPERH
++	depends on SUPERH && VSYSCALL
  
- /* XXX - Would like a better way for initializing curr_clocksource */
- extern struct clocksource clocksource_jiffies;
-@@ -115,7 +114,7 @@ static void clocksource_watchdog(unsigne
- 				 * system as well so that we transition
- 				 * into high-res mode:
- 				 */
--				tick_clock_notify();
-+//				tick_clock_notify();
- 			}
- 			cs->flags |= CLOCK_SOURCE_WATCHDOG;
- 			cs->wd_last = csnow;
+ source "init/Kconfig"
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -259,3 +252,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch
