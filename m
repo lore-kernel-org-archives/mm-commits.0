@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + fix-config_sata_sis=y-compile-error.patch added to -mm tree
-Date: Sun, 28 Jan 2007 15:43:09 -0800
-Message-ID: <200701282343.l0SNh9Ew006187@shell0.pdx.osdl.net>
+Subject: + fix-gfs2-circular-dependency.patch added to -mm tree
+Date: Sun, 28 Jan 2007 15:44:24 -0800
+Message-ID: <200701282344.l0SNiOF9006200@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42254 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42319 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933007AbXA1Xq3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 18:46:29 -0500
+	id S933005AbXA1Xro (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 18:47:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, htejun@gmail.com, jeff@garzik.org
+Cc: bunk@stusta.de, swhiteho@redhat.com
 
 
 The patch titled
-     fix CONFIG_SATA_SIS=y compile error
+     fix GFS2 circular dependency
 has been added to the -mm tree.  Its filename is
-     fix-config_sata_sis=y-compile-error.patch
+     fix-gfs2-circular-dependency.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix CONFIG_SATA_SIS=y compile error
+Subject: fix GFS2 circular dependency
 From: Adrian Bunk <bunk@stusta.de>
 
-Static code shouldn't be used from other modules.
+This patch fixes a circular dependency by letting GFS2_FS_LOCKING_DLM
+and DLM depend on instead of select SYSFS.
 
-drivers/built-in.o: In function `sis_init_one':
-sata_sis.c:(.text+0x7634cd): undefined reference to `sis_info133'
-sata_sis.c:(.text+0x7634d6): undefined reference to `sis_info133'
-
-While I was at it, I also moved the prototype of this struct to a header
-file.
+Since SYSFS depends on EMBEDDED this change shouldn't cause any problems
+for users.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata.h   |    3 +++
- drivers/ata/pata_sis.c |    3 ++-
- drivers/ata/sata_sis.c |    4 +---
- 3 files changed, 6 insertions(+), 4 deletions(-)
+ fs/dlm/Kconfig  |    3 +--
+ fs/gfs2/Kconfig |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/libata.h~fix-config_sata_sis=y-compile-error drivers/ata/libata.h
---- a/drivers/ata/libata.h~fix-config_sata_sis=y-compile-error
-+++ a/drivers/ata/libata.h
-@@ -151,4 +151,7 @@ extern void ata_qc_schedule_eh(struct at
- /* libata-sff.c */
- extern u8 ata_irq_on(struct ata_port *ap);
+diff -puN fs/dlm/Kconfig~fix-gfs2-circular-dependency fs/dlm/Kconfig
+--- a/fs/dlm/Kconfig~fix-gfs2-circular-dependency
++++ a/fs/dlm/Kconfig
+@@ -3,9 +3,8 @@ menu "Distributed Lock Manager"
  
-+/* pata_sis.c */
-+extern struct ata_port_info sis_info133;
-+
- #endif /* __LIBATA_H__ */
-diff -puN drivers/ata/pata_sis.c~fix-config_sata_sis=y-compile-error drivers/ata/pata_sis.c
---- a/drivers/ata/pata_sis.c~fix-config_sata_sis=y-compile-error
-+++ a/drivers/ata/pata_sis.c
-@@ -32,6 +32,7 @@
- #include <scsi/scsi_host.h>
- #include <linux/libata.h>
- #include <linux/ata.h>
-+#include "libata.h"
+ config DLM
+ 	tristate "Distributed Lock Manager (DLM)"
+-	depends on IPV6 || IPV6=n
++	depends on SYSFS && (IPV6 || IPV6=n)
+ 	select CONFIGFS_FS
+-	select SYSFS
+ 	select IP_SCTP if DLM_SCTP
+ 	help
+ 	A general purpose distributed lock manager for kernel or userspace
+diff -puN fs/gfs2/Kconfig~fix-gfs2-circular-dependency fs/gfs2/Kconfig
+--- a/fs/gfs2/Kconfig~fix-gfs2-circular-dependency
++++ a/fs/gfs2/Kconfig
+@@ -34,11 +34,10 @@ config GFS2_FS_LOCKING_NOLOCK
  
- #define DRV_NAME	"pata_sis"
- #define DRV_VERSION	"0.4.5"
-@@ -781,7 +782,7 @@ static struct ata_port_info sis_info100_
- 	.pio_mask	= 0x1f,	/* pio0-4 */
- 	.port_ops	= &sis_66_ops,
- };
--static struct ata_port_info sis_info133 = {
-+struct ata_port_info sis_info133 = {
- 	.sht		= &sis_sht,
- 	.flags		= ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
- 	.pio_mask	= 0x1f,	/* pio0-4 */
-diff -puN drivers/ata/sata_sis.c~fix-config_sata_sis=y-compile-error drivers/ata/sata_sis.c
---- a/drivers/ata/sata_sis.c~fix-config_sata_sis=y-compile-error
-+++ a/drivers/ata/sata_sis.c
-@@ -40,6 +40,7 @@
- #include <linux/device.h>
- #include <scsi/scsi_host.h>
- #include <linux/libata.h>
-+#include "libata.h"
+ config GFS2_FS_LOCKING_DLM
+ 	tristate "GFS2 DLM locking module"
+-	depends on GFS2_FS && NET && INET && (IPV6 || IPV6=n)
++	depends on GFS2_FS && SYSFS && NET && INET && (IPV6 || IPV6=n)
+ 	select IP_SCTP if DLM_SCTP
+ 	select CONFIGFS_FS
+ 	select DLM
+-	select SYSFS
+ 	help
+ 	Multiple node locking module for GFS2
  
- #define DRV_NAME	"sata_sis"
- #define DRV_VERSION	"0.7"
-@@ -254,9 +255,6 @@ static void sis_scr_write (struct ata_po
- 
- static int sis_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
- {
--	/* Provided by the PATA driver */
--	extern struct ata_port_info sis_info133;
--
- 	static int printed_version;
- 	struct ata_probe_ent *probe_ent = NULL;
- 	int rc;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -113,6 +86,7 @@ drivers-char-drm-drm_mmc-remove-unused-exports.patch
 git-dvb.patch
 drivers-media-dvb-frontends-make-4-functions-static.patch
 git-gfs2-nmw.patch
+fix-gfs2-circular-dependency.patch
 ia64-add-pci_get_legacy_ide_irq.patch
 git-ieee1394.patch
 git-libata-all.patch
