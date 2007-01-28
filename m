@@ -1,60 +1,50 @@
 From: akpm@osdl.org
-Subject: + netfilter-warning-fix.patch added to -mm tree
-Date: Sun, 28 Jan 2007 15:16:30 -0800
-Message-ID: <200701282316.l0SNGUXw005706@shell0.pdx.osdl.net>
+Subject: - clocksource-add-verification-watchdog-helper-fix-2.patch removed from -mm tree
+Date: Sun, 28 Jan 2007 15:34:46 -0800
+Message-ID: <200701282334.l0SNYkU5006014@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41157 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41773 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932947AbXA1XQj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 18:16:39 -0500
+	id S932978AbXA1Xey (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 18:34:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, davem@davemloft.net, kaber@trash.net
+To: akpm@osdl.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netfilter warning fix
-has been added to the -mm tree.  Its filename is
-     netfilter-warning-fix.patch
+     clocksource-add-verification-watchdog-helper fix 2
+has been removed from the -mm tree.  Its filename was
+     clocksource-add-verification-watchdog-helper-fix-2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: netfilter warning fix
+Subject: clocksource-add-verification-watchdog-helper fix 2
 From: Andrew Morton <akpm@osdl.org>
 
-"using smp_processor_id() in preemptible code"
+Try to make this patch series bisectable.
 
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/net/netfilter/nf_conntrack.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ kernel/timer.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/net/netfilter/nf_conntrack.h~netfilter-warning-fix include/net/netfilter/nf_conntrack.h
---- a/include/net/netfilter/nf_conntrack.h~netfilter-warning-fix
-+++ a/include/net/netfilter/nf_conntrack.h
-@@ -254,7 +254,12 @@ extern atomic_t nf_conntrack_count;
- extern int nf_conntrack_max;
+diff -puN kernel/timer.c~clocksource-add-verification-watchdog-helper-fix-2 kernel/timer.c
+--- a/kernel/timer.c~clocksource-add-verification-watchdog-helper-fix-2
++++ a/kernel/timer.c
+@@ -854,7 +854,6 @@ static void change_clocksource(void)
+ 	clock->xtime_nsec = 0;
+ 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
  
- DECLARE_PER_CPU(struct ip_conntrack_stat, nf_conntrack_stat);
--#define NF_CT_STAT_INC(count) (__get_cpu_var(nf_conntrack_stat).count++)
-+#define NF_CT_STAT_INC(count)						\
-+	do {								\
-+		preempt_disable();					\
-+		__get_cpu_var(nf_conntrack_stat).count++;		\
-+		preempt_enable();					\
-+	} while (0);
- 
- /* no helper, no nat */
- #define	NF_CT_F_BASIC	0
+-	hrtimer_clock_notify();
+ 	printk(KERN_INFO "Time: %s clocksource has been installed.\n",
+ 	       clock->name);
+ }
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
