@@ -1,59 +1,60 @@
 From: akpm@osdl.org
-Subject: - tick-management-dyntick--highres-functionality-fix.patch removed from -mm tree
-Date: Sun, 28 Jan 2007 15:35:37 -0800
-Message-ID: <200701282335.l0SNZb91006035@shell0.pdx.osdl.net>
+Subject: - clockevents-i383-drivers-fix.patch removed from -mm tree
+Date: Sun, 28 Jan 2007 15:35:43 -0800
+Message-ID: <200701282335.l0SNZh7x006038@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41806 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41810 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932983AbXA1Xfv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 18:35:51 -0500
+	id S932989AbXA1Xfy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 18:35:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tick-management-dyntick--highres-functionality fix
+     clockevents-i383-drivers-fix
 has been removed from the -mm tree.  Its filename was
-     tick-management-dyntick--highres-functionality-fix.patch
+     clockevents-i383-drivers-fix.patch
 
-This patch was dropped because it was folded into tick-management-dyntick--highres-functionality.patch
+This patch was dropped because it was folded into clockevents-i383-drivers.patch
 
 ------------------------------------------------------
-Subject: tick-management-dyntick--highres-functionality fix
+Subject: clockevents-i383-drivers-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Bisectability.
+arch/i386/kernel/built-in.o: In function `send_IPI_mask':
+include/asm-i386/mach-default/mach_ipi.h:14: undefined reference to `send_IPI_mask_bitmask'
+
+So it wasn't tested much on uniprocessor.
+
+This patch is a bit hacky.
+
+I see no reason why kernel/time/tick-broadcast.c is compiled at all on
+uniporocessor machines.
 
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/clocksource.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/i386/kernel/apic.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/time/clocksource.c~tick-management-dyntick--highres-functionality-fix kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~tick-management-dyntick--highres-functionality-fix
-+++ a/kernel/time/clocksource.c
-@@ -28,6 +28,7 @@
- #include <linux/sysdev.h>
- #include <linux/init.h>
- #include <linux/module.h>
-+#include <linux/tick.h>
+diff -puN arch/i386/kernel/apic.c~clockevents-i383-drivers-fix arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~clockevents-i383-drivers-fix
++++ a/arch/i386/kernel/apic.c
+@@ -301,7 +301,9 @@ static void lapic_timer_setup(enum clock
+  */
+ static void lapic_timer_broadcast(cpumask_t mask)
+ {
++#ifdef CONFIG_SMP
+ 	send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
++#endif
+ }
  
- /* XXX - Would like a better way for initializing curr_clocksource */
- extern struct clocksource clocksource_jiffies;
-@@ -114,7 +115,7 @@ static void clocksource_watchdog(unsigne
- 				 * system as well so that we transition
- 				 * into high-res mode:
- 				 */
--//				tick_clock_notify();
-+				tick_clock_notify();
- 			}
- 			cs->flags |= CLOCK_SOURCE_WATCHDOG;
- 			cs->wd_last = csnow;
+ /*
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -157,7 +158,6 @@ i386-use-gtod-persistent-clock-support.patch
 hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
 hrtimers-cleanup-locking.patch
 hrtimers-add-state-tracking.patch
-tick-management-dyntick--highres-functionality-fix.patch
 clockevents-i383-drivers.patch
 clockevents-i383-drivers-fix.patch
 hrt-dynticks-hotplug-fix-fix.patch
