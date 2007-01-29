@@ -1,35 +1,30 @@
 From: akpm@osdl.org
-Subject: - x86-fix-vdso-mapping-for-aout-executables-fixes.patch removed from -mm tree
-Date: Mon, 29 Jan 2007 00:56:26 -0800
-Message-ID: <200701290856.l0T8uRol016132@shell0.pdx.osdl.net>
+Subject: - x86-fix-vdso-mapping-for-aout-executables-cleanups.patch removed from -mm tree
+Date: Mon, 29 Jan 2007 00:56:33 -0800
+Message-ID: <200701290856.l0T8uX5l016141@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54456 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54464 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933277AbXA2I4r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 03:56:47 -0500
+	id S933281AbXA2I4u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 03:56:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, ak@suse.de, benh@kernel.crashing.org, joerg@hydrops.han.de, lethal@linux-sh.org, parag.warudkar@gmail.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-fix-vdso-mapping-for-aout-executables-fixes
+     x86-fix-vdso-mapping-for-aout-executables-cleanups
 has been removed from the -mm tree.  Its filename was
-     x86-fix-vdso-mapping-for-aout-executables-fixes.patch
+     x86-fix-vdso-mapping-for-aout-executables-cleanups.patch
 
 This patch was dropped because it was folded into x86-fix-vdso-mapping-for-aout-executables.patch
 
 ------------------------------------------------------
-Subject: x86-fix-vdso-mapping-for-aout-executables-fixes
+Subject: x86-fix-vdso-mapping-for-aout-executables-cleanups
 From: Andrew Morton <akpm@osdl.org>
 
-fs/built-in.o: In function `load_aout_binary':
-fs/binfmt_aout.c:437: undefined reference to `arch_setup_additional_pages'
-fs/built-in.o: In function `load_elf_binary':
-fs/binfmt_elf.c:978: undefined reference to `arch_setup_additional_pages'
-
-What does CONFIG_COMPAT_VDSO do on i386??
+Tabs, please.
 
 Cc: Parag Warudkar <parag.warudkar@gmail.com>
 Cc: Joerg Ahrens <joerg@hydrops.han.de>
@@ -40,23 +35,114 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/interp.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/i386/Kconfig            |    6 +++---
+ arch/powerpc/Kconfig         |    6 +++---
+ arch/sh/Kconfig              |    6 +++---
+ arch/x86_64/Kconfig          |    6 +++---
+ arch/x86_64/ia32/ia32_aout.c |    8 ++++----
+ fs/binfmt_aout.c             |    8 ++++----
+ 6 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/interp.h~x86-fix-vdso-mapping-for-aout-executables-fixes include/linux/interp.h
---- a/include/linux/interp.h~x86-fix-vdso-mapping-for-aout-executables-fixes
-+++ a/include/linux/interp.h
-@@ -3,7 +3,9 @@
- #define _LINUX_INTERP_H
+diff -puN arch/i386/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups arch/i386/Kconfig
+--- a/arch/i386/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/arch/i386/Kconfig
+@@ -626,9 +626,9 @@ config ARCH_POPULATES_NODE_MAP
+ 	def_bool y
  
- struct linux_binprm;
--#ifdef CONFIG_ARCH_HAS_SETUP_ADDITIONAL_PAGES
-+
-+#if defined(CONFIG_ARCH_HAS_SETUP_ADDITIONAL_PAGES) && \
-+	!defined(CONFIG_COMPAT_VDSO)
- extern int arch_setup_additional_pages(struct linux_binprm *bprm,
- 					int executable_stack);
- #else
+ config ARCH_HAS_SETUP_ADDITIONAL_PAGES
+-       bool
+-       default y
+-       depends on X86_32
++	bool
++	default y
++	depends on X86_32
+ 
+ source "mm/Kconfig"
+ 
+diff -puN arch/powerpc/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/arch/powerpc/Kconfig
+@@ -46,9 +46,9 @@ config ARCH_HAS_ILOG2_U32
+ 	default y
+ 
+ config ARCH_HAS_SETUP_ADDITIONAL_PAGES
+-       bool
+-       default y
+-       depends on PPC32 || PPC64
++	bool
++	default y
++	depends on PPC32 || PPC64
+ 
+ config ARCH_HAS_ILOG2_U64
+ 	bool
+diff -puN arch/sh/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups arch/sh/Kconfig
+--- a/arch/sh/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/arch/sh/Kconfig
+@@ -68,9 +68,9 @@ config ARCH_HAS_ILOG2_U64
+ 	default n
+ 
+ config ARCH_HAS_SETUP_ADDITIONAL_PAGES
+-       bool
+-       default y
+-       depends on SUPERH
++	bool
++	default y
++	depends on SUPERH
+ 
+ source "init/Kconfig"
+ 
+diff -puN arch/x86_64/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/arch/x86_64/Kconfig
+@@ -399,9 +399,9 @@ config HAVE_ARCH_EARLY_PFN_TO_NID
+ 	depends on NUMA
+ 
+ config ARCH_HAS_SETUP_ADDITIONAL_PAGES
+-       bool
+-       default y
+-       depends on X86_64
++	bool
++	default y
++	depends on X86_64
+ 
+ config OUT_OF_LINE_PFN_TO_PAGE
+ 	def_bool y
+diff -puN arch/x86_64/ia32/ia32_aout.c~x86-fix-vdso-mapping-for-aout-executables-cleanups arch/x86_64/ia32/ia32_aout.c
+--- a/arch/x86_64/ia32/ia32_aout.c~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/arch/x86_64/ia32/ia32_aout.c
+@@ -415,10 +415,10 @@ beyond_if:
+ 	retval = arch_setup_additional_pages(bprm, EXSTACK_DEFAULT);
+ 
+ 	if (retval < 0) {
+-                /* Someone check-me: is this error path enough? */
+-                send_sig(SIGKILL, current, 0);
+-                return retval;
+-        }
++		/* Someone check-me: is this error path enough? */
++		send_sig(SIGKILL, current, 0);
++		return retval;
++	}
+ 
+ 	current->mm->start_stack =
+ 		(unsigned long)create_aout_tables((char __user *)bprm->p, bprm);
+diff -puN fs/binfmt_aout.c~x86-fix-vdso-mapping-for-aout-executables-cleanups fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~x86-fix-vdso-mapping-for-aout-executables-cleanups
++++ a/fs/binfmt_aout.c
+@@ -435,10 +435,10 @@ beyond_if:
+ 	set_binfmt(&aout_format);
+ 
+ 	retval = arch_setup_additional_pages(bprm, executable_stack);
+-        if (retval < 0) {
+-                send_sig(SIGKILL, current, 0);
+-                return retval;
+-        }
++	if (retval < 0) {
++		send_sig(SIGKILL, current, 0);
++		return retval;
++	}
+ 
+ 	retval = set_brk(current->mm->start_brk, current->mm->brk);
+ 	if (retval < 0) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -64,8 +150,6 @@ Patches currently in -mm which might be from akpm@osdl.org are
 origin.patch
 m68k-uaccessh-needs-schedh.patch
 x86-fix-vdso-mapping-for-aout-executables.patch
-x86-fix-vdso-mapping-for-aout-executables-fixes.patch
-x86-fix-vdso-mapping-for-aout-executables-fixes-2.patch
 x86-fix-vdso-mapping-for-aout-executables-cleanups.patch
 x86-fix-vdso-mapping-for-aout-executables-doh.patch
 x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch
