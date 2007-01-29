@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + page_mkwrite-race-fix.patch added to -mm tree
-Date: Mon, 29 Jan 2007 15:53:37 -0800
-Message-ID: <200701292353.l0TNrbQ2003121@shell0.pdx.osdl.net>
+Subject: + tick-management-dyntick--highres-functionality-fix.patch added to -mm tree
+Date: Mon, 29 Jan 2007 15:55:16 -0800
+Message-ID: <200701292355.l0TNtGAh003146@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34330 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34390 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964937AbXA2Xxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 18:53:41 -0500
+	id S965005AbXA2XzY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 18:55:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, nickpiggin@yahoo.com.au
+Cc: tglx@linutronix.de, jkosina@suse.cz
 
 
 The patch titled
-     page_mkwrite caller race fix
+     tick-management touch softlockup watchdog on resume
 has been added to the -mm tree.  Its filename is
-     page_mkwrite-race-fix.patch
+     tick-management-dyntick--highres-functionality-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: page_mkwrite caller race fix
-From: Hugh Dickins <hugh@veritas.com>
+Subject: tick-management touch softlockup watchdog on resume
+From: Thomas Gleixner <tglx@linutronix.de>
 
-After do_wp_page has tested page_mkwrite, it must release old_page after
-acquiring page table lock, not before: at some stage that ordering got
-reversed, leaving a (very unlikely) window in which old_page might be
-truncated, freed, and reused in the same position.
+The softlockup watchdog needs to be touched after resume to avoid a false
+positive.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/memory.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ kernel/time/tick-common.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN mm/memory.c~page_mkwrite-race-fix mm/memory.c
---- a/mm/memory.c~page_mkwrite-race-fix
-+++ a/mm/memory.c
-@@ -1531,8 +1531,6 @@ static int do_wp_page(struct mm_struct *
- 			if (vma->vm_ops->page_mkwrite(vma, old_page) < 0)
- 				goto unwritable_page;
+diff -puN kernel/time/tick-common.c~tick-management-dyntick--highres-functionality-fix kernel/time/tick-common.c
+--- a/kernel/time/tick-common.c~tick-management-dyntick--highres-functionality-fix
++++ a/kernel/time/tick-common.c
+@@ -312,6 +312,7 @@ static int tick_notify(struct notifier_b
  
--			page_cache_release(old_page);
--
- 			/*
- 			 * Since we dropped the lock we need to revalidate
- 			 * the PTE as someone else may have changed it.  If
-@@ -1541,6 +1539,7 @@ static int do_wp_page(struct mm_struct *
- 			 */
- 			page_table = pte_offset_map_lock(mm, pmd, address,
- 							 &ptl);
-+			page_cache_release(old_page);
- 			if (!pte_same(*page_table, orig_pte))
- 				goto unlock;
- 		}
+ 	case CLOCK_EVT_NOTIFY_RESUME:
+ 		tick_resume_jiffy_update();
++		touch_softlockup_watchdog();
+ 		break;
+ 
+ 	case CLOCK_EVT_NOTIFY_CPU_DEAD:
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-origin.patch
-dont-allow-the-stack-to-grow-into-hugetlb-reserved-regions.patch
-page_mkwrite-race-fix.patch
-fix-umask-when-noacl-kernel-meets-extn-tuned-for-acls.patch
-ext2-reservations.patch
-ext2-balloc-fix-_with_rsv-freeze.patch
-ext2-balloc-reset-windowsz-when-full.patch
-ext2-balloc-fix-off-by-one-against-rsv_end.patch
-ext2-balloc-fix-off-by-one-against-grp_goal.patch
-ext2-balloc-say-rb_entry-not-list_entry.patch
-ext2-balloc-use-io_error-label.patch
+bugfixes-pci-devices-get-assigned-redundant-irqs.patch
+git-block.patch
+use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
+add-irq-flag-to-disable-balancing-for-an-interrupt.patch
+add-a-functions-to-handle-interrupt-affinity-setting.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+hz-free-ntp.patch
+uninline-jiffiesh-functions.patch
+fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+fix-timeout-overflow-with-jiffies.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+i386-remove-useless-code-in-tscc.patch
+simplify-the-registration-of-clocksources.patch
+x86-rewrite-smp-tsc-sync-code.patch
+clocksource-replace-is_continuous-by-a-flag-field.patch
+clocksource-replace-is_continuous-by-a-flag-field-fix.patch
+clocksource-fixup-is_continous-changes-on-arm.patch
+clocksource-fixup-is_continous-changes-on-avr32.patch
+clocksource-fixup-is_continous-changes-on-s390.patch
+clocksource-fixup-is_continous-changes-on-mips.patch
+clocksource-remove-the-update-callback.patch
+clocksource-add-verification-watchdog-helper.patch
+mark-tsc-on-geodelx-reliable.patch
+uninline-irq_enter.patch
+fix-cascade-lookup-of-next_timer_interrupt.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-fix-missing-include-for-up.patch
+acpi-keep-track-of-timer-broadcasting.patch
+allow-early-access-to-the-power-management-timer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-add-core-functionality.patch
+tick-management-core-functionality.patch
+tick-management-broadcast-functionality.patch
+tick-management-dyntick--highres-functionality.patch
+tick-management-dyntick--highres-functionality-fix.patch
+clockevents-i383-drivers.patch
+i386-rework-local-apic-timer-calibration.patch
+i386-prepare-for-dyntick.patch
+i386-prepare-nmi-watchdog-for-dynticks.patch
+hrtimers-add-high-resolution-timer-support.patch
+hrtimers-prevent-possible-itimer-dos.patch
+add-debugging-feature-proc-timer_stat.patch
+add-debugging-feature-proc-timer_list.patch
+add-sysrq-q-to-print-timer_list-debug-info.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-hpet_address-cleanup.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-hpet-fixup-clocksource-changes.patch
+time-x86_64-tsc-fixup-clocksource-changes.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
+scheduled-removal-of-sa_xxx-interrupt-flags.patch
