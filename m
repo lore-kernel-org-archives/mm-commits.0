@@ -1,111 +1,148 @@
 From: akpm@osdl.org
-Subject: - ufs-rellocation-fix-fix.patch removed from -mm tree
-Date: Mon, 29 Jan 2007 13:19:01 -0800
-Message-ID: <200701292119.l0TLJ1sB031212@shell0.pdx.osdl.net>
+Subject: - fix-gfs2-circular-dependency.patch removed from -mm tree
+Date: Mon, 29 Jan 2007 13:17:15 -0800
+Message-ID: <200701292117.l0TLHFsc031165@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57308 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57374 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619AbXA2VTI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 16:19:08 -0500
+	id S1752572AbXA2VUf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 16:20:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dushistov@mail.ru, mm-commits@vger.kernel.org
+To: bunk@stusta.de, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs: rellocation fix fix
+     fix GFS2 circular dependency
 has been removed from the -mm tree.  Its filename was
-     ufs-rellocation-fix-fix.patch
+     fix-gfs2-circular-dependency.patch
 
-This patch was dropped because it was folded into ufs-rellocation-fix.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ufs: rellocation fix fix
-From: Evgeniy Dushistov <dushistov@mail.ru>
+Subject: fix GFS2 circular dependency
+From: Adrian Bunk <bunk@stusta.de>
 
-On Wed, Jan 24, 2007 at 08:21:07PM -0800, Andrew Morton wrote:
-> On Mon, 22 Jan 2007 18:07:51 +0300
-> Evgeniy Dushistov <dushistov@mail.ru> wrote:
->
-> > -	for (i = 0; i < count; i += blk_per_page) {
-> > +	for (i = 0; i < count; i = (i | mask) + 1) {
->
-> This is a funny looking thing.  As far as I can tell, this is a more
-> complicated way of doing the same thing as the old code did.
->
-> Am I missing something?
->
+This patch fixes a circular dependency by letting GFS2_FS_LOCKING_DLM
+and DLM depend on instead of select SYSFS.
 
-No, you right, thanks, work should be done with baseblk+i, not with i.
-(It is imposible to catch on my test enviroment: size of page 4096
-and baseblk always point to begin of data block which size of
->=4096 and power of 2).
+Since SYSFS depends on EMBEDDED this change shouldn't cause any problems
+for users.
 
-Here is patch for patch, it also contains typo fixing in previous
-patch which lead to compilation failure if ufs debug turn on.
-
-
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ufs/balloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/dlm/Kconfig  |    3 +--
+ fs/gfs2/Kconfig |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/ufs/balloc.c~ufs-rellocation-fix-fix fs/ufs/balloc.c
---- a/fs/ufs/balloc.c~ufs-rellocation-fix-fix
-+++ a/fs/ufs/balloc.c
-@@ -227,14 +227,14 @@ failed:
-  * We can come here from ufs_writepage or ufs_prepare_write,
-  * locked_page is argument of these functions, so we already lock it.
-  */
--static void ufs_change_blocknr(struct inode *inode, unsigned int baseblk,
-+static void ufs_change_blocknr(struct inode *inode, unsigned int beg,
- 			       unsigned int count, unsigned int oldb,
- 			       unsigned int newb, struct page *locked_page)
- {
- 	const unsigned mask = (1 << (PAGE_CACHE_SHIFT - inode->i_blkbits)) - 1;
- 	struct address_space * const mapping = inode->i_mapping;
- 	pgoff_t index, cur_index;
--	unsigned i, pos, j;
-+	unsigned end, pos, j;
- 	struct page *page;
- 	struct buffer_head *head, *bh;
+diff -puN fs/dlm/Kconfig~fix-gfs2-circular-dependency fs/dlm/Kconfig
+--- a/fs/dlm/Kconfig~fix-gfs2-circular-dependency
++++ a/fs/dlm/Kconfig
+@@ -3,9 +3,8 @@ menu "Distributed Lock Manager"
  
-@@ -246,8 +246,8 @@ static void ufs_change_blocknr(struct in
+ config DLM
+ 	tristate "Distributed Lock Manager (DLM)"
+-	depends on IPV6 || IPV6=n
++	depends on SYSFS && (IPV6 || IPV6=n)
+ 	select CONFIGFS_FS
+-	select SYSFS
+ 	select IP_SCTP if DLM_SCTP
+ 	help
+ 	A general purpose distributed lock manager for kernel or userspace
+diff -puN fs/gfs2/Kconfig~fix-gfs2-circular-dependency fs/gfs2/Kconfig
+--- a/fs/gfs2/Kconfig~fix-gfs2-circular-dependency
++++ a/fs/gfs2/Kconfig
+@@ -34,11 +34,10 @@ config GFS2_FS_LOCKING_NOLOCK
  
- 	cur_index = locked_page->index;
+ config GFS2_FS_LOCKING_DLM
+ 	tristate "GFS2 DLM locking module"
+-	depends on GFS2_FS && NET && INET && (IPV6 || IPV6=n)
++	depends on GFS2_FS && SYSFS && NET && INET && (IPV6 || IPV6=n)
+ 	select IP_SCTP if DLM_SCTP
+ 	select CONFIGFS_FS
+ 	select DLM
+-	select SYSFS
+ 	help
+ 	Multiple node locking module for GFS2
  
--	for (i = 0; i < count; i = (i | mask) + 1) {
--		index = (baseblk+i) >> (PAGE_CACHE_SHIFT - inode->i_blkbits);
-+	for (end = count + beg; beg < end; beg = (beg | mask) + 1) {
-+		index = beg >> (PAGE_CACHE_SHIFT - inode->i_blkbits);
- 
- 		if (likely(cur_index != index)) {
- 			page = ufs_get_locked_page(mapping, index);
-@@ -258,7 +258,7 @@ static void ufs_change_blocknr(struct in
- 
- 		head = page_buffers(page);
- 		bh = head;
--		pos = i & mask;
-+		pos = beg & mask;
- 		for (j = 0; j < pos; ++j)
- 			bh = bh->b_this_page;
- 		j = 0;
-@@ -267,7 +267,7 @@ static void ufs_change_blocknr(struct in
- 				pos = bh->b_blocknr - oldb;
- 				if (pos < count) {
- 					UFSD(" change from %llu to %llu\n",
--					     (unsigned long long)pos + odlb,
-+					     (unsigned long long)pos + oldb,
- 					     (unsigned long long)pos + newb);
- 					bh->b_blocknr = newb + pos;
- 					unmap_underlying_metadata(bh->b_bdev,
 _
 
-Patches currently in -mm which might be from dushistov@mail.ru are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-ufs-alloc-metadata-null-page-fix.patch
-ufs-truncate-negative-to-unsigned-fix.patch
-ufs-rellocation-fix.patch
-ufs-rellocation-fix-fix.patch
+origin.patch
+fs-lockd-clntlockc-add-missing-newlines-to-dprintks.patch
+git-acpi.patch
+git-alsa.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+git-powerpc.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
+git-dvb.patch
+drivers-media-dvb-frontends-make-4-functions-static.patch
+git-gfs2-nmw.patch
+ia64-add-pci_get_legacy_ide_irq.patch
+git-ieee1394.patch
+git-libata-all.patch
+fix-config_sata_sis=y-compile-error.patch
+mips-remove-smp_tune_scheduling.patch
+git-mmc.patch
+mtd_ck804xrom-must-depend-on-pci.patch
+git-ubi.patch
+git-netdev-all.patch
+remove-one-remaining-define-bcm_tso-1.patch
+net-irda-proper-prototypes.patch
+net-wanrouter-wanmainc-cleanups.patch
+nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
