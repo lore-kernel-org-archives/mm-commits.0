@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + ext-jbd-layer-function-called-instead-of-fs-specific-one.patch added to -mm tree
-Date: Sun, 28 Jan 2007 16:15:56 -0800
-Message-ID: <200701290015.l0T0FumU006819@shell0.pdx.osdl.net>
+Subject: + use-__u64-rather-than-u64-in-parisc-statfs-structs.patch added to -mm tree
+Date: Sun, 28 Jan 2007 16:26:40 -0800
+Message-ID: <200701290026.l0T0QeIR006984@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43056 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43416 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932995AbXA2AP6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 19:15:58 -0500
+	id S933012AbXA2A0o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 19:26:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org
+Cc: vapier@gentoo.org, kyle@mcmartin.ca
 
 
 The patch titled
-     jbd layer function called instead of fs specific one
+     use __u64 rather than u64 in parisc statfs structs
 has been added to the -mm tree.  Its filename is
-     ext-jbd-layer-function-called-instead-of-fs-specific-one.patch
+     use-__u64-rather-than-u64-in-parisc-statfs-structs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: jbd layer function called instead of fs specific one
-From: Dmitriy Monakhov <dmonakhov@openvz.org>
+Subject: use __u64 rather than u64 in parisc statfs structs
+From: Mike Frysinger <vapier@gentoo.org>
 
-jbd function called instead of fs specific one.
+Use __u64 rather than u64 in the struct statfs64 exported to userspace.
 
-Signed-off-by: Dmitriy Monakhov <dmonakhov@openvz.org>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext3/inode.c |    4 ++--
- fs/ext4/inode.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/asm-parisc/statfs.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext-jbd-layer-function-called-instead-of-fs-specific-one fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext-jbd-layer-function-called-instead-of-fs-specific-one
-+++ a/fs/ext3/inode.c
-@@ -947,7 +947,7 @@ out:
- static int ext3_get_block(struct inode *inode, sector_t iblock,
- 			struct buffer_head *bh_result, int create)
- {
--	handle_t *handle = journal_current_handle();
-+	handle_t *handle = ext3_journal_current_handle();
- 	int ret = 0;
- 	unsigned max_blocks = bh_result->b_size >> inode->i_blkbits;
- 
-@@ -1717,7 +1717,7 @@ static ssize_t ext3_direct_IO(int rw, st
- 	/*
- 	 * Reacquire the handle: ext3_get_block() can restart the transaction
- 	 */
--	handle = journal_current_handle();
-+	handle = ext3_journal_current_handle();
- 
- out_stop:
- 	if (handle) {
-diff -puN fs/ext4/inode.c~ext-jbd-layer-function-called-instead-of-fs-specific-one fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext-jbd-layer-function-called-instead-of-fs-specific-one
-+++ a/fs/ext4/inode.c
-@@ -946,7 +946,7 @@ out:
- static int ext4_get_block(struct inode *inode, sector_t iblock,
- 			struct buffer_head *bh_result, int create)
- {
--	handle_t *handle = journal_current_handle();
-+	handle_t *handle = ext4_journal_current_handle();
- 	int ret = 0;
- 	unsigned max_blocks = bh_result->b_size >> inode->i_blkbits;
- 
-@@ -1716,7 +1716,7 @@ static ssize_t ext4_direct_IO(int rw, st
- 	/*
- 	 * Reacquire the handle: ext4_get_block() can restart the transaction
- 	 */
--	handle = journal_current_handle();
-+	handle = ext4_journal_current_handle();
- 
- out_stop:
- 	if (handle) {
+diff -puN include/asm-parisc/statfs.h~use-__u64-rather-than-u64-in-parisc-statfs-structs include/asm-parisc/statfs.h
+--- a/include/asm-parisc/statfs.h~use-__u64-rather-than-u64-in-parisc-statfs-structs
++++ a/include/asm-parisc/statfs.h
+@@ -30,11 +30,11 @@ struct statfs {
+ struct statfs64 {
+ 	long f_type;
+ 	long f_bsize;
+-	u64 f_blocks;
+-	u64 f_bfree;
+-	u64 f_bavail;
+-	u64 f_files;
+-	u64 f_ffree;
++	__u64 f_blocks;
++	__u64 f_bfree;
++	__u64 f_bavail;
++	__u64 f_files;
++	__u64 f_ffree;
+ 	__kernel_fsid_t f_fsid;
+ 	long f_namelen;
+ 	long f_frsize;
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-broadcom-4400-resume-small-fix-v2.patch
-mm-search_binary_handler-mem-limit-fix.patch
-ext-jbd-layer-function-called-instead-of-fs-specific-one.patch
+origin.patch
+use-__u8-__u32-in-userspace-ioctl-defines-for-i2o.patch
+use-__u8-rather-than-u8-in-userspace-size-defines-in-hdregh.patch
+search-a-little-harder-for-mkimage.patch
+use-__u64-rather-than-u64-in-parisc-statfs-structs.patch
+use-__u32-rather-than-u32-in-userspace-ioctls-in-usbdevice_fsh.patch
+some-rtc-documentation-updates.patch
