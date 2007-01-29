@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch added to -mm tree
-Date: Mon, 29 Jan 2007 15:30:02 -0800
-Message-ID: <200701292330.l0TNU4QT002521@shell0.pdx.osdl.net>
+Subject: + readahead-min-max-sizes-increase-vm_min_readahead-to-32kb.patch added to -mm tree
+Date: Mon, 29 Jan 2007 15:29:54 -0800
+Message-ID: <200701292329.l0TNTs2C002483@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33573 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33552 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964930AbXA2XaM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 18:30:12 -0500
+	id S964777AbXA2XaB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 18:30:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: state based method: move readahead_ratio out of compute_thrashing_threshold()
+     readahead: min/max sizes: increase VM_MIN_READAHEAD to 32KB
 has been added to the -mm tree.  Its filename is
-     readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch
+     readahead-min-max-sizes-increase-vm_min_readahead-to-32kb.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: state based method: move readahead_ratio out of compute_thrashing_threshold()
+Subject: readahead: min/max sizes: increase VM_MIN_READAHEAD to 32KB
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Make compute_thrashing_threshold() a pure computing routine, by moving the
-readahead_ratio policy out of it.
+Use a minimal readahead size of 32KB instead of 16KB for the adaptive readahead.
+
+The potential benefit(disk utilization in worst case doubles) is large, while
+the potential panelty is small(wastes up to 32MB when thrashed/missed 1000
+times).
+
+This minimal value is only applied for sequential streams.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |    3 ++-
+ include/linux/mm.h |    3 ++-
  1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/readahead.c~readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold mm/readahead.c
---- a/mm/readahead.c~readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold
-+++ a/mm/readahead.c
-@@ -1021,7 +1021,7 @@ static unsigned long compute_thrashing_t
- 	stream_shift = ra_invoke_interval(ra);
+diff -puN include/linux/mm.h~readahead-min-max-sizes-increase-vm_min_readahead-to-32kb include/linux/mm.h
+--- a/include/linux/mm.h~readahead-min-max-sizes-increase-vm_min_readahead-to-32kb
++++ a/include/linux/mm.h
+@@ -1073,10 +1073,11 @@ int write_one_page(struct page *page, in
+ /* readahead.c */
+ #ifdef CONFIG_ADAPTIVE_READAHEAD
+ #define VM_MAX_READAHEAD	1024	/* kbytes */
++#define VM_MIN_READAHEAD	32	/* kbytes (includes current page) */
+ #else
+ #define VM_MAX_READAHEAD	128	/* kbytes */
+-#endif
+ #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
++#endif
+ #define VM_MAX_CACHE_HIT    	256	/* max pages in a row in cache before
+ 					 * turning readahead off */
  
- 	/* future safe space */
--	ll = (uint64_t) stream_shift * (global_size >> 9) * readahead_ratio * 5;
-+	ll = (uint64_t) stream_shift * global_size;
- 	do_div(ll, global_shift);
- 	ra_size = ll;
- 
-@@ -1059,6 +1059,7 @@ state_based_readahead(struct address_spa
- 	la_old = la_size = ra->readahead_index - offset;
- 	ra_old = ra_readahead_size(ra);
- 	ra_size = compute_thrashing_threshold(ra, &remain_space);
-+	ra_size = ra_size * readahead_ratio / 100;
- 
- 	if (page && remain_space <= la_size) {
- 		rescue_pages(page, la_size);
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
