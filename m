@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + fs-lockd-clntlockc-add-missing-newlines-to-dprintks.patch added to -mm tree
-Date: Sun, 28 Jan 2007 16:01:49 -0800
-Message-ID: <200701290001.l0T01n74006561@shell0.pdx.osdl.net>
+Subject: + knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events.patch added to -mm tree
+Date: Sun, 28 Jan 2007 16:13:12 -0800
+Message-ID: <200701290013.l0T0DCTV006763@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42796 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42988 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933005AbXA2AFM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 19:05:12 -0500
+	id S932991AbXA2ANR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 19:13:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: neilb@suse.de
 
 
 The patch titled
-     fs/lockd/clntlock.c: add missing newlines to dprintk's
+     knfsd: ratelimit some nfsd messages that are triggered by external events
 has been added to the -mm tree.  Its filename is
-     fs-lockd-clntlockc-add-missing-newlines-to-dprintks.patch
+     knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,113 +25,208 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/lockd/clntlock.c: add missing newlines to dprintk's
-From: Adrian Bunk <bunk@stusta.de>
+Subject: knfsd: ratelimit some nfsd messages that are triggered by external events
+From: NeilBrown <neilb@suse.de>
 
-This patch adds missing newlines to dprintk's.
+Also remove {NFSD,RPC}_PARANOIA as having the defines doesn't really add
+anything.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+The printks covered by RPC_PARANOIA were triggered by badly formatted
+packets and so should be ratelimited.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/lockd/clntlock.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/nfsd/export.c     |    1 -
+ fs/nfsd/nfsfh.c      |   14 ++++++--------
+ fs/nfsd/vfs.c        |    1 -
+ net/sunrpc/svc.c     |   33 ++++++++++++++++-----------------
+ net/sunrpc/svcsock.c |   12 ++++++++----
+ 5 files changed, 30 insertions(+), 31 deletions(-)
 
-diff -puN fs/lockd/clntlock.c~fs-lockd-clntlockc-add-missing-newlines-to-dprintks fs/lockd/clntlock.c
---- a/fs/lockd/clntlock.c~fs-lockd-clntlockc-add-missing-newlines-to-dprintks
-+++ a/fs/lockd/clntlock.c
-@@ -176,7 +176,7 @@ reclaimer(void *ptr)
- 	lock_kernel();
- 	lockd_up(0); /* note: this cannot fail as lockd is already running */
+diff -puN fs/nfsd/export.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events fs/nfsd/export.c
+--- a/fs/nfsd/export.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events
++++ a/fs/nfsd/export.c
+@@ -35,7 +35,6 @@
+ #include <linux/lockd/bind.h>
  
--	dprintk("lockd: reclaiming locks for host %s", host->h_name);
-+	dprintk("lockd: reclaiming locks for host %s\n", host->h_name);
+ #define NFSDDBG_FACILITY	NFSDDBG_EXPORT
+-#define NFSD_PARANOIA 1
  
- restart:
- 	nsmstate = host->h_nsmstate;
-@@ -206,7 +206,7 @@ restart:
+ typedef struct auth_domain	svc_client;
+ typedef struct svc_export	svc_export;
+diff -puN fs/nfsd/nfsfh.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events fs/nfsd/nfsfh.c
+--- a/fs/nfsd/nfsfh.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events
++++ a/fs/nfsd/nfsfh.c
+@@ -24,8 +24,6 @@
+ #include <linux/nfsd/nfsd.h>
  
- 	host->h_reclaiming = 0;
- 	up_write(&host->h_rwsem);
--	dprintk("NLM: done reclaiming locks for host %s", host->h_name);
-+	dprintk("NLM: done reclaiming locks for host %s\n", host->h_name);
+ #define NFSDDBG_FACILITY		NFSDDBG_FH
+-#define NFSD_PARANOIA 1
+-/* #define NFSD_DEBUG_VERBOSE 1 */
  
- 	/* Now, wake up all processes that sleep on a blocked lock */
- 	list_for_each_entry(block, &nlm_blocked, b_list) {
+ 
+ static int nfsd_nr_verified;
+@@ -230,13 +228,12 @@ fh_verify(struct svc_rqst *rqstp, struct
+ 				error = nfserrno(PTR_ERR(dentry));
+ 			goto out;
+ 		}
+-#ifdef NFSD_PARANOIA
++
+ 		if (S_ISDIR(dentry->d_inode->i_mode) &&
+ 		    (dentry->d_flags & DCACHE_DISCONNECTED)) {
+ 			printk("nfsd: find_fh_dentry returned a DISCONNECTED directory: %s/%s\n",
+ 			       dentry->d_parent->d_name.name, dentry->d_name.name);
+ 		}
+-#endif
+ 
+ 		fhp->fh_dentry = dentry;
+ 		fhp->fh_export = exp;
+@@ -267,12 +264,13 @@ fh_verify(struct svc_rqst *rqstp, struct
+ 	/* Finally, check access permissions. */
+ 	error = nfsd_permission(exp, dentry, access);
+ 
+-#ifdef NFSD_PARANOIA_EXTREME
+ 	if (error) {
+-		printk("fh_verify: %s/%s permission failure, acc=%x, error=%d\n",
+-		       dentry->d_parent->d_name.name, dentry->d_name.name, access, (error >> 24));
++		dprintk("fh_verify: %s/%s permission failure, "
++			"acc=%x, error=%d\n",
++			dentry->d_parent->d_name.name,
++			dentry->d_name.name,
++			access, (error >> 24));
+ 	}
+-#endif
+ out:
+ 	if (exp && !IS_ERR(exp))
+ 		exp_put(exp);
+diff -puN fs/nfsd/vfs.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events
++++ a/fs/nfsd/vfs.c
+@@ -59,7 +59,6 @@
+ #include <asm/uaccess.h>
+ 
+ #define NFSDDBG_FACILITY		NFSDDBG_FILEOP
+-#define NFSD_PARANOIA
+ 
+ 
+ /* We must ignore files (but only files) which might have mandatory
+diff -puN net/sunrpc/svc.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events
++++ a/net/sunrpc/svc.c
+@@ -26,7 +26,6 @@
+ #include <linux/sunrpc/clnt.h>
+ 
+ #define RPCDBG_FACILITY	RPCDBG_SVCDSP
+-#define RPC_PARANOIA 1
+ 
+ /*
+  * Mode for mapping cpus to pools.
+@@ -872,15 +871,15 @@ svc_process(struct svc_rqst *rqstp)
+ 	return 0;
+ 
+ err_short_len:
+-#ifdef RPC_PARANOIA
+-	printk("svc: short len %Zd, dropping request\n", argv->iov_len);
+-#endif
++	if (net_ratelimit())
++		printk("svc: short len %Zd, dropping request\n", argv->iov_len);
++
+ 	goto dropit;			/* drop request */
+ 
+ err_bad_dir:
+-#ifdef RPC_PARANOIA
+-	printk("svc: bad direction %d, dropping request\n", dir);
+-#endif
++	if (net_ratelimit())
++		printk("svc: bad direction %d, dropping request\n", dir);
++
+ 	serv->sv_stats->rpcbadfmt++;
+ 	goto dropit;			/* drop request */
+ 
+@@ -909,10 +908,10 @@ err_bad_prog:
+ 	goto sendit;
+ 
+ err_bad_vers:
+-#ifdef RPC_PARANOIA
+-	printk("svc: unknown version (%d for prog %d, %s)\n",
+-	       vers, prog, progp->pg_name);
+-#endif
++	if (net_ratelimit())
++		printk("svc: unknown version (%d for prog %d, %s)\n",
++		       vers, prog, progp->pg_name);
++
+ 	serv->sv_stats->rpcbadfmt++;
+ 	svc_putnl(resv, RPC_PROG_MISMATCH);
+ 	svc_putnl(resv, progp->pg_lovers);
+@@ -920,17 +919,17 @@ err_bad_vers:
+ 	goto sendit;
+ 
+ err_bad_proc:
+-#ifdef RPC_PARANOIA
+-	printk("svc: unknown procedure (%d)\n", proc);
+-#endif
++	if (net_ratelimit())
++		printk("svc: unknown procedure (%d)\n", proc);
++
+ 	serv->sv_stats->rpcbadfmt++;
+ 	svc_putnl(resv, RPC_PROC_UNAVAIL);
+ 	goto sendit;
+ 
+ err_garbage:
+-#ifdef RPC_PARANOIA
+-	printk("svc: failed to decode args\n");
+-#endif
++	if (net_ratelimit())
++		printk("svc: failed to decode args\n");
++
+ 	rpc_stat = rpc_garbage_args;
+ err_bad:
+ 	serv->sv_stats->rpcbadfmt++;
+diff -puN net/sunrpc/svcsock.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events
++++ a/net/sunrpc/svcsock.c
+@@ -1062,15 +1062,19 @@ svc_tcp_recvfrom(struct svc_rqst *rqstp)
+ 			 *  bit set in the fragment length header.
+ 			 *  But apparently no known nfs clients send fragmented
+ 			 *  records. */
+-			printk(KERN_NOTICE "RPC: bad TCP reclen 0x%08lx (non-terminal)\n",
+-			       (unsigned long) svsk->sk_reclen);
++			if (net_ratelimit())
++				printk(KERN_NOTICE "RPC: bad TCP reclen 0x%08lx"
++				       " (non-terminal)\n",
++				       (unsigned long) svsk->sk_reclen);
+ 			goto err_delete;
+ 		}
+ 		svsk->sk_reclen &= 0x7fffffff;
+ 		dprintk("svc: TCP record, %d bytes\n", svsk->sk_reclen);
+ 		if (svsk->sk_reclen > serv->sv_max_mesg) {
+-			printk(KERN_NOTICE "RPC: bad TCP reclen 0x%08lx (large)\n",
+-			       (unsigned long) svsk->sk_reclen);
++			if (net_ratelimit())
++				printk(KERN_NOTICE "RPC: bad TCP reclen 0x%08lx"
++				       " (large)\n",
++				       (unsigned long) svsk->sk_reclen);
+ 			goto err_delete;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-fs-lockd-clntlockc-add-missing-newlines-to-dprintks.patch
-git-acpi.patch
-git-alsa.patch
-cpu_freq_table-shouldnt-be-a-def_tristate.patch
-git-powerpc.patch
-drivers-char-drm-drm_mmc-remove-unused-exports.patch
-git-dvb.patch
-drivers-media-dvb-frontends-make-4-functions-static.patch
-git-gfs2-nmw.patch
-fix-gfs2-circular-dependency.patch
-ia64-add-pci_get_legacy_ide_irq.patch
-git-ieee1394.patch
-git-libata-all.patch
-fix-config_sata_sis=y-compile-error.patch
-mips-remove-smp_tune_scheduling.patch
-git-mmc.patch
-mtd_ck804xrom-must-depend-on-pci.patch
-git-ubi.patch
-git-netdev-all.patch
-remove-one-remaining-define-bcm_tso-1.patch
-net-irda-proper-prototypes.patch
-net-wanrouter-wanmainc-cleanups.patch
-nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
-net-uninline-skb_put-fix.patch
-git-ocfs2.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-usb_rtl8150-must-select-mii.patch
-x86_64-re-add-a-newline-to-restore_context.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-drivers-char-vc_screenc-proper-prototypes.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
-schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
-cleanup-linux-byteorder-swabbh.patch
-cleanup-include-linux-xattrh.patch
-cleanup-include-linux-reiserfs_xattrh.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
+knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events.patch
+use-correct-macros-in-raid-code-not-raw-asm.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+igrab-should-check-for-i_clear.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
 include-linux-nfsd-consth-remove-nfs_super_magic.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-fbdev-driver-for-s3-trio-virge-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
