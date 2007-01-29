@@ -1,74 +1,93 @@
 From: akpm@osdl.org
-Subject: - netfilter-is-subscribers-only.patch removed from -mm tree
-Date: Mon, 29 Jan 2007 13:17:19 -0800
-Message-ID: <200701292117.l0TLHJUx031171@shell0.pdx.osdl.net>
+Subject: - remove-useless-reference-to-obsolete-kerneld.patch removed from -mm tree
+Date: Mon, 29 Jan 2007 13:17:09 -0800
+Message-ID: <200701292117.l0TLH9gI031159@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57229 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57259 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752574AbXA2VRg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 16:17:36 -0500
+	id S1752611AbXA2VSE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 16:18:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netfilter@ is subscribers-only
+     Remove useless reference to obsolete KERNELD
 has been removed from the -mm tree.  Its filename was
-     netfilter-is-subscribers-only.patch
+     remove-useless-reference-to-obsolete-kerneld.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: netfilter@ is subscribers-only
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Remove useless reference to obsolete KERNELD
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
+Remove the final useless reference to the obsolete KERNELD feature.
 
-netfilter mailing list is subscribers-only.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jaroslav Kysela <perex@suse.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/core/timer.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN MAINTAINERS~netfilter-is-subscribers-only MAINTAINERS
---- a/MAINTAINERS~netfilter-is-subscribers-only
-+++ a/MAINTAINERS
-@@ -2336,7 +2336,7 @@ P:	Jozsef Kadlecsik
- P:	Patrick McHardy
- M:	kaber@trash.net
- L:	netfilter-devel@lists.netfilter.org
--L:	netfilter@lists.netfilter.org
-+L:	netfilter@lists.netfilter.org (subscribers-only)
- L:	coreteam@netfilter.org
- W:	http://www.netfilter.org/
- W:	http://www.iptables.org/
+diff -puN sound/core/timer.c~remove-useless-reference-to-obsolete-kerneld sound/core/timer.c
+--- a/sound/core/timer.c~remove-useless-reference-to-obsolete-kerneld
++++ a/sound/core/timer.c
+@@ -35,9 +35,6 @@
+ #include <sound/minors.h>
+ #include <sound/initval.h>
+ #include <linux/kmod.h>
+-#ifdef CONFIG_KERNELD
+-#include <linux/kerneld.h>
+-#endif
+ 
+ #if defined(CONFIG_SND_HPET) || defined(CONFIG_SND_HPET_MODULE)
+ #define DEFAULT_TIMER_LIMIT 3
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
+fix-config_x86_64_-typo-in-drivers-kvm-svmc.patch
+acpi-correct-apparent-typo-config_acpi_debug_output.patch
 git-alsa.patch
-git-gfs2-nmw.patch
-qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
-git-net.patch
-parisc-fix-module_param-iommu-permission.patch
-git-scsi-misc.patch
-math-emu-setcc-avoid-gcc-extension.patch
-typeof-__page_to_pfn-with-sparsemem=y.patch
-docbook-html-correction-of-recursive-a-tags-in-html-output.patch
-kernel-doc-allow-a-little-whitespace.patch
-sysrq-showblockedtasks-is-sysrq-w.patch
-sysrq-alphabetize-command-keys-doc.patch
-kernel-doc-allow-more-whitespace.patch
+ppc-use-syslog-macro-for-the-printk-log-level.patch
+fix-apparent-typo-config_serial_cpm_smc.patch
+remove-the-unused-kernel-config-option-video_videobuf.patch
+change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
+remove-unused-kernel-config-option-dlci_count.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+remove-unused-kernel-config-option-x86_xadd.patch
+uml-fix-apparent-config_64_bit-typo.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
 discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-docbook-add-edd-firmware-interfaces.patch
-kernel-doc-fix-some-odd-spacing-issues.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-a-couple-final-references-to-obsolete-verify_area.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
+remove-unused-kernel-config-option-lcd_device.patch
+remove-unused-kernel-config-option-paride_parport.patch
+fix-apparent-typo-config_lockdep_debug.patch
+isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
+isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+isdn-rename-debug-option-config_serial_nopause_io.patch
+isdn-remove-defunct-test-emulator.patch
+isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
