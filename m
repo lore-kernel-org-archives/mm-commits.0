@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch added to -mm tree
-Date: Mon, 29 Jan 2007 15:30:11 -0800
-Message-ID: <200701292330.l0TNUBMW002524@shell0.pdx.osdl.net>
+Subject: + readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch added to -mm tree
+Date: Mon, 29 Jan 2007 15:30:02 -0800
+Message-ID: <200701292330.l0TNU4QT002521@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33580 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33573 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964934AbXA2XaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 18:30:15 -0500
+	id S964930AbXA2XaM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 18:30:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: initial method: user recommended size: rename to read_ahead_initial_kb
+     readahead: state based method: move readahead_ratio out of compute_thrashing_threshold()
 has been added to the -mm tree.  Its filename is
-     readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch
+     readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: initial method: user recommended size: rename to read_ahead_initial_kb
+Subject: readahead: state based method: move readahead_ratio out of compute_thrashing_threshold()
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Rename the sysfs parameter initial_ra_kb to read_ahead_initial_kb, which
-hopefully is a more consistent and user friendly name.
+Make compute_thrashing_threshold() a pure computing routine, by moving the
+readahead_ratio policy out of it.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- block/ll_rw_blk.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/readahead.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN block/ll_rw_blk.c~readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb
-+++ a/block/ll_rw_blk.c
-@@ -3993,7 +3993,7 @@ static struct queue_sysfs_entry queue_ra
- };
+diff -puN mm/readahead.c~readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold mm/readahead.c
+--- a/mm/readahead.c~readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold
++++ a/mm/readahead.c
+@@ -1021,7 +1021,7 @@ static unsigned long compute_thrashing_t
+ 	stream_shift = ra_invoke_interval(ra);
  
- static struct queue_sysfs_entry queue_initial_ra_entry = {
--	.attr = {.name = "initial_ra_kb", .mode = S_IRUGO | S_IWUSR },
-+	.attr = {.name = "read_ahead_initial_kb", .mode = S_IRUGO | S_IWUSR },
- 	.show = queue_initial_ra_show,
- 	.store = queue_initial_ra_store,
- };
+ 	/* future safe space */
+-	ll = (uint64_t) stream_shift * (global_size >> 9) * readahead_ratio * 5;
++	ll = (uint64_t) stream_shift * global_size;
+ 	do_div(ll, global_shift);
+ 	ra_size = ll;
+ 
+@@ -1059,6 +1059,7 @@ state_based_readahead(struct address_spa
+ 	la_old = la_size = ra->readahead_index - offset;
+ 	ra_old = ra_readahead_size(ra);
+ 	ra_size = compute_thrashing_threshold(ra, &remain_space);
++	ra_size = ra_size * readahead_ratio / 100;
+ 
+ 	if (page && remain_space <= la_size) {
+ 		rescue_pages(page, la_size);
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
