@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-min-max-sizes-increase-vm_min_readahead-to-32kb.patch added to -mm tree
-Date: Mon, 29 Jan 2007 15:29:54 -0800
-Message-ID: <200701292329.l0TNTs2C002483@shell0.pdx.osdl.net>
+Subject: + readahead-thrashing-recovery-method-fix.patch added to -mm tree
+Date: Mon, 29 Jan 2007 15:30:14 -0800
+Message-ID: <200701292330.l0TNUENs002527@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33552 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33614 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964777AbXA2XaB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 18:30:01 -0500
+	id S964972AbXA2XaY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 18:30:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: min/max sizes: increase VM_MIN_READAHEAD to 32KB
+     readahead: thrashing recovery method fix
 has been added to the -mm tree.  Its filename is
-     readahead-min-max-sizes-increase-vm_min_readahead-to-32kb.patch
+     readahead-thrashing-recovery-method-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: min/max sizes: increase VM_MIN_READAHEAD to 32KB
+Subject: readahead: thrashing recovery method fix
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Use a minimal readahead size of 32KB instead of 16KB for the adaptive readahead.
-
-The potential benefit(disk utilization in worst case doubles) is large, while
-the potential panelty is small(wastes up to 32MB when thrashed/missed 1000
-times).
-
-This minimal value is only applied for sequential streams.
+- keep lookahead_index if the current chunk is lost, so that when we
+  revisted this stream, the state based method see a consistent state.
+- correct the thrashing-threshold computation
+- discount read-ahead size more, to free more memory to the system on pressure
+- disable look-ahead when thrashed, just to be safe
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/mm.h |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ mm/readahead.c |   28 +++++++++++++---------------
+ 1 files changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/mm.h~readahead-min-max-sizes-increase-vm_min_readahead-to-32kb include/linux/mm.h
---- a/include/linux/mm.h~readahead-min-max-sizes-increase-vm_min_readahead-to-32kb
-+++ a/include/linux/mm.h
-@@ -1073,10 +1073,11 @@ int write_one_page(struct page *page, in
- /* readahead.c */
- #ifdef CONFIG_ADAPTIVE_READAHEAD
- #define VM_MAX_READAHEAD	1024	/* kbytes */
-+#define VM_MIN_READAHEAD	32	/* kbytes (includes current page) */
- #else
- #define VM_MAX_READAHEAD	128	/* kbytes */
--#endif
- #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
-+#endif
- #define VM_MAX_CACHE_HIT    	256	/* max pages in a row in cache before
- 					 * turning readahead off */
+diff -puN mm/readahead.c~readahead-thrashing-recovery-method-fix mm/readahead.c
+--- a/mm/readahead.c~readahead-thrashing-recovery-method-fix
++++ a/mm/readahead.c
+@@ -1520,28 +1520,26 @@ thrashing_recovery_readahead(struct addr
+ 						ra->readahead_index - offset);
+ #endif
  
+-	/*
+-	 * Some thrashing occur in (ra_index, la_index], in which case the
+-	 * old read-ahead chunk is lost soon after the new one is allocated.
+-	 * Ensure that we recover all needed pages in the old chunk.
+-	 */
+-	if (offset < ra->ra_index)
+-		ra_size = ra->ra_index - offset;
+-	else {
++	if (offset < ra->ra_index) {
++		/*
++		 * Thrashed when we are in [la_index, ra_index), i.e.
++		 * the old chunk is lost soon after the new one is allocated.
++		 * Ensure that we recover all needed pages in the old chunk.
++		 * And futher keep the lookahead_index untouched.
++		 */
++		ra_size = ra->lookahead_index - offset;
++	} else {
+ 		/* After thrashing, we know the exact thrashing-threshold. */
+-		ra_size = offset - ra->ra_index;
++		ra_size = offset - ra->la_index;
+ 		update_ra_thrash_bytes(mapping->backing_dev_info, ra_size);
+ 
+-		/* And we'd better be a bit conservative. */
+-		ra_size = ra_size * 3 / 4;
++		/* And be cooperative: the system may be hunting for memory. */
++		ra_size = MIN_RA_PAGES + ra_size / 2;
+ 	}
+ 
+-	if (ra_size > ra_max)
+-		ra_size = ra_max;
+-
+ 	ra_set_class(ra, RA_CLASS_THRASHING);
+ 	ra_set_index(ra, offset, offset);
+-	ra_set_size(ra, ra_size, ra_size / LOOKAHEAD_RATIO);
++	ra_set_size(ra, ra_size, 0);
+ 
+ 	return ra_submit(ra, mapping, filp);
+ }
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
