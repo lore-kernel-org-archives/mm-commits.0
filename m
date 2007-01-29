@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-thrashing-recovery-method-fix.patch added to -mm tree
-Date: Mon, 29 Jan 2007 15:30:14 -0800
-Message-ID: <200701292330.l0TNUENs002527@shell0.pdx.osdl.net>
+Subject: + readahead-call-scheme-fix-thrashed-unaligned-read.patch added to -mm tree
+Date: Mon, 29 Jan 2007 15:30:18 -0800
+Message-ID: <200701292330.l0TNUISf002531@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33614 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33607 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964972AbXA2XaY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 18:30:24 -0500
+	id S964937AbXA2XaW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 18:30:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: thrashing recovery method fix
+     readahead: call scheme: fix thrashed unaligned read
 has been added to the -mm tree.  Its filename is
-     readahead-thrashing-recovery-method-fix.patch
+     readahead-call-scheme-fix-thrashed-unaligned-read.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: thrashing recovery method fix
+Subject: readahead: call scheme: fix thrashed unaligned read
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-- keep lookahead_index if the current chunk is lost, so that when we
-  revisted this stream, the state based method see a consistent state.
-- correct the thrashing-threshold computation
-- discount read-ahead size more, to free more memory to the system on pressure
-- disable look-ahead when thrashed, just to be safe
+When doing unaligned/subpages sequential reads, and thrashing happened, it is
+possible that (offset == prev_page), besides the normal (offset == prev_page +
+1).
+
+We do not have such problem for the state based method.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |   28 +++++++++++++---------------
- 1 files changed, 13 insertions(+), 15 deletions(-)
+ mm/readahead.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/readahead.c~readahead-thrashing-recovery-method-fix mm/readahead.c
---- a/mm/readahead.c~readahead-thrashing-recovery-method-fix
+diff -puN mm/readahead.c~readahead-call-scheme-fix-thrashed-unaligned-read mm/readahead.c
+--- a/mm/readahead.c~readahead-call-scheme-fix-thrashed-unaligned-read
 +++ a/mm/readahead.c
-@@ -1520,28 +1520,26 @@ thrashing_recovery_readahead(struct addr
- 						ra->readahead_index - offset);
- #endif
+@@ -1614,7 +1614,7 @@ page_cache_readahead_adaptive(struct add
+ 	/*
+ 	 * Recover from possible thrashing.
+ 	 */
+-	if (!page && offset == ra->prev_page + 1 && ra_has_index(ra, offset))
++	if (!page && offset - ra->prev_page <= 1 && ra_has_index(ra, offset))
+ 		return thrashing_recovery_readahead(mapping, filp, ra,
+ 								offset, ra_max);
  
--	/*
--	 * Some thrashing occur in (ra_index, la_index], in which case the
--	 * old read-ahead chunk is lost soon after the new one is allocated.
--	 * Ensure that we recover all needed pages in the old chunk.
--	 */
--	if (offset < ra->ra_index)
--		ra_size = ra->ra_index - offset;
--	else {
-+	if (offset < ra->ra_index) {
-+		/*
-+		 * Thrashed when we are in [la_index, ra_index), i.e.
-+		 * the old chunk is lost soon after the new one is allocated.
-+		 * Ensure that we recover all needed pages in the old chunk.
-+		 * And futher keep the lookahead_index untouched.
-+		 */
-+		ra_size = ra->lookahead_index - offset;
-+	} else {
- 		/* After thrashing, we know the exact thrashing-threshold. */
--		ra_size = offset - ra->ra_index;
-+		ra_size = offset - ra->la_index;
- 		update_ra_thrash_bytes(mapping->backing_dev_info, ra_size);
- 
--		/* And we'd better be a bit conservative. */
--		ra_size = ra_size * 3 / 4;
-+		/* And be cooperative: the system may be hunting for memory. */
-+		ra_size = MIN_RA_PAGES + ra_size / 2;
- 	}
- 
--	if (ra_size > ra_max)
--		ra_size = ra_max;
--
- 	ra_set_class(ra, RA_CLASS_THRASHING);
- 	ra_set_index(ra, offset, offset);
--	ra_set_size(ra, ra_size, ra_size / LOOKAHEAD_RATIO);
-+	ra_set_size(ra, ra_size, 0);
- 
- 	return ra_submit(ra, mapping, filp);
- }
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
