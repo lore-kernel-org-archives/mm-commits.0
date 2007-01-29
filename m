@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-state-based-method-prevent-tiny-size.patch added to -mm tree
-Date: Mon, 29 Jan 2007 15:30:00 -0800
-Message-ID: <200701292330.l0TNU0Lg002489@shell0.pdx.osdl.net>
+Subject: + readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags.patch added to -mm tree
+Date: Mon, 29 Jan 2007 15:29:58 -0800
+Message-ID: <200701292329.l0TNTwof002486@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33571 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33557 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964930AbXA2XaH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 18:30:07 -0500
+	id S964930AbXA2XaD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 18:30:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: state based method: prevent tiny size
+     readahead: state based method routines: explicitly embed class_new/class_old inside flags
 has been added to the -mm tree.  Its filename is
-     readahead-state-based-method-prevent-tiny-size.patch
+     readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: state based method: prevent tiny size
+Subject: readahead: state based method routines: explicitly embed class_new/class_old inside flags
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-- cancel look-ahead if readahead size is small compared to the look-ahead size,
-  to avoid too small I/O size, and not to add more memory/io pressure on the
-  possibly loaded system.
-- prevent issuing tiny readahead size, by applying a minimal limit
+The new/old ra class were implicitly stored in low bits of
+file_ra_state.flags.  Now make the data structure obvious, and remove the
+coding tricks.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |   21 ++++++++++++++++-----
- 1 files changed, 16 insertions(+), 5 deletions(-)
+ include/linux/fs.h |    9 ++++++++-
+ mm/readahead.c     |   18 ++++--------------
+ 2 files changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN mm/readahead.c~readahead-state-based-method-prevent-tiny-size mm/readahead.c
---- a/mm/readahead.c~readahead-state-based-method-prevent-tiny-size
+diff -puN include/linux/fs.h~readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags include/linux/fs.h
+--- a/include/linux/fs.h~readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags
++++ a/include/linux/fs.h
+@@ -738,7 +738,14 @@ struct file_ra_state {
+ 	unsigned long mmap_hit;		/* Cache hit stat for mmap accesses */
+ 	unsigned long mmap_miss;	/* Cache miss stat for mmap accesses */
+ 
+-	unsigned long flags;	/* RA_FLAG_xxx | ra_class_old | ra_class_new */
++	union {
++		unsigned long	flags;	/* RA_FLAG_xxx | class_old | class_new */
++		struct {
++			u8	class_new;
++			u8	class_old;
++		};
++	};
++
+ 	unsigned long prev_page;	/* Cache last read() position */
+ 	unsigned long ra_pages;		/* Maximum readahead window */
+ };
+diff -puN mm/readahead.c~readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags mm/readahead.c
+--- a/mm/readahead.c~readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags
 +++ a/mm/readahead.c
-@@ -928,17 +928,21 @@ static int adjust_rala(unsigned long ra_
- 			unsigned long *ra_size, unsigned long *la_size)
+@@ -48,8 +48,6 @@ int readahead_hit_rate = 1;
+ /*
+  * Detailed classification of read-ahead behaviors.
+  */
+-#define RA_CLASS_SHIFT 4
+-#define RA_CLASS_MASK  ((1 << RA_CLASS_SHIFT) - 1)
+ enum ra_class {
+ 	RA_CLASS_ALL,
+ 	RA_CLASS_INITIAL,
+@@ -791,12 +789,12 @@ out:
+ 
+ static enum ra_class ra_class_new(struct file_ra_state *ra)
  {
- 	/*
--	 * Substract the old look-ahead to get real safe size for the next
--	 * read-ahead request.
-+	 * Cancel asynchrous read-ahead,
-+	 * if there is a major upsurge of load, or fall of this stream's speed.
- 	 */
--	if (*ra_size > *la_size)
--		*ra_size -= *la_size;
--	else {
-+	if (*ra_size <= *la_size * 2) {
- 		ra_account(NULL, RA_EVENT_READAHEAD_SHRINK, *ra_size);
- 		return 0;
- 	}
+-	return ra->flags & RA_CLASS_MASK;
++	return ra->class_new;
+ }
  
- 	/*
-+	 * Substract the old look-ahead to get real safe size for the next
-+	 * read-ahead request.
-+	 */
-+	*ra_size -= *la_size;
-+
-+	/*
- 	 * Set new la_size according to the (still large) ra_size.
- 	 */
- 	*la_size = *ra_size / LOOKAHEAD_RATIO;
-@@ -952,6 +956,13 @@ static void limit_rala(unsigned long ra_
- 	unsigned long stream_shift;
+ static inline enum ra_class ra_class_old(struct file_ra_state *ra)
+ {
+-	return (ra->flags >> RA_CLASS_SHIFT) & RA_CLASS_MASK;
++	return ra->class_old;
+ }
  
- 	/*
-+	 * Protect against too small I/O sizes,
-+	 * by mapping [0, 4*min] to [min, 4*min].
-+	 */
-+	if (*ra_size < 4 * MIN_RA_PAGES)
-+		*ra_size = MIN_RA_PAGES + *ra_size * 3 / 4;
-+
-+	/*
- 	 * Apply basic upper limits.
- 	 */
- 	if (*ra_size > ra_max)
+ static unsigned long ra_readahead_size(struct file_ra_state *ra)
+@@ -828,16 +826,8 @@ static int ra_has_index(struct file_ra_s
+  */
+ static void ra_set_class(struct file_ra_state *ra, enum ra_class ra_class)
+ {
+-	unsigned long flags_mask;
+-	unsigned long flags;
+-	unsigned long old_ra_class;
+-
+-	flags_mask = ~(RA_CLASS_MASK | (RA_CLASS_MASK << RA_CLASS_SHIFT));
+-	flags = ra->flags & flags_mask;
+-
+-	old_ra_class = ra_class_new(ra) << RA_CLASS_SHIFT;
+-
+-	ra->flags = flags | old_ra_class | ra_class;
++	ra->class_old = ra->class_new;
++	ra->class_new = ra_class;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
