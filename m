@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sound-isa-gus-gus_mainc-use-abs-instead-of-x-0-x-x.patch added to -mm tree
-Date: Sun, 28 Jan 2007 15:58:56 -0800
-Message-ID: <200701282358.l0SNwuiZ006474@shell0.pdx.osdl.net>
+Subject: + pl2303-willcom-ws002in-support.patch added to -mm tree
+Date: Sun, 28 Jan 2007 16:00:09 -0800
+Message-ID: <200701290000.l0T0099L006513@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42624 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42653 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932995AbXA1X7I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 28 Jan 2007 18:59:08 -0500
+	id S932997AbXA2AAN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 28 Jan 2007 19:00:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: s022018@student.dtu.dk, perex@suse.cz, tiwai@suse.de
+Cc: yoshfuji@linux-ipv6.org, greg@kroah.com
 
 
 The patch titled
-     sound/isa/gus/gus_main.c: Use abs() instead of x < 0 ? -x : x.
+     usbserial: PL2303: Willcom WS002IN Support
 has been added to the -mm tree.  Its filename is
-     sound-isa-gus-gus_mainc-use-abs-instead-of-x-0-x-x.patch
+     pl2303-willcom-ws002in-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sound/isa/gus/gus_main.c: Use abs() instead of x < 0 ? -x : x.
-From: "Peter Eriksen" <s022018@student.dtu.dk>
+Subject: usbserial: PL2303: Willcom WS002IN Support
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 
-Signed-off-by: Peter Eriksen <s022018@student.dtu.dk>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- sound/isa/gus/gus_main.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/usb/serial/pl2303.c |    1 +
+ drivers/usb/serial/pl2303.h |    5 +++++
+ 2 files changed, 6 insertions(+)
 
-diff -puN sound/isa/gus/gus_main.c~sound-isa-gus-gus_mainc-use-abs-instead-of-x-0-x-x sound/isa/gus/gus_main.c
---- a/sound/isa/gus/gus_main.c~sound-isa-gus-gus_mainc-use-abs-instead-of-x-0-x-x
-+++ a/sound/isa/gus/gus_main.c
-@@ -294,10 +294,10 @@ static int snd_gus_init_dma_irq(struct s
- 		gus->mix_cntrl_reg |= 4;	/* enable MIC */
- 	}
- 	dma1 = gus->gf1.dma1;
--	dma1 = dma1 < 0 ? -dma1 : dma1;
-+	dma1 = abs(dma1);
- 	dma1 = dmas[dma1 & 7];
- 	dma2 = gus->gf1.dma2;
--	dma2 = dma2 < 0 ? -dma2 : dma2;
-+	dma2 = abs(dma2);
- 	dma2 = dmas[dma2 & 7];
- 	dma1 |= gus->equal_dma ? 0x40 : (dma2 << 3);
+diff -puN drivers/usb/serial/pl2303.c~pl2303-willcom-ws002in-support drivers/usb/serial/pl2303.c
+--- a/drivers/usb/serial/pl2303.c~pl2303-willcom-ws002in-support
++++ a/drivers/usb/serial/pl2303.c
+@@ -83,6 +83,7 @@ static struct usb_device_id id_table [] 
+ 	{ USB_DEVICE(BELKIN_VENDOR_ID, BELKIN_PRODUCT_ID) },
+ 	{ USB_DEVICE(ALCOR_VENDOR_ID, ALCOR_PRODUCT_ID) },
+ 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_ID) },
++	{ USB_DEVICE(WS002IN_VENDOR_ID, WS002IN_PRODUCT_ID) },
+ 	{ }					/* Terminating entry */
+ };
  
-@@ -306,7 +306,7 @@ static int snd_gus_init_dma_irq(struct s
- 		return -EINVAL;
- 	}
- 	irq = gus->gf1.irq;
--	irq = irq < 0 ? -irq : irq;
-+	irq = abs(irq);
- 	irq = irqs[irq & 0x0f];
- 	if (irq == 0) {
- 		snd_printk(KERN_ERR "Error! IRQ isn't defined.\n");
+diff -puN drivers/usb/serial/pl2303.h~pl2303-willcom-ws002in-support drivers/usb/serial/pl2303.h
+--- a/drivers/usb/serial/pl2303.h~pl2303-willcom-ws002in-support
++++ a/drivers/usb/serial/pl2303.h
+@@ -97,3 +97,8 @@
+ /* Huawei E620 UMTS/HSDPA card (ID: 12d1:1001) */
+ #define HUAWEI_VENDOR_ID	0x12d1
+ #define HUAWEI_PRODUCT_ID	0x1001
++
++/* Willcom WS002IN Data Driver (by NetIndex Inc.) */
++#define WS002IN_VENDOR_ID	0x11f6
++#define WS002IN_PRODUCT_ID	0x2001
++
 _
 
-Patches currently in -mm which might be from s022018@student.dtu.dk are
+Patches currently in -mm which might be from yoshfuji@linux-ipv6.org are
 
-sound-isa-gus-gus_mainc-use-abs-instead-of-x-0-x-x.patch
+pl2303-willcom-ws002in-support.patch
