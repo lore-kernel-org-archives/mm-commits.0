@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-call-scheme-fix-thrashed-unaligned-read.patch added to -mm tree
-Date: Mon, 29 Jan 2007 15:30:18 -0800
-Message-ID: <200701292330.l0TNUISf002531@shell0.pdx.osdl.net>
+Subject: + readahead-laptop-mode-fix.patch added to -mm tree
+Date: Mon, 29 Jan 2007 15:30:20 -0800
+Message-ID: <200701292330.l0TNUKLx002534@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33607 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33615 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964937AbXA2XaW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 18:30:22 -0500
+	id S964981AbXA2XaY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 18:30:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: call scheme: fix thrashed unaligned read
+     readahead: laptop mode fix
 has been added to the -mm tree.  Its filename is
-     readahead-call-scheme-fix-thrashed-unaligned-read.patch
+     readahead-laptop-mode-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: call scheme: fix thrashed unaligned read
+Subject: readahead: laptop mode fix
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-When doing unaligned/subpages sequential reads, and thrashing happened, it is
-possible that (offset == prev_page), besides the normal (offset == prev_page +
-1).
+1) make LAPTOP_POLL_INTERVAL independent of page size
 
-We do not have such problem for the state based method.
+2) defer readahead to the _last_ minute
+
+There's no luck for the kernel to know the right time of
+waking up the disk in order to hide the spin up latency.
+
+So we make the rule simple:
+- The kernel ensures _longest_ spin down time;
+- The media player caches enough data to hide the spin up delay.
+
+That means, if one enabled laptop mode, and want to watch movies
+without pauses, he should setup proper media player cache as well.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/readahead.c |   22 ++++++++--------------
+ 1 files changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN mm/readahead.c~readahead-call-scheme-fix-thrashed-unaligned-read mm/readahead.c
---- a/mm/readahead.c~readahead-call-scheme-fix-thrashed-unaligned-read
+diff -puN mm/readahead.c~readahead-laptop-mode-fix mm/readahead.c
+--- a/mm/readahead.c~readahead-laptop-mode-fix
 +++ a/mm/readahead.c
-@@ -1614,7 +1614,7 @@ page_cache_readahead_adaptive(struct add
- 	/*
- 	 * Recover from possible thrashing.
- 	 */
--	if (!page && offset == ra->prev_page + 1 && ra_has_index(ra, offset))
-+	if (!page && offset - ra->prev_page <= 1 && ra_has_index(ra, offset))
- 		return thrashing_recovery_readahead(mapping, filp, ra,
- 								offset, ra_max);
+@@ -37,7 +37,7 @@
+ #define INITIAL_RA_PAGES  DIV_ROUND_UP(64*1024, PAGE_CACHE_SIZE)
+ 
+ /* In laptop mode, poll delayed look-ahead on every ## pages read. */
+-#define LAPTOP_POLL_INTERVAL 16
++#define LAPTOP_POLL_INTERVAL	DIV_ROUND_UP(64*1024, PAGE_CACHE_SIZE)
+ 
+ /* Set look-ahead size to 1/# of the thrashing-threshold. */
+ #define LOOKAHEAD_RATIO 8
+@@ -784,28 +784,22 @@ out:
+ 
+ /*
+  * Set a new look-ahead mark at @next.
+- * Return 0 if the new mark is successfully set.
+  */
+-static int renew_lookahead(struct address_space *mapping,
++static void defer_lookahead(struct address_space *mapping,
+ 				struct file_ra_state *ra,
+ 				pgoff_t offset, pgoff_t next)
+ {
+ 	struct page *page;
+ 
+-	if (offset == ra->lookahead_index &&
+-	      next >= ra->readahead_index)
+-		return 1;
+-
+-	if (!(page = find_get_page(mapping, next)))
+-		return 1;
++	page = find_get_page(mapping, next);
++	if (!page)
++		return;
+ 
+ 	SetPageReadahead(page);
+ 	page_cache_release(page);
+ 
+ 	if (ra->lookahead_index == offset)
+ 	    ra->lookahead_index = next;
+-
+-	return 0;
+ }
+ 
+ /*
+@@ -1613,9 +1607,9 @@ page_cache_readahead_adaptive(struct add
+ 		 * Defer read-ahead to save energy.
+ 		 */
+ 		if (unlikely(laptop_mode && laptop_spinned_down())) {
+-			if (!renew_lookahead(mapping, ra, offset,
+-						offset + LAPTOP_POLL_INTERVAL))
+-				return 0;
++			defer_lookahead(mapping, ra, offset,
++						offset + LAPTOP_POLL_INTERVAL);
++			return 0;
+ 		}
+ 	}
  
 _
 
