@@ -1,65 +1,74 @@
 From: akpm@osdl.org
-Subject: - sound-isa-gus-gus_mainc-use-abs-instead-of-x-0-x-x.patch removed from -mm tree
-Date: Mon, 29 Jan 2007 13:17:11 -0800
-Message-ID: <200701292117.l0TLHBD2031162@shell0.pdx.osdl.net>
+Subject: - netfilter-is-subscribers-only.patch removed from -mm tree
+Date: Mon, 29 Jan 2007 13:17:19 -0800
+Message-ID: <200701292117.l0TLHJUx031171@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57191 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57229 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752572AbXA2VRW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 16:17:22 -0500
+	id S1752574AbXA2VRg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 16:17:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: s022018@student.dtu.dk, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sound/isa/gus/gus_main.c: Use abs() instead of x < 0 ? -x : x.
+     netfilter@ is subscribers-only
 has been removed from the -mm tree.  Its filename was
-     sound-isa-gus-gus_mainc-use-abs-instead-of-x-0-x-x.patch
+     netfilter-is-subscribers-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sound/isa/gus/gus_main.c: Use abs() instead of x < 0 ? -x : x.
-From: "Peter Eriksen" <s022018@student.dtu.dk>
+Subject: netfilter@ is subscribers-only
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Peter Eriksen <s022018@student.dtu.dk>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+
+netfilter mailing list is subscribers-only.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- sound/isa/gus/gus_main.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/isa/gus/gus_main.c~sound-isa-gus-gus_mainc-use-abs-instead-of-x-0-x-x sound/isa/gus/gus_main.c
---- a/sound/isa/gus/gus_main.c~sound-isa-gus-gus_mainc-use-abs-instead-of-x-0-x-x
-+++ a/sound/isa/gus/gus_main.c
-@@ -294,10 +294,10 @@ static int snd_gus_init_dma_irq(struct s
- 		gus->mix_cntrl_reg |= 4;	/* enable MIC */
- 	}
- 	dma1 = gus->gf1.dma1;
--	dma1 = dma1 < 0 ? -dma1 : dma1;
-+	dma1 = abs(dma1);
- 	dma1 = dmas[dma1 & 7];
- 	dma2 = gus->gf1.dma2;
--	dma2 = dma2 < 0 ? -dma2 : dma2;
-+	dma2 = abs(dma2);
- 	dma2 = dmas[dma2 & 7];
- 	dma1 |= gus->equal_dma ? 0x40 : (dma2 << 3);
- 
-@@ -306,7 +306,7 @@ static int snd_gus_init_dma_irq(struct s
- 		return -EINVAL;
- 	}
- 	irq = gus->gf1.irq;
--	irq = irq < 0 ? -irq : irq;
-+	irq = abs(irq);
- 	irq = irqs[irq & 0x0f];
- 	if (irq == 0) {
- 		snd_printk(KERN_ERR "Error! IRQ isn't defined.\n");
+diff -puN MAINTAINERS~netfilter-is-subscribers-only MAINTAINERS
+--- a/MAINTAINERS~netfilter-is-subscribers-only
++++ a/MAINTAINERS
+@@ -2336,7 +2336,7 @@ P:	Jozsef Kadlecsik
+ P:	Patrick McHardy
+ M:	kaber@trash.net
+ L:	netfilter-devel@lists.netfilter.org
+-L:	netfilter@lists.netfilter.org
++L:	netfilter@lists.netfilter.org (subscribers-only)
+ L:	coreteam@netfilter.org
+ W:	http://www.netfilter.org/
+ W:	http://www.iptables.org/
 _
 
-Patches currently in -mm which might be from s022018@student.dtu.dk are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+origin.patch
 git-alsa.patch
+git-gfs2-nmw.patch
+qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
+git-net.patch
+parisc-fix-module_param-iommu-permission.patch
+git-scsi-misc.patch
+math-emu-setcc-avoid-gcc-extension.patch
+typeof-__page_to_pfn-with-sparsemem=y.patch
+docbook-html-correction-of-recursive-a-tags-in-html-output.patch
+kernel-doc-allow-a-little-whitespace.patch
+sysrq-showblockedtasks-is-sysrq-w.patch
+sysrq-alphabetize-command-keys-doc.patch
+kernel-doc-allow-more-whitespace.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+docbook-add-edd-firmware-interfaces.patch
+kernel-doc-fix-some-odd-spacing-issues.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
