@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + lutimesat-actual-syscall-and-wire-up-on-i386.patch added to -mm tree
-Date: Mon, 29 Jan 2007 15:37:09 -0800
-Message-ID: <200701292337.l0TNb9H6002675@shell0.pdx.osdl.net>
+Subject: + tty-cleanup-release_mem.patch added to -mm tree
+Date: Mon, 29 Jan 2007 15:42:03 -0800
+Message-ID: <200701292342.l0TNg3xn002775@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33853 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33970 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965005AbXA2Xh1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 18:37:27 -0500
+	id S964783AbXA2XmQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 18:42:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@openvz.org, ak@suse.de, arnd@arndb.de, drepper@redhat.com, mtk-manpages@gmx.net
+Cc: hch@lst.de, alan@redhat.com
 
 
 The patch titled
-     lutimesat: actual syscall and wire-up on i386
+     tty: cleanup release_mem
 has been added to the -mm tree.  Its filename is
-     lutimesat-actual-syscall-and-wire-up-on-i386.patch
+     tty-cleanup-release_mem.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,130 +25,185 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lutimesat: actual syscall and wire-up on i386
-From: Alexey Dobriyan <adobriyan@openvz.org>
+Subject: tty: cleanup release_mem
+From: Christoph Hellwig <hch@lst.de>
 
-lutimesat(2) does everything futimesat(2) does except it doesn't follow
-symlinks. It could be used by tar(1) and cp(1).
+release_mem contains two copies of exactly the same code.  Refactor
+these into a new helper, release_tty.  The only change in behaviour
+is that the driver reference count is now decremented after the
+master tty has been freed instead of before.
 
-FreeBSD and NetBSD have lutimes(2) which can be emulated by C library.
+release_mem becomes release_tty and the new factored out function is
+release_one_tty.  The difference is documented in the kdoc comments.
 
-lutimesat(2) accepts "struct timespec" which means timestamps with nanosecond
-granularity. Tested on XFS which has nanosecond timestamps on-disk.
-
-Changes to do_utimes() which is used by all existing utime* syscalls pass
-LTP utime tests.
-
-Closes http://bugme.osdl.org/show_bug.cgi?id=4433
-
-Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Ulrich Drepper <drepper@redhat.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/syscall_table.S |    1 
- fs/utimes.c                      |   30 ++++++++++++++++++++++++-----
- include/asm-i386/unistd.h        |    3 +-
- 3 files changed, 28 insertions(+), 6 deletions(-)
+ drivers/char/tty_io.c |   71 +++++++++++++++++++---------------------
+ 1 files changed, 35 insertions(+), 36 deletions(-)
 
-diff -puN arch/i386/kernel/syscall_table.S~lutimesat-actual-syscall-and-wire-up-on-i386 arch/i386/kernel/syscall_table.S
---- a/arch/i386/kernel/syscall_table.S~lutimesat-actual-syscall-and-wire-up-on-i386
-+++ a/arch/i386/kernel/syscall_table.S
-@@ -319,3 +319,4 @@ ENTRY(sys_call_table)
- 	.long sys_move_pages
- 	.long sys_getcpu
- 	.long sys_epoll_pwait
-+	.long sys_lutimesat		/* 320 */
-diff -puN fs/utimes.c~lutimesat-actual-syscall-and-wire-up-on-i386 fs/utimes.c
---- a/fs/utimes.c~lutimesat-actual-syscall-and-wire-up-on-i386
-+++ a/fs/utimes.c
-@@ -40,7 +40,7 @@ asmlinkage long sys_utime(char __user * 
-  * must be owner or have write permission.
-  * Else, update from *times, must be owner or super user.
+diff -puN drivers/char/tty_io.c~tty-cleanup-release_mem drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-cleanup-release_mem
++++ a/drivers/char/tty_io.c
+@@ -154,7 +154,7 @@ static int tty_release(struct inode *, s
+ int tty_ioctl(struct inode * inode, struct file * file,
+ 	      unsigned int cmd, unsigned long arg);
+ static int tty_fasync(int fd, struct file * filp, int on);
+-static void release_mem(struct tty_struct *tty, int idx);
++static void release_tty(struct tty_struct *tty, int idx);
+ 
+ /**
+  *	alloc_tty_struct	-	allocate a tty object
+@@ -2002,7 +2002,7 @@ static int init_dev(struct tty_driver *d
+ 
+ 	/* 
+ 	 * All structures have been allocated, so now we install them.
+-	 * Failures after this point use release_mem to clean up, so 
++	 * Failures after this point use release_tty to clean up, so
+ 	 * there's no need to null out the local pointers.
+ 	 */
+ 	if (!(driver->flags & TTY_DRIVER_DEVPTS_MEM)) {
+@@ -2023,8 +2023,8 @@ static int init_dev(struct tty_driver *d
+ 
+ 	/* 
+ 	 * Structures all installed ... call the ldisc open routines.
+-	 * If we fail here just call release_mem to clean up.  No need
+-	 * to decrement the use counts, as release_mem doesn't care.
++	 * If we fail here just call release_tty to clean up.  No need
++	 * to decrement the use counts, as release_tty doesn't care.
+ 	 */
+ 
+ 	if (tty->ldisc.open) {
+@@ -2094,17 +2094,17 @@ fail_no_mem:
+ 	retval = -ENOMEM;
+ 	goto end_init;
+ 
+-	/* call the tty release_mem routine to clean out this slot */
++	/* call the tty release_tty routine to clean out this slot */
+ release_mem_out:
+ 	if (printk_ratelimit())
+ 		printk(KERN_INFO "init_dev: ldisc open failed, "
+ 				 "clearing slot %d\n", idx);
+-	release_mem(tty, idx);
++	release_tty(tty, idx);
+ 	goto end_init;
+ }
+ 
+ /**
+- *	release_mem		-	release tty structure memory
++ *	release_one_tty		-	release tty structure memory
+  *
+  *	Releases memory associated with a tty structure, and clears out the
+  *	driver table slots. This function is called when a device is no longer
+@@ -2116,37 +2116,14 @@ release_mem_out:
+  *	of ttys that the driver keeps.
+  *		FIXME: should we require tty_mutex is held here ??
   */
--long do_utimes(int dfd, char __user *filename, struct timeval *times, int flags)
-+static long do_utimes_nsec(int dfd, char __user *filename, struct timespec *times, int flags)
+-
+-static void release_mem(struct tty_struct *tty, int idx)
++static void release_one_tty(struct tty_struct *tty, int idx)
  {
- 	int error = -EINVAL;
- 	struct nameidata nd;
-@@ -69,10 +69,8 @@ long do_utimes(int dfd, char __user *fil
-                 if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
-                         goto dput_and_out;
+-	struct tty_struct *o_tty;
+-	struct ktermios *tp;
+ 	int devpts = tty->driver->flags & TTY_DRIVER_DEVPTS_MEM;
+-
+-	if ((o_tty = tty->link) != NULL) {
+-		if (!devpts)
+-			o_tty->driver->ttys[idx] = NULL;
+-		if (o_tty->driver->flags & TTY_DRIVER_RESET_TERMIOS) {
+-			tp = o_tty->termios;
+-			if (!devpts)
+-				o_tty->driver->termios[idx] = NULL;
+-			kfree(tp);
+-
+-			tp = o_tty->termios_locked;
+-			if (!devpts)
+-				o_tty->driver->termios_locked[idx] = NULL;
+-			kfree(tp);
+-		}
+-		o_tty->magic = 0;
+-		o_tty->driver->refcount--;
+-		file_list_lock();
+-		list_del_init(&o_tty->tty_files);
+-		file_list_unlock();
+-		free_tty_struct(o_tty);
+-	}
++	struct ktermios *tp;
  
--		newattrs.ia_atime.tv_sec = times[0].tv_sec;
--		newattrs.ia_atime.tv_nsec = times[0].tv_usec * 1000;
--		newattrs.ia_mtime.tv_sec = times[1].tv_sec;
--		newattrs.ia_mtime.tv_nsec = times[1].tv_usec * 1000;
-+		newattrs.ia_atime = times[0];
-+		newattrs.ia_mtime = times[1];
- 		newattrs.ia_valid |= ATTR_ATIME_SET | ATTR_MTIME_SET;
- 	} else {
- 		error = -EACCES;
-@@ -92,6 +90,19 @@ out:
- 	return error;
+ 	if (!devpts)
+ 		tty->driver->ttys[idx] = NULL;
++
+ 	if (tty->driver->flags & TTY_DRIVER_RESET_TERMIOS) {
+ 		tp = tty->termios;
+ 		if (!devpts)
+@@ -2159,15 +2136,37 @@ static void release_mem(struct tty_struc
+ 		kfree(tp);
+ 	}
+ 
++
+ 	tty->magic = 0;
+ 	tty->driver->refcount--;
++
+ 	file_list_lock();
+ 	list_del_init(&tty->tty_files);
+ 	file_list_unlock();
+-	module_put(tty->driver->owner);
++
+ 	free_tty_struct(tty);
  }
  
-+long do_utimes(int dfd, char __user *filename, struct timeval *times, int flags)
++/**
++ *	release_one_tty		-	release tty structure memory
++ *
++ *	Release both @tty and a possible linked partner (think pty pair),
++ *	and decrement the refcount of the backing module.
++ *
++ *	Locking:
++ *		tty_mutex - sometimes only
++ *		takes the file list lock internally when working on the list
++ *	of ttys that the driver keeps.
++ *		FIXME: should we require tty_mutex is held here ??
++ */
++static void release_tty(struct tty_struct *tty, int idx)
 +{
-+	struct timespec ts[2];
-+
-+	if (times) {
-+		ts[0].tv_sec = times[0].tv_sec;
-+		ts[0].tv_nsec = times[0].tv_usec * 1000;
-+		ts[1].tv_sec = times[1].tv_sec;
-+		ts[1].tv_nsec = times[1].tv_usec * 1000;
-+	}
-+	return do_utimes_nsec(dfd, filename, times ? ts : NULL, flags);
++	if (tty->link)
++		release_one_tty(tty->link, idx);
++	release_one_tty(tty, idx);
++	module_put(tty->driver->owner);
 +}
 +
- asmlinkage long sys_futimesat(int dfd, char __user *filename, struct timeval __user *utimes)
- {
- 	struct timeval times[2];
-@@ -105,3 +116,12 @@ asmlinkage long sys_utimes(char __user *
- {
- 	return sys_futimesat(AT_FDCWD, filename, utimes);
- }
-+
-+asmlinkage long sys_lutimesat(int dfd, char __user *filename, struct timespec __user *utimes)
-+{
-+	struct timespec times[2];
-+
-+	if (utimes && copy_from_user(&times, utimes, sizeof(times)))
-+		return -EFAULT;
-+	return do_utimes_nsec(dfd, filename, utimes ? times : NULL, AT_SYMLINK_NOFOLLOW);
-+}
-diff -puN include/asm-i386/unistd.h~lutimesat-actual-syscall-and-wire-up-on-i386 include/asm-i386/unistd.h
---- a/include/asm-i386/unistd.h~lutimesat-actual-syscall-and-wire-up-on-i386
-+++ a/include/asm-i386/unistd.h
-@@ -325,10 +325,11 @@
- #define __NR_move_pages		317
- #define __NR_getcpu		318
- #define __NR_epoll_pwait	319
-+#define __NR_lutimesat		320
+ /*
+  * Even releasing the tty structures is a tricky business.. We have
+  * to be very careful that the structures are all released at the
+@@ -2435,10 +2434,10 @@ static void release_dev(struct file * fi
+ 		tty_set_termios_ldisc(o_tty,N_TTY); 
+ 	}
+ 	/*
+-	 * The release_mem function takes care of the details of clearing
++	 * The release_tty function takes care of the details of clearing
+ 	 * the slots and preserving the termios structure.
+ 	 */
+-	release_mem(tty, idx);
++	release_tty(tty, idx);
  
- #ifdef __KERNEL__
- 
--#define NR_syscalls 320
-+#define NR_syscalls 321
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- #define __ARCH_WANT_OLD_READDIR
+ #ifdef CONFIG_UNIX98_PTYS
+ 	/* Make this pty number available for reallocation */
 _
 
-Patches currently in -mm which might be from adobriyan@openvz.org are
+Patches currently in -mm which might be from hch@lst.de are
 
-origin.patch
-revert-x86_64-mm-msr-on-cpu.patch
-sysctl_ms_jiffies-fix-oldlen-semantics.patch
-consolidate-default-sched_clock.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-consolidate-bust_spinlocks.patch
-extract-and-use-wake_up_klogd.patch
-introduce-and-use-get_task_mnt_ns.patch
-introduce-and-use-get_task_mnt_ns-tweaks.patch
-lutimesat-simplify-utime2.patch
-lutimesat-extend-do_utimes-with-flags.patch
-lutimesat-actual-syscall-and-wire-up-on-i386.patch
+git-drm.patch
+git-scsi-misc.patch
+slab-cache-alloc-cleanups.patch
+simplify-the-stacktrace-code.patch
+make-bh_unwritten-a-first-class-bufferhead-flag-v2.patch
+make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
+tty-cleanup-release_mem.patch
+tty-cleanup-release_mem-fix.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
+have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode.patch
+have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode-update.patch
+aio-is-unlikely.patch
