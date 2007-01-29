@@ -1,148 +1,166 @@
 From: akpm@osdl.org
-Subject: - fix-gfs2-circular-dependency.patch removed from -mm tree
-Date: Mon, 29 Jan 2007 13:17:15 -0800
-Message-ID: <200701292117.l0TLHFsc031165@shell0.pdx.osdl.net>
+Subject: + fix-via-irq-quirk-breakage.patch added to -mm tree
+Date: Mon, 29 Jan 2007 14:07:12 -0800
+Message-ID: <200701292207.l0TM7CDA032370@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57374 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58992 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752572AbXA2VUf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 16:20:35 -0500
+	id S1752089AbXA2WHX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 17:07:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jdelvare@suse.de, alan@redhat.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     fix GFS2 circular dependency
-has been removed from the -mm tree.  Its filename was
-     fix-gfs2-circular-dependency.patch
+     fix via irq quirk breakage
+has been added to the -mm tree.  Its filename is
+     fix-via-irq-quirk-breakage.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix GFS2 circular dependency
-From: Adrian Bunk <bunk@stusta.de>
+Subject: fix via irq quirk breakage
+From: Jean Delvare <jdelvare@suse.de>
 
-This patch fixes a circular dependency by letting GFS2_FS_LOCKING_DLM
-and DLM depend on instead of select SYSFS.
+Fix VIA quirks that were recently broken by Alan Cox in the upstream
+kernel (commit 1597cacbe39802d86656d1f2e6329895bd2ef531).
 
-Since SYSFS depends on EMBEDDED this change shouldn't cause any problems
-for users.
+My understanding is that pci_find_present() doesn't work yet at the time
+the quirks are run.  So I used a two-step quirk as is done for some other
+quirks already.  First we detect the VIA south bridges and set the right
+low and high device limits, then we are ready to actually run the quirks on
+the affected devices.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Alan sayeth "This is a lot neater than the original patch too.  Only problem I
+see is pci=reverse might need more care."
+
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Acked-by: Alan Cox <alan@redhat.com>
+Needs-to-be-tested-by: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/dlm/Kconfig  |    3 +--
- fs/gfs2/Kconfig |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/pci/quirks.c |   78 ++++++++++++++++++++++-------------------
+ 1 files changed, 42 insertions(+), 36 deletions(-)
 
-diff -puN fs/dlm/Kconfig~fix-gfs2-circular-dependency fs/dlm/Kconfig
---- a/fs/dlm/Kconfig~fix-gfs2-circular-dependency
-+++ a/fs/dlm/Kconfig
-@@ -3,9 +3,8 @@ menu "Distributed Lock Manager"
+diff -puN drivers/pci/quirks.c~fix-via-irq-quirk-breakage drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~fix-via-irq-quirk-breakage
++++ a/drivers/pci/quirks.c
+@@ -654,19 +654,40 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_V
+  *	VIA bridges which have VLink
+  */
  
- config DLM
- 	tristate "Distributed Lock Manager (DLM)"
--	depends on IPV6 || IPV6=n
-+	depends on SYSFS && (IPV6 || IPV6=n)
- 	select CONFIGFS_FS
--	select SYSFS
- 	select IP_SCTP if DLM_SCTP
- 	help
- 	A general purpose distributed lock manager for kernel or userspace
-diff -puN fs/gfs2/Kconfig~fix-gfs2-circular-dependency fs/gfs2/Kconfig
---- a/fs/gfs2/Kconfig~fix-gfs2-circular-dependency
-+++ a/fs/gfs2/Kconfig
-@@ -34,11 +34,10 @@ config GFS2_FS_LOCKING_NOLOCK
+-static const struct pci_device_id via_vlink_fixup_tbl[] = {
+-	/* Internal devices need IRQ line routing, pre VLink */
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_82C686), 0 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8231), 17 },
+-	/* Devices with VLink */
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233_0), 17},
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233A), 17 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233C_0), 17 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8235), 16 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8237), 15 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8237A), 15 },
+-	{ 0, },
+-};
++static int via_vlink_dev_lo = -1, via_vlink_dev_hi = 18;
++
++static void quirk_via_bridge(struct pci_dev *dev)
++{
++	/* See what bridge we have and find the device ranges */
++	switch (dev->device) {
++	case PCI_DEVICE_ID_VIA_82C686:
++		/* 82C686 is special */
++		via_vlink_dev_lo = 0;
++		via_vlink_dev_hi = 0;
++		break;
++	case PCI_DEVICE_ID_VIA_8237:
++	case PCI_DEVICE_ID_VIA_8237A:
++		via_vlink_dev_lo = 15;
++		break;
++	case PCI_DEVICE_ID_VIA_8235:
++		via_vlink_dev_lo = 16;
++		break;
++	case PCI_DEVICE_ID_VIA_8231:
++	case PCI_DEVICE_ID_VIA_8233_0:
++	case PCI_DEVICE_ID_VIA_8233A:
++	case PCI_DEVICE_ID_VIA_8233C_0:
++		via_vlink_dev_lo = 17;
++		break;
++	}
++}
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C686,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8231,		quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233_0,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233A,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233C_0,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8235,		quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8237,		quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8237A,	quirk_via_bridge);
  
- config GFS2_FS_LOCKING_DLM
- 	tristate "GFS2 DLM locking module"
--	depends on GFS2_FS && NET && INET && (IPV6 || IPV6=n)
-+	depends on GFS2_FS && SYSFS && NET && INET && (IPV6 || IPV6=n)
- 	select IP_SCTP if DLM_SCTP
- 	select CONFIGFS_FS
- 	select DLM
--	select SYSFS
- 	help
- 	Multiple node locking module for GFS2
+ /**
+  *	quirk_via_vlink		-	VIA VLink IRQ number update
+@@ -675,35 +696,20 @@ static const struct pci_device_id via_vl
+  *	If the device we are dealing with is on a PIC IRQ we need to
+  *	ensure that the IRQ line register which usually is not relevant
+  *	for PCI cards, is actually written so that interrupts get sent
+- *	to the right place
++ *	to the right place.
++ *	We only do this on systems where a VIA south bridge was detected,
++ *	and only for VIA devices on the motherboard (see quirk_via_bridge
++ *	above).
+  */
  
+ static void quirk_via_vlink(struct pci_dev *dev)
+ {
+-	const struct pci_device_id *via_vlink_fixup;
+-	static int dev_lo = -1, dev_hi = 18;
+ 	u8 irq, new_irq;
+ 
+-	/* Check if we have VLink and cache the result */
+-
+-	/* Checked already - no */
+-	if (dev_lo == -2)
++	/* Check if we have VLink at all */
++	if (via_vlink_dev_lo == -1)
+ 		return;
+ 
+-	/* Not checked - see what bridge we have and find the device
+-	   ranges */
+-
+-	if (dev_lo == -1) {
+-		via_vlink_fixup = pci_find_present(via_vlink_fixup_tbl);
+-		if (via_vlink_fixup == NULL) {
+-			dev_lo = -2;
+-			return;
+-		}
+-		dev_lo = via_vlink_fixup->driver_data;
+-		/* 82C686 is special - 0/0 */
+-		if (dev_lo == 0)
+-			dev_hi = 0;
+-	}
+ 	new_irq = dev->irq;
+ 
+ 	/* Don't quirk interrupts outside the legacy IRQ range */
+@@ -711,8 +717,8 @@ static void quirk_via_vlink(struct pci_d
+ 		return;
+ 
+ 	/* Internal device ? */
+-	if (dev->bus->number != 0 || PCI_SLOT(dev->devfn) > dev_hi ||
+-		PCI_SLOT(dev->devfn) < dev_lo)
++	if (dev->bus->number != 0 || PCI_SLOT(dev->devfn) > via_vlink_dev_hi ||
++	    PCI_SLOT(dev->devfn) < via_vlink_dev_lo)
+ 		return;
+ 
+ 	/* This is an internal VLink device on a PIC interrupt. The BIOS
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
-origin.patch
-fs-lockd-clntlockc-add-missing-newlines-to-dprintks.patch
-git-acpi.patch
-git-alsa.patch
-cpu_freq_table-shouldnt-be-a-def_tristate.patch
-git-powerpc.patch
-drivers-char-drm-drm_mmc-remove-unused-exports.patch
-git-dvb.patch
-drivers-media-dvb-frontends-make-4-functions-static.patch
-git-gfs2-nmw.patch
-ia64-add-pci_get_legacy_ide_irq.patch
-git-ieee1394.patch
-git-libata-all.patch
-fix-config_sata_sis=y-compile-error.patch
-mips-remove-smp_tune_scheduling.patch
-git-mmc.patch
-mtd_ck804xrom-must-depend-on-pci.patch
-git-ubi.patch
-git-netdev-all.patch
-remove-one-remaining-define-bcm_tso-1.patch
-net-irda-proper-prototypes.patch
-net-wanrouter-wanmainc-cleanups.patch
-nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
-net-uninline-skb_put-fix.patch
-git-ocfs2.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-x86_64-re-add-a-newline-to-restore_context.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-drivers-char-vc_screenc-proper-prototypes.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
-schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
-cleanup-linux-byteorder-swabbh.patch
-cleanup-include-linux-xattrh.patch
-cleanup-include-linux-reiserfs_xattrh.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-fbdev-driver-for-s3-trio-virge-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+fix-via-irq-quirk-breakage.patch
