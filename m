@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags.patch added to -mm tree
-Date: Mon, 29 Jan 2007 15:29:58 -0800
-Message-ID: <200701292329.l0TNTwof002486@shell0.pdx.osdl.net>
+Subject: + readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch added to -mm tree
+Date: Mon, 29 Jan 2007 15:30:11 -0800
+Message-ID: <200701292330.l0TNUBMW002524@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33557 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33580 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964930AbXA2XaD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 18:30:03 -0500
+	id S964934AbXA2XaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 18:30:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: state based method routines: explicitly embed class_new/class_old inside flags
+     readahead: initial method: user recommended size: rename to read_ahead_initial_kb
 has been added to the -mm tree.  Its filename is
-     readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags.patch
+     readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,86 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: state based method routines: explicitly embed class_new/class_old inside flags
+Subject: readahead: initial method: user recommended size: rename to read_ahead_initial_kb
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-The new/old ra class were implicitly stored in low bits of
-file_ra_state.flags.  Now make the data structure obvious, and remove the
-coding tricks.
+Rename the sysfs parameter initial_ra_kb to read_ahead_initial_kb, which
+hopefully is a more consistent and user friendly name.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/fs.h |    9 ++++++++-
- mm/readahead.c     |   18 ++++--------------
- 2 files changed, 12 insertions(+), 15 deletions(-)
+ block/ll_rw_blk.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/fs.h~readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags include/linux/fs.h
---- a/include/linux/fs.h~readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags
-+++ a/include/linux/fs.h
-@@ -738,7 +738,14 @@ struct file_ra_state {
- 	unsigned long mmap_hit;		/* Cache hit stat for mmap accesses */
- 	unsigned long mmap_miss;	/* Cache miss stat for mmap accesses */
- 
--	unsigned long flags;	/* RA_FLAG_xxx | ra_class_old | ra_class_new */
-+	union {
-+		unsigned long	flags;	/* RA_FLAG_xxx | class_old | class_new */
-+		struct {
-+			u8	class_new;
-+			u8	class_old;
-+		};
-+	};
-+
- 	unsigned long prev_page;	/* Cache last read() position */
- 	unsigned long ra_pages;		/* Maximum readahead window */
+diff -puN block/ll_rw_blk.c~readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb
++++ a/block/ll_rw_blk.c
+@@ -3993,7 +3993,7 @@ static struct queue_sysfs_entry queue_ra
  };
-diff -puN mm/readahead.c~readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags mm/readahead.c
---- a/mm/readahead.c~readahead-state-based-method-routines-explicitly-embed-class_new-class_old-inside-flags
-+++ a/mm/readahead.c
-@@ -48,8 +48,6 @@ int readahead_hit_rate = 1;
- /*
-  * Detailed classification of read-ahead behaviors.
-  */
--#define RA_CLASS_SHIFT 4
--#define RA_CLASS_MASK  ((1 << RA_CLASS_SHIFT) - 1)
- enum ra_class {
- 	RA_CLASS_ALL,
- 	RA_CLASS_INITIAL,
-@@ -791,12 +789,12 @@ out:
  
- static enum ra_class ra_class_new(struct file_ra_state *ra)
- {
--	return ra->flags & RA_CLASS_MASK;
-+	return ra->class_new;
- }
- 
- static inline enum ra_class ra_class_old(struct file_ra_state *ra)
- {
--	return (ra->flags >> RA_CLASS_SHIFT) & RA_CLASS_MASK;
-+	return ra->class_old;
- }
- 
- static unsigned long ra_readahead_size(struct file_ra_state *ra)
-@@ -828,16 +826,8 @@ static int ra_has_index(struct file_ra_s
-  */
- static void ra_set_class(struct file_ra_state *ra, enum ra_class ra_class)
- {
--	unsigned long flags_mask;
--	unsigned long flags;
--	unsigned long old_ra_class;
--
--	flags_mask = ~(RA_CLASS_MASK | (RA_CLASS_MASK << RA_CLASS_SHIFT));
--	flags = ra->flags & flags_mask;
--
--	old_ra_class = ra_class_new(ra) << RA_CLASS_SHIFT;
--
--	ra->flags = flags | old_ra_class | ra_class;
-+	ra->class_old = ra->class_new;
-+	ra->class_new = ra_class;
- }
- 
- /*
+ static struct queue_sysfs_entry queue_initial_ra_entry = {
+-	.attr = {.name = "initial_ra_kb", .mode = S_IRUGO | S_IWUSR },
++	.attr = {.name = "read_ahead_initial_kb", .mode = S_IRUGO | S_IWUSR },
+ 	.show = queue_initial_ra_show,
+ 	.store = queue_initial_ra_store,
+ };
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
