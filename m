@@ -1,27 +1,27 @@
 From: akpm@osdl.org
-Subject: - x86-fix-vdso-mapping-for-aout-executables-doh.patch removed from -mm tree
-Date: Mon, 29 Jan 2007 00:56:36 -0800
-Message-ID: <200701290856.l0T8uatE016144@shell0.pdx.osdl.net>
+Subject: - x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch removed from -mm tree
+Date: Mon, 29 Jan 2007 00:56:39 -0800
+Message-ID: <200701290856.l0T8ud5S016147@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54467 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54468 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933283AbXA2I4w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 03:56:52 -0500
+	id S933284AbXA2I4y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 03:56:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@osdl.org, ak@suse.de, benh@kernel.crashing.org, joerg@hydrops.han.de, lethal@linux-sh.org, parag.warudkar@gmail.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-fix-vdso-mapping-for-aout-executables-doh
+     x86-fix-vdso-mapping-for-aout-executables-sh-fix
 has been removed from the -mm tree.  Its filename was
-     x86-fix-vdso-mapping-for-aout-executables-doh.patch
+     x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch
 
 This patch was dropped because it was folded into x86-fix-vdso-mapping-for-aout-executables.patch
 
 ------------------------------------------------------
-Subject: x86-fix-vdso-mapping-for-aout-executables-doh
+Subject: x86-fix-vdso-mapping-for-aout-executables-sh-fix
 From: Andrew Morton <akpm@osdl.org>
 
 Cc: Parag Warudkar <parag.warudkar@gmail.com>
@@ -33,29 +33,20 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/ia32/syscall32.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/sh/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/ia32/syscall32.c~x86-fix-vdso-mapping-for-aout-executables-doh arch/x86_64/ia32/syscall32.c
---- a/arch/x86_64/ia32/syscall32.c~x86-fix-vdso-mapping-for-aout-executables-doh
-+++ a/arch/x86_64/ia32/syscall32.c
-@@ -11,6 +11,8 @@
- #include <linux/stringify.h>
- #include <linux/security.h>
- #include <linux/interp.h>
-+#include <linux/module.h>
-+
- #include <asm/proto.h>
- #include <asm/tlbflush.h>
- #include <asm/ia32_unistd.h>
-@@ -59,7 +61,7 @@ const char *arch_vma_name(struct vm_area
+diff -puN arch/sh/Kconfig~x86-fix-vdso-mapping-for-aout-executables-sh-fix arch/sh/Kconfig
+--- a/arch/sh/Kconfig~x86-fix-vdso-mapping-for-aout-executables-sh-fix
++++ a/arch/sh/Kconfig
+@@ -73,7 +73,7 @@ config ARCH_HAS_ILOG2_U64
+ config ARCH_HAS_SETUP_ADDITIONAL_PAGES
+ 	bool
+ 	default y
+-	depends on SUPERH
++	depends on SUPERH && VSYSCALL
  
- int arch_setup_additional_pages(struct linux_binprm *bprm, int exstack)
- {
--	return syscall32_setup_pages(bprm, int exstack);
-+	return syscall32_setup_pages(bprm, exstack);
- }
- EXPORT_SYMBOL(arch_setup_additional_pages);
+ source "init/Kconfig"
  
 _
 
@@ -64,7 +55,6 @@ Patches currently in -mm which might be from akpm@osdl.org are
 origin.patch
 m68k-uaccessh-needs-schedh.patch
 x86-fix-vdso-mapping-for-aout-executables.patch
-x86-fix-vdso-mapping-for-aout-executables-doh.patch
 x86-fix-vdso-mapping-for-aout-executables-sh-fix.patch
 mm-show-bounce-pages-in-oom-killer-output.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
