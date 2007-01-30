@@ -1,116 +1,129 @@
 From: akpm@osdl.org
-Subject: - ufs-alloc-metadata-null-page-fix.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 13:46:45 -0800
-Message-ID: <200701302146.l0ULkjVn030125@shell0.pdx.osdl.net>
+Subject: - ufs-rellocation-fix.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 13:46:50 -0800
+Message-ID: <200701302146.l0ULkoea030132@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51877 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51873 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751843AbXA3Vqz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 16:46:55 -0500
+	id S1751841AbXA3Vqy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 16:46:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dushistov@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs: alloc metadata null page fix
+     ufs: reallocation fix
 has been removed from the -mm tree.  Its filename was
-     ufs-alloc-metadata-null-page-fix.patch
+     ufs-rellocation-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ufs: alloc metadata null page fix
+Subject: ufs: reallocation fix
 From: Evgeniy Dushistov <dushistov@mail.ru>
 
-These series of patches result of UFS1 write support stress testing, like
-running fsx-linux, untar and build linux kernel etc
-
-We pass from ufs::get_block_t to levels below: pointer to the current page, to
-make possible things like reallocation of blocks on the fly, and we also uses
-this pointer for indication, what actually we allocate data block or meta data
-block, but currently we make decision about what we allocate on the wrong
-level, this may and cause oops if we allocate blocks in some special order.
+In blocks reallocation function sometimes does not update some of
+buffer_head::b_blocknr, which may and cause data damage.
 
 Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ufs/balloc.c |    5 ++++-
- fs/ufs/inode.c  |   14 +++++++++-----
- 2 files changed, 13 insertions(+), 6 deletions(-)
+ fs/ufs/balloc.c |   41 ++++++++++++++++++++++++++---------------
+ 1 file changed, 26 insertions(+), 15 deletions(-)
 
-diff -puN fs/ufs/balloc.c~ufs-alloc-metadata-null-page-fix fs/ufs/balloc.c
---- a/fs/ufs/balloc.c~ufs-alloc-metadata-null-page-fix
+diff -puN fs/ufs/balloc.c~ufs-rellocation-fix fs/ufs/balloc.c
+--- a/fs/ufs/balloc.c~ufs-rellocation-fix
 +++ a/fs/ufs/balloc.c
-@@ -233,7 +233,7 @@ static void ufs_change_blocknr(struct in
+@@ -227,14 +227,14 @@ failed:
+  * We can come here from ufs_writepage or ufs_prepare_write,
+  * locked_page is argument of these functions, so we already lock it.
+  */
+-static void ufs_change_blocknr(struct inode *inode, unsigned int baseblk,
++static void ufs_change_blocknr(struct inode *inode, unsigned int beg,
+ 			       unsigned int count, unsigned int oldb,
+ 			       unsigned int newb, struct page *locked_page)
  {
- 	unsigned int blk_per_page = 1 << (PAGE_CACHE_SHIFT - inode->i_blkbits);
- 	struct address_space *mapping = inode->i_mapping;
--	pgoff_t index, cur_index = locked_page->index;
-+	pgoff_t index, cur_index;
- 	unsigned int i, j;
+-	unsigned int blk_per_page = 1 << (PAGE_CACHE_SHIFT - inode->i_blkbits);
+-	struct address_space *mapping = inode->i_mapping;
++	const unsigned mask = (1 << (PAGE_CACHE_SHIFT - inode->i_blkbits)) - 1;
++	struct address_space * const mapping = inode->i_mapping;
+ 	pgoff_t index, cur_index;
+-	unsigned int i, j;
++	unsigned end, pos, j;
  	struct page *page;
  	struct buffer_head *head, *bh;
-@@ -241,8 +241,11 @@ static void ufs_change_blocknr(struct in
- 	UFSD("ENTER, ino %lu, count %u, oldb %u, newb %u\n",
- 	      inode->i_ino, count, oldb, newb);
  
-+	BUG_ON(!locked_page);
- 	BUG_ON(!PageLocked(locked_page));
+@@ -246,8 +246,8 @@ static void ufs_change_blocknr(struct in
  
-+	cur_index = locked_page->index;
-+
- 	for (i = 0; i < count; i += blk_per_page) {
- 		index = (baseblk+i) >> (PAGE_CACHE_SHIFT - inode->i_blkbits);
+ 	cur_index = locked_page->index;
  
-diff -puN fs/ufs/inode.c~ufs-alloc-metadata-null-page-fix fs/ufs/inode.c
---- a/fs/ufs/inode.c~ufs-alloc-metadata-null-page-fix
-+++ a/fs/ufs/inode.c
-@@ -242,7 +242,8 @@ repeat:
- 			goal = tmp + uspi->s_fpb;
- 		tmp = ufs_new_fragments (inode, p, fragment - blockoff, 
- 					 goal, required + blockoff,
--					 err, locked_page);
-+					 err,
-+					 phys != NULL ? locked_page : NULL);
+-	for (i = 0; i < count; i += blk_per_page) {
+-		index = (baseblk+i) >> (PAGE_CACHE_SHIFT - inode->i_blkbits);
++	for (end = count + beg; beg < end; beg = (beg | mask) + 1) {
++		index = beg >> (PAGE_CACHE_SHIFT - inode->i_blkbits);
+ 
+ 		if (likely(cur_index != index)) {
+ 			page = ufs_get_locked_page(mapping, index);
+@@ -256,21 +256,32 @@ static void ufs_change_blocknr(struct in
+ 		} else
+ 			page = locked_page;
+ 
+-		j = i;
+ 		head = page_buffers(page);
+ 		bh = head;
++		pos = beg & mask;
++		for (j = 0; j < pos; ++j)
++			bh = bh->b_this_page;
++		j = 0;
+ 		do {
+-			if (likely(bh->b_blocknr == j + oldb && j < count)) {
+-				unmap_underlying_metadata(bh->b_bdev,
+-							  bh->b_blocknr);
+-				bh->b_blocknr = newb + j++;
+-				mark_buffer_dirty(bh);
++			if (buffer_mapped(bh)) {
++				pos = bh->b_blocknr - oldb;
++				if (pos < count) {
++					UFSD(" change from %llu to %llu\n",
++					     (unsigned long long)pos + oldb,
++					     (unsigned long long)pos + newb);
++					bh->b_blocknr = newb + pos;
++					unmap_underlying_metadata(bh->b_bdev,
++								  bh->b_blocknr);
++					mark_buffer_dirty(bh);
++					++j;
++				}
+ 			}
+ 
+ 			bh = bh->b_this_page;
+ 		} while (bh != head);
+ 
+-		set_page_dirty(page);
++		if (j)
++			set_page_dirty(page);
+ 
+ 		if (likely(cur_index != index))
+ 			ufs_put_locked_page(page);
+@@ -418,14 +429,14 @@ unsigned ufs_new_fragments(struct inode 
  	}
- 	/*
- 	 * We will extend last allocated block
-@@ -250,7 +251,7 @@ repeat:
- 	else if (lastblock == block) {
- 		tmp = ufs_new_fragments(inode, p, fragment - (blockoff - lastblockoff),
- 					fs32_to_cpu(sb, *p), required +  (blockoff - lastblockoff),
--					err, locked_page);
-+					err, phys != NULL ? locked_page : NULL);
- 	} else /* (lastblock > block) */ {
- 	/*
- 	 * We will allocate new block before last allocated block
-@@ -261,7 +262,8 @@ repeat:
- 				goal = tmp + uspi->s_fpb;
- 		}
- 		tmp = ufs_new_fragments(inode, p, fragment - blockoff,
--					goal, uspi->s_fpb, err, locked_page);
-+					goal, uspi->s_fpb, err,
-+					phys != NULL ? locked_page : NULL);
- 	}
- 	if (!tmp) {
- 		if ((!blockoff && *p) || 
-@@ -438,9 +440,11 @@ int ufs_getfrag_block(struct inode *inod
- 	 * it much more readable:
- 	 */
- #define GET_INODE_DATABLOCK(x) \
--	ufs_inode_getfrag(inode, x, fragment, 1, &err, &phys, &new, bh_result->b_page)
-+	ufs_inode_getfrag(inode, x, fragment, 1, &err, &phys, &new,\
-+			  bh_result->b_page)
- #define GET_INODE_PTR(x) \
--	ufs_inode_getfrag(inode, x, fragment, uspi->s_fpb, &err, NULL, NULL, NULL)
-+	ufs_inode_getfrag(inode, x, fragment, uspi->s_fpb, &err, NULL, NULL,\
-+			  bh_result->b_page)
- #define GET_INDIRECT_DATABLOCK(x) \
- 	ufs_inode_getblock(inode, bh, x, fragment,	\
- 			  &err, &phys, &new, bh_result->b_page)
+ 	result = ufs_alloc_fragments (inode, cgno, goal, request, err);
+ 	if (result) {
++		ufs_clear_frags(inode, result + oldcount, newcount - oldcount,
++				locked_page != NULL);
+ 		ufs_change_blocknr(inode, fragment - oldcount, oldcount, tmp,
+ 				   result, locked_page);
+ 
+ 		*p = cpu_to_fs32(sb, result);
+ 		*err = 0;
+ 		UFS_I(inode)->i_lastfrag = max_t(u32, UFS_I(inode)->i_lastfrag, fragment + count);
+-		ufs_clear_frags(inode, result + oldcount, newcount - oldcount,
+-				locked_page != NULL);
+ 		unlock_super(sb);
+ 		if (newcount < request)
+ 			ufs_free_fragments (inode, result + newcount, request - newcount);
 _
 
 Patches currently in -mm which might be from dushistov@mail.ru are
