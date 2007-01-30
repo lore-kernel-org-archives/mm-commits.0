@@ -1,230 +1,246 @@
 From: akpm@osdl.org
-Subject: - knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 13:46:38 -0800
-Message-ID: <200701302146.l0ULkcFI030113@shell0.pdx.osdl.net>
+Subject: - m68k-uaccessh-needs-schedh.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 13:46:34 -0800
+Message-ID: <200701302146.l0ULkY7w030107@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51825 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51820 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751816AbXA3Vqm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 16:46:42 -0500
+	id S1751806AbXA3Vqj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 16:46:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: akpm@osdl.org, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: ratelimit some nfsd messages that are triggered by external events
+     m68k: uaccess.h needs sched.h
 has been removed from the -mm tree.  Its filename was
-     knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events.patch
+     m68k-uaccessh-needs-schedh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: ratelimit some nfsd messages that are triggered by external events
-From: NeilBrown <neilb@suse.de>
+Subject: m68k: uaccess.h needs sched.h
+From: Andrew Morton <akpm@osdl.org>
 
-Also remove {NFSD,RPC}_PARANOIA as having the defines doesn't really add
-anything.
+In file included from include/linux/crypto.h:26,
+                 from crypto/cipher.c:17:
+include/linux/uaccess.h: In function 'pagefault_disable':
+include/linux/uaccess.h:18: error: dereferencing pointer to incomplete type
+include/linux/uaccess.h: In function 'pagefault_enable':
+include/linux/uaccess.h:33: error: dereferencing pointer to incomplete type
 
-The printks covered by RPC_PARANOIA were triggered by badly formatted
-packets and so should be ratelimited.
+video_buf need PCI.
 
-Signed-off-by: Neil Brown <neilb@suse.de>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfsd/export.c     |    1 -
- fs/nfsd/nfsfh.c      |   14 ++++++--------
- fs/nfsd/vfs.c        |    1 -
- net/sunrpc/svc.c     |   33 ++++++++++++++++-----------------
- net/sunrpc/svcsock.c |   12 ++++++++----
- 5 files changed, 30 insertions(+), 31 deletions(-)
+ include/asm-m68k/uaccess.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/nfsd/export.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events
-+++ a/fs/nfsd/export.c
-@@ -35,7 +35,6 @@
- #include <linux/lockd/bind.h>
+diff -puN include/asm-m68k/uaccess.h~m68k-uaccessh-needs-schedh include/asm-m68k/uaccess.h
+--- a/include/asm-m68k/uaccess.h~m68k-uaccessh-needs-schedh
++++ a/include/asm-m68k/uaccess.h
+@@ -7,6 +7,7 @@
+ #include <linux/compiler.h>
+ #include <linux/errno.h>
+ #include <linux/types.h>
++#include <linux/sched.h>
+ #include <asm/segment.h>
  
- #define NFSDDBG_FACILITY	NFSDDBG_EXPORT
--#define NFSD_PARANOIA 1
- 
- typedef struct auth_domain	svc_client;
- typedef struct svc_export	svc_export;
-diff -puN fs/nfsd/nfsfh.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events fs/nfsd/nfsfh.c
---- a/fs/nfsd/nfsfh.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events
-+++ a/fs/nfsd/nfsfh.c
-@@ -24,8 +24,6 @@
- #include <linux/nfsd/nfsd.h>
- 
- #define NFSDDBG_FACILITY		NFSDDBG_FH
--#define NFSD_PARANOIA 1
--/* #define NFSD_DEBUG_VERBOSE 1 */
- 
- 
- static int nfsd_nr_verified;
-@@ -230,13 +228,12 @@ fh_verify(struct svc_rqst *rqstp, struct
- 				error = nfserrno(PTR_ERR(dentry));
- 			goto out;
- 		}
--#ifdef NFSD_PARANOIA
-+
- 		if (S_ISDIR(dentry->d_inode->i_mode) &&
- 		    (dentry->d_flags & DCACHE_DISCONNECTED)) {
- 			printk("nfsd: find_fh_dentry returned a DISCONNECTED directory: %s/%s\n",
- 			       dentry->d_parent->d_name.name, dentry->d_name.name);
- 		}
--#endif
- 
- 		fhp->fh_dentry = dentry;
- 		fhp->fh_export = exp;
-@@ -267,12 +264,13 @@ fh_verify(struct svc_rqst *rqstp, struct
- 	/* Finally, check access permissions. */
- 	error = nfsd_permission(exp, dentry, access);
- 
--#ifdef NFSD_PARANOIA_EXTREME
- 	if (error) {
--		printk("fh_verify: %s/%s permission failure, acc=%x, error=%d\n",
--		       dentry->d_parent->d_name.name, dentry->d_name.name, access, (error >> 24));
-+		dprintk("fh_verify: %s/%s permission failure, "
-+			"acc=%x, error=%d\n",
-+			dentry->d_parent->d_name.name,
-+			dentry->d_name.name,
-+			access, (error >> 24));
- 	}
--#endif
- out:
- 	if (exp && !IS_ERR(exp))
- 		exp_put(exp);
-diff -puN fs/nfsd/vfs.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events
-+++ a/fs/nfsd/vfs.c
-@@ -59,7 +59,6 @@
- #include <asm/uaccess.h>
- 
- #define NFSDDBG_FACILITY		NFSDDBG_FILEOP
--#define NFSD_PARANOIA
- 
- 
- /* We must ignore files (but only files) which might have mandatory
-diff -puN net/sunrpc/svc.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events
-+++ a/net/sunrpc/svc.c
-@@ -26,7 +26,6 @@
- #include <linux/sunrpc/clnt.h>
- 
- #define RPCDBG_FACILITY	RPCDBG_SVCDSP
--#define RPC_PARANOIA 1
- 
- /*
-  * Mode for mapping cpus to pools.
-@@ -872,15 +871,15 @@ svc_process(struct svc_rqst *rqstp)
- 	return 0;
- 
- err_short_len:
--#ifdef RPC_PARANOIA
--	printk("svc: short len %Zd, dropping request\n", argv->iov_len);
--#endif
-+	if (net_ratelimit())
-+		printk("svc: short len %Zd, dropping request\n", argv->iov_len);
-+
- 	goto dropit;			/* drop request */
- 
- err_bad_dir:
--#ifdef RPC_PARANOIA
--	printk("svc: bad direction %d, dropping request\n", dir);
--#endif
-+	if (net_ratelimit())
-+		printk("svc: bad direction %d, dropping request\n", dir);
-+
- 	serv->sv_stats->rpcbadfmt++;
- 	goto dropit;			/* drop request */
- 
-@@ -909,10 +908,10 @@ err_bad_prog:
- 	goto sendit;
- 
- err_bad_vers:
--#ifdef RPC_PARANOIA
--	printk("svc: unknown version (%d for prog %d, %s)\n",
--	       vers, prog, progp->pg_name);
--#endif
-+	if (net_ratelimit())
-+		printk("svc: unknown version (%d for prog %d, %s)\n",
-+		       vers, prog, progp->pg_name);
-+
- 	serv->sv_stats->rpcbadfmt++;
- 	svc_putnl(resv, RPC_PROG_MISMATCH);
- 	svc_putnl(resv, progp->pg_lovers);
-@@ -920,17 +919,17 @@ err_bad_vers:
- 	goto sendit;
- 
- err_bad_proc:
--#ifdef RPC_PARANOIA
--	printk("svc: unknown procedure (%d)\n", proc);
--#endif
-+	if (net_ratelimit())
-+		printk("svc: unknown procedure (%d)\n", proc);
-+
- 	serv->sv_stats->rpcbadfmt++;
- 	svc_putnl(resv, RPC_PROC_UNAVAIL);
- 	goto sendit;
- 
- err_garbage:
--#ifdef RPC_PARANOIA
--	printk("svc: failed to decode args\n");
--#endif
-+	if (net_ratelimit())
-+		printk("svc: failed to decode args\n");
-+
- 	rpc_stat = rpc_garbage_args;
- err_bad:
- 	serv->sv_stats->rpcbadfmt++;
-diff -puN net/sunrpc/svcsock.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-ratelimit-some-nfsd-messages-that-are-triggered-by-external-events
-+++ a/net/sunrpc/svcsock.c
-@@ -1062,15 +1062,19 @@ svc_tcp_recvfrom(struct svc_rqst *rqstp)
- 			 *  bit set in the fragment length header.
- 			 *  But apparently no known nfs clients send fragmented
- 			 *  records. */
--			printk(KERN_NOTICE "RPC: bad TCP reclen 0x%08lx (non-terminal)\n",
--			       (unsigned long) svsk->sk_reclen);
-+			if (net_ratelimit())
-+				printk(KERN_NOTICE "RPC: bad TCP reclen 0x%08lx"
-+				       " (non-terminal)\n",
-+				       (unsigned long) svsk->sk_reclen);
- 			goto err_delete;
- 		}
- 		svsk->sk_reclen &= 0x7fffffff;
- 		dprintk("svc: TCP record, %d bytes\n", svsk->sk_reclen);
- 		if (svsk->sk_reclen > serv->sv_max_mesg) {
--			printk(KERN_NOTICE "RPC: bad TCP reclen 0x%08lx (large)\n",
--			       (unsigned long) svsk->sk_reclen);
-+			if (net_ratelimit())
-+				printk(KERN_NOTICE "RPC: bad TCP reclen 0x%08lx"
-+				       " (large)\n",
-+				       (unsigned long) svsk->sk_reclen);
- 			goto err_delete;
- 		}
- 	}
+ #define VERIFY_READ	0
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-remove-warning-vfs-is-out-of-sync-with-lock-manager.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
+ntfs-kmap_atomic-atomicity-fix.patch
+x86-fix-vdso-mapping-for-aout-executables.patch
+mm-show-bounce-pages-in-oom-killer-output.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
-igrab-should-check-for-i_clear.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-replace-highest_possible_node_id-with-nr_node_ids-fix.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
-knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
-knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
-knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
-knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-readahead-nfsd-case.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+powerpc-make-it-compile.patch
+git-dvb.patch
+dvb-video_buf-depends-on-pci.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+sata_nv-cleanup-adma-error-handling-v2.patch
+mm-ide-ide-acpi-support-warning-fix.patch
+git-lxdialog-fixup.patch
+git-mips-kconfig-fix.patch
+git-mips-prom_free_prom_memory-borkage.patch
+git-mmc.patch
+git-mmc-fixup.patch
+git-ubi.patch
+git-netdev-all.patch
+git-netdev-all-chelsio-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+dccp-warning-fixes.patch
+netfilter-warning-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+nfs-fix-congestion-control-v4-tweaks.patch
+r8169-warning-fixes.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+sh-add-kconfig-default.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
+git-block-fixup.patch
+git-block-borkage.patch
+git-block-atomicity-fix.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+nokia-e70-is-an-unusual-device.patch
+git-ipwireless_cs.patch
+revert-x86_64-mm-msr-on-cpu.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+use-zvc-for-inactive-and-active-counts-up-fix.patch
+drop-free_pages-fix.patch
+drop-free_pages-sparc64-fix.patch
+optional-zone_dma-in-the-vm-tidy.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix-2.patch
+return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+ecryptfs-generalize-metadata-read-write-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+introduce-and-use-get_task_mnt_ns-tweaks.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
+ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
+dynamic-kernel-command-line-ia64-fix.patch
+rcu-preemptible-rcu-fix.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
 readahead-nfsd-case-fix.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+mark-struct-file_operations-const-2-fix.patch
+mark-struct-file_operations-const-4-fix.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
