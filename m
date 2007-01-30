@@ -1,28 +1,24 @@
 From: akpm@osdl.org
-Subject: + sd-spin-down-disks-on-removal-or-power-down-tidy.patch added to -mm tree
-Date: Mon, 29 Jan 2007 16:11:19 -0800
-Message-ID: <200701300011.l0U0BK8S003552@shell0.pdx.osdl.net>
+Subject: - sd-spin-down-disks-on-removal-or-power-down-tidy.patch removed from -mm tree
+Date: Mon, 29 Jan 2007 16:25:20 -0800
+Message-ID: <200701300025.l0U0PKkQ003936@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34616 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35006 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965085AbXA3ALW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 19:11:22 -0500
+	id S965085AbXA3AZX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 19:25:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, hancockr@shaw.ca
+To: akpm@osdl.org, hancockr@shaw.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
      sd-spin-down-disks-on-removal-or-power-down-tidy
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      sd-spin-down-disks-on-removal-or-power-down-tidy.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into sd-spin-down-disks-on-removal-or-power-down.patch
 
 ------------------------------------------------------
 Subject: sd-spin-down-disks-on-removal-or-power-down-tidy
@@ -143,6 +139,7 @@ make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
 sh-add-kconfig-default.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
 scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+sd-spin-down-disks-on-removal-or-power-down.patch
 sd-spin-down-disks-on-removal-or-power-down-tidy.patch
 git-block-fixup.patch
 git-block-borkage.patch
