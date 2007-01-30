@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + cx88-videoc-remove-struct-radionorms.patch added to -mm tree
-Date: Mon, 29 Jan 2007 17:23:56 -0800
-Message-ID: <200701300123.l0U1Nu61005519@shell0.pdx.osdl.net>
+Subject: + ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch added to -mm tree
+Date: Mon, 29 Jan 2007 17:25:38 -0800
+Message-ID: <200701300125.l0U1Pc9x005550@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36739 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36759 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752604AbXA3B1O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 20:27:14 -0500
+	id S1752635AbXA3B3B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 20:29:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, mchehab@infradead.org
+Cc: bunk@stusta.de, mhalcrow@us.ibm.com
 
 
 The patch titled
-     cx88-video.c: remove struct radionorms
+     fs/ecryptfs/: make code static
 has been added to the -mm tree.  Its filename is
-     cx88-videoc-remove-struct-radionorms.patch
+     ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,152 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cx88-video.c: remove struct radionorms
+Subject: fs/ecryptfs/: make code static
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch removes the unused struct radionorms.
+This patch makes some needlessly global code static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/media/video/cx88/cx88-video.c |    2 --
- 1 files changed, 2 deletions(-)
+ fs/ecryptfs/crypto.c          |   24 ++++++++++++------------
+ fs/ecryptfs/ecryptfs_kernel.h |   18 ------------------
+ fs/ecryptfs/messaging.c       |   20 +++++++++++---------
+ 3 files changed, 23 insertions(+), 39 deletions(-)
 
-diff -puN drivers/media/video/cx88/cx88-video.c~cx88-videoc-remove-struct-radionorms drivers/media/video/cx88/cx88-video.c
---- a/drivers/media/video/cx88/cx88-video.c~cx88-videoc-remove-struct-radionorms
-+++ a/drivers/media/video/cx88/cx88-video.c
-@@ -86,8 +86,6 @@ static LIST_HEAD(cx8800_devlist);
- /* ------------------------------------------------------------------- */
- /* static data                                                         */
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static
++++ a/fs/ecryptfs/crypto.c
+@@ -1024,7 +1024,7 @@ int ecryptfs_new_file_context(struct den
+  *
+  * Returns one if marker found; zero if not found
+  */
+-int contains_ecryptfs_marker(char *data)
++static int contains_ecryptfs_marker(char *data)
+ {
+ 	u32 m_1, m_2;
  
--v4l2_std_id radionorms[] = { 0 };
+@@ -1211,8 +1211,8 @@ int ecryptfs_cipher_code_to_string(char 
+  *
+  * Returns zero on success; non-zero otherwise
+  */
+-int ecryptfs_read_header_region(char *data, struct dentry *dentry,
+-				struct vfsmount *mnt)
++static int ecryptfs_read_header_region(char *data, struct dentry *dentry,
++				       struct vfsmount *mnt)
+ {
+ 	struct file *lower_file;
+ 	mm_segment_t oldfs;
+@@ -1307,9 +1307,9 @@ struct kmem_cache *ecryptfs_header_cache
+  *
+  * Returns zero on success
+  */
+-int ecryptfs_write_headers_virt(char *page_virt, size_t *size,
+-				struct ecryptfs_crypt_stat *crypt_stat,
+-				struct dentry *ecryptfs_dentry)
++static int ecryptfs_write_headers_virt(char *page_virt, size_t *size,
++				       struct ecryptfs_crypt_stat *crypt_stat,
++				       struct dentry *ecryptfs_dentry)
+ {
+ 	int rc;
+ 	size_t written;
+@@ -1335,9 +1335,9 @@ int ecryptfs_write_headers_virt(char *pa
+ 	return rc;
+ }
+ 
+-int ecryptfs_write_metadata_to_contents(struct ecryptfs_crypt_stat *crypt_stat,
+-					struct file *lower_file,
+-					char *page_virt)
++static int ecryptfs_write_metadata_to_contents(struct ecryptfs_crypt_stat *crypt_stat,
++					       struct file *lower_file,
++					       char *page_virt)
+ {
+ 	mm_segment_t oldfs;
+ 	int current_header_page;
+@@ -1362,9 +1362,9 @@ int ecryptfs_write_metadata_to_contents(
+ 	return 0;
+ }
+ 
+-int ecryptfs_write_metadata_to_xattr(struct dentry *ecryptfs_dentry,
+-				     struct ecryptfs_crypt_stat *crypt_stat,
+-				     char *page_virt, size_t size)
++static int ecryptfs_write_metadata_to_xattr(struct dentry *ecryptfs_dentry,
++					    struct ecryptfs_crypt_stat *crypt_stat,
++					    char *page_virt, size_t size)
+ {
+ 	int rc;
+ 
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -328,18 +328,6 @@ struct ecryptfs_msg_ctx {
+ 	struct mutex mux;
+ };
+ 
+-extern struct list_head ecryptfs_msg_ctx_free_list;
+-extern struct list_head ecryptfs_msg_ctx_alloc_list;
+-extern struct mutex ecryptfs_msg_ctx_lists_mux;
 -
- static struct cx8800_fmt formats[] = {
- 	{
- 		.name     = "8 bpp, gray",
+-#define ecryptfs_uid_hash(uid) \
+-        hash_long((unsigned long)uid, ecryptfs_hash_buckets)
+-extern struct hlist_head *ecryptfs_daemon_id_hash;
+-extern struct mutex ecryptfs_daemon_id_hash_mux;
+-extern int ecryptfs_hash_buckets;
+-
+-extern unsigned int ecryptfs_msg_counter;
+-extern struct ecryptfs_msg_ctx *ecryptfs_msg_ctx_arr;
+ extern unsigned int ecryptfs_transport;
+ 
+ struct ecryptfs_daemon_id {
+@@ -537,15 +525,9 @@ int ecryptfs_encrypt_page(struct ecryptf
+ int ecryptfs_decrypt_page(struct file *file, struct page *page);
+ int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
+ 			    struct file *lower_file);
+-int ecryptfs_write_headers_virt(char *page_virt, size_t *size,
+-				struct ecryptfs_crypt_stat *crypt_stat,
+-				struct dentry *ecryptfs_dentry);
+ int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry,
+ 			   struct file *lower_file);
+ int ecryptfs_new_file_context(struct dentry *ecryptfs_dentry);
+-int contains_ecryptfs_marker(char *data);
+-int ecryptfs_read_header_region(char *data, struct dentry *dentry,
+-				struct vfsmount *mnt);
+ int ecryptfs_read_and_validate_header_region(char *data, struct dentry *dentry,
+ 					     struct vfsmount *mnt);
+ int ecryptfs_read_and_validate_xattr_region(char *page_virt,
+diff -puN fs/ecryptfs/messaging.c~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static fs/ecryptfs/messaging.c
+--- a/fs/ecryptfs/messaging.c~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static
++++ a/fs/ecryptfs/messaging.c
+@@ -22,16 +22,18 @@
+ 
+ #include "ecryptfs_kernel.h"
+ 
+-LIST_HEAD(ecryptfs_msg_ctx_free_list);
+-LIST_HEAD(ecryptfs_msg_ctx_alloc_list);
+-struct mutex ecryptfs_msg_ctx_lists_mux;
+-
+-struct hlist_head *ecryptfs_daemon_id_hash;
+-struct mutex ecryptfs_daemon_id_hash_mux;
+-int ecryptfs_hash_buckets;
++static LIST_HEAD(ecryptfs_msg_ctx_free_list);
++static LIST_HEAD(ecryptfs_msg_ctx_alloc_list);
++static struct mutex ecryptfs_msg_ctx_lists_mux;
++
++static struct hlist_head *ecryptfs_daemon_id_hash;
++static struct mutex ecryptfs_daemon_id_hash_mux;
++static int ecryptfs_hash_buckets;
++#define ecryptfs_uid_hash(uid) \
++        hash_long((unsigned long)uid, ecryptfs_hash_buckets)
+ 
+-unsigned int ecryptfs_msg_counter;
+-struct ecryptfs_msg_ctx *ecryptfs_msg_ctx_arr;
++static unsigned int ecryptfs_msg_counter;
++static struct ecryptfs_msg_ctx *ecryptfs_msg_ctx_arr;
+ 
+ /**
+  * ecryptfs_acquire_free_msg_ctx
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -114,6 +235,7 @@ drivers-isdn-pcbit-proper-prototypes.patch
 drivers-isdn-hisax-proper-prototypes.patch
 drivers-isdn-sc-proper-prototypes.patch
 include-linux-nfsd-consth-remove-nfs_super_magic.patch
+ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
 readahead-events-accounting-make-readahead_debug_level-static.patch
 reiser4-export-remove_from_page_cache-fix.patch
 fs-reiser4-possible-cleanups.patch
