@@ -1,68 +1,125 @@
 From: akpm@osdl.org
-Subject: - libata-fix-translation-for-start-stop-unit.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 13:47:12 -0800
-Message-ID: <200701302147.l0ULlCMi030167@shell0.pdx.osdl.net>
+Subject: - libata-scsi-ata_task_ioctl-should-return-ata-registers-from.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 13:47:08 -0800
+Message-ID: <200701302147.l0ULl8u2030159@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51927 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51947 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751848AbXA3VrN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 16:47:13 -0500
+	id S1751872AbXA3Vr2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 16:47:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hancockr@shaw.ca, mm-commits@vger.kernel.org
+To: dmilburn@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: fix translation for START STOP UNIT
+     libata-scsi: ata_task_ioctl should return ATA registers from sense data
 has been removed from the -mm tree.  Its filename was
-     libata-fix-translation-for-start-stop-unit.patch
+     libata-scsi-ata_task_ioctl-should-return-ata-registers-from.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: fix translation for START STOP UNIT
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: libata-scsi: ata_task_ioctl should return ATA registers from sense data
+From: David Milburn <dmilburn@redhat.com>
 
-libata's SCSI translation for the SCSI START STOP UNIT command with the
-START bit clear (i.e.  stopping the drive) appears to be incorrect.  It
-sends an ATA STANDBY command with the time period set to 0, which the code
-comment says means "now", but the ATA standard says this means disable the
-standby timer, which effectively does nothing.  Change this to issue a
-STANDBY IMMEDIATE command which will actually spin the drive down.  The SAT
-(SCSI/ATA Translation) standard revision 9 concurs with this choice.
+User applications using the HDIO_DRIVE_TASK ioctl through libata expect
+specific ATA registers to be returned to userspace.  Verified that
+ata_task_ioctl correctly returns register values to the smartctl
+application.
 
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
+Signed-off-by: David Milburn <dmilburn@redhat.com>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-scsi.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/ata/libata-scsi.c |   51 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 45 insertions(+), 6 deletions(-)
 
-diff -puN drivers/ata/libata-scsi.c~libata-fix-translation-for-start-stop-unit drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~libata-fix-translation-for-start-stop-unit
+diff -puN drivers/ata/libata-scsi.c~libata-scsi-ata_task_ioctl-should-return-ata-registers-from drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~libata-scsi-ata_task_ioctl-should-return-ata-registers-from
 +++ a/drivers/ata/libata-scsi.c
-@@ -1063,11 +1063,10 @@ static unsigned int ata_scsi_start_stop_
- 		}
+@@ -311,8 +311,8 @@ int ata_task_ioctl(struct scsi_device *s
+ {
+ 	int rc = 0;
+ 	u8 scsi_cmd[MAX_COMMAND_SIZE];
+-	u8 args[7];
+-	struct scsi_sense_hdr sshdr;
++	u8 args[7], *sensebuf = NULL;
++	int cmd_result;
  
- 		tf->command = ATA_CMD_VERIFY;	/* READ VERIFY */
--	} else {
--		tf->nsect = 0;	/* time period value (0 implies now) */
--		tf->command = ATA_CMD_STANDBY;
--		/* Consider: ATA STANDBY IMMEDIATE command */
--	}
-+	} else
-+		/* Issue ATA STANDBY IMMEDIATE command */
-+		tf->command = ATA_CMD_STANDBYNOW1;
+ 	if (arg == NULL)
+ 		return -EINVAL;
+@@ -320,10 +320,14 @@ int ata_task_ioctl(struct scsi_device *s
+ 	if (copy_from_user(args, arg, sizeof(args)))
+ 		return -EFAULT;
+ 
++	sensebuf = kzalloc(SCSI_SENSE_BUFFERSIZE, GFP_NOIO);
++	if (!sensebuf)
++		return -ENOMEM;
 +
- 	/*
- 	 * Standby and Idle condition timers could be implemented but that
- 	 * would require libata to implement the Power condition mode page
+ 	memset(scsi_cmd, 0, sizeof(scsi_cmd));
+ 	scsi_cmd[0]  = ATA_16;
+ 	scsi_cmd[1]  = (3 << 1); /* Non-data */
+-	/* scsi_cmd[2] is already 0 -- no off.line, cc, or data xfer */
++	scsi_cmd[2]  = 0x20;     /* cc but no off.line or data xfer */
+ 	scsi_cmd[4]  = args[1];
+ 	scsi_cmd[6]  = args[2];
+ 	scsi_cmd[8]  = args[3];
+@@ -333,11 +337,46 @@ int ata_task_ioctl(struct scsi_device *s
+ 
+ 	/* Good values for timeout and retries?  Values below
+ 	   from scsi_ioctl_send_command() for default case... */
+-	if (scsi_execute_req(scsidev, scsi_cmd, DMA_NONE, NULL, 0, &sshdr,
+-			     (10*HZ), 5))
++	cmd_result = scsi_execute(scsidev, scsi_cmd, DMA_NONE, NULL, 0,
++				sensebuf, (10*HZ), 5, 0);
++
++	if (driver_byte(cmd_result) == DRIVER_SENSE) {/* sense data available */
++		u8 *desc = sensebuf + 8;
++		cmd_result &= ~(0xFF<<24); /* DRIVER_SENSE is not an error */
++
++		/* If we set cc then ATA pass-through will cause a
++		 * check condition even if no error. Filter that. */
++		if (cmd_result & SAM_STAT_CHECK_CONDITION) {
++			struct scsi_sense_hdr sshdr;
++			scsi_normalize_sense(sensebuf, SCSI_SENSE_BUFFERSIZE,
++						&sshdr);
++			if (sshdr.sense_key==0 &&
++				sshdr.asc==0 && sshdr.ascq==0)
++				cmd_result &= ~SAM_STAT_CHECK_CONDITION;
++		}
++
++		/* Send userspace ATA registers */
++		if (sensebuf[0] == 0x72 &&	/* format is "descriptor" */
++				desc[0] == 0x09) {/* code is "ATA Descriptor" */
++			args[0] = desc[13];	/* status */
++			args[1] = desc[3];	/* error */
++			args[2] = desc[5];	/* sector count (0:7) */
++			args[3] = desc[7];	/* lbal */
++			args[4] = desc[9];	/* lbam */
++			args[5] = desc[11];	/* lbah */
++			args[6] = desc[12];	/* select */
++			if (copy_to_user(arg, args, sizeof(args)))
++				rc = -EFAULT;
++		}
++	}
++
++	if (cmd_result) {
+ 		rc = -EIO;
++		goto error;
++	}
+ 
+-	/* Need code to retrieve data from check condition? */
++ error:
++	kfree(sensebuf);
+ 	return rc;
+ }
+ 
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from dmilburn@redhat.com are
 
 origin.patch
-git-libata-all.patch
-sata_nv-cleanup-adma-error-handling-v2.patch
-sata_nv-use-adma-for-nodata-commands.patch
