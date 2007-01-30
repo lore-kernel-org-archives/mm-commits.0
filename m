@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch added to -mm tree
-Date: Mon, 29 Jan 2007 22:35:52 -0800
-Message-ID: <200701300635.l0U6Zqfc011163@shell0.pdx.osdl.net>
+Subject: + jmicron-40-80pin-primary-detection.patch added to -mm tree
+Date: Mon, 29 Jan 2007 23:11:13 -0800
+Message-ID: <200701300711.l0U7BDaY011953@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45098 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45975 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933122AbXA3Gf4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 01:35:56 -0500
+	id S965015AbXA3HLb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 02:11:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gcoady.lk@gmail.com, ebiederm@xmission.com
+Cc: jeff@garzik.org, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, sshtylyov@ru.mvista.com
 
 
 The patch titled
-     typo in ipc/ipc_sysctl.c -> compile failure
+     jmicron: 40/80pin primary detection
 has been added to the -mm tree.  Its filename is
-     sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
+     jmicron-40-80pin-primary-detection.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,94 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: typo in ipc/ipc_sysctl.c -> compile failure
-From: Grant Coady <gcoady.lk@gmail.com>
+Subject: jmicron: 40/80pin primary detection
+From: ethanhsiao@jmicron.com
 
-Fix typos causing compile failure when CONFIG_PROC_FS not set in
-ipc/ipc_sysctl.c, compile tested.
+jmicron module detects all JMB36x as JMB361 and PATA0 has wrong pin status
+of XICBLID.
 
-ipc/ipc_sysctl.c:107: error: `proc_ipc_doulongvec_minmax' undeclared here (not in a function)
-ipc/ipc_sysctl.c:107: error: initializer element is not constant
-[...]
-ipc/ipc_sysctl.c:164: error: (near initialization for `ipc_kern_table[7]')
-make[1]: *** [ipc/ipc_sysctl.o] Error 1
-make: *** [ipc] Error 2
-
-Also applies cleanly to 2.6.20-rc6-mm3.
-
-Signed-off-by: Grant Coady <gcoady.lk@gmail.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- ipc/ipc_sysctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/ide/pci/jmicron.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN ipc/ipc_sysctl.c~sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2 ipc/ipc_sysctl.c
---- a/ipc/ipc_sysctl.c~sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2
-+++ a/ipc/ipc_sysctl.c
-@@ -50,8 +50,8 @@ static int proc_ipc_doulongvec_minmax(ct
+diff -puN drivers/ide/pci/jmicron.c~jmicron-40-80pin-primary-detection drivers/ide/pci/jmicron.c
+--- a/drivers/ide/pci/jmicron.c~jmicron-40-80pin-primary-detection
++++ a/drivers/ide/pci/jmicron.c
+@@ -86,8 +86,8 @@ static int __devinit ata66_jmicron(ide_h
+ 	{
+ 	case PORT_PATA0:
+ 		if (control & (1 << 3))	/* 40/80 pin primary */
+-			return 1;
+-		return 0;
++			return 0;
++		return 1;
+ 	case PORT_PATA1:
+ 		if (control5 & (1 << 19))	/* 40/80 pin secondary */
+ 			return 0;
+@@ -240,11 +240,11 @@ static int __devinit jmicron_init_one(st
  }
  
- #else
--#define proc_ipc_do_ulongvec_minmax NULL
--#define proc_ipc_do_intvec	    NULL
-+#define proc_ipc_doulongvec_minmax NULL
-+#define proc_ipc_dointvec	   NULL
- #endif
+ static struct pci_device_id jmicron_pci_tbl[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB361), 0},
+-	{ PCI_DEVICE(PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB363), 1},
+-	{ PCI_DEVICE(PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB365), 2},
+-	{ PCI_DEVICE(PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB366), 3},
+-	{ PCI_DEVICE(PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB368), 4},
++	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB361, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB363, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 1},
++	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB365, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 2},
++	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB366, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 3},
++	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB368, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 4},
+ 	{ 0, },
+ };
  
- #ifdef CONFIG_SYSCTL_SYSCALL
 _
 
-Patches currently in -mm which might be from gcoady.lk@gmail.com are
+Patches currently in -mm which might be from jeff@garzik.org are
 
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
+origin.patch
+git-libata-all.patch
+pata_platform-set_mode-fix.patch
+libata-scsi-ata_task_ioctl-should-return-ata-registers-from.patch
+sata_nv-cleanup-adma-error-handling-v2.patch
+sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
+sata_nv-use-adma-for-nodata-commands.patch
+fix-config_sata_sis=y-compile-error.patch
+jmicron-40-80pin-primary-detection.patch
+mips-declance-driver-model-for-the-pmad-a.patch
+mips-defxx-turbochannel-support.patch
+git-netdev-all.patch
+git-netdev-all-atl1-build-fix.patch
+git-netdev-all-atl1-pm-fix.patch
+8139too-force-media-setting-fix.patch
+net-ifb-error-path-loop-fix.patch
+ucc-ether-driver-kmalloc-casting-cleanups.patch
+remove-one-remaining-define-bcm_tso-1.patch
+82596-warning-fix.patch
+hp100-convert-pci_module_init-to-pci_register_driver.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+tulip-fix-shutdown-dma-irq-race.patch
+z85230-spinlock-logic.patch
+remove-unused-kernel-config-option-dlci_count.patch
+bonding-arp-monitoring-broken-on-x86_64.patch
+git-ioat.patch
+git-pciseg.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+mpt-fusion-handle-pci-layer-error-on-resume.patch
+fix-unaligned-exception-in-drivers-net-wireless-orinococ.patch
+uml-network-driver-whitespace-and-style-fixes.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+e1000-printk-warning-fixes.patch
+git-gccbug.patch
