@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch added to -mm tree
-Date: Mon, 29 Jan 2007 19:02:53 -0800
-Message-ID: <200701300302.l0U32rg6007635@shell0.pdx.osdl.net>
+Subject: + scsi_ioctl-sg_io-timeout-conversion-fix.patch added to -mm tree
+Date: Mon, 29 Jan 2007 19:10:46 -0800
+Message-ID: <200701300310.l0U3Akdp007748@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39367 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39525 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964854AbXA3DDH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 22:03:07 -0500
+	id S1752526AbXA3DLA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 22:11:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net, len.brown@intel.com
+Cc: akpm@osdl.org, James.Bottomley@steeleye.com, michaelc@cs.wisc.edu
 
 
 The patch titled
-     acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi
+     scsi_ioctl: sg_io timeout conversion fix
 has been added to the -mm tree.  Its filename is
-     acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
+     scsi_ioctl-sg_io-timeout-conversion-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi
+Subject: scsi_ioctl: sg_io timeout conversion fix
 From: Andrew Morton <akpm@osdl.org>
 
-Recover from git-acpi renaming.
+Mike Christie <michaelc@cs.wisc.edu> points out that the recent conversion to
+jiffies_to_msecs() was wrong - it should have been to msecs_to_jiffies().
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/glue.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ block/scsi_ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/glue.c~acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi drivers/acpi/glue.c
---- a/drivers/acpi/glue.c~acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi
-+++ a/drivers/acpi/glue.c
-@@ -310,9 +310,9 @@ static int __init acpi_rtc_init(void)
- 	struct device *dev = get_rtc_dev();
+diff -puN block/scsi_ioctl.c~scsi_ioctl-sg_io-timeout-conversion-fix block/scsi_ioctl.c
+--- a/block/scsi_ioctl.c~scsi_ioctl-sg_io-timeout-conversion-fix
++++ a/block/scsi_ioctl.c
+@@ -271,7 +271,7 @@ static int sg_io(struct file *file, requ
  
- 	if (dev) {
--		rtc_info.rtc_day_alarm = acpi_gbl_FADT->day_alrm;
--		rtc_info.rtc_mon_alarm = acpi_gbl_FADT->mon_alrm;
--		rtc_info.rtc_century = acpi_gbl_FADT->century;
-+		rtc_info.rtc_day_alarm = acpi_gbl_FADT.day_alarm;
-+		rtc_info.rtc_mon_alarm = acpi_gbl_FADT.month_alarm;
-+		rtc_info.rtc_century = acpi_gbl_FADT.century;
+ 	rq->cmd_type = REQ_TYPE_BLOCK_PC;
  
- 		/* NOTE:  acpi_gbl_FADT->rtcs4 is NOT currently useful */
- 
+-	rq->timeout = jiffies_to_msecs(hdr->timeout);
++	rq->timeout = msecs_to_jiffies(hdr->timeout);
+ 	if (!rq->timeout)
+ 		rq->timeout = q->sg_timeout;
+ 	if (!rq->timeout)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -249,3 +244,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+scsi_ioctl-sg_io-timeout-conversion-fix.patch
