@@ -1,299 +1,209 @@
 From: akpm@osdl.org
-Subject: + _proc_do_string-fix-short-reads.patch added to -mm tree
-Date: Tue, 30 Jan 2007 02:25:07 -0800
-Message-ID: <200701301025.l0UAP7wW015358@shell0.pdx.osdl.net>
+Subject: - config_input_debug-improvements.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 09:59:41 -0800
+Message-ID: <200701301759.l0UHxgDf024433@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52241 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40586 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752651AbXA3KZU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 05:25:20 -0500
+	id S965661AbXA3SDY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 13:03:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, ebiederm@xmission.com, oleg@tv-sign.ru
+To: bunk@stusta.de, dtor@mail.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     _proc_do_string(): fix short reads
-has been added to the -mm tree.  Its filename is
-     _proc_do_string-fix-short-reads.patch
+     CONFIG_INPUT_DEBUG improvements
+has been removed from the -mm tree.  Its filename was
+     config_input_debug-improvements.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: _proc_do_string(): fix short reads
-From: Andrew Morton <akpm@osdl.org>
+Subject: CONFIG_INPUT_DEBUG improvements
+From: Adrian Bunk <bunk@stusta.de>
 
-If you try to read things like /proc/sys/kernel/osrelease with single-byte
-reads, you get just one byte and then EOF.  This is because _proc_do_string()
-assumes that the caller is read()ing into a buffer which is large enough to
-fit the whole string in a single hit.
+- remove Makefile code for the nonexisting CONFIG_INPUT_DEBUG
+- simpler Makefile for hid-debug.o
+- replace all HID debug #define's with CONFIG_INPUT_DEBUG
 
-Fix.
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sysctl.c |   37 ++++++++++++++++++++++++++++---------
- 1 file changed, 28 insertions(+), 9 deletions(-)
+ drivers/hid/Makefile    |   15 ++-------------
+ drivers/hid/hid-core.c  |    6 ++----
+ drivers/hid/hid-input.c |    6 ++----
+ 3 files changed, 6 insertions(+), 21 deletions(-)
 
-diff -puN kernel/sysctl.c~_proc_do_string-fix-short-reads kernel/sysctl.c
---- a/kernel/sysctl.c~_proc_do_string-fix-short-reads
-+++ a/kernel/sysctl.c
-@@ -1687,8 +1687,7 @@ static int _proc_do_string(void* data, i
- 	char __user *p;
- 	char c;
- 	
--	if (!data || !maxlen || !*lenp ||
--	    (*ppos && !write)) {
-+	if (!data || !maxlen || !*lenp) {
- 		*lenp = 0;
- 		return 0;
+diff -puN drivers/hid/Makefile~config_input_debug-improvements drivers/hid/Makefile
+--- a/drivers/hid/Makefile~config_input_debug-improvements
++++ a/drivers/hid/Makefile
+@@ -2,18 +2,7 @@
+ # Makefile for the HID driver
+ #
+ 
+-# Multipart objects.
+-hid-objs	:= hid-core.o hid-input.o
+-
+-# Optional parts of multipart objects.
+-ifeq ($(CONFIG_HID_DEBUG),y)
+-hid-objs	+= hid-debug.o
+-endif
+-
+-ifeq ($(CONFIG_INPUT_DEBUG),y)
+-EXTRA_CFLAGS += -DDEBUG
+-endif
+-
+-
+ obj-$(CONFIG_HID)		+= hid.o
++hid-objs			:= hid-core.o hid-input.o
++hid-$(CONFIG_HID_DEBUG)		+= hid-debug.o
+ 
+diff -puN drivers/hid/hid-core.c~config_input_debug-improvements drivers/hid/hid-core.c
+--- a/drivers/hid/hid-core.c~config_input_debug-improvements
++++ a/drivers/hid/hid-core.c
+@@ -28,8 +28,6 @@
+ #include <linux/input.h>
+ #include <linux/wait.h>
+ 
+-#undef DEBUG_DATA
+-
+ #include <linux/hid.h>
+ #include <linux/hiddev.h>
+ #include <linux/hid-debug.h>
+@@ -951,7 +949,7 @@ int hid_input_report(struct hid_device *
+ 		return -1;
  	}
-@@ -1710,18 +1709,38 @@ static int _proc_do_string(void* data, i
- 		((char *) data)[len] = 0;
- 		*ppos += *lenp;
- 	} else {
--		len = strlen(data);
-+		loff_t pos = *ppos;
-+		const size_t slen = strlen(data);
-+
-+		/*
-+		 * len is the amount of data to copy, and becomes the amount of
-+		 * data which was copied
-+		 */
-+		len = slen;
-+		if (pos > len) {
-+			*lenp = 0;
-+			return 0;
-+		}
- 		if (len > maxlen)
- 			len = maxlen;
- 		if (len > *lenp)
- 			len = *lenp;
--		if (len)
--			if(copy_to_user(buffer, data, len))
--				return -EFAULT;
--		if (len < *lenp) {
--			if(put_user('\n', ((char __user *) buffer) + len))
-+		/* Don't copy past the end of the string */
-+		if (len > slen - pos)
-+			len = slen - pos;
-+		data += pos;
-+		/* Copy as much of the string as we can */
-+		if (len) {
-+			if (copy_to_user(buffer, data, len))
- 				return -EFAULT;
--			len++;
-+		}
-+		/* If we copied the whole string, now write a \n */
-+		if (len + pos == slen) {
-+			if (len + pos < maxlen) {
-+				if (put_user('\n', (char __user *)buffer + len))
-+					return -EFAULT;
-+				len++;
-+			}
- 		}
- 		*lenp = len;
- 		*ppos += len;
+ 
+-#ifdef DEBUG_DATA
++#ifdef CONFIG_INPUT_DEBUG
+ 	printk(KERN_DEBUG __FILE__ ": report (size %u) (%snumbered)\n", size, report_enum->numbered ? "" : "un");
+ #endif
+ 
+@@ -961,7 +959,7 @@ int hid_input_report(struct hid_device *
+ 		size--;
+ 	}
+ 
+-#ifdef DEBUG_DATA
++#ifdef CONFIG_INPUT_DEBUG
+ 	{
+ 		int i;
+ 		printk(KERN_DEBUG __FILE__ ": report %d (size %u) = ", n, size);
+diff -puN drivers/hid/hid-input.c~config_input_debug-improvements drivers/hid/hid-input.c
+--- a/drivers/hid/hid-input.c~config_input_debug-improvements
++++ a/drivers/hid/hid-input.c
+@@ -31,8 +31,6 @@
+ #include <linux/slab.h>
+ #include <linux/kernel.h>
+ 
+-#undef DEBUG
+-
+ #include <linux/hid.h>
+ #include <linux/hid-debug.h>
+ 
+@@ -248,7 +246,7 @@ static void hidinput_configure_usage(str
+ 
+ 	field->hidinput = hidinput;
+ 
+-#ifdef DEBUG
++#ifdef CONFIG_HID_DEBUG
+ 	printk(KERN_DEBUG "Mapping: ");
+ 	hid_resolv_usage(usage->hid);
+ 	printk(" ---> ");
+@@ -685,7 +683,7 @@ static void hidinput_configure_usage(str
+ 	return;
+ 
+ ignore:
+-#ifdef DEBUG
++#ifdef CONFIG_HID_DEBUG
+ 	printk("IGNORED\n");
+ #endif
+ 	return;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-m68k-uaccessh-needs-schedh.patch
-x86-fix-vdso-mapping-for-aout-executables.patch
-mm-show-bounce-pages-in-oom-killer-output.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+fs-lockd-clntlockc-add-missing-newlines-to-dprintks.patch
 git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
-acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+drivers-acpi-hotkeyc-make-2-structs-static.patch
 git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-powerpc-make-it-compile.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+git-powerpc.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
 git-dvb.patch
-dvb-video_buf-depends-on-pci.patch
+drivers-media-dvb-frontends-make-4-functions-static.patch
+cx88-videoc-remove-struct-radionorms.patch
+if-0-v4l_printk_ioctl_arg.patch
 git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
+ia64-add-pci_get_legacy_ide_irq.patch
 git-ieee1394.patch
-git-input.patch
+config_input_debug-improvements.patch
 git-libata-all.patch
-pata_platform-set_mode-fix.patch
-sata_nv-cleanup-adma-error-handling-v2.patch
-mm-ide-ide-acpi-support-warning-fix.patch
-git-lxdialog-fixup.patch
-git-mips-kconfig-fix.patch
-git-mips-prom_free_prom_memory-borkage.patch
+fix-config_sata_sis=y-compile-error.patch
+mips-remove-smp_tune_scheduling.patch
 git-mmc.patch
-git-mmc-fixup.patch
+mtd_ck804xrom-must-depend-on-pci.patch
 git-ubi.patch
 git-netdev-all.patch
-git-netdev-all-atl1-build-fix.patch
-git-netdev-all-atl1-pm-fix.patch
-git-netdev-all-chelsio-fix.patch
-82596-warning-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
-dccp-warning-fixes.patch
-netfilter-warning-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-nfs-fix-congestion-control-v4-tweaks.patch
-r8169-warning-fixes.patch
-make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
-sh-add-kconfig-default.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-fixup.patch
-git-block-borkage.patch
-git-block-atomicity-fix.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-nokia-e70-is-an-unusual-device.patch
-revert-x86_64-mm-msr-on-cpu.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-drop-free_pages-sparc64-fix.patch
-get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-_proc_do_string-fix-short-reads.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+remove-one-remaining-define-bcm_tso-1.patch
+net-irda-proper-prototypes.patch
+net-wanrouter-wanmainc-cleanups.patch
+nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
+drivers-char-pcmcia-ipwireless_cs_-possible-cleanups.patch
+cleanup-x86_64-mm-vmi-timer.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+gtod-persistent-clock-support.patch
 i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-introduce-and-use-get_task_mnt_ns-tweaks.patch
-user-ns-implement-user-ns-unshare-tidy.patch
-ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
-ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
-dynamic-kernel-command-line-ia64-fix.patch
-rcu-preemptible-rcu-fix.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
