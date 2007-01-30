@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch added to -mm tree
-Date: Mon, 29 Jan 2007 17:25:38 -0800
-Message-ID: <200701300125.l0U1Pc9x005550@shell0.pdx.osdl.net>
+Subject: + config_input_debug-improvements.patch added to -mm tree
+Date: Mon, 29 Jan 2007 17:26:28 -0800
+Message-ID: <200701300126.l0U1QS1i005567@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36759 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36768 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752635AbXA3B3B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 20:29:01 -0500
+	id S932812AbXA3B3u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 20:29:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, mhalcrow@us.ibm.com
+Cc: bunk@stusta.de, dtor@mail.ru
 
 
 The patch titled
-     fs/ecryptfs/: make code static
+     CONFIG_INPUT_DEBUG improvements
 has been added to the -mm tree.  Its filename is
-     ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
+     config_input_debug-improvements.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,152 +25,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/ecryptfs/: make code static
+Subject: CONFIG_INPUT_DEBUG improvements
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes some needlessly global code static.
+- remove Makefile code for the nonexisting CONFIG_INPUT_DEBUG
+- simpler Makefile for hid-debug.o
+- replace all HID debug #define's with CONFIG_INPUT_DEBUG
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ecryptfs/crypto.c          |   24 ++++++++++++------------
- fs/ecryptfs/ecryptfs_kernel.h |   18 ------------------
- fs/ecryptfs/messaging.c       |   20 +++++++++++---------
- 3 files changed, 23 insertions(+), 39 deletions(-)
+ drivers/hid/Makefile    |   15 ++-------------
+ drivers/hid/hid-core.c  |    6 ++----
+ drivers/hid/hid-input.c |    6 ++----
+ 3 files changed, 6 insertions(+), 21 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static
-+++ a/fs/ecryptfs/crypto.c
-@@ -1024,7 +1024,7 @@ int ecryptfs_new_file_context(struct den
-  *
-  * Returns one if marker found; zero if not found
-  */
--int contains_ecryptfs_marker(char *data)
-+static int contains_ecryptfs_marker(char *data)
- {
- 	u32 m_1, m_2;
+diff -puN drivers/hid/Makefile~config_input_debug-improvements drivers/hid/Makefile
+--- a/drivers/hid/Makefile~config_input_debug-improvements
++++ a/drivers/hid/Makefile
+@@ -2,18 +2,7 @@
+ # Makefile for the HID driver
+ #
  
-@@ -1211,8 +1211,8 @@ int ecryptfs_cipher_code_to_string(char 
-  *
-  * Returns zero on success; non-zero otherwise
-  */
--int ecryptfs_read_header_region(char *data, struct dentry *dentry,
--				struct vfsmount *mnt)
-+static int ecryptfs_read_header_region(char *data, struct dentry *dentry,
-+				       struct vfsmount *mnt)
- {
- 	struct file *lower_file;
- 	mm_segment_t oldfs;
-@@ -1307,9 +1307,9 @@ struct kmem_cache *ecryptfs_header_cache
-  *
-  * Returns zero on success
-  */
--int ecryptfs_write_headers_virt(char *page_virt, size_t *size,
--				struct ecryptfs_crypt_stat *crypt_stat,
--				struct dentry *ecryptfs_dentry)
-+static int ecryptfs_write_headers_virt(char *page_virt, size_t *size,
-+				       struct ecryptfs_crypt_stat *crypt_stat,
-+				       struct dentry *ecryptfs_dentry)
- {
- 	int rc;
- 	size_t written;
-@@ -1335,9 +1335,9 @@ int ecryptfs_write_headers_virt(char *pa
- 	return rc;
- }
- 
--int ecryptfs_write_metadata_to_contents(struct ecryptfs_crypt_stat *crypt_stat,
--					struct file *lower_file,
--					char *page_virt)
-+static int ecryptfs_write_metadata_to_contents(struct ecryptfs_crypt_stat *crypt_stat,
-+					       struct file *lower_file,
-+					       char *page_virt)
- {
- 	mm_segment_t oldfs;
- 	int current_header_page;
-@@ -1362,9 +1362,9 @@ int ecryptfs_write_metadata_to_contents(
- 	return 0;
- }
- 
--int ecryptfs_write_metadata_to_xattr(struct dentry *ecryptfs_dentry,
--				     struct ecryptfs_crypt_stat *crypt_stat,
--				     char *page_virt, size_t size)
-+static int ecryptfs_write_metadata_to_xattr(struct dentry *ecryptfs_dentry,
-+					    struct ecryptfs_crypt_stat *crypt_stat,
-+					    char *page_virt, size_t size)
- {
- 	int rc;
- 
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -328,18 +328,6 @@ struct ecryptfs_msg_ctx {
- 	struct mutex mux;
- };
- 
--extern struct list_head ecryptfs_msg_ctx_free_list;
--extern struct list_head ecryptfs_msg_ctx_alloc_list;
--extern struct mutex ecryptfs_msg_ctx_lists_mux;
+-# Multipart objects.
+-hid-objs	:= hid-core.o hid-input.o
 -
--#define ecryptfs_uid_hash(uid) \
--        hash_long((unsigned long)uid, ecryptfs_hash_buckets)
--extern struct hlist_head *ecryptfs_daemon_id_hash;
--extern struct mutex ecryptfs_daemon_id_hash_mux;
--extern int ecryptfs_hash_buckets;
+-# Optional parts of multipart objects.
+-ifeq ($(CONFIG_HID_DEBUG),y)
+-hid-objs	+= hid-debug.o
+-endif
 -
--extern unsigned int ecryptfs_msg_counter;
--extern struct ecryptfs_msg_ctx *ecryptfs_msg_ctx_arr;
- extern unsigned int ecryptfs_transport;
- 
- struct ecryptfs_daemon_id {
-@@ -537,15 +525,9 @@ int ecryptfs_encrypt_page(struct ecryptf
- int ecryptfs_decrypt_page(struct file *file, struct page *page);
- int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
- 			    struct file *lower_file);
--int ecryptfs_write_headers_virt(char *page_virt, size_t *size,
--				struct ecryptfs_crypt_stat *crypt_stat,
--				struct dentry *ecryptfs_dentry);
- int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry,
- 			   struct file *lower_file);
- int ecryptfs_new_file_context(struct dentry *ecryptfs_dentry);
--int contains_ecryptfs_marker(char *data);
--int ecryptfs_read_header_region(char *data, struct dentry *dentry,
--				struct vfsmount *mnt);
- int ecryptfs_read_and_validate_header_region(char *data, struct dentry *dentry,
- 					     struct vfsmount *mnt);
- int ecryptfs_read_and_validate_xattr_region(char *page_virt,
-diff -puN fs/ecryptfs/messaging.c~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static fs/ecryptfs/messaging.c
---- a/fs/ecryptfs/messaging.c~ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static
-+++ a/fs/ecryptfs/messaging.c
-@@ -22,16 +22,18 @@
- 
- #include "ecryptfs_kernel.h"
- 
--LIST_HEAD(ecryptfs_msg_ctx_free_list);
--LIST_HEAD(ecryptfs_msg_ctx_alloc_list);
--struct mutex ecryptfs_msg_ctx_lists_mux;
+-ifeq ($(CONFIG_INPUT_DEBUG),y)
+-EXTRA_CFLAGS += -DDEBUG
+-endif
 -
--struct hlist_head *ecryptfs_daemon_id_hash;
--struct mutex ecryptfs_daemon_id_hash_mux;
--int ecryptfs_hash_buckets;
-+static LIST_HEAD(ecryptfs_msg_ctx_free_list);
-+static LIST_HEAD(ecryptfs_msg_ctx_alloc_list);
-+static struct mutex ecryptfs_msg_ctx_lists_mux;
-+
-+static struct hlist_head *ecryptfs_daemon_id_hash;
-+static struct mutex ecryptfs_daemon_id_hash_mux;
-+static int ecryptfs_hash_buckets;
-+#define ecryptfs_uid_hash(uid) \
-+        hash_long((unsigned long)uid, ecryptfs_hash_buckets)
+-
+ obj-$(CONFIG_HID)		+= hid.o
++hid-objs			:= hid-core.o hid-input.o
++hid-$(CONFIG_HID_DEBUG)		+= hid-debug.o
  
--unsigned int ecryptfs_msg_counter;
--struct ecryptfs_msg_ctx *ecryptfs_msg_ctx_arr;
-+static unsigned int ecryptfs_msg_counter;
-+static struct ecryptfs_msg_ctx *ecryptfs_msg_ctx_arr;
+diff -puN drivers/hid/hid-core.c~config_input_debug-improvements drivers/hid/hid-core.c
+--- a/drivers/hid/hid-core.c~config_input_debug-improvements
++++ a/drivers/hid/hid-core.c
+@@ -28,8 +28,6 @@
+ #include <linux/input.h>
+ #include <linux/wait.h>
  
- /**
-  * ecryptfs_acquire_free_msg_ctx
+-#undef DEBUG_DATA
+-
+ #include <linux/hid.h>
+ #include <linux/hiddev.h>
+ #include <linux/hid-debug.h>
+@@ -951,7 +949,7 @@ int hid_input_report(struct hid_device *
+ 		return -1;
+ 	}
+ 
+-#ifdef DEBUG_DATA
++#ifdef CONFIG_INPUT_DEBUG
+ 	printk(KERN_DEBUG __FILE__ ": report (size %u) (%snumbered)\n", size, report_enum->numbered ? "" : "un");
+ #endif
+ 
+@@ -961,7 +959,7 @@ int hid_input_report(struct hid_device *
+ 		size--;
+ 	}
+ 
+-#ifdef DEBUG_DATA
++#ifdef CONFIG_INPUT_DEBUG
+ 	{
+ 		int i;
+ 		printk(KERN_DEBUG __FILE__ ": report %d (size %u) = ", n, size);
+diff -puN drivers/hid/hid-input.c~config_input_debug-improvements drivers/hid/hid-input.c
+--- a/drivers/hid/hid-input.c~config_input_debug-improvements
++++ a/drivers/hid/hid-input.c
+@@ -31,8 +31,6 @@
+ #include <linux/slab.h>
+ #include <linux/kernel.h>
+ 
+-#undef DEBUG
+-
+ #include <linux/hid.h>
+ #include <linux/hid-debug.h>
+ 
+@@ -248,7 +246,7 @@ static void hidinput_configure_usage(str
+ 
+ 	field->hidinput = hidinput;
+ 
+-#ifdef DEBUG
++#ifdef CONFIG_HID_DEBUG
+ 	printk(KERN_DEBUG "Mapping: ");
+ 	hid_resolv_usage(usage->hid);
+ 	printk(" ---> ");
+@@ -685,7 +683,7 @@ static void hidinput_configure_usage(str
+ 	return;
+ 
+ ignore:
+-#ifdef DEBUG
++#ifdef CONFIG_HID_DEBUG
+ 	printk("IGNORED\n");
+ #endif
+ 	return;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -188,6 +143,7 @@ cx88-videoc-remove-struct-radionorms.patch
 git-gfs2-nmw.patch
 ia64-add-pci_get_legacy_ide_irq.patch
 git-ieee1394.patch
+config_input_debug-improvements.patch
 git-libata-all.patch
 fix-config_sata_sis=y-compile-error.patch
 mips-remove-smp_tune_scheduling.patch
