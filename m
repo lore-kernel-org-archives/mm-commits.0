@@ -1,101 +1,142 @@
 From: akpm@osdl.org
-Subject: - fix-config_sata_sis=y-compile-error.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 13:47:10 -0800
-Message-ID: <200701302147.l0ULlA3Q030162@shell0.pdx.osdl.net>
+Subject: - drivers-char-pcmcia-ipwireless_cs_-possible-cleanups.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 13:47:56 -0800
+Message-ID: <200701302147.l0ULluaW030227@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52229 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52269 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751879AbXA3Vuc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 16:50:32 -0500
+	id S1751848AbXA3VvO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 16:51:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix CONFIG_SATA_SIS=y compile error
+     drivers/char/pcmcia/ipwireless_cs_*: possible cleanups
 has been removed from the -mm tree.  Its filename was
-     fix-config_sata_sis=y-compile-error.patch
+     drivers-char-pcmcia-ipwireless_cs_-possible-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix CONFIG_SATA_SIS=y compile error
+Subject: drivers/char/pcmcia/ipwireless_cs_*: possible cleanups
 From: Adrian Bunk <bunk@stusta.de>
 
-Static code shouldn't be used from other modules.
-
-drivers/built-in.o: In function `sis_init_one':
-sata_sis.c:(.text+0x7634cd): undefined reference to `sis_info133'
-sata_sis.c:(.text+0x7634d6): undefined reference to `sis_info133'
-
-While I was at it, I also moved the prototype of this struct to a header
-file.
+- proper prototypes for global functions in header files
+- make the following needlessly global function static:
+  - ipwireless_cs_hardware.c: data_type()
+- make the following needlessly global struct static:
+  - ipwireless_cs_tty.c: ipw_tty_driver
+- #if 0 the following unused global functions:
+  - ipwireless_cs_hardware.c: ipwireless_get_config()
+  - ipwireless_cs_tty.c: ipw_flush_buffer()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata.h   |    3 +++
- drivers/ata/pata_sis.c |    3 ++-
- drivers/ata/sata_sis.c |    4 +---
- 3 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/char/pcmcia/ipwireless_cs_hardware.c |    4 +++-
+ drivers/char/pcmcia/ipwireless_cs_hardware.h |    5 ++---
+ drivers/char/pcmcia/ipwireless_cs_network.h  |    2 ++
+ drivers/char/pcmcia/ipwireless_cs_tty.c      |   10 +++-------
+ 4 files changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN drivers/ata/libata.h~fix-config_sata_sis=y-compile-error drivers/ata/libata.h
---- a/drivers/ata/libata.h~fix-config_sata_sis=y-compile-error
-+++ a/drivers/ata/libata.h
-@@ -151,4 +151,7 @@ extern void ata_qc_schedule_eh(struct at
- /* libata-sff.c */
- extern u8 ata_irq_on(struct ata_port *ap);
+diff -puN drivers/char/pcmcia/ipwireless_cs_hardware.c~drivers-char-pcmcia-ipwireless_cs_-possible-cleanups drivers/char/pcmcia/ipwireless_cs_hardware.c
+--- a/drivers/char/pcmcia/ipwireless_cs_hardware.c~drivers-char-pcmcia-ipwireless_cs_-possible-cleanups
++++ a/drivers/char/pcmcia/ipwireless_cs_hardware.c
+@@ -375,7 +375,7 @@ int ipwireless_dump_hardware_state(char 
  
-+/* pata_sis.c */
-+extern struct ata_port_info sis_info133;
-+
- #endif /* __LIBATA_H__ */
-diff -puN drivers/ata/pata_sis.c~fix-config_sata_sis=y-compile-error drivers/ata/pata_sis.c
---- a/drivers/ata/pata_sis.c~fix-config_sata_sis=y-compile-error
-+++ a/drivers/ata/pata_sis.c
-@@ -32,6 +32,7 @@
- #include <scsi/scsi_host.h>
- #include <linux/libata.h>
- #include <linux/ata.h>
-+#include "libata.h"
  
- #define DRV_NAME	"pata_sis"
- #define DRV_VERSION	"0.4.5"
-@@ -781,7 +782,7 @@ static struct ata_port_info sis_info100_
- 	.pio_mask	= 0x1f,	/* pio0-4 */
- 	.port_ops	= &sis_66_ops,
- };
--static struct ata_port_info sis_info133 = {
-+struct ata_port_info sis_info133 = {
- 	.sht		= &sis_sht,
- 	.flags		= ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
- 	.pio_mask	= 0x1f,	/* pio0-4 */
-diff -puN drivers/ata/sata_sis.c~fix-config_sata_sis=y-compile-error drivers/ata/sata_sis.c
---- a/drivers/ata/sata_sis.c~fix-config_sata_sis=y-compile-error
-+++ a/drivers/ata/sata_sis.c
-@@ -40,6 +40,7 @@
- #include <linux/device.h>
- #include <scsi/scsi_host.h>
- #include <linux/libata.h>
-+#include "libata.h"
  
- #define DRV_NAME	"sata_sis"
- #define DRV_VERSION	"0.7"
-@@ -254,9 +255,6 @@ static void sis_scr_write (struct ata_po
- 
- static int sis_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
+-char *data_type(const u_char * buf, unsigned length)
++static char *data_type(const u_char * buf, unsigned length)
  {
--	/* Provided by the PATA driver */
--	extern struct ata_port_info sis_info133;
+ 	NLPacketHeader *hdr = (NLPacketHeader *) buf;
+ 	if (length == 0)
+@@ -1586,10 +1586,12 @@ void ipwireless_hardware_free(ipw_hardwa
+ 	kfree(hw);
+ }
+ 
++#if 0
+ ipw_config_t *ipwireless_get_config(struct ipw_hardware_t *hw)
+ {
+ 	return &hw->config;
+ }
++#endif  /*  0  */
+ 
+ /* Associate the specified network with this hardware, so it will receive events
+  * from it. */
+diff -puN drivers/char/pcmcia/ipwireless_cs_hardware.h~drivers-char-pcmcia-ipwireless_cs_-possible-cleanups drivers/char/pcmcia/ipwireless_cs_hardware.h
+--- a/drivers/char/pcmcia/ipwireless_cs_hardware.h~drivers-char-pcmcia-ipwireless_cs_-possible-cleanups
++++ a/drivers/char/pcmcia/ipwireless_cs_hardware.h
+@@ -43,9 +43,6 @@ void ipwireless_send_packet(struct ipw_h
+ 			    unsigned int, ipw_packet_sent_callback_t,
+ 			    void *);
+ 
+-/* Get the configuration settings for this modem instance. */
+-struct ipw_config_t *ipwireless_get_config(struct ipw_hardware_t *);
 -
- 	static int printed_version;
- 	struct ata_probe_ent *probe_ent = NULL;
- 	int rc;
+ /* Associate the specified network with this hardware */
+ void ipwireless_associate_network(struct ipw_hardware_t *, struct ipw_network_t *);
+ 
+@@ -64,4 +61,6 @@ void ipwireless_init_hardware2(struct ip
+ 
+ void ipwireless_sleep(u_int tenths);
+ 
++int ipwireless_dump_hardware_state(char *p, struct ipw_hardware_t *hw);
++
+ #endif
+diff -puN drivers/char/pcmcia/ipwireless_cs_network.h~drivers-char-pcmcia-ipwireless_cs_-possible-cleanups drivers/char/pcmcia/ipwireless_cs_network.h
+--- a/drivers/char/pcmcia/ipwireless_cs_network.h~drivers-char-pcmcia-ipwireless_cs_-possible-cleanups
++++ a/drivers/char/pcmcia/ipwireless_cs_network.h
+@@ -43,4 +43,6 @@ void ipwireless_ppp_close(struct ipw_net
+ int ipwireless_ppp_channel_index(struct ipw_network_t *);
+ int ipwireless_ppp_unit_number(struct ipw_network_t *);
+ 
++int ipwireless_dump_network_state(char *p, struct ipw_network_t *network);
++
+ #endif
+diff -puN drivers/char/pcmcia/ipwireless_cs_tty.c~drivers-char-pcmcia-ipwireless_cs_-possible-cleanups drivers/char/pcmcia/ipwireless_cs_tty.c
+--- a/drivers/char/pcmcia/ipwireless_cs_tty.c~drivers-char-pcmcia-ipwireless_cs_-possible-cleanups
++++ a/drivers/char/pcmcia/ipwireless_cs_tty.c
+@@ -463,10 +463,12 @@ ipw_ioctl(struct tty_struct *linux_tty, 
+ 	return ppp_ioctl(linux_tty, file, cmd, arg);
+ }
+ 
++#if 0
+ void ipw_flush_buffer(struct tty_struct *tty)
+ {
+ 	wake_up_interruptible(&tty->write_wait);
+ }
++#endif  /*  0  */
+ 
+ static void add_tty(int first, int *j, dev_node_t ** nodesp,
+ 		    struct pcmcia_device *link,
+@@ -577,7 +579,7 @@ static struct tty_operations tty_ops = {
+ 	.tiocmset = ipw_tiocmset,
+ };
+ 
+-struct tty_driver *ipw_tty_driver;
++static struct tty_driver *ipw_tty_driver;
+ 
+ static int proc_read(char *page, char **start, off_t off, int count,
+ 		     int *eof, void *data)
+@@ -585,12 +587,6 @@ static int proc_read(char *page, char **
+ 	int i, j;
+ 	char *p = page;
+ 	int len;
+-#ifdef IPWIRELESS_STATE_DEBUG
+-	int ipwireless_dump_hardware_state(char *p,
+-					   struct ipw_hardware_t *hw);
+-	int ipwireless_dump_network_state(char *p,
+-					  struct ipw_network_t *network);
+-#endif
+ 
+ 	if (off == 0) {
+ 		p += sprintf(p, "driver: %s\nversion: %s\n\n",
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
