@@ -1,27 +1,31 @@
 From: akpm@osdl.org
-Subject: - fix-via-irq-quirk-breakage.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 10:15:09 -0800
-Message-ID: <200701301815.l0UIF9XB024820@shell0.pdx.osdl.net>
+Subject: + fix-via-quirks.patch added to -mm tree
+Date: Tue, 30 Jan 2007 10:15:48 -0800
+Message-ID: <200701301815.l0UIFmVR024841@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41168 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41200 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030190AbXA3SPX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 13:15:23 -0500
+	id S1030188AbXA3SPy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 13:15:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdelvare@suse.de, alan@redhat.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jdelvare@suse.de, alan@lxorguk.ukuu.org.uk, greg@kroah.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     fix via irq quirk breakage
-has been removed from the -mm tree.  Its filename was
-     fix-via-irq-quirk-breakage.patch
+     Fix VIA quirks
+has been added to the -mm tree.  Its filename is
+     fix-via-quirks.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix via irq quirk breakage
+Subject: Fix VIA quirks
 From: Jean Delvare <jdelvare@suse.de>
 
 Fix VIA quirks that were recently broken by Alan Cox in the upstream
@@ -33,20 +37,18 @@ quirks already.  First we detect the VIA south bridges and set the right
 low and high device limits, then we are ready to actually run the quirks on
 the affected devices.
 
-Alan sayeth "This is a lot neater than the original patch too.  Only problem I
-see is pci=reverse might need more care."
-
 Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Acked-by: Alan Cox <alan@redhat.com>
-Needs-to-be-tested-by: Nick Piggin <nickpiggin@yahoo.com.au> (it failed)
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Acked-by: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
  drivers/pci/quirks.c |   78 ++++++++++++++++++++++-------------------
  1 file changed, 42 insertions(+), 36 deletions(-)
 
-diff -puN drivers/pci/quirks.c~fix-via-irq-quirk-breakage drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~fix-via-irq-quirk-breakage
+diff -puN drivers/pci/quirks.c~fix-via-quirks drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~fix-via-quirks
 +++ a/drivers/pci/quirks.c
 @@ -654,19 +654,40 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_V
   *	VIA bridges which have VLink
@@ -73,8 +75,8 @@ diff -puN drivers/pci/quirks.c~fix-via-irq-quirk-breakage drivers/pci/quirks.c
 +	switch (dev->device) {
 +	case PCI_DEVICE_ID_VIA_82C686:
 +		/* 82C686 is special */
-+		via_vlink_dev_lo = 0;
-+		via_vlink_dev_hi = 0;
++		via_vlink_dev_lo = 7;
++		via_vlink_dev_hi = 7;
 +		break;
 +	case PCI_DEVICE_ID_VIA_8237:
 +	case PCI_DEVICE_ID_VIA_8237A:
@@ -159,5 +161,4 @@ _
 
 Patches currently in -mm which might be from jdelvare@suse.de are
 
-fix-via-irq-quirk-breakage.patch
 fix-via-quirks.patch
