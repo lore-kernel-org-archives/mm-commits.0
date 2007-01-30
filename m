@@ -1,209 +1,163 @@
 From: akpm@osdl.org
-Subject: - config_input_debug-improvements.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 09:59:41 -0800
-Message-ID: <200701301759.l0UHxgDf024433@shell0.pdx.osdl.net>
+Subject: - fix-via-irq-quirk-breakage.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 10:15:09 -0800
+Message-ID: <200701301815.l0UIF9XB024820@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40586 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41168 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965661AbXA3SDY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 13:03:24 -0500
+	id S1030190AbXA3SPX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 13:15:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dtor@mail.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: jdelvare@suse.de, alan@redhat.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CONFIG_INPUT_DEBUG improvements
+     fix via irq quirk breakage
 has been removed from the -mm tree.  Its filename was
-     config_input_debug-improvements.patch
+     fix-via-irq-quirk-breakage.patch
 
-This patch was dropped because it was nacked by the maintainer
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: CONFIG_INPUT_DEBUG improvements
-From: Adrian Bunk <bunk@stusta.de>
+Subject: fix via irq quirk breakage
+From: Jean Delvare <jdelvare@suse.de>
 
-- remove Makefile code for the nonexisting CONFIG_INPUT_DEBUG
-- simpler Makefile for hid-debug.o
-- replace all HID debug #define's with CONFIG_INPUT_DEBUG
+Fix VIA quirks that were recently broken by Alan Cox in the upstream
+kernel (commit 1597cacbe39802d86656d1f2e6329895bd2ef531).
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Kosina <jkosina@suse.cz>
+My understanding is that pci_find_present() doesn't work yet at the time
+the quirks are run.  So I used a two-step quirk as is done for some other
+quirks already.  First we detect the VIA south bridges and set the right
+low and high device limits, then we are ready to actually run the quirks on
+the affected devices.
+
+Alan sayeth "This is a lot neater than the original patch too.  Only problem I
+see is pci=reverse might need more care."
+
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Acked-by: Alan Cox <alan@redhat.com>
+Needs-to-be-tested-by: Nick Piggin <nickpiggin@yahoo.com.au> (it failed)
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/hid/Makefile    |   15 ++-------------
- drivers/hid/hid-core.c  |    6 ++----
- drivers/hid/hid-input.c |    6 ++----
- 3 files changed, 6 insertions(+), 21 deletions(-)
+ drivers/pci/quirks.c |   78 ++++++++++++++++++++++-------------------
+ 1 file changed, 42 insertions(+), 36 deletions(-)
 
-diff -puN drivers/hid/Makefile~config_input_debug-improvements drivers/hid/Makefile
---- a/drivers/hid/Makefile~config_input_debug-improvements
-+++ a/drivers/hid/Makefile
-@@ -2,18 +2,7 @@
- # Makefile for the HID driver
- #
+diff -puN drivers/pci/quirks.c~fix-via-irq-quirk-breakage drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~fix-via-irq-quirk-breakage
++++ a/drivers/pci/quirks.c
+@@ -654,19 +654,40 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_V
+  *	VIA bridges which have VLink
+  */
  
--# Multipart objects.
--hid-objs	:= hid-core.o hid-input.o
+-static const struct pci_device_id via_vlink_fixup_tbl[] = {
+-	/* Internal devices need IRQ line routing, pre VLink */
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_82C686), 0 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8231), 17 },
+-	/* Devices with VLink */
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233_0), 17},
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233A), 17 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233C_0), 17 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8235), 16 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8237), 15 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8237A), 15 },
+-	{ 0, },
+-};
++static int via_vlink_dev_lo = -1, via_vlink_dev_hi = 18;
++
++static void quirk_via_bridge(struct pci_dev *dev)
++{
++	/* See what bridge we have and find the device ranges */
++	switch (dev->device) {
++	case PCI_DEVICE_ID_VIA_82C686:
++		/* 82C686 is special */
++		via_vlink_dev_lo = 0;
++		via_vlink_dev_hi = 0;
++		break;
++	case PCI_DEVICE_ID_VIA_8237:
++	case PCI_DEVICE_ID_VIA_8237A:
++		via_vlink_dev_lo = 15;
++		break;
++	case PCI_DEVICE_ID_VIA_8235:
++		via_vlink_dev_lo = 16;
++		break;
++	case PCI_DEVICE_ID_VIA_8231:
++	case PCI_DEVICE_ID_VIA_8233_0:
++	case PCI_DEVICE_ID_VIA_8233A:
++	case PCI_DEVICE_ID_VIA_8233C_0:
++		via_vlink_dev_lo = 17;
++		break;
++	}
++}
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C686,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8231,		quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233_0,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233A,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233C_0,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8235,		quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8237,		quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8237A,	quirk_via_bridge);
+ 
+ /**
+  *	quirk_via_vlink		-	VIA VLink IRQ number update
+@@ -675,35 +696,20 @@ static const struct pci_device_id via_vl
+  *	If the device we are dealing with is on a PIC IRQ we need to
+  *	ensure that the IRQ line register which usually is not relevant
+  *	for PCI cards, is actually written so that interrupts get sent
+- *	to the right place
++ *	to the right place.
++ *	We only do this on systems where a VIA south bridge was detected,
++ *	and only for VIA devices on the motherboard (see quirk_via_bridge
++ *	above).
+  */
+ 
+ static void quirk_via_vlink(struct pci_dev *dev)
+ {
+-	const struct pci_device_id *via_vlink_fixup;
+-	static int dev_lo = -1, dev_hi = 18;
+ 	u8 irq, new_irq;
+ 
+-	/* Check if we have VLink and cache the result */
 -
--# Optional parts of multipart objects.
--ifeq ($(CONFIG_HID_DEBUG),y)
--hid-objs	+= hid-debug.o
--endif
+-	/* Checked already - no */
+-	if (dev_lo == -2)
++	/* Check if we have VLink at all */
++	if (via_vlink_dev_lo == -1)
+ 		return;
+ 
+-	/* Not checked - see what bridge we have and find the device
+-	   ranges */
 -
--ifeq ($(CONFIG_INPUT_DEBUG),y)
--EXTRA_CFLAGS += -DDEBUG
--endif
--
--
- obj-$(CONFIG_HID)		+= hid.o
-+hid-objs			:= hid-core.o hid-input.o
-+hid-$(CONFIG_HID_DEBUG)		+= hid-debug.o
+-	if (dev_lo == -1) {
+-		via_vlink_fixup = pci_find_present(via_vlink_fixup_tbl);
+-		if (via_vlink_fixup == NULL) {
+-			dev_lo = -2;
+-			return;
+-		}
+-		dev_lo = via_vlink_fixup->driver_data;
+-		/* 82C686 is special - 0/0 */
+-		if (dev_lo == 0)
+-			dev_hi = 0;
+-	}
+ 	new_irq = dev->irq;
  
-diff -puN drivers/hid/hid-core.c~config_input_debug-improvements drivers/hid/hid-core.c
---- a/drivers/hid/hid-core.c~config_input_debug-improvements
-+++ a/drivers/hid/hid-core.c
-@@ -28,8 +28,6 @@
- #include <linux/input.h>
- #include <linux/wait.h>
+ 	/* Don't quirk interrupts outside the legacy IRQ range */
+@@ -711,8 +717,8 @@ static void quirk_via_vlink(struct pci_d
+ 		return;
  
--#undef DEBUG_DATA
--
- #include <linux/hid.h>
- #include <linux/hiddev.h>
- #include <linux/hid-debug.h>
-@@ -951,7 +949,7 @@ int hid_input_report(struct hid_device *
- 		return -1;
- 	}
+ 	/* Internal device ? */
+-	if (dev->bus->number != 0 || PCI_SLOT(dev->devfn) > dev_hi ||
+-		PCI_SLOT(dev->devfn) < dev_lo)
++	if (dev->bus->number != 0 || PCI_SLOT(dev->devfn) > via_vlink_dev_hi ||
++	    PCI_SLOT(dev->devfn) < via_vlink_dev_lo)
+ 		return;
  
--#ifdef DEBUG_DATA
-+#ifdef CONFIG_INPUT_DEBUG
- 	printk(KERN_DEBUG __FILE__ ": report (size %u) (%snumbered)\n", size, report_enum->numbered ? "" : "un");
- #endif
- 
-@@ -961,7 +959,7 @@ int hid_input_report(struct hid_device *
- 		size--;
- 	}
- 
--#ifdef DEBUG_DATA
-+#ifdef CONFIG_INPUT_DEBUG
- 	{
- 		int i;
- 		printk(KERN_DEBUG __FILE__ ": report %d (size %u) = ", n, size);
-diff -puN drivers/hid/hid-input.c~config_input_debug-improvements drivers/hid/hid-input.c
---- a/drivers/hid/hid-input.c~config_input_debug-improvements
-+++ a/drivers/hid/hid-input.c
-@@ -31,8 +31,6 @@
- #include <linux/slab.h>
- #include <linux/kernel.h>
- 
--#undef DEBUG
--
- #include <linux/hid.h>
- #include <linux/hid-debug.h>
- 
-@@ -248,7 +246,7 @@ static void hidinput_configure_usage(str
- 
- 	field->hidinput = hidinput;
- 
--#ifdef DEBUG
-+#ifdef CONFIG_HID_DEBUG
- 	printk(KERN_DEBUG "Mapping: ");
- 	hid_resolv_usage(usage->hid);
- 	printk(" ---> ");
-@@ -685,7 +683,7 @@ static void hidinput_configure_usage(str
- 	return;
- 
- ignore:
--#ifdef DEBUG
-+#ifdef CONFIG_HID_DEBUG
- 	printk("IGNORED\n");
- #endif
- 	return;
+ 	/* This is an internal VLink device on a PIC interrupt. The BIOS
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
-origin.patch
-fs-lockd-clntlockc-add-missing-newlines-to-dprintks.patch
-git-acpi.patch
-drivers-acpi-hotkeyc-make-2-structs-static.patch
-git-alsa.patch
-cpu_freq_table-shouldnt-be-a-def_tristate.patch
-git-powerpc.patch
-drivers-char-drm-drm_mmc-remove-unused-exports.patch
-git-dvb.patch
-drivers-media-dvb-frontends-make-4-functions-static.patch
-cx88-videoc-remove-struct-radionorms.patch
-if-0-v4l_printk_ioctl_arg.patch
-git-gfs2-nmw.patch
-ia64-add-pci_get_legacy_ide_irq.patch
-git-ieee1394.patch
-config_input_debug-improvements.patch
-git-libata-all.patch
-fix-config_sata_sis=y-compile-error.patch
-mips-remove-smp_tune_scheduling.patch
-git-mmc.patch
-mtd_ck804xrom-must-depend-on-pci.patch
-git-ubi.patch
-git-netdev-all.patch
-remove-one-remaining-define-bcm_tso-1.patch
-net-irda-proper-prototypes.patch
-net-wanrouter-wanmainc-cleanups.patch
-nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
-net-uninline-skb_put-fix.patch
-git-ocfs2.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-drivers-char-pcmcia-ipwireless_cs_-possible-cleanups.patch
-cleanup-x86_64-mm-vmi-timer.patch
-x86_64-re-add-a-newline-to-restore_context.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-drivers-char-vc_screenc-proper-prototypes.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
-schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
-cleanup-linux-byteorder-swabbh.patch
-cleanup-include-linux-xattrh.patch
-cleanup-include-linux-reiserfs_xattrh.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-fbdev-driver-for-s3-trio-virge-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+fix-via-irq-quirk-breakage.patch
+fix-via-quirks.patch
