@@ -1,125 +1,254 @@
 From: akpm@osdl.org
-Subject: - libata-scsi-ata_task_ioctl-should-return-ata-registers-from.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 13:47:08 -0800
-Message-ID: <200701302147.l0ULl8u2030159@shell0.pdx.osdl.net>
+Subject: - 82596-warning-fix.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 13:47:45 -0800
+Message-ID: <200701302147.l0ULljmN030204@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51947 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51994 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751872AbXA3Vr2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 16:47:28 -0500
+	id S1751928AbXA3Vrx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 16:47:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmilburn@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-scsi: ata_task_ioctl should return ATA registers from sense data
+     82596 warning fixes
 has been removed from the -mm tree.  Its filename was
-     libata-scsi-ata_task_ioctl-should-return-ata-registers-from.patch
+     82596-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata-scsi: ata_task_ioctl should return ATA registers from sense data
-From: David Milburn <dmilburn@redhat.com>
+Subject: 82596 warning fixes
+From: Andrew Morton <akpm@osdl.org>
 
-User applications using the HDIO_DRIVE_TASK ioctl through libata expect
-specific ATA registers to be returned to userspace.  Verified that
-ata_task_ioctl correctly returns register values to the smartctl
-application.
+drivers/net/82596.c: In function 'i596_start_xmit':
+drivers/net/82596.c:1069: warning: cast from pointer to integer of different size
+drivers/net/82596.c: In function 'i82596_probe':
+drivers/net/82596.c:1249: warning: format '%d' expects type 'int', but argument 4 has type 'long unsigned int'
 
-Signed-off-by: David Milburn <dmilburn@redhat.com>
-Acked-by: Tejun Heo <htejun@gmail.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-scsi.c |   51 +++++++++++++++++++++++++++++++-----
- 1 file changed, 45 insertions(+), 6 deletions(-)
+ drivers/net/82596.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/libata-scsi.c~libata-scsi-ata_task_ioctl-should-return-ata-registers-from drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~libata-scsi-ata_task_ioctl-should-return-ata-registers-from
-+++ a/drivers/ata/libata-scsi.c
-@@ -311,8 +311,8 @@ int ata_task_ioctl(struct scsi_device *s
- {
- 	int rc = 0;
- 	u8 scsi_cmd[MAX_COMMAND_SIZE];
--	u8 args[7];
--	struct scsi_sense_hdr sshdr;
-+	u8 args[7], *sensebuf = NULL;
-+	int cmd_result;
+diff -puN drivers/net/82596.c~82596-warning-fix drivers/net/82596.c
+--- a/drivers/net/82596.c~82596-warning-fix
++++ a/drivers/net/82596.c
+@@ -1066,8 +1066,8 @@ static int i596_start_xmit(struct sk_buf
+ 	short length = skb->len;
+ 	dev->trans_start = jiffies;
  
- 	if (arg == NULL)
- 		return -EINVAL;
-@@ -320,10 +320,14 @@ int ata_task_ioctl(struct scsi_device *s
- 	if (copy_from_user(args, arg, sizeof(args)))
- 		return -EFAULT;
+-	DEB(DEB_STARTTX,printk(KERN_DEBUG "%s: i596_start_xmit(%x,%x) called\n", dev->name,
+-				skb->len, (unsigned int)skb->data));
++	DEB(DEB_STARTTX,printk(KERN_DEBUG "%s: i596_start_xmit(%x,%p) called\n",
++				dev->name, skb->len, skb->data));
  
-+	sensebuf = kzalloc(SCSI_SENSE_BUFFERSIZE, GFP_NOIO);
-+	if (!sensebuf)
-+		return -ENOMEM;
-+
- 	memset(scsi_cmd, 0, sizeof(scsi_cmd));
- 	scsi_cmd[0]  = ATA_16;
- 	scsi_cmd[1]  = (3 << 1); /* Non-data */
--	/* scsi_cmd[2] is already 0 -- no off.line, cc, or data xfer */
-+	scsi_cmd[2]  = 0x20;     /* cc but no off.line or data xfer */
- 	scsi_cmd[4]  = args[1];
- 	scsi_cmd[6]  = args[2];
- 	scsi_cmd[8]  = args[3];
-@@ -333,11 +337,46 @@ int ata_task_ioctl(struct scsi_device *s
+ 	if (skb->len < ETH_ZLEN) {
+ 		if (skb_padto(skb, ETH_ZLEN))
+@@ -1246,7 +1246,8 @@ struct net_device * __init i82596_probe(
+ 	dev->priv = (void *)(dev->mem_start);
  
- 	/* Good values for timeout and retries?  Values below
- 	   from scsi_ioctl_send_command() for default case... */
--	if (scsi_execute_req(scsidev, scsi_cmd, DMA_NONE, NULL, 0, &sshdr,
--			     (10*HZ), 5))
-+	cmd_result = scsi_execute(scsidev, scsi_cmd, DMA_NONE, NULL, 0,
-+				sensebuf, (10*HZ), 5, 0);
-+
-+	if (driver_byte(cmd_result) == DRIVER_SENSE) {/* sense data available */
-+		u8 *desc = sensebuf + 8;
-+		cmd_result &= ~(0xFF<<24); /* DRIVER_SENSE is not an error */
-+
-+		/* If we set cc then ATA pass-through will cause a
-+		 * check condition even if no error. Filter that. */
-+		if (cmd_result & SAM_STAT_CHECK_CONDITION) {
-+			struct scsi_sense_hdr sshdr;
-+			scsi_normalize_sense(sensebuf, SCSI_SENSE_BUFFERSIZE,
-+						&sshdr);
-+			if (sshdr.sense_key==0 &&
-+				sshdr.asc==0 && sshdr.ascq==0)
-+				cmd_result &= ~SAM_STAT_CHECK_CONDITION;
-+		}
-+
-+		/* Send userspace ATA registers */
-+		if (sensebuf[0] == 0x72 &&	/* format is "descriptor" */
-+				desc[0] == 0x09) {/* code is "ATA Descriptor" */
-+			args[0] = desc[13];	/* status */
-+			args[1] = desc[3];	/* error */
-+			args[2] = desc[5];	/* sector count (0:7) */
-+			args[3] = desc[7];	/* lbal */
-+			args[4] = desc[9];	/* lbam */
-+			args[5] = desc[11];	/* lbah */
-+			args[6] = desc[12];	/* select */
-+			if (copy_to_user(arg, args, sizeof(args)))
-+				rc = -EFAULT;
-+		}
-+	}
-+
-+	if (cmd_result) {
- 		rc = -EIO;
-+		goto error;
-+	}
- 
--	/* Need code to retrieve data from check condition? */
-+ error:
-+	kfree(sensebuf);
- 	return rc;
- }
- 
+ 	lp = dev->priv;
+-	DEB(DEB_INIT,printk(KERN_DEBUG "%s: lp at 0x%08lx (%d bytes), lp->scb at 0x%08lx\n",
++	DEB(DEB_INIT,printk(KERN_DEBUG "%s: lp at 0x%08lx (%zd bytes), "
++			"lp->scb at 0x%08lx\n",
+ 			dev->name, (unsigned long)lp,
+ 			sizeof(struct i596_private), (unsigned long)&lp->scb));
+ 	memset((void *) lp, 0, sizeof(struct i596_private));
 _
 
-Patches currently in -mm which might be from dmilburn@redhat.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+ntfs-kmap_atomic-atomicity-fix.patch
+x86-fix-vdso-mapping-for-aout-executables.patch
+mm-show-bounce-pages-in-oom-killer-output.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+powerpc-make-it-compile.patch
+git-dvb.patch
+dvb-video_buf-depends-on-pci.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+sata_nv-cleanup-adma-error-handling-v2.patch
+mm-ide-ide-acpi-support-warning-fix.patch
+git-lxdialog-fixup.patch
+git-mips-kconfig-fix.patch
+git-mips-prom_free_prom_memory-borkage.patch
+git-mmc.patch
+git-mmc-fixup.patch
+git-ubi.patch
+git-netdev-all.patch
+git-netdev-all-chelsio-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+dccp-warning-fixes.patch
+netfilter-warning-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+nfs-fix-congestion-control-v4-tweaks.patch
+r8169-warning-fixes.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+sh-add-kconfig-default.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
+git-block-fixup.patch
+git-block-borkage.patch
+git-block-atomicity-fix.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+nokia-e70-is-an-unusual-device.patch
+git-ipwireless_cs.patch
+revert-x86_64-mm-msr-on-cpu.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+use-zvc-for-inactive-and-active-counts-up-fix.patch
+drop-free_pages-fix.patch
+drop-free_pages-sparc64-fix.patch
+optional-zone_dma-in-the-vm-tidy.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix-2.patch
+return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+ecryptfs-generalize-metadata-read-write-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+introduce-and-use-get_task_mnt_ns-tweaks.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
+ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
+dynamic-kernel-command-line-ia64-fix.patch
+rcu-preemptible-rcu-fix.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+mark-struct-file_operations-const-2-fix.patch
+mark-struct-file_operations-const-4-fix.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
