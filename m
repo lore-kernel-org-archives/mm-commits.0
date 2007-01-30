@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + ehea-fixed-wrong-jumbo-frames-status-query.patch added to -mm tree
-Date: Mon, 29 Jan 2007 17:10:53 -0800
-Message-ID: <200701300110.l0U1ArtG005114@shell0.pdx.osdl.net>
+Subject: + fix-i-oat-for-kexec.patch added to -mm tree
+Date: Mon, 29 Jan 2007 17:11:59 -0800
+Message-ID: <200701300111.l0U1BxPm005160@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36270 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36332 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752630AbXA3BLD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 20:11:03 -0500
+	id S1752641AbXA3BMM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 20:12:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: osstklei@de.ibm.com, tklein@de.ibm.com
+Cc: da-x@monatomic.org, christopher.leech@intel.com, ebiederm@xmission.com, vgoyal@in.ibm.com
 
 
 The patch titled
-     ehea: Fixed wrong jumbo frames status query
+     fix I/OAT for kexec
 has been added to the -mm tree.  Its filename is
-     ehea-fixed-wrong-jumbo-frames-status-query.patch
+     fix-i-oat-for-kexec.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,89 +25,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ehea: Fixed wrong jumbo frames status query
-From: Thomas Klein <osstklei@de.ibm.com>
+Subject: fix I/OAT for kexec
+From: Dan Aloni <da-x@monatomic.org>
 
-Fix the wrong query and logging of the per interface jumbo frames
-enabled/disabled status.
+Under kexec, I/OAT initialization breaks over busy resources because the
+previous kernel did not release them.
 
-Signed-off-by: Thomas Klein <tklein@de.ibm.com>
+I'm not sure this fix can be considered a complete one but it works for me.
+ I guess something similar to the *_remove method should occur there..
+
+Signed-off-by: Dan Aloni <da-x@monatomic.org>
+Cc: Chris Leech <christopher.leech@intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/ehea/ehea.h      |    2 +-
- drivers/net/ehea/ehea_main.c |   30 +++++++++++++++++++++++-------
- 2 files changed, 24 insertions(+), 8 deletions(-)
+ drivers/dma/ioatdma.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+)
 
-diff -puN drivers/net/ehea/ehea.h~ehea-fixed-wrong-jumbo-frames-status-query drivers/net/ehea/ehea.h
---- a/drivers/net/ehea/ehea.h~ehea-fixed-wrong-jumbo-frames-status-query
-+++ a/drivers/net/ehea/ehea.h
-@@ -39,7 +39,7 @@
- #include <asm/io.h>
+diff -puN drivers/dma/ioatdma.c~fix-i-oat-for-kexec drivers/dma/ioatdma.c
+--- a/drivers/dma/ioatdma.c~fix-i-oat-for-kexec
++++ a/drivers/dma/ioatdma.c
+@@ -41,6 +41,7 @@
  
- #define DRV_NAME	"ehea"
--#define DRV_VERSION	"EHEA_0044"
-+#define DRV_VERSION	"EHEA_0045"
+ /* internal functions */
+ static int __devinit ioat_probe(struct pci_dev *pdev, const struct pci_device_id *ent);
++static void ioat_shutdown(struct pci_dev *pdev);
+ static void __devexit ioat_remove(struct pci_dev *pdev);
  
- #define EHEA_MSG_DEFAULT (NETIF_MSG_LINK | NETIF_MSG_TIMER \
- 	| NETIF_MSG_RX_ERR | NETIF_MSG_TX_ERR)
-diff -puN drivers/net/ehea/ehea_main.c~ehea-fixed-wrong-jumbo-frames-status-query drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~ehea-fixed-wrong-jumbo-frames-status-query
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -2316,6 +2316,7 @@ static int ehea_setup_single_port(struct
- 	struct ehea_adapter *adapter = port->adapter;
- 	struct hcp_ehea_port_cb4 *cb4;
- 	u32 *dn_log_port_id;
-+	int jumbo = 0;
+ static int enumerate_dma_channels(struct ioat_device *device)
+@@ -557,6 +558,7 @@ static struct pci_driver ioat_pci_drv = 
+ 	.name 	= "ioatdma",
+ 	.id_table = ioat_pci_tbl,
+ 	.probe	= ioat_probe,
++	.shutdown = ioat_shutdown,
+ 	.remove	= __devexit_p(ioat_remove),
+ };
  
- 	sema_init(&port->port_lock, 1);
- 	port->state = EHEA_PORT_DOWN;
-@@ -2357,13 +2358,25 @@ static int ehea_setup_single_port(struct
- 	if (!cb4) {
- 		ehea_error("no mem for cb4");
- 	} else {
--		cb4->jumbo_frame = 1;
--		hret = ehea_h_modify_ehea_port(adapter->handle,
--					       port->logical_port_id,
--					       H_PORT_CB4, H_PORT_CB4_JUMBO,
--					       cb4);
--		if (hret != H_SUCCESS) {
--			ehea_info("Jumbo frames not activated");
-+		hret = ehea_h_query_ehea_port(adapter->handle,
-+					      port->logical_port_id,
-+					      H_PORT_CB4,
-+					      H_PORT_CB4_JUMBO, cb4);
+@@ -781,9 +783,20 @@ err_request_regions:
+ err_set_dma_mask:
+ 	pci_disable_device(pdev);
+ err_enable_device:
 +
-+		if (hret == H_SUCCESS) {
-+			if (cb4->jumbo_frame)
-+				jumbo = 1;
-+			else {
-+				cb4->jumbo_frame = 1;
-+				hret = ehea_h_modify_ehea_port(adapter->handle,
-+							       port->
-+							        logical_port_id,
-+							       H_PORT_CB4,
-+							       H_PORT_CB4_JUMBO,
-+							       cb4);
-+				if (hret == H_SUCCESS)
-+					jumbo = 1;
-+			}
- 		}
- 		kfree(cb4);
- 	}
-@@ -2402,6 +2415,9 @@ static int ehea_setup_single_port(struct
- 		goto out_free;
- 	}
- 
-+	ehea_info("%s: Jumbo frames are %sabled", dev->name,
-+		  jumbo == 1 ? "en" : "dis");
++	printk(KERN_ERR "Intel(R) I/OAT DMA Engine initialization failed\n");
 +
- 	port->netdev = dev;
- 	ret = 0;
- 	goto out;
+ 	return err;
+ }
+ 
++static void ioat_shutdown(struct pci_dev *pdev)
++{
++	struct ioat_device *device;
++	device = pci_get_drvdata(pdev);
++
++	dma_async_device_unregister(&device->common);
++}
++
+ static void __devexit ioat_remove(struct pci_dev *pdev)
+ {
+ 	struct ioat_device *device;
 _
 
-Patches currently in -mm which might be from osstklei@de.ibm.com are
+Patches currently in -mm which might be from da-x@monatomic.org are
 
-ehea-fixed-wrong-jumbo-frames-status-query.patch
-ehea-fixed-missing-tasklet_kill-call.patch
+fix-i-oat-for-kexec.patch
