@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + ntfs-kmap_atomic-atomicity-fix.patch added to -mm tree
-Date: Tue, 30 Jan 2007 11:31:37 -0800
-Message-ID: <200701301931.l0UJVbhn026623@shell0.pdx.osdl.net>
+Subject: + scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch added to -mm tree
+Date: Tue, 30 Jan 2007 11:33:36 -0800
+Message-ID: <200701301933.l0UJXaNp026700@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44341 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44371 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751731AbXA3Tbl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 14:31:41 -0500
+	id S1751741AbXA3Tdl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 14:33:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, aia21@cantab.net
+Cc: akpm@osdl.org, James.Bottomley@steeleye.com
 
 
 The patch titled
-     ntfs: kmap_atomic() atomicity fix
+     scsi_kmap_atomic_sg(): check that local irqs are disabled
 has been added to the -mm tree.  Its filename is
-     ntfs-kmap_atomic-atomicity-fix.patch
+     scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ntfs: kmap_atomic() atomicity fix
+Subject: scsi_kmap_atomic_sg(): check that local irqs are disabled
 From: Andrew Morton <akpm@osdl.org>
 
-The KM_BIO_SRC_IRQ kmap slot requires local irq protection.
+The KM_BIO_SRC_IRQ kmap slot must be taken with local irqs disabled.  Add a
+check into scsi for this.
 
-Cc: Anton Altaparmakov <aia21@cantab.net>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ntfs/aops.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/scsi/scsi_lib.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ntfs/aops.c~ntfs-kmap_atomic-atomicity-fix fs/ntfs/aops.c
---- a/fs/ntfs/aops.c~ntfs-kmap_atomic-atomicity-fix
-+++ a/fs/ntfs/aops.c
-@@ -88,14 +88,17 @@ static void ntfs_end_buffer_async_read(s
- 		if (unlikely(file_ofs + bh->b_size > init_size)) {
- 			u8 *kaddr;
- 			int ofs;
-+			unsigned long flags;
+diff -puN drivers/scsi/scsi_lib.c~scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled
++++ a/drivers/scsi/scsi_lib.c
+@@ -2250,6 +2250,8 @@ void *scsi_kmap_atomic_sg(struct scatter
+ 	size_t sg_len = 0, len_complete = 0;
+ 	struct page *page;
  
- 			ofs = 0;
- 			if (file_ofs < init_size)
- 				ofs = init_size - file_ofs;
-+			local_irq_save(flags);
- 			kaddr = kmap_atomic(page, KM_BIO_SRC_IRQ);
- 			memset(kaddr + bh_offset(bh) + ofs, 0,
- 					bh->b_size - ofs);
- 			kunmap_atomic(kaddr, KM_BIO_SRC_IRQ);
-+			local_irq_restore(flags);
- 			flush_dcache_page(page);
- 		}
- 	} else {
-@@ -138,16 +141,19 @@ static void ntfs_end_buffer_async_read(s
- 		u8 *kaddr;
- 		unsigned int i, recs;
- 		u32 rec_size;
-+		unsigned long flags;
- 
- 		rec_size = ni->itype.index.block_size;
- 		recs = PAGE_CACHE_SIZE / rec_size;
- 		/* Should have been verified before we got here... */
- 		BUG_ON(!recs);
-+		local_irq_save(flags);
- 		kaddr = kmap_atomic(page, KM_BIO_SRC_IRQ);
- 		for (i = 0; i < recs; i++)
- 			post_read_mst_fixup((NTFS_RECORD*)(kaddr +
- 					i * rec_size), rec_size);
- 		kunmap_atomic(kaddr, KM_BIO_SRC_IRQ);
-+		local_irq_restore(flags);
- 		flush_dcache_page(page);
- 		if (likely(page_uptodate && !PageError(page)))
- 			SetPageUptodate(page);
++	WARN_ON(!irqs_disabled());
++
+ 	for (i = 0; i < sg_count; i++) {
+ 		len_complete = sg_len; /* Complete sg-entries */
+ 		sg_len += sg[i].length;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -274,3 +246,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
+scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
