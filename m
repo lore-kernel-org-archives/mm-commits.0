@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + convert-highest_possible_processor_id-to-nr_cpu_ids.patch added to -mm tree
-Date: Mon, 29 Jan 2007 17:17:05 -0800
-Message-ID: <200701300117.l0U1H5Zh005363@shell0.pdx.osdl.net>
+Subject: + cleanup-x86_64-mm-vmi-timer.patch added to -mm tree
+Date: Mon, 29 Jan 2007 17:23:19 -0800
+Message-ID: <200701300123.l0U1NJju005504@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36715 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36724 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752604AbXA3B0T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 20:26:19 -0500
+	id S1752641AbXA3B0i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 20:26:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, frederik.deweerdt@gmail.com, neilb@suse.de, trond.myklebust@fys.uio.no
+Cc: bunk@stusta.de, ak@suse.de, zach@vmware.com
 
 
 The patch titled
-     Convert highest_possible_processor_id to nr_cpu_ids
+     vmi: cleanups
 has been added to the -mm tree.  Its filename is
-     convert-highest_possible_processor_id-to-nr_cpu_ids.patch
+     cleanup-x86_64-mm-vmi-timer.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,184 +25,541 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Convert highest_possible_processor_id to nr_cpu_ids
-From: Christoph Lameter <clameter@sgi.com>
+Subject: vmi: cleanups
+From: Adrian Bunk <bunk@stusta.de>
 
-We frequently need the maximum number of possible processors in order to
-allocate arrays for all processors.  So far this was done using
-highest_possible_processor_id().  However, we do need the number of
-processors not the highest id.  Moreover the number was so far dynamically
-calculated on each invokation.  The number of possible processors does not
-change when the system is running.  We can therefore calculate that number
-once.
+- make needlessly global code static
+- remove pointless fastcall annotations
+- don't mark functions in C files as inline
+- #if 0 the following unused function:
+  - arch/i386/kernel/vmitime.c: read_stolen_cycles()
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Frederik Deweerdt <frederik.deweerdt@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/cpumask.h         |    4 ++--
- init/main.c                     |   13 +++++++++----
- lib/cpumask.c                   |   18 ++----------------
- net/bridge/netfilter/ebtables.c |    9 +++------
- net/sunrpc/svc.c                |    2 +-
- 5 files changed, 17 insertions(+), 29 deletions(-)
+ arch/i386/kernel/vmi.c      |   89 +++++++++++++++++-----------------
+ arch/i386/kernel/vmitime.c  |   39 +++++++-------
+ include/asm-i386/vmi_time.h |   14 ++---
+ 3 files changed, 72 insertions(+), 70 deletions(-)
 
-diff -puN include/linux/cpumask.h~convert-highest_possible_processor_id-to-nr_cpu_ids include/linux/cpumask.h
---- a/include/linux/cpumask.h~convert-highest_possible_processor_id-to-nr_cpu_ids
-+++ a/include/linux/cpumask.h
-@@ -398,11 +398,11 @@ extern cpumask_t cpu_present_map;
- #endif
+diff -puN arch/i386/kernel/vmi.c~cleanup-x86_64-mm-vmi-timer arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~cleanup-x86_64-mm-vmi-timer
++++ a/arch/i386/kernel/vmi.c
+@@ -56,19 +56,19 @@ static int disable_tsc;
+ static int disable_mtrr;
  
- #ifdef CONFIG_SMP
--int highest_possible_processor_id(void);
-+extern int nr_cpu_ids;
- #define any_online_cpu(mask) __any_online_cpu(&(mask))
- int __any_online_cpu(const cpumask_t *mask);
- #else
--#define highest_possible_processor_id()	0
-+#define nr_cpu_ids			0
- #define any_online_cpu(mask)		0
- #endif
+ /* Cached VMI operations */
+-struct {
+-	void (fastcall *cpuid)(void /* non-c */);
+-	void (fastcall *_set_ldt)(u32 selector);
+-	void (fastcall *set_tr)(u32 selector);
+-	void (fastcall *set_kernel_stack)(u32 selector, u32 esp0);
+-	void (fastcall *allocate_page)(u32, u32, u32, u32, u32);
+-	void (fastcall *release_page)(u32, u32);
+-	void (fastcall *set_pte)(pte_t, pte_t *, unsigned);
+-	void (fastcall *update_pte)(pte_t *, unsigned);
+-	void (fastcall *set_linear_mapping)(int, u32, u32, u32);
+-	void (fastcall *flush_tlb)(int);
+-	void (fastcall *set_initial_ap_state)(int, int);
+-	void (fastcall *halt)(void);
++static struct {
++	void (*cpuid)(void /* non-c */);
++	void (*_set_ldt)(u32 selector);
++	void (*set_tr)(u32 selector);
++	void (*set_kernel_stack)(u32 selector, u32 esp0);
++	void (*allocate_page)(u32, u32, u32, u32, u32);
++	void (*release_page)(u32, u32);
++	void (*set_pte)(pte_t, pte_t *, unsigned);
++	void (*update_pte)(pte_t *, unsigned);
++	void (*set_linear_mapping)(int, u32, u32, u32);
++	void (*flush_tlb)(int);
++	void (*set_initial_ap_state)(int, int);
++	void (*halt)(void);
+ } vmi_ops;
  
-diff -puN init/main.c~convert-highest_possible_processor_id-to-nr_cpu_ids init/main.c
---- a/init/main.c~convert-highest_possible_processor_id-to-nr_cpu_ids
-+++ a/init/main.c
-@@ -382,14 +382,19 @@ static void __init setup_per_cpu_areas(v
- /* Called by boot processor to activate the rest. */
- static void __init smp_init(void)
+ /* XXX move this to alternative.h */
+@@ -90,7 +90,7 @@ static char irq_save_disable_callout[] =
+ #define IRQ_PATCH_INT_MASK 0
+ #define IRQ_PATCH_DISABLE  5
+ 
+-static inline void patch_offset(unsigned char *eip, unsigned char *dest)
++static void patch_offset(unsigned char *eip, unsigned char *dest)
  {
--	unsigned int i;
-+	unsigned int cpu;
-+	unsigned highest = 0;
-+
-+	for_each_cpu_mask(cpu, cpu_possible_map)
-+		highest = cpu;
-+	nr_cpu_ids = highest + 1;
- 
- 	/* FIXME: This should be done in userspace --RR */
--	for_each_present_cpu(i) {
-+	for_each_present_cpu(cpu) {
- 		if (num_online_cpus() >= max_cpus)
- 			break;
--		if (!cpu_online(i))
--			cpu_up(i);
-+		if (!cpu_online(cpu))
-+			cpu_up(cpu);
- 	}
- 
- 	/* Any cleanup work */
-diff -puN lib/cpumask.c~convert-highest_possible_processor_id-to-nr_cpu_ids lib/cpumask.c
---- a/lib/cpumask.c~convert-highest_possible_processor_id-to-nr_cpu_ids
-+++ a/lib/cpumask.c
-@@ -15,22 +15,8 @@ int __next_cpu(int n, const cpumask_t *s
+         *(unsigned long *)(eip+1) = dest-eip-5;
  }
- EXPORT_SYMBOL(__next_cpu);
+@@ -169,8 +169,8 @@ static unsigned vmi_patch(u8 type, u16 c
+ }
  
--/*
-- * Find the highest possible smp_processor_id()
-- *
-- * Note: if we're prepared to assume that cpu_possible_map never changes
-- * (reasonable) then this function should cache its return value.
-- */
--int highest_possible_processor_id(void)
--{
--	unsigned int cpu;
--	unsigned highest = 0;
--
--	for_each_cpu_mask(cpu, cpu_possible_map)
--		highest = cpu;
--	return highest;
--}
--EXPORT_SYMBOL(highest_possible_processor_id);
-+int nr_cpu_ids;
-+EXPORT_SYMBOL(nr_cpu_ids);
- 
- int __any_online_cpu(const cpumask_t *mask)
+ /* CPUID has non-C semantics, and paravirt-ops API doesn't match hardware ISA */
+-static fastcall void vmi_cpuid(unsigned int *eax, unsigned int *ebx,
+-                               unsigned int *ecx, unsigned int *edx)
++static void vmi_cpuid(unsigned int *eax, unsigned int *ebx,
++		      unsigned int *ecx, unsigned int *edx)
  {
-diff -puN net/bridge/netfilter/ebtables.c~convert-highest_possible_processor_id-to-nr_cpu_ids net/bridge/netfilter/ebtables.c
---- a/net/bridge/netfilter/ebtables.c~convert-highest_possible_processor_id-to-nr_cpu_ids
-+++ a/net/bridge/netfilter/ebtables.c
-@@ -834,8 +834,7 @@ static int translate_table(char *name, s
- 		/* this will get free'd in do_replace()/ebt_register_table()
- 		   if an error occurs */
- 		newinfo->chainstack =
--			vmalloc((highest_possible_processor_id()+1)
--				   	* sizeof(*(newinfo->chainstack)));
-+			vmalloc(nr_cpu_ids * sizeof(*(newinfo->chainstack)));
- 		if (!newinfo->chainstack)
- 			return -ENOMEM;
- 		for_each_possible_cpu(i) {
-@@ -948,8 +947,7 @@ static int do_replace(void __user *user,
- 	if (tmp.num_counters >= INT_MAX / sizeof(struct ebt_counter))
- 		return -ENOMEM;
- 
--	countersize = COUNTER_OFFSET(tmp.nentries) * 
--					(highest_possible_processor_id()+1);
-+	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
- 	newinfo = vmalloc(sizeof(*newinfo) + countersize);
- 	if (!newinfo)
- 		return -ENOMEM;
-@@ -1169,8 +1167,7 @@ int ebt_register_table(struct ebt_table 
- 		return -EINVAL;
+ 	int override = 0;
+ 	if (*eax == 1)
+@@ -195,13 +195,14 @@ static fastcall void vmi_cpuid(unsigned 
  	}
+ }
  
--	countersize = COUNTER_OFFSET(repl->nentries) *
--					(highest_possible_processor_id()+1);
-+	countersize = COUNTER_OFFSET(repl->nentries) * nr_cpu_ids;
- 	newinfo = vmalloc(sizeof(*newinfo) + countersize);
- 	ret = -ENOMEM;
- 	if (!newinfo)
-diff -puN net/sunrpc/svc.c~convert-highest_possible_processor_id-to-nr_cpu_ids net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~convert-highest_possible_processor_id-to-nr_cpu_ids
-+++ a/net/sunrpc/svc.c
-@@ -115,7 +115,7 @@ fail:
- static int
- svc_pool_map_init_percpu(struct svc_pool_map *m)
+-static inline void vmi_maybe_load_tls(struct desc_struct *gdt, int nr, struct desc_struct *new)
++static void vmi_maybe_load_tls(struct desc_struct *gdt, int nr,
++			       struct desc_struct *new)
  {
--	unsigned int maxpools = highest_possible_processor_id() + 1;
-+	unsigned int maxpools = nr_cpu_ids;
- 	unsigned int pidx = 0;
- 	unsigned int cpu;
- 	int err;
+ 	if (gdt[nr].a != new->a || gdt[nr].b != new->b)
+ 		write_gdt_entry(gdt, nr, new->a, new->b);
+ }
+ 
+-static fastcall void vmi_load_tls(struct thread_struct *t, unsigned int cpu)
++static void vmi_load_tls(struct thread_struct *t, unsigned int cpu)
+ {
+ 	struct desc_struct *gdt = get_cpu_gdt_table(cpu);
+ 	vmi_maybe_load_tls(gdt, GDT_ENTRY_TLS_MIN + 0, &t->tls_array[0]);
+@@ -209,7 +210,7 @@ static fastcall void vmi_load_tls(struct
+ 	vmi_maybe_load_tls(gdt, GDT_ENTRY_TLS_MIN + 2, &t->tls_array[2]);
+ }
+ 
+-static fastcall void vmi_set_ldt(const void *addr, unsigned entries)
++static void vmi_set_ldt(const void *addr, unsigned entries)
+ {
+ 	unsigned cpu = smp_processor_id();
+ 	u32 low, high;
+@@ -221,13 +222,13 @@ static fastcall void vmi_set_ldt(const v
+ 	vmi_ops._set_ldt(entries ? GDT_ENTRY_LDT*sizeof(struct desc_struct) : 0);
+ }
+ 
+-static fastcall void vmi_set_tr(void)
++static void vmi_set_tr(void)
+ {
+ 	vmi_ops.set_tr(GDT_ENTRY_TSS*sizeof(struct desc_struct));
+ }
+ 
+-static fastcall void vmi_load_esp0(struct tss_struct *tss,
+-				   struct thread_struct *thread)
++static void vmi_load_esp0(struct tss_struct *tss,
++			  struct thread_struct *thread)
+ {
+ 	tss->esp0 = thread->esp0;
+ 
+@@ -239,12 +240,12 @@ static fastcall void vmi_load_esp0(struc
+ 	vmi_ops.set_kernel_stack(__KERNEL_DS, tss->esp0);
+ }
+ 
+-static fastcall void vmi_flush_tlb_user(void)
++static void vmi_flush_tlb_user(void)
+ {
+ 	vmi_ops.flush_tlb(VMI_FLUSH_TLB);
+ }
+ 
+-static fastcall void vmi_flush_tlb_kernel(void)
++static void vmi_flush_tlb_kernel(void)
+ {
+ 	vmi_ops.flush_tlb(VMI_FLUSH_TLB | VMI_FLUSH_GLOBAL);
+ }
+@@ -256,7 +257,7 @@ static void vmi_nop(void)
+ 
+ /* For NO_IDLE_HZ, we stop the clock when halting the kernel */
+ #ifdef CONFIG_NO_IDLE_HZ
+-static fastcall void vmi_safe_halt(void)
++static void vmi_safe_halt(void)
+ {
+ 	int idle = vmi_stop_hz_timer();
+ 	vmi_ops.halt();
+@@ -371,13 +372,13 @@ static void vmi_check_page_type(u32 pfn,
+ #define vmi_check_page_type(p,t) do { } while (0)
+ #endif
+ 
+-static fastcall void vmi_allocate_pt(u32 pfn)
++static void vmi_allocate_pt(u32 pfn)
+ {
+ 	vmi_set_page_type(pfn, VMI_PAGE_L1);
+ 	vmi_ops.allocate_page(pfn, VMI_PAGE_L1, 0, 0, 0);
+ }
+ 
+-static fastcall void vmi_allocate_pd(u32 pfn)
++static void vmi_allocate_pd(u32 pfn)
+ {
+  	/*
+ 	 * This call comes in very early, before mem_map is setup.
+@@ -388,20 +389,20 @@ static fastcall void vmi_allocate_pd(u32
+ 	vmi_ops.allocate_page(pfn, VMI_PAGE_L2, 0, 0, 0);
+ }
+ 
+-static fastcall void vmi_allocate_pd_clone(u32 pfn, u32 clonepfn, u32 start, u32 count)
++static void vmi_allocate_pd_clone(u32 pfn, u32 clonepfn, u32 start, u32 count)
+ {
+  	vmi_set_page_type(pfn, VMI_PAGE_L2 | VMI_PAGE_CLONE);
+ 	vmi_check_page_type(clonepfn, VMI_PAGE_L2);
+ 	vmi_ops.allocate_page(pfn, VMI_PAGE_L2 | VMI_PAGE_CLONE, clonepfn, start, count);
+ }
+ 
+-static fastcall void vmi_release_pt(u32 pfn)
++static void vmi_release_pt(u32 pfn)
+ {
+ 	vmi_ops.release_page(pfn, VMI_PAGE_L1);
+ 	vmi_set_page_type(pfn, VMI_PAGE_NORMAL);
+ }
+ 
+-static fastcall void vmi_release_pd(u32 pfn)
++static void vmi_release_pd(u32 pfn)
+ {
+ 	vmi_ops.release_page(pfn, VMI_PAGE_L2);
+ 	vmi_set_page_type(pfn, VMI_PAGE_NORMAL);
+@@ -426,32 +427,32 @@ static fastcall void vmi_release_pd(u32 
+         ((level) | (is_current_as(mm, user) ?                           \
+                 (VMI_PAGE_DEFER | VMI_PAGE_CURRENT_AS | ((addr) & VMI_PAGE_VA_MASK)) : 0))
+ 
+-static fastcall void vmi_update_pte(struct mm_struct *mm, u32 addr, pte_t *ptep)
++static void vmi_update_pte(struct mm_struct *mm, u32 addr, pte_t *ptep)
+ {
+ 	vmi_check_page_type(__pa(ptep) >> PAGE_SHIFT, VMI_PAGE_PTE);
+ 	vmi_ops.update_pte(ptep, vmi_flags_addr(mm, addr, VMI_PAGE_PT, 0));
+ }
+ 
+-static fastcall void vmi_update_pte_defer(struct mm_struct *mm, u32 addr, pte_t *ptep)
++static void vmi_update_pte_defer(struct mm_struct *mm, u32 addr, pte_t *ptep)
+ {
+ 	vmi_check_page_type(__pa(ptep) >> PAGE_SHIFT, VMI_PAGE_PTE);
+ 	vmi_ops.update_pte(ptep, vmi_flags_addr_defer(mm, addr, VMI_PAGE_PT, 0));
+ }
+ 
+-static fastcall void vmi_set_pte(pte_t *ptep, pte_t pte)
++static void vmi_set_pte(pte_t *ptep, pte_t pte)
+ {
+ 	/* XXX because of set_pmd_pte, this can be called on PT or PD layers */
+ 	vmi_check_page_type(__pa(ptep) >> PAGE_SHIFT, VMI_PAGE_PTE | VMI_PAGE_PD);
+ 	vmi_ops.set_pte(pte, ptep, VMI_PAGE_PT);
+ }
+ 
+-static fastcall void vmi_set_pte_at(struct mm_struct *mm, u32 addr, pte_t *ptep, pte_t pte)
++static void vmi_set_pte_at(struct mm_struct *mm, u32 addr, pte_t *ptep, pte_t pte)
+ {
+ 	vmi_check_page_type(__pa(ptep) >> PAGE_SHIFT, VMI_PAGE_PTE);
+ 	vmi_ops.set_pte(pte, ptep, vmi_flags_addr(mm, addr, VMI_PAGE_PT, 0));
+ }
+ 
+-static fastcall void vmi_set_pmd(pmd_t *pmdp, pmd_t pmdval)
++static void vmi_set_pmd(pmd_t *pmdp, pmd_t pmdval)
+ {
+ #ifdef CONFIG_X86_PAE
+ 	const pte_t pte = { pmdval.pmd, pmdval.pmd >> 32 };
+@@ -465,7 +466,7 @@ static fastcall void vmi_set_pmd(pmd_t *
+ 
+ #ifdef CONFIG_X86_PAE
+ 
+-static fastcall void vmi_set_pte_atomic(pte_t *ptep, pte_t pteval)
++static void vmi_set_pte_atomic(pte_t *ptep, pte_t pteval)
+ {
+ 	/*
+ 	 * XXX This is called from set_pmd_pte, but at both PT
+@@ -478,13 +479,13 @@ static fastcall void vmi_set_pte_atomic(
+ 	vmi_ops.update_pte(ptep, VMI_PAGE_PT);
+ }
+ 
+-static fastcall void vmi_set_pte_present(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pte)
++static void vmi_set_pte_present(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pte)
+ {
+ 	vmi_check_page_type(__pa(ptep) >> PAGE_SHIFT, VMI_PAGE_PTE);
+ 	vmi_ops.set_pte(pte, ptep, vmi_flags_addr_defer(mm, addr, VMI_PAGE_PT, 1));
+ }
+ 
+-static fastcall void vmi_set_pud(pud_t *pudp, pud_t pudval)
++static void vmi_set_pud(pud_t *pudp, pud_t pudval)
+ {
+ 	/* Um, eww */
+ 	const pte_t pte = { pudval.pgd.pgd, pudval.pgd.pgd >> 32 };
+@@ -492,14 +493,14 @@ static fastcall void vmi_set_pud(pud_t *
+ 	vmi_ops.set_pte(pte, (pte_t *)pudp, VMI_PAGE_PDP);
+ }
+ 
+-static fastcall void vmi_pte_clear(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
++static void vmi_pte_clear(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+ 	const pte_t pte = { 0 };
+ 	vmi_check_page_type(__pa(ptep) >> PAGE_SHIFT, VMI_PAGE_PTE);
+ 	vmi_ops.set_pte(pte, ptep, vmi_flags_addr(mm, addr, VMI_PAGE_PT, 0));
+ }
+ 
+-fastcall void vmi_pmd_clear(pmd_t *pmd)
++static void vmi_pmd_clear(pmd_t *pmd)
+ {
+ 	const pte_t pte = { 0 };
+ 	vmi_check_page_type(__pa(pmd) >> PAGE_SHIFT, VMI_PAGE_PMD);
+@@ -511,7 +512,7 @@ fastcall void vmi_pmd_clear(pmd_t *pmd)
+ struct vmi_ap_state ap;
+ extern void setup_pda(void);
+ 
+-static fastcall void __init /* XXX cpu hotplug */
++static void __init /* XXX cpu hotplug */
+ vmi_startup_ipi_hook(int phys_apicid, unsigned long start_eip,
+ 		     unsigned long start_esp)
+ {
+@@ -557,7 +558,7 @@ vmi_startup_ipi_hook(int phys_apicid, un
+ }
+ #endif
+ 
+-static inline int __init check_vmi_rom(struct vrom_header *rom)
++static int __init check_vmi_rom(struct vrom_header *rom)
+ {
+ 	struct pci_header *pci;
+ 	struct pnp_header *pnp;
+@@ -623,7 +624,7 @@ static inline int __init check_vmi_rom(s
+ /*
+  * Probe for the VMI option ROM
+  */
+-static inline int __init probe_vmi_rom(void)
++static int __init probe_vmi_rom(void)
+ {
+ 	unsigned long base;
+ 
+@@ -681,7 +682,7 @@ do {								\
+ /*
+  * Activate the VMI interface and switch into paravirtualized mode
+  */
+-static inline int __init activate_vmi(void)
++static int __init activate_vmi(void)
+ {
+ 	short kernel_cs;
+ 	u64 reloc;
+diff -puN arch/i386/kernel/vmitime.c~cleanup-x86_64-mm-vmi-timer arch/i386/kernel/vmitime.c
+--- a/arch/i386/kernel/vmitime.c~cleanup-x86_64-mm-vmi-timer
++++ a/arch/i386/kernel/vmitime.c
+@@ -65,8 +65,8 @@ struct vmi_timer_ops vmi_timer_ops;
+ int sysctl_hz_timer;
+ 
+ /* Some stats */
+-DEFINE_PER_CPU(unsigned long, vmi_idle_no_hz_irqs);
+-DEFINE_PER_CPU(unsigned long, vmi_idle_no_hz_jiffies);
++static DEFINE_PER_CPU(unsigned long, vmi_idle_no_hz_irqs);
++static DEFINE_PER_CPU(unsigned long, vmi_idle_no_hz_jiffies);
+ static DEFINE_PER_CPU(unsigned long, idle_start_jiffies);
+ 
+ #endif /* CONFIG_NO_IDLE_HZ */
+@@ -91,20 +91,22 @@ static DEFINE_PER_CPU(unsigned long long
+ static DEFINE_PER_CPU(unsigned long long, stolen_cycles_accounted_cpu);
+ 
+ /* Clock source. */
+-static inline cycle_t read_real_cycles(void)
++static cycle_t read_real_cycles(void)
+ {
+ 	return vmi_timer_ops.get_cycle_counter(VMI_CYCLES_REAL);
+ }
+ 
+-static inline cycle_t read_available_cycles(void)
++static cycle_t read_available_cycles(void)
+ {
+ 	return vmi_timer_ops.get_cycle_counter(VMI_CYCLES_AVAILABLE);
+ }
+ 
+-static inline cycle_t read_stolen_cycles(void)
++#if 0
++static cycle_t read_stolen_cycles(void)
+ {
+ 	return vmi_timer_ops.get_cycle_counter(VMI_CYCLES_STOLEN);
+ }
++#endif  /*  0  */
+ 
+ static struct clocksource clocksource_vmi = {
+ 	.name			= "vmi-timer",
+@@ -120,7 +122,7 @@ static struct clocksource clocksource_vm
+ /* Timer interrupt handler. */
+ static irqreturn_t vmi_timer_interrupt(int irq, void *dev_id);
+ 
+-struct irqaction vmi_timer_irq  = {
++static struct irqaction vmi_timer_irq  = {
+ 	vmi_timer_interrupt,
+ 	SA_INTERRUPT,
+ 	CPU_MASK_NONE,
+@@ -143,7 +145,7 @@ __setup("vmi_timer_alarm_hz=", vmi_timer
+ 
+ 
+ /* Initialization */
+-static inline void vmi_get_wallclock_ts(struct timespec *ts)
++static void vmi_get_wallclock_ts(struct timespec *ts)
+ {
+ 	unsigned long long wallclock;
+ 	wallclock = vmi_timer_ops.get_wallclock(); // nsec units
+@@ -151,7 +153,7 @@ static inline void vmi_get_wallclock_ts(
+ 	ts->tv_sec = wallclock;
+ }
+ 
+-static inline void update_xtime_from_wallclock(void)
++static void update_xtime_from_wallclock(void)
+ {
+ 	struct timespec ts;
+ 	vmi_get_wallclock_ts(&ts);
+@@ -262,7 +264,7 @@ void __init vmi_timer_setup_secondary_al
+ #endif
+ 
+ /* Update system wide (real) time accounting (e.g. jiffies, xtime). */
+-static inline void vmi_account_real_cycles(unsigned long long cur_real_cycles)
++static void vmi_account_real_cycles(unsigned long long cur_real_cycles)
+ {
+ 	long long cycles_not_accounted;
+ 
+@@ -284,9 +286,8 @@ static inline void vmi_account_real_cycl
+ }
+ 
+ /* Update per-cpu process times. */
+-static inline void vmi_account_process_times_cycles(struct pt_regs *regs,
+-						    int cpu,
+-						    unsigned long long cur_process_times_cycles)
++static void vmi_account_process_times_cycles(struct pt_regs *regs, int cpu,
++					     unsigned long long cur_process_times_cycles)
+ {
+ 	long long cycles_not_accounted;
+ 	cycles_not_accounted = cur_process_times_cycles -
+@@ -307,8 +308,8 @@ static inline void vmi_account_process_t
+ 
+ #ifdef CONFIG_NO_IDLE_HZ
+ /* Update per-cpu idle times.  Used when a no-hz halt is ended. */
+-static inline void vmi_account_no_hz_idle_cycles(int cpu,
+-						 unsigned long long cur_process_times_cycles)
++static void vmi_account_no_hz_idle_cycles(int cpu,
++					  unsigned long long cur_process_times_cycles)
+ {
+ 	long long cycles_not_accounted;
+ 	unsigned long no_idle_hz_jiffies = 0;
+@@ -327,9 +328,9 @@ static inline void vmi_account_no_hz_idl
+ #endif
+ 
+ /* Update per-cpu stolen time. */
+-static inline void vmi_account_stolen_cycles(int cpu,
+-					     unsigned long long cur_real_cycles,
+-					     unsigned long long cur_avail_cycles)
++static void vmi_account_stolen_cycles(int cpu,
++				      unsigned long long cur_real_cycles,
++				      unsigned long long cur_avail_cycles)
+ {
+ 	long long stolen_cycles_not_accounted;
+ 	unsigned long stolen_jiffies = 0;
+@@ -412,7 +413,7 @@ int vmi_stop_hz_timer(void)
+ 	return idle;
+ }
+ 
+-static inline void vmi_reenable_hz_timer(int cpu)
++static void vmi_reenable_hz_timer(int cpu)
+ {
+ 	/* For /proc/vmi/info idle_hz stat. */
+ 	per_cpu(vmi_idle_no_hz_jiffies, cpu) += jiffies - per_cpu(idle_start_jiffies, cpu);
+@@ -464,7 +465,7 @@ static irqreturn_t vmi_timer_interrupt(i
+ /* SMP VMI-timer alarm interrupt handler. Handler for LVTT vector.
+  * Also used in UP when CONFIG_X86_LOCAL_APIC.
+  * The wrapper code is from arch/i386/kernel/apic.c#smp_apic_timer_interrupt. */
+-fastcall void smp_apic_vmi_timer_interrupt(struct pt_regs *regs)
++void smp_apic_vmi_timer_interrupt(struct pt_regs *regs)
+ {
+ 	struct pt_regs *old_regs = set_irq_regs(regs);
+ 	int cpu = smp_processor_id();
+diff -puN include/asm-i386/vmi_time.h~cleanup-x86_64-mm-vmi-timer include/asm-i386/vmi_time.h
+--- a/include/asm-i386/vmi_time.h~cleanup-x86_64-mm-vmi-timer
++++ a/include/asm-i386/vmi_time.h
+@@ -37,12 +37,12 @@
+ 
+ /* Cached VMI timer operations */
+ extern struct vmi_timer_ops {
+-	u64 (fastcall *get_cycle_frequency)(void);
+-	u64 (fastcall *get_cycle_counter)(int);
+-	u64 (fastcall *get_wallclock)(void);
+-	int (fastcall *wallclock_updated)(void);
+-	void (fastcall *set_alarm)(u32 flags, u64 expiry, u64 period);
+-	void (fastcall *cancel_alarm)(u32 flags);
++	u64 (*get_cycle_frequency)(void);
++	u64 (*get_cycle_counter)(int);
++	u64 (*get_wallclock)(void);
++	int (*wallclock_updated)(void);
++	void (*set_alarm)(u32 flags, u64 expiry, u64 period);
++	void (*cancel_alarm)(u32 flags);
+ } vmi_timer_ops;
+ 
+ /* Prototypes */
+@@ -54,7 +54,7 @@ extern unsigned long long vmi_sched_cloc
+ #ifdef CONFIG_X86_LOCAL_APIC
+ extern void __init vmi_timer_setup_boot_alarm(void);
+ extern void __init vmi_timer_setup_secondary_alarm(void);
+-extern fastcall void apic_vmi_timer_interrupt(void);
++extern void apic_vmi_timer_interrupt(void);
+ #endif
+ 
+ #ifdef CONFIG_NO_IDLE_HZ
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-use-zvc-for-inactive-and-active-counts.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-use-zvc-for-free_pages.patch
-use-zvc-for-free_pages-fix.patch
-use-zvc-for-free_pages-fix-2.patch
-use-zvc-for-free_pages-fix-3.patch
-reorder-zvcs-according-to-cacheline.patch
-drop-free_pages.patch
-drop-nr_free_pages_pgdat.patch
-drop-__get_zone_counts.patch
-drop-get_zone_counts.patch
-get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied.patch
-get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
-deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
-introduce-config_zone_dma.patch
-optional-zone_dma-in-the-vm.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
-optional-zone_dma-for-ia64.patch
-remove-zone_dma-remains-from-parisc.patch
-remove-zone_dma-remains-from-sh-sh64.patch
-set-config_zone_dma-for-arches-with-generic_isa_dma.patch
-zoneid-fix-up-calculations-for-zoneid_pgshift.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-replace-highest_possible_node_id-with-nr_node_ids-fix.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-mm-implement-swap-prefetching-vs-zvc-stuff.patch
-mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
+origin.patch
+fs-lockd-clntlockc-add-missing-newlines-to-dprintks.patch
+git-acpi.patch
+git-alsa.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+git-powerpc.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
+git-dvb.patch
+drivers-media-dvb-frontends-make-4-functions-static.patch
+git-gfs2-nmw.patch
+ia64-add-pci_get_legacy_ide_irq.patch
+git-ieee1394.patch
+git-libata-all.patch
+fix-config_sata_sis=y-compile-error.patch
+mips-remove-smp_tune_scheduling.patch
+git-mmc.patch
+mtd_ck804xrom-must-depend-on-pci.patch
+git-ubi.patch
+git-netdev-all.patch
+remove-one-remaining-define-bcm_tso-1.patch
+net-irda-proper-prototypes.patch
+net-wanrouter-wanmainc-cleanups.patch
+nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
+cleanup-x86_64-mm-vmi-timer.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
