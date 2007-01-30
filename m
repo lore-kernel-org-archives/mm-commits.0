@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + ufs2-write-inodes-write.patch added to -mm tree
-Date: Mon, 29 Jan 2007 16:56:45 -0800
-Message-ID: <200701300056.l0U0uji5004727@shell0.pdx.osdl.net>
+Subject: + ufs2-write-block-allocation-update.patch added to -mm tree
+Date: Mon, 29 Jan 2007 16:56:47 -0800
+Message-ID: <200701300056.l0U0ulq9004730@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35861 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35865 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965085AbXA3A4w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 19:56:52 -0500
+	id S965380AbXA3A4z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 19:56:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dushistov@mail.ru
 
 
 The patch titled
-     ufs2 write: inodes write
+     ufs2 write: block allocation update
 has been added to the -mm tree.  Its filename is
-     ufs2-write-inodes-write.patch
+     ufs2-write-block-allocation-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,541 +25,1214 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ufs2 write: inodes write
+Subject: ufs2 write: block allocation update
 From: Evgeniy Dushistov <dushistov@mail.ru>
 
-This patch adds into write inode path function to write UFS2 inode, and
-modifys allocate inode path to allocate and init additional inode chunks.
-
-Also some cleanups:
-- remove not used parameters in some functions
-- remove i_gen field from ufs_inode_info structure,
-there is i_generation in inode structure with same purposes.
+Patch adds ability to work with 64bit metadata, this made by replacing work
+with 32bit pointers by inline functions.
 
 Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ufs/ialloc.c          |  116 ++++++++++++++++++++++++++++++++-----
- fs/ufs/inode.c           |  111 +++++++++++++++++++++++++----------
- fs/ufs/super.c           |   36 +++++++----
- include/linux/ufs_fs.h   |    4 -
- include/linux/ufs_fs_i.h |    1 
- 5 files changed, 208 insertions(+), 60 deletions(-)
+ fs/ufs/balloc.c          |  197 +++++++++++++++++++++----------------
+ fs/ufs/inode.c           |   82 +++++++++------
+ fs/ufs/truncate.c        |  139 ++++++++++++++------------
+ fs/ufs/util.h            |   57 ++++++++++
+ include/linux/ufs_fs.h   |   33 ++++--
+ include/linux/ufs_fs_i.h |    2 
+ 6 files changed, 320 insertions(+), 190 deletions(-)
 
-diff -puN fs/ufs/ialloc.c~ufs2-write-inodes-write fs/ufs/ialloc.c
---- a/fs/ufs/ialloc.c~ufs2-write-inodes-write
-+++ a/fs/ufs/ialloc.c
-@@ -18,6 +18,9 @@
-  *  Stephen Tweedie (sct@dcs.ed.ac.uk), 1993
-  *  Big-endian to little-endian byte-swapping/bitmaps by
-  *        David S. Miller (davem@caip.rutgers.edu), 1995
+diff -puN fs/ufs/balloc.c~ufs2-write-block-allocation-update fs/ufs/balloc.c
+--- a/fs/ufs/balloc.c~ufs2-write-block-allocation-update
++++ a/fs/ufs/balloc.c
+@@ -4,6 +4,8 @@
+  * Copyright (C) 1998
+  * Daniel Pirkl <daniel.pirkl@email.cz>
+  * Charles University, Faculty of Mathematics and Physics
 + *
-+ * UFS2 write support added by
-+ * Evgeniy Dushistov <dushistov@mail.ru>, 2007
++ * UFS2 write support Evgeniy Dushistov <dushistov@mail.ru>, 2007
   */
  
  #include <linux/fs.h>
-@@ -126,6 +129,47 @@ void ufs_free_inode (struct inode * inod
- }
+@@ -21,38 +23,42 @@
+ #include "swab.h"
+ #include "util.h"
+ 
+-static unsigned ufs_add_fragments (struct inode *, unsigned, unsigned, unsigned, int *);
+-static unsigned ufs_alloc_fragments (struct inode *, unsigned, unsigned, unsigned, int *);
+-static unsigned ufs_alloccg_block (struct inode *, struct ufs_cg_private_info *, unsigned, int *);
+-static unsigned ufs_bitmap_search (struct super_block *, struct ufs_cg_private_info *, unsigned, unsigned);
++#define INVBLOCK ((u64)-1L)
++
++static u64 ufs_add_fragments(struct inode *, u64, unsigned, unsigned, int *);
++static u64 ufs_alloc_fragments(struct inode *, unsigned, u64, unsigned, int *);
++static u64 ufs_alloccg_block(struct inode *, struct ufs_cg_private_info *, u64, int *);
++static u64 ufs_bitmap_search (struct super_block *, struct ufs_cg_private_info *, u64, unsigned);
+ static unsigned char ufs_fragtable_8fpb[], ufs_fragtable_other[];
+ static void ufs_clusteracct(struct super_block *, struct ufs_cg_private_info *, unsigned, int);
  
  /*
-+ * Nullify new chunk of inodes,
-+ * BSD people also set ui_gen field of inode
-+ * during nullification, but we not care about
-+ * that because of linux ufs do not support NFS
-+ */
-+static void ufs2_init_inodes_chunk(struct super_block *sb,
-+				   struct ufs_cg_private_info *ucpi,
-+				   struct ufs_cylinder_group *ucg)
-+{
-+	struct buffer_head *bh;
-+	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
-+	sector_t beg = uspi->s_sbbase +
-+		ufs_inotofsba(ucpi->c_cgx * uspi->s_ipg +
-+			      fs32_to_cpu(sb, ucg->cg_u.cg_u2.cg_initediblk));
-+	sector_t end = beg + uspi->s_fpb;
-+
-+	UFSD("ENTER cgno %d\n", ucpi->c_cgx);
-+
-+	for (; beg < end; ++beg) {
-+		bh = sb_getblk(sb, beg);
-+		lock_buffer(bh);
-+		memset(bh->b_data, 0, sb->s_blocksize);
-+		set_buffer_uptodate(bh);
-+		mark_buffer_dirty(bh);
-+		unlock_buffer(bh);
-+		if (sb->s_flags & MS_SYNCHRONOUS)
-+			sync_dirty_buffer(bh);
-+		brelse(bh);
-+	}
-+
-+	fs32_add(sb, &ucg->cg_u.cg_u2.cg_initediblk, uspi->s_inopb);
-+	ubh_mark_buffer_dirty(UCPI_UBH(ucpi));
-+	if (sb->s_flags & MS_SYNCHRONOUS) {
-+		ubh_ll_rw_block(SWRITE, UCPI_UBH(ucpi));
-+		ubh_wait_on_buffer(UCPI_UBH(ucpi));
-+	}
-+
-+	UFSD("EXIT\n");
-+}
-+
-+/*
-  * There are two policies for allocating an inode.  If the new inode is
-  * a directory, then a forward search is made for a block group with both
-  * free space and a low directory-to-inode ratio; if that fails, then of
-@@ -146,6 +190,7 @@ struct inode * ufs_new_inode(struct inod
- 	struct inode * inode;
- 	unsigned cg, bit, i, j, start;
- 	struct ufs_inode_info *ufsi;
-+	int err = -ENOSPC;
- 
- 	UFSD("ENTER\n");
+  * Free 'count' fragments from fragment number 'fragment'
+  */
+-void ufs_free_fragments(struct inode *inode, unsigned fragment, unsigned count)
++void ufs_free_fragments(struct inode *inode, u64 fragment, unsigned count)
+ {
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
+ 	struct ufs_super_block_first * usb1;
+ 	struct ufs_cg_private_info * ucpi;
+ 	struct ufs_cylinder_group * ucg;
+-	unsigned cgno, bit, end_bit, bbase, blkmap, i, blkno, cylno;
++	unsigned cgno, bit, end_bit, bbase, blkmap, i;
++	u64 blkno;
  	
-@@ -198,13 +243,15 @@ struct inode * ufs_new_inode(struct inod
- 			goto cg_found;
- 		}
- 	}
--	
-+
- 	goto failed;
- 
- cg_found:
- 	ucpi = ufs_load_cylinder (sb, cg);
--	if (!ucpi)
-+	if (!ucpi) {
-+		err = -EIO;
+ 	sb = inode->i_sb;
+ 	uspi = UFS_SB(sb)->s_uspi;
+ 	usb1 = ubh_get_usb_first(uspi);
+ 	
+-	UFSD("ENTER, fragment %u, count %u\n", fragment, count);
++	UFSD("ENTER, fragment %llu, count %u\n",
++	     (unsigned long long)fragment, count);
+ 	
+ 	if (ufs_fragnum(fragment) + count > uspi->s_fpg)
+ 		ufs_error (sb, "ufs_free_fragments", "internal error");
+ 	
+ 	lock_super(sb);
+ 	
+-	cgno = ufs_dtog(fragment);
+-	bit = ufs_dtogd(fragment);
++	cgno = ufs_dtog(uspi, fragment);
++	bit = ufs_dtogd(uspi, fragment);
+ 	if (cgno >= uspi->s_ncg) {
+ 		ufs_panic (sb, "ufs_free_fragments", "freeing blocks are outside device");
  		goto failed;
-+	}
- 	ucg = ubh_get_ucg(UCPI_UBH(ucpi));
- 	if (!ufs_cg_chkmagic(sb, ucg)) 
- 		ufs_panic (sb, "ufs_new_inode", "internal error, bad cg magic number");
-@@ -216,6 +263,7 @@ cg_found:
- 		if (!(bit < start)) {
- 			ufs_error (sb, "ufs_new_inode",
- 			    "cylinder group %u corrupted - error in inode bitmap\n", cg);
-+			err = -EIO;
- 			goto failed;
- 		}
- 	}
-@@ -224,9 +272,18 @@ cg_found:
- 		ubh_setbit (UCPI_UBH(ucpi), ucpi->c_iusedoff, bit);
- 	else {
- 		ufs_panic (sb, "ufs_new_inode", "internal error");
-+		err = -EIO;
- 		goto failed;
- 	}
--	
+@@ -101,9 +107,13 @@ void ufs_free_fragments(struct inode *in
+ 		fs32_add(sb, &ucg->cg_cs.cs_nbfree, 1);
+ 		uspi->cs_total.cs_nbfree++;
+ 		fs32_add(sb, &UFS_SB(sb)->fs_cs(cgno).cs_nbfree, 1);
+-		cylno = ufs_cbtocylno (bbase);
+-		fs16_add(sb, &ubh_cg_blks(ucpi, cylno, ufs_cbtorpos(bbase)), 1);
+-		fs32_add(sb, &ubh_cg_blktot(ucpi, cylno), 1);
++		if (uspi->fs_magic != UFS2_MAGIC) {
++			unsigned cylno = ufs_cbtocylno (bbase);
 +
-+	if (uspi->fs_magic == UFS2_MAGIC) {
-+		u32 initediblk = fs32_to_cpu(sb, ucg->cg_u.cg_u2.cg_initediblk);
-+
-+		if (bit + uspi->s_inopb > initediblk &&
-+		    initediblk < fs32_to_cpu(sb, ucg->cg_u.cg_u2.cg_niblk))
-+			ufs2_init_inodes_chunk(sb, ucpi, ucg);
-+	}
-+
- 	fs32_sub(sb, &ucg->cg_cs.cs_nifree, 1);
- 	uspi->cs_total.cs_nifree--;
- 	fs32_sub(sb, &sbi->fs_cs(cg).cs_nifree, 1);
-@@ -236,7 +293,6 @@ cg_found:
- 		uspi->cs_total.cs_ndir++;
- 		fs32_add(sb, &sbi->fs_cs(cg).cs_ndir, 1);
++			fs16_add(sb, &ubh_cg_blks(ucpi, cylno,
++						  ufs_cbtorpos(bbase)), 1);
++			fs32_add(sb, &ubh_cg_blktot(ucpi, cylno), 1);
++		}
  	}
--
+ 	
  	ubh_mark_buffer_dirty (USPI_UBH(uspi));
- 	ubh_mark_buffer_dirty (UCPI_UBH(ucpi));
- 	if (sb->s_flags & MS_SYNCHRONOUS) {
-@@ -245,6 +301,7 @@ cg_found:
+@@ -127,24 +137,27 @@ failed:
+ /*
+  * Free 'count' fragments from fragment number 'fragment' (free whole blocks)
+  */
+-void ufs_free_blocks(struct inode *inode, unsigned fragment, unsigned count)
++void ufs_free_blocks(struct inode *inode, u64 fragment, unsigned count)
+ {
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
+ 	struct ufs_super_block_first * usb1;
+ 	struct ufs_cg_private_info * ucpi;
+ 	struct ufs_cylinder_group * ucg;
+-	unsigned overflow, cgno, bit, end_bit, blkno, i, cylno;
++	unsigned overflow, cgno, bit, end_bit, i;
++	u64 blkno;
+ 	
+ 	sb = inode->i_sb;
+ 	uspi = UFS_SB(sb)->s_uspi;
+ 	usb1 = ubh_get_usb_first(uspi);
+ 
+-	UFSD("ENTER, fragment %u, count %u\n", fragment, count);
++	UFSD("ENTER, fragment %llu, count %u\n",
++	     (unsigned long long)fragment, count);
+ 	
+ 	if ((fragment & uspi->s_fpbmask) || (count & uspi->s_fpbmask)) {
+ 		ufs_error (sb, "ufs_free_blocks", "internal error, "
+-			"fragment %u, count %u\n", fragment, count);
++			   "fragment %llu, count %u\n",
++			   (unsigned long long)fragment, count);
+ 		goto failed;
+ 	}
+ 
+@@ -152,8 +165,8 @@ void ufs_free_blocks(struct inode *inode
+ 	
+ do_more:
+ 	overflow = 0;
+-	cgno = ufs_dtog (fragment);
+-	bit = ufs_dtogd (fragment);
++	cgno = ufs_dtog(uspi, fragment);
++	bit = ufs_dtogd(uspi, fragment);
+ 	if (cgno >= uspi->s_ncg) {
+ 		ufs_panic (sb, "ufs_free_blocks", "freeing blocks are outside device");
+ 		goto failed_unlock;
+@@ -187,9 +200,14 @@ do_more:
+ 		fs32_add(sb, &ucg->cg_cs.cs_nbfree, 1);
+ 		uspi->cs_total.cs_nbfree++;
+ 		fs32_add(sb, &UFS_SB(sb)->fs_cs(cgno).cs_nbfree, 1);
+-		cylno = ufs_cbtocylno(i);
+-		fs16_add(sb, &ubh_cg_blks(ucpi, cylno, ufs_cbtorpos(i)), 1);
+-		fs32_add(sb, &ubh_cg_blktot(ucpi, cylno), 1);
++
++		if (uspi->fs_magic != UFS2_MAGIC) {
++			unsigned cylno = ufs_cbtocylno(i);
++
++			fs16_add(sb, &ubh_cg_blks(ucpi, cylno,
++						  ufs_cbtorpos(i)), 1);
++			fs32_add(sb, &ubh_cg_blktot(ucpi, cylno), 1);
++		}
+ 	}
+ 
+ 	ubh_mark_buffer_dirty (USPI_UBH(uspi));
+@@ -308,15 +326,19 @@ static void ufs_clear_frags(struct inode
+ 	}
+ }
+ 
+-unsigned ufs_new_fragments(struct inode * inode, __fs32 * p, unsigned fragment,
+-			   unsigned goal, unsigned count, int * err, struct page *locked_page)
++u64 ufs_new_fragments(struct inode *inode, void *p, u64 fragment,
++			   u64 goal, unsigned count, int *err,
++			   struct page *locked_page)
+ {
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
+ 	struct ufs_super_block_first * usb1;
+-	unsigned cgno, oldcount, newcount, tmp, request, result;
++	unsigned cgno, oldcount, newcount;
++	u64 tmp, request, result;
+ 	
+-	UFSD("ENTER, ino %lu, fragment %u, goal %u, count %u\n", inode->i_ino, fragment, goal, count);
++	UFSD("ENTER, ino %lu, fragment %llu, goal %llu, count %u\n",
++	     inode->i_ino, (unsigned long long)fragment,
++	     (unsigned long long)goal, count);
+ 	
+ 	sb = inode->i_sb;
+ 	uspi = UFS_SB(sb)->s_uspi;
+@@ -324,11 +346,12 @@ unsigned ufs_new_fragments(struct inode 
+ 	*err = -ENOSPC;
+ 
+ 	lock_super (sb);
+-	
+-	tmp = fs32_to_cpu(sb, *p);
++	tmp = ufs_data_ptr_to_cpu(sb, p);
++
+ 	if (count + ufs_fragnum(fragment) > uspi->s_fpb) {
+-		ufs_warning (sb, "ufs_new_fragments", "internal warning"
+-			" fragment %u, count %u", fragment, count);
++		ufs_warning(sb, "ufs_new_fragments", "internal warning"
++			    " fragment %llu, count %u",
++			    (unsigned long long)fragment, count);
+ 		count = uspi->s_fpb - ufs_fragnum(fragment); 
+ 	}
+ 	oldcount = ufs_fragnum (fragment);
+@@ -339,10 +362,12 @@ unsigned ufs_new_fragments(struct inode 
+ 	 */
+ 	if (oldcount) {
+ 		if (!tmp) {
+-			ufs_error (sb, "ufs_new_fragments", "internal error, "
+-				"fragment %u, tmp %u\n", fragment, tmp);
+-			unlock_super (sb);
+-			return (unsigned)-1;
++			ufs_error(sb, "ufs_new_fragments", "internal error, "
++				  "fragment %llu, tmp %llu\n",
++				  (unsigned long long)fragment,
++				  (unsigned long long)tmp);
++			unlock_super(sb);
++			return INVBLOCK;
+ 		}
+ 		if (fragment < UFS_I(inode)->i_lastfrag) {
+ 			UFSD("EXIT (ALREADY ALLOCATED)\n");
+@@ -372,7 +397,7 @@ unsigned ufs_new_fragments(struct inode 
+ 	if (goal == 0) 
+ 		cgno = ufs_inotocg (inode->i_ino);
+ 	else
+-		cgno = ufs_dtog (goal);
++		cgno = ufs_dtog(uspi, goal);
+ 	 
+ 	/*
+ 	 * allocate new fragment
+@@ -380,14 +405,16 @@ unsigned ufs_new_fragments(struct inode 
+ 	if (oldcount == 0) {
+ 		result = ufs_alloc_fragments (inode, cgno, goal, count, err);
+ 		if (result) {
+-			*p = cpu_to_fs32(sb, result);
++			ufs_cpu_to_data_ptr(sb, p, result);
+ 			*err = 0;
+-			UFS_I(inode)->i_lastfrag = max_t(u32, UFS_I(inode)->i_lastfrag, fragment + count);
+-			ufs_clear_frags(inode, result + oldcount, newcount - oldcount,
+-					locked_page != NULL);
++			UFS_I(inode)->i_lastfrag =
++				max_t(u32, UFS_I(inode)->i_lastfrag,
++				      fragment + count);
++			ufs_clear_frags(inode, result + oldcount,
++					newcount - oldcount, locked_page != NULL);
+ 		}
+ 		unlock_super(sb);
+-		UFSD("EXIT, result %u\n", result);
++		UFSD("EXIT, result %llu\n", (unsigned long long)result);
+ 		return result;
+ 	}
+ 
+@@ -401,7 +428,7 @@ unsigned ufs_new_fragments(struct inode 
+ 		ufs_clear_frags(inode, result + oldcount, newcount - oldcount,
+ 				locked_page != NULL);
+ 		unlock_super(sb);
+-		UFSD("EXIT, result %u\n", result);
++		UFSD("EXIT, result %llu\n", (unsigned long long)result);
+ 		return result;
+ 	}
+ 
+@@ -433,15 +460,14 @@ unsigned ufs_new_fragments(struct inode 
+ 				locked_page != NULL);
+ 		ufs_change_blocknr(inode, fragment - oldcount, oldcount, tmp,
+ 				   result, locked_page);
+-
+-		*p = cpu_to_fs32(sb, result);
++		ufs_cpu_to_data_ptr(sb, p, result);
+ 		*err = 0;
+ 		UFS_I(inode)->i_lastfrag = max_t(u32, UFS_I(inode)->i_lastfrag, fragment + count);
+ 		unlock_super(sb);
+ 		if (newcount < request)
+ 			ufs_free_fragments (inode, result + newcount, request - newcount);
+ 		ufs_free_fragments (inode, tmp, oldcount);
+-		UFSD("EXIT, result %u\n", result);
++		UFSD("EXIT, result %llu\n", (unsigned long long)result);
+ 		return result;
+ 	}
+ 
+@@ -450,9 +476,8 @@ unsigned ufs_new_fragments(struct inode 
+ 	return 0;
+ }		
+ 
+-static unsigned
+-ufs_add_fragments (struct inode * inode, unsigned fragment,
+-		   unsigned oldcount, unsigned newcount, int * err)
++static u64 ufs_add_fragments(struct inode *inode, u64 fragment,
++			     unsigned oldcount, unsigned newcount, int *err)
+ {
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
+@@ -461,14 +486,15 @@ ufs_add_fragments (struct inode * inode,
+ 	struct ufs_cylinder_group * ucg;
+ 	unsigned cgno, fragno, fragoff, count, fragsize, i;
+ 	
+-	UFSD("ENTER, fragment %u, oldcount %u, newcount %u\n", fragment, oldcount, newcount);
++	UFSD("ENTER, fragment %llu, oldcount %u, newcount %u\n",
++	     (unsigned long long)fragment, oldcount, newcount);
+ 	
+ 	sb = inode->i_sb;
+ 	uspi = UFS_SB(sb)->s_uspi;
+ 	usb1 = ubh_get_usb_first (uspi);
+ 	count = newcount - oldcount;
+ 	
+-	cgno = ufs_dtog(fragment);
++	cgno = ufs_dtog(uspi, fragment);
+ 	if (fs32_to_cpu(sb, UFS_SB(sb)->fs_cs(cgno).cs_nffree) < count)
+ 		return 0;
+ 	if ((ufs_fragnum (fragment) + newcount) > uspi->s_fpb)
+@@ -483,7 +509,7 @@ ufs_add_fragments (struct inode * inode,
+ 		return 0;
+ 	}
+ 
+-	fragno = ufs_dtogd (fragment);
++	fragno = ufs_dtogd(uspi, fragment);
+ 	fragoff = ufs_fragnum (fragno);
+ 	for (i = oldcount; i < newcount; i++)
+ 		if (ubh_isclr (UCPI_UBH(ucpi), ucpi->c_freeoff, fragno + i))
+@@ -521,7 +547,7 @@ ufs_add_fragments (struct inode * inode,
  	}
  	sb->s_dirt = 1;
  
-+	inode->i_ino = cg * uspi->s_ipg + bit;
- 	inode->i_mode = mode;
- 	inode->i_uid = current->fsuid;
- 	if (dir->i_mode & S_ISGID) {
-@@ -254,39 +311,72 @@ cg_found:
- 	} else
- 		inode->i_gid = current->fsgid;
- 
--	inode->i_ino = cg * uspi->s_ipg + bit;
- 	inode->i_blocks = 0;
-+	inode->i_generation = 0;
- 	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME_SEC;
- 	ufsi->i_flags = UFS_I(dir)->i_flags;
- 	ufsi->i_lastfrag = 0;
--	ufsi->i_gen = 0;
- 	ufsi->i_shadow = 0;
- 	ufsi->i_osync = 0;
- 	ufsi->i_oeftflag = 0;
- 	ufsi->i_dir_start_lookup = 0;
- 	memset(&ufsi->i_u1, 0, sizeof(ufsi->i_u1));
--
- 	insert_inode_hash(inode);
- 	mark_inode_dirty(inode);
- 
-+	if (uspi->fs_magic == UFS2_MAGIC) {
-+		struct buffer_head *bh;
-+		struct ufs2_inode *ufs2_inode;
-+
-+		/*
-+		 * setup birth date, we do it here because of there is no sense
-+		 * to hold it in struct ufs_inode_info, and lose 64 bit
-+		 */
-+		bh = sb_bread(sb, uspi->s_sbbase + ufs_inotofsba(inode->i_ino));
-+		if (!bh) {
-+			ufs_warning(sb, "ufs_read_inode",
-+				    "unable to read inode %lu\n",
-+				    inode->i_ino);
-+			err = -EIO;
-+			goto fail_remove_inode;
-+		}
-+		lock_buffer(bh);
-+		ufs2_inode = (struct ufs2_inode *)bh->b_data;
-+		ufs2_inode += ufs_inotofsbo(inode->i_ino);
-+		ufs2_inode->ui_birthtime.tv_sec =
-+			cpu_to_fs32(sb, CURRENT_TIME_SEC.tv_sec);
-+		ufs2_inode->ui_birthtime.tv_usec = 0;
-+		mark_buffer_dirty(bh);
-+		unlock_buffer(bh);
-+		if (sb->s_flags & MS_SYNCHRONOUS)
-+			sync_dirty_buffer(bh);
-+		brelse(bh);
-+	}
-+
- 	unlock_super (sb);
- 
- 	if (DQUOT_ALLOC_INODE(inode)) {
- 		DQUOT_DROP(inode);
--		inode->i_flags |= S_NOQUOTA;
--		inode->i_nlink = 0;
--		iput(inode);
--		return ERR_PTR(-EDQUOT);
-+		err = -EDQUOT;
-+		goto fail_without_unlock;
- 	}
- 
- 	UFSD("allocating inode %lu\n", inode->i_ino);
- 	UFSD("EXIT\n");
- 	return inode;
- 
-+fail_remove_inode:
-+	unlock_super(sb);
-+fail_without_unlock:
-+	inode->i_flags |= S_NOQUOTA;
-+	inode->i_nlink = 0;
-+	iput(inode);
-+	UFSD("EXIT (FAILED): err %d\n", err);
-+	return ERR_PTR(err);
- failed:
- 	unlock_super (sb);
- 	make_bad_inode(inode);
- 	iput (inode);
--	UFSD("EXIT (FAILED)\n");
--	return ERR_PTR(-ENOSPC);
-+	UFSD("EXIT (FAILED): err %d\n", err);
-+	return ERR_PTR(err);
+-	UFSD("EXIT, fragment %u\n", fragment);
++	UFSD("EXIT, fragment %llu\n", (unsigned long long)fragment);
+ 	
+ 	return fragment;
  }
-diff -puN fs/ufs/inode.c~ufs2-write-inodes-write fs/ufs/inode.c
---- a/fs/ufs/inode.c~ufs2-write-inodes-write
-+++ a/fs/ufs/inode.c
-@@ -615,8 +615,8 @@ static void ufs1_read_inode(struct inode
- 	inode->i_atime.tv_nsec = 0;
- 	inode->i_ctime.tv_nsec = 0;
- 	inode->i_blocks = fs32_to_cpu(sb, ufs_inode->ui_blocks);
-+	inode->i_generation = fs32_to_cpu(sb, ufs_inode->ui_gen);
- 	ufsi->i_flags = fs32_to_cpu(sb, ufs_inode->ui_flags);
--	ufsi->i_gen = fs32_to_cpu(sb, ufs_inode->ui_gen);
- 	ufsi->i_shadow = fs32_to_cpu(sb, ufs_inode->ui_u3.ui_sun.ui_shadow);
- 	ufsi->i_oeftflag = fs32_to_cpu(sb, ufs_inode->ui_u3.ui_sun.ui_oeftflag);
+@@ -534,17 +560,19 @@ ufs_add_fragments (struct inode * inode,
+ 		if (fs32_to_cpu(sb, ucg->cg_frsum[k])) \
+ 			goto cg_found; 
  
-@@ -660,8 +660,8 @@ static void ufs2_read_inode(struct inode
- 	inode->i_atime.tv_nsec = 0;
- 	inode->i_ctime.tv_nsec = 0;
- 	inode->i_blocks = fs64_to_cpu(sb, ufs2_inode->ui_blocks);
-+	inode->i_generation = fs32_to_cpu(sb, ufs2_inode->ui_gen);
- 	ufsi->i_flags = fs32_to_cpu(sb, ufs2_inode->ui_flags);
--	ufsi->i_gen = fs32_to_cpu(sb, ufs2_inode->ui_gen);
- 	/*
- 	ufsi->i_shadow = fs32_to_cpu(sb, ufs_inode->ui_u3.ui_sun.ui_shadow);
- 	ufsi->i_oeftflag = fs32_to_cpu(sb, ufs_inode->ui_u3.ui_sun.ui_oeftflag);
-@@ -730,34 +730,11 @@ bad_inode:
- 	make_bad_inode(inode);
- }
- 
--static int ufs_update_inode(struct inode * inode, int do_sync)
-+static void ufs1_update_inode(struct inode *inode, struct ufs_inode *ufs_inode)
+-static unsigned ufs_alloc_fragments (struct inode * inode, unsigned cgno,
+-	unsigned goal, unsigned count, int * err)
++static u64 ufs_alloc_fragments(struct inode *inode, unsigned cgno,
++			       u64 goal, unsigned count, int *err)
  {
--	struct ufs_inode_info *ufsi = UFS_I(inode);
--	struct super_block * sb;
--	struct ufs_sb_private_info * uspi;
--	struct buffer_head * bh;
--	struct ufs_inode * ufs_inode;
--	unsigned i;
--	unsigned flags;
--
--	UFSD("ENTER, ino %lu\n", inode->i_ino);
--
--	sb = inode->i_sb;
--	uspi = UFS_SB(sb)->s_uspi;
--	flags = UFS_SB(sb)->s_flags;
--
--	if (inode->i_ino < UFS_ROOTINO || 
--	    inode->i_ino > (uspi->s_ncg * uspi->s_ipg)) {
--		ufs_warning (sb, "ufs_read_inode", "bad inode number (%lu)\n", inode->i_ino);
--		return -1;
--	}
--
--	bh = sb_bread(sb, ufs_inotofsba(inode->i_ino));
--	if (!bh) {
--		ufs_warning (sb, "ufs_read_inode", "unable to read inode %lu\n", inode->i_ino);
--		return -1;
--	}
--	ufs_inode = (struct ufs_inode *) (bh->b_data + ufs_inotofsbo(inode->i_ino) * sizeof(struct ufs_inode));
-+	struct super_block *sb = inode->i_sb;
-+ 	struct ufs_inode_info *ufsi = UFS_I(inode);
-+ 	unsigned i;
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
+ 	struct ufs_super_block_first * usb1;
+ 	struct ufs_cg_private_info * ucpi;
+ 	struct ufs_cylinder_group * ucg;
+-	unsigned oldcg, i, j, k, result, allocsize;
++	unsigned oldcg, i, j, k, allocsize;
++	u64 result;
+ 	
+-	UFSD("ENTER, ino %lu, cgno %u, goal %u, count %u\n", inode->i_ino, cgno, goal, count);
++	UFSD("ENTER, ino %lu, cgno %u, goal %llu, count %u\n",
++	     inode->i_ino, cgno, (unsigned long long)goal, count);
  
- 	ufs_inode->ui_mode = cpu_to_fs16(sb, inode->i_mode);
- 	ufs_inode->ui_nlink = cpu_to_fs16(sb, inode->i_nlink);
-@@ -774,9 +751,9 @@ static int ufs_update_inode(struct inode
- 	ufs_inode->ui_mtime.tv_usec = 0;
- 	ufs_inode->ui_blocks = cpu_to_fs32(sb, inode->i_blocks);
- 	ufs_inode->ui_flags = cpu_to_fs32(sb, ufsi->i_flags);
--	ufs_inode->ui_gen = cpu_to_fs32(sb, ufsi->i_gen);
-+	ufs_inode->ui_gen = cpu_to_fs32(sb, inode->i_generation);
+ 	sb = inode->i_sb;
+ 	uspi = UFS_SB(sb)->s_uspi;
+@@ -593,7 +621,7 @@ cg_found:
  
--	if ((flags & UFS_UID_MASK) == UFS_UID_EFT) {
-+	if ((UFS_SB(sb)->s_flags & UFS_UID_MASK) == UFS_UID_EFT) {
- 		ufs_inode->ui_u3.ui_sun.ui_shadow = cpu_to_fs32(sb, ufsi->i_shadow);
- 		ufs_inode->ui_u3.ui_sun.ui_oeftflag = cpu_to_fs32(sb, ufsi->i_oeftflag);
+ 	if (count == uspi->s_fpb) {
+ 		result = ufs_alloccg_block (inode, ucpi, goal, err);
+-		if (result == (unsigned)-1)
++		if (result == INVBLOCK)
+ 			return 0;
+ 		goto succed;
  	}
-@@ -795,6 +772,78 @@ static int ufs_update_inode(struct inode
+@@ -604,9 +632,9 @@ cg_found:
+ 	
+ 	if (allocsize == uspi->s_fpb) {
+ 		result = ufs_alloccg_block (inode, ucpi, goal, err);
+-		if (result == (unsigned)-1)
++		if (result == INVBLOCK)
+ 			return 0;
+-		goal = ufs_dtogd (result);
++		goal = ufs_dtogd(uspi, result);
+ 		for (i = count; i < uspi->s_fpb; i++)
+ 			ubh_setbit (UCPI_UBH(ucpi), ucpi->c_freeoff, goal + i);
+ 		i = uspi->s_fpb - count;
+@@ -620,7 +648,7 @@ cg_found:
+ 	}
  
- 	if (!inode->i_nlink)
- 		memset (ufs_inode, 0, sizeof(struct ufs_inode));
-+}
+ 	result = ufs_bitmap_search (sb, ucpi, goal, allocsize);
+-	if (result == (unsigned)-1)
++	if (result == INVBLOCK)
+ 		return 0;
+ 	if(DQUOT_ALLOC_BLOCK(inode, count)) {
+ 		*err = -EDQUOT;
+@@ -647,20 +675,21 @@ succed:
+ 	sb->s_dirt = 1;
+ 
+ 	result += cgno * uspi->s_fpg;
+-	UFSD("EXIT3, result %u\n", result);
++	UFSD("EXIT3, result %llu\n", (unsigned long long)result);
+ 	return result;
+ }
+ 
+-static unsigned ufs_alloccg_block (struct inode * inode,
+-	struct ufs_cg_private_info * ucpi, unsigned goal, int * err)
++static u64 ufs_alloccg_block(struct inode *inode,
++			     struct ufs_cg_private_info *ucpi,
++			     u64 goal, int *err)
+ {
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
+ 	struct ufs_super_block_first * usb1;
+ 	struct ufs_cylinder_group * ucg;
+-	unsigned result, cylno, blkno;
++	u64 result, blkno;
+ 
+-	UFSD("ENTER, goal %u\n", goal);
++	UFSD("ENTER, goal %llu\n", (unsigned long long)goal);
+ 
+ 	sb = inode->i_sb;
+ 	uspi = UFS_SB(sb)->s_uspi;
+@@ -672,7 +701,7 @@ static unsigned ufs_alloccg_block (struc
+ 		goto norot;
+ 	}
+ 	goal = ufs_blknum (goal);
+-	goal = ufs_dtogd (goal);
++	goal = ufs_dtogd(uspi, goal);
+ 	
+ 	/*
+ 	 * If the requested block is available, use it.
+@@ -684,8 +713,8 @@ static unsigned ufs_alloccg_block (struc
+ 	
+ norot:	
+ 	result = ufs_bitmap_search (sb, ucpi, goal, uspi->s_fpb);
+-	if (result == (unsigned)-1)
+-		return (unsigned)-1;
++	if (result == INVBLOCK)
++		return INVBLOCK;
+ 	ucpi->c_rotor = result;
+ gotit:
+ 	blkno = ufs_fragstoblks(result);
+@@ -694,17 +723,22 @@ gotit:
+ 		ufs_clusteracct (sb, ucpi, blkno, -1);
+ 	if(DQUOT_ALLOC_BLOCK(inode, uspi->s_fpb)) {
+ 		*err = -EDQUOT;
+-		return (unsigned)-1;
++		return INVBLOCK;
+ 	}
+ 
+ 	fs32_sub(sb, &ucg->cg_cs.cs_nbfree, 1);
+ 	uspi->cs_total.cs_nbfree--;
+ 	fs32_sub(sb, &UFS_SB(sb)->fs_cs(ucpi->c_cgx).cs_nbfree, 1);
+-	cylno = ufs_cbtocylno(result);
+-	fs16_sub(sb, &ubh_cg_blks(ucpi, cylno, ufs_cbtorpos(result)), 1);
+-	fs32_sub(sb, &ubh_cg_blktot(ucpi, cylno), 1);
 +
-+static void ufs2_update_inode(struct inode *inode, struct ufs2_inode *ufs_inode)
-+{
-+	struct super_block *sb = inode->i_sb;
-+ 	struct ufs_inode_info *ufsi = UFS_I(inode);
-+ 	unsigned i;
++	if (uspi->fs_magic != UFS2_MAGIC) {
++		unsigned cylno = ufs_cbtocylno((unsigned)result);
 +
-+	UFSD("ENTER\n");
-+	ufs_inode->ui_mode = cpu_to_fs16(sb, inode->i_mode);
-+	ufs_inode->ui_nlink = cpu_to_fs16(sb, inode->i_nlink);
++		fs16_sub(sb, &ubh_cg_blks(ucpi, cylno,
++					  ufs_cbtorpos((unsigned)result)), 1);
++		fs32_sub(sb, &ubh_cg_blktot(ucpi, cylno), 1);
++	}
+ 	
+-	UFSD("EXIT, result %u\n", result);
++	UFSD("EXIT, result %llu\n", (unsigned long long)result);
+ 
+ 	return result;
+ }
+@@ -744,9 +778,9 @@ static unsigned ubh_scanc(struct ufs_sb_
+  * @goal: near which block we want find new one
+  * @count: specified size
+  */
+-static unsigned ufs_bitmap_search(struct super_block *sb,
+-				  struct ufs_cg_private_info *ucpi,
+-				  unsigned goal, unsigned count)
++static u64 ufs_bitmap_search(struct super_block *sb,
++			     struct ufs_cg_private_info *ucpi,
++			     u64 goal, unsigned count)
+ {
+ 	/*
+ 	 * Bit patterns for identifying fragments in the block map
+@@ -761,16 +795,18 @@ static unsigned ufs_bitmap_search(struct
+ 	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
+ 	struct ufs_super_block_first *usb1;
+ 	struct ufs_cylinder_group *ucg;
+-	unsigned start, length, loc, result;
++	unsigned start, length, loc;
+ 	unsigned pos, want, blockmap, mask, end;
++	u64 result;
+ 
+-	UFSD("ENTER, cg %u, goal %u, count %u\n", ucpi->c_cgx, goal, count);
++	UFSD("ENTER, cg %u, goal %llu, count %u\n", ucpi->c_cgx,
++	     (unsigned long long)goal, count);
+ 
+ 	usb1 = ubh_get_usb_first (uspi);
+ 	ucg = ubh_get_ucg(UCPI_UBH(ucpi));
+ 
+ 	if (goal)
+-		start = ufs_dtogd(goal) >> 3;
++		start = ufs_dtogd(uspi, goal) >> 3;
+ 	else
+ 		start = ucpi->c_frotor >> 3;
+ 		
+@@ -790,7 +826,7 @@ static unsigned ufs_bitmap_search(struct
+ 				  " length %u, count %u, freeoff %u\n",
+ 				  ucpi->c_cgx, start, length, count,
+ 				  ucpi->c_freeoff);
+-			return (unsigned)-1;
++			return INVBLOCK;
+ 		}
+ 		start = 0;
+ 	}
+@@ -808,7 +844,8 @@ static unsigned ufs_bitmap_search(struct
+ 		want = want_arr[count];
+ 		for (pos = 0; pos <= uspi->s_fpb - count; pos++) {
+ 			if ((blockmap & mask) == want) {
+-				UFSD("EXIT, result %u\n", result);
++				UFSD("EXIT, result %llu\n",
++				     (unsigned long long)result);
+ 				return result + pos;
+  			}
+ 			mask <<= 1;
+@@ -819,7 +856,7 @@ static unsigned ufs_bitmap_search(struct
+ 	ufs_error(sb, "ufs_bitmap_search", "block not in map on cg %u\n",
+ 		  ucpi->c_cgx);
+ 	UFSD("EXIT (FAILED)\n");
+-	return (unsigned)-1;
++	return INVBLOCK;
+ }
+ 
+ static void ufs_clusteracct(struct super_block * sb,
+diff -puN fs/ufs/inode.c~ufs2-write-block-allocation-update fs/ufs/inode.c
+--- a/fs/ufs/inode.c~ufs2-write-block-allocation-update
++++ a/fs/ufs/inode.c
+@@ -170,7 +170,7 @@ out:
+  * @locked_page - for ufs_new_fragments()
+  */
+ static struct buffer_head *
+-ufs_inode_getfrag(struct inode *inode, unsigned int fragment,
++ufs_inode_getfrag(struct inode *inode, u64 fragment,
+ 		  sector_t new_fragment, unsigned int required, int *err,
+ 		  long *phys, int *new, struct page *locked_page)
+ {
+@@ -178,12 +178,12 @@ ufs_inode_getfrag(struct inode *inode, u
+ 	struct super_block *sb = inode->i_sb;
+ 	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
+ 	struct buffer_head * result;
+-	unsigned block, blockoff, lastfrag, lastblock, lastblockoff;
+-	unsigned tmp, goal;
+-	__fs32 * p, * p2;
++	unsigned blockoff, lastblockoff;
++	u64 tmp, goal, lastfrag, block, lastblock;
++	void *p, *p2;
+ 
+-	UFSD("ENTER, ino %lu, fragment %u, new_fragment %llu, required %u, "
+-	     "metadata %d\n", inode->i_ino, fragment,
++	UFSD("ENTER, ino %lu, fragment %llu, new_fragment %llu, required %u, "
++	     "metadata %d\n", inode->i_ino, (unsigned long long)fragment,
+ 	     (unsigned long long)new_fragment, required, !phys);
+ 
+         /* TODO : to be done for write support
+@@ -193,17 +193,20 @@ ufs_inode_getfrag(struct inode *inode, u
+ 
+ 	block = ufs_fragstoblks (fragment);
+ 	blockoff = ufs_fragnum (fragment);
+-	p = ufsi->i_u1.i_data + block;
++	p = ufs_get_direct_data_ptr(uspi, ufsi, block);
 +
-+	ufs_inode->ui_uid = cpu_to_fs32(sb, inode->i_uid);
-+	ufs_inode->ui_gid = cpu_to_fs32(sb, inode->i_gid);
+ 	goal = 0;
+ 
+ repeat:
+-	tmp = fs32_to_cpu(sb, *p);
++	tmp = ufs_data_ptr_to_cpu(sb, p);
 +
-+	ufs_inode->ui_size = cpu_to_fs64(sb, inode->i_size);
-+	ufs_inode->ui_atime.tv_sec = cpu_to_fs32(sb, inode->i_atime.tv_sec);
-+	ufs_inode->ui_atime.tv_usec = 0;
-+	ufs_inode->ui_ctime.tv_sec = cpu_to_fs32(sb, inode->i_ctime.tv_sec);
-+	ufs_inode->ui_ctime.tv_usec = 0;
-+	ufs_inode->ui_mtime.tv_sec = cpu_to_fs32(sb, inode->i_mtime.tv_sec);
-+	ufs_inode->ui_mtime.tv_usec = 0;
+ 	lastfrag = ufsi->i_lastfrag;
+ 	if (tmp && fragment < lastfrag) {
+ 		if (!phys) {
+ 			result = sb_getblk(sb, uspi->s_sbbase + tmp + blockoff);
+-			if (tmp == fs32_to_cpu(sb, *p)) {
+-				UFSD("EXIT, result %u\n", tmp + blockoff);
++			if (tmp == ufs_data_ptr_to_cpu(sb, p)) {
++				UFSD("EXIT, result %llu\n",
++				     (unsigned long long)tmp + blockoff);
+ 				return result;
+ 			}
+ 			brelse (result);
+@@ -224,10 +227,11 @@ repeat:
+ 		 * We must reallocate last allocated block
+ 		 */
+ 		if (lastblockoff) {
+-			p2 = ufsi->i_u1.i_data + lastblock;
+-			tmp = ufs_new_fragments (inode, p2, lastfrag, 
+-						 fs32_to_cpu(sb, *p2), uspi->s_fpb - lastblockoff,
+-						 err, locked_page);
++			p2 = ufs_get_direct_data_ptr(uspi, ufsi, lastblock);
++			tmp = ufs_new_fragments(inode, p2, lastfrag,
++						ufs_data_ptr_to_cpu(sb, p2),
++						uspi->s_fpb - lastblockoff,
++						err, locked_page);
+ 			if (!tmp) {
+ 				if (lastfrag != ufsi->i_lastfrag)
+ 					goto repeat;
+@@ -237,27 +241,31 @@ repeat:
+ 			lastfrag = ufsi->i_lastfrag;
+ 			
+ 		}
+-		tmp = fs32_to_cpu(sb, ufsi->i_u1.i_data[lastblock]);
++		tmp = ufs_data_ptr_to_cpu(sb,
++					 ufs_get_direct_data_ptr(uspi, ufsi,
++								 lastblock));
+ 		if (tmp)
+ 			goal = tmp + uspi->s_fpb;
+ 		tmp = ufs_new_fragments (inode, p, fragment - blockoff, 
+ 					 goal, required + blockoff,
+ 					 err,
+ 					 phys != NULL ? locked_page : NULL);
+-	}
++	} else if (lastblock == block) {
+ 	/*
+ 	 * We will extend last allocated block
+ 	 */
+-	else if (lastblock == block) {
+-		tmp = ufs_new_fragments(inode, p, fragment - (blockoff - lastblockoff),
+-					fs32_to_cpu(sb, *p), required +  (blockoff - lastblockoff),
++		tmp = ufs_new_fragments(inode, p, fragment -
++					(blockoff - lastblockoff),
++					ufs_data_ptr_to_cpu(sb, p),
++					required +  (blockoff - lastblockoff),
+ 					err, phys != NULL ? locked_page : NULL);
+ 	} else /* (lastblock > block) */ {
+ 	/*
+ 	 * We will allocate new block before last allocated block
+ 	 */
+ 		if (block) {
+-			tmp = fs32_to_cpu(sb, ufsi->i_u1.i_data[block-1]);
++			tmp = ufs_data_ptr_to_cpu(sb,
++						 ufs_get_direct_data_ptr(uspi, ufsi, block - 1));
+ 			if (tmp)
+ 				goal = tmp + uspi->s_fpb;
+ 		}
+@@ -266,7 +274,7 @@ repeat:
+ 					phys != NULL ? locked_page : NULL);
+ 	}
+ 	if (!tmp) {
+-		if ((!blockoff && *p) || 
++		if ((!blockoff && ufs_data_ptr_to_cpu(sb, p)) ||
+ 		    (blockoff && lastfrag != ufsi->i_lastfrag))
+ 			goto repeat;
+ 		*err = -ENOSPC;
+@@ -286,7 +294,7 @@ repeat:
+ 	if (IS_SYNC(inode))
+ 		ufs_sync_inode (inode);
+ 	mark_inode_dirty(inode);
+-	UFSD("EXIT, result %u\n", tmp + blockoff);
++	UFSD("EXIT, result %llu\n", (unsigned long long)tmp + blockoff);
+ 	return result;
+ 
+      /* This part : To be implemented ....
+@@ -320,20 +328,22 @@ repeat2:
+  */
+ static struct buffer_head *
+ ufs_inode_getblock(struct inode *inode, struct buffer_head *bh,
+-		  unsigned int fragment, sector_t new_fragment, int *err,
++		  u64 fragment, sector_t new_fragment, int *err,
+ 		  long *phys, int *new, struct page *locked_page)
+ {
+ 	struct super_block *sb = inode->i_sb;
+ 	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
+ 	struct buffer_head * result;
+-	unsigned tmp, goal, block, blockoff;
+-	__fs32 * p;
++	unsigned blockoff;
++	u64 tmp, goal, block;
++	void *p;
+ 
+ 	block = ufs_fragstoblks (fragment);
+ 	blockoff = ufs_fragnum (fragment);
+ 
+-	UFSD("ENTER, ino %lu, fragment %u, new_fragment %llu, metadata %d\n",
+-	     inode->i_ino, fragment, (unsigned long long)new_fragment, !phys);
++	UFSD("ENTER, ino %lu, fragment %llu, new_fragment %llu, metadata %d\n",
++	     inode->i_ino, (unsigned long long)fragment,
++	     (unsigned long long)new_fragment, !phys);
+ 
+ 	result = NULL;
+ 	if (!bh)
+@@ -344,14 +354,16 @@ ufs_inode_getblock(struct inode *inode, 
+ 		if (!buffer_uptodate(bh))
+ 			goto out;
+ 	}
+-
+-	p = (__fs32 *) bh->b_data + block;
++	if (uspi->fs_magic == UFS2_MAGIC)
++		p = (__fs64 *)bh->b_data + block;
++	else
++		p = (__fs32 *)bh->b_data + block;
+ repeat:
+-	tmp = fs32_to_cpu(sb, *p);
++	tmp = ufs_data_ptr_to_cpu(sb, p);
+ 	if (tmp) {
+ 		if (!phys) {
+ 			result = sb_getblk(sb, uspi->s_sbbase + tmp + blockoff);
+-			if (tmp == fs32_to_cpu(sb, *p))
++			if (tmp == ufs_data_ptr_to_cpu(sb, p))
+ 				goto out;
+ 			brelse (result);
+ 			goto repeat;
+@@ -361,14 +373,16 @@ repeat:
+ 		}
+ 	}
+ 
+-	if (block && (tmp = fs32_to_cpu(sb, ((__fs32*)bh->b_data)[block-1])))
++	if (block && (uspi->fs_magic == UFS2_MAGIC ?
++		      (tmp = fs64_to_cpu(sb, ((__fs64 *)bh->b_data)[block-1])) :
++		      (tmp = fs32_to_cpu(sb, ((__fs32 *)bh->b_data)[block-1]))))
+ 		goal = tmp + uspi->s_fpb;
+ 	else
+ 		goal = bh->b_blocknr + uspi->s_fpb;
+ 	tmp = ufs_new_fragments(inode, p, ufs_blknum(new_fragment), goal,
+ 				uspi->s_fpb, err, locked_page);
+ 	if (!tmp) {
+-		if (fs32_to_cpu(sb, *p))
++		if (ufs_data_ptr_to_cpu(sb, p))
+ 			goto repeat;
+ 		goto out;
+ 	}		
+@@ -386,7 +400,7 @@ repeat:
+ 		sync_dirty_buffer(bh);
+ 	inode->i_ctime = CURRENT_TIME_SEC;
+ 	mark_inode_dirty(inode);
+-	UFSD("result %u\n", tmp + blockoff);
++	UFSD("result %llu\n", (unsigned long long)tmp + blockoff);
+ out:
+ 	brelse (bh);
+ 	UFSD("EXIT\n");
+diff -puN fs/ufs/truncate.c~ufs2-write-block-allocation-update fs/ufs/truncate.c
+--- a/fs/ufs/truncate.c~ufs2-write-block-allocation-update
++++ a/fs/ufs/truncate.c
+@@ -30,8 +30,8 @@
+  */
+ 
+ /*
+- * Modified to avoid infinite loop on 2006 by
+- * Evgeniy Dushistov <dushistov@mail.ru>
++ * Adoptation to use page cache and UFS2 write support by
++ * Evgeniy Dushistov <dushistov@mail.ru>, 2006-2007
+  */
+ 
+ #include <linux/errno.h>
+@@ -63,13 +63,13 @@
+ #define DIRECT_FRAGMENT ((inode->i_size + uspi->s_fsize - 1) >> uspi->s_fshift)
+ 
+ 
+-static int ufs_trunc_direct (struct inode * inode)
++static int ufs_trunc_direct(struct inode *inode)
+ {
+ 	struct ufs_inode_info *ufsi = UFS_I(inode);
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
+-	__fs32 * p;
+-	unsigned frag1, frag2, frag3, frag4, block1, block2;
++	void *p;
++	u64 frag1, frag2, frag3, frag4, block1, block2;
+ 	unsigned frag_to_free, free_count;
+ 	unsigned i, tmp;
+ 	int retry;
+@@ -91,13 +91,16 @@ static int ufs_trunc_direct (struct inod
+ 	if (frag2 > frag3) {
+ 		frag2 = frag4;
+ 		frag3 = frag4 = 0;
+-	}
+-	else if (frag2 < frag3) {
++	} else if (frag2 < frag3) {
+ 		block1 = ufs_fragstoblks (frag2);
+ 		block2 = ufs_fragstoblks (frag3);
+ 	}
+ 
+-	UFSD("frag1 %u, frag2 %u, block1 %u, block2 %u, frag3 %u, frag4 %u\n", frag1, frag2, block1, block2, frag3, frag4);
++	UFSD("frag1 %llu, frag2 %llu, block1 %llu, block2 %llu, frag3 %llu,"
++	     " frag4 %llu\n",
++	     (unsigned long long)frag1, (unsigned long long)frag2,
++	     (unsigned long long)block1, (unsigned long long)block2,
++	     (unsigned long long)frag3, (unsigned long long)frag4);
+ 
+ 	if (frag1 >= frag2)
+ 		goto next1;		
+@@ -105,8 +108,8 @@ static int ufs_trunc_direct (struct inod
+ 	/*
+ 	 * Free first free fragments
+ 	 */
+-	p = ufsi->i_u1.i_data + ufs_fragstoblks (frag1);
+-	tmp = fs32_to_cpu(sb, *p);
++	p = ufs_get_direct_data_ptr(uspi, ufsi, ufs_fragstoblks(frag1));
++	tmp = ufs_data_ptr_to_cpu(sb, p);
+ 	if (!tmp )
+ 		ufs_panic (sb, "ufs_trunc_direct", "internal error");
+ 	frag2 -= frag1;
+@@ -121,12 +124,11 @@ next1:
+ 	 * Free whole blocks
+ 	 */
+ 	for (i = block1 ; i < block2; i++) {
+-		p = ufsi->i_u1.i_data + i;
+-		tmp = fs32_to_cpu(sb, *p);
++		p = ufs_get_direct_data_ptr(uspi, ufsi, i);
++		tmp = ufs_data_ptr_to_cpu(sb, p);
+ 		if (!tmp)
+ 			continue;
+-
+-		*p = 0;
++		ufs_data_ptr_clear(uspi, p);
+ 
+ 		if (free_count == 0) {
+ 			frag_to_free = tmp;
+@@ -150,13 +152,12 @@ next1:
+ 	/*
+ 	 * Free last free fragments
+ 	 */
+-	p = ufsi->i_u1.i_data + ufs_fragstoblks (frag3);
+-	tmp = fs32_to_cpu(sb, *p);
++	p = ufs_get_direct_data_ptr(uspi, ufsi, ufs_fragstoblks(frag3));
++	tmp = ufs_data_ptr_to_cpu(sb, p);
+ 	if (!tmp )
+ 		ufs_panic(sb, "ufs_truncate_direct", "internal error");
+ 	frag4 = ufs_fragnum (frag4);
+-
+-	*p = 0;
++	ufs_data_ptr_clear(uspi, p);
+ 
+ 	ufs_free_fragments (inode, tmp, frag4);
+ 	mark_inode_dirty(inode);
+@@ -167,17 +168,20 @@ next1:
+ }
+ 
+ 
+-static int ufs_trunc_indirect (struct inode * inode, unsigned offset, __fs32 *p)
++static int ufs_trunc_indirect(struct inode *inode, u64 offset, void *p)
+ {
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
+ 	struct ufs_buffer_head * ind_ubh;
+-	__fs32 * ind;
+-	unsigned indirect_block, i, tmp;
+-	unsigned frag_to_free, free_count;
++	void *ind;
++	u64 tmp, indirect_block, i, frag_to_free;
++	unsigned free_count;
+ 	int retry;
+ 
+-	UFSD("ENTER\n");
++	UFSD("ENTER: ino %lu, offset %llu, p: %p\n",
++	     inode->i_ino, (unsigned long long)offset, p);
 +
-+	ufs_inode->ui_blocks = cpu_to_fs64(sb, inode->i_blocks);
-+	ufs_inode->ui_flags = cpu_to_fs32(sb, ufsi->i_flags);
-+	ufs_inode->ui_gen = cpu_to_fs32(sb, inode->i_generation);
-+
-+	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode)) {
-+		/* ufs_inode->ui_u2.ui_addr.ui_db[0] = cpu_to_fs32(sb, inode->i_rdev); */
-+		ufs_inode->ui_u2.ui_addr.ui_db[0] = ufsi->i_u1.u2_i_data[0];
-+	} else if (inode->i_blocks) {
-+		for (i = 0; i < (UFS_NDADDR + UFS_NINDIR); i++)
-+			ufs_inode->ui_u2.ui_addr.ui_db[i] = ufsi->i_u1.u2_i_data[i];
-+	} else {
-+		for (i = 0; i < (UFS_NDADDR + UFS_NINDIR) * 4; i++)
-+			ufs_inode->ui_u2.ui_symlink[i] = ufsi->i_u1.i_symlink[i];
-+ 	}
-+
-+	if (!inode->i_nlink)
-+		memset (ufs_inode, 0, sizeof(struct ufs2_inode));
-+	UFSD("EXIT\n");
-+}
-+
-+static int ufs_update_inode(struct inode * inode, int do_sync)
-+{
++	BUG_ON(!p);
+ 		
+ 	sb = inode->i_sb;
+ 	uspi = UFS_SB(sb)->s_uspi;
+@@ -186,27 +190,27 @@ static int ufs_trunc_indirect (struct in
+ 	free_count = 0;
+ 	retry = 0;
+ 	
+-	tmp = fs32_to_cpu(sb, *p);
++	tmp = ufs_data_ptr_to_cpu(sb, p);
+ 	if (!tmp)
+ 		return 0;
+ 	ind_ubh = ubh_bread(sb, tmp, uspi->s_bsize);
+-	if (tmp != fs32_to_cpu(sb, *p)) {
++	if (tmp != ufs_data_ptr_to_cpu(sb, p)) {
+ 		ubh_brelse (ind_ubh);
+ 		return 1;
+ 	}
+ 	if (!ind_ubh) {
+-		*p = 0;
++		ufs_data_ptr_clear(uspi, p);
+ 		return 0;
+ 	}
+ 
+ 	indirect_block = (DIRECT_BLOCK > offset) ? (DIRECT_BLOCK - offset) : 0;
+ 	for (i = indirect_block; i < uspi->s_apb; i++) {
+-		ind = ubh_get_addr32 (ind_ubh, i);
+-		tmp = fs32_to_cpu(sb, *ind);
++		ind = ubh_get_data_ptr(uspi, ind_ubh, i);
++		tmp = ufs_data_ptr_to_cpu(sb, ind);
+ 		if (!tmp)
+ 			continue;
+ 
+-		*ind = 0;
++		ufs_data_ptr_clear(uspi, ind);
+ 		ubh_mark_buffer_dirty(ind_ubh);
+ 		if (free_count == 0) {
+ 			frag_to_free = tmp;
+@@ -226,11 +230,12 @@ static int ufs_trunc_indirect (struct in
+ 		ufs_free_blocks (inode, frag_to_free, free_count);
+ 	}
+ 	for (i = 0; i < uspi->s_apb; i++)
+-		if (*ubh_get_addr32(ind_ubh,i))
++		if (!ufs_is_data_ptr_zero(uspi,
++					  ubh_get_data_ptr(uspi, ind_ubh, i)))
+ 			break;
+ 	if (i >= uspi->s_apb) {
+-		tmp = fs32_to_cpu(sb, *p);
+-		*p = 0;
++		tmp = ufs_data_ptr_to_cpu(sb, p);
++		ufs_data_ptr_clear(uspi, p);
+ 
+ 		ufs_free_blocks (inode, tmp, uspi->s_fpb);
+ 		mark_inode_dirty(inode);
+@@ -248,13 +253,13 @@ static int ufs_trunc_indirect (struct in
+ 	return retry;
+ }
+ 
+-static int ufs_trunc_dindirect (struct inode *inode, unsigned offset, __fs32 *p)
++static int ufs_trunc_dindirect(struct inode *inode, u64 offset, void *p)
+ {
+ 	struct super_block * sb;
+ 	struct ufs_sb_private_info * uspi;
+-	struct ufs_buffer_head * dind_bh;
+-	unsigned i, tmp, dindirect_block;
+-	__fs32 * dind;
++	struct ufs_buffer_head *dind_bh;
++	u64 i, tmp, dindirect_block;
++	void *dind;
+ 	int retry = 0;
+ 	
+ 	UFSD("ENTER\n");
+@@ -266,22 +271,22 @@ static int ufs_trunc_dindirect (struct i
+ 		? ((DIRECT_BLOCK - offset) >> uspi->s_apbshift) : 0;
+ 	retry = 0;
+ 	
+-	tmp = fs32_to_cpu(sb, *p);
++	tmp = ufs_data_ptr_to_cpu(sb, p);
+ 	if (!tmp)
+ 		return 0;
+ 	dind_bh = ubh_bread(sb, tmp, uspi->s_bsize);
+-	if (tmp != fs32_to_cpu(sb, *p)) {
++	if (tmp != ufs_data_ptr_to_cpu(sb, p)) {
+ 		ubh_brelse (dind_bh);
+ 		return 1;
+ 	}
+ 	if (!dind_bh) {
+-		*p = 0;
++		ufs_data_ptr_clear(uspi, p);
+ 		return 0;
+ 	}
+ 
+ 	for (i = dindirect_block ; i < uspi->s_apb ; i++) {
+-		dind = ubh_get_addr32 (dind_bh, i);
+-		tmp = fs32_to_cpu(sb, *dind);
++		dind = ubh_get_data_ptr(uspi, dind_bh, i);
++		tmp = ufs_data_ptr_to_cpu(sb, dind);
+ 		if (!tmp)
+ 			continue;
+ 		retry |= ufs_trunc_indirect (inode, offset + (i << uspi->s_apbshift), dind);
+@@ -289,11 +294,12 @@ static int ufs_trunc_dindirect (struct i
+ 	}
+ 
+ 	for (i = 0; i < uspi->s_apb; i++)
+-		if (*ubh_get_addr32 (dind_bh, i))
++		if (!ufs_is_data_ptr_zero(uspi,
++					  ubh_get_data_ptr(uspi, dind_bh, i)))
+ 			break;
+ 	if (i >= uspi->s_apb) {
+-		tmp = fs32_to_cpu(sb, *p);
+-		*p = 0;
++		tmp = ufs_data_ptr_to_cpu(sb, p);
++		ufs_data_ptr_clear(uspi, p);
+ 
+ 		ufs_free_blocks(inode, tmp, uspi->s_fpb);
+ 		mark_inode_dirty(inode);
+@@ -311,34 +317,33 @@ static int ufs_trunc_dindirect (struct i
+ 	return retry;
+ }
+ 
+-static int ufs_trunc_tindirect (struct inode * inode)
++static int ufs_trunc_tindirect(struct inode *inode)
+ {
 +	struct super_block *sb = inode->i_sb;
 +	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
-+	struct buffer_head * bh;
-+
-+	UFSD("ENTER, ino %lu\n", inode->i_ino);
-+
-+	if (inode->i_ino < UFS_ROOTINO ||
-+	    inode->i_ino > (uspi->s_ncg * uspi->s_ipg)) {
-+		ufs_warning (sb, "ufs_read_inode", "bad inode number (%lu)\n", inode->i_ino);
-+		return -1;
-+	}
-+
-+	bh = sb_bread(sb, ufs_inotofsba(inode->i_ino));
-+	if (!bh) {
-+		ufs_warning (sb, "ufs_read_inode", "unable to read inode %lu\n", inode->i_ino);
-+		return -1;
-+	}
-+	if (uspi->fs_magic == UFS2_MAGIC) {
-+		struct ufs2_inode *ufs2_inode = (struct ufs2_inode *)bh->b_data;
-+
-+		ufs2_update_inode(inode,
-+				  ufs2_inode + ufs_inotofsbo(inode->i_ino));
-+	} else {
-+		struct ufs_inode *ufs_inode = (struct ufs_inode *) bh->b_data;
-+
-+		ufs1_update_inode(inode, ufs_inode + ufs_inotofsbo(inode->i_ino));
-+	}
- 		
- 	mark_buffer_dirty(bh);
- 	if (do_sync)
-diff -puN fs/ufs/super.c~ufs2-write-inodes-write fs/ufs/super.c
---- a/fs/ufs/super.c~ufs2-write-inodes-write
-+++ a/fs/ufs/super.c
-@@ -95,14 +95,16 @@
- /*
-  * Print contents of ufs_super_block, useful for debugging
-  */
--static void ufs_print_super_stuff(struct super_block *sb, unsigned flags,
-+static void ufs_print_super_stuff(struct super_block *sb,
- 				  struct ufs_super_block_first *usb1,
- 				  struct ufs_super_block_second *usb2,
- 				  struct ufs_super_block_third *usb3)
- {
-+	u32 magic = fs32_to_cpu(sb, usb3->fs_magic);
-+
- 	printk("ufs_print_super_stuff\n");
--	printk("  magic:     0x%x\n", fs32_to_cpu(sb, usb3->fs_magic));
--	if ((flags & UFS_TYPE_MASK) == UFS_TYPE_UFS2) {
-+	printk("  magic:     0x%x\n", magic);
-+	if (fs32_to_cpu(sb, usb3->fs_magic) == UFS2_MAGIC) {
- 		printk("  fs_size:   %llu\n", (unsigned long long)
- 		       fs64_to_cpu(sb, usb3->fs_un1.fs_u2.fs_size));
- 		printk("  fs_dsize:  %llu\n", (unsigned long long)
-@@ -119,6 +121,12 @@ static void ufs_print_super_stuff(struct
- 		printk("  cs_nbfree(No of free blocks):  %llu\n",
- 		       (unsigned long long)
- 		       fs64_to_cpu(sb, usb2->fs_un.fs_u2.cs_nbfree));
-+		printk(KERN_INFO"  cs_nifree(Num of free inodes): %llu\n",
-+		       (unsigned long long)
-+		       fs64_to_cpu(sb, usb3->fs_un1.fs_u2.cs_nifree));
-+		printk(KERN_INFO"  cs_nffree(Num of free frags): %llu\n",
-+		       (unsigned long long)
-+		       fs64_to_cpu(sb, usb3->fs_un1.fs_u2.cs_nffree));
- 	} else {
- 		printk(" sblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_sblkno));
- 		printk(" cblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_cblkno));
-@@ -201,7 +209,7 @@ static void ufs_print_cylinder_stuff(str
- 	printk("\n");
- }
- #else
--#  define ufs_print_super_stuff(sb, flags, usb1, usb2, usb3) /**/
-+#  define ufs_print_super_stuff(sb, usb1, usb2, usb3) /**/
- #  define ufs_print_cylinder_stuff(sb, cg) /**/
- #endif /* CONFIG_UFS_DEBUG */
- 
-@@ -424,7 +432,6 @@ static int ufs_read_cylinder_structures(
- {
- 	struct ufs_sb_info *sbi = UFS_SB(sb);
- 	struct ufs_sb_private_info *uspi = sbi->s_uspi;
--	unsigned flags = sbi->s_flags;
- 	struct ufs_buffer_head * ubh;
- 	unsigned char * base, * space;
- 	unsigned size, blks, i;
-@@ -448,11 +455,7 @@ static int ufs_read_cylinder_structures(
- 		if (i + uspi->s_fpb > blks)
- 			size = (blks - i) * uspi->s_fsize;
- 
--		if ((flags & UFS_TYPE_MASK) == UFS_TYPE_UFS2) 
--			ubh = ubh_bread(sb,
--				fs64_to_cpu(sb, usb3->fs_un1.fs_u2.fs_csaddr) + i, size);
--		else 
--			ubh = ubh_bread(sb, uspi->s_csaddr + i, size);
-+		ubh = ubh_bread(sb, uspi->s_csaddr + i, size);
- 		
- 		if (!ubh)
- 			goto failed;
-@@ -547,6 +550,7 @@ static void ufs_put_cstotal(struct super
- 			cpu_to_fs32(sb, uspi->cs_total.cs_nffree);
- 	}
- 	ubh_mark_buffer_dirty(USPI_UBH(uspi));
-+	ufs_print_super_stuff(sb, usb1, usb2, usb3);
- 	UFSD("EXIT\n");
- }
- 
-@@ -574,7 +578,9 @@ static void ufs_put_super_internal(struc
- 		size = uspi->s_bsize;
- 		if (i + uspi->s_fpb > blks)
- 			size = (blks - i) * uspi->s_fsize;
-+
- 		ubh = ubh_bread(sb, uspi->s_csaddr + i, size);
-+
- 		ubh_memcpyubh (ubh, space, size);
- 		space += size;
- 		ubh_mark_buffer_uptodate (ubh, 1);
-@@ -885,7 +891,7 @@ magic_found:
- 	}
- 
- 
--	ufs_print_super_stuff(sb, flags, usb1, usb2, usb3);
-+	ufs_print_super_stuff(sb, usb1, usb2, usb3);
- 
- 	/*
- 	 * Check, if file system was correctly unmounted.
-@@ -968,7 +974,12 @@ magic_found:
- 	uspi->s_npsect = ufs_get_fs_npsect(sb, usb1, usb3);
- 	uspi->s_interleave = fs32_to_cpu(sb, usb1->fs_interleave);
- 	uspi->s_trackskew = fs32_to_cpu(sb, usb1->fs_trackskew);
--	uspi->s_csaddr = fs32_to_cpu(sb, usb1->fs_csaddr);
-+
-+	if (uspi->fs_magic == UFS2_MAGIC)
-+		uspi->s_csaddr = fs64_to_cpu(sb, usb3->fs_un1.fs_u2.fs_csaddr);
-+	else
-+		uspi->s_csaddr = fs32_to_cpu(sb, usb1->fs_csaddr);
-+
- 	uspi->s_cssize = fs32_to_cpu(sb, usb1->fs_cssize);
- 	uspi->s_cgsize = fs32_to_cpu(sb, usb1->fs_cgsize);
- 	uspi->s_ntrak = fs32_to_cpu(sb, usb1->fs_ntrak);
-@@ -1055,7 +1066,6 @@ static void ufs_write_super(struct super
- 	unsigned flags;
- 
- 	lock_kernel();
--
+ 	struct ufs_inode_info *ufsi = UFS_I(inode);
+-	struct super_block * sb;
+-	struct ufs_sb_private_info * uspi;
+ 	struct ufs_buffer_head * tind_bh;
+-	unsigned tindirect_block, tmp, i;
+-	__fs32 * tind, * p;
++	u64 tindirect_block, tmp, i;
++	void *tind, *p;
+ 	int retry;
+ 	
  	UFSD("ENTER\n");
- 	flags = UFS_SB(sb)->s_flags;
- 	uspi = UFS_SB(sb)->s_uspi;
-diff -puN include/linux/ufs_fs.h~ufs2-write-inodes-write include/linux/ufs_fs.h
---- a/include/linux/ufs_fs.h~ufs2-write-inodes-write
+ 
+-	sb = inode->i_sb;
+-	uspi = UFS_SB(sb)->s_uspi;
+ 	retry = 0;
+ 	
+ 	tindirect_block = (DIRECT_BLOCK > (UFS_NDADDR + uspi->s_apb + uspi->s_2apb))
+ 		? ((DIRECT_BLOCK - UFS_NDADDR - uspi->s_apb - uspi->s_2apb) >> uspi->s_2apbshift) : 0;
+-	p = ufsi->i_u1.i_data + UFS_TIND_BLOCK;
+-	if (!(tmp = fs32_to_cpu(sb, *p)))
++
++	p = ufs_get_direct_data_ptr(uspi, ufsi, UFS_TIND_BLOCK);
++	if (!(tmp = ufs_data_ptr_to_cpu(sb, p)))
+ 		return 0;
+ 	tind_bh = ubh_bread (sb, tmp, uspi->s_bsize);
+-	if (tmp != fs32_to_cpu(sb, *p)) {
++	if (tmp != ufs_data_ptr_to_cpu(sb, p)) {
+ 		ubh_brelse (tind_bh);
+ 		return 1;
+ 	}
+ 	if (!tind_bh) {
+-		*p = 0;
++		ufs_data_ptr_clear(uspi, p);
+ 		return 0;
+ 	}
+ 
+@@ -349,11 +354,12 @@ static int ufs_trunc_tindirect (struct i
+ 		ubh_mark_buffer_dirty(tind_bh);
+ 	}
+ 	for (i = 0; i < uspi->s_apb; i++)
+-		if (*ubh_get_addr32 (tind_bh, i))
++		if (!ufs_is_data_ptr_zero(uspi,
++					  ubh_get_data_ptr(uspi, tind_bh, i)))
+ 			break;
+ 	if (i >= uspi->s_apb) {
+-		tmp = fs32_to_cpu(sb, *p);
+-		*p = 0;
++		tmp = ufs_data_ptr_to_cpu(sb, p);
++		ufs_data_ptr_clear(uspi, p);
+ 
+ 		ufs_free_blocks(inode, tmp, uspi->s_fpb);
+ 		mark_inode_dirty(inode);
+@@ -375,7 +381,8 @@ static int ufs_alloc_lastblock(struct in
+ 	int err = 0;
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct ufs_sb_private_info *uspi = UFS_SB(inode->i_sb)->s_uspi;
+-	unsigned lastfrag, i, end;
++	unsigned i, end;
++	sector_t lastfrag;
+ 	struct page *lastpage;
+ 	struct buffer_head *bh;
+ 
+@@ -430,7 +437,9 @@ int ufs_truncate(struct inode *inode, lo
+ 	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
+ 	int retry, err = 0;
+ 	
+-	UFSD("ENTER\n");
++	UFSD("ENTER: ino %lu, i_size: %llu, old_i_size: %llu\n",
++	     inode->i_ino, (unsigned long long)i_size_read(inode),
++	     (unsigned long long)old_i_size);
+ 
+ 	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
+ 	      S_ISLNK(inode->i_mode)))
+@@ -450,10 +459,12 @@ int ufs_truncate(struct inode *inode, lo
+ 	lock_kernel();
+ 	while (1) {
+ 		retry = ufs_trunc_direct(inode);
+-		retry |= ufs_trunc_indirect (inode, UFS_IND_BLOCK,
+-			(__fs32 *) &ufsi->i_u1.i_data[UFS_IND_BLOCK]);
+-		retry |= ufs_trunc_dindirect (inode, UFS_IND_BLOCK + uspi->s_apb,
+-			(__fs32 *) &ufsi->i_u1.i_data[UFS_DIND_BLOCK]);
++		retry |= ufs_trunc_indirect(inode, UFS_IND_BLOCK,
++					    ufs_get_direct_data_ptr(uspi, ufsi,
++								    UFS_IND_BLOCK));
++		retry |= ufs_trunc_dindirect(inode, UFS_IND_BLOCK + uspi->s_apb,
++					     ufs_get_direct_data_ptr(uspi, ufsi,
++								     UFS_DIND_BLOCK));
+ 		retry |= ufs_trunc_tindirect (inode);
+ 		if (!retry)
+ 			break;
+diff -puN fs/ufs/util.h~ufs2-write-block-allocation-update fs/ufs/util.h
+--- a/fs/ufs/util.h~ufs2-write-block-allocation-update
++++ a/fs/ufs/util.h
+@@ -305,8 +305,22 @@ static inline void *get_usb_offset(struc
+ 	(((__fs32*)((ubh)->bh[(begin) >> (uspi->s_fshift-2)]->b_data)) + \
+ 	((begin) & ((uspi->s_fsize>>2) - 1)))
+ 
++#define ubh_get_addr64(ubh,begin) \
++	(((__fs64*)((ubh)->bh[(begin) >> (uspi->s_fshift-3)]->b_data)) + \
++	((begin) & ((uspi->s_fsize>>3) - 1)))
++
+ #define ubh_get_addr ubh_get_addr8
+ 
++static inline void *ubh_get_data_ptr(struct ufs_sb_private_info *uspi,
++				     struct ufs_buffer_head *ubh,
++				     u64 blk)
++{
++	if (uspi->fs_magic == UFS2_MAGIC)
++		return ubh_get_addr64(ubh, blk);
++	else
++		return ubh_get_addr32(ubh, blk);
++}
++
+ #define ubh_blkmap(ubh,begin,bit) \
+ 	((*ubh_get_addr(ubh, (begin) + ((bit) >> 3)) >> ((bit) & 7)) & (0xff >> (UFS_MAXFRAG - uspi->s_fpb)))
+ 
+@@ -507,3 +521,46 @@ static inline void ufs_fragacct (struct 
+ 	if (fragsize > 0 && fragsize < uspi->s_fpb)
+ 		fs32_add(sb, &fraglist[fragsize], cnt);
+ }
++
++static inline void *ufs_get_direct_data_ptr(struct ufs_sb_private_info *uspi,
++					    struct ufs_inode_info *ufsi,
++					    unsigned blk)
++{
++	BUG_ON(blk > UFS_TIND_BLOCK);
++	return uspi->fs_magic == UFS2_MAGIC ?
++		(void *)&ufsi->i_u1.u2_i_data[blk] :
++		(void *)&ufsi->i_u1.i_data[blk];
++}
++
++static inline u64 ufs_data_ptr_to_cpu(struct super_block *sb, void *p)
++{
++	return UFS_SB(sb)->s_uspi->fs_magic == UFS2_MAGIC ?
++		fs64_to_cpu(sb, *(__fs64 *)p) :
++		fs32_to_cpu(sb, *(__fs32 *)p);
++}
++
++static inline void ufs_cpu_to_data_ptr(struct super_block *sb, void *p, u64 val)
++{
++	if (UFS_SB(sb)->s_uspi->fs_magic == UFS2_MAGIC)
++		*(__fs64 *)p = cpu_to_fs64(sb, val);
++	else
++		*(__fs32 *)p = cpu_to_fs32(sb, val);
++}
++
++static inline void ufs_data_ptr_clear(struct ufs_sb_private_info *uspi,
++				      void *p)
++{
++	if (uspi->fs_magic == UFS2_MAGIC)
++		*(__fs64 *)p = 0;
++	else
++		*(__fs32 *)p = 0;
++}
++
++static inline int ufs_is_data_ptr_zero(struct ufs_sb_private_info *uspi,
++				       void *p)
++{
++	if (uspi->fs_magic == UFS2_MAGIC)
++		return *(__fs64 *)p == 0;
++	else
++		return *(__fs32 *)p == 0;
++}
+diff -puN include/linux/ufs_fs.h~ufs2-write-block-allocation-update include/linux/ufs_fs.h
+--- a/include/linux/ufs_fs.h~ufs2-write-block-allocation-update
 +++ a/include/linux/ufs_fs.h
-@@ -261,7 +261,7 @@ typedef __u16 __bitwise __fs16;
-  */
- #define	ufs_inotocg(x)		((x) / uspi->s_ipg)
- #define	ufs_inotocgoff(x)	((x) % uspi->s_ipg)
--#define	ufs_inotofsba(x)	(ufs_cgimin(ufs_inotocg(x)) + ufs_inotocgoff(x) / uspi->s_inopf)
-+#define	ufs_inotofsba(x)	(((u64)ufs_cgimin(ufs_inotocg(x))) + ufs_inotocgoff(x) / uspi->s_inopf)
+@@ -34,6 +34,7 @@
+ #include <linux/kernel.h>
+ #include <linux/stat.h>
+ #include <linux/fs.h>
++#include <asm/div64.h>
+ 
+ #ifndef __KERNEL__
+ typedef __u64 __fs64;
+@@ -265,13 +266,6 @@ typedef __u16 __bitwise __fs16;
  #define	ufs_inotofsbo(x)	((x) % uspi->s_inopf)
  
  /*
-@@ -754,7 +754,7 @@ struct ufs_sb_private_info {
- 	__u32	s_npsect;	/* # sectors/track including spares */
- 	__u32	s_interleave;	/* hardware sector interleave */
- 	__u32	s_trackskew;	/* sector 0 skew, per track */
--	__u32	s_csaddr;	/* blk addr of cyl grp summary area */
-+	__u64	s_csaddr;	/* blk addr of cyl grp summary area */
- 	__u32	s_cssize;	/* size of cyl grp summary area */
- 	__u32	s_cgsize;	/* cylinder group size */
- 	__u32	s_ntrak;	/* tracks per cylinder */
-diff -puN include/linux/ufs_fs_i.h~ufs2-write-inodes-write include/linux/ufs_fs_i.h
---- a/include/linux/ufs_fs_i.h~ufs2-write-inodes-write
+- * Give cylinder group number for a file system block.
+- * Give cylinder group block number for a file system block.
+- */
+-#define	ufs_dtog(d)	((d) / uspi->s_fpg)
+-#define	ufs_dtogd(d)	((d) % uspi->s_fpg)
+-
+-/*
+  * Compute the cylinder and rotational position of a cyl block addr.
+  */
+ #define ufs_cbtocylno(bno) \
+@@ -721,6 +715,7 @@ struct ufs_cg_private_info {
+ 	__u32	c_nclusterblks;	/* number of clusters this cg */
+ };	
+ 
++
+ struct ufs_sb_private_info {
+ 	struct ufs_buffer_head s_ubh; /* buffer containing super block */
+ 	struct ufs_csum_core cs_total;
+@@ -949,10 +944,10 @@ struct ufs_super_block_third {
+ #ifdef __KERNEL__
+ 
+ /* balloc.c */
+-extern void ufs_free_fragments (struct inode *, unsigned, unsigned);
+-extern void ufs_free_blocks (struct inode *, unsigned, unsigned);
+-extern unsigned ufs_new_fragments(struct inode *, __fs32 *, unsigned, unsigned,
+-				  unsigned, int *, struct page *);
++extern void ufs_free_fragments (struct inode *, u64, unsigned);
++extern void ufs_free_blocks (struct inode *, u64, unsigned);
++extern u64 ufs_new_fragments(struct inode *, void *, u64, u64,
++			     unsigned, int *, struct page *);
+ 
+ /* cylinder.c */
+ extern struct ufs_cg_private_info * ufs_load_cylinder (struct super_block *, unsigned);
+@@ -1013,6 +1008,22 @@ static inline struct ufs_inode_info *UFS
+ 	return container_of(inode, struct ufs_inode_info, vfs_inode);
+ }
+ 
++/*
++ * Give cylinder group number for a file system block.
++ * Give cylinder group block number for a file system block.
++ */
++/* #define	ufs_dtog(d)	((d) / uspi->s_fpg) */
++static inline u64 ufs_dtog(struct ufs_sb_private_info * uspi, u64 b)
++{
++	do_div(b, uspi->s_fpg);
++	return b;
++}
++/* #define	ufs_dtogd(d)	((d) % uspi->s_fpg) */
++static inline u32 ufs_dtogd(struct ufs_sb_private_info * uspi, u64 b)
++{
++	return do_div(b, uspi->s_fpg);
++}
++
+ #endif	/* __KERNEL__ */
+ 
+ #endif /* __LINUX_UFS_FS_H */
+diff -puN include/linux/ufs_fs_i.h~ufs2-write-block-allocation-update include/linux/ufs_fs_i.h
+--- a/include/linux/ufs_fs_i.h~ufs2-write-block-allocation-update
 +++ a/include/linux/ufs_fs_i.h
-@@ -20,7 +20,6 @@ struct ufs_inode_info {
- 		__fs64	u2_i_data[15];
- 	} i_u1;
- 	__u32	i_flags;
--	__u32	i_gen;
- 	__u32	i_shadow;
- 	__u32	i_unused1;
+@@ -25,7 +25,7 @@ struct ufs_inode_info {
  	__u32	i_unused2;
+ 	__u32	i_oeftflag;
+ 	__u16	i_osync;
+-	__u32	i_lastfrag;
++	__u64	i_lastfrag;
+ 	__u32   i_dir_start_lookup;
+ 	struct inode vfs_inode;
+ };
 _
 
 Patches currently in -mm which might be from dushistov@mail.ru are
