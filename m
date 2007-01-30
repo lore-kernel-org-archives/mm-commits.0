@@ -1,60 +1,179 @@
 From: akpm@osdl.org
-Subject: - ia64-add-pci_get_legacy_ide_irq.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 13:47:01 -0800
-Message-ID: <200701302147.l0ULl1xd030149@shell0.pdx.osdl.net>
+Subject: - fix-config_sata_sis=y-compile-error.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 13:47:10 -0800
+Message-ID: <200701302147.l0ULlA3Q030162@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52197 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52229 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751859AbXA3VuR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 16:50:17 -0500
+	id S1751879AbXA3Vuc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 16:50:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bzolnier@gmail.com, alan@lxorguk.ukuu.org.uk, bunk@stusta.de, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: add pci_get_legacy_ide_irq()
+     fix CONFIG_SATA_SIS=y compile error
 has been removed from the -mm tree.  Its filename was
-     ia64-add-pci_get_legacy_ide_irq.patch
+     fix-config_sata_sis=y-compile-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ia64: add pci_get_legacy_ide_irq()
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: fix CONFIG_SATA_SIS=y compile error
+From: Adrian Bunk <bunk@stusta.de>
 
-Add pci_get_legacy_ide_irq() identical to the one used by i386/x86_64. 
-Fixes amd74xx driver build on ia64 (bugzilla bug #6644).
+Static code shouldn't be used from other modules.
 
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+drivers/built-in.o: In function `sis_init_one':
+sata_sis.c:(.text+0x7634cd): undefined reference to `sis_info133'
+sata_sis.c:(.text+0x7634d6): undefined reference to `sis_info133'
+
+While I was at it, I also moved the prototype of this struct to a header
+file.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-ia64/pci.h |    6 ++++++
- 1 files changed, 6 insertions(+)
+ drivers/ata/libata.h   |    3 +++
+ drivers/ata/pata_sis.c |    3 ++-
+ drivers/ata/sata_sis.c |    4 +---
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-ia64/pci.h~ia64-add-pci_get_legacy_ide_irq include/asm-ia64/pci.h
---- a/include/asm-ia64/pci.h~ia64-add-pci_get_legacy_ide_irq
-+++ a/include/asm-ia64/pci.h
-@@ -167,4 +167,10 @@ pcibios_select_root(struct pci_dev *pdev
+diff -puN drivers/ata/libata.h~fix-config_sata_sis=y-compile-error drivers/ata/libata.h
+--- a/drivers/ata/libata.h~fix-config_sata_sis=y-compile-error
++++ a/drivers/ata/libata.h
+@@ -151,4 +151,7 @@ extern void ata_qc_schedule_eh(struct at
+ /* libata-sff.c */
+ extern u8 ata_irq_on(struct ata_port *ap);
  
- #define pcibios_scan_all_fns(a, b)	0
- 
-+#define HAVE_ARCH_PCI_GET_LEGACY_IDE_IRQ
-+static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
-+{
-+	return channel ? 15 : 14;
-+}
++/* pata_sis.c */
++extern struct ata_port_info sis_info133;
 +
- #endif /* _ASM_IA64_PCI_H */
+ #endif /* __LIBATA_H__ */
+diff -puN drivers/ata/pata_sis.c~fix-config_sata_sis=y-compile-error drivers/ata/pata_sis.c
+--- a/drivers/ata/pata_sis.c~fix-config_sata_sis=y-compile-error
++++ a/drivers/ata/pata_sis.c
+@@ -32,6 +32,7 @@
+ #include <scsi/scsi_host.h>
+ #include <linux/libata.h>
+ #include <linux/ata.h>
++#include "libata.h"
+ 
+ #define DRV_NAME	"pata_sis"
+ #define DRV_VERSION	"0.4.5"
+@@ -781,7 +782,7 @@ static struct ata_port_info sis_info100_
+ 	.pio_mask	= 0x1f,	/* pio0-4 */
+ 	.port_ops	= &sis_66_ops,
+ };
+-static struct ata_port_info sis_info133 = {
++struct ata_port_info sis_info133 = {
+ 	.sht		= &sis_sht,
+ 	.flags		= ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
+ 	.pio_mask	= 0x1f,	/* pio0-4 */
+diff -puN drivers/ata/sata_sis.c~fix-config_sata_sis=y-compile-error drivers/ata/sata_sis.c
+--- a/drivers/ata/sata_sis.c~fix-config_sata_sis=y-compile-error
++++ a/drivers/ata/sata_sis.c
+@@ -40,6 +40,7 @@
+ #include <linux/device.h>
+ #include <scsi/scsi_host.h>
+ #include <linux/libata.h>
++#include "libata.h"
+ 
+ #define DRV_NAME	"sata_sis"
+ #define DRV_VERSION	"0.7"
+@@ -254,9 +255,6 @@ static void sis_scr_write (struct ata_po
+ 
+ static int sis_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
+ {
+-	/* Provided by the PATA driver */
+-	extern struct ata_port_info sis_info133;
+-
+ 	static int printed_version;
+ 	struct ata_probe_ent *probe_ent = NULL;
+ 	int rc;
 _
 
-Patches currently in -mm which might be from bzolnier@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-jmicron-40-80pin-primary-detection.patch
-mm-ide-ide-acpi-support-warning-fix.patch
+uml-fix-signal-frame-alignment.patch
+git-acpi.patch
+drivers-acpi-hotkeyc-make-2-structs-static.patch
+git-alsa.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+git-powerpc.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
+git-dvb.patch
+drivers-media-dvb-frontends-make-4-functions-static.patch
+cx88-videoc-remove-struct-radionorms.patch
+if-0-v4l_printk_ioctl_arg.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-libata-all.patch
+mips-remove-smp_tune_scheduling.patch
+git-mmc.patch
+mtd_ck804xrom-must-depend-on-pci.patch
+git-ubi.patch
+git-netdev-all.patch
+remove-one-remaining-define-bcm_tso-1.patch
+net-irda-proper-prototypes.patch
+net-wanrouter-wanmainc-cleanups.patch
+nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
+git-ipwireless_cs.patch
+cleanup-x86_64-mm-vmi-timer.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
