@@ -1,13 +1,13 @@
 From: akpm@osdl.org
 Subject: + ntfs-kmap_atomic-atomicity-fix.patch added to -mm tree
-Date: Tue, 30 Jan 2007 13:16:01 -0800
-Message-ID: <200701302116.l0ULG1i5029293@shell0.pdx.osdl.net>
+Date: Tue, 30 Jan 2007 13:25:23 -0800
+Message-ID: <200701302125.l0ULPNAd029453@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50081 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50290 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751432AbXA3VQL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 16:16:11 -0500
+	id S1751468AbXA3VZe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 16:25:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -30,12 +30,12 @@ From: Andrew Morton <akpm@osdl.org>
 
 The KM_BIO_SRC_IRQ kmap slot requires local irq protection.
 
-Cc: Anton Altaparmakov <aia21@cantab.net>
+Acked-by: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ntfs/aops.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/ntfs/aops.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff -puN fs/ntfs/aops.c~ntfs-kmap_atomic-atomicity-fix fs/ntfs/aops.c
 --- a/fs/ntfs/aops.c~ntfs-kmap_atomic-atomicity-fix
@@ -53,13 +53,7 @@ diff -puN fs/ntfs/aops.c~ntfs-kmap_atomic-atomicity-fix fs/ntfs/aops.c
  			flush_dcache_page(page);
  		}
  	} else {
-@@ -138,16 +140,19 @@ static void ntfs_end_buffer_async_read(s
- 		u8 *kaddr;
- 		unsigned int i, recs;
- 		u32 rec_size;
-+		unsigned long flags;
- 
- 		rec_size = ni->itype.index.block_size;
+@@ -143,11 +145,13 @@ static void ntfs_end_buffer_async_read(s
  		recs = PAGE_CACHE_SIZE / rec_size;
  		/* Should have been verified before we got here... */
  		BUG_ON(!recs);
