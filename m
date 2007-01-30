@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + stex-kmap_atomic-atomicity-fix.patch added to -mm tree
-Date: Tue, 30 Jan 2007 11:31:18 -0800
-Message-ID: <200701301931.l0UJVIGX026620@shell0.pdx.osdl.net>
+Subject: + ntfs-kmap_atomic-atomicity-fix.patch added to -mm tree
+Date: Tue, 30 Jan 2007 11:31:37 -0800
+Message-ID: <200701301931.l0UJVbhn026623@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44328 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44341 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751710AbXA3Tb0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 14:31:26 -0500
+	id S1751731AbXA3Tbl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 14:31:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, James.Bottomley@steeleye.com, ed.lin@promise.com
+Cc: akpm@osdl.org, aia21@cantab.net
 
 
 The patch titled
-     stex: kmap_atomic() atomicity fix
+     ntfs: kmap_atomic() atomicity fix
 has been added to the -mm tree.  Its filename is
-     stex-kmap_atomic-atomicity-fix.patch
+     ntfs-kmap_atomic-atomicity-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: stex: kmap_atomic() atomicity fix
+Subject: ntfs: kmap_atomic() atomicity fix
 From: Andrew Morton <akpm@osdl.org>
 
 The KM_BIO_SRC_IRQ kmap slot requires local irq protection.
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Ed Lin <ed.lin@promise.com>
+Cc: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/stex.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/ntfs/aops.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/scsi/stex.c~stex-kmap_atomic-atomicity-fix drivers/scsi/stex.c
---- a/drivers/scsi/stex.c~stex-kmap_atomic-atomicity-fix
-+++ a/drivers/scsi/stex.c
-@@ -459,15 +459,19 @@ static void stex_internal_copy(struct sc
- 		*count = cmd->request_bufflen;
- 	lcount = *count;
- 	while (lcount) {
-+		unsigned long flags = flags;	/* Suppress uninit warning */
-+
- 		len = lcount;
- 		s = (void *)src;
- 		if (cmd->use_sg) {
- 			size_t offset = *count - lcount;
- 			s += offset;
+diff -puN fs/ntfs/aops.c~ntfs-kmap_atomic-atomicity-fix fs/ntfs/aops.c
+--- a/fs/ntfs/aops.c~ntfs-kmap_atomic-atomicity-fix
++++ a/fs/ntfs/aops.c
+@@ -88,14 +88,17 @@ static void ntfs_end_buffer_async_read(s
+ 		if (unlikely(file_ofs + bh->b_size > init_size)) {
+ 			u8 *kaddr;
+ 			int ofs;
++			unsigned long flags;
+ 
+ 			ofs = 0;
+ 			if (file_ofs < init_size)
+ 				ofs = init_size - file_ofs;
 +			local_irq_save(flags);
- 			base = scsi_kmap_atomic_sg(cmd->request_buffer,
- 				sg_count, &offset, &len);
- 			if (base == NULL) {
- 				*count -= lcount;
-+				local_irq_restore(flags);
- 				return;
- 			}
- 			d = base + offset;
-@@ -480,8 +484,10 @@ static void stex_internal_copy(struct sc
- 			memcpy(s, d, len);
- 
- 		lcount -= len;
--		if (cmd->use_sg)
-+		if (cmd->use_sg) {
- 			scsi_kunmap_atomic_sg(base);
+ 			kaddr = kmap_atomic(page, KM_BIO_SRC_IRQ);
+ 			memset(kaddr + bh_offset(bh) + ofs, 0,
+ 					bh->b_size - ofs);
+ 			kunmap_atomic(kaddr, KM_BIO_SRC_IRQ);
 +			local_irq_restore(flags);
-+		}
- 	}
- }
+ 			flush_dcache_page(page);
+ 		}
+ 	} else {
+@@ -138,16 +141,19 @@ static void ntfs_end_buffer_async_read(s
+ 		u8 *kaddr;
+ 		unsigned int i, recs;
+ 		u32 rec_size;
++		unsigned long flags;
  
+ 		rec_size = ni->itype.index.block_size;
+ 		recs = PAGE_CACHE_SIZE / rec_size;
+ 		/* Should have been verified before we got here... */
+ 		BUG_ON(!recs);
++		local_irq_save(flags);
+ 		kaddr = kmap_atomic(page, KM_BIO_SRC_IRQ);
+ 		for (i = 0; i < recs; i++)
+ 			post_read_mst_fixup((NTFS_RECORD*)(kaddr +
+ 					i * rec_size), rec_size);
+ 		kunmap_atomic(kaddr, KM_BIO_SRC_IRQ);
++		local_irq_restore(flags);
+ 		flush_dcache_page(page);
+ 		if (likely(page_uptodate && !PageError(page)))
+ 			SetPageUptodate(page);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
