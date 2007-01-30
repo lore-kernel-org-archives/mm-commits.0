@@ -1,78 +1,51 @@
 From: akpm@osdl.org
-Subject: - broadcom-4400-resume-small-fix-v2.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 13:47:41 -0800
-Message-ID: <200701302147.l0ULlfQ2030198@shell0.pdx.osdl.net>
+Subject: - ehea-fixed-missing-tasklet_kill-call.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 13:47:49 -0800
+Message-ID: <200701302147.l0ULlnZM030216@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51972 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52002 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751909AbXA3Vrn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 16:47:43 -0500
+	id S1751935AbXA3Vrz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 16:47:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@openvz.org, mm-commits@vger.kernel.org
+To: osstklei@de.ibm.com, tklein@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Broadcom 4400 resume small fix
+     ehea: Fixed missing tasklet_kill() call
 has been removed from the -mm tree.  Its filename was
-     broadcom-4400-resume-small-fix-v2.patch
+     ehea-fixed-missing-tasklet_kill-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Broadcom 4400 resume small fix
-From: Dmitriy Monakhov <dmonakhov@openvz.org>
+Subject: ehea: Fixed missing tasklet_kill() call
+From: Thomas Klein <osstklei@de.ibm.com>
 
-Some issues in b44_resume().
+NEQ-Tasklet wasn't killed when module is removed.
 
-- Return value of pci_enable_device() was ignored.
-
-- If request_irq() has failed we have to just disable device and exit.
-
-Signed-off-by: Dmitriy Monakhov <dmonakhov@openvz.org>
+Signed-off-by: Thomas Klein <tklein@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/b44.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/net/ehea/ehea_main.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/net/b44.c~broadcom-4400-resume-small-fix-v2 drivers/net/b44.c
---- a/drivers/net/b44.c~broadcom-4400-resume-small-fix-v2
-+++ a/drivers/net/b44.c
-@@ -2320,16 +2320,27 @@ static int b44_resume(struct pci_dev *pd
- {
- 	struct net_device *dev = pci_get_drvdata(pdev);
- 	struct b44 *bp = netdev_priv(dev);
-+	int rc = 0;
+diff -puN drivers/net/ehea/ehea_main.c~ehea-fixed-missing-tasklet_kill-call drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~ehea-fixed-missing-tasklet_kill-call
++++ a/drivers/net/ehea/ehea_main.c
+@@ -2598,6 +2598,7 @@ static int __devexit ehea_remove(struct 
+ 	destroy_workqueue(adapter->ehea_wq);
  
- 	pci_restore_state(pdev);
--	pci_enable_device(pdev);
-+	rc = pci_enable_device(pdev);
-+	if (rc) {
-+		printk(KERN_ERR PFX "%s: pci_enable_device failed\n",
-+			dev->name);
-+		return rc;
-+	}
-+
- 	pci_set_master(pdev);
+ 	ibmebus_free_irq(NULL, adapter->neq->attr.ist1, adapter);
++	tasklet_kill(&adapter->neq_tasklet);
  
- 	if (!netif_running(dev))
- 		return 0;
- 
--	if (request_irq(dev->irq, b44_interrupt, IRQF_SHARED, dev->name, dev))
-+	rc = request_irq(dev->irq, b44_interrupt, IRQF_SHARED, dev->name, dev);
-+	if (rc) {
- 		printk(KERN_ERR PFX "%s: request_irq failed\n", dev->name);
-+		pci_disable_device(pdev);
-+		return rc;
-+	}
- 
- 	spin_lock_irq(&bp->lock);
+ 	ehea_destroy_eq(adapter->neq);
  
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from osstklei@de.ibm.com are
 
 origin.patch
-ext-jbd-layer-function-called-instead-of-fs-specific-one.patch
