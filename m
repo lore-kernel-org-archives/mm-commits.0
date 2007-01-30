@@ -1,241 +1,204 @@
 From: akpm@osdl.org
-Subject: - tty-cleanup-release_mem-fix.patch removed from -mm tree
-Date: Mon, 29 Jan 2007 19:55:46 -0800
-Message-ID: <200701300355.l0U3tljY008540@shell0.pdx.osdl.net>
+Subject: - tty-cleanup-release_mem.patch removed from -mm tree
+Date: Mon, 29 Jan 2007 19:56:01 -0800
+Message-ID: <200701300356.l0U3u1U2008548@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40874 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40882 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964982AbXA3D4F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 22:56:05 -0500
+	id S965056AbXA3D4R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 22:56:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, alan@redhat.com, hch@lst.de, mm-commits@vger.kernel.org
+To: hch@lst.de, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty-cleanup-release_mem-fix
+     tty: cleanup release_mem
 has been removed from the -mm tree.  Its filename was
-     tty-cleanup-release_mem-fix.patch
+     tty-cleanup-release_mem.patch
 
-This patch was dropped because it was folded into tty-cleanup-release_mem.patch
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: tty-cleanup-release_mem-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: tty: cleanup release_mem
+From: Christoph Hellwig <hch@lst.de>
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Alan Cox <alan@redhat.com>
+release_mem contains two copies of exactly the same code.  Refactor
+these into a new helper, release_tty.  The only change in behaviour
+is that the driver reference count is now decremented after the
+master tty has been freed instead of before.
+
+release_mem becomes release_tty and the new factored out function is
+release_one_tty.  The difference is documented in the kdoc comments.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/tty_io.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/tty_io.c |   71 +++++++++++++++++++---------------------
+ 1 file changed, 35 insertions(+), 36 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-cleanup-release_mem-fix drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-cleanup-release_mem-fix
+diff -puN drivers/char/tty_io.c~tty-cleanup-release_mem drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-cleanup-release_mem
 +++ a/drivers/char/tty_io.c
-@@ -2148,7 +2148,7 @@ static void release_one_tty(struct tty_s
+@@ -154,7 +154,7 @@ static int tty_release(struct inode *, s
+ int tty_ioctl(struct inode * inode, struct file * file,
+ 	      unsigned int cmd, unsigned long arg);
+ static int tty_fasync(int fd, struct file * filp, int on);
+-static void release_mem(struct tty_struct *tty, int idx);
++static void release_tty(struct tty_struct *tty, int idx);
+ 
+ /**
+  *	alloc_tty_struct	-	allocate a tty object
+@@ -2002,7 +2002,7 @@ static int init_dev(struct tty_driver *d
+ 
+ 	/* 
+ 	 * All structures have been allocated, so now we install them.
+-	 * Failures after this point use release_mem to clean up, so 
++	 * Failures after this point use release_tty to clean up, so
+ 	 * there's no need to null out the local pointers.
+ 	 */
+ 	if (!(driver->flags & TTY_DRIVER_DEVPTS_MEM)) {
+@@ -2023,8 +2023,8 @@ static int init_dev(struct tty_driver *d
+ 
+ 	/* 
+ 	 * Structures all installed ... call the ldisc open routines.
+-	 * If we fail here just call release_mem to clean up.  No need
+-	 * to decrement the use counts, as release_mem doesn't care.
++	 * If we fail here just call release_tty to clean up.  No need
++	 * to decrement the use counts, as release_tty doesn't care.
+ 	 */
+ 
+ 	if (tty->ldisc.open) {
+@@ -2094,17 +2094,17 @@ fail_no_mem:
+ 	retval = -ENOMEM;
+ 	goto end_init;
+ 
+-	/* call the tty release_mem routine to clean out this slot */
++	/* call the tty release_tty routine to clean out this slot */
+ release_mem_out:
+ 	if (printk_ratelimit())
+ 		printk(KERN_INFO "init_dev: ldisc open failed, "
+ 				 "clearing slot %d\n", idx);
+-	release_mem(tty, idx);
++	release_tty(tty, idx);
+ 	goto end_init;
  }
  
  /**
-- *	release_one_tty		-	release tty structure memory
-+ *	release_tty - release tty structure memory
+- *	release_mem		-	release tty structure memory
++ *	release_one_tty		-	release tty structure memory
   *
-  *	Release both @tty and a possible linked partner (think pty pair),
-  *	and decrement the refcount of the backing module.
+  *	Releases memory associated with a tty structure, and clears out the
+  *	driver table slots. This function is called when a device is no longer
+@@ -2116,37 +2116,14 @@ release_mem_out:
+  *	of ttys that the driver keeps.
+  *		FIXME: should we require tty_mutex is held here ??
+  */
+-
+-static void release_mem(struct tty_struct *tty, int idx)
++static void release_one_tty(struct tty_struct *tty, int idx)
+ {
+-	struct tty_struct *o_tty;
+-	struct ktermios *tp;
+ 	int devpts = tty->driver->flags & TTY_DRIVER_DEVPTS_MEM;
+-
+-	if ((o_tty = tty->link) != NULL) {
+-		if (!devpts)
+-			o_tty->driver->ttys[idx] = NULL;
+-		if (o_tty->driver->flags & TTY_DRIVER_RESET_TERMIOS) {
+-			tp = o_tty->termios;
+-			if (!devpts)
+-				o_tty->driver->termios[idx] = NULL;
+-			kfree(tp);
+-
+-			tp = o_tty->termios_locked;
+-			if (!devpts)
+-				o_tty->driver->termios_locked[idx] = NULL;
+-			kfree(tp);
+-		}
+-		o_tty->magic = 0;
+-		o_tty->driver->refcount--;
+-		file_list_lock();
+-		list_del_init(&o_tty->tty_files);
+-		file_list_unlock();
+-		free_tty_struct(o_tty);
+-	}
++	struct ktermios *tp;
+ 
+ 	if (!devpts)
+ 		tty->driver->ttys[idx] = NULL;
++
+ 	if (tty->driver->flags & TTY_DRIVER_RESET_TERMIOS) {
+ 		tp = tty->termios;
+ 		if (!devpts)
+@@ -2159,15 +2136,37 @@ static void release_mem(struct tty_struc
+ 		kfree(tp);
+ 	}
+ 
++
+ 	tty->magic = 0;
+ 	tty->driver->refcount--;
++
+ 	file_list_lock();
+ 	list_del_init(&tty->tty_files);
+ 	file_list_unlock();
+-	module_put(tty->driver->owner);
++
+ 	free_tty_struct(tty);
+ }
+ 
++/**
++ *	release_tty - release tty structure memory
++ *
++ *	Release both @tty and a possible linked partner (think pty pair),
++ *	and decrement the refcount of the backing module.
++ *
++ *	Locking:
++ *		tty_mutex - sometimes only
++ *		takes the file list lock internally when working on the list
++ *	of ttys that the driver keeps.
++ *		FIXME: should we require tty_mutex is held here ??
++ */
++static void release_tty(struct tty_struct *tty, int idx)
++{
++	if (tty->link)
++		release_one_tty(tty->link, idx);
++	release_one_tty(tty, idx);
++	module_put(tty->driver->owner);
++}
++
+ /*
+  * Even releasing the tty structures is a tricky business.. We have
+  * to be very careful that the structures are all released at the
+@@ -2435,10 +2434,10 @@ static void release_dev(struct file * fi
+ 		tty_set_termios_ldisc(o_tty,N_TTY); 
+ 	}
+ 	/*
+-	 * The release_mem function takes care of the details of clearing
++	 * The release_tty function takes care of the details of clearing
+ 	 * the slots and preserving the termios structure.
+ 	 */
+-	release_mem(tty, idx);
++	release_tty(tty, idx);
+ 
+ #ifdef CONFIG_UNIX98_PTYS
+ 	/* Make this pty number available for reallocation */
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from hch@lst.de are
 
-origin.patch
-m68k-uaccessh-needs-schedh.patch
-x86-fix-vdso-mapping-for-aout-executables.patch
-mm-show-bounce-pages-in-oom-killer-output.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
-acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-powerpc-make-it-compile.patch
-git-dvb.patch
-dvb-video_buf-depends-on-pci.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-pata_platform-set_mode-fix.patch
-sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
-mm-ide-ide-acpi-support-warning-fix.patch
-git-lxdialog-fixup.patch
-git-mips-kconfig-fix.patch
-git-mips-prom_free_prom_memory-borkage.patch
-git-mmc.patch
-git-mmc-fixup.patch
-git-ubi.patch
-git-netdev-all.patch
-git-netdev-all-atl1-build-fix.patch
-git-netdev-all-atl1-pm-fix.patch
-82596-warning-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
-dccp-warning-fixes.patch
-netfilter-warning-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-nfs-fix-congestion-control-v4-tweaks.patch
-r8169-warning-fixes.patch
-make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
-sh-add-kconfig-default.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-fixup.patch
-git-block-borkage.patch
-git-block-atomicity-fix.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-nokia-e70-is-an-unusual-device.patch
-revert-x86_64-mm-msr-on-cpu.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-drop-free_pages-sparc64-fix.patch
-get_dirty_limits-accurately-calculate-the-available-memory-that-can-be-dirtied-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
+git-drm.patch
+git-scsi-misc.patch
+slab-cache-alloc-cleanups.patch
+simplify-the-stacktrace-code.patch
+make-bh_unwritten-a-first-class-bufferhead-flag-v2.patch
+make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
 tty-cleanup-release_mem.patch
-tty-cleanup-release_mem-fix.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
+have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode.patch
+have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode-update.patch
 aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-introduce-and-use-get_task_mnt_ns-tweaks.patch
-user-ns-implement-user-ns-unshare-tidy.patch
-ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
-ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
-dynamic-kernel-command-line-ia64-fix.patch
-rcu-preemptible-rcu-fix.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
