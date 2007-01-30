@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + tick-management-dyntick--highres-functionality-fix.patch added to -mm tree
-Date: Mon, 29 Jan 2007 15:55:16 -0800
-Message-ID: <200701292355.l0TNtGAh003146@shell0.pdx.osdl.net>
+Subject: + tick-management-dyntick--highres-functionality-fix-2.patch added to -mm tree
+Date: Mon, 29 Jan 2007 16:06:36 -0800
+Message-ID: <200701300006.l0U06aUI003430@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34390 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34562 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965005AbXA2XzY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Jan 2007 18:55:24 -0500
+	id S965015AbXA3AGk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 29 Jan 2007 19:06:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, jkosina@suse.cz
+Cc: tglx@linutronix.de
 
 
 The patch titled
-     tick-management touch softlockup watchdog on resume
+     dynticks: Fix one off jiffy update
 has been added to the -mm tree.  Its filename is
-     tick-management-dyntick--highres-functionality-fix.patch
+     tick-management-dyntick--highres-functionality-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tick-management touch softlockup watchdog on resume
+Subject: dynticks: Fix one off jiffy update
 From: Thomas Gleixner <tglx@linutronix.de>
 
-The softlockup watchdog needs to be touched after resume to avoid a false
-positive.
+The rework of the jiffy update code introduced a one off error, which
+led to a one off accounting error for last_jiffy_update. This made
+jiffies lag behind.
+
+Noticed by Karsten Wiese (cpufreq_ondemand weirdness).
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/time/tick-common.c |    1 +
- 1 files changed, 1 insertion(+)
+ kernel/time/tick-sched.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/time/tick-common.c~tick-management-dyntick--highres-functionality-fix kernel/time/tick-common.c
---- a/kernel/time/tick-common.c~tick-management-dyntick--highres-functionality-fix
-+++ a/kernel/time/tick-common.c
-@@ -312,6 +312,7 @@ static int tick_notify(struct notifier_b
+diff -puN kernel/time/tick-sched.c~tick-management-dyntick--highres-functionality-fix-2 kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~tick-management-dyntick--highres-functionality-fix-2
++++ a/kernel/time/tick-sched.c
+@@ -38,7 +38,7 @@ static ktime_t last_jiffies_update;
+  */
+ static void tick_do_update_jiffies64(ktime_t now)
+ {
+-	unsigned long ticks = 1;
++	unsigned long ticks = 0;
+ 	ktime_t delta;
  
- 	case CLOCK_EVT_NOTIFY_RESUME:
- 		tick_resume_jiffy_update();
-+		touch_softlockup_watchdog();
- 		break;
+ 	/* Reevalute with xtime_lock held */
+@@ -55,12 +55,12 @@ static void tick_do_update_jiffies64(kti
+ 		if (unlikely(delta.tv64 >= tick_period.tv64)) {
+ 			s64 incr = ktime_to_ns(tick_period);
  
- 	case CLOCK_EVT_NOTIFY_CPU_DEAD:
+-			ticks += ktime_divns(delta, incr);
++			ticks = ktime_divns(delta, incr);
+ 
+ 			last_jiffies_update = ktime_add_ns(last_jiffies_update,
+ 							   incr * ticks);
+ 		}
+-		do_timer(ticks);
++		do_timer(++ticks);
+ 	}
+ 	write_sequnlock(&xtime_lock);
+ }
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
@@ -97,6 +115,7 @@ tick-management-core-functionality.patch
 tick-management-broadcast-functionality.patch
 tick-management-dyntick--highres-functionality.patch
 tick-management-dyntick--highres-functionality-fix.patch
+tick-management-dyntick--highres-functionality-fix-2.patch
 clockevents-i383-drivers.patch
 i386-rework-local-apic-timer-calibration.patch
 i386-prepare-for-dyntick.patch
