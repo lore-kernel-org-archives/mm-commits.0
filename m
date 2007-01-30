@@ -1,53 +1,141 @@
 From: akpm@osdl.org
-Subject: + git-netdev-all-chelsio-fix.patch added to -mm tree
-Date: Tue, 30 Jan 2007 00:32:38 -0800
-Message-ID: <200701300832.l0U8Wcgx013469@shell0.pdx.osdl.net>
+Subject: - sata_nv-cleanup-adma-error-handling-v2-cleanup.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 00:57:57 -0800
+Message-ID: <200701300857.l0U8vvRm013927@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48551 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49306 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751082AbXA3Ics (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 03:32:48 -0500
+	id S965067AbXA3I6P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 03:58:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, akula2.shark@gmail.com, jeff@garzik.org
+To: akpm@osdl.org, AMartin@nvidia.com, hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-netdev-all: chelsio fix
-has been added to the -mm tree.  Its filename is
-     git-netdev-all-chelsio-fix.patch
+     sata_nv-cleanup-adma-error-handling-v2-cleanup
+has been removed from the -mm tree.  Its filename was
+     sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into sata_nv-cleanup-adma-error-handling-v2.patch
 
 ------------------------------------------------------
-Subject: git-netdev-all: chelsio fix
+Subject: sata_nv-cleanup-adma-error-handling-v2-cleanup
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: "Sunil Naidu" <akula2.shark@gmail.com>
+Many coding-style fixes...
+
+Cc: Robert Hancock <hancockr@shaw.ca>
 Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Allen Martin <AMartin@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/chelsio/sge.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/sata_nv.c |   36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
-diff -puN drivers/net/chelsio/sge.c~git-netdev-all-chelsio-fix drivers/net/chelsio/sge.c
---- a/drivers/net/chelsio/sge.c~git-netdev-all-chelsio-fix
-+++ a/drivers/net/chelsio/sge.c
-@@ -1701,7 +1701,7 @@ irqreturn_t t1_interrupt(int irq, void *
+diff -puN drivers/ata/sata_nv.c~sata_nv-cleanup-adma-error-handling-v2-cleanup drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-cleanup-adma-error-handling-v2-cleanup
++++ a/drivers/ata/sata_nv.c
+@@ -653,34 +653,32 @@ static int nv_adma_check_cpb(struct ata_
  
- 	writel(F_PL_INTR_SGE_DATA, adapter->regs + A_PL_CAUSE);
+ 	VPRINTK("CPB %d, flags=0x%x\n", cpb_num, flags);
  
--	if (likely(responses_pending(adapter))
-+	if (likely(responses_pending(adapter)))
- 		work_done = process_responses(adapter, -1);
- 	else
- 		work_done = t1_slow_intr_handler(adapter);
+-	if(unlikely((force_err ||
++	if (unlikely((force_err ||
+ 		     flags & (NV_CPB_RESP_ATA_ERR |
+ 			      NV_CPB_RESP_CMD_ERR |
+ 			      NV_CPB_RESP_CPB_ERR)))) {
+ 		struct ata_eh_info *ehi = &ap->eh_info;
+ 		int freeze = 0;
++
+ 		ata_ehi_clear_desc(ehi);
+ 		ata_ehi_push_desc(ehi, "CPB resp_flags 0x%x", flags );
+-		if(flags & NV_CPB_RESP_ATA_ERR) {
++		if (flags & NV_CPB_RESP_ATA_ERR) {
+ 			ata_ehi_push_desc(ehi, ": ATA error");
+ 			ehi->err_mask |= AC_ERR_DEV;
+-		}
+-		else if(flags & NV_CPB_RESP_CMD_ERR) {
++		} else if (flags & NV_CPB_RESP_CMD_ERR) {
+ 			ata_ehi_push_desc(ehi, ": CMD error");
+ 			ehi->err_mask |= AC_ERR_DEV;
+-		}
+-		else if(flags & NV_CPB_RESP_CPB_ERR) {
++		} else if (flags & NV_CPB_RESP_CPB_ERR) {
+ 			ata_ehi_push_desc(ehi, ": CPB error");
+ 			ehi->err_mask |= AC_ERR_SYSTEM;
+ 			freeze = 1;
+-		}
+-		else {
++		} else {
+ 			/* notifier error, but no error in CPB flags? */
+ 			ehi->err_mask |= AC_ERR_OTHER;
+ 			freeze = 1;
+ 		}
+ 		/* Kill all commands. EH will determine what actually failed. */
+-		if(freeze)
++		if (freeze)
+ 			ata_port_freeze(ap);
+ 		else
+ 			ata_port_abort(ap);
+@@ -690,11 +688,11 @@ static int nv_adma_check_cpb(struct ata_
+ 	if (flags & NV_CPB_RESP_DONE) {
+ 		struct ata_queued_cmd *qc = ata_qc_from_tag(ap, cpb_num);
+ 		VPRINTK("CPB flags done, flags=0x%x\n", flags);
+-		if(likely(qc)) {
++		if (likely(qc)) {
+ 			/* Grab the ATA port status for non-NCQ commands.
+ 			   For NCQ commands the current status may have nothing to do with
+ 			   the command just completed. */
+-			if(qc->tf.protocol != ATA_PROT_NCQ) {
++			if (qc->tf.protocol != ATA_PROT_NCQ) {
+ 				u8 ata_status = readb(pp->ctl_block + (ATA_REG_STATUS * 4));
+ 				qc->err_mask |= ac_err_mask(ata_status);
+ 			}
+@@ -789,17 +787,16 @@ static irqreturn_t nv_adma_interrupt(int
+ 					       NV_ADMA_STAT_HOTUNPLUG |
+ 					       NV_ADMA_STAT_TIMEOUT))) {
+ 				struct ata_eh_info *ehi = &ap->eh_info;
++
+ 				ata_ehi_clear_desc(ehi);
+ 				ata_ehi_push_desc(ehi, "ADMA status 0x%08x", status );
+-				if(status & NV_ADMA_STAT_TIMEOUT) {
++				if (status & NV_ADMA_STAT_TIMEOUT) {
+ 					ehi->err_mask |= AC_ERR_SYSTEM;
+ 					ata_ehi_push_desc(ehi, ": timeout");
+-				}
+-				else if(status & NV_ADMA_STAT_HOTPLUG) {
++				} else if (status & NV_ADMA_STAT_HOTPLUG) {
+ 					ata_ehi_hotplugged(ehi);
+ 					ata_ehi_push_desc(ehi, ": hotplug");
+-				}
+-				else if(status & NV_ADMA_STAT_HOTUNPLUG) {
++				} else if (status & NV_ADMA_STAT_HOTUNPLUG) {
+ 					ata_ehi_hotplugged(ehi);
+ 					ata_ehi_push_desc(ehi, ": hot unplug");
+ 				}
+@@ -811,14 +808,15 @@ static irqreturn_t nv_adma_interrupt(int
+ 				      NV_ADMA_STAT_CPBERR)) {
+ 				/** Check CPBs for completed commands */
+ 
+-				if(ata_tag_valid(ap->active_tag))
++				if (ata_tag_valid(ap->active_tag)) {
+ 					/* Non-NCQ command */
+ 					nv_adma_check_cpb(ap, ap->active_tag,
+ 						notifier_error & (1 << ap->active_tag));
+-				else {
++				} else {
+ 					int pos, error = 0;
+ 					u32 active = ap->sactive;
+-					while( (pos = ffs(active)) && !error) {
++
++					while ((pos = ffs(active)) && !error) {
+ 						pos--;
+ 						error = nv_adma_check_cpb(ap, pos,
+ 							notifier_error & (1 << pos) );
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -76,6 +164,7 @@ git-ieee1394.patch
 git-input.patch
 git-libata-all.patch
 pata_platform-set_mode-fix.patch
+sata_nv-cleanup-adma-error-handling-v2.patch
 sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
 mm-ide-ide-acpi-support-warning-fix.patch
 git-lxdialog-fixup.patch
