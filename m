@@ -1,168 +1,220 @@
 From: akpm@osdl.org
-Subject: - sky2-fix-msi-related-resume-breakage.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 13:47:51 -0800
-Message-ID: <200701302147.l0ULlpCO030219@shell0.pdx.osdl.net>
+Subject: - namespaces-fix-exit-race-by-splitting-exit.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 13:46:22 -0800
+Message-ID: <200701302146.l0ULkMJD030095@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52000 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52011 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751940AbXA3Vrz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 16:47:55 -0500
+	id S1751960AbXA3VsA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 16:48:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, mm-commits@vger.kernel.org
+To: serue@us.ibm.com, clg@fr.ibm.com, daniel@hozac.com, ebiederm@xmission.com, herbert@13thfloor.at, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sky2: fix MSI related resume breakage
+     namespaces: fix exit race by splitting exit
 has been removed from the -mm tree.  Its filename was
-     sky2-fix-msi-related-resume-breakage.patch
+     namespaces-fix-exit-race-by-splitting-exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sky2: fix MSI related resume breakage
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: namespaces: fix exit race by splitting exit
+From: Serge E. Hallyn <serue@us.ibm.com>
 
-commmit 44ade178249fe53d055fd92113eaa271e06acddd breaks sane
-MSI/ACPI/BIOS combinations. It's impossible to keep broken and sane
-MSI/ACPI/BIOSes happy at the same time.
+Fix exit race by splitting the nsproxy putting into two pieces.  First
+piece reduces the nsproxy refcount.  If we dropped the last reference, then
+it puts the mnt_ns, and returns the nsproxy as a hint to the caller.  Else
+it returns NULL.  The second piece of exiting task namespaces sets
+tsk->nsproxy to NULL, and drops the references to other namespaces and
+frees the nsproxy only if an nsproxy was passed in.
 
-Revert the patch and disable MSI for sky2 when CONFIG_PM is enabled.
+A little awkward and should probably be reworked, but hopefully it fixes
+the NFS oops.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/sky2.c |   28 ++++------------------------
- 1 file changed, 4 insertions(+), 24 deletions(-)
+ include/linux/nsproxy.h |   30 +++++++++++++++++++-----------
+ kernel/exit.c           |    6 ++++--
+ kernel/fork.c           |    4 ++--
+ kernel/nsproxy.c        |   16 +++++++++++++++-
+ 4 files changed, 40 insertions(+), 16 deletions(-)
 
-diff -puN drivers/net/sky2.c~sky2-fix-msi-related-resume-breakage drivers/net/sky2.c
---- a/drivers/net/sky2.c~sky2-fix-msi-related-resume-breakage
-+++ a/drivers/net/sky2.c
-@@ -91,7 +91,11 @@ static int copybreak __read_mostly = 128
- module_param(copybreak, int, 0);
- MODULE_PARM_DESC(copybreak, "Receive copy threshold");
+diff -puN include/linux/nsproxy.h~namespaces-fix-exit-race-by-splitting-exit include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~namespaces-fix-exit-race-by-splitting-exit
++++ a/include/linux/nsproxy.h
+@@ -35,22 +35,30 @@ struct nsproxy *dup_namespaces(struct ns
+ int copy_namespaces(int flags, struct task_struct *tsk);
+ void get_task_namespaces(struct task_struct *tsk);
+ void free_nsproxy(struct nsproxy *ns);
++struct nsproxy *put_nsproxy(struct nsproxy *ns);
  
-+#ifdef CONFIG_PM
-+static int disable_msi = 1;
-+#else
- static int disable_msi = 0;
-+#endif
- module_param(disable_msi, int, 0);
- MODULE_PARM_DESC(disable_msi, "Disable Message Signaled Interrupt (MSI)");
- 
-@@ -3614,28 +3618,6 @@ out:
- 	return err;
+-static inline void put_nsproxy(struct nsproxy *ns)
++static inline void finalize_put_nsproxy(struct nsproxy *ns)
+ {
+-	if (atomic_dec_and_test(&ns->count)) {
++	if (ns)
+ 		free_nsproxy(ns);
+-	}
  }
  
--/* BIOS resume runs after device (it's a bug in PM)
-- * as a temporary workaround on suspend/resume leave MSI disabled
-- */
--static int sky2_suspend_late(struct pci_dev *pdev, pm_message_t state)
--{
--	struct sky2_hw *hw = pci_get_drvdata(pdev);
--
--	free_irq(pdev->irq, hw);
--	if (hw->msi) {
--		pci_disable_msi(pdev);
--		hw->msi = 0;
+-static inline void exit_task_namespaces(struct task_struct *p)
++static inline void put_and_finalize_nsproxy(struct nsproxy *ns)
+ {
+-	struct nsproxy *ns = p->nsproxy;
+-	if (ns) {
+-		task_lock(p);
+-		p->nsproxy = NULL;
+-		task_unlock(p);
+-		put_nsproxy(ns);
 -	}
--	return 0;
--}
--
--static int sky2_resume_early(struct pci_dev *pdev)
--{
--	struct sky2_hw *hw = pci_get_drvdata(pdev);
--	struct net_device *dev = hw->dev[0];
--
--	return request_irq(pdev->irq, sky2_intr, IRQF_SHARED, dev->name, hw);
--}
++	finalize_put_nsproxy(put_nsproxy(ns));
++}
++
++static inline struct nsproxy *preexit_task_namespaces(struct task_struct *p)
++{
++	return put_nsproxy(p->nsproxy);
++}
++
++static inline void exit_task_namespaces(struct task_struct *p,
++						struct nsproxy *ns)
++{
++	task_lock(p);
++	p->nsproxy = NULL;
++	task_unlock(p);
++	finalize_put_nsproxy(ns);
+ }
  #endif
+diff -puN kernel/exit.c~namespaces-fix-exit-race-by-splitting-exit kernel/exit.c
+--- a/kernel/exit.c~namespaces-fix-exit-race-by-splitting-exit
++++ a/kernel/exit.c
+@@ -396,7 +396,7 @@ void daemonize(const char *name, ...)
+ 	current->fs = fs;
+ 	atomic_inc(&fs->count);
  
- static struct pci_driver sky2_driver = {
-@@ -3646,8 +3628,6 @@ static struct pci_driver sky2_driver = {
- #ifdef CONFIG_PM
- 	.suspend = sky2_suspend,
- 	.resume = sky2_resume,
--	.suspend_late = sky2_suspend_late,
--	.resume_early = sky2_resume_early,
- #endif
- };
+-	exit_task_namespaces(current);
++	put_and_finalize_nsproxy(current->nsproxy);
+ 	current->nsproxy = init_task.nsproxy;
+ 	get_task_namespaces(current);
  
+@@ -853,6 +853,7 @@ static void exit_notify(struct task_stru
+ fastcall NORET_TYPE void do_exit(long code)
+ {
+ 	struct task_struct *tsk = current;
++	struct nsproxy *ns;
+ 	int group_dead;
+ 
+ 	profile_task_exit(tsk);
+@@ -938,8 +939,9 @@ fastcall NORET_TYPE void do_exit(long co
+ 
+ 	tsk->exit_code = code;
+ 	proc_exit_connector(tsk);
++	ns = preexit_task_namespaces(tsk);
+ 	exit_notify(tsk);
+-	exit_task_namespaces(tsk);
++	exit_task_namespaces(tsk, ns);
+ #ifdef CONFIG_NUMA
+ 	mpol_free(tsk->mempolicy);
+ 	tsk->mempolicy = NULL;
+diff -puN kernel/fork.c~namespaces-fix-exit-race-by-splitting-exit kernel/fork.c
+--- a/kernel/fork.c~namespaces-fix-exit-race-by-splitting-exit
++++ a/kernel/fork.c
+@@ -1265,7 +1265,7 @@ static struct task_struct *copy_process(
+ 	return p;
+ 
+ bad_fork_cleanup_namespaces:
+-	exit_task_namespaces(p);
++	put_and_finalize_nsproxy(p->nsproxy);
+ bad_fork_cleanup_keys:
+ 	exit_keys(p);
+ bad_fork_cleanup_mm:
+@@ -1711,7 +1711,7 @@ asmlinkage long sys_unshare(unsigned lon
+ 	}
+ 
+ 	if (new_nsproxy)
+-		put_nsproxy(new_nsproxy);
++		put_and_finalize_nsproxy(new_nsproxy);
+ 
+ bad_unshare_cleanup_ipc:
+ 	if (new_ipc)
+diff -puN kernel/nsproxy.c~namespaces-fix-exit-race-by-splitting-exit kernel/nsproxy.c
+--- a/kernel/nsproxy.c~namespaces-fix-exit-race-by-splitting-exit
++++ a/kernel/nsproxy.c
+@@ -117,7 +117,7 @@ int copy_namespaces(int flags, struct ta
+ 		goto out_pid;
+ 
+ out:
+-	put_nsproxy(old_ns);
++	put_and_finalize_nsproxy(old_ns);
+ 	return err;
+ 
+ out_pid:
+@@ -135,6 +135,20 @@ out_ns:
+ 	goto out;
+ }
+ 
++struct nsproxy *put_nsproxy(struct nsproxy *ns)
++{
++	if (ns) {
++		if (atomic_dec_and_test(&ns->count)) {
++			if (ns->mnt_ns) {
++				put_mnt_ns(ns->mnt_ns);
++				ns->mnt_ns = NULL;
++			}
++			return ns;
++		}
++	}
++	return NULL;
++}
++
+ void free_nsproxy(struct nsproxy *ns)
+ {
+ 	if (ns->mnt_ns)
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 origin.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-git-block.patch
-use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-add-irq-flag-to-disable-balancing-for-an-interrupt.patch
-add-a-functions-to-handle-interrupt-affinity-setting.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-hz-free-ntp.patch
-uninline-jiffiesh-functions.patch
-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-fix-timeout-overflow-with-jiffies.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-i386-remove-useless-code-in-tscc.patch
-simplify-the-registration-of-clocksources.patch
-x86-rewrite-smp-tsc-sync-code.patch
-clocksource-replace-is_continuous-by-a-flag-field.patch
-clocksource-replace-is_continuous-by-a-flag-field-fix.patch
-clocksource-fixup-is_continous-changes-on-arm.patch
-clocksource-fixup-is_continous-changes-on-avr32.patch
-clocksource-fixup-is_continous-changes-on-s390.patch
-clocksource-fixup-is_continous-changes-on-mips.patch
-clocksource-remove-the-update-callback.patch
-clocksource-add-verification-watchdog-helper.patch
-mark-tsc-on-geodelx-reliable.patch
-uninline-irq_enter.patch
-fix-cascade-lookup-of-next_timer_interrupt.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-fix-missing-include-for-up.patch
-acpi-keep-track-of-timer-broadcasting.patch
-allow-early-access-to-the-power-management-timer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-add-core-functionality.patch
-tick-management-core-functionality.patch
-tick-management-broadcast-functionality.patch
-tick-management-dyntick--highres-functionality.patch
-tick-management-dyntick--highres-functionality-fix.patch
-tick-management-dyntick--highres-functionality-fix-2.patch
-clockevents-i383-drivers.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-for-dyntick.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-hrtimers-add-high-resolution-timer-support.patch
-hrtimers-prevent-possible-itimer-dos.patch
-add-debugging-feature-proc-timer_stat.patch
-add-debugging-feature-proc-timer_list.patch
-add-sysrq-q-to-print-timer_list-debug-info.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-hpet-fixup-clocksource-changes.patch
-time-x86_64-tsc-fixup-clocksource-changes.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
-scheduled-removal-of-sa_xxx-interrupt-flags.patch
+implement-file-posix-capabilities.patch
+file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
+file-capabilities-honor-secure_noroot.patch
+introduce-and-use-get_task_mnt_ns.patch
+introduce-and-use-get_task_mnt_ns-tweaks.patch
+nsproxy-externalizes-exit_task_namespaces.patch
+nsproxy-externalizes-exit_task_namespaces-fix.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-the-framework-fix.patch
+user-namespace-add-the-framework-fixes.patch
+user-ns-add-user_namespace-ptr-to-vfsmount.patch
+user-ns-add-user_namespace-ptr-to-vfsmount-fixes.patch
+user-ns-hook-permission.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
+user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs-fix.patch
+user-ns-implement-shared-mounts.patch
+user-ns-implement-shared-mounts-fixes.patch
+user_ns-handle-file-sigio.patch
+user_ns-handle-file-sigio-fix.patch
+user_ns-handle-file-sigio-fix-2.patch
+user-ns-implement-user-ns-unshare.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+rename-attach_pid-to-find_attach_pid.patch
+attach_pid-with-struct-pid-parameter.patch
+remove-find_attach_pid.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-sid-of-init.patch
+uts-namespace-remove-config_uts_ns.patch
+ipc-namespace-remove-config_ipc_ns.patch
+ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
+ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
+integrity-service-api-and-dummy-provider-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file.patch
+sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
