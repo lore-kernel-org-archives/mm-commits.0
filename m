@@ -1,140 +1,88 @@
 From: akpm@osdl.org
-Subject: - fs_enet-of-related-fixup-for-fec-and-scc-macs.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 13:47:43 -0800
-Message-ID: <200701302147.l0ULlhfZ030201@shell0.pdx.osdl.net>
+Subject: - uml-fix-mknod.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 13:46:25 -0800
+Message-ID: <200701302146.l0ULkPqV030098@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52003 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52058 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751943AbXA3Vr4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 16:47:56 -0500
+	id S1751827AbXA3Vsp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 16:48:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbordug@ru.mvista.com, mm-commits@vger.kernel.org
+To: js@linuxtv.org, blaisorblade@yahoo.it, jdike@addtoit.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     FS_ENET: OF-related fixup for FEC and SCC MAC's
+     uml: fix mknod
 has been removed from the -mm tree.  Its filename was
-     fs_enet-of-related-fixup-for-fec-and-scc-macs.patch
+     uml-fix-mknod.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: FS_ENET: OF-related fixup for FEC and SCC MAC's
-From: Vitaly Bordug <vbordug@ru.mvista.com>
+Subject: uml: fix mknod
+From: Johannes Stezenbach <js@linuxtv.org>
 
-Updated direct resource pass with ioremap call, make it grant proper IRQ
-mapping, stuff incompatible with the new approach were respectively put
-under #ifndef CONFIG_PPC_MERGE.  It is required so that both ppc and
-powerpc could utilize fs_enet effectively.
+Fix UML hostfs mknod(): userspace has differernt dev_t size and encoding
+than kernel, so extract major/minor and reencode using glibc makedev()
+macro.
 
-Signed-off-by: Vitaly Bordug <vbordug@ru.mvista.com>
+Signed-off-by: Johannes Stezenbach <js@linuxtv.org>
+Acked-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/fs_enet/mac-fec.c |   13 +++++++++----
- drivers/net/fs_enet/mac-scc.c |    6 ++++--
- drivers/net/phy/fixed.c       |    2 +-
- 3 files changed, 14 insertions(+), 7 deletions(-)
+ fs/hostfs/hostfs.h      |    2 +-
+ fs/hostfs/hostfs_kern.c |    2 +-
+ fs/hostfs/hostfs_user.c |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/fs_enet/mac-fec.c~fs_enet-of-related-fixup-for-fec-and-scc-macs drivers/net/fs_enet/mac-fec.c
---- a/drivers/net/fs_enet/mac-fec.c~fs_enet-of-related-fixup-for-fec-and-scc-macs
-+++ a/drivers/net/fs_enet/mac-fec.c
-@@ -104,9 +104,9 @@ static int do_pd_setup(struct fs_enet_pr
- 	fep->interrupt = platform_get_irq_byname(pdev,"interrupt");
- 	if (fep->interrupt < 0)
- 		return -EINVAL;
--	
-+
- 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "regs");
--	fep->fec.fecp =(void*)r->start;
-+	fep->fec.fecp = ioremap(r->start, r->end - r->start + 1);
+diff -puN fs/hostfs/hostfs.h~uml-fix-mknod fs/hostfs/hostfs.h
+--- a/fs/hostfs/hostfs.h~uml-fix-mknod
++++ a/fs/hostfs/hostfs.h
+@@ -76,7 +76,7 @@ extern int make_symlink(const char *from
+ extern int unlink_file(const char *file);
+ extern int do_mkdir(const char *file, int mode);
+ extern int do_rmdir(const char *file);
+-extern int do_mknod(const char *file, int mode, int dev);
++extern int do_mknod(const char *file, int mode, unsigned int major, unsigned int minor);
+ extern int link_file(const char *from, const char *to);
+ extern int do_readlink(char *file, char *buf, int size);
+ extern int rename_file(char *from, char *to);
+diff -puN fs/hostfs/hostfs_kern.c~uml-fix-mknod fs/hostfs/hostfs_kern.c
+--- a/fs/hostfs/hostfs_kern.c~uml-fix-mknod
++++ a/fs/hostfs/hostfs_kern.c
+@@ -755,7 +755,7 @@ int hostfs_mknod(struct inode *dir, stru
+ 		goto out_put;
  
- 	if(fep->fec.fecp == NULL)
- 		return -EINVAL;
-@@ -319,11 +319,14 @@ static void restart(struct net_device *d
- 	 * Clear any outstanding interrupt.
- 	 */
- 	FW(fecp, ievent, 0xffc0);
-+#ifndef CONFIG_PPC_MERGE
- 	FW(fecp, ivec, (fep->interrupt / 2) << 29);
--	
-+#else
-+	FW(fecp, ivec, (virq_to_hw(fep->interrupt) / 2) << 29);
-+#endif
+ 	init_special_inode(inode, mode, dev);
+-	err = do_mknod(name, mode, dev);
++	err = do_mknod(name, mode, MAJOR(dev), MINOR(dev));
+ 	if(err)
+ 		goto out_free;
  
- 	/*
--	 * adjust to speed (only for DUET & RMII) 
-+	 * adjust to speed (only for DUET & RMII)
- 	 */
- #ifdef CONFIG_DUET
- 	if (fpi->use_rmii) {
-@@ -418,6 +421,7 @@ static void stop(struct net_device *dev)
- 
- static void pre_request_irq(struct net_device *dev, int irq)
- {
-+#ifndef CONFIG_PPC_MERGE
- 	immap_t *immap = fs_enet_immap;
- 	u32 siel;
- 
-@@ -431,6 +435,7 @@ static void pre_request_irq(struct net_d
- 			siel &= ~(0x80000000 >> (irq & ~1));
- 		out_be32(&immap->im_siu_conf.sc_siel, siel);
- 	}
-+#endif
+diff -puN fs/hostfs/hostfs_user.c~uml-fix-mknod fs/hostfs/hostfs_user.c
+--- a/fs/hostfs/hostfs_user.c~uml-fix-mknod
++++ a/fs/hostfs/hostfs_user.c
+@@ -295,11 +295,11 @@ int do_rmdir(const char *file)
+ 	return(0);
  }
  
- static void post_free_irq(struct net_device *dev, int irq)
-diff -puN drivers/net/fs_enet/mac-scc.c~fs_enet-of-related-fixup-for-fec-and-scc-macs drivers/net/fs_enet/mac-scc.c
---- a/drivers/net/fs_enet/mac-scc.c~fs_enet-of-related-fixup-for-fec-and-scc-macs
-+++ a/drivers/net/fs_enet/mac-scc.c
-@@ -121,13 +121,13 @@ static int do_pd_setup(struct fs_enet_pr
- 		return -EINVAL;
- 
- 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "regs");
--	fep->scc.sccp = (void *)r->start;
-+	fep->scc.sccp = ioremap(r->start, r->end - r->start + 1);
- 
- 	if (fep->scc.sccp == NULL)
- 		return -EINVAL;
- 
- 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pram");
--	fep->scc.ep = (void *)r->start;
-+	fep->scc.ep = ioremap(r->start, r->end - r->start + 1);
- 
- 	if (fep->scc.ep == NULL)
- 		return -EINVAL;
-@@ -397,6 +397,7 @@ static void stop(struct net_device *dev)
- 
- static void pre_request_irq(struct net_device *dev, int irq)
+-int do_mknod(const char *file, int mode, int dev)
++int do_mknod(const char *file, int mode, unsigned int major, unsigned int minor)
  {
-+#ifndef CONFIG_PPC_MERGE
- 	immap_t *immap = fs_enet_immap;
- 	u32 siel;
+ 	int err;
  
-@@ -410,6 +411,7 @@ static void pre_request_irq(struct net_d
- 			siel &= ~(0x80000000 >> (irq & ~1));
- 		out_be32(&immap->im_siu_conf.sc_siel, siel);
- 	}
-+#endif
+-	err = mknod(file, mode, dev);
++	err = mknod(file, mode, makedev(major, minor));
+ 	if(err) return(-errno);
+ 	return(0);
  }
- 
- static void post_free_irq(struct net_device *dev, int irq)
-diff -puN drivers/net/phy/fixed.c~fs_enet-of-related-fixup-for-fec-and-scc-macs drivers/net/phy/fixed.c
---- a/drivers/net/phy/fixed.c~fs_enet-of-related-fixup-for-fec-and-scc-macs
-+++ a/drivers/net/phy/fixed.c
-@@ -349,7 +349,7 @@ static int __init fixed_init(void)
- 	fixed_mdio_register_device(0, 100, 1);
- #endif
- 
--#ifdef CONFIX_FIXED_MII_10_FDX
-+#ifdef CONFIG_FIXED_MII_10_FDX
- 	fixed_mdio_register_device(0, 10, 1);
- #endif
- 	return 0;
 _
 
-Patches currently in -mm which might be from vbordug@ru.mvista.com are
+Patches currently in -mm which might be from js@linuxtv.org are
 
 origin.patch
