@@ -1,141 +1,107 @@
 From: akpm@osdl.org
-Subject: - sata_nv-cleanup-adma-error-handling-v2-cleanup.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 00:57:57 -0800
-Message-ID: <200701300857.l0U8vvRm013927@shell0.pdx.osdl.net>
+Subject: + _proc_do_string-fix-short-reads.patch added to -mm tree
+Date: Tue, 30 Jan 2007 02:25:07 -0800
+Message-ID: <200701301025.l0UAP7wW015358@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49306 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52241 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965067AbXA3I6P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 03:58:15 -0500
+	id S1752651AbXA3KZU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 05:25:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, AMartin@nvidia.com, hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, ebiederm@xmission.com, oleg@tv-sign.ru
 
 
 The patch titled
-     sata_nv-cleanup-adma-error-handling-v2-cleanup
-has been removed from the -mm tree.  Its filename was
-     sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
+     _proc_do_string(): fix short reads
+has been added to the -mm tree.  Its filename is
+     _proc_do_string-fix-short-reads.patch
 
-This patch was dropped because it was folded into sata_nv-cleanup-adma-error-handling-v2.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: sata_nv-cleanup-adma-error-handling-v2-cleanup
+Subject: _proc_do_string(): fix short reads
 From: Andrew Morton <akpm@osdl.org>
 
-Many coding-style fixes...
+If you try to read things like /proc/sys/kernel/osrelease with single-byte
+reads, you get just one byte and then EOF.  This is because _proc_do_string()
+assumes that the caller is read()ing into a buffer which is large enough to
+fit the whole string in a single hit.
 
-Cc: Robert Hancock <hancockr@shaw.ca>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Allen Martin <AMartin@nvidia.com>
+Fix.
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/sata_nv.c |   36 +++++++++++++++++-------------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ kernel/sysctl.c |   37 ++++++++++++++++++++++++++++---------
+ 1 file changed, 28 insertions(+), 9 deletions(-)
 
-diff -puN drivers/ata/sata_nv.c~sata_nv-cleanup-adma-error-handling-v2-cleanup drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~sata_nv-cleanup-adma-error-handling-v2-cleanup
-+++ a/drivers/ata/sata_nv.c
-@@ -653,34 +653,32 @@ static int nv_adma_check_cpb(struct ata_
- 
- 	VPRINTK("CPB %d, flags=0x%x\n", cpb_num, flags);
- 
--	if(unlikely((force_err ||
-+	if (unlikely((force_err ||
- 		     flags & (NV_CPB_RESP_ATA_ERR |
- 			      NV_CPB_RESP_CMD_ERR |
- 			      NV_CPB_RESP_CPB_ERR)))) {
- 		struct ata_eh_info *ehi = &ap->eh_info;
- 		int freeze = 0;
+diff -puN kernel/sysctl.c~_proc_do_string-fix-short-reads kernel/sysctl.c
+--- a/kernel/sysctl.c~_proc_do_string-fix-short-reads
++++ a/kernel/sysctl.c
+@@ -1687,8 +1687,7 @@ static int _proc_do_string(void* data, i
+ 	char __user *p;
+ 	char c;
+ 	
+-	if (!data || !maxlen || !*lenp ||
+-	    (*ppos && !write)) {
++	if (!data || !maxlen || !*lenp) {
+ 		*lenp = 0;
+ 		return 0;
+ 	}
+@@ -1710,18 +1709,38 @@ static int _proc_do_string(void* data, i
+ 		((char *) data)[len] = 0;
+ 		*ppos += *lenp;
+ 	} else {
+-		len = strlen(data);
++		loff_t pos = *ppos;
++		const size_t slen = strlen(data);
 +
- 		ata_ehi_clear_desc(ehi);
- 		ata_ehi_push_desc(ehi, "CPB resp_flags 0x%x", flags );
--		if(flags & NV_CPB_RESP_ATA_ERR) {
-+		if (flags & NV_CPB_RESP_ATA_ERR) {
- 			ata_ehi_push_desc(ehi, ": ATA error");
- 			ehi->err_mask |= AC_ERR_DEV;
--		}
--		else if(flags & NV_CPB_RESP_CMD_ERR) {
-+		} else if (flags & NV_CPB_RESP_CMD_ERR) {
- 			ata_ehi_push_desc(ehi, ": CMD error");
- 			ehi->err_mask |= AC_ERR_DEV;
--		}
--		else if(flags & NV_CPB_RESP_CPB_ERR) {
-+		} else if (flags & NV_CPB_RESP_CPB_ERR) {
- 			ata_ehi_push_desc(ehi, ": CPB error");
- 			ehi->err_mask |= AC_ERR_SYSTEM;
- 			freeze = 1;
--		}
--		else {
-+		} else {
- 			/* notifier error, but no error in CPB flags? */
- 			ehi->err_mask |= AC_ERR_OTHER;
- 			freeze = 1;
++		/*
++		 * len is the amount of data to copy, and becomes the amount of
++		 * data which was copied
++		 */
++		len = slen;
++		if (pos > len) {
++			*lenp = 0;
++			return 0;
++		}
+ 		if (len > maxlen)
+ 			len = maxlen;
+ 		if (len > *lenp)
+ 			len = *lenp;
+-		if (len)
+-			if(copy_to_user(buffer, data, len))
+-				return -EFAULT;
+-		if (len < *lenp) {
+-			if(put_user('\n', ((char __user *) buffer) + len))
++		/* Don't copy past the end of the string */
++		if (len > slen - pos)
++			len = slen - pos;
++		data += pos;
++		/* Copy as much of the string as we can */
++		if (len) {
++			if (copy_to_user(buffer, data, len))
+ 				return -EFAULT;
+-			len++;
++		}
++		/* If we copied the whole string, now write a \n */
++		if (len + pos == slen) {
++			if (len + pos < maxlen) {
++				if (put_user('\n', (char __user *)buffer + len))
++					return -EFAULT;
++				len++;
++			}
  		}
- 		/* Kill all commands. EH will determine what actually failed. */
--		if(freeze)
-+		if (freeze)
- 			ata_port_freeze(ap);
- 		else
- 			ata_port_abort(ap);
-@@ -690,11 +688,11 @@ static int nv_adma_check_cpb(struct ata_
- 	if (flags & NV_CPB_RESP_DONE) {
- 		struct ata_queued_cmd *qc = ata_qc_from_tag(ap, cpb_num);
- 		VPRINTK("CPB flags done, flags=0x%x\n", flags);
--		if(likely(qc)) {
-+		if (likely(qc)) {
- 			/* Grab the ATA port status for non-NCQ commands.
- 			   For NCQ commands the current status may have nothing to do with
- 			   the command just completed. */
--			if(qc->tf.protocol != ATA_PROT_NCQ) {
-+			if (qc->tf.protocol != ATA_PROT_NCQ) {
- 				u8 ata_status = readb(pp->ctl_block + (ATA_REG_STATUS * 4));
- 				qc->err_mask |= ac_err_mask(ata_status);
- 			}
-@@ -789,17 +787,16 @@ static irqreturn_t nv_adma_interrupt(int
- 					       NV_ADMA_STAT_HOTUNPLUG |
- 					       NV_ADMA_STAT_TIMEOUT))) {
- 				struct ata_eh_info *ehi = &ap->eh_info;
-+
- 				ata_ehi_clear_desc(ehi);
- 				ata_ehi_push_desc(ehi, "ADMA status 0x%08x", status );
--				if(status & NV_ADMA_STAT_TIMEOUT) {
-+				if (status & NV_ADMA_STAT_TIMEOUT) {
- 					ehi->err_mask |= AC_ERR_SYSTEM;
- 					ata_ehi_push_desc(ehi, ": timeout");
--				}
--				else if(status & NV_ADMA_STAT_HOTPLUG) {
-+				} else if (status & NV_ADMA_STAT_HOTPLUG) {
- 					ata_ehi_hotplugged(ehi);
- 					ata_ehi_push_desc(ehi, ": hotplug");
--				}
--				else if(status & NV_ADMA_STAT_HOTUNPLUG) {
-+				} else if (status & NV_ADMA_STAT_HOTUNPLUG) {
- 					ata_ehi_hotplugged(ehi);
- 					ata_ehi_push_desc(ehi, ": hot unplug");
- 				}
-@@ -811,14 +808,15 @@ static irqreturn_t nv_adma_interrupt(int
- 				      NV_ADMA_STAT_CPBERR)) {
- 				/** Check CPBs for completed commands */
- 
--				if(ata_tag_valid(ap->active_tag))
-+				if (ata_tag_valid(ap->active_tag)) {
- 					/* Non-NCQ command */
- 					nv_adma_check_cpb(ap, ap->active_tag,
- 						notifier_error & (1 << ap->active_tag));
--				else {
-+				} else {
- 					int pos, error = 0;
- 					u32 active = ap->sactive;
--					while( (pos = ffs(active)) && !error) {
-+
-+					while ((pos = ffs(active)) && !error) {
- 						pos--;
- 						error = nv_adma_check_cpb(ap, pos,
- 							notifier_error & (1 << pos) );
+ 		*lenp = len;
+ 		*ppos += len;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -165,7 +131,6 @@ git-input.patch
 git-libata-all.patch
 pata_platform-set_mode-fix.patch
 sata_nv-cleanup-adma-error-handling-v2.patch
-sata_nv-cleanup-adma-error-handling-v2-cleanup.patch
 mm-ide-ide-acpi-support-warning-fix.patch
 git-lxdialog-fixup.patch
 git-mips-kconfig-fix.patch
@@ -176,6 +141,7 @@ git-ubi.patch
 git-netdev-all.patch
 git-netdev-all-atl1-build-fix.patch
 git-netdev-all-atl1-pm-fix.patch
+git-netdev-all-chelsio-fix.patch
 82596-warning-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
@@ -229,6 +195,7 @@ proc_misc-warning-fix.patch
 rtc-framework-driver-for-cmos-rtcs-fix.patch
 rtc-framework-driver-for-cmos-rtcs-fix-2.patch
 return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
+_proc_do_string-fix-short-reads.patch
 spi-controller-driver-for-omap-microwire-tidy.patch
 spi-controller-driver-for-omap-microwire-update-fix.patch
 mips-convert-to-use-shared-apm-emulation-fix.patch
@@ -330,5 +297,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-_proc_do_string-fix-short-reads.patch
-git-netdev-all-chelsio-fix.patch
