@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-vmx-reload-ds-and-es-even-in-64-bit-mode.patch added to -mm tree
-Date: Tue, 30 Jan 2007 16:36:49 -0800
-Message-ID: <200701310036.l0V0ancs002566@shell0.pdx.osdl.net>
+Subject: + kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace.patch added to -mm tree
+Date: Tue, 30 Jan 2007 16:36:41 -0800
+Message-ID: <200701310036.l0V0afVQ002554@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58800 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58782 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752115AbXAaAgx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 19:36:53 -0500
+	id S1752131AbXAaAgp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 19:36:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     kvm: VMX: Reload ds and es even in 64-bit mode
+     kvm: vmx: handle triple faults by returning EXIT_REASON_SHUTDOWN to userspace
 has been added to the -mm tree.  Its filename is
-     kvm-vmx-reload-ds-and-es-even-in-64-bit-mode.patch
+     kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kvm: VMX: Reload ds and es even in 64-bit mode
+Subject: kvm: vmx: handle triple faults by returning EXIT_REASON_SHUTDOWN to userspace
 From: Avi Kivity <avi@qumranet.com>
 
-Or 32-bit userspace will get confused.
+Just like svm.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/vmx.c |    2 --
- 1 files changed, 2 deletions(-)
+ drivers/kvm/vmx.c |    6 ++++++
+ drivers/kvm/vmx.h |    1 +
+ 2 files changed, 7 insertions(+)
 
-diff -puN drivers/kvm/vmx.c~kvm-vmx-reload-ds-and-es-even-in-64-bit-mode drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-vmx-reload-ds-and-es-even-in-64-bit-mode
+diff -puN drivers/kvm/vmx.c~kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace
 +++ a/drivers/kvm/vmx.c
-@@ -1863,9 +1863,7 @@ again:
- 	fx_restore(vcpu->host_fx_image);
- 	vcpu->interrupt_window_open = (vmcs_read32(GUEST_INTERRUPTIBILITY_INFO) & 3) == 0;
+@@ -1373,6 +1373,11 @@ static int handle_external_interrupt(str
+ 	return 1;
+ }
  
--#ifndef CONFIG_X86_64
- 	asm ("mov %0, %%ds; mov %0, %%es" : : "r"(__USER_DS));
--#endif
++static int handle_triple_fault(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
++{
++	kvm_run->exit_reason = KVM_EXIT_SHUTDOWN;
++	return 0;
++}
  
- 	kvm_run->exit_type = 0;
- 	if (fail) {
+ static int get_io_count(struct kvm_vcpu *vcpu, u64 *count)
+ {
+@@ -1633,6 +1638,7 @@ static int (*kvm_vmx_exit_handlers[])(st
+ 				      struct kvm_run *kvm_run) = {
+ 	[EXIT_REASON_EXCEPTION_NMI]           = handle_exception,
+ 	[EXIT_REASON_EXTERNAL_INTERRUPT]      = handle_external_interrupt,
++	[EXIT_REASON_TRIPLE_FAULT]            = handle_triple_fault,
+ 	[EXIT_REASON_IO_INSTRUCTION]          = handle_io,
+ 	[EXIT_REASON_CR_ACCESS]               = handle_cr,
+ 	[EXIT_REASON_DR_ACCESS]               = handle_dr,
+diff -puN drivers/kvm/vmx.h~kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace drivers/kvm/vmx.h
+--- a/drivers/kvm/vmx.h~kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace
++++ a/drivers/kvm/vmx.h
+@@ -180,6 +180,7 @@ enum vmcs_field {
+ 
+ #define EXIT_REASON_EXCEPTION_NMI       0
+ #define EXIT_REASON_EXTERNAL_INTERRUPT  1
++#define EXIT_REASON_TRIPLE_FAULT        2
+ 
+ #define EXIT_REASON_PENDING_INTERRUPT   7
+ 
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
