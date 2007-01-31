@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + convert-ramfs-to-use-__set_page_dirty_no_writeback.patch added to -mm tree
-Date: Wed, 31 Jan 2007 15:49:18 -0800
-Message-ID: <200701312349.l0VNnIDd030368@shell0.pdx.osdl.net>
+Subject: + do-not-disturb-page-referenced-state-when-unmapping-memory-range.patch added to -mm tree
+Date: Wed, 31 Jan 2007 15:50:31 -0800
+Message-ID: <200701312350.l0VNoVpP030415@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59350 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59385 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161098AbXAaXtb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 18:49:31 -0500
+	id S964806AbXAaXun (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 18:50:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kenchen@google.com, a.p.zijlstra@chello.nl, hugh@veritas.com
 
 
 The patch titled
-     convert ramfs to use __set_page_dirty_no_writeback
+     do not disturb page referenced state when unmapping memory range
 has been added to the -mm tree.  Its filename is
-     convert-ramfs-to-use-__set_page_dirty_no_writeback.patch
+     do-not-disturb-page-referenced-state-when-unmapping-memory-range.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: convert ramfs to use __set_page_dirty_no_writeback
+Subject: do not disturb page referenced state when unmapping memory range
 From: "Ken Chen" <kenchen@google.com>
 
-As pointed out by Hugh, ramfs would also benefit from using the new
-set_page_dirty aop method for memory backed file systems.
+When kernel unmaps an address range, it needs to transfer PTE state into
+page struct.  Currently, kernel transfer access bit via
+mark_page_accessed().  The call to mark_page_accessed in the unmap path
+doesn't look logically correct.
 
-Signed-off-by: Ken Chen <kenchen@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+At unmap time, calling mark_page_accessed will causes page LRU state to be
+bumped up one step closer to more recently used state.  It is causing quite
+a bit headache in a scenario when a process creates a shmem segment, touch
+a whole bunch of pages, then unmaps it.  The unmapping takes a long time
+because mark_page_accessed() will start moving pages from inactive to
+active list.
+
+I'm not too much concerned with moving the page from one list to another in
+LRU.  Sooner or later it might be moved because of multiple mappings from
+various processes.  But it just doesn't look logical that when user asks a
+range to be unmapped, it's his intention that the process is no longer
+interested in these pages.  Moving those pages to active list (or bumping
+up a state towards more active) seems to be an over reaction.  It also
+prolongs unmapping latency which is the core issue I'm trying to solve.
+
+As suggested by Peter, we should still preserve the info on pte young
+pages, but not more.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Ken Chen <kenchen@google.com>
 Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ramfs/file-mmu.c   |    2 +-
- fs/ramfs/file-nommu.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ramfs/file-mmu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback fs/ramfs/file-mmu.c
---- a/fs/ramfs/file-mmu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback
-+++ a/fs/ramfs/file-mmu.c
-@@ -31,7 +31,7 @@ const struct address_space_operations ra
- 	.readpage	= simple_readpage,
- 	.prepare_write	= simple_prepare_write,
- 	.commit_write	= simple_commit_write,
--	.set_page_dirty = __set_page_dirty_nobuffers,
-+	.set_page_dirty = __set_page_dirty_no_writeback,
- };
- 
- const struct file_operations ramfs_file_operations = {
-diff -puN fs/ramfs/file-nommu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback
-+++ a/fs/ramfs/file-nommu.c
-@@ -32,7 +32,7 @@ const struct address_space_operations ra
- 	.readpage		= simple_readpage,
- 	.prepare_write		= simple_prepare_write,
- 	.commit_write		= simple_commit_write,
--	.set_page_dirty = __set_page_dirty_nobuffers,
-+	.set_page_dirty		= __set_page_dirty_no_writeback,
- };
- 
- const struct file_operations ramfs_file_operations = {
+diff -puN mm/memory.c~do-not-disturb-page-referenced-state-when-unmapping-memory-range mm/memory.c
+--- a/mm/memory.c~do-not-disturb-page-referenced-state-when-unmapping-memory-range
++++ a/mm/memory.c
+@@ -678,7 +678,7 @@ static unsigned long zap_pte_range(struc
+ 				if (pte_dirty(ptent))
+ 					set_page_dirty(page);
+ 				if (pte_young(ptent))
+-					mark_page_accessed(page);
++					SetPageReferenced(page);
+ 				file_rss--;
+ 			}
+ 			page_remove_rmap(page, vma);
 _
 
 Patches currently in -mm which might be from kenchen@google.com are
 
 simplify-shmem_aopsset_page_dirty-method.patch
 convert-ramfs-to-use-__set_page_dirty_no_writeback.patch
+do-not-disturb-page-referenced-state-when-unmapping-memory-range.patch
