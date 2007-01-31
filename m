@@ -1,109 +1,69 @@
 From: akpm@osdl.org
-Subject: - net-remove-remaining-traces-of-config_e100_napi-for-pro-100.patch removed from -mm tree
-Date: Wed, 31 Jan 2007 11:03:10 -0800
-Message-ID: <200701311903.l0VJ3Asl023886@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-driver-sys-modules-holders.patch added to -mm tree
+Date: Wed, 31 Jan 2007 13:43:56 -0800
+Message-ID: <200701312143.l0VLhuv9027559@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43546 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53016 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933340AbXAaTDa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 14:03:30 -0500
+	id S933352AbXAaVoJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 16:44:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, auke-jan.h.kok@intel.com, jeff@garzik.org, john.ronciak@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: grant_lkml@dodo.com.au, gcoady.lk@gmail.com, greg@kroah.com
 
 
 The patch titled
-     net: remove remaining traces of "CONFIG_E100_NAPI" for PRO/100
-has been removed from the -mm tree.  Its filename was
-     net-remove-remaining-traces-of-config_e100_napi-for-pro-100.patch
+     kernel/params.c: compile fail when CONFIG_SYSFS not set
+has been added to the -mm tree.  Its filename is
+     fix-gregkh-driver-sys-modules-holders.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: net: remove remaining traces of "CONFIG_E100_NAPI" for PRO/100
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: kernel/params.c: compile fail when CONFIG_SYSFS not set
+From: Grant Coady <grant_lkml@dodo.com.au>
 
-Remove the final two conditionals for the obsolete CONFIG_E100_NAPI kernel
-config option.
+kernel/profile.c:247: warning: 'profile_flip_buffers' defined but not used
+kernel/profile.c:270: warning: 'profile_discard_flip_buffers' defined but not used
+kernel/profile.c:337: warning: 'profile_cpu_callback' defined but not used
+kernel/params.c:700: error: `module_uevent_ops' undeclared here (not in a function)
+kernel/params.c:700: error: initializer element is not constant
+kernel/params.c:700: error: (near initialization for `module_subsys.kset.uevent_ops')
+kernel/params.c:700: error: initializer element is not constant
+kernel/params.c:700: error: (near initialization for `module_subsys.kset')
+make[1]: *** [kernel/params.o] Error 1
+make: *** [kernel] Error 2
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: "Ronciak, John" <john.ronciak@intel.com>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Grant Coady <gcoady.lk@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/e100.c |    8 --------
- 1 files changed, 8 deletions(-)
+ kernel/params.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN drivers/net/e100.c~net-remove-remaining-traces-of-config_e100_napi-for-pro-100 drivers/net/e100.c
---- a/drivers/net/e100.c~net-remove-remaining-traces-of-config_e100_napi-for-pro-100
-+++ a/drivers/net/e100.c
-@@ -2664,10 +2664,6 @@ static int e100_suspend(struct pci_dev *
- 	struct net_device *netdev = pci_get_drvdata(pdev);
- 	struct nic *nic = netdev_priv(netdev);
+diff -puN kernel/params.c~fix-gregkh-driver-sys-modules-holders kernel/params.c
+--- a/kernel/params.c~fix-gregkh-driver-sys-modules-holders
++++ a/kernel/params.c
+@@ -691,6 +691,10 @@ static struct sysfs_ops module_sysfs_ops
+ 	.show = NULL,
+ 	.store = NULL,
+ };
++
++static struct kset_uevent_ops module_uevent_ops = {
++	.filter = NULL,
++};
+ #endif
  
--#ifdef CONFIG_E100_NAPI
--	if (netif_running(netdev))
--		netif_poll_disable(nic->netdev);
--#endif
- 	del_timer_sync(&nic->watchdog);
- 	netif_carrier_off(nic->netdev);
- 
-@@ -2713,10 +2709,6 @@ static void e100_shutdown(struct pci_dev
- 	struct net_device *netdev = pci_get_drvdata(pdev);
- 	struct nic *nic = netdev_priv(netdev);
- 
--#ifdef CONFIG_E100_NAPI
--	if (netif_running(netdev))
--		netif_poll_disable(nic->netdev);
--#endif
- 	del_timer_sync(&nic->watchdog);
- 	netif_carrier_off(nic->netdev);
- 
+ static struct kobj_type module_ktype = {
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from grant_lkml@dodo.com.au are
 
-origin.patch
-git-acpi.patch
-git-alsa.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-fix-apparent-typo-config_serial_cpm_smc.patch
-remove-the-unused-kernel-config-option-video_videobuf.patch
-change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
-net-remove-remaining-traces-of-config_e100_napi-for-pro-100.patch
-remove-unused-kernel-config-option-dlci_count.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-remove-unused-kernel-config-option-x86_xadd.patch
-uml-fix-apparent-config_64_bit-typo.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-lcd_device.patch
-remove-unused-kernel-config-option-paride_parport.patch
-fix-apparent-typo-config_lockdep_debug.patch
-add-is_power_of_2-checking-to-log2h.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+fix-gregkh-driver-sys-modules-holders.patch
+git-block-dupe-definitions.patch
