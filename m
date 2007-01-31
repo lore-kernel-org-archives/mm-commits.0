@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + r8169-fix-a-race-between-pci-probe-and-dev_open.patch added to -mm tree
-Date: Wed, 31 Jan 2007 13:53:03 -0800
-Message-ID: <200701312153.l0VLr3YA027764@shell0.pdx.osdl.net>
+Subject: + cxacru-poll-for-device-status-more-frequently.patch added to -mm tree
+Date: Wed, 31 Jan 2007 15:43:16 -0800
+Message-ID: <200701312343.l0VNhGlX030256@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53496 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59152 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161053AbXAaVxY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 16:53:24 -0500
+	id S1161086AbXAaXoD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 18:44:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: romieu@fr.zoreil.com, bwalle@suse.de, jeff@garzik.org
+Cc: simon@arlott.org, greg@kroah.com, simon@fire.lp0.eu
 
 
 The patch titled
-     r8169: fix a race between PCI probe and dev_open
+     cxacru: poll for device status more frequently
 has been added to the -mm tree.  Its filename is
-     r8169-fix-a-race-between-pci-probe-and-dev_open.patch
+     cxacru-poll-for-device-status-more-frequently.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r8169: fix a race between PCI probe and dev_open
-From: Francois Romieu <romieu@fr.zoreil.com>
+Subject: cxacru: poll for device status more frequently
+From: Simon Arlott <simon@arlott.org>
 
-Call chain:
--> rtl8169_init_one
-   -> register_netdev                  (dev_open starts to race...)
-   -> rtl8169_init_phy
-      -> rtl8169_set_speed
-         -> tp->set_speed
-         -> mod_timer(&tp->timer, ...) (if netif_running() is true)
+The device is only polled for status every 5 seconds yet status updates occur
+as often as every second - when the line is down the status changes between
+"down" and "attempting to activate" every 2 seconds.
 
-As netif_running() is true just before dev->open() is issued and the
-timer is initialized during dev->open, mod_timer() meets an uninitialized
-tp->timer and oopses.
-
-rtl8169_init_phy is only used on rtl8169_init_one so it's fine to never
-ask it to activate the timer: the racing dev->open will do it anyway.
-
-Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Bernhard Walle <bwalle@suse.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/r8169.c |    2 +-
+ drivers/usb/atm/cxacru.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/r8169.c~r8169-fix-a-race-between-pci-probe-and-dev_open drivers/net/r8169.c
---- a/drivers/net/r8169.c~r8169-fix-a-race-between-pci-probe-and-dev_open
-+++ a/drivers/net/r8169.c
-@@ -1448,7 +1448,7 @@ static void rtl8169_init_phy(struct net_
+diff -puN drivers/usb/atm/cxacru.c~cxacru-poll-for-device-status-more-frequently drivers/usb/atm/cxacru.c
+--- a/drivers/usb/atm/cxacru.c~cxacru-poll-for-device-status-more-frequently
++++ a/drivers/usb/atm/cxacru.c
+@@ -64,7 +64,7 @@ static const char cxacru_driver_name[] =
+ #define SDRAM_ENA	0x1
  
- 	rtl8169_phy_reset(dev, tp);
+ #define CMD_TIMEOUT	2000	/* msecs */
+-#define POLL_INTERVAL	5000	/* msecs */
++#define POLL_INTERVAL	500	/* msecs */
  
--	rtl8169_set_speed(dev, autoneg, speed, duplex);
-+	tp->set_speed(dev, autoneg, speed, duplex);
- 
- 	if ((RTL_R8(PHYstatus) & TBI_Enable) && netif_msg_link(tp))
- 		printk(KERN_INFO PFX "%s: TBI auto-negotiating\n", dev->name);
+ /* commands for interaction with the modem through the control channel before
+  * firmware is loaded  */
 _
 
-Patches currently in -mm which might be from romieu@fr.zoreil.com are
+Patches currently in -mm which might be from simon@arlott.org are
 
-r8169-fix-a-race-between-pci-probe-and-dev_open.patch
-git-netdev-all.patch
-r8169-warning-fixes.patch
+usbatm-allow-sub-drivers-to-handle-calls-to-atm_proc_read.patch
+cxacru-poll-for-device-status-more-frequently.patch
+cxacru-store-all-device-status-information-and-report-it-when-atm_proc_read-is-called.patch
