@@ -1,82 +1,158 @@
 From: akpm@osdl.org
-Subject: - have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 16:53:36 -0800
-Message-ID: <200701310053.l0V0raof003035@shell0.pdx.osdl.net>
+Subject: + efi-x86-pass-firmware-call-parameters-on-the-stack.patch added to -mm tree
+Date: Tue, 30 Jan 2007 16:55:06 -0800
+Message-ID: <200701310055.l0V0t6ee003091@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59736 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59768 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752158AbXAaAxv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 19:53:51 -0500
+	id S1752165AbXAaAzV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 19:55:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: frederic.riss@gmail.com, Matt_Domsch@dell.com, ak@suse.de, artiom.myaskouvskey@intel.com, bjorn.helgaas@hp.com
 
 
 The patch titled
-     inode numbering: have pipefs ensure i_ino uniqueness by calling iunique and hashing the inode
-has been removed from the -mm tree.  Its filename was
-     have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode.patch
+     EFI x86: pass firmware call parameters on the stack
+has been added to the -mm tree.  Its filename is
+     efi-x86-pass-firmware-call-parameters-on-the-stack.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: inode numbering: have pipefs ensure i_ino uniqueness by calling iunique and hashing the inode
-From: Jeff Layton <jlayton@redhat.com>
+Subject: EFI x86: pass firmware call parameters on the stack
+From: Frederic Riss <frederic.riss@gmail.com>
 
-This converts pipefs to use the new scheme.  Here we're calling iunique to get
-a unique i_ino value for the new inode, and then hashing it afterward.  We
-call iunique with a max_reserved value of 1 to avoid collision with the root
-inode.  Since the inode is now hashed, we need to take care that we end up in
-generic_delete_inode rather than generic_forget_inode or we'll create a nasty
-leak, so we clear_nlink when we destroy the pipe info.
+When calling into the EFI firmware, the parameters need to be passed on
+the stack. The recent change to use -mregparm=3 breaks x86 EFI support.
+This patch is needed to allow the new Intel-based Macs to suspend to ram
+(efi.get_time is called during the suspend phase).
 
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Frederic Riss <frederic.riss@gmail.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: <artiom.myaskouvskey@intel.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/pipe.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletion(-)
+ arch/i386/kernel/efi.c |   89 +++++++++++++++++++++++++++++++--------
+ 1 files changed, 73 insertions(+), 16 deletions(-)
 
-diff -puN fs/pipe.c~have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode fs/pipe.c
---- a/fs/pipe.c~have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode
-+++ a/fs/pipe.c
-@@ -871,6 +871,8 @@ static struct inode * get_pipe_inode(voi
- 	inode->i_uid = current->fsuid;
- 	inode->i_gid = current->fsgid;
- 	inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
-+	inode->i_ino = iunique(pipe_mnt->mnt_sb, 1);
-+	insert_inode_hash(inode);
- 
- 	return inode;
- 
-@@ -1003,6 +1005,11 @@ int do_pipe(int *fd)
- 	return error;
+diff -puN arch/i386/kernel/efi.c~efi-x86-pass-firmware-call-parameters-on-the-stack arch/i386/kernel/efi.c
+--- a/arch/i386/kernel/efi.c~efi-x86-pass-firmware-call-parameters-on-the-stack
++++ a/arch/i386/kernel/efi.c
+@@ -473,6 +473,70 @@ static inline void __init check_range_fo
  }
  
-+static struct super_operations pipefs_sops = {
-+	.statfs		= simple_statfs,
-+	.drop_inode	= generic_delete_inode,
-+};
-+
  /*
-  * pipefs should _never_ be mounted by userland - too much of security hassle,
-  * no real gain from having the whole whorehouse mounted. So we don't need
-@@ -1013,7 +1020,7 @@ static int pipefs_get_sb(struct file_sys
- 			 int flags, const char *dev_name, void *data,
- 			 struct vfsmount *mnt)
- {
--	return get_sb_pseudo(fs_type, "pipe:", NULL, PIPEFS_MAGIC, mnt);
-+	return get_sb_pseudo(fs_type, "pipe:", &pipefs_sops, PIPEFS_MAGIC, mnt);
++ * Wrap all the virtual calls in a way that forces the parameters on the stack.
++ */
++
++#define efi_call_virt(f, args...) \
++     ((efi_##f##_t __attribute__((regparm(0)))*)efi.systab->runtime->f)(args)
++
++static efi_status_t virt_efi_get_time(efi_time_t *tm, efi_time_cap_t *tc)
++{
++	return efi_call_virt(get_time, tm, tc);
++}
++
++static efi_status_t virt_efi_set_time (efi_time_t *tm)
++{
++	return efi_call_virt(set_time, tm);
++}
++
++static efi_status_t virt_efi_get_wakeup_time (efi_bool_t *enabled,
++					      efi_bool_t *pending,
++					      efi_time_t *tm)
++{
++	return efi_call_virt(get_wakeup_time, enabled, pending, tm);
++}
++
++static efi_status_t virt_efi_set_wakeup_time (efi_bool_t enabled,
++					      efi_time_t *tm)
++{
++	return efi_call_virt(set_wakeup_time, enabled, tm);
++}
++
++static efi_status_t virt_efi_get_variable (efi_char16_t *name,
++					   efi_guid_t *vendor, u32 *attr,
++					   unsigned long *data_size, void *data)
++{
++	return efi_call_virt(get_variable, name, vendor, attr, data_size, data);
++}
++
++static efi_status_t virt_efi_get_next_variable (unsigned long *name_size,
++						efi_char16_t *name,
++						efi_guid_t *vendor)
++{
++	return efi_call_virt(get_next_variable, name_size, name, vendor);
++}
++
++static efi_status_t virt_efi_set_variable (efi_char16_t *name,
++					   efi_guid_t *vendor,
++					   unsigned long attr,
++					   unsigned long data_size, void *data)
++{
++	return efi_call_virt(set_variable, name, vendor, attr, data_size, data);
++}
++
++static efi_status_t virt_efi_get_next_high_mono_count (u32 *count)
++{
++	return efi_call_virt(get_next_high_mono_count, count);
++}
++
++static void virt_efi_reset_system (int reset_type, efi_status_t status,
++				   unsigned long data_size,
++				   efi_char16_t *data)
++{
++	efi_call_virt(reset_system, reset_type, status, data_size, data);
++}
++
++/*
+  * This function will switch the EFI runtime services to virtual mode.
+  * Essentially, look through the EFI memmap and map every region that
+  * has the runtime attribute bit set in its memory descriptor and update
+@@ -525,22 +589,15 @@ void __init efi_enter_virtual_mode(void)
+ 	 * pointers in the runtime service table to the new virtual addresses.
+ 	 */
+ 
+-	efi.get_time = (efi_get_time_t *) efi.systab->runtime->get_time;
+-	efi.set_time = (efi_set_time_t *) efi.systab->runtime->set_time;
+-	efi.get_wakeup_time = (efi_get_wakeup_time_t *)
+-					efi.systab->runtime->get_wakeup_time;
+-	efi.set_wakeup_time = (efi_set_wakeup_time_t *)
+-					efi.systab->runtime->set_wakeup_time;
+-	efi.get_variable = (efi_get_variable_t *)
+-					efi.systab->runtime->get_variable;
+-	efi.get_next_variable = (efi_get_next_variable_t *)
+-					efi.systab->runtime->get_next_variable;
+-	efi.set_variable = (efi_set_variable_t *)
+-					efi.systab->runtime->set_variable;
+-	efi.get_next_high_mono_count = (efi_get_next_high_mono_count_t *)
+-					efi.systab->runtime->get_next_high_mono_count;
+-	efi.reset_system = (efi_reset_system_t *)
+-					efi.systab->runtime->reset_system;
++	efi.get_time = virt_efi_get_time;
++	efi.set_time = virt_efi_set_time;
++	efi.get_wakeup_time = virt_efi_get_wakeup_time;
++	efi.set_wakeup_time = virt_efi_set_wakeup_time;
++	efi.get_variable = virt_efi_get_variable;
++	efi.get_next_variable = virt_efi_get_next_variable;
++	efi.set_variable = virt_efi_set_variable;
++	efi.get_next_high_mono_count = virt_efi_get_next_high_mono_count;
++	efi.reset_system = virt_efi_reset_system;
  }
  
- static struct file_system_type pipe_fs_type = {
+ void __init
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from frederic.riss@gmail.com are
 
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
-have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode.patch
+origin.patch
+efi-x86-pass-firmware-call-parameters-on-the-stack.patch
