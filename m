@@ -1,77 +1,109 @@
 From: akpm@osdl.org
-Subject: + kvm-fix-lockup-on-32-bit-intel-hosts-with-nx-disabled-in-the.patch added to -mm tree
-Date: Wed, 31 Jan 2007 10:43:28 -0800
-Message-ID: <200701311843.l0VIhSJm023377@shell0.pdx.osdl.net>
+Subject: - net-remove-remaining-traces-of-config_e100_napi-for-pro-100.patch removed from -mm tree
+Date: Wed, 31 Jan 2007 11:03:10 -0800
+Message-ID: <200701311903.l0VJ3Asl023886@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42522 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43546 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933310AbXAaSo0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 13:44:26 -0500
+	id S933340AbXAaTDa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 14:03:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: avi@qumranet.com
+To: rpjday@mindspring.com, auke-jan.h.kok@intel.com, jeff@garzik.org, john.ronciak@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: fix lockup on 32-bit intel hosts with nx disabled in the bios
-has been added to the -mm tree.  Its filename is
-     kvm-fix-lockup-on-32-bit-intel-hosts-with-nx-disabled-in-the.patch
+     net: remove remaining traces of "CONFIG_E100_NAPI" for PRO/100
+has been removed from the -mm tree.  Its filename was
+     net-remove-remaining-traces-of-config_e100_napi-for-pro-100.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: KVM: fix lockup on 32-bit intel hosts with nx disabled in the bios
-From: Avi Kivity <avi@qumranet.com>
+Subject: net: remove remaining traces of "CONFIG_E100_NAPI" for PRO/100
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Intel hosts, without long mode, and with nx support disabled in the bios
-have an efer that is readable but not writable.  This causes a lockup on
-switch to guest mode (even though it should exit with reason 34 according
-to the documentation).
+Remove the final two conditionals for the obsolete CONFIG_E100_NAPI kernel
+config option.
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: "Ronciak, John" <john.ronciak@intel.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/vmx.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/e100.c |    8 --------
+ 1 files changed, 8 deletions(-)
 
-diff -puN drivers/kvm/vmx.c~kvm-fix-lockup-on-32-bit-intel-hosts-with-nx-disabled-in-the drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-fix-lockup-on-32-bit-intel-hosts-with-nx-disabled-in-the
-+++ a/drivers/kvm/vmx.c
-@@ -1116,6 +1116,8 @@ static int vmx_vcpu_setup(struct kvm_vcp
+diff -puN drivers/net/e100.c~net-remove-remaining-traces-of-config_e100_napi-for-pro-100 drivers/net/e100.c
+--- a/drivers/net/e100.c~net-remove-remaining-traces-of-config_e100_napi-for-pro-100
++++ a/drivers/net/e100.c
+@@ -2664,10 +2664,6 @@ static int e100_suspend(struct pci_dev *
+ 	struct net_device *netdev = pci_get_drvdata(pdev);
+ 	struct nic *nic = netdev_priv(netdev);
  
- 		if (rdmsr_safe(index, &data_low, &data_high) < 0)
- 			continue;
-+		if (wrmsr_safe(index, data_low, data_high) < 0)
-+			continue;
- 		data = data_low | ((u64)data_high << 32);
- 		vcpu->host_msrs[j].index = index;
- 		vcpu->host_msrs[j].reserved = 0;
+-#ifdef CONFIG_E100_NAPI
+-	if (netif_running(netdev))
+-		netif_poll_disable(nic->netdev);
+-#endif
+ 	del_timer_sync(&nic->watchdog);
+ 	netif_carrier_off(nic->netdev);
+ 
+@@ -2713,10 +2709,6 @@ static void e100_shutdown(struct pci_dev
+ 	struct net_device *netdev = pci_get_drvdata(pdev);
+ 	struct nic *nic = netdev_priv(netdev);
+ 
+-#ifdef CONFIG_E100_NAPI
+-	if (netif_running(netdev))
+-		netif_poll_disable(nic->netdev);
+-#endif
+ 	del_timer_sync(&nic->watchdog);
+ 	netif_carrier_off(nic->netdev);
+ 
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-kvm-fix-lockup-on-32-bit-intel-hosts-with-nx-disabled-in-the.patch
-fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
-kvm-optimize-inline-assembly.patch
-kvm-fix-asm-constraint-for-lldt-instruction.patch
-kvm-fix-gva_to_gpa.patch
-kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace.patch
-kvm-fix-mmu-going-crazy-of-guest-sets-cr0wp-==-0.patch
-kvm-svm-hack-initial-cpu-csbase-to-be-consistent-with-intel.patch
-kvm-two-way-apic-tpr-synchronization.patch
-kvm-vmx-reload-ds-and-es-even-in-64-bit-mode.patch
-kvm-fix-mismatch-between-32-bit-and-64-bit-abi.patch
-kvm-fix-vcpu-freeing-bug.patch
-hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch
-kvm-add-a-global-list-of-all-virtual-machines.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-kvm-vmx-add-vcpu_clear.patch
-kvm-cpu-hotplug-support.patch
-kvm-host-suspend-resume-support.patch
+git-acpi.patch
+git-alsa.patch
+ppc-use-syslog-macro-for-the-printk-log-level.patch
+fix-apparent-typo-config_serial_cpm_smc.patch
+remove-the-unused-kernel-config-option-video_videobuf.patch
+change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+net-remove-remaining-traces-of-config_e100_napi-for-pro-100.patch
+remove-unused-kernel-config-option-dlci_count.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+remove-unused-kernel-config-option-x86_xadd.patch
+uml-fix-apparent-config_64_bit-typo.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-a-couple-final-references-to-obsolete-verify_area.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
+remove-unused-kernel-config-option-lcd_device.patch
+remove-unused-kernel-config-option-paride_parport.patch
+fix-apparent-typo-config_lockdep_debug.patch
+add-is_power_of_2-checking-to-log2h.patch
+isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
+isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+isdn-rename-debug-option-config_serial_nopause_io.patch
+isdn-remove-defunct-test-emulator.patch
+isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
