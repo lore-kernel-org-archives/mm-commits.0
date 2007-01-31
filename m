@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + rename-ipw2100-debugging-macros-to-not-look-like-config.patch added to -mm tree
-Date: Wed, 31 Jan 2007 15:57:58 -0800
-Message-ID: <200701312357.l0VNvwNU030542@shell0.pdx.osdl.net>
+Subject: + tty-cleanup-release_mem.patch added to -mm tree
+Date: Wed, 31 Jan 2007 15:59:22 -0800
+Message-ID: <200701312359.l0VNxMYL030569@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59719 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59758 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933363AbXAaX6i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 18:58:38 -0500
+	id S933368AbXAaX7m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 18:59:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, linville@tuxdriver.com, yi.zhu@intel.com
+Cc: hch@lst.de, alan@redhat.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     Rename IPW2100 debugging macros to not look like config options
+     tty: cleanup release_mem
 has been added to the -mm tree.  Its filename is
-     rename-ipw2100-debugging-macros-to-not-look-like-config.patch
+     tty-cleanup-release_mem.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,135 +25,183 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Rename IPW2100 debugging macros to not look like config options
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: tty: cleanup release_mem
+From: Christoph Hellwig <hch@lst.de>
 
-Rename some internal ipw2100 debugging macros to not look like
-user-settable kernel config settings.
+release_mem contains two copies of exactly the same code.  Refactor these
+into a new helper, release_tty.  The only change in behaviour is that the
+driver reference count is now decremented after the master tty has been
+freed instead of before.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: "Zhu, Yi" <yi.zhu@intel.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+[penberg@cs.helsinki.fi: fix use-after-free in release_tty.]
+Cc: Alan Cox <alan@redhat.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/wireless/ipw2100.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/char/tty_io.c |   73 ++++++++++++++++++++--------------------
+ 1 files changed, 37 insertions(+), 36 deletions(-)
 
-diff -puN drivers/net/wireless/ipw2100.c~rename-ipw2100-debugging-macros-to-not-look-like-config drivers/net/wireless/ipw2100.c
---- a/drivers/net/wireless/ipw2100.c~rename-ipw2100-debugging-macros-to-not-look-like-config
-+++ a/drivers/net/wireless/ipw2100.c
-@@ -175,7 +175,7 @@ that only one external action is invoked
+diff -puN drivers/char/tty_io.c~tty-cleanup-release_mem drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-cleanup-release_mem
++++ a/drivers/char/tty_io.c
+@@ -154,7 +154,7 @@ static int tty_release(struct inode *, s
+ int tty_ioctl(struct inode * inode, struct file * file,
+ 	      unsigned int cmd, unsigned long arg);
+ static int tty_fasync(int fd, struct file * filp, int on);
+-static void release_mem(struct tty_struct *tty, int idx);
++static void release_tty(struct tty_struct *tty, int idx);
  
- /* Debugging stuff */
- #ifdef CONFIG_IPW2100_DEBUG
--#define CONFIG_IPW2100_RX_DEBUG	/* Reception debugging */
-+#define IPW2100_RX_DEBUG	/* Reception debugging */
- #endif
+ /**
+  *	alloc_tty_struct	-	allocate a tty object
+@@ -2002,7 +2002,7 @@ static int init_dev(struct tty_driver *d
  
- MODULE_DESCRIPTION(DRV_DESCRIPTION);
-@@ -2239,7 +2239,7 @@ static void ipw2100_snapshot_free(struct
- 	priv->snapshot[0] = NULL;
+ 	/* 
+ 	 * All structures have been allocated, so now we install them.
+-	 * Failures after this point use release_mem to clean up, so 
++	 * Failures after this point use release_tty to clean up, so
+ 	 * there's no need to null out the local pointers.
+ 	 */
+ 	if (!(driver->flags & TTY_DRIVER_DEVPTS_MEM)) {
+@@ -2023,8 +2023,8 @@ static int init_dev(struct tty_driver *d
+ 
+ 	/* 
+ 	 * Structures all installed ... call the ldisc open routines.
+-	 * If we fail here just call release_mem to clean up.  No need
+-	 * to decrement the use counts, as release_mem doesn't care.
++	 * If we fail here just call release_tty to clean up.  No need
++	 * to decrement the use counts, as release_tty doesn't care.
+ 	 */
+ 
+ 	if (tty->ldisc.open) {
+@@ -2094,17 +2094,17 @@ fail_no_mem:
+ 	retval = -ENOMEM;
+ 	goto end_init;
+ 
+-	/* call the tty release_mem routine to clean out this slot */
++	/* call the tty release_tty routine to clean out this slot */
+ release_mem_out:
+ 	if (printk_ratelimit())
+ 		printk(KERN_INFO "init_dev: ldisc open failed, "
+ 				 "clearing slot %d\n", idx);
+-	release_mem(tty, idx);
++	release_tty(tty, idx);
+ 	goto end_init;
  }
  
--#ifdef CONFIG_IPW2100_DEBUG_C3
-+#ifdef IPW2100_DEBUG_C3
- static int ipw2100_snapshot_alloc(struct ipw2100_priv *priv)
- {
- 	int i;
-@@ -2314,13 +2314,13 @@ static u32 ipw2100_match_buf(struct ipw2
-  * The size of the constructed ethernet
+ /**
+- *	release_mem		-	release tty structure memory
++ *	release_one_tty		-	release tty structure memory
   *
+  *	Releases memory associated with a tty structure, and clears out the
+  *	driver table slots. This function is called when a device is no longer
+@@ -2116,37 +2116,14 @@ release_mem_out:
+  *	of ttys that the driver keeps.
+  *		FIXME: should we require tty_mutex is held here ??
   */
--#ifdef CONFIG_IPW2100_RX_DEBUG
-+#ifdef IPW2100_RX_DEBUG
- static u8 packet_data[IPW_RX_NIC_BUFFER_LENGTH];
- #endif
- 
- static void ipw2100_corruption_detected(struct ipw2100_priv *priv, int i)
+-
+-static void release_mem(struct tty_struct *tty, int idx)
++static void release_one_tty(struct tty_struct *tty, int idx)
  {
--#ifdef CONFIG_IPW2100_DEBUG_C3
-+#ifdef IPW2100_DEBUG_C3
- 	struct ipw2100_status *status = &priv->status_queue.drv[i];
- 	u32 match, reg;
- 	int j;
-@@ -2342,7 +2342,7 @@ static void ipw2100_corruption_detected(
+-	struct tty_struct *o_tty;
+-	struct ktermios *tp;
+ 	int devpts = tty->driver->flags & TTY_DRIVER_DEVPTS_MEM;
+-
+-	if ((o_tty = tty->link) != NULL) {
+-		if (!devpts)
+-			o_tty->driver->ttys[idx] = NULL;
+-		if (o_tty->driver->flags & TTY_DRIVER_RESET_TERMIOS) {
+-			tp = o_tty->termios;
+-			if (!devpts)
+-				o_tty->driver->termios[idx] = NULL;
+-			kfree(tp);
+-
+-			tp = o_tty->termios_locked;
+-			if (!devpts)
+-				o_tty->driver->termios_locked[idx] = NULL;
+-			kfree(tp);
+-		}
+-		o_tty->magic = 0;
+-		o_tty->driver->refcount--;
+-		file_list_lock();
+-		list_del_init(&o_tty->tty_files);
+-		file_list_unlock();
+-		free_tty_struct(o_tty);
+-	}
++	struct ktermios *tp;
+ 
+ 	if (!devpts)
+ 		tty->driver->ttys[idx] = NULL;
++
+ 	if (tty->driver->flags & TTY_DRIVER_RESET_TERMIOS) {
+ 		tp = tty->termios;
+ 		if (!devpts)
+@@ -2159,15 +2136,39 @@ static void release_mem(struct tty_struc
+ 		kfree(tp);
  	}
- #endif
  
--#ifdef CONFIG_IPW2100_DEBUG_C3
-+#ifdef IPW2100_DEBUG_C3
- 	/* Halt the fimrware so we can get a good image */
- 	write_register(priv->net_dev, IPW_REG_RESET_REG,
- 		       IPW_AUX_HOST_RESET_REG_STOP_MASTER);
-@@ -2413,7 +2413,7 @@ static void isr_rx(struct ipw2100_priv *
++
+ 	tty->magic = 0;
+ 	tty->driver->refcount--;
++
+ 	file_list_lock();
+ 	list_del_init(&tty->tty_files);
+ 	file_list_unlock();
+-	module_put(tty->driver->owner);
++
+ 	free_tty_struct(tty);
+ }
  
- 	skb_put(packet->skb, status->frame_size);
++/**
++ *	release_tty		-	release tty structure memory
++ *
++ *	Release both @tty and a possible linked partner (think pty pair),
++ *	and decrement the refcount of the backing module.
++ *
++ *	Locking:
++ *		tty_mutex - sometimes only
++ *		takes the file list lock internally when working on the list
++ *	of ttys that the driver keeps.
++ *		FIXME: should we require tty_mutex is held here ??
++ */
++static void release_tty(struct tty_struct *tty, int idx)
++{
++	struct tty_driver *driver = tty->driver;
++
++	if (tty->link)
++		release_one_tty(tty->link, idx);
++	release_one_tty(tty, idx);
++	module_put(driver->owner);
++}
++
+ /*
+  * Even releasing the tty structures is a tricky business.. We have
+  * to be very careful that the structures are all released at the
+@@ -2435,10 +2436,10 @@ static void release_dev(struct file * fi
+ 		tty_set_termios_ldisc(o_tty,N_TTY); 
+ 	}
+ 	/*
+-	 * The release_mem function takes care of the details of clearing
++	 * The release_tty function takes care of the details of clearing
+ 	 * the slots and preserving the termios structure.
+ 	 */
+-	release_mem(tty, idx);
++	release_tty(tty, idx);
  
--#ifdef CONFIG_IPW2100_RX_DEBUG
-+#ifdef IPW2100_RX_DEBUG
- 	/* Make a copy of the frame so we can dump it to the logs if
- 	 * ieee80211_rx fails */
- 	memcpy(packet_data, packet->skb->data,
-@@ -2421,7 +2421,7 @@ static void isr_rx(struct ipw2100_priv *
- #endif
- 
- 	if (!ieee80211_rx(priv->ieee, packet->skb, stats)) {
--#ifdef CONFIG_IPW2100_RX_DEBUG
-+#ifdef IPW2100_RX_DEBUG
- 		IPW_DEBUG_DROP("%s: Non consumed packet:\n",
- 			       priv->net_dev->name);
- 		printk_buf(IPW_DL_DROP, packet_data, status->frame_size);
-@@ -4912,7 +4912,7 @@ static int ipw2100_set_power_mode(struct
- 	else
- 		priv->power_mode = IPW_POWER_ENABLED | power_level;
- 
--#ifdef CONFIG_IPW2100_TX_POWER
-+#ifdef IPW2100_TX_POWER
- 	if (priv->port_type == IBSS && priv->adhoc_power != DFTL_IBSS_TX_POWER) {
- 		/* Set beacon interval */
- 		cmd.host_command = TX_POWER_INDEX;
+ #ifdef CONFIG_UNIX98_PTYS
+ 	/* Make this pty number available for reallocation */
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-git-acpi.patch
-git-alsa.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-fix-apparent-typo-config_serial_cpm_smc.patch
-remove-the-unused-kernel-config-option-video_videobuf.patch
-change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
-remove-unused-kernel-config-option-dlci_count.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-rename-ipw2100-debugging-macros-to-not-look-like-config.patch
-remove-unused-kernel-config-option-x86_xadd.patch
-uml-fix-apparent-config_64_bit-typo.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-lcd_device.patch
-remove-unused-kernel-config-option-paride_parport.patch
-fix-apparent-typo-config_lockdep_debug.patch
-add-is_power_of_2-checking-to-log2h.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+git-drm.patch
+git-scsi-misc.patch
+slab-cache-alloc-cleanups.patch
+simplify-the-stacktrace-code.patch
+make-bh_unwritten-a-first-class-bufferhead-flag-v2.patch
+make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
+tty-cleanup-release_mem.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
+aio-is-unlikely.patch
