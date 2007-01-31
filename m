@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-fix-mmu-going-crazy-of-guest-sets-cr0wp-==-0.patch added to -mm tree
-Date: Tue, 30 Jan 2007 16:36:43 -0800
-Message-ID: <200701310036.l0V0ahNm002557@shell0.pdx.osdl.net>
+Subject: + kvm-fix-mismatch-between-32-bit-and-64-bit-abi.patch added to -mm tree
+Date: Tue, 30 Jan 2007 16:36:51 -0800
+Message-ID: <200701310036.l0V0aplH002569@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58790 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58806 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752131AbXAaAgq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 19:36:46 -0500
+	id S932077AbXAaAg7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 19:36:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     kvm: Fix mmu going crazy of guest sets cr0.wp == 0
+     kvm: Fix mismatch between 32-bit and 64-bit abi
 has been added to the -mm tree.  Its filename is
-     kvm-fix-mmu-going-crazy-of-guest-sets-cr0wp-==-0.patch
+     kvm-fix-mismatch-between-32-bit-and-64-bit-abi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kvm: Fix mmu going crazy of guest sets cr0.wp == 0
+Subject: kvm: Fix mismatch between 32-bit and 64-bit abi
 From: Avi Kivity <avi@qumranet.com>
 
-The kvm mmu relies on cr0.wp being set even if the guest does not set it.  The
-vmx code correctly forces cr0.wp at all times, the svm code does not, so it
-can't boot solaris without this patch.
+Unfortunately requiring a version bump.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/svm.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kvm.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/kvm/svm.c~kvm-fix-mmu-going-crazy-of-guest-sets-cr0wp-==-0 drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-fix-mmu-going-crazy-of-guest-sets-cr0wp-==-0
-+++ a/drivers/kvm/svm.c
-@@ -723,7 +723,7 @@ static void svm_set_cr0(struct kvm_vcpu 
- 	}
- #endif
- 	vcpu->svm->cr0 = cr0;
--	vcpu->svm->vmcb->save.cr0 = cr0 | CR0_PG_MASK;
-+	vcpu->svm->vmcb->save.cr0 = cr0 | CR0_PG_MASK | CR0_WP_MASK;
- 	vcpu->cr0 = cr0;
- }
+diff -puN include/linux/kvm.h~kvm-fix-mismatch-between-32-bit-and-64-bit-abi include/linux/kvm.h
+--- a/include/linux/kvm.h~kvm-fix-mismatch-between-32-bit-and-64-bit-abi
++++ a/include/linux/kvm.h
+@@ -11,7 +11,7 @@
+ #include <asm/types.h>
+ #include <linux/ioctl.h>
  
+-#define KVM_API_VERSION 2
++#define KVM_API_VERSION 3
+ 
+ /*
+  * Architectural interrupt line count, and the size of the bitmap needed
+@@ -187,6 +187,7 @@ struct kvm_translation {
+ 	__u8  valid;
+ 	__u8  writeable;
+ 	__u8  usermode;
++	__u8  pad[5];
+ };
+ 
+ /* for KVM_INTERRUPT */
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
