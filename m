@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + usbatm-allow-sub-drivers-to-handle-calls-to-atm_proc_read.patch added to -mm tree
-Date: Wed, 31 Jan 2007 15:43:14 -0800
-Message-ID: <200701312343.l0VNhEQJ030253@shell0.pdx.osdl.net>
+Subject: + simplify-shmem_aopsset_page_dirty-method.patch added to -mm tree
+Date: Wed, 31 Jan 2007 15:49:05 -0800
+Message-ID: <200701312349.l0VNn5ig030362@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59157 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59333 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161097AbXAaXoJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 18:44:09 -0500
+	id S1161064AbXAaXtV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 18:49:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: simon@arlott.org, greg@kroah.com, simon@fire.lp0.eu
+Cc: kenchen@google.com, a.p.zijlstra@chello.nl, hugh@veritas.com
 
 
 The patch titled
-     usbatm: allow sub-drivers to handle calls to atm_proc_read
+     simplify shmem_aops.set_page_dirty() method
 has been added to the -mm tree.  Its filename is
-     usbatm-allow-sub-drivers-to-handle-calls-to-atm_proc_read.patch
+     simplify-shmem_aopsset_page_dirty-method.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usbatm: allow sub-drivers to handle calls to atm_proc_read
-From: Simon Arlott <simon@arlott.org>
+Subject: simplify shmem_aops.set_page_dirty() method
+From: "Ken Chen" <kenchen@google.com>
 
-usbatm only outputs basic information via the per-device /proc/net/atm/ file,
-this patch allows the device specific USB ATM drivers to replace the
-atm_proc_read function with their own.
+shmem backed file does not have page writeback, nor it participates in
+backing device's dirty or writeback accounting.  So using generic
+__set_page_dirty_nobuffers() for its .set_page_dirty aops method is a bit
+overkill.  It unnecessarily prolongs shm unmap latency.
 
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
-Cc: Greg KH <greg@kroah.com>
+For example, on a densely populated large shm segment (sevearl GBs), the
+unmapping operation becomes painfully long.  Because at unmap, kernel
+transfers dirty bit in PTE into page struct and to the radix tree tag.  The
+operation of tagging the radix tree is particularly expensive because it
+has to traverse the tree from the root to the leaf node on every dirty
+page.  What's bothering is that radix tree tag is used for page write back.
+ However, shmem is memory backed and there is no page write back for such
+file system.  And in the end, we spend all that time tagging radix tree and
+none of that fancy tagging will be used.  So let's simplify it by introduce
+a new aops __set_page_dirty_no_writeback and this will speed up shm unmap.
+
+Signed-off-by: Ken Chen <kenchen@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/atm/usbatm.c |    3 +++
- drivers/usb/atm/usbatm.h |    3 +++
- 2 files changed, 6 insertions(+)
+ include/linux/mm.h  |    1 +
+ mm/page-writeback.c |   10 ++++++++++
+ mm/shmem.c          |    2 +-
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/atm/usbatm.c~usbatm-allow-sub-drivers-to-handle-calls-to-atm_proc_read drivers/usb/atm/usbatm.c
---- a/drivers/usb/atm/usbatm.c~usbatm-allow-sub-drivers-to-handle-calls-to-atm_proc_read
-+++ a/drivers/usb/atm/usbatm.c
-@@ -761,6 +761,9 @@ static int usbatm_atm_proc_read(struct a
- 		return -ENODEV;
- 	}
+diff -puN include/linux/mm.h~simplify-shmem_aopsset_page_dirty-method include/linux/mm.h
+--- a/include/linux/mm.h~simplify-shmem_aopsset_page_dirty-method
++++ a/include/linux/mm.h
+@@ -785,6 +785,7 @@ extern int try_to_release_page(struct pa
+ extern void do_invalidatepage(struct page *page, unsigned long offset);
  
-+	if (instance->driver->proc_read != NULL)
-+		return instance->driver->proc_read(instance, atm_dev, pos, page);
+ int __set_page_dirty_nobuffers(struct page *page);
++int __set_page_dirty_no_writeback(struct page *page);
+ int redirty_page_for_writepage(struct writeback_control *wbc,
+ 				struct page *page);
+ int FASTCALL(set_page_dirty(struct page *page));
+diff -puN mm/page-writeback.c~simplify-shmem_aopsset_page_dirty-method mm/page-writeback.c
+--- a/mm/page-writeback.c~simplify-shmem_aopsset_page_dirty-method
++++ a/mm/page-writeback.c
+@@ -743,6 +743,16 @@ int write_one_page(struct page *page, in
+ EXPORT_SYMBOL(write_one_page);
+ 
+ /*
++ * For address_spaces which do not use buffers nor write back.
++ */
++int __set_page_dirty_no_writeback(struct page *page)
++{
++	if (!PageDirty(page))
++		SetPageDirty(page);
++	return 0;
++}
 +
- 	if (!left--)
- 		return sprintf(page, "%s\n", instance->description);
++/*
+  * For address_spaces which do not use buffers.  Just tag the page as dirty in
+  * its radix tree.
+  *
+diff -puN mm/shmem.c~simplify-shmem_aopsset_page_dirty-method mm/shmem.c
+--- a/mm/shmem.c~simplify-shmem_aopsset_page_dirty-method
++++ a/mm/shmem.c
+@@ -2315,7 +2315,7 @@ static void destroy_inodecache(void)
  
-diff -puN drivers/usb/atm/usbatm.h~usbatm-allow-sub-drivers-to-handle-calls-to-atm_proc_read drivers/usb/atm/usbatm.h
---- a/drivers/usb/atm/usbatm.h~usbatm-allow-sub-drivers-to-handle-calls-to-atm_proc_read
-+++ a/drivers/usb/atm/usbatm.h
-@@ -121,6 +121,9 @@ struct usbatm_driver {
- 	/* cleanup ATM device ... can sleep, but can't fail */
- 	void (*atm_stop) (struct usbatm_data *, struct atm_dev *);
- 
-+	/* called when the proc file is read */
-+	int (*proc_read) (struct usbatm_data *, struct atm_dev *, loff_t * pos, char *page);
-+
-         int bulk_in;	/* bulk rx endpoint */
-         int isoc_in;	/* isochronous rx endpoint */
-         int bulk_out;	/* bulk tx endpoint */
+ static const struct address_space_operations shmem_aops = {
+ 	.writepage	= shmem_writepage,
+-	.set_page_dirty	= __set_page_dirty_nobuffers,
++	.set_page_dirty	= __set_page_dirty_no_writeback,
+ #ifdef CONFIG_TMPFS
+ 	.prepare_write	= shmem_prepare_write,
+ 	.commit_write	= simple_commit_write,
 _
 
-Patches currently in -mm which might be from simon@arlott.org are
+Patches currently in -mm which might be from kenchen@google.com are
 
-usbatm-allow-sub-drivers-to-handle-calls-to-atm_proc_read.patch
-cxacru-poll-for-device-status-more-frequently.patch
-cxacru-store-all-device-status-information-and-report-it-when-atm_proc_read-is-called.patch
+simplify-shmem_aopsset_page_dirty-method.patch
+convert-ramfs-to-use-__set_page_dirty_no_writeback.patch
