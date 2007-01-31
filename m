@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + kvm-add-a-global-list-of-all-virtual-machines-tidy.patch added to -mm tree
-Date: Tue, 30 Jan 2007 16:51:28 -0800
-Message-ID: <200701310051.l0V0pSIG002967@shell0.pdx.osdl.net>
+Subject: + kvm-cpu-hotplug-support.patch added to -mm tree
+Date: Tue, 30 Jan 2007 16:51:32 -0800
+Message-ID: <200701310051.l0V0pW2i002973@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59613 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59616 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752140AbXAaAvs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 19:51:48 -0500
+	id S1752143AbXAaAvv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 19:51:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, avi@qumranet.com, mingo@elte.hu
+Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     kvm-add-a-global-list-of-all-virtual-machines tidy
+     KVM: cpu hotplug support
 has been added to the -mm tree.  Its filename is
-     kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
+     kvm-cpu-hotplug-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,223 +25,203 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kvm-add-a-global-list-of-all-virtual-machines tidy
-From: Andrew Morton <akpm@osdl.org>
+Subject: KVM: cpu hotplug support
+From: Avi Kivity <avi@qumranet.com>
 
-Use standard (ugly) initialisers.
+On hotplug, we execute the hardware extension enable sequence.  On unplug, we
+decache any vcpus that last ran on the exiting cpu, and execute the hardware
+extension disable sequence.
 
-Cc: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/kvm_main.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/kvm/kvm.h      |    1 
+ drivers/kvm/kvm_main.c |   64 +++++++++++++++++++++++++++++++++++++++
+ drivers/kvm/svm.c      |    5 +++
+ drivers/kvm/vmx.c      |    8 ++++
+ 4 files changed, 77 insertions(+), 1 deletion(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-add-a-global-list-of-all-virtual-machines-tidy drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-add-a-global-list-of-all-virtual-machines-tidy
+diff -puN drivers/kvm/kvm.h~kvm-cpu-hotplug-support drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-cpu-hotplug-support
++++ a/drivers/kvm/kvm.h
+@@ -341,6 +341,7 @@ struct kvm_arch_ops {
+ 
+ 	struct kvm_vcpu *(*vcpu_load)(struct kvm_vcpu *vcpu);
+ 	void (*vcpu_put)(struct kvm_vcpu *vcpu);
++	void (*vcpu_decache)(struct kvm_vcpu *vcpu);
+ 
+ 	int (*set_guest_debug)(struct kvm_vcpu *vcpu,
+ 			       struct kvm_debug_guest *dbg);
+diff -puN drivers/kvm/kvm_main.c~kvm-cpu-hotplug-support drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-cpu-hotplug-support
 +++ a/drivers/kvm/kvm_main.c
-@@ -41,8 +41,8 @@
- MODULE_AUTHOR("Qumranet");
- MODULE_LICENSE("GPL");
+@@ -34,6 +34,7 @@
+ #include <linux/highmem.h>
+ #include <linux/file.h>
+ #include <asm/desc.h>
++#include <linux/cpu.h>
  
--static spinlock_t kvm_lock = SPIN_LOCK_UNLOCKED;
--static struct list_head vm_list = LIST_HEAD_INIT(vm_list);
-+static DEFINE_SPINLOCK(kvm_lock);
-+static LIST_HEAD(vm_list);
+ #include "x86_emulate.h"
+ #include "segment_descriptor.h"
+@@ -2038,6 +2039,64 @@ static struct notifier_block kvm_reboot_
+ 	.priority = 0,
+ };
  
- struct kvm_arch_ops *kvm_arch_ops;
- struct kvm_stat kvm_stat;
++/*
++ * Make sure that a cpu that is being hot-unplugged does not have any vcpus
++ * cached on it.
++ */
++static void decache_vcpus_on_cpu(int cpu)
++{
++	struct kvm *vm;
++	struct kvm_vcpu *vcpu;
++	int i;
++
++	spin_lock(&kvm_lock);
++	list_for_each_entry(vm, &vm_list, vm_list)
++		for (i = 0; i < KVM_MAX_VCPUS; ++i) {
++			vcpu = &vm->vcpus[i];
++			/*
++			 * If the vcpu is locked, then it is running on some
++			 * other cpu and therefore it is not cached on the
++			 * cpu in question.
++			 *
++			 * If it's not locked, check the last cpu it executed
++			 * on.
++			 */
++			if (mutex_trylock(&vcpu->mutex)) {
++				if (vcpu->cpu == cpu) {
++					kvm_arch_ops->vcpu_decache(vcpu);
++					vcpu->cpu = -1;
++				}
++				mutex_unlock(&vcpu->mutex);
++			}
++		}
++	spin_unlock(&kvm_lock);
++}
++
++static int kvm_cpu_hotplug(struct notifier_block *notifier, unsigned long val,
++			   void *v)
++{
++	int cpu = (long)v;
++
++	switch (val) {
++	case CPU_DEAD:
++	case CPU_UP_CANCELED:
++		decache_vcpus_on_cpu(cpu);
++		smp_call_function_single(cpu, kvm_arch_ops->hardware_disable,
++					 NULL, 0, 1);
++		break;
++	case CPU_UP_PREPARE:
++		smp_call_function_single(cpu, kvm_arch_ops->hardware_enable,
++					 NULL, 0, 1);
++		break;
++	}
++	return NOTIFY_OK;
++}
++
++static struct notifier_block kvm_cpu_notifier = {
++	.notifier_call = kvm_cpu_hotplug,
++	.priority = 20, /* must be > scheduler priority */
++};
++
+ static __init void kvm_init_debug(void)
+ {
+ 	struct kvm_stats_debugfs_item *p;
+@@ -2084,6 +2143,9 @@ int kvm_init_arch(struct kvm_arch_ops *o
+ 	    return r;
+ 
+ 	on_each_cpu(kvm_arch_ops->hardware_enable, 0, 0, 1);
++	r = register_cpu_notifier(&kvm_cpu_notifier);
++	if (r)
++		goto out_free_1;
+ 	register_reboot_notifier(&kvm_reboot_notifier);
+ 
+ 	kvm_chardev_ops.owner = module;
+@@ -2098,6 +2160,8 @@ int kvm_init_arch(struct kvm_arch_ops *o
+ 
+ out_free:
+ 	unregister_reboot_notifier(&kvm_reboot_notifier);
++	unregister_cpu_notifier(&kvm_cpu_notifier);
++out_free_1:
+ 	on_each_cpu(kvm_arch_ops->hardware_disable, 0, 0, 1);
+ 	kvm_arch_ops->hardware_unsetup();
+ 	return r;
+diff -puN drivers/kvm/svm.c~kvm-cpu-hotplug-support drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-cpu-hotplug-support
++++ a/drivers/kvm/svm.c
+@@ -609,6 +609,10 @@ static void svm_vcpu_put(struct kvm_vcpu
+ 	put_cpu();
+ }
+ 
++static void svm_vcpu_decache(struct kvm_vcpu *vcpu)
++{
++}
++
+ static void svm_cache_regs(struct kvm_vcpu *vcpu)
+ {
+ 	vcpu->regs[VCPU_REGS_RAX] = vcpu->svm->vmcb->save.rax;
+@@ -1677,6 +1681,7 @@ static struct kvm_arch_ops svm_arch_ops 
+ 
+ 	.vcpu_load = svm_vcpu_load,
+ 	.vcpu_put = svm_vcpu_put,
++	.vcpu_decache = svm_vcpu_decache,
+ 
+ 	.set_guest_debug = svm_guest_debug,
+ 	.get_msr = svm_get_msr,
+diff -puN drivers/kvm/vmx.c~kvm-cpu-hotplug-support drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-cpu-hotplug-support
++++ a/drivers/kvm/vmx.c
+@@ -250,6 +250,11 @@ static void vmx_vcpu_put(struct kvm_vcpu
+ 	put_cpu();
+ }
+ 
++static void vmx_vcpu_decache(struct kvm_vcpu *vcpu)
++{
++	vcpu_clear(vcpu);
++}
++
+ static unsigned long vmx_get_rflags(struct kvm_vcpu *vcpu)
+ {
+ 	return vmcs_readl(GUEST_RFLAGS);
+@@ -509,7 +514,7 @@ static __init int vmx_disabled_by_bios(v
+ 	return (msr & 5) == 1; /* locked but not enabled */
+ }
+ 
+-static __init void hardware_enable(void *garbage)
++static void hardware_enable(void *garbage)
+ {
+ 	int cpu = raw_smp_processor_id();
+ 	u64 phys_addr = __pa(per_cpu(vmxarea, cpu));
+@@ -2021,6 +2026,7 @@ static struct kvm_arch_ops vmx_arch_ops 
+ 
+ 	.vcpu_load = vmx_vcpu_load,
+ 	.vcpu_put = vmx_vcpu_put,
++	.vcpu_decache = vmx_vcpu_decache,
+ 
+ 	.set_guest_debug = set_guest_debug,
+ 	.get_msr = vmx_get_msr,
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
-ntfs-kmap_atomic-atomicity-fix.patch
-x86-fix-vdso-mapping-for-aout-executables.patch
-mm-show-bounce-pages-in-oom-killer-output.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
-acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
-git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-powerpc-make-it-compile.patch
-git-dvb.patch
-dvb-video_buf-depends-on-pci.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-sata_nv-cleanup-adma-error-handling-v2.patch
-mm-ide-ide-acpi-support-warning-fix.patch
-git-lxdialog-fixup.patch
-git-mips-kconfig-fix.patch
-git-mips-prom_free_prom_memory-borkage.patch
-git-mmc.patch
-git-mmc-fixup.patch
-git-ubi.patch
-git-netdev-all.patch
-git-netdev-all-chelsio-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
-dccp-warning-fixes.patch
-netfilter-warning-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-nfs-fix-congestion-control-v4-tweaks.patch
-r8169-warning-fixes.patch
-make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
-sh-add-kconfig-default.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
-git-block-fixup.patch
-git-block-borkage.patch
-git-block-atomicity-fix.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-nokia-e70-is-an-unusual-device.patch
-git-ipwireless_cs.patch
-revert-x86_64-mm-msr-on-cpu.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-drop-free_pages-sparc64-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-introduce-and-use-get_task_mnt_ns-tweaks.patch
-user-ns-implement-user-ns-unshare-tidy.patch
-ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
-ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
-dynamic-kernel-command-line-ia64-fix.patch
-rcu-preemptible-rcu-fix.patch
+fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
+kvm-optimize-inline-assembly.patch
+kvm-fix-asm-constraint-for-lldt-instruction.patch
+kvm-fix-gva_to_gpa.patch
+kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace.patch
+kvm-fix-mmu-going-crazy-of-guest-sets-cr0wp-==-0.patch
+kvm-svm-hack-initial-cpu-csbase-to-be-consistent-with-intel.patch
+kvm-two-way-apic-tpr-synchronization.patch
+kvm-vmx-reload-ds-and-es-even-in-64-bit-mode.patch
+kvm-fix-mismatch-between-32-bit-and-64-bit-abi.patch
+kvm-fix-vcpu-freeing-bug.patch
+hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch
+kvm-add-a-global-list-of-all-virtual-machines.patch
 kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+kvm-vmx-add-vcpu_clear.patch
+kvm-cpu-hotplug-support.patch
+kvm-host-suspend-resume-support.patch
