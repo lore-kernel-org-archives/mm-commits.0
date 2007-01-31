@@ -1,54 +1,58 @@
 From: akpm@osdl.org
-Subject: - have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode-update.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 16:53:17 -0800
-Message-ID: <200701310053.l0V0rH80003031@shell0.pdx.osdl.net>
+Subject: - have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 16:53:36 -0800
+Message-ID: <200701310053.l0V0raof003035@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59725 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59736 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752151AbXAaAxf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 19:53:35 -0500
+	id S1752158AbXAaAxv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 19:53:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jlayton@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     replacement patch for pipefs and sockfs
+     inode numbering: have pipefs ensure i_ino uniqueness by calling iunique and hashing the inode
 has been removed from the -mm tree.  Its filename was
-     have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode-update.patch
+     have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode.patch
 
-This patch was dropped because it was folded into have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: replacement patch for pipefs and sockfs
+Subject: inode numbering: have pipefs ensure i_ino uniqueness by calling iunique and hashing the inode
 From: Jeff Layton <jlayton@redhat.com>
 
-pipefs declares its drop_inode function to be generic_delete_inode, which
-obviates the need to have the fs make certain that i_nlink is properly set at
-drop_inode time.
+This converts pipefs to use the new scheme.  Here we're calling iunique to get
+a unique i_ino value for the new inode, and then hashing it afterward.  We
+call iunique with a max_reserved value of 1 to avoid collision with the root
+inode.  Since the inode is now hashed, we need to take care that we end up in
+generic_delete_inode rather than generic_forget_inode or we'll create a nasty
+leak, so we clear_nlink when we destroy the pipe info.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/pipe.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/pipe.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN fs/pipe.c~have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode-update fs/pipe.c
---- a/fs/pipe.c~have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode-update
+diff -puN fs/pipe.c~have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode fs/pipe.c
+--- a/fs/pipe.c~have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode
 +++ a/fs/pipe.c
-@@ -825,7 +825,6 @@ void free_pipe_info(struct inode *inode)
- {
- 	__free_pipe_info(inode->i_pipe);
- 	inode->i_pipe = NULL;
--	clear_nlink(inode);
- }
+@@ -871,6 +871,8 @@ static struct inode * get_pipe_inode(voi
+ 	inode->i_uid = current->fsuid;
+ 	inode->i_gid = current->fsgid;
+ 	inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
++	inode->i_ino = iunique(pipe_mnt->mnt_sb, 1);
++	insert_inode_hash(inode);
  
- static struct vfsmount *pipe_mnt __read_mostly;
-@@ -1006,6 +1005,11 @@ int do_pipe(int *fd)
+ 	return inode;
+ 
+@@ -1003,6 +1005,11 @@ int do_pipe(int *fd)
  	return error;
  }
  
@@ -60,7 +64,7 @@ diff -puN fs/pipe.c~have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-h
  /*
   * pipefs should _never_ be mounted by userland - too much of security hassle,
   * no real gain from having the whole whorehouse mounted. So we don't need
-@@ -1016,7 +1020,7 @@ static int pipefs_get_sb(struct file_sys
+@@ -1013,7 +1020,7 @@ static int pipefs_get_sb(struct file_sys
  			 int flags, const char *dev_name, void *data,
  			 struct vfsmount *mnt)
  {
@@ -76,4 +80,3 @@ Patches currently in -mm which might be from jlayton@redhat.com are
 make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
 change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
 have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode.patch
-have-pipefs-ensure-i_ino-uniqueness-by-calling-iunique-and-hashing-the-inode-update.patch
