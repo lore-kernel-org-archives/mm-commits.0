@@ -1,48 +1,44 @@
 From: akpm@osdl.org
-Subject: + i2c-tsl2550-support.patch added to -mm tree
-Date: Tue, 30 Jan 2007 16:23:41 -0800
-Message-ID: <200701310023.l0V0NflL002274@shell0.pdx.osdl.net>
+Subject: - tsl2550-support-i2c-device-driver.patch removed from -mm tree
+Date: Tue, 30 Jan 2007 16:23:48 -0800
+Message-ID: <200701310023.l0V0NmDr002277@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58394 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58400 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752078AbXAaAYM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 19:24:12 -0500
+	id S1752087AbXAaAYY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 19:24:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: giometti@enneenne.com
+To: giometti@enneenne.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     I2C: TSL2550 support
-has been added to the -mm tree.  Its filename is
-     i2c-tsl2550-support.patch
+     TSL2550 support (I2C device driver)
+has been removed from the -mm tree.  Its filename was
+     tsl2550-support-i2c-device-driver.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: I2C: TSL2550 support
+Subject: TSL2550 support (I2C device driver)
 From: Rodolfo Giometti <giometti@enneenne.com>
 
-Add support for Taos TSL2550 ambient light sensors.
+Support for Taos TSL2550 ambient light sensors
 (http://www.taosinc.com/product_detail.asp?cateid=4&proid=18).
 
-Signed-off-by: Rodolfo Giometti <giometti@enneenne.com>
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
  drivers/i2c/chips/Kconfig   |   10 
  drivers/i2c/chips/Makefile  |    1 
- drivers/i2c/chips/tsl2550.c |  457 ++++++++++++++++++++++++++++++++++
+ drivers/i2c/chips/tsl2550.c |  445 ++++++++++++++++++++++++++++++++++
  include/linux/i2c-id.h      |    1 
- 4 files changed, 469 insertions(+)
+ 4 files changed, 457 insertions(+)
 
-diff -puN drivers/i2c/chips/Kconfig~i2c-tsl2550-support drivers/i2c/chips/Kconfig
---- a/drivers/i2c/chips/Kconfig~i2c-tsl2550-support
+diff -puN drivers/i2c/chips/Kconfig~tsl2550-support-i2c-device-driver drivers/i2c/chips/Kconfig
+--- a/drivers/i2c/chips/Kconfig~tsl2550-support-i2c-device-driver
 +++ a/drivers/i2c/chips/Kconfig
 @@ -125,4 +125,14 @@ config SENSORS_MAX6875
  	  This driver can also be built as a module.  If so, the module
@@ -59,8 +55,8 @@ diff -puN drivers/i2c/chips/Kconfig~i2c-tsl2550-support drivers/i2c/chips/Kconfi
 +	  will be called tsl2550.
 +
  endmenu
-diff -puN drivers/i2c/chips/Makefile~i2c-tsl2550-support drivers/i2c/chips/Makefile
---- a/drivers/i2c/chips/Makefile~i2c-tsl2550-support
+diff -puN drivers/i2c/chips/Makefile~tsl2550-support-i2c-device-driver drivers/i2c/chips/Makefile
+--- a/drivers/i2c/chips/Makefile~tsl2550-support-i2c-device-driver
 +++ a/drivers/i2c/chips/Makefile
 @@ -12,6 +12,7 @@ obj-$(CONFIG_SENSORS_PCF8574)	+= pcf8574
  obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
@@ -73,7 +69,7 @@ diff -puN drivers/i2c/chips/Makefile~i2c-tsl2550-support drivers/i2c/chips/Makef
 diff -puN /dev/null drivers/i2c/chips/tsl2550.c
 --- /dev/null
 +++ a/drivers/i2c/chips/tsl2550.c
-@@ -0,0 +1,457 @@
+@@ -0,0 +1,445 @@
 +/*
 + *  tsl2550.c - Linux kernel modules for ambient light sensor
 + *
@@ -108,7 +104,7 @@ diff -puN /dev/null drivers/i2c/chips/tsl2550.c
 +/* Insmod parameters */
 +I2C_CLIENT_INSMOD_1(tsl2550);
 +
-+static int operating_mode;
++static int operating_mode = 0;
 +module_param(operating_mode, int, 0);
 +MODULE_PARM_DESC(operating_mode,
 +	"Operating mode: 0 = standard (default), 1 = extended");
@@ -182,29 +178,20 @@ diff -puN /dev/null drivers/i2c/chips/tsl2550.c
 +static int tsl2550_get_adc_value(struct i2c_client *client, int channel)
 +{
 +	u8 cmd = channel == 0 ? TSL2550_READ_ADC0 : TSL2550_READ_ADC1;
-+	unsigned long end;
-+	int loop = 0, ret = 0;
++	int timeout, ret;
 +
 +	/* Read ADC channel waiting at most 400ms (see data sheet for further
-+         * info).
-+	 * To avoid long busy wait we spin for few milliseconds then
-+	 * start sleeping. */
-+	end = jiffies + msecs_to_jiffies(400);
-+	while (time_before(jiffies, end)) {
++         * info) */
++	for (timeout = 400; timeout > 0; timeout--) {
 +		i2c_smbus_write_byte(client, cmd);
-+
-+		if (loop++ < 5)
-+			mdelay(1);
-+		else
-+			msleep(1);
-+
++		mdelay(1);
 +		ret = i2c_smbus_read_byte(client);
 +		if (ret < 0)
 +			return ret;
 +		else if (ret & 0x0080)
 +			break;
 +	}
-+	if (!(ret & 0x0080))
++	if (timeout == 0)
 +		return -EIO;
 +	return ((u8) ret) & 0x7f;	/* remove the "valid" bit */
 +}
@@ -213,7 +200,7 @@ diff -puN /dev/null drivers/i2c/chips/tsl2550.c
 +
 +#define	TSL2550_MAX_LUX		1846
 +
-+static const u8 ratio_lut[] = {
++static u8 ratio_lut[] = {
 +	100, 100, 100, 100, 100, 100, 100, 100,
 +	100, 100, 100, 100, 100, 100, 99, 99,
 +	99, 99, 99, 99, 99, 99, 99, 99,
@@ -233,7 +220,7 @@ diff -puN /dev/null drivers/i2c/chips/tsl2550.c
 +	30,
 +};
 +
-+static const u16 count_lut[] = {
++static u16 count_lut[] = {
 +	0, 1, 2, 3, 4, 5, 6, 7,
 +	8, 9, 10, 11, 12, 13, 14, 15,
 +	16, 18, 20, 22, 24, 26, 28, 30,
@@ -415,8 +402,7 @@ diff -puN /dev/null drivers/i2c/chips/tsl2550.c
 +
 +	/* OK. For now, we presume we have a valid client. We now create the
 +	   client structure, even though we cannot fill it completely yet. */
-+	data = kzalloc(sizeof(struct tsl2550_data), GFP_KERNEL);
-+	if (!data) {
++	if (!(data = kzalloc(sizeof(struct tsl2550_data), GFP_KERNEL))) {
 +		err = -ENOMEM;
 +		goto exit;
 +	}
@@ -450,8 +436,7 @@ diff -puN /dev/null drivers/i2c/chips/tsl2550.c
 +	mutex_init(&data->update_lock);
 +
 +	/* Tell the I2C layer a new client has arrived */
-+	err = i2c_attach_client(new_client);
-+	if (err)
++	if ((err = i2c_attach_client(new_client)))
 +		goto exit_kfree;
 +
 +	/* Initialize the TSL2550 chip */
@@ -488,8 +473,7 @@ diff -puN /dev/null drivers/i2c/chips/tsl2550.c
 +
 +	sysfs_remove_group(&client->dev.kobj, &tsl2550_attr_group);
 +
-+	err = i2c_detach_client(client);
-+	if (err)
++	if ((err = i2c_detach_client(client)))
 +		return err;
 +
 +	kfree(i2c_get_clientdata(client));
@@ -531,10 +515,10 @@ diff -puN /dev/null drivers/i2c/chips/tsl2550.c
 +
 +module_init(tsl2550_init);
 +module_exit(tsl2550_exit);
-diff -puN include/linux/i2c-id.h~i2c-tsl2550-support include/linux/i2c-id.h
---- a/include/linux/i2c-id.h~i2c-tsl2550-support
+diff -puN include/linux/i2c-id.h~tsl2550-support-i2c-device-driver include/linux/i2c-id.h
+--- a/include/linux/i2c-id.h~tsl2550-support-i2c-device-driver
 +++ a/include/linux/i2c-id.h
-@@ -159,6 +159,7 @@
+@@ -157,6 +157,7 @@
  #define I2C_DRIVERID_FSCHER 1046
  #define I2C_DRIVERID_W83L785TS 1047
  #define I2C_DRIVERID_OV7670 1048	/* Omnivision 7670 camera */
