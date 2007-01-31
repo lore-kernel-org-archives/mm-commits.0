@@ -1,186 +1,265 @@
 From: akpm@osdl.org
-Subject: - fix-sys-device-power-state-regression.patch removed from -mm tree
-Date: Tue, 30 Jan 2007 18:37:29 -0800
-Message-ID: <200701310237.l0V2bTwu005157@shell0.pdx.osdl.net>
+Subject: + pci-remove-warning-messages.patch added to -mm tree
+Date: Tue, 30 Jan 2007 21:13:31 -0800
+Message-ID: <200701310513.l0V5DVaw008051@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34315 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37808 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932417AbXAaCiw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 21:38:52 -0500
+	id S932863AbXAaFNf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 00:13:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjg59@srcf.ucam.org, david-b@pacbell.net, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@osdl.org, galak@kernel.crashing.org, greg@kroah.com
 
 
 The patch titled
-     Fix /sys/device/.../power/state regression
-has been removed from the -mm tree.  Its filename was
-     fix-sys-device-power-state-regression.patch
+     pci: remove warning messages
+has been added to the -mm tree.  Its filename is
+     pci-remove-warning-messages.patch
 
-This patch was dropped because it was nacked by the maintainer
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Fix /sys/device/.../power/state regression
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: pci: remove warning messages
+From: Andrew Morton <akpm@osdl.org>
 
-In 2.6.19, support for splitting driver suspend and resume callbacks into
-interrupt and non-interrupt contexts was added.  Unfortunately, this broke
-/sys/device/.../power/state support for all devices.  In the long run, this
-should be obsoleted by power management support in the individual drivers -
-however, in the case of network drivers (for example), currently only three
-drivers implement any sort of useful run-time power management.
+Remove these recently-added warnings.  They don't tell us anythng very
+interesting and Kumar says "On an embedded PPC reference system I see this
+message 6 times when I've got no cards in the PCI slots."
 
-This patch allows the bus driver to check whether a specific driver
-requires the split.  If not, the 2.6.18 functionality is restored.  It also
-alters feature-removals.txt to note that the deprecated functionality
-should not be removed until a replacement actually exists.
-
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Kumar Gala <galak@kernel.crashing.org>
 Cc: Greg KH <greg@kroah.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    3 ++-
- Documentation/power/devices.txt            |    9 ++++++++-
- drivers/base/platform.c                    |   11 +++++++++++
- drivers/base/power/sysfs.c                 |    3 ++-
- drivers/pci/pci-driver.c                   |   12 ++++++++++++
- include/linux/device.h                     |    1 +
- 6 files changed, 36 insertions(+), 3 deletions(-)
+ drivers/pci/search.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~fix-sys-device-power-state-regression Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~fix-sys-device-power-state-regression
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -9,7 +9,8 @@ be removed from this file.
- What:	/sys/devices/.../power/state
- 	dev->power.power_state
- 	dpm_runtime_{suspend,resume)()
--When:	July 2007
-+	bus->pm_has_noirq_stage()
-+When:	Once alternative functionality has been implemented
- Why:	Broken design for runtime control over driver power states, confusing
- 	driver-internal runtime power management with:  mechanisms to support
- 	system-wide sleep state transitions; event codes that distinguish
-diff -puN Documentation/power/devices.txt~fix-sys-device-power-state-regression Documentation/power/devices.txt
---- a/Documentation/power/devices.txt~fix-sys-device-power-state-regression
-+++ a/Documentation/power/devices.txt
-@@ -79,6 +79,7 @@ struct bus_type {
+diff -puN drivers/pci/search.c~pci-remove-warning-messages drivers/pci/search.c
+--- a/drivers/pci/search.c~pci-remove-warning-messages
++++ a/drivers/pci/search.c
+@@ -200,11 +200,8 @@ static struct pci_dev * pci_find_subsys(
+ 	 * can cause some machines to crash.  So here we detect and flag that
+ 	 * situation and bail out early.
+ 	 */
+-	if (unlikely(list_empty(&pci_devices))) {
+-		printk(KERN_INFO "pci_find_subsys() called while pci_devices "
+-				"is still empty\n");
++	if (unlikely(list_empty(&pci_devices)))
+ 		return NULL;
+-	}
+ 	down_read(&pci_bus_sem);
+ 	n = from ? from->global_list.next : pci_devices.next;
  
- 	int  (*resume_early)(struct device *dev);
- 	int  (*resume)(struct device *dev);
-+	int  (*pm_has_noirq_stage)(struct device *dev);
- };
- 
- Bus drivers implement those methods as appropriate for the hardware and
-@@ -236,6 +237,10 @@ The phases are seen by driver notificati
- 	may stay partly usable until this late.  This "late" call may also
- 	help when coping with hardware that behaves badly.
- 
-+	If a bus implements the suspend_late method, it must also provide a
-+	pm_has_noirq_stage function in order to determine whether devices
-+	may be suspended during runtime.
-+
- The pm_message_t parameter is currently used to refine those semantics
- (described later).
- 
-@@ -348,7 +353,9 @@ The phases are seen by driver notificati
- 	won't be supported on busses that require IRQs in order to
- 	interact with devices.
- 
--	This reverses the effects of bus.suspend_late().
-+	This reverses the effects of bus.suspend_late(). As with suspend_late,
-+	if a bus implements this function it must provide a pm_has_noirq_stage
-+	function.
- 
-    2	bus.resume(dev) is called next.  This may be morphed into a device
-    	driver call with bus-specific parameters; implementations may sleep.
-diff -puN drivers/base/platform.c~fix-sys-device-power-state-regression drivers/base/platform.c
---- a/drivers/base/platform.c~fix-sys-device-power-state-regression
-+++ a/drivers/base/platform.c
-@@ -597,6 +597,16 @@ static int platform_resume(struct device
- 	return ret;
- }
- 
-+static int platform_pm_has_noirq_stage(struct device * dev)
-+{
-+	int ret = 0;
-+	struct platform_driver *drv = to_platform_driver(dev->driver);
-+
-+	if (dev->driver && (drv->resume_early || drv->suspend_late))
-+		ret = 1;
-+	return ret;
-+}
-+
- struct bus_type platform_bus_type = {
- 	.name		= "platform",
- 	.dev_attrs	= platform_dev_attrs,
-@@ -606,6 +616,7 @@ struct bus_type platform_bus_type = {
- 	.suspend_late	= platform_suspend_late,
- 	.resume_early	= platform_resume_early,
- 	.resume		= platform_resume,
-+	.pm_has_noirq_stage = platform_pm_has_noirq_stage,
- };
- EXPORT_SYMBOL_GPL(platform_bus_type);
- 
-diff -puN drivers/base/power/sysfs.c~fix-sys-device-power-state-regression drivers/base/power/sysfs.c
---- a/drivers/base/power/sysfs.c~fix-sys-device-power-state-regression
-+++ a/drivers/base/power/sysfs.c
-@@ -46,7 +46,8 @@ static ssize_t state_store(struct device
- 	int error = -EINVAL;
- 
- 	/* disallow incomplete suspend sequences */
--	if (dev->bus && (dev->bus->suspend_late || dev->bus->resume_early))
-+	if (dev->bus && dev->bus->pm_has_noirq_stage
-+			&& dev->bus->pm_has_noirq_stage(dev))
- 		return error;
- 
- 	state.event = PM_EVENT_SUSPEND;
-diff -puN drivers/pci/pci-driver.c~fix-sys-device-power-state-regression drivers/pci/pci-driver.c
---- a/drivers/pci/pci-driver.c~fix-sys-device-power-state-regression
-+++ a/drivers/pci/pci-driver.c
-@@ -346,6 +346,17 @@ static int pci_device_resume(struct devi
- 	return error;
- }
- 
-+static int pci_device_pm_has_noirq_stage(struct device * dev)
-+{
-+	int error = 0;
-+	struct pci_dev * pci_dev = to_pci_dev(dev);
-+	struct pci_driver * drv = pci_dev->driver;
-+
-+	if (drv && (drv->resume_early || drv->suspend_late))
-+		error = 1;
-+	return error;
-+}
-+
- static int pci_device_resume_early(struct device * dev)
- {
- 	int error = 0;
-@@ -566,6 +577,7 @@ struct bus_type pci_bus_type = {
- 	.suspend_late	= pci_device_suspend_late,
- 	.resume_early	= pci_device_resume_early,
- 	.resume		= pci_device_resume,
-+	.pm_has_noirq_stage = pci_device_pm_has_noirq_stage,
- 	.shutdown	= pci_device_shutdown,
- 	.dev_attrs	= pci_dev_attrs,
- };
-diff -puN include/linux/device.h~fix-sys-device-power-state-regression include/linux/device.h
---- a/include/linux/device.h~fix-sys-device-power-state-regression
-+++ a/include/linux/device.h
-@@ -59,6 +59,7 @@ struct bus_type {
- 	int (*suspend)(struct device * dev, pm_message_t state);
- 	int (*suspend_late)(struct device * dev, pm_message_t state);
- 	int (*resume_early)(struct device * dev);
-+	int (*pm_has_noirq_stage)(struct device * dev);
- 	int (*resume)(struct device * dev);
- };
+@@ -278,11 +275,8 @@ pci_get_subsys(unsigned int vendor, unsi
+ 	 * can cause some machines to crash.  So here we detect and flag that
+ 	 * situation and bail out early.
+ 	 */
+-	if (unlikely(list_empty(&pci_devices))) {
+-		printk(KERN_NOTICE "pci_get_subsys() called while pci_devices "
+-				"is still empty\n");
++	if (unlikely(list_empty(&pci_devices)))
+ 		return NULL;
+-	}
+ 	down_read(&pci_bus_sem);
+ 	n = from ? from->global_list.next : pci_devices.next;
  
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-fix-sys-device-power-state-regression.patch
-2.6-sony_acpi4.patch
+origin.patch
+ntfs-kmap_atomic-atomicity-fix.patch
+x86-fix-vdso-mapping-for-aout-executables.patch
+mm-show-bounce-pages-in-oom-killer-output.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+powerpc-make-it-compile.patch
+git-dvb.patch
+dvb-video_buf-depends-on-pci.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+sata_nv-cleanup-adma-error-handling-v2.patch
+mm-ide-ide-acpi-support-warning-fix.patch
+git-lxdialog-fixup.patch
+git-mips-kconfig-fix.patch
+git-mips-prom_free_prom_memory-borkage.patch
+git-mmc.patch
+git-mmc-fixup.patch
+git-ubi.patch
+git-netdev-all.patch
+git-netdev-all-chelsio-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+dccp-warning-fixes.patch
+netfilter-warning-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+nfs-fix-congestion-control-v4-tweaks.patch
+r8169-warning-fixes.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+sh-add-kconfig-default.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
+git-block-fixup.patch
+git-block-borkage.patch
+git-block-atomicity-fix.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+nokia-e70-is-an-unusual-device.patch
+git-ipwireless_cs.patch
+revert-x86_64-mm-msr-on-cpu.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+use-zvc-for-inactive-and-active-counts-up-fix.patch
+drop-free_pages-fix.patch
+drop-free_pages-sparc64-fix.patch
+optional-zone_dma-in-the-vm-tidy.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix-2.patch
+return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+ecryptfs-generalize-metadata-read-write-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+introduce-and-use-get_task_mnt_ns-tweaks.patch
+user-ns-implement-user-ns-unshare-tidy.patch
+ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
+ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
+dynamic-kernel-command-line-ia64-fix.patch
+rcu-preemptible-rcu-fix.patch
+kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+mark-struct-file_operations-const-2-fix.patch
+mark-struct-file_operations-const-4-fix.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+pci-remove-warning-messages.patch
