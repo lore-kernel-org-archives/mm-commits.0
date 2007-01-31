@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + genirq-do-not-mask-interrupts-by-default.patch added to -mm tree
-Date: Tue, 30 Jan 2007 16:20:18 -0800
-Message-ID: <200701310020.l0V0KIc4002059@shell0.pdx.osdl.net>
+Subject: + add-is_power_of_2-checking-to-log2h.patch added to -mm tree
+Date: Tue, 30 Jan 2007 16:21:39 -0800
+Message-ID: <200701310021.l0V0Ld29002082@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58299 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58359 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752072AbXAaAUp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 19:20:45 -0500
+	id S1752069AbXAaAVx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 19:21:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, tglx@linutronix.de
+Cc: rpjday@mindspring.com, benh@kernel.crashing.org, galak@kernel.crashing.org, jeff@garzik.org, paulus@samba.org
 
 
 The patch titled
-     genirq: do not mask interrupts by default
+     Add "is_power_of_2" checking to log2.h.
 has been added to the -mm tree.  Its filename is
-     genirq-do-not-mask-interrupts-by-default.patch
+     add-is_power_of_2-checking-to-log2h.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,231 +25,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: genirq: do not mask interrupts by default
-From: Ingo Molnar <mingo@elte.hu>
+Subject: Add "is_power_of_2" checking to log2.h.
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Never mask interrupts immediately upon request.  Disabling interrupts in
-high-performance codepaths is rare, and on the other hand this change could
-recover lost edges (or even other types of lost interrupts) by conservatively
-only masking interrupts after they happen.  (NOTE: with this change the
-highlevel irq-disable code still soft-disables this IRQ line - and if such an
-interrupt happens then the IRQ flow handler keeps the IRQ masked.)
+Add the inline function "is_power_of_2()" to log2.h, where the value zero
+is *not* considered to be a power of two.
 
-Mark i8529A controllers as 'never loses an edge'.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Acked-by: Kumar Gala <galak@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/i8259.c   |    1 +
- arch/x86_64/kernel/i8259.c |    1 +
- kernel/irq/chip.c          |   17 ++++++++++-------
- 3 files changed, 12 insertions(+), 7 deletions(-)
+ arch/powerpc/mm/pgtable_32.c  |    5 +----
+ arch/ppc/mm/pgtable.c         |    5 +----
+ arch/ppc/syslib/ppc85xx_rio.c |    2 --
+ drivers/net/gianfar_ethtool.c |    2 --
+ include/linux/log2.h          |   11 +++++++++++
+ 5 files changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN arch/i386/kernel/i8259.c~genirq-do-not-mask-interrupts-by-default arch/i386/kernel/i8259.c
---- a/arch/i386/kernel/i8259.c~genirq-do-not-mask-interrupts-by-default
-+++ a/arch/i386/kernel/i8259.c
-@@ -41,6 +41,7 @@ static void mask_and_ack_8259A(unsigned 
- static struct irq_chip i8259A_chip = {
- 	.name		= "XT-PIC",
- 	.mask		= disable_8259A_irq,
-+	.disable	= disable_8259A_irq,
- 	.unmask		= enable_8259A_irq,
- 	.mask_ack	= mask_and_ack_8259A,
- };
-diff -puN arch/x86_64/kernel/i8259.c~genirq-do-not-mask-interrupts-by-default arch/x86_64/kernel/i8259.c
---- a/arch/x86_64/kernel/i8259.c~genirq-do-not-mask-interrupts-by-default
-+++ a/arch/x86_64/kernel/i8259.c
-@@ -103,6 +103,7 @@ static void mask_and_ack_8259A(unsigned 
- static struct irq_chip i8259A_chip = {
- 	.name		= "XT-PIC",
- 	.mask		= disable_8259A_irq,
-+	.disable	= disable_8259A_irq,
- 	.unmask		= enable_8259A_irq,
- 	.mask_ack	= mask_and_ack_8259A,
- };
-diff -puN kernel/irq/chip.c~genirq-do-not-mask-interrupts-by-default kernel/irq/chip.c
---- a/kernel/irq/chip.c~genirq-do-not-mask-interrupts-by-default
-+++ a/kernel/irq/chip.c
-@@ -202,10 +202,6 @@ static void default_enable(unsigned int 
-  */
- static void default_disable(unsigned int irq)
- {
--	struct irq_desc *desc = irq_desc + irq;
--
--	if (!(desc->status & IRQ_DELAYED_DISABLE))
--		desc->chip->mask(irq);
+diff -puN arch/powerpc/mm/pgtable_32.c~add-is_power_of_2-checking-to-log2h arch/powerpc/mm/pgtable_32.c
+--- a/arch/powerpc/mm/pgtable_32.c~add-is_power_of_2-checking-to-log2h
++++ a/arch/powerpc/mm/pgtable_32.c
+@@ -294,11 +294,8 @@ void __init mapin_ram(void)
+ 	}
  }
  
+-/* is x a power of 2? */
+-#define is_power_of_2(x)	((x) != 0 && (((x) & ((x) - 1)) == 0))
+-
+ /* is x a power of 4? */
+-#define is_power_of_4(x)	((x) != 0 && (((x) & (x-1)) == 0) && (ffs(x) & 1))
++#define is_power_of_4(x)	is_power_of_2(x) && (ffs(x) & 1))
+ 
  /*
-@@ -270,13 +266,18 @@ handle_simple_irq(unsigned int irq, stru
- 
- 	if (unlikely(desc->status & IRQ_INPROGRESS))
- 		goto out_unlock;
--	desc->status &= ~(IRQ_REPLAY | IRQ_WAITING);
- 	kstat_cpu(cpu).irqs[irq]++;
- 
- 	action = desc->action;
--	if (unlikely(!action || (desc->status & IRQ_DISABLED)))
-+	if (unlikely(!action || (desc->status & IRQ_DISABLED))) {
-+		if (desc->chip->mask)
-+			desc->chip->mask(irq);
-+		desc->status &= ~(IRQ_REPLAY | IRQ_WAITING);
-+		desc->status |= IRQ_PENDING;
- 		goto out_unlock;
-+	}
- 
-+	desc->status &= ~(IRQ_REPLAY | IRQ_WAITING | IRQ_PENDING);
- 	desc->status |= IRQ_INPROGRESS;
- 	spin_unlock(&desc->lock);
- 
-@@ -368,11 +369,13 @@ handle_fasteoi_irq(unsigned int irq, str
- 
- 	/*
- 	 * If its disabled or no action available
--	 * keep it masked and get out of here
-+	 * then mask it and get out of here:
- 	 */
- 	action = desc->action;
- 	if (unlikely(!action || (desc->status & IRQ_DISABLED))) {
- 		desc->status |= IRQ_PENDING;
-+		if (desc->chip->mask)
-+			desc->chip->mask(irq);
- 		goto out;
+  * Set up a mapping for a block of I/O.
+diff -puN arch/ppc/mm/pgtable.c~add-is_power_of_2-checking-to-log2h arch/ppc/mm/pgtable.c
+--- a/arch/ppc/mm/pgtable.c~add-is_power_of_2-checking-to-log2h
++++ a/arch/ppc/mm/pgtable.c
+@@ -313,11 +313,8 @@ void __init mapin_ram(void)
  	}
+ }
  
+-/* is x a power of 2? */
+-#define is_power_of_2(x)	((x) != 0 && (((x) & ((x) - 1)) == 0))
+-
+ /* is x a power of 4? */
+-#define is_power_of_4(x)	((x) != 0 && (((x) & (x-1)) == 0) && (ffs(x) & 1))
++#define is_power_of_4(x)	is_power_of_2(x) && (ffs(x) & 1))
+ 
+ /*
+  * Set up a mapping for a block of I/O.
+diff -puN arch/ppc/syslib/ppc85xx_rio.c~add-is_power_of_2-checking-to-log2h arch/ppc/syslib/ppc85xx_rio.c
+--- a/arch/ppc/syslib/ppc85xx_rio.c~add-is_power_of_2-checking-to-log2h
++++ a/arch/ppc/syslib/ppc85xx_rio.c
+@@ -59,8 +59,6 @@
+ #define DBELL_TID(x)		(*(u8 *)(x + DOORBELL_TID_OFFSET))
+ #define DBELL_INF(x)		(*(u16 *)(x + DOORBELL_INFO_OFFSET))
+ 
+-#define is_power_of_2(x)	(((x) & ((x) - 1)) == 0)
+-
+ struct rio_atmu_regs {
+ 	u32 rowtar;
+ 	u32 pad1;
+diff -puN drivers/net/gianfar_ethtool.c~add-is_power_of_2-checking-to-log2h drivers/net/gianfar_ethtool.c
+--- a/drivers/net/gianfar_ethtool.c~add-is_power_of_2-checking-to-log2h
++++ a/drivers/net/gianfar_ethtool.c
+@@ -42,8 +42,6 @@
+ 
+ #include "gianfar.h"
+ 
+-#define is_power_of_2(x)        ((x) != 0 && (((x) & ((x) - 1)) == 0))
+-
+ extern void gfar_start(struct net_device *dev);
+ extern int gfar_clean_rx_ring(struct net_device *dev, int rx_work_limit);
+ 
+diff -puN include/linux/log2.h~add-is_power_of_2-checking-to-log2h include/linux/log2.h
+--- a/include/linux/log2.h~add-is_power_of_2-checking-to-log2h
++++ a/include/linux/log2.h
+@@ -44,6 +44,17 @@ int __ilog2_u64(u64 n)
+ #endif
+ 
+ /*
++ *  Determine whether some value is a power of two, where zero is
++ * *not* considered a power of two.
++ */
++
++static inline __attribute__((const))
++bool is_power_of_2(unsigned long n)
++{
++	return (n != 0 && ((n & (n - 1)) == 0));
++}
++
++/*
+  * round up to nearest power of two
+  */
+ static inline __attribute__((const))
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-add-install_special_mapping.patch
-i386-vdso-use-install_special_mapping.patch
-x86_64-ia32-vdso-use-install_special_mapping.patch
-powerpc-vdso-use-install_special_mapping.patch
-use-correct-macros-in-raid-code-not-raw-asm.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-fix-for-crash-in-adummy_init.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-fix-x86_64-mm-convert-i386-pda-code-to-use-%fs.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers-fix.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-lockdep-also-check-for-freed-locks-in-kmem_cache_free.patch
-lockdep-more-unlock-on-error-fixes.patch
-lockdep-more-unlock-on-error-fixes-fix.patch
-lockdep-add-graph-depth-information-to-proc-lockdep.patch
-consolidate-default-sched_clock.patch
-use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-simplify-the-stacktrace-code.patch
-audit-fix-audit_filter_user_rules-initialization-bug.patch
+git-acpi.patch
+git-alsa.patch
+ppc-use-syslog-macro-for-the-printk-log-level.patch
+fix-apparent-typo-config_serial_cpm_smc.patch
+remove-the-unused-kernel-config-option-video_videobuf.patch
+change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+remove-unused-kernel-config-option-dlci_count.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+remove-unused-kernel-config-option-x86_xadd.patch
+uml-fix-apparent-config_64_bit-typo.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-a-couple-final-references-to-obsolete-verify_area.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
 remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
-minimize-lockdep_on-off-side-effect.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
+remove-unused-kernel-config-option-lcd_device.patch
+remove-unused-kernel-config-option-paride_parport.patch
 fix-apparent-typo-config_lockdep_debug.patch
-highmem-catch-illegal-nesting.patch
-fix-sparse-annotation-of-spin-unlock-macros-in-one-case.patch
-add-irq-flag-to-disable-balancing-for-an-interrupt.patch
-add-a-functions-to-handle-interrupt-affinity-setting.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-hz-free-ntp.patch
-uninline-jiffiesh-functions.patch
-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-fix-timeout-overflow-with-jiffies.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-i386-remove-useless-code-in-tscc.patch
-simplify-the-registration-of-clocksources.patch
-x86-rewrite-smp-tsc-sync-code.patch
-clocksource-replace-is_continuous-by-a-flag-field.patch
-clocksource-replace-is_continuous-by-a-flag-field-fix.patch
-clocksource-fixup-is_continous-changes-on-arm.patch
-clocksource-fixup-is_continous-changes-on-avr32.patch
-clocksource-fixup-is_continous-changes-on-s390.patch
-clocksource-fixup-is_continous-changes-on-mips.patch
-clocksource-remove-the-update-callback.patch
-clocksource-add-verification-watchdog-helper.patch
-mark-tsc-on-geodelx-reliable.patch
-uninline-irq_enter.patch
-fix-cascade-lookup-of-next_timer_interrupt.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-fix-missing-include-for-up.patch
-acpi-keep-track-of-timer-broadcasting.patch
-allow-early-access-to-the-power-management-timer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-add-core-functionality.patch
-tick-management-core-functionality.patch
-tick-management-broadcast-functionality.patch
-tick-management-dyntick--highres-functionality.patch
-clockevents-i383-drivers.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-for-dyntick.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-i386-enable-dynticks-in-kconfig.patch
-hrtimers-add-high-resolution-timer-support.patch
-hrtimers-prevent-possible-itimer-dos.patch
-add-debugging-feature-proc-timer_stat.patch
-add-debugging-feature-proc-timer_list.patch
-add-sysrq-q-to-print-timer_list-debug-info.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-hpet-fixup-clocksource-changes.patch
-time-x86_64-tsc-fixup-clocksource-changes.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-genirq-do-not-mask-interrupts-by-default.patch
-genirq-remove-irq_disabled.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_blocking.patch
-fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-aio-o_sync-filesystem-write.patch
-aio-is-unlikely.patch
-sched-avoid-div-in-rebalance_tick.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
-scheduled-removal-of-sa_xxx-interrupt-flags.patch
-detect-atomic-counter-underflows.patch
-debug-shared-irqs.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
+add-is_power_of_2-checking-to-log2h.patch
+isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
+isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+isdn-rename-debug-option-config_serial_nopause_io.patch
+isdn-remove-defunct-test-emulator.patch
+isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
