@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + kvm-vmx-add-vcpu_clear.patch added to -mm tree
-Date: Tue, 30 Jan 2007 16:51:30 -0800
-Message-ID: <200701310051.l0V0pUEe002970@shell0.pdx.osdl.net>
+Subject: + hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch added to -mm tree
+Date: Tue, 30 Jan 2007 16:51:24 -0800
+Message-ID: <200701310051.l0V0pOVi002961@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59619 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59628 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752156AbXAaAvv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 19:51:51 -0500
+	id S1752155AbXAaAwD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 19:52:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avi@qumranet.com, mingo@elte.hu
+Cc: avi@qumranet.com, mingo@elte.hu, oleg@tv-sign.ru, rusty@rustcorp.com.au
 
 
 The patch titled
-     KVM: VMX: add vcpu_clear()
+     hotplug: Allow modules to use the cpu hotplug notifiers even if !CONFIG_HOTPLUG_CPU
 has been added to the -mm tree.  Its filename is
-     kvm-vmx-add-vcpu_clear.patch
+     hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: VMX: add vcpu_clear()
+Subject: hotplug: Allow modules to use the cpu hotplug notifiers even if !CONFIG_HOTPLUG_CPU
 From: Avi Kivity <avi@qumranet.com>
 
-Like the inline code it replaces, this function decaches the vmcs from the cpu
-it last executed on.  in addition:
+KVM wants the cpu hotplug notifications, both for cpu hotplug itself, but more
+commonly for host suspend/resume.
 
- - vcpu_clear() works if the last cpu is also the cpu we're running on
- - it is faster on larger smps by virtue of using smp_call_function_single()
+In order to avoid extensive #ifdefs, provide stubs when CONFIG_CPU_HOTPLUG is
+not defined.
 
-Includes fix from Ingo Molnar.
+In all, we have four cases:
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+- UP: register and unregister stubbed out
+- SMP+hotplug: full register and unregister
+- SMP, no hotplug, core: register as __init, unregister stubbed
+      (cpus are brought up during core initialization)
+- SMP, no hotplug, module: register and unregister stubbed out
+      (cpus cannot be brought up during module lifetime)
+
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/vmx.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+ include/linux/cpu.h |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/kvm/vmx.c~kvm-vmx-add-vcpu_clear drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-vmx-add-vcpu_clear
-+++ a/drivers/kvm/vmx.c
-@@ -125,6 +125,15 @@ static void __vcpu_clear(void *arg)
- 		per_cpu(current_vmcs, cpu) = NULL;
- }
+diff -puN include/linux/cpu.h~hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers include/linux/cpu.h
+--- a/include/linux/cpu.h~hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers
++++ a/include/linux/cpu.h
+@@ -49,10 +49,20 @@ struct notifier_block;
  
-+static void vcpu_clear(struct kvm_vcpu *vcpu)
-+{
-+	if (vcpu->cpu != raw_smp_processor_id() && vcpu->cpu != -1)
-+		smp_call_function_single(vcpu->cpu, __vcpu_clear, vcpu, 0, 1);
-+	else
-+		__vcpu_clear(vcpu);
-+	vcpu->launched = 0;
-+}
+ #ifdef CONFIG_SMP
+ /* Need to know about CPUs going up/down? */
+-extern int register_cpu_notifier(struct notifier_block *nb);
+ #ifdef CONFIG_HOTPLUG_CPU
++extern int register_cpu_notifier(struct notifier_block *nb);
+ extern void unregister_cpu_notifier(struct notifier_block *nb);
+ #else
 +
- static unsigned long vmcs_readl(unsigned long field)
++#ifndef MODULE
++extern int register_cpu_notifier(struct notifier_block *nb);
++#else
++static inline int register_cpu_notifier(struct notifier_block *nb)
++{
++	return 0;
++}
++#endif
++
+ static inline void unregister_cpu_notifier(struct notifier_block *nb)
  {
- 	unsigned long value;
-@@ -202,10 +211,8 @@ static struct kvm_vcpu *vmx_vcpu_load(st
- 
- 	cpu = get_cpu();
- 
--	if (vcpu->cpu != cpu) {
--		smp_call_function(__vcpu_clear, vcpu, 0, 1);
--		vcpu->launched = 0;
--	}
-+	if (vcpu->cpu != cpu)
-+		vcpu_clear(vcpu);
- 
- 	if (per_cpu(current_vmcs, cpu) != vcpu->vmcs) {
- 		u8 error;
+ }
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
