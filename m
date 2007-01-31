@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + ifdef-rchar-wchar-syscr-syscw-from-task_struct.patch added to -mm tree
-Date: Tue, 30 Jan 2007 16:59:13 -0800
-Message-ID: <200701310059.l0V0xDvJ003163@shell0.pdx.osdl.net>
+Subject: + net-remove-remaining-traces-of-config_e100_napi-for-pro-100.patch added to -mm tree
+Date: Tue, 30 Jan 2007 17:01:36 -0800
+Message-ID: <200701310101.l0V11a04003243@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60035 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60163 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752061AbXAaA7Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 19:59:25 -0500
+	id S1752167AbXAaBBs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 20:01:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, balbir@in.ibm.com, jlan@engr.sgi.com
+Cc: rpjday@mindspring.com, auke-jan.h.kok@intel.com, jeff@garzik.org, john.ronciak@intel.com
 
 
 The patch titled
-     ifdef ->rchar, ->wchar, ->syscr, ->syscw from task_struct
+     net: remove remaining traces of "CONFIG_E100_NAPI" for PRO/100
 has been added to the -mm tree.  Its filename is
-     ifdef-rchar-wchar-syscr-syscw-from-task_struct.patch
+     net-remove-remaining-traces-of-config_e100_napi-for-pro-100.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,203 +25,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ifdef ->rchar, ->wchar, ->syscr, ->syscw from task_struct
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: net: remove remaining traces of "CONFIG_E100_NAPI" for PRO/100
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-They are fat: 4x8 bytes in task_struct.
-They are uncoditionally updated in every fork, read, write and sendfile.
-They are used only if you have some "extended acct fields feature".
+Remove the final two conditionals for the obsolete CONFIG_E100_NAPI kernel
+config option.
 
-And please, please, please, read(2) knows about bytes, not characters,
-why it is called "rchar"?
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: "Ronciak, John" <john.ronciak@intel.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/base.c        |    4 ++++
- fs/read_write.c       |   24 ++++++++++++------------
- include/linux/sched.h |   40 ++++++++++++++++++++++++++++++++++++++++
- kernel/fork.c         |    2 ++
- 4 files changed, 58 insertions(+), 12 deletions(-)
+ drivers/net/e100.c |    8 --------
+ 1 files changed, 8 deletions(-)
 
-diff -puN fs/proc/base.c~ifdef-rchar-wchar-syscr-syscw-from-task_struct fs/proc/base.c
---- a/fs/proc/base.c~ifdef-rchar-wchar-syscr-syscw-from-task_struct
-+++ a/fs/proc/base.c
-@@ -1810,17 +1810,21 @@ static int proc_base_fill_cache(struct f
- static int proc_pid_io_accounting(struct task_struct *task, char *buffer)
- {
- 	return sprintf(buffer,
-+#ifdef CONFIG_TASK_XACCT
- 			"rchar: %llu\n"
- 			"wchar: %llu\n"
- 			"syscr: %llu\n"
- 			"syscw: %llu\n"
-+#endif
- 			"read_bytes: %llu\n"
- 			"write_bytes: %llu\n"
- 			"cancelled_write_bytes: %llu\n",
-+#ifdef CONFIG_TASK_XACCT
- 			(unsigned long long)task->rchar,
- 			(unsigned long long)task->wchar,
- 			(unsigned long long)task->syscr,
- 			(unsigned long long)task->syscw,
-+#endif
- 			(unsigned long long)task->ioac.read_bytes,
- 			(unsigned long long)task->ioac.write_bytes,
- 			(unsigned long long)task->ioac.cancelled_write_bytes);
-diff -puN fs/read_write.c~ifdef-rchar-wchar-syscr-syscw-from-task_struct fs/read_write.c
---- a/fs/read_write.c~ifdef-rchar-wchar-syscr-syscw-from-task_struct
-+++ a/fs/read_write.c
-@@ -274,9 +274,9 @@ ssize_t vfs_read(struct file *file, char
- 				ret = do_sync_read(file, buf, count, pos);
- 			if (ret > 0) {
- 				fsnotify_access(file->f_path.dentry);
--				current->rchar += ret;
-+				add_rchar(current, ret);
- 			}
--			current->syscr++;
-+			inc_syscr(current);
- 		}
- 	}
+diff -puN drivers/net/e100.c~net-remove-remaining-traces-of-config_e100_napi-for-pro-100 drivers/net/e100.c
+--- a/drivers/net/e100.c~net-remove-remaining-traces-of-config_e100_napi-for-pro-100
++++ a/drivers/net/e100.c
+@@ -2664,10 +2664,6 @@ static int e100_suspend(struct pci_dev *
+ 	struct net_device *netdev = pci_get_drvdata(pdev);
+ 	struct nic *nic = netdev_priv(netdev);
  
-@@ -332,9 +332,9 @@ ssize_t vfs_write(struct file *file, con
- 				ret = do_sync_write(file, buf, count, pos);
- 			if (ret > 0) {
- 				fsnotify_modify(file->f_path.dentry);
--				current->wchar += ret;
-+				add_wchar(current, ret);
- 			}
--			current->syscw++;
-+			inc_syscw(current);
- 		}
- 	}
+-#ifdef CONFIG_E100_NAPI
+-	if (netif_running(netdev))
+-		netif_poll_disable(nic->netdev);
+-#endif
+ 	del_timer_sync(&nic->watchdog);
+ 	netif_carrier_off(nic->netdev);
  
-@@ -675,8 +675,8 @@ sys_readv(unsigned long fd, const struct
- 	}
+@@ -2713,10 +2709,6 @@ static void e100_shutdown(struct pci_dev
+ 	struct net_device *netdev = pci_get_drvdata(pdev);
+ 	struct nic *nic = netdev_priv(netdev);
  
- 	if (ret > 0)
--		current->rchar += ret;
--	current->syscr++;
-+		add_rchar(current, ret);
-+	inc_syscr(current);
- 	return ret;
- }
- 
-@@ -696,8 +696,8 @@ sys_writev(unsigned long fd, const struc
- 	}
- 
- 	if (ret > 0)
--		current->wchar += ret;
--	current->syscw++;
-+		add_wchar(current, ret);
-+	inc_syscw(current);
- 	return ret;
- }
- 
-@@ -779,12 +779,12 @@ static ssize_t do_sendfile(int out_fd, i
- 	retval = in_file->f_op->sendfile(in_file, ppos, count, file_send_actor, out_file);
- 
- 	if (retval > 0) {
--		current->rchar += retval;
--		current->wchar += retval;
-+		add_rchar(current, retval);
-+		add_wchar(current, retval);
- 	}
--	current->syscr++;
--	current->syscw++;
- 
-+	inc_syscr(current);
-+	inc_syscw(current);
- 	if (*ppos > max)
- 		retval = -EOVERFLOW;
- 
-diff -puN include/linux/sched.h~ifdef-rchar-wchar-syscr-syscw-from-task_struct include/linux/sched.h
---- a/include/linux/sched.h~ifdef-rchar-wchar-syscr-syscw-from-task_struct
-+++ a/include/linux/sched.h
-@@ -1011,8 +1011,10 @@ struct task_struct {
-  * to a stack based synchronous wait) if its doing sync IO.
-  */
- 	wait_queue_t *io_wait;
-+#ifdef CONFIG_TASK_XACCT
- /* i/o counters(bytes read/written, #syscalls */
- 	u64 rchar, wchar, syscr, syscw;
-+#endif
- 	struct task_io_accounting ioac;
- #if defined(CONFIG_TASK_XACCT)
- 	u64 acct_rss_mem1;	/* accumulated rss usage */
-@@ -1647,6 +1649,44 @@ extern int sched_create_sysfs_power_savi
- 
- extern void normalize_rt_tasks(void);
- 
-+#ifdef CONFIG_TASK_XACCT
-+static inline void add_rchar(struct task_struct *tsk, ssize_t amt)
-+{
-+	tsk->rchar += amt;
-+}
-+
-+static inline void add_wchar(struct task_struct *tsk, ssize_t amt)
-+{
-+	tsk->wchar += amt;
-+}
-+
-+static inline void inc_syscr(struct task_struct *tsk)
-+{
-+	tsk->syscr++;
-+}
-+
-+static inline void inc_syscw(struct task_struct *tsk)
-+{
-+	tsk->syscw++;
-+}
-+#else
-+static inline void add_rchar(struct task_struct *tsk, ssize_t amt)
-+{
-+}
-+
-+static inline void add_wchar(struct task_struct *tsk, ssize_t amt)
-+{
-+}
-+
-+static inline void inc_syscr(struct task_struct *tsk)
-+{
-+}
-+
-+static inline void inc_syscw(struct task_struct *tsk)
-+{
-+}
-+#endif
-+
- #endif /* __KERNEL__ */
- 
- #endif
-diff -puN kernel/fork.c~ifdef-rchar-wchar-syscr-syscw-from-task_struct kernel/fork.c
---- a/kernel/fork.c~ifdef-rchar-wchar-syscr-syscw-from-task_struct
-+++ a/kernel/fork.c
-@@ -1034,10 +1034,12 @@ static struct task_struct *copy_process(
- 	p->utime = cputime_zero;
- 	p->stime = cputime_zero;
-  	p->sched_time = 0;
-+#ifdef CONFIG_TASK_XACCT
- 	p->rchar = 0;		/* I/O counter: bytes read */
- 	p->wchar = 0;		/* I/O counter: bytes written */
- 	p->syscr = 0;		/* I/O counter: read syscalls */
- 	p->syscw = 0;		/* I/O counter: write syscalls */
-+#endif
- 	task_io_accounting_init(p);
- 	acct_clear_integrals(p);
+-#ifdef CONFIG_E100_NAPI
+-	if (netif_running(netdev))
+-		netif_poll_disable(nic->netdev);
+-#endif
+ 	del_timer_sync(&nic->watchdog);
+ 	netif_carrier_off(nic->netdev);
  
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-git-dvb.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-seq_file-conversion-coda.patch
-seq_file-conversion-toshibac.patch
-move-task_xacct-task_io_accounting-up-in-menus.patch
-ifdef-rchar-wchar-syscr-syscw-from-task_struct.patch
-recognize-video=gx1fb-option.patch
+origin.patch
+git-acpi.patch
+git-alsa.patch
+ppc-use-syslog-macro-for-the-printk-log-level.patch
+fix-apparent-typo-config_serial_cpm_smc.patch
+remove-the-unused-kernel-config-option-video_videobuf.patch
+change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+net-remove-remaining-traces-of-config_e100_napi-for-pro-100.patch
+remove-unused-kernel-config-option-dlci_count.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+remove-unused-kernel-config-option-x86_xadd.patch
+uml-fix-apparent-config_64_bit-typo.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-a-couple-final-references-to-obsolete-verify_area.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
+remove-unused-kernel-config-option-lcd_device.patch
+remove-unused-kernel-config-option-paride_parport.patch
+fix-apparent-typo-config_lockdep_debug.patch
+add-is_power_of_2-checking-to-log2h.patch
+isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
+isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+isdn-rename-debug-option-config_serial_nopause_io.patch
+isdn-remove-defunct-test-emulator.patch
+isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
