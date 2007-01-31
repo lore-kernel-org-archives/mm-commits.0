@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + kvm-fix-gva_to_gpa.patch added to -mm tree
-Date: Tue, 30 Jan 2007 16:36:39 -0800
-Message-ID: <200701310036.l0V0adTU002551@shell0.pdx.osdl.net>
+Subject: + kvm-vmx-reload-ds-and-es-even-in-64-bit-mode.patch added to -mm tree
+Date: Tue, 30 Jan 2007 16:36:49 -0800
+Message-ID: <200701310036.l0V0ancs002566@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58778 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58800 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752123AbXAaAgn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Jan 2007 19:36:43 -0500
+	id S1752115AbXAaAgx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 30 Jan 2007 19:36:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: avi@qumranet.com, mingo@elte.hu
 
 
 The patch titled
-     kvm: Fix gva_to_gpa()
+     kvm: VMX: Reload ds and es even in 64-bit mode
 has been added to the -mm tree.  Its filename is
-     kvm-fix-gva_to_gpa.patch
+     kvm-vmx-reload-ds-and-es-even-in-64-bit-mode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kvm: Fix gva_to_gpa()
+Subject: kvm: VMX: Reload ds and es even in 64-bit mode
 From: Avi Kivity <avi@qumranet.com>
 
-gva_to_gpa() needs to be updated to the new walk_addr() calling convention,
-otherwise it may oops under some circumstances.
-
-Use the opportunity to remove all the code duplication in gva_to_gpa(), which
-essentially repeats the calculations in walk_addr().
+Or 32-bit userspace will get confused.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/kvm/paging_tmpl.h |   28 +++++++---------------------
- 1 files changed, 7 insertions(+), 21 deletions(-)
+ drivers/kvm/vmx.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/kvm/paging_tmpl.h~kvm-fix-gva_to_gpa drivers/kvm/paging_tmpl.h
---- a/drivers/kvm/paging_tmpl.h~kvm-fix-gva_to_gpa
-+++ a/drivers/kvm/paging_tmpl.h
-@@ -443,31 +443,17 @@ static int FNAME(page_fault)(struct kvm_
- static gpa_t FNAME(gva_to_gpa)(struct kvm_vcpu *vcpu, gva_t vaddr)
- {
- 	struct guest_walker walker;
--	pt_element_t guest_pte;
--	gpa_t gpa;
-+	gpa_t gpa = UNMAPPED_GVA;
-+	int r;
+diff -puN drivers/kvm/vmx.c~kvm-vmx-reload-ds-and-es-even-in-64-bit-mode drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-vmx-reload-ds-and-es-even-in-64-bit-mode
++++ a/drivers/kvm/vmx.c
+@@ -1863,9 +1863,7 @@ again:
+ 	fx_restore(vcpu->host_fx_image);
+ 	vcpu->interrupt_window_open = (vmcs_read32(GUEST_INTERRUPTIBILITY_INFO) & 3) == 0;
  
--	FNAME(walk_addr)(&walker, vcpu, vaddr, 0, 0, 0);
--	guest_pte = *walker.ptep;
--	FNAME(release_walker)(&walker);
--
--	if (!is_present_pte(guest_pte))
--		return UNMAPPED_GVA;
--
--	if (walker.level == PT_DIRECTORY_LEVEL) {
--		ASSERT((guest_pte & PT_PAGE_SIZE_MASK));
--		ASSERT(PTTYPE == 64 || is_pse(vcpu));
-+	r = FNAME(walk_addr)(&walker, vcpu, vaddr, 0, 0, 0);
+-#ifndef CONFIG_X86_64
+ 	asm ("mov %0, %%ds; mov %0, %%es" : : "r"(__USER_DS));
+-#endif
  
--		gpa = (guest_pte & PT_DIR_BASE_ADDR_MASK) | (vaddr &
--			(PT_LEVEL_MASK(PT_PAGE_TABLE_LEVEL) | ~PAGE_MASK));
--
--		if (PTTYPE == 32 && is_cpuid_PSE36())
--			gpa |= (guest_pte & PT32_DIR_PSE36_MASK) <<
--					(32 - PT32_DIR_PSE36_SHIFT);
--	} else {
--		gpa = (guest_pte & PT_BASE_ADDR_MASK);
--		gpa |= (vaddr & ~PAGE_MASK);
-+	if (r) {
-+		gpa = (gpa_t)walker.gfn << PAGE_SHIFT;
-+		gpa |= vaddr & ~PAGE_MASK;
- 	}
- 
-+	FNAME(release_walker)(&walker);
- 	return gpa;
- }
- 
+ 	kvm_run->exit_type = 0;
+ 	if (fail) {
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
