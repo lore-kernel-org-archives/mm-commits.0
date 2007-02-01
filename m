@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + atl1_main-pci_module_int-returns-to-haunt-us.patch added to -mm tree
-Date: Thu, 01 Feb 2007 13:43:40 -0800
-Message-ID: <200702012143.l11LheqQ023705@shell0.pdx.osdl.net>
+Subject: + pm3fb-kill-pci_find_device-usage.patch added to -mm tree
+Date: Thu, 01 Feb 2007 13:44:32 -0800
+Message-ID: <200702012144.l11LiWuK023719@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40934 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41030 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751365AbXBAVnu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 16:43:50 -0500
+	id S1751409AbXBAVoz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 16:44:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jsimmons@infradead.org
 
 
 The patch titled
-     atl1_main: pci_module_int returns to haunt us
+     pm3fb: kill pci_find_device usage
 has been added to the -mm tree.  Its filename is
-     atl1_main-pci_module_int-returns-to-haunt-us.patch
+     pm3fb-kill-pci_find_device-usage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atl1_main: pci_module_int returns to haunt us
+Subject: pm3fb: kill pci_find_device usage
 From: Alan <alan@lxorguk.ukuu.org.uk>
 
-Perhaps Adrian would care to simply delete the pci_module_init ancient
-compat code so nobody else can inadvertently merge a driver that uses it.
-
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/atl1/atl1_main.c |    5 +----
- 1 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/video/pm3fb.c |   29 +++++++++++------------------
+ 1 files changed, 11 insertions(+), 18 deletions(-)
 
-diff -puN drivers/net/atl1/atl1_main.c~atl1_main-pci_module_int-returns-to-haunt-us drivers/net/atl1/atl1_main.c
---- a/drivers/net/atl1/atl1_main.c~atl1_main-pci_module_int-returns-to-haunt-us
-+++ a/drivers/net/atl1/atl1_main.c
-@@ -2461,12 +2461,9 @@ static void __exit atl1_exit_module(void
-  */
- static int __init atl1_init_module(void)
- {
--	int ret;
- 	printk(KERN_INFO "%s - version %s\n", atl1_driver_string, DRIVER_VERSION);
- 	printk(KERN_INFO "%s\n", atl1_copyright);
--	ret = pci_module_init(&atl1_driver);
--
--	return ret;
-+	return pci_register_driver(&atl1_driver);
+diff -puN drivers/video/pm3fb.c~pm3fb-kill-pci_find_device-usage drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-kill-pci_find_device-usage
++++ a/drivers/video/pm3fb.c
+@@ -3299,14 +3299,12 @@ static void pm3fb_detect(void)
+ 		fb_info[i].dev = NULL;
+ 	}
+ 
+-	dev =
+-	    pci_find_device(PCI_VENDOR_ID_3DLABS,
++	dev = pci_get_device(PCI_VENDOR_ID_3DLABS,
+ 			    PCI_DEVICE_ID_3DLABS_PERMEDIA3, dev);
+ 
+ 	for (i = 0; ((i < PM3_MAX_BOARD) && dev); i++) {
+ 		dev_array[i] = dev;
+-		dev =
+-		    pci_find_device(PCI_VENDOR_ID_3DLABS,
++		dev = pci_get_device(PCI_VENDOR_ID_3DLABS,
+ 				    PCI_DEVICE_ID_3DLABS_PERMEDIA3, dev);
+ 	}
+ 
+@@ -3353,7 +3351,7 @@ static void pm3fb_detect(void)
+ 	/* now, initialize... or not */
+ 	for (i = 0; i < PM3_MAX_BOARD; i++) {
+ 		l_fb_info = &(fb_info[i]);
+-		if ((l_fb_info->dev) && (!disable[i])) {	/* PCI device was found and not disabled by user */
++		if (l_fb_info->dev && !disable[i]) {	/* PCI device was found and not disabled by user */
+ 			DPRINTK(2,
+ 				"found @%lx Vendor %lx Device %lx ; base @ : %lx - %lx - %lx - %lx - %lx - %lx, irq %ld\n",
+ 				(unsigned long) l_fb_info->dev,
+@@ -3608,7 +3606,7 @@ int init_module(void)
+ 
+ 	pm3fb_init();
+ 
+-	return (0);
++	return 0;
  }
  
- module_init(atl1_init_module);
+ void cleanup_module(void)
+@@ -3619,23 +3617,18 @@ void cleanup_module(void)
+ 		struct pm3fb_info *l_fb_info;
+ 		for (i = 0; i < PM3_MAX_BOARD; i++) {
+ 			l_fb_info = &(fb_info[i]);
+-			if ((l_fb_info->dev != NULL)
+-			    && (!(disable[l_fb_info->board_num]))) {
+-				if (l_fb_info->vIOBase !=
+-				    (unsigned char *) -1) {
++			pci_dev_put(l_fb_info->dev);
++			if (l_fb_info->dev != NULL  && !(disable[l_fb_info->board_num])) {
++				if (l_fb_info->vIOBase != (unsigned char *) -1) {
+ 					pm3fb_unmapIO(l_fb_info);
+ 					release_mem_region(l_fb_info->p_fb,
+-							   l_fb_info->
+-							   fb_size);
+-					release_mem_region(l_fb_info->
+-							   pIOBase,
+-							   PM3_REGS_SIZE);
++						   l_fb_info->fb_size);
++					release_mem_region(l_fb_info->pIOBase,
++						   PM3_REGS_SIZE);
+ 				}
+-				unregister_framebuffer(&l_fb_info->gen.
+-						       info);
++				unregister_framebuffer(&l_fb_info->gen.info);
+ 			}
+ 		}
+ 	}
+-	return;
+ }
+ #endif /* MODULE */
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -95,3 +145,4 @@ edac-e752x-byte-access-fix.patch
 edac-new-opteron-athlon64-memory-controller-driver.patch
 edac-k8-driver-coding-tidy.patch
 sched-avoid-div-in-rebalance_tick.patch
+pm3fb-kill-pci_find_device-usage.patch
