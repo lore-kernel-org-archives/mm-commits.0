@@ -1,121 +1,76 @@
 From: akpm@osdl.org
-Subject: - introduce-and-use-get_task_mnt_ns.patch removed from -mm tree
-Date: Wed, 31 Jan 2007 17:24:43 -0800
-Message-ID: <200702010125.l111Pfkp032626@shell0.pdx.osdl.net>
+Subject: - explicitly-set-pgid-sid-of-init.patch removed from -mm tree
+Date: Wed, 31 Jan 2007 17:25:12 -0800
+Message-ID: <200702010126.l111QA2n032676@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35719 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35723 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751401AbXBAB0k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 20:26:40 -0500
+	id S1751614AbXBAB0n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 20:26:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@openvz.org, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Introduce and use get_task_mnt_ns()
+     Explicitly set pgid/sid of init
 has been removed from the -mm tree.  Its filename was
-     introduce-and-use-get_task_mnt_ns.patch
+     explicitly-set-pgid-sid-of-init.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Introduce and use get_task_mnt_ns()
-From: Alexey Dobriyan <adobriyan@openvz.org>
+Subject: Explicitly set pgid/sid of init
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-Similar to get_task_mm(): get a reference to task's mnt namespace if any.
-Suggested by Pavel Emelianov.
+Explicitly set pgid and sid of init process to 1.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: <containers@lists.osdl.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/proc/base.c          |   15 ++-------------
- include/linux/nsproxy.h |    1 +
- kernel/nsproxy.c        |   15 +++++++++++++++
- 3 files changed, 18 insertions(+), 13 deletions(-)
+ init/main.c   |    1 +
+ kernel/exit.c |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~introduce-and-use-get_task_mnt_ns fs/proc/base.c
---- a/fs/proc/base.c~introduce-and-use-get_task_mnt_ns
-+++ a/fs/proc/base.c
-@@ -370,13 +370,7 @@ static int mounts_open(struct inode *ino
- 	int ret = -EINVAL;
+diff -puN init/main.c~explicitly-set-pgid-sid-of-init init/main.c
+--- a/init/main.c~explicitly-set-pgid-sid-of-init
++++ a/init/main.c
+@@ -769,6 +769,7 @@ static int __init init(void * unused)
+ 	 */
+ 	init_pid_ns.child_reaper = current;
  
- 	if (task) {
--		task_lock(task);
--		if (task->nsproxy) {
--			ns = task->nsproxy->mnt_ns;
--			if (ns)
--				get_mnt_ns(ns);
--		}
--		task_unlock(task);
-+		ns = get_task_mnt_ns(task);
- 		put_task_struct(task);
- 	}
++	__set_special_pids(1, 1);
+ 	cad_pid = task_pid(current);
  
-@@ -443,12 +437,7 @@ static int mountstats_open(struct inode 
- 		struct task_struct *task = get_proc_task(inode);
- 
- 		if (task) {
--			task_lock(task);
--			if (task->nsproxy)
--				mnt_ns = task->nsproxy->mnt_ns;
--			if (mnt_ns)
--				get_mnt_ns(mnt_ns);
--			task_unlock(task);
-+			mnt_ns = get_task_mnt_ns(task);
- 			put_task_struct(task);
- 		}
- 
-diff -puN include/linux/nsproxy.h~introduce-and-use-get_task_mnt_ns include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~introduce-and-use-get_task_mnt_ns
-+++ a/include/linux/nsproxy.h
-@@ -35,6 +35,7 @@ struct nsproxy *dup_namespaces(struct ns
- int copy_namespaces(int flags, struct task_struct *tsk);
- void get_task_namespaces(struct task_struct *tsk);
- void free_nsproxy(struct nsproxy *ns);
-+struct mnt_namespace *get_task_mnt_ns(struct task_struct *tsk);
- 
- static inline void put_nsproxy(struct nsproxy *ns)
+ 	smp_prepare_cpus(max_cpus);
+diff -puN kernel/exit.c~explicitly-set-pgid-sid-of-init kernel/exit.c
+--- a/kernel/exit.c~explicitly-set-pgid-sid-of-init
++++ a/kernel/exit.c
+@@ -297,12 +297,12 @@ void __set_special_pids(pid_t session, p
  {
-diff -puN kernel/nsproxy.c~introduce-and-use-get_task_mnt_ns kernel/nsproxy.c
---- a/kernel/nsproxy.c~introduce-and-use-get_task_mnt_ns
-+++ a/kernel/nsproxy.c
-@@ -147,3 +147,18 @@ void free_nsproxy(struct nsproxy *ns)
- 		put_pid_ns(ns->pid_ns);
- 	kfree(ns);
- }
-+
-+struct mnt_namespace *get_task_mnt_ns(struct task_struct *tsk)
-+{
-+	struct mnt_namespace *mnt_ns = NULL;
-+
-+	task_lock(tsk);
-+	if (tsk->nsproxy) {
-+		mnt_ns = tsk->nsproxy->mnt_ns;
-+		if (mnt_ns)
-+			get_mnt_ns(mnt_ns);
-+	}
-+	task_unlock(tsk);
-+
-+	return mnt_ns;
-+}
+ 	struct task_struct *curr = current->group_leader;
+ 
+-	if (process_session(curr) != session) {
++	if (pid_nr(task_session(curr)) != session) {
+ 		detach_pid(curr, PIDTYPE_SID);
+ 		set_signal_session(curr->signal, session);
+ 		attach_pid(curr, PIDTYPE_SID, find_pid(session));
+ 	}
+-	if (process_group(curr) != pgrp) {
++	if (pid_nr(task_pgrp(curr)) != pgrp) {
+ 		detach_pid(curr, PIDTYPE_PGID);
+ 		curr->signal->pgrp = pgrp;
+ 		attach_pid(curr, PIDTYPE_PGID, find_pid(pgrp));
 _
 
-Patches currently in -mm which might be from adobriyan@openvz.org are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
-revert-x86_64-mm-msr-on-cpu.patch
-sysctl_ms_jiffies-fix-oldlen-semantics.patch
-consolidate-default-sched_clock.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-sn2-use-static-proc_fops.patch
-consolidate-bust_spinlocks.patch
-extract-and-use-wake_up_klogd.patch
-introduce-and-use-get_task_mnt_ns.patch
-lutimesat-simplify-utime2.patch
-lutimesat-extend-do_utimes-with-flags.patch
-lutimesat-actual-syscall-and-wire-up-on-i386.patch
+explicitly-set-pgid-sid-of-init.patch
