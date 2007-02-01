@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + libata-fix-hopefully-all-the-remaining-problems-with.patch added to -mm tree
-Date: Thu, 01 Feb 2007 14:36:49 -0800
-Message-ID: <200702012236.l11Manjb024956@shell0.pdx.osdl.net>
+Subject: + rapidio-fix-multi-switch-enumeration.patch added to -mm tree
+Date: Thu, 01 Feb 2007 14:38:15 -0800
+Message-ID: <200702012238.l11McF1M024992@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44995 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45112 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932852AbXBAWgy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 17:36:54 -0500
+	id S932861AbXBAWio (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 17:38:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk
+Cc: Alexandre.Bounine@tundra.com, alexandreb@tundra.com, mporter@kernel.crashing.org
 
 
 The patch titled
-     libata: fix (hopefully) all the remaining problems with devices failing setup/identify
+     rapidio: fix multi-switch enumeration
 has been added to the -mm tree.  Its filename is
-     libata-fix-hopefully-all-the-remaining-problems-with.patch
+     rapidio-fix-multi-switch-enumeration.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,116 +25,290 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: fix (hopefully) all the remaining problems with devices failing setup/identify
-From: Alan <alan@lxorguk.ukuu.org.uk>
+Subject: rapidio: fix multi-switch enumeration
+From: "Alexandre Bounine" <Alexandre.Bounine@tundra.com>
 
-Two fixes in this test patch.  One of them allows old CF cards to refuse
-pio mode setting, and one to wait for the drive to settle after a set
-features changes the speed settings, which is based upon the workarounds
-used by drivers/ide.
+This patch contains two fixes for RapisIO enumeration logic:
 
-Please test and report back if you have an afflicted system.  This patch
-isn't for merging just testing.
+1. Fix enumeration in configurations with multiple switches. The patch adds:
 
-The CF card fix will still display errors when the card works (got fixes
-for that once I know the cure works) but should then be found/usable.
+   a. Enumeration of an empty switch.  Empty switch is a switch that
+      does not have any endpoint devices attached to it (except host device
+      or previous switch in a chain).  New code assigns a phony destination
+      ID associated with the switch and sets up corresponding routes.
 
-Not signed off by anyone, not for merging
+   b. Adds a second pass to the enumeration to setup routes to
+      devices discovered after switch was scanned.
 
+2. Fix enumeration failure when riohdid parameter has non-zero value. 
+   Current version fails to setup response path to the host when it has
+   destination ID other that 0.
 
+Signed-off-by: Alexandre Bounine <alexandreb@tundra.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/libata-core.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+)
+ drivers/rapidio/rio-scan.c |  118 +++++++++++++++++++++++++----------
+ include/linux/rio.h        |    1 
+ 2 files changed, 88 insertions(+), 31 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-fix-hopefully-all-the-remaining-problems-with drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-fix-hopefully-all-the-remaining-problems-with
-+++ a/drivers/ata/libata-core.c
-@@ -2407,6 +2407,10 @@ static int ata_dev_set_mode(struct ata_d
- 		dev->flags |= ATA_DFLAG_PIO;
+diff -puN drivers/rapidio/rio-scan.c~rapidio-fix-multi-switch-enumeration drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-fix-multi-switch-enumeration
++++ a/drivers/rapidio/rio-scan.c
+@@ -326,14 +326,17 @@ static struct rio_dev *rio_setup_device(
+ 	rio_mport_read_config_32(port, destid, hopcount, RIO_DST_OPS_CAR,
+ 				 &rdev->dst_ops);
  
- 	err_mask = ata_dev_set_xfermode(dev);
-+	/* Old CFA may refuse this command, which is just fine */
-+	if (dev->xfer_shift == ATA_SHIFT_PIO && ata_id_is_cfa(dev->id))
-+        	err_mask &= ~AC_ERR_DEV;
-+
- 	if (err_mask) {
- 		ata_dev_printk(dev, KERN_ERR, "failed to set xfermode "
- 			       "(err_mask=0x%x)\n", err_mask);
-@@ -5091,6 +5095,7 @@ inline unsigned int ata_host_intr (struc
+-	if (rio_device_has_destid(port, rdev->src_ops, rdev->dst_ops)
+-	    && do_enum) {
+-		rio_set_device_id(port, destid, hopcount, next_destid);
+-		rdev->destid = next_destid++;
+-		if (next_destid == port->host_deviceid)
+-			next_destid++;
++	if (rio_device_has_destid(port, rdev->src_ops, rdev->dst_ops)) {
++		if (do_enum) {
++			rio_set_device_id(port, destid, hopcount, next_destid);
++			rdev->destid = next_destid++;
++			if (next_destid == port->host_deviceid)
++				next_destid++;
++		} else
++			rdev->destid = rio_get_device_id(port, destid, hopcount);
+ 	} else
+-		rdev->destid = rio_get_device_id(port, destid, hopcount);
++		/* Switch device has an associated destID */
++		rdev->destid = RIO_INVALID_DESTID;
+ 
+ 	/* If a PE has both switch and other functions, show it as a switch */
+ 	if (rio_is_switch(rdev)) {
+@@ -347,7 +350,7 @@ static struct rio_dev *rio_setup_device(
+ 		}
+ 		rswitch->switchid = next_switchid;
+ 		rswitch->hopcount = hopcount;
+-		rswitch->destid = 0xffff;
++		rswitch->destid = destid;
+ 		/* Initialize switch route table */
+ 		for (rdid = 0; rdid < RIO_MAX_ROUTE_ENTRIES; rdid++)
+ 			rswitch->route_table[rdid] = RIO_INVALID_ROUTE;
+@@ -422,7 +425,7 @@ rio_sport_is_active(struct rio_mport *po
+ /**
+  * rio_route_add_entry- Add a route entry to a switch routing table
+  * @mport: Master port to send transaction
+- * @rdev: Switch device
++ * @rswitch: Switch device
+  * @table: Routing table ID
+  * @route_destid: Destination ID to be routed
+  * @route_port: Port number to be routed
+@@ -434,18 +437,18 @@ rio_sport_is_active(struct rio_mport *po
+  * %RIO_GLOBAL_TABLE in @table. Returns %0 on success or %-EINVAL
+  * on failure.
+  */
+-static int rio_route_add_entry(struct rio_mport *mport, struct rio_dev *rdev,
++static int rio_route_add_entry(struct rio_mport *mport, struct rio_switch *rswitch,
+ 			       u16 table, u16 route_destid, u8 route_port)
  {
- 	struct ata_eh_info *ehi = &ap->eh_info;
- 	u8 status, host_stat = 0;
-+	int i;
+-	return rdev->rswitch->add_entry(mport, rdev->rswitch->destid,
+-					rdev->rswitch->hopcount, table,
++	return rswitch->add_entry(mport, rswitch->destid,
++					rswitch->hopcount, table,
+ 					route_destid, route_port);
+ }
  
- 	VPRINTK("ata%u: protocol %d task_state %d\n",
- 		ap->id, qc->tf.protocol, ap->hsm_task_state);
-@@ -5146,6 +5151,20 @@ inline unsigned int ata_host_intr (struc
- 	if (unlikely(status & ATA_BUSY))
- 		goto idle_irq;
+ /**
+  * rio_route_get_entry- Read a route entry in a switch routing table
+  * @mport: Master port to send transaction
+- * @rdev: Switch device
++ * @rswitch: Switch device
+  * @table: Routing table ID
+  * @route_destid: Destination ID to be routed
+  * @route_port: Pointer to read port number into
+@@ -458,11 +461,11 @@ static int rio_route_add_entry(struct ri
+  * on failure.
+  */
+ static int
+-rio_route_get_entry(struct rio_mport *mport, struct rio_dev *rdev, u16 table,
++rio_route_get_entry(struct rio_mport *mport, struct rio_switch *rswitch, u16 table,
+ 		    u16 route_destid, u8 * route_port)
+ {
+-	return rdev->rswitch->get_entry(mport, rdev->rswitch->destid,
+-					rdev->rswitch->hopcount, table,
++	return rswitch->get_entry(mport, rswitch->destid,
++					rswitch->hopcount, table,
+ 					route_destid, route_port);
+ }
  
-+	if (unlikely(qc->tf.command == ATA_CMD_SET_FEATURES &&
-+			qc->tf.feature == SETFEATURES_XFER)) {
-+		/* Let the timings change settle and the drive catch up as
-+		   some hardware needs up to 10uS to get its brain back in
-+		   gear. Taken from the workarounds in drivers/ide done by
-+		   Matthew Faupel/Niccolo Rigacci */
-+		for (i = 0; i < 10; i++) {
-+			if ((status & (ATA_BUSY | ATA_DRQ | ATA_ERR)) == 0)
-+				break;
-+			udelay(1);
-+			status = ata_chk_status(ap);
+@@ -552,6 +555,8 @@ static int rio_enum_peer(struct rio_net 
+ 	int port_num;
+ 	int num_ports;
+ 	int cur_destid;
++	int sw_destid;
++	int sw_inport;
+ 	struct rio_dev *rdev;
+ 	u16 destid;
+ 	int tmp;
+@@ -594,15 +599,17 @@ static int rio_enum_peer(struct rio_net 
+ 
+ 	if (rio_is_switch(rdev)) {
+ 		next_switchid++;
++		sw_inport = rio_get_swpinfo_inport(port, RIO_ANY_DESTID, hopcount);
++		rio_route_add_entry(port, rdev->rswitch, RIO_GLOBAL_TABLE,
++				    port->host_deviceid, sw_inport);
++		rdev->rswitch->route_table[port->host_deviceid] = sw_inport;
+ 
+ 		for (destid = 0; destid < next_destid; destid++) {
+-			rio_route_add_entry(port, rdev, RIO_GLOBAL_TABLE,
+-					    destid, rio_get_swpinfo_inport(port,
+-									   RIO_ANY_DESTID,
+-									   hopcount));
+-			rdev->rswitch->route_table[destid] =
+-			    rio_get_swpinfo_inport(port, RIO_ANY_DESTID,
+-						   hopcount);
++			if (destid == port->host_deviceid)
++				continue;
++			rio_route_add_entry(port, rdev->rswitch, RIO_GLOBAL_TABLE,
++					    destid, sw_inport);
++			rdev->rswitch->route_table[destid] = sw_inport;
+ 		}
+ 
+ 		num_ports =
+@@ -610,9 +617,9 @@ static int rio_enum_peer(struct rio_net 
+ 		pr_debug(
+ 		    "RIO: found %s (vid %4.4x did %4.4x) with %d ports\n",
+ 		    rio_name(rdev), rdev->vid, rdev->did, num_ports);
++		sw_destid = next_destid;
+ 		for (port_num = 0; port_num < num_ports; port_num++) {
+-			if (rio_get_swpinfo_inport
+-			    (port, RIO_ANY_DESTID, hopcount) == port_num)
++			if (sw_inport == port_num)
+ 				continue;
+ 
+ 			cur_destid = next_destid;
+@@ -622,7 +629,7 @@ static int rio_enum_peer(struct rio_net 
+ 				pr_debug(
+ 				    "RIO: scanning device on port %d\n",
+ 				    port_num);
+-				rio_route_add_entry(port, rdev,
++				rio_route_add_entry(port, rdev->rswitch,
+ 						    RIO_GLOBAL_TABLE,
+ 						    RIO_ANY_DESTID, port_num);
+ 
+@@ -633,7 +640,9 @@ static int rio_enum_peer(struct rio_net 
+ 				if (next_destid > cur_destid) {
+ 					for (destid = cur_destid;
+ 					     destid < next_destid; destid++) {
+-						rio_route_add_entry(port, rdev,
++						if (destid == port->host_deviceid)
++							continue;
++						rio_route_add_entry(port, rdev->rswitch,
+ 								    RIO_GLOBAL_TABLE,
+ 								    destid,
+ 								    port_num);
+@@ -641,10 +650,18 @@ static int rio_enum_peer(struct rio_net 
+ 						    route_table[destid] =
+ 						    port_num;
+ 					}
+-					rdev->rswitch->destid = cur_destid;
+ 				}
+ 			}
+ 		}
++
++		/* Check for empty switch */
++		if (next_destid == sw_destid) {
++			next_destid++;
++			if (next_destid == port->host_deviceid)
++				next_destid++;
++		}
++
++		rdev->rswitch->destid = sw_destid;
+ 	} else
+ 		pr_debug("RIO: found %s (vid %4.4x did %4.4x)\n",
+ 		    rio_name(rdev), rdev->vid, rdev->did);
+@@ -721,7 +738,7 @@ rio_disc_peer(struct rio_net *net, struc
+ 				    port_num);
+ 				for (ndestid = 0; ndestid < RIO_ANY_DESTID;
+ 				     ndestid++) {
+-					rio_route_get_entry(port, rdev,
++					rio_route_get_entry(port, rdev->rswitch,
+ 							    RIO_GLOBAL_TABLE,
+ 							    ndestid,
+ 							    &route_port);
+@@ -798,6 +815,44 @@ static struct rio_net __devinit *rio_all
+ }
+ 
+ /**
++ * rio_update_route_tables- Updates route tables in switches
++ * @port: Master port associated with the RIO network
++ *
++ * For each enumerated device, ensure that each switch in a system
++ * has correct routing entries. Add routes for devices that where
++ * unknown dirung the first enumeration pass through the switch.
++ */
++static void rio_update_route_tables(struct rio_mport *port)
++{
++	struct rio_dev *rdev;
++	struct rio_switch *rswitch;
++	u8 sport;
++	u16 destid;
++
++	list_for_each_entry(rdev, &rio_devices, global_list) {
++
++		destid = (rio_is_switch(rdev))?rdev->rswitch->destid:rdev->destid;
++
++		list_for_each_entry(rswitch, &rio_switches, node) {
++
++			if (rio_is_switch(rdev)	&& (rdev->rswitch == rswitch))
++				continue;
++
++			if (RIO_INVALID_ROUTE == rswitch->route_table[destid]) {
++
++				sport = rio_get_swpinfo_inport(port,
++						rswitch->destid, rswitch->hopcount);
++
++				if (rswitch->add_entry)	{
++					rio_route_add_entry(port, rswitch, RIO_GLOBAL_TABLE, destid, sport);
++					rswitch->route_table[destid] = sport;
++				}
++			}
 +		}
 +	}
++}
 +
- 	/* ack bmdma irq events */
- 	ap->ops->irq_clear(ap);
++/**
+  * rio_enum_mport- Start enumeration through a master port
+  * @mport: Master port to send transactions
+  *
+@@ -838,6 +893,7 @@ int rio_enum_mport(struct rio_mport *mpo
+ 			rc = -EBUSY;
+ 			goto out;
+ 		}
++		rio_update_route_tables(mport);
+ 		rio_clear_locks(mport);
+ 	} else {
+ 		printk(KERN_INFO "RIO: master port %d link inactive\n",
+@@ -865,8 +921,8 @@ static void rio_build_route_tables(void)
+ 	    if (rio_is_switch(rdev))
+ 		for (i = 0; i < RIO_MAX_ROUTE_ENTRIES; i++) {
+ 			if (rio_route_get_entry
+-			    (rdev->net->hport, rdev, RIO_GLOBAL_TABLE, i,
+-			     &sport) < 0)
++			    (rdev->net->hport, rdev->rswitch, RIO_GLOBAL_TABLE,
++			     i, &sport) < 0)
+ 				continue;
+ 			rdev->rswitch->route_table[i] = sport;
+ 		}
+diff -puN include/linux/rio.h~rapidio-fix-multi-switch-enumeration include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-fix-multi-switch-enumeration
++++ a/include/linux/rio.h
+@@ -25,6 +25,7 @@
  
+ #define RIO_ANY_DESTID		0xff
+ #define RIO_NO_HOPCOUNT		-1
++#define RIO_INVALID_DESTID	0xffff
+ 
+ #define RIO_MAX_MPORT_RESOURCES	16
+ #define RIO_MAX_DEV_RESOURCES	16
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from Alexandre.Bounine@tundra.com are
 
-via-quirk-fix-update.patch
-git-libata-all.patch
-pata_atiixp-propogate-cable-detection-hack-from.patch
-pata_via-correct-missing-comments.patch
-sis-warning-fixes.patch
-ata_busy_wait-kerneldoc-fixes.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-git-mtd.patch
-ubi-int-versus-size_t-printk-warnings.patch
-atl1_main-pci_module_int-returns-to-haunt-us.patch
-z85230-spinlock-logic.patch
-resend-iphase-64bit-cleanup.patch
-make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
-perle-multimodem-card-pci-ras-detection.patch
-pnx8550-uart-driver.patch
-pnx8550-uart-driver-fixes.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-geode-support-classic-mediagxm.patch
-cyrix-fails-to-detect-mediagx.patch
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-tty_wakeup-cleanup.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-tty-improve-encode_baud_rate-logic.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
-sched-avoid-div-in-rebalance_tick.patch
-pm3fb-kill-pci_find_device-usage.patch
+rapidio-fix-multi-switch-enumeration.patch
