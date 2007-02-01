@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + ata_busy_wait-kerneldoc-fixes.patch added to -mm tree
-Date: Thu, 01 Feb 2007 14:36:40 -0800
-Message-ID: <200702012236.l11MaedD024950@shell0.pdx.osdl.net>
+Subject: + libata-fix-hopefully-all-the-remaining-problems-with.patch added to -mm tree
+Date: Thu, 01 Feb 2007 14:36:49 -0800
+Message-ID: <200702012236.l11Manjb024956@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45004 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44995 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932857AbXBAWg5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 17:36:57 -0500
+	id S932852AbXBAWgy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 17:36:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     ata_busy_wait() kerneldoc fixes
+     libata: fix (hopefully) all the remaining problems with devices failing setup/identify
 has been added to the -mm tree.  Its filename is
-     ata_busy_wait-kerneldoc-fixes.patch
+     libata-fix-hopefully-all-the-remaining-problems-with.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata_busy_wait() kerneldoc fixes
+Subject: libata: fix (hopefully) all the remaining problems with devices failing setup/identify
 From: Alan <alan@lxorguk.ukuu.org.uk>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Two fixes in this test patch.  One of them allows old CF cards to refuse
+pio mode setting, and one to wait for the drive to settle after a set
+features changes the speed settings, which is based upon the workarounds
+used by drivers/ide.
+
+Please test and report back if you have an afflicted system.  This patch
+isn't for merging just testing.
+
+The CF card fix will still display errors when the card works (got fixes
+for that once I know the cure works) but should then be found/usable.
+
+Not signed off by anyone, not for merging
+
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/libata.h |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/ata/libata-core.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+)
 
-diff -puN include/linux/libata.h~ata_busy_wait-kerneldoc-fixes include/linux/libata.h
---- a/include/linux/libata.h~ata_busy_wait-kerneldoc-fixes
-+++ a/include/linux/libata.h
-@@ -1047,6 +1047,8 @@ static inline void ata_pause(struct ata_
- /**
-  *	ata_busy_wait - Wait for a port status register
-  *	@ap: Port to wait for.
-+ *	@bits: bits that must be clear
-+ *	@max: number of 10uS waits to perform
-  *
-  *	Waits up to max*10 microseconds for the selected bits in the port's
-  *	status register to be cleared.
+diff -puN drivers/ata/libata-core.c~libata-fix-hopefully-all-the-remaining-problems-with drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-fix-hopefully-all-the-remaining-problems-with
++++ a/drivers/ata/libata-core.c
+@@ -2407,6 +2407,10 @@ static int ata_dev_set_mode(struct ata_d
+ 		dev->flags |= ATA_DFLAG_PIO;
+ 
+ 	err_mask = ata_dev_set_xfermode(dev);
++	/* Old CFA may refuse this command, which is just fine */
++	if (dev->xfer_shift == ATA_SHIFT_PIO && ata_id_is_cfa(dev->id))
++        	err_mask &= ~AC_ERR_DEV;
++
+ 	if (err_mask) {
+ 		ata_dev_printk(dev, KERN_ERR, "failed to set xfermode "
+ 			       "(err_mask=0x%x)\n", err_mask);
+@@ -5091,6 +5095,7 @@ inline unsigned int ata_host_intr (struc
+ {
+ 	struct ata_eh_info *ehi = &ap->eh_info;
+ 	u8 status, host_stat = 0;
++	int i;
+ 
+ 	VPRINTK("ata%u: protocol %d task_state %d\n",
+ 		ap->id, qc->tf.protocol, ap->hsm_task_state);
+@@ -5146,6 +5151,20 @@ inline unsigned int ata_host_intr (struc
+ 	if (unlikely(status & ATA_BUSY))
+ 		goto idle_irq;
+ 
++	if (unlikely(qc->tf.command == ATA_CMD_SET_FEATURES &&
++			qc->tf.feature == SETFEATURES_XFER)) {
++		/* Let the timings change settle and the drive catch up as
++		   some hardware needs up to 10uS to get its brain back in
++		   gear. Taken from the workarounds in drivers/ide done by
++		   Matthew Faupel/Niccolo Rigacci */
++		for (i = 0; i < 10; i++) {
++			if ((status & (ATA_BUSY | ATA_DRQ | ATA_ERR)) == 0)
++				break;
++			udelay(1);
++			status = ata_chk_status(ap);
++		}
++	}
++
+ 	/* ack bmdma irq events */
+ 	ap->ops->irq_clear(ap);
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
