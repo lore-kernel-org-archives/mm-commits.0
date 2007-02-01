@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + pata_atiixp-propogate-cable-detection-hack-from.patch added to -mm tree
-Date: Thu, 01 Feb 2007 13:45:11 -0800
-Message-ID: <200702012145.l11LjClr023751@shell0.pdx.osdl.net>
+Subject: + pata_via-correct-missing-comments.patch added to -mm tree
+Date: Thu, 01 Feb 2007 13:45:34 -0800
+Message-ID: <200702012145.l11LjYMT023760@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41063 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41126 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751438AbXBAVpW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 16:45:22 -0500
+	id S1751457AbXBAVpq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 16:45:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_atiixp: propogate cable detection hack from drivers/ide to the new driver
+     pata_via: Correct missing comments
 has been added to the -mm tree.  Its filename is
-     pata_atiixp-propogate-cable-detection-hack-from.patch
+     pata_via-correct-missing-comments.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_atiixp: propogate cable detection hack from drivers/ide to the new driver
+Subject: pata_via: Correct missing comments
 From: Alan <alan@lxorguk.ukuu.org.uk>
+
+The 8237S was added to the chipsets but not to the comments. Fix this.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/pata_atiixp.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ drivers/ata/pata_via.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-propogate-cable-detection-hack-from drivers/ata/pata_atiixp.c
---- a/drivers/ata/pata_atiixp.c~pata_atiixp-propogate-cable-detection-hack-from
-+++ a/drivers/ata/pata_atiixp.c
-@@ -36,15 +36,22 @@ enum {
- static int atiixp_pre_reset(struct ata_port *ap)
- {
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--	static struct pci_bits atiixp_enable_bits[] = {
-+	static const struct pci_bits atiixp_enable_bits[] = {
- 		{ 0x48, 1, 0x01, 0x00 },
- 		{ 0x48, 1, 0x08, 0x00 }
- 	};
-+	u8 udma;
+diff -puN drivers/ata/pata_via.c~pata_via-correct-missing-comments drivers/ata/pata_via.c
+--- a/drivers/ata/pata_via.c~pata_via-correct-missing-comments
++++ a/drivers/ata/pata_via.c
+@@ -23,6 +23,7 @@
+  *	VIA VT8233c	-	UDMA100
+  *	VIA VT8235	-	UDMA133
+  *	VIA VT8237	-	UDMA133
++ *	VIA VT8237S	-	UDMA133
+  *	VIA VT8251	-	UDMA133
+  *
+  *	Most registers remain compatible across chips. Others start reserved
+@@ -61,7 +62,7 @@
+ #include <linux/libata.h>
  
- 	if (!pci_test_config_bits(pdev, &atiixp_enable_bits[ap->port_no]))
- 		return -ENOENT;
+ #define DRV_NAME "pata_via"
+-#define DRV_VERSION "0.2.0"
++#define DRV_VERSION "0.2.1"
  
--	ap->cbl = ATA_CBL_PATA80;
-+	/* Hack from drivers/ide/pci. Really we want to know how to do the
-+	   raw detection not play follow the bios mode guess */
-+	pci_read_config_byte(pdev, ATIIXP_IDE_UDMA_MODE + ap->port_no, &udma);
-+	if ((udma & 0x07) >= 0x04 || (udma & 0x70) >= 0x40)
-+		ap->cbl = ATA_CBL_PATA80;
-+	else
-+		ap->cbl = ATA_CBL_PATA40;
- 	return ata_std_prereset(ap);
- }
- 
+ /*
+  *	The following comes directly from Vojtech Pavlik's ide/pci/via82cxxx
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -70,6 +64,7 @@ Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 via-quirk-fix-update.patch
 git-libata-all.patch
 pata_atiixp-propogate-cable-detection-hack-from.patch
+pata_via-correct-missing-comments.patch
 git-mtd.patch
 ubi-int-versus-size_t-printk-warnings.patch
 atl1_main-pci_module_int-returns-to-haunt-us.patch
