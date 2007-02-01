@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: - user-ns-add-user_namespace-ptr-to-vfsmount-fixes.patch removed from -mm tree
-Date: Wed, 31 Jan 2007 17:15:07 -0800
-Message-ID: <200702010116.l111G5kg032451@shell0.pdx.osdl.net>
+Subject: - user-namespace-add-the-framework-fixes.patch removed from -mm tree
+Date: Wed, 31 Jan 2007 17:14:55 -0800
+Message-ID: <200702010115.l111FrcN032445@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35255 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35264 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161184AbXBABQM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 20:16:12 -0500
+	id S1161182AbXBABQU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 20:16:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: serue@us.ibm.com, mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ To: serue@us.ibm.com, mm-commits@vger.kernel.org
 The patch titled
      user ns fixes
 has been removed from the -mm tree.  Its filename was
-     user-ns-add-user_namespace-ptr-to-vfsmount-fixes.patch
+     user-namespace-add-the-framework-fixes.patch
 
-This patch was dropped because it was folded into user-ns-add-user_namespace-ptr-to-vfsmount.patch
+This patch was dropped because it was folded into user-namespace-add-the-framework.patch
 
 ------------------------------------------------------
 Subject: user ns fixes
@@ -30,34 +30,41 @@ Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sched.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/user_namespace.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN include/linux/sched.h~user-ns-add-user_namespace-ptr-to-vfsmount-fixes include/linux/sched.h
---- a/include/linux/sched.h~user-ns-add-user_namespace-ptr-to-vfsmount-fixes
-+++ a/include/linux/sched.h
-@@ -1598,6 +1598,7 @@ extern int cond_resched(void);
- extern int cond_resched_lock(spinlock_t * lock);
- extern int cond_resched_softirq(void);
- 
-+#ifdef CONFIG_USER_NS
- /*
-  * Check whether a task and a vfsmnt belong to the same uidns.
-  * Since the initial namespace is exempt from these checks,
-@@ -1614,6 +1615,13 @@ static inline int task_mnt_same_uidns(st
- 		return 1;
- 	return 0;
+diff -puN include/linux/user_namespace.h~user-namespace-add-the-framework-fixes include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~user-namespace-add-the-framework-fixes
++++ a/include/linux/user_namespace.h
+@@ -34,6 +34,16 @@ static inline void put_user_ns(struct us
+ 		kref_put(&ns->kref, free_user_ns);
  }
-+#else
-+static inline int task_mnt_same_uidns(struct task_struct *tsk,
-+					struct vfsmount *mnt)
+ 
++static inline int clone_mnt_userns_permission(struct vfsmount *old)
++{
++	if (!(old->mnt_flags & MNT_SHARE_NS)) {
++		if (old->mnt_user_ns != current->nsproxy->user_ns)
++			return 0;
++	}
++
++	return 1;
++}
++
+ #else
+ 
+ static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
+@@ -49,6 +59,11 @@ static inline int copy_user_ns(int flags
+ static inline void put_user_ns(struct user_namespace *ns)
+ {
+ }
++
++static inline int clone_mnt_userns_permission(struct vfsmount *old)
 +{
 +	return 1;
 +}
-+#endif
+ #endif
  
- 
- /*
+ #endif /* _LINUX_USER_H */
 _
 
 Patches currently in -mm which might be from serue@us.ibm.com are
@@ -68,6 +75,7 @@ file-capabilities-honor-secure_noroot.patch
 introduce-and-use-get_task_mnt_ns.patch
 nsproxy-externalizes-exit_task_namespaces.patch
 user-namespace-add-the-framework.patch
+user-namespace-add-the-framework-fixes.patch
 user-ns-add-user_namespace-ptr-to-vfsmount.patch
 user-ns-add-user_namespace-ptr-to-vfsmount-fixes.patch
 user-ns-hook-permission.patch
