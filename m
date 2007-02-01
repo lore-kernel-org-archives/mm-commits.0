@@ -1,64 +1,64 @@
 From: akpm@osdl.org
-Subject: - aio-completion-signal-notification-fix.patch removed from -mm tree
-Date: Thu, 01 Feb 2007 14:56:20 -0800
-Message-ID: <200702012256.l11MuK8w025464@shell0.pdx.osdl.net>
+Subject: - fix-aioh-includes.patch removed from -mm tree
+Date: Thu, 01 Feb 2007 14:56:11 -0800
+Message-ID: <200702012256.l11MuBuT025449@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46255 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46267 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932564AbXBAW4Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 17:56:24 -0500
+	id S932823AbXBAW4a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 17:56:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sebastien.dugue@bull.net, mm-commits@vger.kernel.org
+To: sebastien.dugue@bull.net, bcrl@kvack.org, drepper@redhat.com, suparna@in.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     AIO: comment aio_setup_sigevent() explaining why there is no task =
-ref leak
+     aio: fix aio.h includes
 has been removed from the -mm tree.  Its filename was
-     aio-completion-signal-notification-fix.patch
+     fix-aioh-includes.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: AIO: comment aio_setup_sigevent() explaining why there is no t=
-ask ref leak
-=46rom: Sebastien Dugue=E9 <sebastien.dugue@bull.net>
+Subject: aio: fix aio.h includes
+=46rom: Sbastien Dugu <sebastien.dugue@bull.net>
 
-Add a comment explaining why there is no task ref leak in
-aio_setup_sigevent().
+=46ix the double inclusion of linux/uio.h in linux/aio.h
 
-Signed-off-by: Sebastien Dugue=E9 <sebastien.dugue@bull.net>
+Signed-off-by: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/aio.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/aio.c~aio-completion-signal-notification-fix fs/aio.c
---- a/fs/aio.c~aio-completion-signal-notification-fix
-+++ a/fs/aio.c
-@@ -986,6 +986,11 @@ static long aio_setup_sigevent(struct ai
- 	 */
- 	notify->sigq =3D sigqueue_alloc();
+diff -puN include/linux/aio.h~fix-aioh-includes include/linux/aio.h
+--- a/include/linux/aio.h~fix-aioh-includes
++++ a/include/linux/aio.h
+@@ -7,7 +7,6 @@
+ #include <linux/uio.h>
 =20
-+	/*
-+	 * The task ref will be released in really_put_req()
-+	 * when we dispose of the iocb later on in the submission
-+	 * path.
-+	 */
- 	if (unlikely(!notify->sigq))
- 		return -EAGAIN;
+ #include <asm/atomic.h>
+-#include <linux/uio.h>
 =20
+ #define AIO_MAXSEGS		4
+ #define AIO_KIOGRP_NR_ATOMIC	8
 _
 
 Patches currently in -mm which might be from sebastien.dugue@bull.net a=
 re
 
+fix-aioh-includes.patch
+make-good_sigevent-non-static.patch
+aio-completion-signal-notification.patch
 aio-completion-signal-notification-fix.patch
 add-listio-syscall-support.patch
 add-listio-syscall-support-fix.patch
