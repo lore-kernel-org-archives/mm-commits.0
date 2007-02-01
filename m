@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + pm3fb-kill-pci_find_device-usage.patch added to -mm tree
-Date: Thu, 01 Feb 2007 13:44:32 -0800
-Message-ID: <200702012144.l11LiWuK023719@shell0.pdx.osdl.net>
+Subject: + pata_atiixp-propogate-cable-detection-hack-from.patch added to -mm tree
+Date: Thu, 01 Feb 2007 13:45:11 -0800
+Message-ID: <200702012145.l11LjClr023751@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41030 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41063 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751409AbXBAVoz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 16:44:55 -0500
+	id S1751438AbXBAVpW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 16:45:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jsimmons@infradead.org
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pm3fb: kill pci_find_device usage
+     pata_atiixp: propogate cable detection hack from drivers/ide to the new driver
 has been added to the -mm tree.  Its filename is
-     pm3fb-kill-pci_find_device-usage.patch
+     pata_atiixp-propogate-cable-detection-hack-from.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,92 +25,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm3fb: kill pci_find_device usage
+Subject: pata_atiixp: propogate cable detection hack from drivers/ide to the new driver
 From: Alan <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/pm3fb.c |   29 +++++++++++------------------
- 1 files changed, 11 insertions(+), 18 deletions(-)
+ drivers/ata/pata_atiixp.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/pm3fb.c~pm3fb-kill-pci_find_device-usage drivers/video/pm3fb.c
---- a/drivers/video/pm3fb.c~pm3fb-kill-pci_find_device-usage
-+++ a/drivers/video/pm3fb.c
-@@ -3299,14 +3299,12 @@ static void pm3fb_detect(void)
- 		fb_info[i].dev = NULL;
- 	}
+diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-propogate-cable-detection-hack-from drivers/ata/pata_atiixp.c
+--- a/drivers/ata/pata_atiixp.c~pata_atiixp-propogate-cable-detection-hack-from
++++ a/drivers/ata/pata_atiixp.c
+@@ -36,15 +36,22 @@ enum {
+ static int atiixp_pre_reset(struct ata_port *ap)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+-	static struct pci_bits atiixp_enable_bits[] = {
++	static const struct pci_bits atiixp_enable_bits[] = {
+ 		{ 0x48, 1, 0x01, 0x00 },
+ 		{ 0x48, 1, 0x08, 0x00 }
+ 	};
++	u8 udma;
  
--	dev =
--	    pci_find_device(PCI_VENDOR_ID_3DLABS,
-+	dev = pci_get_device(PCI_VENDOR_ID_3DLABS,
- 			    PCI_DEVICE_ID_3DLABS_PERMEDIA3, dev);
+ 	if (!pci_test_config_bits(pdev, &atiixp_enable_bits[ap->port_no]))
+ 		return -ENOENT;
  
- 	for (i = 0; ((i < PM3_MAX_BOARD) && dev); i++) {
- 		dev_array[i] = dev;
--		dev =
--		    pci_find_device(PCI_VENDOR_ID_3DLABS,
-+		dev = pci_get_device(PCI_VENDOR_ID_3DLABS,
- 				    PCI_DEVICE_ID_3DLABS_PERMEDIA3, dev);
- 	}
- 
-@@ -3353,7 +3351,7 @@ static void pm3fb_detect(void)
- 	/* now, initialize... or not */
- 	for (i = 0; i < PM3_MAX_BOARD; i++) {
- 		l_fb_info = &(fb_info[i]);
--		if ((l_fb_info->dev) && (!disable[i])) {	/* PCI device was found and not disabled by user */
-+		if (l_fb_info->dev && !disable[i]) {	/* PCI device was found and not disabled by user */
- 			DPRINTK(2,
- 				"found @%lx Vendor %lx Device %lx ; base @ : %lx - %lx - %lx - %lx - %lx - %lx, irq %ld\n",
- 				(unsigned long) l_fb_info->dev,
-@@ -3608,7 +3606,7 @@ int init_module(void)
- 
- 	pm3fb_init();
- 
--	return (0);
-+	return 0;
+-	ap->cbl = ATA_CBL_PATA80;
++	/* Hack from drivers/ide/pci. Really we want to know how to do the
++	   raw detection not play follow the bios mode guess */
++	pci_read_config_byte(pdev, ATIIXP_IDE_UDMA_MODE + ap->port_no, &udma);
++	if ((udma & 0x07) >= 0x04 || (udma & 0x70) >= 0x40)
++		ap->cbl = ATA_CBL_PATA80;
++	else
++		ap->cbl = ATA_CBL_PATA40;
+ 	return ata_std_prereset(ap);
  }
  
- void cleanup_module(void)
-@@ -3619,23 +3617,18 @@ void cleanup_module(void)
- 		struct pm3fb_info *l_fb_info;
- 		for (i = 0; i < PM3_MAX_BOARD; i++) {
- 			l_fb_info = &(fb_info[i]);
--			if ((l_fb_info->dev != NULL)
--			    && (!(disable[l_fb_info->board_num]))) {
--				if (l_fb_info->vIOBase !=
--				    (unsigned char *) -1) {
-+			pci_dev_put(l_fb_info->dev);
-+			if (l_fb_info->dev != NULL  && !(disable[l_fb_info->board_num])) {
-+				if (l_fb_info->vIOBase != (unsigned char *) -1) {
- 					pm3fb_unmapIO(l_fb_info);
- 					release_mem_region(l_fb_info->p_fb,
--							   l_fb_info->
--							   fb_size);
--					release_mem_region(l_fb_info->
--							   pIOBase,
--							   PM3_REGS_SIZE);
-+						   l_fb_info->fb_size);
-+					release_mem_region(l_fb_info->pIOBase,
-+						   PM3_REGS_SIZE);
- 				}
--				unregister_framebuffer(&l_fb_info->gen.
--						       info);
-+				unregister_framebuffer(&l_fb_info->gen.info);
- 			}
- 		}
- 	}
--	return;
- }
- #endif /* MODULE */
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 via-quirk-fix-update.patch
 git-libata-all.patch
+pata_atiixp-propogate-cable-detection-hack-from.patch
 git-mtd.patch
 ubi-int-versus-size_t-printk-warnings.patch
 atl1_main-pci_module_int-returns-to-haunt-us.patch
