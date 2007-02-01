@@ -1,116 +1,121 @@
 From: akpm@osdl.org
-Subject: - attach_pid-with-struct-pid-parameter.patch removed from -mm tree
-Date: Wed, 31 Jan 2007 17:25:06 -0800
-Message-ID: <200702010126.l111Q44U032662@shell0.pdx.osdl.net>
+Subject: - introduce-and-use-get_task_mnt_ns.patch removed from -mm tree
+Date: Wed, 31 Jan 2007 17:24:43 -0800
+Message-ID: <200702010125.l111Pfkp032626@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35677 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35719 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030273AbXBAB02 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 20:26:28 -0500
+	id S1751401AbXBAB0k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 20:26:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, haveblue@us.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: adobriyan@openvz.org, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     attach_pid() with struct pid parameter
+     Introduce and use get_task_mnt_ns()
 has been removed from the -mm tree.  Its filename was
-     attach_pid-with-struct-pid-parameter.patch
+     introduce-and-use-get_task_mnt_ns.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: attach_pid() with struct pid parameter
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: Introduce and use get_task_mnt_ns()
+From: Alexey Dobriyan <adobriyan@openvz.org>
 
-Implement a new version of attach_pid() with a struct pid parameter and wrap
-find_attach_pid() around it.  attach_pid() would also be used in subsequent
-container patches.
+Similar to get_task_mm(): get a reference to task's mnt namespace if any.
+Suggested by Pavel Emelianov.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: <containers@lists.osdl.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/pid.h |   28 +++++++++++++++++-----------
- kernel/pid.c        |    7 +++----
- 2 files changed, 20 insertions(+), 15 deletions(-)
+ fs/proc/base.c          |   15 ++-------------
+ include/linux/nsproxy.h |    1 +
+ kernel/nsproxy.c        |   15 +++++++++++++++
+ 3 files changed, 18 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/pid.h~attach_pid-with-struct-pid-parameter include/linux/pid.h
---- a/include/linux/pid.h~attach_pid-with-struct-pid-parameter
-+++ a/include/linux/pid.h
-@@ -72,17 +72,6 @@ extern struct task_struct *FASTCALL(get_
- extern struct pid *get_task_pid(struct task_struct *task, enum pid_type type);
+diff -puN fs/proc/base.c~introduce-and-use-get_task_mnt_ns fs/proc/base.c
+--- a/fs/proc/base.c~introduce-and-use-get_task_mnt_ns
++++ a/fs/proc/base.c
+@@ -370,13 +370,7 @@ static int mounts_open(struct inode *ino
+ 	int ret = -EINVAL;
  
- /*
-- * find_attach_pid() and detach_pid() must be called with the tasklist_lock
-- * write-held.
-- */
--extern int FASTCALL(find_attach_pid(struct task_struct *task,
--				enum pid_type type, int nr));
--
--extern void FASTCALL(detach_pid(struct task_struct *task, enum pid_type));
--extern void FASTCALL(transfer_pid(struct task_struct *old,
--				  struct task_struct *new, enum pid_type));
--
--/*
-  * look up a PID in the hash table. Must be called with the tasklist_lock
-  * or rcu_read_lock() held.
-  */
-@@ -94,6 +83,23 @@ extern struct pid *FASTCALL(find_pid(int
- extern struct pid *find_get_pid(int nr);
- extern struct pid *find_ge_pid(int nr);
+ 	if (task) {
+-		task_lock(task);
+-		if (task->nsproxy) {
+-			ns = task->nsproxy->mnt_ns;
+-			if (ns)
+-				get_mnt_ns(ns);
+-		}
+-		task_unlock(task);
++		ns = get_task_mnt_ns(task);
+ 		put_task_struct(task);
+ 	}
  
-+/*
-+ * attach_pid(), find_attach_pid() and detach_pid() must be called with the
-+ * tasklist_lock write-held.
-+ */
-+extern int FASTCALL(attach_pid(struct task_struct *task, enum pid_type type,
-+				struct pid *pid));
-+
-+static inline int find_attach_pid(struct task_struct *task, enum pid_type type,
-+				int nr)
-+{
-+	return attach_pid(task, type, find_pid(nr));
-+}
-+
-+extern void FASTCALL(detach_pid(struct task_struct *task, enum pid_type));
-+extern void FASTCALL(transfer_pid(struct task_struct *old,
-+				  struct task_struct *new, enum pid_type));
-+
- extern struct pid *alloc_pid(void);
- extern void FASTCALL(free_pid(struct pid *pid));
+@@ -443,12 +437,7 @@ static int mountstats_open(struct inode 
+ 		struct task_struct *task = get_proc_task(inode);
  
-diff -puN kernel/pid.c~attach_pid-with-struct-pid-parameter kernel/pid.c
---- a/kernel/pid.c~attach_pid-with-struct-pid-parameter
-+++ a/kernel/pid.c
-@@ -247,14 +247,13 @@ struct pid * fastcall find_pid(int nr)
- }
- EXPORT_SYMBOL_GPL(find_pid);
+ 		if (task) {
+-			task_lock(task);
+-			if (task->nsproxy)
+-				mnt_ns = task->nsproxy->mnt_ns;
+-			if (mnt_ns)
+-				get_mnt_ns(mnt_ns);
+-			task_unlock(task);
++			mnt_ns = get_task_mnt_ns(task);
+ 			put_task_struct(task);
+ 		}
  
--int fastcall find_attach_pid(struct task_struct *task, enum pid_type type,
--				int nr)
-+int fastcall attach_pid(struct task_struct *task, enum pid_type type,
-+				struct pid *pid)
+diff -puN include/linux/nsproxy.h~introduce-and-use-get_task_mnt_ns include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~introduce-and-use-get_task_mnt_ns
++++ a/include/linux/nsproxy.h
+@@ -35,6 +35,7 @@ struct nsproxy *dup_namespaces(struct ns
+ int copy_namespaces(int flags, struct task_struct *tsk);
+ void get_task_namespaces(struct task_struct *tsk);
+ void free_nsproxy(struct nsproxy *ns);
++struct mnt_namespace *get_task_mnt_ns(struct task_struct *tsk);
+ 
+ static inline void put_nsproxy(struct nsproxy *ns)
  {
- 	struct pid_link *link;
--	struct pid *pid;
- 
- 	link = &task->pids[type];
--	link->pid = pid = find_pid(nr);
-+	link->pid = pid;
- 	hlist_add_head_rcu(&link->node, &pid->tasks[type]);
- 
- 	return 0;
+diff -puN kernel/nsproxy.c~introduce-and-use-get_task_mnt_ns kernel/nsproxy.c
+--- a/kernel/nsproxy.c~introduce-and-use-get_task_mnt_ns
++++ a/kernel/nsproxy.c
+@@ -147,3 +147,18 @@ void free_nsproxy(struct nsproxy *ns)
+ 		put_pid_ns(ns->pid_ns);
+ 	kfree(ns);
+ }
++
++struct mnt_namespace *get_task_mnt_ns(struct task_struct *tsk)
++{
++	struct mnt_namespace *mnt_ns = NULL;
++
++	task_lock(tsk);
++	if (tsk->nsproxy) {
++		mnt_ns = tsk->nsproxy->mnt_ns;
++		if (mnt_ns)
++			get_mnt_ns(mnt_ns);
++	}
++	task_unlock(tsk);
++
++	return mnt_ns;
++}
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from adobriyan@openvz.org are
 
-attach_pid-with-struct-pid-parameter.patch
-remove-find_attach_pid.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-sid-of-init.patch
+revert-x86_64-mm-msr-on-cpu.patch
+sysctl_ms_jiffies-fix-oldlen-semantics.patch
+consolidate-default-sched_clock.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+sn2-use-static-proc_fops.patch
+consolidate-bust_spinlocks.patch
+extract-and-use-wake_up_klogd.patch
+introduce-and-use-get_task_mnt_ns.patch
+lutimesat-simplify-utime2.patch
+lutimesat-extend-do_utimes-with-flags.patch
+lutimesat-actual-syscall-and-wire-up-on-i386.patch
