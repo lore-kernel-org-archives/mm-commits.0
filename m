@@ -1,103 +1,150 @@
 From: akpm@osdl.org
-Subject: - user_ns-handle-file-sigio-fix-2.patch removed from -mm tree
-Date: Wed, 31 Jan 2007 17:16:11 -0800
-Message-ID: <200702010117.l111H9bx032480@shell0.pdx.osdl.net>
+Subject: - rename-attach_pid-to-find_attach_pid.patch removed from -mm tree
+Date: Wed, 31 Jan 2007 17:25:04 -0800
+Message-ID: <200702010126.l111Q29e032659@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35416 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35633 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161191AbXBABVA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 20:21:00 -0500
+	id S1030565AbXBAB0S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 20:26:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serue@us.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, mm-commits@vger.kernel.org
+To: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, haveblue@us.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     user namespace: remove exceptions for initial namespace
+     Rename attach_pid() to find_attach_pid()
 has been removed from the -mm tree.  Its filename was
-     user_ns-handle-file-sigio-fix-2.patch
+     rename-attach_pid-to-find_attach_pid.patch
 
-This patch was dropped because it was folded into user_ns-handle-file-sigio.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: user namespace: remove exceptions for initial namespace
-From: Serge E. Hallyn <serue@us.ibm.com>
+Subject: Rename attach_pid() to find_attach_pid()
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-Both sigio and file access checks for user namespace equivalence were being
-skipped for processes in the initial namespace.  Remove these exceptions,
-enforcing the same cross-namespace checks for all processes in all user
-namespaces.
+attach_pid() currently takes a pid_t parameter and uses find_pid() to find the
+struct pid associated with the pid_t.  With containers, we sometimes already
+have the struct pid and could skip the find_pid() - if we have a version of
+attach_pid() that takes a struct pid parameter.
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+This patch renames the attach_pid() to find_attach_pid().  My next patch
+defines attach_pid() to take a struct pid.
+
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: <containers@lists.osdl.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/fcntl.c            |    3 +--
- include/linux/sched.h |    4 +---
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ fs/exec.c           |    2 +-
+ include/linux/pid.h |    4 ++--
+ kernel/exit.c       |    4 ++--
+ kernel/fork.c       |    6 +++---
+ kernel/pid.c        |    3 ++-
+ kernel/sys.c        |    2 +-
+ 6 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN fs/fcntl.c~user_ns-handle-file-sigio-fix-2 fs/fcntl.c
---- a/fs/fcntl.c~user_ns-handle-file-sigio-fix-2
-+++ a/fs/fcntl.c
-@@ -460,8 +460,7 @@ static const long band_table[NSIGPOLL] =
- static inline int sigio_perm(struct task_struct *p,
-                              struct fown_struct *fown, int sig)
- {
--	if (fown->user_ns != init_task.nsproxy->user_ns &&
--				fown->user_ns != p->nsproxy->user_ns)
-+	if (fown->user_ns != p->nsproxy->user_ns)
- 		return 0;
- 	return (((fown->euid == 0) ||
- 		 (fown->euid == p->suid) || (fown->euid == p->uid) ||
-diff -puN include/linux/sched.h~user_ns-handle-file-sigio-fix-2 include/linux/sched.h
---- a/include/linux/sched.h~user_ns-handle-file-sigio-fix-2
-+++ a/include/linux/sched.h
-@@ -1609,12 +1609,10 @@ extern int cond_resched_softirq(void);
- static inline int task_mnt_same_uidns(struct task_struct *tsk,
- 					struct vfsmount *mnt)
- {
--	if (tsk->nsproxy == init_task.nsproxy)
-+	if (mnt->mnt_user_ns == tsk->nsproxy->user_ns)
- 		return 1;
-  	if (mnt->mnt_flags & MNT_SHARE_NS)
-  		return 1;
--	if (mnt->mnt_user_ns == tsk->nsproxy->user_ns)
--		return 1;
- 	return 0;
+diff -puN fs/exec.c~rename-attach_pid-to-find_attach_pid fs/exec.c
+--- a/fs/exec.c~rename-attach_pid-to-find_attach_pid
++++ a/fs/exec.c
+@@ -701,7 +701,7 @@ static int de_thread(struct task_struct 
+ 		 */
+ 		detach_pid(tsk, PIDTYPE_PID);
+ 		tsk->pid = leader->pid;
+-		attach_pid(tsk, PIDTYPE_PID,  tsk->pid);
++		find_attach_pid(tsk, PIDTYPE_PID,  tsk->pid);
+ 		transfer_pid(leader, tsk, PIDTYPE_PGID);
+ 		transfer_pid(leader, tsk, PIDTYPE_SID);
+ 		list_replace_rcu(&leader->tasks, &tsk->tasks);
+diff -puN include/linux/pid.h~rename-attach_pid-to-find_attach_pid include/linux/pid.h
+--- a/include/linux/pid.h~rename-attach_pid-to-find_attach_pid
++++ a/include/linux/pid.h
+@@ -72,10 +72,10 @@ extern struct task_struct *FASTCALL(get_
+ extern struct pid *get_task_pid(struct task_struct *task, enum pid_type type);
+ 
+ /*
+- * attach_pid() and detach_pid() must be called with the tasklist_lock
++ * find_attach_pid() and detach_pid() must be called with the tasklist_lock
+  * write-held.
+  */
+-extern int FASTCALL(attach_pid(struct task_struct *task,
++extern int FASTCALL(find_attach_pid(struct task_struct *task,
+ 				enum pid_type type, int nr));
+ 
+ extern void FASTCALL(detach_pid(struct task_struct *task, enum pid_type));
+diff -puN kernel/exit.c~rename-attach_pid-to-find_attach_pid kernel/exit.c
+--- a/kernel/exit.c~rename-attach_pid-to-find_attach_pid
++++ a/kernel/exit.c
+@@ -300,12 +300,12 @@ void __set_special_pids(pid_t session, p
+ 	if (process_session(curr) != session) {
+ 		detach_pid(curr, PIDTYPE_SID);
+ 		set_signal_session(curr->signal, session);
+-		attach_pid(curr, PIDTYPE_SID, session);
++		find_attach_pid(curr, PIDTYPE_SID, session);
+ 	}
+ 	if (process_group(curr) != pgrp) {
+ 		detach_pid(curr, PIDTYPE_PGID);
+ 		curr->signal->pgrp = pgrp;
+-		attach_pid(curr, PIDTYPE_PGID, pgrp);
++		find_attach_pid(curr, PIDTYPE_PGID, pgrp);
+ 	}
  }
- #else
+ 
+diff -puN kernel/fork.c~rename-attach_pid-to-find_attach_pid kernel/fork.c
+--- a/kernel/fork.c~rename-attach_pid-to-find_attach_pid
++++ a/kernel/fork.c
+@@ -1246,13 +1246,13 @@ static struct task_struct *copy_process(
+ 			p->signal->tty = current->signal->tty;
+ 			p->signal->pgrp = process_group(current);
+ 			set_signal_session(p->signal, process_session(current));
+-			attach_pid(p, PIDTYPE_PGID, process_group(p));
+-			attach_pid(p, PIDTYPE_SID, process_session(p));
++			find_attach_pid(p, PIDTYPE_PGID, process_group(p));
++			find_attach_pid(p, PIDTYPE_SID, process_session(p));
+ 
+ 			list_add_tail_rcu(&p->tasks, &init_task.tasks);
+ 			__get_cpu_var(process_counts)++;
+ 		}
+-		attach_pid(p, PIDTYPE_PID, p->pid);
++		find_attach_pid(p, PIDTYPE_PID, p->pid);
+ 		nr_threads++;
+ 	}
+ 
+diff -puN kernel/pid.c~rename-attach_pid-to-find_attach_pid kernel/pid.c
+--- a/kernel/pid.c~rename-attach_pid-to-find_attach_pid
++++ a/kernel/pid.c
+@@ -247,7 +247,8 @@ struct pid * fastcall find_pid(int nr)
+ }
+ EXPORT_SYMBOL_GPL(find_pid);
+ 
+-int fastcall attach_pid(struct task_struct *task, enum pid_type type, int nr)
++int fastcall find_attach_pid(struct task_struct *task, enum pid_type type,
++				int nr)
+ {
+ 	struct pid_link *link;
+ 	struct pid *pid;
+diff -puN kernel/sys.c~rename-attach_pid-to-find_attach_pid kernel/sys.c
+--- a/kernel/sys.c~rename-attach_pid-to-find_attach_pid
++++ a/kernel/sys.c
+@@ -1487,7 +1487,7 @@ asmlinkage long sys_setpgid(pid_t pid, p
+ 	if (process_group(p) != pgid) {
+ 		detach_pid(p, PIDTYPE_PGID);
+ 		p->signal->pgrp = pgid;
+-		attach_pid(p, PIDTYPE_PGID, pgid);
++		find_attach_pid(p, PIDTYPE_PGID, pgid);
+ 	}
+ 
+ 	err = 0;
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
-implement-file-posix-capabilities.patch
-file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
-file-capabilities-honor-secure_noroot.patch
-introduce-and-use-get_task_mnt_ns.patch
-nsproxy-externalizes-exit_task_namespaces.patch
-user-namespace-add-the-framework.patch
-user-ns-add-user_namespace-ptr-to-vfsmount.patch
-user-ns-hook-permission.patch
-user-ns-prepare-copy_tree-copy_mnt-and-their-callers-to-handle-errs.patch
-user-ns-implement-shared-mounts.patch
-user_ns-handle-file-sigio.patch
-user_ns-handle-file-sigio-fix-2.patch
-user-ns-implement-user-ns-unshare.patch
-user-ns-implement-user-ns-unshare-tidy.patch
 rename-attach_pid-to-find_attach_pid.patch
 attach_pid-with-struct-pid-parameter.patch
 remove-find_attach_pid.patch
 statically-initialize-struct-pid-for-swapper.patch
 explicitly-set-pgid-sid-of-init.patch
-uts-namespace-remove-config_uts_ns.patch
-ipc-namespace-remove-config_ipc_ns.patch
-ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
-ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
-integrity-service-api-and-dummy-provider-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
