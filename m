@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + zone_watermark_ok-signedness-fix.patch added to -mm tree
-Date: Wed, 31 Jan 2007 16:13:02 -0800
-Message-ID: <200702010013.l110D2jW030896@shell0.pdx.osdl.net>
+Subject: + nsproxy-externalizes-exit_task_namespaces-fix-42.patch added to -mm tree
+Date: Wed, 31 Jan 2007 17:09:45 -0800
+Message-ID: <200702010110.l111AjRJ032304@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60385 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35124 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933377AbXBAANJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 19:13:09 -0500
+	id S1161167AbXBABMQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 20:12:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org, clameter@engr.sgi.com, nickpiggin@yahoo.com.au
+Cc: akpm@osdl.org, clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com
 
 
 The patch titled
-     zone_watermark_ok: signedness fix
+     nsproxy-externalizes-exit_task_namespaces-fix-42
 has been added to the -mm tree.  Its filename is
-     zone_watermark_ok-signedness-fix.patch
+     nsproxy-externalizes-exit_task_namespaces-fix-42.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: zone_watermark_ok: signedness fix
+Subject: nsproxy-externalizes-exit_task_namespaces-fix-42
 From: Andrew Morton <akpm@osdl.org>
 
-Local `free_pages' can go negative in normal operation.  I guess that'll cause
-us to incorrectly return `true' from zone_watermark_ok, thus ignoring the
-watermarks.
+My confidence in this patch series plummets to zero...
 
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ kernel/fork.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~zone_watermark_ok-signedness-fix mm/page_alloc.c
---- a/mm/page_alloc.c~zone_watermark_ok-signedness-fix
-+++ a/mm/page_alloc.c
-@@ -1013,7 +1013,7 @@ int zone_watermark_ok(struct zone *z, in
- 		      int classzone_idx, int alloc_flags)
- {
- 	/* free_pages my go negative - that's OK */
--	unsigned long min = mark;
-+	long min = mark;
- 	long free_pages = zone_page_state(z, NR_FREE_PAGES)
- 				- (1 << order) + 1;
- 	int o;
+diff -puN kernel/fork.c~nsproxy-externalizes-exit_task_namespaces-fix-42 kernel/fork.c
+--- a/kernel/fork.c~nsproxy-externalizes-exit_task_namespaces-fix-42
++++ a/kernel/fork.c
+@@ -1272,7 +1272,7 @@ static struct task_struct *copy_process(
+ 	return p;
+ 
+ bad_fork_cleanup_namespaces:
+-	exit_task_namespaces(p);
++	exit_task_namespaces(p, p->nsproxy);
+ bad_fork_cleanup_keys:
+ 	exit_keys(p);
+ bad_fork_cleanup_mm:
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -68,6 +69,7 @@ sony_apci-resume.patch
 sony_apci-resume-fix.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
 git-alsa.patch
+git-alsa-fixup.patch
 agpgart-allow-drm-populated-agp-memory-types-tidy.patch
 rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
 powerpc-make-it-compile.patch
@@ -190,6 +192,7 @@ swap_prefetch-vs-zoned-counters.patch
 add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
 introduce-and-use-get_task_mnt_ns-tweaks.patch
 nsproxy-externalizes-exit_task_namespaces-fix-fix.patch
+nsproxy-externalizes-exit_task_namespaces-fix-42.patch
 user-ns-implement-user-ns-unshare-tidy.patch
 ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
 ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
