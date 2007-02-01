@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + aio-fix-buggy-put_ioctx-call-in-aio_complete-v2.patch added to -mm tree
-Date: Thu, 01 Feb 2007 13:33:23 -0800
-Message-ID: <200702012133.l11LXOQd023511@shell0.pdx.osdl.net>
+Subject: + sis-warning-fixes.patch added to -mm tree
+Date: Thu, 01 Feb 2007 14:00:03 -0800
+Message-ID: <200702012200.l11M04fT024147@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41963 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42644 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751409AbXBAV4g (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 16:56:36 -0500
+	id S1751608AbXBAWAY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 17:00:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kenchen@google.com, bcrl@kvack.org, jmoyer@redhat.com, pbadari@us.ibm.com, stable@kernel.org, suparna@in.ibm.com, zach.brown@oracle.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     aio: fix buggy put_ioctx call in aio_complete - v2
+     SiS warning fixes
 has been added to the -mm tree.  Its filename is
-     aio-fix-buggy-put_ioctx-call-in-aio_complete-v2.patch
+     sis-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,156 +25,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aio: fix buggy put_ioctx call in aio_complete - v2
-From: "Ken Chen" <kenchen@google.com>
+Subject: SiS warning fixes
+From: Alan <alan@lxorguk.ukuu.org.uk>
 
-An AIO bug was reported that sleeping function is being called in softirq
-context:
+Somehow the sis_info133 external definition ended up in libata.h and that
+was included by both drivers.  However libata.h contains libata-* specific
+internals and clashing defines like DRV_NAME so this makes a mess.  Move
+the extern into the C file and remove the warnings
 
-BUG: warning at kernel/mutex.c:132/__mutex_lock_common()
-Call Trace:
-     [<a000000100577b00>] __mutex_lock_slowpath+0x640/0x6c0
-     [<a000000100577ba0>] mutex_lock+0x20/0x40
-     [<a0000001000a25b0>] flush_workqueue+0xb0/0x1a0
-     [<a00000010018c0c0>] __put_ioctx+0xc0/0x240
-     [<a00000010018d470>] aio_complete+0x2f0/0x420
-     [<a00000010019cc80>] finished_one_bio+0x200/0x2a0
-     [<a00000010019d1c0>] dio_bio_complete+0x1c0/0x200
-     [<a00000010019d260>] dio_bio_end_aio+0x60/0x80
-     [<a00000010014acd0>] bio_endio+0x110/0x1c0
-     [<a0000001002770e0>] __end_that_request_first+0x180/0xba0
-     [<a000000100277b90>] end_that_request_chunk+0x30/0x60
-     [<a0000002073c0c70>] scsi_end_request+0x50/0x300 [scsi_mod]
-     [<a0000002073c1240>] scsi_io_completion+0x200/0x8a0 [scsi_mod]
-     [<a0000002074729b0>] sd_rw_intr+0x330/0x860 [sd_mod]
-     [<a0000002073b3ac0>] scsi_finish_command+0x100/0x1c0 [scsi_mod]
-     [<a0000002073c2910>] scsi_softirq_done+0x230/0x300 [scsi_mod]
-     [<a000000100277d20>] blk_done_softirq+0x160/0x1c0
-     [<a000000100083e00>] __do_softirq+0x200/0x240
-     [<a000000100083eb0>] do_softirq+0x70/0xc0
-
-See report: http://marc.theaimsgroup.com/?l=linux-kernel&m=116599593200888&w=2
-
-flush_workqueue() is not allowed to be called in the softirq context.
-However, aio_complete() called from I/O interrupt can potentially call
-put_ioctx with last ref count on ioctx and triggers bug.  It is simply
-incorrect to perform ioctx freeing from aio_complete.
-
-The bug is trigger-able from a race between io_destroy() and aio_complete().
-A possible scenario:
-
-cpu0                               cpu1
-io_destroy                         aio_complete
-  wait_for_all_aios {                __aio_put_req
-     ...                                 ctx->reqs_active--;
-     if (!ctx->reqs_active)
-        return;
-  }
-  ...
-  put_ioctx(ioctx)
-
-                                     put_ioctx(ctx);
-                                        __put_ioctx
-                                          bam! Bug trigger!
-
-The real problem is that the condition check of ctx->reqs_active in
-wait_for_all_aios() is incorrect that access to reqs_active is not
-being properly protected by spin lock.
-
-This patch adds that protective spin lock, and at the same time removes
-all duplicate ref counting for each kiocb as reqs_active is already used
-as a ref count for each active ioctx.  This also ensures that buggy call
-to flush_workqueue() in softirq context is eliminated.
-
-Signed-off-by: "Ken Chen" <kenchen@google.com>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Suparna Bhattacharya <suparna@in.ibm.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: <stable@kernel.org>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c |   20 +++++++++-----------
- 1 files changed, 9 insertions(+), 11 deletions(-)
+ drivers/ata/libata.h   |    2 --
+ drivers/ata/pata_sis.c |    1 -
+ drivers/ata/sata_sis.c |    4 +++-
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/aio.c~aio-fix-buggy-put_ioctx-call-in-aio_complete-v2 fs/aio.c
---- a/fs/aio.c~aio-fix-buggy-put_ioctx-call-in-aio_complete-v2
-+++ a/fs/aio.c
-@@ -298,17 +298,23 @@ static void wait_for_all_aios(struct kio
- 	struct task_struct *tsk = current;
- 	DECLARE_WAITQUEUE(wait, tsk);
+diff -puN drivers/ata/libata.h~sis-warning-fixes drivers/ata/libata.h
+--- a/drivers/ata/libata.h~sis-warning-fixes
++++ a/drivers/ata/libata.h
+@@ -150,7 +150,5 @@ extern void ata_qc_schedule_eh(struct at
+ /* libata-sff.c */
+ extern u8 ata_irq_on(struct ata_port *ap);
  
-+	spin_lock_irq(&ctx->ctx_lock);
- 	if (!ctx->reqs_active)
--		return;
-+		goto out;
+-/* pata_sis.c */
+-extern struct ata_port_info sis_info133;
  
- 	add_wait_queue(&ctx->wait, &wait);
- 	set_task_state(tsk, TASK_UNINTERRUPTIBLE);
- 	while (ctx->reqs_active) {
-+		spin_unlock_irq(&ctx->ctx_lock);
- 		schedule();
- 		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
-+		spin_lock_irq(&ctx->ctx_lock);
- 	}
- 	__set_task_state(tsk, TASK_RUNNING);
- 	remove_wait_queue(&ctx->wait, &wait);
+ #endif /* __LIBATA_H__ */
+diff -puN drivers/ata/pata_sis.c~sis-warning-fixes drivers/ata/pata_sis.c
+--- a/drivers/ata/pata_sis.c~sis-warning-fixes
++++ a/drivers/ata/pata_sis.c
+@@ -32,7 +32,6 @@
+ #include <scsi/scsi_host.h>
+ #include <linux/libata.h>
+ #include <linux/ata.h>
+-#include "libata.h"
+ 
+ #undef DRV_NAME		/* already defined in libata.h, for libata-core */
+ #define DRV_NAME	"pata_sis"
+diff -puN drivers/ata/sata_sis.c~sis-warning-fixes drivers/ata/sata_sis.c
+--- a/drivers/ata/sata_sis.c~sis-warning-fixes
++++ a/drivers/ata/sata_sis.c
+@@ -40,12 +40,14 @@
+ #include <linux/device.h>
+ #include <scsi/scsi_host.h>
+ #include <linux/libata.h>
+-#include "libata.h"
+ 
+ #undef DRV_NAME		/* already defined in libata.h, for libata-core */
+ #define DRV_NAME	"sata_sis"
+ #define DRV_VERSION	"0.7"
+ 
++/* pata_sis.c */
++extern struct ata_port_info sis_info133;
 +
-+out:
-+	spin_unlock_irq(&ctx->ctx_lock);
- }
- 
- /* wait_on_sync_kiocb:
-@@ -424,7 +430,6 @@ static struct kiocb fastcall *__aio_get_
- 	ring = kmap_atomic(ctx->ring_info.ring_pages[0], KM_USER0);
- 	if (ctx->reqs_active < aio_ring_avail(&ctx->ring_info, ring)) {
- 		list_add(&req->ki_list, &ctx->active_reqs);
--		get_ioctx(ctx);
- 		ctx->reqs_active++;
- 		okay = 1;
- 	}
-@@ -536,8 +541,6 @@ int fastcall aio_put_req(struct kiocb *r
- 	spin_lock_irq(&ctx->ctx_lock);
- 	ret = __aio_put_req(ctx, req);
- 	spin_unlock_irq(&ctx->ctx_lock);
--	if (ret)
--		put_ioctx(ctx);
- 	return ret;
- }
- 
-@@ -779,8 +782,7 @@ static int __aio_run_iocbs(struct kioctx
- 		 */
- 		iocb->ki_users++;       /* grab extra reference */
- 		aio_run_iocb(iocb);
--		if (__aio_put_req(ctx, iocb))  /* drop extra ref */
--			put_ioctx(ctx);
-+		__aio_put_req(ctx, iocb);
-  	}
- 	if (!list_empty(&ctx->run_list))
- 		return 1;
-@@ -997,14 +999,10 @@ put_rq:
- 	/* everything turned out well, dispose of the aiocb. */
- 	ret = __aio_put_req(ctx, iocb);
- 
--	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
--
- 	if (waitqueue_active(&ctx->wait))
- 		wake_up(&ctx->wait);
- 
--	if (ret)
--		put_ioctx(ctx);
--
-+	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
- 	return ret;
- }
- 
+ enum {
+ 	sis_180			= 0,
+ 	SIS_SCR_PCI_BAR		= 5,
 _
 
-Patches currently in -mm which might be from kenchen@google.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-aio-fix-buggy-put_ioctx-call-in-aio_complete-v2.patch
-simplify-shmem_aopsset_page_dirty-method.patch
-convert-ramfs-to-use-__set_page_dirty_no_writeback.patch
-do-not-disturb-page-referenced-state-when-unmapping-memory-range.patch
+via-quirk-fix-update.patch
+git-libata-all.patch
+pata_atiixp-propogate-cable-detection-hack-from.patch
+pata_via-correct-missing-comments.patch
+sis-warning-fixes.patch
+git-mtd.patch
+ubi-int-versus-size_t-printk-warnings.patch
+atl1_main-pci_module_int-returns-to-haunt-us.patch
+z85230-spinlock-logic.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+perle-multimodem-card-pci-ras-detection.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+geode-support-classic-mediagxm.patch
+cyrix-fails-to-detect-mediagx.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-tty_wakeup-cleanup.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
+tty-improve-encode_baud_rate-logic.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+edac-e752x-bit-mask-fix.patch
+edac-e752x-byte-access-fix.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
+sched-avoid-div-in-rebalance_tick.patch
+pm3fb-kill-pci_find_device-usage.patch
