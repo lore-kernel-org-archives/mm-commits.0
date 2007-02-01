@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + usb-p990i-is-an-unusual-device.patch added to -mm tree
-Date: Thu, 01 Feb 2007 13:37:53 -0800
-Message-ID: <200702012137.l11LbrxU023586@shell0.pdx.osdl.net>
+Subject: + rdmsr_on_cpu-wrmsr_on_cpu.patch added to -mm tree
+Date: Thu, 01 Feb 2007 13:40:25 -0800
+Message-ID: <200702012140.l11LePa4023647@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40174 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40665 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750887AbXBAViU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 16:38:20 -0500
+	id S1750896AbXBAVkg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 16:40:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, greg@kroah.com, kernel@nn7.de
+Cc: adobriyan@openvz.org, ak@suse.de, davej@codemonkey.org.uk
 
 
 The patch titled
-     usb: P990i is an unusual device
+     rdmsr_on_cpu, wrmsr_on_cpu
 has been added to the -mm tree.  Its filename is
-     usb-p990i-is-an-unusual-device.patch
+     rdmsr_on_cpu-wrmsr_on_cpu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,172 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb: P990i is an unusual device
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: rdmsr_on_cpu, wrmsr_on_cpu
+From: Alexey Dobriyan <adobriyan@openvz.org>
 
-Soeren Sonnenburg wrote:
+There was OpenVZ specific bug rendering some cpufreq drivers unusable on SMP. 
+In short, when cpufreq code thinks it confined itself to needed cpu by means
+of set_cpus_allowed() to execute rdmsr, some "virtual cpu" feature can migrate
+process to anywhere.  This triggers bugons and does wrong things in general.
 
-  I am trying to use a P990 phone in via mass storage under linux.  I was
-  able to copy data to/from the phone without trouble under winxp but
-  receive millions of I/O errors (see below (*), basically on any sector).
+This got fixed by introducing rdmsr_on_cpu and wrmsr_on_cpu executing rdmsr
+and wrmsr on given physical cpu by means of smp_call_function_single().
 
-The log revealed that the phone's firmware returns garbage values in the
-Residue field for some WRITEs.  This patch should take care of it.
+Dave Jones mentioned cpufreq might be not only user of rdmsr_on_cpu() and
+wrmsr_on_cpu(), so I'm putting them into arch/{i386,x86_64}/lib/ .
 
-Cc: Soeren Sonnenburg <kernel@nn7.de>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/storage/unusual_devs.h |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ arch/i386/lib/Makefile       |    2 
+ arch/i386/lib/msr-on-cpu.c   |   70 +++++++++++++++++++++++++++++++++
+ arch/x86_64/lib/Makefile     |    2 
+ arch/x86_64/lib/msr-on-cpu.c |    1 
+ include/asm-i386/msr.h       |    3 +
+ include/asm-x86_64/msr.h     |    2 
+ 6 files changed, 79 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/storage/unusual_devs.h~usb-p990i-is-an-unusual-device drivers/usb/storage/unusual_devs.h
---- a/drivers/usb/storage/unusual_devs.h~usb-p990i-is-an-unusual-device
-+++ a/drivers/usb/storage/unusual_devs.h
-@@ -1327,12 +1327,13 @@ UNUSUAL_DEV(  0x0fce, 0xd008, 0x0000, 0x
- 		US_SC_DEVICE, US_PR_DEVICE, NULL,
- 		US_FL_NO_WP_DETECT ),
+diff -puN arch/i386/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu arch/i386/lib/Makefile
+--- a/arch/i386/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu
++++ a/arch/i386/lib/Makefile
+@@ -7,3 +7,5 @@ lib-y = checksum.o delay.o usercopy.o ge
+ 	bitops.o semaphore.o
  
--/* Reported by Jan Mate <mate@fiit.stuba.sk> */
-+/* Reported by Jan Mate <mate@fiit.stuba.sk>
-+ * and by Soeren Sonnenburg <kernel@nn7.de> */
- UNUSUAL_DEV(  0x0fce, 0xe030, 0x0000, 0x0000,
- 		"Sony Ericsson",
- 		"P990i",
- 		US_SC_DEVICE, US_PR_DEVICE, NULL,
--		US_FL_FIX_CAPACITY ),
-+		US_FL_FIX_CAPACITY | US_FL_IGNORE_RESIDUE ),
+ lib-$(CONFIG_X86_USE_3DNOW) += mmx.o
++
++obj-y = msr-on-cpu.o
+diff -puN /dev/null arch/i386/lib/msr-on-cpu.c
+--- /dev/null
++++ a/arch/i386/lib/msr-on-cpu.c
+@@ -0,0 +1,70 @@
++#include <linux/module.h>
++#include <linux/preempt.h>
++#include <linux/smp.h>
++#include <asm/msr.h>
++
++#ifdef CONFIG_SMP
++struct msr_info {
++	u32 msr_no;
++	u32 l, h;
++};
++
++static void __rdmsr_on_cpu(void *info)
++{
++	struct msr_info *rv = info;
++
++	rdmsr(rv->msr_no, rv->l, rv->h);
++}
++
++void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
++{
++	preempt_disable();
++	if (smp_processor_id() == cpu)
++		rdmsr(msr_no, *l, *h);
++	else {
++		struct msr_info rv;
++
++		rv.msr_no = msr_no;
++		smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
++		*l = rv.l;
++		*h = rv.h;
++	}
++	preempt_enable();
++}
++
++static void __wrmsr_on_cpu(void *info)
++{
++	struct msr_info *rv = info;
++
++	wrmsr(rv->msr_no, rv->l, rv->h);
++}
++
++void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
++{
++	preempt_disable();
++	if (smp_processor_id() == cpu)
++		wrmsr(msr_no, l, h);
++	else {
++		struct msr_info rv;
++
++		rv.msr_no = msr_no;
++		rv.l = l;
++		rv.h = h;
++		smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
++	}
++	preempt_enable();
++}
++#else
++void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
++{
++	rdmsr(msr_no, *l, *h);
++}
++
++void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
++{
++	wrmsr(msr_no, l, h);
++}
++#endif
++
++EXPORT_SYMBOL(rdmsr_on_cpu);
++EXPORT_SYMBOL(wrmsr_on_cpu);
+diff -puN arch/x86_64/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu arch/x86_64/lib/Makefile
+--- a/arch/x86_64/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu
++++ a/arch/x86_64/lib/Makefile
+@@ -4,7 +4,7 @@
  
- /* Reported by Emmanuel Vasilakis <evas@forthnet.gr> */
- UNUSUAL_DEV(  0x0fce, 0xe031, 0x0000, 0x0000,
+ CFLAGS_csum-partial.o := -funroll-loops
+ 
+-obj-y := io.o iomap_copy.o
++obj-y := io.o iomap_copy.o msr-on-cpu.o
+ 
+ lib-y := csum-partial.o csum-copy.o csum-wrappers.o delay.o \
+ 	usercopy.o getuser.o putuser.o  \
+diff -puN /dev/null arch/x86_64/lib/msr-on-cpu.c
+--- /dev/null
++++ a/arch/x86_64/lib/msr-on-cpu.c
+@@ -0,0 +1 @@
++#include "../../i386/lib/msr-on-cpu.c"
+diff -puN include/asm-i386/msr.h~rdmsr_on_cpu-wrmsr_on_cpu include/asm-i386/msr.h
+--- a/include/asm-i386/msr.h~rdmsr_on_cpu-wrmsr_on_cpu
++++ a/include/asm-i386/msr.h
+@@ -83,6 +83,9 @@ static inline void wrmsrl (unsigned long
+ 			  : "c" (counter))
+ #endif	/* !CONFIG_PARAVIRT */
+ 
++void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
++void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
++
+ /* symbolic names for some interesting MSRs */
+ /* Intel defined MSRs. */
+ #define MSR_IA32_P5_MC_ADDR		0
+diff -puN include/asm-x86_64/msr.h~rdmsr_on_cpu-wrmsr_on_cpu include/asm-x86_64/msr.h
+--- a/include/asm-x86_64/msr.h~rdmsr_on_cpu-wrmsr_on_cpu
++++ a/include/asm-x86_64/msr.h
+@@ -163,6 +163,8 @@ static inline unsigned int cpuid_edx(uns
+ #define MSR_IA32_UCODE_WRITE		0x79
+ #define MSR_IA32_UCODE_REV		0x8b
+ 
++void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
++void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
+ 
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from adobriyan@openvz.org are
 
-scsi-handle-bad-inquiry-responses.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-usb-p990i-is-an-unusual-device.patch
-arch-i386-kernel-ptracec-trivial-whitespace-cleanup.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers.patch
-i386-kwatch-kernel-watchpoints-using-cpu-debug-registers-fix.patch
+revert-x86_64-mm-msr-on-cpu.patch
+rdmsr_on_cpu-wrmsr_on_cpu.patch
+p4-clockmod-use-rdmsr_on_cpu-wrmsr_on_cpu.patch
+sysctl_ms_jiffies-fix-oldlen-semantics.patch
+consolidate-default-sched_clock.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+sn2-use-static-proc_fops.patch
+consolidate-bust_spinlocks.patch
+extract-and-use-wake_up_klogd.patch
+lutimesat-simplify-utime2.patch
+lutimesat-extend-do_utimes-with-flags.patch
+lutimesat-actual-syscall-and-wire-up-on-i386.patch
