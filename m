@@ -1,27 +1,23 @@
 From: akpm@osdl.org
-Subject: + filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch added to -mm tree
-Date: Thu, 01 Feb 2007 14:20:30 -0800
-Message-ID: <200702012220.l11MKUa7024570@shell0.pdx.osdl.net>
+Subject: + filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch added to -mm tree
+Date: Thu, 01 Feb 2007 14:20:28 -0800
+Message-ID: <200702012220.l11MKSmK024563@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43932 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43967 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932099AbXBAWUe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 17:20:34 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l11MKUx6008243
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 1 Feb 2007 14:20:30 -0800
+	id S932163AbXBAWUu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 17:20:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@osdl.org
+Cc: akpm@osdl.org, linux@tjworld.net
 
 
 The patch titled
-     filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes
+     filesystem-disk-errors-at-boot-time-caused-by-probe-tidy
 has been added to the -mm tree.  Its filename is
-     filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
+     filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,40 +25,158 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes
+Subject: filesystem-disk-errors-at-boot-time-caused-by-probe-tidy
 From: Andrew Morton <akpm@osdl.org>
 
+Coding-style fixups - mainly the 80-col rule.
+
+Cc: TJ <linux@tjworld.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/partitions/msdos.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ fs/partitions/msdos.c |   97 +++++++++++++++++++++++-----------------
+ 1 files changed, 58 insertions(+), 39 deletions(-)
 
-diff -puN fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes fs/partitions/msdos.c
---- a/fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes
+diff -puN fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe-tidy fs/partitions/msdos.c
+--- a/fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe-tidy
 +++ a/fs/partitions/msdos.c
-@@ -485,15 +485,17 @@ int check_sane_values(struct partition *
+@@ -411,78 +411,97 @@ static struct {
+ };
+ 
+ /*
+- * Check that *all* sector offsets are valid before actually building the partition structure.
++ * Check that *all* sector offsets are valid before actually building the
++ * partition structure.
+  *
+- * This prevents physical damage to disks and boot-time problems caused by an apparently valid
+- * partition table causing attempts to read sectors beyond the end of the physical disk.
++ * This prevents physical damage to disks and boot-time problems caused by an
++ * apparently valid partition table causing attempts to read sectors beyond the
++ * end of the physical disk.
+  *
+- * This is especially important where this is the first physical disk in a striped RAID array
+- * and the partition table contains sector offsets into the larger logical disk (beyond the end
+- * of this physical disk).
++ * This is especially important where this is the first physical disk in a
++ * striped RAID array and the partition table contains sector offsets into the
++ * larger logical disk (beyond the end of this physical disk).
+  *
+  * The RAID module will correctly manage the disks.
+  *
+- * The function is re-entrant so it can call itself to check extended partitions.
++ * The function is re-entrant so it can call itself to check extended
++ * partitions.
+  *
+- * @param p partition table
+- * @param bdev block device
+- * @returns -1 if insane values found; 0 otherwise
+- * @copy Copyright 31 January 2007
+- * @author TJ <linux@tjworld.net>
++ * returns -1 if insane values found; 0 otherwise.
++ *
++ * Copyright 31 January 2007, TJ <linux@tjworld.net>
+  */
+-int check_sane_values(struct partition *p, struct block_device *bdev) {
++int check_sane_values(struct partition *p, struct block_device *bdev)
++{
+ 	unsigned char *data;
+ 	struct partition *ext;
+ 	Sector sect;
+ 	int slot;
+-	int insane;
+ 	int sector_size = bdev_hardsect_size(bdev) / 512;
+ 	int ret = 0; /* default is to report ok */
+ 
+ 	/* don't return early; allow all partition entries to be checked */
+-	for (slot = 1 ; slot <= 4 ; slot++, p++) {
+-		insane = 0; /* track sanity within each table entry */
++	for (slot = 1; slot <= 4; slot++, p++) {
++		int insane = 0;	/* track sanity within each table entry */
+ 
+ 		if (NR_SECTS(p) == 0)
+-			continue; /* ignore zero-sized entries */
++			continue;	/* ignore zero-sized entries */
+ 
+-		if (START_SECT(p) > bdev->bd_disk->capacity-1) { /* invalid - beyond end of disk */
+-			insane |= 1; /* bit-0 flags insane start */
+-		}
+-		if (START_SECT(p)+NR_SECTS(p)-1 > bdev->bd_disk->capacity-1) { /* invalid - beyond end of disk */
+-			insane |= 2; /* bit-1 flags insane end */
+-		}
+-		if (!insane && is_extended_partition(p)) { /* check the extended partition */
+-			data = read_dev_sector(bdev, START_SECT(p)*sector_size, &sect); /* fetch sector from cache */
++		if (START_SECT(p) > bdev->bd_disk->capacity-1) {
++			/* invalid - beyond end of disk */
++			insane |= 1;	/* bit-0 flags insane start */
++		}
++		if (START_SECT(p)+NR_SECTS(p)-1 > bdev->bd_disk->capacity-1) {
++			/* invalid - beyond end of disk */
++			insane |= 2;	/* bit-1 flags insane end */
++		}
++		if (!insane && is_extended_partition(p)) {
++			/* check the extended partition */
++			data = read_dev_sector(bdev, START_SECT(p)*sector_size,
++					&sect);	/* fetch sector from cache */
+ 			if (data) {
+-				if (msdos_magic_present(data + 510)) { /* check for signature */
+-					ext = (struct partition *) (data + 0x1be);
+-					ret = check_sane_values(ext, bdev); /* recursive call */
+-					if (ret == -1) /* insanity found */
+-						insane |= 4; /* bit-2 flags insane extended partition contents */
++				if (msdos_magic_present(data + 510)) {
++					/* check for signature */
++					ext = (struct partition *)(data+0x1be);
++					/* recursive call */
++					ret = check_sane_values(ext, bdev);
++					if (ret == -1) { /* insanity found */
++						/*
++						 * bit-2 flags insane extended
++						 * partition contents
++						 */
++						insane |= 4;
++					}
+ 				}
+-				put_dev_sector(sect); /* release sector to cache */
++				/* release sector to cache */
++				put_dev_sector(sect);
++			} else {
++				/* failed to read sector from cache */
++				ret = -1;
+ 			}
+-			else ret = -1; /* failed to read sector from cache */
+-
+ 		}
+ 		if (insane) { /* insanity found; report it */
+ 			ret = -1; /* error code */
  			printk("\n"); /* start error report on a fresh line */
  			if (insane & 1)
- 				printk(" partition %d: start (sector %d) beyond"
--					" end of disk (sector %d)\n",
-+					" end of disk (sector %Lu)\n",
- 					slot, START_SECT(p),
--					(unsigned int)bdev->bd_disk->capacity-1);
-+					(unsigned long long)
-+						bdev->bd_disk->capacity - 1);
+-				printk(" partition %d: start (sector %d) beyond end of disk (sector %d)\n",
+-				 slot, START_SECT(p), (unsigned int) bdev->bd_disk->capacity-1);
++				printk(" partition %d: start (sector %d) beyond"
++					" end of disk (sector %d)\n",
++					slot, START_SECT(p),
++					(unsigned int)bdev->bd_disk->capacity-1);
  			if (insane & 2)
- 				printk(" partition %d: end (sector %d) beyond "
--					"end of disk (sector %d)\n",
-+					"end of disk (sector %Lu)\n",
- 					slot,
- 					START_SECT(p)+NR_SECTS(p)-1,
--					(unsigned int)bdev->bd_disk->capacity-1);
-+					(unsigned long long)
-+						bdev->bd_disk->capacity - 1);
+-				printk(" partition %d: end (sector %d) beyond end of disk (sector %d)\n",
+-				 slot, START_SECT(p)+NR_SECTS(p)-1, (unsigned int) bdev->bd_disk->capacity-1);
++				printk(" partition %d: end (sector %d) beyond "
++					"end of disk (sector %d)\n",
++					slot,
++					START_SECT(p)+NR_SECTS(p)-1,
++					(unsigned int)bdev->bd_disk->capacity-1);
  			if (insane & 4)
- 				printk(" partition %d: insane extended "
- 					"contents\n", slot);
+-				printk(" partition %d: insane extended contents\n", slot);
++				printk(" partition %d: insane extended "
++					"contents\n", slot);
+ 		}
+ 	}
+ 	return ret;
+ }
+ 
+- 
+ int msdos_partition(struct parsed_partitions *state, struct block_device *bdev)
+ {
+ 	int sector_size = bdev_hardsect_size(bdev) / 512;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
