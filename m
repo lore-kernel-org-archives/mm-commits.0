@@ -1,23 +1,23 @@
 From: akpm@osdl.org
-Subject: + workaround-capi-subsystem-locking-issue.patch added to -mm tree
-Date: Thu, 01 Feb 2007 13:41:59 -0800
-Message-ID: <200702012141.l11Lfx60023669@shell0.pdx.osdl.net>
+Subject: + ubi-int-versus-size_t-printk-warnings.patch added to -mm tree
+Date: Thu, 01 Feb 2007 13:43:07 -0800
+Message-ID: <200702012143.l11Lh7Sg023699@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40801 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40920 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751037AbXBAVmJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 16:42:09 -0500
+	id S1751392AbXBAVnd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 16:43:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mb@bu3sch.de, kai.germaschewski@gmx.de, kkeil@suse.de
+Cc: alan@lxorguk.ukuu.org.uk, Artem.Bityutskiy@nokia.com, alan@redhat.com
 
 
 The patch titled
-     Workaround CAPI subsystem locking issue
+     ubi: int versus size_t printk warnings
 has been added to the -mm tree.  Its filename is
-     workaround-capi-subsystem-locking-issue.patch
+     ubi-int-versus-size_t-printk-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,244 +25,118 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Workaround CAPI subsystem locking issue
-From: Michael Buesch <mb@bu3sch.de>
+Subject: ubi: int versus size_t printk warnings
+From: Alan <alan@lxorguk.ukuu.org.uk>
 
-I think the following patch should go into the kernel, until the ISDN/CAPI
-guys create the real fix for this issue.
-
-The issue is a concurrency issue with some internal CAPI data structure
-which can crash the kernel.
-
-On my FritzCard DSL with the AVM driver it crashes about once a day without
-this workaround patch.  With this workaround patch it's rock-stable (at
-least on UP, but I don't see why this shouldn't work on SMP as well.  But
-maybe I'm missing something.)
-
-This workaround is kind of a sledgehammer which inserts a global lock to
-wrap around all the critical sections.  Of course, this is a scalability
-issue, if you have many ISDN/CAPI cards.  But it prevents a crash.  So I
-vote for this fix to get merged, until people come up with a better
-solution.  Better have a stable kernel that's less scalable, than a
-crashing and useless kernel.
-
-This bug is in the kernel since 2.6.15 (at least).
-
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
-Cc: Kai Germaschewski <kai.germaschewski@gmx.de>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/isdn/capi/capi.c |   35 +++++++++++++++++++++++++++++++++++
- 1 files changed, 35 insertions(+)
+ drivers/mtd/ubi/io.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/isdn/capi/capi.c~workaround-capi-subsystem-locking-issue drivers/isdn/capi/capi.c
---- a/drivers/isdn/capi/capi.c~workaround-capi-subsystem-locking-issue
-+++ a/drivers/isdn/capi/capi.c
-@@ -118,6 +118,15 @@ struct capiminor {
- };
- #endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
- 
-+/* FIXME: The following lock is a sledgehammer-workaround to a
-+ * locking issue with the capiminor (and maybe other) data structure(s).
-+ * Access to this data is done in a racy way and crashes the machine with
-+ * a FritzCard DSL driver; sooner or later. This is a workaround
-+ * which trades scalability vs stability, so it doesn't crash the kernel anymore.
-+ * The correct (and scalable) fix for the issue seems to require
-+ * an API change to the drivers... . */
-+static DEFINE_SPINLOCK(workaround_lock);
-+
- struct capincci {
- 	struct capincci *next;
- 	u32		 ncci;
-@@ -589,6 +598,7 @@ static void capi_recv_message(struct cap
- #endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
- 	struct capincci *np;
- 	u32 ncci;
-+	unsigned long flags;
- 
- 	if (CAPIMSG_CMD(skb->data) == CAPI_CONNECT_B3_CONF) {
- 		u16 info = CAPIMSG_U16(skb->data, 12); // Info field
-@@ -603,9 +613,11 @@ static void capi_recv_message(struct cap
- 		capincci_alloc(cdev, CAPIMSG_NCCI(skb->data));
- 		up(&cdev->ncci_list_sem);
- 	}
-+	spin_lock_irqsave(&workaround_lock, flags);
- 	if (CAPIMSG_COMMAND(skb->data) != CAPI_DATA_B3) {
- 		skb_queue_tail(&cdev->recvqueue, skb);
- 		wake_up_interruptible(&cdev->recvwait);
-+		spin_unlock_irqrestore(&workaround_lock, flags);
- 		return;
- 	}
- 	ncci = CAPIMSG_CONTROL(skb->data);
-@@ -615,6 +627,7 @@ static void capi_recv_message(struct cap
- 		printk(KERN_ERR "BUG: capi_signal: ncci not found\n");
- 		skb_queue_tail(&cdev->recvqueue, skb);
- 		wake_up_interruptible(&cdev->recvwait);
-+		spin_unlock_irqrestore(&workaround_lock, flags);
- 		return;
- 	}
- #ifndef CONFIG_ISDN_CAPI_MIDDLEWARE
-@@ -625,6 +638,7 @@ static void capi_recv_message(struct cap
- 	if (!mp) {
- 		skb_queue_tail(&cdev->recvqueue, skb);
- 		wake_up_interruptible(&cdev->recvwait);
-+		spin_unlock_irqrestore(&workaround_lock, flags);
- 		return;
- 	}
- 
-@@ -660,6 +674,7 @@ static void capi_recv_message(struct cap
- 		wake_up_interruptible(&cdev->recvwait);
- 	}
- #endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
-+	spin_unlock_irqrestore(&workaround_lock, flags);
- }
- 
- /* -------- file_operations for capidev ----------------------------- */
-@@ -1006,6 +1021,7 @@ static struct file_operations capi_fops 
- static int capinc_tty_open(struct tty_struct * tty, struct file * file)
- {
- 	struct capiminor *mp;
-+	unsigned long flags;
- 
- 	if ((mp = capiminor_find(iminor(file->f_path.dentry->d_inode))) == 0)
- 		return -ENXIO;
-@@ -1014,6 +1030,7 @@ static int capinc_tty_open(struct tty_st
- 
- 	tty->driver_data = (void *)mp;
- 
-+	spin_lock_irqsave(&workaround_lock, flags);
- 	if (atomic_read(&mp->ttyopencount) == 0)
- 		mp->tty = tty;
- 	atomic_inc(&mp->ttyopencount);
-@@ -1021,6 +1038,7 @@ static int capinc_tty_open(struct tty_st
- 	printk(KERN_DEBUG "capinc_tty_open ocount=%d\n", atomic_read(&mp->ttyopencount));
- #endif
- 	handle_minor_recv(mp);
-+	spin_unlock_irqrestore(&workaround_lock, flags);
- 	return 0;
- }
- 
-@@ -1054,6 +1072,7 @@ static int capinc_tty_write(struct tty_s
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
- 	struct sk_buff *skb;
-+	unsigned long flags;
- 
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_tty_write(count=%d)\n", count);
-@@ -1066,6 +1085,7 @@ static int capinc_tty_write(struct tty_s
- 		return 0;
- 	}
- 
-+	spin_lock_irqsave(&workaround_lock, flags);
- 	skb = mp->ttyskb;
- 	if (skb) {
- 		mp->ttyskb = NULL;
-@@ -1076,6 +1096,7 @@ static int capinc_tty_write(struct tty_s
- 	skb = alloc_skb(CAPI_DATA_B3_REQ_LEN+count, GFP_ATOMIC);
- 	if (!skb) {
- 		printk(KERN_ERR "capinc_tty_write: alloc_skb failed\n");
-+		spin_unlock_irqrestore(&workaround_lock, flags);
- 		return -ENOMEM;
- 	}
- 
-@@ -1086,6 +1107,7 @@ static int capinc_tty_write(struct tty_s
- 	mp->outbytes += skb->len;
- 	(void)handle_minor_send(mp);
- 	(void)handle_minor_recv(mp);
-+	spin_unlock_irqrestore(&workaround_lock, flags);
- 	return count;
- }
- 
-@@ -1093,6 +1115,7 @@ static void capinc_tty_put_char(struct t
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
- 	struct sk_buff *skb;
-+	unsigned long flags;
- 
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_put_char(%u)\n", ch);
-@@ -1105,10 +1128,12 @@ static void capinc_tty_put_char(struct t
- 		return;
- 	}
- 
-+	spin_lock_irqsave(&workaround_lock, flags);
- 	skb = mp->ttyskb;
- 	if (skb) {
- 		if (skb_tailroom(skb) > 0) {
- 			*(skb_put(skb, 1)) = ch;
-+			spin_unlock_irqrestore(&workaround_lock, flags);
- 			return;
+diff -puN drivers/mtd/ubi/io.c~ubi-int-versus-size_t-printk-warnings drivers/mtd/ubi/io.c
+--- a/drivers/mtd/ubi/io.c~ubi-int-versus-size_t-printk-warnings
++++ a/drivers/mtd/ubi/io.c
+@@ -129,8 +129,8 @@ retry:
+ 			yield();
+ 			goto retry;
  		}
- 		mp->ttyskb = NULL;
-@@ -1124,12 +1149,14 @@ static void capinc_tty_put_char(struct t
- 	} else {
- 		printk(KERN_ERR "capinc_put_char: char %u lost\n", ch);
- 	}
-+	spin_unlock_irqrestore(&workaround_lock, flags);
- }
- 
- static void capinc_tty_flush_chars(struct tty_struct *tty)
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
- 	struct sk_buff *skb;
-+	unsigned long flags;
- 
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_tty_flush_chars\n");
-@@ -1142,6 +1169,7 @@ static void capinc_tty_flush_chars(struc
- 		return;
+-		ubi_err("error %d while reading %d bytes from PEB %d:%d, "
+-			"read %d bytes", err, len, pnum, offset, *read);
++		ubi_err("error %d while reading %Zd bytes from PEB %d:%d, "
++			"read %Zd bytes", err, len, pnum, offset, *read);
+ 		dump_stack();
  	}
  
-+	spin_lock_irqsave(&workaround_lock, flags);
- 	skb = mp->ttyskb;
- 	if (skb) {
- 		mp->ttyskb = NULL;
-@@ -1150,6 +1178,7 @@ static void capinc_tty_flush_chars(struc
- 		(void)handle_minor_send(mp);
- 	}
- 	(void)handle_minor_recv(mp);
-+	spin_unlock_irqrestore(&workaround_lock, flags);
- }
+@@ -190,14 +190,14 @@ int ubi_io_write(const struct ubi_info *
  
- static int capinc_tty_write_room(struct tty_struct *tty)
-@@ -1220,12 +1249,15 @@ static void capinc_tty_throttle(struct t
- static void capinc_tty_unthrottle(struct tty_struct * tty)
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
-+	unsigned long flags;
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_tty_unthrottle\n");
- #endif
- 	if (mp) {
-+		spin_lock_irqsave(&workaround_lock, flags);
- 		mp->ttyinstop = 0;
- 		handle_minor_recv(mp);
-+		spin_unlock_irqrestore(&workaround_lock, flags);
+ 	err = mtd_write(io, buf, pnum, offset, len, written);
+ 	if (unlikely(err)) {
+-		ubi_err("error %d while writing %d bytes to PEB %d:%d, written"
+-			" %d bytes", err, len, pnum, offset, *written);
++		ubi_err("error %d while writing %Zd bytes to PEB %d:%d, written"
++			" %Zd bytes", err, len, pnum, offset, *written);
+ 		dump_stack();
  	}
- }
  
-@@ -1243,12 +1275,15 @@ static void capinc_tty_stop(struct tty_s
- static void capinc_tty_start(struct tty_struct *tty)
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
-+	unsigned long flags;
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_tty_start\n");
- #endif
- 	if (mp) {
-+		spin_lock_irqsave(&workaround_lock, flags);
- 		mp->ttyoutstop = 0;
- 		(void)handle_minor_send(mp);
-+		spin_unlock_irqrestore(&workaround_lock, flags);
+ 	/* The below is just for debugging and is compiled out if disabled */
+ 	if (ubi_dbg_is_write_failure() && !err) {
+-		ubi_err("cannot write %d bytes to PEB %d:%d (emulated)",
++		ubi_err("cannot write %Zd bytes to PEB %d:%d (emulated)",
+ 			len, pnum, offset);
+ 		dump_stack();
+ 		return -EIO;
+@@ -597,7 +597,7 @@ int ubi_io_init(struct ubi_info *ubi, in
+ 
+ 		/* The shift must be aligned to 32-bit boundary */
+ 		if (io->vid_hdr_shift % 4) {
+-			ubi_err("unaligned VID header shift %d",
++			ubi_err("unaligned VID header shift %Zd",
+ 				io->vid_hdr_shift);
+ 			goto out_mtd;
+ 		}
+@@ -615,7 +615,7 @@ int ubi_io_init(struct ubi_info *ubi, in
+ 	    io->leb_start < io->vid_hdr_offset + UBI_VID_HDR_SIZE ||
+ 	    io->leb_start > io->peb_size - UBI_VID_HDR_SIZE ||
+ 	    io->leb_start % io->min_io_size) {
+-		ubi_err("bad VID header (%d) or data offsets (%d)",
++		ubi_err("bad VID header (%Zd) or data offsets (%Zd)",
+ 			io->vid_hdr_offset, io->leb_start);
+ 		goto out_mtd;
  	}
- }
- 
+@@ -847,12 +847,12 @@ static int validate_ec_hdr(const struct 
+ 		goto bad;
+ 	}
+ 	if (unlikely(vid_hdr_offset != io->vid_hdr_offset)) {
+-		ubi_err("bad VID header offset %d at PEB %d, expected %d",
++		ubi_err("bad VID header offset %d at PEB %d, expected %Zd",
+ 			vid_hdr_offset, pnum, io->vid_hdr_offset);
+ 		goto bad;
+ 	}
+ 	if (unlikely(leb_start != io->leb_start)) {
+-		ubi_err("bad data offset %d at PEB %d, expected %d",
++		ubi_err("bad data offset %d at PEB %d, expected %Zd",
+ 			pnum, leb_start, io->leb_start);
+ 		goto bad;
+ 	}
 _
 
-Patches currently in -mm which might be from mb@bu3sch.de are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-netdev-all.patch
-workaround-capi-subsystem-locking-issue.patch
+via-quirk-fix-update.patch
+git-libata-all.patch
+git-mtd.patch
+ubi-int-versus-size_t-printk-warnings.patch
+z85230-spinlock-logic.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+perle-multimodem-card-pci-ras-detection.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+geode-support-classic-mediagxm.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-tty_wakeup-cleanup.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
+tty-improve-encode_baud_rate-logic.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+edac-e752x-bit-mask-fix.patch
+edac-e752x-byte-access-fix.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
+sched-avoid-div-in-rebalance_tick.patch
