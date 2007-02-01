@@ -1,31 +1,37 @@
 From: akpm@osdl.org
-Subject: - aio-completion-signal-notification.patch removed from -mm tree
-Date: Thu, 01 Feb 2007 14:56:16 -0800
-Message-ID: <200702012256.l11MuHoY025460@shell0.pdx.osdl.net>
+Subject: + aio-completion-signal-notification.patch added to -mm tree
+Date: Thu, 01 Feb 2007 15:04:45 -0800
+Message-ID: <200702012304.l11N4keg025714@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46333 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46993 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933023AbXBAW5I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Feb 2007 17:57:08 -0500
+	id S932078AbXBAXF4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Feb 2007 18:05:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sebastien.dugue@bull.net, bcrl@kvack.org, drepper@redhat.com, laurent.vivier@bull.net, mingo@elte.hu, suparna@in.ibm.com, tglx@linutronix.de, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sebastien.dugue@bull.net, bcrl@linux.intel.com, bharata@in.ibm.com, hch@infradead.org, jean-pierre.dion@bull.net, laurent.vivier@bull.net, oleg@tv-sign.ru, pbadari@us.ibm.com, suparna@in.ibm.com, zach.brown@oracle.com
 
 
 The patch titled
-     aio: AIO completion signal notification
-has been removed from the -mm tree.  Its filename was
+     AIO completion signal notification
+has been added to the -mm tree.  Its filename is
      aio-completion-signal-notification.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
+out what to do about this
 
 ------------------------------------------------------
-Subject: aio: AIO completion signal notification
-=46rom: Sbastien Dugu <sebastien.dugue@bull.net>
+Subject: AIO completion signal notification
+=46rom: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
 
 The current 2.6 kernel does not support notification of user space via =
 an RT
@@ -64,7 +70,7 @@ A struct aio_notify ki_notify is added to struct kiocb in include/linux=
 /aio.h
 
 In io_submit_one(), if the application provided a sigevent then
-setup_sigevent() is called which does the following:
+aio_setup_sigevent() is called which does the following:
 
 	- check access to the user sigevent and make a local copy
 
@@ -75,7 +81,7 @@ setup_sigevent() is called which does the following:
 	- check sigevent consistency, get the signal target task and
 	  save it in kiocb->ki_notify.target
 
-	- preallocate a sigqueue for this event using sigqueue_alloc()
+	- preallocate a sigqueue for this event using __sigqueue_alloc()
 
 Upon request completion, in aio_complete(), if notification is needed f=
 or this
@@ -108,30 +114,30 @@ the async nature of the whole thing.
 In the aio case, the sigqueue exists for the lifetime of the request,
 therefore it must be freed only once the signal for the request complet=
 ion has
-been delivered.  This involves changing __sigqueue_free() to free the s=
-igqueue
-when the signal is collected if si_code is SI_ASYNCIO even if it was
-preallocated as well as explicitly calling sigqueue_free() in submissio=
-n and
-completion error paths.
+been delivered.  The sigqueue is therefore freed by the signal delivery
+mechanism when the signal is collected.  The aio submission and complet=
+ion
+error paths do an explicit __sigqueue_free() to free the sigqueue.
 
 Signed-off-by: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
 Signed-off-by: Laurent Vivier <laurent.vivier@bull.net>
-Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Bharata B Rao <bharata@in.ibm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Suparna Bhattacharya <suparna@in.ibm.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Benjamin LaHaise <bcrl@linux.intel.com>
+Cc: Jean Pierre Dion <jean-pierre.dion@bull.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c                |  115 ++++++++++++++++++++++++++++++++++++--
- fs/compat.c             |   18 +++++
- include/linux/aio.h     |   12 +++
- include/linux/aio_abi.h |    3=20
- kernel/signal.c         |    2=20
- 5 files changed, 144 insertions(+), 6 deletions(-)
+ fs/aio.c                |  114 ++++++++++++++++++++++++++++++++++++--
+ fs/compat.c             |   18 ++++++
+ include/linux/aio.h     |   12 ++++
+ include/linux/aio_abi.h |    3 -
+ kernel/signal.c         |    4 -
+ 5 files changed, 144 insertions(+), 7 deletions(-)
 
 diff -puN fs/aio.c~aio-completion-signal-notification fs/aio.c
 --- a/fs/aio.c~aio-completion-signal-notification
@@ -157,7 +163,7 @@ diff -puN fs/aio.c~aio-completion-signal-notification fs/aio.c
  	kmem_cache_free(kiocb_cachep, req);
  	ctx->reqs_active--;
 =20
-@@ -916,6 +923,79 @@ void fastcall kick_iocb(struct kiocb *io
+@@ -916,6 +923,78 @@ void fastcall kick_iocb(struct kiocb *io
  }
  EXPORT_SYMBOL(kick_iocb);
 =20
@@ -190,7 +196,7 @@ diff -puN fs/aio.c~aio-completion-signal-notification fs/aio.c
 +	sigevent_t event;
 +	struct task_struct *target;
 +
-+	if (copy_from_user(&event, user_event, sizeof(event)))
++	if (copy_from_user(&event, user_event, sizeof (event)))
 +		return -EFAULT;
 +
 +	if (event.sigev_notify =3D=3D SIGEV_NONE)
@@ -200,10 +206,10 @@ diff -puN fs/aio.c~aio-completion-signal-notification fs/aio.c
 +	notify->signo =3D event.sigev_signo;
 +	notify->value =3D event.sigev_value;
 +
-+	read_lock(&tasklist_lock);
-+	target =3D good_sigevent(&event);
++	rcu_read_lock();
++	target =3D sigevent_find_task(&event);
 +
-+	if (unlikely(!target || (target->flags & PF_EXITING)))
++	if (unlikely(!target))
 +		goto out_unlock;
 +
 +	/*
@@ -214,16 +220,15 @@ diff -puN fs/aio.c~aio-completion-signal-notification fs/aio.c
 +	 */
 +	get_task_struct(target);
 +	notify->target =3D target;
-+	read_unlock(&tasklist_lock);
++	rcu_read_unlock();
++
++	notify->sigq =3D __sigqueue_alloc(current, GFP_KERNEL, 0);
 +
 +	/*
-+	 * NOTE: we cannot free the sigqueue in the completion path as
-+	 * the signal may not have been delivered to the target task.
-+	 * Therefore it has to be freed in __sigqueue_free() when the
-+	 * signal is collected if si_code is SI_ASYNCIO.
++	 * The task ref will be released in really_put_req()
++	 * when we dispose of the iocb later on in the submission
++	 * path.
 +	 */
-+	notify->sigq =3D sigqueue_alloc();
-+
 +	if (unlikely(!notify->sigq))
 +		return -EAGAIN;
 +
@@ -237,20 +242,20 @@ diff -puN fs/aio.c~aio-completion-signal-notification fs/aio.c
  /* aio_complete
   *	Called when the io request on the given iocb is complete.
   *	Returns true if this is the last user of the request.  The=20
-@@ -963,8 +1043,11 @@ int fastcall aio_complete(struct kiocb *
+@@ -963,8 +1042,11 @@ int fastcall aio_complete(struct kiocb *
  	 * cancelled requests don't get events, userland was given one
  	 * when the event got cancelled.
  	 */
 -	if (kiocbIsCancelled(iocb))
 +	if (kiocbIsCancelled(iocb)) {
 +		if (iocb->ki_notify.sigq)
-+			sigqueue_free(iocb->ki_notify.sigq);
++			__sigqueue_free(iocb->ki_notify.sigq);
  		goto put_rq;
 +	}
 =20
  	ring =3D kmap_atomic(info->ring_pages[0], KM_IRQ1);
 =20
-@@ -994,6 +1077,15 @@ int fastcall aio_complete(struct kiocb *
+@@ -994,6 +1076,15 @@ int fastcall aio_complete(struct kiocb *
  	kunmap_atomic(ring, KM_IRQ1);
 =20
  	pr_debug("added to ring %p at [%lu]\n", iocb, tail);
@@ -260,13 +265,13 @@ diff -puN fs/aio.c~aio-completion-signal-notification fs/aio.c
 +
 +		/* If signal generation failed, release the sigqueue */
 +		if (ret)
-+			sigqueue_free(iocb->ki_notify.sigq);
++			__sigqueue_free(iocb->ki_notify.sigq);
 +	}
 +
  put_rq:
  	/* everything turned out well, dispose of the aiocb. */
  	ret =3D __aio_put_req(ctx, iocb);
-@@ -1545,8 +1637,7 @@ int fastcall io_submit_one(struct kioctx
+@@ -1545,8 +1636,7 @@ int fastcall io_submit_one(struct kioctx
  	ssize_t ret;
 =20
  	/* enforce forwards compatibility on users */
@@ -276,7 +281,7 @@ diff -puN fs/aio.c~aio-completion-signal-notification fs/aio.c
  		pr_debug("EINVAL: io_submit: reserve field set\n");
  		return -EINVAL;
  	}
-@@ -1555,6 +1646,7 @@ int fastcall io_submit_one(struct kioctx
+@@ -1555,6 +1645,7 @@ int fastcall io_submit_one(struct kioctx
  	if (unlikely(
  	    (iocb->aio_buf !=3D (unsigned long)iocb->aio_buf) ||
  	    (iocb->aio_nbytes !=3D (size_t)iocb->aio_nbytes) ||
@@ -284,7 +289,7 @@ diff -puN fs/aio.c~aio-completion-signal-notification fs/aio.c
  	    ((ssize_t)iocb->aio_nbytes < 0)
  	   )) {
  		pr_debug("EINVAL: io_submit: overflow check\n");
-@@ -1588,11 +1680,21 @@ int fastcall io_submit_one(struct kioctx
+@@ -1588,11 +1679,21 @@ int fastcall io_submit_one(struct kioctx
  	init_waitqueue_func_entry(&req->ki_wait.wait, aio_wake_function);
  	INIT_LIST_HEAD(&req->ki_wait.wait.task_list);
   	req->ki_run_list.next =3D req->ki_run_list.prev =3D NULL;
@@ -307,14 +312,14 @@ diff -puN fs/aio.c~aio-completion-signal-notification fs/aio.c
 =20
  	spin_lock_irq(&ctx->ctx_lock);
  	aio_run_iocb(req);
-@@ -1605,6 +1707,11 @@ int fastcall io_submit_one(struct kioctx
+@@ -1605,6 +1706,11 @@ int fastcall io_submit_one(struct kioctx
  	aio_put_req(req);	/* drop extra ref to req */
  	return 0;
 =20
 +out_sigqfree:
 +	/* Undo the sigqueue alloc if someting went bad */
 +	if (req->ki_notify.sigq)
-+		sigqueue_free(req->ki_notify.sigq);
++		__sigqueue_free(req->ki_notify.sigq);
 +
  out_put_req:
  	aio_put_req(req);	/* drop extra ref to req */
@@ -412,22 +417,35 @@ diff -puN kernel/signal.c~aio-completion-signal-notification kernel/sig=
 nal.c
 --- a/kernel/signal.c~aio-completion-signal-notification
 +++ a/kernel/signal.c
-@@ -296,7 +296,7 @@ static struct sigqueue *__sigqueue_alloc
+@@ -1393,7 +1393,7 @@ int send_sigqueue(int sig, struct sigque
+ 	unsigned long flags;
+ 	int ret =3D 0;
 =20
- static void __sigqueue_free(struct sigqueue *q)
- {
--	if (q->flags & SIGQUEUE_PREALLOC)
-+	if (q->flags & SIGQUEUE_PREALLOC && q->info.si_code !=3D SI_ASYNCIO)
- 		return;
- 	atomic_dec(&q->user->sigpending);
- 	free_uid(q->user);
+-	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
++	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC) && q->info.si_code !=3D SI_ASY=
+NCIO);
+=20
+ 	/*
+ 	 * The rcu based delayed sighand destroy makes it possible to
+@@ -1444,7 +1444,7 @@ send_group_sigqueue(int sig, struct sigq
+ 	unsigned long flags;
+ 	int ret =3D 0;
+=20
+-	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
++	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC) && q->info.si_code !=3D SI_ASY=
+NCIO);
+=20
+ 	read_lock(&tasklist_lock);
+ 	/* Since it_lock is held, p->sighand cannot be NULL. */
 _
 
 Patches currently in -mm which might be from sebastien.dugue@bull.net a=
 re
 
+rework-compat_sys_io_submit.patch
+fix-aioh-includes.patch
+fix-access_ok-checks.patch
+make-good_sigevent-non-static.patch
+make-__sigqueue_free-and.patch
 aio-completion-signal-notification.patch
-aio-completion-signal-notification-fix.patch
 add-listio-syscall-support.patch
-add-listio-syscall-support-fix.patch
-add-listio-syscall-support-fix-2.patch
