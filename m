@@ -1,105 +1,67 @@
 From: akpm@osdl.org
-Subject: - ipc-namespace-remove-config_ipc_ns-linkage-fix.patch removed from -mm tree
-Date: Wed, 31 Jan 2007 17:16:58 -0800
-Message-ID: <200702010117.l111HuBI032510@shell0.pdx.osdl.net>
+Subject: - nsproxy-externalizes-exit_task_namespaces-fix-fix.patch removed from -mm tree
+Date: Wed, 31 Jan 2007 17:14:27 -0800
+Message-ID: <200702010115.l111FPZF032431@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35335 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35339 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030536AbXBABSk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 20:18:40 -0500
+	id S1030540AbXBABSu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 20:18:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: akpm@osdl.org, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc-namespace-remove-config_ipc_ns linkage fix
+     nsproxy-externalizes-exit_task_namespaces-fix-fix
 has been removed from the -mm tree.  Its filename was
-     ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
+     nsproxy-externalizes-exit_task_namespaces-fix-fix.patch
 
-This patch was dropped because it was folded into uts-namespace-remove-config_uts_ns.patch
+This patch was dropped because it was folded into nsproxy-externalizes-exit_task_namespaces.patch
 
 ------------------------------------------------------
-Subject: ipc-namespace-remove-config_ipc_ns linkage fix
+Subject: nsproxy-externalizes-exit_task_namespaces-fix-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Documentation/SubmitChecklist, item 2.
+<repairing damage against recent mainline merge>
 
-kernel/built-in.o: In function `sys_unshare':
-: undefined reference to `unshare_ipcs'
-kernel/built-in.o: In function `sys_unshare':
-: undefined reference to `free_ipc_ns'
-kernel/built-in.o: In function `free_nsproxy':
-: undefined reference to `free_ipc_ns'
-kernel/built-in.o: In function `copy_namespaces':
-: undefined reference to `copy_ipcs'
-kernel/built-in.o: In function `copy_namespaces':
-: undefined reference to `free_ipc_ns'
-make: *** [.tmp_vmlinux1] Error 1
+This function now appears to be unused.
 
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/ipc.h |   26 +++++++++++++++++++++++---
- 1 file changed, 23 insertions(+), 3 deletions(-)
+ include/linux/nsproxy.h |    1 -
+ kernel/nsproxy.c        |    5 -----
+ 2 files changed, 6 deletions(-)
 
-diff -puN include/linux/ipc.h~ipc-namespace-remove-config_ipc_ns-linkage-fix include/linux/ipc.h
---- a/include/linux/ipc.h~ipc-namespace-remove-config_ipc_ns-linkage-fix
-+++ a/include/linux/ipc.h
-@@ -92,24 +92,44 @@ extern struct ipc_namespace init_ipc_ns;
+diff -puN include/linux/nsproxy.h~nsproxy-externalizes-exit_task_namespaces-fix-fix include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~nsproxy-externalizes-exit_task_namespaces-fix-fix
++++ a/include/linux/nsproxy.h
+@@ -38,7 +38,6 @@ void get_task_namespaces(struct task_str
+ void free_nsproxy(struct nsproxy *ns);
+ struct mnt_namespace *get_task_mnt_ns(struct task_struct *tsk);
+ void exit_task_namespaces(struct task_struct *p, struct nsproxy *ns);
+-struct nsproxy *preexit_task_namespaces(struct task_struct *p);
  
- #ifdef CONFIG_SYSVIPC
- #define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
--#else
--#define INIT_IPC_NS(ns)
--#endif
- 
- extern void free_ipc_ns(struct kref *kref);
- extern int copy_ipcs(unsigned long flags, struct task_struct *tsk);
- extern int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns);
- 
-+#else
-+#define INIT_IPC_NS(ns)
-+
-+static inline void free_ipc_ns(struct kref *kref)
-+{
-+}
-+static inline int copy_ipcs(unsigned long flags, struct task_struct *tsk)
-+{
-+	return 0;
-+}
-+static inline int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns)
-+{
-+	if (flags & CLONE_NEWIPC)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+#endif
-+
- static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
+ static inline void finalize_put_nsproxy(struct nsproxy *ns)
  {
-+#ifdef CONFIG_SYSVIPC
- 	if (ns)
- 		kref_get(&ns->kref);
-+#endif
- 	return ns;
+diff -puN kernel/nsproxy.c~nsproxy-externalizes-exit_task_namespaces-fix-fix kernel/nsproxy.c
+--- a/kernel/nsproxy.c~nsproxy-externalizes-exit_task_namespaces-fix-fix
++++ a/kernel/nsproxy.c
+@@ -143,11 +143,6 @@ out_ns:
+ 	goto out;
  }
  
- static inline void put_ipc_ns(struct ipc_namespace *ns)
+-struct nsproxy *preexit_task_namespaces(struct task_struct *p)
+-{
+-	return put_nsproxy(p->nsproxy);
+-}
+-
+ void free_nsproxy(struct nsproxy *ns)
  {
-+#ifdef CONFIG_SYSVIPC
- 	kref_put(&ns->kref, free_ipc_ns);
-+#endif
- }
- 
- #endif /* __KERNEL__ */
+ 	if (ns->mnt_ns)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -238,7 +200,10 @@ sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
 swap_prefetch-vs-zoned-counters.patch
 add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-uts-namespace-remove-config_uts_ns.patch
+nsproxy-externalizes-exit_task_namespaces.patch
+nsproxy-externalizes-exit_task_namespaces-fix-fix.patch
+nsproxy-externalizes-exit_task_namespaces-fix-42.patch
+user-ns-implement-user-ns-unshare-tidy.patch
 ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
 ipc-namespace-remove-config_ipc_ns-linkage-fix-fix.patch
 dynamic-kernel-command-line-ia64-fix.patch
