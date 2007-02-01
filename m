@@ -1,67 +1,54 @@
 From: akpm@osdl.org
-Subject: - nsproxy-externalizes-exit_task_namespaces-fix-fix.patch removed from -mm tree
-Date: Wed, 31 Jan 2007 17:14:27 -0800
-Message-ID: <200702010115.l111FPZF032431@shell0.pdx.osdl.net>
+Subject: - nsproxy-externalizes-exit_task_namespaces-fix-42.patch removed from -mm tree
+Date: Wed, 31 Jan 2007 17:14:29 -0800
+Message-ID: <200702010115.l111FR6W032434@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35339 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35368 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030540AbXBABSu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Jan 2007 20:18:50 -0500
+	id S1030540AbXBABTc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 31 Jan 2007 20:19:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@osdl.org, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@osdl.org, clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nsproxy-externalizes-exit_task_namespaces-fix-fix
+     nsproxy-externalizes-exit_task_namespaces-fix-42
 has been removed from the -mm tree.  Its filename was
-     nsproxy-externalizes-exit_task_namespaces-fix-fix.patch
+     nsproxy-externalizes-exit_task_namespaces-fix-42.patch
 
 This patch was dropped because it was folded into nsproxy-externalizes-exit_task_namespaces.patch
 
 ------------------------------------------------------
-Subject: nsproxy-externalizes-exit_task_namespaces-fix-fix
+Subject: nsproxy-externalizes-exit_task_namespaces-fix-42
 From: Andrew Morton <akpm@osdl.org>
 
-<repairing damage against recent mainline merge>
+My confidence in this patch series plummets to zero...
 
-This function now appears to be unused.
-
+Cc: Cedric Le Goater <clg@fr.ibm.com>
 Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/nsproxy.h |    1 -
- kernel/nsproxy.c        |    5 -----
- 2 files changed, 6 deletions(-)
+ kernel/fork.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/nsproxy.h~nsproxy-externalizes-exit_task_namespaces-fix-fix include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~nsproxy-externalizes-exit_task_namespaces-fix-fix
-+++ a/include/linux/nsproxy.h
-@@ -38,7 +38,6 @@ void get_task_namespaces(struct task_str
- void free_nsproxy(struct nsproxy *ns);
- struct mnt_namespace *get_task_mnt_ns(struct task_struct *tsk);
- void exit_task_namespaces(struct task_struct *p, struct nsproxy *ns);
--struct nsproxy *preexit_task_namespaces(struct task_struct *p);
+diff -puN kernel/fork.c~nsproxy-externalizes-exit_task_namespaces-fix-42 kernel/fork.c
+--- a/kernel/fork.c~nsproxy-externalizes-exit_task_namespaces-fix-42
++++ a/kernel/fork.c
+@@ -1272,7 +1272,7 @@ static struct task_struct *copy_process(
+ 	return p;
  
- static inline void finalize_put_nsproxy(struct nsproxy *ns)
- {
-diff -puN kernel/nsproxy.c~nsproxy-externalizes-exit_task_namespaces-fix-fix kernel/nsproxy.c
---- a/kernel/nsproxy.c~nsproxy-externalizes-exit_task_namespaces-fix-fix
-+++ a/kernel/nsproxy.c
-@@ -143,11 +143,6 @@ out_ns:
- 	goto out;
- }
- 
--struct nsproxy *preexit_task_namespaces(struct task_struct *p)
--{
--	return put_nsproxy(p->nsproxy);
--}
--
- void free_nsproxy(struct nsproxy *ns)
- {
- 	if (ns->mnt_ns)
+ bad_fork_cleanup_namespaces:
+-	exit_task_namespaces(p);
++	exit_task_namespaces(p, p->nsproxy);
+ bad_fork_cleanup_keys:
+ 	exit_keys(p);
+ bad_fork_cleanup_mm:
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -201,7 +188,6 @@ mm-implement-swap-prefetching-use-ctl_unnumbered.patch
 swap_prefetch-vs-zoned-counters.patch
 add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
 nsproxy-externalizes-exit_task_namespaces.patch
-nsproxy-externalizes-exit_task_namespaces-fix-fix.patch
 nsproxy-externalizes-exit_task_namespaces-fix-42.patch
 user-ns-implement-user-ns-unshare-tidy.patch
 ipc-namespace-remove-config_ipc_ns-linkage-fix.patch
