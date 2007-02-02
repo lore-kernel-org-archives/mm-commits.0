@@ -1,48 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - ata_busy_wait-kerneldoc-fixes.patch removed from -mm tree
-Date: Fri, 02 Feb 2007 13:38:11 -0800
-Message-ID: <200702022138.l12LcBBj018581@shell0.pdx.osdl.net>
+Subject: - pata_via-correct-missing-comments.patch removed from -mm tree
+Date: Fri, 02 Feb 2007 13:38:09 -0800
+Message-ID: <200702022138.l12Lc91h018570@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41593 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41594 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946124AbXBBViW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 16:38:22 -0500
+	id S1946125AbXBBViY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 16:38:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ata_busy_wait() kerneldoc fixes
+     pata_via: Correct missing comments
 has been removed from the -mm tree.  Its filename was
-     ata_busy_wait-kerneldoc-fixes.patch
+     pata_via-correct-missing-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ata_busy_wait() kerneldoc fixes
+Subject: pata_via: Correct missing comments
 From: Alan <alan@lxorguk.ukuu.org.uk>
+
+The 8237S was added to the chipsets but not to the comments. Fix this.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/libata.h |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/ata/pata_via.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/libata.h~ata_busy_wait-kerneldoc-fixes include/linux/libata.h
---- a/include/linux/libata.h~ata_busy_wait-kerneldoc-fixes
-+++ a/include/linux/libata.h
-@@ -1047,6 +1047,8 @@ static inline void ata_pause(struct ata_
- /**
-  *	ata_busy_wait - Wait for a port status register
-  *	@ap: Port to wait for.
-+ *	@bits: bits that must be clear
-+ *	@max: number of 10uS waits to perform
+diff -puN drivers/ata/pata_via.c~pata_via-correct-missing-comments drivers/ata/pata_via.c
+--- a/drivers/ata/pata_via.c~pata_via-correct-missing-comments
++++ a/drivers/ata/pata_via.c
+@@ -23,6 +23,7 @@
+  *	VIA VT8233c	-	UDMA100
+  *	VIA VT8235	-	UDMA133
+  *	VIA VT8237	-	UDMA133
++ *	VIA VT8237S	-	UDMA133
+  *	VIA VT8251	-	UDMA133
   *
-  *	Waits up to max*10 microseconds for the selected bits in the port's
-  *	status register to be cleared.
+  *	Most registers remain compatible across chips. Others start reserved
+@@ -61,7 +62,7 @@
+ #include <linux/libata.h>
+ 
+ #define DRV_NAME "pata_via"
+-#define DRV_VERSION "0.2.0"
++#define DRV_VERSION "0.2.1"
+ 
+ /*
+  *	The following comes directly from Vojtech Pavlik's ide/pci/via82cxxx
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
