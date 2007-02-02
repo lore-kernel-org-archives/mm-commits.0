@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + register_blkdev-dont-hand-out-the-local-experimental-majors.patch added to -mm tree
-Date: Fri, 02 Feb 2007 14:35:28 -0800
-Message-ID: <200702022235.l12MZSM5019671@shell0.pdx.osdl.net>
+Subject: + register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch added to -mm tree
+Date: Fri, 02 Feb 2007 14:35:25 -0800
+Message-ID: <200702022235.l12MZPMW019668@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43355 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43356 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946120AbXBBWgo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1946121AbXBBWgo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 2 Feb 2007 17:36:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, device@lanana.org, greg@kroah.com, tomas.klas@mep
 
 
 The patch titled
-     register_blkdev(): don't hand out the LOCAL/EXPERIMENTAL majors
+     register_chrdev_region() don't hand out the LOCAL/EXPERIMENTAL majors
 has been added to the -mm tree.  Its filename is
-     register_blkdev-dont-hand-out-the-local-experimental-majors.patch
+     register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,12 +25,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: register_blkdev(): don't hand out the LOCAL/EXPERIMENTAL majors
+Subject: register_chrdev_region() don't hand out the LOCAL/EXPERIMENTAL majors
 From: Andrew Morton <akpm@osdl.org>
 
 As pointed out in http://bugzilla.kernel.org/show_bug.cgi?id=7922, dynamic
-blockdev major allocation can hand out majors which LANANA has defined as
-being for local/experimental use.
+chardev major allocation can hand out majors which LANANA has defined as being
+for local/experimental use.
 
 Cc: Torben Mathiasen <device@lanana.org>
 Cc: Greg KH <greg@kroah.com>
@@ -39,16 +39,16 @@ Cc: Tomas Klas <tomas.klas@mepatek.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- block/genhd.c |    7 +++++++
+ fs/char_dev.c |    7 +++++++
  1 files changed, 7 insertions(+)
 
-diff -puN block/genhd.c~register_blkdev-dont-hand-out-the-local-experimental-majors block/genhd.c
---- a/block/genhd.c~register_blkdev-dont-hand-out-the-local-experimental-majors
-+++ a/block/genhd.c
-@@ -61,6 +61,13 @@ int register_blkdev(unsigned int major, 
+diff -puN fs/char_dev.c~register_chrdev_region-dont-hand-out-the-local-experimental-majors fs/char_dev.c
+--- a/fs/char_dev.c~register_chrdev_region-dont-hand-out-the-local-experimental-majors
++++ a/fs/char_dev.c
+@@ -108,6 +108,13 @@ __register_chrdev_region(unsigned int ma
  	/* temporary */
  	if (major == 0) {
- 		for (index = ARRAY_SIZE(major_names)-1; index > 0; index--) {
+ 		for (i = ARRAY_SIZE(chrdevs)-1; i > 0; i--) {
 +			/*
 +			 * Disallow the LANANA-assigned LOCAL/EXPERIMENTAL
 +			 * majors
@@ -56,7 +56,7 @@ diff -puN block/genhd.c~register_blkdev-dont-hand-out-the-local-experimental-maj
 +			if ((60 <= i && i <= 63) || (120 <= i && i <= 127) ||
 +					(240 <= i && i <= 254))
 +				continue;
- 			if (major_names[index] == NULL)
+ 			if (chrdevs[i] == NULL)
  				break;
  		}
 _
