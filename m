@@ -1,64 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - pata_atiixp-propogate-cable-detection-hack-from.patch removed from -mm tree
-Date: Fri, 02 Feb 2007 13:38:06 -0800
-Message-ID: <200702022138.l12Lc69L018567@shell0.pdx.osdl.net>
+Subject: - ata_busy_wait-kerneldoc-fixes.patch removed from -mm tree
+Date: Fri, 02 Feb 2007 13:38:11 -0800
+Message-ID: <200702022138.l12LcBBj018581@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41582 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41593 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946121AbXBBViQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 16:38:16 -0500
+	id S1946124AbXBBViW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 16:38:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_atiixp: propogate cable detection hack from drivers/ide to the new driver
+     ata_busy_wait() kerneldoc fixes
 has been removed from the -mm tree.  Its filename was
-     pata_atiixp-propogate-cable-detection-hack-from.patch
+     ata_busy_wait-kerneldoc-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_atiixp: propogate cable detection hack from drivers/ide to the new driver
+Subject: ata_busy_wait() kerneldoc fixes
 From: Alan <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ata/pata_atiixp.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ include/linux/libata.h |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-propogate-cable-detection-hack-from drivers/ata/pata_atiixp.c
---- a/drivers/ata/pata_atiixp.c~pata_atiixp-propogate-cable-detection-hack-from
-+++ a/drivers/ata/pata_atiixp.c
-@@ -36,15 +36,22 @@ enum {
- static int atiixp_pre_reset(struct ata_port *ap)
- {
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--	static struct pci_bits atiixp_enable_bits[] = {
-+	static const struct pci_bits atiixp_enable_bits[] = {
- 		{ 0x48, 1, 0x01, 0x00 },
- 		{ 0x48, 1, 0x08, 0x00 }
- 	};
-+	u8 udma;
- 
- 	if (!pci_test_config_bits(pdev, &atiixp_enable_bits[ap->port_no]))
- 		return -ENOENT;
- 
--	ap->cbl = ATA_CBL_PATA80;
-+	/* Hack from drivers/ide/pci. Really we want to know how to do the
-+	   raw detection not play follow the bios mode guess */
-+	pci_read_config_byte(pdev, ATIIXP_IDE_UDMA_MODE + ap->port_no, &udma);
-+	if ((udma & 0x07) >= 0x04 || (udma & 0x70) >= 0x40)
-+		ap->cbl = ATA_CBL_PATA80;
-+	else
-+		ap->cbl = ATA_CBL_PATA40;
- 	return ata_std_prereset(ap);
- }
- 
+diff -puN include/linux/libata.h~ata_busy_wait-kerneldoc-fixes include/linux/libata.h
+--- a/include/linux/libata.h~ata_busy_wait-kerneldoc-fixes
++++ a/include/linux/libata.h
+@@ -1047,6 +1047,8 @@ static inline void ata_pause(struct ata_
+ /**
+  *	ata_busy_wait - Wait for a port status register
+  *	@ap: Port to wait for.
++ *	@bits: bits that must be clear
++ *	@max: number of 10uS waits to perform
+  *
+  *	Waits up to max*10 microseconds for the selected bits in the port's
+  *	status register to be cleared.
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
