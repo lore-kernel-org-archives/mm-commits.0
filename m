@@ -1,296 +1,344 @@
 From: akpm@linux-foundation.org
-Subject: + revert-blockdev-direct-io-back-to-2619-version.patch added to -mm tree
-Date: Fri, 02 Feb 2007 14:19:28 -0800
-Message-ID: <200702022219.l12MJSOR019367@shell0.pdx.osdl.net>
+Subject: - rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch removed from -mm tree
+Date: Fri, 02 Feb 2007 14:20:39 -0800
+Message-ID: <200702022220.l12MKdqQ019395@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42871 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42895 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946120AbXBBWTq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 17:19:46 -0500
+	id S1946091AbXBBWVH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 17:21:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrew.vasquez@qlogic.com, kenchen@google.com
+To: rpjday@mindspring.com, agruen@suse.de, auke-jan.h.kok@intel.com, benh@kernel.crashing.org, geert@linux-m68k.org, greg@kroah.com, jdike@addtoit.com, jeff@garzik.org, paulus@samba.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert blockdev direct io back to 2.6.19 version
-has been added to the -mm tree.  Its filename is
-     revert-blockdev-direct-io-back-to-2619-version.patch
+     Rewrite unnecessary duplicated code to use FIELD_SIZEOF()
+has been removed from the -mm tree.  Its filename was
+     rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: revert blockdev direct io back to 2.6.19 version
-From: Andrew Morton <akpm@osdl.org>
+Subject: Rewrite unnecessary duplicated code to use FIELD_SIZEOF()
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Andrew is reporting as-iosched oopses and a 65% throughput slowdown and
-as-iosched oopses due to the recent special-casing of direct-io against
-blockdevs.  We don't know why either of these things are occurring.
+As with ARRAY_SIZE(), there are a number of places (mercifully, far fewer)
+that recode what could be done with the FIELD_SIZEOF() macro in kernel.h.
 
-The patch minimally reverts us back to the 2.6.19 code for a 2.6.20 release.
-
-Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
-Cc: Ken Chen <kenchen@google.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Andreas Gruenbacher <agruen@suse.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/block_dev.c |   41 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 41 insertions(+)
+ arch/m68k/kernel/signal.c               |   30 +++++++++++-----------
+ arch/um/drivers/net_kern.c              |    2 -
+ drivers/block/viodasd.c                 |    2 -
+ drivers/net/e1000/e1000_ethtool.c       |    2 -
+ drivers/net/ixgb/ixgb_ethtool.c         |    2 -
+ drivers/net/mv643xx_eth.c               |    2 -
+ drivers/net/netxen/netxen_nic_ethtool.c |    2 -
+ drivers/usb/atm/usbatm.c                |    2 -
+ drivers/usb/net/cdc_ether.c             |    2 -
+ drivers/usb/net/usbnet.c                |    2 -
+ drivers/usb/serial/io_usbvend.h         |    8 ++---
+ fs/ext2/xattr.c                         |    2 -
+ fs/ext3/xattr.c                         |    2 -
+ fs/ext4/xattr.c                         |    2 -
+ fs/mbcache.c                            |    2 -
+ include/asm-powerpc/fs_pd.h             |    2 -
+ include/net/sctp/sctp.h                 |    2 -
+ 17 files changed, 34 insertions(+), 34 deletions(-)
 
-diff -puN fs/block_dev.c~revert-blockdev-direct-io-back-to-2619-version fs/block_dev.c
---- a/fs/block_dev.c~revert-blockdev-direct-io-back-to-2619-version
-+++ a/fs/block_dev.c
-@@ -129,6 +129,46 @@ blkdev_get_block(struct inode *inode, se
+diff -puN arch/m68k/kernel/signal.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof arch/m68k/kernel/signal.c
+--- a/arch/m68k/kernel/signal.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/arch/m68k/kernel/signal.c
+@@ -54,21 +54,21 @@
+ asmlinkage int do_signal(sigset_t *oldset, struct pt_regs *regs);
+ 
+ const int frame_extra_sizes[16] = {
+-  [1]	= -1, /* sizeof(((struct frame *)0)->un.fmt1), */
+-  [2]	= sizeof(((struct frame *)0)->un.fmt2),
+-  [3]	= sizeof(((struct frame *)0)->un.fmt3),
+-  [4]	= sizeof(((struct frame *)0)->un.fmt4),
+-  [5]	= -1, /* sizeof(((struct frame *)0)->un.fmt5), */
+-  [6]	= -1, /* sizeof(((struct frame *)0)->un.fmt6), */
+-  [7]	= sizeof(((struct frame *)0)->un.fmt7),
+-  [8]	= -1, /* sizeof(((struct frame *)0)->un.fmt8), */
+-  [9]	= sizeof(((struct frame *)0)->un.fmt9),
+-  [10]	= sizeof(((struct frame *)0)->un.fmta),
+-  [11]	= sizeof(((struct frame *)0)->un.fmtb),
+-  [12]	= -1, /* sizeof(((struct frame *)0)->un.fmtc), */
+-  [13]	= -1, /* sizeof(((struct frame *)0)->un.fmtd), */
+-  [14]	= -1, /* sizeof(((struct frame *)0)->un.fmte), */
+-  [15]	= -1, /* sizeof(((struct frame *)0)->un.fmtf), */
++  [1]	= -1, /* FIELD_SIZEOF(struct frame, un.fmt1), */
++  [2]	= FIELD_SIZEOF(struct frame, un.fmt2),
++  [3]	= FIELD_SIZEOF(struct frame, un.fmt3),
++  [4]	= FIELD_SIZEOF(struct frame, un.fmt4),
++  [5]	= -1, /* FIELD_SIZEOF(struct frame, un.fmt5), */
++  [6]	= -1, /* FIELD_SIZEOF(struct frame, un.fmt6), */
++  [7]	= FIELD_SIZEOF(struct frame, un.fmt7),
++  [8]	= -1, /* FIELD_SIZEOF(struct frame, un.fmt8), */
++  [9]	= FIELD_SIZEOF(struct frame, un.fmt9),
++  [10]	= FIELD_SIZEOF(struct frame, un.fmta),
++  [11]	= FIELD_SIZEOF(struct frame, un.fmtb),
++  [12]	= -1, /* FIELD_SIZEOF(struct frame, un.fmtc), */
++  [13]	= -1, /* FIELD_SIZEOF(struct frame, un.fmtd), */
++  [14]	= -1, /* FIELD_SIZEOF(struct frame, un.fmte), */
++  [15]	= -1, /* FIELD_SIZEOF(struct frame, un.fmtf), */
+ };
+ 
+ /*
+diff -puN arch/um/drivers/net_kern.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/arch/um/drivers/net_kern.c
+@@ -334,7 +334,7 @@ static int eth_configure(int n, void *in
+ 	int save, err, size;
+ 
+ 	size = transport->private_size + sizeof(struct uml_net_private) +
+-		sizeof(((struct uml_net_private *) 0)->user);
++		FIELD_SIZEOF(struct uml_net_private, user);
+ 
+ 	device = kzalloc(sizeof(*device), GFP_KERNEL);
+ 	if (device == NULL) {
+diff -puN drivers/block/viodasd.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof drivers/block/viodasd.c
+--- a/drivers/block/viodasd.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/drivers/block/viodasd.c
+@@ -69,7 +69,7 @@ MODULE_LICENSE("GPL");
+ enum {
+ 	PARTITION_SHIFT = 3,
+ 	MAX_DISKNO = HVMAXARCHITECTEDVIRTUALDISKS,
+-	MAX_DISK_NAME = sizeof(((struct gendisk *)0)->disk_name)
++	MAX_DISK_NAME = FIELD_SIZEOF(struct gendisk, disk_name)
+ };
+ 
+ static DEFINE_SPINLOCK(viodasd_spinlock);
+diff -puN drivers/net/e1000/e1000_ethtool.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof drivers/net/e1000/e1000_ethtool.c
+--- a/drivers/net/e1000/e1000_ethtool.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/drivers/net/e1000/e1000_ethtool.c
+@@ -53,7 +53,7 @@ struct e1000_stats {
+ 	int stat_offset;
+ };
+ 
+-#define E1000_STAT(m) sizeof(((struct e1000_adapter *)0)->m), \
++#define E1000_STAT(m) FIELD_SIZEOF(struct e1000_adapter, m), \
+ 		      offsetof(struct e1000_adapter, m)
+ static const struct e1000_stats e1000_gstrings_stats[] = {
+ 	{ "rx_packets", E1000_STAT(stats.gprc) },
+diff -puN drivers/net/ixgb/ixgb_ethtool.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof drivers/net/ixgb/ixgb_ethtool.c
+--- a/drivers/net/ixgb/ixgb_ethtool.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/drivers/net/ixgb/ixgb_ethtool.c
+@@ -52,7 +52,7 @@ struct ixgb_stats {
+ 	int stat_offset;
+ };
+ 
+-#define IXGB_STAT(m) sizeof(((struct ixgb_adapter *)0)->m), \
++#define IXGB_STAT(m) FIELD_SIZEOF(struct ixgb_adapter, m), \
+ 		      offsetof(struct ixgb_adapter, m)
+ static struct ixgb_stats ixgb_gstrings_stats[] = {
+ 	{"rx_packets", IXGB_STAT(net_stats.rx_packets)},
+diff -puN drivers/net/mv643xx_eth.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof drivers/net/mv643xx_eth.c
+--- a/drivers/net/mv643xx_eth.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/drivers/net/mv643xx_eth.c
+@@ -2659,7 +2659,7 @@ struct mv643xx_stats {
+ 	int stat_offset;
+ };
+ 
+-#define MV643XX_STAT(m) sizeof(((struct mv643xx_private *)0)->m), \
++#define MV643XX_STAT(m) FIELD_SIZEOF(struct mv643xx_private, m), \
+ 					offsetof(struct mv643xx_private, m)
+ 
+ static const struct mv643xx_stats mv643xx_gstrings_stats[] = {
+diff -puN drivers/net/netxen/netxen_nic_ethtool.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof drivers/net/netxen/netxen_nic_ethtool.c
+--- a/drivers/net/netxen/netxen_nic_ethtool.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/drivers/net/netxen/netxen_nic_ethtool.c
+@@ -49,7 +49,7 @@ struct netxen_nic_stats {
+ 	int stat_offset;
+ };
+ 
+-#define NETXEN_NIC_STAT(m) sizeof(((struct netxen_port *)0)->m), \
++#define NETXEN_NIC_STAT(m) FIELD_SIZEOF(struct netxen_port, m), \
+ 			offsetof(struct netxen_port, m)
+ 
+ #define NETXEN_NIC_PORT_WINDOW 0x10000
+diff -puN drivers/usb/atm/usbatm.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof drivers/usb/atm/usbatm.c
+--- a/drivers/usb/atm/usbatm.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/drivers/usb/atm/usbatm.c
+@@ -1332,7 +1332,7 @@ static int __init usbatm_usb_init(void)
+ {
+ 	dbg("%s: driver version %s", __func__, DRIVER_VERSION);
+ 
+-	if (sizeof(struct usbatm_control) > sizeof(((struct sk_buff *) 0)->cb)) {
++	if (sizeof(struct usbatm_control) > FIELD_SIZEOF(struct sk_buff, cb)) {
+ 		printk(KERN_ERR "%s unusable with this kernel!\n", usbatm_driver_name);
+ 		return -EIO;
+ 	}
+diff -puN drivers/usb/net/cdc_ether.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof drivers/usb/net/cdc_ether.c
+--- a/drivers/usb/net/cdc_ether.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/drivers/usb/net/cdc_ether.c
+@@ -553,7 +553,7 @@ static struct usb_driver cdc_driver = {
+ 
+ static int __init cdc_init(void)
+ {
+-	BUILD_BUG_ON((sizeof(((struct usbnet *)0)->data)
++	BUILD_BUG_ON((FIELD_SIZEOF(struct usbnet, data)
+ 			< sizeof(struct cdc_state)));
+ 
+  	return usb_register(&cdc_driver);
+diff -puN drivers/usb/net/usbnet.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof drivers/usb/net/usbnet.c
+--- a/drivers/usb/net/usbnet.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/drivers/usb/net/usbnet.c
+@@ -1283,7 +1283,7 @@ EXPORT_SYMBOL_GPL(usbnet_resume);
+ static int __init usbnet_init(void)
+ {
+ 	/* compiler should optimize this out */
+-	BUILD_BUG_ON (sizeof (((struct sk_buff *)0)->cb)
++	BUILD_BUG_ON (FIELD_SIZEOF(struct sk_buff, cb)
+ 			< sizeof (struct skb_data));
+ 
+ 	random_ether_addr(node_id);
+diff -puN drivers/usb/serial/io_usbvend.h~rewrite-unnecessary-duplicated-code-to-use-field_sizeof drivers/usb/serial/io_usbvend.h
+--- a/drivers/usb/serial/io_usbvend.h~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/drivers/usb/serial/io_usbvend.h
+@@ -512,10 +512,10 @@ struct edge_manuf_descriptor {
+ 
+ #define MANUF_BOARD_REV_A		1	// First rev of 251+Netchip design
+ 
+-#define	MANUF_SERNUM_LENGTH		sizeof(((struct edge_manuf_descriptor *)0)->SerialNumber)
+-#define	MANUF_ASSYNUM_LENGTH		sizeof(((struct edge_manuf_descriptor *)0)->AssemblyNumber)
+-#define	MANUF_OEMASSYNUM_LENGTH		sizeof(((struct edge_manuf_descriptor *)0)->OemAssyNumber)
+-#define	MANUF_MANUFDATE_LENGTH		sizeof(((struct edge_manuf_descriptor *)0)->ManufDate)
++#define	MANUF_SERNUM_LENGTH		FIELD_SIZEOF(struct edge_manuf_descriptor, SerialNumber)
++#define	MANUF_ASSYNUM_LENGTH		FIELD_SIZEOF(struct edge_manuf_descriptor, AssemblyNumber)
++#define	MANUF_OEMASSYNUM_LENGTH		FIELD_SIZEOF(struct edge_manuf_descriptor, OemAssyNumber)
++#define	MANUF_MANUFDATE_LENGTH		FIELD_SIZEOF(struct edge_manuf_descriptor, ManufDate)
+ 
+ #define	MANUF_ION_CONFIG_DIAG_NO_LOOP	0x20	// As below but no ext loopback test
+ #define	MANUF_ION_CONFIG_DIAG		0x40	// 930 based device: 1=Run h/w diags, 0=norm
+diff -puN fs/ext2/xattr.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof fs/ext2/xattr.c
+--- a/fs/ext2/xattr.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/fs/ext2/xattr.c
+@@ -1024,7 +1024,7 @@ init_ext2_xattr(void)
+ {
+ 	ext2_xattr_cache = mb_cache_create("ext2_xattr", NULL,
+ 		sizeof(struct mb_cache_entry) +
+-		sizeof(((struct mb_cache_entry *) 0)->e_indexes[0]), 1, 6);
++		FIELD_SIZEOF(struct mb_cache_entry, e_indexes[0]), 1, 6);
+ 	if (!ext2_xattr_cache)
+ 		return -ENOMEM;
  	return 0;
- }
- 
-+static int
-+blkdev_get_blocks(struct inode *inode, sector_t iblock,
-+		struct buffer_head *bh, int create)
-+{
-+	sector_t end_block = max_block(I_BDEV(inode));
-+	unsigned long max_blocks = bh->b_size >> inode->i_blkbits;
-+
-+	if ((iblock + max_blocks) > end_block) {
-+		max_blocks = end_block - iblock;
-+		if ((long)max_blocks <= 0) {
-+			if (create)
-+				return -EIO;	/* write fully beyond EOF */
-+			/*
-+			 * It is a read which is fully beyond EOF.  We return
-+			 * a !buffer_mapped buffer
-+			 */
-+			max_blocks = 0;
-+		}
-+	}
-+
-+	bh->b_bdev = I_BDEV(inode);
-+	bh->b_blocknr = iblock;
-+	bh->b_size = max_blocks << inode->i_blkbits;
-+	if (max_blocks)
-+		set_buffer_mapped(bh);
-+	return 0;
-+}
-+
-+static ssize_t
-+blkdev_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
-+			loff_t offset, unsigned long nr_segs)
-+{
-+	struct file *file = iocb->ki_filp;
-+	struct inode *inode = file->f_mapping->host;
-+
-+	return blockdev_direct_IO_no_locking(rw, iocb, inode, I_BDEV(inode),
-+				iov, offset, nr_segs, blkdev_get_blocks, NULL);
-+}
-+
-+#if 0
- static int blk_end_aio(struct bio *bio, unsigned int bytes_done, int error)
+diff -puN fs/ext3/xattr.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/fs/ext3/xattr.c
+@@ -1299,7 +1299,7 @@ init_ext3_xattr(void)
  {
- 	struct kiocb *iocb = bio->bi_private;
-@@ -323,6 +363,7 @@ backout:
- 		return PTR_ERR(page);
- 	goto completion;
- }
-+#endif
- 
- static int blkdev_writepage(struct page *page, struct writeback_control *wbc)
+ 	ext3_xattr_cache = mb_cache_create("ext3_xattr", NULL,
+ 		sizeof(struct mb_cache_entry) +
+-		sizeof(((struct mb_cache_entry *) 0)->e_indexes[0]), 1, 6);
++		FIELD_SIZEOF(struct mb_cache_entry, e_indexes[0]), 1, 6);
+ 	if (!ext3_xattr_cache)
+ 		return -ENOMEM;
+ 	return 0;
+diff -puN fs/ext4/xattr.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof fs/ext4/xattr.c
+--- a/fs/ext4/xattr.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/fs/ext4/xattr.c
+@@ -1299,7 +1299,7 @@ init_ext4_xattr(void)
  {
+ 	ext4_xattr_cache = mb_cache_create("ext4_xattr", NULL,
+ 		sizeof(struct mb_cache_entry) +
+-		sizeof(((struct mb_cache_entry *) 0)->e_indexes[0]), 1, 6);
++		FIELD_SIZEOF(struct mb_cache_entry, e_indexes[0]), 1, 6);
+ 	if (!ext4_xattr_cache)
+ 		return -ENOMEM;
+ 	return 0;
+diff -puN fs/mbcache.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof fs/mbcache.c
+--- a/fs/mbcache.c~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/fs/mbcache.c
+@@ -255,7 +255,7 @@ mb_cache_create(const char *name, struct
+ 	struct mb_cache *cache = NULL;
+ 
+ 	if(entry_size < sizeof(struct mb_cache_entry) +
+-	   indexes_count * sizeof(((struct mb_cache_entry *) 0)->e_indexes[0]))
++	   indexes_count * FIELD_SIZEOF(struct mb_cache_entry, e_indexes[0]))
+ 		return NULL;
+ 
+ 	cache = kmalloc(sizeof(struct mb_cache) +
+diff -puN include/asm-powerpc/fs_pd.h~rewrite-unnecessary-duplicated-code-to-use-field_sizeof include/asm-powerpc/fs_pd.h
+--- a/include/asm-powerpc/fs_pd.h~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/include/asm-powerpc/fs_pd.h
+@@ -29,7 +29,7 @@ static inline int uart_clock(void)
+ ({									\
+ 	u32 offset = offsetof(cpm2_map_t, member);			\
+ 	void *addr = ioremap (CPM_MAP_ADDR + offset,			\
+-			      sizeof( ((cpm2_map_t*)0)->member));	\
++			      FIELD_SIZEOF(cpm2_map_t, member));	\
+ 	addr;								\
+ })
+ 
+diff -puN include/net/sctp/sctp.h~rewrite-unnecessary-duplicated-code-to-use-field_sizeof include/net/sctp/sctp.h
+--- a/include/net/sctp/sctp.h~rewrite-unnecessary-duplicated-code-to-use-field_sizeof
++++ a/include/net/sctp/sctp.h
+@@ -599,7 +599,7 @@ static inline int param_type2af(__be16 t
+ static inline int sctp_sanity_check(void)
+ {
+ 	SCTP_ASSERT(sizeof(struct sctp_ulpevent) <=
+-		    sizeof(((struct sk_buff *)0)->cb),
++		    FIELD_SIZEOF(struct sk_buff, cb),
+ 		    "SCTP: ulpevent does not fit in skb!\n", return 0);
+ 
+ 	return 1;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-origin.patch
-x86-fix-vdso-mapping-for-aout-executables.patch
-mm-show-bounce-pages-in-oom-killer-output.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
-acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
-sony_apci-resume.patch
-sony_apci-resume-fix.patch
-video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
 git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
-powerpc-make-it-compile.patch
-git-dvb.patch
-dvb-video_buf-depends-on-pci.patch
-git-gfs2-nmw.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-sata_nv-cleanup-adma-error-handling-v2.patch
-sata_sis-avoid-extern-decl-in-c.patch
-mm-ide-ide-acpi-support-warning-fix.patch
-git-lxdialog-fixup.patch
-git-mips-kconfig-fix.patch
-git-mips-prom_free_prom_memory-borkage.patch
-git-mmc.patch
-git-mmc-fixup.patch
-git-ubi.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
-dccp-warning-fixes.patch
-netfilter-warning-fix.patch
-net-uninline-skb_put.patch
-ioat-warning-fix.patch
-nfs-fix-congestion-control-v4-tweaks.patch
-r8169-warning-fixes.patch
-make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
-sh-add-kconfig-default.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
-git-block-fixup.patch
-git-block-borkage.patch
-git-block-atomicity-fix.patch
-git-block-xfs-fix.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-nokia-e70-is-an-unusual-device.patch
-git-ipwireless_cs.patch
-revert-x86_64-mm-msr-on-cpu.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-cyrix-fails-to-detect-mediagx-warning-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-drop-free_pages-sparc64-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-dynamic-kernel-command-line-ia64-fix.patch
-rcu-preemptible-rcu-fix.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
-revert-blockdev-direct-io-back-to-2619-version.patch
+ppc-use-syslog-macro-for-the-printk-log-level.patch
+fix-apparent-typo-config_serial_cpm_smc.patch
+remove-the-unused-kernel-config-option-video_videobuf.patch
+change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+git-mips.patch
+remove-unused-kernel-config-option-dlci_count.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+rename-ipw2100-debugging-macros-to-not-look-like-config.patch
+remove-unused-kernel-config-option-x86_xadd.patch
+uml-fix-apparent-config_64_bit-typo.patch
+rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-a-couple-final-references-to-obsolete-verify_area.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
+remove-unused-kernel-config-option-lcd_device.patch
+remove-unused-kernel-config-option-paride_parport.patch
+fix-apparent-typo-config_lockdep_debug.patch
+add-is_power_of_2-checking-to-log2h.patch
+isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
+isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+isdn-rename-debug-option-config_serial_nopause_io.patch
+isdn-remove-defunct-test-emulator.patch
+isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
