@@ -1,56 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - atl1_main-pci_module_int-returns-to-haunt-us.patch removed from -mm tree
-Date: Fri, 02 Feb 2007 13:38:19 -0800
-Message-ID: <200702022138.l12LcJJZ018599@shell0.pdx.osdl.net>
+Subject: - ubi-int-versus-size_t-printk-warnings.patch removed from -mm tree
+Date: Fri, 02 Feb 2007 13:38:14 -0800
+Message-ID: <200702022138.l12LcE2A018593@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41599 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41606 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946122AbXBBVi2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 16:38:28 -0500
+	id S1946127AbXBBVif (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 16:38:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, Artem.Bityutskiy@nokia.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atl1_main: pci_module_int returns to haunt us
+     ubi: int versus size_t printk warnings
 has been removed from the -mm tree.  Its filename was
-     atl1_main-pci_module_int-returns-to-haunt-us.patch
+     ubi-int-versus-size_t-printk-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atl1_main: pci_module_int returns to haunt us
+Subject: ubi: int versus size_t printk warnings
 From: Alan <alan@lxorguk.ukuu.org.uk>
 
-Perhaps Adrian would care to simply delete the pci_module_init ancient
-compat code so nobody else can inadvertently merge a driver that uses it.
-
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/atl1/atl1_main.c |    5 +----
- 1 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/mtd/ubi/io.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/atl1/atl1_main.c~atl1_main-pci_module_int-returns-to-haunt-us drivers/net/atl1/atl1_main.c
---- a/drivers/net/atl1/atl1_main.c~atl1_main-pci_module_int-returns-to-haunt-us
-+++ a/drivers/net/atl1/atl1_main.c
-@@ -2461,12 +2461,9 @@ static void __exit atl1_exit_module(void
-  */
- static int __init atl1_init_module(void)
- {
--	int ret;
- 	printk(KERN_INFO "%s - version %s\n", atl1_driver_string, DRIVER_VERSION);
- 	printk(KERN_INFO "%s\n", atl1_copyright);
--	ret = pci_module_init(&atl1_driver);
--
--	return ret;
-+	return pci_register_driver(&atl1_driver);
- }
+diff -puN drivers/mtd/ubi/io.c~ubi-int-versus-size_t-printk-warnings drivers/mtd/ubi/io.c
+--- a/drivers/mtd/ubi/io.c~ubi-int-versus-size_t-printk-warnings
++++ a/drivers/mtd/ubi/io.c
+@@ -129,8 +129,8 @@ retry:
+ 			yield();
+ 			goto retry;
+ 		}
+-		ubi_err("error %d while reading %d bytes from PEB %d:%d, "
+-			"read %d bytes", err, len, pnum, offset, *read);
++		ubi_err("error %d while reading %Zd bytes from PEB %d:%d, "
++			"read %Zd bytes", err, len, pnum, offset, *read);
+ 		dump_stack();
+ 	}
  
- module_init(atl1_init_module);
+@@ -190,14 +190,14 @@ int ubi_io_write(const struct ubi_info *
+ 
+ 	err = mtd_write(io, buf, pnum, offset, len, written);
+ 	if (unlikely(err)) {
+-		ubi_err("error %d while writing %d bytes to PEB %d:%d, written"
+-			" %d bytes", err, len, pnum, offset, *written);
++		ubi_err("error %d while writing %Zd bytes to PEB %d:%d, written"
++			" %Zd bytes", err, len, pnum, offset, *written);
+ 		dump_stack();
+ 	}
+ 
+ 	/* The below is just for debugging and is compiled out if disabled */
+ 	if (ubi_dbg_is_write_failure() && !err) {
+-		ubi_err("cannot write %d bytes to PEB %d:%d (emulated)",
++		ubi_err("cannot write %Zd bytes to PEB %d:%d (emulated)",
+ 			len, pnum, offset);
+ 		dump_stack();
+ 		return -EIO;
+@@ -597,7 +597,7 @@ int ubi_io_init(struct ubi_info *ubi, in
+ 
+ 		/* The shift must be aligned to 32-bit boundary */
+ 		if (io->vid_hdr_shift % 4) {
+-			ubi_err("unaligned VID header shift %d",
++			ubi_err("unaligned VID header shift %Zd",
+ 				io->vid_hdr_shift);
+ 			goto out_mtd;
+ 		}
+@@ -615,7 +615,7 @@ int ubi_io_init(struct ubi_info *ubi, in
+ 	    io->leb_start < io->vid_hdr_offset + UBI_VID_HDR_SIZE ||
+ 	    io->leb_start > io->peb_size - UBI_VID_HDR_SIZE ||
+ 	    io->leb_start % io->min_io_size) {
+-		ubi_err("bad VID header (%d) or data offsets (%d)",
++		ubi_err("bad VID header (%Zd) or data offsets (%Zd)",
+ 			io->vid_hdr_offset, io->leb_start);
+ 		goto out_mtd;
+ 	}
+@@ -847,12 +847,12 @@ static int validate_ec_hdr(const struct 
+ 		goto bad;
+ 	}
+ 	if (unlikely(vid_hdr_offset != io->vid_hdr_offset)) {
+-		ubi_err("bad VID header offset %d at PEB %d, expected %d",
++		ubi_err("bad VID header offset %d at PEB %d, expected %Zd",
+ 			vid_hdr_offset, pnum, io->vid_hdr_offset);
+ 		goto bad;
+ 	}
+ 	if (unlikely(leb_start != io->leb_start)) {
+-		ubi_err("bad data offset %d at PEB %d, expected %d",
++		ubi_err("bad data offset %d at PEB %d, expected %Zd",
+ 			pnum, leb_start, io->leb_start);
+ 		goto bad;
+ 	}
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
