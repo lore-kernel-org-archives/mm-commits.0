@@ -1,54 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-correct-id-for-fixed-buttons.patch removed from -mm tree
-Date: Fri, 02 Feb 2007 13:38:03 -0800
-Message-ID: <200702022138.l12Lc3Zf018561@shell0.pdx.osdl.net>
+Subject: - jmicron-40-80pin-primary-detection.patch removed from -mm tree
+Date: Fri, 02 Feb 2007 13:37:29 -0800
+Message-ID: <200702022137.l12LbTFw018507@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41632 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41633 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946129AbXBBVjR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 16:39:17 -0500
+	id S1946132AbXBBVjV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 16:39:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexey.y.starikovskiy@linux.intel.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: ethanhsiao@jmicron.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, jeff@garzik.org, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi: correct id for fixed buttons
+     jmicron: 40/80pin primary detection
 has been removed from the -mm tree.  Its filename was
-     git-acpi-correct-id-for-fixed-buttons.patch
+     jmicron-40-80pin-primary-detection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-acpi: correct id for fixed buttons
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: jmicron: 40/80pin primary detection
+From: <ethanhsiao@jmicron.com>
 
-ACPI_BUTTON_HID_POWERF was changed, but this change was not propogated to
-button.c, thus breaking detection of fixed power and sleep buttons.
+jmicron module detects all JMB36x as JMB361 and PATA0 has wrong pin status
+of XICBLID.
 
-Cc: Len Brown <lenb@kernel.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/button.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/pci/jmicron.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/acpi/button.c~git-acpi-correct-id-for-fixed-buttons drivers/acpi/button.c
---- a/drivers/acpi/button.c~git-acpi-correct-id-for-fixed-buttons
-+++ a/drivers/acpi/button.c
-@@ -75,7 +75,7 @@ static int acpi_button_state_open_fs(str
- static struct acpi_driver acpi_button_driver = {
- 	.name = ACPI_BUTTON_DRIVER_NAME,
- 	.class = ACPI_BUTTON_CLASS,
--	.ids = "ACPI_FPB,ACPI_FSB,PNP0C0D,PNP0C0C,PNP0C0E",
-+	.ids = "button_power,button_sleep,PNP0C0D,PNP0C0C,PNP0C0E",
- 	.ops = {
- 		.add = acpi_button_add,
- 		.remove = acpi_button_remove,
+diff -puN drivers/ide/pci/jmicron.c~jmicron-40-80pin-primary-detection drivers/ide/pci/jmicron.c
+--- a/drivers/ide/pci/jmicron.c~jmicron-40-80pin-primary-detection
++++ a/drivers/ide/pci/jmicron.c
+@@ -86,8 +86,8 @@ static int __devinit ata66_jmicron(ide_h
+ 	{
+ 	case PORT_PATA0:
+ 		if (control & (1 << 3))	/* 40/80 pin primary */
+-			return 1;
+-		return 0;
++			return 0;
++		return 1;
+ 	case PORT_PATA1:
+ 		if (control5 & (1 << 19))	/* 40/80 pin secondary */
+ 			return 0;
+@@ -241,11 +241,11 @@ static int __devinit jmicron_init_one(st
+ }
+ 
+ static struct pci_device_id jmicron_pci_tbl[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB361), 0},
+-	{ PCI_DEVICE(PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB363), 1},
+-	{ PCI_DEVICE(PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB365), 2},
+-	{ PCI_DEVICE(PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB366), 3},
+-	{ PCI_DEVICE(PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB368), 4},
++	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB361, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB363, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 1},
++	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB365, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 2},
++	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB366, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 3},
++	{ PCI_VENDOR_ID_JMICRON, PCI_DEVICE_ID_JMICRON_JMB368, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 4},
+ 	{ 0, },
+ };
+ 
 _
 
-Patches currently in -mm which might be from alexey.y.starikovskiy@linux.intel.com are
-
-git-acpi.patch
-swsusp-change-code-order-in-diskc-fix.patch
+Patches currently in -mm which might be from ethanhsiao@jmicron.com are
