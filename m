@@ -1,108 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-replace-magic-numbers-with-enum.patch removed from -mm tree
-Date: Fri, 02 Feb 2007 13:37:23 -0800
-Message-ID: <200702022137.l12LbN97018501@shell0.pdx.osdl.net>
+Subject: - fix-via-quirks.patch removed from -mm tree
+Date: Fri, 02 Feb 2007 13:37:26 -0800
+Message-ID: <200702022137.l12LbQqG018504@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41494 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41495 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946104AbXBBVhb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 16:37:31 -0500
+	id S1946108AbXBBVhd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 16:37:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: masami.hiramatsu.pt@hitachi.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, prasanna@in.ibm.com, mm-commits@vger.kernel.org
+To: jdelvare@suse.de, alan@lxorguk.ukuu.org.uk, greg@kroah.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: replace magic numbers with enum
+     Fix VIA quirks
 has been removed from the -mm tree.  Its filename was
-     kprobes-replace-magic-numbers-with-enum.patch
+     fix-via-quirks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kprobes: replace magic numbers with enum
-From: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Subject: Fix VIA quirks
+From: Jean Delvare <jdelvare@suse.de>
 
-Replace the magic numbers with an enum, and gets rid of a warning on the
-specific architectures (ex.  powerpc) on which the compiler considers
-'char' as 'unsigned char'.
+Fix VIA quirks that were recently broken by Alan Cox in the upstream
+kernel (commit 1597cacbe39802d86656d1f2e6329895bd2ef531).
 
-Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+My understanding is that pci_find_present() doesn't work yet at the time
+the quirks are run.  So I used a two-step quirk as is done for some other
+quirks already.  First we detect the VIA south bridges and set the right
+low and high device limits, then we are ready to actually run the quirks on
+the affected devices.
+
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Acked-by: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/kprobes.c |   20 +++++++++++++-------
- 1 files changed, 13 insertions(+), 7 deletions(-)
+ drivers/pci/quirks.c |   78 ++++++++++++++++++++++-------------------
+ 1 files changed, 42 insertions(+), 36 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-replace-magic-numbers-with-enum kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-replace-magic-numbers-with-enum
-+++ a/kernel/kprobes.c
-@@ -87,6 +87,12 @@ struct kprobe_insn_page {
- 	int ngarbage;
- };
+diff -puN drivers/pci/quirks.c~fix-via-quirks drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~fix-via-quirks
++++ a/drivers/pci/quirks.c
+@@ -654,19 +654,40 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_V
+  *	VIA bridges which have VLink
+  */
  
-+enum kprobe_slot_state {
-+	SLOT_CLEAN = 0,
-+	SLOT_DIRTY = 1,
-+	SLOT_USED = 2,
-+};
+-static const struct pci_device_id via_vlink_fixup_tbl[] = {
+-	/* Internal devices need IRQ line routing, pre VLink */
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_82C686), 0 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8231), 17 },
+-	/* Devices with VLink */
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233_0), 17},
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233A), 17 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233C_0), 17 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8235), 16 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8237), 15 },
+-	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8237A), 15 },
+-	{ 0, },
+-};
++static int via_vlink_dev_lo = -1, via_vlink_dev_hi = 18;
 +
- static struct hlist_head kprobe_insn_pages;
- static int kprobe_garbage_slots;
- static int collect_garbage_slots(void);
-@@ -130,8 +136,8 @@ kprobe_opcode_t __kprobes *get_insn_slot
- 		if (kip->nused < INSNS_PER_PAGE) {
- 			int i;
- 			for (i = 0; i < INSNS_PER_PAGE; i++) {
--				if (!kip->slot_used[i]) {
--					kip->slot_used[i] = 1;
-+				if (kip->slot_used[i] == SLOT_CLEAN) {
-+					kip->slot_used[i] = SLOT_USED;
- 					kip->nused++;
- 					return kip->insns + (i * MAX_INSN_SIZE);
- 				}
-@@ -163,8 +169,8 @@ kprobe_opcode_t __kprobes *get_insn_slot
- 	}
- 	INIT_HLIST_NODE(&kip->hlist);
- 	hlist_add_head(&kip->hlist, &kprobe_insn_pages);
--	memset(kip->slot_used, 0, INSNS_PER_PAGE);
--	kip->slot_used[0] = 1;
-+	memset(kip->slot_used, SLOT_CLEAN, INSNS_PER_PAGE);
-+	kip->slot_used[0] = SLOT_USED;
- 	kip->nused = 1;
- 	kip->ngarbage = 0;
- 	return kip->insns;
-@@ -173,7 +179,7 @@ kprobe_opcode_t __kprobes *get_insn_slot
- /* Return 1 if all garbages are collected, otherwise 0. */
- static int __kprobes collect_one_slot(struct kprobe_insn_page *kip, int idx)
++static void quirk_via_bridge(struct pci_dev *dev)
++{
++	/* See what bridge we have and find the device ranges */
++	switch (dev->device) {
++	case PCI_DEVICE_ID_VIA_82C686:
++		/* 82C686 is special */
++		via_vlink_dev_lo = 7;
++		via_vlink_dev_hi = 7;
++		break;
++	case PCI_DEVICE_ID_VIA_8237:
++	case PCI_DEVICE_ID_VIA_8237A:
++		via_vlink_dev_lo = 15;
++		break;
++	case PCI_DEVICE_ID_VIA_8235:
++		via_vlink_dev_lo = 16;
++		break;
++	case PCI_DEVICE_ID_VIA_8231:
++	case PCI_DEVICE_ID_VIA_8233_0:
++	case PCI_DEVICE_ID_VIA_8233A:
++	case PCI_DEVICE_ID_VIA_8233C_0:
++		via_vlink_dev_lo = 17;
++		break;
++	}
++}
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C686,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8231,		quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233_0,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233A,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233C_0,	quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8235,		quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8237,		quirk_via_bridge);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8237A,	quirk_via_bridge);
+ 
+ /**
+  *	quirk_via_vlink		-	VIA VLink IRQ number update
+@@ -675,35 +696,20 @@ static const struct pci_device_id via_vl
+  *	If the device we are dealing with is on a PIC IRQ we need to
+  *	ensure that the IRQ line register which usually is not relevant
+  *	for PCI cards, is actually written so that interrupts get sent
+- *	to the right place
++ *	to the right place.
++ *	We only do this on systems where a VIA south bridge was detected,
++ *	and only for VIA devices on the motherboard (see quirk_via_bridge
++ *	above).
+  */
+ 
+ static void quirk_via_vlink(struct pci_dev *dev)
  {
--	kip->slot_used[idx] = 0;
-+	kip->slot_used[idx] = SLOT_CLEAN;
- 	kip->nused--;
- 	if (kip->nused == 0) {
- 		/*
-@@ -212,7 +218,7 @@ static int __kprobes collect_garbage_slo
- 			continue;
- 		kip->ngarbage = 0;	/* we will collect all garbages */
- 		for (i = 0; i < INSNS_PER_PAGE; i++) {
--			if (kip->slot_used[i] == -1 &&
-+			if (kip->slot_used[i] == SLOT_DIRTY &&
- 			    collect_one_slot(kip, i))
- 				break;
- 		}
-@@ -232,7 +238,7 @@ void __kprobes free_insn_slot(kprobe_opc
- 		    slot < kip->insns + (INSNS_PER_PAGE * MAX_INSN_SIZE)) {
- 			int i = (slot - kip->insns) / MAX_INSN_SIZE;
- 			if (dirty) {
--				kip->slot_used[i] = -1;
-+				kip->slot_used[i] = SLOT_DIRTY;
- 				kip->ngarbage++;
- 			} else {
- 				collect_one_slot(kip, i);
+-	const struct pci_device_id *via_vlink_fixup;
+-	static int dev_lo = -1, dev_hi = 18;
+ 	u8 irq, new_irq;
+ 
+-	/* Check if we have VLink and cache the result */
+-
+-	/* Checked already - no */
+-	if (dev_lo == -2)
++	/* Check if we have VLink at all */
++	if (via_vlink_dev_lo == -1)
+ 		return;
+ 
+-	/* Not checked - see what bridge we have and find the device
+-	   ranges */
+-
+-	if (dev_lo == -1) {
+-		via_vlink_fixup = pci_find_present(via_vlink_fixup_tbl);
+-		if (via_vlink_fixup == NULL) {
+-			dev_lo = -2;
+-			return;
+-		}
+-		dev_lo = via_vlink_fixup->driver_data;
+-		/* 82C686 is special - 0/0 */
+-		if (dev_lo == 0)
+-			dev_hi = 0;
+-	}
+ 	new_irq = dev->irq;
+ 
+ 	/* Don't quirk interrupts outside the legacy IRQ range */
+@@ -711,8 +717,8 @@ static void quirk_via_vlink(struct pci_d
+ 		return;
+ 
+ 	/* Internal device ? */
+-	if (dev->bus->number != 0 || PCI_SLOT(dev->devfn) > dev_hi ||
+-		PCI_SLOT(dev->devfn) < dev_lo)
++	if (dev->bus->number != 0 || PCI_SLOT(dev->devfn) > via_vlink_dev_hi ||
++	    PCI_SLOT(dev->devfn) < via_vlink_dev_lo)
+ 		return;
+ 
+ 	/* This is an internal VLink device on a PIC interrupt. The BIOS
 _
 
-Patches currently in -mm which might be from masami.hiramatsu.pt@hitachi.com are
+Patches currently in -mm which might be from jdelvare@suse.de are
+
+origin.patch
