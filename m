@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch added to -mm tree
-Date: Fri, 02 Feb 2007 15:08:28 -0800
-Message-ID: <200702022308.l12N8SXo020361@shell0.pdx.osdl.net>
+Subject: + spi-eeprom-driver-cleanups.patch added to -mm tree
+Date: Fri, 02 Feb 2007 15:18:28 -0800
+Message-ID: <200702022318.l12NISom020561@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43849 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44140 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946148AbXBBXId (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 18:08:33 -0500
+	id S1946157AbXBBXTY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 18:19:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, aia21@cantab.net
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     NTFS: rename incorrect check of NTFS_DEBUG with just DEBUG
+     SPI eeprom driver minor updates
 has been added to the -mm tree.  Its filename is
-     ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
+     spi-eeprom-driver-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,76 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: NTFS: rename incorrect check of NTFS_DEBUG with just DEBUG
-From: Robert P. J. Day <rpjday@mindspring.com>
+Subject: SPI eeprom driver minor updates
+From: David Brownell <david-b@pacbell.net>
 
-Replace the incorrect debugging check of "#ifdef NTFS_DEBUG" with
-just "#ifdef DEBUG".
+Minor cleanups to the SPI EEPROM driver:  remove yield() micro-optimization
+(that can sometimes misbehave) and needless cast; fix typo.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: Anton Altaparmakov <aia21@cantab.net>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ntfs/attrib.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/at25.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN fs/ntfs/attrib.c~ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug fs/ntfs/attrib.c
---- a/fs/ntfs/attrib.c~ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug
-+++ a/fs/ntfs/attrib.c
-@@ -1921,7 +1921,7 @@ s64 ntfs_attr_extend_allocation(ntfs_ino
- 	u32 attr_len = 0; /* Silence stupid gcc warning. */
- 	bool mp_rebuilt;
+diff -puN drivers/spi/at25.c~spi-eeprom-driver-cleanups drivers/spi/at25.c
+--- a/drivers/spi/at25.c~spi-eeprom-driver-cleanups
++++ a/drivers/spi/at25.c
+@@ -171,12 +171,9 @@ at25_ee_write(struct at25_data *at25, ch
+ 		 * to readonly sections of the EEPROM...
+ 		 */
  
--#ifdef NTFS_DEBUG
-+#ifdef DEBUG
- 	read_lock_irqsave(&ni->size_lock, flags);
- 	allocated_size = ni->allocated_size;
- 	read_unlock_irqrestore(&ni->size_lock, flags);
+-		/* Wait for non-busy status, to avoid a potentially
+-		 * slooow msleep() but always checking a few times.
+-		 */
++		/* Wait for non-busy status */
+ 		timeout = jiffies + msecs_to_jiffies(EE_TIMEOUT);
+ 		retries = 0;
+-		yield();
+ 		do {
+ 			int	sr;
+ 
+@@ -264,7 +261,7 @@ static int at25_probe(struct spi_device 
+ 	}
+ 
+ 	/* Ping the chip ... the status register is pretty portable,
+-	 * unlike probing manufacturer ides.  We do expect that system
++	 * unlike probing manufacturer IDs.  We do expect that system
+ 	 * firmware didn't write it in the past few milliseconds!
+ 	 */
+ 	sr = spi_w8r8(spi, AT25_RDSR);
+@@ -320,7 +317,7 @@ static int __devexit at25_remove(struct 
+ 	struct at25_data	*at25;
+ 
+ 	at25 = dev_get_drvdata(&spi->dev);
+-	(void) sysfs_remove_bin_file(&spi->dev.kobj, &at25->bin);
++	sysfs_remove_bin_file(&spi->dev.kobj, &at25->bin);
+ 	kfree(at25);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-git-acpi.patch
-git-alsa.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-fix-apparent-typo-config_serial_cpm_smc.patch
-remove-the-unused-kernel-config-option-video_videobuf.patch
-change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
-git-mips.patch
-remove-unused-kernel-config-option-dlci_count.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-rename-ipw2100-debugging-macros-to-not-look-like-config.patch
-replace-incorrect-macro-name-wireless_ext-with.patch
-remove-unused-kernel-config-option-x86_xadd.patch
-uml-fix-apparent-config_64_bit-typo.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-lcd_device.patch
-remove-unused-kernel-config-option-paride_parport.patch
-fix-apparent-typo-config_lockdep_debug.patch
-add-is_power_of_2-checking-to-log2h.patch
-ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+acpi-updates-rtc-cmos-device-platform_data.patch
+git-mmc.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
+pnp-export-pnp_bus_type.patch
+rtc-framework-driver-for-cmos-rtcs.patch
+spi-kconfig-fix.patch
+spi-controller-driver-for-omap-microwire.patch
+spi-controller-driver-for-omap-microwire-update.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+spi-freescale-imx-spi-controller-driver-v5.patch
+spi-doc-clarifications.patch
+rtc-gets-sysfs-wakealarm-attribute.patch
+spi-eeprom-driver.patch
+spi-eeprom-driver-cleanups.patch
+gpio-core.patch
+omap-gpio-wrappers.patch
+at91-gpio-wrappers.patch
