@@ -1,160 +1,258 @@
 From: akpm@linux-foundation.org
-Subject: - fix-via-quirks.patch removed from -mm tree
-Date: Fri, 02 Feb 2007 13:37:26 -0800
-Message-ID: <200702022137.l12LbQqG018504@shell0.pdx.osdl.net>
+Subject: - ntfs-kmap_atomic-atomicity-fix.patch removed from -mm tree
+Date: Fri, 02 Feb 2007 13:37:35 -0800
+Message-ID: <200702022137.l12LbZ87018517@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41495 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41514 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946108AbXBBVhd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 16:37:33 -0500
+	id S1946106AbXBBVhl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 16:37:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdelvare@suse.de, alan@lxorguk.ukuu.org.uk, greg@kroah.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aia21@cantab.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix VIA quirks
+     ntfs: kmap_atomic() atomicity fix
 has been removed from the -mm tree.  Its filename was
-     fix-via-quirks.patch
+     ntfs-kmap_atomic-atomicity-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix VIA quirks
-From: Jean Delvare <jdelvare@suse.de>
+Subject: ntfs: kmap_atomic() atomicity fix
+From: Andrew Morton <akpm@osdl.org>
 
-Fix VIA quirks that were recently broken by Alan Cox in the upstream
-kernel (commit 1597cacbe39802d86656d1f2e6329895bd2ef531).
+The KM_BIO_SRC_IRQ kmap slot requires local irq protection.
 
-My understanding is that pci_find_present() doesn't work yet at the time
-the quirks are run.  So I used a two-step quirk as is done for some other
-quirks already.  First we detect the VIA south bridges and set the right
-low and high device limits, then we are ready to actually run the quirks on
-the affected devices.
-
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Acked-by: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Greg KH <greg@kroah.com>
+Acked-by: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/quirks.c |   78 ++++++++++++++++++++++-------------------
- 1 files changed, 42 insertions(+), 36 deletions(-)
+ fs/ntfs/aops.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN drivers/pci/quirks.c~fix-via-quirks drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~fix-via-quirks
-+++ a/drivers/pci/quirks.c
-@@ -654,19 +654,40 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_V
-  *	VIA bridges which have VLink
-  */
- 
--static const struct pci_device_id via_vlink_fixup_tbl[] = {
--	/* Internal devices need IRQ line routing, pre VLink */
--	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_82C686), 0 },
--	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8231), 17 },
--	/* Devices with VLink */
--	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233_0), 17},
--	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233A), 17 },
--	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8233C_0), 17 },
--	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8235), 16 },
--	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8237), 15 },
--	{ PCI_VDEVICE(VIA, PCI_DEVICE_ID_VIA_8237A), 15 },
--	{ 0, },
--};
-+static int via_vlink_dev_lo = -1, via_vlink_dev_hi = 18;
-+
-+static void quirk_via_bridge(struct pci_dev *dev)
-+{
-+	/* See what bridge we have and find the device ranges */
-+	switch (dev->device) {
-+	case PCI_DEVICE_ID_VIA_82C686:
-+		/* 82C686 is special */
-+		via_vlink_dev_lo = 7;
-+		via_vlink_dev_hi = 7;
-+		break;
-+	case PCI_DEVICE_ID_VIA_8237:
-+	case PCI_DEVICE_ID_VIA_8237A:
-+		via_vlink_dev_lo = 15;
-+		break;
-+	case PCI_DEVICE_ID_VIA_8235:
-+		via_vlink_dev_lo = 16;
-+		break;
-+	case PCI_DEVICE_ID_VIA_8231:
-+	case PCI_DEVICE_ID_VIA_8233_0:
-+	case PCI_DEVICE_ID_VIA_8233A:
-+	case PCI_DEVICE_ID_VIA_8233C_0:
-+		via_vlink_dev_lo = 17;
-+		break;
-+	}
-+}
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C686,	quirk_via_bridge);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8231,		quirk_via_bridge);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233_0,	quirk_via_bridge);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233A,	quirk_via_bridge);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8233C_0,	quirk_via_bridge);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8235,		quirk_via_bridge);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8237,		quirk_via_bridge);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_8237A,	quirk_via_bridge);
- 
- /**
-  *	quirk_via_vlink		-	VIA VLink IRQ number update
-@@ -675,35 +696,20 @@ static const struct pci_device_id via_vl
-  *	If the device we are dealing with is on a PIC IRQ we need to
-  *	ensure that the IRQ line register which usually is not relevant
-  *	for PCI cards, is actually written so that interrupts get sent
-- *	to the right place
-+ *	to the right place.
-+ *	We only do this on systems where a VIA south bridge was detected,
-+ *	and only for VIA devices on the motherboard (see quirk_via_bridge
-+ *	above).
-  */
- 
- static void quirk_via_vlink(struct pci_dev *dev)
- {
--	const struct pci_device_id *via_vlink_fixup;
--	static int dev_lo = -1, dev_hi = 18;
- 	u8 irq, new_irq;
- 
--	/* Check if we have VLink and cache the result */
--
--	/* Checked already - no */
--	if (dev_lo == -2)
-+	/* Check if we have VLink at all */
-+	if (via_vlink_dev_lo == -1)
- 		return;
- 
--	/* Not checked - see what bridge we have and find the device
--	   ranges */
--
--	if (dev_lo == -1) {
--		via_vlink_fixup = pci_find_present(via_vlink_fixup_tbl);
--		if (via_vlink_fixup == NULL) {
--			dev_lo = -2;
--			return;
--		}
--		dev_lo = via_vlink_fixup->driver_data;
--		/* 82C686 is special - 0/0 */
--		if (dev_lo == 0)
--			dev_hi = 0;
--	}
- 	new_irq = dev->irq;
- 
- 	/* Don't quirk interrupts outside the legacy IRQ range */
-@@ -711,8 +717,8 @@ static void quirk_via_vlink(struct pci_d
- 		return;
- 
- 	/* Internal device ? */
--	if (dev->bus->number != 0 || PCI_SLOT(dev->devfn) > dev_hi ||
--		PCI_SLOT(dev->devfn) < dev_lo)
-+	if (dev->bus->number != 0 || PCI_SLOT(dev->devfn) > via_vlink_dev_hi ||
-+	    PCI_SLOT(dev->devfn) < via_vlink_dev_lo)
- 		return;
- 
- 	/* This is an internal VLink device on a PIC interrupt. The BIOS
+diff -puN fs/ntfs/aops.c~ntfs-kmap_atomic-atomicity-fix fs/ntfs/aops.c
+--- a/fs/ntfs/aops.c~ntfs-kmap_atomic-atomicity-fix
++++ a/fs/ntfs/aops.c
+@@ -92,10 +92,12 @@ static void ntfs_end_buffer_async_read(s
+ 			ofs = 0;
+ 			if (file_ofs < init_size)
+ 				ofs = init_size - file_ofs;
++			local_irq_save(flags);
+ 			kaddr = kmap_atomic(page, KM_BIO_SRC_IRQ);
+ 			memset(kaddr + bh_offset(bh) + ofs, 0,
+ 					bh->b_size - ofs);
+ 			kunmap_atomic(kaddr, KM_BIO_SRC_IRQ);
++			local_irq_restore(flags);
+ 			flush_dcache_page(page);
+ 		}
+ 	} else {
+@@ -143,11 +145,13 @@ static void ntfs_end_buffer_async_read(s
+ 		recs = PAGE_CACHE_SIZE / rec_size;
+ 		/* Should have been verified before we got here... */
+ 		BUG_ON(!recs);
++		local_irq_save(flags);
+ 		kaddr = kmap_atomic(page, KM_BIO_SRC_IRQ);
+ 		for (i = 0; i < recs; i++)
+ 			post_read_mst_fixup((NTFS_RECORD*)(kaddr +
+ 					i * rec_size), rec_size);
+ 		kunmap_atomic(kaddr, KM_BIO_SRC_IRQ);
++		local_irq_restore(flags);
+ 		flush_dcache_page(page);
+ 		if (likely(page_uptodate && !PageError(page)))
+ 			SetPageUptodate(page);
 _
 
-Patches currently in -mm which might be from jdelvare@suse.de are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+x86-fix-vdso-mapping-for-aout-executables.patch
+mm-show-bounce-pages-in-oom-killer-output.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+powerpc-make-it-compile.patch
+git-dvb.patch
+dvb-video_buf-depends-on-pci.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+sata_nv-cleanup-adma-error-handling-v2.patch
+sata_sis-avoid-extern-decl-in-c.patch
+mm-ide-ide-acpi-support-warning-fix.patch
+git-lxdialog-fixup.patch
+git-mips-kconfig-fix.patch
+git-mips-prom_free_prom_memory-borkage.patch
+git-mmc.patch
+git-mmc-fixup.patch
+git-ubi.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+dccp-warning-fixes.patch
+netfilter-warning-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+nfs-fix-congestion-control-v4-tweaks.patch
+r8169-warning-fixes.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+sh-add-kconfig-default.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
+git-block-fixup.patch
+git-block-borkage.patch
+git-block-atomicity-fix.patch
+git-block-xfs-fix.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+nokia-e70-is-an-unusual-device.patch
+git-ipwireless_cs.patch
+revert-x86_64-mm-msr-on-cpu.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+cyrix-fails-to-detect-mediagx-warning-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+use-zvc-for-inactive-and-active-counts-up-fix.patch
+drop-free_pages-fix.patch
+drop-free_pages-sparc64-fix.patch
+optional-zone_dma-in-the-vm-tidy.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix-2.patch
+return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+ecryptfs-generalize-metadata-read-write-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+dynamic-kernel-command-line-ia64-fix.patch
+rcu-preemptible-rcu-fix.patch
+kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+mark-struct-file_operations-const-2-fix.patch
+mark-struct-file_operations-const-4-fix.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
