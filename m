@@ -1,123 +1,296 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-signal-frame-alignment.patch removed from -mm tree
-Date: Fri, 02 Feb 2007 13:37:32 -0800
-Message-ID: <200702022137.l12LbWvb018513@shell0.pdx.osdl.net>
+Subject: + revert-blockdev-direct-io-back-to-2619-version.patch added to -mm tree
+Date: Fri, 02 Feb 2007 14:19:28 -0800
+Message-ID: <200702022219.l12MJSOR019367@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41736 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42871 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946135AbXBBVmE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 16:42:04 -0500
+	id S1946120AbXBBWTq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 17:19:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, antoine@nagafix.co.uk, blaisorblade@yahoo.it, bunk@stusta.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, andrew.vasquez@qlogic.com, kenchen@google.com
 
 
 The patch titled
-     uml: fix signal frame alignment
-has been removed from the -mm tree.  Its filename was
-     uml-fix-signal-frame-alignment.patch
+     revert blockdev direct io back to 2.6.19 version
+has been added to the -mm tree.  Its filename is
+     revert-blockdev-direct-io-back-to-2619-version.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix signal frame alignment
-From: Jeff Dike <jdike@addtoit.com>
+Subject: revert blockdev direct io back to 2.6.19 version
+From: Andrew Morton <akpm@osdl.org>
 
-Use the same signal frame alignment calculations as the underlying
-architecture.  x86_64 appeared to do this, but the "- 8" was really
-subtracting 8 * sizeof(struct rt_sigframe) rather than 8 bytes.
+Andrew is reporting as-iosched oopses and a 65% throughput slowdown and
+as-iosched oopses due to the recent special-casing of direct-io against
+blockdevs.  We don't know why either of these things are occurring.
 
-UML/i386 might have been OK, but I changed the calculation to match
-i386 just to be sure.
+The patch minimally reverts us back to the 2.6.19 code for a 2.6.20 release.
 
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
-Cc: <stable@kernel.org>
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Acked-by: Antoine Martin <antoine@nagafix.co.uk>
+Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Cc: Ken Chen <kenchen@google.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/um/sys-i386/signal.c   |    3 ++-
- arch/um/sys-x86_64/signal.c |    5 +++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ fs/block_dev.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 41 insertions(+)
 
-diff -puN arch/um/sys-i386/signal.c~uml-fix-signal-frame-alignment arch/um/sys-i386/signal.c
---- a/arch/um/sys-i386/signal.c~uml-fix-signal-frame-alignment
-+++ a/arch/um/sys-i386/signal.c
-@@ -219,7 +219,8 @@ int setup_signal_stack_sc(unsigned long 
- 	unsigned long save_sp = PT_REGS_SP(regs);
- 	int err = 0;
+diff -puN fs/block_dev.c~revert-blockdev-direct-io-back-to-2619-version fs/block_dev.c
+--- a/fs/block_dev.c~revert-blockdev-direct-io-back-to-2619-version
++++ a/fs/block_dev.c
+@@ -129,6 +129,46 @@ blkdev_get_block(struct inode *inode, se
+ 	return 0;
+ }
  
--	stack_top &= -8UL;
-+	/* This is the same calculation as i386 - ((sp + 4) & 15) == 0 */
-+	stack_top = ((stack_top + 4) & -16UL) - 4;
- 	frame = (struct sigframe __user *) stack_top - 1;
- 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
- 		return 1;
-diff -puN arch/um/sys-x86_64/signal.c~uml-fix-signal-frame-alignment arch/um/sys-x86_64/signal.c
---- a/arch/um/sys-x86_64/signal.c~uml-fix-signal-frame-alignment
-+++ a/arch/um/sys-x86_64/signal.c
-@@ -191,8 +191,9 @@ int setup_signal_stack_si(unsigned long 
- 	struct task_struct *me = current;
++static int
++blkdev_get_blocks(struct inode *inode, sector_t iblock,
++		struct buffer_head *bh, int create)
++{
++	sector_t end_block = max_block(I_BDEV(inode));
++	unsigned long max_blocks = bh->b_size >> inode->i_blkbits;
++
++	if ((iblock + max_blocks) > end_block) {
++		max_blocks = end_block - iblock;
++		if ((long)max_blocks <= 0) {
++			if (create)
++				return -EIO;	/* write fully beyond EOF */
++			/*
++			 * It is a read which is fully beyond EOF.  We return
++			 * a !buffer_mapped buffer
++			 */
++			max_blocks = 0;
++		}
++	}
++
++	bh->b_bdev = I_BDEV(inode);
++	bh->b_blocknr = iblock;
++	bh->b_size = max_blocks << inode->i_blkbits;
++	if (max_blocks)
++		set_buffer_mapped(bh);
++	return 0;
++}
++
++static ssize_t
++blkdev_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
++			loff_t offset, unsigned long nr_segs)
++{
++	struct file *file = iocb->ki_filp;
++	struct inode *inode = file->f_mapping->host;
++
++	return blockdev_direct_IO_no_locking(rw, iocb, inode, I_BDEV(inode),
++				iov, offset, nr_segs, blkdev_get_blocks, NULL);
++}
++
++#if 0
+ static int blk_end_aio(struct bio *bio, unsigned int bytes_done, int error)
+ {
+ 	struct kiocb *iocb = bio->bi_private;
+@@ -323,6 +363,7 @@ backout:
+ 		return PTR_ERR(page);
+ 	goto completion;
+ }
++#endif
  
- 	frame = (struct rt_sigframe __user *)
--		round_down(stack_top - sizeof(struct rt_sigframe), 16) - 8;
--        frame = (struct rt_sigframe __user *) ((unsigned long) frame - 128);
-+		round_down(stack_top - sizeof(struct rt_sigframe), 16);
-+	/* Subtract 128 for a red zone and 8 for proper alignment */
-+        frame = (struct rt_sigframe __user *) ((unsigned long) frame - 128 - 8);
- 
- 	if (!access_ok(VERIFY_WRITE, fp, sizeof(struct _fpstate)))
- 		goto out;
+ static int blkdev_writepage(struct page *page, struct writeback_control *wbc)
+ {
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-x86_64-32-bit-ptrace-mangles-sixth-system-call-argument.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs-fix.patch
-uml-console-locking-fixes.patch
-uml-return-hotplug-errors-to-host.patch
-uml-console-whitespace-and-comment-tidying.patch
-uml-lock-the-irqs_to_free-list.patch
-uml-add-locking-to-network-transport-registration.patch
-uml-network-driver-whitespace-and-style-fixes.patch
-uml-watchdog-driver-locking.patch
-uml-watchdog-driver-formatting.patch
-uml-audio-driver-locking.patch
-uml-audio-driver-formatting.patch
-uml-mconsole-locking.patch
-uml-make-two-variables-static.patch
-uml-port-driver-formatting.patch
-uml-kill-a-compilation-warning.patch
-uml-network-driver-locking-and-code-cleanup.patch
-uml-use-list_head-where-possible.patch
-uml-locking-commentary-in-the-random-driver.patch
-uml-mostly-const-a-structure.patch
-uml-chan_userh-formatting-fices.patch
-uml-console-locking-commentary-and-code-cleanup.patch
-uml-fix-previous-console-locking.patch
-uml-locking-comments-in-iomem-driver.patch
-uml-memc-and-physmemc-formatting-fixes.patch
-uml-initialize-a-list-head.patch
-uml-make-time-data-per-cpu.patch
-uml-delete-unused-file.patch
-uml-remove-unused-variable-and-function.patch
-uml-make-signal-handlers-static.patch
-uml-const-a-variable.patch
-uml-remove-code-controlled-by-non-existent-config-option.patch
-uml-add-per-device-queues-and-locks-to-ubd-driver.patch
-uml-locking-fixes-in-the-ubd-driver.patch
-uml-locking-comments-in-memory-and-tempfile-code.patch
-uml-locking-comments-in-startup-code.patch
-uml-style-fixes-in-startup-code.patch
-uml-libc-dependent-code-should-call-libc-directly.patch
-uml-fix-style-violations.patch
-uml-fix-apparent-config_64_bit-typo.patch
-uml-fix-prototypes.patch
-rewrite-unnecessary-duplicated-code-to-use-field_sizeof.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-um.patch
+x86-fix-vdso-mapping-for-aout-executables.patch
+mm-show-bounce-pages-in-oom-killer-output.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+powerpc-make-it-compile.patch
+git-dvb.patch
+dvb-video_buf-depends-on-pci.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+sata_nv-cleanup-adma-error-handling-v2.patch
+sata_sis-avoid-extern-decl-in-c.patch
+mm-ide-ide-acpi-support-warning-fix.patch
+git-lxdialog-fixup.patch
+git-mips-kconfig-fix.patch
+git-mips-prom_free_prom_memory-borkage.patch
+git-mmc.patch
+git-mmc-fixup.patch
+git-ubi.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+dccp-warning-fixes.patch
+netfilter-warning-fix.patch
+net-uninline-skb_put.patch
+ioat-warning-fix.patch
+nfs-fix-congestion-control-v4-tweaks.patch
+r8169-warning-fixes.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+sh-add-kconfig-default.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
+git-block-fixup.patch
+git-block-borkage.patch
+git-block-atomicity-fix.patch
+git-block-xfs-fix.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+nokia-e70-is-an-unusual-device.patch
+git-ipwireless_cs.patch
+revert-x86_64-mm-msr-on-cpu.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+cyrix-fails-to-detect-mediagx-warning-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+use-zvc-for-inactive-and-active-counts-up-fix.patch
+drop-free_pages-fix.patch
+drop-free_pages-sparc64-fix.patch
+optional-zone_dma-in-the-vm-tidy.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix-2.patch
+return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+ecryptfs-generalize-metadata-read-write-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+dynamic-kernel-command-line-ia64-fix.patch
+rcu-preemptible-rcu-fix.patch
+kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+mark-struct-file_operations-const-2-fix.patch
+mark-struct-file_operations-const-4-fix.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+revert-blockdev-direct-io-back-to-2619-version.patch
