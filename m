@@ -1,69 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - dont-allow-the-stack-to-grow-into-hugetlb-reserved-regions.patch removed from -mm tree
-Date: Fri, 02 Feb 2007 13:37:13 -0800
-Message-ID: <200702022137.l12LbD4E018492@shell0.pdx.osdl.net>
+Subject: - git-acpi-correct-id-for-fixed-buttons.patch removed from -mm tree
+Date: Fri, 02 Feb 2007 13:38:03 -0800
+Message-ID: <200702022138.l12Lc3Zf018561@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41614 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41632 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946131AbXBBVit (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 16:38:49 -0500
+	id S1946129AbXBBVjR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 16:39:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agl@us.ibm.com, david@gibson.dropbear.id.au, hugh@veritas.com, stable@kernel.org, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: alexey.y.starikovskiy@linux.intel.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Don't allow the stack to grow into hugetlb reserved regions
+     git-acpi: correct id for fixed buttons
 has been removed from the -mm tree.  Its filename was
-     dont-allow-the-stack-to-grow-into-hugetlb-reserved-regions.patch
+     git-acpi-correct-id-for-fixed-buttons.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Don't allow the stack to grow into hugetlb reserved regions
-From: Adam Litke <agl@us.ibm.com>
+Subject: git-acpi: correct id for fixed buttons
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
 
-When expanding the stack, we don't currently check if the VMA will cross
-into an area of the address space that is reserved for hugetlb pages. 
-Subsequent faults on the expanded portion of such a VMA will confuse the
-low-level MMU code, resulting in an OOPS.  Check for this.
+ACPI_BUTTON_HID_POWERF was changed, but this change was not propogated to
+button.c, thus breaking detection of fixed power and sleep buttons.
 
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: <stable@kernel.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/mmap.c |    7 +++++++
- 1 files changed, 7 insertions(+)
+ drivers/acpi/button.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~dont-allow-the-stack-to-grow-into-hugetlb-reserved-regions mm/mmap.c
---- a/mm/mmap.c~dont-allow-the-stack-to-grow-into-hugetlb-reserved-regions
-+++ a/mm/mmap.c
-@@ -1477,6 +1477,7 @@ static int acct_stack_growth(struct vm_a
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct rlimit *rlim = current->signal->rlim;
-+	unsigned long new_start;
- 
- 	/* address space limit tests */
- 	if (!may_expand_vm(mm, grow))
-@@ -1496,6 +1497,12 @@ static int acct_stack_growth(struct vm_a
- 			return -ENOMEM;
- 	}
- 
-+	/* Check to ensure the stack will not grow into a hugetlb-only region */
-+	new_start = (vma->vm_flags & VM_GROWSUP) ? vma->vm_start :
-+			vma->vm_end - size;
-+	if (is_hugepage_only_range(vma->vm_mm, new_start, size))
-+		return -EFAULT;
-+
- 	/*
- 	 * Overcommit..  This must be the final test, as it will
- 	 * update security statistics.
+diff -puN drivers/acpi/button.c~git-acpi-correct-id-for-fixed-buttons drivers/acpi/button.c
+--- a/drivers/acpi/button.c~git-acpi-correct-id-for-fixed-buttons
++++ a/drivers/acpi/button.c
+@@ -75,7 +75,7 @@ static int acpi_button_state_open_fs(str
+ static struct acpi_driver acpi_button_driver = {
+ 	.name = ACPI_BUTTON_DRIVER_NAME,
+ 	.class = ACPI_BUTTON_CLASS,
+-	.ids = "ACPI_FPB,ACPI_FSB,PNP0C0D,PNP0C0C,PNP0C0E",
++	.ids = "button_power,button_sleep,PNP0C0D,PNP0C0C,PNP0C0E",
+ 	.ops = {
+ 		.add = acpi_button_add,
+ 		.remove = acpi_button_remove,
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from alexey.y.starikovskiy@linux.intel.com are
+
+git-acpi.patch
+swsusp-change-code-order-in-diskc-fix.patch
