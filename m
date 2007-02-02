@@ -1,64 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-ufs-entry.patch added to -mm tree
-Date: Fri, 02 Feb 2007 00:48:03 -0800
-Message-ID: <200702020848.l128m3VC004000@shell0.pdx.osdl.net>
+Subject: - kprobes-replace-magic-numbers-with-enum.patch removed from -mm tree
+Date: Fri, 02 Feb 2007 13:37:23 -0800
+Message-ID: <200702022137.l12LbN97018501@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40136 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41494 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751614AbXBBIsM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 03:48:12 -0500
+	id S1946104AbXBBVhb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 16:37:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dushistov@mail.ru
+To: masami.hiramatsu.pt@hitachi.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, prasanna@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: ufs entry
-has been added to the -mm tree.  Its filename is
-     maintainers-ufs-entry.patch
+     kprobes: replace magic numbers with enum
+has been removed from the -mm tree.  Its filename was
+     kprobes-replace-magic-numbers-with-enum.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MAINTAINERS: ufs entry
-From: Evgeniy Dushistov <dushistov@mail.ru>
+Subject: kprobes: replace magic numbers with enum
+From: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
 
-Mark ufs file system as maintainable, and add me as maintainer, to help
-people find appropriate person to assign bugs.
+Replace the magic numbers with an enum, and gets rid of a warning on the
+specific architectures (ex.  powerpc) on which the compiler considers
+'char' as 'unsigned char'.
 
-Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
+Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- MAINTAINERS |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/kprobes.c |   20 +++++++++++++-------
+ 1 files changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-ufs-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-ufs-entry
-+++ a/MAINTAINERS
-@@ -3665,6 +3665,12 @@ M:	ysato@users.sourceforge.jp
- W:	http://uclinux-h8.sourceforge.jp/
- S:	Supported
+diff -puN kernel/kprobes.c~kprobes-replace-magic-numbers-with-enum kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-replace-magic-numbers-with-enum
++++ a/kernel/kprobes.c
+@@ -87,6 +87,12 @@ struct kprobe_insn_page {
+ 	int ngarbage;
+ };
  
-+UFS FILESYSTEM
-+P: Evgeniy Dushistov
-+M: dushistov@mail.ru
-+L: linux-kernel@vger.kernel.org
-+S: Maintained
++enum kprobe_slot_state {
++	SLOT_CLEAN = 0,
++	SLOT_DIRTY = 1,
++	SLOT_USED = 2,
++};
 +
- USB DIAMOND RIO500 DRIVER
- P:	Cesar Miquel
- M:	miquel@df.uba.ar
+ static struct hlist_head kprobe_insn_pages;
+ static int kprobe_garbage_slots;
+ static int collect_garbage_slots(void);
+@@ -130,8 +136,8 @@ kprobe_opcode_t __kprobes *get_insn_slot
+ 		if (kip->nused < INSNS_PER_PAGE) {
+ 			int i;
+ 			for (i = 0; i < INSNS_PER_PAGE; i++) {
+-				if (!kip->slot_used[i]) {
+-					kip->slot_used[i] = 1;
++				if (kip->slot_used[i] == SLOT_CLEAN) {
++					kip->slot_used[i] = SLOT_USED;
+ 					kip->nused++;
+ 					return kip->insns + (i * MAX_INSN_SIZE);
+ 				}
+@@ -163,8 +169,8 @@ kprobe_opcode_t __kprobes *get_insn_slot
+ 	}
+ 	INIT_HLIST_NODE(&kip->hlist);
+ 	hlist_add_head(&kip->hlist, &kprobe_insn_pages);
+-	memset(kip->slot_used, 0, INSNS_PER_PAGE);
+-	kip->slot_used[0] = 1;
++	memset(kip->slot_used, SLOT_CLEAN, INSNS_PER_PAGE);
++	kip->slot_used[0] = SLOT_USED;
+ 	kip->nused = 1;
+ 	kip->ngarbage = 0;
+ 	return kip->insns;
+@@ -173,7 +179,7 @@ kprobe_opcode_t __kprobes *get_insn_slot
+ /* Return 1 if all garbages are collected, otherwise 0. */
+ static int __kprobes collect_one_slot(struct kprobe_insn_page *kip, int idx)
+ {
+-	kip->slot_used[idx] = 0;
++	kip->slot_used[idx] = SLOT_CLEAN;
+ 	kip->nused--;
+ 	if (kip->nused == 0) {
+ 		/*
+@@ -212,7 +218,7 @@ static int __kprobes collect_garbage_slo
+ 			continue;
+ 		kip->ngarbage = 0;	/* we will collect all garbages */
+ 		for (i = 0; i < INSNS_PER_PAGE; i++) {
+-			if (kip->slot_used[i] == -1 &&
++			if (kip->slot_used[i] == SLOT_DIRTY &&
+ 			    collect_one_slot(kip, i))
+ 				break;
+ 		}
+@@ -232,7 +238,7 @@ void __kprobes free_insn_slot(kprobe_opc
+ 		    slot < kip->insns + (INSNS_PER_PAGE * MAX_INSN_SIZE)) {
+ 			int i = (slot - kip->insns) / MAX_INSN_SIZE;
+ 			if (dirty) {
+-				kip->slot_used[i] = -1;
++				kip->slot_used[i] = SLOT_DIRTY;
+ 				kip->ngarbage++;
+ 			} else {
+ 				collect_one_slot(kip, i);
 _
 
-Patches currently in -mm which might be from dushistov@mail.ru are
-
-maintainers-ufs-entry.patch
-ufs2-write-mount-as-rw.patch
-ufs2-write-inodes-write.patch
-ufs2-write-block-allocation-update.patch
+Patches currently in -mm which might be from masami.hiramatsu.pt@hitachi.com are
