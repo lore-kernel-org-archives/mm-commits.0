@@ -1,61 +1,69 @@
 From: akpm@osdl.org
-Subject: - sky2-flow-control-off.patch removed from -mm tree
-Date: Fri, 02 Feb 2007 18:13:45 -0800
-Message-ID: <200702030213.l132DjaW028459@shell0.pdx.osdl.net>
+Subject: - r8169-fix-a-race-between-pci-probe-and-dev_open.patch removed from -mm tree
+Date: Fri, 02 Feb 2007 18:15:49 -0800
+Message-ID: <200702030215.l132FouN028879@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53106 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53432 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946227AbXBCCNr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 21:13:47 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l132DkQ5032759
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 2 Feb 2007 18:13:46 -0800
+	id S1946229AbXBCCQD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 21:16:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@osdl.org, mm-commits@vger.kernel.org
+To: romieu@fr.zoreil.com, bwalle@suse.de, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sky2: flow control off
+     r8169: fix a race between PCI probe and dev_open
 has been removed from the -mm tree.  Its filename was
-     sky2-flow-control-off.patch
+     r8169-fix-a-race-between-pci-probe-and-dev_open.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: sky2: flow control off
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: r8169: fix a race between PCI probe and dev_open
+From: Francois Romieu <romieu@fr.zoreil.com>
 
-Turn flow control off for sky2.  When flow control is on, the transmitter
-may get randomly stuck.  Perhaps there is hardware problem, but until
-Marvell provides errata information for workaround, it should default to
-off.
+Call chain:
+-> rtl8169_init_one
+   -> register_netdev                  (dev_open starts to race...)
+   -> rtl8169_init_phy
+      -> rtl8169_set_speed
+         -> tp->set_speed
+         -> mod_timer(&tp->timer, ...) (if netif_running() is true)
 
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+As netif_running() is true just before dev->open() is issued and the
+timer is initialized during dev->open, mod_timer() meets an uninitialized
+tp->timer and oopses.
+
+rtl8169_init_phy is only used on rtl8169_init_one so it's fine to never
+ask it to activate the timer: the racing dev->open will do it anyway.
+
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Cc: Bernhard Walle <bwalle@suse.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/sky2.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/r8169.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/sky2.c~sky2-flow-control-off drivers/net/sky2.c
---- a/drivers/net/sky2.c~sky2-flow-control-off
-+++ a/drivers/net/sky2.c
-@@ -3263,7 +3263,7 @@ static __devinit struct net_device *sky2
+diff -puN drivers/net/r8169.c~r8169-fix-a-race-between-pci-probe-and-dev_open drivers/net/r8169.c
+--- a/drivers/net/r8169.c~r8169-fix-a-race-between-pci-probe-and-dev_open
++++ a/drivers/net/r8169.c
+@@ -1448,7 +1448,7 @@ static void rtl8169_init_phy(struct net_
  
- 	/* Auto speed and flow control */
- 	sky2->autoneg = AUTONEG_ENABLE;
--	sky2->flow_mode = FC_BOTH;
-+	sky2->flow_mode = FC_NONE;
+ 	rtl8169_phy_reset(dev, tp);
  
- 	sky2->duplex = -1;
- 	sky2->speed = -1;
+-	rtl8169_set_speed(dev, autoneg, speed, duplex);
++	tp->set_speed(dev, autoneg, speed, duplex);
+ 
+ 	if ((RTL_R8(PHYstatus) & TBI_Enable) && netif_msg_link(tp))
+ 		printk(KERN_INFO PFX "%s: TBI auto-negotiating\n", dev->name);
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from romieu@fr.zoreil.com are
 
-sky2-flow-control-off.patch
+r8169-fix-a-race-between-pci-probe-and-dev_open.patch
 git-netdev-all.patch
-sky2-auto-negotiation-phy-errata.patch
+r8169-warning-fixes.patch
