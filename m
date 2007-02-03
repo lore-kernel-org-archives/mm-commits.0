@@ -1,13 +1,13 @@
 From: akpm@osdl.org
-Subject: + x86_64-irq-simplfy-__assign_irq_vector.patch added to -mm tree
-Date: Fri, 02 Feb 2007 17:05:57 -0800
-Message-ID: <200702030105.l1315vFi022799@shell0.pdx.osdl.net>
+Subject: + x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch added to -mm tree
+Date: Fri, 02 Feb 2007 17:06:39 -0800
+Message-ID: <200702030106.l1316dJL022817@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47447 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47496 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946204AbXBCBGD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 20:06:03 -0500
+	id S1946199AbXBCBGp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Feb 2007 20:06:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com, ak@suse.de
 
 
 The patch titled
-     x86_64 irq: Simplfy __assign_irq_vector
+     x86_64 irq: handle irqs pending in IRR during irq migration
 has been added to the -mm tree.  Its filename is
-     x86_64-irq-simplfy-__assign_irq_vector.patch
+     x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,70 +25,187 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64 irq: Simplfy __assign_irq_vector
+Subject: x86_64 irq: handle irqs pending in IRR during irq migration
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-By precomputing old_mask I remove an extra if statement, remove an
-indentation level and make the code slightly easier to read.
+When making the interrupt vectors per cpu I failed to handle a case during
+irq migration.  If the same interrupt comes in while we are servicing the
+irq but before we migrate it the pending bit in the local apic IRR register
+will be set for that irq.
 
-This comes before my bugfix in the next patch so the patch and the
-resulting code stay readable.
+After migrating the irq to another cpu and or vector the data structures
+will no longer be setup to handle this pending irq.  Then as soon as we
+return from servicing the irq we just migrated we will get a nasty: "No irq
+handler for vector" message.
+
+Since we do not disable irqs for edge triggered interrupts except in the
+smallest possible window during migration I cannot avoid migrating an irq
+in the unlikely event that it becomes pending.  This is because by the time
+the irq could no longer become pending I have already updated all of my
+data structures.
+
+Therefore this patch introduces an intermediate state that exists soley on
+the cpu where we are handling the irq during migration.  The irq number is
+changed to negative in the vector_irq data structure.
+
+Once the migration operation is complete we know we will receive no more
+interrupts on this vector so the irq pending state for this irq will no
+longer be updated.  If the irq is not pending and we are in the
+intermediate state we immediately free the vector, otherwise in we free the
+vector in do_IRQ when the pending irq arrives.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |   13 +++++--------
- 1 files changed, 5 insertions(+), 8 deletions(-)
+ arch/x86_64/kernel/io_apic.c |   56 ++++++++++++++++++++++++++++++---
+ arch/x86_64/kernel/irq.c     |   19 ++++++++++-
+ 2 files changed, 69 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-irq-simplfy-__assign_irq_vector arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-irq-simplfy-__assign_irq_vector
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration
 +++ a/arch/x86_64/kernel/io_apic.c
-@@ -685,6 +685,7 @@ static int __assign_irq_vector(int irq, 
- 	 * 0x80, because int 0x80 is hm, kind of importantish. ;)
- 	 */
- 	static int current_vector = FIRST_DEVICE_VECTOR, current_offset = 0;
-+	cpumask_t old_mask = CPU_MASK_NONE;
- 	int old_vector = -1;
- 	int cpu;
- 
-@@ -699,11 +700,12 @@ static int __assign_irq_vector(int irq, 
- 		cpus_and(*result, irq_domain[irq], mask);
- 		if (!cpus_empty(*result))
- 			return old_vector;
-+		cpus_and(old_mask, irq_domain[irq], cpu_online_map);
- 	}
- 
- 	for_each_cpu_mask(cpu, mask) {
- 		cpumask_t domain, new_mask;
--		int new_cpu;
-+		int new_cpu, old_cpu;
- 		int vector, offset;
- 
- 		domain = vector_allocation_domain(cpu);
-@@ -728,13 +730,8 @@ next:
+@@ -730,9 +730,17 @@ next:
  		/* Found one! */
  		current_vector = vector;
  		current_offset = offset;
--		if (old_vector >= 0) {
--			cpumask_t old_mask;
--			int old_cpu;
--			cpus_and(old_mask, irq_domain[irq], cpu_online_map);
--			for_each_cpu_mask(old_cpu, old_mask)
--				per_cpu(vector_irq, old_cpu)[old_vector] = -1;
--		}
-+		for_each_cpu_mask(old_cpu, old_mask)
-+			per_cpu(vector_irq, old_cpu)[old_vector] = -1;
- 		for_each_cpu_mask(new_cpu, new_mask)
+-		for_each_cpu_mask(old_cpu, old_mask)
+-			per_cpu(vector_irq, old_cpu)[old_vector] = -1;
+-		for_each_cpu_mask(new_cpu, new_mask)
++		for_each_cpu_mask(old_cpu, old_mask) {
++			int free = -1;
++			/* When migrating we need to preserve the old
++			 * vector until we have processed all of the
++			 * pending irqs.
++			 */
++			if (old_cpu == smp_processor_id())
++				free = -irq;
++			per_cpu(vector_irq, old_cpu)[old_vector] = free;
++		}
++ 		for_each_cpu_mask(new_cpu, new_mask)
  			per_cpu(vector_irq, new_cpu)[vector] = irq;
  		irq_vector[irq] = vector;
+ 		irq_domain[irq] = domain;
+@@ -1389,6 +1397,37 @@ static int ioapic_retrigger_irq(unsigned
+ 	return 1;
+ }
+ 
++static unsigned apic_in_service_vector(void)
++{
++	unsigned isr, vector;
++	/* Figure out which vector we are servicing */
++	for (vector = FIRST_EXTERNAL_VECTOR; vector < FIRST_SYSTEM_VECTOR; vector += 32) {
++		isr = apic_read(APIC_ISR + ((vector/32) * 0x10));
++		if (isr)
++			break;
++	}
++	/* Find the low bits of the vector we are servicing */
++	vector += __ffs(isr);
++	return vector;
++}
++
++static void apic_handle_pending_vector(unsigned vector)
++{
++	unsigned irr;
++	int irq;
++
++	irq = __get_cpu_var(vector_irq)[vector];
++	if (irq >= 0)
++		return;
++
++	/* If the irq we are servicing has moved and is not pending
++	 * free it's vector.
++	 */
++	irr = apic_read(APIC_IRR + ((vector/32) * 0x10));
++	if (!(irr & (1 << (vector % 32))))
++		__get_cpu_var(vector_irq)[vector] = -1;
++}
++
+ /*
+  * Level and edge triggered IO-APIC interrupts need different handling,
+  * so we use two separate IRQ descriptors. Edge triggered IRQs can be
+@@ -1400,19 +1439,24 @@ static int ioapic_retrigger_irq(unsigned
+ 
+ static void ack_apic_edge(unsigned int irq)
+ {
+-	move_native_irq(irq);
++	if (unlikely(irq_desc[irq].status & IRQ_MOVE_PENDING)) {
++		move_native_irq(irq);
++		apic_handle_pending_vector(apic_in_service_vector());
++	}
+ 	ack_APIC_irq();
+ }
+ 
+ static void ack_apic_level(unsigned int irq)
+ {
+ 	int do_unmask_irq = 0;
++	unsigned int vector = 0;
+ 
+ #if defined(CONFIG_GENERIC_PENDING_IRQ) || defined(CONFIG_IRQBALANCE)
+ 	/* If we are moving the irq we need to mask it */
+ 	if (unlikely(irq_desc[irq].status & IRQ_MOVE_PENDING)) {
+ 		do_unmask_irq = 1;
+ 		mask_IO_APIC_irq(irq);
++		vector = apic_in_service_vector();
+ 	}
+ #endif
+ 
+@@ -1424,8 +1468,10 @@ static void ack_apic_level(unsigned int 
+ 
+ 	/* Now we can move and renable the irq */
+ 	move_masked_irq(irq);
+-	if (unlikely(do_unmask_irq))
++	if (unlikely(do_unmask_irq)) {
++		apic_handle_pending_vector(vector);
+ 		unmask_IO_APIC_irq(irq);
++	}
+ }
+ 
+ static struct irq_chip ioapic_chip __read_mostly = {
+diff -puN arch/x86_64/kernel/irq.c~x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration arch/x86_64/kernel/irq.c
+--- a/arch/x86_64/kernel/irq.c~x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration
++++ a/arch/x86_64/kernel/irq.c
+@@ -97,6 +97,23 @@ skip:
+ 	return 0;
+ }
+ 
++static inline unsigned int irq_from_vector(unsigned int vector)
++{
++	int irq;
++	irq = __get_cpu_var(vector_irq)[vector];
++
++	/* If we changed vectors during migration and we had a pending
++	 * irq, we left the irq allocated on this cpu.  Now that the
++	 * pending irq has arrived get the irq number and free this
++	 * vector.
++	 */
++	if (irq < -1) {
++		__get_cpu_var(vector_irq)[vector] = -1;
++		irq = -irq;
++	}
++	return irq;
++}
++
+ /*
+  * do_IRQ handles all normal device IRQ's (the special
+  * SMP cross-CPU interrupts have their own specific
+@@ -112,7 +129,7 @@ asmlinkage unsigned int do_IRQ(struct pt
+ 
+ 	exit_idle();
+ 	irq_enter();
+-	irq = __get_cpu_var(vector_irq)[vector];
++	irq = irq_from_vector(vector);
+ 
+ #ifdef CONFIG_DEBUG_STACKOVERFLOW
+ 	stack_overflow_check(regs);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
 x86_64-irq-simplfy-__assign_irq_vector.patch
+x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
 powerpc-rtas-msi-support.patch
 kthread-api-conversion-for-dvb_frontend-and-av7110.patch
 fix-i-oat-for-kexec.patch
