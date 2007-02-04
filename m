@@ -1,69 +1,81 @@
-From: akpm@osdl.org
-Subject: - r8169-fix-a-race-between-pci-probe-and-dev_open.patch removed from -mm tree
-Date: Fri, 02 Feb 2007 18:15:49 -0800
-Message-ID: <200702030215.l132FouN028879@shell0.pdx.osdl.net>
+From: akpm@linux-foundation.org
+Subject: + rpc-fix-double-free-in-portmapper-code.patch added to -mm tree
+Date: Sat, 03 Feb 2007 17:44:03 -0800
+Message-ID: <200702040144.l141i3gI020170@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53432 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55730 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946229AbXBCCQD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Feb 2007 21:16:03 -0500
+	id S1751905AbXBDBoY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 3 Feb 2007 20:44:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: romieu@fr.zoreil.com, bwalle@suse.de, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: Trond.Myklebust@netapp.com, kas@fi.muni.cz, neilb@suse.de
 
 
 The patch titled
-     r8169: fix a race between PCI probe and dev_open
-has been removed from the -mm tree.  Its filename was
-     r8169-fix-a-race-between-pci-probe-and-dev_open.patch
+     RPM:  fix double free in portmapper code
+has been added to the -mm tree.  Its filename is
+     rpc-fix-double-free-in-portmapper-code.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: r8169: fix a race between PCI probe and dev_open
-From: Francois Romieu <romieu@fr.zoreil.com>
+Subject: RPM:  fix double free in portmapper code
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
 
-Call chain:
--> rtl8169_init_one
-   -> register_netdev                  (dev_open starts to race...)
-   -> rtl8169_init_phy
-      -> rtl8169_set_speed
-         -> tp->set_speed
-         -> mod_timer(&tp->timer, ...) (if netif_running() is true)
+rpc_run_task is guaranteed to always call ->rpc_release.
 
-As netif_running() is true just before dev->open() is issued and the
-timer is initialized during dev->open, mod_timer() meets an uninitialized
-tp->timer and oopses.
-
-rtl8169_init_phy is only used on rtl8169_init_one so it's fine to never
-ask it to activate the timer: the racing dev->open will do it anyway.
-
-Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Bernhard Walle <bwalle@suse.de>
-Cc: Jeff Garzik <jeff@garzik.org>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Jan "Yenya" Kasprzak <kas@fi.muni.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/r8169.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sunrpc/pmap_clnt.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/r8169.c~r8169-fix-a-race-between-pci-probe-and-dev_open drivers/net/r8169.c
---- a/drivers/net/r8169.c~r8169-fix-a-race-between-pci-probe-and-dev_open
-+++ a/drivers/net/r8169.c
-@@ -1448,7 +1448,7 @@ static void rtl8169_init_phy(struct net_
+diff -puN net/sunrpc/pmap_clnt.c~rpc-fix-double-free-in-portmapper-code net/sunrpc/pmap_clnt.c
+--- a/net/sunrpc/pmap_clnt.c~rpc-fix-double-free-in-portmapper-code
++++ a/net/sunrpc/pmap_clnt.c
+@@ -62,7 +62,10 @@ static inline void pmap_map_free(struct 
  
- 	rtl8169_phy_reset(dev, tp);
+ static void pmap_map_release(void *data)
+ {
+-	pmap_map_free(data);
++	struct portmap_args *map = data;
++
++	xprt_put(map->pm_xprt);
++	pmap_map_free(map);
+ }
  
--	rtl8169_set_speed(dev, autoneg, speed, duplex);
-+	tp->set_speed(dev, autoneg, speed, duplex);
+ static const struct rpc_call_ops pmap_getport_ops = {
+@@ -133,7 +136,7 @@ void rpc_getport(struct rpc_task *task)
+ 	status = -EIO;
+ 	child = rpc_run_task(pmap_clnt, RPC_TASK_ASYNC, &pmap_getport_ops, map);
+ 	if (IS_ERR(child))
+-		goto bailout;
++		goto bailout_nofree;
+ 	rpc_put_task(child);
  
- 	if ((RTL_R8(PHYstatus) & TBI_Enable) && netif_msg_link(tp))
- 		printk(KERN_INFO PFX "%s: TBI auto-negotiating\n", dev->name);
+ 	task->tk_xprt->stat.bind_count++;
+@@ -222,7 +225,6 @@ static void pmap_getport_done(struct rpc
+ 			child->tk_pid, status, map->pm_port);
+ 
+ 	pmap_wake_portmap_waiters(xprt, status);
+-	xprt_put(xprt);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from romieu@fr.zoreil.com are
+Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
 
-r8169-fix-a-race-between-pci-probe-and-dev_open.patch
-git-netdev-all.patch
-r8169-warning-fixes.patch
+nlm-fix-double-free-in-__nlm_async_call.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+nfs-kill-the-obsolete-nfs_paranoia.patch
+rpc-fix-double-free-in-portmapper-code.patch
