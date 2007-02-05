@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-m68knommu-user-array_size-macro-when-appropriate.patch added to -mm tree
-Date: Mon, 05 Feb 2007 14:09:25 -0800
-Message-ID: <200702052209.l15M9Pjr000379@shell0.pdx.osdl.net>
+Subject: + arch-mips-user-array_size-macro-when-appropriate.patch added to -mm tree
+Date: Mon, 05 Feb 2007 14:09:33 -0800
+Message-ID: <200702052209.l15M9Xwv000392@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35973 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36154 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964932AbXBEWJ7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 17:09:59 -0500
+	id S964795AbXBEWND (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 17:13:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, gerg@uclinux.org
+Cc: darwish.07@gmail.com, ralf@linux-mips.org
 
 
 The patch titled
-     M68KNOMMU: user ARRAY_SIZE macro when appropriate
+     MIPS: user ARRAY_SIZE macro when appropriate
 has been added to the -mm tree.  Its filename is
-     arch-m68knommu-user-array_size-macro-when-appropriate.patch
+     arch-mips-user-array_size-macro-when-appropriate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,125 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: M68KNOMMU: user ARRAY_SIZE macro when appropriate
+Subject: MIPS: user ARRAY_SIZE macro when appropriate
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
 Use ARRAY_SIZE macro already defined in linux/kernel.h
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/kernel/ptrace.c |    4 ++--
- arch/m68knommu/kernel/traps.c  |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/mips/arc/identify.c                |    2 +-
+ arch/mips/jmr3927/rbhma3100/setup.c     |    2 +-
+ arch/mips/mips-boards/atlas/atlas_int.c |    5 +++--
+ arch/mips/mips-boards/malta/malta_int.c |    5 +++--
+ arch/mips/pci/fixup-vr4133.c            |    3 ++-
+ 5 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN arch/m68knommu/kernel/ptrace.c~arch-m68knommu-user-array_size-macro-when-appropriate arch/m68knommu/kernel/ptrace.c
---- a/arch/m68knommu/kernel/ptrace.c~arch-m68knommu-user-array_size-macro-when-appropriate
-+++ a/arch/m68knommu/kernel/ptrace.c
-@@ -62,7 +62,7 @@ static inline long get_reg(struct task_s
- 
- 	if (regno == PT_USP)
- 		addr = &task->thread.usp;
--	else if (regno < sizeof(regoff)/sizeof(regoff[0]))
-+	else if (regno < ARRAY_SIZE(regoff))
- 		addr = (unsigned long *)(task->thread.esp0 + regoff[regno]);
- 	else
- 		return 0;
-@@ -79,7 +79,7 @@ static inline int put_reg(struct task_st
- 
- 	if (regno == PT_USP)
- 		addr = &task->thread.usp;
--	else if (regno < sizeof(regoff)/sizeof(regoff[0]))
-+	else if (regno < ARRAY_SIZE(regoff))
- 		addr = (unsigned long *) (task->thread.esp0 + regoff[regno]);
- 	else
- 		return -1;
-diff -puN arch/m68knommu/kernel/traps.c~arch-m68knommu-user-array_size-macro-when-appropriate arch/m68knommu/kernel/traps.c
---- a/arch/m68knommu/kernel/traps.c~arch-m68knommu-user-array_size-macro-when-appropriate
-+++ a/arch/m68knommu/kernel/traps.c
-@@ -158,7 +158,7 @@ void show_stack(struct task_struct *task
- void bad_super_trap(struct frame *fp)
+diff -puN arch/mips/arc/identify.c~arch-mips-user-array_size-macro-when-appropriate arch/mips/arc/identify.c
+--- a/arch/mips/arc/identify.c~arch-mips-user-array_size-macro-when-appropriate
++++ a/arch/mips/arc/identify.c
+@@ -77,7 +77,7 @@ static struct smatch * __init string_to_
  {
- 	console_verbose();
--	if (fp->ptregs.vector < 4*sizeof(vec_names)/sizeof(vec_names[0]))
-+	if (fp->ptregs.vector < 4 * ARRAY_SIZE(vec_names))
- 		printk (KERN_WARNING "*** %s ***   FORMAT=%X\n",
- 			vec_names[(fp->ptregs.vector) >> 2],
- 			fp->ptregs.format);
+ 	int i;
+ 
+-	for (i = 0; i < (sizeof(mach_table) / sizeof (mach_table[0])); i++) {
++	for (i = 0; i < ARRAY_SIZE(mach_table); i++) {
+ 		if (!strcmp(s, mach_table[i].arcname))
+ 			return &mach_table[i];
+ 	}
+diff -puN arch/mips/jmr3927/rbhma3100/setup.c~arch-mips-user-array_size-macro-when-appropriate arch/mips/jmr3927/rbhma3100/setup.c
+--- a/arch/mips/jmr3927/rbhma3100/setup.c~arch-mips-user-array_size-macro-when-appropriate
++++ a/arch/mips/jmr3927/rbhma3100/setup.c
+@@ -434,7 +434,7 @@ void __init tx3927_setup(void)
+ 
+ 	/* DMA */
+ 	tx3927_dmaptr->mcr = 0;
+-	for (i = 0; i < sizeof(tx3927_dmaptr->ch) / sizeof(tx3927_dmaptr->ch[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(tx3927_dmaptr->ch); i++) {
+ 		/* reset channel */
+ 		tx3927_dmaptr->ch[i].ccr = TX3927_DMA_CCR_CHRST;
+ 		tx3927_dmaptr->ch[i].ccr = 0;
+diff -puN arch/mips/mips-boards/atlas/atlas_int.c~arch-mips-user-array_size-macro-when-appropriate arch/mips/mips-boards/atlas/atlas_int.c
+--- a/arch/mips/mips-boards/atlas/atlas_int.c~arch-mips-user-array_size-macro-when-appropriate
++++ a/arch/mips/mips-boards/atlas/atlas_int.c
+@@ -32,6 +32,7 @@
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel_stat.h>
++#include <linux/kernel.h>
+ 
+ #include <asm/gdb-stub.h>
+ #include <asm/io.h>
+@@ -220,7 +221,7 @@ msc_irqmap_t __initdata msc_irqmap[] = {
+ 	{MSC01C_INT_TMR,		MSC01_IRQ_EDGE, 0},
+ 	{MSC01C_INT_PCI,		MSC01_IRQ_LEVEL, 0},
+ };
+-int __initdata msc_nr_irqs = sizeof(msc_irqmap) / sizeof(*msc_irqmap);
++int __initdata msc_nr_irqs = ARRAY_SIZE(msc_irqmap);
+ 
+ msc_irqmap_t __initdata msc_eicirqmap[] = {
+ 	{MSC01E_INT_SW0,		MSC01_IRQ_LEVEL, 0},
+@@ -231,7 +232,7 @@ msc_irqmap_t __initdata msc_eicirqmap[] 
+ 	{MSC01E_INT_PERFCTR,		MSC01_IRQ_LEVEL, 0},
+ 	{MSC01E_INT_CPUCTR,		MSC01_IRQ_LEVEL, 0}
+ };
+-int __initdata msc_nr_eicirqs = sizeof(msc_eicirqmap) / sizeof(*msc_eicirqmap);
++int __initdata msc_nr_eicirqs = ARRAY_SIZE(msc_eicirqmap);
+ 
+ void __init arch_init_irq(void)
+ {
+diff -puN arch/mips/mips-boards/malta/malta_int.c~arch-mips-user-array_size-macro-when-appropriate arch/mips/mips-boards/malta/malta_int.c
+--- a/arch/mips/mips-boards/malta/malta_int.c~arch-mips-user-array_size-macro-when-appropriate
++++ a/arch/mips/mips-boards/malta/malta_int.c
+@@ -27,6 +27,7 @@
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel_stat.h>
++#include <linux/kernel.h>
+ #include <linux/random.h>
+ 
+ #include <asm/i8259.h>
+@@ -289,7 +290,7 @@ msc_irqmap_t __initdata msc_irqmap[] = {
+ 	{MSC01C_INT_TMR,		MSC01_IRQ_EDGE, 0},
+ 	{MSC01C_INT_PCI,		MSC01_IRQ_LEVEL, 0},
+ };
+-int __initdata msc_nr_irqs = sizeof(msc_irqmap)/sizeof(msc_irqmap_t);
++int __initdata msc_nr_irqs = ARRAY_SIZE(msc_irqmap);
+ 
+ msc_irqmap_t __initdata msc_eicirqmap[] = {
+ 	{MSC01E_INT_SW0,		MSC01_IRQ_LEVEL, 0},
+@@ -303,7 +304,7 @@ msc_irqmap_t __initdata msc_eicirqmap[] 
+ 	{MSC01E_INT_PERFCTR,		MSC01_IRQ_LEVEL, 0},
+ 	{MSC01E_INT_CPUCTR,		MSC01_IRQ_LEVEL, 0}
+ };
+-int __initdata msc_nr_eicirqs = sizeof(msc_eicirqmap)/sizeof(msc_irqmap_t);
++int __initdata msc_nr_eicirqs = ARRAY_SIZE(msc_eicirqmap);
+ 
+ void __init arch_init_irq(void)
+ {
+diff -puN arch/mips/pci/fixup-vr4133.c~arch-mips-user-array_size-macro-when-appropriate arch/mips/pci/fixup-vr4133.c
+--- a/arch/mips/pci/fixup-vr4133.c~arch-mips-user-array_size-macro-when-appropriate
++++ a/arch/mips/pci/fixup-vr4133.c
+@@ -17,6 +17,7 @@
+  */
+ #include <linux/init.h>
+ #include <linux/pci.h>
++#include <linux/kernel.h>
+ 
+ #include <asm/io.h>
+ #include <asm/i8259.h>
+@@ -143,7 +144,7 @@ int rockhopper_get_irq(struct pci_dev *d
+ 	if (bus == NULL)
+ 		return -1;
+ 
+-	for (i = 0; i < sizeof (int_map) / sizeof (int_map[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(int_map); i++) {
+ 		if (int_map[i].bus == bus->number && int_map[i].slot == slot) {
+ 			int line;
+ 			for (line = 0; line < 4; line++)
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
