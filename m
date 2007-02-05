@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-fix-config_smp=n-compilation-v2-ia64.patch added to -mm tree
-Date: Mon, 05 Feb 2007 14:16:50 -0800
-Message-ID: <200702052216.l15MGopt000958@shell0.pdx.osdl.net>
+Subject: + ufs-restore-back-support-of-openstep.patch added to -mm tree
+Date: Mon, 05 Feb 2007 14:20:00 -0800
+Message-ID: <200702052220.l15MK0Rr001029@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36246 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36391 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964894AbXBEWST (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 17:18:19 -0500
+	id S964854AbXBEWV0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 17:21:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: magnus@valinux.co.jp, horms@verge.net.au, jlan@sgi.com, stable@kernel.org, tony.luck@intel.com
+Cc: dushistov@mail.ru, stable@kernel.org
 
 
 The patch titled
-     kexec: Fix CONFIG_SMP=n compilation V2 (ia64)
+     ufs: restore back support of openstep
 has been added to the -mm tree.  Its filename is
-     kexec-fix-config_smp=n-compilation-v2-ia64.patch
+     ufs-restore-back-support-of-openstep.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,95 +25,182 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kexec: Fix CONFIG_SMP=n compilation V2 (ia64)
-From: Magnus Damm <magnus@valinux.co.jp>
+Subject: ufs: restore back support of openstep
+From: Evgeniy Dushistov <dushistov@mail.ru>
 
-Kexec support for 2.6.20 on ia64 does not build properly using a config
-made up by CONFIG_SMP=n and CONFIG_HOTPLUG_CPU=n:
+This is a fix of regression, which triggered by ~2.6.16.
 
-  CC      arch/ia64/kernel/machine_kexec.o
-arch/ia64/kernel/machine_kexec.c: In function `machine_shutdown':
-arch/ia64/kernel/machine_kexec.c:77: warning: implicit declaration of function `cpu_down'
-  AS      arch/ia64/kernel/relocate_kernel.o
-  CC      arch/ia64/kernel/crash.o
-arch/ia64/kernel/crash.c: In function `kdump_cpu_freeze':
-arch/ia64/kernel/crash.c:139: warning: implicit declaration of function `ia64_jump_to_sal'
-arch/ia64/kernel/crash.c:139: error: `sal_boot_rendez_state' undeclared (first use in this function)
-arch/ia64/kernel/crash.c:139: error: (Each undeclared identifier is reported only once
-arch/ia64/kernel/crash.c:139: error: for each function it appears in.)
-arch/ia64/kernel/crash.c: At top level:
-arch/ia64/kernel/crash.c:84: warning: 'kdump_wait_cpu_freeze' defined but not used
-make[1]: *** [arch/ia64/kernel/crash.o] Error 1
-make: *** [arch/ia64/kernel] Error 2
+Patch with name ufs-directory-and-page-cache-from-blocks-to-pages.patch: in
+additional to conversation from block to page cache mechanism added new
+checks of directory integrity, one of them that directory entry do not
+across directory chunks.
 
-Signed-off-by: Magnus Damm <magnus@valinux.co.jp>
-Acked-by: Simon Horman <horms@verge.net.au>
-Acked-by: Jay Lan <jlan@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+But some kinds of UFS: OpenStep UFS and Apple UFS (looks like these are the
+same filesystems) have different directory chunk size, then common
+UFSes(BSD and Solaris UFS).
+
+So this patch adds ability to works with variable size of directory chunks,
+and set it for ufstype=openstep to right size.
+
+Tested on darwin ufs.
+
+Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/crash.c         |   11 +++++++----
- arch/ia64/kernel/machine_kexec.c |    2 ++
- 2 files changed, 9 insertions(+), 4 deletions(-)
+ fs/ufs/dir.c           |   21 ++++++++++++---------
+ fs/ufs/super.c         |    5 ++++-
+ include/linux/ufs_fs.h |    1 +
+ 3 files changed, 17 insertions(+), 10 deletions(-)
 
-diff -puN arch/ia64/kernel/crash.c~kexec-fix-config_smp=n-compilation-v2-ia64 arch/ia64/kernel/crash.c
---- a/arch/ia64/kernel/crash.c~kexec-fix-config_smp=n-compilation-v2-ia64
-+++ a/arch/ia64/kernel/crash.c
-@@ -79,6 +79,7 @@ crash_save_this_cpu()
- 	final_note(buf);
- }
+diff -puN fs/ufs/dir.c~ufs-restore-back-support-of-openstep fs/ufs/dir.c
+--- a/fs/ufs/dir.c~ufs-restore-back-support-of-openstep
++++ a/fs/ufs/dir.c
+@@ -106,12 +106,13 @@ static void ufs_check_page(struct page *
+ 	char *kaddr = page_address(page);
+ 	unsigned offs, rec_len;
+ 	unsigned limit = PAGE_CACHE_SIZE;
++	const unsigned chunk_mask = UFS_SB(sb)->s_uspi->s_dirblksize - 1;
+ 	struct ufs_dir_entry *p;
+ 	char *error;
  
-+#ifdef CONFIG_SMP
- static int
- kdump_wait_cpu_freeze(void)
- {
-@@ -91,6 +92,7 @@ kdump_wait_cpu_freeze(void)
- 	}
- 	return 1;
- }
-+#endif
+ 	if ((dir->i_size >> PAGE_CACHE_SHIFT) == page->index) {
+ 		limit = dir->i_size & ~PAGE_CACHE_MASK;
+-		if (limit & (UFS_SECTOR_SIZE - 1))
++		if (limit & chunk_mask)
+ 			goto Ebadsize;
+ 		if (!limit)
+ 			goto out;
+@@ -126,7 +127,7 @@ static void ufs_check_page(struct page *
+ 			goto Ealign;
+ 		if (rec_len < UFS_DIR_REC_LEN(ufs_get_de_namlen(sb, p)))
+ 			goto Enamelen;
+-		if (((offs + rec_len - 1) ^ offs) & ~(UFS_SECTOR_SIZE-1))
++		if (((offs + rec_len - 1) ^ offs) & ~chunk_mask)
+ 			goto Espan;
+ 		if (fs32_to_cpu(sb, p->d_ino) > (UFS_SB(sb)->s_uspi->s_ipg *
+ 						  UFS_SB(sb)->s_uspi->s_ncg))
+@@ -310,6 +311,7 @@ int ufs_add_link(struct dentry *dentry, 
+ 	int namelen = dentry->d_name.len;
+ 	struct super_block *sb = dir->i_sb;
+ 	unsigned reclen = UFS_DIR_REC_LEN(namelen);
++	const unsigned int chunk_size = UFS_SB(sb)->s_uspi->s_dirblksize;
+ 	unsigned short rec_len, name_len;
+ 	struct page *page = NULL;
+ 	struct ufs_dir_entry *de;
+@@ -342,8 +344,8 @@ int ufs_add_link(struct dentry *dentry, 
+ 			if ((char *)de == dir_end) {
+ 				/* We hit i_size */
+ 				name_len = 0;
+-				rec_len = UFS_SECTOR_SIZE;
+-				de->d_reclen = cpu_to_fs16(sb, UFS_SECTOR_SIZE);
++				rec_len = chunk_size;
++				de->d_reclen = cpu_to_fs16(sb, chunk_size);
+ 				de->d_ino = 0;
+ 				goto got_it;
+ 			}
+@@ -431,7 +433,7 @@ ufs_readdir(struct file *filp, void *dir
+ 	unsigned int offset = pos & ~PAGE_CACHE_MASK;
+ 	unsigned long n = pos >> PAGE_CACHE_SHIFT;
+ 	unsigned long npages = ufs_dir_pages(inode);
+-	unsigned chunk_mask = ~(UFS_SECTOR_SIZE - 1);
++	unsigned chunk_mask = ~(UFS_SB(sb)->s_uspi->s_dirblksize - 1);
+ 	int need_revalidate = filp->f_version != inode->i_version;
+ 	unsigned flags = UFS_SB(sb)->s_flags;
  
- void
- machine_crash_shutdown(struct pt_regs *pt)
-@@ -132,11 +134,12 @@ kdump_cpu_freeze(struct unw_frame_info *
- 	atomic_inc(&kdump_cpu_freezed);
- 	kdump_status[cpuid] = 1;
- 	mb();
--	if (cpuid == 0) {
--		for (;;)
--			cpu_relax();
--	} else
-+#ifdef CONFIG_HOTPLUG_CPU
-+	if (cpuid != 0)
- 		ia64_jump_to_sal(&sal_boot_rendez_state[cpuid]);
-+#endif
-+	for (;;)
-+		cpu_relax();
- }
+@@ -511,7 +513,7 @@ int ufs_delete_entry(struct inode *inode
+ 	struct super_block *sb = inode->i_sb;
+ 	struct address_space *mapping = page->mapping;
+ 	char *kaddr = page_address(page);
+-	unsigned from = ((char*)dir - kaddr) & ~(UFS_SECTOR_SIZE - 1);
++	unsigned from = ((char*)dir - kaddr) & ~(UFS_SB(sb)->s_uspi->s_dirblksize - 1);
+ 	unsigned to = ((char*)dir - kaddr) + fs16_to_cpu(sb, dir->d_reclen);
+ 	struct ufs_dir_entry *pde = NULL;
+ 	struct ufs_dir_entry *de = (struct ufs_dir_entry *) (kaddr + from);
+@@ -556,6 +558,7 @@ int ufs_make_empty(struct inode * inode,
+ 	struct super_block * sb = dir->i_sb;
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct page *page = grab_cache_page(mapping, 0);
++	const unsigned int chunk_size = UFS_SB(sb)->s_uspi->s_dirblksize;
+ 	struct ufs_dir_entry * de;
+ 	char *base;
+ 	int err;
+@@ -563,7 +566,7 @@ int ufs_make_empty(struct inode * inode,
+ 	if (!page)
+ 		return -ENOMEM;
+ 	kmap(page);
+-	err = mapping->a_ops->prepare_write(NULL, page, 0, UFS_SECTOR_SIZE);
++	err = mapping->a_ops->prepare_write(NULL, page, 0, chunk_size);
+ 	if (err) {
+ 		unlock_page(page);
+ 		goto fail;
+@@ -584,11 +587,11 @@ int ufs_make_empty(struct inode * inode,
+ 		((char *)de + fs16_to_cpu(sb, de->d_reclen));
+ 	de->d_ino = cpu_to_fs32(sb, dir->i_ino);
+ 	ufs_set_de_type(sb, de, dir->i_mode);
+-	de->d_reclen = cpu_to_fs16(sb, UFS_SECTOR_SIZE - UFS_DIR_REC_LEN(1));
++	de->d_reclen = cpu_to_fs16(sb, chunk_size - UFS_DIR_REC_LEN(1));
+ 	ufs_set_de_namlen(sb, de, 2);
+ 	strcpy (de->d_name, "..");
  
- static int
-diff -puN arch/ia64/kernel/machine_kexec.c~kexec-fix-config_smp=n-compilation-v2-ia64 arch/ia64/kernel/machine_kexec.c
---- a/arch/ia64/kernel/machine_kexec.c~kexec-fix-config_smp=n-compilation-v2-ia64
-+++ a/arch/ia64/kernel/machine_kexec.c
-@@ -70,12 +70,14 @@ void machine_kexec_cleanup(struct kimage
+-	err = ufs_commit_chunk(page, 0, UFS_SECTOR_SIZE);
++	err = ufs_commit_chunk(page, 0, chunk_size);
+ fail:
+ 	kunmap(page);
+ 	page_cache_release(page);
+diff -puN fs/ufs/super.c~ufs-restore-back-support-of-openstep fs/ufs/super.c
+--- a/fs/ufs/super.c~ufs-restore-back-support-of-openstep
++++ a/fs/ufs/super.c
+@@ -649,7 +649,7 @@ static int ufs_fill_super(struct super_b
+ 		kmalloc (sizeof(struct ufs_sb_private_info), GFP_KERNEL);
+ 	if (!uspi)
+ 		goto failed;
+-
++	uspi->s_dirblksize = UFS_SECTOR_SIZE;
+ 	super_block_offset=UFS_SBLOCK;
  
- void machine_shutdown(void)
- {
-+#ifdef CONFIG_HOTPLUG_CPU
- 	int cpu;
+ 	/* Keep 2Gig file limit. Some UFS variants need to override 
+@@ -718,6 +718,7 @@ static int ufs_fill_super(struct super_b
+ 		break;
+ 	
+ 	case UFS_MOUNT_UFSTYPE_NEXTSTEP:
++		/*TODO: check may be we need set special dir block size?*/
+ 		UFSD("ufstype=nextstep\n");
+ 		uspi->s_fsize = block_size = 1024;
+ 		uspi->s_fmask = ~(1024 - 1);
+@@ -733,6 +734,7 @@ static int ufs_fill_super(struct super_b
+ 		break;
+ 	
+ 	case UFS_MOUNT_UFSTYPE_NEXTSTEP_CD:
++		/*TODO: check may be we need set special dir block size?*/
+ 		UFSD("ufstype=nextstep-cd\n");
+ 		uspi->s_fsize = block_size = 2048;
+ 		uspi->s_fmask = ~(2048 - 1);
+@@ -754,6 +756,7 @@ static int ufs_fill_super(struct super_b
+ 		uspi->s_fshift = 10;
+ 		uspi->s_sbsize = super_block_size = 2048;
+ 		uspi->s_sbbase = 0;
++		uspi->s_dirblksize = 1024;
+ 		flags |= UFS_DE_44BSD | UFS_UID_44BSD | UFS_ST_44BSD | UFS_CG_44BSD;
+ 		if (!(sb->s_flags & MS_RDONLY)) {
+ 			if (!silent)
+diff -puN include/linux/ufs_fs.h~ufs-restore-back-support-of-openstep include/linux/ufs_fs.h
+--- a/include/linux/ufs_fs.h~ufs-restore-back-support-of-openstep
++++ a/include/linux/ufs_fs.h
+@@ -789,6 +789,7 @@ struct ufs_sb_private_info {
  
- 	for_each_online_cpu(cpu) {
- 		if (cpu != smp_processor_id())
- 			cpu_down(cpu);
- 	}
-+#endif
- 	kexec_disable_iosapic();
- }
+ 	__u32	s_maxsymlinklen;/* upper limit on fast symlinks' size */
+ 	__s32	fs_magic;       /* filesystem magic */
++	unsigned int s_dirblksize;
+ };
  
+ /*
 _
 
-Patches currently in -mm which might be from magnus@valinux.co.jp are
+Patches currently in -mm which might be from dushistov@mail.ru are
 
-kexec-fix-config_smp=n-compilation-v2-ia64.patch
+ufs-restore-back-support-of-openstep.patch
+ufs2-write-mount-as-rw.patch
+ufs2-write-inodes-write.patch
+ufs2-write-block-allocation-update.patch
