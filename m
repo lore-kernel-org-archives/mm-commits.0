@@ -1,132 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 01:25:36 -0800
-Message-ID: <200702050925.l159PaoE016453@shell0.pdx.osdl.net>
+Subject: - aio-fix-buggy-put_ioctx-call-in-aio_complete-v2.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 01:25:10 -0800
+Message-ID: <200702050925.l159PAsv016417@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37435 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37495 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752273AbXBEJ3C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 04:29:02 -0500
+	id S1752279AbXBEJad (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 04:30:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
+To: kenchen@google.com, bcrl@kvack.org, jmoyer@redhat.com, pbadari@us.ibm.com, stable@kernel.org, suparna@in.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Adrian Bunk <bunk@stusta.de>
+     aio: fix buggy put_ioctx call in aio_complete - v2
 has been removed from the -mm tree.  Its filename was
-     nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
+     aio-fix-buggy-put_ioctx-call-in-aio_complete-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: From: Adrian Bunk <bunk@stusta.de>
+Subject: aio: fix buggy put_ioctx call in aio_complete - v2
+From: "Ken Chen" <kenchen@google.com>
 
+An AIO bug was reported that sleeping function is being called in softirq
+context:
 
-net/built-in.o: In function `q931_help':
-nf_conntrack_h323_main.c:(.text.q931_help+0x6ad): undefined reference to `ip6_route_output'
-nf_conntrack_h323_main.c:(.text.q931_help+0x6c3): undefined reference to `ip6_route_output'
+BUG: warning at kernel/mutex.c:132/__mutex_lock_common()
+Call Trace:
+     [<a000000100577b00>] __mutex_lock_slowpath+0x640/0x6c0
+     [<a000000100577ba0>] mutex_lock+0x20/0x40
+     [<a0000001000a25b0>] flush_workqueue+0xb0/0x1a0
+     [<a00000010018c0c0>] __put_ioctx+0xc0/0x240
+     [<a00000010018d470>] aio_complete+0x2f0/0x420
+     [<a00000010019cc80>] finished_one_bio+0x200/0x2a0
+     [<a00000010019d1c0>] dio_bio_complete+0x1c0/0x200
+     [<a00000010019d260>] dio_bio_end_aio+0x60/0x80
+     [<a00000010014acd0>] bio_endio+0x110/0x1c0
+     [<a0000001002770e0>] __end_that_request_first+0x180/0xba0
+     [<a000000100277b90>] end_that_request_chunk+0x30/0x60
+     [<a0000002073c0c70>] scsi_end_request+0x50/0x300 [scsi_mod]
+     [<a0000002073c1240>] scsi_io_completion+0x200/0x8a0 [scsi_mod]
+     [<a0000002074729b0>] sd_rw_intr+0x330/0x860 [sd_mod]
+     [<a0000002073b3ac0>] scsi_finish_command+0x100/0x1c0 [scsi_mod]
+     [<a0000002073c2910>] scsi_softirq_done+0x230/0x300 [scsi_mod]
+     [<a000000100277d20>] blk_done_softirq+0x160/0x1c0
+     [<a000000100083e00>] __do_softirq+0x200/0x240
+     [<a000000100083eb0>] do_softirq+0x70/0xc0
 
-CONFIG_IPV6=m, CONFIG_NF_CONNTRACK_H323=y results in a compile error.
+See report: http://marc.theaimsgroup.com/?l=linux-kernel&m=116599593200888&w=2
 
-Fix this by letting NF_CONNTRACK_H323 depend on (IPV6 || IPV6=n).
+flush_workqueue() is not allowed to be called in the softirq context.
+However, aio_complete() called from I/O interrupt can potentially call
+put_ioctx with last ref count on ioctx and triggers bug.  It is simply
+incorrect to perform ioctx freeing from aio_complete.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+The bug is trigger-able from a race between io_destroy() and aio_complete().
+A possible scenario:
+
+cpu0                               cpu1
+io_destroy                         aio_complete
+  wait_for_all_aios {                __aio_put_req
+     ...                                 ctx->reqs_active--;
+     if (!ctx->reqs_active)
+        return;
+  }
+  ...
+  put_ioctx(ioctx)
+
+                                     put_ioctx(ctx);
+                                        __put_ioctx
+                                          bam! Bug trigger!
+
+The real problem is that the condition check of ctx->reqs_active in
+wait_for_all_aios() is incorrect that access to reqs_active is not
+being properly protected by spin lock.
+
+This patch adds that protective spin lock, and at the same time removes
+all duplicate ref counting for each kiocb as reqs_active is already used
+as a ref count for each active ioctx.  This also ensures that buggy call
+to flush_workqueue() in softirq context is eliminated.
+
+Signed-off-by: "Ken Chen" <kenchen@google.com>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: <stable@kernel.org>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/aio.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN net/netfilter/Kconfig~nf_conntrack_h323-must-depend-on-ipv6-ipv6=n net/netfilter/Kconfig
---- a/net/netfilter/Kconfig~nf_conntrack_h323-must-depend-on-ipv6-ipv6=n
-+++ a/net/netfilter/Kconfig
-@@ -165,7 +165,7 @@ config NF_CONNTRACK_FTP
+diff -puN fs/aio.c~aio-fix-buggy-put_ioctx-call-in-aio_complete-v2 fs/aio.c
+--- a/fs/aio.c~aio-fix-buggy-put_ioctx-call-in-aio_complete-v2
++++ a/fs/aio.c
+@@ -298,17 +298,23 @@ static void wait_for_all_aios(struct kio
+ 	struct task_struct *tsk = current;
+ 	DECLARE_WAITQUEUE(wait, tsk);
  
- config NF_CONNTRACK_H323
- 	tristate "H.323 protocol support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && NF_CONNTRACK
-+	depends on EXPERIMENTAL && NF_CONNTRACK && (IPV6 || IPV6=n)
- 	help
- 	  H.323 is a VoIP signalling protocol from ITU-T. As one of the most
- 	  important VoIP protocols, it is widely used by voice hardware and
++	spin_lock_irq(&ctx->ctx_lock);
+ 	if (!ctx->reqs_active)
+-		return;
++		goto out;
+ 
+ 	add_wait_queue(&ctx->wait, &wait);
+ 	set_task_state(tsk, TASK_UNINTERRUPTIBLE);
+ 	while (ctx->reqs_active) {
++		spin_unlock_irq(&ctx->ctx_lock);
+ 		schedule();
+ 		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
++		spin_lock_irq(&ctx->ctx_lock);
+ 	}
+ 	__set_task_state(tsk, TASK_RUNNING);
+ 	remove_wait_queue(&ctx->wait, &wait);
++
++out:
++	spin_unlock_irq(&ctx->ctx_lock);
+ }
+ 
+ /* wait_on_sync_kiocb:
+@@ -424,7 +430,6 @@ static struct kiocb fastcall *__aio_get_
+ 	ring = kmap_atomic(ctx->ring_info.ring_pages[0], KM_USER0);
+ 	if (ctx->reqs_active < aio_ring_avail(&ctx->ring_info, ring)) {
+ 		list_add(&req->ki_list, &ctx->active_reqs);
+-		get_ioctx(ctx);
+ 		ctx->reqs_active++;
+ 		okay = 1;
+ 	}
+@@ -536,8 +541,6 @@ int fastcall aio_put_req(struct kiocb *r
+ 	spin_lock_irq(&ctx->ctx_lock);
+ 	ret = __aio_put_req(ctx, req);
+ 	spin_unlock_irq(&ctx->ctx_lock);
+-	if (ret)
+-		put_ioctx(ctx);
+ 	return ret;
+ }
+ 
+@@ -779,8 +782,7 @@ static int __aio_run_iocbs(struct kioctx
+ 		 */
+ 		iocb->ki_users++;       /* grab extra reference */
+ 		aio_run_iocb(iocb);
+-		if (__aio_put_req(ctx, iocb))  /* drop extra ref */
+-			put_ioctx(ctx);
++		__aio_put_req(ctx, iocb);
+  	}
+ 	if (!list_empty(&ctx->run_list))
+ 		return 1;
+@@ -997,14 +999,10 @@ put_rq:
+ 	/* everything turned out well, dispose of the aiocb. */
+ 	ret = __aio_put_req(ctx, iocb);
+ 
+-	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
+-
+ 	if (waitqueue_active(&ctx->wait))
+ 		wake_up(&ctx->wait);
+ 
+-	if (ret)
+-		put_ioctx(ctx);
+-
++	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from kenchen@google.com are
 
-v9fs_vfs_mkdir-fix-a-double-free.patch
-git-acpi.patch
-git-alsa.patch
-cpu_freq_table-shouldnt-be-a-def_tristate.patch
-git-powerpc.patch
-drivers-char-drm-drm_mmc-remove-unused-exports.patch
-git-dvb.patch
-drivers-media-dvb-frontends-make-4-functions-static.patch
-cx88-videoc-remove-struct-radionorms.patch
-if-0-v4l_printk_ioctl_arg.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-libata-all.patch
-mips-remove-smp_tune_scheduling.patch
-git-mmc.patch
-mtd_ck804xrom-must-depend-on-pci.patch
-git-ubi.patch
-git-netdev-all.patch
-net-irda-proper-prototypes.patch
-net-wanrouter-wanmainc-cleanups.patch
-net-uninline-skb_put-fix.patch
-git-ocfs2.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-git-ipwireless_cs.patch
-cleanup-x86_64-mm-vmi-timer.patch
-x86_64-re-add-a-newline-to-restore_context.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-drivers-char-vc_screenc-proper-prototypes.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
-schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
-cleanup-linux-byteorder-swabbh.patch
-cleanup-include-linux-xattrh.patch
-cleanup-include-linux-reiserfs_xattrh.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-fbdev-driver-for-s3-trio-virge-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-debug-shared-irqs-kconfig-fix.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+simplify-shmem_aopsset_page_dirty-method.patch
+convert-ramfs-to-use-__set_page_dirty_no_writeback.patch
+do-not-disturb-page-referenced-state-when-unmapping-memory-range.patch
