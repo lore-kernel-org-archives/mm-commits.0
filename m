@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + update-readmedrm-bugzilla-7933.patch added to -mm tree
-Date: Mon, 05 Feb 2007 14:14:55 -0800
-Message-ID: <200702052214.l15MEtc1000530@shell0.pdx.osdl.net>
+Subject: + kexec-fix-config_smp=n-compilation-v2-ia64.patch added to -mm tree
+Date: Mon, 05 Feb 2007 14:16:50 -0800
+Message-ID: <200702052216.l15MGopt000958@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36190 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36246 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964937AbXBEWPA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 17:15:00 -0500
+	id S964894AbXBEWST (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 17:18:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: magnus@valinux.co.jp, horms@verge.net.au, jlan@sgi.com, stable@kernel.org, tony.luck@intel.com
 
 
 The patch titled
-     update README.drm (bugzilla #7933)
+     kexec: Fix CONFIG_SMP=n compilation V2 (ia64)
 has been added to the -mm tree.  Its filename is
-     update-readmedrm-bugzilla-7933.patch
+     kexec-fix-config_smp=n-compilation-v2-ia64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,79 +25,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: update README.drm (bugzilla #7933)
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: kexec: Fix CONFIG_SMP=n compilation V2 (ia64)
+From: Magnus Damm <magnus@valinux.co.jp>
 
-Update URLs in drivers/char/drm/README.drm, to take care of kernel bugzilla
-#7933.
+Kexec support for 2.6.20 on ia64 does not build properly using a config
+made up by CONFIG_SMP=n and CONFIG_HOTPLUG_CPU=n:
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+  CC      arch/ia64/kernel/machine_kexec.o
+arch/ia64/kernel/machine_kexec.c: In function `machine_shutdown':
+arch/ia64/kernel/machine_kexec.c:77: warning: implicit declaration of function `cpu_down'
+  AS      arch/ia64/kernel/relocate_kernel.o
+  CC      arch/ia64/kernel/crash.o
+arch/ia64/kernel/crash.c: In function `kdump_cpu_freeze':
+arch/ia64/kernel/crash.c:139: warning: implicit declaration of function `ia64_jump_to_sal'
+arch/ia64/kernel/crash.c:139: error: `sal_boot_rendez_state' undeclared (first use in this function)
+arch/ia64/kernel/crash.c:139: error: (Each undeclared identifier is reported only once
+arch/ia64/kernel/crash.c:139: error: for each function it appears in.)
+arch/ia64/kernel/crash.c: At top level:
+arch/ia64/kernel/crash.c:84: warning: 'kdump_wait_cpu_freeze' defined but not used
+make[1]: *** [arch/ia64/kernel/crash.o] Error 1
+make: *** [arch/ia64/kernel] Error 2
+
+Signed-off-by: Magnus Damm <magnus@valinux.co.jp>
+Acked-by: Simon Horman <horms@verge.net.au>
+Acked-by: Jay Lan <jlan@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/README.drm |   15 +++++++--------
- 1 files changed, 7 insertions(+), 8 deletions(-)
+ arch/ia64/kernel/crash.c         |   11 +++++++----
+ arch/ia64/kernel/machine_kexec.c |    2 ++
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/drm/README.drm~update-readmedrm-bugzilla-7933 drivers/char/drm/README.drm
---- a/drivers/char/drm/README.drm~update-readmedrm-bugzilla-7933
-+++ a/drivers/char/drm/README.drm
-@@ -1,6 +1,6 @@
- ************************************************************
- * For the very latest on DRI development, please see:      *
--*     http://dri.sourceforge.net/                          *
-+*     http://dri.freedesktop.org/wiki/FrontPage            *
- ************************************************************
+diff -puN arch/ia64/kernel/crash.c~kexec-fix-config_smp=n-compilation-v2-ia64 arch/ia64/kernel/crash.c
+--- a/arch/ia64/kernel/crash.c~kexec-fix-config_smp=n-compilation-v2-ia64
++++ a/arch/ia64/kernel/crash.c
+@@ -79,6 +79,7 @@ crash_save_this_cpu()
+ 	final_note(buf);
+ }
  
- The Direct Rendering Manager (drm) is a device-independent kernel-level
-@@ -26,21 +26,20 @@ ways:
++#ifdef CONFIG_SMP
+ static int
+ kdump_wait_cpu_freeze(void)
+ {
+@@ -91,6 +92,7 @@ kdump_wait_cpu_freeze(void)
+ 	}
+ 	return 1;
+ }
++#endif
  
+ void
+ machine_crash_shutdown(struct pt_regs *pt)
+@@ -132,11 +134,12 @@ kdump_cpu_freeze(struct unw_frame_info *
+ 	atomic_inc(&kdump_cpu_freezed);
+ 	kdump_status[cpuid] = 1;
+ 	mb();
+-	if (cpuid == 0) {
+-		for (;;)
+-			cpu_relax();
+-	} else
++#ifdef CONFIG_HOTPLUG_CPU
++	if (cpuid != 0)
+ 		ia64_jump_to_sal(&sal_boot_rendez_state[cpuid]);
++#endif
++	for (;;)
++		cpu_relax();
+ }
  
- Documentation on the DRI is available from:
--    http://precisioninsight.com/piinsights.html
-+    http://dri.freedesktop.org/wiki/Documentation
-+    http://sourceforge.net/project/showfiles.php?group_id=387
-+    http://dri.sourceforge.net/doc/
+ static int
+diff -puN arch/ia64/kernel/machine_kexec.c~kexec-fix-config_smp=n-compilation-v2-ia64 arch/ia64/kernel/machine_kexec.c
+--- a/arch/ia64/kernel/machine_kexec.c~kexec-fix-config_smp=n-compilation-v2-ia64
++++ a/arch/ia64/kernel/machine_kexec.c
+@@ -70,12 +70,14 @@ void machine_kexec_cleanup(struct kimage
  
- For specific information about kernel-level support, see:
+ void machine_shutdown(void)
+ {
++#ifdef CONFIG_HOTPLUG_CPU
+ 	int cpu;
  
-     The Direct Rendering Manager, Kernel Support for the Direct Rendering
-     Infrastructure
--    http://precisioninsight.com/dr/drm.html
-+    http://dri.sourceforge.net/doc/drm_low_level.html
+ 	for_each_online_cpu(cpu) {
+ 		if (cpu != smp_processor_id())
+ 			cpu_down(cpu);
+ 	}
++#endif
+ 	kexec_disable_iosapic();
+ }
  
-     Hardware Locking for the Direct Rendering Infrastructure
--    http://precisioninsight.com/dr/locking.html
-+    http://dri.sourceforge.net/doc/hardware_locking_low_level.html
- 
-     A Security Analysis of the Direct Rendering Infrastructure
--    http://precisioninsight.com/dr/security.html
-+    http://dri.sourceforge.net/doc/security_low_level.html
- 
- ************************************************************
--* For the very latest on DRI development, please see:      *
--*     http://dri.sourceforge.net/                          *
--************************************************************
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from magnus@valinux.co.jp are
 
-git-alsa.patch
-update-readmedrm-bugzilla-7933.patch
-git-gfs2-nmw.patch
-qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
-mtd-add-missing-kernel-doc-item.patch
-git-ocfs2.patch
-parisc-fix-module_param-iommu-permission.patch
-git-scsi-misc.patch
-math-emu-setcc-avoid-gcc-extension.patch
-typeof-__page_to_pfn-with-sparsemem=y.patch
-docbook-html-correction-of-recursive-a-tags-in-html-output.patch
-kernel-doc-allow-a-little-whitespace.patch
-sysrq-alphabetize-command-keys-doc.patch
-kernel-doc-allow-more-whitespace.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-docbook-add-edd-firmware-interfaces.patch
-kernel-doc-fix-some-odd-spacing-issues.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+kexec-fix-config_smp=n-compilation-v2-ia64.patch
