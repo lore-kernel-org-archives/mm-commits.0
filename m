@@ -1,64 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-fix-tbfadt.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 12:41:10 -0800
-Message-ID: <200702052041.l15KfAxf030552@shell0.pdx.osdl.net>
+Subject: - mmc-au1xmmc-return-errors-for-unknown-response-types.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 12:41:24 -0800
+Message-ID: <200702052041.l15KfOwZ030570@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60797 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60806 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933025AbXBEUma (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 15:42:30 -0500
+	id S933438AbXBEUmo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 15:42:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexey.y.starikovskiy@linux.intel.com, bob.picco@hp.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: mano@roarinelk.homelinux.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: fix tbfadt
+     mmc: au1xmmc: return errors for unknown response types
 has been removed from the -mm tree.  Its filename was
-     acpi-fix-tbfadt.patch
+     mmc-au1xmmc-return-errors-for-unknown-response-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: acpi: fix tbfadt
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: mmc: au1xmmc: return errors for unknown response types
+From: Manuel Lauss <mano@roarinelk.homelinux.net>
 
-Copy space_id of GAS structure to newly created GAS.
+au1xmmc: return error when encountering unhandled/unknown response type.
 
-Cc: Bob Picco <bob.picco@hp.com>
-CC: Len Brown <lenb@kernel.org>
+Signed-off-by: Manuel Lauss <mano@roarinelk.homelinux.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/tables/tbfadt.c |    5 +++++
- 1 files changed, 5 insertions(+)
+ drivers/mmc/au1xmmc.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN drivers/acpi/tables/tbfadt.c~acpi-fix-tbfadt drivers/acpi/tables/tbfadt.c
---- a/drivers/acpi/tables/tbfadt.c~acpi-fix-tbfadt
-+++ a/drivers/acpi/tables/tbfadt.c
-@@ -333,6 +333,8 @@ static void acpi_tb_convert_fadt(void)
- 				     pm1_register_length,
- 				     (acpi_gbl_FADT.xpm1a_event_block.address +
- 				      pm1_register_length));
-+	/* Don't forget to copy space_id of the GAS */
-+	acpi_gbl_xpm1a_enable.space_id = acpi_gbl_FADT.xpm1a_event_block.space_id;
+diff -puN drivers/mmc/au1xmmc.c~mmc-au1xmmc-return-errors-for-unknown-response-types drivers/mmc/au1xmmc.c
+--- a/drivers/mmc/au1xmmc.c~mmc-au1xmmc-return-errors-for-unknown-response-types
++++ a/drivers/mmc/au1xmmc.c
+@@ -193,6 +193,8 @@ static int au1xmmc_send_command(struct a
+ 	u32 mmccmd = (cmd->opcode << SD_CMD_CI_SHIFT);
  
- 	/* The PM1B register block is optional, ignore if not present */
- 
-@@ -341,6 +343,9 @@ static void acpi_tb_convert_fadt(void)
- 					     pm1_register_length,
- 					     (acpi_gbl_FADT.xpm1b_event_block.
- 					      address + pm1_register_length));
-+		/* Don't forget to copy space_id of the GAS */
-+		acpi_gbl_xpm1b_enable.space_id = acpi_gbl_FADT.xpm1a_event_block.space_id;
-+
+ 	switch (mmc_resp_type(cmd)) {
++	case MMC_RSP_NONE:
++		break;
+ 	case MMC_RSP_R1:
+ 		mmccmd |= SD_CMD_RT_1;
+ 		break;
+@@ -205,6 +207,10 @@ static int au1xmmc_send_command(struct a
+ 	case MMC_RSP_R3:
+ 		mmccmd |= SD_CMD_RT_3;
+ 		break;
++	default:
++		printk(KERN_INFO "au1xmmc: unhandled response type %02x\n",
++			mmc_resp_type(cmd));
++		return MMC_ERR_INVALID;
  	}
- }
  
+ 	switch(cmd->opcode) {
 _
 
-Patches currently in -mm which might be from alexey.y.starikovskiy@linux.intel.com are
+Patches currently in -mm which might be from mano@roarinelk.homelinux.net are
 
-git-acpi.patch
-swsusp-change-code-order-in-diskc-fix.patch
+git-mmc.patch
+git-sh.patch
