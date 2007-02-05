@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + posix-timers-rcu-optimization-for-clock_gettime-fix.patch added to -mm tree
-Date: Mon, 05 Feb 2007 13:24:22 -0800
-Message-ID: <200702052124.l15LOMZa031579@shell0.pdx.osdl.net>
+Subject: + ifdef-missing-in-arch-mips-pmc-sierra-yosemite-setupc.patch added to -mm tree
+Date: Mon, 05 Feb 2007 13:24:59 -0800
+Message-ID: <200702052124.l15LOx2K031586@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34333 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34341 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933451AbXBEVY6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 16:24:58 -0500
+	id S933456AbXBEVZJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 16:25:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulmck@linux.vnet.ibm.com, johnstul@us.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     POSIX timers RCU optimization fix for clock_gettime
+     ifdef missing in arch/mips/pmc-sierra/yosemite/setup.c
 has been added to the -mm tree.  Its filename is
-     posix-timers-rcu-optimization-for-clock_gettime-fix.patch
+     ifdef-missing-in-arch-mips-pmc-sierra-yosemite-setupc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: POSIX timers RCU optimization fix for clock_gettime
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: ifdef missing in arch/mips/pmc-sierra/yosemite/setup.c
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Fixes an exit()/posix_cpu_clock_get() race spotted by Oleg Nesterov. 
-Solution is to move the p->signal check under the tasklist_lock.
+ifdef missing in arch/mips/pmc-sierra/yosemite/setup.c
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+early_serial_setup is only defined when CONFIG_SERIAL_8250 is set.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-cpu-timers.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ arch/mips/pmc-sierra/yosemite/setup.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN kernel/posix-cpu-timers.c~posix-timers-rcu-optimization-for-clock_gettime-fix kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~posix-timers-rcu-optimization-for-clock_gettime-fix
-+++ a/kernel/posix-cpu-timers.c
-@@ -312,10 +312,13 @@ int posix_cpu_clock_get(const clockid_t 
- 					error = cpu_clock_sample(which_clock,
- 								 p, &rtn);
- 				}
--			} else if (p->tgid == pid && p->signal) {
-+			} else {
- 				read_lock(&tasklist_lock);
--				error = cpu_clock_sample_group(which_clock,
--							       p, &rtn);
-+				if (p->tgid == pid && p->signal) {
-+					error =
-+					    cpu_clock_sample_group(which_clock,
-+							           p, &rtn);
-+				}
- 				read_unlock(&tasklist_lock);
- 			}
- 		}
+diff -puN arch/mips/pmc-sierra/yosemite/setup.c~ifdef-missing-in-arch-mips-pmc-sierra-yosemite-setupc arch/mips/pmc-sierra/yosemite/setup.c
+--- a/arch/mips/pmc-sierra/yosemite/setup.c~ifdef-missing-in-arch-mips-pmc-sierra-yosemite-setupc
++++ a/arch/mips/pmc-sierra/yosemite/setup.c
+@@ -171,6 +171,7 @@ static void __init py_map_ocd(void)
+ 
+ static void __init py_uart_setup(void)
+ {
++#ifdef CONFIG_SERIAL_8250
+ 	struct uart_port up;
+ 
+ 	/*
+@@ -188,6 +189,7 @@ static void __init py_uart_setup(void)
+ 
+ 	if (early_serial_setup(&up))
+ 		printk(KERN_ERR "Early serial init of port 0 failed\n");
++#endif //CONFIG_SERIAL_8250
+ }
+ 
+ static void __init py_rtc_setup(void)
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-git-block.patch
-add-an-rcu-version-of-list-splicing.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-ipmi-fix-some-rcu-problems.patch
-change-constant-zero-to-notify_done-in-ratelimit_handler.patch
-posix-timers-rcu-optimization-for-clock_gettime.patch
-posix-timers-rcu-optimization-for-clock_gettime-fix.patch
+ifdef-missing-in-arch-mips-pmc-sierra-yosemite-setupc.patch
+relay-add-cpu-hotplug-support.patch
+local_t-documentation.patch
+local_t-documentation-fix.patch
+order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
+minimize-lockdep_on-off-side-effect.patch
