@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ata-add-defines-for-the-iordy-bits.patch added to -mm tree
-Date: Mon, 05 Feb 2007 14:52:33 -0800
-Message-ID: <200702052252.l15MqXqE001739@shell0.pdx.osdl.net>
+Subject: + libata-add-a-host-flag-to-indicate-lack-of-iordy.patch added to -mm tree
+Date: Mon, 05 Feb 2007 14:52:35 -0800
+Message-ID: <200702052252.l15MqZtr001742@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37270 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37274 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964907AbXBEWws (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 17:52:48 -0500
+	id S964927AbXBEWwy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 17:52:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     ata: Add defines for the iordy bits
+     libata: Add a host flag to indicate lack of IORDY capability
 has been added to the -mm tree.  Its filename is
-     ata-add-defines-for-the-iordy-bits.patch
+     libata-add-a-host-flag-to-indicate-lack-of-iordy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,10 +25,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata: Add defines for the iordy bits
+Subject: libata: Add a host flag to indicate lack of IORDY capability
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-IORDY and IORDY enable/disable flags.
+This is the first preparation to doing the !IORDY cases properly.  Further
+diffs will then add the needed logic to do it right.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -36,21 +37,117 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ata.h |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/ata/pata_legacy.c |   11 +++++++++--
+ drivers/ata/pata_qdi.c    |    4 +++-
+ include/linux/libata.h    |    1 +
+ 3 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/ata.h~ata-add-defines-for-the-iordy-bits include/linux/ata.h
---- a/include/linux/ata.h~ata-add-defines-for-the-iordy-bits
-+++ a/include/linux/ata.h
-@@ -299,6 +299,8 @@ struct ata_taskfile {
- #define ata_id_queue_depth(id)	(((id)[75] & 0x1f) + 1)
- #define ata_id_removeable(id)	((id)[0] & (1 << 7))
- #define ata_id_has_dword_io(id)	((id)[50] & (1 << 0))
-+#define ata_id_iordy_disable(id) ((id)[49] & (1 << 10))
-+#define ata_id_has_iordy(id) ((id)[49] & (1 << 9))
- #define ata_id_u32(id,n)	\
- 	(((u32) (id)[(n) + 1] << 16) | ((u32) (id)[(n)]))
- #define ata_id_u64(id,n)	\
+diff -puN drivers/ata/pata_legacy.c~libata-add-a-host-flag-to-indicate-lack-of-iordy drivers/ata/pata_legacy.c
+--- a/drivers/ata/pata_legacy.c~libata-add-a-host-flag-to-indicate-lack-of-iordy
++++ a/drivers/ata/pata_legacy.c
+@@ -89,9 +89,10 @@ static int probe_all;			/* Set to check 
+ static int ht6560a;			/* HT 6560A on primary 1, secondary 2, both 3 */
+ static int ht6560b;			/* HT 6560A on primary 1, secondary 2, both 3 */
+ static int opti82c611a;			/* Opti82c611A on primary 1, secondary 2, both 3 */
+-static int opti82c46x;		/* Opti 82c465MV present (pri/sec autodetect) */
++static int opti82c46x;			/* Opti 82c465MV present (pri/sec autodetect) */
+ static int autospeed;			/* Chip present which snoops speed changes */
+ static int pio_mask = 0x1F;		/* PIO range for autospeed devices */
++static int iordy_mask = 0xFFFFFFFF;	/* Use iordy if available */
+ 
+ /**
+  *	legacy_set_mode		-	mode setting
+@@ -113,6 +114,7 @@ static int legacy_set_mode(struct ata_po
+ 	for (i = 0; i < ATA_MAX_DEVICES; i++) {
+ 		struct ata_device *dev = &ap->device[i];
+ 		if (ata_dev_enabled(dev)) {
++			ata_dev_printk(dev, KERN_INFO, "configured for PIO\n");
+ 			dev->pio_mode = XFER_PIO_0;
+ 			dev->xfer_mode = XFER_PIO_0;
+ 			dev->xfer_shift = ATA_SHIFT_PIO;
+@@ -678,6 +680,7 @@ static __init int legacy_init_one(int po
+ 	struct ata_probe_ent ae;
+ 	struct platform_device *pdev;
+ 	struct ata_port_operations *ops = &legacy_port_ops;
++	u32 iordy = (iordy_mask & mask) ? 0: ATA_FLAG_NO_IORDY;
+ 	void __iomem *io_addr, *ctrl_addr;
+ 	int pio_modes = pio_mask;
+ 	u32 mask = (1 << port);
+@@ -701,6 +704,7 @@ static __init int legacy_init_one(int po
+ 	if (ht6560a & mask) {
+ 		ops = &ht6560a_port_ops;
+ 		pio_modes = 0x07;
++		iordy = ATA_FLAG_NO_IORDY;
+ 	}
+ 	if (ht6560b & mask) {
+ 		ops = &ht6560b_port_ops;
+@@ -736,6 +740,7 @@ static __init int legacy_init_one(int po
+ 			printk(KERN_INFO "PDC20230-C/20630 VLB ATA controller detected.\n");
+ 				pio_modes = 0x07;
+ 			ops = &pdc20230_port_ops;
++			iordy = ATA_FLAG_NO_IORDY;
+ 			udelay(100);
+ 			inb(0x1F5);
+ 		} else {
+@@ -753,6 +758,7 @@ static __init int legacy_init_one(int po
+ 	/* Chip does mode setting by command snooping */
+ 	if (ops == &legacy_port_ops && (autospeed & mask))
+ 		ops = &simple_port_ops;
++
+ 	memset(&ae, 0, sizeof(struct ata_probe_ent));
+ 	INIT_LIST_HEAD(&ae.node);
+ 	ae.dev = &pdev->dev;
+@@ -762,7 +768,7 @@ static __init int legacy_init_one(int po
+ 	ae.pio_mask = pio_modes;
+ 	ae.irq = irq;
+ 	ae.irq_flags = 0;
+-	ae.port_flags = ATA_FLAG_SLAVE_POSS|ATA_FLAG_SRST;
++	ae.port_flags = ATA_FLAG_SLAVE_POSS|ATA_FLAG_SRST|iordy;
+ 	ae.port[0].cmd_addr = io_addr;
+ 	ae.port[0].altstatus_addr = ctrl_addr;
+ 	ae.port[0].ctl_addr = ctrl_addr;
+@@ -931,6 +937,7 @@ module_param(ht6560b, int, 0);
+ module_param(opti82c611a, int, 0);
+ module_param(opti82c46x, int, 0);
+ module_param(pio_mask, int, 0);
++module_param(iordy_mask, int, 0);
+ 
+ module_init(legacy_init);
+ module_exit(legacy_exit);
+diff -puN drivers/ata/pata_qdi.c~libata-add-a-host-flag-to-indicate-lack-of-iordy drivers/ata/pata_qdi.c
+--- a/drivers/ata/pata_qdi.c~libata-add-a-host-flag-to-indicate-lack-of-iordy
++++ a/drivers/ata/pata_qdi.c
+@@ -260,16 +260,18 @@ static __init int qdi_init_one(unsigned 
+ 	if (type == 6580) {
+ 		ae.port_ops = &qdi6580_port_ops;
+ 		ae.pio_mask = 0x1F;
++		ae.port_flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST;
+ 	} else {
+ 		ae.port_ops = &qdi6500_port_ops;
+ 		ae.pio_mask = 0x07;	/* Actually PIO3 !IORDY is possible */
++		ae.port_flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST |
++				ATA_FLAG_NO_IORDY;
+ 	}
+ 
+ 	ae.sht = &qdi_sht;
+ 	ae.n_ports = 1;
+ 	ae.irq = irq;
+ 	ae.irq_flags = 0;
+-	ae.port_flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST;
+ 	ae.port[0].cmd_addr = io_addr;
+ 	ae.port[0].altstatus_addr = ctl_addr;
+ 	ae.port[0].ctl_addr = ctl_addr;
+diff -puN include/linux/libata.h~libata-add-a-host-flag-to-indicate-lack-of-iordy include/linux/libata.h
+--- a/include/linux/libata.h~libata-add-a-host-flag-to-indicate-lack-of-iordy
++++ a/include/linux/libata.h
+@@ -175,6 +175,7 @@ enum {
+ 	ATA_FLAG_DEBUGMSG	= (1 << 13),
+ 	ATA_FLAG_SETXFER_POLLING= (1 << 14), /* use polling for SETXFER */
+ 	ATA_FLAG_IGN_SIMPLEX	= (1 << 15), /* ignore SIMPLEX */
++	ATA_FLAG_NO_IORDY	= (1 << 16), /* controller lacks iordy */
+ 
+ 	/* The following flag belongs to ap->pflags but is kept in
+ 	 * ap->flags because it's referenced in many LLDs and will be
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
