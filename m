@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-clarify-ata_piix-description.patch added to -mm tree
-Date: Mon, 05 Feb 2007 14:52:31 -0800
-Message-ID: <200702052252.l15MqV1N001735@shell0.pdx.osdl.net>
+Subject: + ata-add-defines-for-the-iordy-bits.patch added to -mm tree
+Date: Mon, 05 Feb 2007 14:52:33 -0800
+Message-ID: <200702052252.l15MqXqE001739@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37268 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37270 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964894AbXBEWwt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 17:52:49 -0500
+	id S964907AbXBEWws (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 17:52:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     Kconfig: clarify ATA_PIIX description
+     ata: Add defines for the iordy bits
 has been added to the -mm tree.  Its filename is
-     kconfig-clarify-ata_piix-description.patch
+     ata-add-defines-for-the-iordy-bits.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Kconfig: clarify ATA_PIIX description
+Subject: ata: Add defines for the iordy bits
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-People are getting confused about which drivers to enable for PATA PIIX type
-devices.  Change the ATA_PIIX line and help to make it clearer.
+IORDY and IORDY enable/disable flags.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -37,28 +36,21 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/Kconfig |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/ata.h |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/ata/Kconfig~kconfig-clarify-ata_piix-description drivers/ata/Kconfig
---- a/drivers/ata/Kconfig~kconfig-clarify-ata_piix-description
-+++ a/drivers/ata/Kconfig
-@@ -41,12 +41,12 @@ config SATA_SVW
- 	  If unsure, say N.
- 
- config ATA_PIIX
--	tristate "Intel PIIX/ICH SATA support"
-+	tristate "Intel ESB, ICH, PIIX3, PIIX4 PATA/SATA support"
- 	depends on PCI
- 	help
- 	  This option enables support for ICH5/6/7/8 Serial ATA
--	  and support for PATA on the Intel PIIX3/PIIX4/ICH series
--	  PATA host controllers.
-+	  and support for PATA on the Intel ESB/ICH/PIIX3/PIIX4 series
-+	  host controllers.
- 
- 	  If unsure, say N.
- 
+diff -puN include/linux/ata.h~ata-add-defines-for-the-iordy-bits include/linux/ata.h
+--- a/include/linux/ata.h~ata-add-defines-for-the-iordy-bits
++++ a/include/linux/ata.h
+@@ -299,6 +299,8 @@ struct ata_taskfile {
+ #define ata_id_queue_depth(id)	(((id)[75] & 0x1f) + 1)
+ #define ata_id_removeable(id)	((id)[0] & (1 << 7))
+ #define ata_id_has_dword_io(id)	((id)[50] & (1 << 0))
++#define ata_id_iordy_disable(id) ((id)[49] & (1 << 10))
++#define ata_id_has_iordy(id) ((id)[49] & (1 << 9))
+ #define ata_id_u32(id,n)	\
+ 	(((u32) (id)[(n) + 1] << 16) | ((u32) (id)[(n)]))
+ #define ata_id_u64(id,n)	\
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
