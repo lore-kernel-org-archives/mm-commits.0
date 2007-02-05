@@ -1,62 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - altix-more-acpi-prt-support.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 01:25:29 -0800
-Message-ID: <200702050925.l159PTJt016444@shell0.pdx.osdl.net>
+Subject: - net-smc911x-match-up-spin-lock-unlock.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 01:25:18 -0800
+Message-ID: <200702050925.l159PIAN016431@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37379 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37384 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752252AbXBEJ0q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 04:26:46 -0500
+	id S1752255AbXBEJ0v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 04:26:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jpk@sgi.com, lenb@kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: jacmet@sunsite.dk, jeff@garzik.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Altix: more ACPI PRT support
+     net/smc911x: match up spin lock/unlock
 has been removed from the -mm tree.  Its filename was
-     altix-more-acpi-prt-support.patch
+     net-smc911x-match-up-spin-lock-unlock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Altix: more ACPI PRT support
-From: John Keller <jpk@sgi.com>
+Subject: net/smc911x: match up spin lock/unlock
+From: Peter Korsgaard <jacmet@sunsite.dk>
 
-The SN Altix platform does not conform to the IOSAPIC IRQ routing model. 
-Add code in acpi_unregister_gsi() to check if (acpi_irq_model ==
-ACPI_IRQ_MODEL_PLATFORM) and return.
+smc911x_phy_configure's error handling unconditionally unlocks the
+spinlock even if it wasn't locked. Patch fixes it.
 
-Due to an oversight, this code was not added previously when
-similar code was added to acpi_register_gsi().
-
-http://marc.theaimsgroup.com/?l=linux-acpi&m=116680983430121&w=2
-
-Signed-off-by: John Keller <jpk@sgi.com>
-Acked-by: Len Brown <lenb@kernel.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/acpi.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/net/smc911x.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/kernel/acpi.c~altix-more-acpi-prt-support arch/ia64/kernel/acpi.c
---- a/arch/ia64/kernel/acpi.c~altix-more-acpi-prt-support
-+++ a/arch/ia64/kernel/acpi.c
-@@ -609,6 +609,9 @@ EXPORT_SYMBOL(acpi_register_gsi);
+diff -puN drivers/net/smc911x.c~net-smc911x-match-up-spin-lock-unlock drivers/net/smc911x.c
+--- a/drivers/net/smc911x.c~net-smc911x-match-up-spin-lock-unlock
++++ a/drivers/net/smc911x.c
+@@ -968,11 +968,11 @@ static void smc911x_phy_configure(struct
+ 	 * We should not be called if phy_type is zero.
+ 	 */
+ 	if (lp->phy_type == 0)
+-		 goto smc911x_phy_configure_exit;
++		 goto smc911x_phy_configure_exit_nolock;
  
- void acpi_unregister_gsi(u32 gsi)
- {
-+	if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM)
-+		return;
-+
- 	iosapic_unregister_intr(gsi);
+ 	if (smc911x_phy_reset(dev, phyaddr)) {
+ 		printk("%s: PHY reset timed out\n", dev->name);
+-		goto smc911x_phy_configure_exit;
++		goto smc911x_phy_configure_exit_nolock;
+ 	}
+ 	spin_lock_irqsave(&lp->lock, flags);
+ 
+@@ -1041,6 +1041,7 @@ static void smc911x_phy_configure(struct
+ 
+ smc911x_phy_configure_exit:
+ 	spin_unlock_irqrestore(&lp->lock, flags);
++smc911x_phy_configure_exit_nolock:
+ 	lp->work_pending = 0;
  }
  
 _
 
-Patches currently in -mm which might be from jpk@sgi.com are
-
-git-acpi.patch
+Patches currently in -mm which might be from jacmet@sunsite.dk are
