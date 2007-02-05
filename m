@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch added to -mm tree
-Date: Mon, 05 Feb 2007 13:29:39 -0800
-Message-ID: <200702052129.l15LTdU8031671@shell0.pdx.osdl.net>
+Subject: + kernel-time-clocksourcec-needs-struct-task_struct-on-m68k.patch added to -mm tree
+Date: Mon, 05 Feb 2007 13:27:24 -0800
+Message-ID: <200702052127.l15LRO5v031611@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34548 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34513 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933479AbXBEV3t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 16:29:49 -0500
+	id S933476AbXBEV27 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 16:28:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, jack@suse.cz
+Cc: mathieu.desnoyers@polymtl.ca, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     QUOTA: Have <linux/quota.h> include <linux/rwsem.h> explicitly
+     kernel/time/clocksource.c needs struct task_struct on m68k
 has been added to the -mm tree.  Its filename is
-     quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
+     kernel-time-clocksourcec-needs-struct-task_struct-on-m68k.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: QUOTA: Have <linux/quota.h> include <linux/rwsem.h> explicitly
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: kernel/time/clocksource.c needs struct task_struct on m68k
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Since quota.h declares a R/W semaphore, it should include rwsem.h
-explicitly.
+kernel/time/clocksource.c needs struct task_struct on m68k.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: Jan Kara <jack@suse.cz>
+Because it uses spin_unlock_irq(), which, on m68k, uses hardirq_count(), which
+uses preempt_count(), which needs to dereference struct task_struct, we
+have to include sched.h. Because it would cause a loop inclusion, we
+cannot include sched.h in any other of asm-m68k/system.h,
+linux/thread_info.h, linux/hardirq.h, which leaves this ugly include in
+a C file as the only simple solution.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/quota.h |    1 +
+ kernel/time/clocksource.c |    1 +
  1 files changed, 1 insertion(+)
 
-diff -puN include/linux/quota.h~quota-have-linux-quotah-include-linux-rwsemh-explicitly include/linux/quota.h
---- a/include/linux/quota.h~quota-have-linux-quotah-include-linux-rwsemh-explicitly
-+++ a/include/linux/quota.h
-@@ -132,6 +132,7 @@ struct if_dqinfo {
+diff -puN kernel/time/clocksource.c~kernel-time-clocksourcec-needs-struct-task_struct-on-m68k kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~kernel-time-clocksourcec-needs-struct-task_struct-on-m68k
++++ a/kernel/time/clocksource.c
+@@ -28,6 +28,7 @@
+ #include <linux/sysdev.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
++#include <linux/sched.h> /* for spin_unlock_irq() using preempt_count() m68k */
  
- #ifdef __KERNEL__
- #include <linux/spinlock.h>
-+#include <linux/rwsem.h>
- #include <linux/mutex.h>
- 
- #include <linux/dqblk_xfs.h>
+ /* XXX - Would like a better way for initializing curr_clocksource */
+ extern struct clocksource clocksource_jiffies;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-git-acpi.patch
-git-alsa.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-fix-apparent-typo-config_serial_cpm_smc.patch
-remove-the-unused-kernel-config-option-video_videobuf.patch
-change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
-git-mips.patch
-remove-unused-kernel-config-option-dlci_count.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-git-wireless.patch
-replace-incorrect-macro-name-wireless_ext-with.patch
-remove-unused-kernel-config-option-x86_xadd.patch
-remove-final-references-to-deprecated-map_anon-page-protection-flag.patch
-uml-fix-apparent-config_64_bit-typo.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-lcd_device.patch
-remove-unused-kernel-config-option-paride_parport.patch
-fix-apparent-typo-config_lockdep_debug.patch
-add-is_power_of_2-checking-to-log2h.patch
-ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
-quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+ifdef-missing-in-arch-mips-pmc-sierra-yosemite-setupc.patch
+kernel-time-clocksourcec-needs-struct-task_struct-on-m68k.patch
+relay-add-cpu-hotplug-support.patch
+local_t-documentation.patch
+local_t-documentation-fix.patch
+order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
+minimize-lockdep_on-off-side-effect.patch
