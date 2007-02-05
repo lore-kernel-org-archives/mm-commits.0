@@ -1,90 +1,267 @@
 From: akpm@linux-foundation.org
-Subject: - nlm-fix-double-free-in-__nlm_async_call.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 12:33:37 -0800
-Message-ID: <200702052033.l15KXbO0030355@shell0.pdx.osdl.net>
+Subject: - git-mmc-fixup.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 12:41:20 -0800
+Message-ID: <200702052041.l15KfKtc030564@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60470 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60748 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933420AbXBEUe6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 15:34:58 -0500
+	id S933428AbXBEUl1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 15:41:27 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l15KfKQ5025701
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 5 Feb 2007 12:41:21 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Trond.Myklebust@netapp.com, kas@fi.muni.cz, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NLM: Fix double free in __nlm_async_call
+     git-mmc-fixup
 has been removed from the -mm tree.  Its filename was
-     nlm-fix-double-free-in-__nlm_async_call.patch
+     git-mmc-fixup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NLM: Fix double free in __nlm_async_call
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Subject: git-mmc-fixup
+From: Andrew Morton <akpm@osdl.org>
 
-rpc_call_async() will always call rpc_release_calldata(), so it is an
-error for __nlm_async_call() to do so as well.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=7923
-
-Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: Jan "Yenya" Kasprzak <kas@fi.muni.cz>
-Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/lockd/clntproc.c |    9 +++------
- fs/lockd/svclock.c  |    4 +---
- 2 files changed, 4 insertions(+), 9 deletions(-)
+ drivers/mmc/omap.c      |    6 ------
+ include/linux/mmc/mmc.h |    4 ----
+ 2 files changed, 10 deletions(-)
 
-diff -puN fs/lockd/clntproc.c~nlm-fix-double-free-in-__nlm_async_call fs/lockd/clntproc.c
---- a/fs/lockd/clntproc.c~nlm-fix-double-free-in-__nlm_async_call
-+++ a/fs/lockd/clntproc.c
-@@ -361,7 +361,6 @@ static int __nlm_async_call(struct nlm_r
- {
- 	struct nlm_host	*host = req->a_host;
- 	struct rpc_clnt	*clnt;
--	int status = -ENOLCK;
+diff -puN drivers/mmc/omap.c~git-mmc-fixup drivers/mmc/omap.c
+--- a/drivers/mmc/omap.c~git-mmc-fixup
++++ a/drivers/mmc/omap.c
+@@ -203,18 +203,12 @@ mmc_omap_start_command(struct mmc_omap_h
+ 	cmdtype = 0;
  
- 	dprintk("lockd: call procedure %d on %s (async)\n",
- 			(int)proc, host->h_name);
-@@ -373,12 +372,10 @@ static int __nlm_async_call(struct nlm_r
- 	msg->rpc_proc = &clnt->cl_procinfo[proc];
+ 	/* Our hardware needs to know exact type */
+-<<<<<<< HEAD/drivers/mmc/omap.c
+ 	switch (mmc_resp_type(cmd)) {
+ 	case MMC_RSP_NONE:
+ 		break;
+ 	case MMC_RSP_R1:
+ 	case MMC_RSP_R1B:
+ 		/* resp 1, 1b, 6, 7 */
+-=======
+-	switch (RSP_TYPE(mmc_resp_type(cmd))) {
+-	case RSP_TYPE(MMC_RSP_R1):
+-		/* resp 1, 1b, 6, 7 */
+->>>>>>> /drivers/mmc/omap.c
+ 		resptype = 1;
+ 		break;
+ 	case MMC_RSP_R2:
+diff -puN include/linux/mmc/mmc.h~git-mmc-fixup include/linux/mmc/mmc.h
+--- a/include/linux/mmc/mmc.h~git-mmc-fixup
++++ a/include/linux/mmc/mmc.h
+@@ -42,12 +42,8 @@ struct mmc_command {
+ #define MMC_RSP_R1B	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE|MMC_RSP_BUSY)
+ #define MMC_RSP_R2	(MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC)
+ #define MMC_RSP_R3	(MMC_RSP_PRESENT)
+-<<<<<<< HEAD/include/linux/mmc/mmc.h
+-#define MMC_RSP_R6	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
+-=======
+ #define MMC_RSP_R6	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
+ #define MMC_RSP_R7	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
+->>>>>>> /include/linux/mmc/mmc.h
  
-         /* bootstrap and kick off the async RPC call */
--        status = rpc_call_async(clnt, msg, RPC_TASK_ASYNC, tk_ops, req);
--	if (status == 0)
--		return 0;
-+        return rpc_call_async(clnt, msg, RPC_TASK_ASYNC, tk_ops, req);
- out_err:
--	nlm_release_call(req);
--	return status;
-+	tk_ops->rpc_release(req);
-+	return -ENOLCK;
- }
+ #define mmc_resp_type(cmd)	((cmd)->flags & (MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC|MMC_RSP_BUSY|MMC_RSP_OPCODE))
  
- int nlm_async_call(struct nlm_rqst *req, u32 proc, const struct rpc_call_ops *tk_ops)
-diff -puN fs/lockd/svclock.c~nlm-fix-double-free-in-__nlm_async_call fs/lockd/svclock.c
---- a/fs/lockd/svclock.c~nlm-fix-double-free-in-__nlm_async_call
-+++ a/fs/lockd/svclock.c
-@@ -593,9 +593,7 @@ callback:
- 
- 	/* Call the client */
- 	kref_get(&block->b_count);
--	if (nlm_async_call(block->b_call, NLMPROC_GRANTED_MSG,
--						&nlmsvc_grant_ops) < 0)
--		nlmsvc_release_block(block);
-+	nlm_async_call(block->b_call, NLMPROC_GRANTED_MSG, &nlmsvc_grant_ops);
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-nlm-fix-double-free-in-__nlm_async_call.patch
-git-nfs.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-nfs-kill-the-obsolete-nfs_paranoia.patch
+x86-fix-vdso-mapping-for-aout-executables.patch
+mm-show-bounce-pages-in-oom-killer-output.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
+sony_apci-resume.patch
+sony_apci-resume-fix.patch
+video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues-fix-2.patch
+powerpc-make-it-compile.patch
+git-dvb.patch
+dvb-video_buf-depends-on-pci.patch
+git-gfs2-nmw.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+sata_nv-cleanup-adma-error-handling-v2.patch
+sata_sis-avoid-extern-decl-in-c.patch
+mm-ide-ide-acpi-support-warning-fix.patch
+git-lxdialog-fixup.patch
+git-mips-kconfig-fix.patch
+git-mips-prom_free_prom_memory-borkage.patch
+git-ubi.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+dccp-warning-fixes.patch
+netfilter-warning-fix.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+nfs-fix-congestion-control-v4-tweaks.patch
+r8169-warning-fixes.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+sh-add-kconfig-default.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
+git-block-fixup.patch
+git-block-atomicity-fix.patch
+git-block-xfs-barriers-broke.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+nokia-e70-is-an-unusual-device.patch
+git-ipwireless_cs.patch
+revert-x86_64-mm-msr-on-cpu.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+cyrix-fails-to-detect-mediagx-warning-fix.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+use-zvc-for-inactive-and-active-counts-up-fix.patch
+drop-free_pages-fix.patch
+drop-free_pages-sparc64-fix.patch
+optional-zone_dma-in-the-vm-tidy.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix-2.patch
+return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
+register_blkdev-dont-hand-out-the-local-experimental-majors.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+ecryptfs-generalize-metadata-read-write-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+dynamic-kernel-command-line-ia64-fix.patch
+rcu-preemptible-rcu-fix.patch
+kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+mark-struct-file_operations-const-2-fix.patch
+mark-struct-file_operations-const-4-fix.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
