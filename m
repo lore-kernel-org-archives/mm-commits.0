@@ -1,89 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-sd-udev-accessing-an-uninitialized-scsi_disk-results-in-a-crash.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 01:25:39 -0800
-Message-ID: <200702050925.l159Pdi9016456@shell0.pdx.osdl.net>
+Subject: - nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 01:25:36 -0800
+Message-ID: <200702050925.l159PaoE016453@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37434 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37435 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752264AbXBEJ3A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 04:29:00 -0500
+	id S1752273AbXBEJ3C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 04:29:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nagendra_tomar@adaptec.com, James.Bottomley@steeleye.com, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCSI sd: udev accessing an uninitialized scsi_disk results in a crash
+     From: Adrian Bunk <bunk@stusta.de>
 has been removed from the -mm tree.  Its filename was
-     scsi-sd-udev-accessing-an-uninitialized-scsi_disk-results-in-a-crash.patch
+     nf_conntrack_h323-must-depend-on-ipv6-ipv6=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SCSI sd: udev accessing an uninitialized scsi_disk results in a crash
-From: Nagendra Singh Tomar <nagendra_tomar@adaptec.com>
+Subject: From: Adrian Bunk <bunk@stusta.de>
 
-sd_probe() calls class_device_add() even before initializing the
-sdkp->device variable.  class_device_add() eventually results in the user
-mode udev program to be called.  udev program can read the the
-allow_restart attribute of the newly created scsi device.  This is
-resulting in a crash as the show function for allow_restart (i.e
-sd_show_allow_restart) returns the attribute value by reading the
-sdkp->device->allow_restart variable.  As the sdkp->device is not
-initialized before calling the user mode hotplug helper, this results in a
-crash.
 
-The patch solves it by calling class_device_add() only after the necessary
-fields in the scsi_disk structure are initialized properly.
+net/built-in.o: In function `q931_help':
+nf_conntrack_h323_main.c:(.text.q931_help+0x6ad): undefined reference to `ip6_route_output'
+nf_conntrack_h323_main.c:(.text.q931_help+0x6c3): undefined reference to `ip6_route_output'
 
-Signed-off-by: Nagendra Singh Tomar <nagendra_tomar@adaptec.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: <stable@kernel.org>
+CONFIG_IPV6=m, CONFIG_NF_CONNTRACK_H323=y results in a compile error.
+
+Fix this by letting NF_CONNTRACK_H323 depend on (IPV6 || IPV6=n).
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/scsi/sd.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ net/netfilter/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/sd.c~scsi-sd-udev-accessing-an-uninitialized-scsi_disk-results-in-a-crash drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~scsi-sd-udev-accessing-an-uninitialized-scsi_disk-results-in-a-crash
-+++ a/drivers/scsi/sd.c
-@@ -1647,16 +1647,6 @@ static int sd_probe(struct device *dev)
- 	if (error)
- 		goto out_put;
+diff -puN net/netfilter/Kconfig~nf_conntrack_h323-must-depend-on-ipv6-ipv6=n net/netfilter/Kconfig
+--- a/net/netfilter/Kconfig~nf_conntrack_h323-must-depend-on-ipv6-ipv6=n
++++ a/net/netfilter/Kconfig
+@@ -165,7 +165,7 @@ config NF_CONNTRACK_FTP
  
--	class_device_initialize(&sdkp->cdev);
--	sdkp->cdev.dev = &sdp->sdev_gendev;
--	sdkp->cdev.class = &sd_disk_class;
--	strncpy(sdkp->cdev.class_id, sdp->sdev_gendev.bus_id, BUS_ID_SIZE);
--
--	if (class_device_add(&sdkp->cdev))
--		goto out_put;
--
--	get_device(&sdp->sdev_gendev);
--
- 	sdkp->device = sdp;
- 	sdkp->driver = &sd_template;
- 	sdkp->disk = gd;
-@@ -1670,6 +1660,16 @@ static int sd_probe(struct device *dev)
- 			sdp->timeout = SD_MOD_TIMEOUT;
- 	}
- 
-+	class_device_initialize(&sdkp->cdev);
-+	sdkp->cdev.dev = &sdp->sdev_gendev;
-+	sdkp->cdev.class = &sd_disk_class;
-+	strncpy(sdkp->cdev.class_id, sdp->sdev_gendev.bus_id, BUS_ID_SIZE);
-+
-+	if (class_device_add(&sdkp->cdev))
-+		goto out_put;
-+
-+	get_device(&sdp->sdev_gendev);
-+
- 	gd->major = sd_major((index & 0xf0) >> 4);
- 	gd->first_minor = ((index & 0xf) << 4) | (index & 0xfff00);
- 	gd->minors = 16;
+ config NF_CONNTRACK_H323
+ 	tristate "H.323 protocol support (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && NF_CONNTRACK
++	depends on EXPERIMENTAL && NF_CONNTRACK && (IPV6 || IPV6=n)
+ 	help
+ 	  H.323 is a VoIP signalling protocol from ITU-T. As one of the most
+ 	  important VoIP protocols, it is widely used by voice hardware and
 _
 
-Patches currently in -mm which might be from nagendra_tomar@adaptec.com are
+Patches currently in -mm which might be from bunk@stusta.de are
+
+v9fs_vfs_mkdir-fix-a-double-free.patch
+git-acpi.patch
+git-alsa.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+git-powerpc.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
+git-dvb.patch
+drivers-media-dvb-frontends-make-4-functions-static.patch
+cx88-videoc-remove-struct-radionorms.patch
+if-0-v4l_printk_ioctl_arg.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-libata-all.patch
+mips-remove-smp_tune_scheduling.patch
+git-mmc.patch
+mtd_ck804xrom-must-depend-on-pci.patch
+git-ubi.patch
+git-netdev-all.patch
+net-irda-proper-prototypes.patch
+net-wanrouter-wanmainc-cleanups.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
+git-ipwireless_cs.patch
+cleanup-x86_64-mm-vmi-timer.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+fbdev-driver-for-s3-trio-virge-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
