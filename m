@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-use-pci_device_id.patch added to -mm tree
-Date: Mon, 05 Feb 2007 13:17:53 -0800
-Message-ID: <200702052117.l15LHrFN031404@shell0.pdx.osdl.net>
+Subject: + buffer-memorder-fix.patch added to -mm tree
+Date: Mon, 05 Feb 2007 13:07:27 -0800
+Message-ID: <200702052107.l15L7Rt0031174@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34119 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34131 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933451AbXBEVR4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 16:17:56 -0500
+	id S933457AbXBEVSP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 16:18:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: npiggin@suse.de, cmm@us.ibm.com, stable@kernel.org
 
 
 The patch titled
-     Char: cyclades, use pci_device_id
+     buffer: memorder fix
 has been added to the -mm tree.  Its filename is
-     char-cyclades-use-pci_device_id.patch
+     buffer-memorder-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,109 +25,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: cyclades, use pci_device_id
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: buffer: memorder fix
+From: Nick Piggin <npiggin@suse.de>
 
-Use pci_device_id struct instead of ushort array. Add MODULE_DEVICE_TABLE.
+unlock_buffer(), like unlock_page(), must not clear the lock without
+ensuring that the critical section is closed.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+
+Mingming later sent the same patch, saying:
+
+We are running SDET benchmark and saw double free issue for ext3 extended
+attributes block, which complains the same xattr block already being freed (in
+ext3_xattr_release_block()).  The problem could also been triggered by
+multiple threads loop untar/rm a kernel tree.
+
+The race is caused by missing a memory barrier at unlock_buffer() before the
+lock bit being cleared, resulting in possible concurrent h_refcounter update. 
+That causes a reference counter leak, then later leads to the double free that
+we have seen.
+
+Inside unlock_buffer(), there is a memory barrier is placed *after* the lock
+bit is being cleared, however, there is no memory barrier *before* the bit is
+cleared.  On some arch the h_refcount update instruction and the clear bit
+instruction could be reordered, thus leave the critical section re-entered.
+
+The race is like this: For example, if the h_refcount is initialized as 1,
+
+cpu 0:                                   cpu1
+--------------------------------------   -----------------------------------
+lock_buffer() /* test_and_set_bit */
+clear_buffer_locked(bh);             
+                                        lock_buffer() /* test_and_set_bit */
+h_refcount = h_refcount+1; /* = 2*/     h_refcount = h_refcount + 1; /*= 2 */
+                                        clear_buffer_locked(bh);
+....                                    ......
+
+
+We lost a h_refcount here.  We need a memory barrier before the buffer head
+lock bit being cleared to force the order of the two writes.  Please apply.
+
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: <stable@kernel.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/cyclades.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+ fs/buffer.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-use-pci_device_id drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-use-pci_device_id
-+++ a/drivers/char/cyclades.c
-@@ -829,17 +829,18 @@ static unsigned short cy_pci_nboard;
- static unsigned short cy_isa_nboard;
- static unsigned short cy_nboard;
- #ifdef CONFIG_PCI
--static unsigned short cy_pci_dev_id[] = {
--	PCI_DEVICE_ID_CYCLOM_Y_Lo,	/* PCI < 1Mb */
--	PCI_DEVICE_ID_CYCLOM_Y_Hi,	/* PCI > 1Mb */
--	PCI_DEVICE_ID_CYCLOM_4Y_Lo,	/* 4Y PCI < 1Mb */
--	PCI_DEVICE_ID_CYCLOM_4Y_Hi,	/* 4Y PCI > 1Mb */
--	PCI_DEVICE_ID_CYCLOM_8Y_Lo,	/* 8Y PCI < 1Mb */
--	PCI_DEVICE_ID_CYCLOM_8Y_Hi,	/* 8Y PCI > 1Mb */
--	PCI_DEVICE_ID_CYCLOM_Z_Lo,	/* Z PCI < 1Mb */
--	PCI_DEVICE_ID_CYCLOM_Z_Hi,	/* Z PCI > 1Mb */
--	0			/* end of table */
-+static struct pci_device_id cy_pci_dev_id[] __devinitdata = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_CYCLADES, PCI_DEVICE_ID_CYCLOM_Y_Lo) },	/* PCI < 1Mb */
-+	{ PCI_DEVICE(PCI_VENDOR_ID_CYCLADES, PCI_DEVICE_ID_CYCLOM_Y_Hi) },	/* PCI > 1Mb */
-+	{ PCI_DEVICE(PCI_VENDOR_ID_CYCLADES, PCI_DEVICE_ID_CYCLOM_4Y_Lo) },	/* 4Y PCI < 1Mb */
-+	{ PCI_DEVICE(PCI_VENDOR_ID_CYCLADES, PCI_DEVICE_ID_CYCLOM_4Y_Hi) },	/* 4Y PCI > 1Mb */
-+	{ PCI_DEVICE(PCI_VENDOR_ID_CYCLADES, PCI_DEVICE_ID_CYCLOM_8Y_Lo) },	/* 8Y PCI < 1Mb */
-+	{ PCI_DEVICE(PCI_VENDOR_ID_CYCLADES, PCI_DEVICE_ID_CYCLOM_8Y_Hi) },	/* 8Y PCI > 1Mb */
-+	{ PCI_DEVICE(PCI_VENDOR_ID_CYCLADES, PCI_DEVICE_ID_CYCLOM_Z_Lo) },	/* Z PCI < 1Mb */
-+	{ PCI_DEVICE(PCI_VENDOR_ID_CYCLADES, PCI_DEVICE_ID_CYCLOM_Z_Hi) },	/* Z PCI > 1Mb */
-+	{ }			/* end of table */
- };
-+MODULE_DEVICE_TABLE(pci, cy_pci_dev_id);
- #endif
+diff -puN fs/buffer.c~buffer-memorder-fix fs/buffer.c
+--- a/fs/buffer.c~buffer-memorder-fix
++++ a/fs/buffer.c
+@@ -70,6 +70,7 @@ EXPORT_SYMBOL(__lock_buffer);
  
- static void cy_start(struct tty_struct *);
-@@ -4758,7 +4759,7 @@ static int __init cy_detect_pci(void)
- 
- 	for (i = 0; i < NR_CARDS; i++) {
- 		/* look for a Cyclades card by vendor and device id */
--		while ((device_id = cy_pci_dev_id[dev_index]) != 0) {
-+		while ((device_id = cy_pci_dev_id[dev_index].device) != 0) {
- 			if ((pdev = pci_get_device(PCI_VENDOR_ID_CYCLADES,
- 						   device_id, pdev)) == NULL) {
- 				dev_index++;	/* try next device id */
+ void fastcall unlock_buffer(struct buffer_head *bh)
+ {
++	smp_mb__before_clear_bit();
+ 	clear_buffer_locked(bh);
+ 	smp_mb__after_clear_bit();
+ 	wake_up_bit(&bh->b_state, BH_Lock);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-git-input.patch
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-isicom-remove-tty_hangwakeup-bottomhalves.patch
-mxser-remove-ambiguous-redefinition-of-init_work.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-char-isicom-fix-locking-in-isr.patch
-char-isicom-augment-card_reset.patch
-char-isicom-check-card-state-in-isr.patch
-char-isicom-support-higher-rates.patch
-char-isicom-correct-probing-removing.patch
-char-tty_wakeup-cleanup.patch
-char-mxser_new-mark-init-functions.patch
-char-mxser_new-remove-useless-spinlock.patch
-char-serial167-cleanup.patch
-char-n_r3964-cleanup.patch
-char-mxser_new-remove-unused-stuff.patch
-char-mxser-obsolete-old-nonexperimental-new.patch
-char-mxser_new-remove-tty_wakeup-bottomhalf.patch
-char-mxser_new-clean-request_irq-call.patch
-doc-isicom-remove-reserved-ioctl-number.patch
-char-mxser_new-alter-locking-in-isr.patch
-char-mxser_new-header-file-cleanup.patch
-char-mxser_new-less-loops-in-isr.patch
-char-mxser_new-fix-twice-resource-releasing.patch
-char-mxser_new-do-not-put-pdev.patch
-char-mxser_new-upgrade-to-1915.patch
-char-mxser_new-upgrade-to-1915-fix.patch
-char-mxser_new-do-not-null-driver_data.patch
-char-mxser_new-lock-count-and-flags.patch
-char-mxser_new-fix-sparse-warning.patch
-char-moxa-remove-unused-allocated-page.patch
-char-moxa-do-not-initialize-global-static.patch
-char-moxa-timers-cleanup.patch
-char-moxa-remove-hangup-bottomhalf.patch
-char-moxa-remove-unused-functions.patch
-char-moxa-devids-cleanup.patch
-char-moxa-use-pci_device.patch
-char-moxa-eliminate-typedefs.patch
-char-moxa-macros-cleanup.patch
-char-moxa-use-del_timer_sync.patch
-char-moxa-remove-moxa_pci_devinfo.patch
-char-moxa-variables-cleanup.patch
-char-moxa-remove-useless-vairables.patch
-char-moxa-pci_probing-prepare.patch
-char-moxa-pci-probing.patch
-mxser-remove-useless-fields.patch
-char-use-more-pci_device-macro.patch
-char-cyclades-use-pci_device_id.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-block.patch
+buffer-memorder-fix.patch
+sched-avoid-div-in-rebalance_tick.patch
