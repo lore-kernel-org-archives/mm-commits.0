@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + buffer-memorder-fix.patch added to -mm tree
-Date: Mon, 05 Feb 2007 13:07:27 -0800
-Message-ID: <200702052107.l15L7Rt0031174@shell0.pdx.osdl.net>
+Subject: + rtc-pcf8563-detect-polarity-of-century-bit-automatically-fix.patch added to -mm tree
+Date: Mon, 05 Feb 2007 13:13:33 -0800
+Message-ID: <200702052113.l15LDXDu031301@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34131 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34233 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933457AbXBEVSP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 16:18:15 -0500
+	id S933461AbXBEVWC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 16:22:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, cmm@us.ibm.com, stable@kernel.org
+Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, dbrownell@users.sourceforge.net, jean-baptiste.maneyrol@teamlog.com, stable@kernel.org
 
 
 The patch titled
-     buffer: memorder fix
+     rtc-pcf8563: detect polarity of century bit automatically: fix
 has been added to the -mm tree.  Its filename is
-     buffer-memorder-fix.patch
+     rtc-pcf8563-detect-polarity-of-century-bit-automatically-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,70 +25,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: buffer: memorder fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: rtc-pcf8563: detect polarity of century bit automatically: fix
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-unlock_buffer(), like unlock_page(), must not clear the lock without
-ensuring that the critical section is closed.
+Sorry, I forgot to change an argument of kfree() in pcf8563_detach().
+Though it should work while "client" is a first member in struct
+pcf8563, it should be changed to pass "pcf8563" instead of "client".
 
-
-Mingming later sent the same patch, saying:
-
-We are running SDET benchmark and saw double free issue for ext3 extended
-attributes block, which complains the same xattr block already being freed (in
-ext3_xattr_release_block()).  The problem could also been triggered by
-multiple threads loop untar/rm a kernel tree.
-
-The race is caused by missing a memory barrier at unlock_buffer() before the
-lock bit being cleared, resulting in possible concurrent h_refcounter update. 
-That causes a reference counter leak, then later leads to the double free that
-we have seen.
-
-Inside unlock_buffer(), there is a memory barrier is placed *after* the lock
-bit is being cleared, however, there is no memory barrier *before* the bit is
-cleared.  On some arch the h_refcount update instruction and the clear bit
-instruction could be reordered, thus leave the critical section re-entered.
-
-The race is like this: For example, if the h_refcount is initialized as 1,
-
-cpu 0:                                   cpu1
---------------------------------------   -----------------------------------
-lock_buffer() /* test_and_set_bit */
-clear_buffer_locked(bh);             
-                                        lock_buffer() /* test_and_set_bit */
-h_refcount = h_refcount+1; /* = 2*/     h_refcount = h_refcount + 1; /*= 2 */
-                                        clear_buffer_locked(bh);
-....                                    ......
-
-
-We lost a h_refcount here.  We need a memory barrier before the buffer head
-lock bit being cleared to force the order of the two writes.  Please apply.
-
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Jean-Baptiste Maneyrol <jean-baptiste.maneyrol@teamlog.com>
 Cc: <stable@kernel.org>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/buffer.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/rtc/rtc-pcf8563.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~buffer-memorder-fix fs/buffer.c
---- a/fs/buffer.c~buffer-memorder-fix
-+++ a/fs/buffer.c
-@@ -70,6 +70,7 @@ EXPORT_SYMBOL(__lock_buffer);
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-detect-polarity-of-century-bit-automatically-fix drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-detect-polarity-of-century-bit-automatically-fix
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -336,6 +336,7 @@ exit:
  
- void fastcall unlock_buffer(struct buffer_head *bh)
+ static int pcf8563_detach(struct i2c_client *client)
  {
-+	smp_mb__before_clear_bit();
- 	clear_buffer_locked(bh);
- 	smp_mb__after_clear_bit();
- 	wake_up_bit(&bh->b_state, BH_Lock);
++	struct pcf8563 *pcf8563 = container_of(client, struct pcf8563, client);
+ 	int err;
+ 	struct rtc_device *rtc = i2c_get_clientdata(client);
+ 
+@@ -345,7 +346,7 @@ static int pcf8563_detach(struct i2c_cli
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+ 
+-	kfree(client);
++	kfree(pcf8563);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-git-block.patch
-buffer-memorder-fix.patch
-sched-avoid-div-in-rebalance_tick.patch
+rtc-pcf8563-detect-polarity-of-century-bit-automatically.patch
+rtc-pcf8563-detect-polarity-of-century-bit-automatically-fix.patch
+git-mips.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
+serial-serial_txx9-driver-update.patch
