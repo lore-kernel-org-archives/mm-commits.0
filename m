@@ -1,117 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-more-xfs-fixes.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 12:41:32 -0800
-Message-ID: <200702052041.l15KfWk2030589@shell0.pdx.osdl.net>
+Subject: - mmc-add-a-quirk-to-allow-ene-pci-sd-card-readers-to-work-again.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 12:41:21 -0800
+Message-ID: <200702052041.l15KfLpF030567@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60774 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60777 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933437AbXBEUli (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 15:41:38 -0500
+	id S933446AbXBEUlm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 15:41:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jens.axboe@oracle.com, clameter@engr.sgi.com, mm-commits@vger.kernel.org
+To: linux@youmustbejoking.demon.co.uk, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block: more XFS fixes
+     mmc: add a quirk to allow ENE PCI SD card readers to work again
 has been removed from the -mm tree.  Its filename was
-     git-block-more-xfs-fixes.patch
+     mmc-add-a-quirk-to-allow-ene-pci-sd-card-readers-to-work-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-block: more XFS fixes
-From: Jens Axboe <jens.axboe@oracle.com>
+Subject: mmc: add a quirk to allow ENE PCI SD card readers to work again
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
 
-That down() probably wants a replug to precede it. Probably something
-like:
+Support for these devices was broken for 2.6.18-rc1 and later by commit
+146ad66eac836c0b976c98f428d73e1f6a75270d, which added voltage level
+support.
 
-        if (atomic_read(&bp->b_io_remaining))
-                blk_replug_current_nested();
+This restores the previous behaviour for these devices by ensuring that
+when the voltage is changed, only one write to set the voltage is
+performed.
 
-for xfs_buf_wait_unpin() and xfs_buf_lock(). Does this fix it?
+It may be that both writes are needed if the voltage is being changed
+between two non-zero values or that it's safe to ensure that only one write
+is done if the hardware only supports one voltage; I don't know whether
+either is the case nor can I test since I have only the one SD reader
+(1524:0550), and it supports just the one voltage.
 
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+Signed-off-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/xfs/linux-2.6/xfs_buf.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+)
+ drivers/mmc/sdhci.c |   18 +++++++++++++++---
+ 1 files changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_buf.c~git-block-more-xfs-fixes fs/xfs/linux-2.6/xfs_buf.c
---- a/fs/xfs/linux-2.6/xfs_buf.c~git-block-more-xfs-fixes
-+++ a/fs/xfs/linux-2.6/xfs_buf.c
-@@ -909,6 +909,8 @@ xfs_buf_lock(
- 	xfs_buf_t		*bp)
- {
- 	XB_TRACE(bp, "lock", 0);
-+	if (atomic_read(&bp->b_io_remaining))
-+		blk_replug_current_nested();
- 	down(&bp->b_sema);
- 	XB_SET_OWNER(bp);
- 	XB_TRACE(bp, "locked", 0);
-@@ -1291,6 +1293,8 @@ xfs_buf_iowait(
- 	xfs_buf_t		*bp)
- {
- 	XB_TRACE(bp, "iowait", 0);
-+	if (atomic_read(&bp->b_io_remaining))
-+		blk_replug_current_nested();
- 	down(&bp->b_iodonesema);
- 	XB_TRACE(bp, "iowaited", (long)bp->b_error);
- 	return bp->b_error;
-@@ -1682,6 +1686,7 @@ xfsbufd(
- 	xfs_buf_t		*bp, *n;
- 	struct list_head	*dwq = &target->bt_delwrite_queue;
- 	spinlock_t		*dwlk = &target->bt_delwrite_lock;
-+	int			count;
+diff -puN drivers/mmc/sdhci.c~mmc-add-a-quirk-to-allow-ene-pci-sd-card-readers-to-work-again drivers/mmc/sdhci.c
+--- a/drivers/mmc/sdhci.c~mmc-add-a-quirk-to-allow-ene-pci-sd-card-readers-to-work-again
++++ a/drivers/mmc/sdhci.c
+@@ -37,6 +37,7 @@ static unsigned int debug_quirks = 0;
+ #define SDHCI_QUIRK_FORCE_DMA				(1<<1)
+ /* Controller doesn't like some resets when there is no card inserted. */
+ #define SDHCI_QUIRK_NO_CARD_NO_RESET			(1<<2)
++#define SDHCI_QUIRK_SINGLE_POWER_WRITE			(1<<3)
  
- 	current->flags |= PF_MEMALLOC;
+ static const struct pci_device_id pci_ids[] __devinitdata = {
+ 	{
+@@ -65,6 +66,16 @@ static const struct pci_device_id pci_id
+ 		.driver_data	= SDHCI_QUIRK_FORCE_DMA,
+ 	},
  
-@@ -1697,6 +1702,7 @@ xfsbufd(
- 		schedule_timeout_interruptible(
- 			xfs_buf_timer_centisecs * msecs_to_jiffies(10));
- 
-+		count = 0;
- 		age = xfs_buf_age_centisecs * msecs_to_jiffies(10);
- 		spin_lock(dwlk);
- 		list_for_each_entry_safe(bp, n, dwq, b_list) {
-@@ -1716,6 +1722,7 @@ xfsbufd(
- 						 _XBF_RUN_QUEUES);
- 				bp->b_flags |= XBF_WRITE;
- 				list_move_tail(&bp->b_list, &tmp);
-+				count++;
- 			}
- 		}
- 		spin_unlock(dwlk);
-@@ -1730,6 +1737,8 @@ xfsbufd(
- 
- 		if (as_list_len > 0)
- 			purge_addresses();
-+		if (count)
-+			blk_replug_current_nested();
- 
- 		clear_bit(XBT_FORCE_FLUSH, &target->bt_flags);
- 	} while (!kthread_should_stop());
-@@ -1786,6 +1795,9 @@ xfs_flush_buftarg(
- 		xfs_buf_iostrategy(bp);
- 	}
- 
-+	if (wait)
-+		blk_replug_current_nested();
++	{
++		.class		= PCI_CLASS_SYSTEM_SDHCI << 8,
++		.class_mask	= 0xFFFF00,
++		.vendor		= PCI_VENDOR_ID_ENE,
++		.device		= PCI_ANY_ID,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++		.driver_data	= SDHCI_QUIRK_SINGLE_POWER_WRITE,
++	},
 +
- 	/*
- 	 * Remaining list items must be flushed before returning
- 	 */
+ 	{	/* Generic SD host controller */
+ 		PCI_DEVICE_CLASS((PCI_CLASS_SYSTEM_SDHCI << 8), 0xFFFF00)
+ 	},
+@@ -669,16 +680,17 @@ out:
+ 
+ static void sdhci_set_power(struct sdhci_host *host, unsigned short power)
+ {
+-	u8 pwr;
++	u8 pwr = 0;
+ 
+ 	if (host->power == power)
+ 		return;
+ 
+-	writeb(0, host->ioaddr + SDHCI_POWER_CONTROL);
+-
+ 	if (power == (unsigned short)-1)
+ 		goto out;
+ 
++	if ((host->chip->quirks & SDHCI_QUIRK_SINGLE_POWER_WRITE) == 0)
++		writeb(0, host->ioaddr + SDHCI_POWER_CONTROL);
++
+ 	pwr = SDHCI_POWER_ON;
+ 
+ 	switch (power) {
 _
 
-Patches currently in -mm which might be from jens.axboe@oracle.com are
+Patches currently in -mm which might be from linux@youmustbejoking.demon.co.uk are
 
-git-block.patch
-git-block-atomicity-fix.patch
-git-block-dupe-definitions.patch
-git-block-xfs-barriers-broke.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-reiser4-vs-git-block3.patch
-sysctl-cdrom-dont-set-de-owner.patch
+git-mmc.patch
