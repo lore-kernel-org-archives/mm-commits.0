@@ -1,76 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - workqueue-rework-threads-hotplug-management.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 13:57:30 -0800
-Message-ID: <200702052157.l15LvUcV032529@shell0.pdx.osdl.net>
+Subject: + workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch added to -mm tree
+Date: Mon, 05 Feb 2007 13:57:23 -0800
+Message-ID: <200702052157.l15LvNQK032526@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35527 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35521 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964786AbXBEV5u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 16:57:50 -0500
+	id S964783AbXBEV5s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 16:57:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ego@in.ibm.com, vatsa@in.ibm.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru, ego@in.ibm.com, vatsa@in.ibm.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     workqueue: rework threads/hotplug management
-has been removed from the -mm tree.  Its filename was
-     workqueue-rework-threads-hotplug-management.patch
+     workqueue: don't migrate pending works from the dead CPU
+has been added to the -mm tree.  Its filename is
+     workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: workqueue: rework threads/hotplug management
+Subject: workqueue: don't migrate pending works from the dead CPU
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-With this patch workqueue_mutex is used only to protect workqueues list,
-all workqueue operations can run in parallel with cpuhotplug callback path.
- take_over_work(), migrate_sequence, CPU_LOCK_ACQUIRE/RELEASE go away.
+Currently CPU_DEAD uses kthread_stop() to stop cwq->thread and then
+transfers cwq->worklist to another CPU.  However, it is very unlikely that
+worker_thread() will notice kthread_should_stop() before flushing
+cwq->worklist.  It is only possible if worker_thread() was preempted after
+run_workqueue(cwq), a new work_struct was added, and CPU_DEAD happened
+before cwq->thread has a chance to run.
 
-CPU_DEAD just sets cwq->should_stop and returns.  After that cwq->thread
-runs unbound until it flushes cwq->worklist, then exits.  So this patch
-slightly increases the probability that work_struct will be processed by
-the "wrong" CPU, but we can't avoid this with CONFIG_HOTPLUG_CPU anyway.
+This means that take_over_work() mostly adds unneeded complications.  Note
+also that kthread_stop() is not good per se, wake_up_process() may confuse
+work->func() if it sleeps waiting for some event.
 
-CPU_UP_PREPARE creates the new cwq->thread if it's not NULL, CPU_ONLINE binds
-it to the new cpu.
-
-This all greatly simplifies the workqueues/cpu-hotplug interaction and imho
-makes the code better.  Shrinks both the source and compiled code (430
-bytes).  In particular, we can take workqueue_mutex in work->func() or
-create/destroy workqueues from the cpuhotplug callback path.
-
-The ugly part of this patch is that it adds "static int embryonic_cpu", it's
-used by __create_workqueue() when it runs between CPU_UP_PREPARE/CPU_ONLINE.
+Remove take_over_work() and migrate_sequence complications.  CPU_DEAD sets
+the cwq->should_stop flag (introduced by this patch) and waits for
+cwq->thread to flush cwq->worklist and exit.  Because the dead CPU is not
+on cpu_online_map, no more works can be added to that cwq.
 
 cpu_populated_map was introduced to optimize for_each_possible_cpu(), it is
 not strictly needed, and it is more a documentation in fact.
 
-Further possible changes:
-
-	- don't use kthread_create(), we don't use kthread_stop()
-
-	- don't do kthread_bind() when create_workqueue_thread()
-	  is called by CPU_UP_PREPARE, this is noop because of the
-	  wake_up_process() below.
-
-	- make cpu_populated_map per workqueue_struct, this allows
-	  us to remove some "is_single_threaded(wq)" checks, and we
-	  can clear the bit when cwq->thread exits.
+Saves 418 bytes.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 Cc: Gautham shenoy <ego@in.ibm.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |  441 +++++++++++++++++++++----------------------
- 1 files changed, 220 insertions(+), 221 deletions(-)
+ kernel/workqueue.c |  430 +++++++++++++++++++++----------------------
+ 1 files changed, 211 insertions(+), 219 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-rework-threads-hotplug-management
+diff -puN kernel/workqueue.c~workqueue-dont-migrate-pending-works-from-the-dead-cpu kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-dont-migrate-pending-works-from-the-dead-cpu
 +++ a/kernel/workqueue.c
 @@ -43,10 +43,11 @@ struct cpu_workqueue_struct {
  
@@ -85,7 +75,7 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
  
  	int run_depth;		/* Detect run_workqueue() recursion depth */
  } ____cacheline_aligned;
-@@ -64,11 +65,10 @@ struct workqueue_struct {
+@@ -64,11 +65,12 @@ struct workqueue_struct {
  
  /* All the per-cpu workqueues on the system, for hotplug cpu to add/remove
     threads to each one as cpus come/go. */
@@ -95,10 +85,12 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
  
 -static int singlethread_cpu;
 +static int singlethread_cpu __read_mostly;
++/* optimization, we could use cpu_possible_map */
++static cpumask_t cpu_populated_map __read_mostly;
  
  /* If it's single threaded, it isn't in the list of workqueues. */
  static inline int is_single_threaded(struct workqueue_struct *wq)
-@@ -344,10 +344,28 @@ static void run_workqueue(struct cpu_wor
+@@ -344,10 +346,28 @@ static void run_workqueue(struct cpu_wor
  	spin_unlock_irqrestore(&cwq->lock, flags);
  }
  
@@ -128,7 +120,7 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
  	struct k_sigaction sa;
  	sigset_t blocked;
  
-@@ -373,23 +391,21 @@ static int worker_thread(void *__cwq)
+@@ -373,23 +393,21 @@ static int worker_thread(void *__cwq)
  	siginitset(&sa.sa.sa_mask, sigmask(SIGCHLD));
  	do_sigaction(SIGCHLD, &sa, (struct k_sigaction *)0);
  
@@ -162,17 +154,7 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
  	return 0;
  }
  
-@@ -415,6 +431,9 @@ static void insert_wq_barrier(struct cpu
- 	insert_work(cwq, &barr->work, tail);
- }
- 
-+/* optimization, we could use cpu_possible_map */
-+static cpumask_t cpu_populated_map __read_mostly;
-+
- static void flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
- {
- 	if (cwq->thread == current) {
-@@ -454,20 +473,13 @@ static void flush_cpu_workqueue(struct c
+@@ -454,20 +472,13 @@ static void flush_cpu_workqueue(struct c
   */
  void fastcall flush_workqueue(struct workqueue_struct *wq)
  {
@@ -196,7 +178,7 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
  	}
  }
  EXPORT_SYMBOL_GPL(flush_workqueue);
-@@ -485,11 +497,8 @@ static void wait_on_work(struct cpu_work
+@@ -485,11 +496,8 @@ static void wait_on_work(struct cpu_work
  	}
  	spin_unlock_irq(&cwq->lock);
  
@@ -209,7 +191,7 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
  }
  
  /**
-@@ -510,155 +519,31 @@ void flush_work(struct workqueue_struct 
+@@ -510,155 +518,31 @@ void flush_work(struct workqueue_struct 
  {
  	struct cpu_workqueue_struct *cwq;
  
@@ -371,7 +353,7 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
  
  static struct workqueue_struct *keventd_wq;
  
-@@ -822,95 +707,209 @@ int current_is_keventd(void)
+@@ -822,85 +706,193 @@ int current_is_keventd(void)
  
  }
  
@@ -383,66 +365,57 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
  	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
 -	struct list_head list;
 -	struct work_struct *work;
-+
+ 
+-	spin_lock_irq(&cwq->lock);
+-	list_replace_init(&cwq->worklist, &list);
+-	migrate_sequence++;
 +	cwq->wq = wq;
 +	spin_lock_init(&cwq->lock);
 +	INIT_LIST_HEAD(&cwq->worklist);
 +	init_waitqueue_head(&cwq->more_work);
-+
-+	return cwq;
-+}
-+
-+static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
-+{
-+	struct task_struct *p;
- 
- 	spin_lock_irq(&cwq->lock);
--	list_replace_init(&cwq->worklist, &list);
--	migrate_sequence++;
-+	cwq->should_stop = 0;
-+	p = cwq->thread;
-+	spin_unlock_irq(&cwq->lock);
  
 -	while (!list_empty(&list)) {
 -		printk("Taking work for %s\n", wq->name);
 -		work = list_entry(list.next,struct work_struct,entry);
 -		list_del(&work->entry);
 -		__queue_work(per_cpu_ptr(wq->cpu_wq, smp_processor_id()), work);
-+	if (!p) {
-+		struct workqueue_struct *wq = cwq->wq;
-+		const char *fmt = is_single_threaded(wq) ? "%s" : "%s/%d";
-+
-+		p = kthread_create(worker_thread, cwq, fmt, wq->name, cpu);
-+		/*
-+		 * Nobody can add the work_struct to this cwq,
-+		 *	if (caller is __create_workqueue)
-+		 *		nobody should see this wq
-+		 *	else // caller is CPU_UP_PREPARE
-+		 *		cpu is not on cpu_online_map
-+		 * so we can abort safely.
-+		 */
-+		if (IS_ERR(p))
-+			return PTR_ERR(p);
-+
-+		cwq->thread = p;
-+		if (!is_single_threaded(wq))
-+			kthread_bind(p, cpu);
-+		/*
-+		 * Cancels affinity if the caller is CPU_UP_PREPARE.
-+		 * Needs a cleanup, but OK.
-+		 */
-+		wake_up_process(p);
- 	}
+-	}
 -	spin_unlock_irq(&cwq->lock);
-+
-+	return 0;
++	return cwq;
  }
  
 -/* We're holding the cpucontrol mutex here */
 -static int __devinit workqueue_cpu_callback(struct notifier_block *nfb,
 -				  unsigned long action,
 -				  void *hcpu)
-+static int embryonic_cpu __read_mostly = -1;
++static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
++{
++	struct workqueue_struct *wq = cwq->wq;
++	const char *fmt = is_single_threaded(wq) ? "%s" : "%s/%d";
++	struct task_struct *p;
++
++	p = kthread_create(worker_thread, cwq, fmt, wq->name, cpu);
++	/*
++	 * Nobody can add the work_struct to this cwq,
++	 *	if (caller is __create_workqueue)
++	 *		nobody should see this wq
++	 *	else // caller is CPU_UP_PREPARE
++	 *		cpu is not on cpu_online_map
++	 * so we can abort safely.
++	 */
++	if (IS_ERR(p))
++		return PTR_ERR(p);
++
++	cwq->thread = p;
++	cwq->should_stop = 0;
++	if (!is_single_threaded(wq))
++		kthread_bind(p, cpu);
++
++	if (is_single_threaded(wq) || cpu_online(cpu))
++		wake_up_process(p);
++
++	return 0;
++}
 +
 +struct workqueue_struct *__create_workqueue(const char *name,
 +					    int singlethread, int freezeable)
@@ -454,39 +427,16 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
  
 -	switch (action) {
 -	case CPU_UP_PREPARE:
--		mutex_lock(&workqueue_mutex);
--		/* Create a new workqueue thread for it. */
--		list_for_each_entry(wq, &workqueues, list) {
--			if (!create_workqueue_thread(wq, hotcpu)) {
--				printk("workqueue for %i failed\n", hotcpu);
--				return NOTIFY_BAD;
--			}
--		}
--		break;
 +	wq = kzalloc(sizeof(*wq), GFP_KERNEL);
 +	if (!wq)
 +		return NULL;
- 
--	case CPU_ONLINE:
--		/* Kick off worker threads. */
--		list_for_each_entry(wq, &workqueues, list) {
--			struct cpu_workqueue_struct *cwq;
--
--			cwq = per_cpu_ptr(wq->cpu_wq, hotcpu);
--			kthread_bind(cwq->thread, hotcpu);
--			wake_up_process(cwq->thread);
--		}
--		mutex_unlock(&workqueue_mutex);
--		break;
++
 +	wq->cpu_wq = alloc_percpu(struct cpu_workqueue_struct);
 +	if (!wq->cpu_wq) {
 +		kfree(wq);
 +		return NULL;
 +	}
- 
--	case CPU_UP_CANCELED:
--		list_for_each_entry(wq, &workqueues, list) {
--			if (!per_cpu_ptr(wq->cpu_wq, hotcpu)->thread)
++
 +	wq->name = name;
 +	wq->freezeable = freezeable;
 +
@@ -495,26 +445,29 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
 +		cwq = init_cpu_workqueue(wq, singlethread_cpu);
 +		err = create_workqueue_thread(cwq, singlethread_cpu);
 +	} else {
-+		mutex_lock(&workqueue_mutex);
+ 		mutex_lock(&workqueue_mutex);
+-		/* Create a new workqueue thread for it. */
+-		list_for_each_entry(wq, &workqueues, list) {
+-			if (!create_workqueue_thread(wq, hotcpu)) {
+-				printk("workqueue for %i failed\n", hotcpu);
+-				return NOTIFY_BAD;
+-			}
 +		list_add(&wq->list, &workqueues);
 +
 +		for_each_possible_cpu(cpu) {
 +			cwq = init_cpu_workqueue(wq, cpu);
-+			if (err || !(cpu_online(cpu) || cpu == embryonic_cpu))
- 				continue;
--			/* Unbind so it can run. */
--			kthread_bind(per_cpu_ptr(wq->cpu_wq, hotcpu)->thread,
--				     any_online_cpu(cpu_online_map));
--			cleanup_workqueue_thread(wq, hotcpu);
++			if (err || !cpu_online(cpu))
++				continue;
 +			err = create_workqueue_thread(cwq, cpu);
  		}
- 		mutex_unlock(&workqueue_mutex);
 -		break;
++		mutex_unlock(&workqueue_mutex);
 +	}
  
--	case CPU_DOWN_PREPARE:
--		mutex_lock(&workqueue_mutex);
--		break;
+-	case CPU_ONLINE:
+-		/* Kick off worker threads. */
+-		list_for_each_entry(wq, &workqueues, list) {
+-			struct cpu_workqueue_struct *cwq;
 +	if (err) {
 +		destroy_workqueue(wq);
 +		wq = NULL;
@@ -523,12 +476,12 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
 +}
 +EXPORT_SYMBOL_GPL(__create_workqueue);
  
--	case CPU_DOWN_FAILED:
--		mutex_unlock(&workqueue_mutex);
--		break;
-+static void cleanup_workqueue_thread(struct workqueue_struct *wq, int cpu)
+-			cwq = per_cpu_ptr(wq->cpu_wq, hotcpu);
+-			kthread_bind(cwq->thread, hotcpu);
+-			wake_up_process(cwq->thread);
+-		}
++static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 +{
-+	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
 +	struct wq_barrier barr;
 +	int alive = 0;
 +
@@ -562,44 +515,70 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
 + */
 +void destroy_workqueue(struct workqueue_struct *wq)
 +{
-+	if (is_single_threaded(wq))
-+		cleanup_workqueue_thread(wq, singlethread_cpu);
-+	else {
++	struct cpu_workqueue_struct *cwq;
++
++	if (is_single_threaded(wq)) {
++		cwq = per_cpu_ptr(wq->cpu_wq, singlethread_cpu);
++		cleanup_workqueue_thread(cwq, singlethread_cpu);
++	} else {
 +		int cpu;
- 
--	case CPU_DEAD:
--		list_for_each_entry(wq, &workqueues, list)
--			cleanup_workqueue_thread(wq, hotcpu);
--		list_for_each_entry(wq, &workqueues, list)
--			take_over_work(wq, hotcpu);
++
 +		mutex_lock(&workqueue_mutex);
 +		list_del(&wq->list);
  		mutex_unlock(&workqueue_mutex);
 -		break;
-+
-+		for_each_cpu_mask(cpu, cpu_populated_map)
-+			cleanup_workqueue_thread(wq, cpu);
+ 
+-	case CPU_UP_CANCELED:
+-		list_for_each_entry(wq, &workqueues, list) {
+-			if (!per_cpu_ptr(wq->cpu_wq, hotcpu)->thread)
+-				continue;
+-			/* Unbind so it can run. */
+-			kthread_bind(per_cpu_ptr(wq->cpu_wq, hotcpu)->thread,
+-				     any_online_cpu(cpu_online_map));
+-			cleanup_workqueue_thread(wq, hotcpu);
++		for_each_cpu_mask(cpu, cpu_populated_map) {
++			cwq = per_cpu_ptr(wq->cpu_wq, cpu);
++			cleanup_workqueue_thread(cwq, cpu);
+ 		}
+-		mutex_unlock(&workqueue_mutex);
+-		break;
 +	}
 +
 +	free_percpu(wq->cpu_wq);
 +	kfree(wq);
 +}
 +EXPORT_SYMBOL_GPL(destroy_workqueue);
-+
+ 
+-	case CPU_DOWN_PREPARE:
 +static int __devinit workqueue_cpu_callback(struct notifier_block *nfb,
 +						unsigned long action,
 +						void *hcpu)
 +{
-+	struct workqueue_struct *wq;
-+	struct cpu_workqueue_struct *cwq;
 +	unsigned int cpu = (unsigned long)hcpu;
-+	int ret = NOTIFY_OK;
++	struct cpu_workqueue_struct *cwq;
++	struct workqueue_struct *wq;
 +
-+	mutex_lock(&workqueue_mutex);
-+	embryonic_cpu = -1;
-+	if (action == CPU_UP_PREPARE) {
++	switch (action) {
++	case CPU_LOCK_ACQUIRE:
+ 		mutex_lock(&workqueue_mutex);
+-		break;
++		return NOTIFY_OK;
+ 
+-	case CPU_DOWN_FAILED:
++	case CPU_LOCK_RELEASE:
+ 		mutex_unlock(&workqueue_mutex);
+-		break;
++		return NOTIFY_OK;
+ 
+-	case CPU_DEAD:
+-		list_for_each_entry(wq, &workqueues, list)
+-			cleanup_workqueue_thread(wq, hotcpu);
+-		list_for_each_entry(wq, &workqueues, list)
+-			take_over_work(wq, hotcpu);
+-		mutex_unlock(&workqueue_mutex);
+-		break;
++	case CPU_UP_PREPARE:
 +		cpu_set(cpu, cpu_populated_map);
-+		embryonic_cpu = cpu;
 +	}
 +
 +	list_for_each_entry(wq, &workqueues, list) {
@@ -607,31 +586,26 @@ diff -puN kernel/workqueue.c~workqueue-rework-threads-hotplug-management kernel/
 +
 +		switch (action) {
 +		case CPU_UP_PREPARE:
-+			if (create_workqueue_thread(cwq, cpu))
-+				ret = NOTIFY_BAD;
-+			break;
++			if (!create_workqueue_thread(cwq, cpu))
++				break;
++			printk(KERN_ERR "workqueue for %i failed\n", cpu);
++			return NOTIFY_BAD;
 +
 +		case CPU_ONLINE:
-+			set_cpus_allowed(cwq->thread, cpumask_of_cpu(cpu));
++			wake_up_process(cwq->thread);
 +			break;
 +
 +		case CPU_UP_CANCELED:
++			if (cwq->thread)
++				wake_up_process(cwq->thread);
 +		case CPU_DEAD:
-+			cwq->should_stop = 1;
-+			wake_up(&cwq->more_work);
-+			break;
-+		}
-+
-+		if (ret != NOTIFY_OK) {
-+			printk(KERN_ERR "workqueue for %i failed\n", cpu);
++			cleanup_workqueue_thread(cwq, cpu);
 +			break;
 +		}
  	}
-+	mutex_unlock(&workqueue_mutex);
  
--	return NOTIFY_OK;
-+	return ret;
- }
+ 	return NOTIFY_OK;
+@@ -908,9 +900,9 @@ static int __devinit workqueue_cpu_callb
  
  void init_workqueues(void)
  {
