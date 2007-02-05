@@ -1,64 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-au1xmmc-return-errors-for-unknown-response-types.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 12:41:24 -0800
-Message-ID: <200702052041.l15KfOwZ030570@shell0.pdx.osdl.net>
+Subject: - acpi-temp_fix_for_proximity_domain.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 12:41:13 -0800
+Message-ID: <200702052041.l15KfD7I030555@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60806 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60810 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933438AbXBEUmo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 15:42:44 -0500
+	id S933441AbXBEUmp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 15:42:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mano@roarinelk.homelinux.net, mm-commits@vger.kernel.org
+To: alexey.y.starikovskiy@linux.intel.com, bob.picco@hp.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: au1xmmc: return errors for unknown response types
+     acpi: temp fix for proximity domain
 has been removed from the -mm tree.  Its filename was
-     mmc-au1xmmc-return-errors-for-unknown-response-types.patch
+     acpi-temp_fix_for_proximity_domain.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mmc: au1xmmc: return errors for unknown response types
-From: Manuel Lauss <mano@roarinelk.homelinux.net>
+Subject: acpi: temp fix for proximity domain
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
 
-au1xmmc: return error when encountering unhandled/unknown response type.
+Proximity domain just became u32 what makes HP to break... Mask the
+extended range for now.
 
-Signed-off-by: Manuel Lauss <mano@roarinelk.homelinux.net>
+Cc: Bob Picco <bob.picco@hp.com>
+CC: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/mmc/au1xmmc.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+ arch/ia64/kernel/acpi.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/au1xmmc.c~mmc-au1xmmc-return-errors-for-unknown-response-types drivers/mmc/au1xmmc.c
---- a/drivers/mmc/au1xmmc.c~mmc-au1xmmc-return-errors-for-unknown-response-types
-+++ a/drivers/mmc/au1xmmc.c
-@@ -193,6 +193,8 @@ static int au1xmmc_send_command(struct a
- 	u32 mmccmd = (cmd->opcode << SD_CMD_CI_SHIFT);
+diff -puN arch/ia64/kernel/acpi.c~acpi-temp_fix_for_proximity_domain arch/ia64/kernel/acpi.c
+--- a/arch/ia64/kernel/acpi.c~acpi-temp_fix_for_proximity_domain
++++ a/arch/ia64/kernel/acpi.c
+@@ -422,8 +422,8 @@ static int get_memory_proximity_domain(s
+ 	int pxm;
  
- 	switch (mmc_resp_type(cmd)) {
-+	case MMC_RSP_NONE:
-+		break;
- 	case MMC_RSP_R1:
- 		mmccmd |= SD_CMD_RT_1;
- 		break;
-@@ -205,6 +207,10 @@ static int au1xmmc_send_command(struct a
- 	case MMC_RSP_R3:
- 		mmccmd |= SD_CMD_RT_3;
- 		break;
-+	default:
-+		printk(KERN_INFO "au1xmmc: unhandled response type %02x\n",
-+			mmc_resp_type(cmd));
-+		return MMC_ERR_INVALID;
- 	}
+ 	pxm = ma->proximity_domain;
+-	if (ia64_platform_is("sn2"))
+-		pxm += ma->reserved << 8;
++	if (!ia64_platform_is("sn2"))
++		pxm &= 0xff;
  
- 	switch(cmd->opcode) {
+ 	return pxm;
+ }
 _
 
-Patches currently in -mm which might be from mano@roarinelk.homelinux.net are
+Patches currently in -mm which might be from alexey.y.starikovskiy@linux.intel.com are
 
-git-mmc.patch
-git-sh.patch
+git-acpi.patch
+swsusp-change-code-order-in-diskc-fix.patch
