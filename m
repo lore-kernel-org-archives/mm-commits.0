@@ -1,48 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-xfs-fix.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 12:41:30 -0800
-Message-ID: <200702052041.l15KfUWf030579@shell0.pdx.osdl.net>
+Subject: - git-block-borkage.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 12:41:28 -0800
+Message-ID: <200702052041.l15KfSQW030576@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60763 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60761 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933437AbXBEUle (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 15:41:34 -0500
+	id S933436AbXBEUld (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 15:41:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-xfs-fix
+     git-block-borkage
 has been removed from the -mm tree.  Its filename was
-     git-block-xfs-fix.patch
+     git-block-borkage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-block-xfs-fix
+Subject: git-block-borkage
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Jens Axboe <axboe@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/xfs/linux-2.6/xfs_buf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/elevator.c |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_buf.c~git-block-xfs-fix fs/xfs/linux-2.6/xfs_buf.c
---- a/fs/xfs/linux-2.6/xfs_buf.c~git-block-xfs-fix
-+++ a/fs/xfs/linux-2.6/xfs_buf.c
-@@ -979,7 +979,7 @@ xfs_buf_wait_unpin(
- 		set_current_state(TASK_UNINTERRUPTIBLE);
- 		if (atomic_read(&bp->b_pin_count) == 0)
+diff -puN block/elevator.c~git-block-borkage block/elevator.c
+--- a/block/elevator.c~git-block-borkage
++++ a/block/elevator.c
+@@ -604,12 +604,6 @@ void elv_insert(request_queue_t *q, stru
+ 		 */
+ 		rq->cmd_flags |= REQ_SOFTBARRIER;
+ 
+-		/*
+-		 * Most requeues happen because of a busy condition,
+-		 * don't force unplug of the queue for that case.
+-		 */
+-		unplug_it = 0;
+-
+ 		if (q->ordseq == 0) {
+ 			list_add(&rq->queuelist, &q->queue_head);
  			break;
--		schedule();
-+		io_schedule();
- 	}
- 	remove_wait_queue(&bp->b_waiters, &wait);
- 	set_current_state(TASK_RUNNING);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
