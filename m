@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-v850-user-array_size-macro-when-appropriate.patch added to -mm tree
-Date: Mon, 05 Feb 2007 14:09:27 -0800
-Message-ID: <200702052209.l15M9Rk4000383@shell0.pdx.osdl.net>
+Subject: + arch-powerpc-user-array_size-macro-when-appropriate.patch added to -mm tree
+Date: Mon, 05 Feb 2007 14:09:29 -0800
+Message-ID: <200702052209.l15M9TQh000386@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35943 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35956 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964857AbXBEWJe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 17:09:34 -0500
+	id S964854AbXBEWJj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 17:09:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, uclinux-v850@lsi.nec.co.jp
+Cc: darwish.07@gmail.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     V850: user ARRAY_SIZE macro when appropriate
+     PowerPC: user ARRAY_SIZE macro when appropriate
 has been added to the -mm tree.  Its filename is
-     arch-v850-user-array_size-macro-when-appropriate.patch
+     arch-powerpc-user-array_size-macro-when-appropriate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,177 +25,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: V850: user ARRAY_SIZE macro when appropriate
+Subject: PowerPC: user ARRAY_SIZE macro when appropriate
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
 Use ARRAY_SIZE macro already defined in linux/kernel.h
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Miles Bader <uclinux-v850@lsi.nec.co.jp>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/v850/kernel/anna.c         |    2 +-
- arch/v850/kernel/as85ep1.c      |    2 +-
- arch/v850/kernel/fpga85e2c.c    |    2 +-
- arch/v850/kernel/gbus_int.c     |    6 +++---
- arch/v850/kernel/ma.c           |    2 +-
- arch/v850/kernel/me2.c          |    2 +-
- arch/v850/kernel/rte_cb.c       |    4 ++--
- arch/v850/kernel/rte_mb_a_pci.c |    3 +--
- arch/v850/kernel/rte_me2_cb.c   |    3 +--
- arch/v850/kernel/teg.c          |    2 +-
- 10 files changed, 13 insertions(+), 15 deletions(-)
+ arch/powerpc/lib/rheap.c    |    3 ++-
+ arch/powerpc/xmon/ppc-opc.c |    7 +++----
+ arch/powerpc/xmon/spu-opc.c |    4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/v850/kernel/anna.c~arch-v850-user-array_size-macro-when-appropriate arch/v850/kernel/anna.c
---- a/arch/v850/kernel/anna.c~arch-v850-user-array_size-macro-when-appropriate
-+++ a/arch/v850/kernel/anna.c
-@@ -114,7 +114,7 @@ static struct v850e_intc_irq_init irq_in
- 	{ "ST",  IRQ_INTST(0), 	IRQ_INTST_NUM, 	3, 5 },
- 	{ 0 }
- };
--#define NUM_IRQ_INITS ((sizeof irq_inits / sizeof irq_inits[0]) - 1)
-+#define NUM_IRQ_INITS (ARRAY_SIZE(irq_inits) - 1)
- 
- static struct hw_interrupt_type hw_itypes[NUM_IRQ_INITS];
- 
-diff -puN arch/v850/kernel/as85ep1.c~arch-v850-user-array_size-macro-when-appropriate arch/v850/kernel/as85ep1.c
---- a/arch/v850/kernel/as85ep1.c~arch-v850-user-array_size-macro-when-appropriate
-+++ a/arch/v850/kernel/as85ep1.c
-@@ -142,7 +142,7 @@ static struct v850e_intc_irq_init irq_in
- 	{ "ST",  IRQ_INTST(0), 	IRQ_INTST_NUM, 	3, 5 },
- 	{ 0 }
- };
--#define NUM_IRQ_INITS ((sizeof irq_inits / sizeof irq_inits[0]) - 1)
-+#define NUM_IRQ_INITS (ARRAY_SIZE(irq_inits) - 1)
- 
- static struct hw_interrupt_type hw_itypes[NUM_IRQ_INITS];
- 
-diff -puN arch/v850/kernel/fpga85e2c.c~arch-v850-user-array_size-macro-when-appropriate arch/v850/kernel/fpga85e2c.c
---- a/arch/v850/kernel/fpga85e2c.c~arch-v850-user-array_size-macro-when-appropriate
-+++ a/arch/v850/kernel/fpga85e2c.c
-@@ -138,7 +138,7 @@ struct v850e_intc_irq_init irq_inits[] =
- 	{ "RPU", IRQ_RPU(0),	IRQ_RPU_NUM,	1, 6 },
- 	{ 0 }
- };
--#define NUM_IRQ_INITS ((sizeof irq_inits / sizeof irq_inits[0]) - 1)
-+#define NUM_IRQ_INITS (ARRAY_SIZE(irq_inits) - 1)
- 
- struct hw_interrupt_type hw_itypes[NUM_IRQ_INITS];
- 
-diff -puN arch/v850/kernel/gbus_int.c~arch-v850-user-array_size-macro-when-appropriate arch/v850/kernel/gbus_int.c
---- a/arch/v850/kernel/gbus_int.c~arch-v850-user-array_size-macro-when-appropriate
-+++ a/arch/v850/kernel/gbus_int.c
-@@ -16,6 +16,7 @@
- #include <linux/irq.h>
- #include <linux/interrupt.h>
- #include <linux/signal.h>
+diff -puN arch/powerpc/lib/rheap.c~arch-powerpc-user-array_size-macro-when-appropriate arch/powerpc/lib/rheap.c
+--- a/arch/powerpc/lib/rheap.c~arch-powerpc-user-array_size-macro-when-appropriate
++++ a/arch/powerpc/lib/rheap.c
+@@ -14,6 +14,7 @@
+  */
+ #include <linux/types.h>
+ #include <linux/errno.h>
 +#include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/slab.h>
  
- #include <asm/machdep.h>
+@@ -670,7 +671,7 @@ void rh_dump(rh_info_t * info)
+ 	int maxnr;
+ 	int i, nr;
  
-@@ -36,7 +37,7 @@ struct used_gint {
- 	{ 1, GBUS_INT_PRIORITY_HIGH },
- 	{ 3, GBUS_INT_PRIORITY_LOW }
- };
--#define NUM_USED_GINTS	(sizeof used_gint / sizeof used_gint[0])
-+#define NUM_USED_GINTS ARRAY_SIZE(used_gint)
+-	maxnr = sizeof(st) / sizeof(st[0]);
++	maxnr = ARRAY_SIZE(st);
  
- /* A table of which GINT is used by each GBUS interrupts (they are
-    assigned based on priority).  */
-@@ -231,8 +232,7 @@ struct gbus_int_irq_init gbus_irq_inits[
- 	{ "GBUS_INT", IRQ_GBUS_INT(0), IRQ_GBUS_INT_NUM, 1, 6},
- 	{ 0 }
- };
--#define NUM_GBUS_IRQ_INITS  \
--   ((sizeof gbus_irq_inits / sizeof gbus_irq_inits[0]) - 1)
-+#define NUM_GBUS_IRQ_INITS (ARRAY_SIZE(gbus_irq_inits) - 1)
+ 	printk(KERN_INFO
+ 	       "info @0x%p (%d slots empty / %d max)\n",
+diff -puN arch/powerpc/xmon/ppc-opc.c~arch-powerpc-user-array_size-macro-when-appropriate arch/powerpc/xmon/ppc-opc.c
+--- a/arch/powerpc/xmon/ppc-opc.c~arch-powerpc-user-array_size-macro-when-appropriate
++++ a/arch/powerpc/xmon/ppc-opc.c
+@@ -21,6 +21,7 @@
+    02110-1301, USA.  */
  
- static struct hw_interrupt_type gbus_hw_itypes[NUM_GBUS_IRQ_INITS];
- 
-diff -puN arch/v850/kernel/ma.c~arch-v850-user-array_size-macro-when-appropriate arch/v850/kernel/ma.c
---- a/arch/v850/kernel/ma.c~arch-v850-user-array_size-macro-when-appropriate
-+++ a/arch/v850/kernel/ma.c
-@@ -43,7 +43,7 @@ static struct v850e_intc_irq_init irq_in
- 	{ "ST",  IRQ_INTST(0), 	IRQ_INTST_NUM, 	4, 5 },
- 	{ 0 }
- };
--#define NUM_IRQ_INITS ((sizeof irq_inits / sizeof irq_inits[0]) - 1)
-+#define NUM_IRQ_INITS (ARRAY_SIZE(irq_inits) - 1)
- 
- static struct hw_interrupt_type hw_itypes[NUM_IRQ_INITS];
- 
-diff -puN arch/v850/kernel/me2.c~arch-v850-user-array_size-macro-when-appropriate arch/v850/kernel/me2.c
---- a/arch/v850/kernel/me2.c~arch-v850-user-array_size-macro-when-appropriate
-+++ a/arch/v850/kernel/me2.c
-@@ -44,7 +44,7 @@ static struct v850e_intc_irq_init irq_in
- 	{ "UBTITO", IRQ_INTUBTITO(0), IRQ_INTUBTITO_NUM, 5, 4 },
- 	{ 0 }
- };
--#define NUM_IRQ_INITS ((sizeof irq_inits / sizeof irq_inits[0]) - 1)
-+#define NUM_IRQ_INITS (ARRAY_SIZE(irq_inits) - 1)
- 
- static struct hw_interrupt_type hw_itypes[NUM_IRQ_INITS];
- 
-diff -puN arch/v850/kernel/rte_cb.c~arch-v850-user-array_size-macro-when-appropriate arch/v850/kernel/rte_cb.c
---- a/arch/v850/kernel/rte_cb.c~arch-v850-user-array_size-macro-when-appropriate
-+++ a/arch/v850/kernel/rte_cb.c
-@@ -15,6 +15,7 @@
- #include <linux/irq.h>
- #include <linux/fs.h>
- #include <linux/module.h>
+ #include <linux/stddef.h>
 +#include <linux/kernel.h>
+ #include "nonstdio.h"
+ #include "ppc.h"
  
- #include <asm/machdep.h>
- #include <asm/v850e_uart.h>
-@@ -176,8 +177,7 @@ static struct gbus_int_irq_init gbus_irq
- #endif
- 	{ 0 }
+@@ -4932,8 +4933,7 @@ const struct powerpc_opcode powerpc_opco
+ 
  };
--#define NUM_GBUS_IRQ_INITS  \
--   ((sizeof gbus_irq_inits / sizeof gbus_irq_inits[0]) - 1)
-+#define NUM_GBUS_IRQ_INITS (ARRAY_SIZE(gbus_irq_inits) - 1)
  
- static struct hw_interrupt_type gbus_hw_itypes[NUM_GBUS_IRQ_INITS];
- 
-diff -puN arch/v850/kernel/rte_mb_a_pci.c~arch-v850-user-array_size-macro-when-appropriate arch/v850/kernel/rte_mb_a_pci.c
---- a/arch/v850/kernel/rte_mb_a_pci.c~arch-v850-user-array_size-macro-when-appropriate
-+++ a/arch/v850/kernel/rte_mb_a_pci.c
-@@ -70,8 +70,7 @@ static struct mb_pci_dev_irq mb_pci_dev_
- 	/* PCI slot 2 */
- 	{ 9, 	IRQ_MB_A_PCI2(0),	1 }
- };
--#define NUM_MB_PCI_DEV_IRQS \
--  (sizeof mb_pci_dev_irqs / sizeof mb_pci_dev_irqs[0])
-+#define NUM_MB_PCI_DEV_IRQS ARRAY_SIZE(mb_pci_dev_irqs)
- 
+-const int powerpc_num_opcodes =
+-  sizeof (powerpc_opcodes) / sizeof (powerpc_opcodes[0]);
++const int powerpc_num_opcodes = ARRAY_SIZE(powerpc_opcodes);
  
- /* PCI configuration primitives.  */
-diff -puN arch/v850/kernel/rte_me2_cb.c~arch-v850-user-array_size-macro-when-appropriate arch/v850/kernel/rte_me2_cb.c
---- a/arch/v850/kernel/rte_me2_cb.c~arch-v850-user-array_size-macro-when-appropriate
-+++ a/arch/v850/kernel/rte_me2_cb.c
-@@ -170,8 +170,7 @@ static struct cb_pic_irq_init cb_pic_irq
- 	{ "CB_EXTTM2",       IRQ_CB_EXTTM2,       1, 1, 6 },
- 	{ 0 }
+ /* The macro table.  This is only used by the assembler.  */
+ 
+@@ -4989,5 +4989,4 @@ const struct powerpc_macro powerpc_macro
+ { "clrlslwi.",4,  PPCCOM,	"rlwinm. %0,%1,%3,(%2)-(%3),31-(%3)" },
  };
--#define NUM_CB_PIC_IRQ_INITS  \
--   ((sizeof cb_pic_irq_inits / sizeof cb_pic_irq_inits[0]) - 1)
-+#define NUM_CB_PIC_IRQ_INITS (ARRAY_SIZE(cb_pic_irq_inits) - 1)
  
- static struct hw_interrupt_type cb_pic_hw_itypes[NUM_CB_PIC_IRQ_INITS];
- static unsigned char cb_pic_active_irqs = 0;
-diff -puN arch/v850/kernel/teg.c~arch-v850-user-array_size-macro-when-appropriate arch/v850/kernel/teg.c
---- a/arch/v850/kernel/teg.c~arch-v850-user-array_size-macro-when-appropriate
-+++ a/arch/v850/kernel/teg.c
-@@ -43,7 +43,7 @@ static struct v850e_intc_irq_init irq_in
- 	{ "ST",	 IRQ_INTST(0),	IRQ_INTST_NUM,	1, 5 },
- 	{ 0 }
+-const int powerpc_num_macros =
+-  sizeof (powerpc_macros) / sizeof (powerpc_macros[0]);
++const int powerpc_num_macros = ARRAY_SIZE(powerpc_macros);
+diff -puN arch/powerpc/xmon/spu-opc.c~arch-powerpc-user-array_size-macro-when-appropriate arch/powerpc/xmon/spu-opc.c
+--- a/arch/powerpc/xmon/spu-opc.c~arch-powerpc-user-array_size-macro-when-appropriate
++++ a/arch/powerpc/xmon/spu-opc.c
+@@ -18,6 +18,7 @@
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  */
+ 
++#include <linux/kernel.h>
+ #include "spu.h"
+ 
+ /* This file holds the Spu opcode table */
+@@ -40,5 +41,4 @@ const struct spu_opcode spu_opcodes[] = 
+ #undef APUOPFB
  };
--#define NUM_IRQ_INITS ((sizeof irq_inits / sizeof irq_inits[0]) - 1)
-+#define NUM_IRQ_INITS (ARRAY_SIZE(irq_inits) - 1)
  
- static struct hw_interrupt_type hw_itypes[NUM_IRQ_INITS];
- 
+-const int spu_num_opcodes =
+-  sizeof (spu_opcodes) / sizeof (spu_opcodes[0]);
++const int spu_num_opcodes = ARRAY_SIZE(spu_opcodes);
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
