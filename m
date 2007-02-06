@@ -1,64 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: + windfarm-dont-die-on-suspend-thread-signal.patch added to -mm tree
-Date: Mon, 05 Feb 2007 15:11:58 -0800
-Message-ID: <200702052311.l15NBx4V002232@shell0.pdx.osdl.net>
+Subject: - acpi-add-backlight-support-to-the-sony_acpi-v2.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 16:05:02 -0800
+Message-ID: <200702060006.l16066kd003569@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38346 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40379 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965056AbXBEXMF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 18:12:05 -0500
+	id S965120AbXBFAGJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:06:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: johannes@sipsolutions.net, benh@kernel.crashing.org
+To: alessandro.guido@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     windfarm: dont die on suspend thread signal
-has been added to the -mm tree.  Its filename is
-     windfarm-dont-die-on-suspend-thread-signal.patch
+     acpi: add backlight support to the sony_acpi driver (v2)
+has been removed from the -mm tree.  Its filename was
+     acpi-add-backlight-support-to-the-sony_acpi-v2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into acpi-add-backlight-support-to-the-sony_acpi.patch
 
 ------------------------------------------------------
-Subject: windfarm: dont die on suspend thread signal
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: acpi: add backlight support to the sony_acpi driver (v2)
+From: Alessandro Guido <alessandro.guido@gmail.com>
 
-When the windfarm thread gets a suspend signal it will die instead of
-freezing.  This fixes it.
+Enable the sony_acpi driver to use the backlight subsysyem for adjusting
+the monitor brightness.  Old way of changing the brightness will be still
+available for compatibility with existing tools.
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Alessandro Guido <alessandro.guido@gmail.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/macintosh/windfarm_core.c |    6 ------
- 1 files changed, 6 deletions(-)
+ drivers/acpi/sony_acpi.c |    8 ++++++++
+ 1 files changed, 8 insertions(+)
 
-diff -puN drivers/macintosh/windfarm_core.c~windfarm-dont-die-on-suspend-thread-signal drivers/macintosh/windfarm_core.c
---- a/drivers/macintosh/windfarm_core.c~windfarm-dont-die-on-suspend-thread-signal
-+++ a/drivers/macintosh/windfarm_core.c
-@@ -117,12 +117,6 @@ static int wf_thread_func(void *data)
- 		delay = next - jiffies;
- 		if (delay <= HZ)
- 			schedule_timeout_interruptible(delay);
--
--		/* there should be no signal, but oh well */
--		if (signal_pending(current)) {
--			printk(KERN_WARNING "windfarm: thread got sigl !\n");
--			break;
--		}
- 	}
- 
- 	DBG("wf: thread stopped\n");
+diff -puN drivers/acpi/sony_acpi.c~acpi-add-backlight-support-to-the-sony_acpi-v2 drivers/acpi/sony_acpi.c
+--- a/drivers/acpi/sony_acpi.c~acpi-add-backlight-support-to-the-sony_acpi-v2
++++ a/drivers/acpi/sony_acpi.c
+@@ -77,6 +77,14 @@ static struct sony_acpi_value {
+ 	int			debug;	 /* active only in debug mode ? */
+ } sony_acpi_values[] = {
+ 	{
++		.name		= "brightness",
++		.acpiget	= "GBRT",
++		.acpiset	= "SBRT",
++		.min		= 1,
++		.max		= SONY_MAX_BRIGHTNESS,
++		.debug		= 0,
++	},
++	{
+ 		.name		= "brightness_default",
+ 		.acpiget	= "GPBR",
+ 		.acpiset	= "SPBR",
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from alessandro.guido@gmail.com are
 
-git-alsa.patch
-windfarm-dont-die-on-suspend-thread-signal.patch
-swsusp-dont-copy-pages-that-arent-ram.patch
+acpi-add-backlight-support-to-the-sony_acpi.patch
+acpi-add-backlight-support-to-the-sony_acpi-v2.patch
