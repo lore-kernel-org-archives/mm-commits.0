@@ -1,50 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 16:29:53 -0800
-Message-ID: <200702060030.l160UuP3004600@shell0.pdx.osdl.net>
+Subject: - nfs-fix-congestion-control-v4-tweaks.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 16:31:57 -0800
+Message-ID: <200702060033.l160X04f004696@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41413 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41524 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933105AbXBFAbA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:31:00 -0500
+	id S965220AbXBFAdX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:33:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lkmaillist@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, clameter@engr.sgi.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix
+     nfs-fix-congestion-control-v4-tweaks
 has been removed from the -mm tree.  Its filename was
-     bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
+     nfs-fix-congestion-control-v4-tweaks.patch
 
-This patch was dropped because it was folded into bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls.patch
+This patch was dropped because it was folded into nfs-fix-congestion-control-v4.patch
 
 ------------------------------------------------------
-Subject: bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix
+Subject: nfs-fix-congestion-control-v4-tweaks
 From: Andrew Morton <akpm@osdl.org>
 
-That one wasn't needed.
-
-Cc: Joe Jin <lkmaillist@gmail.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bonding/bond_alb.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/nfs/write.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/bonding/bond_alb.c~bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix drivers/net/bonding/bond_alb.c
---- a/drivers/net/bonding/bond_alb.c~bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix
-+++ a/drivers/net/bonding/bond_alb.c
-@@ -786,7 +786,7 @@ static int rlb_initialize(struct bonding
+diff -puN fs/nfs/write.c~nfs-fix-congestion-control-v4-tweaks fs/nfs/write.c
+--- a/fs/nfs/write.c~nfs-fix-congestion-control-v4-tweaks
++++ a/fs/nfs/write.c
+@@ -39,7 +39,6 @@ static struct nfs_page * nfs_update_requ
+ 					    struct page *,
+ 					    unsigned int, unsigned int);
+ static void nfs_mark_request_dirty(struct nfs_page *req);
+-static int nfs_wait_on_write_congestion(struct address_space *);
+ static long nfs_flush_mapping(struct address_space *mapping, struct writeback_control *wbc, int how);
+ static const struct rpc_call_ops nfs_write_partial_ops;
+ static const struct rpc_call_ops nfs_write_full_ops;
+@@ -212,18 +211,19 @@ int nfs_congestion_kb;
+ #define NFS_CONGESTION_OFF_THRESH	\
+ 	(NFS_CONGESTION_ON_THRESH - (NFS_CONGESTION_ON_THRESH >> 2))
  
- 	spin_lock_init(&(bond_info->rx_hashtbl_lock));
+-static inline void nfs_set_page_writeback(struct page *page)
++static void nfs_set_page_writeback(struct page *page)
+ {
+ 	if (!test_set_page_writeback(page)) {
+ 		struct inode *inode = page->mapping->host;
+ 		struct nfs_server *nfss = NFS_SERVER(inode);
  
--	new_hashtbl = kzalloc(size, GFP_KERNEL);
-+	new_hashtbl = kmalloc(size, GFP_KERNEL);
- 	if (!new_hashtbl) {
- 		printk(KERN_ERR DRV_NAME
- 		       ": %s: Error: Failed to allocate RLB hash table\n",
+-		if (atomic_inc_return(&nfss->writeback) > NFS_CONGESTION_ON_THRESH)
++		if (atomic_inc_return(&nfss->writeback) >
++				NFS_CONGESTION_ON_THRESH)
+ 			set_bdi_congested(&nfss->backing_dev_info, WRITE);
+ 	}
+ }
+ 
+-static inline void nfs_end_page_writeback(struct page *page)
++static void nfs_end_page_writeback(struct page *page)
+ {
+ 	struct inode *inode = page->mapping->host;
+ 	struct nfs_server *nfss = NFS_SERVER(inode);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -74,13 +96,12 @@ git-ubi.patch
 git-netdev-all.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls.patch
-bonding-replace-kmalloc-memset-pairs-with-the-appropriate-kzalloc-calls-fix.patch
 dccp-warning-fixes.patch
 netfilter-warning-fix.patch
 net-uninline-skb_put.patch
 git-ioat-vs-git-md-accel.patch
 ioat-warning-fix.patch
+nfs-fix-congestion-control-v4.patch
 nfs-fix-congestion-control-v4-tweaks.patch
 r8169-warning-fixes.patch
 make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
