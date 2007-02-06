@@ -1,181 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-fix-congestion-control-v4-tweaks.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 16:31:57 -0800
-Message-ID: <200702060033.l160X04f004696@shell0.pdx.osdl.net>
+Subject: - nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 16:32:47 -0800
+Message-ID: <200702060033.l160Xomh004723@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41524 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41539 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965220AbXBFAdX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:33:23 -0500
+	id S965239AbXBFAeL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:34:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, clameter@engr.sgi.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, hch@infradead.org, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs-fix-congestion-control-v4-tweaks
+     NFS: Represent 64-bit fileids as 64-bit inode numbers on 32-bit systems
 has been removed from the -mm tree.  Its filename was
-     nfs-fix-congestion-control-v4-tweaks.patch
+     nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems.patch
 
-This patch was dropped because it was folded into nfs-fix-congestion-control-v4.patch
+This patch was dropped because it doesn't seem ready
 
 ------------------------------------------------------
-Subject: nfs-fix-congestion-control-v4-tweaks
-From: Andrew Morton <akpm@osdl.org>
+Subject: NFS: Represent 64-bit fileids as 64-bit inode numbers on 32-bit systems
+From: David Howells <dhowells@redhat.com>
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Building on the previous patch that expanded the inode numbers in struct
+kstat and filldir_t to an obligate 64-bits, make NFS represent 64-bit
+fileids as 64-bit inode numbers rather than compressing them down to
+32-bits.
+
+hch says:
+nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems.patch
+is quite risky as I mentioned so I'd drop it for the time beeing - we
+shouldn't put it in as long as we don't have a mount option for it.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfs/write.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/nfs/dir.c           |    6 +++---
+ fs/nfs/inode.c         |   21 ++++++++++-----------
+ include/linux/nfs_fs.h |    9 ---------
+ 3 files changed, 13 insertions(+), 23 deletions(-)
 
-diff -puN fs/nfs/write.c~nfs-fix-congestion-control-v4-tweaks fs/nfs/write.c
---- a/fs/nfs/write.c~nfs-fix-congestion-control-v4-tweaks
-+++ a/fs/nfs/write.c
-@@ -39,7 +39,6 @@ static struct nfs_page * nfs_update_requ
- 					    struct page *,
- 					    unsigned int, unsigned int);
- static void nfs_mark_request_dirty(struct nfs_page *req);
--static int nfs_wait_on_write_congestion(struct address_space *);
- static long nfs_flush_mapping(struct address_space *mapping, struct writeback_control *wbc, int how);
- static const struct rpc_call_ops nfs_write_partial_ops;
- static const struct rpc_call_ops nfs_write_full_ops;
-@@ -212,18 +211,19 @@ int nfs_congestion_kb;
- #define NFS_CONGESTION_OFF_THRESH	\
- 	(NFS_CONGESTION_ON_THRESH - (NFS_CONGESTION_ON_THRESH >> 2))
+diff -puN fs/nfs/dir.c~nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems fs/nfs/dir.c
+--- a/fs/nfs/dir.c~nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems
++++ a/fs/nfs/dir.c
+@@ -400,7 +400,7 @@ int nfs_do_filldir(nfs_readdir_descripto
+ 	struct file	*file = desc->file;
+ 	struct nfs_entry *entry = desc->entry;
+ 	struct dentry	*dentry = NULL;
+-	unsigned long	fileid;
++	u64		fileid;
+ 	int		loop_count = 0,
+ 			res;
  
--static inline void nfs_set_page_writeback(struct page *page)
-+static void nfs_set_page_writeback(struct page *page)
+@@ -411,7 +411,7 @@ int nfs_do_filldir(nfs_readdir_descripto
+ 		unsigned d_type = DT_UNKNOWN;
+ 		/* Note: entry->prev_cookie contains the cookie for
+ 		 *	 retrieving the current dirent on the server */
+-		fileid = nfs_fileid_to_ino_t(entry->ino);
++		fileid = entry->ino;
+ 
+ 		/* Get a dentry if we have one */
+ 		if (dentry != NULL)
+@@ -421,7 +421,7 @@ int nfs_do_filldir(nfs_readdir_descripto
+ 		/* Use readdirplus info */
+ 		if (dentry != NULL && dentry->d_inode != NULL) {
+ 			d_type = dt_type(dentry->d_inode);
+-			fileid = dentry->d_inode->i_ino;
++			fileid = NFS_FILEID(dentry->d_inode);
+ 		}
+ 
+ 		res = filldir(dirent, entry->name, entry->len, 
+diff -puN fs/nfs/inode.c~nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems fs/nfs/inode.c
+--- a/fs/nfs/inode.c~nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems
++++ a/fs/nfs/inode.c
+@@ -57,12 +57,6 @@ static void nfs_zap_acl_cache(struct ino
+ 
+ static struct kmem_cache * nfs_inode_cachep;
+ 
+-static inline unsigned long
+-nfs_fattr_to_ino_t(struct nfs_fattr *fattr)
+-{
+-	return nfs_fileid_to_ino_t(fattr->fileid);
+-}
+-
+ int nfs_write_inode(struct inode *inode, int sync)
  {
- 	if (!test_set_page_writeback(page)) {
- 		struct inode *inode = page->mapping->host;
- 		struct nfs_server *nfss = NFS_SERVER(inode);
- 
--		if (atomic_inc_return(&nfss->writeback) > NFS_CONGESTION_ON_THRESH)
-+		if (atomic_inc_return(&nfss->writeback) >
-+				NFS_CONGESTION_ON_THRESH)
- 			set_bdi_congested(&nfss->backing_dev_info, WRITE);
+ 	int flags = sync ? FLUSH_SYNC : 0;
+@@ -225,7 +219,9 @@ nfs_fhget(struct super_block *sb, struct
+ 		goto out_no_inode;
  	}
+ 
+-	hash = nfs_fattr_to_ino_t(fattr);
++	hash = fattr->fileid;
++	if (sizeof(hash) < sizeof(u64))
++		hash ^= fattr->fileid >> (sizeof(u64) - sizeof(ino_t)) * 8;
+ 
+ 	inode = iget5_locked(sb, hash, nfs_find_actor, nfs_init_locked, &desc);
+ 	if (inode == NULL) {
+@@ -236,9 +232,10 @@ nfs_fhget(struct super_block *sb, struct
+ 	if (inode->i_state & I_NEW) {
+ 		struct nfs_inode *nfsi = NFS_I(inode);
+ 
+-		/* We set i_ino for the few things that still rely on it,
+-		 * such as stat(2) */
+-		inode->i_ino = hash;
++		/* We set i_ino for the few things that still rely on it, such
++		 * as printing messages; stat and filldir use the fileid
++		 * directly since i_ino may not be large enough */
++		inode->i_ino = fattr->fileid;
+ 
+ 		/* We can't support update_atime(), since the server will reset it */
+ 		inode->i_flags |= S_NOATIME|S_NOCMTIME;
+@@ -441,8 +438,10 @@ int nfs_getattr(struct vfsmount *mnt, st
+ 		err = __nfs_revalidate_inode(NFS_SERVER(inode), inode);
+ 	else
+ 		err = nfs_revalidate_inode(NFS_SERVER(inode), inode);
+-	if (!err)
++	if (!err) {
+ 		generic_fillattr(inode, stat);
++		stat->ino = NFS_FILEID(inode);
++	}
+ 	return err;
  }
  
--static inline void nfs_end_page_writeback(struct page *page)
-+static void nfs_end_page_writeback(struct page *page)
- {
- 	struct inode *inode = page->mapping->host;
- 	struct nfs_server *nfss = NFS_SERVER(inode);
+diff -puN include/linux/nfs_fs.h~nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems include/linux/nfs_fs.h
+--- a/include/linux/nfs_fs.h~nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems
++++ a/include/linux/nfs_fs.h
+@@ -521,15 +521,6 @@ nfs_size_to_loff_t(__u64 size)
+ 	return (loff_t) size;
+ }
+ 
+-static inline ino_t
+-nfs_fileid_to_ino_t(u64 fileid)
+-{
+-	ino_t ino = (ino_t) fileid;
+-	if (sizeof(ino_t) < sizeof(u64))
+-		ino ^= fileid >> (sizeof(u64)-sizeof(ino_t)) * 8;
+-	return ino;
+-}
+-
+ /* NFS root */
+ 
+ extern void * nfs_root_data(void);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-x86-fix-vdso-mapping-for-aout-executables.patch
-mm-show-bounce-pages-in-oom-killer-output.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-sony_apci-resume.patch
 git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-powerpc-make-it-compile.patch
-git-dvb.patch
-dvb-video_buf-depends-on-pci.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-libata-all.patch
-sata_nv-cleanup-adma-error-handling-v2.patch
-sata_sis-avoid-extern-decl-in-c.patch
-mm-ide-ide-acpi-support-warning-fix.patch
-git-lxdialog-fixup.patch
-git-mips-kconfig-fix.patch
-git-mips-prom_free_prom_memory-borkage.patch
-git-ubi.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-dccp-warning-fixes.patch
-netfilter-warning-fix.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-nfs-fix-congestion-control-v4.patch
-nfs-fix-congestion-control-v4-tweaks.patch
-r8169-warning-fixes.patch
-make-cardbus_mem_size-and-cardbus_io_size-boot-options-fix.patch
-sh-add-kconfig-default.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
-git-block-fixup.patch
-git-block-atomicity-fix.patch
-git-block-xfs-barriers-broke.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-nokia-e70-is-an-unusual-device.patch
-git-ipwireless_cs.patch
-revert-x86_64-mm-msr-on-cpu.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-cyrix-fails-to-detect-mediagx-warning-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-drop-free_pages-sparc64-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
-register_blkdev-dont-hand-out-the-local-experimental-majors.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+infiniband-work-around-gcc-bug-on-sparc64.patch
+nfs-represent-64-bit-fileids-as-64-bit-inode-numbers-on-32-bit-systems.patch
+git-cryptodev.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
 aio-use-flush_work.patch
 kblockd-use-flush_work.patch
 relayfs-use-flush_keventd_work.patch
@@ -183,74 +165,14 @@ tg3-use-flush_keventd_work.patch
 e1000-use-flush_keventd_work.patch
 libata-use-flush_work.patch
 phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-dynamic-kernel-command-line-ia64-fix.patch
-rcu-preemptible-rcu-fix.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+ecryptfs-public-key-transport-mechanism.patch
+ecryptfs-public-key-packet-management.patch
+dynamic-kernel-command-line-common.patch
+dynamic-kernel-command-line-frv.patch
 reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
+sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
+sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
+sysctl-c99-convert-arch-frv-kernel-pmc.patch
+sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
+mutex-subsystem-synchro-test-module.patch
