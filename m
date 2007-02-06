@@ -1,71 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + scnprintf-fix-comment.patch added to -mm tree
-Date: Tue, 06 Feb 2007 15:09:51 -0800
-Message-ID: <200702062309.l16N9pe1032148@shell0.pdx.osdl.net>
+Subject: - sed-s-gawk-awk-scripts-gen_init_ramfssh.patch removed from -mm tree
+Date: Tue, 06 Feb 2007 15:13:52 -0800
+Message-ID: <200702062313.l16NDrdw032226@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54747 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54874 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030533AbXBFXJ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 18:09:57 -0500
+	id S1751446AbXBFXOE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 18:14:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mp3@de.ibm.com
+To: rob@landley.net, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scnprintf(): fix a comment
-has been added to the -mm tree.  Its filename is
-     scnprintf-fix-comment.patch
+     sed s/gawk/awk/ scripts/gen_init_ramfs.sh
+has been removed from the -mm tree.  Its filename was
+     sed-s-gawk-awk-scripts-gen_init_ramfssh.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because Oleg Verych sent a new patch
 
 ------------------------------------------------------
-Subject: scnprintf(): fix a comment
-From: Martin Peschke <mp3@de.ibm.com>
+Subject: sed s/gawk/awk/ scripts/gen_init_ramfs.sh
+From: Rob Landley <rob@landley.net>
 
-The return value of scnprintf() never exceeds @size.
+There's a symlink from awk to gawk if you're using the gnu tools, but no
+symlink from gawk to awk if you're using BusyBox or some such.  (There's a
+reason for the existence of standard names.  Can we use them please?)
 
-Signed-off-by: Martin Peschke <mp3@de.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Rob Landley <rob@landley.net>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/vsprintf.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ scripts/gen_initramfs_list.sh |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN lib/vsprintf.c~scnprintf-fix-comment lib/vsprintf.c
---- a/lib/vsprintf.c~scnprintf-fix-comment
-+++ a/lib/vsprintf.c
-@@ -554,8 +554,7 @@ EXPORT_SYMBOL(snprintf);
-  * @...: Arguments for the format string
-  *
-  * The return value is the number of characters written into @buf not including
-- * the trailing '\0'. If @size is <= 0 the function returns 0. If the return is
-- * greater than or equal to @size, the resulting string is truncated.
-+ * the trailing '\0'. If @size is <= 0 the function returns 0.
-  */
+diff -puN scripts/gen_initramfs_list.sh~sed-s-gawk-awk-scripts-gen_init_ramfssh scripts/gen_initramfs_list.sh
+--- a/scripts/gen_initramfs_list.sh~sed-s-gawk-awk-scripts-gen_init_ramfssh
++++ a/scripts/gen_initramfs_list.sh
+@@ -121,9 +121,9 @@ parse() {
+ 		"nod")
+ 			local dev_type=
+ 			local maj=$(LC_ALL=C ls -l "${location}" | \
+-					gawk '{sub(/,/, "", $5); print $5}')
++					awk '{sub(/,/, "", $5); print $5}')
+ 			local min=$(LC_ALL=C ls -l "${location}" | \
+-					gawk '{print $6}')
++					awk '{print $6}')
  
- int scnprintf(char * buf, size_t size, const char *fmt, ...)
+ 			if [ -b "${location}" ]; then
+ 				dev_type="b"
+@@ -134,7 +134,7 @@ parse() {
+ 			;;
+ 		"slink")
+ 			local target=$(LC_ALL=C ls -l "${location}" | \
+-					gawk '{print $11}')
++					awk '{print $11}')
+ 			str="${ftype} ${name} ${target} ${str}"
+ 			;;
+ 		*)
 _
 
-Patches currently in -mm which might be from mp3@de.ibm.com are
+Patches currently in -mm which might be from rob@landley.net are
 
-scnprintf-fix-comment.patch
-statistics-infrastructure-prerequisite-list.patch
-statistics-infrastructure-prerequisite-parser.patch
-statistics-infrastructure-prerequisite-timestamp.patch
-statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution.patch
-statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution-ia64-fix.patch
-statistics-infrastructure-documentation.patch
-statistics-infrastructure.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-statistics-infrastructure-adapt-output-format-of-utilisation-indicator.patch
-statistics-use-the-enhanced-percpu-interface.patch
-statistics-replace-inode-ugeneric_ip-with-i_private.patch
-statistics-infrastructure-exploitation-zfcp.patch
-zfcp-gather-hba-specific-latencies-in-statistics.patch
+sed-s-gawk-awk-scripts-gen_init_ramfssh.patch
+documentation-rbtreetxt-updated.patch
