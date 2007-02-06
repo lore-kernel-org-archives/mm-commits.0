@@ -1,55 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 16:04:33 -0800
-Message-ID: <200702060005.l1605a5R003549@shell0.pdx.osdl.net>
+Subject: - sony_apci-resume-fix.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 16:05:47 -0800
+Message-ID: <200702060006.l1606oZH003599@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40348 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40420 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965114AbXBFAF4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:05:56 -0500
+	id S964830AbXBFAGy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:06:54 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1606omA032589
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 5 Feb 2007 16:06:53 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net, len.brown@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi
+     sony_apci-resume-fix
 has been removed from the -mm tree.  Its filename was
-     acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
+     sony_apci-resume-fix.patch
 
-This patch was dropped because it was folded into acpi-updates-rtc-cmos-device-platform_data.patch
+This patch was dropped because it was folded into sony_apci-resume.patch
 
 ------------------------------------------------------
-Subject: acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi
+Subject: sony_apci-resume-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Recover from git-acpi renaming.
-
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/glue.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/sony_acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/glue.c~acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi drivers/acpi/glue.c
---- a/drivers/acpi/glue.c~acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi
-+++ a/drivers/acpi/glue.c
-@@ -310,9 +310,9 @@ static int __init acpi_rtc_init(void)
- 	struct device *dev = get_rtc_dev();
+diff -puN drivers/acpi/sony_acpi.c~sony_apci-resume-fix drivers/acpi/sony_acpi.c
+--- a/drivers/acpi/sony_acpi.c~sony_apci-resume-fix
++++ a/drivers/acpi/sony_acpi.c
+@@ -233,7 +233,7 @@ static int sony_acpi_write(struct file *
+ 	return count;
+ }
  
- 	if (dev) {
--		rtc_info.rtc_day_alarm = acpi_gbl_FADT->day_alrm;
--		rtc_info.rtc_mon_alarm = acpi_gbl_FADT->mon_alrm;
--		rtc_info.rtc_century = acpi_gbl_FADT->century;
-+		rtc_info.rtc_day_alarm = acpi_gbl_FADT.day_alarm;
-+		rtc_info.rtc_mon_alarm = acpi_gbl_FADT.month_alarm;
-+		rtc_info.rtc_century = acpi_gbl_FADT.century;
- 
- 		/* NOTE:  acpi_gbl_FADT->rtcs4 is NOT currently useful */
+-static int sony_acpi_resume(struct acpi_device *device, int state)
++static int sony_acpi_resume(struct acpi_device *device)
+ {
+ 	struct sony_acpi_value *item;
  
 _
 
@@ -60,8 +55,6 @@ mm-show-bounce-pages-in-oom-killer-output.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
-acpi-updates-rtc-cmos-device-platform_data.patch
-acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
 sony_apci-resume.patch
 sony_apci-resume-fix.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
