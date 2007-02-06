@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + keys-fix-key-serial-number-collision-handling.patch added to -mm tree
-Date: Tue, 06 Feb 2007 15:51:21 -0800
-Message-ID: <200702062351.l16NpLse000802@shell0.pdx.osdl.net>
+Subject: + usb-fix-concurrent-buffer-access-in-the-hub-driver.patch added to -mm tree
+Date: Tue, 06 Feb 2007 15:52:43 -0800
+Message-ID: <200702062352.l16NqhP7000841@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55841 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55881 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030608AbXBFXwp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 18:52:45 -0500
+	id S965604AbXBFXyC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 18:54:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, stable@kernel.org, support@netsville.com
+Cc: stern@rowland.harvard.edu, greg@kroah.com, stable@kernel.org
 
 
 The patch titled
-     keys: fix key serial number collision handling
+     USB: fix concurrent buffer access in the hub driver
 has been added to the -mm tree.  Its filename is
-     keys-fix-key-serial-number-collision-handling.patch
+     usb-fix-concurrent-buffer-access-in-the-hub-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,123 +25,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: keys: fix key serial number collision handling
-From: David Howells <dhowells@redhat.com>
+Subject: USB: fix concurrent buffer access in the hub driver
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Fix the key serial number collision avoidance code in key_alloc_serial().
+This patch (as849) fixes a bug in the hub driver.  A single pre-allocated
+buffer is used for all port status reads, but nothing guarantees exclusive
+use of the buffer.  A mutex is added to provide this guarantee.
 
-This didn't use to be so much of a problem as the key serial numbers were
-allocated from a simple incremental counter, and it would have to go
-through two billion keys before it could possibly encounter a collision. 
-However, now that random numbers are used instead, collisions are much more
-likely.
+It fixes the "usb somehow broken (CONFIG_USB_SUSPEND)" bug reported by
+Prakash Punnoor.
 
-This is fixed by finding a hole in the rbtree where the next unused serial
-number ought to be and using that by going almost back to the top of the
-insertion routine and redoing the insertion with the new serial number
-rather than trying to be clever and attempting to work out the insertion
-point pointer directly.
-
-This fixes kernel BZ #7727.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Cc: <stable@kernel.org>
-Cc: <support@netsville.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/key.c |   33 ++++++++++++++-------------------
- 1 files changed, 14 insertions(+), 19 deletions(-)
+ drivers/usb/core/hub.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN security/keys/key.c~keys-fix-key-serial-number-collision-handling security/keys/key.c
---- a/security/keys/key.c~keys-fix-key-serial-number-collision-handling
-+++ a/security/keys/key.c
-@@ -188,6 +188,7 @@ static inline void key_alloc_serial(stru
+diff -puN drivers/usb/core/hub.c~usb-fix-concurrent-buffer-access-in-the-hub-driver drivers/usb/core/hub.c
+--- a/drivers/usb/core/hub.c~usb-fix-concurrent-buffer-access-in-the-hub-driver
++++ a/drivers/usb/core/hub.c
+@@ -44,6 +44,7 @@ struct usb_hub {
+ 		struct usb_hub_status	hub;
+ 		struct usb_port_status	port;
+ 	}			*status;	/* buffer for status reports */
++	struct mutex		status_mutex;	/* for the status buffer */
  
- 	spin_lock(&key_serial_lock);
+ 	int			error;		/* last reported error */
+ 	int			nerrors;	/* track consecutive errors */
+@@ -535,6 +536,7 @@ static int hub_hub_status(struct usb_hub
+ {
+ 	int ret;
  
-+attempt_insertion:
- 	parent = NULL;
- 	p = &key_serial_tree.rb_node;
- 
-@@ -202,39 +203,33 @@ static inline void key_alloc_serial(stru
- 		else
- 			goto serial_exists;
++	mutex_lock(&hub->status_mutex);
+ 	ret = get_hub_status(hub->hdev, &hub->status->hub);
+ 	if (ret < 0)
+ 		dev_err (hub->intfdev,
+@@ -544,6 +546,7 @@ static int hub_hub_status(struct usb_hub
+ 		*change = le16_to_cpu(hub->status->hub.wHubChange); 
+ 		ret = 0;
  	}
--	goto insert_here;
-+
-+	/* we've found a suitable hole - arrange for this key to occupy it */
-+	rb_link_node(&key->serial_node, parent, p);
-+	rb_insert_color(&key->serial_node, &key_serial_tree);
-+
-+	spin_unlock(&key_serial_lock);
-+	return;
++	mutex_unlock(&hub->status_mutex);
+ 	return ret;
+ }
  
- 	/* we found a key with the proposed serial number - walk the tree from
- 	 * that point looking for the next unused serial number */
- serial_exists:
- 	for (;;) {
- 		key->serial++;
--		if (key->serial < 2)
--			key->serial = 2;
--
--		if (!rb_parent(parent))
--			p = &key_serial_tree.rb_node;
--		else if (rb_parent(parent)->rb_left == parent)
--			p = &(rb_parent(parent)->rb_left);
--		else
--			p = &(rb_parent(parent)->rb_right);
-+		if (key->serial < 3) {
-+			key->serial = 3;
-+			goto attempt_insertion;
-+		}
- 
- 		parent = rb_next(parent);
- 		if (!parent)
--			break;
-+			goto attempt_insertion;
- 
- 		xkey = rb_entry(parent, struct key, serial_node);
- 		if (key->serial < xkey->serial)
--			goto insert_here;
-+			goto attempt_insertion;
+@@ -617,6 +620,7 @@ static int hub_configure(struct usb_hub 
+ 		ret = -ENOMEM;
+ 		goto fail;
  	}
++	mutex_init(&hub->status_mutex);
  
--	/* we've found a suitable hole - arrange for this key to occupy it */
--insert_here:
--	rb_link_node(&key->serial_node, parent, p);
--	rb_insert_color(&key->serial_node, &key_serial_tree);
--
--	spin_unlock(&key_serial_lock);
--
- } /* end key_alloc_serial() */
+ 	hub->descriptor = kmalloc(sizeof(*hub->descriptor), GFP_KERNEL);
+ 	if (!hub->descriptor) {
+@@ -1397,6 +1401,7 @@ static int hub_port_status(struct usb_hu
+ {
+ 	int ret;
  
- /*****************************************************************************/
++	mutex_lock(&hub->status_mutex);
+ 	ret = get_port_status(hub->hdev, port1, &hub->status->port);
+ 	if (ret < 4) {
+ 		dev_err (hub->intfdev,
+@@ -1408,6 +1413,7 @@ static int hub_port_status(struct usb_hu
+ 		*change = le16_to_cpu(hub->status->port.wPortChange); 
+ 		ret = 0;
+ 	}
++	mutex_unlock(&hub->status_mutex);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-git-alsa.patch
-infiniband-work-around-gcc-bug-on-sparc64.patch
-git-cryptodev.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-keys-fix-key-serial-number-collision-handling.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-ecryptfs-public-key-transport-mechanism.patch
-ecryptfs-public-key-packet-management.patch
-dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-frv.patch
-reiser4-get_sb_dev-fix.patch
-sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
-sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
-sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-arch-frv-kernel-pmc.patch
-sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
-mutex-subsystem-synchro-test-module.patch
+scsi-handle-bad-inquiry-responses.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+usb-p990i-is-an-unusual-device.patch
+usb-fix-concurrent-buffer-access-in-the-hub-driver.patch
+arch-i386-kernel-ptracec-trivial-whitespace-cleanup.patch
