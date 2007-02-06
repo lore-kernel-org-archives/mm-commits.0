@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-fix-concurrent-buffer-access-in-the-hub-driver.patch added to -mm tree
-Date: Tue, 06 Feb 2007 15:52:43 -0800
-Message-ID: <200702062352.l16NqhP7000841@shell0.pdx.osdl.net>
+Subject: + w1-use-array_size-macro-when-appropriate.patch added to -mm tree
+Date: Tue, 06 Feb 2007 15:53:40 -0800
+Message-ID: <200702062353.l16NreSY000860@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55881 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55875 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965604AbXBFXyC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 18:54:02 -0500
+	id S965601AbXBFXxy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 18:53:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, greg@kroah.com, stable@kernel.org
+Cc: darwish.07@gmail.com, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     USB: fix concurrent buffer access in the hub driver
+     w1: Use ARRAY_SIZE macro when appropriate
 has been added to the -mm tree.  Its filename is
-     usb-fix-concurrent-buffer-access-in-the-hub-driver.patch
+     w1-use-array_size-macro-when-appropriate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,82 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: USB: fix concurrent buffer access in the hub driver
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: w1: Use ARRAY_SIZE macro when appropriate
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-This patch (as849) fixes a bug in the hub driver.  A single pre-allocated
-buffer is used for all port status reads, but nothing guarantees exclusive
-use of the buffer.  A mutex is added to provide this guarantee.
+A patch to use ARRAY_SIZE macro already defined in kernel.h
 
-It fixes the "usb somehow broken (CONFIG_USB_SUSPEND)" bug reported by
-Prakash Punnoor.
-
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hub.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+ drivers/w1/slaves/w1_therm.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/core/hub.c~usb-fix-concurrent-buffer-access-in-the-hub-driver drivers/usb/core/hub.c
---- a/drivers/usb/core/hub.c~usb-fix-concurrent-buffer-access-in-the-hub-driver
-+++ a/drivers/usb/core/hub.c
-@@ -44,6 +44,7 @@ struct usb_hub {
- 		struct usb_hub_status	hub;
- 		struct usb_port_status	port;
- 	}			*status;	/* buffer for status reports */
-+	struct mutex		status_mutex;	/* for the status buffer */
- 
- 	int			error;		/* last reported error */
- 	int			nerrors;	/* track consecutive errors */
-@@ -535,6 +536,7 @@ static int hub_hub_status(struct usb_hub
+diff -puN drivers/w1/slaves/w1_therm.c~w1-use-array_size-macro-when-appropriate drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~w1-use-array_size-macro-when-appropriate
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -141,7 +141,7 @@ static inline int w1_convert_temp(u8 rom
  {
- 	int ret;
+ 	int i;
  
-+	mutex_lock(&hub->status_mutex);
- 	ret = get_hub_status(hub->hdev, &hub->status->hub);
- 	if (ret < 0)
- 		dev_err (hub->intfdev,
-@@ -544,6 +546,7 @@ static int hub_hub_status(struct usb_hub
- 		*change = le16_to_cpu(hub->status->hub.wHubChange); 
- 		ret = 0;
- 	}
-+	mutex_unlock(&hub->status_mutex);
- 	return ret;
- }
+-	for (i=0; i<sizeof(w1_therm_families)/sizeof(w1_therm_families[0]); ++i)
++	for (i = 0; i < ARRAY_SIZE(w1_therm_families); ++i)
+ 		if (w1_therm_families[i].f->fid == fid)
+ 			return w1_therm_families[i].convert(rom);
  
-@@ -617,6 +620,7 @@ static int hub_configure(struct usb_hub 
- 		ret = -ENOMEM;
- 		goto fail;
- 	}
-+	mutex_init(&hub->status_mutex);
- 
- 	hub->descriptor = kmalloc(sizeof(*hub->descriptor), GFP_KERNEL);
- 	if (!hub->descriptor) {
-@@ -1397,6 +1401,7 @@ static int hub_port_status(struct usb_hu
+@@ -238,7 +238,7 @@ static int __init w1_therm_init(void)
  {
- 	int ret;
+ 	int err, i;
  
-+	mutex_lock(&hub->status_mutex);
- 	ret = get_port_status(hub->hdev, port1, &hub->status->port);
- 	if (ret < 4) {
- 		dev_err (hub->intfdev,
-@@ -1408,6 +1413,7 @@ static int hub_port_status(struct usb_hu
- 		*change = le16_to_cpu(hub->status->port.wPortChange); 
- 		ret = 0;
- 	}
-+	mutex_unlock(&hub->status_mutex);
- 	return ret;
+-	for (i=0; i<sizeof(w1_therm_families)/sizeof(w1_therm_families[0]); ++i) {
++	for (i = 0; i < ARRAY_SIZE(w1_therm_families); ++i) {
+ 		err = w1_register_family(w1_therm_families[i].f);
+ 		if (err)
+ 			w1_therm_families[i].broken = 1;
+@@ -251,7 +251,7 @@ static void __exit w1_therm_fini(void)
+ {
+ 	int i;
+ 
+-	for (i=0; i<sizeof(w1_therm_families)/sizeof(w1_therm_families[0]); ++i)
++	for (i = 0; i < ARRAY_SIZE(w1_therm_families); ++i)
+ 		if (!w1_therm_families[i].broken)
+ 			w1_unregister_family(w1_therm_families[i].f);
  }
- 
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
-scsi-handle-bad-inquiry-responses.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-usb-p990i-is-an-unusual-device.patch
-usb-fix-concurrent-buffer-access-in-the-hub-driver.patch
-arch-i386-kernel-ptracec-trivial-whitespace-cleanup.patch
+arch-arm-use-array_size-macro-when-appropriate.patch
+arch-avr32-use-array_size-macro-when-appropriate.patch
+arch-powerpc-user-array_size-macro-when-appropriate.patch
+arch-ppc-user-array_size-macro-when-appropriate.patch
+git-dvb.patch
+git-netdev-all.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+dac960-kmalloc-kzalloc-casting-cleanups.patch
+arch-arm26-use-array_size-macro-when-appropriate.patch
+arch-m68knommu-user-array_size-macro-when-appropriate.patch
+arch-m68k-user-array_size-macro-when-appropriate.patch
+arch-cris-user-array_size-macro-when-appropriate.patch
+arch-v850-user-array_size-macro-when-appropriate.patch
+w1-use-array_size-macro-when-appropriate.patch
+isdn-capi-use-array_size-when-appropriate.patch
