@@ -1,51 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - sony_apci-resume-fix.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 16:05:47 -0800
-Message-ID: <200702060006.l1606oZH003599@shell0.pdx.osdl.net>
+Subject: - exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 16:04:06 -0800
+Message-ID: <200702060005.l1605AIF003526@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40420 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40408 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964830AbXBFAGy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:06:54 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1606omA032589
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 5 Feb 2007 16:06:53 -0800
+	id S965128AbXBFAGm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:06:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sony_apci-resume-fix
+     exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy
 has been removed from the -mm tree.  Its filename was
-     sony_apci-resume-fix.patch
+     exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
 
-This patch was dropped because it was folded into sony_apci-resume.patch
+This patch was dropped because it was folded into exit-acpi-processor-module-gracefully-if-acpi-is-disabled.patch
 
 ------------------------------------------------------
-Subject: sony_apci-resume-fix
+Subject: exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy
 From: Andrew Morton <akpm@osdl.org>
 
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/sony_acpi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_core.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/sony_acpi.c~sony_apci-resume-fix drivers/acpi/sony_acpi.c
---- a/drivers/acpi/sony_acpi.c~sony_apci-resume-fix
-+++ a/drivers/acpi/sony_acpi.c
-@@ -233,7 +233,7 @@ static int sony_acpi_write(struct file *
- 	return count;
- }
+diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy
++++ a/drivers/acpi/processor_core.c
+@@ -887,7 +887,7 @@ void acpi_processor_uninstall_hotplug_no
+  * ACPI, but needs symbols from this driver
+  */
  
--static int sony_acpi_resume(struct acpi_device *device, int state)
-+static int sony_acpi_resume(struct acpi_device *device)
+-static int processor_driver_registered = 0;
++static int processor_driver_registered;
+ 
+ static int __init acpi_processor_init(void)
  {
- 	struct sony_acpi_value *item;
+@@ -926,12 +926,12 @@ static void __exit acpi_processor_exit(v
  
+ 	acpi_thermal_cpufreq_exit();
+ 
+-	if (processor_driver_registered){
+-	acpi_processor_uninstall_hotplug_notify();
++	if (processor_driver_registered) {
++		acpi_processor_uninstall_hotplug_notify();
+ 
+-	acpi_bus_unregister_driver(&acpi_processor_driver);
++		acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
+-	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+ 	}
+ 	return;
+ }
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -55,6 +70,9 @@ mm-show-bounce-pages-in-oom-killer-output.patch
 use-correct-macros-in-raid-code-not-raw-asm-include.patch
 macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled-tidy.patch
+acpi-updates-rtc-cmos-device-platform_data-vs-git-acpi.patch
 sony_apci-resume.patch
 sony_apci-resume-fix.patch
 video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
