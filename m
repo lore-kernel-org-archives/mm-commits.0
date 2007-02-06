@@ -1,77 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vm_insert_pfn-tidy.patch added to -mm tree
-Date: Mon, 05 Feb 2007 20:05:27 -0800
-Message-ID: <200702060405.l1645R7G009668@shell0.pdx.osdl.net>
+Subject: - use-__u32-in-asm-x86_64-msrh.patch removed from -mm tree
+Date: Tue, 06 Feb 2007 00:32:02 -0800
+Message-ID: <200702060832.l168W2LV013915@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47749 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55152 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752700AbXBFEFr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 23:05:47 -0500
+	id S1751698AbXBFIcI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 03:32:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, hugh@veritas.com, npiggin@suse.de
+To: vapier@gentoo.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-vm_insert_pfn-tidy
-has been added to the -mm tree.  Its filename is
-     mm-vm_insert_pfn-tidy.patch
+     use __u32 in asm-x86_64/msr.h
+has been removed from the -mm tree.  Its filename was
+     use-__u32-in-asm-x86_64-msrh.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: mm-vm_insert_pfn-tidy
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: use __u32 in asm-x86_64/msr.h
+From: Mike Frysinger <vapier@gentoo.org>
 
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Hugh Dickins <hugh@veritas.com>
+Use __u32 rather than u32 in checking_wrmsrl() exported to userspace.
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 ++-
- mm/memory.c        |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ include/asm-x86_64/msr.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-vm_insert_pfn-tidy include/linux/mm.h
---- a/include/linux/mm.h~mm-vm_insert_pfn-tidy
-+++ a/include/linux/mm.h
-@@ -1121,7 +1121,8 @@ unsigned long vmalloc_to_pfn(void *addr)
- int remap_pfn_range(struct vm_area_struct *, unsigned long addr,
- 			unsigned long pfn, unsigned long size, pgprot_t);
- int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
--int vm_insert_pfn(struct vm_area_struct *, unsigned long addr, unsigned long pfn);
-+int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
-+			unsigned long pfn);
+diff -puN include/asm-x86_64/msr.h~use-__u32-in-asm-x86_64-msrh include/asm-x86_64/msr.h
+--- a/include/asm-x86_64/msr.h~use-__u32-in-asm-x86_64-msrh
++++ a/include/asm-x86_64/msr.h
+@@ -2,6 +2,9 @@
+ #define X86_64_MSR_H 1
  
- struct page *follow_page(struct vm_area_struct *, unsigned long address,
- 			unsigned int foll_flags);
-diff -puN mm/memory.c~mm-vm_insert_pfn-tidy mm/memory.c
---- a/mm/memory.c~mm-vm_insert_pfn-tidy
-+++ a/mm/memory.c
-@@ -1289,7 +1289,8 @@ EXPORT_SYMBOL(vm_insert_page);
-  * This function should only be called from a nopage handler, and
-  * in that case the handler should return NOPAGE_REFAULT.
-  */
--int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr, unsigned long pfn)
-+int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
-+		unsigned long pfn)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	int retval;
+ #ifndef __ASSEMBLY__
++
++#include <linux/types.h>
++
+ /*
+  * Access to machine-specific registers (available on 586 and better only)
+  * Note: the rd* operations modify the parameters directly (without using
+@@ -43,7 +46,7 @@
+ 		     : "c" (msr), "0" (a), "d" (b), "i" (-EFAULT)); \
+ 	ret__; })
+ 
+-#define checking_wrmsrl(msr,val) wrmsr_safe(msr,(u32)(val),(u32)((val)>>32))
++#define checking_wrmsrl(msr,val) wrmsr_safe(msr,(__u32)(val),(__u32)((val)>>32))
+ 
+ #define rdmsr_safe(msr,a,b) \
+ 	({ int ret__;						\
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-git-libata-all-forward-declare-struct-device.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-mm-vm_insert_pfn-tidy.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
+search-a-little-harder-for-mkimage.patch
+new-toplevel-target-headers_check_all.patch
+use-__u64-rather-than-u64-in-parisc-statfs-structs.patch
+use-__u32-rather-than-u32-in-userspace-ioctls-in-usbdevice_fsh.patch
+use-__u32-in-asm-x86_64-msrh.patch
+some-rtc-documentation-updates.patch
