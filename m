@@ -1,102 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: + user-of-the-jiffies-rounding-code-e1000.patch added to -mm tree
-Date: Mon, 05 Feb 2007 18:12:41 -0800
-Message-ID: <200702060212.l162CfCV007611@shell0.pdx.osdl.net>
+Subject: - net-irda-proper-prototypes.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 18:13:44 -0800
+Message-ID: <200702060213.l162DiYu007620@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44813 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44881 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965444AbXBFCMv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 21:12:51 -0500
+	id S965460AbXBFCRD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 21:17:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com, auke-jan.h.kok@intel.com, jeff@garzik.org
+To: bunk@stusta.de, samuel@sortiz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     user of the jiffies rounding code: e1000
-has been added to the -mm tree.  Its filename is
-     user-of-the-jiffies-rounding-code-e1000.patch
+     net/irda/: proper prototypes
+has been removed from the -mm tree.  Its filename was
+     net-irda-proper-prototypes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: user of the jiffies rounding code: e1000
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: net/irda/: proper prototypes
+From: Adrian Bunk <bunk@stusta.de>
 
-Use the round_jiffies() function in e1000.
+Add proper prototypes for some functions in include/net/irda/irda.h
 
-These timers all were of the "about once a second" or "about once every X
-seconds" variety and several showed up in the "what wakes the cpu up" profiles
-that the tickless patches provide.  Some timers are highly dynamic based on
-network load; but even on low activity systems they still show up so the
-rounding is done only in cases of low activity, allowing higher frequency
-timers in the high activity case.
-
-The various hardware watchdogs are an obvious case; they run every 2 seconds
-but aren't otherwise specific of exactly when they need to run.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000_main.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/net/irda/irda.h |   15 +++++++++++++++
+ net/irda/irmod.c        |   13 -------------
+ 2 files changed, 15 insertions(+), 13 deletions(-)
 
-diff -puN drivers/net/e1000/e1000_main.c~user-of-the-jiffies-rounding-code-e1000 drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~user-of-the-jiffies-rounding-code-e1000
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -2652,7 +2652,7 @@ e1000_watchdog(unsigned long data)
+diff -puN include/net/irda/irda.h~net-irda-proper-prototypes include/net/irda/irda.h
+--- a/include/net/irda/irda.h~net-irda-proper-prototypes
++++ a/include/net/irda/irda.h
+@@ -113,4 +113,19 @@ do { if(!(expr)) { \
+ #define IAS_IRCOMM_ID 0x2343
+ #define IAS_IRLPT_ID  0x9876
  
- 			netif_carrier_on(netdev);
- 			netif_wake_queue(netdev);
--			mod_timer(&adapter->phy_info_timer, jiffies + 2 * HZ);
-+			mod_timer(&adapter->phy_info_timer, round_jiffies(jiffies + 2 * HZ));
- 			adapter->smartspeed = 0;
- 		} else {
- 			/* make sure the receive unit is started */
-@@ -2669,7 +2669,7 @@ e1000_watchdog(unsigned long data)
- 			DPRINTK(LINK, INFO, "NIC Link is Down\n");
- 			netif_carrier_off(netdev);
- 			netif_stop_queue(netdev);
--			mod_timer(&adapter->phy_info_timer, jiffies + 2 * HZ);
-+			mod_timer(&adapter->phy_info_timer, round_jiffies(jiffies + 2 * HZ));
++struct net_device;
++struct packet_type;
++
++void irda_proc_register(void);
++void irda_proc_unregister(void);
++
++int irda_sysctl_register(void);
++void irda_sysctl_unregister(void);
++
++int irsock_init(void);
++void irsock_cleanup(void);
++
++int irlap_driver_rcv(struct sk_buff *skb, struct net_device *dev,
++		     struct packet_type *ptype, struct net_device *orig_dev);
++
+ #endif /* NET_IRDA_H */
+diff -puN net/irda/irmod.c~net-irda-proper-prototypes net/irda/irmod.c
+--- a/net/irda/irmod.c~net-irda-proper-prototypes
++++ a/net/irda/irmod.c
+@@ -42,19 +42,6 @@
+ #include <net/irda/irttp.h>		/* irttp_init */
+ #include <net/irda/irda_device.h>	/* irda_device_init */
  
- 			/* 80003ES2LAN workaround--
- 			 * For packet buffer work-around on link down event;
-@@ -2721,7 +2721,7 @@ e1000_watchdog(unsigned long data)
- 		e1000_rar_set(&adapter->hw, adapter->hw.mac_addr, 0);
- 
- 	/* Reset the timer */
--	mod_timer(&adapter->watchdog_timer, jiffies + 2 * HZ);
-+	mod_timer(&adapter->watchdog_timer, round_jiffies(jiffies + 2 * HZ));
- }
- 
- enum latency_range {
+-/* irproc.c */
+-extern void irda_proc_register(void);
+-extern void irda_proc_unregister(void);
+-/* irsysctl.c */
+-extern int  irda_sysctl_register(void);
+-extern void irda_sysctl_unregister(void);
+-/* af_irda.c */
+-extern int  irsock_init(void);
+-extern void irsock_cleanup(void);
+-/* irlap_frame.c */
+-extern int  irlap_driver_rcv(struct sk_buff *, struct net_device *, 
+-			     struct packet_type *, struct net_device *);
+-
+ /*
+  * Module parameters
+  */
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
+v9fs_vfs_mkdir-fix-a-double-free.patch
+git-acpi.patch
+git-alsa.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+git-powerpc.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
+git-dvb.patch
+drivers-media-dvb-frontends-make-4-functions-static.patch
+cx88-videoc-remove-struct-radionorms.patch
+if-0-v4l_printk_ioctl_arg.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
 git-libata-all.patch
+mips-remove-smp_tune_scheduling.patch
+mtd_ck804xrom-must-depend-on-pci.patch
+git-ubi.patch
 git-netdev-all.patch
-user-of-the-jiffies-rounding-code-networking.patch
-mark-struct-file_operations-const-1.patch
-mark-struct-file_operations-const-2.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-3.patch
-mark-struct-file_operations-const-4.patch
-mark-struct-file_operations-const-4-fix.patch
-mark-struct-file_operations-const-5.patch
-mark-struct-file_operations-const-6.patch
-mark-struct-file_operations-const-7.patch
-mark-struct-file_operations-const-8.patch
-mark-struct-file_operations-const-9.patch
-mark-struct-inode_operations-const-1.patch
-mark-struct-inode_operations-const-2.patch
-mark-struct-inode_operations-const-3.patch
+net-irda-proper-prototypes.patch
+net-wanrouter-wanmainc-cleanups.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
+git-ipwireless_cs.patch
+cleanup-x86_64-mm-vmi-timer.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+debug-shared-irqs-kconfig-fix.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
