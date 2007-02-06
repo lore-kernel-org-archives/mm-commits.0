@@ -1,30 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch removed from -mm tree
-Date: Mon, 05 Feb 2007 16:42:09 -0800
-Message-ID: <200702060043.l160hC0o005292@shell0.pdx.osdl.net>
+Subject: - spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch removed from -mm tree
+Date: Mon, 05 Feb 2007 16:42:14 -0800
+Message-ID: <200702060043.l160hHL2005307@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42003 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42005 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965395AbXBFAnr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:43:47 -0500
+	id S965396AbXBFAnt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:43:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, dwalker@mvista.com, kiran@scalex86.org, md@google.com, mingo@elte.hu, pravin.shelar@calsoftinc.com, shai@scalex86.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix
+     spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix
 has been removed from the -mm tree.  Its filename was
-     spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
+     spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
 
 This patch was dropped because it was folded into spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
 
 ------------------------------------------------------
-Subject: spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix
+Subject: spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix
 From: Andrew Morton <akpm@osdl.org>
-
-Fix CONFIG_PARAVIRT=y build.
 
 Cc: Ravikiran Thirumalai <kiran@scalex86.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -36,52 +34,20 @@ Cc: Daniel Walker <dwalker@mvista.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-i386/paravirt.h |    4 ++--
- include/asm-i386/spinlock.h |    8 +++++---
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ include/asm-i386/spinlock.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-i386/spinlock.h~spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix include/asm-i386/spinlock.h
---- a/include/asm-i386/spinlock.h~spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix
+diff -puN include/asm-i386/spinlock.h~spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix include/asm-i386/spinlock.h
+--- a/include/asm-i386/spinlock.h~spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix
 +++ a/include/asm-i386/spinlock.h
-@@ -86,17 +86,19 @@ static inline void __raw_spin_lock_flags
- static inline void __raw_spin_lock_irq(raw_spinlock_t *lock)
- {
- 	asm volatile("\n1:\t"
--		     LOCK_PREFIX " ; decb %0\n\t"
-+		     LOCK_PREFIX " ; decb %[slock]\n\t"
- 		     "jns 3f\n"
- 		     STI_STRING "\n"
- 		     "2:\t"
- 		     "rep;nop\n\t"
--		     "cmpb $0,%0\n\t"
-+		     "cmpb $0,%[slock]\n\t"
- 		     "jle 2b\n\t"
- 		     CLI_STRING "\n"
- 		     "jmp 1b\n"
- 		     "3:\n\t"
--		     : "+m" (lock->slock) : : "memory");
-+		     : [slock] "+m" (lock->slock)
-+		     : __CLI_STI_INPUT_ARGS
-+		     : "memory" CLI_STI_CLOBBERS);
- }
- #endif
+@@ -14,6 +14,7 @@
+ #define STI_STRING	"sti"
+ #define CLI_STI_CLOBBERS
+ #define CLI_STI_INPUT_ARGS
++#define __CLI_STI_INPUT_ARGS
+ #endif /* CONFIG_PARAVIRT */
  
-diff -puN include/asm-i386/paravirt.h~spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix
-+++ a/include/asm-i386/paravirt.h
-@@ -509,10 +509,10 @@ static inline unsigned long __raw_local_
- 		     "popl %%edx; popl %%ecx",				\
- 		     PARAVIRT_IRQ_ENABLE, CLBR_EAX)
- #define CLI_STI_CLOBBERS , "%eax"
--#define CLI_STI_INPUT_ARGS \
--	,								\
-+#define __CLI_STI_INPUT_ARGS						\
- 	[irq_disable] "i" (offsetof(struct paravirt_ops, irq_disable)),	\
- 	[irq_enable] "i" (offsetof(struct paravirt_ops, irq_enable))
-+#define CLI_STI_INPUT_ARGS , __CLI_STI_INPUT_ARGS
- 
- #else  /* __ASSEMBLY__ */
- 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -129,7 +95,6 @@ nokia-e70-is-an-unusual-device.patch
 git-ipwireless_cs.patch
 revert-x86_64-mm-msr-on-cpu.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix.patch
 spin_lock_irq-enable-interrupts-while-spinning-i386-implementation-fix-fix.patch
 arch-i386-kernel-alternativec-dont-include-bugsh.patch
 cyrix-fails-to-detect-mediagx-warning-fix.patch
