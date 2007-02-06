@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-sb-s_files-and-file_list_lock-usage-in-dquotc.patch added to -mm tree
-Date: Tue, 06 Feb 2007 15:50:08 -0800
-Message-ID: <200702062350.l16No8PY000762@shell0.pdx.osdl.net>
+Subject: + keys-fix-key-serial-number-collision-handling.patch added to -mm tree
+Date: Tue, 06 Feb 2007 15:51:21 -0800
+Message-ID: <200702062351.l16NpLse000802@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55663 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55841 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965590AbXBFXuR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 18:50:17 -0500
+	id S1030608AbXBFXwp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 18:52:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, jack@suse.cz
+Cc: dhowells@redhat.com, stable@kernel.org, support@netsville.com
 
 
 The patch titled
-     remove sb->s_files and file_list_lock usage in dquot.c
+     keys: fix key serial number collision handling
 has been added to the -mm tree.  Its filename is
-     remove-sb-s_files-and-file_list_lock-usage-in-dquotc.patch
+     keys-fix-key-serial-number-collision-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,91 +25,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove sb->s_files and file_list_lock usage in dquot.c
-From: Christoph Hellwig <hch@lst.de>
+Subject: keys: fix key serial number collision handling
+From: David Howells <dhowells@redhat.com>
 
-Iterate over sb->s_inodes instead of sb->s_files in add_dquot_ref.  This
-reduces list search and lock hold time aswell as getting rid of one of the
-few uses of file_list_lock which Ingo identified as a scalability problem.
+Fix the key serial number collision avoidance code in key_alloc_serial().
 
-Previously we called dq_op->initialize for every inode handing of a
-writeable file that wasn't initialized before.  Now we're calling it for
-every inode that has a non-zero i_writecount, aka a writeable file
-descriptor refering to it.
+This didn't use to be so much of a problem as the key serial numbers were
+allocated from a simple incremental counter, and it would have to go
+through two billion keys before it could possibly encounter a collision. 
+However, now that random numbers are used instead, collisions are much more
+likely.
 
-Thanks a lot to Jan Kara for running this patch through his quota test
-harness.
+This is fixed by finding a hole in the rbtree where the next unused serial
+number ought to be and using that by going almost back to the top of the
+insertion routine and redoing the insertion with the new serial number
+rather than trying to be clever and attempting to work out the insertion
+point pointer directly.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jan Kara <jack@suse.cz>
+This fixes kernel BZ #7727.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: <stable@kernel.org>
+Cc: <support@netsville.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c |   32 ++++++++++++++++++--------------
- 1 files changed, 18 insertions(+), 14 deletions(-)
+ security/keys/key.c |   33 ++++++++++++++-------------------
+ 1 files changed, 14 insertions(+), 19 deletions(-)
 
-diff -puN fs/dquot.c~remove-sb-s_files-and-file_list_lock-usage-in-dquotc fs/dquot.c
---- a/fs/dquot.c~remove-sb-s_files-and-file_list_lock-usage-in-dquotc
-+++ a/fs/dquot.c
-@@ -688,23 +688,27 @@ static int dqinit_needed(struct inode *i
- /* This routine is guarded by dqonoff_mutex mutex */
- static void add_dquot_ref(struct super_block *sb, int type)
- {
--	struct list_head *p;
-+	struct inode *inode;
+diff -puN security/keys/key.c~keys-fix-key-serial-number-collision-handling security/keys/key.c
+--- a/security/keys/key.c~keys-fix-key-serial-number-collision-handling
++++ a/security/keys/key.c
+@@ -188,6 +188,7 @@ static inline void key_alloc_serial(stru
  
- restart:
--	file_list_lock();
--	list_for_each(p, &sb->s_files) {
--		struct file *filp = list_entry(p, struct file, f_u.fu_list);
--		struct inode *inode = filp->f_path.dentry->d_inode;
--		if (filp->f_mode & FMODE_WRITE && dqinit_needed(inode, type)) {
--			struct dentry *dentry = dget(filp->f_path.dentry);
--			file_list_unlock();
--			sb->dq_op->initialize(inode, type);
--			dput(dentry);
--			/* As we may have blocked we had better restart... */
--			goto restart;
--		}
-+	spin_lock(&inode_lock);
-+	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-+		if (!atomic_read(&inode->i_writecount))
-+			continue;
-+		if (!dqinit_needed(inode, type))
-+			continue;
-+		if (inode->i_state & (I_FREEING|I_WILL_FREE))
-+			continue;
-+
-+		__iget(inode);
-+		spin_unlock(&inode_lock);
-+
-+		sb->dq_op->initialize(inode, type);
-+		iput(inode);
-+		/* As we may have blocked we had better restart... */
-+		goto restart;
+ 	spin_lock(&key_serial_lock);
+ 
++attempt_insertion:
+ 	parent = NULL;
+ 	p = &key_serial_tree.rb_node;
+ 
+@@ -202,39 +203,33 @@ static inline void key_alloc_serial(stru
+ 		else
+ 			goto serial_exists;
  	}
--	file_list_unlock();
-+	spin_unlock(&inode_lock);
- }
+-	goto insert_here;
++
++	/* we've found a suitable hole - arrange for this key to occupy it */
++	rb_link_node(&key->serial_node, parent, p);
++	rb_insert_color(&key->serial_node, &key_serial_tree);
++
++	spin_unlock(&key_serial_lock);
++	return;
  
- /* Return 0 if dqput() won't block (note that 1 doesn't necessarily mean blocking) */
+ 	/* we found a key with the proposed serial number - walk the tree from
+ 	 * that point looking for the next unused serial number */
+ serial_exists:
+ 	for (;;) {
+ 		key->serial++;
+-		if (key->serial < 2)
+-			key->serial = 2;
+-
+-		if (!rb_parent(parent))
+-			p = &key_serial_tree.rb_node;
+-		else if (rb_parent(parent)->rb_left == parent)
+-			p = &(rb_parent(parent)->rb_left);
+-		else
+-			p = &(rb_parent(parent)->rb_right);
++		if (key->serial < 3) {
++			key->serial = 3;
++			goto attempt_insertion;
++		}
+ 
+ 		parent = rb_next(parent);
+ 		if (!parent)
+-			break;
++			goto attempt_insertion;
+ 
+ 		xkey = rb_entry(parent, struct key, serial_node);
+ 		if (key->serial < xkey->serial)
+-			goto insert_here;
++			goto attempt_insertion;
+ 	}
+ 
+-	/* we've found a suitable hole - arrange for this key to occupy it */
+-insert_here:
+-	rb_link_node(&key->serial_node, parent, p);
+-	rb_insert_color(&key->serial_node, &key_serial_tree);
+-
+-	spin_unlock(&key_serial_lock);
+-
+ } /* end key_alloc_serial() */
+ 
+ /*****************************************************************************/
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-git-drm.patch
-git-scsi-misc.patch
-slab-cache-alloc-cleanups.patch
-simplify-the-stacktrace-code.patch
-make-bh_unwritten-a-first-class-bufferhead-flag-v2.patch
-make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
-tty-cleanup-release_mem.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-fix-d_path-for-lazy-unmounts.patch
-move-remove_dquot_ref-to-dqoutc.patch
-remove-sb-s_files-and-file_list_lock-usage-in-dquotc.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
-aio-is-unlikely.patch
+git-alsa.patch
+infiniband-work-around-gcc-bug-on-sparc64.patch
+git-cryptodev.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+keys-fix-key-serial-number-collision-handling.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+ecryptfs-public-key-transport-mechanism.patch
+ecryptfs-public-key-packet-management.patch
+dynamic-kernel-command-line-common.patch
+dynamic-kernel-command-line-frv.patch
+reiser4-get_sb_dev-fix.patch
+sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
+sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
+sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
+sysctl-c99-convert-arch-frv-kernel-pmc.patch
+sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
+mutex-subsystem-synchro-test-module.patch
