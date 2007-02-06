@@ -1,53 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - git-mips-prom_free_prom_memory-borkage.patch removed from -mm tree
-Date: Tue, 06 Feb 2007 11:42:07 -0800
-Message-ID: <200702061942.l16Jg7Yu026592@shell0.pdx.osdl.net>
+Subject: - git-mips-kconfig-fix.patch removed from -mm tree
+Date: Tue, 06 Feb 2007 11:42:22 -0800
+Message-ID: <200702061942.l16JgMLD026595@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48033 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48036 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965392AbXBFTph (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 14:45:37 -0500
+	id S965394AbXBFTpr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 14:45:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mips: prom_free_prom_memory() borkage
+     git-mips kconfig fix
 has been removed from the -mm tree.  Its filename was
-     git-mips-prom_free_prom_memory-borkage.patch
+     git-mips-kconfig-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-mips: prom_free_prom_memory() borkage
+Subject: git-mips kconfig fix
 From: Andrew Morton <akpm@osdl.org>
 
-arch/mips/mm/init.c:495: error: conflicting types for 'prom_free_prom_memory'
-include/asm/bootinfo.h:246: error: previous declaration of 'prom_free_prom_memory' was here
-arch/mips/mm/init.c:495: error: conflicting types for 'prom_free_prom_memory'
-include/asm/bootinfo.h:246: error: previous declaration of 'prom_free_prom_memory' was here
+arch/mips/Kconfig:2081: unexpected end statement
 
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/init.c |    2 --
+ arch/mips/Kconfig |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN arch/mips/mm/init.c~git-mips-prom_free_prom_memory-borkage arch/mips/mm/init.c
---- a/arch/mips/mm/init.c~git-mips-prom_free_prom_memory-borkage
-+++ a/arch/mips/mm/init.c
-@@ -492,8 +492,6 @@ void free_initrd_mem(unsigned long start
- }
- #endif
+diff -puN arch/mips/Kconfig~git-mips-kconfig-fix arch/mips/Kconfig
+--- a/arch/mips/Kconfig~git-mips-kconfig-fix
++++ a/arch/mips/Kconfig
+@@ -2078,8 +2078,6 @@ config APM
+ 	  anything, try disabling/enabling this option (or disabling/enabling
+ 	  APM in your BIOS).
  
--extern unsigned long prom_free_prom_memory(void);
+-endmenu
 -
- void free_initmem(void)
- {
- 	prom_free_prom_memory();
+ source "net/Kconfig"
+ 
+ source "drivers/Kconfig"
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -72,7 +69,6 @@ sata_sis-avoid-extern-decl-in-c.patch
 mm-ide-ide-acpi-support-warning-fix.patch
 git-lxdialog-fixup.patch
 git-mips-kconfig-fix.patch
-git-mips-prom_free_prom_memory-borkage.patch
 git-ubi.patch
 git-netdev-all.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
