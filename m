@@ -1,35 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - libata-early-cfa-adapters-are-not-required-to-support-mode.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:52:48 -0800
-Message-ID: <200702071952.l17JqmOa025269@shell0.pdx.osdl.net>
+Subject: - ata-add-defines-for-the-iordy-bits.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:52:46 -0800
+Message-ID: <200702071952.l17JqkNi025266@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33708 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33701 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422858AbXBGTxK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:53:10 -0500
+	id S1422786AbXBGTxH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:53:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: Early CFA adapters are not required to support mode setting
+     ata: Add defines for the iordy bits
 has been removed from the -mm tree.  Its filename was
-     libata-early-cfa-adapters-are-not-required-to-support-mode.patch
+     ata-add-defines-for-the-iordy-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: Early CFA adapters are not required to support mode setting
+Subject: ata: Add defines for the iordy bits
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-If we are doing a PIO setup for a CFA card and it blows up with a device error
-then assume it is an older CFA card which doesn't support this rather than
-failing the device out of existance.
-
-Stands seperate to the quieting patch but that is obviously useful with this
-change.
+IORDY and IORDY enable/disable flags.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -37,23 +32,21 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/ata.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/ata/libata-core.c~libata-early-cfa-adapters-are-not-required-to-support-mode drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-early-cfa-adapters-are-not-required-to-support-mode
-+++ a/drivers/ata/libata-core.c
-@@ -2337,6 +2337,10 @@ static int ata_dev_set_mode(struct ata_d
- 		dev->flags |= ATA_DFLAG_PIO;
- 
- 	err_mask = ata_dev_set_xfermode(dev);
-+	/* Old CFA may refuse this command, which is just fine */
-+	if (dev->xfer_shift == ATA_SHIFT_PIO && ata_id_is_cfa(dev->id))
-+        	err_mask &= ~AC_ERR_DEV;
-+
- 	if (err_mask) {
- 		ata_dev_printk(dev, KERN_ERR, "failed to set xfermode "
- 			       "(err_mask=0x%x)\n", err_mask);
+diff -puN include/linux/ata.h~ata-add-defines-for-the-iordy-bits include/linux/ata.h
+--- a/include/linux/ata.h~ata-add-defines-for-the-iordy-bits
++++ a/include/linux/ata.h
+@@ -299,6 +299,8 @@ struct ata_taskfile {
+ #define ata_id_queue_depth(id)	(((id)[75] & 0x1f) + 1)
+ #define ata_id_removeable(id)	((id)[0] & (1 << 7))
+ #define ata_id_has_dword_io(id)	((id)[50] & (1 << 0))
++#define ata_id_iordy_disable(id) ((id)[49] & (1 << 10))
++#define ata_id_has_iordy(id) ((id)[49] & (1 << 9))
+ #define ata_id_u32(id,n)	\
+ 	(((u32) (id)[(n) + 1] << 16) | ((u32) (id)[(n)]))
+ #define ata_id_u64(id,n)	\
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
