@@ -1,101 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - kconfig-clarify-ata_piix-description.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:52:43 -0800
-Message-ID: <200702071952.l17JqhkY025263@shell0.pdx.osdl.net>
+Subject: - sata_nv-use-adma-for-nodata-commands.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:52:36 -0800
+Message-ID: <200702071952.l17Jqa3K025254@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33687 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33650 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422757AbXBGTxB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:53:01 -0500
+	id S1422751AbXBGTwp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:52:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kconfig: clarify ATA_PIIX description
+     sata_nv: use ADMA for NODATA commands
 has been removed from the -mm tree.  Its filename was
-     kconfig-clarify-ata_piix-description.patch
+     sata_nv-use-adma-for-nodata-commands.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Kconfig: clarify ATA_PIIX description
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: sata_nv: use ADMA for NODATA commands
+From: Robert Hancock <hancockr@shaw.ca>
 
-People are getting confused about which drivers to enable for PATA PIIX type
-devices.  Change the ATA_PIIX line and help to make it clearer.
+Some problems showed up recently with cache flush commands timing out on
+sata_nv.  Previously these commands were always handled by transitioning to
+legacy mode from ADMA mode first.  The timeout problem was worked around
+already by a change to the interrupt handling code for legacy mode, but for
+non-data commands like these it appears we can handle them in ADMA mode, so
+the switch to legacy mode is not needed.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+This patch changes the behavior so that we use ADMA mode to submit
+interrupt-driven commands with ATA_PROT_NODATA protocol.  In addition to
+avoiding the problem mentioned above entirely, this avoids the overhead of
+switching to legacy mode and back to ADMA mode for handling cache flushes. 
+When handling non-DMA-mapped commands, we leave the APRD blank and clear
+the NV_CPB_CTL_APRD_VALID field in the CPB so the controller does not
+attempt to read it.
+
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/ata/sata_nv.c |   32 +++++++++++++++++++++++++-------
+ 1 file changed, 25 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ata/Kconfig~kconfig-clarify-ata_piix-description drivers/ata/Kconfig
---- a/drivers/ata/Kconfig~kconfig-clarify-ata_piix-description
-+++ a/drivers/ata/Kconfig
-@@ -41,12 +41,12 @@ config SATA_SVW
- 	  If unsure, say N.
+diff -puN drivers/ata/sata_nv.c~sata_nv-use-adma-for-nodata-commands drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-use-adma-for-nodata-commands
++++ a/drivers/ata/sata_nv.c
+@@ -1151,16 +1151,31 @@ static void nv_adma_fill_sg(struct ata_q
+ 		cpb->next_aprd = cpu_to_le64(((u64)(pp->aprd_dma + NV_ADMA_SGTBL_SZ * qc->tag)));
+ }
  
- config ATA_PIIX
--	tristate "Intel PIIX/ICH SATA support"
-+	tristate "Intel ESB, ICH, PIIX3, PIIX4 PATA/SATA support"
- 	depends on PCI
- 	help
- 	  This option enables support for ICH5/6/7/8 Serial ATA
--	  and support for PATA on the Intel PIIX3/PIIX4/ICH series
--	  PATA host controllers.
-+	  and support for PATA on the Intel ESB/ICH/PIIX3/PIIX4 series
-+	  host controllers.
++static int nv_adma_use_reg_mode(struct ata_queued_cmd *qc)
++{
++	struct nv_adma_port_priv *pp = qc->ap->private_data;
++
++	/* ADMA engine can only be used for non-ATAPI DMA commands,
++	   or interrupt-driven no-data commands. */
++	if((pp->flags & NV_ADMA_ATAPI_SETUP_COMPLETE) ||
++	   (qc->tf.flags & ATA_TFLAG_POLLING))
++		return 1;
++
++	if((qc->flags & ATA_QCFLAG_DMAMAP) ||
++	   (qc->tf.protocol == ATA_PROT_NODATA))
++		return 0;
++
++	return 1;
++}
++
+ static void nv_adma_qc_prep(struct ata_queued_cmd *qc)
+ {
+ 	struct nv_adma_port_priv *pp = qc->ap->private_data;
+ 	struct nv_adma_cpb *cpb = &pp->cpb[qc->tag];
+ 	u8 ctl_flags = NV_CPB_CTL_CPB_VALID |
+-		       NV_CPB_CTL_APRD_VALID |
+ 		       NV_CPB_CTL_IEN;
  
- 	  If unsure, say N.
+-	if (!(qc->flags & ATA_QCFLAG_DMAMAP) ||
+-	     (pp->flags & NV_ADMA_ATAPI_SETUP_COMPLETE)) {
++	if (nv_adma_use_reg_mode(qc)) {
+ 		nv_adma_register_mode(qc->ap);
+ 		ata_qc_prep(qc);
+ 		return;
+@@ -1180,7 +1195,11 @@ static void nv_adma_qc_prep(struct ata_q
  
+ 	nv_adma_tf_to_cpb(&qc->tf, cpb->tf);
+ 
+-	nv_adma_fill_sg(qc, cpb);
++	if(qc->flags & ATA_QCFLAG_DMAMAP) {
++		nv_adma_fill_sg(qc, cpb);
++		ctl_flags |= NV_CPB_CTL_APRD_VALID;
++	} else
++		memset(&cpb->aprd[0], 0, sizeof(struct nv_adma_prd) * 5);
+ 
+ 	/* Be paranoid and don't let the device see NV_CPB_CTL_CPB_VALID until we are
+ 	   finished filling in all of the contents */
+@@ -1195,10 +1214,9 @@ static unsigned int nv_adma_qc_issue(str
+ 
+ 	VPRINTK("ENTER\n");
+ 
+-	if (!(qc->flags & ATA_QCFLAG_DMAMAP) ||
+-	     (pp->flags & NV_ADMA_ATAPI_SETUP_COMPLETE)) {
++	if (nv_adma_use_reg_mode(qc)) {
+ 		/* use ATA register mode */
+-		VPRINTK("no dmamap or ATAPI, using ATA register mode: 0x%lx\n", qc->flags);
++		VPRINTK("using ATA register mode: 0x%lx\n", qc->flags);
+ 		nv_adma_register_mode(qc->ap);
+ 		return ata_qc_issue_prot(qc);
+ 	} else
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
 git-libata-all.patch
-sis-warning-fixes.patch
-libata-add-a-host-flag-to-indicate-lack-of-iordy.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-git-mtd.patch
-git-netdev-all.patch
-resend-iphase-64bit-cleanup.patch
-make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
-perle-multimodem-card-pci-ras-detection.patch
-pnx8550-uart-driver.patch
-pnx8550-uart-driver-fixes.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-geode-support-classic-mediagxm.patch
-cyrix-fails-to-detect-mediagx.patch
-geode-configuration-fixes.patch
-char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
-char-tty_wakeup-cleanup.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-tty-improve-encode_baud_rate-logic.patch
-kernel-shut-up-the-irq-mismatch-messages.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
-sched-avoid-div-in-rebalance_tick.patch
-pm3fb-kill-pci_find_device-usage.patch
