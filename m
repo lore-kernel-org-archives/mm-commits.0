@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + workqueue-kill-run_scheduled_work.patch added to -mm tree
-Date: Tue, 06 Feb 2007 17:45:13 -0800
-Message-ID: <200702070145.l171jDns003612@shell0.pdx.osdl.net>
+Subject: + workqueue-introduce-cpu_singlethread_map.patch added to -mm tree
+Date: Tue, 06 Feb 2007 17:45:34 -0800
+Message-ID: <200702070145.l171jYon003630@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58665 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58675 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933113AbXBGBpk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 20:45:40 -0500
+	id S965603AbXBGBpw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 20:45:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, mingo@elte.hu
 
 
 The patch titled
-     workqueue: kill run_scheduled_work()
+     workqueue: introduce cpu_singlethread_map
 has been added to the -mm tree.  Its filename is
-     workqueue-kill-run_scheduled_work.patch
+     workqueue-introduce-cpu_singlethread_map.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,117 +25,138 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: workqueue: kill run_scheduled_work()
+Subject: workqueue: introduce cpu_singlethread_map
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Because it has no callers.
+The code like
 
-Actually, I think the whole idea of run_scheduled_work() was not right, not
-good to mix "unqueue this work and execute its ->func()" in one function.
+	if (is_single_threaded(wq))
+		do_something(singlethread_cpu);
+	else {
+		for_each_cpu_mask(cpu, cpu_populated_map)
+			do_something(cpu);
+	}
+
+looks very annoying. We can add "static cpumask_t cpu_singlethread_map" and
+simplify the code. Lessens .text a bit, and imho makes the code more readable.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/workqueue.h |    1 
- kernel/workqueue.c        |   73 ------------------------------------
- 2 files changed, 74 deletions(-)
+ kernel/workqueue.c |   52 +++++++++++++++++++------------------------
+ 1 files changed, 24 insertions(+), 28 deletions(-)
 
-diff -puN include/linux/workqueue.h~workqueue-kill-run_scheduled_work include/linux/workqueue.h
---- a/include/linux/workqueue.h~workqueue-kill-run_scheduled_work
-+++ a/include/linux/workqueue.h
-@@ -176,7 +176,6 @@ extern void flush_work(struct workqueue_
- extern void flush_work_keventd(struct work_struct *work);
- 
- extern int FASTCALL(schedule_work(struct work_struct *work));
--extern int FASTCALL(run_scheduled_work(struct work_struct *work));
- extern int FASTCALL(schedule_delayed_work(struct delayed_work *work, unsigned long delay));
- 
- extern int schedule_delayed_work_on(int cpu, struct delayed_work *work, unsigned long delay);
-diff -puN kernel/workqueue.c~workqueue-kill-run_scheduled_work kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-kill-run_scheduled_work
+diff -puN kernel/workqueue.c~workqueue-introduce-cpu_singlethread_map kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-introduce-cpu_singlethread_map
 +++ a/kernel/workqueue.c
-@@ -98,79 +98,6 @@ static inline void *get_wq_data(struct w
- 	return (void *) (atomic_long_read(&work->data) & WORK_STRUCT_WQ_DATA_MASK);
+@@ -69,6 +69,7 @@ static DEFINE_MUTEX(workqueue_mutex);
+ static LIST_HEAD(workqueues);
+ 
+ static int singlethread_cpu __read_mostly;
++static cpumask_t cpu_singlethread_map __read_mostly;
+ /* optimization, we could use cpu_possible_map */
+ static cpumask_t cpu_populated_map __read_mostly;
+ 
+@@ -78,6 +79,12 @@ static inline int is_single_threaded(str
+ 	return list_empty(&wq->list);
  }
  
--static int __run_work(struct cpu_workqueue_struct *cwq, struct work_struct *work)
--{
--	int ret = 0;
--	unsigned long flags;
--
--	spin_lock_irqsave(&cwq->lock, flags);
--	/*
--	 * We need to re-validate the work info after we've gotten
--	 * the cpu_workqueue lock. We can run the work now iff:
--	 *
--	 *  - the wq_data still matches the cpu_workqueue_struct
--	 *  - AND the work is still marked pending
--	 *  - AND the work is still on a list (which will be this
--	 *    workqueue_struct list)
--	 *
--	 * All these conditions are important, because we
--	 * need to protect against the work being run right
--	 * now on another CPU (all but the last one might be
--	 * true if it's currently running and has not been
--	 * released yet, for example).
--	 */
--	if (get_wq_data(work) == cwq
--	    && work_pending(work)
--	    && !list_empty(&work->entry)) {
--		work_func_t f = work->func;
--		cwq->current_work = work;
--		list_del_init(&work->entry);
--		spin_unlock_irqrestore(&cwq->lock, flags);
--
--		if (!test_bit(WORK_STRUCT_NOAUTOREL, work_data_bits(work)))
--			work_release(work);
--		f(work);
--
--		spin_lock_irqsave(&cwq->lock, flags);
--		cwq->current_work = NULL;
--		ret = 1;
--	}
--	spin_unlock_irqrestore(&cwq->lock, flags);
--	return ret;
--}
--
--/**
-- * run_scheduled_work - run scheduled work synchronously
-- * @work: work to run
-- *
-- * This checks if the work was pending, and runs it
-- * synchronously if so. It returns a boolean to indicate
-- * whether it had any scheduled work to run or not.
-- *
-- * NOTE! This _only_ works for normal work_structs. You
-- * CANNOT use this for delayed work, because the wq data
-- * for delayed work will not point properly to the per-
-- * CPU workqueue struct, but will change!
-- */
--int fastcall run_scheduled_work(struct work_struct *work)
--{
--	for (;;) {
--		struct cpu_workqueue_struct *cwq;
--
--		if (!work_pending(work))
--			return 0;
--		if (list_empty(&work->entry))
--			return 0;
--		/* NOTE! This depends intimately on __queue_work! */
--		cwq = get_wq_data(work);
--		if (!cwq)
--			return 0;
--		if (__run_work(cwq, work))
--			return 1;
--	}
--}
--EXPORT_SYMBOL(run_scheduled_work);
--
- static void insert_work(struct cpu_workqueue_struct *cwq,
- 				struct work_struct *work, int tail)
++static const cpumask_t *wq_cpu_map(struct workqueue_struct *wq)
++{
++	return is_single_threaded(wq)
++		? &cpu_singlethread_map : &cpu_populated_map;
++}
++
+ /*
+  * Set the workqueue on which a work item is to be run
+  * - Must *only* be called if the pending flag is set
+@@ -394,14 +401,11 @@ static void flush_cpu_workqueue(struct c
+  */
+ void fastcall flush_workqueue(struct workqueue_struct *wq)
  {
+-	if (is_single_threaded(wq))
+-		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
+-	else {
+-		int cpu;
++	const cpumask_t *cpu_map = wq_cpu_map(wq);
++	int cpu;
+ 
+-		for_each_cpu_mask(cpu, cpu_populated_map)
+-			flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
+-	}
++	for_each_cpu_mask(cpu, *cpu_map)
++		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
+ }
+ EXPORT_SYMBOL_GPL(flush_workqueue);
+ 
+@@ -438,7 +442,9 @@ static void wait_on_work(struct cpu_work
+  */
+ void flush_work(struct workqueue_struct *wq, struct work_struct *work)
+ {
++	const cpumask_t *cpu_map = wq_cpu_map(wq);
+ 	struct cpu_workqueue_struct *cwq;
++	int cpu;
+ 
+ 	cwq = get_wq_data(work);
+ 	/* Was it ever queued ? */
+@@ -454,14 +460,8 @@ void flush_work(struct workqueue_struct 
+ 	work_release(work);
+ 	spin_unlock_irq(&cwq->lock);
+ 
+-	if (is_single_threaded(wq))
+-		wait_on_work(per_cpu_ptr(wq->cpu_wq, singlethread_cpu), work);
+-	else {
+-		int cpu;
+-
+-		for_each_cpu_mask(cpu, cpu_populated_map)
+-			wait_on_work(per_cpu_ptr(wq->cpu_wq, cpu), work);
+-	}
++	for_each_cpu_mask(cpu, *cpu_map)
++		wait_on_work(per_cpu_ptr(wq->cpu_wq, cpu), work);
+ }
+ EXPORT_SYMBOL_GPL(flush_work);
+ 
+@@ -754,22 +754,17 @@ static void cleanup_workqueue_thread(str
+  */
+ void destroy_workqueue(struct workqueue_struct *wq)
+ {
++	const cpumask_t *cpu_map = wq_cpu_map(wq);
+ 	struct cpu_workqueue_struct *cwq;
++	int cpu;
+ 
+-	if (is_single_threaded(wq)) {
+-		cwq = per_cpu_ptr(wq->cpu_wq, singlethread_cpu);
+-		cleanup_workqueue_thread(cwq, singlethread_cpu);
+-	} else {
+-		int cpu;
+-
+-		mutex_lock(&workqueue_mutex);
+-		list_del(&wq->list);
+-		mutex_unlock(&workqueue_mutex);
++	mutex_lock(&workqueue_mutex);
++	list_del(&wq->list);
++	mutex_unlock(&workqueue_mutex);
+ 
+-		for_each_cpu_mask(cpu, cpu_populated_map) {
+-			cwq = per_cpu_ptr(wq->cpu_wq, cpu);
+-			cleanup_workqueue_thread(cwq, cpu);
+-		}
++	for_each_cpu_mask(cpu, *cpu_map) {
++		cwq = per_cpu_ptr(wq->cpu_wq, cpu);
++		cleanup_workqueue_thread(cwq, cpu);
+ 	}
+ 
+ 	free_percpu(wq->cpu_wq);
+@@ -828,6 +823,7 @@ void init_workqueues(void)
+ {
+ 	cpu_populated_map = cpu_online_map;
+ 	singlethread_cpu = first_cpu(cpu_possible_map);
++	cpu_singlethread_map = cpumask_of_cpu(singlethread_cpu);
+ 	hotcpu_notifier(workqueue_cpu_callback, 0);
+ 	keventd_wq = create_workqueue("events");
+ 	BUG_ON(!keventd_wq);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
