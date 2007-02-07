@@ -1,90 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-media-dvb-frontends-make-4-functions-static.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:51:22 -0800
-Message-ID: <200702071951.l17JpMq3025149@shell0.pdx.osdl.net>
+Subject: - cx88-videoc-remove-struct-radionorms.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:51:31 -0800
+Message-ID: <200702071951.l17JpVkA025163@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33813 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33822 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161121AbXBGTym (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:54:42 -0500
+	id S1161373AbXBGTyu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:54:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/dvb/frontends/: make 4 functions static
+     cx88-video.c: remove struct radionorms
 has been removed from the -mm tree.  Its filename was
-     drivers-media-dvb-frontends-make-4-functions-static.patch
+     cx88-videoc-remove-struct-radionorms.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/media/dvb/frontends/: make 4 functions static
+Subject: cx88-video.c: remove struct radionorms
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes four needlessly global functions static.
+This patch removes the unused struct radionorms.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/stv0299.c  |    2 +-
- drivers/media/dvb/frontends/tda10021.c |    2 +-
- drivers/media/dvb/frontends/tda1004x.c |    2 +-
- drivers/media/dvb/frontends/zl10353.c  |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/video/cx88/cx88-video.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/media/dvb/frontends/stv0299.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/stv0299.c
---- a/drivers/media/dvb/frontends/stv0299.c~drivers-media-dvb-frontends-make-4-functions-static
-+++ a/drivers/media/dvb/frontends/stv0299.c
-@@ -92,7 +92,7 @@ static int stv0299_writeregI (struct stv
- 	return (ret != 1) ? -EREMOTEIO : 0;
- }
+diff -puN drivers/media/video/cx88/cx88-video.c~cx88-videoc-remove-struct-radionorms drivers/media/video/cx88/cx88-video.c
+--- a/drivers/media/video/cx88/cx88-video.c~cx88-videoc-remove-struct-radionorms
++++ a/drivers/media/video/cx88/cx88-video.c
+@@ -86,8 +86,6 @@ static LIST_HEAD(cx8800_devlist);
+ /* ------------------------------------------------------------------- */
+ /* static data                                                         */
  
--int stv0299_write(struct dvb_frontend* fe, u8 *buf, int len)
-+static int stv0299_write(struct dvb_frontend* fe, u8 *buf, int len)
- {
- 	struct stv0299_state* state = fe->demodulator_priv;
- 
-diff -puN drivers/media/dvb/frontends/tda10021.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/tda10021.c
---- a/drivers/media/dvb/frontends/tda10021.c~drivers-media-dvb-frontends-make-4-functions-static
-+++ a/drivers/media/dvb/frontends/tda10021.c
-@@ -201,7 +201,7 @@ static int tda10021_set_symbolrate (stru
- 	return 0;
- }
- 
--int tda10021_write(struct dvb_frontend* fe, u8 *buf, int len)
-+static int tda10021_write(struct dvb_frontend* fe, u8 *buf, int len)
- {
- 	struct tda10021_state* state = fe->demodulator_priv;
- 
-diff -puN drivers/media/dvb/frontends/tda1004x.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/tda1004x.c
---- a/drivers/media/dvb/frontends/tda1004x.c~drivers-media-dvb-frontends-make-4-functions-static
-+++ a/drivers/media/dvb/frontends/tda1004x.c
-@@ -579,7 +579,7 @@ static int tda1004x_decode_fec(int tdafe
- 	return -1;
- }
- 
--int tda1004x_write(struct dvb_frontend* fe, u8 *buf, int len)
-+static int tda1004x_write(struct dvb_frontend* fe, u8 *buf, int len)
- {
- 	struct tda1004x_state* state = fe->demodulator_priv;
- 
-diff -puN drivers/media/dvb/frontends/zl10353.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/zl10353.c
---- a/drivers/media/dvb/frontends/zl10353.c~drivers-media-dvb-frontends-make-4-functions-static
-+++ a/drivers/media/dvb/frontends/zl10353.c
-@@ -54,7 +54,7 @@ static int zl10353_single_write(struct d
- 	return 0;
- }
- 
--int zl10353_write(struct dvb_frontend *fe, u8 *ibuf, int ilen)
-+static int zl10353_write(struct dvb_frontend *fe, u8 *ibuf, int ilen)
- {
- 	int err, i;
- 	for (i = 0; i < ilen - 1; i++)
+-v4l2_std_id radionorms[] = { 0 };
+-
+ static struct cx8800_fmt formats[] = {
+ 	{
+ 		.name     = "8 bpp, gray",
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
