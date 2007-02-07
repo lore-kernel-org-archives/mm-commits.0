@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-aacraid-cleanups.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:52:14 -0800
-Message-ID: <200702070052.l170qEVl002441@shell0.pdx.osdl.net>
+Subject: + make-gfs2_writepages-static.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:52:35 -0800
+Message-ID: <200702070052.l170qZDj002444@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57115 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57210 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933316AbXBGAw1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:52:27 -0500
+	id S1030501AbXBGAzz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:55:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, James.Bottomley@steeleye.com
+Cc: bunk@stusta.de, swhiteho@redhat.com
 
 
 The patch titled
-     drivers/scsi/aacraid/: cleanups
+     make gfs2_writepages() static
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-aacraid-cleanups.patch
+     make-gfs2_writepages-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/scsi/aacraid/: cleanups
+Subject: make gfs2_writepages() static
 From: Adrian Bunk <bunk@stusta.de>
 
-- proper prototypes for global code in aacraid.h
-- aac_rx_start_adapter() can now become static
+make the needlessly global gfs2_writepages() static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/aacraid.h |    3 +++
- drivers/scsi/aacraid/linit.c   |    2 --
- drivers/scsi/aacraid/nark.c    |    3 ---
- drivers/scsi/aacraid/rkt.c     |    3 ---
- drivers/scsi/aacraid/rx.c      |    2 +-
- 5 files changed, 4 insertions(+), 9 deletions(-)
+ fs/gfs2/ops_address.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/aacraid/aacraid.h~drivers-scsi-aacraid-cleanups drivers/scsi/aacraid/aacraid.h
---- a/drivers/scsi/aacraid/aacraid.h~drivers-scsi-aacraid-cleanups
-+++ a/drivers/scsi/aacraid/aacraid.h
-@@ -1840,8 +1840,11 @@ struct aac_driver_ident* aac_get_driver_
- int aac_get_adapter_info(struct aac_dev* dev);
- int aac_send_shutdown(struct aac_dev *dev);
- int aac_probe_container(struct aac_dev *dev, int cid);
-+int _aac_rx_init(struct aac_dev *dev);
-+int aac_rx_select_comm(struct aac_dev *dev, int comm);
- extern int numacb;
- extern int acbsize;
- extern char aac_driver_version[];
- extern int startup_timeout;
- extern int aif_timeout;
-+extern int expose_physicals;
-diff -puN drivers/scsi/aacraid/linit.c~drivers-scsi-aacraid-cleanups drivers/scsi/aacraid/linit.c
---- a/drivers/scsi/aacraid/linit.c~drivers-scsi-aacraid-cleanups
-+++ a/drivers/scsi/aacraid/linit.c
-@@ -82,8 +82,6 @@ static LIST_HEAD(aac_devices);
- static int aac_cfg_major = -1;
- char aac_driver_version[] = AAC_DRIVER_FULL_VERSION;
- 
--extern int expose_physicals;
--
- /*
-  * Because of the way Linux names scsi devices, the order in this table has
-  * become important.  Check for on-board Raid first, add-in cards second.
-diff -puN drivers/scsi/aacraid/nark.c~drivers-scsi-aacraid-cleanups drivers/scsi/aacraid/nark.c
---- a/drivers/scsi/aacraid/nark.c~drivers-scsi-aacraid-cleanups
-+++ a/drivers/scsi/aacraid/nark.c
-@@ -74,9 +74,6 @@ static int aac_nark_ioremap(struct aac_d
- 
- int aac_nark_init(struct aac_dev * dev)
- {
--	extern int _aac_rx_init(struct aac_dev *dev);
--	extern int aac_rx_select_comm(struct aac_dev *dev, int comm);
--
- 	/*
- 	 *	Fill in the function dispatch table.
- 	 */
-diff -puN drivers/scsi/aacraid/rkt.c~drivers-scsi-aacraid-cleanups drivers/scsi/aacraid/rkt.c
---- a/drivers/scsi/aacraid/rkt.c~drivers-scsi-aacraid-cleanups
-+++ a/drivers/scsi/aacraid/rkt.c
-@@ -45,7 +45,6 @@
- static int aac_rkt_select_comm(struct aac_dev *dev, int comm)
- {
- 	int retval;
--	extern int aac_rx_select_comm(struct aac_dev *dev, int comm);
- 	retval = aac_rx_select_comm(dev, comm);
- 	if (comm == AAC_COMM_MESSAGE) {
- 		/*
-@@ -97,8 +96,6 @@ static int aac_rkt_ioremap(struct aac_de
- 
- int aac_rkt_init(struct aac_dev *dev)
- {
--	extern int _aac_rx_init(struct aac_dev *dev);
--
- 	/*
- 	 *	Fill in the function dispatch table.
- 	 */
-diff -puN drivers/scsi/aacraid/rx.c~drivers-scsi-aacraid-cleanups drivers/scsi/aacraid/rx.c
---- a/drivers/scsi/aacraid/rx.c~drivers-scsi-aacraid-cleanups
-+++ a/drivers/scsi/aacraid/rx.c
-@@ -294,7 +294,7 @@ static void aac_rx_notify_adapter(struct
-  *	Start up processing on an i960 based AAC adapter
+diff -puN fs/gfs2/ops_address.c~make-gfs2_writepages-static fs/gfs2/ops_address.c
+--- a/fs/gfs2/ops_address.c~make-gfs2_writepages-static
++++ a/fs/gfs2/ops_address.c
+@@ -170,7 +170,8 @@ out_ignore:
+  * and write whole extents at once. This is a big reduction in the
+  * number of I/O requests we send and the bmap calls we make in this case.
   */
- 
--void aac_rx_start_adapter(struct aac_dev *dev)
-+static void aac_rx_start_adapter(struct aac_dev *dev)
+-int gfs2_writepages(struct address_space *mapping, struct writeback_control *wbc)
++static int gfs2_writepages(struct address_space *mapping,
++			   struct writeback_control *wbc)
  {
- 	struct aac_init *init;
- 
+ 	struct inode *inode = mapping->host;
+ 	struct gfs2_inode *ip = GFS2_I(inode);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
