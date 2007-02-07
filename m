@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-sigio-locking-comment.patch added to -mm tree
-Date: Wed, 07 Feb 2007 15:20:47 -0800
-Message-ID: <200702072320.l17NKl9p030929@shell0.pdx.osdl.net>
+Subject: + uml-elf-locking-commentary.patch added to -mm tree
+Date: Wed, 07 Feb 2007 15:20:53 -0800
+Message-ID: <200702072320.l17NKr9T030938@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44845 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44860 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161480AbXBGXUu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 18:20:50 -0500
+	id S1422776AbXBGXUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 18:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: SIGIO locking comment
+     uml: ELF locking commentary
 has been added to the -mm tree.  Its filename is
-     uml-sigio-locking-comment.patch
+     uml-elf-locking-commentary.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: SIGIO locking comment
+Subject: uml: ELF locking commentary
 From: Jeff Dike <jdike@addtoit.com>
 
-Comment the use of a mysterious-looking lock.
+Comment the lack of locking of the elf data extracted from the ELF headers
+passed to UML.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/sigio.c |    1 +
- 1 files changed, 1 insertion(+)
+ arch/um/os-Linux/elf_aux.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/um/kernel/sigio.c~uml-sigio-locking-comment arch/um/kernel/sigio.c
---- a/arch/um/kernel/sigio.c~uml-sigio-locking-comment
-+++ a/arch/um/kernel/sigio.c
-@@ -42,6 +42,7 @@ int write_sigio_irq(int fd)
- 	return(0);
- }
+diff -puN arch/um/os-Linux/elf_aux.c~uml-elf-locking-commentary arch/um/os-Linux/elf_aux.c
+--- a/arch/um/os-Linux/elf_aux.c~uml-elf-locking-commentary
++++ a/arch/um/os-Linux/elf_aux.c
+@@ -21,12 +21,11 @@ typedef Elf32_auxv_t elf_auxv_t;
+ typedef Elf64_auxv_t elf_auxv_t;
+ #endif
  
-+/* These are called from os-Linux/sigio.c to protect its pollfds arrays. */
- static DEFINE_SPINLOCK(sigio_spinlock);
++/* These are initialized very early in boot and never changed */
+ char * elf_aux_platform;
+ long elf_aux_hwcap;
+-
+ unsigned long vsyscall_ehdr;
+ unsigned long vsyscall_end;
+-
+ unsigned long __kernel_vsyscall;
  
- void sigio_lock(void)
+ __init void scan_elf_aux( char **envp)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
