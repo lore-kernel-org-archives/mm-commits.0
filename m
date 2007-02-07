@@ -1,124 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - make-gfs2_writepages-static.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:51:41 -0800
-Message-ID: <200702071951.l17JpfZ7025175@shell0.pdx.osdl.net>
+Subject: - spidernet-rework-rx-linked-list.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:53:02 -0800
+Message-ID: <200702071953.l17Jr2p1025287@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33831 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33875 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161428AbXBGTzM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:55:12 -0500
+	id S1422916AbXBGT4Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:56:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: linas@austin.ibm.com, arnd@arndb.de, jklewis@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make gfs2_writepages() static
+     Spidernet: Rework RX linked list
 has been removed from the -mm tree.  Its filename was
-     make-gfs2_writepages-static.patch
+     spidernet-rework-rx-linked-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make gfs2_writepages() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Spidernet: Rework RX linked list
+From: Linas Vepstas <linas@austin.ibm.com>
 
-make the needlessly global gfs2_writepages() static.
+Make the hardware perceive the RX descriptor ring as a null-terminated linked
+list, instead of a circular ring.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
+Cc: James K Lewis <jklewis@us.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/ops_address.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/spider_net.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN fs/gfs2/ops_address.c~make-gfs2_writepages-static fs/gfs2/ops_address.c
---- a/fs/gfs2/ops_address.c~make-gfs2_writepages-static
-+++ a/fs/gfs2/ops_address.c
-@@ -170,7 +170,8 @@ out_ignore:
-  * and write whole extents at once. This is a big reduction in the
-  * number of I/O requests we send and the bmap calls we make in this case.
-  */
--int gfs2_writepages(struct address_space *mapping, struct writeback_control *wbc)
-+static int gfs2_writepages(struct address_space *mapping,
-+			   struct writeback_control *wbc)
+diff -puN drivers/net/spider_net.c~spidernet-rework-rx-linked-list drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-rework-rx-linked-list
++++ a/drivers/net/spider_net.c
+@@ -419,9 +419,13 @@ spider_net_prepare_rx_descr(struct spide
+ 		card->spider_stats.rx_iommu_map_error++;
+ 		descr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
+ 	} else {
++		descr->next_descr_addr = 0;
+ 		wmb();
+ 		descr->dmac_cmd_status = SPIDER_NET_DESCR_CARDOWNED |
+ 					 SPIDER_NET_DMAC_NOINTR_COMPLETE;
++
++		wmb();
++		descr->prev->next_descr_addr = descr->bus_addr;
+ 	}
+ 
+ 	return 0;
+@@ -1650,7 +1654,6 @@ int
+ spider_net_open(struct net_device *netdev)
  {
- 	struct inode *inode = mapping->host;
- 	struct gfs2_inode *ip = GFS2_I(inode);
+ 	struct spider_net_card *card = netdev_priv(netdev);
+-	struct spider_net_descr *descr;
+ 	int result;
+ 
+ 	result = spider_net_init_chain(card, &card->tx_chain);
+@@ -1662,13 +1665,6 @@ spider_net_open(struct net_device *netde
+ 	if (result)
+ 		goto alloc_rx_failed;
+ 
+-	/* Make a ring of of bus addresses */
+-	descr = card->rx_chain.ring;
+-	do {
+-		descr->next_descr_addr = descr->next->bus_addr;
+-		descr = descr->next;
+-	} while (descr != card->rx_chain.ring);
+-
+ 	/* Allocate rx skbs */
+ 	if (spider_net_alloc_rx_skbs(card))
+ 		goto alloc_skbs_failed;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from linas@austin.ibm.com are
 
-origin.patch
-v9fs_vfs_mkdir-fix-a-double-free.patch
-git-acpi.patch
-ifdef-acpi_future_usage-acpi_os_readable.patch
-git-alsa.patch
-cpu_freq_table-shouldnt-be-a-def_tristate.patch
 git-powerpc.patch
-drivers-char-drm-drm_mmc-remove-unused-exports.patch
-git-dvb.patch
-git-ieee1394.patch
-git-libata-all.patch
-mips-remove-smp_tune_scheduling.patch
-mtd_ck804xrom-must-depend-on-pci.patch
-git-ubi.patch
 git-netdev-all.patch
-net-wanrouter-wanmainc-cleanups.patch
-net-uninline-skb_put-fix.patch
-git-ocfs2.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-git-ipwireless_cs.patch
-cleanup-x86_64-mm-vmi-timer.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-drivers-char-vc_screenc-proper-prototypes.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
-schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
-cleanup-linux-byteorder-swabbh.patch
-cleanup-include-linux-xattrh.patch
-cleanup-include-linux-reiserfs_xattrh.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-debug-shared-irqs-kconfig-fix.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-remove-the-broken-fb_s3trio-driver.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
