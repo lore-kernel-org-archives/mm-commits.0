@@ -1,51 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - cx88-videoc-remove-struct-radionorms.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:51:31 -0800
-Message-ID: <200702071951.l17JpVkA025163@shell0.pdx.osdl.net>
+Subject: - if-0-v4l_printk_ioctl_arg.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:51:33 -0800
+Message-ID: <200702071951.l17JpXW0025166@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33822 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33823 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161373AbXBGTyu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:54:50 -0500
+	id S1161430AbXBGTyx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:54:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cx88-video.c: remove struct radionorms
+     #if 0 v4l_printk_ioctl_arg()
 has been removed from the -mm tree.  Its filename was
-     cx88-videoc-remove-struct-radionorms.patch
+     if-0-v4l_printk_ioctl_arg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cx88-video.c: remove struct radionorms
+Subject: #if 0 v4l_printk_ioctl_arg()
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch removes the unused struct radionorms.
+v4l_printk_ioctl_arg() is no longer used.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx88/cx88-video.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/media/video/v4l2-common.c |    7 ++++++-
+ include/media/v4l2-common.h       |    3 ---
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/video/cx88/cx88-video.c~cx88-videoc-remove-struct-radionorms drivers/media/video/cx88/cx88-video.c
---- a/drivers/media/video/cx88/cx88-video.c~cx88-videoc-remove-struct-radionorms
-+++ a/drivers/media/video/cx88/cx88-video.c
-@@ -86,8 +86,6 @@ static LIST_HEAD(cx8800_devlist);
- /* ------------------------------------------------------------------- */
- /* static data                                                         */
+diff -puN drivers/media/video/v4l2-common.c~if-0-v4l_printk_ioctl_arg drivers/media/video/v4l2-common.c
+--- a/drivers/media/video/v4l2-common.c~if-0-v4l_printk_ioctl_arg
++++ a/drivers/media/video/v4l2-common.c
+@@ -272,11 +272,13 @@ char *v4l2_type_names[] = {
+ 	[V4L2_BUF_TYPE_SLICED_VBI_OUTPUT]  = "slicec-vbi-out",
+ };
  
--v4l2_std_id radionorms[] = { 0 };
++#if 0
+ static char *v4l2_memory_names[] = {
+ 	[V4L2_MEMORY_MMAP]    = "mmap",
+ 	[V4L2_MEMORY_USERPTR] = "userptr",
+ 	[V4L2_MEMORY_OVERLAY] = "overlay",
+ };
++#endif  /*  0  */
+ 
+ #define prt_names(a,arr) (((a)>=0)&&((a)<ARRAY_SIZE(arr)))?arr[a]:"unknown"
+ 
+@@ -420,6 +422,7 @@ static const char *v4l2_int_ioctls[] = {
+ };
+ #define V4L2_INT_IOCTLS ARRAY_SIZE(v4l2_int_ioctls)
+ 
++#if 0
+ static void v4l_print_pix_fmt (char *s, struct v4l2_pix_format *fmt)
+ {
+ 	printk ("%s: width=%d, height=%d, format=%d, field=%s, "
+@@ -428,6 +431,7 @@ static void v4l_print_pix_fmt (char *s, 
+ 		prt_names(fmt->field,v4l2_field_names),
+ 		fmt->bytesperline,fmt->sizeimage,fmt->colorspace);
+ };
++#endif  /*  0  */
+ 
+ /* Common ioctl debug function. This function can be used by
+    external ioctl messages as well as internal V4L ioctl */
+@@ -467,6 +471,7 @@ void v4l_printk_ioctl(unsigned int cmd)
+ 	}
+ }
+ 
++#if 0
+ /* Common ioctl debug function. This function can be used by
+    external ioctl messages as well as internal V4L ioctl and its
+    arguments */
+@@ -1037,6 +1042,7 @@ void v4l_printk_ioctl_arg(char *s,unsign
+ 	}
+ 	}
+ }
++#endif  /*  0  */
+ 
+ /* ----------------------------------------------------------------- */
+ 
+@@ -1545,7 +1551,6 @@ EXPORT_SYMBOL(v4l2_prio_check);
+ EXPORT_SYMBOL(v4l2_field_names);
+ EXPORT_SYMBOL(v4l2_type_names);
+ EXPORT_SYMBOL(v4l_printk_ioctl);
+-EXPORT_SYMBOL(v4l_printk_ioctl_arg);
+ 
+ EXPORT_SYMBOL(v4l2_ctrl_next);
+ EXPORT_SYMBOL(v4l2_ctrl_check);
+diff -puN include/media/v4l2-common.h~if-0-v4l_printk_ioctl_arg include/media/v4l2-common.h
+--- a/include/media/v4l2-common.h~if-0-v4l_printk_ioctl_arg
++++ a/include/media/v4l2-common.h
+@@ -64,9 +64,6 @@
+ /* Prints the ioctl in a human-readable format */
+ extern void v4l_printk_ioctl(unsigned int cmd);
+ 
+-/* Prints the ioctl and arg in a human-readable format */
+-extern void v4l_printk_ioctl_arg(char *s,unsigned int cmd, void *arg);
 -
- static struct cx8800_fmt formats[] = {
- 	{
- 		.name     = "8 bpp, gray",
+ /* Use this macro for non-I2C drivers. Pass the driver name as the first arg. */
+ #define v4l_print_ioctl(name, cmd)  		 \
+ 	do {  					 \
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
