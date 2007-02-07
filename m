@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:41:04 -0800
-Message-ID: <200702070041.l170f46f002116@shell0.pdx.osdl.net>
+Subject: + warning-fix-unsigned-signed.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:46:33 -0800
+Message-ID: <200702070046.l170kXRV002257@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56921 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57050 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932952AbXBGAlJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:41:09 -0500
+	id S933274AbXBGAqg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:46:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, jmorris@namei.org, sds@tycho.nsa.gov
+Cc: kvarsin@gmail.com
 
 
 The patch titled
-     sysctl: restore the selinux path based label lookup for sysctls
+     warning fix: unsigned->signed
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
+     warning-fix-unsigned-signed.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,208 +25,100 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: restore the selinux path based label lookup for sysctls
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: warning fix: unsigned->signed
+From: "Tomasz Kvarsin" <kvarsin@gmail.com>
 
-This time instead of generating the generating the paths from proc_dir_entries
-generate the labels from the names in the sysctl ctl_tables themselves.  This
-removes an unnecessary layer of indirection, allows this to work even when
-procfs support is not compiled into the kernel, and especially allows it to
-work now that ctl_tables no longer have a proc_dir_entry field.
+While compiling my code with -W, I always get bunch of warrning from
+headers, here is fix for them:
 
-I continue passing "proc" into genfs sid although that is complete nonsense to
-allow existing selinux policies to work without modification.
+__getblk is alawys called with unsigned argument,
+but it takes signed, the same story with __bread,__breadahead and so on.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Tomasz Kvarsin
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |   43 +++++++++++++++++++++++++++++++++++--
- 1 files changed, 41 insertions(+), 2 deletions(-)
+ fs/buffer.c                 |   12 ++++++------
+ include/linux/buffer_head.h |   10 ++++++----
+ 2 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2 security/selinux/hooks.c
---- a/security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2
-+++ a/security/selinux/hooks.c
-@@ -1423,6 +1423,41 @@ static int selinux_capable(struct task_s
- 	return task_has_capability(tsk,cap);
- }
- 
-+static int selinux_sysctl_get_sid(ctl_table *table, u16 tclass, u32 *sid)
-+{
-+	int buflen, rc;
-+	char *buffer, *path, *end;
-+
-+	rc = -ENOMEM;
-+	buffer = (char*)__get_free_page(GFP_KERNEL);
-+	if (!buffer)
-+		goto out;
-+
-+	buflen = PAGE_SIZE;
-+	end = buffer+buflen;
-+	*--end = '\0';
-+	buflen--;
-+	path = end-1;
-+	*path = '/';
-+	while (table) {
-+		const char *name = table->procname;
-+		size_t namelen = strlen(name);
-+		buflen -= namelen + 1;
-+		if (buflen < 0)
-+			goto out_free;
-+		end -= namelen;
-+		memcpy(end, name, namelen);
-+		*--end = '/';
-+		path = end;
-+		table = table->parent;
-+	}
-+	rc = security_genfs_sid("proc", path, tclass, sid);
-+out_free:
-+	free_page((unsigned long)buffer);
-+out:
-+	return rc;
-+}
-+
- static int selinux_sysctl(ctl_table *table, int op)
+diff -puN fs/buffer.c~warning-fix-unsigned-signed fs/buffer.c
+--- a/fs/buffer.c~warning-fix-unsigned-signed
++++ a/fs/buffer.c
+@@ -1276,11 +1276,11 @@ static void bh_lru_install(struct buffer
+  * Look up the bh in this cpu's LRU.  If it's there, move it to the head.
+  */
+ static struct buffer_head *
+-lookup_bh_lru(struct block_device *bdev, sector_t block, int size)
++lookup_bh_lru(struct block_device *bdev, sector_t block, unsigned size)
  {
- 	int error = 0;
-@@ -1437,8 +1472,12 @@ static int selinux_sysctl(ctl_table *tab
+ 	struct buffer_head *ret = NULL;
+ 	struct bh_lru *lru;
+-	int i;
++	unsigned int i;
  
- 	tsec = current->security;
+ 	check_irqs_on();
+ 	bh_lru_lock();
+@@ -1312,7 +1312,7 @@ lookup_bh_lru(struct block_device *bdev,
+  * NULL
+  */
+ struct buffer_head *
+-__find_get_block(struct block_device *bdev, sector_t block, int size)
++__find_get_block(struct block_device *bdev, sector_t block, unsigned size)
+ {
+ 	struct buffer_head *bh = lookup_bh_lru(bdev, block, size);
  
--	/* Use the well-defined sysctl SID. */
--	tsid = SECINITSID_SYSCTL;
-+	rc = selinux_sysctl_get_sid(table, (op == 0001) ?
-+				    SECCLASS_DIR : SECCLASS_FILE, &tsid);
-+	if (rc) {
-+		/* Default to the well-defined sysctl SID. */
-+		tsid = SECINITSID_SYSCTL;
-+	}
+@@ -1340,7 +1340,7 @@ EXPORT_SYMBOL(__find_get_block);
+  * attempt is failing.  FIXME, perhaps?
+  */
+ struct buffer_head *
+-__getblk(struct block_device *bdev, sector_t block, int size)
++__getblk(struct block_device *bdev, sector_t block, unsigned size)
+ {
+ 	struct buffer_head *bh = __find_get_block(bdev, block, size);
  
- 	/* The op values are "defined" in sysctl.c, thereby creating
- 	 * a bad coupling between this module and sysctl.c */
+@@ -1354,7 +1354,7 @@ EXPORT_SYMBOL(__getblk);
+ /*
+  * Do async read-ahead on a buffer..
+  */
+-void __breadahead(struct block_device *bdev, sector_t block, int size)
++void __breadahead(struct block_device *bdev, sector_t block, unsigned size)
+ {
+ 	struct buffer_head *bh = __getblk(bdev, block, size);
+ 	if (likely(bh)) {
+@@ -1374,7 +1374,7 @@ EXPORT_SYMBOL(__breadahead);
+  *  It returns NULL if the block was unreadable.
+  */
+ struct buffer_head *
+-__bread(struct block_device *bdev, sector_t block, int size)
++__bread(struct block_device *bdev, sector_t block, unsigned size)
+ {
+ 	struct buffer_head *bh = __getblk(bdev, block, size);
+ 
+diff -puN include/linux/buffer_head.h~warning-fix-unsigned-signed include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~warning-fix-unsigned-signed
++++ a/include/linux/buffer_head.h
+@@ -174,12 +174,14 @@ struct super_block *freeze_bdev(struct b
+ void thaw_bdev(struct block_device *, struct super_block *);
+ int fsync_super(struct super_block *);
+ int fsync_no_super(struct block_device *);
+-struct buffer_head *__find_get_block(struct block_device *, sector_t, int);
+-struct buffer_head * __getblk(struct block_device *, sector_t, int);
++struct buffer_head *__find_get_block(struct block_device *bdev, sector_t block,
++			unsigned size);
++struct buffer_head *__getblk(struct block_device *bdev, sector_t block,
++			unsigned size);
+ void __brelse(struct buffer_head *);
+ void __bforget(struct buffer_head *);
+-void __breadahead(struct block_device *, sector_t block, int size);
+-struct buffer_head *__bread(struct block_device *, sector_t block, int size);
++void __breadahead(struct block_device *, sector_t block, unsigned int size);
++struct buffer_head *__bread(struct block_device *, sector_t block, unsigned size);
+ struct buffer_head *alloc_buffer_head(gfp_t gfp_flags);
+ void free_buffer_head(struct buffer_head * bh);
+ void FASTCALL(unlock_buffer(struct buffer_head *bh));
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from kvarsin@gmail.com are
 
-x86_64-irq-simplfy-__assign_irq_vector.patch
-x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
-powerpc-rtas-msi-support.patch
-kthread-api-conversion-for-dvb_frontend-and-av7110.patch
-fix-i-oat-for-kexec.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-kexec-update-io-apic-dest-field-to-8-bit-for.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector.patch
-vt-refactor-console-sak-processing.patch
-sysctl_ms_jiffies-fix-oldlen-semantics.patch
-9p-use-kthread_stop-instead-of-sending-a-sigkill.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-kill_pid_info-kill-acquired_tasklist_lock.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-sn2-use-static-proc_fops.patch
-_proc_do_string-fix-short-reads.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
-ipc-save-the-ipc-namespace-while-reading-proc-files.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
-sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
-sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
-sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
-sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
-sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
-sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
-sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
-sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-xfs-ctl_tables.patch
-sysctl-c99-convert-xfs-ctl_tables-fixes.patch
-sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-md-remove-unnecessary-insert_at_head-flag.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-dont-set-de-owner.patch
-sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
-sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
-sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
-sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-arch-frv-kernel-pmc.patch
-sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
-sysctl-sn-remove-sysctl-abi-breakage.patch
-sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
-sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
-sysctl-mips-au1000-remove-sys_sysctl-support.patch
-sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
-sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
-sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
-sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
-sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
-sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
-sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
-sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
-sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
-sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix.patch
-sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-register-the-ocfs2-sysctl-numbers.patch
-sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
-sysctl-move-utsname-sysctls-to-their-own-file.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-remove-support-for-ctl_any.patch
-sysctl-remove-support-for-directory-strategy-routines.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
-sysctl-reimplement-the-sysctl-proc-support.patch
-sysctl-reimplement-the-sysctl-proc-support-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+warning-fix-unsigned-signed.patch
