@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mdc-use-array_size-macro-when-appropriate.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:05:47 -0800
-Message-ID: <200702070005.l1705mEU001172@shell0.pdx.osdl.net>
+Subject: + rcutorture-use-array_size-macro-when-appropriate.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:06:09 -0800
+Message-ID: <200702070006.l1706AwV001178@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56109 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56120 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030239AbXBGAGV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:06:21 -0500
+	id S1030231AbXBGAGl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:06:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, neilb@suse.de
+Cc: darwish.07@gmail.com, paulmck@us.ibm.com
 
 
 The patch titled
-     drivers/md.c: Use ARRAY_SIZE macro when appropriate
+     rcutorture: Use ARRAY_SIZE macro when appropriate
 has been added to the -mm tree.  Its filename is
-     drivers-mdc-use-array_size-macro-when-appropriate.patch
+     rcutorture-use-array_size-macro-when-appropriate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/md.c: Use ARRAY_SIZE macro when appropriate
+Subject: rcutorture: Use ARRAY_SIZE macro when appropriate
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
 Use ARRAY_SIZE macro already defined in kernel.h
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/rcutorture.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/md.c~drivers-mdc-use-array_size-macro-when-appropriate drivers/md/md.c
---- a/drivers/md/md.c~drivers-mdc-use-array_size-macro-when-appropriate
-+++ a/drivers/md/md.c
-@@ -33,6 +33,7 @@
- */
+diff -puN kernel/rcutorture.c~rcutorture-use-array_size-macro-when-appropriate kernel/rcutorture.c
+--- a/kernel/rcutorture.c~rcutorture-use-array_size-macro-when-appropriate
++++ a/kernel/rcutorture.c
+@@ -966,7 +966,7 @@ rcu_torture_init(void)
+ 	/* Set up the freelist. */
  
- #include <linux/module.h>
-+#include <linux/kernel.h>
- #include <linux/kthread.h>
- #include <linux/linkage.h>
- #include <linux/raid/md.h>
-@@ -2635,8 +2636,7 @@ metadata_store(mddev_t *mddev, const cha
- 	minor = simple_strtoul(buf, &e, 10);
- 	if (e==buf || (*e && *e != '\n') )
- 		return -EINVAL;
--	if (major >= sizeof(super_types)/sizeof(super_types[0]) ||
--	    super_types[major].name == NULL)
-+	if (major >= ARRAY_SIZE(super_types) || super_types[major].name == NULL)
- 		return -ENOENT;
- 	mddev->major_version = major;
- 	mddev->minor_version = minor;
-@@ -3973,7 +3973,7 @@ static int set_array_info(mddev_t * mdde
- 	if (info->raid_disks == 0) {
- 		/* just setting version number for superblock loading */
- 		if (info->major_version < 0 ||
--		    info->major_version >= sizeof(super_types)/sizeof(super_types[0]) ||
-+		    info->major_version >= ARRAY_SIZE(super_types) ||
- 		    super_types[info->major_version].name == NULL) {
- 			/* maybe try to auto-load a module? */
- 			printk(KERN_INFO 
+ 	INIT_LIST_HEAD(&rcu_torture_freelist);
+-	for (i = 0; i < sizeof(rcu_tortures) / sizeof(rcu_tortures[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(rcu_tortures); i++) {
+ 		rcu_tortures[i].rtort_mbtest = 0;
+ 		list_add_tail(&rcu_tortures[i].rtort_free,
+ 			      &rcu_torture_freelist);
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
