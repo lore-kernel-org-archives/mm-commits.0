@@ -1,182 +1,382 @@
 From: akpm@linux-foundation.org
-Subject: - if-0-v4l_printk_ioctl_arg.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:51:33 -0800
-Message-ID: <200702071951.l17JpXW0025166@shell0.pdx.osdl.net>
+Subject: - mips-declance-driver-model-for-the-pmad-a.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:53:00 -0800
+Message-ID: <200702071953.l17Jr0PT025284@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33823 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33874 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161430AbXBGTyx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:54:53 -0500
+	id S1422907AbXBGT4X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:56:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: macro@linux-mips.org, jeff@garzik.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     #if 0 v4l_printk_ioctl_arg()
+     mips: declance: Driver model for the PMAD-A
 has been removed from the -mm tree.  Its filename was
-     if-0-v4l_printk_ioctl_arg.patch
+     mips-declance-driver-model-for-the-pmad-a.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: #if 0 v4l_printk_ioctl_arg()
-From: Adrian Bunk <bunk@stusta.de>
+Subject: mips: declance: Driver model for the PMAD-A
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-v4l_printk_ioctl_arg() is no longer used.
+This is a set of changes that converts the PMAD-A support to the driver model.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/v4l2-common.c |    7 ++++++-
- include/media/v4l2-common.h       |    3 ---
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/net/declance.c |  164 +++++++++++++++++++++++++++------------
+ 1 file changed, 117 insertions(+), 47 deletions(-)
 
-diff -puN drivers/media/video/v4l2-common.c~if-0-v4l_printk_ioctl_arg drivers/media/video/v4l2-common.c
---- a/drivers/media/video/v4l2-common.c~if-0-v4l_printk_ioctl_arg
-+++ a/drivers/media/video/v4l2-common.c
-@@ -272,11 +272,13 @@ char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_SLICED_VBI_OUTPUT]  = "slicec-vbi-out",
- };
+diff -puN drivers/net/declance.c~mips-declance-driver-model-for-the-pmad-a drivers/net/declance.c
+--- a/drivers/net/declance.c~mips-declance-driver-model-for-the-pmad-a
++++ a/drivers/net/declance.c
+@@ -5,7 +5,7 @@
+  *
+  *      adopted from sunlance.c by Richard van den Berg
+  *
+- *      Copyright (C) 2002, 2003, 2005  Maciej W. Rozycki
++ *      Copyright (C) 2002, 2003, 2005, 2006  Maciej W. Rozycki
+  *
+  *      additional sources:
+  *      - PMAD-AA TURBOchannel Ethernet Module Functional Specification,
+@@ -44,6 +44,8 @@
+  *      v0.010: Fixes for the PMAD mapping of the LANCE buffer and for the
+  *              PMAX requirement to only use halfword accesses to the
+  *              buffer. macro
++ *
++ *      v0.011: Converted the PMAD to the driver model. macro
+  */
  
-+#if 0
- static char *v4l2_memory_names[] = {
- 	[V4L2_MEMORY_MMAP]    = "mmap",
- 	[V4L2_MEMORY_USERPTR] = "userptr",
- 	[V4L2_MEMORY_OVERLAY] = "overlay",
- };
-+#endif  /*  0  */
+ #include <linux/crc32.h>
+@@ -58,6 +60,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/stddef.h>
+ #include <linux/string.h>
++#include <linux/tc.h>
+ #include <linux/types.h>
  
- #define prt_names(a,arr) (((a)>=0)&&((a)<ARRAY_SIZE(arr)))?arr[a]:"unknown"
+ #include <asm/addrspace.h>
+@@ -69,15 +72,16 @@
+ #include <asm/dec/kn01.h>
+ #include <asm/dec/machtype.h>
+ #include <asm/dec/system.h>
+-#include <asm/dec/tc.h>
  
-@@ -420,6 +422,7 @@ static const char *v4l2_int_ioctls[] = {
- };
- #define V4L2_INT_IOCTLS ARRAY_SIZE(v4l2_int_ioctls)
+ static char version[] __devinitdata =
+-"declance.c: v0.010 by Linux MIPS DECstation task force\n";
++"declance.c: v0.011 by Linux MIPS DECstation task force\n";
  
-+#if 0
- static void v4l_print_pix_fmt (char *s, struct v4l2_pix_format *fmt)
+ MODULE_AUTHOR("Linux MIPS DECstation task force");
+ MODULE_DESCRIPTION("DEC LANCE (DECstation onboard, PMAD-xx) driver");
+ MODULE_LICENSE("GPL");
+ 
++#define __unused __attribute__ ((unused))
++
+ /*
+  * card types
+  */
+@@ -246,7 +250,6 @@ struct lance_init_block {
+ struct lance_private {
+ 	struct net_device *next;
+ 	int type;
+-	int slot;
+ 	int dma_irq;
+ 	volatile struct lance_regs *ll;
+ 
+@@ -288,6 +291,7 @@ struct lance_regs {
+ 
+ int dec_lance_debug = 2;
+ 
++static struct tc_driver dec_lance_tc_driver;
+ static struct net_device *root_lance_dev;
+ 
+ static inline void writereg(volatile unsigned short *regptr, short value)
+@@ -1023,7 +1027,7 @@ static void lance_set_multicast_retry(un
+ 	lance_set_multicast(dev);
+ }
+ 
+-static int __init dec_lance_init(const int type, const int slot)
++static int __init dec_lance_probe(struct device *bdev, const int type)
  {
- 	printk ("%s: width=%d, height=%d, format=%d, field=%s, "
-@@ -428,6 +431,7 @@ static void v4l_print_pix_fmt (char *s, 
- 		prt_names(fmt->field,v4l2_field_names),
- 		fmt->bytesperline,fmt->sizeimage,fmt->colorspace);
- };
-+#endif  /*  0  */
+ 	static unsigned version_printed;
+ 	static const char fmt[] = "declance%d";
+@@ -1031,6 +1035,7 @@ static int __init dec_lance_init(const i
+ 	struct net_device *dev;
+ 	struct lance_private *lp;
+ 	volatile struct lance_regs *ll;
++	resource_size_t start = 0, len = 0;
+ 	int i, ret;
+ 	unsigned long esar_base;
+ 	unsigned char *esar;
+@@ -1038,14 +1043,18 @@ static int __init dec_lance_init(const i
+ 	if (dec_lance_debug && version_printed++ == 0)
+ 		printk(version);
  
- /* Common ioctl debug function. This function can be used by
-    external ioctl messages as well as internal V4L ioctl */
-@@ -467,6 +471,7 @@ void v4l_printk_ioctl(unsigned int cmd)
+-	i = 0;
+-	dev = root_lance_dev;
+-	while (dev) {
+-		i++;
+-		lp = (struct lance_private *)dev->priv;
+-		dev = lp->next;
++	if (bdev)
++		snprintf(name, sizeof(name), "%s", bdev->bus_id);
++	else {
++		i = 0;
++		dev = root_lance_dev;
++		while (dev) {
++			i++;
++			lp = (struct lance_private *)dev->priv;
++			dev = lp->next;
++		}
++		snprintf(name, sizeof(name), fmt, i);
  	}
+-	snprintf(name, sizeof(name), fmt, i);
+ 
+ 	dev = alloc_etherdev(sizeof(struct lance_private));
+ 	if (!dev) {
+@@ -1063,7 +1072,6 @@ static int __init dec_lance_init(const i
+ 	spin_lock_init(&lp->lock);
+ 
+ 	lp->type = type;
+-	lp->slot = slot;
+ 	switch (type) {
+ 	case ASIC_LANCE:
+ 		dev->base_addr = CKSEG1ADDR(dec_kn_slot_base + IOASIC_LANCE);
+@@ -1110,12 +1118,22 @@ static int __init dec_lance_init(const i
+ 		break;
+ #ifdef CONFIG_TC
+ 	case PMAD_LANCE:
+-		claim_tc_card(slot);
++		dev_set_drvdata(bdev, dev);
+ 
+-		dev->mem_start = CKSEG1ADDR(get_tc_base_addr(slot));
++		start = to_tc_dev(bdev)->resource.start;
++		len = to_tc_dev(bdev)->resource.end - start + 1;
++		if (!request_mem_region(start, len, bdev->bus_id)) {
++			printk(KERN_ERR
++			       "%s: Unable to reserve MMIO resource\n",
++			       bdev->bus_id);
++			ret = -EBUSY;
++			goto err_out_dev;
++		}
++
++		dev->mem_start = CKSEG1ADDR(start);
+ 		dev->mem_end = dev->mem_start + 0x100000;
+ 		dev->base_addr = dev->mem_start + 0x100000;
+-		dev->irq = get_tc_irq_nr(slot);
++		dev->irq = to_tc_dev(bdev)->interrupt;
+ 		esar_base = dev->mem_start + 0x1c0002;
+ 		lp->dma_irq = -1;
+ 
+@@ -1174,7 +1192,7 @@ static int __init dec_lance_init(const i
+ 		printk(KERN_ERR "%s: declance_init called with unknown type\n",
+ 			name);
+ 		ret = -ENODEV;
+-		goto err_out_free_dev;
++		goto err_out_dev;
+ 	}
+ 
+ 	ll = (struct lance_regs *) dev->base_addr;
+@@ -1188,7 +1206,7 @@ static int __init dec_lance_init(const i
+ 			"%s: Ethernet station address prom not found!\n",
+ 			name);
+ 		ret = -ENODEV;
+-		goto err_out_free_dev;
++		goto err_out_resource;
+ 	}
+ 	/* Check the prom contents */
+ 	for (i = 0; i < 8; i++) {
+@@ -1198,7 +1216,7 @@ static int __init dec_lance_init(const i
+ 			printk(KERN_ERR "%s: Something is wrong with the "
+ 				"ethernet station address prom!\n", name);
+ 			ret = -ENODEV;
+-			goto err_out_free_dev;
++			goto err_out_resource;
+ 		}
+ 	}
+ 
+@@ -1255,48 +1273,51 @@ static int __init dec_lance_init(const i
+ 	if (ret) {
+ 		printk(KERN_ERR
+ 			"%s: Unable to register netdev, aborting.\n", name);
+-		goto err_out_free_dev;
++		goto err_out_resource;
+ 	}
+ 
+-	lp->next = root_lance_dev;
+-	root_lance_dev = dev;
++	if (!bdev) {
++		lp->next = root_lance_dev;
++		root_lance_dev = dev;
++	}
+ 
+ 	printk("%s: registered as %s.\n", name, dev->name);
+ 	return 0;
+ 
+-err_out_free_dev:
++err_out_resource:
++	if (bdev)
++		release_mem_region(start, len);
++
++err_out_dev:
+ 	free_netdev(dev);
+ 
+ err_out:
+ 	return ret;
  }
  
-+#if 0
- /* Common ioctl debug function. This function can be used by
-    external ioctl messages as well as internal V4L ioctl and its
-    arguments */
-@@ -1037,6 +1042,7 @@ void v4l_printk_ioctl_arg(char *s,unsign
- 	}
- 	}
- }
-+#endif  /*  0  */
++static void __exit dec_lance_remove(struct device *bdev)
++{
++	struct net_device *dev = dev_get_drvdata(bdev);
++	resource_size_t start, len;
++
++	unregister_netdev(dev);
++	start = to_tc_dev(bdev)->resource.start;
++	len = to_tc_dev(bdev)->resource.end - start + 1;
++	release_mem_region(start, len);
++	free_netdev(dev);
++}
  
- /* ----------------------------------------------------------------- */
+ /* Find all the lance cards on the system and initialize them */
+-static int __init dec_lance_probe(void)
++static int __init dec_lance_platform_probe(void)
+ {
+ 	int count = 0;
  
-@@ -1545,7 +1551,6 @@ EXPORT_SYMBOL(v4l2_prio_check);
- EXPORT_SYMBOL(v4l2_field_names);
- EXPORT_SYMBOL(v4l2_type_names);
- EXPORT_SYMBOL(v4l_printk_ioctl);
--EXPORT_SYMBOL(v4l_printk_ioctl_arg);
- 
- EXPORT_SYMBOL(v4l2_ctrl_next);
- EXPORT_SYMBOL(v4l2_ctrl_check);
-diff -puN include/media/v4l2-common.h~if-0-v4l_printk_ioctl_arg include/media/v4l2-common.h
---- a/include/media/v4l2-common.h~if-0-v4l_printk_ioctl_arg
-+++ a/include/media/v4l2-common.h
-@@ -64,9 +64,6 @@
- /* Prints the ioctl in a human-readable format */
- extern void v4l_printk_ioctl(unsigned int cmd);
- 
--/* Prints the ioctl and arg in a human-readable format */
--extern void v4l_printk_ioctl_arg(char *s,unsigned int cmd, void *arg);
+-	/* Scan slots for PMAD-AA cards first. */
+-#ifdef CONFIG_TC
+-	if (TURBOCHANNEL) {
+-		int slot;
 -
- /* Use this macro for non-I2C drivers. Pass the driver name as the first arg. */
- #define v4l_print_ioctl(name, cmd)  		 \
- 	do {  					 \
+-		while ((slot = search_tc_card("PMAD-AA")) >= 0) {
+-			if (dec_lance_init(PMAD_LANCE, slot) < 0)
+-				break;
+-			count++;
+-		}
+-	}
+-#endif
+-
+-	/* Then handle onboard devices. */
+ 	if (dec_interrupt[DEC_IRQ_LANCE] >= 0) {
+ 		if (dec_interrupt[DEC_IRQ_LANCE_MERR] >= 0) {
+-			if (dec_lance_init(ASIC_LANCE, -1) >= 0)
++			if (dec_lance_probe(NULL, ASIC_LANCE) >= 0)
+ 				count++;
+ 		} else if (!TURBOCHANNEL) {
+-			if (dec_lance_init(PMAX_LANCE, -1) >= 0)
++			if (dec_lance_probe(NULL, PMAX_LANCE) >= 0)
+ 				count++;
+ 		}
+ 	}
+@@ -1304,21 +1325,70 @@ static int __init dec_lance_probe(void)
+ 	return (count > 0) ? 0 : -ENODEV;
+ }
+ 
+-static void __exit dec_lance_cleanup(void)
++static void __exit dec_lance_platform_remove(void)
+ {
+ 	while (root_lance_dev) {
+ 		struct net_device *dev = root_lance_dev;
+ 		struct lance_private *lp = netdev_priv(dev);
+ 
+ 		unregister_netdev(dev);
+-#ifdef CONFIG_TC
+-		if (lp->slot >= 0)
+-			release_tc_card(lp->slot);
+-#endif
+ 		root_lance_dev = lp->next;
+ 		free_netdev(dev);
+ 	}
+ }
+ 
+-module_init(dec_lance_probe);
+-module_exit(dec_lance_cleanup);
++#ifdef CONFIG_TC
++static int __init dec_lance_tc_probe(struct device *dev);
++static int __exit dec_lance_tc_remove(struct device *dev);
++
++static const struct tc_device_id dec_lance_tc_table[] = {
++	{ "DEC     ", "PMAD-AA " },
++	{ }
++};
++MODULE_DEVICE_TABLE(tc, dec_lance_tc_table);
++
++static struct tc_driver dec_lance_tc_driver = {
++	.id_table	= dec_lance_tc_table,
++	.driver		= {
++		.name	= "declance",
++		.bus	= &tc_bus_type,
++		.probe	= dec_lance_tc_probe,
++		.remove	= __exit_p(dec_lance_tc_remove),
++	},
++};
++
++static int __init dec_lance_tc_probe(struct device *dev)
++{
++        int status = dec_lance_probe(dev, PMAD_LANCE);
++        if (!status)
++                get_device(dev);
++        return status;
++}
++
++static int __exit dec_lance_tc_remove(struct device *dev)
++{
++        put_device(dev);
++        dec_lance_remove(dev);
++        return 0;
++}
++#endif
++
++static int __init dec_lance_init(void)
++{
++	int status;
++
++	status = tc_register_driver(&dec_lance_tc_driver);
++	if (!status)
++		dec_lance_platform_probe();
++	return status;
++}
++
++static void __exit dec_lance_exit(void)
++{
++	dec_lance_platform_remove();
++	tc_unregister_driver(&dec_lance_tc_driver);
++}
++
++
++module_init(dec_lance_init);
++module_exit(dec_lance_exit);
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-origin.patch
-v9fs_vfs_mkdir-fix-a-double-free.patch
-git-acpi.patch
-ifdef-acpi_future_usage-acpi_os_readable.patch
-git-alsa.patch
-cpu_freq_table-shouldnt-be-a-def_tristate.patch
-git-powerpc.patch
-drivers-char-drm-drm_mmc-remove-unused-exports.patch
-git-dvb.patch
-git-ieee1394.patch
-git-libata-all.patch
-mips-remove-smp_tune_scheduling.patch
-mtd_ck804xrom-must-depend-on-pci.patch
-git-ubi.patch
+mips-eisa-registration-with-config_eisa.patch
+mips-turbochannel-update-to-the-driver-model.patch
+mips-turbochannel-update-to-the-driver-model-fix.patch
+mips-turbochannel-support-for-the-decstation.patch
+mips-pmag-ba-fb-convert-to-the-driver-model.patch
+mips-pmagb-b-fb-convert-to-the-driver-model.patch
+mips-dec_esp-driver-model-for-the-pmaz-a.patch
 git-netdev-all.patch
-net-wanrouter-wanmainc-cleanups.patch
-net-uninline-skb_put-fix.patch
-git-ocfs2.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-git-ipwireless_cs.patch
-cleanup-x86_64-mm-vmi-timer.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-drivers-char-vc_screenc-proper-prototypes.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
-schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
-cleanup-linux-byteorder-swabbh.patch
-cleanup-include-linux-xattrh.patch
-cleanup-include-linux-reiserfs_xattrh.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-debug-shared-irqs-kconfig-fix.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-remove-the-broken-fb_s3trio-driver.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+tgafb-switch-to-framebuffer_alloc.patch
+tgafb-fix-copying-overlapping-areas.patch
+tgafb-support-the-directcolor-visual.patch
+tgafb-fix-the-mode-register-setting.patch
+tgafb-module-support-fixes.patch
+tgafb-sync-on-green-support-fixes.patch
+tgafb-fix-the-pci-id-table.patch
