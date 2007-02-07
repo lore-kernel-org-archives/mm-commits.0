@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-nopfn_refault-result-from-vm_ops-nopfn.patch added to -mm tree
-Date: Wed, 07 Feb 2007 14:21:26 -0800
-Message-ID: <200702072221.l17MLQTm029059@shell0.pdx.osdl.net>
+Subject: + add-vm_insert_pfn.patch added to -mm tree
+Date: Wed, 07 Feb 2007 14:21:24 -0800
+Message-ID: <200702072221.l17MLO5E029056@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40861 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40863 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030662AbXBGWVi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 17:21:38 -0500
+	id S1030663AbXBGWVm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 17:21:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, arnd.bergmann@de.ibm.com, hch@lst.de, hugh@veritas.com
+Cc: npiggin@suse.de, arnd.bergmann@de.ibm.com, benh@kernel.crashing.org, hch@lst.de, hugh@veritas.com
 
 
 The patch titled
-     Add NOPFN_REFAULT result from vm_ops->nopfn()
+     add vm_insert_pfn()
 has been added to the -mm tree.  Its filename is
-     add-nopfn_refault-result-from-vm_ops-nopfn.patch
+     add-vm_insert_pfn.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,13 +25,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add NOPFN_REFAULT result from vm_ops->nopfn()
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: add vm_insert_pfn()
+From: Nick Piggin <npiggin@suse.de>
 
-Add a NOPFN_REFAULT return code for vm_ops->nopfn() equivalent to
-NOPAGE_REFAULT for vmops->nopage() indicating that the handler requests a
-re-execution of the faulting instruction
+Add a vm_insert_pfn helper, so that ->fault handlers can have nopfn
+functionality by installing their own pte and returning NULL.
 
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Arnd Bergmann <arnd.bergmann@de.ibm.com>
 Cc: Hugh Dickins <hugh@veritas.com>
@@ -39,67 +39,84 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/memory.c        |    6 ++++--
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    1 
+ mm/memory.c        |   44 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+)
 
-diff -puN include/linux/mm.h~add-nopfn_refault-result-from-vm_ops-nopfn include/linux/mm.h
---- a/include/linux/mm.h~add-nopfn_refault-result-from-vm_ops-nopfn
+diff -puN include/linux/mm.h~add-vm_insert_pfn include/linux/mm.h
+--- a/include/linux/mm.h~add-vm_insert_pfn
 +++ a/include/linux/mm.h
-@@ -638,6 +638,7 @@ static inline int page_mapped(struct pag
-  */
- #define NOPFN_SIGBUS	((unsigned long) -1)
- #define NOPFN_OOM	((unsigned long) -2)
-+#define NOPFN_REFAULT	((unsigned long) -3)
+@@ -1124,6 +1124,7 @@ unsigned long vmalloc_to_pfn(void *addr)
+ int remap_pfn_range(struct vm_area_struct *, unsigned long addr,
+ 			unsigned long pfn, unsigned long size, pgprot_t);
+ int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
++int vm_insert_pfn(struct vm_area_struct *, unsigned long addr, unsigned long pfn);
  
- /*
-  * Different kinds of faults, as returned by handle_mm_fault().
-diff -puN mm/memory.c~add-nopfn_refault-result-from-vm_ops-nopfn mm/memory.c
---- a/mm/memory.c~add-nopfn_refault-result-from-vm_ops-nopfn
+ struct page *follow_page(struct vm_area_struct *, unsigned long address,
+ 			unsigned int foll_flags);
+diff -puN mm/memory.c~add-vm_insert_pfn mm/memory.c
+--- a/mm/memory.c~add-vm_insert_pfn
 +++ a/mm/memory.c
-@@ -2357,10 +2357,12 @@ static noinline int do_no_pfn(struct mm_
- 	BUG_ON(is_cow_mapping(vma->vm_flags));
+@@ -1277,6 +1277,50 @@ int vm_insert_page(struct vm_area_struct
+ }
+ EXPORT_SYMBOL(vm_insert_page);
  
- 	pfn = vma->vm_ops->nopfn(vma, address & PAGE_MASK);
--	if (pfn == NOPFN_OOM)
-+	if (unlikely(pfn == NOPFN_OOM))
- 		return VM_FAULT_OOM;
--	if (pfn == NOPFN_SIGBUS)
-+	else if (unlikely(pfn == NOPFN_SIGBUS))
- 		return VM_FAULT_SIGBUS;
-+	else if (unlikely(pfn == NOPFN_REFAULT))
-+		return VM_FAULT_MINOR;
- 
- 	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
- 
++/**
++ * vm_insert_pfn - insert single pfn into user vma
++ * @vma: user vma to map to
++ * @addr: target user address of this page
++ * @pfn: source kernel pfn
++ *
++ * Similar to vm_inert_page, this allows drivers to insert individual pages
++ * they've allocated into a user vma. Same comments apply.
++ *
++ * This function should only be called from a vm_ops->fault handler, and
++ * in that case the handler should return NULL.
++ */
++int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr, unsigned long pfn)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	int retval;
++	pte_t *pte, entry;
++	spinlock_t *ptl;
++
++	BUG_ON(!(vma->vm_flags & VM_PFNMAP));
++	BUG_ON(is_cow_mapping(vma->vm_flags));
++
++	retval = -ENOMEM;
++	pte = get_locked_pte(mm, addr, &ptl);
++	if (!pte)
++		goto out;
++	retval = -EBUSY;
++	if (!pte_none(*pte))
++		goto out_unlock;
++
++	/* Ok, finally just insert the thing.. */
++	entry = pfn_pte(pfn, vma->vm_page_prot);
++	set_pte_at(mm, addr, pte, entry);
++	update_mmu_cache(vma, addr, entry);
++
++	retval = 0;
++out_unlock:
++	pte_unmap_unlock(pte, ptl);
++
++out:
++	return retval;
++}
++EXPORT_SYMBOL(vm_insert_pfn);
++
+ /*
+  * maps a range of physical memory into the requested pages. the old
+  * mappings are removed. any references to nonexistent pages results
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-enable-mouse-button-23-emulation-for-x86-macs.patch
-x86-fix-vdso-mapping-for-aout-executables.patch
-add-install_special_mapping.patch
-i386-vdso-use-install_special_mapping.patch
-x86_64-ia32-vdso-use-install_special_mapping.patch
-powerpc-vdso-use-install_special_mapping.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-powerpc.patch
-fix-ppc64s-writing-to-struct-file_operations.patch
-powerpc-rtas-msi-support.patch
-arch-powerpc-user-array_size-macro-when-appropriate.patch
-arch-ppc-user-array_size-macro-when-appropriate.patch
-windfarm-dont-die-on-suspend-thread-signal.patch
-driver-core-per-subsystem-multithreaded-probing.patch
-powerpc-make-it-compile.patch
+git-block.patch
 add-vm_insert_pfn.patch
-add-nopfn_refault-result-from-vm_ops-nopfn.patch
 mm-vm_insert_pfn.patch
 mm-vm_insert_pfn-tidy.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-powerpc.patch
-dynamic-kernel-command-line-ppc.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
-sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
+buffer-memorder-fix.patch
+fs-fix-__block_write_full_page-error-case-buffer-submission.patch
+inotify-read-return-val-fix.patch
+sched-avoid-div-in-rebalance_tick.patch
