@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-debugging-feature-proc-timer_stat-cleanup.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:54:49 -0800
-Message-ID: <200702070054.l170snAH002503@shell0.pdx.osdl.net>
+Subject: + sysctl-reimplement-the-sysctl-proc-support-fix-3.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:53:31 -0800
+Message-ID: <200702070053.l170rVj3002453@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57221 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57228 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030488AbXBGA4d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:56:33 -0500
+	id S1030497AbXBGA4o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:56:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, mingo@elte.hu
+Cc: bunk@stusta.de, ebiederm@xmission.com
 
 
 The patch titled
-     make kernel/time/timer_stats.c:nr_entries static
+     fs/proc/: make code static
 has been added to the -mm tree.  Its filename is
-     add-debugging-feature-proc-timer_stat-cleanup.patch
+     sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make kernel/time/timer_stats.c:nr_entries static
+Subject: fs/proc/: make code static
 From: Adrian Bunk <bunk@stusta.de>
 
-nr_entries can become static.
+proc_match() and struct proc_sys_root can now become static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timer_stats.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/generic.c       |    2 +-
+ fs/proc/proc_sysctl.c   |    2 +-
+ include/linux/proc_fs.h |    2 --
+ 3 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/time/timer_stats.c~add-debugging-feature-proc-timer_stat-cleanup kernel/time/timer_stats.c
---- a/kernel/time/timer_stats.c~add-debugging-feature-proc-timer_stat-cleanup
-+++ a/kernel/time/timer_stats.c
-@@ -112,7 +112,7 @@ static ktime_t time_start, time_stop;
- #define MAX_ENTRIES_BITS	10
- #define MAX_ENTRIES		(1UL << MAX_ENTRIES_BITS)
+diff -puN fs/proc/generic.c~sysctl-reimplement-the-sysctl-proc-support-fix-3 fs/proc/generic.c
+--- a/fs/proc/generic.c~sysctl-reimplement-the-sysctl-proc-support-fix-3
++++ a/fs/proc/generic.c
+@@ -33,7 +33,7 @@ static loff_t proc_file_lseek(struct fil
  
--unsigned long nr_entries;
-+static unsigned long nr_entries;
- static struct entry entries[MAX_ENTRIES];
+ DEFINE_SPINLOCK(proc_subdir_lock);
  
- static atomic_t overflow_count;
+-int proc_match(int len, const char *name, struct proc_dir_entry *de)
++static int proc_match(int len, const char *name, struct proc_dir_entry *de)
+ {
+ 	if (de->namelen != len)
+ 		return 0;
+diff -puN fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix-3 fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix-3
++++ a/fs/proc/proc_sysctl.c
+@@ -466,7 +466,7 @@ static struct dentry_operations proc_sys
+ 	.d_revalidate	= proc_sys_revalidate,
+ };
+ 
+-struct proc_dir_entry *proc_sys_root;
++static struct proc_dir_entry *proc_sys_root;
+ 
+ int proc_sys_init(void)
+ {
+diff -puN include/linux/proc_fs.h~sysctl-reimplement-the-sysctl-proc-support-fix-3 include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~sysctl-reimplement-the-sysctl-proc-support-fix-3
++++ a/include/linux/proc_fs.h
+@@ -128,8 +128,6 @@ extern struct vfsmount *proc_mnt;
+ extern int proc_fill_super(struct super_block *,void *,int);
+ extern struct inode *proc_get_inode(struct super_block *, unsigned int, struct proc_dir_entry *);
+ 
+-extern int proc_match(int, const char *,struct proc_dir_entry *);
+-
+ /*
+  * These are generic /proc routines that use the internal
+  * "struct proc_dir_entry" tree to traverse the filesystem.
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -107,7 +133,6 @@ gtod-persistent-clock-support.patch
 i386-use-gtod-persistent-clock-support.patch
 extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 clockevents-i383-drivers.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
 make-ext2_get_blocks-static.patch
 drivers-edac-make-code-static.patch
 drivers-isdn-pcbit-proper-prototypes.patch
@@ -130,3 +155,4 @@ slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
 sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
 i386-enable-4k-stacks-by-default.patch
 mutex-subsystem-synchro-test-module.patch
+make-kernel-time-timer_statscnr_entries-static.patch
