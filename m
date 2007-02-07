@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + intel-agp-use-array_size-macro-when-appropriate.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:06:22 -0800
-Message-ID: <200702070006.l1706NOh001184@shell0.pdx.osdl.net>
+Subject: + atm-use-array_size-macro-when-appropriate.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:05:33 -0800
+Message-ID: <200702070005.l1705YrW001166@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56133 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56137 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030246AbXBGAGw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:06:52 -0500
+	id S1030255AbXBGAHQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:07:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, davej@codemonkey.org.uk
+Cc: darwish.07@gmail.com, chas@cmf.nrl.navy.mil, davem@davemloft.net, jeff@garzik.org
 
 
 The patch titled
-     intel-agp: Use ARRAY_SIZE macro when appropriate
+     atm: Use ARRAY_SIZE macro when appropriate
 has been added to the -mm tree.  Its filename is
-     intel-agp-use-array_size-macro-when-appropriate.patch
+     atm-use-array_size-macro-when-appropriate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: intel-agp: Use ARRAY_SIZE macro when appropriate
+Subject: atm: Use ARRAY_SIZE macro when appropriate
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Use ARRAY_SIZE macro already defined in kernel.h
+Use ARRAY_SIZE macro already defined in kernel.h for ATM
+drivers.
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: chas williams <chas@cmf.nrl.navy.mil>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/atm/he.c         |    2 +-
+ drivers/atm/idt77252.c   |    8 ++++----
+ drivers/atm/nicstarmac.c |    4 +++-
+ 3 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel-agp-use-array_size-macro-when-appropriate drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel-agp-use-array_size-macro-when-appropriate
-+++ a/drivers/char/agp/intel-agp.c
-@@ -5,6 +5,7 @@
- #include <linux/module.h>
- #include <linux/pci.h>
- #include <linux/init.h>
-+#include <linux/kernel.h>
- #include <linux/pagemap.h>
- #include <linux/agp_backend.h>
- #include "agp.h"
-@@ -845,7 +846,7 @@ static int intel_i915_remove_entries(str
-  */
- static int intel_i9xx_fetch_size(void)
- {
--	int num_sizes = sizeof(intel_i830_sizes) / sizeof(*intel_i830_sizes);
-+	int num_sizes = ARRAY_SIZE(intel_i830_sizes);
- 	int aper_size; /* size in megabytes */
- 	int i;
+diff -puN drivers/atm/he.c~atm-use-array_size-macro-when-appropriate drivers/atm/he.c
+--- a/drivers/atm/he.c~atm-use-array_size-macro-when-appropriate
++++ a/drivers/atm/he.c
+@@ -3017,7 +3017,7 @@ read_prom_byte(struct he_dev *he_dev, in
+ 	he_writel(he_dev, val, HOST_CNTL);
+        
+ 	/* Send READ instruction */
+-	for (i = 0; i < sizeof(readtab)/sizeof(readtab[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(readtab); i++) {
+ 		he_writel(he_dev, val | readtab[i], HOST_CNTL);
+ 		udelay(EEPROM_DELAY);
+ 	}
+diff -puN drivers/atm/idt77252.c~atm-use-array_size-macro-when-appropriate drivers/atm/idt77252.c
+--- a/drivers/atm/idt77252.c~atm-use-array_size-macro-when-appropriate
++++ a/drivers/atm/idt77252.c
+@@ -388,7 +388,7 @@ idt77252_eeprom_read_status(struct idt77
  
+ 	gp = idt77252_read_gp(card) & ~(SAR_GP_EESCLK|SAR_GP_EECS|SAR_GP_EEDO);
+ 
+-	for (i = 0; i < sizeof(rdsrtab)/sizeof(rdsrtab[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(rdsrtab); i++) {
+ 		idt77252_write_gp(card, gp | rdsrtab[i]);
+ 		udelay(5);
+ 	}
+@@ -422,7 +422,7 @@ idt77252_eeprom_read_byte(struct idt7725
+ 
+ 	gp = idt77252_read_gp(card) & ~(SAR_GP_EESCLK|SAR_GP_EECS|SAR_GP_EEDO);
+ 
+-	for (i = 0; i < sizeof(rdtab)/sizeof(rdtab[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(rdtab); i++) {
+ 		idt77252_write_gp(card, gp | rdtab[i]);
+ 		udelay(5);
+ 	}
+@@ -469,14 +469,14 @@ idt77252_eeprom_write_byte(struct idt772
+ 
+ 	gp = idt77252_read_gp(card) & ~(SAR_GP_EESCLK|SAR_GP_EECS|SAR_GP_EEDO);
+ 
+-	for (i = 0; i < sizeof(wrentab)/sizeof(wrentab[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(wrentab); i++) {
+ 		idt77252_write_gp(card, gp | wrentab[i]);
+ 		udelay(5);
+ 	}
+ 	idt77252_write_gp(card, gp | SAR_GP_EECS);
+ 	udelay(5);
+ 
+-	for (i = 0; i < sizeof(wrtab)/sizeof(wrtab[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(wrtab); i++) {
+ 		idt77252_write_gp(card, gp | wrtab[i]);
+ 		udelay(5);
+ 	}
+diff -puN drivers/atm/nicstarmac.c~atm-use-array_size-macro-when-appropriate drivers/atm/nicstarmac.c
+--- a/drivers/atm/nicstarmac.c~atm-use-array_size-macro-when-appropriate
++++ a/drivers/atm/nicstarmac.c
+@@ -7,6 +7,8 @@
+  * Read this ForeRunner's MAC address from eprom/eeprom
+  */
+ 
++#include <linux/kernel.h>
++
+ typedef void __iomem *virt_addr_t;
+ 
+ #define CYCLE_DELAY 5
+@@ -176,7 +178,7 @@ read_eprom_byte(virt_addr_t base, u_int8
+    val = NICSTAR_REG_READ( base, NICSTAR_REG_GENERAL_PURPOSE ) & 0xFFFFFFF0;
+ 
+    /* Send READ instruction */
+-   for (i=0; i<sizeof readtab/sizeof readtab[0]; i++)
++   for (i=0; i<ARRAY_SIZE(readtab); i++)
+    {
+ 	NICSTAR_REG_WRITE( base, NICSTAR_REG_GENERAL_PURPOSE,
+ 		(val | readtab[i]) );
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
