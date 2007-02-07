@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-gfs2_writepages-static.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:52:35 -0800
-Message-ID: <200702070052.l170qZDj002444@shell0.pdx.osdl.net>
+Subject: + ifdef-acpi_future_usage-acpi_os_readable.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:51:17 -0800
+Message-ID: <200702070051.l170pHRR002424@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57210 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57208 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030501AbXBGAzz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:55:55 -0500
+	id S1030500AbXBGAzq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:55:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, swhiteho@redhat.com
+Cc: bunk@stusta.de, lenb@kernel.org
 
 
 The patch titled
-     make gfs2_writepages() static
+     #ifdef ACPI_FUTURE_USAGE acpi_os_readable()
 has been added to the -mm tree.  Its filename is
-     make-gfs2_writepages-static.patch
+     ifdef-acpi_future_usage-acpi_os_readable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make gfs2_writepages() static
+Subject: #ifdef ACPI_FUTURE_USAGE acpi_os_readable()
 From: Adrian Bunk <bunk@stusta.de>
 
-make the needlessly global gfs2_writepages() static.
+acpi_os_readable() is no longer used.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/ops_address.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/osl.c      |    2 --
+ include/acpi/acpiosxf.h |    3 +--
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN fs/gfs2/ops_address.c~make-gfs2_writepages-static fs/gfs2/ops_address.c
---- a/fs/gfs2/ops_address.c~make-gfs2_writepages-static
-+++ a/fs/gfs2/ops_address.c
-@@ -170,7 +170,8 @@ out_ignore:
-  * and write whole extents at once. This is a big reduction in the
-  * number of I/O requests we send and the bmap calls we make in this case.
-  */
--int gfs2_writepages(struct address_space *mapping, struct writeback_control *wbc)
-+static int gfs2_writepages(struct address_space *mapping,
-+			   struct writeback_control *wbc)
+diff -puN drivers/acpi/osl.c~ifdef-acpi_future_usage-acpi_os_readable drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~ifdef-acpi_future_usage-acpi_os_readable
++++ a/drivers/acpi/osl.c
+@@ -888,7 +888,6 @@ u32 acpi_os_get_line(char *buffer)
+ 
+ 	return 0;
+ }
+-#endif				/*  ACPI_FUTURE_USAGE  */
+ 
+ /* Assumes no unreadable holes inbetween */
+ u8 acpi_os_readable(void *ptr, acpi_size len)
+@@ -901,7 +900,6 @@ u8 acpi_os_readable(void *ptr, acpi_size
+ 	return 1;
+ }
+ 
+-#ifdef ACPI_FUTURE_USAGE
+ u8 acpi_os_writable(void *ptr, acpi_size len)
  {
- 	struct inode *inode = mapping->host;
- 	struct gfs2_inode *ip = GFS2_I(inode);
+ 	/* could do dummy write (racy) or a kernel page table lookup.
+diff -puN include/acpi/acpiosxf.h~ifdef-acpi_future_usage-acpi_os_readable include/acpi/acpiosxf.h
+--- a/include/acpi/acpiosxf.h~ifdef-acpi_future_usage-acpi_os_readable
++++ a/include/acpi/acpiosxf.h
+@@ -240,9 +240,8 @@ acpi_status
+ acpi_os_validate_address(u8 space_id,
+ 			 acpi_physical_address address, acpi_size length);
+ 
+-u8 acpi_os_readable(void *pointer, acpi_size length);
+-
+ #ifdef ACPI_FUTURE_USAGE
++u8 acpi_os_readable(void *pointer, acpi_size length);
+ u8 acpi_os_writable(void *pointer, acpi_size length);
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -85,7 +106,6 @@ drivers-scsi-aic7xxx-make-functions-static.patch
 drivers-scsi-wd33c93c-cleanups.patch
 drivers-scsi-qla4xxx-possible-cleanups.patch
 make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
 git-unionfs.patch
 usb_rtl8150-must-select-mii.patch
 git-ipwireless_cs.patch
@@ -128,6 +148,7 @@ slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
 slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
 i386-enable-4k-stacks-by-default.patch
 mutex-subsystem-synchro-test-module.patch
+drivers-scsi-aacraid-cleanups.patch
 make-gfs2_writepages-static.patch
 fs-proc-make-code-static.patch
 make-kernel-time-timer_statscnr_entries-static.patch
