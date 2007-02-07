@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + workqueue-introduce-workqueue_struct-singlethread.patch added to -mm tree
-Date: Tue, 06 Feb 2007 17:45:39 -0800
-Message-ID: <200702070145.l171jdCb003633@shell0.pdx.osdl.net>
+Subject: + workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch added to -mm tree
+Date: Tue, 06 Feb 2007 17:45:29 -0800
+Message-ID: <200702070145.l171jTVv003627@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58677 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58676 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965635AbXBGBpz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 20:45:55 -0500
+	id S965628AbXBGBpx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 20:45:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, mingo@elte.hu
 
 
 The patch titled
-     workqueue: introduce workqueue_struct->singlethread
+     workqueue: make cancel_rearming_delayed_workqueue() work on idle dwork
 has been added to the -mm tree.  Its filename is
-     workqueue-introduce-workqueue_struct-singlethread.patch
+     workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: workqueue: introduce workqueue_struct->singlethread
+Subject: workqueue: make cancel_rearming_delayed_workqueue() work on idle dwork
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Add explicit workqueue_struct->singlethread flag.  This lessens .text a
-little, but most importantly this allows us to manipulate wq->list without
-changine the meaning of is_single_threaded().
+cancel_rearming_delayed_workqueue(dwork) will hang forever if dwork was not
+scheduled, because in that case cancel_delayed_work()->del_timer_sync() never
+returns true.
+
+I don't know if there are any callers which may have problems, but this is not
+so convenient, and the fix is very simple.
+
+Q: looks like we don't need "struct workqueue_struct *wq" parameter.  If the
+timer was aborted successfully, get_wq_data() == wq.  Is it worth to add the
+new function?
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ kernel/workqueue.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN kernel/workqueue.c~workqueue-introduce-workqueue_struct-singlethread kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-introduce-workqueue_struct-singlethread
+diff -puN kernel/workqueue.c~workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork
 +++ a/kernel/workqueue.c
-@@ -58,8 +58,9 @@ struct cpu_workqueue_struct {
-  */
- struct workqueue_struct {
- 	struct cpu_workqueue_struct *cpu_wq;
-+	struct list_head list;
- 	const char *name;
--	struct list_head list; 	/* Empty if single thread */
-+	int singlethread;
- 	int freezeable;		/* Freeze threads during suspend */
- };
- 
-@@ -76,7 +77,7 @@ static cpumask_t cpu_populated_map __rea
- /* If it's single threaded, it isn't in the list of workqueues. */
- static inline int is_single_threaded(struct workqueue_struct *wq)
+@@ -566,6 +566,10 @@ EXPORT_SYMBOL(flush_work_keventd);
+ void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
+ 				       struct delayed_work *dwork)
  {
--	return list_empty(&wq->list);
-+	return wq->singlethread;
++	/* Was it ever queued ? */
++	if (!get_wq_data(&dwork->work))
++		return;
++
+ 	while (!cancel_delayed_work(dwork))
+ 		flush_workqueue(wq);
  }
- 
- static const cpumask_t *wq_cpu_map(struct workqueue_struct *wq)
-@@ -692,10 +693,11 @@ struct workqueue_struct *__create_workqu
- 	}
- 
- 	wq->name = name;
-+	wq->singlethread = singlethread;
- 	wq->freezeable = freezeable;
-+	INIT_LIST_HEAD(&wq->list);
- 
- 	if (singlethread) {
--		INIT_LIST_HEAD(&wq->list);
- 		cwq = init_cpu_workqueue(wq, singlethread_cpu);
- 		err = create_workqueue_thread(cwq, singlethread_cpu);
- 	} else {
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
