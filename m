@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-3.patch added to -mm tree
-Date: Wed, 07 Feb 2007 15:08:05 -0800
-Message-ID: <200702072308.l17N85l6030623@shell0.pdx.osdl.net>
+Subject: + com20020-build-fix.patch added to -mm tree
+Date: Wed, 07 Feb 2007 15:14:17 -0800
+Message-ID: <200702072314.l17NEHAf030738@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44273 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44574 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161480AbXBGXIR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 18:08:17 -0500
+	id S1161482AbXBGXOd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 18:14:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, jmorris@namei.org, sds@tycho.nsa.gov
+Cc: randy.dunlap@oracle.com, davem@davemloft.net, jeff@garzik.org, linux@dominikbrodowski.net, nielsen.esben@googlemail.com
 
 
 The patch titled
-     sysctl: Restore the selinux path based label lookup for sysctls (fix)
+     com20020 build fix
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-3.patch
+     com20020-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,211 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: Restore the selinux path based label lookup for sysctls (fix)
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: com20020 build fix
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Stephen Smalley <sds@tycho.nsa.gov> writes:
+Need to export com20020 symbols for com20020_cs also.
 
-> Actually, on further inspection, it looks like the real issue is the
-> "path" name generation; "cat /proc/sys/kernel/modprobe" yields a call to
-> security_genfs_sid() with just "/modprobe" rather than the expected
-> "/sys/kernel/modprobe".  Which likewise leaves us with the generic proc
-> label, just as with the inode permission check, so I end up seeing
-> checks against it only.
+WARNING:  "com20020_found" [drivers/net/pcmcia/com20020_cs.ko] undefined!
+WARNING:  "com20020_check" [drivers/net/pcmcia/com20020_cs.ko] undefined!
 
-Ok.  It looks like two silly thing are going on here.
-I failed to register the root sysctl table, so none of the parent
-pointers got set.
-
-I didn't prepend /sys in the compatibility code, so for something with
-the parent pointers set you would have gotten "/kernel/modprobe" instead
-of /sys/kernel/modprobe"
-
-Sorry about that.
-
-I think the patch below will fix it.
-
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Esben Nielsen <nielsen.esben@googlemail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h   |    2 --
- kernel/sysctl.c          |    8 ++++++++
- security/selinux/hooks.c |    6 ++++++
- 3 files changed, 14 insertions(+), 2 deletions(-)
+ drivers/net/arcnet/com20020.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sysctl.h~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-3 include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-3
-+++ a/include/linux/sysctl.h
-@@ -929,8 +929,6 @@ extern struct ctl_table_header *sysctl_h
- extern void sysctl_head_finish(struct ctl_table_header *prev);
- extern int sysctl_perm(struct ctl_table *table, int op);
- 
--extern void sysctl_init(void);
--
- typedef struct ctl_table ctl_table;
- 
- typedef int ctl_handler (ctl_table *table, int __user *name, int nlen,
-diff -puN kernel/sysctl.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-3 kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-3
-+++ a/kernel/sysctl.c
-@@ -1287,6 +1287,14 @@ static void sysctl_set_parent(struct ctl
- 	}
+diff -puN drivers/net/arcnet/com20020.c~com20020-build-fix drivers/net/arcnet/com20020.c
+--- a/drivers/net/arcnet/com20020.c~com20020-build-fix
++++ a/drivers/net/arcnet/com20020.c
+@@ -338,7 +338,8 @@ static void com20020_set_mc_list(struct 
  }
  
-+static __init int sysctl_init(void)
-+{
-+	sysctl_set_parent(NULL, root_table);
-+	return 0;
-+}
-+
-+core_initcall(sysctl_init);
-+
- /**
-  * register_sysctl_table - register a sysctl hierarchy
-  * @table: the top-level table structure
-diff -puN security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-3 security/selinux/hooks.c
---- a/security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-3
-+++ a/security/selinux/hooks.c
-@@ -821,6 +821,12 @@ static int selinux_proc_get_sid(struct p
- 		path = end;
- 		de = de->parent;
- 	}
-+	buflen -= 4;
-+	if (buflen < 0)
-+		goto out_free;
-+	end -= 4;
-+	memcpy(end, "/sys", 4);
-+	path = end;
- 	rc = security_genfs_sid("proc", path, tclass, sid);
- 	free_page((unsigned long)buffer);
- 	return rc;
+ #if defined(CONFIG_ARCNET_COM20020_PCI_MODULE) || \
+-    defined(CONFIG_ARCNET_COM20020_ISA_MODULE)
++    defined(CONFIG_ARCNET_COM20020_ISA_MODULE) || \
++    defined(CONFIG_ARCNET_COM20020_CS_MODULE)
+ EXPORT_SYMBOL(com20020_check);
+ EXPORT_SYMBOL(com20020_found);
+ #endif
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-x86_64-irq-simplfy-__assign_irq_vector.patch
-x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
-powerpc-rtas-msi-support.patch
-kthread-api-conversion-for-dvb_frontend-and-av7110.patch
-kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
-fix-i-oat-for-kexec.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-kexec-update-io-apic-dest-field-to-8-bit-for.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector.patch
-vt-refactor-console-sak-processing.patch
-sysctl_ms_jiffies-fix-oldlen-semantics.patch
-9p-use-kthread_stop-instead-of-sending-a-sigkill.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-kill_pid_info-kill-acquired_tasklist_lock.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-sn2-use-static-proc_fops.patch
-_proc_do_string-fix-short-reads.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
-ipc-save-the-ipc-namespace-while-reading-proc-files.patch
-kexec-fix-references-to-init-in-documentation-for-kexe.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
-sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
-sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
-sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
-sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
-sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
-sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
-sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
-sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-xfs-ctl_tables.patch
-sysctl-c99-convert-xfs-ctl_tables-fixes.patch
-sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-md-remove-unnecessary-insert_at_head-flag.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-dont-set-de-owner.patch
-sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
-sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
-sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
-sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-arch-frv-kernel-pmc.patch
-sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
-sysctl-sn-remove-sysctl-abi-breakage.patch
-sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
-sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
-sysctl-mips-au1000-remove-sys_sysctl-support.patch
-sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
-sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
-sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
-sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
-sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
-sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
-sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
-sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
-sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
-sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix.patch
-sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-register-the-ocfs2-sysctl-numbers.patch
-sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
-sysctl-move-utsname-sysctls-to-their-own-file.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-remove-support-for-ctl_any.patch
-sysctl-remove-support-for-directory-strategy-routines.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
-sysctl-reimplement-the-sysctl-proc-support.patch
-sysctl-reimplement-the-sysctl-proc-support-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-3.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+origin.patch
+git-alsa.patch
+update-readmedrm-bugzilla-7933.patch
+qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
+mtd-add-missing-kernel-doc-item.patch
+git-ocfs2.patch
+parisc-fix-module_param-iommu-permission.patch
+git-scsi-misc.patch
+ueagle-atmc-needs-schedh.patch
+math-emu-setcc-avoid-gcc-extension.patch
+typeof-__page_to_pfn-with-sparsemem=y.patch
+docbook-html-correction-of-recursive-a-tags-in-html-output.patch
+kernel-doc-allow-a-little-whitespace.patch
+sysrq-alphabetize-command-keys-doc.patch
+kernel-doc-allow-more-whitespace.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+docbook-add-edd-firmware-interfaces.patch
+kernel-doc-fix-some-odd-spacing-issues.patch
+com20020-build-fix.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
