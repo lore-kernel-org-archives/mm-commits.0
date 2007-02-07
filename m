@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oss-use-array_size-macro-when-appropriate-2.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:05:24 -0800
-Message-ID: <200702070005.l1705PH9001161@shell0.pdx.osdl.net>
+Subject: + drivers-mdc-use-array_size-macro-when-appropriate.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:05:47 -0800
+Message-ID: <200702070005.l1705mEU001172@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56093 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56109 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030228AbXBGAFr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:05:47 -0500
+	id S1030239AbXBGAGV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:06:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com
+Cc: darwish.07@gmail.com, neilb@suse.de
 
 
 The patch titled
-     OSS: Use ARRAY_SIZE macro when appropriate (2)
+     drivers/md.c: Use ARRAY_SIZE macro when appropriate
 has been added to the -mm tree.  Its filename is
-     oss-use-array_size-macro-when-appropriate-2.patch
+     drivers-mdc-use-array_size-macro-when-appropriate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,74 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: OSS: Use ARRAY_SIZE macro when appropriate (2)
+Subject: drivers/md.c: Use ARRAY_SIZE macro when appropriate
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
 Use ARRAY_SIZE macro already defined in kernel.h
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/au1550_ac97.c   |    4 ++--
- sound/oss/nec_vrc5477.c   |    4 ++--
- sound/oss/swarm_cs4297a.c |    3 ++-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/md/md.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN sound/oss/au1550_ac97.c~oss-use-array_size-macro-when-appropriate-2 sound/oss/au1550_ac97.c
---- a/sound/oss/au1550_ac97.c~oss-use-array_size-macro-when-appropriate-2
-+++ a/sound/oss/au1550_ac97.c
-@@ -1354,11 +1354,11 @@ au1550_ioctl(struct inode *inode, struct
- 		((file->f_mode & FMODE_READ) && s->dma_adc.mapped);
+diff -puN drivers/md/md.c~drivers-mdc-use-array_size-macro-when-appropriate drivers/md/md.c
+--- a/drivers/md/md.c~drivers-mdc-use-array_size-macro-when-appropriate
++++ a/drivers/md/md.c
+@@ -33,6 +33,7 @@
+ */
  
- #ifdef DEBUG
--	for (count=0; count<sizeof(ioctl_str)/sizeof(ioctl_str[0]); count++) {
-+	for (count = 0; count < ARRAY_SIZE(ioctl_str); count++) {
- 		if (ioctl_str[count].cmd == cmd)
- 			break;
- 	}
--	if (count < sizeof(ioctl_str) / sizeof(ioctl_str[0]))
-+	if (count < ARRAY_SIZE(ioctl_str))
- 		pr_debug("ioctl %s, arg=0x%lxn", ioctl_str[count].str, arg);
- 	else
- 		pr_debug("ioctl 0x%x unknown, arg=0x%lx\n", cmd, arg);
-diff -puN sound/oss/nec_vrc5477.c~oss-use-array_size-macro-when-appropriate-2 sound/oss/nec_vrc5477.c
---- a/sound/oss/nec_vrc5477.c~oss-use-array_size-macro-when-appropriate-2
-+++ a/sound/oss/nec_vrc5477.c
-@@ -1381,11 +1381,11 @@ static int vrc5477_ac97_ioctl(struct ino
- 	int val, ret;
- 
- #ifdef VRC5477_AC97_DEBUG
--	for (count=0; count<sizeof(ioctl_str)/sizeof(ioctl_str[0]); count++) {
-+	for (count = 0; count < ARRAY_SIZE(ioctl_str); count++) {
- 		if (ioctl_str[count].cmd == cmd)
- 			break;
- 	}
--	if (count < sizeof(ioctl_str)/sizeof(ioctl_str[0]))
-+	if (count < ARRAY_SIZE(ioctl_str))
- 		printk(KERN_INFO PFX "ioctl %s\n", ioctl_str[count].str);
- 	else
- 		printk(KERN_INFO PFX "ioctl unknown, 0x%x\n", cmd);
-diff -puN sound/oss/swarm_cs4297a.c~oss-use-array_size-macro-when-appropriate-2 sound/oss/swarm_cs4297a.c
---- a/sound/oss/swarm_cs4297a.c~oss-use-array_size-macro-when-appropriate-2
-+++ a/sound/oss/swarm_cs4297a.c
-@@ -77,6 +77,7 @@
- #include <linux/poll.h>
- #include <linux/smp_lock.h>
- #include <linux/mutex.h>
+ #include <linux/module.h>
 +#include <linux/kernel.h>
- 
- #include <asm/byteorder.h>
- #include <asm/dma.h>
-@@ -2673,7 +2674,7 @@ static int __init cs4297a_init(void)
- #if 0
-                 val = SOUND_MASK_LINE;
-                 mixer_ioctl(s, SOUND_MIXER_WRITE_RECSRC, (unsigned long) &val);
--                for (i = 0; i < sizeof(initvol) / sizeof(initvol[0]); i++) {
-+                for (i = 0; i < ARRAY_SIZE(initvol); i++) {
-                         val = initvol[i].vol;
-                         mixer_ioctl(s, initvol[i].mixch, (unsigned long) &val);
-                 }
+ #include <linux/kthread.h>
+ #include <linux/linkage.h>
+ #include <linux/raid/md.h>
+@@ -2635,8 +2636,7 @@ metadata_store(mddev_t *mddev, const cha
+ 	minor = simple_strtoul(buf, &e, 10);
+ 	if (e==buf || (*e && *e != '\n') )
+ 		return -EINVAL;
+-	if (major >= sizeof(super_types)/sizeof(super_types[0]) ||
+-	    super_types[major].name == NULL)
++	if (major >= ARRAY_SIZE(super_types) || super_types[major].name == NULL)
+ 		return -ENOENT;
+ 	mddev->major_version = major;
+ 	mddev->minor_version = minor;
+@@ -3973,7 +3973,7 @@ static int set_array_info(mddev_t * mdde
+ 	if (info->raid_disks == 0) {
+ 		/* just setting version number for superblock loading */
+ 		if (info->major_version < 0 ||
+-		    info->major_version >= sizeof(super_types)/sizeof(super_types[0]) ||
++		    info->major_version >= ARRAY_SIZE(super_types) ||
+ 		    super_types[info->major_version].name == NULL) {
+ 			/* maybe try to auto-load a module? */
+ 			printk(KERN_INFO 
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
