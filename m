@@ -1,143 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - keys-fix-key-serial-number-collision-handling.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:53:30 -0800
-Message-ID: <200702071953.l17JrUiU025324@shell0.pdx.osdl.net>
+Subject: - fix-unaligned-exception-in-drivers-net-wireless-orinococ.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:53:24 -0800
+Message-ID: <200702071953.l17JrOH8025318@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33827 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34012 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422906AbXBGTzA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:55:00 -0500
+	id S1161430AbXBGUAc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 15:00:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, stable@kernel.org, support@netsville.com, mm-commits@vger.kernel.org
+To: Michael.Hennerich@analog.com, jeff@garzik.org, jt@hpl.hp.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     keys: fix key serial number collision handling
+     fix unaligned exception in /drivers/net/wireless/orinoco.c
 has been removed from the -mm tree.  Its filename was
-     keys-fix-key-serial-number-collision-handling.patch
+     fix-unaligned-exception-in-drivers-net-wireless-orinococ.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: keys: fix key serial number collision handling
-From: David Howells <dhowells@redhat.com>
+Subject: fix unaligned exception in /drivers/net/wireless/orinoco.c
+From: "Hennerich, Michael" <Michael.Hennerich@analog.com>
 
-Fix the key serial number collision avoidance code in key_alloc_serial().
+Prevent an unaligned exception to occur.  (GCC 4.1) tmp is defined as char
+pointer while it is later accessed as short.
 
-This didn't use to be so much of a problem as the key serial numbers were
-allocated from a simple incremental counter, and it would have to go
-through two billion keys before it could possibly encounter a collision. 
-However, now that random numbers are used instead, collisions are much more
-likely.
-
-This is fixed by finding a hole in the rbtree where the next unused serial
-number ought to be and using that by going almost back to the top of the
-insertion routine and redoing the insertion with the new serial number
-rather than trying to be clever and attempting to work out the insertion
-point pointer directly.
-
-This fixes kernel BZ #7727.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: <stable@kernel.org>
-Cc: <support@netsville.com>
+Cc: Jean Tourrilhes <jt@hpl.hp.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/key.c |   33 ++++++++++++++-------------------
- 1 files changed, 14 insertions(+), 19 deletions(-)
+ drivers/net/wireless/orinoco.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/keys/key.c~keys-fix-key-serial-number-collision-handling security/keys/key.c
---- a/security/keys/key.c~keys-fix-key-serial-number-collision-handling
-+++ a/security/keys/key.c
-@@ -188,6 +188,7 @@ static inline void key_alloc_serial(stru
+diff -puN drivers/net/wireless/orinoco.c~fix-unaligned-exception-in-drivers-net-wireless-orinococ drivers/net/wireless/orinoco.c
+--- a/drivers/net/wireless/orinoco.c~fix-unaligned-exception-in-drivers-net-wireless-orinococ
++++ a/drivers/net/wireless/orinoco.c
+@@ -2059,7 +2059,7 @@ static int determine_firmware(struct net
+ 	int err;
+ 	struct comp_id nic_id, sta_id;
+ 	unsigned int firmver;
+-	char tmp[SYMBOL_MAX_VER_LEN+1];
++	char tmp[SYMBOL_MAX_VER_LEN+1] __attribute__((aligned(2)));
  
- 	spin_lock(&key_serial_lock);
- 
-+attempt_insertion:
- 	parent = NULL;
- 	p = &key_serial_tree.rb_node;
- 
-@@ -202,39 +203,33 @@ static inline void key_alloc_serial(stru
- 		else
- 			goto serial_exists;
- 	}
--	goto insert_here;
-+
-+	/* we've found a suitable hole - arrange for this key to occupy it */
-+	rb_link_node(&key->serial_node, parent, p);
-+	rb_insert_color(&key->serial_node, &key_serial_tree);
-+
-+	spin_unlock(&key_serial_lock);
-+	return;
- 
- 	/* we found a key with the proposed serial number - walk the tree from
- 	 * that point looking for the next unused serial number */
- serial_exists:
- 	for (;;) {
- 		key->serial++;
--		if (key->serial < 2)
--			key->serial = 2;
--
--		if (!rb_parent(parent))
--			p = &key_serial_tree.rb_node;
--		else if (rb_parent(parent)->rb_left == parent)
--			p = &(rb_parent(parent)->rb_left);
--		else
--			p = &(rb_parent(parent)->rb_right);
-+		if (key->serial < 3) {
-+			key->serial = 3;
-+			goto attempt_insertion;
-+		}
- 
- 		parent = rb_next(parent);
- 		if (!parent)
--			break;
-+			goto attempt_insertion;
- 
- 		xkey = rb_entry(parent, struct key, serial_node);
- 		if (key->serial < xkey->serial)
--			goto insert_here;
-+			goto attempt_insertion;
- 	}
- 
--	/* we've found a suitable hole - arrange for this key to occupy it */
--insert_here:
--	rb_link_node(&key->serial_node, parent, p);
--	rb_insert_color(&key->serial_node, &key_serial_tree);
--
--	spin_unlock(&key_serial_lock);
--
- } /* end key_alloc_serial() */
- 
- /*****************************************************************************/
+ 	/* Get the hardware version */
+ 	err = HERMES_READ_RECORD(hw, USER_BAP, HERMES_RID_NICID, &nic_id);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from Michael.Hennerich@analog.com are
 
-origin.patch
-git-alsa.patch
-infiniband-work-around-gcc-bug-on-sparc64.patch
-git-cryptodev.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-ecryptfs-public-key-transport-mechanism.patch
-ecryptfs-public-key-packet-management.patch
-dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-frv.patch
-reiser4-get_sb_dev-fix.patch
-sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
-sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
-sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-arch-frv-kernel-pmc.patch
-sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
-mutex-subsystem-synchro-test-module.patch
+git-netdev-all.patch
