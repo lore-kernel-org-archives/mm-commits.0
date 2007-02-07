@@ -1,80 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: - sis-warning-fixes-fix.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 13:47:56 -0800
-Message-ID: <200702072147.l17Llull028213@shell0.pdx.osdl.net>
+Subject: - arch-i386-kernel-ptracec-trivial-whitespace-cleanup.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 13:59:35 -0800
+Message-ID: <200702072159.l17LxZKX028486@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39581 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40054 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161440AbXBGVsO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 16:48:14 -0500
+	id S1161447AbXBGV75 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 16:59:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, ak@suse.de, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sis-warning-fixes-fix
+     arch/i386/kernel/ptrace.c: trivial whitespace cleanup
 has been removed from the -mm tree.  Its filename was
-     sis-warning-fixes-fix.patch
+     arch-i386-kernel-ptracec-trivial-whitespace-cleanup.patch
 
-This patch was dropped because it was folded into sis-warning-fixes.patch
+This patch was dropped because of rejects against the utrace tree
 
 ------------------------------------------------------
-Subject: sis-warning-fixes-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/i386/kernel/ptrace.c: trivial whitespace cleanup
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Cc: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+This patch (as838) makes some trivial whitespace fixes to the i386 ptrace.c
+file.  Along with some stylistic issues, an entire section of code was
+indented by two extra spaces -- I blame it on stupid automatic editor
+indentation!
+
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sis.c |    1 -
- drivers/ata/sata_sis.c |    1 -
- 2 files changed, 2 deletions(-)
+ arch/i386/kernel/ptrace.c |  110 ++++++++++++++++++------------------
+ 1 file changed, 55 insertions(+), 55 deletions(-)
 
-diff -puN drivers/ata/pata_sis.c~sis-warning-fixes-fix drivers/ata/pata_sis.c
---- a/drivers/ata/pata_sis.c~sis-warning-fixes-fix
-+++ a/drivers/ata/pata_sis.c
-@@ -34,7 +34,6 @@
- #include <linux/ata.h>
- #include "sis.h"
+diff -puN arch/i386/kernel/ptrace.c~arch-i386-kernel-ptracec-trivial-whitespace-cleanup arch/i386/kernel/ptrace.c
+--- a/arch/i386/kernel/ptrace.c~arch-i386-kernel-ptracec-trivial-whitespace-cleanup
++++ a/arch/i386/kernel/ptrace.c
+@@ -417,61 +417,61 @@ long arch_ptrace(struct task_struct *chi
+ 		   have to be selective about what portions we allow someone
+ 		   to modify. */
  
--#undef DRV_NAME		/* already defined in libata.h, for libata-core */
- #define DRV_NAME	"pata_sis"
- #define DRV_VERSION	"0.4.5"
+-		  ret = -EIO;
+-		  if(addr >= (long) &dummy->u_debugreg[0] &&
+-		     addr <= (long) &dummy->u_debugreg[7]){
+-
+-			  if(addr == (long) &dummy->u_debugreg[4]) break;
+-			  if(addr == (long) &dummy->u_debugreg[5]) break;
+-			  if(addr < (long) &dummy->u_debugreg[4] &&
+-			     ((unsigned long) data) >= TASK_SIZE-3) break;
+-			  
+-			  /* Sanity-check data. Take one half-byte at once with
+-			   * check = (val >> (16 + 4*i)) & 0xf. It contains the
+-			   * R/Wi and LENi bits; bits 0 and 1 are R/Wi, and bits
+-			   * 2 and 3 are LENi. Given a list of invalid values,
+-			   * we do mask |= 1 << invalid_value, so that
+-			   * (mask >> check) & 1 is a correct test for invalid
+-			   * values.
+-			   *
+-			   * R/Wi contains the type of the breakpoint /
+-			   * watchpoint, LENi contains the length of the watched
+-			   * data in the watchpoint case.
+-			   *
+-			   * The invalid values are:
+-			   * - LENi == 0x10 (undefined), so mask |= 0x0f00.
+-			   * - R/Wi == 0x10 (break on I/O reads or writes), so
+-			   *   mask |= 0x4444.
+-			   * - R/Wi == 0x00 && LENi != 0x00, so we have mask |=
+-			   *   0x1110.
+-			   *
+-			   * Finally, mask = 0x0f00 | 0x4444 | 0x1110 == 0x5f54.
+-			   *
+-			   * See the Intel Manual "System Programming Guide",
+-			   * 15.2.4
+-			   *
+-			   * Note that LENi == 0x10 is defined on x86_64 in long
+-			   * mode (i.e. even for 32-bit userspace software, but
+-			   * 64-bit kernel), so the x86_64 mask value is 0x5454.
+-			   * See the AMD manual no. 24593 (AMD64 System
+-			   * Programming)*/
+-
+-			  if(addr == (long) &dummy->u_debugreg[7]) {
+-				  data &= ~DR_CONTROL_RESERVED;
+-				  for(i=0; i<4; i++)
+-					  if ((0x5f54 >> ((data >> (16 + 4*i)) & 0xf)) & 1)
+-						  goto out_tsk;
+-				  if (data)
+-					  set_tsk_thread_flag(child, TIF_DEBUG);
+-				  else
+-					  clear_tsk_thread_flag(child, TIF_DEBUG);
+-			  }
+-			  addr -= (long) &dummy->u_debugreg;
+-			  addr = addr >> 2;
+-			  child->thread.debugreg[addr] = data;
+-			  ret = 0;
+-		  }
+-		  break;
++		ret = -EIO;
++		if (addr >= (long) &dummy->u_debugreg[0] &&
++		    addr <= (long) &dummy->u_debugreg[7]) {
++
++			if (addr == (long) &dummy->u_debugreg[4]) break;
++			if (addr == (long) &dummy->u_debugreg[5]) break;
++			if (addr < (long) &dummy->u_debugreg[4] &&
++			    ((unsigned long) data) >= TASK_SIZE-3) break;
++
++			/* Sanity-check data. Take one half-byte at once with
++			 * check = (val >> (16 + 4*i)) & 0xf. It contains the
++			 * R/Wi and LENi bits; bits 0 and 1 are R/Wi, and bits
++			 * 2 and 3 are LENi. Given a list of invalid values,
++			 * we do mask |= 1 << invalid_value, so that
++			 * (mask >> check) & 1 is a correct test for invalid
++			 * values.
++			 *
++			 * R/Wi contains the type of the breakpoint /
++			 * watchpoint, LENi contains the length of the watched
++			 * data in the watchpoint case.
++			 *
++			 * The invalid values are:
++			 * - LENi == 0x10 (undefined), so mask |= 0x0f00.
++			 * - R/Wi == 0x10 (break on I/O reads or writes), so
++			 *   mask |= 0x4444.
++			 * - R/Wi == 0x00 && LENi != 0x00, so we have mask |=
++			 *   0x1110.
++			 *
++			 * Finally, mask = 0x0f00 | 0x4444 | 0x1110 == 0x5f54.
++			 *
++			 * See the Intel Manual "System Programming Guide",
++			 * 15.2.4
++			 *
++			 * Note that LENi == 0x10 is defined on x86_64 in long
++			 * mode (i.e. even for 32-bit userspace software, but
++			 * 64-bit kernel), so the x86_64 mask value is 0x5454.
++			 * See the AMD manual no. 24593 (AMD64 System
++			 * Programming) */
++
++			if (addr == (long) &dummy->u_debugreg[7]) {
++				data &= ~DR_CONTROL_RESERVED;
++				for (i = 0; i < 4; i++)
++					if ((0x5f54 >> ((data >> (16 + 4*i)) & 0xf)) & 1)
++						goto out_tsk;
++				if (data)
++					set_tsk_thread_flag(child, TIF_DEBUG);
++				else
++					clear_tsk_thread_flag(child, TIF_DEBUG);
++			}
++			addr -= (long) &dummy->u_debugreg;
++			addr = addr >> 2;
++			child->thread.debugreg[addr] = data;
++			ret = 0;
++		}
++		break;
  
-diff -puN drivers/ata/sata_sis.c~sis-warning-fixes-fix drivers/ata/sata_sis.c
---- a/drivers/ata/sata_sis.c~sis-warning-fixes-fix
-+++ a/drivers/ata/sata_sis.c
-@@ -42,7 +42,6 @@
- #include <linux/libata.h>
- #include "sis.h"
- 
--#undef DRV_NAME		/* already defined in libata.h, for libata-core */
- #define DRV_NAME	"sata_sis"
- #define DRV_VERSION	"0.7"
- 
+ 	case PTRACE_SYSEMU: /* continue and stop at next syscall, which will not be executed */
+ 	case PTRACE_SYSCALL:	/* continue and stop at next (return from) syscall */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-origin.patch
-fix-warning-in-device_add_attrs.patch
-git-dvb.patch
-kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
-git-libata-all.patch
-sis-warning-fixes.patch
-sis-warning-fixes-fix.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-git-sh.patch
-git-block.patch
-git-cryptodev-fixup.patch
-mm-vm_insert_pfn-tidy.patch
-swiotlb-uninlinings.patch
-workqueue-dont-save-interrupts-in-run_workqueue-update.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
+scsi-handle-bad-inquiry-responses.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+usb-p990i-is-an-unusual-device.patch
+usb-fix-concurrent-buffer-access-in-the-hub-driver.patch
+arch-i386-kernel-ptracec-trivial-whitespace-cleanup.patch
