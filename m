@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:39:27 -0800
-Message-ID: <200702070039.l170dRK3002072@shell0.pdx.osdl.net>
+Subject: + sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:41:04 -0800
+Message-ID: <200702070041.l170f46f002116@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56846 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56921 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933113AbXBGAjd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:39:33 -0500
+	id S932952AbXBGAlJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:41:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com, jmorris@namei.org, sds@tycho.nsa.gov
 
 
 The patch titled
-     sysctl: add a parent entry to ctl_table and set the parent entry
+     sysctl: restore the selinux path based label lookup for sysctls
 has been added to the -mm tree.  Its filename is
-     sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
+     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,17 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: add a parent entry to ctl_table and set the parent entry
+Subject: sysctl: restore the selinux path based label lookup for sysctls
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Add a parent entry into the ctl_table so you can walk the list of parents and
-find the entire path to a ctl_table entry.
+This time instead of generating the generating the paths from proc_dir_entries
+generate the labels from the names in the sysctl ctl_tables themselves.  This
+removes an unnecessary layer of indirection, allows this to work even when
+procfs support is not compiled into the kernel, and especially allows it to
+work now that ctl_tables no longer have a proc_dir_entry field.
+
+I continue passing "proc" into genfs sid although that is complete nonsense to
+allow existing selinux policies to work without modification.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Stephen Smalley <sds@tycho.nsa.gov>
@@ -37,48 +43,69 @@ Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    1 +
- kernel/sysctl.c        |   10 ++++++++++
- 2 files changed, 11 insertions(+)
+ security/selinux/hooks.c |   43 +++++++++++++++++++++++++++++++++++--
+ 1 files changed, 41 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/sysctl.h~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry
-+++ a/include/linux/sysctl.h
-@@ -1023,6 +1023,7 @@ struct ctl_table 
- 	int maxlen;
- 	mode_t mode;
- 	ctl_table *child;
-+	ctl_table *parent;		/* Automatically set */
- 	proc_handler *proc_handler;	/* Callback for text formatting */
- 	ctl_handler *strategy;		/* Callback function for all r/w */
- 	struct proc_dir_entry *de;	/* /proc control block */
-diff -puN kernel/sysctl.c~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry
-+++ a/kernel/sysctl.c
-@@ -1278,6 +1278,15 @@ int do_sysctl_strategy (ctl_table *table
+diff -puN security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2 security/selinux/hooks.c
+--- a/security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2
++++ a/security/selinux/hooks.c
+@@ -1423,6 +1423,41 @@ static int selinux_capable(struct task_s
+ 	return task_has_capability(tsk,cap);
  }
- #endif /* CONFIG_SYSCTL_SYSCALL */
  
-+static void sysctl_set_parent(struct ctl_table *parent, struct ctl_table *table)
++static int selinux_sysctl_get_sid(ctl_table *table, u16 tclass, u32 *sid)
 +{
-+	for (; table->ctl_name || table->procname; table++) {
-+		table->parent = parent;
-+		if (table->child)
-+			sysctl_set_parent(table, table->child);
++	int buflen, rc;
++	char *buffer, *path, *end;
++
++	rc = -ENOMEM;
++	buffer = (char*)__get_free_page(GFP_KERNEL);
++	if (!buffer)
++		goto out;
++
++	buflen = PAGE_SIZE;
++	end = buffer+buflen;
++	*--end = '\0';
++	buflen--;
++	path = end-1;
++	*path = '/';
++	while (table) {
++		const char *name = table->procname;
++		size_t namelen = strlen(name);
++		buflen -= namelen + 1;
++		if (buflen < 0)
++			goto out_free;
++		end -= namelen;
++		memcpy(end, name, namelen);
++		*--end = '/';
++		path = end;
++		table = table->parent;
 +	}
++	rc = security_genfs_sid("proc", path, tclass, sid);
++out_free:
++	free_page((unsigned long)buffer);
++out:
++	return rc;
 +}
 +
- /**
-  * register_sysctl_table - register a sysctl hierarchy
-  * @table: the top-level table structure
-@@ -1356,6 +1365,7 @@ struct ctl_table_header *register_sysctl
- 	INIT_LIST_HEAD(&tmp->ctl_entry);
- 	tmp->used = 0;
- 	tmp->unregistering = NULL;
-+	sysctl_set_parent(NULL, table);
- 	spin_lock(&sysctl_lock);
- 	list_add_tail(&tmp->ctl_entry, &root_table_header.ctl_entry);
- 	spin_unlock(&sysctl_lock);
+ static int selinux_sysctl(ctl_table *table, int op)
+ {
+ 	int error = 0;
+@@ -1437,8 +1472,12 @@ static int selinux_sysctl(ctl_table *tab
+ 
+ 	tsec = current->security;
+ 
+-	/* Use the well-defined sysctl SID. */
+-	tsid = SECINITSID_SYSCTL;
++	rc = selinux_sysctl_get_sid(table, (op == 0001) ?
++				    SECCLASS_DIR : SECCLASS_FILE, &tsid);
++	if (rc) {
++		/* Default to the well-defined sysctl SID. */
++		tsid = SECINITSID_SYSCTL;
++	}
+ 
+ 	/* The op values are "defined" in sysctl.c, thereby creating
+ 	 * a bad coupling between this module and sysctl.c */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -200,6 +227,6 @@ sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
 sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
-sysctl-restore-the-selinux-path-based-label-lookup-for-sysctls.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
