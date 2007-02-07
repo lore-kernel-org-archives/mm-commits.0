@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch added to -mm tree
-Date: Wed, 07 Feb 2007 15:28:35 -0800
-Message-ID: <200702072328.l17NSZGb031064@shell0.pdx.osdl.net>
+Subject: + drivers-isdn-gigaset-reduce-mutex-scope.patch added to -mm tree
+Date: Wed, 07 Feb 2007 15:32:40 -0800
+Message-ID: <200702072332.l17NWe3g031200@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45227 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45361 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161483AbXBGX2r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 18:28:47 -0500
+	id S1161492AbXBGXcn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 18:32:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru
+Cc: tilman@imap.cc
 
 
 The patch titled
-     workqueue-dont-save-interrupts-in-run_workqueue-update 2
+     drivers/isdn/gigaset: reduce mutex scope
 has been added to the -mm tree.  Its filename is
-     workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
+     drivers-isdn-gigaset-reduce-mutex-scope.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,104 +25,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: workqueue-dont-save-interrupts-in-run_workqueue-update 2
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: drivers/isdn/gigaset: reduce mutex scope
+From: Tilman Schmidt <tilman@imap.cc>
 
-Add might_sleep() checks to flush_xxx() functions.
+Do not lock the cardstate structure mutex earlier than necessary.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ drivers/isdn/gigaset/common.c    |    4 +---
+ drivers/isdn/gigaset/interface.c |    3 +++
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-dont-save-interrupts-in-run_workqueue-update-2 kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-dont-save-interrupts-in-run_workqueue-update-2
-+++ a/kernel/workqueue.c
-@@ -393,6 +393,8 @@ static void flush_cpu_workqueue(struct c
-  */
- void fastcall flush_workqueue(struct workqueue_struct *wq)
- {
-+	might_sleep();
-+
- 	if (is_single_threaded(wq))
- 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
- 	else {
-@@ -439,6 +441,8 @@ void flush_work(struct workqueue_struct 
- {
- 	struct cpu_workqueue_struct *cwq;
+diff -puN drivers/isdn/gigaset/common.c~drivers-isdn-gigaset-reduce-mutex-scope drivers/isdn/gigaset/common.c
+--- a/drivers/isdn/gigaset/common.c~drivers-isdn-gigaset-reduce-mutex-scope
++++ a/drivers/isdn/gigaset/common.c
+@@ -640,7 +640,6 @@ struct cardstate *gigaset_initcs(struct 
+ 		return NULL;
+ 	}
+ 	mutex_init(&cs->mutex);
+-	mutex_lock(&cs->mutex);
  
-+	might_sleep();
+ 	gig_dbg(DEBUG_INIT, "allocating bcs[0..%d]", channels - 1);
+ 	cs->bcs = kmalloc(channels * sizeof(struct bc_state), GFP_KERNEL);
+@@ -738,6 +737,7 @@ struct cardstate *gigaset_initcs(struct 
+ 
+ 	++cs->cs_init;
+ 
++	/* set up character device */
+ 	gigaset_if_init(cs);
+ 
+ 	/* set up device sysfs */
+@@ -753,11 +753,9 @@ struct cardstate *gigaset_initcs(struct 
+ 	add_timer(&cs->timer);
+ 
+ 	gig_dbg(DEBUG_INIT, "cs initialized");
+-	mutex_unlock(&cs->mutex);
+ 	return cs;
+ 
+ error:
+-	mutex_unlock(&cs->mutex);
+ 	gig_dbg(DEBUG_INIT, "failed");
+ 	gigaset_freecs(cs);
+ 	return NULL;
+diff -puN drivers/isdn/gigaset/interface.c~drivers-isdn-gigaset-reduce-mutex-scope drivers/isdn/gigaset/interface.c
+--- a/drivers/isdn/gigaset/interface.c~drivers-isdn-gigaset-reduce-mutex-scope
++++ a/drivers/isdn/gigaset/interface.c
+@@ -615,6 +615,8 @@ void gigaset_if_init(struct cardstate *c
+ 		return;
+ 
+ 	tasklet_init(&cs->if_wake_tasklet, &if_wake, (unsigned long) cs);
 +
- 	cwq = get_wq_data(work);
- 	/* Was it ever queued ? */
- 	if (!cwq)
++	mutex_lock(&cs->mutex);
+ 	cs->tty_dev = tty_register_device(drv->tty, cs->minor_index, NULL);
+ 
+ 	if (!IS_ERR(cs->tty_dev))
+@@ -623,6 +625,7 @@ void gigaset_if_init(struct cardstate *c
+ 		warn("could not register device to the tty subsystem");
+ 		cs->tty_dev = NULL;
+ 	}
++	mutex_unlock(&cs->mutex);
+ }
+ 
+ void gigaset_if_free(struct cardstate *cs)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from tilman@imap.cc are
 
-git-block.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-vt-refactor-console-sak-processing.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-kill_pid_info-kill-acquired_tasklist_lock.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-_proc_do_string-fix-short-reads.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-posix-timers-rcu-optimization-for-clock_gettime.patch
-posix-timers-rcu-optimization-for-clock_gettime-fix.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-rework-compat_sys_io_submit.patch
-fix-aioh-includes.patch
-fix-access_ok-checks.patch
-make-good_sigevent-non-static.patch
-make-good_sigevent-non-static-fix.patch
-make-__sigqueue_free-and.patch
-aio-completion-signal-notification.patch
-aio-completion-signal-notification-fix.patch
-aio-completion-signal-notification-fixes-and-cleanups.patch
-aio-completion-signal-notification-small-cleanup.patch
-add-listio-syscall-support.patch
-hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch
+char-tty_wakeup-cleanup.patch
+consolidate-line-discipline-number-definitions-v2.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+fix-sparse-warnings-from-asmnet-checksumh.patch
+drivers-isdn-gigaset-reduce-mutex-scope.patch
+drivers-isdn-gigaset-reduce-kernel-message-spam.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix-sparse-fix.patch
