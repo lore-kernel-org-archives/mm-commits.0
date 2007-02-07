@@ -1,41 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + add-vm_insert_pfn.patch added to -mm tree
-Date: Wed, 07 Feb 2007 14:21:24 -0800
-Message-ID: <200702072221.l17MLO5E029056@shell0.pdx.osdl.net>
+Subject: - mm-vm_insert_pfn.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 14:32:21 -0800
+Message-ID: <200702072232.l17MWL08029383@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40863 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41700 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030663AbXBGWVm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 17:21:42 -0500
+	id S1422918AbXBGWc3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 17:32:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, arnd.bergmann@de.ibm.com, benh@kernel.crashing.org, hch@lst.de, hugh@veritas.com
+To: npiggin@suse.de, benh@kernel.crashing.org, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add vm_insert_pfn()
-has been added to the -mm tree.  Its filename is
-     add-vm_insert_pfn.patch
+     mm: vm_insert_pfn
+has been removed from the -mm tree.  Its filename was
+     mm-vm_insert_pfn.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: add vm_insert_pfn()
+Subject: mm: vm_insert_pfn
 From: Nick Piggin <npiggin@suse.de>
 
-Add a vm_insert_pfn helper, so that ->fault handlers can have nopfn
-functionality by installing their own pte and returning NULL.
+Add a vm_insert_pfn helper, so that fault handlers can have nopfn
+functionality by installing their own pte and returning NOPAGE_REFAULT.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Arnd Bergmann <arnd.bergmann@de.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -43,10 +37,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/memory.c        |   44 +++++++++++++++++++++++++++++++++++++++++++
  2 files changed, 45 insertions(+)
 
-diff -puN include/linux/mm.h~add-vm_insert_pfn include/linux/mm.h
---- a/include/linux/mm.h~add-vm_insert_pfn
+diff -puN include/linux/mm.h~mm-vm_insert_pfn include/linux/mm.h
+--- a/include/linux/mm.h~mm-vm_insert_pfn
 +++ a/include/linux/mm.h
-@@ -1124,6 +1124,7 @@ unsigned long vmalloc_to_pfn(void *addr)
+@@ -1121,6 +1121,7 @@ unsigned long vmalloc_to_pfn(void *addr)
  int remap_pfn_range(struct vm_area_struct *, unsigned long addr,
  			unsigned long pfn, unsigned long size, pgprot_t);
  int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
@@ -54,8 +48,8 @@ diff -puN include/linux/mm.h~add-vm_insert_pfn include/linux/mm.h
  
  struct page *follow_page(struct vm_area_struct *, unsigned long address,
  			unsigned int foll_flags);
-diff -puN mm/memory.c~add-vm_insert_pfn mm/memory.c
---- a/mm/memory.c~add-vm_insert_pfn
+diff -puN mm/memory.c~mm-vm_insert_pfn mm/memory.c
+--- a/mm/memory.c~mm-vm_insert_pfn
 +++ a/mm/memory.c
 @@ -1277,6 +1277,50 @@ int vm_insert_page(struct vm_area_struct
  }
@@ -67,11 +61,11 @@ diff -puN mm/memory.c~add-vm_insert_pfn mm/memory.c
 + * @addr: target user address of this page
 + * @pfn: source kernel pfn
 + *
-+ * Similar to vm_inert_page, this allows drivers to insert individual pages
++ * Similar to vm_insert_page, this allows drivers to insert individual pages
 + * they've allocated into a user vma. Same comments apply.
 + *
-+ * This function should only be called from a vm_ops->fault handler, and
-+ * in that case the handler should return NULL.
++ * This function should only be called from a nopage handler, and
++ * in that case the handler should return NOPAGE_REFAULT.
 + */
 +int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr, unsigned long pfn)
 +{
