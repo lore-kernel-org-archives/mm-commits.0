@@ -1,77 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch added to -mm tree
-Date: Wed, 07 Feb 2007 09:14:42 -0800
-Message-ID: <200702071714.l17HEgZ4020358@shell0.pdx.osdl.net>
+Subject: - intel-agp-use-array_size-macro-when-appropriate.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:51:08 -0800
+Message-ID: <200702071951.l17Jp8Jq025132@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55947 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33457 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965689AbXBGRPi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 12:15:38 -0500
+	id S1422695AbXBGTvS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:51:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, mchehab@infradead.org, o.endriss@gmx.de
+To: darwish.07@gmail.com, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kthread-api-conversion-for-dvb_frontend-and-av7110-fix
-has been added to the -mm tree.  Its filename is
-     kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
+     intel-agp: Use ARRAY_SIZE macro when appropriate
+has been removed from the -mm tree.  Its filename was
+     intel-agp-use-array_size-macro-when-appropriate.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kthread-api-conversion-for-dvb_frontend-and-av7110-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: intel-agp: Use ARRAY_SIZE macro when appropriate
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-avoid double-up(), pointed out by Oliver.
+Use ARRAY_SIZE macro already defined in kernel.h
 
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Oliver Endriss <o.endriss@gmx.de>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-core/dvb_frontend.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/agp/intel-agp.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/dvb-core/dvb_frontend.c~kthread-api-conversion-for-dvb_frontend-and-av7110-fix drivers/media/dvb/dvb-core/dvb_frontend.c
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c~kthread-api-conversion-for-dvb_frontend-and-av7110-fix
-+++ a/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -525,7 +525,7 @@ static int dvb_frontend_thread(void *dat
+diff -puN drivers/char/agp/intel-agp.c~intel-agp-use-array_size-macro-when-appropriate drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~intel-agp-use-array_size-macro-when-appropriate
++++ a/drivers/char/agp/intel-agp.c
+@@ -5,6 +5,7 @@
+ #include <linux/module.h>
+ #include <linux/pci.h>
+ #include <linux/init.h>
++#include <linux/kernel.h>
+ #include <linux/pagemap.h>
+ #include <linux/agp_backend.h>
+ #include "agp.h"
+@@ -845,7 +846,7 @@ static int intel_i915_remove_entries(str
+  */
+ static int intel_i9xx_fetch_size(void)
+ {
+-	int num_sizes = sizeof(intel_i830_sizes) / sizeof(*intel_i830_sizes);
++	int num_sizes = ARRAY_SIZE(intel_i830_sizes);
+ 	int aper_size; /* size in megabytes */
+ 	int i;
  
- 	while (1) {
- 		up(&fepriv->sem);	    /* is locked when we enter the thread... */
--
-+restart:
- 		timeout = wait_event_interruptible_timeout(fepriv->wait_queue,
- 			dvb_frontend_should_wakeup(fe) || kthread_should_stop(),
- 			fepriv->delay);
-@@ -536,7 +536,7 @@ static int dvb_frontend_thread(void *dat
- 		}
- 
- 		if (try_to_freeze())
--			continue;
-+			goto restart;
- 
- 		if (down_interruptible(&fepriv->sem))
- 			break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
-kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
-git-libata-all-forward-declare-struct-device.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-mm-vm_insert_pfn-tidy.patch
-workqueue-dont-save-interrupts-in-run_workqueue-update.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
+origin.patch
+toshiba-acpi-use-array_size-macro-when-appropriate.patch
+git-agpgart.patch
+arch-arm-use-array_size-macro-when-appropriate.patch
+arch-avr32-use-array_size-macro-when-appropriate.patch
+arch-powerpc-user-array_size-macro-when-appropriate.patch
+arch-ppc-user-array_size-macro-when-appropriate.patch
+drm-use-array_size-macro-when-appropriate.patch
+git-dvb.patch
+git-netdev-all.patch
+atm-use-array_size-macro-when-appropriate.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+s390-drivers-use-array_size-macro-when-appropriate.patch
+dac960-kmalloc-kzalloc-casting-cleanups.patch
+arch-arm26-use-array_size-macro-when-appropriate.patch
+arch-m68knommu-user-array_size-macro-when-appropriate.patch
+arch-m68k-user-array_size-macro-when-appropriate.patch
+arch-cris-user-array_size-macro-when-appropriate.patch
+arch-v850-user-array_size-macro-when-appropriate.patch
+w1-use-array_size-macro-when-appropriate.patch
+oss-use-array_size-macro-when-appropriate.patch
+oss-use-array_size-macro-when-appropriate-2.patch
+reiserfs-use-array_size-macro-when-appropriate.patch
+isdn-capi-use-array_size-when-appropriate.patch
+isdn-eicon-use-array_size-macro-when-appropriate.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
