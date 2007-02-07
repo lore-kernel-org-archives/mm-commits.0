@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-elf-locking-commentary.patch added to -mm tree
-Date: Wed, 07 Feb 2007 15:20:53 -0800
-Message-ID: <200702072320.l17NKr9T030938@shell0.pdx.osdl.net>
+Subject: + uml-irq-handler-tidying.patch added to -mm tree
+Date: Wed, 07 Feb 2007 15:20:45 -0800
+Message-ID: <200702072320.l17NKjB1030926@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44860 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44844 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422776AbXBGXUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 18:20:55 -0500
+	id S1161477AbXBGXUu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 18:20:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: ELF locking commentary
+     uml: IRQ handler tidying
 has been added to the -mm tree.  Its filename is
-     uml-elf-locking-commentary.patch
+     uml-irq-handler-tidying.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: ELF locking commentary
+Subject: uml: IRQ handler tidying
 From: Jeff Dike <jdike@addtoit.com>
 
-Comment the lack of locking of the elf data extracted from the ELF headers
-passed to UML.
+Tidying the irq code -
+	make a variable static
+	activate_fd can call kmalloc directly since it's now kernel code
+	added a no-locking comment
+	fixed a style violation
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/elf_aux.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ arch/um/kernel/irq.c   |    7 +++----
+ arch/um/os-Linux/irq.c |    6 +++++-
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/os-Linux/elf_aux.c~uml-elf-locking-commentary arch/um/os-Linux/elf_aux.c
---- a/arch/um/os-Linux/elf_aux.c~uml-elf-locking-commentary
-+++ a/arch/um/os-Linux/elf_aux.c
-@@ -21,12 +21,11 @@ typedef Elf32_auxv_t elf_auxv_t;
- typedef Elf64_auxv_t elf_auxv_t;
- #endif
+diff -puN arch/um/kernel/irq.c~uml-irq-handler-tidying arch/um/kernel/irq.c
+--- a/arch/um/kernel/irq.c~uml-irq-handler-tidying
++++ a/arch/um/kernel/irq.c
+@@ -79,7 +79,7 @@ skip:
+ 	return 0;
+ }
  
-+/* These are initialized very early in boot and never changed */
- char * elf_aux_platform;
- long elf_aux_hwcap;
--
- unsigned long vsyscall_ehdr;
- unsigned long vsyscall_end;
--
- unsigned long __kernel_vsyscall;
+-struct irq_fd *active_fds = NULL;
++static struct irq_fd *active_fds = NULL;
+ static struct irq_fd **last_irq_ptr = &active_fds;
  
- __init void scan_elf_aux( char **envp)
+ extern void free_irqs(void);
+@@ -124,8 +124,8 @@ int activate_fd(int irq, int fd, int typ
+ 	if (err < 0)
+ 		goto out;
+ 
+-	new_fd = um_kmalloc(sizeof(*new_fd));
+ 	err = -ENOMEM;
++	new_fd = kmalloc(sizeof(struct irq_fd), GFP_KERNEL);
+ 	if (new_fd == NULL)
+ 		goto out;
+ 
+@@ -176,9 +176,8 @@ int activate_fd(int irq, int fd, int typ
+ 		 */
+ 		spin_unlock_irqrestore(&irq_lock, flags);
+ 		kfree(tmp_pfd);
+-		tmp_pfd = NULL;
+ 
+-		tmp_pfd = um_kmalloc(n);
++		tmp_pfd = kmalloc(n, GFP_KERNEL);
+ 		if (tmp_pfd == NULL)
+ 			goto out_kfree;
+ 
+diff -puN arch/um/os-Linux/irq.c~uml-irq-handler-tidying arch/um/os-Linux/irq.c
+--- a/arch/um/os-Linux/irq.c~uml-irq-handler-tidying
++++ a/arch/um/os-Linux/irq.c
+@@ -20,6 +20,10 @@
+ #include "os.h"
+ #include "um_malloc.h"
+ 
++/*
++ * Locked by irq_lock in arch/um/kernel/irq.c.  Changed by os_create_pollfd
++ * and os_free_irq_by_cb, which are called under irq_lock.
++ */
+ static struct pollfd *pollfds = NULL;
+ static int pollfds_num = 0;
+ static int pollfds_size = 0;
+@@ -58,7 +62,7 @@ int os_create_pollfd(int fd, int events,
+ 	if (pollfds_num == pollfds_size) {
+ 		if (size_tmpfds <= pollfds_size * sizeof(pollfds[0])) {
+ 			/* return min size needed for new pollfds area */
+-			return((pollfds_size + 1) * sizeof(pollfds[0]));
++			return (pollfds_size + 1) * sizeof(pollfds[0]);
+ 		}
+ 
+ 		if (pollfds != NULL) {
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
