@@ -1,94 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - remove-the-unused-kernel-config-option-video_videobuf.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:51:20 -0800
-Message-ID: <200702071951.l17JpKYL025146@shell0.pdx.osdl.net>
+Subject: - powerpc-86xx-local_irq_disable-is-redundant-after-local_irq_save.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:51:16 -0800
+Message-ID: <200702071951.l17JpGsp025140@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33484 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33478 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422734AbXBGTva (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:51:30 -0500
+	id S1422730AbXBGTv1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:51:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: jkosina@suse.cz, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove the unused kernel config option VIDEO_VIDEOBUF
+     POWERPC-86xx: local_irq_disable() is redundant after local_irq_save()
 has been removed from the -mm tree.  Its filename was
-     remove-the-unused-kernel-config-option-video_videobuf.patch
+     powerpc-86xx-local_irq_disable-is-redundant-after-local_irq_save.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove the unused kernel config option VIDEO_VIDEOBUF
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: POWERPC-86xx: local_irq_disable() is redundant after local_irq_save()
+From: Jiri Kosina <jkosina@suse.cz>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+arch/powerpc/platforms/86xx/mpc86xx_smp.c::smp_86xx_kick_cpu() contains
+local_irq_disable() call after local_irq_save().  This looks redundant.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/common/Kconfig |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/powerpc/platforms/86xx/mpc86xx_smp.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/media/common/Kconfig~remove-the-unused-kernel-config-option-video_videobuf drivers/media/common/Kconfig
---- a/drivers/media/common/Kconfig~remove-the-unused-kernel-config-option-video_videobuf
-+++ a/drivers/media/common/Kconfig
-@@ -5,8 +5,4 @@ config VIDEO_SAA7146
- config VIDEO_SAA7146_VV
- 	tristate
- 	select VIDEO_BUF
--	select VIDEO_VIDEOBUF
- 	select VIDEO_SAA7146
--
--config VIDEO_VIDEOBUF
--	tristate
+diff -puN arch/powerpc/platforms/86xx/mpc86xx_smp.c~powerpc-86xx-local_irq_disable-is-redundant-after-local_irq_save arch/powerpc/platforms/86xx/mpc86xx_smp.c
+--- a/arch/powerpc/platforms/86xx/mpc86xx_smp.c~powerpc-86xx-local_irq_disable-is-redundant-after-local_irq_save
++++ a/arch/powerpc/platforms/86xx/mpc86xx_smp.c
+@@ -65,7 +65,6 @@ smp_86xx_kick_cpu(int nr)
+ 	pr_debug("smp_86xx_kick_cpu: kick CPU #%d\n", nr);
+ 
+ 	local_irq_save(flags);
+-	local_irq_disable();
+ 
+ 	/* Save reset vector */
+ 	save_vector = *vector;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 origin.patch
-git-acpi.patch
-git-alsa.patch
 git-powerpc.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
-git-dvb.patch
-change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
 git-netdev-all.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-git-wireless.patch
-replace-incorrect-macro-name-wireless_ext-with.patch
-remove-unused-kernel-config-option-x86_xadd.patch
-remove-final-references-to-deprecated-map_anon-page-protection-flag.patch
-uml-fix-apparent-config_64_bit-typo.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-lcd_device.patch
-remove-unused-kernel-config-option-paride_parport.patch
-fix-apparent-typo-config_lockdep_debug.patch
-ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
-quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+scsi-buslogic-local_irq_disable-is-redundant-after-local_irq_save.patch
+git-ipwireless_cs.patch
+cris-local_irq_disable-is-redundant-after-local_irq_save.patch
+cris-turn-local_save_flags-local_irq_disable-into-local_irq_save-in-headers.patch
+char-amiserial-turn-local_save_flags-local_irq_disable-into-local_irq_save.patch
+tick-management-dyntick--highres-functionality-fix.patch
+sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
