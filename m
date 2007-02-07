@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sis-warning-fixes-fix.patch added to -mm tree
-Date: Wed, 07 Feb 2007 13:47:47 -0800
-Message-ID: <200702072147.l17LllER028209@shell0.pdx.osdl.net>
+Subject: - sis-warning-fixes-fix.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 13:47:56 -0800
+Message-ID: <200702072147.l17Llull028213@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39572 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39581 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161443AbXBGVsI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 16:48:08 -0500
+	id S1161440AbXBGVsO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 16:48:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com, jeff@garzik.org
+To: akpm@linux-foundation.org, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      sis-warning-fixes-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      sis-warning-fixes-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into sis-warning-fixes.patch
 
 ------------------------------------------------------
 Subject: sis-warning-fixes-fix
