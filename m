@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-umid-tidying.patch added to -mm tree
-Date: Wed, 07 Feb 2007 15:20:51 -0800
-Message-ID: <200702072320.l17NKpXH030935@shell0.pdx.osdl.net>
+Subject: + uml-register-handling-formatting-fixes.patch added to -mm tree
+Date: Wed, 07 Feb 2007 15:20:55 -0800
+Message-ID: <200702072320.l17NKtEg030941@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44856 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44864 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161484AbXBGXUy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 18:20:54 -0500
+	id S1161321AbXBGXU5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 18:20:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: umid tidying
+     uml: register handling formatting fixes
 has been added to the -mm tree.  Its filename is
-     uml-umid-tidying.patch
+     uml-register-handling-formatting-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,124 +25,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: umid tidying
+Subject: uml: register handling formatting fixes
 From: Jeff Dike <jdike@addtoit.com>
 
-Add an error message when two umids are put on the command line.
-
-umid.h is kind of pointless since it only declares one thing, and that
-is already declared in os.h.
-
-Commented the lack of locking of some data in os-Linux/umid.h.
+Formatting fixes in the register handling code.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/mconsole_kern.c |    1 -
- arch/um/drivers/mconsole_user.c |    2 +-
- arch/um/include/umid.h          |   22 ----------------------
- arch/um/kernel/um_arch.c        |    1 -
- arch/um/kernel/umid.c           |    4 +++-
- arch/um/os-Linux/umid.c         |    3 ++-
- 6 files changed, 6 insertions(+), 27 deletions(-)
+ arch/um/os-Linux/sys-i386/registers.c   |   14 +++++++-------
+ arch/um/os-Linux/sys-x86_64/registers.c |    6 +++---
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN arch/um/drivers/mconsole_kern.c~uml-umid-tidying arch/um/drivers/mconsole_kern.c
---- a/arch/um/drivers/mconsole_kern.c~uml-umid-tidying
-+++ a/arch/um/drivers/mconsole_kern.c
-@@ -33,7 +33,6 @@
- #include "irq_user.h"
- #include "init.h"
- #include "os.h"
--#include "umid.h"
- #include "irq_kern.h"
- #include "choose-mode.h"
- 
-diff -puN arch/um/drivers/mconsole_user.c~uml-umid-tidying arch/um/drivers/mconsole_user.c
---- a/arch/um/drivers/mconsole_user.c~uml-umid-tidying
-+++ a/arch/um/drivers/mconsole_user.c
-@@ -16,7 +16,7 @@
- #include "user.h"
- #include "sysdep/ptrace.h"
- #include "mconsole.h"
--#include "umid.h"
-+#include "os.h"
- #include "user_util.h"
- 
- static struct mconsole_command commands[] = {
-diff -puN arch/um/include/umid.h~uml-umid-tidying /dev/null
---- a/arch/um/include/umid.h
-+++ /dev/null
-@@ -1,22 +0,0 @@
--/*
-- * Copyright (C) 2001 Jeff Dike (jdike@karaya.com)
-- * Licensed under the GPL
-- */
--
--#ifndef __UMID_H__
--#define __UMID_H__
--
--extern int umid_file_name(char *name, char *buf, int len);
--
--#endif
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/kernel/um_arch.c~uml-umid-tidying arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~uml-umid-tidying
-+++ a/arch/um/kernel/um_arch.c
-@@ -30,7 +30,6 @@
- #include "kern.h"
- #include "mem_user.h"
- #include "mem.h"
--#include "umid.h"
- #include "initrd.h"
- #include "init.h"
- #include "os.h"
-diff -puN arch/um/kernel/umid.c~uml-umid-tidying arch/um/kernel/umid.c
---- a/arch/um/kernel/umid.c~uml-umid-tidying
-+++ a/arch/um/kernel/umid.c
-@@ -16,8 +16,10 @@ static int __init set_umid_arg(char *nam
+diff -puN arch/um/os-Linux/sys-i386/registers.c~uml-register-handling-formatting-fixes arch/um/os-Linux/sys-i386/registers.c
+--- a/arch/um/os-Linux/sys-i386/registers.c~uml-register-handling-formatting-fixes
++++ a/arch/um/os-Linux/sys-i386/registers.c
+@@ -34,27 +34,27 @@ void init_thread_registers(union uml_pt_
+ int save_fp_registers(int pid, unsigned long *fp_regs)
  {
- 	int err;
- 
--	if(umid_inited)
-+	if(umid_inited){
-+		printf("umid already set\n");
- 		return 0;
-+	}
- 
- 	*add = 0;
- 	err = set_umid(name);
-diff -puN arch/um/os-Linux/umid.c~uml-umid-tidying arch/um/os-Linux/umid.c
---- a/arch/um/os-Linux/umid.c~uml-umid-tidying
-+++ a/arch/um/os-Linux/umid.c
-@@ -18,7 +18,7 @@
- #define UMID_LEN 64
- 
- /* Changed by set_umid, which is run early in boot */
--char umid[UMID_LEN] = { 0 };
-+static char umid[UMID_LEN] = { 0 };
- 
- /* Changed by set_uml_dir and make_uml_dir, which are run early in boot */
- static char *uml_dir = UML_DIR;
-@@ -235,6 +235,7 @@ int __init set_umid(char *name)
- 	return 0;
+ 	if(ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
+-		return(-errno);
+-	return(0);
++		return -errno;
++	return 0;
  }
  
-+/* Changed in make_umid, which is called during early boot */
- static int umid_setup = 0;
+ int restore_fp_registers(int pid, unsigned long *fp_regs)
+ {
+ 	if(ptrace(PTRACE_SETFPREGS, pid, 0, fp_regs) < 0)
+-		return(-errno);
+-	return(0);
++		return -errno;
++	return 0;
+ }
  
- int __init make_umid(void)
+ static int move_registers(int pid, int int_op, union uml_pt_regs *regs,
+ 			  int fp_op, unsigned long *fp_regs)
+ {
+ 	if(ptrace(int_op, pid, 0, regs->skas.regs) < 0)
+-		return(-errno);
++		return -errno;
+ 
+ 	if(ptrace(fp_op, pid, 0, fp_regs) < 0)
+-		return(-errno);
++		return -errno;
+ 
+-	return(0);
++	return 0;
+ }
+ 
+ void save_registers(int pid, union uml_pt_regs *regs)
+diff -puN arch/um/os-Linux/sys-x86_64/registers.c~uml-register-handling-formatting-fixes arch/um/os-Linux/sys-x86_64/registers.c
+--- a/arch/um/os-Linux/sys-x86_64/registers.c~uml-register-handling-formatting-fixes
++++ a/arch/um/os-Linux/sys-x86_64/registers.c
+@@ -27,12 +27,12 @@ static int move_registers(int pid, int i
+ 			  union uml_pt_regs *regs)
+ {
+ 	if(ptrace(int_op, pid, 0, regs->skas.regs) < 0)
+-		return(-errno);
++		return -errno;
+ 
+ 	if(ptrace(fp_op, pid, 0, regs->skas.fp) < 0)
+-		return(-errno);
++		return -errno;
+ 
+-	return(0);
++	return 0;
+ }
+ 
+ void save_registers(int pid, union uml_pt_regs *regs)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
