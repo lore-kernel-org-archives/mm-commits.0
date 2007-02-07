@@ -1,169 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - add-is_power_of_2-checking-to-log2h.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:53:27 -0800
-Message-ID: <200702071953.l17JrRBx025321@shell0.pdx.osdl.net>
+Subject: - drivers-media-dvb-frontends-make-4-functions-static.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:51:22 -0800
+Message-ID: <200702071951.l17JpMq3025149@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33760 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33813 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422907AbXBGTxg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:53:36 -0500
+	id S1161121AbXBGTym (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:54:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, benh@kernel.crashing.org, galak@kernel.crashing.org, jeff@garzik.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add "is_power_of_2" checking to log2.h.
+     drivers/media/dvb/frontends/: make 4 functions static
 has been removed from the -mm tree.  Its filename was
-     add-is_power_of_2-checking-to-log2h.patch
+     drivers-media-dvb-frontends-make-4-functions-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add "is_power_of_2" checking to log2.h.
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: drivers/media/dvb/frontends/: make 4 functions static
+From: Adrian Bunk <bunk@stusta.de>
 
-Add the inline function "is_power_of_2()" to log2.h, where the value zero
-is *not* considered to be a power of two.
+This patch makes four needlessly global functions static.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Acked-by: Kumar Gala <galak@kernel.crashing.org>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/pgtable_32.c  |    5 +----
- arch/ppc/mm/pgtable.c         |    5 +----
- arch/ppc/syslib/ppc85xx_rio.c |    2 --
- drivers/net/gianfar_ethtool.c |    2 --
- include/linux/log2.h          |   11 +++++++++++
- 5 files changed, 13 insertions(+), 12 deletions(-)
+ drivers/media/dvb/frontends/stv0299.c  |    2 +-
+ drivers/media/dvb/frontends/tda10021.c |    2 +-
+ drivers/media/dvb/frontends/tda1004x.c |    2 +-
+ drivers/media/dvb/frontends/zl10353.c  |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/mm/pgtable_32.c~add-is_power_of_2-checking-to-log2h arch/powerpc/mm/pgtable_32.c
---- a/arch/powerpc/mm/pgtable_32.c~add-is_power_of_2-checking-to-log2h
-+++ a/arch/powerpc/mm/pgtable_32.c
-@@ -294,11 +294,8 @@ void __init mapin_ram(void)
- 	}
+diff -puN drivers/media/dvb/frontends/stv0299.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/stv0299.c
+--- a/drivers/media/dvb/frontends/stv0299.c~drivers-media-dvb-frontends-make-4-functions-static
++++ a/drivers/media/dvb/frontends/stv0299.c
+@@ -92,7 +92,7 @@ static int stv0299_writeregI (struct stv
+ 	return (ret != 1) ? -EREMOTEIO : 0;
  }
  
--/* is x a power of 2? */
--#define is_power_of_2(x)	((x) != 0 && (((x) & ((x) - 1)) == 0))
--
- /* is x a power of 4? */
--#define is_power_of_4(x)	((x) != 0 && (((x) & (x-1)) == 0) && (ffs(x) & 1))
-+#define is_power_of_4(x)	is_power_of_2(x) && (ffs(x) & 1))
+-int stv0299_write(struct dvb_frontend* fe, u8 *buf, int len)
++static int stv0299_write(struct dvb_frontend* fe, u8 *buf, int len)
+ {
+ 	struct stv0299_state* state = fe->demodulator_priv;
  
- /*
-  * Set up a mapping for a block of I/O.
-diff -puN arch/ppc/mm/pgtable.c~add-is_power_of_2-checking-to-log2h arch/ppc/mm/pgtable.c
---- a/arch/ppc/mm/pgtable.c~add-is_power_of_2-checking-to-log2h
-+++ a/arch/ppc/mm/pgtable.c
-@@ -313,11 +313,8 @@ void __init mapin_ram(void)
- 	}
+diff -puN drivers/media/dvb/frontends/tda10021.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/tda10021.c
+--- a/drivers/media/dvb/frontends/tda10021.c~drivers-media-dvb-frontends-make-4-functions-static
++++ a/drivers/media/dvb/frontends/tda10021.c
+@@ -201,7 +201,7 @@ static int tda10021_set_symbolrate (stru
+ 	return 0;
  }
  
--/* is x a power of 2? */
--#define is_power_of_2(x)	((x) != 0 && (((x) & ((x) - 1)) == 0))
--
- /* is x a power of 4? */
--#define is_power_of_4(x)	((x) != 0 && (((x) & (x-1)) == 0) && (ffs(x) & 1))
-+#define is_power_of_4(x)	is_power_of_2(x) && (ffs(x) & 1))
+-int tda10021_write(struct dvb_frontend* fe, u8 *buf, int len)
++static int tda10021_write(struct dvb_frontend* fe, u8 *buf, int len)
+ {
+ 	struct tda10021_state* state = fe->demodulator_priv;
  
- /*
-  * Set up a mapping for a block of I/O.
-diff -puN arch/ppc/syslib/ppc85xx_rio.c~add-is_power_of_2-checking-to-log2h arch/ppc/syslib/ppc85xx_rio.c
---- a/arch/ppc/syslib/ppc85xx_rio.c~add-is_power_of_2-checking-to-log2h
-+++ a/arch/ppc/syslib/ppc85xx_rio.c
-@@ -59,8 +59,6 @@
- #define DBELL_TID(x)		(*(u8 *)(x + DOORBELL_TID_OFFSET))
- #define DBELL_INF(x)		(*(u16 *)(x + DOORBELL_INFO_OFFSET))
+diff -puN drivers/media/dvb/frontends/tda1004x.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/tda1004x.c
+--- a/drivers/media/dvb/frontends/tda1004x.c~drivers-media-dvb-frontends-make-4-functions-static
++++ a/drivers/media/dvb/frontends/tda1004x.c
+@@ -579,7 +579,7 @@ static int tda1004x_decode_fec(int tdafe
+ 	return -1;
+ }
  
--#define is_power_of_2(x)	(((x) & ((x) - 1)) == 0)
--
- struct rio_atmu_regs {
- 	u32 rowtar;
- 	u32 pad1;
-diff -puN drivers/net/gianfar_ethtool.c~add-is_power_of_2-checking-to-log2h drivers/net/gianfar_ethtool.c
---- a/drivers/net/gianfar_ethtool.c~add-is_power_of_2-checking-to-log2h
-+++ a/drivers/net/gianfar_ethtool.c
-@@ -42,8 +42,6 @@
+-int tda1004x_write(struct dvb_frontend* fe, u8 *buf, int len)
++static int tda1004x_write(struct dvb_frontend* fe, u8 *buf, int len)
+ {
+ 	struct tda1004x_state* state = fe->demodulator_priv;
  
- #include "gianfar.h"
+diff -puN drivers/media/dvb/frontends/zl10353.c~drivers-media-dvb-frontends-make-4-functions-static drivers/media/dvb/frontends/zl10353.c
+--- a/drivers/media/dvb/frontends/zl10353.c~drivers-media-dvb-frontends-make-4-functions-static
++++ a/drivers/media/dvb/frontends/zl10353.c
+@@ -54,7 +54,7 @@ static int zl10353_single_write(struct d
+ 	return 0;
+ }
  
--#define is_power_of_2(x)        ((x) != 0 && (((x) & ((x) - 1)) == 0))
--
- extern void gfar_start(struct net_device *dev);
- extern int gfar_clean_rx_ring(struct net_device *dev, int rx_work_limit);
- 
-diff -puN include/linux/log2.h~add-is_power_of_2-checking-to-log2h include/linux/log2.h
---- a/include/linux/log2.h~add-is_power_of_2-checking-to-log2h
-+++ a/include/linux/log2.h
-@@ -44,6 +44,17 @@ int __ilog2_u64(u64 n)
- #endif
- 
- /*
-+ *  Determine whether some value is a power of two, where zero is
-+ * *not* considered a power of two.
-+ */
-+
-+static inline __attribute__((const))
-+bool is_power_of_2(unsigned long n)
-+{
-+	return (n != 0 && ((n & (n - 1)) == 0));
-+}
-+
-+/*
-  * round up to nearest power of two
-  */
- static inline __attribute__((const))
+-int zl10353_write(struct dvb_frontend *fe, u8 *ibuf, int ilen)
++static int zl10353_write(struct dvb_frontend *fe, u8 *ibuf, int ilen)
+ {
+ 	int err, i;
+ 	for (i = 0; i < ilen - 1; i++)
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+v9fs_vfs_mkdir-fix-a-double-free.patch
 git-acpi.patch
+ifdef-acpi_future_usage-acpi_os_readable.patch
 git-alsa.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
 git-powerpc.patch
-ppc-use-syslog-macro-for-the-printk-log-level.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
 git-dvb.patch
-change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
+git-ieee1394.patch
+git-libata-all.patch
+mips-remove-smp_tune_scheduling.patch
+mtd_ck804xrom-must-depend-on-pci.patch
+git-ubi.patch
 git-netdev-all.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-git-wireless.patch
-replace-incorrect-macro-name-wireless_ext-with.patch
-remove-unused-kernel-config-option-x86_xadd.patch
-remove-final-references-to-deprecated-map_anon-page-protection-flag.patch
-uml-fix-apparent-config_64_bit-typo.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
+net-wanrouter-wanmainc-cleanups.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
+git-ipwireless_cs.patch
+cleanup-x86_64-mm-vmi-timer.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
 remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-lcd_device.patch
-remove-unused-kernel-config-option-paride_parport.patch
-fix-apparent-typo-config_lockdep_debug.patch
-ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
-quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+debug-shared-irqs-kconfig-fix.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+add-debugging-feature-proc-timer_stat-cleanup.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+remove-the-broken-fb_s3trio-driver.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
