@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-warning-in-device_add_attrs.patch added to -mm tree
-Date: Wed, 07 Feb 2007 12:35:33 -0800
-Message-ID: <200702072035.l17KZXIR026405@shell0.pdx.osdl.net>
+Subject: + ueagle-atmc-needs-schedh.patch added to -mm tree
+Date: Wed, 07 Feb 2007 12:37:05 -0800
+Message-ID: <200702072037.l17Kb59E026427@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35457 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35505 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161193AbXBGUft (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 15:35:49 -0500
+	id S1422729AbXBGUi0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 15:38:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, greg@kroah.com
+Cc: randy.dunlap@oracle.com, greg@kroah.com, stable@kernel.org
 
 
 The patch titled
-     Fix warning in device_add_attrs
+     ueagle-atm.c needs sched.h
 has been added to the -mm tree.  Its filename is
-     fix-warning-in-device_add_attrs.patch
+     ueagle-atmc-needs-schedh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,69 +25,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix warning in device_add_attrs
-From: Jean Delvare <khali@linux-fr.org>
+Subject: ueagle-atm.c needs sched.h
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix the following warning which I see with gcc 3.2:
-drivers/base/core.c: In function `device_add_attrs':
-drivers/base/core.c:251: warning: `i' might be used uninitialized in this function
-It's a false positive, but it can be worked around easily, and the new
-code makes rather more sense.
+Driver needs sched.h for try_to_freeze().
 
-[akpm@linux-foundation.org: rework it for changes in Greg's tree and -mm]
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/bus.c |   22 ++++++++++------------
- 1 files changed, 10 insertions(+), 12 deletions(-)
+ drivers/usb/atm/ueagle-atm.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/base/bus.c~fix-warning-in-device_add_attrs drivers/base/bus.c
---- a/drivers/base/bus.c~fix-warning-in-device_add_attrs
-+++ a/drivers/base/bus.c
-@@ -324,27 +324,25 @@ int bus_for_each_drv(struct bus_type * b
- 	return error;
- }
- 
--static int device_add_attrs(struct bus_type * bus, struct device * dev)
-+static int device_add_attrs(struct bus_type *bus, struct device *dev)
- {
- 	int error = 0;
- 	int i;
- 
--	if (bus->dev_attrs) {
--		for (i = 0; attr_name(bus->dev_attrs[i]); i++) {
--			error = device_create_file(dev,&bus->dev_attrs[i]);
--			if (error)
--				goto Err;
-+	if (!bus->dev_attrs)
-+		return 0;
-+
-+	for (i = 0; attr_name(bus->dev_attrs[i]); i++) {
-+		error = device_create_file(dev,&bus->dev_attrs[i]);
-+		if (error) {
-+			while (--i >= 0)
-+				device_remove_file(dev, &bus->dev_attrs[i]);
-+			break;
- 		}
- 	}
-- Done:
- 	return error;
-- Err:
--	while (--i >= 0)
--		device_remove_file(dev,&bus->dev_attrs[i]);
--	goto Done;
- }
- 
--
- static void device_remove_attrs(struct bus_type * bus, struct device * dev)
- {
- 	int i;
+diff -puN drivers/usb/atm/ueagle-atm.c~ueagle-atmc-needs-schedh drivers/usb/atm/ueagle-atm.c
+--- a/drivers/usb/atm/ueagle-atm.c~ueagle-atmc-needs-schedh
++++ a/drivers/usb/atm/ueagle-atm.c
+@@ -61,6 +61,7 @@
+ #include <linux/usb.h>
+ #include <linux/firmware.h>
+ #include <linux/ctype.h>
++#include <linux/sched.h>
+ #include <linux/kthread.h>
+ #include <linux/version.h>
+ #include <linux/mutex.h>
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+origin.patch
 git-alsa.patch
-fix-warning-in-device_add_attrs.patch
-matroxfb-use-kzalloc.patch
+update-readmedrm-bugzilla-7933.patch
+qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
+mtd-add-missing-kernel-doc-item.patch
+git-ocfs2.patch
+parisc-fix-module_param-iommu-permission.patch
+git-scsi-misc.patch
+ueagle-atmc-needs-schedh.patch
+math-emu-setcc-avoid-gcc-extension.patch
+typeof-__page_to_pfn-with-sparsemem=y.patch
+docbook-html-correction-of-recursive-a-tags-in-html-output.patch
+kernel-doc-allow-a-little-whitespace.patch
+sysrq-alphabetize-command-keys-doc.patch
+kernel-doc-allow-more-whitespace.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+docbook-add-edd-firmware-interfaces.patch
+kernel-doc-fix-some-odd-spacing-issues.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
