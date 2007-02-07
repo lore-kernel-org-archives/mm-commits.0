@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-sigio-formatting-fixes.patch added to -mm tree
-Date: Wed, 07 Feb 2007 15:20:49 -0800
-Message-ID: <200702072320.l17NKn41030932@shell0.pdx.osdl.net>
+Subject: + rcutorture-style-cleanup-avoid-=-null-in-boolean-tests.patch added to -mm tree
+Date: Wed, 07 Feb 2007 15:18:35 -0800
+Message-ID: <200702072318.l17NIZcE030881@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44852 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44949 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161321AbXBGXUw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 18:20:52 -0500
+	id S1161333AbXBGXXR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 18:23:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it
+Cc: josh@kernel.org, paulmck@us.ibm.com
 
 
 The patch titled
-     uml: SIGIO formatting fixes
+     rcutorture: style cleanup: avoid != NULL in boolean tests
 has been added to the -mm tree.  Its filename is
-     uml-sigio-formatting-fixes.patch
+     rcutorture-style-cleanup-avoid-=-null-in-boolean-tests.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,115 +25,132 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: SIGIO formatting fixes
-From: Jeff Dike <jdike@addtoit.com>
+Subject: rcutorture: style cleanup: avoid != NULL in boolean tests
+From: Josh Triplett <josh@kernel.org>
 
-Fix formatting in the sigio code.
-
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Josh Triplett <josh@kernel.org>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/sigio.h |   11 -----------
- arch/um/kernel/sigio.c  |    6 +++---
- 2 files changed, 3 insertions(+), 14 deletions(-)
+ kernel/rcutorture.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN arch/um/include/sigio.h~uml-sigio-formatting-fixes arch/um/include/sigio.h
---- a/arch/um/include/sigio.h~uml-sigio-formatting-fixes
-+++ a/arch/um/include/sigio.h
-@@ -12,14 +12,3 @@ extern void sigio_lock(void);
- extern void sigio_unlock(void);
- 
- #endif
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/kernel/sigio.c~uml-sigio-formatting-fixes arch/um/kernel/sigio.c
---- a/arch/um/kernel/sigio.c~uml-sigio-formatting-fixes
-+++ a/arch/um/kernel/sigio.c
-@@ -23,7 +23,7 @@ static irqreturn_t sigio_interrupt(int i
- 
- 	os_read_file(sigio_irq_fd, &c, sizeof(c));
- 	reactivate_fd(sigio_irq_fd, SIGIO_WRITE_IRQ);
--	return(IRQ_HANDLED);
-+	return IRQ_HANDLED;
- }
- 
- int write_sigio_irq(int fd)
-@@ -36,10 +36,10 @@ int write_sigio_irq(int fd)
- 	if(err){
- 		printk("write_sigio_irq : um_request_irq failed, err = %d\n",
- 		       err);
--		return(-1);
-+		return -1;
+diff -puN kernel/rcutorture.c~rcutorture-style-cleanup-avoid-=-null-in-boolean-tests kernel/rcutorture.c
+--- a/kernel/rcutorture.c~rcutorture-style-cleanup-avoid-=-null-in-boolean-tests
++++ a/kernel/rcutorture.c
+@@ -601,7 +601,7 @@ rcu_torture_writer(void *arg)
+ 		rp->rtort_mbtest = 1;
+ 		rcu_assign_pointer(rcu_torture_current, rp);
+ 		smp_wmb();
+-		if (old_rp != NULL) {
++		if (old_rp) {
+ 			i = old_rp->rtort_pipe_count;
+ 			if (i > RCU_TORTURE_PIPE_LEN)
+ 				i = RCU_TORTURE_PIPE_LEN;
+@@ -752,7 +752,7 @@ rcu_torture_printk(char *page)
+ 			       atomic_read(&rcu_torture_wcount[i]));
  	}
- 	sigio_irq_fd = fd;
--	return(0);
-+	return 0;
+ 	cnt += sprintf(&page[cnt], "\n");
+-	if (cur_ops->stats != NULL)
++	if (cur_ops->stats)
+ 		cnt += cur_ops->stats(&page[cnt]);
+ 	return cnt;
  }
+@@ -816,13 +816,13 @@ static void rcu_torture_shuffle_tasks(vo
  
- /* These are called from os-Linux/sigio.c to protect its pollfds arrays. */
+ 	set_cpus_allowed(current, tmp_mask);
+ 
+-	if (reader_tasks != NULL) {
++	if (reader_tasks) {
+ 		for (i = 0; i < nrealreaders; i++)
+ 			if (reader_tasks[i])
+ 				set_cpus_allowed(reader_tasks[i], tmp_mask);
+ 	}
+ 
+-	if (fakewriter_tasks != NULL) {
++	if (fakewriter_tasks) {
+ 		for (i = 0; i < nfakewriters; i++)
+ 			if (fakewriter_tasks[i])
+ 				set_cpus_allowed(fakewriter_tasks[i], tmp_mask);
+@@ -875,21 +875,21 @@ rcu_torture_cleanup(void)
+ 	int i;
+ 
+ 	fullstop = 1;
+-	if (shuffler_task != NULL) {
++	if (shuffler_task) {
+ 		VERBOSE_PRINTK_STRING("Stopping rcu_torture_shuffle task");
+ 		kthread_stop(shuffler_task);
+ 	}
+ 	shuffler_task = NULL;
+ 
+-	if (writer_task != NULL) {
++	if (writer_task) {
+ 		VERBOSE_PRINTK_STRING("Stopping rcu_torture_writer task");
+ 		kthread_stop(writer_task);
+ 	}
+ 	writer_task = NULL;
+ 
+-	if (reader_tasks != NULL) {
++	if (reader_tasks) {
+ 		for (i = 0; i < nrealreaders; i++) {
+-			if (reader_tasks[i] != NULL) {
++			if (reader_tasks[i]) {
+ 				VERBOSE_PRINTK_STRING(
+ 					"Stopping rcu_torture_reader task");
+ 				kthread_stop(reader_tasks[i]);
+@@ -901,9 +901,9 @@ rcu_torture_cleanup(void)
+ 	}
+ 	rcu_torture_current = NULL;
+ 
+-	if (fakewriter_tasks != NULL) {
++	if (fakewriter_tasks) {
+ 		for (i = 0; i < nfakewriters; i++) {
+-			if (fakewriter_tasks[i] != NULL) {
++			if (fakewriter_tasks[i]) {
+ 				VERBOSE_PRINTK_STRING(
+ 					"Stopping rcu_torture_fakewriter task");
+ 				kthread_stop(fakewriter_tasks[i]);
+@@ -914,7 +914,7 @@ rcu_torture_cleanup(void)
+ 		fakewriter_tasks = NULL;
+ 	}
+ 
+-	if (stats_task != NULL) {
++	if (stats_task) {
+ 		VERBOSE_PRINTK_STRING("Stopping rcu_torture_stats task");
+ 		kthread_stop(stats_task);
+ 	}
+@@ -925,7 +925,7 @@ rcu_torture_cleanup(void)
+ 
+ 	rcu_torture_stats_print();  /* -After- the stats thread is stopped! */
+ 
+-	if (cur_ops->cleanup != NULL)
++	if (cur_ops->cleanup)
+ 		cur_ops->cleanup();
+ 	if (atomic_read(&n_rcu_torture_error))
+ 		rcu_torture_print_module_parms("End of test: FAILURE");
+@@ -942,7 +942,7 @@ rcu_torture_init(void)
+ 
+ 	/* Process args and tell the world that the torturer is on the job. */
+ 
+-	for (i = 0; cur_ops = torture_ops[i], cur_ops != NULL; i++) {
++	for (i = 0; cur_ops = torture_ops[i], cur_ops; i++) {
+ 		cur_ops = torture_ops[i];
+ 		if (strcmp(torture_type, cur_ops->name) == 0) {
+ 			break;
+@@ -953,7 +953,7 @@ rcu_torture_init(void)
+ 		       torture_type);
+ 		return (-EINVAL);
+ 	}
+-	if (cur_ops->init != NULL)
++	if (cur_ops->init)
+ 		cur_ops->init(); /* no "goto unwind" prior to this point!!! */
+ 
+ 	if (nreaders >= 0)
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from josh@kernel.org are
 
-x86_64-32-bit-ptrace-mangles-sixth-system-call-argument.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs-fix.patch
-uml-console-locking-fixes.patch
-uml-return-hotplug-errors-to-host.patch
-uml-console-whitespace-and-comment-tidying.patch
-uml-lock-the-irqs_to_free-list.patch
-uml-add-locking-to-network-transport-registration.patch
-uml-network-driver-whitespace-and-style-fixes.patch
-uml-watchdog-driver-locking.patch
-uml-watchdog-driver-formatting.patch
-uml-audio-driver-locking.patch
-uml-audio-driver-formatting.patch
-uml-mconsole-locking.patch
-uml-make-two-variables-static.patch
-uml-port-driver-formatting.patch
-uml-kill-a-compilation-warning.patch
-uml-network-driver-locking-and-code-cleanup.patch
-uml-use-list_head-where-possible.patch
-uml-locking-commentary-in-the-random-driver.patch
-uml-mostly-const-a-structure.patch
-uml-chan_userh-formatting-fices.patch
-uml-console-locking-commentary-and-code-cleanup.patch
-uml-fix-previous-console-locking.patch
-uml-locking-comments-in-iomem-driver.patch
-uml-memc-and-physmemc-formatting-fixes.patch
-uml-initialize-a-list-head.patch
-uml-make-time-data-per-cpu.patch
-uml-delete-unused-file.patch
-uml-remove-unused-variable-and-function.patch
-uml-make-signal-handlers-static.patch
-uml-const-a-variable.patch
-uml-remove-code-controlled-by-non-existent-config-option.patch
-uml-add-per-device-queues-and-locks-to-ubd-driver.patch
-uml-locking-fixes-in-the-ubd-driver.patch
-uml-locking-comments-in-memory-and-tempfile-code.patch
-uml-locking-comments-in-startup-code.patch
-uml-style-fixes-in-startup-code.patch
-uml-libc-dependent-code-should-call-libc-directly.patch
-uml-fix-style-violations.patch
-uml-fix-apparent-config_64_bit-typo.patch
-uml-irq-handler-tidying.patch
-uml-sigio-locking-comment.patch
-uml-sigio-formatting-fixes.patch
-uml-umid-tidying.patch
-uml-elf-locking-commentary.patch
-uml-register-handling-formatting-fixes.patch
-uml-aio-locking-and-tidying.patch
-uml-fix-prototypes.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-um.patch
+usb-in-init_endpoint_class-use-ptr_err-to-obtain-an-errno-value-not-is_err.patch
+rcutorture-style-cleanup-avoid-=-null-in-boolean-tests.patch
+rcutorture-remove-redundant-assignment-to-cur_ops-in.patch
