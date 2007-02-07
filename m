@@ -1,50 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - sh-add-kconfig-default.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:53:19 -0800
-Message-ID: <200702071953.l17JrJWH025312@shell0.pdx.osdl.net>
+Subject: - git-block-atomicity-fix.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:53:21 -0800
+Message-ID: <200702071953.l17JrLjT025315@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33729 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33733 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422885AbXBGTxX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:53:23 -0500
+	id S1422890AbXBGTx0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:53:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sh: add Kconfig default
+     git-block: atomicity fix
 has been removed from the -mm tree.  Its filename was
-     sh-add-kconfig-default.patch
+     git-block-atomicity-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sh: add Kconfig default
+Subject: git-block: atomicity fix
 From: Andrew Morton <akpm@osdl.org>
 
-This option needs a default - otherwise `make allmodconfig' get stuck in an
-infinite loop.
+BUG: using smp_processor_id() in preemptible [00000001] code: khelper/972
+caller is drive_stat_acct+0x37/0x5e
 
-Cc: Paul Mundt <lethal@linux-sh.org>
+Call Trace:
+ [<ffffffff80343f8d>] debug_smp_processor_id+0xb1/0xc4
+ [<ffffffff80331eac>] drive_stat_acct+0x37/0x5e
+ [<ffffffff80334d49>] bio_attempt_back_merge+0x87/0x91
+ [<ffffffff803351c9>] __make_request+0xb9/0x2ed
+ [<ffffffff803329cc>] generic_make_request+0x1e9/0x222
+ [<ffffffff80333a9c>] submit_bio+0xfb/0x108
+ [<ffffffff802a1276>] mpage_bio_submit+0x22/0x26
+ [<ffffffff802a1836>] do_mpage_readpage+0x44a/0x4e2
+ [<ffffffff8033f85b>] radix_tree_insert+0x69/0x1dc
+ [<ffffffff80264d81>] __inc_zone_state+0x11/0x6d
+ ...
+
+<sadly points at Documentation/SubmitChecklist>
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ block/ll_rw_blk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sh/Kconfig~sh-add-kconfig-default arch/sh/Kconfig
---- a/arch/sh/Kconfig~sh-add-kconfig-default
-+++ a/arch/sh/Kconfig
-@@ -482,6 +482,7 @@ config SH_PCLK_FREQ
+diff -puN block/ll_rw_blk.c~git-block-atomicity-fix block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~git-block-atomicity-fix
++++ a/block/ll_rw_blk.c
+@@ -2576,7 +2576,7 @@ static void drive_stat_acct(struct reque
+ 		return;
  
- config SH_CLK_MD
- 	int "CPU Mode Pin Setting"
-+	default 0
- 	depends on CPU_SUBTYPE_SH7619 || CPU_SUBTYPE_SH7206
- 	help
- 	  MD2 - MD0 pin setting.
+ 	if (!new_io) {
+-		__disk_stat_inc(rq->rq_disk, merges[rw]);
++		disk_stat_inc(rq->rq_disk, merges[rw]);
+ 	} else {
+ 		disk_round_stats(rq->rq_disk);
+ 		rq->rq_disk->in_flight++;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
