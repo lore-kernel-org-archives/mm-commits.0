@@ -1,116 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - mm-vm_insert_pfn.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 14:32:21 -0800
-Message-ID: <200702072232.l17MWL08029383@shell0.pdx.osdl.net>
+Subject: + kexec-fix-references-to-init-in-documentation-for-kexe.patch added to -mm tree
+Date: Wed, 07 Feb 2007 14:35:11 -0800
+Message-ID: <200702072235.l17MZBCI029442@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41700 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42009 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422918AbXBGWc3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 17:32:29 -0500
+	id S1422921AbXBGWfV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 17:35:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, benh@kernel.crashing.org, hugh@veritas.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: horms@verge.net.au, ebiederm@xmission.com, judith@linux-foundation.org, vgoyal@in.ibm.com
 
 
 The patch titled
-     mm: vm_insert_pfn
-has been removed from the -mm tree.  Its filename was
-     mm-vm_insert_pfn.patch
+     kexec: fix references to init in documentation for kexec
+has been added to the -mm tree.  Its filename is
+     kexec-fix-references-to-init-in-documentation-for-kexe.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: mm: vm_insert_pfn
-From: Nick Piggin <npiggin@suse.de>
+Subject: kexec: fix references to init in documentation for kexec
+From: Horms <horms@verge.net.au>
 
-Add a vm_insert_pfn helper, so that fault handlers can have nopfn
-functionality by installing their own pte and returning NOPAGE_REFAULT.
+I've noticed that the boot options are not correct for in the documentation
+for kdump.  The "init" keyword is not necessary, and causes a kernel panic
+when booting with an initrd on Fedora 5.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Hugh Dickins <hugh@veritas.com>
+[horms@verge.net.au: put original comment with the latest version of the patch]
+Signed-off-by: Judith Lebzeelter <judith@osdl.org>
+Acked-by: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 
- mm/memory.c        |   44 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 45 insertions(+)
+ Documentation/kdump/kdump.txt |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm.h~mm-vm_insert_pfn include/linux/mm.h
---- a/include/linux/mm.h~mm-vm_insert_pfn
-+++ a/include/linux/mm.h
-@@ -1121,6 +1121,7 @@ unsigned long vmalloc_to_pfn(void *addr)
- int remap_pfn_range(struct vm_area_struct *, unsigned long addr,
- 			unsigned long pfn, unsigned long size, pgprot_t);
- int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
-+int vm_insert_pfn(struct vm_area_struct *, unsigned long addr, unsigned long pfn);
+diff -puN Documentation/kdump/kdump.txt~kexec-fix-references-to-init-in-documentation-for-kexe Documentation/kdump/kdump.txt
+--- a/Documentation/kdump/kdump.txt~kexec-fix-references-to-init-in-documentation-for-kexe
++++ a/Documentation/kdump/kdump.txt
+@@ -311,10 +311,10 @@ Following are the arch specific command 
+ loading dump-capture kernel.
  
- struct page *follow_page(struct vm_area_struct *, unsigned long address,
- 			unsigned int foll_flags);
-diff -puN mm/memory.c~mm-vm_insert_pfn mm/memory.c
---- a/mm/memory.c~mm-vm_insert_pfn
-+++ a/mm/memory.c
-@@ -1277,6 +1277,50 @@ int vm_insert_page(struct vm_area_struct
- }
- EXPORT_SYMBOL(vm_insert_page);
+ For i386, x86_64 and ia64:
+-	"init 1 irqpoll maxcpus=1"
++	"1 irqpoll maxcpus=1"
  
-+/**
-+ * vm_insert_pfn - insert single pfn into user vma
-+ * @vma: user vma to map to
-+ * @addr: target user address of this page
-+ * @pfn: source kernel pfn
-+ *
-+ * Similar to vm_insert_page, this allows drivers to insert individual pages
-+ * they've allocated into a user vma. Same comments apply.
-+ *
-+ * This function should only be called from a nopage handler, and
-+ * in that case the handler should return NOPAGE_REFAULT.
-+ */
-+int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr, unsigned long pfn)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	int retval;
-+	pte_t *pte, entry;
-+	spinlock_t *ptl;
-+
-+	BUG_ON(!(vma->vm_flags & VM_PFNMAP));
-+	BUG_ON(is_cow_mapping(vma->vm_flags));
-+
-+	retval = -ENOMEM;
-+	pte = get_locked_pte(mm, addr, &ptl);
-+	if (!pte)
-+		goto out;
-+	retval = -EBUSY;
-+	if (!pte_none(*pte))
-+		goto out_unlock;
-+
-+	/* Ok, finally just insert the thing.. */
-+	entry = pfn_pte(pfn, vma->vm_page_prot);
-+	set_pte_at(mm, addr, pte, entry);
-+	update_mmu_cache(vma, addr, entry);
-+
-+	retval = 0;
-+out_unlock:
-+	pte_unmap_unlock(pte, ptl);
-+
-+out:
-+	return retval;
-+}
-+EXPORT_SYMBOL(vm_insert_pfn);
-+
- /*
-  * maps a range of physical memory into the requested pages. the old
-  * mappings are removed. any references to nonexistent pages results
+ For ppc64:
+-	"init 1 maxcpus=1 noirqdistrib"
++	"1 maxcpus=1 noirqdistrib"
+ 
+ 
+ Notes on loading the dump-capture kernel:
+@@ -332,8 +332,8 @@ Notes on loading the dump-capture kernel
+ * You must specify <root-dev> in the format corresponding to the root
+   device name in the output of mount command.
+ 
+-* "init 1" boots the dump-capture kernel into single-user mode without
+-  networking. If you want networking, use "init 3."
++* Boot parameter "1" boots the dump-capture kernel into single-user
++  mode without networking. If you want networking, use "3".
+ 
+ * We generally don' have to bring up a SMP kernel just to capture the
+   dump. Hence generally it is useful either to build a UP dump-capture
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from horms@verge.net.au are
 
-git-block.patch
-add-vm_insert_pfn.patch
-mm-vm_insert_pfn.patch
-mm-vm_insert_pfn-tidy.patch
-buffer-memorder-fix.patch
-fs-fix-__block_write_full_page-error-case-buffer-submission.patch
-inotify-read-return-val-fix.patch
-sched-avoid-div-in-rebalance_tick.patch
+origin.patch
+git-ia64.patch
+kexec-fix-references-to-init-in-documentation-for-kexe.patch
