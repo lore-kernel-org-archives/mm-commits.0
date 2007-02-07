@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drm-use-array_size-macro-when-appropriate.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:09:44 -0800
-Message-ID: <200702070009.l1709j8D001264@shell0.pdx.osdl.net>
+Subject: + reiserfs-use-array_size-macro-when-appropriate.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:13:02 -0800
+Message-ID: <200702070013.l170D3ib001367@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56160 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56201 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030261AbXBGAKM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:10:12 -0500
+	id S1030270AbXBGANO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, airlied@linux.ie
+Cc: darwish.07@gmail.com
 
 
 The patch titled
-     drm: Use ARRAY_SIZE macro when appropriate
+     reiserfs: Use ARRAY_SIZE macro when appropriate
 has been added to the -mm tree.  Its filename is
-     drm-use-array_size-macro-when-appropriate.patch
+     reiserfs-use-array_size-macro-when-appropriate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drm: Use ARRAY_SIZE macro when appropriate
+Subject: reiserfs: Use ARRAY_SIZE macro when appropriate
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
 Use ARRAY_SIZE macro already defined in kernel.h
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_proc.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/do_balan.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/drm/drm_proc.c~drm-use-array_size-macro-when-appropriate drivers/char/drm/drm_proc.c
---- a/drivers/char/drm/drm_proc.c~drm-use-array_size-macro-when-appropriate
-+++ a/drivers/char/drm/drm_proc.c
-@@ -72,7 +72,7 @@ static struct drm_proc_list {
- #endif
- };
+diff -puN fs/reiserfs/do_balan.c~reiserfs-use-array_size-macro-when-appropriate fs/reiserfs/do_balan.c
+--- a/fs/reiserfs/do_balan.c~reiserfs-use-array_size-macro-when-appropriate
++++ a/fs/reiserfs/do_balan.c
+@@ -19,6 +19,7 @@
+ #include <linux/time.h>
+ #include <linux/reiserfs_fs.h>
+ #include <linux/buffer_head.h>
++#include <linux/kernel.h>
  
--#define DRM_PROC_ENTRIES (sizeof(drm_proc_list)/sizeof(drm_proc_list[0]))
-+#define DRM_PROC_ENTRIES ARRAY_SIZE(drm_proc_list)
+ #ifdef CONFIG_REISERFS_CHECK
  
- /**
-  * Initialize the DRI proc filesystem for a device.
+@@ -1756,7 +1757,7 @@ static void store_thrown(struct tree_bal
+ 	if (buffer_dirty(bh))
+ 		reiserfs_warning(tb->tb_sb,
+ 				 "store_thrown deals with dirty buffer");
+-	for (i = 0; i < sizeof(tb->thrown) / sizeof(tb->thrown[0]); i++)
++	for (i = 0; i < ARRAY_SIZE(tb->thrown); i++)
+ 		if (!tb->thrown[i]) {
+ 			tb->thrown[i] = bh;
+ 			get_bh(bh);	/* free_thrown puts this */
+@@ -1769,7 +1770,7 @@ static void free_thrown(struct tree_bala
+ {
+ 	int i;
+ 	b_blocknr_t blocknr;
+-	for (i = 0; i < sizeof(tb->thrown) / sizeof(tb->thrown[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(tb->thrown); i++) {
+ 		if (tb->thrown[i]) {
+ 			blocknr = tb->thrown[i]->b_blocknr;
+ 			if (buffer_dirty(tb->thrown[i]))
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
