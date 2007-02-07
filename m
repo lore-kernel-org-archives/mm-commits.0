@@ -1,273 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - sata_nv-cleanup-adma-error-handling-v2.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:52:33 -0800
-Message-ID: <200702071952.l17JqXbb025249@shell0.pdx.osdl.net>
+Subject: - sata_nv-wait-for-response-on-entering-leaving-adma-mode.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:52:39 -0800
+Message-ID: <200702071952.l17JqdbY025257@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33662 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33658 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422757AbXBGTws (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:52:48 -0500
+	id S1422752AbXBGTwq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:52:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hancockr@shaw.ca, AMartin@nvidia.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sata_nv: cleanup ADMA error handling
+     sata_nv: wait for response on entering/leaving ADMA mode
 has been removed from the -mm tree.  Its filename was
-     sata_nv-cleanup-adma-error-handling-v2.patch
+     sata_nv-wait-for-response-on-entering-leaving-adma-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sata_nv: cleanup ADMA error handling
+Subject: sata_nv: wait for response on entering/leaving ADMA mode
 From: Robert Hancock <hancockr@shaw.ca>
 
-This cleans up a few issues with the error handling in sata_nv in ADMA mode
-to make it more consistent with other NCQ-capable drivers like ahci and
-sata_sil24:
+Update sata_nv to wait for the controller to indicate via the status
+register that it has entered the requested state when switching between
+ADMA mode and register mode.  This issue came up recently when debugging
+some problems with cache flush command timeouts and while it didn't appear
+to fix that problem, this is something we should likely be doing in any
+case.
 
-- When a command failed, we would effectively set AC_ERR_DEV on the
-  queued command always.  In the case of NCQ commands this prevents libata
-  from doing a log page query to determine the details of the failed
-  command, since it thinks we've already analyzed.  Just set flags in the
-  port ehi->err_mask, then freeze or abort and let libata figure out what
-  went wrong.
-
-- The code handled NV_ADMA_STAT_CPBERR as a "really bad error" which
-  caused it to set error flags on every queued command.  I don't know
-  exactly what this flag means (no docs, grr!) but from what I can guess
-  from the standard ADMA spec, it just means that one or more of the CPBs
-  had an error, so we just need to go through and do our normal checks in
-  this case.
-
-- In the error_handler function the code would always dump the state of
-  all the CPBs.  This output seems redundant at this point since libata
-  already dumps the state of all active commands on errors (and it also
-  triggers at times when it shouldn't, like when suspending).  Take this
-  out.
-
-[akpm@osdl.org: many coding-style fixes]
 Signed-off-by: Robert Hancock <hancockr@shaw.ca>
-Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Tejun Heo <htejun@gmail.com>
-Cc: Allen Martin <AMartin@nvidia.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |  147 +++++++++++++++++++---------------------
- 1 file changed, 72 insertions(+), 75 deletions(-)
+ drivers/ata/sata_nv.c |   41 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 39 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/sata_nv.c~sata_nv-cleanup-adma-error-handling-v2 drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~sata_nv-cleanup-adma-error-handling-v2
+diff -puN drivers/ata/sata_nv.c~sata_nv-wait-for-response-on-entering-leaving-adma-mode drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-wait-for-response-on-entering-leaving-adma-mode
 +++ a/drivers/ata/sata_nv.c
-@@ -643,53 +643,62 @@ static unsigned int nv_adma_tf_to_cpb(st
- 	return idx;
- }
- 
--static void nv_adma_check_cpb(struct ata_port *ap, int cpb_num, int force_err)
-+static int nv_adma_check_cpb(struct ata_port *ap, int cpb_num, int force_err)
+@@ -504,14 +504,38 @@ static void nv_adma_register_mode(struct
  {
  	struct nv_adma_port_priv *pp = ap->private_data;
--	int complete = 0, have_err = 0;
- 	u8 flags = pp->cpb[cpb_num].resp_flags;
+ 	void __iomem *mmio = pp->ctl_block;
+-	u16 tmp;
++	u16 tmp, status;
++	int count = 0;
  
- 	VPRINTK("CPB %d, flags=0x%x\n", cpb_num, flags);
+ 	if (pp->flags & NV_ADMA_PORT_REGISTER_MODE)
+ 		return;
  
--	if (flags & NV_CPB_RESP_DONE) {
--		VPRINTK("CPB flags done, flags=0x%x\n", flags);
--		complete = 1;
--	}
--	if (flags & NV_CPB_RESP_ATA_ERR) {
--		ata_port_printk(ap, KERN_ERR, "CPB flags ATA err, flags=0x%x\n", flags);
--		have_err = 1;
--		complete = 1;
--	}
--	if (flags & NV_CPB_RESP_CMD_ERR) {
--		ata_port_printk(ap, KERN_ERR, "CPB flags CMD err, flags=0x%x\n", flags);
--		have_err = 1;
--		complete = 1;
--	}
--	if (flags & NV_CPB_RESP_CPB_ERR) {
--		ata_port_printk(ap, KERN_ERR, "CPB flags CPB err, flags=0x%x\n", flags);
--		have_err = 1;
--		complete = 1;
-+	if (unlikely((force_err ||
-+		     flags & (NV_CPB_RESP_ATA_ERR |
-+			      NV_CPB_RESP_CMD_ERR |
-+			      NV_CPB_RESP_CPB_ERR)))) {
-+		struct ata_eh_info *ehi = &ap->eh_info;
-+		int freeze = 0;
++	status = readw(mmio + NV_ADMA_STAT);
++	while(!(status & NV_ADMA_STAT_IDLE) && count < 20) {
++		ndelay(50);
++		status = readw(mmio + NV_ADMA_STAT);
++		count++;
++	}
++	if(count == 20)
++		ata_port_printk(ap, KERN_WARNING,
++			"timeout waiting for ADMA IDLE, stat=0x%hx\n",
++			status);
 +
-+		ata_ehi_clear_desc(ehi);
-+		ata_ehi_push_desc(ehi, "CPB resp_flags 0x%x", flags );
-+		if (flags & NV_CPB_RESP_ATA_ERR) {
-+			ata_ehi_push_desc(ehi, ": ATA error");
-+			ehi->err_mask |= AC_ERR_DEV;
-+		} else if (flags & NV_CPB_RESP_CMD_ERR) {
-+			ata_ehi_push_desc(ehi, ": CMD error");
-+			ehi->err_mask |= AC_ERR_DEV;
-+		} else if (flags & NV_CPB_RESP_CPB_ERR) {
-+			ata_ehi_push_desc(ehi, ": CPB error");
-+			ehi->err_mask |= AC_ERR_SYSTEM;
-+			freeze = 1;
-+		} else {
-+			/* notifier error, but no error in CPB flags? */
-+			ehi->err_mask |= AC_ERR_OTHER;
-+			freeze = 1;
-+		}
-+		/* Kill all commands. EH will determine what actually failed. */
-+		if (freeze)
-+			ata_port_freeze(ap);
-+		else
-+			ata_port_abort(ap);
-+		return 1;
- 	}
--	if(complete || force_err)
--	{
+ 	tmp = readw(mmio + NV_ADMA_CTL);
+ 	writew(tmp & ~NV_ADMA_CTL_GO, mmio + NV_ADMA_CTL);
+ 
++	count = 0;
++	status = readw(mmio + NV_ADMA_STAT);
++	while(!(status & NV_ADMA_STAT_LEGACY) && count < 20) {
++		ndelay(50);
++		status = readw(mmio + NV_ADMA_STAT);
++		count++;
++	}
++	if(count == 20)
++		ata_port_printk(ap, KERN_WARNING,
++			 "timeout waiting for ADMA LEGACY, stat=0x%hx\n",
++			 status);
 +
-+	if (flags & NV_CPB_RESP_DONE) {
- 		struct ata_queued_cmd *qc = ata_qc_from_tag(ap, cpb_num);
--		if(likely(qc)) {
--			u8 ata_status = 0;
--			/* Only use the ATA port status for non-NCQ commands.
-+		VPRINTK("CPB flags done, flags=0x%x\n", flags);
-+		if (likely(qc)) {
-+			/* Grab the ATA port status for non-NCQ commands.
- 			   For NCQ commands the current status may have nothing to do with
- 			   the command just completed. */
--			if(qc->tf.protocol != ATA_PROT_NCQ)
--				ata_status = readb(pp->ctl_block + (ATA_REG_STATUS * 4));
--
--			if(have_err || force_err)
--				ata_status |= ATA_ERR;
--
--			qc->err_mask |= ac_err_mask(ata_status);
-+			if (qc->tf.protocol != ATA_PROT_NCQ) {
-+				u8 ata_status = readb(pp->ctl_block + (ATA_REG_STATUS * 4));
-+				qc->err_mask |= ac_err_mask(ata_status);
-+			}
- 			DPRINTK("Completing qc from tag %d with err_mask %u\n",cpb_num,
- 				qc->err_mask);
- 			ata_qc_complete(qc);
- 		}
- 	}
-+	return 0;
+ 	pp->flags |= NV_ADMA_PORT_REGISTER_MODE;
  }
  
- static int nv_host_intr(struct ata_port *ap, u8 irq_stat)
-@@ -733,7 +742,6 @@ static irqreturn_t nv_adma_interrupt(int
- 			void __iomem *mmio = pp->ctl_block;
- 			u16 status;
- 			u32 gen_ctl;
--			int have_global_err = 0;
- 			u32 notifier, notifier_error;
+@@ -519,7 +543,8 @@ static void nv_adma_mode(struct ata_port
+ {
+ 	struct nv_adma_port_priv *pp = ap->private_data;
+ 	void __iomem *mmio = pp->ctl_block;
+-	u16 tmp;
++	u16 tmp, status;
++	int count = 0;
  
- 			/* if in ATA register mode, use standard ata interrupt handler */
-@@ -769,42 +777,50 @@ static irqreturn_t nv_adma_interrupt(int
- 			readw(mmio + NV_ADMA_STAT); /* flush posted write */
- 			rmb();
+ 	if (!(pp->flags & NV_ADMA_PORT_REGISTER_MODE))
+ 		return;
+@@ -529,6 +554,18 @@ static void nv_adma_mode(struct ata_port
+ 	tmp = readw(mmio + NV_ADMA_CTL);
+ 	writew(tmp | NV_ADMA_CTL_GO, mmio + NV_ADMA_CTL);
  
--			/* freeze if hotplugged */
--			if (unlikely(status & (NV_ADMA_STAT_HOTPLUG | NV_ADMA_STAT_HOTUNPLUG))) {
--				ata_port_printk(ap, KERN_NOTICE, "Hotplug event, freezing\n");
-+			handled++; /* irq handled if we got here */
++	status = readw(mmio + NV_ADMA_STAT);
++	while(((status & NV_ADMA_STAT_LEGACY) ||
++	      !(status & NV_ADMA_STAT_IDLE)) && count < 20) {
++		ndelay(50);
++		status = readw(mmio + NV_ADMA_STAT);
++		count++;
++	}
++	if(count == 20)
++		ata_port_printk(ap, KERN_WARNING,
++			"timeout waiting for ADMA LEGACY clear and IDLE, stat=0x%hx\n",
++			status);
 +
-+			/* freeze if hotplugged or controller error */
-+			if (unlikely(status & (NV_ADMA_STAT_HOTPLUG |
-+					       NV_ADMA_STAT_HOTUNPLUG |
-+					       NV_ADMA_STAT_TIMEOUT))) {
-+				struct ata_eh_info *ehi = &ap->eh_info;
-+
-+				ata_ehi_clear_desc(ehi);
-+				ata_ehi_push_desc(ehi, "ADMA status 0x%08x", status );
-+				if (status & NV_ADMA_STAT_TIMEOUT) {
-+					ehi->err_mask |= AC_ERR_SYSTEM;
-+					ata_ehi_push_desc(ehi, ": timeout");
-+				} else if (status & NV_ADMA_STAT_HOTPLUG) {
-+					ata_ehi_hotplugged(ehi);
-+					ata_ehi_push_desc(ehi, ": hotplug");
-+				} else if (status & NV_ADMA_STAT_HOTUNPLUG) {
-+					ata_ehi_hotplugged(ehi);
-+					ata_ehi_push_desc(ehi, ": hot unplug");
-+				}
- 				ata_port_freeze(ap);
--				handled++;
- 				continue;
- 			}
+ 	pp->flags &= ~NV_ADMA_PORT_REGISTER_MODE;
+ }
  
--			if (status & NV_ADMA_STAT_TIMEOUT) {
--				ata_port_printk(ap, KERN_ERR, "timeout, stat=0x%x\n", status);
--				have_global_err = 1;
--			}
--			if (status & NV_ADMA_STAT_CPBERR) {
--				ata_port_printk(ap, KERN_ERR, "CPB error, stat=0x%x\n", status);
--				have_global_err = 1;
--			}
--			if ((status & NV_ADMA_STAT_DONE) || have_global_err) {
-+			if (status & (NV_ADMA_STAT_DONE |
-+				      NV_ADMA_STAT_CPBERR)) {
- 				/** Check CPBs for completed commands */
- 
--				if(ata_tag_valid(ap->active_tag))
-+				if (ata_tag_valid(ap->active_tag)) {
- 					/* Non-NCQ command */
--					nv_adma_check_cpb(ap, ap->active_tag, have_global_err ||
--						(notifier_error & (1 << ap->active_tag)));
--				else {
--					int pos;
-+					nv_adma_check_cpb(ap, ap->active_tag,
-+						notifier_error & (1 << ap->active_tag));
-+				} else {
-+					int pos, error = 0;
- 					u32 active = ap->sactive;
--					while( (pos = ffs(active)) ) {
-+
-+					while ((pos = ffs(active)) && !error) {
- 						pos--;
--						nv_adma_check_cpb(ap, pos, have_global_err ||
--							(notifier_error & (1 << pos)) );
-+						error = nv_adma_check_cpb(ap, pos,
-+							notifier_error & (1 << pos) );
- 						active &= ~(1 << pos );
- 					}
- 				}
- 			}
--
--			handled++; /* irq handled if we got here */
- 		}
- 	}
- 
-@@ -1364,28 +1380,9 @@ static void nv_adma_error_handler(struct
- 		int i;
- 		u16 tmp;
- 
--		u32 notifier = readl(mmio + NV_ADMA_NOTIFIER);
--		u32 notifier_error = readl(mmio + NV_ADMA_NOTIFIER_ERROR);
--		u32 gen_ctl = readl(pp->gen_block + NV_ADMA_GEN_CTL);
--		u32 status = readw(mmio + NV_ADMA_STAT);
--
--		ata_port_printk(ap, KERN_ERR, "EH in ADMA mode, notifier 0x%X "
--			"notifier_error 0x%X gen_ctl 0x%X status 0x%X\n",
--			notifier, notifier_error, gen_ctl, status);
--
--		for( i=0;i<NV_ADMA_MAX_CPBS;i++) {
--			struct nv_adma_cpb *cpb = &pp->cpb[i];
--			if( cpb->ctl_flags || cpb->resp_flags )
--				ata_port_printk(ap, KERN_ERR,
--					"CPB %d: ctl_flags 0x%x, resp_flags 0x%x\n",
--					i, cpb->ctl_flags, cpb->resp_flags);
--		}
--
- 		/* Push us back into port register mode for error handling. */
- 		nv_adma_register_mode(ap);
- 
--		ata_port_printk(ap, KERN_ERR, "Resetting port\n");
--
- 		/* Mark all of the CPBs as invalid to prevent them from being executed */
- 		for( i=0;i<NV_ADMA_MAX_CPBS;i++)
- 			pp->cpb[i].ctl_flags &= ~NV_CPB_CTL_CPB_VALID;
 _
 
 Patches currently in -mm which might be from hancockr@shaw.ca are
