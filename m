@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-forward-declare-struct-task_struct.patch added to -mm tree
-Date: Wed, 07 Feb 2007 14:48:48 -0800
-Message-ID: <200702072248.l17MmnsU030043@shell0.pdx.osdl.net>
+Subject: + spi-filesystem-api-tweaks.patch added to -mm tree
+Date: Wed, 07 Feb 2007 15:04:32 -0800
+Message-ID: <200702072304.l17N4WTS030493@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43041 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44027 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030299AbXBGWu1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 17:50:27 -0500
+	id S1161321AbXBGXEe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 18:04:34 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l17N4WdD023823
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 7 Feb 2007 15:04:33 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, mingo@elte.hu, schwidefsky@de.ibm.com, stable@kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     lockdep: forward declare struct task_struct
+     spi-filesystem-api-tweaks
 has been added to the -mm tree.  Its filename is
-     lockdep-forward-declare-struct-task_struct.patch
+     spi-filesystem-api-tweaks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +29,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockdep: forward declare struct task_struct
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: spi-filesystem-api-tweaks
+From: Andrew Morton <akpm@linux-foundation.org>
 
-3117df0453828bd045c16244e6f50e5714667a8a causes this:
-
-In file included from arch/s390/kernel/early.c:13:
-include/linux/lockdep.h:300: warning:
-		"struct task_struct" declared inside parameter list
-include/linux/lockdep.h:300:
-		warning: its scope is only this definition or
-		declaration, which is probably not what you want
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/spi/spidev.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockdep-forward-declare-struct-task_struct include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-forward-declare-struct-task_struct
-+++ a/include/linux/lockdep.h
-@@ -8,6 +8,8 @@
- #ifndef __LINUX_LOCKDEP_H
- #define __LINUX_LOCKDEP_H
+diff -puN drivers/spi/spidev.c~spi-filesystem-api-tweaks drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spi-filesystem-api-tweaks
++++ a/drivers/spi/spidev.c
+@@ -89,7 +89,7 @@ spidev_read(struct file *filp, char __us
+ 	if (count > bufsiz)
+ 		return -EMSGSIZE;
  
-+struct task_struct;
-+
- #ifdef CONFIG_LOCKDEP
+-	spidev = (struct device_data *)filp->private_data;
++	spidev = filp->private_data;
+ 	spi = spidev->spi;
  
- #include <linux/linkage.h>
+ 	mutex_lock(&spidev->buf_lock);
+@@ -125,7 +125,7 @@ spidev_write(struct file *filp, const ch
+ 	if (count > bufsiz)
+ 		return -EMSGSIZE;
+ 
+-	spidev = (struct device_data *)filp->private_data;
++	spidev = filp->private_data;
+ 	spi = spidev->spi;
+ 
+ 	mutex_lock(&spidev->buf_lock);
+@@ -174,7 +174,7 @@ spidev_ioctl(struct inode *inode, struct
+ 	if (err)
+ 		return -EFAULT;
+ 
+-	dev_data = (struct device_data *)filp->private_data;
++	dev_data = filp->private_data;
+ 	spi = dev_data->spi;
+ 
+ 	switch (cmd) {
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ehca-fix-memleak-on-module-unloading.patch
-git-s390.patch
-lockdep-forward-declare-struct-task_struct.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-s390.patch
+fix-warning-in-device_add_attrs.patch
+git-dvb.patch
+kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
+git-libata-all.patch
+sis-warning-fixes.patch
+git-md-accel-fixes.patch
+git-md-accel-warning-fixes.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+git-sh.patch
+git-block.patch
+git-cryptodev-fixup.patch
+mm-vm_insert_pfn-tidy.patch
+swiotlb-uninlinings.patch
+spi-filesystem-api-tweaks.patch
+workqueue-dont-save-interrupts-in-run_workqueue-update.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
