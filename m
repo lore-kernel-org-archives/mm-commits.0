@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rcutorture-use-array_size-macro-when-appropriate.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:06:09 -0800
-Message-ID: <200702070006.l1706AwV001178@shell0.pdx.osdl.net>
+Subject: + s390-drivers-use-array_size-macro-when-appropriate.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:05:58 -0800
+Message-ID: <200702070006.l1705xUh001175@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56120 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56124 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030231AbXBGAGl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:06:41 -0500
+	id S1030247AbXBGAGq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:06:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, paulmck@us.ibm.com
+Cc: darwish.07@gmail.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     rcutorture: Use ARRAY_SIZE macro when appropriate
+     s390-drivers: Use ARRAY_SIZE macro when appropriate
 has been added to the -mm tree.  Its filename is
-     rcutorture-use-array_size-macro-when-appropriate.patch
+     s390-drivers-use-array_size-macro-when-appropriate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rcutorture: Use ARRAY_SIZE macro when appropriate
+Subject: s390-drivers: Use ARRAY_SIZE macro when appropriate
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
 Use ARRAY_SIZE macro already defined in kernel.h
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcutorture.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/s390/cio/device_id.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/rcutorture.c~rcutorture-use-array_size-macro-when-appropriate kernel/rcutorture.c
---- a/kernel/rcutorture.c~rcutorture-use-array_size-macro-when-appropriate
-+++ a/kernel/rcutorture.c
-@@ -966,7 +966,7 @@ rcu_torture_init(void)
- 	/* Set up the freelist. */
+diff -puN drivers/s390/cio/device_id.c~s390-drivers-use-array_size-macro-when-appropriate drivers/s390/cio/device_id.c
+--- a/drivers/s390/cio/device_id.c~s390-drivers-use-array_size-macro-when-appropriate
++++ a/drivers/s390/cio/device_id.c
+@@ -11,6 +11,7 @@
  
- 	INIT_LIST_HEAD(&rcu_torture_freelist);
--	for (i = 0; i < sizeof(rcu_tortures) / sizeof(rcu_tortures[0]); i++) {
-+	for (i = 0; i < ARRAY_SIZE(rcu_tortures); i++) {
- 		rcu_tortures[i].rtort_mbtest = 0;
- 		list_add_tail(&rcu_tortures[i].rtort_free,
- 			      &rcu_torture_freelist);
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/kernel.h>
+ 
+ #include <asm/ccwdev.h>
+ #include <asm/delay.h>
+@@ -138,7 +139,7 @@ VM_virtual_device_info (__u16 devno, str
+ 		ps->cu_model = 0x60;
+ 		return;
+ 	}
+-	for (i = 0; i < sizeof(vm_devices) / sizeof(vm_devices[0]); i++)
++	for (i = 0; i < ARRAY_SIZE(vm_devices); i++)
+ 		if (diag_data.vrdcvcla == vm_devices[i].vrdcvcla &&
+ 		    diag_data.vrdcvtyp == vm_devices[i].vrdcvtyp) {
+ 			ps->cu_type = vm_devices[i].cu_type;
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
