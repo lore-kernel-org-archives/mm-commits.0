@@ -1,187 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-make-swiotlb-use-bus_to_virt-virt_to_bus.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:51:51 -0800
-Message-ID: <200702071951.l17Jppeo025197@shell0.pdx.osdl.net>
+Subject: - ia64-enable-swiotlb-only-when-needed.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:52:01 -0800
+Message-ID: <200702071952.l17Jq1Vt025209@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33565 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33575 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161427AbXBGTwD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:52:03 -0500
+	id S1422729AbXBGTwG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:52:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, ak@suse.de, muli@il.ibm.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, ak@suse.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: make swiotlb use bus_to_virt/virt_to_bus
+     ia64: Enable SWIOTLB only when needed
 has been removed from the -mm tree.  Its filename was
-     ia64-make-swiotlb-use-bus_to_virt-virt_to_bus.patch
+     ia64-enable-swiotlb-only-when-needed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ia64: make swiotlb use bus_to_virt/virt_to_bus
+Subject: ia64: Enable SWIOTLB only when needed
 From: "Jan Beulich" <jbeulich@novell.com>
 
-Convert all phys_to_virt/virt_to_phys uses to bus_to_virt/virt_to_bus, as is
-what is meant and what is needed in (at least) some virtualized environments
-like Xen.
+Don't force CONFIG_SWIOTLB on when not actually needed (i.e. HP_ZX1 and
+SGI_SN2).
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/swiotlb.c |   33 +++++++++++++++++----------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ arch/ia64/Kconfig |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN lib/swiotlb.c~ia64-make-swiotlb-use-bus_to_virt-virt_to_bus lib/swiotlb.c
---- a/lib/swiotlb.c~ia64-make-swiotlb-use-bus_to_virt-virt_to_bus
-+++ a/lib/swiotlb.c
-@@ -36,7 +36,7 @@
- 	                   ( (val) & ( (align) - 1)))
+diff -puN arch/ia64/Kconfig~ia64-enable-swiotlb-only-when-needed arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~ia64-enable-swiotlb-only-when-needed
++++ a/arch/ia64/Kconfig
+@@ -28,7 +28,6 @@ config MMU
  
- #define SG_ENT_VIRT_ADDRESS(sg)	(page_address((sg)->page) + (sg)->offset)
--#define SG_ENT_PHYS_ADDRESS(SG)	virt_to_phys(SG_ENT_VIRT_ADDRESS(SG))
-+#define SG_ENT_PHYS_ADDRESS(sg)	virt_to_bus(SG_ENT_VIRT_ADDRESS(sg))
+ config SWIOTLB
+        bool
+-       default y
  
- /*
-  * Maximum allowable number of contiguous slabs to map,
-@@ -163,7 +163,7 @@ swiotlb_init_with_default_size (size_t d
- 	 */
- 	io_tlb_overflow_buffer = alloc_bootmem_low(io_tlb_overflow);
- 	printk(KERN_INFO "Placing software IO TLB between 0x%lx - 0x%lx\n",
--	       virt_to_phys(io_tlb_start), virt_to_phys(io_tlb_end));
-+	       virt_to_bus(io_tlb_start), virt_to_bus(io_tlb_end));
- }
+ config RWSEM_XCHGADD_ALGORITHM
+ 	bool
+@@ -88,6 +87,7 @@ config IA64_GENERIC
+ 	select PCI
+ 	select NUMA
+ 	select ACPI_NUMA
++	select SWIOTLB
+ 	help
+ 	  This selects the system type of your hardware.  A "generic" kernel
+ 	  will run on any supported IA-64 system.  However, if you configure
+@@ -104,6 +104,7 @@ config IA64_GENERIC
  
- void
-@@ -244,7 +244,7 @@ swiotlb_late_init_with_default_size (siz
+ config IA64_DIG
+ 	bool "DIG-compliant"
++	select SWIOTLB
  
- 	printk(KERN_INFO "Placing %ldMB software IO TLB between 0x%lx - "
- 	       "0x%lx\n", (io_tlb_nslabs * (1 << IO_TLB_SHIFT)) >> 20,
--	       virt_to_phys(io_tlb_start), virt_to_phys(io_tlb_end));
-+	       virt_to_bus(io_tlb_start), virt_to_bus(io_tlb_end));
+ config IA64_HP_ZX1
+ 	bool "HP-zx1/sx1000"
+@@ -113,6 +114,7 @@ config IA64_HP_ZX1
  
- 	return 0;
+ config IA64_HP_ZX1_SWIOTLB
+ 	bool "HP-zx1/sx1000 with software I/O TLB"
++	select SWIOTLB
+ 	help
+ 	  Build a kernel that runs on HP zx1 and sx1000 systems even when they
+ 	  have broken PCI devices which cannot DMA to full 32 bits.  Apart
+@@ -131,6 +133,7 @@ config IA64_SGI_SN2
  
-@@ -445,7 +445,7 @@ swiotlb_alloc_coherent(struct device *hw
- 	flags |= GFP_DMA;
+ config IA64_HP_SIM
+ 	bool "Ski-simulator"
++	select SWIOTLB
  
- 	ret = (void *)__get_free_pages(flags, order);
--	if (ret && address_needs_mapping(hwdev, virt_to_phys(ret))) {
-+	if (ret && address_needs_mapping(hwdev, virt_to_bus(ret))) {
- 		/*
- 		 * The allocated memory isn't reachable by the device.
- 		 * Fall back on swiotlb_map_single().
-@@ -465,11 +465,11 @@ swiotlb_alloc_coherent(struct device *hw
- 		if (swiotlb_dma_mapping_error(handle))
- 			return NULL;
+ endchoice
  
--		ret = phys_to_virt(handle);
-+		ret = bus_to_virt(handle);
- 	}
- 
- 	memset(ret, 0, size);
--	dev_addr = virt_to_phys(ret);
-+	dev_addr = virt_to_bus(ret);
- 
- 	/* Confirm address can be DMA'd by device */
- 	if (address_needs_mapping(hwdev, dev_addr)) {
-@@ -525,7 +525,7 @@ swiotlb_full(struct device *dev, size_t 
- dma_addr_t
- swiotlb_map_single(struct device *hwdev, void *ptr, size_t size, int dir)
- {
--	unsigned long dev_addr = virt_to_phys(ptr);
-+	unsigned long dev_addr = virt_to_bus(ptr);
- 	void *map;
- 
- 	BUG_ON(dir == DMA_NONE);
-@@ -546,7 +546,7 @@ swiotlb_map_single(struct device *hwdev,
- 		map = io_tlb_overflow_buffer;
- 	}
- 
--	dev_addr = virt_to_phys(map);
-+	dev_addr = virt_to_bus(map);
- 
- 	/*
- 	 * Ensure that the address returned is DMA'ble
-@@ -569,7 +569,7 @@ void
- swiotlb_unmap_single(struct device *hwdev, dma_addr_t dev_addr, size_t size,
- 		     int dir)
- {
--	char *dma_addr = phys_to_virt(dev_addr);
-+	char *dma_addr = bus_to_virt(dev_addr);
- 
- 	BUG_ON(dir == DMA_NONE);
- 	if (dma_addr >= io_tlb_start && dma_addr < io_tlb_end)
-@@ -592,7 +592,7 @@ static inline void
- swiotlb_sync_single(struct device *hwdev, dma_addr_t dev_addr,
- 		    size_t size, int dir, int target)
- {
--	char *dma_addr = phys_to_virt(dev_addr);
-+	char *dma_addr = bus_to_virt(dev_addr);
- 
- 	BUG_ON(dir == DMA_NONE);
- 	if (dma_addr >= io_tlb_start && dma_addr < io_tlb_end)
-@@ -623,7 +623,7 @@ swiotlb_sync_single_range(struct device 
- 			  unsigned long offset, size_t size,
- 			  int dir, int target)
- {
--	char *dma_addr = phys_to_virt(dev_addr) + offset;
-+	char *dma_addr = bus_to_virt(dev_addr) + offset;
- 
- 	BUG_ON(dir == DMA_NONE);
- 	if (dma_addr >= io_tlb_start && dma_addr < io_tlb_end)
-@@ -676,7 +676,7 @@ swiotlb_map_sg(struct device *hwdev, str
- 
- 	for (i = 0; i < nelems; i++, sg++) {
- 		addr = SG_ENT_VIRT_ADDRESS(sg);
--		dev_addr = virt_to_phys(addr);
-+		dev_addr = virt_to_bus(addr);
- 		if (swiotlb_force || address_needs_mapping(hwdev, dev_addr)) {
- 			void *map = map_single(hwdev, addr, sg->length, dir);
- 			if (!map) {
-@@ -709,7 +709,8 @@ swiotlb_unmap_sg(struct device *hwdev, s
- 
- 	for (i = 0; i < nelems; i++, sg++)
- 		if (sg->dma_address != SG_ENT_PHYS_ADDRESS(sg))
--			unmap_single(hwdev, (void *) phys_to_virt(sg->dma_address), sg->dma_length, dir);
-+			unmap_single(hwdev, bus_to_virt(sg->dma_address),
-+				     sg->dma_length, dir);
- 		else if (dir == DMA_FROM_DEVICE)
- 			dma_mark_clean(SG_ENT_VIRT_ADDRESS(sg), sg->dma_length);
- }
-@@ -731,7 +732,7 @@ swiotlb_sync_sg(struct device *hwdev, st
- 
- 	for (i = 0; i < nelems; i++, sg++)
- 		if (sg->dma_address != SG_ENT_PHYS_ADDRESS(sg))
--			sync_single(hwdev, phys_to_virt(sg->dma_address),
-+			sync_single(hwdev, bus_to_virt(sg->dma_address),
- 				    sg->dma_length, dir, target);
- 		else if (dir == DMA_FROM_DEVICE)
- 			dma_mark_clean(SG_ENT_VIRT_ADDRESS(sg), sg->dma_length);
-@@ -754,7 +755,7 @@ swiotlb_sync_sg_for_device(struct device
- int
- swiotlb_dma_mapping_error(dma_addr_t dma_addr)
- {
--	return (dma_addr == virt_to_phys(io_tlb_overflow_buffer));
-+	return (dma_addr == virt_to_bus(io_tlb_overflow_buffer));
- }
- 
- /*
-@@ -766,7 +767,7 @@ swiotlb_dma_mapping_error(dma_addr_t dma
- int
- swiotlb_dma_supported (struct device *hwdev, u64 mask)
- {
--	return virt_to_phys(io_tlb_end - 1) <= mask;
-+	return virt_to_bus(io_tlb_end - 1) <= mask;
- }
- 
- EXPORT_SYMBOL(swiotlb_init);
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
