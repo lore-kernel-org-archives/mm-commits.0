@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-aio-locking-and-tidying.patch added to -mm tree
-Date: Wed, 07 Feb 2007 15:20:57 -0800
-Message-ID: <200702072320.l17NKvGG030944@shell0.pdx.osdl.net>
+Subject: + uml-sigio-formatting-fixes.patch added to -mm tree
+Date: Wed, 07 Feb 2007 15:20:49 -0800
+Message-ID: <200702072320.l17NKn41030932@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44873 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44852 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161484AbXBGXVA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 18:21:00 -0500
+	id S1161321AbXBGXUw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 18:20:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: AIO locking and tidying
+     uml: SIGIO formatting fixes
 has been added to the -mm tree.  Its filename is
-     uml-aio-locking-and-tidying.patch
+     uml-sigio-formatting-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,87 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: AIO locking and tidying
+Subject: uml: SIGIO formatting fixes
 From: Jeff Dike <jdike@addtoit.com>
 
-Comment the lack of locking of data that's set up once at boot time.
-
-Also fixed a couple of bogus printks.
+Fix formatting in the sigio code.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/aio.c |   16 +++++++++-------
- 1 files changed, 9 insertions(+), 7 deletions(-)
+ arch/um/include/sigio.h |   11 -----------
+ arch/um/kernel/sigio.c  |    6 +++---
+ 2 files changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN arch/um/os-Linux/aio.c~uml-aio-locking-and-tidying arch/um/os-Linux/aio.c
---- a/arch/um/os-Linux/aio.c~uml-aio-locking-and-tidying
-+++ a/arch/um/os-Linux/aio.c
-@@ -24,9 +24,6 @@ struct aio_thread_req {
- 	struct aio_context *aio;
- };
+diff -puN arch/um/include/sigio.h~uml-sigio-formatting-fixes arch/um/include/sigio.h
+--- a/arch/um/include/sigio.h~uml-sigio-formatting-fixes
++++ a/arch/um/include/sigio.h
+@@ -12,14 +12,3 @@ extern void sigio_lock(void);
+ extern void sigio_unlock(void);
  
--static int aio_req_fd_r = -1;
--static int aio_req_fd_w = -1;
--
- #if defined(HAVE_AIO_ABI)
- #include <linux/aio_abi.h>
- 
-@@ -111,6 +108,7 @@ static int do_aio(aio_context_t ctx, enu
- 	return err;
- }
- 
-+/* Initialized in an initcall and unchanged thereafter */
- static aio_context_t ctx = 0;
- 
- static int aio_thread(void *arg)
-@@ -137,7 +135,7 @@ static int aio_thread(void *arg)
- 			err = os_write_file(reply_fd, &reply, sizeof(reply));
- 			if(err != sizeof(reply))
- 				printk("aio_thread - write failed, fd = %d, "
--				       "err = %d\n", aio_req_fd_r, -err);
-+				       "err = %d\n", reply_fd, -err);
- 		}
- 	}
- 	return 0;
-@@ -182,6 +180,11 @@ out:
- 	return err;
- }
- 
-+/* These are initialized in initcalls and not changed */
-+static int aio_req_fd_r = -1;
-+static int aio_req_fd_w = -1;
-+static int aio_pid = -1;
-+
- static int not_aio_thread(void *arg)
- {
- 	struct aio_thread_req req;
-@@ -208,14 +211,12 @@ static int not_aio_thread(void *arg)
- 		err = os_write_file(req.aio->reply_fd, &reply, sizeof(reply));
- 		if(err != sizeof(reply))
- 			printk("not_aio_thread - write failed, fd = %d, "
--			       "err = %d\n", aio_req_fd_r, -err);
-+			       "err = %d\n", req.aio->reply_fd, -err);
- 	}
- 
- 	return 0;
- }
- 
--static int aio_pid = -1;
--
- static int init_aio_24(void)
- {
- 	unsigned long stack;
-@@ -308,6 +309,7 @@ static int submit_aio_26(enum aio_type t
- }
  #endif
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/kernel/sigio.c~uml-sigio-formatting-fixes arch/um/kernel/sigio.c
+--- a/arch/um/kernel/sigio.c~uml-sigio-formatting-fixes
++++ a/arch/um/kernel/sigio.c
+@@ -23,7 +23,7 @@ static irqreturn_t sigio_interrupt(int i
  
-+/* Initialized in an initcall and unchanged thereafter */
- static int aio_24 = DEFAULT_24_AIO;
+ 	os_read_file(sigio_irq_fd, &c, sizeof(c));
+ 	reactivate_fd(sigio_irq_fd, SIGIO_WRITE_IRQ);
+-	return(IRQ_HANDLED);
++	return IRQ_HANDLED;
+ }
  
- static int __init set_aio_24(char *name, int *add)
+ int write_sigio_irq(int fd)
+@@ -36,10 +36,10 @@ int write_sigio_irq(int fd)
+ 	if(err){
+ 		printk("write_sigio_irq : um_request_irq failed, err = %d\n",
+ 		       err);
+-		return(-1);
++		return -1;
+ 	}
+ 	sigio_irq_fd = fd;
+-	return(0);
++	return 0;
+ }
+ 
+ /* These are called from os-Linux/sigio.c to protect its pollfds arrays. */
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
