@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch added to -mm tree
-Date: Tue, 06 Feb 2007 17:45:29 -0800
-Message-ID: <200702070145.l171jTVv003627@shell0.pdx.osdl.net>
+Subject: + workqueue-make-init_workqueues-__init.patch added to -mm tree
+Date: Tue, 06 Feb 2007 17:45:44 -0800
+Message-ID: <200702070145.l171jiac003636@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58676 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58682 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965628AbXBGBpx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 20:45:53 -0500
+	id S933113AbXBGBqF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 20:46:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, mingo@elte.hu
 
 
 The patch titled
-     workqueue: make cancel_rearming_delayed_workqueue() work on idle dwork
+     workqueue: make init_workqueues() __init
 has been added to the -mm tree.  Its filename is
-     workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+     workqueue-make-init_workqueues-__init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: workqueue: make cancel_rearming_delayed_workqueue() work on idle dwork
+Subject: workqueue: make init_workqueues() __init
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-cancel_rearming_delayed_workqueue(dwork) will hang forever if dwork was not
-scheduled, because in that case cancel_delayed_work()->del_timer_sync() never
-returns true.
-
-I don't know if there are any callers which may have problems, but this is not
-so convenient, and the fix is very simple.
-
-Q: looks like we don't need "struct workqueue_struct *wq" parameter.  If the
-timer was aborted successfully, get_wq_data() == wq.  Is it worth to add the
-new function?
+The only caller of init_workqueues() is do_basic_setup().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ kernel/workqueue.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/workqueue.c~workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork
+diff -puN kernel/workqueue.c~workqueue-make-init_workqueues-__init kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-make-init_workqueues-__init
 +++ a/kernel/workqueue.c
-@@ -566,6 +566,10 @@ EXPORT_SYMBOL(flush_work_keventd);
- void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
- 				       struct delayed_work *dwork)
- {
-+	/* Was it ever queued ? */
-+	if (!get_wq_data(&dwork->work))
-+		return;
-+
- 	while (!cancel_delayed_work(dwork))
- 		flush_workqueue(wq);
+@@ -821,7 +821,7 @@ static int __devinit workqueue_cpu_callb
+ 	return NOTIFY_OK;
  }
+ 
+-void init_workqueues(void)
++void __init init_workqueues(void)
+ {
+ 	cpu_populated_map = cpu_online_map;
+ 	singlethread_cpu = first_cpu(cpu_possible_map);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
