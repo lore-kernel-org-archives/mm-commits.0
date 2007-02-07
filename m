@@ -1,67 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - ifdef-missing-in-arch-mips-pmc-sierra-yosemite-setupc.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 11:52:55 -0800
-Message-ID: <200702071952.l17Jqtja025278@shell0.pdx.osdl.net>
+Subject: - libata-early-cfa-adapters-are-not-required-to-support-mode.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 11:52:48 -0800
+Message-ID: <200702071952.l17JqmOa025269@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33703 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33708 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422816AbXBGTxI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 14:53:08 -0500
+	id S1422858AbXBGTxK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 14:53:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ifdef missing in arch/mips/pmc-sierra/yosemite/setup.c
+     libata: Early CFA adapters are not required to support mode setting
 has been removed from the -mm tree.  Its filename was
-     ifdef-missing-in-arch-mips-pmc-sierra-yosemite-setupc.patch
+     libata-early-cfa-adapters-are-not-required-to-support-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ifdef missing in arch/mips/pmc-sierra/yosemite/setup.c
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: libata: Early CFA adapters are not required to support mode setting
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-ifdef missing in arch/mips/pmc-sierra/yosemite/setup.c
+If we are doing a PIO setup for a CFA card and it blows up with a device error
+then assume it is an older CFA card which doesn't support this rather than
+failing the device out of existance.
 
-early_serial_setup is only defined when CONFIG_SERIAL_8250 is set.
+Stands seperate to the quieting patch but that is obviously useful with this
+change.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/pmc-sierra/yosemite/setup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/ata/libata-core.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/mips/pmc-sierra/yosemite/setup.c~ifdef-missing-in-arch-mips-pmc-sierra-yosemite-setupc arch/mips/pmc-sierra/yosemite/setup.c
---- a/arch/mips/pmc-sierra/yosemite/setup.c~ifdef-missing-in-arch-mips-pmc-sierra-yosemite-setupc
-+++ a/arch/mips/pmc-sierra/yosemite/setup.c
-@@ -171,6 +171,7 @@ static void __init py_map_ocd(void)
+diff -puN drivers/ata/libata-core.c~libata-early-cfa-adapters-are-not-required-to-support-mode drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-early-cfa-adapters-are-not-required-to-support-mode
++++ a/drivers/ata/libata-core.c
+@@ -2337,6 +2337,10 @@ static int ata_dev_set_mode(struct ata_d
+ 		dev->flags |= ATA_DFLAG_PIO;
  
- static void __init py_uart_setup(void)
- {
-+#ifdef CONFIG_SERIAL_8250
- 	struct uart_port up;
- 
- 	/*
-@@ -188,6 +189,7 @@ static void __init py_uart_setup(void)
- 
- 	if (early_serial_setup(&up))
- 		printk(KERN_ERR "Early serial init of port 0 failed\n");
-+#endif //CONFIG_SERIAL_8250
- }
- 
- static void __init py_rtc_setup(void)
+ 	err_mask = ata_dev_set_xfermode(dev);
++	/* Old CFA may refuse this command, which is just fine */
++	if (dev->xfer_shift == ATA_SHIFT_PIO && ata_id_is_cfa(dev->id))
++        	err_mask &= ~AC_ERR_DEV;
++
+ 	if (err_mask) {
+ 		ata_dev_printk(dev, KERN_ERR, "failed to set xfermode "
+ 			       "(err_mask=0x%x)\n", err_mask);
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-origin.patch
-kernel-time-clocksourcec-needs-struct-task_struct-on-m68k.patch
-relay-add-cpu-hotplug-support.patch
-local_t-documentation.patch
-local_t-documentation-fix.patch
-order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
-minimize-lockdep_on-off-side-effect.patch
+git-libata-all.patch
+sis-warning-fixes.patch
+libata-add-a-host-flag-to-indicate-lack-of-iordy.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+git-mtd.patch
+git-netdev-all.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+perle-multimodem-card-pci-ras-detection.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+geode-support-classic-mediagxm.patch
+cyrix-fails-to-detect-mediagx.patch
+geode-configuration-fixes.patch
+char-tty-delete-wake_up_interruptible-after-tty_wakeup.patch
+char-tty_wakeup-cleanup.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
+tty-improve-encode_baud_rate-logic.patch
+kernel-shut-up-the-irq-mismatch-messages.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+edac-e752x-bit-mask-fix.patch
+edac-e752x-byte-access-fix.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
+sched-avoid-div-in-rebalance_tick.patch
+pm3fb-kill-pci_find_device-usage.patch
