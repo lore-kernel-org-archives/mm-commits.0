@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ifdef-acpi_future_usage-acpi_os_readable.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:51:17 -0800
-Message-ID: <200702070051.l170pHRR002424@shell0.pdx.osdl.net>
+Subject: + add-debugging-feature-proc-timer_stat-cleanup.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:54:49 -0800
+Message-ID: <200702070054.l170snAH002503@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57208 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57221 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030500AbXBGAzq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:55:46 -0500
+	id S1030488AbXBGA4d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:56:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, lenb@kernel.org
+Cc: bunk@stusta.de, mingo@elte.hu
 
 
 The patch titled
-     #ifdef ACPI_FUTURE_USAGE acpi_os_readable()
+     make kernel/time/timer_stats.c:nr_entries static
 has been added to the -mm tree.  Its filename is
-     ifdef-acpi_future_usage-acpi_os_readable.patch
+     add-debugging-feature-proc-timer_stat-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: #ifdef ACPI_FUTURE_USAGE acpi_os_readable()
+Subject: make kernel/time/timer_stats.c:nr_entries static
 From: Adrian Bunk <bunk@stusta.de>
 
-acpi_os_readable() is no longer used.
+nr_entries can become static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Len Brown <lenb@kernel.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/osl.c      |    2 --
- include/acpi/acpiosxf.h |    3 +--
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ kernel/time/timer_stats.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/osl.c~ifdef-acpi_future_usage-acpi_os_readable drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~ifdef-acpi_future_usage-acpi_os_readable
-+++ a/drivers/acpi/osl.c
-@@ -888,7 +888,6 @@ u32 acpi_os_get_line(char *buffer)
+diff -puN kernel/time/timer_stats.c~add-debugging-feature-proc-timer_stat-cleanup kernel/time/timer_stats.c
+--- a/kernel/time/timer_stats.c~add-debugging-feature-proc-timer_stat-cleanup
++++ a/kernel/time/timer_stats.c
+@@ -112,7 +112,7 @@ static ktime_t time_start, time_stop;
+ #define MAX_ENTRIES_BITS	10
+ #define MAX_ENTRIES		(1UL << MAX_ENTRIES_BITS)
  
- 	return 0;
- }
--#endif				/*  ACPI_FUTURE_USAGE  */
+-unsigned long nr_entries;
++static unsigned long nr_entries;
+ static struct entry entries[MAX_ENTRIES];
  
- /* Assumes no unreadable holes inbetween */
- u8 acpi_os_readable(void *ptr, acpi_size len)
-@@ -901,7 +900,6 @@ u8 acpi_os_readable(void *ptr, acpi_size
- 	return 1;
- }
- 
--#ifdef ACPI_FUTURE_USAGE
- u8 acpi_os_writable(void *ptr, acpi_size len)
- {
- 	/* could do dummy write (racy) or a kernel page table lookup.
-diff -puN include/acpi/acpiosxf.h~ifdef-acpi_future_usage-acpi_os_readable include/acpi/acpiosxf.h
---- a/include/acpi/acpiosxf.h~ifdef-acpi_future_usage-acpi_os_readable
-+++ a/include/acpi/acpiosxf.h
-@@ -240,9 +240,8 @@ acpi_status
- acpi_os_validate_address(u8 space_id,
- 			 acpi_physical_address address, acpi_size length);
- 
--u8 acpi_os_readable(void *pointer, acpi_size length);
--
- #ifdef ACPI_FUTURE_USAGE
-+u8 acpi_os_readable(void *pointer, acpi_size length);
- u8 acpi_os_writable(void *pointer, acpi_size length);
- #endif
- 
+ static atomic_t overflow_count;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -88,6 +66,7 @@ drivers-media-dvb-frontends-make-4-functions-static.patch
 cx88-videoc-remove-struct-radionorms.patch
 if-0-v4l_printk_ioctl_arg.patch
 git-gfs2-nmw.patch
+make-gfs2_writepages-static.patch
 git-ieee1394.patch
 git-libata-all.patch
 mips-remove-smp_tune_scheduling.patch
@@ -106,6 +85,7 @@ drivers-scsi-aic7xxx-make-functions-static.patch
 drivers-scsi-wd33c93c-cleanups.patch
 drivers-scsi-qla4xxx-possible-cleanups.patch
 make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
 git-unionfs.patch
 usb_rtl8150-must-select-mii.patch
 git-ipwireless_cs.patch
@@ -127,6 +107,7 @@ gtod-persistent-clock-support.patch
 i386-use-gtod-persistent-clock-support.patch
 extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 clockevents-i383-drivers.patch
+add-debugging-feature-proc-timer_stat-cleanup.patch
 make-ext2_get_blocks-static.patch
 drivers-edac-make-code-static.patch
 drivers-isdn-pcbit-proper-prototypes.patch
@@ -146,9 +127,6 @@ proper-prototype-for-tosh_smm.patch
 remove-the-broken-fb_s3trio-driver.patch
 slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
 slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
 i386-enable-4k-stacks-by-default.patch
 mutex-subsystem-synchro-test-module.patch
-drivers-scsi-aacraid-cleanups.patch
-make-gfs2_writepages-static.patch
-fs-proc-make-code-static.patch
-make-kernel-time-timer_statscnr_entries-static.patch
