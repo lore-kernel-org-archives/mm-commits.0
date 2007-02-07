@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + workqueue-dont-save-interrupts-in-run_workqueue.patch added to -mm tree
-Date: Tue, 06 Feb 2007 17:45:19 -0800
-Message-ID: <200702070145.l171jJM6003620@shell0.pdx.osdl.net>
+Subject: + workqueue-kill-run_scheduled_work.patch added to -mm tree
+Date: Tue, 06 Feb 2007 17:45:13 -0800
+Message-ID: <200702070145.l171jDns003612@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58664 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58665 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752317AbXBGBph (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 20:45:37 -0500
+	id S933113AbXBGBpk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 20:45:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, mingo@elte.hu
 
 
 The patch titled
-     workqueue: don't save interrupts in run_workqueue()
+     workqueue: kill run_scheduled_work()
 has been added to the -mm tree.  Its filename is
-     workqueue-dont-save-interrupts-in-run_workqueue.patch
+     workqueue-kill-run_scheduled_work.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,60 +25,117 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: workqueue: don't save interrupts in run_workqueue()
+Subject: workqueue: kill run_scheduled_work()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-work->func() may sleep, it's a bug to call run_workqueue() with irqs disabled.
+Because it has no callers.
+
+Actually, I think the whole idea of run_scheduled_work() was not right, not
+good to mix "unqueue this work and execute its ->func()" in one function.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   14 ++++----------
- 1 files changed, 4 insertions(+), 10 deletions(-)
+ include/linux/workqueue.h |    1 
+ kernel/workqueue.c        |   73 ------------------------------------
+ 2 files changed, 74 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-dont-save-interrupts-in-run_workqueue kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-dont-save-interrupts-in-run_workqueue
+diff -puN include/linux/workqueue.h~workqueue-kill-run_scheduled_work include/linux/workqueue.h
+--- a/include/linux/workqueue.h~workqueue-kill-run_scheduled_work
++++ a/include/linux/workqueue.h
+@@ -176,7 +176,6 @@ extern void flush_work(struct workqueue_
+ extern void flush_work_keventd(struct work_struct *work);
+ 
+ extern int FASTCALL(schedule_work(struct work_struct *work));
+-extern int FASTCALL(run_scheduled_work(struct work_struct *work));
+ extern int FASTCALL(schedule_delayed_work(struct delayed_work *work, unsigned long delay));
+ 
+ extern int schedule_delayed_work_on(int cpu, struct delayed_work *work, unsigned long delay);
+diff -puN kernel/workqueue.c~workqueue-kill-run_scheduled_work kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-kill-run_scheduled_work
 +++ a/kernel/workqueue.c
-@@ -227,13 +227,7 @@ EXPORT_SYMBOL_GPL(queue_delayed_work_on)
- 
- static void run_workqueue(struct cpu_workqueue_struct *cwq)
- {
--	unsigned long flags;
--
--	/*
--	 * Keep taking off work from the queue until
--	 * done.
--	 */
--	spin_lock_irqsave(&cwq->lock, flags);
-+	spin_lock_irq(&cwq->lock);
- 	cwq->run_depth++;
- 	if (cwq->run_depth > 3) {
- 		/* morton gets to eat his hat */
-@@ -248,7 +242,7 @@ static void run_workqueue(struct cpu_wor
- 
- 		cwq->current_work = work;
- 		list_del_init(cwq->worklist.next);
--		spin_unlock_irqrestore(&cwq->lock, flags);
-+		spin_unlock_irq(&cwq->lock);
- 
- 		BUG_ON(get_wq_data(work) != cwq);
- 		if (!test_bit(WORK_STRUCT_NOAUTOREL, work_data_bits(work)))
-@@ -266,11 +260,11 @@ static void run_workqueue(struct cpu_wor
- 			dump_stack();
- 		}
- 
--		spin_lock_irqsave(&cwq->lock, flags);
-+		spin_lock_irq(&cwq->lock);
- 		cwq->current_work = NULL;
- 	}
- 	cwq->run_depth--;
--	spin_unlock_irqrestore(&cwq->lock, flags);
-+	spin_unlock_irq(&cwq->lock);
+@@ -98,79 +98,6 @@ static inline void *get_wq_data(struct w
+ 	return (void *) (atomic_long_read(&work->data) & WORK_STRUCT_WQ_DATA_MASK);
  }
  
- /*
+-static int __run_work(struct cpu_workqueue_struct *cwq, struct work_struct *work)
+-{
+-	int ret = 0;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&cwq->lock, flags);
+-	/*
+-	 * We need to re-validate the work info after we've gotten
+-	 * the cpu_workqueue lock. We can run the work now iff:
+-	 *
+-	 *  - the wq_data still matches the cpu_workqueue_struct
+-	 *  - AND the work is still marked pending
+-	 *  - AND the work is still on a list (which will be this
+-	 *    workqueue_struct list)
+-	 *
+-	 * All these conditions are important, because we
+-	 * need to protect against the work being run right
+-	 * now on another CPU (all but the last one might be
+-	 * true if it's currently running and has not been
+-	 * released yet, for example).
+-	 */
+-	if (get_wq_data(work) == cwq
+-	    && work_pending(work)
+-	    && !list_empty(&work->entry)) {
+-		work_func_t f = work->func;
+-		cwq->current_work = work;
+-		list_del_init(&work->entry);
+-		spin_unlock_irqrestore(&cwq->lock, flags);
+-
+-		if (!test_bit(WORK_STRUCT_NOAUTOREL, work_data_bits(work)))
+-			work_release(work);
+-		f(work);
+-
+-		spin_lock_irqsave(&cwq->lock, flags);
+-		cwq->current_work = NULL;
+-		ret = 1;
+-	}
+-	spin_unlock_irqrestore(&cwq->lock, flags);
+-	return ret;
+-}
+-
+-/**
+- * run_scheduled_work - run scheduled work synchronously
+- * @work: work to run
+- *
+- * This checks if the work was pending, and runs it
+- * synchronously if so. It returns a boolean to indicate
+- * whether it had any scheduled work to run or not.
+- *
+- * NOTE! This _only_ works for normal work_structs. You
+- * CANNOT use this for delayed work, because the wq data
+- * for delayed work will not point properly to the per-
+- * CPU workqueue struct, but will change!
+- */
+-int fastcall run_scheduled_work(struct work_struct *work)
+-{
+-	for (;;) {
+-		struct cpu_workqueue_struct *cwq;
+-
+-		if (!work_pending(work))
+-			return 0;
+-		if (list_empty(&work->entry))
+-			return 0;
+-		/* NOTE! This depends intimately on __queue_work! */
+-		cwq = get_wq_data(work);
+-		if (!cwq)
+-			return 0;
+-		if (__run_work(cwq, work))
+-			return 1;
+-	}
+-}
+-EXPORT_SYMBOL(run_scheduled_work);
+-
+ static void insert_work(struct cpu_workqueue_struct *cwq,
+ 				struct work_struct *work, int tail)
+ {
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
