@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + swiotlb-uninlinings.patch added to -mm tree
-Date: Wed, 07 Feb 2007 12:23:26 -0800
-Message-ID: <200702072023.l17KNQAF026124@shell0.pdx.osdl.net>
+Subject: + atmel_serial-use-__raw-i-o-register-access.patch added to -mm tree
+Date: Wed, 07 Feb 2007 12:23:54 -0800
+Message-ID: <200702072023.l17KNsin026135@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35125 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35169 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422763AbXBGUXg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 15:23:36 -0500
+	id S1422771AbXBGUYP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 15:24:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, jbeulich@novell.com, tony.luck@intel.com
+Cc: hskinnemoen@atmel.com, andrew@sanpeople.com
 
 
 The patch titled
-     swiotlb uninlinings
+     atmel_serial: Use __raw I/O register access
 has been added to the -mm tree.  Its filename is
-     swiotlb-uninlinings.patch
+     atmel_serial-use-__raw-i-o-register-access.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,100 +25,94 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: swiotlb uninlinings
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: atmel_serial: Use __raw I/O register access
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-Optimise swiotlb.c for size.
+Access to chip-internal registers should always be native-endian.  This is
+especially important for AVR32 since it's a big-endian architecture and the
+non-raw readl() and writel() macros are defined to do little-endian
+accesses.
 
-   text    data     bss     dec     hex filename
-   5009      89      64    5162    142a lib/swiotlb.o-before
-   4666      89      64    4819    12d3 lib/swiotlb.o-after
-
-For some reason my gcc (4.0.2) doesn't want to tailcall these things.
-
-swiotlb_sync_sg_for_device:
-	pushq	%rbp	#
-	movl	$1, %r8d	#,
-	movq	%rsp, %rbp	#,
-	call	swiotlb_sync_sg	#
-	leave
-	ret
-	.size	swiotlb_sync_sg_for_device, .-swiotlb_sync_sg_for_device
-	.section	.text.swiotlb_sync_sg_for_cpu,"ax",@progbits
-.globl swiotlb_sync_sg_for_cpu
-	.type	swiotlb_sync_sg_for_cpu, @function
-swiotlb_sync_sg_for_cpu:
-	pushq	%rbp	#
-	xorl	%r8d, %r8d	#
-	movq	%rsp, %rbp	#,
-	call	swiotlb_sync_sg	#
-	leave
-	ret
-
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Acked-by: Andrew Victor <andrew@sanpeople.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/swiotlb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/serial/atmel_serial.c |   50 ++++++++++++++++----------------
+ 1 files changed, 25 insertions(+), 25 deletions(-)
 
-diff -puN lib/swiotlb.c~swiotlb-uninlinings lib/swiotlb.c
---- a/lib/swiotlb.c~swiotlb-uninlinings
-+++ a/lib/swiotlb.c
-@@ -313,7 +313,7 @@ cleanup1:
- #endif
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-use-__raw-i-o-register-access drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-use-__raw-i-o-register-access
++++ a/drivers/serial/atmel_serial.c
+@@ -73,35 +73,35 @@
  
- #ifndef SWIOTLB_ARCH_HAS_NEEDS_MAPPING
--static inline int
-+static int
- address_needs_mapping(struct device *hwdev, dma_addr_t addr)
- {
- 	dma_addr_t mask = 0xffffffff;
-@@ -672,7 +672,7 @@ swiotlb_unmap_single(struct device *hwde
-  * address back to the card, you must first perform a
-  * swiotlb_dma_sync_for_device, and then the device again owns the buffer
-  */
--static inline void
-+static void
- swiotlb_sync_single(struct device *hwdev, dma_addr_t dev_addr,
- 		    size_t size, int dir, int target)
- {
-@@ -702,7 +702,7 @@ swiotlb_sync_single_for_device(struct de
- /*
-  * Same as above, but for a sub-range of the mapping.
-  */
--static inline void
-+static void
- swiotlb_sync_single_range(struct device *hwdev, dma_addr_t dev_addr,
- 			  unsigned long offset, size_t size,
- 			  int dir, int target)
-@@ -805,7 +805,7 @@ swiotlb_unmap_sg(struct device *hwdev, s
-  * The same as swiotlb_sync_single_* but for a scatter-gather list, same rules
-  * and usage.
-  */
--static inline void
-+static void
- swiotlb_sync_sg(struct device *hwdev, struct scatterlist *sg,
- 		int nelems, int dir, int target)
- {
+ #define ATMEL_ISR_PASS_LIMIT	256
+ 
+-#define UART_PUT_CR(port,v)	writel(v, (port)->membase + ATMEL_US_CR)
+-#define UART_GET_MR(port)	readl((port)->membase + ATMEL_US_MR)
+-#define UART_PUT_MR(port,v)	writel(v, (port)->membase + ATMEL_US_MR)
+-#define UART_PUT_IER(port,v)	writel(v, (port)->membase + ATMEL_US_IER)
+-#define UART_PUT_IDR(port,v)	writel(v, (port)->membase + ATMEL_US_IDR)
+-#define UART_GET_IMR(port)	readl((port)->membase + ATMEL_US_IMR)
+-#define UART_GET_CSR(port)	readl((port)->membase + ATMEL_US_CSR)
+-#define UART_GET_CHAR(port)	readl((port)->membase + ATMEL_US_RHR)
+-#define UART_PUT_CHAR(port,v)	writel(v, (port)->membase + ATMEL_US_THR)
+-#define UART_GET_BRGR(port)	readl((port)->membase + ATMEL_US_BRGR)
+-#define UART_PUT_BRGR(port,v)	writel(v, (port)->membase + ATMEL_US_BRGR)
+-#define UART_PUT_RTOR(port,v)	writel(v, (port)->membase + ATMEL_US_RTOR)
++#define UART_PUT_CR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_CR)
++#define UART_GET_MR(port)	__raw_readl((port)->membase + ATMEL_US_MR)
++#define UART_PUT_MR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_MR)
++#define UART_PUT_IER(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_IER)
++#define UART_PUT_IDR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_IDR)
++#define UART_GET_IMR(port)	__raw_readl((port)->membase + ATMEL_US_IMR)
++#define UART_GET_CSR(port)	__raw_readl((port)->membase + ATMEL_US_CSR)
++#define UART_GET_CHAR(port)	__raw_readl((port)->membase + ATMEL_US_RHR)
++#define UART_PUT_CHAR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_THR)
++#define UART_GET_BRGR(port)	__raw_readl((port)->membase + ATMEL_US_BRGR)
++#define UART_PUT_BRGR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_BRGR)
++#define UART_PUT_RTOR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_RTOR)
+ 
+-// #define UART_GET_CR(port)	readl((port)->membase + ATMEL_US_CR)		// is write-only
++// #define UART_GET_CR(port)	__raw_readl((port)->membase + ATMEL_US_CR)		// is write-only
+ 
+  /* PDC registers */
+-#define UART_PUT_PTCR(port,v)	writel(v, (port)->membase + ATMEL_PDC_PTCR)
+-#define UART_GET_PTSR(port)	readl((port)->membase + ATMEL_PDC_PTSR)
++#define UART_PUT_PTCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_PTCR)
++#define UART_GET_PTSR(port)	__raw_readl((port)->membase + ATMEL_PDC_PTSR)
+ 
+-#define UART_PUT_RPR(port,v)	writel(v, (port)->membase + ATMEL_PDC_RPR)
+-#define UART_GET_RPR(port)	readl((port)->membase + ATMEL_PDC_RPR)
+-#define UART_PUT_RCR(port,v)	writel(v, (port)->membase + ATMEL_PDC_RCR)
+-#define UART_PUT_RNPR(port,v)	writel(v, (port)->membase + ATMEL_PDC_RNPR)
+-#define UART_PUT_RNCR(port,v)	writel(v, (port)->membase + ATMEL_PDC_RNCR)
+-
+-#define UART_PUT_TPR(port,v)	writel(v, (port)->membase + ATMEL_PDC_TPR)
+-#define UART_PUT_TCR(port,v)	writel(v, (port)->membase + ATMEL_PDC_TCR)
+-//#define UART_PUT_TNPR(port,v)	writel(v, (port)->membase + ATMEL_PDC_TNPR)
+-//#define UART_PUT_TNCR(port,v)	writel(v, (port)->membase + ATMEL_PDC_TNCR)
++#define UART_PUT_RPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RPR)
++#define UART_GET_RPR(port)	__raw_readl((port)->membase + ATMEL_PDC_RPR)
++#define UART_PUT_RCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RCR)
++#define UART_PUT_RNPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RNPR)
++#define UART_PUT_RNCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RNCR)
++
++#define UART_PUT_TPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TPR)
++#define UART_PUT_TCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TCR)
++//#define UART_PUT_TNPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TNPR)
++//#define UART_PUT_TNCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TNCR)
+ 
+ static int (*atmel_open_hook)(struct uart_port *);
+ static void (*atmel_close_hook)(struct uart_port *);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
-origin.patch
-git-dvb.patch
-kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
-git-libata-all.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-git-sh.patch
-git-block.patch
-mm-vm_insert_pfn-tidy.patch
-workqueue-dont-save-interrupts-in-run_workqueue-update.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
-swiotlb-uninlinings.patch
+git-avr32.patch
+avr32-fix-build-breakage.patch
+arch-avr32-use-array_size-macro-when-appropriate.patch
+remove-a-couple-final-references-to-obsolete-verify_area.patch
+atmel_serial-use-__raw-i-o-register-access.patch
+clocksource-fixup-is_continous-changes-on-avr32.patch
+dynamic-kernel-command-line-avr32.patch
