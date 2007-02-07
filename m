@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-use-array_size-macro-when-appropriate.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:04:52 -0800
-Message-ID: <200702070004.l1704rBv001138@shell0.pdx.osdl.net>
+Subject: + oss-use-array_size-macro-when-appropriate-2.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:05:24 -0800
+Message-ID: <200702070005.l1705PH9001161@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56092 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56093 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030238AbXBGAFr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030228AbXBGAFr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Tue, 6 Feb 2007 19:05:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, mchehab@infradead.org
+Cc: darwish.07@gmail.com
 
 
 The patch titled
-     DVB: Use ARRAY_SIZE macro when appropriate
+     OSS: Use ARRAY_SIZE macro when appropriate (2)
 has been added to the -mm tree.  Its filename is
-     dvb-use-array_size-macro-when-appropriate.patch
+     oss-use-array_size-macro-when-appropriate-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,126 +25,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: DVB: Use ARRAY_SIZE macro when appropriate
+Subject: OSS: Use ARRAY_SIZE macro when appropriate (2)
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
 Use ARRAY_SIZE macro already defined in kernel.h
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/bt8xx/dst.c         |    2 +-
- drivers/media/dvb/bt8xx/dvb-bt8xx.c   |    3 ++-
- drivers/media/dvb/frontends/cx24110.c |    4 ++--
- drivers/media/dvb/frontends/cx24123.c |    6 +++---
- drivers/media/dvb/ttpci/av7110_ir.c   |    3 ++-
- 5 files changed, 10 insertions(+), 8 deletions(-)
+ sound/oss/au1550_ac97.c   |    4 ++--
+ sound/oss/nec_vrc5477.c   |    4 ++--
+ sound/oss/swarm_cs4297a.c |    3 ++-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/media/dvb/bt8xx/dst.c~dvb-use-array_size-macro-when-appropriate drivers/media/dvb/bt8xx/dst.c
---- a/drivers/media/dvb/bt8xx/dst.c~dvb-use-array_size-macro-when-appropriate
-+++ a/drivers/media/dvb/bt8xx/dst.c
-@@ -1161,7 +1161,7 @@ static int dst_get_device_id(struct dst_
- 		}
+diff -puN sound/oss/au1550_ac97.c~oss-use-array_size-macro-when-appropriate-2 sound/oss/au1550_ac97.c
+--- a/sound/oss/au1550_ac97.c~oss-use-array_size-macro-when-appropriate-2
++++ a/sound/oss/au1550_ac97.c
+@@ -1354,11 +1354,11 @@ au1550_ioctl(struct inode *inode, struct
+ 		((file->f_mode & FMODE_READ) && s->dma_adc.mapped);
+ 
+ #ifdef DEBUG
+-	for (count=0; count<sizeof(ioctl_str)/sizeof(ioctl_str[0]); count++) {
++	for (count = 0; count < ARRAY_SIZE(ioctl_str); count++) {
+ 		if (ioctl_str[count].cmd == cmd)
+ 			break;
  	}
+-	if (count < sizeof(ioctl_str) / sizeof(ioctl_str[0]))
++	if (count < ARRAY_SIZE(ioctl_str))
+ 		pr_debug("ioctl %s, arg=0x%lxn", ioctl_str[count].str, arg);
+ 	else
+ 		pr_debug("ioctl 0x%x unknown, arg=0x%lx\n", cmd, arg);
+diff -puN sound/oss/nec_vrc5477.c~oss-use-array_size-macro-when-appropriate-2 sound/oss/nec_vrc5477.c
+--- a/sound/oss/nec_vrc5477.c~oss-use-array_size-macro-when-appropriate-2
++++ a/sound/oss/nec_vrc5477.c
+@@ -1381,11 +1381,11 @@ static int vrc5477_ac97_ioctl(struct ino
+ 	int val, ret;
  
--	if (i >= sizeof (dst_tlist) / sizeof (dst_tlist [0])) {
-+	if (i >= ARRAY_SIZE(dst_tlist)) {
- 		dprintk(verbose, DST_ERROR, 1, "Unable to recognize %s or %s", &state->rxbuffer[0], &state->rxbuffer[1]);
- 		dprintk(verbose, DST_ERROR, 1, "please email linux-dvb@linuxtv.org with this type in");
- 		use_dst_type = DST_TYPE_IS_SAT;
-diff -puN drivers/media/dvb/bt8xx/dvb-bt8xx.c~dvb-use-array_size-macro-when-appropriate drivers/media/dvb/bt8xx/dvb-bt8xx.c
---- a/drivers/media/dvb/bt8xx/dvb-bt8xx.c~dvb-use-array_size-macro-when-appropriate
-+++ a/drivers/media/dvb/bt8xx/dvb-bt8xx.c
-@@ -23,6 +23,7 @@
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/init.h>
+ #ifdef VRC5477_AC97_DEBUG
+-	for (count=0; count<sizeof(ioctl_str)/sizeof(ioctl_str[0]); count++) {
++	for (count = 0; count < ARRAY_SIZE(ioctl_str); count++) {
+ 		if (ioctl_str[count].cmd == cmd)
+ 			break;
+ 	}
+-	if (count < sizeof(ioctl_str)/sizeof(ioctl_str[0]))
++	if (count < ARRAY_SIZE(ioctl_str))
+ 		printk(KERN_INFO PFX "ioctl %s\n", ioctl_str[count].str);
+ 	else
+ 		printk(KERN_INFO PFX "ioctl unknown, 0x%x\n", cmd);
+diff -puN sound/oss/swarm_cs4297a.c~oss-use-array_size-macro-when-appropriate-2 sound/oss/swarm_cs4297a.c
+--- a/sound/oss/swarm_cs4297a.c~oss-use-array_size-macro-when-appropriate-2
++++ a/sound/oss/swarm_cs4297a.c
+@@ -77,6 +77,7 @@
+ #include <linux/poll.h>
+ #include <linux/smp_lock.h>
+ #include <linux/mutex.h>
 +#include <linux/kernel.h>
- #include <linux/device.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
-@@ -213,7 +214,7 @@ static int cx24108_tuner_set_params(stru
- 		freq = 2150000; /* satellite IF is 950..2150MHz */
  
- 	/* decide which VCO to use for the input frequency */
--	for(i=1;(i<sizeof(osci)/sizeof(osci[0]))&&(osci[i]<freq);i++);
-+	for(i=1;(i<ARRAY_SIZE(osci))&&(osci[i]<freq);i++);
- 	printk("cx24108 debug: select vco #%d (f=%d)\n",i,freq);
- 	band=bandsel[i];
- 	/* the gain values must be set by SetSymbolrate */
-diff -puN drivers/media/dvb/frontends/cx24110.c~dvb-use-array_size-macro-when-appropriate drivers/media/dvb/frontends/cx24110.c
---- a/drivers/media/dvb/frontends/cx24110.c~dvb-use-array_size-macro-when-appropriate
-+++ a/drivers/media/dvb/frontends/cx24110.c
-@@ -254,7 +254,7 @@ static int cx24110_set_symbolrate (struc
- 	if (srate<500000)
- 		srate=500000;
- 
--	for(i=0;(i<sizeof(bands)/sizeof(bands[0]))&&(srate>bands[i]);i++)
-+	for(i=0;(i<ARRAY_SIZE(bands))&&(srate>bands[i]);i++)
- 		;
- 	/* first, check which sample rate is appropriate: 45, 60 80 or 90 MHz,
- 	   and set the PLL accordingly (R07[1:0] Fclk, R06[7:4] PLLmult,
-@@ -361,7 +361,7 @@ static int cx24110_initfe(struct dvb_fro
- 
- 	dprintk("%s: init chip\n", __FUNCTION__);
- 
--	for(i=0;i<sizeof(cx24110_regdata)/sizeof(cx24110_regdata[0]);i++) {
-+	for(i=0;i<ARRAY_SIZE(cx24110_regdata);i++) {
- 		cx24110_writereg(state, cx24110_regdata[i].reg, cx24110_regdata[i].data);
- 	};
- 
-diff -puN drivers/media/dvb/frontends/cx24123.c~dvb-use-array_size-macro-when-appropriate drivers/media/dvb/frontends/cx24123.c
---- a/drivers/media/dvb/frontends/cx24123.c~dvb-use-array_size-macro-when-appropriate
-+++ a/drivers/media/dvb/frontends/cx24123.c
-@@ -507,7 +507,7 @@ static int cx24123_pll_calculate(struct 
- 	int i = 0;
- 	int pump = 2;
- 	int band = 0;
--	int num_bands = sizeof(cx24123_bandselect_vals) / sizeof(cx24123_bandselect_vals[0]);
-+	int num_bands = ARRAY_SIZE(cx24123_bandselect_vals);
- 
- 	/* Defaults for low freq, low rate */
- 	state->VCAarg = cx24123_AGC_vals[0].VCAprogdata;
-@@ -516,7 +516,7 @@ static int cx24123_pll_calculate(struct 
- 	vco_div = cx24123_bandselect_vals[0].VCOdivider;
- 
- 	/* For the given symbol rate, determine the VCA, VGA and FILTUNE programming bits */
--	for (i = 0; i < sizeof(cx24123_AGC_vals) / sizeof(cx24123_AGC_vals[0]); i++)
-+	for (i = 0; i < ARRAY_SIZE(cx24123_AGC_vals); i++)
- 	{
- 		if ((cx24123_AGC_vals[i].symbolrate_low <= p->u.qpsk.symbol_rate) &&
- 		    (cx24123_AGC_vals[i].symbolrate_high >= p->u.qpsk.symbol_rate) ) {
-@@ -658,7 +658,7 @@ static int cx24123_initfe(struct dvb_fro
- 	dprintk("%s:  init frontend\n",__FUNCTION__);
- 
- 	/* Configure the demod to a good set of defaults */
--	for (i = 0; i < sizeof(cx24123_regdata) / sizeof(cx24123_regdata[0]); i++)
-+	for (i = 0; i < ARRAY_SIZE(cx24123_regdata); i++)
- 		cx24123_writereg(state, cx24123_regdata[i].reg, cx24123_regdata[i].data);
- 
- 	/* Set the LNB polarity */
-diff -puN drivers/media/dvb/ttpci/av7110_ir.c~dvb-use-array_size-macro-when-appropriate drivers/media/dvb/ttpci/av7110_ir.c
---- a/drivers/media/dvb/ttpci/av7110_ir.c~dvb-use-array_size-macro-when-appropriate
-+++ a/drivers/media/dvb/ttpci/av7110_ir.c
-@@ -4,6 +4,7 @@
- #include <linux/moduleparam.h>
- #include <linux/input.h>
- #include <linux/proc_fs.h>
-+#include <linux/kernel.h>
- #include <asm/bitops.h>
- 
- #include "av7110.h"
-@@ -217,7 +218,7 @@ int __devinit av7110_ir_init(struct av71
- 	static struct proc_dir_entry *e;
- 	int err;
- 
--	if (av_cnt >= sizeof av_list/sizeof av_list[0])
-+	if (av_cnt >= ARRAY_SIZE(av_list))
- 		return -ENOSPC;
- 
- 	av7110_setup_irc_config(av7110, 0x0001);
+ #include <asm/byteorder.h>
+ #include <asm/dma.h>
+@@ -2673,7 +2674,7 @@ static int __init cs4297a_init(void)
+ #if 0
+                 val = SOUND_MASK_LINE;
+                 mixer_ioctl(s, SOUND_MIXER_WRITE_RECSRC, (unsigned long) &val);
+-                for (i = 0; i < sizeof(initvol) / sizeof(initvol[0]); i++) {
++                for (i = 0; i < ARRAY_SIZE(initvol); i++) {
+                         val = initvol[i].vol;
+                         mixer_ioctl(s, initvol[i].mixch, (unsigned long) &val);
+                 }
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
