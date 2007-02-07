@@ -1,254 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - cyrix-fails-to-detect-mediagx-warning-fix.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 09:39:17 -0800
-Message-ID: <200702071739.l17HdH77021052@shell0.pdx.osdl.net>
+Subject: - x86_64-re-add-a-newline-to-restore_context.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 09:37:55 -0800
+Message-ID: <200702071737.l17Hbtvr021037@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57108 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57136 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965541AbXBGRji (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 12:39:38 -0500
+	id S965678AbXBGRlS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 12:41:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, alan@redhat.com, jordan.crouse@amd.com, takada@mbf.nifty.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, ak@muc.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cyrix-fails-to-detect-mediagx-warning-fix
+     x86_64: re-add a newline to RESTORE_CONTEXT
 has been removed from the -mm tree.  Its filename was
-     cyrix-fails-to-detect-mediagx-warning-fix.patch
+     x86_64-re-add-a-newline-to-restore_context.patch
 
-This patch was dropped because it was folded into cyrix-fails-to-detect-mediagx.patch
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: cyrix-fails-to-detect-mediagx-warning-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: x86_64: re-add a newline to RESTORE_CONTEXT
+From: Adrian Bunk <bunk@stusta.de>
 
-CONFIG_PCI=n:
+RESTORE_CONTEXT lost a newline in
+commit 658fdbef66e5e9be79b457edc2cbbb3add840aa9:
+http://www.mail-archive.com/kgdb-bugreport@lists.sourceforge.net/msg00559.html
 
-arch/i386/kernel/cpu/cyrix.c: In function 'init_cyrix':
-arch/i386/kernel/cpu/cyrix.c:192: warning: unused variable 'device'
-arch/i386/kernel/cpu/cyrix.c:192: warning: unused variable 'vendor'
+Reported by Steven M. Christey.
 
-Cc: Alan Cox <alan@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: <takada@mbf.nifty.com>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cyrix.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/asm-x86_64/system.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/cyrix.c~cyrix-fails-to-detect-mediagx-warning-fix arch/i386/kernel/cpu/cyrix.c
---- a/arch/i386/kernel/cpu/cyrix.c~cyrix-fails-to-detect-mediagx-warning-fix
-+++ a/arch/i386/kernel/cpu/cyrix.c
-@@ -189,7 +189,6 @@ static void __cpuinit init_cyrix(struct 
- 	unsigned char dir0, dir0_msn, dir0_lsn, dir1 = 0;
- 	char *buf = c->x86_model_id;
- 	const char *p = NULL;
--	u32 vendor, device;
+diff -puN include/asm-x86_64/system.h~x86_64-re-add-a-newline-to-restore_context include/asm-x86_64/system.h
+--- a/include/asm-x86_64/system.h~x86_64-re-add-a-newline-to-restore_context
++++ a/include/asm-x86_64/system.h
+@@ -15,7 +15,7 @@
  
- 	/* Bit 31 in normal CPUID used for nonstandard 3DNow ID;
- 	   3DNow is IDd by bit 31 in extended CPUID (1*32+31) anyway */
-@@ -250,8 +249,10 @@ static void __cpuinit init_cyrix(struct 
- 		c->coma_bug = 1;
- 		break;
+ /* frame pointer must be last for get_wchan */
+ #define SAVE_CONTEXT    "pushf ; pushq %%rbp ; movq %%rsi,%%rbp\n\t"
+-#define RESTORE_CONTEXT "movq %%rbp,%%rsi ; popq %%rbp ; popf\t"
++#define RESTORE_CONTEXT "movq %%rbp,%%rsi ; popq %%rbp ; popf\n\t"
  
--	case 4: /* MediaGX/GXm or Geode GXM/GXLV/GX1 */
-+	case 4:	{ /* MediaGX/GXm or Geode GXM/GXLV/GX1 */
- #ifdef CONFIG_PCI
-+		u32 vendor, device;
-+
- 		/* It isn't really a PCI quirk directly, but the cure is the
- 		   same. The MediaGX has deep magic SMM stuff that handles the
- 		   SB emulation. It thows away the fifo on disable_dma() which
-@@ -303,7 +304,7 @@ static void __cpuinit init_cyrix(struct 
- 			c->x86_model = (dir1 & 0x20) ? 1 : 2;
- 		}
- 		break;
--
-+	}
-         case 5: /* 6x86MX/M II */
- 		if (dir1 > 7)
- 		{
+ #define __EXTRA_CLOBBER  \
+ 	,"rcx","rbx","rdx","r8","r9","r10","r11","r12","r13","r14","r15"
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-x86-fix-vdso-mapping-for-aout-executables.patch
-mm-show-bounce-pages-in-oom-killer-output.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+v9fs_vfs_mkdir-fix-a-double-free.patch
 git-acpi.patch
-sony_apci-resume.patch
+ifdef-acpi_future_usage-acpi_os_readable.patch
 git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-powerpc-make-it-compile.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+git-powerpc.patch
+drivers-char-drm-drm_mmc-remove-unused-exports.patch
 git-dvb.patch
-dvb-video_buf-depends-on-pci.patch
+drivers-media-dvb-frontends-make-4-functions-static.patch
+cx88-videoc-remove-struct-radionorms.patch
+if-0-v4l_printk_ioctl_arg.patch
 git-gfs2-nmw.patch
+make-gfs2_writepages-static.patch
 git-ieee1394.patch
-git-input.patch
 git-libata-all.patch
-sata_nv-cleanup-adma-error-handling-v2.patch
-sata_sis-avoid-extern-decl-in-c.patch
-mm-ide-ide-acpi-support-warning-fix.patch
-git-lxdialog-fixup.patch
+mips-remove-smp_tune_scheduling.patch
+mtd_ck804xrom-must-depend-on-pci.patch
 git-ubi.patch
 git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-dccp-warning-fixes.patch
-netfilter-warning-fix.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-r8169-warning-fixes.patch
-sh-add-kconfig-default.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
-git-block-fixup.patch
-git-block-atomicity-fix.patch
-git-block-xfs-barriers-broke.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-nokia-e70-is-an-unusual-device.patch
+net-wanrouter-wanmainc-cleanups.patch
+net-uninline-skb_put-fix.patch
+git-ocfs2.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-aic7xxx-aic79xx_corec-make-ahd_match_scb-static.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
 git-ipwireless_cs.patch
-revert-x86_64-mm-msr-on-cpu.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-cyrix-fails-to-detect-mediagx.patch
-cyrix-fails-to-detect-mediagx-warning-fix.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-drop-free_pages-sparc64-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
-register_blkdev-dont-hand-out-the-local-experimental-majors.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+cleanup-x86_64-mm-vmi-timer.patch
+x86_64-re-add-a-newline-to-restore_context.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+debug-shared-irqs-kconfig-fix.patch
+gtod-persistent-clock-support.patch
 i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-dynamic-kernel-command-line-ia64-fix.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+add-debugging-feature-proc-timer_stat-cleanup.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+remove-the-broken-fb_s3trio-driver.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
