@@ -1,457 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-megaraid_sas-preallocate-memory-for-ioctl.patch added to -mm tree
-Date: Wed, 07 Feb 2007 13:36:15 -0800
-Message-ID: <200702072136.l17LaFsD027925@shell0.pdx.osdl.net>
+Subject: - sata_sis-avoid-extern-decl-in-c.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 13:45:10 -0800
+Message-ID: <200702072145.l17LjALQ028146@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38726 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39386 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422885AbXBGVgT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 16:36:19 -0500
+	id S1422816AbXBGVpd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 16:45:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sumantp@lsil.com, sumant.patro@lsi.com
+To: akpm@linux-foundation.org, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: megaraid_sas - preallocate memory for ioctl processing
-has been added to the -mm tree.  Its filename is
-     scsi-megaraid_sas-preallocate-memory-for-ioctl.patch
+     sata_sis: avoid extern-decl-in-C
+has been removed from the -mm tree.  Its filename was
+     sata_sis-avoid-extern-decl-in-c.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into sis-warning-fixes.patch
 
 ------------------------------------------------------
-Subject: scsi: megaraid_sas - preallocate memory for ioctl processing
-From: Sumant Patro <sumantp@lsil.com>
+Subject: sata_sis: avoid extern-decl-in-C
+From: Andrew Morton <akpm@osdl.org>
 
-Preallocate memory for ioctl processing.  This is to avoid situations where
-ioctl fails for lack of memory (when system under heavy stress).  The memory
-pool will have 8*4K, 4*8K and 1*64K memory chunks
+Create sis.h for this.
 
-Signed-off-by: Sumant Patro <sumant.patro@lsi.com>
+Might be excessively anal.
+
+Cc: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_sas.c |  257 ++++++++++++++++++++++++-
- drivers/scsi/megaraid/megaraid_sas.h |   32 ++-
- 2 files changed, 276 insertions(+), 13 deletions(-)
+ drivers/ata/pata_sis.c |    1 +
+ drivers/ata/sata_sis.c |    4 +---
+ drivers/ata/sis.h      |    5 +++++
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-preallocate-memory-for-ioctl drivers/scsi/megaraid/megaraid_sas.c
---- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-preallocate-memory-for-ioctl
-+++ a/drivers/scsi/megaraid/megaraid_sas.c
-@@ -74,6 +74,14 @@ static DEFINE_MUTEX(megasas_async_queue_
+diff -puN drivers/ata/pata_sis.c~sata_sis-avoid-extern-decl-in-c drivers/ata/pata_sis.c
+--- a/drivers/ata/pata_sis.c~sata_sis-avoid-extern-decl-in-c
++++ a/drivers/ata/pata_sis.c
+@@ -32,6 +32,7 @@
+ #include <scsi/scsi_host.h>
+ #include <linux/libata.h>
+ #include <linux/ata.h>
++#include "sis.h"
  
- static u32 megasas_dbg_lvl;
+ #undef DRV_NAME		/* already defined in libata.h, for libata-core */
+ #define DRV_NAME	"pata_sis"
+diff -puN drivers/ata/sata_sis.c~sata_sis-avoid-extern-decl-in-c drivers/ata/sata_sis.c
+--- a/drivers/ata/sata_sis.c~sata_sis-avoid-extern-decl-in-c
++++ a/drivers/ata/sata_sis.c
+@@ -40,14 +40,12 @@
+ #include <linux/device.h>
+ #include <scsi/scsi_host.h>
+ #include <linux/libata.h>
++#include "sis.h"
  
-+/* For IOCTL mem pool */
-+int arr[MAX_IOCTL_MEM_POOL] = {MAX_4K_BUFF,MAX_8K_BUFF,MAX_64K_BUFF};
-+
-+int arr_size[MAX_IOCTL_MEM_POOL] =
-+			{MEGASAS_INIT_IOCTL_MEM_SIZE/* 4k */,
-+			2*MEGASAS_INIT_IOCTL_MEM_SIZE/* 8k */,
-+			16*MEGASAS_INIT_IOCTL_MEM_SIZE/* 64k */};
-+
- /**
-  * megasas_get_cmd -	Get a command from the free pool
-  * @instance:		Adapter soft state
-@@ -1805,6 +1813,194 @@ megasas_get_ctrl_info(struct megasas_ins
- }
+ #undef DRV_NAME		/* already defined in libata.h, for libata-core */
+ #define DRV_NAME	"sata_sis"
+ #define DRV_VERSION	"0.7"
  
- /**
-+ * megasas_get_ioctl_mem -	Get a buff from the free ioctl memory pool
-+ * @instance:			Adapter soft state
-+ * @i:				mem pool index
-+ *
-+ * Returns a free buff from the pool
-+ */
-+static inline struct megasas_ioctl_mm *
-+megasas_get_ioctl_mem(struct megasas_instance* instance, u8 i)
-+{
-+	unsigned long flags;
-+	struct megasas_ioctl_mm *ioctl_mm = NULL;
+-/* pata_sis.c */
+-extern struct ata_port_info sis_info133;
+-
+ enum {
+ 	sis_180			= 0,
+ 	SIS_SCR_PCI_BAR		= 5,
+diff -puN /dev/null drivers/ata/sis.h
+--- /dev/null
++++ a/drivers/ata/sis.h
+@@ -0,0 +1,5 @@
 +
-+	if(i >= MAX_IOCTL_MEM_POOL)
-+		goto out;
++struct ata_port_info;
 +
-+	spin_lock_irqsave(&instance->ioctl_memory_pool_lock, flags);
-+
-+	if (!list_empty(&instance->ioctl_memory_pool[i])) {
-+		ioctl_mm = list_entry((&instance->ioctl_memory_pool[i])->next,
-+				 struct megasas_ioctl_mm, list);
-+		list_del_init(&ioctl_mm->list);
-+	} else
-+		printk(KERN_DEBUG "megasas: ioctl memory pool empty!\n");
-+
-+	spin_unlock_irqrestore(&instance->ioctl_memory_pool_lock, flags);
-+out:
-+	return ioctl_mm;
-+}
-+
-+/**
-+ * megasas_return_ioctl_mm -	Return memory to ioctl memory pool
-+ * @instance:			Adapter soft state
-+ * @megasas_ioctl_mm:		ioctl mem block
-+ * @i:				mem_pool_index
-+ */
-+static inline void
-+megasas_return_ioctl_mem(struct megasas_instance *instance,
-+			struct megasas_ioctl_mm *ioctl_mm, u8 i)
-+{
-+	unsigned long flags;
-+	if(!ioctl_mm){
-+		printk(KERN_DEBUG "megasas: Trying to return "
-+					"NULL to mem_pool\n");
-+		return;
-+	}
-+	spin_lock_irqsave(&instance->ioctl_memory_pool_lock, flags);
-+	list_add_tail(&ioctl_mm->list, &instance->ioctl_memory_pool[i]);
-+	spin_unlock_irqrestore(&instance->ioctl_memory_pool_lock, flags);
-+}
-+
-+/**
-+ * megasas_free_ioctl_mem_pools - Free all the memory in the ioctl memory pool
-+ * @instance:			Adapter soft state
-+ */
-+static void
-+megasas_free_ioctl_mem_pools(struct megasas_instance *instance)
-+{
-+	struct megasas_ioctl_mm	*ioctl_mm;
-+	u32 i,j;
-+	u32 mem_size;
-+	if(instance->mem_pool_empty)
-+		return;
-+	for (i=0; i < MAX_IOCTL_MEM_POOL; i++) {
-+		mem_size = arr_size[i];
-+		for (j = 0; j < arr[i]; j++) {
-+			ioctl_mm = megasas_get_ioctl_mem(instance, i);
-+
-+			if (ioctl_mm){
-+				if(ioctl_mm->vaddr)
-+					pci_free_consistent(instance->pdev,
-+							mem_size,
-+							ioctl_mm->vaddr,
-+						 	ioctl_mm->buf_handle);
-+				kfree(ioctl_mm);
-+			}
-+		}
-+	}
-+}
-+
-+/**
-+ * megasas_setup_mem_pools - Setup memory in the ioctl memory pool
-+ * @instance:		Adapter soft state
-+ *
-+ * The memory pool will have 8x4K, 4*8K and 1x64K memory
-+ * ioctl_memory_pool[0] ----> 4k memory list
-+ * ioctl_memory_pool[1] ----> 8K memory list
-+ * ioctl_memory_pool[2] ----> 64K memory list
-+ */
-+
-+static int
-+megasas_setup_mem_pools(struct megasas_instance *instance)
-+{
-+	struct megasas_ioctl_mm	*ioctl_mm;
-+	dma_addr_t buf_handle;
-+	void *vaddr;
-+	u32 i, j;
-+	u32 mem_size;
-+	for (i=0; i < MAX_IOCTL_MEM_POOL; i++) {
-+		mem_size = arr_size[i];
-+
-+		for (j = 0; j < arr[i]; j++) {
-+
-+			ioctl_mm = kmalloc(sizeof(struct megasas_ioctl_mm), GFP_KERNEL);
-+			if(!ioctl_mm){
-+				printk(KERN_DEBUG "megasas:Failed to alloc "
-+						"init memory for ioctl \n");
-+				goto failed_to_alloc_mem_ioctl;
-+			}
-+			vaddr = pci_alloc_consistent(instance->pdev,mem_size,
-+							    &buf_handle);
-+			if (!vaddr) {
-+				printk(KERN_DEBUG "megasas:Failed to alloc "
-+						"memory for ioctl \n");
-+				goto failed_to_alloc_mem_ioctl;
-+			} else {
-+				ioctl_mm->vaddr	= vaddr;
-+				ioctl_mm->buf_handle = (u32)buf_handle;
-+
-+				list_add_tail(&ioctl_mm->list,
-+					&instance->ioctl_memory_pool[i]);
-+			}
-+		}
-+	}
-+	return 0;
-+failed_to_alloc_mem_ioctl:
-+	megasas_free_ioctl_mem_pools(instance);
-+	return 1;
-+}
-+
-+/**
-+ * megasas_get_buff_for_sge - Free all the memory in the ioctl memory pool
-+ * @instance:		Adapter soft state
-+ * @cmd:		megasas_cmd
-+ */
-+
-+int
-+megasas_get_buff_for_sge(struct megasas_iocpacket *ioc,
-+			struct megasas_instance *instance,
-+			struct megasas_cmd *cmd)
-+{
-+	int i,n;
-+	u8 mem_type;
-+	struct megasas_ioctl_mm* ioctl_mm;
-+	if(instance->mem_pool_empty)
-+		goto empty;
-+	for (i = 0; i < ioc->sge_count; i++) {
-+		/*
-+		 * Check if we have buffer to use from our mem_pool
-+		 * If we donot have enough to satisfy for all sge's then
-+		 * free that has already been attached to the ioc
-+		 */
-+		mem_type=0xff;
-+		if (ioc->sgl[i].iov_len <= MEGASAS_INIT_IOCTL_MEM_SIZE)
-+			mem_type=0;
-+		else if ((ioc->sgl[i].iov_len > MEGASAS_INIT_IOCTL_MEM_SIZE) &&
-+			(ioc->sgl[i].iov_len <= 2*MEGASAS_INIT_IOCTL_MEM_SIZE))
-+			mem_type=1;
-+		else if ((ioc->sgl[i].iov_len > 2*MEGASAS_INIT_IOCTL_MEM_SIZE) &&
-+			(ioc->sgl[i].iov_len <= 16*MEGASAS_INIT_IOCTL_MEM_SIZE))
-+			mem_type=2;
-+
-+		ioctl_mm = megasas_get_ioctl_mem(instance, mem_type);
-+
-+		if (ioctl_mm) {
-+			cmd->ioctl_mem[i]=ioctl_mm;
-+			cmd->ioctl_mem_pool_index[i] = mem_type;
-+		} else
-+			/* Not enough buffer in mem pool
-+			 * Free all allocated buffer for this ioc
-+			 */
-+			goto out;
-+	}
-+	return 0;
-+out:
-+	for (n = 0; n < i; n++) {
-+		if ((struct megasas_ioctl_mm *)cmd->ioctl_mem[i]) {
-+			megasas_return_ioctl_mem(instance,
-+				(struct megasas_ioctl_mm *)cmd->ioctl_mem[i],
-+				cmd->ioctl_mem_pool_index[i]);
-+			cmd->ioctl_mem[i]=NULL;
-+			cmd->ioctl_mem_pool_index[i] = 0xff;
-+		}
-+	}
-+empty:
-+	return 1;
-+}
-+
-+/**
-  * megasas_complete_cmd_dpc	 -	Returns FW's controller structure
-  * @instance_addr:			Address of adapter soft state
-  *
-@@ -2310,7 +2506,7 @@ static int megasas_io_attach(struct mega
- static int __devinit
- megasas_probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
- {
--	int rval;
-+	int rval,i;
- 	struct Scsi_Host *host;
- 	struct megasas_instance *instance;
- 
-@@ -2396,11 +2592,24 @@ megasas_probe_one(struct pci_dev *pdev, 
- 	init_waitqueue_head(&instance->abort_cmd_wait_q);
- 
- 	spin_lock_init(&instance->cmd_pool_lock);
-+	spin_lock_init(&instance->ioctl_memory_pool_lock);
- 
- 	sema_init(&instance->aen_mutex, 1);
- 	sema_init(&instance->ioctl_sem, MEGASAS_INT_CMDS);
- 
- 	/*
-+	 * for-ioctl: initialize ioctl memory list
-+	 */
-+	for (i=0; i<MAX_IOCTL_MEM_POOL; i++) {
-+		INIT_LIST_HEAD(&instance->ioctl_memory_pool[i]);
-+	}
-+
-+	if(megasas_setup_mem_pools(instance))
-+		instance->mem_pool_empty=1;
-+
-+	/* end for-ioctl */
-+
-+	/*
- 	 * Initialize PCI related and misc parameters
- 	 */
- 	instance->pdev = pdev;
-@@ -2472,6 +2681,8 @@ megasas_probe_one(struct pci_dev *pdev, 
-       fail_irq:
-       fail_init_mfi:
-       fail_alloc_dma_buf:
-+	/* Free ioctl mem pool */
-+	megasas_free_ioctl_mem_pools(instance);
- 	if (instance->evt_detail)
- 		pci_free_consistent(pdev, sizeof(struct megasas_evt_detail),
- 				    instance->evt_detail,
-@@ -2600,6 +2811,9 @@ static void megasas_detach_one(struct pc
- 	free_irq(instance->pdev->irq, instance);
- 
- 	megasas_release_mfi(instance);
-+	/* Free IOCTL mem pool */
-+	megasas_free_ioctl_mem_pools(instance);
-+
- 
- 	pci_free_consistent(pdev, sizeof(struct megasas_evt_detail),
- 			    instance->evt_detail, instance->evt_detail_h);
-@@ -2699,6 +2913,7 @@ megasas_mgmt_fw_ioctl(struct megasas_ins
- 	void *sense = NULL;
- 	dma_addr_t sense_handle;
- 	u32 *sense_ptr;
-+	u8 from_pool = 0;
- 
- 	memset(kbuff_arr, 0, sizeof(kbuff_arr));
- 
-@@ -2734,18 +2949,30 @@ megasas_mgmt_fw_ioctl(struct megasas_ins
- 	kern_sge32 = (struct megasas_sge32 *)
- 	    ((unsigned long)cmd->frame + ioc->sgl_off);
- 
-+ 	/*
-+	 * Check if we have buffer to use from our ioctl mem_pool
-+	 * If we donot have then try to allocate new buffer
-+	 */
-+	if(!megasas_get_buff_for_sge(ioc,instance,cmd))
-+		from_pool = 1;
-+
- 	/*
- 	 * For each user buffer, create a mirror buffer and copy in
- 	 */
- 	for (i = 0; i < ioc->sge_count; i++) {
--		kbuff_arr[i] = pci_alloc_consistent(instance->pdev,
-+		if (from_pool) {
-+			kbuff_arr[i] = cmd->ioctl_mem[i]->vaddr;
-+			buf_handle = cmd->ioctl_mem[i]->buf_handle;
-+		} else {
-+			kbuff_arr[i] = pci_alloc_consistent(instance->pdev,
- 						    ioc->sgl[i].iov_len,
- 						    &buf_handle);
--		if (!kbuff_arr[i]) {
--			printk(KERN_DEBUG "megasas: Failed to alloc "
--			       "kernel SGL buffer for IOCTL \n");
--			error = -ENOMEM;
--			goto out;
-+			if (!kbuff_arr[i]) {
-+				printk(KERN_DEBUG "megasas: Failed to alloc "
-+					"kernel SGL buffer for IOCTL \n");
-+				error = -ENOMEM;
-+				goto out;
-+			}
- 		}
- 
- 		/*
-@@ -2832,9 +3059,19 @@ megasas_mgmt_fw_ioctl(struct megasas_ins
- 	}
- 
- 	for (i = 0; i < ioc->sge_count && kbuff_arr[i]; i++) {
--		pci_free_consistent(instance->pdev,
--				    kern_sge32[i].length,
--				    kbuff_arr[i], kern_sge32[i].phys_addr);
-+		if (from_pool) {
-+			/* Return to the mem pool */
-+			if ((struct megasas_ioctl_mm *)cmd->ioctl_mem[i]) {
-+				megasas_return_ioctl_mem(instance,
-+					(struct megasas_ioctl_mm *)cmd->ioctl_mem[i],
-+					cmd->ioctl_mem_pool_index[i]);
-+				cmd->ioctl_mem_pool_index[i]=0xff;
-+				cmd->ioctl_mem[i]=NULL;
-+			}
-+		} else
-+			pci_free_consistent(instance->pdev,
-+			    kern_sge32[i].length,
-+			    kbuff_arr[i], kern_sge32[i].phys_addr);
- 	}
- 
- 	megasas_return_cmd(instance, cmd);
-diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-preallocate-memory-for-ioctl drivers/scsi/megaraid/megaraid_sas.h
---- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-preallocate-memory-for-ioctl
-+++ a/drivers/scsi/megaraid/megaraid_sas.h
-@@ -540,6 +540,17 @@ struct megasas_ctrl_info {
- #define MEGASAS_DBG_LVL				1
- 
- /*
-+ * For ioctl memory manager
-+ */
-+
-+#define MAX_IOCTL_MEM_POOL			3
-+#define MEGASAS_INIT_IOCTL_MEM_SIZE		4096
-+#define MAX_IOCTL_MEM_BLOCK			16
-+#define MAX_4K_BUFF				8
-+#define MAX_8K_BUFF				4
-+#define MAX_64K_BUFF				1
-+
-+/*
-  * When SCSI mid-layer calls driver's reset routine, driver waits for
-  * MEGASAS_RESET_WAIT_TIME seconds for all outstanding IO to complete. Note
-  * that the driver cannot _actually_ abort or reset pending commands. While
-@@ -1059,6 +1070,12 @@ struct megasas_evt_detail {
- 	u32 (*read_fw_status_reg)(struct megasas_register_set __iomem *);
-  };
- 
-+struct megasas_ioctl_mm {
-+	void *vaddr;
-+	dma_addr_t buf_handle;
-+	struct list_head list;
-+};
-+
- struct megasas_instance {
- 
- 	u32 *producer;
-@@ -1085,6 +1102,12 @@ struct megasas_instance {
- 	struct dma_pool *frame_dma_pool;
- 	struct dma_pool *sense_dma_pool;
- 
-+	/* ioctl memory */
-+	struct list_head ioctl_memory_pool[MAX_IOCTL_MEM_POOL];
-+	spinlock_t ioctl_memory_pool_lock;
-+	u8 mem_pool_empty;
-+	/* end :ioctl memory */
-+
- 	struct megasas_evt_detail *evt_detail;
- 	dma_addr_t evt_detail_h;
- 	struct megasas_cmd *aen_cmd;
-@@ -1116,6 +1139,9 @@ struct megasas_instance {
- 	((scp->device->channel % 2) * MEGASAS_MAX_DEV_PER_CHANNEL) + 	\
- 	scp->device->id
- 
-+#define MAX_MGMT_ADAPTERS		1024
-+#define MAX_IOCTL_SGE			16
-+
- struct megasas_cmd {
- 
- 	union megasas_frame *frame;
-@@ -1132,10 +1158,10 @@ struct megasas_cmd {
- 	struct scsi_cmnd *scmd;
- 	struct megasas_instance *instance;
- 	u32 frame_count;
--};
- 
--#define MAX_MGMT_ADAPTERS		1024
--#define MAX_IOCTL_SGE			16
-+	u8 ioctl_mem_pool_index[MAX_IOCTL_SGE]; /*0xff for not in use*/
-+	struct megasas_ioctl_mm *ioctl_mem[MAX_IOCTL_SGE];
-+};
- 
- struct megasas_iocpacket {
- 
++/* pata_sis.c */
++extern struct ata_port_info sis_info133;
 _
 
-Patches currently in -mm which might be from sumantp@lsil.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-git-scsi-misc.patch
-scsi-megaraid_sas-stop-cmd-processing-if.patch
-scsi-megaraid_sas-added-bios_param-in.patch
-scsi-megaraid_sas-throttle-io-if-fw-is-busy.patch
-scsi-megaraid_sas-preallocate-memory-for-ioctl.patch
-scsi-megaraid_sas-update-version-and-author-info.patch
+origin.patch
+x86-fix-vdso-mapping-for-aout-executables.patch
+mm-show-bounce-pages-in-oom-killer-output.patch
+use-correct-macros-in-raid-code-not-raw-asm-include.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+sony_apci-resume.patch
+git-alsa.patch
+agpgart-allow-drm-populated-agp-memory-types-tidy.patch
+powerpc-make-it-compile.patch
+git-dvb.patch
+git-ia64.patch
+git-ieee1394.patch
+git-input.patch
+git-libata-all.patch
+sis-warning-fixes.patch
+sata_sis-avoid-extern-decl-in-c.patch
+git-lxdialog-fixup.patch
+git-ubi.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+dccp-warning-fixes.patch
+netfilter-warning-fix.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+r8169-warning-fixes.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+scsi_kmap_atomic_sg-check-that-local-irqs-are-disabled.patch
+git-block.patch
+git-block-fixup.patch
+git-block-xfs-barriers-broke.patch
+fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
+nokia-e70-is-an-unusual-device.patch
+git-ipwireless_cs.patch
+revert-x86_64-mm-msr-on-cpu.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+avoid-excessive-sorting-of-early_node_map-tidy.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+use-zvc-for-inactive-and-active-counts-up-fix.patch
+drop-free_pages-fix.patch
+drop-free_pages-sparc64-fix.patch
+optional-zone_dma-in-the-vm-tidy.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-workqueue-fixups.patch
+add-retain_initrd-boot-option-tweak.patch
+count_vm_events-warning-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+block_write_full_page-handle-enospc.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix.patch
+rtc-framework-driver-for-cmos-rtcs-fix-2.patch
+return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
+register_blkdev-dont-hand-out-the-local-experimental-majors.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+ecryptfs-generalize-metadata-read-write-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+dynamic-kernel-command-line-ia64-fix.patch
+kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+mark-struct-file_operations-const-2-fix.patch
+mark-struct-file_operations-const-4-fix.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
