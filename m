@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + s390-drivers-use-array_size-macro-when-appropriate.patch added to -mm tree
-Date: Tue, 06 Feb 2007 16:05:58 -0800
-Message-ID: <200702070006.l1705xUh001175@shell0.pdx.osdl.net>
+Subject: + intel-agp-use-array_size-macro-when-appropriate.patch added to -mm tree
+Date: Tue, 06 Feb 2007 16:06:22 -0800
+Message-ID: <200702070006.l1706NOh001184@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56124 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56133 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030247AbXBGAGq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Feb 2007 19:06:46 -0500
+	id S1030246AbXBGAGw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Feb 2007 19:06:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, schwidefsky@de.ibm.com
+Cc: darwish.07@gmail.com, davej@codemonkey.org.uk
 
 
 The patch titled
-     s390-drivers: Use ARRAY_SIZE macro when appropriate
+     intel-agp: Use ARRAY_SIZE macro when appropriate
 has been added to the -mm tree.  Its filename is
-     s390-drivers-use-array_size-macro-when-appropriate.patch
+     intel-agp-use-array_size-macro-when-appropriate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s390-drivers: Use ARRAY_SIZE macro when appropriate
+Subject: intel-agp: Use ARRAY_SIZE macro when appropriate
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
 Use ARRAY_SIZE macro already defined in kernel.h
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/cio/device_id.c |    3 ++-
+ drivers/char/agp/intel-agp.c |    3 ++-
  1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/s390/cio/device_id.c~s390-drivers-use-array_size-macro-when-appropriate drivers/s390/cio/device_id.c
---- a/drivers/s390/cio/device_id.c~s390-drivers-use-array_size-macro-when-appropriate
-+++ a/drivers/s390/cio/device_id.c
-@@ -11,6 +11,7 @@
- 
+diff -puN drivers/char/agp/intel-agp.c~intel-agp-use-array_size-macro-when-appropriate drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~intel-agp-use-array_size-macro-when-appropriate
++++ a/drivers/char/agp/intel-agp.c
+@@ -5,6 +5,7 @@
  #include <linux/module.h>
+ #include <linux/pci.h>
  #include <linux/init.h>
 +#include <linux/kernel.h>
+ #include <linux/pagemap.h>
+ #include <linux/agp_backend.h>
+ #include "agp.h"
+@@ -845,7 +846,7 @@ static int intel_i915_remove_entries(str
+  */
+ static int intel_i9xx_fetch_size(void)
+ {
+-	int num_sizes = sizeof(intel_i830_sizes) / sizeof(*intel_i830_sizes);
++	int num_sizes = ARRAY_SIZE(intel_i830_sizes);
+ 	int aper_size; /* size in megabytes */
+ 	int i;
  
- #include <asm/ccwdev.h>
- #include <asm/delay.h>
-@@ -138,7 +139,7 @@ VM_virtual_device_info (__u16 devno, str
- 		ps->cu_model = 0x60;
- 		return;
- 	}
--	for (i = 0; i < sizeof(vm_devices) / sizeof(vm_devices[0]); i++)
-+	for (i = 0; i < ARRAY_SIZE(vm_devices); i++)
- 		if (diag_data.vrdcvcla == vm_devices[i].vrdcvcla &&
- 		    diag_data.vrdcvtyp == vm_devices[i].vrdcvtyp) {
- 			ps->cu_type = vm_devices[i].cu_type;
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
