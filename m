@@ -1,56 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-sic7xxx-stray-bracket-fix.patch removed from -mm tree
-Date: Thu, 08 Feb 2007 01:48:21 -0800
-Message-ID: <200702080948.l189mL6h011032@shell0.pdx.osdl.net>
+Subject: - windfarm-dont-die-on-suspend-thread-signal.patch removed from -mm tree
+Date: Thu, 08 Feb 2007 01:48:04 -0800
+Message-ID: <200702080948.l189m4Uc011013@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35751 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35737 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423200AbXBHJs0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 04:48:26 -0500
+	id S1423187AbXBHJsR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 04:48:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: johannes@sipsolutions.net, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: sic7xxx stray bracket fix
+     windfarm: dont die on suspend thread signal
 has been removed from the -mm tree.  Its filename was
-     scsi-sic7xxx-stray-bracket-fix.patch
+     windfarm-dont-die-on-suspend-thread-signal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi: sic7xxx stray bracket fix
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: windfarm: dont die on suspend thread signal
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Fix broken-but-unused macro.
+When the windfarm thread gets a suspend signal it will die instead of
+freezing.  This fixes it.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic7xxx/aic79xx_pci.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/macintosh/windfarm_core.c |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN drivers/scsi/aic7xxx/aic79xx_pci.c~scsi-sic7xxx-stray-bracket-fix drivers/scsi/aic7xxx/aic79xx_pci.c
---- a/drivers/scsi/aic7xxx/aic79xx_pci.c~scsi-sic7xxx-stray-bracket-fix
-+++ a/drivers/scsi/aic7xxx/aic79xx_pci.c
-@@ -88,7 +88,7 @@ ahd_compose_id(u_int device, u_int vendo
+diff -puN drivers/macintosh/windfarm_core.c~windfarm-dont-die-on-suspend-thread-signal drivers/macintosh/windfarm_core.c
+--- a/drivers/macintosh/windfarm_core.c~windfarm-dont-die-on-suspend-thread-signal
++++ a/drivers/macintosh/windfarm_core.c
+@@ -117,12 +117,6 @@ static int wf_thread_func(void *data)
+ 		delay = next - jiffies;
+ 		if (delay <= HZ)
+ 			schedule_timeout_interruptible(delay);
+-
+-		/* there should be no signal, but oh well */
+-		if (signal_pending(current)) {
+-			printk(KERN_WARNING "windfarm: thread got sigl !\n");
+-			break;
+-		}
+ 	}
  
- #define SUBID_9005_LEGACYCONN_FUNC(id) ((id) & 0x20)
- 
--#define SUBID_9005_SEEPTYPE(id) ((id) & 0x0C0) >> 6)
-+#define SUBID_9005_SEEPTYPE(id) (((id) & 0x0C0) >> 6)
- #define		SUBID_9005_SEEPTYPE_NONE	0x0
- #define		SUBID_9005_SEEPTYPE_4K		0x1
- 
+ 	DBG("wf: thread stopped\n");
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
-origin.patch
 git-alsa.patch
 git-powerpc.patch
-git-dvb.patch
-git-scsi-misc.patch
