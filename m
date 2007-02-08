@@ -1,91 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-fix-fs-gs-registers-for-vt-execution.patch removed from -mm tree
-Date: Thu, 08 Feb 2007 13:53:21 -0800
-Message-ID: <200702082153.l18LrLUn027708@shell0.pdx.osdl.net>
+Subject: - x86_64-clean-up-sparsemem-memory_present-call.patch removed from -mm tree
+Date: Thu, 08 Feb 2007 13:53:04 -0800
+Message-ID: <200702082153.l18Lr4YN027681@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41529 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41519 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423473AbXBHVx0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 16:53:26 -0500
+	id S1423470AbXBHVxY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 16:53:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach@vmware.com, ak@suse.de, mm-commits@vger.kernel.org
+To: bob.picco@hp.com, ak@muc.de, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: fix FS/GS registers for VT execution
+     x86_64: clean up sparsemem memory_present call
 has been removed from the -mm tree.  Its filename was
-     x86_64-fix-fs-gs-registers-for-vt-execution.patch
+     x86_64-clean-up-sparsemem-memory_present-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: fix FS/GS registers for VT execution
-From: Zachary Amsden <zach@vmware.com>
+Subject: x86_64: clean up sparsemem memory_present call
+From: "Bob Picco" <bob.picco@hp.com>
 
-Initialize FS and GS to __KERNEL_DS as well.  The actual value of them is
-not important, but it is important to reload them in protected mode.  At
-this time, they still retain the real mode values from initial boot.  VT
-disallows execution of code under such conditions, which means hardware
-virtualization can not be used to boot the kernel on Intel platforms,
-making the boot time painfully slow.
+Eliminate arch specific memory_present call x86_64 NUMA by utilizing
+sparse_memory_present_with_active_regions.
 
-This requires moving the GS load before the load of GS_BASE, so just move
-all the segments loads there to keep them together in the code.
-
-Signed-off-by: Zachary Amsden <zach@vmware.com>
-Cc: Andi Kleen <ak@suse.de>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Bob Picco <bob.picco@hp.com>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/head.S |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ arch/x86_64/mm/numa.c |   17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
-diff -puN arch/x86_64/kernel/head.S~x86_64-fix-fs-gs-registers-for-vt-execution arch/x86_64/kernel/head.S
---- a/arch/x86_64/kernel/head.S~x86_64-fix-fs-gs-registers-for-vt-execution
-+++ a/arch/x86_64/kernel/head.S
-@@ -163,6 +163,20 @@ startup_64:
- 	 */
- 	lgdt	cpu_gdt_descr
+diff -puN arch/x86_64/mm/numa.c~x86_64-clean-up-sparsemem-memory_present-call arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~x86_64-clean-up-sparsemem-memory_present-call
++++ a/arch/x86_64/mm/numa.c
+@@ -460,20 +460,6 @@ unsigned long __init numa_free_all_bootm
+ 	return pages;
+ } 
  
-+	/* set up data segments. actually 0 would do too */
-+	movl $__KERNEL_DS,%eax
-+	movl %eax,%ds
-+	movl %eax,%ss
-+	movl %eax,%es
-+
-+	/*
-+	 * We don't really need to load %fs or %gs, but load them anyway
-+	 * to kill any stale realmode selectors.  This allows execution
-+	 * under VT hardware.
-+	 */
-+	movl %eax,%fs
-+	movl %eax,%gs
-+
- 	/* 
- 	 * Setup up a dummy PDA. this is just for some early bootup code
- 	 * that does in_interrupt() 
-@@ -173,12 +187,6 @@ startup_64:
- 	shrq	$32,%rdx
- 	wrmsr	
+-#ifdef CONFIG_SPARSEMEM
+-static void __init arch_sparse_init(void)
+-{
+-	int i;
+-
+-	for_each_online_node(i)
+-		memory_present(i, node_start_pfn(i), node_end_pfn(i));
+-
+-	sparse_init();
+-}
+-#else
+-#define arch_sparse_init() do {} while (0)
+-#endif
+-
+ void __init paging_init(void)
+ { 
+ 	int i;
+@@ -483,7 +469,8 @@ void __init paging_init(void)
+ 	max_zone_pfns[ZONE_DMA32] = MAX_DMA32_PFN;
+ 	max_zone_pfns[ZONE_NORMAL] = end_pfn;
  
--	/* set up data segments. actually 0 would do too */
--	movl $__KERNEL_DS,%eax
--	movl %eax,%ds	
--	movl %eax,%ss
--	movl %eax,%es
--			
- 	/* esi is pointer to real mode structure with interesting info.
- 	   pass it to C */
- 	movl	%esi, %edi
+-	arch_sparse_init();
++	sparse_memory_present_with_active_regions(MAX_NUMNODES);
++	sparse_init();
+ 
+ 	for_each_online_node(i) {
+ 		setup_node_zones(i); 
 _
 
-Patches currently in -mm which might be from zach@vmware.com are
+Patches currently in -mm which might be from bob.picco@hp.com are
 
-i386-probe_roms-cleanup.patch
-vmi-versus-hrtimers.patch
-clocksource-replace-is_continuous-by-a-flag-field-fix.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
+origin.patch
