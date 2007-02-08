@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch added to -mm tree
-Date: Wed, 07 Feb 2007 16:47:04 -0800
-Message-ID: <200702080048.l180m9MH000826@shell0.pdx.osdl.net>
+Subject: + acpi-bay-driver-warning-fix.patch added to -mm tree
+Date: Wed, 07 Feb 2007 16:51:46 -0800
+Message-ID: <200702080052.l180qpZD000972@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48299 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48547 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161500AbXBHAsS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 19:48:18 -0500
+	id S1161507AbXBHAyH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 19:54:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, neilb@suse.de
+Cc: akpm@linux-foundation.org, kristen.c.accardi@intel.com, lenb@kernel.org
 
 
 The patch titled
-     revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block
+     acpi: bay driver warning fix
 has been added to the -mm tree.  Its filename is
-     revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+     acpi-bay-driver-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,84 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block
+Subject: acpi: bay driver warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-my life sucks.
+drivers/acpi/bay.c: In function 'bay_add':
+drivers/acpi/bay.c:310: warning: statement with no effect
 
-Cc: Neil Brown <neilb@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Fix it by rewriting those macros in C.  Much nicer.
+
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c         |   22 +---------------------
- include/linux/raid/bitmap.h |    1 -
- 2 files changed, 1 insertion(+), 22 deletions(-)
+ include/acpi/acpi_drivers.h |   24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
-diff -puN drivers/md/bitmap.c~revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block
-+++ a/drivers/md/bitmap.c
-@@ -1160,22 +1160,6 @@ int bitmap_startwrite(struct bitmap *bit
- 			return 0;
- 		}
- 
--		if (unlikely((*bmc & COUNTER_MAX) == COUNTER_MAX)) {
--			DEFINE_WAIT(__wait);
--			/* note that it is safe to do the prepare_to_wait
--			 * after the test as long as we do it before dropping
--			 * the spinlock.
--			 */
--			prepare_to_wait(&bitmap->overflow_wait, &__wait,
--					TASK_UNINTERRUPTIBLE);
--			spin_unlock_irq(&bitmap->lock);
--			bitmap->mddev->queue
--				->unplug_fn(bitmap->mddev->queue);
--			schedule();
--			finish_wait(&bitmap->overflow_wait, &__wait);
--			continue;
--		}
--
- 		switch(*bmc) {
- 		case 0:
- 			bitmap_file_set_bit(bitmap, offset);
-@@ -1185,7 +1169,7 @@ int bitmap_startwrite(struct bitmap *bit
- 		case 1:
- 			*bmc = 2;
- 		}
--
-+		BUG_ON((*bmc & COUNTER_MAX) == COUNTER_MAX);
- 		(*bmc)++;
- 
- 		spin_unlock_irq(&bitmap->lock);
-@@ -1223,9 +1207,6 @@ void bitmap_endwrite(struct bitmap *bitm
- 		if (!success && ! (*bmc & NEEDED_MASK))
- 			*bmc |= NEEDED_MASK;
- 
--		if ((*bmc & COUNTER_MAX) == COUNTER_MAX)
--			wake_up(&bitmap->overflow_wait);
--
- 		(*bmc)--;
- 		if (*bmc <= 2) {
- 			set_page_attr(bitmap,
-@@ -1450,7 +1431,6 @@ int bitmap_create(mddev_t *mddev)
- 	spin_lock_init(&bitmap->lock);
- 	atomic_set(&bitmap->pending_writes, 0);
- 	init_waitqueue_head(&bitmap->write_wait);
--	init_waitqueue_head(&bitmap->overflow_wait);
- 
- 	bitmap->mddev = mddev;
- 
-diff -puN include/linux/raid/bitmap.h~revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block include/linux/raid/bitmap.h
---- a/include/linux/raid/bitmap.h~revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block
-+++ a/include/linux/raid/bitmap.h
-@@ -247,7 +247,6 @@ struct bitmap {
- 
- 	atomic_t pending_writes; /* pending writes to the bitmap file */
- 	wait_queue_head_t write_wait;
--	wait_queue_head_t overflow_wait;
- 
- };
- 
+diff -puN include/acpi/acpi_drivers.h~acpi-bay-driver-warning-fix include/acpi/acpi_drivers.h
+--- a/include/acpi/acpi_drivers.h~acpi-bay-driver-warning-fix
++++ a/include/acpi/acpi_drivers.h
+@@ -122,10 +122,24 @@ extern int register_hotplug_dock_device(
+ 	acpi_notify_handler handler, void *context);
+ extern void unregister_hotplug_dock_device(acpi_handle handle);
+ #else
+-#define is_dock_device(h)			(0)
+-#define register_dock_notifier(nb) 		(-ENODEV)
+-#define unregister_dock_notifier(nb)           	do { } while(0)
+-#define register_hotplug_dock_device(h1, h2, c)	(-ENODEV)
+-#define unregister_hotplug_dock_device(h)       do { } while(0)
++static inline int is_dock_device(acpi_handle handle)
++{
++	return 0;
++}
++static inline int register_dock_notifier(struct notifier_block *nb)
++{
++	return -ENODEV;
++}
++static inline void unregister_dock_notifier(struct notifier_block *nb)
++{
++}
++static inline int register_hotplug_dock_device(acpi_handle handle,
++				acpi_notify_handler handler, void *context)
++{
++	return -ENODEV;
++}
++static inline void unregister_hotplug_dock_device(acpi_handle handle)
++{
++}
+ #endif
+ #endif /*__ACPI_DRIVERS_H__*/
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,3 +99,4 @@ knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
 knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
 fix-utrace-utrace-ptrace-compat.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-3-fix.patch
+acpi-bay-driver-warning-fix.patch
