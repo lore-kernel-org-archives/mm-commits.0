@@ -1,81 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + utrace-i386-build-fix.patch added to -mm tree
-Date: Wed, 07 Feb 2007 18:11:51 -0800
-Message-ID: <200702080212.l182Cu1r002609@shell0.pdx.osdl.net>
+Subject: - search-a-little-harder-for-mkimage.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 21:19:36 -0800
+Message-ID: <200702080519.l185JaGH005989@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50552 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56023 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161358AbXBHCNJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 21:13:09 -0500
+	id S1161314AbXBHFTm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 00:19:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, roland@redhat.com
+To: vapier.adi@gmail.com, sam@ravnborg.org, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     utrace-i386-build-fix
-has been added to the -mm tree.  Its filename is
-     utrace-i386-build-fix.patch
+     search a little harder for mkimage
+has been removed from the -mm tree.  Its filename was
+     search-a-little-harder-for-mkimage.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: utrace-i386-build-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: search a little harder for mkimage
+From: "Mike Frysinger" <vapier.adi@gmail.com>
 
-Make it seem to work...
+Check to see if `${CROSS_COMPILE}mkimage` exists and if not, fall back to
+the standard `mkimage`
 
-Cc: Roland McGrath <roland@redhat.com>
+The Blackfin toolchain includes mkimage, but we dont want to namespace
+collide with any of the user's system setup, so we prefix it with our
+toolchain name.
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/math-emu/fpu_entry.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/mkuboot.sh |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/math-emu/fpu_entry.c~utrace-i386-build-fix arch/i386/math-emu/fpu_entry.c
---- a/arch/i386/math-emu/fpu_entry.c~utrace-i386-build-fix
-+++ a/arch/i386/math-emu/fpu_entry.c
-@@ -212,8 +212,8 @@ asmlinkage void math_emulate(long arg)
-     }
+diff -puN scripts/mkuboot.sh~search-a-little-harder-for-mkimage scripts/mkuboot.sh
+--- a/scripts/mkuboot.sh~search-a-little-harder-for-mkimage
++++ a/scripts/mkuboot.sh
+@@ -4,12 +4,15 @@
+ # Build U-Boot image when `mkimage' tool is available.
+ #
  
-   FPU_lookahead = 1;
--  if (current->ptrace & PT_PTRACED)
--    FPU_lookahead = 0;
-+//  if (current->ptrace & PT_PTRACED)
-+//  FPU_lookahead = 0;
+-MKIMAGE=$(type -path mkimage)
++MKIMAGE=$(type -path ${CROSS_COMPILE}mkimage)
  
-   if ( !valid_prefix(&byte1, (u_char __user **)&FPU_EIP,
- 		     &addr_modes.override) )
+ if [ -z "${MKIMAGE}" ]; then
+-	# Doesn't exist
+-	echo '"mkimage" command not found - U-Boot images will not be built' >&2
+-	exit 0;
++	MKIMAGE=$(type -path mkimage)
++	if [ -z "${MKIMAGE}" ]; then
++		# Doesn't exist
++		echo '"mkimage" command not found - U-Boot images will not be built' >&2
++		exit 0;
++	fi
+ fi
+ 
+ # Call "mkimage" to create U-Boot image
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
-origin.patch
-md-fix-various-bugs-with-aligned-reads-in-raid5-fix.patch
-acpi-bay-driver-warning-fix.patch
-fix-warning-in-device_add_attrs.patch
-git-dvb.patch
-kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
-git-libata-all.patch
-sis-warning-fixes.patch
-git-libata-all-lib-iomapc-fix-for-config_pci=n.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-git-sh.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-block.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-git-cryptodev-fixup.patch
-mm-vm_insert_pfn-tidy.patch
-swiotlb-uninlinings.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
-fix-utrace-utrace-ptrace-compat.patch
-utrace-i386-build-fix.patch
+search-a-little-harder-for-mkimage.patch
+scrub-non-__glibc__-checks-in-linux-socketh-and-linux-stath.patch
