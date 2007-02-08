@@ -1,407 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - revert-x86_64-mm-msr-on-cpu.patch removed from -mm tree
-Date: Thu, 08 Feb 2007 13:32:59 -0800
-Message-ID: <200702082132.l18LWxmJ027018@shell0.pdx.osdl.net>
+Subject: + revert-x86_64-mm-putreg-check.patch added to -mm tree
+Date: Thu, 08 Feb 2007 13:49:43 -0800
+Message-ID: <200702082149.l18LnhQJ027574@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40534 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41186 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423426AbXBHVdL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 16:33:11 -0500
+	id S1423456AbXBHVts (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 16:49:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@openvz.org, ak@muc.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ak@suse.de, rolandd@cisco.com
 
 
 The patch titled
-     revert x86_64-mm-msr-on-cpu
-has been removed from the -mm tree.  Its filename was
-     revert-x86_64-mm-msr-on-cpu.patch
+     revert x86_64-mm-putreg-check
+has been added to the -mm tree.  Its filename is
+     revert-x86_64-mm-putreg-check.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-msr-on-cpu
-From: Andrew Morton <akpm@osdl.org>
+Subject: revert x86_64-mm-putreg-check
+From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64:
+Try to make it possible to carry the utrace patchset.
 
-WARNING: "wrmsr_on_cpu" [arch/x86_64/kernel/cpufreq/p4-clockmod.ko] undefined!
-WARNING: "rdmsr_on_cpu" [arch/x86_64/kernel/cpufreq/p4-clockmod.ko] undefined!
-
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Andi Kleen <ak@muc.de>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/p4-clockmod.c |   30 ++++++--
- arch/i386/lib/Makefile                     |    2 
- arch/i386/lib/msr-on-cpu.c                 |   70 -------------------
- arch/x86_64/lib/Makefile                   |    4 -
- include/asm-i386/msr.h                     |    3 
- 5 files changed, 25 insertions(+), 84 deletions(-)
+ arch/x86_64/kernel/ptrace.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~revert-x86_64-mm-msr-on-cpu arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
---- a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~revert-x86_64-mm-msr-on-cpu
-+++ a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
-@@ -62,7 +62,7 @@ static int cpufreq_p4_setdc(unsigned int
- 	if (!cpu_online(cpu) || (newstate > DC_DISABLE) || (newstate == DC_RESV))
- 		return -EINVAL;
- 
--	rdmsr_on_cpu(cpu, MSR_IA32_THERM_STATUS, &l, &h);
-+	rdmsr(MSR_IA32_THERM_STATUS, l, h);
- 
- 	if (l & 0x01)
- 		dprintk("CPU#%d currently thermal throttled\n", cpu);
-@@ -70,10 +70,10 @@ static int cpufreq_p4_setdc(unsigned int
- 	if (has_N44_O17_errata[cpu] && (newstate == DC_25PT || newstate == DC_DFLT))
- 		newstate = DC_38PT;
- 
--	rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, &l, &h);
-+	rdmsr(MSR_IA32_THERM_CONTROL, l, h);
- 	if (newstate == DC_DISABLE) {
- 		dprintk("CPU#%d disabling modulation\n", cpu);
--		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, l & ~(1<<4), h);
-+		wrmsr(MSR_IA32_THERM_CONTROL, l & ~(1<<4), h);
- 	} else {
- 		dprintk("CPU#%d setting duty cycle to %d%%\n",
- 			cpu, ((125 * newstate) / 10));
-@@ -84,7 +84,7 @@ static int cpufreq_p4_setdc(unsigned int
- 		 */
- 		l = (l & ~14);
- 		l = l | (1<<4) | ((newstate & 0x7)<<1);
--		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, l, h);
-+		wrmsr(MSR_IA32_THERM_CONTROL, l, h);
- 	}
- 
- 	return 0;
-@@ -111,6 +111,7 @@ static int cpufreq_p4_target(struct cpuf
- {
- 	unsigned int    newstate = DC_RESV;
- 	struct cpufreq_freqs freqs;
-+	cpumask_t cpus_allowed;
- 	int i;
- 
- 	if (cpufreq_frequency_table_target(policy, &p4clockmod_table[0], target_freq, relation, &newstate))
-@@ -131,8 +132,17 @@ static int cpufreq_p4_target(struct cpuf
- 	/* run on each logical CPU, see section 13.15.3 of IA32 Intel Architecture Software
- 	 * Developer's Manual, Volume 3
- 	 */
--	for_each_cpu_mask(i, policy->cpus)
-+	cpus_allowed = current->cpus_allowed;
-+
-+	for_each_cpu_mask(i, policy->cpus) {
-+		cpumask_t this_cpu = cpumask_of_cpu(i);
-+
-+		set_cpus_allowed(current, this_cpu);
-+		BUG_ON(smp_processor_id() != i);
-+
- 		cpufreq_p4_setdc(i, p4clockmod_table[newstate].index);
-+	}
-+	set_cpus_allowed(current, cpus_allowed);
- 
- 	/* notifiers */
- 	for_each_cpu_mask(i, policy->cpus) {
-@@ -246,9 +256,17 @@ static int cpufreq_p4_cpu_exit(struct cp
- 
- static unsigned int cpufreq_p4_get(unsigned int cpu)
- {
-+	cpumask_t cpus_allowed;
- 	u32 l, h;
- 
--	rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, &l, &h);
-+	cpus_allowed = current->cpus_allowed;
-+
-+	set_cpus_allowed(current, cpumask_of_cpu(cpu));
-+	BUG_ON(smp_processor_id() != cpu);
-+
-+	rdmsr(MSR_IA32_THERM_CONTROL, l, h);
-+
-+	set_cpus_allowed(current, cpus_allowed);
- 
- 	if (l & 0x10) {
- 		l = l >> 1;
-diff -puN arch/i386/lib/Makefile~revert-x86_64-mm-msr-on-cpu arch/i386/lib/Makefile
---- a/arch/i386/lib/Makefile~revert-x86_64-mm-msr-on-cpu
-+++ a/arch/i386/lib/Makefile
-@@ -7,5 +7,3 @@ lib-y = checksum.o delay.o usercopy.o ge
- 	bitops.o semaphore.o
- 
- lib-$(CONFIG_X86_USE_3DNOW) += mmx.o
--
--obj-y = msr-on-cpu.o
-diff -puN arch/i386/lib/msr-on-cpu.c~revert-x86_64-mm-msr-on-cpu /dev/null
---- a/arch/i386/lib/msr-on-cpu.c
-+++ /dev/null
-@@ -1,70 +0,0 @@
--#include <linux/module.h>
--#include <linux/preempt.h>
--#include <linux/smp.h>
--#include <asm/msr.h>
--
--#ifdef CONFIG_SMP
--struct msr_info {
--	u32 msr_no;
--	u32 l, h;
--};
--
--static void __rdmsr_on_cpu(void *info)
--{
--	struct msr_info *rv = info;
--
--	rdmsr(rv->msr_no, rv->l, rv->h);
--}
--
--void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
--{
--	preempt_disable();
--	if (smp_processor_id() == cpu)
--		rdmsr(msr_no, *l, *h);
--	else {
--		struct msr_info rv;
--
--		rv.msr_no = msr_no;
--		smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
--		*l = rv.l;
--		*h = rv.h;
--	}
--	preempt_enable();
--}
--
--static void __wrmsr_on_cpu(void *info)
--{
--	struct msr_info *rv = info;
--
--	wrmsr(rv->msr_no, rv->l, rv->h);
--}
--
--void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
--{
--	preempt_disable();
--	if (smp_processor_id() == cpu)
--		wrmsr(msr_no, l, h);
--	else {
--		struct msr_info rv;
--
--		rv.msr_no = msr_no;
--		rv.l = l;
--		rv.h = h;
--		smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
--	}
--	preempt_enable();
--}
--#else
--void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
--{
--	rdmsr(msr_no, *l, *h);
--}
--
--void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
--{
--	wrmsr(msr_no, l, h);
--}
--#endif
--
--EXPORT_SYMBOL(rdmsr_on_cpu);
--EXPORT_SYMBOL(wrmsr_on_cpu);
-diff -puN include/asm-i386/msr.h~revert-x86_64-mm-msr-on-cpu include/asm-i386/msr.h
---- a/include/asm-i386/msr.h~revert-x86_64-mm-msr-on-cpu
-+++ a/include/asm-i386/msr.h
-@@ -83,9 +83,6 @@ static inline void wrmsrl (unsigned long
- 			  : "c" (counter))
- #endif	/* !CONFIG_PARAVIRT */
- 
--void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
--void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
--
- /* symbolic names for some interesting MSRs */
- /* Intel defined MSRs. */
- #define MSR_IA32_P5_MC_ADDR		0
-diff -puN arch/x86_64/lib/Makefile~revert-x86_64-mm-msr-on-cpu arch/x86_64/lib/Makefile
---- a/arch/x86_64/lib/Makefile~revert-x86_64-mm-msr-on-cpu
-+++ a/arch/x86_64/lib/Makefile
-@@ -4,12 +4,10 @@
- 
- CFLAGS_csum-partial.o := -funroll-loops
- 
--obj-y := io.o iomap_copy.o msr-on-cpu.o
-+obj-y := io.o iomap_copy.o
- 
- lib-y := csum-partial.o csum-copy.o csum-wrappers.o delay.o \
- 	usercopy.o getuser.o putuser.o  \
- 	thunk.o clear_page.o copy_page.o bitstr.o bitops.o
- lib-y += memcpy.o memmove.o memset.o copy_user.o rwlock.o copy_user_nocache.o
- lib-y += memcpy_uncached_read.o
--
--msr-on-cpu-y += ../../i386/lib/msr-on-cpu.o
+diff -puN arch/x86_64/kernel/ptrace.c~revert-x86_64-mm-putreg-check arch/x86_64/kernel/ptrace.c
+--- a/arch/x86_64/kernel/ptrace.c~revert-x86_64-mm-putreg-check
++++ a/arch/x86_64/kernel/ptrace.c
+@@ -536,12 +536,8 @@ long arch_ptrace(struct task_struct *chi
+ 		}
+ 		ret = 0;
+ 		for (ui = 0; ui < sizeof(struct user_regs_struct); ui += sizeof(long)) {
+-			ret = __get_user(tmp, (unsigned long __user *) data);
+-			if (ret)
+-				break;
+-			ret = putreg(child, ui, tmp);
+-			if (ret)
+-				break;
++			ret |= __get_user(tmp, (unsigned long __user *) data);
++			putreg(child, ui, tmp);
+ 			data += sizeof(long);
+ 		}
+ 		break;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-x86-fix-vdso-mapping-for-aout-executables.patch
-mm-show-bounce-pages-in-oom-killer-output.patch
-use-correct-macros-in-raid-code-not-raw-asm-include.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-alsa.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-powerpc-make-it-compile.patch
+md-fix-various-bugs-with-aligned-reads-in-raid5-fix.patch
+acpi-bay-driver-warning-fix.patch
+fix-warning-in-device_add_attrs.patch
 git-dvb.patch
-git-ia64.patch
-git-ieee1394.patch
-git-input.patch
+kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
 git-libata-all.patch
-git-lxdialog-fixup.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-netfilter-warning-fix.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-r8169-warning-fixes.patch
+sis-warning-fixes.patch
+git-libata-all-lib-iomapc-fix-for-config_pci=n.patch
+git-md-accel-fixes.patch
+git-md-accel-warning-fixes.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+git-net.patch
+git-sh.patch
 git-scsi-misc.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-scsi-misc-fixup.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
 git-block.patch
-git-block-fixup.patch
-git-block-xfs-barriers-broke.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-nokia-e70-is-an-unusual-device.patch
-git-ipwireless_cs.patch
-revert-x86_64-mm-msr-on-cpu.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-drop-free_pages-sparc64-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-add-retain_initrd-boot-option-tweak.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
-register_blkdev-dont-hand-out-the-local-experimental-majors.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-dynamic-kernel-command-line-ia64-fix.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
+git-cryptodev-fixup.patch
+mm-vm_insert_pfn-tidy.patch
+swiotlb-uninlinings.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
+revert-x86_64-mm-putreg-check.patch
+fix-utrace-utrace-ptrace-compat.patch
+utrace-i386-build-fix.patch
