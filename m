@@ -1,77 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-clean-up-sparsemem-memory_present-call.patch removed from -mm tree
-Date: Thu, 08 Feb 2007 13:53:04 -0800
-Message-ID: <200702082153.l18Lr4YN027681@shell0.pdx.osdl.net>
+Subject: - p4-clockmod-use-rdmsr_on_cpu-wrmsr_on_cpu.patch removed from -mm tree
+Date: Thu, 08 Feb 2007 13:53:26 -0800
+Message-ID: <200702082153.l18LrQOA027736@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41519 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41543 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423470AbXBHVxY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 16:53:24 -0500
+	id S1423471AbXBHVxe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 16:53:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bob.picco@hp.com, ak@muc.de, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: adobriyan@openvz.org, ak@suse.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: clean up sparsemem memory_present call
+     p4-clockmod: use rdmsr_on_cpu(), wrmsr_on_cpu()
 has been removed from the -mm tree.  Its filename was
-     x86_64-clean-up-sparsemem-memory_present-call.patch
+     p4-clockmod-use-rdmsr_on_cpu-wrmsr_on_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: clean up sparsemem memory_present call
-From: "Bob Picco" <bob.picco@hp.com>
+Subject: p4-clockmod: use rdmsr_on_cpu(), wrmsr_on_cpu()
+From: Alexey Dobriyan <adobriyan@openvz.org>
 
-Eliminate arch specific memory_present call x86_64 NUMA by utilizing
-sparse_memory_present_with_active_regions.
+Dances with cpu masks go away.
 
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Signed-off-by: Bob Picco <bob.picco@hp.com>
-Cc: Andi Kleen <ak@muc.de>
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/numa.c |   17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+ arch/i386/kernel/cpu/cpufreq/p4-clockmod.c |   30 +++----------------
+ 1 file changed, 6 insertions(+), 24 deletions(-)
 
-diff -puN arch/x86_64/mm/numa.c~x86_64-clean-up-sparsemem-memory_present-call arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-clean-up-sparsemem-memory_present-call
-+++ a/arch/x86_64/mm/numa.c
-@@ -460,20 +460,6 @@ unsigned long __init numa_free_all_bootm
- 	return pages;
- } 
+diff -puN arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~p4-clockmod-use-rdmsr_on_cpu-wrmsr_on_cpu arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
+--- a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~p4-clockmod-use-rdmsr_on_cpu-wrmsr_on_cpu
++++ a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
+@@ -62,7 +62,7 @@ static int cpufreq_p4_setdc(unsigned int
+ 	if (!cpu_online(cpu) || (newstate > DC_DISABLE) || (newstate == DC_RESV))
+ 		return -EINVAL;
  
--#ifdef CONFIG_SPARSEMEM
--static void __init arch_sparse_init(void)
--{
--	int i;
--
--	for_each_online_node(i)
--		memory_present(i, node_start_pfn(i), node_end_pfn(i));
--
--	sparse_init();
--}
--#else
--#define arch_sparse_init() do {} while (0)
--#endif
--
- void __init paging_init(void)
- { 
+-	rdmsr(MSR_IA32_THERM_STATUS, l, h);
++	rdmsr_on_cpu(cpu, MSR_IA32_THERM_STATUS, &l, &h);
+ 
+ 	if (l & 0x01)
+ 		dprintk("CPU#%d currently thermal throttled\n", cpu);
+@@ -70,10 +70,10 @@ static int cpufreq_p4_setdc(unsigned int
+ 	if (has_N44_O17_errata[cpu] && (newstate == DC_25PT || newstate == DC_DFLT))
+ 		newstate = DC_38PT;
+ 
+-	rdmsr(MSR_IA32_THERM_CONTROL, l, h);
++	rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, &l, &h);
+ 	if (newstate == DC_DISABLE) {
+ 		dprintk("CPU#%d disabling modulation\n", cpu);
+-		wrmsr(MSR_IA32_THERM_CONTROL, l & ~(1<<4), h);
++		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, l & ~(1<<4), h);
+ 	} else {
+ 		dprintk("CPU#%d setting duty cycle to %d%%\n",
+ 			cpu, ((125 * newstate) / 10));
+@@ -84,7 +84,7 @@ static int cpufreq_p4_setdc(unsigned int
+ 		 */
+ 		l = (l & ~14);
+ 		l = l | (1<<4) | ((newstate & 0x7)<<1);
+-		wrmsr(MSR_IA32_THERM_CONTROL, l, h);
++		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, l, h);
+ 	}
+ 
+ 	return 0;
+@@ -111,7 +111,6 @@ static int cpufreq_p4_target(struct cpuf
+ {
+ 	unsigned int    newstate = DC_RESV;
+ 	struct cpufreq_freqs freqs;
+-	cpumask_t cpus_allowed;
  	int i;
-@@ -483,7 +469,8 @@ void __init paging_init(void)
- 	max_zone_pfns[ZONE_DMA32] = MAX_DMA32_PFN;
- 	max_zone_pfns[ZONE_NORMAL] = end_pfn;
  
--	arch_sparse_init();
-+	sparse_memory_present_with_active_regions(MAX_NUMNODES);
-+	sparse_init();
+ 	if (cpufreq_frequency_table_target(policy, &p4clockmod_table[0], target_freq, relation, &newstate))
+@@ -132,17 +131,8 @@ static int cpufreq_p4_target(struct cpuf
+ 	/* run on each logical CPU, see section 13.15.3 of IA32 Intel Architecture Software
+ 	 * Developer's Manual, Volume 3
+ 	 */
+-	cpus_allowed = current->cpus_allowed;
+-
+-	for_each_cpu_mask(i, policy->cpus) {
+-		cpumask_t this_cpu = cpumask_of_cpu(i);
+-
+-		set_cpus_allowed(current, this_cpu);
+-		BUG_ON(smp_processor_id() != i);
+-
++	for_each_cpu_mask(i, policy->cpus)
+ 		cpufreq_p4_setdc(i, p4clockmod_table[newstate].index);
+-	}
+-	set_cpus_allowed(current, cpus_allowed);
  
- 	for_each_online_node(i) {
- 		setup_node_zones(i); 
+ 	/* notifiers */
+ 	for_each_cpu_mask(i, policy->cpus) {
+@@ -256,17 +246,9 @@ static int cpufreq_p4_cpu_exit(struct cp
+ 
+ static unsigned int cpufreq_p4_get(unsigned int cpu)
+ {
+-	cpumask_t cpus_allowed;
+ 	u32 l, h;
+ 
+-	cpus_allowed = current->cpus_allowed;
+-
+-	set_cpus_allowed(current, cpumask_of_cpu(cpu));
+-	BUG_ON(smp_processor_id() != cpu);
+-
+-	rdmsr(MSR_IA32_THERM_CONTROL, l, h);
+-
+-	set_cpus_allowed(current, cpus_allowed);
++	rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, &l, &h);
+ 
+ 	if (l & 0x10) {
+ 		l = l >> 1;
 _
 
-Patches currently in -mm which might be from bob.picco@hp.com are
+Patches currently in -mm which might be from adobriyan@openvz.org are
 
-origin.patch
+git-net.patch
+sysctl_ms_jiffies-fix-oldlen-semantics.patch
+consolidate-default-sched_clock.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+sn2-use-static-proc_fops.patch
+consolidate-bust_spinlocks.patch
+extract-and-use-wake_up_klogd.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+lutimesat-simplify-utime2.patch
+lutimesat-extend-do_utimes-with-flags.patch
+lutimesat-actual-syscall-and-wire-up-on-i386.patch
