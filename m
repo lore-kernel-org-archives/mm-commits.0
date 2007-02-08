@@ -1,83 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - md-fix-various-bugs-with-aligned-reads-in-raid5-fix.patch removed from -mm tree
-Date: Thu, 08 Feb 2007 14:17:24 -0800
-Message-ID: <200702082217.l18MHOuo028384@shell0.pdx.osdl.net>
+Subject: - rtc-pcf8563-detect-polarity-of-century-bit-automatically-fix.patch removed from -mm tree
+Date: Thu, 08 Feb 2007 14:17:03 -0800
+Message-ID: <200702082217.l18MH3BU028381@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42273 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42793 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423421AbXBHWRj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 17:17:39 -0500
+	id S1423489AbXBHWZC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 17:25:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, epimetreus@fastmail.fm, jens.axboe@oracle.com, neilb@suse.de, org@suse.de, stable@suse.de, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, dbrownell@users.sourceforge.net, jean-baptiste.maneyrol@teamlog.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md-fix-various-bugs-with-aligned-reads-in-raid5-fix
+     rtc-pcf8563: detect polarity of century bit automatically: fix
 has been removed from the -mm tree.  Its filename was
-     md-fix-various-bugs-with-aligned-reads-in-raid5-fix.patch
+     rtc-pcf8563-detect-polarity-of-century-bit-automatically-fix.patch
 
-This patch was dropped because it was folded into md-fix-various-bugs-with-aligned-reads-in-raid5.patch
+This patch was dropped because it was folded into rtc-pcf8563-detect-polarity-of-century-bit-automatically.patch
 
 ------------------------------------------------------
-Subject: md-fix-various-bugs-with-aligned-reads-in-raid5-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-pcf8563: detect polarity of century bit automatically: fix
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-WARNING: "blk_recount_segments" [drivers/md/raid456.ko] undefined!
+Sorry, I forgot to change an argument of kfree() in pcf8563_detach().
+Though it should work while "client" is a first member in struct
+pcf8563, it should be changed to pass "pcf8563" instead of "client".
 
-Cc: Neil Brown <neilb@suse.de>
-Cc: "Kai" <epimetreus@fastmail.fm>
-Cc: <stable@suse.de>
-Cc: <org@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Jean-Baptiste Maneyrol <jean-baptiste.maneyrol@teamlog.com>
+Cc: <stable@kernel.org>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- block/ll_rw_blk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-pcf8563.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN block/ll_rw_blk.c~md-fix-various-bugs-with-aligned-reads-in-raid5-fix block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~md-fix-various-bugs-with-aligned-reads-in-raid5-fix
-+++ a/block/ll_rw_blk.c
-@@ -1264,7 +1264,7 @@ new_hw_segment:
- 	bio->bi_hw_segments = nr_hw_segs;
- 	bio->bi_flags |= (1 << BIO_SEG_VALID);
- }
--
-+EXPORT_SYMBOL(blk_recount_segments);
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-detect-polarity-of-century-bit-automatically-fix drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-detect-polarity-of-century-bit-automatically-fix
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -336,6 +336,7 @@ exit:
  
- static int blk_phys_contig_segment(request_queue_t *q, struct bio *bio,
- 				   struct bio *nxt)
+ static int pcf8563_detach(struct i2c_client *client)
+ {
++	struct pcf8563 *pcf8563 = container_of(client, struct pcf8563, client);
+ 	int err;
+ 	struct rtc_device *rtc = i2c_get_clientdata(client);
+ 
+@@ -345,7 +346,7 @@ static int pcf8563_detach(struct i2c_cli
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+ 
+-	kfree(client);
++	kfree(pcf8563);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
-md-fix-various-bugs-with-aligned-reads-in-raid5.patch
-md-fix-various-bugs-with-aligned-reads-in-raid5-fix.patch
-acpi-bay-driver-warning-fix.patch
-fix-warning-in-device_add_attrs.patch
-git-dvb.patch
-kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
-git-libata-all.patch
-sis-warning-fixes.patch
-git-libata-all-lib-iomapc-fix-for-config_pci=n.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-git-net.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-block.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-git-cryptodev-fixup.patch
-mm-vm_insert_pfn-tidy.patch
-swiotlb-uninlinings.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
-revert-x86_64-mm-putreg-check.patch
-fix-utrace-utrace-ptrace-compat.patch
-utrace-i386-build-fix.patch
+rtc-pcf8563-detect-polarity-of-century-bit-automatically.patch
+rtc-pcf8563-detect-polarity-of-century-bit-automatically-fix.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options.patch
+serial-serial_txx9-driver-update.patch
