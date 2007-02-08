@@ -1,80 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - minimize-lockdep_on-off-side-effect.patch removed from -mm tree
-Date: Thu, 08 Feb 2007 15:32:28 -0800
-Message-ID: <200702082332.l18NWShs030683@shell0.pdx.osdl.net>
+Subject: + deprecate-sa_interrupt-and-friends.patch added to -mm tree
+Date: Thu, 08 Feb 2007 15:54:11 -0800
+Message-ID: <200702082354.l18NsBWi031254@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45269 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46025 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161019AbXBHXco (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 18:32:44 -0500
+	id S932952AbXBHXyZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 18:54:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: compudj@krystal.dyndns.org, mathieu.desnoyers@polymtl.ca, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     minimize lockdep_on/off side-effect
-has been removed from the -mm tree.  Its filename was
-     minimize-lockdep_on-off-side-effect.patch
+     deprecate SA_INTERRUPT and friends
+has been added to the -mm tree.  Its filename is
+     deprecate-sa_interrupt-and-friends.patch
 
-This patch was dropped because it was folded into order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: minimize lockdep_on/off side-effect
-From: Mathieu Desnoyers <compudj@krystal.dyndns.org>
+Subject: deprecate SA_INTERRUPT and friends
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Minimize lockdep_on/off side-effect on irq tracing in vprintk by using
-raw_local_irq_save/restore _around_ lockdep_off/on().
+Do ridiculous things to force a deprecated warning when someone uses one of
+the old SA_* flags.  We can remove all this in six months or so.  To give all
+those out-of-tree drivers time to catch up.
 
-It has the advantage of not losing the IRQ events coming between the lockdep
-disabling and the irq disabling.
+It'll cause build errors if someone is using SA_foo in a static initialiser,
+but the fix for that is to use IRQF_foo.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Based on an idea from tglx.
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/interrupt.h |   37 +++++++++++++++++++++++++-----------
+ 1 files changed, 26 insertions(+), 11 deletions(-)
 
-diff -puN kernel/printk.c~minimize-lockdep_on-off-side-effect kernel/printk.c
---- a/kernel/printk.c~minimize-lockdep_on-off-side-effect
-+++ a/kernel/printk.c
-@@ -529,8 +529,8 @@ asmlinkage int vprintk(const char *fmt, 
- 		zap_locks();
+diff -puN include/linux/interrupt.h~deprecate-sa_interrupt-and-friends include/linux/interrupt.h
+--- a/include/linux/interrupt.h~deprecate-sa_interrupt-and-friends
++++ a/include/linux/interrupt.h
+@@ -57,17 +57,32 @@
+  * Migration helpers. Scheduled for removal in 1/2007
+  * Do not use for new code !
+  */
+-#define SA_INTERRUPT		IRQF_DISABLED
+-#define SA_SAMPLE_RANDOM	IRQF_SAMPLE_RANDOM
+-#define SA_SHIRQ		IRQF_SHARED
+-#define SA_PROBEIRQ		IRQF_PROBE_SHARED
+-#define SA_PERCPU		IRQF_PERCPU
+-
+-#define SA_TRIGGER_LOW		IRQF_TRIGGER_LOW
+-#define SA_TRIGGER_HIGH		IRQF_TRIGGER_HIGH
+-#define SA_TRIGGER_FALLING	IRQF_TRIGGER_FALLING
+-#define SA_TRIGGER_RISING	IRQF_TRIGGER_RISING
+-#define SA_TRIGGER_MASK		IRQF_TRIGGER_MASK
++#define emit_old_interrupt_name(old, new)				\
++static inline unsigned __deprecated emit_old_interrupt_name_##old(void)	\
++{									\
++	return (new);							\
++}
++
++emit_old_interrupt_name(SA_INTERRUPT, IRQF_DISABLED)
++#define SA_INTERRUPT emit_old_interrupt_name_SA_INTERRUPT()
++emit_old_interrupt_name(SA_SAMPLE_RANDOM, IRQF_SAMPLE_RANDOM)
++#define SA_SAMPLE_RANDOM emit_old_interrupt_name_SA_SAMPLE_RANDOM()
++emit_old_interrupt_name(SA_SHIRQ, IRQF_SHARED)
++#define SA_SHIRQ emit_old_interrupt_name_SA_SHIRQ()
++emit_old_interrupt_name(SA_PROBEIRQ, IRQF_PROBE_SHARED)
++#define SA_PROBEIRQ emit_old_interrupt_name_SA_PROBEIRQ()
++emit_old_interrupt_name(SA_PERCPU, IRQF_PERCPU)
++#define SA_PERCPU emit_old_interrupt_name_SA_PERCPU()
++emit_old_interrupt_name(SA_TRIGGER_LOW, IRQF_TRIGGER_LOW)
++#define SA_TRIGGER_LOW emit_old_interrupt_name_SA_TRIGGER_LOW()
++emit_old_interrupt_name(SA_TRIGGER_HIGH, IRQF_TRIGGER_HIGH)
++#define SA_TRIGGER_HIGH emit_old_interrupt_name_SA_TRIGGER_HIGH()
++emit_old_interrupt_name(SA_TRIGGER_FALLING, IRQF_TRIGGER_FALLING)
++#define SA_TRIGGER_FALLING emit_old_interrupt_name_SA_TRIGGER_FALLING()
++emit_old_interrupt_name(SA_TRIGGER_RISING, IRQF_TRIGGER_RISING)
++#define SA_TRIGGER_RISING emit_old_interrupt_name_SA_TRIGGER_RISING()
++emit_old_interrupt_name(SA_TRIGGER_MASK, IRQF_TRIGGER_MASK)
++#define SA_TRIGGER_MASK emit_old_interrupt_name_SA_TRIGGER_MASK()
  
- 	/* This stops the holder of console_sem just where we want him */
-+	raw_local_irq_save(flags);
- 	lockdep_off();
--	local_irq_save(flags);
- 	spin_lock(&logbuf_lock);
- 	printk_cpu = smp_processor_id();
+ typedef irqreturn_t (*irq_handler_t)(int, void *);
  
-@@ -617,8 +617,8 @@ asmlinkage int vprintk(const char *fmt, 
- 			console_locked = 0;
- 			up(&console_sem);
- 		}
--		local_irq_restore(flags);
- 		lockdep_on();
-+		raw_local_irq_restore(flags);
- 	} else {
- 		/*
- 		 * Someone else owns the drivers.  We drop the spinlock, which
-@@ -627,8 +627,8 @@ asmlinkage int vprintk(const char *fmt, 
- 		 */
- 		printk_cpu = UINT_MAX;
- 		spin_unlock(&logbuf_lock);
--		local_irq_restore(flags);
- 		lockdep_on();
-+		raw_local_irq_restore(flags);
- 	}
- 
- 	preempt_enable();
 _
 
-Patches currently in -mm which might be from compudj@krystal.dyndns.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-order-of-lockdep-off-on-in-vprintk-should-be-changed.patch
-minimize-lockdep_on-off-side-effect.patch
+acpi-bay-driver-warning-fix.patch
+fix-warning-in-device_add_attrs.patch
+git-dvb.patch
+kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
+git-libata-all.patch
+sis-warning-fixes.patch
+git-libata-all-lib-iomapc-fix-for-config_pci=n.patch
+git-md-accel-fixes.patch
+git-md-accel-warning-fixes.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+git-net.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block.patch
+x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
+git-cryptodev-fixup.patch
+mm-vm_insert_pfn-tidy.patch
+swiotlb-uninlinings.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
+revert-x86_64-mm-putreg-check.patch
+fix-utrace-utrace-ptrace-compat.patch
+utrace-i386-build-fix.patch
+deprecate-sa_interrupt-and-friends.patch
