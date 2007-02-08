@@ -1,171 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - kexec-update-io-apic-dest-field-to-8-bit-for.patch removed from -mm tree
-Date: Thu, 08 Feb 2007 13:53:09 -0800
-Message-ID: <200702082153.l18Lr9cP027687@shell0.pdx.osdl.net>
+Subject: - x86_64-fix-fs-gs-registers-for-vt-execution.patch removed from -mm tree
+Date: Thu, 08 Feb 2007 13:53:21 -0800
+Message-ID: <200702082153.l18LrLUn027708@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41514 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41529 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423471AbXBHVxX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 16:53:23 -0500
+	id S1423473AbXBHVx0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 16:53:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benjamin.romer@unisys.com, ak@suse.de, ebiederm@xmission.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: zach@vmware.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kexec: update IO-APIC dest field to 8-bit for xAPIC
+     x86_64: fix FS/GS registers for VT execution
 has been removed from the -mm tree.  Its filename was
-     kexec-update-io-apic-dest-field-to-8-bit-for.patch
+     x86_64-fix-fs-gs-registers-for-vt-execution.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kexec: update IO-APIC dest field to 8-bit for xAPIC
-From: Benjamin Romer <benjamin.romer@unisys.com>
+Subject: x86_64: fix FS/GS registers for VT execution
+From: Zachary Amsden <zach@vmware.com>
 
-On the Unisys ES7000/ONE system, we encountered a problem where performing
-a kexec reboot or dump on any cell other than cell 0 causes the system
-timer to stop working, resulting in a hang during timer calibration in the
-new kernel.
+Initialize FS and GS to __KERNEL_DS as well.  The actual value of them is
+not important, but it is important to reload them in protected mode.  At
+this time, they still retain the real mode values from initial boot.  VT
+disallows execution of code under such conditions, which means hardware
+virtualization can not be used to boot the kernel on Intel platforms,
+making the boot time painfully slow.
 
-We traced the problem to one line of code in disable_IO_APIC(), which needs
-to restore the timer's IO-APIC configuration before rebooting.  The code is
-currently using the 4-bit physical destination field, rather than using the
-8-bit logical destination field, and it cuts off the upper 4 bits of the
-timer's APIC ID.  If we change this to use the logical destination field,
-the timer works and we can kexec on the upper cells.  This was tested on
-two different cells (0 and 2) in an ES7000/ONE system.
+This requires moving the GS load before the load of GS_BASE, so just move
+all the segments loads there to keep them together in the code.
 
-For reference, the relevant Intel xAPIC spec is kept at
-ftp://download.intel.com/design/chipsets/e8501/datashts/30962001.pdf,
-specifically on page 334.
-
-Signed-off-by: Benjamin M Romer <benjamin.romer@unisys.com>
+Signed-off-by: Zachary Amsden <zach@vmware.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |   24 +++++++++++-------------
- include/asm-x86_64/io_apic.h |   14 ++------------
- 2 files changed, 13 insertions(+), 25 deletions(-)
+ arch/x86_64/kernel/head.S |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~kexec-update-io-apic-dest-field-to-8-bit-for arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~kexec-update-io-apic-dest-field-to-8-bit-for
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -836,7 +836,7 @@ static void __init setup_IO_APIC_irq(int
- 	entry.delivery_mode = INT_DELIVERY_MODE;
- 	entry.dest_mode = INT_DEST_MODE;
- 	entry.mask = 0;				/* enable IRQ */
--	entry.dest.logical.logical_dest = cpu_mask_to_apicid(TARGET_CPUS);
-+	entry.dest = cpu_mask_to_apicid(TARGET_CPUS);
- 
- 	entry.trigger = irq_trigger(idx);
- 	entry.polarity = irq_polarity(idx);
-@@ -844,7 +844,7 @@ static void __init setup_IO_APIC_irq(int
- 	if (irq_trigger(idx)) {
- 		entry.trigger = 1;
- 		entry.mask = 1;
--		entry.dest.logical.logical_dest = cpu_mask_to_apicid(TARGET_CPUS);
-+		entry.dest = cpu_mask_to_apicid(TARGET_CPUS);
- 	}
- 
- 	if (!apic && !IO_APIC_IRQ(irq))
-@@ -856,7 +856,7 @@ static void __init setup_IO_APIC_irq(int
- 		if (vector < 0)
- 			return;
- 
--		entry.dest.logical.logical_dest = cpu_mask_to_apicid(mask);
-+		entry.dest = cpu_mask_to_apicid(mask);
- 		entry.vector = vector;
- 
- 		ioapic_register_intr(irq, vector, IOAPIC_AUTO);
-@@ -925,7 +925,7 @@ static void __init setup_ExtINT_IRQ0_pin
+diff -puN arch/x86_64/kernel/head.S~x86_64-fix-fs-gs-registers-for-vt-execution arch/x86_64/kernel/head.S
+--- a/arch/x86_64/kernel/head.S~x86_64-fix-fs-gs-registers-for-vt-execution
++++ a/arch/x86_64/kernel/head.S
+@@ -163,6 +163,20 @@ startup_64:
  	 */
- 	entry.dest_mode = INT_DEST_MODE;
- 	entry.mask = 0;					/* unmask IRQ now */
--	entry.dest.logical.logical_dest = cpu_mask_to_apicid(TARGET_CPUS);
-+	entry.dest = cpu_mask_to_apicid(TARGET_CPUS);
- 	entry.delivery_mode = INT_DELIVERY_MODE;
- 	entry.polarity = 0;
- 	entry.trigger = 0;
-@@ -1025,18 +1025,17 @@ void __apicdebuginit print_IO_APIC(void)
+ 	lgdt	cpu_gdt_descr
  
- 	printk(KERN_DEBUG ".... IRQ redirection table:\n");
++	/* set up data segments. actually 0 would do too */
++	movl $__KERNEL_DS,%eax
++	movl %eax,%ds
++	movl %eax,%ss
++	movl %eax,%es
++
++	/*
++	 * We don't really need to load %fs or %gs, but load them anyway
++	 * to kill any stale realmode selectors.  This allows execution
++	 * under VT hardware.
++	 */
++	movl %eax,%fs
++	movl %eax,%gs
++
+ 	/* 
+ 	 * Setup up a dummy PDA. this is just for some early bootup code
+ 	 * that does in_interrupt() 
+@@ -173,12 +187,6 @@ startup_64:
+ 	shrq	$32,%rdx
+ 	wrmsr	
  
--	printk(KERN_DEBUG " NR Log Phy Mask Trig IRR Pol"
--			  " Stat Dest Deli Vect:   \n");
-+	printk(KERN_DEBUG " NR Dst Mask Trig IRR Pol"
-+			  " Stat Dmod Deli Vect:   \n");
- 
- 	for (i = 0; i <= reg_01.bits.entries; i++) {
- 		struct IO_APIC_route_entry entry;
- 
- 		entry = ioapic_read_entry(apic, i);
- 
--		printk(KERN_DEBUG " %02x %03X %02X  ",
-+		printk(KERN_DEBUG " %02x %03X ",
- 			i,
--			entry.dest.logical.logical_dest,
--			entry.dest.physical.physical_dest
-+			entry.dest
- 		);
- 
- 		printk("%1d    %1d    %1d   %1d   %1d    %1d    %1d    %02X\n",
-@@ -1298,8 +1297,7 @@ void disable_IO_APIC(void)
- 		entry.dest_mode       = 0; /* Physical */
- 		entry.delivery_mode   = dest_ExtINT; /* ExtInt */
- 		entry.vector          = 0;
--               entry.dest.logical.logical_dest =
--					GET_APIC_ID(apic_read(APIC_ID));
-+		entry.dest          = GET_APIC_ID(apic_read(APIC_ID));
- 
- 		/*
- 		 * Add it to the IO-APIC irq-routing table:
-@@ -1599,7 +1597,7 @@ static inline void unlock_ExtINT_logic(v
- 
- 	entry1.dest_mode = 0;			/* physical delivery */
- 	entry1.mask = 0;			/* unmask IRQ now */
--	entry1.dest.physical.physical_dest = hard_smp_processor_id();
-+	entry1.dest = hard_smp_processor_id();
- 	entry1.delivery_mode = dest_ExtINT;
- 	entry1.polarity = entry0.polarity;
- 	entry1.trigger = 0;
-@@ -2171,7 +2169,7 @@ int io_apic_set_pci_routing (int ioapic,
- 
- 	entry.delivery_mode = INT_DELIVERY_MODE;
- 	entry.dest_mode = INT_DEST_MODE;
--	entry.dest.logical.logical_dest = cpu_mask_to_apicid(mask);
-+	entry.dest = cpu_mask_to_apicid(mask);
- 	entry.trigger = triggering;
- 	entry.polarity = polarity;
- 	entry.mask = 1;					 /* Disabled (masked) */
-diff -puN include/asm-x86_64/io_apic.h~kexec-update-io-apic-dest-field-to-8-bit-for include/asm-x86_64/io_apic.h
---- a/include/asm-x86_64/io_apic.h~kexec-update-io-apic-dest-field-to-8-bit-for
-+++ a/include/asm-x86_64/io_apic.h
-@@ -85,18 +85,8 @@ struct IO_APIC_route_entry {
- 		mask		:  1,	/* 0: enabled, 1: disabled */
- 		__reserved_2	: 15;
- 
--	union {		struct { __u32
--					__reserved_1	: 24,
--					physical_dest	:  4,
--					__reserved_2	:  4;
--			} physical;
--
--			struct { __u32
--					__reserved_1	: 24,
--					logical_dest	:  8;
--			} logical;
--	} dest;
--
-+	__u32	__reserved_3	: 24,
-+		dest		:  8;
- } __attribute__ ((packed));
- 
- /*
+-	/* set up data segments. actually 0 would do too */
+-	movl $__KERNEL_DS,%eax
+-	movl %eax,%ds	
+-	movl %eax,%ss
+-	movl %eax,%es
+-			
+ 	/* esi is pointer to real mode structure with interesting info.
+ 	   pass it to C */
+ 	movl	%esi, %edi
 _
 
-Patches currently in -mm which might be from benjamin.romer@unisys.com are
+Patches currently in -mm which might be from zach@vmware.com are
+
+i386-probe_roms-cleanup.patch
+vmi-versus-hrtimers.patch
+clocksource-replace-is_continuous-by-a-flag-field-fix.patch
+i386-apic-clean-up-the-apic-code.patch
+i386-rework-local-apic-timer-calibration.patch
+i386-prepare-nmi-watchdog-for-dynticks.patch
