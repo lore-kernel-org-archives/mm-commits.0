@@ -1,95 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-kernel-config-option-x86_xadd.patch removed from -mm tree
-Date: Thu, 08 Feb 2007 13:53:12 -0800
-Message-ID: <200702082153.l18LrCE1027690@shell0.pdx.osdl.net>
+Subject: - math-emu-setcc-avoid-gcc-extension.patch removed from -mm tree
+Date: Thu, 08 Feb 2007 13:52:55 -0800
+Message-ID: <200702082152.l18LqtZT027671@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41510 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41479 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423467AbXBHVxU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 16:53:20 -0500
+	id S1423465AbXBHVxJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 16:53:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, ak@muc.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, ak@suse.de, hch@infradead.org, segher@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove unused kernel config option X86_XADD
+     math-emu/setcc: avoid gcc extension
 has been removed from the -mm tree.  Its filename was
-     remove-unused-kernel-config-option-x86_xadd.patch
+     math-emu-setcc-avoid-gcc-extension.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove unused kernel config option X86_XADD
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: math-emu/setcc: avoid gcc extension
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Remove the unused kernel config option X86_XADD, which is unused in any
-source or header file.
+setcc() in math-emu is written as a gcc extension statement expression
+macro that returns a value.  However, it's not used that way and it's not
+needed like that, so just make it a do-while non-extension macro so that we
+don't use an extension when it's not needed.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Andi Kleen <ak@muc.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Segher Boessenkool <segher@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig.cpu |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/i386/math-emu/status_w.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/Kconfig.cpu~remove-unused-kernel-config-option-x86_xadd arch/i386/Kconfig.cpu
---- a/arch/i386/Kconfig.cpu~remove-unused-kernel-config-option-x86_xadd
-+++ a/arch/i386/Kconfig.cpu
-@@ -226,11 +226,6 @@ config X86_CMPXCHG
- 	depends on !M386
- 	default y
+diff -puN arch/i386/math-emu/status_w.h~math-emu-setcc-avoid-gcc-extension arch/i386/math-emu/status_w.h
+--- a/arch/i386/math-emu/status_w.h~math-emu-setcc-avoid-gcc-extension
++++ a/arch/i386/math-emu/status_w.h
+@@ -48,9 +48,11 @@
  
--config X86_XADD
--	bool
--	depends on !M386
--	default y
--
- config X86_L1_CACHE_SHIFT
- 	int
- 	default "7" if MPENTIUM4 || X86_GENERIC
+ #define status_word() \
+   ((partial_status & ~SW_Top & 0xffff) | ((top << SW_Top_Shift) & SW_Top))
+-#define setcc(cc) ({ \
+-  partial_status &= ~(SW_C0|SW_C1|SW_C2|SW_C3); \
+-  partial_status |= (cc) & (SW_C0|SW_C1|SW_C2|SW_C3); })
++static inline void setcc(int cc)
++{
++	partial_status &= ~(SW_C0|SW_C1|SW_C2|SW_C3);
++	partial_status |= (cc) & (SW_C0|SW_C1|SW_C2|SW_C3);
++}
+ 
+ #ifdef PECULIAR_486
+    /* Default, this conveys no information, but an 80486 does it. */
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 git-alsa.patch
-git-dvb.patch
-change-incorrect-config_input_atixl-to-config_mouse_atixl.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-git-wireless.patch
-replace-incorrect-macro-name-wireless_ext-with.patch
-remove-final-references-to-deprecated-map_anon-page-protection-flag.patch
-uml-fix-apparent-config_64_bit-typo.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+update-readmedrm-bugzilla-7933.patch
+qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
+mtd-add-missing-kernel-doc-item.patch
+git-ocfs2.patch
+parisc-fix-module_param-iommu-permission.patch
+git-scsi-misc.patch
+ueagle-atmc-needs-schedh.patch
+typeof-__page_to_pfn-with-sparsemem=y.patch
+docbook-html-correction-of-recursive-a-tags-in-html-output.patch
+kernel-doc-allow-a-little-whitespace.patch
+sysrq-alphabetize-command-keys-doc.patch
+kernel-doc-allow-more-whitespace.patch
 discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-a-couple-final-references-to-obsolete-verify_area.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-lcd_device.patch
-remove-unused-kernel-config-option-paride_parport.patch
-fix-apparent-typo-config_lockdep_debug.patch
-ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
-quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+docbook-add-edd-firmware-interfaces.patch
+kernel-doc-fix-some-odd-spacing-issues.patch
+com20020-build-fix.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
