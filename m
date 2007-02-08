@@ -1,74 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - define-the-shmem_inode_info-flags-directly.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 16:04:10 -0800
-Message-ID: <200702080005.l1805Gb4032051@shell0.pdx.osdl.net>
+Subject: - acpi-make-bay-depend-on-dock.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 16:13:27 -0800
+Message-ID: <200702080013.l180DSDE032227@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46742 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47144 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161482AbXBHAFW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 19:05:22 -0500
+	id S1161358AbXBHANa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 19:13:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agl@us.ibm.com, hugh@veritas.com, mm-commits@vger.kernel.org
+To: kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Define the shmem_inode_info flags directly
+     ACPI: Make bay depend on dock
 has been removed from the -mm tree.  Its filename was
-     define-the-shmem_inode_info-flags-directly.patch
+     acpi-make-bay-depend-on-dock.patch
 
-This patch was dropped because it was nacked by the maintainer
+This patch was dropped because recursive dependency?
 
 ------------------------------------------------------
-Subject: Define the shmem_inode_info flags directly
-From: Adam Litke <agl@us.ibm.com>
+Subject: ACPI: Make bay depend on dock
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-Defining flags in terms of other flags is always confusing.  Give them
-literal values instead of defining them in terms of VM_flags.  While we're
-at it, move them to a header file in preparation for the introduction of a
-SHMEM_HUGETLB flag.
+Since the bay driver depends on the dock driver for proper notification, make
+this driver depend on the dock driver.
 
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |    4 ++++
- mm/shmem.c               |    4 ----
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/Kconfig |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN include/linux/shmem_fs.h~define-the-shmem_inode_info-flags-directly include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~define-the-shmem_inode_info-flags-directly
-+++ a/include/linux/shmem_fs.h
-@@ -8,6 +8,10 @@
- 
- #define SHMEM_NR_DIRECT 16
- 
-+/* These info->flags are used to handle pagein/truncate races efficiently */
-+#define SHMEM_PAGEIN	0x00000001
-+#define SHMEM_TRUNCATE	0x00000002
-+
- struct shmem_inode_info {
- 	spinlock_t		lock;
- 	unsigned long		flags;
-diff -puN mm/shmem.c~define-the-shmem_inode_info-flags-directly mm/shmem.c
---- a/mm/shmem.c~define-the-shmem_inode_info-flags-directly
-+++ a/mm/shmem.c
-@@ -66,10 +66,6 @@
- 
- #define VM_ACCT(size)    (PAGE_CACHE_ALIGN(size) >> PAGE_SHIFT)
- 
--/* info->flags needs VM_flags to handle pagein/truncate races efficiently */
--#define SHMEM_PAGEIN	 VM_READ
--#define SHMEM_TRUNCATE	 VM_WRITE
--
- /* Definition to limit shmem_truncate's steps between cond_rescheds */
- #define LATENCY_LIMIT	 64
+diff -puN drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock
++++ a/drivers/acpi/Kconfig
+@@ -151,6 +151,7 @@ config ACPI_FAN
+ config ACPI_DOCK
+ 	tristate "Dock"
+ 	depends on EXPERIMENTAL
++	depends on ACPI_DOCK
+ 	help
+ 	  This driver adds support for ACPI controlled docking stations
  
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-hugetlb-preserve-hugetlb-pte-dirty-state.patch
-define-the-shmem_inode_info-flags-directly.patch
+git-acpi.patch
+acpi-bay-remove-acpi-driver-struct.patch
+acpi-make-bay-depend-on-dock.patch
+git-libata-all.patch
