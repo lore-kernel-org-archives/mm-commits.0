@@ -1,116 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - user-of-the-jiffies-rounding-code-networking.patch removed from -mm tree
-Date: Thu, 08 Feb 2007 13:52:23 -0800
-Message-ID: <200702082152.l18LqNE6027639@shell0.pdx.osdl.net>
+Subject: - remove-tcp-header-from-tcp_v4_check-take-2.patch removed from -mm tree
+Date: Thu, 08 Feb 2007 13:52:35 -0800
+Message-ID: <200702082152.l18LqZMc027648@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41369 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41400 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423461AbXBHVw0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 16:52:26 -0500
+	id S1423459AbXBHVwl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 16:52:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, mm-commits@vger.kernel.org
+To: deweerdt@free.fr, frederik.deweerdt@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     user of the jiffies rounding code: Networking
+     remove tcp header from tcp_v4_check
 has been removed from the -mm tree.  Its filename was
-     user-of-the-jiffies-rounding-code-networking.patch
+     remove-tcp-header-from-tcp_v4_check-take-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: user of the jiffies rounding code: Networking
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: remove tcp header from tcp_v4_check
+From: Frederik Deweerdt <deweerdt@free.fr>
 
-This patch introduces users of the round_jiffies() function in the networking
-code.
+The tcphdr struct passed to tcp_v4_check is not used, the following
+patch removes it from the parameter list.
 
-These timers all were of the "about once a second" or "about once every X
-seconds" variety and several showed up in the "what wakes the cpu up" profiles
-that the tickless patches provide.  Some timers are highly dynamic based on
-network load; but even on low activity systems they still show up so the
-rounding is done only in cases of low activity, allowing higher frequency
-timers in the high activity case.
-
-The various hardware watchdogs are an obvious case; they run every 2 seconds
-but aren't otherwise specific of exactly when they need to run.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/dst.c          |    9 ++++++++-
- net/core/neighbour.c    |    5 ++++-
- net/sched/sch_generic.c |    2 +-
- 3 files changed, 13 insertions(+), 3 deletions(-)
+ include/net/tcp.h                  |    5 ++---
+ net/ipv4/netfilter/ip_nat_helper.c |    2 +-
+ net/ipv4/netfilter/ipt_REJECT.c    |    2 +-
+ net/ipv4/netfilter/nf_nat_helper.c |    2 +-
+ net/ipv4/tcp_ipv4.c                |   12 ++++++------
+ 5 files changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN net/core/dst.c~user-of-the-jiffies-rounding-code-networking net/core/dst.c
---- a/net/core/dst.c~user-of-the-jiffies-rounding-code-networking
-+++ a/net/core/dst.c
-@@ -99,7 +99,14 @@ static void dst_run_gc(unsigned long dum
- 	printk("dst_total: %d/%d %ld\n",
- 	       atomic_read(&dst_total), delayed,  dst_gc_timer_expires);
- #endif
--	mod_timer(&dst_gc_timer, jiffies + dst_gc_timer_expires);
-+	/* if the next desired timer is more than 4 seconds in the future
-+	 * then round the timer to whole seconds
-+	 */
-+	if (dst_gc_timer_expires > 4*HZ)
-+		mod_timer(&dst_gc_timer,
-+			round_jiffies(jiffies + dst_gc_timer_expires));
-+	else
-+		mod_timer(&dst_gc_timer, jiffies + dst_gc_timer_expires);
- 
- out:
- 	spin_unlock(&dst_lock);
-diff -puN net/core/neighbour.c~user-of-the-jiffies-rounding-code-networking net/core/neighbour.c
---- a/net/core/neighbour.c~user-of-the-jiffies-rounding-code-networking
-+++ a/net/core/neighbour.c
-@@ -696,7 +696,10 @@ next_elt:
- 	if (!expire)
- 		expire = 1;
- 
-- 	mod_timer(&tbl->gc_timer, now + expire);
-+	if (expire>HZ)
-+		mod_timer(&tbl->gc_timer, round_jiffies(now + expire));
-+	else
-+	 	mod_timer(&tbl->gc_timer, now + expire);
- 
- 	write_unlock(&tbl->lock);
+diff -puN include/net/tcp.h~remove-tcp-header-from-tcp_v4_check-take-2 include/net/tcp.h
+--- a/include/net/tcp.h~remove-tcp-header-from-tcp_v4_check-take-2
++++ a/include/net/tcp.h
+@@ -802,9 +802,8 @@ static inline void tcp_update_wl(struct 
+ /*
+  * Calculate(/check) TCP checksum
+  */
+-static inline __sum16 tcp_v4_check(struct tcphdr *th, int len,
+-			       __be32 saddr, __be32 daddr,
+-			       __wsum base)
++static inline __sum16 tcp_v4_check(int len, __be32 saddr,
++				   __be32 daddr, __wsum base)
+ {
+ 	return csum_tcpudp_magic(saddr,daddr,len,IPPROTO_TCP,base);
  }
-diff -puN net/sched/sch_generic.c~user-of-the-jiffies-rounding-code-networking net/sched/sch_generic.c
---- a/net/sched/sch_generic.c~user-of-the-jiffies-rounding-code-networking
-+++ a/net/sched/sch_generic.c
-@@ -209,7 +209,7 @@ static void dev_watchdog(unsigned long a
- 				       dev->name);
- 				dev->tx_timeout(dev);
- 			}
--			if (!mod_timer(&dev->watchdog_timer, jiffies + dev->watchdog_timeo))
-+			if (!mod_timer(&dev->watchdog_timer, round_jiffies(jiffies + dev->watchdog_timeo)))
- 				dev_hold(dev);
- 		}
- 	}
+diff -puN net/ipv4/netfilter/ip_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/netfilter/ip_nat_helper.c
+--- a/net/ipv4/netfilter/ip_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2
++++ a/net/ipv4/netfilter/ip_nat_helper.c
+@@ -183,7 +183,7 @@ ip_nat_mangle_tcp_packet(struct sk_buff 
+ 	datalen = (*pskb)->len - iph->ihl*4;
+ 	if ((*pskb)->ip_summed != CHECKSUM_PARTIAL) {
+ 		tcph->check = 0;
+-		tcph->check = tcp_v4_check(tcph, datalen,
++		tcph->check = tcp_v4_check(datalen,
+ 					   iph->saddr, iph->daddr,
+ 					   csum_partial((char *)tcph,
+ 					   		datalen, 0));
+diff -puN net/ipv4/netfilter/ipt_REJECT.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/netfilter/ipt_REJECT.c
+--- a/net/ipv4/netfilter/ipt_REJECT.c~remove-tcp-header-from-tcp_v4_check-take-2
++++ a/net/ipv4/netfilter/ipt_REJECT.c
+@@ -116,7 +116,7 @@ static void send_reset(struct sk_buff *o
+ 
+ 	/* Adjust TCP checksum */
+ 	tcph->check = 0;
+-	tcph->check = tcp_v4_check(tcph, sizeof(struct tcphdr),
++	tcph->check = tcp_v4_check(sizeof(struct tcphdr),
+ 				   nskb->nh.iph->saddr,
+ 				   nskb->nh.iph->daddr,
+ 				   csum_partial((char *)tcph,
+diff -puN net/ipv4/netfilter/nf_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/netfilter/nf_nat_helper.c
+--- a/net/ipv4/netfilter/nf_nat_helper.c~remove-tcp-header-from-tcp_v4_check-take-2
++++ a/net/ipv4/netfilter/nf_nat_helper.c
+@@ -176,7 +176,7 @@ nf_nat_mangle_tcp_packet(struct sk_buff 
+ 	datalen = (*pskb)->len - iph->ihl*4;
+ 	if ((*pskb)->ip_summed != CHECKSUM_PARTIAL) {
+ 		tcph->check = 0;
+-		tcph->check = tcp_v4_check(tcph, datalen,
++		tcph->check = tcp_v4_check(datalen,
+ 					   iph->saddr, iph->daddr,
+ 					   csum_partial((char *)tcph,
+ 					   		datalen, 0));
+diff -puN net/ipv4/tcp_ipv4.c~remove-tcp-header-from-tcp_v4_check-take-2 net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c~remove-tcp-header-from-tcp_v4_check-take-2
++++ a/net/ipv4/tcp_ipv4.c
+@@ -502,11 +502,11 @@ void tcp_v4_send_check(struct sock *sk, 
+ 	struct tcphdr *th = skb->h.th;
+ 
+ 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+-		th->check = ~tcp_v4_check(th, len,
+-					  inet->saddr, inet->daddr, 0);
++		th->check = ~tcp_v4_check(len, inet->saddr,
++					  inet->daddr, 0);
+ 		skb->csum_offset = offsetof(struct tcphdr, check);
+ 	} else {
+-		th->check = tcp_v4_check(th, len, inet->saddr, inet->daddr,
++		th->check = tcp_v4_check(len, inet->saddr, inet->daddr,
+ 					 csum_partial((char *)th,
+ 						      th->doff << 2,
+ 						      skb->csum));
+@@ -525,7 +525,7 @@ int tcp_v4_gso_send_check(struct sk_buff
+ 	th = skb->h.th;
+ 
+ 	th->check = 0;
+-	th->check = ~tcp_v4_check(th, skb->len, iph->saddr, iph->daddr, 0);
++	th->check = ~tcp_v4_check(skb->len, iph->saddr, iph->daddr, 0);
+ 	skb->csum_offset = offsetof(struct tcphdr, check);
+ 	skb->ip_summed = CHECKSUM_PARTIAL;
+ 	return 0;
+@@ -747,7 +747,7 @@ static int tcp_v4_send_synack(struct soc
+ 	if (skb) {
+ 		struct tcphdr *th = skb->h.th;
+ 
+-		th->check = tcp_v4_check(th, skb->len,
++		th->check = tcp_v4_check(skb->len,
+ 					 ireq->loc_addr,
+ 					 ireq->rmt_addr,
+ 					 csum_partial((char *)th, skb->len,
+@@ -1514,7 +1514,7 @@ static struct sock *tcp_v4_hnd_req(struc
+ static __sum16 tcp_v4_checksum_init(struct sk_buff *skb)
+ {
+ 	if (skb->ip_summed == CHECKSUM_COMPLETE) {
+-		if (!tcp_v4_check(skb->h.th, skb->len, skb->nh.iph->saddr,
++		if (!tcp_v4_check(skb->len, skb->nh.iph->saddr,
+ 				  skb->nh.iph->daddr, skb->csum)) {
+ 			skb->ip_summed = CHECKSUM_UNNECESSARY;
+ 			return 0;
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from deweerdt@free.fr are
 
 origin.patch
-git-libata-all.patch
-user-of-the-jiffies-rounding-code-e1000.patch
-git-net.patch
-mark-struct-file_operations-const-1.patch
-mark-struct-file_operations-const-2.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-3.patch
-mark-struct-file_operations-const-4.patch
-mark-struct-file_operations-const-4-fix.patch
-mark-struct-file_operations-const-5.patch
-mark-struct-file_operations-const-6.patch
-mark-struct-file_operations-const-7.patch
-mark-struct-file_operations-const-8.patch
-mark-struct-file_operations-const-9.patch
-mark-struct-inode_operations-const-1.patch
-mark-struct-inode_operations-const-2.patch
-mark-struct-inode_operations-const-3.patch
+disable-init-initramfsc-updated-fix.patch
+replace-highest_possible_node_id-with-nr_node_ids-fix.patch
+reiser4-sb_sync_inodes-fix.patch
