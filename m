@@ -1,75 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + fix-utrace-utrace-ptrace-compat.patch added to -mm tree
-Date: Wed, 07 Feb 2007 16:03:33 -0800
-Message-ID: <200702080004.l1804epK032032@shell0.pdx.osdl.net>
+Subject: - define-the-shmem_inode_info-flags-directly.patch removed from -mm tree
+Date: Wed, 07 Feb 2007 16:04:10 -0800
+Message-ID: <200702080005.l1805Gb4032051@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46721 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46742 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423045AbXBHAE5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Feb 2007 19:04:57 -0500
+	id S1161482AbXBHAFW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Feb 2007 19:05:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, roland@redhat.com
+To: agl@us.ibm.com, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix utrace-utrace-ptrace-compat
-has been added to the -mm tree.  Its filename is
-     fix-utrace-utrace-ptrace-compat.patch
+     Define the shmem_inode_info flags directly
+has been removed from the -mm tree.  Its filename was
+     define-the-shmem_inode_info-flags-directly.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: fix utrace-utrace-ptrace-compat
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Define the shmem_inode_info flags directly
+From: Adam Litke <agl@us.ibm.com>
 
-kernel/ptrace.c: In function 'compat_sys_ptrace':
-kernel/ptrace.c:955: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'compat_long_t'
+Defining flags in terms of other flags is always confusing.  Give them
+literal values instead of defining them in terms of VM_flags.  While we're
+at it, move them to a header file in preparation for the introduction of a
+SHMEM_HUGETLB flag.
 
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Adam Litke <agl@us.ibm.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/shmem_fs.h |    4 ++++
+ mm/shmem.c               |    4 ----
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/ptrace.c~fix-utrace-utrace-ptrace-compat kernel/ptrace.c
---- a/kernel/ptrace.c~fix-utrace-utrace-ptrace-compat
-+++ a/kernel/ptrace.c
-@@ -952,7 +952,7 @@ asmlinkage long compat_sys_ptrace(compat
- out_tsk:
- 	put_task_struct(child);
- out:
--	pr_debug("%d ptrace -> %lx\n", current->pid, ret);
-+	pr_debug("%d ptrace -> %lx\n", current->pid, (long)ret);
- 	return ret;
- }
- #endif
+diff -puN include/linux/shmem_fs.h~define-the-shmem_inode_info-flags-directly include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~define-the-shmem_inode_info-flags-directly
++++ a/include/linux/shmem_fs.h
+@@ -8,6 +8,10 @@
+ 
+ #define SHMEM_NR_DIRECT 16
+ 
++/* These info->flags are used to handle pagein/truncate races efficiently */
++#define SHMEM_PAGEIN	0x00000001
++#define SHMEM_TRUNCATE	0x00000002
++
+ struct shmem_inode_info {
+ 	spinlock_t		lock;
+ 	unsigned long		flags;
+diff -puN mm/shmem.c~define-the-shmem_inode_info-flags-directly mm/shmem.c
+--- a/mm/shmem.c~define-the-shmem_inode_info-flags-directly
++++ a/mm/shmem.c
+@@ -66,10 +66,6 @@
+ 
+ #define VM_ACCT(size)    (PAGE_CACHE_ALIGN(size) >> PAGE_SHIFT)
+ 
+-/* info->flags needs VM_flags to handle pagein/truncate races efficiently */
+-#define SHMEM_PAGEIN	 VM_READ
+-#define SHMEM_TRUNCATE	 VM_WRITE
+-
+ /* Definition to limit shmem_truncate's steps between cond_rescheds */
+ #define LATENCY_LIMIT	 64
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from agl@us.ibm.com are
 
-origin.patch
-fix-warning-in-device_add_attrs.patch
-git-dvb.patch
-kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
-git-libata-all.patch
-sis-warning-fixes.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-git-sh.patch
-git-block.patch
-git-cryptodev-fixup.patch
-mm-vm_insert_pfn-tidy.patch
-swiotlb-uninlinings.patch
-spi-filesystem-api-tweaks.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
-fix-utrace-utrace-ptrace-compat.patch
+hugetlb-preserve-hugetlb-pte-dirty-state.patch
+define-the-shmem_inode_info-flags-directly.patch
