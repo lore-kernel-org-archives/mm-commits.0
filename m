@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - search-a-little-harder-for-mkimage.patch removed from -mm tree
-Date: Wed, 07 Feb 2007 21:19:36 -0800
-Message-ID: <200702080519.l185JaGH005989@shell0.pdx.osdl.net>
+Subject: + search-a-little-harder-for-mkimage.patch added to -mm tree
+Date: Wed, 07 Feb 2007 22:07:38 -0800
+Message-ID: <200702080607.l1867c0D006861@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56023 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57349 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161314AbXBHFTm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 00:19:42 -0500
+	id S1422893AbXBHGHu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 01:07:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier.adi@gmail.com, sam@ravnborg.org, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: vapier.adi@gmail.com, olecom@flower.upol.cz, sam@ravnborg.org, vapier@gentoo.org
 
 
 The patch titled
      search a little harder for mkimage
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      search-a-little-harder-for-mkimage.patch
 
-This patch was dropped because it was nacked by the maintainer
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: search a little harder for mkimage
@@ -33,6 +37,7 @@ toolchain name.
 
 Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Oleg Verych <olecom@flower.upol.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
