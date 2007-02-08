@@ -1,71 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - fix-for-crash-in-adummy_init.patch removed from -mm tree
-Date: Thu, 08 Feb 2007 13:52:26 -0800
-Message-ID: <200702082152.l18LqQo5027642@shell0.pdx.osdl.net>
+Subject: - hpet-avoid-warning-message-livelock.patch removed from -mm tree
+Date: Thu, 08 Feb 2007 13:53:15 -0800
+Message-ID: <200702082153.l18LrF9H027693@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41494 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41504 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423466AbXBHVxO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 16:53:14 -0500
+	id S1423468AbXBHVxR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 16:53:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, chas@cmf.nrl.navy.mil, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rdreier@cisco.com, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix for crash in adummy_init()
+     hpet: avoid warning message livelock
 has been removed from the -mm tree.  Its filename was
-     fix-for-crash-in-adummy_init.patch
+     hpet-avoid-warning-message-livelock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix for crash in adummy_init()
-From: Daniel Walker <dwalker@mvista.com>
+Subject: hpet: avoid warning message livelock
+From: Roland Dreier <rdreier@cisco.com>
 
-This was reported by Ingo Molnar here,
+I've seen my box paralyzed by an endless spew of
 
-http://lkml.org/lkml/2006/12/18/119
+    rtc: lost some interrupts at 1024Hz.
 
-The problem is that adummy_init() depends on atm_init() , but adummy_init()
-is called first.
+messages on the serial console.  What seems to be happening is that
+something real causes an interrupt to be lost and triggers the
+message.  But then printing the message to the serial console (from
+the hpet interrupt handler) takes more than 1/1024th of a second, and
+then some more interrupts are lost, so the message triggers again....
 
-So I put atm_init() into subsys_initcall which seems appropriate, and it
-will still get module_init() if it becomes a module.
+Fix this by adding a printk_ratelimit() before printing the warning.
 
-Interesting to note that you could crash your system here if you just load
-the modules in the wrong order.
-
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: chas williams <chas@cmf.nrl.navy.mil>
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/atm/common.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86_64/kernel/time.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN net/atm/common.c~fix-for-crash-in-adummy_init net/atm/common.c
---- a/net/atm/common.c~fix-for-crash-in-adummy_init
-+++ a/net/atm/common.c
-@@ -816,7 +816,8 @@ static void __exit atm_exit(void)
- 	proto_unregister(&vcc_proto);
+diff -puN arch/x86_64/kernel/time.c~hpet-avoid-warning-message-livelock arch/x86_64/kernel/time.c
+--- a/arch/x86_64/kernel/time.c~hpet-avoid-warning-message-livelock
++++ a/arch/x86_64/kernel/time.c
+@@ -1226,8 +1226,9 @@ static void hpet_rtc_timer_reinit(void)
+ 		if (PIE_on)
+ 			PIE_count += lost_ints;
+ 
+-		printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n",
+-		       hpet_rtc_int_freq);
++		if (printk_ratelimit())
++			printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n",
++			       hpet_rtc_int_freq);
+ 	}
  }
  
--module_init(atm_init);
-+subsys_initcall(atm_init);
-+
- module_exit(atm_exit);
- 
- MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from rdreier@cisco.com are
 
-git-net.patch
-panic-on-slim-selinux.patch
-profile-likely-unlikely-macros.patch
-profile_likely-export-do_check_likely.patch
-profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch
-profile-likely-unlikely-macros-x86_64-fix.patch
+infiniband-work-around-gcc-bug-on-sparc64.patch
