@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-error-output-during-early-boot.patch added to -mm tree
-Date: Fri, 09 Feb 2007 02:24:29 -0800
-Message-ID: <200702091024.l19AOTJL010651@shell0.pdx.osdl.net>
+Subject: + uml-x86_64-thread-fixes.patch added to -mm tree
+Date: Fri, 09 Feb 2007 02:24:31 -0800
+Message-ID: <200702091024.l19AOV6I010654@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41999 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42001 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946311AbXBIKYf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1946313AbXBIKYf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 9 Feb 2007 05:24:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     uml: fix error output during early boot
+     uml: x86_64 thread fixes
 has been added to the -mm tree.  Its filename is
-     uml-fix-error-output-during-early-boot.patch
+     uml-x86_64-thread-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,363 +25,250 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix error output during early boot
+Subject: uml: x86_64 thread fixes
 From: Jeff Dike <jdike@addtoit.com>
 
-The startup code panics a lot if anything goes wrong early on.  This is wrong
-for several reasons, like the kernel isn't running, so you can't really be
-calling into it yet, but the harm comes from useful error messages being
-trapped in the printk ring where no one will ever see them.
+x86_64 needs some TLS fixes.  What was missing was remembering the child
+thread id during clone and stuffing it into the child during each context
+switch.
 
-This patch changes these panics to perror and printf in wrappers which also
-exit.  Normal, informational, prints are also wrapped so that fflush(stdout)
-is called after each one.  This is so the output appears in the correct
-sequence in the event of an error.
+The %fs value is stored separately in the thread structure since the host
+controls what effect it has on the actual register file.  The host also needs
+to store it in its own thread struct, so we need the value kept outside the
+register file.
+
+arch_prctl_skas was fixed to call PTRACE_ARCH_PRCTL appropriately.  There is
+some saving and restoring of registers in the ARCH_SET_* cases so that the
+correct set of registers are changed on the host and restored to the process
+when it runs again.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/start_up.c |  154 ++++++++++++++++++++--------------
- 1 file changed, 92 insertions(+), 62 deletions(-)
+ arch/um/include/os.h                 |    2 
+ arch/um/os-Linux/sys-x86_64/Makefile |    2 
+ arch/um/os-Linux/sys-x86_64/prctl.c  |   12 ++++
+ arch/um/sys-x86_64/syscalls.c        |   73 ++++++++++++++++++-------
+ arch/um/sys-x86_64/tls.c             |   11 ++-
+ include/asm-um/processor-x86_64.h    |    6 +-
+ include/asm-um/ptrace-x86_64.h       |    6 --
+ 7 files changed, 83 insertions(+), 29 deletions(-)
 
-diff -puN arch/um/os-Linux/start_up.c~uml-fix-error-output-during-early-boot arch/um/os-Linux/start_up.c
---- a/arch/um/os-Linux/start_up.c~uml-fix-error-output-during-early-boot
-+++ a/arch/um/os-Linux/start_up.c
-@@ -73,6 +73,34 @@ static int ptrace_child(void *arg)
- 	_exit(ret);
+diff -puN arch/um/include/os.h~uml-x86_64-thread-fixes arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-x86_64-thread-fixes
++++ a/arch/um/include/os.h
+@@ -340,4 +340,6 @@ extern void maybe_sigio_broken(int fd, i
+ extern void sig_handler_common_skas(int sig, void *sc_ptr);
+ extern void user_signal(int sig, union uml_pt_regs *regs, int pid);
+ 
++extern int os_arch_prctl(int pid, int code, unsigned long *addr);
++
+ #endif
+diff -puN arch/um/os-Linux/sys-x86_64/Makefile~uml-x86_64-thread-fixes arch/um/os-Linux/sys-x86_64/Makefile
+--- a/arch/um/os-Linux/sys-x86_64/Makefile~uml-x86_64-thread-fixes
++++ a/arch/um/os-Linux/sys-x86_64/Makefile
+@@ -3,7 +3,7 @@
+ # Licensed under the GPL
+ #
+ 
+-obj-$(CONFIG_MODE_SKAS) = registers.o signal.o
++obj-$(CONFIG_MODE_SKAS) = registers.o prctl.o signal.o
+ 
+ USER_OBJS := $(obj-y)
+ 
+diff -puN /dev/null arch/um/os-Linux/sys-x86_64/prctl.c
+--- /dev/null
++++ a/arch/um/os-Linux/sys-x86_64/prctl.c
+@@ -0,0 +1,12 @@
++/*
++ * Copyright (C) 2007 Jeff Dike (jdike@{addtoit.com,linux.intel.com})
++ * Licensed under the GPL
++ */
++
++#include <sys/ptrace.h>
++#include <linux/ptrace.h>
++
++int os_arch_prctl(int pid, int code, unsigned long *addr)
++{
++        return ptrace(PTRACE_ARCH_PRCTL, pid, (unsigned long) addr, code);
++}
+diff -puN arch/um/sys-x86_64/syscalls.c~uml-x86_64-thread-fixes arch/um/sys-x86_64/syscalls.c
+--- a/arch/um/sys-x86_64/syscalls.c~uml-x86_64-thread-fixes
++++ a/arch/um/sys-x86_64/syscalls.c
+@@ -16,6 +16,7 @@
+ #include "asm/prctl.h" /* XXX This should get the constants from libc */
+ #include "choose-mode.h"
+ #include "kern.h"
++#include "os.h"
+ 
+ asmlinkage long sys_uname64(struct new_utsname __user * name)
+ {
+@@ -58,40 +59,67 @@ static long arch_prctl_tt(int code, unsi
+ 
+ #ifdef CONFIG_MODE_SKAS
+ 
+-/* XXX: Must also call arch_prctl in the host, beside saving the segment bases! */
+-static long arch_prctl_skas(int code, unsigned long addr)
++static long arch_prctl_skas(int code, unsigned long __user *addr)
+ {
+-	long ret = 0;
++        unsigned long *ptr = addr, tmp;
++	long ret;
++        int pid = current->mm->context.skas.id.u.pid;
+ 
++	/*
++	 * With ARCH_SET_FS (and ARCH_SET_GS is treated similarly to
++	 * be safe), we need to call arch_prctl on the host because
++	 * setting %fs may result in something else happening (like a
++	 * GDT being set instead).  So, we let the host fiddle the
++	 * registers and restore them afterwards.
++	 *
++	 * So, the saved registers are stored to the process (this
++	 * needed because a stub may have been the last thing to run),
++	 * arch_prctl is run on the host, then the registers are read
++	 * back.
++	 */
+ 	switch(code){
+ 	case ARCH_SET_FS:
+-		current->thread.regs.regs.skas.regs[FS_BASE / sizeof(unsigned long)] = addr;
+-		break;
+ 	case ARCH_SET_GS:
+-		current->thread.regs.regs.skas.regs[GS_BASE / sizeof(unsigned long)] = addr;
++                restore_registers(pid, &current->thread.regs.regs);
++                break;
++        case ARCH_GET_FS:
++        case ARCH_GET_GS:
++                /*
++                 * With these two, we read to a local pointer and
++                 * put_user it to the userspace pointer that we were
++                 * given.  If addr isn't valid (because it hasn't been
++                 * faulted in or is just bogus), we want put_user to
++                 * fault it in (or return -EFAULT) instead of having
++                 * the host return -EFAULT.
++                 */
++                ptr = &tmp;
++        }
++
++        ret = os_arch_prctl(pid, code, ptr);
++        if(ret)
++                return ret;
++
++        switch(code){
++	case ARCH_SET_FS:
++	case ARCH_SET_GS:
++                save_registers(pid, &current->thread.regs.regs);
+ 		break;
+ 	case ARCH_GET_FS:
+-		ret = put_user(current->thread.regs.regs.skas.
+-				regs[FS_BASE / sizeof(unsigned long)],
+-				(unsigned long __user *)addr);
++		ret = put_user(tmp, addr);
+ 	        break;
+ 	case ARCH_GET_GS:
+-		ret = put_user(current->thread.regs.regs.skas.
+-				regs[GS_BASE / sizeof(unsigned long)],
+-				(unsigned long __user *)addr);
++		ret = put_user(tmp, addr);
+ 	        break;
+-	default:
+-		ret = -EINVAL;
+-		break;
+ 	}
+ 
+-	return(ret);
++	return ret;
+ }
+ #endif
+ 
+ long sys_arch_prctl(int code, unsigned long addr)
+ {
+-	return(CHOOSE_MODE_PROC(arch_prctl_tt, arch_prctl_skas, code, addr));
++	return CHOOSE_MODE_PROC(arch_prctl_tt, arch_prctl_skas, code,
++                                (unsigned long __user *) addr);
  }
  
-+static void fatal_perror(char *str)
+ long sys_clone(unsigned long clone_flags, unsigned long newsp,
+@@ -105,5 +133,14 @@ long sys_clone(unsigned long clone_flags
+ 	ret = do_fork(clone_flags, newsp, &current->thread.regs, 0, parent_tid,
+ 		      child_tid);
+ 	current->thread.forking = 0;
+-	return(ret);
++	return ret;
+ }
++
++void arch_switch_to_skas(struct task_struct *from, struct task_struct *to)
 +{
-+	perror(str);
-+	exit(1);
++        if(to->thread.arch.fs == 0)
++                return;
++
++        arch_prctl_skas(ARCH_SET_FS, (void __user *) to->thread.arch.fs);
 +}
 +
-+static void fatal(char *fmt, ...)
-+{
-+	va_list list;
-+
-+	va_start(list, fmt);
-+	vprintf(fmt, list);
-+	va_end(list);
-+	fflush(stdout);
-+
-+	exit(1);
-+}
-+
-+static void non_fatal(char *fmt, ...)
-+{
-+	va_list list;
-+
-+	va_start(list, fmt);
-+	vprintf(fmt, list);
-+	va_end(list);
-+	fflush(stdout);
-+}
-+
- static int start_ptraced_child(void **stack_out)
+diff -puN arch/um/sys-x86_64/tls.c~uml-x86_64-thread-fixes arch/um/sys-x86_64/tls.c
+--- a/arch/um/sys-x86_64/tls.c~uml-x86_64-thread-fixes
++++ a/arch/um/sys-x86_64/tls.c
+@@ -1,14 +1,17 @@
+ #include "linux/sched.h"
+ 
+-void debug_arch_force_load_TLS(void)
+-{
+-}
+-
+ void clear_flushed_tls(struct task_struct *task)
  {
- 	void *stack;
-@@ -82,16 +110,16 @@ static int start_ptraced_child(void **st
- 	stack = mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC,
- 		     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
- 	if(stack == MAP_FAILED)
--		panic("check_ptrace : mmap failed, errno = %d", errno);
-+		fatal_perror("check_ptrace : mmap failed");
- 	sp = (unsigned long) stack + PAGE_SIZE - sizeof(void *);
- 	pid = clone(ptrace_child, (void *) sp, SIGCHLD, NULL);
- 	if(pid < 0)
--		panic("start_ptraced_child : clone failed, errno = %d", errno);
-+		fatal_perror("start_ptraced_child : clone failed");
- 	CATCH_EINTR(n = waitpid(pid, &status, WUNTRACED));
- 	if(n < 0)
--		panic("check_ptrace : clone failed, errno = %d", errno);
-+		fatal_perror("check_ptrace : clone failed");
- 	if(!WIFSTOPPED(status) || (WSTOPSIG(status) != SIGSTOP))
--		panic("check_ptrace : expected SIGSTOP, got status = %d",
-+		fatal("check_ptrace : expected SIGSTOP, got status = %d",
- 		      status);
- 
- 	*stack_out = stack;
-@@ -105,31 +133,30 @@ static int start_ptraced_child(void **st
-  * must work anyway!
-  */
- static int stop_ptraced_child(int pid, void *stack, int exitcode,
--			      int mustpanic)
-+			      int mustexit)
- {
- 	int status, n, ret = 0;
- 
- 	if(ptrace(PTRACE_CONT, pid, 0, 0) < 0)
--		panic("check_ptrace : ptrace failed, errno = %d", errno);
-+		fatal_perror("stop_ptraced_child : ptrace failed");
- 	CATCH_EINTR(n = waitpid(pid, &status, 0));
- 	if(!WIFEXITED(status) || (WEXITSTATUS(status) != exitcode)) {
- 		int exit_with = WEXITSTATUS(status);
- 		if (exit_with == 2)
--			printf("check_ptrace : child exited with status 2. "
--			       "Serious trouble happening! Try updating your "
--			       "host skas patch!\nDisabling SYSEMU support.");
--		printf("check_ptrace : child exited with exitcode %d, while "
--		      "expecting %d; status 0x%x", exit_with,
--		      exitcode, status);
--		if (mustpanic)
--			panic("\n");
--		else
--			printf("\n");
-+			non_fatal("check_ptrace : child exited with status 2. "
-+				  "Serious trouble happening! Try updating "
-+				  "your host skas patch!\nDisabling SYSEMU "
-+				  "support.");
-+		non_fatal("check_ptrace : child exited with exitcode %d, while "
-+			  "expecting %d; status 0x%x\n", exit_with,
-+			  exitcode, status);
-+		if (mustexit)
-+			exit(1);
- 		ret = -1;
- 	}
- 
- 	if(munmap(stack, PAGE_SIZE) < 0)
--		panic("check_ptrace : munmap failed, errno = %d", errno);
-+		fatal_perror("check_ptrace : munmap failed");
- 	return ret;
  }
  
-@@ -184,7 +211,7 @@ static void __init check_sysemu(void)
- 	void *stack;
- 	int pid, n, status, count=0;
- 
--	printf("Checking syscall emulation patch for ptrace...");
-+	non_fatal("Checking syscall emulation patch for ptrace...");
- 	sysemu_supported = 0;
- 	pid = start_ptraced_child(&stack);
- 
-@@ -193,31 +220,30 @@ static void __init check_sysemu(void)
- 
- 	CATCH_EINTR(n = waitpid(pid, &status, WUNTRACED));
- 	if (n < 0)
--		panic("check_sysemu : wait failed, errno = %d", errno);
-+		fatal_perror("check_sysemu : wait failed");
- 	if(!WIFSTOPPED(status) || (WSTOPSIG(status) != SIGTRAP))
--		panic("check_sysemu : expected SIGTRAP, "
--		      "got status = %d", status);
-+		fatal("check_sysemu : expected SIGTRAP, got status = %d",
-+		      status);
- 
- 	n = ptrace(PTRACE_POKEUSR, pid, PT_SYSCALL_RET_OFFSET,
- 		   os_getpid());
- 	if(n < 0)
--		panic("check_sysemu : failed to modify system "
--		      "call return, errno = %d", errno);
-+		fatal_perror("check_sysemu : failed to modify system call "
-+			     "return");
- 
- 	if (stop_ptraced_child(pid, stack, 0, 0) < 0)
- 		goto fail_stopped;
- 
- 	sysemu_supported = 1;
--	printf("OK\n");
-+	non_fatal("OK\n");
- 	set_using_sysemu(!force_sysemu_disabled);
- 
--	printf("Checking advanced syscall emulation patch for ptrace...");
-+	non_fatal("Checking advanced syscall emulation patch for ptrace...");
- 	pid = start_ptraced_child(&stack);
- 
--	if(ptrace(PTRACE_OLDSETOPTIONS, pid, 0,
--		  (void *) PTRACE_O_TRACESYSGOOD) < 0)
--		panic("check_ptrace: PTRACE_OLDSETOPTIONS failed, errno = %d",
--		      errno);
-+	if((ptrace(PTRACE_OLDSETOPTIONS, pid, 0,
-+		   (void *) PTRACE_O_TRACESYSGOOD) < 0))
-+		fatal_perror("check_ptrace: PTRACE_OLDSETOPTIONS failed");
- 
- 	while(1){
- 		count++;
-@@ -225,29 +251,30 @@ static void __init check_sysemu(void)
- 			goto fail;
- 		CATCH_EINTR(n = waitpid(pid, &status, WUNTRACED));
- 		if(n < 0)
--			panic("check_ptrace : wait failed, errno = %d", errno);
-+			fatal_perror("check_ptrace : wait failed");
-+
- 		if(WIFSTOPPED(status) && (WSTOPSIG(status) == (SIGTRAP|0x80))){
- 			if (!count)
--				panic("check_ptrace : SYSEMU_SINGLESTEP "
-+				fatal("check_ptrace : SYSEMU_SINGLESTEP "
- 				      "doesn't singlestep");
- 			n = ptrace(PTRACE_POKEUSR, pid, PT_SYSCALL_RET_OFFSET,
- 				   os_getpid());
- 			if(n < 0)
--				panic("check_sysemu : failed to modify system "
--				      "call return, errno = %d", errno);
-+				fatal_perror("check_sysemu : failed to modify "
-+					     "system call return");
- 			break;
- 		}
- 		else if(WIFSTOPPED(status) && (WSTOPSIG(status) == SIGTRAP))
- 			count++;
- 		else
--			panic("check_ptrace : expected SIGTRAP or "
--			      "(SIGTRAP|0x80), got status = %d", status);
-+			fatal("check_ptrace : expected SIGTRAP or "
-+			      "(SIGTRAP | 0x80), got status = %d", status);
- 	}
- 	if (stop_ptraced_child(pid, stack, 0, 0) < 0)
- 		goto fail_stopped;
- 
- 	sysemu_supported = 2;
--	printf("OK\n");
-+	non_fatal("OK\n");
- 
- 	if ( !force_sysemu_disabled )
- 		set_using_sysemu(sysemu_supported);
-@@ -256,7 +283,7 @@ static void __init check_sysemu(void)
- fail:
- 	stop_ptraced_child(pid, stack, 1, 0);
- fail_stopped:
--	printf("missing\n");
-+	non_fatal("missing\n");
- }
- 
- static void __init check_ptrace(void)
-@@ -264,22 +291,25 @@ static void __init check_ptrace(void)
- 	void *stack;
- 	int pid, syscall, n, status;
- 
--	printf("Checking that ptrace can change system call numbers...");
-+	non_fatal("Checking that ptrace can change system call numbers...");
- 	pid = start_ptraced_child(&stack);
- 
--	if(ptrace(PTRACE_OLDSETOPTIONS, pid, 0, (void *)PTRACE_O_TRACESYSGOOD) < 0)
--		panic("check_ptrace: PTRACE_OLDSETOPTIONS failed, errno = %d", errno);
-+	if((ptrace(PTRACE_OLDSETOPTIONS, pid, 0,
-+		   (void *) PTRACE_O_TRACESYSGOOD) < 0))
-+		fatal_perror("check_ptrace: PTRACE_OLDSETOPTIONS failed");
- 
- 	while(1){
- 		if(ptrace(PTRACE_SYSCALL, pid, 0, 0) < 0)
--			panic("check_ptrace : ptrace failed, errno = %d",
--			      errno);
-+			fatal_perror("check_ptrace : ptrace failed");
-+
- 		CATCH_EINTR(n = waitpid(pid, &status, WUNTRACED));
- 		if(n < 0)
--			panic("check_ptrace : wait failed, errno = %d", errno);
--		if(!WIFSTOPPED(status) || (WSTOPSIG(status) != (SIGTRAP|0x80)))
--			panic("check_ptrace : expected (SIGTRAP|0x80), "
--			      "got status = %d", status);
-+			fatal_perror("check_ptrace : wait failed");
-+
-+		if(!WIFSTOPPED(status) ||
-+		   (WSTOPSIG(status) != (SIGTRAP | 0x80)))
-+			fatal("check_ptrace : expected (SIGTRAP|0x80), "
-+			       "got status = %d", status);
- 
- 		syscall = ptrace(PTRACE_PEEKUSR, pid, PT_SYSCALL_NR_OFFSET,
- 				 0);
-@@ -287,13 +317,13 @@ static void __init check_ptrace(void)
- 			n = ptrace(PTRACE_POKEUSR, pid, PT_SYSCALL_NR_OFFSET,
- 				   __NR_getppid);
- 			if(n < 0)
--				panic("check_ptrace : failed to modify system "
--				      "call, errno = %d", errno);
-+				fatal_perror("check_ptrace : failed to modify "
-+					     "system call");
- 			break;
- 		}
- 	}
- 	stop_ptraced_child(pid, stack, 0, 1);
--	printf("OK\n");
-+	non_fatal("OK\n");
- 	check_sysemu();
- }
- 
-@@ -352,22 +382,22 @@ static inline void check_skas3_ptrace_fa
- 	void *stack;
- 	int pid, n;
- 
--	printf("  - PTRACE_FAULTINFO...");
-+	non_fatal("  - PTRACE_FAULTINFO...");
- 	pid = start_ptraced_child(&stack);
- 
- 	n = ptrace(PTRACE_FAULTINFO, pid, 0, &fi);
- 	if (n < 0) {
- 		ptrace_faultinfo = 0;
- 		if(errno == EIO)
--			printf("not found\n");
-+			non_fatal("not found\n");
- 		else
- 			perror("not found");
- 	}
- 	else {
- 		if (!ptrace_faultinfo)
--			printf("found but disabled on command line\n");
-+			non_fatal("found but disabled on command line\n");
- 		else
--			printf("found\n");
-+			non_fatal("found\n");
- 	}
- 
- 	init_registers(pid);
-@@ -385,13 +415,13 @@ static inline void check_skas3_ptrace_ld
- 		.ptr = ldtbuf,
- 		.bytecount = sizeof(ldtbuf)};
- 
--	printf("  - PTRACE_LDT...");
-+	non_fatal("  - PTRACE_LDT...");
- 	pid = start_ptraced_child(&stack);
- 
- 	n = ptrace(PTRACE_LDT, pid, 0, (unsigned long) &ldt_op);
- 	if (n < 0) {
- 		if(errno == EIO)
--			printf("not found\n");
-+			non_fatal("not found\n");
- 		else {
- 			perror("not found");
- 		}
-@@ -399,9 +429,9 @@ static inline void check_skas3_ptrace_ld
- 	}
- 	else {
- 		if(ptrace_ldt)
--			printf("found\n");
-+			non_fatal("found\n");
- 		else
--			printf("found, but use is disabled\n");
-+			non_fatal("found, but use is disabled\n");
- 	}
- 
- 	stop_ptraced_child(pid, stack, 1, 1);
-@@ -416,22 +446,22 @@ static inline void check_skas3_ptrace_ld
- 
- static inline void check_skas3_proc_mm(void)
+ int arch_copy_tls(struct task_struct *t)
  {
--	printf("  - /proc/mm...");
-+	non_fatal("  - /proc/mm...");
- 	if (access("/proc/mm", W_OK) < 0) {
- 		proc_mm = 0;
--		printf("not found\n");
-+		perror("not found");
- 	}
- 	else {
- 		if (!proc_mm)
--			printf("found but disabled on command line\n");
-+			non_fatal("found but disabled on command line\n");
- 		else
--			printf("found\n");
-+			non_fatal("found\n");
- 	}
++	/*
++	 * If CLONE_SETTLS is set, we need to save the thread id
++	 * (which is argument 5, child_tid, of clone) so it can be set
++	 * during context switches.
++	 */
++	t->thread.arch.fs = t->thread.regs.regs.skas.regs[R8 / sizeof(long)];
++
+         return 0;
+ }
+diff -puN include/asm-um/processor-x86_64.h~uml-x86_64-thread-fixes include/asm-um/processor-x86_64.h
+--- a/include/asm-um/processor-x86_64.h~uml-x86_64-thread-fixes
++++ a/include/asm-um/processor-x86_64.h
+@@ -13,6 +13,7 @@
+ struct arch_thread {
+         unsigned long debugregs[8];
+         int debugregs_seq;
++        unsigned long fs;
+         struct faultinfo faultinfo;
+ };
+ 
+@@ -25,8 +26,9 @@ extern inline void rep_nop(void)
+ #define cpu_relax()   rep_nop()
+ 
+ #define INIT_ARCH_THREAD { .debugregs  		= { [ 0 ... 7 ] = 0 }, \
+-                           .debugregs_seq	= 0, \
+-                           .faultinfo		= { 0, 0, 0 } }
++                           .debugregs_seq	= 0,			       \
++			   .fs			= 0, \
++			   .faultinfo		= { 0, 0, 0 } }
+ 
+ static inline void arch_flush_thread(struct arch_thread *thread)
+ {
+diff -puN include/asm-um/ptrace-x86_64.h~uml-x86_64-thread-fixes include/asm-um/ptrace-x86_64.h
+--- a/include/asm-um/ptrace-x86_64.h~uml-x86_64-thread-fixes
++++ a/include/asm-um/ptrace-x86_64.h
+@@ -81,9 +81,7 @@ static inline void arch_switch_to_tt(str
+ {
  }
  
- int can_do_skas(void)
- {
--	printf("Checking for the skas3 patch in the host:\n");
-+	non_fatal("Checking for the skas3 patch in the host:\n");
+-static inline void arch_switch_to_skas(struct task_struct *from,
+-                                       struct task_struct *to)
+-{
+-}
++extern void arch_switch_to_skas(struct task_struct *from,
++				struct task_struct *to);
  
- 	check_skas3_proc_mm();
- 	check_skas3_ptrace_faultinfo();
+ #endif
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
