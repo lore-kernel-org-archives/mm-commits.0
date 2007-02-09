@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + video-fb-add-true-ref_count-atomicity.patch added to -mm tree
-Date: Thu, 08 Feb 2007 16:26:50 -0800
-Message-ID: <200702090026.l190QooV031990@shell0.pdx.osdl.net>
+Subject: + video-fb-kzalloc-changes.patch added to -mm tree
+Date: Thu, 08 Feb 2007 16:26:55 -0800
+Message-ID: <200702090026.l190QtuL031997@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46878 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46881 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422987AbXBIA1J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 19:27:09 -0500
+	id S1422993AbXBIA1T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 19:27:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, adaplas@pol.net, dok@directfb.org, jsimmons@infradead.org
+Cc: jirislaby@gmail.com, adaplas@pol.net, jsimmons@infradead.org
 
 
 The patch titled
-     Video: fb, add true ref_count atomicity
+     Video: fb, kzalloc changes
 has been added to the -mm tree.  Its filename is
-     video-fb-add-true-ref_count-atomicity.patch
+     video-fb-kzalloc-changes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,308 +25,173 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Video: fb, add true ref_count atomicity
+Subject: Video: fb, kzalloc changes
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Some of fb drivers uses atomic_t in bad manner, since there are still some
-race-prone gaps.  Use mutexes to protect open/close code sections with
-ref_count testing and finally use simple uint.
+Use kzalloc instead of kmalloc + memset(0).
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Denis Oliver Kropp <dok@directfb.org>
 Cc: James Simmons <jsimmons@infradead.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/i810/i810.h      |    3 ++-
- drivers/video/i810/i810_main.c |   25 +++++++++++++++----------
- drivers/video/neofb.c          |   21 ++++++++++++++-------
- drivers/video/riva/fbdev.c     |   19 ++++++++++++-------
- drivers/video/riva/rivafb.h    |    3 ++-
- drivers/video/vga16fb.c        |   23 +++++++++++++++--------
- include/video/neomagic.h       |    3 ++-
- 7 files changed, 62 insertions(+), 35 deletions(-)
+ drivers/video/au1100fb.c           |    6 ++----
+ drivers/video/controlfb.c          |    3 +--
+ drivers/video/i810/i810_main.c     |    3 +--
+ drivers/video/igafb.c              |    7 ++-----
+ drivers/video/intelfb/intelfbdrv.c |    3 +--
+ drivers/video/nvidia/nvidia.c      |    4 +---
+ drivers/video/riva/fbdev.c         |    3 +--
+ 7 files changed, 9 insertions(+), 20 deletions(-)
 
-diff -puN drivers/video/i810/i810.h~video-fb-add-true-ref_count-atomicity drivers/video/i810/i810.h
---- a/drivers/video/i810/i810.h~video-fb-add-true-ref_count-atomicity
-+++ a/drivers/video/i810/i810.h
-@@ -264,7 +264,8 @@ struct i810fb_par {
- 	struct heap_data         cursor_heap;
- 	struct vgastate          state;
- 	struct i810fb_i2c_chan   chan[3];
--	atomic_t                 use_count;
-+	struct mutex		 open_lock;
-+	unsigned int		 use_count;
- 	u32 pseudo_palette[17];
- 	unsigned long mmio_start_phys;
- 	u8 __iomem *mmio_start_virtual;
-diff -puN drivers/video/i810/i810_main.c~video-fb-add-true-ref_count-atomicity drivers/video/i810/i810_main.c
---- a/drivers/video/i810/i810_main.c~video-fb-add-true-ref_count-atomicity
+diff -puN drivers/video/au1100fb.c~video-fb-kzalloc-changes drivers/video/au1100fb.c
+--- a/drivers/video/au1100fb.c~video-fb-kzalloc-changes
++++ a/drivers/video/au1100fb.c
+@@ -468,11 +468,10 @@ int au1100fb_drv_probe(struct device *de
+ 			return -EINVAL;
+ 
+ 	/* Allocate new device private */
+-	if (!(fbdev = kmalloc(sizeof(struct au1100fb_device), GFP_KERNEL))) {
++	if (!(fbdev = kzalloc(sizeof(struct au1100fb_device), GFP_KERNEL))) {
+ 		print_err("fail to allocate device private record");
+ 		return -ENOMEM;
+ 	}
+-	memset((void*)fbdev, 0, sizeof(struct au1100fb_device));
+ 
+ 	fbdev->panel = &known_lcd_panels[drv_info.panel_idx];
+ 
+@@ -549,10 +548,9 @@ int au1100fb_drv_probe(struct device *de
+ 	fbdev->info.fbops = &au1100fb_ops;
+ 	fbdev->info.fix = au1100fb_fix;
+ 
+-	if (!(fbdev->info.pseudo_palette = kmalloc(sizeof(u32) * 16, GFP_KERNEL))) {
++	if (!(fbdev->info.pseudo_palette = kzalloc(sizeof(u32) * 16, GFP_KERNEL))) {
+ 		return -ENOMEM;
+ 	}
+-	memset(fbdev->info.pseudo_palette, 0, sizeof(u32) * 16);
+ 
+ 	if (fb_alloc_cmap(&fbdev->info.cmap, AU1100_LCD_NBR_PALETTE_ENTRIES, 0) < 0) {
+ 		print_err("Fail to allocate colormap (%d entries)",
+diff -puN drivers/video/controlfb.c~video-fb-kzalloc-changes drivers/video/controlfb.c
+--- a/drivers/video/controlfb.c~video-fb-kzalloc-changes
++++ a/drivers/video/controlfb.c
+@@ -696,11 +696,10 @@ static int __init control_of_init(struct
+ 		printk(KERN_ERR "can't get 2 addresses for control\n");
+ 		return -ENXIO;
+ 	}
+-	p = kmalloc(sizeof(*p), GFP_KERNEL);
++	p = kzalloc(sizeof(*p), GFP_KERNEL);
+ 	if (p == 0)
+ 		return -ENXIO;
+ 	control_fb = p;	/* save it for cleanups */
+-	memset(p, 0, sizeof(*p));
+ 
+ 	/* Map in frame buffer and registers */
+ 	p->fb_orig_base = fb_res.start;
+diff -puN drivers/video/i810/i810_main.c~video-fb-kzalloc-changes drivers/video/i810/i810_main.c
+--- a/drivers/video/i810/i810_main.c~video-fb-kzalloc-changes
 +++ a/drivers/video/i810/i810_main.c
-@@ -1235,9 +1235,9 @@ static int i810fb_getcolreg(u8 regno, u8
- static int i810fb_open(struct fb_info *info, int user)
- {
- 	struct i810fb_par *par = info->par;
--	u32 count = atomic_read(&par->use_count);
--	
--	if (count == 0) {
-+
-+	mutex_lock(&par->open_lock);
-+	if (par->use_count == 0) {
- 		memset(&par->state, 0, sizeof(struct vgastate));
- 		par->state.flags = VGA_SAVE_CMAP;
- 		par->state.vgabase = par->mmio_start_virtual;
-@@ -1246,7 +1246,8 @@ static int i810fb_open(struct fb_info *i
- 		i810_save_vga_state(par);
- 	}
- 
--	atomic_inc(&par->use_count);
-+	par->use_count++;
-+	mutex_unlock(&par->open_lock);
- 	
- 	return 0;
- }
-@@ -1254,18 +1255,20 @@ static int i810fb_open(struct fb_info *i
- static int i810fb_release(struct fb_info *info, int user)
- {
- 	struct i810fb_par *par = info->par;
--	u32 count;
--	
--	count = atomic_read(&par->use_count);
--	if (count == 0)
-+
-+	mutex_lock(&par->open_lock);
-+	if (par->use_count == 0) {
-+		mutex_unlock(&par->open_lock);
- 		return -EINVAL;
-+	}
- 
--	if (count == 1) {
-+	if (par->use_count == 1) {
- 		i810_restore_vga_state(par);
- 		restore_vga(&par->state);
- 	}
- 
--	atomic_dec(&par->use_count);
-+	par->use_count--;
-+	mutex_unlock(&par->open_lock);
- 	
- 	return 0;
- }
-@@ -1752,6 +1755,8 @@ static void __devinit i810_init_monspecs
- static void __devinit i810_init_defaults(struct i810fb_par *par, 
- 				      struct fb_info *info)
- {
-+	mutex_init(&par->open_lock);
-+
- 	if (voffset) 
- 		v_offset_default = voffset;
- 	else if (par->aperture.size > 32 * 1024 * 1024)
-diff -puN drivers/video/neofb.c~video-fb-add-true-ref_count-atomicity drivers/video/neofb.c
---- a/drivers/video/neofb.c~video-fb-add-true-ref_count-atomicity
-+++ a/drivers/video/neofb.c
-@@ -556,14 +556,16 @@ static int
- neofb_open(struct fb_info *info, int user)
- {
- 	struct neofb_par *par = info->par;
--	int cnt = atomic_read(&par->ref_count);
- 
--	if (!cnt) {
-+	mutex_lock(&par->open_lock);
-+	if (!par->ref_count) {
- 		memset(&par->state, 0, sizeof(struct vgastate));
- 		par->state.flags = VGA_SAVE_MODE | VGA_SAVE_FONTS;
- 		save_vga(&par->state);
- 	}
--	atomic_inc(&par->ref_count);
-+	par->ref_count++;
-+	mutex_unlock(&par->open_lock);
-+
- 	return 0;
- }
- 
-@@ -571,14 +573,18 @@ static int
- neofb_release(struct fb_info *info, int user)
- {
- 	struct neofb_par *par = info->par;
--	int cnt = atomic_read(&par->ref_count);
- 
--	if (!cnt)
-+	mutex_lock(&par->open_lock);
-+	if (!par->ref_count) {
-+		mutex_unlock(&par->open_lock);
- 		return -EINVAL;
--	if (cnt == 1) {
-+	}
-+	if (par->ref_count == 1) {
- 		restore_vga(&par->state);
- 	}
--	atomic_dec(&par->ref_count);
-+	par->ref_count--;
-+	mutex_unlock(&par->open_lock);
-+
- 	return 0;
- }
- 
-@@ -2047,6 +2053,7 @@ static struct fb_info *__devinit neo_all
- 
- 	info->fix.accel = id->driver_data;
- 
-+	mutex_init(&par->open_lock);
- 	par->pci_burst = !nopciburst;
- 	par->lcd_stretch = !nostretch;
- 	par->libretto = libretto;
-diff -puN drivers/video/riva/fbdev.c~video-fb-add-true-ref_count-atomicity drivers/video/riva/fbdev.c
---- a/drivers/video/riva/fbdev.c~video-fb-add-true-ref_count-atomicity
-+++ a/drivers/video/riva/fbdev.c
-@@ -1100,10 +1100,10 @@ static int riva_get_cmap_len(const struc
- static int rivafb_open(struct fb_info *info, int user)
- {
- 	struct riva_par *par = info->par;
--	int cnt = atomic_read(&par->ref_count);
- 
- 	NVTRACE_ENTER();
--	if (!cnt) {
-+	mutex_lock(&par->open_lock);
-+	if (!par->ref_count) {
- #ifdef CONFIG_X86
- 		memset(&par->state, 0, sizeof(struct vgastate));
- 		par->state.flags = VGA_SAVE_MODE  | VGA_SAVE_FONTS;
-@@ -1118,7 +1118,8 @@ static int rivafb_open(struct fb_info *i
- 	
- 		riva_save_state(par, &par->initial_state);
- 	}
--	atomic_inc(&par->ref_count);
-+	par->ref_count++;
-+	mutex_unlock(&par->open_lock);
- 	NVTRACE_LEAVE();
- 	return 0;
- }
-@@ -1126,12 +1127,14 @@ static int rivafb_open(struct fb_info *i
- static int rivafb_release(struct fb_info *info, int user)
- {
- 	struct riva_par *par = info->par;
--	int cnt = atomic_read(&par->ref_count);
- 
- 	NVTRACE_ENTER();
--	if (!cnt)
-+	mutex_lock(&par->open_lock);
-+	if (!par->ref_count) {
-+		mutex_unlock(&par->open_lock);
- 		return -EINVAL;
--	if (cnt == 1) {
-+	}
-+	if (par->ref_count == 1) {
- 		par->riva.LockUnlock(&par->riva, 0);
- 		par->riva.LoadStateExt(&par->riva, &par->initial_state.ext);
- 		riva_load_state(par, &par->initial_state);
-@@ -1140,7 +1143,8 @@ static int rivafb_release(struct fb_info
- #endif
- 		par->riva.LockUnlock(&par->riva, 1);
- 	}
--	atomic_dec(&par->ref_count);
-+	par->ref_count--;
-+	mutex_unlock(&par->open_lock);
- 	NVTRACE_LEAVE();
- 	return 0;
- }
-@@ -1998,6 +2002,7 @@ static int __devinit rivafb_probe(struct
- 		goto err_disable_device;
- 	}
- 
-+	mutex_init(&default_par->open_lock);
- 	default_par->riva.Architecture = riva_get_arch(pd);
- 
- 	default_par->Chipset = (pd->vendor << 16) | pd->device;
-diff -puN drivers/video/riva/rivafb.h~video-fb-add-true-ref_count-atomicity drivers/video/riva/rivafb.h
---- a/drivers/video/riva/rivafb.h~video-fb-add-true-ref_count-atomicity
-+++ a/drivers/video/riva/rivafb.h
-@@ -53,7 +53,8 @@ struct riva_par {
- #ifdef CONFIG_X86
- 	struct vgastate state;
- #endif
--	atomic_t ref_count;
-+	struct mutex open_lock;
-+	unsigned int ref_count;
- 	unsigned char *EDID;
- 	unsigned int Chipset;
- 	int forceCRTC;
-diff -puN drivers/video/vga16fb.c~video-fb-add-true-ref_count-atomicity drivers/video/vga16fb.c
---- a/drivers/video/vga16fb.c~video-fb-add-true-ref_count-atomicity
-+++ a/drivers/video/vga16fb.c
-@@ -70,7 +70,8 @@ struct vga16fb_par {
- 		unsigned char	ClockingMode;	  /* Seq-Controller:01h */
- 	} vga_state;
- 	struct vgastate state;
--	atomic_t ref_count;
-+	struct mutex open_lock;
-+	unsigned int ref_count;
- 	int palette_blanked, vesa_blanked, mode, isVGA;
- 	u8 misc, pel_msk, vss, clkdiv;
- 	u8 crtc[VGA_CRT_C];
-@@ -300,28 +301,33 @@ static void vga16fb_clock_chip(struct vg
- static int vga16fb_open(struct fb_info *info, int user)
- {
- 	struct vga16fb_par *par = info->par;
--	int cnt = atomic_read(&par->ref_count);
- 
--	if (!cnt) {
-+	mutex_lock(&par->open_lock);
-+	if (!par->ref_count) {
- 		memset(&par->state, 0, sizeof(struct vgastate));
- 		par->state.flags = VGA_SAVE_FONTS | VGA_SAVE_MODE |
- 			VGA_SAVE_CMAP;
- 		save_vga(&par->state);
- 	}
--	atomic_inc(&par->ref_count);
-+	par->ref_count++;
-+	mutex_unlock(&par->open_lock);
-+
- 	return 0;
- }
- 
- static int vga16fb_release(struct fb_info *info, int user)
- {
- 	struct vga16fb_par *par = info->par;
--	int cnt = atomic_read(&par->ref_count);
- 
--	if (!cnt)
-+	mutex_lock(&par->open_lock);
-+	if (!par->ref_count) {
-+		mutex_unlock(&par->open_lock);
- 		return -EINVAL;
--	if (cnt == 1)
-+	}
-+	if (par->ref_count == 1)
- 		restore_vga(&par->state);
--	atomic_dec(&par->ref_count);
-+	par->ref_count--;
-+	mutex_unlock(&par->open_lock);
- 
- 	return 0;
- }
-@@ -1357,6 +1363,7 @@ static int __init vga16fb_probe(struct p
- 	printk(KERN_INFO "vga16fb: mapped to 0x%p\n", info->screen_base);
+@@ -2021,11 +2021,10 @@ static int __devinit i810fb_init_pci (st
  	par = info->par;
+ 	par->dev = dev;
  
-+	mutex_init(&par->open_lock);
- 	par->isVGA = ORIG_VIDEO_ISVGA;
- 	par->palette_blanked = 0;
- 	par->vesa_blanked = 0;
-diff -puN include/video/neomagic.h~video-fb-add-true-ref_count-atomicity include/video/neomagic.h
---- a/include/video/neomagic.h~video-fb-add-true-ref_count-atomicity
-+++ a/include/video/neomagic.h
-@@ -140,7 +140,8 @@ typedef volatile struct {
+-	if (!(info->pixmap.addr = kmalloc(8*1024, GFP_KERNEL))) {
++	if (!(info->pixmap.addr = kzalloc(8*1024, GFP_KERNEL))) {
+ 		i810fb_release_resource(info, par);
+ 		return -ENOMEM;
+ 	}
+-	memset(info->pixmap.addr, 0, 8*1024);
+ 	info->pixmap.size = 8*1024;
+ 	info->pixmap.buf_align = 8;
+ 	info->pixmap.access_align = 32;
+diff -puN drivers/video/igafb.c~video-fb-kzalloc-changes drivers/video/igafb.c
+--- a/drivers/video/igafb.c~video-fb-kzalloc-changes
++++ a/drivers/video/igafb.c
+@@ -401,12 +401,11 @@ int __init igafb_init(void)
+ 	
+ 	size = sizeof(struct fb_info) + sizeof(struct iga_par) + sizeof(u32)*16;
  
- struct neofb_par {
- 	struct vgastate state;
--	atomic_t ref_count;
-+	struct mutex open_lock;
-+	unsigned int ref_count;
+-        info = kmalloc(size, GFP_ATOMIC);
++        info = kzalloc(size, GFP_ATOMIC);
+         if (!info) {
+                 printk("igafb_init: can't alloc fb_info\n");
+                 return -ENOMEM;
+         }
+-        memset(info, 0, size);
  
- 	unsigned char MiscOutReg;	/* Misc */
- 	unsigned char CRTC[25];		/* Crtc Controller */
+ 	par = (struct iga_par *) (info + 1);
+ 	
+@@ -465,7 +464,7 @@ int __init igafb_init(void)
+ 	 * one additional region with size == 0. 
+ 	 */
+ 
+-	par->mmap_map = kmalloc(4 * sizeof(*par->mmap_map), GFP_ATOMIC);
++	par->mmap_map = kzalloc(4 * sizeof(*par->mmap_map), GFP_ATOMIC);
+ 	if (!par->mmap_map) {
+ 		printk("igafb_init: can't alloc mmap_map\n");
+ 		iounmap((void *)par->io_base);
+@@ -474,8 +473,6 @@ int __init igafb_init(void)
+ 		return -ENOMEM;
+ 	}
+ 
+-	memset(par->mmap_map, 0, 4 * sizeof(*par->mmap_map));
+-
+ 	/*
+ 	 * Set default vmode and cmode from PROM properties.
+ 	 */
+diff -puN drivers/video/intelfb/intelfbdrv.c~video-fb-kzalloc-changes drivers/video/intelfb/intelfbdrv.c
+--- a/drivers/video/intelfb/intelfbdrv.c~video-fb-kzalloc-changes
++++ a/drivers/video/intelfb/intelfbdrv.c
+@@ -540,12 +540,11 @@ intelfb_pci_register(struct pci_dev *pde
+ 	dinfo->pdev  = pdev;
+ 
+ 	/* Reserve pixmap space. */
+-	info->pixmap.addr = kmalloc(64 * 1024, GFP_KERNEL);
++	info->pixmap.addr = kzalloc(64 * 1024, GFP_KERNEL);
+ 	if (info->pixmap.addr == NULL) {
+ 		ERR_MSG("Cannot reserve pixmap memory.\n");
+ 		goto err_out_pixmap;
+ 	}
+-	memset(info->pixmap.addr, 0, 64 * 1024);
+ 
+ 	/* set early this option because it could be changed by tv encoder
+ 	   driver */
+diff -puN drivers/video/nvidia/nvidia.c~video-fb-kzalloc-changes drivers/video/nvidia/nvidia.c
+--- a/drivers/video/nvidia/nvidia.c~video-fb-kzalloc-changes
++++ a/drivers/video/nvidia/nvidia.c
+@@ -1205,13 +1205,11 @@ static int __devinit nvidiafb_probe(stru
+ 	par = info->par;
+ 	par->pci_dev = pd;
+ 
+-	info->pixmap.addr = kmalloc(8 * 1024, GFP_KERNEL);
++	info->pixmap.addr = kzalloc(8 * 1024, GFP_KERNEL);
+ 
+ 	if (info->pixmap.addr == NULL)
+ 		goto err_out_kfree;
+ 
+-	memset(info->pixmap.addr, 0, 8 * 1024);
+-
+ 	if (pci_enable_device(pd)) {
+ 		printk(KERN_ERR PFX "cannot enable PCI device\n");
+ 		goto err_out_enable;
+diff -puN drivers/video/riva/fbdev.c~video-fb-kzalloc-changes drivers/video/riva/fbdev.c
+--- a/drivers/video/riva/fbdev.c~video-fb-kzalloc-changes
++++ a/drivers/video/riva/fbdev.c
+@@ -1983,12 +1983,11 @@ static int __devinit rivafb_probe(struct
+ 	default_par = info->par;
+ 	default_par->pdev = pd;
+ 
+-	info->pixmap.addr = kmalloc(8 * 1024, GFP_KERNEL);
++	info->pixmap.addr = kzalloc(8 * 1024, GFP_KERNEL);
+ 	if (info->pixmap.addr == NULL) {
+ 	    	ret = -ENOMEM;
+ 		goto err_framebuffer_release;
+ 	}
+-	memset(info->pixmap.addr, 0, 8 * 1024);
+ 
+ 	ret = pci_enable_device(pd);
+ 	if (ret < 0) {
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
