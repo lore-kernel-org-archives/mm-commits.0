@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ehea-fixed-error-recovery.patch added to -mm tree
-Date: Fri, 09 Feb 2007 14:55:49 -0800
-Message-ID: <200702092255.l19MtnhW028476@shell0.pdx.osdl.net>
+Subject: + mm-mincore-anon.patch added to -mm tree
+Date: Fri, 09 Feb 2007 14:57:50 -0800
+Message-ID: <200702092257.l19MvoQ6028536@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52831 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52914 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423360AbXBIWz4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 17:55:56 -0500
+	id S1423362AbXBIW55 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 17:57:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ossthema@de.ibm.com, themann@de.ibm.com
+Cc: npiggin@suse.de, hugh@veritas.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     ehea: fix error recovery
+     mm: mincore anon
 has been added to the -mm tree.  Its filename is
-     ehea-fixed-error-recovery.patch
+     mm-mincore-anon.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,177 +25,171 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ehea: fix error recovery
-From: Jan-Bernd Themann <ossthema@de.ibm.com>
+Subject: mm: mincore anon
+From: Nick Piggin <npiggin@suse.de>
 
-Error recovery for QP errors: Reset QPs and dump error information
+Make mincore work for anon mappings, nonlinear, and migration entries.
+Based on patch from Linus Torvalds <torvalds@linux-foundation.org>.
 
-Signed-off-by: Jan-Bernd Themann <themann@de.ibm.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea.h      |    2 -
- drivers/net/ehea/ehea_main.c |    8 +++++-
- drivers/net/ehea/ehea_phyp.c |   10 +++++++
- drivers/net/ehea/ehea_phyp.h |    3 ++
- drivers/net/ehea/ehea_qmr.c  |   42 +++++++++++++++++++++++++++++++++
- drivers/net/ehea/ehea_qmr.h  |    5 +++
- 6 files changed, 68 insertions(+), 2 deletions(-)
+ mm/mincore.c |  102 ++++++++++++++++++++++++++++++++++++-------------
+ 1 files changed, 76 insertions(+), 26 deletions(-)
 
-diff -puN drivers/net/ehea/ehea.h~ehea-fixed-error-recovery drivers/net/ehea/ehea.h
---- a/drivers/net/ehea/ehea.h~ehea-fixed-error-recovery
-+++ a/drivers/net/ehea/ehea.h
-@@ -39,7 +39,7 @@
- #include <asm/io.h>
+diff -puN mm/mincore.c~mm-mincore-anon mm/mincore.c
+--- a/mm/mincore.c~mm-mincore-anon
++++ a/mm/mincore.c
+@@ -12,6 +12,8 @@
+ #include <linux/mm.h>
+ #include <linux/mman.h>
+ #include <linux/syscalls.h>
++#include <linux/swap.h>
++#include <linux/swapops.h>
  
- #define DRV_NAME	"ehea"
--#define DRV_VERSION	"EHEA_0045"
-+#define DRV_VERSION	"EHEA_0046"
- 
- #define EHEA_MSG_DEFAULT (NETIF_MSG_LINK | NETIF_MSG_TIMER \
- 	| NETIF_MSG_RX_ERR | NETIF_MSG_TX_ERR)
-diff -puN drivers/net/ehea/ehea_main.c~ehea-fixed-error-recovery drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~ehea-fixed-error-recovery
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -76,7 +76,7 @@ void ehea_dump(void *adr, int len, char 
- 	int x;
- 	unsigned char *deb = adr;
- 	for (x = 0; x < len; x += 16) {
--		printk(DRV_NAME "%s adr=%p ofs=%04x %016lx %016lx\n", msg,
-+		printk(DRV_NAME " %s adr=%p ofs=%04x %016lx %016lx\n", msg,
- 			  deb, x, *((u64*)&deb[0]), *((u64*)&deb[8]));
- 		deb += 16;
- 	}
-@@ -555,6 +555,7 @@ static irqreturn_t ehea_qp_aff_irq_handl
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+@@ -22,14 +24,22 @@
+  * and is up to date; i.e. that no page-in operation would be required
+  * at this time if an application were to map and access this page.
+  */
+-static unsigned char mincore_page(struct vm_area_struct * vma,
+-	unsigned long pgoff)
++static unsigned char mincore_page(struct address_space *mapping, pgoff_t pgoff)
  {
- 	struct ehea_port *port = param;
- 	struct ehea_eqe *eqe;
-+	struct ehea_qp *qp;
- 	u32 qp_token;
+ 	unsigned char present = 0;
+-	struct address_space * as = vma->vm_file->f_mapping;
+-	struct page * page;
++	struct page *page;
  
- 	eqe = ehea_poll_eq(port->qp_eq);
-@@ -563,9 +564,14 @@ static irqreturn_t ehea_qp_aff_irq_handl
- 		qp_token = EHEA_BMASK_GET(EHEA_EQE_QP_TOKEN, eqe->entry);
- 		ehea_error("QP aff_err: entry=0x%lx, token=0x%x",
- 			   eqe->entry, qp_token);
-+
-+		qp = port->port_res[qp_token].qp;
-+		ehea_error_data(port->adapter, qp->fw_handle);
- 		eqe = ehea_poll_eq(port->qp_eq);
- 	}
+-	page = find_get_page(as, pgoff);
++	/*
++	 * When tmpfs swaps out a page from a file, any process mapping that
++	 * file will not get a swp_entry_t in its pte, but rather it is like
++	 * any other file mapping (ie. marked !present and faulted in with
++	 * tmpfs's .nopage). So swapped out tmpfs mappings are tested here.
++	 *
++	 * However when tmpfs moves the page from pagecache and into swapcache,
++	 * it is still in core, but the find_get_page below won't find it.
++	 * No big deal, but make a note of it.
++	 */
++	page = find_get_page(mapping, pgoff);
+ 	if (page) {
+ 		present = PageUptodate(page);
+ 		page_cache_release(page);
+@@ -45,7 +55,14 @@ static unsigned char mincore_page(struct
+  */
+ static long do_mincore(unsigned long addr, unsigned char *vec, unsigned long pages)
+ {
+-	unsigned long i, nr, pgoff;
++	pgd_t *pgd;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *ptep;
++	spinlock_t *ptl;
++	unsigned long nr;
++	int i;
++	pgoff_t pgoff;
+ 	struct vm_area_struct *vma = find_vma(current->mm, addr);
  
-+	queue_work(port->adapter->ehea_wq, &port->reset_task);
-+
- 	return IRQ_HANDLED;
- }
+ 	/*
+@@ -56,31 +73,64 @@ static long do_mincore(unsigned long add
+ 		return -ENOMEM;
  
-diff -puN drivers/net/ehea/ehea_phyp.c~ehea-fixed-error-recovery drivers/net/ehea/ehea_phyp.c
---- a/drivers/net/ehea/ehea_phyp.c~ehea-fixed-error-recovery
-+++ a/drivers/net/ehea/ehea_phyp.c
-@@ -612,3 +612,13 @@ u64 ehea_h_reset_events(const u64 adapte
- 				       event_mask,		/* R6 */
- 				       0, 0, 0, 0);		/* R7-R12 */
- }
-+
-+u64 ehea_h_error_data(const u64 adapter_handle, const u64 ressource_handle,
-+		      void *rblock)
-+{
-+	return ehea_plpar_hcall_norets(H_ERROR_DATA,
-+				       adapter_handle,          /* R4 */
-+				       ressource_handle,        /* R5 */
-+				       virt_to_abs(rblock),     /* R6 */
-+				       0, 0, 0, 0);             /* R7-R12 */
-+}
-diff -puN drivers/net/ehea/ehea_phyp.h~ehea-fixed-error-recovery drivers/net/ehea/ehea_phyp.h
---- a/drivers/net/ehea/ehea_phyp.h~ehea-fixed-error-recovery
-+++ a/drivers/net/ehea/ehea_phyp.h
-@@ -454,4 +454,7 @@ u64 ehea_h_reg_dereg_bcmc(const u64 adap
- u64 ehea_h_reset_events(const u64 adapter_handle, const u64 neq_handle,
- 			const u64 event_mask);
+ 	/*
+-	 * Ok, got it. But check whether it's a segment we support
+-	 * mincore() on. Right now, we don't do any anonymous mappings.
+-	 *
+-	 * FIXME: This is just stupid. And returning ENOMEM is 
+-	 * stupid too. We should just look at the page tables. But
+-	 * this is what we've traditionally done, so we'll just
+-	 * continue doing it.
++	 * Calculate how many pages there are left in the last level of the
++	 * PTE array for our address.
+ 	 */
+-	if (!vma->vm_file)
+-		return -ENOMEM;
+-
+-	/*
+-	 * Calculate how many pages there are left in the vma, and
+-	 * what the pgoff is for our address.
+-	 */
+-	nr = (vma->vm_end - addr) >> PAGE_SHIFT;
++	nr = PTRS_PER_PTE - ((addr >> PAGE_SHIFT) & (PTRS_PER_PTE-1));
+ 	if (nr > pages)
+ 		nr = pages;
  
-+u64 ehea_h_error_data(const u64 adapter_handle, const u64 ressource_handle,
-+		      void *rblock);
+-	pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
+-	pgoff += vma->vm_pgoff;
++	pgd = pgd_offset(vma->vm_mm, addr);
++	if (pgd_none_or_clear_bad(pgd))
++		goto none_mapped;
++	pud = pud_offset(pgd, addr);
++	if (pud_none_or_clear_bad(pud))
++		goto none_mapped;
++	pmd = pmd_offset(pud, addr);
++	if (pmd_none_or_clear_bad(pmd))
++		goto none_mapped;
 +
- #endif	/* __EHEA_PHYP_H__ */
-diff -puN drivers/net/ehea/ehea_qmr.c~ehea-fixed-error-recovery drivers/net/ehea/ehea_qmr.c
---- a/drivers/net/ehea/ehea_qmr.c~ehea-fixed-error-recovery
-+++ a/drivers/net/ehea/ehea_qmr.c
-@@ -486,6 +486,7 @@ int ehea_destroy_qp(struct ehea_qp *qp)
- 	if (!qp)
- 		return 0;
- 
-+	ehea_h_disable_and_get_hea(qp->adapter->handle, qp->fw_handle);
- 	hret = ehea_h_free_resource(qp->adapter->handle, qp->fw_handle);
- 	if (hret != H_SUCCESS) {
- 		ehea_error("destroy_qp failed");
-@@ -581,4 +582,45 @@ out:
- 	return ret;
- }
- 
-+void print_error_data(u64 *data)
-+{
-+	int length;
-+	u64 type = EHEA_BMASK_GET(ERROR_DATA_TYPE, data[2]);
-+	u64 resource = data[1];
++	ptep = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	for (i = 0; i < nr; i++, ptep++, addr += PAGE_SIZE) {
++		unsigned char present;
++		pte_t pte = *ptep;
 +
-+	length = EHEA_BMASK_GET(ERROR_DATA_LENGTH, data[0]);
++		if (pte_present(pte)) {
++			present = 1;
 +
-+	if (length > EHEA_PAGESIZE)
-+		length = EHEA_PAGESIZE;
++		} else if (pte_none(pte)) {
++			if (vma->vm_file) {
++				pgoff = linear_page_index(vma, addr);
++				present = mincore_page(vma->vm_file->f_mapping,
++							pgoff);
++			} else
++				present = 0;
 +
-+	if (type == 0x8) /* Queue Pair */
-+		ehea_error("QP (resource=%lX) state: AER=0x%lX, AERR=0x%lX, "
-+			   "port=%lX", resource, data[6], data[12], data[22]);
++		} else if (pte_file(pte)) {
++			pgoff = pte_to_pgoff(pte);
++			present = mincore_page(vma->vm_file->f_mapping, pgoff);
 +
-+	ehea_dump(data, length, "error data");
-+}
- 
-+void ehea_error_data(struct ehea_adapter *adapter, u64 res_handle)
-+{
-+	unsigned long ret;
-+	u64 *rblock;
-+
-+	rblock = kzalloc(PAGE_SIZE, GFP_KERNEL);
-+	if (!rblock) {
-+		ehea_error("Cannot allocate rblock memory.");
-+		return;
++		} else { /* pte is a swap entry */
++			swp_entry_t entry = pte_to_swp_entry(pte);
++			if (is_migration_entry(entry)) {
++				/* migration entries are always uptodate */
++				present = 1;
++			} else {
++				pgoff = entry.val;
++				present = mincore_page(&swapper_space, pgoff);
++			}
++		}
 +	}
++	pte_unmap_unlock(ptep-1, ptl);
 +
-+	ret = ehea_h_error_data(adapter->handle,
-+				res_handle,
-+				rblock);
-+
-+	if (ret == H_R_STATE)
-+		ehea_error("No error data is available: %lX.", res_handle);
-+	else if (ret == H_SUCCESS)
-+		print_error_data(rblock);
-+	else
-+		ehea_error("Error data could not be fetched: %lX", res_handle);
-+
-+	kfree(rblock);
-+}
-diff -puN drivers/net/ehea/ehea_qmr.h~ehea-fixed-error-recovery drivers/net/ehea/ehea_qmr.h
---- a/drivers/net/ehea/ehea_qmr.h~ehea-fixed-error-recovery
-+++ a/drivers/net/ehea/ehea_qmr.h
-@@ -180,6 +180,9 @@ struct ehea_eqe {
- 	u64 entry;
- };
++	return nr;
  
-+#define ERROR_DATA_LENGTH  EHEA_BMASK_IBM(52,63)
-+#define ERROR_DATA_TYPE    EHEA_BMASK_IBM(0,7)
-+
- static inline void *hw_qeit_calc(struct hw_queue *queue, u64 q_offset)
- {
- 	struct ehea_page *current_page;
-@@ -355,4 +358,6 @@ int ehea_destroy_qp(struct ehea_qp *qp);
+-	/* And then we just fill the sucker in.. */
+-	for (i = 0 ; i < nr; i++, pgoff++)
+-		vec[i] = mincore_page(vma, pgoff);
++none_mapped:
++	if (vma->vm_file) {
++		pgoff = linear_page_index(vma, addr);
++		for (i = 0; i < nr; i++, pgoff++)
++			vec[i] = mincore_page(vma->vm_file->f_mapping, pgoff);
++	}
  
- int ehea_reg_mr_adapter(struct ehea_adapter *adapter);
- 
-+void ehea_error_data(struct ehea_adapter *adapter, u64 res_handle);
-+
- #endif	/* __EHEA_QMR_H__ */
+ 	return nr;
+ }
 _
 
-Patches currently in -mm which might be from ossthema@de.ibm.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-ehea-fixed-error-recovery.patch
+git-block.patch
+add-vm_insert_pfn.patch
+mm-vm_insert_pfn-tidy.patch
+mm-remove-find_trylock_page.patch
+mm-mincore-anon.patch
+buffer-memorder-fix.patch
+fs-fix-__block_write_full_page-error-case-buffer-submission.patch
+inotify-read-return-val-fix.patch
+sched-avoid-div-in-rebalance_tick.patch
