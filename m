@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rdmsr_on_cpu-wrmsr_on_cpu.patch added to -mm tree
-Date: Thu, 08 Feb 2007 17:04:27 -0800
-Message-ID: <200702090105.l1915Yfj000536@shell0.pdx.osdl.net>
+Subject: + git-md-accel-fix.patch added to -mm tree
+Date: Thu, 08 Feb 2007 17:10:48 -0800
+Message-ID: <200702090111.l191BtdC000646@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47915 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48263 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945974AbXBIBFm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 20:05:42 -0500
+	id S1945982AbXBIBL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 20:11:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@openvz.org, ak@suse.de, davej@codemonkey.org.uk
+Cc: akpm@linux-foundation.org, dan.j.williams@intel.com
 
 
 The patch titled
-     rdmsr_on_cpu, wrmsr_on_cpu
+     git-md-accel-fix
 has been added to the -mm tree.  Its filename is
-     rdmsr_on_cpu-wrmsr_on_cpu.patch
+     git-md-accel-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,175 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rdmsr_on_cpu, wrmsr_on_cpu
-From: Alexey Dobriyan <adobriyan@openvz.org>
+Subject: git-md-accel-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-There was OpenVZ specific bug rendering some cpufreq drivers unusable on SMP. 
-In short, when cpufreq code thinks it confined itself to needed cpu by means
-of set_cpus_allowed() to execute rdmsr, some "virtual cpu" feature can migrate
-process to anywhere.  This triggers bugons and does wrong things in general.
+This looks like it'll oops nicely.
 
-This got fixed by introducing rdmsr_on_cpu and wrmsr_on_cpu executing rdmsr
-and wrmsr on given physical cpu by means of smp_call_function_single().
-
-Dave Jones mentioned cpufreq might be not only user of rdmsr_on_cpu() and
-wrmsr_on_cpu(), so I'm putting them into arch/{i386,x86_64}/lib/ .
-
-Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Andi Kleen <ak@suse.de>
-Acked-by: Dave Jones <davej@codemonkey.org.uk>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/lib/Makefile       |    2 
- arch/i386/lib/msr-on-cpu.c   |   70 +++++++++++++++++++++++++++++++++
- arch/x86_64/lib/Makefile     |    2 
- arch/x86_64/lib/msr-on-cpu.c |    1 
- include/asm-i386/msr.h       |    3 +
- include/asm-x86_64/msr.h     |    2 
- 6 files changed, 79 insertions(+), 1 deletion(-)
+ drivers/dma/ioatdma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu arch/i386/lib/Makefile
---- a/arch/i386/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu
-+++ a/arch/i386/lib/Makefile
-@@ -7,3 +7,5 @@ lib-y = checksum.o delay.o usercopy.o ge
- 	bitops.o semaphore.o
- 
- lib-$(CONFIG_X86_USE_3DNOW) += mmx.o
-+
-+obj-y = msr-on-cpu.o
-diff -puN /dev/null arch/i386/lib/msr-on-cpu.c
---- /dev/null
-+++ a/arch/i386/lib/msr-on-cpu.c
-@@ -0,0 +1,70 @@
-+#include <linux/module.h>
-+#include <linux/preempt.h>
-+#include <linux/smp.h>
-+#include <asm/msr.h>
-+
-+#ifdef CONFIG_SMP
-+struct msr_info {
-+	u32 msr_no;
-+	u32 l, h;
-+};
-+
-+static void __rdmsr_on_cpu(void *info)
-+{
-+	struct msr_info *rv = info;
-+
-+	rdmsr(rv->msr_no, rv->l, rv->h);
-+}
-+
-+void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
-+{
-+	preempt_disable();
-+	if (smp_processor_id() == cpu)
-+		rdmsr(msr_no, *l, *h);
-+	else {
-+		struct msr_info rv;
-+
-+		rv.msr_no = msr_no;
-+		smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
-+		*l = rv.l;
-+		*h = rv.h;
-+	}
-+	preempt_enable();
-+}
-+
-+static void __wrmsr_on_cpu(void *info)
-+{
-+	struct msr_info *rv = info;
-+
-+	wrmsr(rv->msr_no, rv->l, rv->h);
-+}
-+
-+void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
-+{
-+	preempt_disable();
-+	if (smp_processor_id() == cpu)
-+		wrmsr(msr_no, l, h);
-+	else {
-+		struct msr_info rv;
-+
-+		rv.msr_no = msr_no;
-+		rv.l = l;
-+		rv.h = h;
-+		smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
-+	}
-+	preempt_enable();
-+}
-+#else
-+void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
-+{
-+	rdmsr(msr_no, *l, *h);
-+}
-+
-+void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
-+{
-+	wrmsr(msr_no, l, h);
-+}
-+#endif
-+
-+EXPORT_SYMBOL(rdmsr_on_cpu);
-+EXPORT_SYMBOL(wrmsr_on_cpu);
-diff -puN arch/x86_64/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu arch/x86_64/lib/Makefile
---- a/arch/x86_64/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu
-+++ a/arch/x86_64/lib/Makefile
-@@ -4,7 +4,7 @@
- 
- CFLAGS_csum-partial.o := -funroll-loops
- 
--obj-y := io.o iomap_copy.o
-+obj-y := io.o iomap_copy.o msr-on-cpu.o
- 
- lib-y := csum-partial.o csum-copy.o csum-wrappers.o delay.o \
- 	usercopy.o getuser.o putuser.o  \
-diff -puN /dev/null arch/x86_64/lib/msr-on-cpu.c
---- /dev/null
-+++ a/arch/x86_64/lib/msr-on-cpu.c
-@@ -0,0 +1 @@
-+#include "../../i386/lib/msr-on-cpu.c"
-diff -puN include/asm-i386/msr.h~rdmsr_on_cpu-wrmsr_on_cpu include/asm-i386/msr.h
---- a/include/asm-i386/msr.h~rdmsr_on_cpu-wrmsr_on_cpu
-+++ a/include/asm-i386/msr.h
-@@ -83,6 +83,9 @@ static inline void wrmsrl (unsigned long
- 			  : "c" (counter))
- #endif	/* !CONFIG_PARAVIRT */
- 
-+void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
-+void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
-+
- /* symbolic names for some interesting MSRs */
- /* Intel defined MSRs. */
- #define MSR_IA32_P5_MC_ADDR		0
-diff -puN include/asm-x86_64/msr.h~rdmsr_on_cpu-wrmsr_on_cpu include/asm-x86_64/msr.h
---- a/include/asm-x86_64/msr.h~rdmsr_on_cpu-wrmsr_on_cpu
-+++ a/include/asm-x86_64/msr.h
-@@ -160,6 +160,8 @@ static inline unsigned int cpuid_edx(uns
- #define MSR_IA32_UCODE_WRITE		0x79
- #define MSR_IA32_UCODE_REV		0x8b
- 
-+void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
-+void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
- 
- #endif
- 
+diff -puN drivers/dma/ioatdma.c~git-md-accel-fix drivers/dma/ioatdma.c
+--- a/drivers/dma/ioatdma.c~git-md-accel-fix
++++ a/drivers/dma/ioatdma.c
+@@ -492,7 +492,7 @@ static void ioat_dma_dependency_added(st
+ 	spin_lock_bh(&ioat_chan->desc_lock);
+ 	if (ioat_chan->pending == 0) {
+ 		spin_unlock_bh(&ioat_chan->desc_lock);
+-		ioat_dma_memcpy_cleanup(chan);
++		ioat_dma_memcpy_cleanup(ioat_chan);
+ 	} else
+ 		spin_unlock_bh(&ioat_chan->desc_lock);
+ }
 _
 
-Patches currently in -mm which might be from adobriyan@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+acpi-bay-driver-warning-fix.patch
+git-cifs-fix.patch
+fix-warning-in-device_add_attrs.patch
+git-dvb.patch
+kthread-api-conversion-for-dvb_frontend-and-av7110-fix.patch
+git-libata-all.patch
+sis-warning-fixes.patch
+git-libata-all-lib-iomapc-fix-for-config_pci=n.patch
+git-md-accel-fixes.patch
+git-md-accel-warning-fixes.patch
+git-md-accel-fix.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
 git-net.patch
+git-backlight-acpi-fix.patch
+git-backlight-asus-fix.patch
+git-backlight-sony-fix.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block.patch
 revert-x86_64-mm-msr-on-cpu.patch
-rdmsr_on_cpu-wrmsr_on_cpu.patch
-sysctl_ms_jiffies-fix-oldlen-semantics.patch
-consolidate-default-sched_clock.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-sn2-use-static-proc_fops.patch
-consolidate-bust_spinlocks.patch
-extract-and-use-wake_up_klogd.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-lutimesat-simplify-utime2.patch
-lutimesat-extend-do_utimes-with-flags.patch
-lutimesat-actual-syscall-and-wire-up-on-i386.patch
+x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
+git-cryptodev-fixup.patch
+mm-vm_insert_pfn-tidy.patch
+swiotlb-uninlinings.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
+revert-x86_64-mm-putreg-check.patch
+fix-utrace-utrace-ptrace-compat.patch
+deprecate-sa_interrupt-and-friends.patch
