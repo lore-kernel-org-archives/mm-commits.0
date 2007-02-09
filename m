@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + git-backlight-sony-fix.patch added to -mm tree
-Date: Thu, 08 Feb 2007 16:53:47 -0800
-Message-ID: <200702090054.l190ssfk032723@shell0.pdx.osdl.net>
+Date: Thu, 08 Feb 2007 16:54:27 -0800
+Message-ID: <200702090055.l190tYNf032737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47636 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47647 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945953AbXBIAy6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 19:54:58 -0500
+	id S1945957AbXBIAzm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 19:55:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -32,8 +32,8 @@ Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sony-laptop.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/misc/sony-laptop.c |    2 --
+ 1 file changed, 2 deletions(-)
 
 diff -puN drivers/misc/sony-laptop.c~git-backlight-sony-fix drivers/misc/sony-laptop.c
 --- a/drivers/misc/sony-laptop.c~git-backlight-sony-fix
@@ -46,6 +46,14 @@ diff -puN drivers/misc/sony-laptop.c~git-backlight-sony-fix drivers/misc/sony-la
  		   }
  };
  static struct platform_device *sncpf_device;
+@@ -356,7 +355,6 @@ static int sony_backlight_get_brightness
+ 
+ static struct backlight_device *sony_backlight_device;
+ static struct backlight_properties sony_backlight_properties = {
+-	.owner = THIS_MODULE,
+ 	.update_status = sony_backlight_update_status,
+ 	.get_brightness = sony_backlight_get_brightness,
+ 	.max_brightness = SONY_MAX_BRIGHTNESS - 1,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
