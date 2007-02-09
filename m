@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + git-backlight-asus-fix.patch added to -mm tree
-Date: Thu, 08 Feb 2007 16:52:26 -0800
-Message-ID: <200702090053.l190rXS5032691@shell0.pdx.osdl.net>
+Subject: + git-backlight-sony-fix.patch added to -mm tree
+Date: Thu, 08 Feb 2007 16:53:47 -0800
+Message-ID: <200702090054.l190ssfk032723@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47591 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47636 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945948AbXBIAxi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Feb 2007 19:53:38 -0500
+	id S1945953AbXBIAy6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Feb 2007 19:54:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, rpurdie@rpsys.net
 
 
 The patch titled
-     git-backlight-asus-fix
+     git-backlight-sony-fix
 has been added to the -mm tree.  Its filename is
-     git-backlight-asus-fix.patch
+     git-backlight-sony-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-backlight-asus-fix
+Subject: git-backlight-sony-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-Better testing, please.
 
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/asus-laptop.c |    1 -
+ drivers/misc/sony-laptop.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/misc/asus-laptop.c~git-backlight-asus-fix drivers/misc/asus-laptop.c
---- a/drivers/misc/asus-laptop.c~git-backlight-asus-fix
-+++ a/drivers/misc/asus-laptop.c
-@@ -196,7 +196,6 @@ static struct backlight_device *asus_bac
- static int read_brightness(struct backlight_device *bd);
- static int update_bl_status(struct backlight_device *bd);
- static struct backlight_properties asusbl_data = {
--	.owner = THIS_MODULE,
- 	.get_brightness = read_brightness,
- 	.update_status = update_bl_status,
- 	.max_brightness = 15,
+diff -puN drivers/misc/sony-laptop.c~git-backlight-sony-fix drivers/misc/sony-laptop.c
+--- a/drivers/misc/sony-laptop.c~git-backlight-sony-fix
++++ a/drivers/misc/sony-laptop.c
+@@ -242,7 +242,6 @@ static ssize_t sony_acpi_store(struct de
+ static struct platform_driver sncpf_driver = {
+ 	.driver = {
+ 		   .name = "sony-laptop",
+-		   .owner = THIS_MODULE,
+ 		   }
+ };
+ static struct platform_device *sncpf_device;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,6 +64,7 @@ git-md-accel-warning-fixes.patch
 revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
 git-net.patch
 git-backlight-acpi-fix.patch
+git-backlight-asus-fix.patch
 git-sh.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
@@ -80,4 +79,4 @@ knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
 revert-x86_64-mm-putreg-check.patch
 fix-utrace-utrace-ptrace-compat.patch
 deprecate-sa_interrupt-and-friends.patch
-git-backlight-asus-fix.patch
+git-backlight-sony-fix.patch
