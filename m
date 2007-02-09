@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reduce-size-of-task_struct-on-64-bit-machines.patch added to -mm tree
-Date: Fri, 09 Feb 2007 01:54:04 -0800
-Message-ID: <200702090954.l199s4Pl010074@shell0.pdx.osdl.net>
+Subject: + change-nvidiafb_remove-to-__devexit.patch added to -mm tree
+Date: Fri, 09 Feb 2007 01:57:06 -0800
+Message-ID: <200702090957.l199v6gR010129@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40296 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40373 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946282AbXBIJyN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 04:54:13 -0500
+	id S1946285AbXBIJ5U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 04:57:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wcohen@redhat.com, linux-arch@vger.kernel.org
+Cc: prarit@redhat.com, jsimmons@infradead.org
 
 
 The patch titled
-     reduce size of task_struct on 64-bit machines
+     change nvidiafb_remove to __devexit
 has been added to the -mm tree.  Its filename is
-     reduce-size-of-task_struct-on-64-bit-machines.patch
+     change-nvidiafb_remove-to-__devexit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,83 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reduce size of task_struct on 64-bit machines
-From: William Cohen <wcohen@redhat.com>
+Subject: change nvidiafb_remove to __devexit
+From: Prarit Bhargava <prarit@redhat.com>
 
-This past week I was playing around with that pahole tool
-(http://oops.ghostprotocols.net:81/acme/dwarves/) and looking at the size
-of various struct in the kernel.  I was surprised by the size of the
-task_struct on x86_64, approaching 4K.  I looked through the fields in
-task_struct and found that a number of them were declared as "unsigned
-long" rather than "unsigned int" despite them appearing okay as 32-bit
-sized fields.  On x86_64 "unsigned long" ends up being 8 bytes in size and
-forces 8 byte alignment.  Is there a reason there a reason they are
-"unsigned long"?
+Change nvidiafb_remove to __devexit to fix MODPOST warnings:
 
-The patch below drops the size of the struct from 3808 bytes (60 64-byte
-cachelines) to 3760 bytes (59 64-byte cachelines).  A couple other fields
-in the task struct take a signficant amount of space:
+WARNING: drivers/video/nvidia/nvidiafb.o - Section mismatch: reference to
+.exit.text:nvidiafb_remove from .data.rel.local after 'nvidiafb_driver' (at
+offset 0x28)
 
-struct thread_struct       thread;               688
-struct held_lock           held_locks[30];       1680
-
-CONFIG_LOCKDEP is turned on in the .config
-
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Acked-By: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/video/nvidia/nvidia.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/sched.h~reduce-size-of-task_struct-on-64-bit-machines include/linux/sched.h
---- a/include/linux/sched.h~reduce-size-of-task_struct-on-64-bit-machines
-+++ a/include/linux/sched.h
-@@ -799,8 +799,8 @@ struct task_struct {
- 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
- 	struct thread_info *thread_info;
- 	atomic_t usage;
--	unsigned long flags;	/* per process flags, defined below */
--	unsigned long ptrace;
-+	unsigned int flags;	/* per process flags, defined below */
-+	unsigned int ptrace;
+diff -puN drivers/video/nvidia/nvidia.c~change-nvidiafb_remove-to-__devexit drivers/video/nvidia/nvidia.c
+--- a/drivers/video/nvidia/nvidia.c~change-nvidiafb_remove-to-__devexit
++++ a/drivers/video/nvidia/nvidia.c
+@@ -1347,7 +1347,7 @@ err_out:
+ 	return -ENODEV;
+ }
  
- 	int lock_depth;		/* BKL lock depth */
+-static void __exit nvidiafb_remove(struct pci_dev *pd)
++static void __devexit nvidiafb_remove(struct pci_dev *pd)
+ {
+ 	struct fb_info *info = pci_get_drvdata(pd);
+ 	struct nvidia_par *par = info->par;
+@@ -1433,7 +1433,7 @@ static struct pci_driver nvidiafb_driver
+ 	.probe    = nvidiafb_probe,
+ 	.suspend  = nvidiafb_suspend,
+ 	.resume   = nvidiafb_resume,
+-	.remove   = __exit_p(nvidiafb_remove),
++	.remove   = __devexit_p(nvidiafb_remove),
+ };
  
-@@ -823,7 +823,7 @@ struct task_struct {
- 	unsigned long long sched_time; /* sched_clock time spent running */
- 	enum sleep_type sleep_type;
- 
--	unsigned long policy;
-+	unsigned int policy;
- 	cpumask_t cpus_allowed;
- 	unsigned int time_slice, first_time_slice;
- 
-@@ -843,11 +843,11 @@ struct task_struct {
- 
- /* task state */
- 	struct linux_binfmt *binfmt;
--	long exit_state;
-+	int exit_state;
- 	int exit_code, exit_signal;
- 	int pdeath_signal;  /*  The signal sent when the parent dies  */
- 	/* ??? */
--	unsigned long personality;
-+	unsigned int personality;
- 	unsigned did_exec:1;
- 	pid_t pid;
- 	pid_t tgid;
-@@ -879,7 +879,7 @@ struct task_struct {
- 	int __user *set_child_tid;		/* CLONE_CHILD_SETTID */
- 	int __user *clear_child_tid;		/* CLONE_CHILD_CLEARTID */
- 
--	unsigned long rt_priority;
-+	unsigned int rt_priority;
- 	cputime_t utime, stime;
- 	unsigned long nvcsw, nivcsw; /* context switch counts */
- 	struct timespec start_time;
+ /* ------------------------------------------------------------------------- *
 _
 
-Patches currently in -mm which might be from wcohen@redhat.com are
+Patches currently in -mm which might be from prarit@redhat.com are
 
-reduce-size-of-task_struct-on-64-bit-machines.patch
+change-__init-to-__devinit-for-isp116x_probe.patch
+change-__init-to-__devinit-in-2-rtc-drivers.patch
+change-nvidiafb_remove-to-__devexit.patch
