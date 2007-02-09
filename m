@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ps3-add-shutdown-to-virtual-uart-port-driver-framework.patch added to -mm tree
-Date: Fri, 09 Feb 2007 01:26:31 -0800
-Message-ID: <200702090926.l199QVvA009490@shell0.pdx.osdl.net>
+Subject: + fbdev-modedb-allow-refresh-rates-for-named-video-modes.patch added to -mm tree
+Date: Fri, 09 Feb 2007 01:26:37 -0800
+Message-ID: <200702090926.l199QbFc009498@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38568 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38611 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946250AbXBIJ12 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 04:27:28 -0500
+	id S1946251AbXBIJ1o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 04:27:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, jsimmons@infradead.org, paulus@samba.org
+Cc: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, jsimmons@infradead.org, paulus@samba.org
 
 
 The patch titled
-     ps3: add shutdown to virtual uart port driver framework
+     fbdev modedb: allow refresh rates for named video modes
 has been added to the -mm tree.  Its filename is
-     ps3-add-shutdown-to-virtual-uart-port-driver-framework.patch
+     fbdev-modedb-allow-refresh-rates-for-named-video-modes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3: add shutdown to virtual uart port driver framework
+Subject: fbdev modedb: allow refresh rates for named video modes
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-PS3: Add a shutdown method to the PS3's virtual uart port driver framework
+fbdev modedb: Take into account the specified refresh rates for video modes
+specified by name, so e.g.  all of `720p', `720p@60', and `720p@50' work.
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
 Cc: James Simmons <jsimmons@infradead.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ps3/vuart.c |   17 +++++++++++++++++
- drivers/ps3/vuart.h |    1 +
- 2 files changed, 18 insertions(+)
+ drivers/video/modedb.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ps3/vuart.c~ps3-add-shutdown-to-virtual-uart-port-driver-framework drivers/ps3/vuart.c
---- a/drivers/ps3/vuart.c~ps3-add-shutdown-to-virtual-uart-port-driver-framework
-+++ a/drivers/ps3/vuart.c
-@@ -867,6 +867,22 @@ static int ps3_vuart_remove(struct devic
- 	return 0;
- }
- 
-+static void ps3_vuart_shutdown(struct device *_dev)
-+{
-+	struct ps3_vuart_port_device *dev = to_ps3_vuart_port_device(_dev);
-+	struct ps3_vuart_port_driver *drv =
-+		to_ps3_vuart_port_driver(_dev->driver);
-+
-+	dev_dbg(&dev->core, "%s:%d: %s\n", __func__, __LINE__,
-+		dev->core.bus_id);
-+
-+	if (drv->shutdown)
-+		drv->shutdown(dev);
-+	else
-+		dev_dbg(&dev->core, "%s:%d: %s no shutdown method\n", __func__,
-+			__LINE__, dev->core.bus_id);
-+}
-+
- /**
-  * ps3_vuart - The vuart instance.
-  *
-@@ -878,6 +894,7 @@ struct bus_type ps3_vuart = {
- 	.match = ps3_vuart_match,
- 	.probe = ps3_vuart_probe,
- 	.remove = ps3_vuart_remove,
-+	.shutdown = ps3_vuart_shutdown,
- };
- 
- int __init ps3_vuart_init(void)
-diff -puN drivers/ps3/vuart.h~ps3-add-shutdown-to-virtual-uart-port-driver-framework drivers/ps3/vuart.h
---- a/drivers/ps3/vuart.h~ps3-add-shutdown-to-virtual-uart-port-driver-framework
-+++ a/drivers/ps3/vuart.h
-@@ -30,6 +30,7 @@ struct ps3_vuart_port_driver {
- 	struct device_driver core;
- 	int (*probe)(struct ps3_vuart_port_device *);
- 	int (*remove)(struct ps3_vuart_port_device *);
-+	void (*shutdown)(struct ps3_vuart_port_device *);
- 	int (*tx_event)(struct ps3_vuart_port_device *dev);
- 	int (*rx_event)(struct ps3_vuart_port_device *dev);
- 	int (*disconnect_event)(struct ps3_vuart_port_device *dev);
+diff -puN drivers/video/modedb.c~fbdev-modedb-allow-refresh-rates-for-named-video-modes drivers/video/modedb.c
+--- a/drivers/video/modedb.c~fbdev-modedb-allow-refresh-rates-for-named-video-modes
++++ a/drivers/video/modedb.c
+@@ -610,10 +610,8 @@ done:
+ 	diff = refresh;
+ 	best = -1;
+ 	for (i = 0; i < dbsize; i++) {
+-		if ((name_matches(db[i], name, namelen) &&
+-			!fb_try_mode(var, info, &db[i], bpp)))
+-			return 1;
+-		if (res_specified && res_matches(db[i], xres, yres)) {
++		if (name_matches(db[i], name, namelen) ||
++		    (res_specified && res_matches(db[i], xres, yres))) {
+ 			if(!fb_try_mode(var, info, &db[i], bpp)) {
+ 				if(!refresh_specified || db[i].refresh == refresh)
+ 					return 1;
 _
 
 Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
