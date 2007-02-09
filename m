@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + selinux-enhance-selinux-to-always-ignore-private-inodes.patch added to -mm tree
-Date: Fri, 09 Feb 2007 03:04:17 -0800
-Message-ID: <200702091104.l19B4HjX011421@shell0.pdx.osdl.net>
+Subject: + mm-remove-find_trylock_page.patch added to -mm tree
+Date: Fri, 09 Feb 2007 14:54:28 -0800
+Message-ID: <200702092254.l19MsTiC028441@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43839 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52791 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946361AbXBILE7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 06:04:59 -0500
+	id S1946479AbXBIWyg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 17:54:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sds@tycho.nsa.gov, ebiederm@xmission.com
+Cc: npiggin@suse.de
 
 
 The patch titled
-     selinux: Enhance selinux to always ignore private inodes.
+     mm: remove find_trylock_page
 has been added to the -mm tree.  Its filename is
-     selinux-enhance-selinux-to-always-ignore-private-inodes.patch
+     mm-remove-find_trylock_page.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: selinux: Enhance selinux to always ignore private inodes.
-From: Stephen Smalley <sds@tycho.nsa.gov>
+Subject: mm: remove find_trylock_page
+From: Nick Piggin <npiggin@suse.de>
 
-Hmmm...turns out to not be quite enough, as the /proc/sys inodes aren't truly
-private to the fs, so we can run into them in a variety of security hooks
-beyond just the inode hooks, such as security_file_permission (when reading
-and writing them via the vfs helpers), security_sb_mount (when mounting other
-filesystems on directories in proc like binfmt_misc), and deeper within the
-security module itself (as in flush_unauthorized_files upon inheritance across
-execve).  So I think we have to add an IS_PRIVATE() guard within SELinux, as
-below.  Note however that the use of the private flag here could be confusing,
-as these inodes are _not_ private to the fs, are exposed to userspace, and
-security modules must implement the sysctl hook to get any access control over
-them.
+Remove find_trylock_page for 2.6.21.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/feature-removal-schedule.txt |   12 -----------
+ include/linux/pagemap.h                    |    2 -
+ mm/filemap.c                               |   20 -------------------
+ 3 files changed, 34 deletions(-)
 
-diff -puN security/selinux/hooks.c~selinux-enhance-selinux-to-always-ignore-private-inodes security/selinux/hooks.c
---- a/security/selinux/hooks.c~selinux-enhance-selinux-to-always-ignore-private-inodes
-+++ a/security/selinux/hooks.c
-@@ -1077,6 +1077,9 @@ static int inode_has_perm(struct task_st
- 	struct inode_security_struct *isec;
- 	struct avc_audit_data ad;
+diff -puN Documentation/feature-removal-schedule.txt~mm-remove-find_trylock_page Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~mm-remove-find_trylock_page
++++ a/Documentation/feature-removal-schedule.txt
+@@ -170,18 +170,6 @@ Who:	Greg Kroah-Hartman <gregkh@suse.de>
  
-+	if (unlikely (IS_PRIVATE (inode)))
-+		return 0;
-+
- 	tsec = tsk->security;
- 	isec = inode->i_security;
+ ---------------------------
  
+-What:	find_trylock_page
+-When:	January 2007
+-Why:	The interface no longer has any callers left in the kernel. It
+-	is an odd interface (compared with other find_*_page functions), in
+-	that it does not take a refcount to the page, only the page lock.
+-	It should be replaced with find_get_page or find_lock_page if possible.
+-	This feature removal can be reevaluated if users of the interface
+-	cannot cleanly use something else.
+-Who:	Nick Piggin <npiggin@suse.de>
+-
+----------------------------
+-
+ What:	Interrupt only SA_* flags
+ When:	Januar 2007
+ Why:	The interrupt related SA_* flags are replaced by IRQF_* to move them
+diff -puN include/linux/pagemap.h~mm-remove-find_trylock_page include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-remove-find_trylock_page
++++ a/include/linux/pagemap.h
+@@ -76,8 +76,6 @@ extern struct page * find_get_page(struc
+ 				unsigned long index);
+ extern struct page * find_lock_page(struct address_space *mapping,
+ 				unsigned long index);
+-extern __deprecated_for_modules struct page * find_trylock_page(
+-			struct address_space *mapping, unsigned long index);
+ extern struct page * find_or_create_page(struct address_space *mapping,
+ 				unsigned long index, gfp_t gfp_mask);
+ unsigned find_get_pages(struct address_space *mapping, pgoff_t start,
+diff -puN mm/filemap.c~mm-remove-find_trylock_page mm/filemap.c
+--- a/mm/filemap.c~mm-remove-find_trylock_page
++++ a/mm/filemap.c
+@@ -554,26 +554,6 @@ struct page * find_get_page(struct addre
+ EXPORT_SYMBOL(find_get_page);
+ 
+ /**
+- * find_trylock_page - find and lock a page
+- * @mapping: the address_space to search
+- * @offset: the page index
+- *
+- * Same as find_get_page(), but trylock it instead of incrementing the count.
+- */
+-struct page *find_trylock_page(struct address_space *mapping, unsigned long offset)
+-{
+-	struct page *page;
+-
+-	read_lock_irq(&mapping->tree_lock);
+-	page = radix_tree_lookup(&mapping->page_tree, offset);
+-	if (page && TestSetPageLocked(page))
+-		page = NULL;
+-	read_unlock_irq(&mapping->tree_lock);
+-	return page;
+-}
+-EXPORT_SYMBOL(find_trylock_page);
+-
+-/**
+  * find_lock_page - locate, pin and lock a pagecache page
+  * @mapping: the address_space to search
+  * @offset: the page index
 _
 
-Patches currently in -mm which might be from sds@tycho.nsa.gov are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-origin.patch
-implement-file-posix-capabilities.patch
-file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
-file-capabilities-honor-secure_noroot.patch
-make-reading-proc-sys-kernel-cap-bould-not-require.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-mprotect-patch-for-use-by-slim.patch
-integrity-service-api-and-dummy-provider.patch
-slim-main-patch.patch
-slim-main-include-fix.patch
-slim-secfs-patch.patch
-slim-make-and-config-stuff.patch
-slim-debug-output.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-slim-fix-security-issue-with-the-task_post_setuid-hook.patch
-slim-documentation.patch
-panic-on-slim-selinux.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
-selinux-enhance-selinux-to-always-ignore-private-inodes.patch
+git-block.patch
+add-vm_insert_pfn.patch
+mm-vm_insert_pfn-tidy.patch
+mm-remove-find_trylock_page.patch
+buffer-memorder-fix.patch
+fs-fix-__block_write_full_page-error-case-buffer-submission.patch
+inotify-read-return-val-fix.patch
+sched-avoid-div-in-rebalance_tick.patch
