@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ps3-preallocate-bootmem-memory-for-ps3fb.patch added to -mm tree
-Date: Fri, 09 Feb 2007 01:26:43 -0800
-Message-ID: <200702090926.l199QhPw009507@shell0.pdx.osdl.net>
+Subject: + ps3-cleanup-ps3fb-before-clearing-hpte.patch added to -mm tree
+Date: Fri, 09 Feb 2007 01:26:51 -0800
+Message-ID: <200702090926.l199QpHN009516@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38629 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38610 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946261AbXBIJ1v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 04:27:51 -0500
+	id S1946253AbXBIJ1o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 04:27:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, jsimmons@infradead.org, paulus@samba.org
+Cc: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, jsimmons@infradead.org, paulus@samba.org
 
 
 The patch titled
-     ps3: Preallocate bootmem memory for ps3fb
+     ps3: cleanup ps3fb before clearing HPTE
 has been added to the -mm tree.  Its filename is
-     ps3-preallocate-bootmem-memory-for-ps3fb.patch
+     ps3-cleanup-ps3fb-before-clearing-hpte.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,112 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3: Preallocate bootmem memory for ps3fb
+Subject: ps3: cleanup ps3fb before clearing HPTE
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Preallocate bootmem memory for the PS3 frame buffer device, which needs a
-large block of physically-contiguous memory. The size of this memory block is
-configurable:
-  - The config option CONFIG_FB_PS3_DEFAULT_SIZE_M allows to specify the
-    default amount of memory (in MiB) allocated to the virtual frame buffer.
-  - The early boot parameter `ps3fb=xxx' allows to override the default value.
-    It will be rounded up to a multiple of 1 MiB, if needed.
+PS3: Cleanup the frame buffer device before clearing the HPTE mapping
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
 Cc: James Simmons <jsimmons@infradead.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/ps3/setup.c |   42 +++++++++++++++++++++++++++
- include/asm-powerpc/ps3.h          |    9 +++++
- 2 files changed, 51 insertions(+)
+ arch/powerpc/platforms/ps3/htab.c |    6 +++++-
+ include/asm-powerpc/ps3fb.h       |    2 ++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/ps3/setup.c~ps3-preallocate-bootmem-memory-for-ps3fb arch/powerpc/platforms/ps3/setup.c
---- a/arch/powerpc/platforms/ps3/setup.c~ps3-preallocate-bootmem-memory-for-ps3fb
-+++ a/arch/powerpc/platforms/ps3/setup.c
+diff -puN arch/powerpc/platforms/ps3/htab.c~ps3-cleanup-ps3fb-before-clearing-hpte arch/powerpc/platforms/ps3/htab.c
+--- a/arch/powerpc/platforms/ps3/htab.c~ps3-cleanup-ps3fb-before-clearing-hpte
++++ a/arch/powerpc/platforms/ps3/htab.c
+@@ -2,7 +2,7 @@
+  *  PS3 pagetable management routines.
+  *
+  *  Copyright (C) 2006 Sony Computer Entertainment Inc.
+- *  Copyright 2006 Sony Corp.
++ *  Copyright 2006, 2007 Sony Corporation
+  *
+  *  This program is free software; you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License as published by
 @@ -24,6 +24,7 @@
- #include <linux/root_dev.h>
- #include <linux/console.h>
- #include <linux/kexec.h>
-+#include <linux/bootmem.h>
+ #include <asm/lmb.h>
+ #include <asm/udbg.h>
+ #include <asm/lv1call.h>
++#include <asm/ps3fb.h>
  
- #include <asm/machdep.h>
- #include <asm/firmware.h>
-@@ -80,6 +81,46 @@ static void ps3_panic(char *str)
- 	for (;;) ;
+ #include "platform.h"
+ 
+@@ -233,6 +234,9 @@ static void ps3_hpte_invalidate(unsigned
+ 
+ static void ps3_hpte_clear(void)
+ {
++	/* Make sure to clean up the frame buffer device first */
++	ps3fb_cleanup();
++
+ 	lv1_unmap_htab(htab_addr);
  }
  
-+
-+static void prealloc(struct ps3_prealloc *p)
-+{
-+	if (!p->size)
-+		return;
-+
-+	p->address = __alloc_bootmem(p->size, p->align, __pa(MAX_DMA_ADDRESS));
-+	if (!p->address) {
-+		printk(KERN_ERR "%s: Cannot allocate %s\n", __FUNCTION__,
-+		       p->name);
-+		return;
-+	}
-+
-+	printk(KERN_INFO "%s: %lu bytes at %p\n", p->name, p->size,
-+	       p->address);
-+}
-+
-+#ifdef CONFIG_FB_PS3
-+struct ps3_prealloc ps3fb_videomemory = {
-+    .name = "ps3fb videomemory",
-+    .size = CONFIG_FB_PS3_DEFAULT_SIZE_M*1024*1024,
-+    .align = 1024*1024			/* the GPU requires 1 MiB alignment */
-+};
-+#define prealloc_ps3fb_videomemory()	prealloc(&ps3fb_videomemory)
-+
-+static int __init early_parse_ps3fb(char *p)
-+{
-+	if (!p)
-+		return 1;
-+
-+	ps3fb_videomemory.size = _ALIGN_UP(memparse(p, &p),
-+					   ps3fb_videomemory.align);
-+	return 0;
-+}
-+early_param("ps3fb", early_parse_ps3fb);
-+#else
-+#define prealloc_ps3fb_videomemory()	do { } while (0)
-+#endif
-+
-+
- static void __init ps3_setup_arch(void)
- {
- 	union ps3_firmware_version v;
-@@ -101,6 +142,7 @@ static void __init ps3_setup_arch(void)
- 	conswitchp = &dummy_con;
+diff -puN include/asm-powerpc/ps3fb.h~ps3-cleanup-ps3fb-before-clearing-hpte include/asm-powerpc/ps3fb.h
+--- a/include/asm-powerpc/ps3fb.h~ps3-cleanup-ps3fb-before-clearing-hpte
++++ a/include/asm-powerpc/ps3fb.h
+@@ -45,8 +45,10 @@ struct ps3fb_ioctl_res {
+ 
+ #ifdef CONFIG_FB_PS3
+ extern void ps3fb_flip_ctl(int on);
++extern void ps3fb_cleanup(void);
+ #else
+ static inline void ps3fb_flip_ctl(int on) {}
++static inline void ps3fb_cleanup(void) {}
  #endif
  
-+	prealloc_ps3fb_videomemory();
- 	ppc_md.power_save = ps3_power_save;
- 
- 	DBG(" <- %s:%d\n", __func__, __LINE__);
-diff -puN include/asm-powerpc/ps3.h~ps3-preallocate-bootmem-memory-for-ps3fb include/asm-powerpc/ps3.h
---- a/include/asm-powerpc/ps3.h~ps3-preallocate-bootmem-memory-for-ps3fb
-+++ a/include/asm-powerpc/ps3.h
-@@ -388,4 +388,13 @@ struct ps3_vuart_port_device {
- 
- int ps3_vuart_port_device_register(struct ps3_vuart_port_device *dev);
- 
-+struct ps3_prealloc {
-+    const char *name;
-+    void *address;
-+    unsigned long size;
-+    unsigned long align;
-+};
-+
-+extern struct ps3_prealloc ps3fb_videomemory;
-+
- #endif
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
