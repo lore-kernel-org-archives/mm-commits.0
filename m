@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch added to -mm tree
-Date: Fri, 09 Feb 2007 03:01:35 -0800
-Message-ID: <200702091101.l19B1ZkW011360@shell0.pdx.osdl.net>
+Subject: + sysctl-fix-the-selinux_sysctl_get_sid.patch added to -mm tree
+Date: Fri, 09 Feb 2007 03:04:15 -0800
+Message-ID: <200702091104.l19B4FAq011418@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43651 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43808 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945912AbXBILCK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 06:02:10 -0500
+	id S1423021AbXBILEl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 06:04:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl: Set the parent field in the root sysctl table
+     sysctl:  Fix the selinux_sysctl_get_sid
 has been added to the -mm tree.  Its filename is
-     sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
+     sysctl-fix-the-selinux_sysctl_get_sid.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: Set the parent field in the root sysctl table
+Subject: sysctl:  Fix the selinux_sysctl_get_sid
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Oops I goofed and forgot to set the parent in the root sysctl table,
-the rest are covered by register_sysctl_table.
+I goofed and when reenabling the fine grained selinux labels for
+sysctls and forgot to add the "/sys" prefix before consulting
+the policy database.  When computing the same path using
+proc_dir_entries we got the "/sys" for free as it was part
+of the tree, but it isn't true for clt_table trees.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ security/selinux/hooks.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/sysctl.c~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix
-+++ a/kernel/sysctl.c
-@@ -1287,6 +1287,14 @@ static void sysctl_set_parent(struct ctl
+diff -puN security/selinux/hooks.c~sysctl-fix-the-selinux_sysctl_get_sid security/selinux/hooks.c
+--- a/security/selinux/hooks.c~sysctl-fix-the-selinux_sysctl_get_sid
++++ a/security/selinux/hooks.c
+@@ -1445,6 +1445,12 @@ static int selinux_sysctl_get_sid(ctl_ta
+ 		path = end;
+ 		table = table->parent;
  	}
- }
- 
-+static __init int sysctl_init(void)
-+{
-+	sysctl_set_parent(NULL, root_table);
-+	return 0;
-+}
-+
-+core_initcall(sysctl_init);
-+
- /**
-  * register_sysctl_table - register a sysctl hierarchy
-  * @table: the top-level table structure
++	buflen -= 4;
++	if (buflen < 0)
++		goto out_free;
++	end -= 4;
++	memcpy(end, "/sys", 4);
++	path = end;
+ 	rc = security_genfs_sid("proc", path, tclass, sid);
+ out_free:
+ 	free_page((unsigned long)buffer);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
