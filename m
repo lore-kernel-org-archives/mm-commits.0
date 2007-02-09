@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-fix-the-selinux_sysctl_get_sid.patch added to -mm tree
-Date: Fri, 09 Feb 2007 03:04:15 -0800
-Message-ID: <200702091104.l19B4FAq011418@shell0.pdx.osdl.net>
+Subject: + sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch added to -mm tree
+Date: Fri, 09 Feb 2007 03:04:22 -0800
+Message-ID: <200702091104.l19B4Moe011424@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43808 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43805 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423021AbXBILEl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 06:04:41 -0500
+	id S1422975AbXBILEg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 06:04:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl:  Fix the selinux_sysctl_get_sid
+     sysctl:  Hide the sysctl proc inodes from selinux.
 has been added to the -mm tree.  Its filename is
-     sysctl-fix-the-selinux_sysctl_get_sid.patch
+     sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl:  Fix the selinux_sysctl_get_sid
+Subject: sysctl:  Hide the sysctl proc inodes from selinux.
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-I goofed and when reenabling the fine grained selinux labels for
-sysctls and forgot to add the "/sys" prefix before consulting
-the policy database.  When computing the same path using
-proc_dir_entries we got the "/sys" for free as it was part
-of the tree, but it isn't true for clt_table trees.
+Since the security checks are applied on each read and write of a sysctl file,
+just like they are applied when calling sys_sysctl, they are redundant on the
+standard VFS constructs.  Since it is difficult to compute the security labels
+on the standard VFS constructs we just mark the sysctl inodes in proc private
+so selinux won't even bother with them.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/proc/proc_sysctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN security/selinux/hooks.c~sysctl-fix-the-selinux_sysctl_get_sid security/selinux/hooks.c
---- a/security/selinux/hooks.c~sysctl-fix-the-selinux_sysctl_get_sid
-+++ a/security/selinux/hooks.c
-@@ -1445,6 +1445,12 @@ static int selinux_sysctl_get_sid(ctl_ta
- 		path = end;
- 		table = table->parent;
- 	}
-+	buflen -= 4;
-+	if (buflen < 0)
-+		goto out_free;
-+	end -= 4;
-+	memcpy(end, "/sys", 4);
-+	path = end;
- 	rc = security_genfs_sid("proc", path, tclass, sid);
- out_free:
- 	free_page((unsigned long)buffer);
+diff -puN fs/proc/proc_sysctl.c~sysctl-hide-the-sysctl-proc-inodes-from-selinux fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~sysctl-hide-the-sysctl-proc-inodes-from-selinux
++++ a/fs/proc/proc_sysctl.c
+@@ -47,6 +47,7 @@ static struct inode *proc_sys_make_inode
+ 	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
+ 	inode->i_op = &proc_sys_inode_operations;
+ 	inode->i_fop = &proc_sys_file_operations;
++	inode->i_flags |= S_PRIVATE; /* tell selinux to ignore this inode */
+ 	proc_sys_refresh_inode(inode, table);
+ out:
+ 	return inode;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
