@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-find_trylock_page.patch added to -mm tree
-Date: Fri, 09 Feb 2007 14:54:28 -0800
-Message-ID: <200702092254.l19MsTiC028441@shell0.pdx.osdl.net>
+Subject: + ehea-fixed-error-recovery.patch added to -mm tree
+Date: Fri, 09 Feb 2007 14:55:49 -0800
+Message-ID: <200702092255.l19MtnhW028476@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52791 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52831 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946479AbXBIWyg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 17:54:36 -0500
+	id S1423360AbXBIWz4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 17:55:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: ossthema@de.ibm.com, themann@de.ibm.com
 
 
 The patch titled
-     mm: remove find_trylock_page
+     ehea: fix error recovery
 has been added to the -mm tree.  Its filename is
-     mm-remove-find_trylock_page.patch
+     ehea-fixed-error-recovery.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,93 +25,177 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: remove find_trylock_page
-From: Nick Piggin <npiggin@suse.de>
+Subject: ehea: fix error recovery
+From: Jan-Bernd Themann <ossthema@de.ibm.com>
 
-Remove find_trylock_page for 2.6.21.
+Error recovery for QP errors: Reset QPs and dump error information
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Jan-Bernd Themann <themann@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   12 -----------
- include/linux/pagemap.h                    |    2 -
- mm/filemap.c                               |   20 -------------------
- 3 files changed, 34 deletions(-)
+ drivers/net/ehea/ehea.h      |    2 -
+ drivers/net/ehea/ehea_main.c |    8 +++++-
+ drivers/net/ehea/ehea_phyp.c |   10 +++++++
+ drivers/net/ehea/ehea_phyp.h |    3 ++
+ drivers/net/ehea/ehea_qmr.c  |   42 +++++++++++++++++++++++++++++++++
+ drivers/net/ehea/ehea_qmr.h  |    5 +++
+ 6 files changed, 68 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~mm-remove-find_trylock_page Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~mm-remove-find_trylock_page
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -170,18 +170,6 @@ Who:	Greg Kroah-Hartman <gregkh@suse.de>
+diff -puN drivers/net/ehea/ehea.h~ehea-fixed-error-recovery drivers/net/ehea/ehea.h
+--- a/drivers/net/ehea/ehea.h~ehea-fixed-error-recovery
++++ a/drivers/net/ehea/ehea.h
+@@ -39,7 +39,7 @@
+ #include <asm/io.h>
  
- ---------------------------
+ #define DRV_NAME	"ehea"
+-#define DRV_VERSION	"EHEA_0045"
++#define DRV_VERSION	"EHEA_0046"
  
--What:	find_trylock_page
--When:	January 2007
--Why:	The interface no longer has any callers left in the kernel. It
--	is an odd interface (compared with other find_*_page functions), in
--	that it does not take a refcount to the page, only the page lock.
--	It should be replaced with find_get_page or find_lock_page if possible.
--	This feature removal can be reevaluated if users of the interface
--	cannot cleanly use something else.
--Who:	Nick Piggin <npiggin@suse.de>
--
-----------------------------
--
- What:	Interrupt only SA_* flags
- When:	Januar 2007
- Why:	The interrupt related SA_* flags are replaced by IRQF_* to move them
-diff -puN include/linux/pagemap.h~mm-remove-find_trylock_page include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-remove-find_trylock_page
-+++ a/include/linux/pagemap.h
-@@ -76,8 +76,6 @@ extern struct page * find_get_page(struc
- 				unsigned long index);
- extern struct page * find_lock_page(struct address_space *mapping,
- 				unsigned long index);
--extern __deprecated_for_modules struct page * find_trylock_page(
--			struct address_space *mapping, unsigned long index);
- extern struct page * find_or_create_page(struct address_space *mapping,
- 				unsigned long index, gfp_t gfp_mask);
- unsigned find_get_pages(struct address_space *mapping, pgoff_t start,
-diff -puN mm/filemap.c~mm-remove-find_trylock_page mm/filemap.c
---- a/mm/filemap.c~mm-remove-find_trylock_page
-+++ a/mm/filemap.c
-@@ -554,26 +554,6 @@ struct page * find_get_page(struct addre
- EXPORT_SYMBOL(find_get_page);
+ #define EHEA_MSG_DEFAULT (NETIF_MSG_LINK | NETIF_MSG_TIMER \
+ 	| NETIF_MSG_RX_ERR | NETIF_MSG_TX_ERR)
+diff -puN drivers/net/ehea/ehea_main.c~ehea-fixed-error-recovery drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~ehea-fixed-error-recovery
++++ a/drivers/net/ehea/ehea_main.c
+@@ -76,7 +76,7 @@ void ehea_dump(void *adr, int len, char 
+ 	int x;
+ 	unsigned char *deb = adr;
+ 	for (x = 0; x < len; x += 16) {
+-		printk(DRV_NAME "%s adr=%p ofs=%04x %016lx %016lx\n", msg,
++		printk(DRV_NAME " %s adr=%p ofs=%04x %016lx %016lx\n", msg,
+ 			  deb, x, *((u64*)&deb[0]), *((u64*)&deb[8]));
+ 		deb += 16;
+ 	}
+@@ -555,6 +555,7 @@ static irqreturn_t ehea_qp_aff_irq_handl
+ {
+ 	struct ehea_port *port = param;
+ 	struct ehea_eqe *eqe;
++	struct ehea_qp *qp;
+ 	u32 qp_token;
  
- /**
-- * find_trylock_page - find and lock a page
-- * @mapping: the address_space to search
-- * @offset: the page index
-- *
-- * Same as find_get_page(), but trylock it instead of incrementing the count.
-- */
--struct page *find_trylock_page(struct address_space *mapping, unsigned long offset)
--{
--	struct page *page;
--
--	read_lock_irq(&mapping->tree_lock);
--	page = radix_tree_lookup(&mapping->page_tree, offset);
--	if (page && TestSetPageLocked(page))
--		page = NULL;
--	read_unlock_irq(&mapping->tree_lock);
--	return page;
--}
--EXPORT_SYMBOL(find_trylock_page);
--
--/**
-  * find_lock_page - locate, pin and lock a pagecache page
-  * @mapping: the address_space to search
-  * @offset: the page index
+ 	eqe = ehea_poll_eq(port->qp_eq);
+@@ -563,9 +564,14 @@ static irqreturn_t ehea_qp_aff_irq_handl
+ 		qp_token = EHEA_BMASK_GET(EHEA_EQE_QP_TOKEN, eqe->entry);
+ 		ehea_error("QP aff_err: entry=0x%lx, token=0x%x",
+ 			   eqe->entry, qp_token);
++
++		qp = port->port_res[qp_token].qp;
++		ehea_error_data(port->adapter, qp->fw_handle);
+ 		eqe = ehea_poll_eq(port->qp_eq);
+ 	}
+ 
++	queue_work(port->adapter->ehea_wq, &port->reset_task);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+diff -puN drivers/net/ehea/ehea_phyp.c~ehea-fixed-error-recovery drivers/net/ehea/ehea_phyp.c
+--- a/drivers/net/ehea/ehea_phyp.c~ehea-fixed-error-recovery
++++ a/drivers/net/ehea/ehea_phyp.c
+@@ -612,3 +612,13 @@ u64 ehea_h_reset_events(const u64 adapte
+ 				       event_mask,		/* R6 */
+ 				       0, 0, 0, 0);		/* R7-R12 */
+ }
++
++u64 ehea_h_error_data(const u64 adapter_handle, const u64 ressource_handle,
++		      void *rblock)
++{
++	return ehea_plpar_hcall_norets(H_ERROR_DATA,
++				       adapter_handle,          /* R4 */
++				       ressource_handle,        /* R5 */
++				       virt_to_abs(rblock),     /* R6 */
++				       0, 0, 0, 0);             /* R7-R12 */
++}
+diff -puN drivers/net/ehea/ehea_phyp.h~ehea-fixed-error-recovery drivers/net/ehea/ehea_phyp.h
+--- a/drivers/net/ehea/ehea_phyp.h~ehea-fixed-error-recovery
++++ a/drivers/net/ehea/ehea_phyp.h
+@@ -454,4 +454,7 @@ u64 ehea_h_reg_dereg_bcmc(const u64 adap
+ u64 ehea_h_reset_events(const u64 adapter_handle, const u64 neq_handle,
+ 			const u64 event_mask);
+ 
++u64 ehea_h_error_data(const u64 adapter_handle, const u64 ressource_handle,
++		      void *rblock);
++
+ #endif	/* __EHEA_PHYP_H__ */
+diff -puN drivers/net/ehea/ehea_qmr.c~ehea-fixed-error-recovery drivers/net/ehea/ehea_qmr.c
+--- a/drivers/net/ehea/ehea_qmr.c~ehea-fixed-error-recovery
++++ a/drivers/net/ehea/ehea_qmr.c
+@@ -486,6 +486,7 @@ int ehea_destroy_qp(struct ehea_qp *qp)
+ 	if (!qp)
+ 		return 0;
+ 
++	ehea_h_disable_and_get_hea(qp->adapter->handle, qp->fw_handle);
+ 	hret = ehea_h_free_resource(qp->adapter->handle, qp->fw_handle);
+ 	if (hret != H_SUCCESS) {
+ 		ehea_error("destroy_qp failed");
+@@ -581,4 +582,45 @@ out:
+ 	return ret;
+ }
+ 
++void print_error_data(u64 *data)
++{
++	int length;
++	u64 type = EHEA_BMASK_GET(ERROR_DATA_TYPE, data[2]);
++	u64 resource = data[1];
++
++	length = EHEA_BMASK_GET(ERROR_DATA_LENGTH, data[0]);
++
++	if (length > EHEA_PAGESIZE)
++		length = EHEA_PAGESIZE;
++
++	if (type == 0x8) /* Queue Pair */
++		ehea_error("QP (resource=%lX) state: AER=0x%lX, AERR=0x%lX, "
++			   "port=%lX", resource, data[6], data[12], data[22]);
++
++	ehea_dump(data, length, "error data");
++}
+ 
++void ehea_error_data(struct ehea_adapter *adapter, u64 res_handle)
++{
++	unsigned long ret;
++	u64 *rblock;
++
++	rblock = kzalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!rblock) {
++		ehea_error("Cannot allocate rblock memory.");
++		return;
++	}
++
++	ret = ehea_h_error_data(adapter->handle,
++				res_handle,
++				rblock);
++
++	if (ret == H_R_STATE)
++		ehea_error("No error data is available: %lX.", res_handle);
++	else if (ret == H_SUCCESS)
++		print_error_data(rblock);
++	else
++		ehea_error("Error data could not be fetched: %lX", res_handle);
++
++	kfree(rblock);
++}
+diff -puN drivers/net/ehea/ehea_qmr.h~ehea-fixed-error-recovery drivers/net/ehea/ehea_qmr.h
+--- a/drivers/net/ehea/ehea_qmr.h~ehea-fixed-error-recovery
++++ a/drivers/net/ehea/ehea_qmr.h
+@@ -180,6 +180,9 @@ struct ehea_eqe {
+ 	u64 entry;
+ };
+ 
++#define ERROR_DATA_LENGTH  EHEA_BMASK_IBM(52,63)
++#define ERROR_DATA_TYPE    EHEA_BMASK_IBM(0,7)
++
+ static inline void *hw_qeit_calc(struct hw_queue *queue, u64 q_offset)
+ {
+ 	struct ehea_page *current_page;
+@@ -355,4 +358,6 @@ int ehea_destroy_qp(struct ehea_qp *qp);
+ 
+ int ehea_reg_mr_adapter(struct ehea_adapter *adapter);
+ 
++void ehea_error_data(struct ehea_adapter *adapter, u64 res_handle);
++
+ #endif	/* __EHEA_QMR_H__ */
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from ossthema@de.ibm.com are
 
-git-block.patch
-add-vm_insert_pfn.patch
-mm-vm_insert_pfn-tidy.patch
-mm-remove-find_trylock_page.patch
-buffer-memorder-fix.patch
-fs-fix-__block_write_full_page-error-case-buffer-submission.patch
-inotify-read-return-val-fix.patch
-sched-avoid-div-in-rebalance_tick.patch
+ehea-fixed-error-recovery.patch
