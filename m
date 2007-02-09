@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-reimplement-the-sysctl-proc-support-fix-4.patch added to -mm tree
-Date: Fri, 09 Feb 2007 03:00:57 -0800
-Message-ID: <200702091100.l19B0vgK011339@shell0.pdx.osdl.net>
+Subject: + sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch added to -mm tree
+Date: Fri, 09 Feb 2007 03:01:35 -0800
+Message-ID: <200702091101.l19B1ZkW011360@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43635 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43651 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965733AbXBILB5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 06:01:57 -0500
+	id S1945912AbXBILCK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 06:02:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl:  Remove declaration of nonexistent sysctl_init()
+     sysctl: Set the parent field in the root sysctl table
 has been added to the -mm tree.  Its filename is
-     sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
+     sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl:  Remove declaration of nonexistent sysctl_init()
+Subject: sysctl: Set the parent field in the root sysctl table
 From: Eric W. Biederman <ebiederm@xmission.com>
+
+Oops I goofed and forgot to set the parent in the root sysctl table,
+the rest are covered by register_sysctl_table.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/sysctl.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/linux/sysctl.h~sysctl-reimplement-the-sysctl-proc-support-fix-4 include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-reimplement-the-sysctl-proc-support-fix-4
-+++ a/include/linux/sysctl.h
-@@ -930,8 +930,6 @@ extern struct ctl_table_header *sysctl_h
- extern void sysctl_head_finish(struct ctl_table_header *prev);
- extern int sysctl_perm(struct ctl_table *table, int op);
+diff -puN kernel/sysctl.c~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix
++++ a/kernel/sysctl.c
+@@ -1287,6 +1287,14 @@ static void sysctl_set_parent(struct ctl
+ 	}
+ }
  
--extern void sysctl_init(void);
--
- typedef struct ctl_table ctl_table;
- 
- typedef int ctl_handler (ctl_table *table, int __user *name, int nlen,
++static __init int sysctl_init(void)
++{
++	sysctl_set_parent(NULL, root_table);
++	return 0;
++}
++
++core_initcall(sysctl_init);
++
+ /**
+  * register_sysctl_table - register a sysctl hierarchy
+  * @table: the top-level table structure
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -170,11 +179,11 @@ sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
 sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
 sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
 sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
+sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-sysctl-set-the-parent-field-in-the-root-sysctl-table.patch
 sysctl-fix-the-selinux_sysctl_get_sid.patch
 selinux-enhance-selinux-to-always-ignore-private-inodes.patch
 sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch
