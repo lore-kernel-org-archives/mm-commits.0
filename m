@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + fb_videomode_to_var-reset-virtual-screen-parameters.patch added to -mm tree
-Date: Fri, 09 Feb 2007 01:26:41 -0800
-Message-ID: <200702090926.l199QfSe009504@shell0.pdx.osdl.net>
+Subject: + ps3-ps3av-fb-defconfig-updates.patch added to -mm tree
+Date: Fri, 09 Feb 2007 01:26:53 -0800
+Message-ID: <200702090926.l199QrDd009519@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38621 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38622 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946260AbXBIJ1s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1946261AbXBIJ1s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 9 Feb 2007 04:27:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, jsimmons@infradead
 
 
 The patch titled
-     fb_videomode_to_var: reset virtual screen parameters
+     ps3: ps3av/fb defconfig updates
 has been added to the -mm tree.  Its filename is
-     fb_videomode_to_var-reset-virtual-screen-parameters.patch
+     ps3-ps3av-fb-defconfig-updates.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,18 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fb_videomode_to_var: reset virtual screen parameters
+Subject: ps3: ps3av/fb defconfig updates
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-fb_videomode_to_var(): reset the virtual screen parameters when converting
-from an fb_videomode to an fb_var_screeninfo.
-
-Without this the old virtual screen parameters are kept.  Hence you cannot
-switch to a video mode with a lower resolution on frame buffer devices that
-don't support virtual screens and panning, as values are not supposed to be
-rounded down when they don't fit.
-
-I also reordered the assignments to match the order of the individual members.
+PS3: defconfig updates for ps3av and ps3fb
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Cc: James Simmons <jsimmons@infradead.org>
@@ -45,32 +37,62 @@ Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/modedb.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/powerpc/configs/ps3_defconfig |   29 ++++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/modedb.c~fb_videomode_to_var-reset-virtual-screen-parameters drivers/video/modedb.c
---- a/drivers/video/modedb.c~fb_videomode_to_var-reset-virtual-screen-parameters
-+++ a/drivers/video/modedb.c
-@@ -716,13 +716,17 @@ void fb_videomode_to_var(struct fb_var_s
- {
- 	var->xres = mode->xres;
- 	var->yres = mode->yres;
-+	var->xres_virtual = mode->xres;
-+	var->yres_virtual = mode->yres;
-+	var->xoffset = 0;
-+	var->yoffset = 0;
- 	var->pixclock = mode->pixclock;
- 	var->left_margin = mode->left_margin;
--	var->hsync_len = mode->hsync_len;
--	var->vsync_len = mode->vsync_len;
- 	var->right_margin = mode->right_margin;
- 	var->upper_margin = mode->upper_margin;
- 	var->lower_margin = mode->lower_margin;
-+	var->hsync_len = mode->hsync_len;
-+	var->vsync_len = mode->vsync_len;
- 	var->sync = mode->sync;
- 	var->vmode = mode->vmode & FB_VMODE_MASK;
- }
+diff -puN arch/powerpc/configs/ps3_defconfig~ps3-ps3av-fb-defconfig-updates arch/powerpc/configs/ps3_defconfig
+--- a/arch/powerpc/configs/ps3_defconfig~ps3-ps3av-fb-defconfig-updates
++++ a/arch/powerpc/configs/ps3_defconfig
+@@ -163,6 +163,7 @@ CONFIG_PS3_HTAB_SIZE=20
+ # CONFIG_PS3_DYNAMIC_DMA is not set
+ CONFIG_PS3_USE_LPAR_ADDR=y
+ CONFIG_PS3_VUART=y
++CONFIG_PS3_PS3AV=y
+ 
+ #
+ # Kernel options
+@@ -611,14 +612,40 @@ CONFIG_GEN_RTC=y
+ # Graphics support
+ #
+ # CONFIG_FIRMWARE_EDID is not set
+-# CONFIG_FB is not set
++CONFIG_FB=y
++CONFIG_FB_CFB_FILLRECT=y
++CONFIG_FB_CFB_COPYAREA=y
++CONFIG_FB_CFB_IMAGEBLIT=y
++# CONFIG_FB_MACMODES is not set
++# CONFIG_FB_BACKLIGHT is not set
++# CONFIG_FB_MODE_HELPERS is not set
++# CONFIG_FB_TILEBLITTING is not set
++# CONFIG_FB_OF is not set
++# CONFIG_FB_VGA16 is not set
++# CONFIG_FB_S1D13XXX is not set
+ # CONFIG_FB_IBM_GXT4500 is not set
++CONFIG_FB_PS3=y
++CONFIG_FB_PS3_DEFAULT_SIZE_M=18
++# CONFIG_FB_VIRTUAL is not set
+ 
+ #
+ # Console display driver support
+ #
+ # CONFIG_VGA_CONSOLE is not set
+ CONFIG_DUMMY_CONSOLE=y
++CONFIG_FRAMEBUFFER_CONSOLE=y
++# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
++# CONFIG_FONTS is not set
++CONFIG_FONT_8x8=y
++CONFIG_FONT_8x16=y
++
++#
++# Logo configuration
++#
++CONFIG_LOGO=y
++# CONFIG_LOGO_LINUX_MONO is not set
++# CONFIG_LOGO_LINUX_VGA16 is not set
++CONFIG_LOGO_LINUX_CLUT224=y
+ # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+ 
+ #
 _
 
 Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
