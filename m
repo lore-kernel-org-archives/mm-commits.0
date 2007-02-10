@@ -1,180 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - consolidate-line-discipline-number-definitions-v2-sparc-fix.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:14:07 -0800
-Message-ID: <200702100814.l1A8E7Xf007002@shell0.pdx.osdl.net>
+Subject: - ipmi-fix-some-rcu-problems-update.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:17:22 -0800
+Message-ID: <200702100817.l1A8HMv0007065@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39452 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39455 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752983AbXBJIRU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:17:20 -0500
+	id S1752133AbXBJIRZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:17:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tilman@imap.cc, mm-commits@vger.kernel.org
+To: minyard@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     consolidate-line-discipline-number-definitions-v2-sparc-fix
+     IPMI: Fix some RCU problems (update)
 has been removed from the -mm tree.  Its filename was
-     consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+     ipmi-fix-some-rcu-problems-update.patch
 
-This patch was dropped because it was folded into consolidate-line-discipline-number-definitions-v2.patch
+This patch was dropped because it was folded into ipmi-fix-some-rcu-problems.patch
 
 ------------------------------------------------------
-Subject: consolidate-line-discipline-number-definitions-v2-sparc-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: IPMI: Fix some RCU problems (update)
+From: Corey Minyard <minyard@acm.org>
 
-arch/sparc/kernel/sunos_ioctl.c: In function 'sunos_ioctl':
-arch/sparc/kernel/sunos_ioctl.c:45: error: 'N_TTY' undeclared (first use in this function)
-arch/sparc/kernel/sunos_ioctl.c:45: error: (Each undeclared identifier is reported only once
-arch/sparc/kernel/sunos_ioctl.c:45: error: for each function it appears in.)
+Andrew asked that the open-coded barriers be commented, so here it
+is.  I also realized that one of the read barriers was in an area
+where the protecting mutex was held, so no read barrier was needed.
 
-Cc: Tilman Schmidt <tilman@imap.cc>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Corey Minyard <minyard@acm.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/sunos_ioctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/ipmi/ipmi_msghandler.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN arch/sparc/kernel/sunos_ioctl.c~consolidate-line-discipline-number-definitions-v2-sparc-fix arch/sparc/kernel/sunos_ioctl.c
---- a/arch/sparc/kernel/sunos_ioctl.c~consolidate-line-discipline-number-definitions-v2-sparc-fix
-+++ a/arch/sparc/kernel/sunos_ioctl.c
-@@ -11,6 +11,7 @@
- #include <linux/errno.h>
- #include <linux/string.h>
- #include <linux/termios.h>
-+#include <linux/tty.h>
- #include <linux/ioctl.h>
- #include <linux/route.h>
- #include <linux/sockios.h>
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-some-rcu-problems-update drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-some-rcu-problems-update
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -839,7 +839,6 @@ int ipmi_create_user(unsigned int       
+ 	goto out_kfree;
+ 
+  found:
+-	smp_rmb();
+ 	/* Note that each existing user holds a refcount to the interface. */
+ 	kref_get(&intf->refcount);
+ 
+@@ -2762,10 +2761,15 @@ int ipmi_register_smi(struct ipmi_smi_ha
+ 		synchronize_rcu();
+ 		kref_put(&intf->refcount, intf_free);
+ 	} else {
+-		/* After this point the interface is legal to use. */
+-		smp_wmb(); /* Keep memory order straight for RCU readers. */
++		/*
++		 * Keep memory order straight for RCU readers.  Make
++		 * sure everything else is committed to memory before
++		 * setting intf_num to mark the interface valid.
++		 */
++		smp_wmb();
+ 		intf->intf_num = i;
+ 		mutex_unlock(&ipmi_interfaces_mutex);
++		/* After this point the interface is legal to use. */
+ 		call_smi_watchers(i, intf->si_dev);
+ 		mutex_unlock(&smi_watchers_mutex);
+ 	}
+@@ -3926,6 +3930,12 @@ static void send_panic_events(char *str)
+ 			/* Interface was not ready yet. */
+ 			continue;
+ 
++		/*
++		 * intf_num is used as an marker to tell if the
++		 * interface is valid.  Thus we need a read barrier to
++		 * make sure data fetched before checking intf_num
++		 * won't be used.
++		 */
+ 		smp_rmb();
+ 
+ 		/* First job here is to figure out where to send the
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from minyard@acm.org are
 
-origin.patch
-avoid-excessive-sorting-of-early_node_map.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts.patch
-drop-free_pages.patch
-optional-zone_dma-in-the-vm.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-drivers-add-lcd-support-3.patch
-count_vm_events-warning-fix.patch
-consolidate-line-discipline-number-definitions-v2.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
-register_blkdev-dont-hand-out-the-local-experimental-majors.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-dynamic-kernel-command-line-ia64-fix.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+add-an-rcu-version-of-list-splicing.patch
+ipmi-fix-some-rcu-problems.patch
+ipmi-fix-some-rcu-problems-update.patch
+proc-remove-useless-and-buggy-nlink-settings.patch
+sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
