@@ -1,38 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-framework-driver-for-cmos-rtcs-fix.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:19:22 -0800
-Message-ID: <200702100819.l1A8JMsa007112@shell0.pdx.osdl.net>
+Subject: - rtc-framework-driver-for-cmos-rtcs-fix-2.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:19:25 -0800
+Message-ID: <200702100819.l1A8JPwh007118@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39498 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39501 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752992AbXBJIT2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:19:28 -0500
+	id S1752994AbXBJITi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:19:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alessandro.zummo@towertech.it, dbrownell@users.sourceforge.net, woodys@xandros.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-framework-driver-for-cmos-rtcs-fix
+     rtc-framework-driver-for-cmos-rtcs-fix-2
 has been removed from the -mm tree.  Its filename was
-     rtc-framework-driver-for-cmos-rtcs-fix.patch
+     rtc-framework-driver-for-cmos-rtcs-fix-2.patch
 
 This patch was dropped because it was folded into rtc-framework-driver-for-cmos-rtcs.patch
 
 ------------------------------------------------------
-Subject: rtc-framework-driver-for-cmos-rtcs-fix
+Subject: rtc-framework-driver-for-cmos-rtcs-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
-sparc32:
+sparc64:
 
-In file included from drivers/rtc/rtc-cmos.c:40:
-include/asm-generic/rtc.h: In function 'rtc_is_updating':
-include/asm-generic/rtc.h:40: error: 'rtc_port' undeclared (first use in this function)
-include/asm-generic/rtc.h:40: error: (Each undeclared identifier is reported only once
-include/asm-generic/rtc.h:40: error: for each function it appears in.)
-include/asm-generic/rtc.h: In function 'get_rtc_time':
-include/asm-generic/rtc.h:76: error: 'rtc_port' undeclared (first use in this function)
+WARNING: "rtc_register" [sound/core/snd-rtctimer.ko] undefined!
+WARNING: "rtc_unregister" [sound/core/snd-rtctimer.ko] undefined!
+WARNING: "rtc_control" [sound/core/snd-rtctimer.ko] undefined!
+WARNING: "bus_to_virt_not_defined_use_pci_map" [drivers/scsi/tmscsim.ko] undefined!
+WARNING: "saved_command_line" [drivers/sbus/char/openprom.ko] undefined!
+WARNING: "ds1287_regs" [drivers/rtc/rtc-cmos.ko] undefined!
+WARNING: "rtc_lock" [drivers/rtc/rtc-cmos.ko] undefined!
 
 Cc: David Brownell <dbrownell@users.sourceforge.net>
 Cc: Woody Suwalski <woodys@xandros.com>
@@ -40,24 +40,18 @@ Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/rtc/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix
+diff -puN drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix-2 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix-2
 +++ a/drivers/rtc/Kconfig
-@@ -1,4 +1,4 @@
--\#
-+#
- # RTC class/drivers configuration
- #
- 
 @@ -102,7 +102,7 @@ comment "RTC drivers"
  config RTC_DRV_CMOS
  	tristate "PC-style 'CMOS' real time clock"
  	depends on RTC_CLASS && (X86_PC || ALPHA || ARM26 || ARM \
--		|| M32R || ATARI || POWERPC || SPARC64 || SPARC)
-+		|| M32R || ATARI || POWERPC || SPARC64)
+-		|| M32R || ATARI || POWERPC || SPARC64)
++		|| M32R || ATARI || POWERPC)
  	help
  	  Say "yes" here to get direct support for the real time clock
  	  found in every PC or ACPI-based system, and some other boards.
@@ -80,7 +74,6 @@ add-an-rcu-version-of-list-splicing.patch
 sysctl-warning-fix.patch
 proc_misc-warning-fix.patch
 rtc-framework-driver-for-cmos-rtcs.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
 rtc-framework-driver-for-cmos-rtcs-fix-2.patch
 return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
