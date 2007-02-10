@@ -1,262 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-fix-a-race-in-closing-nfsd-connections.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:21:49 -0800
-Message-ID: <200702100521.l1A5Ln7J004480@shell0.pdx.osdl.net>
+Subject: - sh-vdso-use-install_special_mappingpatch.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:22:58 -0800
+Message-ID: <200702100523.l1A5Mw46004512@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36622 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36627 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753135AbXBJFXN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:23:13 -0500
+	id S1753137AbXBJFXP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:23:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: fix a race in closing NFSd connections
+     SH vdso: use install_special_mapping()
 has been removed from the -mm tree.  Its filename was
-     knfsd-fix-a-race-in-closing-nfsd-connections.patch
+     sh-vdso-use-install_special_mappingpatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: fix a race in closing NFSd connections
-From: NeilBrown <neilb@suse.de>
+Subject: SH vdso: use install_special_mapping()
+From: Paul Mundt <lethal@linux-sh.org>
 
-If you lose this race, it can iput a socket inode twice and you get a BUG
-in fs/inode.c
-
-When I added the option for user-space to close a socket, I added some
-cruft to svc_delete_socket so that I could call that function when closing
-a socket per user-space request.
-
-This was the wrong thing to do.  I should have just set SK_CLOSE and let
-normal mechanisms do the work.
-
-Not only wrong, but buggy.  The locking is all wrong and it openned up a
-race where-by a socket could be closed twice.
-
-So this patch:
-  Introduces svc_close_socket which sets SK_CLOSE then either leave
-  the close up to a thread, or calls svc_delete_socket if it can
-  get SK_BUSY.
-
-  Adds a bias to sk_busy which is removed when SK_DEAD is set,
-  This avoid races around shutting down the socket.
-
-  Changes several 'spin_lock' to 'spin_lock_bh' where the _bh
-  was missing.
-
-Bugzilla-url: http://bugzilla.kernel.org/show_bug.cgi?id=7916
-
-Signed-off-by: Neil Brown <neilb@suse.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/svcsock.h |    2 -
- net/sunrpc/svc.c               |    4 +-
- net/sunrpc/svcsock.c           |   52 ++++++++++++++++++++++---------
- 3 files changed, 41 insertions(+), 17 deletions(-)
+ arch/sh/kernel/vsyscall/vsyscall.c |   58 ++++-----------------------
+ 1 files changed, 9 insertions(+), 49 deletions(-)
 
-diff -puN include/linux/sunrpc/svcsock.h~knfsd-fix-a-race-in-closing-nfsd-connections include/linux/sunrpc/svcsock.h
---- a/include/linux/sunrpc/svcsock.h~knfsd-fix-a-race-in-closing-nfsd-connections
-+++ a/include/linux/sunrpc/svcsock.h
-@@ -63,7 +63,7 @@ struct svc_sock {
-  * Function prototypes.
+diff -puN arch/sh/kernel/vsyscall/vsyscall.c~sh-vdso-use-install_special_mappingpatch arch/sh/kernel/vsyscall/vsyscall.c
+--- a/arch/sh/kernel/vsyscall/vsyscall.c~sh-vdso-use-install_special_mappingpatch
++++ a/arch/sh/kernel/vsyscall/vsyscall.c
+@@ -37,11 +37,12 @@ __setup("vdso=", vdso_setup);
+  * of the ELF DSO images included therein.
   */
- int		svc_makesock(struct svc_serv *, int, unsigned short);
--void		svc_delete_socket(struct svc_sock *);
-+void		svc_close_socket(struct svc_sock *);
- int		svc_recv(struct svc_rqst *, long);
- int		svc_send(struct svc_rqst *);
- void		svc_drop(struct svc_rqst *);
-diff -puN net/sunrpc/svc.c~knfsd-fix-a-race-in-closing-nfsd-connections net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~knfsd-fix-a-race-in-closing-nfsd-connections
-+++ a/net/sunrpc/svc.c
-@@ -386,7 +386,7 @@ svc_destroy(struct svc_serv *serv)
- 		svsk = list_entry(serv->sv_tempsocks.next,
- 				  struct svc_sock,
- 				  sk_list);
--		svc_delete_socket(svsk);
-+		svc_close_socket(svsk);
- 	}
- 	if (serv->sv_shutdown)
- 		serv->sv_shutdown(serv);
-@@ -395,7 +395,7 @@ svc_destroy(struct svc_serv *serv)
- 		svsk = list_entry(serv->sv_permsocks.next,
- 				  struct svc_sock,
- 				  sk_list);
--		svc_delete_socket(svsk);
-+		svc_close_socket(svsk);
- 	}
- 	
- 	cache_clean_deferred(serv);
-diff -puN net/sunrpc/svcsock.c~knfsd-fix-a-race-in-closing-nfsd-connections net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-fix-a-race-in-closing-nfsd-connections
-+++ a/net/sunrpc/svcsock.c
-@@ -62,6 +62,12 @@
-  *		after a clear, the socket must be read/accepted
-  *		 if this succeeds, it must be set again.
-  *	SK_CLOSE can set at any time. It is never cleared.
-+ *      sk_inuse contains a bias of '1' until SK_DEAD is set.
-+ *             so when sk_inuse hits zero, we know the socket is dead
-+ *             and no-one is using it.
-+ *      SK_DEAD can only be set while SK_BUSY is held which ensures
-+ *             no other thread will be using the socket or will try to
-+ *	       set SK_DEAD.
-  *
-  */
+ extern const char vsyscall_trapa_start, vsyscall_trapa_end;
+-static void *syscall_page;
++static struct page *syscall_pages[1];
  
-@@ -70,6 +76,7 @@
- 
- static struct svc_sock *svc_setup_socket(struct svc_serv *, struct socket *,
- 					 int *errp, int pmap_reg);
-+static void		svc_delete_socket(struct svc_sock *svsk);
- static void		svc_udp_data_ready(struct sock *, int);
- static int		svc_udp_recvfrom(struct svc_rqst *);
- static int		svc_udp_sendto(struct svc_rqst *);
-@@ -329,8 +336,9 @@ void svc_reserve(struct svc_rqst *rqstp,
- static inline void
- svc_sock_put(struct svc_sock *svsk)
+ int __init vsyscall_init(void)
  {
--	if (atomic_dec_and_test(&svsk->sk_inuse) &&
--			test_bit(SK_DEAD, &svsk->sk_flags)) {
-+	if (atomic_dec_and_test(&svsk->sk_inuse)) {
-+		BUG_ON(! test_bit(SK_DEAD, &svsk->sk_flags));
-+
- 		dprintk("svc: releasing dead socket\n");
- 		if (svsk->sk_sock->file)
- 			sockfd_put(svsk->sk_sock);
-@@ -520,7 +528,7 @@ svc_sock_names(char *buf, struct svc_ser
+-	syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
++	void *syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
++	syscall_pages[0] = virt_to_page(syscall_page);
  
- 	if (!serv)
- 		return 0;
--	spin_lock(&serv->sv_lock);
-+	spin_lock_bh(&serv->sv_lock);
- 	list_for_each_entry(svsk, &serv->sv_permsocks, sk_list) {
- 		int onelen = one_sock_name(buf+len, svsk);
- 		if (toclose && strcmp(toclose, buf+len) == 0)
-@@ -528,12 +536,12 @@ svc_sock_names(char *buf, struct svc_ser
- 		else
- 			len += onelen;
- 	}
--	spin_unlock(&serv->sv_lock);
-+	spin_unlock_bh(&serv->sv_lock);
- 	if (closesk)
- 		/* Should unregister with portmap, but you cannot
- 		 * unregister just one protocol...
- 		 */
--		svc_delete_socket(closesk);
-+		svc_close_socket(closesk);
- 	else if (toclose)
- 		return -ENOENT;
- 	return len;
-@@ -683,6 +691,11 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 		return svc_deferred_recv(rqstp);
- 	}
- 
-+	if (test_bit(SK_CLOSE, &svsk->sk_flags)) {
-+		svc_delete_socket(svsk);
-+		return 0;
-+	}
-+
- 	clear_bit(SK_DATA, &svsk->sk_flags);
- 	while ((skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err)) == NULL) {
- 		if (err == -EAGAIN) {
-@@ -1176,7 +1189,8 @@ svc_tcp_sendto(struct svc_rqst *rqstp)
- 		       rqstp->rq_sock->sk_server->sv_name,
- 		       (sent<0)?"got error":"sent only",
- 		       sent, xbufp->len);
--		svc_delete_socket(rqstp->rq_sock);
-+		set_bit(SK_CLOSE, &rqstp->rq_sock->sk_flags);
-+		svc_sock_enqueue(rqstp->rq_sock);
- 		sent = -EAGAIN;
- 	}
- 	return sent;
-@@ -1495,7 +1509,7 @@ svc_setup_socket(struct svc_serv *serv, 
- 	svsk->sk_odata = inet->sk_data_ready;
- 	svsk->sk_owspace = inet->sk_write_space;
- 	svsk->sk_server = serv;
--	atomic_set(&svsk->sk_inuse, 0);
-+	atomic_set(&svsk->sk_inuse, 1);
- 	svsk->sk_lastrecv = get_seconds();
- 	spin_lock_init(&svsk->sk_defer_lock);
- 	INIT_LIST_HEAD(&svsk->sk_deferred);
-@@ -1618,7 +1632,7 @@ bummer:
- /*
-  * Remove a dead socket
-  */
--void
-+static void
- svc_delete_socket(struct svc_sock *svsk)
- {
- 	struct svc_serv	*serv;
-@@ -1644,16 +1658,26 @@ svc_delete_socket(struct svc_sock *svsk)
- 	 * while still attached to a queue, the queue itself
- 	 * is about to be destroyed (in svc_destroy).
- 	 */
--	if (!test_and_set_bit(SK_DEAD, &svsk->sk_flags))
-+	if (!test_and_set_bit(SK_DEAD, &svsk->sk_flags)) {
-+		BUG_ON(atomic_read(&svsk->sk_inuse)<2);
-+		atomic_dec(&svsk->sk_inuse);
- 		if (test_bit(SK_TEMP, &svsk->sk_flags))
- 			serv->sv_tmpcnt--;
-+	}
- 
--	/* This atomic_inc should be needed - svc_delete_socket
--	 * should have the semantic of dropping a reference.
--	 * But it doesn't yet....
--	 */
--	atomic_inc(&svsk->sk_inuse);
- 	spin_unlock_bh(&serv->sv_lock);
-+}
-+
-+void svc_close_socket(struct svc_sock *svsk)
-+{
-+	set_bit(SK_CLOSE, &svsk->sk_flags);
-+	if (test_and_set_bit(SK_BUSY, &svsk->sk_flags))
-+		/* someone else will have to effect the close */
-+		return;
-+
-+	atomic_inc(&svsk->sk_inuse);
-+	svc_delete_socket(svsk);
-+	clear_bit(SK_BUSY, &svsk->sk_flags);
- 	svc_sock_put(svsk);
+ 	/*
+ 	 * XXX: Map this page to a fixmap entry if we get around
+@@ -55,37 +56,10 @@ int __init vsyscall_init(void)
+ 	return 0;
  }
  
+-static struct page *syscall_vma_nopage(struct vm_area_struct *vma,
+-				       unsigned long address, int *type)
+-{
+-	unsigned long offset = address - vma->vm_start;
+-	struct page *page;
+-
+-	if (address < vma->vm_start || address > vma->vm_end)
+-		return NOPAGE_SIGBUS;
+-
+-	page = virt_to_page(syscall_page + offset);
+-
+-	get_page(page);
+-
+-	return page;
+-}
+-
+-/* Prevent VMA merging */
+-static void syscall_vma_close(struct vm_area_struct *vma)
+-{
+-}
+-
+-static struct vm_operations_struct syscall_vm_ops = {
+-	.nopage	= syscall_vma_nopage,
+-	.close	= syscall_vma_close,
+-};
+-
+ /* Setup a VMA at program startup for the vsyscall page */
+ int arch_setup_additional_pages(struct linux_binprm *bprm,
+ 				int executable_stack)
+ {
+-	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long addr;
+ 	int ret;
+@@ -97,30 +71,16 @@ int arch_setup_additional_pages(struct l
+ 		goto up_fail;
+ 	}
+ 
+-	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
+-	if (!vma) {
+-		ret = -ENOMEM;
++	ret = install_special_mapping(mm, addr, PAGE_SIZE,
++				      VM_READ | VM_EXEC |
++				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |
++				      VM_ALWAYSDUMP,
++				      syscall_pages);
++	if (unlikely(ret))
+ 		goto up_fail;
+-	}
+-
+-	vma->vm_start = addr;
+-	vma->vm_end = addr + PAGE_SIZE;
+-	/* MAYWRITE to allow gdb to COW and set breakpoints */
+-	vma->vm_flags = VM_READ|VM_EXEC|VM_MAYREAD|VM_MAYEXEC|VM_MAYWRITE;
+-	vma->vm_flags |= mm->def_flags;
+-	vma->vm_page_prot = protection_map[vma->vm_flags & 7];
+-	vma->vm_ops = &syscall_vm_ops;
+-	vma->vm_mm = mm;
+-
+-	ret = insert_vm_struct(mm, vma);
+-	if (unlikely(ret)) {
+-		kmem_cache_free(vm_area_cachep, vma);
+-		goto up_fail;
+-	}
+ 
+ 	current->mm->context.vdso = (void *)addr;
+ 
+-	mm->total_vm++;
+ up_fail:
+ 	up_write(&mm->mmap_sem);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-igrab-should-check-for-i_clear.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-replace-highest_possible_node_id-with-nr_node_ids-fix.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-fix-d_path-for-lazy-unmounts.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
-knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
-knfsd-sunrpc-aplit-svc_sock_enqueue-out-of-svc_setup_socket.patch
-knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
-knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
-knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
-knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
-knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
-knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
-knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
-knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
-knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
+make-aout-executables-work-again.patch
+git-sh.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+simplify-the-stacktrace-code.patch
+dynamic-kernel-command-line-common.patch
+dynamic-kernel-command-line-sh.patch
+dynamic-kernel-command-line-sh64.patch
+sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
