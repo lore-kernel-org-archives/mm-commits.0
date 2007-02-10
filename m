@@ -1,28 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - arm-convert-to-use-shared-apm-emulation.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:27:58 -0800
-Message-ID: <200702100528.l1A5RxxQ004691@shell0.pdx.osdl.net>
+Subject: - mips-convert-to-use-shared-apm-emulation.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:28:05 -0800
+Message-ID: <200702100528.l1A5S5R6004694@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37006 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37011 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752955AbXBJFbq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:31:46 -0500
+	id S1752962AbXBJFbw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:31:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ralf@linux-mips.org, lethal@linux-sh.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ARM: convert to use shared APM emulation
+     MIPS: convert to use shared APM emulation
 has been removed from the -mm tree.  Its filename was
-     arm-convert-to-use-shared-apm-emulation.patch
+     mips-convert-to-use-shared-apm-emulation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ARM: convert to use shared APM emulation
+Subject: MIPS: convert to use shared APM emulation
 From: Ralf Baechle <ralf@linux-mips.org>
+
+Also convert to use generic kernel/power/Kconfig to make the use of the
+shared APM emulation possible.
 
 Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Cc: Paul Mundt <lethal@linux-sh.org>
@@ -30,46 +33,47 @@ Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/arm/Kconfig               |   29 -
- arch/arm/common/sharpsl_pm.c   |    2 
- arch/arm/kernel/Makefile       |    1 
- arch/arm/kernel/apm.c          |  672 -------------------------------
- arch/arm/mach-pxa/corgi_pm.c   |    2 
- arch/arm/mach-pxa/sharpsl_pm.c |    2 
- arch/arm/mach-pxa/spitz_pm.c   |    2 
- include/asm-arm/apm.h          |   64 --
- 8 files changed, 8 insertions(+), 766 deletions(-)
+ arch/mips/Kconfig         |   38 --
+ arch/mips/kernel/Makefile |    2 
+ arch/mips/kernel/apm.c    |  604 ------------------------------------
+ include/asm-mips/apm.h    |   64 ---
+ 4 files changed, 9 insertions(+), 699 deletions(-)
 
-diff -puN arch/arm/Kconfig~arm-convert-to-use-shared-apm-emulation arch/arm/Kconfig
---- a/arch/arm/Kconfig~arm-convert-to-use-shared-apm-emulation
-+++ a/arch/arm/Kconfig
-@@ -9,6 +9,7 @@ config ARM
- 	bool
- 	default y
- 	select RTC_LIB
-+	select SYS_SUPPORTS_APM_EMULATION
- 	help
- 	  The ARM series is a line of low-power-consumption RISC chip designs
- 	  licensed by ARM Ltd and targeted at embedded applications and
-@@ -17,6 +18,9 @@ config ARM
- 	  Europe.  There is an ARM Linux project with a web page at
- 	  <http://www.arm.linux.org.uk/>.
+diff -puN arch/mips/Kconfig~mips-convert-to-use-shared-apm-emulation arch/mips/Kconfig
+--- a/arch/mips/Kconfig~mips-convert-to-use-shared-apm-emulation
++++ a/arch/mips/Kconfig
+@@ -912,6 +912,9 @@ config CPU_LITTLE_ENDIAN
+ 
+ endchoice
  
 +config SYS_SUPPORTS_APM_EMULATION
 +	bool
 +
- config GENERIC_TIME
+ config SYS_SUPPORTS_BIG_ENDIAN
  	bool
- 	default n
-@@ -860,31 +864,6 @@ menu "Power management options"
  
- source "kernel/power/Kconfig"
+@@ -979,6 +982,7 @@ config SOC_AU1X00
+ 	bool
+ 	select SYS_HAS_CPU_MIPS32_R1
+ 	select SYS_SUPPORTS_32BIT_KERNEL
++	select SYS_SUPPORTS_APM_EMULATION
  
+ config PNX8550
+ 	bool
+@@ -2052,35 +2056,11 @@ config BINFMT_ELF32
+ endmenu
+ 
+ 
+-config PM
+-	bool "Power Management support (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && SOC_AU1X00
+-
 -config APM
--	tristate "Advanced Power Management Emulation"
--	---help---
+-        tristate "Advanced Power Management Emulation"
+-	depends on PM
+-        ---help---
 -	  APM is a BIOS specification for saving power using several different
--	  techniques. This is mostly useful for battery powered laptops with
+-	  techniques. This is mostly useful for battery powered systems with
 -	  APM compliant BIOSes. If you say Y here, the system time will be
 -	  reset after a RESUME operation, the /proc/apm device will provide
 -	  battery status information, and user-space programs will receive
@@ -89,39 +93,32 @@ diff -puN arch/arm/Kconfig~arm-convert-to-use-shared-apm-emulation arch/arm/Kcon
 -	  random kernel OOPSes or reboots that don't seem to be related to
 -	  anything, try disabling/enabling this option (or disabling/enabling
 -	  APM in your BIOS).
--
++endmenu
++
++menu "Power management options"
++
++source "kernel/power/Kconfig"
+ 
  endmenu
  
- source "net/Kconfig"
-diff -puN arch/arm/common/sharpsl_pm.c~arm-convert-to-use-shared-apm-emulation arch/arm/common/sharpsl_pm.c
---- a/arch/arm/common/sharpsl_pm.c~arm-convert-to-use-shared-apm-emulation
-+++ a/arch/arm/common/sharpsl_pm.c
-@@ -27,7 +27,7 @@
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/irq.h>
--#include <asm/apm.h>
-+#include <asm/apm-emulation.h>
- #include <asm/arch/pm.h>
- #include <asm/arch/pxa-regs.h>
- #include <asm/arch/sharpsl.h>
-diff -puN arch/arm/kernel/Makefile~arm-convert-to-use-shared-apm-emulation arch/arm/kernel/Makefile
---- a/arch/arm/kernel/Makefile~arm-convert-to-use-shared-apm-emulation
-+++ a/arch/arm/kernel/Makefile
-@@ -10,7 +10,6 @@ obj-y		:= compat.o entry-armv.o entry-co
- 		   process.o ptrace.o semaphore.o setup.o signal.o sys_arm.o \
- 		   time.o traps.o
+diff -puN arch/mips/kernel/Makefile~mips-convert-to-use-shared-apm-emulation arch/mips/kernel/Makefile
+--- a/arch/mips/kernel/Makefile~mips-convert-to-use-shared-apm-emulation
++++ a/arch/mips/kernel/Makefile
+@@ -14,8 +14,6 @@ binfmt_irix-objs	:= irixelf.o irixinv.o 
+ obj-$(CONFIG_STACKTRACE)	+= stacktrace.o
+ obj-$(CONFIG_MODULES)		+= mips_ksyms.o module.o
  
 -obj-$(CONFIG_APM)		+= apm.o
- obj-$(CONFIG_ISA_DMA_API)	+= dma.o
- obj-$(CONFIG_ARCH_ACORN)	+= ecard.o 
- obj-$(CONFIG_FIQ)		+= fiq.o
-diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/null
---- a/arch/arm/kernel/apm.c
+-
+ obj-$(CONFIG_CPU_R3000)		+= r2300_fpu.o r2300_switch.o
+ obj-$(CONFIG_CPU_TX39XX)	+= r2300_fpu.o r2300_switch.o
+ obj-$(CONFIG_CPU_TX49XX)	+= r4k_fpu.o r4k_switch.o
+diff -puN arch/mips/kernel/apm.c~mips-convert-to-use-shared-apm-emulation /dev/null
+--- a/arch/mips/kernel/apm.c
 +++ /dev/null
-@@ -1,672 +0,0 @@
+@@ -1,604 +0,0 @@
 -/*
-- * bios-less APM driver for ARM Linux 
+- * bios-less APM driver for MIPS Linux
 - *  Jamey Hicks <jamey@crl.dec.com>
 - *  adapted from the APM BIOS driver for Linux by Stephen Rothwell (sfr@linuxcare.com)
 - *
@@ -134,6 +131,7 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 - */
 -#include <linux/module.h>
 -#include <linux/poll.h>
+-#include <linux/timer.h>
 -#include <linux/slab.h>
 -#include <linux/proc_fs.h>
 -#include <linux/miscdevice.h>
@@ -146,8 +144,6 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -#include <linux/list.h>
 -#include <linux/init.h>
 -#include <linux/completion.h>
--#include <linux/kthread.h>
--#include <linux/delay.h>
 -
 -#include <asm/apm.h> /* apm_power_info */
 -#include <asm/system.h>
@@ -193,8 +189,7 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -#define SUSPEND_PENDING	1		/* suspend pending read */
 -#define SUSPEND_READ	2		/* suspend read, pending ack */
 -#define SUSPEND_ACKED	3		/* suspend acked */
--#define SUSPEND_WAIT	4		/* waiting for suspend */
--#define SUSPEND_DONE	5		/* suspend completed */
+-#define SUSPEND_DONE	4		/* suspend completed */
 -
 -	struct apm_queue	queue;
 -};
@@ -204,7 +199,7 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 - */
 -static int suspends_pending;
 -static int apm_disabled;
--static struct task_struct *kapmd_tsk;
+-static int mips_apm_active;
 -
 -static DECLARE_WAIT_QUEUE_HEAD(apm_waitqueue);
 -static DECLARE_WAIT_QUEUE_HEAD(apm_suspend_waitqueue);
@@ -221,10 +216,10 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 - * to be suspending the system.
 - */
 -static DECLARE_WAIT_QUEUE_HEAD(kapmd_wait);
+-static DECLARE_COMPLETION(kapmd_exit);
 -static DEFINE_SPINLOCK(kapmd_queue_lock);
 -static struct apm_queue kapmd_queue;
 -
--static DEFINE_MUTEX(state_lock);
 -
 -static const char driver_version[] = "1.13";	/* no spaces */
 -
@@ -272,60 +267,38 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -	q->events[q->event_head] = event;
 -}
 -
--static void queue_event(apm_event_t event)
+-static void queue_event_one_user(struct apm_user *as, apm_event_t event)
 -{
--	struct apm_user *as;
+-	if (as->suser && as->writer) {
+-		switch (event) {
+-		case APM_SYS_SUSPEND:
+-		case APM_USER_SUSPEND:
+-			/*
+-			 * If this user already has a suspend pending,
+-			 * don't queue another one.
+-			 */
+-			if (as->suspend_state != SUSPEND_NONE)
+-				return;
 -
--	down_read(&user_list_lock);
--	list_for_each_entry(as, &apm_user_list, list) {
--		if (as->reader)
--			queue_add_event(&as->queue, event);
--	}
--	up_read(&user_list_lock);
--	wake_up_interruptible(&apm_waitqueue);
--}
--
--/*
-- * queue_suspend_event - queue an APM suspend event.
-- *
-- * Check that we're in a state where we can suspend.  If not,
-- * return -EBUSY.  Otherwise, queue an event to all "writer"
-- * users.  If there are no "writer" users, return '1' to
-- * indicate that we can immediately suspend.
-- */
--static int queue_suspend_event(apm_event_t event, struct apm_user *sender)
--{
--	struct apm_user *as;
--	int ret = 1;
--
--	mutex_lock(&state_lock);
--	down_read(&user_list_lock);
--
--	/*
--	 * If a thread is still processing, we can't suspend, so reject
--	 * the request.
--	 */
--	list_for_each_entry(as, &apm_user_list, list) {
--		if (as != sender && as->reader && as->writer && as->suser &&
--		    as->suspend_state != SUSPEND_NONE) {
--			ret = -EBUSY;
--			goto out;
--		}
--	}
--
--	list_for_each_entry(as, &apm_user_list, list) {
--		if (as != sender && as->reader && as->writer && as->suser) {
 -			as->suspend_state = SUSPEND_PENDING;
 -			suspends_pending++;
--			queue_add_event(&as->queue, event);
--			ret = 0;
+-			break;
 -		}
 -	}
-- out:
+-	queue_add_event(&as->queue, event);
+-}
+-
+-static void queue_event(apm_event_t event, struct apm_user *sender)
+-{
+-	struct apm_user *as;
+-
+-	down_read(&user_list_lock);
+-	list_for_each_entry(as, &apm_user_list, list) {
+-		if (as != sender && as->reader)
+-			queue_event_one_user(as, event);
+-	}
 -	up_read(&user_list_lock);
--	mutex_unlock(&state_lock);
 -	wake_up_interruptible(&apm_waitqueue);
--	return ret;
 -}
 -
 -static void apm_suspend(void)
@@ -337,22 +310,17 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -	 * Anyone on the APM queues will think we're still suspended.
 -	 * Send a message so everyone knows we're now awake again.
 -	 */
--	queue_event(APM_NORMAL_RESUME);
+-	queue_event(APM_NORMAL_RESUME, NULL);
 -
 -	/*
 -	 * Finally, wake up anyone who is sleeping on the suspend.
 -	 */
--	mutex_lock(&state_lock);
 -	down_read(&user_list_lock);
 -	list_for_each_entry(as, &apm_user_list, list) {
--		if (as->suspend_state == SUSPEND_WAIT ||
--		    as->suspend_state == SUSPEND_ACKED) {
--	  		as->suspend_result = err;
--			as->suspend_state = SUSPEND_DONE;
--		}
+-		as->suspend_result = err;
+-		as->suspend_state = SUSPEND_DONE;
 -	}
 -	up_read(&user_list_lock);
--	mutex_unlock(&state_lock);
 -
 -	wake_up(&apm_suspend_waitqueue);
 -}
@@ -378,11 +346,8 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -		if (copy_to_user(buf, &event, sizeof(event)))
 -			break;
 -
--		mutex_lock(&state_lock);
--		if (as->suspend_state == SUSPEND_PENDING &&
--		    (event == APM_SYS_SUSPEND || event == APM_USER_SUSPEND))
+-		if (event == APM_SYS_SUSPEND || event == APM_USER_SUSPEND)
 -			as->suspend_state = SUSPEND_READ;
--		mutex_unlock(&state_lock);
 -
 -		buf += sizeof(event);
 -		i -= sizeof(event);
@@ -413,7 +378,7 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 - *   has acknowledge does the actual suspend happen.
 - */
 -static int
--apm_ioctl(struct inode * inode, struct file *filp, u_int cmd, u_long arg)
+-apm_ioctl(struct inode * inode, struct file *filp, unsigned int cmd, unsigned long arg)
 -{
 -	struct apm_user *as = filp->private_data;
 -	unsigned long flags;
@@ -424,13 +389,9 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -
 -	switch (cmd) {
 -	case APM_IOC_SUSPEND:
--		mutex_lock(&state_lock);
--
 -		as->suspend_result = -EINTR;
 -
 -		if (as->suspend_state == SUSPEND_READ) {
--			int pending;
--
 -			/*
 -			 * If we read a suspend command from /dev/apm_bios,
 -			 * then the corresponding APM_IOC_SUSPEND ioctl is
@@ -438,73 +399,47 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -			 */
 -			as->suspend_state = SUSPEND_ACKED;
 -			suspends_pending--;
--			pending = suspends_pending == 0;
--			mutex_unlock(&state_lock);
--
--			/*
--			 * If there are no further acknowledges required,
--			 * suspend the system.
--			 */
--			if (pending)
--				apm_suspend();
--
--			/*
--			 * Wait for the suspend/resume to complete.  If there
--			 * are pending acknowledges, we wait here for them.
--			 *
--			 * Note: we need to ensure that the PM subsystem does
--			 * not kick us out of the wait when it suspends the
--			 * threads.
--			 */
--			flags = current->flags;
--			current->flags |= PF_NOFREEZE;
--
--			wait_event(apm_suspend_waitqueue,
--				   as->suspend_state == SUSPEND_DONE);
 -		} else {
--			as->suspend_state = SUSPEND_WAIT;
--			mutex_unlock(&state_lock);
--
 -			/*
 -			 * Otherwise it is a request to suspend the system.
 -			 * Queue an event for all readers, and expect an
 -			 * acknowledge from all writers who haven't already
 -			 * acknowledged.
 -			 */
--			err = queue_suspend_event(APM_USER_SUSPEND, as);
--			if (err < 0) {
--				/*
--				 * Avoid taking the lock here - this
--				 * should be fine.
--				 */
--				as->suspend_state = SUSPEND_NONE;
--				break;
--			}
--
--			if (err > 0)
--				apm_suspend();
--
--			/*
--			 * Wait for the suspend/resume to complete.  If there
--			 * are pending acknowledges, we wait here for them.
--			 *
--			 * Note: we need to ensure that the PM subsystem does
--			 * not kick us out of the wait when it suspends the
--			 * threads.
--			 */
--			flags = current->flags;
--			current->flags |= PF_NOFREEZE;
--
--			wait_event_interruptible(apm_suspend_waitqueue,
--					 as->suspend_state == SUSPEND_DONE);
+-			queue_event(APM_USER_SUSPEND, as);
 -		}
 -
--		current->flags = flags;
+-		/*
+-		 * If there are no further acknowledges required, suspend
+-		 * the system.
+-		 */
+-		if (suspends_pending == 0)
+-			apm_suspend();
 -
--		mutex_lock(&state_lock);
+-		/*
+-		 * Wait for the suspend/resume to complete.  If there are
+-		 * pending acknowledges, we wait here for them.
+-		 *
+-		 * Note that we need to ensure that the PM subsystem does
+-		 * not kick us out of the wait when it suspends the threads.
+-		 */
+-		flags = current->flags;
+-		current->flags |= PF_NOFREEZE;
+-
+-		/*
+-		 * Note: do not allow a thread which is acking the suspend
+-		 * to escape until the resume is complete.
+-		 */
+-		if (as->suspend_state == SUSPEND_ACKED)
+-			wait_event(apm_suspend_waitqueue,
+-					 as->suspend_state == SUSPEND_DONE);
+-		else
+-			wait_event_interruptible(apm_suspend_waitqueue,
+-					 as->suspend_state == SUSPEND_DONE);
+-
+-		current->flags = flags;
 -		err = as->suspend_result;
 -		as->suspend_state = SUSPEND_NONE;
--		mutex_unlock(&state_lock);
 -		break;
 -	}
 -
@@ -514,8 +449,6 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -static int apm_release(struct inode * inode, struct file * filp)
 -{
 -	struct apm_user *as = filp->private_data;
--	int pending = 0;
--
 -	filp->private_data = NULL;
 -
 -	down_write(&user_list_lock);
@@ -528,14 +461,11 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -	 * need to balance suspends_pending, which means the
 -	 * possibility of sleeping.
 -	 */
--	mutex_lock(&state_lock);
 -	if (as->suspend_state != SUSPEND_NONE) {
 -		suspends_pending -= 1;
--		pending = suspends_pending == 0;
+-		if (suspends_pending == 0)
+-			apm_suspend();
 -	}
--	mutex_unlock(&state_lock);
--	if (pending)
--		apm_suspend();
 -
 -	kfree(as);
 -	return 0;
@@ -657,14 +587,16 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -
 -static int kapmd(void *arg)
 -{
+-	daemonize("kapmd");
+-	current->flags |= PF_NOFREEZE;
+-
 -	do {
 -		apm_event_t event;
--		int ret;
 -
 -		wait_event_interruptible(kapmd_wait,
--				!queue_empty(&kapmd_queue) || kthread_should_stop());
+-				!queue_empty(&kapmd_queue) || !mips_apm_active);
 -
--		if (kthread_should_stop())
+-		if (!mips_apm_active)
 -			break;
 -
 -		spin_lock_irq(&kapmd_queue_lock);
@@ -679,20 +611,13 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -
 -		case APM_LOW_BATTERY:
 -		case APM_POWER_STATUS_CHANGE:
--			queue_event(event);
+-			queue_event(event, NULL);
 -			break;
 -
 -		case APM_USER_SUSPEND:
 -		case APM_SYS_SUSPEND:
--			ret = queue_suspend_event(event, NULL);
--			if (ret < 0) {
--				/*
--				 * We were busy.  Try again in 50ms.
--				 */
--				queue_add_event(&kapmd_queue, event);
--				msleep(50);
--			}
--			if (ret > 0)
+-			queue_event(event, NULL);
+-			if (suspends_pending == 0)
 -				apm_suspend();
 -			break;
 -
@@ -702,7 +627,7 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -		}
 -	} while (1);
 -
--	return 0;
+-	complete_and_exit(&kapmd_exit, 0);
 -}
 -
 -static int __init apm_init(void)
@@ -714,14 +639,13 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -		return -ENODEV;
 -	}
 -
--	kapmd_tsk = kthread_create(kapmd, NULL, "kapmd");
--	if (IS_ERR(kapmd_tsk)) {
--		ret = PTR_ERR(kapmd_tsk);
--		kapmd_tsk = NULL;
+-	mips_apm_active = 1;
+-
+-	ret = kernel_thread(kapmd, NULL, CLONE_KERNEL);
+-	if (ret < 0) {
+-		mips_apm_active = 0;
 -		return ret;
 -	}
--	kapmd_tsk->flags |= PF_NOFREEZE;
--	wake_up_process(kapmd_tsk);
 -
 -#ifdef CONFIG_PROC_FS
 -	create_proc_info_entry("apm", 0, NULL, apm_get_info);
@@ -730,7 +654,10 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -	ret = misc_register(&apm_device);
 -	if (ret != 0) {
 -		remove_proc_entry("apm", NULL);
--		kthread_stop(kapmd_tsk);
+-
+-		mips_apm_active = 0;
+-		wake_up(&kapmd_wait);
+-		wait_for_completion(&kapmd_exit);
 -	}
 -
 -	return ret;
@@ -741,7 +668,9 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -	misc_deregister(&apm_device);
 -	remove_proc_entry("apm", NULL);
 -
--	kthread_stop(kapmd_tsk);
+-	mips_apm_active = 0;
+-	wake_up(&kapmd_wait);
+-	wait_for_completion(&kapmd_exit);
 -}
 -
 -module_init(apm_init);
@@ -792,44 +721,8 @@ diff -puN arch/arm/kernel/apm.c~arm-convert-to-use-shared-apm-emulation /dev/nul
 -	wake_up_interruptible(&kapmd_wait);
 -}
 -EXPORT_SYMBOL(apm_queue_event);
-diff -puN arch/arm/mach-pxa/corgi_pm.c~arm-convert-to-use-shared-apm-emulation arch/arm/mach-pxa/corgi_pm.c
---- a/arch/arm/mach-pxa/corgi_pm.c~arm-convert-to-use-shared-apm-emulation
-+++ a/arch/arm/mach-pxa/corgi_pm.c
-@@ -16,7 +16,7 @@
- #include <linux/delay.h>
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
--#include <asm/apm.h>
-+#include <asm/apm-emulation.h>
- #include <asm/irq.h>
- #include <asm/mach-types.h>
- #include <asm/hardware.h>
-diff -puN arch/arm/mach-pxa/sharpsl_pm.c~arm-convert-to-use-shared-apm-emulation arch/arm/mach-pxa/sharpsl_pm.c
---- a/arch/arm/mach-pxa/sharpsl_pm.c~arm-convert-to-use-shared-apm-emulation
-+++ a/arch/arm/mach-pxa/sharpsl_pm.c
-@@ -23,7 +23,7 @@
- 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
--#include <asm/apm.h>
-+#include <asm/apm-emulation.h>
- #include <asm/arch/pm.h>
- #include <asm/arch/pxa-regs.h>
- #include <asm/arch/sharpsl.h>
-diff -puN arch/arm/mach-pxa/spitz_pm.c~arm-convert-to-use-shared-apm-emulation arch/arm/mach-pxa/spitz_pm.c
---- a/arch/arm/mach-pxa/spitz_pm.c~arm-convert-to-use-shared-apm-emulation
-+++ a/arch/arm/mach-pxa/spitz_pm.c
-@@ -16,7 +16,7 @@
- #include <linux/delay.h>
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
--#include <asm/apm.h>
-+#include <asm/apm-emulation.h>
- #include <asm/irq.h>
- #include <asm/mach-types.h>
- #include <asm/hardware.h>
-diff -puN include/asm-arm/apm.h~arm-convert-to-use-shared-apm-emulation /dev/null
---- a/include/asm-arm/apm.h
+diff -puN include/asm-mips/apm.h~mips-convert-to-use-shared-apm-emulation /dev/null
+--- a/include/asm-mips/apm.h
 +++ /dev/null
 @@ -1,64 +0,0 @@
 -/* -*- linux-c -*-
@@ -844,8 +737,8 @@ diff -puN include/asm-arm/apm.h~arm-convert-to-use-shared-apm-emulation /dev/nul
 - *
 - *
 - */
--#ifndef ARM_ASM_SA1100_APM_H
--#define ARM_ASM_SA1100_APM_H
+-#ifndef MIPS_ASM_SA1100_APM_H
+-#define MIPS_ASM_SA1100_APM_H
 -
 -#include <linux/apm_bios.h>
 -
