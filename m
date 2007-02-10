@@ -1,166 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-updates-rtc-cmos-device-platform_data.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:27:26 -0800
-Message-ID: <200702100527.l1A5RQ8e004671@shell0.pdx.osdl.net>
+Subject: - remove-unused-kernel-config-option-lcd_device.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:27:36 -0800
+Message-ID: <200702100527.l1A5RaDh004677@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36852 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36868 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752895AbXBJF2B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:28:01 -0500
+	id S1752898AbXBJF2R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:28:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net, len.brown@intel.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: updates rtc-cmos device platform_data
+     Remove unused kernel config option LCD_DEVICE
 has been removed from the -mm tree.  Its filename was
-     acpi-updates-rtc-cmos-device-platform_data.patch
+     remove-unused-kernel-config-option-lcd_device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: updates rtc-cmos device platform_data
-From: David Brownell <david-b@pacbell.net>
+Subject: Remove unused kernel config option LCD_DEVICE
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Update ACPI to export its RTC extension information through platform_data
-to the PNPACPI or platform bus device node used on the system being set up.
+Remove the unused kernel config option LCD_DEVICE.
 
-This will need to be updated later to provide a firmware hook to handle
-system suspend with an alarm pending.
-
-Len notes that "Eventually we may bundle ACPI/PNP/PNPACPI..." but if/when
-that happens, ACPI can simplify this without my help.
-
-And until it does, the separate patch creating a platform_device (on all
-X86_PC systems, even without ACPI) will be needed.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Len Brown <len.brown@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: James Simmons <jsimmons@infradead.org>
+Cc: Antonino Daplas <adaplas@pol.net>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/glue.c |   89 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 89 insertions(+)
+ drivers/video/backlight/Kconfig |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/acpi/glue.c~acpi-updates-rtc-cmos-device-platform_data drivers/acpi/glue.c
---- a/drivers/acpi/glue.c~acpi-updates-rtc-cmos-device-platform_data
-+++ a/drivers/acpi/glue.c
-@@ -241,3 +241,92 @@ static int __init init_acpi_device_notif
- }
+diff -puN drivers/video/backlight/Kconfig~remove-unused-kernel-config-option-lcd_device drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~remove-unused-kernel-config-option-lcd_device
++++ a/drivers/video/backlight/Kconfig
+@@ -37,11 +37,6 @@ config LCD_CLASS_DEVICE
+ 	  To have support for your specific LCD panel you will have to
+ 	  select the proper drivers which depend on this option.
  
- arch_initcall(init_acpi_device_notify);
-+
-+
-+#if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE)
-+
-+/* Every ACPI platform has a mc146818 compatible "cmos rtc".  Here we find
-+ * its device node and pass extra config data.  This helps its driver use
-+ * capabilities that the now-obsolete mc146818 didn't have, and informs it
-+ * that this board's RTC is wakeup-capable (per ACPI spec).
-+ */
-+#include <linux/mc146818rtc.h>
-+
-+static struct cmos_rtc_board_info rtc_info;
-+
-+
-+#ifdef CONFIG_PNPACPI
-+
-+/* PNP devices are registered in a subsys_initcall();
-+ * ACPI specifies the PNP IDs to use.
-+ */
-+#include <linux/pnp.h>
-+
-+static int __init pnp_match(struct device *dev, void *data)
-+{
-+	static const char *ids[] = { "PNP0b00", "PNP0b01", "PNP0b02", };
-+	struct pnp_dev *pnp = to_pnp_dev(dev);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(ids); i++) {
-+		if (compare_pnp_id(pnp->id, ids[i]) != 0)
-+			return 1;
-+	}
-+	return 0;
-+}
-+
-+static struct device *__init get_rtc_dev(void)
-+{
-+	return bus_find_device(&pnp_bus_type, NULL, NULL, pnp_match);
-+}
-+
-+#else
-+
-+/* We expect non-PNPACPI platforms to register an RTC device, usually
-+ * at or near arch_initcall().  That also helps for example PCs that
-+ * aren't configured with ACPI (where this code wouldn't run, but the
-+ * RTC would still be available).  The device name matches the driver;
-+ * that's how the platform bus works.
-+ */
-+#include <linux/platform_device.h>
-+
-+static int __init platform_match(struct device *dev, void *data)
-+{
-+	struct platform_device	*pdev;
-+
-+	pdev = container_of(dev, struct platform_device, dev);
-+	return strcmp(pdev->name, "rtc_cmos") == 0;
-+}
-+
-+static struct device *__init get_rtc_dev(void)
-+{
-+	return bus_find_device(&platform_bus_type, NULL, NULL, platform_match);
-+}
-+
-+#endif
-+
-+static int __init acpi_rtc_init(void)
-+{
-+	struct device *dev = get_rtc_dev();
-+
-+	if (dev) {
-+		rtc_info.rtc_day_alarm = acpi_gbl_FADT.day_alarm;
-+		rtc_info.rtc_mon_alarm = acpi_gbl_FADT.month_alarm;
-+		rtc_info.rtc_century = acpi_gbl_FADT.century;
-+
-+		/* NOTE:  acpi_gbl_FADT->rtcs4 is NOT currently useful */
-+
-+		dev->platform_data = &rtc_info;
-+
-+		/* RTC always wakes from S1/S2/S3, and often S4/STD */
-+		device_init_wakeup(dev, 1);
-+
-+		put_device(dev);
-+	} else
-+		pr_debug("ACPI: RTC unavailable?\n");
-+	return 0;
-+}
-+/* do this between RTC subsys_initcall() and rtc_cmos driver_initcall() */
-+fs_initcall(acpi_rtc_init);
-+
-+#endif
+-config LCD_DEVICE
+-	bool
+-	depends on LCD_CLASS_DEVICE
+-	default y
+-
+ config BACKLIGHT_CORGI
+ 	tristate "Sharp Corgi Backlight Driver (SL Series)"
+ 	depends on BACKLIGHT_DEVICE && PXA_SHARPSL
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-git-acpi.patch
 git-avr32.patch
-git-md-accel.patch
-8250-make-probing-for-txen-bug-a-config-option.patch
-pnp-export-pnp_bus_type.patch
-rtc-framework-driver-for-cmos-rtcs.patch
-spi-kconfig-fix.patch
-spi-controller-driver-for-omap-microwire.patch
-spi-controller-driver-for-omap-microwire-update.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-spi-freescale-imx-spi-controller-driver-v5.patch
-spi-doc-clarifications.patch
-rtc-gets-sysfs-wakealarm-attribute.patch
-spi-eeprom-driver.patch
-spi-eeprom-driver-cleanups.patch
-gpio-core.patch
-omap-gpio-wrappers.patch
-at91-gpio-wrappers.patch
+git-dvb.patch
+git-input.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+git-mips.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+remove-final-references-to-deprecated-map_anon-page-protection-flag.patch
+uml-fix-apparent-config_64_bit-typo.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
+remove-unused-kernel-config-option-paride_parport.patch
+fix-apparent-typo-config_lockdep_debug.patch
+ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
+quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
+isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
+isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+isdn-rename-debug-option-config_serial_nopause_io.patch
+isdn-remove-defunct-test-emulator.patch
+isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
