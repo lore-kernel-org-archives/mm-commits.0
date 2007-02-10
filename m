@@ -1,101 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: - replace-highest_possible_node_id-with-nr_node_ids-fix.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:21:55 -0800
-Message-ID: <200702100821.l1A8Lttg007155@shell0.pdx.osdl.net>
+Subject: - filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:23:48 -0800
+Message-ID: <200702100823.l1A8NmNa007169@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39577 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39648 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753007AbXBJIWQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:22:16 -0500
+	id S1752987AbXBJIXu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:23:50 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1A8NmUI002665
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 10 Feb 2007 00:23:49 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deweerdt@free.fr, clameter@sgi.com, frederik.deweerdt@gmail.com, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     BUG at net/sunrpc/svc.c:128
+     filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes
 has been removed from the -mm tree.  Its filename was
-     replace-highest_possible_node_id-with-nr_node_ids-fix.patch
+     filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
 
-This patch was dropped because it was folded into replace-highest_possible_node_id-with-nr_node_ids.patch
+This patch was dropped because it was folded into filesystem-disk-errors-at-boot-time-caused-by-probe.patch
 
 ------------------------------------------------------
-Subject: BUG at net/sunrpc/svc.c:128
-From: Frederik Deweerdt <deweerdt@free.fr>
+Subject: filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes
+From: Andrew Morton <akpm@osdl.org>
 
-The svc_pool_map_init_percpu() should get maxpool from the number of online
-cpus, not the number of nodes.  The following BUG is triggered when we try
-to check if the cpu index is smaller than the number of nodes.  (The system
-is multi cpu, single node).
-
-[  133.196276] ------------[ cut here ]------------
-[  133.196334] kernel BUG at net/sunrpc/svc.c:128!
-[  133.196391] invalid opcode: 0000 [#1]
-[  133.196444] PREEMPT SMP
-[  133.196571] last sysfs file: /devices/pci0000:00/0000:00:00.0/class
-[  133.196630] Modules linked in: nfsd exportfs lockd sunrpc ipv6 i2c_dev i2c_core video thermal sony_acpi processor fan button battery asus_acpi ac uhci_hcd ehci_hcd rng_core
-[  133.197473] CPU:    0
-[  133.197474] EIP:    0060:[<f8a5973c>]    Not tainted VLI
-[  133.197475] EFLAGS: 00010202   (2.6.20-rc6-mm2 #1)
-[  133.197656] EIP is at svc_pool_map_init_percpu+0x54/0x5a [sunrpc]
-[  133.197715] eax: 00000002   ebx: f8a762e4   ecx: 00000002   edx: 00000008
-[  133.197776] esi: 00000002   edi: f8aa71e0   ebp: c2fd3edc   esp: c2fd3ed4
-[  133.197835] ds: 007b   es: 007b   fs: 00d8  gs: 0033  ss: 0068
-[  133.197894] Process rpc.nfsd (pid: 3595, ti=c2fd2000 task=f7e22030 task.ti=c2fd2000)
-[  133.197954] Stack: f8a7c081 00040000 c2fd3ee4 f8a597de c2fd3efc f8a59a55 c2fd3f10 00000000
-[  133.198360]        00000008 00000801 c2fd3f54 f8a7c1ac f8a7c4e9 00000001 f8aa9480 fffdd1fe
-[  133.198769]        00000292 f8aa9140 00015f90 0007dbcc 00078804 00000000 0000076e 00000008
-[  133.199175] Call Trace:
-[  133.199275]  [<c010390d>] show_trace_log_lvl+0x1a/0x30
-[  133.199373]  [<c01039c4>] show_stack_log_lvl+0x8d/0xb1
-[  133.199467]  [<c0103bf1>] show_registers+0x1c0/0x336
-[  133.199561]  [<c0103efd>] die+0x11f/0x213
-[  133.199654]  [<c010406a>] do_trap+0x79/0xa7
-[  133.199748]  [<c010433b>] do_invalid_op+0xa3/0xad
-[  133.199842]  [<c03ee3a4>] error_code+0x7c/0x84
-[  133.199936]  [<f8a597de>] svc_pool_map_init+0x4c/0x60 [sunrpc]
-[  133.200047]  [<f8a59a55>] svc_create_pooled+0x14/0x44 [sunrpc]
-[  133.200156]  [<f8a7c1ac>] nfsd_create_serv+0x5a/0xd4 [nfsd]
-[  133.200262]  [<f8a7c498>] nfsd_svc+0x50/0xa1 [nfsd]
-[  133.200364]  [<f8a7ca1f>] write_svc+0x1a/0x20 [nfsd]
-[  133.200466]  [<f8a7c98a>] nfsctl_transaction_write+0x4a/0x6d [nfsd]
-[  133.200571]  [<c019f29e>] sys_nfsservctl+0xa3/0xe5
-[  133.200666]  [<c0102a94>] sysenter_past_esp+0x5d/0x99
-[  133.200762]  =======================
-[  133.200816] Code: c1 77 22 83 fe 01 77 23 8b 43 0c ba 10 3f 54 c0 89 34 88 8b 43 08 89 0c b0 89 c8 83 c6 01 e8 4e 8f 7b c7 eb d7 5b 89 f0 5e 5d c3 <0f> 0b 89 f6 eb fc 55 ba 01 00 00 00 89 e5 56 31 f6 53 89 c3 e8
-[  133.203330] EIP: [<f8a5973c>] svc_pool_map_init_percpu+0x54/0x5a [sunrpc] SS:ESP 0068:c2fd3ed4
-
-The following patch fixes the problem for me.
-
-Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- net/sunrpc/svc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/partitions/msdos.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN net/sunrpc/svc.c~replace-highest_possible_node_id-with-nr_node_ids-fix net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~replace-highest_possible_node_id-with-nr_node_ids-fix
-+++ a/net/sunrpc/svc.c
-@@ -115,7 +115,7 @@ fail:
- static int
- svc_pool_map_init_percpu(struct svc_pool_map *m)
- {
--	unsigned int maxpools = nr_node_ids;
-+	unsigned int maxpools = highest_possible_processor_id() + 1;
- 	unsigned int pidx = 0;
- 	unsigned int cpu;
- 	int err;
+diff -puN fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes fs/partitions/msdos.c
+--- a/fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes
++++ a/fs/partitions/msdos.c
+@@ -485,15 +485,17 @@ int check_sane_values(struct partition *
+ 			printk("\n"); /* start error report on a fresh line */
+ 			if (insane & 1)
+ 				printk(" partition %d: start (sector %d) beyond"
+-					" end of disk (sector %d)\n",
++					" end of disk (sector %Lu)\n",
+ 					slot, START_SECT(p),
+-					(unsigned int)bdev->bd_disk->capacity-1);
++					(unsigned long long)
++						bdev->bd_disk->capacity - 1);
+ 			if (insane & 2)
+ 				printk(" partition %d: end (sector %d) beyond "
+-					"end of disk (sector %d)\n",
++					"end of disk (sector %Lu)\n",
+ 					slot,
+ 					START_SECT(p)+NR_SECTS(p)-1,
+-					(unsigned int)bdev->bd_disk->capacity-1);
++					(unsigned long long)
++						bdev->bd_disk->capacity - 1);
+ 			if (insane & 4)
+ 				printk(" partition %d: insane extended "
+ 					"contents\n", slot);
 _
 
-Patches currently in -mm which might be from deweerdt@free.fr are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-disable-init-initramfsc-updated.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-replace-highest_possible_node_id-with-nr_node_ids-fix.patch
-reiser4-sb_sync_inodes-fix.patch
+avoid-excessive-sorting-of-early_node_map.patch
+proc-zoneinfo-fix-vm-stats-display.patch
+use-zvc-for-inactive-and-active-counts.patch
+drop-free_pages.patch
+optional-zone_dma-in-the-vm.patch
+swsusp-change-code-ordering-in-userc-sanity.patch
+drivers-add-lcd-support-3.patch
+count_vm_events-warning-fix.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace.patch
+remove-invalidate_inode_pages.patch
+add-an-rcu-version-of-list-splicing.patch
+sysctl-warning-fix.patch
+proc_misc-warning-fix.patch
+rtc-framework-driver-for-cmos-rtcs.patch
+return-enoent-from-ext3_link-when-racing-with-unlink.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
+register_blkdev-dont-hand-out-the-local-experimental-majors.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+ecryptfs-generalize-metadata-read-write-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+dynamic-kernel-command-line-ia64-fix.patch
+kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+mark-struct-file_operations-const-2-fix.patch
+mark-struct-file_operations-const-4-fix.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
