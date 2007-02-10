@@ -1,65 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - avoid-excessive-sorting-of-early_node_map-tidy.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:02:09 -0800
-Message-ID: <200702100802.l1A829oO006794@shell0.pdx.osdl.net>
+Subject: - use-zvc-for-inactive-and-active-counts-up-fix.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:04:30 -0800
+Message-ID: <200702100804.l1A84Vox006841@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39155 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39172 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752723AbXBJICU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:02:20 -0500
+	id S1752724AbXBJIEq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:04:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     avoid-excessive-sorting-of-early_node_map-tidy
+     use-zvc-for-inactive-and-active-counts-up-fix
 has been removed from the -mm tree.  Its filename was
-     avoid-excessive-sorting-of-early_node_map-tidy.patch
+     use-zvc-for-inactive-and-active-counts-up-fix.patch
 
-This patch was dropped because it was folded into avoid-excessive-sorting-of-early_node_map.patch
+This patch was dropped because it was folded into use-zvc-for-inactive-and-active-counts.patch
 
 ------------------------------------------------------
-Subject: avoid-excessive-sorting-of-early_node_map-tidy
+Subject: use-zvc-for-inactive-and-active-counts-up-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Nicer?
+In file included from mm/swap.c:26:
+include/linux/mm_inline.h: In function 'del_page_from_active_list':
+include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
+In file included from mm/vmscan.c:30:
+include/linux/mm_inline.h: In function 'del_page_from_active_list':
+include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
+In file included from fs/splice.c:24:
+include/linux/mm_inline.h: In function 'del_page_from_active_list':
+include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
 
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/vmstat.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/page_alloc.c~avoid-excessive-sorting-of-early_node_map-tidy mm/page_alloc.c
---- a/mm/page_alloc.c~avoid-excessive-sorting-of-early_node_map-tidy
-+++ a/mm/page_alloc.c
-@@ -2881,13 +2881,13 @@ static void __init sort_node_map(void)
- unsigned long __init find_min_pfn_for_node(unsigned long nid)
+diff -puN include/linux/vmstat.h~use-zvc-for-inactive-and-active-counts-up-fix include/linux/vmstat.h
+--- a/include/linux/vmstat.h~use-zvc-for-inactive-and-active-counts-up-fix
++++ a/include/linux/vmstat.h
+@@ -217,6 +217,12 @@ static inline void __inc_zone_page_state
+ 	__inc_zone_state(page_zone(page), item);
+ }
+ 
++static inline void __dec_zone_state(struct zone *zone, enum zone_stat_item item)
++{
++	atomic_long_dec(&zone->vm_stat[item]);
++	atomic_long_dec(&vm_stat[item]);
++}
++
+ static inline void __dec_zone_page_state(struct page *page,
+ 			enum zone_stat_item item)
  {
- 	int i;
--	unsigned long min_pfn = -1UL;
-+	unsigned long min_pfn = ULONG_MAX;
- 
- 	/* Assuming a sorted map, the first range found has the starting pfn */
- 	for_each_active_range_index_in_nid(i, nid)
- 		min_pfn = min(min_pfn, early_node_map[i].start_pfn);
- 
--	if (min_pfn == -1UL) {
-+	if (min_pfn == ULONG_MAX) {
- 		printk(KERN_WARNING
- 			"Could not find start_pfn for node %lu\n", nid);
- 		return 0;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
 avoid-excessive-sorting-of-early_node_map.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
 proc-zoneinfo-fix-vm-stats-display.patch
+use-zvc-for-inactive-and-active-counts.patch
 use-zvc-for-inactive-and-active-counts-up-fix.patch
 drop-free_pages-fix.patch
 drop-free_pages-sparc64-fix.patch
