@@ -1,48 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-schedule-returns-in-state-task_running.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 16:41:37 -0800
-Message-ID: <200702100041.l1A0fb18031421@shell0.pdx.osdl.net>
+Subject: + fbdev-driver-for-s3-trio-virge-update-2-fix.patch added to -mm tree
+Date: Fri, 09 Feb 2007 16:48:12 -0800
+Message-ID: <200702100048.l1A0mF69031565@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57799 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58145 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946792AbXBJAlk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 19:41:40 -0500
+	id S1946809AbXBJAsd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 19:48:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jirislaby@gmail.com, jsimmons@infradead.org, santiago@crfreenet.org
 
 
 The patch titled
-     scsi: schedule() returns in state TASK_RUNNING
-has been removed from the -mm tree.  Its filename was
-     scsi-schedule-returns-in-state-task_running.patch
+     fbdev-driver-for-s3-trio-virge-update-2-fix
+has been added to the -mm tree.  Its filename is
+     fbdev-driver-for-s3-trio-virge-update-2-fix.patch
 
-This patch was dropped because I am senile
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: scsi: schedule() returns in state TASK_RUNNING
+Subject: fbdev-driver-for-s3-trio-virge-update-2-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Hence we don't need to set it here.
-
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Ondrej Zajicek <santiago@crfreenet.org>
+Cc: James Simmons <jsimmons@infradead.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_error.c |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/video/s3fb.c    |    2 +-
+ drivers/video/svgalib.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/scsi_error.c~scsi-schedule-returns-in-state-task_running drivers/scsi/scsi_error.c
---- a/drivers/scsi/scsi_error.c~scsi-schedule-returns-in-state-task_running
-+++ a/drivers/scsi/scsi_error.c
-@@ -1542,7 +1542,6 @@ int scsi_error_handler(void *data)
- 				printk("Error handler scsi_eh_%d sleeping\n",
- 					shost->host_no));
- 			schedule();
--			set_current_state(TASK_INTERRUPTIBLE);
- 			continue;
- 		}
+diff -puN drivers/video/svgalib.c~fbdev-driver-for-s3-trio-virge-update-2-fix drivers/video/svgalib.c
+--- a/drivers/video/svgalib.c~fbdev-driver-for-s3-trio-virge-update-2-fix
++++ a/drivers/video/svgalib.c
+@@ -96,11 +96,12 @@ void svga_set_default_gfx_regs(void)
+ /* Set attribute controller registers to sane values */
+ void svga_set_default_atc_regs(void)
+ {
++	u8 count;
++
+ 	vga_r(NULL, 0x3DA);
+ 	vga_w(NULL, VGA_ATT_W, 0x00);
+ 
+ 	/* All standard ATC registers (AR00 - AR14) */
+-	u8 count;
+ 	for (count = 0; count <= 0xF; count ++)
+ 		svga_wattr(count, count);
+ 
+diff -puN drivers/video/s3fb.c~fbdev-driver-for-s3-trio-virge-update-2-fix drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~fbdev-driver-for-s3-trio-virge-update-2-fix
++++ a/drivers/video/s3fb.c
+@@ -955,7 +955,7 @@ static int __devinit s3_pci_probe(struct
+ 
+ 	rc = register_framebuffer(info);
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot register framebugger\n");
++		dev_err(&(dev->dev), "cannot register framebuffer\n");
+ 		goto err_reg_fb;
+ 	}
  
 _
 
@@ -71,7 +94,6 @@ git-backlight-sony-fix.patch
 git-sh.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
-scsi-schedule-returns-in-state-task_running.patch
 revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
 git-block.patch
 revert-x86_64-mm-msr-on-cpu.patch
@@ -84,5 +106,6 @@ knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
 knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
 revert-x86_64-mm-putreg-check.patch
 fix-utrace-utrace-ptrace-compat.patch
+fbdev-driver-for-s3-trio-virge-update-2-fix.patch
 deprecate-sa_interrupt-and-friends.patch
 git-gccbug-fixup.patch
