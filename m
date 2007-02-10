@@ -1,101 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - update-readmedrm-bugzilla-7933.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:19:58 -0800
-Message-ID: <200702100520.l1A5JwHG004429@shell0.pdx.osdl.net>
+Subject: - drm-use-array_size-macro-when-appropriate.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:20:06 -0800
+Message-ID: <200702100520.l1A5K6Bb004438@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36509 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36516 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753110AbXBJFUO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:20:14 -0500
+	id S1753113AbXBJFU1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:20:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     update README.drm (bugzilla #7933)
+     drm: Use ARRAY_SIZE macro when appropriate
 has been removed from the -mm tree.  Its filename was
-     update-readmedrm-bugzilla-7933.patch
+     drm-use-array_size-macro-when-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: update README.drm (bugzilla #7933)
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: drm: Use ARRAY_SIZE macro when appropriate
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Update URLs in drivers/char/drm/README.drm, to take care of kernel bugzilla
-#7933.
+Use ARRAY_SIZE macro already defined in kernel.h
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/README.drm |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ drivers/char/drm/drm_proc.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/README.drm~update-readmedrm-bugzilla-7933 drivers/char/drm/README.drm
---- a/drivers/char/drm/README.drm~update-readmedrm-bugzilla-7933
-+++ a/drivers/char/drm/README.drm
-@@ -1,6 +1,6 @@
- ************************************************************
- * For the very latest on DRI development, please see:      *
--*     http://dri.sourceforge.net/                          *
-+*     http://dri.freedesktop.org/wiki/FrontPage            *
- ************************************************************
+diff -puN drivers/char/drm/drm_proc.c~drm-use-array_size-macro-when-appropriate drivers/char/drm/drm_proc.c
+--- a/drivers/char/drm/drm_proc.c~drm-use-array_size-macro-when-appropriate
++++ a/drivers/char/drm/drm_proc.c
+@@ -72,7 +72,7 @@ static struct drm_proc_list {
+ #endif
+ };
  
- The Direct Rendering Manager (drm) is a device-independent kernel-level
-@@ -26,21 +26,20 @@ ways:
+-#define DRM_PROC_ENTRIES (sizeof(drm_proc_list)/sizeof(drm_proc_list[0]))
++#define DRM_PROC_ENTRIES ARRAY_SIZE(drm_proc_list)
  
- 
- Documentation on the DRI is available from:
--    http://precisioninsight.com/piinsights.html
-+    http://dri.freedesktop.org/wiki/Documentation
-+    http://sourceforge.net/project/showfiles.php?group_id=387
-+    http://dri.sourceforge.net/doc/
- 
- For specific information about kernel-level support, see:
- 
-     The Direct Rendering Manager, Kernel Support for the Direct Rendering
-     Infrastructure
--    http://precisioninsight.com/dr/drm.html
-+    http://dri.sourceforge.net/doc/drm_low_level.html
- 
-     Hardware Locking for the Direct Rendering Infrastructure
--    http://precisioninsight.com/dr/locking.html
-+    http://dri.sourceforge.net/doc/hardware_locking_low_level.html
- 
-     A Security Analysis of the Direct Rendering Infrastructure
--    http://precisioninsight.com/dr/security.html
-+    http://dri.sourceforge.net/doc/security_low_level.html
- 
- ************************************************************
--* For the very latest on DRI development, please see:      *
--*     http://dri.sourceforge.net/                          *
--************************************************************
+ /**
+  * Initialize the DRI proc filesystem for a device.
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
+git-acpi.patch
+git-agpgart.patch
+arch-arm-use-array_size-macro-when-appropriate.patch
+git-avr32.patch
 git-drm.patch
-qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
-git-mtd.patch
-git-netdev-all.patch
-phy-layer-add-kernel-doc-docbook.patch
-parisc-fix-module_param-iommu-permission.patch
+git-dvb.patch
+git-infiniband.patch
+git-mips.patch
+atm-use-array_size-macro-when-appropriate.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+s390-drivers-use-array_size-macro-when-appropriate.patch
 git-scsi-misc.patch
-ueagle-atmc-needs-schedh.patch
-typeof-__page_to_pfn-with-sparsemem=y.patch
-docbook-html-correction-of-recursive-a-tags-in-html-output.patch
-kernel-doc-allow-a-little-whitespace.patch
-sysrq-alphabetize-command-keys-doc.patch
-kernel-doc-allow-more-whitespace.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-docbook-add-edd-firmware-interfaces.patch
-kernel-doc-fix-some-odd-spacing-issues.patch
-com20020-build-fix.patch
-drivers-telephony-ixj-convert-to-generic-boolean.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+arch-arm26-use-array_size-macro-when-appropriate.patch
+arch-m68knommu-user-array_size-macro-when-appropriate.patch
+arch-m68k-user-array_size-macro-when-appropriate.patch
+arch-cris-user-array_size-macro-when-appropriate.patch
+arch-v850-user-array_size-macro-when-appropriate.patch
+w1-use-array_size-macro-when-appropriate.patch
+oss-use-array_size-macro-when-appropriate.patch
+oss-use-array_size-macro-when-appropriate-2.patch
+reiserfs-use-array_size-macro-when-appropriate.patch
+isdn-capi-use-array_size-when-appropriate.patch
+isdn-eicon-use-array_size-macro-when-appropriate.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
