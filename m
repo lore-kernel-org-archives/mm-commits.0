@@ -1,87 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - arch-avr32-use-array_size-macro-when-appropriate.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:23:36 -0800
-Message-ID: <200702100523.l1A5NaQk004531@shell0.pdx.osdl.net>
+Subject: - fix-gregkh-driver-sys-modules-holders.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:23:43 -0800
+Message-ID: <200702100523.l1A5Nhi8004535@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36661 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36676 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752679AbXBJFXu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:23:50 -0500
+	id S1752675AbXBJFYO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:24:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darwish.07@gmail.com, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: grant_lkml@dodo.com.au, gcoady.lk@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     AVR32: Use ARRAY_SIZE macro when appropriate
+     kernel/params.c: compile fail when CONFIG_SYSFS not set
 has been removed from the -mm tree.  Its filename was
-     arch-avr32-use-array_size-macro-when-appropriate.patch
+     fix-gregkh-driver-sys-modules-holders.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: AVR32: Use ARRAY_SIZE macro when appropriate
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: kernel/params.c: compile fail when CONFIG_SYSFS not set
+From: Grant Coady <grant_lkml@dodo.com.au>
 
-Use ARRAY_SIZE macro already defined in linux/kernel.h
+kernel/profile.c:247: warning: 'profile_flip_buffers' defined but not used
+kernel/profile.c:270: warning: 'profile_discard_flip_buffers' defined but not used
+kernel/profile.c:337: warning: 'profile_cpu_callback' defined but not used
+kernel/params.c:700: error: `module_uevent_ops' undeclared here (not in a function)
+kernel/params.c:700: error: initializer element is not constant
+kernel/params.c:700: error: (near initialization for `module_subsys.kset.uevent_ops')
+kernel/params.c:700: error: initializer element is not constant
+kernel/params.c:700: error: (near initialization for `module_subsys.kset')
+make[1]: *** [kernel/params.o] Error 1
+make: *** [kernel] Error 2
 
-Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Grant Coady <gcoady.lk@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/kernel/setup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/params.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/avr32/kernel/setup.c~arch-avr32-use-array_size-macro-when-appropriate arch/avr32/kernel/setup.c
---- a/arch/avr32/kernel/setup.c~arch-avr32-use-array_size-macro-when-appropriate
-+++ a/arch/avr32/kernel/setup.c
-@@ -16,6 +16,7 @@
- #include <linux/module.h>
- #include <linux/root_dev.h>
- #include <linux/cpu.h>
-+#include <linux/kernel.h>
+diff -puN kernel/params.c~fix-gregkh-driver-sys-modules-holders kernel/params.c
+--- a/kernel/params.c~fix-gregkh-driver-sys-modules-holders
++++ a/kernel/params.c
+@@ -691,6 +691,10 @@ static struct sysfs_ops module_sysfs_ops
+ 	.show = NULL,
+ 	.store = NULL,
+ };
++
++static struct kset_uevent_ops module_uevent_ops = {
++	.filter = NULL,
++};
+ #endif
  
- #include <asm/sections.h>
- #include <asm/processor.h>
-@@ -174,8 +175,7 @@ static int __init parse_tag_mem_range(st
- 	 * Copy the data so the bootmem init code doesn't need to care
- 	 * about it.
- 	 */
--	if (mem_range_next_free >=
--	    (sizeof(mem_range_cache) / sizeof(mem_range_cache[0])))
-+	if (mem_range_next_free >= ARRAY_SIZE(mem_range_cache))
- 		panic("Physical memory map too complex!\n");
- 
- 	new = &mem_range_cache[mem_range_next_free++];
+ static struct kobj_type module_ktype = {
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from grant_lkml@dodo.com.au are
 
-origin.patch
-git-acpi.patch
-git-agpgart.patch
-arch-arm-use-array_size-macro-when-appropriate.patch
-git-avr32.patch
-git-drm.patch
-git-dvb.patch
-git-infiniband.patch
-git-mips.patch
-atm-use-array_size-macro-when-appropriate.patch
-s390-kmalloc-kzalloc-casting-cleanups.patch
-s390-drivers-use-array_size-macro-when-appropriate.patch
-git-scsi-misc.patch
-arch-arm26-use-array_size-macro-when-appropriate.patch
-arch-m68knommu-user-array_size-macro-when-appropriate.patch
-arch-m68k-user-array_size-macro-when-appropriate.patch
-arch-cris-user-array_size-macro-when-appropriate.patch
-arch-v850-user-array_size-macro-when-appropriate.patch
-w1-use-array_size-macro-when-appropriate.patch
-oss-use-array_size-macro-when-appropriate.patch
-oss-use-array_size-macro-when-appropriate-2.patch
-reiserfs-use-array_size-macro-when-appropriate.patch
-isdn-capi-use-array_size-when-appropriate.patch
-isdn-eicon-use-array_size-macro-when-appropriate.patch
-rcutorture-use-array_size-macro-when-appropriate.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
+git-block-dupe-definitions.patch
