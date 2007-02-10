@@ -1,218 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-fixup.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:27:05 -0800
-Message-ID: <200702100527.l1A5R590004659@shell0.pdx.osdl.net>
+Subject: - mm-remove-find_trylock_page.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:27:13 -0800
+Message-ID: <200702100527.l1A5RDGl004665@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36818 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36826 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752930AbXBJF1K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:27:10 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1A5R8UI030315
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 9 Feb 2007 21:27:09 -0800
+	id S1752943AbXBJF1W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:27:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-fixup
+     mm: remove find_trylock_page
 has been removed from the -mm tree.  Its filename was
-     git-block-fixup.patch
+     mm-remove-find_trylock_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-block-fixup
-From: Andrew Morton <akpm@osdl.org>
+Subject: mm: remove find_trylock_page
+From: Nick Piggin <npiggin@suse.de>
 
+Remove find_trylock_page for 2.6.21.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ Documentation/feature-removal-schedule.txt |   12 -----------
+ include/linux/pagemap.h                    |    2 -
+ mm/filemap.c                               |   20 -------------------
+ 3 files changed, 34 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~git-block-fixup fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~git-block-fixup
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -208,14 +208,8 @@ static inline void o2hb_bio_wait_dec(str
- static void o2hb_wait_on_io(struct o2hb_region *reg,
- 			    struct o2hb_bio_wait_ctxt *wc)
- {
--<<<<<<< HEAD/fs/ocfs2/cluster/heartbeat.c
--	struct address_space *mapping = reg->hr_bdev->bd_inode->i_mapping;
--
--	blk_run_address_space(mapping);
--	o2hb_bio_wait_dec(wc, 1);
--=======
- 	blk_replug_current_nested();
-->>>>>>> /fs/ocfs2/cluster/heartbeat.c
-+	o2hb_bio_wait_dec(wc, 1);
+diff -puN Documentation/feature-removal-schedule.txt~mm-remove-find_trylock_page Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~mm-remove-find_trylock_page
++++ a/Documentation/feature-removal-schedule.txt
+@@ -170,18 +170,6 @@ Who:	Greg Kroah-Hartman <gregkh@suse.de>
  
- 	wait_for_completion(&wc->wc_io_complete);
- }
+ ---------------------------
+ 
+-What:	find_trylock_page
+-When:	January 2007
+-Why:	The interface no longer has any callers left in the kernel. It
+-	is an odd interface (compared with other find_*_page functions), in
+-	that it does not take a refcount to the page, only the page lock.
+-	It should be replaced with find_get_page or find_lock_page if possible.
+-	This feature removal can be reevaluated if users of the interface
+-	cannot cleanly use something else.
+-Who:	Nick Piggin <npiggin@suse.de>
+-
+----------------------------
+-
+ What:	Interrupt only SA_* flags
+ When:	Januar 2007
+ Why:	The interrupt related SA_* flags are replaced by IRQF_* to move them
+diff -puN include/linux/pagemap.h~mm-remove-find_trylock_page include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-remove-find_trylock_page
++++ a/include/linux/pagemap.h
+@@ -76,8 +76,6 @@ extern struct page * find_get_page(struc
+ 				unsigned long index);
+ extern struct page * find_lock_page(struct address_space *mapping,
+ 				unsigned long index);
+-extern __deprecated_for_modules struct page * find_trylock_page(
+-			struct address_space *mapping, unsigned long index);
+ extern struct page * find_or_create_page(struct address_space *mapping,
+ 				unsigned long index, gfp_t gfp_mask);
+ unsigned find_get_pages(struct address_space *mapping, pgoff_t start,
+diff -puN mm/filemap.c~mm-remove-find_trylock_page mm/filemap.c
+--- a/mm/filemap.c~mm-remove-find_trylock_page
++++ a/mm/filemap.c
+@@ -554,26 +554,6 @@ struct page * find_get_page(struct addre
+ EXPORT_SYMBOL(find_get_page);
+ 
+ /**
+- * find_trylock_page - find and lock a page
+- * @mapping: the address_space to search
+- * @offset: the page index
+- *
+- * Same as find_get_page(), but trylock it instead of incrementing the count.
+- */
+-struct page *find_trylock_page(struct address_space *mapping, unsigned long offset)
+-{
+-	struct page *page;
+-
+-	read_lock_irq(&mapping->tree_lock);
+-	page = radix_tree_lookup(&mapping->page_tree, offset);
+-	if (page && TestSetPageLocked(page))
+-		page = NULL;
+-	read_unlock_irq(&mapping->tree_lock);
+-	return page;
+-}
+-EXPORT_SYMBOL(find_trylock_page);
+-
+-/**
+  * find_lock_page - locate, pin and lock a pagecache page
+  * @mapping: the address_space to search
+  * @offset: the page index
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-git-dvb.patch
-git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-input.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mtd.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-netfilter-warning-fix.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-git-scsi-misc.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-xfs-barriers-broke.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-nokia-e70-is-an-unusual-device.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-drop-free_pages-sparc64-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
-register_blkdev-dont-hand-out-the-local-experimental-majors.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-dynamic-kernel-command-line-ia64-fix.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+git-block.patch
+add-vm_insert_pfn.patch
+mm-vm_insert_pfn-tidy.patch
+mm-mincore-anon.patch
+buffer-memorder-fix.patch
+fs-fix-__block_write_full_page-error-case-buffer-submission.patch
+inotify-read-return-val-fix.patch
+sched-avoid-div-in-rebalance_tick.patch
