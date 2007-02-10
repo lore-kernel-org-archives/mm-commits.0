@@ -1,114 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - mm-remove-find_trylock_page.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:27:13 -0800
-Message-ID: <200702100527.l1A5RDGl004665@shell0.pdx.osdl.net>
+Subject: - remove-a-couple-final-references-to-obsolete-verify_area.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:27:19 -0800
+Message-ID: <200702100527.l1A5RJdl004668@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36826 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36834 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752943AbXBJF1W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:27:22 -0500
+	id S1752882AbXBJF1i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:27:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, hskinnemoen@atmel.com, jesper.juhl@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove find_trylock_page
+     Remove a couple final references to obsolete verify_area()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-find_trylock_page.patch
+     remove-a-couple-final-references-to-obsolete-verify_area.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: remove find_trylock_page
-From: Nick Piggin <npiggin@suse.de>
+Subject: Remove a couple final references to obsolete verify_area()
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Remove find_trylock_page for 2.6.21.
+Remove a couple final references to the obsolete verify_area() call, which
+was long ago replaced by access_ok().
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Acked-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   12 -----------
- include/linux/pagemap.h                    |    2 -
- mm/filemap.c                               |   20 -------------------
- 3 files changed, 34 deletions(-)
+ include/asm-avr32/checksum.h |    2 +-
+ include/asm-avr32/uaccess.h  |    6 ------
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~mm-remove-find_trylock_page Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~mm-remove-find_trylock_page
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -170,18 +170,6 @@ Who:	Greg Kroah-Hartman <gregkh@suse.de>
+diff -puN include/asm-avr32/checksum.h~remove-a-couple-final-references-to-obsolete-verify_area include/asm-avr32/checksum.h
+--- a/include/asm-avr32/checksum.h~remove-a-couple-final-references-to-obsolete-verify_area
++++ a/include/asm-avr32/checksum.h
+@@ -38,7 +38,7 @@ __wsum csum_partial_copy_generic(const v
+  *	passed in an incorrect kernel address to one of these functions.
+  *
+  *	If you use these functions directly please don't forget the
+- *	verify_area().
++ *	access_ok().
+  */
+ static inline
+ __wsum csum_partial_copy_nocheck(const void *src, void *dst,
+diff -puN include/asm-avr32/uaccess.h~remove-a-couple-final-references-to-obsolete-verify_area include/asm-avr32/uaccess.h
+--- a/include/asm-avr32/uaccess.h~remove-a-couple-final-references-to-obsolete-verify_area
++++ a/include/asm-avr32/uaccess.h
+@@ -68,12 +68,6 @@ static inline void set_fs(mm_segment_t s
  
- ---------------------------
+ #define access_ok(type, addr, size) (likely(__range_ok(addr, size) == 0))
  
--What:	find_trylock_page
--When:	January 2007
--Why:	The interface no longer has any callers left in the kernel. It
--	is an odd interface (compared with other find_*_page functions), in
--	that it does not take a refcount to the page, only the page lock.
--	It should be replaced with find_get_page or find_lock_page if possible.
--	This feature removal can be reevaluated if users of the interface
--	cannot cleanly use something else.
--Who:	Nick Piggin <npiggin@suse.de>
--
-----------------------------
--
- What:	Interrupt only SA_* flags
- When:	Januar 2007
- Why:	The interrupt related SA_* flags are replaced by IRQF_* to move them
-diff -puN include/linux/pagemap.h~mm-remove-find_trylock_page include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-remove-find_trylock_page
-+++ a/include/linux/pagemap.h
-@@ -76,8 +76,6 @@ extern struct page * find_get_page(struc
- 				unsigned long index);
- extern struct page * find_lock_page(struct address_space *mapping,
- 				unsigned long index);
--extern __deprecated_for_modules struct page * find_trylock_page(
--			struct address_space *mapping, unsigned long index);
- extern struct page * find_or_create_page(struct address_space *mapping,
- 				unsigned long index, gfp_t gfp_mask);
- unsigned find_get_pages(struct address_space *mapping, pgoff_t start,
-diff -puN mm/filemap.c~mm-remove-find_trylock_page mm/filemap.c
---- a/mm/filemap.c~mm-remove-find_trylock_page
-+++ a/mm/filemap.c
-@@ -554,26 +554,6 @@ struct page * find_get_page(struct addre
- EXPORT_SYMBOL(find_get_page);
- 
- /**
-- * find_trylock_page - find and lock a page
-- * @mapping: the address_space to search
-- * @offset: the page index
-- *
-- * Same as find_get_page(), but trylock it instead of incrementing the count.
-- */
--struct page *find_trylock_page(struct address_space *mapping, unsigned long offset)
+-static inline int
+-verify_area(int type, const void __user *addr, unsigned long size)
 -{
--	struct page *page;
--
--	read_lock_irq(&mapping->tree_lock);
--	page = radix_tree_lookup(&mapping->page_tree, offset);
--	if (page && TestSetPageLocked(page))
--		page = NULL;
--	read_unlock_irq(&mapping->tree_lock);
--	return page;
+-	return access_ok(type, addr, size) ? 0 : -EFAULT;
 -}
--EXPORT_SYMBOL(find_trylock_page);
 -
--/**
-  * find_lock_page - locate, pin and lock a pagecache page
-  * @mapping: the address_space to search
-  * @offset: the page index
+ /* Generic arbitrary sized copy. Return the number of bytes NOT copied */
+ extern __kernel_size_t __copy_user(void *to, const void *from,
+ 				   __kernel_size_t n);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-git-block.patch
-add-vm_insert_pfn.patch
-mm-vm_insert_pfn-tidy.patch
-mm-mincore-anon.patch
-buffer-memorder-fix.patch
-fs-fix-__block_write_full_page-error-case-buffer-submission.patch
-inotify-read-return-val-fix.patch
-sched-avoid-div-in-rebalance_tick.patch
+git-avr32.patch
+git-dvb.patch
+git-input.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+git-mips.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+remove-final-references-to-deprecated-map_anon-page-protection-flag.patch
+uml-fix-apparent-config_64_bit-typo.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+get-rid-of-double-zeroing-of-allocated-pages.patch
+remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
+discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+numerous-fixes-to-kernel-doc-info-in-source-files.patch
+remove-the-last-reference-to-rwlock_is_locked-macro.patch
+extend-the-set-of-__attribute__-shortcut-macros.patch
+remove-final-reference-to-superfluous-smp_commence.patch
+replace-regular-code-with-appropriate-calls-to-container_of.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+remove-unused-kernel-config-option-zisofs_fs.patch
+remove-unused-kernel-config-option-paride_parport.patch
+fix-apparent-typo-config_lockdep_debug.patch
+ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
+quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
+isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
+isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+isdn-rename-debug-option-config_serial_nopause_io.patch
+isdn-remove-defunct-test-emulator.patch
+isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
