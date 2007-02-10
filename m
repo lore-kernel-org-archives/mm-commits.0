@@ -1,56 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - add-an-rcu-version-of-list-splicing-fix.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:16:47 -0800
-Message-ID: <200702100816.l1A8GlLD007058@shell0.pdx.osdl.net>
+Subject: - return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:21:03 -0800
+Message-ID: <200702100821.l1A8L3Ee007133__8598.37459070167$1171095689$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39536 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39545 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752996AbXBJIUw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:20:52 -0500
+	id S1753003AbXBJIVO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:21:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minyard@acm.org, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linux-ext4@vger.kernel.org, sandeen@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-an-rcu-version-of-list-splicing-fix
+     return-enoent-from-ext3_link-when-racing-with-unlink-fix
 has been removed from the -mm tree.  Its filename was
-     add-an-rcu-version-of-list-splicing-fix.patch
+     return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
 
-This patch was dropped because it was folded into add-an-rcu-version-of-list-splicing.patch
+This patch was dropped because it was folded into return-enoent-from-ext3_link-when-racing-with-unlink.patch
 
 ------------------------------------------------------
-Subject: add-an-rcu-version-of-list-splicing-fix
+Subject: return-enoent-from-ext3_link-when-racing-with-unlink-fix
 From: Andrew Morton <akpm@osdl.org>
 
-arm:
+sigh.
 
-In file included from include/linux/wait.h:22,
-                 from include/linux/fs.h:271,
-                 from fs/jfs/jfs_imap.c:44:
-include/linux/list.h: In function `list_splice_init_rcu':
-include/linux/list.h:387: warning: implicit declaration of function `might_sleep'
-Fix it the easy way ;)
-
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Corey Minyard <minyard@acm.org>
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/list.h |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ext3/namei.c |    4 ++++
+ fs/ext4/namei.c |    4 ++++
+ 2 files changed, 8 insertions(+)
 
-diff -puN include/linux/list.h~add-an-rcu-version-of-list-splicing-fix include/linux/list.h
---- a/include/linux/list.h~add-an-rcu-version-of-list-splicing-fix
-+++ a/include/linux/list.h
-@@ -384,7 +384,6 @@ static inline void list_splice_init_rcu(
- 	struct list_head *last = list->prev;
- 	struct list_head *at = head->next;
+diff -puN fs/ext3/namei.c~return-enoent-from-ext3_link-when-racing-with-unlink-fix fs/ext3/namei.c
+--- a/fs/ext3/namei.c~return-enoent-from-ext3_link-when-racing-with-unlink-fix
++++ a/fs/ext3/namei.c
+@@ -2191,6 +2191,10 @@ static int ext3_link (struct dentry * ol
  
--	might_sleep();
- 	if (list_empty(head))
- 		return;
+ 	if (inode->i_nlink >= EXT3_LINK_MAX)
+ 		return -EMLINK;
++	/*
++	 * Return -ENOENT if we've raced with unlink and i_nlink is 0.  Doing
++	 * otherwise has the potential to corrupt the orphan inode list.
++	 */
+ 	if (inode->i_nlink == 0)
+ 		return -ENOENT;
+ 
+diff -puN fs/ext4/namei.c~return-enoent-from-ext3_link-when-racing-with-unlink-fix fs/ext4/namei.c
+--- a/fs/ext4/namei.c~return-enoent-from-ext3_link-when-racing-with-unlink-fix
++++ a/fs/ext4/namei.c
+@@ -2189,6 +2189,10 @@ static int ext4_link (struct dentry * ol
+ 
+ 	if (inode->i_nlink >= EXT4_LINK_MAX)
+ 		return -EMLINK;
++	/*
++	 * Return -ENOENT if we've raced with unlink and i_nlink is 0.  Doing
++	 * otherwise has the potential to corrupt the orphan inode list.
++	 */
+ 	if (inode->i_nlink == 0)
+ 		return -ENOENT;
  
 _
 
@@ -68,12 +79,10 @@ count_vm_events-warning-fix.patch
 add-taint_user-and-ability-to-set-taint-flags-from-userspace.patch
 remove-invalidate_inode_pages.patch
 add-an-rcu-version-of-list-splicing.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-block_write_full_page-handle-enospc.patch
 sysctl-warning-fix.patch
 proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
+rtc-framework-driver-for-cmos-rtcs.patch
+return-enoent-from-ext3_link-when-racing-with-unlink.patch
 return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
