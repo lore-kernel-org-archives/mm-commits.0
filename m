@@ -1,33 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - add-install_special_mapping.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:22:24 -0800
-Message-ID: <200702100522.l1A5MOPi004495@shell0.pdx.osdl.net>
+Subject: - i386-vdso-use-install_special_mapping.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:22:34 -0800
+Message-ID: <200702100522.l1A5MYhP004498@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36612 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36606 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753133AbXBJFXD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:23:03 -0500
+	id S1753132AbXBJFXA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:23:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: roland@redhat.com, ak@suse.de, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add install_special_mapping
+     i386 vDSO: use install_special_mapping
 has been removed from the -mm tree.  Its filename was
-     add-install_special_mapping.patch
+     i386-vdso-use-install_special_mapping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add install_special_mapping
+Subject: i386 vDSO: use install_special_mapping
 From: Roland McGrath <roland@redhat.com>
 
-This patch adds a utility function install_special_mapping, for creating a
-special vma using a fixed set of preallocated pages as backing, such as for a
-vDSO.  This consolidates some nearly identical code used for vDSO mapping
-reimplemented for different architectures.
+This patch uses install_special_mapping for the i386 vDSO setup, consolidating
+duplicated code.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -37,102 +35,106 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +
- mm/mmap.c          |   72 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 75 insertions(+)
+ arch/i386/kernel/sysenter.c |   53 +++++++---------------------------
+ 1 files changed, 11 insertions(+), 42 deletions(-)
 
-diff -puN include/linux/mm.h~add-install_special_mapping include/linux/mm.h
---- a/include/linux/mm.h~add-install_special_mapping
-+++ a/include/linux/mm.h
-@@ -1030,6 +1030,9 @@ extern struct vm_area_struct *copy_vma(s
- 	unsigned long addr, unsigned long len, pgoff_t pgoff);
- extern void exit_mmap(struct mm_struct *);
- extern int may_expand_vm(struct mm_struct *mm, unsigned long npages);
-+extern int install_special_mapping(struct mm_struct *mm,
-+				   unsigned long addr, unsigned long len,
-+				   unsigned long flags, struct page **pages);
+diff -puN arch/i386/kernel/sysenter.c~i386-vdso-use-install_special_mapping arch/i386/kernel/sysenter.c
+--- a/arch/i386/kernel/sysenter.c~i386-vdso-use-install_special_mapping
++++ a/arch/i386/kernel/sysenter.c
+@@ -70,11 +70,12 @@ void enable_sep_cpu(void)
+  */
+ extern const char vsyscall_int80_start, vsyscall_int80_end;
+ extern const char vsyscall_sysenter_start, vsyscall_sysenter_end;
+-static void *syscall_page;
++static struct page *syscall_pages[1];
  
- extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
+ int __init sysenter_setup(void)
+ {
+-	syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
++	void *syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
++	syscall_pages[0] = virt_to_page(syscall_page);
  
-diff -puN mm/mmap.c~add-install_special_mapping mm/mmap.c
---- a/mm/mmap.c~add-install_special_mapping
-+++ a/mm/mmap.c
-@@ -2101,3 +2101,75 @@ int may_expand_vm(struct mm_struct *mm, 
- 		return 0;
- 	return 1;
+ #ifdef CONFIG_COMPAT_VDSO
+ 	__set_fixmap(FIX_VDSO, __pa(syscall_page), PAGE_READONLY);
+@@ -96,31 +97,12 @@ int __init sysenter_setup(void)
  }
-+
-+
-+static struct page *special_mapping_nopage(struct vm_area_struct *vma,
-+					   unsigned long address, int *type)
-+{
-+	struct page **pages;
-+
-+	BUG_ON(address < vma->vm_start || address >= vma->vm_end);
-+
-+	address -= vma->vm_start;
-+	for (pages = vma->vm_private_data; address > 0 && *pages; ++pages)
-+		address -= PAGE_SIZE;
-+
-+	if (*pages) {
-+		struct page *page = *pages;
-+		get_page(page);
-+		return page;
-+	}
-+
-+	return NOPAGE_SIGBUS;
-+}
-+
-+/*
-+ * Having a close hook prevents vma merging regardless of flags.
-+ */
-+static void special_mapping_close(struct vm_area_struct *vma)
-+{
-+}
-+
-+static struct vm_operations_struct special_mapping_vmops = {
-+	.close = special_mapping_close,
-+	.nopage	= special_mapping_nopage,
-+};
-+
-+/*
-+ * Called with mm->mmap_sem held for writing.
-+ * Insert a new vma covering the given region, with the given flags.
-+ * Its pages are supplied by the given array of struct page *.
-+ * The array can be shorter than len >> PAGE_SHIFT if it's null-terminated.
-+ * The region past the last page supplied will always produce SIGBUS.
-+ * The array pointer and the pages it points to are assumed to stay alive
-+ * for as long as this mapping might exist.
-+ */
-+int install_special_mapping(struct mm_struct *mm,
-+			    unsigned long addr, unsigned long len,
-+			    unsigned long vm_flags, struct page **pages)
-+{
-+	struct vm_area_struct *vma;
-+
-+	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
-+	if (unlikely(vma == NULL))
-+		return -ENOMEM;
-+
-+	vma->vm_mm = mm;
-+	vma->vm_start = addr;
-+	vma->vm_end = addr + len;
-+
-+	vma->vm_flags = vm_flags | mm->def_flags;
-+	vma->vm_page_prot = protection_map[vma->vm_flags & 7];
-+
-+	vma->vm_ops = &special_mapping_vmops;
-+	vma->vm_private_data = pages;
-+
-+	if (unlikely(insert_vm_struct(mm, vma))) {
-+		kmem_cache_free(vm_area_cachep, vma);
-+		return -ENOMEM;
-+	}
-+
-+	mm->total_vm += len >> PAGE_SHIFT;
-+
-+	return 0;
-+}
+ 
+ #ifndef CONFIG_COMPAT_VDSO
+-static struct page *syscall_nopage(struct vm_area_struct *vma,
+-				unsigned long adr, int *type)
+-{
+-	struct page *p = virt_to_page(adr - vma->vm_start + syscall_page);
+-	get_page(p);
+-	return p;
+-}
+-
+-/* Prevent VMA merging */
+-static void syscall_vma_close(struct vm_area_struct *vma)
+-{
+-}
+-
+-static struct vm_operations_struct syscall_vm_ops = {
+-	.close = syscall_vma_close,
+-	.nopage = syscall_nopage,
+-};
+-
+ /* Defined in vsyscall-sysenter.S */
+ extern void SYSENTER_RETURN;
+ 
+ /* Setup a VMA at program startup for the vsyscall page */
+ int arch_setup_additional_pages(struct linux_binprm *bprm, int exstack)
+ {
+-	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long addr;
+ 	int ret;
+@@ -132,38 +114,25 @@ int arch_setup_additional_pages(struct l
+ 		goto up_fail;
+ 	}
+ 
+-	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
+-	if (!vma) {
+-		ret = -ENOMEM;
+-		goto up_fail;
+-	}
+-
+-	vma->vm_start = addr;
+-	vma->vm_end = addr + PAGE_SIZE;
+-	/* MAYWRITE to allow gdb to COW and set breakpoints */
+-	vma->vm_flags = VM_READ|VM_EXEC|VM_MAYREAD|VM_MAYEXEC|VM_MAYWRITE;
+ 	/*
++	 * MAYWRITE to allow gdb to COW and set breakpoints
++	 *
+ 	 * Make sure the vDSO gets into every core dump.
+ 	 * Dumping its contents makes post-mortem fully interpretable later
+ 	 * without matching up the same kernel and hardware config to see
+ 	 * what PC values meant.
+ 	 */
+-	vma->vm_flags |= VM_ALWAYSDUMP;
+-	vma->vm_flags |= mm->def_flags;
+-	vma->vm_page_prot = protection_map[vma->vm_flags & 7];
+-	vma->vm_ops = &syscall_vm_ops;
+-	vma->vm_mm = mm;
+-
+-	ret = insert_vm_struct(mm, vma);
+-	if (unlikely(ret)) {
+-		kmem_cache_free(vm_area_cachep, vma);
++	ret = install_special_mapping(mm, addr, PAGE_SIZE,
++				      VM_READ|VM_EXEC|
++				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
++				      VM_ALWAYSDUMP,
++				      syscall_pages);
++	if (ret)
+ 		goto up_fail;
+-	}
+ 
+ 	current->mm->context.vdso = (void *)addr;
+ 	current_thread_info()->sysenter_return =
+ 				    (void *)VDSO_SYM(&SYSENTER_RETURN);
+-	mm->total_vm++;
+ up_fail:
+ 	up_write(&mm->mmap_sem);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
