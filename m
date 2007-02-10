@@ -1,195 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: - 9p-use-kthread_stop-instead-of-sending-a-sigkill.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:20:48 -0800
-Message-ID: <200702100520.l1A5Kmn5004459@shell0.pdx.osdl.net>
+Subject: - cxgb3-vs-gregkh-driver-network-device.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:20:32 -0800
+Message-ID: <200702100520.l1A5KW9K004453@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36538 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36544 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753117AbXBJFVW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:21:22 -0500
+	id S1753119AbXBJFVe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:21:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, ericvh@gmail.com, lucho@ionkov.net, rminnich@lanl.gov, mm-commits@vger.kernel.org
+To: divy@chelsio.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     9p: Use kthread_stop instead of sending a SIGKILL
+     cxgb3: sysfs attributes in -mm tree
 has been removed from the -mm tree.  Its filename was
-     9p-use-kthread_stop-instead-of-sending-a-sigkill.patch
+     cxgb3-vs-gregkh-driver-network-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: 9p: Use kthread_stop instead of sending a SIGKILL
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: cxgb3: sysfs attributes in -mm tree
+From: Divy Le Ray <divy@chelsio.com>
 
-Since the kthread api does not bump the reference count on processes that
-tracked it is not safe allow user space to kill the threads, as I still
-retain a pointer to the task_struct.
+This patch fixes the usage of sysfs attributes in cxgb3 for the -mm tree.
+It is built against the driver commited in the -mm tree.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@lanl.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Divy Le Ray <divy@chelsio.com>
+Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/mux.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/net/cxgb3/cxgb3_main.c |   86 ++++++++++++++++---------------
+ 1 file changed, 45 insertions(+), 41 deletions(-)
 
-diff -puN fs/9p/mux.c~9p-use-kthread_stop-instead-of-sending-a-sigkill fs/9p/mux.c
---- a/fs/9p/mux.c~9p-use-kthread_stop-instead-of-sending-a-sigkill
-+++ a/fs/9p/mux.c
-@@ -256,7 +256,7 @@ static void v9fs_mux_poll_stop(struct v9
- 	vpt->muxnum--;
- 	if (!vpt->muxnum) {
- 		dprintk(DEBUG_MUX, "destroy proc %p\n", vpt);
--		send_sig(SIGKILL, vpt->task, 1);
-+		kthread_stop(vpt->task);
- 		vpt->task = NULL;
- 		v9fs_mux_poll_task_num--;
- 	}
-@@ -438,11 +438,8 @@ static int v9fs_poll_proc(void *a)
+diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-vs-gregkh-driver-network-device drivers/net/cxgb3/cxgb3_main.c
+--- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-vs-gregkh-driver-network-device
++++ a/drivers/net/cxgb3/cxgb3_main.c
+@@ -74,8 +74,6 @@ enum {
  
- 	vpt = a;
- 	dprintk(DEBUG_MUX, "start %p %p\n", current, vpt);
--	allow_signal(SIGKILL);
- 	while (!kthread_should_stop()) {
- 		set_current_state(TASK_INTERRUPTIBLE);
--		if (signal_pending(current))
--			break;
+ #define EEPROM_MAGIC 0x38E2F10C
  
- 		list_for_each_entry_safe(m, mtmp, &vpt->mux_list, mux_list) {
- 			v9fs_poll_mux(m);
+-#define to_net_dev(class) container_of(class, struct net_device, class_dev)
+-
+ #define CH_DEVICE(devid, ssid, idx) \
+ 	{ PCI_VENDOR_ID_CHELSIO, devid, PCI_ANY_ID, ssid, 0, 0, idx }
+ 
+@@ -434,11 +432,12 @@ static int setup_sge_qsets(struct adapte
+ 	return 0;
+ }
+ 
+-static ssize_t attr_show(struct class_device *cd, char *buf,
++static ssize_t attr_show(struct device *d, struct device_attribute *attr,
++			 char *buf,
+ 			 ssize_t(*format) (struct adapter *, char *))
+ {
+ 	ssize_t len;
+-	struct adapter *adap = to_net_dev(cd)->priv;
++	struct adapter *adap = to_net_dev(d)->priv;
+ 
+ 	/* Synchronize with ioctls that may shut down the device */
+ 	rtnl_lock();
+@@ -447,14 +446,15 @@ static ssize_t attr_show(struct class_de
+ 	return len;
+ }
+ 
+-static ssize_t attr_store(struct class_device *cd, const char *buf, size_t len,
++static ssize_t attr_store(struct device *d, struct device_attribute *attr,
++			  const char *buf, size_t len,
+ 			  ssize_t(*set) (struct adapter *, unsigned int),
+ 			  unsigned int min_val, unsigned int max_val)
+ {
+ 	char *endp;
+ 	ssize_t ret;
+ 	unsigned int val;
+-	struct adapter *adap = to_net_dev(cd)->priv;
++	struct adapter *adap = to_net_dev(d)->priv;
+ 
+ 	if (!capable(CAP_NET_ADMIN))
+ 		return -EPERM;
+@@ -476,9 +476,10 @@ static ssize_t format_##name(struct adap
+ { \
+ 	return sprintf(buf, "%u\n", val_expr); \
+ } \
+-static ssize_t show_##name(struct class_device *cd, char *buf) \
++static ssize_t show_##name(struct device *d, struct device_attribute *attr, \
++			   char *buf) \
+ { \
+-	return attr_show(cd, buf, format_##name); \
++	return attr_show(d, attr, buf, format_##name); \
+ }
+ 
+ static ssize_t set_nfilters(struct adapter *adap, unsigned int val)
+@@ -493,10 +494,10 @@ static ssize_t set_nfilters(struct adapt
+ 	return 0;
+ }
+ 
+-static ssize_t store_nfilters(struct class_device *cd, const char *buf,
+-			      size_t len)
++static ssize_t store_nfilters(struct device *d, struct device_attribute *attr,
++			      const char *buf, size_t len)
+ {
+-	return attr_store(cd, buf, len, set_nfilters, 0, ~0);
++	return attr_store(d, attr, buf, len, set_nfilters, 0, ~0);
+ }
+ 
+ static ssize_t set_nservers(struct adapter *adap, unsigned int val)
+@@ -509,38 +510,39 @@ static ssize_t set_nservers(struct adapt
+ 	return 0;
+ }
+ 
+-static ssize_t store_nservers(struct class_device *cd, const char *buf,
+-			      size_t len)
++static ssize_t store_nservers(struct device *d, struct device_attribute *attr,
++			      const char *buf, size_t len)
+ {
+-	return attr_store(cd, buf, len, set_nservers, 0, ~0);
++	return attr_store(d, attr, buf, len, set_nservers, 0, ~0);
+ }
+ 
+ #define CXGB3_ATTR_R(name, val_expr) \
+ CXGB3_SHOW(name, val_expr) \
+-static CLASS_DEVICE_ATTR(name, S_IRUGO, show_##name, NULL)
++static DEVICE_ATTR(name, S_IRUGO, show_##name, NULL)
+ 
+ #define CXGB3_ATTR_RW(name, val_expr, store_method) \
+ CXGB3_SHOW(name, val_expr) \
+-static CLASS_DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_method)
++static DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_method)
+ 
+ CXGB3_ATTR_R(cam_size, t3_mc5_size(&adap->mc5));
+ CXGB3_ATTR_RW(nfilters, adap->params.mc5.nfilters, store_nfilters);
+ CXGB3_ATTR_RW(nservers, adap->params.mc5.nservers, store_nservers);
+ 
+ static struct attribute *cxgb3_attrs[] = {
+-	&class_device_attr_cam_size.attr,
+-	&class_device_attr_nfilters.attr,
+-	&class_device_attr_nservers.attr,
++	&dev_attr_cam_size.attr,
++	&dev_attr_nfilters.attr,
++	&dev_attr_nservers.attr,
+ 	NULL
+ };
+ 
+ static struct attribute_group cxgb3_attr_group = {.attrs = cxgb3_attrs };
+ 
+-static ssize_t tm_attr_show(struct class_device *cd, char *buf, int sched)
++static ssize_t tm_attr_show(struct device *d, struct device_attribute *attr,
++			    char *buf, int sched)
+ {
+ 	ssize_t len;
+ 	unsigned int v, addr, bpt, cpt;
+-	struct adapter *adap = to_net_dev(cd)->priv;
++	struct adapter *adap = to_net_dev(d)->priv;
+ 
+ 	addr = A_TP_TX_MOD_Q1_Q0_RATE_LIMIT - sched / 2;
+ 	rtnl_lock();
+@@ -560,13 +562,13 @@ static ssize_t tm_attr_show(struct class
+ 	return len;
+ }
+ 
+-static ssize_t tm_attr_store(struct class_device *cd, const char *buf,
+-			     size_t len, int sched)
++static ssize_t tm_attr_store(struct device *d, struct device_attribute *attr,
++			     const char *buf, size_t len, int sched)
+ {
+ 	char *endp;
+ 	ssize_t ret;
+ 	unsigned int val;
+-	struct adapter *adap = to_net_dev(cd)->priv;
++	struct adapter *adap = to_net_dev(d)->priv;
+ 
+ 	if (!capable(CAP_NET_ADMIN))
+ 		return -EPERM;
+@@ -584,15 +586,17 @@ static ssize_t tm_attr_store(struct clas
+ }
+ 
+ #define TM_ATTR(name, sched) \
+-static ssize_t show_##name(struct class_device *cd, char *buf) \
++static ssize_t show_##name(struct device *d, struct device_attribute *attr, \
++			   char *buf) \
+ { \
+-	return tm_attr_show(cd, buf, sched); \
++	return tm_attr_show(d, attr, buf, sched); \
+ } \
+-static ssize_t store_##name(struct class_device *cd, const char *buf, size_t len) \
++static ssize_t store_##name(struct device *d, struct device_attribute *attr, \
++			    const char *buf, size_t len) \
+ { \
+-	return tm_attr_store(cd, buf, len, sched); \
++	return tm_attr_store(d, attr, buf, len, sched); \
+ } \
+-static CLASS_DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_##name)
++static DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_##name)
+ 
+ TM_ATTR(sched0, 0);
+ TM_ATTR(sched1, 1);
+@@ -604,14 +608,14 @@ TM_ATTR(sched6, 6);
+ TM_ATTR(sched7, 7);
+ 
+ static struct attribute *offload_attrs[] = {
+-	&class_device_attr_sched0.attr,
+-	&class_device_attr_sched1.attr,
+-	&class_device_attr_sched2.attr,
+-	&class_device_attr_sched3.attr,
+-	&class_device_attr_sched4.attr,
+-	&class_device_attr_sched5.attr,
+-	&class_device_attr_sched6.attr,
+-	&class_device_attr_sched7.attr,
++	&dev_attr_sched0.attr,
++	&dev_attr_sched1.attr,
++	&dev_attr_sched2.attr,
++	&dev_attr_sched3.attr,
++	&dev_attr_sched4.attr,
++	&dev_attr_sched5.attr,
++	&dev_attr_sched6.attr,
++	&dev_attr_sched7.attr,
+ 	NULL
+ };
+ 
+@@ -836,7 +840,7 @@ static int offload_open(struct net_devic
+ 	init_smt(adapter);
+ 
+ 	/* Never mind if the next step fails */
+-	sysfs_create_group(&tdev->lldev->class_dev.kobj, &offload_attr_group);
++	sysfs_create_group(&tdev->lldev->dev.kobj, &offload_attr_group);
+ 
+ 	/* Call back all registered clients */
+ 	cxgb3_add_clients(tdev);
+@@ -861,7 +865,7 @@ static int offload_close(struct t3cdev *
+ 	/* Call back all registered clients */
+ 	cxgb3_remove_clients(tdev);
+ 
+-	sysfs_remove_group(&tdev->lldev->class_dev.kobj, &offload_attr_group);
++	sysfs_remove_group(&tdev->lldev->dev.kobj, &offload_attr_group);
+ 
+ 	tdev->lldev = NULL;
+ 	cxgb3_set_dummy_ops(tdev);
+@@ -2420,7 +2424,7 @@ static int __devinit init_one(struct pci
+ 	else if (msi > 0 && pci_enable_msi(pdev) == 0)
+ 		adapter->flags |= USING_MSI;
+ 
+-	err = sysfs_create_group(&adapter->port[0]->class_dev.kobj,
++	err = sysfs_create_group(&adapter->port[0]->dev.kobj,
+ 				 &cxgb3_attr_group);
+ 
+ 	print_port_info(adapter, ai);
+@@ -2452,7 +2456,7 @@ static void __devexit remove_one(struct 
+ 		struct adapter *adapter = dev->priv;
+ 
+ 		t3_sge_stop(adapter);
+-		sysfs_remove_group(&adapter->port[0]->class_dev.kobj,
++		sysfs_remove_group(&adapter->port[0]->dev.kobj,
+ 				   &cxgb3_attr_group);
+ 
+ 		for_each_port(adapter, i)
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from divy@chelsio.com are
 
 origin.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-git-v9fs.patch
-x86_64-irq-simplfy-__assign_irq_vector.patch
-x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-vt-refactor-console-sak-processing.patch
-sysctl_ms_jiffies-fix-oldlen-semantics.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-kill_pid_info-kill-acquired_tasklist_lock.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-sn2-use-static-proc_fops.patch
-_proc_do_string-fix-short-reads.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
-ipc-save-the-ipc-namespace-while-reading-proc-files.patch
-kexec-fix-references-to-init-in-documentation-for-kexe.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
-sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
-sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
-sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
-sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
-sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
-sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
-sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
-sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-xfs-ctl_tables.patch
-sysctl-c99-convert-xfs-ctl_tables-fixes.patch
-sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-md-remove-unnecessary-insert_at_head-flag.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-dont-set-de-owner.patch
-sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
-sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
-sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
-sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-arch-frv-kernel-pmc.patch
-sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
-sysctl-sn-remove-sysctl-abi-breakage.patch
-sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
-sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
-sysctl-mips-au1000-remove-sys_sysctl-support.patch
-sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
-sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
-sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
-sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
-sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
-sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
-sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
-sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
-sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
-sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix.patch
-sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-register-the-ocfs2-sysctl-numbers.patch
-sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
-sysctl-move-utsname-sysctls-to-their-own-file.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-remove-support-for-ctl_any.patch
-sysctl-remove-support-for-directory-strategy-routines.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
-sysctl-reimplement-the-sysctl-proc-support.patch
-sysctl-reimplement-the-sysctl-proc-support-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-sysctl-fix-the-selinux_sysctl_get_sid.patch
-selinux-enhance-selinux-to-always-ignore-private-inodes.patch
-sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
