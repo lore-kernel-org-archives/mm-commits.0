@@ -1,154 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-ia32-vdso-use-install_special_mapping.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:22:42 -0800
-Message-ID: <200702100522.l1A5MgMG004504@shell0.pdx.osdl.net>
+Subject: - drivers-char-drm-drm_mmc-remove-unused-exports.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:19:49 -0800
+Message-ID: <200702100519.l1A5Josb004426@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36630 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36633 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753143AbXBJFXP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:23:15 -0500
+	id S1753145AbXBJFXU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:23:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, ak@suse.de, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64 ia32 vDSO: use install_special_mapping
+     drivers/char/drm/drm_mm.c: remove unused exports
 has been removed from the -mm tree.  Its filename was
-     x86_64-ia32-vdso-use-install_special_mapping.patch
+     drivers-char-drm-drm_mmc-remove-unused-exports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64 ia32 vDSO: use install_special_mapping
-From: Roland McGrath <roland@redhat.com>
+Subject: drivers/char/drm/drm_mm.c: remove unused exports
+From: Adrian Bunk <bunk@stusta.de>
 
-This patch uses install_special_mapping for the ia32 vDSO setup, consolidating
-duplicated code.
+This patch removes two unused exports.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/ia32/syscall32.c |   59 +++++++--------------------------
- include/asm-x86_64/proto.h   |    1 
- 2 files changed, 13 insertions(+), 47 deletions(-)
+ drivers/char/drm/drm_mm.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/x86_64/ia32/syscall32.c~x86_64-ia32-vdso-use-install_special_mapping arch/x86_64/ia32/syscall32.c
---- a/arch/x86_64/ia32/syscall32.c~x86_64-ia32-vdso-use-install_special_mapping
-+++ a/arch/x86_64/ia32/syscall32.c
-@@ -18,68 +18,34 @@ extern unsigned char syscall32_syscall[]
- extern unsigned char syscall32_sysenter[], syscall32_sysenter_end[];
- extern int sysctl_vsyscall32;
- 
--char *syscall32_page; 
-+static struct page *syscall32_pages[1];
- static int use_sysenter = -1;
- 
--static struct page *
--syscall32_nopage(struct vm_area_struct *vma, unsigned long adr, int *type)
--{
--	struct page *p = virt_to_page(adr - vma->vm_start + syscall32_page);
--	get_page(p);
--	return p;
--}
--
--/* Prevent VMA merging */
--static void syscall32_vma_close(struct vm_area_struct *vma)
--{
--}
--
--static struct vm_operations_struct syscall32_vm_ops = {
--	.close = syscall32_vma_close,
--	.nopage = syscall32_nopage,
--};
--
- struct linux_binprm;
- 
- /* Setup a VMA at program startup for the vsyscall page */
- int syscall32_setup_pages(struct linux_binprm *bprm, int exstack)
- {
--	int npages = (VSYSCALL32_END - VSYSCALL32_BASE) >> PAGE_SHIFT;
--	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
- 	int ret;
- 
--	vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
--	if (!vma)
--		return -ENOMEM;
--
--	memset(vma, 0, sizeof(struct vm_area_struct));
--	/* Could randomize here */
--	vma->vm_start = VSYSCALL32_BASE;
--	vma->vm_end = VSYSCALL32_END;
--	/* MAYWRITE to allow gdb to COW and set breakpoints */
--	vma->vm_flags = VM_READ|VM_EXEC|VM_MAYREAD|VM_MAYEXEC|VM_MAYWRITE;
-+	down_write(&mm->mmap_sem);
- 	/*
-+	 * MAYWRITE to allow gdb to COW and set breakpoints
-+	 *
- 	 * Make sure the vDSO gets into every core dump.
- 	 * Dumping its contents makes post-mortem fully interpretable later
- 	 * without matching up the same kernel and hardware config to see
- 	 * what PC values meant.
- 	 */
--	vma->vm_flags |= VM_ALWAYSDUMP;
--	vma->vm_flags |= mm->def_flags;
--	vma->vm_page_prot = protection_map[vma->vm_flags & 7];
--	vma->vm_ops = &syscall32_vm_ops;
--	vma->vm_mm = mm;
--
--	down_write(&mm->mmap_sem);
--	if ((ret = insert_vm_struct(mm, vma))) {
--		up_write(&mm->mmap_sem);
--		kmem_cache_free(vm_area_cachep, vma);
--		return ret;
--	}
--	mm->total_vm += npages;
-+	/* Could randomize here */
-+	ret = install_special_mapping(mm, VSYSCALL32_BASE, PAGE_SIZE,
-+				      VM_READ|VM_EXEC|
-+				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
-+				      VM_ALWAYSDUMP,
-+				      syscall32_pages);
- 	up_write(&mm->mmap_sem);
--	return 0;
-+	return ret;
+diff -puN drivers/char/drm/drm_mm.c~drivers-char-drm-drm_mmc-remove-unused-exports drivers/char/drm/drm_mm.c
+--- a/drivers/char/drm/drm_mm.c~drivers-char-drm-drm_mmc-remove-unused-exports
++++ a/drivers/char/drm/drm_mm.c
+@@ -274,8 +274,6 @@ int drm_mm_init(drm_mm_t * mm, unsigned 
+ 	return drm_mm_create_tail_node(mm, start, size);
  }
  
- const char *arch_vma_name(struct vm_area_struct *vma)
-@@ -92,9 +58,10 @@ const char *arch_vma_name(struct vm_area
+-EXPORT_SYMBOL(drm_mm_init);
+-
+ void drm_mm_takedown(drm_mm_t * mm)
+ {
+ 	struct list_head *bnode = mm->fl_entry.next;
+@@ -294,5 +292,3 @@ void drm_mm_takedown(drm_mm_t * mm)
  
- static int __init init_syscall32(void)
- { 
--	syscall32_page = (void *)get_zeroed_page(GFP_KERNEL); 
-+	char *syscall32_page = (void *)get_zeroed_page(GFP_KERNEL);
- 	if (!syscall32_page) 
- 		panic("Cannot allocate syscall32 page"); 
-+	syscall32_pages[0] = virt_to_page(syscall32_page);
-  	if (use_sysenter > 0) {
-  		memcpy(syscall32_page, syscall32_sysenter,
-  		       syscall32_sysenter_end - syscall32_sysenter);
-diff -puN include/asm-x86_64/proto.h~x86_64-ia32-vdso-use-install_special_mapping include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~x86_64-ia32-vdso-use-install_special_mapping
-+++ a/include/asm-x86_64/proto.h
-@@ -81,7 +81,6 @@ extern void swap_low_mappings(void);
- extern void __show_regs(struct pt_regs * regs);
- extern void show_regs(struct pt_regs * regs);
- 
--extern char *syscall32_page;
- extern void syscall32_cpu_init(void);
- 
- extern void setup_node_bootmem(int nodeid, unsigned long start, unsigned long end);
+ 	drm_free(entry, sizeof(*entry), DRM_MEM_MM);
+ }
+-
+-EXPORT_SYMBOL(drm_mm_takedown);
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+ifdef-acpi_future_usage-acpi_os_readable.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+git-libata-all.patch
+mips-remove-smp_tune_scheduling.patch
+git-mtd.patch
+git-ubi.patch
+net-uninline-skb_put-fix.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+debug-shared-irqs-kconfig-fix.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+add-debugging-feature-proc-timer_stat-cleanup.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+remove-the-broken-fb_s3trio-driver.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
