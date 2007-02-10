@@ -1,290 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - mips-pmagb-b-fb-convert-to-the-driver-model.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:26:17 -0800
-Message-ID: <200702100526.l1A5QH9H004635@shell0.pdx.osdl.net>
+Subject: - mtd_ck804xrom-must-depend-on-pci.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:26:31 -0800
+Message-ID: <200702100526.l1A5QV7G004641@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36962 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36963 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752946AbXBJFaM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1752947AbXBJFaM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Sat, 10 Feb 2007 00:30:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: macro@linux-mips.org, adaplas@pol.net, jsimmons@infradead.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, dwmw2@infradead.org, rjackson@lnxi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: pmagb-b-fb: Convert to the driver model
+     MTD_CK804XROM must depend on PCI
 has been removed from the -mm tree.  Its filename was
-     mips-pmagb-b-fb-convert-to-the-driver-model.patch
+     mtd_ck804xrom-must-depend-on-pci.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mips: pmagb-b-fb: Convert to the driver model
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: MTD_CK804XROM must depend on PCI
+From: Adrian Bunk <bunk@stusta.de>
 
-This is a set of changes to convert the driver to the driver model.  As a
-side-effect the driver now supports building as a module.
+CONFIG_MTD_CK804XROM=y, CONFIG_PCI=n results in the following compile
+error:
 
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: James Simmons <jsimmons@infradead.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+  CC      drivers/mtd/maps/ck804xrom.o
+/home/bunk/linux/kernel-2.6/linux-2.6.20-rc4-mm1/drivers/mtd/maps/ck804xrom.c: In function 'ck804xrom_init_one':
+/home/bunk/linux/kernel-2.6/linux-2.6.20-rc4-mm1/drivers/mtd/maps/ck804xrom.c:114: error: implicit declaration of function 'pci_dev_get'
+/home/bunk/linux/kernel-2.6/linux-2.6.20-rc4-mm1/drivers/mtd/maps/ck804xrom.c:114: warning: assignment makes pointer from integer without a cast
+make[4]: *** [drivers/mtd/maps/ck804xrom.o] Error 1
+
+Considering what hardware this driver is driving, a dependency on PCI
+also seems logical.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Ryan Jackson <rjackson@lnxi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig      |    4 -
- drivers/video/pmagb-b-fb.c |   98 ++++++++++++++++++++---------------
- 2 files changed, 58 insertions(+), 44 deletions(-)
+ drivers/mtd/maps/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/Kconfig~mips-pmagb-b-fb-convert-to-the-driver-model drivers/video/Kconfig
---- a/drivers/video/Kconfig~mips-pmagb-b-fb-convert-to-the-driver-model
-+++ a/drivers/video/Kconfig
-@@ -1454,8 +1454,8 @@ config FB_PMAG_BA
- 	  used mainly in the MIPS-based DECstation series.
+diff -puN drivers/mtd/maps/Kconfig~mtd_ck804xrom-must-depend-on-pci drivers/mtd/maps/Kconfig
+--- a/drivers/mtd/maps/Kconfig~mtd_ck804xrom-must-depend-on-pci
++++ a/drivers/mtd/maps/Kconfig
+@@ -204,7 +204,7 @@ config MTD_ESB2ROM
  
- config FB_PMAGB_B
--	bool "PMAGB-B TURBOchannel framebuffer support"
--	depends on (FB = y) && TC
-+	tristate "PMAGB-B TURBOchannel framebuffer support"
-+	depends on TC
-  	select FB_CFB_FILLRECT
-  	select FB_CFB_COPYAREA
-  	select FB_CFB_IMAGEBLIT
-diff -puN drivers/video/pmagb-b-fb.c~mips-pmagb-b-fb-convert-to-the-driver-model drivers/video/pmagb-b-fb.c
---- a/drivers/video/pmagb-b-fb.c~mips-pmagb-b-fb-convert-to-the-driver-model
-+++ a/drivers/video/pmagb-b-fb.c
-@@ -11,7 +11,7 @@
-  *	Michael Engel <engel@unix-ag.org>,
-  *	Karsten Merker <merker@linuxtag.org> and
-  *	Harald Koerfgen.
-- *	Copyright (c) 2005  Maciej W. Rozycki
-+ *	Copyright (c) 2005, 2006  Maciej W. Rozycki
-  *
-  *	This file is subject to the terms and conditions of the GNU General
-  *	Public License.  See the file COPYING in the main directory of this
-@@ -25,18 +25,16 @@
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/tc.h>
- #include <linux/types.h>
- 
- #include <asm/io.h>
- #include <asm/system.h>
- 
--#include <asm/dec/tc.h>
--
- #include <video/pmagb-b-fb.h>
- 
- 
- struct pmagbbfb_par {
--	struct fb_info *next;
- 	volatile void __iomem *mmio;
- 	volatile void __iomem *smem;
- 	volatile u32 __iomem *sfb;
-@@ -47,8 +45,6 @@ struct pmagbbfb_par {
- };
- 
- 
--static struct fb_info *root_pmagbbfb_dev;
--
- static struct fb_var_screeninfo pmagbbfb_defined __initdata = {
- 	.bits_per_pixel	= 8,
- 	.red.length	= 8,
-@@ -190,8 +186,9 @@ static void __init pmagbbfb_osc_setup(st
- 		69197, 66000, 65000, 50350, 36000, 32000, 25175
- 	};
- 	struct pmagbbfb_par *par = info->par;
-+	struct tc_bus *tbus = to_tc_dev(info->device)->bus;
- 	u32 count0 = 8, count1 = 8, counttc = 16 * 256 + 8;
--	u32 freq0, freq1, freqtc = get_tc_speed() / 250;
-+	u32 freq0, freq1, freqtc = tc_get_speed(tbus) / 250;
- 	int i, j;
- 
- 	gp0_write(par, 0);				/* select Osc0 */
-@@ -249,26 +246,21 @@ static void __init pmagbbfb_osc_setup(st
- };
- 
- 
--static int __init pmagbbfb_init_one(int slot)
-+static int __init pmagbbfb_probe(struct device *dev)
- {
--	char freq0[12], freq1[12];
-+	struct tc_dev *tdev = to_tc_dev(dev);
-+	resource_size_t start, len;
- 	struct fb_info *info;
- 	struct pmagbbfb_par *par;
--	unsigned long base_addr;
-+	char freq0[12], freq1[12];
- 	u32 vid_base;
- 
--	info = framebuffer_alloc(sizeof(struct pmagbbfb_par), NULL);
-+	info = framebuffer_alloc(sizeof(struct pmagbbfb_par), dev);
- 	if (!info)
- 		return -ENOMEM;
- 
- 	par = info->par;
--	par->slot = slot;
--	claim_tc_card(par->slot);
--
--	base_addr = get_tc_base_addr(par->slot);
--
--	par->next = root_pmagbbfb_dev;
--	root_pmagbbfb_dev = info;
-+	dev_set_drvdata(dev, info);
- 
- 	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0)
- 		goto err_alloc;
-@@ -278,16 +270,22 @@ static int __init pmagbbfb_init_one(int 
- 	info->var = pmagbbfb_defined;
- 	info->flags = FBINFO_DEFAULT;
- 
-+	/* Request the I/O MEM resource.  */
-+	start = tdev->resource.start;
-+	len = tdev->resource.end - start + 1;
-+	if (!request_mem_region(start, len, dev->bus_id))
-+		goto err_cmap;
-+
- 	/* MMIO mapping setup.  */
--	info->fix.mmio_start = base_addr;
-+	info->fix.mmio_start = start;
- 	par->mmio = ioremap_nocache(info->fix.mmio_start, info->fix.mmio_len);
- 	if (!par->mmio)
--		goto err_cmap;
-+		goto err_resource;
- 	par->sfb = par->mmio + PMAGB_B_SFB;
- 	par->dac = par->mmio + PMAGB_B_BT459;
- 
- 	/* Frame buffer mapping setup.  */
--	info->fix.smem_start = base_addr + PMAGB_B_FBMEM;
-+	info->fix.smem_start = start + PMAGB_B_FBMEM;
- 	par->smem = ioremap_nocache(info->fix.smem_start, info->fix.smem_len);
- 	if (!par->smem)
- 		goto err_mmio_map;
-@@ -302,13 +300,15 @@ static int __init pmagbbfb_init_one(int 
- 	if (register_framebuffer(info) < 0)
- 		goto err_smem_map;
- 
-+	get_device(dev);
-+
- 	snprintf(freq0, sizeof(freq0), "%u.%03uMHz",
- 		 par->osc0 / 1000, par->osc0 % 1000);
- 	snprintf(freq1, sizeof(freq1), "%u.%03uMHz",
- 		 par->osc1 / 1000, par->osc1 % 1000);
- 
--	pr_info("fb%d: %s frame buffer device in slot %d\n",
--		info->node, info->fix.id, par->slot);
-+	pr_info("fb%d: %s frame buffer device at %s\n",
-+		info->node, info->fix.id, dev->bus_id);
- 	pr_info("fb%d: Osc0: %s, Osc1: %s, Osc%u selected\n",
- 		info->node, freq0, par->osc1 ? freq1 : "disabled",
- 		par->osc1 != 0);
-@@ -322,54 +322,68 @@ err_smem_map:
- err_mmio_map:
- 	iounmap(par->mmio);
- 
-+err_resource:
-+	release_mem_region(start, len);
-+
- err_cmap:
- 	fb_dealloc_cmap(&info->cmap);
- 
- err_alloc:
--	root_pmagbbfb_dev = par->next;
--	release_tc_card(par->slot);
- 	framebuffer_release(info);
- 	return -ENXIO;
- }
- 
--static void __exit pmagbbfb_exit_one(void)
-+static int __exit pmagbbfb_remove(struct device *dev)
- {
--	struct fb_info *info = root_pmagbbfb_dev;
-+	struct tc_dev *tdev = to_tc_dev(dev);
-+	struct fb_info *info = dev_get_drvdata(dev);
- 	struct pmagbbfb_par *par = info->par;
-+	resource_size_t start, len;
- 
-+	put_device(dev);
- 	unregister_framebuffer(info);
- 	iounmap(par->smem);
- 	iounmap(par->mmio);
-+	start = tdev->resource.start;
-+	len = tdev->resource.end - start + 1;
-+	release_mem_region(start, len);
- 	fb_dealloc_cmap(&info->cmap);
--	root_pmagbbfb_dev = par->next;
--	release_tc_card(par->slot);
- 	framebuffer_release(info);
-+	return 0;
- }
- 
- 
- /*
-- * Initialise the framebuffer.
-+ * Initialize the framebuffer.
-  */
-+static const struct tc_device_id pmagbbfb_tc_table[] = {
-+	{ "DEC     ", "PMAGB-BA" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(tc, pmagbbfb_tc_table);
-+
-+static struct tc_driver pmagbbfb_driver = {
-+	.id_table	= pmagbbfb_tc_table,
-+	.driver		= {
-+		.name	= "pmagbbfb",
-+		.bus	= &tc_bus_type,
-+		.probe	= pmagbbfb_probe,
-+		.remove	= __exit_p(pmagbbfb_remove),
-+	},
-+};
-+
- static int __init pmagbbfb_init(void)
- {
--	int count = 0;
--	int slot;
--
-+#ifndef MODULE
- 	if (fb_get_options("pmagbbfb", NULL))
- 		return -ENXIO;
--
--	while ((slot = search_tc_card("PMAGB-BA")) >= 0) {
--		if (pmagbbfb_init_one(slot) < 0)
--			break;
--		count++;
--	}
--	return (count > 0) ? 0 : -ENXIO;
-+#endif
-+	return tc_register_driver(&pmagbbfb_driver);
- }
- 
- static void __exit pmagbbfb_exit(void)
- {
--	while (root_pmagbbfb_dev)
--		pmagbbfb_exit_one();
-+	tc_unregister_driver(&pmagbbfb_driver);
- }
- 
- 
+ config MTD_CK804XROM
+ 	tristate "BIOS flash chip on Nvidia CK804"
+-	depends on X86 && MTD_JEDECPROBE
++	depends on X86 && MTD_JEDECPROBE && PCI
+ 	help
+ 	  Support for treating the BIOS flash chip on nvidia motherboards
+ 	  as an MTD device - with this you can reprogram your BIOS.
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-tgafb-switch-to-framebuffer_alloc.patch
-tgafb-fix-copying-overlapping-areas.patch
-tgafb-support-the-directcolor-visual.patch
-tgafb-fix-the-mode-register-setting.patch
-tgafb-module-support-fixes.patch
-tgafb-sync-on-green-support-fixes.patch
-tgafb-fix-the-pci-id-table.patch
+ifdef-acpi_future_usage-acpi_os_readable.patch
+cpu_freq_table-shouldnt-be-a-def_tristate.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+git-libata-all.patch
+mips-remove-smp_tune_scheduling.patch
+git-mtd.patch
+git-ubi.patch
+net-uninline-skb_put-fix.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+debug-shared-irqs-kconfig-fix.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+add-debugging-feature-proc-timer_stat-cleanup.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+remove-the-broken-fb_s3trio-driver.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
