@@ -1,62 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - r8169-warning-fixes.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:26:59 -0800
-Message-ID: <200702100527.l1A5Qxo0004656@shell0.pdx.osdl.net>
+Subject: - git-block-fixup.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:27:05 -0800
+Message-ID: <200702100527.l1A5R590004659@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36819 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36818 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752933AbXBJF1L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:27:11 -0500
+	id S1752930AbXBJF1K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:27:10 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1A5R8UI030315
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 9 Feb 2007 21:27:09 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, romieu@fr.zoreil.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r8169 warning fixes
+     git-block-fixup
 has been removed from the -mm tree.  Its filename was
-     r8169-warning-fixes.patch
+     git-block-fixup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: r8169 warning fixes
+Subject: git-block-fixup
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/net/r8169.c: In function 'rtl8169_alloc_rx_skb':
-drivers/net/r8169.c:2019: warning: cast from pointer to integer of different size
-drivers/net/r8169.c: In function 'rtl8169_try_rx_copy':
-drivers/net/r8169.c:2490: warning: cast from pointer to integer of different size
-
-Cc: Francois Romieu <romieu@fr.zoreil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/r8169.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN drivers/net/r8169.c~r8169-warning-fixes drivers/net/r8169.c
---- a/drivers/net/r8169.c~r8169-warning-fixes
-+++ a/drivers/net/r8169.c
-@@ -2016,7 +2016,7 @@ static int rtl8169_alloc_rx_skb(struct p
- 	if (!skb)
- 		goto err_out;
+diff -puN fs/ocfs2/cluster/heartbeat.c~git-block-fixup fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~git-block-fixup
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -208,14 +208,8 @@ static inline void o2hb_bio_wait_dec(str
+ static void o2hb_wait_on_io(struct o2hb_region *reg,
+ 			    struct o2hb_bio_wait_ctxt *wc)
+ {
+-<<<<<<< HEAD/fs/ocfs2/cluster/heartbeat.c
+-	struct address_space *mapping = reg->hr_bdev->bd_inode->i_mapping;
+-
+-	blk_run_address_space(mapping);
+-	o2hb_bio_wait_dec(wc, 1);
+-=======
+ 	blk_replug_current_nested();
+->>>>>>> /fs/ocfs2/cluster/heartbeat.c
++	o2hb_bio_wait_dec(wc, 1);
  
--	skb_reserve(skb, (align - 1) & (u32)skb->data);
-+	skb_reserve(skb, (align - 1) & (long)skb->data);
- 	*sk_buff = skb;
- 
- 	mapping = pci_map_single(pdev, skb->data, rx_buf_sz,
-@@ -2487,7 +2487,7 @@ static inline int rtl8169_try_rx_copy(st
- 
- 		skb = dev_alloc_skb(pkt_size + align);
- 		if (skb) {
--			skb_reserve(skb, (align - 1) & (u32)skb->data);
-+			skb_reserve(skb, (align - 1) & (long)skb->data);
- 			eth_copy_and_sum(skb, sk_buff[0]->data, pkt_size, 0);
- 			*sk_buff = skb;
- 			rtl8169_mark_to_asic(desc, rx_buf_sz);
+ 	wait_for_completion(&wc->wc_io_complete);
+ }
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
