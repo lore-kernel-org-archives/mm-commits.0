@@ -1,263 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - cxgb3-vs-gregkh-driver-network-device.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:20:32 -0800
-Message-ID: <200702100520.l1A5KW9K004453@shell0.pdx.osdl.net>
+Subject: - md-fix-various-bugs-with-aligned-reads-in-raid5.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:21:38 -0800
+Message-ID: <200702100521.l1A5LcWo004477@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36544 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36561 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753119AbXBJFVe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:21:34 -0500
+	id S1753125AbXBJFV7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:21:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: divy@chelsio.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, epimetreus@fastmail.fm, jens.axboe@oracle.com, org@suse.de, stable@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cxgb3: sysfs attributes in -mm tree
+     md: fix various bugs with aligned reads in RAID5
 has been removed from the -mm tree.  Its filename was
-     cxgb3-vs-gregkh-driver-network-device.patch
+     md-fix-various-bugs-with-aligned-reads-in-raid5.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cxgb3: sysfs attributes in -mm tree
-From: Divy Le Ray <divy@chelsio.com>
+Subject: md: fix various bugs with aligned reads in RAID5
+From: Neil Brown <neilb@suse.de>
 
-This patch fixes the usage of sysfs attributes in cxgb3 for the -mm tree.
-It is built against the driver commited in the -mm tree.
+It is possible for raid5 to be sent a bio that is too big for an underlying
+device.  So if it is a READ that we pass stright down to a device, it will
+fail and confuse RAID5.
 
-Signed-off-by: Divy Le Ray <divy@chelsio.com>
-Cc: Greg KH <greg@kroah.com>
+So in 'chunk_aligned_read' we check that the bio fits within the parameters
+for the target device and if it doesn't fit, fall back on reading through
+the stripe cache and making lots of one-page requests.
+
+Note that this is the earliest time we can check against the device because
+earlier we don't have a lock on the device, so it could change underneath
+us.
+
+Also, the code for handling a retry through the cache when a read fails has
+not been tested and was badly broken.  This patch fixes that code.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: "Kai" <epimetreus@fastmail.fm>
+Cc: <stable@suse.de>
+Cc: <org@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_main.c |   86 ++++++++++++++++---------------
- 1 file changed, 45 insertions(+), 41 deletions(-)
+ block/ll_rw_blk.c  |    2 +-
+ drivers/md/raid5.c |   42 +++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 40 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-vs-gregkh-driver-network-device drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-vs-gregkh-driver-network-device
-+++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -74,8 +74,6 @@ enum {
- 
- #define EEPROM_MAGIC 0x38E2F10C
- 
--#define to_net_dev(class) container_of(class, struct net_device, class_dev)
+diff -puN block/ll_rw_blk.c~md-fix-various-bugs-with-aligned-reads-in-raid5 block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~md-fix-various-bugs-with-aligned-reads-in-raid5
++++ a/block/ll_rw_blk.c
+@@ -1264,7 +1264,7 @@ new_hw_segment:
+ 	bio->bi_hw_segments = nr_hw_segs;
+ 	bio->bi_flags |= (1 << BIO_SEG_VALID);
+ }
 -
- #define CH_DEVICE(devid, ssid, idx) \
- 	{ PCI_VENDOR_ID_CHELSIO, devid, PCI_ANY_ID, ssid, 0, 0, idx }
++EXPORT_SYMBOL(blk_recount_segments);
  
-@@ -434,11 +432,12 @@ static int setup_sge_qsets(struct adapte
+ static int blk_phys_contig_segment(request_queue_t *q, struct bio *bio,
+ 				   struct bio *nxt)
+diff -puN drivers/md/raid5.c~md-fix-various-bugs-with-aligned-reads-in-raid5 drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-fix-various-bugs-with-aligned-reads-in-raid5
++++ a/drivers/md/raid5.c
+@@ -2620,7 +2620,7 @@ static struct bio *remove_bio_from_retry
+ 	}
+ 	bi = conf->retry_read_aligned_list;
+ 	if(bi) {
+-		conf->retry_read_aligned = bi->bi_next;
++		conf->retry_read_aligned_list = bi->bi_next;
+ 		bi->bi_next = NULL;
+ 		bi->bi_phys_segments = 1; /* biased count of active stripes */
+ 		bi->bi_hw_segments = 0; /* count of processed stripes */
+@@ -2669,6 +2669,27 @@ static int raid5_align_endio(struct bio 
  	return 0;
  }
  
--static ssize_t attr_show(struct class_device *cd, char *buf,
-+static ssize_t attr_show(struct device *d, struct device_attribute *attr,
-+			 char *buf,
- 			 ssize_t(*format) (struct adapter *, char *))
++static int bio_fits_rdev(struct bio *bi)
++{
++	request_queue_t *q = bdev_get_queue(bi->bi_bdev);
++
++	if ((bi->bi_size>>9) > q->max_sectors)
++		return 0;
++	blk_recount_segments(q, bi);
++	if (bi->bi_phys_segments > q->max_phys_segments ||
++	    bi->bi_hw_segments > q->max_hw_segments)
++		return 0;
++
++	if (q->merge_bvec_fn)
++		/* it's too hard to apply the merge_bvec_fn at this stage,
++		 * just just give up
++		 */
++		return 0;
++
++	return 1;
++}
++
++
+ static int chunk_aligned_read(request_queue_t *q, struct bio * raid_bio)
  {
- 	ssize_t len;
--	struct adapter *adap = to_net_dev(cd)->priv;
-+	struct adapter *adap = to_net_dev(d)->priv;
+ 	mddev_t *mddev = q->queuedata;
+@@ -2715,6 +2736,13 @@ static int chunk_aligned_read(request_qu
+ 		align_bi->bi_flags &= ~(1 << BIO_SEG_VALID);
+ 		align_bi->bi_sector += rdev->data_offset;
  
- 	/* Synchronize with ioctls that may shut down the device */
- 	rtnl_lock();
-@@ -447,14 +446,15 @@ static ssize_t attr_show(struct class_de
- 	return len;
- }
++		if (!bio_fits_rdev(align_bi)) {
++			/* too big in some way */
++			bio_put(align_bi);
++			rdev_dec_pending(rdev, mddev);
++			return 0;
++		}
++
+ 		spin_lock_irq(&conf->device_lock);
+ 		wait_event_lock_irq(conf->wait_for_stripe,
+ 				    conf->quiesce == 0,
+@@ -3107,7 +3135,9 @@ static int  retry_aligned_read(raid5_con
+ 	last_sector = raid_bio->bi_sector + (raid_bio->bi_size>>9);
  
--static ssize_t attr_store(struct class_device *cd, const char *buf, size_t len,
-+static ssize_t attr_store(struct device *d, struct device_attribute *attr,
-+			  const char *buf, size_t len,
- 			  ssize_t(*set) (struct adapter *, unsigned int),
- 			  unsigned int min_val, unsigned int max_val)
- {
- 	char *endp;
- 	ssize_t ret;
- 	unsigned int val;
--	struct adapter *adap = to_net_dev(cd)->priv;
-+	struct adapter *adap = to_net_dev(d)->priv;
+ 	for (; logical_sector < last_sector;
+-	     logical_sector += STRIPE_SECTORS, scnt++) {
++	     logical_sector += STRIPE_SECTORS,
++		     sector += STRIPE_SECTORS,
++		     scnt++) {
  
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EPERM;
-@@ -476,9 +476,10 @@ static ssize_t format_##name(struct adap
- { \
- 	return sprintf(buf, "%u\n", val_expr); \
- } \
--static ssize_t show_##name(struct class_device *cd, char *buf) \
-+static ssize_t show_##name(struct device *d, struct device_attribute *attr, \
-+			   char *buf) \
- { \
--	return attr_show(cd, buf, format_##name); \
-+	return attr_show(d, attr, buf, format_##name); \
- }
+ 		if (scnt < raid_bio->bi_hw_segments)
+ 			/* already done this stripe */
+@@ -3123,7 +3153,13 @@ static int  retry_aligned_read(raid5_con
+ 		}
  
- static ssize_t set_nfilters(struct adapter *adap, unsigned int val)
-@@ -493,10 +494,10 @@ static ssize_t set_nfilters(struct adapt
- 	return 0;
- }
- 
--static ssize_t store_nfilters(struct class_device *cd, const char *buf,
--			      size_t len)
-+static ssize_t store_nfilters(struct device *d, struct device_attribute *attr,
-+			      const char *buf, size_t len)
- {
--	return attr_store(cd, buf, len, set_nfilters, 0, ~0);
-+	return attr_store(d, attr, buf, len, set_nfilters, 0, ~0);
- }
- 
- static ssize_t set_nservers(struct adapter *adap, unsigned int val)
-@@ -509,38 +510,39 @@ static ssize_t set_nservers(struct adapt
- 	return 0;
- }
- 
--static ssize_t store_nservers(struct class_device *cd, const char *buf,
--			      size_t len)
-+static ssize_t store_nservers(struct device *d, struct device_attribute *attr,
-+			      const char *buf, size_t len)
- {
--	return attr_store(cd, buf, len, set_nservers, 0, ~0);
-+	return attr_store(d, attr, buf, len, set_nservers, 0, ~0);
- }
- 
- #define CXGB3_ATTR_R(name, val_expr) \
- CXGB3_SHOW(name, val_expr) \
--static CLASS_DEVICE_ATTR(name, S_IRUGO, show_##name, NULL)
-+static DEVICE_ATTR(name, S_IRUGO, show_##name, NULL)
- 
- #define CXGB3_ATTR_RW(name, val_expr, store_method) \
- CXGB3_SHOW(name, val_expr) \
--static CLASS_DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_method)
-+static DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_method)
- 
- CXGB3_ATTR_R(cam_size, t3_mc5_size(&adap->mc5));
- CXGB3_ATTR_RW(nfilters, adap->params.mc5.nfilters, store_nfilters);
- CXGB3_ATTR_RW(nservers, adap->params.mc5.nservers, store_nservers);
- 
- static struct attribute *cxgb3_attrs[] = {
--	&class_device_attr_cam_size.attr,
--	&class_device_attr_nfilters.attr,
--	&class_device_attr_nservers.attr,
-+	&dev_attr_cam_size.attr,
-+	&dev_attr_nfilters.attr,
-+	&dev_attr_nservers.attr,
- 	NULL
- };
- 
- static struct attribute_group cxgb3_attr_group = {.attrs = cxgb3_attrs };
- 
--static ssize_t tm_attr_show(struct class_device *cd, char *buf, int sched)
-+static ssize_t tm_attr_show(struct device *d, struct device_attribute *attr,
-+			    char *buf, int sched)
- {
- 	ssize_t len;
- 	unsigned int v, addr, bpt, cpt;
--	struct adapter *adap = to_net_dev(cd)->priv;
-+	struct adapter *adap = to_net_dev(d)->priv;
- 
- 	addr = A_TP_TX_MOD_Q1_Q0_RATE_LIMIT - sched / 2;
- 	rtnl_lock();
-@@ -560,13 +562,13 @@ static ssize_t tm_attr_show(struct class
- 	return len;
- }
- 
--static ssize_t tm_attr_store(struct class_device *cd, const char *buf,
--			     size_t len, int sched)
-+static ssize_t tm_attr_store(struct device *d, struct device_attribute *attr,
-+			     const char *buf, size_t len, int sched)
- {
- 	char *endp;
- 	ssize_t ret;
- 	unsigned int val;
--	struct adapter *adap = to_net_dev(cd)->priv;
-+	struct adapter *adap = to_net_dev(d)->priv;
- 
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EPERM;
-@@ -584,15 +586,17 @@ static ssize_t tm_attr_store(struct clas
- }
- 
- #define TM_ATTR(name, sched) \
--static ssize_t show_##name(struct class_device *cd, char *buf) \
-+static ssize_t show_##name(struct device *d, struct device_attribute *attr, \
-+			   char *buf) \
- { \
--	return tm_attr_show(cd, buf, sched); \
-+	return tm_attr_show(d, attr, buf, sched); \
- } \
--static ssize_t store_##name(struct class_device *cd, const char *buf, size_t len) \
-+static ssize_t store_##name(struct device *d, struct device_attribute *attr, \
-+			    const char *buf, size_t len) \
- { \
--	return tm_attr_store(cd, buf, len, sched); \
-+	return tm_attr_store(d, attr, buf, len, sched); \
- } \
--static CLASS_DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_##name)
-+static DEVICE_ATTR(name, S_IRUGO | S_IWUSR, show_##name, store_##name)
- 
- TM_ATTR(sched0, 0);
- TM_ATTR(sched1, 1);
-@@ -604,14 +608,14 @@ TM_ATTR(sched6, 6);
- TM_ATTR(sched7, 7);
- 
- static struct attribute *offload_attrs[] = {
--	&class_device_attr_sched0.attr,
--	&class_device_attr_sched1.attr,
--	&class_device_attr_sched2.attr,
--	&class_device_attr_sched3.attr,
--	&class_device_attr_sched4.attr,
--	&class_device_attr_sched5.attr,
--	&class_device_attr_sched6.attr,
--	&class_device_attr_sched7.attr,
-+	&dev_attr_sched0.attr,
-+	&dev_attr_sched1.attr,
-+	&dev_attr_sched2.attr,
-+	&dev_attr_sched3.attr,
-+	&dev_attr_sched4.attr,
-+	&dev_attr_sched5.attr,
-+	&dev_attr_sched6.attr,
-+	&dev_attr_sched7.attr,
- 	NULL
- };
- 
-@@ -836,7 +840,7 @@ static int offload_open(struct net_devic
- 	init_smt(adapter);
- 
- 	/* Never mind if the next step fails */
--	sysfs_create_group(&tdev->lldev->class_dev.kobj, &offload_attr_group);
-+	sysfs_create_group(&tdev->lldev->dev.kobj, &offload_attr_group);
- 
- 	/* Call back all registered clients */
- 	cxgb3_add_clients(tdev);
-@@ -861,7 +865,7 @@ static int offload_close(struct t3cdev *
- 	/* Call back all registered clients */
- 	cxgb3_remove_clients(tdev);
- 
--	sysfs_remove_group(&tdev->lldev->class_dev.kobj, &offload_attr_group);
-+	sysfs_remove_group(&tdev->lldev->dev.kobj, &offload_attr_group);
- 
- 	tdev->lldev = NULL;
- 	cxgb3_set_dummy_ops(tdev);
-@@ -2420,7 +2424,7 @@ static int __devinit init_one(struct pci
- 	else if (msi > 0 && pci_enable_msi(pdev) == 0)
- 		adapter->flags |= USING_MSI;
- 
--	err = sysfs_create_group(&adapter->port[0]->class_dev.kobj,
-+	err = sysfs_create_group(&adapter->port[0]->dev.kobj,
- 				 &cxgb3_attr_group);
- 
- 	print_port_info(adapter, ai);
-@@ -2452,7 +2456,7 @@ static void __devexit remove_one(struct 
- 		struct adapter *adapter = dev->priv;
- 
- 		t3_sge_stop(adapter);
--		sysfs_remove_group(&adapter->port[0]->class_dev.kobj,
-+		sysfs_remove_group(&adapter->port[0]->dev.kobj,
- 				   &cxgb3_attr_group);
- 
- 		for_each_port(adapter, i)
+ 		set_bit(R5_ReadError, &sh->dev[dd_idx].flags);
+-		add_stripe_bio(sh, raid_bio, dd_idx, 0);
++		if (!add_stripe_bio(sh, raid_bio, dd_idx, 0)) {
++			release_stripe(sh);
++			raid_bio->bi_hw_segments = scnt;
++			conf->retry_read_aligned = raid_bio;
++			return handled;
++		}
++
+ 		handle_stripe(sh, NULL);
+ 		release_stripe(sh);
+ 		handled++;
 _
 
-Patches currently in -mm which might be from divy@chelsio.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+igrab-should-check-for-i_clear.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+replace-highest_possible_node_id-with-nr_node_ids-fix.patch
+convert-highest_possible_processor_id-to-nr_cpu_ids.patch
+fix-d_path-for-lazy-unmounts.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-aplit-svc_sock_enqueue-out-of-svc_setup_socket.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
+knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
+knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
+knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
+knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
