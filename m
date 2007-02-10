@@ -1,203 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - ufs-restore-back-support-of-openstep.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:21:09 -0800
-Message-ID: <200702100521.l1A5L9LZ004467@shell0.pdx.osdl.net>
+Subject: - add-install_special_mapping.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:22:24 -0800
+Message-ID: <200702100522.l1A5MOPi004495@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36587 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36612 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753129AbXBJFWg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:22:36 -0500
+	id S1753133AbXBJFXD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:23:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dushistov@mail.ru, stable@kernel.org, mm-commits@vger.kernel.org
+To: roland@redhat.com, ak@suse.de, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs: restore back support of openstep
+     Add install_special_mapping
 has been removed from the -mm tree.  Its filename was
-     ufs-restore-back-support-of-openstep.patch
+     add-install_special_mapping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ufs: restore back support of openstep
-From: Evgeniy Dushistov <dushistov@mail.ru>
+Subject: Add install_special_mapping
+From: Roland McGrath <roland@redhat.com>
 
-This is a fix of regression, which triggered by ~2.6.16.
+This patch adds a utility function install_special_mapping, for creating a
+special vma using a fixed set of preallocated pages as backing, such as for a
+vDSO.  This consolidates some nearly identical code used for vDSO mapping
+reimplemented for different architectures.
 
-Patch with name ufs-directory-and-page-cache-from-blocks-to-pages.patch: in
-additional to conversation from block to page cache mechanism added new
-checks of directory integrity, one of them that directory entry do not
-across directory chunks.
-
-But some kinds of UFS: OpenStep UFS and Apple UFS (looks like these are the
-same filesystems) have different directory chunk size, then common
-UFSes(BSD and Solaris UFS).
-
-So this patch adds ability to works with variable size of directory chunks,
-and set it for ufstype=openstep to right size.
-
-Tested on darwin ufs.
-
-Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: <stable@kernel.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/dir.c           |   21 ++++++++++++---------
- fs/ufs/super.c         |    5 ++++-
- include/linux/ufs_fs.h |    1 +
- 3 files changed, 17 insertions(+), 10 deletions(-)
+ include/linux/mm.h |    3 +
+ mm/mmap.c          |   72 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 75 insertions(+)
 
-diff -puN fs/ufs/dir.c~ufs-restore-back-support-of-openstep fs/ufs/dir.c
---- a/fs/ufs/dir.c~ufs-restore-back-support-of-openstep
-+++ a/fs/ufs/dir.c
-@@ -106,12 +106,13 @@ static void ufs_check_page(struct page *
- 	char *kaddr = page_address(page);
- 	unsigned offs, rec_len;
- 	unsigned limit = PAGE_CACHE_SIZE;
-+	const unsigned chunk_mask = UFS_SB(sb)->s_uspi->s_dirblksize - 1;
- 	struct ufs_dir_entry *p;
- 	char *error;
+diff -puN include/linux/mm.h~add-install_special_mapping include/linux/mm.h
+--- a/include/linux/mm.h~add-install_special_mapping
++++ a/include/linux/mm.h
+@@ -1030,6 +1030,9 @@ extern struct vm_area_struct *copy_vma(s
+ 	unsigned long addr, unsigned long len, pgoff_t pgoff);
+ extern void exit_mmap(struct mm_struct *);
+ extern int may_expand_vm(struct mm_struct *mm, unsigned long npages);
++extern int install_special_mapping(struct mm_struct *mm,
++				   unsigned long addr, unsigned long len,
++				   unsigned long flags, struct page **pages);
  
- 	if ((dir->i_size >> PAGE_CACHE_SHIFT) == page->index) {
- 		limit = dir->i_size & ~PAGE_CACHE_MASK;
--		if (limit & (UFS_SECTOR_SIZE - 1))
-+		if (limit & chunk_mask)
- 			goto Ebadsize;
- 		if (!limit)
- 			goto out;
-@@ -126,7 +127,7 @@ static void ufs_check_page(struct page *
- 			goto Ealign;
- 		if (rec_len < UFS_DIR_REC_LEN(ufs_get_de_namlen(sb, p)))
- 			goto Enamelen;
--		if (((offs + rec_len - 1) ^ offs) & ~(UFS_SECTOR_SIZE-1))
-+		if (((offs + rec_len - 1) ^ offs) & ~chunk_mask)
- 			goto Espan;
- 		if (fs32_to_cpu(sb, p->d_ino) > (UFS_SB(sb)->s_uspi->s_ipg *
- 						  UFS_SB(sb)->s_uspi->s_ncg))
-@@ -310,6 +311,7 @@ int ufs_add_link(struct dentry *dentry, 
- 	int namelen = dentry->d_name.len;
- 	struct super_block *sb = dir->i_sb;
- 	unsigned reclen = UFS_DIR_REC_LEN(namelen);
-+	const unsigned int chunk_size = UFS_SB(sb)->s_uspi->s_dirblksize;
- 	unsigned short rec_len, name_len;
- 	struct page *page = NULL;
- 	struct ufs_dir_entry *de;
-@@ -342,8 +344,8 @@ int ufs_add_link(struct dentry *dentry, 
- 			if ((char *)de == dir_end) {
- 				/* We hit i_size */
- 				name_len = 0;
--				rec_len = UFS_SECTOR_SIZE;
--				de->d_reclen = cpu_to_fs16(sb, UFS_SECTOR_SIZE);
-+				rec_len = chunk_size;
-+				de->d_reclen = cpu_to_fs16(sb, chunk_size);
- 				de->d_ino = 0;
- 				goto got_it;
- 			}
-@@ -431,7 +433,7 @@ ufs_readdir(struct file *filp, void *dir
- 	unsigned int offset = pos & ~PAGE_CACHE_MASK;
- 	unsigned long n = pos >> PAGE_CACHE_SHIFT;
- 	unsigned long npages = ufs_dir_pages(inode);
--	unsigned chunk_mask = ~(UFS_SECTOR_SIZE - 1);
-+	unsigned chunk_mask = ~(UFS_SB(sb)->s_uspi->s_dirblksize - 1);
- 	int need_revalidate = filp->f_version != inode->i_version;
- 	unsigned flags = UFS_SB(sb)->s_flags;
+ extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
  
-@@ -511,7 +513,7 @@ int ufs_delete_entry(struct inode *inode
- 	struct super_block *sb = inode->i_sb;
- 	struct address_space *mapping = page->mapping;
- 	char *kaddr = page_address(page);
--	unsigned from = ((char*)dir - kaddr) & ~(UFS_SECTOR_SIZE - 1);
-+	unsigned from = ((char*)dir - kaddr) & ~(UFS_SB(sb)->s_uspi->s_dirblksize - 1);
- 	unsigned to = ((char*)dir - kaddr) + fs16_to_cpu(sb, dir->d_reclen);
- 	struct ufs_dir_entry *pde = NULL;
- 	struct ufs_dir_entry *de = (struct ufs_dir_entry *) (kaddr + from);
-@@ -556,6 +558,7 @@ int ufs_make_empty(struct inode * inode,
- 	struct super_block * sb = dir->i_sb;
- 	struct address_space *mapping = inode->i_mapping;
- 	struct page *page = grab_cache_page(mapping, 0);
-+	const unsigned int chunk_size = UFS_SB(sb)->s_uspi->s_dirblksize;
- 	struct ufs_dir_entry * de;
- 	char *base;
- 	int err;
-@@ -563,7 +566,7 @@ int ufs_make_empty(struct inode * inode,
- 	if (!page)
- 		return -ENOMEM;
- 	kmap(page);
--	err = mapping->a_ops->prepare_write(NULL, page, 0, UFS_SECTOR_SIZE);
-+	err = mapping->a_ops->prepare_write(NULL, page, 0, chunk_size);
- 	if (err) {
- 		unlock_page(page);
- 		goto fail;
-@@ -584,11 +587,11 @@ int ufs_make_empty(struct inode * inode,
- 		((char *)de + fs16_to_cpu(sb, de->d_reclen));
- 	de->d_ino = cpu_to_fs32(sb, dir->i_ino);
- 	ufs_set_de_type(sb, de, dir->i_mode);
--	de->d_reclen = cpu_to_fs16(sb, UFS_SECTOR_SIZE - UFS_DIR_REC_LEN(1));
-+	de->d_reclen = cpu_to_fs16(sb, chunk_size - UFS_DIR_REC_LEN(1));
- 	ufs_set_de_namlen(sb, de, 2);
- 	strcpy (de->d_name, "..");
- 
--	err = ufs_commit_chunk(page, 0, UFS_SECTOR_SIZE);
-+	err = ufs_commit_chunk(page, 0, chunk_size);
- fail:
- 	kunmap(page);
- 	page_cache_release(page);
-diff -puN fs/ufs/super.c~ufs-restore-back-support-of-openstep fs/ufs/super.c
---- a/fs/ufs/super.c~ufs-restore-back-support-of-openstep
-+++ a/fs/ufs/super.c
-@@ -649,7 +649,7 @@ static int ufs_fill_super(struct super_b
- 		kmalloc (sizeof(struct ufs_sb_private_info), GFP_KERNEL);
- 	if (!uspi)
- 		goto failed;
--
-+	uspi->s_dirblksize = UFS_SECTOR_SIZE;
- 	super_block_offset=UFS_SBLOCK;
- 
- 	/* Keep 2Gig file limit. Some UFS variants need to override 
-@@ -718,6 +718,7 @@ static int ufs_fill_super(struct super_b
- 		break;
- 	
- 	case UFS_MOUNT_UFSTYPE_NEXTSTEP:
-+		/*TODO: check may be we need set special dir block size?*/
- 		UFSD("ufstype=nextstep\n");
- 		uspi->s_fsize = block_size = 1024;
- 		uspi->s_fmask = ~(1024 - 1);
-@@ -733,6 +734,7 @@ static int ufs_fill_super(struct super_b
- 		break;
- 	
- 	case UFS_MOUNT_UFSTYPE_NEXTSTEP_CD:
-+		/*TODO: check may be we need set special dir block size?*/
- 		UFSD("ufstype=nextstep-cd\n");
- 		uspi->s_fsize = block_size = 2048;
- 		uspi->s_fmask = ~(2048 - 1);
-@@ -754,6 +756,7 @@ static int ufs_fill_super(struct super_b
- 		uspi->s_fshift = 10;
- 		uspi->s_sbsize = super_block_size = 2048;
- 		uspi->s_sbbase = 0;
-+		uspi->s_dirblksize = 1024;
- 		flags |= UFS_DE_44BSD | UFS_UID_44BSD | UFS_ST_44BSD | UFS_CG_44BSD;
- 		if (!(sb->s_flags & MS_RDONLY)) {
- 			if (!silent)
-diff -puN include/linux/ufs_fs.h~ufs-restore-back-support-of-openstep include/linux/ufs_fs.h
---- a/include/linux/ufs_fs.h~ufs-restore-back-support-of-openstep
-+++ a/include/linux/ufs_fs.h
-@@ -789,6 +789,7 @@ struct ufs_sb_private_info {
- 
- 	__u32	s_maxsymlinklen;/* upper limit on fast symlinks' size */
- 	__s32	fs_magic;       /* filesystem magic */
-+	unsigned int s_dirblksize;
- };
- 
- /*
+diff -puN mm/mmap.c~add-install_special_mapping mm/mmap.c
+--- a/mm/mmap.c~add-install_special_mapping
++++ a/mm/mmap.c
+@@ -2101,3 +2101,75 @@ int may_expand_vm(struct mm_struct *mm, 
+ 		return 0;
+ 	return 1;
+ }
++
++
++static struct page *special_mapping_nopage(struct vm_area_struct *vma,
++					   unsigned long address, int *type)
++{
++	struct page **pages;
++
++	BUG_ON(address < vma->vm_start || address >= vma->vm_end);
++
++	address -= vma->vm_start;
++	for (pages = vma->vm_private_data; address > 0 && *pages; ++pages)
++		address -= PAGE_SIZE;
++
++	if (*pages) {
++		struct page *page = *pages;
++		get_page(page);
++		return page;
++	}
++
++	return NOPAGE_SIGBUS;
++}
++
++/*
++ * Having a close hook prevents vma merging regardless of flags.
++ */
++static void special_mapping_close(struct vm_area_struct *vma)
++{
++}
++
++static struct vm_operations_struct special_mapping_vmops = {
++	.close = special_mapping_close,
++	.nopage	= special_mapping_nopage,
++};
++
++/*
++ * Called with mm->mmap_sem held for writing.
++ * Insert a new vma covering the given region, with the given flags.
++ * Its pages are supplied by the given array of struct page *.
++ * The array can be shorter than len >> PAGE_SHIFT if it's null-terminated.
++ * The region past the last page supplied will always produce SIGBUS.
++ * The array pointer and the pages it points to are assumed to stay alive
++ * for as long as this mapping might exist.
++ */
++int install_special_mapping(struct mm_struct *mm,
++			    unsigned long addr, unsigned long len,
++			    unsigned long vm_flags, struct page **pages)
++{
++	struct vm_area_struct *vma;
++
++	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
++	if (unlikely(vma == NULL))
++		return -ENOMEM;
++
++	vma->vm_mm = mm;
++	vma->vm_start = addr;
++	vma->vm_end = addr + len;
++
++	vma->vm_flags = vm_flags | mm->def_flags;
++	vma->vm_page_prot = protection_map[vma->vm_flags & 7];
++
++	vma->vm_ops = &special_mapping_vmops;
++	vma->vm_private_data = pages;
++
++	if (unlikely(insert_vm_struct(mm, vma))) {
++		kmem_cache_free(vm_area_cachep, vma);
++		return -ENOMEM;
++	}
++
++	mm->total_vm += len >> PAGE_SHIFT;
++
++	return 0;
++}
 _
 
-Patches currently in -mm which might be from dushistov@mail.ru are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-export-ufs_fsh-to-userspace.patch
-ufs2-write-mount-as-rw.patch
-ufs2-write-inodes-write.patch
-ufs2-write-block-allocation-update.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
