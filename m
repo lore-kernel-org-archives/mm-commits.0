@@ -1,89 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - ipmi-fix-some-rcu-problems-update.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:17:22 -0800
-Message-ID: <200702100817.l1A8HMv0007065@shell0.pdx.osdl.net>
+Subject: - add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:15:39 -0800
+Message-ID: <200702100815.l1A8Fenc007049@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39455 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39486 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752133AbXBJIRZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:17:25 -0500
+	id S1752988AbXBJISz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:18:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minyard@acm.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPMI: Fix some RCU problems (update)
+     make proc_dointvec_taint() static
 has been removed from the -mm tree.  Its filename was
-     ipmi-fix-some-rcu-problems-update.patch
+     add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
 
-This patch was dropped because it was folded into ipmi-fix-some-rcu-problems.patch
+This patch was dropped because it was folded into add-taint_user-and-ability-to-set-taint-flags-from-userspace.patch
 
 ------------------------------------------------------
-Subject: IPMI: Fix some RCU problems (update)
-From: Corey Minyard <minyard@acm.org>
+Subject: make proc_dointvec_taint() static
+From: Adrian Bunk <bunk@stusta.de>
 
-Andrew asked that the open-coded barriers be commented, so here it
-is.  I also realized that one of the read barriers was in an area
-where the protecting mutex was held, so no read barrier was needed.
-
-Signed-off-by: Corey Minyard <minyard@acm.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ include/linux/sysctl.h |    2 --
+ kernel/sysctl.c        |    7 +++++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-some-rcu-problems-update drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-some-rcu-problems-update
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -839,7 +839,6 @@ int ipmi_create_user(unsigned int       
- 	goto out_kfree;
+diff -puN include/linux/sysctl.h~add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix include/linux/sysctl.h
+--- a/include/linux/sysctl.h~add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix
++++ a/include/linux/sysctl.h
+@@ -930,8 +930,6 @@ extern int proc_dointvec(ctl_table *, in
+ 			 void __user *, size_t *, loff_t *);
+ extern int proc_dointvec_bset(ctl_table *, int, struct file *,
+ 			      void __user *, size_t *, loff_t *);
+-extern int proc_dointvec_taint(ctl_table *, int, struct file *,
+-			       void __user *, size_t *, loff_t *);
+ extern int proc_dointvec_minmax(ctl_table *, int, struct file *,
+ 				void __user *, size_t *, loff_t *);
+ extern int proc_dointvec_jiffies(ctl_table *, int, struct file *,
+diff -puN kernel/sysctl.c~add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix
++++ a/kernel/sysctl.c
+@@ -174,6 +174,9 @@ extern ctl_table inotify_table[];
+ int sysctl_legacy_va_layout;
+ #endif
  
-  found:
--	smp_rmb();
- 	/* Note that each existing user holds a refcount to the interface. */
- 	kref_get(&intf->refcount);
++static int proc_dointvec_taint(ctl_table *table, int write, struct file *filp,
++			       void __user *buffer, size_t *lenp, loff_t *ppos);
++
+ static void *get_uts(ctl_table *table, int write)
+ {
+ 	char *which = table->data;
+@@ -1975,8 +1978,8 @@ int proc_dointvec_bset(ctl_table *table,
+ /*
+  *	Taint values can only be increased
+  */
+-int proc_dointvec_taint(ctl_table *table, int write, struct file *filp,
+-			void __user *buffer, size_t *lenp, loff_t *ppos)
++static int proc_dointvec_taint(ctl_table *table, int write, struct file *filp,
++			       void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	int op;
  
-@@ -2762,10 +2761,15 @@ int ipmi_register_smi(struct ipmi_smi_ha
- 		synchronize_rcu();
- 		kref_put(&intf->refcount, intf_free);
- 	} else {
--		/* After this point the interface is legal to use. */
--		smp_wmb(); /* Keep memory order straight for RCU readers. */
-+		/*
-+		 * Keep memory order straight for RCU readers.  Make
-+		 * sure everything else is committed to memory before
-+		 * setting intf_num to mark the interface valid.
-+		 */
-+		smp_wmb();
- 		intf->intf_num = i;
- 		mutex_unlock(&ipmi_interfaces_mutex);
-+		/* After this point the interface is legal to use. */
- 		call_smi_watchers(i, intf->si_dev);
- 		mutex_unlock(&smi_watchers_mutex);
- 	}
-@@ -3926,6 +3930,12 @@ static void send_panic_events(char *str)
- 			/* Interface was not ready yet. */
- 			continue;
- 
-+		/*
-+		 * intf_num is used as an marker to tell if the
-+		 * interface is valid.  Thus we need a read barrier to
-+		 * make sure data fetched before checking intf_num
-+		 * won't be used.
-+		 */
- 		smp_rmb();
- 
- 		/* First job here is to figure out where to send the
 _
 
-Patches currently in -mm which might be from minyard@acm.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-add-an-rcu-version-of-list-splicing.patch
-ipmi-fix-some-rcu-problems.patch
-ipmi-fix-some-rcu-problems-update.patch
-proc-remove-useless-and-buggy-nlink-settings.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
+origin.patch
+remove-include-linux-byteorder-pdp_endianh.patch
+make-drivers-char-mxser_newcmxser_hangup-static.patch
+drivers-char-vc_screenc-proper-prototypes.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace.patch
+add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
+schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
+cleanup-linux-byteorder-swabbh.patch
+cleanup-include-linux-xattrh.patch
+cleanup-include-linux-reiserfs_xattrh.patch
+remove-dead-kernel-config-option-aedsp16_mpu401.patch
+debug-shared-irqs-kconfig-fix.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+add-debugging-feature-proc-timer_stat-cleanup.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+drivers-isdn-pcbit-proper-prototypes.patch
+drivers-isdn-hisax-proper-prototypes.patch
+drivers-isdn-sc-proper-prototypes.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+remove-broken-video-drivers-v4.patch
+remove-bogus-con_is_present-prototypes.patch
+proper-prototype-for-tosh_smm.patch
+remove-the-broken-fb_s3trio-driver.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
