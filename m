@@ -1,62 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - drop-free_pages-sparc64-fix.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:06:09 -0800
-Message-ID: <200702100806.l1A869H9006865@shell0.pdx.osdl.net>
+Subject: - drop-free_pages-fix.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:06:05 -0800
+Message-ID: <200702100806.l1A865Iu006862@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39199 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39196 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752736AbXBJIGP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:06:15 -0500
+	id S1752737AbXBJIGM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:06:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, clameter@engr.sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drop-free_pages sparc64 fix
+     drop-free_pages fix
 has been removed from the -mm tree.  Its filename was
-     drop-free_pages-sparc64-fix.patch
+     drop-free_pages-fix.patch
 
 This patch was dropped because it was folded into drop-free_pages.patch
 
 ------------------------------------------------------
-Subject: drop-free_pages sparc64 fix
+Subject: drop-free_pages fix
 From: Andrew Morton <akpm@osdl.org>
 
-arch/sparc64/mm/init.c: In function `show_mem':
-arch/sparc64/mm/init.c:419: warning: int format, different type arg (arg 2)
-arch/sparc64/mm/init.c: In function `mem_init':
-arch/sparc64/mm/init.c:1601: warning: unsigned int format, different type arg (arg 2)
+arm uniproc:
+
+In file included from kernel/power/main.c:23:
+include/linux/vmstat.h: In function `__inc_zone_page_state':
+include/linux/vmstat.h:239: warning: implicit declaration of function `page_zone'
+include/linux/vmstat.h:239: warning: passing arg 1 of `__inc_zone_state' makes pointer from integer without a cast
+include/linux/vmstat.h: In function `__dec_zone_page_state':
+include/linux/vmstat.h:251: error: invalid type argument of `->'
 
 Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/sparc64/mm/init.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/vmstat.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/sparc64/mm/init.c~drop-free_pages-sparc64-fix arch/sparc64/mm/init.c
---- a/arch/sparc64/mm/init.c~drop-free_pages-sparc64-fix
-+++ a/arch/sparc64/mm/init.c
-@@ -416,7 +416,7 @@ void show_mem(void)
- 	printk("Free swap:       %6ldkB\n",
- 	       nr_swap_pages << (PAGE_SHIFT-10));
- 	printk("%ld pages of RAM\n", num_physpages);
--	printk("%d free pages\n", nr_free_pages());
-+	printk("%lu free pages\n", nr_free_pages());
- }
+diff -puN include/linux/vmstat.h~drop-free_pages-fix include/linux/vmstat.h
+--- a/include/linux/vmstat.h~drop-free_pages-fix
++++ a/include/linux/vmstat.h
+@@ -3,6 +3,7 @@
  
- void mmu_info(struct seq_file *m)
-@@ -1593,7 +1593,7 @@ void __init mem_init(void)
- 	initpages = (((unsigned long) __init_end) - ((unsigned long) __init_begin));
- 	initpages = PAGE_ALIGN(initpages) >> PAGE_SHIFT;
+ #include <linux/types.h>
+ #include <linux/percpu.h>
++#include <linux/mm.h>
+ #include <linux/mmzone.h>
+ #include <asm/atomic.h>
  
--	printk("Memory: %uk available (%ldk kernel code, %ldk data, %ldk init) [%016lx,%016lx]\n",
-+	printk("Memory: %luk available (%ldk kernel code, %ldk data, %ldk init) [%016lx,%016lx]\n",
- 	       nr_free_pages() << (PAGE_SHIFT-10),
- 	       codepages << (PAGE_SHIFT-10),
- 	       datapages << (PAGE_SHIFT-10), 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -66,6 +60,7 @@ avoid-excessive-sorting-of-early_node_map.patch
 proc-zoneinfo-fix-vm-stats-display.patch
 use-zvc-for-inactive-and-active-counts.patch
 drop-free_pages.patch
+drop-free_pages-fix.patch
 drop-free_pages-sparc64-fix.patch
 optional-zone_dma-in-the-vm-tidy.patch
 swsusp-change-code-ordering-in-userc-sanity.patch
