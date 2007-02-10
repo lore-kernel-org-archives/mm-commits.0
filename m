@@ -1,54 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - use-zvc-for-free_pages-fix-2.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:05:10 -0800
-Message-ID: <200702100805.l1A85Acr006853@shell0.pdx.osdl.net>
+Subject: - use-zvc-for-free_pages-fix.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:05:04 -0800
+Message-ID: <200702100805.l1A855ds006847@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39182 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39179 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752725AbXBJIFQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:05:16 -0500
+	id S1752715AbXBJIFL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:05:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ZVC writeback: Fix mm and other issues
+     use-zvc-for-free_pages fix
 has been removed from the -mm tree.  Its filename was
-     use-zvc-for-free_pages-fix-2.patch
+     use-zvc-for-free_pages-fix.patch
 
 This patch was dropped because it was folded into use-zvc-for-free_pages.patch
 
 ------------------------------------------------------
-Subject: ZVC writeback: Fix mm and other issues
+Subject: use-zvc-for-free_pages fix
 From: Christoph Lameter <clameter@sgi.com>
 
-This deals with swap prefetch and various things changed in mm.
+Hmmm... We need a highmem fix here:
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/power/swsusp.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ mm/highmem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/power/swsusp.c~use-zvc-for-free_pages-fix-2 kernel/power/swsusp.c
---- a/kernel/power/swsusp.c~use-zvc-for-free_pages-fix-2
-+++ a/kernel/power/swsusp.c
-@@ -230,9 +230,10 @@ int swsusp_shrink_memory(void)
- 		for_each_zone (zone)
- 			if (populated_zone(zone)) {
- 				if (is_highmem(zone)) {
--					highmem_size -= zone->free_pages;
-+					highmem_size -=
-+					zone_page_state(zone, NR_FREE_PAGES);
- 				} else {
--					tmp -= zone->free_pages;
-+					tmp -= zone_page_state(zone, NR_FREE_PAGES);
- 					tmp += zone->lowmem_reserve[ZONE_NORMAL];
- 					tmp += snapshot_additional_pages(zone);
- 				}
+diff -puN mm/highmem.c~use-zvc-for-free_pages-fix mm/highmem.c
+--- a/mm/highmem.c~use-zvc-for-free_pages-fix
++++ a/mm/highmem.c
+@@ -47,7 +47,8 @@ unsigned int nr_free_highpages (void)
+ 	unsigned int pages = 0;
+ 
+ 	for_each_online_pgdat(pgdat)
+-		pages += pgdat->node_zones[ZONE_HIGHMEM].free_pages;
++		pages += zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
++			NR_FREE_PAGES);
+ 
+ 	return pages;
+ }
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -56,6 +53,7 @@ Patches currently in -mm which might be from clameter@sgi.com are
 use-parameter-passed-to-cache_reap-to-determine-pointer-to.patch
 use-zvc-for-inactive-and-active-counts.patch
 use-zvc-for-free_pages.patch
+use-zvc-for-free_pages-fix.patch
 use-zvc-for-free_pages-fix-2.patch
 use-zvc-for-free_pages-fix-3.patch
 reorder-zvcs-according-to-cacheline.patch
