@@ -1,213 +1,238 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-make-it-compile.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:24:15 -0800
-Message-ID: <200702100524.l1A5OFRQ004580@shell0.pdx.osdl.net>
+Subject: - driver-core-per-subsystem-multithreaded-probing.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:24:08 -0800
+Message-ID: <200702100524.l1A5O8fb004574@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36694 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36695 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752688AbXBJFYh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:24:37 -0500
+	id S1752680AbXBJFYi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:24:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: cornelia.huck@de.ibm.com, benh@kernel.crashing.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: make it compile
+     driver core: per-subsystem multithreaded probing
 has been removed from the -mm tree.  Its filename was
-     powerpc-make-it-compile.patch
+     driver-core-per-subsystem-multithreaded-probing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: make it compile
-From: Andrew Morton <akpm@osdl.org>
+Subject: driver core: per-subsystem multithreaded probing
+From: Cornelia Huck <cornelia.huck@de.ibm.com>
 
-arch/powerpc/kernel/of_platform.c:479: error: unknown field `multithread_probe' specified in initializer
+Make multithreaded probing work per subsystem instead of per driver.
 
+It doesn't make much sense to probe the same device for multiple drivers in
+parallel (after all, only one driver can bind to the device).  Instead, create
+a probing thread for each device that probes the drivers one after another. 
+Also make the decision to use multi-threaded probe per bus instead of per
+device and adapt the pci code.
+
+Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/of_platform.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/base/dd.c        |   62 ++++++++++++++++++-------------------
+ drivers/pci/pci-driver.c |    6 ---
+ include/linux/device.h   |    4 +-
+ include/linux/pci.h      |    2 -
+ 4 files changed, 34 insertions(+), 40 deletions(-)
 
-diff -puN arch/powerpc/kernel/of_platform.c~powerpc-make-it-compile arch/powerpc/kernel/of_platform.c
---- a/arch/powerpc/kernel/of_platform.c~powerpc-make-it-compile
-+++ a/arch/powerpc/kernel/of_platform.c
-@@ -475,9 +475,6 @@ static struct of_platform_driver of_pci_
-        .name = "of-pci",
-        .match_table = of_pci_phb_ids,
-        .probe = of_pci_phb_probe,
--       .driver = {
--	       .multithread_probe = 1,
--       },
+diff -puN drivers/base/dd.c~driver-core-per-subsystem-multithreaded-probing drivers/base/dd.c
+--- a/drivers/base/dd.c~driver-core-per-subsystem-multithreaded-probing
++++ a/drivers/base/dd.c
+@@ -94,19 +94,11 @@ int device_bind_driver(struct device *de
+ 	return ret;
+ }
+ 
+-struct stupid_thread_structure {
+-	struct device_driver *drv;
+-	struct device *dev;
+-};
+-
+ static atomic_t probe_count = ATOMIC_INIT(0);
+ static DECLARE_WAIT_QUEUE_HEAD(probe_waitqueue);
+ 
+-static int really_probe(void *void_data)
++static int really_probe(struct device *dev, struct device_driver *drv)
+ {
+-	struct stupid_thread_structure *data = void_data;
+-	struct device_driver *drv = data->drv;
+-	struct device *dev = data->dev;
+ 	int ret = 0;
+ 
+ 	atomic_inc(&probe_count);
+@@ -152,7 +144,6 @@ probe_failed:
+ 	 */
+ 	ret = 0;
+ done:
+-	kfree(data);
+ 	atomic_dec(&probe_count);
+ 	wake_up(&probe_waitqueue);
+ 	return ret;
+@@ -184,16 +175,14 @@ int driver_probe_done(void)
+  * format of the ID structures, nor what is to be considered a match and
+  * what is not.
+  *
+- * This function returns 1 if a match is found, an error if one occurs
+- * (that is not -ENODEV or -ENXIO), and 0 otherwise.
++ * This function returns 1 if a match is found, -ENODEV if the device is
++ * not registered, and 0 otherwise.
+  *
+  * This function must be called with @dev->sem held.  When called for a
+  * USB interface, @dev->parent->sem must be held as well.
+  */
+ int driver_probe_device(struct device_driver * drv, struct device * dev)
+ {
+-	struct stupid_thread_structure *data;
+-	struct task_struct *probe_task;
+ 	int ret = 0;
+ 
+ 	if (!device_is_registered(dev))
+@@ -204,19 +193,7 @@ int driver_probe_device(struct device_dr
+ 	pr_debug("%s: Matched Device %s with Driver %s\n",
+ 		 drv->bus->name, dev->bus_id, drv->name);
+ 
+-	data = kmalloc(sizeof(*data), GFP_KERNEL);
+-	if (!data)
+-		return -ENOMEM;
+-	data->drv = drv;
+-	data->dev = dev;
+-
+-	if (drv->multithread_probe) {
+-		probe_task = kthread_run(really_probe, data,
+-					 "probe-%s", dev->bus_id);
+-		if (IS_ERR(probe_task))
+-			ret = really_probe(data);
+-	} else
+-		ret = really_probe(data);
++	ret = really_probe(dev, drv);
+ 
+ done:
+ 	return ret;
+@@ -228,30 +205,53 @@ static int __device_attach(struct device
+ 	return driver_probe_device(drv, dev);
+ }
+ 
++static int device_probe_drivers(void *data)
++{
++	struct device *dev = data;
++	int ret = 0;
++
++	if (dev->bus) {
++		down(&dev->sem);
++		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
++		up(&dev->sem);
++	}
++	return ret;
++}
++
+ /**
+  *	device_attach - try to attach device to a driver.
+  *	@dev:	device.
+  *
+  *	Walk the list of drivers that the bus has and call
+  *	driver_probe_device() for each pair. If a compatible
+- *	pair is found, break out and return.
++ *	pair is found, break out and return. If the bus specifies
++ *	multithreaded probing, walking the list of drivers is done
++ *	on a probing thread.
+  *
+  *	Returns 1 if the device was bound to a driver;
+- *	0 if no matching device was found; error code otherwise.
++ *	0 if no matching device was found or multithreaded probing is done;
++ *	error code otherwise.
+  *
+  *	When called for a USB interface, @dev->parent->sem must be held.
+  */
+ int device_attach(struct device * dev)
+ {
+ 	int ret = 0;
++	struct task_struct *probe_task = ERR_PTR(-ENOMEM);
+ 
+ 	down(&dev->sem);
+ 	if (dev->driver) {
+ 		ret = device_bind_driver(dev);
+ 		if (ret == 0)
+ 			ret = 1;
+-	} else
+-		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
++	} else {
++		if (dev->bus->multithread_probe)
++			probe_task = kthread_run(device_probe_drivers, dev,
++						 "probe-%s", dev->bus_id);
++		if(IS_ERR(probe_task))
++			ret = bus_for_each_drv(dev->bus, NULL, dev,
++					       __device_attach);
++	}
+ 	up(&dev->sem);
+ 	return ret;
+ }
+diff -puN drivers/pci/pci-driver.c~driver-core-per-subsystem-multithreaded-probing drivers/pci/pci-driver.c
+--- a/drivers/pci/pci-driver.c~driver-core-per-subsystem-multithreaded-probing
++++ a/drivers/pci/pci-driver.c
+@@ -434,11 +434,6 @@ int __pci_register_driver(struct pci_dri
+ 	drv->driver.mod_name = mod_name;
+ 	drv->driver.kobj.ktype = &pci_driver_kobj_type;
+ 
+-	if (pci_multithread_probe)
+-		drv->driver.multithread_probe = pci_multithread_probe;
+-	else
+-		drv->driver.multithread_probe = drv->multithread_probe;
+-
+ 	spin_lock_init(&drv->dynids.lock);
+ 	INIT_LIST_HEAD(&drv->dynids.list);
+ 
+@@ -574,6 +569,7 @@ struct bus_type pci_bus_type = {
+ 
+ static int __init pci_driver_init(void)
+ {
++	pci_bus_type.multithread_probe = pci_multithread_probe;
+ 	return bus_register(&pci_bus_type);
+ }
+ 
+diff -puN include/linux/device.h~driver-core-per-subsystem-multithreaded-probing include/linux/device.h
+--- a/include/linux/device.h~driver-core-per-subsystem-multithreaded-probing
++++ a/include/linux/device.h
+@@ -60,6 +60,8 @@ struct bus_type {
+ 	int (*suspend_late)(struct device * dev, pm_message_t state);
+ 	int (*resume_early)(struct device * dev);
+ 	int (*resume)(struct device * dev);
++
++	unsigned int multithread_probe:1;
  };
  
- static __init int of_pci_phb_init(void)
+ extern int __must_check bus_register(struct bus_type * bus);
+@@ -133,8 +135,6 @@ struct device_driver {
+ 	void	(*shutdown)	(struct device * dev);
+ 	int	(*suspend)	(struct device * dev, pm_message_t state);
+ 	int	(*resume)	(struct device * dev);
+-
+-	unsigned int multithread_probe:1;
+ };
+ 
+ 
+diff -puN include/linux/pci.h~driver-core-per-subsystem-multithreaded-probing include/linux/pci.h
+--- a/include/linux/pci.h~driver-core-per-subsystem-multithreaded-probing
++++ a/include/linux/pci.h
+@@ -362,8 +362,6 @@ struct pci_driver {
+ 	struct pci_error_handlers *err_handler;
+ 	struct device_driver	driver;
+ 	struct pci_dynids dynids;
+-
+-	int multithread_probe;
+ };
+ 
+ #define	to_pci_driver(drv) container_of(drv,struct pci_driver, driver)
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
 
 origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-agpgart-allow-drm-populated-agp-memory-types-tidy.patch
-git-dvb.patch
-git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-input.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
-git-mtd.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-netfilter-warning-fix.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-git-scsi-misc.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-xfs-barriers-broke.patch
-fix-gregkh-usb-usbcore-remove-unused-bandwith-related-code.patch
-nokia-e70-is-an-unusual-device.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-avoid-excessive-sorting-of-early_node_map-tidy.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-drop-free_pages-sparc64-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
-register_blkdev-dont-hand-out-the-local-experimental-majors.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-dynamic-kernel-command-line-ia64-fix.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+git-s390.patch
