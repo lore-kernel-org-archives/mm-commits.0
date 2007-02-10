@@ -1,65 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - mips-eisa-registration-with-config_eisa.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:25:32 -0800
-Message-ID: <200702100525.l1A5PWdh004611@shell0.pdx.osdl.net>
+Subject: - mips-turbochannel-update-to-the-driver-model-fix.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:25:51 -0800
+Message-ID: <200702100525.l1A5PpPq004620@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36929 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36940 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752917AbXBJF3D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:29:03 -0500
+	id S1752924AbXBJF3U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:29:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: macro@linux-mips.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: EISA registration with !CONFIG_EISA
+     mips: TURBOchannel resources off-by-one fix
 has been removed from the -mm tree.  Its filename was
-     mips-eisa-registration-with-config_eisa.patch
+     mips-turbochannel-update-to-the-driver-model-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mips: EISA registration with !CONFIG_EISA
+Subject: mips: TURBOchannel resources off-by-one fix
 From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-This is a change for the EISA bus support to permit drivers to call
-un/registration functions even if EISA support has not been enabled.  This is
-similar to what PCI (and now TC) does and reduces the need for #ifdef clutter.
+Fix resource reservation of TURBOchannel areas, where the end is one byte
+too far.
 
 Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/eisa.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/tc/tc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/eisa.h~mips-eisa-registration-with-config_eisa include/linux/eisa.h
---- a/include/linux/eisa.h~mips-eisa-registration-with-config_eisa
-+++ a/include/linux/eisa.h
-@@ -61,10 +61,20 @@ struct eisa_driver {
- 
- #define to_eisa_driver(drv) container_of(drv,struct eisa_driver, driver)
- 
-+/* These external functions are only available when EISA support is enabled. */
-+#ifdef CONFIG_EISA
-+
- extern struct bus_type eisa_bus_type;
- int eisa_driver_register (struct eisa_driver *edrv);
- void eisa_driver_unregister (struct eisa_driver *edrv);
- 
-+#else /* !CONFIG_EISA */
-+
-+static inline int eisa_driver_register (struct eisa_driver *edrv) { return 0; }
-+static inline void eisa_driver_unregister (struct eisa_driver *edrv) { }
-+
-+#endif /* !CONFIG_EISA */
-+
- /* Mimics pci.h... */
- static inline void *eisa_get_drvdata (struct eisa_device *edev)
- {
+diff -puN drivers/tc/tc.c~mips-turbochannel-update-to-the-driver-model-fix drivers/tc/tc.c
+--- a/drivers/tc/tc.c~mips-turbochannel-update-to-the-driver-model-fix
++++ a/drivers/tc/tc.c
+@@ -160,7 +160,7 @@ static int __init tc_init(void)
+ 		tc_bus.resource[0].start = tc_bus.slot_base;
+ 		tc_bus.resource[0].end = tc_bus.slot_base +
+ 					 (tc_bus.info.slot_size << 20) *
+-					 tc_bus.num_tcslots;
++					 tc_bus.num_tcslots - 1;
+ 		tc_bus.resource[0].name = tc_bus.name;
+ 		tc_bus.resource[0].flags = IORESOURCE_MEM;
+ 		if (request_resource(&iomem_resource,
+@@ -172,7 +172,7 @@ static int __init tc_init(void)
+ 			tc_bus.resource[1].start = tc_bus.ext_slot_base;
+ 			tc_bus.resource[1].end = tc_bus.ext_slot_base +
+ 						 tc_bus.ext_slot_size *
+-						 tc_bus.num_tcslots;
++						 tc_bus.num_tcslots - 1;
+ 			tc_bus.resource[1].name = tc_bus.name;
+ 			tc_bus.resource[1].flags = IORESOURCE_MEM;
+ 			if (request_resource(&iomem_resource,
 _
 
 Patches currently in -mm which might be from macro@linux-mips.org are
