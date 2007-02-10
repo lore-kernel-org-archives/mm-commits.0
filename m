@@ -1,169 +1,241 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-pcf8563-detect-polarity-of-century-bit-automatically.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:20:59 -0800
-Message-ID: <200702100521.l1A5KxcK004462@shell0.pdx.osdl.net>
+Subject: - powerpc-vdso-use-install_special_mapping.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:22:50 -0800
+Message-ID: <200702100522.l1A5Momr004507@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36628 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36629 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753140AbXBJFXP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1753141AbXBJFXP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Sat, 10 Feb 2007 00:23:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, dbrownell@users.sourceforge.net, jean-baptiste.maneyrol@teamlog.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: roland@redhat.com, ak@suse.de, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-pcf8563: detect polarity of century bit automatically
+     powerpc vDSO: use install_special_mapping
 has been removed from the -mm tree.  Its filename was
-     rtc-pcf8563-detect-polarity-of-century-bit-automatically.patch
+     powerpc-vdso-use-install_special_mapping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc-pcf8563: detect polarity of century bit automatically
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: powerpc vDSO: use install_special_mapping
+From: Roland McGrath <roland@redhat.com>
 
-The usage of the century bit was inverted on 2.6.19 following to PCF8563's
-description, but it was not match to usage suggested by RTC8564's
-datasheet.  Anyway what MO_C=1 means can vary on each platform.  This patch
-is to detect its polarity in get_datetime routine.  The default value of
-c_polarity is 0 (MO_C=1 means 19xx) so that this patch does not change
-current behavior even if get_datetime was not called before set_datetime.
+This patch uses install_special_mapping for the powerpc vDSO setup,
+consolidating duplicated code.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Jean-Baptiste Maneyrol <jean-baptiste.maneyrol@teamlog.com>
-Cc: <stable@kernel.org>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |   40 ++++++++++++++++++++++++++++++------
- 1 files changed, 34 insertions(+), 6 deletions(-)
+ arch/powerpc/kernel/vdso.c |  104 +++++++++--------------------------
+ 1 files changed, 27 insertions(+), 77 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-detect-polarity-of-century-bit-automatically drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-detect-polarity-of-century-bit-automatically
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -53,6 +53,25 @@ I2C_CLIENT_INSMOD;
- #define PCF8563_SC_LV		0x80 /* low voltage */
- #define PCF8563_MO_C		0x80 /* century */
+diff -puN arch/powerpc/kernel/vdso.c~powerpc-vdso-use-install_special_mapping arch/powerpc/kernel/vdso.c
+--- a/arch/powerpc/kernel/vdso.c~powerpc-vdso-use-install_special_mapping
++++ a/arch/powerpc/kernel/vdso.c
+@@ -49,9 +49,13 @@
+ /* Max supported size for symbol names */
+ #define MAX_SYMNAME	64
  
-+struct pcf8563 {
-+	struct i2c_client client;
-+	/*
-+	 * The meaning of MO_C bit varies by the chip type.
-+	 * From PCF8563 datasheet: this bit is toggled when the years
-+	 * register overflows from 99 to 00
-+	 *   0 indicates the century is 20xx
-+	 *   1 indicates the century is 19xx
-+	 * From RTC8564 datasheet: this bit indicates change of
-+	 * century. When the year digit data overflows from 99 to 00,
-+	 * this bit is set. By presetting it to 0 while still in the
-+	 * 20th century, it will be set in year 2000, ...
-+	 * There seems no reliable way to know how the system use this
-+	 * bit.  So let's do it heuristically, assuming we are live in
-+	 * 1970...2069.
-+	 */
-+	int c_polarity;	/* 0: MO_C=1 means 19xx, otherwise MO_C=1 means 20xx */
-+};
++#define VDSO32_MAXPAGES	(((0x3000 + PAGE_MASK) >> PAGE_SHIFT) + 2)
++#define VDSO64_MAXPAGES	(((0x3000 + PAGE_MASK) >> PAGE_SHIFT) + 2)
 +
- static int pcf8563_probe(struct i2c_adapter *adapter, int address, int kind);
- static int pcf8563_detach(struct i2c_client *client);
+ extern char vdso32_start, vdso32_end;
+ static void *vdso32_kbase = &vdso32_start;
+ unsigned int vdso32_pages;
++static struct page *vdso32_pagelist[VDSO32_MAXPAGES];
+ unsigned long vdso32_sigtramp;
+ unsigned long vdso32_rt_sigtramp;
  
-@@ -62,6 +81,7 @@ static int pcf8563_detach(struct i2c_cli
+@@ -59,6 +63,7 @@ unsigned long vdso32_rt_sigtramp;
+ extern char vdso64_start, vdso64_end;
+ static void *vdso64_kbase = &vdso64_start;
+ unsigned int vdso64_pages;
++static struct page *vdso64_pagelist[VDSO64_MAXPAGES];
+ unsigned long vdso64_rt_sigtramp;
+ #endif /* CONFIG_PPC64 */
+ 
+@@ -165,55 +170,6 @@ static void dump_vdso_pages(struct vm_ar
+ #endif /* DEBUG */
+ 
+ /*
+- * Keep a dummy vma_close for now, it will prevent VMA merging.
+- */
+-static void vdso_vma_close(struct vm_area_struct * vma)
+-{
+-}
+-
+-/*
+- * Our nopage() function, maps in the actual vDSO kernel pages, they will
+- * be mapped read-only by do_no_page(), and eventually COW'ed, either
+- * right away for an initial write access, or by do_wp_page().
+- */
+-static struct page * vdso_vma_nopage(struct vm_area_struct * vma,
+-				     unsigned long address, int *type)
+-{
+-	unsigned long offset = address - vma->vm_start;
+-	struct page *pg;
+-#ifdef CONFIG_PPC64
+-	void *vbase = (vma->vm_mm->task_size > TASK_SIZE_USER32) ?
+-		vdso64_kbase : vdso32_kbase;
+-#else
+-	void *vbase = vdso32_kbase;
+-#endif
+-
+-	DBG("vdso_vma_nopage(current: %s, address: %016lx, off: %lx)\n",
+-	    current->comm, address, offset);
+-
+-	if (address < vma->vm_start || address > vma->vm_end)
+-		return NOPAGE_SIGBUS;
+-
+-	/*
+-	 * Last page is systemcfg.
+-	 */
+-	if ((vma->vm_end - address) <= PAGE_SIZE)
+-		pg = virt_to_page(vdso_data);
+-	else
+-		pg = virt_to_page(vbase + offset);
+-
+-	get_page(pg);
+-	DBG(" ->page count: %d\n", page_count(pg));
+-
+-	return pg;
+-}
+-
+-static struct vm_operations_struct vdso_vmops = {
+-	.close	= vdso_vma_close,
+-	.nopage	= vdso_vma_nopage,
+-};
+-
+-/*
+  * This is called from binfmt_elf, we create the special vma for the
+  * vDSO and insert it into the mm struct tree
   */
- static int pcf8563_get_datetime(struct i2c_client *client, struct rtc_time *tm)
+@@ -221,20 +177,23 @@ int arch_setup_additional_pages(struct l
+ 				int executable_stack)
  {
-+	struct pcf8563 *pcf8563 = container_of(client, struct pcf8563, client);
- 	unsigned char buf[13] = { PCF8563_REG_ST1 };
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
++	struct page **vdso_pagelist;
+ 	unsigned long vdso_pages;
+ 	unsigned long vdso_base;
+ 	int rc;
  
- 	struct i2c_msg msgs[] = {
-@@ -94,8 +114,12 @@ static int pcf8563_get_datetime(struct i
- 	tm->tm_mday = BCD2BIN(buf[PCF8563_REG_DM] & 0x3F);
- 	tm->tm_wday = buf[PCF8563_REG_DW] & 0x07;
- 	tm->tm_mon = BCD2BIN(buf[PCF8563_REG_MO] & 0x1F) - 1; /* rtc mn 1-12 */
--	tm->tm_year = BCD2BIN(buf[PCF8563_REG_YR])
--		+ (buf[PCF8563_REG_MO] & PCF8563_MO_C ? 0 : 100);
-+	tm->tm_year = BCD2BIN(buf[PCF8563_REG_YR]);
-+	if (tm->tm_year < 70)
-+		tm->tm_year += 100;	/* assume we are in 1970...2069 */
-+	/* detect the polarity heuristically. see note above. */
-+	pcf8563->c_polarity = (buf[PCF8563_REG_MO] & PCF8563_MO_C) ?
-+		(tm->tm_year >= 100) : (tm->tm_year < 100);
- 
- 	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
- 		"mday=%d, mon=%d, year=%d, wday=%d\n",
-@@ -114,6 +138,7 @@ static int pcf8563_get_datetime(struct i
- 
- static int pcf8563_set_datetime(struct i2c_client *client, struct rtc_time *tm)
- {
-+	struct pcf8563 *pcf8563 = container_of(client, struct pcf8563, client);
- 	int i, err;
- 	unsigned char buf[9];
- 
-@@ -135,7 +160,7 @@ static int pcf8563_set_datetime(struct i
- 
- 	/* year and century */
- 	buf[PCF8563_REG_YR] = BIN2BCD(tm->tm_year % 100);
--	if (tm->tm_year < 100)
-+	if (pcf8563->c_polarity ? (tm->tm_year >= 100) : (tm->tm_year < 100))
- 		buf[PCF8563_REG_MO] |= PCF8563_MO_C;
- 
- 	buf[PCF8563_REG_DW] = tm->tm_wday & 0x07;
-@@ -248,6 +273,7 @@ static struct i2c_driver pcf8563_driver 
- 
- static int pcf8563_probe(struct i2c_adapter *adapter, int address, int kind)
- {
-+	struct pcf8563 *pcf8563;
- 	struct i2c_client *client;
- 	struct rtc_device *rtc;
- 
-@@ -260,11 +286,12 @@ static int pcf8563_probe(struct i2c_adap
- 		goto exit;
+ #ifdef CONFIG_PPC64
+ 	if (test_thread_flag(TIF_32BIT)) {
++		vdso_pagelist = vdso32_pagelist;
+ 		vdso_pages = vdso32_pages;
+ 		vdso_base = VDSO32_MBASE;
+ 	} else {
++		vdso_pagelist = vdso64_pagelist;
+ 		vdso_pages = vdso64_pages;
+ 		vdso_base = VDSO64_MBASE;
+ 	}
+ #else
++	vdso_pagelist = vdso32_pagelist;
+ 	vdso_pages = vdso32_pages;
+ 	vdso_base = VDSO32_MBASE;
+ #endif
+@@ -262,17 +221,6 @@ int arch_setup_additional_pages(struct l
+ 		goto fail_mmapsem;
  	}
  
--	if (!(client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL))) {
-+	if (!(pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL))) {
- 		err = -ENOMEM;
- 		goto exit;
- 	}
+-
+-	/* Allocate a VMA structure and fill it up */
+-	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
+-	if (vma == NULL) {
+-		rc = -ENOMEM;
+-		goto fail_mmapsem;
+-	}
+-	vma->vm_mm = mm;
+-	vma->vm_start = vdso_base;
+-	vma->vm_end = vma->vm_start + (vdso_pages << PAGE_SHIFT);
+-
+ 	/*
+ 	 * our vma flags don't have VM_WRITE so by default, the process isn't
+ 	 * allowed to write those pages.
+@@ -282,32 +230,26 @@ int arch_setup_additional_pages(struct l
+ 	 * and your nice userland gettimeofday will be totally dead.
+ 	 * It's fine to use that for setting breakpoints in the vDSO code
+ 	 * pages though
+-	 */
+-	vma->vm_flags = VM_READ|VM_EXEC|VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC;
+-	/*
++	 *
+ 	 * Make sure the vDSO gets into every core dump.
+ 	 * Dumping its contents makes post-mortem fully interpretable later
+ 	 * without matching up the same kernel and hardware config to see
+ 	 * what PC values meant.
+ 	 */
+-	vma->vm_flags |= VM_ALWAYSDUMP;
+-	vma->vm_flags |= mm->def_flags;
+-	vma->vm_page_prot = protection_map[vma->vm_flags & 0x7];
+-	vma->vm_ops = &vdso_vmops;
+-
+-	/* Insert new VMA */
+-	rc = insert_vm_struct(mm, vma);
++	rc = install_special_mapping(mm, vdso_base, vdso_pages << PAGE_SHIFT,
++				     VM_READ|VM_EXEC|
++				     VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
++				     VM_ALWAYSDUMP,
++				     vdso_pagelist);
+ 	if (rc)
+-		goto fail_vma;
++		goto fail_mmapsem;
  
-+	client = &pcf8563->client;
- 	client->addr = address;
- 	client->driver = &pcf8563_driver;
- 	client->adapter	= adapter;
-@@ -301,7 +328,7 @@ exit_detach:
- 	i2c_detach_client(client);
- 
- exit_kfree:
--	kfree(client);
-+	kfree(pcf8563);
- 
- exit:
- 	return err;
-@@ -309,6 +336,7 @@ exit:
- 
- static int pcf8563_detach(struct i2c_client *client)
- {
-+	struct pcf8563 *pcf8563 = container_of(client, struct pcf8563, client);
- 	int err;
- 	struct rtc_device *rtc = i2c_get_clientdata(client);
- 
-@@ -318,7 +346,7 @@ static int pcf8563_detach(struct i2c_cli
- 	if ((err = i2c_detach_client(client)))
- 		return err;
- 
--	kfree(client);
-+	kfree(pcf8563);
- 
+-	/* Put vDSO base into mm struct and account for memory usage */
++	/* Put vDSO base into mm struct */
+ 	current->mm->context.vdso_base = vdso_base;
+-	mm->total_vm += (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
++
+ 	up_write(&mm->mmap_sem);
  	return 0;
- }
+ 
+- fail_vma:
+-	kmem_cache_free(vm_area_cachep, vma);
+  fail_mmapsem:
+ 	up_write(&mm->mmap_sem);
+ 	return rc;
+@@ -778,18 +720,26 @@ void __init vdso_init(void)
+ 	}
+ 
+ 	/* Make sure pages are in the correct state */
++	BUG_ON(vdso32_pages + 2 > VDSO32_MAXPAGES);
+ 	for (i = 0; i < vdso32_pages; i++) {
+ 		struct page *pg = virt_to_page(vdso32_kbase + i*PAGE_SIZE);
+ 		ClearPageReserved(pg);
+ 		get_page(pg);
+-
++		vdso32_pagelist[i] = pg;
+ 	}
++	vdso32_pagelist[i++] = virt_to_page(vdso_data);
++	vdso32_pagelist[i] = NULL;
++
+ #ifdef CONFIG_PPC64
++	BUG_ON(vdso64_pages + 2 > VDSO64_MAXPAGES);
+ 	for (i = 0; i < vdso64_pages; i++) {
+ 		struct page *pg = virt_to_page(vdso64_kbase + i*PAGE_SIZE);
+ 		ClearPageReserved(pg);
+ 		get_page(pg);
++		vdso64_pagelist[i] = pg;
+ 	}
++	vdso64_pagelist[i++] = virt_to_page(vdso_data);
++	vdso64_pagelist[i] = NULL;
+ #endif /* CONFIG_PPC64 */
+ 
+ 	get_page(virt_to_page(vdso_data));
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-git-mips.patch
-make-cardbus_mem_size-and-cardbus_io_size-boot-options.patch
-serial-serial_txx9-driver-update.patch
+transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
