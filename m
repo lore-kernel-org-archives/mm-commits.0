@@ -1,93 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-kernel-config-option-lcd_device.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:27:36 -0800
-Message-ID: <200702100527.l1A5RaDh004677@shell0.pdx.osdl.net>
+Subject: - serial-add-pcmcia-ids-for-quatech-dsp-100-dual-rs232.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:27:43 -0800
+Message-ID: <200702100527.l1A5RhoH004680@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36868 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36887 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752898AbXBJF2R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:28:17 -0500
+	id S1752904AbXBJF2Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:28:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: osv@javad.com, alan@redhat.com, linux@dominikbrodowski.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove unused kernel config option LCD_DEVICE
+     serial: Add PCMCIA IDs for Quatech DSP-100 dual RS232  adapter
 has been removed from the -mm tree.  Its filename was
-     remove-unused-kernel-config-option-lcd_device.patch
+     serial-add-pcmcia-ids-for-quatech-dsp-100-dual-rs232.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove unused kernel config option LCD_DEVICE
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: serial: Add PCMCIA IDs for Quatech DSP-100 dual RS232  adapter
+From: Sergei Organov <osv@javad.com>
 
-Remove the unused kernel config option LCD_DEVICE.
+Add PCMCIA IDs for Quatech DSP-100 dual RS232 adapter.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: James Simmons <jsimmons@infradead.org>
-Cc: Antonino Daplas <adaplas@pol.net>
+Signed-off-by: Sergei Organov <osv@javad.com>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/video/backlight/Kconfig |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/serial/serial_cs.c |    5 +++++
+ include/pcmcia/ciscode.h   |    1 +
+ 2 files changed, 6 insertions(+)
 
-diff -puN drivers/video/backlight/Kconfig~remove-unused-kernel-config-option-lcd_device drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~remove-unused-kernel-config-option-lcd_device
-+++ a/drivers/video/backlight/Kconfig
-@@ -37,11 +37,6 @@ config LCD_CLASS_DEVICE
- 	  To have support for your specific LCD panel you will have to
- 	  select the proper drivers which depend on this option.
- 
--config LCD_DEVICE
--	bool
--	depends on LCD_CLASS_DEVICE
--	default y
--
- config BACKLIGHT_CORGI
- 	tristate "Sharp Corgi Backlight Driver (SL Series)"
- 	depends on BACKLIGHT_DEVICE && PXA_SHARPSL
+diff -puN drivers/serial/serial_cs.c~serial-add-pcmcia-ids-for-quatech-dsp-100-dual-rs232 drivers/serial/serial_cs.c
+--- a/drivers/serial/serial_cs.c~serial-add-pcmcia-ids-for-quatech-dsp-100-dual-rs232
++++ a/drivers/serial/serial_cs.c
+@@ -249,6 +249,10 @@ static const struct serial_quirk quirks[
+ 		.multi	= 2,
+ 	}, {
+ 		.manfid	= MANFID_QUATECH,
++		.prodid	= PRODID_QUATECH_DUAL_RS232_G,
++		.multi	= 2,
++	}, {
++		.manfid	= MANFID_QUATECH,
+ 		.prodid	= PRODID_QUATECH_QUAD_RS232,
+ 		.multi	= 4,
+ 	}, {
+@@ -893,6 +897,7 @@ static struct pcmcia_device_id serial_id
+ 	PCMCIA_DEVICE_PROD_ID12("OEM      ", "C288MX     ", 0xb572d360, 0xd2385b7a),
+ 	PCMCIA_DEVICE_PROD_ID12("PCMCIA   ", "C336MX     ", 0x99bcafe9, 0xaa25bcab),
+ 	PCMCIA_DEVICE_PROD_ID12("Quatech Inc", "PCMCIA Dual RS-232 Serial Port Card", 0xc4420b35, 0x92abc92f),
++	PCMCIA_DEVICE_PROD_ID12("Quatech Inc", "Dual RS-232 Serial Port PC Card", 0xc4420b35, 0x031a380d),
+ 	PCMCIA_PFC_DEVICE_CIS_PROD_ID12(1, "PCMCIA", "EN2218-LAN/MODEM", 0x281f1c5d, 0x570f348e, "PCMLM28.cis"),
+ 	PCMCIA_PFC_DEVICE_CIS_PROD_ID12(1, "PCMCIA", "UE2218-LAN/MODEM", 0x281f1c5d, 0x6fdcacee, "PCMLM28.cis"),
+ 	PCMCIA_PFC_DEVICE_CIS_PROD_ID12(1, "Psion Dacom", "Gold Card V34 Ethernet", 0xf5f025c2, 0x338e8155, "PCMLM28.cis"),
+diff -puN include/pcmcia/ciscode.h~serial-add-pcmcia-ids-for-quatech-dsp-100-dual-rs232 include/pcmcia/ciscode.h
+--- a/include/pcmcia/ciscode.h~serial-add-pcmcia-ids-for-quatech-dsp-100-dual-rs232
++++ a/include/pcmcia/ciscode.h
+@@ -95,6 +95,7 @@
+ #define PRODID_QUATECH_DUAL_RS232	0x0012
+ #define PRODID_QUATECH_DUAL_RS232_D1	0x0007
+ #define PRODID_QUATECH_DUAL_RS232_D2	0x0052
++#define PRODID_QUATECH_DUAL_RS232_G	0x004d
+ #define PRODID_QUATECH_QUAD_RS232	0x001b
+ #define PRODID_QUATECH_DUAL_RS422	0x000e
+ #define PRODID_QUATECH_QUAD_RS422	0x0045
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from osv@javad.com are
 
-origin.patch
-git-avr32.patch
-git-dvb.patch
-git-input.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
-git-mips.patch
-git-netdev-all.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-remove-final-references-to-deprecated-map_anon-page-protection-flag.patch
-uml-fix-apparent-config_64_bit-typo.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-get-rid-of-double-zeroing-of-allocated-pages.patch
-remove-unnecessary-memset0-calls-after-kzalloc-calls.patch
-discuss-a-couple-common-errors-in-kernel-doc-usage.patch
-numerous-fixes-to-kernel-doc-info-in-source-files.patch
-remove-the-last-reference-to-rwlock_is_locked-macro.patch
-extend-the-set-of-__attribute__-shortcut-macros.patch
-remove-final-reference-to-superfluous-smp_commence.patch
-replace-regular-code-with-appropriate-calls-to-container_of.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
-remove-unused-kernel-config-option-zisofs_fs.patch
-remove-unused-kernel-config-option-paride_parport.patch
-fix-apparent-typo-config_lockdep_debug.patch
-ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
-quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+char-mxser_new-alter-locking-in-isr.patch
+char-mxser_new-fix-twice-resource-releasing.patch
+char-mxser_new-do-not-null-driver_data.patch
+char-mxser_new-lock-count-and-flags.patch
+char-mxser_new-fix-sparse-warning.patch
