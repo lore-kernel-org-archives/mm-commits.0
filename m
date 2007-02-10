@@ -1,78 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - drm-use-array_size-macro-when-appropriate.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:20:06 -0800
-Message-ID: <200702100520.l1A5K6Bb004438@shell0.pdx.osdl.net>
+Subject: - ehca-fix-memleak-on-module-unloading.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:20:22 -0800
+Message-ID: <200702100520.l1A5KMBl004447@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36516 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36525 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753113AbXBJFU1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:20:27 -0500
+	id S1753115AbXBJFUw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:20:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darwish.07@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, heiko.carstens@de.ibm.com, hnguyen@de.ibm.com, raisch@de.ibm.com, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm: Use ARRAY_SIZE macro when appropriate
+     ehca: fix memleak on module unloading
 has been removed from the -mm tree.  Its filename was
-     drm-use-array_size-macro-when-appropriate.patch
+     ehca-fix-memleak-on-module-unloading.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drm: Use ARRAY_SIZE macro when appropriate
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: ehca: fix memleak on module unloading
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Use ARRAY_SIZE macro already defined in kernel.h
+Percpu data is not freed on module unloading.
 
-Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
+Cc: Christoph Raisch <raisch@de.ibm.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_proc.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/ehca/ehca_irq.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/drm/drm_proc.c~drm-use-array_size-macro-when-appropriate drivers/char/drm/drm_proc.c
---- a/drivers/char/drm/drm_proc.c~drm-use-array_size-macro-when-appropriate
-+++ a/drivers/char/drm/drm_proc.c
-@@ -72,7 +72,7 @@ static struct drm_proc_list {
+diff -puN drivers/infiniband/hw/ehca/ehca_irq.c~ehca-fix-memleak-on-module-unloading drivers/infiniband/hw/ehca/ehca_irq.c
+--- a/drivers/infiniband/hw/ehca/ehca_irq.c~ehca-fix-memleak-on-module-unloading
++++ a/drivers/infiniband/hw/ehca/ehca_irq.c
+@@ -756,6 +756,8 @@ void ehca_destroy_comp_pool(void)
+ 		if (cpu_online(i))
+ 			destroy_comp_task(pool, i);
+ 	}
++	free_percpu(pool->cpu_comp_tasks);
++	kfree(pool);
  #endif
- };
  
--#define DRM_PROC_ENTRIES (sizeof(drm_proc_list)/sizeof(drm_proc_list[0]))
-+#define DRM_PROC_ENTRIES ARRAY_SIZE(drm_proc_list)
- 
- /**
-  * Initialize the DRI proc filesystem for a device.
+ 	return;
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-git-acpi.patch
-git-agpgart.patch
-arch-arm-use-array_size-macro-when-appropriate.patch
-git-avr32.patch
-git-drm.patch
-git-dvb.patch
 git-infiniband.patch
-git-mips.patch
-atm-use-array_size-macro-when-appropriate.patch
-s390-kmalloc-kzalloc-casting-cleanups.patch
-s390-drivers-use-array_size-macro-when-appropriate.patch
-git-scsi-misc.patch
-arch-arm26-use-array_size-macro-when-appropriate.patch
-arch-m68knommu-user-array_size-macro-when-appropriate.patch
-arch-m68k-user-array_size-macro-when-appropriate.patch
-arch-cris-user-array_size-macro-when-appropriate.patch
-arch-v850-user-array_size-macro-when-appropriate.patch
-w1-use-array_size-macro-when-appropriate.patch
-oss-use-array_size-macro-when-appropriate.patch
-oss-use-array_size-macro-when-appropriate-2.patch
-reiserfs-use-array_size-macro-when-appropriate.patch
-isdn-capi-use-array_size-when-appropriate.patch
-isdn-eicon-use-array_size-macro-when-appropriate.patch
-rcutorture-use-array_size-macro-when-appropriate.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
+git-input.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-watchdog.patch
+simplify-the-stacktrace-code.patch
