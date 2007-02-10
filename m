@@ -1,60 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:07:05 -0800
-Message-ID: <200702100807.l1A8751W006871@shell0.pdx.osdl.net>
+Subject: - optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:07:09 -0800
+Message-ID: <200702100807.l1A879ZO006874@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39216 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39219 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752745AbXBJIHK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:07:10 -0500
+	id S1752747AbXBJIHO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:07:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     No GFP_DMA check in the slab if no CONFIG_ZONE_DMA is set
+     Reduce CONFIG_ZONE_DMA ifdefs
 has been removed from the -mm tree.  Its filename was
-     optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
+     optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
 
 This patch was dropped because it was folded into optional-zone_dma-in-the-vm.patch
 
 ------------------------------------------------------
-Subject: No GFP_DMA check in the slab if no CONFIG_ZONE_DMA is set
+Subject: Reduce CONFIG_ZONE_DMA ifdefs
 From: Christoph Lameter <clameter@sgi.com>
 
-The GFP_DMA check in the slab is not necessary if there is no ZONE_DMA
-available.
+V1->V2 use CONFIG_ZONE_DMA_FLAG that was defined in mm/Kconfig.
 
-The SCSI layer still sets GFP_DMA just in case which may cause the
-BUG_ON to fire although there cannot be a an issue since systems with
-CONFIG_ZONE_DMA off have no DMA restrictions.
+Reduce #ifdef CONFIG_ZONE_DMA
 
-This bug was triggered by Paul Jackson on an SGI Altix system.  Altix never
-had any memory below 4G (meaning of ZONE_DMA on ia64) and the driver has
-been working for ages.
+This reduces the #ifdefs in the slab allocator by adding a new
+CONFIG_ZONE_DMA_FLAG in mm/Kconfig.  The definitions for the page allocator
+are already minimal and orthogonal to CONFIG_ZONE_DMA32 and CONFIG_HIGHMEM.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/slab.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/Kconfig |    6 ++++++
+ mm/slab.c  |   22 ++++++++++------------
+ 2 files changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN mm/slab.c~optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set mm/slab.c
---- a/mm/slab.c~optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set
+diff -puN mm/Kconfig~optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs mm/Kconfig
+--- a/mm/Kconfig~optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs
++++ a/mm/Kconfig
+@@ -161,3 +161,9 @@ config RESOURCES_64BIT
+ 	default 64BIT
+ 	help
+ 	  This option allows memory and IO resources to be 64 bit.
++
++config ZONE_DMA_FLAG
++	int
++	default "0" if !ZONE_DMA
++	default "1"
++
+diff -puN mm/slab.c~optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs mm/slab.c
+--- a/mm/slab.c~optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs
 +++ a/mm/slab.c
-@@ -2646,10 +2646,12 @@ static void cache_init_objs(struct kmem_
+@@ -1493,14 +1493,14 @@ void __init kmem_cache_init(void)
+ 					ARCH_KMALLOC_FLAGS|SLAB_PANIC,
+ 					NULL, NULL);
+ 		}
+-#ifdef CONFIG_ZONE_DMA
+-		sizes->cs_dmacachep = kmem_cache_create(names->name_dma,
++		if (CONFIG_ZONE_DMA_FLAG)
++			sizes->cs_dmacachep = kmem_cache_create(
++					names->name_dma,
+ 					sizes->cs_size,
+ 					ARCH_KMALLOC_MINALIGN,
+ 					ARCH_KMALLOC_FLAGS|SLAB_CACHE_DMA|
+ 						SLAB_PANIC,
+ 					NULL, NULL);
+-#endif
+ 		sizes++;
+ 		names++;
+ 	}
+@@ -2322,10 +2322,8 @@ kmem_cache_create (const char *name, siz
+ 	cachep->slab_size = slab_size;
+ 	cachep->flags = flags;
+ 	cachep->gfpflags = 0;
+-#ifdef CONFIG_ZONE_DMA
+-	if (flags & SLAB_CACHE_DMA)
++	if (CONFIG_ZONE_DMA_FLAG && (flags & SLAB_CACHE_DMA))
+ 		cachep->gfpflags |= GFP_DMA;
+-#endif
+ 	cachep->buffer_size = size;
+ 	cachep->reciprocal_buffer_size = reciprocal_value(size);
+ 
+@@ -2646,12 +2644,12 @@ static void cache_init_objs(struct kmem_
  
  static void kmem_flagcheck(struct kmem_cache *cachep, gfp_t flags)
  {
-+#ifdef CONFIG_ZONE_DMA
- 	if (flags & GFP_DMA)
- 		BUG_ON(!(cachep->gfpflags & GFP_DMA));
- 	else
- 		BUG_ON(cachep->gfpflags & GFP_DMA);
-+#endif
+-#ifdef CONFIG_ZONE_DMA
+-	if (flags & GFP_DMA)
+-		BUG_ON(!(cachep->gfpflags & GFP_DMA));
+-	else
+-		BUG_ON(cachep->gfpflags & GFP_DMA);
+-#endif
++	if (CONFIG_ZONE_DMA_FLAG) {
++		if (flags & GFP_DMA)
++			BUG_ON(!(cachep->gfpflags & GFP_DMA));
++		else
++			BUG_ON(cachep->gfpflags & GFP_DMA);
++	}
  }
  
  static void *slab_get_obj(struct kmem_cache *cachep, struct slab *slabp,
@@ -73,7 +120,6 @@ drop-get_zone_counts.patch
 deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
 introduce-config_zone_dma.patch
 optional-zone_dma-in-the-vm.patch
-optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
 optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
 optional-zone_dma-for-ia64.patch
 remove-zone_dma-remains-from-parisc.patch
