@@ -1,144 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - i386-vdso-use-install_special_mapping.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:22:34 -0800
-Message-ID: <200702100522.l1A5MYhP004498@shell0.pdx.osdl.net>
+Subject: - acpi-bay-remove-acpi-driver-struct.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:23:05 -0800
+Message-ID: <200702100523.l1A5N5nY004515@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36606 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36625 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753132AbXBJFXA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:23:00 -0500
+	id S1753136AbXBJFXN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:23:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, ak@suse.de, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, mm-commits@vger.kernel.org
+To: kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 vDSO: use install_special_mapping
+     ACPI: bay: remove ACPI driver struct
 has been removed from the -mm tree.  Its filename was
-     i386-vdso-use-install_special_mapping.patch
+     acpi-bay-remove-acpi-driver-struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 vDSO: use install_special_mapping
-From: Roland McGrath <roland@redhat.com>
+Subject: ACPI: bay: remove ACPI driver struct
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-This patch uses install_special_mapping for the i386 vDSO setup, consolidating
-duplicated code.
+The bay driver is a platform driver, and doesn't need to also be an acpi
+driver.  Remove the acpi driver related structures and callbacks, they didn't
+do anything anyway.  Switch to uevent for user space event notification.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/sysenter.c |   53 +++++++---------------------------
- 1 files changed, 11 insertions(+), 42 deletions(-)
+ drivers/acpi/bay.c |   99 +------------------------------------------
+ 1 file changed, 4 insertions(+), 95 deletions(-)
 
-diff -puN arch/i386/kernel/sysenter.c~i386-vdso-use-install_special_mapping arch/i386/kernel/sysenter.c
---- a/arch/i386/kernel/sysenter.c~i386-vdso-use-install_special_mapping
-+++ a/arch/i386/kernel/sysenter.c
-@@ -70,11 +70,12 @@ void enable_sep_cpu(void)
-  */
- extern const char vsyscall_int80_start, vsyscall_int80_end;
- extern const char vsyscall_sysenter_start, vsyscall_sysenter_end;
--static void *syscall_page;
-+static struct page *syscall_pages[1];
+diff -puN drivers/acpi/bay.c~acpi-bay-remove-acpi-driver-struct drivers/acpi/bay.c
+--- a/drivers/acpi/bay.c~acpi-bay-remove-acpi-driver-struct
++++ a/drivers/acpi/bay.c
+@@ -47,18 +47,6 @@ MODULE_LICENSE("GPL");
+ 	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
+ 	printk(KERN_DEBUG PREFIX "%s: %s\n", prefix, s); }
+ static void bay_notify(acpi_handle handle, u32 event, void *data);
+-static int acpi_bay_add(struct acpi_device *device);
+-static int acpi_bay_remove(struct acpi_device *device, int type);
+-
+-static struct acpi_driver acpi_bay_driver = {
+-	.name = ACPI_BAY_DRIVER_NAME,
+-	.class = ACPI_BAY_CLASS,
+-	.ids = ACPI_BAY_HID,
+-	.ops = {
+-		.add = acpi_bay_add,
+-		.remove = acpi_bay_remove,
+-		},
+-};
  
- int __init sysenter_setup(void)
+ struct bay {
+ 	acpi_handle handle;
+@@ -234,14 +222,6 @@ int eject_removable_drive(struct device 
+ }
+ EXPORT_SYMBOL_GPL(eject_removable_drive);
+ 
+-static int acpi_bay_add(struct acpi_device *device)
+-{
+-	bay_dprintk(device->handle, "adding bay device");
+-	strcpy(acpi_device_name(device), "Dockable Bay");
+-	strcpy(acpi_device_class(device), "bay");
+-	return 0;
+-}
+-
+ static int acpi_bay_add_fs(struct bay *bay)
  {
--	syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
-+	void *syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
-+	syscall_pages[0] = virt_to_page(syscall_page);
- 
- #ifdef CONFIG_COMPAT_VDSO
- 	__set_fixmap(FIX_VDSO, __pa(syscall_page), PAGE_READONLY);
-@@ -96,31 +97,12 @@ int __init sysenter_setup(void)
+ 	int ret;
+@@ -339,52 +319,6 @@ bay_add_err:
+ 	return -ENODEV;
  }
  
- #ifndef CONFIG_COMPAT_VDSO
--static struct page *syscall_nopage(struct vm_area_struct *vma,
--				unsigned long adr, int *type)
+-static int acpi_bay_remove(struct acpi_device *device, int type)
 -{
--	struct page *p = virt_to_page(adr - vma->vm_start + syscall_page);
--	get_page(p);
--	return p;
+-	/*** FIXME: do something here */
+-	return 0;
 -}
 -
--/* Prevent VMA merging */
--static void syscall_vma_close(struct vm_area_struct *vma)
+-/**
+- * bay_create_acpi_device - add new devices to acpi
+- * @handle - handle of the device to add
+- *
+- *  This function will create a new acpi_device for the given
+- *  handle if one does not exist already.  This should cause
+- *  acpi to scan for drivers for the given devices, and call
+- *  matching driver's add routine.
+- *
+- *  Returns a pointer to the acpi_device corresponding to the handle.
+- */
+-static struct acpi_device * bay_create_acpi_device(acpi_handle handle)
 -{
+-	struct acpi_device *device = NULL;
+-	struct acpi_device *parent_device;
+-	acpi_handle parent;
+-	int ret;
+-
+-	bay_dprintk(handle, "Trying to get device");
+-	if (acpi_bus_get_device(handle, &device)) {
+-		/*
+-		 * no device created for this object,
+-		 * so we should create one.
+-		 */
+-		bay_dprintk(handle, "No device for handle");
+-		acpi_get_parent(handle, &parent);
+-		if (acpi_bus_get_device(parent, &parent_device))
+-			parent_device = NULL;
+-
+-		ret = acpi_bus_add(&device, parent_device, handle,
+-			ACPI_BUS_TYPE_DEVICE);
+-		if (ret) {
+-			pr_debug("error adding bus, %x\n",
+-				-ret);
+-			return NULL;
+-		}
+-	}
+-	return device;
 -}
 -
--static struct vm_operations_struct syscall_vm_ops = {
--	.close = syscall_vma_close,
--	.nopage = syscall_nopage,
--};
--
- /* Defined in vsyscall-sysenter.S */
- extern void SYSENTER_RETURN;
- 
- /* Setup a VMA at program startup for the vsyscall page */
- int arch_setup_additional_pages(struct linux_binprm *bprm, int exstack)
+ /**
+  * bay_notify - act upon an acpi bay notification
+  * @handle: the bay handle
+@@ -394,38 +328,19 @@ static struct acpi_device * bay_create_a
+  */
+ static void bay_notify(acpi_handle handle, u32 event, void *data)
  {
--	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr;
- 	int ret;
-@@ -132,38 +114,25 @@ int arch_setup_additional_pages(struct l
- 		goto up_fail;
+-	struct acpi_device *dev;
++	struct bay *bay_dev = (struct bay *)data;
++	struct device *dev = &bay_dev->pdev->dev;
+ 
+ 	bay_dprintk(handle, "Bay event");
+ 
+ 	switch(event) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+-		printk("Bus Check\n");
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+-		printk("Device Check\n");
+-		dev = bay_create_acpi_device(handle);
+-		if (dev)
+-			acpi_bus_generate_event(dev, event, 0);
+-		else
+-			printk("No device for generating event\n");
+-		/* wouldn't it be a good idea to just rescan SATA
+-		 * right here?
+-		 */
+-		break;
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+-		printk("Eject request\n");
+-		dev = bay_create_acpi_device(handle);
+-		if (dev)
+-			acpi_bus_generate_event(dev, event, 0);
+-		else
+-			printk("No device for generating eventn");
+-
+-		/* wouldn't it be a good idea to just call the
+-		 * eject_device here if we were a SATA device?
+-		 */
++		kobject_uevent(&dev->kobj, KOBJ_CHANGE);
+ 		break;
+ 	default:
+-		printk("unknown event %d\n", event);
++		printk(KERN_ERR PREFIX "Bay: unknown event %d\n", event);
  	}
+ }
  
--	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
--	if (!vma) {
--		ret = -ENOMEM;
--		goto up_fail;
--	}
--
--	vma->vm_start = addr;
--	vma->vm_end = addr + PAGE_SIZE;
--	/* MAYWRITE to allow gdb to COW and set breakpoints */
--	vma->vm_flags = VM_READ|VM_EXEC|VM_MAYREAD|VM_MAYEXEC|VM_MAYWRITE;
- 	/*
-+	 * MAYWRITE to allow gdb to COW and set breakpoints
-+	 *
- 	 * Make sure the vDSO gets into every core dump.
- 	 * Dumping its contents makes post-mortem fully interpretable later
- 	 * without matching up the same kernel and hardware config to see
- 	 * what PC values meant.
- 	 */
--	vma->vm_flags |= VM_ALWAYSDUMP;
--	vma->vm_flags |= mm->def_flags;
--	vma->vm_page_prot = protection_map[vma->vm_flags & 7];
--	vma->vm_ops = &syscall_vm_ops;
--	vma->vm_mm = mm;
--
--	ret = insert_vm_struct(mm, vma);
--	if (unlikely(ret)) {
--		kmem_cache_free(vm_area_cachep, vma);
-+	ret = install_special_mapping(mm, addr, PAGE_SIZE,
-+				      VM_READ|VM_EXEC|
-+				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
-+				      VM_ALWAYSDUMP,
-+				      syscall_pages);
-+	if (ret)
- 		goto up_fail;
--	}
+@@ -457,10 +372,6 @@ static int __init bay_init(void)
+ 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+ 		ACPI_UINT32_MAX, find_bay, &bays, NULL);
  
- 	current->mm->context.vdso = (void *)addr;
- 	current_thread_info()->sysenter_return =
- 				    (void *)VDSO_SYM(&SYSENTER_RETURN);
--	mm->total_vm++;
- up_fail:
- 	up_write(&mm->mmap_sem);
- 	return ret;
+-	if (bays)
+-		if ((acpi_bus_register_driver(&acpi_bay_driver) < 0))
+-			printk(KERN_ERR "Unable to register bay driver\n");
+-
+ 	if (!bays)
+ 		return -ENODEV;
+ 
+@@ -481,8 +392,6 @@ static void __exit bay_exit(void)
+ 		kfree(bay->name);
+ 		kfree(bay);
+ 	}
+-
+-	acpi_bus_unregister_driver(&acpi_bay_driver);
+ }
+ 
+ postcore_initcall(bay_init);
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
 origin.patch
-transform-kmem_cache_allocmemset0-kmem_cache_zalloc.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+git-acpi.patch
+git-libata-all.patch
