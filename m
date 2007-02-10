@@ -1,148 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - driver-core-dont-fail-attaching-the-device-if-it.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:24:24 -0800
-Message-ID: <200702100524.l1A5OOjh004584@shell0.pdx.osdl.net>
+Subject: - toshiba-acpi-use-array_size-macro-when-appropriate.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:23:27 -0800
+Message-ID: <200702100523.l1A5NRuH004528@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36702 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36708 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752689AbXBJFYt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:24:49 -0500
+	id S1752694AbXBJFY4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:24:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cornelia.huck@de.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver core: don't fail attaching the device if it cannot be bound
+     toshiba-acpi: Use ARRAY_SIZE macro when appropriate
 has been removed from the -mm tree.  Its filename was
-     driver-core-dont-fail-attaching-the-device-if-it.patch
+     toshiba-acpi-use-array_size-macro-when-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: driver core: don't fail attaching the device if it cannot be bound
-From: Cornelia Huck <cornelia.huck@de.ibm.com>
+Subject: toshiba-acpi: Use ARRAY_SIZE macro when appropriate
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Don't fail bus_attach_device() if the device cannot be bound.
+Use ARRAY_SIZE macro already defined in kernel.h
 
-If dev->driver has been specified, reset it to NULL if device_bind_driver()
-failed and add the device as an unbound device.  As a result,
-bus_attach_device() now cannot fail, and we can remove some checking from
-device_add().
-
-Also remove an unneeded check in bus_rescan_devices_helper().
-
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/base.h |    2 +-
- drivers/base/bus.c  |   13 +++++--------
- drivers/base/core.c |    5 +----
- drivers/base/dd.c   |    6 +++++-
- 4 files changed, 12 insertions(+), 14 deletions(-)
+ drivers/acpi/toshiba_acpi.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/base.h~driver-core-dont-fail-attaching-the-device-if-it drivers/base/base.h
---- a/drivers/base/base.h~driver-core-dont-fail-attaching-the-device-if-it
-+++ a/drivers/base/base.h
-@@ -16,7 +16,7 @@ extern int cpu_dev_init(void);
- extern int attribute_container_init(void);
+diff -puN drivers/acpi/toshiba_acpi.c~toshiba-acpi-use-array_size-macro-when-appropriate drivers/acpi/toshiba_acpi.c
+--- a/drivers/acpi/toshiba_acpi.c~toshiba-acpi-use-array_size-macro-when-appropriate
++++ a/drivers/acpi/toshiba_acpi.c
+@@ -125,7 +125,7 @@ static int write_acpi_int(const char *me
+ 	union acpi_object in_objs[1];
+ 	acpi_status status;
  
- extern int bus_add_device(struct device * dev);
--extern int bus_attach_device(struct device * dev);
-+extern void bus_attach_device(struct device * dev);
- extern void bus_remove_device(struct device * dev);
- extern struct bus_type *get_bus(struct bus_type * bus);
- extern void put_bus(struct bus_type * bus);
-diff -puN drivers/base/bus.c~driver-core-dont-fail-attaching-the-device-if-it drivers/base/bus.c
---- a/drivers/base/bus.c~driver-core-dont-fail-attaching-the-device-if-it
-+++ a/drivers/base/bus.c
-@@ -420,21 +420,20 @@ out_put:
-  *	- Add device to bus's list of devices.
-  *	- Try to attach to driver.
-  */
--int bus_attach_device(struct device * dev)
-+void bus_attach_device(struct device * dev)
- {
- 	struct bus_type *bus = dev->bus;
--	int ret = 0;
-+	int ret;
- 
- 	if (bus) {
- 		dev->is_registered = 1;
- 		ret = device_attach(dev);
--		if (ret >= 0) {
-+		WARN_ON(ret < 0);
-+		if (ret >= 0)
- 			klist_add_tail(&dev->knode_bus, &bus->klist_devices);
--			ret = 0;
--		} else
-+		else
- 			dev->is_registered = 0;
- 	}
--	return ret;
- }
- 
- /**
-@@ -607,8 +606,6 @@ static int __must_check bus_rescan_devic
- 		ret = device_attach(dev);
- 		if (dev->parent)
- 			up(&dev->parent->sem);
--		if (ret > 0)
--			ret = 0;
- 	}
- 	return ret < 0 ? ret : 0;
- }
-diff -puN drivers/base/core.c~driver-core-dont-fail-attaching-the-device-if-it drivers/base/core.c
---- a/drivers/base/core.c~driver-core-dont-fail-attaching-the-device-if-it
-+++ a/drivers/base/core.c
-@@ -591,8 +591,7 @@ int device_add(struct device *dev)
- 		goto BusError;
- 	if (!dev->uevent_suppress)
- 		kobject_uevent(&dev->kobj, KOBJ_ADD);
--	if ((error = bus_attach_device(dev)))
--		goto AttachError;
-+	bus_attach_device(dev);
- 	if (parent)
- 		klist_add_tail(&dev->knode_parent, &parent->klist_children);
- 
-@@ -611,8 +610,6 @@ int device_add(struct device *dev)
-  	kfree(class_name);
- 	put_device(dev);
- 	return error;
-- AttachError:
--	bus_remove_device(dev);
-  BusError:
- 	device_pm_remove(dev);
-  PMError:
-diff -puN drivers/base/dd.c~driver-core-dont-fail-attaching-the-device-if-it drivers/base/dd.c
---- a/drivers/base/dd.c~driver-core-dont-fail-attaching-the-device-if-it
-+++ a/drivers/base/dd.c
-@@ -230,7 +230,7 @@ static int device_probe_drivers(void *da
-  *
-  *	Returns 1 if the device was bound to a driver;
-  *	0 if no matching device was found or multithreaded probing is done;
-- *	error code otherwise.
-+ *	-ENODEV if the device is not registered.
-  *
-  *	When called for a USB interface, @dev->parent->sem must be held.
-  */
-@@ -244,6 +244,10 @@ int device_attach(struct device * dev)
- 		ret = device_bind_driver(dev);
- 		if (ret == 0)
- 			ret = 1;
-+		else {
-+			dev->driver = NULL;
-+			ret = 0;
-+		}
- 	} else {
- 		if (dev->bus->multithread_probe)
- 			probe_task = kthread_run(device_probe_drivers, dev,
+-	params.count = sizeof(in_objs) / sizeof(in_objs[0]);
++	params.count = ARRAY_SIZE(in_objs);
+ 	params.pointer = in_objs;
+ 	in_objs[0].type = ACPI_TYPE_INTEGER;
+ 	in_objs[0].integer.value = val;
 _
 
-Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
-git-s390.patch
+git-acpi.patch
+git-agpgart.patch
+arch-arm-use-array_size-macro-when-appropriate.patch
+git-avr32.patch
+git-drm.patch
+git-dvb.patch
+git-infiniband.patch
+git-mips.patch
+atm-use-array_size-macro-when-appropriate.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+s390-drivers-use-array_size-macro-when-appropriate.patch
+git-scsi-misc.patch
+arch-arm26-use-array_size-macro-when-appropriate.patch
+arch-m68knommu-user-array_size-macro-when-appropriate.patch
+arch-m68k-user-array_size-macro-when-appropriate.patch
+arch-cris-user-array_size-macro-when-appropriate.patch
+arch-v850-user-array_size-macro-when-appropriate.patch
+w1-use-array_size-macro-when-appropriate.patch
+oss-use-array_size-macro-when-appropriate.patch
+oss-use-array_size-macro-when-appropriate-2.patch
+reiserfs-use-array_size-macro-when-appropriate.patch
+isdn-capi-use-array_size-when-appropriate.patch
+isdn-eicon-use-array_size-macro-when-appropriate.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
