@@ -1,235 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - driver-core-per-subsystem-multithreaded-probing.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:24:08 -0800
-Message-ID: <200702100524.l1A5O8fb004574@shell0.pdx.osdl.net>
+Subject: - driver-core-dont-fail-attaching-the-device-if-it.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:24:24 -0800
+Message-ID: <200702100524.l1A5OOjh004584@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36695 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36702 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752680AbXBJFYi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:24:38 -0500
+	id S1752689AbXBJFYt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:24:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cornelia.huck@de.ibm.com, benh@kernel.crashing.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: cornelia.huck@de.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver core: per-subsystem multithreaded probing
+     driver core: don't fail attaching the device if it cannot be bound
 has been removed from the -mm tree.  Its filename was
-     driver-core-per-subsystem-multithreaded-probing.patch
+     driver-core-dont-fail-attaching-the-device-if-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: driver core: per-subsystem multithreaded probing
+Subject: driver core: don't fail attaching the device if it cannot be bound
 From: Cornelia Huck <cornelia.huck@de.ibm.com>
 
-Make multithreaded probing work per subsystem instead of per driver.
+Don't fail bus_attach_device() if the device cannot be bound.
 
-It doesn't make much sense to probe the same device for multiple drivers in
-parallel (after all, only one driver can bind to the device).  Instead, create
-a probing thread for each device that probes the drivers one after another. 
-Also make the decision to use multi-threaded probe per bus instead of per
-device and adapt the pci code.
+If dev->driver has been specified, reset it to NULL if device_bind_driver()
+failed and add the device as an unbound device.  As a result,
+bus_attach_device() now cannot fail, and we can remove some checking from
+device_add().
+
+Also remove an unneeded check in bus_rescan_devices_helper().
 
 Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dd.c        |   62 ++++++++++++++++++-------------------
- drivers/pci/pci-driver.c |    6 ---
- include/linux/device.h   |    4 +-
- include/linux/pci.h      |    2 -
- 4 files changed, 34 insertions(+), 40 deletions(-)
+ drivers/base/base.h |    2 +-
+ drivers/base/bus.c  |   13 +++++--------
+ drivers/base/core.c |    5 +----
+ drivers/base/dd.c   |    6 +++++-
+ 4 files changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN drivers/base/dd.c~driver-core-per-subsystem-multithreaded-probing drivers/base/dd.c
---- a/drivers/base/dd.c~driver-core-per-subsystem-multithreaded-probing
-+++ a/drivers/base/dd.c
-@@ -94,19 +94,11 @@ int device_bind_driver(struct device *de
- 	return ret;
- }
+diff -puN drivers/base/base.h~driver-core-dont-fail-attaching-the-device-if-it drivers/base/base.h
+--- a/drivers/base/base.h~driver-core-dont-fail-attaching-the-device-if-it
++++ a/drivers/base/base.h
+@@ -16,7 +16,7 @@ extern int cpu_dev_init(void);
+ extern int attribute_container_init(void);
  
--struct stupid_thread_structure {
--	struct device_driver *drv;
--	struct device *dev;
--};
--
- static atomic_t probe_count = ATOMIC_INIT(0);
- static DECLARE_WAIT_QUEUE_HEAD(probe_waitqueue);
- 
--static int really_probe(void *void_data)
-+static int really_probe(struct device *dev, struct device_driver *drv)
- {
--	struct stupid_thread_structure *data = void_data;
--	struct device_driver *drv = data->drv;
--	struct device *dev = data->dev;
- 	int ret = 0;
- 
- 	atomic_inc(&probe_count);
-@@ -152,7 +144,6 @@ probe_failed:
- 	 */
- 	ret = 0;
- done:
--	kfree(data);
- 	atomic_dec(&probe_count);
- 	wake_up(&probe_waitqueue);
- 	return ret;
-@@ -184,16 +175,14 @@ int driver_probe_done(void)
-  * format of the ID structures, nor what is to be considered a match and
-  * what is not.
-  *
-- * This function returns 1 if a match is found, an error if one occurs
-- * (that is not -ENODEV or -ENXIO), and 0 otherwise.
-+ * This function returns 1 if a match is found, -ENODEV if the device is
-+ * not registered, and 0 otherwise.
-  *
-  * This function must be called with @dev->sem held.  When called for a
-  * USB interface, @dev->parent->sem must be held as well.
+ extern int bus_add_device(struct device * dev);
+-extern int bus_attach_device(struct device * dev);
++extern void bus_attach_device(struct device * dev);
+ extern void bus_remove_device(struct device * dev);
+ extern struct bus_type *get_bus(struct bus_type * bus);
+ extern void put_bus(struct bus_type * bus);
+diff -puN drivers/base/bus.c~driver-core-dont-fail-attaching-the-device-if-it drivers/base/bus.c
+--- a/drivers/base/bus.c~driver-core-dont-fail-attaching-the-device-if-it
++++ a/drivers/base/bus.c
+@@ -420,21 +420,20 @@ out_put:
+  *	- Add device to bus's list of devices.
+  *	- Try to attach to driver.
   */
- int driver_probe_device(struct device_driver * drv, struct device * dev)
+-int bus_attach_device(struct device * dev)
++void bus_attach_device(struct device * dev)
  {
--	struct stupid_thread_structure *data;
--	struct task_struct *probe_task;
- 	int ret = 0;
+ 	struct bus_type *bus = dev->bus;
+-	int ret = 0;
++	int ret;
  
- 	if (!device_is_registered(dev))
-@@ -204,19 +193,7 @@ int driver_probe_device(struct device_dr
- 	pr_debug("%s: Matched Device %s with Driver %s\n",
- 		 drv->bus->name, dev->bus_id, drv->name);
- 
--	data = kmalloc(sizeof(*data), GFP_KERNEL);
--	if (!data)
--		return -ENOMEM;
--	data->drv = drv;
--	data->dev = dev;
--
--	if (drv->multithread_probe) {
--		probe_task = kthread_run(really_probe, data,
--					 "probe-%s", dev->bus_id);
--		if (IS_ERR(probe_task))
--			ret = really_probe(data);
--	} else
--		ret = really_probe(data);
-+	ret = really_probe(dev, drv);
- 
- done:
- 	return ret;
-@@ -228,30 +205,53 @@ static int __device_attach(struct device
- 	return driver_probe_device(drv, dev);
+ 	if (bus) {
+ 		dev->is_registered = 1;
+ 		ret = device_attach(dev);
+-		if (ret >= 0) {
++		WARN_ON(ret < 0);
++		if (ret >= 0)
+ 			klist_add_tail(&dev->knode_bus, &bus->klist_devices);
+-			ret = 0;
+-		} else
++		else
+ 			dev->is_registered = 0;
+ 	}
+-	return ret;
  }
  
-+static int device_probe_drivers(void *data)
-+{
-+	struct device *dev = data;
-+	int ret = 0;
-+
-+	if (dev->bus) {
-+		down(&dev->sem);
-+		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
-+		up(&dev->sem);
-+	}
-+	return ret;
-+}
-+
  /**
-  *	device_attach - try to attach device to a driver.
-  *	@dev:	device.
-  *
-  *	Walk the list of drivers that the bus has and call
-  *	driver_probe_device() for each pair. If a compatible
-- *	pair is found, break out and return.
-+ *	pair is found, break out and return. If the bus specifies
-+ *	multithreaded probing, walking the list of drivers is done
-+ *	on a probing thread.
+@@ -607,8 +606,6 @@ static int __must_check bus_rescan_devic
+ 		ret = device_attach(dev);
+ 		if (dev->parent)
+ 			up(&dev->parent->sem);
+-		if (ret > 0)
+-			ret = 0;
+ 	}
+ 	return ret < 0 ? ret : 0;
+ }
+diff -puN drivers/base/core.c~driver-core-dont-fail-attaching-the-device-if-it drivers/base/core.c
+--- a/drivers/base/core.c~driver-core-dont-fail-attaching-the-device-if-it
++++ a/drivers/base/core.c
+@@ -591,8 +591,7 @@ int device_add(struct device *dev)
+ 		goto BusError;
+ 	if (!dev->uevent_suppress)
+ 		kobject_uevent(&dev->kobj, KOBJ_ADD);
+-	if ((error = bus_attach_device(dev)))
+-		goto AttachError;
++	bus_attach_device(dev);
+ 	if (parent)
+ 		klist_add_tail(&dev->knode_parent, &parent->klist_children);
+ 
+@@ -611,8 +610,6 @@ int device_add(struct device *dev)
+  	kfree(class_name);
+ 	put_device(dev);
+ 	return error;
+- AttachError:
+-	bus_remove_device(dev);
+  BusError:
+ 	device_pm_remove(dev);
+  PMError:
+diff -puN drivers/base/dd.c~driver-core-dont-fail-attaching-the-device-if-it drivers/base/dd.c
+--- a/drivers/base/dd.c~driver-core-dont-fail-attaching-the-device-if-it
++++ a/drivers/base/dd.c
+@@ -230,7 +230,7 @@ static int device_probe_drivers(void *da
   *
   *	Returns 1 if the device was bound to a driver;
-- *	0 if no matching device was found; error code otherwise.
-+ *	0 if no matching device was found or multithreaded probing is done;
-+ *	error code otherwise.
+  *	0 if no matching device was found or multithreaded probing is done;
+- *	error code otherwise.
++ *	-ENODEV if the device is not registered.
   *
   *	When called for a USB interface, @dev->parent->sem must be held.
   */
- int device_attach(struct device * dev)
- {
- 	int ret = 0;
-+	struct task_struct *probe_task = ERR_PTR(-ENOMEM);
- 
- 	down(&dev->sem);
- 	if (dev->driver) {
+@@ -244,6 +244,10 @@ int device_attach(struct device * dev)
  		ret = device_bind_driver(dev);
  		if (ret == 0)
  			ret = 1;
--	} else
--		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
-+	} else {
-+		if (dev->bus->multithread_probe)
-+			probe_task = kthread_run(device_probe_drivers, dev,
-+						 "probe-%s", dev->bus_id);
-+		if(IS_ERR(probe_task))
-+			ret = bus_for_each_drv(dev->bus, NULL, dev,
-+					       __device_attach);
-+	}
- 	up(&dev->sem);
- 	return ret;
- }
-diff -puN drivers/pci/pci-driver.c~driver-core-per-subsystem-multithreaded-probing drivers/pci/pci-driver.c
---- a/drivers/pci/pci-driver.c~driver-core-per-subsystem-multithreaded-probing
-+++ a/drivers/pci/pci-driver.c
-@@ -434,11 +434,6 @@ int __pci_register_driver(struct pci_dri
- 	drv->driver.mod_name = mod_name;
- 	drv->driver.kobj.ktype = &pci_driver_kobj_type;
- 
--	if (pci_multithread_probe)
--		drv->driver.multithread_probe = pci_multithread_probe;
--	else
--		drv->driver.multithread_probe = drv->multithread_probe;
--
- 	spin_lock_init(&drv->dynids.lock);
- 	INIT_LIST_HEAD(&drv->dynids.list);
- 
-@@ -574,6 +569,7 @@ struct bus_type pci_bus_type = {
- 
- static int __init pci_driver_init(void)
- {
-+	pci_bus_type.multithread_probe = pci_multithread_probe;
- 	return bus_register(&pci_bus_type);
- }
- 
-diff -puN include/linux/device.h~driver-core-per-subsystem-multithreaded-probing include/linux/device.h
---- a/include/linux/device.h~driver-core-per-subsystem-multithreaded-probing
-+++ a/include/linux/device.h
-@@ -60,6 +60,8 @@ struct bus_type {
- 	int (*suspend_late)(struct device * dev, pm_message_t state);
- 	int (*resume_early)(struct device * dev);
- 	int (*resume)(struct device * dev);
-+
-+	unsigned int multithread_probe:1;
- };
- 
- extern int __must_check bus_register(struct bus_type * bus);
-@@ -133,8 +135,6 @@ struct device_driver {
- 	void	(*shutdown)	(struct device * dev);
- 	int	(*suspend)	(struct device * dev, pm_message_t state);
- 	int	(*resume)	(struct device * dev);
--
--	unsigned int multithread_probe:1;
- };
- 
- 
-diff -puN include/linux/pci.h~driver-core-per-subsystem-multithreaded-probing include/linux/pci.h
---- a/include/linux/pci.h~driver-core-per-subsystem-multithreaded-probing
-+++ a/include/linux/pci.h
-@@ -362,8 +362,6 @@ struct pci_driver {
- 	struct pci_error_handlers *err_handler;
- 	struct device_driver	driver;
- 	struct pci_dynids dynids;
--
--	int multithread_probe;
- };
- 
- #define	to_pci_driver(drv) container_of(drv,struct pci_driver, driver)
++		else {
++			dev->driver = NULL;
++			ret = 0;
++		}
+ 	} else {
+ 		if (dev->bus->multithread_probe)
+ 			probe_task = kthread_run(device_probe_drivers, dev,
 _
 
 Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
