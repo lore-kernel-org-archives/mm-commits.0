@@ -1,197 +1,262 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-bay-remove-acpi-driver-struct.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:23:05 -0800
-Message-ID: <200702100523.l1A5N5nY004515@shell0.pdx.osdl.net>
+Subject: - knfsd-fix-a-race-in-closing-nfsd-connections.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:21:49 -0800
+Message-ID: <200702100521.l1A5Ln7J004480@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36625 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36622 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753136AbXBJFXN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1753135AbXBJFXN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Sat, 10 Feb 2007 00:23:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: bay: remove ACPI driver struct
+     knfsd: fix a race in closing NFSd connections
 has been removed from the -mm tree.  Its filename was
-     acpi-bay-remove-acpi-driver-struct.patch
+     knfsd-fix-a-race-in-closing-nfsd-connections.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: bay: remove ACPI driver struct
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: knfsd: fix a race in closing NFSd connections
+From: NeilBrown <neilb@suse.de>
 
-The bay driver is a platform driver, and doesn't need to also be an acpi
-driver.  Remove the acpi driver related structures and callbacks, they didn't
-do anything anyway.  Switch to uevent for user space event notification.
+If you lose this race, it can iput a socket inode twice and you get a BUG
+in fs/inode.c
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+When I added the option for user-space to close a socket, I added some
+cruft to svc_delete_socket so that I could call that function when closing
+a socket per user-space request.
+
+This was the wrong thing to do.  I should have just set SK_CLOSE and let
+normal mechanisms do the work.
+
+Not only wrong, but buggy.  The locking is all wrong and it openned up a
+race where-by a socket could be closed twice.
+
+So this patch:
+  Introduces svc_close_socket which sets SK_CLOSE then either leave
+  the close up to a thread, or calls svc_delete_socket if it can
+  get SK_BUSY.
+
+  Adds a bias to sk_busy which is removed when SK_DEAD is set,
+  This avoid races around shutting down the socket.
+
+  Changes several 'spin_lock' to 'spin_lock_bh' where the _bh
+  was missing.
+
+Bugzilla-url: http://bugzilla.kernel.org/show_bug.cgi?id=7916
+
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/bay.c |   99 +------------------------------------------
- 1 file changed, 4 insertions(+), 95 deletions(-)
+ include/linux/sunrpc/svcsock.h |    2 -
+ net/sunrpc/svc.c               |    4 +-
+ net/sunrpc/svcsock.c           |   52 ++++++++++++++++++++++---------
+ 3 files changed, 41 insertions(+), 17 deletions(-)
 
-diff -puN drivers/acpi/bay.c~acpi-bay-remove-acpi-driver-struct drivers/acpi/bay.c
---- a/drivers/acpi/bay.c~acpi-bay-remove-acpi-driver-struct
-+++ a/drivers/acpi/bay.c
-@@ -47,18 +47,6 @@ MODULE_LICENSE("GPL");
- 	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
- 	printk(KERN_DEBUG PREFIX "%s: %s\n", prefix, s); }
- static void bay_notify(acpi_handle handle, u32 event, void *data);
--static int acpi_bay_add(struct acpi_device *device);
--static int acpi_bay_remove(struct acpi_device *device, int type);
--
--static struct acpi_driver acpi_bay_driver = {
--	.name = ACPI_BAY_DRIVER_NAME,
--	.class = ACPI_BAY_CLASS,
--	.ids = ACPI_BAY_HID,
--	.ops = {
--		.add = acpi_bay_add,
--		.remove = acpi_bay_remove,
--		},
--};
- 
- struct bay {
- 	acpi_handle handle;
-@@ -234,14 +222,6 @@ int eject_removable_drive(struct device 
- }
- EXPORT_SYMBOL_GPL(eject_removable_drive);
- 
--static int acpi_bay_add(struct acpi_device *device)
--{
--	bay_dprintk(device->handle, "adding bay device");
--	strcpy(acpi_device_name(device), "Dockable Bay");
--	strcpy(acpi_device_class(device), "bay");
--	return 0;
--}
--
- static int acpi_bay_add_fs(struct bay *bay)
- {
- 	int ret;
-@@ -339,52 +319,6 @@ bay_add_err:
- 	return -ENODEV;
- }
- 
--static int acpi_bay_remove(struct acpi_device *device, int type)
--{
--	/*** FIXME: do something here */
--	return 0;
--}
--
--/**
-- * bay_create_acpi_device - add new devices to acpi
-- * @handle - handle of the device to add
-- *
-- *  This function will create a new acpi_device for the given
-- *  handle if one does not exist already.  This should cause
-- *  acpi to scan for drivers for the given devices, and call
-- *  matching driver's add routine.
-- *
-- *  Returns a pointer to the acpi_device corresponding to the handle.
-- */
--static struct acpi_device * bay_create_acpi_device(acpi_handle handle)
--{
--	struct acpi_device *device = NULL;
--	struct acpi_device *parent_device;
--	acpi_handle parent;
--	int ret;
--
--	bay_dprintk(handle, "Trying to get device");
--	if (acpi_bus_get_device(handle, &device)) {
--		/*
--		 * no device created for this object,
--		 * so we should create one.
--		 */
--		bay_dprintk(handle, "No device for handle");
--		acpi_get_parent(handle, &parent);
--		if (acpi_bus_get_device(parent, &parent_device))
--			parent_device = NULL;
--
--		ret = acpi_bus_add(&device, parent_device, handle,
--			ACPI_BUS_TYPE_DEVICE);
--		if (ret) {
--			pr_debug("error adding bus, %x\n",
--				-ret);
--			return NULL;
--		}
--	}
--	return device;
--}
--
- /**
-  * bay_notify - act upon an acpi bay notification
-  * @handle: the bay handle
-@@ -394,38 +328,19 @@ static struct acpi_device * bay_create_a
+diff -puN include/linux/sunrpc/svcsock.h~knfsd-fix-a-race-in-closing-nfsd-connections include/linux/sunrpc/svcsock.h
+--- a/include/linux/sunrpc/svcsock.h~knfsd-fix-a-race-in-closing-nfsd-connections
++++ a/include/linux/sunrpc/svcsock.h
+@@ -63,7 +63,7 @@ struct svc_sock {
+  * Function prototypes.
   */
- static void bay_notify(acpi_handle handle, u32 event, void *data)
+ int		svc_makesock(struct svc_serv *, int, unsigned short);
+-void		svc_delete_socket(struct svc_sock *);
++void		svc_close_socket(struct svc_sock *);
+ int		svc_recv(struct svc_rqst *, long);
+ int		svc_send(struct svc_rqst *);
+ void		svc_drop(struct svc_rqst *);
+diff -puN net/sunrpc/svc.c~knfsd-fix-a-race-in-closing-nfsd-connections net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~knfsd-fix-a-race-in-closing-nfsd-connections
++++ a/net/sunrpc/svc.c
+@@ -386,7 +386,7 @@ svc_destroy(struct svc_serv *serv)
+ 		svsk = list_entry(serv->sv_tempsocks.next,
+ 				  struct svc_sock,
+ 				  sk_list);
+-		svc_delete_socket(svsk);
++		svc_close_socket(svsk);
+ 	}
+ 	if (serv->sv_shutdown)
+ 		serv->sv_shutdown(serv);
+@@ -395,7 +395,7 @@ svc_destroy(struct svc_serv *serv)
+ 		svsk = list_entry(serv->sv_permsocks.next,
+ 				  struct svc_sock,
+ 				  sk_list);
+-		svc_delete_socket(svsk);
++		svc_close_socket(svsk);
+ 	}
+ 	
+ 	cache_clean_deferred(serv);
+diff -puN net/sunrpc/svcsock.c~knfsd-fix-a-race-in-closing-nfsd-connections net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-fix-a-race-in-closing-nfsd-connections
++++ a/net/sunrpc/svcsock.c
+@@ -62,6 +62,12 @@
+  *		after a clear, the socket must be read/accepted
+  *		 if this succeeds, it must be set again.
+  *	SK_CLOSE can set at any time. It is never cleared.
++ *      sk_inuse contains a bias of '1' until SK_DEAD is set.
++ *             so when sk_inuse hits zero, we know the socket is dead
++ *             and no-one is using it.
++ *      SK_DEAD can only be set while SK_BUSY is held which ensures
++ *             no other thread will be using the socket or will try to
++ *	       set SK_DEAD.
+  *
+  */
+ 
+@@ -70,6 +76,7 @@
+ 
+ static struct svc_sock *svc_setup_socket(struct svc_serv *, struct socket *,
+ 					 int *errp, int pmap_reg);
++static void		svc_delete_socket(struct svc_sock *svsk);
+ static void		svc_udp_data_ready(struct sock *, int);
+ static int		svc_udp_recvfrom(struct svc_rqst *);
+ static int		svc_udp_sendto(struct svc_rqst *);
+@@ -329,8 +336,9 @@ void svc_reserve(struct svc_rqst *rqstp,
+ static inline void
+ svc_sock_put(struct svc_sock *svsk)
  {
--	struct acpi_device *dev;
-+	struct bay *bay_dev = (struct bay *)data;
-+	struct device *dev = &bay_dev->pdev->dev;
+-	if (atomic_dec_and_test(&svsk->sk_inuse) &&
+-			test_bit(SK_DEAD, &svsk->sk_flags)) {
++	if (atomic_dec_and_test(&svsk->sk_inuse)) {
++		BUG_ON(! test_bit(SK_DEAD, &svsk->sk_flags));
++
+ 		dprintk("svc: releasing dead socket\n");
+ 		if (svsk->sk_sock->file)
+ 			sockfd_put(svsk->sk_sock);
+@@ -520,7 +528,7 @@ svc_sock_names(char *buf, struct svc_ser
  
- 	bay_dprintk(handle, "Bay event");
- 
- 	switch(event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
--		printk("Bus Check\n");
- 	case ACPI_NOTIFY_DEVICE_CHECK:
--		printk("Device Check\n");
--		dev = bay_create_acpi_device(handle);
--		if (dev)
--			acpi_bus_generate_event(dev, event, 0);
--		else
--			printk("No device for generating event\n");
--		/* wouldn't it be a good idea to just rescan SATA
--		 * right here?
--		 */
--		break;
- 	case ACPI_NOTIFY_EJECT_REQUEST:
--		printk("Eject request\n");
--		dev = bay_create_acpi_device(handle);
--		if (dev)
--			acpi_bus_generate_event(dev, event, 0);
--		else
--			printk("No device for generating eventn");
--
--		/* wouldn't it be a good idea to just call the
--		 * eject_device here if we were a SATA device?
--		 */
-+		kobject_uevent(&dev->kobj, KOBJ_CHANGE);
- 		break;
- 	default:
--		printk("unknown event %d\n", event);
-+		printk(KERN_ERR PREFIX "Bay: unknown event %d\n", event);
+ 	if (!serv)
+ 		return 0;
+-	spin_lock(&serv->sv_lock);
++	spin_lock_bh(&serv->sv_lock);
+ 	list_for_each_entry(svsk, &serv->sv_permsocks, sk_list) {
+ 		int onelen = one_sock_name(buf+len, svsk);
+ 		if (toclose && strcmp(toclose, buf+len) == 0)
+@@ -528,12 +536,12 @@ svc_sock_names(char *buf, struct svc_ser
+ 		else
+ 			len += onelen;
  	}
+-	spin_unlock(&serv->sv_lock);
++	spin_unlock_bh(&serv->sv_lock);
+ 	if (closesk)
+ 		/* Should unregister with portmap, but you cannot
+ 		 * unregister just one protocol...
+ 		 */
+-		svc_delete_socket(closesk);
++		svc_close_socket(closesk);
+ 	else if (toclose)
+ 		return -ENOENT;
+ 	return len;
+@@ -683,6 +691,11 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
+ 		return svc_deferred_recv(rqstp);
+ 	}
+ 
++	if (test_bit(SK_CLOSE, &svsk->sk_flags)) {
++		svc_delete_socket(svsk);
++		return 0;
++	}
++
+ 	clear_bit(SK_DATA, &svsk->sk_flags);
+ 	while ((skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err)) == NULL) {
+ 		if (err == -EAGAIN) {
+@@ -1176,7 +1189,8 @@ svc_tcp_sendto(struct svc_rqst *rqstp)
+ 		       rqstp->rq_sock->sk_server->sv_name,
+ 		       (sent<0)?"got error":"sent only",
+ 		       sent, xbufp->len);
+-		svc_delete_socket(rqstp->rq_sock);
++		set_bit(SK_CLOSE, &rqstp->rq_sock->sk_flags);
++		svc_sock_enqueue(rqstp->rq_sock);
+ 		sent = -EAGAIN;
+ 	}
+ 	return sent;
+@@ -1495,7 +1509,7 @@ svc_setup_socket(struct svc_serv *serv, 
+ 	svsk->sk_odata = inet->sk_data_ready;
+ 	svsk->sk_owspace = inet->sk_write_space;
+ 	svsk->sk_server = serv;
+-	atomic_set(&svsk->sk_inuse, 0);
++	atomic_set(&svsk->sk_inuse, 1);
+ 	svsk->sk_lastrecv = get_seconds();
+ 	spin_lock_init(&svsk->sk_defer_lock);
+ 	INIT_LIST_HEAD(&svsk->sk_deferred);
+@@ -1618,7 +1632,7 @@ bummer:
+ /*
+  * Remove a dead socket
+  */
+-void
++static void
+ svc_delete_socket(struct svc_sock *svsk)
+ {
+ 	struct svc_serv	*serv;
+@@ -1644,16 +1658,26 @@ svc_delete_socket(struct svc_sock *svsk)
+ 	 * while still attached to a queue, the queue itself
+ 	 * is about to be destroyed (in svc_destroy).
+ 	 */
+-	if (!test_and_set_bit(SK_DEAD, &svsk->sk_flags))
++	if (!test_and_set_bit(SK_DEAD, &svsk->sk_flags)) {
++		BUG_ON(atomic_read(&svsk->sk_inuse)<2);
++		atomic_dec(&svsk->sk_inuse);
+ 		if (test_bit(SK_TEMP, &svsk->sk_flags))
+ 			serv->sv_tmpcnt--;
++	}
+ 
+-	/* This atomic_inc should be needed - svc_delete_socket
+-	 * should have the semantic of dropping a reference.
+-	 * But it doesn't yet....
+-	 */
+-	atomic_inc(&svsk->sk_inuse);
+ 	spin_unlock_bh(&serv->sv_lock);
++}
++
++void svc_close_socket(struct svc_sock *svsk)
++{
++	set_bit(SK_CLOSE, &svsk->sk_flags);
++	if (test_and_set_bit(SK_BUSY, &svsk->sk_flags))
++		/* someone else will have to effect the close */
++		return;
++
++	atomic_inc(&svsk->sk_inuse);
++	svc_delete_socket(svsk);
++	clear_bit(SK_BUSY, &svsk->sk_flags);
+ 	svc_sock_put(svsk);
  }
  
-@@ -457,10 +372,6 @@ static int __init bay_init(void)
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
- 		ACPI_UINT32_MAX, find_bay, &bays, NULL);
- 
--	if (bays)
--		if ((acpi_bus_register_driver(&acpi_bay_driver) < 0))
--			printk(KERN_ERR "Unable to register bay driver\n");
--
- 	if (!bays)
- 		return -ENODEV;
- 
-@@ -481,8 +392,6 @@ static void __exit bay_exit(void)
- 		kfree(bay->name);
- 		kfree(bay);
- 	}
--
--	acpi_bus_unregister_driver(&acpi_bay_driver);
- }
- 
- postcore_initcall(bay_init);
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-git-acpi.patch
-git-libata-all.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+igrab-should-check-for-i_clear.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+replace-highest_possible_node_id-with-nr_node_ids-fix.patch
+convert-highest_possible_processor_id-to-nr_cpu_ids.patch
+fix-d_path-for-lazy-unmounts.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-aplit-svc_sock_enqueue-out-of-svc_setup_socket.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
+knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
+knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
+knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
+knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
+include-linux-nfsd-consth-remove-nfs_super_magic.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
