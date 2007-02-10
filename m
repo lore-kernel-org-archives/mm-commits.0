@@ -1,194 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - use-zvc-for-inactive-and-active-counts-up-fix.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:04:30 -0800
-Message-ID: <200702100804.l1A84Vox006841@shell0.pdx.osdl.net>
+Subject: - use-zvc-for-free_pages-fix-2.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:05:10 -0800
+Message-ID: <200702100805.l1A85Acr006853@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39172 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39182 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752724AbXBJIEq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:04:46 -0500
+	id S1752725AbXBJIFQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:05:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use-zvc-for-inactive-and-active-counts-up-fix
+     ZVC writeback: Fix mm and other issues
 has been removed from the -mm tree.  Its filename was
-     use-zvc-for-inactive-and-active-counts-up-fix.patch
+     use-zvc-for-free_pages-fix-2.patch
 
-This patch was dropped because it was folded into use-zvc-for-inactive-and-active-counts.patch
+This patch was dropped because it was folded into use-zvc-for-free_pages.patch
 
 ------------------------------------------------------
-Subject: use-zvc-for-inactive-and-active-counts-up-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: ZVC writeback: Fix mm and other issues
+From: Christoph Lameter <clameter@sgi.com>
 
-In file included from mm/swap.c:26:
-include/linux/mm_inline.h: In function 'del_page_from_active_list':
-include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
-In file included from mm/vmscan.c:30:
-include/linux/mm_inline.h: In function 'del_page_from_active_list':
-include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
-In file included from fs/splice.c:24:
-include/linux/mm_inline.h: In function 'del_page_from_active_list':
-include/linux/mm_inline.h:26: warning: implicit declaration of function '__dec_zone_state'
+This deals with swap prefetch and various things changed in mm.
 
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/vmstat.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/power/swsusp.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/vmstat.h~use-zvc-for-inactive-and-active-counts-up-fix include/linux/vmstat.h
---- a/include/linux/vmstat.h~use-zvc-for-inactive-and-active-counts-up-fix
-+++ a/include/linux/vmstat.h
-@@ -217,6 +217,12 @@ static inline void __inc_zone_page_state
- 	__inc_zone_state(page_zone(page), item);
- }
- 
-+static inline void __dec_zone_state(struct zone *zone, enum zone_stat_item item)
-+{
-+	atomic_long_dec(&zone->vm_stat[item]);
-+	atomic_long_dec(&vm_stat[item]);
-+}
-+
- static inline void __dec_zone_page_state(struct page *page,
- 			enum zone_stat_item item)
- {
+diff -puN kernel/power/swsusp.c~use-zvc-for-free_pages-fix-2 kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~use-zvc-for-free_pages-fix-2
++++ a/kernel/power/swsusp.c
+@@ -230,9 +230,10 @@ int swsusp_shrink_memory(void)
+ 		for_each_zone (zone)
+ 			if (populated_zone(zone)) {
+ 				if (is_highmem(zone)) {
+-					highmem_size -= zone->free_pages;
++					highmem_size -=
++					zone_page_state(zone, NR_FREE_PAGES);
+ 				} else {
+-					tmp -= zone->free_pages;
++					tmp -= zone_page_state(zone, NR_FREE_PAGES);
+ 					tmp += zone->lowmem_reserve[ZONE_NORMAL];
+ 					tmp += snapshot_additional_pages(zone);
+ 				}
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-origin.patch
-avoid-excessive-sorting-of-early_node_map.patch
-proc-zoneinfo-fix-vm-stats-display.patch
+use-parameter-passed-to-cache_reap-to-determine-pointer-to.patch
 use-zvc-for-inactive-and-active-counts.patch
-use-zvc-for-inactive-and-active-counts-up-fix.patch
-drop-free_pages-fix.patch
-drop-free_pages-sparc64-fix.patch
-optional-zone_dma-in-the-vm-tidy.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
-drivers-add-lcd-support-workqueue-fixups.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
-register_blkdev-dont-hand-out-the-local-experimental-majors.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-dynamic-kernel-command-line-ia64-fix.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+use-zvc-for-free_pages.patch
+use-zvc-for-free_pages-fix-2.patch
+use-zvc-for-free_pages-fix-3.patch
+reorder-zvcs-according-to-cacheline.patch
+drop-free_pages.patch
+drop-nr_free_pages_pgdat.patch
+drop-__get_zone_counts.patch
+drop-get_zone_counts.patch
+deal-with-cases-of-zone_dma-meaning-the-first-zone.patch
+introduce-config_zone_dma.patch
+optional-zone_dma-in-the-vm.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set.patch
+optional-zone_dma-in-the-vm-no-gfp_dma-check-in-the-slab-if-no-config_zone_dma-is-set-reduce-config_zone_dma-ifdefs.patch
+optional-zone_dma-for-ia64.patch
+remove-zone_dma-remains-from-parisc.patch
+remove-zone_dma-remains-from-sh-sh64.patch
+set-config_zone_dma-for-arches-with-generic_isa_dma.patch
+zoneid-fix-up-calculations-for-zoneid_pgshift.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+replace-highest_possible_node_id-with-nr_node_ids-fix.patch
+convert-highest_possible_processor_id-to-nr_cpu_ids.patch
+convert-highest_possible_processor_id-to-nr_cpu_ids-fix.patch
+slab-reduce-size-of-alien-cache-to-cover-only-possible-nodes.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+mm-implement-swap-prefetching-vs-zvc-stuff.patch
+mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
+readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
