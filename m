@@ -1,70 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - remove-a-couple-final-references-to-obsolete-verify_area.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:27:19 -0800
-Message-ID: <200702100527.l1A5RJdl004668@shell0.pdx.osdl.net>
+Subject: - replace-incorrect-macro-name-wireless_ext-with.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:27:10 -0800
+Message-ID: <200702100527.l1A5RAce004662@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36834 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36843 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752882AbXBJF1i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:27:38 -0500
+	id S1752888AbXBJF1w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:27:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, hskinnemoen@atmel.com, jesper.juhl@gmail.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove a couple final references to obsolete verify_area()
+     Replace incorrect macro name "WIRELESS_EXT" with "CONFIG_WIRELESS_EXT"
 has been removed from the -mm tree.  Its filename was
-     remove-a-couple-final-references-to-obsolete-verify_area.patch
+     replace-incorrect-macro-name-wireless_ext-with.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove a couple final references to obsolete verify_area()
+Subject: Replace incorrect macro name "WIRELESS_EXT" with "CONFIG_WIRELESS_EXT"
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Remove a couple final references to the obsolete verify_area() call, which
-was long ago replaced by access_ok().
+Rename the (apparently) incorrect macro name WIRELESS_EXT to
+CONFIG_WIRELESS_EXT.
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Acked-by: Jesper Juhl <jesper.juhl@gmail.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-avr32/checksum.h |    2 +-
- include/asm-avr32/uaccess.h  |    6 ------
- 2 files changed, 1 insertion(+), 7 deletions(-)
+ net/core/net-sysfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-avr32/checksum.h~remove-a-couple-final-references-to-obsolete-verify_area include/asm-avr32/checksum.h
---- a/include/asm-avr32/checksum.h~remove-a-couple-final-references-to-obsolete-verify_area
-+++ a/include/asm-avr32/checksum.h
-@@ -38,7 +38,7 @@ __wsum csum_partial_copy_generic(const v
-  *	passed in an incorrect kernel address to one of these functions.
-  *
-  *	If you use these functions directly please don't forget the
-- *	verify_area().
-+ *	access_ok().
-  */
- static inline
- __wsum csum_partial_copy_nocheck(const void *src, void *dst,
-diff -puN include/asm-avr32/uaccess.h~remove-a-couple-final-references-to-obsolete-verify_area include/asm-avr32/uaccess.h
---- a/include/asm-avr32/uaccess.h~remove-a-couple-final-references-to-obsolete-verify_area
-+++ a/include/asm-avr32/uaccess.h
-@@ -68,12 +68,6 @@ static inline void set_fs(mm_segment_t s
+diff -puN net/core/net-sysfs.c~replace-incorrect-macro-name-wireless_ext-with net/core/net-sysfs.c
+--- a/net/core/net-sysfs.c~replace-incorrect-macro-name-wireless_ext-with
++++ a/net/core/net-sysfs.c
+@@ -340,7 +340,7 @@ static struct attribute_group netstat_gr
+ 	.attrs  = netstat_attrs,
+ };
  
- #define access_ok(type, addr, size) (likely(__range_ok(addr, size) == 0))
+-#ifdef WIRELESS_EXT
++#ifdef CONFIG_WIRELESS_EXT
+ /* helper function that does all the locking etc for wireless stats */
+ static ssize_t wireless_show(struct device *d, char *buf,
+ 			     ssize_t (*format)(const struct iw_statistics *,
+@@ -473,7 +473,7 @@ int netdev_register_sysfs(struct net_dev
+ 	if (net->get_stats)
+ 		*groups++ = &netstat_group;
  
--static inline int
--verify_area(int type, const void __user *addr, unsigned long size)
--{
--	return access_ok(type, addr, size) ? 0 : -EFAULT;
--}
--
- /* Generic arbitrary sized copy. Return the number of bytes NOT copied */
- extern __kernel_size_t __copy_user(void *to, const void *from,
- 				   __kernel_size_t n);
+-#ifdef WIRELESS_EXT
++#ifdef CONFIG_WIRELESS_EXT
+ 	if (net->wireless_handlers && net->wireless_handlers->get_wireless_stats)
+ 		*groups++ = &wireless_group;
+ #endif
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
