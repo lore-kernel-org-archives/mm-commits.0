@@ -1,153 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - md-avoid-possible-bug_on-in-md-bitmap-handling.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:21:56 -0800
-Message-ID: <200702100521.l1A5Lugh004483@shell0.pdx.osdl.net>
+Subject: - hugetlb-preserve-hugetlb-pte-dirty-state.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:21:20 -0800
+Message-ID: <200702100521.l1A5LK6R004474@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36637 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36651 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753151AbXBJFXX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:23:23 -0500
+	id S1752663AbXBJFXl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:23:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: kenchen@google.com, agl@us.ibm.com, david@gibson.dropbear.id.au, hugh@veritas.com, nish.aravamudan@gmail.com, stable@kernel.org, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: avoid possible BUG_ON in md bitmap handling
+     hugetlb: preserve hugetlb pte dirty state
 has been removed from the -mm tree.  Its filename was
-     md-avoid-possible-bug_on-in-md-bitmap-handling.patch
+     hugetlb-preserve-hugetlb-pte-dirty-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: avoid possible BUG_ON in md bitmap handling
-From: Neil Brown <neilb@suse.de>
+Subject: hugetlb: preserve hugetlb pte dirty state
+From: "Ken Chen" <kenchen@google.com>
 
-md/bitmap tracks how many active write requests are pending on blocks
-associated with each bit in the bitmap, so that it knows when it can clear
-the bit (when count hits zero).
+__unmap_hugepage_range() is buggy that it does not preserve dirty state of
+huge_pte when unmapping hugepage range.  It causes data corruption in the
+event of dop_caches being used by sys admin.  For example, an application
+creates a hugetlb file, modify pages, then unmap it.  While leaving the
+hugetlb file alive, comes along sys admin doing a "echo 3 >
+/proc/sys/vm/drop_caches".
 
-The counter has 14 bits of space, so if there are ever more than 16383, we
-cannot cope.
+drop_pagecache_sb() will happily free all pages that aren't marked dirty if
+there are no active mapping.  Later when application remaps the hugetlb
+file back and all data are gone, triggering catastrophic flip over on
+application.
 
-Currently the code just calles BUG_ON as "all" drivers have request queue
-limits much smaller than this.
+Not only that, the internal resv_huge_pages count will also get all messed
+up.  Fix it up by marking page dirty appropriately.
 
-However is seems that some don't.  Apparently some multipath configurations
-can allow more than 16383 concurrent write requests.
-
-So, in this unlikely situation, instead of calling BUG_ON we now wait
-for the count to drop down a bit.  This requires a new wait_queue_head,
-some waiting code, and a wakeup call.
-
-Tested by limiting the counter to 20 instead of 16383 (writes go a lot slower
-in that case...).
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Ken Chen <kenchen@google.com>
+Cc: "Nish Aravamudan" <nish.aravamudan@gmail.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Cc: <stable@kernel.org>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c         |   22 +++++++++++++++++++++-
- include/linux/raid/bitmap.h |    1 +
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    5 ++++-
+ mm/hugetlb.c         |    2 ++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/bitmap.c~md-avoid-possible-bug_on-in-md-bitmap-handling drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~md-avoid-possible-bug_on-in-md-bitmap-handling
-+++ a/drivers/md/bitmap.c
-@@ -1160,6 +1160,22 @@ int bitmap_startwrite(struct bitmap *bit
- 			return 0;
- 		}
+diff -puN fs/hugetlbfs/inode.c~hugetlb-preserve-hugetlb-pte-dirty-state fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlb-preserve-hugetlb-pte-dirty-state
++++ a/fs/hugetlbfs/inode.c
+@@ -449,10 +449,13 @@ static int hugetlbfs_symlink(struct inod
+ }
  
-+		if (unlikely((*bmc & COUNTER_MAX) == COUNTER_MAX)) {
-+			DEFINE_WAIT(__wait);
-+			/* note that it is safe to do the prepare_to_wait
-+			 * after the test as long as we do it before dropping
-+			 * the spinlock.
-+			 */
-+			prepare_to_wait(&bitmap->overflow_wait, &__wait,
-+					TASK_UNINTERRUPTIBLE);
-+			spin_unlock_irq(&bitmap->lock);
-+			bitmap->mddev->queue
-+				->unplug_fn(bitmap->mddev->queue);
-+			schedule();
-+			finish_wait(&bitmap->overflow_wait, &__wait);
-+			continue;
-+		}
+ /*
+- * For direct-IO reads into hugetlb pages
++ * mark the head page dirty
+  */
+ static int hugetlbfs_set_page_dirty(struct page *page)
+ {
++	struct page *head = (struct page *)page_private(page);
 +
- 		switch(*bmc) {
- 		case 0:
- 			bitmap_file_set_bit(bitmap, offset);
-@@ -1169,7 +1185,7 @@ int bitmap_startwrite(struct bitmap *bit
- 		case 1:
- 			*bmc = 2;
- 		}
--		BUG_ON((*bmc & COUNTER_MAX) == COUNTER_MAX);
-+
- 		(*bmc)++;
++	SetPageDirty(head);
+ 	return 0;
+ }
  
- 		spin_unlock_irq(&bitmap->lock);
-@@ -1207,6 +1223,9 @@ void bitmap_endwrite(struct bitmap *bitm
- 		if (!success && ! (*bmc & NEEDED_MASK))
- 			*bmc |= NEEDED_MASK;
+diff -puN mm/hugetlb.c~hugetlb-preserve-hugetlb-pte-dirty-state mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-preserve-hugetlb-pte-dirty-state
++++ a/mm/hugetlb.c
+@@ -389,6 +389,8 @@ void __unmap_hugepage_range(struct vm_ar
+ 			continue;
  
-+		if ((*bmc & COUNTER_MAX) == COUNTER_MAX)
-+			wake_up(&bitmap->overflow_wait);
-+
- 		(*bmc)--;
- 		if (*bmc <= 2) {
- 			set_page_attr(bitmap,
-@@ -1431,6 +1450,7 @@ int bitmap_create(mddev_t *mddev)
- 	spin_lock_init(&bitmap->lock);
- 	atomic_set(&bitmap->pending_writes, 0);
- 	init_waitqueue_head(&bitmap->write_wait);
-+	init_waitqueue_head(&bitmap->overflow_wait);
- 
- 	bitmap->mddev = mddev;
- 
-diff -puN include/linux/raid/bitmap.h~md-avoid-possible-bug_on-in-md-bitmap-handling include/linux/raid/bitmap.h
---- a/include/linux/raid/bitmap.h~md-avoid-possible-bug_on-in-md-bitmap-handling
-+++ a/include/linux/raid/bitmap.h
-@@ -247,6 +247,7 @@ struct bitmap {
- 
- 	atomic_t pending_writes; /* pending writes to the bitmap file */
- 	wait_queue_head_t write_wait;
-+	wait_queue_head_t overflow_wait;
- 
- };
- 
+ 		page = pte_page(pte);
++		if (pte_dirty(pte))
++			set_page_dirty(page);
+ 		list_add(&page->lru, &page_list);
+ 	}
+ 	spin_unlock(&mm->page_table_lock);
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from kenchen@google.com are
 
 origin.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-igrab-should-check-for-i_clear.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-replace-highest_possible_node_id-with-nr_node_ids-fix.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-fix-d_path-for-lazy-unmounts.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
-knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
-knfsd-sunrpc-aplit-svc_sock_enqueue-out-of-svc_setup_socket.patch
-knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
-knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
-knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
-knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
-knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
-knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
-knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
-knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
-knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
+simplify-shmem_aopsset_page_dirty-method.patch
+convert-ramfs-to-use-__set_page_dirty_no_writeback.patch
+do-not-disturb-page-referenced-state-when-unmapping-memory-range.patch
