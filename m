@@ -1,121 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-drm-drm_mmc-remove-unused-exports.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:19:49 -0800
-Message-ID: <200702100519.l1A5Josb004426@shell0.pdx.osdl.net>
+Subject: - md-avoid-possible-bug_on-in-md-bitmap-handling.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:21:56 -0800
+Message-ID: <200702100521.l1A5Lugh004483@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36633 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36637 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753145AbXBJFXU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:23:20 -0500
+	id S1753151AbXBJFXX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:23:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, airlied@linux.ie, mm-commits@vger.kernel.org
+To: neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/drm/drm_mm.c: remove unused exports
+     md: avoid possible BUG_ON in md bitmap handling
 has been removed from the -mm tree.  Its filename was
-     drivers-char-drm-drm_mmc-remove-unused-exports.patch
+     md-avoid-possible-bug_on-in-md-bitmap-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/char/drm/drm_mm.c: remove unused exports
-From: Adrian Bunk <bunk@stusta.de>
+Subject: md: avoid possible BUG_ON in md bitmap handling
+From: Neil Brown <neilb@suse.de>
 
-This patch removes two unused exports.
+md/bitmap tracks how many active write requests are pending on blocks
+associated with each bit in the bitmap, so that it knows when it can clear
+the bit (when count hits zero).
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dave Airlie <airlied@linux.ie>
+The counter has 14 bits of space, so if there are ever more than 16383, we
+cannot cope.
+
+Currently the code just calles BUG_ON as "all" drivers have request queue
+limits much smaller than this.
+
+However is seems that some don't.  Apparently some multipath configurations
+can allow more than 16383 concurrent write requests.
+
+So, in this unlikely situation, instead of calling BUG_ON we now wait
+for the count to drop down a bit.  This requires a new wait_queue_head,
+some waiting code, and a wakeup call.
+
+Tested by limiting the counter to 20 instead of 16383 (writes go a lot slower
+in that case...).
+
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_mm.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/md/bitmap.c         |   22 +++++++++++++++++++++-
+ include/linux/raid/bitmap.h |    1 +
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/drm_mm.c~drivers-char-drm-drm_mmc-remove-unused-exports drivers/char/drm/drm_mm.c
---- a/drivers/char/drm/drm_mm.c~drivers-char-drm-drm_mmc-remove-unused-exports
-+++ a/drivers/char/drm/drm_mm.c
-@@ -274,8 +274,6 @@ int drm_mm_init(drm_mm_t * mm, unsigned 
- 	return drm_mm_create_tail_node(mm, start, size);
- }
+diff -puN drivers/md/bitmap.c~md-avoid-possible-bug_on-in-md-bitmap-handling drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~md-avoid-possible-bug_on-in-md-bitmap-handling
++++ a/drivers/md/bitmap.c
+@@ -1160,6 +1160,22 @@ int bitmap_startwrite(struct bitmap *bit
+ 			return 0;
+ 		}
  
--EXPORT_SYMBOL(drm_mm_init);
--
- void drm_mm_takedown(drm_mm_t * mm)
- {
- 	struct list_head *bnode = mm->fl_entry.next;
-@@ -294,5 +292,3 @@ void drm_mm_takedown(drm_mm_t * mm)
++		if (unlikely((*bmc & COUNTER_MAX) == COUNTER_MAX)) {
++			DEFINE_WAIT(__wait);
++			/* note that it is safe to do the prepare_to_wait
++			 * after the test as long as we do it before dropping
++			 * the spinlock.
++			 */
++			prepare_to_wait(&bitmap->overflow_wait, &__wait,
++					TASK_UNINTERRUPTIBLE);
++			spin_unlock_irq(&bitmap->lock);
++			bitmap->mddev->queue
++				->unplug_fn(bitmap->mddev->queue);
++			schedule();
++			finish_wait(&bitmap->overflow_wait, &__wait);
++			continue;
++		}
++
+ 		switch(*bmc) {
+ 		case 0:
+ 			bitmap_file_set_bit(bitmap, offset);
+@@ -1169,7 +1185,7 @@ int bitmap_startwrite(struct bitmap *bit
+ 		case 1:
+ 			*bmc = 2;
+ 		}
+-		BUG_ON((*bmc & COUNTER_MAX) == COUNTER_MAX);
++
+ 		(*bmc)++;
  
- 	drm_free(entry, sizeof(*entry), DRM_MEM_MM);
- }
--
--EXPORT_SYMBOL(drm_mm_takedown);
+ 		spin_unlock_irq(&bitmap->lock);
+@@ -1207,6 +1223,9 @@ void bitmap_endwrite(struct bitmap *bitm
+ 		if (!success && ! (*bmc & NEEDED_MASK))
+ 			*bmc |= NEEDED_MASK;
+ 
++		if ((*bmc & COUNTER_MAX) == COUNTER_MAX)
++			wake_up(&bitmap->overflow_wait);
++
+ 		(*bmc)--;
+ 		if (*bmc <= 2) {
+ 			set_page_attr(bitmap,
+@@ -1431,6 +1450,7 @@ int bitmap_create(mddev_t *mddev)
+ 	spin_lock_init(&bitmap->lock);
+ 	atomic_set(&bitmap->pending_writes, 0);
+ 	init_waitqueue_head(&bitmap->write_wait);
++	init_waitqueue_head(&bitmap->overflow_wait);
+ 
+ 	bitmap->mddev = mddev;
+ 
+diff -puN include/linux/raid/bitmap.h~md-avoid-possible-bug_on-in-md-bitmap-handling include/linux/raid/bitmap.h
+--- a/include/linux/raid/bitmap.h~md-avoid-possible-bug_on-in-md-bitmap-handling
++++ a/include/linux/raid/bitmap.h
+@@ -247,6 +247,7 @@ struct bitmap {
+ 
+ 	atomic_t pending_writes; /* pending writes to the bitmap file */
+ 	wait_queue_head_t write_wait;
++	wait_queue_head_t overflow_wait;
+ 
+ };
+ 
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-ifdef-acpi_future_usage-acpi_os_readable.patch
-cpu_freq_table-shouldnt-be-a-def_tristate.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
-git-libata-all.patch
-mips-remove-smp_tune_scheduling.patch
-git-mtd.patch
-git-ubi.patch
-net-uninline-skb_put-fix.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-remove-include-linux-byteorder-pdp_endianh.patch
-make-drivers-char-mxser_newcmxser_hangup-static.patch
-drivers-char-vc_screenc-proper-prototypes.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix.patch
-schedule-obsolete-oss-drivers-for-removal-3rd-round.patch
-cleanup-linux-byteorder-swabbh.patch
-cleanup-include-linux-xattrh.patch
-cleanup-include-linux-reiserfs_xattrh.patch
-remove-dead-kernel-config-option-aedsp16_mpu401.patch
-debug-shared-irqs-kconfig-fix.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+igrab-should-check-for-i_clear.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+replace-highest_possible_node_id-with-nr_node_ids-fix.patch
+convert-highest_possible_processor_id-to-nr_cpu_ids.patch
+fix-d_path-for-lazy-unmounts.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
+knfsd-sunrpc-aplit-svc_sock_enqueue-out-of-svc_setup_socket.patch
+knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+knfsd-sunrpc-dont-set-msg_name-and-msg_namelen-when-calling-sock_recvmsg.patch
+knfsd-sunrpc-add-a-function-to-format-the-address-in-an-svc_rqst-for-printing.patch
+knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
+knfsd-sunrpc-provide-room-in-svc_rqst-for-larger-addresses.patch
+knfsd-sunrpc-make-rq_daddr-field-address-version-independent.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
+knfsd-sunrpc-add-a-generic-function-to-see-if-the-peer-uses-a-secure-port.patch
+knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
+knfsd-sunrpc-fix-up-svc_create_socket-to-take-a-sockaddr-struct-length.patch
 include-linux-nfsd-consth-remove-nfs_super_magic.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-remove-the-broken-fb_s3trio-driver.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
