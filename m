@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-shrink-parent-dentries-when-shrinking-slab.patch added to -mm tree
-Date: Fri, 09 Feb 2007 16:05:45 -0800
-Message-ID: <200702100005.l1A05jBP030487@shell0.pdx.osdl.net>
+Subject: + scsi-schedule-returns-in-state-task_running.patch added to -mm tree
+Date: Fri, 09 Feb 2007 16:12:35 -0800
+Message-ID: <200702100012.l1A0CZfP030606@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56320 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56558 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423361AbXBJAFu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Feb 2007 19:05:50 -0500
+	id S1946779AbXBJAMi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Feb 2007 19:12:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mszeredi@suse.cz
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com
 
 
 The patch titled
-     mm: shrink parent dentries when shrinking slab
+     scsi: schedule() returns in state TASK_RUNNING
 has been added to the -mm tree.  Its filename is
-     mm-shrink-parent-dentries-when-shrinking-slab.patch
+     scsi-schedule-returns-in-state-task_running.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: shrink parent dentries when shrinking slab
+Subject: scsi: schedule() returns in state TASK_RUNNING
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Teach the dentry slab shrinker to aggressively shrink parent dentries when
-shrinking the dentry cache.
+Hence we don't need to set it here.
 
-This is done to attempt to improve the situation where the dentry slab cache
-gets a lot of internal fragmentation due to pages containing directory
-dentries.  It is expected that this change will cause some of those dentries
-to be reaped earlier, and with less scanning.
-
-Needs careful testing.
-
-Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/scsi_error.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN fs/dcache.c~mm-shrink-parent-dentries-when-shrinking-slab fs/dcache.c
---- a/fs/dcache.c~mm-shrink-parent-dentries-when-shrinking-slab
-+++ a/fs/dcache.c
-@@ -880,7 +880,7 @@ static int shrink_dcache_memory(int nr, 
- 	if (nr) {
- 		if (!(gfp_mask & __GFP_FS))
- 			return -1;
--		prune_dcache(nr, NULL, 0);
-+		prune_dcache(nr, NULL, 1);
- 	}
- 	return (dentry_stat.nr_unused / 100) * sysctl_vfs_cache_pressure;
- }
+diff -puN drivers/scsi/scsi_error.c~scsi-schedule-returns-in-state-task_running drivers/scsi/scsi_error.c
+--- a/drivers/scsi/scsi_error.c~scsi-schedule-returns-in-state-task_running
++++ a/drivers/scsi/scsi_error.c
+@@ -1542,7 +1542,6 @@ int scsi_error_handler(void *data)
+ 				printk("Error handler scsi_eh_%d sleeping\n",
+ 					shost->host_no));
+ 			schedule();
+-			set_current_state(TASK_INTERRUPTIBLE);
+ 			continue;
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,3 +89,4 @@ revert-x86_64-mm-putreg-check.patch
 fix-utrace-utrace-ptrace-compat.patch
 deprecate-sa_interrupt-and-friends.patch
 git-gccbug-fixup.patch
+scsi-schedule-returns-in-state-task_running.patch
