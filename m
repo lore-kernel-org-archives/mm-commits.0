@@ -1,60 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-framework-driver-for-cmos-rtcs-fix-2.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:19:25 -0800
-Message-ID: <200702100819.l1A8JPwh007118@shell0.pdx.osdl.net>
+Subject: - add-an-rcu-version-of-list-splicing-fix.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:16:47 -0800
+Message-ID: <200702100816.l1A8GlLD007058@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39501 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39536 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752994AbXBJITi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:19:38 -0500
+	id S1752996AbXBJIUw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:20:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alessandro.zummo@towertech.it, dbrownell@users.sourceforge.net, woodys@xandros.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minyard@acm.org, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-framework-driver-for-cmos-rtcs-fix-2
+     add-an-rcu-version-of-list-splicing-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-framework-driver-for-cmos-rtcs-fix-2.patch
+     add-an-rcu-version-of-list-splicing-fix.patch
 
-This patch was dropped because it was folded into rtc-framework-driver-for-cmos-rtcs.patch
+This patch was dropped because it was folded into add-an-rcu-version-of-list-splicing.patch
 
 ------------------------------------------------------
-Subject: rtc-framework-driver-for-cmos-rtcs-fix-2
+Subject: add-an-rcu-version-of-list-splicing-fix
 From: Andrew Morton <akpm@osdl.org>
 
-sparc64:
+arm:
 
-WARNING: "rtc_register" [sound/core/snd-rtctimer.ko] undefined!
-WARNING: "rtc_unregister" [sound/core/snd-rtctimer.ko] undefined!
-WARNING: "rtc_control" [sound/core/snd-rtctimer.ko] undefined!
-WARNING: "bus_to_virt_not_defined_use_pci_map" [drivers/scsi/tmscsim.ko] undefined!
-WARNING: "saved_command_line" [drivers/sbus/char/openprom.ko] undefined!
-WARNING: "ds1287_regs" [drivers/rtc/rtc-cmos.ko] undefined!
-WARNING: "rtc_lock" [drivers/rtc/rtc-cmos.ko] undefined!
+In file included from include/linux/wait.h:22,
+                 from include/linux/fs.h:271,
+                 from fs/jfs/jfs_imap.c:44:
+include/linux/list.h: In function `list_splice_init_rcu':
+include/linux/list.h:387: warning: implicit declaration of function `might_sleep'
+Fix it the easy way ;)
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Woody Suwalski <woodys@xandros.com>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/rtc/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/list.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix-2 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-framework-driver-for-cmos-rtcs-fix-2
-+++ a/drivers/rtc/Kconfig
-@@ -102,7 +102,7 @@ comment "RTC drivers"
- config RTC_DRV_CMOS
- 	tristate "PC-style 'CMOS' real time clock"
- 	depends on RTC_CLASS && (X86_PC || ALPHA || ARM26 || ARM \
--		|| M32R || ATARI || POWERPC || SPARC64)
-+		|| M32R || ATARI || POWERPC)
- 	help
- 	  Say "yes" here to get direct support for the real time clock
- 	  found in every PC or ACPI-based system, and some other boards.
+diff -puN include/linux/list.h~add-an-rcu-version-of-list-splicing-fix include/linux/list.h
+--- a/include/linux/list.h~add-an-rcu-version-of-list-splicing-fix
++++ a/include/linux/list.h
+@@ -384,7 +384,6 @@ static inline void list_splice_init_rcu(
+ 	struct list_head *last = list->prev;
+ 	struct list_head *at = head->next;
+ 
+-	might_sleep();
+ 	if (list_empty(head))
+ 		return;
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -71,9 +68,11 @@ count_vm_events-warning-fix.patch
 add-taint_user-and-ability-to-set-taint-flags-from-userspace.patch
 remove-invalidate_inode_pages.patch
 add-an-rcu-version-of-list-splicing.patch
+add-an-rcu-version-of-list-splicing-fix.patch
+block_write_full_page-handle-enospc.patch
 sysctl-warning-fix.patch
 proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs.patch
+rtc-framework-driver-for-cmos-rtcs-fix.patch
 rtc-framework-driver-for-cmos-rtcs-fix-2.patch
 return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
