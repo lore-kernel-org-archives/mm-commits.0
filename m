@@ -1,186 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-add-lcd-support-3-Kconfig-fix.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:10:22 -0800
-Message-ID: <200702100810.l1A8AMKr006932@shell0.pdx.osdl.net>
+Subject: - drivers-add-lcd-support-update6.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:10:31 -0800
+Message-ID: <200702100810.l1A8AVo3006941@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39260 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39265 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752762AbXBJIKb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:10:31 -0500
+	id S1752774AbXBJIKd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:10:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, maxextreme@gmail.com, pmarques@grupopie.com, mm-commits@vger.kernel.org
+To: maxextreme@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-add-lcd-support-3-Kconfig-fix
+     drivers: add LCD support (update 6)
 has been removed from the -mm tree.  Its filename was
-     drivers-add-lcd-support-3-Kconfig-fix.patch
+     drivers-add-lcd-support-update6.patch
 
 This patch was dropped because it was folded into drivers-add-lcd-support-3.patch
 
 ------------------------------------------------------
-Subject: drivers-add-lcd-support-3-Kconfig-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: drivers: add LCD support (update 6)
+From: Miguel Ojeda Sandonis <maxextreme@gmail.com>
 
-Can't do that - it enables PARPORT_PC even if it isn't allowed to be enabled
-(eg, on sparc32).
+- Minor coding style fixes
 
-Plus select is evil.  Use `depends omn' instead.
-
-Cc: Miguel Ojeda Sandonis <maxextreme@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Paulo Marques <pmarques@grupopie.com>
+Signed-off-by: Miguel Ojeda Sandonis <maxextreme@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/auxdisplay/Kconfig |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/auxdisplay/cfag12864b-example.c |    4 ++--
+ drivers/auxdisplay/cfag12864b.c               |    4 ++--
+ drivers/auxdisplay/cfag12864bfb.c             |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/auxdisplay/Kconfig~drivers-add-lcd-support-3-Kconfig-fix drivers/auxdisplay/Kconfig
---- a/drivers/auxdisplay/Kconfig~drivers-add-lcd-support-3-Kconfig-fix
-+++ a/drivers/auxdisplay/Kconfig
-@@ -9,8 +9,7 @@ menu "Auxiliary Display support"
+diff -puN Documentation/auxdisplay/cfag12864b-example.c~drivers-add-lcd-support-update6 Documentation/auxdisplay/cfag12864b-example.c
+--- a/Documentation/auxdisplay/cfag12864b-example.c~drivers-add-lcd-support-update6
++++ a/Documentation/auxdisplay/cfag12864b-example.c
+@@ -203,7 +203,7 @@ void example(unsigned char n)
+ 	unsigned short i, j;
+ 	unsigned char matrix[CFAG12864B_WIDTH * CFAG12864B_HEIGHT];
  
- config KS0108
- 	tristate "KS0108 LCD Controller"
--	select PARPORT
--	select PARPORT_PC
-+	depends on PARPORT_PC
- 	default n
- 	---help---
- 	  If you have a LCD controlled by one or more KS0108
+-	if(n > EXAMPLES)
++	if (n > EXAMPLES)
+ 		return;
+ 
+ 	printf("Example %i/%i - ", n, EXAMPLES);
+@@ -273,7 +273,7 @@ int main(int argc, char *argv[])
+ 	for (n = 1; n <= EXAMPLES; n++) {
+ 		example(n);
+ 		cfag12864b_blit();
+-		while(getchar() != '\n');
++		while (getchar() != '\n');
+ 	}
+ 
+ 	cfag12864b_exit();
+diff -puN drivers/auxdisplay/cfag12864b.c~drivers-add-lcd-support-update6 drivers/auxdisplay/cfag12864b.c
+--- a/drivers/auxdisplay/cfag12864b.c~drivers-add-lcd-support-update6
++++ a/drivers/auxdisplay/cfag12864b.c
+@@ -237,7 +237,7 @@ unsigned char cfag12864b_enable(void)
+ 
+ 	mutex_lock(&cfag12864b_mutex);
+ 
+-	if(!cfag12864b_updating) {
++	if (!cfag12864b_updating) {
+ 		cfag12864b_updating = 1;
+ 		cfag12864b_queue();
+ 		ret = 0;
+@@ -254,7 +254,7 @@ void cfag12864b_disable(void)
+ {
+ 	mutex_lock(&cfag12864b_mutex);
+ 
+-	if(cfag12864b_updating) {
++	if (cfag12864b_updating) {
+ 		cfag12864b_updating = 0;
+ 		cancel_delayed_work(&cfag12864b_work);
+ 		flush_workqueue(cfag12864b_workqueue);
+diff -puN drivers/auxdisplay/cfag12864bfb.c~drivers-add-lcd-support-update6 drivers/auxdisplay/cfag12864bfb.c
+--- a/drivers/auxdisplay/cfag12864bfb.c~drivers-add-lcd-support-update6
++++ a/drivers/auxdisplay/cfag12864bfb.c
+@@ -71,7 +71,7 @@ static struct page *cfag12864bfb_vma_nop
+ 	struct page *page = virt_to_page(cfag12864b_buffer);
+ 	get_page(page);
+ 
+-	if(type)
++	if (type)
+ 		*type = VM_FAULT_MINOR;
+ 
+ 	return page;
+@@ -156,7 +156,7 @@ static int __init cfag12864bfb_init(void
+ {
+ 	int ret;
+ 
+-	if(cfag12864b_enable()) {
++	if (cfag12864b_enable()) {
+ 		printk(KERN_ERR CFAG12864BFB_NAME ": ERROR: "
+ 			"can't enable cfag12864b refreshing (being used)\n");
+ 		return -ENODEV;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from maxextreme@gmail.com are
 
-origin.patch
-avoid-excessive-sorting-of-early_node_map.patch
-proc-zoneinfo-fix-vm-stats-display.patch
-use-zvc-for-inactive-and-active-counts.patch
-drop-free_pages.patch
-optional-zone_dma-in-the-vm.patch
-swsusp-change-code-ordering-in-userc-sanity.patch
 drivers-add-lcd-support-3.patch
-drivers-add-lcd-support-3-Kconfig-fix.patch
+drivers-add-lcd-support-update6.patch
+drivers-add-lcd-support-update-7.patch
+drivers-add-lcd-support-update-8.patch
+drivers-add-lcd-support-update-9.patch
 drivers-add-lcd-support-workqueue-fixups.patch
-count_vm_events-warning-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
-consolidate-line-discipline-number-definitions-v2-fix-2.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
-remove-invalidate_inode_pages.patch
-add-an-rcu-version-of-list-splicing-fix.patch
-block_write_full_page-handle-enospc.patch
-sysctl-warning-fix.patch
-proc_misc-warning-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix.patch
-rtc-framework-driver-for-cmos-rtcs-fix-2.patch
-return-enoent-from-ext3_link-when-racing-with-unlink-fix.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-tidy-fixes.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
-register_blkdev-dont-hand-out-the-local-experimental-majors.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-spi-controller-driver-for-omap-microwire-tidy.patch
-spi-controller-driver-for-omap-microwire-update-fix.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-omap-gpio-wrappers-tidy.patch
-at91-gpio-wrappers-tidy.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-dynamic-kernel-command-line-ia64-fix.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-mark-struct-file_operations-const-2-fix.patch
-mark-struct-file_operations-const-4-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
