@@ -1,86 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch removed from -mm tree
-Date: Sat, 10 Feb 2007 00:15:42 -0800
-Message-ID: <200702100815.l1A8FgxF007052@shell0.pdx.osdl.net>
+Subject: - consolidate-line-discipline-number-definitions-v2-sparc-fix.patch removed from -mm tree
+Date: Sat, 10 Feb 2007 00:14:07 -0800
+Message-ID: <200702100814.l1A8E7Xf007002@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39411 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39452 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752980AbXBJIPp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 03:15:45 -0500
+	id S1752983AbXBJIRU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 03:17:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tilman@imap.cc, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2
+     consolidate-line-discipline-number-definitions-v2-sparc-fix
 has been removed from the -mm tree.  Its filename was
-     add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
+     consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
 
-This patch was dropped because it was folded into add-taint_user-and-ability-to-set-taint-flags-from-userspace.patch
+This patch was dropped because it was folded into consolidate-line-discipline-number-definitions-v2.patch
 
 ------------------------------------------------------
-Subject: add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2
+Subject: consolidate-line-discipline-number-definitions-v2-sparc-fix
 From: Andrew Morton <akpm@osdl.org>
 
-kernel/built-in.o:(.data+0x44e8): undefined reference to `proc_dointvec_taint'
+arch/sparc/kernel/sunos_ioctl.c: In function 'sunos_ioctl':
+arch/sparc/kernel/sunos_ioctl.c:45: error: 'N_TTY' undeclared (first use in this function)
+arch/sparc/kernel/sunos_ioctl.c:45: error: (Each undeclared identifier is reported only once
+arch/sparc/kernel/sunos_ioctl.c:45: error: for each function it appears in.)
 
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Tilman Schmidt <tilman@imap.cc>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sysctl.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/sunos_ioctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/sysctl.c~add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2 kernel/sysctl.c
---- a/kernel/sysctl.c~add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2
-+++ a/kernel/sysctl.c
-@@ -151,6 +151,8 @@ static int sysctl_ipc_data(ctl_table *ta
- #ifdef CONFIG_PROC_SYSCTL
- static int proc_do_cad_pid(ctl_table *table, int write, struct file *filp,
- 		  void __user *buffer, size_t *lenp, loff_t *ppos);
-+static int proc_dointvec_taint(ctl_table *table, int write, struct file *filp,
-+			       void __user *buffer, size_t *lenp, loff_t *ppos);
- #endif
- 
- static ctl_table root_table[];
-@@ -174,8 +176,6 @@ extern ctl_table inotify_table[];
- int sysctl_legacy_va_layout;
- #endif
- 
--static int proc_dointvec_taint(ctl_table *table, int write, struct file *filp,
--			       void __user *buffer, size_t *lenp, loff_t *ppos);
- 
- static void *get_uts(ctl_table *table, int write)
- {
-@@ -347,6 +347,7 @@ static ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dostring,
- 		.strategy	= &sysctl_string,
- 	},
-+#ifdef CONFIG_PROC_SYSCTL
- 	{
- 		.ctl_name	= KERN_TAINTED,
- 		.procname	= "tainted",
-@@ -355,6 +356,7 @@ static ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec_taint,
- 	},
-+#endif
- 	{
- 		.ctl_name	= KERN_CAP_BSET,
- 		.procname	= "cap-bound",
-@@ -1983,9 +1985,8 @@ static int proc_dointvec_taint(ctl_table
- {
- 	int op;
- 
--	if (!capable(CAP_SYS_ADMIN)) {
-+	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
--	}
- 
- 	op = OP_OR;
- 	return do_proc_dointvec(table,write,filp,buffer,lenp,ppos,
+diff -puN arch/sparc/kernel/sunos_ioctl.c~consolidate-line-discipline-number-definitions-v2-sparc-fix arch/sparc/kernel/sunos_ioctl.c
+--- a/arch/sparc/kernel/sunos_ioctl.c~consolidate-line-discipline-number-definitions-v2-sparc-fix
++++ a/arch/sparc/kernel/sunos_ioctl.c
+@@ -11,6 +11,7 @@
+ #include <linux/errno.h>
+ #include <linux/string.h>
+ #include <linux/termios.h>
++#include <linux/tty.h>
+ #include <linux/ioctl.h>
+ #include <linux/route.h>
+ #include <linux/sockios.h>
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -94,7 +60,9 @@ optional-zone_dma-in-the-vm.patch
 swsusp-change-code-ordering-in-userc-sanity.patch
 drivers-add-lcd-support-3.patch
 count_vm_events-warning-fix.patch
-add-taint_user-and-ability-to-set-taint-flags-from-userspace.patch
+consolidate-line-discipline-number-definitions-v2.patch
+consolidate-line-discipline-number-definitions-v2-sparc-fix.patch
+consolidate-line-discipline-number-definitions-v2-fix-2.patch
 add-taint_user-and-ability-to-set-taint-flags-from-userspace-fix-2.patch
 remove-invalidate_inode_pages.patch
 add-an-rcu-version-of-list-splicing-fix.patch
