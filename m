@@ -1,78 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - wistron-button-support-for-fujitsu-siemens-amilo-d88x0.patch removed from -mm tree
-Date: Fri, 09 Feb 2007 21:25:14 -0800
-Message-ID: <200702100525.l1A5PEfG004605@shell0.pdx.osdl.net>
+Subject: - input-schedule-removal-of-compaq-touchscreen.patch removed from -mm tree
+Date: Fri, 09 Feb 2007 21:25:24 -0800
+Message-ID: <200702100525.l1A5POXp004608@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36731 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36745 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752887AbXBJFZd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Feb 2007 00:25:33 -0500
+	id S1752890AbXBJFZv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:25:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ml@newton.leun.net, dtor@mail.ru, mitr@volny.cz, mm-commits@vger.kernel.org
+To: rpurdie@rpsys.net, dtor@mail.ru, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wistron button support for fujitsu-siemens Amilo D88x0
+     input: schedule removal of compaq touchscreen emulation (tsdev.c)
 has been removed from the -mm tree.  Its filename was
-     wistron-button-support-for-fujitsu-siemens-amilo-d88x0.patch
+     input-schedule-removal-of-compaq-touchscreen.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: wistron button support for fujitsu-siemens Amilo D88x0
-From: Michael Leun <ml@newton.leun.net>
+Subject: input: schedule removal of compaq touchscreen emulation (tsdev.c)
+From: Richard Purdie <rpurdie@rpsys.net>
 
-Works just fine for me on a Amilo D8820.
+Schedule removal of Compaq touchscreen emulation (drivers/input/tsdev.c)
 
+Its old, was obsolete when it was written by the authors own admission
+and much better userspace solutions like tslib now exist. The name is
+also confusing.
+
+Signed-off-by: Richard Purdie <rpurdie@rpsys.net>
+Acked-by: James Simmons <jsimmons@infradead.org>
 Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Miloslav Trmac <mitr@volny.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/wistron_btns.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+)
+ Documentation/feature-removal-schedule.txt |   14 ++++++++++++++
+ drivers/input/tsdev.c                      |    4 ++++
+ 2 files changed, 18 insertions(+)
 
-diff -puN drivers/input/misc/wistron_btns.c~wistron-button-support-for-fujitsu-siemens-amilo-d88x0 drivers/input/misc/wistron_btns.c
---- a/drivers/input/misc/wistron_btns.c~wistron-button-support-for-fujitsu-siemens-amilo-d88x0
-+++ a/drivers/input/misc/wistron_btns.c
-@@ -335,6 +335,17 @@ static struct key_entry keymap_aopen_155
- 	{ KE_END,  0 },
- };
+diff -puN Documentation/feature-removal-schedule.txt~input-schedule-removal-of-compaq-touchscreen Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~input-schedule-removal-of-compaq-touchscreen
++++ a/Documentation/feature-removal-schedule.txt
+@@ -201,6 +201,20 @@ Who:	Kay Sievers <kay.sievers@suse.de>
  
-+static struct key_entry keymap_fs_amilo_d88x0[] = {
-+	{ KE_KEY, 0x01, KEY_HELP },
-+	{ KE_KEY, 0x08, KEY_MUTE },
-+	{ KE_KEY, 0x31, KEY_MAIL },
-+	{ KE_KEY, 0x36, KEY_WWW },
-+	{ KE_KEY, 0x11, KEY_PROG1 },
-+	{ KE_KEY, 0x12, KEY_PROG2 },
-+	{ KE_KEY, 0x13, KEY_PROG3 },
-+	{ KE_END, 0 }
-+};
+ ---------------------------
+ 
++What:   Compaq touchscreen device emulation
++When:   Oct 2007
++Files:  drivers/input/tsdev.c
++Why:    The code says it was obsolete when it was written in 2001.
++        tslib is a userspace library which does anything tsdev can do and
++	much more besides in userspace where this code belongs. There is no
++	longer any need for tsdev and applications should have converted to
++	use tslib by now.
++        The name "tsdev" is also extremely confusing and lots of people have
++	it loaded when they don't need/use it.
++Who:    Richard Purdie <rpurdie@rpsys.net>
 +
- /*
-  * If your machine is not here (which is currently rather likely), please send
-  * a list of buttons and their key codes (reported when loading this module
-@@ -413,6 +424,15 @@ static struct dmi_system_id dmi_ids[] __
- 		},
- 		.driver_data = keymap_wistron_ms2111
- 	},
-+	{
-+		.callback = dmi_matched,
-+		.ident = "Fujitsu Siemens Amilo D88x0",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "AMILO D"),
-+		},
-+		.driver_data = keymap_fs_amilo_d88x0
-+	},
- 	{ NULL, }
- };
++---------------------------
++
+ What:	i2c-isa
+ When:	December 2006
+ Why:	i2c-isa is a non-sense and doesn't fit in the device driver
+diff -puN drivers/input/tsdev.c~input-schedule-removal-of-compaq-touchscreen drivers/input/tsdev.c
+--- a/drivers/input/tsdev.c~input-schedule-removal-of-compaq-touchscreen
++++ a/drivers/input/tsdev.c
+@@ -151,6 +151,10 @@ static int tsdev_open(struct inode *inod
+ 	int i = iminor(inode) - TSDEV_MINOR_BASE;
+ 	struct tsdev_list *list;
+ 
++	printk(KERN_WARNING "tsdev (compaq touchscreen emulation) is scheduled "
++		"for removal.\nSee Documentation/feature-removal-schedule.txt "
++		"for details.\n");
++
+ 	if (i >= TSDEV_MINORS || !tsdev_table[i & TSDEV_MINOR_MASK])
+ 		return -ENODEV;
  
 _
 
-Patches currently in -mm which might be from ml@newton.leun.net are
+Patches currently in -mm which might be from rpurdie@rpsys.net are
 
+origin.patch
+fix-null-pointer-dereference-in-appledisplay-driver.patch
+git-acpi.patch
 git-input.patch
+git-backlight.patch
+git-backlight-sony-fix.patch
