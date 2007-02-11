@@ -1,97 +1,296 @@
 From: akpm@linux-foundation.org
-Subject: - move-task_xacct-task_io_accounting-up-in-menus.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:55:36 -0800
-Message-ID: <200702112255.l1BMtaP3016337@shell0.pdx.osdl.net>
+Subject: - consolidate-bust_spinlocks.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:54:31 -0800
+Message-ID: <200702112254.l1BMsVSU016248@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60613 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60638 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932878AbXBKWzi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:55:38 -0500
+	id S932889AbXBKWzu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:55:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: dev@sw.ru, adobriyan@openvz.org, ak@muc.de, schwidefsky@de.ibm.com, takata@linux-m32r.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Move TASK_XACCT, TASK_IO_ACCOUNTING up in menus
+     Consolidate bust_spinlocks()
 has been removed from the -mm tree.  Its filename was
-     move-task_xacct-task_io_accounting-up-in-menus.patch
+     consolidate-bust_spinlocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Move TASK_XACCT, TASK_IO_ACCOUNTING up in menus
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Consolidate bust_spinlocks()
+From: Kirill Korotaev <dev@sw.ru>
 
-Since they depends on TASKSTATS, it would be nice to move them closer to
-another options depending on TASKSTATS.
+Part of long forgotten patch
+http://groups.google.com/group/fa.linux.kernel/msg/e98e941ce1cf29f6?dmode=source
+Since then, m32r grabbed two copies.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Leave s390 copy because of important absence of CONFIG_VT, but remove
+references to non-existent timerlist_lock.  ia64 also loses timerlist_lock.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Andi Kleen <ak@muc.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ arch/i386/mm/fault.c       |   26 --------------------------
+ arch/ia64/kernel/traps.c   |   30 ------------------------------
+ arch/m32r/mm/fault-nommu.c |   26 --------------------------
+ arch/m32r/mm/fault.c       |   26 --------------------------
+ arch/s390/mm/fault.c       |    4 +---
+ arch/x86_64/mm/fault.c     |   21 ---------------------
+ lib/Makefile               |    5 +++--
+ lib/bust_spinlocks.c       |    2 +-
+ 8 files changed, 5 insertions(+), 135 deletions(-)
 
-diff -puN init/Kconfig~move-task_xacct-task_io_accounting-up-in-menus init/Kconfig
---- a/init/Kconfig~move-task_xacct-task_io_accounting-up-in-menus
-+++ a/init/Kconfig
-@@ -192,6 +192,24 @@ config TASK_DELAY_ACCT
+diff -puN arch/i386/mm/fault.c~consolidate-bust_spinlocks arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~consolidate-bust_spinlocks
++++ a/arch/i386/mm/fault.c
+@@ -60,32 +60,6 @@ static inline int notify_page_fault(enum
+ }
  
- 	  Say N if unsure.
- 
-+config TASK_XACCT
-+	bool "Enable extended accounting over taskstats (EXPERIMENTAL)"
-+	depends on TASKSTATS
-+	help
-+	  Collect extended task accounting data and send the data
-+	  to userland for processing over the taskstats interface.
-+
-+	  Say N if unsure.
-+
-+config TASK_IO_ACCOUNTING
-+	bool "Enable per-task storage I/O accounting (EXPERIMENTAL)"
-+	depends on TASK_XACCT
-+	help
-+	  Collect information on the number of bytes of storage I/O which this
-+	  task has caused.
-+
-+	  Say N if unsure.
-+
- config UTS_NS
- 	bool "UTS Namespaces"
- 	default n
-@@ -299,24 +317,6 @@ config CC_OPTIMIZE_FOR_SIZE
- 
- 	  If unsure, say N.
- 
--config TASK_XACCT
--	bool "Enable extended accounting over taskstats (EXPERIMENTAL)"
--	depends on TASKSTATS
--	help
--	  Collect extended task accounting data and send the data
--	  to userland for processing over the taskstats interface.
+ /*
+- * Unlock any spinlocks which will prevent us from getting the
+- * message out 
+- */
+-void bust_spinlocks(int yes)
+-{
+-	int loglevel_save = console_loglevel;
 -
--	  Say N if unsure.
+-	if (yes) {
+-		oops_in_progress = 1;
+-		return;
+-	}
+-#ifdef CONFIG_VT
+-	unblank_screen();
+-#endif
+-	oops_in_progress = 0;
+-	/*
+-	 * OK, the message is on the console.  Now we call printk()
+-	 * without oops_in_progress set so that printk will give klogd
+-	 * a poke.  Hold onto your hats...
+-	 */
+-	console_loglevel = 15;		/* NMI oopser may have shut the console up */
+-	printk(" ");
+-	console_loglevel = loglevel_save;
+-}
 -
--config TASK_IO_ACCOUNTING
--	bool "Enable per-task storage I/O accounting (EXPERIMENTAL)"
--	depends on TASK_XACCT
--	help
--	  Collect information on the number of bytes of storage I/O which this
--	  task has caused.
--
--	  Say N if unsure.
--
- config SYSCTL
- 	bool
+-/*
+  * Return EIP plus the CS segment base.  The segment limit is also
+  * adjusted, clamped to the kernel/user address space (whichever is
+  * appropriate), and returned in *eip_limit.
+diff -puN arch/ia64/kernel/traps.c~consolidate-bust_spinlocks arch/ia64/kernel/traps.c
+--- a/arch/ia64/kernel/traps.c~consolidate-bust_spinlocks
++++ a/arch/ia64/kernel/traps.c
+@@ -24,8 +24,6 @@
+ #include <asm/uaccess.h>
+ #include <asm/kdebug.h>
  
+-extern spinlock_t timerlist_lock;
+-
+ fpswa_interface_t *fpswa_interface;
+ EXPORT_SYMBOL(fpswa_interface);
+ 
+@@ -53,34 +51,6 @@ trap_init (void)
+ 		fpswa_interface = __va(ia64_boot_param->fpswa);
+ }
+ 
+-/*
+- * Unlock any spinlocks which will prevent us from getting the message out (timerlist_lock
+- * is acquired through the console unblank code)
+- */
+-void
+-bust_spinlocks (int yes)
+-{
+-	int loglevel_save = console_loglevel;
+-
+-	if (yes) {
+-		oops_in_progress = 1;
+-		return;
+-	}
+-
+-#ifdef CONFIG_VT
+-	unblank_screen();
+-#endif
+-	oops_in_progress = 0;
+-	/*
+-	 * OK, the message is on the console.  Now we call printk() without
+-	 * oops_in_progress set so that printk will give klogd a poke.  Hold onto
+-	 * your hats...
+-	 */
+-	console_loglevel = 15;		/* NMI oopser may have shut the console up */
+-	printk(" ");
+-	console_loglevel = loglevel_save;
+-}
+-
+ void
+ die (const char *str, struct pt_regs *regs, long err)
+ {
+diff -puN arch/m32r/mm/fault-nommu.c~consolidate-bust_spinlocks arch/m32r/mm/fault-nommu.c
+--- a/arch/m32r/mm/fault-nommu.c~consolidate-bust_spinlocks
++++ a/arch/m32r/mm/fault-nommu.c
+@@ -44,32 +44,6 @@ unsigned int tlb_entry_d_dat[NR_CPUS];
+ #define tlb_entry_d tlb_entry_d_dat[smp_processor_id()]
+ #endif
+ 
+-/*
+- * Unlock any spinlocks which will prevent us from getting the
+- * message out
+- */
+-void bust_spinlocks(int yes)
+-{
+-	int loglevel_save = console_loglevel;
+-
+-	if (yes) {
+-		oops_in_progress = 1;
+-		return;
+-	}
+-#ifdef CONFIG_VT
+-	unblank_screen();
+-#endif
+-	oops_in_progress = 0;
+-	/*
+-	 * OK, the message is on the console.  Now we call printk()
+-	 * without oops_in_progress set so that printk will give klogd
+-	 * a poke.  Hold onto your hats...
+-	 */
+-	console_loglevel = 15;	/* NMI oopser may have shut the console up */
+-	printk(" ");
+-	console_loglevel = loglevel_save;
+-}
+-
+ void do_BUG(const char *file, int line)
+ {
+ 	bust_spinlocks(1);
+diff -puN arch/m32r/mm/fault.c~consolidate-bust_spinlocks arch/m32r/mm/fault.c
+--- a/arch/m32r/mm/fault.c~consolidate-bust_spinlocks
++++ a/arch/m32r/mm/fault.c
+@@ -49,32 +49,6 @@ unsigned int tlb_entry_d_dat[NR_CPUS];
+ 
+ extern void init_tlb(void);
+ 
+-/*
+- * Unlock any spinlocks which will prevent us from getting the
+- * message out
+- */
+-void bust_spinlocks(int yes)
+-{
+-	int loglevel_save = console_loglevel;
+-
+-	if (yes) {
+-		oops_in_progress = 1;
+-		return;
+-	}
+-#ifdef CONFIG_VT
+-	unblank_screen();
+-#endif
+-	oops_in_progress = 0;
+-	/*
+-	 * OK, the message is on the console.  Now we call printk()
+-	 * without oops_in_progress set so that printk will give klogd
+-	 * a poke.  Hold onto your hats...
+-	 */
+-	console_loglevel = 15;		/* NMI oopser may have shut the console up */
+-	printk(" ");
+-	console_loglevel = loglevel_save;
+-}
+-
+ /*======================================================================*
+  * do_page_fault()
+  *======================================================================*
+diff -puN arch/s390/mm/fault.c~consolidate-bust_spinlocks arch/s390/mm/fault.c
+--- a/arch/s390/mm/fault.c~consolidate-bust_spinlocks
++++ a/arch/s390/mm/fault.c
+@@ -83,12 +83,10 @@ static inline int notify_page_fault(enum
+ }
+ #endif
+ 
+-extern spinlock_t timerlist_lock;
+ 
+ /*
+  * Unlock any spinlocks which will prevent us from getting the
+- * message out (timerlist_lock is acquired through the
+- * console unblank code)
++ * message out.
+  */
+ void bust_spinlocks(int yes)
+ {
+diff -puN arch/x86_64/mm/fault.c~consolidate-bust_spinlocks arch/x86_64/mm/fault.c
+--- a/arch/x86_64/mm/fault.c~consolidate-bust_spinlocks
++++ a/arch/x86_64/mm/fault.c
+@@ -69,27 +69,6 @@ static inline int notify_page_fault(enum
+ 	return atomic_notifier_call_chain(&notify_page_fault_chain, val, &args);
+ }
+ 
+-void bust_spinlocks(int yes)
+-{
+-	int loglevel_save = console_loglevel;
+-	if (yes) {
+-		oops_in_progress = 1;
+-	} else {
+-#ifdef CONFIG_VT
+-		unblank_screen();
+-#endif
+-		oops_in_progress = 0;
+-		/*
+-		 * OK, the message is on the console.  Now we call printk()
+-		 * without oops_in_progress set so that printk will give klogd
+-		 * a poke.  Hold onto your hats...
+-		 */
+-		console_loglevel = 15;		/* NMI oopser may have shut the console up */
+-		printk(" ");
+-		console_loglevel = loglevel_save;
+-	}
+-}
+-
+ /* Sometimes the CPU reports invalid exceptions on prefetch.
+    Check that here and ignore.
+    Opcode checker based on code by Richard Brunner */
+diff -puN lib/Makefile~consolidate-bust_spinlocks lib/Makefile
+--- a/lib/Makefile~consolidate-bust_spinlocks
++++ a/lib/Makefile
+@@ -3,7 +3,7 @@
+ #
+ 
+ lib-y := ctype.o string.o vsprintf.o cmdline.o \
+-	 bust_spinlocks.o rbtree.o radix-tree.o dump_stack.o \
++	 rbtree.o radix-tree.o dump_stack.o \
+ 	 idr.o div64.o int_sqrt.o bitmap.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o
+ 
+@@ -12,7 +12,8 @@ lib-$(CONFIG_SMP) += cpumask.o
+ 
+ lib-y	+= kobject.o kref.o kobject_uevent.o klist.o
+ 
+-obj-y += sort.o parser.o halfmd4.o debug_locks.o random32.o iomap.o
++obj-y += sort.o parser.o halfmd4.o debug_locks.o random32.o iomap.o \
++	bust_spinlocks.o
+ 
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+diff -puN lib/bust_spinlocks.c~consolidate-bust_spinlocks lib/bust_spinlocks.c
+--- a/lib/bust_spinlocks.c~consolidate-bust_spinlocks
++++ a/lib/bust_spinlocks.c
+@@ -14,7 +14,7 @@
+ #include <linux/vt_kern.h>
+ 
+ 
+-void bust_spinlocks(int yes)
++void __attribute__((weak)) bust_spinlocks(int yes)
+ {
+ 	if (yes) {
+ 		oops_in_progress = 1;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from dev@sw.ru are
 
 origin.patch
-git-dvb.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-recognize-video=gx1fb-option.patch
+ipc-save-the-ipc-namespace-while-reading-proc-files.patch
+sysctl-move-utsname-sysctls-to-their-own-file.patch
+sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
