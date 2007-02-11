@@ -1,150 +1,291 @@
 From: akpm@linux-foundation.org
-Subject: - cleanup-linux-byteorder-swabbh.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:05 -0800
-Message-ID: <200702112254.l1BMs5vd016167@shell0.pdx.osdl.net>
+Subject: - proc-remove-useless-and-buggy-nlink-settings.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:53:33 -0800
+Message-ID: <200702112253.l1BMrXQk016107@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60726 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60772 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932901AbXBKW5S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:57:18 -0500
+	id S932723AbXBKW5v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:57:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, greg@kroah.com, jdike@addtoit.com, kyle@mcmartin.ca, mingo@elte.hu, minyard@acm.org, paulus@samba.org, ralf@linux-mips.org, schwidefsky@de.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cleanup linux/byteorder/swabb.h
+     proc: remove useless (and buggy) ->nlink settings
 has been removed from the -mm tree.  Its filename was
-     cleanup-linux-byteorder-swabbh.patch
+     proc-remove-useless-and-buggy-nlink-settings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cleanup linux/byteorder/swabb.h
-From: Adrian Bunk <bunk@stusta.de>
+Subject: proc: remove useless (and buggy) ->nlink settings
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-- no longer a userspace header
-- add #include <linux/types.h> for in-kernel compilation
+Bug: pnx8550 code creates directory but resets ->nlink to 1.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+create_proc_entry() et al will correctly set ->nlink for you.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/byteorder/Kbuild  |    1 -
- include/linux/byteorder/swabb.h |   13 ++++---------
- 2 files changed, 4 insertions(+), 10 deletions(-)
+ arch/mips/philips/pnx8550/common/proc.c   |    7 +------
+ arch/powerpc/kernel/proc_ppc64.c          |    1 -
+ arch/powerpc/kernel/rtas_flash.c          |    1 -
+ arch/powerpc/platforms/iseries/mf.c       |    4 ----
+ arch/powerpc/platforms/pseries/reconfig.c |    1 -
+ arch/um/drivers/ubd_kern.c                |    1 -
+ drivers/char/ipmi/ipmi_msghandler.c       |    1 -
+ drivers/ide/ide-proc.c                    |    1 -
+ drivers/macintosh/via-pmu.c               |    1 -
+ drivers/misc/hdpuftrs/hdpu_nexus.c        |    2 --
+ drivers/parisc/led.c                      |    2 --
+ drivers/s390/crypto/zcrypt_api.c          |    1 -
+ drivers/usb/gadget/rndis.c                |    1 -
+ kernel/irq/proc.c                         |    1 -
+ kernel/profile.c                          |    1 -
+ 15 files changed, 1 insertion(+), 25 deletions(-)
 
-diff -puN include/linux/byteorder/Kbuild~cleanup-linux-byteorder-swabbh include/linux/byteorder/Kbuild
---- a/include/linux/byteorder/Kbuild~cleanup-linux-byteorder-swabbh
-+++ a/include/linux/byteorder/Kbuild
-@@ -2,5 +2,4 @@ header-y += big_endian.h
- header-y += little_endian.h
+diff -puN arch/mips/philips/pnx8550/common/proc.c~proc-remove-useless-and-buggy-nlink-settings arch/mips/philips/pnx8550/common/proc.c
+--- a/arch/mips/philips/pnx8550/common/proc.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/mips/philips/pnx8550/common/proc.c
+@@ -79,10 +79,7 @@ static int pnx8550_proc_init( void )
  
- unifdef-y += generic.h
--unifdef-y += swabb.h
- unifdef-y += swab.h
-diff -puN include/linux/byteorder/swabb.h~cleanup-linux-byteorder-swabbh include/linux/byteorder/swabb.h
---- a/include/linux/byteorder/swabb.h~cleanup-linux-byteorder-swabbh
-+++ a/include/linux/byteorder/swabb.h
-@@ -25,6 +25,8 @@
-  *
-  */
+ 	// Create /proc/pnx8550
+         pnx8550_dir = create_proc_entry("pnx8550", S_IFDIR|S_IRUGO, NULL);
+-        if (pnx8550_dir){
+-                pnx8550_dir->nlink = 1;
+-        }
+-        else {
++        if (!pnx8550_dir) {
+                 printk(KERN_ERR "Can't create pnx8550 proc dir\n");
+                 return -1;
+         }
+@@ -90,7 +87,6 @@ static int pnx8550_proc_init( void )
+ 	// Create /proc/pnx8550/timers
+         pnx8550_timers = create_proc_entry("timers", S_IFREG|S_IRUGO, pnx8550_dir );
+         if (pnx8550_timers){
+-                pnx8550_timers->nlink = 1;
+                 pnx8550_timers->read_proc = pnx8550_timers_read;
+         }
+         else {
+@@ -100,7 +96,6 @@ static int pnx8550_proc_init( void )
+ 	// Create /proc/pnx8550/registers
+         pnx8550_registers = create_proc_entry("registers", S_IFREG|S_IRUGO, pnx8550_dir );
+         if (pnx8550_registers){
+-                pnx8550_registers->nlink = 1;
+                 pnx8550_registers->read_proc = pnx8550_registers_read;
+         }
+         else {
+diff -puN arch/powerpc/kernel/proc_ppc64.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/kernel/proc_ppc64.c
+--- a/arch/powerpc/kernel/proc_ppc64.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/powerpc/kernel/proc_ppc64.c
+@@ -71,7 +71,6 @@ static int __init proc_ppc64_init(void)
+ 	pde = create_proc_entry("ppc64/systemcfg", S_IFREG|S_IRUGO, NULL);
+ 	if (!pde)
+ 		return 1;
+-	pde->nlink = 1;
+ 	pde->data = vdso_data;
+ 	pde->size = PAGE_SIZE;
+ 	pde->proc_fops = &page_map_fops;
+diff -puN arch/powerpc/kernel/rtas_flash.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/kernel/rtas_flash.c
+--- a/arch/powerpc/kernel/rtas_flash.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/powerpc/kernel/rtas_flash.c
+@@ -708,7 +708,6 @@ static struct proc_dir_entry *create_fla
  
-+#include <linux/types.h>
-+
- #define ___swahw32(x) \
- ({ \
- 	__u32 __x = (x); \
-@@ -77,19 +79,14 @@
- /*
-  * Allow constant folding
-  */
--#if defined(__GNUC__) && defined(__OPTIMIZE__)
--#  define __swahw32(x) \
-+#define __swahw32(x) \
- (__builtin_constant_p((__u32)(x)) ? \
-  ___swahw32((x)) : \
-  __fswahw32((x)))
--#  define __swahb32(x) \
-+#define __swahb32(x) \
- (__builtin_constant_p((__u32)(x)) ? \
-  ___swahb32((x)) : \
-  __fswahb32((x)))
--#else
--#  define __swahw32(x) __fswahw32(x)
--#  define __swahb32(x) __fswahb32(x)
--#endif /* OPTIMIZE */
+ 	ent = create_proc_entry(filename, S_IRUSR | S_IWUSR, NULL);
+ 	if (ent != NULL) {
+-		ent->nlink = 1;
+ 		ent->proc_fops = fops;
+ 		ent->owner = THIS_MODULE;
+ 	}
+diff -puN arch/powerpc/platforms/iseries/mf.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/platforms/iseries/mf.c
+--- a/arch/powerpc/platforms/iseries/mf.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/powerpc/platforms/iseries/mf.c
+@@ -1253,7 +1253,6 @@ static int __init mf_proc_init(void)
+ 		ent = create_proc_entry("cmdline", S_IFREG|S_IRUSR|S_IWUSR, mf);
+ 		if (!ent)
+ 			return 1;
+-		ent->nlink = 1;
+ 		ent->data = (void *)(long)i;
+ 		ent->read_proc = proc_mf_dump_cmdline;
+ 		ent->write_proc = proc_mf_change_cmdline;
+@@ -1264,7 +1263,6 @@ static int __init mf_proc_init(void)
+ 		ent = create_proc_entry("vmlinux", S_IFREG|S_IWUSR, mf);
+ 		if (!ent)
+ 			return 1;
+-		ent->nlink = 1;
+ 		ent->data = (void *)(long)i;
+ 		ent->proc_fops = &proc_vmlinux_operations;
+ 	}
+@@ -1272,7 +1270,6 @@ static int __init mf_proc_init(void)
+ 	ent = create_proc_entry("side", S_IFREG|S_IRUSR|S_IWUSR, mf_proc_root);
+ 	if (!ent)
+ 		return 1;
+-	ent->nlink = 1;
+ 	ent->data = (void *)0;
+ 	ent->read_proc = proc_mf_dump_side;
+ 	ent->write_proc = proc_mf_change_side;
+@@ -1280,7 +1277,6 @@ static int __init mf_proc_init(void)
+ 	ent = create_proc_entry("src", S_IFREG|S_IRUSR|S_IWUSR, mf_proc_root);
+ 	if (!ent)
+ 		return 1;
+-	ent->nlink = 1;
+ 	ent->data = (void *)0;
+ 	ent->read_proc = proc_mf_dump_src;
+ 	ent->write_proc = proc_mf_change_src;
+diff -puN arch/powerpc/platforms/pseries/reconfig.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/platforms/pseries/reconfig.c
+--- a/arch/powerpc/platforms/pseries/reconfig.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/powerpc/platforms/pseries/reconfig.c
+@@ -513,7 +513,6 @@ static int proc_ppc64_create_ofdt(void)
  
+ 	ent = create_proc_entry("ppc64/ofdt", S_IWUSR, NULL);
+ 	if (ent) {
+-		ent->nlink = 1;
+ 		ent->data = NULL;
+ 		ent->size = 0;
+ 		ent->proc_fops = &ofdt_fops;
+diff -puN arch/um/drivers/ubd_kern.c~proc-remove-useless-and-buggy-nlink-settings arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/arch/um/drivers/ubd_kern.c
+@@ -235,7 +235,6 @@ static void make_ide_entries(char *dev_n
  
- static inline __u32 __fswahw32(__u32 x)
-@@ -128,13 +125,11 @@ static inline void __swahb32s(__u32 *add
-  */
- #endif /* __BYTEORDER_HAS_U64__ */
+ 	ent = create_proc_entry("media", S_IFREG|S_IRUGO, dir);
+ 	if(!ent) return;
+-	ent->nlink = 1;
+ 	ent->data = NULL;
+ 	ent->read_proc = proc_ide_read_media;
+ 	ent->write_proc = NULL;
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~proc-remove-useless-and-buggy-nlink-settings drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -1887,7 +1887,6 @@ int ipmi_smi_add_proc_entry(ipmi_smi_t s
+ 		kfree(entry);
+ 		rv = -ENOMEM;
+ 	} else {
+-		file->nlink = 1;
+ 		file->data = data;
+ 		file->read_proc = read_proc;
+ 		file->write_proc = write_proc;
+diff -puN drivers/ide/ide-proc.c~proc-remove-useless-and-buggy-nlink-settings drivers/ide/ide-proc.c
+--- a/drivers/ide/ide-proc.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/ide/ide-proc.c
+@@ -413,7 +413,6 @@ void ide_add_proc_entries(struct proc_di
+ 	while (p->name != NULL) {
+ 		ent = create_proc_entry(p->name, p->mode, dir);
+ 		if (!ent) return;
+-		ent->nlink = 1;
+ 		ent->data = data;
+ 		ent->read_proc = p->read_proc;
+ 		ent->write_proc = p->write_proc;
+diff -puN drivers/macintosh/via-pmu.c~proc-remove-useless-and-buggy-nlink-settings drivers/macintosh/via-pmu.c
+--- a/drivers/macintosh/via-pmu.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/macintosh/via-pmu.c
+@@ -516,7 +516,6 @@ static int __init via_pmu_dev_init(void)
+ 					proc_get_irqstats, NULL);
+ 		proc_pmu_options = create_proc_entry("options", 0600, proc_pmu_root);
+ 		if (proc_pmu_options) {
+-			proc_pmu_options->nlink = 1;
+ 			proc_pmu_options->read_proc = proc_read_options;
+ 			proc_pmu_options->write_proc = proc_write_options;
+ 		}
+diff -puN drivers/misc/hdpuftrs/hdpu_nexus.c~proc-remove-useless-and-buggy-nlink-settings drivers/misc/hdpuftrs/hdpu_nexus.c
+--- a/drivers/misc/hdpuftrs/hdpu_nexus.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/misc/hdpuftrs/hdpu_nexus.c
+@@ -72,11 +72,9 @@ static int hdpu_nexus_probe(struct platf
+ 		printk("Could not map slot id\n");
+ 	hdpu_slot_id = create_proc_entry("sky_slot_id", 0666, &proc_root);
+ 	hdpu_slot_id->read_proc = hdpu_slot_id_read;
+-	hdpu_slot_id->nlink = 1;
  
--#if defined(__KERNEL__)
- #define swahw32 __swahw32
- #define swahb32 __swahb32
- #define swahw32p __swahw32p
- #define swahb32p __swahb32p
- #define swahw32s __swahw32s
- #define swahb32s __swahb32s
--#endif
+ 	hdpu_chassis_id = create_proc_entry("sky_chassis_id", 0666, &proc_root);
+ 	hdpu_chassis_id->read_proc = hdpu_chassis_id_read;
+-	hdpu_chassis_id->nlink = 1;
+ 	return 0;
+ }
  
- #endif /* _LINUX_BYTEORDER_SWABB_H */
+diff -puN drivers/parisc/led.c~proc-remove-useless-and-buggy-nlink-settings drivers/parisc/led.c
+--- a/drivers/parisc/led.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/parisc/led.c
+@@ -252,7 +252,6 @@ static int __init led_create_procfs(void
+ 	proc_pdc_root->owner = THIS_MODULE;
+ 	ent = create_proc_entry("led", S_IFREG|S_IRUGO|S_IWUSR, proc_pdc_root);
+ 	if (!ent) return -1;
+-	ent->nlink = 1;
+ 	ent->data = (void *)LED_NOLCD; /* LED */
+ 	ent->read_proc = led_proc_read;
+ 	ent->write_proc = led_proc_write;
+@@ -262,7 +261,6 @@ static int __init led_create_procfs(void
+ 	{
+ 		ent = create_proc_entry("lcd", S_IFREG|S_IRUGO|S_IWUSR, proc_pdc_root);
+ 		if (!ent) return -1;
+-		ent->nlink = 1;
+ 		ent->data = (void *)LED_HASLCD; /* LCD */
+ 		ent->read_proc = led_proc_read;
+ 		ent->write_proc = led_proc_write;
+diff -puN drivers/s390/crypto/zcrypt_api.c~proc-remove-useless-and-buggy-nlink-settings drivers/s390/crypto/zcrypt_api.c
+--- a/drivers/s390/crypto/zcrypt_api.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/s390/crypto/zcrypt_api.c
+@@ -1063,7 +1063,6 @@ int __init zcrypt_api_init(void)
+ 		rc = -ENOMEM;
+ 		goto out_misc;
+ 	}
+-	zcrypt_entry->nlink = 1;
+ 	zcrypt_entry->data = NULL;
+ 	zcrypt_entry->read_proc = zcrypt_status_read;
+ 	zcrypt_entry->write_proc = zcrypt_status_write;
+diff -puN drivers/usb/gadget/rndis.c~proc-remove-useless-and-buggy-nlink-settings drivers/usb/gadget/rndis.c
+--- a/drivers/usb/gadget/rndis.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/drivers/usb/gadget/rndis.c
+@@ -1419,7 +1419,6 @@ int __devinit rndis_init (void)
+ 			return -EIO;
+ 		}
+ 
+-		rndis_connect_state [i]->nlink = 1;
+ 		rndis_connect_state [i]->write_proc = rndis_proc_write;
+ 		rndis_connect_state [i]->read_proc = rndis_proc_read;
+ 		rndis_connect_state [i]->data = (void *)
+diff -puN kernel/irq/proc.c~proc-remove-useless-and-buggy-nlink-settings kernel/irq/proc.c
+--- a/kernel/irq/proc.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/kernel/irq/proc.c
+@@ -136,7 +136,6 @@ void register_irq_proc(unsigned int irq)
+ 		entry = create_proc_entry("smp_affinity", 0600, irq_desc[irq].dir);
+ 
+ 		if (entry) {
+-			entry->nlink = 1;
+ 			entry->data = (void *)(long)irq;
+ 			entry->read_proc = irq_affinity_read_proc;
+ 			entry->write_proc = irq_affinity_write_proc;
+diff -puN kernel/profile.c~proc-remove-useless-and-buggy-nlink-settings kernel/profile.c
+--- a/kernel/profile.c~proc-remove-useless-and-buggy-nlink-settings
++++ a/kernel/profile.c
+@@ -449,7 +449,6 @@ void create_prof_cpu_mask(struct proc_di
+ 	/* create /proc/irq/prof_cpu_mask */
+ 	if (!(entry = create_proc_entry("prof_cpu_mask", 0600, root_irq_dir)))
+ 		return;
+-	entry->nlink = 1;
+ 	entry->data = (void *)&prof_cpu_mask;
+ 	entry->read_proc = prof_cpu_mask_read_proc;
+ 	entry->write_proc = prof_cpu_mask_write_proc;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-ifdef-acpi_future_usage-acpi_os_readable.patch
-git-cpufreq.patch
-git-drm.patch
 git-dvb.patch
-git-ieee1394.patch
-mips-remove-smp_tune_scheduling.patch
-git-mtd.patch
-git-ubi.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
 megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-debug-shared-irqs-kconfig-fix.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-remove-the-broken-fb_s3trio-driver.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+recognize-video=gx1fb-option.patch
