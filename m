@@ -1,89 +1,363 @@
 From: akpm@linux-foundation.org
-Subject: - uml-locking-comments-in-iomem-driver.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:48:57 -0800
-Message-ID: <200702112248.l1BMmvKJ015681@shell0.pdx.osdl.net>
+Subject: - uml-memc-and-physmemc-formatting-fixes.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:48:59 -0800
+Message-ID: <200702112248.l1BMmxJW015684@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59793 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59798 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932686AbXBKWs7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:48:59 -0500
+	id S932683AbXBKWtC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:49:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: locking comments in iomem driver
+     uml: mem.c and physmem.c formatting fixes
 has been removed from the -mm tree.  Its filename was
-     uml-locking-comments-in-iomem-driver.patch
+     uml-memc-and-physmemc-formatting-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: locking comments in iomem driver
+Subject: uml: mem.c and physmem.c formatting fixes
 From: Jeff Dike <jdike@addtoit.com>
 
-Comment some lack of locking in the iomem driver.
-
-Also, a couple of variables are in the wrong place, so they are moved.
+Fix a bunch of style violations in mem.c and physmem.c
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/mem.c     |   10 ----------
- arch/um/kernel/physmem.c |   17 +++++++++++++++++
- 2 files changed, 17 insertions(+), 10 deletions(-)
+ arch/um/kernel/mem.c     |   77 ++++++++++++++++---------------------
+ arch/um/kernel/physmem.c |   57 +++++++++++----------------
+ 2 files changed, 57 insertions(+), 77 deletions(-)
 
-diff -puN arch/um/kernel/mem.c~uml-locking-comments-in-iomem-driver arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-locking-comments-in-iomem-driver
+diff -puN arch/um/kernel/mem.c~uml-memc-and-physmemc-formatting-fixes arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~uml-memc-and-physmemc-formatting-fixes
 +++ a/arch/um/kernel/mem.c
-@@ -367,16 +367,6 @@ struct page *pte_alloc_one(struct mm_str
- 	return pte;
+@@ -65,8 +65,8 @@ void mem_init(void)
+ {
+ 	max_low_pfn = (high_physmem - uml_physmem) >> PAGE_SHIFT;
+ 
+-        /* clear the zero-page */
+-        memset((void *) empty_zero_page, 0, PAGE_SIZE);
++	/* clear the zero-page */
++	memset((void *) empty_zero_page, 0, PAGE_SIZE);
+ 
+ 	/* Map in the area just after the brk now that kmalloc is about
+ 	 * to be turned on.
+@@ -253,8 +253,10 @@ struct page *arch_validate(struct page *
+ 	int i;
+ 
+  again:
+-	if(page == NULL) return(page);
+-	if(PageHighMem(page)) return(page);
++	if(page == NULL)
++		return page;
++	if(PageHighMem(page))
++		return page;
+ 
+ 	addr = (unsigned long) page_address(page);
+ 	for(i = 0; i < (1 << order); i++){
+@@ -263,13 +265,15 @@ struct page *arch_validate(struct page *
+ 				     sizeof(zero),
+ 				     &current->thread.fault_addr,
+ 				     &current->thread.fault_catcher)){
+-			if(!(mask & __GFP_WAIT)) return(NULL);
++			if(!(mask & __GFP_WAIT))
++				return NULL;
+ 			else break;
+ 		}
+ 		addr += PAGE_SIZE;
+ 	}
+ 
+-	if(i == (1 << order)) return(page);
++	if(i == (1 << order))
++		return page;
+ 	page = alloc_pages(mask, order);
+ 	goto again;
+ }
+@@ -283,7 +287,6 @@ void free_initmem(void)
  }
  
--struct iomem_region *iomem_regions = NULL;
--int iomem_size = 0;
+ #ifdef CONFIG_BLK_DEV_INITRD
 -
--extern int parse_iomem(char *str, int *add) __init;
--
--__uml_setup("iomem=", parse_iomem,
--"iomem=<name>,<file>\n"
--"    Configure <file> as an IO memory region named <name>.\n\n"
--);
--
- /*
-  * Overrides for Emacs so that we follow Linus's tabbing style.
-  * Emacs will notice this stuff at the end of the file and automatically
-diff -puN arch/um/kernel/physmem.c~uml-locking-comments-in-iomem-driver arch/um/kernel/physmem.c
---- a/arch/um/kernel/physmem.c~uml-locking-comments-in-iomem-driver
-+++ a/arch/um/kernel/physmem.c
-@@ -398,6 +398,23 @@ __uml_setup("mem=", uml_mem_setup,
- "	Example: mem=64M\n\n"
- );
- 
-+extern int __init parse_iomem(char *str, int *add);
-+
-+__uml_setup("iomem=", parse_iomem,
-+"iomem=<name>,<file>\n"
-+"    Configure <file> as an IO memory region named <name>.\n\n"
-+);
-+
-+/*
-+ * This list is constructed in parse_iomem and addresses filled in in
-+ * setup_iomem, both of which run during early boot.  Afterwards, it's
-+ * unchanged.
-+ */
-+struct iomem_region *iomem_regions = NULL;
-+
-+/* Initialized in parse_iomem */
-+int iomem_size = 0;
-+
- unsigned long find_iomem(char *driver, unsigned long *len_out)
+ void free_initrd_mem(unsigned long start, unsigned long end)
  {
- 	struct iomem_region *region = iomem_regions;
+ 	if (start < end)
+@@ -296,37 +299,36 @@ void free_initrd_mem(unsigned long start
+ 		totalram_pages++;
+ 	}
+ }
+-	
+ #endif
+ 
+ void show_mem(void)
+ {
+-        int pfn, total = 0, reserved = 0;
+-        int shared = 0, cached = 0;
+-        int highmem = 0;
++	int pfn, total = 0, reserved = 0;
++	int shared = 0, cached = 0;
++	int highmem = 0;
+ 	struct page *page;
+ 
+-        printk("Mem-info:\n");
+-        show_free_areas();
+-        printk("Free swap:       %6ldkB\n", nr_swap_pages<<(PAGE_SHIFT-10));
+-        pfn = max_mapnr;
+-        while(pfn-- > 0) {
++	printk("Mem-info:\n");
++	show_free_areas();
++	printk("Free swap:       %6ldkB\n", nr_swap_pages<<(PAGE_SHIFT-10));
++	pfn = max_mapnr;
++	while(pfn-- > 0) {
+ 		page = pfn_to_page(pfn);
+-                total++;
+-                if(PageHighMem(page))
+-                        highmem++;
+-                if(PageReserved(page))
+-                        reserved++;
+-                else if(PageSwapCache(page))
+-                        cached++;
+-                else if(page_count(page))
+-                        shared += page_count(page) - 1;
+-        }
+-        printk("%d pages of RAM\n", total);
+-        printk("%d pages of HIGHMEM\n", highmem);
+-        printk("%d reserved pages\n", reserved);
+-        printk("%d pages shared\n", shared);
+-        printk("%d pages swap cached\n", cached);
++		total++;
++		if(PageHighMem(page))
++			highmem++;
++		if(PageReserved(page))
++			reserved++;
++		else if(PageSwapCache(page))
++			cached++;
++		else if(page_count(page))
++			shared += page_count(page) - 1;
++	}
++	printk("%d pages of RAM\n", total);
++	printk("%d pages of HIGHMEM\n", highmem);
++	printk("%d reserved pages\n", reserved);
++	printk("%d pages shared\n", shared);
++	printk("%d pages swap cached\n", cached);
+ }
+ 
+ /*
+@@ -362,18 +364,7 @@ pte_t *pte_alloc_one_kernel(struct mm_st
+ struct page *pte_alloc_one(struct mm_struct *mm, unsigned long address)
+ {
+ 	struct page *pte;
+-   
++
+ 	pte = alloc_page(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO);
+ 	return pte;
+ }
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/kernel/physmem.c~uml-memc-and-physmemc-formatting-fixes arch/um/kernel/physmem.c
+--- a/arch/um/kernel/physmem.c~uml-memc-and-physmemc-formatting-fixes
++++ a/arch/um/kernel/physmem.c
+@@ -40,7 +40,7 @@ static struct rb_node **find_rb(void *vi
+ 	while(*n != NULL){
+ 		d = rb_entry(*n, struct phys_desc, rb);
+ 		if(d->virt == virt)
+-			return(n);
++			return n;
+ 
+ 		if(d->virt > virt)
+ 			n = &(*n)->rb_left;
+@@ -48,7 +48,7 @@ static struct rb_node **find_rb(void *vi
+ 			n = &(*n)->rb_right;
+ 	}
+ 
+-	return(n);
++	return n;
+ }
+ 
+ static struct phys_desc *find_phys_mapping(void *virt)
+@@ -56,9 +56,9 @@ static struct phys_desc *find_phys_mappi
+ 	struct rb_node **n = find_rb(virt);
+ 
+ 	if(*n == NULL)
+-		return(NULL);
++		return NULL;
+ 
+-	return(rb_entry(*n, struct phys_desc, rb));
++	return rb_entry(*n, struct phys_desc, rb);
+ }
+ 
+ static void insert_phys_mapping(struct phys_desc *desc)
+@@ -89,10 +89,10 @@ static struct desc_mapping *find_mapping
+ 	list_for_each(ele, &descriptor_mappings){
+ 		desc = list_entry(ele, struct desc_mapping, list);
+ 		if(desc->fd == fd)
+-			return(desc);
++			return desc;
+ 	}
+ 
+-	return(NULL);
++	return NULL;
+ }
+ 
+ static struct desc_mapping *descriptor_mapping(int fd)
+@@ -101,11 +101,11 @@ static struct desc_mapping *descriptor_m
+ 
+ 	desc = find_mapping(fd);
+ 	if(desc != NULL)
+-		return(desc);
++		return desc;
+ 
+ 	desc = kmalloc(sizeof(*desc), GFP_ATOMIC);
+ 	if(desc == NULL)
+-		return(NULL);
++		return NULL;
+ 
+ 	*desc = ((struct desc_mapping)
+ 		{ .fd =		fd,
+@@ -113,7 +113,7 @@ static struct desc_mapping *descriptor_m
+ 		  .pages =	LIST_HEAD_INIT(desc->pages) });
+ 	list_add(&desc->list, &descriptor_mappings);
+ 
+-	return(desc);
++	return desc;
+ }
+ 
+ int physmem_subst_mapping(void *virt, int fd, __u64 offset, int w)
+@@ -125,11 +125,11 @@ int physmem_subst_mapping(void *virt, in
+ 
+ 	fd_maps = descriptor_mapping(fd);
+ 	if(fd_maps == NULL)
+-		return(-ENOMEM);
++		return -ENOMEM;
+ 
+ 	phys = __pa(virt);
+ 	desc = find_phys_mapping(virt);
+-  	if(desc != NULL)
++	if(desc != NULL)
+ 		panic("Address 0x%p is already substituted\n", virt);
+ 
+ 	err = -ENOMEM;
+@@ -155,7 +155,7 @@ int physmem_subst_mapping(void *virt, in
+ 	rb_erase(&desc->rb, &phys_mappings);
+ 	kfree(desc);
+  out:
+-	return(err);
++	return err;
+ }
+ 
+ static int physmem_fd = -1;
+@@ -182,10 +182,10 @@ int physmem_remove_mapping(void *virt)
+ 	virt = (void *) ((unsigned long) virt & PAGE_MASK);
+ 	desc = find_phys_mapping(virt);
+ 	if(desc == NULL)
+-		return(0);
++		return 0;
+ 
+ 	remove_mapping(desc);
+-	return(1);
++	return 1;
+ }
+ 
+ void physmem_forget_descriptor(int fd)
+@@ -239,9 +239,9 @@ void arch_free_page(struct page *page, i
+ 
+ int is_remapped(void *virt)
+ {
+-  	struct phys_desc *desc = find_phys_mapping(virt);
++ 	struct phys_desc *desc = find_phys_mapping(virt);
+ 
+-	return(desc != NULL);
++	return desc != NULL;
+ }
+ 
+ /* Changed during early boot */
+@@ -276,7 +276,7 @@ int init_maps(unsigned long physmem, uns
+ 	else map = alloc_bootmem_low_pages(total_len);
+ 
+ 	if(map == NULL)
+-		return(-ENOMEM);
++		return -ENOMEM;
+ 
+ 	for(i = 0; i < total_pages; i++){
+ 		p = &map[i];
+@@ -286,7 +286,7 @@ int init_maps(unsigned long physmem, uns
+ 	}
+ 
+ 	max_mapnr = total_pages;
+-	return(0);
++	return 0;
+ }
+ 
+ /* Changed during early boot */
+@@ -296,7 +296,7 @@ unsigned long get_kmem_end(void)
+ {
+ 	if(kmem_top == 0)
+ 		kmem_top = CHOOSE_MODE(kmem_end_tt, kmem_end_skas);
+-	return(kmem_top);
++	return kmem_top;
+ }
+ 
+ void map_memory(unsigned long virt, unsigned long phys, unsigned long len,
+@@ -379,7 +379,7 @@ int phys_mapping(unsigned long phys, __u
+ 		*offset_out = phys - iomem_size;
+ 	}
+ 
+-	return(fd);
++	return fd;
+ }
+ 
+ static int __init uml_mem_setup(char *line, int *add)
+@@ -422,13 +422,13 @@ unsigned long find_iomem(char *driver, u
+ 	while(region != NULL){
+ 		if(!strcmp(region->driver, driver)){
+ 			*len_out = region->size;
+-			return(region->virt);
++			return region->virt;
+ 		}
+ 
+ 		region = region->next;
+ 	}
+ 
+-	return(0);
++	return 0;
+ }
+ 
+ int setup_iomem(void)
+@@ -452,18 +452,7 @@ int setup_iomem(void)
+ 		region = region->next;
+ 	}
+ 
+-	return(0);
++	return 0;
+ }
+ 
+ __initcall(setup_iomem);
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
