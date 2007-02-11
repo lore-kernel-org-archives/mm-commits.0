@@ -1,237 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-rbtreetxt-updated.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:43 -0800
-Message-ID: <200702112254.l1BMshtn016263@shell0.pdx.osdl.net>
+Subject: - docbook-add-edd-firmware-interfaces.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:53:56 -0800
+Message-ID: <200702112253.l1BMruLE016149@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60520 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60499 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932832AbXBKWyr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:54:47 -0500
+	id S932862AbXBKWyb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:54:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, Matt_Domsch@dell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation/rbtree.txt
+     docbook: add edd firmware interfaces
 has been removed from the -mm tree.  Its filename was
-     documentation-rbtreetxt-updated.patch
+     docbook-add-edd-firmware-interfaces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Documentation/rbtree.txt
-From: Rob Landley <rob@landley.net>
+Subject: docbook: add edd firmware interfaces
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Documentation for lib/rbtree.c.
+Cleanup kernel-doc notation in drivers/firmware/edd.c.
 
-Signed-off-by: Rob Landley <rob@landley.net>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Add edd.c to DocBook/kernel-api.tmpl.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Matt Domsch <Matt_Domsch@dell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/rbtree.txt |  192 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 192 insertions(+)
+ Documentation/DocBook/kernel-api.tmpl |    3 +++
+ drivers/firmware/edd.c                |    8 +++++---
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN /dev/null Documentation/rbtree.txt
---- /dev/null
-+++ a/Documentation/rbtree.txt
-@@ -0,0 +1,192 @@
-+Red-black Trees (rbtree) in Linux
-+January 18, 2007
-+Rob Landley <rob@landley.net>
-+=============================
-+
-+What are red-black trees, and what are they for?
-+------------------------------------------------
-+
-+Red-black trees are a type of self-balancing binary search tree, used for
-+storing sortable key/value data pairs.  This differs from radix trees (which
-+are used to efficiently store sparse arrays and thus use long integer indexes
-+to insert/access/delete nodes) and hash tables (which are not kept sorted to
-+be easily traversed in order, and must be tuned for a specific size and
-+hash function where rbtrees scale gracefully storing arbitrary keys).
-+
-+Red-black trees are similar to AVL trees, but provide faster real-time bounded
-+worst case performance for insertion and deletion (at most two rotations and
-+three rotations, respectively, to balance the tree), with slightly slower
-+(but still O(log n)) lookup time.
-+
-+To quote Linux Weekly News:
-+
-+    There are a number of red-black trees in use in the kernel.
-+    The anticipatory, deadline, and CFQ I/O schedulers all employ
-+    rbtrees to track requests; the packet CD/DVD driver does the same.
-+    The high-resolution timer code uses an rbtree to organize outstanding
-+    timer requests.  The ext3 filesystem tracks directory entries in a
-+    red-black tree.  Virtual memory areas (VMAs) are tracked with red-black
-+    trees, as are epoll file descriptors, cryptographic keys, and network
-+    packets in the "hierarchical token bucket" scheduler.
-+
-+This document covers use of the Linux rbtree implementation.  For more
-+information on the nature and implementation of Red Black Trees,  see:
-+
-+  Linux Weekly News article on red-black trees
-+    http://lwn.net/Articles/184495/
-+
-+  Wikipedia entry on red-black trees
-+    http://en.wikipedia.org/wiki/Red-black_tree
-+
-+Linux implementation of red-black trees
-+---------------------------------------
-+
-+Linux's rbtree implementation lives in the file "lib/rbtree.c".  To use it,
-+"#include <linux/rbtree.h>".
-+
-+The Linux rbtree implementation is optimized for speed, and thus has one
-+less layer of indirection (and better cache locality) than more traditional
-+tree implementations.  Instead of using pointers to separate rb_node and data
-+structures, each instance of struct rb_node is embedded in the data structure
-+it organizes.  And instead of using a comparison callback function pointer,
-+users are expected to write their own tree search and insert functions
-+which call the provided rbtree functions.  Locking is also left up to the
-+user of the rbtree code.
-+
-+Creating a new rbtree
-+---------------------
-+
-+Data nodes in an rbtree tree are structures containing a struct rb_node member:
-+
-+  struct mytype {
-+  	struct rb_node node;
-+  	char *keystring;
-+  };
-+
-+When dealing with a pointer to the embedded struct rb_node, the containing data
-+structure may be accessed with the standard container_of() macro.  In addition,
-+individual members may be accessed directly via rb_entry(node, type, member).
-+
-+At the root of each rbtree is an rb_root structure, which is initialized to be
-+empty via:
-+
-+  struct rb_root mytree = RB_ROOT;
-+
-+Searching for a value in an rbtree
-+----------------------------------
-+
-+Writing a search function for your tree is fairly straightforward: start at the
-+root, compare each value, and follow the left or right branch as necessary.
-+
-+Example:
-+
-+  struct mytype *my_search(struct rb_root *root, char *string)
-+  {
-+  	struct rb_node *node = root->rb_node;
-+
-+  	while (node) {
-+  		struct mytype *data = container_of(node, struct mytype, node);
-+		int result;
-+
-+		result = strcmp(string, data->keystring);
-+
-+		if (result < 0)
-+  			node = node->rb_left;
-+		else if (result > 0)
-+  			node = node->rb_right;
-+		else
-+  			return data;
-+	}
-+	return NULL;
-+  }
-+
-+Inserting data into an rbtree
-+-----------------------------
-+
-+Inserting data in the tree involves first searching for the place to insert the
-+new node, then inserting the node and rebalancing ("recoloring") the tree.
-+
-+The search for insertion differs from the previous search by finding the
-+location of the pointer on which to graft the new node.  The new node also
-+needs a link to its parent node for rebalancing purposes.
-+
-+Example:
-+
-+  int my_insert(struct rb_root *root, struct mytype *data)
-+  {
-+  	struct rb_node **new = &(root->rb_node), *parent = NULL;
-+
-+  	/* Figure out where to put new node */
-+  	while (*new) {
-+  		struct mytype *this = container_of(*new, struct mytype, node);
-+  		int result = strcmp(data->keystring, this->keystring);
-+
-+		parent = *new;
-+  		if (result < 0)
-+  			new = &((*new)->rb_left);
-+  		else if (result > 0)
-+  			new = &((*new)->rb_right);
-+  		else
-+  			return FALSE;
-+  	}
-+
-+  	/* Add new node and rebalance tree. */
-+  	rb_link_node(data->node, parent, new);
-+  	rb_insert_color(data->node, root);
-+
-+	return TRUE;
-+  }
-+
-+Removing or replacing existing data in an rbtree
-+------------------------------------------------
-+
-+To remove an existing node from a tree, call:
-+
-+  void rb_erase(struct rb_node *victim, struct rb_root *tree);
-+
-+Example:
-+
-+  struct mytype *data = mysearch(mytree, "walrus");
-+
-+  if (data) {
-+  	rb_erase(data->node, mytree);
-+  	myfree(data);
-+  }
-+
-+To replace an existing node in a tree with a new one with the same key, call:
-+
-+  void rb_replace_node(struct rb_node *old, struct rb_node *new,
-+  			struct rb_root *tree);
-+
-+Replacing a node this way does not re-sort the tree: If the new node doesn't
-+have the same key as the old node, the rbtree will probably become corrupted.
-+
-+Iterating through the elements stored in an rbtree (in sort order)
-+------------------------------------------------------------------
-+
-+Four functions are provided for iterating through an rbtree's contents in
-+sorted order.  These work on arbitrary trees, and should not need to be
-+modified or wrapped (except for locking purposes):
-+
-+  struct rb_node *rb_first(struct rb_root *tree);
-+  struct rb_node *rb_last(struct rb_root *tree);
-+  struct rb_node *rb_next(struct rb_node *node);
-+  struct rb_node *rb_prev(struct rb_node *node);
-+
-+To start iterating, call rb_first() or rb_last() with a pointer to the root
-+of the tree, which will return a pointer to the node structure contained in
-+the first or last element in the tree.  To continue, fetch the next or previous
-+node by calling rb_next() or rb_prev() on the current node.  This will return
-+NULL when there are no more nodes left.
-+
-+The iterator functions return a pointer to the embedded struct rb_node, from
-+which the containing data structure may be accessed with the container_of()
-+macro, and individual members may be accessed directly via
-+rb_entry(node, type, member).
-+
-+Example:
-+
-+  struct rb_node *node;
-+  for (node = rb_first(&mytree); node; node = rb_next(node))
-+  	printk("key=%s\n", rb_entry(node, int, keystring));
-+
+diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-add-edd-firmware-interfaces Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~docbook-add-edd-firmware-interfaces
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -316,6 +316,9 @@ X!Earch/i386/kernel/mca.c
+      <sect1><title>DMI Interfaces</title>
+ !Edrivers/firmware/dmi_scan.c
+      </sect1>
++     <sect1><title>EDD Interfaces</title>
++!Idrivers/firmware/edd.c
++     </sect1>
+   </chapter>
+ 
+   <chapter id="security">
+diff -puN drivers/firmware/edd.c~docbook-add-edd-firmware-interfaces drivers/firmware/edd.c
+--- a/drivers/firmware/edd.c~docbook-add-edd-firmware-interfaces
++++ a/drivers/firmware/edd.c
+@@ -233,6 +233,8 @@ edd_show_interface(struct edd_device *ed
+ 
+ /**
+  * edd_show_raw_data() - copies raw data to buffer for userspace to parse
++ * @edev: target edd_device
++ * @buf: output buffer
+  *
+  * Returns: number of bytes written, or -EINVAL on failure
+  */
+@@ -634,8 +636,8 @@ static decl_subsys(edd,&ktype_edd,NULL);
+ 
+ /**
+  * edd_dev_is_type() - is this EDD device a 'type' device?
+- * @edev
+- * @type - a host bus or interface identifier string per the EDD spec
++ * @edev: target edd_device
++ * @type: a host bus or interface identifier string per the EDD spec
+  *
+  * Returns 1 (TRUE) if it is a 'type' device, 0 otherwise.
+  */
+@@ -657,7 +659,7 @@ edd_dev_is_type(struct edd_device *edev,
+ 
+ /**
+  * edd_get_pci_dev() - finds pci_dev that matches edev
+- * @edev - edd_device
++ * @edev: edd_device
+  *
+  * Returns pci_dev if found, or NULL
+  */
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+git-drm.patch
+qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
+git-mtd.patch
+git-netdev-all.patch
+phy-layer-add-kernel-doc-docbook.patch
+parisc-fix-module_param-iommu-permission.patch
+ueagle-atmc-needs-schedh.patch
+com20020-build-fix.patch
+drivers-telephony-ixj-convert-to-generic-boolean.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
