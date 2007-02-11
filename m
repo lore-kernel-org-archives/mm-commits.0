@@ -1,60 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-warning-fix.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:53:24 -0800
-Message-ID: <200702112253.l1BMrOXM016095@shell0.pdx.osdl.net>
+Subject: - proc_misc-warning-fix.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:53:26 -0800
+Message-ID: <200702112253.l1BMrQMg016098@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60352 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60356 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932810AbXBKWx0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:53:26 -0500
+	id S932818AbXBKWx2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:53:28 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1BMrOUI016415
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1BMrQUI016419
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 11 Feb 2007 14:53:24 -0800
+	for <mm-commits@vger.kernel.org>; Sun, 11 Feb 2007 14:53:26 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl warning fix
+     proc_misc warning fix
 has been removed from the -mm tree.  Its filename was
-     sysctl-warning-fix.patch
+     proc_misc-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl warning fix
+Subject: proc_misc warning fix
 From: Andrew Morton <akpm@osdl.org>
 
-kernel/sysctl.c:2816: warning: 'sysctl_ipc_data' defined but not used
+fs/proc/proc_misc.c: In function 'proc_misc_init':
+fs/proc/proc_misc.c:764: warning: unused variable 'entry'
 
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/proc/proc_misc.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-warning-fix kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-warning-fix
-+++ a/kernel/sysctl.c
-@@ -2767,12 +2767,14 @@ static int sysctl_uts_string(ctl_table *
- {
- 	return -ENOSYS;
- }
-+#ifdef CONFIG_SYSVIPC
- static int sysctl_ipc_data(ctl_table *table, int __user *name, int nlen,
- 		void __user *oldval, size_t __user *oldlenp,
- 		void __user *newval, size_t newlen)
- {
- 	return -ENOSYS;
- }
-+#endif
- #endif /* CONFIG_SYSCTL_SYSCALL */
+diff -puN fs/proc/proc_misc.c~proc_misc-warning-fix fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~proc_misc-warning-fix
++++ a/fs/proc/proc_misc.c
+@@ -667,7 +667,6 @@ void create_seq_entry(char *name, mode_t
  
- /*
+ void __init proc_misc_init(void)
+ {
+-	struct proc_dir_entry *entry;
+ 	static struct {
+ 		char *name;
+ 		int (*read_proc)(char*,char**,off_t,int,int*,void*);
+@@ -695,9 +694,12 @@ void __init proc_misc_init(void)
+ 
+ 	/* And now for trickier ones */
+ #ifdef CONFIG_PRINTK
+-	entry = create_proc_entry("kmsg", S_IRUSR, &proc_root);
+-	if (entry)
+-		entry->proc_fops = &proc_kmsg_operations;
++	{
++		struct proc_dir_entry *entry;
++		entry = create_proc_entry("kmsg", S_IRUSR, &proc_root);
++		if (entry)
++			entry->proc_fops = &proc_kmsg_operations;
++	}
+ #endif
+ 	create_seq_entry("devices", 0, &proc_devinfo_operations);
+ 	create_seq_entry("cpuinfo", 0, &proc_cpuinfo_operations);
+@@ -738,8 +740,11 @@ void __init proc_misc_init(void)
+ 		proc_vmcore->proc_fops = &proc_vmcore_operations;
+ #endif
+ #ifdef CONFIG_MAGIC_SYSRQ
+-	entry = create_proc_entry("sysrq-trigger", S_IWUSR, NULL);
+-	if (entry)
+-		entry->proc_fops = &proc_sysrq_trigger_operations;
++	{
++		struct proc_dir_entry *entry;
++		entry = create_proc_entry("sysrq-trigger", S_IWUSR, NULL);
++		if (entry)
++			entry->proc_fops = &proc_sysrq_trigger_operations;
++	}
+ #endif
+ }
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
