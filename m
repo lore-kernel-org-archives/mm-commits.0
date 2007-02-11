@@ -1,2390 +1,449 @@
 From: akpm@linux-foundation.org
-Subject: - char-n_r3964-cleanup.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:51:31 -0800
-Message-ID: <200702112251.l1BMpVw5015948@shell0.pdx.osdl.net>
+Subject: - relay-add-cpu-hotplug-support.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:51:16 -0800
+Message-ID: <200702112251.l1BMpGNo015931@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60169 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60184 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932764AbXBKWvv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:51:51 -0500
+	id S932771AbXBKWvy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:51:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, zanussi@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: n_r3964, cleanup
+     Relay: add CPU hotplug support
 has been removed from the -mm tree.  Its filename was
-     char-n_r3964-cleanup.patch
+     relay-add-cpu-hotplug-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: n_r3964, cleanup
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Relay: add CPU hotplug support
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-- Lindent the code
-- allow semicolons after macros by 'do {} while (0)'
-- eliminate C++ comments
+Mathieu originally needed to add this for tracing Xen, but it's something
+that's needed for any application that can be tracing while cpus are added.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+unplug isn't supported by this patch.  The thought was that at minumum a new
+buffer needs to be added when a cpu comes up, but it wasn't worth the effort
+to remove buffers on cpu down since they'd be freed soon anyway when the
+channel was closed.
+
+[zanussi@us.ibm.com: avoid lock_cpu_hotplug deadlock]
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Tom Zanussi <zanussi@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_r3964.c | 2117 ++++++++++++++++++---------------------
- 1 file changed, 991 insertions(+), 1126 deletions(-)
+ Documentation/filesystems/relay.txt |    9 +
+ block/blktrace.c                    |    3 
+ include/linux/relay.h               |    9 +
+ kernel/relay.c                      |  180 ++++++++++++++++++--------
+ 4 files changed, 142 insertions(+), 59 deletions(-)
 
-diff -puN drivers/char/n_r3964.c~char-n_r3964-cleanup drivers/char/n_r3964.c
---- a/drivers/char/n_r3964.c~char-n_r3964-cleanup
-+++ a/drivers/char/n_r3964.c
-@@ -60,62 +60,56 @@
- #include <linux/slab.h>
- #include <linux/tty.h>
- #include <linux/errno.h>
--#include <linux/string.h>   /* used in new tty drivers */
--#include <linux/signal.h>   /* used in new tty drivers */
-+#include <linux/string.h>	/* used in new tty drivers */
-+#include <linux/signal.h>	/* used in new tty drivers */
- #include <linux/ioctl.h>
- #include <linux/n_r3964.h>
- #include <linux/poll.h>
- #include <linux/init.h>
- #include <asm/uaccess.h>
+diff -puN Documentation/filesystems/relay.txt~relay-add-cpu-hotplug-support Documentation/filesystems/relay.txt
+--- a/Documentation/filesystems/relay.txt~relay-add-cpu-hotplug-support
++++ a/Documentation/filesystems/relay.txt
+@@ -157,7 +157,7 @@ TBD(curr. line MT:/API/)
+   channel management functions:
  
--
--//#define DEBUG_QUEUE
-+/*#define DEBUG_QUEUE*/
+     relay_open(base_filename, parent, subbuf_size, n_subbufs,
+-               callbacks)
++               callbacks, private_data)
+     relay_close(chan)
+     relay_flush(chan)
+     relay_reset(chan)
+@@ -251,7 +251,7 @@ static struct rchan_callbacks relay_call
  
- /* Log successful handshake and protocol operations  */
--//#define DEBUG_PROTO_S
-+/*#define DEBUG_PROTO_S*/
+ And an example relay_open() invocation using them:
  
- /* Log handshake and protocol errors: */
--//#define DEBUG_PROTO_E
-+/*#define DEBUG_PROTO_E*/
+-  chan = relay_open("cpu", NULL, SUBBUF_SIZE, N_SUBBUFS, &relay_callbacks);
++  chan = relay_open("cpu", NULL, SUBBUF_SIZE, N_SUBBUFS, &relay_callbacks, NULL);
  
- /* Log Linediscipline operations (open, close, read, write...): */
--//#define DEBUG_LDISC
-+/*#define DEBUG_LDISC*/
+ If the create_buf_file() callback fails, or isn't defined, channel
+ creation and thus relay_open() will fail.
+@@ -289,6 +289,11 @@ they use the proper locking for such a b
+ writes in a spinlock, or by copying a write function from relay.h and
+ creating a local version that internally does the proper locking.
  
- /* Log module and memory operations (init, cleanup; kmalloc, kfree): */
--//#define DEBUG_MODUL
-+/*#define DEBUG_MODUL*/
++The private_data passed into relay_open() allows clients to associate
++user-defined data with a channel, and is immediately available
++(including in create_buf_file()) via chan->private_data or
++buf->chan->private_data.
++
+ Channel 'modes'
+ ---------------
  
- /* Macro helpers for debug output: */
--#define TRACE(format, args...) printk("r3964: " format "\n" , ## args);
-+#define TRACE(format, args...) printk("r3964: " format "\n" , ## args)
+diff -puN block/blktrace.c~relay-add-cpu-hotplug-support block/blktrace.c
+--- a/block/blktrace.c~relay-add-cpu-hotplug-support
++++ a/block/blktrace.c
+@@ -363,10 +363,9 @@ static int blk_trace_setup(request_queue
+ 	if (!bt->dropped_file)
+ 		goto err;
  
- #ifdef DEBUG_MODUL
--#define TRACE_M(format, args...) printk("r3964: " format "\n" , ## args);
-+#define TRACE_M(format, args...) printk("r3964: " format "\n" , ## args)
- #else
--#define TRACE_M(fmt, arg...) /**/
-+#define TRACE_M(fmt, arg...) do {} while (0)
- #endif
--
- #ifdef DEBUG_PROTO_S
--#define TRACE_PS(format, args...) printk("r3964: " format "\n" , ## args);
-+#define TRACE_PS(format, args...) printk("r3964: " format "\n" , ## args)
- #else
--#define TRACE_PS(fmt, arg...) /**/
-+#define TRACE_PS(fmt, arg...) do {} while (0)
- #endif
--
- #ifdef DEBUG_PROTO_E
--#define TRACE_PE(format, args...) printk("r3964: " format "\n" , ## args);
-+#define TRACE_PE(format, args...) printk("r3964: " format "\n" , ## args)
- #else
--#define TRACE_PE(fmt, arg...) /**/
-+#define TRACE_PE(fmt, arg...) do {} while (0)
- #endif
--
- #ifdef DEBUG_LDISC
--#define TRACE_L(format, args...) printk("r3964: " format "\n" , ## args);
-+#define TRACE_L(format, args...) printk("r3964: " format "\n" , ## args)
- #else
--#define TRACE_L(fmt, arg...) /**/
-+#define TRACE_L(fmt, arg...) do {} while (0)
- #endif
--
- #ifdef DEBUG_QUEUE
--#define TRACE_Q(format, args...) printk("r3964: " format "\n" , ## args);
-+#define TRACE_Q(format, args...) printk("r3964: " format "\n" , ## args)
- #else
--#define TRACE_Q(fmt, arg...) /**/
-+#define TRACE_Q(fmt, arg...) do {} while (0)
- #endif
--
- static void add_tx_queue(struct r3964_info *, struct r3964_block_header *);
- static void remove_from_tx_queue(struct r3964_info *pInfo, int error_code);
- static void put_char(struct r3964_info *pInfo, unsigned char ch);
-@@ -126,937 +120,830 @@ static void receive_char(struct r3964_in
- static void receive_error(struct r3964_info *pInfo, const char flag);
- static void on_timeout(unsigned long priv);
- static int enable_signals(struct r3964_info *pInfo, struct pid *pid, int arg);
--static int read_telegram(struct r3964_info *pInfo, struct pid *pid, unsigned char __user *buf);
-+static int read_telegram(struct r3964_info *pInfo, struct pid *pid,
-+		unsigned char __user * buf);
- static void add_msg(struct r3964_client_info *pClient, int msg_id, int arg,
--             int error_code, struct r3964_block_header *pBlock);
--static struct r3964_message* remove_msg(struct r3964_info *pInfo, 
--             struct r3964_client_info *pClient);
--static void remove_client_block(struct r3964_info *pInfo, 
--                struct r3964_client_info *pClient);
-+		int error_code, struct r3964_block_header *pBlock);
-+static struct r3964_message *remove_msg(struct r3964_info *pInfo,
-+		struct r3964_client_info *pClient);
-+static void remove_client_block(struct r3964_info *pInfo,
-+		struct r3964_client_info *pClient);
+-	bt->rchan = relay_open("trace", dir, buts.buf_size, buts.buf_nr, &blk_relay_callbacks);
++	bt->rchan = relay_open("trace", dir, buts.buf_size, buts.buf_nr, &blk_relay_callbacks, bt);
+ 	if (!bt->rchan)
+ 		goto err;
+-	bt->rchan->private_data = bt;
  
--static int  r3964_open(struct tty_struct *tty);
-+static int r3964_open(struct tty_struct *tty);
- static void r3964_close(struct tty_struct *tty);
- static ssize_t r3964_read(struct tty_struct *tty, struct file *file,
--                     unsigned char __user *buf, size_t nr);
--static ssize_t r3964_write(struct tty_struct * tty, struct file * file,
--                      const unsigned char * buf, size_t nr);
--static int r3964_ioctl(struct tty_struct * tty, struct file * file,
--                       unsigned int cmd, unsigned long arg);
--static void r3964_set_termios(struct tty_struct *tty, struct ktermios * old);
--static unsigned int r3964_poll(struct tty_struct * tty, struct file * file,
--		      struct poll_table_struct  *wait);
-+		unsigned char __user * buf, size_t nr);
-+static ssize_t r3964_write(struct tty_struct *tty, struct file *file,
-+		const unsigned char *buf, size_t nr);
-+static int r3964_ioctl(struct tty_struct *tty, struct file *file,
-+		unsigned int cmd, unsigned long arg);
-+static void r3964_set_termios(struct tty_struct *tty, struct ktermios *old);
-+static unsigned int r3964_poll(struct tty_struct *tty, struct file *file,
-+		struct poll_table_struct *wait);
- static void r3964_receive_buf(struct tty_struct *tty, const unsigned char *cp,
--                              char *fp, int count);
-+		char *fp, int count);
+ 	bt->act_mask = buts.act_mask;
+ 	if (!bt->act_mask)
+diff -puN include/linux/relay.h~relay-add-cpu-hotplug-support include/linux/relay.h
+--- a/include/linux/relay.h~relay-add-cpu-hotplug-support
++++ a/include/linux/relay.h
+@@ -24,7 +24,7 @@
+ /*
+  * Tracks changes to rchan/rchan_buf structs
+  */
+-#define RELAYFS_CHANNEL_VERSION		6
++#define RELAYFS_CHANNEL_VERSION		7
  
- static struct tty_ldisc tty_ldisc_N_R3964 = {
--	.owner	 = THIS_MODULE,
--	.magic	= TTY_LDISC_MAGIC, 
--	.name	= "R3964",
--	.open	= r3964_open,
--	.close	= r3964_close,
--	.read	= r3964_read,
--	.write	= r3964_write,
--	.ioctl	= r3964_ioctl,
-+	.owner = THIS_MODULE,
-+	.magic = TTY_LDISC_MAGIC,
-+	.name = "R3964",
-+	.open = r3964_open,
-+	.close = r3964_close,
-+	.read = r3964_read,
-+	.write = r3964_write,
-+	.ioctl = r3964_ioctl,
- 	.set_termios = r3964_set_termios,
--	.poll	= r3964_poll,            
-+	.poll = r3964_poll,
- 	.receive_buf = r3964_receive_buf,
+ /*
+  * Per-cpu relay channel buffer
+@@ -64,6 +64,10 @@ struct rchan
+ 	void *private_data;		/* for user-defined data */
+ 	size_t last_toobig;		/* tried to log event > subbuf size */
+ 	struct rchan_buf *buf[NR_CPUS]; /* per-cpu channel buffers */
++	int is_global;			/* One global buffer ? */
++	struct list_head list;		/* for channel list */
++	struct dentry *parent;		/* parent dentry passed to open */
++	char base_filename[NAME_MAX];	/* saved base filename */
  };
  
--
--
- static void dump_block(const unsigned char *block, unsigned int length)
+ /*
+@@ -162,7 +166,8 @@ struct rchan *relay_open(const char *bas
+ 			 struct dentry *parent,
+ 			 size_t subbuf_size,
+ 			 size_t n_subbufs,
+-			 struct rchan_callbacks *cb);
++			 struct rchan_callbacks *cb,
++			 void *private_data);
+ extern void relay_close(struct rchan *chan);
+ extern void relay_flush(struct rchan *chan);
+ extern void relay_subbufs_consumed(struct rchan *chan,
+diff -puN kernel/relay.c~relay-add-cpu-hotplug-support kernel/relay.c
+--- a/kernel/relay.c~relay-add-cpu-hotplug-support
++++ a/kernel/relay.c
+@@ -7,6 +7,8 @@
+  * Copyright (C) 1999-2005 - Karim Yaghmour (karim@opersys.com)
+  *
+  * Moved to kernel/relay.c by Paul Mundt, 2006.
++ * November 2006 - CPU hotplug support by Mathieu Desnoyers
++ * 	(mathieu.desnoyers@polymtl.ca)
+  *
+  * This file is released under the GPL.
+  */
+@@ -18,6 +20,11 @@
+ #include <linux/relay.h>
+ #include <linux/vmalloc.h>
+ #include <linux/mm.h>
++#include <linux/cpu.h>
++
++/* list of open channels, for cpu hotplug */
++static DEFINE_MUTEX(relay_channels_mutex);
++static LIST_HEAD(relay_channels);
+ 
+ /*
+  * close() vm_op implementation for relay file mapping.
+@@ -187,6 +194,7 @@ void relay_destroy_buf(struct rchan_buf 
+ 			__free_page(buf->page_array[i]);
+ 		kfree(buf->page_array);
+ 	}
++	chan->buf[buf->cpu] = NULL;
+ 	kfree(buf->padding);
+ 	kfree(buf);
+ 	kref_put(&chan->kref, relay_destroy_channel);
+@@ -362,51 +370,69 @@ static void __relay_reset(struct rchan_b
+ void relay_reset(struct rchan *chan)
  {
--   unsigned int i,j;
--   char linebuf[16*3+1];
--   
--   for(i=0;i<length;i+=16)
--   {
--      for(j=0;(j<16) && (j+i<length);j++)
--      {
--         sprintf(linebuf+3*j,"%02x ",block[i+j]);
--      }
--      linebuf[3*j]='\0';
--      TRACE_PS("%s",linebuf);
--   }
--}
--
--         
-+	unsigned int i, j;
-+	char linebuf[16 * 3 + 1];
+ 	unsigned int i;
+-	struct rchan_buf *prev = NULL;
  
-+	for (i = 0; i < length; i += 16) {
-+		for (j = 0; (j < 16) && (j + i < length); j++) {
-+			sprintf(linebuf + 3 * j, "%02x ", block[i + j]);
-+		}
-+		linebuf[3 * j] = '\0';
-+		TRACE_PS("%s", linebuf);
-+	}
-+}
+ 	if (!chan)
+ 		return;
  
- /*************************************************************
-  * Driver initialisation
-  *************************************************************/
- 
--
- /*************************************************************
-  * Module support routines
-  *************************************************************/
- 
- static void __exit r3964_exit(void)
- {
--   int status;
--   
--   TRACE_M ("cleanup_module()");
--
--   status=tty_unregister_ldisc(N_R3964);
--   
--   if(status!=0)
--   {
--      printk(KERN_ERR "r3964: error unregistering linediscipline: %d\n", status);
--   }
--   else
--   {
--      TRACE_L("linediscipline successfully unregistered");
--   }
--   
-+	int status;
-+
-+	TRACE_M("cleanup_module()");
-+
-+	status = tty_unregister_ldisc(N_R3964);
-+
-+	if (status != 0) {
-+		printk(KERN_ERR "r3964: error unregistering linediscipline: "
-+				"%d\n", status);
-+	} else {
-+		TRACE_L("linediscipline successfully unregistered");
-+	}
- }
- 
- static int __init r3964_init(void)
- {
--   int status;
--   
--   printk ("r3964: Philips r3964 Driver $Revision: 1.10 $\n");
--
--   /*
--    * Register the tty line discipline
--    */
--   
--   status = tty_register_ldisc (N_R3964, &tty_ldisc_N_R3964);
--   if (status == 0)
--     {
--       TRACE_L("line discipline %d registered", N_R3964);
--       TRACE_L("flags=%x num=%x", tty_ldisc_N_R3964.flags, 
--               tty_ldisc_N_R3964.num);
--       TRACE_L("open=%p", tty_ldisc_N_R3964.open);
--       TRACE_L("tty_ldisc_N_R3964 = %p", &tty_ldisc_N_R3964);
--     }
--   else
--     {
--       printk (KERN_ERR "r3964: error registering line discipline: %d\n", status);
--     }
--   return status;
-+	int status;
-+
-+	printk("r3964: Philips r3964 Driver $Revision: 1.10 $\n");
-+
-+	/*
-+	 * Register the tty line discipline
-+	 */
-+
-+	status = tty_register_ldisc(N_R3964, &tty_ldisc_N_R3964);
-+	if (status == 0) {
-+		TRACE_L("line discipline %d registered", N_R3964);
-+		TRACE_L("flags=%x num=%x", tty_ldisc_N_R3964.flags,
-+			tty_ldisc_N_R3964.num);
-+		TRACE_L("open=%p", tty_ldisc_N_R3964.open);
-+		TRACE_L("tty_ldisc_N_R3964 = %p", &tty_ldisc_N_R3964);
-+	} else {
-+		printk(KERN_ERR "r3964: error registering line discipline: "
-+				"%d\n", status);
-+	}
-+	return status;
- }
- 
- module_init(r3964_init);
- module_exit(r3964_exit);
- 
--
- /*************************************************************
-  * Protocol implementation routines
-  *************************************************************/
- 
--static void add_tx_queue(struct r3964_info *pInfo, struct r3964_block_header *pHeader)
-+static void add_tx_queue(struct r3964_info *pInfo,
-+			 struct r3964_block_header *pHeader)
- {
--   unsigned long flags;
--   
--   spin_lock_irqsave(&pInfo->lock, flags);
--
--   pHeader->next = NULL;
--
--   if(pInfo->tx_last == NULL)
--   {
--      pInfo->tx_first = pInfo->tx_last = pHeader;
--   }
--   else
--   {
--      pInfo->tx_last->next = pHeader;
--      pInfo->tx_last = pHeader;
--   }
--   
--   spin_unlock_irqrestore(&pInfo->lock, flags);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pInfo->lock, flags);
- 
--   TRACE_Q("add_tx_queue %p, length %d, tx_first = %p", 
--          pHeader, pHeader->length, pInfo->tx_first );
-+	pHeader->next = NULL;
-+
-+	if (pInfo->tx_last == NULL) {
-+		pInfo->tx_first = pInfo->tx_last = pHeader;
-+	} else {
-+		pInfo->tx_last->next = pHeader;
-+		pInfo->tx_last = pHeader;
-+	}
-+
-+	spin_unlock_irqrestore(&pInfo->lock, flags);
-+
-+	TRACE_Q("add_tx_queue %p, length %d, tx_first = %p",
-+		pHeader, pHeader->length, pInfo->tx_first);
- }
- 
- static void remove_from_tx_queue(struct r3964_info *pInfo, int error_code)
- {
--   struct r3964_block_header *pHeader;
--   unsigned long flags;
-+	struct r3964_block_header *pHeader;
-+	unsigned long flags;
- #ifdef DEBUG_QUEUE
--   struct r3964_block_header *pDump;
-+	struct r3964_block_header *pDump;
- #endif
--   
--   pHeader = pInfo->tx_first;
- 
--   if(pHeader==NULL)
--      return;
-+	pHeader = pInfo->tx_first;
-+
-+	if (pHeader == NULL)
+-	for (i = 0; i < NR_CPUS; i++) {
+-		if (!chan->buf[i] || chan->buf[i] == prev)
+-			break;
+-		__relay_reset(chan->buf[i], 0);
+-		prev = chan->buf[i];
++ 	if (chan->is_global && chan->buf[0]) {
++		__relay_reset(chan->buf[0], 0);
 +		return;
- 
- #ifdef DEBUG_QUEUE
--   printk("r3964: remove_from_tx_queue: %p, length %u - ",
--          pHeader, pHeader->length );
--   for(pDump=pHeader;pDump;pDump=pDump->next)
--	 printk("%p ", pDump);
--   printk("\n");
-+	printk("r3964: remove_from_tx_queue: %p, length %u - ",
-+		pHeader, pHeader->length);
-+	for (pDump = pHeader; pDump; pDump = pDump->next)
-+		printk("%p ", pDump);
-+	printk("\n");
- #endif
- 
-+	if (pHeader->owner) {
-+		if (error_code) {
-+			add_msg(pHeader->owner, R3964_MSG_ACK, 0,
-+				error_code, NULL);
-+		} else {
-+			add_msg(pHeader->owner, R3964_MSG_ACK, pHeader->length,
-+				error_code, NULL);
-+		}
-+		wake_up_interruptible(&pInfo->read_wait);
-+	}
+ 	}
 +
-+	spin_lock_irqsave(&pInfo->lock, flags);
-+
-+	pInfo->tx_first = pHeader->next;
-+	if (pInfo->tx_first == NULL) {
-+		pInfo->tx_last = NULL;
-+	}
-+
-+	spin_unlock_irqrestore(&pInfo->lock, flags);
- 
--   if(pHeader->owner)
--   {
--      if(error_code)
--      {
--          add_msg(pHeader->owner, R3964_MSG_ACK, 0, 
--                  error_code, NULL);
--      }
--      else
--      {
--          add_msg(pHeader->owner, R3964_MSG_ACK, pHeader->length, 
--                  error_code, NULL);
--      }
--      wake_up_interruptible (&pInfo->read_wait);
--   }
--
--   spin_lock_irqsave(&pInfo->lock, flags);
--
--   pInfo->tx_first = pHeader->next;
--   if(pInfo->tx_first==NULL)
--   {
--      pInfo->tx_last = NULL;
--   }
--
--   spin_unlock_irqrestore(&pInfo->lock, flags);
--
--   kfree(pHeader);
--   TRACE_M("remove_from_tx_queue - kfree %p",pHeader);
--
--   TRACE_Q("remove_from_tx_queue: tx_first = %p, tx_last = %p",
--          pInfo->tx_first, pInfo->tx_last );
--}
--
--static void add_rx_queue(struct r3964_info *pInfo, struct r3964_block_header *pHeader)
--{
--   unsigned long flags;
--   
--   spin_lock_irqsave(&pInfo->lock, flags);
--
--   pHeader->next = NULL;
--
--   if(pInfo->rx_last == NULL)
--   {
--      pInfo->rx_first = pInfo->rx_last = pHeader;
--   }
--   else
--   {
--      pInfo->rx_last->next = pHeader;
--      pInfo->rx_last = pHeader;
--   }
--   pInfo->blocks_in_rx_queue++;
--   
--   spin_unlock_irqrestore(&pInfo->lock, flags);
--
--   TRACE_Q("add_rx_queue: %p, length = %d, rx_first = %p, count = %d",
--          pHeader, pHeader->length,
--          pInfo->rx_first, pInfo->blocks_in_rx_queue);
-+	kfree(pHeader);
-+	TRACE_M("remove_from_tx_queue - kfree %p", pHeader);
-+
-+	TRACE_Q("remove_from_tx_queue: tx_first = %p, tx_last = %p",
-+		pInfo->tx_first, pInfo->tx_last);
-+}
-+
-+static void add_rx_queue(struct r3964_info *pInfo,
-+			 struct r3964_block_header *pHeader)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pInfo->lock, flags);
-+
-+	pHeader->next = NULL;
-+
-+	if (pInfo->rx_last == NULL) {
-+		pInfo->rx_first = pInfo->rx_last = pHeader;
-+	} else {
-+		pInfo->rx_last->next = pHeader;
-+		pInfo->rx_last = pHeader;
-+	}
-+	pInfo->blocks_in_rx_queue++;
-+
-+	spin_unlock_irqrestore(&pInfo->lock, flags);
-+
-+	TRACE_Q("add_rx_queue: %p, length = %d, rx_first = %p, count = %d",
-+		pHeader, pHeader->length,
-+		pInfo->rx_first, pInfo->blocks_in_rx_queue);
++	mutex_lock(&relay_channels_mutex);
++	for_each_online_cpu(i)
++		if (chan->buf[i])
++			__relay_reset(chan->buf[i], 0);
++	mutex_unlock(&relay_channels_mutex);
  }
+ EXPORT_SYMBOL_GPL(relay_reset);
  
- static void remove_from_rx_queue(struct r3964_info *pInfo,
--                 struct r3964_block_header *pHeader)
-+				 struct r3964_block_header *pHeader)
+ /*
+  *	relay_open_buf - create a new relay channel buffer
+  *
+- *	Internal - used by relay_open().
++ *	used by relay_open() and CPU hotplug.
+  */
+-static struct rchan_buf *relay_open_buf(struct rchan *chan,
+-					const char *filename,
+-					struct dentry *parent,
+-					int *is_global)
++static struct rchan_buf *relay_open_buf(struct rchan *chan, unsigned int cpu)
  {
--   unsigned long flags;
--   struct r3964_block_header *pFind;
--   
--   if(pHeader==NULL)
--      return;
--
--   TRACE_Q("remove_from_rx_queue: rx_first = %p, rx_last = %p, count = %d",
--          pInfo->rx_first, pInfo->rx_last, pInfo->blocks_in_rx_queue );
--   TRACE_Q("remove_from_rx_queue: %p, length %u",
--          pHeader, pHeader->length );
--
--   spin_lock_irqsave(&pInfo->lock, flags);
--
--   if(pInfo->rx_first == pHeader)
--   {
--      /* Remove the first block in the linked list: */
--      pInfo->rx_first = pHeader->next;
--      
--      if(pInfo->rx_first==NULL)
--      {
--         pInfo->rx_last = NULL;
--      }
--      pInfo->blocks_in_rx_queue--;
--   }
--   else 
--   {
--      /* Find block to remove: */
--      for(pFind=pInfo->rx_first; pFind; pFind=pFind->next)
--      {
--         if(pFind->next == pHeader) 
--         {
--            /* Got it. */
--            pFind->next = pHeader->next;
--            pInfo->blocks_in_rx_queue--;
--            if(pFind->next==NULL)
--            {
--               /* Oh, removed the last one! */
--               pInfo->rx_last = pFind;
--            }
--            break;
--         }
--      }
--   }
-+	unsigned long flags;
-+	struct r3964_block_header *pFind;
-+
-+	if (pHeader == NULL)
-+		return;
-+
-+	TRACE_Q("remove_from_rx_queue: rx_first = %p, rx_last = %p, count = %d",
-+		pInfo->rx_first, pInfo->rx_last, pInfo->blocks_in_rx_queue);
-+	TRACE_Q("remove_from_rx_queue: %p, length %u",
-+		pHeader, pHeader->length);
-+
-+	spin_lock_irqsave(&pInfo->lock, flags);
-+
-+	if (pInfo->rx_first == pHeader) {
-+		/* Remove the first block in the linked list: */
-+		pInfo->rx_first = pHeader->next;
-+
-+		if (pInfo->rx_first == NULL) {
-+			pInfo->rx_last = NULL;
-+		}
-+		pInfo->blocks_in_rx_queue--;
-+	} else {
-+		/* Find block to remove: */
-+		for (pFind = pInfo->rx_first; pFind; pFind = pFind->next) {
-+			if (pFind->next == pHeader) {
-+				/* Got it. */
-+				pFind->next = pHeader->next;
-+				pInfo->blocks_in_rx_queue--;
-+				if (pFind->next == NULL) {
-+					/* Oh, removed the last one! */
-+					pInfo->rx_last = pFind;
-+				}
-+				break;
-+			}
-+		}
-+	}
+-	struct rchan_buf *buf;
++ 	struct rchan_buf *buf = NULL;
+ 	struct dentry *dentry;
++ 	char *tmpname;
  
--   spin_unlock_irqrestore(&pInfo->lock, flags);
-+	spin_unlock_irqrestore(&pInfo->lock, flags);
+-	if (*is_global)
++ 	if (chan->is_global)
+ 		return chan->buf[0];
  
--   kfree(pHeader);
--   TRACE_M("remove_from_rx_queue - kfree %p",pHeader);
-+	kfree(pHeader);
-+	TRACE_M("remove_from_rx_queue - kfree %p", pHeader);
++	tmpname = kzalloc(NAME_MAX + 1, GFP_KERNEL);
++ 	if (!tmpname)
++ 		goto end;
++ 	snprintf(tmpname, NAME_MAX, "%s%d", chan->base_filename, cpu);
++
+ 	buf = relay_create_buf(chan);
+ 	if (!buf)
+-		return NULL;
++ 		goto free_name;
++
++ 	buf->cpu = cpu;
++ 	__relay_reset(buf, 1);
  
--   TRACE_Q("remove_from_rx_queue: rx_first = %p, rx_last = %p, count = %d",
--          pInfo->rx_first, pInfo->rx_last, pInfo->blocks_in_rx_queue );
-+	TRACE_Q("remove_from_rx_queue: rx_first = %p, rx_last = %p, count = %d",
-+		pInfo->rx_first, pInfo->rx_last, pInfo->blocks_in_rx_queue);
- }
- 
- static void put_char(struct r3964_info *pInfo, unsigned char ch)
- {
--   struct tty_struct *tty = pInfo->tty;
-+	struct tty_struct *tty = pInfo->tty;
- 
--   if(tty==NULL)
--      return;
-+	if (tty == NULL)
-+		return;
- 
--   if(tty->driver->put_char)
--   {
--      tty->driver->put_char(tty, ch);
--   }
--   pInfo->bcc ^= ch;
-+	if (tty->driver->put_char) {
-+		tty->driver->put_char(tty, ch);
-+	}
-+	pInfo->bcc ^= ch;
- }
- 
- static void flush(struct r3964_info *pInfo)
- {
--   struct tty_struct *tty = pInfo->tty;
-+	struct tty_struct *tty = pInfo->tty;
- 
--   if(tty==NULL)
--      return;
-+	if (tty == NULL)
-+		return;
- 
--   if(tty->driver->flush_chars)
--   {
--      tty->driver->flush_chars(tty);
--   }
-+	if (tty->driver->flush_chars) {
-+		tty->driver->flush_chars(tty);
-+	}
- }
- 
- static void trigger_transmit(struct r3964_info *pInfo)
- {
--   unsigned long flags;
--   
-+	unsigned long flags;
- 
--   spin_lock_irqsave(&pInfo->lock, flags);
-+	spin_lock_irqsave(&pInfo->lock, flags);
- 
--   if((pInfo->state == R3964_IDLE) && (pInfo->tx_first!=NULL))
--   {
--      pInfo->state = R3964_TX_REQUEST;
--      pInfo->nRetry=0;
--      pInfo->flags &= ~R3964_ERROR;
--      mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
--
--      spin_unlock_irqrestore(&pInfo->lock, flags);
--
--      TRACE_PS("trigger_transmit - sent STX");
--
--      put_char(pInfo, STX);
--      flush(pInfo);
--
--      pInfo->bcc = 0;
--   }
--   else
--   {
--      spin_unlock_irqrestore(&pInfo->lock, flags);
--   }
-+	if ((pInfo->state == R3964_IDLE) && (pInfo->tx_first != NULL)) {
-+		pInfo->state = R3964_TX_REQUEST;
-+		pInfo->nRetry = 0;
-+		pInfo->flags &= ~R3964_ERROR;
-+		mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
-+
-+		spin_unlock_irqrestore(&pInfo->lock, flags);
-+
-+		TRACE_PS("trigger_transmit - sent STX");
-+
-+		put_char(pInfo, STX);
-+		flush(pInfo);
-+
-+		pInfo->bcc = 0;
-+	} else {
-+		spin_unlock_irqrestore(&pInfo->lock, flags);
-+	}
- }
- 
- static void retry_transmit(struct r3964_info *pInfo)
- {
--   if(pInfo->nRetry<R3964_MAX_RETRIES)
--   {
--      TRACE_PE("transmission failed. Retry #%d", 
--             pInfo->nRetry);
--      pInfo->bcc = 0;
--      put_char(pInfo, STX);
--      flush(pInfo);
--      pInfo->state = R3964_TX_REQUEST;
--      pInfo->nRetry++;
--      mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
--   }
--   else
--   {
--      TRACE_PE("transmission failed after %d retries", 
--             R3964_MAX_RETRIES);
--
--      remove_from_tx_queue(pInfo, R3964_TX_FAIL);
--      
--      put_char(pInfo, NAK);
--      flush(pInfo);
--      pInfo->state = R3964_IDLE;
-+	if (pInfo->nRetry < R3964_MAX_RETRIES) {
-+		TRACE_PE("transmission failed. Retry #%d", pInfo->nRetry);
-+		pInfo->bcc = 0;
-+		put_char(pInfo, STX);
-+		flush(pInfo);
-+		pInfo->state = R3964_TX_REQUEST;
-+		pInfo->nRetry++;
-+		mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
-+	} else {
-+		TRACE_PE("transmission failed after %d retries",
-+			 R3964_MAX_RETRIES);
-+
-+		remove_from_tx_queue(pInfo, R3964_TX_FAIL);
-+
-+		put_char(pInfo, NAK);
-+		flush(pInfo);
-+		pInfo->state = R3964_IDLE;
- 
--      trigger_transmit(pInfo);
--   }
-+		trigger_transmit(pInfo);
-+	}
- }
- 
--
- static void transmit_block(struct r3964_info *pInfo)
- {
--   struct tty_struct *tty = pInfo->tty;
--   struct r3964_block_header *pBlock = pInfo->tx_first;
--   int room=0;
--
--   if((tty==NULL) || (pBlock==NULL))
--   {
--      return;
--   }
--
--   if(tty->driver->write_room)
--      room=tty->driver->write_room(tty);
--
--   TRACE_PS("transmit_block %p, room %d, length %d", 
--          pBlock, room, pBlock->length);
--   
--   while(pInfo->tx_position < pBlock->length)
--   {
--      if(room<2)
--         break;
-- 
--      if(pBlock->data[pInfo->tx_position]==DLE)
--      {
--         /* send additional DLE char: */
--         put_char(pInfo, DLE);
--      }
--      put_char(pInfo, pBlock->data[pInfo->tx_position++]);
--      
--      room--;
--   }
--
--   if((pInfo->tx_position == pBlock->length) && (room>=3))
--   {
--      put_char(pInfo, DLE);
--      put_char(pInfo, ETX);
--      if(pInfo->flags & R3964_BCC)
--      {
--         put_char(pInfo, pInfo->bcc);
--      }
--      pInfo->state = R3964_WAIT_FOR_TX_ACK;
--      mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
--   }
--   flush(pInfo);
-+	struct tty_struct *tty = pInfo->tty;
-+	struct r3964_block_header *pBlock = pInfo->tx_first;
-+	int room = 0;
-+
-+	if ((tty == NULL) || (pBlock == NULL)) {
-+		return;
-+	}
-+
-+	if (tty->driver->write_room)
-+		room = tty->driver->write_room(tty);
-+
-+	TRACE_PS("transmit_block %p, room %d, length %d",
-+		 pBlock, room, pBlock->length);
-+
-+	while (pInfo->tx_position < pBlock->length) {
-+		if (room < 2)
-+			break;
-+
-+		if (pBlock->data[pInfo->tx_position] == DLE) {
-+			/* send additional DLE char: */
-+			put_char(pInfo, DLE);
-+		}
-+		put_char(pInfo, pBlock->data[pInfo->tx_position++]);
-+
-+		room--;
-+	}
-+
-+	if ((pInfo->tx_position == pBlock->length) && (room >= 3)) {
-+		put_char(pInfo, DLE);
-+		put_char(pInfo, ETX);
-+		if (pInfo->flags & R3964_BCC) {
-+			put_char(pInfo, pInfo->bcc);
-+		}
-+		pInfo->state = R3964_WAIT_FOR_TX_ACK;
-+		mod_timer(&pInfo->tmr, jiffies + R3964_TO_QVZ);
-+	}
-+	flush(pInfo);
- }
- 
- static void on_receive_block(struct r3964_info *pInfo)
- {
--   unsigned int length;
--   struct r3964_client_info *pClient;
--   struct r3964_block_header *pBlock;
--   
--   length=pInfo->rx_position;
--
--   /* compare byte checksum characters: */
--   if(pInfo->flags & R3964_BCC)
--   {
--      if(pInfo->bcc!=pInfo->last_rx)
--      {
--         TRACE_PE("checksum error - got %x but expected %x",
--                pInfo->last_rx, pInfo->bcc);
--         pInfo->flags |= R3964_CHECKSUM;
--      }
--   }
--
--   /* check for errors (parity, overrun,...): */
--   if(pInfo->flags & R3964_ERROR)
--   {
--      TRACE_PE("on_receive_block - transmission failed error %x",
--             pInfo->flags & R3964_ERROR);
--      
--      put_char(pInfo, NAK);
--      flush(pInfo);
--      if(pInfo->nRetry<R3964_MAX_RETRIES)
--      {
--         pInfo->state=R3964_WAIT_FOR_RX_REPEAT;
--         pInfo->nRetry++;
--	 mod_timer(&pInfo->tmr, jiffies + R3964_TO_RX_PANIC);
--      }
--      else
--      {
--         TRACE_PE("on_receive_block - failed after max retries");
--         pInfo->state=R3964_IDLE;
--      }
--      return;
--   }
--
--   
--   /* received block; submit DLE: */
--   put_char(pInfo, DLE);
--   flush(pInfo);
--   del_timer_sync(&pInfo->tmr);
--   TRACE_PS(" rx success: got %d chars", length);
--
--   /* prepare struct r3964_block_header: */
--   pBlock = kmalloc(length+sizeof(struct r3964_block_header), GFP_KERNEL);
--   TRACE_M("on_receive_block - kmalloc %p",pBlock);
--
--   if(pBlock==NULL)
--      return;
--
--   pBlock->length = length;
--   pBlock->data   = ((unsigned char*)pBlock)+sizeof(struct r3964_block_header);
--   pBlock->locks  = 0;
--   pBlock->next   = NULL;
--   pBlock->owner  = NULL;
--
--   memcpy(pBlock->data, pInfo->rx_buf, length);
--
--   /* queue block into rx_queue: */
--   add_rx_queue(pInfo, pBlock);
--
--   /* notify attached client processes: */
--   for(pClient=pInfo->firstClient; pClient; pClient=pClient->next)
--   {
--      if(pClient->sig_flags & R3964_SIG_DATA)
--      {
--         add_msg(pClient, R3964_MSG_DATA, length, R3964_OK, pBlock);
--      }
--   }
--   wake_up_interruptible (&pInfo->read_wait);
--   
--   pInfo->state = R3964_IDLE;
-+	unsigned int length;
-+	struct r3964_client_info *pClient;
-+	struct r3964_block_header *pBlock;
-+
-+	length = pInfo->rx_position;
-+
-+	/* compare byte checksum characters: */
-+	if (pInfo->flags & R3964_BCC) {
-+		if (pInfo->bcc != pInfo->last_rx) {
-+			TRACE_PE("checksum error - got %x but expected %x",
-+				 pInfo->last_rx, pInfo->bcc);
-+			pInfo->flags |= R3964_CHECKSUM;
-+		}
-+	}
- 
--   trigger_transmit(pInfo);
--}
-+	/* check for errors (parity, overrun,...): */
-+	if (pInfo->flags & R3964_ERROR) {
-+		TRACE_PE("on_receive_block - transmission failed error %x",
-+			 pInfo->flags & R3964_ERROR);
-+
-+		put_char(pInfo, NAK);
-+		flush(pInfo);
-+		if (pInfo->nRetry < R3964_MAX_RETRIES) {
-+			pInfo->state = R3964_WAIT_FOR_RX_REPEAT;
-+			pInfo->nRetry++;
-+			mod_timer(&pInfo->tmr, jiffies + R3964_TO_RX_PANIC);
-+		} else {
-+			TRACE_PE("on_receive_block - failed after max retries");
-+			pInfo->state = R3964_IDLE;
-+		}
-+		return;
-+	}
- 
-+	/* received block; submit DLE: */
-+	put_char(pInfo, DLE);
-+	flush(pInfo);
-+	del_timer_sync(&pInfo->tmr);
-+	TRACE_PS(" rx success: got %d chars", length);
-+
-+	/* prepare struct r3964_block_header: */
-+	pBlock = kmalloc(length + sizeof(struct r3964_block_header),
-+			GFP_KERNEL);
-+	TRACE_M("on_receive_block - kmalloc %p", pBlock);
-+
-+	if (pBlock == NULL)
-+		return;
-+
-+	pBlock->length = length;
-+	pBlock->data = ((unsigned char *)pBlock) +
-+			sizeof(struct r3964_block_header);
-+	pBlock->locks = 0;
-+	pBlock->next = NULL;
-+	pBlock->owner = NULL;
-+
-+	memcpy(pBlock->data, pInfo->rx_buf, length);
-+
-+	/* queue block into rx_queue: */
-+	add_rx_queue(pInfo, pBlock);
-+
-+	/* notify attached client processes: */
-+	for (pClient = pInfo->firstClient; pClient; pClient = pClient->next) {
-+		if (pClient->sig_flags & R3964_SIG_DATA) {
-+			add_msg(pClient, R3964_MSG_DATA, length, R3964_OK,
-+				pBlock);
-+		}
-+	}
-+	wake_up_interruptible(&pInfo->read_wait);
-+
-+	pInfo->state = R3964_IDLE;
-+
-+	trigger_transmit(pInfo);
-+}
- 
- static void receive_char(struct r3964_info *pInfo, const unsigned char c)
- {
--   switch(pInfo->state)
--   {
--      case R3964_TX_REQUEST:
--         if(c==DLE)
--         {
--            TRACE_PS("TX_REQUEST - got DLE");
--
--            pInfo->state = R3964_TRANSMITTING;
--            pInfo->tx_position = 0;
--            
--            transmit_block(pInfo);
--         }
--         else if(c==STX)
--         {
--            if(pInfo->nRetry==0)
--            {
--               TRACE_PE("TX_REQUEST - init conflict");
--               if(pInfo->priority == R3964_SLAVE)
--               {
--                  goto start_receiving;
--               }
--            } 
--            else 
--            {
--               TRACE_PE("TX_REQUEST - secondary init conflict!?"
--                        " Switching to SLAVE mode for next rx.");
--               goto start_receiving;
--            }
--         }
--         else
--         {
--            TRACE_PE("TX_REQUEST - char != DLE: %x", c);
--            retry_transmit(pInfo);
--         }
--         break;
--      case R3964_TRANSMITTING:
--         if(c==NAK)
--         {
--            TRACE_PE("TRANSMITTING - got NAK");
--            retry_transmit(pInfo);
--         }
--         else
--         {
--            TRACE_PE("TRANSMITTING - got invalid char");
-- 
--            pInfo->state = R3964_WAIT_ZVZ_BEFORE_TX_RETRY;
--	    mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
--         }
--         break;
--      case R3964_WAIT_FOR_TX_ACK:
--         if(c==DLE)
--         {
--            TRACE_PS("WAIT_FOR_TX_ACK - got DLE");
--            remove_from_tx_queue(pInfo, R3964_OK);
--            
--            pInfo->state = R3964_IDLE;
--            trigger_transmit(pInfo);
--         }
--         else
--         {
--            retry_transmit(pInfo);
--         }
--         break;
--      case R3964_WAIT_FOR_RX_REPEAT:
--         /* FALLTROUGH */
--      case R3964_IDLE:
--         if(c==STX)
--         {
--            /* Prevent rx_queue from overflow: */
--            if(pInfo->blocks_in_rx_queue >= R3964_MAX_BLOCKS_IN_RX_QUEUE)
--            {
--               TRACE_PE("IDLE - got STX but no space in rx_queue!");
--               pInfo->state=R3964_WAIT_FOR_RX_BUF;
--	       mod_timer(&pInfo->tmr, jiffies + R3964_TO_NO_BUF);
--               break;
--            }
-+	switch (pInfo->state) {
-+	case R3964_TX_REQUEST:
-+		if (c == DLE) {
-+			TRACE_PS("TX_REQUEST - got DLE");
-+
-+			pInfo->state = R3964_TRANSMITTING;
-+			pInfo->tx_position = 0;
-+
-+			transmit_block(pInfo);
-+		} else if (c == STX) {
-+			if (pInfo->nRetry == 0) {
-+				TRACE_PE("TX_REQUEST - init conflict");
-+				if (pInfo->priority == R3964_SLAVE) {
-+					goto start_receiving;
-+				}
-+			} else {
-+				TRACE_PE("TX_REQUEST - secondary init "
-+					"conflict!? Switching to SLAVE mode "
-+					"for next rx.");
-+				goto start_receiving;
-+			}
-+		} else {
-+			TRACE_PE("TX_REQUEST - char != DLE: %x", c);
-+			retry_transmit(pInfo);
-+		}
-+		break;
-+	case R3964_TRANSMITTING:
-+		if (c == NAK) {
-+			TRACE_PE("TRANSMITTING - got NAK");
-+			retry_transmit(pInfo);
-+		} else {
-+			TRACE_PE("TRANSMITTING - got invalid char");
-+
-+			pInfo->state = R3964_WAIT_ZVZ_BEFORE_TX_RETRY;
-+			mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
-+		}
-+		break;
-+	case R3964_WAIT_FOR_TX_ACK:
-+		if (c == DLE) {
-+			TRACE_PS("WAIT_FOR_TX_ACK - got DLE");
-+			remove_from_tx_queue(pInfo, R3964_OK);
-+
-+			pInfo->state = R3964_IDLE;
-+			trigger_transmit(pInfo);
-+		} else {
-+			retry_transmit(pInfo);
-+		}
-+		break;
-+	case R3964_WAIT_FOR_RX_REPEAT:
-+		/* FALLTROUGH */
-+	case R3964_IDLE:
-+		if (c == STX) {
-+			/* Prevent rx_queue from overflow: */
-+			if (pInfo->blocks_in_rx_queue >=
-+			    R3964_MAX_BLOCKS_IN_RX_QUEUE) {
-+				TRACE_PE("IDLE - got STX but no space in "
-+						"rx_queue!");
-+				pInfo->state = R3964_WAIT_FOR_RX_BUF;
-+				mod_timer(&pInfo->tmr,
-+					  jiffies + R3964_TO_NO_BUF);
-+				break;
-+			}
- start_receiving:
--            /* Ok, start receiving: */
--            TRACE_PS("IDLE - got STX");
--            pInfo->rx_position = 0;
--            pInfo->last_rx = 0;
--            pInfo->flags &= ~R3964_ERROR;
--            pInfo->state=R3964_RECEIVING;
--	    mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
--	    pInfo->nRetry = 0;
--            put_char(pInfo, DLE);
--            flush(pInfo);
--            pInfo->bcc = 0;
--         }
--         break;
--      case R3964_RECEIVING:
--         if(pInfo->rx_position < RX_BUF_SIZE)
--         {
--            pInfo->bcc ^= c;
--            
--            if(c==DLE)
--            {
--               if(pInfo->last_rx==DLE)
--               {
--                  pInfo->last_rx = 0;
--                  goto char_to_buf;
--               }
--               pInfo->last_rx = DLE;
--               break;
--            } 
--            else if((c==ETX) && (pInfo->last_rx==DLE))
--            {
--               if(pInfo->flags & R3964_BCC)
--               {
--                  pInfo->state = R3964_WAIT_FOR_BCC;
--		  mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
--               }
--               else 
--               {
--                  on_receive_block(pInfo);
--               }
--            }
--            else
--            {
--               pInfo->last_rx = c;
-+			/* Ok, start receiving: */
-+			TRACE_PS("IDLE - got STX");
-+			pInfo->rx_position = 0;
-+			pInfo->last_rx = 0;
-+			pInfo->flags &= ~R3964_ERROR;
-+			pInfo->state = R3964_RECEIVING;
-+			mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
-+			pInfo->nRetry = 0;
-+			put_char(pInfo, DLE);
-+			flush(pInfo);
-+			pInfo->bcc = 0;
-+		}
-+		break;
-+	case R3964_RECEIVING:
-+		if (pInfo->rx_position < RX_BUF_SIZE) {
-+			pInfo->bcc ^= c;
-+
-+			if (c == DLE) {
-+				if (pInfo->last_rx == DLE) {
-+					pInfo->last_rx = 0;
-+					goto char_to_buf;
-+				}
-+				pInfo->last_rx = DLE;
-+				break;
-+			} else if ((c == ETX) && (pInfo->last_rx == DLE)) {
-+				if (pInfo->flags & R3964_BCC) {
-+					pInfo->state = R3964_WAIT_FOR_BCC;
-+					mod_timer(&pInfo->tmr,
-+						  jiffies + R3964_TO_ZVZ);
-+				} else {
-+					on_receive_block(pInfo);
-+				}
-+			} else {
-+				pInfo->last_rx = c;
- char_to_buf:
--               pInfo->rx_buf[pInfo->rx_position++] = c;
--	       mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
--            }
--         }
--        /* else: overflow-msg? BUF_SIZE>MTU; should not happen? */ 
--         break;
--      case R3964_WAIT_FOR_BCC:
--         pInfo->last_rx = c;
--         on_receive_block(pInfo);
--         break;
--   }
-+				pInfo->rx_buf[pInfo->rx_position++] = c;
-+				mod_timer(&pInfo->tmr, jiffies + R3964_TO_ZVZ);
-+			}
-+		}
-+		/* else: overflow-msg? BUF_SIZE>MTU; should not happen? */
-+		break;
-+	case R3964_WAIT_FOR_BCC:
-+		pInfo->last_rx = c;
-+		on_receive_block(pInfo);
-+		break;
-+	}
- }
- 
- static void receive_error(struct r3964_info *pInfo, const char flag)
- {
--    switch (flag) 
--    {
--    case TTY_NORMAL:
--        break;
--    case TTY_BREAK:
--        TRACE_PE("received break")
--        pInfo->flags |= R3964_BREAK;
--        break;
--    case TTY_PARITY:
--        TRACE_PE("parity error")
--        pInfo->flags |= R3964_PARITY;
--        break;
--    case TTY_FRAME:
--        TRACE_PE("frame error")
--        pInfo->flags |= R3964_FRAME;
--        break;
--    case TTY_OVERRUN:
--        TRACE_PE("frame overrun")
--        pInfo->flags |= R3964_OVERRUN;
--        break;
--    default:
--        TRACE_PE("receive_error - unknown flag %d", flag);
--        pInfo->flags |= R3964_UNKNOWN;
--        break;
--    }
-+	switch (flag) {
-+	case TTY_NORMAL:
-+		break;
-+	case TTY_BREAK:
-+		TRACE_PE("received break");
-+		pInfo->flags |= R3964_BREAK;
-+		break;
-+	case TTY_PARITY:
-+		TRACE_PE("parity error");
-+		pInfo->flags |= R3964_PARITY;
-+		break;
-+	case TTY_FRAME:
-+		TRACE_PE("frame error");
-+		pInfo->flags |= R3964_FRAME;
-+		break;
-+	case TTY_OVERRUN:
-+		TRACE_PE("frame overrun");
-+		pInfo->flags |= R3964_OVERRUN;
-+		break;
-+	default:
-+		TRACE_PE("receive_error - unknown flag %d", flag);
-+		pInfo->flags |= R3964_UNKNOWN;
-+		break;
-+	}
- }
- 
- static void on_timeout(unsigned long priv)
- {
--   struct r3964_info *pInfo = (void *)priv;
-+	struct r3964_info *pInfo = (void *)priv;
-+
-+	switch (pInfo->state) {
-+	case R3964_TX_REQUEST:
-+		TRACE_PE("TX_REQUEST - timeout");
-+		retry_transmit(pInfo);
-+		break;
-+	case R3964_WAIT_ZVZ_BEFORE_TX_RETRY:
-+		put_char(pInfo, NAK);
-+		flush(pInfo);
-+		retry_transmit(pInfo);
-+		break;
-+	case R3964_WAIT_FOR_TX_ACK:
-+		TRACE_PE("WAIT_FOR_TX_ACK - timeout");
-+		retry_transmit(pInfo);
-+		break;
-+	case R3964_WAIT_FOR_RX_BUF:
-+		TRACE_PE("WAIT_FOR_RX_BUF - timeout");
-+		put_char(pInfo, NAK);
-+		flush(pInfo);
-+		pInfo->state = R3964_IDLE;
-+		break;
-+	case R3964_RECEIVING:
-+		TRACE_PE("RECEIVING - timeout after %d chars",
-+			 pInfo->rx_position);
-+		put_char(pInfo, NAK);
-+		flush(pInfo);
-+		pInfo->state = R3964_IDLE;
-+		break;
-+	case R3964_WAIT_FOR_RX_REPEAT:
-+		TRACE_PE("WAIT_FOR_RX_REPEAT - timeout");
-+		pInfo->state = R3964_IDLE;
-+		break;
-+	case R3964_WAIT_FOR_BCC:
-+		TRACE_PE("WAIT_FOR_BCC - timeout");
-+		put_char(pInfo, NAK);
-+		flush(pInfo);
-+		pInfo->state = R3964_IDLE;
-+		break;
-+	}
-+}
-+
-+static struct r3964_client_info *findClient(struct r3964_info *pInfo,
-+		struct pid *pid)
-+{
-+	struct r3964_client_info *pClient;
- 
--   switch(pInfo->state)
--   {
--      case R3964_TX_REQUEST:
--         TRACE_PE("TX_REQUEST - timeout");
--         retry_transmit(pInfo);
--         break;
--      case R3964_WAIT_ZVZ_BEFORE_TX_RETRY:
--         put_char(pInfo, NAK);
--         flush(pInfo);
--         retry_transmit(pInfo);
--         break;
--      case R3964_WAIT_FOR_TX_ACK:
--         TRACE_PE("WAIT_FOR_TX_ACK - timeout");
--         retry_transmit(pInfo);
--         break;
--      case R3964_WAIT_FOR_RX_BUF:
--         TRACE_PE("WAIT_FOR_RX_BUF - timeout");
--         put_char(pInfo, NAK);
--         flush(pInfo);
--         pInfo->state=R3964_IDLE;
--         break;
--      case R3964_RECEIVING:
--         TRACE_PE("RECEIVING - timeout after %d chars", 
--                  pInfo->rx_position);
--         put_char(pInfo, NAK);
--         flush(pInfo);
--         pInfo->state=R3964_IDLE;
--         break;
--      case R3964_WAIT_FOR_RX_REPEAT:
--         TRACE_PE("WAIT_FOR_RX_REPEAT - timeout");
--         pInfo->state=R3964_IDLE;
--         break;
--      case R3964_WAIT_FOR_BCC:
--         TRACE_PE("WAIT_FOR_BCC - timeout");
--         put_char(pInfo, NAK);
--         flush(pInfo);
--         pInfo->state=R3964_IDLE;
--         break;
--   }
--}
--
--static struct r3964_client_info *findClient(
--  struct r3964_info *pInfo, struct pid *pid)
--{
--   struct r3964_client_info *pClient;
--   
--   for(pClient=pInfo->firstClient; pClient; pClient=pClient->next)
--   {
--      if(pClient->pid == pid)
--      {
--         return pClient;
--      }
--   }
--   return NULL;
-+	for (pClient = pInfo->firstClient; pClient; pClient = pClient->next) {
-+		if (pClient->pid == pid) {
-+			return pClient;
-+		}
-+	}
-+	return NULL;
- }
- 
- static int enable_signals(struct r3964_info *pInfo, struct pid *pid, int arg)
- {
--   struct r3964_client_info *pClient;
--   struct r3964_client_info **ppClient;
--   struct r3964_message *pMsg;
--   
--   if((arg & R3964_SIG_ALL)==0)
--   {
--      /* Remove client from client list */
--      for(ppClient=&pInfo->firstClient; *ppClient; ppClient=&(*ppClient)->next)
--      {
--         pClient = *ppClient;
--         
--         if(pClient->pid == pid)
--         {
--            TRACE_PS("removing client %d from client list", pid_nr(pid));
--            *ppClient = pClient->next;
--            while(pClient->msg_count)
--            {
--               pMsg=remove_msg(pInfo, pClient);
--               if(pMsg)
--               {
--                  kfree(pMsg);
--                  TRACE_M("enable_signals - msg kfree %p",pMsg);
--               }
--            }
--	    put_pid(pClient->pid);
--            kfree(pClient);
--            TRACE_M("enable_signals - kfree %p",pClient);
--            return 0;
--         }
--      }
--      return -EINVAL;
--   }
--   else
--   {
--      pClient=findClient(pInfo, pid);
--      if(pClient)
--      {
--         /* update signal options */
--         pClient->sig_flags=arg;
--      } 
--      else 
--      {
--         /* add client to client list */
--         pClient=kmalloc(sizeof(struct r3964_client_info), GFP_KERNEL);
--         TRACE_M("enable_signals - kmalloc %p",pClient);
--         if(pClient==NULL)
--            return -ENOMEM;
--
--         TRACE_PS("add client %d to client list", pid_nr(pid));
--	 spin_lock_init(&pClient->lock);
--         pClient->sig_flags=arg;
--         pClient->pid = get_pid(pid);
--         pClient->next=pInfo->firstClient;
--         pClient->first_msg = NULL;
--         pClient->last_msg = NULL;
--         pClient->next_block_to_read = NULL;
--         pClient->msg_count = 0;
--         pInfo->firstClient=pClient;
--      }
--   }
--
--   return 0;
--}
--
--static int read_telegram(struct r3964_info *pInfo, struct pid *pid, unsigned char __user *buf)
--{
--    struct r3964_client_info *pClient;
--    struct r3964_block_header *block;
--
--    if(!buf)
--    {
--        return -EINVAL;
--    }
--
--    pClient=findClient(pInfo,pid);
--    if(pClient==NULL)
--    {
--       return -EINVAL;
--    }
--    
--    block=pClient->next_block_to_read;
--    if(!block)
--    {
--       return 0;
--    }
--    else
--    {
--      if (copy_to_user (buf, block->data, block->length))
--	return -EFAULT;
--
--       remove_client_block(pInfo, pClient);
--       return block->length;
--    }
-+	struct r3964_client_info *pClient;
-+	struct r3964_client_info **ppClient;
-+	struct r3964_message *pMsg;
-+
-+	if ((arg & R3964_SIG_ALL) == 0) {
-+		/* Remove client from client list */
-+		for (ppClient = &pInfo->firstClient; *ppClient;
-+		     ppClient = &(*ppClient)->next) {
-+			pClient = *ppClient;
-+
-+			if (pClient->pid == pid) {
-+				TRACE_PS("removing client %d from client list",
-+					 pid_nr(pid));
-+				*ppClient = pClient->next;
-+				while (pClient->msg_count) {
-+					pMsg = remove_msg(pInfo, pClient);
-+					if (pMsg) {
-+						kfree(pMsg);
-+						TRACE_M("enable_signals - msg "
-+							"kfree %p", pMsg);
-+					}
-+				}
-+				put_pid(pClient->pid);
-+				kfree(pClient);
-+				TRACE_M("enable_signals - kfree %p", pClient);
-+				return 0;
-+			}
-+		}
-+		return -EINVAL;
-+	} else {
-+		pClient = findClient(pInfo, pid);
-+		if (pClient) {
-+			/* update signal options */
-+			pClient->sig_flags = arg;
-+		} else {
-+			/* add client to client list */
-+			pClient = kmalloc(sizeof(struct r3964_client_info),
-+					GFP_KERNEL);
-+			TRACE_M("enable_signals - kmalloc %p", pClient);
-+			if (pClient == NULL)
-+				return -ENOMEM;
-+
-+			TRACE_PS("add client %d to client list", pid_nr(pid));
-+			spin_lock_init(&pClient->lock);
-+			pClient->sig_flags = arg;
-+			pClient->pid = get_pid(pid);
-+			pClient->next = pInfo->firstClient;
-+			pClient->first_msg = NULL;
-+			pClient->last_msg = NULL;
-+			pClient->next_block_to_read = NULL;
-+			pClient->msg_count = 0;
-+			pInfo->firstClient = pClient;
-+		}
-+	}
- 
--    return -EINVAL;
-+	return 0;
-+}
-+
-+static int read_telegram(struct r3964_info *pInfo, struct pid *pid,
-+			 unsigned char __user * buf)
-+{
-+	struct r3964_client_info *pClient;
-+	struct r3964_block_header *block;
-+
-+	if (!buf) {
-+		return -EINVAL;
-+	}
-+
-+	pClient = findClient(pInfo, pid);
-+	if (pClient == NULL) {
-+		return -EINVAL;
-+	}
-+
-+	block = pClient->next_block_to_read;
-+	if (!block) {
-+		return 0;
-+	} else {
-+		if (copy_to_user(buf, block->data, block->length))
-+			return -EFAULT;
-+
-+		remove_client_block(pInfo, pClient);
-+		return block->length;
-+	}
-+
-+	return -EINVAL;
- }
- 
- static void add_msg(struct r3964_client_info *pClient, int msg_id, int arg,
--             int error_code, struct r3964_block_header *pBlock)
-+		int error_code, struct r3964_block_header *pBlock)
- {
--   struct r3964_message *pMsg;
--   unsigned long flags;
--   
--   if(pClient->msg_count<R3964_MAX_MSG_COUNT-1)
--   {
-+	struct r3964_message *pMsg;
-+	unsigned long flags;
-+
-+	if (pClient->msg_count < R3964_MAX_MSG_COUNT - 1) {
- queue_the_message:
- 
--      pMsg = kmalloc(sizeof(struct r3964_message),
--		     error_code?GFP_ATOMIC:GFP_KERNEL);
--      TRACE_M("add_msg - kmalloc %p",pMsg);
--      if(pMsg==NULL) {
--         return;
--      }
--
--      spin_lock_irqsave(&pClient->lock, flags);
--
--      pMsg->msg_id = msg_id;
--      pMsg->arg    = arg;
--      pMsg->error_code = error_code;
--      pMsg->block  = pBlock;
--      pMsg->next   = NULL;
--      
--      if(pClient->last_msg==NULL)
--      {
--         pClient->first_msg=pClient->last_msg=pMsg;
--      }
--      else
--      {
--         pClient->last_msg->next = pMsg;
--         pClient->last_msg=pMsg;
--      }
--
--      pClient->msg_count++;
--
--      if(pBlock!=NULL)
--      {
--         pBlock->locks++;
--      }
--      spin_unlock_irqrestore(&pClient->lock, flags);
--   }
--   else
--   {
--      if((pClient->last_msg->msg_id == R3964_MSG_ACK)
--		 && (pClient->last_msg->error_code==R3964_OVERFLOW))
--      {
--         pClient->last_msg->arg++;
--		 TRACE_PE("add_msg - inc prev OVERFLOW-msg");
--      }
--      else
--      {
--         msg_id = R3964_MSG_ACK;
--         arg = 0;
--		 error_code = R3964_OVERFLOW;
--         pBlock = NULL;
--		 TRACE_PE("add_msg - queue OVERFLOW-msg");
--         goto queue_the_message;
--      }
--   }
--   /* Send SIGIO signal to client process: */
--   if(pClient->sig_flags & R3964_USE_SIGIO)
--   {
--      kill_pid(pClient->pid, SIGIO, 1);
--   }
-+		pMsg = kmalloc(sizeof(struct r3964_message),
-+				error_code ? GFP_ATOMIC : GFP_KERNEL);
-+		TRACE_M("add_msg - kmalloc %p", pMsg);
-+		if (pMsg == NULL) {
-+			return;
-+		}
-+
-+		spin_lock_irqsave(&pClient->lock, flags);
-+
-+		pMsg->msg_id = msg_id;
-+		pMsg->arg = arg;
-+		pMsg->error_code = error_code;
-+		pMsg->block = pBlock;
-+		pMsg->next = NULL;
-+
-+		if (pClient->last_msg == NULL) {
-+			pClient->first_msg = pClient->last_msg = pMsg;
-+		} else {
-+			pClient->last_msg->next = pMsg;
-+			pClient->last_msg = pMsg;
-+		}
-+
-+		pClient->msg_count++;
-+
-+		if (pBlock != NULL) {
-+			pBlock->locks++;
-+		}
-+		spin_unlock_irqrestore(&pClient->lock, flags);
-+	} else {
-+		if ((pClient->last_msg->msg_id == R3964_MSG_ACK)
-+		    && (pClient->last_msg->error_code == R3964_OVERFLOW)) {
-+			pClient->last_msg->arg++;
-+			TRACE_PE("add_msg - inc prev OVERFLOW-msg");
-+		} else {
-+			msg_id = R3964_MSG_ACK;
-+			arg = 0;
-+			error_code = R3964_OVERFLOW;
-+			pBlock = NULL;
-+			TRACE_PE("add_msg - queue OVERFLOW-msg");
-+			goto queue_the_message;
-+		}
-+	}
-+	/* Send SIGIO signal to client process: */
-+	if (pClient->sig_flags & R3964_USE_SIGIO) {
-+		kill_pid(pClient->pid, SIGIO, 1);
-+	}
- }
- 
- static struct r3964_message *remove_msg(struct r3964_info *pInfo,
--                       struct r3964_client_info *pClient)
-+					struct r3964_client_info *pClient)
- {
--   struct r3964_message *pMsg=NULL;
--   unsigned long flags;
-+	struct r3964_message *pMsg = NULL;
-+	unsigned long flags;
- 
--   if(pClient->first_msg)
--   {
--      spin_lock_irqsave(&pClient->lock, flags);
--
--      pMsg = pClient->first_msg;
--      pClient->first_msg = pMsg->next;
--      if(pClient->first_msg==NULL)
--      {
--         pClient->last_msg = NULL;
--      }
--      
--      pClient->msg_count--;
--      if(pMsg->block)
--      {
--        remove_client_block(pInfo, pClient);
--        pClient->next_block_to_read = pMsg->block;
--      }
--      spin_unlock_irqrestore(&pClient->lock, flags);
--   }
--   return pMsg;
--}
--
--static void remove_client_block(struct r3964_info *pInfo, 
--                struct r3964_client_info *pClient)
--{
--    struct r3964_block_header *block;
--
--    TRACE_PS("remove_client_block PID %d", pid_nr(pClient->pid));
--
--    block=pClient->next_block_to_read;
--    if(block)
--    {
--        block->locks--;
--        if(block->locks==0)
--        {
--            remove_from_rx_queue(pInfo, block);
--        }
--    }
--    pClient->next_block_to_read = NULL;
-+	if (pClient->first_msg) {
-+		spin_lock_irqsave(&pClient->lock, flags);
-+
-+		pMsg = pClient->first_msg;
-+		pClient->first_msg = pMsg->next;
-+		if (pClient->first_msg == NULL) {
-+			pClient->last_msg = NULL;
-+		}
-+
-+		pClient->msg_count--;
-+		if (pMsg->block) {
-+			remove_client_block(pInfo, pClient);
-+			pClient->next_block_to_read = pMsg->block;
-+		}
-+		spin_unlock_irqrestore(&pClient->lock, flags);
-+	}
-+	return pMsg;
- }
- 
-+static void remove_client_block(struct r3964_info *pInfo,
-+				struct r3964_client_info *pClient)
-+{
-+	struct r3964_block_header *block;
-+
-+	TRACE_PS("remove_client_block PID %d", pid_nr(pClient->pid));
-+
-+	block = pClient->next_block_to_read;
-+	if (block) {
-+		block->locks--;
-+		if (block->locks == 0) {
-+			remove_from_rx_queue(pInfo, block);
-+		}
-+	}
-+	pClient->next_block_to_read = NULL;
-+}
- 
- /*************************************************************
-  * Line discipline routines
-@@ -1064,342 +951,320 @@ static void remove_client_block(struct r
- 
- static int r3964_open(struct tty_struct *tty)
- {
--   struct r3964_info *pInfo;
--   
--   TRACE_L("open");
--   TRACE_L("tty=%p, PID=%d, disc_data=%p", 
--          tty, current->pid, tty->disc_data);
--   
--   pInfo=kmalloc(sizeof(struct r3964_info), GFP_KERNEL); 
--   TRACE_M("r3964_open - info kmalloc %p",pInfo);
--
--   if(!pInfo)
--   {
--      printk(KERN_ERR "r3964: failed to alloc info structure\n");
--      return -ENOMEM;
--   }
--
--   pInfo->rx_buf = kmalloc(RX_BUF_SIZE, GFP_KERNEL);
--   TRACE_M("r3964_open - rx_buf kmalloc %p",pInfo->rx_buf);
--
--   if(!pInfo->rx_buf)
--   {
--      printk(KERN_ERR "r3964: failed to alloc receive buffer\n");
--      kfree(pInfo);
--      TRACE_M("r3964_open - info kfree %p",pInfo);
--      return -ENOMEM;
--   }
--   
--   pInfo->tx_buf = kmalloc(TX_BUF_SIZE, GFP_KERNEL);
--   TRACE_M("r3964_open - tx_buf kmalloc %p",pInfo->tx_buf);
--
--   if(!pInfo->tx_buf)
--   {
--      printk(KERN_ERR "r3964: failed to alloc transmit buffer\n");
--      kfree(pInfo->rx_buf);
--      TRACE_M("r3964_open - rx_buf kfree %p",pInfo->rx_buf);
--      kfree(pInfo);
--      TRACE_M("r3964_open - info kfree %p",pInfo);
--      return -ENOMEM;
--   }
--
--   spin_lock_init(&pInfo->lock);
--   pInfo->tty = tty;
--   init_waitqueue_head (&pInfo->read_wait);
--   pInfo->priority = R3964_MASTER;
--   pInfo->rx_first = pInfo->rx_last = NULL;
--   pInfo->tx_first = pInfo->tx_last = NULL;
--   pInfo->rx_position = 0;
--   pInfo->tx_position = 0;
--   pInfo->last_rx = 0;
--   pInfo->blocks_in_rx_queue = 0;
--   pInfo->firstClient=NULL;
--   pInfo->state=R3964_IDLE;
--   pInfo->flags = R3964_DEBUG;
--   pInfo->nRetry = 0;
--   
--   tty->disc_data = pInfo;
--   tty->receive_room = 65536;
--
--   init_timer(&pInfo->tmr);
--   pInfo->tmr.data = (unsigned long)pInfo;
--   pInfo->tmr.function = on_timeout;
-+	struct r3964_info *pInfo;
-+
-+	TRACE_L("open");
-+	TRACE_L("tty=%p, PID=%d, disc_data=%p",
-+		tty, current->pid, tty->disc_data);
-+
-+	pInfo = kmalloc(sizeof(struct r3964_info), GFP_KERNEL);
-+	TRACE_M("r3964_open - info kmalloc %p", pInfo);
-+
-+	if (!pInfo) {
-+		printk(KERN_ERR "r3964: failed to alloc info structure\n");
-+		return -ENOMEM;
-+	}
-+
-+	pInfo->rx_buf = kmalloc(RX_BUF_SIZE, GFP_KERNEL);
-+	TRACE_M("r3964_open - rx_buf kmalloc %p", pInfo->rx_buf);
-+
-+	if (!pInfo->rx_buf) {
-+		printk(KERN_ERR "r3964: failed to alloc receive buffer\n");
-+		kfree(pInfo);
-+		TRACE_M("r3964_open - info kfree %p", pInfo);
-+		return -ENOMEM;
-+	}
-+
-+	pInfo->tx_buf = kmalloc(TX_BUF_SIZE, GFP_KERNEL);
-+	TRACE_M("r3964_open - tx_buf kmalloc %p", pInfo->tx_buf);
-+
-+	if (!pInfo->tx_buf) {
-+		printk(KERN_ERR "r3964: failed to alloc transmit buffer\n");
-+		kfree(pInfo->rx_buf);
-+		TRACE_M("r3964_open - rx_buf kfree %p", pInfo->rx_buf);
-+		kfree(pInfo);
-+		TRACE_M("r3964_open - info kfree %p", pInfo);
-+		return -ENOMEM;
-+	}
- 
--   return 0;
-+	spin_lock_init(&pInfo->lock);
-+	pInfo->tty = tty;
-+	init_waitqueue_head(&pInfo->read_wait);
-+	pInfo->priority = R3964_MASTER;
-+	pInfo->rx_first = pInfo->rx_last = NULL;
-+	pInfo->tx_first = pInfo->tx_last = NULL;
-+	pInfo->rx_position = 0;
-+	pInfo->tx_position = 0;
-+	pInfo->last_rx = 0;
-+	pInfo->blocks_in_rx_queue = 0;
-+	pInfo->firstClient = NULL;
-+	pInfo->state = R3964_IDLE;
-+	pInfo->flags = R3964_DEBUG;
-+	pInfo->nRetry = 0;
-+
-+	tty->disc_data = pInfo;
-+	tty->receive_room = 65536;
-+
-+	init_timer(&pInfo->tmr);
-+	pInfo->tmr.data = (unsigned long)pInfo;
-+	pInfo->tmr.function = on_timeout;
-+
-+	return 0;
- }
- 
- static void r3964_close(struct tty_struct *tty)
- {
--   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
--   struct r3964_client_info *pClient, *pNext;
--   struct r3964_message *pMsg;
--   struct r3964_block_header *pHeader, *pNextHeader;
--   unsigned long flags;
--
--   TRACE_L("close");
--
--    /*
--     * Make sure that our task queue isn't activated.  If it
--     * is, take it out of the linked list.
--     */
--    del_timer_sync(&pInfo->tmr);
--
--   /* Remove client-structs and message queues: */
--    pClient=pInfo->firstClient;
--    while(pClient)
--    {
--       pNext=pClient->next;
--       while(pClient->msg_count)
--       {
--          pMsg=remove_msg(pInfo, pClient);
--          if(pMsg)
--          {
--             kfree(pMsg);
--             TRACE_M("r3964_close - msg kfree %p",pMsg);
--          }
--       }
--       put_pid(pClient->pid);
--       kfree(pClient);
--       TRACE_M("r3964_close - client kfree %p",pClient);
--       pClient=pNext;
--    }
--    /* Remove jobs from tx_queue: */
--        spin_lock_irqsave(&pInfo->lock, flags);
--	pHeader=pInfo->tx_first;
--	pInfo->tx_first=pInfo->tx_last=NULL;
-+	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
-+	struct r3964_client_info *pClient, *pNext;
-+	struct r3964_message *pMsg;
-+	struct r3964_block_header *pHeader, *pNextHeader;
-+	unsigned long flags;
-+
-+	TRACE_L("close");
-+
-+	/*
-+	 * Make sure that our task queue isn't activated.  If it
-+	 * is, take it out of the linked list.
-+	 */
-+	del_timer_sync(&pInfo->tmr);
-+
-+	/* Remove client-structs and message queues: */
-+	pClient = pInfo->firstClient;
-+	while (pClient) {
-+		pNext = pClient->next;
-+		while (pClient->msg_count) {
-+			pMsg = remove_msg(pInfo, pClient);
-+			if (pMsg) {
-+				kfree(pMsg);
-+				TRACE_M("r3964_close - msg kfree %p", pMsg);
-+			}
-+		}
-+		put_pid(pClient->pid);
-+		kfree(pClient);
-+		TRACE_M("r3964_close - client kfree %p", pClient);
-+		pClient = pNext;
-+	}
-+	/* Remove jobs from tx_queue: */
-+	spin_lock_irqsave(&pInfo->lock, flags);
-+	pHeader = pInfo->tx_first;
-+	pInfo->tx_first = pInfo->tx_last = NULL;
- 	spin_unlock_irqrestore(&pInfo->lock, flags);
--	
--    while(pHeader)
--	{
--	   pNextHeader=pHeader->next;
--	   kfree(pHeader);
--	   pHeader=pNextHeader;
+ 	/* Create file in fs */
+-	dentry = chan->cb->create_buf_file(filename, parent, S_IRUSR,
+-					   buf, is_global);
+-	if (!dentry) {
+-		relay_destroy_buf(buf);
+-		return NULL;
 -	}
--
--    /* Free buffers: */
--    wake_up_interruptible(&pInfo->read_wait);
--    kfree(pInfo->rx_buf);
--    TRACE_M("r3964_close - rx_buf kfree %p",pInfo->rx_buf);
--    kfree(pInfo->tx_buf);
--    TRACE_M("r3964_close - tx_buf kfree %p",pInfo->tx_buf);
--    kfree(pInfo);
--    TRACE_M("r3964_close - info kfree %p",pInfo);
++ 	dentry = chan->cb->create_buf_file(tmpname, chan->parent, S_IRUSR,
++ 					   buf, &chan->is_global);
++ 	if (!dentry)
++ 		goto free_buf;
+ 
+ 	buf->dentry = dentry;
+-	__relay_reset(buf, 1);
+ 
++ 	if(chan->is_global) {
++ 		chan->buf[0] = buf;
++ 		buf->cpu = 0;
++  	}
 +
-+	while (pHeader) {
-+		pNextHeader = pHeader->next;
-+		kfree(pHeader);
-+		pHeader = pNextHeader;
-+	}
++ 	goto free_name;
 +
-+	/* Free buffers: */
-+	wake_up_interruptible(&pInfo->read_wait);
-+	kfree(pInfo->rx_buf);
-+	TRACE_M("r3964_close - rx_buf kfree %p", pInfo->rx_buf);
-+	kfree(pInfo->tx_buf);
-+	TRACE_M("r3964_close - tx_buf kfree %p", pInfo->tx_buf);
-+	kfree(pInfo);
-+	TRACE_M("r3964_close - info kfree %p", pInfo);
++free_buf:
++ 	relay_destroy_buf(buf);
++free_name:
++ 	kfree(tmpname);
++end:
+ 	return buf;
  }
  
- static ssize_t r3964_read(struct tty_struct *tty, struct file *file,
--			  unsigned char __user *buf, size_t nr)
-+			  unsigned char __user * buf, size_t nr)
- {
--   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
--   struct r3964_client_info *pClient;
--   struct r3964_message *pMsg;
--   struct r3964_client_message theMsg;
--   DECLARE_WAITQUEUE (wait, current);
--   
--   int count;
--   
--   TRACE_L("read()");
-- 
--   pClient=findClient(pInfo, task_pid(current));
--   if(pClient)
--   {
--      pMsg = remove_msg(pInfo, pClient);
--      if(pMsg==NULL)
--      {
--		 /* no messages available. */
--         if (file->f_flags & O_NONBLOCK)
--		 {
--            return -EAGAIN;
--		 }
--         /* block until there is a message: */
--         add_wait_queue(&pInfo->read_wait, &wait);
-+	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
-+	struct r3964_client_info *pClient;
-+	struct r3964_message *pMsg;
-+	struct r3964_client_message theMsg;
-+	DECLARE_WAITQUEUE(wait, current);
-+
-+	int count;
-+
-+	TRACE_L("read()");
-+
-+	pClient = findClient(pInfo, task_pid(current));
-+	if (pClient) {
-+		pMsg = remove_msg(pInfo, pClient);
-+		if (pMsg == NULL) {
-+			/* no messages available. */
-+			if (file->f_flags & O_NONBLOCK) {
-+				return -EAGAIN;
-+			}
-+			/* block until there is a message: */
-+			add_wait_queue(&pInfo->read_wait, &wait);
- repeat:
--         current->state = TASK_INTERRUPTIBLE;
--         pMsg = remove_msg(pInfo, pClient);
--	 if (!pMsg && !signal_pending(current))
--		 {
--            schedule();
--            goto repeat;
--         }
--         current->state = TASK_RUNNING;
--         remove_wait_queue(&pInfo->read_wait, &wait);
--      }
--      
--      /* If we still haven't got a message, we must have been signalled */
--
--      if (!pMsg) return -EINTR;
--
--      /* deliver msg to client process: */
--      theMsg.msg_id = pMsg->msg_id;
--      theMsg.arg    = pMsg->arg;
--      theMsg.error_code = pMsg->error_code;
--      count = sizeof(struct r3964_client_message);
--
--      kfree(pMsg);
--      TRACE_M("r3964_read - msg kfree %p",pMsg);
--
--      if (copy_to_user(buf,&theMsg, count))
--	return -EFAULT;
--
--      TRACE_PS("read - return %d", count);
--      return count;
--   }
--   return -EPERM;
-+			current->state = TASK_INTERRUPTIBLE;
-+			pMsg = remove_msg(pInfo, pClient);
-+			if (!pMsg && !signal_pending(current)) {
-+				schedule();
-+				goto repeat;
-+			}
-+			current->state = TASK_RUNNING;
-+			remove_wait_queue(&pInfo->read_wait, &wait);
-+		}
-+
-+		/* If we still haven't got a message, we must have been signalled */
-+
-+		if (!pMsg)
-+			return -EINTR;
-+
-+		/* deliver msg to client process: */
-+		theMsg.msg_id = pMsg->msg_id;
-+		theMsg.arg = pMsg->arg;
-+		theMsg.error_code = pMsg->error_code;
-+		count = sizeof(struct r3964_client_message);
-+
-+		kfree(pMsg);
-+		TRACE_M("r3964_read - msg kfree %p", pMsg);
-+
-+		if (copy_to_user(buf, &theMsg, count))
-+			return -EFAULT;
-+
-+		TRACE_PS("read - return %d", count);
-+		return count;
-+	}
-+	return -EPERM;
+@@ -448,12 +474,54 @@ static void setup_callbacks(struct rchan
  }
  
--static ssize_t r3964_write(struct tty_struct * tty, struct file * file,
-+static ssize_t r3964_write(struct tty_struct *tty, struct file *file,
- 			   const unsigned char *data, size_t count)
+ /**
++ *
++ * 	relay_hotcpu_callback - CPU hotplug callback
++ * 	@nb: notifier block
++ * 	@action: hotplug action to take
++ * 	@hcpu: CPU number
++ *
++ * 	Returns the success/failure of the operation. (NOTIFY_OK, NOTIFY_BAD)
++ */
++static int __cpuinit relay_hotcpu_callback(struct notifier_block *nb,
++				unsigned long action,
++				void *hcpu)
++{
++	unsigned int hotcpu = (unsigned long)hcpu;
++	struct rchan *chan;
++
++	switch(action) {
++	case CPU_UP_PREPARE:
++		mutex_lock(&relay_channels_mutex);
++		list_for_each_entry(chan, &relay_channels, list) {
++			if (chan->buf[hotcpu])
++				continue;
++			chan->buf[hotcpu] = relay_open_buf(chan, hotcpu);
++			if(!chan->buf[hotcpu]) {
++				printk(KERN_ERR
++					"relay_hotcpu_callback: cpu %d buffer "
++					"creation failed\n", hotcpu);
++				mutex_unlock(&relay_channels_mutex);
++				return NOTIFY_BAD;
++			}
++		}
++		mutex_unlock(&relay_channels_mutex);
++		break;
++	case CPU_DEAD:
++		/* No need to flush the cpu : will be flushed upon
++		 * final relay_flush() call. */
++		break;
++	}
++	return NOTIFY_OK;
++}
++
++/**
+  *	relay_open - create a new relay channel
+  *	@base_filename: base name of files to create
+  *	@parent: dentry of parent directory, %NULL for root directory
+  *	@subbuf_size: size of sub-buffers
+  *	@n_subbufs: number of sub-buffers
+  *	@cb: client callback functions
++ *	@private_data: user-defined data
+  *
+  *	Returns channel pointer if successful, %NULL otherwise.
+  *
+@@ -466,13 +534,11 @@ struct rchan *relay_open(const char *bas
+ 			 struct dentry *parent,
+ 			 size_t subbuf_size,
+ 			 size_t n_subbufs,
+-			 struct rchan_callbacks *cb)
++			 struct rchan_callbacks *cb,
++			 void *private_data)
  {
--   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
--   struct r3964_block_header *pHeader;
--   struct r3964_client_info *pClient;
--   unsigned char *new_data;
--   
--   TRACE_L("write request, %d characters", count);
-+	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
-+	struct r3964_block_header *pHeader;
-+	struct r3964_client_info *pClient;
-+	unsigned char *new_data;
-+
-+	TRACE_L("write request, %d characters", count);
- /* 
-  * Verify the pointers 
-  */
- 
--   if(!pInfo)
--      return -EIO;
-+	if (!pInfo)
-+		return -EIO;
- 
- /*
-  * Ensure that the caller does not wish to send too much.
-  */
--   if (count > R3964_MTU) 
--   {
--      if (pInfo->flags & R3964_DEBUG)
--      {
--         TRACE_L (KERN_WARNING
--                 "r3964_write: truncating user packet "
--                 "from %u to mtu %d", count, R3964_MTU);
--      }
--      count = R3964_MTU;
--   }
-+	if (count > R3964_MTU) {
-+		if (pInfo->flags & R3964_DEBUG) {
-+			TRACE_L(KERN_WARNING "r3964_write: truncating user "
-+				"packet from %u to mtu %d", count, R3964_MTU);
-+		}
-+		count = R3964_MTU;
-+	}
- /*
-  * Allocate a buffer for the data and copy it from the buffer with header prepended
-  */
--   new_data = kmalloc (count+sizeof(struct r3964_block_header), GFP_KERNEL);
--   TRACE_M("r3964_write - kmalloc %p",new_data);
--   if (new_data == NULL) {
--      if (pInfo->flags & R3964_DEBUG)
--      {
--         printk (KERN_ERR
--               "r3964_write: no memory\n");
--      }
--      return -ENOSPC;
--   }
--   
--   pHeader = (struct r3964_block_header *)new_data;
--   pHeader->data = new_data + sizeof(struct r3964_block_header);
--   pHeader->length = count;
--   pHeader->locks = 0;
--   pHeader->owner = NULL;
--   
--   pClient=findClient(pInfo, task_pid(current));
--   if(pClient)
--   {
--      pHeader->owner = pClient;
--   }
+ 	unsigned int i;
+ 	struct rchan *chan;
+-	char *tmpname;
+-	int is_global = 0;
 -
--   memcpy(pHeader->data, data, count); /* We already verified this */
--
--   if(pInfo->flags & R3964_DEBUG)
--   {
--      dump_block(pHeader->data, count);
--   }
-+	new_data = kmalloc(count + sizeof(struct r3964_block_header),
-+			GFP_KERNEL);
-+	TRACE_M("r3964_write - kmalloc %p", new_data);
-+	if (new_data == NULL) {
-+		if (pInfo->flags & R3964_DEBUG) {
-+			printk(KERN_ERR "r3964_write: no memory\n");
-+		}
-+		return -ENOSPC;
-+	}
-+
-+	pHeader = (struct r3964_block_header *)new_data;
-+	pHeader->data = new_data + sizeof(struct r3964_block_header);
-+	pHeader->length = count;
-+	pHeader->locks = 0;
-+	pHeader->owner = NULL;
-+
-+	pClient = findClient(pInfo, task_pid(current));
-+	if (pClient) {
-+		pHeader->owner = pClient;
-+	}
-+
-+	memcpy(pHeader->data, data, count);	/* We already verified this */
-+
-+	if (pInfo->flags & R3964_DEBUG) {
-+		dump_block(pHeader->data, count);
-+	}
+ 	if (!base_filename)
+ 		return NULL;
  
- /*
-  * Add buffer to transmit-queue:
-  */
--   add_tx_queue(pInfo, pHeader);
--   trigger_transmit(pInfo);
--   
--   return 0;
--}
+@@ -487,38 +553,32 @@ struct rchan *relay_open(const char *bas
+ 	chan->n_subbufs = n_subbufs;
+ 	chan->subbuf_size = subbuf_size;
+ 	chan->alloc_size = FIX_SIZE(subbuf_size * n_subbufs);
++	chan->parent = parent;
++	chan->private_data = private_data;
++	strlcpy(chan->base_filename, base_filename, NAME_MAX);
+ 	setup_callbacks(chan, cb);
+ 	kref_init(&chan->kref);
+ 
+-	tmpname = kmalloc(NAME_MAX + 1, GFP_KERNEL);
+-	if (!tmpname)
+-		goto free_chan;
 -
--static int r3964_ioctl(struct tty_struct * tty, struct file * file,
--               unsigned int cmd, unsigned long arg)
--{
--   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
--   if(pInfo==NULL)
--      return -EINVAL;
--   switch(cmd)
--   {
--      case R3964_ENABLE_SIGNALS:
--         return enable_signals(pInfo, task_pid(current), arg);
--      case R3964_SETPRIORITY:
--         if(arg<R3964_MASTER || arg>R3964_SLAVE)
--            return -EINVAL;
--         pInfo->priority = arg & 0xff;
--         return 0;
--      case R3964_USE_BCC:
--             if(arg)
--            pInfo->flags |= R3964_BCC;
--         else
--            pInfo->flags &= ~R3964_BCC;
--         return 0;
--      case R3964_READ_TELEGRAM:
--         return read_telegram(pInfo, task_pid(current), (unsigned char __user *)arg);
--      default:
--         return -ENOIOCTLCMD;
--   }
-+	add_tx_queue(pInfo, pHeader);
-+	trigger_transmit(pInfo);
++	mutex_lock(&relay_channels_mutex);
+ 	for_each_online_cpu(i) {
+-		sprintf(tmpname, "%s%d", base_filename, i);
+-		chan->buf[i] = relay_open_buf(chan, tmpname, parent,
+-					      &is_global);
++		chan->buf[i] = relay_open_buf(chan, i);
+ 		if (!chan->buf[i])
+ 			goto free_bufs;
+-
+-		chan->buf[i]->cpu = i;
+ 	}
++	list_add(&chan->list, &relay_channels);
++	mutex_unlock(&relay_channels_mutex);
+ 
+-	kfree(tmpname);
+ 	return chan;
+ 
+ free_bufs:
+-	for (i = 0; i < NR_CPUS; i++) {
++	for_each_online_cpu(i) {
+ 		if (!chan->buf[i])
+ 			break;
+ 		relay_close_buf(chan->buf[i]);
+-		if (is_global)
+-			break;
+ 	}
+-	kfree(tmpname);
+ 
+-free_chan:
+ 	kref_put(&chan->kref, relay_destroy_channel);
++	mutex_unlock(&relay_channels_mutex);
+ 	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(relay_open);
+@@ -619,24 +679,26 @@ EXPORT_SYMBOL_GPL(relay_subbufs_consumed
+ void relay_close(struct rchan *chan)
+ {
+ 	unsigned int i;
+-	struct rchan_buf *prev = NULL;
+ 
+ 	if (!chan)
+ 		return;
+ 
+-	for (i = 0; i < NR_CPUS; i++) {
+-		if (!chan->buf[i] || chan->buf[i] == prev)
+-			break;
+-		relay_close_buf(chan->buf[i]);
+-		prev = chan->buf[i];
+-	}
++	mutex_lock(&relay_channels_mutex);
++	if (chan->is_global && chan->buf[0])
++		relay_close_buf(chan->buf[0]);
++	else
++		for_each_possible_cpu(i)
++			if (chan->buf[i])
++				relay_close_buf(chan->buf[i]);
+ 
+ 	if (chan->last_toobig)
+ 		printk(KERN_WARNING "relay: one or more items not logged "
+ 		       "[item size (%Zd) > sub-buffer size (%Zd)]\n",
+ 		       chan->last_toobig, chan->subbuf_size);
+ 
++	list_del(&chan->list);
+ 	kref_put(&chan->kref, relay_destroy_channel);
++	mutex_unlock(&relay_channels_mutex);
+ }
+ EXPORT_SYMBOL_GPL(relay_close);
+ 
+@@ -649,17 +711,20 @@ EXPORT_SYMBOL_GPL(relay_close);
+ void relay_flush(struct rchan *chan)
+ {
+ 	unsigned int i;
+-	struct rchan_buf *prev = NULL;
+ 
+ 	if (!chan)
+ 		return;
+ 
+-	for (i = 0; i < NR_CPUS; i++) {
+-		if (!chan->buf[i] || chan->buf[i] == prev)
+-			break;
+-		relay_switch_subbuf(chan->buf[i], 0);
+-		prev = chan->buf[i];
++	if (chan->is_global && chan->buf[0]) {
++		relay_switch_subbuf(chan->buf[0], 0);
++		return;
+ 	}
 +
++	mutex_lock(&relay_channels_mutex);
++	for_each_possible_cpu(i)
++		if (chan->buf[i])
++			relay_switch_subbuf(chan->buf[i], 0);
++	mutex_unlock(&relay_channels_mutex);
+ }
+ EXPORT_SYMBOL_GPL(relay_flush);
+ 
+@@ -1022,3 +1087,12 @@ const struct file_operations relay_file_
+ 	.sendfile       = relay_file_sendfile,
+ };
+ EXPORT_SYMBOL_GPL(relay_file_operations);
++
++static __init int relay_init(void)
++{
++
++	hotcpu_notifier(relay_hotcpu_callback, 0);
 +	return 0;
 +}
 +
-+static int r3964_ioctl(struct tty_struct *tty, struct file *file,
-+		unsigned int cmd, unsigned long arg)
-+{
-+	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
-+	if (pInfo == NULL)
-+		return -EINVAL;
-+	switch (cmd) {
-+	case R3964_ENABLE_SIGNALS:
-+		return enable_signals(pInfo, task_pid(current), arg);
-+	case R3964_SETPRIORITY:
-+		if (arg < R3964_MASTER || arg > R3964_SLAVE)
-+			return -EINVAL;
-+		pInfo->priority = arg & 0xff;
-+		return 0;
-+	case R3964_USE_BCC:
-+		if (arg)
-+			pInfo->flags |= R3964_BCC;
-+		else
-+			pInfo->flags &= ~R3964_BCC;
-+		return 0;
-+	case R3964_READ_TELEGRAM:
-+		return read_telegram(pInfo, task_pid(current),
-+				(unsigned char __user *)arg);
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
- }
- 
--static void r3964_set_termios(struct tty_struct *tty, struct ktermios * old)
-+static void r3964_set_termios(struct tty_struct *tty, struct ktermios *old)
- {
--   TRACE_L("set_termios");
-+	TRACE_L("set_termios");
- }
- 
- /* Called without the kernel lock held - fine */
--static unsigned int r3964_poll(struct tty_struct * tty, struct file * file,
--		      struct poll_table_struct *wait)
-+static unsigned int r3964_poll(struct tty_struct *tty, struct file *file,
-+			struct poll_table_struct *wait)
- {
--   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
--   struct r3964_client_info *pClient;
--   struct r3964_message *pMsg=NULL;
--   unsigned long flags;
--   int result = POLLOUT;
--
--   TRACE_L("POLL");
--
--   pClient=findClient(pInfo, task_pid(current));
--   if(pClient)
--     {
--       poll_wait(file, &pInfo->read_wait, wait);
--       spin_lock_irqsave(&pInfo->lock, flags);
--       pMsg=pClient->first_msg;
--       spin_unlock_irqrestore(&pInfo->lock, flags);
--       if(pMsg)
--	   result |= POLLIN | POLLRDNORM;
--     }
--   else
--     {
--       result = -EINVAL;
--     }
--   return result;
-+	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
-+	struct r3964_client_info *pClient;
-+	struct r3964_message *pMsg = NULL;
-+	unsigned long flags;
-+	int result = POLLOUT;
-+
-+	TRACE_L("POLL");
-+
-+	pClient = findClient(pInfo, task_pid(current));
-+	if (pClient) {
-+		poll_wait(file, &pInfo->read_wait, wait);
-+		spin_lock_irqsave(&pInfo->lock, flags);
-+		pMsg = pClient->first_msg;
-+		spin_unlock_irqrestore(&pInfo->lock, flags);
-+		if (pMsg)
-+			result |= POLLIN | POLLRDNORM;
-+	} else {
-+		result = -EINVAL;
-+	}
-+	return result;
- }
- 
- static void r3964_receive_buf(struct tty_struct *tty, const unsigned char *cp,
--                              char *fp, int count)
-+			char *fp, int count)
- {
--   struct r3964_info *pInfo=(struct r3964_info*)tty->disc_data;
--    const unsigned char *p;
--    char *f, flags = 0;
--    int i;
--
--    for (i=count, p = cp, f = fp; i; i--, p++) {
--        if (f)
--            flags = *f++;
--        if(flags==TTY_NORMAL)
--        {
--            receive_char(pInfo, *p);
--        }
--        else
--        {
--            receive_error(pInfo, flags);
--        }
--        
--    }
-+	struct r3964_info *pInfo = (struct r3964_info *)tty->disc_data;
-+	const unsigned char *p;
-+	char *f, flags = 0;
-+	int i;
-+
-+	for (i = count, p = cp, f = fp; i; i--, p++) {
-+		if (f)
-+			flags = *f++;
-+		if (flags == TTY_NORMAL) {
-+			receive_char(pInfo, *p);
-+		} else {
-+			receive_error(pInfo, flags);
-+		}
-+
-+	}
- }
- 
- MODULE_LICENSE("GPL");
++module_init(relay_init);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-char-use-more-pci_device-macro.patch
-char-cyclades-use-pci_device_id.patch
-maintainers-remove-two-dead-e-mail.patch
-char-specialix-isr-have-2-params.patch
-char-timers-cleanup.patch
-fbdev-driver-for-s3-trio-virge-update-2-fix.patch
-video-fb-add-true-ref_count-atomicity.patch
-video-fb-kzalloc-changes.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-mips.patch
