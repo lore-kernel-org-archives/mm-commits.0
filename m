@@ -1,98 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - uml-locking-comments-in-memory-and-tempfile-code.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:49:19 -0800
-Message-ID: <200702112249.l1BMnJTi015728@shell0.pdx.osdl.net>
+Subject: - uml-locking-comments-in-startup-code.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:49:21 -0800
+Message-ID: <200702112249.l1BMnLZw015731@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59843 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59847 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932699AbXBKWtV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:49:21 -0500
+	id S932700AbXBKWtX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:49:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: locking comments in memory and tempfile code
+     uml: locking comments in startup code
 has been removed from the -mm tree.  Its filename was
-     uml-locking-comments-in-memory-and-tempfile-code.patch
+     uml-locking-comments-in-startup-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: locking comments in memory and tempfile code
+Subject: uml: locking comments in startup code
 From: Jeff Dike <jdike@addtoit.com>
 
-Locking comments and emacs comment removal in the low-level memory and
-temp file code.
+Add a couple of comments about some non-locked data.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/tempfile.h |   10 ----------
- arch/um/kernel/mem.c       |    3 ++-
- arch/um/os-Linux/mem.c     |    7 +++++++
- 3 files changed, 9 insertions(+), 11 deletions(-)
+ arch/um/os-Linux/start_up.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/um/include/tempfile.h~uml-locking-comments-in-memory-and-tempfile-code arch/um/include/tempfile.h
---- a/arch/um/include/tempfile.h~uml-locking-comments-in-memory-and-tempfile-code
-+++ a/arch/um/include/tempfile.h
-@@ -9,13 +9,3 @@
- extern int make_tempfile(const char *template, char **tempname, int do_unlink);
- 
- #endif
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/kernel/mem.c~uml-locking-comments-in-memory-and-tempfile-code arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-locking-comments-in-memory-and-tempfile-code
-+++ a/arch/um/kernel/mem.c
-@@ -24,8 +24,9 @@
- #include "init.h"
- #include "kern_constants.h"
- 
--/* Changed during early boot */
-+/* allocated in paging_init, zeroed in mem_init, and unchanged thereafter */
- unsigned long *empty_zero_page = NULL;
-+/* allocated in paging_init and unchanged thereafter */
- unsigned long *empty_bad_page = NULL;
- pgd_t swapper_pg_dir[PTRS_PER_PGD];
- unsigned long long highmem;
-diff -puN arch/um/os-Linux/mem.c~uml-locking-comments-in-memory-and-tempfile-code arch/um/os-Linux/mem.c
---- a/arch/um/os-Linux/mem.c~uml-locking-comments-in-memory-and-tempfile-code
-+++ a/arch/um/os-Linux/mem.c
-@@ -20,7 +20,13 @@
- 
- #include <sys/param.h>
- 
-+/* Modified by which_tmpdir, which is called during early boot */
- static char *default_tmpdir = "/tmp";
-+
-+/*
-+ *  Modified when creating the physical memory file and when checking
-+ * the tmp filesystem for usability, both happening during early boot.
-+ */
- static char *tempdir = NULL;
- 
- static void __init find_tempdir(void)
-@@ -83,6 +89,7 @@ static int next(int fd, char *buf, int s
- 	return 1;
+diff -puN arch/um/os-Linux/start_up.c~uml-locking-comments-in-startup-code arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-locking-comments-in-startup-code
++++ a/arch/um/os-Linux/start_up.c
+@@ -133,6 +133,7 @@ static int stop_ptraced_child(int pid, v
+ 	return ret;
  }
  
-+/* which_tmpdir is called only during early boot */
- static int checked_tmpdir = 0;
++/* Changed only during early boot */
+ int ptrace_faultinfo = 1;
+ int ptrace_ldt = 1;
+ int proc_mm = 1;
+@@ -160,6 +161,7 @@ __uml_setup("mode=skas0", mode_skas0_cmd
+ 		"    specify mode=tt. Note that this was recently added - on \n"
+ 		"    older kernels you must use simply \"skas0\".\n\n");
  
- /* Look for a tmpfs mounted at /dev/shm.  I couldn't find a cleaner
++/* Changed only during early boot */
+ static int force_sysemu_disabled = 0;
+ 
+ static int __init nosysemu_cmd_param(char *str, int* add)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
