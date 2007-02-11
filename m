@@ -1,130 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - kill_pid_info-kill-acquired_tasklist_lock.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:50:49 -0800
-Message-ID: <200702112250.l1BMon21015894@shell0.pdx.osdl.net>
+Subject: - char-isicom-support-higher-rates.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:50:43 -0800
+Message-ID: <200702112250.l1BMoh3l015881@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60052 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60037 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932741AbXBKWux (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:50:53 -0500
+	id S932738AbXBKWup (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:50:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kill_pid_info: kill acquired_tasklist_lock
+     Char: isicom, support higher rates
 has been removed from the -mm tree.  Its filename was
-     kill_pid_info-kill-acquired_tasklist_lock.patch
+     char-isicom-support-higher-rates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kill_pid_info: kill acquired_tasklist_lock
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: Char: isicom, support higher rates
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Kill acquired_tasklist_lock, sig_needs_tasklist() is very cheap nowadays.
+Add support for higher baud rates (coming from original isi driver).
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/char/isicom.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN kernel/signal.c~kill_pid_info-kill-acquired_tasklist_lock kernel/signal.c
---- a/kernel/signal.c~kill_pid_info-kill-acquired_tasklist_lock
-+++ a/kernel/signal.c
-@@ -1119,19 +1119,18 @@ kill_pg_info(int sig, struct siginfo *in
- int kill_pid_info(int sig, struct siginfo *info, struct pid *pid)
- {
- 	int error;
--	int acquired_tasklist_lock = 0;
- 	struct task_struct *p;
+diff -puN drivers/char/isicom.c~char-isicom-support-higher-rates drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-support-higher-rates
++++ a/drivers/char/isicom.c
+@@ -183,7 +183,7 @@ static DEFINE_TIMER(tx, isicom_tx, 0, 0)
+ /*   baud index mappings from linux defns to isi */
  
- 	rcu_read_lock();
--	if (unlikely(sig_needs_tasklist(sig))) {
-+	if (unlikely(sig_needs_tasklist(sig)))
- 		read_lock(&tasklist_lock);
--		acquired_tasklist_lock = 1;
--	}
-+
- 	p = pid_task(pid, PIDTYPE_PID);
- 	error = -ESRCH;
- 	if (p)
- 		error = group_send_sig_info(sig, info, p);
--	if (unlikely(acquired_tasklist_lock))
-+
-+	if (unlikely(sig_needs_tasklist(sig)))
- 		read_unlock(&tasklist_lock);
- 	rcu_read_unlock();
- 	return error;
+ static signed char linuxb_to_isib[] = {
+-	-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 13, 15, 16, 17, 18, 19
++	-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 13, 15, 16, 17, 18, 19, 20, 21
+ };
+ 
+ struct	isi_board {
+@@ -710,7 +710,8 @@ static void isicom_config_port(struct is
+ 		 *  respectively.
+ 		 */
+ 
+-		if (baud < 1 || baud > 2)
++		/* 1,2,3,4 => 57.6, 115.2, 230, 460 kbps resp. */
++		if (baud < 1 || baud > 4)
+ 			port->tty->termios->c_cflag &= ~CBAUDEX;
+ 		else
+ 			baud += 15;
+@@ -726,6 +727,10 @@ static void isicom_config_port(struct is
+ 			baud++; /*  57.6 Kbps */
+ 		if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_VHI)
+ 			baud +=2; /*  115  Kbps */
++		if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_SHI)
++			baud += 3; /* 230 kbps*/
++		if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_WARP)
++			baud += 4; /* 460 kbps*/
+ 	}
+ 	if (linuxb_to_isib[baud] == -1) {
+ 		/* hang up */
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-block.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-posix-timers-rcu-optimization-for-clock_gettime.patch
-posix-timers-rcu-optimization-for-clock_gettime-fix.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-rework-compat_sys_io_submit.patch
-fix-aioh-includes.patch
-fix-access_ok-checks.patch
-make-good_sigevent-non-static.patch
-make-good_sigevent-non-static-fix.patch
-make-__sigqueue_free-and.patch
-aio-completion-signal-notification.patch
-aio-completion-signal-notification-fix.patch
-aio-completion-signal-notification-fixes-and-cleanups.patch
-aio-completion-signal-notification-small-cleanup.patch
-add-listio-syscall-support.patch
-hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch
+char-use-more-pci_device-macro.patch
+char-cyclades-use-pci_device_id.patch
+maintainers-remove-two-dead-e-mail.patch
+char-specialix-isr-have-2-params.patch
+char-timers-cleanup.patch
+fbdev-driver-for-s3-trio-virge-update-2-fix.patch
+video-fb-add-true-ref_count-atomicity.patch
+video-fb-kzalloc-changes.patch
+shrink_slab-handle-bad-shrinkers.patch
