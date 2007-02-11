@@ -1,95 +1,271 @@
 From: akpm@linux-foundation.org
-Subject: - buffer-memorder-fix.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:45 -0800
-Message-ID: <200702112254.l1BMsjlT016266@shell0.pdx.osdl.net>
+Subject: - agpgart-allow-drm-populated-agp-memory-types-tidy.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:55:53 -0800
+Message-ID: <200702112255.l1BMtrfg016365@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60670 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60664 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932895AbXBKW4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:56:09 -0500
+	id S932890AbXBKW4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:56:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, cmm@us.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, davej@codemonkey.org.uk, thomas@tungstengraphics.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     buffer: memorder fix
+     "agpgart: allow drm populated agp memory types": cleanups
 has been removed from the -mm tree.  Its filename was
-     buffer-memorder-fix.patch
+     agpgart-allow-drm-populated-agp-memory-types-tidy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: buffer: memorder fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: "agpgart: allow drm populated agp memory types": cleanups
+From: Andrew Morton <akpm@osdl.org>
 
-unlock_buffer(), like unlock_page(), must not clear the lock without
-ensuring that the critical section is closed.
+Fix whitespace, braces, use kzalloc().
 
-
-Mingming later sent the same patch, saying:
-
-We are running SDET benchmark and saw double free issue for ext3 extended
-attributes block, which complains the same xattr block already being freed (in
-ext3_xattr_release_block()).  The problem could also been triggered by
-multiple threads loop untar/rm a kernel tree.
-
-The race is caused by missing a memory barrier at unlock_buffer() before the
-lock bit being cleared, resulting in possible concurrent h_refcounter update. 
-That causes a reference counter leak, then later leads to the double free that
-we have seen.
-
-Inside unlock_buffer(), there is a memory barrier is placed *after* the lock
-bit is being cleared, however, there is no memory barrier *before* the bit is
-cleared.  On some arch the h_refcount update instruction and the clear bit
-instruction could be reordered, thus leave the critical section re-entered.
-
-The race is like this: For example, if the h_refcount is initialized as 1,
-
-cpu 0:                                   cpu1
---------------------------------------   -----------------------------------
-lock_buffer() /* test_and_set_bit */
-clear_buffer_locked(bh);             
-                                        lock_buffer() /* test_and_set_bit */
-h_refcount = h_refcount+1; /* = 2*/     h_refcount = h_refcount + 1; /*= 2 */
-                                        clear_buffer_locked(bh);
-....                                    ......
-
-
-We lost a h_refcount here.  We need a memory barrier before the buffer head
-lock bit being cleared to force the order of the two writes.  Please apply.
-
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Mingming Cao <cmm@us.ibm.com>
-Cc: <stable@kernel.org>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Thomas Hellstrom <thomas@tungstengraphics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/agp/generic.c   |   17 ++++-------------
+ drivers/char/agp/intel-agp.c |    1 -
+ 2 files changed, 4 insertions(+), 14 deletions(-)
 
-diff -puN fs/buffer.c~buffer-memorder-fix fs/buffer.c
---- a/fs/buffer.c~buffer-memorder-fix
-+++ a/fs/buffer.c
-@@ -78,6 +78,7 @@ EXPORT_SYMBOL(__lock_buffer);
+diff -puN drivers/char/agp/generic.c~agpgart-allow-drm-populated-agp-memory-types-tidy drivers/char/agp/generic.c
+--- a/drivers/char/agp/generic.c~agpgart-allow-drm-populated-agp-memory-types-tidy
++++ a/drivers/char/agp/generic.c
+@@ -112,9 +112,8 @@ void agp_alloc_page_array(size_t size, s
+ 	mem->memory = NULL;
+ 	mem->vmalloc_flag = 0;
  
- void fastcall unlock_buffer(struct buffer_head *bh)
+-	if (size <= 2*PAGE_SIZE) {
++	if (size <= 2*PAGE_SIZE)
+ 		mem->memory = kmalloc(size, GFP_KERNEL | __GFP_NORETRY);
+-	}
+ 	if (mem->memory == NULL) {
+ 		mem->memory = vmalloc(size);
+ 		mem->vmalloc_flag = 1;
+@@ -138,12 +137,10 @@ static struct agp_memory *agp_create_use
+ 	struct agp_memory *new;
+ 	unsigned long alloc_size = num_agp_pages*sizeof(struct page *);
+ 
+-	new = kmalloc(sizeof(struct agp_memory), GFP_KERNEL);
+-
++	new = kzalloc(sizeof(struct agp_memory), GFP_KERNEL);
+ 	if (new == NULL)
+ 		return NULL;
+ 
+-	memset(new, 0, sizeof(struct agp_memory));
+ 	new->key = agp_get_key();
+ 
+ 	if (new->key < 0) {
+@@ -162,7 +159,6 @@ static struct agp_memory *agp_create_use
+ 	return new;
+ }
+ 
+-
+ struct agp_memory *agp_create_memory(int scratch_pages)
  {
-+	smp_mb__before_clear_bit();
- 	clear_buffer_locked(bh);
- 	smp_mb__after_clear_bit();
- 	wake_up_bit(&bh->b_state, BH_Lock);
+ 	struct agp_memory *new;
+@@ -1071,9 +1067,8 @@ int agp_generic_insert_memory(struct agp
+ 	num_entries -= agp_memory_reserved/PAGE_SIZE;
+ 	if (num_entries < 0) num_entries = 0;
+ 
+-	if (type != mem->type) {
++	if (type != mem->type)
+ 		return -EINVAL;
+-	}
+ 
+ 	mask_type = bridge->driver->agp_type_to_mask_type(bridge, type);
+ 	if (mask_type != 0) {
+@@ -1143,14 +1138,12 @@ int agp_generic_remove_memory(struct agp
+ }
+ EXPORT_SYMBOL(agp_generic_remove_memory);
+ 
+-
+ struct agp_memory *agp_generic_alloc_by_type(size_t page_count, int type)
+ {
+ 	return NULL;
+ }
+ EXPORT_SYMBOL(agp_generic_alloc_by_type);
+ 
+-
+ void agp_generic_free_by_type(struct agp_memory *curr)
+ {
+ 	agp_free_page_array(curr);
+@@ -1170,9 +1163,8 @@ struct agp_memory *agp_generic_alloc_use
+ 	if (new == NULL)
+ 		return NULL;
+ 
+-	for (i = 0; i < page_count; i++) {
++	for (i = 0; i < page_count; i++)
+ 		new->memory[i] = 0;
+-	}
+ 	new->page_count = 0;
+ 	new->type = type;
+ 	new->num_scratch_pages = pages;
+@@ -1181,7 +1173,6 @@ struct agp_memory *agp_generic_alloc_use
+ }
+ EXPORT_SYMBOL(agp_generic_alloc_user);
+ 
+-
+ /*
+  * Basic Page Allocation Routines -
+  * These routines handle page allocation and by default they reserve the allocated
+diff -puN drivers/char/agp/intel-agp.c~agpgart-allow-drm-populated-agp-memory-types-tidy drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~agpgart-allow-drm-populated-agp-memory-types-tidy
++++ a/drivers/char/agp/intel-agp.c
+@@ -88,7 +88,6 @@ static struct _intel_i810_private {
+ 	int num_dcache_entries;
+ } intel_i810_private;
+ 
+-
+ static int intel_i810_fetch_size(void)
+ {
+ 	u32 smram_miscc;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-git-block.patch
-add-vm_insert_pfn.patch
-mm-vm_insert_pfn-tidy.patch
-mm-mincore-anon.patch
-fs-fix-__block_write_full_page-error-case-buffer-submission.patch
-inotify-read-return-val-fix.patch
-sched-avoid-div-in-rebalance_tick.patch
+add-an-rcu-version-of-list-splicing.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-agpgart.patch
+git-dvb.patch
+git-ia64.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mtd.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+netfilter-warning-fix.patch
+git-backlight.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-xfs-barriers-broke.patch
+nokia-e70-is-an-unusual-device.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
+register_blkdev-dont-hand-out-the-local-experimental-majors.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+spi-controller-driver-for-omap-microwire-tidy.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+omap-gpio-wrappers-tidy.patch
+at91-gpio-wrappers-tidy.patch
+ecryptfs-public-key-packet-management-slab-fix.patch
+ecryptfs-generalize-metadata-read-write-fix.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+dynamic-kernel-command-line-ia64-fix.patch
+kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+mark-struct-file_operations-const-2-fix.patch
+mark-struct-file_operations-const-4-fix.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
