@@ -1,169 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:56:12 -0800
-Message-ID: <200702112256.l1BMuChi016392@shell0.pdx.osdl.net>
+Subject: - tty-cleanup-release_mem.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:55:41 -0800
+Message-ID: <200702112255.l1BMtfOn016350@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60686 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60657 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932898AbXBKW4P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:56:15 -0500
+	id S932891AbXBKW4D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:56:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, dgc@sgi.com, mm-commits@vger.kernel.org
+To: hch@lst.de, alan@redhat.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: xfs: remove unnecessary insert_at_head flag
+     tty: cleanup release_mem
 has been removed from the -mm tree.  Its filename was
-     sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch
+     tty-cleanup-release_mem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: xfs: remove unnecessary insert_at_head flag
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: tty: cleanup release_mem
+From: Christoph Hellwig <hch@lst.de>
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: David Chinner <dgc@sgi.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+release_mem contains two copies of exactly the same code.  Refactor these
+into a new helper, release_tty.  The only change in behaviour is that the
+driver reference count is now decremented after the master tty has been
+freed instead of before.
+
+[penberg@cs.helsinki.fi: fix use-after-free in release_tty.]
+Cc: Alan Cox <alan@redhat.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/tty_io.c |   73 ++++++++++++++++++++--------------------
+ 1 file changed, 37 insertions(+), 36 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_sysctl.c~sysctl-xfs-remove-unnecessary-insert_at_head-flag fs/xfs/linux-2.6/xfs_sysctl.c
---- a/fs/xfs/linux-2.6/xfs_sysctl.c~sysctl-xfs-remove-unnecessary-insert_at_head-flag
-+++ a/fs/xfs/linux-2.6/xfs_sysctl.c
-@@ -149,7 +149,7 @@ STATIC ctl_table xfs_root_table[] = {
- void
- xfs_sysctl_register(void)
- {
--	xfs_table_header = register_sysctl_table(xfs_root_table, 1);
-+	xfs_table_header = register_sysctl_table(xfs_root_table, 0);
+diff -puN drivers/char/tty_io.c~tty-cleanup-release_mem drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-cleanup-release_mem
++++ a/drivers/char/tty_io.c
+@@ -154,7 +154,7 @@ static int tty_release(struct inode *, s
+ int tty_ioctl(struct inode * inode, struct file * file,
+ 	      unsigned int cmd, unsigned long arg);
+ static int tty_fasync(int fd, struct file * filp, int on);
+-static void release_mem(struct tty_struct *tty, int idx);
++static void release_tty(struct tty_struct *tty, int idx);
+ 
+ /**
+  *	alloc_tty_struct	-	allocate a tty object
+@@ -2002,7 +2002,7 @@ static int init_dev(struct tty_driver *d
+ 
+ 	/* 
+ 	 * All structures have been allocated, so now we install them.
+-	 * Failures after this point use release_mem to clean up, so 
++	 * Failures after this point use release_tty to clean up, so
+ 	 * there's no need to null out the local pointers.
+ 	 */
+ 	if (!(driver->flags & TTY_DRIVER_DEVPTS_MEM)) {
+@@ -2023,8 +2023,8 @@ static int init_dev(struct tty_driver *d
+ 
+ 	/* 
+ 	 * Structures all installed ... call the ldisc open routines.
+-	 * If we fail here just call release_mem to clean up.  No need
+-	 * to decrement the use counts, as release_mem doesn't care.
++	 * If we fail here just call release_tty to clean up.  No need
++	 * to decrement the use counts, as release_tty doesn't care.
+ 	 */
+ 
+ 	if (tty->ldisc.open) {
+@@ -2094,17 +2094,17 @@ fail_no_mem:
+ 	retval = -ENOMEM;
+ 	goto end_init;
+ 
+-	/* call the tty release_mem routine to clean out this slot */
++	/* call the tty release_tty routine to clean out this slot */
+ release_mem_out:
+ 	if (printk_ratelimit())
+ 		printk(KERN_INFO "init_dev: ldisc open failed, "
+ 				 "clearing slot %d\n", idx);
+-	release_mem(tty, idx);
++	release_tty(tty, idx);
+ 	goto end_init;
  }
  
- void
+ /**
+- *	release_mem		-	release tty structure memory
++ *	release_one_tty		-	release tty structure memory
+  *
+  *	Releases memory associated with a tty structure, and clears out the
+  *	driver table slots. This function is called when a device is no longer
+@@ -2116,37 +2116,14 @@ release_mem_out:
+  *	of ttys that the driver keeps.
+  *		FIXME: should we require tty_mutex is held here ??
+  */
+-
+-static void release_mem(struct tty_struct *tty, int idx)
++static void release_one_tty(struct tty_struct *tty, int idx)
+ {
+-	struct tty_struct *o_tty;
+-	struct ktermios *tp;
+ 	int devpts = tty->driver->flags & TTY_DRIVER_DEVPTS_MEM;
+-
+-	if ((o_tty = tty->link) != NULL) {
+-		if (!devpts)
+-			o_tty->driver->ttys[idx] = NULL;
+-		if (o_tty->driver->flags & TTY_DRIVER_RESET_TERMIOS) {
+-			tp = o_tty->termios;
+-			if (!devpts)
+-				o_tty->driver->termios[idx] = NULL;
+-			kfree(tp);
+-
+-			tp = o_tty->termios_locked;
+-			if (!devpts)
+-				o_tty->driver->termios_locked[idx] = NULL;
+-			kfree(tp);
+-		}
+-		o_tty->magic = 0;
+-		o_tty->driver->refcount--;
+-		file_list_lock();
+-		list_del_init(&o_tty->tty_files);
+-		file_list_unlock();
+-		free_tty_struct(o_tty);
+-	}
++	struct ktermios *tp;
+ 
+ 	if (!devpts)
+ 		tty->driver->ttys[idx] = NULL;
++
+ 	if (tty->driver->flags & TTY_DRIVER_RESET_TERMIOS) {
+ 		tp = tty->termios;
+ 		if (!devpts)
+@@ -2159,15 +2136,39 @@ static void release_mem(struct tty_struc
+ 		kfree(tp);
+ 	}
+ 
++
+ 	tty->magic = 0;
+ 	tty->driver->refcount--;
++
+ 	file_list_lock();
+ 	list_del_init(&tty->tty_files);
+ 	file_list_unlock();
+-	module_put(tty->driver->owner);
++
+ 	free_tty_struct(tty);
+ }
+ 
++/**
++ *	release_tty		-	release tty structure memory
++ *
++ *	Release both @tty and a possible linked partner (think pty pair),
++ *	and decrement the refcount of the backing module.
++ *
++ *	Locking:
++ *		tty_mutex - sometimes only
++ *		takes the file list lock internally when working on the list
++ *	of ttys that the driver keeps.
++ *		FIXME: should we require tty_mutex is held here ??
++ */
++static void release_tty(struct tty_struct *tty, int idx)
++{
++	struct tty_driver *driver = tty->driver;
++
++	if (tty->link)
++		release_one_tty(tty->link, idx);
++	release_one_tty(tty, idx);
++	module_put(driver->owner);
++}
++
+ /*
+  * Even releasing the tty structures is a tricky business.. We have
+  * to be very careful that the structures are all released at the
+@@ -2435,10 +2436,10 @@ static void release_dev(struct file * fi
+ 		tty_set_termios_ldisc(o_tty,N_TTY); 
+ 	}
+ 	/*
+-	 * The release_mem function takes care of the details of clearing
++	 * The release_tty function takes care of the details of clearing
+ 	 * the slots and preserving the termios structure.
+ 	 */
+-	release_mem(tty, idx);
++	release_tty(tty, idx);
+ 
+ #ifdef CONFIG_UNIX98_PTYS
+ 	/* Make this pty number available for reallocation */
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-git-v9fs.patch
-x86_64-irq-simplfy-__assign_irq_vector.patch
-x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
+add-vm_insert_pfn.patch
+add-nopfn_refault-result-from-vm_ops-nopfn.patch
+simplify-the-stacktrace-code.patch
+make-bh_unwritten-a-first-class-bufferhead-flag-v2.patch
+make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
 allow-access-to-proc-pid-fd-after-setuid.patch
 allow-access-to-proc-pid-fd-after-setuid-fix.patch
 allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
-ipc-save-the-ipc-namespace-while-reading-proc-files.patch
-kexec-fix-references-to-init-in-documentation-for-kexe.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
-sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
-sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
-sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
-sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
-sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
-sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
-sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
-sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-md-remove-unnecessary-insert_at_head-flag.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-dont-set-de-owner.patch
-sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
-sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
-sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
-sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-arch-frv-kernel-pmc.patch
-sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
-sysctl-sn-remove-sysctl-abi-breakage.patch
-sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
-sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
-sysctl-mips-au1000-remove-sys_sysctl-support.patch
-sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
-sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
-sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
-sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
-sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
-sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
-sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
-sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
-sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
-sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix.patch
-sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-register-the-ocfs2-sysctl-numbers.patch
-sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
-sysctl-move-utsname-sysctls-to-their-own-file.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-remove-support-for-ctl_any.patch
-sysctl-remove-support-for-directory-strategy-routines.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
-sysctl-reimplement-the-sysctl-proc-support.patch
-sysctl-reimplement-the-sysctl-proc-support-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-sysctl-fix-the-selinux_sysctl_get_sid.patch
-selinux-enhance-selinux-to-always-ignore-private-inodes.patch
-sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+fix-d_path-for-lazy-unmounts.patch
+move-remove_dquot_ref-to-dqoutc.patch
+remove-sb-s_files-and-file_list_lock-usage-in-dquotc.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
+aio-is-unlikely.patch
