@@ -1,93 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - git-scsi-misc-fixup.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:56:09 -0800
-Message-ID: <200702112256.l1BMu9b1016386@shell0.pdx.osdl.net>
+Subject: - fix-gregkh-usb-usb-linux-usb_ch9h-becomes-linux-usb-ch9h.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:55:50 -0800
+Message-ID: <200702112255.l1BMtoHw016362@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60673 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60660 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932896AbXBKW4K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:56:10 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1BMu9UI016790
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 11 Feb 2007 14:56:09 -0800
+	id S932890AbXBKW4E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:56:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: dwm@meer.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc-fixup
+     fix DocBook build
 has been removed from the -mm tree.  Its filename was
-     git-scsi-misc-fixup.patch
+     fix-gregkh-usb-usb-linux-usb_ch9h-becomes-linux-usb-ch9h.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-scsi-misc-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix DocBook build
+From: Don Mullis <dwm@meer.net>
 
+Fix DocBook build.  Regression was introduced by
+gregkh-usb-usb-linux-usb_ch9h-becomes-linux-usb-ch9h.patch
+
+Tested by `make htmldocs`.
+
+Signed-off-by: Don Mullis <dwm@meer.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ipr.c |    5 -----
- 1 file changed, 5 deletions(-)
+ Documentation/DocBook/gadget.tmpl |    4 ++--
+ Documentation/DocBook/usb.tmpl    |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/ipr.c~git-scsi-misc-fixup drivers/scsi/ipr.c
---- a/drivers/scsi/ipr.c~git-scsi-misc-fixup
-+++ a/drivers/scsi/ipr.c
-@@ -7549,14 +7549,9 @@ static struct pci_device_id ipr_pci_tabl
- 	{ PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_OBSIDIAN,
- 	      PCI_VENDOR_ID_IBM, IPR_SUBS_DEV_ID_572A, 0, 0, 0 },
- 	{ PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_OBSIDIAN,
--<<<<<<< HEAD/drivers/scsi/ipr.c
--	      PCI_VENDOR_ID_IBM, IPR_SUBS_DEV_ID_575C,
--	      0, 0, (kernel_ulong_t)&ipr_chip_cfg[0] },
--=======
- 	      PCI_VENDOR_ID_IBM, IPR_SUBS_DEV_ID_572B, 0, 0, 0 },
- 	{ PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_OBSIDIAN,
- 	      PCI_VENDOR_ID_IBM, IPR_SUBS_DEV_ID_575C, 0, 0, 0 },
-->>>>>>> /drivers/scsi/ipr.c
- 	{ PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_OBSIDIAN_E,
- 	      PCI_VENDOR_ID_IBM, IPR_SUBS_DEV_ID_57B7, 0, 0, 0 },
- 	{ PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_SNIPE,
+diff -puN Documentation/DocBook/gadget.tmpl~fix-gregkh-usb-usb-linux-usb_ch9h-becomes-linux-usb-ch9h Documentation/DocBook/gadget.tmpl
+--- a/Documentation/DocBook/gadget.tmpl~fix-gregkh-usb-usb-linux-usb_ch9h-becomes-linux-usb-ch9h
++++ a/Documentation/DocBook/gadget.tmpl
+@@ -482,13 +482,13 @@ slightly.
+ <para>Gadget drivers
+ rely on common USB structures and constants
+ defined in the
+-<filename>&lt;linux/usb_ch9.h&gt;</filename>
++<filename>&lt;linux/usb/ch9.h&gt;</filename>
+ header file, which is standard in Linux 2.6 kernels.
+ These are the same types and constants used by host
+ side drivers (and usbcore).
+ </para>
+ 
+-!Iinclude/linux/usb_ch9.h
++!Iinclude/linux/usb/ch9.h
+ </sect1>
+ 
+ <sect1 id="core"><title>Core Objects and Methods</title>
+diff -puN Documentation/DocBook/usb.tmpl~fix-gregkh-usb-usb-linux-usb_ch9h-becomes-linux-usb-ch9h Documentation/DocBook/usb.tmpl
+--- a/Documentation/DocBook/usb.tmpl~fix-gregkh-usb-usb-linux-usb_ch9h-becomes-linux-usb-ch9h
++++ a/Documentation/DocBook/usb.tmpl
+@@ -187,13 +187,13 @@
+ 
+ <chapter><title>USB-Standard Types</title>
+ 
+-    <para>In <filename>&lt;linux/usb_ch9.h&gt;</filename> you will find
++    <para>In <filename>&lt;linux/usb/ch9.h&gt;</filename> you will find
+     the USB data types defined in chapter 9 of the USB specification.
+     These data types are used throughout USB, and in APIs including
+     this host side API, gadget APIs, and usbfs.
+     </para>
+ 
+-!Iinclude/linux/usb_ch9.h
++!Iinclude/linux/usb/ch9.h
+ 
+     </chapter>
+ 
+@@ -574,7 +574,7 @@ for (;;) {
+ #include &lt;asm/byteorder.h&gt;</programlisting>
+ 	    The standard USB device model requests, from "Chapter 9" of
+ 	    the USB 2.0 specification, are automatically included from
+-	    the <filename>&lt;linux/usb_ch9.h&gt;</filename> header.
++	    the <filename>&lt;linux/usb/ch9.h&gt;</filename> header.
+ 	    </para>
+ 
+ 	    <para>Unless noted otherwise, the ioctl requests
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dwm@meer.net are
 
 origin.patch
-git-acpi.patch
-git-agpgart.patch
-git-cifs-fix.patch
-git-cpufreq.patch
-fix-warning-in-device_add_attrs.patch
-git-drm.patch
-git-dvb.patch
-git-infiniband.patch
-sis-warning-fixes.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-md-accel-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-git-backlight.patch
-git-backlight-sony-fix.patch
-git-nfs-fixup.patch
-git-sh.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-revert-x86_64-mm-msr-on-cpu.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-mm-vm_insert_pfn-tidy.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-swiotlb-uninlinings.patch
-kprobes-list-all-active-probes-in-the-system-tidy.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
-revert-x86_64-mm-putreg-check.patch
-fbdev-driver-for-s3-trio-virge-update-2-fix.patch
-deprecate-sa_interrupt-and-friends.patch
-git-gccbug-fixup.patch
