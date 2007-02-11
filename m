@@ -1,131 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-more-unlock-on-error-fixes.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:50:53 -0800
-Message-ID: <200702112250.l1BMorHE015900@shell0.pdx.osdl.net>
+Subject: - lockdep-add-graph-depth-information-to-proc-lockdep.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:50:56 -0800
+Message-ID: <200702112250.l1BMouhc015906@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60089 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60109 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932754AbXBKWvP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:51:15 -0500
+	id S932755AbXBKWvZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:51:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jarkao2@o2.pl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: jbaron@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: more unlock-on-error fixes
+     lockdep: add graph depth information to /proc/lockdep
 has been removed from the -mm tree.  Its filename was
-     lockdep-more-unlock-on-error-fixes.patch
+     lockdep-add-graph-depth-information-to-proc-lockdep.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: more unlock-on-error fixes
-From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: lockdep: add graph depth information to /proc/lockdep
+From: Jason Baron <jbaron@redhat.com>
 
-- returns after DEBUG_LOCKS_WARN_ON added in 3 places
+Generate locking graph information into /proc/lockdep, for lock hierarchy
+documentation and visualization purposes.
 
-- debug_locks checking after lookup_chain_cache() added in
-  __lock_acquire()
+sample output:
 
-- locking for testing and changing global variable max_lockdep_depth
-  added in __lock_acquire()
+ c089fd5c OPS:     138 FD:   14 BD:    1 --..: &tty->termios_mutex
+  -> [c07a3430] tty_ldisc_lock
+  -> [c07a37f0] &port_lock_key
+  -> [c07afdc0] &rq->rq_lock_key#2
 
+The lock classes listed are all the first-hop lock dependencies that
+lockdep has seen so far.
 
-My __acquire_lock() cleanup introduced a locking bug: on SMP systems we'd
-release a non-owned graph lock.  Fix this by moving the graph unlock back,
-and by leaving the max_lockdep_depth variable update possibly racy.  (we
-dont care, it's just statistics)
-
-Also add some minimal debugging code to graph_unlock()/graph_lock(),
-which caught this locking bug.
-
-Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ include/linux/lockdep.h |    1 
+ kernel/lockdep.c        |   19 +++++++++++------
+ kernel/lockdep_proc.c   |   41 ++++++++++++++++++++++++++------------
+ 3 files changed, 42 insertions(+), 19 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-more-unlock-on-error-fixes kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-more-unlock-on-error-fixes
-+++ a/kernel/lockdep.c
-@@ -70,6 +70,9 @@ static int graph_lock(void)
+diff -puN include/linux/lockdep.h~lockdep-add-graph-depth-information-to-proc-lockdep include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockdep-add-graph-depth-information-to-proc-lockdep
++++ a/include/linux/lockdep.h
+@@ -132,6 +132,7 @@ struct lock_list {
+ 	struct list_head		entry;
+ 	struct lock_class		*class;
+ 	struct stack_trace		trace;
++	int				distance;
+ };
  
- static inline int graph_unlock(void)
+ /*
+diff -puN kernel/lockdep.c~lockdep-add-graph-depth-information-to-proc-lockdep kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-add-graph-depth-information-to-proc-lockdep
++++ a/kernel/lockdep.c
+@@ -490,7 +490,7 @@ static void print_lock_dependencies(stru
+  * Add a new dependency to the head of the list:
+  */
+ static int add_lock_to_list(struct lock_class *class, struct lock_class *this,
+-			    struct list_head *head, unsigned long ip)
++			    struct list_head *head, unsigned long ip, int distance)
  {
-+	if (debug_locks && !__raw_spin_is_locked(&lockdep_lock))
-+		return DEBUG_LOCKS_WARN_ON(1);
-+
- 	__raw_spin_unlock(&lockdep_lock);
- 	return 0;
- }
-@@ -712,6 +715,9 @@ find_usage_backwards(struct lock_class *
+ 	struct lock_list *entry;
+ 	/*
+@@ -502,6 +502,7 @@ static int add_lock_to_list(struct lock_
+ 		return 0;
+ 
+ 	entry->class = this;
++	entry->distance = distance;
+ 	if (!save_trace(&entry->trace))
+ 		return 0;
+ 
+@@ -906,7 +907,7 @@ check_deadlock(struct task_struct *curr,
+  */
+ static int
+ check_prev_add(struct task_struct *curr, struct held_lock *prev,
+-	       struct held_lock *next)
++	       struct held_lock *next, int distance)
+ {
  	struct lock_list *entry;
  	int ret;
- 
-+	if (!__raw_spin_is_locked(&lockdep_lock))
-+		return DEBUG_LOCKS_WARN_ON(1);
-+
- 	if (depth > max_recursion_depth)
- 		max_recursion_depth = depth;
- 	if (depth >= RECURSION_LIMIT)
-@@ -1293,7 +1299,8 @@ out_unlock_set:
- 	if (!subclass || force)
- 		lock->class_cache = class;
- 
--	DEBUG_LOCKS_WARN_ON(class->subclass != subclass);
-+	if (DEBUG_LOCKS_WARN_ON(class->subclass != subclass))
-+		return NULL;
- 
- 	return class;
- }
-@@ -1308,7 +1315,8 @@ static inline int lookup_chain_cache(u64
- 	struct list_head *hash_head = chainhashentry(chain_key);
- 	struct lock_chain *chain;
- 
--	DEBUG_LOCKS_WARN_ON(!irqs_disabled());
-+	if (DEBUG_LOCKS_WARN_ON(!irqs_disabled()))
-+		return 0;
- 	/*
- 	 * We can walk it lock-free, because entries only get added
- 	 * to the hash:
-@@ -1394,7 +1402,9 @@ static void check_chain_key(struct task_
- 			return;
- 		}
- 		id = hlock->class - lock_classes;
--		DEBUG_LOCKS_WARN_ON(id >= MAX_LOCKDEP_KEYS);
-+		if (DEBUG_LOCKS_WARN_ON(id >= MAX_LOCKDEP_KEYS))
-+			return;
-+
- 		if (prev_hlock && (prev_hlock->irq_context !=
- 							hlock->irq_context))
- 			chain_key = 0;
-@@ -2205,7 +2215,11 @@ out_calc_hash:
- 			if (!check_prevs_add(curr, hlock))
- 				return 0;
- 		graph_unlock();
--	}
-+	} else
-+		/* after lookup_chain_cache(): */
-+		if (unlikely(!debug_locks))
-+			return 0;
-+
- 	curr->lockdep_depth++;
- 	check_chain_key(curr);
- 	if (unlikely(curr->lockdep_depth >= MAX_LOCK_DEPTH)) {
-@@ -2214,6 +2228,7 @@ out_calc_hash:
- 		printk("turning off the locking correctness validator.\n");
- 		return 0;
+@@ -984,8 +985,11 @@ check_prev_add(struct task_struct *curr,
+ 	 *  L2 added to its dependency list, due to the first chain.)
+ 	 */
+ 	list_for_each_entry(entry, &prev->class->locks_after, entry) {
+-		if (entry->class == next->class)
++		if (entry->class == next->class) {
++			if (distance == 1)
++				entry->distance = 1;
+ 			return 2;
++		}
  	}
+ 
+ 	/*
+@@ -993,12 +997,13 @@ check_prev_add(struct task_struct *curr,
+ 	 * to the previous lock's dependency list:
+ 	 */
+ 	ret = add_lock_to_list(prev->class, next->class,
+-			       &prev->class->locks_after, next->acquire_ip);
++			       &prev->class->locks_after, next->acquire_ip, distance);
 +
- 	if (unlikely(curr->lockdep_depth > max_lockdep_depth))
- 		max_lockdep_depth = curr->lockdep_depth;
+ 	if (!ret)
+ 		return 0;
+ 
+ 	ret = add_lock_to_list(next->class, prev->class,
+-			       &next->class->locks_before, next->acquire_ip);
++			       &next->class->locks_before, next->acquire_ip, distance);
+ 	if (!ret)
+ 		return 0;
+ 
+@@ -1046,13 +1051,14 @@ check_prevs_add(struct task_struct *curr
+ 		goto out_bug;
+ 
+ 	for (;;) {
++		int distance = curr->lockdep_depth - depth + 1;
+ 		hlock = curr->held_locks + depth-1;
+ 		/*
+ 		 * Only non-recursive-read entries get new dependencies
+ 		 * added:
+ 		 */
+ 		if (hlock->read != 2) {
+-			if (!check_prev_add(curr, hlock, next))
++			if (!check_prev_add(curr, hlock, next, distance))
+ 				return 0;
+ 			/*
+ 			 * Stop after the first non-trylock entry,
+@@ -2779,4 +2785,3 @@ void debug_show_held_locks(struct task_s
+ }
+ 
+ EXPORT_SYMBOL_GPL(debug_show_held_locks);
+-
+diff -puN kernel/lockdep_proc.c~lockdep-add-graph-depth-information-to-proc-lockdep kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockdep-add-graph-depth-information-to-proc-lockdep
++++ a/kernel/lockdep_proc.c
+@@ -77,12 +77,29 @@ static unsigned long count_backward_deps
+ 	return ret;
+ }
+ 
++static void print_name(struct seq_file *m, struct lock_class *class)
++{
++	char str[128];
++	const char *name = class->name;
++
++	if (!name) {
++		name = __get_key_name(class->key, str);
++		seq_printf(m, "%s", name);
++	} else{
++		seq_printf(m, "%s", name);
++		if (class->name_version > 1)
++			seq_printf(m, "#%d", class->name_version);
++		if (class->subclass)
++			seq_printf(m, "/%d", class->subclass);
++	}
++}
++
+ static int l_show(struct seq_file *m, void *v)
+ {
+ 	unsigned long nr_forward_deps, nr_backward_deps;
+ 	struct lock_class *class = m->private;
+-	char str[128], c1, c2, c3, c4;
+-	const char *name;
++	struct lock_list *entry;
++	char c1, c2, c3, c4;
+ 
+ 	seq_printf(m, "%p", class->key);
+ #ifdef CONFIG_DEBUG_LOCKDEP
+@@ -97,16 +114,16 @@ static int l_show(struct seq_file *m, vo
+ 	get_usage_chars(class, &c1, &c2, &c3, &c4);
+ 	seq_printf(m, " %c%c%c%c", c1, c2, c3, c4);
+ 
+-	name = class->name;
+-	if (!name) {
+-		name = __get_key_name(class->key, str);
+-		seq_printf(m, ": %s", name);
+-	} else{
+-		seq_printf(m, ": %s", name);
+-		if (class->name_version > 1)
+-			seq_printf(m, "#%d", class->name_version);
+-		if (class->subclass)
+-			seq_printf(m, "/%d", class->subclass);
++	seq_printf(m, ": ");
++	print_name(m, class);
++	seq_puts(m, "\n");
++
++	list_for_each_entry(entry, &class->locks_after, entry) {
++		if (entry->distance == 1) {
++			seq_printf(m, " -> [%p] ", entry->class);
++			print_name(m, entry->class);
++			seq_puts(m, "\n");
++		}
+ 	}
+ 	seq_puts(m, "\n");
  
 _
 
-Patches currently in -mm which might be from jarkao2@o2.pl are
+Patches currently in -mm which might be from jbaron@redhat.com are
 
 origin.patch
