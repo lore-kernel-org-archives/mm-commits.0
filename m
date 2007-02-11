@@ -1,96 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - cleanup-include-linux-reiserfs_xattrh.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:52 -0800
-Message-ID: <200702112254.l1BMsq7Y016275@shell0.pdx.osdl.net>
+Subject: - cpu_freq_table-shouldnt-be-a-def_tristate.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:56:05 -0800
+Message-ID: <200702112256.l1BMu5Bv016380@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60787 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60824 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932910AbXBKW6F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:58:05 -0500
+	id S932713AbXBKW7V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:59:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cleanup include/linux/reiserfs_xattr.h
+     CPU_FREQ_TABLE shouldn't be a def_tristate
 has been removed from the -mm tree.  Its filename was
-     cleanup-include-linux-reiserfs_xattrh.patch
+     cpu_freq_table-shouldnt-be-a-def_tristate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cleanup include/linux/reiserfs_xattr.h
+Subject: CPU_FREQ_TABLE shouldn't be a def_tristate
 From: Adrian Bunk <bunk@stusta.de>
 
-- #ifdef guard this header for multiple inclusion
-- adjust the #include's to what is actually required by this header
-- remove an unneeded #ifdef
-- #endif comments
+CPU_FREQ_TABLE enables helper code and gets select'ed when it's required.
+
+Building it as a module when it's not required doesn't seem to make much
+sense.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reiserfs_xattr.h |   24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ drivers/cpufreq/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/reiserfs_xattr.h~cleanup-include-linux-reiserfs_xattrh include/linux/reiserfs_xattr.h
---- a/include/linux/reiserfs_xattr.h~cleanup-include-linux-reiserfs_xattrh
-+++ a/include/linux/reiserfs_xattr.h
-@@ -2,7 +2,10 @@
-   File: linux/reiserfs_xattr.h
- */
+diff -puN drivers/cpufreq/Kconfig~cpu_freq_table-shouldnt-be-a-def_tristate drivers/cpufreq/Kconfig
+--- a/drivers/cpufreq/Kconfig~cpu_freq_table-shouldnt-be-a-def_tristate
++++ a/drivers/cpufreq/Kconfig
+@@ -16,7 +16,7 @@ config CPU_FREQ
+ if CPU_FREQ
  
--#include <linux/xattr.h>
-+#ifndef _LINUX_REISERFS_XATTR_H
-+#define _LINUX_REISERFS_XATTR_H
-+
-+#include <linux/types.h>
+ config CPU_FREQ_TABLE
+-       def_tristate m
++       tristate
  
- /* Magic value in header */
- #define REISERFS_XATTR_MAGIC 0x52465841	/* "RFXA" */
-@@ -13,7 +16,18 @@ struct reiserfs_xattr_header {
- };
- 
- #ifdef __KERNEL__
-+
- #include <linux/init.h>
-+#include <linux/list.h>
-+#include <linux/rwsem.h>
-+#include <linux/reiserfs_fs_i.h>
-+#include <linux/reiserfs_fs.h>
-+
-+struct inode;
-+struct dentry;
-+struct iattr;
-+struct super_block;
-+struct nameidata;
- 
- struct reiserfs_xattr_handler {
- 	char *prefix;
-@@ -49,9 +63,7 @@ int reiserfs_xattr_set(struct inode *, c
- 
- extern struct reiserfs_xattr_handler user_handler;
- extern struct reiserfs_xattr_handler trusted_handler;
--#ifdef CONFIG_REISERFS_FS_SECURITY
- extern struct reiserfs_xattr_handler security_handler;
--#endif
- 
- int reiserfs_xattr_register_handlers(void) __init;
- void reiserfs_xattr_unregister_handlers(void);
-@@ -137,6 +149,8 @@ static inline int reiserfs_xattr_init(st
- static inline void reiserfs_init_xattr_rwsem(struct inode *inode)
- {
- }
--#endif
-+#endif  /*  CONFIG_REISERFS_FS_XATTR  */
-+
-+#endif  /*  __KERNEL__  */
- 
--#endif				/* __KERNEL__ */
-+#endif  /*  _LINUX_REISERFS_XATTR_H  */
+ config CPU_FREQ_DEBUG
+ 	bool "Enable CPUfreq debugging"
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
