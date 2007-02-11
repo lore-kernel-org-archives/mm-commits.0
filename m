@@ -1,179 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - seq_file-conversion-coda.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:18 -0800
-Message-ID: <200702112254.l1BMsIqg016200@shell0.pdx.osdl.net>
+Subject: - kernel-doc-fix-some-odd-spacing-issues.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:53:58 -0800
+Message-ID: <200702112253.l1BMrwJm016158@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60473 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60442 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932864AbXBKWyX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:54:23 -0500
+	id S932848AbXBKWyK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:54:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     seq_file conversion: coda
+     kernel-doc: fix some odd spacing issues
 has been removed from the -mm tree.  Its filename was
-     seq_file-conversion-coda.patch
+     kernel-doc-fix-some-odd-spacing-issues.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: seq_file conversion: coda
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: kernel-doc: fix some odd spacing issues
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Compile-tested.
+- in man and text mode output, if the function return type is empty (like it
+  is for macros), don't print the return type and a following space; this
+  fixes an output malalignment;
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: <jaharkes@cs.cmu.edu>
+- in the function short description, strip leading, trailing, and multiple
+  embedded spaces (to one space); this makes function name/description output
+  spacing consistent;
+
+- fix a comment typo;
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/sysctl.c |   78 +++++++++++++++++++++++----------------------
- 1 file changed, 40 insertions(+), 38 deletions(-)
+ scripts/kernel-doc |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-diff -puN fs/coda/sysctl.c~seq_file-conversion-coda fs/coda/sysctl.c
---- a/fs/coda/sysctl.c~seq_file-conversion-coda
-+++ a/fs/coda/sysctl.c
-@@ -15,6 +15,7 @@
- #include <linux/mm.h>
- #include <linux/sysctl.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
- #include <linux/slab.h>
- #include <linux/stat.h>
- #include <linux/ctype.h>
-@@ -84,15 +85,11 @@ static int do_reset_coda_cache_inv_stats
- 	return 0;
- }
+diff -puN scripts/kernel-doc~kernel-doc-fix-some-odd-spacing-issues scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-fix-some-odd-spacing-issues
++++ a/scripts/kernel-doc
+@@ -365,7 +365,7 @@ sub dump_section {
+ #  parameterlist => @list of parameters
+ #  parameterdescs => %parameter descriptions
+ #  sectionlist => @list of sections
+-#  sections => %descriont descriptions
++#  sections => %section descriptions
+ #
  
--static int coda_vfs_stats_get_info( char * buffer, char ** start,
--				    off_t offset, int length)
-+static int proc_vfs_stats_show(struct seq_file *m, void *v)
- {
--	int len=0;
--	off_t begin;
- 	struct coda_vfs_stats * ps = & coda_vfs_stat;
-   
--  /* this works as long as we are below 1024 characters! */
--	len += sprintf( buffer,
-+	seq_printf(m,
- 			"Coda VFS statistics\n"
- 			"===================\n\n"
- 			"File Operations:\n"
-@@ -132,28 +129,14 @@ static int coda_vfs_stats_get_info( char
- 			ps->rmdir,
- 			ps->rename,
- 			ps->permission); 
--
--	begin = offset;
--	*start = buffer + begin;
--	len -= begin;
--
--	if ( len > length )
--		len = length;
--	if ( len < 0 )
--		len = 0;
--
--	return len;
-+	return 0;
- }
+ sub output_highlight {
+@@ -953,7 +953,11 @@ sub output_function_man(%) {
+     print $args{'function'}." \\- ".$args{'purpose'}."\n";
  
--static int coda_cache_inv_stats_get_info( char * buffer, char ** start,
--					  off_t offset, int length)
-+static int proc_cache_inv_stats_show(struct seq_file *m, void *v)
- {
--	int len=0;
--	off_t begin;
- 	struct coda_cache_inv_stats * ps = & coda_cache_inv_stat;
-   
--	/* this works as long as we are below 1024 characters! */
--	len += sprintf( buffer,
-+	seq_printf(m,
- 			"Coda cache invalidation statistics\n"
- 			"==================================\n\n"
- 			"flush\t\t%9d\n"
-@@ -170,19 +153,35 @@ static int coda_cache_inv_stats_get_info
- 			ps->zap_vnode,
- 			ps->purge_fid,
- 			ps->replace );
--  
--	begin = offset;
--	*start = buffer + begin;
--	len -= begin;
--
--	if ( len > length )
--		len = length;
--	if ( len < 0 )
--		len = 0;
-+	return 0;
-+}
+     print ".SH SYNOPSIS\n";
+-    print ".B \"".$args{'functiontype'}."\" ".$args{'function'}."\n";
++    if ($args{'functiontype'} ne "") {
++	print ".B \"".$args{'functiontype'}."\" ".$args{'function'}."\n";
++    } else {
++	print ".B \"".$args{'function'}."\n";
++    }
+     $count = 0;
+     my $parenth = "(";
+     my $post = ",";
+@@ -1118,13 +1122,19 @@ sub output_intro_man(%) {
+ sub output_function_text(%) {
+     my %args = %{$_[0]};
+     my ($parameter, $section);
++    my $start;
  
--	return len;
-+static int proc_vfs_stats_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, proc_vfs_stats_show, NULL);
- }
+     print "Name:\n\n";
+     print $args{'function'}." - ".$args{'purpose'}."\n";
  
-+static int proc_cache_inv_stats_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, proc_cache_inv_stats_show, NULL);
-+}
+     print "\nSynopsis:\n\n";
+-    my $start=$args{'functiontype'}." ".$args{'function'}." (";
++    if ($args{'functiontype'} ne "") {
++	$start = $args{'functiontype'}." ".$args{'function'}." (";
++    } else {
++	$start = $args{'function'}." (";
++    }
+     print $start;
 +
-+static const struct file_operations proc_vfs_stats_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= proc_vfs_stats_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static const struct file_operations proc_cache_inv_stats_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= proc_cache_inv_stats_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
- static ctl_table coda_table[] = {
-  	{CODA_TIMEOUT, "timeout", &coda_timeout, sizeof(int), 0644, NULL, &proc_dointvec},
-  	{CODA_HARD, "hard", &coda_hard, sizeof(int), 0644, NULL, &proc_dointvec},
-@@ -212,9 +211,6 @@ static struct proc_dir_entry* proc_fs_co
+     my $count = 0;
+     foreach my $parameter (@{$args{'parameterlist'}}) {
+ 	$type = $args{'parametertypes'}{$parameter};
+@@ -1710,6 +1720,7 @@ sub process_file($) {
+     my $file;
+     my $identifier;
+     my $func;
++    my $descr;
+     my $initial_section_counter = $section_counter;
  
- #endif
+     if (defined($ENV{'SRCTREE'})) {
+@@ -1753,7 +1764,12 @@ sub process_file($) {
  
--#define coda_proc_create(name,get_info) \
--	create_proc_info_entry(name, 0, proc_fs_coda, get_info)
--
- void coda_sysctl_init(void)
- {
- 	reset_coda_vfs_stats();
-@@ -223,9 +219,15 @@ void coda_sysctl_init(void)
- #ifdef CONFIG_PROC_FS
- 	proc_fs_coda = proc_mkdir("coda", proc_root_fs);
- 	if (proc_fs_coda) {
-+		struct proc_dir_entry *pde;
-+
- 		proc_fs_coda->owner = THIS_MODULE;
--		coda_proc_create("vfs_stats", coda_vfs_stats_get_info);
--		coda_proc_create("cache_inv_stats", coda_cache_inv_stats_get_info);
-+		pde = create_proc_entry("vfs_stats", 0, proc_fs_coda);
-+		if (pde)
-+			pde->proc_fops = &proc_vfs_stats_fops;
-+		pde = create_proc_entry("cache_inv_stats", 0, proc_fs_coda);
-+		if (pde)
-+			pde->proc_fops = &proc_cache_inv_stats_fops;
- 	}
- #endif
- 
+ 		$state = 2;
+ 		if (/-(.*)/) {
+-		    $declaration_purpose = xml_escape($1);
++		    # strip leading/trailing/multiple spaces #RDD:T:
++		    $descr= $1;
++		    $descr =~ s/^\s*//;
++		    $descr =~ s/\s*$//;
++		    $descr =~ s/\s+/ /;
++		    $declaration_purpose = xml_escape($descr);
+ 		} else {
+ 		    $declaration_purpose = "";
+ 		}
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-git-dvb.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-recognize-video=gx1fb-option.patch
+git-drm.patch
+qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
+git-mtd.patch
+git-netdev-all.patch
+phy-layer-add-kernel-doc-docbook.patch
+parisc-fix-module_param-iommu-permission.patch
+ueagle-atmc-needs-schedh.patch
+com20020-build-fix.patch
+drivers-telephony-ixj-convert-to-generic-boolean.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
