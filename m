@@ -1,129 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - sysrq-alphabetize-command-keys-doc.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:53:36 -0800
-Message-ID: <200702112253.l1BMraAD016110@shell0.pdx.osdl.net>
+Subject: - local_t-documentation.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:53:50 -0800
+Message-ID: <200702112253.l1BMroK5016139@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60396 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60414 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932828AbXBKWxr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:53:47 -0500
+	id S932839AbXBKWx6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:53:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysrq: alphabetize command keys doc
+     local_t: Documentation
 has been removed from the -mm tree.  Its filename was
-     sysrq-alphabetize-command-keys-doc.patch
+     local_t-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysrq: alphabetize command keys doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: local_t: Documentation
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Alphabetize the sysrq command keys list.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysrq.txt |   44 +++++++++++++++++++-------------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ Documentation/local_ops.txt |  163 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 163 insertions(+)
 
-diff -puN Documentation/sysrq.txt~sysrq-alphabetize-command-keys-doc Documentation/sysrq.txt
---- a/Documentation/sysrq.txt~sysrq-alphabetize-command-keys-doc
-+++ a/Documentation/sysrq.txt
-@@ -64,11 +64,6 @@ On all -  write a character to /proc/sys
- 
- *  What are the 'command' keys?
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
--'r'     - Turns off keyboard raw mode and sets it to XLATE.
--
--'k'     - Secure Access Key (SAK) Kills all programs on the current virtual
--          console. NOTE: See important comments below in SAK section.
--
- 'b'     - Will immediately reboot the system without syncing or unmounting
-           your disks.
- 
-@@ -76,21 +71,37 @@ On all -  write a character to /proc/sys
- 
- 'd'	- Shows all locks that are held.
- 
--'o'     - Will shut your system off (if configured and supported).
-+'e'     - Send a SIGTERM to all processes, except for init.
- 
--'s'     - Will attempt to sync all mounted filesystems.
-+'f'	- Will call oom_kill to kill a memory hog process.
- 
--'u'     - Will attempt to remount all mounted filesystems read-only.
-+'g'	- Used by kgdb on ppc platforms.
- 
--'p'     - Will dump the current registers and flags to your console.
-+'h'     - Will display help (actually any other key than those listed
-+          above will display help. but 'h' is easy to remember :-)
- 
--'t'     - Will dump a list of current tasks and their information to your
--          console.
-+'i'     - Send a SIGKILL to all processes, except for init.
+diff -puN /dev/null Documentation/local_ops.txt
+--- /dev/null
++++ a/Documentation/local_ops.txt
+@@ -0,0 +1,163 @@
++	     Semantics and Behavior of Local Atomic Operations
 +
-+'k'     - Secure Access Key (SAK) Kills all programs on the current virtual
-+          console. NOTE: See important comments below in SAK section.
- 
- 'm'     - Will dump current memory info to your console.
- 
- 'n'	- Used to make RT tasks nice-able
- 
-+'o'     - Will shut your system off (if configured and supported).
++			    Mathieu Desnoyers
 +
-+'p'     - Will dump the current registers and flags to your console.
 +
-+'r'     - Turns off keyboard raw mode and sets it to XLATE.
++	This document explains the purpose of the local atomic operations, how
++to implement them for any given architecture and shows how they can be used
++properly. It also stresses on the precautions that must be taken when reading
++those local variables across CPUs when the order of memory writes matters.
 +
-+'s'     - Will attempt to sync all mounted filesystems.
 +
-+'t'     - Will dump a list of current tasks and their information to your
-+          console.
 +
-+'u'     - Will attempt to remount all mounted filesystems read-only.
++* Purpose of local atomic operations
 +
- 'v'	- Dumps Voyager SMP processor info to your console.
- 
- 'w'	- Dumps tasks that are in uninterruptable (blocked) state.
-@@ -102,17 +113,6 @@ On all -  write a character to /proc/sys
-           it so that only emergency messages like PANICs or OOPSes would
-           make it to your console.)
- 
--'f'	- Will call oom_kill to kill a memory hog process.
--
--'e'     - Send a SIGTERM to all processes, except for init.
--
--'g'	- Used by kgdb on ppc platforms.
--
--'i'     - Send a SIGKILL to all processes, except for init.
--
--'h'     - Will display help (actually any other key than those listed
--          above will display help. but 'h' is easy to remember :-)
--
- *  Okay, so what can I use them for?
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Well, un'R'aw is very handy when your X server or a svgalib program crashes.
++Local atomic operations are meant to provide fast and highly reentrant per CPU
++counters. They minimize the performance cost of standard atomic operations by
++removing the LOCK prefix and memory barriers normally required to synchronize
++across CPUs.
++
++Having fast per CPU atomic counters is interesting in many cases : it does not
++require disabling interrupts to protect from interrupt handlers and it permits
++coherent counters in NMI handlers. It is especially useful for tracing purposes
++and for various performance monitoring counters.
++
++Local atomic operations only guarantee variable modification atomicity wrt the
++CPU which owns the data. Therefore, care must taken to make sure that only one
++CPU writes to the local_t data. This is done by using per cpu data and making
++sure that we modify it from within a preemption safe context. It is however
++permitted to read local_t data from any CPU : it will then appear to be written
++out of order wrt other memory writes on the owner CPU.
++
++
++* Implementation for a given architecture
++
++It can be done by slightly modifying the standard atomic operations : only
++their UP variant must be kept. It typically means removing LOCK prefix (on
++i386 and x86_64) and any SMP sychronization barrier. If the architecture does
++not have a different behavior between SMP and UP, including asm-generic/local.h
++in your archtecture's local.h is sufficient.
++
++The local_t type is defined as an opaque signed long by embedding an
++atomic_long_t inside a structure. This is made so a cast from this type to a
++long fails. The definition looks like :
++
++typedef struct { atomic_long_t a; } local_t;
++
++
++* How to use local atomic operations
++
++#include <linux/percpu.h>
++#include <asm/local.h>
++
++static DEFINE_PER_CPU(local_t, counters) = LOCAL_INIT(0);
++
++
++* Counting
++
++Counting is done on all the bits of a signed long.
++
++In preemptible context, use get_cpu_var() and put_cpu_var() around local atomic
++operations : it makes sure that preemption is disabled around write access to
++the per cpu variable. For instance :
++
++	local_inc(&get_cpu_var(counters));
++	put_cpu_var(counters);
++
++If you are already in a preemption-safe context, you can directly use
++__get_cpu_var() instead.
++
++	local_inc(&__get_cpu_var(counters));
++
++
++
++* Reading the counters
++
++Those local counters can be read from foreign CPUs to sum the count. Note that
++the data seen by local_read across CPUs must be considered to be out of order
++relatively to other memory writes happening on the CPU that owns the data.
++
++	long sum = 0;
++	for_each_online_cpu(cpu)
++		sum += local_read(&per_cpu(counters, cpu));
++
++If you want to use a remote local_read to synchronize access to a resource
++between CPUs, explicit smp_wmb() and smp_rmb() memory barriers must be used
++respectively on the writer and the reader CPUs. It would be the case if you use
++the local_t variable as a counter of bytes written in a buffer : there should
++be a smp_wmb() between the buffer write and the counter increment and also a
++smp_rmb() between the counter read and the buffer read.
++
++
++Here is a sample module which implements a basic per cpu counter using local.h.
++
++--- BEGIN ---
++/* test-local.c
++ *
++ * Sample module for local.h usage.
++ */
++
++
++#include <asm/local.h>
++#include <linux/module.h>
++#include <linux/timer.h>
++
++static DEFINE_PER_CPU(local_t, counters) = LOCAL_INIT(0);
++
++static struct timer_list test_timer;
++
++/* IPI called on each CPU. */
++static void test_each(void *info)
++{
++	/* Increment the counter from a non preemptible context */
++	printk("Increment on cpu %d\n", smp_processor_id());
++	local_inc(&__get_cpu_var(counters));
++
++	/* This is what incrementing the variable would look like within a
++	 * preemptible context (it disables preemption) :
++	 *
++	 * local_inc(&get_cpu_var(counters));
++	 * put_cpu_var(counters);
++	 */
++}
++
++static void do_test_timer(unsigned long data)
++{
++	int cpu;
++
++	/* Increment the counters */
++	on_each_cpu(test_each, NULL, 0, 1);
++	/* Read all the counters */
++	printk("Counters read from CPU %d\n", smp_processor_id());
++	for_each_online_cpu(cpu) {
++		printk("Read : CPU %d, count %ld\n", cpu,
++			local_read(&per_cpu(counters, cpu)));
++	}
++	del_timer(&test_timer);
++	test_timer.expires = jiffies + 1000;
++	add_timer(&test_timer);
++}
++
++static int __init test_init(void)
++{
++	/* initialize the timer that will increment the counter */
++	init_timer(&test_timer);
++	test_timer.function = do_test_timer;
++	test_timer.expires = jiffies + 1;
++	add_timer(&test_timer);
++
++	return 0;
++}
++
++static void __exit test_exit(void)
++{
++	del_timer_sync(&test_timer);
++}
++
++module_init(test_init);
++module_exit(test_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Mathieu Desnoyers");
++MODULE_DESCRIPTION("Local Atomic Ops");
++--- END ---
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-git-drm.patch
-qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
-git-mtd.patch
-git-netdev-all.patch
-phy-layer-add-kernel-doc-docbook.patch
-parisc-fix-module_param-iommu-permission.patch
-ueagle-atmc-needs-schedh.patch
-com20020-build-fix.patch
-drivers-telephony-ixj-convert-to-generic-boolean.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+git-mips.patch
