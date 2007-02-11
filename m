@@ -1,219 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: - remove-hotplug-cpu-crap-from-cpufreq.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:55:56 -0800
-Message-ID: <200702112255.l1BMtuFE016368@shell0.pdx.osdl.net>
+Subject: - sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:56:12 -0800
+Message-ID: <200702112256.l1BMuChi016392@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60680 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60686 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932894AbXBKW4N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:56:13 -0500
+	id S932898AbXBKW4P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:56:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, dgc@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove hotplug cpu crap from cpufreq
+     sysctl: xfs: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     remove-hotplug-cpu-crap-from-cpufreq.patch
+     sysctl-xfs-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove hotplug cpu crap from cpufreq
-From: Dave Jones <davej@redhat.com>
+Subject: sysctl: xfs: remove unnecessary insert_at_head flag
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-The hotplug CPU locking in cpufreq is horrendous.  No-one seems to care
-enough to fix it, so just remove it so that the 99.9% of the real world
-users of this code can use cpufreq without being bothered by warnings.
-
-Signed-off-by: Dave Jones <davej@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: David Chinner <dgc@sgi.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/cpufreq/cpufreq.c              |   16 ----------------
- drivers/cpufreq/cpufreq_conservative.c |    2 --
- drivers/cpufreq/cpufreq_ondemand.c     |    2 --
- drivers/cpufreq/cpufreq_stats.c        |    2 --
- drivers/cpufreq/cpufreq_userspace.c    |    2 --
- 5 files changed, 24 deletions(-)
+ fs/xfs/linux-2.6/xfs_sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~remove-hotplug-cpu-crap-from-cpufreq drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~remove-hotplug-cpu-crap-from-cpufreq
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -415,12 +415,10 @@ static ssize_t store_##file_name					\
- 	if (ret != 1)							\
- 		return -EINVAL;						\
- 									\
--	lock_cpu_hotplug();						\
- 	mutex_lock(&policy->lock);					\
- 	ret = __cpufreq_set_policy(policy, &new_policy);		\
- 	policy->user_policy.object = policy->object;			\
- 	mutex_unlock(&policy->lock);					\
--	unlock_cpu_hotplug();						\
- 									\
- 	return ret ? ret : count;					\
- }
-@@ -479,8 +477,6 @@ static ssize_t store_scaling_governor (s
- 						&new_policy.governor))
- 		return -EINVAL;
- 
--	lock_cpu_hotplug();
--
- 	/* Do not use cpufreq_set_policy here or the user_policy.max
- 	   will be wrongly overridden */
- 	mutex_lock(&policy->lock);
-@@ -490,8 +486,6 @@ static ssize_t store_scaling_governor (s
- 	policy->user_policy.governor = policy->governor;
- 	mutex_unlock(&policy->lock);
- 
--	unlock_cpu_hotplug();
--
- 	if (ret)
- 		return ret;
- 	else
-@@ -1278,7 +1272,6 @@ EXPORT_SYMBOL(cpufreq_unregister_notifie
-  *********************************************************************/
- 
- 
--/* Must be called with lock_cpu_hotplug held */
- int __cpufreq_driver_target(struct cpufreq_policy *policy,
- 			    unsigned int target_freq,
- 			    unsigned int relation)
-@@ -1304,13 +1297,11 @@ int cpufreq_driver_target(struct cpufreq
- 	if (!policy)
- 		return -EINVAL;
- 
--	lock_cpu_hotplug();
- 	mutex_lock(&policy->lock);
- 
- 	ret = __cpufreq_driver_target(policy, target_freq, relation);
- 
- 	mutex_unlock(&policy->lock);
--	unlock_cpu_hotplug();
- 
- 	cpufreq_cpu_put(policy);
- 	return ret;
-@@ -1338,7 +1329,6 @@ int cpufreq_driver_getavg(struct cpufreq
- EXPORT_SYMBOL_GPL(cpufreq_driver_getavg);
- 
- /*
-- * Locking: Must be called with the lock_cpu_hotplug() lock held
-  * when "event" is CPUFREQ_GOV_LIMITS
-  */
- 
-@@ -1433,7 +1423,6 @@ EXPORT_SYMBOL(cpufreq_get_policy);
- /*
-  * data   : current policy.
-  * policy : policy to be set.
-- * Locking: Must be called with the lock_cpu_hotplug() lock held
-  */
- static int __cpufreq_set_policy(struct cpufreq_policy *data,
- 				struct cpufreq_policy *policy)
-@@ -1539,8 +1528,6 @@ int cpufreq_set_policy(struct cpufreq_po
- 	if (!data)
- 		return -EINVAL;
- 
--	lock_cpu_hotplug();
--
- 	/* lock this CPU */
- 	mutex_lock(&data->lock);
- 
-@@ -1552,7 +1539,6 @@ int cpufreq_set_policy(struct cpufreq_po
- 
- 	mutex_unlock(&data->lock);
- 
--	unlock_cpu_hotplug();
- 	cpufreq_cpu_put(data);
- 
- 	return ret;
-@@ -1576,7 +1562,6 @@ int cpufreq_update_policy(unsigned int c
- 	if (!data)
- 		return -ENODEV;
- 
--	lock_cpu_hotplug();
- 	mutex_lock(&data->lock);
- 
- 	dprintk("updating policy for CPU %u\n", cpu);
-@@ -1603,7 +1588,6 @@ int cpufreq_update_policy(unsigned int c
- 	ret = __cpufreq_set_policy(data, &policy);
- 
- 	mutex_unlock(&data->lock);
--	unlock_cpu_hotplug();
- 	cpufreq_cpu_put(data);
- 	return ret;
- }
-diff -puN drivers/cpufreq/cpufreq_conservative.c~remove-hotplug-cpu-crap-from-cpufreq drivers/cpufreq/cpufreq_conservative.c
---- a/drivers/cpufreq/cpufreq_conservative.c~remove-hotplug-cpu-crap-from-cpufreq
-+++ a/drivers/cpufreq/cpufreq_conservative.c
-@@ -430,14 +430,12 @@ static void dbs_check_cpu(int cpu)
- static void do_dbs_timer(struct work_struct *work)
- { 
- 	int i;
--	lock_cpu_hotplug();
- 	mutex_lock(&dbs_mutex);
- 	for_each_online_cpu(i)
- 		dbs_check_cpu(i);
- 	schedule_delayed_work(&dbs_work, 
- 			usecs_to_jiffies(dbs_tuners_ins.sampling_rate));
- 	mutex_unlock(&dbs_mutex);
--	unlock_cpu_hotplug();
- } 
- 
- static inline void dbs_timer_init(void)
-diff -puN drivers/cpufreq/cpufreq_ondemand.c~remove-hotplug-cpu-crap-from-cpufreq drivers/cpufreq/cpufreq_ondemand.c
---- a/drivers/cpufreq/cpufreq_ondemand.c~remove-hotplug-cpu-crap-from-cpufreq
-+++ a/drivers/cpufreq/cpufreq_ondemand.c
-@@ -440,9 +440,7 @@ static void do_dbs_timer(struct work_str
- 	dbs_info->sample_type = DBS_NORMAL_SAMPLE;
- 	if (!dbs_tuners_ins.powersave_bias ||
- 	    sample_type == DBS_NORMAL_SAMPLE) {
--		lock_cpu_hotplug();
- 		dbs_check_cpu(dbs_info);
--		unlock_cpu_hotplug();
- 		if (dbs_info->freq_lo) {
- 			/* Setup timer for SUB_SAMPLE */
- 			dbs_info->sample_type = DBS_SUB_SAMPLE;
-diff -puN drivers/cpufreq/cpufreq_stats.c~remove-hotplug-cpu-crap-from-cpufreq drivers/cpufreq/cpufreq_stats.c
---- a/drivers/cpufreq/cpufreq_stats.c~remove-hotplug-cpu-crap-from-cpufreq
-+++ a/drivers/cpufreq/cpufreq_stats.c
-@@ -370,12 +370,10 @@ __exit cpufreq_stats_exit(void)
- 	cpufreq_unregister_notifier(&notifier_trans_block,
- 			CPUFREQ_TRANSITION_NOTIFIER);
- 	unregister_hotcpu_notifier(&cpufreq_stat_cpu_notifier);
--	lock_cpu_hotplug();
- 	for_each_online_cpu(cpu) {
- 		cpufreq_stat_cpu_callback(&cpufreq_stat_cpu_notifier,
- 						CPU_DEAD, (void *)(long)cpu);
- 	}
--	unlock_cpu_hotplug();
+diff -puN fs/xfs/linux-2.6/xfs_sysctl.c~sysctl-xfs-remove-unnecessary-insert_at_head-flag fs/xfs/linux-2.6/xfs_sysctl.c
+--- a/fs/xfs/linux-2.6/xfs_sysctl.c~sysctl-xfs-remove-unnecessary-insert_at_head-flag
++++ a/fs/xfs/linux-2.6/xfs_sysctl.c
+@@ -149,7 +149,7 @@ STATIC ctl_table xfs_root_table[] = {
+ void
+ xfs_sysctl_register(void)
+ {
+-	xfs_table_header = register_sysctl_table(xfs_root_table, 1);
++	xfs_table_header = register_sysctl_table(xfs_root_table, 0);
  }
  
- MODULE_AUTHOR ("Zou Nan hai <nanhai.zou@intel.com>");
-diff -puN drivers/cpufreq/cpufreq_userspace.c~remove-hotplug-cpu-crap-from-cpufreq drivers/cpufreq/cpufreq_userspace.c
---- a/drivers/cpufreq/cpufreq_userspace.c~remove-hotplug-cpu-crap-from-cpufreq
-+++ a/drivers/cpufreq/cpufreq_userspace.c
-@@ -71,7 +71,6 @@ static int cpufreq_set(unsigned int freq
- 
- 	dprintk("cpufreq_set for cpu %u, freq %u kHz\n", policy->cpu, freq);
- 
--	lock_cpu_hotplug();
- 	mutex_lock(&userspace_mutex);
- 	if (!cpu_is_managed[policy->cpu])
- 		goto err;
-@@ -94,7 +93,6 @@ static int cpufreq_set(unsigned int freq
- 
-  err:
- 	mutex_unlock(&userspace_mutex);
--	unlock_cpu_hotplug();
- 	return ret;
- }
- 
+ void
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-git-agpgart.patch
-git-cpufreq.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+bugfixes-pci-devices-get-assigned-redundant-irqs.patch
+git-v9fs.patch
+x86_64-irq-simplfy-__assign_irq_vector.patch
+x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
+x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+allow-access-to-proc-pid-fd-after-setuid-update-2.patch
+shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
+ipc-save-the-ipc-namespace-while-reading-proc-files.patch
+kexec-fix-references-to-init-in-documentation-for-kexe.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+i386-apic-clean-up-the-apic-code.patch
+i386-rework-local-apic-timer-calibration.patch
+i386-prepare-nmi-watchdog-for-dynticks.patch
+edac-e752x-bit-mask-fix.patch
+edac-e752x-byte-access-fix.patch
+edac-k8-driver-coding-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
+sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
+sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
+sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
+sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
+sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
+sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
+sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
+sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
+sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
+sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
+sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
+sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
+sysctl-md-remove-unnecessary-insert_at_head-flag.patch
+sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
+sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
+sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
+sysctl-cdrom-dont-set-de-owner.patch
+sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
+sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
+sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
+sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
+sysctl-c99-convert-arch-frv-kernel-pmc.patch
+sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
+sysctl-sn-remove-sysctl-abi-breakage.patch
+sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
+sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
+sysctl-mips-au1000-remove-sys_sysctl-support.patch
+sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
+sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
+sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
+sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
+sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
+sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
+sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
+sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
+sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
+sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
+sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
+sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
+sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
+sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
+sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
+sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix.patch
+sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
+sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
+sysctl-register-the-ocfs2-sysctl-numbers.patch
+sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
+sysctl-move-utsname-sysctls-to-their-own-file.patch
+sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
+sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
+sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
+sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
+sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-remove-support-for-ctl_any.patch
+sysctl-remove-support-for-directory-strategy-routines.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
+sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
+sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
+sysctl-reimplement-the-sysctl-proc-support.patch
+sysctl-reimplement-the-sysctl-proc-support-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
+sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
+sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
+sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+sysctl-fix-the-selinux_sysctl_get_sid.patch
+selinux-enhance-selinux-to-always-ignore-private-inodes.patch
+sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
