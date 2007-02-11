@@ -1,179 +1,367 @@
 From: akpm@linux-foundation.org
-Subject: - pktcdvd-cleanup.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:51:38 -0800
-Message-ID: <200702112251.l1BMpcTO015954@shell0.pdx.osdl.net>
+Subject: - consolidate-default-sched_clock.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:51:34 -0800
+Message-ID: <200702112251.l1BMpYOt015951@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60157 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60174 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932764AbXBKWvr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:51:47 -0500
+	id S932766AbXBKWvw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:51:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balagi@justmail.de, petero2@telia.com, mm-commits@vger.kernel.org
+To: adobriyan@openvz.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pktcdvd: cleanup
+     Consolidate default sched_clock()
 has been removed from the -mm tree.  Its filename was
-     pktcdvd-cleanup.patch
+     consolidate-default-sched_clock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pktcdvd: cleanup
-From: "Thomas Maier" <balagi@justmail.de>
+Subject: Consolidate default sched_clock()
+From: Alexey Dobriyan <adobriyan@openvz.org>
 
-- update documentation
+Use attribute(weak).
 
-- use clear_bdi_congested/set_bdi_congested functions directly instead of
-  old wrappers
-
-- removed DECLARE_BUF_AS_STRING macro
-
-Signed-off-by: Thomas Maier <balagi@justmail.de>
-Cc: Peter Osterlund <petero2@telia.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/debugfs-pktcdvd     |    5 +--
- Documentation/ABI/testing/sysfs-class-pktcdvd |    2 -
- Documentation/cdrom/packet-writing.txt        |    2 -
- drivers/block/pktcdvd.c                       |   26 ++++------------
- 4 files changed, 11 insertions(+), 24 deletions(-)
+ arch/alpha/kernel/time.c     |   11 -----------
+ arch/arm/kernel/time.c       |   10 ----------
+ arch/arm26/kernel/time.c     |    8 --------
+ arch/avr32/kernel/time.c     |    9 ---------
+ arch/cris/kernel/time.c      |    8 --------
+ arch/h8300/kernel/time.c     |    6 ------
+ arch/m32r/kernel/time.c      |    8 --------
+ arch/m68k/kernel/time.c      |    9 ---------
+ arch/m68knommu/kernel/time.c |    9 ---------
+ arch/mips/kernel/time.c      |    5 -----
+ arch/parisc/kernel/time.c    |   11 -----------
+ arch/sh/kernel/time.c        |    8 --------
+ arch/sh64/kernel/time.c      |    9 ---------
+ arch/sparc/kernel/time.c     |    9 ---------
+ arch/v850/kernel/time.c      |    8 --------
+ arch/xtensa/kernel/time.c    |    9 ---------
+ kernel/sched.c               |   10 ++++++++++
+ 17 files changed, 10 insertions(+), 137 deletions(-)
 
-diff -puN Documentation/ABI/testing/debugfs-pktcdvd~pktcdvd-cleanup Documentation/ABI/testing/debugfs-pktcdvd
---- a/Documentation/ABI/testing/debugfs-pktcdvd~pktcdvd-cleanup
-+++ a/Documentation/ABI/testing/debugfs-pktcdvd
-@@ -1,6 +1,6 @@
- What:           /debug/pktcdvd/pktcdvd[0-7]
- Date:           Oct. 2006
--KernelVersion:  2.6.19
-+KernelVersion:  2.6.20
- Contact:        Thomas Maier <balagi@justmail.de>
- Description:
+diff -puN arch/alpha/kernel/time.c~consolidate-default-sched_clock arch/alpha/kernel/time.c
+--- a/arch/alpha/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/alpha/kernel/time.c
+@@ -91,17 +91,6 @@ static inline __u32 rpcc(void)
+ }
  
-@@ -11,8 +11,7 @@ The pktcdvd module (packet writing drive
- these files in debugfs:
- 
- /debug/pktcdvd/pktcdvd[0-7]/
--    info            (0444) Lots of human readable driver
--                           statistics and infos. Multiple lines!
-+    info            (0444) Lots of driver statistics and infos.
- 
- Example:
- -------
-diff -puN Documentation/ABI/testing/sysfs-class-pktcdvd~pktcdvd-cleanup Documentation/ABI/testing/sysfs-class-pktcdvd
---- a/Documentation/ABI/testing/sysfs-class-pktcdvd~pktcdvd-cleanup
-+++ a/Documentation/ABI/testing/sysfs-class-pktcdvd
-@@ -1,6 +1,6 @@
- What:           /sys/class/pktcdvd/
- Date:           Oct. 2006
--KernelVersion:  2.6.19
-+KernelVersion:  2.6.20
- Contact:        Thomas Maier <balagi@justmail.de>
- Description:
- 
-diff -puN Documentation/cdrom/packet-writing.txt~pktcdvd-cleanup Documentation/cdrom/packet-writing.txt
---- a/Documentation/cdrom/packet-writing.txt~pktcdvd-cleanup
-+++ a/Documentation/cdrom/packet-writing.txt
-@@ -93,7 +93,7 @@ Notes
- Using the pktcdvd sysfs interface
- ---------------------------------
- 
--Since Linux 2.6.19, the pktcdvd module has a sysfs interface
-+Since Linux 2.6.20, the pktcdvd module has a sysfs interface
- and can be controlled by it. For example the "pktcdvd" tool uses
- this interface. (see http://people.freenet.de/BalaGi#pktcdvd )
- 
-diff -puN drivers/block/pktcdvd.c~pktcdvd-cleanup drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~pktcdvd-cleanup
-+++ a/drivers/block/pktcdvd.c
-@@ -190,15 +190,6 @@ static struct attribute *kobj_pkt_attrs_
- 	NULL
- };
- 
--/* declares a char buffer[64] _dbuf, copies data from
-- * _b with length _l into it and ensures that _dbuf ends
-- * with a \0 character.
+ /*
+- * Scheduler clock - returns current time in nanosec units.
+- *
+- * Copied from ARM code for expediency... ;-}
 - */
--#define DECLARE_BUF_AS_STRING(_dbuf, _b, _l) \
--	char _dbuf[64]; int dlen = (_l) < 0 ? 0 : (_l); \
--	if (dlen >= sizeof(_dbuf)) dlen = sizeof(_dbuf)-1; \
--	memcpy(_dbuf, _b, dlen); _dbuf[dlen] = 0
+-unsigned long long sched_clock(void)
+-{
+-        return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
 -
- static ssize_t kobj_pkt_show(struct kobject *kobj,
- 			struct attribute *attr, char *data)
- {
-@@ -264,9 +255,8 @@ static ssize_t kobj_pkt_store(struct kob
- {
- 	struct pktcdvd_device *pd = to_pktcdvdkobj(kobj)->pd;
- 	int val;
--	DECLARE_BUF_AS_STRING(dbuf, data, len); /* ensure sscanf scans a string */
+-
+-/*
+  * timer_interrupt() needs to keep up the real-time clock,
+  * as well as call the "do_timer()" routine every clocktick
+  */
+diff -puN arch/arm/kernel/time.c~consolidate-default-sched_clock arch/arm/kernel/time.c
+--- a/arch/arm/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/arm/kernel/time.c
+@@ -78,16 +78,6 @@ static unsigned long dummy_gettimeoffset
+ #endif
  
--	if (strcmp(attr->name, "reset") == 0 && dlen > 0) {
-+	if (strcmp(attr->name, "reset") == 0 && len > 0) {
- 		pd->stats.pkt_started = 0;
- 		pd->stats.pkt_ended = 0;
- 		pd->stats.secs_w = 0;
-@@ -274,7 +264,7 @@ static ssize_t kobj_pkt_store(struct kob
- 		pd->stats.secs_r = 0;
+ /*
+- * Scheduler clock - returns current time in nanosec units.
+- * This is the default implementation.  Sub-architecture
+- * implementations can override this.
+- */
+-unsigned long long __attribute__((weak)) sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+-/*
+  * An implementation of printk_clock() independent from
+  * sched_clock().  This avoids non-bootable kernels when
+  * printk_clock is enabled.
+diff -puN arch/arm26/kernel/time.c~consolidate-default-sched_clock arch/arm26/kernel/time.c
+--- a/arch/arm26/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/arm26/kernel/time.c
+@@ -89,14 +89,6 @@ static unsigned long gettimeoffset(void)
+         return (offset + LATCH/2) / LATCH;
+ }
  
- 	} else if (strcmp(attr->name, "congestion_off") == 0
--		   && sscanf(dbuf, "%d", &val) == 1) {
-+		   && sscanf(data, "%d", &val) == 1) {
- 		spin_lock(&pd->lock);
- 		pd->write_congestion_off = val;
- 		init_write_congestion_marks(&pd->write_congestion_off,
-@@ -282,7 +272,7 @@ static ssize_t kobj_pkt_store(struct kob
- 		spin_unlock(&pd->lock);
+-/*
+- * Scheduler clock - returns current time in nanosec units.
+- */
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+ static unsigned long next_rtc_update;
  
- 	} else if (strcmp(attr->name, "congestion_on") == 0
--		   && sscanf(dbuf, "%d", &val) == 1) {
-+		   && sscanf(data, "%d", &val) == 1) {
- 		spin_lock(&pd->lock);
- 		pd->write_congestion_on = val;
- 		init_write_congestion_marks(&pd->write_congestion_off,
-@@ -369,8 +359,7 @@ static ssize_t class_pktcdvd_store_add(s
- 					size_t count)
+ /*
+diff -puN arch/avr32/kernel/time.c~consolidate-default-sched_clock arch/avr32/kernel/time.c
+--- a/arch/avr32/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/avr32/kernel/time.c
+@@ -110,15 +110,6 @@ static void avr32_hpt_init(unsigned int 
+ }
+ 
+ /*
+- * Scheduler clock - returns current time in nanosec units.
+- */
+-unsigned long long sched_clock(void)
+-{
+-	/* There must be better ways...? */
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+-/*
+  * local_timer_interrupt() does profiling and process accounting on a
+  * per-CPU basis.
+  *
+diff -puN arch/cris/kernel/time.c~consolidate-default-sched_clock arch/cris/kernel/time.c
+--- a/arch/cris/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/cris/kernel/time.c
+@@ -216,14 +216,6 @@ cris_do_profile(struct pt_regs* regs)
+ #endif
+ }
+ 
+-/*
+- * Scheduler clock - returns current time in nanosec units.
+- */
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+ static int
+ __init init_udelay(void)
  {
- 	unsigned int major, minor;
--	DECLARE_BUF_AS_STRING(dbuf, buf, count);
--	if (sscanf(dbuf, "%u:%u", &major, &minor) == 2) {
-+	if (sscanf(buf, "%u:%u", &major, &minor) == 2) {
- 		pkt_setup_dev(MKDEV(major, minor), NULL);
- 		return count;
- 	}
-@@ -381,8 +370,7 @@ static ssize_t class_pktcdvd_store_remov
- 					size_t count)
- {
- 	unsigned int major, minor;
--	DECLARE_BUF_AS_STRING(dbuf, buf, count);
--	if (sscanf(dbuf, "%u:%u", &major, &minor) == 2) {
-+	if (sscanf(buf, "%u:%u", &major, &minor) == 2) {
- 		pkt_remove_dev(MKDEV(major, minor));
- 		return count;
- 	}
-@@ -1377,7 +1365,7 @@ try_next_bio:
- 	 		&& pd->bio_queue_size <= pd->write_congestion_off);
- 	spin_unlock(&pd->lock);
- 	if (wakeup)
--		blk_clear_queue_congested(pd->disk->queue, WRITE);
-+		clear_bdi_congested(&pd->disk->queue->backing_dev_info, WRITE);
+diff -puN arch/h8300/kernel/time.c~consolidate-default-sched_clock arch/h8300/kernel/time.c
+--- a/arch/h8300/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/h8300/kernel/time.c
+@@ -118,9 +118,3 @@ int do_settimeofday(struct timespec *tv)
+ }
  
- 	pkt->sleep_time = max(PACKET_WAIT_TIME, 1);
- 	pkt_set_state(pkt, PACKET_WAITING_STATE);
-@@ -2598,7 +2586,7 @@ static int pkt_make_request(request_queu
- 	spin_lock(&pd->lock);
- 	if (pd->write_congestion_on > 0
- 	    && pd->bio_queue_size >= pd->write_congestion_on) {
--		blk_set_queue_congested(q, WRITE);
-+		set_bdi_congested(&q->backing_dev_info, WRITE);
- 		do {
- 			spin_unlock(&pd->lock);
- 			congestion_wait(WRITE, HZ);
+ EXPORT_SYMBOL(do_settimeofday);
+-
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-
+-}
+diff -puN arch/m32r/kernel/time.c~consolidate-default-sched_clock arch/m32r/kernel/time.c
+--- a/arch/m32r/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/m32r/kernel/time.c
+@@ -286,11 +286,3 @@ void __init time_init(void)
+ #error no chip configuration
+ #endif
+ }
+-
+-/*
+- *  Scheduler clock - returns current time in nanosec units.
+- */
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+diff -puN arch/m68k/kernel/time.c~consolidate-default-sched_clock arch/m68k/kernel/time.c
+--- a/arch/m68k/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/m68k/kernel/time.c
+@@ -159,12 +159,3 @@ int do_settimeofday(struct timespec *tv)
+ }
+ 
+ EXPORT_SYMBOL(do_settimeofday);
+-
+-/*
+- * Scheduler clock - returns current time in ns units.
+- */
+-unsigned long long sched_clock(void)
+-{
+-       return (unsigned long long)jiffies*(1000000000/HZ);
+-}
+-
+diff -puN arch/m68knommu/kernel/time.c~consolidate-default-sched_clock arch/m68knommu/kernel/time.c
+--- a/arch/m68knommu/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/m68knommu/kernel/time.c
+@@ -174,13 +174,4 @@ int do_settimeofday(struct timespec *tv)
+ 	clock_was_set();
+ 	return 0;
+ }
+-
+-/*
+- * Scheduler clock - returns current time in nanosec units.
+- */
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+ EXPORT_SYMBOL(do_settimeofday);
+diff -puN arch/mips/kernel/time.c~consolidate-default-sched_clock arch/mips/kernel/time.c
+--- a/arch/mips/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/mips/kernel/time.c
+@@ -455,8 +455,3 @@ EXPORT_SYMBOL(rtc_lock);
+ EXPORT_SYMBOL(to_tm);
+ EXPORT_SYMBOL(rtc_mips_set_time);
+ EXPORT_SYMBOL(rtc_mips_get_time);
+-
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies*(1000000000/HZ);
+-}
+diff -puN arch/parisc/kernel/time.c~consolidate-default-sched_clock arch/parisc/kernel/time.c
+--- a/arch/parisc/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/parisc/kernel/time.c
+@@ -288,17 +288,6 @@ do_settimeofday (struct timespec *tv)
+ }
+ EXPORT_SYMBOL(do_settimeofday);
+ 
+-/*
+- * XXX: We can do better than this.
+- * Returns nanoseconds
+- */
+-
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+-
+ void __init start_cpu_itimer(void)
+ {
+ 	unsigned int cpu = smp_processor_id();
+diff -puN arch/sh/kernel/time.c~consolidate-default-sched_clock arch/sh/kernel/time.c
+--- a/arch/sh/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/sh/kernel/time.c
+@@ -41,14 +41,6 @@ static int null_rtc_set_time(const time_
+ void (*rtc_sh_get_time)(struct timespec *) = null_rtc_get_time;
+ int (*rtc_sh_set_time)(const time_t) = null_rtc_set_time;
+ 
+-/*
+- * Scheduler clock - returns current time in nanosec units.
+- */
+-unsigned long long __attribute__ ((weak)) sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+ #ifndef CONFIG_GENERIC_TIME
+ void do_gettimeofday(struct timeval *tv)
+ {
+diff -puN arch/sh64/kernel/time.c~consolidate-default-sched_clock arch/sh64/kernel/time.c
+--- a/arch/sh64/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/sh64/kernel/time.c
+@@ -579,12 +579,3 @@ void enter_deep_standby(void)
+ 	asm __volatile__ ("nop");
+ 	panic("Unexpected wakeup!\n");
+ }
+-
+-/*
+- * Scheduler clock - returns current time in nanosec units.
+- */
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+diff -puN arch/sparc/kernel/time.c~consolidate-default-sched_clock arch/sparc/kernel/time.c
+--- a/arch/sparc/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/sparc/kernel/time.c
+@@ -436,15 +436,6 @@ static inline unsigned long do_gettimeof
+ 	return (*master_l10_counter >> 10) & 0x1fffff;
+ }
+ 
+-/*
+- * Returns nanoseconds
+- * XXX This is a suboptimal implementation.
+- */
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+ /* Ok, my cute asm atomicity trick doesn't work anymore.
+  * There are just too many variables that need to be protected
+  * now (both members of xtime, et al.)
+diff -puN arch/v850/kernel/time.c~consolidate-default-sched_clock arch/v850/kernel/time.c
+--- a/arch/v850/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/v850/kernel/time.c
+@@ -28,14 +28,6 @@
+ #define TICK_SIZE	(tick_nsec / 1000)
+ 
+ /*
+- * Scheduler clock - returns current time in nanosec units.
+- */
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+-/*
+  * timer_interrupt() needs to keep up the real-time clock,
+  * as well as call the "do_timer()" routine every clocktick
+  */
+diff -puN arch/xtensa/kernel/time.c~consolidate-default-sched_clock arch/xtensa/kernel/time.c
+--- a/arch/xtensa/kernel/time.c~consolidate-default-sched_clock
++++ a/arch/xtensa/kernel/time.c
+@@ -38,15 +38,6 @@ unsigned long ccount_nsec;		/* nsec per 
+ unsigned int last_ccount_stamp;
+ static long last_rtc_update = 0;
+ 
+-/*
+- * Scheduler clock - returns current tim in nanosec units.
+- */
+-
+-unsigned long long sched_clock(void)
+-{
+-	return (unsigned long long)jiffies * (1000000000 / HZ);
+-}
+-
+ static irqreturn_t timer_interrupt(int irq, void *dev_id);
+ static struct irqaction timer_irqaction = {
+ 	.handler =	timer_interrupt,
+diff -puN kernel/sched.c~consolidate-default-sched_clock kernel/sched.c
+--- a/kernel/sched.c~consolidate-default-sched_clock
++++ a/kernel/sched.c
+@@ -57,6 +57,16 @@
+ #include <asm/unistd.h>
+ 
+ /*
++ * Scheduler clock - returns current time in nanosec units.
++ * This is default implementation.
++ * Architectures and sub-architectures can override this.
++ */
++unsigned long long __attribute__((weak)) sched_clock(void)
++{
++	return (unsigned long long)jiffies * (1000000000 / HZ);
++}
++
++/*
+  * Convert user-nice values [ -20 ... 0 ... 19 ]
+  * to static priority [ MAX_RT_PRIO..MAX_PRIO-1 ],
+  * and back.
 _
 
-Patches currently in -mm which might be from balagi@justmail.de are
+Patches currently in -mm which might be from adobriyan@openvz.org are
 
 origin.patch
+revert-x86_64-mm-msr-on-cpu.patch
+rdmsr_on_cpu-wrmsr_on_cpu.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+allow-access-to-proc-pid-fd-after-setuid-update-2.patch
+lutimesat-simplify-utime2.patch
+lutimesat-extend-do_utimes-with-flags.patch
+lutimesat-actual-syscall-and-wire-up-on-i386.patch
