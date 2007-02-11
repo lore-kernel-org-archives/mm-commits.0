@@ -1,195 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - remove-include-linux-byteorder-pdp_endianh.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:50:07 -0800
-Message-ID: <200702112250.l1BMo7RS015821@shell0.pdx.osdl.net>
+Subject: - msdos-partitions-fix-logic-error-in-aix-detection.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:53:16 -0800
+Message-ID: <200702112253.l1BMrGae016085@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60340 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60341 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932794AbXBKWxV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:53:21 -0500
+	id S932796AbXBKWxW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:53:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: olh@suse.de, anton@samba.org, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove include/linux/byteorder/pdp_endian.h
+     msdos partitions: fix logic error in AIX detection
 has been removed from the -mm tree.  Its filename was
-     remove-include-linux-byteorder-pdp_endianh.patch
+     msdos-partitions-fix-logic-error-in-aix-detection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove include/linux/byteorder/pdp_endian.h
-From: Adrian Bunk <bunk@stusta.de>
+Subject: msdos partitions: fix logic error in AIX detection
+From: Olaf Hering <olh@suse.de>
 
-include/linux/byteorder/pdp_endian.h is completely unused, and the comment in
-the file itself states that it's both untested and only a proof-of-concept.
+Correct the AIX magic check to let 'echo > /dev/sdb' actually work.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Olaf Hering <olh@suse.de>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Anton Blanchard <anton@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/byteorder/Kbuild       |    1 
- include/linux/byteorder/pdp_endian.h |   88 -------------------------
- 2 files changed, 89 deletions(-)
+ fs/partitions/msdos.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/byteorder/Kbuild~remove-include-linux-byteorder-pdp_endianh include/linux/byteorder/Kbuild
---- a/include/linux/byteorder/Kbuild~remove-include-linux-byteorder-pdp_endianh
-+++ a/include/linux/byteorder/Kbuild
-@@ -1,6 +1,5 @@
- header-y += big_endian.h
- header-y += little_endian.h
--header-y += pdp_endian.h
+diff -puN fs/partitions/msdos.c~msdos-partitions-fix-logic-error-in-aix-detection fs/partitions/msdos.c
+--- a/fs/partitions/msdos.c~msdos-partitions-fix-logic-error-in-aix-detection
++++ a/fs/partitions/msdos.c
+@@ -68,10 +68,10 @@ static int aix_magic_present(unsigned ch
+ 	unsigned char *d;
+ 	int slot, ret = 0;
  
- unifdef-y += generic.h
- unifdef-y += swabb.h
-diff -puN include/linux/byteorder/pdp_endian.h~remove-include-linux-byteorder-pdp_endianh /dev/null
---- a/include/linux/byteorder/pdp_endian.h
-+++ /dev/null
-@@ -1,88 +0,0 @@
--#ifndef _LINUX_BYTEORDER_PDP_ENDIAN_H
--#define _LINUX_BYTEORDER_PDP_ENDIAN_H
--
--/*
-- * Could have been named NUXI-endian, but we use the same name as in glibc.
-- * hopefully only the PDP and its evolutions (old VAXen in compatibility mode)
-- * should ever use this braindead byteorder.
-- * This file *should* work, but has not been tested.
-- *
-- * little-endian is 1234; big-endian is 4321; nuxi/pdp-endian is 3412
-- *
-- * I thought vaxen were NUXI-endian, but was told they were correct-endian
-- * (little-endian), though indeed there existed NUXI-endian machines
-- * (DEC PDP-11 and old VAXen in compatibility mode).
-- * This makes this file a bit useless, but as a proof-of-concept.
-- *
-- * But what does a __u64 look like: is it 34127856 or 78563412 ???
-- * I don't dare imagine! Hence, no 64-bit byteorder support yet.
-- * Hopefully, there 64-bit pdp-endian support shouldn't ever be required.
-- *
-- */
--
--#ifndef __PDP_ENDIAN
--#define __PDP_ENDIAN 3412
--#endif
--#ifndef __PDP_ENDIAN_BITFIELD
--#define __PDP_ENDIAN_BITFIELD
--#endif
--
--#include <linux/byteorder/swab.h>
--#include <linux/byteorder/swabb.h>
--
--#define __constant_htonl(x) ___constant_swahb32((x))
--#define __constant_ntohl(x) ___constant_swahb32((x))
--#define __constant_htons(x) ___constant_swab16((x))
--#define __constant_ntohs(x) ___constant_swab16((x))
--#define __constant_cpu_to_le64(x) I DON'T KNOW
--#define __constant_le64_to_cpu(x) I DON'T KNOW
--#define __constant_cpu_to_le32(x) ___constant_swahw32((x))
--#define __constant_le32_to_cpu(x) ___constant_swahw32((x))
--#define __constant_cpu_to_le16(x) ((__u16)(x)
--#define __constant_le16_to_cpu(x) ((__u16)(x)
--#define __constant_cpu_to_be64(x) I DON'T KNOW
--#define __constant_be64_to_cpu(x) I DON'T KNOW
--#define __constant_cpu_to_be32(x) ___constant_swahb32((x))
--#define __constant_be32_to_cpu(x) ___constant_swahb32((x))
--#define __constant_cpu_to_be16(x) ___constant_swab16((x))
--#define __constant_be16_to_cpu(x) ___constant_swab16((x))
--#define __cpu_to_le64(x) I DON'T KNOW
--#define __le64_to_cpu(x) I DON'T KNOW
--#define __cpu_to_le32(x) ___swahw32((x))
--#define __le32_to_cpu(x) ___swahw32((x))
--#define __cpu_to_le16(x) ((__u16)(x)
--#define __le16_to_cpu(x) ((__u16)(x)
--#define __cpu_to_be64(x) I DON'T KNOW
--#define __be64_to_cpu(x) I DON'T KNOW
--#define __cpu_to_be32(x) __swahb32((x))
--#define __be32_to_cpu(x) __swahb32((x))
--#define __cpu_to_be16(x) __swab16((x))
--#define __be16_to_cpu(x) __swab16((x))
--#define __cpu_to_le64p(x) I DON'T KNOW
--#define __le64_to_cpup(x) I DON'T KNOW
--#define __cpu_to_le32p(x) ___swahw32p((x))
--#define __le32_to_cpup(x) ___swahw32p((x))
--#define __cpu_to_le16p(x) (*(__u16*)(x))
--#define __le16_to_cpup(x) (*(__u16*)(x))
--#define __cpu_to_be64p(x) I DON'T KNOW
--#define __be64_to_cpup(x) I DON'T KNOW
--#define __cpu_to_be32p(x) __swahb32p((x))
--#define __be32_to_cpup(x) __swahb32p((x))
--#define __cpu_to_be16p(x) __swab16p((x))
--#define __be16_to_cpup(x) __swab16p((x))
--#define __cpu_to_le64s(x) I DON'T KNOW
--#define __le64_to_cpus(x) I DON'T KNOW
--#define __cpu_to_le32s(x) ___swahw32s((x))
--#define __le32_to_cpus(x) ___swahw32s((x))
--#define __cpu_to_le16s(x) do {} while (0)
--#define __le16_to_cpus(x) do {} while (0)
--#define __cpu_to_be64s(x) I DON'T KNOW
--#define __be64_to_cpus(x) I DON'T KNOW
--#define __cpu_to_be32s(x) __swahb32s((x))
--#define __be32_to_cpus(x) __swahb32s((x))
--#define __cpu_to_be16s(x) __swab16s((x))
--#define __be16_to_cpus(x) __swab16s((x))
--
--#include <linux/byteorder/generic.h>
--
--#endif /* _LINUX_BYTEORDER_PDP_ENDIAN_H */
+-	if (p[0] != AIX_LABEL_MAGIC1 &&
+-		p[1] != AIX_LABEL_MAGIC2 &&
+-		p[2] != AIX_LABEL_MAGIC3 &&
+-		p[3] != AIX_LABEL_MAGIC4)
++	if (!(p[0] == AIX_LABEL_MAGIC1 &&
++		p[1] == AIX_LABEL_MAGIC2 &&
++		p[2] == AIX_LABEL_MAGIC3 &&
++		p[3] == AIX_LABEL_MAGIC4))
+ 		return 0;
+ 	/* Assume the partition table is valid if Linux partitions exists */
+ 	for (slot = 1; slot <= 4; slot++, pt++) {
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from olh@suse.de are
 
 origin.patch
-ifdef-acpi_future_usage-acpi_os_readable.patch
-git-cpufreq.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
-mips-remove-smp_tune_scheduling.patch
-git-mtd.patch
-git-ubi.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-debug-shared-irqs-kconfig-fix.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-remove-the-broken-fb_s3trio-driver.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
