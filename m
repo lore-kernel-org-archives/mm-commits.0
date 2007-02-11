@@ -1,149 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - serial-serial_txx9-driver-update.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:51:13 -0800
-Message-ID: <200702112251.l1BMpDWe015927@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-mark-init-functions.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:51:22 -0800
+Message-ID: <200702112251.l1BMpMXb015939@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60099 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60108 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932748AbXBKWvT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:51:19 -0500
+	id S932753AbXBKWvY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:51:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: serial_txx9 driver update
+     Char: mxser_new, mark init functions
 has been removed from the -mm tree.  Its filename was
-     serial-serial_txx9-driver-update.patch
+     char-mxser_new-mark-init-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: serial: serial_txx9 driver update
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: Char: mxser_new, mark init functions
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Update the serial_txx9 driver.
+Mark some funcions with __init and __devinit.
 
- * Configurable manumum port number. (SERIAL_TXX9_NR_UARTS)
- * Remove some code which is unneeded if CONFIG_PM=n.
- * Use PCI_DEVICE() for pci device id table and make it const.
- * Do not include <asm/irq.h>
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig       |    5 +++++
- drivers/serial/serial_txx9.c |   23 +++++++++++------------
- 2 files changed, 16 insertions(+), 12 deletions(-)
+ drivers/char/mxser_new.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/Kconfig~serial-serial_txx9-driver-update drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~serial-serial_txx9-driver-update
-+++ a/drivers/serial/Kconfig
-@@ -916,6 +916,11 @@ config SERIAL_TXX9
- config HAS_TXX9_SERIAL
- 	bool
+diff -puN drivers/char/mxser_new.c~char-mxser_new-mark-init-functions drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-mark-init-functions
++++ a/drivers/char/mxser_new.c
+@@ -316,7 +316,7 @@ static int mxser_set_baud_method[MXSER_P
+ static spinlock_t gm_lock;
  
-+config SERIAL_TXX9_NR_UARTS
-+	int "Maximum number of TMPTX39XX/49XX SIO ports"
-+	depends on SERIAL_TXX9
-+	default "6"
-+
- config SERIAL_TXX9_CONSOLE
- 	bool "TMPTX39XX/49XX SIO Console support"
- 	depends on SERIAL_TXX9=y
-diff -puN drivers/serial/serial_txx9.c~serial-serial_txx9-driver-update drivers/serial/serial_txx9.c
---- a/drivers/serial/serial_txx9.c~serial-serial_txx9-driver-update
-+++ a/drivers/serial/serial_txx9.c
-@@ -37,6 +37,7 @@
-  *	1.06	Do not insert a char caused previous overrun.
-  *		Fix some spin_locks.
-  *		Do not call uart_add_one_port for absent ports.
-+ *	1.07	Use CONFIG_SERIAL_TXX9_NR_UARTS.  Cleanup.
-  */
- 
- #if defined(CONFIG_SERIAL_TXX9_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
-@@ -58,9 +59,8 @@
- #include <linux/mutex.h>
- 
- #include <asm/io.h>
--#include <asm/irq.h>
- 
--static char *serial_version = "1.06";
-+static char *serial_version = "1.07";
- static char *serial_name = "TX39/49 Serial driver";
- 
- #define PASS_LIMIT	256
-@@ -88,12 +88,7 @@ static char *serial_name = "TX39/49 Seri
- /*
-  * Number of serial ports
-  */
--#ifdef ENABLE_SERIAL_TXX9_PCI
--#define NR_PCI_BOARDS	4
--#define UART_NR  (4 + NR_PCI_BOARDS)
--#else
--#define UART_NR  4
--#endif
-+#define UART_NR  CONFIG_SERIAL_TXX9_NR_UARTS
- 
- #define HIGH_BITS_OFFSET	((sizeof(long)-sizeof(int))*8)
- 
-@@ -987,6 +982,7 @@ int __init early_serial_txx9_setup(struc
- }
- 
- #ifdef ENABLE_SERIAL_TXX9_PCI
-+#ifdef CONFIG_PM
- /**
-  *	serial_txx9_suspend_port - suspend one serial port
-  *	@line:  serial line number
-@@ -1008,6 +1004,7 @@ static void serial_txx9_resume_port(int 
+ #ifdef CONFIG_PCI
+-static int CheckIsMoxaMust(int io)
++static int __devinit CheckIsMoxaMust(int io)
  {
- 	uart_resume_port(&serial_txx9_reg, &serial_txx9_ports[line].port);
- }
-+#endif
- 
- static DEFINE_MUTEX(serial_txx9_mutex);
- 
-@@ -1118,6 +1115,7 @@ static void __devexit pciserial_txx9_rem
- 	}
- }
- 
-+#ifdef CONFIG_PM
- static int pciserial_txx9_suspend_one(struct pci_dev *dev, pm_message_t state)
- {
- 	int line = (int)(long)pci_get_drvdata(dev);
-@@ -1142,11 +1140,10 @@ static int pciserial_txx9_resume_one(str
- 	}
+ 	u8 oldmcr, hwid;
+ 	int i;
+@@ -1373,7 +1373,7 @@ static int mxser_tiocmset(struct tty_str
  	return 0;
  }
-+#endif
  
--static struct pci_device_id serial_txx9_pci_tbl[] = {
--	{	PCI_VENDOR_ID_TOSHIBA_2, PCI_DEVICE_ID_TOSHIBA_TC86C001_MISC,
--		PCI_ANY_ID, PCI_ANY_ID,
--		0, 0, 0 },
-+static const struct pci_device_id serial_txx9_pci_tbl[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA_2, PCI_DEVICE_ID_TOSHIBA_TC86C001_MISC) },
- 	{ 0, }
- };
+-static int mxser_program_mode(int port)
++static int __init mxser_program_mode(int port)
+ {
+ 	int id, i, j, n;
  
-@@ -1154,8 +1151,10 @@ static struct pci_driver serial_txx9_pci
- 	.name		= "serial_txx9",
- 	.probe		= pciserial_txx9_init_one,
- 	.remove		= __devexit_p(pciserial_txx9_remove_one),
-+#ifdef CONFIG_PM
- 	.suspend	= pciserial_txx9_suspend_one,
- 	.resume		= pciserial_txx9_resume_one,
-+#endif
- 	.id_table	= serial_txx9_pci_tbl,
- };
+@@ -1410,7 +1410,7 @@ static int mxser_program_mode(int port)
+ 	return id;
+ }
  
+-static void mxser_normal_mode(int port)
++static void __init mxser_normal_mode(int port)
+ {
+ 	int i, n;
+ 
+@@ -1443,7 +1443,7 @@ static void mxser_normal_mode(int port)
+ #define EN0_PORT	0x010	/* Rcv missed frame error counter RD */
+ #define ENC_PAGE0	0x000	/* Select page 0 of chip registers   */
+ #define ENC_PAGE3	0x0C0	/* Select page 3 of chip registers   */
+-static int mxser_read_register(int port, unsigned short *regs)
++static int __init mxser_read_register(int port, unsigned short *regs)
+ {
+ 	int i, k, value, id;
+ 	unsigned int j;
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-mips.patch
-make-cardbus_mem_size-and-cardbus_io_size-boot-options.patch
+char-use-more-pci_device-macro.patch
+char-cyclades-use-pci_device_id.patch
+maintainers-remove-two-dead-e-mail.patch
+char-specialix-isr-have-2-params.patch
+char-timers-cleanup.patch
+fbdev-driver-for-s3-trio-virge-update-2-fix.patch
+video-fb-add-true-ref_count-atomicity.patch
+video-fb-kzalloc-changes.patch
+shrink_slab-handle-bad-shrinkers.patch
