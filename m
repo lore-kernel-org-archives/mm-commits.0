@@ -1,103 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - relax-check-for-aix-in-msdos-partition-table.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:53:13 -0800
-Message-ID: <200702112253.l1BMrDax016082@shell0.pdx.osdl.net>
+Subject: - fix-sparse-warnings-from-asmnet-checksumh.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:53:02 -0800
+Message-ID: <200702112253.l1BMr2MP016073@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60348 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60351 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932803AbXBKWxY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:53:24 -0500
+	id S932806AbXBKWxZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:53:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olh@suse.de, anton@samba.org, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: tilman@imap.cc, ak@suse.de, rmk@arm.linux.org.uk, spyro@f2s.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     relax check for AIX in msdos partition table
+     fix sparse warnings from {asm,net}/checksum.h
 has been removed from the -mm tree.  Its filename was
-     relax-check-for-aix-in-msdos-partition-table.patch
+     fix-sparse-warnings-from-asmnet-checksumh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: relax check for AIX in msdos partition table
-From: Olaf Hering <olh@suse.de>
+Subject: fix sparse warnings from {asm,net}/checksum.h
+From: Tilman Schmidt <tilman@imap.cc>
 
-The patch to identify AIX disks and ignore them has caused at least one
-machine to fail to find the root partition on 2.6.19. The patch is:
+Rename the variable "sum" in the __range_ok macros to avoid name collisions
+causing lots of "symbol shadows an earlier one" warnings by sparse.
 
-http://lkml.org/lkml/2006/7/31/117
-
-The problem is some disk formatters do not blow away the first 4 bytes
-of the disk. If the disk we are installing to used to have AIX on it,
-then the first 4 bytes will still have IBMA in EBCDIC.
-
-The install in question was debian etch. Im not sure what the best fix
-is, perhaps the AIX detection code could check more than the first 4
-bytes.
-
-The whole partition info for primary partitions is in this block:
-
-  dd if=/dev/sdb count=$(( 4 * 16 )) bs=1 skip=$(( 0x1be ))
-
-All other data do not matter, beside the 0x55aa marker at the end of the
-first block.
-
-Signed-off-by: Olaf Hering <olh@suse.de>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Anton Blanchard <anton@samba.org>
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ian Molton <spyro@f2s.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/msdos.c |   12 +++++++++++-
- include/linux/genhd.h |    2 ++
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ include/asm-arm/uaccess.h       |    4 ++--
+ include/asm-arm26/uaccess-asm.h |    4 ++--
+ include/asm-i386/uaccess.h      |    4 ++--
+ include/asm-m32r/uaccess.h      |    4 ++--
+ include/asm-x86_64/uaccess.h    |    4 ++--
+ 5 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/partitions/msdos.c~relax-check-for-aix-in-msdos-partition-table fs/partitions/msdos.c
---- a/fs/partitions/msdos.c~relax-check-for-aix-in-msdos-partition-table
-+++ a/fs/partitions/msdos.c
-@@ -63,15 +63,25 @@ msdos_magic_present(unsigned char *p)
- #define AIX_LABEL_MAGIC4	0xC1
- static int aix_magic_present(unsigned char *p, struct block_device *bdev)
- {
-+	struct partition *pt = (struct partition *) (p + 0x1be);
- 	Sector sect;
- 	unsigned char *d;
--	int ret = 0;
-+	int slot, ret = 0;
+diff -puN include/asm-arm/uaccess.h~fix-sparse-warnings-from-asmnet-checksumh include/asm-arm/uaccess.h
+--- a/include/asm-arm/uaccess.h~fix-sparse-warnings-from-asmnet-checksumh
++++ a/include/asm-arm/uaccess.h
+@@ -76,10 +76,10 @@ static inline void set_fs(mm_segment_t f
  
- 	if (p[0] != AIX_LABEL_MAGIC1 &&
- 		p[1] != AIX_LABEL_MAGIC2 &&
- 		p[2] != AIX_LABEL_MAGIC3 &&
- 		p[3] != AIX_LABEL_MAGIC4)
- 		return 0;
-+	/* Assume the partition table is valid if Linux partitions exists */
-+	for (slot = 1; slot <= 4; slot++, pt++) {
-+		if (pt->sys_ind == LINUX_SWAP_PARTITION ||
-+			pt->sys_ind == LINUX_RAID_PARTITION ||
-+			pt->sys_ind == LINUX_DATA_PARTITION ||
-+			pt->sys_ind == LINUX_LVM_PARTITION ||
-+			is_extended_partition(pt))
-+			return 0;
-+	}
- 	d = read_dev_sector(bdev, 7, &sect);
- 	if (d) {
- 		if (d[0] == '_' && d[1] == 'L' && d[2] == 'V' && d[3] == 'M')
-diff -puN include/linux/genhd.h~relax-check-for-aix-in-msdos-partition-table include/linux/genhd.h
---- a/include/linux/genhd.h~relax-check-for-aix-in-msdos-partition-table
-+++ a/include/linux/genhd.h
-@@ -21,6 +21,8 @@ enum {
- 	WIN98_EXTENDED_PARTITION = 0x0f,
+ /* We use 33-bit arithmetic here... */
+ #define __range_ok(addr,size) ({ \
+-	unsigned long flag, sum; \
++	unsigned long flag, roksum; \
+ 	__chk_user_ptr(addr);	\
+ 	__asm__("adds %1, %2, %3; sbcccs %1, %1, %0; movcc %0, #0" \
+-		: "=&r" (flag), "=&r" (sum) \
++		: "=&r" (flag), "=&r" (roksum) \
+ 		: "r" (addr), "Ir" (size), "0" (current_thread_info()->addr_limit) \
+ 		: "cc"); \
+ 	flag; })
+diff -puN include/asm-arm26/uaccess-asm.h~fix-sparse-warnings-from-asmnet-checksumh include/asm-arm26/uaccess-asm.h
+--- a/include/asm-arm26/uaccess-asm.h~fix-sparse-warnings-from-asmnet-checksumh
++++ a/include/asm-arm26/uaccess-asm.h
+@@ -34,9 +34,9 @@ static inline void set_fs (mm_segment_t 
+ }
  
- 	LINUX_SWAP_PARTITION = 0x82,
-+	LINUX_DATA_PARTITION = 0x83,
-+	LINUX_LVM_PARTITION = 0x8e,
- 	LINUX_RAID_PARTITION = 0xfd,	/* autodetect RAID partition */
+ #define __range_ok(addr,size) ({					\
+-	unsigned long flag, sum;					\
++	unsigned long flag, roksum;					\
+ 	__asm__ __volatile__("subs %1, %0, %3; cmpcs %1, %2; movcs %0, #0" \
+-		: "=&r" (flag), "=&r" (sum)				\
++		: "=&r" (flag), "=&r" (roksum)				\
+ 		: "r" (addr), "Ir" (size), "0" (current_thread_info()->addr_limit)	\
+ 		: "cc");						\
+ 	flag; })
+diff -puN include/asm-i386/uaccess.h~fix-sparse-warnings-from-asmnet-checksumh include/asm-i386/uaccess.h
+--- a/include/asm-i386/uaccess.h~fix-sparse-warnings-from-asmnet-checksumh
++++ a/include/asm-i386/uaccess.h
+@@ -54,10 +54,10 @@ extern struct movsl_mask {
+  * This needs 33-bit arithmetic. We have a carry...
+  */
+ #define __range_ok(addr,size) ({ \
+-	unsigned long flag,sum; \
++	unsigned long flag,roksum; \
+ 	__chk_user_ptr(addr); \
+ 	asm("addl %3,%1 ; sbbl %0,%0; cmpl %1,%4; sbbl $0,%0" \
+-		:"=&r" (flag), "=r" (sum) \
++		:"=&r" (flag), "=r" (roksum) \
+ 		:"1" (addr),"g" ((int)(size)),"rm" (current_thread_info()->addr_limit.seg)); \
+ 	flag; })
  
- 	SOLARIS_X86_PARTITION =	LINUX_SWAP_PARTITION,
+diff -puN include/asm-m32r/uaccess.h~fix-sparse-warnings-from-asmnet-checksumh include/asm-m32r/uaccess.h
+--- a/include/asm-m32r/uaccess.h~fix-sparse-warnings-from-asmnet-checksumh
++++ a/include/asm-m32r/uaccess.h
+@@ -68,7 +68,7 @@ static inline void set_fs(mm_segment_t s
+  * This needs 33-bit arithmetic. We have a carry...
+  */
+ #define __range_ok(addr,size) ({					\
+-	unsigned long flag, sum; 					\
++	unsigned long flag, roksum; 					\
+ 	__chk_user_ptr(addr);						\
+ 	asm ( 								\
+ 		"	cmpu	%1, %1    ; clear cbit\n"		\
+@@ -76,7 +76,7 @@ static inline void set_fs(mm_segment_t s
+ 		"	subx	%0, %0\n"				\
+ 		"	cmpu	%4, %1\n"				\
+ 		"	subx	%0, %5\n"				\
+-		: "=&r" (flag), "=r" (sum)				\
++		: "=&r" (flag), "=r" (roksum)				\
+ 		: "1" (addr), "r" ((int)(size)), 			\
+ 		  "r" (current_thread_info()->addr_limit.seg), "r" (0)	\
+ 		: "cbit" );						\
+diff -puN include/asm-x86_64/uaccess.h~fix-sparse-warnings-from-asmnet-checksumh include/asm-x86_64/uaccess.h
+--- a/include/asm-x86_64/uaccess.h~fix-sparse-warnings-from-asmnet-checksumh
++++ a/include/asm-x86_64/uaccess.h
+@@ -37,11 +37,11 @@
+  * Uhhuh, this needs 65-bit arithmetic. We have a carry..
+  */
+ #define __range_not_ok(addr,size) ({ \
+-	unsigned long flag,sum; \
++	unsigned long flag,roksum; \
+ 	__chk_user_ptr(addr); \
+ 	asm("# range_ok\n\r" \
+ 		"addq %3,%1 ; sbbq %0,%0 ; cmpq %1,%4 ; sbbq $0,%0"  \
+-		:"=&r" (flag), "=r" (sum) \
++		:"=&r" (flag), "=r" (roksum) \
+ 		:"1" (addr),"g" ((long)(size)),"g" (current_thread_info()->addr_limit.seg)); \
+ 	flag; })
+ 
 _
 
-Patches currently in -mm which might be from olh@suse.de are
+Patches currently in -mm which might be from tilman@imap.cc are
 
 origin.patch
+drivers-isdn-gigaset-reduce-mutex-scope.patch
+drivers-isdn-gigaset-reduce-kernel-message-spam.patch
+drivers-isdn-gigaset-new-m101-driver-v2.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix-sparse-fix.patch
