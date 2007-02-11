@@ -1,59 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - char-mxser_new-clean-request_irq-call.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:51:53 -0800
-Message-ID: <200702112251.l1BMprJw015969@shell0.pdx.osdl.net>
+Subject: - doc-isicom-remove-reserved-ioctl-number.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:51:56 -0800
+Message-ID: <200702112251.l1BMpu2k015972@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60186 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60192 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932768AbXBKWvz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:51:55 -0500
+	id S932770AbXBKWv6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:51:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser_new, clean request_irq call
+     Doc: isicom, remove reserved ioctl-number
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-clean-request_irq-call.patch
+     doc-isicom-remove-reserved-ioctl-number.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser_new, clean request_irq call
+Subject: Doc: isicom, remove reserved ioctl-number
 From: Jiri Slaby <jirislaby@gmail.com>
 
-We always set ASYNC_SHARE_IRQ, so do not test against this flag and request
-shared irq directly.  Also remove nonsense comment.
+Isicom driver no longer registers chardev with ioctl function.  It used to
+use for firmware loading.  Remove the reserved letter (M) from
+ioctl-number, so that the conflict get away.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ Documentation/ioctl-number.txt |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-clean-request_irq-call drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-clean-request_irq-call
-+++ a/drivers/char/mxser_new.c
-@@ -2398,13 +2398,9 @@ static int __devinit mxser_initbrd(struc
- 		outb(inb(info->ioaddr + UART_IER) & 0xf0,
- 			info->ioaddr + UART_IER);
- 	}
--	/*
--	 * Allocate the IRQ if necessary
--	 */
--
--	retval = request_irq(brd->irq, mxser_interrupt,
--			(brd->ports[0].flags & ASYNC_SHARE_IRQ) ? IRQF_SHARED :
--			IRQF_DISABLED, "mxser", brd);
-+
-+	retval = request_irq(brd->irq, mxser_interrupt, IRQF_SHARED, "mxser",
-+			brd);
- 	if (retval) {
- 		printk(KERN_ERR "Board %s: Request irq failed, IRQ (%d) may "
- 			"conflict with another device.\n",
+diff -puN Documentation/ioctl-number.txt~doc-isicom-remove-reserved-ioctl-number Documentation/ioctl-number.txt
+--- a/Documentation/ioctl-number.txt~doc-isicom-remove-reserved-ioctl-number
++++ a/Documentation/ioctl-number.txt
+@@ -94,8 +94,7 @@ Code	Seq#	Include File		Comments
+ 'L'	00-1F	linux/loop.h
+ 'L'	E0-FF	linux/ppdd.h		encrypted disk device driver
+ 					<http://linux01.gwdg.de/~alatham/ppdd.html>
+-'M'	all	linux/soundcard.h	conflict!
+-'M'	00-1F	linux/isicom.h		conflict!
++'M'	all	linux/soundcard.h
+ 'N'	00-1F	drivers/usb/scanner.h
+ 'P'	all	linux/soundcard.h
+ 'Q'	all	linux/soundcard.h
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
