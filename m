@@ -1,89 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - cleanup-include-linux-xattrh.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:50 -0800
-Message-ID: <200702112254.l1BMsosa016272@shell0.pdx.osdl.net>
+Subject: - cleanup-include-linux-reiserfs_xattrh.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:54:52 -0800
+Message-ID: <200702112254.l1BMsq7Y016275@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60781 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60787 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932911AbXBKW6E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:58:04 -0500
+	id S932910AbXBKW6F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:58:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cleanup include/linux/xattr.h
+     cleanup include/linux/reiserfs_xattr.h
 has been removed from the -mm tree.  Its filename was
-     cleanup-include-linux-xattrh.patch
+     cleanup-include-linux-reiserfs_xattrh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cleanup include/linux/xattr.h
+Subject: cleanup include/linux/reiserfs_xattr.h
 From: Adrian Bunk <bunk@stusta.de>
 
-- reduce the userspace visible part
-- fix the in-kernel compilation
+- #ifdef guard this header for multiple inclusion
+- adjust the #include's to what is actually required by this header
+- remove an unneeded #ifdef
+- #endif comments
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild  |    2 +-
- include/linux/xattr.h |    8 ++++++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ include/linux/reiserfs_xattr.h |   24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/Kbuild~cleanup-include-linux-xattrh include/linux/Kbuild
---- a/include/linux/Kbuild~cleanup-include-linux-xattrh
-+++ a/include/linux/Kbuild
-@@ -156,7 +156,6 @@ header-y += video_encoder.h
- header-y += videotext.h
- header-y += vt.h
- header-y += wireless.h
--header-y += xattr.h
- header-y += x25.h
+diff -puN include/linux/reiserfs_xattr.h~cleanup-include-linux-reiserfs_xattrh include/linux/reiserfs_xattr.h
+--- a/include/linux/reiserfs_xattr.h~cleanup-include-linux-reiserfs_xattrh
++++ a/include/linux/reiserfs_xattr.h
+@@ -2,7 +2,10 @@
+   File: linux/reiserfs_xattr.h
+ */
  
- unifdef-y += acct.h
-@@ -336,6 +335,7 @@ unifdef-y += wait.h
- unifdef-y += wanrouter.h
- unifdef-y += watchdog.h
- unifdef-y += wireless.h
-+unifdef-y += xattr.h
- unifdef-y += xfrm.h
- 
- objhdr-y += version.h
-diff -puN include/linux/xattr.h~cleanup-include-linux-xattrh include/linux/xattr.h
---- a/include/linux/xattr.h~cleanup-include-linux-xattrh
-+++ a/include/linux/xattr.h
-@@ -13,6 +13,10 @@
- #define XATTR_CREATE	0x1	/* set value, fail if attr already exists */
- #define XATTR_REPLACE	0x2	/* set value, fail if attr does not exist */
- 
-+#ifdef  __KERNEL__
+-#include <linux/xattr.h>
++#ifndef _LINUX_REISERFS_XATTR_H
++#define _LINUX_REISERFS_XATTR_H
 +
 +#include <linux/types.h>
-+
- /* Namespaces */
- #define XATTR_OS2_PREFIX "os2."
- #define XATTR_OS2_PREFIX_LEN (sizeof (XATTR_OS2_PREFIX) - 1)
-@@ -29,6 +33,8 @@
- #define XATTR_USER_PREFIX "user."
- #define XATTR_USER_PREFIX_LEN (sizeof (XATTR_USER_PREFIX) - 1)
  
+ /* Magic value in header */
+ #define REISERFS_XATTR_MAGIC 0x52465841	/* "RFXA" */
+@@ -13,7 +16,18 @@ struct reiserfs_xattr_header {
+ };
+ 
+ #ifdef __KERNEL__
++
+ #include <linux/init.h>
++#include <linux/list.h>
++#include <linux/rwsem.h>
++#include <linux/reiserfs_fs_i.h>
++#include <linux/reiserfs_fs.h>
++
 +struct inode;
 +struct dentry;
++struct iattr;
++struct super_block;
++struct nameidata;
  
- struct xattr_handler {
+ struct reiserfs_xattr_handler {
  	char *prefix;
-@@ -50,4 +56,6 @@ ssize_t generic_listxattr(struct dentry 
- int generic_setxattr(struct dentry *dentry, const char *name, const void *value, size_t size, int flags);
- int generic_removexattr(struct dentry *dentry, const char *name);
+@@ -49,9 +63,7 @@ int reiserfs_xattr_set(struct inode *, c
  
-+#endif  /*  __KERNEL__  */
+ extern struct reiserfs_xattr_handler user_handler;
+ extern struct reiserfs_xattr_handler trusted_handler;
+-#ifdef CONFIG_REISERFS_FS_SECURITY
+ extern struct reiserfs_xattr_handler security_handler;
+-#endif
+ 
+ int reiserfs_xattr_register_handlers(void) __init;
+ void reiserfs_xattr_unregister_handlers(void);
+@@ -137,6 +149,8 @@ static inline int reiserfs_xattr_init(st
+ static inline void reiserfs_init_xattr_rwsem(struct inode *inode)
+ {
+ }
+-#endif
++#endif  /*  CONFIG_REISERFS_FS_XATTR  */
 +
- #endif	/* _LINUX_XATTR_H */
++#endif  /*  __KERNEL__  */
+ 
+-#endif				/* __KERNEL__ */
++#endif  /*  _LINUX_REISERFS_XATTR_H  */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
