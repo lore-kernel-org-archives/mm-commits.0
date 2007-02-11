@@ -1,209 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: - tty-cleanup-release_mem.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:55:41 -0800
-Message-ID: <200702112255.l1BMtfOn016350@shell0.pdx.osdl.net>
+Subject: - input-scan_keyb-remove-it.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:56:07 -0800
+Message-ID: <200702112256.l1BMu72i016383@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60657 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60669 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932891AbXBKW4D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:56:03 -0500
+	id S932894AbXBKW4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:56:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, alan@redhat.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, dmitry.torokhov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: cleanup release_mem
+     Input: scan_keyb, remove it
 has been removed from the -mm tree.  Its filename was
-     tty-cleanup-release_mem.patch
+     input-scan_keyb-remove-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty: cleanup release_mem
-From: Christoph Hellwig <hch@lst.de>
+Subject: Input: scan_keyb, remove it
+From: Jiri Slaby <jirislaby@gmail.com>
 
-release_mem contains two copies of exactly the same code.  Refactor these
-into a new helper, release_tty.  The only change in behaviour is that the
-driver reference count is now decremented after the master tty has been
-freed instead of before.
+It's currently unused (unreferenced) beside the fact it's broken.
 
-[penberg@cs.helsinki.fi: fix use-after-free in release_tty.]
-Cc: Alan Cox <alan@redhat.com>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |   73 ++++++++++++++++++++--------------------
- 1 file changed, 37 insertions(+), 36 deletions(-)
+ drivers/char/scan_keyb.c |  149 -------------------------------------
+ drivers/char/scan_keyb.h |   15 ---
+ 2 files changed, 164 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-cleanup-release_mem drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-cleanup-release_mem
-+++ a/drivers/char/tty_io.c
-@@ -154,7 +154,7 @@ static int tty_release(struct inode *, s
- int tty_ioctl(struct inode * inode, struct file * file,
- 	      unsigned int cmd, unsigned long arg);
- static int tty_fasync(int fd, struct file * filp, int on);
--static void release_mem(struct tty_struct *tty, int idx);
-+static void release_tty(struct tty_struct *tty, int idx);
- 
- /**
-  *	alloc_tty_struct	-	allocate a tty object
-@@ -2002,7 +2002,7 @@ static int init_dev(struct tty_driver *d
- 
- 	/* 
- 	 * All structures have been allocated, so now we install them.
--	 * Failures after this point use release_mem to clean up, so 
-+	 * Failures after this point use release_tty to clean up, so
- 	 * there's no need to null out the local pointers.
- 	 */
- 	if (!(driver->flags & TTY_DRIVER_DEVPTS_MEM)) {
-@@ -2023,8 +2023,8 @@ static int init_dev(struct tty_driver *d
- 
- 	/* 
- 	 * Structures all installed ... call the ldisc open routines.
--	 * If we fail here just call release_mem to clean up.  No need
--	 * to decrement the use counts, as release_mem doesn't care.
-+	 * If we fail here just call release_tty to clean up.  No need
-+	 * to decrement the use counts, as release_tty doesn't care.
- 	 */
- 
- 	if (tty->ldisc.open) {
-@@ -2094,17 +2094,17 @@ fail_no_mem:
- 	retval = -ENOMEM;
- 	goto end_init;
- 
--	/* call the tty release_mem routine to clean out this slot */
-+	/* call the tty release_tty routine to clean out this slot */
- release_mem_out:
- 	if (printk_ratelimit())
- 		printk(KERN_INFO "init_dev: ldisc open failed, "
- 				 "clearing slot %d\n", idx);
--	release_mem(tty, idx);
-+	release_tty(tty, idx);
- 	goto end_init;
- }
- 
- /**
-- *	release_mem		-	release tty structure memory
-+ *	release_one_tty		-	release tty structure memory
-  *
-  *	Releases memory associated with a tty structure, and clears out the
-  *	driver table slots. This function is called when a device is no longer
-@@ -2116,37 +2116,14 @@ release_mem_out:
-  *	of ttys that the driver keeps.
-  *		FIXME: should we require tty_mutex is held here ??
-  */
+diff -puN drivers/char/scan_keyb.c~input-scan_keyb-remove-it /dev/null
+--- a/drivers/char/scan_keyb.c
++++ /dev/null
+@@ -1,149 +0,0 @@
+-/*
+- *	$Id: scan_keyb.c,v 1.2 2000/07/04 06:24:42 yaegashi Exp $ 
+- *	Copyright (C) 2000 YAEGASHI Takeshi
+- *	Generic scan keyboard driver
+- */
 -
--static void release_mem(struct tty_struct *tty, int idx)
-+static void release_one_tty(struct tty_struct *tty, int idx)
- {
--	struct tty_struct *o_tty;
--	struct ktermios *tp;
- 	int devpts = tty->driver->flags & TTY_DRIVER_DEVPTS_MEM;
+-#include <linux/spinlock.h>
+-#include <linux/sched.h>
+-#include <linux/interrupt.h>
+-#include <linux/tty.h>
+-#include <linux/mm.h>
+-#include <linux/signal.h>
+-#include <linux/init.h>
+-#include <linux/kbd_ll.h>
+-#include <linux/delay.h>
+-#include <linux/random.h>
+-#include <linux/poll.h>
+-#include <linux/miscdevice.h>
+-#include <linux/slab.h>
+-#include <linux/kbd_kern.h>
+-#include <linux/timer.h>
 -
--	if ((o_tty = tty->link) != NULL) {
--		if (!devpts)
--			o_tty->driver->ttys[idx] = NULL;
--		if (o_tty->driver->flags & TTY_DRIVER_RESET_TERMIOS) {
--			tp = o_tty->termios;
--			if (!devpts)
--				o_tty->driver->termios[idx] = NULL;
--			kfree(tp);
+-#define SCANHZ	(HZ/20)
 -
--			tp = o_tty->termios_locked;
--			if (!devpts)
--				o_tty->driver->termios_locked[idx] = NULL;
--			kfree(tp);
+-struct scan_keyboard {
+-	struct scan_keyboard *next;
+-	int (*scan)(unsigned char *buffer);
+-	const unsigned char *table;
+-	unsigned char *s0, *s1;
+-	int length;
+-};
+-
+-static int scan_jiffies=0;
+-static struct scan_keyboard *keyboards=NULL;
+-struct timer_list scan_timer;
+-
+-static void check_kbd(const unsigned char *table,
+-		      unsigned char *new, unsigned char *old, int length)
+-{
+-	int need_tasklet_schedule=0;
+-	unsigned int xor, bit;
+-	
+-	while(length-->0) {
+-		if((xor=*new^*old)==0) {
+-			table+=8;
 -		}
--		o_tty->magic = 0;
--		o_tty->driver->refcount--;
--		file_list_lock();
--		list_del_init(&o_tty->tty_files);
--		file_list_unlock();
--		free_tty_struct(o_tty);
+-		else {
+-			for(bit=0x01; bit<0x100; bit<<=1) {
+-				if(xor&bit) {
+-					handle_scancode(*table, !(*new&bit));
+-					need_tasklet_schedule=1;
+-#if 0
+-					printk("0x%x %s\n", *table, (*new&bit)?"released":"pressed");
+-#endif
+-				}
+-				table++;
+-			}
+-		}
+-		new++; old++;
 -	}
-+	struct ktermios *tp;
- 
- 	if (!devpts)
- 		tty->driver->ttys[idx] = NULL;
-+
- 	if (tty->driver->flags & TTY_DRIVER_RESET_TERMIOS) {
- 		tp = tty->termios;
- 		if (!devpts)
-@@ -2159,15 +2136,39 @@ static void release_mem(struct tty_struc
- 		kfree(tp);
- 	}
- 
-+
- 	tty->magic = 0;
- 	tty->driver->refcount--;
-+
- 	file_list_lock();
- 	list_del_init(&tty->tty_files);
- 	file_list_unlock();
--	module_put(tty->driver->owner);
-+
- 	free_tty_struct(tty);
- }
- 
-+/**
-+ *	release_tty		-	release tty structure memory
-+ *
-+ *	Release both @tty and a possible linked partner (think pty pair),
-+ *	and decrement the refcount of the backing module.
-+ *
-+ *	Locking:
-+ *		tty_mutex - sometimes only
-+ *		takes the file list lock internally when working on the list
-+ *	of ttys that the driver keeps.
-+ *		FIXME: should we require tty_mutex is held here ??
-+ */
-+static void release_tty(struct tty_struct *tty, int idx)
-+{
-+	struct tty_driver *driver = tty->driver;
-+
-+	if (tty->link)
-+		release_one_tty(tty->link, idx);
-+	release_one_tty(tty, idx);
-+	module_put(driver->owner);
-+}
-+
- /*
-  * Even releasing the tty structures is a tricky business.. We have
-  * to be very careful that the structures are all released at the
-@@ -2435,10 +2436,10 @@ static void release_dev(struct file * fi
- 		tty_set_termios_ldisc(o_tty,N_TTY); 
- 	}
- 	/*
--	 * The release_mem function takes care of the details of clearing
-+	 * The release_tty function takes care of the details of clearing
- 	 * the slots and preserving the termios structure.
- 	 */
--	release_mem(tty, idx);
-+	release_tty(tty, idx);
- 
- #ifdef CONFIG_UNIX98_PTYS
- 	/* Make this pty number available for reallocation */
+-
+-	if(need_tasklet_schedule)
+-		tasklet_schedule(&keyboard_tasklet);
+-}
+-
+-
+-static void scan_kbd(unsigned long dummy)
+-{
+-	struct scan_keyboard *kbd;
+-
+-	scan_jiffies++;
+-
+-	for(kbd=keyboards; kbd!=NULL; kbd=kbd->next) {
+-		if(scan_jiffies&1) {
+-			if(!kbd->scan(kbd->s0))
+-				check_kbd(kbd->table,
+-					  kbd->s0, kbd->s1, kbd->length);
+-			else
+-				memcpy(kbd->s0, kbd->s1, kbd->length);
+-		}
+-		else {
+-			if(!kbd->scan(kbd->s1))
+-				check_kbd(kbd->table,
+-					  kbd->s1, kbd->s0, kbd->length);
+-			else
+-				memcpy(kbd->s1, kbd->s0, kbd->length);
+-		}
+-		
+-	}
+-
+-	init_timer(&scan_timer);
+-	scan_timer.expires = jiffies + SCANHZ;
+-	scan_timer.data = 0;
+-	scan_timer.function = scan_kbd;
+-	add_timer(&scan_timer);
+-}
+-
+-
+-int register_scan_keyboard(int (*scan)(unsigned char *buffer),
+-			   const unsigned char *table,
+-			   int length)
+-{
+-	struct scan_keyboard *kbd;
+-
+-	kbd = kmalloc(sizeof(struct scan_keyboard), GFP_KERNEL);
+-	if (kbd == NULL)
+-		goto error_out;
+-
+-	kbd->scan=scan;
+-	kbd->table=table;
+-	kbd->length=length;
+-
+-	kbd->s0 = kmalloc(length, GFP_KERNEL);
+-	if (kbd->s0 == NULL)
+-		goto error_free_kbd;
+-
+-	kbd->s1 = kmalloc(length, GFP_KERNEL);
+-	if (kbd->s1 == NULL)
+-		goto error_free_s0;
+-
+-	memset(kbd->s0, -1, kbd->length);
+-	memset(kbd->s1, -1, kbd->length);
+-	
+-	kbd->next=keyboards;
+-	keyboards=kbd;
+-
+-	return 0;
+-
+- error_free_s0:
+-	kfree(kbd->s0);
+-
+- error_free_kbd:
+-	kfree(kbd);
+-
+- error_out:
+-	return -ENOMEM;
+-}
+-			      
+-			      
+-void __init scan_kbd_init(void)
+-{
+-	init_timer(&scan_timer);
+-	scan_timer.expires = jiffies + SCANHZ;
+-	scan_timer.data = 0;
+-	scan_timer.function = scan_kbd;
+-	add_timer(&scan_timer);
+-
+-	printk(KERN_INFO "Generic scan keyboard driver initialized\n");
+-}
+diff -puN drivers/char/scan_keyb.h~input-scan_keyb-remove-it /dev/null
+--- a/drivers/char/scan_keyb.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-#ifndef	__DRIVER_CHAR_SCAN_KEYB_H
+-#define	__DRIVER_CHAR_SCAN_KEYB_H
+-/*
+- *	$Id: scan_keyb.h,v 1.1 2000/06/10 21:45:30 yaegashi Exp $
+- *	Copyright (C) 2000 YAEGASHI Takeshi
+- *	Generic scan keyboard driver
+- */
+-
+-int register_scan_keyboard(int (*scan)(unsigned char *buffer),
+-			   const unsigned char *table,
+-			   int length);
+-
+-void __init scan_kbd_init(void);
+-
+-#endif
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-add-vm_insert_pfn.patch
-add-nopfn_refault-result-from-vm_ops-nopfn.patch
-simplify-the-stacktrace-code.patch
-make-bh_unwritten-a-first-class-bufferhead-flag-v2.patch
-make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-fix-d_path-for-lazy-unmounts.patch
-move-remove_dquot_ref-to-dqoutc.patch
-remove-sb-s_files-and-file_list_lock-usage-in-dquotc.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
-aio-is-unlikely.patch
+char-use-more-pci_device-macro.patch
+char-cyclades-use-pci_device_id.patch
+maintainers-remove-two-dead-e-mail.patch
+char-specialix-isr-have-2-params.patch
+char-timers-cleanup.patch
+fbdev-driver-for-s3-trio-virge-update-2-fix.patch
+video-fb-add-true-ref_count-atomicity.patch
+video-fb-kzalloc-changes.patch
+shrink_slab-handle-bad-shrinkers.patch
