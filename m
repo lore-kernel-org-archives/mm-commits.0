@@ -1,270 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - uml-x86_64-thread-fixes.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:49:47 -0800
-Message-ID: <200702112249.l1BMnl9T015790@shell0.pdx.osdl.net>
+Subject: - uml-sigio-formatting-fixes.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:49:35 -0800
+Message-ID: <200702112249.l1BMnZPX015766@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59923 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59886 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932724AbXBKWtu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:49:50 -0500
+	id S932712AbXBKWth (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:49:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: x86_64 thread fixes
+     uml: SIGIO formatting fixes
 has been removed from the -mm tree.  Its filename was
-     uml-x86_64-thread-fixes.patch
+     uml-sigio-formatting-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: x86_64 thread fixes
+Subject: uml: SIGIO formatting fixes
 From: Jeff Dike <jdike@addtoit.com>
 
-x86_64 needs some TLS fixes.  What was missing was remembering the child
-thread id during clone and stuffing it into the child during each context
-switch.
-
-The %fs value is stored separately in the thread structure since the host
-controls what effect it has on the actual register file.  The host also needs
-to store it in its own thread struct, so we need the value kept outside the
-register file.
-
-arch_prctl_skas was fixed to call PTRACE_ARCH_PRCTL appropriately.  There is
-some saving and restoring of registers in the ARCH_SET_* cases so that the
-correct set of registers are changed on the host and restored to the process
-when it runs again.
+Fix formatting in the sigio code.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/os.h                 |    2 
- arch/um/os-Linux/sys-x86_64/Makefile |    2 
- arch/um/os-Linux/sys-x86_64/prctl.c  |   12 ++++
- arch/um/sys-x86_64/syscalls.c        |   73 ++++++++++++++++++-------
- arch/um/sys-x86_64/tls.c             |   11 ++-
- include/asm-um/processor-x86_64.h    |    6 +-
- include/asm-um/ptrace-x86_64.h       |    6 --
- 7 files changed, 83 insertions(+), 29 deletions(-)
+ arch/um/include/sigio.h |   11 -----------
+ arch/um/kernel/sigio.c  |    6 +++---
+ 2 files changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN arch/um/include/os.h~uml-x86_64-thread-fixes arch/um/include/os.h
---- a/arch/um/include/os.h~uml-x86_64-thread-fixes
-+++ a/arch/um/include/os.h
-@@ -340,4 +340,6 @@ extern void maybe_sigio_broken(int fd, i
- extern void sig_handler_common_skas(int sig, void *sc_ptr);
- extern void user_signal(int sig, union uml_pt_regs *regs, int pid);
+diff -puN arch/um/include/sigio.h~uml-sigio-formatting-fixes arch/um/include/sigio.h
+--- a/arch/um/include/sigio.h~uml-sigio-formatting-fixes
++++ a/arch/um/include/sigio.h
+@@ -12,14 +12,3 @@ extern void sigio_lock(void);
+ extern void sigio_unlock(void);
  
-+extern int os_arch_prctl(int pid, int code, unsigned long *addr);
-+
  #endif
-diff -puN arch/um/os-Linux/sys-x86_64/Makefile~uml-x86_64-thread-fixes arch/um/os-Linux/sys-x86_64/Makefile
---- a/arch/um/os-Linux/sys-x86_64/Makefile~uml-x86_64-thread-fixes
-+++ a/arch/um/os-Linux/sys-x86_64/Makefile
-@@ -3,7 +3,7 @@
- # Licensed under the GPL
- #
- 
--obj-$(CONFIG_MODE_SKAS) = registers.o signal.o
-+obj-$(CONFIG_MODE_SKAS) = registers.o prctl.o signal.o
- 
- USER_OBJS := $(obj-y)
- 
-diff -puN /dev/null arch/um/os-Linux/sys-x86_64/prctl.c
---- /dev/null
-+++ a/arch/um/os-Linux/sys-x86_64/prctl.c
-@@ -0,0 +1,12 @@
-+/*
-+ * Copyright (C) 2007 Jeff Dike (jdike@{addtoit.com,linux.intel.com})
-+ * Licensed under the GPL
-+ */
-+
-+#include <sys/ptrace.h>
-+#include <linux/ptrace.h>
-+
-+int os_arch_prctl(int pid, int code, unsigned long *addr)
-+{
-+        return ptrace(PTRACE_ARCH_PRCTL, pid, (unsigned long) addr, code);
-+}
-diff -puN arch/um/sys-x86_64/syscalls.c~uml-x86_64-thread-fixes arch/um/sys-x86_64/syscalls.c
---- a/arch/um/sys-x86_64/syscalls.c~uml-x86_64-thread-fixes
-+++ a/arch/um/sys-x86_64/syscalls.c
-@@ -16,6 +16,7 @@
- #include "asm/prctl.h" /* XXX This should get the constants from libc */
- #include "choose-mode.h"
- #include "kern.h"
-+#include "os.h"
- 
- asmlinkage long sys_uname64(struct new_utsname __user * name)
- {
-@@ -58,40 +59,67 @@ static long arch_prctl_tt(int code, unsi
- 
- #ifdef CONFIG_MODE_SKAS
- 
--/* XXX: Must also call arch_prctl in the host, beside saving the segment bases! */
--static long arch_prctl_skas(int code, unsigned long addr)
-+static long arch_prctl_skas(int code, unsigned long __user *addr)
- {
--	long ret = 0;
-+        unsigned long *ptr = addr, tmp;
-+	long ret;
-+        int pid = current->mm->context.skas.id.u.pid;
- 
-+	/*
-+	 * With ARCH_SET_FS (and ARCH_SET_GS is treated similarly to
-+	 * be safe), we need to call arch_prctl on the host because
-+	 * setting %fs may result in something else happening (like a
-+	 * GDT being set instead).  So, we let the host fiddle the
-+	 * registers and restore them afterwards.
-+	 *
-+	 * So, the saved registers are stored to the process (this
-+	 * needed because a stub may have been the last thing to run),
-+	 * arch_prctl is run on the host, then the registers are read
-+	 * back.
-+	 */
- 	switch(code){
- 	case ARCH_SET_FS:
--		current->thread.regs.regs.skas.regs[FS_BASE / sizeof(unsigned long)] = addr;
--		break;
- 	case ARCH_SET_GS:
--		current->thread.regs.regs.skas.regs[GS_BASE / sizeof(unsigned long)] = addr;
-+                restore_registers(pid, &current->thread.regs.regs);
-+                break;
-+        case ARCH_GET_FS:
-+        case ARCH_GET_GS:
-+                /*
-+                 * With these two, we read to a local pointer and
-+                 * put_user it to the userspace pointer that we were
-+                 * given.  If addr isn't valid (because it hasn't been
-+                 * faulted in or is just bogus), we want put_user to
-+                 * fault it in (or return -EFAULT) instead of having
-+                 * the host return -EFAULT.
-+                 */
-+                ptr = &tmp;
-+        }
-+
-+        ret = os_arch_prctl(pid, code, ptr);
-+        if(ret)
-+                return ret;
-+
-+        switch(code){
-+	case ARCH_SET_FS:
-+	case ARCH_SET_GS:
-+                save_registers(pid, &current->thread.regs.regs);
- 		break;
- 	case ARCH_GET_FS:
--		ret = put_user(current->thread.regs.regs.skas.
--				regs[FS_BASE / sizeof(unsigned long)],
--				(unsigned long __user *)addr);
-+		ret = put_user(tmp, addr);
- 	        break;
- 	case ARCH_GET_GS:
--		ret = put_user(current->thread.regs.regs.skas.
--				regs[GS_BASE / sizeof(unsigned long)],
--				(unsigned long __user *)addr);
-+		ret = put_user(tmp, addr);
- 	        break;
--	default:
--		ret = -EINVAL;
--		break;
- 	}
- 
--	return(ret);
-+	return ret;
- }
- #endif
- 
- long sys_arch_prctl(int code, unsigned long addr)
- {
--	return(CHOOSE_MODE_PROC(arch_prctl_tt, arch_prctl_skas, code, addr));
-+	return CHOOSE_MODE_PROC(arch_prctl_tt, arch_prctl_skas, code,
-+                                (unsigned long __user *) addr);
- }
- 
- long sys_clone(unsigned long clone_flags, unsigned long newsp,
-@@ -105,5 +133,14 @@ long sys_clone(unsigned long clone_flags
- 	ret = do_fork(clone_flags, newsp, &current->thread.regs, 0, parent_tid,
- 		      child_tid);
- 	current->thread.forking = 0;
--	return(ret);
-+	return ret;
- }
-+
-+void arch_switch_to_skas(struct task_struct *from, struct task_struct *to)
-+{
-+        if(to->thread.arch.fs == 0)
-+                return;
-+
-+        arch_prctl_skas(ARCH_SET_FS, (void __user *) to->thread.arch.fs);
-+}
-+
-diff -puN arch/um/sys-x86_64/tls.c~uml-x86_64-thread-fixes arch/um/sys-x86_64/tls.c
---- a/arch/um/sys-x86_64/tls.c~uml-x86_64-thread-fixes
-+++ a/arch/um/sys-x86_64/tls.c
-@@ -1,14 +1,17 @@
- #include "linux/sched.h"
- 
--void debug_arch_force_load_TLS(void)
--{
--}
 -
- void clear_flushed_tls(struct task_struct *task)
- {
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/kernel/sigio.c~uml-sigio-formatting-fixes arch/um/kernel/sigio.c
+--- a/arch/um/kernel/sigio.c~uml-sigio-formatting-fixes
++++ a/arch/um/kernel/sigio.c
+@@ -23,7 +23,7 @@ static irqreturn_t sigio_interrupt(int i
+ 
+ 	os_read_file(sigio_irq_fd, &c, sizeof(c));
+ 	reactivate_fd(sigio_irq_fd, SIGIO_WRITE_IRQ);
+-	return(IRQ_HANDLED);
++	return IRQ_HANDLED;
  }
  
- int arch_copy_tls(struct task_struct *t)
- {
-+	/*
-+	 * If CLONE_SETTLS is set, we need to save the thread id
-+	 * (which is argument 5, child_tid, of clone) so it can be set
-+	 * during context switches.
-+	 */
-+	t->thread.arch.fs = t->thread.regs.regs.skas.regs[R8 / sizeof(long)];
-+
-         return 0;
- }
-diff -puN include/asm-um/processor-x86_64.h~uml-x86_64-thread-fixes include/asm-um/processor-x86_64.h
---- a/include/asm-um/processor-x86_64.h~uml-x86_64-thread-fixes
-+++ a/include/asm-um/processor-x86_64.h
-@@ -13,6 +13,7 @@
- struct arch_thread {
-         unsigned long debugregs[8];
-         int debugregs_seq;
-+        unsigned long fs;
-         struct faultinfo faultinfo;
- };
- 
-@@ -25,8 +26,9 @@ extern inline void rep_nop(void)
- #define cpu_relax()   rep_nop()
- 
- #define INIT_ARCH_THREAD { .debugregs  		= { [ 0 ... 7 ] = 0 }, \
--                           .debugregs_seq	= 0, \
--                           .faultinfo		= { 0, 0, 0 } }
-+                           .debugregs_seq	= 0,			       \
-+			   .fs			= 0, \
-+			   .faultinfo		= { 0, 0, 0 } }
- 
- static inline void arch_flush_thread(struct arch_thread *thread)
- {
-diff -puN include/asm-um/ptrace-x86_64.h~uml-x86_64-thread-fixes include/asm-um/ptrace-x86_64.h
---- a/include/asm-um/ptrace-x86_64.h~uml-x86_64-thread-fixes
-+++ a/include/asm-um/ptrace-x86_64.h
-@@ -81,9 +81,7 @@ static inline void arch_switch_to_tt(str
- {
+ int write_sigio_irq(int fd)
+@@ -36,10 +36,10 @@ int write_sigio_irq(int fd)
+ 	if(err){
+ 		printk("write_sigio_irq : um_request_irq failed, err = %d\n",
+ 		       err);
+-		return(-1);
++		return -1;
+ 	}
+ 	sigio_irq_fd = fd;
+-	return(0);
++	return 0;
  }
  
--static inline void arch_switch_to_skas(struct task_struct *from,
--                                       struct task_struct *to)
--{
--}
-+extern void arch_switch_to_skas(struct task_struct *from,
-+				struct task_struct *to);
- 
- #endif
+ /* These are called from os-Linux/sigio.c to protect its pollfds arrays. */
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
