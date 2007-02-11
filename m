@@ -1,117 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - drop-get_zone_counts.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:46:28 -0800
-Message-ID: <200702112246.l1BMkSCh015494@shell0.pdx.osdl.net>
+Subject: - optional-zone_dma-for-ia64.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:46:40 -0800
+Message-ID: <200702112246.l1BMkeYL015506@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59505 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59528 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932617AbXBKWqa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:46:30 -0500
+	id S932622AbXBKWqm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:46:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Drop get_zone_counts()
+     optional ZONE_DMA: optional ZONE_DMA for ia64
 has been removed from the -mm tree.  Its filename was
-     drop-get_zone_counts.patch
+     optional-zone_dma-for-ia64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Drop get_zone_counts()
+Subject: optional ZONE_DMA: optional ZONE_DMA for ia64
 From: Christoph Lameter <clameter@sgi.com>
 
-Values are available via ZVC sums.
+ZONE_DMA less operation for IA64 SGI platform
+
+Disable ZONE_DMA for SGI SN2.  All memory is addressable by all devices and we
+do not need any special memory pool.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    9 ++-------
- mm/page_alloc.c     |    9 ++-------
- mm/vmstat.c         |    8 --------
- 3 files changed, 4 insertions(+), 22 deletions(-)
+ arch/ia64/Kconfig        |    4 ++--
+ arch/ia64/mm/contig.c    |    4 +++-
+ arch/ia64/mm/discontig.c |    6 ++++++
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~drop-get_zone_counts fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~drop-get_zone_counts
-+++ a/fs/proc/proc_misc.c
-@@ -121,16 +121,11 @@ static int meminfo_read_proc(char *page,
- {
- 	struct sysinfo i;
- 	int len;
--	unsigned long inactive;
--	unsigned long active;
--	unsigned long free;
- 	unsigned long committed;
- 	unsigned long allowed;
- 	struct vmalloc_info vmi;
- 	long cached;
+diff -puN arch/ia64/Kconfig~optional-zone_dma-for-ia64 arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~optional-zone_dma-for-ia64
++++ a/arch/ia64/Kconfig
+@@ -25,8 +25,8 @@ config 64BIT
+ 	default y
  
--	get_zone_counts(&active, &inactive, &free);
--
- /*
-  * display in kilobytes.
-  */
-@@ -187,8 +182,8 @@ static int meminfo_read_proc(char *page,
- 		K(i.bufferram),
- 		K(cached),
- 		K(total_swapcache_pages),
--		K(active),
--		K(inactive),
-+		K(global_page_state(NR_ACTIVE)),
-+		K(global_page_state(NR_INACTIVE)),
- #ifdef CONFIG_HIGHMEM
- 		K(i.totalhigh),
- 		K(i.freehigh),
-diff -puN mm/page_alloc.c~drop-get_zone_counts mm/page_alloc.c
---- a/mm/page_alloc.c~drop-get_zone_counts
-+++ a/mm/page_alloc.c
-@@ -1524,9 +1524,6 @@ void si_meminfo_node(struct sysinfo *val
- void show_free_areas(void)
- {
- 	int cpu;
--	unsigned long active;
--	unsigned long inactive;
--	unsigned long free;
- 	struct zone *zone;
+ config ZONE_DMA
+-	bool
+-	default y
++	def_bool y
++	depends on !IA64_SGI_SN2
  
- 	for_each_zone(zone) {
-@@ -1550,12 +1547,10 @@ void show_free_areas(void)
- 		}
+ config MMU
+ 	bool
+diff -puN arch/ia64/mm/contig.c~optional-zone_dma-for-ia64 arch/ia64/mm/contig.c
+--- a/arch/ia64/mm/contig.c~optional-zone_dma-for-ia64
++++ a/arch/ia64/mm/contig.c
+@@ -259,9 +259,11 @@ paging_init (void)
+ 	num_physpages = 0;
+ 	efi_memmap_walk(count_pages, &num_physpages);
+ 
+-	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+ 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
++#ifdef CONFIG_ZONE_DMA
++	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+ 	max_zone_pfns[ZONE_DMA] = max_dma;
++#endif
+ 	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
+ 
+ #ifdef CONFIG_VIRTUAL_MEM_MAP
+diff -puN arch/ia64/mm/discontig.c~optional-zone_dma-for-ia64 arch/ia64/mm/discontig.c
+--- a/arch/ia64/mm/discontig.c~optional-zone_dma-for-ia64
++++ a/arch/ia64/mm/discontig.c
+@@ -37,7 +37,9 @@ struct early_node_data {
+ 	unsigned long pernode_size;
+ 	struct bootmem_data bootmem_data;
+ 	unsigned long num_physpages;
++#ifdef CONFIG_ZONE_DMA
+ 	unsigned long num_dma_physpages;
++#endif
+ 	unsigned long min_pfn;
+ 	unsigned long max_pfn;
+ };
+@@ -633,9 +635,11 @@ static __init int count_node_pages(unsig
+ 	unsigned long end = start + len;
+ 
+ 	mem_data[node].num_physpages += len >> PAGE_SHIFT;
++#ifdef CONFIG_ZONE_DMA
+ 	if (start <= __pa(MAX_DMA_ADDRESS))
+ 		mem_data[node].num_dma_physpages +=
+ 			(min(end, __pa(MAX_DMA_ADDRESS)) - start) >>PAGE_SHIFT;
++#endif
+ 	start = GRANULEROUNDDOWN(start);
+ 	start = ORDERROUNDDOWN(start);
+ 	end = GRANULEROUNDUP(end);
+@@ -688,7 +692,9 @@ void __init paging_init(void)
  	}
  
--	get_zone_counts(&active, &inactive, &free);
--
- 	printk("Active:%lu inactive:%lu dirty:%lu writeback:%lu unstable:%lu\n"
- 		" free:%lu slab:%lu mapped:%lu pagetables:%lu bounce:%lu\n",
--		active,
--		inactive,
-+		global_page_state(NR_ACTIVE),
-+		global_page_state(NR_INACTIVE),
- 		global_page_state(NR_FILE_DIRTY),
- 		global_page_state(NR_WRITEBACK),
- 		global_page_state(NR_UNSTABLE_NFS),
-diff -puN mm/vmstat.c~drop-get_zone_counts mm/vmstat.c
---- a/mm/vmstat.c~drop-get_zone_counts
-+++ a/mm/vmstat.c
-@@ -13,14 +13,6 @@
- #include <linux/module.h>
- #include <linux/cpu.h>
+ 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
++#ifdef CONFIG_ZONE_DMA
+ 	max_zone_pfns[ZONE_DMA] = max_dma;
++#endif
+ 	max_zone_pfns[ZONE_NORMAL] = max_pfn;
+ 	free_area_init_nodes(max_zone_pfns);
  
--void get_zone_counts(unsigned long *active,
--		unsigned long *inactive, unsigned long *free)
--{
--	*active = global_page_state(NR_ACTIVE);
--	*inactive = global_page_state(NR_INACTIVE);
--	*free = global_page_state(NR_FREE_PAGES);
--}
--
- #ifdef CONFIG_VM_EVENT_COUNTERS
- DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
- EXPORT_PER_CPU_SYMBOL(vm_event_states);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
