@@ -1,114 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - cris-tlb-handling-turn-local_save_flags-local_irq_disable.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:48:11 -0800
-Message-ID: <200702112248.l1BMmBd8015605@shell0.pdx.osdl.net>
+Subject: - uml-lock-the-irqs_to_free-list.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:48:21 -0800
+Message-ID: <200702112248.l1BMmLjo015618@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59702 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59708 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932671AbXBKWsV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:48:21 -0500
+	id S932656AbXBKWsX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:48:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, starvik@axis.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRIS: TLB handling: turn local_save_flags() + local_irq_disable() into local_irq_save()
+     uml: lock the irqs_to_free list
 has been removed from the -mm tree.  Its filename was
-     cris-tlb-handling-turn-local_save_flags-local_irq_disable.patch
+     uml-lock-the-irqs_to_free-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRIS: TLB handling: turn local_save_flags() + local_irq_disable() into local_irq_save()
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: uml: lock the irqs_to_free list
+From: Jeff Dike <jdike@addtoit.com>
 
-TLB handling for CRIS contains local_irq_disable() after local_save_flags().
-Turn this into local_irq_save().
+Fix (i.e. add some) the locking around the irqs_to_free list.
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Mikael Starvik <starvik@axis.com>
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/mm/tlb.c |    9 +++------
- arch/cris/arch-v32/mm/tlb.c |    9 +++------
- 2 files changed, 6 insertions(+), 12 deletions(-)
+ arch/um/drivers/chan_kern.c |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN arch/cris/arch-v10/mm/tlb.c~cris-tlb-handling-turn-local_save_flags-local_irq_disable arch/cris/arch-v10/mm/tlb.c
---- a/arch/cris/arch-v10/mm/tlb.c~cris-tlb-handling-turn-local_save_flags-local_irq_disable
-+++ a/arch/cris/arch-v10/mm/tlb.c
-@@ -42,8 +42,7 @@ flush_tlb_all(void)
- 	 * in the same 4-way entry group. details.. 
- 	 */
+diff -puN arch/um/drivers/chan_kern.c~uml-lock-the-irqs_to_free-list arch/um/drivers/chan_kern.c
+--- a/arch/um/drivers/chan_kern.c~uml-lock-the-irqs_to_free-list
++++ a/arch/um/drivers/chan_kern.c
+@@ -222,15 +222,28 @@ void enable_chan(struct line *line)
+ 	}
+ }
  
--	local_save_flags(flags);
--	local_irq_disable();
-+	local_irq_save(flags);
- 	for(i = 0; i < NUM_TLB_ENTRIES; i++) {
- 		*R_TLB_SELECT = ( IO_FIELD(R_TLB_SELECT, index, i) );
- 		*R_TLB_HI = ( IO_FIELD(R_TLB_HI, page_id, INVALID_PAGEID ) |
-@@ -78,8 +77,7 @@ flush_tlb_mm(struct mm_struct *mm)
- 	 * global pages. is it worth the extra I/O ? 
- 	 */
++/* Items are added in IRQ context, when free_irq can't be called, and
++ * removed in process context, when it can.
++ * This handles interrupt sources which disappear, and which need to
++ * be permanently disabled.  This is discovered in IRQ context, but
++ * the freeing of the IRQ must be done later.
++ */
++static DEFINE_SPINLOCK(irqs_to_free_lock);
+ static LIST_HEAD(irqs_to_free);
  
--	local_save_flags(flags);
--	local_irq_disable();
-+	local_irq_save(flags);
- 	for(i = 0; i < NUM_TLB_ENTRIES; i++) {
- 		*R_TLB_SELECT = IO_FIELD(R_TLB_SELECT, index, i);
- 		if (IO_EXTRACT(R_TLB_HI, page_id, *R_TLB_HI) == page_id) {
-@@ -118,8 +116,7 @@ flush_tlb_page(struct vm_area_struct *vm
- 	 * and the virtual address requested 
- 	 */
+ void free_irqs(void)
+ {
+ 	struct chan *chan;
++	LIST_HEAD(list);
++	struct list_head *ele;
++
++	spin_lock_irq(&irqs_to_free_lock);
++	list_splice_init(&irqs_to_free, &list);
++	INIT_LIST_HEAD(&irqs_to_free);
++	spin_unlock_irq(&irqs_to_free_lock);
  
--	local_save_flags(flags);
--	local_irq_disable();
-+	local_irq_save(flags);
- 	for(i = 0; i < NUM_TLB_ENTRIES; i++) {
- 		unsigned long tlb_hi;
- 		*R_TLB_SELECT = IO_FIELD(R_TLB_SELECT, index, i);
-diff -puN arch/cris/arch-v32/mm/tlb.c~cris-tlb-handling-turn-local_save_flags-local_irq_disable arch/cris/arch-v32/mm/tlb.c
---- a/arch/cris/arch-v32/mm/tlb.c~cris-tlb-handling-turn-local_save_flags-local_irq_disable
-+++ a/arch/cris/arch-v32/mm/tlb.c
-@@ -54,8 +54,7 @@ __flush_tlb_all(void)
- 	 * Mask with 0xf so similar TLB entries aren't written in the same 4-way
- 	 * entry group.
- 	 */
--	local_save_flags(flags);
--	local_irq_disable();
-+	local_irq_save(flags);
+-	while(!list_empty(&irqs_to_free)){
+-		chan = list_entry(irqs_to_free.next, struct chan, free_list);
+-		list_del(&chan->free_list);
++	list_for_each(ele, &list){
++		chan = list_entry(ele, struct chan, free_list);
  
- 	for (mmu = 1; mmu <= 2; mmu++) {
- 		SUPP_BANK_SEL(mmu); /* Select the MMU */
-@@ -92,8 +91,7 @@ __flush_tlb_mm(struct mm_struct *mm)
+ 		if(chan->input)
+ 			free_irq(chan->line->driver->read_irq, chan);
+@@ -246,7 +259,9 @@ static void close_one_chan(struct chan *
  		return;
  
- 	/* Mark the TLB entries that match the page_id as invalid. */
--	local_save_flags(flags);
--	local_irq_disable();
-+	local_irq_save(flags);
- 
- 	for (mmu = 1; mmu <= 2; mmu++) {
- 		SUPP_BANK_SEL(mmu);
-@@ -140,8 +138,7 @@ __flush_tlb_page(struct vm_area_struct *
- 	 * Invalidate those TLB entries that match both the mm context and the
- 	 * requested virtual address.
- 	 */
--	local_save_flags(flags);
--	local_irq_disable();
-+	local_irq_save(flags);
- 
- 	for (mmu = 1; mmu <= 2; mmu++) {
- 		SUPP_BANK_SEL(mmu);
+ 	if(delay_free_irq){
++		spin_lock_irq(&irqs_to_free_lock);
+ 		list_add(&chan->free_list, &irqs_to_free);
++		spin_unlock_irq(&irqs_to_free_lock);
+ 	}
+ 	else {
+ 		if(chan->input)
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-alsa.patch
-git-hid.patch
-git-ipwireless_cs.patch
-ds1302-local_irq_disable-is-redundant-after-local_irq_save.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
+uml-fix-prototypes.patch
+dynamic-kernel-command-line-common.patch
+dynamic-kernel-command-line-um.patch
