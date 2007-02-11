@@ -1,64 +1,352 @@
 From: akpm@linux-foundation.org
-Subject: - uml-console-whitespace-and-comment-tidying.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:48:19 -0800
-Message-ID: <200702112248.l1BMmJcK015614@shell0.pdx.osdl.net>
+Subject: - uml-audio-driver-formatting.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:48:33 -0800
+Message-ID: <200702112248.l1BMmXIU015638@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59703 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59736 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932674AbXBKWsV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:48:21 -0500
+	id S932671AbXBKWsg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:48:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: console whitespace and comment tidying
+     uml: audio driver formatting
 has been removed from the -mm tree.  Its filename was
-     uml-console-whitespace-and-comment-tidying.patch
+     uml-audio-driver-formatting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: console whitespace and comment tidying
+Subject: uml: audio driver formatting
 From: Jeff Dike <jdike@addtoit.com>
 
-Some comment and whitespace cleanups in the console and mconsole code.
+Whitespace and style fixes.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/stdio_console.c |    2 --
- arch/um/include/mconsole_kern.h |    2 +-
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ arch/um/drivers/hostaudio_kern.c |  160 +++++++++++++----------------
+ 1 file changed, 73 insertions(+), 87 deletions(-)
 
-diff -puN arch/um/drivers/stdio_console.c~uml-console-whitespace-and-comment-tidying arch/um/drivers/stdio_console.c
---- a/arch/um/drivers/stdio_console.c~uml-console-whitespace-and-comment-tidying
-+++ a/arch/um/drivers/stdio_console.c
-@@ -30,8 +30,6 @@
+diff -puN arch/um/drivers/hostaudio_kern.c~uml-audio-driver-formatting arch/um/drivers/hostaudio_kern.c
+--- a/arch/um/drivers/hostaudio_kern.c~uml-audio-driver-formatting
++++ a/arch/um/drivers/hostaudio_kern.c
+@@ -15,11 +15,11 @@
+ #include "os.h"
  
- #define MAX_TTYS (16)
- 
--/* ----------------------------------------------------------------------------- */
--
- /* Referenced only by tty_driver below - presumably it's locked correctly
-  * by the tty driver.
-  */
-diff -puN arch/um/include/mconsole_kern.h~uml-console-whitespace-and-comment-tidying arch/um/include/mconsole_kern.h
---- a/arch/um/include/mconsole_kern.h~uml-console-whitespace-and-comment-tidying
-+++ a/arch/um/include/mconsole_kern.h
-@@ -20,7 +20,7 @@ struct mc_device {
- 	char *name;
- 	int (*config)(char *, char **);
- 	int (*get_config)(char *, char *, int, char **);
--        int (*id)(char **, int *, int *);
-+	int (*id)(char **, int *, int *);
- 	int (*remove)(int, char **);
+ struct hostaudio_state {
+-  int fd;
++	int fd;
  };
  
+ struct hostmixer_state {
+-  int fd;
++	int fd;
+ };
+ 
+ #define HOSTAUDIO_DEV_DSP "/dev/sound/dsp"
+@@ -72,12 +72,12 @@ MODULE_PARM_DESC(mixer, MIXER_HELP);
+ static ssize_t hostaudio_read(struct file *file, char __user *buffer,
+ 			      size_t count, loff_t *ppos)
+ {
+-        struct hostaudio_state *state = file->private_data;
++	struct hostaudio_state *state = file->private_data;
+ 	void *kbuf;
+ 	int err;
+ 
+ #ifdef DEBUG
+-        printk("hostaudio: read called, count = %d\n", count);
++	printk("hostaudio: read called, count = %d\n", count);
+ #endif
+ 
+ 	kbuf = kmalloc(count, GFP_KERNEL);
+@@ -91,7 +91,7 @@ static ssize_t hostaudio_read(struct fil
+ 	if(copy_to_user(buffer, kbuf, err))
+ 		err = -EFAULT;
+ 
+- out:
++out:
+ 	kfree(kbuf);
+ 	return(err);
+ }
+@@ -99,12 +99,12 @@ static ssize_t hostaudio_read(struct fil
+ static ssize_t hostaudio_write(struct file *file, const char __user *buffer,
+ 			       size_t count, loff_t *ppos)
+ {
+-        struct hostaudio_state *state = file->private_data;
++	struct hostaudio_state *state = file->private_data;
+ 	void *kbuf;
+ 	int err;
+ 
+ #ifdef DEBUG
+-        printk("hostaudio: write called, count = %d\n", count);
++	printk("hostaudio: write called, count = %d\n", count);
+ #endif
+ 
+ 	kbuf = kmalloc(count, GFP_KERNEL);
+@@ -128,24 +128,24 @@ static ssize_t hostaudio_write(struct fi
+ static unsigned int hostaudio_poll(struct file *file, 
+ 				   struct poll_table_struct *wait)
+ {
+-        unsigned int mask = 0;
++	unsigned int mask = 0;
+ 
+ #ifdef DEBUG
+-        printk("hostaudio: poll called (unimplemented)\n");
++	printk("hostaudio: poll called (unimplemented)\n");
+ #endif
+ 
+-        return(mask);
++	return(mask);
+ }
+ 
+ static int hostaudio_ioctl(struct inode *inode, struct file *file, 
+ 			   unsigned int cmd, unsigned long arg)
+ {
+-        struct hostaudio_state *state = file->private_data;
++	struct hostaudio_state *state = file->private_data;
+ 	unsigned long data = 0;
+ 	int err;
+ 
+ #ifdef DEBUG
+-        printk("hostaudio: ioctl called, cmd = %u\n", cmd);
++	printk("hostaudio: ioctl called, cmd = %u\n", cmd);
+ #endif
+ 	switch(cmd){
+ 	case SNDCTL_DSP_SPEED:
+@@ -182,42 +182,40 @@ static int hostaudio_ioctl(struct inode 
+ 
+ static int hostaudio_open(struct inode *inode, struct file *file)
+ {
+-        struct hostaudio_state *state;
+-        int r = 0, w = 0;
+-        int ret;
++	struct hostaudio_state *state;
++	int r = 0, w = 0;
++	int ret;
+ 
+ #ifdef DEBUG
+-        printk("hostaudio: open called (host: %s)\n", dsp);
++	printk("hostaudio: open called (host: %s)\n", dsp);
+ #endif
+ 
+-        state = kmalloc(sizeof(struct hostaudio_state), GFP_KERNEL);
+-        if(state == NULL)
++	state = kmalloc(sizeof(struct hostaudio_state), GFP_KERNEL);
++	if(state == NULL)
+ 		return(-ENOMEM);
+ 
+-        if(file->f_mode & FMODE_READ) r = 1;
+-        if(file->f_mode & FMODE_WRITE) w = 1;
++	if(file->f_mode & FMODE_READ) r = 1;
++	if(file->f_mode & FMODE_WRITE) w = 1;
+ 
+ 	ret = os_open_file(dsp, of_set_rw(OPENFLAGS(), r, w), 0);
+-        if(ret < 0){
++	if(ret < 0){
+ 		kfree(state);
+ 		return(ret);
+-        }
+-
++	}
+ 	state->fd = ret;
+-        file->private_data = state;
+-        return(0);
++	file->private_data = state;
++	return(0);
+ }
+ 
+ static int hostaudio_release(struct inode *inode, struct file *file)
+ {
+-        struct hostaudio_state *state = file->private_data;
++	struct hostaudio_state *state = file->private_data;
+ 
+ #ifdef DEBUG
+-        printk("hostaudio: release called\n");
++	printk("hostaudio: release called\n");
+ #endif
+-
+-		os_close_file(state->fd);
+-        kfree(state);
++	os_close_file(state->fd);
++	kfree(state);
+ 
+ 	return(0);
+ }
+@@ -227,10 +225,10 @@ static int hostaudio_release(struct inod
+ static int hostmixer_ioctl_mixdev(struct inode *inode, struct file *file, 
+ 				  unsigned int cmd, unsigned long arg)
+ {
+-        struct hostmixer_state *state = file->private_data;
++	struct hostmixer_state *state = file->private_data;
+ 
+ #ifdef DEBUG
+-        printk("hostmixer: ioctl called\n");
++	printk("hostmixer: ioctl called\n");
+ #endif
+ 
+ 	return(os_ioctl_generic(state->fd, cmd, arg));
+@@ -238,68 +236,67 @@ static int hostmixer_ioctl_mixdev(struct
+ 
+ static int hostmixer_open_mixdev(struct inode *inode, struct file *file)
+ {
+-        struct hostmixer_state *state;
+-        int r = 0, w = 0;
+-        int ret;
++	struct hostmixer_state *state;
++	int r = 0, w = 0;
++	int ret;
+ 
+ #ifdef DEBUG
+-        printk("hostmixer: open called (host: %s)\n", mixer);
++	printk("hostmixer: open called (host: %s)\n", mixer);
+ #endif
+ 
+-        state = kmalloc(sizeof(struct hostmixer_state), GFP_KERNEL);
+-        if(state == NULL) return(-ENOMEM);
++	state = kmalloc(sizeof(struct hostmixer_state), GFP_KERNEL);
++	if(state == NULL) return(-ENOMEM);
+ 
+-        if(file->f_mode & FMODE_READ) r = 1;
+-        if(file->f_mode & FMODE_WRITE) w = 1;
++	if(file->f_mode & FMODE_READ) r = 1;
++	if(file->f_mode & FMODE_WRITE) w = 1;
+ 
+ 	ret = os_open_file(mixer, of_set_rw(OPENFLAGS(), r, w), 0);
+         
+-        if(ret < 0){
++	if(ret < 0){
+ 		printk("hostaudio_open_mixdev failed to open '%s', err = %d\n",
+ 		       dsp, -ret);
+ 		kfree(state);
+ 		return(ret);
+-        }
++	}
+ 
+-        file->private_data = state;
+-        return(0);
++	file->private_data = state;
++	return(0);
+ }
+ 
+ static int hostmixer_release(struct inode *inode, struct file *file)
+ {
+-        struct hostmixer_state *state = file->private_data;
++	struct hostmixer_state *state = file->private_data;
+ 
+ #ifdef DEBUG
+-        printk("hostmixer: release called\n");
++	printk("hostmixer: release called\n");
+ #endif
+ 
+-		os_close_file(state->fd);
+-        kfree(state);
++	os_close_file(state->fd);
++	kfree(state);
+ 
+ 	return(0);
+ }
+ 
+-
+ /* kernel module operations */
+ 
+ static const struct file_operations hostaudio_fops = {
+-        .owner          = THIS_MODULE,
+-        .llseek         = no_llseek,
+-        .read           = hostaudio_read,
+-        .write          = hostaudio_write,
+-        .poll           = hostaudio_poll,
+-        .ioctl          = hostaudio_ioctl,
+-        .mmap           = NULL,
+-        .open           = hostaudio_open,
+-        .release        = hostaudio_release,
++	.owner          = THIS_MODULE,
++	.llseek         = no_llseek,
++	.read           = hostaudio_read,
++	.write          = hostaudio_write,
++	.poll           = hostaudio_poll,
++	.ioctl          = hostaudio_ioctl,
++	.mmap           = NULL,
++	.open           = hostaudio_open,
++	.release        = hostaudio_release,
+ };
+ 
+ static const struct file_operations hostmixer_fops = {
+-        .owner          = THIS_MODULE,
+-        .llseek         = no_llseek,
+-        .ioctl          = hostmixer_ioctl_mixdev,
+-        .open           = hostmixer_open_mixdev,
+-        .release        = hostmixer_release,
++	.owner          = THIS_MODULE,
++	.llseek         = no_llseek,
++	.ioctl          = hostmixer_ioctl_mixdev,
++	.open           = hostmixer_open_mixdev,
++	.release        = hostmixer_release,
+ };
+ 
+ struct {
+@@ -313,42 +310,31 @@ MODULE_LICENSE("GPL");
+ 
+ static int __init hostaudio_init_module(void)
+ {
+-        printk(KERN_INFO "UML Audio Relay (host dsp = %s, host mixer = %s)\n",
++	printk(KERN_INFO "UML Audio Relay (host dsp = %s, host mixer = %s)\n",
+ 	       dsp, mixer);
+ 
+ 	module_data.dev_audio = register_sound_dsp(&hostaudio_fops, -1);
+-        if(module_data.dev_audio < 0){
+-                printk(KERN_ERR "hostaudio: couldn't register DSP device!\n");
+-                return -ENODEV;
+-        }
++	if(module_data.dev_audio < 0){
++		printk(KERN_ERR "hostaudio: couldn't register DSP device!\n");
++		return -ENODEV;
++	}
+ 
+ 	module_data.dev_mixer = register_sound_mixer(&hostmixer_fops, -1);
+-        if(module_data.dev_mixer < 0){
+-                printk(KERN_ERR "hostmixer: couldn't register mixer "
++	if(module_data.dev_mixer < 0){
++		printk(KERN_ERR "hostmixer: couldn't register mixer "
+ 		       "device!\n");
+-                unregister_sound_dsp(module_data.dev_audio);
+-                return -ENODEV;
+-        }
++		unregister_sound_dsp(module_data.dev_audio);
++		return -ENODEV;
++	}
+ 
+-        return 0;
++	return 0;
+ }
+ 
+ static void __exit hostaudio_cleanup_module (void)
+ {
+-       unregister_sound_mixer(module_data.dev_mixer);
+-       unregister_sound_dsp(module_data.dev_audio);
++	unregister_sound_mixer(module_data.dev_mixer);
++	unregister_sound_dsp(module_data.dev_audio);
+ }
+ 
+ module_init(hostaudio_init_module);
+ module_exit(hostaudio_cleanup_module);
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
