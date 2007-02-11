@@ -1,251 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - set-config_zone_dma-for-arches-with-generic_isa_dma.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:46:46 -0800
-Message-ID: <200702112246.l1BMkkcd015515@shell0.pdx.osdl.net>
+Subject: - remove-zone_dma-remains-from-sh-sh64.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:46:44 -0800
+Message-ID: <200702112246.l1BMkiL5015512@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59539 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59537 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932621AbXBKWqt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:46:49 -0500
+	id S932624AbXBKWqs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:46:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Set CONFIG_ZONE_DMA for arches with GENERIC_ISA_DMA
+     optional ZONE_DMA: remove ZONE_DMA remains from sh/sh64
 has been removed from the -mm tree.  Its filename was
-     set-config_zone_dma-for-arches-with-generic_isa_dma.patch
+     remove-zone_dma-remains-from-sh-sh64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Set CONFIG_ZONE_DMA for arches with GENERIC_ISA_DMA
+Subject: optional ZONE_DMA: remove ZONE_DMA remains from sh/sh64
 From: Christoph Lameter <clameter@sgi.com>
 
-As Andi pointed out: CONFIG_GENERIC_ISA_DMA only disables the ISA DMA
-channel management.  Other functionality may still expect GFP_DMA to
-provide memory below 16M.  So we need to make sure that CONFIG_ZONE_DMA is
-set independent of CONFIG_GENERIC_ISA_DMA.  Undo the modifications to
-mm/Kconfig where we made ZONE_DMA dependent on GENERIC_ISA_DMA and set
-theses explicitly in each arches Kconfig.
+sh / sh64: Remove ZONE_DMA remains.
 
-Reviews must occur for each arch in order to determine if ZONE_DMA can be
-switched off.  It can only be switched off if we know that all devices
-supported by a platform are capable of performing DMA transfers to all of
-memory (Some arches already support this: uml, avr32, sh sh64, parisc and
-IA64/Altix).
+Both arches do not need ZONE_DMA
 
-In order to switch ZONE_DMA off conditionally, one would have to establish
-a scheme by which one can assure that no drivers are enabled that are only
-capable of doing I/O to a part of memory, or one needs to provide an
-alternate means of performing an allocation from a specific range of memory
-(like provided by alloc_pages_range()) and insure that all drivers use that
-call.  In that case the arches alloc_dma_coherent() may need to be modified
-to call alloc_pages_range() instead of relying on GFP_DMA.
-
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig   |    4 ++++
- arch/arm/Kconfig     |    4 ++++
- arch/arm26/Kconfig   |    4 ++++
- arch/i386/Kconfig    |    4 ++++
- arch/m32r/Kconfig    |    4 ++++
- arch/m68k/Kconfig    |    4 ++++
- arch/mips/Kconfig    |    4 ++++
- arch/powerpc/Kconfig |    4 ++++
- arch/ppc/Kconfig     |    4 ++++
- arch/sparc/Kconfig   |    4 ++++
- arch/sparc64/Kconfig |    4 ++++
- arch/x86_64/Kconfig  |    4 ++++
- mm/Kconfig           |    4 ----
- 13 files changed, 48 insertions(+), 4 deletions(-)
+ arch/sh/mm/init.c   |   17 +----------------
+ arch/sh64/Kconfig   |    3 ---
+ arch/sh64/mm/init.c |    5 +----
+ 3 files changed, 2 insertions(+), 23 deletions(-)
 
-diff -puN arch/alpha/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/alpha/Kconfig
-@@ -41,6 +41,10 @@ config GENERIC_CALIBRATE_DELAY
- 	bool
- 	default y
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- config GENERIC_ISA_DMA
- 	bool
- 	default y
-diff -puN arch/arm/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/arm/Kconfig
---- a/arch/arm/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/arm/Kconfig
-@@ -100,6 +100,10 @@ config GENERIC_BUST_SPINLOCK
- config ARCH_MAY_HAVE_PC_FDC
- 	bool
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- config GENERIC_ISA_DMA
- 	bool
- 
-diff -puN arch/arm26/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/arm26/Kconfig
---- a/arch/arm26/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/arm26/Kconfig
-@@ -60,6 +60,10 @@ config GENERIC_CALIBRATE_DELAY
- config GENERIC_BUST_SPINLOCK
- 	bool
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- config GENERIC_ISA_DMA
- 	bool
- 
-diff -puN arch/i386/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/i386/Kconfig
---- a/arch/i386/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/i386/Kconfig
-@@ -38,6 +38,10 @@ config MMU
- 	bool
- 	default y
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- config SBUS
- 	bool
- 
-diff -puN arch/m32r/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/m32r/Kconfig
-@@ -16,6 +16,10 @@ config GENERIC_ISA_DMA
- 	bool
- 	default y
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- config GENERIC_HARDIRQS
- 	bool
- 	default y
-diff -puN arch/m68k/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/m68k/Kconfig
-@@ -439,6 +439,10 @@ config GENERIC_ISA_DMA
- 	depends on Q40 || AMIGA_PCMCIA || GG2
- 	default y
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- source "drivers/pci/Kconfig"
- 
- source "drivers/zorro/Kconfig"
-diff -puN arch/mips/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/mips/Kconfig
---- a/arch/mips/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/mips/Kconfig
-@@ -8,6 +8,10 @@ mainmenu "Linux/MIPS Kernel Configuratio
- 
- menu "Machine selection"
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- choice
- 	prompt "System type"
- 	default SGI_IP22
-diff -puN arch/powerpc/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/powerpc/Kconfig
-@@ -977,6 +977,10 @@ config ISA
- 	  have an IBM RS/6000 or pSeries machine or a PReP machine, say Y.  If
- 	  you have an embedded board, consult your board documentation.
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- config GENERIC_ISA_DMA
- 	bool
- 	depends on PPC64 || POWER4 || 6xx && !CPM2
-diff -puN arch/ppc/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/ppc/Kconfig
---- a/arch/ppc/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/ppc/Kconfig
-@@ -1177,6 +1177,10 @@ config ISA
- 	  have an IBM RS/6000 or pSeries machine or a PReP machine, say Y.  If
- 	  you have an embedded board, consult your board documentation.
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- config GENERIC_ISA_DMA
- 	bool
- 	depends on 6xx && !CPM2
-diff -puN arch/sparc/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/sparc/Kconfig
-@@ -13,6 +13,10 @@ config HIGHMEM
- 	bool
- 	default y
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- config GENERIC_ISA_DMA
- 	bool
- 	default y
-diff -puN arch/sparc64/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/sparc64/Kconfig
-@@ -232,6 +232,10 @@ config LARGE_ALLOCS
- 
- source "mm/Kconfig"
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- config GENERIC_ISA_DMA
- 	bool
- 	default y
-diff -puN arch/x86_64/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/arch/x86_64/Kconfig
-@@ -44,6 +44,10 @@ config MMU
- 	bool
- 	default y
- 
-+config ZONE_DMA
-+	bool
-+	default y
-+
- config ISA
- 	bool
- 
-diff -puN mm/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma mm/Kconfig
---- a/mm/Kconfig~set-config_zone_dma-for-arches-with-generic_isa_dma
-+++ a/mm/Kconfig
-@@ -139,10 +139,6 @@ config SPLIT_PTLOCK_CPUS
- 	default "4096" if PARISC && !PA20
- 	default "4"
- 
--config ZONE_DMA
--	def_bool y
--	depends on GENERIC_ISA_DMA
+diff -puN arch/sh/mm/init.c~remove-zone_dma-remains-from-sh-sh64 arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~remove-zone_dma-remains-from-sh-sh64
++++ a/arch/sh/mm/init.c
+@@ -158,7 +158,6 @@ void __init paging_init(void)
+ 	 * Setup some defaults for the zone sizes.. these should be safe
+ 	 * regardless of distcontiguous memory or MMU settings.
+ 	 */
+-	zones_size[ZONE_DMA] = 0 >> PAGE_SHIFT;
+ 	zones_size[ZONE_NORMAL] = __MEMORY_SIZE >> PAGE_SHIFT;
+ #ifdef CONFIG_HIGHMEM
+ 	zones_size[ZONE_HIGHMEM] = 0 >> PAGE_SHIFT;
+@@ -170,8 +169,6 @@ void __init paging_init(void)
+ 	 * the zone sizes accordingly, in addition to turning it on.
+ 	 */
+ 	{
+-		unsigned long max_dma, low, start_pfn;
 -
- #
- # support for page migration
- #
+ 		/* We don't need to map the kernel through the TLB, as
+ 		 * it is permanatly mapped using P1. So clear the
+ 		 * entire pgd. */
+@@ -179,19 +176,7 @@ void __init paging_init(void)
+ 
+ 		/* Turn on the MMU */
+ 		enable_mmu();
+-
+-		/* Fixup the zone sizes */
+-		start_pfn = START_PFN;
+-		max_dma = virt_to_phys((char *)MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+-		low = MAX_LOW_PFN;
+-
+-		if (low < max_dma) {
+-			zones_size[ZONE_DMA] = low - start_pfn;
+-			zones_size[ZONE_NORMAL] = 0;
+-		} else {
+-			zones_size[ZONE_DMA] = max_dma - start_pfn;
+-			zones_size[ZONE_NORMAL] = low - max_dma;
+-		}
++		zones_size[ZONE_NORMAL] = MAX_LOW_PFN - START_PFN;
+ 	}
+ 
+ 	/* Set an initial value for the MMU.TTB so we don't have to
+diff -puN arch/sh64/Kconfig~remove-zone_dma-remains-from-sh-sh64 arch/sh64/Kconfig
+--- a/arch/sh64/Kconfig~remove-zone_dma-remains-from-sh-sh64
++++ a/arch/sh64/Kconfig
+@@ -36,9 +36,6 @@ config GENERIC_CALIBRATE_DELAY
+ config RWSEM_XCHGADD_ALGORITHM
+ 	bool
+ 
+-config GENERIC_ISA_DMA
+-	bool
+-
+ config ARCH_HAS_ILOG2_U32
+ 	bool
+ 	default n
+diff -puN arch/sh64/mm/init.c~remove-zone_dma-remains-from-sh-sh64 arch/sh64/mm/init.c
+--- a/arch/sh64/mm/init.c~remove-zone_dma-remains-from-sh-sh64
++++ a/arch/sh64/mm/init.c
+@@ -118,10 +118,7 @@ void __init paging_init(void)
+ 
+ 	mmu_context_cache = MMU_CONTEXT_FIRST_VERSION;
+ 
+-        /*
+-	 * All memory is good as ZONE_NORMAL (fall-through) and ZONE_DMA.
+-         */
+-	zones_size[ZONE_DMA] = MAX_LOW_PFN - START_PFN;
++	zones_size[ZONE_NORMAL] = MAX_LOW_PFN - START_PFN;
+ 	NODE_DATA(0)->node_mem_map = NULL;
+ 	free_area_init_node(0, NODE_DATA(0), zones_size, __MEMORY_START >> PAGE_SHIFT, 0);
+ }
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
