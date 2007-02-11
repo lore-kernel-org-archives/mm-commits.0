@@ -1,51 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - char-mxser_new-fix-sparse-warning.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:52:14 -0800
-Message-ID: <200702112252.l1BMqEc5015999@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-do-not-put-pdev.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:52:06 -0800
+Message-ID: <200702112252.l1BMq6EY015987@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60235 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60214 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932790AbXBKWwR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:52:17 -0500
+	id S932777AbXBKWwI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:52:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, osv@javad.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser_new, fix sparse warning
+     Char: mxser_new, do not put pdev
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-fix-sparse-warning.patch
+     char-mxser_new-do-not-put-pdev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser_new, fix sparse warning
+Subject: Char: mxser_new, do not put pdev
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Feed NULL instead of 0 where pointer is expected.
+We don't call pci_dev_get, so do not call pci_dev_put in the pci release
+function.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: <osv@javad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/mxser_new.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-fix-sparse-warning drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-fix-sparse-warning
+diff -puN drivers/char/mxser_new.c~char-mxser_new-do-not-put-pdev drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-do-not-put-pdev
 +++ a/drivers/char/mxser_new.c
-@@ -1708,7 +1708,7 @@ static int mxser_ioctl(struct tty_struct
- 
- 		info->speed = speed;
- 		spin_lock_irqsave(&info->slock, flags);
--		mxser_change_speed(info, 0);
-+		mxser_change_speed(info, NULL);
- 		spin_unlock_irqrestore(&info->slock, flags);
- 
- 		return 0;
+@@ -2348,7 +2348,6 @@ static void mxser_release_res(struct mxs
+ #ifdef CONFIG_PCI
+ 		pci_release_region(pdev, 2);
+ 		pci_release_region(pdev, 3);
+-		pci_dev_put(pdev);
+ #endif
+ 	} else {
+ 		release_region(brd->ports[0].ioaddr, 8 * brd->info->nports);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
