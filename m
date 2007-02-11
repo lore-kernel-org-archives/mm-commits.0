@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - cris-turn-local_save_flags-local_irq_disable-into-local_irq_save-in-headers.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:48:07 -0800
-Message-ID: <200702112248.l1BMm7Ep015599@shell0.pdx.osdl.net>
+Subject: - cris-tlb-handling-turn-local_save_flags-local_irq_disable.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:48:11 -0800
+Message-ID: <200702112248.l1BMmBd8015605@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59700 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59702 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932663AbXBKWsV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S932671AbXBKWsV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Sun, 11 Feb 2007 17:48:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,75 +14,94 @@ To: jkosina@suse.cz, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRIS: turn local_save_flags() + local_irq_disable() into local_irq_save() in headers
+     CRIS: TLB handling: turn local_save_flags() + local_irq_disable() into local_irq_save()
 has been removed from the -mm tree.  Its filename was
-     cris-turn-local_save_flags-local_irq_disable-into-local_irq_save-in-headers.patch
+     cris-tlb-handling-turn-local_save_flags-local_irq_disable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRIS: turn local_save_flags() + local_irq_disable() into local_irq_save() in headers
+Subject: CRIS: TLB handling: turn local_save_flags() + local_irq_disable() into local_irq_save()
 From: Jiri Kosina <jkosina@suse.cz>
 
-Various headers for CRIS architecture contain local_irq_disable() after
-local_save_flags().  Turn it into local_irq_save().
+TLB handling for CRIS contains local_irq_disable() after local_save_flags().
+Turn this into local_irq_save().
 
 Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Cc: Mikael Starvik <starvik@axis.com>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-cris/semaphore-helper.h |    9 +++------
- include/asm-cris/system.h           |    3 +--
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ arch/cris/arch-v10/mm/tlb.c |    9 +++------
+ arch/cris/arch-v32/mm/tlb.c |    9 +++------
+ 2 files changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN include/asm-cris/semaphore-helper.h~cris-turn-local_save_flags-local_irq_disable-into-local_irq_save-in-headers include/asm-cris/semaphore-helper.h
---- a/include/asm-cris/semaphore-helper.h~cris-turn-local_save_flags-local_irq_disable-into-local_irq_save-in-headers
-+++ a/include/asm-cris/semaphore-helper.h
-@@ -30,8 +30,7 @@ static inline int waking_non_zero(struct
- 	unsigned long flags;
- 	int ret = 0;
+diff -puN arch/cris/arch-v10/mm/tlb.c~cris-tlb-handling-turn-local_save_flags-local_irq_disable arch/cris/arch-v10/mm/tlb.c
+--- a/arch/cris/arch-v10/mm/tlb.c~cris-tlb-handling-turn-local_save_flags-local_irq_disable
++++ a/arch/cris/arch-v10/mm/tlb.c
+@@ -42,8 +42,7 @@ flush_tlb_all(void)
+ 	 * in the same 4-way entry group. details.. 
+ 	 */
  
 -	local_save_flags(flags);
 -	local_irq_disable();
 +	local_irq_save(flags);
- 	if (read(&sem->waking) > 0) {
- 		dec(&sem->waking);
- 		ret = 1;
-@@ -46,8 +45,7 @@ static inline int waking_non_zero_interr
- 	int ret = 0;
- 	unsigned long flags;
+ 	for(i = 0; i < NUM_TLB_ENTRIES; i++) {
+ 		*R_TLB_SELECT = ( IO_FIELD(R_TLB_SELECT, index, i) );
+ 		*R_TLB_HI = ( IO_FIELD(R_TLB_HI, page_id, INVALID_PAGEID ) |
+@@ -78,8 +77,7 @@ flush_tlb_mm(struct mm_struct *mm)
+ 	 * global pages. is it worth the extra I/O ? 
+ 	 */
  
 -	local_save_flags(flags);
 -	local_irq_disable();
 +	local_irq_save(flags);
- 	if (read(&sem->waking) > 0) {
- 		dec(&sem->waking);
- 		ret = 1;
-@@ -64,8 +62,7 @@ static inline int waking_non_zero_tryloc
-         int ret = 1;
- 	unsigned long flags;
+ 	for(i = 0; i < NUM_TLB_ENTRIES; i++) {
+ 		*R_TLB_SELECT = IO_FIELD(R_TLB_SELECT, index, i);
+ 		if (IO_EXTRACT(R_TLB_HI, page_id, *R_TLB_HI) == page_id) {
+@@ -118,8 +116,7 @@ flush_tlb_page(struct vm_area_struct *vm
+ 	 * and the virtual address requested 
+ 	 */
  
 -	local_save_flags(flags);
 -	local_irq_disable();
 +	local_irq_save(flags);
- 	if (read(&sem->waking) <= 0)
- 		inc(&sem->count);
- 	else {
-diff -puN include/asm-cris/system.h~cris-turn-local_save_flags-local_irq_disable-into-local_irq_save-in-headers include/asm-cris/system.h
---- a/include/asm-cris/system.h~cris-turn-local_save_flags-local_irq_disable-into-local_irq_save-in-headers
-+++ a/include/asm-cris/system.h
-@@ -44,8 +44,7 @@ static inline unsigned long __xchg(unsig
-   /* since Etrax doesn't have any atomic xchg instructions, we need to disable
-      irq's (if enabled) and do it with move.d's */
-   unsigned long flags,temp;
--  local_save_flags(flags); /* save flags, including irq enable bit */
--  local_irq_disable();             /* shut off irq's */
-+  local_irq_save(flags); /* save flags, including irq enable bit and shut off irqs */
-   switch (size) {
-   case 1:
-     *((unsigned char *)&temp) = x;
+ 	for(i = 0; i < NUM_TLB_ENTRIES; i++) {
+ 		unsigned long tlb_hi;
+ 		*R_TLB_SELECT = IO_FIELD(R_TLB_SELECT, index, i);
+diff -puN arch/cris/arch-v32/mm/tlb.c~cris-tlb-handling-turn-local_save_flags-local_irq_disable arch/cris/arch-v32/mm/tlb.c
+--- a/arch/cris/arch-v32/mm/tlb.c~cris-tlb-handling-turn-local_save_flags-local_irq_disable
++++ a/arch/cris/arch-v32/mm/tlb.c
+@@ -54,8 +54,7 @@ __flush_tlb_all(void)
+ 	 * Mask with 0xf so similar TLB entries aren't written in the same 4-way
+ 	 * entry group.
+ 	 */
+-	local_save_flags(flags);
+-	local_irq_disable();
++	local_irq_save(flags);
+ 
+ 	for (mmu = 1; mmu <= 2; mmu++) {
+ 		SUPP_BANK_SEL(mmu); /* Select the MMU */
+@@ -92,8 +91,7 @@ __flush_tlb_mm(struct mm_struct *mm)
+ 		return;
+ 
+ 	/* Mark the TLB entries that match the page_id as invalid. */
+-	local_save_flags(flags);
+-	local_irq_disable();
++	local_irq_save(flags);
+ 
+ 	for (mmu = 1; mmu <= 2; mmu++) {
+ 		SUPP_BANK_SEL(mmu);
+@@ -140,8 +138,7 @@ __flush_tlb_page(struct vm_area_struct *
+ 	 * Invalidate those TLB entries that match both the mm context and the
+ 	 * requested virtual address.
+ 	 */
+-	local_save_flags(flags);
+-	local_irq_disable();
++	local_irq_save(flags);
+ 
+ 	for (mmu = 1; mmu <= 2; mmu++) {
+ 		SUPP_BANK_SEL(mmu);
 _
 
 Patches currently in -mm which might be from jkosina@suse.cz are
