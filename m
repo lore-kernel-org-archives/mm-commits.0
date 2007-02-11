@@ -1,223 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - input-scan_keyb-remove-it.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:56:07 -0800
-Message-ID: <200702112256.l1BMu72i016383@shell0.pdx.osdl.net>
+Subject: - git-scsi-misc-fixup.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:56:09 -0800
+Message-ID: <200702112256.l1BMu9b1016386@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60669 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60673 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932894AbXBKW4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:56:09 -0500
+	id S932896AbXBKW4K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:56:10 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1BMu9UI016790
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 11 Feb 2007 14:56:09 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, dmitry.torokhov@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Input: scan_keyb, remove it
+     git-scsi-misc-fixup
 has been removed from the -mm tree.  Its filename was
-     input-scan_keyb-remove-it.patch
+     git-scsi-misc-fixup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Input: scan_keyb, remove it
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: git-scsi-misc-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-It's currently unused (unreferenced) beside the fact it's broken.
-
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/scan_keyb.c |  149 -------------------------------------
- drivers/char/scan_keyb.h |   15 ---
- 2 files changed, 164 deletions(-)
+ drivers/scsi/ipr.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/char/scan_keyb.c~input-scan_keyb-remove-it /dev/null
---- a/drivers/char/scan_keyb.c
-+++ /dev/null
-@@ -1,149 +0,0 @@
--/*
-- *	$Id: scan_keyb.c,v 1.2 2000/07/04 06:24:42 yaegashi Exp $ 
-- *	Copyright (C) 2000 YAEGASHI Takeshi
-- *	Generic scan keyboard driver
-- */
--
--#include <linux/spinlock.h>
--#include <linux/sched.h>
--#include <linux/interrupt.h>
--#include <linux/tty.h>
--#include <linux/mm.h>
--#include <linux/signal.h>
--#include <linux/init.h>
--#include <linux/kbd_ll.h>
--#include <linux/delay.h>
--#include <linux/random.h>
--#include <linux/poll.h>
--#include <linux/miscdevice.h>
--#include <linux/slab.h>
--#include <linux/kbd_kern.h>
--#include <linux/timer.h>
--
--#define SCANHZ	(HZ/20)
--
--struct scan_keyboard {
--	struct scan_keyboard *next;
--	int (*scan)(unsigned char *buffer);
--	const unsigned char *table;
--	unsigned char *s0, *s1;
--	int length;
--};
--
--static int scan_jiffies=0;
--static struct scan_keyboard *keyboards=NULL;
--struct timer_list scan_timer;
--
--static void check_kbd(const unsigned char *table,
--		      unsigned char *new, unsigned char *old, int length)
--{
--	int need_tasklet_schedule=0;
--	unsigned int xor, bit;
--	
--	while(length-->0) {
--		if((xor=*new^*old)==0) {
--			table+=8;
--		}
--		else {
--			for(bit=0x01; bit<0x100; bit<<=1) {
--				if(xor&bit) {
--					handle_scancode(*table, !(*new&bit));
--					need_tasklet_schedule=1;
--#if 0
--					printk("0x%x %s\n", *table, (*new&bit)?"released":"pressed");
--#endif
--				}
--				table++;
--			}
--		}
--		new++; old++;
--	}
--
--	if(need_tasklet_schedule)
--		tasklet_schedule(&keyboard_tasklet);
--}
--
--
--static void scan_kbd(unsigned long dummy)
--{
--	struct scan_keyboard *kbd;
--
--	scan_jiffies++;
--
--	for(kbd=keyboards; kbd!=NULL; kbd=kbd->next) {
--		if(scan_jiffies&1) {
--			if(!kbd->scan(kbd->s0))
--				check_kbd(kbd->table,
--					  kbd->s0, kbd->s1, kbd->length);
--			else
--				memcpy(kbd->s0, kbd->s1, kbd->length);
--		}
--		else {
--			if(!kbd->scan(kbd->s1))
--				check_kbd(kbd->table,
--					  kbd->s1, kbd->s0, kbd->length);
--			else
--				memcpy(kbd->s1, kbd->s0, kbd->length);
--		}
--		
--	}
--
--	init_timer(&scan_timer);
--	scan_timer.expires = jiffies + SCANHZ;
--	scan_timer.data = 0;
--	scan_timer.function = scan_kbd;
--	add_timer(&scan_timer);
--}
--
--
--int register_scan_keyboard(int (*scan)(unsigned char *buffer),
--			   const unsigned char *table,
--			   int length)
--{
--	struct scan_keyboard *kbd;
--
--	kbd = kmalloc(sizeof(struct scan_keyboard), GFP_KERNEL);
--	if (kbd == NULL)
--		goto error_out;
--
--	kbd->scan=scan;
--	kbd->table=table;
--	kbd->length=length;
--
--	kbd->s0 = kmalloc(length, GFP_KERNEL);
--	if (kbd->s0 == NULL)
--		goto error_free_kbd;
--
--	kbd->s1 = kmalloc(length, GFP_KERNEL);
--	if (kbd->s1 == NULL)
--		goto error_free_s0;
--
--	memset(kbd->s0, -1, kbd->length);
--	memset(kbd->s1, -1, kbd->length);
--	
--	kbd->next=keyboards;
--	keyboards=kbd;
--
--	return 0;
--
-- error_free_s0:
--	kfree(kbd->s0);
--
-- error_free_kbd:
--	kfree(kbd);
--
-- error_out:
--	return -ENOMEM;
--}
--			      
--			      
--void __init scan_kbd_init(void)
--{
--	init_timer(&scan_timer);
--	scan_timer.expires = jiffies + SCANHZ;
--	scan_timer.data = 0;
--	scan_timer.function = scan_kbd;
--	add_timer(&scan_timer);
--
--	printk(KERN_INFO "Generic scan keyboard driver initialized\n");
--}
-diff -puN drivers/char/scan_keyb.h~input-scan_keyb-remove-it /dev/null
---- a/drivers/char/scan_keyb.h
-+++ /dev/null
-@@ -1,15 +0,0 @@
--#ifndef	__DRIVER_CHAR_SCAN_KEYB_H
--#define	__DRIVER_CHAR_SCAN_KEYB_H
--/*
-- *	$Id: scan_keyb.h,v 1.1 2000/06/10 21:45:30 yaegashi Exp $
-- *	Copyright (C) 2000 YAEGASHI Takeshi
-- *	Generic scan keyboard driver
-- */
--
--int register_scan_keyboard(int (*scan)(unsigned char *buffer),
--			   const unsigned char *table,
--			   int length);
--
--void __init scan_kbd_init(void);
--
--#endif
+diff -puN drivers/scsi/ipr.c~git-scsi-misc-fixup drivers/scsi/ipr.c
+--- a/drivers/scsi/ipr.c~git-scsi-misc-fixup
++++ a/drivers/scsi/ipr.c
+@@ -7549,14 +7549,9 @@ static struct pci_device_id ipr_pci_tabl
+ 	{ PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_OBSIDIAN,
+ 	      PCI_VENDOR_ID_IBM, IPR_SUBS_DEV_ID_572A, 0, 0, 0 },
+ 	{ PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_OBSIDIAN,
+-<<<<<<< HEAD/drivers/scsi/ipr.c
+-	      PCI_VENDOR_ID_IBM, IPR_SUBS_DEV_ID_575C,
+-	      0, 0, (kernel_ulong_t)&ipr_chip_cfg[0] },
+-=======
+ 	      PCI_VENDOR_ID_IBM, IPR_SUBS_DEV_ID_572B, 0, 0, 0 },
+ 	{ PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_OBSIDIAN,
+ 	      PCI_VENDOR_ID_IBM, IPR_SUBS_DEV_ID_575C, 0, 0, 0 },
+->>>>>>> /drivers/scsi/ipr.c
+ 	{ PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_OBSIDIAN_E,
+ 	      PCI_VENDOR_ID_IBM, IPR_SUBS_DEV_ID_57B7, 0, 0, 0 },
+ 	{ PCI_VENDOR_ID_IBM, PCI_DEVICE_ID_IBM_SNIPE,
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-char-use-more-pci_device-macro.patch
-char-cyclades-use-pci_device_id.patch
-maintainers-remove-two-dead-e-mail.patch
-char-specialix-isr-have-2-params.patch
-char-timers-cleanup.patch
+git-acpi.patch
+git-agpgart.patch
+git-cifs-fix.patch
+git-cpufreq.patch
+fix-warning-in-device_add_attrs.patch
+git-drm.patch
+git-dvb.patch
+git-infiniband.patch
+sis-warning-fixes.patch
+git-md-accel-fixes.patch
+git-md-accel-warning-fixes.patch
+git-md-accel-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+git-backlight.patch
+git-backlight-sony-fix.patch
+git-nfs-fixup.patch
+git-sh.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+revert-x86_64-mm-msr-on-cpu.patch
+x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
+mm-vm_insert_pfn-tidy.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+swiotlb-uninlinings.patch
+kprobes-list-all-active-probes-in-the-system-tidy.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses-tidy.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path-tidy.patch
+revert-x86_64-mm-putreg-check.patch
 fbdev-driver-for-s3-trio-virge-update-2-fix.patch
-video-fb-add-true-ref_count-atomicity.patch
-video-fb-kzalloc-changes.patch
-shrink_slab-handle-bad-shrinkers.patch
+deprecate-sa_interrupt-and-friends.patch
+git-gccbug-fixup.patch
