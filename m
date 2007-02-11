@@ -1,114 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - discuss-a-couple-common-errors-in-kernel-doc-usage.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:53:43 -0800
-Message-ID: <200702112253.l1BMrhfR016122@shell0.pdx.osdl.net>
+Subject: - tty-improve-encode_baud_rate-logic.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:53:40 -0800
+Message-ID: <200702112253.l1BMreFw016116@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60422 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60403 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932841AbXBKWyA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:54:00 -0500
+	id S932838AbXBKWxv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:53:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Discuss a couple common errors in kernel-doc usage.
+     tty: improve encode_baud_rate logic
 has been removed from the -mm tree.  Its filename was
-     discuss-a-couple-common-errors-in-kernel-doc-usage.patch
+     tty-improve-encode_baud_rate-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Discuss a couple common errors in kernel-doc usage.
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: tty: improve encode_baud_rate logic
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Explain a couple of the most common errors in kernel-doc usage.
+Mostly so people can see the work in progress.  This enhances the encode
+function which isn't currently used in the base tree but is when using some of
+the testing tty patches.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+This resolves a problem with some hardware where applications got confusing
+information from the tty ioctls.  Correct but confusing.
+
+In some situations asking for, say, 9600 baud actually gets you 9595 baud or
+similar near-miss values.  With the old code this meant that a request for
+B9600 got a return of BOTHER, 9595 which programs interpreted as a failure.
+
+The new code now works on the following basis
+
+- If you ask for specific rate via BOTHER, you get a precise return
+
+- If you ask for a standard Bfoo rate and the result is close you get a Bfoo
+  return
+
+- If you ask for a standard Bfoo rate and get something way off you get a
+  BOTHER/rate return
+
+This seems to fix up the cases I've found where this broke compatibility.
+
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-doc-nano-HOWTO.txt |   37 +++++++++++++++++++---
- 1 file changed, 33 insertions(+), 4 deletions(-)
+ drivers/char/tty_ioctl.c |   45 ++++++++++++++++++++++++-------------
+ 1 file changed, 30 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/kernel-doc-nano-HOWTO.txt~discuss-a-couple-common-errors-in-kernel-doc-usage Documentation/kernel-doc-nano-HOWTO.txt
---- a/Documentation/kernel-doc-nano-HOWTO.txt~discuss-a-couple-common-errors-in-kernel-doc-usage
-+++ a/Documentation/kernel-doc-nano-HOWTO.txt
-@@ -107,10 +107,14 @@ The format of the block comment is like 
-  * (section header: (section description)? )*
- (*)?*/
+diff -puN drivers/char/tty_ioctl.c~tty-improve-encode_baud_rate-logic drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~tty-improve-encode_baud_rate-logic
++++ a/drivers/char/tty_ioctl.c
+@@ -225,7 +225,7 @@ EXPORT_SYMBOL(tty_termios_input_baud_rat
  
--The short function description cannot be multiline, but the other
--descriptions can be (and they can contain blank lines). Avoid putting a
--spurious blank line after the function name, or else the description will
--be repeated!
-+The short function description ***cannot be multiline***, but the other
-+descriptions can be (and they can contain blank lines).  If you continue
-+that initial short description onto a second line, that second line will
-+appear further down at the beginning of the description section, which is
-+almost certainly not what you had in mind.
-+
-+Avoid putting a spurious blank line after the function name, or else the
-+description will be repeated!
+ /**
+  *	tty_termios_encode_baud_rate
+- *	@termios: termios structure
++ *	@termios: ktermios structure holding user requested state
+  *	@ispeed: input speed
+  *	@ospeed: output speed
+  *
+@@ -233,7 +233,10 @@ EXPORT_SYMBOL(tty_termios_input_baud_rat
+  *	used as a library helper for drivers os that they can report back
+  *	the actual speed selected when it differs from the speed requested
+  *
+- *	For now input and output speed must agree.
++ *	For maximal back compatibility with legacy SYS5/POSIX *nix behaviour
++ *	we need to carefully set the bits when the user does not get the
++ *	desired speed. We allow small margins and preserve as much of possible
++ *	of the input intent to keep compatiblity.
+  *
+  *	Locking: Caller should hold termios lock. This is already held
+  *	when calling this function from the driver termios handler.
+@@ -242,32 +245,44 @@ EXPORT_SYMBOL(tty_termios_input_baud_rat
+ void tty_termios_encode_baud_rate(struct ktermios *termios, speed_t ibaud, speed_t obaud)
+ {
+ 	int i = 0;
+-	int ifound = 0, ofound = 0;
++	int ifound = -1, ofound = -1;
++	int iclose = ibaud/50, oclose = obaud/50;
++	int ibinput = 0;
  
- All descriptive text is further processed, scanning for the following special
- patterns, which are highlighted appropriately.
-@@ -121,6 +125,31 @@ patterns, which are highlighted appropri
- '@parameter' - name of a parameter
- '%CONST' - name of a constant.
+ 	termios->c_ispeed = ibaud;
+ 	termios->c_ospeed = obaud;
  
-+NOTE 1:  The multi-line descriptive text you provide does *not* recognize
-+line breaks, so if you try to format some text nicely, as in:
++	/* If the user asked for a precise weird speed give a precise weird
++	   answer. If they asked for a Bfoo speed they many have problems
++	   digesting non-exact replies so fuzz a bit */
 +
-+  Return codes
-+    0 - cool
-+    1 - invalid arg
-+    2 - out of memory
++	if ((termios->c_cflag & CBAUD) == BOTHER)
++		oclose = 0;
++	if (((termios->c_cflag >> IBSHIFT) & CBAUD) == BOTHER)
++		iclose = 0;
++	if ((termios->c_cflag >> IBSHIFT) & CBAUD)
++		ibinput = 1;	/* An input speed was specified */
 +
-+this will all run together and produce:
-+
-+  Return codes 0 - cool 1 - invalid arg 2 - out of memory
-+
-+NOTE 2:  If the descriptive text you provide has lines that begin with
-+some phrase followed by a colon, each of those phrases will be taken as
-+a new section heading, which means you should similarly try to avoid text
-+like:
-+
-+  Return codes:
-+    0: cool
-+    1: invalid arg
-+    2: out of memory
-+
-+every line of which would start a new section.  Again, probably not
-+what you were after.
-+
- Take a look around the source tree for examples.
+ 	termios->c_cflag &= ~CBAUD;
+-	/* Identical speed means no input encoding (ie B0 << IBSHIFT)*/
+-	if (termios->c_ispeed == termios->c_ospeed)
+-		ifound = 1;
  
+ 	do {
+-		if (obaud == baud_table[i]) {
++		if (obaud - oclose >= baud_table[i] && obaud + oclose <= baud_table[i]) {
+ 			termios->c_cflag |= baud_bits[i];
+-			ofound = 1;
+-			/* So that if ibaud == obaud we don't set it */
+-			continue;
++			ofound = i;
+ 		}
+-		if (ibaud == baud_table[i]) {
+-			termios->c_cflag |= (baud_bits[i] << IBSHIFT);
+-			ifound = 1;
++		if (ibaud - iclose >= baud_table[i] && ibaud + iclose <= baud_table[i]) {
++			/* For the case input == output don't set IBAUD bits if the user didn't do so */
++			if (ofound != i || ibinput)
++				termios->c_cflag |= (baud_bits[i] << IBSHIFT);
++			ifound = i;
+ 		}
+ 	}
+ 	while(++i < n_baud_table);
+-	if (!ofound)
++	if (ofound == -1)
+ 		termios->c_cflag |= BOTHER;
+-	if (!ifound)
++	/* Set exact input bits only if the input and output differ or the
++	   user already did */
++	if (ifound == -1 && (ibaud != obaud  || ibinput))
+ 		termios->c_cflag |= (BOTHER << IBSHIFT);
+ }
  
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-git-avr32.patch
-git-dvb.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
-git-mips.patch
-git-netdev-all.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
-quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+sis-warning-fixes.patch
+libata-add-a-host-flag-to-indicate-lack-of-iordy.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+git-mtd.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+kernel-shut-up-the-irq-mismatch-messages.patch
+tty-make-__proc_set_tty-static.patch
+tty-clarify-disassociate_ctty.patch
+tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
+pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
+pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+tty-update-the-tty-layer-to-work-with-struct-pid.patch
+pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
+pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
+pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
+edac-e752x-bit-mask-fix.patch
+edac-e752x-byte-access-fix.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
+sched-avoid-div-in-rebalance_tick.patch
+pm3fb-kill-pci_find_device-usage.patch
