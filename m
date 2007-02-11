@@ -1,291 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - proc-remove-useless-and-buggy-nlink-settings.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:53:33 -0800
-Message-ID: <200702112253.l1BMrXQk016107@shell0.pdx.osdl.net>
+Subject: - extend-the-set-of-__attribute__-shortcut-macros.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:54:40 -0800
+Message-ID: <200702112254.l1BMse8f016254@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60772 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60777 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932723AbXBKW5v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:57:51 -0500
+	id S932907AbXBKW56 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:57:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, greg@kroah.com, jdike@addtoit.com, kyle@mcmartin.ca, mingo@elte.hu, minyard@acm.org, paulus@samba.org, ralf@linux-mips.org, schwidefsky@de.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: remove useless (and buggy) ->nlink settings
+     extend the set of "__attribute__" shortcut macros
 has been removed from the -mm tree.  Its filename was
-     proc-remove-useless-and-buggy-nlink-settings.patch
+     extend-the-set-of-__attribute__-shortcut-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: proc: remove useless (and buggy) ->nlink settings
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: extend the set of "__attribute__" shortcut macros
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Bug: pnx8550 code creates directory but resets ->nlink to 1.
+Extend the set of "__attribute__" shortcut macros, and remove identical
+(and now superfluous) definitions from a couple of source files.
 
-create_proc_entry() et al will correctly set ->nlink for you.
+based on a page at robert love's blog:
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Corey Minyard <minyard@acm.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+	http://rlove.org/log/2005102601
+
+extend the set of shortcut macros defined in compiler-gcc.h with the
+following:
+
+#define __packed                       __attribute__((packed))
+#define __weak                         __attribute__((weak))
+#define __naked                        __attribute__((naked))
+#define __noreturn                     __attribute__((noreturn))
+#define __pure                         __attribute__((pure))
+#define __aligned(x)                   __attribute__((aligned(x)))
+#define __printf(a,b)                  __attribute__((format(printf,a,b)))
+
+Once these are in place, it's up to subsystem maintainers to decide if they
+want to take advantage of them.  there is already a strong precedent for
+using shortcuts like this in the source tree.
+
+The ones that might give people pause are "__aligned" and "__printf", but
+shortcuts for both of those are already in use, and in some ways very
+confusingly.  note the two very different definitions for a macro named
+"ALIGNED":
+
+  drivers/net/sgiseeq.c:#define ALIGNED(x) ((((unsigned long)(x)) + 0xf) & ~(0xf))
+  drivers/scsi/ultrastor.c:#define ALIGNED(x) __attribute__((aligned(x)))
+
+also:
+
+  include/acpi/platform/acgcc.h:
+    #define ACPI_PRINTF_LIKE(c) __attribute__ ((__format__ (__printf__, c, c+1)))
+
+Given the precedent, then, it seems logical to at least standardize on a
+consistent set of these macros.
+
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/philips/pnx8550/common/proc.c   |    7 +------
- arch/powerpc/kernel/proc_ppc64.c          |    1 -
- arch/powerpc/kernel/rtas_flash.c          |    1 -
- arch/powerpc/platforms/iseries/mf.c       |    4 ----
- arch/powerpc/platforms/pseries/reconfig.c |    1 -
- arch/um/drivers/ubd_kern.c                |    1 -
- drivers/char/ipmi/ipmi_msghandler.c       |    1 -
- drivers/ide/ide-proc.c                    |    1 -
- drivers/macintosh/via-pmu.c               |    1 -
- drivers/misc/hdpuftrs/hdpu_nexus.c        |    2 --
- drivers/parisc/led.c                      |    2 --
- drivers/s390/crypto/zcrypt_api.c          |    1 -
- drivers/usb/gadget/rndis.c                |    1 -
- kernel/irq/proc.c                         |    1 -
- kernel/profile.c                          |    1 -
- 15 files changed, 1 insertion(+), 25 deletions(-)
+ arch/mips/mm/cache.c         |    2 --
+ fs/hfs/hfs.h                 |    2 --
+ fs/hfsplus/hfsplus_raw.h     |    2 --
+ include/linux/compiler-gcc.h |    7 +++++++
+ 4 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN arch/mips/philips/pnx8550/common/proc.c~proc-remove-useless-and-buggy-nlink-settings arch/mips/philips/pnx8550/common/proc.c
---- a/arch/mips/philips/pnx8550/common/proc.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/arch/mips/philips/pnx8550/common/proc.c
-@@ -79,10 +79,7 @@ static int pnx8550_proc_init( void )
- 
- 	// Create /proc/pnx8550
-         pnx8550_dir = create_proc_entry("pnx8550", S_IFDIR|S_IRUGO, NULL);
--        if (pnx8550_dir){
--                pnx8550_dir->nlink = 1;
--        }
--        else {
-+        if (!pnx8550_dir) {
-                 printk(KERN_ERR "Can't create pnx8550 proc dir\n");
-                 return -1;
-         }
-@@ -90,7 +87,6 @@ static int pnx8550_proc_init( void )
- 	// Create /proc/pnx8550/timers
-         pnx8550_timers = create_proc_entry("timers", S_IFREG|S_IRUGO, pnx8550_dir );
-         if (pnx8550_timers){
--                pnx8550_timers->nlink = 1;
-                 pnx8550_timers->read_proc = pnx8550_timers_read;
-         }
-         else {
-@@ -100,7 +96,6 @@ static int pnx8550_proc_init( void )
- 	// Create /proc/pnx8550/registers
-         pnx8550_registers = create_proc_entry("registers", S_IFREG|S_IRUGO, pnx8550_dir );
-         if (pnx8550_registers){
--                pnx8550_registers->nlink = 1;
-                 pnx8550_registers->read_proc = pnx8550_registers_read;
-         }
-         else {
-diff -puN arch/powerpc/kernel/proc_ppc64.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/kernel/proc_ppc64.c
---- a/arch/powerpc/kernel/proc_ppc64.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/arch/powerpc/kernel/proc_ppc64.c
-@@ -71,7 +71,6 @@ static int __init proc_ppc64_init(void)
- 	pde = create_proc_entry("ppc64/systemcfg", S_IFREG|S_IRUGO, NULL);
- 	if (!pde)
- 		return 1;
--	pde->nlink = 1;
- 	pde->data = vdso_data;
- 	pde->size = PAGE_SIZE;
- 	pde->proc_fops = &page_map_fops;
-diff -puN arch/powerpc/kernel/rtas_flash.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/kernel/rtas_flash.c
---- a/arch/powerpc/kernel/rtas_flash.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/arch/powerpc/kernel/rtas_flash.c
-@@ -708,7 +708,6 @@ static struct proc_dir_entry *create_fla
- 
- 	ent = create_proc_entry(filename, S_IRUSR | S_IWUSR, NULL);
- 	if (ent != NULL) {
--		ent->nlink = 1;
- 		ent->proc_fops = fops;
- 		ent->owner = THIS_MODULE;
+diff -puN arch/mips/mm/cache.c~extend-the-set-of-__attribute__-shortcut-macros arch/mips/mm/cache.c
+--- a/arch/mips/mm/cache.c~extend-the-set-of-__attribute__-shortcut-macros
++++ a/arch/mips/mm/cache.c
+@@ -107,8 +107,6 @@ void __update_cache(struct vm_area_struc
  	}
-diff -puN arch/powerpc/platforms/iseries/mf.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/platforms/iseries/mf.c
---- a/arch/powerpc/platforms/iseries/mf.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/arch/powerpc/platforms/iseries/mf.c
-@@ -1253,7 +1253,6 @@ static int __init mf_proc_init(void)
- 		ent = create_proc_entry("cmdline", S_IFREG|S_IRUSR|S_IWUSR, mf);
- 		if (!ent)
- 			return 1;
--		ent->nlink = 1;
- 		ent->data = (void *)(long)i;
- 		ent->read_proc = proc_mf_dump_cmdline;
- 		ent->write_proc = proc_mf_change_cmdline;
-@@ -1264,7 +1263,6 @@ static int __init mf_proc_init(void)
- 		ent = create_proc_entry("vmlinux", S_IFREG|S_IWUSR, mf);
- 		if (!ent)
- 			return 1;
--		ent->nlink = 1;
- 		ent->data = (void *)(long)i;
- 		ent->proc_fops = &proc_vmlinux_operations;
- 	}
-@@ -1272,7 +1270,6 @@ static int __init mf_proc_init(void)
- 	ent = create_proc_entry("side", S_IFREG|S_IRUSR|S_IWUSR, mf_proc_root);
- 	if (!ent)
- 		return 1;
--	ent->nlink = 1;
- 	ent->data = (void *)0;
- 	ent->read_proc = proc_mf_dump_side;
- 	ent->write_proc = proc_mf_change_side;
-@@ -1280,7 +1277,6 @@ static int __init mf_proc_init(void)
- 	ent = create_proc_entry("src", S_IFREG|S_IRUSR|S_IWUSR, mf_proc_root);
- 	if (!ent)
- 		return 1;
--	ent->nlink = 1;
- 	ent->data = (void *)0;
- 	ent->read_proc = proc_mf_dump_src;
- 	ent->write_proc = proc_mf_change_src;
-diff -puN arch/powerpc/platforms/pseries/reconfig.c~proc-remove-useless-and-buggy-nlink-settings arch/powerpc/platforms/pseries/reconfig.c
---- a/arch/powerpc/platforms/pseries/reconfig.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/arch/powerpc/platforms/pseries/reconfig.c
-@@ -513,7 +513,6 @@ static int proc_ppc64_create_ofdt(void)
- 
- 	ent = create_proc_entry("ppc64/ofdt", S_IWUSR, NULL);
- 	if (ent) {
--		ent->nlink = 1;
- 		ent->data = NULL;
- 		ent->size = 0;
- 		ent->proc_fops = &ofdt_fops;
-diff -puN arch/um/drivers/ubd_kern.c~proc-remove-useless-and-buggy-nlink-settings arch/um/drivers/ubd_kern.c
---- a/arch/um/drivers/ubd_kern.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/arch/um/drivers/ubd_kern.c
-@@ -235,7 +235,6 @@ static void make_ide_entries(char *dev_n
- 
- 	ent = create_proc_entry("media", S_IFREG|S_IRUGO, dir);
- 	if(!ent) return;
--	ent->nlink = 1;
- 	ent->data = NULL;
- 	ent->read_proc = proc_ide_read_media;
- 	ent->write_proc = NULL;
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~proc-remove-useless-and-buggy-nlink-settings drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -1887,7 +1887,6 @@ int ipmi_smi_add_proc_entry(ipmi_smi_t s
- 		kfree(entry);
- 		rv = -ENOMEM;
- 	} else {
--		file->nlink = 1;
- 		file->data = data;
- 		file->read_proc = read_proc;
- 		file->write_proc = write_proc;
-diff -puN drivers/ide/ide-proc.c~proc-remove-useless-and-buggy-nlink-settings drivers/ide/ide-proc.c
---- a/drivers/ide/ide-proc.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/drivers/ide/ide-proc.c
-@@ -413,7 +413,6 @@ void ide_add_proc_entries(struct proc_di
- 	while (p->name != NULL) {
- 		ent = create_proc_entry(p->name, p->mode, dir);
- 		if (!ent) return;
--		ent->nlink = 1;
- 		ent->data = data;
- 		ent->read_proc = p->read_proc;
- 		ent->write_proc = p->write_proc;
-diff -puN drivers/macintosh/via-pmu.c~proc-remove-useless-and-buggy-nlink-settings drivers/macintosh/via-pmu.c
---- a/drivers/macintosh/via-pmu.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/drivers/macintosh/via-pmu.c
-@@ -516,7 +516,6 @@ static int __init via_pmu_dev_init(void)
- 					proc_get_irqstats, NULL);
- 		proc_pmu_options = create_proc_entry("options", 0600, proc_pmu_root);
- 		if (proc_pmu_options) {
--			proc_pmu_options->nlink = 1;
- 			proc_pmu_options->read_proc = proc_read_options;
- 			proc_pmu_options->write_proc = proc_write_options;
- 		}
-diff -puN drivers/misc/hdpuftrs/hdpu_nexus.c~proc-remove-useless-and-buggy-nlink-settings drivers/misc/hdpuftrs/hdpu_nexus.c
---- a/drivers/misc/hdpuftrs/hdpu_nexus.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/drivers/misc/hdpuftrs/hdpu_nexus.c
-@@ -72,11 +72,9 @@ static int hdpu_nexus_probe(struct platf
- 		printk("Could not map slot id\n");
- 	hdpu_slot_id = create_proc_entry("sky_slot_id", 0666, &proc_root);
- 	hdpu_slot_id->read_proc = hdpu_slot_id_read;
--	hdpu_slot_id->nlink = 1;
- 
- 	hdpu_chassis_id = create_proc_entry("sky_chassis_id", 0666, &proc_root);
- 	hdpu_chassis_id->read_proc = hdpu_chassis_id_read;
--	hdpu_chassis_id->nlink = 1;
- 	return 0;
  }
  
-diff -puN drivers/parisc/led.c~proc-remove-useless-and-buggy-nlink-settings drivers/parisc/led.c
---- a/drivers/parisc/led.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/drivers/parisc/led.c
-@@ -252,7 +252,6 @@ static int __init led_create_procfs(void
- 	proc_pdc_root->owner = THIS_MODULE;
- 	ent = create_proc_entry("led", S_IFREG|S_IRUGO|S_IWUSR, proc_pdc_root);
- 	if (!ent) return -1;
--	ent->nlink = 1;
- 	ent->data = (void *)LED_NOLCD; /* LED */
- 	ent->read_proc = led_proc_read;
- 	ent->write_proc = led_proc_write;
-@@ -262,7 +261,6 @@ static int __init led_create_procfs(void
- 	{
- 		ent = create_proc_entry("lcd", S_IFREG|S_IRUGO|S_IWUSR, proc_pdc_root);
- 		if (!ent) return -1;
--		ent->nlink = 1;
- 		ent->data = (void *)LED_HASLCD; /* LCD */
- 		ent->read_proc = led_proc_read;
- 		ent->write_proc = led_proc_write;
-diff -puN drivers/s390/crypto/zcrypt_api.c~proc-remove-useless-and-buggy-nlink-settings drivers/s390/crypto/zcrypt_api.c
---- a/drivers/s390/crypto/zcrypt_api.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/drivers/s390/crypto/zcrypt_api.c
-@@ -1063,7 +1063,6 @@ int __init zcrypt_api_init(void)
- 		rc = -ENOMEM;
- 		goto out_misc;
- 	}
--	zcrypt_entry->nlink = 1;
- 	zcrypt_entry->data = NULL;
- 	zcrypt_entry->read_proc = zcrypt_status_read;
- 	zcrypt_entry->write_proc = zcrypt_status_write;
-diff -puN drivers/usb/gadget/rndis.c~proc-remove-useless-and-buggy-nlink-settings drivers/usb/gadget/rndis.c
---- a/drivers/usb/gadget/rndis.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/drivers/usb/gadget/rndis.c
-@@ -1419,7 +1419,6 @@ int __devinit rndis_init (void)
- 			return -EIO;
- 		}
+-#define __weak __attribute__((weak))
+-
+ static char cache_panic[] __initdata = "Yeee, unsupported cache architecture.";
  
--		rndis_connect_state [i]->nlink = 1;
- 		rndis_connect_state [i]->write_proc = rndis_proc_write;
- 		rndis_connect_state [i]->read_proc = rndis_proc_read;
- 		rndis_connect_state [i]->data = (void *)
-diff -puN kernel/irq/proc.c~proc-remove-useless-and-buggy-nlink-settings kernel/irq/proc.c
---- a/kernel/irq/proc.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/kernel/irq/proc.c
-@@ -136,7 +136,6 @@ void register_irq_proc(unsigned int irq)
- 		entry = create_proc_entry("smp_affinity", 0600, irq_desc[irq].dir);
+ void __init cpu_cache_init(void)
+diff -puN fs/hfs/hfs.h~extend-the-set-of-__attribute__-shortcut-macros fs/hfs/hfs.h
+--- a/fs/hfs/hfs.h~extend-the-set-of-__attribute__-shortcut-macros
++++ a/fs/hfs/hfs.h
+@@ -83,8 +83,6 @@
  
- 		if (entry) {
--			entry->nlink = 1;
- 			entry->data = (void *)(long)irq;
- 			entry->read_proc = irq_affinity_read_proc;
- 			entry->write_proc = irq_affinity_write_proc;
-diff -puN kernel/profile.c~proc-remove-useless-and-buggy-nlink-settings kernel/profile.c
---- a/kernel/profile.c~proc-remove-useless-and-buggy-nlink-settings
-+++ a/kernel/profile.c
-@@ -449,7 +449,6 @@ void create_prof_cpu_mask(struct proc_di
- 	/* create /proc/irq/prof_cpu_mask */
- 	if (!(entry = create_proc_entry("prof_cpu_mask", 0600, root_irq_dir)))
- 		return;
--	entry->nlink = 1;
- 	entry->data = (void *)&prof_cpu_mask;
- 	entry->read_proc = prof_cpu_mask_read_proc;
- 	entry->write_proc = prof_cpu_mask_write_proc;
+ /*======== HFS structures as they appear on the disk ========*/
+ 
+-#define __packed __attribute__ ((packed))
+-
+ /* Pascal-style string of up to 31 characters */
+ struct hfs_name {
+ 	u8 len;
+diff -puN fs/hfsplus/hfsplus_raw.h~extend-the-set-of-__attribute__-shortcut-macros fs/hfsplus/hfsplus_raw.h
+--- a/fs/hfsplus/hfsplus_raw.h~extend-the-set-of-__attribute__-shortcut-macros
++++ a/fs/hfsplus/hfsplus_raw.h
+@@ -15,8 +15,6 @@
+ 
+ #include <linux/types.h>
+ 
+-#define __packed __attribute__ ((packed))
+-
+ /* Some constants */
+ #define HFSPLUS_SECTOR_SIZE        512
+ #define HFSPLUS_SECTOR_SHIFT         9
+diff -puN include/linux/compiler-gcc.h~extend-the-set-of-__attribute__-shortcut-macros include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~extend-the-set-of-__attribute__-shortcut-macros
++++ a/include/linux/compiler-gcc.h
+@@ -27,6 +27,13 @@
+ #define __inline__	__inline__	__attribute__((always_inline))
+ #define __inline	__inline	__attribute__((always_inline))
+ #define __deprecated			__attribute__((deprecated))
++#define __packed			__attribute__((packed))
++#define __weak				__attribute__((weak))
++#define __naked				__attribute__((naked))
++#define __noreturn			__attribute__((noreturn))
++#define __pure				__attribute__((pure))
++#define __aligned(x)			__attribute__((aligned(x)))
++#define __printf(a,b)			__attribute__((format(printf,a,b)))
+ #define  noinline			__attribute__((noinline))
+ #define __attribute_pure__		__attribute__((pure))
+ #define __attribute_const__		__attribute__((__const__))
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
+git-avr32.patch
 git-dvb.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-recognize-video=gx1fb-option.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+git-mips.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
+quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
+isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
+isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+isdn-rename-debug-option-config_serial_nopause_io.patch
+isdn-remove-defunct-test-emulator.patch
+isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
