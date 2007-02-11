@@ -1,113 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - char-moxa-remove-unused-allocated-page.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:52:19 -0800
-Message-ID: <200702112252.l1BMqJgA016005@shell0.pdx.osdl.net>
+Subject: - char-moxa-use-del_timer_sync.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:52:37 -0800
+Message-ID: <200702112252.l1BMqbMo016032@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60243 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60278 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932768AbXBKWwV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:52:21 -0500
+	id S932819AbXBKWwj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:52:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: moxa, remove unused allocated page
+     Char: moxa, use del_timer_sync
 has been removed from the -mm tree.  Its filename was
-     char-moxa-remove-unused-allocated-page.patch
+     char-moxa-use-del_timer_sync.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: moxa, remove unused allocated page
+Subject: Char: moxa, use del_timer_sync
 From: Jiri Slaby <jirislaby@gmail.com>
 
-moxaXmitBuff is almost unused -- only one byte from the whole PAGE_SIZE bytes
-is used.  Do not alloc so much space for almost anything.  Also remove lock
-protecting this page allocation.
+Use del_timer_sync in most timer deletions, we don't want to oops in the timer
+function.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/moxa.c |   24 +-----------------------
- 1 file changed, 1 insertion(+), 23 deletions(-)
+ drivers/char/moxa.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-remove-unused-allocated-page drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-remove-unused-allocated-page
+diff -puN drivers/char/moxa.c~char-moxa-use-del_timer_sync drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-use-del_timer_sync
 +++ a/drivers/char/moxa.c
-@@ -212,12 +212,10 @@ module_param(verbose, bool, 0644);
+@@ -424,10 +424,10 @@ static void __exit moxa_exit(void)
+ 	if (verbose)
+ 		printk("Unloading module moxa ...\n");
  
- static struct tty_driver *moxaDriver;
- static struct moxa_str moxaChannels[MAX_PORTS];
--static unsigned char *moxaXmitBuff;
- static int moxaTimer_on;
- static struct timer_list moxaTimer;
- static int moxaEmptyTimer_on[MAX_PORTS];
- static struct timer_list moxaEmptyTimer[MAX_PORTS];
--static struct semaphore moxaBuffSem;
+-	del_timer(&moxaTimer);
++	del_timer_sync(&moxaTimer);
  
- /*
-  * static functions:
-@@ -343,7 +341,6 @@ static int __init moxa_init(void)
- 	if (!moxaDriver)
- 		return -ENOMEM;
+ 	for (i = 0; i < MAX_PORTS; i++)
+-		del_timer(&moxaEmptyTimer[i]);
++		del_timer_sync(&moxaEmptyTimer[i]);
  
--	init_MUTEX(&moxaBuffSem);
- 	moxaDriver->owner = THIS_MODULE;
- 	moxaDriver->name = "ttyMX";
- 	moxaDriver->major = ttymajor;
-@@ -360,8 +357,6 @@ static int __init moxa_init(void)
- 	moxaDriver->flags = TTY_DRIVER_REAL_RAW;
- 	tty_set_operations(moxaDriver, &moxa_ops);
- 
--	moxaXmitBuff = NULL;
--
- 	for (i = 0, ch = moxaChannels; i < MAX_PORTS; i++, ch++) {
- 		ch->type = PORT_16550A;
- 		ch->port = i;
-@@ -533,7 +528,6 @@ static int moxa_open(struct tty_struct *
- 	struct moxa_str *ch;
- 	int port;
- 	int retval;
--	unsigned long page;
- 
- 	port = PORTNO(tty);
- 	if (port == MAX_PORTS) {
-@@ -543,21 +537,6 @@ static int moxa_open(struct tty_struct *
- 		tty->driver_data = NULL;
- 		return (-ENODEV);
+ 	if (tty_unregister_driver(moxaDriver))
+ 		printk("Couldn't unregister MOXA Intellio family serial driver\n");
+@@ -529,7 +529,7 @@ static void moxa_close(struct tty_struct
+ 	if (ch->asyncflags & ASYNC_INITIALIZED) {
+ 		setup_empty_event(tty);
+ 		tty_wait_until_sent(tty, 30 * HZ);	/* 30 seconds timeout */
+-		del_timer(&moxaEmptyTimer[ch->port]);
++		del_timer_sync(&moxaEmptyTimer[ch->port]);
  	}
--	down(&moxaBuffSem);
--	if (!moxaXmitBuff) {
--		page = get_zeroed_page(GFP_KERNEL);
--		if (!page) {
--			up(&moxaBuffSem);
--			return (-ENOMEM);
--		}
--		/* This test is guarded by the BuffSem so no longer needed
--		   delete me in 2.5 */
--		if (moxaXmitBuff)
--			free_page(page);
--		else
--			moxaXmitBuff = (unsigned char *) page;
--	}
--	up(&moxaBuffSem);
+ 	shut_down(ch);
+ 	MoxaPortFlushData(port, 2);
+@@ -1004,7 +1004,7 @@ static void check_xmit_empty(unsigned lo
+ 	struct moxa_str *ch;
  
- 	ch = &moxaChannels[port];
- 	ch->count++;
-@@ -739,8 +718,7 @@ static void moxa_put_char(struct tty_str
- 		return;
- 	port = ch->port;
- 	spin_lock_irqsave(&moxa_lock, flags);
--	moxaXmitBuff[0] = c;
--	MoxaPortWriteData(port, moxaXmitBuff, 1);
-+	MoxaPortWriteData(port, &c, 1);
- 	spin_unlock_irqrestore(&moxa_lock, flags);
- 	/************************************************
- 	if ( !(ch->statusflags & LOWWAIT) && (MoxaPortTxFree(port) <= 100) )
+ 	ch = (struct moxa_str *) data;
+-	del_timer(&moxaEmptyTimer[ch->port]);
++	del_timer_sync(&moxaEmptyTimer[ch->port]);
+ 	if (ch->tty && (ch->statusflags & EMPTYWAIT)) {
+ 		if (MoxaPortTxQueue(ch->port) == 0) {
+ 			ch->statusflags &= ~EMPTYWAIT;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
