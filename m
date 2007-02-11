@@ -1,187 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: - sn2-use-static-proc_fops.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:15 -0800
-Message-ID: <200702112254.l1BMsFQ9016190@shell0.pdx.osdl.net>
+Subject: - audit-fix-audit_filter_user_rules-initialization-bug.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:54:11 -0800
+Message-ID: <200702112254.l1BMsBLf016176@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60459 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60480 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932853AbXBKWyR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:54:17 -0500
+	id S932868AbXBKWyZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:54:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@openvz.org, ebiederm@xmission.com, tony.luck@intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mingo@elte.hu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sn2: use static ->proc_fops
+     audit: fix audit_filter_user_rules() initialization bug
 has been removed from the -mm tree.  Its filename was
-     sn2-use-static-proc_fops.patch
+     audit-fix-audit_filter_user_rules-initialization-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sn2: use static ->proc_fops
-From: Alexey Dobriyan <adobriyan@openvz.org>
+Subject: audit: fix audit_filter_user_rules() initialization bug
+From: Ingo Molnar <mingo@elte.hu>
 
-fix-rmmod-read-write-races-in-proc-entries.patch doesn't want dynamically
-allocated ->proc_fops, because it will set it to NULL at module unload time.
+gcc emits this warning:
 
-Regardless of module status, switch to statically allocated ->proc_fops which
-leads to simpler code without wrappers.
+ kernel/auditfilter.c: In function 'audit_filter_user':
+ kernel/auditfilter.c:1611: warning: 'state' is used uninitialized in this function
 
-AFAICS, also fix the following bug: "sn_force_interrupt" proc entry set
-->write for itself, but was created with 0444 permissions. Change to 0644.
+I tend to agree with gcc - there are a couple of plausible exit paths from
+audit_filter_user_rules() where it does not set 'state', keeping the
+variable uninitialized.  For example if a filter rule has an AUDIT_POSSIBLE
+action.  Initialize to 'wont audit'.  Fix whitespace damage too.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/kernel/sn2/sn_proc_fs.c |  105 ++++++++++++++-----------
- 1 file changed, 62 insertions(+), 43 deletions(-)
+ kernel/auditfilter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/sn/kernel/sn2/sn_proc_fs.c~sn2-use-static-proc_fops arch/ia64/sn/kernel/sn2/sn_proc_fs.c
---- a/arch/ia64/sn/kernel/sn2/sn_proc_fs.c~sn2-use-static-proc_fops
-+++ a/arch/ia64/sn/kernel/sn2/sn_proc_fs.c
-@@ -89,61 +89,80 @@ static int coherence_id_open(struct inod
- 	return single_open(file, coherence_id_show, NULL);
- }
+diff -puN kernel/auditfilter.c~audit-fix-audit_filter_user_rules-initialization-bug kernel/auditfilter.c
+--- a/kernel/auditfilter.c~audit-fix-audit_filter_user_rules-initialization-bug
++++ a/kernel/auditfilter.c
+@@ -1601,8 +1601,8 @@ static int audit_filter_user_rules(struc
  
--static struct proc_dir_entry
--*sn_procfs_create_entry(const char *name, struct proc_dir_entry *parent,
--			int (*openfunc)(struct inode *, struct file *),
--	int (*releasefunc)(struct inode *, struct file *),
--	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *))
--{
--	struct proc_dir_entry *e = create_proc_entry(name, 0444, parent);
--
--	if (e) {
--		struct file_operations *f;
--
--		f = kzalloc(sizeof(*f), GFP_KERNEL);
--		if (f) {
--			f->open = openfunc;
--			f->read = seq_read;
--			f->llseek = seq_lseek;
--			f->release = releasefunc;
--			f->write = write;
--			e->proc_fops = f;
--		}
--	}
--
--	return e;
--}
--
- /* /proc/sgi_sn/sn_topology uses seq_file, see sn_hwperf.c */
- extern int sn_topology_open(struct inode *, struct file *);
- extern int sn_topology_release(struct inode *, struct file *);
- 
-+static const struct file_operations proc_partition_id_fops = {
-+	.open		= partition_id_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static const struct file_operations proc_system_sn_fops = {
-+	.open		= system_serial_number_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static const struct file_operations proc_license_id_fops = {
-+	.open		= licenseID_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static const struct file_operations proc_sn_force_intr_fops = {
-+	.open		= sn_force_interrupt_open,
-+	.read		= seq_read,
-+	.write		= sn_force_interrupt_write_proc,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static const struct file_operations proc_coherence_id_fops = {
-+	.open		= coherence_id_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static const struct file_operations proc_sn_topo_fops = {
-+	.open		= sn_topology_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= sn_topology_release,
-+};
-+
- void register_sn_procfs(void)
+ int audit_filter_user(struct netlink_skb_parms *cb, int type)
  {
- 	static struct proc_dir_entry *sgi_proc_dir = NULL;
-+	struct proc_dir_entry *pde;
++	enum audit_state state = AUDIT_DISABLED;
+ 	struct audit_entry *e;
+-	enum audit_state   state;
+ 	int ret = 1;
  
- 	BUG_ON(sgi_proc_dir != NULL);
- 	if (!(sgi_proc_dir = proc_mkdir("sgi_sn", NULL)))
- 		return;
- 
--	sn_procfs_create_entry("partition_id", sgi_proc_dir,
--		partition_id_open, single_release, NULL);
--
--	sn_procfs_create_entry("system_serial_number", sgi_proc_dir,
--		system_serial_number_open, single_release, NULL);
--
--	sn_procfs_create_entry("licenseID", sgi_proc_dir, 
--		licenseID_open, single_release, NULL);
--
--	sn_procfs_create_entry("sn_force_interrupt", sgi_proc_dir,
--		sn_force_interrupt_open, single_release,
--		sn_force_interrupt_write_proc);
--
--	sn_procfs_create_entry("coherence_id", sgi_proc_dir, 
--		coherence_id_open, single_release, NULL);
--	
--	sn_procfs_create_entry("sn_topology", sgi_proc_dir,
--		sn_topology_open, sn_topology_release, NULL);
-+	pde = create_proc_entry("partition_id", 0444, sgi_proc_dir);
-+	if (pde)
-+		pde->proc_fops = &proc_partition_id_fops;
-+	pde = create_proc_entry("system_serial_number", 0444, sgi_proc_dir);
-+	if (pde)
-+		pde->proc_fops = &proc_system_sn_fops;
-+	pde = create_proc_entry("licenseID", 0444, sgi_proc_dir);
-+	if (pde)
-+		pde->proc_fops = &proc_license_id_fops;
-+	pde = create_proc_entry("sn_force_interrupt", 0644, sgi_proc_dir);
-+	if (pde)
-+		pde->proc_fops = &proc_sn_force_intr_fops;
-+	pde = create_proc_entry("coherence_id", 0444, sgi_proc_dir);
-+	if (pde)
-+		pde->proc_fops = &proc_coherence_id_fops;
-+	pde = create_proc_entry("sn_topology", 0444, sgi_proc_dir);
-+	if (pde)
-+		pde->proc_fops = &proc_sn_topo_fops;
- }
- 
- #endif /* CONFIG_PROC_FS */
+ 	rcu_read_lock();
 _
 
-Patches currently in -mm which might be from adobriyan@openvz.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-revert-x86_64-mm-msr-on-cpu.patch
-rdmsr_on_cpu-wrmsr_on_cpu.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-lutimesat-simplify-utime2.patch
-lutimesat-extend-do_utimes-with-flags.patch
-lutimesat-actual-syscall-and-wire-up-on-i386.patch
+acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
+bugfixes-pci-devices-get-assigned-redundant-irqs.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+debug-shared-irqs.patch
+kernel-shut-up-the-irq-mismatch-messages.patch
+lockdep-forward-declare-struct-task_struct.patch
+close_files-add-scheduling-point.patch
+add-irq-flag-to-disable-balancing-for-an-interrupt.patch
+add-a-functions-to-handle-interrupt-affinity-setting.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+hz-free-ntp.patch
+uninline-jiffiesh-functions.patch
+fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+fix-timeout-overflow-with-jiffies.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+i386-remove-useless-code-in-tscc.patch
+simplify-the-registration-of-clocksources.patch
+x86-rewrite-smp-tsc-sync-code.patch
+clocksource-replace-is_continuous-by-a-flag-field.patch
+clocksource-replace-is_continuous-by-a-flag-field-fix.patch
+clocksource-fixup-is_continous-changes-on-arm.patch
+clocksource-fixup-is_continous-changes-on-avr32.patch
+clocksource-fixup-is_continous-changes-on-s390.patch
+clocksource-fixup-is_continous-changes-on-mips.patch
+clocksource-remove-the-update-callback.patch
+clocksource-add-verification-watchdog-helper.patch
+mark-tsc-on-geodelx-reliable.patch
+uninline-irq_enter.patch
+fix-cascade-lookup-of-next_timer_interrupt.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-fix-missing-include-for-up.patch
+acpi-keep-track-of-timer-broadcasting.patch
+allow-early-access-to-the-power-management-timer.patch
+i386-apic-clean-up-the-apic-code.patch
+clockevents-add-core-functionality.patch
+tick-management-core-functionality.patch
+tick-management-broadcast-functionality.patch
+tick-management-dyntick--highres-functionality.patch
+clockevents-i383-drivers.patch
+i386-rework-local-apic-timer-calibration.patch
+i386-prepare-for-dyntick.patch
+i386-prepare-nmi-watchdog-for-dynticks.patch
+i386-enable-dynticks-in-kconfig.patch
+hrtimers-add-high-resolution-timer-support.patch
+hrtimers-prevent-possible-itimer-dos.patch
+add-debugging-feature-proc-timer_stat.patch
+add-debugging-feature-proc-timer_stat-cleanup.patch
+add-debugging-feature-proc-timer_list.patch
+add-sysrq-q-to-print-timer_list-debug-info.patch
+generic-vsyscall-gtod-support-for-generic_time.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+time-x86_64-hpet_address-cleanup.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-hpet-fixup-clocksource-changes.patch
+time-x86_64-tsc-fixup-clocksource-changes.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+posix-timers-rcu-optimization-for-clock_gettime.patch
+posix-timers-rcu-optimization-for-clock_gettime-fix.patch
+genirq-do-not-mask-interrupts-by-default.patch
+genirq-remove-irq_disabled.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_blocking.patch
+fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-aio-o_sync-filesystem-write.patch
+aio-is-unlikely.patch
+sched-avoid-div-in-rebalance_tick.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+kvm-optimize-inline-assembly.patch
+kvm-fix-asm-constraint-for-lldt-instruction.patch
+kvm-fix-gva_to_gpa.patch
+kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace.patch
+kvm-fix-mmu-going-crazy-of-guest-sets-cr0wp-==-0.patch
+kvm-svm-hack-initial-cpu-csbase-to-be-consistent-with-intel.patch
+kvm-two-way-apic-tpr-synchronization.patch
+kvm-vmx-reload-ds-and-es-even-in-64-bit-mode.patch
+kvm-fix-mismatch-between-32-bit-and-64-bit-abi.patch
+kvm-fix-vcpu-freeing-bug.patch
+hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch
+kvm-add-a-global-list-of-all-virtual-machines.patch
+kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
+kvm-vmx-add-vcpu_clear.patch
+kvm-cpu-hotplug-support.patch
+kvm-host-suspend-resume-support.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
+deprecate-sa_interrupt-and-friends.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
