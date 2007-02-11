@@ -1,123 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: - perle-multimodem-card-pci-ras-detection.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:00 -0800
-Message-ID: <200702112254.l1BMs0Qr016161@shell0.pdx.osdl.net>
+Subject: - sn2-use-static-proc_fops.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:54:15 -0800
+Message-ID: <200702112254.l1BMsFQ9016190@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60464 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60459 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932858AbXBKWyT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:54:19 -0500
+	id S932853AbXBKWyR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:54:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thomas.hoehn@avocent.com, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: adobriyan@openvz.org, ebiederm@xmission.com, tony.luck@intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Perle multimodem card (PCI-RAS) detection
+     sn2: use static ->proc_fops
 has been removed from the -mm tree.  Its filename was
-     perle-multimodem-card-pci-ras-detection.patch
+     sn2-use-static-proc_fops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Perle multimodem card (PCI-RAS) detection
-From: Thomas Hoehn <thomas.hoehn@avocent.com>
+Subject: sn2: use static ->proc_fops
+From: Alexey Dobriyan <adobriyan@openvz.org>
 
-Get the Perle quad-modem PCI card (PCI-RAS4) detected by serial driver.  It
-may also get the PCI-RAS8 running, but can't guarantee as I didn't had one for
-testing.
+fix-rmmod-read-write-races-in-proc-entries.patch doesn't want dynamically
+allocated ->proc_fops, because it will set it to NULL at module unload time.
 
-Signed-off-by: Thomas Hoehn <thomas.hoehn@avocent.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Regardless of module status, switch to statically allocated ->proc_fops which
+leads to simpler code without wrappers.
+
+AFAICS, also fix the following bug: "sn_force_interrupt" proc entry set
+->write for itself, but was created with 0444 permissions. Change to 0644.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c     |    8 ++++++--
- drivers/serial/8250_pci.c |   16 ++++++++++++++++
- include/linux/pci_ids.h   |    5 +++++
- 3 files changed, 27 insertions(+), 2 deletions(-)
+ arch/ia64/sn/kernel/sn2/sn_proc_fs.c |  105 ++++++++++++++-----------
+ 1 file changed, 62 insertions(+), 43 deletions(-)
 
-diff -puN drivers/serial/8250.c~perle-multimodem-card-pci-ras-detection drivers/serial/8250.c
---- a/drivers/serial/8250.c~perle-multimodem-card-pci-ras-detection
-+++ a/drivers/serial/8250.c
-@@ -920,12 +920,16 @@ static void autoconfig(struct uart_8250_
- #ifdef __i386__
- 		outb(0xff, 0x080);
- #endif
--		scratch2 = serial_inp(up, UART_IER);
-+		/*
-+		 * Mask out IER[7:4] bits for test as some UARTs (e.g. TL
-+		 * 16C754B) allow only to modify them if an EFR bit is set.
-+		 */
-+		scratch2 = serial_inp(up, UART_IER) & 0x0f;
- 		serial_outp(up, UART_IER, 0x0F);
- #ifdef __i386__
- 		outb(0, 0x080);
- #endif
--		scratch3 = serial_inp(up, UART_IER);
-+		scratch3 = serial_inp(up, UART_IER) & 0x0f;
- 		serial_outp(up, UART_IER, scratch);
- 		if (scratch2 != 0 || scratch3 != 0x0F) {
- 			/*
-diff -puN drivers/serial/8250_pci.c~perle-multimodem-card-pci-ras-detection drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~perle-multimodem-card-pci-ras-detection
-+++ a/drivers/serial/8250_pci.c
-@@ -679,6 +679,13 @@ static struct pci_serial_quirk pci_seria
- 	 */
- 	{
- 		.vendor		= PCI_VENDOR_ID_PLX,
-+		.device		= PCI_DEVICE_ID_PLX_9030,
-+		.subvendor	= PCI_SUBVENDOR_ID_PERLE,
-+		.subdevice	= PCI_ANY_ID,
-+		.setup		= pci_default_setup,
-+	},
-+	{
-+		.vendor		= PCI_VENDOR_ID_PLX,
- 		.device		= PCI_DEVICE_ID_PLX_9050,
- 		.subvendor	= PCI_SUBVENDOR_ID_EXSYS,
- 		.subdevice	= PCI_SUBDEVICE_ID_EXSYS_4055,
-@@ -2379,6 +2386,15 @@ static struct pci_device_id serial_pci_t
- 		pbn_b2_2_115200 },
+diff -puN arch/ia64/sn/kernel/sn2/sn_proc_fs.c~sn2-use-static-proc_fops arch/ia64/sn/kernel/sn2/sn_proc_fs.c
+--- a/arch/ia64/sn/kernel/sn2/sn_proc_fs.c~sn2-use-static-proc_fops
++++ a/arch/ia64/sn/kernel/sn2/sn_proc_fs.c
+@@ -89,61 +89,80 @@ static int coherence_id_open(struct inod
+ 	return single_open(file, coherence_id_show, NULL);
+ }
  
- 	/*
-+	 * Perle PCI-RAS cards
-+	 */
-+	{       PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
-+		PCI_SUBVENDOR_ID_PERLE, PCI_SUBDEVICE_ID_PCI_RAS4,
-+		0, 0, pbn_b2_4_921600 },
-+	{       PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
-+		PCI_SUBVENDOR_ID_PERLE, PCI_SUBDEVICE_ID_PCI_RAS8,
-+		0, 0, pbn_b2_8_921600 },
-+	/*
- 	 * These entries match devices with class COMMUNICATION_SERIAL,
- 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
- 	 */
-diff -puN include/linux/pci_ids.h~perle-multimodem-card-pci-ras-detection include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~perle-multimodem-card-pci-ras-detection
-+++ a/include/linux/pci_ids.h
-@@ -959,6 +959,7 @@
- #define PCI_DEVICE_ID_PLX_R753		0x1152
- #define PCI_DEVICE_ID_PLX_OLITEC	0x1187
- #define PCI_DEVICE_ID_PLX_PCI200SYN	0x3196
-+#define PCI_DEVICE_ID_PLX_9030          0x9030
- #define PCI_DEVICE_ID_PLX_9050		0x9050
- #define PCI_DEVICE_ID_PLX_9080		0x9080
- #define PCI_DEVICE_ID_PLX_GTEK_SERIAL2	0xa001
-@@ -1994,6 +1995,10 @@
+-static struct proc_dir_entry
+-*sn_procfs_create_entry(const char *name, struct proc_dir_entry *parent,
+-			int (*openfunc)(struct inode *, struct file *),
+-	int (*releasefunc)(struct inode *, struct file *),
+-	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *))
+-{
+-	struct proc_dir_entry *e = create_proc_entry(name, 0444, parent);
+-
+-	if (e) {
+-		struct file_operations *f;
+-
+-		f = kzalloc(sizeof(*f), GFP_KERNEL);
+-		if (f) {
+-			f->open = openfunc;
+-			f->read = seq_read;
+-			f->llseek = seq_lseek;
+-			f->release = releasefunc;
+-			f->write = write;
+-			e->proc_fops = f;
+-		}
+-	}
+-
+-	return e;
+-}
+-
+ /* /proc/sgi_sn/sn_topology uses seq_file, see sn_hwperf.c */
+ extern int sn_topology_open(struct inode *, struct file *);
+ extern int sn_topology_release(struct inode *, struct file *);
  
- #define PCI_VENDOR_ID_CHELSIO		0x1425
- 
-+#define PCI_SUBVENDOR_ID_PERLE          0x155f
-+#define PCI_SUBDEVICE_ID_PCI_RAS4       0xf001
-+#define PCI_SUBDEVICE_ID_PCI_RAS8       0xf010
++static const struct file_operations proc_partition_id_fops = {
++	.open		= partition_id_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
 +
++static const struct file_operations proc_system_sn_fops = {
++	.open		= system_serial_number_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static const struct file_operations proc_license_id_fops = {
++	.open		= licenseID_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static const struct file_operations proc_sn_force_intr_fops = {
++	.open		= sn_force_interrupt_open,
++	.read		= seq_read,
++	.write		= sn_force_interrupt_write_proc,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static const struct file_operations proc_coherence_id_fops = {
++	.open		= coherence_id_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static const struct file_operations proc_sn_topo_fops = {
++	.open		= sn_topology_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= sn_topology_release,
++};
++
+ void register_sn_procfs(void)
+ {
+ 	static struct proc_dir_entry *sgi_proc_dir = NULL;
++	struct proc_dir_entry *pde;
  
- #define PCI_VENDOR_ID_SYBA		0x1592
- #define PCI_DEVICE_ID_SYBA_2P_EPP	0x0782
+ 	BUG_ON(sgi_proc_dir != NULL);
+ 	if (!(sgi_proc_dir = proc_mkdir("sgi_sn", NULL)))
+ 		return;
+ 
+-	sn_procfs_create_entry("partition_id", sgi_proc_dir,
+-		partition_id_open, single_release, NULL);
+-
+-	sn_procfs_create_entry("system_serial_number", sgi_proc_dir,
+-		system_serial_number_open, single_release, NULL);
+-
+-	sn_procfs_create_entry("licenseID", sgi_proc_dir, 
+-		licenseID_open, single_release, NULL);
+-
+-	sn_procfs_create_entry("sn_force_interrupt", sgi_proc_dir,
+-		sn_force_interrupt_open, single_release,
+-		sn_force_interrupt_write_proc);
+-
+-	sn_procfs_create_entry("coherence_id", sgi_proc_dir, 
+-		coherence_id_open, single_release, NULL);
+-	
+-	sn_procfs_create_entry("sn_topology", sgi_proc_dir,
+-		sn_topology_open, sn_topology_release, NULL);
++	pde = create_proc_entry("partition_id", 0444, sgi_proc_dir);
++	if (pde)
++		pde->proc_fops = &proc_partition_id_fops;
++	pde = create_proc_entry("system_serial_number", 0444, sgi_proc_dir);
++	if (pde)
++		pde->proc_fops = &proc_system_sn_fops;
++	pde = create_proc_entry("licenseID", 0444, sgi_proc_dir);
++	if (pde)
++		pde->proc_fops = &proc_license_id_fops;
++	pde = create_proc_entry("sn_force_interrupt", 0644, sgi_proc_dir);
++	if (pde)
++		pde->proc_fops = &proc_sn_force_intr_fops;
++	pde = create_proc_entry("coherence_id", 0444, sgi_proc_dir);
++	if (pde)
++		pde->proc_fops = &proc_coherence_id_fops;
++	pde = create_proc_entry("sn_topology", 0444, sgi_proc_dir);
++	if (pde)
++		pde->proc_fops = &proc_sn_topo_fops;
+ }
+ 
+ #endif /* CONFIG_PROC_FS */
 _
 
-Patches currently in -mm which might be from thomas.hoehn@avocent.com are
+Patches currently in -mm which might be from adobriyan@openvz.org are
 
 origin.patch
+revert-x86_64-mm-msr-on-cpu.patch
+rdmsr_on_cpu-wrmsr_on_cpu.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+allow-access-to-proc-pid-fd-after-setuid-update-2.patch
+lutimesat-simplify-utime2.patch
+lutimesat-extend-do_utimes-with-flags.patch
+lutimesat-actual-syscall-and-wire-up-on-i386.patch
