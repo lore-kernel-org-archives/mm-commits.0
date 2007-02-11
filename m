@@ -1,93 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:59 -0800
-Message-ID: <200702112254.l1BMsxEe016284@shell0.pdx.osdl.net>
+Subject: - fix-umask-when-noacl-kernel-meets-extn-tuned-for-acls.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:54:20 -0800
+Message-ID: <200702112254.l1BMsKUV016205__16468.5040632778$1171234548$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60569 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60497 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932849AbXBKWzP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:55:15 -0500
+	id S932876AbXBKWyb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:54:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, dhowells@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: hugh@veritas.com, agruen@suse.de, linux-ext4@vger.kernel.org, tigran@aivazian.fsnet.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove references to obsolete kernel config option DEBUG_RWSEMS
+     fix umask when noACL kernel meets extN tuned for ACLs
 has been removed from the -mm tree.  Its filename was
-     remove-references-to-obsolete-kernel-config-option-debug_rwsems.patch
+     fix-umask-when-noacl-kernel-meets-extn-tuned-for-acls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove references to obsolete kernel config option DEBUG_RWSEMS
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: fix umask when noACL kernel meets extN tuned for ACLs
+From: Hugh Dickins <hugh@veritas.com>
 
-Remove the few references to the obsolete kernel config option
-DEBUG_RWSEMS.
+Fix insecure default behaviour reported by Tigran Aivazian: if an ext2 or
+ext3 or ext4 filesystem is tuned to mount with "acl", but mounted by a
+kernel built without ACL support, then umask was ignored when creating
+inodes - though root or user has umask 022, touch creates files as 0666,
+and mkdir creates directories as 0777.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Howells <dhowells@redhat.com>
+This appears to have worked right until 2.6.11, when a fix to the default
+mode on symlinks (always 0777) assumed VFS applies umask: which it does,
+unless the mount is marked for ACLs; but ext[234] set MS_POSIXACL in
+s_flags according to s_mount_opt set according to def_mount_opts.
+
+We could revert to the 2.6.10 ext[234]_init_acl (adding an S_ISLNK test);
+but other filesystems only set MS_POSIXACL when ACLs are configured.  We
+could fix this at another level; but it seems most robust to avoid setting
+the s_mount_opt flag in the first place (at the expense of more ifdefs).
+
+Likewise don't set the XATTR_USER flag when built without XATTR support.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Andreas Gruenbacher <agruen@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    9 ---------
- 1 file changed, 9 deletions(-)
+ fs/ext2/super.c |    4 ++++
+ fs/ext3/super.c |    4 ++++
+ fs/ext4/super.c |    4 ++++
+ 3 files changed, 12 insertions(+)
 
-diff -puN lib/Kconfig.debug~remove-references-to-obsolete-kernel-config-option-debug_rwsems lib/Kconfig.debug
---- a/lib/Kconfig.debug~remove-references-to-obsolete-kernel-config-option-debug_rwsems
-+++ a/lib/Kconfig.debug
-@@ -181,19 +181,11 @@ config DEBUG_MUTEXES
- 	 This feature allows mutex semantics violations to be detected and
- 	 reported.
- 
--config DEBUG_RWSEMS
--	bool "RW-sem debugging: basic checks"
--	depends on DEBUG_KERNEL
--	help
--	 This feature allows read-write semaphore semantics violations to
--	 be detected and reported.
--
- config DEBUG_LOCK_ALLOC
- 	bool "Lock debugging: detect incorrect freeing of live locks"
- 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
- 	select DEBUG_SPINLOCK
- 	select DEBUG_MUTEXES
--	select DEBUG_RWSEMS
- 	select LOCKDEP
- 	help
- 	 This feature will check whether any held lock (spinlock, rwlock,
-@@ -209,7 +201,6 @@ config PROVE_LOCKING
- 	select LOCKDEP
- 	select DEBUG_SPINLOCK
- 	select DEBUG_MUTEXES
--	select DEBUG_RWSEMS
- 	select DEBUG_LOCK_ALLOC
- 	default n
- 	help
+diff -puN fs/ext2/super.c~fix-umask-when-noacl-kernel-meets-extn-tuned-for-acls fs/ext2/super.c
+--- a/fs/ext2/super.c~fix-umask-when-noacl-kernel-meets-extn-tuned-for-acls
++++ a/fs/ext2/super.c
+@@ -708,10 +708,14 @@ static int ext2_fill_super(struct super_
+ 		set_opt(sbi->s_mount_opt, GRPID);
+ 	if (def_mount_opts & EXT2_DEFM_UID16)
+ 		set_opt(sbi->s_mount_opt, NO_UID32);
++#ifdef CONFIG_EXT2_FS_XATTR
+ 	if (def_mount_opts & EXT2_DEFM_XATTR_USER)
+ 		set_opt(sbi->s_mount_opt, XATTR_USER);
++#endif
++#ifdef CONFIG_EXT2_FS_POSIX_ACL
+ 	if (def_mount_opts & EXT2_DEFM_ACL)
+ 		set_opt(sbi->s_mount_opt, POSIX_ACL);
++#endif
+ 	
+ 	if (le16_to_cpu(sbi->s_es->s_errors) == EXT2_ERRORS_PANIC)
+ 		set_opt(sbi->s_mount_opt, ERRORS_PANIC);
+diff -puN fs/ext3/super.c~fix-umask-when-noacl-kernel-meets-extn-tuned-for-acls fs/ext3/super.c
+--- a/fs/ext3/super.c~fix-umask-when-noacl-kernel-meets-extn-tuned-for-acls
++++ a/fs/ext3/super.c
+@@ -1459,10 +1459,14 @@ static int ext3_fill_super (struct super
+ 		set_opt(sbi->s_mount_opt, GRPID);
+ 	if (def_mount_opts & EXT3_DEFM_UID16)
+ 		set_opt(sbi->s_mount_opt, NO_UID32);
++#ifdef CONFIG_EXT3_FS_XATTR
+ 	if (def_mount_opts & EXT3_DEFM_XATTR_USER)
+ 		set_opt(sbi->s_mount_opt, XATTR_USER);
++#endif
++#ifdef CONFIG_EXT3_FS_POSIX_ACL
+ 	if (def_mount_opts & EXT3_DEFM_ACL)
+ 		set_opt(sbi->s_mount_opt, POSIX_ACL);
++#endif
+ 	if ((def_mount_opts & EXT3_DEFM_JMODE) == EXT3_DEFM_JMODE_DATA)
+ 		sbi->s_mount_opt |= EXT3_MOUNT_JOURNAL_DATA;
+ 	else if ((def_mount_opts & EXT3_DEFM_JMODE) == EXT3_DEFM_JMODE_ORDERED)
+diff -puN fs/ext4/super.c~fix-umask-when-noacl-kernel-meets-extn-tuned-for-acls fs/ext4/super.c
+--- a/fs/ext4/super.c~fix-umask-when-noacl-kernel-meets-extn-tuned-for-acls
++++ a/fs/ext4/super.c
+@@ -1518,10 +1518,14 @@ static int ext4_fill_super (struct super
+ 		set_opt(sbi->s_mount_opt, GRPID);
+ 	if (def_mount_opts & EXT4_DEFM_UID16)
+ 		set_opt(sbi->s_mount_opt, NO_UID32);
++#ifdef CONFIG_EXT4DEV_FS_XATTR
+ 	if (def_mount_opts & EXT4_DEFM_XATTR_USER)
+ 		set_opt(sbi->s_mount_opt, XATTR_USER);
++#endif
++#ifdef CONFIG_EXT4DEV_FS_POSIX_ACL
+ 	if (def_mount_opts & EXT4_DEFM_ACL)
+ 		set_opt(sbi->s_mount_opt, POSIX_ACL);
++#endif
+ 	if ((def_mount_opts & EXT4_DEFM_JMODE) == EXT4_DEFM_JMODE_DATA)
+ 		sbi->s_mount_opt |= EXT4_MOUNT_JOURNAL_DATA;
+ 	else if ((def_mount_opts & EXT4_DEFM_JMODE) == EXT4_DEFM_JMODE_ORDERED)
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-git-avr32.patch
-git-dvb.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
-git-mips.patch
-git-netdev-all.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
-quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+add-vm_insert_pfn.patch
+mm-vm_insert_pfn-tidy.patch
+add-nopfn_refault-result-from-vm_ops-nopfn.patch
+mm-mincore-anon.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+ext2-reservations.patch
+ext2-balloc-fix-_with_rsv-freeze.patch
+ext2-balloc-reset-windowsz-when-full.patch
+ext2-balloc-fix-off-by-one-against-rsv_end.patch
+ext2-balloc-fix-off-by-one-against-grp_goal.patch
+ext2-balloc-say-rb_entry-not-list_entry.patch
+ext2-balloc-use-io_error-label.patch
