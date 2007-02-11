@@ -1,193 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - audit-fix-audit_filter_user_rules-initialization-bug.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:11 -0800
-Message-ID: <200702112254.l1BMsBLf016176@shell0.pdx.osdl.net>
+Subject: - seq_file-conversion-coda.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:54:18 -0800
+Message-ID: <200702112254.l1BMsIqg016200@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60480 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60473 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932868AbXBKWyZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:54:25 -0500
+	id S932864AbXBKWyX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:54:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     audit: fix audit_filter_user_rules() initialization bug
+     seq_file conversion: coda
 has been removed from the -mm tree.  Its filename was
-     audit-fix-audit_filter_user_rules-initialization-bug.patch
+     seq_file-conversion-coda.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: audit: fix audit_filter_user_rules() initialization bug
-From: Ingo Molnar <mingo@elte.hu>
+Subject: seq_file conversion: coda
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-gcc emits this warning:
+Compile-tested.
 
- kernel/auditfilter.c: In function 'audit_filter_user':
- kernel/auditfilter.c:1611: warning: 'state' is used uninitialized in this function
-
-I tend to agree with gcc - there are a couple of plausible exit paths from
-audit_filter_user_rules() where it does not set 'state', keeping the
-variable uninitialized.  For example if a filter rule has an AUDIT_POSSIBLE
-action.  Initialize to 'wont audit'.  Fix whitespace damage too.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditfilter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/coda/sysctl.c |   78 +++++++++++++++++++++++----------------------
+ 1 file changed, 40 insertions(+), 38 deletions(-)
 
-diff -puN kernel/auditfilter.c~audit-fix-audit_filter_user_rules-initialization-bug kernel/auditfilter.c
---- a/kernel/auditfilter.c~audit-fix-audit_filter_user_rules-initialization-bug
-+++ a/kernel/auditfilter.c
-@@ -1601,8 +1601,8 @@ static int audit_filter_user_rules(struc
+diff -puN fs/coda/sysctl.c~seq_file-conversion-coda fs/coda/sysctl.c
+--- a/fs/coda/sysctl.c~seq_file-conversion-coda
++++ a/fs/coda/sysctl.c
+@@ -15,6 +15,7 @@
+ #include <linux/mm.h>
+ #include <linux/sysctl.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/stat.h>
+ #include <linux/ctype.h>
+@@ -84,15 +85,11 @@ static int do_reset_coda_cache_inv_stats
+ 	return 0;
+ }
  
- int audit_filter_user(struct netlink_skb_parms *cb, int type)
+-static int coda_vfs_stats_get_info( char * buffer, char ** start,
+-				    off_t offset, int length)
++static int proc_vfs_stats_show(struct seq_file *m, void *v)
  {
-+	enum audit_state state = AUDIT_DISABLED;
- 	struct audit_entry *e;
--	enum audit_state   state;
- 	int ret = 1;
+-	int len=0;
+-	off_t begin;
+ 	struct coda_vfs_stats * ps = & coda_vfs_stat;
+   
+-  /* this works as long as we are below 1024 characters! */
+-	len += sprintf( buffer,
++	seq_printf(m,
+ 			"Coda VFS statistics\n"
+ 			"===================\n\n"
+ 			"File Operations:\n"
+@@ -132,28 +129,14 @@ static int coda_vfs_stats_get_info( char
+ 			ps->rmdir,
+ 			ps->rename,
+ 			ps->permission); 
+-
+-	begin = offset;
+-	*start = buffer + begin;
+-	len -= begin;
+-
+-	if ( len > length )
+-		len = length;
+-	if ( len < 0 )
+-		len = 0;
+-
+-	return len;
++	return 0;
+ }
  
- 	rcu_read_lock();
+-static int coda_cache_inv_stats_get_info( char * buffer, char ** start,
+-					  off_t offset, int length)
++static int proc_cache_inv_stats_show(struct seq_file *m, void *v)
+ {
+-	int len=0;
+-	off_t begin;
+ 	struct coda_cache_inv_stats * ps = & coda_cache_inv_stat;
+   
+-	/* this works as long as we are below 1024 characters! */
+-	len += sprintf( buffer,
++	seq_printf(m,
+ 			"Coda cache invalidation statistics\n"
+ 			"==================================\n\n"
+ 			"flush\t\t%9d\n"
+@@ -170,19 +153,35 @@ static int coda_cache_inv_stats_get_info
+ 			ps->zap_vnode,
+ 			ps->purge_fid,
+ 			ps->replace );
+-  
+-	begin = offset;
+-	*start = buffer + begin;
+-	len -= begin;
+-
+-	if ( len > length )
+-		len = length;
+-	if ( len < 0 )
+-		len = 0;
++	return 0;
++}
+ 
+-	return len;
++static int proc_vfs_stats_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, proc_vfs_stats_show, NULL);
+ }
+ 
++static int proc_cache_inv_stats_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, proc_cache_inv_stats_show, NULL);
++}
++
++static const struct file_operations proc_vfs_stats_fops = {
++	.owner		= THIS_MODULE,
++	.open		= proc_vfs_stats_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static const struct file_operations proc_cache_inv_stats_fops = {
++	.owner		= THIS_MODULE,
++	.open		= proc_cache_inv_stats_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
+ static ctl_table coda_table[] = {
+  	{CODA_TIMEOUT, "timeout", &coda_timeout, sizeof(int), 0644, NULL, &proc_dointvec},
+  	{CODA_HARD, "hard", &coda_hard, sizeof(int), 0644, NULL, &proc_dointvec},
+@@ -212,9 +211,6 @@ static struct proc_dir_entry* proc_fs_co
+ 
+ #endif
+ 
+-#define coda_proc_create(name,get_info) \
+-	create_proc_info_entry(name, 0, proc_fs_coda, get_info)
+-
+ void coda_sysctl_init(void)
+ {
+ 	reset_coda_vfs_stats();
+@@ -223,9 +219,15 @@ void coda_sysctl_init(void)
+ #ifdef CONFIG_PROC_FS
+ 	proc_fs_coda = proc_mkdir("coda", proc_root_fs);
+ 	if (proc_fs_coda) {
++		struct proc_dir_entry *pde;
++
+ 		proc_fs_coda->owner = THIS_MODULE;
+-		coda_proc_create("vfs_stats", coda_vfs_stats_get_info);
+-		coda_proc_create("cache_inv_stats", coda_cache_inv_stats_get_info);
++		pde = create_proc_entry("vfs_stats", 0, proc_fs_coda);
++		if (pde)
++			pde->proc_fops = &proc_vfs_stats_fops;
++		pde = create_proc_entry("cache_inv_stats", 0, proc_fs_coda);
++		if (pde)
++			pde->proc_fops = &proc_cache_inv_stats_fops;
+ 	}
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-simplify-the-stacktrace-code.patch
-debug-shared-irqs.patch
-kernel-shut-up-the-irq-mismatch-messages.patch
-lockdep-forward-declare-struct-task_struct.patch
-close_files-add-scheduling-point.patch
-add-irq-flag-to-disable-balancing-for-an-interrupt.patch
-add-a-functions-to-handle-interrupt-affinity-setting.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-hz-free-ntp.patch
-uninline-jiffiesh-functions.patch
-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-fix-timeout-overflow-with-jiffies.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-i386-remove-useless-code-in-tscc.patch
-simplify-the-registration-of-clocksources.patch
-x86-rewrite-smp-tsc-sync-code.patch
-clocksource-replace-is_continuous-by-a-flag-field.patch
-clocksource-replace-is_continuous-by-a-flag-field-fix.patch
-clocksource-fixup-is_continous-changes-on-arm.patch
-clocksource-fixup-is_continous-changes-on-avr32.patch
-clocksource-fixup-is_continous-changes-on-s390.patch
-clocksource-fixup-is_continous-changes-on-mips.patch
-clocksource-remove-the-update-callback.patch
-clocksource-add-verification-watchdog-helper.patch
-mark-tsc-on-geodelx-reliable.patch
-uninline-irq_enter.patch
-fix-cascade-lookup-of-next_timer_interrupt.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-fix-missing-include-for-up.patch
-acpi-keep-track-of-timer-broadcasting.patch
-allow-early-access-to-the-power-management-timer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-add-core-functionality.patch
-tick-management-core-functionality.patch
-tick-management-broadcast-functionality.patch
-tick-management-dyntick--highres-functionality.patch
-clockevents-i383-drivers.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-for-dyntick.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-i386-enable-dynticks-in-kconfig.patch
-hrtimers-add-high-resolution-timer-support.patch
-hrtimers-prevent-possible-itimer-dos.patch
-add-debugging-feature-proc-timer_stat.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
-add-debugging-feature-proc-timer_list.patch
-add-sysrq-q-to-print-timer_list-debug-info.patch
-generic-vsyscall-gtod-support-for-generic_time.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-time-x86_64-hpet_address-cleanup.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-hpet-fixup-clocksource-changes.patch
-time-x86_64-tsc-fixup-clocksource-changes.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-posix-timers-rcu-optimization-for-clock_gettime.patch
-posix-timers-rcu-optimization-for-clock_gettime-fix.patch
-genirq-do-not-mask-interrupts-by-default.patch
-genirq-remove-irq_disabled.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_blocking.patch
-fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-aio-o_sync-filesystem-write.patch
-aio-is-unlikely.patch
-sched-avoid-div-in-rebalance_tick.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-kvm-optimize-inline-assembly.patch
-kvm-fix-asm-constraint-for-lldt-instruction.patch
-kvm-fix-gva_to_gpa.patch
-kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace.patch
-kvm-fix-mmu-going-crazy-of-guest-sets-cr0wp-==-0.patch
-kvm-svm-hack-initial-cpu-csbase-to-be-consistent-with-intel.patch
-kvm-two-way-apic-tpr-synchronization.patch
-kvm-vmx-reload-ds-and-es-even-in-64-bit-mode.patch
-kvm-fix-mismatch-between-32-bit-and-64-bit-abi.patch
-kvm-fix-vcpu-freeing-bug.patch
-hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch
-kvm-add-a-global-list-of-all-virtual-machines.patch
-kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
-kvm-vmx-add-vcpu_clear.patch
-kvm-cpu-hotplug-support.patch
-kvm-host-suspend-resume-support.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
-deprecate-sa_interrupt-and-friends.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
+git-dvb.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+recognize-video=gx1fb-option.patch
