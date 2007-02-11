@@ -1,90 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - serial-support-for-new-board.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:02 -0800
-Message-ID: <200702112254.l1BMs2B1016164@shell0.pdx.osdl.net>
+Subject: - remove-unused-kernel-config-option-zisofs_fs.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:55:01 -0800
+Message-ID: <200702112255.l1BMt1vT016287@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60472 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60546 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932857AbXBKWyX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:54:23 -0500
+	id S932846AbXBKWzD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:55:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.fuchs@esd-electronics.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: support for new board
+     Remove unused kernel config option ZISOFS_FS
 has been removed from the -mm tree.  Its filename was
-     serial-support-for-new-board.patch
+     remove-unused-kernel-config-option-zisofs_fs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: serial: support for new board
-From: Matthias Fuchs <matthias.fuchs@esd-electronics.com>
+Subject: Remove unused kernel config option ZISOFS_FS
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Add support for the CPCI-ASIO4 quad port CompactPCI UART board from
-electronic system design gmbh.
+Remove the kernel config option ZISOFS_FS, since it appears that the actual
+option is simply ZISOFS.
 
-Signed-off-by: Matthias Fuchs <matthias.fuchs@esd-electronics.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |   11 +++++++++++
- include/linux/pci_ids.h   |    2 ++
- 2 files changed, 13 insertions(+)
+ fs/Kconfig |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~serial-support-for-new-board drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~serial-support-for-new-board
-+++ a/drivers/serial/8250_pci.c
-@@ -943,6 +943,7 @@ enum pci_board_num_t {
+diff -puN fs/Kconfig~remove-unused-kernel-config-option-zisofs_fs fs/Kconfig
+--- a/fs/Kconfig~remove-unused-kernel-config-option-zisofs_fs
++++ a/fs/Kconfig
+@@ -674,12 +674,6 @@ config ZISOFS
+ 	  necessary to create such a filesystem.  Say Y here if you want to be
+ 	  able to read such compressed CD-ROMs.
  
- 	pbn_b2_1_115200,
- 	pbn_b2_2_115200,
-+	pbn_b2_4_115200,
- 	pbn_b2_8_115200,
- 
- 	pbn_b2_1_460800,
-@@ -1256,6 +1257,12 @@ static struct pciserial_board pci_boards
- 		.base_baud	= 115200,
- 		.uart_offset	= 8,
- 	},
-+	[pbn_b2_4_115200] = {
-+		.flags          = FL_BASE2,
-+		.num_ports      = 4,
-+		.base_baud      = 115200,
-+		.uart_offset    = 8,
-+	},
- 	[pbn_b2_8_115200] = {
- 		.flags		= FL_BASE2,
- 		.num_ports	= 8,
-@@ -1997,6 +2004,10 @@ static struct pci_device_id serial_pci_t
- 	{	PCI_VENDOR_ID_PANACOM, PCI_DEVICE_ID_PANACOM_DUALMODEM,
- 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_panacom2 },
-+	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
-+		PCI_VENDOR_ID_ESDGMBH,
-+		PCI_DEVICE_ID_ESDGMBH_CPCIASIO4, 0, 0,
-+		pbn_b2_4_115200 },
- 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
- 		PCI_SUBVENDOR_ID_CHASE_PCIFAST,
- 		PCI_SUBDEVICE_ID_CHASE_PCIFAST4, 0, 0, 
-diff -puN include/linux/pci_ids.h~serial-support-for-new-board include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~serial-support-for-new-board
-+++ a/include/linux/pci_ids.h
-@@ -1697,6 +1697,8 @@
- #define PCI_VENDOR_ID_ELECTRONICDESIGNGMBH 0x12f8
- #define PCI_DEVICE_ID_LML_33R10		0x8a02
- 
-+#define PCI_VENDOR_ID_ESDGMBH		0x12fe
-+#define PCI_DEVICE_ID_ESDGMBH_CPCIASIO4 0x0111
- 
- #define PCI_VENDOR_ID_SIIG		0x131f
- #define PCI_SUBVENDOR_ID_SIIG		0x131f
+-config ZISOFS_FS
+-# for fs/nls/Config.in
+-	tristate
+-	depends on ZISOFS
+-	default ISO9660_FS
+-
+ config UDF_FS
+ 	tristate "UDF file system support"
+ 	help
 _
 
-Patches currently in -mm which might be from matthias.fuchs@esd-electronics.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
+git-avr32.patch
+git-dvb.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+git-mips.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
+quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
+isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
+isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+isdn-rename-debug-option-config_serial_nopause_io.patch
+isdn-remove-defunct-test-emulator.patch
+isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
