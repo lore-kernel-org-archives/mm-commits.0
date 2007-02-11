@@ -1,163 +1,269 @@
 From: akpm@linux-foundation.org
-Subject: - uml-x86_64-ptrace-fixes.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:49:49 -0800
-Message-ID: <200702112249.l1BMnnwD015793@shell0.pdx.osdl.net>
+Subject: - uml-x86_64-thread-fixes.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:49:47 -0800
+Message-ID: <200702112249.l1BMnl9T015790@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59927 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59923 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932702AbXBKWtw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:49:52 -0500
+	id S932724AbXBKWtu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:49:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: x86_64 ptrace fixes
+     uml: x86_64 thread fixes
 has been removed from the -mm tree.  Its filename was
-     uml-x86_64-ptrace-fixes.patch
+     uml-x86_64-thread-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: x86_64 ptrace fixes
+Subject: uml: x86_64 thread fixes
 From: Jeff Dike <jdike@addtoit.com>
 
-This patch fixes some missing ptrace bits on x86_64.  PTRACE_ARCH_PRCTL is
-hooked up and implemented.  This required generalizing arch_prctl_skas
-slightly to take a task_struct to modify.  Previously, it always operated on
-current.
+x86_64 needs some TLS fixes.  What was missing was remembering the child
+thread id during clone and stuffing it into the child during each context
+switch.
 
-Reading and writing the debug registers is also enabled by un-ifdefing the
-code that implements that.  It turns out that x86_64 is identical to i386, so
-the same code can be used.
+The %fs value is stored separately in the thread structure since the host
+controls what effect it has on the actual register file.  The host also needs
+to store it in its own thread struct, so we need the value kept outside the
+register file.
+
+arch_prctl_skas was fixed to call PTRACE_ARCH_PRCTL appropriately.  There is
+some saving and restoring of registers in the ARCH_SET_* cases so that the
+correct set of registers are changed on the host and restored to the process
+when it runs again.
 
 Signed-off-by: Jeff Dike <jdike@addtoit.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/ptrace.c        |    7 +++++++
- arch/um/sys-x86_64/ptrace.c    |    5 -----
- arch/um/sys-x86_64/syscalls.c  |   14 ++++++++------
- include/asm-um/ptrace-x86_64.h |    3 +++
- 4 files changed, 18 insertions(+), 11 deletions(-)
+ arch/um/include/os.h                 |    2 
+ arch/um/os-Linux/sys-x86_64/Makefile |    2 
+ arch/um/os-Linux/sys-x86_64/prctl.c  |   12 ++++
+ arch/um/sys-x86_64/syscalls.c        |   73 ++++++++++++++++++-------
+ arch/um/sys-x86_64/tls.c             |   11 ++-
+ include/asm-um/processor-x86_64.h    |    6 +-
+ include/asm-um/ptrace-x86_64.h       |    6 --
+ 7 files changed, 83 insertions(+), 29 deletions(-)
 
-diff -puN arch/um/kernel/ptrace.c~uml-x86_64-ptrace-fixes arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~uml-x86_64-ptrace-fixes
-+++ a/arch/um/kernel/ptrace.c
-@@ -18,6 +18,7 @@
- #include "kern_util.h"
- #include "skas_ptrace.h"
- #include "sysdep/ptrace.h"
+diff -puN arch/um/include/os.h~uml-x86_64-thread-fixes arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-x86_64-thread-fixes
++++ a/arch/um/include/os.h
+@@ -340,4 +340,6 @@ extern void maybe_sigio_broken(int fd, i
+ extern void sig_handler_common_skas(int sig, void *sc_ptr);
+ extern void user_signal(int sig, union uml_pt_regs *regs, int pid);
+ 
++extern int os_arch_prctl(int pid, int code, unsigned long *addr);
++
+ #endif
+diff -puN arch/um/os-Linux/sys-x86_64/Makefile~uml-x86_64-thread-fixes arch/um/os-Linux/sys-x86_64/Makefile
+--- a/arch/um/os-Linux/sys-x86_64/Makefile~uml-x86_64-thread-fixes
++++ a/arch/um/os-Linux/sys-x86_64/Makefile
+@@ -3,7 +3,7 @@
+ # Licensed under the GPL
+ #
+ 
+-obj-$(CONFIG_MODE_SKAS) = registers.o signal.o
++obj-$(CONFIG_MODE_SKAS) = registers.o prctl.o signal.o
+ 
+ USER_OBJS := $(obj-y)
+ 
+diff -puN /dev/null arch/um/os-Linux/sys-x86_64/prctl.c
+--- /dev/null
++++ a/arch/um/os-Linux/sys-x86_64/prctl.c
+@@ -0,0 +1,12 @@
++/*
++ * Copyright (C) 2007 Jeff Dike (jdike@{addtoit.com,linux.intel.com})
++ * Licensed under the GPL
++ */
++
++#include <sys/ptrace.h>
++#include <linux/ptrace.h>
++
++int os_arch_prctl(int pid, int code, unsigned long *addr)
++{
++        return ptrace(PTRACE_ARCH_PRCTL, pid, (unsigned long) addr, code);
++}
+diff -puN arch/um/sys-x86_64/syscalls.c~uml-x86_64-thread-fixes arch/um/sys-x86_64/syscalls.c
+--- a/arch/um/sys-x86_64/syscalls.c~uml-x86_64-thread-fixes
++++ a/arch/um/sys-x86_64/syscalls.c
+@@ -16,6 +16,7 @@
+ #include "asm/prctl.h" /* XXX This should get the constants from libc */
+ #include "choose-mode.h"
+ #include "kern.h"
 +#include "os.h"
  
- static inline void set_singlestepping(struct task_struct *child, int on)
+ asmlinkage long sys_uname64(struct new_utsname __user * name)
  {
-@@ -241,6 +242,12 @@ long arch_ptrace(struct task_struct *chi
- 		break;
- 	}
- #endif
-+#ifdef PTRACE_ARCH_PRCTL
-+        case PTRACE_ARCH_PRCTL:
-+                /* XXX Calls ptrace on the host - needs some SMP thinking */
-+                ret = arch_prctl_skas(child, data, (void *) addr);
-+                break;
-+#endif
- 	default:
- 		ret = ptrace_request(child, request, addr, data);
- 		break;
-diff -puN arch/um/sys-x86_64/ptrace.c~uml-x86_64-ptrace-fixes arch/um/sys-x86_64/ptrace.c
---- a/arch/um/sys-x86_64/ptrace.c~uml-x86_64-ptrace-fixes
-+++ a/arch/um/sys-x86_64/ptrace.c
-@@ -71,8 +71,6 @@ int poke_user(struct task_struct *child,
- 
-         if (addr < MAX_REG_OFFSET)
-                 return putreg(child, addr, data);
--
--#if 0 /* Need x86_64 debugregs handling */
-         else if((addr >= offsetof(struct user, u_debugreg[0])) &&
-                 (addr <= offsetof(struct user, u_debugreg[7]))){
-                 addr -= offsetof(struct user, u_debugreg[0]);
-@@ -81,7 +79,6 @@ int poke_user(struct task_struct *child,
-                 child->thread.arch.debugregs[addr] = data;
-                 return 0;
-         }
--#endif
-         return -EIO;
- }
- 
-@@ -119,14 +116,12 @@ int peek_user(struct task_struct *child,
-         if(addr < MAX_REG_OFFSET){
-                 tmp = getreg(child, addr);
-         }
--#if 0 /* Need x86_64 debugregs handling */
-         else if((addr >= offsetof(struct user, u_debugreg[0])) &&
-                 (addr <= offsetof(struct user, u_debugreg[7]))){
-                 addr -= offsetof(struct user, u_debugreg[0]);
-                 addr = addr >> 2;
-                 tmp = child->thread.arch.debugregs[addr];
-         }
--#endif
-         return put_user(tmp, (unsigned long *) data);
- }
- 
-diff -puN arch/um/sys-x86_64/syscalls.c~uml-x86_64-ptrace-fixes arch/um/sys-x86_64/syscalls.c
---- a/arch/um/sys-x86_64/syscalls.c~uml-x86_64-ptrace-fixes
-+++ a/arch/um/sys-x86_64/syscalls.c
-@@ -59,18 +59,20 @@ static long arch_prctl_tt(int code, unsi
+@@ -58,40 +59,67 @@ static long arch_prctl_tt(int code, unsi
  
  #ifdef CONFIG_MODE_SKAS
  
--static long arch_prctl_skas(int code, unsigned long __user *addr)
-+long arch_prctl_skas(struct task_struct *task, int code,
-+                     unsigned long __user *addr)
+-/* XXX: Must also call arch_prctl in the host, beside saving the segment bases! */
+-static long arch_prctl_skas(int code, unsigned long addr)
++static long arch_prctl_skas(int code, unsigned long __user *addr)
  {
-         unsigned long *ptr = addr, tmp;
- 	long ret;
--        int pid = current->mm->context.skas.id.u.pid;
-+	int pid = task->mm->context.skas.id.u.pid;
+-	long ret = 0;
++        unsigned long *ptr = addr, tmp;
++	long ret;
++        int pid = current->mm->context.skas.id.u.pid;
  
- 	/*
- 	 * With ARCH_SET_FS (and ARCH_SET_GS is treated similarly to
- 	 * be safe), we need to call arch_prctl on the host because
- 	 * setting %fs may result in something else happening (like a
--	 * GDT being set instead).  So, we let the host fiddle the
--	 * registers and restore them afterwards.
-+	 * GDT or thread.fs being set instead).  So, we let the host
-+	 * fiddle the registers and thread struct and restore the
-+	 * registers afterwards.
- 	 *
- 	 * So, the saved registers are stored to the process (this
- 	 * needed because a stub may have been the last thing to run),
-@@ -118,7 +120,7 @@ static long arch_prctl_skas(int code, un
++	/*
++	 * With ARCH_SET_FS (and ARCH_SET_GS is treated similarly to
++	 * be safe), we need to call arch_prctl on the host because
++	 * setting %fs may result in something else happening (like a
++	 * GDT being set instead).  So, we let the host fiddle the
++	 * registers and restore them afterwards.
++	 *
++	 * So, the saved registers are stored to the process (this
++	 * needed because a stub may have been the last thing to run),
++	 * arch_prctl is run on the host, then the registers are read
++	 * back.
++	 */
+ 	switch(code){
+ 	case ARCH_SET_FS:
+-		current->thread.regs.regs.skas.regs[FS_BASE / sizeof(unsigned long)] = addr;
+-		break;
+ 	case ARCH_SET_GS:
+-		current->thread.regs.regs.skas.regs[GS_BASE / sizeof(unsigned long)] = addr;
++                restore_registers(pid, &current->thread.regs.regs);
++                break;
++        case ARCH_GET_FS:
++        case ARCH_GET_GS:
++                /*
++                 * With these two, we read to a local pointer and
++                 * put_user it to the userspace pointer that we were
++                 * given.  If addr isn't valid (because it hasn't been
++                 * faulted in or is just bogus), we want put_user to
++                 * fault it in (or return -EFAULT) instead of having
++                 * the host return -EFAULT.
++                 */
++                ptr = &tmp;
++        }
++
++        ret = os_arch_prctl(pid, code, ptr);
++        if(ret)
++                return ret;
++
++        switch(code){
++	case ARCH_SET_FS:
++	case ARCH_SET_GS:
++                save_registers(pid, &current->thread.regs.regs);
+ 		break;
+ 	case ARCH_GET_FS:
+-		ret = put_user(current->thread.regs.regs.skas.
+-				regs[FS_BASE / sizeof(unsigned long)],
+-				(unsigned long __user *)addr);
++		ret = put_user(tmp, addr);
+ 	        break;
+ 	case ARCH_GET_GS:
+-		ret = put_user(current->thread.regs.regs.skas.
+-				regs[GS_BASE / sizeof(unsigned long)],
+-				(unsigned long __user *)addr);
++		ret = put_user(tmp, addr);
+ 	        break;
+-	default:
+-		ret = -EINVAL;
+-		break;
+ 	}
+ 
+-	return(ret);
++	return ret;
+ }
+ #endif
  
  long sys_arch_prctl(int code, unsigned long addr)
  {
--	return CHOOSE_MODE_PROC(arch_prctl_tt, arch_prctl_skas, code,
-+	return CHOOSE_MODE_PROC(arch_prctl_tt, arch_prctl_skas, current, code,
-                                 (unsigned long __user *) addr);
+-	return(CHOOSE_MODE_PROC(arch_prctl_tt, arch_prctl_skas, code, addr));
++	return CHOOSE_MODE_PROC(arch_prctl_tt, arch_prctl_skas, code,
++                                (unsigned long __user *) addr);
  }
  
-@@ -141,6 +143,6 @@ void arch_switch_to_skas(struct task_str
-         if(to->thread.arch.fs == 0)
-                 return;
- 
--        arch_prctl_skas(ARCH_SET_FS, (void __user *) to->thread.arch.fs);
-+        arch_prctl_skas(to, ARCH_SET_FS, (void __user *) to->thread.arch.fs);
+ long sys_clone(unsigned long clone_flags, unsigned long newsp,
+@@ -105,5 +133,14 @@ long sys_clone(unsigned long clone_flags
+ 	ret = do_fork(clone_flags, newsp, &current->thread.regs, 0, parent_tid,
+ 		      child_tid);
+ 	current->thread.forking = 0;
+-	return(ret);
++	return ret;
  }
- 
-diff -puN include/asm-um/ptrace-x86_64.h~uml-x86_64-ptrace-fixes include/asm-um/ptrace-x86_64.h
---- a/include/asm-um/ptrace-x86_64.h~uml-x86_64-ptrace-fixes
-+++ a/include/asm-um/ptrace-x86_64.h
-@@ -84,4 +84,7 @@ static inline void arch_switch_to_tt(str
- extern void arch_switch_to_skas(struct task_struct *from,
- 				struct task_struct *to);
- 
-+extern long arch_prctl_skas(struct task_struct *task, int code,
-+			    unsigned long __user *addr);
 +
++void arch_switch_to_skas(struct task_struct *from, struct task_struct *to)
++{
++        if(to->thread.arch.fs == 0)
++                return;
++
++        arch_prctl_skas(ARCH_SET_FS, (void __user *) to->thread.arch.fs);
++}
++
+diff -puN arch/um/sys-x86_64/tls.c~uml-x86_64-thread-fixes arch/um/sys-x86_64/tls.c
+--- a/arch/um/sys-x86_64/tls.c~uml-x86_64-thread-fixes
++++ a/arch/um/sys-x86_64/tls.c
+@@ -1,14 +1,17 @@
+ #include "linux/sched.h"
+ 
+-void debug_arch_force_load_TLS(void)
+-{
+-}
+-
+ void clear_flushed_tls(struct task_struct *task)
+ {
+ }
+ 
+ int arch_copy_tls(struct task_struct *t)
+ {
++	/*
++	 * If CLONE_SETTLS is set, we need to save the thread id
++	 * (which is argument 5, child_tid, of clone) so it can be set
++	 * during context switches.
++	 */
++	t->thread.arch.fs = t->thread.regs.regs.skas.regs[R8 / sizeof(long)];
++
+         return 0;
+ }
+diff -puN include/asm-um/processor-x86_64.h~uml-x86_64-thread-fixes include/asm-um/processor-x86_64.h
+--- a/include/asm-um/processor-x86_64.h~uml-x86_64-thread-fixes
++++ a/include/asm-um/processor-x86_64.h
+@@ -13,6 +13,7 @@
+ struct arch_thread {
+         unsigned long debugregs[8];
+         int debugregs_seq;
++        unsigned long fs;
+         struct faultinfo faultinfo;
+ };
+ 
+@@ -25,8 +26,9 @@ extern inline void rep_nop(void)
+ #define cpu_relax()   rep_nop()
+ 
+ #define INIT_ARCH_THREAD { .debugregs  		= { [ 0 ... 7 ] = 0 }, \
+-                           .debugregs_seq	= 0, \
+-                           .faultinfo		= { 0, 0, 0 } }
++                           .debugregs_seq	= 0,			       \
++			   .fs			= 0, \
++			   .faultinfo		= { 0, 0, 0 } }
+ 
+ static inline void arch_flush_thread(struct arch_thread *thread)
+ {
+diff -puN include/asm-um/ptrace-x86_64.h~uml-x86_64-thread-fixes include/asm-um/ptrace-x86_64.h
+--- a/include/asm-um/ptrace-x86_64.h~uml-x86_64-thread-fixes
++++ a/include/asm-um/ptrace-x86_64.h
+@@ -81,9 +81,7 @@ static inline void arch_switch_to_tt(str
+ {
+ }
+ 
+-static inline void arch_switch_to_skas(struct task_struct *from,
+-                                       struct task_struct *to)
+-{
+-}
++extern void arch_switch_to_skas(struct task_struct *from,
++				struct task_struct *to);
+ 
  #endif
 _
 
