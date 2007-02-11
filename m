@@ -1,98 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - use-parameter-passed-to-cache_reap-to-determine-pointer-to.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:46:00 -0800
-Message-ID: <200702112246.l1BMk0x2015458@shell0.pdx.osdl.net>
+Subject: - slab-remove-broken-pageslab-check-from-kfree_debugcheck.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:45:54 -0800
+Message-ID: <200702112245.l1BMjswW015452@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59455 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59452 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932606AbXBKWqC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:46:02 -0500
+	id S932601AbXBKWqB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:46:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: use parameter passed to cache_reap to determine pointer to work structure
+     slab: remove broken PageSlab check from kfree_debugcheck
 has been removed from the -mm tree.  Its filename was
-     use-parameter-passed-to-cache_reap-to-determine-pointer-to.patch
+     slab-remove-broken-pageslab-check-from-kfree_debugcheck.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slab: use parameter passed to cache_reap to determine pointer to work structure
-From: Christoph Lameter <clameter@sgi.com>
+Subject: slab: remove broken PageSlab check from kfree_debugcheck
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Use the pointer passed to cache_reap to determine the work pointer and
-consolidate exit paths.
+The PageSlab debug check in kfree_debugcheck() is broken for compound
+pages.  It is also redundant as we already do BUG_ON for non-slab pages in
+page_get_cache() and page_get_slab() which are always called before we free
+any actual objects.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ mm/slab.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN mm/slab.c~use-parameter-passed-to-cache_reap-to-determine-pointer-to mm/slab.c
---- a/mm/slab.c~use-parameter-passed-to-cache_reap-to-determine-pointer-to
+diff -puN mm/slab.c~slab-remove-broken-pageslab-check-from-kfree_debugcheck mm/slab.c
+--- a/mm/slab.c~slab-remove-broken-pageslab-check-from-kfree_debugcheck
 +++ a/mm/slab.c
-@@ -4029,18 +4029,17 @@ void drain_array(struct kmem_cache *cach
-  * If we cannot acquire the cache chain mutex then just give up - we'll try
-  * again on the next iteration.
+@@ -2814,19 +2814,11 @@ failed:
   */
--static void cache_reap(struct work_struct *unused)
-+static void cache_reap(struct work_struct *w)
+ static void kfree_debugcheck(const void *objp)
  {
- 	struct kmem_cache *searchp;
- 	struct kmem_list3 *l3;
- 	int node = numa_node_id();
-+	struct delayed_work *work =
-+		container_of(w, struct delayed_work, work);
- 
--	if (!mutex_trylock(&cache_chain_mutex)) {
-+	if (!mutex_trylock(&cache_chain_mutex))
- 		/* Give up. Setup the next iteration. */
--		schedule_delayed_work(&__get_cpu_var(reap_work),
--				      round_jiffies_relative(REAPTIMEOUT_CPUC));
--		return;
+-	struct page *page;
+-
+ 	if (!virt_addr_valid(objp)) {
+ 		printk(KERN_ERR "kfree_debugcheck: out of range ptr %lxh.\n",
+ 		       (unsigned long)objp);
+ 		BUG();
+ 	}
+-	page = virt_to_page(objp);
+-	if (!PageSlab(page)) {
+-		printk(KERN_ERR "kfree_debugcheck: bad ptr %lxh.\n",
+-		       (unsigned long)objp);
+-		BUG();
 -	}
-+		goto out;
- 
- 	list_for_each_entry(searchp, &cache_chain, next) {
- 		check_irq_on();
-@@ -4083,9 +4082,9 @@ next:
- 	mutex_unlock(&cache_chain_mutex);
- 	next_reap_node();
- 	refresh_cpu_vm_stats(smp_processor_id());
-+out:
- 	/* Set up the next iteration */
--	schedule_delayed_work(&__get_cpu_var(reap_work),
--		round_jiffies_relative(REAPTIMEOUT_CPUC));
-+	schedule_delayed_work(work, round_jiffies_relative(REAPTIMEOUT_CPUC));
  }
  
- #ifdef CONFIG_PROC_FS
+ static inline void verify_redzone_free(struct kmem_cache *cache, void *obj)
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
 origin.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids-fix.patch
-slab-reduce-size-of-alien-cache-to-cover-only-possible-nodes.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-mm-implement-swap-prefetching-vs-zvc-stuff.patch
-mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
+slab-use-cpu_lock_.patch
+slab-leaks3-default-y.patch
