@@ -1,198 +1,625 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-c99-convert-xfs-ctl_tables-fixes.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:56:16 -0800
-Message-ID: <200702112256.l1BMuGSI016398@shell0.pdx.osdl.net>
+Subject: - rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:55:58 -0800
+Message-ID: <200702112255.l1BMtwBP016371@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60699 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60695 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932902AbXBKW4T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:56:19 -0500
+	id S932892AbXBKW4S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:56:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, dgc@sgi.com, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, davej@codemonkey.org.uk, ego@in.ibm.com, malattia@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fixes for my C99 converion xfs ctl_tables
+     Rewrite lock in cpufreq to eliminate cpufreq/hotplug related issues
 has been removed from the -mm tree.  Its filename was
-     sysctl-c99-convert-xfs-ctl_tables-fixes.patch
+     rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fixes for my C99 converion xfs ctl_tables
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: Rewrite lock in cpufreq to eliminate cpufreq/hotplug related issues
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-This kills the extra NULLs and spaces, I missed.
+Yet another attempt to resolve cpufreq and hotplug locking issues.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: David Chinner <dgc@sgi.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Patchset has 3 patches:
+* Rewrite the lock infrastructure of cpufreq using a per cpu rwsem.
+* Minor restructuring of work callback in ondemand driver.
+* Use the new cpufreq rwsem infrastructure in ondemand work.
+
+This patch:
+
+Convert policy->lock to rwsem and move it to per_cpu area.
+This rwsem will protect against both changing/accessing policy
+related parameters and CPU hot plug/unplug.
+
+[malattia@linux.it: fix oops in kref_put()]
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_sysctl.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/cpufreq/cpufreq.c |  244 ++++++++++++++++++++++++++----------
+ include/linux/cpufreq.h   |   10 -
+ 2 files changed, 187 insertions(+), 67 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_sysctl.c~sysctl-c99-convert-xfs-ctl_tables-fixes fs/xfs/linux-2.6/xfs_sysctl.c
---- a/fs/xfs/linux-2.6/xfs_sysctl.c~sysctl-c99-convert-xfs-ctl_tables-fixes
-+++ a/fs/xfs/linux-2.6/xfs_sysctl.c
-@@ -94,7 +94,7 @@ STATIC ctl_table xfs_table[] = {
- 		.data		= &xfs_params.panic_mask.val,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	=  &proc_dointvec_minmax,
-+		.proc_handler	= &proc_dointvec_minmax,
- 		.strategy	= &sysctl_intvec,
- 		.extra1		= &xfs_params.panic_mask.min,
- 		.extra2		= &xfs_params.panic_mask.max
-@@ -140,7 +140,7 @@ STATIC ctl_table xfs_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec_minmax,
--		.strategy	= &sysctl_intvec, NULL,
-+		.strategy	= &sysctl_intvec,
- 		.extra1		= &xfs_params.inherit_nodump.min,
- 		.extra2		= &xfs_params.inherit_nodump.max
- 	},
-@@ -151,7 +151,7 @@ STATIC ctl_table xfs_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec_minmax,
--		.strategy	= &sysctl_intvec, NULL,
-+		.strategy	= &sysctl_intvec,
- 		.extra1		= &xfs_params.inherit_noatim.min,
- 		.extra2		= &xfs_params.inherit_noatim.max
- 	},
-@@ -218,7 +218,7 @@ STATIC ctl_table xfs_table[] = {
- 		.data		= &xfs_params.stats_clear.val,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	=  &xfs_stats_clear_proc_handler,
-+		.proc_handler	= &xfs_stats_clear_proc_handler,
- 		.strategy	= &sysctl_intvec,
- 		.extra1		= &xfs_params.stats_clear.min,
- 		.extra2		= &xfs_params.stats_clear.max
+diff -puN drivers/cpufreq/cpufreq.c~rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues
++++ a/drivers/cpufreq/cpufreq.c
+@@ -41,8 +41,67 @@ static struct cpufreq_driver *cpufreq_dr
+ static struct cpufreq_policy *cpufreq_cpu_data[NR_CPUS];
+ static DEFINE_SPINLOCK(cpufreq_driver_lock);
+ 
++/*
++ * cpu_policy_rwsem is a per CPU reader-writer semaphore designed to cure
++ * all cpufreq/hotplug/workqueue/etc related lock issues.
++ *
++ * The rules for this semaphore:
++ * - Any routine that wants to read from the policy structure will
++ *   do a down_read on this semaphore.
++ * - Any routine that will write to the policy structure and/or may take away
++ *   the policy altogether (eg. CPU hotplug), will hold this lock in write
++ *   mode before doing so.
++ *
++ * Additional rules:
++ * - All holders of the lock should check to make sure that the CPU they
++ *   are concerned with are online after they get the lock.
++ * - Governor routines that can be called in cpufreq hotplug path should not
++ *   take this sem as top level hotplug notifier handler takes this.
++ */
++static DEFINE_PER_CPU(int, policy_cpu);
++static DEFINE_PER_CPU(struct rw_semaphore, cpu_policy_rwsem);
++
++#define lock_policy_rwsem(mode, cpu)					\
++int lock_policy_rwsem_##mode						\
++(int cpu)								\
++{									\
++	int policy_cpu = per_cpu(policy_cpu, cpu);			\
++	BUG_ON(policy_cpu == -1);					\
++	down_##mode(&per_cpu(cpu_policy_rwsem, policy_cpu));		\
++	if (unlikely(!cpu_online(cpu))) {				\
++		up_##mode(&per_cpu(cpu_policy_rwsem, policy_cpu));	\
++		return -1;						\
++	}								\
++									\
++	return 0;							\
++}
++
++lock_policy_rwsem(read, cpu);
++EXPORT_SYMBOL_GPL(lock_policy_rwsem_read);
++
++lock_policy_rwsem(write, cpu);
++EXPORT_SYMBOL_GPL(lock_policy_rwsem_write);
++
++void unlock_policy_rwsem_read(int cpu)
++{
++	int policy_cpu = per_cpu(policy_cpu, cpu);
++	BUG_ON(policy_cpu == -1);
++	up_read(&per_cpu(cpu_policy_rwsem, policy_cpu));
++}
++EXPORT_SYMBOL_GPL(unlock_policy_rwsem_read);
++
++void unlock_policy_rwsem_write(int cpu)
++{
++	int policy_cpu = per_cpu(policy_cpu, cpu);
++	BUG_ON(policy_cpu == -1);
++	up_write(&per_cpu(cpu_policy_rwsem, policy_cpu));
++}
++EXPORT_SYMBOL_GPL(unlock_policy_rwsem_write);
++
++
+ /* internal prototypes */
+ static int __cpufreq_governor(struct cpufreq_policy *policy, unsigned int event);
++static unsigned int __cpufreq_get(unsigned int cpu);
+ static void handle_update(struct work_struct *work);
+ 
+ /**
+@@ -415,10 +474,8 @@ static ssize_t store_##file_name					\
+ 	if (ret != 1)							\
+ 		return -EINVAL;						\
+ 									\
+-	mutex_lock(&policy->lock);					\
+ 	ret = __cpufreq_set_policy(policy, &new_policy);		\
+ 	policy->user_policy.object = policy->object;			\
+-	mutex_unlock(&policy->lock);					\
+ 									\
+ 	return ret ? ret : count;					\
+ }
+@@ -432,7 +489,7 @@ store_one(scaling_max_freq,max);
+ static ssize_t show_cpuinfo_cur_freq (struct cpufreq_policy * policy,
+ 							char *buf)
+ {
+-	unsigned int cur_freq = cpufreq_get(policy->cpu);
++	unsigned int cur_freq = __cpufreq_get(policy->cpu);
+ 	if (!cur_freq)
+ 		return sprintf(buf, "<unknown>");
+ 	return sprintf(buf, "%u\n", cur_freq);
+@@ -479,12 +536,10 @@ static ssize_t store_scaling_governor (s
+ 
+ 	/* Do not use cpufreq_set_policy here or the user_policy.max
+ 	   will be wrongly overridden */
+-	mutex_lock(&policy->lock);
+ 	ret = __cpufreq_set_policy(policy, &new_policy);
+ 
+ 	policy->user_policy.policy = policy->policy;
+ 	policy->user_policy.governor = policy->governor;
+-	mutex_unlock(&policy->lock);
+ 
+ 	if (ret)
+ 		return ret;
+@@ -589,11 +644,17 @@ static ssize_t show(struct kobject * kob
+ 	policy = cpufreq_cpu_get(policy->cpu);
+ 	if (!policy)
+ 		return -EINVAL;
++
++	if (lock_policy_rwsem_read(policy->cpu) < 0)
++		return -EINVAL;
++
+ 	if (fattr->show)
+ 		ret = fattr->show(policy, buf);
+ 	else
+ 		ret = -EIO;
+ 
++	unlock_policy_rwsem_read(policy->cpu);
++
+ 	cpufreq_cpu_put(policy);
+ 	return ret;
+ }
+@@ -607,11 +668,17 @@ static ssize_t store(struct kobject * ko
+ 	policy = cpufreq_cpu_get(policy->cpu);
+ 	if (!policy)
+ 		return -EINVAL;
++
++	if (lock_policy_rwsem_write(policy->cpu) < 0)
++		return -EINVAL;
++
+ 	if (fattr->store)
+ 		ret = fattr->store(policy, buf, count);
+ 	else
+ 		ret = -EIO;
+ 
++	unlock_policy_rwsem_write(policy->cpu);
++
+ 	cpufreq_cpu_put(policy);
+ 	return ret;
+ }
+@@ -685,8 +752,10 @@ static int cpufreq_add_dev (struct sys_d
+ 	policy->cpu = cpu;
+ 	policy->cpus = cpumask_of_cpu(cpu);
+ 
+-	mutex_init(&policy->lock);
+-	mutex_lock(&policy->lock);
++	/* Initially set CPU itself as the policy_cpu */
++	per_cpu(policy_cpu, cpu) = cpu;
++	lock_policy_rwsem_write(cpu);
++
+ 	init_completion(&policy->kobj_unregister);
+ 	INIT_WORK(&policy->update, handle_update);
+ 
+@@ -696,7 +765,7 @@ static int cpufreq_add_dev (struct sys_d
+ 	ret = cpufreq_driver->init(policy);
+ 	if (ret) {
+ 		dprintk("initialization failed\n");
+-		mutex_unlock(&policy->lock);
++		unlock_policy_rwsem_write(cpu);
+ 		goto err_out;
+ 	}
+ 
+@@ -710,6 +779,14 @@ static int cpufreq_add_dev (struct sys_d
+ 		 */
+ 		managed_policy = cpufreq_cpu_get(j);
+ 		if (unlikely(managed_policy)) {
++
++			/* Set proper policy_cpu */
++			unlock_policy_rwsem_write(cpu);
++			per_cpu(policy_cpu, cpu) = managed_policy->cpu;
++
++			if (lock_policy_rwsem_write(cpu) < 0)
++				goto err_out_driver_exit;
++
+ 			spin_lock_irqsave(&cpufreq_driver_lock, flags);
+ 			managed_policy->cpus = policy->cpus;
+ 			cpufreq_cpu_data[cpu] = managed_policy;
+@@ -720,13 +797,13 @@ static int cpufreq_add_dev (struct sys_d
+ 						&managed_policy->kobj,
+ 						"cpufreq");
+ 			if (ret) {
+-				mutex_unlock(&policy->lock);
++				unlock_policy_rwsem_write(cpu);
+ 				goto err_out_driver_exit;
+ 			}
+ 
+ 			cpufreq_debug_enable_ratelimit();
+-			mutex_unlock(&policy->lock);
+ 			ret = 0;
++			unlock_policy_rwsem_write(cpu);
+ 			goto err_out_driver_exit; /* call driver->exit() */
+ 		}
+ 	}
+@@ -740,7 +817,7 @@ static int cpufreq_add_dev (struct sys_d
+ 
+ 	ret = kobject_register(&policy->kobj);
+ 	if (ret) {
+-		mutex_unlock(&policy->lock);
++		unlock_policy_rwsem_write(cpu);
+ 		goto err_out_driver_exit;
+ 	}
+ 	/* set up files for this cpu device */
+@@ -755,8 +832,10 @@ static int cpufreq_add_dev (struct sys_d
+ 		sysfs_create_file(&policy->kobj, &scaling_cur_freq.attr);
+ 
+ 	spin_lock_irqsave(&cpufreq_driver_lock, flags);
+-	for_each_cpu_mask(j, policy->cpus)
++	for_each_cpu_mask(j, policy->cpus) {
+ 		cpufreq_cpu_data[j] = policy;
++		per_cpu(policy_cpu, j) = policy->cpu;
++	}
+ 	spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
+ 
+ 	/* symlink affected CPUs */
+@@ -772,14 +851,14 @@ static int cpufreq_add_dev (struct sys_d
+ 		ret = sysfs_create_link(&cpu_sys_dev->kobj, &policy->kobj,
+ 					"cpufreq");
+ 		if (ret) {
+-			mutex_unlock(&policy->lock);
++			unlock_policy_rwsem_write(cpu);
+ 			goto err_out_unregister;
+ 		}
+ 	}
+ 
+ 	policy->governor = NULL; /* to assure that the starting sequence is
+ 				  * run in cpufreq_set_policy */
+-	mutex_unlock(&policy->lock);
++	unlock_policy_rwsem_write(cpu);
+ 
+ 	/* set default policy */
+ 	ret = cpufreq_set_policy(&new_policy);
+@@ -820,11 +899,13 @@ module_out:
+ 
+ 
+ /**
+- * cpufreq_remove_dev - remove a CPU device
++ * __cpufreq_remove_dev - remove a CPU device
+  *
+  * Removes the cpufreq interface for a CPU device.
++ * Caller should already have policy_rwsem in write mode for this CPU.
++ * This routine frees the rwsem before returning.
+  */
+-static int cpufreq_remove_dev (struct sys_device * sys_dev)
++static int __cpufreq_remove_dev (struct sys_device * sys_dev)
+ {
+ 	unsigned int cpu = sys_dev->id;
+ 	unsigned long flags;
+@@ -843,6 +924,7 @@ static int cpufreq_remove_dev (struct sy
+ 	if (!data) {
+ 		spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
+ 		cpufreq_debug_enable_ratelimit();
++		unlock_policy_rwsem_write(cpu);
+ 		return -EINVAL;
+ 	}
+ 	cpufreq_cpu_data[cpu] = NULL;
+@@ -859,6 +941,7 @@ static int cpufreq_remove_dev (struct sy
+ 		sysfs_remove_link(&sys_dev->kobj, "cpufreq");
+ 		cpufreq_cpu_put(data);
+ 		cpufreq_debug_enable_ratelimit();
++		unlock_policy_rwsem_write(cpu);
+ 		return 0;
+ 	}
+ #endif
+@@ -867,6 +950,7 @@ static int cpufreq_remove_dev (struct sy
+ 	if (!kobject_get(&data->kobj)) {
+ 		spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
+ 		cpufreq_debug_enable_ratelimit();
++		unlock_policy_rwsem_write(cpu);
+ 		return -EFAULT;
+ 	}
+ 
+@@ -900,10 +984,10 @@ static int cpufreq_remove_dev (struct sy
+ 	spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
+ #endif
+ 
+-	mutex_lock(&data->lock);
+ 	if (cpufreq_driver->target)
+ 		__cpufreq_governor(data, CPUFREQ_GOV_STOP);
+-	mutex_unlock(&data->lock);
++
++	unlock_policy_rwsem_write(cpu);
+ 
+ 	kobject_unregister(&data->kobj);
+ 
+@@ -927,6 +1011,18 @@ static int cpufreq_remove_dev (struct sy
+ }
+ 
+ 
++static int cpufreq_remove_dev (struct sys_device * sys_dev)
++{
++	unsigned int cpu = sys_dev->id;
++	int retval;
++	if (unlikely(lock_policy_rwsem_write(cpu)))
++		BUG();
++
++	retval = __cpufreq_remove_dev(sys_dev);
++	return retval;
++}
++
++
+ static void handle_update(struct work_struct *work)
+ {
+ 	struct cpufreq_policy *policy =
+@@ -974,9 +1070,12 @@ unsigned int cpufreq_quick_get(unsigned 
+ 	unsigned int ret_freq = 0;
+ 
+ 	if (policy) {
+-		mutex_lock(&policy->lock);
++		if (unlikely(lock_policy_rwsem_read(cpu)))
++			return ret_freq;
++
+ 		ret_freq = policy->cur;
+-		mutex_unlock(&policy->lock);
++
++		unlock_policy_rwsem_read(cpu);
+ 		cpufreq_cpu_put(policy);
+ 	}
+ 
+@@ -985,24 +1084,13 @@ unsigned int cpufreq_quick_get(unsigned 
+ EXPORT_SYMBOL(cpufreq_quick_get);
+ 
+ 
+-/**
+- * cpufreq_get - get the current CPU frequency (in kHz)
+- * @cpu: CPU number
+- *
+- * Get the CPU current (static) CPU frequency
+- */
+-unsigned int cpufreq_get(unsigned int cpu)
++static unsigned int __cpufreq_get(unsigned int cpu)
+ {
+-	struct cpufreq_policy *policy = cpufreq_cpu_get(cpu);
++	struct cpufreq_policy *policy = cpufreq_cpu_data[cpu];
+ 	unsigned int ret_freq = 0;
+ 
+-	if (!policy)
+-		return 0;
+-
+ 	if (!cpufreq_driver->get)
+-		goto out;
+-
+-	mutex_lock(&policy->lock);
++		return (ret_freq);
+ 
+ 	ret_freq = cpufreq_driver->get(cpu);
+ 
+@@ -1016,11 +1104,33 @@ unsigned int cpufreq_get(unsigned int cp
+ 		}
+ 	}
+ 
+-	mutex_unlock(&policy->lock);
++	return (ret_freq);
++}
+ 
+-out:
+-	cpufreq_cpu_put(policy);
++/**
++ * cpufreq_get - get the current CPU frequency (in kHz)
++ * @cpu: CPU number
++ *
++ * Get the CPU current (static) CPU frequency
++ */
++unsigned int cpufreq_get(unsigned int cpu)
++{
++	unsigned int ret_freq = 0;
++	struct cpufreq_policy *policy = cpufreq_cpu_get(cpu);
++
++	if (!policy)
++		goto out;
+ 
++	if (unlikely(lock_policy_rwsem_read(cpu)))
++		goto out_policy;
++
++	ret_freq = __cpufreq_get(cpu);
++
++	unlock_policy_rwsem_read(cpu);
++
++out_policy:
++	cpufreq_cpu_put(policy);
++out:
+ 	return (ret_freq);
+ }
+ EXPORT_SYMBOL(cpufreq_get);
+@@ -1297,18 +1407,19 @@ int cpufreq_driver_target(struct cpufreq
+ 	if (!policy)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&policy->lock);
++	if (unlikely(lock_policy_rwsem_write(policy->cpu)))
++		return -EINVAL;
+ 
+ 	ret = __cpufreq_driver_target(policy, target_freq, relation);
+ 
+-	mutex_unlock(&policy->lock);
++	unlock_policy_rwsem_write(policy->cpu);
+ 
+ 	cpufreq_cpu_put(policy);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(cpufreq_driver_target);
+ 
+-int cpufreq_driver_getavg(struct cpufreq_policy *policy)
++int __cpufreq_driver_getavg(struct cpufreq_policy *policy)
+ {
+ 	int ret = 0;
+ 
+@@ -1316,17 +1427,13 @@ int cpufreq_driver_getavg(struct cpufreq
+ 	if (!policy)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&policy->lock);
+-
+ 	if (cpu_online(policy->cpu) && cpufreq_driver->getavg)
+ 		ret = cpufreq_driver->getavg(policy->cpu);
+ 
+-	mutex_unlock(&policy->lock);
+-
+ 	cpufreq_cpu_put(policy);
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(cpufreq_driver_getavg);
++EXPORT_SYMBOL_GPL(__cpufreq_driver_getavg);
+ 
+ /*
+  * when "event" is CPUFREQ_GOV_LIMITS
+@@ -1410,9 +1517,7 @@ int cpufreq_get_policy(struct cpufreq_po
+ 	if (!cpu_policy)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&cpu_policy->lock);
+ 	memcpy(policy, cpu_policy, sizeof(struct cpufreq_policy));
+-	mutex_unlock(&cpu_policy->lock);
+ 
+ 	cpufreq_cpu_put(cpu_policy);
+ 	return 0;
+@@ -1528,8 +1633,9 @@ int cpufreq_set_policy(struct cpufreq_po
+ 	if (!data)
+ 		return -EINVAL;
+ 
+-	/* lock this CPU */
+-	mutex_lock(&data->lock);
++	if (unlikely(lock_policy_rwsem_write(policy->cpu)))
++		return -EINVAL;
++
+ 
+ 	ret = __cpufreq_set_policy(data, policy);
+ 	data->user_policy.min = data->min;
+@@ -1537,7 +1643,7 @@ int cpufreq_set_policy(struct cpufreq_po
+ 	data->user_policy.policy = data->policy;
+ 	data->user_policy.governor = data->governor;
+ 
+-	mutex_unlock(&data->lock);
++	unlock_policy_rwsem_write(policy->cpu);
+ 
+ 	cpufreq_cpu_put(data);
+ 
+@@ -1562,7 +1668,8 @@ int cpufreq_update_policy(unsigned int c
+ 	if (!data)
+ 		return -ENODEV;
+ 
+-	mutex_lock(&data->lock);
++	if (unlikely(lock_policy_rwsem_write(cpu)))
++		return -EINVAL;
+ 
+ 	dprintk("updating policy for CPU %u\n", cpu);
+ 	memcpy(&policy, data, sizeof(struct cpufreq_policy));
+@@ -1587,7 +1694,8 @@ int cpufreq_update_policy(unsigned int c
+ 
+ 	ret = __cpufreq_set_policy(data, &policy);
+ 
+-	mutex_unlock(&data->lock);
++	unlock_policy_rwsem_write(cpu);
++
+ 	cpufreq_cpu_put(data);
+ 	return ret;
+ }
+@@ -1597,31 +1705,28 @@ static int cpufreq_cpu_callback(struct n
+ 					unsigned long action, void *hcpu)
+ {
+ 	unsigned int cpu = (unsigned long)hcpu;
+-	struct cpufreq_policy *policy;
+ 	struct sys_device *sys_dev;
++	struct cpufreq_policy *policy;
+ 
+ 	sys_dev = get_cpu_sysdev(cpu);
+-
+ 	if (sys_dev) {
+ 		switch (action) {
+ 		case CPU_ONLINE:
+ 			cpufreq_add_dev(sys_dev);
+ 			break;
+ 		case CPU_DOWN_PREPARE:
+-			/*
+-			 * We attempt to put this cpu in lowest frequency
+-			 * possible before going down. This will permit
+-			 * hardware-managed P-State to switch other related
+-			 * threads to min or higher speeds if possible.
+-			 */
++			if (unlikely(lock_policy_rwsem_write(cpu)))
++				BUG();
++
+ 			policy = cpufreq_cpu_data[cpu];
+ 			if (policy) {
+-				cpufreq_driver_target(policy, policy->min,
++				__cpufreq_driver_target(policy, policy->min,
+ 						CPUFREQ_RELATION_H);
+ 			}
++			__cpufreq_remove_dev(sys_dev);
+ 			break;
+-		case CPU_DEAD:
+-			cpufreq_remove_dev(sys_dev);
++		case CPU_DOWN_FAILED:
++			cpufreq_add_dev(sys_dev);
+ 			break;
+ 		}
+ 	}
+@@ -1735,3 +1840,16 @@ int cpufreq_unregister_driver(struct cpu
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(cpufreq_unregister_driver);
++
++static int __init cpufreq_core_init(void)
++{
++	int cpu;
++
++	for_each_possible_cpu(cpu) {
++		per_cpu(policy_cpu, cpu) = -1;
++		init_rwsem(&per_cpu(cpu_policy_rwsem, cpu));
++	}
++	return 0;
++}
++
++core_initcall(cpufreq_core_init);
+diff -puN include/linux/cpufreq.h~rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues include/linux/cpufreq.h
+--- a/include/linux/cpufreq.h~rewrite-lock-in-cpufreq-to-eliminate-cpufreq-hotplug-related-issues
++++ a/include/linux/cpufreq.h
+@@ -84,9 +84,6 @@ struct cpufreq_policy {
+         unsigned int		policy; /* see above */
+ 	struct cpufreq_governor	*governor; /* see below */
+ 
+- 	struct mutex		lock;   /* CPU ->setpolicy or ->target may
+-					   only be called once a time */
+-
+ 	struct work_struct	update; /* if update_policy() needs to be
+ 					 * called, but you're in IRQ context */
+ 
+@@ -172,11 +169,16 @@ extern int __cpufreq_driver_target(struc
+ 				   unsigned int relation);
+ 
+ 
+-extern int cpufreq_driver_getavg(struct cpufreq_policy *policy);
++extern int __cpufreq_driver_getavg(struct cpufreq_policy *policy);
+ 
+ int cpufreq_register_governor(struct cpufreq_governor *governor);
+ void cpufreq_unregister_governor(struct cpufreq_governor *governor);
+ 
++int lock_policy_rwsem_read(int cpu);
++int lock_policy_rwsem_write(int cpu);
++void unlock_policy_rwsem_read(int cpu);
++void unlock_policy_rwsem_write(int cpu);
++
+ 
+ /*********************************************************************
+  *                      CPUFREQ DRIVER INTERFACE                     *
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-origin.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-git-v9fs.patch
-x86_64-irq-simplfy-__assign_irq_vector.patch
-x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
-ipc-save-the-ipc-namespace-while-reading-proc-files.patch
-kexec-fix-references-to-init-in-documentation-for-kexe.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
-sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
-sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
-sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
-sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
-sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
-sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
-sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
-sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-md-remove-unnecessary-insert_at_head-flag.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-dont-set-de-owner.patch
-sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
-sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
-sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
-sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-arch-frv-kernel-pmc.patch
-sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
-sysctl-sn-remove-sysctl-abi-breakage.patch
-sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
-sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
-sysctl-mips-au1000-remove-sys_sysctl-support.patch
-sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
-sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
-sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
-sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
-sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
-sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
-sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
-sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
-sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
-sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix.patch
-sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-register-the-ocfs2-sysctl-numbers.patch
-sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
-sysctl-move-utsname-sysctls-to-their-own-file.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-remove-support-for-ctl_any.patch
-sysctl-remove-support-for-directory-strategy-routines.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
-sysctl-reimplement-the-sysctl-proc-support.patch
-sysctl-reimplement-the-sysctl-proc-support-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-sysctl-fix-the-selinux_sysctl_get_sid.patch
-selinux-enhance-selinux-to-always-ignore-private-inodes.patch
-sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+git-cpufreq.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
