@@ -1,113 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - char-mxser_new-remove-unused-stuff.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:51:45 -0800
-Message-ID: <200702112251.l1BMpjWa015960@shell0.pdx.osdl.net>
+Subject: - pnp-export-pnp_bus_type.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:51:41 -0800
+Message-ID: <200702112251.l1BMpfXP015957@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60158 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60164 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932763AbXBKWvr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:51:47 -0500
+	id S932762AbXBKWvt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:51:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, ambx1@neo.rr.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser_new, remove unused stuff
+     PNP: export pnp_bus_type
 has been removed from the -mm tree.  Its filename was
-     char-mxser_new-remove-unused-stuff.patch
+     pnp-export-pnp_bus_type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser_new, remove unused stuff
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: PNP: export pnp_bus_type
+From: David Brownell <david-b@pacbell.net>
 
-- nobody waits on close_wait
-- ASYNC_SPLIT_TERMIOS is not set by anybody, so do not test this flag
-- process session and pgrp are useless information
+The PNP framework doesn't export "pnp_bus_type", which is an unfortunate
+exception to the policy followed by pretty much every other bus.  I noticed
+this when I had to find a device in order to provide its platform_data.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Note that per advice from Arjan, the "export" scope has been been minimized to
+avoid the hundred-plus bytes needed to support access from modules.  In this
+case, the symbol is only needed by statically linked kernel code that lives
+outside the drivers/pnp directory.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |   18 ------------------
- 1 file changed, 18 deletions(-)
+ drivers/pnp/base.h  |    1 -
+ include/linux/pnp.h |    2 ++
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-remove-unused-stuff drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-remove-unused-stuff
-+++ a/drivers/char/mxser_new.c
-@@ -237,8 +237,6 @@ struct mxser_port {
- 	long realbaud;
- 	int type;		/* UART type */
- 	int flags;		/* defined in tty.h */
--	long session;		/* Session of opening process */
--	long pgrp;		/* pgrp of opening process */
+diff -puN drivers/pnp/base.h~pnp-export-pnp_bus_type drivers/pnp/base.h
+--- a/drivers/pnp/base.h~pnp-export-pnp_bus_type
++++ a/drivers/pnp/base.h
+@@ -1,4 +1,3 @@
+-extern struct bus_type pnp_bus_type;
+ extern spinlock_t pnp_lock;
+ void *pnp_alloc(long size);
+ int pnp_interface_attach_device(struct pnp_dev *dev);
+diff -puN include/linux/pnp.h~pnp-export-pnp_bus_type include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-export-pnp_bus_type
++++ a/include/linux/pnp.h
+@@ -352,6 +352,8 @@ struct pnp_protocol {
+ 	(dev) = protocol_to_pnp_dev((dev)->protocol_list.next))
  
- 	int x_char;		/* xon/xoff character */
- 	int IER;		/* Interrupt Enable Register */
-@@ -267,14 +265,12 @@ struct mxser_port {
- 	int xmit_cnt;
  
- 	struct ktermios normal_termios;
--	struct ktermios callout_termios;
++extern struct bus_type pnp_bus_type;
++
+ #if defined(CONFIG_PNP)
  
- 	struct mxser_mon mon_data;
- 
- 	spinlock_t slock;
- 	struct work_struct tqueue;
- 	wait_queue_head_t open_wait;
--	wait_queue_head_t close_wait;
- 	wait_queue_head_t delta_msr_wait;
- };
- 
-@@ -936,17 +932,6 @@ static int mxser_open(struct tty_struct 
- 	if (retval)
- 		return retval;
- 
--	if ((info->count == 1) && (info->flags & ASYNC_SPLIT_TERMIOS)) {
--		if (tty->driver->subtype == SERIAL_TYPE_NORMAL)
--			*tty->termios = info->normal_termios;
--		else
--			*tty->termios = info->callout_termios;
--		mxser_change_speed(info, NULL);
--	}
--
--	info->session = process_session(current);
--	info->pgrp = process_group(current);
--
- 	/* unmark here for very high baud rate (ex. 921600 bps) used */
- 	tty->low_latency = 1;
- 	return 0;
-@@ -1053,8 +1038,6 @@ static void mxser_close(struct tty_struc
- 	}
- 
- 	info->flags &= ~(ASYNC_NORMAL_ACTIVE | ASYNC_CLOSING);
--	wake_up_interruptible(&info->close_wait);
--
- }
- 
- static int mxser_write(struct tty_struct *tty, const unsigned char *buf, int count)
-@@ -2420,7 +2403,6 @@ static int __devinit mxser_initbrd(struc
- 		INIT_WORK(&info->tqueue, mxser_do_softint);
- 		info->normal_termios = mxvar_sdriver->init_termios;
- 		init_waitqueue_head(&info->open_wait);
--		init_waitqueue_head(&info->close_wait);
- 		init_waitqueue_head(&info->delta_msr_wait);
- 		memset(&info->mon_data, 0, sizeof(struct mxser_mon));
- 		info->err_shadow = 0;
+ /* device management */
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-char-use-more-pci_device-macro.patch
-char-cyclades-use-pci_device_id.patch
-maintainers-remove-two-dead-e-mail.patch
-char-specialix-isr-have-2-params.patch
-char-timers-cleanup.patch
-fbdev-driver-for-s3-trio-virge-update-2-fix.patch
-video-fb-add-true-ref_count-atomicity.patch
-video-fb-kzalloc-changes.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-acpi.patch
+git-avr32.patch
+git-md-accel.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
+spi-kconfig-fix.patch
+spi-controller-driver-for-omap-microwire.patch
+spi-controller-driver-for-omap-microwire-update.patch
+spi-controller-driver-for-omap-microwire-update-fix.patch
+spi-freescale-imx-spi-controller-driver-v5.patch
+spi-doc-clarifications.patch
+rtc-gets-sysfs-wakealarm-attribute.patch
+spi-eeprom-driver.patch
+spi-eeprom-driver-cleanups.patch
+gpio-core.patch
+omap-gpio-wrappers.patch
+at91-gpio-wrappers.patch
