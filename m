@@ -1,107 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - cpu_freq_table-shouldnt-be-a-def_tristate.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:56:05 -0800
-Message-ID: <200702112256.l1BMu5Bv016380@shell0.pdx.osdl.net>
+Subject: - xfs-remove-useless-wmb-memory-barrier.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:56:10 -0800
+Message-ID: <200702112256.l1BMuANV016389@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60824 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60827 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932713AbXBKW7V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:59:21 -0500
+	id S932908AbXBKW72 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:59:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, dgc@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CPU_FREQ_TABLE shouldn't be a def_tristate
+     xfs: remove useless wmb() memory barrier
 has been removed from the -mm tree.  Its filename was
-     cpu_freq_table-shouldnt-be-a-def_tristate.patch
+     xfs-remove-useless-wmb-memory-barrier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CPU_FREQ_TABLE shouldn't be a def_tristate
-From: Adrian Bunk <bunk@stusta.de>
+Subject: xfs: remove useless wmb() memory barrier
+From: Ralf Baechle <ralf@linux-mips.org>
 
-CPU_FREQ_TABLE enables helper code and gets select'ed when it's required.
+wake_up's implementation does an implicit memory barrier and I think that's
+the only sane semantics as the caller shouldn't have to worry.  So this
+write memory barrier is useless.
 
-Building it as a module when it's not required doesn't seem to make much
-sense.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/xfs/linux-2.6/xfs_super.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/cpufreq/Kconfig~cpu_freq_table-shouldnt-be-a-def_tristate drivers/cpufreq/Kconfig
---- a/drivers/cpufreq/Kconfig~cpu_freq_table-shouldnt-be-a-def_tristate
-+++ a/drivers/cpufreq/Kconfig
-@@ -16,7 +16,7 @@ config CPU_FREQ
- if CPU_FREQ
+diff -puN fs/xfs/linux-2.6/xfs_super.c~xfs-remove-useless-wmb-memory-barrier fs/xfs/linux-2.6/xfs_super.c
+--- a/fs/xfs/linux-2.6/xfs_super.c~xfs-remove-useless-wmb-memory-barrier
++++ a/fs/xfs/linux-2.6/xfs_super.c
+@@ -553,7 +553,6 @@ vfs_sync_worker(
+ 		error = bhv_vfs_sync(vfsp, SYNC_FSDATA | SYNC_BDFLUSH | \
+ 					SYNC_ATTR | SYNC_REFCACHE, NULL);
+ 	vfsp->vfs_sync_seq++;
+-	wmb();
+ 	wake_up(&vfsp->vfs_wait_single_sync_task);
+ }
  
- config CPU_FREQ_TABLE
--       def_tristate m
-+       tristate
- 
- config CPU_FREQ_DEBUG
- 	bool "Enable CPUfreq debugging"
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-ifdef-acpi_future_usage-acpi_os_readable.patch
-git-cpufreq.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
+git-mips.patch
 mips-remove-smp_tune_scheduling.patch
-git-mtd.patch
-git-ubi.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-debug-shared-irqs-kconfig-fix.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-remove-the-broken-fb_s3trio-driver.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+fix-pnx8550-serial-breakage.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options.patch
+simplify-the-stacktrace-code.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+clocksource-fixup-is_continous-changes-on-mips.patch
+dynamic-kernel-command-line-common.patch
+dynamic-kernel-command-line-mips.patch
+dynamic-kernel-command-line-parisc.patch
+cyber2010-framebuffer-on-arm-netwinder-fix.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
+sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
+sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
+sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
+sysctl-mips-au1000-remove-sys_sysctl-support.patch
+sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
+sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
+sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
