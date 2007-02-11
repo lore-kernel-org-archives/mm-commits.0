@@ -1,90 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - remove-zone_dma-remains-from-parisc.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:46:42 -0800
-Message-ID: <200702112246.l1BMkgQs015509@shell0.pdx.osdl.net>
+Subject: - simplify-shmem_aopsset_page_dirty-method.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:46:51 -0800
+Message-ID: <200702112246.l1BMkpOn015521@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59569 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59574 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932628AbXBKWq7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:46:59 -0500
+	id S932631AbXBKWrB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:47:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, James.Bottomley@steeleye.com, kyle@mcmartin.ca, willy@debian.org, mm-commits@vger.kernel.org
+To: kenchen@google.com, a.p.zijlstra@chello.nl, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     optional ZONE_DMA: remove ZONE_DMA remains from parisc
+     simplify shmem_aops.set_page_dirty() method
 has been removed from the -mm tree.  Its filename was
-     remove-zone_dma-remains-from-parisc.patch
+     simplify-shmem_aopsset_page_dirty-method.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: optional ZONE_DMA: remove ZONE_DMA remains from parisc
-From: Christoph Lameter <clameter@sgi.com>
+Subject: simplify shmem_aops.set_page_dirty() method
+From: "Ken Chen" <kenchen@google.com>
 
-Remove ZONE_DMA remains from parisc so that kernels are build without
-ZONE_DMA.
+shmem backed file does not have page writeback, nor it participates in
+backing device's dirty or writeback accounting.  So using generic
+__set_page_dirty_nobuffers() for its .set_page_dirty aops method is a bit
+overkill.  It unnecessarily prolongs shm unmap latency.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <willy@debian.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+For example, on a densely populated large shm segment (sevearl GBs), the
+unmapping operation becomes painfully long.  Because at unmap, kernel
+transfers dirty bit in PTE into page struct and to the radix tree tag.  The
+operation of tagging the radix tree is particularly expensive because it
+has to traverse the tree from the root to the leaf node on every dirty
+page.  What's bothering is that radix tree tag is used for page write back.
+ However, shmem is memory backed and there is no page write back for such
+file system.  And in the end, we spend all that time tagging radix tree and
+none of that fancy tagging will be used.  So let's simplify it by introduce
+a new aops __set_page_dirty_no_writeback and this will speed up shm unmap.
+
+Signed-off-by: Ken Chen <kenchen@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/Kconfig   |    3 ---
- arch/parisc/mm/init.c |    4 +---
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ include/linux/mm.h  |    1 +
+ mm/page-writeback.c |   10 ++++++++++
+ mm/shmem.c          |    2 +-
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN arch/parisc/Kconfig~remove-zone_dma-remains-from-parisc arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~remove-zone_dma-remains-from-parisc
-+++ a/arch/parisc/Kconfig
-@@ -50,9 +50,6 @@ config TIME_LOW_RES
- 	depends on SMP
- 	default y
+diff -puN include/linux/mm.h~simplify-shmem_aopsset_page_dirty-method include/linux/mm.h
+--- a/include/linux/mm.h~simplify-shmem_aopsset_page_dirty-method
++++ a/include/linux/mm.h
+@@ -785,6 +785,7 @@ extern int try_to_release_page(struct pa
+ extern void do_invalidatepage(struct page *page, unsigned long offset);
  
--config GENERIC_ISA_DMA
--	bool
--
- config GENERIC_HARDIRQS
- 	def_bool y
+ int __set_page_dirty_nobuffers(struct page *page);
++int __set_page_dirty_no_writeback(struct page *page);
+ int redirty_page_for_writepage(struct writeback_control *wbc,
+ 				struct page *page);
+ int FASTCALL(set_page_dirty(struct page *page));
+diff -puN mm/page-writeback.c~simplify-shmem_aopsset_page_dirty-method mm/page-writeback.c
+--- a/mm/page-writeback.c~simplify-shmem_aopsset_page_dirty-method
++++ a/mm/page-writeback.c
+@@ -737,6 +737,16 @@ int write_one_page(struct page *page, in
+ EXPORT_SYMBOL(write_one_page);
  
-diff -puN arch/parisc/mm/init.c~remove-zone_dma-remains-from-parisc arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~remove-zone_dma-remains-from-parisc
-+++ a/arch/parisc/mm/init.c
-@@ -808,9 +808,7 @@ void __init paging_init(void)
- 	for (i = 0; i < npmem_ranges; i++) {
- 		unsigned long zones_size[MAX_NR_ZONES] = { 0, };
+ /*
++ * For address_spaces which do not use buffers nor write back.
++ */
++int __set_page_dirty_no_writeback(struct page *page)
++{
++	if (!PageDirty(page))
++		SetPageDirty(page);
++	return 0;
++}
++
++/*
+  * For address_spaces which do not use buffers.  Just tag the page as dirty in
+  * its radix tree.
+  *
+diff -puN mm/shmem.c~simplify-shmem_aopsset_page_dirty-method mm/shmem.c
+--- a/mm/shmem.c~simplify-shmem_aopsset_page_dirty-method
++++ a/mm/shmem.c
+@@ -2316,7 +2316,7 @@ static void destroy_inodecache(void)
  
--		/* We have an IOMMU, so all memory can go into a single
--		   ZONE_DMA zone. */
--		zones_size[ZONE_DMA] = pmem_ranges[i].pages;
-+		zones_size[ZONE_NORMAL] = pmem_ranges[i].pages;
- 
- #ifdef CONFIG_DISCONTIGMEM
- 		/* Need to initialize the pfnnid_map before we can initialize
+ static const struct address_space_operations shmem_aops = {
+ 	.writepage	= shmem_writepage,
+-	.set_page_dirty	= __set_page_dirty_nobuffers,
++	.set_page_dirty	= __set_page_dirty_no_writeback,
+ #ifdef CONFIG_TMPFS
+ 	.prepare_write	= shmem_prepare_write,
+ 	.commit_write	= simple_commit_write,
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from kenchen@google.com are
 
 origin.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids-fix.patch
-slab-reduce-size-of-alien-cache-to-cover-only-possible-nodes.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-mm-implement-swap-prefetching-vs-zvc-stuff.patch
-mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
