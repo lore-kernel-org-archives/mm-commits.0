@@ -1,205 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-add-graph-depth-information-to-proc-lockdep.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:50:56 -0800
-Message-ID: <200702112250.l1BMouhc015906@shell0.pdx.osdl.net>
+Subject: - char-mxser_new-remove-useless-spinlock.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:51:25 -0800
+Message-ID: <200702112251.l1BMpPA8015942@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60109 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60116 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932755AbXBKWvZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:51:25 -0500
+	id S932758AbXBKWv1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:51:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbaron@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: add graph depth information to /proc/lockdep
+     Char: mxser_new, remove useless spinlock
 has been removed from the -mm tree.  Its filename was
-     lockdep-add-graph-depth-information-to-proc-lockdep.patch
+     char-mxser_new-remove-useless-spinlock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: add graph depth information to /proc/lockdep
-From: Jason Baron <jbaron@redhat.com>
+Subject: Char: mxser_new, remove useless spinlock
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Generate locking graph information into /proc/lockdep, for lock hierarchy
-documentation and visualization purposes.
+gm_lock is useless, since ISA is configured at init time and there it's
+serialized.
 
-sample output:
-
- c089fd5c OPS:     138 FD:   14 BD:    1 --..: &tty->termios_mutex
-  -> [c07a3430] tty_ldisc_lock
-  -> [c07a37f0] &port_lock_key
-  -> [c07afdc0] &rq->rq_lock_key#2
-
-The lock classes listed are all the first-hop lock dependencies that
-lockdep has seen so far.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |    1 
- kernel/lockdep.c        |   19 +++++++++++------
- kernel/lockdep_proc.c   |   41 ++++++++++++++++++++++++++------------
- 3 files changed, 42 insertions(+), 19 deletions(-)
+ drivers/char/mxser_new.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockdep-add-graph-depth-information-to-proc-lockdep include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-add-graph-depth-information-to-proc-lockdep
-+++ a/include/linux/lockdep.h
-@@ -132,6 +132,7 @@ struct lock_list {
- 	struct list_head		entry;
- 	struct lock_class		*class;
- 	struct stack_trace		trace;
-+	int				distance;
- };
+diff -puN drivers/char/mxser_new.c~char-mxser_new-remove-useless-spinlock drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-remove-useless-spinlock
++++ a/drivers/char/mxser_new.c
+@@ -313,7 +313,6 @@ static int mxvar_diagflag;
+ static unsigned char mxser_msr[MXSER_PORTS + 1];
+ static struct mxser_mon_ext mon_data_ext;
+ static int mxser_set_baud_method[MXSER_PORTS + 1];
+-static spinlock_t gm_lock;
  
- /*
-diff -puN kernel/lockdep.c~lockdep-add-graph-depth-information-to-proc-lockdep kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-add-graph-depth-information-to-proc-lockdep
-+++ a/kernel/lockdep.c
-@@ -490,7 +490,7 @@ static void print_lock_dependencies(stru
-  * Add a new dependency to the head of the list:
-  */
- static int add_lock_to_list(struct lock_class *class, struct lock_class *this,
--			    struct list_head *head, unsigned long ip)
-+			    struct list_head *head, unsigned long ip, int distance)
+ #ifdef CONFIG_PCI
+ static int __devinit CheckIsMoxaMust(int io)
+@@ -1377,7 +1376,6 @@ static int __init mxser_program_mode(int
  {
- 	struct lock_list *entry;
- 	/*
-@@ -502,6 +502,7 @@ static int add_lock_to_list(struct lock_
- 		return 0;
+ 	int id, i, j, n;
  
- 	entry->class = this;
-+	entry->distance = distance;
- 	if (!save_trace(&entry->trace))
- 		return 0;
+-	spin_lock(&gm_lock);
+ 	outb(0, port);
+ 	outb(0, port);
+ 	outb(0, port);
+@@ -1385,7 +1383,6 @@ static int __init mxser_program_mode(int
+ 	(void)inb(port);
+ 	outb(0, port);
+ 	(void)inb(port);
+-	spin_unlock(&gm_lock);
  
-@@ -906,7 +907,7 @@ check_deadlock(struct task_struct *curr,
-  */
- static int
- check_prev_add(struct task_struct *curr, struct held_lock *prev,
--	       struct held_lock *next)
-+	       struct held_lock *next, int distance)
- {
- 	struct lock_list *entry;
- 	int ret;
-@@ -984,8 +985,11 @@ check_prev_add(struct task_struct *curr,
- 	 *  L2 added to its dependency list, due to the first chain.)
- 	 */
- 	list_for_each_entry(entry, &prev->class->locks_after, entry) {
--		if (entry->class == next->class)
-+		if (entry->class == next->class) {
-+			if (distance == 1)
-+				entry->distance = 1;
- 			return 2;
-+		}
- 	}
+ 	id = inb(port + 1) & 0x1F;
+ 	if ((id != C168_ASIC_ID) &&
+@@ -2684,7 +2681,6 @@ static int __init mxser_module_init(void
+ 	mxvar_sdriver = alloc_tty_driver(MXSER_PORTS + 1);
+ 	if (!mxvar_sdriver)
+ 		return -ENOMEM;
+-	spin_lock_init(&gm_lock);
  
- 	/*
-@@ -993,12 +997,13 @@ check_prev_add(struct task_struct *curr,
- 	 * to the previous lock's dependency list:
- 	 */
- 	ret = add_lock_to_list(prev->class, next->class,
--			       &prev->class->locks_after, next->acquire_ip);
-+			       &prev->class->locks_after, next->acquire_ip, distance);
-+
- 	if (!ret)
- 		return 0;
- 
- 	ret = add_lock_to_list(next->class, prev->class,
--			       &next->class->locks_before, next->acquire_ip);
-+			       &next->class->locks_before, next->acquire_ip, distance);
- 	if (!ret)
- 		return 0;
- 
-@@ -1046,13 +1051,14 @@ check_prevs_add(struct task_struct *curr
- 		goto out_bug;
- 
- 	for (;;) {
-+		int distance = curr->lockdep_depth - depth + 1;
- 		hlock = curr->held_locks + depth-1;
- 		/*
- 		 * Only non-recursive-read entries get new dependencies
- 		 * added:
- 		 */
- 		if (hlock->read != 2) {
--			if (!check_prev_add(curr, hlock, next))
-+			if (!check_prev_add(curr, hlock, next, distance))
- 				return 0;
- 			/*
- 			 * Stop after the first non-trylock entry,
-@@ -2779,4 +2785,3 @@ void debug_show_held_locks(struct task_s
- }
- 
- EXPORT_SYMBOL_GPL(debug_show_held_locks);
--
-diff -puN kernel/lockdep_proc.c~lockdep-add-graph-depth-information-to-proc-lockdep kernel/lockdep_proc.c
---- a/kernel/lockdep_proc.c~lockdep-add-graph-depth-information-to-proc-lockdep
-+++ a/kernel/lockdep_proc.c
-@@ -77,12 +77,29 @@ static unsigned long count_backward_deps
- 	return ret;
- }
- 
-+static void print_name(struct seq_file *m, struct lock_class *class)
-+{
-+	char str[128];
-+	const char *name = class->name;
-+
-+	if (!name) {
-+		name = __get_key_name(class->key, str);
-+		seq_printf(m, "%s", name);
-+	} else{
-+		seq_printf(m, "%s", name);
-+		if (class->name_version > 1)
-+			seq_printf(m, "#%d", class->name_version);
-+		if (class->subclass)
-+			seq_printf(m, "/%d", class->subclass);
-+	}
-+}
-+
- static int l_show(struct seq_file *m, void *v)
- {
- 	unsigned long nr_forward_deps, nr_backward_deps;
- 	struct lock_class *class = m->private;
--	char str[128], c1, c2, c3, c4;
--	const char *name;
-+	struct lock_list *entry;
-+	char c1, c2, c3, c4;
- 
- 	seq_printf(m, "%p", class->key);
- #ifdef CONFIG_DEBUG_LOCKDEP
-@@ -97,16 +114,16 @@ static int l_show(struct seq_file *m, vo
- 	get_usage_chars(class, &c1, &c2, &c3, &c4);
- 	seq_printf(m, " %c%c%c%c", c1, c2, c3, c4);
- 
--	name = class->name;
--	if (!name) {
--		name = __get_key_name(class->key, str);
--		seq_printf(m, ": %s", name);
--	} else{
--		seq_printf(m, ": %s", name);
--		if (class->name_version > 1)
--			seq_printf(m, "#%d", class->name_version);
--		if (class->subclass)
--			seq_printf(m, "/%d", class->subclass);
-+	seq_printf(m, ": ");
-+	print_name(m, class);
-+	seq_puts(m, "\n");
-+
-+	list_for_each_entry(entry, &class->locks_after, entry) {
-+		if (entry->distance == 1) {
-+			seq_printf(m, " -> [%p] ", entry->class);
-+			print_name(m, entry->class);
-+			seq_puts(m, "\n");
-+		}
- 	}
- 	seq_puts(m, "\n");
- 
+ 	printk(KERN_INFO "MOXA Smartio/Industio family driver version %s\n",
+ 		MXSER_VERSION);
 _
 
-Patches currently in -mm which might be from jbaron@redhat.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
+char-use-more-pci_device-macro.patch
+char-cyclades-use-pci_device_id.patch
+maintainers-remove-two-dead-e-mail.patch
+char-specialix-isr-have-2-params.patch
+char-timers-cleanup.patch
+fbdev-driver-for-s3-trio-virge-update-2-fix.patch
+video-fb-add-true-ref_count-atomicity.patch
+video-fb-kzalloc-changes.patch
+shrink_slab-handle-bad-shrinkers.patch
