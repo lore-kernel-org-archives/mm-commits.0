@@ -1,59 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - char-amiserial-turn-local_save_flags-local_irq_disable-into-local_irq_save.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:55:45 -0800
-Message-ID: <200702112255.l1BMtjFg016356@shell0.pdx.osdl.net>
+Subject: - buffer-memorder-fix.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:54:45 -0800
+Message-ID: <200702112254.l1BMsjlT016266@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60636 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60670 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932884AbXBKWzt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:55:49 -0500
+	id S932895AbXBKW4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:56:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, mm-commits@vger.kernel.org
+To: npiggin@suse.de, cmm@us.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CHAR-Amiserial: turn local_save_flags() + local_irq_disable() into local_irq_save()
+     buffer: memorder fix
 has been removed from the -mm tree.  Its filename was
-     char-amiserial-turn-local_save_flags-local_irq_disable-into-local_irq_save.patch
+     buffer-memorder-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CHAR-Amiserial: turn local_save_flags() + local_irq_disable() into local_irq_save()
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: buffer: memorder fix
+From: Nick Piggin <npiggin@suse.de>
 
-drivers/char/amiserial.c::rs_write() contains local_irq_disable() after
-local_save_flags().  Turn it into local_irq_save().
+unlock_buffer(), like unlock_page(), must not clear the lock without
+ensuring that the critical section is closed.
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+
+Mingming later sent the same patch, saying:
+
+We are running SDET benchmark and saw double free issue for ext3 extended
+attributes block, which complains the same xattr block already being freed (in
+ext3_xattr_release_block()).  The problem could also been triggered by
+multiple threads loop untar/rm a kernel tree.
+
+The race is caused by missing a memory barrier at unlock_buffer() before the
+lock bit being cleared, resulting in possible concurrent h_refcounter update. 
+That causes a reference counter leak, then later leads to the double free that
+we have seen.
+
+Inside unlock_buffer(), there is a memory barrier is placed *after* the lock
+bit is being cleared, however, there is no memory barrier *before* the bit is
+cleared.  On some arch the h_refcount update instruction and the clear bit
+instruction could be reordered, thus leave the critical section re-entered.
+
+The race is like this: For example, if the h_refcount is initialized as 1,
+
+cpu 0:                                   cpu1
+--------------------------------------   -----------------------------------
+lock_buffer() /* test_and_set_bit */
+clear_buffer_locked(bh);             
+                                        lock_buffer() /* test_and_set_bit */
+h_refcount = h_refcount+1; /* = 2*/     h_refcount = h_refcount + 1; /*= 2 */
+                                        clear_buffer_locked(bh);
+....                                    ......
+
+
+We lost a h_refcount here.  We need a memory barrier before the buffer head
+lock bit being cleared to force the order of the two writes.  Please apply.
+
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/amiserial.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/buffer.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/amiserial.c~char-amiserial-turn-local_save_flags-local_irq_disable-into-local_irq_save drivers/char/amiserial.c
---- a/drivers/char/amiserial.c~char-amiserial-turn-local_save_flags-local_irq_disable-into-local_irq_save
-+++ a/drivers/char/amiserial.c
-@@ -902,8 +902,7 @@ static int rs_write(struct tty_struct * 
- 	if (!info->xmit.buf)
- 		return 0;
+diff -puN fs/buffer.c~buffer-memorder-fix fs/buffer.c
+--- a/fs/buffer.c~buffer-memorder-fix
++++ a/fs/buffer.c
+@@ -78,6 +78,7 @@ EXPORT_SYMBOL(__lock_buffer);
  
--	local_save_flags(flags);
--	local_irq_disable();
-+	local_irq_save(flags);
- 	while (1) {
- 		c = CIRC_SPACE_TO_END(info->xmit.head,
- 				      info->xmit.tail,
+ void fastcall unlock_buffer(struct buffer_head *bh)
+ {
++	smp_mb__before_clear_bit();
+ 	clear_buffer_locked(bh);
+ 	smp_mb__after_clear_bit();
+ 	wake_up_bit(&bh->b_state, BH_Lock);
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-git-alsa.patch
-git-hid.patch
-git-ipwireless_cs.patch
-ds1302-local_irq_disable-is-redundant-after-local_irq_save.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
+git-block.patch
+add-vm_insert_pfn.patch
+mm-vm_insert_pfn-tidy.patch
+mm-mincore-anon.patch
+fs-fix-__block_write_full_page-error-case-buffer-submission.patch
+inotify-read-return-val-fix.patch
+sched-avoid-div-in-rebalance_tick.patch
