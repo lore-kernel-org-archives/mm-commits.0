@@ -1,94 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - arch-m68knommu-user-array_size-macro-when-appropriate.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:47:58 -0800
-Message-ID: <200702112247.l1BMlwEa015584@shell0.pdx.osdl.net>
+Subject: - cris-local_irq_disable-is-redundant-after-local_irq_save.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:48:05 -0800
+Message-ID: <200702112248.l1BMm5CE015596@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59726 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59701 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932657AbXBKWsc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:48:32 -0500
+	id S932670AbXBKWsV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:48:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darwish.07@gmail.com, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: jkosina@suse.cz, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     M68KNOMMU: user ARRAY_SIZE macro when appropriate
+     CRIS: local_irq_disable() is redundant after local_irq_save()
 has been removed from the -mm tree.  Its filename was
-     arch-m68knommu-user-array_size-macro-when-appropriate.patch
+     cris-local_irq_disable-is-redundant-after-local_irq_save.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: M68KNOMMU: user ARRAY_SIZE macro when appropriate
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: CRIS: local_irq_disable() is redundant after local_irq_save()
+From: Jiri Kosina <jkosina@suse.cz>
 
-Use ARRAY_SIZE macro already defined in linux/kernel.h
+arch/cris/arch-v10/kernel/time.c::get_ns_in_jiffie() contains
+local_irq_disable() call after local_irq_save().  This looks redundant.
 
-Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+arch/cris/kernel/time.c::do_gettimeofday() contains local_irq_disable() call
+after local_irq_save().  This looks redundant.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/kernel/ptrace.c |    4 ++--
- arch/m68knommu/kernel/traps.c  |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/cris/arch-v10/kernel/time.c |    1 -
+ arch/cris/kernel/time.c          |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN arch/m68knommu/kernel/ptrace.c~arch-m68knommu-user-array_size-macro-when-appropriate arch/m68knommu/kernel/ptrace.c
---- a/arch/m68knommu/kernel/ptrace.c~arch-m68knommu-user-array_size-macro-when-appropriate
-+++ a/arch/m68knommu/kernel/ptrace.c
-@@ -62,7 +62,7 @@ static inline long get_reg(struct task_s
+diff -puN arch/cris/arch-v10/kernel/time.c~cris-local_irq_disable-is-redundant-after-local_irq_save arch/cris/arch-v10/kernel/time.c
+--- a/arch/cris/arch-v10/kernel/time.c~cris-local_irq_disable-is-redundant-after-local_irq_save
++++ a/arch/cris/arch-v10/kernel/time.c
+@@ -38,7 +38,6 @@ unsigned long get_ns_in_jiffie(void)
+ 	unsigned long flags;
  
- 	if (regno == PT_USP)
- 		addr = &task->thread.usp;
--	else if (regno < sizeof(regoff)/sizeof(regoff[0]))
-+	else if (regno < ARRAY_SIZE(regoff))
- 		addr = (unsigned long *)(task->thread.esp0 + regoff[regno]);
- 	else
- 		return 0;
-@@ -79,7 +79,7 @@ static inline int put_reg(struct task_st
+ 	local_irq_save(flags);
+-	local_irq_disable();
+ 	timer_count = *R_TIMER0_DATA;
+ 	presc_count = *R_TIM_PRESC_STATUS;  
+ 	/* presc_count might be wrapped */
+diff -puN arch/cris/kernel/time.c~cris-local_irq_disable-is-redundant-after-local_irq_save arch/cris/kernel/time.c
+--- a/arch/cris/kernel/time.c~cris-local_irq_disable-is-redundant-after-local_irq_save
++++ a/arch/cris/kernel/time.c
+@@ -55,7 +55,6 @@ void do_gettimeofday(struct timeval *tv)
+ 	unsigned long flags;
+ 	signed long usec, sec;
+ 	local_irq_save(flags);
+-	local_irq_disable();
+ 	usec = do_gettimeoffset();
  
- 	if (regno == PT_USP)
- 		addr = &task->thread.usp;
--	else if (regno < sizeof(regoff)/sizeof(regoff[0]))
-+	else if (regno < ARRAY_SIZE(regoff))
- 		addr = (unsigned long *) (task->thread.esp0 + regoff[regno]);
- 	else
- 		return -1;
-diff -puN arch/m68knommu/kernel/traps.c~arch-m68knommu-user-array_size-macro-when-appropriate arch/m68knommu/kernel/traps.c
---- a/arch/m68knommu/kernel/traps.c~arch-m68knommu-user-array_size-macro-when-appropriate
-+++ a/arch/m68knommu/kernel/traps.c
-@@ -158,7 +158,7 @@ void show_stack(struct task_struct *task
- void bad_super_trap(struct frame *fp)
- {
- 	console_verbose();
--	if (fp->ptregs.vector < 4*sizeof(vec_names)/sizeof(vec_names[0]))
-+	if (fp->ptregs.vector < 4 * ARRAY_SIZE(vec_names))
- 		printk (KERN_WARNING "*** %s ***   FORMAT=%X\n",
- 			vec_names[(fp->ptregs.vector) >> 2],
- 			fp->ptregs.format);
+         /*
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 origin.patch
-git-acpi.patch
-git-agpgart.patch
-arch-arm-use-array_size-macro-when-appropriate.patch
-git-avr32.patch
-git-drm.patch
-git-dvb.patch
-git-infiniband.patch
-git-mips.patch
-atm-use-array_size-macro-when-appropriate.patch
-s390-kmalloc-kzalloc-casting-cleanups.patch
-s390-drivers-use-array_size-macro-when-appropriate.patch
-w1-use-array_size-macro-when-appropriate.patch
-oss-use-array_size-macro-when-appropriate.patch
-oss-use-array_size-macro-when-appropriate-2.patch
-reiserfs-use-array_size-macro-when-appropriate.patch
-isdn-capi-use-array_size-when-appropriate.patch
-isdn-eicon-use-array_size-macro-when-appropriate.patch
-rcutorture-use-array_size-macro-when-appropriate.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
+git-alsa.patch
+git-hid.patch
+git-ipwireless_cs.patch
+ds1302-local_irq_disable-is-redundant-after-local_irq_save.patch
+sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
