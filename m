@@ -1,97 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:52:59 -0800
-Message-ID: <200702112252.l1BMqxbo016070@shell0.pdx.osdl.net>
+Subject: - ioc3-ioc4-pci-mem-space-resources.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:50:22 -0800
+Message-ID: <200702112250.l1BMoMOR015852@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60355 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60384 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932803AbXBKWx1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:53:27 -0500
+	id S932818AbXBKWxm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:53:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, linux-arch@vger.kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: bcasavan@sgi.com, pfg@sgi.com, ralf@linux-mips.org, skylark@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use cycle_t instead of u64 in struct time_interpolator
+     IOC3/IOC4: PCI mem space resources
 has been removed from the -mm tree.  Its filename was
-     use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
+     ioc3-ioc4-pci-mem-space-resources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use cycle_t instead of u64 in struct time_interpolator
-From: Helge Deller <deller@gmx.de>
+Subject: IOC3/IOC4: PCI mem space resources
+From: Brent Casavant <bcasavan@sgi.com>
 
-The 32bit and 64bit PARISC Linux kernels suffers from the problem, that the
-gettimeofday() call sometimes returns non-monotonic times.
+The SGI IOC3 and IOC4 PCI devices implement memory space apertures, not I/O
+space apertures.  Use the appropriate region management functions.
 
-The easiest way to fix this, is to drop the PARISC-specific implementation
-and switch over to the generic TIME_INTERPOLATION framework.
-
-But in order to make it even compile on 32bit PARISC, the patch below which
-touches the generic Linux code, is mandatory.
-
-More information and the full patch with the parisc-specific changes is included in this thread: http://lists.parisc-linux.org/pipermail/parisc-linux/2006-December/031003.html
-
-As far as I could see, this patch does not change anything for the existing
-architectures which use this framework (IA64 and SPARC64), since "cycles_t"
-is defined there as unsigned 64bit-integer anyway (which then makes this
-patch a no-change for them).
-
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Brent Casavant <bcasavan@sgi.com>
+Cc: Pat Gefre <pfg@sgi.com>
+Cc: Stanislaw Skowronek <skylark@linux-mips.org>
+Cc: Brent Casavant <bcasavan@sgi.com>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timex.h |    4 ++--
- kernel/timer.c        |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/misc/ioc4.c          |    6 +++---
+ drivers/serial/ioc4_serial.c |    6 +++---
+ drivers/sn/ioc3.c            |    6 +++---
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/timex.h~use-cycle_t-instead-of-u64-in-struct-time_interpolator include/linux/timex.h
---- a/include/linux/timex.h~use-cycle_t-instead-of-u64-in-struct-time_interpolator
-+++ a/include/linux/timex.h
-@@ -255,10 +255,10 @@ struct time_interpolator {
- 	u8 jitter;			/* if set compensate for fluctuations */
- 	u32 nsec_per_cyc;		/* set by register_time_interpolator() */
- 	void *addr;			/* address of counter or function */
--	u64 mask;			/* mask the valid bits of the counter */
-+	cycles_t mask;			/* mask the valid bits of the counter */
- 	unsigned long offset;		/* nsec offset at last update of interpolator */
- 	u64 last_counter;		/* counter value in units of the counter at last update */
--	u64 last_cycle;			/* Last timer value if TIME_SOURCE_JITTER is set */
-+	cycles_t last_cycle;		/* Last timer value if TIME_SOURCE_JITTER is set */
- 	u64 frequency;			/* frequency in counts/second */
- 	long drift;			/* drift in parts-per-million (or -1) */
- 	unsigned long skips;		/* skips forward */
-diff -puN kernel/timer.c~use-cycle_t-instead-of-u64-in-struct-time_interpolator kernel/timer.c
---- a/kernel/timer.c~use-cycle_t-instead-of-u64-in-struct-time_interpolator
-+++ a/kernel/timer.c
-@@ -1624,7 +1624,7 @@ struct time_interpolator *time_interpola
- static struct time_interpolator *time_interpolator_list __read_mostly;
- static DEFINE_SPINLOCK(time_interpolator_lock);
+diff -puN drivers/misc/ioc4.c~ioc3-ioc4-pci-mem-space-resources drivers/misc/ioc4.c
+--- a/drivers/misc/ioc4.c~ioc3-ioc4-pci-mem-space-resources
++++ a/drivers/misc/ioc4.c
+@@ -309,7 +309,7 @@ ioc4_probe(struct pci_dev *pdev, const s
+ 		ret = -ENODEV;
+ 		goto out_pci;
+ 	}
+-	if (!request_region(idd->idd_bar0, sizeof(struct ioc4_misc_regs),
++	if (!request_mem_region(idd->idd_bar0, sizeof(struct ioc4_misc_regs),
+ 			    "ioc4_misc")) {
+ 		printk(KERN_WARNING
+ 		       "%s: Unable to request IOC4 misc region "
+@@ -379,7 +379,7 @@ ioc4_probe(struct pci_dev *pdev, const s
+ 	return 0;
  
--static inline u64 time_interpolator_get_cycles(unsigned int src)
-+static inline cycles_t time_interpolator_get_cycles(unsigned int src)
- {
- 	unsigned long (*x)(void);
+ out_misc_region:
+-	release_region(idd->idd_bar0, sizeof(struct ioc4_misc_regs));
++	release_mem_region(idd->idd_bar0, sizeof(struct ioc4_misc_regs));
+ out_pci:
+ 	kfree(idd);
+ out_idd:
+@@ -418,7 +418,7 @@ ioc4_remove(struct pci_dev *pdev)
+ 		       "Device removal may be incomplete.\n",
+ 		       __FUNCTION__, pci_name(idd->idd_pdev));
+ 	}
+-	release_region(idd->idd_bar0, sizeof(struct ioc4_misc_regs));
++	release_mem_region(idd->idd_bar0, sizeof(struct ioc4_misc_regs));
  
-@@ -1650,8 +1650,8 @@ static inline u64 time_interpolator_get_
+ 	/* Disable IOC4 and relinquish */
+ 	pci_disable_device(pdev);
+diff -puN drivers/serial/ioc4_serial.c~ioc3-ioc4-pci-mem-space-resources drivers/serial/ioc4_serial.c
+--- a/drivers/serial/ioc4_serial.c~ioc3-ioc4-pci-mem-space-resources
++++ a/drivers/serial/ioc4_serial.c
+@@ -2685,7 +2685,7 @@ static int ioc4_serial_remove_one(struct
+ 		free_irq(control->ic_irq, soft);
+ 		if (soft->is_ioc4_serial_addr) {
+ 			iounmap(soft->is_ioc4_serial_addr);
+-			release_region((unsigned long)
++			release_mem_region((unsigned long)
+ 			     soft->is_ioc4_serial_addr,
+ 				sizeof(struct ioc4_serial));
+ 		}
+@@ -2790,7 +2790,7 @@ ioc4_serial_attach_one(struct ioc4_drive
+ 	/* request serial registers */
+ 	tmp_addr1 = idd->idd_bar0 + IOC4_SERIAL_OFFSET;
  
- 	if (time_interpolator->jitter)
- 	{
--		u64 lcycle;
--		u64 now;
-+		cycles_t lcycle;
-+		cycles_t now;
+-	if (!request_region(tmp_addr1, sizeof(struct ioc4_serial),
++	if (!request_mem_region(tmp_addr1, sizeof(struct ioc4_serial),
+ 					"sioc4_uart")) {
+ 		printk(KERN_WARNING
+ 			"ioc4 (%p): unable to get request region for "
+@@ -2889,7 +2889,7 @@ out3:
+ out2:
+ 	if (serial)
+ 		iounmap(serial);
+-	release_region(tmp_addr1, sizeof(struct ioc4_serial));
++	release_mem_region(tmp_addr1, sizeof(struct ioc4_serial));
+ out1:
  
- 		do {
- 			lcycle = time_interpolator->last_cycle;
+ 	return ret;
+diff -puN drivers/sn/ioc3.c~ioc3-ioc4-pci-mem-space-resources drivers/sn/ioc3.c
+--- a/drivers/sn/ioc3.c~ioc3-ioc4-pci-mem-space-resources
++++ a/drivers/sn/ioc3.c
+@@ -654,7 +654,7 @@ static int ioc3_probe(struct pci_dev *pd
+ 		ret = -ENODEV;
+ 		goto out_pci;
+ 	}
+-	if (!request_region(idd->pma, IOC3_PCI_SIZE, "ioc3")) {
++	if (!request_mem_region(idd->pma, IOC3_PCI_SIZE, "ioc3")) {
+ 		printk(KERN_WARNING
+ 		       "%s: Unable to request IOC3 region "
+ 		       "for pci_dev %s.\n",
+@@ -744,7 +744,7 @@ static int ioc3_probe(struct pci_dev *pd
+ 	return 0;
+ 
+ out_misc_region:
+-	release_region(idd->pma, IOC3_PCI_SIZE);
++	release_mem_region(idd->pma, IOC3_PCI_SIZE);
+ out_pci:
+ 	kfree(idd);
+ out_idd:
+@@ -785,7 +785,7 @@ static void ioc3_remove(struct pci_dev *
+ 	if(idd->dual_irq)
+ 		free_irq(idd->irq_eth, (void *)idd);
+ 	iounmap(idd->vma);
+-	release_region(idd->pma, IOC3_PCI_SIZE);
++	release_mem_region(idd->pma, IOC3_PCI_SIZE);
+ 
+ 	/* Disable IOC3 and relinquish */
+ 	pci_disable_device(pdev);
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from bcasavan@sgi.com are
 
 origin.patch
