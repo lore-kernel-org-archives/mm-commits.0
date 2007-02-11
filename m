@@ -1,132 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - remove-zone_dma-remains-from-sh-sh64.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:46:44 -0800
-Message-ID: <200702112246.l1BMkiL5015512@shell0.pdx.osdl.net>
+Subject: - zoneid-fix-up-calculations-for-zoneid_pgshift.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:46:49 -0800
+Message-ID: <200702112246.l1BMknxC015518@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59537 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59551 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932624AbXBKWqs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:46:48 -0500
+	id S932625AbXBKWqx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:46:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: apw@shadowen.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     optional ZONE_DMA: remove ZONE_DMA remains from sh/sh64
+     zoneid: fix up calculations for ZONEID_PGSHIFT
 has been removed from the -mm tree.  Its filename was
-     remove-zone_dma-remains-from-sh-sh64.patch
+     zoneid-fix-up-calculations-for-zoneid_pgshift.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: optional ZONE_DMA: remove ZONE_DMA remains from sh/sh64
-From: Christoph Lameter <clameter@sgi.com>
+Subject: zoneid: fix up calculations for ZONEID_PGSHIFT
+From: Andy Whitcroft <apw@shadowen.org>
 
-sh / sh64: Remove ZONE_DMA remains.
+Currently if we have a non-zero ZONES_SHIFT we assume we are able to rely
+on that as the bottom edge of the ZONEID, if not then we use the
+NODES_PGOFF as the right end of either NODES _or_ SECTION.  This latter is
+more luck than judgement and would be incorrect if we reordered the
+SECTION,NODE,ZONE options in the fields space.
 
-Both arches do not need ZONE_DMA
+Really what we want is the lower of the right hand end of the two fields we
+are using (either NODE,ZONE or SECTION,ZONE).  Codify that explicitly.  As
+always allow for there being no bits in either of the fields, such as might
+be valid in a non-numa machine with only a zone NORMAL.
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+I have checked that the compiler is still able to constant fold all of this
+away correctly.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/init.c   |   17 +----------------
- arch/sh64/Kconfig   |    3 ---
- arch/sh64/mm/init.c |    5 +----
- 3 files changed, 2 insertions(+), 23 deletions(-)
+ include/linux/mm.h |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN arch/sh/mm/init.c~remove-zone_dma-remains-from-sh-sh64 arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~remove-zone_dma-remains-from-sh-sh64
-+++ a/arch/sh/mm/init.c
-@@ -158,7 +158,6 @@ void __init paging_init(void)
- 	 * Setup some defaults for the zone sizes.. these should be safe
- 	 * regardless of distcontiguous memory or MMU settings.
- 	 */
--	zones_size[ZONE_DMA] = 0 >> PAGE_SHIFT;
- 	zones_size[ZONE_NORMAL] = __MEMORY_SIZE >> PAGE_SHIFT;
- #ifdef CONFIG_HIGHMEM
- 	zones_size[ZONE_HIGHMEM] = 0 >> PAGE_SHIFT;
-@@ -170,8 +169,6 @@ void __init paging_init(void)
- 	 * the zone sizes accordingly, in addition to turning it on.
- 	 */
- 	{
--		unsigned long max_dma, low, start_pfn;
--
- 		/* We don't need to map the kernel through the TLB, as
- 		 * it is permanatly mapped using P1. So clear the
- 		 * entire pgd. */
-@@ -179,19 +176,7 @@ void __init paging_init(void)
+diff -puN include/linux/mm.h~zoneid-fix-up-calculations-for-zoneid_pgshift include/linux/mm.h
+--- a/include/linux/mm.h~zoneid-fix-up-calculations-for-zoneid_pgshift
++++ a/include/linux/mm.h
+@@ -437,15 +437,15 @@ static inline compound_page_dtor *get_co
+ /* NODE:ZONE or SECTION:ZONE is used to ID a zone for the buddy allcator */
+ #ifdef NODE_NOT_IN_PAGEFLAGS
+ #define ZONEID_SHIFT		(SECTIONS_SHIFT + ZONES_SHIFT)
++#define ZONEID_PGOFF		((SECTIONS_PGOFF < ZONES_PGOFF)? \
++						SECTIONS_PGOFF : ZONES_PGOFF)
+ #else
+ #define ZONEID_SHIFT		(NODES_SHIFT + ZONES_SHIFT)
++#define ZONEID_PGOFF		((NODES_PGOFF < ZONES_PGOFF)? \
++						NODES_PGOFF : ZONES_PGOFF)
+ #endif
  
- 		/* Turn on the MMU */
- 		enable_mmu();
--
--		/* Fixup the zone sizes */
--		start_pfn = START_PFN;
--		max_dma = virt_to_phys((char *)MAX_DMA_ADDRESS) >> PAGE_SHIFT;
--		low = MAX_LOW_PFN;
--
--		if (low < max_dma) {
--			zones_size[ZONE_DMA] = low - start_pfn;
--			zones_size[ZONE_NORMAL] = 0;
--		} else {
--			zones_size[ZONE_DMA] = max_dma - start_pfn;
--			zones_size[ZONE_NORMAL] = low - max_dma;
--		}
-+		zones_size[ZONE_NORMAL] = MAX_LOW_PFN - START_PFN;
- 	}
+-#if ZONES_WIDTH > 0
+-#define ZONEID_PGSHIFT		ZONES_PGSHIFT
+-#else
+-#define ZONEID_PGSHIFT		NODES_PGOFF
+-#endif
++#define ZONEID_PGSHIFT		(ZONEID_PGOFF * (ZONEID_SHIFT != 0))
  
- 	/* Set an initial value for the MMU.TTB so we don't have to
-diff -puN arch/sh64/Kconfig~remove-zone_dma-remains-from-sh-sh64 arch/sh64/Kconfig
---- a/arch/sh64/Kconfig~remove-zone_dma-remains-from-sh-sh64
-+++ a/arch/sh64/Kconfig
-@@ -36,9 +36,6 @@ config GENERIC_CALIBRATE_DELAY
- config RWSEM_XCHGADD_ALGORITHM
- 	bool
- 
--config GENERIC_ISA_DMA
--	bool
--
- config ARCH_HAS_ILOG2_U32
- 	bool
- 	default n
-diff -puN arch/sh64/mm/init.c~remove-zone_dma-remains-from-sh-sh64 arch/sh64/mm/init.c
---- a/arch/sh64/mm/init.c~remove-zone_dma-remains-from-sh-sh64
-+++ a/arch/sh64/mm/init.c
-@@ -118,10 +118,7 @@ void __init paging_init(void)
- 
- 	mmu_context_cache = MMU_CONTEXT_FIRST_VERSION;
- 
--        /*
--	 * All memory is good as ZONE_NORMAL (fall-through) and ZONE_DMA.
--         */
--	zones_size[ZONE_DMA] = MAX_LOW_PFN - START_PFN;
-+	zones_size[ZONE_NORMAL] = MAX_LOW_PFN - START_PFN;
- 	NODE_DATA(0)->node_mem_map = NULL;
- 	free_area_init_node(0, NODE_DATA(0), zones_size, __MEMORY_START >> PAGE_SHIFT, 0);
+ #if SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > FLAGS_RESERVED
+ #error SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > FLAGS_RESERVED
+@@ -471,7 +471,6 @@ static inline enum zone_type page_zonenu
+  */
+ static inline int page_zone_id(struct page *page)
+ {
+-	BUILD_BUG_ON(ZONEID_PGSHIFT == 0 && ZONEID_MASK);
+ 	return (page->flags >> ZONEID_PGSHIFT) & ZONEID_MASK;
  }
+ 
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids-fix.patch
-slab-reduce-size-of-alien-cache-to-cover-only-possible-nodes.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-mm-implement-swap-prefetching-vs-zvc-stuff.patch
-mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+lumpy-reclaim-v2.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
