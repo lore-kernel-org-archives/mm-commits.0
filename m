@@ -1,72 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - remove-the-last-reference-to-rwlock_is_locked-macro.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:54:29 -0800
-Message-ID: <200702112254.l1BMsTW2016235@shell0.pdx.osdl.net>
+Subject: - ext-jbd-layer-function-called-instead-of-fs-specific-one.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:55:18 -0800
+Message-ID: <200702112255.l1BMtIvW016308@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60508 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60584 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932888AbXBKWyi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:54:38 -0500
+	id S932858AbXBKWzU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:55:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: dmonakhov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove the last reference to rwlock_is_locked() macro.
+     jbd layer function called instead of fs specific one
 has been removed from the -mm tree.  Its filename was
-     remove-the-last-reference-to-rwlock_is_locked-macro.patch
+     ext-jbd-layer-function-called-instead-of-fs-specific-one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove the last reference to rwlock_is_locked() macro.
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: jbd layer function called instead of fs specific one
+From: Dmitriy Monakhov <dmonakhov@openvz.org>
 
-Remove the lone, remaining reference to the long-deceased
-rwlock_is_locked() macro.
+jbd function called instead of fs specific one.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Dmitriy Monakhov <dmonakhov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/spinlock.h |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ext3/inode.c |    4 ++--
+ fs/ext4/inode.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-arm/spinlock.h~remove-the-last-reference-to-rwlock_is_locked-macro include/asm-arm/spinlock.h
---- a/include/asm-arm/spinlock.h~remove-the-last-reference-to-rwlock_is_locked-macro
-+++ a/include/asm-arm/spinlock.h
-@@ -85,7 +85,6 @@ static inline void __raw_spin_unlock(raw
-  * Write locks are easy - we just set bit 31.  When unlocking, we can
-  * just write zero since the lock is exclusively held.
-  */
--#define rwlock_is_locked(x)	(*((volatile unsigned int *)(x)) != 0)
- 
- static inline void __raw_write_lock(raw_rwlock_t *rw)
+diff -puN fs/ext3/inode.c~ext-jbd-layer-function-called-instead-of-fs-specific-one fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext-jbd-layer-function-called-instead-of-fs-specific-one
++++ a/fs/ext3/inode.c
+@@ -947,7 +947,7 @@ out:
+ static int ext3_get_block(struct inode *inode, sector_t iblock,
+ 			struct buffer_head *bh_result, int create)
  {
+-	handle_t *handle = journal_current_handle();
++	handle_t *handle = ext3_journal_current_handle();
+ 	int ret = 0;
+ 	unsigned max_blocks = bh_result->b_size >> inode->i_blkbits;
+ 
+@@ -1717,7 +1717,7 @@ static ssize_t ext3_direct_IO(int rw, st
+ 	/*
+ 	 * Reacquire the handle: ext3_get_block() can restart the transaction
+ 	 */
+-	handle = journal_current_handle();
++	handle = ext3_journal_current_handle();
+ 
+ out_stop:
+ 	if (handle) {
+diff -puN fs/ext4/inode.c~ext-jbd-layer-function-called-instead-of-fs-specific-one fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext-jbd-layer-function-called-instead-of-fs-specific-one
++++ a/fs/ext4/inode.c
+@@ -946,7 +946,7 @@ out:
+ static int ext4_get_block(struct inode *inode, sector_t iblock,
+ 			struct buffer_head *bh_result, int create)
+ {
+-	handle_t *handle = journal_current_handle();
++	handle_t *handle = ext4_journal_current_handle();
+ 	int ret = 0;
+ 	unsigned max_blocks = bh_result->b_size >> inode->i_blkbits;
+ 
+@@ -1716,7 +1716,7 @@ static ssize_t ext4_direct_IO(int rw, st
+ 	/*
+ 	 * Reacquire the handle: ext4_get_block() can restart the transaction
+ 	 */
+-	handle = journal_current_handle();
++	handle = ext4_journal_current_handle();
+ 
+ out_stop:
+ 	if (handle) {
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
 origin.patch
-git-avr32.patch
-git-dvb.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
-git-mips.patch
-git-netdev-all.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
-quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
-isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
-isdn-rename-some-debugging-macros-to-not-resemble-config.patch
-isdn-rename-debug-option-config_serial_nopause_io.patch
-isdn-remove-defunct-test-emulator.patch
-isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
-correct-apparent-typo-config_aty_ct-in-aty-video.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
