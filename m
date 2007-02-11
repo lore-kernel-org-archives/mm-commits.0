@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - uml-audio-driver-formatting.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:48:33 -0800
-Message-ID: <200702112248.l1BMmXIU015638@shell0.pdx.osdl.net>
+Subject: - uml-watchdog-driver-formatting.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:48:29 -0800
+Message-ID: <200702112248.l1BMmTPi015632@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59736 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59725 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932671AbXBKWsg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:48:36 -0500
+	id S932634AbXBKWsc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:48:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: audio driver formatting
+     uml: watchdog driver formatting
 has been removed from the -mm tree.  Its filename was
-     uml-audio-driver-formatting.patch
+     uml-watchdog-driver-formatting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: audio driver formatting
+Subject: uml: watchdog driver formatting
 From: Jeff Dike <jdike@addtoit.com>
 
 Whitespace and style fixes.
@@ -31,311 +31,150 @@ Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/hostaudio_kern.c |  160 +++++++++++++----------------
- 1 file changed, 73 insertions(+), 87 deletions(-)
+ arch/um/drivers/harddog_kern.c |   33 ++++++++++---------------------
+ arch/um/drivers/harddog_user.c |   23 +++++----------------
+ 2 files changed, 17 insertions(+), 39 deletions(-)
 
-diff -puN arch/um/drivers/hostaudio_kern.c~uml-audio-driver-formatting arch/um/drivers/hostaudio_kern.c
---- a/arch/um/drivers/hostaudio_kern.c~uml-audio-driver-formatting
-+++ a/arch/um/drivers/hostaudio_kern.c
-@@ -15,11 +15,11 @@
- #include "os.h"
+diff -puN arch/um/drivers/harddog_kern.c~uml-watchdog-driver-formatting arch/um/drivers/harddog_kern.c
+--- a/arch/um/drivers/harddog_kern.c~uml-watchdog-driver-formatting
++++ a/arch/um/drivers/harddog_kern.c
+@@ -9,10 +9,10 @@
+  *	modify it under the terms of the GNU General Public License
+  *	as published by the Free Software Foundation; either version
+  *	2 of the License, or (at your option) any later version.
+- *	
+- *	Neither Alan Cox nor CymruNet Ltd. admit liability nor provide 
+- *	warranty for any of this software. This material is provided 
+- *	"AS-IS" and at no charge.	
++ *
++ *	Neither Alan Cox nor CymruNet Ltd. admit liability nor provide
++ *	warranty for any of this software. This material is provided
++ *	"AS-IS" and at no charge.
+  *
+  *	(c) Copyright 1995    Alan Cox <alan@lxorguk.ukuu.org.uk>
+  *
+@@ -29,11 +29,11 @@
+  *	Made SMP safe for 2.3.x
+  *
+  *  20011127 Joel Becker (jlbec@evilplan.org>
+- *	Added soft_noboot; Allows testing the softdog trigger without 
++ *	Added soft_noboot; Allows testing the softdog trigger without
+  *	requiring a recompile.
+  *	Added WDIOC_GETTIMEOUT and WDIOC_SETTIMOUT.
+  */
+- 
++
+ #include <linux/module.h>
+ #include <linux/types.h>
+ #include <linux/kernel.h>
+@@ -58,7 +58,7 @@ static int harddog_out_fd = -1;
+ /*
+  *	Allow only one person to hold it open
+  */
+- 
++
+ extern int start_watchdog(int *in_fd_ret, int *out_fd_ret, char *sock);
  
- struct hostaudio_state {
--  int fd;
-+	int fd;
- };
- 
- struct hostmixer_state {
--  int fd;
-+	int fd;
- };
- 
- #define HOSTAUDIO_DEV_DSP "/dev/sound/dsp"
-@@ -72,12 +72,12 @@ MODULE_PARM_DESC(mixer, MIXER_HELP);
- static ssize_t hostaudio_read(struct file *file, char __user *buffer,
- 			      size_t count, loff_t *ppos)
- {
--        struct hostaudio_state *state = file->private_data;
-+	struct hostaudio_state *state = file->private_data;
- 	void *kbuf;
- 	int err;
- 
- #ifdef DEBUG
--        printk("hostaudio: read called, count = %d\n", count);
-+	printk("hostaudio: read called, count = %d\n", count);
+ static int harddog_open(struct inode *inode, struct file *file)
+@@ -69,7 +69,7 @@ static int harddog_open(struct inode *in
+ 	spin_lock(&lock);
+ 	if(timer_alive)
+ 		goto err;
+-#ifdef CONFIG_HARDDOG_NOWAYOUT	 
++#ifdef CONFIG_HARDDOG_NOWAYOUT
+ 	__module_get(THIS_MODULE);
  #endif
  
- 	kbuf = kmalloc(count, GFP_KERNEL);
-@@ -91,7 +91,7 @@ static ssize_t hostaudio_read(struct fil
- 	if(copy_to_user(buffer, kbuf, err))
- 		err = -EFAULT;
- 
-- out:
-+out:
- 	kfree(kbuf);
- 	return(err);
- }
-@@ -99,12 +99,12 @@ static ssize_t hostaudio_read(struct fil
- static ssize_t hostaudio_write(struct file *file, const char __user *buffer,
- 			       size_t count, loff_t *ppos)
- {
--        struct hostaudio_state *state = file->private_data;
-+	struct hostaudio_state *state = file->private_data;
- 	void *kbuf;
- 	int err;
- 
- #ifdef DEBUG
--        printk("hostaudio: write called, count = %d\n", count);
-+	printk("hostaudio: write called, count = %d\n", count);
- #endif
- 
- 	kbuf = kmalloc(count, GFP_KERNEL);
-@@ -128,24 +128,24 @@ static ssize_t hostaudio_write(struct fi
- static unsigned int hostaudio_poll(struct file *file, 
- 				   struct poll_table_struct *wait)
- {
--        unsigned int mask = 0;
-+	unsigned int mask = 0;
- 
- #ifdef DEBUG
--        printk("hostaudio: poll called (unimplemented)\n");
-+	printk("hostaudio: poll called (unimplemented)\n");
- #endif
- 
--        return(mask);
-+	return(mask);
+@@ -117,7 +117,7 @@ static ssize_t harddog_write(struct file
+ 	 *	Refresh the timer.
+ 	 */
+ 	if(len)
+-		return(ping_watchdog(harddog_out_fd));
++		return ping_watchdog(harddog_out_fd);
+ 	return 0;
  }
  
- static int hostaudio_ioctl(struct inode *inode, struct file *file, 
- 			   unsigned int cmd, unsigned long arg)
- {
--        struct hostaudio_state *state = file->private_data;
-+	struct hostaudio_state *state = file->private_data;
- 	unsigned long data = 0;
- 	int err;
- 
- #ifdef DEBUG
--        printk("hostaudio: ioctl called, cmd = %u\n", cmd);
-+	printk("hostaudio: ioctl called, cmd = %u\n", cmd);
- #endif
- 	switch(cmd){
- 	case SNDCTL_DSP_SPEED:
-@@ -182,42 +182,40 @@ static int hostaudio_ioctl(struct inode 
- 
- static int hostaudio_open(struct inode *inode, struct file *file)
- {
--        struct hostaudio_state *state;
--        int r = 0, w = 0;
--        int ret;
-+	struct hostaudio_state *state;
-+	int r = 0, w = 0;
-+	int ret;
- 
- #ifdef DEBUG
--        printk("hostaudio: open called (host: %s)\n", dsp);
-+	printk("hostaudio: open called (host: %s)\n", dsp);
- #endif
- 
--        state = kmalloc(sizeof(struct hostaudio_state), GFP_KERNEL);
--        if(state == NULL)
-+	state = kmalloc(sizeof(struct hostaudio_state), GFP_KERNEL);
-+	if(state == NULL)
- 		return(-ENOMEM);
- 
--        if(file->f_mode & FMODE_READ) r = 1;
--        if(file->f_mode & FMODE_WRITE) w = 1;
-+	if(file->f_mode & FMODE_READ) r = 1;
-+	if(file->f_mode & FMODE_WRITE) w = 1;
- 
- 	ret = os_open_file(dsp, of_set_rw(OPENFLAGS(), r, w), 0);
--        if(ret < 0){
-+	if(ret < 0){
- 		kfree(state);
- 		return(ret);
--        }
--
-+	}
- 	state->fd = ret;
--        file->private_data = state;
--        return(0);
-+	file->private_data = state;
-+	return(0);
+@@ -141,7 +141,7 @@ static int harddog_ioctl(struct inode *i
+ 		case WDIOC_GETBOOTSTATUS:
+ 			return put_user(0,(int __user *)argp);
+ 		case WDIOC_KEEPALIVE:
+-			return(ping_watchdog(harddog_out_fd));
++			return ping_watchdog(harddog_out_fd);
+ 	}
  }
  
- static int hostaudio_release(struct inode *inode, struct file *file)
- {
--        struct hostaudio_state *state = file->private_data;
-+	struct hostaudio_state *state = file->private_data;
+@@ -172,7 +172,7 @@ static int __init harddog_init(void)
  
- #ifdef DEBUG
--        printk("hostaudio: release called\n");
-+	printk("hostaudio: release called\n");
- #endif
--
--		os_close_file(state->fd);
--        kfree(state);
-+	os_close_file(state->fd);
-+	kfree(state);
+ 	printk(banner);
  
- 	return(0);
- }
-@@ -227,10 +225,10 @@ static int hostaudio_release(struct inod
- static int hostmixer_ioctl_mixdev(struct inode *inode, struct file *file, 
- 				  unsigned int cmd, unsigned long arg)
- {
--        struct hostmixer_state *state = file->private_data;
-+	struct hostmixer_state *state = file->private_data;
- 
- #ifdef DEBUG
--        printk("hostmixer: ioctl called\n");
-+	printk("hostmixer: ioctl called\n");
- #endif
- 
- 	return(os_ioctl_generic(state->fd, cmd, arg));
-@@ -238,68 +236,67 @@ static int hostmixer_ioctl_mixdev(struct
- 
- static int hostmixer_open_mixdev(struct inode *inode, struct file *file)
- {
--        struct hostmixer_state *state;
--        int r = 0, w = 0;
--        int ret;
-+	struct hostmixer_state *state;
-+	int r = 0, w = 0;
-+	int ret;
- 
- #ifdef DEBUG
--        printk("hostmixer: open called (host: %s)\n", mixer);
-+	printk("hostmixer: open called (host: %s)\n", mixer);
- #endif
- 
--        state = kmalloc(sizeof(struct hostmixer_state), GFP_KERNEL);
--        if(state == NULL) return(-ENOMEM);
-+	state = kmalloc(sizeof(struct hostmixer_state), GFP_KERNEL);
-+	if(state == NULL) return(-ENOMEM);
- 
--        if(file->f_mode & FMODE_READ) r = 1;
--        if(file->f_mode & FMODE_WRITE) w = 1;
-+	if(file->f_mode & FMODE_READ) r = 1;
-+	if(file->f_mode & FMODE_WRITE) w = 1;
- 
- 	ret = os_open_file(mixer, of_set_rw(OPENFLAGS(), r, w), 0);
-         
--        if(ret < 0){
-+	if(ret < 0){
- 		printk("hostaudio_open_mixdev failed to open '%s', err = %d\n",
- 		       dsp, -ret);
- 		kfree(state);
- 		return(ret);
--        }
-+	}
- 
--        file->private_data = state;
--        return(0);
-+	file->private_data = state;
-+	return(0);
- }
- 
- static int hostmixer_release(struct inode *inode, struct file *file)
- {
--        struct hostmixer_state *state = file->private_data;
-+	struct hostmixer_state *state = file->private_data;
- 
- #ifdef DEBUG
--        printk("hostmixer: release called\n");
-+	printk("hostmixer: release called\n");
- #endif
- 
--		os_close_file(state->fd);
--        kfree(state);
-+	os_close_file(state->fd);
-+	kfree(state);
- 
- 	return(0);
- }
- 
--
- /* kernel module operations */
- 
- static const struct file_operations hostaudio_fops = {
--        .owner          = THIS_MODULE,
--        .llseek         = no_llseek,
--        .read           = hostaudio_read,
--        .write          = hostaudio_write,
--        .poll           = hostaudio_poll,
--        .ioctl          = hostaudio_ioctl,
--        .mmap           = NULL,
--        .open           = hostaudio_open,
--        .release        = hostaudio_release,
-+	.owner          = THIS_MODULE,
-+	.llseek         = no_llseek,
-+	.read           = hostaudio_read,
-+	.write          = hostaudio_write,
-+	.poll           = hostaudio_poll,
-+	.ioctl          = hostaudio_ioctl,
-+	.mmap           = NULL,
-+	.open           = hostaudio_open,
-+	.release        = hostaudio_release,
- };
- 
- static const struct file_operations hostmixer_fops = {
--        .owner          = THIS_MODULE,
--        .llseek         = no_llseek,
--        .ioctl          = hostmixer_ioctl_mixdev,
--        .open           = hostmixer_open_mixdev,
--        .release        = hostmixer_release,
-+	.owner          = THIS_MODULE,
-+	.llseek         = no_llseek,
-+	.ioctl          = hostmixer_ioctl_mixdev,
-+	.open           = hostmixer_open_mixdev,
-+	.release        = hostmixer_release,
- };
- 
- struct {
-@@ -313,42 +310,31 @@ MODULE_LICENSE("GPL");
- 
- static int __init hostaudio_init_module(void)
- {
--        printk(KERN_INFO "UML Audio Relay (host dsp = %s, host mixer = %s)\n",
-+	printk(KERN_INFO "UML Audio Relay (host dsp = %s, host mixer = %s)\n",
- 	       dsp, mixer);
- 
- 	module_data.dev_audio = register_sound_dsp(&hostaudio_fops, -1);
--        if(module_data.dev_audio < 0){
--                printk(KERN_ERR "hostaudio: couldn't register DSP device!\n");
--                return -ENODEV;
--        }
-+	if(module_data.dev_audio < 0){
-+		printk(KERN_ERR "hostaudio: couldn't register DSP device!\n");
-+		return -ENODEV;
-+	}
- 
- 	module_data.dev_mixer = register_sound_mixer(&hostmixer_fops, -1);
--        if(module_data.dev_mixer < 0){
--                printk(KERN_ERR "hostmixer: couldn't register mixer "
-+	if(module_data.dev_mixer < 0){
-+		printk(KERN_ERR "hostmixer: couldn't register mixer "
- 		       "device!\n");
--                unregister_sound_dsp(module_data.dev_audio);
--                return -ENODEV;
--        }
-+		unregister_sound_dsp(module_data.dev_audio);
-+		return -ENODEV;
-+	}
- 
--        return 0;
+-	return(0);
 +	return 0;
  }
  
- static void __exit hostaudio_cleanup_module (void)
- {
--       unregister_sound_mixer(module_data.dev_mixer);
--       unregister_sound_dsp(module_data.dev_audio);
-+	unregister_sound_mixer(module_data.dev_mixer);
-+	unregister_sound_dsp(module_data.dev_audio);
+ static void __exit harddog_exit(void)
+@@ -182,14 +182,3 @@ static void __exit harddog_exit(void)
+ 
+ module_init(harddog_init);
+ module_exit(harddog_exit);
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/drivers/harddog_user.c~uml-watchdog-driver-formatting arch/um/drivers/harddog_user.c
+--- a/arch/um/drivers/harddog_user.c~uml-watchdog-driver-formatting
++++ a/arch/um/drivers/harddog_user.c
+@@ -1,4 +1,4 @@
+-/* 
++/*
+  * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
+  * Licensed under the GPL
+  */
+@@ -38,7 +38,7 @@ int start_watchdog(int *in_fd_ret, int *
+ 	int in_fds[2], out_fds[2], pid, n, err;
+ 	char pid_buf[sizeof("nnnnn\0")], c;
+ 	char *pid_args[] = { "/usr/bin/uml_watchdog", "-pid", pid_buf, NULL };
+-	char *mconsole_args[] = { "/usr/bin/uml_watchdog", "-mconsole", NULL, 
++	char *mconsole_args[] = { "/usr/bin/uml_watchdog", "-mconsole", NULL,
+ 				  NULL };
+ 	char **args = NULL;
+ 
+@@ -96,7 +96,7 @@ int start_watchdog(int *in_fd_ret, int *
+ 	}
+ 	*in_fd_ret = in_fds[0];
+ 	*out_fd_ret = out_fds[1];
+-	return(0);
++	return 0;
+ 
+  out_close_in:
+ 	os_close_file(in_fds[0]);
+@@ -105,7 +105,7 @@ int start_watchdog(int *in_fd_ret, int *
+ 	os_close_file(out_fds[0]);
+ 	os_close_file(out_fds[1]);
+  out:
+-	return(err);
++	return err;
  }
  
- module_init(hostaudio_init_module);
- module_exit(hostaudio_cleanup_module);
+ void stop_watchdog(int in_fd, int out_fd)
+@@ -123,20 +123,9 @@ int ping_watchdog(int fd)
+ 	if(n != sizeof(c)){
+ 		printk("ping_watchdog - write failed, err = %d\n", -n);
+ 		if(n < 0)
+-			return(n);
+-		return(-EIO);
++			return n;
++		return -EIO;
+ 	}
+ 	return 1;
+ 
+ }
 -
 -/*
 - * Overrides for Emacs so that we follow Linus's tabbing style.
