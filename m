@@ -1,144 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - _proc_do_string-fix-short-reads.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:55:26 -0800
-Message-ID: <200702112255.l1BMtQav016320@shell0.pdx.osdl.net>
+Subject: - ondemand-governor-restructure-the-work-callback.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:56:01 -0800
+Message-ID: <200702112256.l1BMu15F016374@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60642 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60698 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932888AbXBKWzx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:55:53 -0500
+	id S932903AbXBKW4T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:56:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, mjt@tls.msk.ru, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, davej@codemonkey.org.uk, ego@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     _proc_do_string(): fix short reads
+     ondemand governor restructure the work callback
 has been removed from the -mm tree.  Its filename was
-     _proc_do_string-fix-short-reads.patch
+     ondemand-governor-restructure-the-work-callback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: _proc_do_string(): fix short reads
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: ondemand governor restructure the work callback
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-If you try to read things like /proc/sys/kernel/osrelease with single-byte
-reads, you get just one byte and then EOF.  This is because _proc_do_string()
-assumes that the caller is read()ing into a buffer which is large enough to
-fit the whole string in a single hit.
+Restructure the delayed_work callback in ondemand.
 
-Fix.
+This eliminates the need for smp_processor_id in the callback function and
+also helps in proper locking and avoiding flush_workqueue when stopping the
+governor (done in subsequent patch).
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Michael Tokarev <mjt@tls.msk.ru>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/cpufreq/cpufreq_ondemand.c |   28 +++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN kernel/sysctl.c~_proc_do_string-fix-short-reads kernel/sysctl.c
---- a/kernel/sysctl.c~_proc_do_string-fix-short-reads
-+++ a/kernel/sysctl.c
-@@ -1686,13 +1686,12 @@ static int _proc_do_string(void* data, i
- 	size_t len;
- 	char __user *p;
- 	char c;
--	
--	if (!data || !maxlen || !*lenp ||
--	    (*ppos && !write)) {
+diff -puN drivers/cpufreq/cpufreq_ondemand.c~ondemand-governor-restructure-the-work-callback drivers/cpufreq/cpufreq_ondemand.c
+--- a/drivers/cpufreq/cpufreq_ondemand.c~ondemand-governor-restructure-the-work-callback
++++ a/drivers/cpufreq/cpufreq_ondemand.c
+@@ -52,19 +52,20 @@ static unsigned int def_sampling_rate;
+ static void do_dbs_timer(struct work_struct *work);
+ 
+ /* Sampling types */
+-enum dbs_sample {DBS_NORMAL_SAMPLE, DBS_SUB_SAMPLE};
++enum {DBS_NORMAL_SAMPLE, DBS_SUB_SAMPLE};
+ 
+ struct cpu_dbs_info_s {
+ 	cputime64_t prev_cpu_idle;
+ 	cputime64_t prev_cpu_wall;
+ 	struct cpufreq_policy *cur_policy;
+  	struct delayed_work work;
+-	enum dbs_sample sample_type;
+-	unsigned int enable;
+ 	struct cpufreq_frequency_table *freq_table;
+ 	unsigned int freq_lo;
+ 	unsigned int freq_lo_jiffies;
+ 	unsigned int freq_hi_jiffies;
++	int cpu;
++	unsigned int enable:1,
++	             sample_type:1;
+ };
+ static DEFINE_PER_CPU(struct cpu_dbs_info_s, cpu_dbs_info);
+ 
+@@ -402,7 +403,7 @@ static void dbs_check_cpu(struct cpu_dbs
+ 	if (load < (dbs_tuners_ins.up_threshold - 10)) {
+ 		unsigned int freq_next, freq_cur;
+ 
+-		freq_cur = cpufreq_driver_getavg(policy);
++		freq_cur = __cpufreq_driver_getavg(policy);
+ 		if (!freq_cur)
+ 			freq_cur = policy->cur;
+ 
+@@ -423,9 +424,11 @@ static void dbs_check_cpu(struct cpu_dbs
+ 
+ static void do_dbs_timer(struct work_struct *work)
+ {
+-	unsigned int cpu = smp_processor_id();
+-	struct cpu_dbs_info_s *dbs_info = &per_cpu(cpu_dbs_info, cpu);
+-	enum dbs_sample sample_type = dbs_info->sample_type;
++	struct cpu_dbs_info_s *dbs_info =
++		container_of(work, struct cpu_dbs_info_s, work.work);
++	unsigned int cpu = dbs_info->cpu;
++	int sample_type = dbs_info->sample_type;
 +
-+	if (!data || !maxlen || !*lenp) {
- 		*lenp = 0;
- 		return 0;
- 	}
--	
-+
- 	if (write) {
- 		len = 0;
- 		p = buffer;
-@@ -1713,6 +1712,15 @@ static int _proc_do_string(void* data, i
- 		len = strlen(data);
- 		if (len > maxlen)
- 			len = maxlen;
-+
-+		if (*ppos > len) {
-+			*lenp = 0;
-+			return 0;
-+		}
-+
-+		data += *ppos;
-+		len  -= *ppos;
-+
- 		if (len > *lenp)
- 			len = *lenp;
- 		if (len)
+ 	/* We want all CPUs to do sampling nearly on same jiffy */
+ 	int delay = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
+ 
+@@ -454,17 +457,17 @@ static void do_dbs_timer(struct work_str
+ 	queue_delayed_work_on(cpu, kondemand_wq, &dbs_info->work, delay);
+ }
+ 
+-static inline void dbs_timer_init(unsigned int cpu)
++static inline void dbs_timer_init(struct cpu_dbs_info_s *dbs_info)
+ {
+-	struct cpu_dbs_info_s *dbs_info = &per_cpu(cpu_dbs_info, cpu);
+ 	/* We want all CPUs to do sampling nearly on same jiffy */
+ 	int delay = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
+ 	delay -= jiffies % delay;
+ 
+ 	ondemand_powersave_bias_init();
+-	INIT_DELAYED_WORK_NAR(&dbs_info->work, do_dbs_timer);
+ 	dbs_info->sample_type = DBS_NORMAL_SAMPLE;
+-	queue_delayed_work_on(cpu, kondemand_wq, &dbs_info->work, delay);
++	INIT_DELAYED_WORK_NAR(&dbs_info->work, do_dbs_timer);
++	queue_delayed_work_on(dbs_info->cpu, kondemand_wq, &dbs_info->work,
++	                      delay);
+ }
+ 
+ static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info)
+@@ -528,6 +531,7 @@ static int cpufreq_governor_dbs(struct c
+ 			j_dbs_info->prev_cpu_idle = get_cpu_idle_time(j);
+ 			j_dbs_info->prev_cpu_wall = get_jiffies_64();
+ 		}
++		this_dbs_info->cpu = cpu;
+ 		this_dbs_info->enable = 1;
+ 		/*
+ 		 * Start the timerschedule work, when this governor
+@@ -548,7 +552,7 @@ static int cpufreq_governor_dbs(struct c
+ 
+ 			dbs_tuners_ins.sampling_rate = def_sampling_rate;
+ 		}
+-		dbs_timer_init(policy->cpu);
++		dbs_timer_init(this_dbs_info);
+ 
+ 		mutex_unlock(&dbs_mutex);
+ 		break;
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-origin.patch
-git-block.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-posix-timers-rcu-optimization-for-clock_gettime.patch
-posix-timers-rcu-optimization-for-clock_gettime-fix.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
+git-cpufreq.patch
 workqueue-fix-freezeable-workqueues-implementation.patch
 workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
 workqueue-dont-clear-cwq-thread-until-it-exits.patch
 workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-rework-compat_sys_io_submit.patch
-fix-aioh-includes.patch
-fix-access_ok-checks.patch
-make-good_sigevent-non-static.patch
-make-good_sigevent-non-static-fix.patch
-make-__sigqueue_free-and.patch
-aio-completion-signal-notification.patch
-aio-completion-signal-notification-fix.patch
-aio-completion-signal-notification-fixes-and-cleanups.patch
-aio-completion-signal-notification-small-cleanup.patch
-add-listio-syscall-support.patch
-hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch
