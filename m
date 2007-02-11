@@ -1,68 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - convert-ramfs-to-use-__set_page_dirty_no_writeback.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:46:54 -0800
-Message-ID: <200702112246.l1BMksJR015524@shell0.pdx.osdl.net>
+Subject: - add-retain_initrd-boot-option.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:49:58 -0800
+Message-ID: <200702112249.l1BMnwPu015803@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59973 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59953 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932741AbXBKWuN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:50:13 -0500
+	id S932731AbXBKWuG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:50:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenchen@google.com, a.p.zijlstra@chello.nl, hugh@veritas.com, mm-commits@vger.kernel.org
+To: mikey@neuling.org, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     convert ramfs to use __set_page_dirty_no_writeback
+     Add retain_initrd boot option
 has been removed from the -mm tree.  Its filename was
-     convert-ramfs-to-use-__set_page_dirty_no_writeback.patch
+     add-retain_initrd-boot-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: convert ramfs to use __set_page_dirty_no_writeback
-From: "Ken Chen" <kenchen@google.com>
+Subject: Add retain_initrd boot option
+From: Michael Neuling <mikey@neuling.org>
 
-As pointed out by Hugh, ramfs would also benefit from using the new
-set_page_dirty aop method for memory backed file systems.
+Add retain_initrd option to control freeing of initrd memory after
+extraction.  By default, free memory as previously.
 
-Signed-off-by: Ken Chen <kenchen@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Hugh Dickins <hugh@veritas.com>
+The first boot will need to hold a copy of the in memory fs for the second
+boot.  This image can be large (much larger than the kernel), hence we can
+save time when the memory loader is slow.  Also, it reduces the memory
+footprint while extracting the first boot since you don't need another copy
+of the fs.
+
+Signed-off-by: Michael Neuling <mikey@neuling.org>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-mmu.c   |    2 +-
- fs/ramfs/file-nommu.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ Documentation/kernel-parameters.txt |    2 ++
+ init/initramfs.c                    |   17 ++++++++++++++++-
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN fs/ramfs/file-mmu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback fs/ramfs/file-mmu.c
---- a/fs/ramfs/file-mmu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback
-+++ a/fs/ramfs/file-mmu.c
-@@ -31,7 +31,7 @@ const struct address_space_operations ra
- 	.readpage	= simple_readpage,
- 	.prepare_write	= simple_prepare_write,
- 	.commit_write	= simple_commit_write,
--	.set_page_dirty = __set_page_dirty_nobuffers,
-+	.set_page_dirty = __set_page_dirty_no_writeback,
- };
+diff -puN Documentation/kernel-parameters.txt~add-retain_initrd-boot-option Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~add-retain_initrd-boot-option
++++ a/Documentation/kernel-parameters.txt
+@@ -1396,6 +1396,8 @@ and is between 256 and 4096 characters. 
+ 			in <PAGE_SIZE> units (needed only for swap files).
+ 			See  Documentation/power/swsusp-and-swap-files.txt
  
- const struct file_operations ramfs_file_operations = {
-diff -puN fs/ramfs/file-nommu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback
-+++ a/fs/ramfs/file-nommu.c
-@@ -32,7 +32,7 @@ const struct address_space_operations ra
- 	.readpage		= simple_readpage,
- 	.prepare_write		= simple_prepare_write,
- 	.commit_write		= simple_commit_write,
--	.set_page_dirty = __set_page_dirty_nobuffers,
-+	.set_page_dirty		= __set_page_dirty_no_writeback,
- };
++	retain_initrd	[RAM] Keep initrd memory after extraction
++
+ 	rhash_entries=	[KNL,NET]
+ 			Set number of hash buckets for route cache
  
- const struct file_operations ramfs_file_operations = {
+diff -puN init/initramfs.c~add-retain_initrd-boot-option init/initramfs.c
+--- a/init/initramfs.c~add-retain_initrd-boot-option
++++ a/init/initramfs.c
+@@ -491,6 +491,17 @@ static char * __init unpack_to_rootfs(ch
+ 	return message;
+ }
+ 
++static int __initdata do_retain_initrd;
++
++static int __init retain_initrd_param(char *str)
++{
++	if (*str)
++		return 0;
++	do_retain_initrd = 1;
++	return 1;
++}
++__setup("retain_initrd", retain_initrd_param);
++
+ extern char __initramfs_start[], __initramfs_end[];
+ #ifdef CONFIG_BLK_DEV_INITRD
+ #include <linux/initrd.h>
+@@ -501,7 +512,11 @@ static void __init free_initrd(void)
+ #ifdef CONFIG_KEXEC
+ 	unsigned long crashk_start = (unsigned long)__va(crashk_res.start);
+ 	unsigned long crashk_end   = (unsigned long)__va(crashk_res.end);
++#endif
++	if (do_retain_initrd)
++		goto skip;
+ 
++#ifdef CONFIG_KEXEC
+ 	/*
+ 	 * If the initrd region is overlapped with crashkernel reserved region,
+ 	 * free only memory that is not part of crashkernel region.
+@@ -519,7 +534,7 @@ static void __init free_initrd(void)
+ 	} else
+ #endif
+ 		free_initrd_mem(initrd_start, initrd_end);
+-
++skip:
+ 	initrd_start = 0;
+ 	initrd_end = 0;
+ }
 _
 
-Patches currently in -mm which might be from kenchen@google.com are
+Patches currently in -mm which might be from mikey@neuling.org are
 
 origin.patch
