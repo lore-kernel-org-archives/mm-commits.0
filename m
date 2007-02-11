@@ -1,141 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl_ms_jiffies-fix-oldlen-semantics.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:50:04 -0800
-Message-ID: <200702112250.l1BMo419015818@shell0.pdx.osdl.net>
+Subject: - convert-ramfs-to-use-__set_page_dirty_no_writeback.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:46:54 -0800
+Message-ID: <200702112246.l1BMksJR015524@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59955 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59973 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932733AbXBKWuG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:50:06 -0500
+	id S932741AbXBKWuN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:50:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@openvz.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: kenchen@google.com, a.p.zijlstra@chello.nl, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl_{,ms_}jiffies: fix oldlen semantics
+     convert ramfs to use __set_page_dirty_no_writeback
 has been removed from the -mm tree.  Its filename was
-     sysctl_ms_jiffies-fix-oldlen-semantics.patch
+     convert-ramfs-to-use-__set_page_dirty_no_writeback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl_{,ms_}jiffies: fix oldlen semantics
-From: Alexey Dobriyan <adobriyan@openvz.org>
+Subject: convert ramfs to use __set_page_dirty_no_writeback
+From: "Ken Chen" <kenchen@google.com>
 
-currently it's
-1) if *oldlenp == 0,
-	don't writeback anything
+As pointed out by Hugh, ramfs would also benefit from using the new
+set_page_dirty aop method for memory backed file systems.
 
-2) if *oldlenp >= table->maxlen,
-	don't writeback more than table->maxlen bytes and rewrite *oldlenp
-	don't look at underlying type granularity
-
-3) if 0 < *oldlenp < table->maxlen,
-		*cough*
-	string sysctls don't writeback more than *oldlenp bytes.
-	OK, that's because sizeof(char) == 1
-
-	int sysctls writeback anything in (0, table->maxlen] range
-	Though accept integers divisible by sizeof(int) for writing.
-
-sysctl_jiffies and sysctl_ms_jiffies don't writeback anything but
-sizeof(int), which violates 1) and 2).
-
-So, make sysctl_jiffies and sysctl_ms_jiffies accept
-a) *oldlenp == 0, not doing writeback
-b) *oldlenp >= sizeof(int), writing one integer.
-
--EINVAL still returned for *oldlenp == 1, 2, 3.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Ken Chen <kenchen@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   44 ++++++++++++++++++++++++++++----------------
- 1 file changed, 28 insertions(+), 16 deletions(-)
+ fs/ramfs/file-mmu.c   |    2 +-
+ fs/ramfs/file-nommu.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl_ms_jiffies-fix-oldlen-semantics kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl_ms_jiffies-fix-oldlen-semantics
-+++ a/kernel/sysctl.c
-@@ -2553,17 +2553,23 @@ int sysctl_jiffies(ctl_table *table, int
- 		void __user *oldval, size_t __user *oldlenp,
- 		void __user *newval, size_t newlen)
- {
--	if (oldval) {
-+	if (oldval && oldlenp) {
- 		size_t olen;
--		if (oldlenp) { 
--			if (get_user(olen, oldlenp))
-+
-+		if (get_user(olen, oldlenp))
-+			return -EFAULT;
-+		if (olen) {
-+			int val;
-+
-+			if (olen < sizeof(int))
-+				return -EINVAL;
-+
-+			val = *(int *)(table->data) / HZ;
-+			if (put_user(val, (int __user *)oldval))
-+				return -EFAULT;
-+			if (put_user(sizeof(int), oldlenp))
- 				return -EFAULT;
--			if (olen!=sizeof(int))
--				return -EINVAL; 
- 		}
--		if (put_user(*(int *)(table->data)/HZ, (int __user *)oldval) ||
--		    (oldlenp && put_user(sizeof(int),oldlenp)))
--			return -EFAULT;
- 	}
- 	if (newval && newlen) { 
- 		int new;
-@@ -2581,17 +2587,23 @@ int sysctl_ms_jiffies(ctl_table *table, 
- 		void __user *oldval, size_t __user *oldlenp,
- 		void __user *newval, size_t newlen)
- {
--	if (oldval) {
-+	if (oldval && oldlenp) {
- 		size_t olen;
--		if (oldlenp) { 
--			if (get_user(olen, oldlenp))
-+
-+		if (get_user(olen, oldlenp))
-+			return -EFAULT;
-+		if (olen) {
-+			int val;
-+
-+			if (olen < sizeof(int))
-+				return -EINVAL;
-+
-+			val = jiffies_to_msecs(*(int *)(table->data));
-+			if (put_user(val, (int __user *)oldval))
-+				return -EFAULT;
-+			if (put_user(sizeof(int), oldlenp))
- 				return -EFAULT;
--			if (olen!=sizeof(int))
--				return -EINVAL; 
- 		}
--		if (put_user(jiffies_to_msecs(*(int *)(table->data)), (int __user *)oldval) ||
--		    (oldlenp && put_user(sizeof(int),oldlenp)))
--			return -EFAULT;
- 	}
- 	if (newval && newlen) { 
- 		int new;
+diff -puN fs/ramfs/file-mmu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback fs/ramfs/file-mmu.c
+--- a/fs/ramfs/file-mmu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback
++++ a/fs/ramfs/file-mmu.c
+@@ -31,7 +31,7 @@ const struct address_space_operations ra
+ 	.readpage	= simple_readpage,
+ 	.prepare_write	= simple_prepare_write,
+ 	.commit_write	= simple_commit_write,
+-	.set_page_dirty = __set_page_dirty_nobuffers,
++	.set_page_dirty = __set_page_dirty_no_writeback,
+ };
+ 
+ const struct file_operations ramfs_file_operations = {
+diff -puN fs/ramfs/file-nommu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~convert-ramfs-to-use-__set_page_dirty_no_writeback
++++ a/fs/ramfs/file-nommu.c
+@@ -32,7 +32,7 @@ const struct address_space_operations ra
+ 	.readpage		= simple_readpage,
+ 	.prepare_write		= simple_prepare_write,
+ 	.commit_write		= simple_commit_write,
+-	.set_page_dirty = __set_page_dirty_nobuffers,
++	.set_page_dirty		= __set_page_dirty_no_writeback,
+ };
+ 
+ const struct file_operations ramfs_file_operations = {
 _
 
-Patches currently in -mm which might be from adobriyan@openvz.org are
+Patches currently in -mm which might be from kenchen@google.com are
 
 origin.patch
-revert-x86_64-mm-msr-on-cpu.patch
-rdmsr_on_cpu-wrmsr_on_cpu.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-lutimesat-simplify-utime2.patch
-lutimesat-extend-do_utimes-with-flags.patch
-lutimesat-actual-syscall-and-wire-up-on-i386.patch
