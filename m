@@ -1,102 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - make-drivers-char-mxser_newcmxser_hangup-static.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:50:35 -0800
-Message-ID: <200702112250.l1BMoZLv015867@shell0.pdx.osdl.net>
+Subject: - get-rid-of-double-zeroing-of-allocated-pages.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:53:08 -0800
+Message-ID: <200702112253.l1BMr8O2016079@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60398 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60372 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932833AbXBKWxu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:53:50 -0500
+	id S932799AbXBKWxg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:53:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, James.Bottomley@steeleye.com, chas@cmf.nrl.navy.mil, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make drivers/char/mxser_new.c:mxser_hangup() static
+     Get rid of "double zeroing" of allocated pages
 has been removed from the -mm tree.  Its filename was
-     make-drivers-char-mxser_newcmxser_hangup-static.patch
+     get-rid-of-double-zeroing-of-allocated-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make drivers/char/mxser_new.c:mxser_hangup() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Get rid of "double zeroing" of allocated pages
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Simplify the few instances where a call to "get_zeroed_page()" is closely
+followed by an unnecessary call to memset() to clear that page.
+
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: chas williams <chas@cmf.nrl.navy.mil>
+Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/atm/eni.c                  |    1 -
+ drivers/media/video/zoran_driver.c |    1 -
+ drivers/scsi/53c7xx.c              |    1 -
+ 3 files changed, 3 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~make-drivers-char-mxser_newcmxser_hangup-static drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~make-drivers-char-mxser_newcmxser_hangup-static
-+++ a/drivers/char/mxser_new.c
-@@ -2066,7 +2066,7 @@ static void mxser_wait_until_sent(struct
- /*
-  * This routine is called by tty_hangup() when a hangup is signaled.
-  */
--void mxser_hangup(struct tty_struct *tty)
-+static void mxser_hangup(struct tty_struct *tty)
- {
- 	struct mxser_port *info = tty->driver_data;
- 
+diff -puN drivers/atm/eni.c~get-rid-of-double-zeroing-of-allocated-pages drivers/atm/eni.c
+--- a/drivers/atm/eni.c~get-rid-of-double-zeroing-of-allocated-pages
++++ a/drivers/atm/eni.c
+@@ -912,7 +912,6 @@ static int start_rx(struct atm_dev *dev)
+ 		free_page((unsigned long) eni_dev->free_list);
+ 		return -ENOMEM;
+ 	}
+-	memset(eni_dev->rx_map,0,PAGE_SIZE);
+ 	eni_dev->rx_mult = DEFAULT_RX_MULT;
+ 	eni_dev->fast = eni_dev->last_fast = NULL;
+ 	eni_dev->slow = eni_dev->last_slow = NULL;
+diff -puN drivers/media/video/zoran_driver.c~get-rid-of-double-zeroing-of-allocated-pages drivers/media/video/zoran_driver.c
+--- a/drivers/media/video/zoran_driver.c~get-rid-of-double-zeroing-of-allocated-pages
++++ a/drivers/media/video/zoran_driver.c
+@@ -562,7 +562,6 @@ jpg_fbuffer_alloc (struct file *file)
+ 			jpg_fbuffer_free(file);
+ 			return -ENOBUFS;
+ 		}
+-		memset((void *) mem, 0, PAGE_SIZE);
+ 		fh->jpg_buffers.buffer[i].frag_tab = (u32 *) mem;
+ 		fh->jpg_buffers.buffer[i].frag_tab_bus =
+ 		    virt_to_bus((void *) mem);
+diff -puN drivers/scsi/53c7xx.c~get-rid-of-double-zeroing-of-allocated-pages drivers/scsi/53c7xx.c
+--- a/drivers/scsi/53c7xx.c~get-rid-of-double-zeroing-of-allocated-pages
++++ a/drivers/scsi/53c7xx.c
+@@ -3099,7 +3099,6 @@ allocate_cmd (Scsi_Cmnd *cmd) {
+         real = get_zeroed_page(GFP_ATOMIC);
+         if (real == 0)
+         	return NULL;
+-        memset((void *)real, 0, 4096);
+         cache_push(virt_to_phys((void *)real), 4096);
+         cache_clear(virt_to_phys((void *)real), 4096);
+         kernel_set_cachemode((void *)real, 4096, IOMAP_NOCACHE_SER);
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-ifdef-acpi_future_usage-acpi_os_readable.patch
-git-cpufreq.patch
-git-drm.patch
+git-avr32.patch
 git-dvb.patch
-git-ieee1394.patch
-mips-remove-smp_tune_scheduling.patch
-git-mtd.patch
-git-ubi.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-debug-shared-irqs-kconfig-fix.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-remove-the-broken-fb_s3trio-driver.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+git-mips.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
+quota-have-linux-quotah-include-linux-rwsemh-explicitly.patch
+isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
+isdn-rename-some-debugging-macros-to-not-resemble-config.patch
+isdn-rename-debug-option-config_serial_nopause_io.patch
+isdn-remove-defunct-test-emulator.patch
+isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
+correct-apparent-typo-config_aty_ct-in-aty-video.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
