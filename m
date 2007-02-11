@@ -1,104 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - m32r-build-fix-for-processors-without-isa_dsp_level2.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:47:30 -0800
-Message-ID: <200702112247.l1BMlUnO015555@shell0.pdx.osdl.net>
+Subject: - uml-delete-unused-file.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:49:05 -0800
+Message-ID: <200702112249.l1BMn5YN015693@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59791 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59812 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932685AbXBKWs6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:48:58 -0500
+	id S932688AbXBKWtH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:49:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: takata@linux-m32r.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: build fix for processors without ISA_DSP_LEVEL2
+     uml: delete unused file
 has been removed from the -mm tree.  Its filename was
-     m32r-build-fix-for-processors-without-isa_dsp_level2.patch
+     uml-delete-unused-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m32r: build fix for processors without ISA_DSP_LEVEL2
-From: Hirokazu Takata <takata@linux-m32r.org>
+Subject: uml: delete unused file
+From: Jeff Dike <jdike@addtoit.com>
 
-Additional fixes for processors without ISA_DSP_LEVEL2.  sigcontext_t does not
-have dummy_acc1h, dummy_acc1l members any longer.
+It turns out that resource.c isn't needed.
 
-Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/process.c |    2 +-
- arch/m32r/kernel/signal.c  |   26 ++++----------------------
- 2 files changed, 5 insertions(+), 23 deletions(-)
+ arch/um/kernel/Makefile   |    2 +-
+ arch/um/kernel/resource.c |   23 -----------------------
+ 2 files changed, 1 insertion(+), 24 deletions(-)
 
-diff -puN arch/m32r/kernel/process.c~m32r-build-fix-for-processors-without-isa_dsp_level2 arch/m32r/kernel/process.c
---- a/arch/m32r/kernel/process.c~m32r-build-fix-for-processors-without-isa_dsp_level2
-+++ a/arch/m32r/kernel/process.c
-@@ -174,7 +174,7 @@ void show_regs(struct pt_regs * regs)
- 	  regs->acc1h, regs->acc1l);
- #elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
- 	printk("ACCH[%08lx]:ACCL[%08lx]\n", \
--	  regs->acch, regs->accl);
-+	  regs->acc0h, regs->acc0l);
- #else
- #error unknown isa configuration
- #endif
-diff -puN arch/m32r/kernel/signal.c~m32r-build-fix-for-processors-without-isa_dsp_level2 arch/m32r/kernel/signal.c
---- a/arch/m32r/kernel/signal.c~m32r-build-fix-for-processors-without-isa_dsp_level2
-+++ a/arch/m32r/kernel/signal.c
-@@ -109,19 +109,10 @@ restore_sigcontext(struct pt_regs *regs,
- 	COPY(r10);
- 	COPY(r11);
- 	COPY(r12);
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- 	COPY(acc0h);
- 	COPY(acc0l);
--	COPY(acc1h);
--	COPY(acc1l);
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--	COPY(acch);
--	COPY(accl);
--	COPY(dummy_acc1h);
--	COPY(dummy_acc1l);
--#else
--#error unknown isa configuration
--#endif
-+	COPY(acc1h);		/* ISA_DSP_LEVEL2 only */
-+	COPY(acc1l);		/* ISA_DSP_LEVEL2 only */
- 	COPY(psw);
- 	COPY(bpc);
- 	COPY(bbpsw);
-@@ -196,19 +187,10 @@ setup_sigcontext(struct sigcontext __use
- 	COPY(r10);
- 	COPY(r11);
- 	COPY(r12);
--#if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
- 	COPY(acc0h);
- 	COPY(acc0l);
--	COPY(acc1h);
--	COPY(acc1l);
--#elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
--	COPY(acch);
--	COPY(accl);
--	COPY(dummy_acc1h);
--	COPY(dummy_acc1l);
--#else
--#error unknown isa configuration
--#endif
-+	COPY(acc1h);		/* ISA_DSP_LEVEL2 only */
-+	COPY(acc1l);		/* ISA_DSP_LEVEL2 only */
- 	COPY(psw);
- 	COPY(bpc);
- 	COPY(bbpsw);
+diff -puN arch/um/kernel/Makefile~uml-delete-unused-file arch/um/kernel/Makefile
+--- a/arch/um/kernel/Makefile~uml-delete-unused-file
++++ a/arch/um/kernel/Makefile
+@@ -7,7 +7,7 @@ extra-y := vmlinux.lds
+ clean-files :=
+ 
+ obj-y = config.o exec.o exitcode.o init_task.o irq.o ksyms.o mem.o \
+-	physmem.o process.o ptrace.o reboot.o resource.o sigio.o \
++	physmem.o process.o ptrace.o reboot.o sigio.o \
+ 	signal.o smp.o syscall.o sysrq.o time.o tlb.o trap.o uaccess.o \
+ 	um_arch.o umid.o
+ 
+diff -puN arch/um/kernel/resource.c~uml-delete-unused-file /dev/null
+--- a/arch/um/kernel/resource.c
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/* 
+- * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
+-
+-#include "linux/pci.h"
+-
+-unsigned long resource_fixup(struct pci_dev * dev, struct resource * res,
+-			     unsigned long start, unsigned long size)
+-{
+-	return start;
+-}
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
 _
 
-Patches currently in -mm which might be from takata@linux-m32r.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
+uml-fix-prototypes.patch
 dynamic-kernel-command-line-common.patch
-dynamic-kernel-command-line-m32r.patch
+dynamic-kernel-command-line-um.patch
