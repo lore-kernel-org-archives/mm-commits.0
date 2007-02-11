@@ -1,113 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: - git-libata-all-lib-iomapc-fix-for-config_pci=n.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:30:59 -0800
-Message-ID: <200702112230.l1BMUxJW015212@shell0.pdx.osdl.net>
+Subject: + git-nfs-fixup.patch added to -mm tree
+Date: Sun, 11 Feb 2007 14:39:52 -0800
+Message-ID: <200702112239.l1BMdqIP015343@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59083 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59301 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932595AbXBKWbN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:31:13 -0500
+	id S932598AbXBKWjy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:39:54 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1BMdqUI015264
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 11 Feb 2007 14:39:52 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     lib/iomap.c: fix for CONFIG_PCI=n
-has been removed from the -mm tree.  Its filename was
-     git-libata-all-lib-iomapc-fix-for-config_pci=n.patch
+     git-nfs-fixup
+has been added to the -mm tree.  Its filename is
+     git-nfs-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: lib/iomap.c: fix for CONFIG_PCI=n
+Subject: git-nfs-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- Fix recently-broken CONFIG_PCI=n build:
-
-  lib/iomap.c:530: warning: implicit declaration of function 'pci_request_region'
-  lib/iomap.c:544: warning: implicit declaration of function 'pci_release_region'
-  arch/i386/kernel/cpu/transmeta.c: In function 'init_transmeta':
-  arch/i386/kernel/cpu/transmeta.c:12: warning: 'cpu_freq' may be used uninitialized in this function
-  lib/built-in.o: In function `pcim_iomap_regions':
-  : undefined reference to `pci_request_region'
-
-- coding-style repairs
-
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iomap.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ net/sunrpc/auth_gss/gss_krb5_crypto.c |    5 ---
+ net/sunrpc/auth_gss/gss_spkm3_token.c |    4 --
+ net/sunrpc/clnt.c                     |   40 ------------------------
+ 3 files changed, 49 deletions(-)
 
-diff -puN lib/iomap.c~git-libata-all-lib-iomapc-fix-for-config_pci=n lib/iomap.c
---- a/lib/iomap.c~git-libata-all-lib-iomapc-fix-for-config_pci=n
-+++ a/lib/iomap.c
-@@ -228,6 +228,7 @@ void ioport_unmap(void __iomem *addr)
- EXPORT_SYMBOL(ioport_map);
- EXPORT_SYMBOL(ioport_unmap);
+diff -puN net/sunrpc/auth_gss/gss_krb5_crypto.c~git-nfs-fixup net/sunrpc/auth_gss/gss_krb5_crypto.c
+--- a/net/sunrpc/auth_gss/gss_krb5_crypto.c~git-nfs-fixup
++++ a/net/sunrpc/auth_gss/gss_krb5_crypto.c
+@@ -66,13 +66,8 @@ krb5_encrypt(
+ 		goto out;
  
-+#ifdef CONFIG_PCI
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
+ 	if (crypto_blkcipher_ivsize(tfm) > 16) {
+-<<<<<<< HEAD/net/sunrpc/auth_gss/gss_krb5_crypto.c
+-		dprintk("RPC:      gss_k5encrypt: tfm iv size to large %d\n",
+-			 crypto_blkcipher_ivsize(tfm));
+-=======
+ 		dprintk("RPC:       gss_k5encrypt: tfm iv size to large %d\n",
+ 		         crypto_blkcipher_ivsize(tfm));
+->>>>>>> /net/sunrpc/auth_gss/gss_krb5_crypto.c
+ 		goto out;
+ 	}
+ 
+diff -puN net/sunrpc/auth_gss/gss_spkm3_token.c~git-nfs-fixup net/sunrpc/auth_gss/gss_spkm3_token.c
+--- a/net/sunrpc/auth_gss/gss_spkm3_token.c~git-nfs-fixup
++++ a/net/sunrpc/auth_gss/gss_spkm3_token.c
+@@ -209,11 +209,7 @@ spkm3_verify_mic_token(unsigned char **t
+ 
+ 	/* spkm3 innercontext token preamble */
+ 	if ((ptr[0] != 0xa4) || (ptr[2] != 0x30)) {
+-<<<<<<< HEAD/net/sunrpc/auth_gss/gss_spkm3_token.c
+ 		dprintk("RPC: BAD SPKM ictoken preamble\n");
+-=======
+-		dprintk("RPC:       BAD SPKM ictoken preamble\n");
+->>>>>>> /net/sunrpc/auth_gss/gss_spkm3_token.c
+ 		goto out;
+ 	}
+ 
+diff -puN net/sunrpc/clnt.c~git-nfs-fixup net/sunrpc/clnt.c
+--- a/net/sunrpc/clnt.c~git-nfs-fixup
++++ a/net/sunrpc/clnt.c
+@@ -749,13 +749,8 @@ call_allocate(struct rpc_task *task)
+ 	struct rpc_xprt *xprt = task->tk_xprt;
+ 	unsigned int	bufsiz;
+ 
+-<<<<<<< HEAD/net/sunrpc/clnt.c
+ 	dprintk("RPC: %4d call_allocate (status %d)\n",
+ 				task->tk_pid, task->tk_status);
+-=======
+-	dprint_status(task);
+-
+->>>>>>> /net/sunrpc/clnt.c
+ 	task->tk_action = call_bind;
+ 	if (req->rq_buffer)
+ 		return;
+@@ -766,12 +761,7 @@ call_allocate(struct rpc_task *task)
+ 
+ 	if (xprt->ops->buf_alloc(task, bufsiz << 1) != NULL)
+ 		return;
+-<<<<<<< HEAD/net/sunrpc/clnt.c
+-	printk(KERN_INFO "RPC: buffer allocation failed for task %p\n", task);
+-=======
+-
+ 	dprintk("RPC: %5u rpc_buffer allocation failed\n", task->tk_pid);
+->>>>>>> /net/sunrpc/clnt.c
+ 
+ 	if (RPC_IS_ASYNC(task) || !signalled()) {
+ 		xprt_release(task);
+@@ -808,12 +798,7 @@ call_encode(struct rpc_task *task)
+ 	kxdrproc_t	encode;
+ 	__be32		*p;
+ 
+-<<<<<<< HEAD/net/sunrpc/clnt.c
+-	dprintk("RPC: %4d call_encode (status %d)\n",
+-				task->tk_pid, task->tk_status);
+-=======
+ 	dprint_status(task);
+->>>>>>> /net/sunrpc/clnt.c
+ 
+ 	/* Default buffer setup */
+ 	bufsiz = req->rq_bufsize >> 1;
+@@ -945,12 +930,7 @@ call_connect_status(struct rpc_task *tas
+ 	struct rpc_clnt *clnt = task->tk_client;
+ 	int status = task->tk_status;
+ 
+-<<<<<<< HEAD/net/sunrpc/clnt.c
+-	dprintk("RPC: %5u call_connect_status (status %d)\n",
+-				task->tk_pid, task->tk_status);
+-=======
+ 	dprint_status(task);
+->>>>>>> /net/sunrpc/clnt.c
+ 
+ 	task->tk_status = 0;
+ 	if (status >= 0) {
+@@ -982,12 +962,7 @@ call_connect_status(struct rpc_task *tas
+ static void
+ call_transmit(struct rpc_task *task)
  {
-@@ -256,6 +257,7 @@ void pci_iounmap(struct pci_dev *dev, vo
- }
- EXPORT_SYMBOL(pci_iomap);
- EXPORT_SYMBOL(pci_iounmap);
-+#endif		/* CONFIG_PCI */
+-<<<<<<< HEAD/net/sunrpc/clnt.c
+-	dprintk("RPC: %4d call_transmit (status %d)\n",
+-				task->tk_pid, task->tk_status);
+-=======
+ 	dprint_status(task);
+->>>>>>> /net/sunrpc/clnt.c
  
- #endif /* CONFIG_GENERIC_IOMAP */
+ 	task->tk_action = call_status;
+ 	if (task->tk_status < 0)
+@@ -1048,12 +1023,7 @@ call_status(struct rpc_task *task)
+ 	if (req->rq_received > 0 && !req->rq_bytes_sent)
+ 		task->tk_status = req->rq_received;
  
-@@ -282,7 +284,7 @@ static int devm_ioport_map_match(struct 
-  * Managed ioport_map().  Map is automatically unmapped on driver
-  * detach.
-  */
--void __iomem * devm_ioport_map(struct device *dev, unsigned long port,
-+void __iomem *devm_ioport_map(struct device *dev, unsigned long port,
- 			       unsigned int nr)
+-<<<<<<< HEAD/net/sunrpc/clnt.c
+-	dprintk("RPC: %4d call_status (status %d)\n",
+-				task->tk_pid, task->tk_status);
+-=======
+ 	dprint_status(task);
+->>>>>>> /net/sunrpc/clnt.c
+ 
+ 	status = task->tk_status;
+ 	if (status >= 0) {
+@@ -1142,13 +1112,8 @@ call_decode(struct rpc_task *task)
+ 	kxdrproc_t	decode = task->tk_msg.rpc_proc->p_decode;
+ 	__be32		*p;
+ 
+-<<<<<<< HEAD/net/sunrpc/clnt.c
+-	dprintk("RPC: %4d call_decode (status %d)\n",
+-				task->tk_pid, task->tk_status);
+-=======
+ 	dprintk("RPC: %5u call_decode (status %d)\n",
+ 			task->tk_pid, task->tk_status);
+->>>>>>> /net/sunrpc/clnt.c
+ 
+ 	if (task->tk_flags & RPC_CALL_MAJORSEEN) {
+ 		printk(KERN_NOTICE "%s: server %s OK\n",
+@@ -1225,13 +1190,8 @@ static void
+ call_refreshresult(struct rpc_task *task)
  {
- 	void __iomem **ptr, *addr;
-@@ -400,6 +402,7 @@ void devm_iounmap(struct device *dev, vo
- }
- EXPORT_SYMBOL(devm_iounmap);
+ 	int status = task->tk_status;
+-<<<<<<< HEAD/net/sunrpc/clnt.c
+-	dprintk("RPC: %4d call_refreshresult (status %d)\n",
+-				task->tk_pid, task->tk_status);
+-=======
  
-+#ifdef CONFIG_PCI
- /*
-  * PCI iomap devres
-  */
-@@ -433,7 +436,7 @@ static void pcim_iomap_release(struct de
-  * be safely called without context and guaranteed to succed once
-  * allocated.
-  */
--void __iomem * const * pcim_iomap_table(struct pci_dev *pdev)
-+void __iomem * const *pcim_iomap_table(struct pci_dev *pdev)
- {
- 	struct pcim_iomap_devres *dr, *new_dr;
+ 	dprint_status(task);
+->>>>>>> /net/sunrpc/clnt.c
  
-@@ -458,7 +461,7 @@ EXPORT_SYMBOL(pcim_iomap_table);
-  * Managed pci_iomap().  Map is automatically unmapped on driver
-  * detach.
-  */
--void __iomem * pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
-+void __iomem *pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
- {
- 	void __iomem **tbl;
- 
-@@ -551,3 +554,5 @@ int pcim_iomap_regions(struct pci_dev *p
- 	return rc;
- }
- EXPORT_SYMBOL(pcim_iomap_regions);
-+
-+#endif		/* CONFIG_PCI */
+ 	task->tk_status = 0;
+ 	task->tk_action = call_reserve;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-libata-all-lib-iomapc-fix-for-config_pci=n.patch
 git-acpi.patch
 git-agpgart.patch
 git-cifs-fix.patch
@@ -126,8 +205,8 @@ git-netdev-all.patch
 revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
 git-backlight.patch
 git-backlight-sony-fix.patch
+git-nfs-fixup.patch
 git-sh.patch
-git-scsi-misc-fixup.patch
 revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
 revert-x86_64-mm-msr-on-cpu.patch
 x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
