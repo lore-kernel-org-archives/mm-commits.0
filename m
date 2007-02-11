@@ -1,131 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - char-isicom-remove-tty_hangwakeup-bottomhalves.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:50:25 -0800
-Message-ID: <200702112250.l1BMoPEk015855@shell0.pdx.osdl.net>
+Subject: - char-isicom-augment-card_reset.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:50:39 -0800
+Message-ID: <200702112250.l1BModlM015873@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60015 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60029 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932712AbXBKWue (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:50:34 -0500
+	id S932737AbXBKWul (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:50:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: isicom, remove tty_{hang,wake}up bottomhalves
+     Char: isicom, augment card_reset
 has been removed from the -mm tree.  Its filename was
-     char-isicom-remove-tty_hangwakeup-bottomhalves.patch
+     char-isicom-augment-card_reset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: isicom, remove tty_{hang,wake}up bottomhalves
+Subject: Char: isicom, augment card_reset
 From: Jiri Slaby <jirislaby@gmail.com>
 
-- tty_hangup() itself schedules work, so there is no need to schedule hangup
-  in the driver
+isicom, augment card_reset
 
-- tty_wakeup(): it's safe to call it while in atomic, so that its
-  schedule_work might be also wiped out
+- add 0xee to signatures
+- change long delays to sleeps
+- make one sleep shorter not to wait 3s
+- portcount == 16 is also correct
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/isicom.c |   36 +++---------------------------------
- 1 file changed, 3 insertions(+), 33 deletions(-)
+ drivers/char/isicom.c |   39 ++++++++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-remove-tty_hangwakeup-bottomhalves drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-remove-tty_hangwakeup-bottomhalves
+diff -puN drivers/char/isicom.c~char-isicom-augment-card_reset drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-augment-card_reset
 +++ a/drivers/char/isicom.c
-@@ -213,8 +213,6 @@ struct	isi_port {
- 	struct tty_struct 	* tty;
- 	wait_queue_head_t	close_wait;
- 	wait_queue_head_t	open_wait;
--	struct work_struct	hangup_tq;
--	struct work_struct	bh_tqueue;
- 	unsigned char		* xmit_buf;
- 	int			xmit_head;
- 	int			xmit_tail;
-@@ -510,7 +508,7 @@ static void isicom_tx(unsigned long _dat
- 		if (port->xmit_cnt <= 0)
- 			port->status &= ~ISI_TXOK;
- 		if (port->xmit_cnt <= WAKEUP_CHARS)
--			schedule_work(&port->bh_tqueue);
-+			tty_wakeup(tty);
- 		unlock_card(&isi_card[card]);
+@@ -1510,7 +1510,7 @@ static int __devinit reset_card(struct p
+ {
+ 	struct isi_board *board = pci_get_drvdata(pdev);
+ 	unsigned long base = board->base;
+-	unsigned int portcount = 0;
++	unsigned int sig, portcount = 0;
+ 	int retval = 0;
+ 
+ 	dev_dbg(&pdev->dev, "ISILoad:Resetting Card%d at 0x%lx\n", card + 1,
+@@ -1518,27 +1518,35 @@ static int __devinit reset_card(struct p
+ 
+ 	inw(base + 0x8);
+ 
+-	mdelay(10);
++	msleep(10);
+ 
+ 	outw(0, base + 0x8); /* Reset */
+ 
+-	msleep(3000);
++	msleep(1000);
+ 
+-	*signature = inw(base + 0x4) & 0xff;
++	sig = inw(base + 0x4) & 0xff;
++
++	if (sig != 0xa5 && sig != 0xbb && sig != 0xcc && sig != 0xdd &&
++			sig != 0xee) {
++		dev_warn(&pdev->dev, "ISILoad:Card%u reset failure (Possible "
++			"bad I/O Port Address 0x%lx).\n", card + 1, base);
++		dev_dbg(&pdev->dev, "Sig=0x%x\n", sig);
++		retval = -EIO;
++		goto end;
++	}
++
++	msleep(10);
+ 
+ 	portcount = inw(base + 0x2);
+-	if (!(inw(base + 0xe) & 0x1) || ((portcount != 0) &&
+-			(portcount != 4) && (portcount != 8))) {
+-		dev_dbg(&pdev->dev, "base+0x2=0x%lx, base+0xe=0x%lx\n",
+-			inw(base + 0x2), inw(base + 0xe));
+-		dev_err(&pdev->dev, "ISILoad:PCI Card%d reset failure "
+-			"(Possible bad I/O Port Address 0x%lx).\n",
+-			card + 1, base);
++	if (!inw(base + 0xe) & 0x1 || (portcount != 0 && portcount != 4 &&
++				portcount != 8 && portcount != 16)) {
++		dev_err(&pdev->dev, "ISILoad:PCI Card%d reset failure.",
++			card + 1);
+ 		retval = -EIO;
+ 		goto end;
  	}
  
-@@ -524,21 +522,6 @@ sched_again:
- 	mod_timer(&tx, jiffies + msecs_to_jiffies(10));
- }
+-	switch (*signature) {
++	switch (sig) {
+ 	case 0xa5:
+ 	case 0xbb:
+ 	case 0xdd:
+@@ -1546,16 +1554,13 @@ static int __devinit reset_card(struct p
+ 		board->shift_count = 12;
+ 		break;
+ 	case 0xcc:
++	case 0xee:
+ 		board->port_count = 16;
+ 		board->shift_count = 11;
+ 		break;
+-	default:
+-		dev_warn(&pdev->dev, "ISILoad:Card%d reset failure (Possible "
+-			"bad I/O Port Address 0x%lx).\n", card + 1, base);
+-		dev_dbg(&pdev->dev, "Sig=0x%lx\n", signature);
+-		retval = -EIO;
+ 	}
+ 	dev_info(&pdev->dev, "-Done\n");
++	*signature = sig;
  
--/* 	Interrupt handlers 	*/
--
--
--static void isicom_bottomhalf(struct work_struct *work)
--{
--	struct isi_port *port = container_of(work, struct isi_port, bh_tqueue);
--	struct tty_struct *tty = port->tty;
--
--	if (!tty)
--		return;
--
--	tty_wakeup(tty);
--	wake_up_interruptible(&tty->write_wait);
--}
--
- /*
-  *	Main interrupt handler routine
-  */
-@@ -609,7 +592,7 @@ static irqreturn_t isicom_interrupt(int 
- 						pr_dbg("interrupt: DCD->low.\n"
- 							);
- 						port->status &= ~ISI_DCD;
--						schedule_work(&port->hangup_tq);
-+						tty_hangup(tty);
- 					}
- 				} else if (header & ISI_DCD) {
- 				/* Carrier has been detected */
-@@ -631,7 +614,7 @@ static irqreturn_t isicom_interrupt(int 
- 						/* start tx ing */
- 						port->status |= (ISI_TXOK
- 							| ISI_CTS);
--						schedule_work(&port->bh_tqueue);
-+						tty_wakeup(tty);
- 					}
- 				} else if (!(header & ISI_CTS)) {
- 					port->tty->hw_stopped = 1;
-@@ -1460,17 +1443,6 @@ static void isicom_start(struct tty_stru
- 	port->status |= ISI_TXOK;
- }
- 
--/* hangup et all */
--static void do_isicom_hangup(struct work_struct *work)
--{
--	struct isi_port *port = container_of(work, struct isi_port, hangup_tq);
--	struct tty_struct *tty;
--
--	tty = port->tty;
--	if (tty)
--		tty_hangup(tty);
--}
--
- static void isicom_hangup(struct tty_struct *tty)
- {
- 	struct isi_port *port = tty->driver_data;
-@@ -1858,8 +1830,6 @@ static int __init isicom_init(void)
- 			port->channel = channel;
- 			port->close_delay = 50 * HZ/100;
- 			port->closing_wait = 3000 * HZ/100;
--			INIT_WORK(&port->hangup_tq, do_isicom_hangup);
--			INIT_WORK(&port->bh_tqueue, isicom_bottomhalf);
- 			port->status = 0;
- 			init_waitqueue_head(&port->open_wait);
- 			init_waitqueue_head(&port->close_wait);
+ end:
+ 	return retval;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
