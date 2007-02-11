@@ -1,114 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - drop-__get_zone_counts.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:46:26 -0800
-Message-ID: <200702112246.l1BMkQx2015491@shell0.pdx.osdl.net>
+Subject: - drop-free_pages.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:46:22 -0800
+Message-ID: <200702112246.l1BMkMKS015485@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59502 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59493 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932621AbXBKWq2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:46:28 -0500
+	id S932617AbXBKWqY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:46:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Drop __get_zone_counts()
+     Drop free_pages()
 has been removed from the -mm tree.  Its filename was
-     drop-__get_zone_counts.patch
+     drop-free_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Drop __get_zone_counts()
+Subject: Drop free_pages()
 From: Christoph Lameter <clameter@sgi.com>
 
-Values are readily available via ZVC per node and global sums.
+nr_free_pages is now a simple access to a global variable.  Make it a macro
+instead of a function.
 
+The nr_free_pages now requires vmstat.h to be included.  There is one
+occurrence in power management where we need to add the include.  Directly
+refrer to global_page_state() there to clarify why the #include was added.
+
+[akpm@osdl.org: arm build fix]
+[akpm@osdl.org: sparc64 build fix]
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |    9 ++-------
- include/linux/mmzone.h |    2 --
- mm/readahead.c         |    8 ++------
- mm/vmstat.c            |    8 --------
- 4 files changed, 4 insertions(+), 23 deletions(-)
+ arch/sparc64/mm/init.c |    4 ++--
+ include/linux/swap.h   |    5 ++++-
+ include/linux/vmstat.h |    1 +
+ kernel/power/main.c    |    4 +++-
+ mm/page_alloc.c        |   10 ----------
+ 5 files changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN drivers/base/node.c~drop-__get_zone_counts drivers/base/node.c
---- a/drivers/base/node.c~drop-__get_zone_counts
-+++ a/drivers/base/node.c
-@@ -40,13 +40,8 @@ static ssize_t node_read_meminfo(struct 
- 	int n;
- 	int nid = dev->id;
- 	struct sysinfo i;
--	unsigned long inactive;
--	unsigned long active;
--	unsigned long free;
- 
- 	si_meminfo_node(&i, nid);
--	__get_zone_counts(&active, &inactive, &free, NODE_DATA(nid));
--
- 
- 	n = sprintf(buf, "\n"
- 		       "Node %d MemTotal:     %8lu kB\n"
-@@ -74,8 +69,8 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(i.totalram),
- 		       nid, K(i.freeram),
- 		       nid, K(i.totalram - i.freeram),
--		       nid, K(active),
--		       nid, K(inactive),
-+		       nid, node_page_state(nid, NR_ACTIVE),
-+		       nid, node_page_state(nid, NR_INACTIVE),
- #ifdef CONFIG_HIGHMEM
- 		       nid, K(i.totalhigh),
- 		       nid, K(i.freehigh),
-diff -puN include/linux/mmzone.h~drop-__get_zone_counts include/linux/mmzone.h
---- a/include/linux/mmzone.h~drop-__get_zone_counts
-+++ a/include/linux/mmzone.h
-@@ -444,8 +444,6 @@ typedef struct pglist_data {
- 
- #include <linux/memory_hotplug.h>
- 
--void __get_zone_counts(unsigned long *active, unsigned long *inactive,
--			unsigned long *free, struct pglist_data *pgdat);
- void get_zone_counts(unsigned long *active, unsigned long *inactive,
- 			unsigned long *free);
- void build_all_zonelists(void);
-diff -puN mm/readahead.c~drop-__get_zone_counts mm/readahead.c
---- a/mm/readahead.c~drop-__get_zone_counts
-+++ a/mm/readahead.c
-@@ -575,10 +575,6 @@ void handle_ra_miss(struct address_space
-  */
- unsigned long max_sane_readahead(unsigned long nr)
- {
--	unsigned long active;
--	unsigned long inactive;
--	unsigned long free;
--
--	__get_zone_counts(&active, &inactive, &free, NODE_DATA(numa_node_id()));
--	return min(nr, (inactive + free) / 2);
-+	return min(nr, (node_page_state(numa_node_id(), NR_INACTIVE)
-+		+ node_page_state(numa_node_id(), NR_FREE_PAGES)) / 2);
+diff -puN arch/sparc64/mm/init.c~drop-free_pages arch/sparc64/mm/init.c
+--- a/arch/sparc64/mm/init.c~drop-free_pages
++++ a/arch/sparc64/mm/init.c
+@@ -416,7 +416,7 @@ void show_mem(void)
+ 	printk("Free swap:       %6ldkB\n",
+ 	       nr_swap_pages << (PAGE_SHIFT-10));
+ 	printk("%ld pages of RAM\n", num_physpages);
+-	printk("%d free pages\n", nr_free_pages());
++	printk("%lu free pages\n", nr_free_pages());
  }
-diff -puN mm/vmstat.c~drop-__get_zone_counts mm/vmstat.c
---- a/mm/vmstat.c~drop-__get_zone_counts
-+++ a/mm/vmstat.c
-@@ -13,14 +13,6 @@
- #include <linux/module.h>
- #include <linux/cpu.h>
  
--void __get_zone_counts(unsigned long *active, unsigned long *inactive,
--			unsigned long *free, struct pglist_data *pgdat)
+ void mmu_info(struct seq_file *m)
+@@ -1593,7 +1593,7 @@ void __init mem_init(void)
+ 	initpages = (((unsigned long) __init_end) - ((unsigned long) __init_begin));
+ 	initpages = PAGE_ALIGN(initpages) >> PAGE_SHIFT;
+ 
+-	printk("Memory: %uk available (%ldk kernel code, %ldk data, %ldk init) [%016lx,%016lx]\n",
++	printk("Memory: %luk available (%ldk kernel code, %ldk data, %ldk init) [%016lx,%016lx]\n",
+ 	       nr_free_pages() << (PAGE_SHIFT-10),
+ 	       codepages << (PAGE_SHIFT-10),
+ 	       datapages << (PAGE_SHIFT-10), 
+diff -puN include/linux/swap.h~drop-free_pages include/linux/swap.h
+--- a/include/linux/swap.h~drop-free_pages
++++ a/include/linux/swap.h
+@@ -170,11 +170,14 @@ extern void swapin_readahead(swp_entry_t
+ extern unsigned long totalram_pages;
+ extern unsigned long totalreserve_pages;
+ extern long nr_swap_pages;
+-extern unsigned int nr_free_pages(void);
+ extern unsigned int nr_free_pages_pgdat(pg_data_t *pgdat);
+ extern unsigned int nr_free_buffer_pages(void);
+ extern unsigned int nr_free_pagecache_pages(void);
+ 
++/* Definition of global_page_state not available yet */
++#define nr_free_pages() global_page_state(NR_FREE_PAGES)
++
++
+ /* linux/mm/swap.c */
+ extern void FASTCALL(lru_cache_add(struct page *));
+ extern void FASTCALL(lru_cache_add_active(struct page *));
+diff -puN include/linux/vmstat.h~drop-free_pages include/linux/vmstat.h
+--- a/include/linux/vmstat.h~drop-free_pages
++++ a/include/linux/vmstat.h
+@@ -3,6 +3,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/percpu.h>
++#include <linux/mm.h>
+ #include <linux/mmzone.h>
+ #include <asm/atomic.h>
+ 
+diff -puN kernel/power/main.c~drop-free_pages kernel/power/main.c
+--- a/kernel/power/main.c~drop-free_pages
++++ a/kernel/power/main.c
+@@ -20,6 +20,7 @@
+ #include <linux/cpu.h>
+ #include <linux/resume-trace.h>
+ #include <linux/freezer.h>
++#include <linux/vmstat.h>
+ 
+ #include "power.h"
+ 
+@@ -72,7 +73,8 @@ static int suspend_prepare(suspend_state
+ 		goto Thaw;
+ 	}
+ 
+-	if ((free_pages = nr_free_pages()) < FREE_PAGE_NUMBER) {
++	if ((free_pages = global_page_state(NR_FREE_PAGES))
++			< FREE_PAGE_NUMBER) {
+ 		pr_debug("PM: free some memory\n");
+ 		shrink_all_memory(FREE_PAGE_NUMBER - free_pages);
+ 		if (nr_free_pages() < FREE_PAGE_NUMBER) {
+diff -puN mm/page_alloc.c~drop-free_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~drop-free_pages
++++ a/mm/page_alloc.c
+@@ -1440,16 +1440,6 @@ fastcall void free_pages(unsigned long a
+ 
+ EXPORT_SYMBOL(free_pages);
+ 
+-/*
+- * Total amount of free (allocatable) RAM:
+- */
+-unsigned int nr_free_pages(void)
 -{
--	*active = node_page_state(pgdat->node_id, NR_ACTIVE);
--	*inactive = node_page_state(pgdat->node_id, NR_INACTIVE);
--	*free = node_page_state(pgdat->node_id, NR_FREE_PAGES);
+-	return global_page_state(NR_FREE_PAGES);
 -}
 -
- void get_zone_counts(unsigned long *active,
- 		unsigned long *inactive, unsigned long *free)
+-EXPORT_SYMBOL(nr_free_pages);
+-
+ #ifdef CONFIG_NUMA
+ unsigned int nr_free_pages_pgdat(pg_data_t *pgdat)
  {
 _
 
