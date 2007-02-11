@@ -1,173 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - tty-improve-encode_baud_rate-logic.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:53:40 -0800
-Message-ID: <200702112253.l1BMreFw016116@shell0.pdx.osdl.net>
+Subject: - perle-multimodem-card-pci-ras-detection.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 14:54:00 -0800
+Message-ID: <200702112254.l1BMs0Qr016161@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60403 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60464 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932838AbXBKWxv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 17:53:51 -0500
+	id S932858AbXBKWyT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Feb 2007 17:54:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: thomas.hoehn@avocent.com, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: improve encode_baud_rate logic
+     Perle multimodem card (PCI-RAS) detection
 has been removed from the -mm tree.  Its filename was
-     tty-improve-encode_baud_rate-logic.patch
+     perle-multimodem-card-pci-ras-detection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty: improve encode_baud_rate logic
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Perle multimodem card (PCI-RAS) detection
+From: Thomas Hoehn <thomas.hoehn@avocent.com>
 
-Mostly so people can see the work in progress.  This enhances the encode
-function which isn't currently used in the base tree but is when using some of
-the testing tty patches.
+Get the Perle quad-modem PCI card (PCI-RAS4) detected by serial driver.  It
+may also get the PCI-RAS8 running, but can't guarantee as I didn't had one for
+testing.
 
-This resolves a problem with some hardware where applications got confusing
-information from the tty ioctls.  Correct but confusing.
-
-In some situations asking for, say, 9600 baud actually gets you 9595 baud or
-similar near-miss values.  With the old code this meant that a request for
-B9600 got a return of BOTHER, 9595 which programs interpreted as a failure.
-
-The new code now works on the following basis
-
-- If you ask for specific rate via BOTHER, you get a precise return
-
-- If you ask for a standard Bfoo rate and the result is close you get a Bfoo
-  return
-
-- If you ask for a standard Bfoo rate and get something way off you get a
-  BOTHER/rate return
-
-This seems to fix up the cases I've found where this broke compatibility.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Thomas Hoehn <thomas.hoehn@avocent.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |   45 ++++++++++++++++++++++++-------------
- 1 file changed, 30 insertions(+), 15 deletions(-)
+ drivers/serial/8250.c     |    8 ++++++--
+ drivers/serial/8250_pci.c |   16 ++++++++++++++++
+ include/linux/pci_ids.h   |    5 +++++
+ 3 files changed, 27 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/tty_ioctl.c~tty-improve-encode_baud_rate-logic drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~tty-improve-encode_baud_rate-logic
-+++ a/drivers/char/tty_ioctl.c
-@@ -225,7 +225,7 @@ EXPORT_SYMBOL(tty_termios_input_baud_rat
+diff -puN drivers/serial/8250.c~perle-multimodem-card-pci-ras-detection drivers/serial/8250.c
+--- a/drivers/serial/8250.c~perle-multimodem-card-pci-ras-detection
++++ a/drivers/serial/8250.c
+@@ -920,12 +920,16 @@ static void autoconfig(struct uart_8250_
+ #ifdef __i386__
+ 		outb(0xff, 0x080);
+ #endif
+-		scratch2 = serial_inp(up, UART_IER);
++		/*
++		 * Mask out IER[7:4] bits for test as some UARTs (e.g. TL
++		 * 16C754B) allow only to modify them if an EFR bit is set.
++		 */
++		scratch2 = serial_inp(up, UART_IER) & 0x0f;
+ 		serial_outp(up, UART_IER, 0x0F);
+ #ifdef __i386__
+ 		outb(0, 0x080);
+ #endif
+-		scratch3 = serial_inp(up, UART_IER);
++		scratch3 = serial_inp(up, UART_IER) & 0x0f;
+ 		serial_outp(up, UART_IER, scratch);
+ 		if (scratch2 != 0 || scratch3 != 0x0F) {
+ 			/*
+diff -puN drivers/serial/8250_pci.c~perle-multimodem-card-pci-ras-detection drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~perle-multimodem-card-pci-ras-detection
++++ a/drivers/serial/8250_pci.c
+@@ -679,6 +679,13 @@ static struct pci_serial_quirk pci_seria
+ 	 */
+ 	{
+ 		.vendor		= PCI_VENDOR_ID_PLX,
++		.device		= PCI_DEVICE_ID_PLX_9030,
++		.subvendor	= PCI_SUBVENDOR_ID_PERLE,
++		.subdevice	= PCI_ANY_ID,
++		.setup		= pci_default_setup,
++	},
++	{
++		.vendor		= PCI_VENDOR_ID_PLX,
+ 		.device		= PCI_DEVICE_ID_PLX_9050,
+ 		.subvendor	= PCI_SUBVENDOR_ID_EXSYS,
+ 		.subdevice	= PCI_SUBDEVICE_ID_EXSYS_4055,
+@@ -2379,6 +2386,15 @@ static struct pci_device_id serial_pci_t
+ 		pbn_b2_2_115200 },
  
- /**
-  *	tty_termios_encode_baud_rate
-- *	@termios: termios structure
-+ *	@termios: ktermios structure holding user requested state
-  *	@ispeed: input speed
-  *	@ospeed: output speed
-  *
-@@ -233,7 +233,10 @@ EXPORT_SYMBOL(tty_termios_input_baud_rat
-  *	used as a library helper for drivers os that they can report back
-  *	the actual speed selected when it differs from the speed requested
-  *
-- *	For now input and output speed must agree.
-+ *	For maximal back compatibility with legacy SYS5/POSIX *nix behaviour
-+ *	we need to carefully set the bits when the user does not get the
-+ *	desired speed. We allow small margins and preserve as much of possible
-+ *	of the input intent to keep compatiblity.
-  *
-  *	Locking: Caller should hold termios lock. This is already held
-  *	when calling this function from the driver termios handler.
-@@ -242,32 +245,44 @@ EXPORT_SYMBOL(tty_termios_input_baud_rat
- void tty_termios_encode_baud_rate(struct ktermios *termios, speed_t ibaud, speed_t obaud)
- {
- 	int i = 0;
--	int ifound = 0, ofound = 0;
-+	int ifound = -1, ofound = -1;
-+	int iclose = ibaud/50, oclose = obaud/50;
-+	int ibinput = 0;
+ 	/*
++	 * Perle PCI-RAS cards
++	 */
++	{       PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
++		PCI_SUBVENDOR_ID_PERLE, PCI_SUBDEVICE_ID_PCI_RAS4,
++		0, 0, pbn_b2_4_921600 },
++	{       PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
++		PCI_SUBVENDOR_ID_PERLE, PCI_SUBDEVICE_ID_PCI_RAS8,
++		0, 0, pbn_b2_8_921600 },
++	/*
+ 	 * These entries match devices with class COMMUNICATION_SERIAL,
+ 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
+ 	 */
+diff -puN include/linux/pci_ids.h~perle-multimodem-card-pci-ras-detection include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~perle-multimodem-card-pci-ras-detection
++++ a/include/linux/pci_ids.h
+@@ -959,6 +959,7 @@
+ #define PCI_DEVICE_ID_PLX_R753		0x1152
+ #define PCI_DEVICE_ID_PLX_OLITEC	0x1187
+ #define PCI_DEVICE_ID_PLX_PCI200SYN	0x3196
++#define PCI_DEVICE_ID_PLX_9030          0x9030
+ #define PCI_DEVICE_ID_PLX_9050		0x9050
+ #define PCI_DEVICE_ID_PLX_9080		0x9080
+ #define PCI_DEVICE_ID_PLX_GTEK_SERIAL2	0xa001
+@@ -1994,6 +1995,10 @@
  
- 	termios->c_ispeed = ibaud;
- 	termios->c_ospeed = obaud;
+ #define PCI_VENDOR_ID_CHELSIO		0x1425
  
-+	/* If the user asked for a precise weird speed give a precise weird
-+	   answer. If they asked for a Bfoo speed they many have problems
-+	   digesting non-exact replies so fuzz a bit */
++#define PCI_SUBVENDOR_ID_PERLE          0x155f
++#define PCI_SUBDEVICE_ID_PCI_RAS4       0xf001
++#define PCI_SUBDEVICE_ID_PCI_RAS8       0xf010
 +
-+	if ((termios->c_cflag & CBAUD) == BOTHER)
-+		oclose = 0;
-+	if (((termios->c_cflag >> IBSHIFT) & CBAUD) == BOTHER)
-+		iclose = 0;
-+	if ((termios->c_cflag >> IBSHIFT) & CBAUD)
-+		ibinput = 1;	/* An input speed was specified */
-+
- 	termios->c_cflag &= ~CBAUD;
--	/* Identical speed means no input encoding (ie B0 << IBSHIFT)*/
--	if (termios->c_ispeed == termios->c_ospeed)
--		ifound = 1;
  
- 	do {
--		if (obaud == baud_table[i]) {
-+		if (obaud - oclose >= baud_table[i] && obaud + oclose <= baud_table[i]) {
- 			termios->c_cflag |= baud_bits[i];
--			ofound = 1;
--			/* So that if ibaud == obaud we don't set it */
--			continue;
-+			ofound = i;
- 		}
--		if (ibaud == baud_table[i]) {
--			termios->c_cflag |= (baud_bits[i] << IBSHIFT);
--			ifound = 1;
-+		if (ibaud - iclose >= baud_table[i] && ibaud + iclose <= baud_table[i]) {
-+			/* For the case input == output don't set IBAUD bits if the user didn't do so */
-+			if (ofound != i || ibinput)
-+				termios->c_cflag |= (baud_bits[i] << IBSHIFT);
-+			ifound = i;
- 		}
- 	}
- 	while(++i < n_baud_table);
--	if (!ofound)
-+	if (ofound == -1)
- 		termios->c_cflag |= BOTHER;
--	if (!ifound)
-+	/* Set exact input bits only if the input and output differ or the
-+	   user already did */
-+	if (ifound == -1 && (ibaud != obaud  || ibinput))
- 		termios->c_cflag |= (BOTHER << IBSHIFT);
- }
- 
+ #define PCI_VENDOR_ID_SYBA		0x1592
+ #define PCI_DEVICE_ID_SYBA_2P_EPP	0x0782
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from thomas.hoehn@avocent.com are
 
 origin.patch
-sis-warning-fixes.patch
-libata-add-a-host-flag-to-indicate-lack-of-iordy.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-git-mtd.patch
-resend-iphase-64bit-cleanup.patch
-make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
-pnx8550-uart-driver.patch
-pnx8550-uart-driver-fixes.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-kernel-shut-up-the-irq-mismatch-messages.patch
-tty-make-__proc_set_tty-static.patch
-tty-clarify-disassociate_ctty.patch
-tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
-signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
-signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
-pid-make-session_of_pgrp-use-struct-pid-instead-of-pid_t.patch
-pid-use-struct-pid-for-talking-about-process-groups-in-exitc.patch
-pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
-tty-update-the-tty-layer-to-work-with-struct-pid.patch
-pid-replace-do-while_each_task_pid-with-do-while_each_pid_task.patch
-pid-remove-now-unused-do_each_task_pid-and-while_each_task_pid.patch
-pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
-edac-e752x-bit-mask-fix.patch
-edac-e752x-byte-access-fix.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
-sched-avoid-div-in-rebalance_tick.patch
-pm3fb-kill-pci_find_device-usage.patch
