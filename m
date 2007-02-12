@@ -1,65 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:43:05 -0800
-Message-ID: <200702122243.l1CMh5Dd013469@shell0.pdx.osdl.net>
+Subject: - make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:42:57 -0800
+Message-ID: <200702122242.l1CMgvuW013460@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44811 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44806 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030230AbXBLWnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:43:11 -0500
+	id S1030232AbXBLWnI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:43:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, aia21@cantab.net, mm-commits@vger.kernel.org
+To: dgc@sgi.com, hch@lst.de, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NTFS: rename incorrect check of NTFS_DEBUG with just DEBUG
+     Make XFS use BH_Unwritten and BH_Delay correctly
 has been removed from the -mm tree.  Its filename was
-     ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug.patch
+     make-xfs-use-bh_unwritten-and-bh_delay-correctly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NTFS: rename incorrect check of NTFS_DEBUG with just DEBUG
-From: Robert P. J. Day <rpjday@mindspring.com>
+Subject: Make XFS use BH_Unwritten and BH_Delay correctly
+From: David Chinner <dgc@sgi.com>
 
-Replace the incorrect debugging check of "#ifdef NTFS_DEBUG" with
-just "#ifdef DEBUG".
+Don't hide buffer_unwritten behind buffer_delay() and remove the hack that
+clears unexpected buffer_unwritten() states now that it can't happen.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: Anton Altaparmakov <aia21@cantab.net>
+Signed-off-by: Dave Chinner <dgc@sgi.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: Timothy Shimmin <tes@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/attrib.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/xfs/linux-2.6/xfs_aops.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/ntfs/attrib.c~ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug fs/ntfs/attrib.c
---- a/fs/ntfs/attrib.c~ntfs-rename-incorrect-check-of-ntfs_debug-with-just-debug
-+++ a/fs/ntfs/attrib.c
-@@ -1921,7 +1921,7 @@ s64 ntfs_attr_extend_allocation(ntfs_ino
- 	u32 attr_len = 0; /* Silence stupid gcc warning. */
- 	bool mp_rebuilt;
+diff -puN fs/xfs/linux-2.6/xfs_aops.c~make-xfs-use-bh_unwritten-and-bh_delay-correctly fs/xfs/linux-2.6/xfs_aops.c
+--- a/fs/xfs/linux-2.6/xfs_aops.c~make-xfs-use-bh_unwritten-and-bh_delay-correctly
++++ a/fs/xfs/linux-2.6/xfs_aops.c
+@@ -56,8 +56,6 @@ xfs_count_page_state(
+ 	do {
+ 		if (buffer_uptodate(bh) && !buffer_mapped(bh))
+ 			(*unmapped) = 1;
+-		else if (buffer_unwritten(bh) && !buffer_delay(bh))
+-			clear_buffer_unwritten(bh);
+ 		else if (buffer_unwritten(bh))
+ 			(*unwritten) = 1;
+ 		else if (buffer_delay(bh))
+@@ -1272,7 +1270,6 @@ __xfs_get_blocks(
+ 			if (direct)
+ 				bh_result->b_private = inode;
+ 			set_buffer_unwritten(bh_result);
+-			set_buffer_delay(bh_result);
+ 		}
+ 	}
  
--#ifdef NTFS_DEBUG
-+#ifdef DEBUG
- 	read_lock_irqsave(&ni->size_lock, flags);
- 	allocated_size = ni->allocated_size;
- 	read_unlock_irqrestore(&ni->size_lock, flags);
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from dgc@sgi.com are
 
 origin.patch
-git-avr32.patch
-git-dvb.patch
-kbuild-remove-references-to-deprecated-prepare-all-target.patch
-git-mips.patch
-git-netdev-all.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-fix-misspelled-usbnet_mii-kernel-config-option.patch
-fix-apparent-typo-config_usb_cdcether.patch
-oss-replace-kmallocmemset-combos-with-kzalloc.patch
+git-block-xfs-barriers-broke.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
