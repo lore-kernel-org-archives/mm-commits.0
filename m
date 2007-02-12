@@ -1,77 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - inotify-read-return-val-fix.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:43:32 -0800
-Message-ID: <200702122243.l1CMhWTr013511@shell0.pdx.osdl.net>
+Subject: - reiserfs-use-array_size-macro-when-appropriate.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:43:47 -0800
+Message-ID: <200702122243.l1CMhlVg013529@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44864 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44889 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030242AbXBLWnh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:43:37 -0500
+	id S1030248AbXBLWnt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:43:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, john@johnmccutchan.com, wolf0403@hotmail.com, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     inotify: read return val fix
+     reiserfs: Use ARRAY_SIZE macro when appropriate
 has been removed from the -mm tree.  Its filename was
-     inotify-read-return-val-fix.patch
+     reiserfs-use-array_size-macro-when-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: inotify: read return val fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: reiserfs: Use ARRAY_SIZE macro when appropriate
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Fix for inotify read bug (bugzilla.kernel.org #6999)
+Use ARRAY_SIZE macro already defined in kernel.h
 
-Problem Description:
-When reading from an inotify device with an insufficient sized buffer, read(2)
-will return 0 with no errno set. This is because of an logically incorrect
-action from the user program thus should return an more logical value. My
-suggestion is return -EINVAL as for bind(2).
-
-This patch is based on the proposal from Ryan <wolf0403@hotmail.com>, and
-feedback from John McCutchan <john@johnmccutchan.com>.
-
-Return -EINVAL if we have not passed in enough buffer space to read a single
-inotify event, rather than 0 which indicates that there is nothing to read.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: "John McCutchan" <john@johnmccutchan.com>
-Cc: Ryan <wolf0403@hotmail.com>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify_user.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ fs/reiserfs/do_balan.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/inotify_user.c~inotify-read-return-val-fix fs/inotify_user.c
---- a/fs/inotify_user.c~inotify-read-return-val-fix
-+++ a/fs/inotify_user.c
-@@ -455,8 +455,16 @@ static ssize_t inotify_read(struct file 
- 			break;
+diff -puN fs/reiserfs/do_balan.c~reiserfs-use-array_size-macro-when-appropriate fs/reiserfs/do_balan.c
+--- a/fs/reiserfs/do_balan.c~reiserfs-use-array_size-macro-when-appropriate
++++ a/fs/reiserfs/do_balan.c
+@@ -19,6 +19,7 @@
+ #include <linux/time.h>
+ #include <linux/reiserfs_fs.h>
+ #include <linux/buffer_head.h>
++#include <linux/kernel.h>
  
- 		kevent = inotify_dev_get_event(dev);
--		if (event_size + kevent->event.len > count)
-+		if (event_size + kevent->event.len > count) {
-+			if (ret == 0 && count > 0) {
-+				/*
-+				 * could not get a single event because we
-+				 * didn't have enough buffer space.
-+				 */
-+				ret = -EINVAL;
-+			}
- 			break;
-+		}
+ #ifdef CONFIG_REISERFS_CHECK
  
- 		if (copy_to_user(buf, &kevent->event, event_size)) {
- 			ret = -EFAULT;
+@@ -1756,7 +1757,7 @@ static void store_thrown(struct tree_bal
+ 	if (buffer_dirty(bh))
+ 		reiserfs_warning(tb->tb_sb,
+ 				 "store_thrown deals with dirty buffer");
+-	for (i = 0; i < sizeof(tb->thrown) / sizeof(tb->thrown[0]); i++)
++	for (i = 0; i < ARRAY_SIZE(tb->thrown); i++)
+ 		if (!tb->thrown[i]) {
+ 			tb->thrown[i] = bh;
+ 			get_bh(bh);	/* free_thrown puts this */
+@@ -1769,7 +1770,7 @@ static void free_thrown(struct tree_bala
+ {
+ 	int i;
+ 	b_blocknr_t blocknr;
+-	for (i = 0; i < sizeof(tb->thrown) / sizeof(tb->thrown[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(tb->thrown); i++) {
+ 		if (tb->thrown[i]) {
+ 			blocknr = tb->thrown[i]->b_blocknr;
+ 			if (buffer_dirty(tb->thrown[i]))
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
-git-block.patch
-fs-fix-__block_write_full_page-error-case-buffer-submission.patch
+git-acpi.patch
+git-agpgart.patch
+git-arm.patch
+git-avr32.patch
+git-drm.patch
+git-dvb.patch
+git-infiniband.patch
+git-mips.patch
+atm-use-array_size-macro-when-appropriate.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
