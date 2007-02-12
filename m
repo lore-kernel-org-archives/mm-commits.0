@@ -1,301 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-isdn-sc-proper-prototypes.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:46:07 -0800
-Message-ID: <200702122246.l1CMk7A7013773@shell0.pdx.osdl.net>
+Subject: - drivers-isdn-hisax-proper-prototypes.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:05 -0800
+Message-ID: <200702122246.l1CMk5qX013764@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45635 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45629 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030387AbXBLWtY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:49:24 -0500
+	id S1030385AbXBLWtV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:49:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/isdn/sc/: proper prototypes
+     drivers/isdn/hisax/: proper prototypes
 has been removed from the -mm tree.  Its filename was
-     drivers-isdn-sc-proper-prototypes.patch
+     drivers-isdn-hisax-proper-prototypes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/isdn/sc/: proper prototypes
+Subject: drivers/isdn/hisax/: proper prototypes
 From: Adrian Bunk <bunk@stusta.de>
 
-Add proper prototypes in a header file for global code under
-drivers/isdn/sc/.
+- add functions prototypes for some global functions to header files
 
-Since the GNU C compiler is now able do tell us that caller and callee
-disagreed about the number of arguments of setup_buffers(), this patch
-also fixes this bug.
+- remove unneeded "extern"s from some function prototypes
+
+You might note that this patch results in a new warning - that's due to the
+fact that with a proper prototype gcc is able to discover a broken
+work_struct conversion.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/sc/card.h      |   30 ++++++++++++++++++++++++++++++
- drivers/isdn/sc/command.c   |   17 ++---------------
- drivers/isdn/sc/event.c     |    3 ---
- drivers/isdn/sc/init.c      |    6 ------
- drivers/isdn/sc/interrupt.c |   10 ----------
- drivers/isdn/sc/ioctl.c     |   10 ----------
- drivers/isdn/sc/message.c   |   10 ----------
- drivers/isdn/sc/packet.c    |   10 ----------
- drivers/isdn/sc/scioc.h     |    6 ++++++
- drivers/isdn/sc/shmem.c     |    6 ------
- drivers/isdn/sc/timer.c     |    8 --------
- 11 files changed, 38 insertions(+), 78 deletions(-)
+ drivers/isdn/hisax/isar.c   |    1 -
+ drivers/isdn/hisax/isdnl1.h |   17 ++++++++---------
+ drivers/isdn/hisax/isdnl3.c |   12 ------------
+ drivers/isdn/hisax/isdnl3.h |   26 ++++++++++++++++----------
+ 4 files changed, 24 insertions(+), 32 deletions(-)
 
-diff -puN drivers/isdn/sc/card.h~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/card.h
---- a/drivers/isdn/sc/card.h~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/card.h
-@@ -26,7 +26,9 @@
- #include <linux/timer.h>
- #include <linux/time.h>
- #include <linux/isdnif.h>
-+#include <linux/irqreturn.h>
- #include "message.h"
-+#include "scioc.h"
+diff -puN drivers/isdn/hisax/isar.c~drivers-isdn-hisax-proper-prototypes drivers/isdn/hisax/isar.c
+--- a/drivers/isdn/hisax/isar.c~drivers-isdn-hisax-proper-prototypes
++++ a/drivers/isdn/hisax/isar.c
+@@ -431,7 +431,6 @@ reterror:
+ 	return(ret);
+ }
  
- /*
-  * Amount of time to wait for a reset to complete
-@@ -98,4 +100,32 @@ typedef struct {
- 	spinlock_t lock;		/* local lock */
- } board;
+-extern void BChannel_bh(struct BCState *);
+ #define B_LL_NOCARRIER	8
+ #define B_LL_CONNECT	9
+ #define B_LL_OK		10
+diff -puN drivers/isdn/hisax/isdnl1.h~drivers-isdn-hisax-proper-prototypes drivers/isdn/hisax/isdnl1.h
+--- a/drivers/isdn/hisax/isdnl1.h~drivers-isdn-hisax-proper-prototypes
++++ a/drivers/isdn/hisax/isdnl1.h
+@@ -21,12 +21,11 @@
+ #define B_XMTBUFREADY	1
+ #define B_ACKPENDING	2
  
-+
-+extern board *sc_adapter[];
-+extern int cinst;
-+
-+void memcpy_toshmem(int card, void *dest, const void *src, size_t n);
-+void memcpy_fromshmem(int card, void *dest, const void *src, size_t n);
-+int get_card_from_id(int driver);
-+int indicate_status(int card, int event, ulong Channel, char *Data);
-+irqreturn_t interrupt_handler(int interrupt, void *cardptr);
-+int sndpkt(int devId, int channel, struct sk_buff *data);
-+void rcvpkt(int card, RspMessage *rcvmsg);
-+int command(isdn_ctrl *cmd);
-+int reset(int card);
-+int startproc(int card);
-+int send_and_receive(int card, unsigned int procid, unsigned char type,
-+		     unsigned char class, unsigned char code,
-+		     unsigned char link, unsigned char data_len,
-+		     unsigned char *data,  RspMessage *mesgdata, int timeout);
-+void flushreadfifo (int card);
-+int sendmessage(int card, unsigned int procid, unsigned int type,
-+		unsigned int class, unsigned int code, unsigned int link,
-+		unsigned int data_len, unsigned int *data);
-+int receivemessage(int card, RspMessage *rspmsg);
-+int sc_ioctl(int card, scs_ioctl *data);
-+int setup_buffers(int card, int c);
-+void check_reset(unsigned long data);
-+void check_phystat(unsigned long data);
-+
- #endif /* CARD_H */
-diff -puN drivers/isdn/sc/command.c~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/command.c
---- a/drivers/isdn/sc/command.c~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/command.c
-@@ -31,19 +31,6 @@ static int setl2(int card, unsigned long
- static int setl3(int card, unsigned long arg);
- static int acceptb(int card, unsigned long channel);
- 
--extern int cinst;
--extern board *sc_adapter[];
+-extern void debugl1(struct IsdnCardState *cs, char *fmt, ...);
+-extern void DChannel_proc_xmt(struct IsdnCardState *cs);
+-extern void DChannel_proc_rcv(struct IsdnCardState *cs);
+-extern void l1_msg(struct IsdnCardState *cs, int pr, void *arg);
+-extern void l1_msg_b(struct PStack *st, int pr, void *arg);
 -
--extern int sc_ioctl(int, scs_ioctl *);
--extern int setup_buffers(int, int, unsigned int);
--extern int indicate_status(int, int,ulong,char*);
--extern void check_reset(unsigned long);
--extern int send_and_receive(int, unsigned int, unsigned char, unsigned char,
--                unsigned char, unsigned char, unsigned char, unsigned char *,
--                RspMessage *, int);
--extern int sendmessage(int, unsigned int, unsigned int, unsigned int,
--                unsigned int, unsigned int, unsigned int, unsigned int *);
+-#ifdef L2FRAME_DEBUG
+-extern void Logl2Frame(struct IsdnCardState *cs, struct sk_buff *skb, char *buf, int dir);
+-#endif
++void debugl1(struct IsdnCardState *cs, char *fmt, ...);
++void DChannel_proc_xmt(struct IsdnCardState *cs);
++void DChannel_proc_rcv(struct IsdnCardState *cs);
++void l1_msg(struct IsdnCardState *cs, int pr, void *arg);
++void l1_msg_b(struct PStack *st, int pr, void *arg);
++void Logl2Frame(struct IsdnCardState *cs, struct sk_buff *skb, char *buf,
++		int dir);
++void BChannel_bh(struct work_struct *work);
+diff -puN drivers/isdn/hisax/isdnl3.c~drivers-isdn-hisax-proper-prototypes drivers/isdn/hisax/isdnl3.c
+--- a/drivers/isdn/hisax/isdnl3.c~drivers-isdn-hisax-proper-prototypes
++++ a/drivers/isdn/hisax/isdnl3.c
+@@ -231,18 +231,6 @@ no_l3_proto_spec(struct PStack *st, isdn
+ 	return(-1);
+ }
+ 
+-#ifdef	CONFIG_HISAX_EURO
+-extern void setstack_dss1(struct PStack *st);
+-#endif
 -
- #ifdef DEBUG
- /*
-  * Translate command codes to strings
-@@ -208,7 +195,7 @@ static int answer(int card, unsigned lon
- 		return -ENODEV;
- 	}
- 
--	if(setup_buffers(card, channel+1, BUFFER_SIZE)) {
-+	if(setup_buffers(card, channel+1)) {
- 		hangup(card, channel+1);
- 		return -ENOBUFS;
- 	}
-@@ -297,7 +284,7 @@ static int acceptb(int card, unsigned lo
- 		return -ENODEV;
- 	}
- 
--	if(setup_buffers(card, channel+1, BUFFER_SIZE))
-+	if(setup_buffers(card, channel+1))
- 	{
- 		hangup(card, channel+1);
- 		return -ENOBUFS;
-diff -puN drivers/isdn/sc/event.c~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/event.c
---- a/drivers/isdn/sc/event.c~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/event.c
-@@ -20,9 +20,6 @@
- #include "message.h"
- #include "card.h"
- 
--extern int cinst;
--extern board *sc_adapter[];
+-#ifdef  CONFIG_HISAX_NI1
+-extern void setstack_ni1(struct PStack *st);
+-#endif
 -
- #ifdef DEBUG
- static char *events[] = { "ISDN_STAT_STAVAIL",
- 			  "ISDN_STAT_ICALL",
-diff -puN drivers/isdn/sc/init.c~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/init.c
---- a/drivers/isdn/sc/init.c~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/init.c
-@@ -35,12 +35,6 @@ module_param_array(irq, int, NULL, 0);
- module_param_array(ram, int, NULL, 0);
- module_param(do_reset, bool, 0);
- 
--extern irqreturn_t interrupt_handler(int, void *);
--extern int sndpkt(int, int, int, struct sk_buff *);
--extern int command(isdn_ctrl *);
--extern int indicate_status(int, int, ulong, char*);
--extern int reset(int);
+-#ifdef	CONFIG_HISAX_1TR6
+-extern void setstack_1tr6(struct PStack *st);
+-#endif
 -
- static int identify_board(unsigned long, unsigned int);
- 
- static int __init sc_init(void)
-diff -puN drivers/isdn/sc/interrupt.c~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/interrupt.c
---- a/drivers/isdn/sc/interrupt.c~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/interrupt.c
-@@ -21,16 +21,6 @@
- #include "card.h"
- #include <linux/interrupt.h>
- 
--extern int indicate_status(int, int, ulong, char *);
--extern void check_phystat(unsigned long);
--extern int receivemessage(int, RspMessage *);
--extern int sendmessage(int, unsigned int, unsigned int, unsigned int,
--        unsigned int, unsigned int, unsigned int, unsigned int *);
--extern void rcvpkt(int, RspMessage *);
--
--extern int cinst;
--extern board *sc_adapter[];
--
- static int get_card_from_irq(int irq)
+ struct l3_process
+ *getl3proc(struct PStack *st, int cr)
  {
- 	int i;
-diff -puN drivers/isdn/sc/ioctl.c~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/ioctl.c
---- a/drivers/isdn/sc/ioctl.c~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/ioctl.c
-@@ -12,16 +12,6 @@
- #include "card.h"
- #include "scioc.h"
+diff -puN drivers/isdn/hisax/isdnl3.h~drivers-isdn-hisax-proper-prototypes drivers/isdn/hisax/isdnl3.h
+--- a/drivers/isdn/hisax/isdnl3.h~drivers-isdn-hisax-proper-prototypes
++++ a/drivers/isdn/hisax/isdnl3.h
+@@ -25,13 +25,19 @@ struct stateentry {
  
--extern int indicate_status(int, int, unsigned long, char *);
--extern int startproc(int);
--extern int reset(int);
--extern int send_and_receive(int, unsigned int, unsigned char,unsigned char,
--		unsigned char,unsigned char, 
--		unsigned char, unsigned char *, RspMessage *, int);
--
--extern board *sc_adapter[];
--
--
- static int GetStatus(int card, boardInfo *);
+ #define l3_debug(st, fmt, args...) HiSax_putstatus(st->l1.hardware, "l3 ", fmt, ## args)
  
- /*
-diff -puN drivers/isdn/sc/message.c~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/message.c
---- a/drivers/isdn/sc/message.c~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/message.c
-@@ -22,16 +22,6 @@
- #include "message.h"
- #include "card.h"
- 
--extern board *sc_adapter[];
--extern unsigned int cinst;
--
--/*
-- * Obligatory function prototypes
-- */
--extern int indicate_status(int,ulong,char*);
--extern int scm_command(isdn_ctrl *);
--
--
- /*
-  * receive a message from the board
-  */
-diff -puN drivers/isdn/sc/packet.c~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/packet.c
---- a/drivers/isdn/sc/packet.c~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/packet.c
-@@ -20,16 +20,6 @@
- #include "message.h"
- #include "card.h"
- 
--extern board *sc_adapter[];
--extern unsigned int cinst;
--
--extern int get_card_from_id(int);
--extern int indicate_status(int, int,ulong, char*);
--extern void memcpy_toshmem(int, void *, const void *, size_t);
--extern void memcpy_fromshmem(int, void *, const void *, size_t);
--extern int sendmessage(int, unsigned int, unsigned int, unsigned int,
--                unsigned int, unsigned int, unsigned int, unsigned int *);
--
- int sndpkt(int devId, int channel, struct sk_buff *data)
- {
- 	LLData	ReqLnkWrite;
-diff -puN drivers/isdn/sc/scioc.h~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/scioc.h
---- a/drivers/isdn/sc/scioc.h~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/scioc.h
-@@ -1,3 +1,6 @@
-+#ifndef __ISDN_SC_SCIOC_H__
-+#define __ISDN_SC_SCIOC_H__
+-extern void newl3state(struct l3_process *pc, int state);
+-extern void L3InitTimer(struct l3_process *pc, struct L3Timer *t);
+-extern void L3DelTimer(struct L3Timer *t);
+-extern int L3AddTimer(struct L3Timer *t, int millisec, int event);
+-extern void StopAllL3Timer(struct l3_process *pc);
+-extern struct sk_buff *l3_alloc_skb(int len);
+-extern struct l3_process *new_l3_process(struct PStack *st, int cr);
+-extern void release_l3_process(struct l3_process *p);
+-extern struct l3_process *getl3proc(struct PStack *st, int cr);
+-extern void l3_msg(struct PStack *st, int pr, void *arg);
++struct PStack;
 +
- /*
-  * This software may be used and distributed according to the terms
-  * of the GNU General Public License, incorporated herein by reference.
-@@ -103,3 +106,6 @@ typedef struct {
- 		POTInfo potsinfo;
- 	} info;
- } boardInfo;
++void newl3state(struct l3_process *pc, int state);
++void L3InitTimer(struct l3_process *pc, struct L3Timer *t);
++void L3DelTimer(struct L3Timer *t);
++int L3AddTimer(struct L3Timer *t, int millisec, int event);
++void StopAllL3Timer(struct l3_process *pc);
++struct sk_buff *l3_alloc_skb(int len);
++struct l3_process *new_l3_process(struct PStack *st, int cr);
++void release_l3_process(struct l3_process *p);
++struct l3_process *getl3proc(struct PStack *st, int cr);
++void l3_msg(struct PStack *st, int pr, void *arg);
++void setstack_dss1(struct PStack *st);
++void setstack_ni1(struct PStack *st);
++void setstack_1tr6(struct PStack *st);
 +
-+#endif  /*  __ISDN_SC_SCIOC_H__  */
-+
-diff -puN drivers/isdn/sc/shmem.c~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/shmem.c
---- a/drivers/isdn/sc/shmem.c~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/shmem.c
-@@ -22,12 +22,6 @@
- #include "card.h"
- 
- /*
-- * Main adapter array
-- */
--extern board *sc_adapter[];
--extern int cinst;
--
--/*
-  *
-  */
- void memcpy_toshmem(int card, void *dest, const void *src, size_t n)
-diff -puN drivers/isdn/sc/timer.c~drivers-isdn-sc-proper-prototypes drivers/isdn/sc/timer.c
---- a/drivers/isdn/sc/timer.c~drivers-isdn-sc-proper-prototypes
-+++ a/drivers/isdn/sc/timer.c
-@@ -20,14 +20,6 @@
- #include "message.h"
- #include "card.h"
- 
--extern board *sc_adapter[];
--
--extern void flushreadfifo(int);
--extern int  startproc(int);
--extern int  indicate_status(int, int, unsigned long, char *);
--extern int  sendmessage(int, unsigned int, unsigned int, unsigned int,
--        unsigned int, unsigned int, unsigned int, unsigned int *);
--
- 
- /*
-  * Write the proper values into the I/O ports following a reset
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
