@@ -1,66 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-public-key-transport-mechanism-fix.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 23:24:32 -0800
-Message-ID: <200702120724.l1C7OW1g024751@shell0.pdx.osdl.net>
+Subject: + git-dvb-fixup.patch added to -mm tree
+Date: Mon, 12 Feb 2007 01:00:02 -0800
+Message-ID: <200702120900.l1C902O1027525@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45223 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48122 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964780AbXBLHjz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 02:39:55 -0500
+	id S964789AbXBLJAJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 04:00:09 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1C905UI001574
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 12 Feb 2007 01:00:06 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     ecryptfs-public-key-transport-mechanism fix
-has been removed from the -mm tree.  Its filename was
-     ecryptfs-public-key-transport-mechanism-fix.patch
+     git-dvb-fixup
+has been added to the -mm tree.  Its filename is
+     git-dvb-fixup.patch
 
-This patch was dropped because it was folded into ecryptfs-public-key-transport-mechanism.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ecryptfs-public-key-transport-mechanism fix
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: git-dvb-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add net build dependency to eCryptfs Kconfig entry.
-
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/radio/radio-maxiradio.c |   17 ++++-------------
+ 1 file changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN fs/Kconfig~ecryptfs-public-key-transport-mechanism-fix fs/Kconfig
---- a/fs/Kconfig~ecryptfs-public-key-transport-mechanism-fix
-+++ a/fs/Kconfig
-@@ -1088,7 +1088,7 @@ config AFFS_FS
+diff -puN drivers/media/radio/radio-maxiradio.c~git-dvb-fixup drivers/media/radio/radio-maxiradio.c
+--- a/drivers/media/radio/radio-maxiradio.c~git-dvb-fixup
++++ a/drivers/media/radio/radio-maxiradio.c
+@@ -92,30 +92,21 @@ module_param(radio_nr, int, 0);
+ #define FREQ_IF         171200 /* 10.7*16000   */
+ #define FREQ_STEP       200    /* 12.5*16      */
  
- config ECRYPT_FS
- 	tristate "eCrypt filesystem layer support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && KEYS && CRYPTO
-+	depends on EXPERIMENTAL && KEYS && CRYPTO && NET
- 	help
- 	  Encrypted filesystem that operates on the VFS layer.  See
- 	  <file:Documentation/ecryptfs.txt> to learn more about
+-#define FREQ2BITS(x)	((( (unsigned int)(x)+FREQ_IF+(FREQ_STEP<<1))\
+-			/(FREQ_STEP<<2))<<2) /* (x==fmhz*16*1000) -> bits */
++/* (x==fmhz*16*1000) -> bits */
++#define FREQ2BITS(x)	((( (unsigned int)(x)+FREQ_IF+(FREQ_STEP<<1)) \
++			/(FREQ_STEP<<2))<<2)
+ 
+ #define BITS2FREQ(x)	((x) * FREQ_STEP - FREQ_IF)
+ 
+ 
+-static int radio_ioctl(struct inode *inode, struct file *file,
+-		       unsigned int cmd, unsigned long arg);
+-
+ static const struct file_operations maxiradio_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open           = video_exclusive_open,
+ 	.release        = video_exclusive_release,
+-	.ioctl		= radio_ioctl,
++	.ioctl		= video_ioctl2,
+ 	.compat_ioctl	= v4l_compat_ioctl32,
+ 	.llseek         = no_llseek,
+ };
+-static struct video_device maxiradio_radio =
+-{
+-	.owner		= THIS_MODULE,
+-	.name		= "Maxi Radio FM2000 radio",
+-	.type		= VID_TYPE_TUNER,
+-	.fops           = &maxiradio_fops,
+-};
+ 
+ static struct radio_device
+ {
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ecryptfs-public-key-transport-mechanism.patch
-ecryptfs-public-key-transport-mechanism-fix.patch
-ecryptfs-public-key-packet-management.patch
-ecryptfs-public-key-packet-management-slab-fix.patch
-ecryptfs-xattr-flags-and-mount-options.patch
-ecryptfs-generalize-metadata-read-write.patch
-ecryptfs-generalize-metadata-read-write-fix.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-ecryptfs-encrypted-passthrough.patch
-ecryptfs-convert-f_op-write-to-vfs_write.patch
-ecryptfs-convert-kmap-to-kmap_atomic.patch
-ecryptfs-open-code-flag-checking-and-manipulation.patch
-ecryptfs-add-flush_dcache_page-calls.patch
-ecryptfs-convert-lookup_one_len-to-lookup_one_len_nd.patch
+swiotlb-uninlinings.patch
+knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
+knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
+git-acpi.patch
+git-agpgart.patch
+git-cifs-fix.patch
+git-cpufreq.patch
+fix-warning-in-device_add_attrs.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-infiniband.patch
+sis-warning-fixes.patch
+git-md-accel-fixes.patch
+git-md-accel-warning-fixes.patch
+git-md-accel-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+git-backlight.patch
+git-backlight-sony-fix.patch
+git-nfs-fixup.patch
+git-sh.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+revert-x86_64-mm-msr-on-cpu.patch
+x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+kprobes-list-all-active-probes-in-the-system.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+revert-x86_64-mm-putreg-check.patch
+deprecate-sa_interrupt-and-friends.patch
+git-gccbug-fixup.patch
