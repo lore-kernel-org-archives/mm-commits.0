@@ -1,121 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - add-an-rcu-version-of-list-splicing.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 22:57:25 -0800
-Message-ID: <200702120657.l1C6vPOi024333@shell0.pdx.osdl.net>
+Subject: - arch-arm-use-array_size-macro-when-appropriate.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 23:11:09 -0800
+Message-ID: <200702120711.l1C7B9nr024552@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44208 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44301 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933037AbXBLHEi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 02:04:38 -0500
+	id S964777AbXBLHLO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 02:11:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minyard@acm.org, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add an RCU version of list splicing
+     ARM: Use ARRAY_SIZE macro when appropriate
 has been removed from the -mm tree.  Its filename was
-     add-an-rcu-version-of-list-splicing.patch
+     arch-arm-use-array_size-macro-when-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add an RCU version of list splicing
-From: Corey Minyard <minyard@acm.org>
+Subject: ARM: Use ARRAY_SIZE macro when appropriate
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-This patch is in support of the IPMI driver.  I have tested this with the
-IPMI driver changes coming in the next patch.
+Use ARRAY_SIZE macro already defined in linux/kernel.h
 
-Add a list_splice_init_rcu() function to splice an RCU-protected list into
-another list.  This takes the sync function as an argument, so one would do
-something like:
-
-	INIT_LIST_HEAD(&list);
-	list_splice_init_rcu(&source, &dest, synchronize_rcu);
-
-The idea being to keep the RCU API proliferation down to a dull roar.
-
-[akpm@osdl.org: build fix]
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Signed-off-by: Corey Minyard <minyard@acm.org>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |   56 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ arch/arm/kernel/ecard.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/list.h~add-an-rcu-version-of-list-splicing include/linux/list.h
---- a/include/linux/list.h~add-an-rcu-version-of-list-splicing
-+++ a/include/linux/list.h
-@@ -360,6 +360,62 @@ static inline void list_splice_init(stru
- }
+diff -puN arch/arm/kernel/ecard.c~arch-arm-use-array_size-macro-when-appropriate arch/arm/kernel/ecard.c
+--- a/arch/arm/kernel/ecard.c~arch-arm-use-array_size-macro-when-appropriate
++++ a/arch/arm/kernel/ecard.c
+@@ -1009,7 +1009,7 @@ ecard_probe(int slot, card_type_t type)
+ 		ec->fiqmask = 4;
+ 	}
  
- /**
-+ * list_splice_init_rcu - splice an RCU-protected list into an existing list.
-+ * @list:	the RCU-protected list to splice
-+ * @head:	the place in the list to splice the first list into
-+ * @sync:	function to sync: synchronize_rcu(), synchronize_sched(), ...
-+ *
-+ * @head can be RCU-read traversed concurrently with this function.
-+ *
-+ * Note that this function blocks.
-+ *
-+ * Important note: the caller must take whatever action is necessary to
-+ *	prevent any other updates to @head.  In principle, it is possible
-+ *	to modify the list as soon as sync() begins execution.
-+ *	If this sort of thing becomes necessary, an alternative version
-+ *	based on call_rcu() could be created.  But only if -really-
-+ *	needed -- there is no shortage of RCU API members.
-+ */
-+static inline void list_splice_init_rcu(struct list_head *list,
-+					struct list_head *head,
-+					void (*sync)(void))
-+{
-+	struct list_head *first = list->next;
-+	struct list_head *last = list->prev;
-+	struct list_head *at = head->next;
-+
-+	if (list_empty(head))
-+		return;
-+
-+	/* "first" and "last" tracking list, so initialize it. */
-+
-+	INIT_LIST_HEAD(list);
-+
-+	/*
-+	 * At this point, the list body still points to the source list.
-+	 * Wait for any readers to finish using the list before splicing
-+	 * the list body into the new list.  Any new readers will see
-+	 * an empty list.
-+	 */
-+
-+	sync();
-+
-+	/*
-+	 * Readers are finished with the source list, so perform splice.
-+	 * The order is important if the new list is global and accessible
-+	 * to concurrent RCU readers.  Note that RCU readers are not
-+	 * permitted to traverse the prev pointers without excluding
-+	 * this function.
-+	 */
-+
-+	last->next = at;
-+	smp_wmb();
-+	head->next = first;
-+	first->prev = head;
-+	at->prev = last;
-+}
-+
-+/**
-  * list_entry - get the struct for this entry
-  * @ptr:	the &struct list_head pointer.
-  * @type:	the type of the struct this is embedded in.
+-	for (i = 0; i < sizeof(blacklist) / sizeof(*blacklist); i++)
++	for (i = 0; i < ARRAY_SIZE(blacklist); i++)
+ 		if (blacklist[i].manufacturer == ec->cid.manufacturer &&
+ 		    blacklist[i].product == ec->cid.product) {
+ 			ec->card_desc = blacklist[i].type;
 _
 
-Patches currently in -mm which might be from minyard@acm.org are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
-add-an-rcu-version-of-list-splicing.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
+git-acpi.patch
+git-agpgart.patch
+git-avr32.patch
+git-drm.patch
+git-dvb.patch
+git-infiniband.patch
+git-mips.patch
+atm-use-array_size-macro-when-appropriate.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+s390-drivers-use-array_size-macro-when-appropriate.patch
+w1-use-array_size-macro-when-appropriate.patch
+oss-use-array_size-macro-when-appropriate.patch
+oss-use-array_size-macro-when-appropriate-2.patch
+reiserfs-use-array_size-macro-when-appropriate.patch
+isdn-capi-use-array_size-when-appropriate.patch
+isdn-eicon-use-array_size-macro-when-appropriate.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
