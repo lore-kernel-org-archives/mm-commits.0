@@ -1,55 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - mark-struct-file_operations-const-4-fix.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 23:26:46 -0800
-Message-ID: <200702120726.l1C7Qki6024799@shell0.pdx.osdl.net>
+Subject: - mark-struct-file_operations-const-2-fix.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 23:26:39 -0800
+Message-ID: <200702120726.l1C7QddY024793@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44900 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44902 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933063AbXBLH0s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 02:26:48 -0500
+	id S933064AbXBLH0t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 02:26:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@linux.intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mark-struct-file_operations-const-4-fix
+     mark-struct-file_operations-const-2-fix
 has been removed from the -mm tree.  Its filename was
-     mark-struct-file_operations-const-4-fix.patch
+     mark-struct-file_operations-const-2-fix.patch
 
-This patch was dropped because it was folded into mark-struct-file_operations-const-4.patch
+This patch was dropped because it was folded into mark-struct-file_operations-const-2.patch
 
 ------------------------------------------------------
-Subject: mark-struct-file_operations-const-4-fix
+Subject: mark-struct-file_operations-const-2-fix
 From: Andrew Morton <akpm@osdl.org>
 
-drivers/media/video/saa7134/saa7134-oss.c:566: error: conflicting type qualifiers for 'saa7134_dsp_fops'
-drivers/media/video/saa7134/saa7134.h:675: error: previous declaration of 'saa7134_dsp_fops' was here
-drivers/media/video/saa7134/saa7134-oss.c:807: error: conflicting type qualifiers for 'saa7134_mixer_fops'
-drivers/media/video/saa7134/saa7134.h:676: error: previous declaration of 'saa7134_mixer_fops' was here
+arch/sparc64/solaris/socksys.c: In function `init_socksys':
+arch/sparc64/solaris/socksys.c:193: error: assignment of read-only variable `socksys_file_ops'
+arch/sparc64/solaris/socksys.c:196: error: assignment of read-only variable `socksys_file_ops'
+arch/sparc64/solaris/socksys.c:197: error: assignment of read-only variable `socksys_file_ops'
+
+I'm not sure what it's trying to do in there, but it doens't look good.
 
 Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/saa7134/saa7134.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc64/solaris/socksys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/saa7134/saa7134.h~mark-struct-file_operations-const-4-fix drivers/media/video/saa7134/saa7134.h
---- a/drivers/media/video/saa7134/saa7134.h~mark-struct-file_operations-const-4-fix
-+++ a/drivers/media/video/saa7134/saa7134.h
-@@ -683,8 +683,8 @@ int saa_dsp_writel(struct saa7134_dev *d
- /* ----------------------------------------------------------- */
- /* saa7134-oss.c                                               */
+diff -puN arch/sparc64/solaris/socksys.c~mark-struct-file_operations-const-2-fix arch/sparc64/solaris/socksys.c
+--- a/arch/sparc64/solaris/socksys.c~mark-struct-file_operations-const-2-fix
++++ a/arch/sparc64/solaris/socksys.c
+@@ -55,7 +55,7 @@ extern void mykfree(void *);
  
--extern struct file_operations saa7134_dsp_fops;
--extern struct file_operations saa7134_mixer_fops;
-+extern const struct file_operations saa7134_dsp_fops;
-+extern const struct file_operations saa7134_mixer_fops;
+ static unsigned int (*sock_poll)(struct file *, poll_table *);
  
- int saa7134_oss_init1(struct saa7134_dev *dev);
- int saa7134_oss_fini(struct saa7134_dev *dev);
+-static const struct file_operations socksys_file_ops = {
++static struct file_operations socksys_file_ops = {
+ 	/* Currently empty */
+ };
+ 
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -67,5 +68,5 @@ dynamic-kernel-command-line-ia64-fix.patch
 kvm-add-a-global-list-of-all-virtual-machines.patch
 cyber2010-framebuffer-on-arm-netwinder-fix.patch
 mark-struct-file_operations-const-2.patch
-mark-struct-file_operations-const-4.patch
+mark-struct-file_operations-const-2-fix.patch
 mark-struct-file_operations-const-4-fix.patch
