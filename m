@@ -1,56 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - mark-struct-file_operations-const-2-fix.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 23:26:39 -0800
-Message-ID: <200702120726.l1C7QddY024793@shell0.pdx.osdl.net>
+Subject: - cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 23:26:15 -0800
+Message-ID: <200702120726.l1C7QFfA024789@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44902 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44979 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933064AbXBLH0t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 02:26:49 -0500
+	id S933066AbXBLH3r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 02:29:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@linux.intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@pol.net, jsimmons@infradead.org, ralf@linux-mips.org, woodys@xandros.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mark-struct-file_operations-const-2-fix
+     cyber2010-framebuffer-on-arm-netwinder-fix-tidy
 has been removed from the -mm tree.  Its filename was
-     mark-struct-file_operations-const-2-fix.patch
+     cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
 
-This patch was dropped because it was folded into mark-struct-file_operations-const-2.patch
+This patch was dropped because it was folded into cyber2010-framebuffer-on-arm-netwinder-fix.patch
 
 ------------------------------------------------------
-Subject: mark-struct-file_operations-const-2-fix
+Subject: cyber2010-framebuffer-on-arm-netwinder-fix-tidy
 From: Andrew Morton <akpm@osdl.org>
 
-arch/sparc64/solaris/socksys.c: In function `init_socksys':
-arch/sparc64/solaris/socksys.c:193: error: assignment of read-only variable `socksys_file_ops'
-arch/sparc64/solaris/socksys.c:196: error: assignment of read-only variable `socksys_file_ops'
-arch/sparc64/solaris/socksys.c:197: error: assignment of read-only variable `socksys_file_ops'
-
-I'm not sure what it's trying to do in there, but it doens't look good.
-
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Woody Suwalski <woodys@xandros.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: James Simmons <jsimmons@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/solaris/socksys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/cyber2000fb.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/sparc64/solaris/socksys.c~mark-struct-file_operations-const-2-fix arch/sparc64/solaris/socksys.c
---- a/arch/sparc64/solaris/socksys.c~mark-struct-file_operations-const-2-fix
-+++ a/arch/sparc64/solaris/socksys.c
-@@ -55,7 +55,7 @@ extern void mykfree(void *);
- 
- static unsigned int (*sock_poll)(struct file *, poll_table *);
- 
--static const struct file_operations socksys_file_ops = {
-+static struct file_operations socksys_file_ops = {
- 	/* Currently empty */
- };
- 
+diff -puN drivers/video/cyber2000fb.c~cyber2010-framebuffer-on-arm-netwinder-fix-tidy drivers/video/cyber2000fb.c
+--- a/drivers/video/cyber2000fb.c~cyber2010-framebuffer-on-arm-netwinder-fix-tidy
++++ a/drivers/video/cyber2000fb.c
+@@ -1539,12 +1539,9 @@ static int cyberpro_pci_enable_mmio(stru
+ 	/*
+ 	 * Allow the CyberPro to accept PCI burst accesses
+ 	 */
+-	if (cfb->id == ID_CYBERPRO_2010)
+-	{
++	if (cfb->id == ID_CYBERPRO_2010) {
+ 		printk(KERN_INFO "%s: NOT enabling PCI bursts\n", cfb->fb.fix.id);
+-	}
+-	else
+-	{
++	} else {
+ 		val = cyber2000_grphr(EXT_BUS_CTL, cfb);
+ 		if (!(val & EXT_BUS_CTL_PCIBURST_WRITE)) {
+ 			printk(KERN_INFO "%s: enabling PCI bursts\n",
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -67,6 +68,6 @@ ecryptfs-generalize-metadata-read-write.patch
 dynamic-kernel-command-line-ia64-fix.patch
 kvm-add-a-global-list-of-all-virtual-machines.patch
 cyber2010-framebuffer-on-arm-netwinder-fix.patch
-mark-struct-file_operations-const-2.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
 mark-struct-file_operations-const-2-fix.patch
 mark-struct-file_operations-const-4-fix.patch
