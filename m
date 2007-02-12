@@ -1,134 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:46:54 -0800
-Message-ID: <200702122246.l1CMkseS013864@shell0.pdx.osdl.net>
+Subject: - knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:52 -0800
+Message-ID: <200702122246.l1CMkqrp013861@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45326 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45321 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030334AbXBLWrE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:47:04 -0500
+	id S1030314AbXBLWrB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:47:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: chuck.lever@oracle.com, aurelien.charbon@ext.bull.net, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: SUNRPC: support IPv6 addresses in RPC server's UDP receive path
+     knfsd: SUNRPC: Support IPv6 addresses in svc_tcp_accept
 has been removed from the -mm tree.  Its filename was
-     knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
+     knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: SUNRPC: support IPv6 addresses in RPC server's UDP receive path
-From: Chuck Lever <chuck.lever@oracle.com>
+Subject: knfsd: SUNRPC: Support IPv6 addresses in svc_tcp_accept
 
-Add support for IPv6 addresses in the RPC server's UDP receive path.
 
-[akpm@linux-foundation.org: cleanups]
+Modify svc_tcp_accept to support connecting on IPv6 sockets.
+
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 Cc: Aurelien Charbon <aurelien.charbon@ext.bull.net>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/svc.h |    5 +++
- net/sunrpc/svcsock.c       |   53 ++++++++++++++++++++++++++++-------
- 2 files changed, 48 insertions(+), 10 deletions(-)
+ net/sunrpc/svcsock.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/sunrpc/svc.h~knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path include/linux/sunrpc/svc.h
---- a/include/linux/sunrpc/svc.h~knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path
-+++ a/include/linux/sunrpc/svc.h
-@@ -270,6 +270,11 @@ static inline struct sockaddr_in *svc_ad
- 	return (struct sockaddr_in *) &rqst->rq_addr;
- }
- 
-+static inline struct sockaddr_in6 *svc_addr_in6(struct svc_rqst *rqst)
-+{
-+	return (struct sockaddr_in6 *) &rqst->rq_addr;
-+}
-+
- static inline struct sockaddr *svc_addr(struct svc_rqst *rqst)
- {
- 	return (struct sockaddr *) &rqst->rq_addr;
-diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path
+diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-sunrpc-support-ipv6-addresses-in-svc_tcp_accept
 +++ a/net/sunrpc/svcsock.c
-@@ -721,13 +721,53 @@ svc_write_space(struct sock *sk)
- 	}
- }
- 
-+static void svc_udp_get_sender_address(struct svc_rqst *rqstp,
-+					struct sk_buff *skb)
-+{
-+	switch (rqstp->rq_sock->sk_sk->sk_family) {
-+	case AF_INET: {
-+		/* this seems to come from net/ipv4/udp.c:udp_recvmsg */
-+			struct sockaddr_in *sin = svc_addr_in(rqstp);
-+
-+			sin->sin_family = AF_INET;
-+			sin->sin_port = skb->h.uh->source;
-+			sin->sin_addr.s_addr = skb->nh.iph->saddr;
-+			rqstp->rq_addrlen = sizeof(struct sockaddr_in);
-+			/* Remember which interface received this request */
-+			rqstp->rq_daddr.addr.s_addr = skb->nh.iph->daddr;
-+		}
-+		break;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+	case AF_INET6: {
-+		/* this is derived from net/ipv6/udp.c:udpv6_recvmesg */
-+			struct sockaddr_in6 *sin6 = svc_addr_in6(rqstp);
-+
-+			sin6->sin6_family = AF_INET6;
-+			sin6->sin6_port = skb->h.uh->source;
-+			sin6->sin6_flowinfo = 0;
-+			sin6->sin6_scope_id = 0;
-+			if (ipv6_addr_type(&sin6->sin6_addr) &
-+							IPV6_ADDR_LINKLOCAL)
-+				sin6->sin6_scope_id = IP6CB(skb)->iif;
-+			ipv6_addr_copy(&sin6->sin6_addr,
-+							&skb->nh.ipv6h->saddr);
-+			rqstp->rq_addrlen = sizeof(struct sockaddr_in);
-+			/* Remember which interface received this request */
-+			ipv6_addr_copy(&rqstp->rq_daddr.addr6,
-+							&skb->nh.ipv6h->saddr);
-+		}
-+		break;
-+#endif
-+	}
-+	return;
-+}
-+
- /*
-  * Receive a datagram from a UDP socket.
-  */
- static int
- svc_udp_recvfrom(struct svc_rqst *rqstp)
+@@ -960,7 +960,8 @@ static inline int svc_port_is_privileged
+ static void
+ svc_tcp_accept(struct svc_sock *svsk)
  {
--	struct sockaddr_in *sin = svc_addr_in(rqstp);
- 	struct svc_sock	*svsk = rqstp->rq_sock;
+-	struct sockaddr_in sin;
++	struct sockaddr_storage addr;
++	struct sockaddr	*sin = (struct sockaddr *) &addr;
  	struct svc_serv	*serv = svsk->sk_server;
- 	struct sk_buff	*skb;
-@@ -785,16 +825,9 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 	len  = skb->len - sizeof(struct udphdr);
- 	rqstp->rq_arg.len = len;
+ 	struct socket	*sock = svsk->sk_sock;
+ 	struct socket	*newsock;
+@@ -987,8 +988,7 @@ svc_tcp_accept(struct svc_sock *svsk)
+ 	set_bit(SK_CONN, &svsk->sk_flags);
+ 	svc_sock_enqueue(svsk);
  
--	rqstp->rq_prot        = IPPROTO_UDP;
--
--	/* Get sender address */
--	sin->sin_family = AF_INET;
--	sin->sin_port = skb->h.uh->source;
--	sin->sin_addr.s_addr = skb->nh.iph->saddr;
--	rqstp->rq_addrlen = sizeof(struct sockaddr_in);
-+	rqstp->rq_prot = IPPROTO_UDP;
+-	slen = sizeof(sin);
+-	err = kernel_getpeername(newsock, (struct sockaddr *) &sin, &slen);
++	err = kernel_getpeername(newsock, sin, &slen);
+ 	if (err < 0) {
+ 		if (net_ratelimit())
+ 			printk(KERN_WARNING "%s: peername failed (err %d)!\n",
+@@ -1000,16 +1000,14 @@ svc_tcp_accept(struct svc_sock *svsk)
+ 	 * hosts here, but when we get encryption, the IP of the host won't
+ 	 * tell us anything.  For now just warn about unpriv connections.
+ 	 */
+-	if (!svc_port_is_privileged((struct sockaddr *) &sin)) {
++	if (!svc_port_is_privileged(sin)) {
+ 		dprintk(KERN_WARNING
+ 			"%s: connect from unprivileged port: %s\n",
+ 			serv->sv_name,
+-			__svc_print_addr((struct sockaddr *) &sin, buf,
+-								sizeof(buf)));
++			__svc_print_addr(sin, buf, sizeof(buf)));
+ 	}
+ 	dprintk("%s: connect from %s\n", serv->sv_name,
+-		__svc_print_addr((struct sockaddr *) &sin, buf,
+-				 sizeof(buf)));
++		__svc_print_addr(sin, buf, sizeof(buf)));
  
--	/* Remember which interface received this request */
--	rqstp->rq_daddr.addr.s_addr = skb->nh.iph->daddr;
-+	svc_udp_get_sender_address(rqstp, skb);
+ 	/* make sure that a write doesn't block forever when
+ 	 * low on memory
+@@ -1019,7 +1017,7 @@ svc_tcp_accept(struct svc_sock *svsk)
+ 	if (!(newsvsk = svc_setup_socket(serv, newsock, &err,
+ 				 (SVC_SOCK_ANONYMOUS | SVC_SOCK_TEMPORARY))))
+ 		goto failed;
+-	memcpy(&newsvsk->sk_remote, &sin, slen);
++	memcpy(&newsvsk->sk_remote, sin, slen);
+ 	newsvsk->sk_remotelen = slen;
  
- 	if (skb_is_nonlinear(skb)) {
- 		/* we have to copy */
+ 	svc_sock_received(newsvsk);
 _
 
 Patches currently in -mm which might be from chuck.lever@oracle.com are
