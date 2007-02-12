@@ -1,67 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - ds1302-local_irq_disable-is-redundant-after-local_irq_save.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:44:31 -0800
-Message-ID: <200702122244.l1CMiVaF013610@shell0.pdx.osdl.net>
+Subject: - fs-speedup-rw_verify_area.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:44:07 -0800
+Message-ID: <200702122244.l1CMi7iI013554@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44988 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44989 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030266AbXBLWog (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030268AbXBLWog (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Mon, 12 Feb 2007 17:44:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     DS1302: local_irq_disable() is redundant after local_irq_save()
+     FS: speed up rw_verify_area()
 has been removed from the -mm tree.  Its filename was
-     ds1302-local_irq_disable-is-redundant-after-local_irq_save.patch
+     fs-speedup-rw_verify_area.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: DS1302: local_irq_disable() is redundant after local_irq_save()
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: FS: speed up rw_verify_area()
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-drivers/char/ds1302.c::get_rtc_time() contains local_irq_disable() call
-after local_irq_save(). This looks redundant.
+oprofile hunting showed a stall in rw_verify_area(), because of triple
+indirection and potential cache misses. 
+(file->f_path.dentry->d_inode->i_flock)
 
-drivers/char/ds1302.c::rtc_ioctl() contains local_irq_disable() call after
-local_irq_save(). This looks redundant.
+By moving initialization of 'struct inode' pointer before the pos/count
+sanity tests, we allow the compiler and processor to perform two loads by
+anticipation, reducing stall, without prefetch() hints.  Even x86 arch has
+enough registers to not use temporary variables and not increase text size.
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+I validated this patch running a bench and studied oprofile changes, and
+absolute perf of the test program.
+
+Results of my epoll_pipe_bench (source available on request) on a Pentium-M
+1.6 GHz machine
+
+Before :
+# ./epoll_pipe_bench -l 30 -t 20
+Avg: 436089 evts/sec read_count=8843037 write_count=8843040 21.218390 samples
+per call
+(best value out of 10 runs)
+
+After :
+# ./epoll_pipe_bench -l 30 -t 20
+Avg: 470980 evts/sec read_count=9549871 write_count=9549894 21.216694 samples
+per call
+(best value out of 10 runs)
+
+oprofile CPU_CLK_UNHALTED events gave a reduction from 5.3401 % to 2.5851 %
+for the rw_verify_area() function.
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ds1302.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/read_write.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ds1302.c~ds1302-local_irq_disable-is-redundant-after-local_irq_save drivers/char/ds1302.c
---- a/drivers/char/ds1302.c~ds1302-local_irq_disable-is-redundant-after-local_irq_save
-+++ a/drivers/char/ds1302.c
-@@ -120,7 +120,6 @@ get_rtc_time(struct rtc_time *rtc_tm)
- 	unsigned long flags;
+diff -puN fs/read_write.c~fs-speedup-rw_verify_area fs/read_write.c
+--- a/fs/read_write.c~fs-speedup-rw_verify_area
++++ a/fs/read_write.c
+@@ -197,13 +197,13 @@ int rw_verify_area(int read_write, struc
+ 	struct inode *inode;
+ 	loff_t pos;
  
- 	local_irq_save(flags);
--	local_irq_disable();
++	inode = file->f_path.dentry->d_inode;
+ 	if (unlikely((ssize_t) count < 0))
+ 		goto Einval;
+ 	pos = *ppos;
+ 	if (unlikely((pos < 0) || (loff_t) (pos + count) < 0))
+ 		goto Einval;
  
- 	rtc_tm->tm_sec = CMOS_READ(RTC_SECONDS);
- 	rtc_tm->tm_min = CMOS_READ(RTC_MINUTES);
-@@ -219,7 +218,6 @@ rtc_ioctl(struct inode *inode, struct fi
- 			BIN_TO_BCD(yrs);
- 
- 			local_irq_save(flags);
--			local_irq_disable();
- 			CMOS_WRITE(yrs, RTC_YEAR);
- 			CMOS_WRITE(mon, RTC_MONTH);
- 			CMOS_WRITE(day, RTC_DAY_OF_MONTH);
+-	inode = file->f_path.dentry->d_inode;
+ 	if (unlikely(inode->i_flock && MANDATORY_LOCK(inode))) {
+ 		int retval = locks_mandatory_area(
+ 			read_write == READ ? FLOCK_VERIFY_READ : FLOCK_VERIFY_WRITE,
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
-git-alsa.patch
-git-hid.patch
-git-ipwireless_cs.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
