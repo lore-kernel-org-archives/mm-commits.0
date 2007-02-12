@@ -1,125 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - sa1100-gpio-wrappers.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:59 -0800
-Message-ID: <200702122245.l1CMjx5a013755@shell0.pdx.osdl.net>
+Subject: - omap-gpio-wrappers.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:45:53 -0800
+Message-ID: <200702122245.l1CMjrfK013746@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45172 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45189 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030312AbXBLWqD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:03 -0500
+	id S1030317AbXBLWqI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philipp.zabel@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SA1100 GPIO wrappers
+     OMAP GPIO wrappers
 has been removed from the -mm tree.  Its filename was
-     sa1100-gpio-wrappers.patch
+     omap-gpio-wrappers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SA1100 GPIO wrappers
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Subject: OMAP GPIO wrappers
+From: David Brownell <david-b@pacbell.net>
 
-Arch-neutral GPIO calls for SA-1100.
+This teaches OMAP how to implement the cross-platform GPIO interfaces.
 
+[akpm@osdl.org: cleanups]
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-sa1100/gpio.h |   81 +++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
+ include/asm-arm/arch-omap/gpio.h |   66 +++++++++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
 
-diff -puN /dev/null include/asm-arm/arch-sa1100/gpio.h
---- /dev/null
-+++ a/include/asm-arm/arch-sa1100/gpio.h
-@@ -0,0 +1,81 @@
-+/*
-+ * linux/include/asm-arm/arch-pxa/gpio.h
-+ *
-+ * SA1100 GPIO wrappers for arch-neutral GPIO calls
-+ *
-+ * Written by Philipp Zabel <philipp.zabel@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ *
+diff -puN include/asm-arm/arch-omap/gpio.h~omap-gpio-wrappers include/asm-arm/arch-omap/gpio.h
+--- a/include/asm-arm/arch-omap/gpio.h~omap-gpio-wrappers
++++ a/include/asm-arm/arch-omap/gpio.h
+@@ -76,4 +76,70 @@ extern void omap_set_gpio_direction(int 
+ extern void omap_set_gpio_dataout(int gpio, int enable);
+ extern int omap_get_gpio_datain(int gpio);
+ 
++/*-------------------------------------------------------------------------*/
++
++/* wrappers for "new style" GPIO calls. the old OMAP-specfic ones should
++ * eventually be removed (along with this errno.h inclusion), and maybe
++ * gpios should put MPUIOs last too.
 + */
-+
-+#ifndef __ASM_ARCH_SA1100_GPIO_H
-+#define __ASM_ARCH_SA1100_GPIO_H
-+
-+#include <asm/arch/SA-1100.h>
-+#include <asm/arch/irqs.h>
-+#include <asm/arch/hardware.h>
 +
 +#include <asm/errno.h>
 +
 +static inline int gpio_request(unsigned gpio, const char *label)
 +{
-+	return 0;
++	return omap_request_gpio(gpio);
 +}
 +
 +static inline void gpio_free(unsigned gpio)
 +{
-+	return;
++	omap_free_gpio(gpio);
++}
++
++static inline int __gpio_set_direction(unsigned gpio, int is_input)
++{
++	if (cpu_class_is_omap2()) {
++		if (gpio > OMAP_MAX_GPIO_LINES)
++			return -EINVAL;
++	} else {
++		if (gpio > (OMAP_MAX_GPIO_LINES + 16 /* MPUIO */))
++			return -EINVAL;
++	}
++	omap_set_gpio_direction(gpio, is_input);
++	return 0;
 +}
 +
 +static inline int gpio_direction_input(unsigned gpio)
 +{
-+	if (gpio > GPIO_MAX)
-+		return -EINVAL;
-+	GPDR = (GPDR_In << gpio) 0
++	return __gpio_set_direction(gpio, 1);
 +}
 +
 +static inline int gpio_direction_output(unsigned gpio)
 +{
-+	if (gpio > GPIO_MAX)
-+		return -EINVAL;
-+	GPDR = (GPDR_Out << gpio) 0
++	return __gpio_set_direction(gpio, 0);
 +}
 +
-+#define gpio_get_value(gpio) \
-+	(GPLR & GPIO_GPIO(gpio))
-+
-+#define gpio_set_value(gpio,value) \
-+	((value) ? (GPSR = GPIO_GPIO(gpio)) : (GPCR(gpio) = GPIO_GPIO(gpio)))
-+
-+#include <asm-generic/gpio.h>			/* cansleep wrappers */
-+
-+static inline unsigned gpio_to_irq(unsigned gpio)
++static inline int gpio_get_value(unsigned gpio)
 +{
-+	if (gpio < 11)
-+		return IRQ_GPIO0 + gpio;
-+	else
-+		return IRQ_GPIO11 - 11 + gpio;
++	return omap_get_gpio_datain(gpio);
 +}
 +
-+static inline unsigned irq_to_gpio(unsigned irq)
++static inline void gpio_set_value(unsigned gpio, int value)
 +{
-+	if (irq < IRQ_GPIO11_27)
-+		return irq - IRQ_GPIO0;
-+	else
-+		return irq - IRQ_GPIO11 + 11;
++	omap_set_gpio_dataout(gpio, value);
 +}
 +
-+#endif
++#include <asm-generic/gpio.h>		/* cansleep wrappers */
++
++static inline int gpio_to_irq(unsigned gpio)
++{
++	return OMAP_GPIO_IRQ(gpio);
++}
++
++static inline int irq_to_gpio(unsigned irq)
++{
++	if (cpu_class_is_omap1() && (irq < (IH_MPUIO_BASE + 16)))
++		return (irq - IH_MPUIO_BASE) + OMAP_MAX_GPIO_LINES;
++	return irq - IH_GPIO_BASE;
++}
++
+ #endif
 _
 
-Patches currently in -mm which might be from philipp.zabel@gmail.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
+git-acpi.patch
+git-avr32.patch
+git-md-accel.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
