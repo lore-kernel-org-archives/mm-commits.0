@@ -1,264 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - workaround-capi-subsystem-locking-issue.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:46:26 -0800
-Message-ID: <200702122246.l1CMkQRl013809@shell0.pdx.osdl.net>
+Subject: - isdn-remove-defunct-test-emulator.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:17 -0800
+Message-ID: <200702122246.l1CMkHlg013796@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45248 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45225 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030301AbXBLWqe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:34 -0500
+	id S1030328AbXBLWqW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mb@bu3sch.de, kai.germaschewski@gmx.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Workaround CAPI subsystem locking issue
+     ISDN: Remove defunct test emulator
 has been removed from the -mm tree.  Its filename was
-     workaround-capi-subsystem-locking-issue.patch
+     isdn-remove-defunct-test-emulator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Workaround CAPI subsystem locking issue
-From: Michael Buesch <mb@bu3sch.de>
+Subject: ISDN: Remove defunct test emulator
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-I think the following patch should go into the kernel, until the ISDN/CAPI
-guys create the real fix for this issue.
+Based on advice from K.  Keil, get rid of remaining traces of defunct test
+emulator for HISAX.
 
-The issue is a concurrency issue with some internal CAPI data structure
-which can crash the kernel.
-
-On my FritzCard DSL with the AVM driver it crashes about once a day without
-this workaround patch.  With this workaround patch it's rock-stable (at
-least on UP, but I don't see why this shouldn't work on SMP as well.  But
-maybe I'm missing something.)
-
-This workaround is kind of a sledgehammer which inserts a global lock to
-wrap around all the critical sections.  Of course, this is a scalability
-issue, if you have many ISDN/CAPI cards.  But it prevents a crash.  So I
-vote for this fix to get merged, until people come up with a better
-solution.  Better have a stable kernel that's less scalable, than a
-crashing and useless kernel.
-
-This bug is in the kernel since 2.6.15 (at least).
-
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
-Cc: Kai Germaschewski <kai.germaschewski@gmx.de>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capi.c |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ drivers/isdn/hisax/Kconfig  |    2 --
+ drivers/isdn/hisax/Makefile |    1 -
+ drivers/isdn/hisax/config.c |    9 ---------
+ drivers/isdn/hisax/hisax.h  |   25 -------------------------
+ 4 files changed, 37 deletions(-)
 
-diff -puN drivers/isdn/capi/capi.c~workaround-capi-subsystem-locking-issue drivers/isdn/capi/capi.c
---- a/drivers/isdn/capi/capi.c~workaround-capi-subsystem-locking-issue
-+++ a/drivers/isdn/capi/capi.c
-@@ -118,6 +118,15 @@ struct capiminor {
+diff -puN drivers/isdn/hisax/Kconfig~isdn-remove-defunct-test-emulator drivers/isdn/hisax/Kconfig
+--- a/drivers/isdn/hisax/Kconfig~isdn-remove-defunct-test-emulator
++++ a/drivers/isdn/hisax/Kconfig
+@@ -340,8 +340,6 @@ config HISAX_HFC_SX
+ 	  This enables HiSax support for the HFC-S+, HFC-SP and HFC-PCMCIA
+ 	  cards. This code is not finished yet.
+ 
+-#      bool '  TESTEMULATOR (EXPERIMENTAL)' CONFIG_HISAX_TESTEMU
+-
+ config HISAX_ENTERNOW_PCI
+ 	bool "Formula-n enter:now PCI card"
+ 	depends on HISAX_NETJET && PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
+diff -puN drivers/isdn/hisax/Makefile~isdn-remove-defunct-test-emulator drivers/isdn/hisax/Makefile
+--- a/drivers/isdn/hisax/Makefile~isdn-remove-defunct-test-emulator
++++ a/drivers/isdn/hisax/Makefile
+@@ -60,5 +60,4 @@ hisax-$(CONFIG_HISAX_SCT_QUADRO)	+= bkm_
+ hisax-$(CONFIG_HISAX_GAZEL)		+= gazel.o isac.o arcofi.o hscx.o
+ hisax-$(CONFIG_HISAX_W6692)		+= w6692.o
+ hisax-$(CONFIG_HISAX_ENTERNOW_PCI)	+= enternow_pci.o amd7930_fn.o
+-#hisax-$(CONFIG_HISAX_TESTEMU)		+= testemu.o
+ 
+diff -puN drivers/isdn/hisax/config.c~isdn-remove-defunct-test-emulator drivers/isdn/hisax/config.c
+--- a/drivers/isdn/hisax/config.c~isdn-remove-defunct-test-emulator
++++ a/drivers/isdn/hisax/config.c
+@@ -549,10 +549,6 @@ extern int setup_isurf(struct IsdnCard *
+ extern int setup_saphir(struct IsdnCard *card);
+ #endif
+ 
+-#if CARD_TESTEMU
+-extern int setup_testemu(struct IsdnCard *card);
+-#endif
+-
+ #if CARD_BKM_A4T
+ extern int setup_bkm_a4t(struct IsdnCard *card);
+ #endif
+@@ -1061,11 +1057,6 @@ static int checkcard(int cardnr, char *i
+ 		ret = setup_saphir(card);
+ 		break;
+ #endif
+-#if CARD_TESTEMU
+-	case ISDN_CTYPE_TESTEMU:
+-		ret = setup_testemu(card);
+-		break;
+-#endif
+ #if	CARD_BKM_A4T
+ 	case ISDN_CTYPE_BKM_A4T:
+ 		ret = setup_bkm_a4t(card);
+diff -puN drivers/isdn/hisax/hisax.h~isdn-remove-defunct-test-emulator drivers/isdn/hisax/hisax.h
+--- a/drivers/isdn/hisax/hisax.h~isdn-remove-defunct-test-emulator
++++ a/drivers/isdn/hisax/hisax.h
+@@ -795,19 +795,6 @@ struct w6692_hw {
+ 	struct timer_list timer;
  };
- #endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
  
-+/* FIXME: The following lock is a sledgehammer-workaround to a
-+ * locking issue with the capiminor (and maybe other) data structure(s).
-+ * Access to this data is done in a racy way and crashes the machine with
-+ * a FritzCard DSL driver; sooner or later. This is a workaround
-+ * which trades scalability vs stability, so it doesn't crash the kernel anymore.
-+ * The correct (and scalable) fix for the issue seems to require
-+ * an API change to the drivers... . */
-+static DEFINE_SPINLOCK(workaround_lock);
-+
- struct capincci {
- 	struct capincci *next;
- 	u32		 ncci;
-@@ -589,6 +598,7 @@ static void capi_recv_message(struct cap
- #endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
- 	struct capincci *np;
- 	u32 ncci;
-+	unsigned long flags;
- 
- 	if (CAPIMSG_CMD(skb->data) == CAPI_CONNECT_B3_CONF) {
- 		u16 info = CAPIMSG_U16(skb->data, 12); // Info field
-@@ -603,9 +613,11 @@ static void capi_recv_message(struct cap
- 		capincci_alloc(cdev, CAPIMSG_NCCI(skb->data));
- 		up(&cdev->ncci_list_sem);
- 	}
-+	spin_lock_irqsave(&workaround_lock, flags);
- 	if (CAPIMSG_COMMAND(skb->data) != CAPI_DATA_B3) {
- 		skb_queue_tail(&cdev->recvqueue, skb);
- 		wake_up_interruptible(&cdev->recvwait);
-+		spin_unlock_irqrestore(&workaround_lock, flags);
- 		return;
- 	}
- 	ncci = CAPIMSG_CONTROL(skb->data);
-@@ -615,6 +627,7 @@ static void capi_recv_message(struct cap
- 		printk(KERN_ERR "BUG: capi_signal: ncci not found\n");
- 		skb_queue_tail(&cdev->recvqueue, skb);
- 		wake_up_interruptible(&cdev->recvwait);
-+		spin_unlock_irqrestore(&workaround_lock, flags);
- 		return;
- 	}
- #ifndef CONFIG_ISDN_CAPI_MIDDLEWARE
-@@ -625,6 +638,7 @@ static void capi_recv_message(struct cap
- 	if (!mp) {
- 		skb_queue_tail(&cdev->recvqueue, skb);
- 		wake_up_interruptible(&cdev->recvwait);
-+		spin_unlock_irqrestore(&workaround_lock, flags);
- 		return;
- 	}
- 
-@@ -660,6 +674,7 @@ static void capi_recv_message(struct cap
- 		wake_up_interruptible(&cdev->recvwait);
- 	}
- #endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
-+	spin_unlock_irqrestore(&workaround_lock, flags);
- }
- 
- /* -------- file_operations for capidev ----------------------------- */
-@@ -1006,6 +1021,7 @@ static struct file_operations capi_fops 
- static int capinc_tty_open(struct tty_struct * tty, struct file * file)
- {
- 	struct capiminor *mp;
-+	unsigned long flags;
- 
- 	if ((mp = capiminor_find(iminor(file->f_path.dentry->d_inode))) == 0)
- 		return -ENXIO;
-@@ -1014,6 +1030,7 @@ static int capinc_tty_open(struct tty_st
- 
- 	tty->driver_data = (void *)mp;
- 
-+	spin_lock_irqsave(&workaround_lock, flags);
- 	if (atomic_read(&mp->ttyopencount) == 0)
- 		mp->tty = tty;
- 	atomic_inc(&mp->ttyopencount);
-@@ -1021,6 +1038,7 @@ static int capinc_tty_open(struct tty_st
- 	printk(KERN_DEBUG "capinc_tty_open ocount=%d\n", atomic_read(&mp->ttyopencount));
+-#ifdef  CONFIG_HISAX_TESTEMU
+-struct te_hw {
+-	unsigned char *sfifo;
+-	unsigned char *sfifo_w;
+-	unsigned char *sfifo_r;
+-	unsigned char *sfifo_e;
+-	int sfifo_cnt;
+-	unsigned int stat;
+-	wait_queue_head_t rwaitq;
+-	wait_queue_head_t swaitq;
+-};
+-#endif
+-
+ struct arcofi_msg {
+ 	struct arcofi_msg *next;
+ 	u_char receive;
+@@ -916,9 +903,6 @@ struct IsdnCardState {
+ 		struct ix1_hw niccy;
+ 		struct isurf_hw isurf;
+ 		struct saphir_hw saphir;
+-#ifdef CONFIG_HISAX_TESTEMU
+-		struct te_hw te;
+-#endif
+ 		struct bkm_hw ax;
+ 		struct gazel_hw gazel;
+ 		struct w6692_hw w6692;
+@@ -1175,15 +1159,6 @@ struct IsdnCardState {
+ #define CARD_HSTSAPHIR 0
  #endif
- 	handle_minor_recv(mp);
-+	spin_unlock_irqrestore(&workaround_lock, flags);
- 	return 0;
- }
  
-@@ -1054,6 +1072,7 @@ static int capinc_tty_write(struct tty_s
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
- 	struct sk_buff *skb;
-+	unsigned long flags;
- 
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_tty_write(count=%d)\n", count);
-@@ -1066,6 +1085,7 @@ static int capinc_tty_write(struct tty_s
- 		return 0;
- 	}
- 
-+	spin_lock_irqsave(&workaround_lock, flags);
- 	skb = mp->ttyskb;
- 	if (skb) {
- 		mp->ttyskb = NULL;
-@@ -1076,6 +1096,7 @@ static int capinc_tty_write(struct tty_s
- 	skb = alloc_skb(CAPI_DATA_B3_REQ_LEN+count, GFP_ATOMIC);
- 	if (!skb) {
- 		printk(KERN_ERR "capinc_tty_write: alloc_skb failed\n");
-+		spin_unlock_irqrestore(&workaround_lock, flags);
- 		return -ENOMEM;
- 	}
- 
-@@ -1086,6 +1107,7 @@ static int capinc_tty_write(struct tty_s
- 	mp->outbytes += skb->len;
- 	(void)handle_minor_send(mp);
- 	(void)handle_minor_recv(mp);
-+	spin_unlock_irqrestore(&workaround_lock, flags);
- 	return count;
- }
- 
-@@ -1093,6 +1115,7 @@ static void capinc_tty_put_char(struct t
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
- 	struct sk_buff *skb;
-+	unsigned long flags;
- 
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_put_char(%u)\n", ch);
-@@ -1105,10 +1128,12 @@ static void capinc_tty_put_char(struct t
- 		return;
- 	}
- 
-+	spin_lock_irqsave(&workaround_lock, flags);
- 	skb = mp->ttyskb;
- 	if (skb) {
- 		if (skb_tailroom(skb) > 0) {
- 			*(skb_put(skb, 1)) = ch;
-+			spin_unlock_irqrestore(&workaround_lock, flags);
- 			return;
- 		}
- 		mp->ttyskb = NULL;
-@@ -1124,12 +1149,14 @@ static void capinc_tty_put_char(struct t
- 	} else {
- 		printk(KERN_ERR "capinc_put_char: char %u lost\n", ch);
- 	}
-+	spin_unlock_irqrestore(&workaround_lock, flags);
- }
- 
- static void capinc_tty_flush_chars(struct tty_struct *tty)
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
- 	struct sk_buff *skb;
-+	unsigned long flags;
- 
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_tty_flush_chars\n");
-@@ -1142,6 +1169,7 @@ static void capinc_tty_flush_chars(struc
- 		return;
- 	}
- 
-+	spin_lock_irqsave(&workaround_lock, flags);
- 	skb = mp->ttyskb;
- 	if (skb) {
- 		mp->ttyskb = NULL;
-@@ -1150,6 +1178,7 @@ static void capinc_tty_flush_chars(struc
- 		(void)handle_minor_send(mp);
- 	}
- 	(void)handle_minor_recv(mp);
-+	spin_unlock_irqrestore(&workaround_lock, flags);
- }
- 
- static int capinc_tty_write_room(struct tty_struct *tty)
-@@ -1220,12 +1249,15 @@ static void capinc_tty_throttle(struct t
- static void capinc_tty_unthrottle(struct tty_struct * tty)
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
-+	unsigned long flags;
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_tty_unthrottle\n");
- #endif
- 	if (mp) {
-+		spin_lock_irqsave(&workaround_lock, flags);
- 		mp->ttyinstop = 0;
- 		handle_minor_recv(mp);
-+		spin_unlock_irqrestore(&workaround_lock, flags);
- 	}
- }
- 
-@@ -1243,12 +1275,15 @@ static void capinc_tty_stop(struct tty_s
- static void capinc_tty_start(struct tty_struct *tty)
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
-+	unsigned long flags;
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_tty_start\n");
- #endif
- 	if (mp) {
-+		spin_lock_irqsave(&workaround_lock, flags);
- 		mp->ttyoutstop = 0;
- 		(void)handle_minor_send(mp);
-+		spin_unlock_irqrestore(&workaround_lock, flags);
- 	}
- }
- 
+-#ifdef	CONFIG_HISAX_TESTEMU
+-#define	CARD_TESTEMU 1
+-#define ISDN_CTYPE_TESTEMU 99
+-#undef ISDN_CTYPE_COUNT
+-#define  ISDN_CTYPE_COUNT ISDN_CTYPE_TESTEMU
+-#else
+-#define CARD_TESTEMU 0
+-#endif
+-
+ #ifdef	CONFIG_HISAX_BKM_A4T
+ #define	CARD_BKM_A4T 1
+ #ifndef ISDN_CHIP_ISAC
 _
 
-Patches currently in -mm which might be from mb@bu3sch.de are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
+git-avr32.patch
+git-dvb.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+git-mips.patch
 git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
