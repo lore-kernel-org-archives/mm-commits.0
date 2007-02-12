@@ -1,35 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - tty-clarify-disassociate_ctty.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:09 -0800
-Message-ID: <200702122245.l1CMj99m013689@shell0.pdx.osdl.net>
+Subject: - signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:45:16 -0800
+Message-ID: <200702122245.l1CMjG6Q013698@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45077 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45082 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030286AbXBLWpT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:45:19 -0500
+	id S1030285AbXBLWpV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:45:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: clarify disassociate_ctty
+     signal: rewrite kill_something_info so it uses newer helpers
 has been removed from the -mm tree.  Its filename was
-     tty-clarify-disassociate_ctty.patch
+     signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty: clarify disassociate_ctty
+Subject: signal: rewrite kill_something_info so it uses newer helpers
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The code to look at tty_old_pgrp and send SIGHUP and SIGCONT when it is
-present only executes when disassociate_ctty is called from do_exit.  Make
-this clear by adding an explict on_exit check, and explicitly setting
-tty_old_pgrp to 0.
-
-In addition fix the locking by reading tty_old_pgrp under the siglock.
+The goal is to remove users of the old signal helper functions so they can be
+removed.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -37,27 +33,42 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ kernel/signal.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-clarify-disassociate_ctty drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-clarify-disassociate_ctty
-+++ a/drivers/char/tty_io.c
-@@ -1508,8 +1508,12 @@ void disassociate_ctty(int on_exit)
- 		/* XXX: here we race, there is nothing protecting tty */
- 		if (on_exit && tty->driver->type != TTY_DRIVER_TYPE_PTY)
- 			tty_vhangup(tty);
--	} else {
--		pid_t old_pgrp = current->signal->tty_old_pgrp;
-+	} else if (on_exit) {
-+		pid_t old_pgrp;
-+		spin_lock_irq(&current->sighand->siglock);
-+		old_pgrp = current->signal->tty_old_pgrp;
-+		current->signal->tty_old_pgrp = 0;
-+		spin_unlock_irq(&current->sighand->siglock);
- 		if (old_pgrp) {
- 			kill_pg(old_pgrp, SIGHUP, on_exit);
- 			kill_pg(old_pgrp, SIGCONT, on_exit);
+diff -puN kernel/signal.c~signal-rewrite-kill_something_info-so-it-uses-newer-helpers kernel/signal.c
+--- a/kernel/signal.c~signal-rewrite-kill_something_info-so-it-uses-newer-helpers
++++ a/kernel/signal.c
+@@ -1191,8 +1191,10 @@ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
+ 
+ static int kill_something_info(int sig, struct siginfo *info, int pid)
+ {
++	int ret;
++	rcu_read_lock();
+ 	if (!pid) {
+-		return kill_pg_info(sig, info, process_group(current));
++		ret = kill_pgrp_info(sig, info, task_pgrp(current));
+ 	} else if (pid == -1) {
+ 		int retval = 0, count = 0;
+ 		struct task_struct * p;
+@@ -1207,12 +1209,14 @@ static int kill_something_info(int sig, 
+ 			}
+ 		}
+ 		read_unlock(&tasklist_lock);
+-		return count ? retval : -ESRCH;
++		ret = count ? retval : -ESRCH;
+ 	} else if (pid < 0) {
+-		return kill_pg_info(sig, info, -pid);
++		ret = kill_pgrp_info(sig, info, find_pid(-pid));
+ 	} else {
+-		return kill_proc_info(sig, info, pid);
++		ret = kill_pid_info(sig, info, find_pid(pid));
+ 	}
++	rcu_read_unlock();
++	return ret;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
