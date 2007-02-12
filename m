@@ -1,59 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-fix-mismatch-between-32-bit-and-64-bit-abi.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:48:55 -0800
-Message-ID: <200702122248.l1CMmtWg014066@shell0.pdx.osdl.net>
+Subject: - kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:48:45 -0800
+Message-ID: <200702122248.l1CMmjTM014049@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45588 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45581 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030370AbXBLWtC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:49:02 -0500
+	id S1030368AbXBLWtA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:49:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kvm: Fix mismatch between 32-bit and 64-bit abi
+     kvm: vmx: handle triple faults by returning EXIT_REASON_SHUTDOWN to userspace
 has been removed from the -mm tree.  Its filename was
-     kvm-fix-mismatch-between-32-bit-and-64-bit-abi.patch
+     kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kvm: Fix mismatch between 32-bit and 64-bit abi
+Subject: kvm: vmx: handle triple faults by returning EXIT_REASON_SHUTDOWN to userspace
 From: Avi Kivity <avi@qumranet.com>
 
-Unfortunately requiring a version bump.
+Just like svm.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kvm.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/kvm/vmx.c |    6 ++++++
+ drivers/kvm/vmx.h |    1 +
+ 2 files changed, 7 insertions(+)
 
-diff -puN include/linux/kvm.h~kvm-fix-mismatch-between-32-bit-and-64-bit-abi include/linux/kvm.h
---- a/include/linux/kvm.h~kvm-fix-mismatch-between-32-bit-and-64-bit-abi
-+++ a/include/linux/kvm.h
-@@ -11,7 +11,7 @@
- #include <asm/types.h>
- #include <linux/ioctl.h>
+diff -puN drivers/kvm/vmx.c~kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace
++++ a/drivers/kvm/vmx.c
+@@ -1375,6 +1375,11 @@ static int handle_external_interrupt(str
+ 	return 1;
+ }
  
--#define KVM_API_VERSION 2
-+#define KVM_API_VERSION 3
++static int handle_triple_fault(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
++{
++	kvm_run->exit_reason = KVM_EXIT_SHUTDOWN;
++	return 0;
++}
  
- /*
-  * Architectural interrupt line count, and the size of the bitmap needed
-@@ -187,6 +187,7 @@ struct kvm_translation {
- 	__u8  valid;
- 	__u8  writeable;
- 	__u8  usermode;
-+	__u8  pad[5];
- };
+ static int get_io_count(struct kvm_vcpu *vcpu, u64 *count)
+ {
+@@ -1635,6 +1640,7 @@ static int (*kvm_vmx_exit_handlers[])(st
+ 				      struct kvm_run *kvm_run) = {
+ 	[EXIT_REASON_EXCEPTION_NMI]           = handle_exception,
+ 	[EXIT_REASON_EXTERNAL_INTERRUPT]      = handle_external_interrupt,
++	[EXIT_REASON_TRIPLE_FAULT]            = handle_triple_fault,
+ 	[EXIT_REASON_IO_INSTRUCTION]          = handle_io,
+ 	[EXIT_REASON_CR_ACCESS]               = handle_cr,
+ 	[EXIT_REASON_DR_ACCESS]               = handle_dr,
+diff -puN drivers/kvm/vmx.h~kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace drivers/kvm/vmx.h
+--- a/drivers/kvm/vmx.h~kvm-vmx-handle-triple-faults-by-returning-exit_reason_shutdown-to-userspace
++++ a/drivers/kvm/vmx.h
+@@ -180,6 +180,7 @@ enum vmcs_field {
  
- /* for KVM_INTERRUPT */
+ #define EXIT_REASON_EXCEPTION_NMI       0
+ #define EXIT_REASON_EXTERNAL_INTERRUPT  1
++#define EXIT_REASON_TRIPLE_FAULT        2
+ 
+ #define EXIT_REASON_PENDING_INTERRUPT   7
+ 
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
