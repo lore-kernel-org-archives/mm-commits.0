@@ -1,62 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - fix-null-pointer-dereference-in-appledisplay-driver.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:42:43 -0800
-Message-ID: <200702122242.l1CMghue013445@shell0.pdx.osdl.net>
+Subject: - export-ufs_fsh-to-userspace.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:44:16 -0800
+Message-ID: <200702122244.l1CMiGOd013573@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44957 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44964 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030262AbXBLWoU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:44:20 -0500
+	id S1030264AbXBLWoX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:44:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux-kernel@hansmi.ch, benh@kernel.crashing.org, greg@kroah.com, lenb@kernel.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, dushistov@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     null pointer dereference in appledisplay driver
+     export ufs_fs.h to userspace
 has been removed from the -mm tree.  Its filename was
-     fix-null-pointer-dereference-in-appledisplay-driver.patch
+     export-ufs_fsh-to-userspace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: null pointer dereference in appledisplay driver
-From: Michael Hanselmann <linux-kernel@hansmi.ch>
+Subject: export ufs_fs.h to userspace
+From: Mike Frysinger <vapier@gentoo.org>
 
-Commit 40b20c257a13c5a526ac540bc5e43d0fdf29792a by Len Brown introduced
-a null pointer dereference in the appledisplay driver. This patch fixes
-it.
+Was ufs_fs.h purposefully not exported to userspace or did it just slip
+through the cracks ?  assuming the latter scenario, the attached patch touches
+up the relationship between ufs_fs.h and its sub headers (like ufs_fs_sb.h) so
+that we can export it ...  the silo bootloader takes advantage of this header
+for example.
 
-Signed-off-by: Michael Hanselmann <linux-kernel@hansmi.ch>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/appledisplay.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/Kbuild      |    1 +
+ include/linux/ufs_fs.h    |    4 +++-
+ include/linux/ufs_fs_sb.h |    1 -
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/misc/appledisplay.c~fix-null-pointer-dereference-in-appledisplay-driver drivers/usb/misc/appledisplay.c
---- a/drivers/usb/misc/appledisplay.c~fix-null-pointer-dereference-in-appledisplay-driver
-+++ a/drivers/usb/misc/appledisplay.c
-@@ -281,8 +281,8 @@ static int appledisplay_probe(struct usb
- 	/* Register backlight device */
- 	snprintf(bl_name, sizeof(bl_name), "appledisplay%d",
- 		atomic_inc_return(&count_displays) - 1);
--	pdata->bd = backlight_device_register(bl_name, NULL, NULL,
--						&appledisplay_bl_data);
-+	pdata->bd = backlight_device_register(bl_name, NULL,
-+		pdata, &appledisplay_bl_data);
- 	if (IS_ERR(pdata->bd)) {
- 		err("appledisplay: Backlight registration failed");
- 		goto error;
+diff -puN include/linux/Kbuild~export-ufs_fsh-to-userspace include/linux/Kbuild
+--- a/include/linux/Kbuild~export-ufs_fsh-to-userspace
++++ a/include/linux/Kbuild
+@@ -323,6 +323,7 @@ unifdef-y += tty.h
+ unifdef-y += types.h
+ unifdef-y += udf_fs_i.h
+ unifdef-y += udp.h
++unifdef-y += ufs_fs.h
+ unifdef-y += uinput.h
+ unifdef-y += uio.h
+ unifdef-y += unistd.h
+diff -puN include/linux/ufs_fs.h~export-ufs_fsh-to-userspace include/linux/ufs_fs.h
+--- a/include/linux/ufs_fs.h~export-ufs_fsh-to-userspace
++++ a/include/linux/ufs_fs.h
+@@ -45,8 +45,10 @@ typedef __u32 __bitwise __fs32;
+ typedef __u16 __bitwise __fs16;
+ #endif
+ 
++#ifdef __KERNEL__
+ #include <linux/ufs_fs_i.h>
+ #include <linux/ufs_fs_sb.h>
++#endif
+ 
+ #define UFS_BBLOCK 0
+ #define UFS_BBSIZE 8192
+@@ -303,7 +305,7 @@ typedef __u16 __bitwise __fs16;
+ #define UFS_MAXMNTLEN 512
+ #define UFS2_MAXMNTLEN 468
+ #define UFS2_MAXVOLLEN 32
+-/* #define UFS_MAXCSBUFS 31 */
++#define UFS_MAXCSBUFS 31
+ #define UFS_LINK_MAX 32000
+ /*
+ #define	UFS2_NOCSPTRS	((128 / sizeof(void *)) - 4)
+diff -puN include/linux/ufs_fs_sb.h~export-ufs_fsh-to-userspace include/linux/ufs_fs_sb.h
+--- a/include/linux/ufs_fs_sb.h~export-ufs_fsh-to-userspace
++++ a/include/linux/ufs_fs_sb.h
+@@ -21,7 +21,6 @@
+ struct ufs_sb_private_info;
+ struct ufs_cg_private_info;
+ struct ufs_csum;
+-#define UFS_MAXCSBUFS 31
+ 
+ struct ufs_sb_info {
+ 	struct ufs_sb_private_info * s_uspi;	
 _
 
-Patches currently in -mm which might be from linux-kernel@hansmi.ch are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-git-acpi.patch
-git-backlight.patch
+search-a-little-harder-for-mkimage.patch
+new-toplevel-target-headers_check_all.patch
+use-__u64-rather-than-u64-in-parisc-statfs-structs.patch
+use-__u32-rather-than-u32-in-userspace-ioctls-in-usbdevice_fsh.patch
