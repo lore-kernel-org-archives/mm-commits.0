@@ -1,32 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:11 -0800
-Message-ID: <200702122245.l1CMjBPT013692@shell0.pdx.osdl.net>
+Subject: - pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:45:23 -0800
+Message-ID: <200702122245.l1CMjNaa013707@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45087 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45098 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030284AbXBLWpX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:45:23 -0500
+	id S1030295AbXBLWp2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:45:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: fix the locking for signal->session in disassociate_ctty
+     pid: replace is_orphaned_pgrp with is_current_pgrp_orphaned
 has been removed from the -mm tree.  Its filename was
-     tty-fix-the-locking-for-signal-session-in-disassociate_ctty.patch
+     pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty: fix the locking for signal->session in disassociate_ctty
+Subject: pid: replace is_orphaned_pgrp with is_current_pgrp_orphaned
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-commit 24ec839c431eb79bb8f6abc00c4e1eb3b8c4d517 while fixing the locking for
-signal->tty got the locking wrong for signal->session.  This places our
-accesses of signal->session back under the tasklist_lock where they belong.
+Every call to is_orphaned_pgrp passed in process_group(current) which is racy
+with respect to another thread changing our process group.  It didn't bite us
+because we were dealing with integers and the worse we would get would be a
+stale answer.
+
+In switching the checks to use struct pid to be a little more efficient and
+prepare the way for pid namespaces this race became apparent.
+
+So I simplified the calls to the more specialized is_current_pgrp_orphaned so
+I didn't have to worry about making logic changes to avoid the race.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -34,37 +41,79 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/char/n_tty.c  |    2 +-
+ drivers/char/tty_io.c |    2 +-
+ include/linux/tty.h   |    2 +-
+ kernel/exit.c         |    4 ++--
+ kernel/signal.c       |    2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-fix-the-locking-for-signal-session-in-disassociate_ctty drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-fix-the-locking-for-signal-session-in-disassociate_ctty
+diff -puN drivers/char/n_tty.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned
++++ a/drivers/char/n_tty.c
+@@ -1188,7 +1188,7 @@ static int job_control(struct tty_struct
+ 			printk("read_chan: tty->pgrp <= 0!\n");
+ 		else if (process_group(current) != tty->pgrp) {
+ 			if (is_ignored(SIGTTIN) ||
+-			    is_orphaned_pgrp(process_group(current)))
++			    is_current_pgrp_orphaned())
+ 				return -EIO;
+ 			kill_pg(process_group(current), SIGTTIN, 1);
+ 			return -ERESTARTSYS;
+diff -puN drivers/char/tty_io.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned
 +++ a/drivers/char/tty_io.c
-@@ -1496,7 +1496,6 @@ void disassociate_ctty(int on_exit)
- {
- 	struct tty_struct *tty;
- 	int tty_pgrp = -1;
--	int session;
+@@ -1118,7 +1118,7 @@ int tty_check_change(struct tty_struct *
+ 		return 0;
+ 	if (is_ignored(SIGTTOU))
+ 		return 0;
+-	if (is_orphaned_pgrp(process_group(current)))
++	if (is_current_pgrp_orphaned())
+ 		return -EIO;
+ 	(void) kill_pg(process_group(current), SIGTTOU, 1);
+ 	return -ERESTARTSYS;
+diff -puN include/linux/tty.h~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned include/linux/tty.h
+--- a/include/linux/tty.h~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned
++++ a/include/linux/tty.h
+@@ -303,7 +303,7 @@ extern int tty_read_raw_data(struct tty_
+ 			     int buflen);
+ extern void tty_write_message(struct tty_struct *tty, char *msg);
  
- 	lock_kernel();
- 
-@@ -1530,7 +1529,6 @@ void disassociate_ctty(int on_exit)
- 
- 	spin_lock_irq(&current->sighand->siglock);
- 	current->signal->tty_old_pgrp = 0;
--	session = process_session(current);
- 	spin_unlock_irq(&current->sighand->siglock);
- 
- 	mutex_lock(&tty_mutex);
-@@ -1549,7 +1547,7 @@ void disassociate_ctty(int on_exit)
- 
- 	/* Now clear signal->tty under the lock */
- 	read_lock(&tasklist_lock);
--	session_clear_tty(session);
-+	session_clear_tty(process_session(current));
- 	read_unlock(&tasklist_lock);
- 	unlock_kernel();
+-extern int is_orphaned_pgrp(int pgrp);
++extern int is_current_pgrp_orphaned(void);
+ extern int is_ignored(int sig);
+ extern int tty_signal(int sig, struct tty_struct *tty);
+ extern void tty_hangup(struct tty_struct * tty);
+diff -puN kernel/exit.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned kernel/exit.c
+--- a/kernel/exit.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned
++++ a/kernel/exit.c
+@@ -229,12 +229,12 @@ static int will_become_orphaned_pgrp(str
+ 	return ret;	/* (sighing) "Often!" */
  }
+ 
+-int is_orphaned_pgrp(int pgrp)
++int is_current_pgrp_orphaned(void)
+ {
+ 	int retval;
+ 
+ 	read_lock(&tasklist_lock);
+-	retval = will_become_orphaned_pgrp(find_pid(pgrp), NULL);
++	retval = will_become_orphaned_pgrp(task_pgrp(current), NULL);
+ 	read_unlock(&tasklist_lock);
+ 
+ 	return retval;
+diff -puN kernel/signal.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned kernel/signal.c
+--- a/kernel/signal.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned
++++ a/kernel/signal.c
+@@ -1909,7 +1909,7 @@ relock:
+ 
+ 				/* signals can be posted during this window */
+ 
+-				if (is_orphaned_pgrp(process_group(current)))
++				if (is_current_pgrp_orphaned())
+ 					goto relock;
+ 
+ 				spin_lock_irq(&current->sighand->siglock);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
