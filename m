@@ -1,180 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - at91-gpio-wrappers.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:55 -0800
-Message-ID: <200702122245.l1CMjtKn013749@shell0.pdx.osdl.net>
+Subject: - edac-fix-in-e752x-mc-driver.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:45:41 -0800
+Message-ID: <200702122245.l1CMjfUI013731@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45161 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45146 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030306AbXBLWqA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:00 -0500
+	id S1030292AbXBLWpx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:45:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: mikechan@google.com, alan@redhat.com, norsk5@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     AT91 GPIO wrappers
+     EDAC: Fix in e752x mc driver
 has been removed from the -mm tree.  Its filename was
-     at91-gpio-wrappers.patch
+     edac-fix-in-e752x-mc-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: AT91 GPIO wrappers
-From: David Brownell <david-b@pacbell.net>
+Subject: EDAC: Fix in e752x mc driver
+From: Mike Chan <mikechan@google.com>
 
-This is a first cut at making the AT91 code use the generic GPIO calls.
+This fix/change returns the offset into the page for the ce/ue error, instead
+of just 0.  The e752x dram controller reads 34:6 of the linear address with
+the error.
 
-Note that the original AT91 GPIO calls merged the "mux pin as GPIO" and "set
-GPIO direction" functionality into one API call, contrary to what's specified
-as a cross-platform portable model.  So this involved a few non-inlinable
-functions.
-
-[akpm@osdl.org: cleanups]
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Mike Chan <mikechan@google.com>
+Signed-off-by: doug thompson <norsk5@xmission.com>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91rm9200/gpio.c        |   48 +++++++++++++++++++++++
- include/asm-arm/arch-at91rm9200/gpio.h |   48 ++++++++++++++++++++++-
- 2 files changed, 94 insertions(+), 2 deletions(-)
+ drivers/edac/e752x_edac.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm/mach-at91rm9200/gpio.c~at91-gpio-wrappers arch/arm/mach-at91rm9200/gpio.c
---- a/arch/arm/mach-at91rm9200/gpio.c~at91-gpio-wrappers
-+++ a/arch/arm/mach-at91rm9200/gpio.c
-@@ -65,6 +65,24 @@ static inline unsigned pin_to_mask(unsig
+diff -puN drivers/edac/e752x_edac.c~edac-fix-in-e752x-mc-driver drivers/edac/e752x_edac.c
+--- a/drivers/edac/e752x_edac.c~edac-fix-in-e752x-mc-driver
++++ a/drivers/edac/e752x_edac.c
+@@ -285,8 +285,9 @@ static void do_process_ce(struct mem_ctl
+ 	if (!pvt->map_type)
+ 		row = 7 - row;
  
+-	edac_mc_handle_ce(mci, page, 0, sec1_syndrome, row, channel,
+-		"e752x CE");
++	/* e752x mc reads 34:6 of the DRAM linear address */
++	edac_mc_handle_ce(mci, page, offset_in_page(sec1_add << 4),
++			sec1_syndrome, row, channel, "e752x CE");
+ }
  
- /*
-+ * mux the pin to the "GPIO" peripheral role.
-+ */
-+int __init_or_module at91_set_GPIO_periph(unsigned pin, int use_pullup)
-+{
-+	void __iomem	*pio = pin_to_controller(pin);
-+	unsigned	mask = pin_to_mask(pin);
-+
-+	if (!pio)
-+		return -EINVAL;
-+	__raw_writel(mask, pio + PIO_IDR);
-+	__raw_writel(mask, pio + (use_pullup ? PIO_PUER : PIO_PUDR));
-+	__raw_writel(mask, pio + PIO_PER);
-+	return 0;
-+}
-+EXPORT_SYMBOL(at91_set_GPIO_periph);
-+
-+
-+/*
-  * mux the pin to the "A" internal peripheral role.
-  */
- int __init_or_module at91_set_A_periph(unsigned pin, int use_pullup)
-@@ -181,6 +199,36 @@ EXPORT_SYMBOL(at91_set_multi_drive);
+ static inline void process_ce(struct mem_ctl_info *mci, u16 error_one,
+@@ -319,8 +320,10 @@ static void do_process_ue(struct mem_ctl
+ 			((block_page >> 1) & 3) :
+ 			edac_mc_find_csrow_by_page(mci, block_page);
  
- /*--------------------------------------------------------------------------*/
+-		edac_mc_handle_ue(mci, block_page, 0, row,
+-			"e752x UE from Read");
++		/* e752x mc reads 34:6 of the DRAM linear address */
++		edac_mc_handle_ue(mci, block_page,
++					offset_in_page(error_2b << 4),
++					row, "e752x UE from Read");
+ 	}
+ 	if (error_one & 0x0404) {
+ 		error_2b = scrb_add;
+@@ -333,8 +336,10 @@ static void do_process_ue(struct mem_ctl
+ 			((block_page >> 1) & 3) :
+ 			edac_mc_find_csrow_by_page(mci, block_page);
  
-+/* new-style GPIO calls; these expect at91_set_GPIO_periph to have been
-+ * called, and maybe at91_set_multi_drive() for putout pins.
-+ */
-+
-+int gpio_direction_input(unsigned pin)
-+{
-+	void __iomem	*pio = pin_to_controller(pin);
-+	unsigned	mask = pin_to_mask(pin);
-+
-+	if (!pio || !(__raw_readl(pio + PIO_PSR) & mask))
-+		return -EINVAL;
-+	__raw_writel(mask, pio + PIO_OER);
-+	return 0;
-+}
-+EXPORT_SYMBOL(gpio_direction_input);
-+
-+int gpio_direction_output(unsigned pin)
-+{
-+	void __iomem	*pio = pin_to_controller(pin);
-+	unsigned	mask = pin_to_mask(pin);
-+
-+	if (!pio || !(__raw_readl(pio + PIO_PSR) & mask))
-+		return -EINVAL;
-+	__raw_writel(mask, pio + PIO_OER);
-+	return 0;
-+}
-+EXPORT_SYMBOL(gpio_direction_output);
-+
-+/*--------------------------------------------------------------------------*/
-+
- /*
-  * assuming the pin is muxed as a gpio output, set its value.
-  */
-diff -puN include/asm-arm/arch-at91rm9200/gpio.h~at91-gpio-wrappers include/asm-arm/arch-at91rm9200/gpio.h
---- a/include/asm-arm/arch-at91rm9200/gpio.h~at91-gpio-wrappers
-+++ a/include/asm-arm/arch-at91rm9200/gpio.h
-@@ -179,6 +179,7 @@
+-		edac_mc_handle_ue(mci, block_page, 0, row,
+-				"e752x UE from Scruber");
++		/* e752x mc reads 34:6 of the DRAM linear address */
++		edac_mc_handle_ue(mci, block_page,
++					offset_in_page(error_2b << 4),
++					row, "e752x UE from Scruber");
+ 	}
+ }
  
- #ifndef __ASSEMBLY__
- /* setup setup routines, called from board init or driver probe() */
-+extern int __init_or_module at91_set_GPIO_periph(unsigned pin, int use_pullup);
- extern int __init_or_module at91_set_A_periph(unsigned pin, int use_pullup);
- extern int __init_or_module at91_set_B_periph(unsigned pin, int use_pullup);
- extern int __init_or_module at91_set_gpio_input(unsigned pin, int use_pullup);
-@@ -193,7 +194,50 @@ extern int at91_get_gpio_value(unsigned 
- /* callable only from core power-management code */
- extern void at91_gpio_suspend(void);
- extern void at91_gpio_resume(void);
--#endif
- 
--#endif
-+/*-------------------------------------------------------------------------*/
-+
-+/* wrappers for "new style" GPIO calls. the old AT91-specfic ones should
-+ * eventually be removed (along with this errno.h inclusion), and the
-+ * gpio request/free calls should probably be implemented.
-+ */
-+
-+#include <asm/errno.h>
-+
-+static inline int gpio_request(unsigned gpio, const char *label)
-+{
-+	return 0;
-+}
-+
-+static inline void gpio_free(unsigned gpio)
-+{
-+}
-+
-+extern int gpio_direction_input(unsigned gpio);
-+extern int gpio_direction_output(unsigned gpio);
- 
-+static inline int gpio_get_value(unsigned gpio)
-+{
-+	return at91_get_gpio_value(gpio);
-+}
-+
-+static inline void gpio_set_value(unsigned gpio, int value)
-+{
-+	at91_set_gpio_value(gpio, value);
-+}
-+
-+#include <asm-generic/gpio.h>		/* cansleep wrappers */
-+
-+static inline int gpio_to_irq(unsigned gpio)
-+{
-+	return gpio;
-+}
-+
-+static inline int irq_to_gpio(unsigned irq)
-+{
-+	return irq;
-+}
-+
-+#endif	/* __ASSEMBLY__ */
-+
-+#endif
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from mikechan@google.com are
 
 origin.patch
-git-acpi.patch
-git-avr32.patch
-git-md-accel.patch
-8250-make-probing-for-txen-bug-a-config-option.patch
