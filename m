@@ -1,90 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - debug-shared-irqs-kconfig-fix.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 23:21:49 -0800
-Message-ID: <200702120721.l1C7Lnrn024686@shell0.pdx.osdl.net>
+Subject: - kvm-add-a-global-list-of-all-virtual-machines-tidy.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 23:25:26 -0800
+Message-ID: <200702120725.l1C7PQTH024777@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44827 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44862 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933056AbXBLHZJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 02:25:09 -0500
+	id S933057AbXBLHZp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 02:25:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, arjan@infradead.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     DEBUG_SHIRQ should depend on DEBUG_KERNEL
+     kvm-add-a-global-list-of-all-virtual-machines tidy
 has been removed from the -mm tree.  Its filename was
-     debug-shared-irqs-kconfig-fix.patch
+     kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
 
-This patch was dropped because it was folded into debug-shared-irqs.patch
+This patch was dropped because it was folded into kvm-add-a-global-list-of-all-virtual-machines.patch
 
 ------------------------------------------------------
-Subject: DEBUG_SHIRQ should depend on DEBUG_KERNEL
-From: Adrian Bunk <bunk@stusta.de>
+Subject: kvm-add-a-global-list-of-all-virtual-machines tidy
+From: Andrew Morton <akpm@osdl.org>
 
-DEBUG_SHIRQ is clearly a debugging option.
+Use standard (ugly) initialisers.
 
-While moving the option below DEBUG_KERNEL, I also adjusted the help text
-to be completely visible in "make menuconfig" with a 80 char width.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/kvm/kvm_main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/Kconfig.debug~debug-shared-irqs-kconfig-fix lib/Kconfig.debug
---- a/lib/Kconfig.debug~debug-shared-irqs-kconfig-fix
-+++ a/lib/Kconfig.debug
-@@ -71,21 +71,21 @@ config HEADERS_CHECK
- 	  exported to $(INSTALL_HDR_PATH) (usually 'usr/include' in
- 	  your build tree), to make sure they're suitable.
+diff -puN drivers/kvm/kvm_main.c~kvm-add-a-global-list-of-all-virtual-machines-tidy drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-add-a-global-list-of-all-virtual-machines-tidy
++++ a/drivers/kvm/kvm_main.c
+@@ -41,8 +41,8 @@
+ MODULE_AUTHOR("Qumranet");
+ MODULE_LICENSE("GPL");
  
--config DEBUG_SHIRQ
--       bool "Debug shared IRQ handlers"
--       depends on GENERIC_HARDIRQS
--       help
--         Enable this to generate a spurious interrupt as soon as a shared interrupt
--	 handler is registered, and just before one is deregistered. Drivers ought
--	 to be able to handle interrupts coming in at those points; some don't and
--	 need to be caught.
--
- config DEBUG_KERNEL
- 	bool "Kernel debugging"
- 	help
- 	  Say Y here if you are developing drivers or trying to debug and
- 	  identify kernel problems.
+-static spinlock_t kvm_lock = SPIN_LOCK_UNLOCKED;
+-static struct list_head vm_list = LIST_HEAD_INIT(vm_list);
++static DEFINE_SPINLOCK(kvm_lock);
++static LIST_HEAD(vm_list);
  
-+config DEBUG_SHIRQ
-+	bool "Debug shared IRQ handlers"
-+	depends on DEBUG_KERNEL && GENERIC_HARDIRQS
-+	help
-+	  Enable this to generate a spurious interrupt as soon as a shared
-+	  interrupt handler is registered, and just before one is deregistered.
-+	  Drivers ought to be able to handle interrupts coming in at those
-+	  points; some don't and need to be caught.
-+
- config LOG_BUF_SHIFT
- 	int "Kernel log buffer size (16 => 64KB, 17 => 128KB)" if DEBUG_KERNEL
- 	range 12 21
+ struct kvm_arch_ops *kvm_arch_ops;
+ struct kvm_stat kvm_stat;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-debug-shared-irqs.patch
-debug-shared-irqs-kconfig-fix.patch
-drivers-isdn-pcbit-proper-prototypes.patch
-drivers-isdn-hisax-proper-prototypes.patch
-drivers-isdn-sc-proper-prototypes.patch
-include-linux-nfsd-consth-remove-nfs_super_magic.patch
-ecryptfs-generalize-metadata-read-write-fs-ecryptfs-make-code-static.patch
-remove-broken-video-drivers-v4.patch
-remove-bogus-con_is_present-prototypes.patch
-proper-prototype-for-tosh_smm.patch
-remove-the-broken-fb_s3trio-driver.patch
+register_chrdev_region-dont-hand-out-the-local-experimental-majors.patch
+register_blkdev-dont-hand-out-the-local-experimental-majors.patch
+spi-controller-driver-for-omap-microwire.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+omap-gpio-wrappers.patch
+at91-gpio-wrappers.patch
+ecryptfs-public-key-packet-management.patch
+ecryptfs-generalize-metadata-read-write.patch
+dynamic-kernel-command-line-ia64-fix.patch
+kvm-add-a-global-list-of-all-virtual-machines.patch
+kvm-add-a-global-list-of-all-virtual-machines-tidy.patch
+cyber2010-framebuffer-on-arm-netwinder-fix-tidy.patch
+mark-struct-file_operations-const-2-fix.patch
+mark-struct-file_operations-const-4-fix.patch
