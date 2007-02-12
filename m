@@ -1,245 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - edac-add-memory-scrubbing-controls-api-to-core.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:44 -0800
-Message-ID: <200702122245.l1CMjiIB013734@shell0.pdx.osdl.net>
+Subject: - edac-e752x-bit-mask-fix.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:45:35 -0800
+Message-ID: <200702122245.l1CMjZcg013723@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45166 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45141 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030309AbXBLWqB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:01 -0500
+	id S1030292AbXBLWpv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:45:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: frithiof.jensen@ericson.com, alan@redhat.com, norsk5@xmission.com, mm-commits@vger.kernel.org
+To: bapper@mvista.com, ak@suse.de, alan@lxorguk.ukuu.org.uk, djiang@mvista.com, ebiederm@xmission.com, norsk5@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     EDAC: Add memory scrubbing controls API to core
+     EDAC: e752x bit mask fix
 has been removed from the -mm tree.  Its filename was
-     edac-add-memory-scrubbing-controls-api-to-core.patch
+     edac-e752x-bit-mask-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: EDAC: Add memory scrubbing controls API to core
-From: Frithiof Jensen <frithiof.jensen@ericson.com>
+Subject: EDAC: e752x bit mask fix
+From: Brian Pomerantz <bapper@mvista.com>
 
-This is an attempt of providing an interface for memory scrubbing control in
-EDAC.
+The fatal vs.  non-fatal mask for the sysbus FERR status is incorrect
+according to the E7520 datasheet.  This patch corrects the mask to correctly
+handle fatal and non-fatal errors.
 
-This patch modifies the EDAC Core to provide the Interface for memory
-controller modules to implment.
-
-The following things are still outstanding:
-
- - K8 is the first implemenation,
-
-   The patch provide a method of configuring the K8 hardware memory scrubber
-   via the 'mcX' sysfs directory.  There should be some fallback to a generic
-   scrubber implemented in software if the hardware does not support
-   scrubbing.
-
-   Or .. the scrubbing sysfs entry should not be visible at all.
-
- - Only works with SDRAM, not cache,
-
-   The K8 can scrub cache and l2cache also - but I think this is not so
-   useful as the cache is busy all the time (one hopes).
-
-   One would also expect that cache scrubbing requires hardware support.
-
- - Error Handling,
-
-   I would like that errors are returned to the user in "terms of file
-   system".
-
- - Presentation,
-
-   I chose Bandwidth in Bytes/Second as a representation of the scrubbing
-   rate for the following reasons:
-
-   I like that the sysfs entries are sort-of textual, related to something
-   that makes sense instead of magical values that must be looked up.
-
-   "My People" wants "% main memory scrubbed per hour" others prefer "%
-   memory bandwidth used" as representation, "bandwith used" makes it easy to
-   calculate both versions in one-liner scripts.
-
-   If one later wants to scrub cache, the scaling becomes wierd for K8
-   changing from "blocks of 64 byte memory" to "blocks of 64 cache lines" to
-   "blocks of 64 bit".  Using "bandwidth used" makes sense in all three cases,
-   (I.M.O.  anyway ;-).
-
- - Discovery,
-
-   There is no way to discover the possible settings and what they do
-   without reading the code and the documentation.
-
-   *I* do not know how to make that work in a practical way.
-
- - Bugs(??),
-
-   other tools can set invalid values in the memory scrub control register,
-   those will read back as '-1', requiring the user to reset the scrub rate. 
-   This is how *I* think it should be.
-
- - Afflicting other areas of code,
-
-   I made changes to edac_mc.c and edac_mc.h which will show up globally -
-   this is not nice, it would be better that the memory scrubbing fuctionality
-   and interface could be entirely contained within the memory controller it
-   applies to.
-
-Frithiof Jensen
-
-edac_mc.c and its .h file is a CORE helper module for EDAC
-driver modules. This provides the abstraction for device specific
-drivers. It is fine to modify this CORE to provide help for
-new features of the the drivers
-
-doug thompson
-
-Signed-off-by: Frithiof Jensen <frithiof.jensen@ericson.com>
-Signed-off-by: doug thompson <norsk5@xmission.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Brian Pomerantz <bapper@mvista.com>
+Signed-off-by: Dave Jiang <djiang@mvista.com>
+Signed-off-by: Doug Thompson <norsk5@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/drivers/edac/edac.txt |   16 +++++++
- drivers/edac/edac_mc.c              |   55 ++++++++++++++++++++++++++
- drivers/edac/edac_mc.h              |   12 +++++
- 3 files changed, 82 insertions(+), 1 deletion(-)
+ drivers/edac/e752x_edac.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/drivers/edac/edac.txt~edac-add-memory-scrubbing-controls-api-to-core Documentation/drivers/edac/edac.txt
---- a/Documentation/drivers/edac/edac.txt~edac-add-memory-scrubbing-controls-api-to-core
-+++ a/Documentation/drivers/edac/edac.txt
-@@ -339,7 +339,21 @@ Device Symlink:
+diff -puN drivers/edac/e752x_edac.c~edac-e752x-bit-mask-fix drivers/edac/e752x_edac.c
+--- a/drivers/edac/e752x_edac.c~edac-e752x-bit-mask-fix
++++ a/drivers/edac/e752x_edac.c
+@@ -556,17 +556,17 @@ static void e752x_check_sysbus(struct e7
+ 	error32 = (stat32 >> 16) & 0x3ff;
+ 	stat32 = stat32 & 0x3ff;
  
- 	'device'
+-	if(stat32 & 0x083)
+-		sysbus_error(1, stat32 & 0x083, error_found, handle_error);
++	if(stat32 & 0x087)
++		sysbus_error(1, stat32 & 0x087, error_found, handle_error);
  
--	Symlink to the memory controller device
-+	Symlink to the memory controller device.
-+
-+Sdram memory scrubbing rate:
-+
-+	'sdram_scrub_rate'
-+
-+	Read/Write attribute file that controls memory scrubbing. The scrubbing
-+	rate is set by writing a minimum bandwith in bytes/sec to the attribute
-+	file. The rate will be translated to an internal value that gives at
-+	least the specified rate.
-+
-+	Reading the file will return the actual scrubbing rate employed.
-+
-+	If configuration fails or memory scrubbing is not implemented, the value
-+	of the attribute file will be -1.
+-	if(stat32 & 0x37c)
+-		sysbus_error(0, stat32 & 0x37c, error_found, handle_error);
++	if(stat32 & 0x378)
++		sysbus_error(0, stat32 & 0x378, error_found, handle_error);
  
+-	if(error32 & 0x083)
+-		sysbus_error(1, error32 & 0x083, error_found, handle_error);
++	if(error32 & 0x087)
++		sysbus_error(1, error32 & 0x087, error_found, handle_error);
  
- 
-diff -puN drivers/edac/edac_mc.c~edac-add-memory-scrubbing-controls-api-to-core drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~edac-add-memory-scrubbing-controls-api-to-core
-+++ a/drivers/edac/edac_mc.c
-@@ -927,6 +927,57 @@ static ssize_t mci_reset_counters_store(
- 	return count;
+-	if(error32 & 0x37c)
+-		sysbus_error(0, error32 & 0x37c, error_found, handle_error);
++	if(error32 & 0x378)
++		sysbus_error(0, error32 & 0x378, error_found, handle_error);
  }
  
-+/* memory scrubbing */
-+static ssize_t mci_sdram_scrub_rate_store(struct mem_ctl_info *mci,
-+					const char *data, size_t count)
-+{
-+	u32 bandwidth = -1;
-+
-+	if (mci->set_sdram_scrub_rate) {
-+
-+		memctrl_int_store(&bandwidth, data, count);
-+
-+		if (!(*mci->set_sdram_scrub_rate)(mci, &bandwidth)) {
-+			edac_printk(KERN_DEBUG, EDAC_MC,
-+				"Scrub rate set successfully, applied: %d\n",
-+				bandwidth);
-+		} else {
-+			/* FIXME: error codes maybe? */
-+			edac_printk(KERN_DEBUG, EDAC_MC,
-+				"Scrub rate set FAILED, could not apply: %d\n",
-+				bandwidth);
-+		}
-+	} else {
-+		/* FIXME: produce "not implemented" ERROR for user-side. */
-+		edac_printk(KERN_WARNING, EDAC_MC,
-+			"Memory scrubbing 'set'control is not implemented!\n");
-+	}
-+	return count;
-+}
-+
-+static ssize_t mci_sdram_scrub_rate_show(struct mem_ctl_info *mci, char *data)
-+{
-+	u32 bandwidth = -1;
-+
-+	if (mci->get_sdram_scrub_rate) {
-+		if (!(*mci->get_sdram_scrub_rate)(mci, &bandwidth)) {
-+			edac_printk(KERN_DEBUG, EDAC_MC,
-+				"Scrub rate successfully, fetched: %d\n",
-+				bandwidth);
-+		} else {
-+			/* FIXME: error codes maybe? */
-+			edac_printk(KERN_DEBUG, EDAC_MC,
-+				"Scrub rate fetch FAILED, got: %d\n",
-+				bandwidth);
-+		}
-+	} else {
-+		/* FIXME: produce "not implemented" ERROR for user-side.  */
-+		edac_printk(KERN_WARNING, EDAC_MC,
-+			"Memory scrubbing 'get' control is not implemented!\n");
-+	}
-+	return sprintf(data, "%d\n", bandwidth);
-+}
-+
- /* default attribute files for the MCI object */
- static ssize_t mci_ue_count_show(struct mem_ctl_info *mci, char *data)
- {
-@@ -1033,6 +1084,9 @@ MCIDEV_ATTR(ce_noinfo_count,S_IRUGO,mci_
- MCIDEV_ATTR(ue_count,S_IRUGO,mci_ue_count_show,NULL);
- MCIDEV_ATTR(ce_count,S_IRUGO,mci_ce_count_show,NULL);
- 
-+/* memory scrubber attribute file */
-+MCIDEV_ATTR(sdram_scrub_rate,S_IRUGO|S_IWUSR,mci_sdram_scrub_rate_show,mci_sdram_scrub_rate_store);
-+
- static struct mcidev_attribute *mci_attr[] = {
- 	&mci_attr_reset_counters,
- 	&mci_attr_mc_name,
-@@ -1042,6 +1096,7 @@ static struct mcidev_attribute *mci_attr
- 	&mci_attr_ce_noinfo_count,
- 	&mci_attr_ue_count,
- 	&mci_attr_ce_count,
-+	&mci_attr_sdram_scrub_rate,
- 	NULL
- };
- 
-diff -puN drivers/edac/edac_mc.h~edac-add-memory-scrubbing-controls-api-to-core drivers/edac/edac_mc.h
---- a/drivers/edac/edac_mc.h~edac-add-memory-scrubbing-controls-api-to-core
-+++ a/drivers/edac/edac_mc.h
-@@ -315,6 +315,18 @@ struct mem_ctl_info {
- 	unsigned long scrub_cap;	/* chipset scrub capabilities */
- 	enum scrub_type scrub_mode;	/* current scrub mode */
- 
-+	/* Translates sdram memory scrub rate given in bytes/sec to the
-+	   internal representation and configures whatever else needs
-+	   to be configured.
-+	*/
-+	int (*set_sdram_scrub_rate) (struct mem_ctl_info *mci, u32 *bw);
-+
-+	/* Get the current sdram memory scrub rate from the internal
-+	   representation and converts it to the closest matching
-+	   bandwith in bytes/sec.
-+	*/
-+	int (*get_sdram_scrub_rate) (struct mem_ctl_info *mci, u32 *bw);
-+
- 	/* pointer to edac checking routine */
- 	void (*edac_check) (struct mem_ctl_info * mci);
- 	/*
+ static void e752x_check_membuf (struct e752x_error_info *info,
 _
 
-Patches currently in -mm which might be from frithiof.jensen@ericson.com are
+Patches currently in -mm which might be from bapper@mvista.com are
 
 origin.patch
-edac-k8-memory-scrubbing-patch.patch
