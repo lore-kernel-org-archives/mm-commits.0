@@ -1,31 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:16 -0800
-Message-ID: <200702122245.l1CMjG6Q013698@shell0.pdx.osdl.net>
+Subject: - tty-make-__proc_set_tty-static.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:45:04 -0800
+Message-ID: <200702122245.l1CMj4Fd013686@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45082 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45094 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030285AbXBLWpV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:45:21 -0500
+	id S1030293AbXBLWp1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:45:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signal: rewrite kill_something_info so it uses newer helpers
+     tty: make __proc_set_tty static
 has been removed from the -mm tree.  Its filename was
-     signal-rewrite-kill_something_info-so-it-uses-newer-helpers.patch
+     tty-make-__proc_set_tty-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: signal: rewrite kill_something_info so it uses newer helpers
+Subject: tty: make __proc_set_tty static
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The goal is to remove users of the old signal helper functions so they can be
-removed.
+The aim of this patch set is to start wrapping up the struct pid conversions. 
+As such this patchset culminates with the removal of kill_pg, kill_pg_info,
+__kill_pg_info, do_each_task_pid, and while_each_task_pid.
+
+kill_proc, daemonize, and kernel_thread are still in my sights but there is
+still work to get to them.
+
+
+The first three are basic cleanups around disassociate_ctty, while working on
+converting it I found several issues.  tty_old_pgrp can be a tricky concept to
+wrap your head around.
+
+ 1 tty: Make __proc_set_tty static.
+ 2 tty: Clarify disassociate_ctty
+ 3 tty: Fix the locking for signal->session in disassociate_ctty
+
+These just stop using the old helper functions.
+
+ 4 signal: Use kill_pgrp not kill_pg in the sunos compatibility code.
+ 5 signal: Rewrite kill_something_info so it uses newer helpers.
+
+Then the grind to convert the tty layer and all of it's helper functions to
+struct pid.
+
+ 6 pid: Make session_of_pgrp use struct pid instead of pid_t.
+ 7 pid: Use struct pid for talking about process groups in exit.c
+ 8 pid: Replace is_orphaned_pgrp with is_current_pgrp_orphaned
+ 9 tty: Update the tty layer to work with struct pid.
+
+A final helper function update.
+
+10 pid: Replace do/while_each_task_pid with do/while_each_pid_task
+
+And the removal of the functions that are now unused.
+11 pid: Remove now unused do_each_task_pid and while_each_task_pid
+12 pid: Remove the now unused kill_pg kill_pg_info and __kill_pg_info
+
+All of these should be fairly simple and to the point.
+
+
+
+This patch:
+
+Currently all users of __proc_set_tty are in tty_io.c so make the function
+static.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -33,42 +76,41 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/char/tty_io.c |    3 ++-
+ include/linux/tty.h   |    1 -
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/signal.c~signal-rewrite-kill_something_info-so-it-uses-newer-helpers kernel/signal.c
---- a/kernel/signal.c~signal-rewrite-kill_something_info-so-it-uses-newer-helpers
-+++ a/kernel/signal.c
-@@ -1191,8 +1191,10 @@ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
+diff -puN drivers/char/tty_io.c~tty-make-__proc_set_tty-static drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-make-__proc_set_tty-static
++++ a/drivers/char/tty_io.c
+@@ -155,6 +155,7 @@ int tty_ioctl(struct inode * inode, stru
+ 	      unsigned int cmd, unsigned long arg);
+ static int tty_fasync(int fd, struct file * filp, int on);
+ static void release_tty(struct tty_struct *tty, int idx);
++static void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
  
- static int kill_something_info(int sig, struct siginfo *info, int pid)
- {
-+	int ret;
-+	rcu_read_lock();
- 	if (!pid) {
--		return kill_pg_info(sig, info, process_group(current));
-+		ret = kill_pgrp_info(sig, info, task_pgrp(current));
- 	} else if (pid == -1) {
- 		int retval = 0, count = 0;
- 		struct task_struct * p;
-@@ -1207,12 +1209,14 @@ static int kill_something_info(int sig, 
- 			}
- 		}
- 		read_unlock(&tasklist_lock);
--		return count ? retval : -ESRCH;
-+		ret = count ? retval : -ESRCH;
- 	} else if (pid < 0) {
--		return kill_pg_info(sig, info, -pid);
-+		ret = kill_pgrp_info(sig, info, find_pid(-pid));
- 	} else {
--		return kill_proc_info(sig, info, pid);
-+		ret = kill_pid_info(sig, info, find_pid(pid));
- 	}
-+	rcu_read_unlock();
-+	return ret;
+ /**
+  *	alloc_tty_struct	-	allocate a tty object
+@@ -3791,7 +3792,7 @@ void proc_clear_tty(struct task_struct *
  }
+ EXPORT_SYMBOL(proc_clear_tty);
  
- /*
+-void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
++static void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
+ {
+ 	if (tty) {
+ 		tty->session = process_session(tsk);
+diff -puN include/linux/tty.h~tty-make-__proc_set_tty-static include/linux/tty.h
+--- a/include/linux/tty.h~tty-make-__proc_set_tty-static
++++ a/include/linux/tty.h
+@@ -333,7 +333,6 @@ extern int tty_ioctl(struct inode *inode
+ 
+ extern dev_t tty_devnum(struct tty_struct *tty);
+ extern void proc_clear_tty(struct task_struct *p);
+-extern void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
+ extern void proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
+ extern struct tty_struct *get_current_tty(void);
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
