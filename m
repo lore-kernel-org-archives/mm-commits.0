@@ -1,99 +1,304 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-sunrpc-aplit-svc_sock_enqueue-out-of-svc_setup_socket.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:46:35 -0800
-Message-ID: <200702122246.l1CMkZ0g013827@shell0.pdx.osdl.net>
+Subject: - isdn-eicon-use-array_size-macro-when-appropriate.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:29 -0800
+Message-ID: <200702122246.l1CMkTM0013813@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45258 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45249 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030309AbXBLWqj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:39 -0500
+	id S1030224AbXBLWqe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: SUNRPC: aplit svc_sock_enqueue out of svc_setup_socket
+     isdn-eicon: Use ARRAY_SIZE macro when appropriate
 has been removed from the -mm tree.  Its filename was
-     knfsd-sunrpc-aplit-svc_sock_enqueue-out-of-svc_setup_socket.patch
+     isdn-eicon-use-array_size-macro-when-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: SUNRPC: aplit svc_sock_enqueue out of svc_setup_socket
-From: NeilBrown <neilb@suse.de>
+Subject: isdn-eicon: Use ARRAY_SIZE macro when appropriate
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Rather than calling svc_sock_enqueue at the end of svc_setup_socket, we now
-call it (via svc_sock_recieved) after calling svc_setup_socket at each call
-site.
+Use ARRAY_SIZE macro already defined in kernel.h
 
-We do this because a subsequent patch will insert some code between the two
-calls at one call site.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/isdn/hardware/eicon/debug.c    |   30 +++++++++++------------
+ drivers/isdn/hardware/eicon/message.c  |   23 ++++++++---------
+ drivers/isdn/hardware/eicon/platform.h |    4 ---
+ 3 files changed, 26 insertions(+), 31 deletions(-)
 
-diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-aplit-svc_sock_enqueue-out-of-svc_setup_socket net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-sunrpc-aplit-svc_sock_enqueue-out-of-svc_setup_socket
-+++ a/net/sunrpc/svcsock.c
-@@ -938,7 +938,7 @@ svc_tcp_accept(struct svc_sock *svsk)
- 	if (!(newsvsk = svc_setup_socket(serv, newsock, &err,
- 				 (SVC_SOCK_ANONYMOUS | SVC_SOCK_TEMPORARY))))
- 		goto failed;
+diff -puN drivers/isdn/hardware/eicon/debug.c~isdn-eicon-use-array_size-macro-when-appropriate drivers/isdn/hardware/eicon/debug.c
+--- a/drivers/isdn/hardware/eicon/debug.c~isdn-eicon-use-array_size-macro-when-appropriate
++++ a/drivers/isdn/hardware/eicon/debug.c
+@@ -287,7 +287,7 @@ void* diva_maint_finit (void) {
+   }
+   external_dbg_queue = 0;
+ 
+-  for (i = 1; i < (sizeof(clients)/sizeof(clients[0])); i++) {
++  for (i = 1; i < ARRAY_SIZE(clients); i++) {
+     if (clients[i].pmem) {
+       diva_os_free (0, clients[i].pmem);
+     }
+@@ -391,7 +391,7 @@ static void DI_register (void *arg) {
+ 
+   diva_os_enter_spin_lock (&dbg_q_lock, &old_irql, "register");
+ 
+-  for (id = 1; id < (sizeof(clients)/sizeof(clients[0])); id++) {
++  for (id = 1; id < ARRAY_SIZE(clients); id++) {
+     if (clients[id].hDbg == hDbg) {
+       /*
+         driver already registered
+@@ -494,7 +494,7 @@ static void DI_deregister (pDbgHandle hD
+   diva_os_enter_spin_lock (&dbg_adapter_lock, &old_irql1, "read");
+   diva_os_enter_spin_lock (&dbg_q_lock, &old_irql, "read");
+ 
+-  for (i = 1; i < (sizeof(clients)/sizeof(clients[0])); i++) {
++  for (i = 1; i < ARRAY_SIZE(clients); i++) {
+     if (clients[i].hDbg == hDbg) {
+       diva_dbg_entry_head_t* pmsg;
+       char tmp[256];
+@@ -736,7 +736,7 @@ int diva_get_driver_info (dword id, byte
+   int to_copy;
+ 
+   if (!data || !id || (data_length < 17) ||
+-      (id >= (sizeof(clients)/sizeof(clients[0])))) {
++      (id >= ARRAY_SIZE(clients))) {
+     return (-1);
+   }
+ 
+@@ -786,7 +786,7 @@ int diva_get_driver_dbg_mask (dword id, 
+   diva_os_spin_lock_magic_t old_irql;
+   int ret = -1;
+ 
+-  if (!data || !id || (id >= (sizeof(clients)/sizeof(clients[0])))) {
++  if (!data || !id || (id >= ARRAY_SIZE(clients))) {
+     return (-1);
+   }
+   diva_os_enter_spin_lock (&dbg_q_lock, &old_irql, "driver info");
+@@ -809,7 +809,7 @@ int diva_set_driver_dbg_mask (dword id, 
+   int ret = -1;
+   
+ 
+-  if (!id || (id >= (sizeof(clients)/sizeof(clients[0])))) {
++  if (!id || (id >= ARRAY_SIZE(clients))) {
+     return (-1);
+   }
+ 
+@@ -887,7 +887,7 @@ void diva_mnt_add_xdi_adapter (const DES
+   diva_os_enter_spin_lock (&dbg_adapter_lock, &old_irql1, "register");
+   diva_os_enter_spin_lock (&dbg_q_lock, &old_irql, "register");
+ 
+-  for (id = 1; id < (sizeof(clients)/sizeof(clients[0])); id++) {
++  for (id = 1; id < ARRAY_SIZE(clients); id++) {
+     if (clients[id].hDbg && (clients[id].request == d->request)) {
+       diva_os_leave_spin_lock (&dbg_q_lock, &old_irql, "register");
+       diva_os_leave_spin_lock (&dbg_adapter_lock, &old_irql1, "register");
+@@ -1037,7 +1037,7 @@ void diva_mnt_remove_xdi_adapter (const 
+   diva_os_enter_spin_lock (&dbg_adapter_lock, &old_irql1, "read");
+   diva_os_enter_spin_lock (&dbg_q_lock, &old_irql, "read");
+ 
+-  for (i = 1; i < (sizeof(clients)/sizeof(clients[0])); i++) {
++  for (i = 1; i < ARRAY_SIZE(clients); i++) {
+     if (clients[i].hDbg && (clients[i].request == d->request)) {
+       diva_dbg_entry_head_t* pmsg;
+       char tmp[256];
+@@ -1115,7 +1115,7 @@ void diva_mnt_remove_xdi_adapter (const 
+ void* SuperTraceOpenAdapter   (int AdapterNumber) {
+   int i;
+ 
+-  for (i = 1; i < (sizeof(clients)/sizeof(clients[0])); i++) {
++  for (i = 1; i < ARRAY_SIZE(clients); i++) {
+     if (clients[i].hDbg && clients[i].request && (clients[i].logical == AdapterNumber)) {
+       return (&clients[i]);
+     }
+@@ -1508,7 +1508,7 @@ static void diva_maint_state_change_noti
+ 					int ch = TraceFilterChannel;
+ 					int id = TraceFilterIdent;
+ 
+-					if ((id >= 0) && (ch >= 0) && (id < sizeof(clients)/sizeof(clients[0])) &&
++					if ((id >= 0) && (ch >= 0) && (id < ARRAY_SIZE(clients)) &&
+ 						(clients[id].Dbg.id == (byte)id) && (clients[id].pIdiLib == hLib)) {
+ 						if (ch != (int)modem->ChannelNumber) {
+ 							break;
+@@ -1555,7 +1555,7 @@ static void diva_maint_state_change_noti
+ 					int ch = TraceFilterChannel;
+ 					int id = TraceFilterIdent;
+ 
+-					if ((id >= 0) && (ch >= 0) && (id < sizeof(clients)/sizeof(clients[0])) &&
++					if ((id >= 0) && (ch >= 0) && (id < ARRAY_SIZE(clients)) &&
+ 						(clients[id].Dbg.id == (byte)id) && (clients[id].pIdiLib == hLib)) {
+ 						if (ch != (int)fax->ChannelNumber) {
+ 							break;
+@@ -1803,7 +1803,7 @@ static void diva_maint_trace_notify (voi
+   /*
+     Selective trace
+     */
+-  if ((id >= 0) && (ch >= 0) && (id < sizeof(clients)/sizeof(clients[0])) &&
++  if ((id >= 0) && (ch >= 0) && (id < ARRAY_SIZE(clients)) &&
+       (clients[id].Dbg.id == (byte)id) && (clients[id].pIdiLib == hLib)) {
+     const char* p = NULL;
+     int ch_value = -1;
+@@ -1925,7 +1925,7 @@ int diva_mnt_shutdown_xdi_adapters (void
+   byte * pmem;
+ 
+ 
+-  for (i = 1; i < (sizeof(clients)/sizeof(clients[0])); i++) {
++  for (i = 1; i < ARRAY_SIZE(clients); i++) {
+     pmem = NULL;
+ 
+     diva_os_enter_spin_lock (&dbg_adapter_lock, &old_irql1, "unload");
+@@ -2006,7 +2006,7 @@ int diva_set_trace_filter (int filter_le
+ 
+   on = (TraceFilter[0] == 0);
+ 
+-  for (i = 1; i < (sizeof(clients)/sizeof(clients[0])); i++) {
++  for (i = 1; i < ARRAY_SIZE(clients); i++) {
+     if (clients[i].hDbg && clients[i].pIdiLib && clients[i].request) {
+       client_b_on    = on && ((clients[i].hDbg->dbgMask & DIVA_MGT_DBG_IFC_BCHANNEL) != 0);
+       client_atap_on = on && ((clients[i].hDbg->dbgMask & DIVA_MGT_DBG_IFC_AUDIO)    != 0);
+@@ -2017,7 +2017,7 @@ int diva_set_trace_filter (int filter_le
+     }
+   }
+ 
+-  for (i = 1; i < (sizeof(clients)/sizeof(clients[0])); i++) {
++  for (i = 1; i < ARRAY_SIZE(clients); i++) {
+     if (clients[i].hDbg && clients[i].pIdiLib && clients[i].request && clients[i].request_pending) {
+       diva_os_leave_spin_lock (&dbg_q_lock, &old_irql, "write_filter");
+       clients[i].request_pending = 0;
+diff -puN drivers/isdn/hardware/eicon/message.c~isdn-eicon-use-array_size-macro-when-appropriate drivers/isdn/hardware/eicon/message.c
+--- a/drivers/isdn/hardware/eicon/message.c~isdn-eicon-use-array_size-macro-when-appropriate
++++ a/drivers/isdn/hardware/eicon/message.c
+@@ -6812,7 +6812,7 @@ void nl_ind(PLCI   * plci)
+         }
+         if (((plci->NL.Ind & 0x0f) == N_DISC) || ((plci->NL.Ind & 0x0f) == N_DISC_ACK))
+         {
+-          if (((T30_INFO   *)plci->NL.RBuffer->P)->code < sizeof(fax_info) / sizeof(fax_info[0]))
++	  if (((T30_INFO   *)plci->NL.RBuffer->P)->code < ARRAY_SIZE(fax_info))
+             info = fax_info[((T30_INFO   *)plci->NL.RBuffer->P)->code];
+           else
+             info = _FAX_PROTOCOL_ERROR;
+@@ -9564,7 +9564,7 @@ static struct
+ 
+ };
+ 
+-#define DTMF_DIGIT_MAP_ENTRIES (sizeof(dtmf_digit_map) / sizeof(dtmf_digit_map[0]))
++#define DTMF_DIGIT_MAP_ENTRIES ARRAY_SIZE(dtmf_digit_map)
+ 
+ 
+ static void dtmf_enable_receiver (PLCI   *plci, byte enable_mask)
+@@ -10069,8 +10069,7 @@ static byte dtmf_request (dword Id, word
+           PUT_WORD (&result[1], DTMF_INCORRECT_DIGIT);
+           break;
+         }
+-        if (plci->dtmf_send_requests >=
+-          sizeof(plci->dtmf_msg_number_queue) / sizeof(plci->dtmf_msg_number_queue[0]))
++        if (plci->dtmf_send_requests >= ARRAY_SIZE(plci->dtmf_msg_number_queue))
+         {
+           dbug (1, dprintf ("[%06lx] %s,%d: DTMF request overrun",
+             UnMapId (Id), (char   *)(FILE_), __LINE__));
+@@ -11018,9 +11017,9 @@ static byte xconnect_write_coefs_process
+             li_config_table[i].coef_table[j] ^= xconnect_write_prog[n].mask << 4;
+           }
+           n++;
+-        } while ((n < sizeof(xconnect_write_prog) / sizeof(xconnect_write_prog[0]))
++        } while ((n < ARRAY_SIZE(xconnect_write_prog))
+           && ((p - plci->internal_req_buffer) + 16 < INTERNAL_REQ_BUFFER_SIZE));
+-        if (n == sizeof(xconnect_write_prog) / sizeof(xconnect_write_prog[0]))
++        if (n == ARRAY_SIZE(xconnect_write_prog))
+         {
+           do
+           {
+@@ -11090,7 +11089,7 @@ static byte xconnect_write_coefs_process
+             ch_map[j+1] = (byte)(j+1);
+           }
+         }
+-        for (n = 0; n < sizeof(mixer_write_prog_bri) / sizeof(mixer_write_prog_bri[0]); n++)
++        for (n = 0; n < ARRAY_SIZE(mixer_write_prog_bri); n++)
+         {
+           i = a->li_base + ch_map[mixer_write_prog_bri[n].to_ch];
+           j = a->li_base + ch_map[mixer_write_prog_bri[n].from_ch];
+@@ -11140,7 +11139,7 @@ static byte xconnect_write_coefs_process
+           w |= MIXER_FEATURE_ENABLE_RX_DATA;
+         *(p++) = (byte) w;
+         *(p++) = (byte)(w >> 8);
+-        for (n = 0; n < sizeof(mixer_write_prog_pri) / sizeof(mixer_write_prog_pri[0]); n++)
++        for (n = 0; n < ARRAY_SIZE(mixer_write_prog_pri); n++)
+         {
+           *(p++) = (byte)((plci->li_bchannel_id - 1) | mixer_write_prog_pri[n].line_flags);
+           for (j = a->li_base; j < a->li_base + MIXER_CHANNELS_PRI; j++)
+@@ -11196,7 +11195,7 @@ static byte xconnect_write_coefs_process
+             ch_map[j+1] = (byte)(j+1);
+           }
+         }
+-        for (n = 0; n < sizeof(mixer_write_prog_bri) / sizeof(mixer_write_prog_bri[0]); n++)
++        for (n = 0; n < ARRAY_SIZE(mixer_write_prog_bri); n++)
+         {
+           i = a->li_base + ch_map[mixer_write_prog_bri[n].to_ch];
+           j = a->li_base + ch_map[mixer_write_prog_bri[n].from_ch];
+@@ -13178,7 +13177,7 @@ static void adv_voice_write_coefs (PLCI 
+         ch_map[j] = (byte)(j + (plci->li_bchannel_id - 1));
+         ch_map[j+1] = (byte)(j + (2 - plci->li_bchannel_id));
+       }
+-      for (n = 0; n < sizeof(mixer_write_prog_bri) / sizeof(mixer_write_prog_bri[0]); n++)
++      for (n = 0; n < ARRAY_SIZE(mixer_write_prog_bri); n++)
+       {
+         i = a->li_base + ch_map[mixer_write_prog_bri[n].to_ch];
+         j = a->li_base + ch_map[mixer_write_prog_bri[n].from_ch];
+@@ -14603,7 +14602,7 @@ static void channel_request_xon (PLCI   
+ 
+ static void channel_xmit_extended_xon (PLCI   * plci) {
+   DIVA_CAPI_ADAPTER   * a;
+-  int max_ch = sizeof(a->ch_flow_control)/sizeof(a->ch_flow_control[0]);
++  int max_ch = ARRAY_SIZE(a->ch_flow_control);
+   int i, one_requested = 0;
+ 
+   if ((!plci) || (!plci->Id) || ((a = plci->adapter) == 0)) {
+@@ -14628,7 +14627,7 @@ static void channel_xmit_extended_xon (P
+   Try to xmit next X_ON
+   */
+ static int find_channel_with_pending_x_on (DIVA_CAPI_ADAPTER   * a, PLCI   * plci) {
+-  int max_ch = sizeof(a->ch_flow_control)/sizeof(a->ch_flow_control[0]);
++  int max_ch = ARRAY_SIZE(a->ch_flow_control);
+   int i;
+ 
+   if (!(plci->adapter->manufacturer_features & MANUFACTURER_FEATURE_XONOFF_FLOW_CONTROL)) {
+diff -puN drivers/isdn/hardware/eicon/platform.h~isdn-eicon-use-array_size-macro-when-appropriate drivers/isdn/hardware/eicon/platform.h
+--- a/drivers/isdn/hardware/eicon/platform.h~isdn-eicon-use-array_size-macro-when-appropriate
++++ a/drivers/isdn/hardware/eicon/platform.h
+@@ -123,10 +123,6 @@
+ #define DIVA_OS_MEM_DETACH_CONFIG(a, x)	do { } while(0)
+ #define DIVA_OS_MEM_DETACH_CONTROL(a, x)	do { } while(0)
+ 
+-#if !defined(DIM)
+-#define DIM(array)  (sizeof (array)/sizeof ((array)[0]))
+-#endif
 -
-+	svc_sock_received(newsvsk);
+ #define DIVA_INVALID_FILE_HANDLE  ((dword)(-1))
  
- 	/* make sure that we don't have too many active connections.
- 	 * If we have, something must be dropped.
-@@ -1546,8 +1546,6 @@ static struct svc_sock *svc_setup_socket
- 	dprintk("svc: svc_setup_socket created %p (inet %p)\n",
- 				svsk, svsk->sk_sk);
- 
--	clear_bit(SK_BUSY, &svsk->sk_flags);
--	svc_sock_enqueue(svsk);
- 	return svsk;
- }
- 
-@@ -1571,8 +1569,10 @@ int svc_addsock(struct svc_serv *serv,
- 		err = -EISCONN;
- 	else {
- 		svsk = svc_setup_socket(serv, so, &err, SVC_SOCK_DEFAULTS);
--		if (svsk)
-+		if (svsk) {
-+			svc_sock_received(svsk);
- 			err = 0;
-+		}
- 	}
- 	if (err) {
- 		sockfd_put(so);
-@@ -1623,8 +1623,10 @@ static int svc_create_socket(struct svc_
- 			goto bummer;
- 	}
- 
--	if ((svsk = svc_setup_socket(serv, sock, &error, flags)) != NULL)
-+	if ((svsk = svc_setup_socket(serv, sock, &error, flags)) != NULL) {
-+		svc_sock_received(svsk);
- 		return ntohs(inet_sk(svsk->sk_sk)->sport);
-+	}
- 
- bummer:
- 	dprintk("svc: svc_create_socket error = %d\n", -error);
+ #define DIVAS_CONTAINING_RECORD(address, type, field) \
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
+git-acpi.patch
+git-agpgart.patch
+git-arm.patch
+git-avr32.patch
+git-drm.patch
+git-dvb.patch
+git-infiniband.patch
+git-mips.patch
+atm-use-array_size-macro-when-appropriate.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
 drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
