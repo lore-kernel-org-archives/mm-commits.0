@@ -1,66 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - edac-e752x-byte-access-fix.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:38 -0800
-Message-ID: <200702122245.l1CMjcZG013728@shell0.pdx.osdl.net>
+Subject: - pxa-gpio-wrappers.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:45:57 -0800
+Message-ID: <200702122245.l1CMjv53013752@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45144 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45163 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030300AbXBLWpw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:45:52 -0500
+	id S1030307AbXBLWqA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bapper@mvista.com, ak@suse.de, alan@lxorguk.ukuu.org.uk, djiang@mvista.com, ebiederm@xmission.com, norsk5@xmission.com, mm-commits@vger.kernel.org
+To: philipp.zabel@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     EDAC: e752x byte access fix
+     PXA GPIO wrappers
 has been removed from the -mm tree.  Its filename was
-     edac-e752x-byte-access-fix.patch
+     pxa-gpio-wrappers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: EDAC: e752x byte access fix
-From: Brian Pomerantz <bapper@mvista.com>
+Subject: PXA GPIO wrappers
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-The reading of the DRA registers should be a byte at a time (one register at a
-time) instead of 4 bytes at a time (four registers).  Reading a dword at a
-time retrieves erroneous information from all but the first register.  A
-change was made to read in each register in a loop prior to using the data in
-those registers.
+Arch-neutral GPIO calls for PXA.
 
-Signed-off-by: Brian Pomerantz <bapper@mvista.com>
-Signed-off-by: Dave Jiang <djiang@mvista.com>
-Signed-off-by: Doug Thompson <norsk5@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/e752x_edac.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/asm-arm/arch-pxa/gpio.h |   72 ++++++++++++++++++++++++++++++
+ 1 file changed, 72 insertions(+)
 
-diff -puN drivers/edac/e752x_edac.c~edac-e752x-byte-access-fix drivers/edac/e752x_edac.c
---- a/drivers/edac/e752x_edac.c~edac-e752x-byte-access-fix
-+++ a/drivers/edac/e752x_edac.c
-@@ -782,7 +782,12 @@ static void e752x_init_csrows(struct mem
- 	u8 value;
- 	u32 dra, drc, cumul_size;
- 
--	pci_read_config_dword(pdev, E752X_DRA, &dra);
-+	dra = 0;
-+	for (index=0; index < 4; index++) {
-+		u8 dra_reg;
-+		pci_read_config_byte(pdev, E752X_DRA+index, &dra_reg);
-+		dra |= dra_reg << (index * 8);
-+	}
- 	pci_read_config_dword(pdev, E752X_DRC, &drc);
- 	drc_chan = dual_channel_active(ddrcsr);
- 	drc_drbg = drc_chan + 1;  /* 128 in dual mode, 64 in single */
+diff -puN /dev/null include/asm-arm/arch-pxa/gpio.h
+--- /dev/null
++++ a/include/asm-arm/arch-pxa/gpio.h
+@@ -0,0 +1,72 @@
++/*
++ * linux/include/asm-arm/arch-pxa/gpio.h
++ *
++ * PXA GPIO wrappers for arch-neutral GPIO calls
++ *
++ * Written by Philipp Zabel <philipp.zabel@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
++ */
++
++#ifndef __ASM_ARCH_PXA_GPIO_H
++#define __ASM_ARCH_PXA_GPIO_H
++
++#include <asm/arch/pxa-regs.h>
++#include <asm/arch/irqs.h>
++#include <asm/arch/hardware.h>
++
++#include <asm/errno.h>
++
++static inline int gpio_request(unsigned gpio, const char *label)
++{
++	return 0;
++}
++
++static inline void gpio_free(unsigned gpio)
++{
++	return;
++}
++
++static inline int gpio_direction_input(unsigned gpio)
++{
++	if (gpio > PXA_LAST_GPIO)
++		return -EINVAL;
++	pxa_gpio_mode(gpio | GPIO_IN);
++}
++
++static inline int gpio_direction_output(unsigned gpio)
++{
++	if (gpio > PXA_LAST_GPIO)
++		return -EINVAL;
++	pxa_gpio_mode(gpio | GPIO_OUT);
++}
++
++/* REVISIT these macros are correct, but suffer code explosion
++ * for non-constant parameters.  Provide out-line versions too.
++ */
++#define gpio_get_value(gpio) \
++	(GPLR(gpio) & GPIO_bit(gpio))
++
++#define gpio_set_value(gpio,value) \
++	((value) ? (GPSR(gpio) = GPIO_bit(gpio)):(GPCR(gpio) = GPIO_bit(gpio)))
++
++#include <asm-generic/gpio.h>			/* cansleep wrappers */
++
++#define gpio_to_irq(gpio)	IRQ_GPIO(gpio)
++#define irq_to_gpio(irq)	IRQ_TO_GPIO(irq)
++
++
++#endif
 _
 
-Patches currently in -mm which might be from bapper@mvista.com are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
 origin.patch
