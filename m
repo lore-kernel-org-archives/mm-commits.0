@@ -1,94 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - oss-use-array_size-macro-when-appropriate-2.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:43:45 -0800
-Message-ID: <200702122243.l1CMhjUb013526@shell0.pdx.osdl.net>
+Subject: - w1-use-array_size-macro-when-appropriate.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:43:41 -0800
+Message-ID: <200702122243.l1CMhf3P013520@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44884 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44893 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030247AbXBLWnr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:43:47 -0500
+	id S1030249AbXBLWnv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:43:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darwish.07@gmail.com, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     OSS: Use ARRAY_SIZE macro when appropriate (2)
+     w1: Use ARRAY_SIZE macro when appropriate
 has been removed from the -mm tree.  Its filename was
-     oss-use-array_size-macro-when-appropriate-2.patch
+     w1-use-array_size-macro-when-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: OSS: Use ARRAY_SIZE macro when appropriate (2)
+Subject: w1: Use ARRAY_SIZE macro when appropriate
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Use ARRAY_SIZE macro already defined in kernel.h
+A patch to use ARRAY_SIZE macro already defined in kernel.h
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/au1550_ac97.c   |    4 ++--
- sound/oss/nec_vrc5477.c   |    4 ++--
- sound/oss/swarm_cs4297a.c |    3 ++-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/w1/slaves/w1_therm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN sound/oss/au1550_ac97.c~oss-use-array_size-macro-when-appropriate-2 sound/oss/au1550_ac97.c
---- a/sound/oss/au1550_ac97.c~oss-use-array_size-macro-when-appropriate-2
-+++ a/sound/oss/au1550_ac97.c
-@@ -1354,11 +1354,11 @@ au1550_ioctl(struct inode *inode, struct
- 		((file->f_mode & FMODE_READ) && s->dma_adc.mapped);
+diff -puN drivers/w1/slaves/w1_therm.c~w1-use-array_size-macro-when-appropriate drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~w1-use-array_size-macro-when-appropriate
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -141,7 +141,7 @@ static inline int w1_convert_temp(u8 rom
+ {
+ 	int i;
  
- #ifdef DEBUG
--	for (count=0; count<sizeof(ioctl_str)/sizeof(ioctl_str[0]); count++) {
-+	for (count = 0; count < ARRAY_SIZE(ioctl_str); count++) {
- 		if (ioctl_str[count].cmd == cmd)
- 			break;
- 	}
--	if (count < sizeof(ioctl_str) / sizeof(ioctl_str[0]))
-+	if (count < ARRAY_SIZE(ioctl_str))
- 		pr_debug("ioctl %s, arg=0x%lxn", ioctl_str[count].str, arg);
- 	else
- 		pr_debug("ioctl 0x%x unknown, arg=0x%lx\n", cmd, arg);
-diff -puN sound/oss/nec_vrc5477.c~oss-use-array_size-macro-when-appropriate-2 sound/oss/nec_vrc5477.c
---- a/sound/oss/nec_vrc5477.c~oss-use-array_size-macro-when-appropriate-2
-+++ a/sound/oss/nec_vrc5477.c
-@@ -1381,11 +1381,11 @@ static int vrc5477_ac97_ioctl(struct ino
- 	int val, ret;
+-	for (i=0; i<sizeof(w1_therm_families)/sizeof(w1_therm_families[0]); ++i)
++	for (i = 0; i < ARRAY_SIZE(w1_therm_families); ++i)
+ 		if (w1_therm_families[i].f->fid == fid)
+ 			return w1_therm_families[i].convert(rom);
  
- #ifdef VRC5477_AC97_DEBUG
--	for (count=0; count<sizeof(ioctl_str)/sizeof(ioctl_str[0]); count++) {
-+	for (count = 0; count < ARRAY_SIZE(ioctl_str); count++) {
- 		if (ioctl_str[count].cmd == cmd)
- 			break;
- 	}
--	if (count < sizeof(ioctl_str)/sizeof(ioctl_str[0]))
-+	if (count < ARRAY_SIZE(ioctl_str))
- 		printk(KERN_INFO PFX "ioctl %s\n", ioctl_str[count].str);
- 	else
- 		printk(KERN_INFO PFX "ioctl unknown, 0x%x\n", cmd);
-diff -puN sound/oss/swarm_cs4297a.c~oss-use-array_size-macro-when-appropriate-2 sound/oss/swarm_cs4297a.c
---- a/sound/oss/swarm_cs4297a.c~oss-use-array_size-macro-when-appropriate-2
-+++ a/sound/oss/swarm_cs4297a.c
-@@ -77,6 +77,7 @@
- #include <linux/poll.h>
- #include <linux/smp_lock.h>
- #include <linux/mutex.h>
-+#include <linux/kernel.h>
+@@ -238,7 +238,7 @@ static int __init w1_therm_init(void)
+ {
+ 	int err, i;
  
- #include <asm/byteorder.h>
- #include <asm/dma.h>
-@@ -2676,7 +2677,7 @@ static int __init cs4297a_init(void)
- #if 0
-                 val = SOUND_MASK_LINE;
-                 mixer_ioctl(s, SOUND_MIXER_WRITE_RECSRC, (unsigned long) &val);
--                for (i = 0; i < sizeof(initvol) / sizeof(initvol[0]); i++) {
-+                for (i = 0; i < ARRAY_SIZE(initvol); i++) {
-                         val = initvol[i].vol;
-                         mixer_ioctl(s, initvol[i].mixch, (unsigned long) &val);
-                 }
+-	for (i=0; i<sizeof(w1_therm_families)/sizeof(w1_therm_families[0]); ++i) {
++	for (i = 0; i < ARRAY_SIZE(w1_therm_families); ++i) {
+ 		err = w1_register_family(w1_therm_families[i].f);
+ 		if (err)
+ 			w1_therm_families[i].broken = 1;
+@@ -251,7 +251,7 @@ static void __exit w1_therm_fini(void)
+ {
+ 	int i;
+ 
+-	for (i=0; i<sizeof(w1_therm_families)/sizeof(w1_therm_families[0]); ++i)
++	for (i = 0; i < ARRAY_SIZE(w1_therm_families); ++i)
+ 		if (!w1_therm_families[i].broken)
+ 			w1_unregister_family(w1_therm_families[i].f);
+ }
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
