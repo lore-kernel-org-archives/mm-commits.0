@@ -1,196 +1,497 @@
 From: akpm@linux-foundation.org
-Subject: - signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:13 -0800
-Message-ID: <200702122245.l1CMjDtF013695@shell0.pdx.osdl.net>
+Subject: - spi-eeprom-driver.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:44:58 -0800
+Message-ID: <200702122244.l1CMiwHY013654@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45072 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45061 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030285AbXBLWpR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:45:17 -0500
+	id S1030284AbXBLWpM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:45:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, walter.tuppa@siemens.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signal: use kill_pgrp not kill_pg in the sunos compatibility code
+     SPI eeprom driver
 has been removed from the -mm tree.  Its filename was
-     signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code.patch
+     spi-eeprom-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: signal: use kill_pgrp not kill_pg in the sunos compatibility code
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: SPI eeprom driver
+From: David Brownell <david-b@pacbell.net>
 
-I am slowly moving to a model where all process killing is struct pid based
-instead of pid_t based.  The sunos compatibility code is one of the last users
-of the old pid_t based kill_pg in the kernel.  By being complete I allow for
-the future removal of kill_pg from the kernel, which will ensure I don't miss
-something.
+This is adds a simple SPI EEPROM driver, providing access to the EEPROM
+through sysfs much like the I2C "eeprom" driver ...  except this driver
+supports write access, and multiple EEPROM sizes.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+
+Since I have EEPROMs on SPI with different address sizing, I made some
+changes to your at25.c to support them.  Works perfectly.  (Also includes a
+small bugfix for the "what size address" test.)
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Walter Tuppa <walter.tuppa@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/sys_sunos.c     |   10 ++++++----
- arch/sparc64/kernel/sys_sunos32.c |   11 +++++++++--
- 2 files changed, 15 insertions(+), 6 deletions(-)
+ drivers/spi/Kconfig        |   10 
+ drivers/spi/Makefile       |    1 
+ drivers/spi/at25.c         |  381 +++++++++++++++++++++++++++++++++++
+ include/linux/spi/eeprom.h |   22 ++
+ 4 files changed, 414 insertions(+)
 
-diff -puN arch/sparc/kernel/sys_sunos.c~signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code arch/sparc/kernel/sys_sunos.c
---- a/arch/sparc/kernel/sys_sunos.c~signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code
-+++ a/arch/sparc/kernel/sys_sunos.c
-@@ -859,14 +859,16 @@ asmlinkage int sunos_wait4(pid_t pid, un
- 	return ret;
- }
+diff -puN drivers/spi/Kconfig~spi-eeprom-driver drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-eeprom-driver
++++ a/drivers/spi/Kconfig
+@@ -135,6 +135,16 @@ config SPI_S3C24XX_GPIO
+ comment "SPI Protocol Masters"
+ 	depends on SPI_MASTER
  
--extern int kill_pg(int, int, int);
- asmlinkage int sunos_killpg(int pgrp, int sig)
- {
- 	int ret;
- 
--	lock_kernel();
--	ret = kill_pg(pgrp, sig, 0);
--	unlock_kernel();
-+	rcu_read_lock();
-+	ret = -EINVAL;
-+	if (pgrp > 0)
-+		ret = kill_pgrp(find_pid(pgrp), sig, 0);
-+	rcu_read_unlock();
++config SPI_AT25
++	tristate "SPI EEPROMs from most vendors"
++	depends on SPI_MASTER && SYSFS
++	help
++	  Enable this driver to get read/write support to most SPI EEPROMs,
++	  after you configure the board init code to know about each eeprom
++	  on your target board.
 +
- 	return ret;
- }
++	  This driver can also be built as a module.  If so, the module
++	  will be called at25.
  
-diff -puN arch/sparc64/kernel/sys_sunos32.c~signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code arch/sparc64/kernel/sys_sunos32.c
---- a/arch/sparc64/kernel/sys_sunos32.c~signal-use-kill_pgrp-not-kill_pg-in-the-sunos-compatibility-code
-+++ a/arch/sparc64/kernel/sys_sunos32.c
-@@ -824,10 +824,17 @@ asmlinkage int sunos_wait4(compat_pid_t 
- 	return ret;
- }
+ #
+ # Add new SPI protocol masters in alphabetical order above this line
+diff -puN drivers/spi/Makefile~spi-eeprom-driver drivers/spi/Makefile
+--- a/drivers/spi/Makefile~spi-eeprom-driver
++++ a/drivers/spi/Makefile
+@@ -22,6 +22,7 @@ obj-$(CONFIG_SPI_S3C24XX)		+= spi_s3c24x
+ # 	... add above this line ...
  
--extern int kill_pg(int, int, int);
- asmlinkage int sunos_killpg(int pgrp, int sig)
- {
--	return kill_pg(pgrp, sig, 0);
-+	int ret;
+ # SPI protocol drivers (device/link on bus)
++obj-$(CONFIG_SPI_AT25)		+= at25.o
+ # 	... add above this line ...
+ 
+ # SPI slave controller drivers (upstream link)
+diff -puN /dev/null drivers/spi/at25.c
+--- /dev/null
++++ a/drivers/spi/at25.c
+@@ -0,0 +1,381 @@
++/*
++ * at25.c -- support most SPI EEPROMs, such as Atmel AT25 models
++ *
++ * Copyright (C) 2006 David Brownell
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
 +
-+	rcu_read_lock();
-+	ret = -EINVAL;
-+	if (pgrp > 0)
-+		ret = kill_pgrp(find_pid(pgrp), sig, 0);
-+	rcu_read_unlock();
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/sched.h>
 +
-+	return ret;
- }
- 
- asmlinkage int sunos_audit(void)
++#include <linux/spi/spi.h>
++#include <linux/spi/eeprom.h>
++
++
++struct at25_data {
++	struct spi_device	*spi;
++	struct mutex		lock;
++	struct spi_eeprom	chip;
++	struct bin_attribute	bin;
++	unsigned		addrlen;
++};
++
++#define	AT25_WREN	0x06		/* latch the write enable */
++#define	AT25_WRDI	0x04		/* reset the write enable */
++#define	AT25_RDSR	0x05		/* read status register */
++#define	AT25_WRSR	0x01		/* write status register */
++#define	AT25_READ	0x03		/* read byte(s) */
++#define	AT25_WRITE	0x02		/* write byte(s)/sector */
++
++#define	AT25_SR_nRDY	0x01		/* nRDY = write-in-progress */
++#define	AT25_SR_WEN	0x02		/* write enable (latched) */
++#define	AT25_SR_BP0	0x04		/* BP for software writeprotect */
++#define	AT25_SR_BP1	0x08
++#define	AT25_SR_WPEN	0x80		/* writeprotect enable */
++
++
++#define EE_MAXADDRLEN	3		/* 24 bit addresses, up to 2 MBytes */
++
++/* Specs often allow 5 msec for a page write, sometimes 20 msec;
++ * it's important to recover from write timeouts.
++ */
++#define	EE_TIMEOUT	25
++
++/*-------------------------------------------------------------------------*/
++
++#define	io_limit	PAGE_SIZE	/* bytes */
++
++static ssize_t
++at25_ee_read(
++	struct at25_data	*at25,
++	char			*buf,
++	unsigned		offset,
++	size_t			count
++)
++{
++	u8			command[EE_MAXADDRLEN + 1];
++	u8			*cp;
++	ssize_t			status;
++	struct spi_transfer	t[2];
++	struct spi_message	m;
++
++	cp = command;
++	*cp++ = AT25_READ;
++
++	/* 8/16/24-bit address is written MSB first */
++	switch (at25->addrlen) {
++	default:	/* case 3 */
++		*cp++ = offset >> 16;
++	case 2:
++		*cp++ = offset >> 8;
++	case 1:
++	case 0:	/* can't happen: for better codegen */
++		*cp++ = offset >> 0;
++	}
++
++	spi_message_init(&m);
++	memset(t, 0, sizeof t);
++
++	t[0].tx_buf = command;
++	t[0].len = at25->addrlen + 1;
++	spi_message_add_tail(&t[0], &m);
++
++	t[1].rx_buf = buf;
++	t[1].len = count;
++	spi_message_add_tail(&t[1], &m);
++
++	mutex_lock(&at25->lock);
++
++	/* Read it all at once.
++	 *
++	 * REVISIT that's potentially a problem with large chips, if
++	 * other devices on the bus need to be accessed regularly or
++	 * this chip is clocked very slowly
++	 */
++	status = spi_sync(at25->spi, &m);
++	dev_dbg(&at25->spi->dev,
++		"read %Zd bytes at %d --> %d\n",
++		count, offset, (int) status);
++
++	mutex_unlock(&at25->lock);
++	return status ? status : count;
++}
++
++static ssize_t
++at25_bin_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
++{
++	struct device		*dev;
++	struct at25_data	*at25;
++
++	dev = container_of(kobj, struct device, kobj);
++	at25 = dev_get_drvdata(dev);
++
++	if (unlikely(off >= at25->bin.size))
++		return 0;
++	if ((off + count) > at25->bin.size)
++		count = at25->bin.size - off;
++	if (unlikely(!count))
++		return count;
++
++	return at25_ee_read(at25, buf, off, count);
++}
++
++
++static ssize_t
++at25_ee_write(struct at25_data *at25, char *buf, loff_t off, size_t count)
++{
++	ssize_t			status = 0;
++	unsigned		written = 0;
++	unsigned		buf_size;
++	u8			*bounce;
++
++	/* Temp buffer starts with command and address */
++	buf_size = at25->chip.page_size;
++	if (buf_size > io_limit)
++		buf_size = io_limit;
++	bounce = kmalloc(buf_size + at25->addrlen + 1, GFP_KERNEL);
++	if (!bounce)
++		return -ENOMEM;
++
++	/* For write, rollover is within the page ... so we write at
++	 * most one page, then manually roll over to the next page.
++	 */
++	bounce[0] = AT25_WRITE;
++	mutex_lock(&at25->lock);
++	do {
++		unsigned long	timeout, retries;
++		unsigned	segment;
++		unsigned	offset = (unsigned) off;
++		u8		*cp = bounce + 1;
++
++		*cp = AT25_WREN;
++		status = spi_write(at25->spi, cp, 1);
++		if (status < 0) {
++			dev_dbg(&at25->spi->dev, "WREN --> %d\n",
++					(int) status);
++			break;
++		}
++
++		/* 8/16/24-bit address is written MSB first */
++		switch (at25->addrlen) {
++		default:	/* case 3 */
++			*cp++ = offset >> 16;
++		case 2:
++			*cp++ = offset >> 8;
++		case 1:
++		case 0:	/* can't happen: for better codegen */
++			*cp++ = offset >> 0;
++		}
++
++		/* Write as much of a page as we can */
++		segment = buf_size - (offset % buf_size);
++		if (segment > count)
++			segment = count;
++		memcpy(cp, buf, segment);
++		status = spi_write(at25->spi, bounce,
++				segment + at25->addrlen + 1);
++		dev_dbg(&at25->spi->dev,
++				"write %u bytes at %u --> %d\n",
++				segment, offset, (int) status);
++		if (status < 0)
++			break;
++
++		/* REVISIT this should detect (or prevent) failed writes
++		 * to readonly sections of the EEPROM...
++		 */
++
++		/* Wait for non-busy status */
++		timeout = jiffies + msecs_to_jiffies(EE_TIMEOUT);
++		retries = 0;
++		do {
++			int	sr;
++
++			sr = spi_w8r8(at25->spi, AT25_RDSR);
++			if (sr < 0 || (sr & AT25_SR_nRDY)) {
++				dev_dbg(&at25->spi->dev,
++					"rdsr --> %d (%02x)\n", sr, sr);
++				/* at HZ=100, this is sloooow */
++				msleep(1);
++				continue;
++			}
++			if (!(sr & AT25_SR_nRDY))
++				break;
++		} while (retries++ < 3 || time_before_eq(jiffies, timeout));
++
++		if (time_after(jiffies, timeout)) {
++			dev_err(&at25->spi->dev,
++				"write %d bytes offset %d, "
++				"timeout after %u msecs\n",
++				segment, offset,
++				jiffies_to_msecs(jiffies -
++					(timeout - EE_TIMEOUT)));
++			status = -ETIMEDOUT;
++			break;
++		}
++
++		off += segment;
++		buf += segment;
++		count -= segment;
++		written += segment;
++
++	} while (count > 0);
++
++	mutex_unlock(&at25->lock);
++
++	kfree(bounce);
++	return written ? written : status;
++}
++
++static ssize_t
++at25_bin_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
++{
++	struct device		*dev;
++	struct at25_data	*at25;
++
++	dev = container_of(kobj, struct device, kobj);
++	at25 = dev_get_drvdata(dev);
++
++	if (unlikely(off >= at25->bin.size))
++		return -EFBIG;
++	if ((off + count) > at25->bin.size)
++		count = at25->bin.size - off;
++	if (unlikely(!count))
++		return count;
++
++	return at25_ee_write(at25, buf, off, count);
++}
++
++/*-------------------------------------------------------------------------*/
++
++static int at25_probe(struct spi_device *spi)
++{
++	struct at25_data	*at25 = NULL;
++	const struct spi_eeprom *chip;
++	int			err;
++	int			sr;
++	int			addrlen;
++
++	/* Chip description */
++	chip = spi->dev.platform_data;
++	if (!chip) {
++		dev_dbg(&spi->dev, "no chip description\n");
++		err = -ENODEV;
++		goto fail;
++	}
++
++	/* For now we only support 8/16/24 bit addressing */
++	if (chip->flags & EE_ADDR1)
++		addrlen = 1;
++	else if (chip->flags & EE_ADDR2)
++		addrlen = 2;
++	else if (chip->flags & EE_ADDR3)
++		addrlen = 3;
++	else {
++		dev_dbg(&spi->dev, "unsupported address type\n");
++		err = -EINVAL;
++		goto fail;
++	}
++
++	/* Ping the chip ... the status register is pretty portable,
++	 * unlike probing manufacturer IDs.  We do expect that system
++	 * firmware didn't write it in the past few milliseconds!
++	 */
++	sr = spi_w8r8(spi, AT25_RDSR);
++	if (sr < 0 || sr & AT25_SR_nRDY) {
++		dev_dbg(&at25->spi->dev, "rdsr --> %d (%02x)\n", sr, sr);
++		err = -ENXIO;
++		goto fail;
++	}
++
++	if (!(at25 = kzalloc(sizeof *at25, GFP_KERNEL))) {
++		err = -ENOMEM;
++		goto fail;
++	}
++
++	mutex_init(&at25->lock);
++	at25->chip = *chip;
++	at25->spi = spi_dev_get(spi);
++	dev_set_drvdata(&spi->dev, at25);
++	at25->addrlen = addrlen;
++
++	/* Export the EEPROM bytes through sysfs, since that's convenient.
++	 * Default to root-only access to the data; EEPROMs often hold data
++	 * that's sensitive for read and/or write, like ethernet addresses,
++	 * security codes, board-specific manufacturing calibrations, etc.
++	 */
++	at25->bin.attr.name = "eeprom";
++	at25->bin.attr.mode = S_IRUSR;
++	at25->bin.attr.owner = THIS_MODULE;
++	at25->bin.read = at25_bin_read;
++
++	at25->bin.size = at25->chip.byte_len;
++	if (!(chip->flags & EE_READONLY)) {
++		at25->bin.write = at25_bin_write;
++		at25->bin.attr.mode |= S_IWUSR;
++	}
++
++	err = sysfs_create_bin_file(&spi->dev.kobj, &at25->bin);
++	if (err)
++		goto fail;
++
++	dev_info(&spi->dev, "%Zd %s %s eeprom%s, pagesize %u\n",
++		(at25->bin.size < 1024)
++			? at25->bin.size
++			: (at25->bin.size / 1024),
++		(at25->bin.size < 1024) ? "Byte" : "KByte",
++		at25->chip.name,
++		(chip->flags & EE_READONLY) ? " (readonly)" : "",
++		at25->chip.page_size);
++	return 0;
++fail:
++	dev_dbg(&spi->dev, "probe err %d\n", err);
++	kfree(at25);
++	return err;
++}
++
++static int __devexit at25_remove(struct spi_device *spi)
++{
++	struct at25_data	*at25;
++
++	at25 = dev_get_drvdata(&spi->dev);
++	sysfs_remove_bin_file(&spi->dev.kobj, &at25->bin);
++	kfree(at25);
++	return 0;
++}
++
++/*-------------------------------------------------------------------------*/
++
++static struct spi_driver at25_driver = {
++	.driver = {
++		.name		= "at25",
++		.owner		= THIS_MODULE,
++	},
++	.probe		= at25_probe,
++	.remove		= __devexit_p(at25_remove),
++};
++
++static int __init at25_init(void)
++{
++	return spi_register_driver(&at25_driver);
++}
++module_init(at25_init);
++
++static void __exit at25_exit(void)
++{
++	spi_unregister_driver(&at25_driver);
++}
++module_exit(at25_exit);
++
++MODULE_DESCRIPTION("Driver for most SPI EEPROMs");
++MODULE_AUTHOR("David Brownell");
++MODULE_LICENSE("GPL");
++
+diff -puN /dev/null include/linux/spi/eeprom.h
+--- /dev/null
++++ a/include/linux/spi/eeprom.h
+@@ -0,0 +1,22 @@
++#ifndef __LINUX_SPI_EEPROM_H
++#define __LINUX_SPI_EEPROM_H
++
++/*
++ * Put one of these structures in platform_data for SPI EEPROMS handled
++ * by the "at25" driver.  On SPI, most EEPROMS understand the same core
++ * command set.  If you need to support EEPROMs that don't yet fit, add
++ * flags to support those protocol options.  These values all come from
++ * the chip datasheets.
++ */
++struct spi_eeprom {
++	u32		byte_len;
++	char		name[10];
++	u16		page_size;		/* for writes */
++	u16		flags;
++#define	EE_ADDR1	0x0001			/*  8 bit addrs */
++#define	EE_ADDR2	0x0002			/* 16 bit addrs */
++#define	EE_ADDR3	0x0004			/* 24 bit addrs */
++#define	EE_READONLY	0x0008			/* disallow writes */
++};
++
++#endif /* __LINUX_SPI_EEPROM_H */
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-git-v9fs.patch
-x86_64-irq-simplfy-__assign_irq_vector.patch
-x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
-sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
-sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
-sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
-sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
-sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
-sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
-sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
-sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-md-remove-unnecessary-insert_at_head-flag.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-dont-set-de-owner.patch
-sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
-sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
-sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
-sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-arch-frv-kernel-pmc.patch
-sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
-sysctl-sn-remove-sysctl-abi-breakage.patch
-sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
-sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
-sysctl-mips-au1000-remove-sys_sysctl-support.patch
-sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
-sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
-sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
-sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
-sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
-sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
-sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
-sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
-sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
-sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix.patch
-sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-register-the-ocfs2-sysctl-numbers.patch
-sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
-sysctl-move-utsname-sysctls-to-their-own-file.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-remove-support-for-ctl_any.patch
-sysctl-remove-support-for-directory-strategy-routines.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
-sysctl-reimplement-the-sysctl-proc-support.patch
-sysctl-reimplement-the-sysctl-proc-support-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-sysctl-fix-the-selinux_sysctl_get_sid.patch
-selinux-enhance-selinux-to-always-ignore-private-inodes.patch
-sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+git-acpi.patch
+git-avr32.patch
+git-md-accel.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
