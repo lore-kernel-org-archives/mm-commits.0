@@ -1,176 +1,256 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:46:31 -0800
-Message-ID: <200702122246.l1CMkVem013818@shell0.pdx.osdl.net>
+Subject: - isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:19 -0800
+Message-ID: <200702122246.l1CMkJE9013800@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45269 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45230 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030318AbXBLWqm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:42 -0500
+	id S1030333AbXBLWqY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chuck.lever@oracle.com, aurelien.charbon@ext.bull.net, neilb@suse.de, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: SUNRPC: update internal API: separate pmap register and temp sockets
+     ISDN: Rename special macro CONFIG_HISAX_HFC4S8S_PCIMEM
 has been removed from the -mm tree.  Its filename was
-     knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets.patch
+     isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: SUNRPC: update internal API: separate pmap register and temp sockets
-From: Chuck Lever <chuck.lever@oracle.com>
+Subject: ISDN: Rename special macro CONFIG_HISAX_HFC4S8S_PCIMEM
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Currently in the RPC server, registering with the local portmapper and
-creating "permanent" sockets are tied together.  Expand the internal APIs to
-allow these two socket characteristics to be separately specified.
+Rename the macro CONFIG_HISAX_HFC4S8S_PCIMEM to simply HISAX_HFC4S8S_PCIMEM so
+that it no longer resembles a user-settable kernel config macro.
 
-This will be externalized in the next patch.
-
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-Cc: Aurelien Charbon <aurelien.charbon@ext.bull.net>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/svcsock.h |    7 ++++
- net/sunrpc/svcsock.c           |   47 +++++++++++++++++--------------
- 2 files changed, 34 insertions(+), 20 deletions(-)
+ drivers/isdn/hisax/hfc4s8s_l1.c |   48 +++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/sunrpc/svcsock.h~knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets include/linux/sunrpc/svcsock.h
---- a/include/linux/sunrpc/svcsock.h~knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets
-+++ a/include/linux/sunrpc/svcsock.h
-@@ -74,4 +74,11 @@ int		svc_addsock(struct svc_serv *serv,
- 			    char *name_return,
- 			    int *proto);
+diff -puN drivers/isdn/hisax/hfc4s8s_l1.c~isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem drivers/isdn/hisax/hfc4s8s_l1.c
+--- a/drivers/isdn/hisax/hfc4s8s_l1.c~isdn-rename-special-macro-config_hisax_hfc4s8s_pcimem
++++ a/drivers/isdn/hisax/hfc4s8s_l1.c
+@@ -199,7 +199,7 @@ typedef struct _hfc4s8s_hw {
+ /***************************/
+ /* inline function defines */
+ /***************************/
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM	/* inline functions mempry mapped */
++#ifdef HISAX_HFC4S8S_PCIMEM	/* inline functions memory mapped */
  
-+/*
-+ * svc_makesock socket characteristics
-+ */
-+#define SVC_SOCK_DEFAULTS	(0U)
-+#define SVC_SOCK_ANONYMOUS	(1U << 0)	/* don't register with pmap */
-+#define SVC_SOCK_TEMPORARY	(1U << 1)	/* flag socket as temporary */
-+
- #endif /* SUNRPC_SVCSOCK_H */
-diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-sunrpc-update-internal-api-separate-pmap-register-and-temp-sockets
-+++ a/net/sunrpc/svcsock.c
-@@ -75,7 +75,7 @@
+ /* memory write and dummy IO read to avoid PCI byte merge problems */
+ #define Write_hfc8(a,b,c) {(*((volatile u_char *)(a->membase+b)) = c); inb(a->iobase+4);}
+@@ -305,7 +305,7 @@ wait_busy(hfc4s8s_hw * a)
  
+ #define PCI_ENA_REGIO	0x01
  
- static struct svc_sock *svc_setup_socket(struct svc_serv *, struct socket *,
--					 int *errp, int pmap_reg);
-+					 int *errp, int flags);
- static void		svc_delete_socket(struct svc_sock *svsk);
- static void		svc_udp_data_ready(struct sock *, int);
- static int		svc_udp_recvfrom(struct svc_rqst *);
-@@ -935,7 +935,8 @@ svc_tcp_accept(struct svc_sock *svsk)
- 	 */
- 	newsock->sk->sk_sndtimeo = HZ*30;
+-#endif				/* CONFIG_HISAX_HFC4S8S_PCIMEM */
++#endif				/* HISAX_HFC4S8S_PCIMEM */
  
--	if (!(newsvsk = svc_setup_socket(serv, newsock, &err, 0)))
-+	if (!(newsvsk = svc_setup_socket(serv, newsock, &err,
-+				 (SVC_SOCK_ANONYMOUS | SVC_SOCK_TEMPORARY))))
- 		goto failed;
+ /******************************************************/
+ /* function to read critical counter registers that   */
+@@ -724,12 +724,12 @@ rx_d_frame(struct hfc4s8s_l1 *l1p, int e
+ 			} else {
+ 				/* read errornous D frame */
  
+-#ifndef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifndef HISAX_HFC4S8S_PCIMEM
+ 				SetRegAddr(l1p->hw, A_FIFO_DATA0);
+ #endif
  
-@@ -1476,12 +1477,14 @@ svc_age_temp_sockets(unsigned long closu
-  * Initialize socket for RPC use and create svc_sock struct
-  * XXX: May want to setsockopt SO_SNDBUF and SO_RCVBUF.
-  */
--static struct svc_sock *
--svc_setup_socket(struct svc_serv *serv, struct socket *sock,
--					int *errp, int pmap_register)
-+static struct svc_sock *svc_setup_socket(struct svc_serv *serv,
-+						struct socket *sock,
-+						int *errp, int flags)
+ 				while (z1 >= 4) {
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 					Read_hfc32(l1p->hw, A_FIFO_DATA0);
+ #else
+ 					fRead_hfc32(l1p->hw);
+@@ -738,7 +738,7 @@ rx_d_frame(struct hfc4s8s_l1 *l1p, int e
+ 				}
+ 
+ 				while (z1--)
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 					Read_hfc8(l1p->hw, A_FIFO_DATA0);
+ #else
+ 					fRead_hfc8(l1p->hw);
+@@ -752,12 +752,12 @@ rx_d_frame(struct hfc4s8s_l1 *l1p, int e
+ 
+ 		cp = skb->data;
+ 
+-#ifndef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifndef HISAX_HFC4S8S_PCIMEM
+ 		SetRegAddr(l1p->hw, A_FIFO_DATA0);
+ #endif
+ 
+ 		while (z1 >= 4) {
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 			*((unsigned long *) cp) =
+ 			    Read_hfc32(l1p->hw, A_FIFO_DATA0);
+ #else
+@@ -768,7 +768,7 @@ rx_d_frame(struct hfc4s8s_l1 *l1p, int e
+ 		}
+ 
+ 		while (z1--)
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 			*cp++ = Read_hfc8(l1p->hw, A_FIFO_DATA0);
+ #else
+ 			*cp++ = fRead_hfc8(l1p->hw);
+@@ -858,12 +858,12 @@ rx_b_frame(struct hfc4s8s_btype *bch)
+ 			wait_busy(l1->hw);
+ 			return;
+ 		}
+-#ifndef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifndef HISAX_HFC4S8S_PCIMEM
+ 		SetRegAddr(l1->hw, A_FIFO_DATA0);
+ #endif
+ 
+ 		while (z1 >= 4) {
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 			*((unsigned long *) bch->rx_ptr) =
+ 			    Read_hfc32(l1->hw, A_FIFO_DATA0);
+ #else
+@@ -875,7 +875,7 @@ rx_b_frame(struct hfc4s8s_btype *bch)
+ 		}
+ 
+ 		while (z1--)
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 			*(bch->rx_ptr++) = Read_hfc8(l1->hw, A_FIFO_DATA0);
+ #else
+ 			*(bch->rx_ptr++) = fRead_hfc8(l1->hw);
+@@ -939,12 +939,12 @@ tx_d_frame(struct hfc4s8s_l1 *l1p)
+ 	if ((skb = skb_dequeue(&l1p->d_tx_queue))) {
+ 		cp = skb->data;
+ 		cnt = skb->len;
+-#ifndef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifndef HISAX_HFC4S8S_PCIMEM
+ 		SetRegAddr(l1p->hw, A_FIFO_DATA0);
+ #endif
+ 
+ 		while (cnt >= 4) {
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 			fWrite_hfc32(l1p->hw, A_FIFO_DATA0,
+ 				     *(unsigned long *) cp);
+ #else
+@@ -955,7 +955,7 @@ tx_d_frame(struct hfc4s8s_l1 *l1p)
+ 			cnt -= 4;
+ 		}
+ 
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 		while (cnt--)
+ 			fWrite_hfc8(l1p->hw, A_FIFO_DATA0, *cp++);
+ #else
+@@ -1036,11 +1036,11 @@ tx_b_frame(struct hfc4s8s_btype *bch)
+ 		cp = skb->data + bch->tx_cnt;
+ 		bch->tx_cnt += cnt;
+ 
+-#ifndef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifndef HISAX_HFC4S8S_PCIMEM
+ 		SetRegAddr(l1->hw, A_FIFO_DATA0);
+ #endif
+ 		while (cnt >= 4) {
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 			fWrite_hfc32(l1->hw, A_FIFO_DATA0,
+ 				     *(unsigned long *) cp);
+ #else
+@@ -1051,7 +1051,7 @@ tx_b_frame(struct hfc4s8s_btype *bch)
+ 		}
+ 
+ 		while (cnt--)
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 			fWrite_hfc8(l1->hw, A_FIFO_DATA0, *cp++);
+ #else
+ 			fWrite_hfc8(l1->hw, *cp++);
+@@ -1280,7 +1280,7 @@ hfc4s8s_interrupt(int intno, void *dev_i
+ 	if (!hw || !(hw->mr.r_irq_ctrl & M_GLOB_IRQ_EN))
+ 		return IRQ_NONE;
+ 
+-#ifndef	CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifndef	HISAX_HFC4S8S_PCIMEM
+ 	/* read current selected regsister */
+ 	old_ioreg = GetRegAddr(hw);
+ #endif
+@@ -1291,7 +1291,7 @@ hfc4s8s_interrupt(int intno, void *dev_i
+ 	if (!
+ 	    (b = (Read_hfc8(hw, R_STATUS) & (M_MISC_IRQSTA | M_FR_IRQSTA)))
+ && !hw->mr.r_irq_statech) {
+-#ifndef	CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifndef	HISAX_HFC4S8S_PCIMEM
+ 		SetRegAddr(hw, old_ioreg);
+ #endif
+ 		return IRQ_NONE;
+@@ -1321,7 +1321,7 @@ hfc4s8s_interrupt(int intno, void *dev_i
+ 	/* queue the request to allow other cards to interrupt */
+ 	schedule_work(&hw->tqueue);
+ 
+-#ifndef	CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifndef	HISAX_HFC4S8S_PCIMEM
+ 	SetRegAddr(hw, old_ioreg);
+ #endif
+ 	return IRQ_HANDLED;
+@@ -1470,7 +1470,7 @@ static void
+ release_pci_ports(hfc4s8s_hw * hw)
  {
- 	struct svc_sock	*svsk;
- 	struct sock	*inet;
-+	int		pmap_register = !(flags & SVC_SOCK_ANONYMOUS);
-+	int		is_temporary = flags & SVC_SOCK_TEMPORARY;
- 
- 	dprintk("svc: svc_setup_socket %p\n", sock);
- 	if (!(svsk = kzalloc(sizeof(*svsk), GFP_KERNEL))) {
-@@ -1523,7 +1526,7 @@ svc_setup_socket(struct svc_serv *serv, 
- 		svc_tcp_init(svsk);
- 
- 	spin_lock_bh(&serv->sv_lock);
--	if (!pmap_register) {
-+	if (is_temporary) {
- 		set_bit(SK_TEMP, &svsk->sk_flags);
- 		list_add(&svsk->sk_list, &serv->sv_tempsocks);
- 		serv->sv_tmpcnt++;
-@@ -1567,7 +1570,7 @@ int svc_addsock(struct svc_serv *serv,
- 	else if (so->state > SS_UNCONNECTED)
- 		err = -EISCONN;
- 	else {
--		svsk = svc_setup_socket(serv, so, &err, 1);
-+		svsk = svc_setup_socket(serv, so, &err, SVC_SOCK_DEFAULTS);
- 		if (svsk)
- 			err = 0;
+ 	pci_write_config_word(hw->pdev, PCI_COMMAND, 0);
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 	if (hw->membase)
+ 		iounmap((void *) hw->membase);
+ #else
+@@ -1485,7 +1485,7 @@ release_pci_ports(hfc4s8s_hw * hw)
+ static void
+ enable_pci_ports(hfc4s8s_hw * hw)
+ {
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 	pci_write_config_word(hw->pdev, PCI_COMMAND, PCI_ENA_MEMIO);
+ #else
+ 	pci_write_config_word(hw->pdev, PCI_COMMAND, PCI_ENA_REGIO);
+@@ -1560,7 +1560,7 @@ setup_instance(hfc4s8s_hw * hw)
+ 		       hw->irq);
+ 		goto out;
  	}
-@@ -1583,8 +1586,8 @@ EXPORT_SYMBOL_GPL(svc_addsock);
- /*
-  * Create socket for RPC service.
-  */
--static int
--svc_create_socket(struct svc_serv *serv, int protocol, struct sockaddr_in *sin)
-+static int svc_create_socket(struct svc_serv *serv, int protocol,
-+				struct sockaddr_in *sin, int flags)
- {
- 	struct svc_sock	*svsk;
- 	struct socket	*sock;
-@@ -1620,8 +1623,8 @@ svc_create_socket(struct svc_serv *serv,
- 			goto bummer;
- 	}
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 	printk(KERN_INFO
+ 	       "HFC-4S/8S: found PCI card at membase 0x%p, irq %d\n",
+ 	       hw->hw_membase, hw->irq);
+@@ -1613,7 +1613,7 @@ hfc4s8s_probe(struct pci_dev *pdev, cons
+ 	hw->irq = pdev->irq;
+ 	hw->iobase = pci_resource_start(pdev, 0);
  
--	if ((svsk = svc_setup_socket(serv, sock, &error, 1)) != NULL)
--		return 0;
-+	if ((svsk = svc_setup_socket(serv, sock, &error, flags)) != NULL)
-+		return ntohs(inet_sk(svsk->sk_sk)->sport);
- 
- bummer:
- 	dprintk("svc: svc_create_socket error = %d\n", -error);
-@@ -1681,19 +1684,23 @@ void svc_close_socket(struct svc_sock *s
- 	svc_sock_put(svsk);
- }
- 
--/*
-- * Make a socket for nfsd and lockd
-+/**
-+ * svc_makesock - Make a socket for nfsd and lockd
-+ * @serv: RPC server structure
-+ * @protocol: transport protocol to use
-+ * @port: port to use
-+ *
-  */
--int
--svc_makesock(struct svc_serv *serv, int protocol, unsigned short port)
-+int svc_makesock(struct svc_serv *serv, int protocol, unsigned short port)
- {
--	struct sockaddr_in	sin;
-+	struct sockaddr_in sin = {
-+		.sin_family		= AF_INET,
-+		.sin_addr.s_addr	= INADDR_ANY,
-+		.sin_port		= htons(port),
-+	};
- 
- 	dprintk("svc: creating socket proto = %d\n", protocol);
--	sin.sin_family      = AF_INET;
--	sin.sin_addr.s_addr = INADDR_ANY;
--	sin.sin_port        = htons(port);
--	return svc_create_socket(serv, protocol, &sin);
-+	return svc_create_socket(serv, protocol, &sin, SVC_SOCK_DEFAULTS);
- }
- 
- /*
+-#ifdef CONFIG_HISAX_HFC4S8S_PCIMEM
++#ifdef HISAX_HFC4S8S_PCIMEM
+ 	hw->hw_membase = (u_char *) pci_resource_start(pdev, 1);
+ 	hw->membase = ioremap((ulong) hw->hw_membase, 256);
+ #else
 _
 
-Patches currently in -mm which might be from chuck.lever@oracle.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-git-nfs.patch
+git-avr32.patch
+git-dvb.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+git-mips.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
