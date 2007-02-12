@@ -1,63 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - dynamic-kernel-command-line-m68knommu.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:47:57 -0800
-Message-ID: <200702122247.l1CMlvmL013954@shell0.pdx.osdl.net>
+Subject: - x86_64-2048-byte-command-line.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:48:29 -0800
+Message-ID: <200702122248.l1CMmTvs014022@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45526 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45534 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030339AbXBLWsb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:48:31 -0500
+	id S1030361AbXBLWsd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:48:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alon.barlev@gmail.com, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: alon.barlev@gmail.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Dynamic kernel command-line: m68knommu
+     x86_64: 2048-byte command line
 has been removed from the -mm tree.  Its filename was
-     dynamic-kernel-command-line-m68knommu.patch
+     x86_64-2048-byte-command-line.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: m68knommu
+Subject: x86_64: 2048-byte command line
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
-1. Rename saved_command_line into boot_command_line.
-2. Set command_line as __initdata.
+Current implementation allows the kernel to receive up to 255 characters from
+the bootloader.  While the boot protocol allows greater buffers to be sent.
+
+In current environment, the command-line is used in order to specify many
+values, including suspend/resume, module arguments, splash, initramfs and
+more.  
+
+255 characters are not enough anymore. 
+
+After edd issue was fixed, and dynammic kernel command-line patch was
+accepted, we can extend the COMMAND_LINE_SIZE without runtime memory
+requirements.
 
 Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/kernel/setup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/asm-x86_64/setup.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m68knommu/kernel/setup.c~dynamic-kernel-command-line-m68knommu arch/m68knommu/kernel/setup.c
---- a/arch/m68knommu/kernel/setup.c~dynamic-kernel-command-line-m68knommu
-+++ a/arch/m68knommu/kernel/setup.c
-@@ -44,7 +44,7 @@ unsigned long memory_end;
- EXPORT_SYMBOL(memory_start);
- EXPORT_SYMBOL(memory_end);
+diff -puN include/asm-x86_64/setup.h~x86_64-2048-byte-command-line include/asm-x86_64/setup.h
+--- a/include/asm-x86_64/setup.h~x86_64-2048-byte-command-line
++++ a/include/asm-x86_64/setup.h
+@@ -1,6 +1,6 @@
+ #ifndef _x8664_SETUP_H
+ #define _x8664_SETUP_H
  
--char command_line[COMMAND_LINE_SIZE];
-+char __initdata command_line[COMMAND_LINE_SIZE];
+-#define COMMAND_LINE_SIZE	256
++#define COMMAND_LINE_SIZE	2048
  
- /* setup some dummy routines */
- static void dummy_waitbut(void)
-@@ -231,8 +231,8 @@ void setup_arch(char **cmdline_p)
- 
- 	/* Keep a copy of command line */
- 	*cmdline_p = &command_line[0];
--	memcpy(saved_command_line, command_line, COMMAND_LINE_SIZE);
--	saved_command_line[COMMAND_LINE_SIZE-1] = 0;
-+	memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
-+	boot_command_line[COMMAND_LINE_SIZE-1] = 0;
- 
- #ifdef DEBUG
- 	if (strlen(*cmdline_p))
+ #endif
 _
 
 Patches currently in -mm which might be from alon.barlev@gmail.com are
