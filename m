@@ -1,356 +1,1018 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-modedb-make-more-pointer-parameters-const.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:50:14 -0800
-Message-ID: <200702122250.l1CMoE9V014209@shell0.pdx.osdl.net>
+Subject: - mark-struct-file_operations-const-3.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:50:39 -0800
+Message-ID: <200702122250.l1CModrd014239@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45827 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45821 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030405AbXBLWur (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:50:47 -0500
+	id S1030406AbXBLWup (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:50:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, jsimmons@infradead.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev modedb: make more pointer parameters const
+     mark struct file_operations const 3
 has been removed from the -mm tree.  Its filename was
-     fbdev-modedb-make-more-pointer-parameters-const.patch
+     mark-struct-file_operations-const-3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbdev modedb: make more pointer parameters const
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: mark struct file_operations const 3
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-fbdev modedb: make more input and output pointer parameters const
+Many struct file_operations in the kernel can be "const".  Marking them const
+moves these to the .rodata section, which avoids false sharing with potential
+dirty data.  In addition it'll catch accidental writes at compile time to
+these shared resources.
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: James Simmons <jsimmons@infradead.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c          |    4 +-
- drivers/video/console/fbcon.h          |    2 -
- drivers/video/fbsysfs.c                |    2 -
- drivers/video/i810/i810_main.c         |    4 +-
- drivers/video/modedb.c                 |   33 +++++++++++------------
- drivers/video/nvidia/nvidia.c          |    8 ++---
- drivers/video/riva/fbdev.c             |    5 ++-
- drivers/video/savage/savagefb_driver.c |   12 ++++----
- include/linux/fb.h                     |   31 +++++++++++----------
- 9 files changed, 52 insertions(+), 49 deletions(-)
+ block/blktrace.c                             |    2 +-
+ crypto/proc.c                                |    2 +-
+ drivers/acorn/char/i2c.c                     |    2 +-
+ drivers/block/DAC960.c                       |    2 +-
+ drivers/block/acsi_slm.c                     |    2 +-
+ drivers/block/aoe/aoechr.c                   |    2 +-
+ drivers/block/paride/pg.c                    |    2 +-
+ drivers/block/paride/pt.c                    |    2 +-
+ drivers/block/pktcdvd.c                      |    6 +++---
+ drivers/bluetooth/hci_vhci.c                 |    2 +-
+ drivers/cdrom/viocd.c                        |    2 +-
+ drivers/char/briq_panel.c                    |    2 +-
+ drivers/char/drm/drm_drv.c                   |    2 +-
+ drivers/char/drm/i810_dma.c                  |    2 +-
+ drivers/char/drm/i830_dma.c                  |    2 +-
+ drivers/char/generic_nvram.c                 |    2 +-
+ drivers/char/mbcs.c                          |    2 +-
+ drivers/char/mspec.c                         |    6 +++---
+ drivers/char/random.c                        |    4 ++--
+ drivers/char/tpm/tpm_bios.c                  |    4 ++--
+ drivers/char/viotape.c                       |    2 +-
+ drivers/char/watchdog/iTCO_wdt.c             |    2 +-
+ drivers/char/watchdog/omap_wdt.c             |    2 +-
+ drivers/char/watchdog/pc87413_wdt.c          |    2 +-
+ drivers/char/watchdog/pnx4008_wdt.c          |    2 +-
+ drivers/char/watchdog/rm9k_wdt.c             |    2 +-
+ drivers/char/watchdog/smsc37b787_wdt.c       |    2 +-
+ drivers/char/watchdog/w83697hf_wdt.c         |    2 +-
+ drivers/i2c/chips/tps65010.c                 |    2 +-
+ drivers/i2c/i2c-dev.c                        |    2 +-
+ drivers/ide/ide-proc.c                       |    2 +-
+ drivers/ide/ide-tape.c                       |    2 +-
+ drivers/ieee1394/dv1394.c                    |    2 +-
+ drivers/ieee1394/raw1394.c                   |    2 +-
+ drivers/ieee1394/video1394.c                 |    2 +-
+ drivers/infiniband/core/ucm.c                |    2 +-
+ drivers/infiniband/core/ucma.c               |    2 +-
+ drivers/infiniband/core/user_mad.c           |    4 ++--
+ drivers/infiniband/core/uverbs_main.c        |    6 +++---
+ drivers/infiniband/hw/ipath/ipath_diag.c     |    4 ++--
+ drivers/infiniband/hw/ipath/ipath_file_ops.c |    6 +++---
+ drivers/infiniband/hw/ipath/ipath_fs.c       |   14 +++++++-------
+ drivers/infiniband/hw/ipath/ipath_kernel.h   |    2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_fs.c      |    4 ++--
+ drivers/input/input.c                        |    6 +++---
+ drivers/input/misc/hp_sdc_rtc.c              |    2 +-
+ drivers/input/misc/uinput.c                  |    2 +-
+ drivers/input/serio/serio_raw.c              |    2 +-
+ drivers/isdn/capi/capi.c                     |    2 +-
+ drivers/isdn/capi/kcapi_proc.c               |   10 +++++-----
+ drivers/isdn/divert/divert_procfs.c          |    2 +-
+ drivers/isdn/hardware/eicon/divamnt.c        |    2 +-
+ drivers/isdn/hardware/eicon/divasi.c         |    2 +-
+ drivers/isdn/hardware/eicon/divasmain.c      |    2 +-
+ drivers/isdn/hardware/eicon/divasproc.c      |    2 +-
+ drivers/isdn/hysdn/hysdn_procconf.c          |    2 +-
+ drivers/isdn/hysdn/hysdn_proclog.c           |    2 +-
+ drivers/isdn/i4l/isdn_common.c               |    2 +-
+ 58 files changed, 83 insertions(+), 83 deletions(-)
 
-diff -puN drivers/video/console/fbcon.c~fbdev-modedb-make-more-pointer-parameters-const drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbdev-modedb-make-more-pointer-parameters-const
-+++ a/drivers/video/console/fbcon.c
-@@ -2071,7 +2071,7 @@ static int fbcon_resize(struct vc_data *
- 	y_diff = info->var.yres - var.yres;
- 	if (x_diff < 0 || x_diff > virt_fw ||
- 	    y_diff < 0 || y_diff > virt_fh) {
--		struct fb_videomode *mode;
-+		const struct fb_videomode *mode;
+diff -puN block/blktrace.c~mark-struct-file_operations-const-3 block/blktrace.c
+--- a/block/blktrace.c~mark-struct-file_operations-const-3
++++ a/block/blktrace.c
+@@ -264,7 +264,7 @@ static ssize_t blk_dropped_read(struct f
+ 	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
+ }
  
- 		DPRINTK("attempting resize %ix%i\n", var.xres, var.yres);
- 		mode = fb_find_best_mode(&var, &info->modelist);
-@@ -2975,7 +2975,7 @@ static void fbcon_new_modelist(struct fb
- 	int i;
- 	struct vc_data *vc;
- 	struct fb_var_screeninfo var;
--	struct fb_videomode *mode;
-+	const struct fb_videomode *mode;
+-static struct file_operations blk_dropped_fops = {
++static const struct file_operations blk_dropped_fops = {
+ 	.owner =	THIS_MODULE,
+ 	.open =		blk_dropped_open,
+ 	.read =		blk_dropped_read,
+diff -puN crypto/proc.c~mark-struct-file_operations-const-3 crypto/proc.c
+--- a/crypto/proc.c~mark-struct-file_operations-const-3
++++ a/crypto/proc.c
+@@ -101,7 +101,7 @@ static int crypto_info_open(struct inode
+ 	return seq_open(file, &crypto_seq_ops);
+ }
+         
+-static struct file_operations proc_crypto_ops = {
++static const struct file_operations proc_crypto_ops = {
+ 	.open		= crypto_info_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+diff -puN drivers/acorn/char/i2c.c~mark-struct-file_operations-const-3 drivers/acorn/char/i2c.c
+--- a/drivers/acorn/char/i2c.c~mark-struct-file_operations-const-3
++++ a/drivers/acorn/char/i2c.c
+@@ -238,7 +238,7 @@ static int rtc_ioctl(struct inode *inode
+ 	return -EINVAL;
+ }
  
- 	for (i = first_fb_vc; i <= last_fb_vc; i++) {
- 		if (registered_fb[con2fb_map[i]] != info)
-diff -puN drivers/video/console/fbcon.h~fbdev-modedb-make-more-pointer-parameters-const drivers/video/console/fbcon.h
---- a/drivers/video/console/fbcon.h~fbdev-modedb-make-more-pointer-parameters-const
-+++ a/drivers/video/console/fbcon.h
-@@ -48,7 +48,7 @@ struct display {
-     struct fb_bitfield green;
-     struct fb_bitfield blue;
-     struct fb_bitfield transp;
--    struct fb_videomode *mode;
-+    const struct fb_videomode *mode;
+-static struct file_operations rtc_fops = {
++static const struct file_operations rtc_fops = {
+ 	.ioctl	= rtc_ioctl,
  };
  
- struct fbcon_ops {
-diff -puN drivers/video/fbsysfs.c~fbdev-modedb-make-more-pointer-parameters-const drivers/video/fbsysfs.c
---- a/drivers/video/fbsysfs.c~fbdev-modedb-make-more-pointer-parameters-const
-+++ a/drivers/video/fbsysfs.c
-@@ -175,7 +175,7 @@ static ssize_t store_modes(struct device
+diff -puN drivers/block/DAC960.c~mark-struct-file_operations-const-3 drivers/block/DAC960.c
+--- a/drivers/block/DAC960.c~mark-struct-file_operations-const-3
++++ a/drivers/block/DAC960.c
+@@ -7024,7 +7024,7 @@ static int DAC960_gam_ioctl(struct inode
+   return -EINVAL;
+ }
  
- 	acquire_console_sem();
- 	list_splice(&fb_info->modelist, &old_list);
--	fb_videomode_to_modelist((struct fb_videomode *)buf, i,
-+	fb_videomode_to_modelist((const struct fb_videomode *)buf, i,
- 				 &fb_info->modelist);
- 	if (fb_new_modelist(fb_info)) {
- 		fb_destroy_modelist(&fb_info->modelist);
-diff -puN drivers/video/i810/i810_main.c~fbdev-modedb-make-more-pointer-parameters-const drivers/video/i810/i810_main.c
---- a/drivers/video/i810/i810_main.c~fbdev-modedb-make-more-pointer-parameters-const
-+++ a/drivers/video/i810/i810_main.c
-@@ -1049,7 +1049,7 @@ static int i810_check_params(struct fb_v
- 		mode_valid = 1;
+-static struct file_operations DAC960_gam_fops = {
++static const struct file_operations DAC960_gam_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.ioctl		= DAC960_gam_ioctl
+ };
+diff -puN drivers/block/acsi_slm.c~mark-struct-file_operations-const-3 drivers/block/acsi_slm.c
+--- a/drivers/block/acsi_slm.c~mark-struct-file_operations-const-3
++++ a/drivers/block/acsi_slm.c
+@@ -269,7 +269,7 @@ static int slm_get_pagesize( int device,
  
- 	if (!mode_valid && info->monspecs.modedb_len) {
--		struct fb_videomode *mode;
-+		const struct fb_videomode *mode;
+ static DEFINE_TIMER(slm_timer, slm_test_ready, 0, 0);
  
- 		mode = fb_find_best_mode(var, &info->modelist);
- 		if (mode) {
-@@ -1924,7 +1924,7 @@ static void __devinit i810fb_find_init_m
- 	fb_videomode_to_modelist(specs->modedb, specs->modedb_len,
- 				 &info->modelist);
- 	if (specs->modedb != NULL) {
--		struct fb_videomode *m;
-+		const struct fb_videomode *m;
- 
- 		if (xres && yres) {
- 			if ((m = fb_find_best_mode(&var, &info->modelist))) {
-diff -puN drivers/video/modedb.c~fbdev-modedb-make-more-pointer-parameters-const drivers/video/modedb.c
---- a/drivers/video/modedb.c~fbdev-modedb-make-more-pointer-parameters-const
-+++ a/drivers/video/modedb.c
-@@ -668,7 +668,7 @@ done:
-  * @var: pointer to struct fb_var_screeninfo
-  */
- void fb_var_to_videomode(struct fb_videomode *mode,
--			 struct fb_var_screeninfo *var)
-+			 const struct fb_var_screeninfo *var)
- {
- 	u32 pixclock, hfreq, htotal, vtotal;
- 
-@@ -712,7 +712,7 @@ void fb_var_to_videomode(struct fb_video
-  * @mode: pointer to struct fb_videomode
-  */
- void fb_videomode_to_var(struct fb_var_screeninfo *var,
--			       struct fb_videomode *mode)
-+			 const struct fb_videomode *mode)
- {
- 	var->xres = mode->xres;
- 	var->yres = mode->yres;
-@@ -735,8 +735,8 @@ void fb_videomode_to_var(struct fb_var_s
-  * RETURNS:
-  * 1 if equal, 0 if not
-  */
--int fb_mode_is_equal(struct fb_videomode *mode1,
--		     struct fb_videomode *mode2)
-+int fb_mode_is_equal(const struct fb_videomode *mode1,
-+		     const struct fb_videomode *mode2)
- {
- 	return (mode1->xres         == mode2->xres &&
- 		mode1->yres         == mode2->yres &&
-@@ -768,8 +768,8 @@ int fb_mode_is_equal(struct fb_videomode
-  * var->xres and var->yres.  If more than 1 videomode is found, will return
-  * the videomode with the highest refresh rate
-  */
--struct fb_videomode *fb_find_best_mode(struct fb_var_screeninfo *var,
--				       struct list_head *head)
-+const struct fb_videomode *fb_find_best_mode(const struct fb_var_screeninfo *var,
-+					     struct list_head *head)
- {
- 	struct list_head *pos;
- 	struct fb_modelist *modelist;
-@@ -806,8 +806,8 @@ struct fb_videomode *fb_find_best_mode(s
-  * If more than 1 videomode is found, will return the videomode with
-  * the closest refresh rate.
-  */
--struct fb_videomode *fb_find_nearest_mode(struct fb_videomode *mode,
--					  struct list_head *head)
-+const struct fb_videomode *fb_find_nearest_mode(const struct fb_videomode *mode,
-+					        struct list_head *head)
- {
- 	struct list_head *pos;
- 	struct fb_modelist *modelist;
-@@ -845,8 +845,8 @@ struct fb_videomode *fb_find_nearest_mod
-  * RETURNS:
-  * struct fb_videomode, NULL if none found
-  */
--struct fb_videomode *fb_match_mode(struct fb_var_screeninfo *var,
--				   struct list_head *head)
-+const struct fb_videomode *fb_match_mode(const struct fb_var_screeninfo *var,
-+					 struct list_head *head)
- {
- 	struct list_head *pos;
- 	struct fb_modelist *modelist;
-@@ -870,7 +870,7 @@ struct fb_videomode *fb_match_mode(struc
-  * NOTES:
-  * Will only add unmatched mode entries
-  */
--int fb_add_videomode(struct fb_videomode *mode, struct list_head *head)
-+int fb_add_videomode(const struct fb_videomode *mode, struct list_head *head)
- {
- 	struct list_head *pos;
- 	struct fb_modelist *modelist;
-@@ -905,7 +905,8 @@ int fb_add_videomode(struct fb_videomode
-  * NOTES:
-  * Will remove all matching mode entries
-  */
--void fb_delete_videomode(struct fb_videomode *mode, struct list_head *head)
-+void fb_delete_videomode(const struct fb_videomode *mode,
-+			 struct list_head *head)
- {
- 	struct list_head *pos, *n;
- 	struct fb_modelist *modelist;
-@@ -941,7 +942,7 @@ void fb_destroy_modelist(struct list_hea
-  * @num: number of entries in array
-  * @head: struct list_head of modelist
-  */
--void fb_videomode_to_modelist(struct fb_videomode *modedb, int num,
-+void fb_videomode_to_modelist(const struct fb_videomode *modedb, int num,
- 			      struct list_head *head)
- {
- 	int i;
-@@ -954,12 +955,12 @@ void fb_videomode_to_modelist(struct fb_
+-static struct file_operations slm_fops = {
++static const struct file_operations slm_fops = {
+ 	.owner =	THIS_MODULE,
+ 	.read =		slm_read,
+ 	.write =	slm_write,
+diff -puN drivers/block/aoe/aoechr.c~mark-struct-file_operations-const-3 drivers/block/aoe/aoechr.c
+--- a/drivers/block/aoe/aoechr.c~mark-struct-file_operations-const-3
++++ a/drivers/block/aoe/aoechr.c
+@@ -233,7 +233,7 @@ loop:
  	}
  }
  
--struct fb_videomode *fb_find_best_display(struct fb_monspecs *specs,
--					  struct list_head *head)
-+const struct fb_videomode *fb_find_best_display(const struct fb_monspecs *specs,
-+					        struct list_head *head)
- {
- 	struct list_head *pos;
- 	struct fb_modelist *modelist;
--	struct fb_videomode *m, *m1 = NULL, *md = NULL, *best = NULL;
-+	const struct fb_videomode *m, *m1 = NULL, *md = NULL, *best = NULL;
- 	int first = 0;
+-static struct file_operations aoe_fops = {
++static const struct file_operations aoe_fops = {
+ 	.write = aoechr_write,
+ 	.read = aoechr_read,
+ 	.open = aoechr_open,
+diff -puN drivers/block/paride/pg.c~mark-struct-file_operations-const-3 drivers/block/paride/pg.c
+--- a/drivers/block/paride/pg.c~mark-struct-file_operations-const-3
++++ a/drivers/block/paride/pg.c
+@@ -227,7 +227,7 @@ static struct class *pg_class;
  
- 	if (!head->prev || !head->next || list_empty(head))
-diff -puN drivers/video/nvidia/nvidia.c~fbdev-modedb-make-more-pointer-parameters-const drivers/video/nvidia/nvidia.c
---- a/drivers/video/nvidia/nvidia.c~fbdev-modedb-make-more-pointer-parameters-const
-+++ a/drivers/video/nvidia/nvidia.c
-@@ -829,7 +829,7 @@ static int nvidiafb_check_var(struct fb_
- 	}
+ /* kernel glue structures */
  
- 	if (!mode_valid) {
--		struct fb_videomode *mode;
-+		const struct fb_videomode *mode;
+-static struct file_operations pg_fops = {
++static const struct file_operations pg_fops = {
+ 	.owner = THIS_MODULE,
+ 	.read = pg_read,
+ 	.write = pg_write,
+diff -puN drivers/block/paride/pt.c~mark-struct-file_operations-const-3 drivers/block/paride/pt.c
+--- a/drivers/block/paride/pt.c~mark-struct-file_operations-const-3
++++ a/drivers/block/paride/pt.c
+@@ -232,7 +232,7 @@ static char pt_scratch[512];	/* scratch 
  
- 		mode = fb_find_best_mode(var, &info->modelist);
- 		if (mode) {
-@@ -1046,10 +1046,10 @@ static int __devinit nvidia_set_fbinfo(s
- 	}
+ /* kernel glue structures */
  
- 	if (specs->modedb != NULL) {
--		struct fb_videomode *modedb;
-+		const struct fb_videomode *mode;
- 
--		modedb = fb_find_best_display(specs, &info->modelist);
--		fb_videomode_to_var(&nvidiafb_default_var, modedb);
-+		mode = fb_find_best_display(specs, &info->modelist);
-+		fb_videomode_to_var(&nvidiafb_default_var, mode);
- 		nvidiafb_default_var.bits_per_pixel = bpp;
- 	} else if (par->fpWidth && par->fpHeight) {
- 		char buf[16];
-diff -puN drivers/video/riva/fbdev.c~fbdev-modedb-make-more-pointer-parameters-const drivers/video/riva/fbdev.c
---- a/drivers/video/riva/fbdev.c~fbdev-modedb-make-more-pointer-parameters-const
-+++ a/drivers/video/riva/fbdev.c
-@@ -894,7 +894,8 @@ out:
- 	return rc;
+-static struct file_operations pt_fops = {
++static const struct file_operations pt_fops = {
+ 	.owner = THIS_MODULE,
+ 	.read = pt_read,
+ 	.write = pt_write,
+diff -puN drivers/block/pktcdvd.c~mark-struct-file_operations-const-3 drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~mark-struct-file_operations-const-3
++++ a/drivers/block/pktcdvd.c
+@@ -435,7 +435,7 @@ static int pkt_debugfs_fops_open(struct 
+ 	return single_open(file, pkt_debugfs_seq_show, inode->i_private);
  }
  
--static void riva_update_var(struct fb_var_screeninfo *var, struct fb_videomode *modedb)
-+static void riva_update_var(struct fb_var_screeninfo *var,
-+			    const struct fb_videomode *modedb)
- {
- 	NVTRACE_ENTER();
- 	var->xres = var->xres_virtual = modedb->xres;
-@@ -1152,7 +1153,7 @@ static int rivafb_release(struct fb_info
- 
- static int rivafb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
- {
--	struct fb_videomode *mode;
-+	const struct fb_videomode *mode;
- 	struct riva_par *par = info->par;
- 	int nom, den;		/* translating from pixels->bytes */
- 	int mode_valid = 0;
-diff -puN drivers/video/savage/savagefb_driver.c~fbdev-modedb-make-more-pointer-parameters-const drivers/video/savage/savagefb_driver.c
---- a/drivers/video/savage/savagefb_driver.c~fbdev-modedb-make-more-pointer-parameters-const
-+++ a/drivers/video/savage/savagefb_driver.c
-@@ -833,7 +833,8 @@ static void savage_set_default_par(struc
- 	vga_out8(0x3d5, cr66, par);
+-static struct file_operations debug_fops = {
++static const struct file_operations debug_fops = {
+ 	.open		= pkt_debugfs_fops_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+@@ -2725,7 +2725,7 @@ static int pkt_seq_open(struct inode *in
+ 	return single_open(file, pkt_seq_show, PDE(inode)->data);
  }
  
--static void savage_update_var(struct fb_var_screeninfo *var, struct fb_videomode *modedb)
-+static void savage_update_var(struct fb_var_screeninfo *var,
-+			      const struct fb_videomode *modedb)
+-static struct file_operations pkt_proc_fops = {
++static const struct file_operations pkt_proc_fops = {
+ 	.open	= pkt_seq_open,
+ 	.read	= seq_read,
+ 	.llseek	= seq_lseek,
+@@ -3052,7 +3052,7 @@ static int pkt_ctl_ioctl(struct inode *i
+ }
+ 
+ 
+-static struct file_operations pkt_ctl_fops = {
++static const struct file_operations pkt_ctl_fops = {
+ 	.ioctl	 = pkt_ctl_ioctl,
+ 	.owner	 = THIS_MODULE,
+ };
+diff -puN drivers/bluetooth/hci_vhci.c~mark-struct-file_operations-const-3 drivers/bluetooth/hci_vhci.c
+--- a/drivers/bluetooth/hci_vhci.c~mark-struct-file_operations-const-3
++++ a/drivers/bluetooth/hci_vhci.c
+@@ -332,7 +332,7 @@ static int vhci_fasync(int fd, struct fi
+ 	return 0;
+ }
+ 
+-static struct file_operations vhci_fops = {
++static const struct file_operations vhci_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= vhci_llseek,
+ 	.read		= vhci_read,
+diff -puN drivers/cdrom/viocd.c~mark-struct-file_operations-const-3 drivers/cdrom/viocd.c
+--- a/drivers/cdrom/viocd.c~mark-struct-file_operations-const-3
++++ a/drivers/cdrom/viocd.c
+@@ -176,7 +176,7 @@ static int proc_viocd_open(struct inode 
+ 	return single_open(file, proc_viocd_show, NULL);
+ }
+ 
+-static struct file_operations proc_viocd_operations = {
++static const struct file_operations proc_viocd_operations = {
+ 	.open		= proc_viocd_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+diff -puN drivers/char/briq_panel.c~mark-struct-file_operations-const-3 drivers/char/briq_panel.c
+--- a/drivers/char/briq_panel.c~mark-struct-file_operations-const-3
++++ a/drivers/char/briq_panel.c
+@@ -187,7 +187,7 @@ static ssize_t briq_panel_write(struct f
+ 	return len;
+ }
+ 
+-static struct file_operations briq_panel_fops = {
++static const struct file_operations briq_panel_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.read		= briq_panel_read,
+ 	.write		= briq_panel_write,
+diff -puN drivers/char/drm/drm_drv.c~mark-struct-file_operations-const-3 drivers/char/drm/drm_drv.c
+--- a/drivers/char/drm/drm_drv.c~mark-struct-file_operations-const-3
++++ a/drivers/char/drm/drm_drv.c
+@@ -371,7 +371,7 @@ void drm_exit(struct drm_driver *driver)
+ EXPORT_SYMBOL(drm_exit);
+ 
+ /** File operations structure */
+-static struct file_operations drm_stub_fops = {
++static const struct file_operations drm_stub_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = drm_stub_open
+ };
+diff -puN drivers/char/drm/i810_dma.c~mark-struct-file_operations-const-3 drivers/char/drm/i810_dma.c
+--- a/drivers/char/drm/i810_dma.c~mark-struct-file_operations-const-3
++++ a/drivers/char/drm/i810_dma.c
+@@ -112,7 +112,7 @@ static int i810_mmap_buffers(struct file
+ 	return 0;
+ }
+ 
+-static struct file_operations i810_buffer_fops = {
++static const struct file_operations i810_buffer_fops = {
+ 	.open = drm_open,
+ 	.release = drm_release,
+ 	.ioctl = drm_ioctl,
+diff -puN drivers/char/drm/i830_dma.c~mark-struct-file_operations-const-3 drivers/char/drm/i830_dma.c
+--- a/drivers/char/drm/i830_dma.c~mark-struct-file_operations-const-3
++++ a/drivers/char/drm/i830_dma.c
+@@ -114,7 +114,7 @@ static int i830_mmap_buffers(struct file
+ 	return 0;
+ }
+ 
+-static struct file_operations i830_buffer_fops = {
++static const struct file_operations i830_buffer_fops = {
+ 	.open = drm_open,
+ 	.release = drm_release,
+ 	.ioctl = drm_ioctl,
+diff -puN drivers/char/generic_nvram.c~mark-struct-file_operations-const-3 drivers/char/generic_nvram.c
+--- a/drivers/char/generic_nvram.c~mark-struct-file_operations-const-3
++++ a/drivers/char/generic_nvram.c
+@@ -117,7 +117,7 @@ static int nvram_ioctl(struct inode *ino
+ 	return 0;
+ }
+ 
+-struct file_operations nvram_fops = {
++const struct file_operations nvram_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= nvram_llseek,
+ 	.read		= read_nvram,
+diff -puN drivers/char/mbcs.c~mark-struct-file_operations-const-3 drivers/char/mbcs.c
+--- a/drivers/char/mbcs.c~mark-struct-file_operations-const-3
++++ a/drivers/char/mbcs.c
+@@ -46,7 +46,7 @@ LIST_HEAD(soft_list);
+ /*
+  * file operations
+  */
+-struct file_operations mbcs_ops = {
++const struct file_operations mbcs_ops = {
+ 	.open = mbcs_open,
+ 	.llseek = mbcs_sram_llseek,
+ 	.read = mbcs_sram_read,
+diff -puN drivers/char/mspec.c~mark-struct-file_operations-const-3 drivers/char/mspec.c
+--- a/drivers/char/mspec.c~mark-struct-file_operations-const-3
++++ a/drivers/char/mspec.c
+@@ -291,7 +291,7 @@ uncached_mmap(struct file *file, struct 
+ 	return mspec_mmap(file, vma, MSPEC_UNCACHED);
+ }
+ 
+-static struct file_operations fetchop_fops = {
++static const struct file_operations fetchop_fops = {
+ 	.owner = THIS_MODULE,
+ 	.mmap = fetchop_mmap
+ };
+@@ -302,7 +302,7 @@ static struct miscdevice fetchop_miscdev
+ 	.fops = &fetchop_fops
+ };
+ 
+-static struct file_operations cached_fops = {
++static const struct file_operations cached_fops = {
+ 	.owner = THIS_MODULE,
+ 	.mmap = cached_mmap
+ };
+@@ -313,7 +313,7 @@ static struct miscdevice cached_miscdev 
+ 	.fops = &cached_fops
+ };
+ 
+-static struct file_operations uncached_fops = {
++static const struct file_operations uncached_fops = {
+ 	.owner = THIS_MODULE,
+ 	.mmap = uncached_mmap
+ };
+diff -puN drivers/char/random.c~mark-struct-file_operations-const-3 drivers/char/random.c
+--- a/drivers/char/random.c~mark-struct-file_operations-const-3
++++ a/drivers/char/random.c
+@@ -1117,14 +1117,14 @@ random_ioctl(struct inode * inode, struc
+ 	}
+ }
+ 
+-struct file_operations random_fops = {
++const struct file_operations random_fops = {
+ 	.read  = random_read,
+ 	.write = random_write,
+ 	.poll  = random_poll,
+ 	.ioctl = random_ioctl,
+ };
+ 
+-struct file_operations urandom_fops = {
++const struct file_operations urandom_fops = {
+ 	.read  = urandom_read,
+ 	.write = random_write,
+ 	.ioctl = random_ioctl,
+diff -puN drivers/char/tpm/tpm_bios.c~mark-struct-file_operations-const-3 drivers/char/tpm/tpm_bios.c
+--- a/drivers/char/tpm/tpm_bios.c~mark-struct-file_operations-const-3
++++ a/drivers/char/tpm/tpm_bios.c
+@@ -441,7 +441,7 @@ static int tpm_ascii_bios_measurements_o
+ 	return err;
+ }
+ 
+-struct file_operations tpm_ascii_bios_measurements_ops = {
++const struct file_operations tpm_ascii_bios_measurements_ops = {
+ 	.open = tpm_ascii_bios_measurements_open,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+@@ -474,7 +474,7 @@ static int tpm_binary_bios_measurements_
+ 	return err;
+ }
+ 
+-struct file_operations tpm_binary_bios_measurements_ops = {
++const struct file_operations tpm_binary_bios_measurements_ops = {
+ 	.open = tpm_binary_bios_measurements_open,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+diff -puN drivers/char/viotape.c~mark-struct-file_operations-const-3 drivers/char/viotape.c
+--- a/drivers/char/viotape.c~mark-struct-file_operations-const-3
++++ a/drivers/char/viotape.c
+@@ -872,7 +872,7 @@ free_op:
+ 	return ret;
+ }
+ 
+-struct file_operations viotap_fops = {
++const struct file_operations viotap_fops = {
+ 	owner: THIS_MODULE,
+ 	read: viotap_read,
+ 	write: viotap_write,
+diff -puN drivers/char/watchdog/iTCO_wdt.c~mark-struct-file_operations-const-3 drivers/char/watchdog/iTCO_wdt.c
+--- a/drivers/char/watchdog/iTCO_wdt.c~mark-struct-file_operations-const-3
++++ a/drivers/char/watchdog/iTCO_wdt.c
+@@ -539,7 +539,7 @@ static int iTCO_wdt_ioctl (struct inode 
+  *	Kernel Interfaces
+  */
+ 
+-static struct file_operations iTCO_wdt_fops = {
++static const struct file_operations iTCO_wdt_fops = {
+ 	.owner =	THIS_MODULE,
+ 	.llseek =	no_llseek,
+ 	.write =	iTCO_wdt_write,
+diff -puN drivers/char/watchdog/omap_wdt.c~mark-struct-file_operations-const-3 drivers/char/watchdog/omap_wdt.c
+--- a/drivers/char/watchdog/omap_wdt.c~mark-struct-file_operations-const-3
++++ a/drivers/char/watchdog/omap_wdt.c
+@@ -230,7 +230,7 @@ omap_wdt_ioctl(struct inode *inode, stru
+ 	}
+ }
+ 
+-static struct file_operations omap_wdt_fops = {
++static const struct file_operations omap_wdt_fops = {
+ 	.owner = THIS_MODULE,
+ 	.write = omap_wdt_write,
+ 	.ioctl = omap_wdt_ioctl,
+diff -puN drivers/char/watchdog/pc87413_wdt.c~mark-struct-file_operations-const-3 drivers/char/watchdog/pc87413_wdt.c
+--- a/drivers/char/watchdog/pc87413_wdt.c~mark-struct-file_operations-const-3
++++ a/drivers/char/watchdog/pc87413_wdt.c
+@@ -526,7 +526,7 @@ static int pc87413_notify_sys(struct not
+ 
+ /* -- Module's structures ---------------------------------------*/
+ 
+-static struct file_operations pc87413_fops = {
++static const struct file_operations pc87413_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= pc87413_write,
+diff -puN drivers/char/watchdog/pnx4008_wdt.c~mark-struct-file_operations-const-3 drivers/char/watchdog/pnx4008_wdt.c
+--- a/drivers/char/watchdog/pnx4008_wdt.c~mark-struct-file_operations-const-3
++++ a/drivers/char/watchdog/pnx4008_wdt.c
+@@ -238,7 +238,7 @@ static int pnx4008_wdt_release(struct in
+ 	return 0;
+ }
+ 
+-static struct file_operations pnx4008_wdt_fops = {
++static const struct file_operations pnx4008_wdt_fops = {
+ 	.owner = THIS_MODULE,
+ 	.llseek = no_llseek,
+ 	.write = pnx4008_wdt_write,
+diff -puN drivers/char/watchdog/rm9k_wdt.c~mark-struct-file_operations-const-3 drivers/char/watchdog/rm9k_wdt.c
+--- a/drivers/char/watchdog/rm9k_wdt.c~mark-struct-file_operations-const-3
++++ a/drivers/char/watchdog/rm9k_wdt.c
+@@ -95,7 +95,7 @@ MODULE_PARM_DESC(nowayout, "Watchdog can
+ 
+ 
+ /* Kernel interfaces */
+-static struct file_operations fops = {
++static const struct file_operations fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= wdt_gpi_open,
+ 	.release	= wdt_gpi_release,
+diff -puN drivers/char/watchdog/smsc37b787_wdt.c~mark-struct-file_operations-const-3 drivers/char/watchdog/smsc37b787_wdt.c
+--- a/drivers/char/watchdog/smsc37b787_wdt.c~mark-struct-file_operations-const-3
++++ a/drivers/char/watchdog/smsc37b787_wdt.c
+@@ -510,7 +510,7 @@ static int wb_smsc_wdt_notify_sys(struct
+ 
+ /* -- Module's structures ---------------------------------------*/
+ 
+-static struct file_operations wb_smsc_wdt_fops =
++static const struct file_operations wb_smsc_wdt_fops =
  {
- 	var->xres = var->xres_virtual = modedb->xres;
- 	var->yres = modedb->yres;
-@@ -902,7 +903,7 @@ static int savagefb_check_var(struct fb_
+ 	.owner          = THIS_MODULE,
+ 	.llseek		= no_llseek,
+diff -puN drivers/char/watchdog/w83697hf_wdt.c~mark-struct-file_operations-const-3 drivers/char/watchdog/w83697hf_wdt.c
+--- a/drivers/char/watchdog/w83697hf_wdt.c~mark-struct-file_operations-const-3
++++ a/drivers/char/watchdog/w83697hf_wdt.c
+@@ -323,7 +323,7 @@ wdt_notify_sys(struct notifier_block *th
+  *	Kernel Interfaces
+  */
+ 
+-static struct file_operations wdt_fops = {
++static const struct file_operations wdt_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= wdt_write,
+diff -puN drivers/i2c/chips/tps65010.c~mark-struct-file_operations-const-3 drivers/i2c/chips/tps65010.c
+--- a/drivers/i2c/chips/tps65010.c~mark-struct-file_operations-const-3
++++ a/drivers/i2c/chips/tps65010.c
+@@ -308,7 +308,7 @@ static int dbg_tps_open(struct inode *in
+ 	return single_open(file, dbg_show, inode->i_private);
+ }
+ 
+-static struct file_operations debug_fops = {
++static const struct file_operations debug_fops = {
+ 	.open		= dbg_tps_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+diff -puN drivers/i2c/i2c-dev.c~mark-struct-file_operations-const-3 drivers/i2c/i2c-dev.c
+--- a/drivers/i2c/i2c-dev.c~mark-struct-file_operations-const-3
++++ a/drivers/i2c/i2c-dev.c
+@@ -392,7 +392,7 @@ static int i2cdev_release(struct inode *
+ 	return 0;
+ }
+ 
+-static struct file_operations i2cdev_fops = {
++static const struct file_operations i2cdev_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.read		= i2cdev_read,
+diff -puN drivers/ide/ide-proc.c~mark-struct-file_operations-const-3 drivers/ide/ide-proc.c
+--- a/drivers/ide/ide-proc.c~mark-struct-file_operations-const-3
++++ a/drivers/ide/ide-proc.c
+@@ -548,7 +548,7 @@ static int ide_drivers_open(struct inode
+ 	return single_open(file, &ide_drivers_show, NULL);
+ }
+ 
+-static struct file_operations ide_drivers_operations = {
++static const struct file_operations ide_drivers_operations = {
+ 	.open		= ide_drivers_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+diff -puN drivers/ide/ide-tape.c~mark-struct-file_operations-const-3 drivers/ide/ide-tape.c
+--- a/drivers/ide/ide-tape.c~mark-struct-file_operations-const-3
++++ a/drivers/ide/ide-tape.c
+@@ -4779,7 +4779,7 @@ static ide_driver_t idetape_driver = {
+ /*
+  *	Our character device supporting functions, passed to register_chrdev.
+  */
+-static struct file_operations idetape_fops = {
++static const struct file_operations idetape_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.read		= idetape_chrdev_read,
+ 	.write		= idetape_chrdev_write,
+diff -puN drivers/ieee1394/dv1394.c~mark-struct-file_operations-const-3 drivers/ieee1394/dv1394.c
+--- a/drivers/ieee1394/dv1394.c~mark-struct-file_operations-const-3
++++ a/drivers/ieee1394/dv1394.c
+@@ -2147,7 +2147,7 @@ out:
+ }
+ 
+ static struct cdev dv1394_cdev;
+-static struct file_operations dv1394_fops=
++static const struct file_operations dv1394_fops=
+ {
+ 	.owner =	THIS_MODULE,
+ 	.poll =         dv1394_poll,
+diff -puN drivers/ieee1394/raw1394.c~mark-struct-file_operations-const-3 drivers/ieee1394/raw1394.c
+--- a/drivers/ieee1394/raw1394.c~mark-struct-file_operations-const-3
++++ a/drivers/ieee1394/raw1394.c
+@@ -3013,7 +3013,7 @@ static struct hpsb_highlevel raw1394_hig
+ };
+ 
+ static struct cdev raw1394_cdev;
+-static struct file_operations raw1394_fops = {
++static const struct file_operations raw1394_fops = {
+ 	.owner = THIS_MODULE,
+ 	.read = raw1394_read,
+ 	.write = raw1394_write,
+diff -puN drivers/ieee1394/video1394.c~mark-struct-file_operations-const-3 drivers/ieee1394/video1394.c
+--- a/drivers/ieee1394/video1394.c~mark-struct-file_operations-const-3
++++ a/drivers/ieee1394/video1394.c
+@@ -1277,7 +1277,7 @@ static long video1394_compat_ioctl(struc
+ #endif
+ 
+ static struct cdev video1394_cdev;
+-static struct file_operations video1394_fops=
++static const struct file_operations video1394_fops=
+ {
+ 	.owner =	THIS_MODULE,
+ 	.unlocked_ioctl = video1394_ioctl,
+diff -puN drivers/infiniband/core/ucm.c~mark-struct-file_operations-const-3 drivers/infiniband/core/ucm.c
+--- a/drivers/infiniband/core/ucm.c~mark-struct-file_operations-const-3
++++ a/drivers/infiniband/core/ucm.c
+@@ -1221,7 +1221,7 @@ static void ib_ucm_release_class_dev(str
+ 	kfree(dev);
+ }
+ 
+-static struct file_operations ucm_fops = {
++static const struct file_operations ucm_fops = {
+ 	.owner 	 = THIS_MODULE,
+ 	.open 	 = ib_ucm_open,
+ 	.release = ib_ucm_close,
+diff -puN drivers/infiniband/core/ucma.c~mark-struct-file_operations-const-3 drivers/infiniband/core/ucma.c
+--- a/drivers/infiniband/core/ucma.c~mark-struct-file_operations-const-3
++++ a/drivers/infiniband/core/ucma.c
+@@ -833,7 +833,7 @@ static int ucma_close(struct inode *inod
+ 	return 0;
+ }
+ 
+-static struct file_operations ucma_fops = {
++static const struct file_operations ucma_fops = {
+ 	.owner 	 = THIS_MODULE,
+ 	.open 	 = ucma_open,
+ 	.release = ucma_close,
+diff -puN drivers/infiniband/core/user_mad.c~mark-struct-file_operations-const-3 drivers/infiniband/core/user_mad.c
+--- a/drivers/infiniband/core/user_mad.c~mark-struct-file_operations-const-3
++++ a/drivers/infiniband/core/user_mad.c
+@@ -771,7 +771,7 @@ static int ib_umad_close(struct inode *i
+ 	return 0;
+ }
+ 
+-static struct file_operations umad_fops = {
++static const struct file_operations umad_fops = {
+ 	.owner 	 	= THIS_MODULE,
+ 	.read 	 	= ib_umad_read,
+ 	.write 	 	= ib_umad_write,
+@@ -846,7 +846,7 @@ static int ib_umad_sm_close(struct inode
+ 	return ret;
+ }
+ 
+-static struct file_operations umad_sm_fops = {
++static const struct file_operations umad_sm_fops = {
+ 	.owner 	 = THIS_MODULE,
+ 	.open 	 = ib_umad_sm_open,
+ 	.release = ib_umad_sm_close
+diff -puN drivers/infiniband/core/uverbs_main.c~mark-struct-file_operations-const-3 drivers/infiniband/core/uverbs_main.c
+--- a/drivers/infiniband/core/uverbs_main.c~mark-struct-file_operations-const-3
++++ a/drivers/infiniband/core/uverbs_main.c
+@@ -375,7 +375,7 @@ static int ib_uverbs_event_close(struct 
+ 	return 0;
+ }
+ 
+-static struct file_operations uverbs_event_fops = {
++static const struct file_operations uverbs_event_fops = {
+ 	.owner	 = THIS_MODULE,
+ 	.read 	 = ib_uverbs_event_read,
+ 	.poll    = ib_uverbs_event_poll,
+@@ -679,14 +679,14 @@ static int ib_uverbs_close(struct inode 
+ 	return 0;
+ }
+ 
+-static struct file_operations uverbs_fops = {
++static const struct file_operations uverbs_fops = {
+ 	.owner 	 = THIS_MODULE,
+ 	.write 	 = ib_uverbs_write,
+ 	.open 	 = ib_uverbs_open,
+ 	.release = ib_uverbs_close
+ };
+ 
+-static struct file_operations uverbs_mmap_fops = {
++static const struct file_operations uverbs_mmap_fops = {
+ 	.owner 	 = THIS_MODULE,
+ 	.write 	 = ib_uverbs_write,
+ 	.mmap    = ib_uverbs_mmap,
+diff -puN drivers/infiniband/hw/ipath/ipath_diag.c~mark-struct-file_operations-const-3 drivers/infiniband/hw/ipath/ipath_diag.c
+--- a/drivers/infiniband/hw/ipath/ipath_diag.c~mark-struct-file_operations-const-3
++++ a/drivers/infiniband/hw/ipath/ipath_diag.c
+@@ -59,7 +59,7 @@ static ssize_t ipath_diag_read(struct fi
+ static ssize_t ipath_diag_write(struct file *fp, const char __user *data,
+ 				size_t count, loff_t *off);
+ 
+-static struct file_operations diag_file_ops = {
++static const struct file_operations diag_file_ops = {
+ 	.owner = THIS_MODULE,
+ 	.write = ipath_diag_write,
+ 	.read = ipath_diag_read,
+@@ -71,7 +71,7 @@ static ssize_t ipath_diagpkt_write(struc
+ 				   const char __user *data,
+ 				   size_t count, loff_t *off);
+ 
+-static struct file_operations diagpkt_file_ops = {
++static const struct file_operations diagpkt_file_ops = {
+ 	.owner = THIS_MODULE,
+ 	.write = ipath_diagpkt_write,
+ };
+diff -puN drivers/infiniband/hw/ipath/ipath_file_ops.c~mark-struct-file_operations-const-3 drivers/infiniband/hw/ipath/ipath_file_ops.c
+--- a/drivers/infiniband/hw/ipath/ipath_file_ops.c~mark-struct-file_operations-const-3
++++ a/drivers/infiniband/hw/ipath/ipath_file_ops.c
+@@ -54,7 +54,7 @@ static ssize_t ipath_write(struct file *
+ static unsigned int ipath_poll(struct file *, struct poll_table_struct *);
+ static int ipath_mmap(struct file *, struct vm_area_struct *);
+ 
+-static struct file_operations ipath_file_ops = {
++static const struct file_operations ipath_file_ops = {
+ 	.owner = THIS_MODULE,
+ 	.write = ipath_write,
+ 	.open = ipath_open,
+@@ -2153,7 +2153,7 @@ bail:
+ 
+ static struct class *ipath_class;
+ 
+-static int init_cdev(int minor, char *name, struct file_operations *fops,
++static int init_cdev(int minor, char *name, const struct file_operations *fops,
+ 		     struct cdev **cdevp, struct class_device **class_devp)
+ {
+ 	const dev_t dev = MKDEV(IPATH_MAJOR, minor);
+@@ -2210,7 +2210,7 @@ done:
+ 	return ret;
+ }
+ 
+-int ipath_cdev_init(int minor, char *name, struct file_operations *fops,
++int ipath_cdev_init(int minor, char *name, const struct file_operations *fops,
+ 		    struct cdev **cdevp, struct class_device **class_devp)
+ {
+ 	return init_cdev(minor, name, fops, cdevp, class_devp);
+diff -puN drivers/infiniband/hw/ipath/ipath_fs.c~mark-struct-file_operations-const-3 drivers/infiniband/hw/ipath/ipath_fs.c
+--- a/drivers/infiniband/hw/ipath/ipath_fs.c~mark-struct-file_operations-const-3
++++ a/drivers/infiniband/hw/ipath/ipath_fs.c
+@@ -47,7 +47,7 @@
+ static struct super_block *ipath_super;
+ 
+ static int ipathfs_mknod(struct inode *dir, struct dentry *dentry,
+-			 int mode, struct file_operations *fops,
++			 int mode, const struct file_operations *fops,
+ 			 void *data)
+ {
+ 	int error;
+@@ -81,7 +81,7 @@ bail:
+ 
+ static int create_file(const char *name, mode_t mode,
+ 		       struct dentry *parent, struct dentry **dentry,
+-		       struct file_operations *fops, void *data)
++		       const struct file_operations *fops, void *data)
+ {
+ 	int error;
+ 
+@@ -105,7 +105,7 @@ static ssize_t atomic_stats_read(struct 
+ 				       sizeof ipath_stats);
+ }
+ 
+-static struct file_operations atomic_stats_ops = {
++static const struct file_operations atomic_stats_ops = {
+ 	.read = atomic_stats_read,
+ };
+ 
+@@ -127,7 +127,7 @@ static ssize_t atomic_counters_read(stru
+ 				       sizeof counters);
+ }
+ 
+-static struct file_operations atomic_counters_ops = {
++static const struct file_operations atomic_counters_ops = {
+ 	.read = atomic_counters_read,
+ };
+ 
+@@ -166,7 +166,7 @@ static ssize_t atomic_node_info_read(str
+ 				       sizeof nodeinfo);
+ }
+ 
+-static struct file_operations atomic_node_info_ops = {
++static const struct file_operations atomic_node_info_ops = {
+ 	.read = atomic_node_info_read,
+ };
+ 
+@@ -291,7 +291,7 @@ static ssize_t atomic_port_info_read(str
+ 				       sizeof portinfo);
+ }
+ 
+-static struct file_operations atomic_port_info_ops = {
++static const struct file_operations atomic_port_info_ops = {
+ 	.read = atomic_port_info_read,
+ };
+ 
+@@ -394,7 +394,7 @@ bail:
+ 	return ret;
+ }
+ 
+-static struct file_operations flash_ops = {
++static const struct file_operations flash_ops = {
+ 	.read = flash_read,
+ 	.write = flash_write,
+ };
+diff -puN drivers/infiniband/hw/ipath/ipath_kernel.h~mark-struct-file_operations-const-3 drivers/infiniband/hw/ipath/ipath_kernel.h
+--- a/drivers/infiniband/hw/ipath/ipath_kernel.h~mark-struct-file_operations-const-3
++++ a/drivers/infiniband/hw/ipath/ipath_kernel.h
+@@ -593,7 +593,7 @@ void ipath_shutdown_device(struct ipath_
+ void ipath_disarm_senderrbufs(struct ipath_devdata *);
+ 
+ struct file_operations;
+-int ipath_cdev_init(int minor, char *name, struct file_operations *fops,
++int ipath_cdev_init(int minor, char *name, const struct file_operations *fops,
+ 		    struct cdev **cdevp, struct class_device **class_devp);
+ void ipath_cdev_cleanup(struct cdev **cdevp,
+ 			struct class_device **class_devp);
+diff -puN drivers/infiniband/ulp/ipoib/ipoib_fs.c~mark-struct-file_operations-const-3 drivers/infiniband/ulp/ipoib/ipoib_fs.c
+--- a/drivers/infiniband/ulp/ipoib/ipoib_fs.c~mark-struct-file_operations-const-3
++++ a/drivers/infiniband/ulp/ipoib/ipoib_fs.c
+@@ -146,7 +146,7 @@ static int ipoib_mcg_open(struct inode *
+ 	return 0;
+ }
+ 
+-static struct file_operations ipoib_mcg_fops = {
++static const struct file_operations ipoib_mcg_fops = {
+ 	.owner   = THIS_MODULE,
+ 	.open    = ipoib_mcg_open,
+ 	.read    = seq_read,
+@@ -252,7 +252,7 @@ static int ipoib_path_open(struct inode 
+ 	return 0;
+ }
+ 
+-static struct file_operations ipoib_path_fops = {
++static const struct file_operations ipoib_path_fops = {
+ 	.owner   = THIS_MODULE,
+ 	.open    = ipoib_path_open,
+ 	.read    = seq_read,
+diff -puN drivers/input/input.c~mark-struct-file_operations-const-3 drivers/input/input.c
+--- a/drivers/input/input.c~mark-struct-file_operations-const-3
++++ a/drivers/input/input.c
+@@ -482,7 +482,7 @@ static int input_proc_devices_open(struc
+ 	return seq_open(file, &input_devices_seq_ops);
+ }
+ 
+-static struct file_operations input_devices_fileops = {
++static const struct file_operations input_devices_fileops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= input_proc_devices_open,
+ 	.poll		= input_proc_devices_poll,
+@@ -533,7 +533,7 @@ static int input_proc_handlers_open(stru
+ 	return seq_open(file, &input_handlers_seq_ops);
+ }
+ 
+-static struct file_operations input_handlers_fileops = {
++static const struct file_operations input_handlers_fileops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= input_proc_handlers_open,
+ 	.read		= seq_read,
+@@ -1142,7 +1142,7 @@ static int input_open_file(struct inode 
+ 	return err;
+ }
+ 
+-static struct file_operations input_fops = {
++static const struct file_operations input_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = input_open_file,
+ };
+diff -puN drivers/input/misc/hp_sdc_rtc.c~mark-struct-file_operations-const-3 drivers/input/misc/hp_sdc_rtc.c
+--- a/drivers/input/misc/hp_sdc_rtc.c~mark-struct-file_operations-const-3
++++ a/drivers/input/misc/hp_sdc_rtc.c
+@@ -670,7 +670,7 @@ static int hp_sdc_rtc_ioctl(struct inode
+ #endif
+ }
+ 
+-static struct file_operations hp_sdc_rtc_fops = {
++static const struct file_operations hp_sdc_rtc_fops = {
+         .owner =	THIS_MODULE,
+         .llseek =	no_llseek,
+         .read =		hp_sdc_rtc_read,
+diff -puN drivers/input/misc/uinput.c~mark-struct-file_operations-const-3 drivers/input/misc/uinput.c
+--- a/drivers/input/misc/uinput.c~mark-struct-file_operations-const-3
++++ a/drivers/input/misc/uinput.c
+@@ -627,7 +627,7 @@ static long uinput_ioctl(struct file *fi
+ 	return retval;
+ }
+ 
+-static struct file_operations uinput_fops = {
++static const struct file_operations uinput_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= uinput_open,
+ 	.release	= uinput_release,
+diff -puN drivers/input/serio/serio_raw.c~mark-struct-file_operations-const-3 drivers/input/serio/serio_raw.c
+--- a/drivers/input/serio/serio_raw.c~mark-struct-file_operations-const-3
++++ a/drivers/input/serio/serio_raw.c
+@@ -234,7 +234,7 @@ static unsigned int serio_raw_poll(struc
+ 	return 0;
+ }
+ 
+-static struct file_operations serio_raw_fops = {
++static const struct file_operations serio_raw_fops = {
+ 	.owner =	THIS_MODULE,
+ 	.open =		serio_raw_open,
+ 	.release =	serio_raw_release,
+diff -puN drivers/isdn/capi/capi.c~mark-struct-file_operations-const-3 drivers/isdn/capi/capi.c
+--- a/drivers/isdn/capi/capi.c~mark-struct-file_operations-const-3
++++ a/drivers/isdn/capi/capi.c
+@@ -1003,7 +1003,7 @@ capi_release(struct inode *inode, struct
+ 	return 0;
+ }
+ 
+-static struct file_operations capi_fops =
++static const struct file_operations capi_fops =
+ {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+diff -puN drivers/isdn/capi/kcapi_proc.c~mark-struct-file_operations-const-3 drivers/isdn/capi/kcapi_proc.c
+--- a/drivers/isdn/capi/kcapi_proc.c~mark-struct-file_operations-const-3
++++ a/drivers/isdn/capi/kcapi_proc.c
+@@ -113,14 +113,14 @@ static int seq_contrstats_open(struct in
+ 	return seq_open(file, &seq_contrstats_ops);
+ }
+ 
+-static struct file_operations proc_controller_ops = {
++static const struct file_operations proc_controller_ops = {
+ 	.open		= seq_controller_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+ 	.release	= seq_release,
+ };
+ 
+-static struct file_operations proc_contrstats_ops = {
++static const struct file_operations proc_contrstats_ops = {
+ 	.open		= seq_contrstats_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+@@ -218,14 +218,14 @@ seq_applstats_open(struct inode *inode, 
+ 	return seq_open(file, &seq_applstats_ops);
+ }
+ 
+-static struct file_operations proc_applications_ops = {
++static const struct file_operations proc_applications_ops = {
+ 	.open		= seq_applications_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+ 	.release	= seq_release,
+ };
+ 
+-static struct file_operations proc_applstats_ops = {
++static const struct file_operations proc_applstats_ops = {
+ 	.open		= seq_applstats_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+@@ -302,7 +302,7 @@ seq_capi_driver_open(struct inode *inode
+ 	return err;
+ }
+ 
+-static struct file_operations proc_driver_ops = {
++static const struct file_operations proc_driver_ops = {
+ 	.open		= seq_capi_driver_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+diff -puN drivers/isdn/divert/divert_procfs.c~mark-struct-file_operations-const-3 drivers/isdn/divert/divert_procfs.c
+--- a/drivers/isdn/divert/divert_procfs.c~mark-struct-file_operations-const-3
++++ a/drivers/isdn/divert/divert_procfs.c
+@@ -256,7 +256,7 @@ isdn_divert_ioctl(struct inode *inode, s
+ 
+ 
+ #ifdef CONFIG_PROC_FS
+-static struct file_operations isdn_fops =
++static const struct file_operations isdn_fops =
+ {
+ 	.owner          = THIS_MODULE,
+ 	.llseek         = no_llseek,
+diff -puN drivers/isdn/hardware/eicon/divamnt.c~mark-struct-file_operations-const-3 drivers/isdn/hardware/eicon/divamnt.c
+--- a/drivers/isdn/hardware/eicon/divamnt.c~mark-struct-file_operations-const-3
++++ a/drivers/isdn/hardware/eicon/divamnt.c
+@@ -164,7 +164,7 @@ static ssize_t divas_maint_read(struct f
+ 	return (maint_read_write(buf, (int) count));
+ }
+ 
+-static struct file_operations divas_maint_fops = {
++static const struct file_operations divas_maint_fops = {
+ 	.owner   = THIS_MODULE,
+ 	.llseek  = no_llseek,
+ 	.read    = divas_maint_read,
+diff -puN drivers/isdn/hardware/eicon/divasi.c~mark-struct-file_operations-const-3 drivers/isdn/hardware/eicon/divasi.c
+--- a/drivers/isdn/hardware/eicon/divasi.c~mark-struct-file_operations-const-3
++++ a/drivers/isdn/hardware/eicon/divasi.c
+@@ -131,7 +131,7 @@ static void remove_um_idi_proc(void)
  	}
+ }
  
- 	if (!mode_valid) {
--		struct fb_videomode *mode;
-+		const struct fb_videomode *mode;
+-static struct file_operations divas_idi_fops = {
++static const struct file_operations divas_idi_fops = {
+ 	.owner   = THIS_MODULE,
+ 	.llseek  = no_llseek,
+ 	.read    = um_idi_read,
+diff -puN drivers/isdn/hardware/eicon/divasmain.c~mark-struct-file_operations-const-3 drivers/isdn/hardware/eicon/divasmain.c
+--- a/drivers/isdn/hardware/eicon/divasmain.c~mark-struct-file_operations-const-3
++++ a/drivers/isdn/hardware/eicon/divasmain.c
+@@ -663,7 +663,7 @@ static unsigned int divas_poll(struct fi
+ 	return (POLLIN | POLLRDNORM);
+ }
  
- 		mode = fb_find_best_mode(var, &info->modelist);
- 		if (mode) {
-@@ -2206,11 +2207,10 @@ static int __devinit savagefb_probe(stru
- 			     info->monspecs.modedb, info->monspecs.modedb_len,
- 			     NULL, 8);
- 	} else if (info->monspecs.modedb != NULL) {
--		struct fb_videomode *modedb;
-+		const struct fb_videomode *mode;
+-static struct file_operations divas_fops = {
++static const struct file_operations divas_fops = {
+ 	.owner   = THIS_MODULE,
+ 	.llseek  = no_llseek,
+ 	.read    = divas_read,
+diff -puN drivers/isdn/hardware/eicon/divasproc.c~mark-struct-file_operations-const-3 drivers/isdn/hardware/eicon/divasproc.c
+--- a/drivers/isdn/hardware/eicon/divasproc.c~mark-struct-file_operations-const-3
++++ a/drivers/isdn/hardware/eicon/divasproc.c
+@@ -113,7 +113,7 @@ static int divas_close(struct inode *ino
+ 	return (0);
+ }
  
--		modedb = fb_find_best_display(&info->monspecs,
--					      &info->modelist);
--		savage_update_var(&info->var, modedb);
-+		mode = fb_find_best_display(&info->monspecs, &info->modelist);
-+		savage_update_var(&info->var, mode);
- 	}
+-static struct file_operations divas_fops = {
++static const struct file_operations divas_fops = {
+ 	.owner   = THIS_MODULE,
+ 	.llseek  = no_llseek,
+ 	.read    = divas_read,
+diff -puN drivers/isdn/hysdn/hysdn_procconf.c~mark-struct-file_operations-const-3 drivers/isdn/hysdn/hysdn_procconf.c
+--- a/drivers/isdn/hysdn/hysdn_procconf.c~mark-struct-file_operations-const-3
++++ a/drivers/isdn/hysdn/hysdn_procconf.c
+@@ -367,7 +367,7 @@ hysdn_conf_close(struct inode *ino, stru
+ /******************************************************/
+ /* table for conf filesystem functions defined above. */
+ /******************************************************/
+-static struct file_operations conf_fops =
++static const struct file_operations conf_fops =
+ {
+ 	.llseek         = no_llseek,
+ 	.read           = hysdn_conf_read,
+diff -puN drivers/isdn/hysdn/hysdn_proclog.c~mark-struct-file_operations-const-3 drivers/isdn/hysdn/hysdn_proclog.c
+--- a/drivers/isdn/hysdn/hysdn_proclog.c~mark-struct-file_operations-const-3
++++ a/drivers/isdn/hysdn/hysdn_proclog.c
+@@ -383,7 +383,7 @@ hysdn_log_poll(struct file *file, poll_t
+ /**************************************************/
+ /* table for log filesystem functions defined above. */
+ /**************************************************/
+-static struct file_operations log_fops =
++static const struct file_operations log_fops =
+ {
+ 	.llseek         = no_llseek,
+ 	.read           = hysdn_log_read,
+diff -puN drivers/isdn/i4l/isdn_common.c~mark-struct-file_operations-const-3 drivers/isdn/i4l/isdn_common.c
+--- a/drivers/isdn/i4l/isdn_common.c~mark-struct-file_operations-const-3
++++ a/drivers/isdn/i4l/isdn_common.c
+@@ -1822,7 +1822,7 @@ isdn_close(struct inode *ino, struct fil
+ 	return 0;
+ }
  
- 	/* maximize virtual vertical length */
-diff -puN include/linux/fb.h~fbdev-modedb-make-more-pointer-parameters-const include/linux/fb.h
---- a/include/linux/fb.h~fbdev-modedb-make-more-pointer-parameters-const
-+++ a/include/linux/fb.h
-@@ -952,25 +952,26 @@ extern unsigned char *fb_ddc_read(struct
- /* drivers/video/modedb.c */
- #define VESA_MODEDB_SIZE 34
- extern void fb_var_to_videomode(struct fb_videomode *mode,
--				struct fb_var_screeninfo *var);
-+				const struct fb_var_screeninfo *var);
- extern void fb_videomode_to_var(struct fb_var_screeninfo *var,
--				struct fb_videomode *mode);
--extern int fb_mode_is_equal(struct fb_videomode *mode1,
--			    struct fb_videomode *mode2);
--extern int fb_add_videomode(struct fb_videomode *mode, struct list_head *head);
--extern void fb_delete_videomode(struct fb_videomode *mode,
-+				const struct fb_videomode *mode);
-+extern int fb_mode_is_equal(const struct fb_videomode *mode1,
-+			    const struct fb_videomode *mode2);
-+extern int fb_add_videomode(const struct fb_videomode *mode,
-+			    struct list_head *head);
-+extern void fb_delete_videomode(const struct fb_videomode *mode,
- 				struct list_head *head);
--extern struct fb_videomode *fb_match_mode(struct fb_var_screeninfo *var,
--					  struct list_head *head);
--extern struct fb_videomode *fb_find_best_mode(struct fb_var_screeninfo *var,
--					      struct list_head *head);
--extern struct fb_videomode *fb_find_nearest_mode(struct fb_videomode *mode,
--						 struct list_head *head);
-+extern const struct fb_videomode *fb_match_mode(const struct fb_var_screeninfo *var,
-+						struct list_head *head);
-+extern const struct fb_videomode *fb_find_best_mode(const struct fb_var_screeninfo *var,
-+						    struct list_head *head);
-+extern const struct fb_videomode *fb_find_nearest_mode(const struct fb_videomode *mode,
-+						       struct list_head *head);
- extern void fb_destroy_modelist(struct list_head *head);
--extern void fb_videomode_to_modelist(struct fb_videomode *modedb, int num,
-+extern void fb_videomode_to_modelist(const struct fb_videomode *modedb, int num,
- 				     struct list_head *head);
--extern struct fb_videomode *fb_find_best_display(struct fb_monspecs *specs,
--						 struct list_head *head);
-+extern const struct fb_videomode *fb_find_best_display(const struct fb_monspecs *specs,
-+						       struct list_head *head);
- 
- /* drivers/video/fbcmap.c */
- extern int fb_alloc_cmap(struct fb_cmap *cmap, int len, int transp);
+-static struct file_operations isdn_fops =
++static const struct file_operations isdn_fops =
+ {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
+user-of-the-jiffies-rounding-code-e1000.patch
