@@ -1,119 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - omap-gpio-wrappers.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:53 -0800
-Message-ID: <200702122245.l1CMjrfK013746@shell0.pdx.osdl.net>
+Subject: - isdn-capi-use-array_size-when-appropriate.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:09 -0800
+Message-ID: <200702122246.l1CMk9TQ013776@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45189 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45198 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030317AbXBLWqI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:08 -0500
+	id S1030323AbXBLWqO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     OMAP GPIO wrappers
+     isdn/capi: use ARRAY_SIZE when appropriate
 has been removed from the -mm tree.  Its filename was
-     omap-gpio-wrappers.patch
+     isdn-capi-use-array_size-when-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: OMAP GPIO wrappers
-From: David Brownell <david-b@pacbell.net>
+Subject: isdn/capi: use ARRAY_SIZE when appropriate
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-This teaches OMAP how to implement the cross-platform GPIO interfaces.
-
-[akpm@osdl.org: cleanups]
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-omap/gpio.h |   66 +++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ drivers/isdn/capi/capi.c    |    4 ++--
+ drivers/isdn/capi/capidrv.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-arm/arch-omap/gpio.h~omap-gpio-wrappers include/asm-arm/arch-omap/gpio.h
---- a/include/asm-arm/arch-omap/gpio.h~omap-gpio-wrappers
-+++ a/include/asm-arm/arch-omap/gpio.h
-@@ -76,4 +76,70 @@ extern void omap_set_gpio_direction(int 
- extern void omap_set_gpio_dataout(int gpio, int enable);
- extern int omap_get_gpio_datain(int gpio);
+diff -puN drivers/isdn/capi/capi.c~isdn-capi-use-array_size-when-appropriate drivers/isdn/capi/capi.c
+--- a/drivers/isdn/capi/capi.c~isdn-capi-use-array_size-when-appropriate
++++ a/drivers/isdn/capi/capi.c
+@@ -1456,7 +1456,7 @@ static struct procfsentries {
  
-+/*-------------------------------------------------------------------------*/
-+
-+/* wrappers for "new style" GPIO calls. the old OMAP-specfic ones should
-+ * eventually be removed (along with this errno.h inclusion), and maybe
-+ * gpios should put MPUIOs last too.
-+ */
-+
-+#include <asm/errno.h>
-+
-+static inline int gpio_request(unsigned gpio, const char *label)
-+{
-+	return omap_request_gpio(gpio);
-+}
-+
-+static inline void gpio_free(unsigned gpio)
-+{
-+	omap_free_gpio(gpio);
-+}
-+
-+static inline int __gpio_set_direction(unsigned gpio, int is_input)
-+{
-+	if (cpu_class_is_omap2()) {
-+		if (gpio > OMAP_MAX_GPIO_LINES)
-+			return -EINVAL;
-+	} else {
-+		if (gpio > (OMAP_MAX_GPIO_LINES + 16 /* MPUIO */))
-+			return -EINVAL;
-+	}
-+	omap_set_gpio_direction(gpio, is_input);
-+	return 0;
-+}
-+
-+static inline int gpio_direction_input(unsigned gpio)
-+{
-+	return __gpio_set_direction(gpio, 1);
-+}
-+
-+static inline int gpio_direction_output(unsigned gpio)
-+{
-+	return __gpio_set_direction(gpio, 0);
-+}
-+
-+static inline int gpio_get_value(unsigned gpio)
-+{
-+	return omap_get_gpio_datain(gpio);
-+}
-+
-+static inline void gpio_set_value(unsigned gpio, int value)
-+{
-+	omap_set_gpio_dataout(gpio, value);
-+}
-+
-+#include <asm-generic/gpio.h>		/* cansleep wrappers */
-+
-+static inline int gpio_to_irq(unsigned gpio)
-+{
-+	return OMAP_GPIO_IRQ(gpio);
-+}
-+
-+static inline int irq_to_gpio(unsigned irq)
-+{
-+	if (cpu_class_is_omap1() && (irq < (IH_MPUIO_BASE + 16)))
-+		return (irq - IH_MPUIO_BASE) + OMAP_MAX_GPIO_LINES;
-+	return irq - IH_GPIO_BASE;
-+}
-+
- #endif
+ static void __init proc_init(void)
+ {
+-    int nelem = sizeof(procfsentries)/sizeof(procfsentries[0]);
++    int nelem = ARRAY_SIZE(procfsentries);
+     int i;
+ 
+     for (i=0; i < nelem; i++) {
+@@ -1468,7 +1468,7 @@ static void __init proc_init(void)
+ 
+ static void __exit proc_exit(void)
+ {
+-    int nelem = sizeof(procfsentries)/sizeof(procfsentries[0]);
++    int nelem = ARRAY_SIZE(procfsentries);
+     int i;
+ 
+     for (i=nelem-1; i >= 0; i--) {
+diff -puN drivers/isdn/capi/capidrv.c~isdn-capi-use-array_size-when-appropriate drivers/isdn/capi/capidrv.c
+--- a/drivers/isdn/capi/capidrv.c~isdn-capi-use-array_size-when-appropriate
++++ a/drivers/isdn/capi/capidrv.c
+@@ -2218,7 +2218,7 @@ static struct procfsentries {
+ 
+ static void __init proc_init(void)
+ {
+-    int nelem = sizeof(procfsentries)/sizeof(procfsentries[0]);
++    int nelem = ARRAY_SIZE(procfsentries);
+     int i;
+ 
+     for (i=0; i < nelem; i++) {
+@@ -2230,7 +2230,7 @@ static void __init proc_init(void)
+ 
+ static void __exit proc_exit(void)
+ {
+-    int nelem = sizeof(procfsentries)/sizeof(procfsentries[0]);
++    int nelem = ARRAY_SIZE(procfsentries);
+     int i;
+ 
+     for (i=nelem-1; i >= 0; i--) {
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
 git-acpi.patch
+git-agpgart.patch
+git-arm.patch
 git-avr32.patch
-git-md-accel.patch
-8250-make-probing-for-txen-bug-a-config-option.patch
+git-drm.patch
+git-dvb.patch
+git-infiniband.patch
+git-mips.patch
+atm-use-array_size-macro-when-appropriate.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
