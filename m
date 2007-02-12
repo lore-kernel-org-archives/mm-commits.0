@@ -1,108 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - remove-bogus-con_is_present-prototypes.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:49:33 -0800
-Message-ID: <200702122249.l1CMnXCC014134@shell0.pdx.osdl.net>
+Subject: - cyber2010-framebuffer-on-arm-netwinder-fix.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:49:35 -0800
+Message-ID: <200702122249.l1CMnZx8014137@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45939 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45947 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030434AbXBLWwx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:52:53 -0500
+	id S1030435AbXBLWw7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:52:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: woodys@xandros.com, adaplas@pol.net, jsimmons@infradead.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove bogus con_is_present() prototypes
+     cyber2010 framebuffer on ARM Netwinder fix
 has been removed from the -mm tree.  Its filename was
-     remove-bogus-con_is_present-prototypes.patch
+     cyber2010-framebuffer-on-arm-netwinder-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove bogus con_is_present() prototypes
-From: Adrian Bunk <bunk@stusta.de>
+Subject: cyber2010 framebuffer on ARM Netwinder fix
+From: Woody Suwalski <woodys@xandros.com>
 
-Although gcc seems to accept "extern" prototypes after it has seen the
-"static inline" function, that's not really correct.
+The Netwinder machines with Cyber2010 crash badly when starting Xserver. 
+The workaround is to disable pci burst option for this revision of video
+chip.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+[akpm@osdl.org: cleanup]
+Signed-off-by: Woody Suwalski <woodys@xandros.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: James Simmons <jsimmons@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |    2 --
- drivers/video/igafb.c          |    1 -
- 2 files changed, 3 deletions(-)
+ drivers/video/cyber2000fb.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~remove-bogus-con_is_present-prototypes drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~remove-bogus-con_is_present-prototypes
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -2957,8 +2957,6 @@ extern void (*prom_palette) (int);
- static int __devinit atyfb_setup_sparc(struct pci_dev *pdev,
- 			struct fb_info *info, unsigned long addr)
- {
--	extern int con_is_present(void);
--
- 	struct atyfb_par *par = info->par;
- 	struct pcidev_cookie *pcp;
- 	char prop[128];
-diff -puN drivers/video/igafb.c~remove-bogus-con_is_present-prototypes drivers/video/igafb.c
---- a/drivers/video/igafb.c~remove-bogus-con_is_present-prototypes
-+++ a/drivers/video/igafb.c
-@@ -370,7 +370,6 @@ static int __init iga_init(struct fb_inf
+diff -puN drivers/video/cyber2000fb.c~cyber2010-framebuffer-on-arm-netwinder-fix drivers/video/cyber2000fb.c
+--- a/drivers/video/cyber2000fb.c~cyber2010-framebuffer-on-arm-netwinder-fix
++++ a/drivers/video/cyber2000fb.c
+@@ -1539,16 +1539,21 @@ static int cyberpro_pci_enable_mmio(stru
+ 	/*
+ 	 * Allow the CyberPro to accept PCI burst accesses
+ 	 */
+-	val = cyber2000_grphr(EXT_BUS_CTL, cfb);
+-	if (!(val & EXT_BUS_CTL_PCIBURST_WRITE)) {
+-		printk(KERN_INFO "%s: enabling PCI bursts\n", cfb->fb.fix.id);
++	if (cfb->id == ID_CYBERPRO_2010) {
++		printk(KERN_INFO "%s: NOT enabling PCI bursts\n", cfb->fb.fix.id);
++	} else {
++		val = cyber2000_grphr(EXT_BUS_CTL, cfb);
++		if (!(val & EXT_BUS_CTL_PCIBURST_WRITE)) {
++			printk(KERN_INFO "%s: enabling PCI bursts\n",
++				cfb->fb.fix.id);
  
- int __init igafb_init(void)
- {
--        extern int con_is_present(void);
-         struct fb_info *info;
-         struct pci_dev *pdev;
-         struct iga_par *par;
+-		val |= EXT_BUS_CTL_PCIBURST_WRITE;
++			val |= EXT_BUS_CTL_PCIBURST_WRITE;
+ 
+-		if (cfb->id == ID_CYBERPRO_5000)
+-			val |= EXT_BUS_CTL_PCIBURST_READ;
++			if (cfb->id == ID_CYBERPRO_5000)
++				val |= EXT_BUS_CTL_PCIBURST_READ;
+ 
+-		cyber2000_grphw(EXT_BUS_CTL, val, cfb);
++			cyber2000_grphw(EXT_BUS_CTL, val, cfb);
++		}
+ 	}
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from woodys@xandros.com are
 
 origin.patch
-ifdef-acpi_future_usage-acpi_os_readable.patch
-git-cpufreq.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
-mips-remove-smp_tune_scheduling.patch
-git-mtd.patch
-git-ubi.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-git-unionfs.patch
-usb_rtl8150-must-select-mii.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
