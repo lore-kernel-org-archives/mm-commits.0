@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-fixup.patch added to -mm tree
-Date: Mon, 12 Feb 2007 01:00:02 -0800
-Message-ID: <200702120900.l1C902O1027525@shell0.pdx.osdl.net>
+Subject: + git-acpi-fixup.patch added to -mm tree
+Date: Mon, 12 Feb 2007 14:39:10 -0800
+Message-ID: <200702122239.l1CMdAM2013359@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48122 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44688 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964789AbXBLJAJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 04:00:09 -0500
+	id S1030222AbXBLWjM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:39:12 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1C905UI001574
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1CMdAhB027728
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 12 Feb 2007 01:00:06 -0800
+	for <mm-commits@vger.kernel.org>; Mon, 12 Feb 2007 14:39:10 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-dvb-fixup
+     git-acpi-fixup
 has been added to the -mm tree.  Its filename is
-     git-dvb-fixup.patch
+     git-acpi-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,63 +29,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
+Subject: git-acpi-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/radio/radio-maxiradio.c |   17 ++++-------------
- 1 file changed, 4 insertions(+), 13 deletions(-)
+ drivers/usb/misc/appledisplay.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/media/radio/radio-maxiradio.c~git-dvb-fixup drivers/media/radio/radio-maxiradio.c
---- a/drivers/media/radio/radio-maxiradio.c~git-dvb-fixup
-+++ a/drivers/media/radio/radio-maxiradio.c
-@@ -92,30 +92,21 @@ module_param(radio_nr, int, 0);
- #define FREQ_IF         171200 /* 10.7*16000   */
- #define FREQ_STEP       200    /* 12.5*16      */
- 
--#define FREQ2BITS(x)	((( (unsigned int)(x)+FREQ_IF+(FREQ_STEP<<1))\
--			/(FREQ_STEP<<2))<<2) /* (x==fmhz*16*1000) -> bits */
-+/* (x==fmhz*16*1000) -> bits */
-+#define FREQ2BITS(x)	((( (unsigned int)(x)+FREQ_IF+(FREQ_STEP<<1)) \
-+			/(FREQ_STEP<<2))<<2)
- 
- #define BITS2FREQ(x)	((x) * FREQ_STEP - FREQ_IF)
- 
- 
--static int radio_ioctl(struct inode *inode, struct file *file,
--		       unsigned int cmd, unsigned long arg);
--
- static const struct file_operations maxiradio_fops = {
- 	.owner		= THIS_MODULE,
- 	.open           = video_exclusive_open,
- 	.release        = video_exclusive_release,
--	.ioctl		= radio_ioctl,
-+	.ioctl		= video_ioctl2,
- 	.compat_ioctl	= v4l_compat_ioctl32,
- 	.llseek         = no_llseek,
- };
--static struct video_device maxiradio_radio =
--{
--	.owner		= THIS_MODULE,
--	.name		= "Maxi Radio FM2000 radio",
--	.type		= VID_TYPE_TUNER,
--	.fops           = &maxiradio_fops,
--};
- 
- static struct radio_device
- {
+diff -puN drivers/usb/misc/appledisplay.c~git-acpi-fixup drivers/usb/misc/appledisplay.c
+--- a/drivers/usb/misc/appledisplay.c~git-acpi-fixup
++++ a/drivers/usb/misc/appledisplay.c
+@@ -281,13 +281,8 @@ static int appledisplay_probe(struct usb
+ 	/* Register backlight device */
+ 	snprintf(bl_name, sizeof(bl_name), "appledisplay%d",
+ 		atomic_inc_return(&count_displays) - 1);
+-<<<<<<< HEAD/drivers/usb/misc/appledisplay.c
+-	pdata->bd = backlight_device_register(bl_name, NULL,
+-		pdata, &appledisplay_bl_data);
+-=======
+ 	pdata->bd = backlight_device_register(bl_name, NULL, pdata
+ 						&appledisplay_bl_data);
+->>>>>>> /drivers/usb/misc/appledisplay.c
+ 	if (IS_ERR(pdata->bd)) {
+ 		err("appledisplay: Backlight registration failed");
+ 		goto error;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-swiotlb-uninlinings.patch
-knfsd-sunrpc-teach-svc_sendto-to-deal-with-ipv6-addresses.patch
-knfsd-sunrpc-support-ipv6-addresses-in-rpc-servers-udp-receive-path.patch
 git-acpi.patch
+git-acpi-fixup.patch
 git-agpgart.patch
+git-arm.patch
 git-cifs-fix.patch
 git-cpufreq.patch
 fix-warning-in-device_add_attrs.patch
@@ -106,6 +84,7 @@ git-backlight-sony-fix.patch
 git-nfs-fixup.patch
 git-sh.patch
 revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-watchdog.patch
 revert-x86_64-mm-msr-on-cpu.patch
 x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
