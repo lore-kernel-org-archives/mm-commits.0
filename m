@@ -1,160 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - ondemand-governor-use-new-cpufreq-rwsem-locking-in-work-callback.patch removed from -mm tree
-Date: Sun, 11 Feb 2007 14:56:03 -0800
-Message-ID: <200702112256.l1BMu3Cf016377@shell0.pdx.osdl.net>
+Subject: - add-an-rcu-version-of-list-splicing.patch removed from -mm tree
+Date: Sun, 11 Feb 2007 22:57:25 -0800
+Message-ID: <200702120657.l1C6vPOi024333@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60877 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44208 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932916AbXBKXA7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Feb 2007 18:00:59 -0500
+	id S933037AbXBLHEi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 02:04:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, davej@codemonkey.org.uk, ego@in.ibm.com, mm-commits@vger.kernel.org
+To: minyard@acm.org, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ondemand governor use new cpufreq rwsem locking in work callback
+     add an RCU version of list splicing
 has been removed from the -mm tree.  Its filename was
-     ondemand-governor-use-new-cpufreq-rwsem-locking-in-work-callback.patch
+     add-an-rcu-version-of-list-splicing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ondemand governor use new cpufreq rwsem locking in work callback
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: add an RCU version of list splicing
+From: Corey Minyard <minyard@acm.org>
 
-Eliminate flush_workqueue in cpufreq_governor(STOP) callpath. Using flush
-there has a deadlock potential as in
+This patch is in support of the IPMI driver.  I have tested this with the
+IPMI driver changes coming in the next patch.
 
-http://uwsg.iu.edu/hypermail/linux/kernel/0611.3/1223.html
+Add a list_splice_init_rcu() function to splice an RCU-protected list into
+another list.  This takes the sync function as an argument, so one would do
+something like:
 
-Also, cleanup the locking issues with do_dbs_timer delayed_work callback.  As
-it changes the CPU frequency using __cpufreq_target, it needs to have
-policy_rwsem in write mode, which also protects it from hot plug.
+	INIT_LIST_HEAD(&list);
+	list_splice_init_rcu(&source, &dest, synchronize_rcu);
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+The idea being to keep the RCU API proliferation down to a dull roar.
+
+[akpm@osdl.org: build fix]
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq_ondemand.c |   34 ++++++++++++---------------
- 1 file changed, 16 insertions(+), 18 deletions(-)
+ include/linux/list.h |   56 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
-diff -puN drivers/cpufreq/cpufreq_ondemand.c~ondemand-governor-use-new-cpufreq-rwsem-locking-in-work-callback drivers/cpufreq/cpufreq_ondemand.c
---- a/drivers/cpufreq/cpufreq_ondemand.c~ondemand-governor-use-new-cpufreq-rwsem-locking-in-work-callback
-+++ a/drivers/cpufreq/cpufreq_ondemand.c
-@@ -437,8 +437,14 @@ static void do_dbs_timer(struct work_str
+diff -puN include/linux/list.h~add-an-rcu-version-of-list-splicing include/linux/list.h
+--- a/include/linux/list.h~add-an-rcu-version-of-list-splicing
++++ a/include/linux/list.h
+@@ -360,6 +360,62 @@ static inline void list_splice_init(stru
+ }
  
- 	delay -= jiffies % delay;
- 
--	if (!dbs_info->enable)
-+	if (lock_policy_rwsem_write(cpu) < 0)
- 		return;
+ /**
++ * list_splice_init_rcu - splice an RCU-protected list into an existing list.
++ * @list:	the RCU-protected list to splice
++ * @head:	the place in the list to splice the first list into
++ * @sync:	function to sync: synchronize_rcu(), synchronize_sched(), ...
++ *
++ * @head can be RCU-read traversed concurrently with this function.
++ *
++ * Note that this function blocks.
++ *
++ * Important note: the caller must take whatever action is necessary to
++ *	prevent any other updates to @head.  In principle, it is possible
++ *	to modify the list as soon as sync() begins execution.
++ *	If this sort of thing becomes necessary, an alternative version
++ *	based on call_rcu() could be created.  But only if -really-
++ *	needed -- there is no shortage of RCU API members.
++ */
++static inline void list_splice_init_rcu(struct list_head *list,
++					struct list_head *head,
++					void (*sync)(void))
++{
++	struct list_head *first = list->next;
++	struct list_head *last = list->prev;
++	struct list_head *at = head->next;
 +
-+	if (!dbs_info->enable) {
-+		unlock_policy_rwsem_write(cpu);
++	if (list_empty(head))
 +		return;
-+	}
 +
- 	/* Common NORMAL_SAMPLE setup */
- 	dbs_info->sample_type = DBS_NORMAL_SAMPLE;
- 	if (!dbs_tuners_ins.powersave_bias ||
-@@ -455,6 +461,7 @@ static void do_dbs_timer(struct work_str
- 	                        	CPUFREQ_RELATION_H);
- 	}
- 	queue_delayed_work_on(cpu, kondemand_wq, &dbs_info->work, delay);
-+	unlock_policy_rwsem_write(cpu);
- }
- 
- static inline void dbs_timer_init(struct cpu_dbs_info_s *dbs_info)
-@@ -463,6 +470,7 @@ static inline void dbs_timer_init(struct
- 	int delay = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
- 	delay -= jiffies % delay;
- 
-+ 	dbs_info->enable = 1;
- 	ondemand_powersave_bias_init();
- 	dbs_info->sample_type = DBS_NORMAL_SAMPLE;
- 	INIT_DELAYED_WORK_NAR(&dbs_info->work, do_dbs_timer);
-@@ -474,7 +482,6 @@ static inline void dbs_timer_exit(struct
- {
- 	dbs_info->enable = 0;
- 	cancel_delayed_work(&dbs_info->work);
--	flush_workqueue(kondemand_wq);
- }
- 
- static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
-@@ -503,21 +510,9 @@ static int cpufreq_governor_dbs(struct c
- 
- 		mutex_lock(&dbs_mutex);
- 		dbs_enable++;
--		if (dbs_enable == 1) {
--			kondemand_wq = create_workqueue("kondemand");
--			if (!kondemand_wq) {
--				printk(KERN_ERR
--					 "Creation of kondemand failed\n");
--				dbs_enable--;
--				mutex_unlock(&dbs_mutex);
--				return -ENOSPC;
--			}
--		}
- 
- 		rc = sysfs_create_group(&policy->kobj, &dbs_attr_group);
- 		if (rc) {
--			if (dbs_enable == 1)
--				destroy_workqueue(kondemand_wq);
- 			dbs_enable--;
- 			mutex_unlock(&dbs_mutex);
- 			return rc;
-@@ -532,7 +527,6 @@ static int cpufreq_governor_dbs(struct c
- 			j_dbs_info->prev_cpu_wall = get_jiffies_64();
- 		}
- 		this_dbs_info->cpu = cpu;
--		this_dbs_info->enable = 1;
- 		/*
- 		 * Start the timerschedule work, when this governor
- 		 * is used for first time
-@@ -562,9 +556,6 @@ static int cpufreq_governor_dbs(struct c
- 		dbs_timer_exit(this_dbs_info);
- 		sysfs_remove_group(&policy->kobj, &dbs_attr_group);
- 		dbs_enable--;
--		if (dbs_enable == 0)
--			destroy_workqueue(kondemand_wq);
--
- 		mutex_unlock(&dbs_mutex);
- 
- 		break;
-@@ -593,12 +584,18 @@ static struct cpufreq_governor cpufreq_g
- 
- static int __init cpufreq_gov_dbs_init(void)
- {
-+	kondemand_wq = create_workqueue("kondemand");
-+	if (!kondemand_wq) {
-+		printk(KERN_ERR "Creation of kondemand failed\n");
-+		return -EFAULT;
-+	}
- 	return cpufreq_register_governor(&cpufreq_gov_dbs);
- }
- 
- static void __exit cpufreq_gov_dbs_exit(void)
- {
- 	cpufreq_unregister_governor(&cpufreq_gov_dbs);
-+	destroy_workqueue(kondemand_wq);
- }
- 
- 
-@@ -610,3 +607,4 @@ MODULE_LICENSE("GPL");
- 
- module_init(cpufreq_gov_dbs_init);
- module_exit(cpufreq_gov_dbs_exit);
++	/* "first" and "last" tracking list, so initialize it. */
 +
++	INIT_LIST_HEAD(list);
++
++	/*
++	 * At this point, the list body still points to the source list.
++	 * Wait for any readers to finish using the list before splicing
++	 * the list body into the new list.  Any new readers will see
++	 * an empty list.
++	 */
++
++	sync();
++
++	/*
++	 * Readers are finished with the source list, so perform splice.
++	 * The order is important if the new list is global and accessible
++	 * to concurrent RCU readers.  Note that RCU readers are not
++	 * permitted to traverse the prev pointers without excluding
++	 * this function.
++	 */
++
++	last->next = at;
++	smp_wmb();
++	head->next = first;
++	first->prev = head;
++	at->prev = last;
++}
++
++/**
+  * list_entry - get the struct for this entry
+  * @ptr:	the &struct list_head pointer.
+  * @type:	the type of the struct this is embedded in.
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from minyard@acm.org are
 
-git-cpufreq.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+origin.patch
+add-an-rcu-version-of-list-splicing.patch
+sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
