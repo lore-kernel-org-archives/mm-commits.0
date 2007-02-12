@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - mark-struct-inode_operations-const-1.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:50:54 -0800
-Message-ID: <200702122250.l1CMosbI014260@shell0.pdx.osdl.net>
+Subject: - mark-struct-inode_operations-const-3.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:50:58 -0800
+Message-ID: <200702122250.l1CMowa3014266@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45854 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45872 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030421AbXBLWu7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:50:59 -0500
+	id S1030422AbXBLWvJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:51:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arjan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mark struct inode_operations const 1
+     mark struct inode_operations const 3
 has been removed from the -mm tree.  Its filename was
-     mark-struct-inode_operations-const-1.patch
+     mark-struct-inode_operations-const-3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mark struct inode_operations const 1
+Subject: mark struct inode_operations const 3
 From: Arjan van de Ven <arjan@linux.intel.com>
 
 Many struct inode_operations in the kernel can be "const".  Marking them const
@@ -33,1005 +33,956 @@ Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/inode.c |    2 +-
- fs/9p/vfs_inode.c                         |   16 ++++++++--------
- fs/adfs/adfs.h                            |    4 ++--
- fs/adfs/dir.c                             |    2 +-
- fs/adfs/file.c                            |    2 +-
- fs/affs/affs.h                            |    6 +++---
- fs/affs/dir.c                             |    2 +-
- fs/affs/file.c                            |    2 +-
- fs/affs/inode.c                           |    2 +-
- fs/affs/symlink.c                         |    2 +-
- fs/afs/dir.c                              |    2 +-
- fs/afs/file.c                             |    2 +-
- fs/afs/internal.h                         |    6 +++---
- fs/afs/mntpt.c                            |    2 +-
- fs/autofs/autofs_i.h                      |    4 ++--
- fs/autofs/root.c                          |    2 +-
- fs/autofs/symlink.c                       |    2 +-
- fs/autofs4/autofs_i.h                     |   10 +++++-----
- fs/autofs4/root.c                         |    6 +++---
- fs/autofs4/symlink.c                      |    2 +-
- fs/bad_inode.c                            |    2 +-
- fs/befs/linuxvfs.c                        |    4 ++--
- fs/bfs/bfs.h                              |    4 ++--
- fs/bfs/dir.c                              |    2 +-
- fs/bfs/file.c                             |    2 +-
- fs/cifs/cifsfs.c                          |    6 +++---
- fs/cifs/cifsfs.h                          |    6 +++---
- fs/coda/cnode.c                           |    2 +-
- fs/coda/dir.c                             |    2 +-
- fs/coda/inode.c                           |    2 +-
- fs/coda/pioctl.c                          |    2 +-
- fs/configfs/configfs_internal.h           |    4 ++--
- fs/configfs/dir.c                         |    2 +-
- fs/configfs/inode.c                       |    2 +-
- fs/configfs/symlink.c                     |    2 +-
- fs/cramfs/inode.c                         |    4 ++--
- fs/ecryptfs/ecryptfs_kernel.h             |    6 +++---
- fs/ecryptfs/inode.c                       |    6 +++---
- fs/efs/dir.c                              |    2 +-
- fs/ext2/ext2.h                            |   10 +++++-----
- fs/ext2/file.c                            |    2 +-
- fs/ext2/namei.c                           |    4 ++--
- fs/ext2/symlink.c                         |    4 ++--
- fs/ext3/file.c                            |    2 +-
- fs/ext3/namei.c                           |    4 ++--
- fs/ext3/symlink.c                         |    4 ++--
- fs/ext4/file.c                            |    2 +-
- fs/ext4/namei.c                           |    4 ++--
- fs/ext4/symlink.c                         |    4 ++--
- fs/fat/file.c                             |    2 +-
- fs/fat/inode.c                            |    2 +-
- fs/freevxfs/vxfs_extern.h                 |    2 +-
- fs/freevxfs/vxfs_immed.c                  |    2 +-
- fs/freevxfs/vxfs_inode.c                  |    2 +-
- fs/freevxfs/vxfs_lookup.c                 |    2 +-
- fs/fuse/control.c                         |    2 +-
- fs/fuse/dir.c                             |    6 +++---
- 57 files changed, 100 insertions(+), 100 deletions(-)
+ fs/proc/base.c              |   20 ++++++++++----------
+ fs/proc/generic.c           |    6 +++---
+ fs/proc/root.c              |    2 +-
+ fs/qnx4/dir.c               |    2 +-
+ fs/qnx4/file.c              |    2 +-
+ fs/ramfs/file-mmu.c         |    2 +-
+ fs/ramfs/file-nommu.c       |    2 +-
+ fs/ramfs/inode.c            |    4 ++--
+ fs/ramfs/internal.h         |    2 +-
+ fs/reiserfs/file.c          |    2 +-
+ fs/reiserfs/namei.c         |    6 +++---
+ fs/romfs/inode.c            |    2 +-
+ fs/smbfs/dir.c              |    4 ++--
+ fs/smbfs/file.c             |    2 +-
+ fs/smbfs/proto.h            |    8 ++++----
+ fs/smbfs/symlink.c          |    2 +-
+ fs/sysfs/dir.c              |    2 +-
+ fs/sysfs/inode.c            |    2 +-
+ fs/sysfs/symlink.c          |    2 +-
+ fs/sysfs/sysfs.h            |    4 ++--
+ fs/sysv/file.c              |    2 +-
+ fs/sysv/inode.c             |    2 +-
+ fs/sysv/namei.c             |    2 +-
+ fs/sysv/symlink.c           |    2 +-
+ fs/sysv/sysv.h              |    6 +++---
+ fs/udf/file.c               |    2 +-
+ fs/udf/namei.c              |    2 +-
+ fs/udf/udfdecl.h            |    4 ++--
+ fs/ufs/namei.c              |    2 +-
+ fs/ufs/symlink.c            |    2 +-
+ fs/ufs/truncate.c           |    2 +-
+ fs/vfat/namei.c             |    2 +-
+ fs/xfs/linux-2.6/xfs_iops.c |    6 +++---
+ fs/xfs/linux-2.6/xfs_iops.h |    6 +++---
+ include/linux/coda_linux.h  |    6 +++---
+ include/linux/efs_fs.h      |    2 +-
+ include/linux/ext3_fs.h     |   10 +++++-----
+ include/linux/ext4_fs.h     |   10 +++++-----
+ include/linux/fs.h          |    6 +++---
+ include/linux/msdos_fs.h    |    6 +++---
+ include/linux/ncp_fs.h      |    4 ++--
+ include/linux/nfs_fs.h      |   14 +++++++-------
+ include/linux/nfs_xdr.h     |    4 ++--
+ include/linux/phonedev.h    |    2 +-
+ include/linux/proc_fs.h     |    4 ++--
+ include/linux/qnx4_fs.h     |    4 ++--
+ include/linux/reiserfs_fs.h |    8 ++++----
+ include/linux/ufs_fs.h      |    6 +++---
+ 48 files changed, 103 insertions(+), 103 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/inode.c~mark-struct-inode_operations-const-1 arch/powerpc/platforms/cell/spufs/inode.c
---- a/arch/powerpc/platforms/cell/spufs/inode.c~mark-struct-inode_operations-const-1
-+++ a/arch/powerpc/platforms/cell/spufs/inode.c
-@@ -220,7 +220,7 @@ static int spufs_dir_close(struct inode 
- 	return dcache_dir_close(inode, file);
- }
- 
--struct inode_operations spufs_dir_inode_operations = {
-+const struct inode_operations spufs_dir_inode_operations = {
- 	.lookup = simple_lookup,
+diff -puN fs/proc/base.c~mark-struct-inode_operations-const-3 fs/proc/base.c
+--- a/fs/proc/base.c~mark-struct-inode_operations-const-3
++++ a/fs/proc/base.c
+@@ -93,7 +93,7 @@ struct pid_entry {
+ 	int len;
+ 	char *name;
+ 	mode_t mode;
+-	struct inode_operations *iop;
++	const struct inode_operations *iop;
+ 	const struct file_operations *fop;
+ 	union proc_op op;
  };
- 
-diff -puN fs/9p/vfs_inode.c~mark-struct-inode_operations-const-1 fs/9p/vfs_inode.c
---- a/fs/9p/vfs_inode.c~mark-struct-inode_operations-const-1
-+++ a/fs/9p/vfs_inode.c
-@@ -41,10 +41,10 @@
- #include "v9fs_vfs.h"
- #include "fid.h"
- 
--static struct inode_operations v9fs_dir_inode_operations;
--static struct inode_operations v9fs_dir_inode_operations_ext;
--static struct inode_operations v9fs_file_inode_operations;
--static struct inode_operations v9fs_symlink_inode_operations;
-+static const struct inode_operations v9fs_dir_inode_operations;
-+static const struct inode_operations v9fs_dir_inode_operations_ext;
-+static const struct inode_operations v9fs_file_inode_operations;
-+static const struct inode_operations v9fs_symlink_inode_operations;
- 
- /**
-  * unixmode2p9mode - convert unix mode bits to plan 9
-@@ -1303,7 +1303,7 @@ v9fs_vfs_mknod(struct inode *dir, struct
- 	return retval;
- }
- 
--static struct inode_operations v9fs_dir_inode_operations_ext = {
-+static const struct inode_operations v9fs_dir_inode_operations_ext = {
- 	.create = v9fs_vfs_create,
- 	.lookup = v9fs_vfs_lookup,
- 	.symlink = v9fs_vfs_symlink,
-@@ -1318,7 +1318,7 @@ static struct inode_operations v9fs_dir_
- 	.setattr = v9fs_vfs_setattr,
- };
- 
--static struct inode_operations v9fs_dir_inode_operations = {
-+static const struct inode_operations v9fs_dir_inode_operations = {
- 	.create = v9fs_vfs_create,
- 	.lookup = v9fs_vfs_lookup,
- 	.unlink = v9fs_vfs_unlink,
-@@ -1330,12 +1330,12 @@ static struct inode_operations v9fs_dir_
- 	.setattr = v9fs_vfs_setattr,
- };
- 
--static struct inode_operations v9fs_file_inode_operations = {
-+static const struct inode_operations v9fs_file_inode_operations = {
- 	.getattr = v9fs_vfs_getattr,
- 	.setattr = v9fs_vfs_setattr,
- };
- 
--static struct inode_operations v9fs_symlink_inode_operations = {
-+static const struct inode_operations v9fs_symlink_inode_operations = {
- 	.readlink = v9fs_vfs_readlink,
- 	.follow_link = v9fs_vfs_follow_link,
- 	.put_link = v9fs_vfs_put_link,
-diff -puN fs/adfs/adfs.h~mark-struct-inode_operations-const-1 fs/adfs/adfs.h
---- a/fs/adfs/adfs.h~mark-struct-inode_operations-const-1
-+++ a/fs/adfs/adfs.h
-@@ -84,7 +84,7 @@ void __adfs_error(struct super_block *sb
-  */
- 
- /* dir_*.c */
--extern struct inode_operations adfs_dir_inode_operations;
-+extern const struct inode_operations adfs_dir_inode_operations;
- extern const struct file_operations adfs_dir_operations;
- extern struct dentry_operations adfs_dentry_operations;
- extern struct adfs_dir_ops adfs_f_dir_ops;
-@@ -93,7 +93,7 @@ extern struct adfs_dir_ops adfs_fplus_di
- extern int adfs_dir_update(struct super_block *sb, struct object_info *obj);
- 
- /* file.c */
--extern struct inode_operations adfs_file_inode_operations;
-+extern const struct inode_operations adfs_file_inode_operations;
- extern const struct file_operations adfs_file_operations;
- 
- static inline __u32 signed_asl(__u32 val, signed int shift)
-diff -puN fs/adfs/dir.c~mark-struct-inode_operations-const-1 fs/adfs/dir.c
---- a/fs/adfs/dir.c~mark-struct-inode_operations-const-1
-+++ a/fs/adfs/dir.c
-@@ -295,7 +295,7 @@ adfs_lookup(struct inode *dir, struct de
- /*
-  * directories can handle most operations...
-  */
--struct inode_operations adfs_dir_inode_operations = {
-+const struct inode_operations adfs_dir_inode_operations = {
- 	.lookup		= adfs_lookup,
- 	.setattr	= adfs_notify_change,
- };
-diff -puN fs/adfs/file.c~mark-struct-inode_operations-const-1 fs/adfs/file.c
---- a/fs/adfs/file.c~mark-struct-inode_operations-const-1
-+++ a/fs/adfs/file.c
-@@ -36,6 +36,6 @@ const struct file_operations adfs_file_o
- 	.sendfile	= generic_file_sendfile,
- };
- 
--struct inode_operations adfs_file_inode_operations = {
-+const struct inode_operations adfs_file_inode_operations = {
- 	.setattr	= adfs_notify_change,
- };
-diff -puN fs/affs/affs.h~mark-struct-inode_operations-const-1 fs/affs/affs.h
---- a/fs/affs/affs.h~mark-struct-inode_operations-const-1
-+++ a/fs/affs/affs.h
-@@ -188,9 +188,9 @@ extern void   affs_dir_truncate(struct i
- 
- /* jump tables */
- 
--extern struct inode_operations	 affs_file_inode_operations;
--extern struct inode_operations	 affs_dir_inode_operations;
--extern struct inode_operations   affs_symlink_inode_operations;
-+extern const struct inode_operations	 affs_file_inode_operations;
-+extern const struct inode_operations	 affs_dir_inode_operations;
-+extern const struct inode_operations   affs_symlink_inode_operations;
- extern const struct file_operations	 affs_file_operations;
- extern const struct file_operations	 affs_file_operations_ofs;
- extern const struct file_operations	 affs_dir_operations;
-diff -puN fs/affs/dir.c~mark-struct-inode_operations-const-1 fs/affs/dir.c
---- a/fs/affs/dir.c~mark-struct-inode_operations-const-1
-+++ a/fs/affs/dir.c
-@@ -26,7 +26,7 @@ const struct file_operations affs_dir_op
- /*
-  * directories can handle most operations...
-  */
--struct inode_operations affs_dir_inode_operations = {
-+const struct inode_operations affs_dir_inode_operations = {
- 	.create		= affs_create,
- 	.lookup		= affs_lookup,
- 	.link		= affs_link,
-diff -puN fs/affs/file.c~mark-struct-inode_operations-const-1 fs/affs/file.c
---- a/fs/affs/file.c~mark-struct-inode_operations-const-1
-+++ a/fs/affs/file.c
-@@ -38,7 +38,7 @@ const struct file_operations affs_file_o
- 	.sendfile	= generic_file_sendfile,
- };
- 
--struct inode_operations affs_file_inode_operations = {
-+const struct inode_operations affs_file_inode_operations = {
- 	.truncate	= affs_truncate,
- 	.setattr	= affs_notify_change,
- };
-diff -puN fs/affs/inode.c~mark-struct-inode_operations-const-1 fs/affs/inode.c
---- a/fs/affs/inode.c~mark-struct-inode_operations-const-1
-+++ a/fs/affs/inode.c
-@@ -12,7 +12,7 @@
- 
- #include "affs.h"
- 
--extern struct inode_operations affs_symlink_inode_operations;
-+extern const struct inode_operations affs_symlink_inode_operations;
- extern struct timezone sys_tz;
- 
- void
-diff -puN fs/affs/symlink.c~mark-struct-inode_operations-const-1 fs/affs/symlink.c
---- a/fs/affs/symlink.c~mark-struct-inode_operations-const-1
-+++ a/fs/affs/symlink.c
-@@ -70,7 +70,7 @@ const struct address_space_operations af
- 	.readpage	= affs_symlink_readpage,
- };
- 
--struct inode_operations affs_symlink_inode_operations = {
-+const struct inode_operations affs_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= page_follow_link_light,
- 	.put_link	= page_put_link,
-diff -puN fs/afs/dir.c~mark-struct-inode_operations-const-1 fs/afs/dir.c
---- a/fs/afs/dir.c~mark-struct-inode_operations-const-1
-+++ a/fs/afs/dir.c
-@@ -37,7 +37,7 @@ const struct file_operations afs_dir_fil
- 	.readdir	= afs_dir_readdir,
- };
- 
--struct inode_operations afs_dir_inode_operations = {
-+const struct inode_operations afs_dir_inode_operations = {
- 	.lookup		= afs_dir_lookup,
- 	.getattr	= afs_inode_getattr,
- #if 0 /* TODO */
-diff -puN fs/afs/file.c~mark-struct-inode_operations-const-1 fs/afs/file.c
---- a/fs/afs/file.c~mark-struct-inode_operations-const-1
-+++ a/fs/afs/file.c
-@@ -30,7 +30,7 @@ static int afs_file_readpage(struct file
- static void afs_file_invalidatepage(struct page *page, unsigned long offset);
- static int afs_file_releasepage(struct page *page, gfp_t gfp_flags);
- 
--struct inode_operations afs_file_inode_operations = {
-+const struct inode_operations afs_file_inode_operations = {
- 	.getattr	= afs_inode_getattr,
- };
- 
-diff -puN fs/afs/internal.h~mark-struct-inode_operations-const-1 fs/afs/internal.h
---- a/fs/afs/internal.h~mark-struct-inode_operations-const-1
-+++ a/fs/afs/internal.h
-@@ -63,14 +63,14 @@ extern struct cachefs_index_def afs_cach
- /*
-  * dir.c
-  */
--extern struct inode_operations afs_dir_inode_operations;
-+extern const struct inode_operations afs_dir_inode_operations;
- extern const struct file_operations afs_dir_file_operations;
- 
- /*
-  * file.c
-  */
- extern const struct address_space_operations afs_fs_aops;
--extern struct inode_operations afs_file_inode_operations;
-+extern const struct inode_operations afs_file_inode_operations;
- 
- #ifdef AFS_CACHING_SUPPORT
- extern int afs_cache_get_page_cookie(struct page *page,
-@@ -104,7 +104,7 @@ extern struct cachefs_netfs afs_cache_ne
- /*
-  * mntpt.c
-  */
--extern struct inode_operations afs_mntpt_inode_operations;
-+extern const struct inode_operations afs_mntpt_inode_operations;
- extern const struct file_operations afs_mntpt_file_operations;
- extern struct afs_timer afs_mntpt_expiry_timer;
- extern struct afs_timer_ops afs_mntpt_expiry_timer_ops;
-diff -puN fs/afs/mntpt.c~mark-struct-inode_operations-const-1 fs/afs/mntpt.c
---- a/fs/afs/mntpt.c~mark-struct-inode_operations-const-1
-+++ a/fs/afs/mntpt.c
-@@ -36,7 +36,7 @@ const struct file_operations afs_mntpt_f
- 	.open		= afs_mntpt_open,
- };
- 
--struct inode_operations afs_mntpt_inode_operations = {
-+const struct inode_operations afs_mntpt_inode_operations = {
- 	.lookup		= afs_mntpt_lookup,
- 	.follow_link	= afs_mntpt_follow_link,
- 	.readlink	= page_readlink,
-diff -puN fs/autofs/autofs_i.h~mark-struct-inode_operations-const-1 fs/autofs/autofs_i.h
---- a/fs/autofs/autofs_i.h~mark-struct-inode_operations-const-1
-+++ a/fs/autofs/autofs_i.h
-@@ -142,8 +142,8 @@ struct autofs_dir_ent *autofs_expire(str
- 
- /* Operations structures */
- 
--extern struct inode_operations autofs_root_inode_operations;
--extern struct inode_operations autofs_symlink_inode_operations;
-+extern const struct inode_operations autofs_root_inode_operations;
-+extern const struct inode_operations autofs_symlink_inode_operations;
- extern const struct file_operations autofs_root_operations;
- 
- /* Initializing function */
-diff -puN fs/autofs/root.c~mark-struct-inode_operations-const-1 fs/autofs/root.c
---- a/fs/autofs/root.c~mark-struct-inode_operations-const-1
-+++ a/fs/autofs/root.c
-@@ -32,7 +32,7 @@ const struct file_operations autofs_root
- 	.ioctl		= autofs_root_ioctl,
- };
- 
--struct inode_operations autofs_root_inode_operations = {
-+const struct inode_operations autofs_root_inode_operations = {
-         .lookup		= autofs_root_lookup,
-         .unlink		= autofs_root_unlink,
-         .symlink	= autofs_root_symlink,
-diff -puN fs/autofs/symlink.c~mark-struct-inode_operations-const-1 fs/autofs/symlink.c
---- a/fs/autofs/symlink.c~mark-struct-inode_operations-const-1
-+++ a/fs/autofs/symlink.c
-@@ -20,7 +20,7 @@ static void *autofs_follow_link(struct d
- 	return NULL;
- }
- 
--struct inode_operations autofs_symlink_inode_operations = {
-+const struct inode_operations autofs_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= autofs_follow_link
- };
-diff -puN fs/autofs4/autofs_i.h~mark-struct-inode_operations-const-1 fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~mark-struct-inode_operations-const-1
-+++ a/fs/autofs4/autofs_i.h
-@@ -168,11 +168,11 @@ int autofs4_expire_multi(struct super_bl
- 
- /* Operations structures */
- 
--extern struct inode_operations autofs4_symlink_inode_operations;
--extern struct inode_operations autofs4_dir_inode_operations;
--extern struct inode_operations autofs4_root_inode_operations;
--extern struct inode_operations autofs4_indirect_root_inode_operations;
--extern struct inode_operations autofs4_direct_root_inode_operations;
-+extern const struct inode_operations autofs4_symlink_inode_operations;
-+extern const struct inode_operations autofs4_dir_inode_operations;
-+extern const struct inode_operations autofs4_root_inode_operations;
-+extern const struct inode_operations autofs4_indirect_root_inode_operations;
-+extern const struct inode_operations autofs4_direct_root_inode_operations;
- extern const struct file_operations autofs4_dir_operations;
- extern const struct file_operations autofs4_root_operations;
- 
-diff -puN fs/autofs4/root.c~mark-struct-inode_operations-const-1 fs/autofs4/root.c
---- a/fs/autofs4/root.c~mark-struct-inode_operations-const-1
-+++ a/fs/autofs4/root.c
-@@ -47,7 +47,7 @@ const struct file_operations autofs4_dir
- 	.readdir	= autofs4_dir_readdir,
- };
- 
--struct inode_operations autofs4_indirect_root_inode_operations = {
-+const struct inode_operations autofs4_indirect_root_inode_operations = {
- 	.lookup		= autofs4_lookup,
- 	.unlink		= autofs4_dir_unlink,
- 	.symlink	= autofs4_dir_symlink,
-@@ -55,7 +55,7 @@ struct inode_operations autofs4_indirect
- 	.rmdir		= autofs4_dir_rmdir,
- };
- 
--struct inode_operations autofs4_direct_root_inode_operations = {
-+const struct inode_operations autofs4_direct_root_inode_operations = {
- 	.lookup		= autofs4_lookup,
- 	.unlink		= autofs4_dir_unlink,
- 	.mkdir		= autofs4_dir_mkdir,
-@@ -63,7 +63,7 @@ struct inode_operations autofs4_direct_r
- 	.follow_link	= autofs4_follow_link,
- };
- 
--struct inode_operations autofs4_dir_inode_operations = {
-+const struct inode_operations autofs4_dir_inode_operations = {
- 	.lookup		= autofs4_lookup,
- 	.unlink		= autofs4_dir_unlink,
- 	.symlink	= autofs4_dir_symlink,
-diff -puN fs/autofs4/symlink.c~mark-struct-inode_operations-const-1 fs/autofs4/symlink.c
---- a/fs/autofs4/symlink.c~mark-struct-inode_operations-const-1
-+++ a/fs/autofs4/symlink.c
-@@ -19,7 +19,7 @@ static void *autofs4_follow_link(struct 
- 	return NULL;
- }
- 
--struct inode_operations autofs4_symlink_inode_operations = {
-+const struct inode_operations autofs4_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= autofs4_follow_link
- };
-diff -puN fs/bad_inode.c~mark-struct-inode_operations-const-1 fs/bad_inode.c
---- a/fs/bad_inode.c~mark-struct-inode_operations-const-1
-+++ a/fs/bad_inode.c
-@@ -291,7 +291,7 @@ static int bad_inode_removexattr(struct 
- 	return -EIO;
- }
- 
--static struct inode_operations bad_inode_ops =
-+static const struct inode_operations bad_inode_ops =
- {
- 	.create		= bad_inode_create,
- 	.lookup		= bad_inode_lookup,
-diff -puN fs/befs/linuxvfs.c~mark-struct-inode_operations-const-1 fs/befs/linuxvfs.c
---- a/fs/befs/linuxvfs.c~mark-struct-inode_operations-const-1
-+++ a/fs/befs/linuxvfs.c
-@@ -68,7 +68,7 @@ static const struct file_operations befs
- 	.readdir	= befs_readdir,
- };
- 
--static struct inode_operations befs_dir_inode_operations = {
-+static const struct inode_operations befs_dir_inode_operations = {
- 	.lookup		= befs_lookup,
- };
- 
-@@ -78,7 +78,7 @@ static const struct address_space_operat
- 	.bmap		= befs_bmap,
- };
- 
--static struct inode_operations befs_symlink_inode_operations = {
-+static const struct inode_operations befs_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= befs_follow_link,
- 	.put_link	= befs_put_link,
-diff -puN fs/bfs/bfs.h~mark-struct-inode_operations-const-1 fs/bfs/bfs.h
---- a/fs/bfs/bfs.h~mark-struct-inode_operations-const-1
-+++ a/fs/bfs/bfs.h
-@@ -48,12 +48,12 @@ static inline struct bfs_inode_info *BFS
- 
- 
- /* file.c */
--extern struct inode_operations bfs_file_inops;
-+extern const struct inode_operations bfs_file_inops;
- extern const struct file_operations bfs_file_operations;
- extern const struct address_space_operations bfs_aops;
- 
- /* dir.c */
--extern struct inode_operations bfs_dir_inops;
-+extern const struct inode_operations bfs_dir_inops;
- extern const struct file_operations bfs_dir_operations;
- 
- #endif /* _FS_BFS_BFS_H */
-diff -puN fs/bfs/dir.c~mark-struct-inode_operations-const-1 fs/bfs/dir.c
---- a/fs/bfs/dir.c~mark-struct-inode_operations-const-1
-+++ a/fs/bfs/dir.c
-@@ -260,7 +260,7 @@ end_rename:
+@@ -352,7 +352,7 @@ static int proc_setattr(struct dentry *d
  	return error;
  }
  
--struct inode_operations bfs_dir_inops = {
-+const struct inode_operations bfs_dir_inops = {
- 	.create			= bfs_create,
- 	.lookup			= bfs_lookup,
- 	.link			= bfs_link,
-diff -puN fs/bfs/file.c~mark-struct-inode_operations-const-1 fs/bfs/file.c
---- a/fs/bfs/file.c~mark-struct-inode_operations-const-1
-+++ a/fs/bfs/file.c
-@@ -164,4 +164,4 @@ const struct address_space_operations bf
- 	.bmap		= bfs_bmap,
+-static struct inode_operations proc_def_inode_operations = {
++static const struct inode_operations proc_def_inode_operations = {
+ 	.setattr	= proc_setattr,
  };
  
--struct inode_operations bfs_file_inops;
-+const struct inode_operations bfs_file_inops;
-diff -puN fs/cifs/cifsfs.c~mark-struct-inode_operations-const-1 fs/cifs/cifsfs.c
---- a/fs/cifs/cifsfs.c~mark-struct-inode_operations-const-1
-+++ a/fs/cifs/cifsfs.c
-@@ -533,7 +533,7 @@ static struct file_system_type cifs_fs_t
- 	.kill_sb = kill_anon_super,
- 	/*  .fs_flags */
- };
--struct inode_operations cifs_dir_inode_ops = {
-+const struct inode_operations cifs_dir_inode_ops = {
- 	.create = cifs_create,
- 	.lookup = cifs_lookup,
- 	.getattr = cifs_getattr,
-@@ -555,7 +555,7 @@ struct inode_operations cifs_dir_inode_o
- #endif
- };
- 
--struct inode_operations cifs_file_inode_ops = {
-+const struct inode_operations cifs_file_inode_ops = {
- /*	revalidate:cifs_revalidate, */
- 	.setattr = cifs_setattr,
- 	.getattr = cifs_getattr, /* do we need this anymore? */
-@@ -569,7 +569,7 @@ struct inode_operations cifs_file_inode_
- #endif 
- };
- 
--struct inode_operations cifs_symlink_inode_ops = {
-+const struct inode_operations cifs_symlink_inode_ops = {
- 	.readlink = generic_readlink, 
- 	.follow_link = cifs_follow_link,
- 	.put_link = cifs_put_link,
-diff -puN fs/cifs/cifsfs.h~mark-struct-inode_operations-const-1 fs/cifs/cifsfs.h
---- a/fs/cifs/cifsfs.h~mark-struct-inode_operations-const-1
-+++ a/fs/cifs/cifsfs.h
-@@ -42,7 +42,7 @@ extern void cifs_delete_inode(struct ino
- /* extern void cifs_write_inode(struct inode *); *//* BB not needed yet */
- 
- /* Functions related to inodes */
--extern struct inode_operations cifs_dir_inode_ops;
-+extern const struct inode_operations cifs_dir_inode_ops;
- extern int cifs_create(struct inode *, struct dentry *, int, 
- 		       struct nameidata *);
- extern struct dentry * cifs_lookup(struct inode *, struct dentry *,
-@@ -58,8 +58,8 @@ extern int cifs_revalidate(struct dentry
- extern int cifs_getattr(struct vfsmount *, struct dentry *, struct kstat *);
- extern int cifs_setattr(struct dentry *, struct iattr *);
- 
--extern struct inode_operations cifs_file_inode_ops;
--extern struct inode_operations cifs_symlink_inode_ops;
-+extern const struct inode_operations cifs_file_inode_ops;
-+extern const struct inode_operations cifs_symlink_inode_ops;
- 
- /* Functions related to files and directories */
- extern const struct file_operations cifs_file_ops;
-diff -puN fs/coda/cnode.c~mark-struct-inode_operations-const-1 fs/coda/cnode.c
---- a/fs/coda/cnode.c~mark-struct-inode_operations-const-1
-+++ a/fs/coda/cnode.c
-@@ -16,7 +16,7 @@ static inline int coda_fideq(struct Coda
- 	return memcmp(fid1, fid2, sizeof(*fid1)) == 0;
- }
- 
--static struct inode_operations coda_symlink_inode_operations = {
-+static const struct inode_operations coda_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= page_follow_link_light,
- 	.put_link	= page_put_link,
-diff -puN fs/coda/dir.c~mark-struct-inode_operations-const-1 fs/coda/dir.c
---- a/fs/coda/dir.c~mark-struct-inode_operations-const-1
-+++ a/fs/coda/dir.c
-@@ -66,7 +66,7 @@ static struct dentry_operations coda_den
- 	.d_delete	= coda_dentry_delete,
- };
- 
--struct inode_operations coda_dir_inode_operations =
-+const struct inode_operations coda_dir_inode_operations =
- {
- 	.create		= coda_create,
- 	.lookup		= coda_lookup,
-diff -puN fs/coda/inode.c~mark-struct-inode_operations-const-1 fs/coda/inode.c
---- a/fs/coda/inode.c~mark-struct-inode_operations-const-1
-+++ a/fs/coda/inode.c
-@@ -271,7 +271,7 @@ int coda_setattr(struct dentry *de, stru
+@@ -980,7 +980,7 @@ out:
  	return error;
  }
  
--struct inode_operations coda_file_inode_operations = {
-+const struct inode_operations coda_file_inode_operations = {
- 	.permission	= coda_permission,
- 	.getattr	= coda_getattr,
- 	.setattr	= coda_setattr,
-diff -puN fs/coda/pioctl.c~mark-struct-inode_operations-const-1 fs/coda/pioctl.c
---- a/fs/coda/pioctl.c~mark-struct-inode_operations-const-1
-+++ a/fs/coda/pioctl.c
-@@ -30,7 +30,7 @@ static int coda_pioctl(struct inode * in
-                        unsigned int cmd, unsigned long user_data);
+-static struct inode_operations proc_pid_link_inode_operations = {
++static const struct inode_operations proc_pid_link_inode_operations = {
+ 	.readlink	= proc_pid_readlink,
+ 	.follow_link	= proc_pid_follow_link,
+ 	.setattr	= proc_setattr,
+@@ -1416,7 +1416,7 @@ static const struct file_operations proc
+ /*
+  * proc directories can do almost nothing..
+  */
+-static struct inode_operations proc_fd_inode_operations = {
++static const struct inode_operations proc_fd_inode_operations = {
+ 	.lookup		= proc_lookupfd,
+ 	.setattr	= proc_setattr,
+ };
+@@ -1656,7 +1656,7 @@ static struct dentry *proc_attr_dir_look
+ 				  attr_dir_stuff, ARRAY_SIZE(attr_dir_stuff));
+ }
  
- /* exported from this file */
--struct inode_operations coda_ioctl_inode_operations =
-+const struct inode_operations coda_ioctl_inode_operations =
- {
- 	.permission	= coda_ioctl_permission,
- 	.setattr	= coda_setattr,
-diff -puN fs/configfs/configfs_internal.h~mark-struct-inode_operations-const-1 fs/configfs/configfs_internal.h
---- a/fs/configfs/configfs_internal.h~mark-struct-inode_operations-const-1
-+++ a/fs/configfs/configfs_internal.h
-@@ -75,8 +75,8 @@ extern struct super_block * configfs_sb;
- extern const struct file_operations configfs_dir_operations;
- extern const struct file_operations configfs_file_operations;
- extern const struct file_operations bin_fops;
--extern struct inode_operations configfs_dir_inode_operations;
--extern struct inode_operations configfs_symlink_inode_operations;
-+extern const struct inode_operations configfs_dir_inode_operations;
-+extern const struct inode_operations configfs_symlink_inode_operations;
+-static struct inode_operations proc_attr_dir_inode_operations = {
++static const struct inode_operations proc_attr_dir_inode_operations = {
+ 	.lookup		= proc_attr_dir_lookup,
+ 	.getattr	= pid_getattr,
+ 	.setattr	= proc_setattr,
+@@ -1682,7 +1682,7 @@ static void *proc_self_follow_link(struc
+ 	return ERR_PTR(vfs_follow_link(nd,tmp));
+ }
  
- extern int configfs_symlink(struct inode *dir, struct dentry *dentry,
- 			    const char *symname);
-diff -puN fs/configfs/dir.c~mark-struct-inode_operations-const-1 fs/configfs/dir.c
---- a/fs/configfs/dir.c~mark-struct-inode_operations-const-1
-+++ a/fs/configfs/dir.c
-@@ -930,7 +930,7 @@ static int configfs_rmdir(struct inode *
+-static struct inode_operations proc_self_inode_operations = {
++static const struct inode_operations proc_self_inode_operations = {
+ 	.readlink	= proc_self_readlink,
+ 	.follow_link	= proc_self_follow_link,
+ };
+@@ -1835,7 +1835,7 @@ static int proc_pid_io_accounting(struct
+  * Thread groups
+  */
+ static const struct file_operations proc_task_operations;
+-static struct inode_operations proc_task_inode_operations;
++static const struct inode_operations proc_task_inode_operations;
+ 
+ static struct pid_entry tgid_base_stuff[] = {
+ 	DIR("task",       S_IRUGO|S_IXUGO, task),
+@@ -1904,7 +1904,7 @@ static struct dentry *proc_tgid_base_loo
+ 				  tgid_base_stuff, ARRAY_SIZE(tgid_base_stuff));
+ }
+ 
+-static struct inode_operations proc_tgid_base_inode_operations = {
++static const struct inode_operations proc_tgid_base_inode_operations = {
+ 	.lookup		= proc_tgid_base_lookup,
+ 	.getattr	= pid_getattr,
+ 	.setattr	= proc_setattr,
+@@ -2182,7 +2182,7 @@ static const struct file_operations proc
+ 	.readdir	= proc_tid_base_readdir,
+ };
+ 
+-static struct inode_operations proc_tid_base_inode_operations = {
++static const struct inode_operations proc_tid_base_inode_operations = {
+ 	.lookup		= proc_tid_base_lookup,
+ 	.getattr	= pid_getattr,
+ 	.setattr	= proc_setattr,
+@@ -2408,7 +2408,7 @@ static int proc_task_getattr(struct vfsm
  	return 0;
  }
  
--struct inode_operations configfs_dir_inode_operations = {
-+const struct inode_operations configfs_dir_inode_operations = {
- 	.mkdir		= configfs_mkdir,
- 	.rmdir		= configfs_rmdir,
- 	.symlink	= configfs_symlink,
-diff -puN fs/configfs/inode.c~mark-struct-inode_operations-const-1 fs/configfs/inode.c
---- a/fs/configfs/inode.c~mark-struct-inode_operations-const-1
-+++ a/fs/configfs/inode.c
-@@ -49,7 +49,7 @@ static struct backing_dev_info configfs_
+-static struct inode_operations proc_task_inode_operations = {
++static const struct inode_operations proc_task_inode_operations = {
+ 	.lookup		= proc_task_lookup,
+ 	.getattr	= proc_task_getattr,
+ 	.setattr	= proc_setattr,
+diff -puN fs/proc/generic.c~mark-struct-inode_operations-const-3 fs/proc/generic.c
+--- a/fs/proc/generic.c~mark-struct-inode_operations-const-3
++++ a/fs/proc/generic.c
+@@ -265,7 +265,7 @@ static int proc_getattr(struct vfsmount 
+ 	return 0;
+ }
+ 
+-static struct inode_operations proc_file_inode_operations = {
++static const struct inode_operations proc_file_inode_operations = {
+ 	.setattr	= proc_notify_change,
+ };
+ 
+@@ -357,7 +357,7 @@ static void *proc_follow_link(struct den
+ 	return NULL;
+ }
+ 
+-static struct inode_operations proc_link_inode_operations = {
++static const struct inode_operations proc_link_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= proc_follow_link,
+ };
+@@ -505,7 +505,7 @@ static const struct file_operations proc
+ /*
+  * proc directories can do almost nothing..
+  */
+-static struct inode_operations proc_dir_inode_operations = {
++static const struct inode_operations proc_dir_inode_operations = {
+ 	.lookup		= proc_lookup,
+ 	.getattr	= proc_getattr,
+ 	.setattr	= proc_notify_change,
+diff -puN fs/proc/root.c~mark-struct-inode_operations-const-3 fs/proc/root.c
+--- a/fs/proc/root.c~mark-struct-inode_operations-const-3
++++ a/fs/proc/root.c
+@@ -144,7 +144,7 @@ static const struct file_operations proc
+ /*
+  * proc root can do almost nothing..
+  */
+-static struct inode_operations proc_root_inode_operations = {
++static const struct inode_operations proc_root_inode_operations = {
+ 	.lookup		= proc_root_lookup,
+ 	.getattr	= proc_root_getattr,
+ };
+diff -puN fs/qnx4/dir.c~mark-struct-inode_operations-const-3 fs/qnx4/dir.c
+--- a/fs/qnx4/dir.c~mark-struct-inode_operations-const-3
++++ a/fs/qnx4/dir.c
+@@ -87,7 +87,7 @@ const struct file_operations qnx4_dir_op
+ 	.fsync		= file_fsync,
+ };
+ 
+-struct inode_operations qnx4_dir_inode_operations =
++const struct inode_operations qnx4_dir_inode_operations =
+ {
+ 	.lookup		= qnx4_lookup,
+ #ifdef CONFIG_QNX4FS_RW
+diff -puN fs/qnx4/file.c~mark-struct-inode_operations-const-3 fs/qnx4/file.c
+--- a/fs/qnx4/file.c~mark-struct-inode_operations-const-3
++++ a/fs/qnx4/file.c
+@@ -33,7 +33,7 @@ const struct file_operations qnx4_file_o
+ #endif
+ };
+ 
+-struct inode_operations qnx4_file_inode_operations =
++const struct inode_operations qnx4_file_inode_operations =
+ {
+ #ifdef CONFIG_QNX4FS_RW
+ 	.truncate	= qnx4_truncate,
+diff -puN fs/ramfs/file-mmu.c~mark-struct-inode_operations-const-3 fs/ramfs/file-mmu.c
+--- a/fs/ramfs/file-mmu.c~mark-struct-inode_operations-const-3
++++ a/fs/ramfs/file-mmu.c
+@@ -45,6 +45,6 @@ const struct file_operations ramfs_file_
+ 	.llseek		= generic_file_llseek,
+ };
+ 
+-struct inode_operations ramfs_file_inode_operations = {
++const struct inode_operations ramfs_file_inode_operations = {
+ 	.getattr	= simple_getattr,
+ };
+diff -puN fs/ramfs/file-nommu.c~mark-struct-inode_operations-const-3 fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~mark-struct-inode_operations-const-3
++++ a/fs/ramfs/file-nommu.c
+@@ -47,7 +47,7 @@ const struct file_operations ramfs_file_
+ 	.llseek			= generic_file_llseek,
+ };
+ 
+-struct inode_operations ramfs_file_inode_operations = {
++const struct inode_operations ramfs_file_inode_operations = {
+ 	.setattr		= ramfs_nommu_setattr,
+ 	.getattr		= simple_getattr,
+ };
+diff -puN fs/ramfs/inode.c~mark-struct-inode_operations-const-3 fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~mark-struct-inode_operations-const-3
++++ a/fs/ramfs/inode.c
+@@ -41,7 +41,7 @@
+ #define RAMFS_MAGIC	0x858458f6
+ 
+ static struct super_operations ramfs_ops;
+-static struct inode_operations ramfs_dir_inode_operations;
++static const struct inode_operations ramfs_dir_inode_operations;
+ 
+ static struct backing_dev_info ramfs_backing_dev_info = {
+ 	.ra_pages	= 0,	/* No readahead */
+@@ -143,7 +143,7 @@ static int ramfs_symlink(struct inode * 
+ 	return error;
+ }
+ 
+-static struct inode_operations ramfs_dir_inode_operations = {
++static const struct inode_operations ramfs_dir_inode_operations = {
+ 	.create		= ramfs_create,
+ 	.lookup		= simple_lookup,
+ 	.link		= simple_link,
+diff -puN fs/ramfs/internal.h~mark-struct-inode_operations-const-3 fs/ramfs/internal.h
+--- a/fs/ramfs/internal.h~mark-struct-inode_operations-const-3
++++ a/fs/ramfs/internal.h
+@@ -12,4 +12,4 @@
+ 
+ extern const struct address_space_operations ramfs_aops;
+ extern const struct file_operations ramfs_file_operations;
+-extern struct inode_operations ramfs_file_inode_operations;
++extern const struct inode_operations ramfs_file_inode_operations;
+diff -puN fs/reiserfs/file.c~mark-struct-inode_operations-const-3 fs/reiserfs/file.c
+--- a/fs/reiserfs/file.c~mark-struct-inode_operations-const-3
++++ a/fs/reiserfs/file.c
+@@ -1556,7 +1556,7 @@ const struct file_operations reiserfs_fi
+ 	.splice_write = generic_file_splice_write,
+ };
+ 
+-struct inode_operations reiserfs_file_inode_operations = {
++const struct inode_operations reiserfs_file_inode_operations = {
+ 	.truncate = reiserfs_vfs_truncate_file,
+ 	.setattr = reiserfs_setattr,
+ 	.setxattr = reiserfs_setxattr,
+diff -puN fs/reiserfs/namei.c~mark-struct-inode_operations-const-3 fs/reiserfs/namei.c
+--- a/fs/reiserfs/namei.c~mark-struct-inode_operations-const-3
++++ a/fs/reiserfs/namei.c
+@@ -1525,7 +1525,7 @@ static int reiserfs_rename(struct inode 
+ /*
+  * directories can handle most operations...
+  */
+-struct inode_operations reiserfs_dir_inode_operations = {
++const struct inode_operations reiserfs_dir_inode_operations = {
+ 	//&reiserfs_dir_operations,   /* default_file_ops */
+ 	.create = reiserfs_create,
+ 	.lookup = reiserfs_lookup,
+@@ -1548,7 +1548,7 @@ struct inode_operations reiserfs_dir_ino
+  * symlink operations.. same as page_symlink_inode_operations, with xattr
+  * stuff added
+  */
+-struct inode_operations reiserfs_symlink_inode_operations = {
++const struct inode_operations reiserfs_symlink_inode_operations = {
+ 	.readlink = generic_readlink,
+ 	.follow_link = page_follow_link_light,
+ 	.put_link = page_put_link,
+@@ -1564,7 +1564,7 @@ struct inode_operations reiserfs_symlink
+ /*
+  * special file operations.. just xattr/acl stuff
+  */
+-struct inode_operations reiserfs_special_inode_operations = {
++const struct inode_operations reiserfs_special_inode_operations = {
+ 	.setattr = reiserfs_setattr,
+ 	.setxattr = reiserfs_setxattr,
+ 	.getxattr = reiserfs_getxattr,
+diff -puN fs/romfs/inode.c~mark-struct-inode_operations-const-3 fs/romfs/inode.c
+--- a/fs/romfs/inode.c~mark-struct-inode_operations-const-3
++++ a/fs/romfs/inode.c
+@@ -468,7 +468,7 @@ static const struct file_operations romf
+ 	.readdir	= romfs_readdir,
+ };
+ 
+-static struct inode_operations romfs_dir_inode_operations = {
++static const struct inode_operations romfs_dir_inode_operations = {
+ 	.lookup		= romfs_lookup,
+ };
+ 
+diff -puN fs/smbfs/dir.c~mark-struct-inode_operations-const-3 fs/smbfs/dir.c
+--- a/fs/smbfs/dir.c~mark-struct-inode_operations-const-3
++++ a/fs/smbfs/dir.c
+@@ -42,7 +42,7 @@ const struct file_operations smb_dir_ope
+ 	.open		= smb_dir_open,
+ };
+ 
+-struct inode_operations smb_dir_inode_operations =
++const struct inode_operations smb_dir_inode_operations =
+ {
+ 	.create		= smb_create,
+ 	.lookup		= smb_lookup,
+@@ -54,7 +54,7 @@ struct inode_operations smb_dir_inode_op
+ 	.setattr	= smb_notify_change,
+ };
+ 
+-struct inode_operations smb_dir_inode_operations_unix =
++const struct inode_operations smb_dir_inode_operations_unix =
+ {
+ 	.create		= smb_create,
+ 	.lookup		= smb_lookup,
+diff -puN fs/smbfs/file.c~mark-struct-inode_operations-const-3 fs/smbfs/file.c
+--- a/fs/smbfs/file.c~mark-struct-inode_operations-const-3
++++ a/fs/smbfs/file.c
+@@ -418,7 +418,7 @@ const struct file_operations smb_file_op
+ 	.sendfile	= smb_file_sendfile,
+ };
+ 
+-struct inode_operations smb_file_inode_operations =
++const struct inode_operations smb_file_inode_operations =
+ {
+ 	.permission	= smb_file_permission,
+ 	.getattr	= smb_getattr,
+diff -puN fs/smbfs/proto.h~mark-struct-inode_operations-const-3 fs/smbfs/proto.h
+--- a/fs/smbfs/proto.h~mark-struct-inode_operations-const-3
++++ a/fs/smbfs/proto.h
+@@ -36,8 +36,8 @@ extern int smb_proc_link(struct smb_sb_i
+ extern void smb_install_null_ops(struct smb_ops *ops);
+ /* dir.c */
+ extern const struct file_operations smb_dir_operations;
+-extern struct inode_operations smb_dir_inode_operations;
+-extern struct inode_operations smb_dir_inode_operations_unix;
++extern const struct inode_operations smb_dir_inode_operations;
++extern const struct inode_operations smb_dir_inode_operations_unix;
+ extern void smb_new_dentry(struct dentry *dentry);
+ extern void smb_renew_times(struct dentry *dentry);
+ /* cache.c */
+@@ -65,7 +65,7 @@ extern int smb_notify_change(struct dent
+ /* file.c */
+ extern const struct address_space_operations smb_file_aops;
+ extern const struct file_operations smb_file_operations;
+-extern struct inode_operations smb_file_inode_operations;
++extern const struct inode_operations smb_file_inode_operations;
+ /* ioctl.c */
+ extern int smb_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg);
+ /* smbiod.c */
+@@ -84,4 +84,4 @@ extern int smb_request_send_server(struc
+ extern int smb_request_recv(struct smb_sb_info *server);
+ /* symlink.c */
+ extern int smb_symlink(struct inode *inode, struct dentry *dentry, const char *oldname);
+-extern struct inode_operations smb_link_inode_operations;
++extern const struct inode_operations smb_link_inode_operations;
+diff -puN fs/smbfs/symlink.c~mark-struct-inode_operations-const-3 fs/smbfs/symlink.c
+--- a/fs/smbfs/symlink.c~mark-struct-inode_operations-const-3
++++ a/fs/smbfs/symlink.c
+@@ -62,7 +62,7 @@ static void smb_put_link(struct dentry *
+ 		__putname(s);
+ }
+ 
+-struct inode_operations smb_link_inode_operations =
++const struct inode_operations smb_link_inode_operations =
+ {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= smb_follow_link,
+diff -puN fs/sysfs/dir.c~mark-struct-inode_operations-const-3 fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~mark-struct-inode_operations-const-3
++++ a/fs/sysfs/dir.c
+@@ -296,7 +296,7 @@ static struct dentry * sysfs_lookup(stru
+ 	return ERR_PTR(err);
+ }
+ 
+-struct inode_operations sysfs_dir_inode_operations = {
++const struct inode_operations sysfs_dir_inode_operations = {
+ 	.lookup		= sysfs_lookup,
+ 	.setattr	= sysfs_setattr,
+ };
+diff -puN fs/sysfs/inode.c~mark-struct-inode_operations-const-3 fs/sysfs/inode.c
+--- a/fs/sysfs/inode.c~mark-struct-inode_operations-const-3
++++ a/fs/sysfs/inode.c
+@@ -29,7 +29,7 @@ static struct backing_dev_info sysfs_bac
  	.capabilities	= BDI_CAP_NO_ACCT_DIRTY | BDI_CAP_NO_WRITEBACK,
  };
  
--static struct inode_operations configfs_inode_operations ={
-+static const struct inode_operations configfs_inode_operations ={
- 	.setattr	= configfs_setattr,
+-static struct inode_operations sysfs_inode_operations ={
++static const struct inode_operations sysfs_inode_operations ={
+ 	.setattr	= sysfs_setattr,
  };
  
-diff -puN fs/configfs/symlink.c~mark-struct-inode_operations-const-1 fs/configfs/symlink.c
---- a/fs/configfs/symlink.c~mark-struct-inode_operations-const-1
-+++ a/fs/configfs/symlink.c
-@@ -272,7 +272,7 @@ static void configfs_put_link(struct den
+diff -puN fs/sysfs/symlink.c~mark-struct-inode_operations-const-3 fs/sysfs/symlink.c
+--- a/fs/sysfs/symlink.c~mark-struct-inode_operations-const-3
++++ a/fs/sysfs/symlink.c
+@@ -181,7 +181,7 @@ static void sysfs_put_link(struct dentry
+ 		free_page((unsigned long)page);
+ }
+ 
+-struct inode_operations sysfs_symlink_inode_operations = {
++const struct inode_operations sysfs_symlink_inode_operations = {
+ 	.readlink = generic_readlink,
+ 	.follow_link = sysfs_follow_link,
+ 	.put_link = sysfs_put_link,
+diff -puN fs/sysfs/sysfs.h~mark-struct-inode_operations-const-3 fs/sysfs/sysfs.h
+--- a/fs/sysfs/sysfs.h~mark-struct-inode_operations-const-3
++++ a/fs/sysfs/sysfs.h
+@@ -26,8 +26,8 @@ extern struct super_block * sysfs_sb;
+ extern const struct file_operations sysfs_dir_operations;
+ extern const struct file_operations sysfs_file_operations;
+ extern const struct file_operations bin_fops;
+-extern struct inode_operations sysfs_dir_inode_operations;
+-extern struct inode_operations sysfs_symlink_inode_operations;
++extern const struct inode_operations sysfs_dir_inode_operations;
++extern const struct inode_operations sysfs_symlink_inode_operations;
+ 
+ struct sysfs_symlink {
+ 	char * link_name;
+diff -puN fs/sysv/file.c~mark-struct-inode_operations-const-3 fs/sysv/file.c
+--- a/fs/sysv/file.c~mark-struct-inode_operations-const-3
++++ a/fs/sysv/file.c
+@@ -30,7 +30,7 @@ const struct file_operations sysv_file_o
+ 	.sendfile	= generic_file_sendfile,
+ };
+ 
+-struct inode_operations sysv_file_inode_operations = {
++const struct inode_operations sysv_file_inode_operations = {
+ 	.truncate	= sysv_truncate,
+ 	.getattr	= sysv_getattr,
+ };
+diff -puN fs/sysv/inode.c~mark-struct-inode_operations-const-3 fs/sysv/inode.c
+--- a/fs/sysv/inode.c~mark-struct-inode_operations-const-3
++++ a/fs/sysv/inode.c
+@@ -142,7 +142,7 @@ static inline void write3byte(struct sys
  	}
  }
  
--struct inode_operations configfs_symlink_inode_operations = {
-+const struct inode_operations configfs_symlink_inode_operations = {
- 	.follow_link = configfs_follow_link,
- 	.readlink = generic_readlink,
- 	.put_link = configfs_put_link,
-diff -puN fs/cramfs/inode.c~mark-struct-inode_operations-const-1 fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~mark-struct-inode_operations-const-1
-+++ a/fs/cramfs/inode.c
-@@ -28,7 +28,7 @@
- #include <asm/uaccess.h>
- 
- static struct super_operations cramfs_ops;
--static struct inode_operations cramfs_dir_inode_operations;
-+static const struct inode_operations cramfs_dir_inode_operations;
- static const struct file_operations cramfs_directory_operations;
- static const struct address_space_operations cramfs_aops;
- 
-@@ -518,7 +518,7 @@ static const struct file_operations cram
- 	.readdir	= cramfs_readdir,
- };
- 
--static struct inode_operations cramfs_dir_inode_operations = {
-+static const struct inode_operations cramfs_dir_inode_operations = {
- 	.lookup		= cramfs_lookup,
- };
- 
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~mark-struct-inode_operations-const-1 fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~mark-struct-inode_operations-const-1
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -446,9 +446,9 @@ void __ecryptfs_printk(const char *fmt, 
- 
- extern const struct file_operations ecryptfs_main_fops;
- extern const struct file_operations ecryptfs_dir_fops;
--extern struct inode_operations ecryptfs_main_iops;
--extern struct inode_operations ecryptfs_dir_iops;
--extern struct inode_operations ecryptfs_symlink_iops;
-+extern const struct inode_operations ecryptfs_main_iops;
-+extern const struct inode_operations ecryptfs_dir_iops;
-+extern const struct inode_operations ecryptfs_symlink_iops;
- extern struct super_operations ecryptfs_sops;
- extern struct dentry_operations ecryptfs_dops;
- extern struct address_space_operations ecryptfs_aops;
-diff -puN fs/ecryptfs/inode.c~mark-struct-inode_operations-const-1 fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~mark-struct-inode_operations-const-1
-+++ a/fs/ecryptfs/inode.c
-@@ -989,7 +989,7 @@ int ecryptfs_inode_set(struct inode *ino
- 	return 0;
+-static struct inode_operations sysv_symlink_inode_operations = {
++static const struct inode_operations sysv_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+ 	.put_link	= page_put_link,
+diff -puN fs/sysv/namei.c~mark-struct-inode_operations-const-3 fs/sysv/namei.c
+--- a/fs/sysv/namei.c~mark-struct-inode_operations-const-3
++++ a/fs/sysv/namei.c
+@@ -292,7 +292,7 @@ out:
+ /*
+  * directories can handle most operations...
+  */
+-struct inode_operations sysv_dir_inode_operations = {
++const struct inode_operations sysv_dir_inode_operations = {
+ 	.create		= sysv_create,
+ 	.lookup		= sysv_lookup,
+ 	.link		= sysv_link,
+diff -puN fs/sysv/symlink.c~mark-struct-inode_operations-const-3 fs/sysv/symlink.c
+--- a/fs/sysv/symlink.c~mark-struct-inode_operations-const-3
++++ a/fs/sysv/symlink.c
+@@ -14,7 +14,7 @@ static void *sysv_follow_link(struct den
+ 	return NULL;
  }
  
--struct inode_operations ecryptfs_symlink_iops = {
-+const struct inode_operations ecryptfs_symlink_iops = {
- 	.readlink = ecryptfs_readlink,
- 	.follow_link = ecryptfs_follow_link,
- 	.put_link = ecryptfs_put_link,
-@@ -1001,7 +1001,7 @@ struct inode_operations ecryptfs_symlink
- 	.removexattr = ecryptfs_removexattr
+-struct inode_operations sysv_fast_symlink_inode_operations = {
++const struct inode_operations sysv_fast_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= sysv_follow_link,
+ };
+diff -puN fs/sysv/sysv.h~mark-struct-inode_operations-const-3 fs/sysv/sysv.h
+--- a/fs/sysv/sysv.h~mark-struct-inode_operations-const-3
++++ a/fs/sysv/sysv.h
+@@ -159,9 +159,9 @@ extern struct sysv_dir_entry *sysv_dotdo
+ extern ino_t sysv_inode_by_name(struct dentry *);
+ 
+ 
+-extern struct inode_operations sysv_file_inode_operations;
+-extern struct inode_operations sysv_dir_inode_operations;
+-extern struct inode_operations sysv_fast_symlink_inode_operations;
++extern const struct inode_operations sysv_file_inode_operations;
++extern const struct inode_operations sysv_dir_inode_operations;
++extern const struct inode_operations sysv_fast_symlink_inode_operations;
+ extern const struct file_operations sysv_file_operations;
+ extern const struct file_operations sysv_dir_operations;
+ extern const struct address_space_operations sysv_aops;
+diff -puN fs/udf/file.c~mark-struct-inode_operations-const-3 fs/udf/file.c
+--- a/fs/udf/file.c~mark-struct-inode_operations-const-3
++++ a/fs/udf/file.c
+@@ -263,6 +263,6 @@ const struct file_operations udf_file_op
+ 	.sendfile		= generic_file_sendfile,
  };
  
--struct inode_operations ecryptfs_dir_iops = {
-+const struct inode_operations ecryptfs_dir_iops = {
- 	.create = ecryptfs_create,
- 	.lookup = ecryptfs_lookup,
- 	.link = ecryptfs_link,
-@@ -1019,7 +1019,7 @@ struct inode_operations ecryptfs_dir_iop
- 	.removexattr = ecryptfs_removexattr
+-struct inode_operations udf_file_inode_operations = {
++const struct inode_operations udf_file_inode_operations = {
+ 	.truncate		= udf_truncate,
+ };
+diff -puN fs/udf/namei.c~mark-struct-inode_operations-const-3 fs/udf/namei.c
+--- a/fs/udf/namei.c~mark-struct-inode_operations-const-3
++++ a/fs/udf/namei.c
+@@ -1308,7 +1308,7 @@ end_rename:
+ 	return retval;
+ }
+ 
+-struct inode_operations udf_dir_inode_operations = {
++const struct inode_operations udf_dir_inode_operations = {
+ 	.lookup				= udf_lookup,
+ 	.create				= udf_create,
+ 	.link				= udf_link,
+diff -puN fs/udf/udfdecl.h~mark-struct-inode_operations-const-3 fs/udf/udfdecl.h
+--- a/fs/udf/udfdecl.h~mark-struct-inode_operations-const-3
++++ a/fs/udf/udfdecl.h
+@@ -42,9 +42,9 @@ struct task_struct;
+ struct buffer_head;
+ struct super_block;
+ 
+-extern struct inode_operations udf_dir_inode_operations;
++extern const struct inode_operations udf_dir_inode_operations;
+ extern const struct file_operations udf_dir_operations;
+-extern struct inode_operations udf_file_inode_operations;
++extern const struct inode_operations udf_file_inode_operations;
+ extern const struct file_operations udf_file_operations;
+ extern const struct address_space_operations udf_aops;
+ extern const struct address_space_operations udf_adinicb_aops;
+diff -puN fs/ufs/namei.c~mark-struct-inode_operations-const-3 fs/ufs/namei.c
+--- a/fs/ufs/namei.c~mark-struct-inode_operations-const-3
++++ a/fs/ufs/namei.c
+@@ -355,7 +355,7 @@ out:
+ 	return err;
+ }
+ 
+-struct inode_operations ufs_dir_inode_operations = {
++const struct inode_operations ufs_dir_inode_operations = {
+ 	.create		= ufs_create,
+ 	.lookup		= ufs_lookup,
+ 	.link		= ufs_link,
+diff -puN fs/ufs/symlink.c~mark-struct-inode_operations-const-3 fs/ufs/symlink.c
+--- a/fs/ufs/symlink.c~mark-struct-inode_operations-const-3
++++ a/fs/ufs/symlink.c
+@@ -36,7 +36,7 @@ static void *ufs_follow_link(struct dent
+ 	return NULL;
+ }
+ 
+-struct inode_operations ufs_fast_symlink_inode_operations = {
++const struct inode_operations ufs_fast_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= ufs_follow_link,
+ };
+diff -puN fs/ufs/truncate.c~mark-struct-inode_operations-const-3 fs/ufs/truncate.c
+--- a/fs/ufs/truncate.c~mark-struct-inode_operations-const-3
++++ a/fs/ufs/truncate.c
+@@ -513,6 +513,6 @@ static int ufs_setattr(struct dentry *de
+ 	return inode_setattr(inode, attr);
+ }
+ 
+-struct inode_operations ufs_file_inode_operations = {
++const struct inode_operations ufs_file_inode_operations = {
+ 	.setattr = ufs_setattr,
+ };
+diff -puN fs/vfat/namei.c~mark-struct-inode_operations-const-3 fs/vfat/namei.c
+--- a/fs/vfat/namei.c~mark-struct-inode_operations-const-3
++++ a/fs/vfat/namei.c
+@@ -996,7 +996,7 @@ error_inode:
+ 	goto out;
+ }
+ 
+-static struct inode_operations vfat_dir_inode_operations = {
++static const struct inode_operations vfat_dir_inode_operations = {
+ 	.create		= vfat_create,
+ 	.lookup		= vfat_lookup,
+ 	.unlink		= vfat_unlink,
+diff -puN fs/xfs/linux-2.6/xfs_iops.c~mark-struct-inode_operations-const-3 fs/xfs/linux-2.6/xfs_iops.c
+--- a/fs/xfs/linux-2.6/xfs_iops.c~mark-struct-inode_operations-const-3
++++ a/fs/xfs/linux-2.6/xfs_iops.c
+@@ -813,7 +813,7 @@ xfs_vn_removexattr(
+ }
+ 
+ 
+-struct inode_operations xfs_inode_operations = {
++const struct inode_operations xfs_inode_operations = {
+ 	.permission		= xfs_vn_permission,
+ 	.truncate		= xfs_vn_truncate,
+ 	.getattr		= xfs_vn_getattr,
+@@ -824,7 +824,7 @@ struct inode_operations xfs_inode_operat
+ 	.removexattr		= xfs_vn_removexattr,
  };
  
--struct inode_operations ecryptfs_main_iops = {
-+const struct inode_operations ecryptfs_main_iops = {
- 	.permission = ecryptfs_permission,
- 	.setattr = ecryptfs_setattr,
- 	.setxattr = ecryptfs_setxattr,
-diff -puN fs/efs/dir.c~mark-struct-inode_operations-const-1 fs/efs/dir.c
---- a/fs/efs/dir.c~mark-struct-inode_operations-const-1
-+++ a/fs/efs/dir.c
-@@ -15,7 +15,7 @@ const struct file_operations efs_dir_ope
- 	.readdir	= efs_readdir,
+-struct inode_operations xfs_dir_inode_operations = {
++const struct inode_operations xfs_dir_inode_operations = {
+ 	.create			= xfs_vn_create,
+ 	.lookup			= xfs_vn_lookup,
+ 	.link			= xfs_vn_link,
+@@ -843,7 +843,7 @@ struct inode_operations xfs_dir_inode_op
+ 	.removexattr		= xfs_vn_removexattr,
  };
  
--struct inode_operations efs_dir_inode_operations = {
-+const struct inode_operations efs_dir_inode_operations = {
- 	.lookup		= efs_lookup,
- };
+-struct inode_operations xfs_symlink_inode_operations = {
++const struct inode_operations xfs_symlink_inode_operations = {
+ 	.readlink		= generic_readlink,
+ 	.follow_link		= xfs_vn_follow_link,
+ 	.put_link		= xfs_vn_put_link,
+diff -puN fs/xfs/linux-2.6/xfs_iops.h~mark-struct-inode_operations-const-3 fs/xfs/linux-2.6/xfs_iops.h
+--- a/fs/xfs/linux-2.6/xfs_iops.h~mark-struct-inode_operations-const-3
++++ a/fs/xfs/linux-2.6/xfs_iops.h
+@@ -18,9 +18,9 @@
+ #ifndef __XFS_IOPS_H__
+ #define __XFS_IOPS_H__
  
-diff -puN fs/ext2/ext2.h~mark-struct-inode_operations-const-1 fs/ext2/ext2.h
---- a/fs/ext2/ext2.h~mark-struct-inode_operations-const-1
-+++ a/fs/ext2/ext2.h
-@@ -158,7 +158,7 @@ extern void ext2_write_super (struct sup
- extern const struct file_operations ext2_dir_operations;
+-extern struct inode_operations xfs_inode_operations;
+-extern struct inode_operations xfs_dir_inode_operations;
+-extern struct inode_operations xfs_symlink_inode_operations;
++extern const struct inode_operations xfs_inode_operations;
++extern const struct inode_operations xfs_dir_inode_operations;
++extern const struct inode_operations xfs_symlink_inode_operations;
+ 
+ extern const struct file_operations xfs_file_operations;
+ extern const struct file_operations xfs_dir_file_operations;
+diff -puN include/linux/coda_linux.h~mark-struct-inode_operations-const-3 include/linux/coda_linux.h
+--- a/include/linux/coda_linux.h~mark-struct-inode_operations-const-3
++++ a/include/linux/coda_linux.h
+@@ -23,9 +23,9 @@
+ #include <linux/coda_fs_i.h>
+ 
+ /* operations */
+-extern struct inode_operations coda_dir_inode_operations;
+-extern struct inode_operations coda_file_inode_operations;
+-extern struct inode_operations coda_ioctl_inode_operations;
++extern const struct inode_operations coda_dir_inode_operations;
++extern const struct inode_operations coda_file_inode_operations;
++extern const struct inode_operations coda_ioctl_inode_operations;
+ 
+ extern const struct address_space_operations coda_file_aops;
+ extern const struct address_space_operations coda_symlink_aops;
+diff -puN include/linux/efs_fs.h~mark-struct-inode_operations-const-3 include/linux/efs_fs.h
+--- a/include/linux/efs_fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/efs_fs.h
+@@ -36,7 +36,7 @@ static inline struct efs_sb_info *SUPER_
+ 
+ struct statfs;
+ 
+-extern struct inode_operations efs_dir_inode_operations;
++extern const struct inode_operations efs_dir_inode_operations;
+ extern const struct file_operations efs_dir_operations;
+ extern const struct address_space_operations efs_symlink_aops;
+ 
+diff -puN include/linux/ext3_fs.h~mark-struct-inode_operations-const-3 include/linux/ext3_fs.h
+--- a/include/linux/ext3_fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/ext3_fs.h
+@@ -868,16 +868,16 @@ do {								\
+ extern const struct file_operations ext3_dir_operations;
  
  /* file.c */
--extern struct inode_operations ext2_file_inode_operations;
-+extern const struct inode_operations ext2_file_inode_operations;
- extern const struct file_operations ext2_file_operations;
- extern const struct file_operations ext2_xip_file_operations;
- 
-@@ -168,9 +168,9 @@ extern const struct address_space_operat
- extern const struct address_space_operations ext2_nobh_aops;
+-extern struct inode_operations ext3_file_inode_operations;
++extern const struct inode_operations ext3_file_inode_operations;
+ extern const struct file_operations ext3_file_operations;
  
  /* namei.c */
--extern struct inode_operations ext2_dir_inode_operations;
--extern struct inode_operations ext2_special_inode_operations;
-+extern const struct inode_operations ext2_dir_inode_operations;
-+extern const struct inode_operations ext2_special_inode_operations;
+-extern struct inode_operations ext3_dir_inode_operations;
+-extern struct inode_operations ext3_special_inode_operations;
++extern const struct inode_operations ext3_dir_inode_operations;
++extern const struct inode_operations ext3_special_inode_operations;
  
  /* symlink.c */
--extern struct inode_operations ext2_fast_symlink_inode_operations;
--extern struct inode_operations ext2_symlink_inode_operations;
-+extern const struct inode_operations ext2_fast_symlink_inode_operations;
-+extern const struct inode_operations ext2_symlink_inode_operations;
-diff -puN fs/ext2/file.c~mark-struct-inode_operations-const-1 fs/ext2/file.c
---- a/fs/ext2/file.c~mark-struct-inode_operations-const-1
-+++ a/fs/ext2/file.c
-@@ -75,7 +75,7 @@ const struct file_operations ext2_xip_fi
- };
- #endif
+-extern struct inode_operations ext3_symlink_inode_operations;
+-extern struct inode_operations ext3_fast_symlink_inode_operations;
++extern const struct inode_operations ext3_symlink_inode_operations;
++extern const struct inode_operations ext3_fast_symlink_inode_operations;
  
--struct inode_operations ext2_file_inode_operations = {
-+const struct inode_operations ext2_file_inode_operations = {
- 	.truncate	= ext2_truncate,
- #ifdef CONFIG_EXT2_FS_XATTR
- 	.setxattr	= generic_setxattr,
-diff -puN fs/ext2/namei.c~mark-struct-inode_operations-const-1 fs/ext2/namei.c
---- a/fs/ext2/namei.c~mark-struct-inode_operations-const-1
-+++ a/fs/ext2/namei.c
-@@ -373,7 +373,7 @@ out:
- 	return err;
- }
  
--struct inode_operations ext2_dir_inode_operations = {
-+const struct inode_operations ext2_dir_inode_operations = {
- 	.create		= ext2_create,
- 	.lookup		= ext2_lookup,
- 	.link		= ext2_link,
-@@ -393,7 +393,7 @@ struct inode_operations ext2_dir_inode_o
- 	.permission	= ext2_permission,
- };
+ #endif	/* __KERNEL__ */
+diff -puN include/linux/ext4_fs.h~mark-struct-inode_operations-const-3 include/linux/ext4_fs.h
+--- a/include/linux/ext4_fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/ext4_fs.h
+@@ -955,16 +955,16 @@ do {								\
+ extern const struct file_operations ext4_dir_operations;
  
--struct inode_operations ext2_special_inode_operations = {
-+const struct inode_operations ext2_special_inode_operations = {
- #ifdef CONFIG_EXT2_FS_XATTR
- 	.setxattr	= generic_setxattr,
- 	.getxattr	= generic_getxattr,
-diff -puN fs/ext2/symlink.c~mark-struct-inode_operations-const-1 fs/ext2/symlink.c
---- a/fs/ext2/symlink.c~mark-struct-inode_operations-const-1
-+++ a/fs/ext2/symlink.c
-@@ -28,7 +28,7 @@ static void *ext2_follow_link(struct den
- 	return NULL;
- }
+ /* file.c */
+-extern struct inode_operations ext4_file_inode_operations;
++extern const struct inode_operations ext4_file_inode_operations;
+ extern const struct file_operations ext4_file_operations;
  
--struct inode_operations ext2_symlink_inode_operations = {
-+const struct inode_operations ext2_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= page_follow_link_light,
- 	.put_link	= page_put_link,
-@@ -40,7 +40,7 @@ struct inode_operations ext2_symlink_ino
- #endif
- };
-  
--struct inode_operations ext2_fast_symlink_inode_operations = {
-+const struct inode_operations ext2_fast_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= ext2_follow_link,
- #ifdef CONFIG_EXT2_FS_XATTR
-diff -puN fs/ext3/file.c~mark-struct-inode_operations-const-1 fs/ext3/file.c
---- a/fs/ext3/file.c~mark-struct-inode_operations-const-1
-+++ a/fs/ext3/file.c
-@@ -125,7 +125,7 @@ const struct file_operations ext3_file_o
- 	.splice_write	= generic_file_splice_write,
- };
+ /* namei.c */
+-extern struct inode_operations ext4_dir_inode_operations;
+-extern struct inode_operations ext4_special_inode_operations;
++extern const struct inode_operations ext4_dir_inode_operations;
++extern const struct inode_operations ext4_special_inode_operations;
  
--struct inode_operations ext3_file_inode_operations = {
-+const struct inode_operations ext3_file_inode_operations = {
- 	.truncate	= ext3_truncate,
- 	.setattr	= ext3_setattr,
- #ifdef CONFIG_EXT3_FS_XATTR
-diff -puN fs/ext3/namei.c~mark-struct-inode_operations-const-1 fs/ext3/namei.c
---- a/fs/ext3/namei.c~mark-struct-inode_operations-const-1
-+++ a/fs/ext3/namei.c
-@@ -2365,7 +2365,7 @@ end_rename:
+ /* symlink.c */
+-extern struct inode_operations ext4_symlink_inode_operations;
+-extern struct inode_operations ext4_fast_symlink_inode_operations;
++extern const struct inode_operations ext4_symlink_inode_operations;
++extern const struct inode_operations ext4_fast_symlink_inode_operations;
+ 
+ /* extents.c */
+ extern int ext4_ext_tree_init(handle_t *handle, struct inode *);
+diff -puN include/linux/fs.h~mark-struct-inode_operations-const-3 include/linux/fs.h
+--- a/include/linux/fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/fs.h
+@@ -551,7 +551,7 @@ struct inode {
+ 	spinlock_t		i_lock;	/* i_blocks, i_bytes, maybe i_size */
+ 	struct mutex		i_mutex;
+ 	struct rw_semaphore	i_alloc_sem;
+-	struct inode_operations	*i_op;
++	const struct inode_operations	*i_op;
+ 	const struct file_operations	*i_fop;	/* former ->i_op->default_file_ops */
+ 	struct super_block	*i_sb;
+ 	struct file_lock	*i_flock;
+@@ -1828,7 +1828,7 @@ extern void page_put_link(struct dentry 
+ extern int __page_symlink(struct inode *inode, const char *symname, int len,
+ 		gfp_t gfp_mask);
+ extern int page_symlink(struct inode *inode, const char *symname, int len);
+-extern struct inode_operations page_symlink_inode_operations;
++extern const struct inode_operations page_symlink_inode_operations;
+ extern int generic_readlink(struct dentry *, char __user *, int);
+ extern void generic_fillattr(struct inode *, struct kstat *);
+ extern int vfs_getattr(struct vfsmount *, struct dentry *, struct kstat *);
+@@ -1873,7 +1873,7 @@ extern int simple_commit_write(struct fi
+ extern struct dentry *simple_lookup(struct inode *, struct dentry *, struct nameidata *);
+ extern ssize_t generic_read_dir(struct file *, char __user *, size_t, loff_t *);
+ extern const struct file_operations simple_dir_operations;
+-extern struct inode_operations simple_dir_inode_operations;
++extern const struct inode_operations simple_dir_inode_operations;
+ struct tree_descr { char *name; const struct file_operations *ops; int mode; };
+ struct dentry *d_alloc_name(struct dentry *, const char *);
+ extern int simple_fill_super(struct super_block *, int, struct tree_descr *);
+diff -puN include/linux/msdos_fs.h~mark-struct-inode_operations-const-3 include/linux/msdos_fs.h
+--- a/include/linux/msdos_fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/msdos_fs.h
+@@ -234,7 +234,7 @@ struct msdos_sb_info {
+ 	struct fat_mount_options options;
+ 	struct nls_table *nls_disk;  /* Codepage used on disk */
+ 	struct nls_table *nls_io;    /* Charset used for input and display */
+-	void *dir_ops;		     /* Opaque; default directory operations */
++	const void *dir_ops;		     /* Opaque; default directory operations */
+ 	int dir_per_block;	     /* dir entries per block */
+ 	int dir_per_block_bits;	     /* log2(dir_per_block) */
+ 
+@@ -399,7 +399,7 @@ extern int fat_count_free_clusters(struc
+ extern int fat_generic_ioctl(struct inode *inode, struct file *filp,
+ 			     unsigned int cmd, unsigned long arg);
+ extern const struct file_operations fat_file_operations;
+-extern struct inode_operations fat_file_inode_operations;
++extern const struct inode_operations fat_file_inode_operations;
+ extern int fat_notify_change(struct dentry * dentry, struct iattr * attr);
+ extern void fat_truncate(struct inode *inode);
+ extern int fat_getattr(struct vfsmount *mnt, struct dentry *dentry,
+@@ -413,7 +413,7 @@ extern struct inode *fat_build_inode(str
+ 			struct msdos_dir_entry *de, loff_t i_pos);
+ extern int fat_sync_inode(struct inode *inode);
+ extern int fat_fill_super(struct super_block *sb, void *data, int silent,
+-			struct inode_operations *fs_dir_inode_ops, int isvfat);
++			const struct inode_operations *fs_dir_inode_ops, int isvfat);
+ 
+ extern int fat_flush_inodes(struct super_block *sb, struct inode *i1,
+ 		            struct inode *i2);
+diff -puN include/linux/ncp_fs.h~mark-struct-inode_operations-const-3 include/linux/ncp_fs.h
+--- a/include/linux/ncp_fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/ncp_fs.h
+@@ -204,7 +204,7 @@ void ncp_update_inode(struct inode *, st
+ void ncp_update_inode2(struct inode *, struct ncp_entry_info *);
+ 
+ /* linux/fs/ncpfs/dir.c */
+-extern struct inode_operations ncp_dir_inode_operations;
++extern const struct inode_operations ncp_dir_inode_operations;
+ extern const struct file_operations ncp_dir_operations;
+ int ncp_conn_logged_in(struct super_block *);
+ int ncp_date_dos2unix(__le16 time, __le16 date);
+@@ -226,7 +226,7 @@ void ncp_lock_server(struct ncp_server *
+ void ncp_unlock_server(struct ncp_server *server);
+ 
+ /* linux/fs/ncpfs/file.c */
+-extern struct inode_operations ncp_file_inode_operations;
++extern const struct inode_operations ncp_file_inode_operations;
+ extern const struct file_operations ncp_file_operations;
+ int ncp_make_open(struct inode *, int);
+ 
+diff -puN include/linux/nfs_fs.h~mark-struct-inode_operations-const-3 include/linux/nfs_fs.h
+--- a/include/linux/nfs_fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/nfs_fs.h
+@@ -331,9 +331,9 @@ static inline void nfs_fattr_init(struct
  /*
-  * directories can handle most operations...
+  * linux/fs/nfs/file.c
   */
--struct inode_operations ext3_dir_inode_operations = {
-+const struct inode_operations ext3_dir_inode_operations = {
- 	.create		= ext3_create,
- 	.lookup		= ext3_lookup,
- 	.link		= ext3_link,
-@@ -2385,7 +2385,7 @@ struct inode_operations ext3_dir_inode_o
- 	.permission	= ext3_permission,
- };
- 
--struct inode_operations ext3_special_inode_operations = {
-+const struct inode_operations ext3_special_inode_operations = {
- 	.setattr	= ext3_setattr,
- #ifdef CONFIG_EXT3_FS_XATTR
- 	.setxattr	= generic_setxattr,
-diff -puN fs/ext3/symlink.c~mark-struct-inode_operations-const-1 fs/ext3/symlink.c
---- a/fs/ext3/symlink.c~mark-struct-inode_operations-const-1
-+++ a/fs/ext3/symlink.c
-@@ -30,7 +30,7 @@ static void * ext3_follow_link(struct de
- 	return NULL;
- }
- 
--struct inode_operations ext3_symlink_inode_operations = {
-+const struct inode_operations ext3_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= page_follow_link_light,
- 	.put_link	= page_put_link,
-@@ -42,7 +42,7 @@ struct inode_operations ext3_symlink_ino
- #endif
- };
- 
--struct inode_operations ext3_fast_symlink_inode_operations = {
-+const struct inode_operations ext3_fast_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= ext3_follow_link,
- #ifdef CONFIG_EXT3_FS_XATTR
-diff -puN fs/ext4/file.c~mark-struct-inode_operations-const-1 fs/ext4/file.c
---- a/fs/ext4/file.c~mark-struct-inode_operations-const-1
-+++ a/fs/ext4/file.c
-@@ -125,7 +125,7 @@ const struct file_operations ext4_file_o
- 	.splice_write	= generic_file_splice_write,
- };
- 
--struct inode_operations ext4_file_inode_operations = {
-+const struct inode_operations ext4_file_inode_operations = {
- 	.truncate	= ext4_truncate,
- 	.setattr	= ext4_setattr,
- #ifdef CONFIG_EXT4DEV_FS_XATTR
-diff -puN fs/ext4/namei.c~mark-struct-inode_operations-const-1 fs/ext4/namei.c
---- a/fs/ext4/namei.c~mark-struct-inode_operations-const-1
-+++ a/fs/ext4/namei.c
-@@ -2363,7 +2363,7 @@ end_rename:
+-extern struct inode_operations nfs_file_inode_operations;
++extern const struct inode_operations nfs_file_inode_operations;
+ #ifdef CONFIG_NFS_V3
+-extern struct inode_operations nfs3_file_inode_operations;
++extern const struct inode_operations nfs3_file_inode_operations;
+ #endif /* CONFIG_NFS_V3 */
+ extern const struct file_operations nfs_file_operations;
+ extern const struct address_space_operations nfs_file_aops;
+@@ -380,9 +380,9 @@ extern ssize_t nfs_file_direct_write(str
  /*
-  * directories can handle most operations...
+  * linux/fs/nfs/dir.c
   */
--struct inode_operations ext4_dir_inode_operations = {
-+const struct inode_operations ext4_dir_inode_operations = {
- 	.create		= ext4_create,
- 	.lookup		= ext4_lookup,
- 	.link		= ext4_link,
-@@ -2383,7 +2383,7 @@ struct inode_operations ext4_dir_inode_o
- 	.permission	= ext4_permission,
- };
+-extern struct inode_operations nfs_dir_inode_operations;
++extern const struct inode_operations nfs_dir_inode_operations;
+ #ifdef CONFIG_NFS_V3
+-extern struct inode_operations nfs3_dir_inode_operations;
++extern const struct inode_operations nfs3_dir_inode_operations;
+ #endif /* CONFIG_NFS_V3 */
+ extern const struct file_operations nfs_dir_operations;
+ extern struct dentry_operations nfs_dentry_operations;
+@@ -392,7 +392,7 @@ extern int nfs_instantiate(struct dentry
+ /*
+  * linux/fs/nfs/symlink.c
+  */
+-extern struct inode_operations nfs_symlink_inode_operations;
++extern const struct inode_operations nfs_symlink_inode_operations;
  
--struct inode_operations ext4_special_inode_operations = {
-+const struct inode_operations ext4_special_inode_operations = {
- 	.setattr	= ext4_setattr,
- #ifdef CONFIG_EXT4DEV_FS_XATTR
- 	.setxattr	= generic_setxattr,
-diff -puN fs/ext4/symlink.c~mark-struct-inode_operations-const-1 fs/ext4/symlink.c
---- a/fs/ext4/symlink.c~mark-struct-inode_operations-const-1
-+++ a/fs/ext4/symlink.c
-@@ -30,7 +30,7 @@ static void * ext4_follow_link(struct de
- 	return NULL;
- }
+ /*
+  * linux/fs/nfs/sysctl.c
+@@ -409,8 +409,8 @@ extern void nfs_unregister_sysctl(void);
+  * linux/fs/nfs/namespace.c
+  */
+ extern struct list_head nfs_automount_list;
+-extern struct inode_operations nfs_mountpoint_inode_operations;
+-extern struct inode_operations nfs_referral_inode_operations;
++extern const struct inode_operations nfs_mountpoint_inode_operations;
++extern const struct inode_operations nfs_referral_inode_operations;
+ extern int nfs_mountpoint_expiry_timeout;
+ extern void nfs_release_automount_timer(void);
  
--struct inode_operations ext4_symlink_inode_operations = {
-+const struct inode_operations ext4_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= page_follow_link_light,
- 	.put_link	= page_put_link,
-@@ -42,7 +42,7 @@ struct inode_operations ext4_symlink_ino
+diff -puN include/linux/nfs_xdr.h~mark-struct-inode_operations-const-3 include/linux/nfs_xdr.h
+--- a/include/linux/nfs_xdr.h~mark-struct-inode_operations-const-3
++++ a/include/linux/nfs_xdr.h
+@@ -767,8 +767,8 @@ struct nfs_access_entry;
+ struct nfs_rpc_ops {
+ 	int	version;		/* Protocol version */
+ 	struct dentry_operations *dentry_ops;
+-	struct inode_operations *dir_inode_ops;
+-	struct inode_operations *file_inode_ops;
++	const struct inode_operations *dir_inode_ops;
++	const struct inode_operations *file_inode_ops;
+ 
+ 	int	(*getroot) (struct nfs_server *, struct nfs_fh *,
+ 			    struct nfs_fsinfo *);
+diff -puN include/linux/phonedev.h~mark-struct-inode_operations-const-3 include/linux/phonedev.h
+--- a/include/linux/phonedev.h~mark-struct-inode_operations-const-3
++++ a/include/linux/phonedev.h
+@@ -9,7 +9,7 @@
+ 
+ struct phone_device {
+ 	struct phone_device *next;
+-	struct file_operations *f_op;
++	const struct file_operations *f_op;
+ 	int (*open) (struct phone_device *, struct file *);
+ 	int board;		/* Device private index */
+ 	int minor;
+diff -puN include/linux/proc_fs.h~mark-struct-inode_operations-const-3 include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/proc_fs.h
+@@ -55,8 +55,8 @@ struct proc_dir_entry {
+ 	uid_t uid;
+ 	gid_t gid;
+ 	loff_t size;
+-	struct inode_operations * proc_iops;
+-	const struct file_operations * proc_fops;
++	const struct inode_operations *proc_iops;
++	const struct file_operations *proc_fops;
+ 	get_info_t *get_info;
+ 	struct module *owner;
+ 	struct proc_dir_entry *next, *parent, *subdir;
+diff -puN include/linux/qnx4_fs.h~mark-struct-inode_operations-const-3 include/linux/qnx4_fs.h
+--- a/include/linux/qnx4_fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/qnx4_fs.h
+@@ -116,8 +116,8 @@ extern unsigned long qnx4_block_map(stru
+ 
+ extern struct buffer_head *qnx4_bread(struct inode *, int, int);
+ 
+-extern struct inode_operations qnx4_file_inode_operations;
+-extern struct inode_operations qnx4_dir_inode_operations;
++extern const struct inode_operations qnx4_file_inode_operations;
++extern const struct inode_operations qnx4_dir_inode_operations;
+ extern const struct file_operations qnx4_file_operations;
+ extern const struct file_operations qnx4_dir_operations;
+ extern int qnx4_is_free(struct super_block *sb, long block);
+diff -puN include/linux/reiserfs_fs.h~mark-struct-inode_operations-const-3 include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/reiserfs_fs.h
+@@ -1949,9 +1949,9 @@ int reiserfs_global_version_in_proc(char
  #endif
- };
  
--struct inode_operations ext4_fast_symlink_inode_operations = {
-+const struct inode_operations ext4_fast_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= ext4_follow_link,
- #ifdef CONFIG_EXT4DEV_FS_XATTR
-diff -puN fs/fat/file.c~mark-struct-inode_operations-const-1 fs/fat/file.c
---- a/fs/fat/file.c~mark-struct-inode_operations-const-1
-+++ a/fs/fat/file.c
-@@ -312,7 +312,7 @@ int fat_getattr(struct vfsmount *mnt, st
- }
- EXPORT_SYMBOL_GPL(fat_getattr);
+ /* dir.c */
+-extern struct inode_operations reiserfs_dir_inode_operations;
+-extern struct inode_operations reiserfs_symlink_inode_operations;
+-extern struct inode_operations reiserfs_special_inode_operations;
++extern const struct inode_operations reiserfs_dir_inode_operations;
++extern const struct inode_operations reiserfs_symlink_inode_operations;
++extern const struct inode_operations reiserfs_special_inode_operations;
+ extern const struct file_operations reiserfs_dir_operations;
  
--struct inode_operations fat_file_inode_operations = {
-+const struct inode_operations fat_file_inode_operations = {
- 	.truncate	= fat_truncate,
- 	.setattr	= fat_notify_change,
- 	.getattr	= fat_getattr,
-diff -puN fs/fat/inode.c~mark-struct-inode_operations-const-1 fs/fat/inode.c
---- a/fs/fat/inode.c~mark-struct-inode_operations-const-1
-+++ a/fs/fat/inode.c
-@@ -1151,7 +1151,7 @@ static int fat_read_root(struct inode *i
-  * Read the super block of an MS-DOS FS.
-  */
- int fat_fill_super(struct super_block *sb, void *data, int silent,
--		   struct inode_operations *fs_dir_inode_ops, int isvfat)
-+		   const struct inode_operations *fs_dir_inode_ops, int isvfat)
- {
- 	struct inode *root_inode = NULL;
- 	struct buffer_head *bh;
-diff -puN fs/freevxfs/vxfs_extern.h~mark-struct-inode_operations-const-1 fs/freevxfs/vxfs_extern.h
---- a/fs/freevxfs/vxfs_extern.h~mark-struct-inode_operations-const-1
-+++ a/fs/freevxfs/vxfs_extern.h
-@@ -62,7 +62,7 @@ extern void			vxfs_read_inode(struct ino
- extern void			vxfs_clear_inode(struct inode *);
+ /* tail_conversion.c */
+@@ -1963,7 +1963,7 @@ int indirect2direct(struct reiserfs_tran
+ void reiserfs_unmap_buffer(struct buffer_head *);
  
- /* vxfs_lookup.c */
--extern struct inode_operations	vxfs_dir_inode_ops;
-+extern const struct inode_operations	vxfs_dir_inode_ops;
- extern const struct file_operations	vxfs_dir_operations;
+ /* file.c */
+-extern struct inode_operations reiserfs_file_inode_operations;
++extern const struct inode_operations reiserfs_file_inode_operations;
+ extern const struct file_operations reiserfs_file_operations;
+ extern const struct address_space_operations reiserfs_address_space_operations;
  
- /* vxfs_olt.c */
-diff -puN fs/freevxfs/vxfs_immed.c~mark-struct-inode_operations-const-1 fs/freevxfs/vxfs_immed.c
---- a/fs/freevxfs/vxfs_immed.c~mark-struct-inode_operations-const-1
-+++ a/fs/freevxfs/vxfs_immed.c
-@@ -48,7 +48,7 @@ static int	vxfs_immed_readpage(struct fi
-  * Unliked all other operations we do not go through the pagecache,
-  * but do all work directly on the inode.
-  */
--struct inode_operations vxfs_immed_symlink_iops = {
-+const struct inode_operations vxfs_immed_symlink_iops = {
- 	.readlink =		generic_readlink,
- 	.follow_link =		vxfs_immed_follow_link,
- };
-diff -puN fs/freevxfs/vxfs_inode.c~mark-struct-inode_operations-const-1 fs/freevxfs/vxfs_inode.c
---- a/fs/freevxfs/vxfs_inode.c~mark-struct-inode_operations-const-1
-+++ a/fs/freevxfs/vxfs_inode.c
-@@ -44,7 +44,7 @@
- extern const struct address_space_operations vxfs_aops;
- extern const struct address_space_operations vxfs_immed_aops;
+diff -puN include/linux/ufs_fs.h~mark-struct-inode_operations-const-3 include/linux/ufs_fs.h
+--- a/include/linux/ufs_fs.h~mark-struct-inode_operations-const-3
++++ a/include/linux/ufs_fs.h
+@@ -957,7 +957,7 @@ extern struct ufs_cg_private_info * ufs_
+ extern void ufs_put_cylinder (struct super_block *, unsigned);
  
--extern struct inode_operations vxfs_immed_symlink_iops;
-+extern const struct inode_operations vxfs_immed_symlink_iops;
+ /* dir.c */
+-extern struct inode_operations ufs_dir_inode_operations;
++extern const struct inode_operations ufs_dir_inode_operations;
+ extern int ufs_add_link (struct dentry *, struct inode *);
+ extern ino_t ufs_inode_by_name(struct inode *, struct dentry *);
+ extern int ufs_make_empty(struct inode *, struct inode *);
+@@ -969,7 +969,7 @@ extern void ufs_set_link(struct inode *d
+ 			 struct page *page, struct inode *inode);
  
- struct kmem_cache		*vxfs_inode_cachep;
+ /* file.c */
+-extern struct inode_operations ufs_file_inode_operations;
++extern const struct inode_operations ufs_file_inode_operations;
+ extern const struct file_operations ufs_file_operations;
  
-diff -puN fs/freevxfs/vxfs_lookup.c~mark-struct-inode_operations-const-1 fs/freevxfs/vxfs_lookup.c
---- a/fs/freevxfs/vxfs_lookup.c~mark-struct-inode_operations-const-1
-+++ a/fs/freevxfs/vxfs_lookup.c
-@@ -52,7 +52,7 @@
- static struct dentry *	vxfs_lookup(struct inode *, struct dentry *, struct nameidata *);
- static int		vxfs_readdir(struct file *, void *, filldir_t);
+ extern const struct address_space_operations ufs_aops;
+@@ -996,7 +996,7 @@ extern void ufs_error (struct super_bloc
+ extern void ufs_panic (struct super_block *, const char *, const char *, ...) __attribute__ ((format (printf, 3, 4)));
  
--struct inode_operations vxfs_dir_inode_ops = {
-+const struct inode_operations vxfs_dir_inode_ops = {
- 	.lookup =		vxfs_lookup,
- };
+ /* symlink.c */
+-extern struct inode_operations ufs_fast_symlink_inode_operations;
++extern const struct inode_operations ufs_fast_symlink_inode_operations;
  
-diff -puN fs/fuse/control.c~mark-struct-inode_operations-const-1 fs/fuse/control.c
---- a/fs/fuse/control.c~mark-struct-inode_operations-const-1
-+++ a/fs/fuse/control.c
-@@ -73,7 +73,7 @@ static struct dentry *fuse_ctl_add_dentr
- 					  struct fuse_conn *fc,
- 					  const char *name,
- 					  int mode, int nlink,
--					  struct inode_operations *iop,
-+					  const struct inode_operations *iop,
- 					  const struct file_operations *fop)
- {
- 	struct dentry *dentry;
-diff -puN fs/fuse/dir.c~mark-struct-inode_operations-const-1 fs/fuse/dir.c
---- a/fs/fuse/dir.c~mark-struct-inode_operations-const-1
-+++ a/fs/fuse/dir.c
-@@ -1242,7 +1242,7 @@ static int fuse_removexattr(struct dentr
- 	return err;
- }
- 
--static struct inode_operations fuse_dir_inode_operations = {
-+static const struct inode_operations fuse_dir_inode_operations = {
- 	.lookup		= fuse_lookup,
- 	.mkdir		= fuse_mkdir,
- 	.symlink	= fuse_symlink,
-@@ -1270,7 +1270,7 @@ static const struct file_operations fuse
- 	.fsync		= fuse_dir_fsync,
- };
- 
--static struct inode_operations fuse_common_inode_operations = {
-+static const struct inode_operations fuse_common_inode_operations = {
- 	.setattr	= fuse_setattr,
- 	.permission	= fuse_permission,
- 	.getattr	= fuse_getattr,
-@@ -1280,7 +1280,7 @@ static struct inode_operations fuse_comm
- 	.removexattr	= fuse_removexattr,
- };
- 
--static struct inode_operations fuse_symlink_inode_operations = {
-+static const struct inode_operations fuse_symlink_inode_operations = {
- 	.setattr	= fuse_setattr,
- 	.follow_link	= fuse_follow_link,
- 	.put_link	= fuse_put_link,
+ /* truncate.c */
+ extern int ufs_truncate (struct inode *, loff_t);
 _
 
 Patches currently in -mm which might be from arjan@linux.intel.com are
