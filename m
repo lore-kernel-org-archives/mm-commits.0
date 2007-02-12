@@ -1,71 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - pxa-gpio-wrappers.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:57 -0800
-Message-ID: <200702122245.l1CMjv53013752@shell0.pdx.osdl.net>
+Subject: - at91-gpio-wrappers.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:45:55 -0800
+Message-ID: <200702122245.l1CMjtKn013749@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45163 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45161 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030307AbXBLWqA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030306AbXBLWqA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Mon, 12 Feb 2007 17:46:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philipp.zabel@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PXA GPIO wrappers
+     AT91 GPIO wrappers
 has been removed from the -mm tree.  Its filename was
-     pxa-gpio-wrappers.patch
+     at91-gpio-wrappers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PXA GPIO wrappers
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Subject: AT91 GPIO wrappers
+From: David Brownell <david-b@pacbell.net>
 
-Arch-neutral GPIO calls for PXA.
+This is a first cut at making the AT91 code use the generic GPIO calls.
 
+Note that the original AT91 GPIO calls merged the "mux pin as GPIO" and "set
+GPIO direction" functionality into one API call, contrary to what's specified
+as a cross-platform portable model.  So this involved a few non-inlinable
+functions.
+
+[akpm@osdl.org: cleanups]
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-pxa/gpio.h |   72 ++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+ arch/arm/mach-at91rm9200/gpio.c        |   48 +++++++++++++++++++++++
+ include/asm-arm/arch-at91rm9200/gpio.h |   48 ++++++++++++++++++++++-
+ 2 files changed, 94 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null include/asm-arm/arch-pxa/gpio.h
---- /dev/null
-+++ a/include/asm-arm/arch-pxa/gpio.h
-@@ -0,0 +1,72 @@
+diff -puN arch/arm/mach-at91rm9200/gpio.c~at91-gpio-wrappers arch/arm/mach-at91rm9200/gpio.c
+--- a/arch/arm/mach-at91rm9200/gpio.c~at91-gpio-wrappers
++++ a/arch/arm/mach-at91rm9200/gpio.c
+@@ -65,6 +65,24 @@ static inline unsigned pin_to_mask(unsig
+ 
+ 
+ /*
++ * mux the pin to the "GPIO" peripheral role.
++ */
++int __init_or_module at91_set_GPIO_periph(unsigned pin, int use_pullup)
++{
++	void __iomem	*pio = pin_to_controller(pin);
++	unsigned	mask = pin_to_mask(pin);
++
++	if (!pio)
++		return -EINVAL;
++	__raw_writel(mask, pio + PIO_IDR);
++	__raw_writel(mask, pio + (use_pullup ? PIO_PUER : PIO_PUDR));
++	__raw_writel(mask, pio + PIO_PER);
++	return 0;
++}
++EXPORT_SYMBOL(at91_set_GPIO_periph);
++
++
 +/*
-+ * linux/include/asm-arm/arch-pxa/gpio.h
-+ *
-+ * PXA GPIO wrappers for arch-neutral GPIO calls
-+ *
-+ * Written by Philipp Zabel <philipp.zabel@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ *
+  * mux the pin to the "A" internal peripheral role.
+  */
+ int __init_or_module at91_set_A_periph(unsigned pin, int use_pullup)
+@@ -181,6 +199,36 @@ EXPORT_SYMBOL(at91_set_multi_drive);
+ 
+ /*--------------------------------------------------------------------------*/
+ 
++/* new-style GPIO calls; these expect at91_set_GPIO_periph to have been
++ * called, and maybe at91_set_multi_drive() for putout pins.
 + */
 +
-+#ifndef __ASM_ARCH_PXA_GPIO_H
-+#define __ASM_ARCH_PXA_GPIO_H
++int gpio_direction_input(unsigned pin)
++{
++	void __iomem	*pio = pin_to_controller(pin);
++	unsigned	mask = pin_to_mask(pin);
 +
-+#include <asm/arch/pxa-regs.h>
-+#include <asm/arch/irqs.h>
-+#include <asm/arch/hardware.h>
++	if (!pio || !(__raw_readl(pio + PIO_PSR) & mask))
++		return -EINVAL;
++	__raw_writel(mask, pio + PIO_OER);
++	return 0;
++}
++EXPORT_SYMBOL(gpio_direction_input);
++
++int gpio_direction_output(unsigned pin)
++{
++	void __iomem	*pio = pin_to_controller(pin);
++	unsigned	mask = pin_to_mask(pin);
++
++	if (!pio || !(__raw_readl(pio + PIO_PSR) & mask))
++		return -EINVAL;
++	__raw_writel(mask, pio + PIO_OER);
++	return 0;
++}
++EXPORT_SYMBOL(gpio_direction_output);
++
++/*--------------------------------------------------------------------------*/
++
+ /*
+  * assuming the pin is muxed as a gpio output, set its value.
+  */
+diff -puN include/asm-arm/arch-at91rm9200/gpio.h~at91-gpio-wrappers include/asm-arm/arch-at91rm9200/gpio.h
+--- a/include/asm-arm/arch-at91rm9200/gpio.h~at91-gpio-wrappers
++++ a/include/asm-arm/arch-at91rm9200/gpio.h
+@@ -179,6 +179,7 @@
+ 
+ #ifndef __ASSEMBLY__
+ /* setup setup routines, called from board init or driver probe() */
++extern int __init_or_module at91_set_GPIO_periph(unsigned pin, int use_pullup);
+ extern int __init_or_module at91_set_A_periph(unsigned pin, int use_pullup);
+ extern int __init_or_module at91_set_B_periph(unsigned pin, int use_pullup);
+ extern int __init_or_module at91_set_gpio_input(unsigned pin, int use_pullup);
+@@ -193,7 +194,50 @@ extern int at91_get_gpio_value(unsigned 
+ /* callable only from core power-management code */
+ extern void at91_gpio_suspend(void);
+ extern void at91_gpio_resume(void);
+-#endif
+ 
+-#endif
++/*-------------------------------------------------------------------------*/
++
++/* wrappers for "new style" GPIO calls. the old AT91-specfic ones should
++ * eventually be removed (along with this errno.h inclusion), and the
++ * gpio request/free calls should probably be implemented.
++ */
 +
 +#include <asm/errno.h>
 +
@@ -76,41 +139,42 @@ diff -puN /dev/null include/asm-arm/arch-pxa/gpio.h
 +
 +static inline void gpio_free(unsigned gpio)
 +{
-+	return;
 +}
 +
-+static inline int gpio_direction_input(unsigned gpio)
++extern int gpio_direction_input(unsigned gpio);
++extern int gpio_direction_output(unsigned gpio);
+ 
++static inline int gpio_get_value(unsigned gpio)
 +{
-+	if (gpio > PXA_LAST_GPIO)
-+		return -EINVAL;
-+	pxa_gpio_mode(gpio | GPIO_IN);
++	return at91_get_gpio_value(gpio);
 +}
 +
-+static inline int gpio_direction_output(unsigned gpio)
++static inline void gpio_set_value(unsigned gpio, int value)
 +{
-+	if (gpio > PXA_LAST_GPIO)
-+		return -EINVAL;
-+	pxa_gpio_mode(gpio | GPIO_OUT);
++	at91_set_gpio_value(gpio, value);
 +}
 +
-+/* REVISIT these macros are correct, but suffer code explosion
-+ * for non-constant parameters.  Provide out-line versions too.
-+ */
-+#define gpio_get_value(gpio) \
-+	(GPLR(gpio) & GPIO_bit(gpio))
++#include <asm-generic/gpio.h>		/* cansleep wrappers */
 +
-+#define gpio_set_value(gpio,value) \
-+	((value) ? (GPSR(gpio) = GPIO_bit(gpio)):(GPCR(gpio) = GPIO_bit(gpio)))
++static inline int gpio_to_irq(unsigned gpio)
++{
++	return gpio;
++}
 +
-+#include <asm-generic/gpio.h>			/* cansleep wrappers */
++static inline int irq_to_gpio(unsigned irq)
++{
++	return irq;
++}
 +
-+#define gpio_to_irq(gpio)	IRQ_GPIO(gpio)
-+#define irq_to_gpio(irq)	IRQ_TO_GPIO(irq)
-+
++#endif	/* __ASSEMBLY__ */
 +
 +#endif
 _
 
-Patches currently in -mm which might be from philipp.zabel@gmail.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
+git-acpi.patch
+git-avr32.patch
+git-md-accel.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
