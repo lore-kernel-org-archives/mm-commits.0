@@ -1,83 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - matroxfb-use-kzalloc.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:49:52 -0800
-Message-ID: <200702122249.l1CMnqdb014164@shell0.pdx.osdl.net>
+Subject: - ecryptfs-convert-f_op-write-to-vfs_write.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:47:14 -0800
+Message-ID: <200702122247.l1CMlETs013897@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45738 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45771 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030390AbXBLWuR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:50:17 -0500
+	id S1030400AbXBLWu1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:50:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, jsimmons@infradead.org, vandrove@vc.cvut.cz, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     matroxfb: Use kzalloc
+     eCryptfs: convert f_op->write() to vfs_write()
 has been removed from the -mm tree.  Its filename was
-     matroxfb-use-kzalloc.patch
+     ecryptfs-convert-f_op-write-to-vfs_write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: matroxfb: Use kzalloc
-From: Jean Delvare <khali@linux-fr.org>
+Subject: eCryptfs: convert f_op->write() to vfs_write()
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Use kzalloc instead of kmalloc+memset, twice.
+sys_write() takes a local copy of f_pos and writes that back
+into the struct file. It does this so that two concurrent write()
+callers don't make a mess of f_pos, and of the file contents.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Petr Vandrovec <vandrove@vc.cvut.cz>
-Acked-By: James Simmons <jsimmons@infradead.org>
+ecryptfs should be calling vfs_write().  That way we also get the fsnotify
+notifications, which ecryptfs presently appears to have subverted.
+
+Convert direct calls to f_op->write() into calls to vfs_write().
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/matrox/i2c-matroxfb.c   |    4 +---
- drivers/video/matrox/matroxfb_crtc2.c |    3 +--
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ fs/ecryptfs/crypto.c |   27 ++++++++++++++++++++++-----
+ fs/ecryptfs/inode.c  |    2 +-
+ 2 files changed, 23 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/matrox/i2c-matroxfb.c~matroxfb-use-kzalloc drivers/video/matrox/i2c-matroxfb.c
---- a/drivers/video/matrox/i2c-matroxfb.c~matroxfb-use-kzalloc
-+++ a/drivers/video/matrox/i2c-matroxfb.c
-@@ -146,7 +146,7 @@ static void* i2c_matroxfb_probe(struct m
- 	unsigned long flags;
- 	struct matroxfb_dh_maven_info* m2info;
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-convert-f_op-write-to-vfs_write fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-convert-f_op-write-to-vfs_write
++++ a/fs/ecryptfs/crypto.c
+@@ -1344,24 +1344,41 @@ static int ecryptfs_write_metadata_to_co
+ 	mm_segment_t oldfs;
+ 	int current_header_page;
+ 	int header_pages;
++	ssize_t size;
++	int rc = 0;
  
--	m2info = kmalloc(sizeof(*m2info), GFP_KERNEL);
-+	m2info = kzalloc(sizeof(*m2info), GFP_KERNEL);
- 	if (!m2info)
- 		return NULL;
- 
-@@ -155,8 +155,6 @@ static void* i2c_matroxfb_probe(struct m
- 	matroxfb_DAC_out(PMINFO DAC_XGENIOCTRL, 0x00);
- 	matroxfb_DAC_unlock_irqrestore(flags);
- 
--	memset(m2info, 0, sizeof(*m2info));
--
- 	switch (ACCESS_FBINFO(chip)) {
- 		case MGA_2064:
- 		case MGA_2164:
-diff -puN drivers/video/matrox/matroxfb_crtc2.c~matroxfb-use-kzalloc drivers/video/matrox/matroxfb_crtc2.c
---- a/drivers/video/matrox/matroxfb_crtc2.c~matroxfb-use-kzalloc
-+++ a/drivers/video/matrox/matroxfb_crtc2.c
-@@ -694,12 +694,11 @@ static void* matroxfb_crtc2_probe(struct
- 	/* hardware is CRTC2 incapable... */
- 	if (!ACCESS_FBINFO(devflags.crtc2))
- 		return NULL;
--	m2info = kmalloc(sizeof(*m2info), GFP_KERNEL);
-+	m2info = kzalloc(sizeof(*m2info), GFP_KERNEL);
- 	if (!m2info) {
- 		printk(KERN_ERR "matroxfb_crtc2: Not enough memory for CRTC2 control structs\n");
- 		return NULL;
+ 	lower_file->f_pos = 0;
+ 	oldfs = get_fs();
+ 	set_fs(get_ds());
+-	lower_file->f_op->write(lower_file, (char __user *)page_virt,
+-				PAGE_CACHE_SIZE, &lower_file->f_pos);
++	size = vfs_write(lower_file, (char __user *)page_virt, PAGE_CACHE_SIZE,
++			 &lower_file->f_pos);
++	if (size < 0) {
++		rc = (int)size;
++		printk(KERN_ERR "Error attempting to write lower page; "
++		       "rc = [%d]\n", rc);
++		set_fs(oldfs);
++		goto out;
++	}
+ 	header_pages = ((crypt_stat->header_extent_size
+ 			 * crypt_stat->num_header_extents_at_front)
+ 			/ PAGE_CACHE_SIZE);
+ 	memset(page_virt, 0, PAGE_CACHE_SIZE);
+ 	current_header_page = 1;
+ 	while (current_header_page < header_pages) {
+-		lower_file->f_op->write(lower_file, (char __user *)page_virt,
+-					PAGE_CACHE_SIZE, &lower_file->f_pos);
++		size = vfs_write(lower_file, (char __user *)page_virt,
++				 PAGE_CACHE_SIZE, &lower_file->f_pos);
++		if (size < 0) {
++			rc = (int)size;
++			printk(KERN_ERR "Error attempting to write lower page; "
++			       "rc = [%d]\n", rc);
++			set_fs(oldfs);
++			goto out;
++		}
+ 		current_header_page++;
  	}
--	memset(m2info, 0, sizeof(*m2info));
- 	m2info->primary_dev = MINFO;
- 	if (matroxfb_dh_registerfb(m2info)) {
- 		kfree(m2info);
+ 	set_fs(oldfs);
+-	return 0;
++out:
++	return rc;
+ }
+ 
+ static int ecryptfs_write_metadata_to_xattr(struct dentry *ecryptfs_dentry,
+diff -puN fs/ecryptfs/inode.c~ecryptfs-convert-f_op-write-to-vfs_write fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-convert-f_op-write-to-vfs_write
++++ a/fs/ecryptfs/inode.c
+@@ -201,7 +201,7 @@ static int ecryptfs_initialize_file(stru
+ 			lower_dentry->d_name.name);
+ 	inode = ecryptfs_dentry->d_inode;
+ 	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
+-	lower_flags = ((O_CREAT | O_WRONLY | O_TRUNC) & O_ACCMODE) | O_RDWR;
++	lower_flags = ((O_CREAT | O_TRUNC) & O_ACCMODE) | O_RDWR;
+ #if BITS_PER_LONG != 32
+ 	lower_flags |= O_LARGEFILE;
+ #endif
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-fix-warning-in-device_add_attrs.patch
-git-input.patch
+git-unionfs.patch
+ecryptfs-convert-lookup_one_len-to-lookup_one_len_nd.patch
