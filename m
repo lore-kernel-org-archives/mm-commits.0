@@ -1,224 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-isdn-hisax-convert-to-generic-boolean-values.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:46:24 -0800
-Message-ID: <200702122246.l1CMkOWZ013806@shell0.pdx.osdl.net>
+Subject: - knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:33 -0800
+Message-ID: <200702122246.l1CMkX64013821@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45240 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45266 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030334AbXBLWqb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:31 -0500
+	id S1030310AbXBLWql (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ricknu-0@student.ltu.se, kkeil@suse.de, mm-commits@vger.kernel.org
+To: chuck.lever@oracle.com, aurelien.charbon@ext.bull.net, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/isdn/hisax/: Convert to generic boolean-values
+     knfsd: SUNRPC: allow creating an RPC service without registering with portmapper
 has been removed from the -mm tree.  Its filename was
-     drivers-isdn-hisax-convert-to-generic-boolean-values.patch
+     knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/isdn/hisax/: Convert to generic boolean-values
-From: Richard Knutsson <ricknu-0@student.ltu.se>
+Subject: knfsd: SUNRPC: allow creating an RPC service without registering with portmapper
+From: Chuck Lever <chuck.lever@oracle.com>
 
-Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Sometimes we need to create an RPC service but not register it with the local
+portmapper.  NFSv4 delegation callback, for example.
+
+Change the svc_makesock() API to allow optionally creating temporary or
+permanent sockets, optionally registering with the local portmapper, and make
+it return the ephemeral port of the new socket.
+
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+Cc: Aurelien Charbon <aurelien.charbon@ext.bull.net>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/hfc_usb.c |   40 ++++++++++++++++-----------------
- drivers/isdn/hisax/hfc_usb.h |    3 --
- 2 files changed, 20 insertions(+), 23 deletions(-)
+ fs/lockd/svc.c                 |   26 ++++++++++++++++----------
+ fs/nfs/callback.c              |   20 +++++++++-----------
+ fs/nfsd/nfssvc.c               |    6 ++++--
+ include/linux/sunrpc/svcsock.h |    2 +-
+ net/sunrpc/svcsock.c           |    6 ++++--
+ 5 files changed, 34 insertions(+), 26 deletions(-)
 
-diff -puN drivers/isdn/hisax/hfc_usb.c~drivers-isdn-hisax-convert-to-generic-boolean-values drivers/isdn/hisax/hfc_usb.c
---- a/drivers/isdn/hisax/hfc_usb.c~drivers-isdn-hisax-convert-to-generic-boolean-values
-+++ a/drivers/isdn/hisax/hfc_usb.c
-@@ -183,7 +183,7 @@ typedef struct hfcusb_data {
- 	int vend_idx;		/* vendor found */
- 	int b_mode[2];		/* B-channel mode */
- 	int l1_activated;	/* layer 1 activated */
--	int disc_flag;		/* TRUE if device was disonnected to avoid some USB actions */
-+	int disc_flag;		/* 'true' if device was disonnected to avoid some USB actions */
- 	int packet_size, iso_packet_size;
- 
- 	/* control pipe background handling */
-@@ -392,7 +392,7 @@ l1_timer_expire_t3(hfcusb_data * hfc)
- 	DBG(ISDN_DBG,
- 	    "HFC-S USB: PH_DEACTIVATE | INDICATION sent (T3 expire)");
- #endif
--	hfc->l1_activated = FALSE;
-+	hfc->l1_activated = false;
- 	handle_led(hfc, LED_S0_OFF);
- 	/* deactivate : */
- 	queue_control_request(hfc, HFCUSB_STATES, 0x10, 1);
-@@ -411,7 +411,7 @@ l1_timer_expire_t4(hfcusb_data * hfc)
- 	DBG(ISDN_DBG,
- 	    "HFC-S USB: PH_DEACTIVATE | INDICATION sent (T4 expire)");
- #endif
--	hfc->l1_activated = FALSE;
-+	hfc->l1_activated = false;
- 	handle_led(hfc, LED_S0_OFF);
+diff -puN fs/lockd/svc.c~knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper fs/lockd/svc.c
+--- a/fs/lockd/svc.c~knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper
++++ a/fs/lockd/svc.c
+@@ -223,23 +223,29 @@ static int find_socket(struct svc_serv *
+ 	return found;
  }
  
-@@ -452,7 +452,7 @@ state_handler(hfcusb_data * hfc, __u8 st
- #ifdef CONFIG_HISAX_DEBUG
- 		DBG(ISDN_DBG, "HFC-S USB: PH_ACTIVATE | INDICATION sent");
- #endif
--		hfc->l1_activated = TRUE;
-+		hfc->l1_activated = true;
- 		handle_led(hfc, LED_S0_ON);
- 	} else if (state <= 3 /* && activated */ ) {
- 		if (old_state == 7 || old_state == 8) {
-@@ -472,7 +472,7 @@ state_handler(hfcusb_data * hfc, __u8 st
- 			DBG(ISDN_DBG,
- 			    "HFC-S USB: PH_DEACTIVATE | INDICATION sent");
- #endif
--			hfc->l1_activated = FALSE;
-+			hfc->l1_activated = false;
- 			handle_led(hfc, LED_S0_OFF);
- 		}
++/*
++ * Make any sockets that are needed but not present.
++ * If nlm_udpport or nlm_tcpport were set as module
++ * options, make those sockets unconditionally
++ */
+ static int make_socks(struct svc_serv *serv, int proto)
+ {
+-	/* Make any sockets that are needed but not present.
+-	 * If nlm_udpport or nlm_tcpport were set as module
+-	 * options, make those sockets unconditionally
+-	 */
+-	static int		warned;
++	static int warned;
+ 	int err = 0;
++
+ 	if (proto == IPPROTO_UDP || nlm_udpport)
+ 		if (!find_socket(serv, IPPROTO_UDP))
+-			err = svc_makesock(serv, IPPROTO_UDP, nlm_udpport);
+-	if (err == 0 && (proto == IPPROTO_TCP || nlm_tcpport))
++			err = svc_makesock(serv, IPPROTO_UDP, nlm_udpport,
++						SVC_SOCK_DEFAULTS);
++	if (err >= 0 && (proto == IPPROTO_TCP || nlm_tcpport))
+ 		if (!find_socket(serv, IPPROTO_TCP))
+-			err= svc_makesock(serv, IPPROTO_TCP, nlm_tcpport);
+-	if (!err)
++			err = svc_makesock(serv, IPPROTO_TCP, nlm_tcpport,
++						SVC_SOCK_DEFAULTS);
++
++	if (err >= 0) {
+ 		warned = 0;
+-	else if (warned++ == 0)
++		err = 0;
++	} else if (warned++ == 0)
+ 		printk(KERN_WARNING
+ 		       "lockd_up: makesock failed, error=%d\n", err);
+ 	return err;
+diff -puN fs/nfs/callback.c~knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper fs/nfs/callback.c
+--- a/fs/nfs/callback.c~knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper
++++ a/fs/nfs/callback.c
+@@ -106,7 +106,6 @@ static void nfs_callback_svc(struct svc_
+ int nfs_callback_up(void)
+ {
+ 	struct svc_serv *serv;
+-	struct svc_sock *svsk;
+ 	int ret = 0;
+ 
+ 	lock_kernel();
+@@ -119,17 +118,14 @@ int nfs_callback_up(void)
+ 	ret = -ENOMEM;
+ 	if (!serv)
+ 		goto out_err;
+-	/* FIXME: We don't want to register this socket with the portmapper */
+-	ret = svc_makesock(serv, IPPROTO_TCP, nfs_callback_set_tcpport);
+-	if (ret < 0)
++
++	ret = svc_makesock(serv, IPPROTO_TCP, nfs_callback_set_tcpport,
++							SVC_SOCK_ANONYMOUS);
++	if (ret <= 0)
+ 		goto out_destroy;
+-	if (!list_empty(&serv->sv_permsocks)) {
+-		svsk = list_entry(serv->sv_permsocks.next,
+-				struct svc_sock, sk_list);
+-		nfs_callback_tcpport = ntohs(inet_sk(svsk->sk_sk)->sport);
+-		dprintk ("Callback port = 0x%x\n", nfs_callback_tcpport);
+-	} else
+-		BUG();
++	nfs_callback_tcpport = ret;
++	dprintk("Callback port = 0x%x\n", nfs_callback_tcpport);
++
+ 	ret = svc_create_thread(nfs_callback_svc, serv);
+ 	if (ret < 0)
+ 		goto out_destroy;
+@@ -140,6 +136,8 @@ out:
+ 	unlock_kernel();
+ 	return ret;
+ out_destroy:
++	dprintk("Couldn't create callback socket or server thread; err = %d\n",
++		ret);
+ 	svc_destroy(serv);
+ out_err:
+ 	nfs_callback_info.users--;
+diff -puN fs/nfsd/nfssvc.c~knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper fs/nfsd/nfssvc.c
+--- a/fs/nfsd/nfssvc.c~knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper
++++ a/fs/nfsd/nfssvc.c
+@@ -235,7 +235,8 @@ static int nfsd_init_socks(int port)
+ 
+ 	error = lockd_up(IPPROTO_UDP);
+ 	if (error >= 0) {
+-		error = svc_makesock(nfsd_serv, IPPROTO_UDP, port);
++		error = svc_makesock(nfsd_serv, IPPROTO_UDP, port,
++					SVC_SOCK_DEFAULTS);
+ 		if (error < 0)
+ 			lockd_down();
  	}
-@@ -622,7 +622,7 @@ tx_iso_complete(struct urb *urb)
- 	if (fifo->active && !status) {
- 		transp_mode = 0;
- 		if (fifon < 4 && hfc->b_mode[fifon / 2] == L1_MODE_TRANS)
--			transp_mode = TRUE;
-+			transp_mode = true;
+@@ -245,7 +246,8 @@ static int nfsd_init_socks(int port)
+ #ifdef CONFIG_NFSD_TCP
+ 	error = lockd_up(IPPROTO_TCP);
+ 	if (error >= 0) {
+-		error = svc_makesock(nfsd_serv, IPPROTO_TCP, port);
++		error = svc_makesock(nfsd_serv, IPPROTO_TCP, port,
++					SVC_SOCK_DEFAULTS);
+ 		if (error < 0)
+ 			lockd_down();
+ 	}
+diff -puN include/linux/sunrpc/svcsock.h~knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper include/linux/sunrpc/svcsock.h
+--- a/include/linux/sunrpc/svcsock.h~knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper
++++ a/include/linux/sunrpc/svcsock.h
+@@ -62,7 +62,7 @@ struct svc_sock {
+ /*
+  * Function prototypes.
+  */
+-int		svc_makesock(struct svc_serv *, int, unsigned short);
++int		svc_makesock(struct svc_serv *, int, unsigned short, int flags);
+ void		svc_close_socket(struct svc_sock *);
+ int		svc_recv(struct svc_rqst *, long);
+ int		svc_send(struct svc_rqst *);
+diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-sunrpc-allow-creating-an-rpc-service-without-registering-with-portmapper
++++ a/net/sunrpc/svcsock.c
+@@ -1689,9 +1689,11 @@ void svc_close_socket(struct svc_sock *s
+  * @serv: RPC server structure
+  * @protocol: transport protocol to use
+  * @port: port to use
++ * @flags: requested socket characteristics
+  *
+  */
+-int svc_makesock(struct svc_serv *serv, int protocol, unsigned short port)
++int svc_makesock(struct svc_serv *serv, int protocol, unsigned short port,
++			int flags)
+ {
+ 	struct sockaddr_in sin = {
+ 		.sin_family		= AF_INET,
+@@ -1700,7 +1702,7 @@ int svc_makesock(struct svc_serv *serv, 
+ 	};
  
- 		/* is FifoFull-threshold set for our channel? */
- 		threshbit = threshtable[fifon] & hfc->threshold_mask;
-@@ -640,7 +640,7 @@ tx_iso_complete(struct urb *urb)
- 			      tx_iso_complete, urb->context);
- 		memset(context_iso_urb->buffer, 0,
- 		       sizeof(context_iso_urb->buffer));
--		frame_complete = FALSE;
-+		frame_complete = false;
- 		/* Generate next Iso Packets */
- 		for (k = 0; k < num_isoc_packets; ++k) {
- 			if (fifo->skbuff) {
-@@ -666,7 +666,7 @@ tx_iso_complete(struct urb *urb)
- 						/* add 2 byte flags and 16bit CRC at end of ISDN frame */
- 						fifo->bit_line += 32;
- 					}
--					frame_complete = TRUE;
-+					frame_complete = true;
- 				}
+ 	dprintk("svc: creating socket proto = %d\n", protocol);
+-	return svc_create_socket(serv, protocol, &sin, SVC_SOCK_DEFAULTS);
++	return svc_create_socket(serv, protocol, &sin, flags);
+ }
  
- 				memcpy(context_iso_urb->buffer +
-@@ -693,7 +693,7 @@ tx_iso_complete(struct urb *urb)
- 			}
- 
- 			if (frame_complete) {
--				fifo->delete_flg = TRUE;
-+				fifo->delete_flg = true;
- 				fifo->hif->l1l2(fifo->hif,
- 						PH_DATA | CONFIRM,
- 						(void *) (unsigned long) fifo->skbuff->
-@@ -701,9 +701,9 @@ tx_iso_complete(struct urb *urb)
- 				if (fifo->skbuff && fifo->delete_flg) {
- 					dev_kfree_skb_any(fifo->skbuff);
- 					fifo->skbuff = NULL;
--					fifo->delete_flg = FALSE;
-+					fifo->delete_flg = false;
- 				}
--				frame_complete = FALSE;
-+				frame_complete = false;
- 			}
- 		}
- 		errcode = usb_submit_urb(urb, GFP_ATOMIC);
-@@ -837,7 +837,7 @@ collect_rx_frame(usb_fifo * fifo, __u8 *
- 	fifon = fifo->fifonum;
- 	transp_mode = 0;
- 	if (fifon < 4 && hfc->b_mode[fifon / 2] == L1_MODE_TRANS)
--		transp_mode = TRUE;
-+		transp_mode = true;
- 
- 	if (!fifo->skbuff) {
- 		fifo->skbuff = dev_alloc_skb(fifo->max_size + 3);
-@@ -1176,7 +1176,7 @@ hfc_usb_l2l1(struct hisax_if *my_hisax_i
- 			if (fifo->skbuff && fifo->delete_flg) {
- 				dev_kfree_skb_any(fifo->skbuff);
- 				fifo->skbuff = NULL;
--				fifo->delete_flg = FALSE;
-+				fifo->delete_flg = false;
- 			}
- 			fifo->skbuff = arg;	/* we have a new buffer */
- 			break;
-@@ -1262,8 +1262,8 @@ usb_init(hfcusb_data * hfc)
- 	hfc->b_mode[0] = L1_MODE_NULL;
- 	hfc->b_mode[1] = L1_MODE_NULL;
- 
--	hfc->l1_activated = FALSE;
--	hfc->disc_flag = FALSE;
-+	hfc->l1_activated = false;
-+	hfc->disc_flag = false;
- 	hfc->led_state = 0;
- 	hfc->led_new_data = 0;
- 	hfc->old_led_state = 0;
-@@ -1404,7 +1404,7 @@ hfc_usb_probe(struct usb_interface *intf
- 
- 			/* check for config EOL element */
- 			while (validconf[cfg_used][0]) {
--				cfg_found = TRUE;
-+				cfg_found = true;
- 				vcf = validconf[cfg_used];
- 				/* first endpoint descriptor */
- 				ep = iface->endpoint;
-@@ -1426,7 +1426,7 @@ hfc_usb_probe(struct usb_interface *intf
- 						idx++;
- 					attr = ep->desc.bmAttributes;
- 					if (cmptbl[idx] == EP_NUL) {
--						cfg_found = FALSE;
-+						cfg_found = false;
- 					}
- 					if (attr == USB_ENDPOINT_XFER_INT
- 					    && cmptbl[idx] == EP_INT)
-@@ -1448,7 +1448,7 @@ hfc_usb_probe(struct usb_interface *intf
- 							    "HFC-S USB: Interrupt Endpoint interval < %d found - skipping config",
- 							    vcf[17]);
- #endif
--						cfg_found = FALSE;
-+						cfg_found = false;
- 					}
- 					ep++;
- 				}
-@@ -1456,7 +1456,7 @@ hfc_usb_probe(struct usb_interface *intf
- 					/* all entries must be EP_NOP or EP_NUL for a valid config */
- 					if (cmptbl[i] != EP_NOP
- 					    && cmptbl[i] != EP_NUL)
--						cfg_found = FALSE;
-+						cfg_found = false;
- 				}
- 				if (cfg_found) {
- 					if (cfg_used < small_match) {
-@@ -1656,7 +1656,7 @@ hfc_usb_disconnect(struct usb_interface
- 	hfcusb_data *context = usb_get_intfdata(intf);
- 	int i;
- 	printk(KERN_INFO "HFC-S USB: device disconnect\n");
--	context->disc_flag = TRUE;
-+	context->disc_flag = true;
- 	usb_set_intfdata(intf, NULL);
- 	if (!context)
- 		return;
-diff -puN drivers/isdn/hisax/hfc_usb.h~drivers-isdn-hisax-convert-to-generic-boolean-values drivers/isdn/hisax/hfc_usb.h
---- a/drivers/isdn/hisax/hfc_usb.h~drivers-isdn-hisax-convert-to-generic-boolean-values
-+++ a/drivers/isdn/hisax/hfc_usb.h
-@@ -12,9 +12,6 @@
- 
- #define VERBOSE_USB_DEBUG
- 
--#define TRUE  1
--#define FALSE 0
--
- 
- /***********/
- /* defines */
+ /*
 _
 
-Patches currently in -mm which might be from ricknu-0@student.ltu.se are
+Patches currently in -mm which might be from chuck.lever@oracle.com are
 
 origin.patch
-git-dvb.patch
+git-nfs.patch
