@@ -1,329 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-convert-kmap-to-kmap_atomic.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:47:16 -0800
-Message-ID: <200702122247.l1CMlG0O013900@shell0.pdx.osdl.net>
+Subject: - ecryptfs-xattr-flags-and-mount-options.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:47:07 -0800
+Message-ID: <200702122247.l1CMl738013887@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45952 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45954 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030441AbXBLWxI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:53:08 -0500
+	id S1030443AbXBLWx3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:53:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, tshighla@us.ibm.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: convert kmap() to kmap_atomic()
+     eCryptfs: xattr flags and mount options
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-convert-kmap-to-kmap_atomic.patch
+     ecryptfs-xattr-flags-and-mount-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: convert kmap() to kmap_atomic()
+Subject: eCryptfs: xattr flags and mount options
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Replace kmap() with kmap_atomic().  Reduce the amount of time that mappings
-are held.
+This patch set introduces the ability to store cryptographic metadata into an
+lower file extended attribute rather than the lower file header region.
+
+This patch set implements two new mount options:
+
+ecryptfs_xattr_metadata
+ - When set, newly created files will have their cryptographic
+   metadata stored in the extended attribute region of the file rather
+   than the header.
+
+   When storing the data in the file header, there is a minimum of 8KB
+   reserved for the header information for each file, making each file at
+   least 12KB in size.  This can take up a lot of extra disk space if the user
+   creates a lot of small files.  By storing the data in the extended
+   attribute, each file will only occupy at least of 4KB of space.
+
+   As the eCryptfs metadata set becomes larger with new features such as
+   multi-key associations, most popular filesystems will not be able to store
+   all of the information in the xattr region in some cases due to space
+   constraints.  However, the majority of users will only ever associate one
+   key per file, so most users will be okay with storing their data in the
+   xattr region.
+
+   This option should be used with caution.  I want to emphasize that the
+   xattr must be maintained under all circumstances, or the file will be
+   rendered permanently unrecoverable.  The last thing I want is for a user to
+   forget to set an xattr flag in a backup utility, only to later discover
+   that their backups are worthless.
+
+ecryptfs_encrypted_view
+ - When set, this option causes eCryptfs to present applications a
+   view of encrypted files as if the cryptographic metadata were
+   stored in the file header, whether the metadata is actually stored
+   in the header or in the extended attributes.
+
+   No matter what eCryptfs winds up doing in the lower filesystem, I want
+   to preserve a baseline format compatibility for the encrypted files.  As of
+   right now, the metadata may be in the file header or in an xattr.  There is
+   no reason why the metadata could not be put in a separate file in future
+   versions.
+
+   Without the compatibility mode, backup utilities would have to know to
+   back up the metadata file along with the files.  The semantics of eCryptfs
+   have always been that the lower files are self-contained units of encrypted
+   data, and the only additional information required to decrypt any given
+   eCryptfs file is the key.  That is what has always been emphasized about
+   eCryptfs lower files, and that is what users expect.  Providing the
+   encrypted view option will provide a way to userspace applications wherein
+   they can always get to the same old familiar eCryptfs encrypted files,
+   regardless of what eCryptfs winds up doing with the metadata behind the
+   scenes.
+
+This patch:
+
+Add extended attribute support to version bit vector, flags to indicate when
+xattr or encrypted view modes are enabled, and support for the new mount
+options.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Signed-off-by: Trevor Highland <tshighla@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c          |    8 +-
- fs/ecryptfs/ecryptfs_kernel.h |    4 -
- fs/ecryptfs/mmap.c            |  121 +++++++++-----------------------
- 3 files changed, 39 insertions(+), 94 deletions(-)
+ fs/ecryptfs/crypto.c          |   20 ++++++++++++++++++++
+ fs/ecryptfs/ecryptfs_kernel.h |   15 ++++++++++-----
+ fs/ecryptfs/main.c            |   18 ++++++++++++++++--
+ 3 files changed, 46 insertions(+), 7 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-convert-kmap-to-kmap_atomic fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-convert-kmap-to-kmap_atomic
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-xattr-flags-and-mount-options fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-xattr-flags-and-mount-options
 +++ a/fs/ecryptfs/crypto.c
-@@ -429,10 +429,10 @@ static int ecryptfs_read_in_page(struct 
- 			goto out;
- 		}
- 	} else {
--		rc = ecryptfs_grab_and_map_lower_page(lower_page, NULL,
--						      lower_inode,
--						      lower_page_idx);
--		if (rc) {
-+		*lower_page = grab_cache_page(lower_inode->i_mapping,
-+					      lower_page_idx);
-+		if (!(*lower_page)) {
-+			rc = -EINVAL;
- 			ecryptfs_printk(
- 				KERN_ERR, "Error attempting to grab and map "
- 				"lower page with index [0x%.16x]; rc = [%d]\n",
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-convert-kmap-to-kmap_atomic fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-convert-kmap-to-kmap_atomic
+@@ -915,6 +915,22 @@ static void ecryptfs_generate_new_key(st
+ }
+ 
+ /**
++ * ecryptfs_copy_mount_wide_flags_to_inode_flags
++ *
++ * This function propagates the mount-wide flags to individual inode
++ * flags.
++ */
++static void ecryptfs_copy_mount_wide_flags_to_inode_flags(
++	struct ecryptfs_crypt_stat *crypt_stat,
++	struct ecryptfs_mount_crypt_stat *mount_crypt_stat)
++{
++	if (mount_crypt_stat->flags & ECRYPTFS_XATTR_METADATA_ENABLED)
++		crypt_stat->flags |= ECRYPTFS_METADATA_IN_XATTR;
++	if (mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)
++		crypt_stat->flags |= ECRYPTFS_VIEW_AS_ENCRYPTED;
++}
++
++/**
+  * ecryptfs_set_default_crypt_stat_vals
+  * @crypt_stat
+  *
+@@ -924,6 +940,8 @@ static void ecryptfs_set_default_crypt_s
+ 	struct ecryptfs_crypt_stat *crypt_stat,
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat)
+ {
++	ecryptfs_copy_mount_wide_flags_to_inode_flags(crypt_stat,
++						      mount_crypt_stat);
+ 	ecryptfs_set_default_sizes(crypt_stat);
+ 	strcpy(crypt_stat->cipher, ECRYPTFS_DEFAULT_CIPHER);
+ 	crypt_stat->key_size = ECRYPTFS_DEFAULT_KEY_BYTES;
+@@ -969,6 +987,8 @@ int ecryptfs_new_file_context(struct den
+ 				"file using mount_crypt_stat\n");
+ 		ECRYPTFS_SET_FLAG(crypt_stat->flags, ECRYPTFS_ENCRYPTED);
+ 		ECRYPTFS_SET_FLAG(crypt_stat->flags, ECRYPTFS_KEY_VALID);
++		ecryptfs_copy_mount_wide_flags_to_inode_flags(crypt_stat,
++							      mount_crypt_stat);
+ 		memcpy(crypt_stat->keysigs[crypt_stat->num_keysigs++],
+ 		       mount_crypt_stat->global_auth_tok_sig,
+ 		       ECRYPTFS_SIG_SIZE_HEX);
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-xattr-flags-and-mount-options fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-xattr-flags-and-mount-options
 +++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -514,10 +514,6 @@ int ecryptfs_copy_page_to_lower(struct p
- 				struct file *lower_file);
- int ecryptfs_do_readpage(struct file *file, struct page *page,
- 			 pgoff_t lower_page_index);
--int ecryptfs_grab_and_map_lower_page(struct page **lower_page,
--				     char **lower_virt,
--				     struct inode *lower_inode,
--				     unsigned long lower_page_index);
- int ecryptfs_writepage_and_release_lower_page(struct page *lower_page,
- 					      struct inode *lower_inode,
- 					      struct writeback_control *wbc);
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-convert-kmap-to-kmap_atomic fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-convert-kmap-to-kmap_atomic
-+++ a/fs/ecryptfs/mmap.c
-@@ -234,22 +234,11 @@ int ecryptfs_do_readpage(struct file *fi
- 		goto out;
- 	}
- 	wait_on_page_locked(lower_page);
--	page_data = (char *)kmap(page);
--	if (!page_data) {
--		rc = -ENOMEM;
--		ecryptfs_printk(KERN_ERR, "Error mapping page\n");
--		goto out;
--	}
--	lower_page_data = (char *)kmap(lower_page);
--	if (!lower_page_data) {
--		rc = -ENOMEM;
--		ecryptfs_printk(KERN_ERR, "Error mapping page\n");
--		kunmap(page);
--		goto out;
--	}
-+	page_data = kmap_atomic(page, KM_USER0);
-+	lower_page_data = kmap_atomic(lower_page, KM_USER1);
- 	memcpy(page_data, lower_page_data, PAGE_CACHE_SIZE);
--	kunmap(lower_page);
--	kunmap(page);
-+	kunmap_atomic(lower_page_data, KM_USER1);
-+	kunmap_atomic(page_data, KM_USER0);
- 	rc = 0;
- out:
- 	if (likely(lower_page))
-@@ -325,19 +314,14 @@ static int ecryptfs_readpage(struct file
- 			if (page->index < num_pages_in_header_region) {
- 				char *page_virt;
+@@ -43,13 +43,14 @@
+  * module; userspace tools such as the mount helper read
+  * ECRYPTFS_VERSIONING_MASK from a sysfs handle in order to determine
+  * how to behave. */
+-#define ECRYPTFS_VERSIONING_PASSPHRASE 0x00000001
+-#define ECRYPTFS_VERSIONING_PUBKEY 0x00000002
++#define ECRYPTFS_VERSIONING_PASSPHRASE            0x00000001
++#define ECRYPTFS_VERSIONING_PUBKEY                0x00000002
+ #define ECRYPTFS_VERSIONING_PLAINTEXT_PASSTHROUGH 0x00000004
+-#define ECRYPTFS_VERSIONING_POLICY 0x00000008
++#define ECRYPTFS_VERSIONING_POLICY                0x00000008
++#define ECRYPTFS_VERSIONING_XATTR                 0x00000010
+ #define ECRYPTFS_VERSIONING_MASK (ECRYPTFS_VERSIONING_PASSPHRASE \
+-                                  | ECRYPTFS_VERSIONING_PLAINTEXT_PASSTHROUGH \
+-                                  | ECRYPTFS_VERSIONING_PUBKEY)
++				  | ECRYPTFS_VERSIONING_PLAINTEXT_PASSTHROUGH \
++				  | ECRYPTFS_VERSIONING_PUBKEY)
  
--				page_virt = (char *)kmap(page);
--				if (!page_virt) {
--					rc = -ENOMEM;
--					printk(KERN_ERR "Error mapping page\n");
--					goto out;
--				}
-+				page_virt = kmap_atomic(page, KM_USER0);
- 				memset(page_virt, 0, PAGE_CACHE_SIZE);
- 				if (page->index == 0) {
- 					rc = ecryptfs_read_xattr_region(
- 						page_virt, file->f_path.dentry);
- 					set_header_info(page_virt, crypt_stat);
- 				}
--				kunmap(page);
-+				kunmap_atomic(page_virt, KM_USER0);
- 				if (rc) {
- 					printk(KERN_ERR "Error reading xattr "
- 					       "region\n");
-@@ -387,26 +371,19 @@ static int fill_zeros_to_end_of_page(str
- {
- 	struct inode *inode = page->mapping->host;
- 	int end_byte_in_page;
--	int rc = 0;
- 	char *page_virt;
+ #define ECRYPTFS_MAX_PASSWORD_LENGTH 64
+ #define ECRYPTFS_MAX_PASSPHRASE_BYTES ECRYPTFS_MAX_PASSWORD_LENGTH
+@@ -227,6 +228,8 @@ struct ecryptfs_crypt_stat {
+ #define ECRYPTFS_ENABLE_HMAC        0x00000020
+ #define ECRYPTFS_ENCRYPT_IV_PAGES   0x00000040
+ #define ECRYPTFS_KEY_VALID          0x00000080
++#define ECRYPTFS_METADATA_IN_XATTR  0x00000100
++#define ECRYPTFS_VIEW_AS_ENCRYPTED  0x00000200
+ 	u32 flags;
+ 	unsigned int file_version;
+ 	size_t iv_bytes;
+@@ -273,6 +276,8 @@ struct ecryptfs_dentry_info {
+ struct ecryptfs_mount_crypt_stat {
+ 	/* Pointers to memory we do not own, do not free these */
+ #define ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED 0x00000001
++#define ECRYPTFS_XATTR_METADATA_ENABLED        0x00000002
++#define ECRYPTFS_ENCRYPTED_VIEW_ENABLED        0x00000004
+ 	u32 flags;
+ 	struct ecryptfs_auth_tok *global_auth_tok;
+ 	struct key *global_auth_tok_key;
+diff -puN fs/ecryptfs/main.c~ecryptfs-xattr-flags-and-mount-options fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-xattr-flags-and-mount-options
++++ a/fs/ecryptfs/main.c
+@@ -162,7 +162,8 @@ out:
+ enum { ecryptfs_opt_sig, ecryptfs_opt_ecryptfs_sig, ecryptfs_opt_debug,
+        ecryptfs_opt_ecryptfs_debug, ecryptfs_opt_cipher,
+        ecryptfs_opt_ecryptfs_cipher, ecryptfs_opt_ecryptfs_key_bytes,
+-       ecryptfs_opt_passthrough, ecryptfs_opt_err };
++       ecryptfs_opt_passthrough, ecryptfs_opt_xattr_metadata,
++       ecryptfs_opt_encrypted_view, ecryptfs_opt_err };
  
--	if ((i_size_read(inode) / PAGE_CACHE_SIZE) == page->index) {
--		end_byte_in_page = i_size_read(inode) % PAGE_CACHE_SIZE;
--		if (to > end_byte_in_page)
--			end_byte_in_page = to;
--		page_virt = kmap(page);
--		if (!page_virt) {
--			rc = -ENOMEM;
--			ecryptfs_printk(KERN_WARNING,
--					"Could not map page\n");
--			goto out;
--		}
--		memset((page_virt + end_byte_in_page), 0,
--		       (PAGE_CACHE_SIZE - end_byte_in_page));
--		kunmap(page);
--	}
-+	if ((i_size_read(inode) / PAGE_CACHE_SIZE) != page->index)
-+		goto out;
-+	end_byte_in_page = i_size_read(inode) % PAGE_CACHE_SIZE;
-+	if (to > end_byte_in_page)
-+		end_byte_in_page = to;
-+	page_virt = kmap_atomic(page, KM_USER0);
-+	memset((page_virt + end_byte_in_page), 0,
-+	       (PAGE_CACHE_SIZE - end_byte_in_page));
-+	kunmap_atomic(page_virt, KM_USER0);
- out:
--	return rc;
-+	return 0;
- }
+ static match_table_t tokens = {
+ 	{ecryptfs_opt_sig, "sig=%s"},
+@@ -173,6 +174,8 @@ static match_table_t tokens = {
+ 	{ecryptfs_opt_ecryptfs_cipher, "ecryptfs_cipher=%s"},
+ 	{ecryptfs_opt_ecryptfs_key_bytes, "ecryptfs_key_bytes=%u"},
+ 	{ecryptfs_opt_passthrough, "ecryptfs_passthrough"},
++	{ecryptfs_opt_xattr_metadata, "ecryptfs_xattr_metadata"},
++	{ecryptfs_opt_encrypted_view, "ecryptfs_encrypted_view"},
+ 	{ecryptfs_opt_err, NULL}
+ };
  
- static int ecryptfs_prepare_write(struct file *file, struct page *page,
-@@ -414,7 +391,6 @@ static int ecryptfs_prepare_write(struct
- {
- 	int rc = 0;
+@@ -313,6 +316,16 @@ static int ecryptfs_parse_options(struct
+ 			mount_crypt_stat->flags |=
+ 				ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED;
+ 			break;
++		case ecryptfs_opt_xattr_metadata:
++			mount_crypt_stat->flags |=
++				ECRYPTFS_XATTR_METADATA_ENABLED;
++			break;
++		case ecryptfs_opt_encrypted_view:
++			mount_crypt_stat->flags |=
++				ECRYPTFS_XATTR_METADATA_ENABLED;
++			mount_crypt_stat->flags |=
++				ECRYPTFS_ENCRYPTED_VIEW_ENABLED;
++			break;
+ 		case ecryptfs_opt_err:
+ 		default:
+ 			ecryptfs_printk(KERN_WARNING,
+@@ -734,7 +747,8 @@ static struct ecryptfs_version_str_map_e
+ 	{ECRYPTFS_VERSIONING_PASSPHRASE, "passphrase"},
+ 	{ECRYPTFS_VERSIONING_PUBKEY, "pubkey"},
+ 	{ECRYPTFS_VERSIONING_PLAINTEXT_PASSTHROUGH, "plaintext passthrough"},
+-	{ECRYPTFS_VERSIONING_POLICY, "policy"}
++	{ECRYPTFS_VERSIONING_POLICY, "policy"},
++	{ECRYPTFS_VERSIONING_XATTR, "metadata in extended attribute"}
+ };
  
--	kmap(page);
- 	if (from == 0 && to == PAGE_CACHE_SIZE)
- 		goto out;	/* If we are writing a full page, it will be
- 				   up to date. */
-@@ -424,30 +400,6 @@ out:
- 	return rc;
- }
- 
--int ecryptfs_grab_and_map_lower_page(struct page **lower_page,
--				     char **lower_virt,
--				     struct inode *lower_inode,
--				     unsigned long lower_page_index)
--{
--	int rc = 0;
--
--	(*lower_page) = grab_cache_page(lower_inode->i_mapping,
--					lower_page_index);
--	if (!(*lower_page)) {
--		ecryptfs_printk(KERN_ERR, "grab_cache_page for "
--				"lower_page_index = [0x%.16x] failed\n",
--				lower_page_index);
--		rc = -EINVAL;
--		goto out;
--	}
--	if (lower_virt)
--		(*lower_virt) = kmap((*lower_page));
--	else
--		kmap((*lower_page));
--out:
--	return rc;
--}
--
- int ecryptfs_writepage_and_release_lower_page(struct page *lower_page,
- 					      struct inode *lower_inode,
- 					      struct writeback_control *wbc)
-@@ -466,11 +418,8 @@ out:
- 	return rc;
- }
- 
--static void ecryptfs_unmap_and_release_lower_page(struct page *lower_page)
-+static void ecryptfs_release_lower_page(struct page *lower_page)
- {
--	kunmap(lower_page);
--	ecryptfs_printk(KERN_DEBUG, "Unlocking lower page with index = "
--			"[0x%.16x]\n", lower_page->index);
- 	unlock_page(lower_page);
- 	page_cache_release(lower_page);
- }
-@@ -492,11 +441,11 @@ static int ecryptfs_write_inode_size_to_
- 	const struct address_space_operations *lower_a_ops;
- 	u64 file_size;
- 
--	rc = ecryptfs_grab_and_map_lower_page(&header_page, &header_virt,
--					      lower_inode, 0);
--	if (rc) {
--		ecryptfs_printk(KERN_ERR, "grab_cache_page for header page "
--				"failed\n");
-+	header_page = grab_cache_page(lower_inode->i_mapping, 0);
-+	if (!header_page) {
-+		ecryptfs_printk(KERN_ERR, "grab_cache_page for "
-+				"lower_page_index 0 failed\n");
-+		rc = -EINVAL;
- 		goto out;
- 	}
- 	lower_a_ops = lower_inode->i_mapping->a_ops;
-@@ -504,12 +453,14 @@ static int ecryptfs_write_inode_size_to_
- 	file_size = (u64)i_size_read(inode);
- 	ecryptfs_printk(KERN_DEBUG, "Writing size: [0x%.16x]\n", file_size);
- 	file_size = cpu_to_be64(file_size);
-+	header_virt = kmap_atomic(header_page, KM_USER0);
- 	memcpy(header_virt, &file_size, sizeof(u64));
-+	kunmap_atomic(header_virt, KM_USER0);
- 	rc = lower_a_ops->commit_write(lower_file, header_page, 0, 8);
- 	if (rc < 0)
- 		ecryptfs_printk(KERN_ERR, "Error commiting header page "
- 				"write\n");
--	ecryptfs_unmap_and_release_lower_page(header_page);
-+	ecryptfs_release_lower_page(header_page);
- 	lower_inode->i_mtime = lower_inode->i_ctime = CURRENT_TIME;
- 	mark_inode_dirty_sync(inode);
- out:
-@@ -597,10 +548,10 @@ int ecryptfs_get_lower_page(struct page 
- {
- 	int rc = 0;
- 
--	rc = ecryptfs_grab_and_map_lower_page(lower_page, NULL, lower_inode,
--					      lower_page_index);
--	if (rc) {
--		ecryptfs_printk(KERN_ERR, "Error attempting to grab and map "
-+	*lower_page = grab_cache_page(lower_inode->i_mapping, lower_page_index);
-+	if (!(*lower_page)) {
-+		rc = -EINVAL;
-+		ecryptfs_printk(KERN_ERR, "Error attempting to grab "
- 				"lower page with index [0x%.16x]\n",
- 				lower_page_index);
- 		goto out;
-@@ -616,7 +567,7 @@ int ecryptfs_get_lower_page(struct page 
- 	}
- out:
- 	if (rc && (*lower_page)) {
--		ecryptfs_unmap_and_release_lower_page(*lower_page);
-+		ecryptfs_release_lower_page(*lower_page);
- 		(*lower_page) = NULL;
- 	}
- 	return rc;
-@@ -641,7 +592,7 @@ ecryptfs_commit_lower_page(struct page *
- 				"Error committing write; rc = [%d]\n", rc);
- 	} else
- 		rc = 0;
--	ecryptfs_unmap_and_release_lower_page(lower_page);
-+	ecryptfs_release_lower_page(lower_page);
- 	return rc;
- }
- 
-@@ -747,7 +698,6 @@ static int ecryptfs_commit_write(struct 
- 	lower_inode->i_mtime = lower_inode->i_ctime = CURRENT_TIME;
- 	mark_inode_dirty_sync(inode);
- out:
--	kunmap(page); /* mapped in prior call (prepare_write) */
- 	if (rc < 0)
- 		ClearPageUptodate(page);
- 	else
-@@ -772,6 +722,7 @@ int write_zeros(struct file *file, pgoff
- {
- 	int rc = 0;
- 	struct page *tmp_page;
-+	char *tmp_page_virt;
- 
- 	tmp_page = ecryptfs_get1page(file, index);
- 	if (IS_ERR(tmp_page)) {
-@@ -780,28 +731,26 @@ int write_zeros(struct file *file, pgoff
- 		rc = PTR_ERR(tmp_page);
- 		goto out;
- 	}
--	kmap(tmp_page);
- 	rc = ecryptfs_prepare_write(file, tmp_page, start, start + num_zeros);
- 	if (rc) {
- 		ecryptfs_printk(KERN_ERR, "Error preparing to write zero's "
- 				"to remainder of page at index [0x%.16x]\n",
- 				index);
--		kunmap(tmp_page);
- 		page_cache_release(tmp_page);
- 		goto out;
- 	}
--	memset(((char *)page_address(tmp_page) + start), 0, num_zeros);
-+	tmp_page_virt = kmap_atomic(tmp_page, KM_USER0);
-+	memset(((char *)tmp_page_virt + start), 0, num_zeros);
-+	kunmap_atomic(tmp_page_virt, KM_USER0);
- 	rc = ecryptfs_commit_write(file, tmp_page, start, start + num_zeros);
- 	if (rc < 0) {
- 		ecryptfs_printk(KERN_ERR, "Error attempting to write zero's "
- 				"to remainder of page at index [0x%.16x]\n",
- 				index);
--		kunmap(tmp_page);
- 		page_cache_release(tmp_page);
- 		goto out;
- 	}
- 	rc = 0;
--	kunmap(tmp_page);
- 	page_cache_release(tmp_page);
- out:
- 	return rc;
+ static ssize_t version_str_show(struct ecryptfs_obj *obj, char *buff)
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
