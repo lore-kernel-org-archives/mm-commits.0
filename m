@@ -1,100 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - dynamic-kernel-command-line-ppc.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:48:05 -0800
-Message-ID: <200702122248.l1CMm5gc013973@shell0.pdx.osdl.net>
+Subject: - dynamic-kernel-command-line-fixups.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:48:25 -0800
+Message-ID: <200702122248.l1CMmPhI014011@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45469 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45520 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030367AbXBLWsJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:48:09 -0500
+	id S1030343AbXBLWs2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:48:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alon.barlev@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: alon.barlev@gmail.com, jdike@addtoit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Dynamic kernel command-line: ppc
+     Dynamic kernel command-line: fixups
 has been removed from the -mm tree.  Its filename was
-     dynamic-kernel-command-line-ppc.patch
+     dynamic-kernel-command-line-fixups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: ppc
+Subject: Dynamic kernel command-line: fixups
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
-Rename saved_command_line into boot_command_line.
+Remove in-source externs, linux/init.h is included in all cases.
+This is a fixups for "Dynamic kernel command-line" patch.
+
+It also includes some uml __init fixups so that we can __initdata also its
+command_line.
 
 Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ppc/kernel/setup.c         |    2 +-
- arch/ppc/platforms/lopec.c      |    2 +-
- arch/ppc/platforms/pplus.c      |    2 +-
- arch/ppc/platforms/prep_setup.c |    4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ arch/ia64/kernel/efi.c      |    2 --
+ arch/ia64/kernel/sal.c      |    2 --
+ arch/parisc/mm/init.c       |    1 -
+ arch/um/include/user_util.h |    2 --
+ arch/um/kernel/um_arch.c    |    6 +++---
+ arch/x86_64/kernel/head64.c |    2 --
+ 6 files changed, 3 insertions(+), 12 deletions(-)
 
-diff -puN arch/ppc/kernel/setup.c~dynamic-kernel-command-line-ppc arch/ppc/kernel/setup.c
---- a/arch/ppc/kernel/setup.c~dynamic-kernel-command-line-ppc
-+++ a/arch/ppc/kernel/setup.c
-@@ -543,7 +543,7 @@ void __init setup_arch(char **cmdline_p)
- 	init_mm.brk = (unsigned long) klimit;
- 
- 	/* Save unparsed command line copy for /proc/cmdline */
--	strlcpy(saved_command_line, cmd_line, COMMAND_LINE_SIZE);
-+	strlcpy(boot_command_line, cmd_line, COMMAND_LINE_SIZE);
- 	*cmdline_p = cmd_line;
- 
- 	parse_early_param();
-diff -puN arch/ppc/platforms/lopec.c~dynamic-kernel-command-line-ppc arch/ppc/platforms/lopec.c
---- a/arch/ppc/platforms/lopec.c~dynamic-kernel-command-line-ppc
-+++ a/arch/ppc/platforms/lopec.c
-@@ -344,7 +344,7 @@ lopec_setup_arch(void)
- 		 if (bootargs != NULL) {
- 			 strcpy(cmd_line, bootargs);
- 			 /* again.. */
--			 strcpy(saved_command_line, cmd_line);
-+			 strcpy(boot_command_line, cmd_line);
- 		}
- 	}
- #endif
-diff -puN arch/ppc/platforms/pplus.c~dynamic-kernel-command-line-ppc arch/ppc/platforms/pplus.c
---- a/arch/ppc/platforms/pplus.c~dynamic-kernel-command-line-ppc
-+++ a/arch/ppc/platforms/pplus.c
-@@ -592,7 +592,7 @@ static void __init pplus_setup_arch(void
- 		if (bootargs != NULL) {
- 			strcpy(cmd_line, bootargs);
- 			/* again.. */
--			strcpy(saved_command_line, cmd_line);
-+			strcpy(boot_command_line, cmd_line);
- 		}
- 	}
- #endif
-diff -puN arch/ppc/platforms/prep_setup.c~dynamic-kernel-command-line-ppc arch/ppc/platforms/prep_setup.c
---- a/arch/ppc/platforms/prep_setup.c~dynamic-kernel-command-line-ppc
-+++ a/arch/ppc/platforms/prep_setup.c
-@@ -634,7 +634,7 @@ static void __init prep_init_sound(void)
- 	/*
- 	 * Find a way to push these informations to the cs4232 driver
- 	 * Give it out with printk, when not in cmd_line?
--	 * Append it to  cmd_line and saved_command_line?
-+	 * Append it to  cmd_line and boot_command_line?
- 	 * Format is cs4232=io,irq,dma,dma2
- 	 */
+diff -puN arch/ia64/kernel/efi.c~dynamic-kernel-command-line-fixups arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~dynamic-kernel-command-line-fixups
++++ a/arch/ia64/kernel/efi.c
+@@ -405,8 +405,6 @@ efi_map_pal_code (void)
+ 	ia64_srlz_i();
  }
-@@ -897,7 +897,7 @@ prep_setup_arch(void)
- 		 if (bootargs != NULL) {
- 			 strcpy(cmd_line, bootargs);
- 			 /* again.. */
--			 strcpy(saved_command_line, cmd_line);
-+			 strcpy(boot_command_line, cmd_line);
- 		}
- 	}
  
+-extern char __initdata boot_command_line[];
+-
+ void __init
+ efi_init (void)
+ {
+diff -puN arch/ia64/kernel/sal.c~dynamic-kernel-command-line-fixups arch/ia64/kernel/sal.c
+--- a/arch/ia64/kernel/sal.c~dynamic-kernel-command-line-fixups
++++ a/arch/ia64/kernel/sal.c
+@@ -190,8 +190,6 @@ sal_desc_ap_wakeup (void *p)
+ 	}
+ }
+ 
+-extern char __initdata boot_command_line[];
+-
+ static void __init
+ chk_nointroute_opt(void)
+ {
+diff -puN arch/parisc/mm/init.c~dynamic-kernel-command-line-fixups arch/parisc/mm/init.c
+--- a/arch/parisc/mm/init.c~dynamic-kernel-command-line-fixups
++++ a/arch/parisc/mm/init.c
+@@ -77,7 +77,6 @@ static void __init mem_limit_func(void)
+ {
+ 	char *cp, *end;
+ 	unsigned long limit;
+-	extern char __initdata boot_command_line[];
+ 
+ 	/* We need this before __setup() functions are called */
+ 
+diff -puN arch/um/include/user_util.h~dynamic-kernel-command-line-fixups arch/um/include/user_util.h
+--- a/arch/um/include/user_util.h~dynamic-kernel-command-line-fixups
++++ a/arch/um/include/user_util.h
+@@ -38,8 +38,6 @@ extern unsigned long long highmem;
+ 
+ extern char host_info[];
+ 
+-extern char __initdata boot_command_line[];
+-
+ extern unsigned long _stext, _etext, _sdata, _edata, __bss_start, _end;
+ extern unsigned long _unprotected_end;
+ extern unsigned long brk_start;
+diff -puN arch/um/kernel/um_arch.c~dynamic-kernel-command-line-fixups arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~dynamic-kernel-command-line-fixups
++++ a/arch/um/kernel/um_arch.c
+@@ -43,9 +43,9 @@
+ #define DEFAULT_COMMAND_LINE "root=98:0"
+ 
+ /* Changed in linux_main and setup_arch, which run before SMP is started */
+-static char command_line[COMMAND_LINE_SIZE] = { 0 };
++static char __initdata command_line[COMMAND_LINE_SIZE] = { 0 };
+ 
+-static void add_arg(char *arg)
++static void __init add_arg(char *arg)
+ {
+ 	if (strlen(command_line) + strlen(arg) + 1 > COMMAND_LINE_SIZE) {
+ 		printf("add_arg: Too many command line arguments!\n");
+@@ -330,7 +330,7 @@ EXPORT_SYMBOL(end_iomem);
+ 
+ extern char __binary_start;
+ 
+-int linux_main(int argc, char **argv)
++int __init linux_main(int argc, char **argv)
+ {
+ 	unsigned long avail, diff;
+ 	unsigned long virtmem_size, max_physmem;
+diff -puN arch/x86_64/kernel/head64.c~dynamic-kernel-command-line-fixups arch/x86_64/kernel/head64.c
+--- a/arch/x86_64/kernel/head64.c~dynamic-kernel-command-line-fixups
++++ a/arch/x86_64/kernel/head64.c
+@@ -34,8 +34,6 @@ static void __init clear_bss(void)
+ #define OLD_CL_BASE_ADDR        0x90000
+ #define OLD_CL_OFFSET           0x90022
+ 
+-extern char __initdata boot_command_line[];
+-
+ static void __init copy_bootdata(char *real_mode_data)
+ {
+ 	int new_data;
 _
 
 Patches currently in -mm which might be from alon.barlev@gmail.com are
