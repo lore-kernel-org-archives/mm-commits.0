@@ -1,81 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - sched-avoid-div-in-rebalance_tick.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:47:22 -0800
-Message-ID: <200702122247.l1CMlMZ6013909@shell0.pdx.osdl.net>
+Subject: - dynamic-kernel-command-line-h8300.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:47:47 -0800
+Message-ID: <200702122247.l1CMllmR013936@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45373 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45412 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965439AbXBLWrm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:47:42 -0500
+	id S1030214AbXBLWrv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:47:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, alan@lxorguk.ukuu.org.uk, mingo@elte.hu, mm-commits@vger.kernel.org
+To: alon.barlev@gmail.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: avoid div in rebalance_tick
+     Dynamic kernel command-line: h8300
 has been removed from the -mm tree.  Its filename was
-     sched-avoid-div-in-rebalance_tick.patch
+     dynamic-kernel-command-line-h8300.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: avoid div in rebalance_tick
-From: Nick Piggin <npiggin@suse.de>
+Subject: Dynamic kernel command-line: h8300
+From: Alon Bar-Lev <alon.barlev@gmail.com>
 
-Avoid expensive integer divide 3 times per CPU per tick.
+1. Rename saved_command_line into boot_command_line.
+2. Set command_line as __initdata.
 
-A userspace test of this loop went from 26ns, down to 19ns on a G5; and
-from 123ns down to 28ns on a P3.
-
-(Also avoid a variable bit shift, as suggested by Alan. The effect
-of this wasn't noticable on the CPUs I tested with).
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ arch/h8300/kernel/setup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sched.c~sched-avoid-div-in-rebalance_tick kernel/sched.c
---- a/kernel/sched.c~sched-avoid-div-in-rebalance_tick
-+++ a/kernel/sched.c
-@@ -2897,14 +2897,16 @@ static void active_load_balance(struct r
- static void update_load(struct rq *this_rq)
- {
- 	unsigned long this_load;
--	int i, scale;
-+	unsigned int i, scale;
+diff -puN arch/h8300/kernel/setup.c~dynamic-kernel-command-line-h8300 arch/h8300/kernel/setup.c
+--- a/arch/h8300/kernel/setup.c~dynamic-kernel-command-line-h8300
++++ a/arch/h8300/kernel/setup.c
+@@ -54,7 +54,7 @@ unsigned long rom_length;
+ unsigned long memory_start;
+ unsigned long memory_end;
  
- 	this_load = this_rq->raw_weighted_load;
+-char command_line[COMMAND_LINE_SIZE];
++char __initdata command_line[COMMAND_LINE_SIZE];
  
- 	/* Update our load: */
--	for (i = 0, scale = 1; i < 3; i++, scale <<= 1) {
-+	for (i = 0, scale = 1; i < 3; i++, scale += scale) {
- 		unsigned long old_load, new_load;
+ extern int _stext, _etext, _sdata, _edata, _sbss, _ebss, _end;
+ extern int _ramstart, _ramend;
+@@ -154,8 +154,8 @@ void __init setup_arch(char **cmdline_p)
+ #endif
+ 	/* Keep a copy of command line */
+ 	*cmdline_p = &command_line[0];
+-	memcpy(saved_command_line, command_line, COMMAND_LINE_SIZE);
+-	saved_command_line[COMMAND_LINE_SIZE-1] = 0;
++	memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
++	boot_command_line[COMMAND_LINE_SIZE-1] = 0;
  
-+		/* scale is effectively 1 << i now, and >> i divides by scale */
-+
- 		old_load = this_rq->cpu_load[i];
- 		new_load = this_load;
- 		/*
-@@ -2914,7 +2916,7 @@ static void update_load(struct rq *this_
- 		 */
- 		if (new_load > old_load)
- 			new_load += scale-1;
--		this_rq->cpu_load[i] = (old_load*(scale-1) + new_load) / scale;
-+		this_rq->cpu_load[i] = (old_load*(scale-1) + new_load) >> i;
- 	}
- }
- 
+ #ifdef DEBUG
+ 	if (strlen(*cmdline_p)) 
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from alon.barlev@gmail.com are
 
 origin.patch
-git-block.patch
-fs-fix-__block_write_full_page-error-case-buffer-submission.patch
