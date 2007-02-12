@@ -1,206 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-cpu-hotplug-support.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:49:06 -0800
-Message-ID: <200702122249.l1CMn65U014081@shell0.pdx.osdl.net>
+Subject: - drivers-isdn-pcbit-proper-prototypes.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:03 -0800
+Message-ID: <200702122246.l1CMk3de013761@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45607 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45623 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030382AbXBLWtL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:49:11 -0500
+	id S1030386AbXBLWtU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:49:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: bunk@stusta.de, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: cpu hotplug support
+     drivers/isdn/pcbit/: proper prototypes
 has been removed from the -mm tree.  Its filename was
-     kvm-cpu-hotplug-support.patch
+     drivers-isdn-pcbit-proper-prototypes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: cpu hotplug support
-From: Avi Kivity <avi@qumranet.com>
+Subject: drivers/isdn/pcbit/: proper prototypes
+From: Adrian Bunk <bunk@stusta.de>
 
-On hotplug, we execute the hardware extension enable sequence.  On unplug, we
-decache any vcpus that last ran on the exiting cpu, and execute the hardware
-extension disable sequence.
+Add correct prototypes in header files for global functions and variables.
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm.h      |    1 
- drivers/kvm/kvm_main.c |   64 +++++++++++++++++++++++++++++++++++++++
- drivers/kvm/svm.c      |    5 +++
- drivers/kvm/vmx.c      |    8 ++++
- 4 files changed, 77 insertions(+), 1 deletion(-)
+ drivers/isdn/pcbit/drv.c    |    4 ----
+ drivers/isdn/pcbit/edss1.c  |    6 ------
+ drivers/isdn/pcbit/edss1.h  |    7 +++++--
+ drivers/isdn/pcbit/layer2.c |   16 ----------------
+ drivers/isdn/pcbit/module.c |    3 ---
+ drivers/isdn/pcbit/pcbit.h  |    8 +++++++-
+ 6 files changed, 12 insertions(+), 32 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-cpu-hotplug-support drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-cpu-hotplug-support
-+++ a/drivers/kvm/kvm.h
-@@ -341,6 +341,7 @@ struct kvm_arch_ops {
+diff -puN drivers/isdn/pcbit/drv.c~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/drv.c
+--- a/drivers/isdn/pcbit/drv.c~drivers-isdn-pcbit-proper-prototypes
++++ a/drivers/isdn/pcbit/drv.c
+@@ -774,10 +774,6 @@ static void pcbit_logstat(struct pcbit_d
+ 	dev->dev_if->statcallb(&ictl);
+ }
+ 	
+-extern char * isdn_state_table[];
+-extern char * strisdnevent(unsigned short);
+-
+-
+ void pcbit_state_change(struct pcbit_dev * dev, struct pcbit_chan * chan, 
+ 			unsigned short i, unsigned short ev, unsigned short f)
+ {
+diff -puN drivers/isdn/pcbit/edss1.c~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/edss1.c
+--- a/drivers/isdn/pcbit/edss1.c~drivers-isdn-pcbit-proper-prototypes
++++ a/drivers/isdn/pcbit/edss1.c
+@@ -35,12 +35,6 @@
+ #include "callbacks.h"
  
- 	struct kvm_vcpu *(*vcpu_load)(struct kvm_vcpu *vcpu);
- 	void (*vcpu_put)(struct kvm_vcpu *vcpu);
-+	void (*vcpu_decache)(struct kvm_vcpu *vcpu);
  
- 	int (*set_guest_debug)(struct kvm_vcpu *vcpu,
- 			       struct kvm_debug_guest *dbg);
-diff -puN drivers/kvm/kvm_main.c~kvm-cpu-hotplug-support drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-cpu-hotplug-support
-+++ a/drivers/kvm/kvm_main.c
-@@ -34,6 +34,7 @@
- #include <linux/highmem.h>
- #include <linux/file.h>
- #include <asm/desc.h>
-+#include <linux/cpu.h>
- 
- #include "x86_emulate.h"
- #include "segment_descriptor.h"
-@@ -2039,6 +2040,64 @@ static struct notifier_block kvm_reboot_
- 	.priority = 0,
+-extern void pcbit_state_change(struct pcbit_dev *, struct pcbit_chan *, 
+-                               unsigned short i, unsigned short ev, 
+-                               unsigned short f);
+-
+-extern struct pcbit_dev * dev_pcbit[MAX_PCBIT_CARDS];
+-
+ char * isdn_state_table[] = {
+   "Closed",
+   "Call initiated",
+diff -puN drivers/isdn/pcbit/edss1.h~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/edss1.h
+--- a/drivers/isdn/pcbit/edss1.h~drivers-isdn-pcbit-proper-prototypes
++++ a/drivers/isdn/pcbit/edss1.h
+@@ -90,9 +90,12 @@ struct fsm_timer_entry {
+ 	unsigned long timeout;          /* in seconds */
  };
  
-+/*
-+ * Make sure that a cpu that is being hot-unplugged does not have any vcpus
-+ * cached on it.
-+ */
-+static void decache_vcpus_on_cpu(int cpu)
-+{
-+	struct kvm *vm;
-+	struct kvm_vcpu *vcpu;
-+	int i;
++extern char * isdn_state_table[];
 +
-+	spin_lock(&kvm_lock);
-+	list_for_each_entry(vm, &vm_list, vm_list)
-+		for (i = 0; i < KVM_MAX_VCPUS; ++i) {
-+			vcpu = &vm->vcpus[i];
-+			/*
-+			 * If the vcpu is locked, then it is running on some
-+			 * other cpu and therefore it is not cached on the
-+			 * cpu in question.
-+			 *
-+			 * If it's not locked, check the last cpu it executed
-+			 * on.
-+			 */
-+			if (mutex_trylock(&vcpu->mutex)) {
-+				if (vcpu->cpu == cpu) {
-+					kvm_arch_ops->vcpu_decache(vcpu);
-+					vcpu->cpu = -1;
-+				}
-+				mutex_unlock(&vcpu->mutex);
-+			}
-+		}
-+	spin_unlock(&kvm_lock);
-+}
-+
-+static int kvm_cpu_hotplug(struct notifier_block *notifier, unsigned long val,
-+			   void *v)
-+{
-+	int cpu = (long)v;
-+
-+	switch (val) {
-+	case CPU_DEAD:
-+	case CPU_UP_CANCELED:
-+		decache_vcpus_on_cpu(cpu);
-+		smp_call_function_single(cpu, kvm_arch_ops->hardware_disable,
-+					 NULL, 0, 1);
-+		break;
-+	case CPU_UP_PREPARE:
-+		smp_call_function_single(cpu, kvm_arch_ops->hardware_enable,
-+					 NULL, 0, 1);
-+		break;
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block kvm_cpu_notifier = {
-+	.notifier_call = kvm_cpu_hotplug,
-+	.priority = 20, /* must be > scheduler priority */
-+};
-+
- static __init void kvm_init_debug(void)
++void pcbit_fsm_event(struct pcbit_dev *, struct pcbit_chan *,
++		     unsigned short event, struct callb_data *);
++char * strisdnevent(ushort ev);
+ 
+-extern void pcbit_fsm_event(struct pcbit_dev *, struct pcbit_chan *,
+-			    unsigned short event, struct callb_data *);
+ #endif
+ 
+ 
+diff -puN drivers/isdn/pcbit/layer2.c~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/layer2.c
+--- a/drivers/isdn/pcbit/layer2.c~drivers-isdn-pcbit-proper-prototypes
++++ a/drivers/isdn/pcbit/layer2.c
+@@ -47,22 +47,6 @@
+ #undef DEBUG_FRAG
+ 
+ 
+-
+-/*
+- *  task queue struct
+- */
+-
+-
+-
+-/*
+- *  Layer 3 packet demultiplexer
+- *  drv.c
+- */
+-
+-extern void pcbit_l3_receive(struct pcbit_dev *dev, ulong msg,
+-			     struct sk_buff *skb,
+-			     ushort hdr_len, ushort refnum);
+-
+ /*
+  *  Prototypes
+  */
+diff -puN drivers/isdn/pcbit/module.c~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/module.c
+--- a/drivers/isdn/pcbit/module.c~drivers-isdn-pcbit-proper-prototypes
++++ a/drivers/isdn/pcbit/module.c
+@@ -32,9 +32,6 @@ module_param_array(irq, int, NULL, 0);
+ static int num_boards;
+ struct pcbit_dev * dev_pcbit[MAX_PCBIT_CARDS];
+ 
+-extern void pcbit_terminate(int board);
+-extern int pcbit_init_dev(int board, int mem_base, int irq);
+-
+ static int __init pcbit_init(void)
  {
- 	struct kvm_stats_debugfs_item *p;
-@@ -2085,6 +2144,9 @@ int kvm_init_arch(struct kvm_arch_ops *o
- 	    return r;
+ 	int board;
+diff -puN drivers/isdn/pcbit/pcbit.h~drivers-isdn-pcbit-proper-prototypes drivers/isdn/pcbit/pcbit.h
+--- a/drivers/isdn/pcbit/pcbit.h~drivers-isdn-pcbit-proper-prototypes
++++ a/drivers/isdn/pcbit/pcbit.h
+@@ -166,6 +166,12 @@ struct pcbit_ioctl {
+ #define L2_RUNNING  5
+ #define L2_ERROR    6
  
- 	on_each_cpu(kvm_arch_ops->hardware_enable, NULL, 0, 1);
-+	r = register_cpu_notifier(&kvm_cpu_notifier);
-+	if (r)
-+		goto out_free_1;
- 	register_reboot_notifier(&kvm_reboot_notifier);
+-extern void pcbit_deliver(struct work_struct *work);
++void pcbit_deliver(struct work_struct *work);
++int pcbit_init_dev(int board, int mem_base, int irq);
++void pcbit_terminate(int board);
++void pcbit_l3_receive(struct pcbit_dev * dev, ulong msg, struct sk_buff * skb,
++		      ushort hdr_len, ushort refnum);
++void pcbit_state_change(struct pcbit_dev * dev, struct pcbit_chan * chan,
++			unsigned short i, unsigned short ev, unsigned short f);
  
- 	kvm_chardev_ops.owner = module;
-@@ -2099,6 +2161,8 @@ int kvm_init_arch(struct kvm_arch_ops *o
- 
- out_free:
- 	unregister_reboot_notifier(&kvm_reboot_notifier);
-+	unregister_cpu_notifier(&kvm_cpu_notifier);
-+out_free_1:
- 	on_each_cpu(kvm_arch_ops->hardware_disable, NULL, 0, 1);
- 	kvm_arch_ops->hardware_unsetup();
- 	return r;
-diff -puN drivers/kvm/svm.c~kvm-cpu-hotplug-support drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-cpu-hotplug-support
-+++ a/drivers/kvm/svm.c
-@@ -609,6 +609,10 @@ static void svm_vcpu_put(struct kvm_vcpu
- 	put_cpu();
- }
- 
-+static void svm_vcpu_decache(struct kvm_vcpu *vcpu)
-+{
-+}
-+
- static void svm_cache_regs(struct kvm_vcpu *vcpu)
- {
- 	vcpu->regs[VCPU_REGS_RAX] = vcpu->svm->vmcb->save.rax;
-@@ -1677,6 +1681,7 @@ static struct kvm_arch_ops svm_arch_ops 
- 
- 	.vcpu_load = svm_vcpu_load,
- 	.vcpu_put = svm_vcpu_put,
-+	.vcpu_decache = svm_vcpu_decache,
- 
- 	.set_guest_debug = svm_guest_debug,
- 	.get_msr = svm_get_msr,
-diff -puN drivers/kvm/vmx.c~kvm-cpu-hotplug-support drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-cpu-hotplug-support
-+++ a/drivers/kvm/vmx.c
-@@ -250,6 +250,11 @@ static void vmx_vcpu_put(struct kvm_vcpu
- 	put_cpu();
- }
- 
-+static void vmx_vcpu_decache(struct kvm_vcpu *vcpu)
-+{
-+	vcpu_clear(vcpu);
-+}
-+
- static unsigned long vmx_get_rflags(struct kvm_vcpu *vcpu)
- {
- 	return vmcs_readl(GUEST_RFLAGS);
-@@ -509,7 +514,7 @@ static __init int vmx_disabled_by_bios(v
- 	return (msr & 5) == 1; /* locked but not enabled */
- }
- 
--static __init void hardware_enable(void *garbage)
-+static void hardware_enable(void *garbage)
- {
- 	int cpu = raw_smp_processor_id();
- 	u64 phys_addr = __pa(per_cpu(vmxarea, cpu));
-@@ -2023,6 +2028,7 @@ static struct kvm_arch_ops vmx_arch_ops 
- 
- 	.vcpu_load = vmx_vcpu_load,
- 	.vcpu_put = vmx_vcpu_put,
-+	.vcpu_decache = vmx_vcpu_decache,
- 
- 	.set_guest_debug = set_guest_debug,
- 	.get_msr = vmx_get_msr,
+ #endif
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+ifdef-acpi_future_usage-acpi_os_readable.patch
+git-cpufreq.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+mips-remove-smp_tune_scheduling.patch
+git-mtd.patch
+git-ubi.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+git-unionfs.patch
+usb_rtl8150-must-select-mii.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+add-debugging-feature-proc-timer_stat-cleanup.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
