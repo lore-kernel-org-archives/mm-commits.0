@@ -1,109 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - s3c2410-gpio-wrappers.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:46:01 -0800
-Message-ID: <200702122246.l1CMk14x013758@shell0.pdx.osdl.net>
+Subject: - isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:11 -0800
+Message-ID: <200702122246.l1CMkBxl013779@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45188 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45206 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030310AbXBLWqI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:08 -0500
+	id S1030315AbXBLWqQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philipp.zabel@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     S3C2410 GPIO wrappers
+     ISDN: Fix typo "CONFIG_HISAX_QUADRO" -> "CONFIG_HISAX_SCT_QUADRO".
 has been removed from the -mm tree.  Its filename was
-     s3c2410-gpio-wrappers.patch
+     isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: S3C2410 GPIO wrappers
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Subject: ISDN: Fix typo "CONFIG_HISAX_QUADRO" -> "CONFIG_HISAX_SCT_QUADRO".
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Arch-neutral GPIO calls for S3C24xx.
+Replace misspelled CONFIG_HISAX_QUADRO with CONFIG_HISAX_SCT_QUADRO.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-s3c2410/gpio.h |   65 ++++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
+ drivers/isdn/hisax/config.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN /dev/null include/asm-arm/arch-s3c2410/gpio.h
---- /dev/null
-+++ a/include/asm-arm/arch-s3c2410/gpio.h
-@@ -0,0 +1,65 @@
-+/*
-+ * linux/include/asm-arm/arch-pxa/gpio.h
-+ *
-+ * S3C2400 GPIO wrappers for arch-neutral GPIO calls
-+ *
-+ * Written by Philipp Zabel <philipp.zabel@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ *
-+ */
-+
-+#ifndef __ASM_ARCH_PXA_GPIO_H
-+#define __ASM_ARCH_PXA_GPIO_H
-+
-+#include <asm/arch/pxa-regs.h>
-+#include <asm/arch/irqs.h>
-+#include <asm/arch/hardware.h>
-+
-+#include <asm/errno.h>
-+
-+static inline int gpio_request(unsigned gpio, const char *label)
-+{
-+	return 0;
-+}
-+
-+static inline void gpio_free(unsigned gpio)
-+{
-+	return;
-+}
-+
-+static inline int gpio_direction_input(unsigned gpio)
-+{
-+	s3c2410_gpio_cfgpin(gpio, S3C2410_GPIO_INPUT);
-+	return 0;
-+}
-+
-+static inline int gpio_direction_output(unsigned gpio)
-+{
-+	s3c2410_gpio_cfgpin(gpio, S3C2410_GPIO_OUTPUT);
-+	return 0;
-+}
-+
-+#define gpio_get_value(gpio)		s3c2410_gpio_getpin(gpio)
-+#define gpio_set_value(gpio,value)	s3c2410_gpio_setpin(gpio, value)
-+
-+#include <asm-generic/gpio.h>			/* cansleep wrappers */
-+
-+/* FIXME or maybe s3c2400_gpio_getirq() ... */
-+#define gpio_to_irq(gpio)		s3c2410_gpio_getirq(gpio)
-+
-+/* FIXME implement irq_to_gpio() */
-+
-+#endif
+diff -puN drivers/isdn/hisax/config.c~isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro drivers/isdn/hisax/config.c
+--- a/drivers/isdn/hisax/config.c~isdn-fix-typo-config_hisax_quadro-config_hisax_sct_quadro
++++ a/drivers/isdn/hisax/config.c
+@@ -1881,7 +1881,7 @@ static struct pci_device_id hisax_pci_tb
+ 	{PCI_VENDOR_ID_PLX,      PCI_DEVICE_ID_PLX_DJINN_ITOO,   PCI_ANY_ID, PCI_ANY_ID},
+ 	{PCI_VENDOR_ID_PLX,      PCI_DEVICE_ID_PLX_OLITEC,       PCI_ANY_ID, PCI_ANY_ID},
+ #endif
+-#ifdef CONFIG_HISAX_QUADRO
++#ifdef CONFIG_HISAX_SCT_QUADRO
+ 	{PCI_VENDOR_ID_PLX,      PCI_DEVICE_ID_PLX_9050,         PCI_ANY_ID, PCI_ANY_ID},
+ #endif
+ #ifdef CONFIG_HISAX_NICCY
 _
 
-Patches currently in -mm which might be from philipp.zabel@gmail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
+git-avr32.patch
+git-dvb.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
+git-mips.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
