@@ -1,62 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - proper-prototype-for-tosh_smm.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:49:38 -0800
-Message-ID: <200702122249.l1CMnc7U014140@shell0.pdx.osdl.net>
+Subject: - remove-bogus-con_is_present-prototypes.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:49:33 -0800
+Message-ID: <200702122249.l1CMnXCC014134@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45948 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45939 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030436AbXBLWw7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:52:59 -0500
+	id S1030434AbXBLWwx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:52:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proper prototype for tosh_smm()
+     remove bogus con_is_present() prototypes
 has been removed from the -mm tree.  Its filename was
-     proper-prototype-for-tosh_smm.patch
+     remove-bogus-con_is_present-prototypes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: proper prototype for tosh_smm()
+Subject: remove bogus con_is_present() prototypes
 From: Adrian Bunk <bunk@stusta.de>
 
-Add a proper prototype for tosh_smm() to include/linux/toshiba.h
+Although gcc seems to accept "extern" prototypes after it has seen the
+"static inline" function, that's not really correct.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: James Simmons <jsimmons@infradead.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/neofb.c   |    1 -
- include/linux/toshiba.h |    2 ++
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/video/aty/atyfb_base.c |    2 --
+ drivers/video/igafb.c          |    1 -
+ 2 files changed, 3 deletions(-)
 
-diff -puN drivers/video/neofb.c~proper-prototype-for-tosh_smm drivers/video/neofb.c
---- a/drivers/video/neofb.c~proper-prototype-for-tosh_smm
-+++ a/drivers/video/neofb.c
-@@ -66,7 +66,6 @@
- #include <linux/init.h>
- #ifdef CONFIG_TOSHIBA
- #include <linux/toshiba.h>
--extern int tosh_smm(SMMRegisters *regs);
- #endif
+diff -puN drivers/video/aty/atyfb_base.c~remove-bogus-con_is_present-prototypes drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~remove-bogus-con_is_present-prototypes
++++ a/drivers/video/aty/atyfb_base.c
+@@ -2957,8 +2957,6 @@ extern void (*prom_palette) (int);
+ static int __devinit atyfb_setup_sparc(struct pci_dev *pdev,
+ 			struct fb_info *info, unsigned long addr)
+ {
+-	extern int con_is_present(void);
+-
+ 	struct atyfb_par *par = info->par;
+ 	struct pcidev_cookie *pcp;
+ 	char prop[128];
+diff -puN drivers/video/igafb.c~remove-bogus-con_is_present-prototypes drivers/video/igafb.c
+--- a/drivers/video/igafb.c~remove-bogus-con_is_present-prototypes
++++ a/drivers/video/igafb.c
+@@ -370,7 +370,6 @@ static int __init iga_init(struct fb_inf
  
- #include <asm/io.h>
-diff -puN include/linux/toshiba.h~proper-prototype-for-tosh_smm include/linux/toshiba.h
---- a/include/linux/toshiba.h~proper-prototype-for-tosh_smm
-+++ a/include/linux/toshiba.h
-@@ -33,4 +33,6 @@ typedef struct {
- 	unsigned int edi __attribute__ ((packed));
- } SMMRegisters;
- 
-+int tosh_smm(SMMRegisters *regs);
-+
- #endif
+ int __init igafb_init(void)
+ {
+-        extern int con_is_present(void);
+         struct fb_info *info;
+         struct pci_dev *pdev;
+         struct iga_par *par;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
