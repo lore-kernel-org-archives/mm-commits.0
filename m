@@ -1,206 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: - dynamic-kernel-command-line-common.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:47:25 -0800
-Message-ID: <200702122247.l1CMlPL8013912@shell0.pdx.osdl.net>
+Subject: - tgafb-switch-to-framebuffer_alloc.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:49:17 -0800
+Message-ID: <200702122249.l1CMnH9d014096@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45909 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45921 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030320AbXBLWwJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:52:09 -0500
+	id S1030422AbXBLWwo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:52:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alon.barlev@gmail.com, ak@muc.de, benh@kernel.crashing.org, blaisorblade@yahoo.it, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, heiko.carstens@de.ibm.com, ink@jurassic.park.msu.ru, jdike@addtoit.com, kkojima@rr.iij4u.or.jp, kyle@mcmartin.ca, lethal@linux-sh.org, paulus@samba.org, ralf@linux-mips.org, rc@rc0.org.uk, rmk@arm.linux.org.uk, rth@twiddle.net, schwidefsky@de.ibm.com, spyro@f2s.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, uclinux-v850@lsi.nec.co.jp, wli@holomorphy.com, ysato@users.sourceforge.jp, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: macro@linux-mips.org, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Dynamic kernel command-line: common
+     tgafb: switch to framebuffer_alloc()
 has been removed from the -mm tree.  Its filename was
-     dynamic-kernel-command-line-common.patch
+     tgafb-switch-to-framebuffer_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: common
-From: Alon Bar-Lev <alon.barlev@gmail.com>
+Subject: tgafb: switch to framebuffer_alloc()
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Current implementation stores a static command-line buffer allocated to
-COMMAND_LINE_SIZE size.  Most architectures stores two copies of this buffer,
-one for future reference and one for parameter parsing.
+This is a set of changes to update the driver to the framebuffer_alloc() API. 
+Included, there is also a fix to a memory leak due to the colour map
+allocation not being freed upon driver's removal.  Aside from the fix there
+are no functional changes.
 
-Current kernel command-line size for most architecture is much too small for
-module parameters, video settings, initramfs paramters and much more.  The
-problem is that setting COMMAND_LINE_SIZE to a grater value, allocates static
-buffers.
-
-In order to allow a greater command-line size, these buffers should be
-dynamically allocated or marked as init disposable buffers, so unused memory
-can be released.
-
-This patch renames the static saved_command_line variable into
-boot_command_line adding __initdata attribute, so that it can be disposed
-after initialization.  This rename is required so applications that use
-saved_command_line will not be affected by this change.
-
-It reintroduces saved_command_line as dynamically allocated buffer to match
-the data in boot_command_line.
-
-It also mark secondary command-line buffer as __initdata, and copies it to
-dynamically allocated static_command_line buffer components may hold reference
-to it after initialization.
-
-This patch is for linux-2.6.20-rc4-mm1 and is divided to target each
-architecture.  I could not check this in any architecture so please forgive me
-if I got it wrong.
-
-The per-architecture modification is very simple, use boot_command_line in
-place of saved_command_line.  The common code is the change into dynamic
-command-line.
-
-
-This patch:
-
-1. Rename saved_command_line into boot_command_line, mark as init
-   disposable.
-
-2. Add dynamic allocated saved_command_line.
-
-3. Add dynamic allocated static_command_line.
-
-4. During startup copy: boot_command_line into saved_command_line.  arch
-   command_line into static_command_line.
-
-5. Parse static_command_line and not arch command_line, so arch
-   command_line may be freed.
-
-Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ian Molton <spyro@f2s.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
-Cc: Richard Curnow <rc@rc0.org.uk>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Cc: Miles Bader <uclinux-v850@lsi.nec.co.jp>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: James Simmons <jsimmons@infradead.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    5 +++--
- init/main.c          |   29 ++++++++++++++++++++++++-----
- 2 files changed, 27 insertions(+), 7 deletions(-)
+ drivers/video/tgafb.c |   61 ++++++++++++++++++----------------------
+ 1 file changed, 28 insertions(+), 33 deletions(-)
 
-diff -puN include/linux/init.h~dynamic-kernel-command-line-common include/linux/init.h
---- a/include/linux/init.h~dynamic-kernel-command-line-common
-+++ a/include/linux/init.h
-@@ -67,7 +67,8 @@ extern initcall_t __con_initcall_start[]
- extern initcall_t __security_initcall_start[], __security_initcall_end[];
+diff -puN drivers/video/tgafb.c~tgafb-switch-to-framebuffer_alloc drivers/video/tgafb.c
+--- a/drivers/video/tgafb.c~tgafb-switch-to-framebuffer_alloc
++++ a/drivers/video/tgafb.c
+@@ -1342,14 +1342,10 @@ tgafb_pci_register(struct pci_dev *pdev,
+ 		TGA_24PLUSZ_FB_OFFSET
+ 	};
  
- /* Defined in init/main.c */
--extern char saved_command_line[];
-+extern char __initdata boot_command_line[];
-+extern char *saved_command_line;
- extern unsigned int reset_devices;
+-	struct all_info {
+-		struct fb_info info;
+-		struct tga_par par;
+-		u32 pseudo_palette[16];
+-	} *all;
+-
+ 	void __iomem *mem_base;
+ 	unsigned long bar0_start, bar0_len;
++	struct fb_info *info;
++	struct tga_par *par;
+ 	u8 tga_type;
+ 	int ret;
  
- /* used by init/main.c */
-@@ -164,7 +165,7 @@ struct obs_kernel_param {
- #define early_param(str, fn)					\
- 	__setup_param(str, fn, fn, 1)
+@@ -1360,13 +1356,14 @@ tgafb_pci_register(struct pci_dev *pdev,
+ 	}
  
--/* Relies on saved_command_line being set */
-+/* Relies on boot_command_line being set */
- void __init parse_early_param(void);
- #endif /* __ASSEMBLY__ */
- 
-diff -puN init/main.c~dynamic-kernel-command-line-common init/main.c
---- a/init/main.c~dynamic-kernel-command-line-common
-+++ a/init/main.c
-@@ -121,8 +121,12 @@ extern void time_init(void);
- void (*late_time_init)(void);
- extern void softirq_init(void);
- 
--/* Untouched command line (eg. for /proc) saved by arch-specific code. */
--char saved_command_line[COMMAND_LINE_SIZE];
-+/* Untouched command line saved by arch-specific code. */
-+char __initdata boot_command_line[COMMAND_LINE_SIZE];
-+/* Untouched saved command line (eg. for /proc) */
-+char *saved_command_line;
-+/* Command line for parameter parsing */
-+static char *static_command_line;
- 
- static char *execute_command;
- static char *ramdisk_execute_command;
-@@ -400,6 +404,20 @@ static void __init smp_init(void)
- #endif
- 
- /*
-+ * We need to store the untouched command line for future reference.
-+ * We also need to store the touched command line since the parameter
-+ * parsing is performed in place, and we should allow a component to
-+ * store reference of name/value for future reference.
-+ */
-+static void __init setup_command_line(char *command_line)
-+{
-+	saved_command_line = alloc_bootmem(strlen (boot_command_line)+1);
-+	static_command_line = alloc_bootmem(strlen (command_line)+1);
-+	strcpy (saved_command_line, boot_command_line);
-+	strcpy (static_command_line, command_line);
-+}
+ 	/* Allocate the fb and par structures.  */
+-	all = kmalloc(sizeof(*all), GFP_KERNEL);
+-	if (!all) {
++	info = framebuffer_alloc(sizeof(struct tga_par), &pdev->dev);
++	if (!info) {
+ 		printk(KERN_ERR "tgafb: Cannot allocate memory\n");
+ 		return -ENOMEM;
+ 	}
+-	memset(all, 0, sizeof(*all));
+-	pci_set_drvdata(pdev, all);
 +
-+/*
-  * We need to finalize in a non-__init function or else race conditions
-  * between the root thread and the init thread may cause start_kernel to
-  * be reaped by free_initmem before the root thread has proceeded to
-@@ -453,7 +471,7 @@ void __init parse_early_param(void)
- 		return;
++	par = info->par;
++	pci_set_drvdata(pdev, info);
  
- 	/* All fall through to do_early_param. */
--	strlcpy(tmp_cmdline, saved_command_line, COMMAND_LINE_SIZE);
-+	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
- 	parse_args("early options", tmp_cmdline, NULL, 0, do_early_param);
- 	done = 1;
+ 	/* Request the mem regions.  */
+ 	bar0_start = pci_resource_start(pdev, 0);
+@@ -1386,25 +1383,23 @@ tgafb_pci_register(struct pci_dev *pdev,
+ 
+ 	/* Grab info about the card.  */
+ 	tga_type = (readl(mem_base) >> 12) & 0x0f;
+-	all->par.pdev = pdev;
+-	all->par.tga_mem_base = mem_base;
+-	all->par.tga_fb_base = mem_base + fb_offset_presets[tga_type];
+-	all->par.tga_regs_base = mem_base + TGA_REGS_OFFSET;
+-	all->par.tga_type = tga_type;
+-	pci_read_config_byte(pdev, PCI_REVISION_ID, &all->par.tga_chip_rev);
++	par->pdev = pdev;
++	par->tga_mem_base = mem_base;
++	par->tga_fb_base = mem_base + fb_offset_presets[tga_type];
++	par->tga_regs_base = mem_base + TGA_REGS_OFFSET;
++	par->tga_type = tga_type;
++	pci_read_config_byte(pdev, PCI_REVISION_ID, &par->tga_chip_rev);
+ 
+ 	/* Setup framebuffer.  */
+-	all->info.flags = FBINFO_DEFAULT | FBINFO_HWACCEL_COPYAREA |
+-                          FBINFO_HWACCEL_IMAGEBLIT | FBINFO_HWACCEL_FILLRECT;
+-	all->info.fbops = &tgafb_ops;
+-	all->info.screen_base = all->par.tga_fb_base;
+-	all->info.par = &all->par;
+-	all->info.pseudo_palette = all->pseudo_palette;
++	info->flags = FBINFO_DEFAULT | FBINFO_HWACCEL_COPYAREA |
++		      FBINFO_HWACCEL_IMAGEBLIT | FBINFO_HWACCEL_FILLRECT;
++	info->fbops = &tgafb_ops;
++	info->screen_base = par->tga_fb_base;
++	info->pseudo_palette = (void *)(par + 1);
+ 
+ 	/* This should give a reasonable default video mode.  */
+ 
+-	ret = fb_find_mode(&all->info.var, &all->info, mode_option,
+-			   NULL, 0, NULL,
++	ret = fb_find_mode(&info->var, info, mode_option, NULL, 0, NULL,
+ 			   tga_type == TGA_TYPE_8PLANE ? 8 : 32);
+ 	if (ret == 0 || ret == 4) {
+ 		printk(KERN_ERR "tgafb: Could not find valid video mode\n");
+@@ -1412,29 +1407,28 @@ tgafb_pci_register(struct pci_dev *pdev,
+ 		goto err1;
+ 	}
+ 
+-	if (fb_alloc_cmap(&all->info.cmap, 256, 0)) {
++	if (fb_alloc_cmap(&info->cmap, 256, 0)) {
+ 		printk(KERN_ERR "tgafb: Could not allocate color map\n");
+ 		ret = -ENOMEM;
+ 		goto err1;
+ 	}
+ 
+-	tgafb_set_par(&all->info);
+-	tgafb_init_fix(&all->info);
++	tgafb_set_par(info);
++	tgafb_init_fix(info);
+ 
+-	all->info.device = &pdev->dev;
+-	if (register_framebuffer(&all->info) < 0) {
++	if (register_framebuffer(info) < 0) {
+ 		printk(KERN_ERR "tgafb: Could not register framebuffer\n");
+ 		ret = -EINVAL;
+ 		goto err1;
+ 	}
+ 
+ 	printk(KERN_INFO "tgafb: DC21030 [TGA] detected, rev=0x%02x\n",
+-	       all->par.tga_chip_rev);
++	       par->tga_chip_rev);
+ 	printk(KERN_INFO "tgafb: at PCI bus %d, device %d, function %d\n",
+ 	       pdev->bus->number, PCI_SLOT(pdev->devfn),
+ 	       PCI_FUNC(pdev->devfn));
+ 	printk(KERN_INFO "fb%d: %s frame buffer device at 0x%lx\n",
+-	       all->info.node, all->info.fix.id, bar0_start);
++	       info->node, info->fix.id, bar0_start);
+ 
+ 	return 0;
+ 
+@@ -1443,7 +1437,7 @@ tgafb_pci_register(struct pci_dev *pdev,
+ 		iounmap(mem_base);
+ 	release_mem_region(bar0_start, bar0_len);
+  err0:
+-	kfree(all);
++	framebuffer_release(info);
+ 	return ret;
  }
-@@ -503,6 +521,7 @@ asmlinkage void __init start_kernel(void
- 	printk(KERN_NOTICE);
- 	printk(linux_banner);
- 	setup_arch(&command_line);
-+	setup_command_line(command_line);
- 	unwind_setup();
- 	setup_per_cpu_areas();
- 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
-@@ -520,9 +539,9 @@ asmlinkage void __init start_kernel(void
- 	preempt_disable();
- 	build_all_zonelists();
- 	page_alloc_init();
--	printk(KERN_NOTICE "Kernel command line: %s\n", saved_command_line);
-+	printk(KERN_NOTICE "Kernel command line: %s\n", boot_command_line);
- 	parse_early_param();
--	parse_args("Booting kernel", command_line, __start___param,
-+	parse_args("Booting kernel", static_command_line, __start___param,
- 		   __stop___param - __start___param,
- 		   &unknown_bootoption);
- 	if (!irqs_disabled()) {
+ 
+@@ -1456,10 +1450,11 @@ tgafb_pci_unregister(struct pci_dev *pde
+ 	if (!info)
+ 		return;
+ 	unregister_framebuffer(info);
++	fb_dealloc_cmap(&info->cmap);
+ 	iounmap(par->tga_mem_base);
+ 	release_mem_region(pci_resource_start(pdev, 0),
+ 			   pci_resource_len(pdev, 0));
+-	kfree(info);
++	framebuffer_release(info);
+ }
+ 
+ #ifdef MODULE
 _
 
-Patches currently in -mm which might be from alon.barlev@gmail.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
