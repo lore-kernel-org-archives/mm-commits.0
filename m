@@ -1,64 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-isdn-gigaset-reduce-kernel-message-spam.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:44:12 -0800
-Message-ID: <200702122244.l1CMiCsV013566@shell0.pdx.osdl.net>
+Subject: - kernel-shut-up-the-irq-mismatch-messages.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:43:38 -0800
+Message-ID: <200702122243.l1CMhcan013517@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44935 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44914 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030254AbXBLWoO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:44:14 -0500
+	id S1030252AbXBLWoF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:44:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tilman@imap.cc, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, arjan@infradead.org, dwmw2@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/isdn/gigaset: reduce kernel message spam
+     kernel: shut up the IRQ mismatch messages
 has been removed from the -mm tree.  Its filename was
-     drivers-isdn-gigaset-reduce-kernel-message-spam.patch
+     kernel-shut-up-the-irq-mismatch-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/isdn/gigaset: reduce kernel message spam
-From: Tilman Schmidt <tilman@imap.cc>
+Subject: kernel: shut up the IRQ mismatch messages
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Reduce the number of kernel messages the Gigaset drivers produce in case of an
-excessively long device response, from one per character exceeding the limit
-to one per overlong message.
+The problem is various drivers legally validly and sensibly try to claim
+IRQs but the kernel insists on vomiting forth a giant irrelevant debugging
+spew when the types clash.
 
-Signed-off-by: Tilman Schmidt <tilman@imap.cc>
+Edit kernel/irq/manage.c go down to mismatch: in setup_irq() and ifdef out
+the if clause that checks for mismatches.  It'll then just do the right
+thing and work sanely.
+
+For the current -mm kernel this will do the trick (and moves it into shared
+irq debugging as in debug mode the info spew is useful).  I've had a
+variant of this in my private tree for some time as I got fed up on the
+mess on boxes where old legacy IRQs get reused.
+
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/gigaset/isocdata.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/irq/manage.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/isdn/gigaset/isocdata.c~drivers-isdn-gigaset-reduce-kernel-message-spam drivers/isdn/gigaset/isocdata.c
---- a/drivers/isdn/gigaset/isocdata.c~drivers-isdn-gigaset-reduce-kernel-message-spam
-+++ a/drivers/isdn/gigaset/isocdata.c
-@@ -921,6 +921,8 @@ static void cmd_loop(unsigned char *src,
- 			/* end of line */
- 			gig_dbg(DEBUG_TRANSCMD, "%s: End of Command (%d Bytes)",
- 				__func__, cbytes);
-+			if (cbytes >= MAX_RESP_SIZE - 1)
-+				dev_warn(cs->dev, "response too large\n");
- 			cs->cbytes = cbytes;
- 			gigaset_handle_modem_response(cs);
- 			cbytes = 0;
-@@ -929,8 +931,6 @@ static void cmd_loop(unsigned char *src,
- 			/* advance in line buffer, checking for overflow */
- 			if (cbytes < MAX_RESP_SIZE - 1)
- 				cbytes++;
--			else
--				dev_warn(cs->dev, "response too large\n");
- 		}
- 	}
+diff -puN kernel/irq/manage.c~kernel-shut-up-the-irq-mismatch-messages kernel/irq/manage.c
+--- a/kernel/irq/manage.c~kernel-shut-up-the-irq-mismatch-messages
++++ a/kernel/irq/manage.c
+@@ -328,12 +328,14 @@ int setup_irq(unsigned int irq, struct i
+ 	return 0;
  
+ mismatch:
++#ifdef CONFIG_DEBUG_SHIRQ
+ 	if (!(new->flags & IRQF_PROBE_SHARED)) {
+ 		printk(KERN_ERR "IRQ handler type mismatch for IRQ %d\n", irq);
+ 		if (old_name)
+ 			printk(KERN_ERR "current handler: %s\n", old_name);
+ 		dump_stack();
+ 	}
++#endif
+ 	spin_unlock_irqrestore(&desc->lock, flags);
+ 	return -EBUSY;
+ }
 _
 
-Patches currently in -mm which might be from tilman@imap.cc are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix-sparse-fix.patch
+sis-warning-fixes.patch
+libata-add-a-host-flag-to-indicate-lack-of-iordy.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+git-mtd.patch
+resend-iphase-64bit-cleanup.patch
+make-sure-uart-is-powered-up-when-dumping-mctrl-status.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
