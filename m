@@ -1,77 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - spi-add-spi_set_drvdata-and-spi_get_drvdata.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:44:41 -0800
-Message-ID: <200702122244.l1CMifZJ013627@shell0.pdx.osdl.net>
+Subject: - spi-cleanup-method-param-becomes-non-const.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:44:51 -0800
+Message-ID: <200702122244.l1CMip15013639@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45023 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45030 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030276AbXBLWox (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:44:53 -0500
+	id S1030279AbXBLWoz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:44:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben@fluff.org, ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: hans-peter.nilsson@axis.com, dbrownell@users.sourceforge.net, hp@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: add spi_set_drvdata() and spi_get_drvdata()
+     SPI cleanup() method param becomes non-const
 has been removed from the -mm tree.  Its filename was
-     spi-add-spi_set_drvdata-and-spi_get_drvdata.patch
+     spi-cleanup-method-param-becomes-non-const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: add spi_set_drvdata() and spi_get_drvdata()
-From: Ben Dooks <ben@fluff.org>
+Subject: SPI cleanup() method param becomes non-const
+From: Hans-Peter Nilsson <hans-peter.nilsson@axis.com>
 
-Add wrappers for getting and setting the driver data using spi_device
-instead of using dev_{get|set}_drvdata with &spi->dev, to mirror the
-platform_{get|set}_drvdata.
+I'd like to assign NULL to kfree()d members of a structure.  I can't do
+that without ugly casting (see the PXA patch) when the structure pointed to
+is const-qualified.  I don't really see a reason why the cleanup method
+isn't allowed to alter the object it should clean up.  :-)
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+No, I didn't test the PXA patch, but I verified that the NULL-assignment
+doesn't stop me from doing rmmod/insmodding my own spi_bitbang-based
+driver.
+
+Signed-off-by: Hans-Peter Nilsson <hp@axis.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/spi/spi-summary |    2 +-
- include/linux/spi/spi.h       |   11 +++++++++++
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ drivers/spi/pxa2xx_spi.c        |    4 ++--
+ drivers/spi/spi.c               |    2 +-
+ drivers/spi/spi_bitbang.c       |    2 +-
+ include/linux/spi/spi.h         |    2 +-
+ include/linux/spi/spi_bitbang.h |    2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/spi/spi-summary~spi-add-spi_set_drvdata-and-spi_get_drvdata Documentation/spi/spi-summary
---- a/Documentation/spi/spi-summary~spi-add-spi_set_drvdata-and-spi_get_drvdata
-+++ a/Documentation/spi/spi-summary
-@@ -312,7 +312,7 @@ might look like this unless you're creat
- 		chip = kzalloc(sizeof *chip, GFP_KERNEL);
- 		if (!chip)
- 			return -ENOMEM;
--		dev_set_drvdata(&spi->dev, chip);
-+		spi_set_drvdata(spi, chip);
- 
- 		... etc
- 		return 0;
-diff -puN include/linux/spi/spi.h~spi-add-spi_set_drvdata-and-spi_get_drvdata include/linux/spi/spi.h
---- a/include/linux/spi/spi.h~spi-add-spi_set_drvdata-and-spi_get_drvdata
-+++ a/include/linux/spi/spi.h
-@@ -114,6 +114,17 @@ static inline void spi_set_ctldata(struc
- 	spi->controller_state = state;
+diff -puN drivers/spi/pxa2xx_spi.c~spi-cleanup-method-param-becomes-non-const drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~spi-cleanup-method-param-becomes-non-const
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -1214,9 +1214,9 @@ static int setup(struct spi_device *spi)
+ 	return 0;
  }
  
-+/* device driver data */
-+
-+static inline void spi_set_drvdata(struct spi_device *spi, void *data)
-+{
-+	dev_set_drvdata(&spi->dev, data);
-+}
-+
-+static inline void *spi_get_drvdata(struct spi_device *spi)
-+{
-+	return dev_get_drvdata(&spi->dev);
-+}
+-static void cleanup(const struct spi_device *spi)
++static void cleanup(struct spi_device *spi)
+ {
+-	struct chip_data *chip = spi_get_ctldata((struct spi_device *)spi);
++	struct chip_data *chip = spi_get_ctldata(spi);
  
- struct spi_message;
+ 	kfree(chip);
+ }
+diff -puN drivers/spi/spi.c~spi-cleanup-method-param-becomes-non-const drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-cleanup-method-param-becomes-non-const
++++ a/drivers/spi/spi.c
+@@ -32,7 +32,7 @@
+  */
+ static void spidev_release(struct device *dev)
+ {
+-	const struct spi_device	*spi = to_spi_device(dev);
++	struct spi_device	*spi = to_spi_device(dev);
  
+ 	/* spi masters may cleanup for released devices */
+ 	if (spi->master->cleanup)
+diff -puN drivers/spi/spi_bitbang.c~spi-cleanup-method-param-becomes-non-const drivers/spi/spi_bitbang.c
+--- a/drivers/spi/spi_bitbang.c~spi-cleanup-method-param-becomes-non-const
++++ a/drivers/spi/spi_bitbang.c
+@@ -238,7 +238,7 @@ EXPORT_SYMBOL_GPL(spi_bitbang_setup);
+ /**
+  * spi_bitbang_cleanup - default cleanup for per-word I/O loops
+  */
+-void spi_bitbang_cleanup(const struct spi_device *spi)
++void spi_bitbang_cleanup(struct spi_device *spi)
+ {
+ 	kfree(spi->controller_state);
+ }
+diff -puN include/linux/spi/spi.h~spi-cleanup-method-param-becomes-non-const include/linux/spi/spi.h
+--- a/include/linux/spi/spi.h~spi-cleanup-method-param-becomes-non-const
++++ a/include/linux/spi/spi.h
+@@ -220,7 +220,7 @@ struct spi_master {
+ 						struct spi_message *mesg);
+ 
+ 	/* called on release() to free memory provided by spi_master */
+-	void			(*cleanup)(const struct spi_device *spi);
++	void			(*cleanup)(struct spi_device *spi);
+ };
+ 
+ static inline void *spi_master_get_devdata(struct spi_master *master)
+diff -puN include/linux/spi/spi_bitbang.h~spi-cleanup-method-param-becomes-non-const include/linux/spi/spi_bitbang.h
+--- a/include/linux/spi/spi_bitbang.h~spi-cleanup-method-param-becomes-non-const
++++ a/include/linux/spi/spi_bitbang.h
+@@ -55,7 +55,7 @@ struct spi_bitbang {
+  * methods, if you like.
+  */
+ extern int spi_bitbang_setup(struct spi_device *spi);
+-extern void spi_bitbang_cleanup(const struct spi_device *spi);
++extern void spi_bitbang_cleanup(struct spi_device *spi);
+ extern int spi_bitbang_transfer(struct spi_device *spi, struct spi_message *m);
+ extern int spi_bitbang_setup_transfer(struct spi_device *spi,
+ 				      struct spi_transfer *t);
 _
 
-Patches currently in -mm which might be from ben@fluff.org are
+Patches currently in -mm which might be from hans-peter.nilsson@axis.com are
 
 origin.patch
