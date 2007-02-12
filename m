@@ -1,239 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - edac-add-fully-buffered-dimm-apis-to-core.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:47 -0800
-Message-ID: <200702122245.l1CMjlXF013737@shell0.pdx.osdl.net>
+Subject: - s3c2410-gpio-wrappers.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:01 -0800
+Message-ID: <200702122246.l1CMk14x013758@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45171 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45188 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030311AbXBLWqD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:03 -0500
+	id S1030310AbXBLWqI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ericw@xmtp.net, alan@redhat.com, norsk5@xmission.com, mm-commits@vger.kernel.org
+To: philipp.zabel@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     EDAC: Add Fully-Buffered DIMM APIs to core
+     S3C2410 GPIO wrappers
 has been removed from the -mm tree.  Its filename was
-     edac-add-fully-buffered-dimm-apis-to-core.patch
+     s3c2410-gpio-wrappers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: EDAC: Add Fully-Buffered DIMM APIs to core
-From: eric wollesen <ericw@xmtp.net>
+Subject: S3C2410 GPIO wrappers
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Eric Wollesen ported the Bluesmoke Memory Controller driver for the Intel
-5000X/V/P (Blackford/Greencreek) chipset to the in kernel EDAC model.
+Arch-neutral GPIO calls for S3C24xx.
 
-This patch incorporates those required changes to the edac_mc.c and edac_mc.h
-core files by added new Fully Buffered DIMM interface to the EDAC Core module.
-
-Signed-off-by: eric wollesen <ericw@xmtp.net>
-Signed-off-by: doug thompson <norsk5@xmission.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc.c |  120 +++++++++++++++++++++++++++++++++++++--
- drivers/edac/edac_mc.h |   16 ++++-
- 2 files changed, 130 insertions(+), 6 deletions(-)
+ include/asm-arm/arch-s3c2410/gpio.h |   65 ++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
-diff -puN drivers/edac/edac_mc.c~edac-add-fully-buffered-dimm-apis-to-core drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~edac-add-fully-buffered-dimm-apis-to-core
-+++ a/drivers/edac/edac_mc.c
-@@ -1497,11 +1497,11 @@ int edac_mc_add_mc(struct mem_ctl_info *
- 	/* set load time so that error rate can be tracked */
- 	mci->start_time = jiffies;
- 
--        if (edac_create_sysfs_mci_device(mci)) {
--                edac_mc_printk(mci, KERN_WARNING,
-+	if (edac_create_sysfs_mci_device(mci)) {
-+		edac_mc_printk(mci, KERN_WARNING,
- 			"failed to create sysfs device\n");
--                goto fail1;
--        }
-+		goto fail1;
-+	}
- 
- 	/* Report action taken */
- 	edac_mc_printk(mci, KERN_INFO, "Giving out device to %s %s: DEV %s\n",
-@@ -1758,6 +1758,116 @@ void edac_mc_handle_ue_no_info(struct me
- EXPORT_SYMBOL_GPL(edac_mc_handle_ue_no_info);
- 
- 
-+/*************************************************************
-+ * On Fully Buffered DIMM modules, this help function is
-+ * called to process UE events
+diff -puN /dev/null include/asm-arm/arch-s3c2410/gpio.h
+--- /dev/null
++++ a/include/asm-arm/arch-s3c2410/gpio.h
+@@ -0,0 +1,65 @@
++/*
++ * linux/include/asm-arm/arch-pxa/gpio.h
++ *
++ * S3C2400 GPIO wrappers for arch-neutral GPIO calls
++ *
++ * Written by Philipp Zabel <philipp.zabel@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
 + */
-+void edac_mc_handle_fbd_ue(struct mem_ctl_info *mci,
-+				unsigned int csrow,
-+				unsigned int channela,
-+				unsigned int channelb,
-+				char *msg)
++
++#ifndef __ASM_ARCH_PXA_GPIO_H
++#define __ASM_ARCH_PXA_GPIO_H
++
++#include <asm/arch/pxa-regs.h>
++#include <asm/arch/irqs.h>
++#include <asm/arch/hardware.h>
++
++#include <asm/errno.h>
++
++static inline int gpio_request(unsigned gpio, const char *label)
 +{
-+	int len = EDAC_MC_LABEL_LEN * 4;
-+	char labels[len + 1];
-+	char *pos = labels;
-+	int chars;
-+
-+	if (csrow >= mci->nr_csrows) {
-+		/* something is wrong */
-+		edac_mc_printk(mci, KERN_ERR,
-+			"INTERNAL ERROR: row out of range (%d >= %d)\n",
-+			csrow, mci->nr_csrows);
-+		edac_mc_handle_ue_no_info(mci, "INTERNAL ERROR");
-+		return;
-+	}
-+
-+	if (channela >= mci->csrows[csrow].nr_channels) {
-+		/* something is wrong */
-+		edac_mc_printk(mci, KERN_ERR,
-+			"INTERNAL ERROR: channel-a out of range "
-+			"(%d >= %d)\n",
-+			channela, mci->csrows[csrow].nr_channels);
-+		edac_mc_handle_ue_no_info(mci, "INTERNAL ERROR");
-+		return;
-+	}
-+
-+	if (channelb >= mci->csrows[csrow].nr_channels) {
-+		/* something is wrong */
-+		edac_mc_printk(mci, KERN_ERR,
-+			"INTERNAL ERROR: channel-b out of range "
-+			"(%d >= %d)\n",
-+			channelb, mci->csrows[csrow].nr_channels);
-+		edac_mc_handle_ue_no_info(mci, "INTERNAL ERROR");
-+		return;
-+	}
-+
-+	mci->ue_count++;
-+	mci->csrows[csrow].ue_count++;
-+
-+	/* Generate the DIMM labels from the specified channels */
-+	chars = snprintf(pos, len + 1, "%s",
-+			 mci->csrows[csrow].channels[channela].label);
-+	len -= chars; pos += chars;
-+	chars = snprintf(pos, len + 1, "-%s",
-+			 mci->csrows[csrow].channels[channelb].label);
-+
-+	if (log_ue)
-+		edac_mc_printk(mci, KERN_EMERG,
-+			"UE row %d, channel-a= %d channel-b= %d "
-+			"labels \"%s\": %s\n", csrow, channela, channelb,
-+			labels, msg);
-+
-+	if (panic_on_ue)
-+		panic("UE row %d, channel-a= %d channel-b= %d "
-+				"labels \"%s\": %s\n", csrow, channela,
-+				channelb, labels, msg);
++	return 0;
 +}
-+EXPORT_SYMBOL(edac_mc_handle_fbd_ue);
 +
-+/*************************************************************
-+ * On Fully Buffered DIMM modules, this help function is
-+ * called to process CE events
-+ */
-+void edac_mc_handle_fbd_ce(struct mem_ctl_info *mci,
-+			   unsigned int csrow,
-+			   unsigned int channel,
-+			   char *msg)
++static inline void gpio_free(unsigned gpio)
 +{
-+
-+	/* Ensure boundary values */
-+	if (csrow >= mci->nr_csrows) {
-+		/* something is wrong */
-+		edac_mc_printk(mci, KERN_ERR,
-+			"INTERNAL ERROR: row out of range (%d >= %d)\n",
-+			csrow, mci->nr_csrows);
-+		edac_mc_handle_ce_no_info(mci, "INTERNAL ERROR");
-+		return;
-+	}
-+	if (channel >= mci->csrows[csrow].nr_channels) {
-+		/* something is wrong */
-+		edac_mc_printk(mci, KERN_ERR,
-+			"INTERNAL ERROR: channel out of range (%d >= %d)\n",
-+			channel, mci->csrows[csrow].nr_channels);
-+		edac_mc_handle_ce_no_info(mci, "INTERNAL ERROR");
-+		return;
-+	}
-+
-+	if (log_ce)
-+		/* FIXME - put in DIMM location */
-+		edac_mc_printk(mci, KERN_WARNING,
-+			"CE row %d, channel %d, label \"%s\": %s\n",
-+			csrow, channel,
-+			mci->csrows[csrow].channels[channel].label,
-+			msg);
-+
-+	mci->ce_count++;
-+	mci->csrows[csrow].ce_count++;
-+	mci->csrows[csrow].channels[channel].ce_count++;
++	return;
 +}
-+EXPORT_SYMBOL(edac_mc_handle_fbd_ce);
 +
++static inline int gpio_direction_input(unsigned gpio)
++{
++	s3c2410_gpio_cfgpin(gpio, S3C2410_GPIO_INPUT);
++	return 0;
++}
 +
- /*
-  * Iterate over all MC instances and check for ECC, et al, errors
-  */
-@@ -1861,7 +1971,7 @@ static void __exit edac_mc_exit(void)
- 	debugf0("%s()\n", __func__);
- 	kthread_stop(edac_thread);
- 
--        /* tear down the sysfs device */
-+	/* tear down the sysfs device */
- 	edac_sysfs_memctrl_teardown();
- 	edac_sysfs_pci_teardown();
- }
-diff -puN drivers/edac/edac_mc.h~edac-add-fully-buffered-dimm-apis-to-core drivers/edac/edac_mc.h
---- a/drivers/edac/edac_mc.h~edac-add-fully-buffered-dimm-apis-to-core
-+++ a/drivers/edac/edac_mc.h
-@@ -123,7 +123,9 @@ enum mem_type {
- 	MEM_RDR,		/* Registered single data rate SDRAM */
- 	MEM_DDR,		/* Double data rate SDRAM */
- 	MEM_RDDR,		/* Registered Double data rate SDRAM */
--	MEM_RMBS		/* Rambus DRAM */
-+	MEM_RMBS,		/* Rambus DRAM */
-+	MEM_DDR2,               /* DDR2 RAM */
-+	MEM_FB_DDR2,            /* fully buffered DDR2 */
- };
- 
- #define MEM_FLAG_EMPTY		BIT(MEM_EMPTY)
-@@ -137,6 +139,8 @@ enum mem_type {
- #define MEM_FLAG_DDR		BIT(MEM_DDR)
- #define MEM_FLAG_RDDR		BIT(MEM_RDDR)
- #define MEM_FLAG_RMBS		BIT(MEM_RMBS)
-+#define MEM_FLAG_DDR2           BIT(MEM_DDR2)
-+#define MEM_FLAG_FB_DDR2        BIT(MEM_FB_DDR2)
- 
- /* chipset Error Detection and Correction capabilities and mode */
- enum edac_type {
-@@ -329,6 +333,7 @@ struct mem_ctl_info {
- 
- 	/* pointer to edac checking routine */
- 	void (*edac_check) (struct mem_ctl_info * mci);
++static inline int gpio_direction_output(unsigned gpio)
++{
++	s3c2410_gpio_cfgpin(gpio, S3C2410_GPIO_OUTPUT);
++	return 0;
++}
 +
- 	/*
- 	 * Remaps memory pages: controller pages to physical pages.
- 	 * For most MC's, this will be NULL.
-@@ -453,6 +458,15 @@ extern void edac_mc_handle_ue(struct mem
- 		int row, const char *msg);
- extern void edac_mc_handle_ue_no_info(struct mem_ctl_info *mci,
- 		const char *msg);
-+extern void edac_mc_handle_fbd_ue(struct mem_ctl_info *mci,
-+		unsigned int csrow,
-+		unsigned int channel0,
-+		unsigned int channel1,
-+		char *msg);
-+extern void edac_mc_handle_fbd_ce(struct mem_ctl_info *mci,
-+		unsigned int csrow,
-+		unsigned int channel,
-+		char *msg);
- 
- /*
-  * This kmalloc's and initializes all the structures.
++#define gpio_get_value(gpio)		s3c2410_gpio_getpin(gpio)
++#define gpio_set_value(gpio,value)	s3c2410_gpio_setpin(gpio, value)
++
++#include <asm-generic/gpio.h>			/* cansleep wrappers */
++
++/* FIXME or maybe s3c2400_gpio_getirq() ... */
++#define gpio_to_irq(gpio)		s3c2410_gpio_getirq(gpio)
++
++/* FIXME implement irq_to_gpio() */
++
++#endif
 _
 
-Patches currently in -mm which might be from ericw@xmtp.net are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
 origin.patch
