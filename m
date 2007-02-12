@@ -1,96 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - export-ufs_fsh-to-userspace.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:44:16 -0800
-Message-ID: <200702122244.l1CMiGOd013573@shell0.pdx.osdl.net>
+Subject: - change-__init-to-__devinit-in-2-rtc-drivers.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:44:18 -0800
+Message-ID: <200702122244.l1CMiIpN013576@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44964 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44985 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030264AbXBLWoX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:44:23 -0500
+	id S1030264AbXBLWof (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:44:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, dushistov@mail.ru, mm-commits@vger.kernel.org
+To: prarit@redhat.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     export ufs_fs.h to userspace
+     change __init to __devinit in 2 rtc drivers
 has been removed from the -mm tree.  Its filename was
-     export-ufs_fsh-to-userspace.patch
+     change-__init-to-__devinit-in-2-rtc-drivers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: export ufs_fs.h to userspace
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: change __init to __devinit in 2 rtc drivers
+From: Prarit Bhargava <prarit@redhat.com>
 
-Was ufs_fs.h purposefully not exported to userspace or did it just slip
-through the cracks ?  assuming the latter scenario, the attached patch touches
-up the relationship between ufs_fs.h and its sub headers (like ufs_fs_sb.h) so
-that we can export it ...  the silo bootloader takes advantage of this header
-for example.
+Change __init to __devinit in rtc drivers' probe functions.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Resolves MODPOST warnings:
+
+WARNING: drivers/rtc/rtc-ds1553.o - Section mismatch: reference to
+.init.text:ds1553_rtc_probe from .data.rel between 'ds1553_rtc_driver' (at
+offset 0x0) and 'ds1553_nvram_attr'
+WARNING: drivers/rtc/rtc-ds1742.o - Section mismatch: reference to
+.init.text:ds1742_rtc_probe from .data.rel between 'ds1742_rtc_driver' (at
+offset 0x0) and 'ds1742_nvram_attr'
+
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild      |    1 +
- include/linux/ufs_fs.h    |    4 +++-
- include/linux/ufs_fs_sb.h |    1 -
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-ds1553.c |    2 +-
+ drivers/rtc/rtc-ds1742.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/Kbuild~export-ufs_fsh-to-userspace include/linux/Kbuild
---- a/include/linux/Kbuild~export-ufs_fsh-to-userspace
-+++ a/include/linux/Kbuild
-@@ -323,6 +323,7 @@ unifdef-y += tty.h
- unifdef-y += types.h
- unifdef-y += udf_fs_i.h
- unifdef-y += udp.h
-+unifdef-y += ufs_fs.h
- unifdef-y += uinput.h
- unifdef-y += uio.h
- unifdef-y += unistd.h
-diff -puN include/linux/ufs_fs.h~export-ufs_fsh-to-userspace include/linux/ufs_fs.h
---- a/include/linux/ufs_fs.h~export-ufs_fsh-to-userspace
-+++ a/include/linux/ufs_fs.h
-@@ -45,8 +45,10 @@ typedef __u32 __bitwise __fs32;
- typedef __u16 __bitwise __fs16;
- #endif
+diff -puN drivers/rtc/rtc-ds1553.c~change-__init-to-__devinit-in-2-rtc-drivers drivers/rtc/rtc-ds1553.c
+--- a/drivers/rtc/rtc-ds1553.c~change-__init-to-__devinit-in-2-rtc-drivers
++++ a/drivers/rtc/rtc-ds1553.c
+@@ -297,7 +297,7 @@ static struct bin_attribute ds1553_nvram
+ 	.write = ds1553_nvram_write,
+ };
  
-+#ifdef __KERNEL__
- #include <linux/ufs_fs_i.h>
- #include <linux/ufs_fs_sb.h>
-+#endif
+-static int __init ds1553_rtc_probe(struct platform_device *pdev)
++static int __devinit ds1553_rtc_probe(struct platform_device *pdev)
+ {
+ 	struct rtc_device *rtc;
+ 	struct resource *res;
+diff -puN drivers/rtc/rtc-ds1742.c~change-__init-to-__devinit-in-2-rtc-drivers drivers/rtc/rtc-ds1742.c
+--- a/drivers/rtc/rtc-ds1742.c~change-__init-to-__devinit-in-2-rtc-drivers
++++ a/drivers/rtc/rtc-ds1742.c
+@@ -165,7 +165,7 @@ static struct bin_attribute ds1742_nvram
+ 	.write = ds1742_nvram_write,
+ };
  
- #define UFS_BBLOCK 0
- #define UFS_BBSIZE 8192
-@@ -303,7 +305,7 @@ typedef __u16 __bitwise __fs16;
- #define UFS_MAXMNTLEN 512
- #define UFS2_MAXMNTLEN 468
- #define UFS2_MAXVOLLEN 32
--/* #define UFS_MAXCSBUFS 31 */
-+#define UFS_MAXCSBUFS 31
- #define UFS_LINK_MAX 32000
- /*
- #define	UFS2_NOCSPTRS	((128 / sizeof(void *)) - 4)
-diff -puN include/linux/ufs_fs_sb.h~export-ufs_fsh-to-userspace include/linux/ufs_fs_sb.h
---- a/include/linux/ufs_fs_sb.h~export-ufs_fsh-to-userspace
-+++ a/include/linux/ufs_fs_sb.h
-@@ -21,7 +21,6 @@
- struct ufs_sb_private_info;
- struct ufs_cg_private_info;
- struct ufs_csum;
--#define UFS_MAXCSBUFS 31
- 
- struct ufs_sb_info {
- 	struct ufs_sb_private_info * s_uspi;	
+-static int __init ds1742_rtc_probe(struct platform_device *pdev)
++static int __devinit ds1742_rtc_probe(struct platform_device *pdev)
+ {
+ 	struct rtc_device *rtc;
+ 	struct resource *res;
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from prarit@redhat.com are
 
 origin.patch
-search-a-little-harder-for-mkimage.patch
-new-toplevel-target-headers_check_all.patch
-use-__u64-rather-than-u64-in-parisc-statfs-structs.patch
-use-__u32-rather-than-u32-in-userspace-ioctls-in-usbdevice_fsh.patch
+change-__init-to-__devinit-for-isp116x_probe.patch
