@@ -1,94 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - dynamic-kernel-command-line-parisc.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:48:01 -0800
-Message-ID: <200702122248.l1CMm1rP013964@shell0.pdx.osdl.net>
+Subject: - s390-drivers-use-array_size-macro-when-appropriate.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:51:04 -0800
+Message-ID: <200702122251.l1CMp41X014275@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45880 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45878 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030429AbXBLWvT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:51:19 -0500
+	id S1030427AbXBLWvQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:51:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alon.barlev@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Dynamic kernel command-line: parisc
+     s390-drivers: Use ARRAY_SIZE macro when appropriate
 has been removed from the -mm tree.  Its filename was
-     dynamic-kernel-command-line-parisc.patch
+     s390-drivers-use-array_size-macro-when-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: parisc
-From: Alon Bar-Lev <alon.barlev@gmail.com>
+Subject: s390-drivers: Use ARRAY_SIZE macro when appropriate
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-1. Rename saved_command_line into boot_command_line.
-2. Set command_line as __initdata.
+Use ARRAY_SIZE macro already defined in kernel.h
 
-Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/setup.c |    8 ++++----
- arch/parisc/mm/init.c      |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/s390/cio/device_id.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/parisc/kernel/setup.c~dynamic-kernel-command-line-parisc arch/parisc/kernel/setup.c
---- a/arch/parisc/kernel/setup.c~dynamic-kernel-command-line-parisc
-+++ a/arch/parisc/kernel/setup.c
-@@ -45,7 +45,7 @@
- #include <asm/io.h>
- #include <asm/setup.h>
+diff -puN drivers/s390/cio/device_id.c~s390-drivers-use-array_size-macro-when-appropriate drivers/s390/cio/device_id.c
+--- a/drivers/s390/cio/device_id.c~s390-drivers-use-array_size-macro-when-appropriate
++++ a/drivers/s390/cio/device_id.c
+@@ -11,6 +11,7 @@
  
--char	command_line[COMMAND_LINE_SIZE] __read_mostly;
-+char	__initdata command_line[COMMAND_LINE_SIZE] __read_mostly;
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/kernel.h>
  
- /* Intended for ccio/sba/cpu statistics under /proc/bus/{runway|gsc} */
- struct proc_dir_entry * proc_runway_root __read_mostly = NULL;
-@@ -71,9 +71,9 @@ void __init setup_cmdline(char **cmdline
- 	/* boot_args[0] is free-mem start, boot_args[1] is ptr to command line */
- 	if (boot_args[0] < 64) {
- 		/* called from hpux boot loader */
--		saved_command_line[0] = '\0';
-+		boot_command_line[0] = '\0';
- 	} else {
--		strcpy(saved_command_line, (char *)__va(boot_args[1]));
-+		strcpy(boot_command_line, (char *)__va(boot_args[1]));
- 
- #ifdef CONFIG_BLK_DEV_INITRD
- 		if (boot_args[2] != 0) /* did palo pass us a ramdisk? */
-@@ -84,7 +84,7 @@ void __init setup_cmdline(char **cmdline
- #endif
+ #include <asm/ccwdev.h>
+ #include <asm/delay.h>
+@@ -138,7 +139,7 @@ VM_virtual_device_info (__u16 devno, str
+ 		ps->cu_model = 0x60;
+ 		return;
  	}
- 
--	strcpy(command_line, saved_command_line);
-+	strcpy(command_line, boot_command_line);
- 	*cmdline_p = command_line;
- }
- 
-diff -puN arch/parisc/mm/init.c~dynamic-kernel-command-line-parisc arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~dynamic-kernel-command-line-parisc
-+++ a/arch/parisc/mm/init.c
-@@ -77,12 +77,12 @@ static void __init mem_limit_func(void)
- {
- 	char *cp, *end;
- 	unsigned long limit;
--	extern char saved_command_line[];
-+	extern char __initdata boot_command_line[];
- 
- 	/* We need this before __setup() functions are called */
- 
- 	limit = MAX_MEM;
--	for (cp = saved_command_line; *cp; ) {
-+	for (cp = boot_command_line; *cp; ) {
- 		if (memcmp(cp, "mem=", 4) == 0) {
- 			cp += 4;
- 			limit = memparse(cp, &end);
+-	for (i = 0; i < sizeof(vm_devices) / sizeof(vm_devices[0]); i++)
++	for (i = 0; i < ARRAY_SIZE(vm_devices); i++)
+ 		if (diag_data.vrdcvcla == vm_devices[i].vrdcvcla &&
+ 		    diag_data.vrdcvtyp == vm_devices[i].vrdcvtyp) {
+ 			ps->cu_type = vm_devices[i].cu_type;
 _
 
-Patches currently in -mm which might be from alon.barlev@gmail.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
+git-acpi.patch
+git-agpgart.patch
+git-arm.patch
+git-avr32.patch
+git-drm.patch
+git-dvb.patch
+git-infiniband.patch
+git-mips.patch
+atm-use-array_size-macro-when-appropriate.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
