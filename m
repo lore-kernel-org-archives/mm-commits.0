@@ -1,660 +1,1385 @@
 From: akpm@linux-foundation.org
-Subject: - mark-struct-file_operations-const-9.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:50:52 -0800
-Message-ID: <200702122250.l1CMoqH0014257@shell0.pdx.osdl.net>
+Subject: - ps3-virtual-frame-buffer-driver.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:50:23 -0800
+Message-ID: <200702122250.l1CMoNe4014218@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45847 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45850 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030417AbXBLWuz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:50:55 -0500
+	id S1030418AbXBLWu5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:50:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, jsimmons@infradead.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mark struct file_operations const 9
+     ps3: Virtual Frame Buffer Driver
 has been removed from the -mm tree.  Its filename was
-     mark-struct-file_operations-const-9.patch
+     ps3-virtual-frame-buffer-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mark struct file_operations const 9
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: ps3: Virtual Frame Buffer Driver
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Many struct file_operations in the kernel can be "const".  Marking them const
-moves these to the .rodata section, which avoids false sharing with potential
-dirty data.  In addition it'll catch accidental writes at compile time to
-these shared resources.
+Add the PS3 Virtual Frame Buffer Driver.
 
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+As the actual graphics hardware cannot be accessed directly by Linux, ps3fb
+uses a virtual frame buffer in main memory.  The actual screen image is copied
+to graphics memory by the GPU on every vertical blank, by making a hypervisor
+call.
+
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: James Simmons <jsimmons@infradead.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/spufs.h |    2 -
- drivers/s390/char/tape_class.c            |    2 -
- drivers/s390/char/tape_class.h            |    2 -
- security/inode.c                          |    4 +--
- security/keys/proc.c                      |    4 +--
- security/selinux/selinuxfs.c              |   26 ++++++++++----------
- sound/core/control.c                      |    2 -
- sound/core/hwdep.c                        |    2 -
- sound/core/info.c                         |    2 -
- sound/core/init.c                         |    4 +--
- sound/core/oss/mixer_oss.c                |    2 -
- sound/core/oss/pcm_oss.c                  |    2 -
- sound/core/pcm_native.c                   |    2 -
- sound/core/rawmidi.c                      |    2 -
- sound/core/seq/oss/seq_oss.c              |    2 -
- sound/core/seq/seq_clientmgr.c            |    2 -
- sound/core/sound.c                        |    2 -
- sound/core/timer.c                        |    2 -
- sound/oss/ad1889.c                        |    4 +--
- sound/oss/btaudio.c                       |    6 ++--
- sound/oss/dmasound/dmasound_core.c        |    6 ++--
- sound/oss/emu10k1/audio.c                 |    2 -
- sound/oss/emu10k1/midi.c                  |    2 -
- sound/oss/emu10k1/mixer.c                 |    2 -
- sound/oss/hal2.c                          |    4 +--
- sound/oss/msnd_pinnacle.c                 |    2 -
- sound/oss/os.h                            |    2 -
- sound/oss/sh_dac_audio.c                  |    2 -
- sound/oss/soundcard.c                     |    2 -
- sound/oss/via82cxxx_audio.c               |    4 +--
- sound/oss/vwsnd.c                         |    4 +--
- sound/sound_core.c                        |    2 -
- 32 files changed, 55 insertions(+), 55 deletions(-)
+ drivers/video/Kconfig       |   20 
+ drivers/video/Makefile      |    1 
+ drivers/video/ps3fb.c       | 1229 ++++++++++++++++++++++++++++++++++
+ include/asm-powerpc/Kbuild  |    1 
+ include/asm-powerpc/ps3fb.h |   44 +
+ 5 files changed, 1295 insertions(+)
 
-diff -puN arch/powerpc/platforms/cell/spufs/spufs.h~mark-struct-file_operations-const-9 arch/powerpc/platforms/cell/spufs/spufs.h
---- a/arch/powerpc/platforms/cell/spufs/spufs.h~mark-struct-file_operations-const-9
-+++ a/arch/powerpc/platforms/cell/spufs/spufs.h
-@@ -149,7 +149,7 @@ long spufs_run_spu(struct file *file,
- 		   struct spu_context *ctx, u32 *npc, u32 *status);
- long spufs_create(struct nameidata *nd,
- 			 unsigned int flags, mode_t mode);
--extern struct file_operations spufs_context_fops;
-+extern const struct file_operations spufs_context_fops;
+diff -puN drivers/video/Kconfig~ps3-virtual-frame-buffer-driver drivers/video/Kconfig
+--- a/drivers/video/Kconfig~ps3-virtual-frame-buffer-driver
++++ a/drivers/video/Kconfig
+@@ -1598,6 +1598,26 @@ config FB_IBM_GXT4500
+ 	  Say Y here to enable support for the IBM GXT4500P display
+ 	  adaptor, found on some IBM System P (pSeries) machines.
  
- /* gang management */
- struct spu_gang *alloc_spu_gang(void);
-diff -puN drivers/s390/char/tape_class.c~mark-struct-file_operations-const-9 drivers/s390/char/tape_class.c
---- a/drivers/s390/char/tape_class.c~mark-struct-file_operations-const-9
-+++ a/drivers/s390/char/tape_class.c
-@@ -36,7 +36,7 @@ static struct class *tape_class;
- struct tape_class_device *register_tape_dev(
- 	struct device *		device,
- 	dev_t			dev,
--	struct file_operations *fops,
-+	const struct file_operations *fops,
- 	char *			device_name,
- 	char *			mode_name)
- {
-diff -puN drivers/s390/char/tape_class.h~mark-struct-file_operations-const-9 drivers/s390/char/tape_class.h
---- a/drivers/s390/char/tape_class.h~mark-struct-file_operations-const-9
-+++ a/drivers/s390/char/tape_class.h
-@@ -52,7 +52,7 @@ struct tape_class_device {
- struct tape_class_device *register_tape_dev(
- 	struct device *		device,
- 	dev_t			dev,
--	struct file_operations *fops,
-+	const struct file_operations *fops,
- 	char *			device_name,
- 	char *			node_name
- );
-diff -puN security/inode.c~mark-struct-file_operations-const-9 security/inode.c
---- a/security/inode.c~mark-struct-file_operations-const-9
-+++ a/security/inode.c
-@@ -50,7 +50,7 @@ static int default_open(struct inode *in
- 	return 0;
- }
++config FB_PS3
++	bool "PS3 GPU framebuffer driver"
++	depends on FB && PPC_PS3
++	select PS3_PS3AV
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	---help---
++	  Include support for the virtual frame buffer in the PS3 platform.
++
++config FB_PS3_DEFAULT_SIZE_M
++	int "PS3 default frame buffer size (in MiB)"
++	depends on FB_PS3
++	default 18
++	---help---
++	  This is the default size (in MiB) of the virtual frame buffer in
++	  the PS3.
++	  The default value can be overridden on the kernel command line
++	  using the "ps3fb" option (e.g. "ps3fb=9M");
++
+ config FB_VIRTUAL
+ 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
+ 	depends on FB
+diff -puN drivers/video/Makefile~ps3-virtual-frame-buffer-driver drivers/video/Makefile
+--- a/drivers/video/Makefile~ps3-virtual-frame-buffer-driver
++++ a/drivers/video/Makefile
+@@ -97,6 +97,7 @@ obj-$(CONFIG_FB_S3C2410)	  += s3c2410fb.
+ obj-$(CONFIG_FB_PNX4008_DUM)	  += pnx4008/
+ obj-$(CONFIG_FB_PNX4008_DUM_RGB)  += pnx4008/
+ obj-$(CONFIG_FB_IBM_GXT4500)	  += gxt4500.o
++obj-$(CONFIG_FB_PS3)		  += ps3fb.o
  
--static struct file_operations default_file_ops = {
-+static const struct file_operations default_file_ops = {
- 	.read =		default_read_file,
- 	.write =	default_write_file,
- 	.open =		default_open,
-@@ -215,7 +215,7 @@ static int create_by_name(const char *na
-  */
- struct dentry *securityfs_create_file(const char *name, mode_t mode,
- 				   struct dentry *parent, void *data,
--				   struct file_operations *fops)
-+				   const struct file_operations *fops)
- {
- 	struct dentry *dentry = NULL;
- 	int error;
-diff -puN security/keys/proc.c~mark-struct-file_operations-const-9 security/keys/proc.c
---- a/security/keys/proc.c~mark-struct-file_operations-const-9
-+++ a/security/keys/proc.c
-@@ -33,7 +33,7 @@ static struct seq_operations proc_keys_o
- 	.show	= proc_keys_show,
- };
+ # Platform or fallback drivers go here
+ obj-$(CONFIG_FB_VESA)             += vesafb.o
+diff -puN /dev/null drivers/video/ps3fb.c
+--- /dev/null
++++ a/drivers/video/ps3fb.c
+@@ -0,0 +1,1229 @@
++/*
++ *  linux/drivers/video/ps3fb.c -- PS3 GPU frame buffer device
++ *
++ *	Copyright (C) 2006 Sony Computer Entertainment Inc.
++ *	Copyright 2006, 2007 Sony Corporation
++ *
++ *  This file is based on :
++ *
++ *  linux/drivers/video/vfb.c -- Virtual frame buffer device
++ *
++ *	Copyright (C) 2002 James Simmons
++ *
++ *	Copyright (C) 1997 Geert Uytterhoeven
++ *
++ *  This file is subject to the terms and conditions of the GNU General Public
++ *  License. See the file COPYING in the main directory of this archive for
++ *  more details.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/string.h>
++#include <linux/mm.h>
++#include <linux/tty.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++#include <linux/delay.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/console.h>
++#include <linux/ioctl.h>
++#include <linux/notifier.h>
++#include <linux/reboot.h>
++
++#include <asm/uaccess.h>
++#include <linux/fb.h>
++#include <linux/init.h>
++#include <asm/time.h>
++
++#include <asm/abs_addr.h>
++#include <asm/lv1call.h>
++#include <asm/ps3av.h>
++#include <asm/ps3fb.h>
++#include <asm/ps3.h>
++
++#ifdef PS3FB_DEBUG
++#define DPRINTK(fmt, args...) printk("%s: " fmt, __FUNCTION__ , ##args)
++#else
++#define DPRINTK(fmt, args...)
++#endif
++
++#define L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_SYNC	0x101
++#define L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP	0x102
++#define L1GPU_CONTEXT_ATTRIBUTE_FB_SETUP	0x600
++#define L1GPU_CONTEXT_ATTRIBUTE_FB_BLIT		0x601
++#define L1GPU_CONTEXT_ATTRIBUTE_FB_BLIT_SYNC	0x602
++
++#define L1GPU_FB_BLIT_WAIT_FOR_COMPLETION	(1ULL << 32)
++
++#define L1GPU_DISPLAY_SYNC_HSYNC		1
++#define L1GPU_DISPLAY_SYNC_VSYNC		2
++
++#define DDR_SIZE				(0)	/* used no ddr */
++#define GPU_OFFSET				(64 * 1024)
++#define GPU_IOIF				(0x0d000000UL)
++
++#define PS3FB_FULL_MODE_BIT			0x80
++
++#define GPU_INTR_STATUS_VSYNC_0			0	/* vsync on head A */
++#define GPU_INTR_STATUS_VSYNC_1			1	/* vsync on head B */
++#define GPU_INTR_STATUS_FLIP_0			3	/* flip head A */
++#define GPU_INTR_STATUS_FLIP_1			4	/* flip head B */
++#define GPU_INTR_STATUS_QUEUE_0			5	/* queue head A */
++#define GPU_INTR_STATUS_QUEUE_1			6	/* queue head B */
++
++#define GPU_DRIVER_INFO_VERSION			0x211
++
++/* gpu internals */
++struct display_head {
++	u64 be_time_stamp;
++	u32 status;
++	u32 offset;
++	u32 res1;
++	u32 res2;
++	u32 field;
++	u32 reserved1;
++
++	u64 res3;
++	u32 raster;
++
++	u64 vblank_count;
++	u32 field_vsync;
++	u32 reserved2;
++};
++
++struct gpu_irq {
++	u32 irq_outlet;
++	u32 status;
++	u32 mask;
++	u32 video_cause;
++	u32 graph_cause;
++	u32 user_cause;
++
++	u32 res1;
++	u64 res2;
++
++	u32 reserved[4];
++};
++
++struct gpu_driver_info {
++	u32 version_driver;
++	u32 version_gpu;
++	u32 memory_size;
++	u32 hardware_channel;
++
++	u32 nvcore_frequency;
++	u32 memory_frequency;
++
++	u32 reserved[1063];
++	struct display_head display_head[8];
++	struct gpu_irq irq;
++};
++
++struct ps3fb_priv {
++	unsigned int irq_no;
++	void *dev;
++
++	u64 context_handle, memory_handle;
++	void *xdr_ea;
++	struct gpu_driver_info *dinfo;
++	struct semaphore sem;
++	u32 res_index;
++
++	u64 vblank_count;	/* frame count */
++	wait_queue_head_t wait_vsync;
++
++	u32 num_frames;		/* num of frame buffers */
++	atomic_t ext_flip;	/* on/off flip with vsync */
++	atomic_t f_count;	/* fb_open count */
++	int is_blanked;
++};
++static struct ps3fb_priv ps3fb;
++
++struct ps3fb_res_table {
++	u32 xres;
++	u32 yres;
++	u32 xoff;
++	u32 yoff;
++	u32 type;
++};
++#define PS3FB_RES_FULL 1
++static const struct ps3fb_res_table ps3fb_res[] = {
++	/* res_x,y   margin_x,y  full */
++	{  720,  480,  72,  48 , 0},
++	{  720,  576,  72,  58 , 0},
++	{ 1280,  720,  78,  38 , 0},
++	{ 1920, 1080, 116,  58 , 0},
++	/* full mode */
++	{  720,  480,   0,   0 , PS3FB_RES_FULL},
++	{  720,  576,   0,   0 , PS3FB_RES_FULL},
++	{ 1280,  720,   0,   0 , PS3FB_RES_FULL},
++	{ 1920, 1080,   0,   0 , PS3FB_RES_FULL},
++	/* vesa: normally full mode */
++	{ 1280,  768,   0,   0 , 0},
++	{ 1280, 1024,   0,   0 , 0},
++	{ 1920, 1200,   0,   0 , 0},
++	{    0,    0,   0,   0 , 0} };
++
++/* default resolution */
++#define GPU_RES_INDEX 0		/* 720 x 480 */
++
++static const struct fb_videomode ps3fb_modedb[] = {
++    /* 60 Hz broadcast modes (modes "1" to "5") */
++    {
++        /* 480i */
++        "480i", 60, 576, 384, 74074, 130, 89, 78, 57, 63, 6,
++        FB_SYNC_BROADCAST, FB_VMODE_INTERLACED
++    },    {
++        /* 480p */
++        "480p", 60, 576, 384, 37037, 130, 89, 78, 57, 63, 6,
++        FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    },    {
++        /* 720p */
++        "720p", 60, 1124, 644, 13481, 298, 148, 57, 44, 80, 5,
++        FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    },    {
++        /* 1080i */
++        "1080i", 60, 1688, 964, 13481, 264, 160, 94, 62, 88, 5,
++        FB_SYNC_BROADCAST, FB_VMODE_INTERLACED
++    },    {
++        /* 1080p */
++        "1080p", 60, 1688, 964, 6741, 264, 160, 94, 62, 88, 5,
++        FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    },
++
++    /* 50 Hz broadcast modes (modes "6" to "10") */
++    {
++        /* 576i */
++        "576i", 50, 576, 460, 74074, 142, 83, 97, 63, 63, 5,
++        FB_SYNC_BROADCAST, FB_VMODE_INTERLACED
++    },    {
++        /* 576p */
++        "576p", 50, 576, 460, 37037, 142, 83, 97, 63, 63, 5,
++        FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    },    {
++        /* 720p */
++        "720p", 50, 1124, 644, 13468, 298, 478, 57, 44, 80, 5,
++        FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    },    {
++        /* 1080 */
++        "1080i", 50, 1688, 964, 13468, 264, 600, 94, 62, 88, 5,
++        FB_SYNC_BROADCAST, FB_VMODE_INTERLACED
++    },    {
++        /* 1080p */
++        "1080p", 50, 1688, 964, 6734, 264, 600, 94, 62, 88, 5,
++        FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    },
++
++    /* VESA modes (modes "11" to "13") */
++    {
++	/* WXGA */
++	"wxga", 60, 1280, 768, 12924, 160, 24, 29, 3, 136, 6,
++	0, FB_VMODE_NONINTERLACED,
++	FB_MODE_IS_VESA
++    }, {
++	/* SXGA */
++	"sxga", 60, 1280, 1024, 9259, 248, 48, 38, 1, 112, 3,
++	FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLACED,
++	FB_MODE_IS_VESA
++    }, {
++	/* WUXGA */
++	"wuxga", 60, 1920, 1200, 6494, 80, 48, 26, 3, 32, 6,
++	FB_SYNC_HOR_HIGH_ACT, FB_VMODE_NONINTERLACED,
++	FB_MODE_IS_VESA
++    },
++
++    /* 60 Hz broadcast modes (full resolution versions of modes "1" to "5") */
++    {
++	/* 480if */
++	"480if", 60, 720, 480, 74074, 58, 17, 30, 9, 63, 6,
++	FB_SYNC_BROADCAST, FB_VMODE_INTERLACED
++    }, {
++	/* 480pf */
++	"480pf", 60, 720, 480, 37037, 58, 17, 30, 9, 63, 6,
++	FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    }, {
++	/* 720pf */
++	"720pf", 60, 1280, 720, 13481, 220, 70, 19, 6, 80, 5,
++	FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    }, {
++	/* 1080if */
++	"1080if", 60, 1920, 1080, 13481, 148, 44, 36, 4, 88, 5,
++	FB_SYNC_BROADCAST, FB_VMODE_INTERLACED
++    }, {
++	/* 1080pf */
++	"1080pf", 60, 1920, 1080, 6741, 148, 44, 36, 4, 88, 5,
++	FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    },
++
++    /* 50 Hz broadcast modes (full resolution versions of modes "6" to "10") */
++    {
++	/* 576if */
++	"576if", 50, 720, 576, 74074, 70, 11, 39, 5, 63, 5,
++	FB_SYNC_BROADCAST, FB_VMODE_INTERLACED
++    }, {
++	/* 576pf */
++	"576pf", 50, 720, 576, 37037, 70, 11, 39, 5, 63, 5,
++	FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    }, {
++	/* 720pf */
++	"720pf", 50, 1280, 720, 13468, 220, 400, 19, 6, 80, 5,
++	FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    }, {
++	/* 1080if */
++	"1080f", 50, 1920, 1080, 13468, 148, 484, 36, 4, 88, 5,
++	FB_SYNC_BROADCAST, FB_VMODE_INTERLACED
++    }, {
++	/* 1080pf */
++	"1080pf", 50, 1920, 1080, 6734, 148, 484, 36, 4, 88, 5,
++	FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    }
++};
++
++
++#define HEAD_A
++#define HEAD_B
++
++#define X_OFF(i)	(ps3fb_res[i].xoff)	/* left/right margin (pixel) */
++#define Y_OFF(i)	(ps3fb_res[i].yoff)	/* top/bottom margin (pixel) */
++#define WIDTH(i)	(ps3fb_res[i].xres)	/* width of FB */
++#define HEIGHT(i)	(ps3fb_res[i].yres)	/* height of FB */
++#define BPP	4		/* number of bytes per pixel */
++#define VP_OFF(i)	(WIDTH(i) * Y_OFF(i) * BPP + X_OFF(i) * BPP)
++#define FB_OFF(i)	(GPU_OFFSET - VP_OFF(i) % GPU_OFFSET)
++
++static int ps3fb_mode = 0;
++module_param(ps3fb_mode, bool, 0);
++
++static char *mode_option __initdata = NULL;
++
++
++static int ps3fb_get_res_table(u32 xres, u32 yres)
++{
++	int full_mode;
++	unsigned int i;
++	u32 x, y, f;
++
++	full_mode = (ps3fb_mode & PS3FB_FULL_MODE_BIT) ? PS3FB_RES_FULL : 0;
++	for (i = 0;; i++) {
++		x = ps3fb_res[i].xres;
++		y = ps3fb_res[i].yres;
++		f = ps3fb_res[i].type;
++
++		if (!x) {
++			DPRINTK("ERROR: ps3fb_get_res_table()\n");
++			return -1;
++		}
++
++		if (full_mode == PS3FB_RES_FULL && f != PS3FB_RES_FULL)
++			continue;
++
++		if (x == xres && (yres == 0 || y == yres))
++			break;
++
++		x = x - 2 * ps3fb_res[i].xoff;
++		y = y - 2 * ps3fb_res[i].yoff;
++		if (x == xres && (yres == 0 || y == yres))
++			break;
++	}
++	return i;
++}
++
++static unsigned int ps3fb_find_mode(const struct fb_var_screeninfo *var,
++				    u32 *line_length)
++{
++	unsigned int i, mode;
++
++	for (i = 0; i < ARRAY_SIZE(ps3fb_modedb); i++)
++		if (var->xres == ps3fb_modedb[i].xres &&
++		    var->yres == ps3fb_modedb[i].yres &&
++		    var->pixclock == ps3fb_modedb[i].pixclock &&
++		    var->hsync_len == ps3fb_modedb[i].hsync_len &&
++		    var->vsync_len == ps3fb_modedb[i].vsync_len &&
++		    var->left_margin == ps3fb_modedb[i].left_margin &&
++		    var->right_margin == ps3fb_modedb[i].right_margin &&
++		    var->upper_margin == ps3fb_modedb[i].upper_margin &&
++		    var->lower_margin == ps3fb_modedb[i].lower_margin &&
++		    var->sync == ps3fb_modedb[i].sync &&
++		    (var->vmode & FB_VMODE_MASK) == ps3fb_modedb[i].vmode) {
++			/* Cropped broadcast modes use the full line_length */
++			*line_length =
++			    ps3fb_modedb[i < 10 ? i + 13 : i].xres * 4;
++			/* Full broadcast modes have the full mode bit set */
++			mode = i > 12 ? (i - 12) | PS3FB_FULL_MODE_BIT : i + 1;
++
++			DPRINTK("ps3fb_find_mode: mode %u\n", mode);
++			return mode;
++		}
++
++	DPRINTK("ps3fb_find_mode: mode not found\n");
++	return 0;
++
++}
++
++static const struct fb_videomode *ps3fb_default_mode(void)
++{
++	u32 mode = ps3fb_mode & PS3AV_MODE_MASK;
++	u32 flags;
++
++	if (mode < 1 || mode > 13)
++		return NULL;
++
++	flags = ps3fb_mode & ~PS3AV_MODE_MASK;
++
++	if (mode <= 10 && flags & PS3FB_FULL_MODE_BIT) {
++		/* Full broadcast mode */
++		return &ps3fb_modedb[mode + 12];
++	}
++
++	return &ps3fb_modedb[mode - 1];
++}
++
++static int ps3fb_sync(u32 frame)
++{
++	int i, status;
++	u32 xres, yres;
++	u64 fb_ioif, offset;
++
++	i = ps3fb.res_index;
++	xres = ps3fb_res[i].xres;
++	yres = ps3fb_res[i].yres;
++
++	if (frame > ps3fb.num_frames - 1) {
++		printk(KERN_WARNING "%s: invalid frame number (%u)\n",
++		       __FUNCTION__, frame);
++		return -EINVAL;
++	}
++	offset = xres * yres * BPP * frame;
++
++	fb_ioif = GPU_IOIF + FB_OFF(i) + offset;
++	status = lv1_gpu_context_attribute(ps3fb.context_handle,
++					   L1GPU_CONTEXT_ATTRIBUTE_FB_BLIT,
++					   offset, fb_ioif,
++					   L1GPU_FB_BLIT_WAIT_FOR_COMPLETION |
++					   (xres << 16) | yres,
++					   xres * BPP);	/* line_length */
++	if (status)
++		printk(KERN_ERR "%s: lv1_gpu_context_attribute FB_BLIT failed: %d\n",
++		       __FUNCTION__, status);
++#ifdef HEAD_A
++	status = lv1_gpu_context_attribute(ps3fb.context_handle,
++					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP,
++					   0, offset, 0, 0);
++	if (status)
++		printk(KERN_ERR "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
++		       __FUNCTION__, status);
++#endif
++#ifdef HEAD_B
++	status = lv1_gpu_context_attribute(ps3fb.context_handle,
++					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP,
++					   1, offset, 0, 0);
++	if (status)
++		printk(KERN_ERR "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
++		       __FUNCTION__, status);
++#endif
++	return 0;
++}
++
++
++static int ps3fb_open(struct fb_info *info, int user)
++{
++	atomic_inc(&ps3fb.f_count);
++	return 0;
++}
++
++static int ps3fb_release(struct fb_info *info, int user)
++{
++	if (atomic_dec_and_test(&ps3fb.f_count)) {
++		if (atomic_read(&ps3fb.ext_flip)) {
++			atomic_set(&ps3fb.ext_flip, 0);
++			ps3fb_sync(0);	/* single buffer */
++		}
++	}
++	return 0;
++}
++
++    /*
++     *  Setting the video mode has been split into two parts.
++     *  First part, xxxfb_check_var, must not write anything
++     *  to hardware, it should only verify and adjust var.
++     *  This means it doesn't alter par but it does use hardware
++     *  data from it to check this var.
++     */
++
++static int ps3fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
++{
++	u32 line_length;
++	int mode;
++	int i;
++
++	DPRINTK("var->xres:%u info->var.xres:%u\n", var->xres, info->var.xres);
++	DPRINTK("var->yres:%u info->var.yres:%u\n", var->yres, info->var.yres);
++
++	/* FIXME For now we do exact matches only */
++	mode = ps3fb_find_mode(var, &line_length);
++	if (!mode)
++		return -EINVAL;
++
++	/*
++	 *  FB_VMODE_CONUPDATE and FB_VMODE_SMOOTH_XPAN are equal!
++	 *  as FB_VMODE_SMOOTH_XPAN is only used internally
++	 */
++
++	if (var->vmode & FB_VMODE_CONUPDATE) {
++		var->vmode |= FB_VMODE_YWRAP;
++		var->xoffset = info->var.xoffset;
++		var->yoffset = info->var.yoffset;
++	}
++
++	/* Virtual screen and panning are not supported */
++	if (var->xres_virtual > var->xres || var->yres_virtual > var->yres ||
++	    var->xoffset || var->yoffset) {
++		DPRINTK("Virtual screen and panning are not supported\n");
++		return -EINVAL;
++	}
++
++	var->xres_virtual = var->xres;
++	var->yres_virtual = var->yres;
++
++	/* We support ARGB8888 only */
++	if (var->bits_per_pixel > 32 || var->grayscale ||
++	    var->red.offset > 16 || var->green.offset > 8 ||
++	    var->blue.offset > 0 || var->transp.offset > 24 ||
++	    var->red.length > 8 || var->green.length > 8 ||
++	    var->blue.length > 8 || var->transp.length > 8 ||
++	    var->red.msb_right || var->green.msb_right ||
++	    var->blue.msb_right || var->transp.msb_right || var->nonstd) {
++		DPRINTK("We support ARGB8888 only\n");
++		return -EINVAL;
++	}
++
++	var->bits_per_pixel = 32;
++	var->red.offset = 16;
++	var->green.offset = 8;
++	var->blue.offset = 0;
++	var->transp.offset = 24;
++	var->red.length = 8;
++	var->green.length = 8;
++	var->blue.length = 8;
++	var->transp.length = 8;
++	var->red.msb_right = 0;
++	var->green.msb_right = 0;
++	var->blue.msb_right = 0;
++	var->transp.msb_right = 0;
++
++	/* Rotation is not supported */
++	if (var->rotate) {
++		DPRINTK("Rotation is not supported\n");
++		return -EINVAL;
++	}
++
++	/* Memory limit */
++	i = ps3fb_get_res_table(var->xres, var->yres);
++	if (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP > ps3fb_videomemory.size) {
++		DPRINTK("Not enough memory\n");
++		return -ENOMEM;
++	}
++
++	var->height = -1;
++	var->width = -1;
++
++	return 0;
++}
++
++    /*
++     * This routine actually sets the video mode.
++     */
++
++static int ps3fb_set_par(struct fb_info *info)
++{
++	unsigned int mode;
++	int i;
++	unsigned long offset;
++	static int first = 1;
++
++	DPRINTK("xres:%d xv:%d yres:%d yv:%d clock:%d\n",
++		info->var.xres, info->var.xres_virtual,
++		info->var.yres, info->var.yres_virtual, info->var.pixclock);
++	i = ps3fb_get_res_table(info->var.xres, info->var.yres);
++	ps3fb.res_index = i;
++
++	mode = ps3fb_find_mode(&info->var, &info->fix.line_length);
++	if (!mode)
++		return -EINVAL;
++
++	offset = FB_OFF(i) + VP_OFF(i);
++	info->fix.smem_len = ps3fb_videomemory.size - offset;
++	info->screen_base = (char __iomem *)ps3fb.xdr_ea + offset;
++	memset(ps3fb.xdr_ea, 0, ps3fb_videomemory.size);
++
++	ps3fb.num_frames = ps3fb_videomemory.size/
++			   (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP);
++
++	/* Keep the special bits we cannot set using fb_var_screeninfo */
++	ps3fb_mode = (ps3fb_mode & ~PS3AV_MODE_MASK) | mode;
++
++	if (ps3av_set_video_mode(ps3fb_mode, first))
++		return -EINVAL;
++
++	first = 0;
++	return 0;
++}
++
++    /*
++     *  Set a single color register. The values supplied are already
++     *  rounded down to the hardware's capabilities (according to the
++     *  entries in the var structure). Return != 0 for invalid regno.
++     */
++
++static int ps3fb_setcolreg(unsigned int regno, unsigned int red,
++			   unsigned int green, unsigned int blue,
++			   unsigned int transp, struct fb_info *info)
++{
++	if (regno >= 16)
++		return 1;
++
++	red >>= 8;
++	green >>= 8;
++	blue >>= 8;
++	transp >>= 8;
++
++	((u32 *)info->pseudo_palette)[regno] = transp << 24 | red << 16 |
++					       green << 8 | blue;
++	return 0;
++}
++
++    /*
++     *  As we have a virtual frame buffer, we need our own mmap function
++     */
++
++static int ps3fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
++{
++	unsigned long size, offset;
++	int i;
++
++	i = ps3fb_get_res_table(info->var.xres, info->var.yres);
++	if (i == -1)
++		return -EINVAL;
++
++	size = vma->vm_end - vma->vm_start;
++	offset = vma->vm_pgoff << PAGE_SHIFT;
++	if (offset + size > info->fix.smem_len)
++		return -EINVAL;
++
++	offset += info->fix.smem_start + FB_OFF(i) + VP_OFF(i);
++	if (remap_pfn_range(vma, vma->vm_start, offset >> PAGE_SHIFT,
++			    size, vma->vm_page_prot))
++		return -EAGAIN;
++
++	printk(KERN_DEBUG "ps3fb: mmap framebuffer P(%lx)->V(%lx)\n", offset,
++	       vma->vm_start);
++	return 0;
++}
++
++    /*
++     * Blank the display
++     */
++
++static int ps3fb_blank(int blank, struct fb_info *info)
++{
++	int retval;
++
++	DPRINTK("%s: blank:%d\n", __FUNCTION__, blank);
++	switch (blank) {
++	case FB_BLANK_POWERDOWN:
++	case FB_BLANK_HSYNC_SUSPEND:
++	case FB_BLANK_VSYNC_SUSPEND:
++	case FB_BLANK_NORMAL:
++		retval = ps3av_video_mute(1);	/* mute on */
++		if (!retval)
++			ps3fb.is_blanked = 1;
++		break;
++
++	default:		/* unblank */
++		retval = ps3av_video_mute(0);	/* mute off */
++		if (!retval)
++			ps3fb.is_blanked = 0;
++		break;
++	}
++	return retval;
++}
++
++static int ps3fb_get_vblank(struct fb_vblank *vblank)
++{
++	memset(vblank, 0, sizeof(&vblank));
++	vblank->flags = FB_VBLANK_HAVE_VSYNC;
++	return 0;
++}
++
++int ps3fb_wait_for_vsync(u32 crtc)
++{
++	int ret;
++	u64 count;
++
++	count = ps3fb.vblank_count;
++	ret = wait_event_interruptible_timeout(ps3fb.wait_vsync,
++					       count != ps3fb.vblank_count,
++					       HZ / 10);
++	if (!ret)
++		return -ETIMEDOUT;
++
++	return 0;
++}
++
++EXPORT_SYMBOL_GPL(ps3fb_wait_for_vsync);
++
++void ps3fb_flip_ctl(int on)
++{
++	if (on) {
++		if (atomic_read(&ps3fb.ext_flip) > 0) {
++			atomic_dec(&ps3fb.ext_flip);
++		}
++	} else {
++		atomic_inc(&ps3fb.ext_flip);
++	}
++}
++
++EXPORT_SYMBOL_GPL(ps3fb_flip_ctl);
++
++    /*
++     * ioctl
++     */
++
++static int ps3fb_ioctl(struct fb_info *info, unsigned int cmd,
++		       unsigned long arg)
++{
++	void __user *argp = (void __user *)arg;
++	u32 val, old_mode;
++	int retval = -EFAULT;
++
++	switch (cmd) {
++	case FBIOGET_VBLANK:
++		{
++			struct fb_vblank vblank;
++			DPRINTK("FBIOGET_VBLANK:\n");
++			retval = ps3fb_get_vblank(&vblank);
++			if (retval)
++				break;
++
++			if (copy_to_user(argp, &vblank, sizeof(vblank)))
++				retval = -EFAULT;
++			break;
++		}
++
++	case FBIO_WAITFORVSYNC:
++		{
++			u32 crt;
++			DPRINTK("FBIO_WAITFORVSYNC:\n");
++			if (get_user(crt, (u32 __user *) arg))
++				break;
++
++			retval = ps3fb_wait_for_vsync(crt);
++			break;
++		}
++
++	case PS3FB_IOCTL_SETMODE:
++		{
++			const struct fb_videomode *mode;
++			struct fb_var_screeninfo var;
++
++			if (copy_from_user(&val, argp, sizeof(val)))
++				break;
++
++			DPRINTK("PS3FB_IOCTL_SETMODE:%x\n", val);
++			retval = -EINVAL;
++			old_mode = ps3fb_mode;
++			ps3fb_mode = val;
++			mode = ps3fb_default_mode();
++			if (mode) {
++				var = info->var;
++				fb_videomode_to_var(&var, mode);
++				acquire_console_sem();
++				info->flags |= FBINFO_MISC_USEREVENT;
++				/* Force, in case only special bits changed */
++				var.activate |= FB_ACTIVATE_FORCE;
++				retval = fb_set_var(info, &var);
++				info->flags &= ~FBINFO_MISC_USEREVENT;
++				release_console_sem();
++			}
++			if (retval)
++				ps3fb_mode = old_mode;
++			break;
++		}
++
++	case PS3FB_IOCTL_GETMODE:
++		val = ps3av_get_mode();
++		DPRINTK("PS3FB_IOCTL_GETMODE:%x\n", val);
++		if (!copy_to_user(argp, &val, sizeof(val)))
++			retval = 0;
++		break;
++
++	case PS3FB_IOCTL_SCREENINFO:
++		{
++			struct ps3fb_ioctl_res res;
++			int i = ps3fb.res_index;
++			DPRINTK("PS3FB_IOCTL_SCREENINFO:\n");
++			res.xres = ps3fb_res[i].xres;
++			res.yres = ps3fb_res[i].yres;
++			res.xoff = ps3fb_res[i].xoff;
++			res.yoff = ps3fb_res[i].yoff;
++			res.num_frames = ps3fb.num_frames;
++			if (!copy_to_user(argp, &res, sizeof(res)))
++				retval = 0;
++			break;
++		}
++
++	case PS3FB_IOCTL_ON:
++		DPRINTK("PS3FB_IOCTL_ON:\n");
++		atomic_inc(&ps3fb.ext_flip);
++		retval = 0;
++		break;
++
++	case PS3FB_IOCTL_OFF:
++		DPRINTK("PS3FB_IOCTL_OFF:\n");
++		if (atomic_read(&ps3fb.ext_flip) > 0)
++			atomic_dec(&ps3fb.ext_flip);
++		retval = 0;
++		break;
++
++	case PS3FB_IOCTL_FSEL:
++		if (copy_from_user(&val, argp, sizeof(val)))
++			break;
++
++		DPRINTK("PS3FB_IOCTL_FSEL:%d\n", val);
++		retval = ps3fb_sync(val);
++		break;
++
++	default:
++		retval = -ENOIOCTLCMD;
++		break;
++	}
++	return retval;
++}
++
++static int ps3fbd(void *arg)
++{
++	daemonize("ps3fbd");
++	for (;;) {
++		down(&ps3fb.sem);
++		if (atomic_read(&ps3fb.ext_flip) == 0)
++			ps3fb_sync(0);	/* single buffer */
++	}
++	return 0;
++}
++
++static irqreturn_t ps3fb_vsync_interrupt(int irq, void *ptr)
++{
++	u64 v1;
++	int status;
++	struct display_head *head = &ps3fb.dinfo->display_head[1];
++
++	status = lv1_gpu_context_intr(ps3fb.context_handle, &v1);
++	if (status) {
++		printk(KERN_ERR "%s: lv1_gpu_context_intr failed: %d\n",
++		       __FUNCTION__, status);
++		return IRQ_NONE;
++	}
++
++	if (v1 & (1 << GPU_INTR_STATUS_VSYNC_1)) {
++		/* VSYNC */
++		ps3fb.vblank_count = head->vblank_count;
++		if (!ps3fb.is_blanked)
++			up(&ps3fb.sem);
++		wake_up_interruptible(&ps3fb.wait_vsync);
++	}
++
++	return IRQ_HANDLED;
++}
++
++#ifndef MODULE
++static int __init ps3fb_setup(char *options)
++{
++	char *this_opt;
++	int mode = 0;
++
++	if (!options || !*options)
++		return 0;	/* no options */
++
++	while ((this_opt = strsep(&options, ",")) != NULL) {
++		if (!*this_opt)
++			continue;
++		if (!strncmp(this_opt, "mode:", 5))
++			mode = simple_strtoul(this_opt + 5, NULL, 0);
++		else
++			mode_option = this_opt;
++	}
++	return mode;
++}
++#endif	/* MODULE */
++
++    /*
++     *  Initialisation
++     */
++
++static void ps3fb_platform_release(struct device *device)
++{
++	/* This is called when the reference count goes to zero. */
++}
++
++static int ps3fb_vsync_settings(struct gpu_driver_info *dinfo, void *dev)
++{
++	int error;
++
++	DPRINTK("version_driver:%x\n", dinfo->version_driver);
++	DPRINTK("irq outlet:%x\n", dinfo->irq.irq_outlet);
++	DPRINTK("version_gpu:%x memory_size:%x ch:%x core_freq:%d mem_freq:%d\n",
++		dinfo->version_gpu, dinfo->memory_size, dinfo->hardware_channel,
++		dinfo->nvcore_frequency/1000000, dinfo->memory_frequency/1000000);
++
++	if (dinfo->version_driver != GPU_DRIVER_INFO_VERSION) {
++		printk(KERN_ERR "%s: version_driver err:%x\n", __FUNCTION__,
++		       dinfo->version_driver);
++		return -EINVAL;
++	}
++
++	ps3fb.dev = dev;
++	error = ps3_alloc_irq(PS3_BINDING_CPU_ANY, dinfo->irq.irq_outlet,
++			      &ps3fb.irq_no);
++	if (error) {
++		printk(KERN_ERR "%s: ps3_alloc_irq failed %d\n", __FUNCTION__,
++		       error);
++		return error;
++	}
++
++	error = request_irq(ps3fb.irq_no, ps3fb_vsync_interrupt, IRQF_DISABLED,
++			    "ps3fb vsync", ps3fb.dev);
++	if (error) {
++		printk(KERN_ERR "%s: request_irq failed %d\n", __FUNCTION__,
++		       error);
++		ps3_free_irq(ps3fb.irq_no);
++		return error;
++	}
++
++	dinfo->irq.mask = (1 << GPU_INTR_STATUS_VSYNC_1) |
++			  (1 << GPU_INTR_STATUS_FLIP_1);
++	return 0;
++}
++
++static int ps3fb_xdr_settings(u64 xdr_lpar)
++{
++	int status;
++
++	status = lv1_gpu_context_iomap(ps3fb.context_handle, GPU_IOIF,
++				       xdr_lpar, ps3fb_videomemory.size, 0);
++	if (status) {
++		printk(KERN_ERR "%s: lv1_gpu_context_iomap failed: %d\n",
++		       __FUNCTION__, status);
++		return -ENXIO;
++	}
++	DPRINTK("video:%p xdr_ea:%p ioif:%lx lpar:%lx phys:%lx size:%lx\n",
++		ps3fb_videomemory.address, ps3fb.xdr_ea, GPU_IOIF, xdr_lpar,
++		virt_to_abs(ps3fb.xdr_ea), ps3fb_videomemory.size);
++
++	status = lv1_gpu_context_attribute(ps3fb.context_handle,
++					   L1GPU_CONTEXT_ATTRIBUTE_FB_SETUP,
++					   xdr_lpar, ps3fb_videomemory.size,
++					   GPU_IOIF, 0);
++	if (status) {
++		printk(KERN_ERR "%s: lv1_gpu_context_attribute FB_SETUP failed: %d\n",
++		       __FUNCTION__, status);
++		return -ENXIO;
++	}
++	return 0;
++}
++
++static struct fb_ops ps3fb_ops = {
++	.fb_open	= ps3fb_open,
++	.fb_release	= ps3fb_release,
++	.fb_check_var	= ps3fb_check_var,
++	.fb_set_par	= ps3fb_set_par,
++	.fb_setcolreg	= ps3fb_setcolreg,
++	.fb_fillrect	= cfb_fillrect,
++	.fb_copyarea	= cfb_copyarea,
++	.fb_imageblit	= cfb_imageblit,
++	.fb_mmap	= ps3fb_mmap,
++	.fb_blank	= ps3fb_blank,
++	.fb_ioctl	= ps3fb_ioctl,
++	.fb_compat_ioctl = ps3fb_ioctl
++};
++
++static struct fb_fix_screeninfo ps3fb_fix __initdata = {
++	.id =		"PS3 FB",
++	.type =		FB_TYPE_PACKED_PIXELS,
++	.visual =	FB_VISUAL_TRUECOLOR,
++	.accel =	FB_ACCEL_NONE,
++};
++
++static int __init ps3fb_probe(struct platform_device *dev)
++{
++	struct fb_info *info;
++	int retval = -ENOMEM;
++	u64 ddr_lpar = 0;
++	u64 lpar_dma_control = 0;
++	u64 lpar_driver_info = 0;
++	u64 lpar_reports = 0;
++	u64 lpar_reports_size = 0;
++	u64 xdr_lpar;
++	int status;
++	unsigned long offset;
++
++	/* get gpu context handle */
++	status = lv1_gpu_memory_allocate(DDR_SIZE, 0, 0, 0, 0,
++					 &ps3fb.memory_handle, &ddr_lpar);
++	if (status) {
++		printk(KERN_ERR "%s: lv1_gpu_memory_allocate failed: %d\n",
++		       __FUNCTION__, status);
++		goto err;
++	}
++	DPRINTK("ddr:lpar:0x%lx\n", ddr_lpar);
++
++	status = lv1_gpu_context_allocate(ps3fb.memory_handle, 0,
++					  &ps3fb.context_handle,
++					  &lpar_dma_control, &lpar_driver_info,
++					  &lpar_reports, &lpar_reports_size);
++	if (status) {
++		printk(KERN_ERR "%s: lv1_gpu_context_attribute failed: %d\n",
++		       __FUNCTION__, status);
++		goto err_gpu_memory_free;
++	}
++
++	/* vsync interrupt */
++	ps3fb.dinfo = ioremap(lpar_driver_info, 128 * 1024);
++	if (!ps3fb.dinfo) {
++		printk(KERN_ERR "%s: ioremap failed\n", __FUNCTION__);
++		goto err_gpu_context_free;
++	}
++
++	retval = ps3fb_vsync_settings(ps3fb.dinfo, dev);
++	if (retval)
++		goto err_iounmap_dinfo;
++
++	/* xdr frame buffer */
++	ps3fb.xdr_ea = ps3fb_videomemory.address;
++	xdr_lpar = ps3_mm_phys_to_lpar(__pa(ps3fb.xdr_ea));
++	retval = ps3fb_xdr_settings(xdr_lpar);
++	if (retval)
++		goto err_free_irq;
++
++	/*
++	 * ps3fb must clear memory to prevent kernel info
++	 * leakage into userspace
++	 */
++	memset(ps3fb.xdr_ea, 0, ps3fb_videomemory.size);
++	info = framebuffer_alloc(sizeof(u32) * 16, &dev->dev);
++	if (!info)
++		goto err_free_irq;
++
++	offset = FB_OFF(ps3fb.res_index) + VP_OFF(ps3fb.res_index);
++	info->screen_base = (char __iomem *)ps3fb.xdr_ea + offset;
++	info->fbops = &ps3fb_ops;
++
++	info->fix = ps3fb_fix;
++	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea);
++	info->fix.smem_len = ps3fb_videomemory.size - offset;
++	info->pseudo_palette = info->par;
++	info->par = NULL;
++	info->flags = FBINFO_FLAG_DEFAULT;
++
++	retval = fb_alloc_cmap(&info->cmap, 256, 0);
++	if (retval < 0)
++		goto err_framebuffer_release;
++
++	if (!fb_find_mode(&info->var, info, mode_option, ps3fb_modedb,
++			  ARRAY_SIZE(ps3fb_modedb), ps3fb_default_mode(), 32)) {
++		retval = -EINVAL;
++		goto err_fb_dealloc;
++	}
++
++	fb_videomode_to_modelist(ps3fb_modedb, ARRAY_SIZE(ps3fb_modedb),
++				 &info->modelist);
++
++	retval = register_framebuffer(info);
++	if (retval < 0)
++		goto err_fb_dealloc;
++
++	platform_set_drvdata(dev, info);
++
++	printk(KERN_INFO
++	       "fb%d: PS3 frame buffer device, using %ld KiB of video memory\n",
++	       info->node, ps3fb_videomemory.size >> 10);
++
++	kernel_thread(ps3fbd, info, CLONE_KERNEL);
++	return 0;
++
++err_fb_dealloc:
++	fb_dealloc_cmap(&info->cmap);
++err_framebuffer_release:
++	framebuffer_release(info);
++err_free_irq:
++	free_irq(ps3fb.irq_no, ps3fb.dev);
++	ps3_free_irq(ps3fb.irq_no);
++err_iounmap_dinfo:
++	iounmap((u8 __iomem *)ps3fb.dinfo);
++err_gpu_context_free:
++	lv1_gpu_context_free(ps3fb.context_handle);
++err_gpu_memory_free:
++	lv1_gpu_memory_free(ps3fb.memory_handle);
++err:
++	return retval;
++}
++
++static void ps3fb_shutdown(struct platform_device *dev)
++{
++	ps3fb_flip_ctl(0);	/* flip off */
++	ps3fb.dinfo->irq.mask = 0;
++	free_irq(ps3fb.irq_no, ps3fb.dev);
++	ps3_free_irq(ps3fb.irq_no);
++	iounmap((u8 __iomem *)ps3fb.dinfo);
++}
++
++void ps3fb_cleanup(void)
++{
++	int status;
++
++	if (ps3fb.irq_no) {
++		free_irq(ps3fb.irq_no, ps3fb.dev);
++		ps3_free_irq(ps3fb.irq_no);
++	}
++	iounmap((u8 __iomem *)ps3fb.dinfo);
++
++	status = lv1_gpu_context_free(ps3fb.context_handle);
++	if (status)
++		DPRINTK("lv1_gpu_context_free failed: %d\n", status);
++
++	status = lv1_gpu_memory_free(ps3fb.memory_handle);
++	if (status)
++		DPRINTK("lv1_gpu_memory_free failed: %d\n", status);
++
++	ps3av_dev_close();
++}
++
++EXPORT_SYMBOL_GPL(ps3fb_cleanup);
++
++static int ps3fb_remove(struct platform_device *dev)
++{
++	struct fb_info *info = platform_get_drvdata(dev);
++
++	if (info) {
++		unregister_framebuffer(info);
++		fb_dealloc_cmap(&info->cmap);
++		framebuffer_release(info);
++	}
++	ps3fb_cleanup();
++	return 0;
++}
++
++static struct platform_driver ps3fb_driver = {
++	.probe	= ps3fb_probe,
++	.remove = ps3fb_remove,
++	.shutdown = ps3fb_shutdown,
++	.driver = { .name = "ps3fb" }
++};
++
++static struct platform_device ps3fb_device = {
++	.name	= "ps3fb",
++	.id	= 0,
++	.dev	= { .release = ps3fb_platform_release }
++};
++
++int ps3fb_set_sync(void)
++{
++	int status;
++
++#ifdef HEAD_A
++	status = lv1_gpu_context_attribute(0x0,
++					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_SYNC,
++					   0, L1GPU_DISPLAY_SYNC_VSYNC, 0, 0);
++	if (status) {
++		printk(KERN_ERR "%s: lv1_gpu_context_attribute DISPLAY_SYNC failed: %d\n",
++		       __FUNCTION__, status);
++		return -1;
++	}
++#endif
++#ifdef HEAD_B
++	status = lv1_gpu_context_attribute(0x0,
++					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_SYNC,
++					   1, L1GPU_DISPLAY_SYNC_VSYNC, 0, 0);
++
++	if (status) {
++		printk(KERN_ERR "%s: lv1_gpu_context_attribute DISPLAY_MODE failed: %d\n",
++		       __FUNCTION__, status);
++		return -1;
++	}
++#endif
++	return 0;
++}
++
++EXPORT_SYMBOL_GPL(ps3fb_set_sync);
++
++static int __init ps3fb_init(void)
++{
++	int error;
++#ifndef MODULE
++	int mode;
++	char *option = NULL;
++
++	if (fb_get_options("ps3fb", &option))
++		goto err;
++#endif
++
++	if (!ps3fb_videomemory.address)
++		goto err;
++
++	error = ps3av_dev_open();
++	if (error) {
++		printk(KERN_ERR "%s: ps3av_dev_open failed\n", __FUNCTION__);
++		goto err;
++	}
++
++	ps3fb_mode = ps3av_get_mode();
++	DPRINTK("ps3av_mode:%d\n", ps3fb_mode);
++#ifndef MODULE
++	mode = ps3fb_setup(option);	/* check boot option */
++	if (mode)
++		ps3fb_mode = mode;
++#endif
++	if (ps3fb_mode > 0) {
++		u32 xres, yres;
++		ps3av_video_mode2res(ps3fb_mode, &xres, &yres);
++		ps3fb.res_index = ps3fb_get_res_table(xres, yres);
++		DPRINTK("res_index:%d\n", ps3fb.res_index);
++	} else
++		ps3fb.res_index = GPU_RES_INDEX;
++
++	atomic_set(&ps3fb.f_count, -1);	/* fbcon opens ps3fb */
++	atomic_set(&ps3fb.ext_flip, 0);	/* for flip with vsync */
++	init_MUTEX(&ps3fb.sem);
++	init_waitqueue_head(&ps3fb.wait_vsync);
++	ps3fb.num_frames = 1;
++
++	error = platform_driver_register(&ps3fb_driver);
++	if (!error) {
++		error = platform_device_register(&ps3fb_device);
++		if (error)
++			platform_driver_unregister(&ps3fb_driver);
++	}
++
++	ps3fb_set_sync();
++
++	return error;
++
++err:
++	return -ENXIO;
++}
++
++module_init(ps3fb_init);
++
++#ifdef MODULE
++static void __exit ps3fb_exit(void)
++{
++	platform_device_unregister(&ps3fb_device);
++	platform_driver_unregister(&ps3fb_driver);
++}
++
++module_exit(ps3fb_exit);
++
++MODULE_LICENSE("GPL");
++#endif				/* MODULE */
+diff -puN include/asm-powerpc/Kbuild~ps3-virtual-frame-buffer-driver include/asm-powerpc/Kbuild
+--- a/include/asm-powerpc/Kbuild~ps3-virtual-frame-buffer-driver
++++ a/include/asm-powerpc/Kbuild
+@@ -23,6 +23,7 @@ header-y += linkage.h
+ header-y += resource.h
+ header-y += sigcontext.h
+ header-y += statfs.h
++header-y += ps3fb.h
  
--static struct file_operations proc_keys_fops = {
-+static const struct file_operations proc_keys_fops = {
- 	.open		= proc_keys_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -54,7 +54,7 @@ static struct seq_operations proc_key_us
- 	.show	= proc_key_users_show,
- };
- 
--static struct file_operations proc_key_users_fops = {
-+static const struct file_operations proc_key_users_fops = {
- 	.open		= proc_key_users_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-diff -puN security/selinux/selinuxfs.c~mark-struct-file_operations-const-9 security/selinux/selinuxfs.c
---- a/security/selinux/selinuxfs.c~mark-struct-file_operations-const-9
-+++ a/security/selinux/selinuxfs.c
-@@ -161,7 +161,7 @@ out:
- #define sel_write_enforce NULL
- #endif
- 
--static struct file_operations sel_enforce_ops = {
-+static const struct file_operations sel_enforce_ops = {
- 	.read		= sel_read_enforce,
- 	.write		= sel_write_enforce,
- };
-@@ -211,7 +211,7 @@ out:
- #define sel_write_disable NULL
- #endif
- 
--static struct file_operations sel_disable_ops = {
-+static const struct file_operations sel_disable_ops = {
- 	.write		= sel_write_disable,
- };
- 
-@@ -225,7 +225,7 @@ static ssize_t sel_read_policyvers(struc
- 	return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
- }
- 
--static struct file_operations sel_policyvers_ops = {
-+static const struct file_operations sel_policyvers_ops = {
- 	.read		= sel_read_policyvers,
- };
- 
-@@ -242,7 +242,7 @@ static ssize_t sel_read_mls(struct file 
- 	return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
- }
- 
--static struct file_operations sel_mls_ops = {
-+static const struct file_operations sel_mls_ops = {
- 	.read		= sel_read_mls,
- };
- 
-@@ -294,7 +294,7 @@ out:
- 	return length;
- }
- 
--static struct file_operations sel_load_ops = {
-+static const struct file_operations sel_load_ops = {
- 	.write		= sel_write_load,
- };
- 
-@@ -374,7 +374,7 @@ out:
- 	free_page((unsigned long) page);
- 	return length;
- }
--static struct file_operations sel_checkreqprot_ops = {
-+static const struct file_operations sel_checkreqprot_ops = {
- 	.read		= sel_read_checkreqprot,
- 	.write		= sel_write_checkreqprot,
- };
-@@ -423,7 +423,7 @@ out:
- 	free_page((unsigned long) page);
- 	return length;
- }
--static struct file_operations sel_compat_net_ops = {
-+static const struct file_operations sel_compat_net_ops = {
- 	.read		= sel_read_compat_net,
- 	.write		= sel_write_compat_net,
- };
-@@ -467,7 +467,7 @@ static ssize_t selinux_transaction_write
- 	return rv;
- }
- 
--static struct file_operations transaction_ops = {
-+static const struct file_operations transaction_ops = {
- 	.write		= selinux_transaction_write,
- 	.read		= simple_transaction_read,
- 	.release	= simple_transaction_release,
-@@ -875,7 +875,7 @@ out:
- 	return length;
- }
- 
--static struct file_operations sel_bool_ops = {
-+static const struct file_operations sel_bool_ops = {
- 	.read           = sel_read_bool,
- 	.write          = sel_write_bool,
- };
-@@ -932,7 +932,7 @@ out:
- 	return length;
- }
- 
--static struct file_operations sel_commit_bools_ops = {
-+static const struct file_operations sel_commit_bools_ops = {
- 	.write          = sel_commit_bools_write,
- };
- 
-@@ -1131,12 +1131,12 @@ out:
- 	return ret;
- }
- 
--static struct file_operations sel_avc_cache_threshold_ops = {
-+static const struct file_operations sel_avc_cache_threshold_ops = {
- 	.read		= sel_read_avc_cache_threshold,
- 	.write		= sel_write_avc_cache_threshold,
- };
- 
--static struct file_operations sel_avc_hash_stats_ops = {
-+static const struct file_operations sel_avc_hash_stats_ops = {
- 	.read		= sel_read_avc_hash_stats,
- };
- 
-@@ -1198,7 +1198,7 @@ static int sel_open_avc_cache_stats(stru
- 	return seq_open(file, &sel_avc_cache_stats_seq_ops);
- }
- 
--static struct file_operations sel_avc_cache_stats_ops = {
-+static const struct file_operations sel_avc_cache_stats_ops = {
- 	.open		= sel_open_avc_cache_stats,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-diff -puN sound/core/control.c~mark-struct-file_operations-const-9 sound/core/control.c
---- a/sound/core/control.c~mark-struct-file_operations-const-9
-+++ a/sound/core/control.c
-@@ -1398,7 +1398,7 @@ static int snd_ctl_fasync(int fd, struct
-  *  INIT PART
-  */
- 
--static struct file_operations snd_ctl_f_ops =
-+static const struct file_operations snd_ctl_f_ops =
- {
- 	.owner =	THIS_MODULE,
- 	.read =		snd_ctl_read,
-diff -puN sound/core/hwdep.c~mark-struct-file_operations-const-9 sound/core/hwdep.c
---- a/sound/core/hwdep.c~mark-struct-file_operations-const-9
-+++ a/sound/core/hwdep.c
-@@ -317,7 +317,7 @@ static int snd_hwdep_control_ioctl(struc
- 
-  */
- 
--static struct file_operations snd_hwdep_f_ops =
-+static const struct file_operations snd_hwdep_f_ops =
- {
- 	.owner = 	THIS_MODULE,
- 	.llseek =	snd_hwdep_llseek,
-diff -puN sound/core/info.c~mark-struct-file_operations-const-9 sound/core/info.c
---- a/sound/core/info.c~mark-struct-file_operations-const-9
-+++ a/sound/core/info.c
-@@ -507,7 +507,7 @@ static int snd_info_entry_mmap(struct fi
- 	return -ENXIO;
- }
- 
--static struct file_operations snd_info_entry_operations =
-+static const struct file_operations snd_info_entry_operations =
- {
- 	.owner =		THIS_MODULE,
- 	.llseek =		snd_info_entry_llseek,
-diff -puN sound/core/init.c~mark-struct-file_operations-const-9 sound/core/init.c
---- a/sound/core/init.c~mark-struct-file_operations-const-9
-+++ a/sound/core/init.c
-@@ -36,7 +36,7 @@
- static DEFINE_SPINLOCK(shutdown_lock);
- static LIST_HEAD(shutdown_files);
- 
--static struct file_operations snd_shutdown_f_ops;
-+static const struct file_operations snd_shutdown_f_ops;
- 
- static unsigned int snd_cards_lock;	/* locked for registering/using */
- struct snd_card *snd_cards[SNDRV_CARDS];
-@@ -244,7 +244,7 @@ static int snd_disconnect_fasync(int fd,
- 	return -ENODEV;
- }
- 
--static struct file_operations snd_shutdown_f_ops =
-+static const struct file_operations snd_shutdown_f_ops =
- {
- 	.owner = 	THIS_MODULE,
- 	.llseek =	snd_disconnect_llseek,
-diff -puN sound/core/oss/mixer_oss.c~mark-struct-file_operations-const-9 sound/core/oss/mixer_oss.c
---- a/sound/core/oss/mixer_oss.c~mark-struct-file_operations-const-9
-+++ a/sound/core/oss/mixer_oss.c
-@@ -390,7 +390,7 @@ int snd_mixer_oss_ioctl_card(struct snd_
-  *  REGISTRATION PART
-  */
- 
--static struct file_operations snd_mixer_oss_f_ops =
-+static const struct file_operations snd_mixer_oss_f_ops =
- {
- 	.owner =	THIS_MODULE,
- 	.open =		snd_mixer_oss_open,
-diff -puN sound/core/oss/pcm_oss.c~mark-struct-file_operations-const-9 sound/core/oss/pcm_oss.c
---- a/sound/core/oss/pcm_oss.c~mark-struct-file_operations-const-9
-+++ a/sound/core/oss/pcm_oss.c
-@@ -2889,7 +2889,7 @@ static void snd_pcm_oss_proc_done(struct
-  *  ENTRY functions
-  */
- 
--static struct file_operations snd_pcm_oss_f_reg =
-+static const struct file_operations snd_pcm_oss_f_reg =
- {
- 	.owner =	THIS_MODULE,
- 	.read =		snd_pcm_oss_read,
-diff -puN sound/core/pcm_native.c~mark-struct-file_operations-const-9 sound/core/pcm_native.c
---- a/sound/core/pcm_native.c~mark-struct-file_operations-const-9
-+++ a/sound/core/pcm_native.c
-@@ -3424,7 +3424,7 @@ out:
-  *  Register section
-  */
- 
--struct file_operations snd_pcm_f_ops[2] = {
-+const struct file_operations snd_pcm_f_ops[2] = {
- 	{
- 		.owner =		THIS_MODULE,
- 		.write =		snd_pcm_write,
-diff -puN sound/core/rawmidi.c~mark-struct-file_operations-const-9 sound/core/rawmidi.c
---- a/sound/core/rawmidi.c~mark-struct-file_operations-const-9
-+++ a/sound/core/rawmidi.c
-@@ -1359,7 +1359,7 @@ static void snd_rawmidi_proc_info_read(s
-  *  Register functions
-  */
- 
--static struct file_operations snd_rawmidi_f_ops =
-+static const struct file_operations snd_rawmidi_f_ops =
- {
- 	.owner =	THIS_MODULE,
- 	.read =		snd_rawmidi_read,
-diff -puN sound/core/seq/oss/seq_oss.c~mark-struct-file_operations-const-9 sound/core/seq/oss/seq_oss.c
---- a/sound/core/seq/oss/seq_oss.c~mark-struct-file_operations-const-9
-+++ a/sound/core/seq/oss/seq_oss.c
-@@ -208,7 +208,7 @@ odev_poll(struct file *file, poll_table 
-  * registration of sequencer minor device
-  */
- 
--static struct file_operations seq_oss_f_ops =
-+static const struct file_operations seq_oss_f_ops =
- {
- 	.owner =	THIS_MODULE,
- 	.read =		odev_read,
-diff -puN sound/core/seq/seq_clientmgr.c~mark-struct-file_operations-const-9 sound/core/seq/seq_clientmgr.c
---- a/sound/core/seq/seq_clientmgr.c~mark-struct-file_operations-const-9
-+++ a/sound/core/seq/seq_clientmgr.c
-@@ -2538,7 +2538,7 @@ void snd_seq_info_clients_read(struct sn
-  *  REGISTRATION PART
-  */
- 
--static struct file_operations snd_seq_f_ops =
-+static const struct file_operations snd_seq_f_ops =
- {
- 	.owner =	THIS_MODULE,
- 	.read =		snd_seq_read,
-diff -puN sound/core/sound.c~mark-struct-file_operations-const-9 sound/core/sound.c
---- a/sound/core/sound.c~mark-struct-file_operations-const-9
-+++ a/sound/core/sound.c
-@@ -168,7 +168,7 @@ static int snd_open(struct inode *inode,
- 	return err;
- }
- 
--static struct file_operations snd_fops =
-+static const struct file_operations snd_fops =
- {
- 	.owner =	THIS_MODULE,
- 	.open =		snd_open
-diff -puN sound/core/timer.c~mark-struct-file_operations-const-9 sound/core/timer.c
---- a/sound/core/timer.c~mark-struct-file_operations-const-9
-+++ a/sound/core/timer.c
-@@ -1901,7 +1901,7 @@ static unsigned int snd_timer_user_poll(
- #define snd_timer_user_ioctl_compat	NULL
- #endif
- 
--static struct file_operations snd_timer_f_ops =
-+static const struct file_operations snd_timer_f_ops =
- {
- 	.owner =	THIS_MODULE,
- 	.read =		snd_timer_user_read,
-diff -puN sound/oss/ad1889.c~mark-struct-file_operations-const-9 sound/oss/ad1889.c
---- a/sound/oss/ad1889.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/ad1889.c
-@@ -778,7 +778,7 @@ static int ad1889_release(struct inode *
- 	return 0;
- }
- 
--static struct file_operations ad1889_fops = {
-+static const struct file_operations ad1889_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.read		= ad1889_read,
-@@ -812,7 +812,7 @@ static int ad1889_mixer_ioctl(struct ino
- 	return codec->mixer_ioctl(codec, cmd, arg);
- }
- 
--static struct file_operations ad1889_mixer_fops = {
-+static const struct file_operations ad1889_mixer_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.ioctl		= ad1889_mixer_ioctl,
-diff -puN sound/oss/btaudio.c~mark-struct-file_operations-const-9 sound/oss/btaudio.c
---- a/sound/oss/btaudio.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/btaudio.c
-@@ -429,7 +429,7 @@ static int btaudio_mixer_ioctl(struct in
- 	return 0;
- }
- 
--static struct file_operations btaudio_mixer_fops = {
-+static const struct file_operations btaudio_mixer_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.open		= btaudio_mixer_open,
-@@ -796,7 +796,7 @@ static unsigned int btaudio_dsp_poll(str
- 	return mask;
- }
- 
--static struct file_operations btaudio_digital_dsp_fops = {
-+static const struct file_operations btaudio_digital_dsp_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.open		= btaudio_dsp_open_digital,
-@@ -807,7 +807,7 @@ static struct file_operations btaudio_di
- 	.poll		= btaudio_dsp_poll,
- };
- 
--static struct file_operations btaudio_analog_dsp_fops = {
-+static const struct file_operations btaudio_analog_dsp_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.open		= btaudio_dsp_open_analog,
-diff -puN sound/oss/dmasound/dmasound_core.c~mark-struct-file_operations-const-9 sound/oss/dmasound/dmasound_core.c
---- a/sound/oss/dmasound/dmasound_core.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/dmasound/dmasound_core.c
-@@ -371,7 +371,7 @@ static int mixer_ioctl(struct inode *ino
- 	return -EINVAL;
- }
- 
--static struct file_operations mixer_fops =
-+static const struct file_operations mixer_fops =
- {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
-@@ -1337,7 +1337,7 @@ static int sq_ioctl(struct inode *inode,
- 	return -EINVAL;
- }
- 
--static struct file_operations sq_fops =
-+static const struct file_operations sq_fops =
- {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
-@@ -1561,7 +1561,7 @@ static ssize_t state_read(struct file *f
- 	return n;
- }
- 
--static struct file_operations state_fops = {
-+static const struct file_operations state_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.read		= state_read,
-diff -puN sound/oss/emu10k1/audio.c~mark-struct-file_operations-const-9 sound/oss/emu10k1/audio.c
---- a/sound/oss/emu10k1/audio.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/emu10k1/audio.c
-@@ -1582,7 +1582,7 @@ static void emu10k1_waveout_bh(unsigned 
- 	return;
- }
- 
--struct file_operations emu10k1_audio_fops = {
-+const struct file_operations emu10k1_audio_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.read		= emu10k1_audio_read,
-diff -puN sound/oss/emu10k1/midi.c~mark-struct-file_operations-const-9 sound/oss/emu10k1/midi.c
---- a/sound/oss/emu10k1/midi.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/emu10k1/midi.c
-@@ -458,7 +458,7 @@ int emu10k1_midi_callback(unsigned long 
- }
- 
- /* MIDI file operations */
--struct file_operations emu10k1_midi_fops = {
-+const struct file_operations emu10k1_midi_fops = {
- 	.owner		= THIS_MODULE,
- 	.read		= emu10k1_midi_read,
- 	.write		= emu10k1_midi_write,
-diff -puN sound/oss/emu10k1/mixer.c~mark-struct-file_operations-const-9 sound/oss/emu10k1/mixer.c
---- a/sound/oss/emu10k1/mixer.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/emu10k1/mixer.c
-@@ -681,7 +681,7 @@ static int emu10k1_mixer_release(struct 
- 	return 0;
- }
- 
--struct file_operations emu10k1_mixer_fops = {
-+const struct file_operations emu10k1_mixer_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.ioctl		= emu10k1_mixer_ioctl,
-diff -puN sound/oss/hal2.c~mark-struct-file_operations-const-9 sound/oss/hal2.c
---- a/sound/oss/hal2.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/hal2.c
-@@ -1377,7 +1377,7 @@ static int hal2_release(struct inode *in
- 	return 0;
- }
- 
--static struct file_operations hal2_audio_fops = {
-+static const struct file_operations hal2_audio_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.read		= hal2_read,
-@@ -1388,7 +1388,7 @@ static struct file_operations hal2_audio
- 	.release	= hal2_release,
- };
- 
--static struct file_operations hal2_mixer_fops = {
-+static const struct file_operations hal2_mixer_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.ioctl		= hal2_ioctl_mixdev,
-diff -puN sound/oss/msnd_pinnacle.c~mark-struct-file_operations-const-9 sound/oss/msnd_pinnacle.c
---- a/sound/oss/msnd_pinnacle.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/msnd_pinnacle.c
-@@ -1106,7 +1106,7 @@ static irqreturn_t intr(int irq, void *d
- 	return IRQ_HANDLED;
- }
- 
--static struct file_operations dev_fileops = {
-+static const struct file_operations dev_fileops = {
- 	.owner		= THIS_MODULE,
- 	.read		= dev_read,
- 	.write		= dev_write,
-diff -puN sound/oss/os.h~mark-struct-file_operations-const-9 sound/oss/os.h
---- a/sound/oss/os.h~mark-struct-file_operations-const-9
-+++ a/sound/oss/os.h
-@@ -43,4 +43,4 @@ extern int sound_nblocks;
- #undef PSEUDO_DMA_AUTOINIT
- #define ALLOW_BUFFER_MAPPING
- 
--extern struct file_operations oss_sound_fops;
-+extern const struct file_operations oss_sound_fops;
-diff -puN sound/oss/sh_dac_audio.c~mark-struct-file_operations-const-9 sound/oss/sh_dac_audio.c
---- a/sound/oss/sh_dac_audio.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/sh_dac_audio.c
-@@ -255,7 +255,7 @@ static int dac_audio_release(struct inod
- 	return 0;
- }
- 
--struct file_operations dac_audio_fops = {
-+const struct file_operations dac_audio_fops = {
-       .read =		dac_audio_read,
-       .write =	dac_audio_write,
-       .ioctl =	dac_audio_ioctl,
-diff -puN sound/oss/soundcard.c~mark-struct-file_operations-const-9 sound/oss/soundcard.c
---- a/sound/oss/soundcard.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/soundcard.c
-@@ -483,7 +483,7 @@ static int sound_mmap(struct file *file,
- 	return 0;
- }
- 
--struct file_operations oss_sound_fops = {
-+const struct file_operations oss_sound_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.read		= sound_read,
-diff -puN sound/oss/via82cxxx_audio.c~mark-struct-file_operations-const-9 sound/oss/via82cxxx_audio.c
---- a/sound/oss/via82cxxx_audio.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/via82cxxx_audio.c
-@@ -1619,7 +1619,7 @@ out:
- }
- 
- 
--static struct file_operations via_mixer_fops = {
-+static const struct file_operations via_mixer_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= via_mixer_open,
- 	.llseek		= no_llseek,
-@@ -2042,7 +2042,7 @@ static int via_interrupt_init (struct vi
-  *
-  */
- 
--static struct file_operations via_dsp_fops = {
-+static const struct file_operations via_dsp_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= via_dsp_open,
- 	.release	= via_dsp_release,
-diff -puN sound/oss/vwsnd.c~mark-struct-file_operations-const-9 sound/oss/vwsnd.c
---- a/sound/oss/vwsnd.c~mark-struct-file_operations-const-9
-+++ a/sound/oss/vwsnd.c
-@@ -3035,7 +3035,7 @@ static int vwsnd_audio_release(struct in
- 	return err;
- }
- 
--static struct file_operations vwsnd_audio_fops = {
-+static const struct file_operations vwsnd_audio_fops = {
- 	.owner =	THIS_MODULE,
- 	.llseek =	no_llseek,
- 	.read =		vwsnd_audio_read,
-@@ -3225,7 +3225,7 @@ static int vwsnd_mixer_ioctl(struct inod
- 	return retval;
- }
- 
--static struct file_operations vwsnd_mixer_fops = {
-+static const struct file_operations vwsnd_mixer_fops = {
- 	.owner =	THIS_MODULE,
- 	.llseek =	no_llseek,
- 	.ioctl =	vwsnd_mixer_ioctl,
-diff -puN sound/sound_core.c~mark-struct-file_operations-const-9 sound/sound_core.c
---- a/sound/sound_core.c~mark-struct-file_operations-const-9
-+++ a/sound/sound_core.c
-@@ -436,7 +436,7 @@ EXPORT_SYMBOL(unregister_sound_dsp);
- 
- static int soundcore_open(struct inode *, struct file *);
- 
--static struct file_operations soundcore_fops=
-+static const struct file_operations soundcore_fops=
- {
- 	/* We must have an owner or the module locking fails */
- 	.owner	= THIS_MODULE,
+ unifdef-y += a.out.h
+ unifdef-y += asm-compat.h
+diff -puN /dev/null include/asm-powerpc/ps3fb.h
+--- /dev/null
++++ a/include/asm-powerpc/ps3fb.h
+@@ -0,0 +1,44 @@
++/*
++ * Copyright (C) 2006 Sony Computer Entertainment Inc.
++ * Copyright 2006, 2007 Sony Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
++
++#ifndef _ASM_POWERPC_PS3FB_H_
++#define _ASM_POWERPC_PS3FB_H_
++
++#include <linux/ioctl.h>
++
++/* ioctl */
++#define PS3FB_IOCTL_SETMODE       _IOW('r',  1, int) /* set video mode */
++#define PS3FB_IOCTL_GETMODE       _IOR('r',  2, int) /* get video mode */
++#define PS3FB_IOCTL_SCREENINFO    _IOR('r',  3, int) /* get screen info */
++#define PS3FB_IOCTL_ON            _IO('r', 4)        /* use IOCTL_FSEL */
++#define PS3FB_IOCTL_OFF           _IO('r', 5)        /* return to normal-flip */
++#define PS3FB_IOCTL_FSEL          _IOW('r', 6, int)  /* blit and flip request */
++
++#ifndef FBIO_WAITFORVSYNC
++#define FBIO_WAITFORVSYNC         _IOW('F', 0x20, __u32) /* wait for vsync */
++#endif
++
++struct ps3fb_ioctl_res {
++	__u32 xres; /* frame buffer x_size */
++	__u32 yres; /* frame buffer y_size */
++	__u32 xoff; /* margine x  */
++	__u32 yoff; /* margine y */
++	__u32 num_frames; /* num of frame buffers */
++};
++
++#endif /* _ASM_POWERPC_PS3FB_H_ */
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-user-of-the-jiffies-rounding-code-e1000.patch
