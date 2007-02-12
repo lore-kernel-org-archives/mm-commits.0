@@ -1,76 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - edac-e752x-bit-mask-fix.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:35 -0800
-Message-ID: <200702122245.l1CMjZcg013723@shell0.pdx.osdl.net>
+Subject: - sa1100-gpio-wrappers.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:45:59 -0800
+Message-ID: <200702122245.l1CMjx5a013755@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45141 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45172 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030292AbXBLWpv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:45:51 -0500
+	id S1030312AbXBLWqD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bapper@mvista.com, ak@suse.de, alan@lxorguk.ukuu.org.uk, djiang@mvista.com, ebiederm@xmission.com, norsk5@xmission.com, mm-commits@vger.kernel.org
+To: philipp.zabel@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     EDAC: e752x bit mask fix
+     SA1100 GPIO wrappers
 has been removed from the -mm tree.  Its filename was
-     edac-e752x-bit-mask-fix.patch
+     sa1100-gpio-wrappers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: EDAC: e752x bit mask fix
-From: Brian Pomerantz <bapper@mvista.com>
+Subject: SA1100 GPIO wrappers
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-The fatal vs.  non-fatal mask for the sysbus FERR status is incorrect
-according to the E7520 datasheet.  This patch corrects the mask to correctly
-handle fatal and non-fatal errors.
+Arch-neutral GPIO calls for SA-1100.
 
-Signed-off-by: Brian Pomerantz <bapper@mvista.com>
-Signed-off-by: Dave Jiang <djiang@mvista.com>
-Signed-off-by: Doug Thompson <norsk5@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/e752x_edac.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/asm-arm/arch-sa1100/gpio.h |   81 +++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
-diff -puN drivers/edac/e752x_edac.c~edac-e752x-bit-mask-fix drivers/edac/e752x_edac.c
---- a/drivers/edac/e752x_edac.c~edac-e752x-bit-mask-fix
-+++ a/drivers/edac/e752x_edac.c
-@@ -556,17 +556,17 @@ static void e752x_check_sysbus(struct e7
- 	error32 = (stat32 >> 16) & 0x3ff;
- 	stat32 = stat32 & 0x3ff;
- 
--	if(stat32 & 0x083)
--		sysbus_error(1, stat32 & 0x083, error_found, handle_error);
-+	if(stat32 & 0x087)
-+		sysbus_error(1, stat32 & 0x087, error_found, handle_error);
- 
--	if(stat32 & 0x37c)
--		sysbus_error(0, stat32 & 0x37c, error_found, handle_error);
-+	if(stat32 & 0x378)
-+		sysbus_error(0, stat32 & 0x378, error_found, handle_error);
- 
--	if(error32 & 0x083)
--		sysbus_error(1, error32 & 0x083, error_found, handle_error);
-+	if(error32 & 0x087)
-+		sysbus_error(1, error32 & 0x087, error_found, handle_error);
- 
--	if(error32 & 0x37c)
--		sysbus_error(0, error32 & 0x37c, error_found, handle_error);
-+	if(error32 & 0x378)
-+		sysbus_error(0, error32 & 0x378, error_found, handle_error);
- }
- 
- static void e752x_check_membuf (struct e752x_error_info *info,
+diff -puN /dev/null include/asm-arm/arch-sa1100/gpio.h
+--- /dev/null
++++ a/include/asm-arm/arch-sa1100/gpio.h
+@@ -0,0 +1,81 @@
++/*
++ * linux/include/asm-arm/arch-pxa/gpio.h
++ *
++ * SA1100 GPIO wrappers for arch-neutral GPIO calls
++ *
++ * Written by Philipp Zabel <philipp.zabel@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
++ */
++
++#ifndef __ASM_ARCH_SA1100_GPIO_H
++#define __ASM_ARCH_SA1100_GPIO_H
++
++#include <asm/arch/SA-1100.h>
++#include <asm/arch/irqs.h>
++#include <asm/arch/hardware.h>
++
++#include <asm/errno.h>
++
++static inline int gpio_request(unsigned gpio, const char *label)
++{
++	return 0;
++}
++
++static inline void gpio_free(unsigned gpio)
++{
++	return;
++}
++
++static inline int gpio_direction_input(unsigned gpio)
++{
++	if (gpio > GPIO_MAX)
++		return -EINVAL;
++	GPDR = (GPDR_In << gpio) 0
++}
++
++static inline int gpio_direction_output(unsigned gpio)
++{
++	if (gpio > GPIO_MAX)
++		return -EINVAL;
++	GPDR = (GPDR_Out << gpio) 0
++}
++
++#define gpio_get_value(gpio) \
++	(GPLR & GPIO_GPIO(gpio))
++
++#define gpio_set_value(gpio,value) \
++	((value) ? (GPSR = GPIO_GPIO(gpio)) : (GPCR(gpio) = GPIO_GPIO(gpio)))
++
++#include <asm-generic/gpio.h>			/* cansleep wrappers */
++
++static inline unsigned gpio_to_irq(unsigned gpio)
++{
++	if (gpio < 11)
++		return IRQ_GPIO0 + gpio;
++	else
++		return IRQ_GPIO11 - 11 + gpio;
++}
++
++static inline unsigned irq_to_gpio(unsigned irq)
++{
++	if (irq < IRQ_GPIO11_27)
++		return irq - IRQ_GPIO0;
++	else
++		return irq - IRQ_GPIO11 + 11;
++}
++
++#endif
 _
 
-Patches currently in -mm which might be from bapper@mvista.com are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
 origin.patch
