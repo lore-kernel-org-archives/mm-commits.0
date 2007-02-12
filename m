@@ -1,184 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - register_blkdev-dont-hand-out-the-local-experimental-majors.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:43:02 -0800
-Message-ID: <200702122243.l1CMh2eX013466@shell0.pdx.osdl.net>
+Subject: - atmel_serial-use-__raw-i-o-register-access.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:43:54 -0800
+Message-ID: <200702122243.l1CMhsYT013538@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44947 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44953 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030257AbXBLWoS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:44:18 -0500
+	id S1030256AbXBLWoT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:44:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, device@lanana.org, greg@kroah.com, tomas.klas@mepatek.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hskinnemoen@atmel.com, andrew@sanpeople.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     register_blkdev(): don't hand out the LOCAL/EXPERIMENTAL majors
+     atmel_serial: Use __raw I/O register access
 has been removed from the -mm tree.  Its filename was
-     register_blkdev-dont-hand-out-the-local-experimental-majors.patch
+     atmel_serial-use-__raw-i-o-register-access.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: register_blkdev(): don't hand out the LOCAL/EXPERIMENTAL majors
-From: Andrew Morton <akpm@osdl.org>
+Subject: atmel_serial: Use __raw I/O register access
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-As pointed out in http://bugzilla.kernel.org/show_bug.cgi?id=7922, dynamic
-blockdev major allocation can hand out majors which LANANA has defined as
-being for local/experimental use.
+Access to chip-internal registers should always be native-endian.  This is
+especially important for AVR32 since it's a big-endian architecture and the
+non-raw readl() and writel() macros are defined to do little-endian
+accesses.
 
-Cc: Torben Mathiasen <device@lanana.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Tomas Klas <tomas.klas@mepatek.cz>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Acked-by: Andrew Victor <andrew@sanpeople.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/serial/atmel_serial.c |   50 ++++++++++++++++----------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
 
-diff -puN block/genhd.c~register_blkdev-dont-hand-out-the-local-experimental-majors block/genhd.c
---- a/block/genhd.c~register_blkdev-dont-hand-out-the-local-experimental-majors
-+++ a/block/genhd.c
-@@ -61,6 +61,14 @@ int register_blkdev(unsigned int major, 
- 	/* temporary */
- 	if (major == 0) {
- 		for (index = ARRAY_SIZE(major_names)-1; index > 0; index--) {
-+			/*
-+			 * Disallow the LANANA-assigned LOCAL/EXPERIMENTAL
-+			 * majors
-+			 */
-+			if ((60 <= index && index <= 63) ||
-+					(120 <= index && index <= 127) ||
-+					(240 <= index && index <= 254))
-+				continue;
- 			if (major_names[index] == NULL)
- 				break;
- 		}
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-use-__raw-i-o-register-access drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-use-__raw-i-o-register-access
++++ a/drivers/serial/atmel_serial.c
+@@ -73,35 +73,35 @@
+ 
+ #define ATMEL_ISR_PASS_LIMIT	256
+ 
+-#define UART_PUT_CR(port,v)	writel(v, (port)->membase + ATMEL_US_CR)
+-#define UART_GET_MR(port)	readl((port)->membase + ATMEL_US_MR)
+-#define UART_PUT_MR(port,v)	writel(v, (port)->membase + ATMEL_US_MR)
+-#define UART_PUT_IER(port,v)	writel(v, (port)->membase + ATMEL_US_IER)
+-#define UART_PUT_IDR(port,v)	writel(v, (port)->membase + ATMEL_US_IDR)
+-#define UART_GET_IMR(port)	readl((port)->membase + ATMEL_US_IMR)
+-#define UART_GET_CSR(port)	readl((port)->membase + ATMEL_US_CSR)
+-#define UART_GET_CHAR(port)	readl((port)->membase + ATMEL_US_RHR)
+-#define UART_PUT_CHAR(port,v)	writel(v, (port)->membase + ATMEL_US_THR)
+-#define UART_GET_BRGR(port)	readl((port)->membase + ATMEL_US_BRGR)
+-#define UART_PUT_BRGR(port,v)	writel(v, (port)->membase + ATMEL_US_BRGR)
+-#define UART_PUT_RTOR(port,v)	writel(v, (port)->membase + ATMEL_US_RTOR)
++#define UART_PUT_CR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_CR)
++#define UART_GET_MR(port)	__raw_readl((port)->membase + ATMEL_US_MR)
++#define UART_PUT_MR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_MR)
++#define UART_PUT_IER(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_IER)
++#define UART_PUT_IDR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_IDR)
++#define UART_GET_IMR(port)	__raw_readl((port)->membase + ATMEL_US_IMR)
++#define UART_GET_CSR(port)	__raw_readl((port)->membase + ATMEL_US_CSR)
++#define UART_GET_CHAR(port)	__raw_readl((port)->membase + ATMEL_US_RHR)
++#define UART_PUT_CHAR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_THR)
++#define UART_GET_BRGR(port)	__raw_readl((port)->membase + ATMEL_US_BRGR)
++#define UART_PUT_BRGR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_BRGR)
++#define UART_PUT_RTOR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_RTOR)
+ 
+-// #define UART_GET_CR(port)	readl((port)->membase + ATMEL_US_CR)		// is write-only
++// #define UART_GET_CR(port)	__raw_readl((port)->membase + ATMEL_US_CR)		// is write-only
+ 
+  /* PDC registers */
+-#define UART_PUT_PTCR(port,v)	writel(v, (port)->membase + ATMEL_PDC_PTCR)
+-#define UART_GET_PTSR(port)	readl((port)->membase + ATMEL_PDC_PTSR)
++#define UART_PUT_PTCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_PTCR)
++#define UART_GET_PTSR(port)	__raw_readl((port)->membase + ATMEL_PDC_PTSR)
+ 
+-#define UART_PUT_RPR(port,v)	writel(v, (port)->membase + ATMEL_PDC_RPR)
+-#define UART_GET_RPR(port)	readl((port)->membase + ATMEL_PDC_RPR)
+-#define UART_PUT_RCR(port,v)	writel(v, (port)->membase + ATMEL_PDC_RCR)
+-#define UART_PUT_RNPR(port,v)	writel(v, (port)->membase + ATMEL_PDC_RNPR)
+-#define UART_PUT_RNCR(port,v)	writel(v, (port)->membase + ATMEL_PDC_RNCR)
+-
+-#define UART_PUT_TPR(port,v)	writel(v, (port)->membase + ATMEL_PDC_TPR)
+-#define UART_PUT_TCR(port,v)	writel(v, (port)->membase + ATMEL_PDC_TCR)
+-//#define UART_PUT_TNPR(port,v)	writel(v, (port)->membase + ATMEL_PDC_TNPR)
+-//#define UART_PUT_TNCR(port,v)	writel(v, (port)->membase + ATMEL_PDC_TNCR)
++#define UART_PUT_RPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RPR)
++#define UART_GET_RPR(port)	__raw_readl((port)->membase + ATMEL_PDC_RPR)
++#define UART_PUT_RCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RCR)
++#define UART_PUT_RNPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RNPR)
++#define UART_PUT_RNCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RNCR)
++
++#define UART_PUT_TPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TPR)
++#define UART_PUT_TCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TCR)
++//#define UART_PUT_TNPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TNPR)
++//#define UART_PUT_TNCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TNCR)
+ 
+ static int (*atmel_open_hook)(struct uart_port *);
+ static void (*atmel_close_hook)(struct uart_port *);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
 origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-acpi.patch
-git-agpgart.patch
-git-dvb.patch
-git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-libata-all.patch
-git-lxdialog-fixup.patch
+git-arm.patch
+git-avr32.patch
 git-mtd.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-git-backlight.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-xfs-barriers-broke.patch
-nokia-e70-is-an-unusual-device.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-touchkit-ps-2-touchscreen-driver.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-block_write_full_page-handle-enospc.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-vmi-versus-hrtimers.patch
-add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
-i386-use-gtod-persistent-clock-support.patch
-hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
-hrtimers-cleanup-locking.patch
-hrtimers-add-state-tracking.patch
-clockevents-i383-drivers.patch
-generic-vsyscall-gtod-support-for-generic_time-tidy.patch
-revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
-time-x86_64-split-x86_64-kernel-timec-up-fix.patch
-reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
-time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
-time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
-time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+clocksource-fixup-is_continous-changes-on-avr32.patch
