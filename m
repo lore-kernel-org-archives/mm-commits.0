@@ -1,39 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:45:23 -0800
-Message-ID: <200702122245.l1CMjNaa013707@shell0.pdx.osdl.net>
+Subject: - pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:45:33 -0800
+Message-ID: <200702122245.l1CMjXqP013720@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45098 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45121 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030295AbXBLWp2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:45:28 -0500
+	id S965440AbXBLWph (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:45:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pid: replace is_orphaned_pgrp with is_current_pgrp_orphaned
+     pid: remove the now unused kill_pg kill_pg_info and __kill_pg_info
 has been removed from the -mm tree.  Its filename was
-     pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned.patch
+     pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pid: replace is_orphaned_pgrp with is_current_pgrp_orphaned
+Subject: pid: remove the now unused kill_pg kill_pg_info and __kill_pg_info
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Every call to is_orphaned_pgrp passed in process_group(current) which is racy
-with respect to another thread changing our process group.  It didn't bite us
-because we were dealing with integers and the worse we would get would be a
-stale answer.
-
-In switching the checks to use struct pid to be a little more efficient and
-prepare the way for pid namespaces this race became apparent.
-
-So I simplified the calls to the more specialized is_current_pgrp_orphaned so
-I didn't have to worry about making logic changes to avoid the race.
+Now that I have changed all of the in-tree users remove the old version of
+these functions.  This should make it clear to any out of tree users that they
+should be using kill_pgrp kill_pgrp_info or __kill_pgrp_info instead.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -41,79 +34,79 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_tty.c  |    2 +-
- drivers/char/tty_io.c |    2 +-
- include/linux/tty.h   |    2 +-
- kernel/exit.c         |    4 ++--
- kernel/signal.c       |    2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/sched.h |    3 ---
+ kernel/signal.c       |   27 ---------------------------
+ 2 files changed, 30 deletions(-)
 
-diff -puN drivers/char/n_tty.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned
-+++ a/drivers/char/n_tty.c
-@@ -1188,7 +1188,7 @@ static int job_control(struct tty_struct
- 			printk("read_chan: tty->pgrp <= 0!\n");
- 		else if (process_group(current) != tty->pgrp) {
- 			if (is_ignored(SIGTTIN) ||
--			    is_orphaned_pgrp(process_group(current)))
-+			    is_current_pgrp_orphaned())
- 				return -EIO;
- 			kill_pg(process_group(current), SIGTTIN, 1);
- 			return -ERESTARTSYS;
-diff -puN drivers/char/tty_io.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned
-+++ a/drivers/char/tty_io.c
-@@ -1118,7 +1118,7 @@ int tty_check_change(struct tty_struct *
- 		return 0;
- 	if (is_ignored(SIGTTOU))
- 		return 0;
--	if (is_orphaned_pgrp(process_group(current)))
-+	if (is_current_pgrp_orphaned())
- 		return -EIO;
- 	(void) kill_pg(process_group(current), SIGTTOU, 1);
- 	return -ERESTARTSYS;
-diff -puN include/linux/tty.h~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned include/linux/tty.h
---- a/include/linux/tty.h~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned
-+++ a/include/linux/tty.h
-@@ -303,7 +303,7 @@ extern int tty_read_raw_data(struct tty_
- 			     int buflen);
- extern void tty_write_message(struct tty_struct *tty, char *msg);
- 
--extern int is_orphaned_pgrp(int pgrp);
-+extern int is_current_pgrp_orphaned(void);
- extern int is_ignored(int sig);
- extern int tty_signal(int sig, struct tty_struct *tty);
- extern void tty_hangup(struct tty_struct * tty);
-diff -puN kernel/exit.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned kernel/exit.c
---- a/kernel/exit.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned
-+++ a/kernel/exit.c
-@@ -229,12 +229,12 @@ static int will_become_orphaned_pgrp(str
- 	return ret;	/* (sighing) "Often!" */
+diff -puN include/linux/sched.h~pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info include/linux/sched.h
+--- a/include/linux/sched.h~pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info
++++ a/include/linux/sched.h
+@@ -1329,14 +1329,11 @@ extern int kill_pid_info(int sig, struct
+ extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
+ extern int kill_pgrp(struct pid *pid, int sig, int priv);
+ extern int kill_pid(struct pid *pid, int sig, int priv);
+-extern int __kill_pg_info(int sig, struct siginfo *info, pid_t pgrp);
+-extern int kill_pg_info(int, struct siginfo *, pid_t);
+ extern void do_notify_parent(struct task_struct *, int);
+ extern void force_sig(int, struct task_struct *);
+ extern void force_sig_specific(int, struct task_struct *);
+ extern int send_sig(int, struct task_struct *, int);
+ extern void zap_other_threads(struct task_struct *p);
+-extern int kill_pg(pid_t, int, int);
+ extern int kill_proc(pid_t, int, int);
+ extern struct sigqueue *sigqueue_alloc(void);
+ extern void sigqueue_free(struct sigqueue *);
+diff -puN kernel/signal.c~pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info kernel/signal.c
+--- a/kernel/signal.c~pid-remove-the-now-unused-kill_pg-kill_pg_info-and-__kill_pg_info
++++ a/kernel/signal.c
+@@ -1096,26 +1096,6 @@ int kill_pgrp_info(int sig, struct sigin
+ 	return retval;
  }
  
--int is_orphaned_pgrp(int pgrp)
-+int is_current_pgrp_orphaned(void)
+-int __kill_pg_info(int sig, struct siginfo *info, pid_t pgrp)
+-{
+-	if (pgrp <= 0)
+-		return -EINVAL;
+-
+-	return __kill_pgrp_info(sig, info, find_pid(pgrp));
+-}
+-
+-int
+-kill_pg_info(int sig, struct siginfo *info, pid_t pgrp)
+-{
+-	int retval;
+-
+-	read_lock(&tasklist_lock);
+-	retval = __kill_pg_info(sig, info, pgrp);
+-	read_unlock(&tasklist_lock);
+-
+-	return retval;
+-}
+-
+ int kill_pid_info(int sig, struct siginfo *info, struct pid *pid)
  {
- 	int retval;
+ 	int error;
+@@ -1315,12 +1295,6 @@ int kill_pid(struct pid *pid, int sig, i
+ EXPORT_SYMBOL(kill_pid);
  
- 	read_lock(&tasklist_lock);
--	retval = will_become_orphaned_pgrp(find_pid(pgrp), NULL);
-+	retval = will_become_orphaned_pgrp(task_pgrp(current), NULL);
- 	read_unlock(&tasklist_lock);
- 
- 	return retval;
-diff -puN kernel/signal.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned kernel/signal.c
---- a/kernel/signal.c~pid-replace-is_orphaned_pgrp-with-is_current_pgrp_orphaned
-+++ a/kernel/signal.c
-@@ -1909,7 +1909,7 @@ relock:
- 
- 				/* signals can be posted during this window */
- 
--				if (is_orphaned_pgrp(process_group(current)))
-+				if (is_current_pgrp_orphaned())
- 					goto relock;
- 
- 				spin_lock_irq(&current->sighand->siglock);
+ int
+-kill_pg(pid_t pgrp, int sig, int priv)
+-{
+-	return kill_pg_info(sig, __si_special(priv), pgrp);
+-}
+-
+-int
+ kill_proc(pid_t pid, int sig, int priv)
+ {
+ 	return kill_proc_info(sig, __si_special(priv), pid);
+@@ -1959,7 +1933,6 @@ EXPORT_SYMBOL(recalc_sigpending);
+ EXPORT_SYMBOL_GPL(dequeue_signal);
+ EXPORT_SYMBOL(flush_signals);
+ EXPORT_SYMBOL(force_sig);
+-EXPORT_SYMBOL(kill_pg);
+ EXPORT_SYMBOL(kill_proc);
+ EXPORT_SYMBOL(ptrace_notify);
+ EXPORT_SYMBOL(send_sig);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
