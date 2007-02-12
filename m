@@ -1,76 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - change-__init-to-__devinit-in-2-rtc-drivers.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:44:18 -0800
-Message-ID: <200702122244.l1CMiIpN013576@shell0.pdx.osdl.net>
+Subject: - spi-kconfig-fix.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:44:33 -0800
+Message-ID: <200702122244.l1CMiXPe013613@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44985 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44997 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030264AbXBLWof (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:44:35 -0500
+	id S1030264AbXBLWol (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:44:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: prarit@redhat.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     change __init to __devinit in 2 rtc drivers
+     SPI Kconfig fix
 has been removed from the -mm tree.  Its filename was
-     change-__init-to-__devinit-in-2-rtc-drivers.patch
+     spi-kconfig-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: change __init to __devinit in 2 rtc drivers
-From: Prarit Bhargava <prarit@redhat.com>
+Subject: SPI Kconfig fix
+From: David Brownell <david-b@pacbell.net>
 
-Change __init to __devinit in rtc drivers' probe functions.
+Minor Kconfig cleanup ... put the SPI_S3C24XX entry in the
+correct location (alphabetical order).
 
-Resolves MODPOST warnings:
-
-WARNING: drivers/rtc/rtc-ds1553.o - Section mismatch: reference to
-.init.text:ds1553_rtc_probe from .data.rel between 'ds1553_rtc_driver' (at
-offset 0x0) and 'ds1553_nvram_attr'
-WARNING: drivers/rtc/rtc-ds1742.o - Section mismatch: reference to
-.init.text:ds1742_rtc_probe from .data.rel between 'ds1742_rtc_driver' (at
-offset 0x0) and 'ds1742_nvram_attr'
-
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1553.c |    2 +-
- drivers/rtc/rtc-ds1742.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/spi/Kconfig |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1553.c~change-__init-to-__devinit-in-2-rtc-drivers drivers/rtc/rtc-ds1553.c
---- a/drivers/rtc/rtc-ds1553.c~change-__init-to-__devinit-in-2-rtc-drivers
-+++ a/drivers/rtc/rtc-ds1553.c
-@@ -297,7 +297,7 @@ static struct bin_attribute ds1553_nvram
- 	.write = ds1553_nvram_write,
- };
+diff -puN drivers/spi/Kconfig~spi-kconfig-fix drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-kconfig-fix
++++ a/drivers/spi/Kconfig
+@@ -95,6 +95,12 @@ config SPI_PXA2XX
+ 	  The driver can be configured to use any SSP port and additional
+ 	  documentation can be found a Documentation/spi/pxa2xx.
  
--static int __init ds1553_rtc_probe(struct platform_device *pdev)
-+static int __devinit ds1553_rtc_probe(struct platform_device *pdev)
- {
- 	struct rtc_device *rtc;
- 	struct resource *res;
-diff -puN drivers/rtc/rtc-ds1742.c~change-__init-to-__devinit-in-2-rtc-drivers drivers/rtc/rtc-ds1742.c
---- a/drivers/rtc/rtc-ds1742.c~change-__init-to-__devinit-in-2-rtc-drivers
-+++ a/drivers/rtc/rtc-ds1742.c
-@@ -165,7 +165,7 @@ static struct bin_attribute ds1742_nvram
- 	.write = ds1742_nvram_write,
- };
++config SPI_S3C24XX
++	tristate "Samsung S3C24XX series SPI"
++	depends on SPI_MASTER && ARCH_S3C2410 && EXPERIMENTAL
++	help
++	  SPI driver for Samsung S3C24XX series ARM SoCs
++
+ config SPI_S3C24XX_GPIO
+ 	tristate "Samsung S3C24XX series SPI by GPIO"
+ 	depends on SPI_MASTER && ARCH_S3C2410 && SPI_BITBANG && EXPERIMENTAL
+@@ -107,13 +113,6 @@ config SPI_S3C24XX_GPIO
+ # Add new SPI master controllers in alphabetical order above this line
+ #
  
--static int __init ds1742_rtc_probe(struct platform_device *pdev)
-+static int __devinit ds1742_rtc_probe(struct platform_device *pdev)
- {
- 	struct rtc_device *rtc;
- 	struct resource *res;
+-
+-config SPI_S3C24XX
+-	tristate "Samsung S3C24XX series SPI"
+-	depends on SPI_MASTER && ARCH_S3C2410 && EXPERIMENTAL
+-	help
+-	  SPI driver for Samsung S3C24XX series ARM SoCs
+-
+ #
+ # There are lots of SPI device types, with sensors and memory
+ # being probably the most widely used ones.
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-change-__init-to-__devinit-for-isp116x_probe.patch
+git-acpi.patch
+git-avr32.patch
+git-md-accel.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
