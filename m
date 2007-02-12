@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:46:38 -0800
-Message-ID: <200702122246.l1CMkc1u013830@shell0.pdx.osdl.net>
+Subject: - knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:42 -0800
+Message-ID: <200702122246.l1CMkgL3013845@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45285 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45297 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030319AbXBLWqu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:50 -0500
+	id S1030318AbXBLWqy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: chuck.lever@oracle.com, aurelien.charbon@ext.bull.net, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: SUNRPC: Cache remote peer's address in svc_sock
+     knfsd: SUNRPC: Use sockaddr_storage to store address in svc_deferred_req
 has been removed from the -mm tree.  Its filename was
-     knfsd-sunrpc-cache-remote-peers-address-in-svc_sock.patch
+     knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: SUNRPC: Cache remote peer's address in svc_sock
+Subject: knfsd: SUNRPC: Use sockaddr_storage to store address in svc_deferred_req
 From: Chuck Lever <chuck.lever@oracle.com>
 
-The remote peer's address won't change after the socket has been accepted.  We
-don't need to call ->getname on every incoming request.
+Sockaddr_storage will allow us to store arbitrary socket addresses in the
+svc_deferred_req struct.
 
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 Cc: Aurelien Charbon <aurelien.charbon@ext.bull.net>
@@ -33,66 +33,48 @@ Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/svcsock.h |    3 +++
- net/sunrpc/svcsock.c           |   14 ++++++++------
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ include/linux/sunrpc/svc.h |    5 +++--
+ net/sunrpc/svcsock.c       |    6 ++++--
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/sunrpc/svcsock.h~knfsd-sunrpc-cache-remote-peers-address-in-svc_sock include/linux/sunrpc/svcsock.h
---- a/include/linux/sunrpc/svcsock.h~knfsd-sunrpc-cache-remote-peers-address-in-svc_sock
-+++ a/include/linux/sunrpc/svcsock.h
-@@ -57,6 +57,9 @@ struct svc_sock {
+diff -puN include/linux/sunrpc/svc.h~knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req include/linux/sunrpc/svc.h
+--- a/include/linux/sunrpc/svc.h~knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req
++++ a/include/linux/sunrpc/svc.h
+@@ -292,8 +292,9 @@ static inline void svc_free_res_pages(st
  
- 	/* cache of various info for TCP sockets */
- 	void			*sk_info_authunix;
-+
-+	struct sockaddr_storage	sk_remote;	/* remote peer's address */
-+	int			sk_remotelen;	/* length of address */
- };
- 
- /*
-diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-cache-remote-peers-address-in-svc_sock net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-sunrpc-cache-remote-peers-address-in-svc_sock
+ struct svc_deferred_req {
+ 	u32			prot;	/* protocol (UDP or TCP) */
+-	struct sockaddr_in	addr;
+-	struct svc_sock		*svsk;	/* where reply must go */
++	struct svc_sock		*svsk;
++	struct sockaddr_storage	addr;	/* where reply must go */
++	size_t			addrlen;
+ 	__be32			daddr;	/* where reply must come from */
+ 	struct cache_deferred_req handle;
+ 	int			argslen;
+diff -puN net/sunrpc/svcsock.c~knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-sunrpc-use-sockaddr_storage-to-store-address-in-svc_deferred_req
 +++ a/net/sunrpc/svcsock.c
-@@ -568,12 +568,13 @@ svc_recv_available(struct svc_sock *svsk
- static int
- svc_recvfrom(struct svc_rqst *rqstp, struct kvec *iov, int nr, int buflen)
- {
-+	struct svc_sock *svsk = rqstp->rq_sock;
- 	struct msghdr	msg;
- 	struct socket	*sock;
--	int		len, alen;
-+	int		len;
+@@ -1785,7 +1785,8 @@ svc_defer(struct cache_req *req)
  
- 	rqstp->rq_addrlen = sizeof(rqstp->rq_addr);
--	sock = rqstp->rq_sock->sk_sock;
-+	sock = svsk->sk_sock;
- 
- 	msg.msg_name    = &rqstp->rq_addr;
- 	msg.msg_namelen = sizeof(rqstp->rq_addr);
-@@ -585,11 +586,9 @@ svc_recvfrom(struct svc_rqst *rqstp, str
- 	len = kernel_recvmsg(sock, &msg, iov, nr, buflen, MSG_DONTWAIT);
- 
- 	/* sock_recvmsg doesn't fill in the name/namelen, so we must..
--	 * possibly we should cache this in the svc_sock structure
--	 * at accept time. FIXME
- 	 */
--	alen = sizeof(rqstp->rq_addr);
--	kernel_getpeername(sock, (struct sockaddr *)&rqstp->rq_addr, &alen);
-+	memcpy(&rqstp->rq_addr, &svsk->sk_remote, svsk->sk_remotelen);
-+	rqstp->rq_addrlen = svsk->sk_remotelen;
- 
- 	dprintk("svc: socket %p recvfrom(%p, %Zu) = %d\n",
- 		rqstp->rq_sock, iov[0].iov_base, iov[0].iov_len, len);
-@@ -938,6 +937,9 @@ svc_tcp_accept(struct svc_sock *svsk)
- 	if (!(newsvsk = svc_setup_socket(serv, newsock, &err,
- 				 (SVC_SOCK_ANONYMOUS | SVC_SOCK_TEMPORARY))))
- 		goto failed;
-+	memcpy(&newsvsk->sk_remote, &sin, slen);
-+	newsvsk->sk_remotelen = slen;
-+
- 	svc_sock_received(newsvsk);
- 
- 	/* make sure that we don't have too many active connections.
+ 		dr->handle.owner = rqstp->rq_server;
+ 		dr->prot = rqstp->rq_prot;
+-		dr->addr = rqstp->rq_addr;
++		memcpy(&dr->addr, &rqstp->rq_addr, rqstp->rq_addrlen);
++		dr->addrlen = rqstp->rq_addrlen;
+ 		dr->daddr = rqstp->rq_daddr;
+ 		dr->argslen = rqstp->rq_arg.len >> 2;
+ 		memcpy(dr->args, rqstp->rq_arg.head[0].iov_base-skip, dr->argslen<<2);
+@@ -1809,7 +1810,8 @@ static int svc_deferred_recv(struct svc_
+ 	rqstp->rq_arg.page_len = 0;
+ 	rqstp->rq_arg.len = dr->argslen<<2;
+ 	rqstp->rq_prot        = dr->prot;
+-	rqstp->rq_addr        = dr->addr;
++	memcpy(&rqstp->rq_addr, &dr->addr, dr->addrlen);
++	rqstp->rq_addrlen     = dr->addrlen;
+ 	rqstp->rq_daddr       = dr->daddr;
+ 	rqstp->rq_respages    = rqstp->rq_pages;
+ 	return dr->argslen<<2;
 _
 
 Patches currently in -mm which might be from chuck.lever@oracle.com are
