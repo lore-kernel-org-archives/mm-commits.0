@@ -1,65 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - dynamic-kernel-command-line-sparc.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:48:13 -0800
-Message-ID: <200702122248.l1CMmD1W013989@shell0.pdx.osdl.net>
+Subject: - dynamic-kernel-command-line-xtensa.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:48:23 -0800
+Message-ID: <200702122248.l1CMmN0F014008@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45495 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45514 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030374AbXBLWsR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:48:17 -0500
+	id S1030379AbXBLWsZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:48:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alon.barlev@gmail.com, davem@davemloft.net, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: alon.barlev@gmail.com, chris@zankel.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Dynamic kernel command-line: sparc
+     Dynamic kernel command-line: xtensa
 has been removed from the -mm tree.  Its filename was
-     dynamic-kernel-command-line-sparc.patch
+     dynamic-kernel-command-line-xtensa.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Dynamic kernel command-line: sparc
+Subject: Dynamic kernel command-line: xtensa
 From: Alon Bar-Lev <alon.barlev@gmail.com>
 
-Rename saved_command_line into boot_command_line.
+1. Rename saved_command_line into boot_command_line.
+2. Set command_line as __initdata.
 
 Signed-off-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/setup.c       |    2 +-
- arch/sparc/kernel/sparc_ksyms.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/xtensa/kernel/setup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/sparc/kernel/setup.c~dynamic-kernel-command-line-sparc arch/sparc/kernel/setup.c
---- a/arch/sparc/kernel/setup.c~dynamic-kernel-command-line-sparc
-+++ a/arch/sparc/kernel/setup.c
-@@ -246,7 +246,7 @@ void __init setup_arch(char **cmdline_p)
+diff -puN arch/xtensa/kernel/setup.c~dynamic-kernel-command-line-xtensa arch/xtensa/kernel/setup.c
+--- a/arch/xtensa/kernel/setup.c~dynamic-kernel-command-line-xtensa
++++ a/arch/xtensa/kernel/setup.c
+@@ -78,7 +78,7 @@ extern unsigned long loops_per_jiffy;
  
- 	/* Initialize PROM console and command line. */
- 	*cmdline_p = prom_getbootargs();
--	strcpy(saved_command_line, *cmdline_p);
-+	strcpy(boot_command_line, *cmdline_p);
+ /* Command line specified as configuration option. */
  
- 	/* Set sparc_cpu_model */
- 	sparc_cpu_model = sun_unknown;
-diff -puN arch/sparc/kernel/sparc_ksyms.c~dynamic-kernel-command-line-sparc arch/sparc/kernel/sparc_ksyms.c
---- a/arch/sparc/kernel/sparc_ksyms.c~dynamic-kernel-command-line-sparc
-+++ a/arch/sparc/kernel/sparc_ksyms.c
-@@ -229,7 +229,7 @@ EXPORT_SYMBOL(prom_getproplen);
- EXPORT_SYMBOL(prom_getproperty);
- EXPORT_SYMBOL(prom_node_has_property);
- EXPORT_SYMBOL(prom_setprop);
--EXPORT_SYMBOL(saved_command_line);
-+EXPORT_SYMBOL(boot_command_line);
- EXPORT_SYMBOL(prom_apply_obio_ranges);
- EXPORT_SYMBOL(prom_feval);
- EXPORT_SYMBOL(prom_getbool);
+-static char command_line[COMMAND_LINE_SIZE];
++static char __initdata command_line[COMMAND_LINE_SIZE];
+ 
+ #ifdef CONFIG_CMDLINE_BOOL
+ static char default_command_line[COMMAND_LINE_SIZE] __initdata = CONFIG_CMDLINE;
+@@ -253,8 +253,8 @@ void __init setup_arch(char **cmdline_p)
+ 	extern int mem_reserve(unsigned long, unsigned long, int);
+ 	extern void bootmem_init(void);
+ 
+-	memcpy(saved_command_line, command_line, COMMAND_LINE_SIZE);
+-	saved_command_line[COMMAND_LINE_SIZE-1] = '\0';
++	memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
++	boot_command_line[COMMAND_LINE_SIZE-1] = '\0';
+ 	*cmdline_p = command_line;
+ 
+ 	/* Reserve some memory regions */
 _
 
 Patches currently in -mm which might be from alon.barlev@gmail.com are
