@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - tgafb-support-the-directcolor-visual.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:49:21 -0800
-Message-ID: <200702122249.l1CMnLl1014102@shell0.pdx.osdl.net>
+Subject: - tgafb-module-support-fixes.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:49:26 -0800
+Message-ID: <200702122249.l1CMnQP7014108@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45925 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45930 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030432AbXBLWwq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:52:46 -0500
+	id S1030428AbXBLWwu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:52:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: macro@linux-mips.org, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tgafb: support the DirectColor visual
+     tgafb: module support fixes
 has been removed from the -mm tree.  Its filename was
-     tgafb-support-the-directcolor-visual.patch
+     tgafb-module-support-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tgafb: support the DirectColor visual
+Subject: tgafb: module support fixes
 From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
- The 32-plane variations of the TGA use the Bt463 RAMDAC and are therefore
-DirectColor rather than TrueColor adapters.  This is a set of changes to
-implement the necessary bits to support this model.  A couple of fixes to fix
-accesses to the RAMDAC are included as a side-effect.
+This is a set of clean-ups for the module support in the driver -- __devinit
+and __devexit classifiers are now specified correctly, initialization
+functions are marked static and a few unnecessary #ifdefs are removed.
 
 Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
 Cc: James Simmons <jsimmons@infradead.org>
@@ -35,161 +34,72 @@ Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tgafb.c |   85 +++++++++++++++++++++++-----------------
- 1 file changed, 49 insertions(+), 36 deletions(-)
+ drivers/video/tgafb.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/tgafb.c~tgafb-support-the-directcolor-visual drivers/video/tgafb.c
---- a/drivers/video/tgafb.c~tgafb-support-the-directcolor-visual
+diff -puN drivers/video/tgafb.c~tgafb-module-support-fixes drivers/video/tgafb.c
+--- a/drivers/video/tgafb.c~tgafb-module-support-fixes
 +++ a/drivers/video/tgafb.c
-@@ -99,6 +99,12 @@ tgafb_check_var(struct fb_var_screeninfo
- 		if (var->bits_per_pixel != 32)
- 			return -EINVAL;
- 	}
-+	var->red.length = var->green.length = var->blue.length = 8;
-+	if (var->bits_per_pixel == 32) {
-+		var->red.offset = 16;
-+		var->green.offset = 8;
-+		var->blue.offset = 0;
-+	}
+@@ -43,8 +43,9 @@ static void tgafb_imageblit(struct fb_in
+ static void tgafb_fillrect(struct fb_info *, const struct fb_fillrect *);
+ static void tgafb_copyarea(struct fb_info *, const struct fb_copyarea *);
  
- 	if (var->xres_virtual != var->xres || var->yres_virtual != var->yres)
- 		return -EINVAL;
-@@ -152,7 +158,7 @@ tgafb_set_par(struct fb_info *info)
- 	struct tga_par *par = (struct tga_par *) info->par;
- 	u32 htimings, vtimings, pll_freq;
- 	u8 tga_type;
--	int i, j;
-+	int i;
+-static int tgafb_pci_register(struct pci_dev *, const struct pci_device_id *);
+-static void tgafb_pci_unregister(struct pci_dev *);
++static int __devinit tgafb_pci_register(struct pci_dev *,
++					const struct pci_device_id *);
++static void __devexit tgafb_pci_unregister(struct pci_dev *);
  
- 	/* Encode video timings.  */
- 	htimings = (((info->var.xres/4) & TGA_HORIZ_ACT_LSB)
-@@ -227,8 +233,10 @@ tgafb_set_par(struct fb_info *info)
- 		BT485_WRITE(par, 0x00, BT485_ADDR_PAL_WRITE);
- 		TGA_WRITE_REG(par, BT485_DATA_PAL, TGA_RAMDAC_SETUP_REG);
+ static const char *mode_option = "640x480@60";
  
-+#ifdef CONFIG_HW_CONSOLE
- 		for (i = 0; i < 16; i++) {
--			j = color_table[i];
-+			int j = color_table[i];
-+
- 			TGA_WRITE_REG(par, default_red[j]|(BT485_DATA_PAL<<8),
- 				      TGA_RAMDAC_REG);
- 			TGA_WRITE_REG(par, default_grn[j]|(BT485_DATA_PAL<<8),
-@@ -236,14 +244,17 @@ tgafb_set_par(struct fb_info *info)
- 			TGA_WRITE_REG(par, default_blu[j]|(BT485_DATA_PAL<<8),
- 				      TGA_RAMDAC_REG);
- 		}
--		for (i = 0; i < 240*3; i += 4) {
--			TGA_WRITE_REG(par, 0x55|(BT485_DATA_PAL<<8),
-+		for (i = 0; i < 240 * 3; i += 4) {
-+#else
-+		for (i = 0; i < 256 * 3; i += 4) {
-+#endif
-+			TGA_WRITE_REG(par, 0x55 | (BT485_DATA_PAL << 8),
- 				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, 0x00|(BT485_DATA_PAL<<8),
-+			TGA_WRITE_REG(par, 0x00 | (BT485_DATA_PAL << 8),
- 				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, 0x00|(BT485_DATA_PAL<<8),
-+			TGA_WRITE_REG(par, 0x00 | (BT485_DATA_PAL << 8),
- 				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, 0x00|(BT485_DATA_PAL<<8),
-+			TGA_WRITE_REG(par, 0x00 | (BT485_DATA_PAL << 8),
- 				      TGA_RAMDAC_REG);
- 		}
+@@ -1454,7 +1455,7 @@ tgafb_pci_register(struct pci_dev *pdev,
+ 	return ret;
+ }
  
-@@ -267,26 +278,24 @@ tgafb_set_par(struct fb_info *info)
+-static void __exit
++static void __devexit
+ tgafb_pci_unregister(struct pci_dev *pdev)
+ {
+ 	struct fb_info *info = pci_get_drvdata(pdev);
+@@ -1470,16 +1471,14 @@ tgafb_pci_unregister(struct pci_dev *pde
+ 	framebuffer_release(info);
+ }
  
- 		/* Fill the palette.  */
- 		BT463_LOAD_ADDR(par, 0x0000);
--		TGA_WRITE_REG(par, BT463_PALETTE<<2, TGA_RAMDAC_REG);
-+		TGA_WRITE_REG(par, BT463_PALETTE << 2, TGA_RAMDAC_SETUP_REG);
+-#ifdef MODULE
+-static void __exit
++static void __devexit
+ tgafb_exit(void)
+ {
+ 	pci_unregister_driver(&tgafb_driver);
+ }
+-#endif /* MODULE */
  
-+#ifdef CONFIG_HW_CONSOLE
- 		for (i = 0; i < 16; i++) {
--			j = color_table[i];
--			TGA_WRITE_REG(par, default_red[j]|(BT463_PALETTE<<10),
--				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, default_grn[j]|(BT463_PALETTE<<10),
--				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, default_blu[j]|(BT463_PALETTE<<10),
--				      TGA_RAMDAC_REG);
--		}
--		for (i = 0; i < 512*3; i += 4) {
--			TGA_WRITE_REG(par, 0x55|(BT463_PALETTE<<10),
--				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, 0x00|(BT463_PALETTE<<10),
--				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, 0x00|(BT463_PALETTE<<10),
--				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, 0x00|(BT463_PALETTE<<10),
--				      TGA_RAMDAC_REG);
-+			int j = color_table[i];
-+
-+			TGA_WRITE_REG(par, default_red[j], TGA_RAMDAC_REG);
-+			TGA_WRITE_REG(par, default_grn[j], TGA_RAMDAC_REG);
-+			TGA_WRITE_REG(par, default_blu[j], TGA_RAMDAC_REG);
-+		}
-+		for (i = 0; i < 512 * 3; i += 4) {
-+#else
-+		for (i = 0; i < 528 * 3; i += 4) {
-+#endif
-+			TGA_WRITE_REG(par, 0x55, TGA_RAMDAC_REG);
-+			TGA_WRITE_REG(par, 0x00, TGA_RAMDAC_REG);
-+			TGA_WRITE_REG(par, 0x00, TGA_RAMDAC_REG);
-+			TGA_WRITE_REG(par, 0x00, TGA_RAMDAC_REG);
- 		}
+ #ifndef MODULE
+-int __init
++static int __devinit
+ tgafb_setup(char *arg)
+ {
+ 	char *this_opt;
+@@ -1501,7 +1500,7 @@ tgafb_setup(char *arg)
+ }
+ #endif /* !MODULE */
  
- 		/* Fill window type table after start of vertical retrace.  */
-@@ -299,15 +308,12 @@ tgafb_set_par(struct fb_info *info)
- 		TGA_WRITE_REG(par, 0x01, TGA_INTR_STAT_REG);
+-int __init
++static int __devinit
+ tgafb_init(void)
+ {
+ #ifndef MODULE
+@@ -1519,10 +1518,7 @@ tgafb_init(void)
+  */
  
- 		BT463_LOAD_ADDR(par, BT463_WINDOW_TYPE_BASE);
--		TGA_WRITE_REG(par, BT463_REG_ACC<<2, TGA_RAMDAC_SETUP_REG);
-+		TGA_WRITE_REG(par, BT463_REG_ACC << 2, TGA_RAMDAC_SETUP_REG);
+ module_init(tgafb_init);
+-
+-#ifdef MODULE
+ module_exit(tgafb_exit);
+-#endif
  
- 		for (i = 0; i < 16; i++) {
--			TGA_WRITE_REG(par, 0x00|(BT463_REG_ACC<<10),
--				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, 0x01|(BT463_REG_ACC<<10),
--				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, 0x80|(BT463_REG_ACC<<10),
--				      TGA_RAMDAC_REG);
-+			TGA_WRITE_REG(par, 0x00, TGA_RAMDAC_REG);
-+			TGA_WRITE_REG(par, 0x01, TGA_RAMDAC_REG);
-+			TGA_WRITE_REG(par, 0x00, TGA_RAMDAC_REG);
- 		}
- 
- 	}
-@@ -435,9 +441,16 @@ tgafb_setcolreg(unsigned regno, unsigned
- 		TGA_WRITE_REG(par, red|(BT485_DATA_PAL<<8),TGA_RAMDAC_REG);
- 		TGA_WRITE_REG(par, green|(BT485_DATA_PAL<<8),TGA_RAMDAC_REG);
- 		TGA_WRITE_REG(par, blue|(BT485_DATA_PAL<<8),TGA_RAMDAC_REG);
--	} else if (regno < 16) {
--		u32 value = (red << 16) | (green << 8) | blue;
--		((u32 *)info->pseudo_palette)[regno] = value;
-+	} else {
-+		if (regno < 16) {
-+			u32 value = (regno << 16) | (regno << 8) | regno;
-+			((u32 *)info->pseudo_palette)[regno] = value;
-+		}
-+		BT463_LOAD_ADDR(par, regno);
-+		TGA_WRITE_REG(par, BT463_PALETTE << 2, TGA_RAMDAC_SETUP_REG);
-+		TGA_WRITE_REG(par, red, TGA_RAMDAC_REG);
-+		TGA_WRITE_REG(par, green, TGA_RAMDAC_REG);
-+		TGA_WRITE_REG(par, blue, TGA_RAMDAC_REG);
- 	}
- 
- 	return 0;
-@@ -1317,7 +1330,7 @@ tgafb_init_fix(struct fb_info *info)
- 	info->fix.type_aux = 0;
- 	info->fix.visual = (tga_type == TGA_TYPE_8PLANE
- 			    ? FB_VISUAL_PSEUDOCOLOR
--			    : FB_VISUAL_TRUECOLOR);
-+			    : FB_VISUAL_DIRECTCOLOR);
- 
- 	info->fix.line_length = par->xres * (par->bits_per_pixel >> 3);
- 	info->fix.smem_start = (size_t) par->tga_fb_base;
+ MODULE_DESCRIPTION("framebuffer driver for TGA chipset");
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from macro@linux-mips.org are
