@@ -1,94 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-capi-use-array_size-when-appropriate.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:46:09 -0800
-Message-ID: <200702122246.l1CMk9TQ013776@shell0.pdx.osdl.net>
+Subject: - isdn-rename-some-debugging-macros-to-not-resemble-config.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:46:13 -0800
+Message-ID: <200702122246.l1CMkDes013785@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45198 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45212 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030323AbXBLWqO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:46:14 -0500
+	id S1030327AbXBLWqS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:46:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darwish.07@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn/capi: use ARRAY_SIZE when appropriate
+     ISDN: Rename some debugging macros to not resemble CONFIG options
 has been removed from the -mm tree.  Its filename was
-     isdn-capi-use-array_size-when-appropriate.patch
+     isdn-rename-some-debugging-macros-to-not-resemble-config.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: isdn/capi: use ARRAY_SIZE when appropriate
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: ISDN: Rename some debugging macros to not resemble CONFIG options
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Rename some of the debugging macros for ISDN AVM so that they don't resemble
+kernel config settings, as they're primarily for author debugging instead.
+
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capi.c    |    4 ++--
- drivers/isdn/capi/capidrv.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/isdn/hardware/avm/b1dma.c |   14 +++++++-------
+ drivers/isdn/hardware/avm/c4.c    |   16 ++++++++--------
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN drivers/isdn/capi/capi.c~isdn-capi-use-array_size-when-appropriate drivers/isdn/capi/capi.c
---- a/drivers/isdn/capi/capi.c~isdn-capi-use-array_size-when-appropriate
-+++ a/drivers/isdn/capi/capi.c
-@@ -1456,7 +1456,7 @@ static struct procfsentries {
+diff -puN drivers/isdn/hardware/avm/b1dma.c~isdn-rename-some-debugging-macros-to-not-resemble-config drivers/isdn/hardware/avm/b1dma.c
+--- a/drivers/isdn/hardware/avm/b1dma.c~isdn-rename-some-debugging-macros-to-not-resemble-config
++++ a/drivers/isdn/hardware/avm/b1dma.c
+@@ -29,7 +29,7 @@
  
- static void __init proc_init(void)
- {
--    int nelem = sizeof(procfsentries)/sizeof(procfsentries[0]);
-+    int nelem = ARRAY_SIZE(procfsentries);
-     int i;
+ static char *revision = "$Revision: 1.1.2.3 $";
  
-     for (i=0; i < nelem; i++) {
-@@ -1468,7 +1468,7 @@ static void __init proc_init(void)
+-#undef CONFIG_B1DMA_DEBUG
++#undef AVM_B1DMA_DEBUG
  
- static void __exit proc_exit(void)
- {
--    int nelem = sizeof(procfsentries)/sizeof(procfsentries[0]);
-+    int nelem = ARRAY_SIZE(procfsentries);
-     int i;
+ /* ------------------------------------------------------------- */
  
-     for (i=nelem-1; i >= 0; i--) {
-diff -puN drivers/isdn/capi/capidrv.c~isdn-capi-use-array_size-when-appropriate drivers/isdn/capi/capidrv.c
---- a/drivers/isdn/capi/capidrv.c~isdn-capi-use-array_size-when-appropriate
-+++ a/drivers/isdn/capi/capidrv.c
-@@ -2218,7 +2218,7 @@ static struct procfsentries {
+@@ -391,16 +391,16 @@ static void b1dma_dispatch_tx(avmcard *c
+ 			_put_slice(&p, skb->data, len);
+ 		}
+ 		txlen = (u8 *)p - (u8 *)dma->sendbuf.dmabuf;
+-#ifdef CONFIG_B1DMA_DEBUG
++#ifdef AVM_B1DMA_DEBUG
+ 		printk(KERN_DEBUG "tx: put msg len=%d\n", txlen);
+ #endif
+ 	} else {
+ 		txlen = skb->len-2;
+-#ifdef CONFIG_B1DMA_POLLDEBUG
++#ifdef AVM_B1DMA_POLLDEBUG
+ 		if (skb->data[2] == SEND_POLLACK)
+ 			printk(KERN_INFO "%s: send ack\n", card->name);
+ #endif
+-#ifdef CONFIG_B1DMA_DEBUG
++#ifdef AVM_B1DMA_DEBUG
+ 		printk(KERN_DEBUG "tx: put 0x%x len=%d\n", 
+ 		       skb->data[2], txlen);
+ #endif
+@@ -450,7 +450,7 @@ static void b1dma_handle_rx(avmcard *car
+ 	u32 ApplId, MsgLen, DataB3Len, NCCI, WindowSize;
+ 	u8 b1cmd =  _get_byte(&p);
  
- static void __init proc_init(void)
- {
--    int nelem = sizeof(procfsentries)/sizeof(procfsentries[0]);
-+    int nelem = ARRAY_SIZE(procfsentries);
-     int i;
+-#ifdef CONFIG_B1DMA_DEBUG
++#ifdef AVM_B1DMA_DEBUG
+ 	printk(KERN_DEBUG "rx: 0x%x %lu\n", b1cmd, (unsigned long)dma->recvlen);
+ #endif
+ 	
+@@ -515,7 +515,7 @@ static void b1dma_handle_rx(avmcard *car
+ 		break;
  
-     for (i=0; i < nelem; i++) {
-@@ -2230,7 +2230,7 @@ static void __init proc_init(void)
+ 	case RECEIVE_START:
+-#ifdef CONFIG_B1DMA_POLLDEBUG
++#ifdef AVM_B1DMA_POLLDEBUG
+ 		printk(KERN_INFO "%s: receive poll\n", card->name);
+ #endif
+ 		if (!suppress_pollack)
+@@ -601,7 +601,7 @@ static void b1dma_handle_interrupt(avmca
+ 				rxlen = (dma->recvlen + 3) & ~3;
+ 				b1dma_writel(card, dma->recvbuf.dmaaddr+4, AMCC_RXPTR);
+ 				b1dma_writel(card, rxlen, AMCC_RXLEN);
+-#ifdef CONFIG_B1DMA_DEBUG
++#ifdef AVM_B1DMA_DEBUG
+ 			} else {
+ 				printk(KERN_ERR "%s: rx not complete (%d).\n",
+ 					card->name, rxlen);
+diff -puN drivers/isdn/hardware/avm/c4.c~isdn-rename-some-debugging-macros-to-not-resemble-config drivers/isdn/hardware/avm/c4.c
+--- a/drivers/isdn/hardware/avm/c4.c~isdn-rename-some-debugging-macros-to-not-resemble-config
++++ a/drivers/isdn/hardware/avm/c4.c
+@@ -28,8 +28,8 @@
+ #include <linux/isdn/capilli.h>
+ #include "avmcard.h"
  
- static void __exit proc_exit(void)
- {
--    int nelem = sizeof(procfsentries)/sizeof(procfsentries[0]);
-+    int nelem = ARRAY_SIZE(procfsentries);
-     int i;
+-#undef CONFIG_C4_DEBUG
+-#undef CONFIG_C4_POLLDEBUG
++#undef AVM_C4_DEBUG
++#undef AVM_C4_POLLDEBUG
  
-     for (i=nelem-1; i >= 0; i--) {
+ /* ------------------------------------------------------------- */
+ 
+@@ -420,7 +420,7 @@ static void c4_dispatch_tx(avmcard *card
+ 
+ 	skb = skb_dequeue(&dma->send_queue);
+ 	if (!skb) {
+-#ifdef CONFIG_C4_DEBUG
++#ifdef AVM_C4_DEBUG
+ 		printk(KERN_DEBUG "%s: tx underrun\n", card->name);
+ #endif
+ 		return;
+@@ -444,16 +444,16 @@ static void c4_dispatch_tx(avmcard *card
+ 			_put_slice(&p, skb->data, len);
+ 		}
+ 		txlen = (u8 *)p - (u8 *)dma->sendbuf.dmabuf;
+-#ifdef CONFIG_C4_DEBUG
++#ifdef AVM_C4_DEBUG
+ 		printk(KERN_DEBUG "%s: tx put msg len=%d\n", card->name, txlen);
+ #endif
+ 	} else {
+ 		txlen = skb->len-2;
+-#ifdef CONFIG_C4_POLLDEBUG
++#ifdef AVM_C4_POLLDEBUG
+ 		if (skb->data[2] == SEND_POLLACK)
+ 			printk(KERN_INFO "%s: ack to c4\n", card->name);
+ #endif
+-#ifdef CONFIG_C4_DEBUG
++#ifdef AVM_C4_DEBUG
+ 		printk(KERN_DEBUG "%s: tx put 0x%x len=%d\n",
+ 				card->name, skb->data[2], txlen);
+ #endif
+@@ -508,7 +508,7 @@ static void c4_handle_rx(avmcard *card)
+ 	u32 cidx;
+ 
+ 
+-#ifdef CONFIG_C4_DEBUG
++#ifdef AVM_C4_DEBUG
+ 	printk(KERN_DEBUG "%s: rx 0x%x len=%lu\n", card->name,
+ 				b1cmd, (unsigned long)dma->recvlen);
+ #endif
+@@ -586,7 +586,7 @@ static void c4_handle_rx(avmcard *card)
+ 		break;
+ 
+ 	case RECEIVE_START:
+-#ifdef CONFIG_C4_POLLDEBUG
++#ifdef AVM_C4_POLLDEBUG
+ 		printk(KERN_INFO "%s: poll from c4\n", card->name);
+ #endif
+ 		if (!suppress_pollack)
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-git-acpi.patch
-git-agpgart.patch
-git-arm.patch
 git-avr32.patch
-git-drm.patch
 git-dvb.patch
-git-infiniband.patch
+kbuild-remove-references-to-deprecated-prepare-all-target.patch
 git-mips.patch
-atm-use-array_size-macro-when-appropriate.patch
-s390-kmalloc-kzalloc-casting-cleanups.patch
-rcutorture-use-array_size-macro-when-appropriate.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+fix-misspelled-usbnet_mii-kernel-config-option.patch
+fix-apparent-typo-config_usb_cdcether.patch
+oss-replace-kmallocmemset-combos-with-kzalloc.patch
