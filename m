@@ -1,273 +1,665 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-save-the-ipc-namespace-while-reading-proc-files.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:43:49 -0800
-Message-ID: <200702122243.l1CMhnv3013532@shell0.pdx.osdl.net>
+Subject: - char-timers-cleanup.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:44:23 -0800
+Message-ID: <200702122244.l1CMiNq1013584@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45045 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45057 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030269AbXBLWpA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:45:00 -0500
+	id S1030280AbXBLWpJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:45:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, dev@sw.ru, herbert@13thfloor.at, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, a.zummo@towertech.it, airlied@linux.ie, dtor@mail.ru, dwmw2@infradead.org, kjhall@us.ibm.com, linux@dominikbrodowski.net, paulkf@microgate.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc: save the ipc namespace while reading proc files
+     Char: timers cleanup
 has been removed from the -mm tree.  Its filename was
-     ipc-save-the-ipc-namespace-while-reading-proc-files.patch
+     char-timers-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipc: save the ipc namespace while reading proc files
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: Char: timers cleanup
+From: Jiri Slaby <jirislaby@gmail.com>
 
-The problem we were assuming that current->nsproxy->ipc_ns would never
-change while someone has our file in /proc/sysvipc/ file open.  Given that
-this can change with both unshare and by passing the file descriptor to
-another process that assumption is occasionally wrong.
+- Use timer macros to set function and data members and to modify
+  expiration time.
+- Use DEFINE_TIMER for global timers and do not init them at run-time in
+  these cases.
+- del_timer_sync is common in most cases -- we want to wait for timer
+  function if it's still running.
 
-Therefore this patch causes /proc/sysvipc/* to cache the namespace and
-increment it's count when we open the file and to decrement the count when
-we close the file, ensuring consistent operation with no surprises.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Paul Fulghum <paulkf@microgate.com>
+Cc: Kylene Jo Hall <kjhall@us.ibm.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Acked-by: Dmitry Torokhov <dtor@mail.ru>	(Input bits)
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   58 +++++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 45 insertions(+), 13 deletions(-)
+ drivers/char/drm/via_dmablit.c    |   14 ++++---------
+ drivers/char/dtlk.c               |    8 ++-----
+ drivers/char/ip2/i2lib.c          |   30 +++++++++++++++-------------
+ drivers/char/n_r3964.c            |    4 ---
+ drivers/char/nwbutton.c           |   13 ++++--------
+ drivers/char/pcmcia/cm4000_cs.c   |   10 ++-------
+ drivers/char/pcmcia/cm4040_cs.c   |    3 --
+ drivers/char/pcmcia/synclink_cs.c |   10 +++------
+ drivers/char/rio/rio_linux.c      |   12 +++--------
+ drivers/char/rocket.c             |   10 ++-------
+ drivers/char/rtc.c                |   12 ++++-------
+ drivers/char/specialix.c          |   12 +++--------
+ drivers/char/synclink.c           |   10 +++------
+ drivers/char/synclink_gt.c        |   19 +++++------------
+ drivers/char/synclinkmp.c         |   22 ++++++--------------
+ drivers/char/tpm/tpm.c            |    5 +---
+ drivers/char/vt.c                 |    4 ---
+ 17 files changed, 75 insertions(+), 123 deletions(-)
 
-diff -puN ipc/util.c~ipc-save-the-ipc-namespace-while-reading-proc-files ipc/util.c
---- a/ipc/util.c~ipc-save-the-ipc-namespace-while-reading-proc-files
-+++ a/ipc/util.c
-@@ -738,14 +738,20 @@ int ipc_parse_version (int *cmd)
- #endif /* __ARCH_WANT_IPC_PARSE_VERSION */
+diff -puN drivers/char/drm/via_dmablit.c~char-timers-cleanup drivers/char/drm/via_dmablit.c
+--- a/drivers/char/drm/via_dmablit.c~char-timers-cleanup
++++ a/drivers/char/drm/via_dmablit.c
+@@ -376,10 +376,8 @@ via_dmablit_handler(drm_device_t *dev, i
+ 			blitq->cur = cur;
+ 			blitq->num_outstanding--;
+ 			blitq->end = jiffies + DRM_HZ;
+-			if (!timer_pending(&blitq->poll_timer)) {
+-				blitq->poll_timer.expires = jiffies+1;
+-				add_timer(&blitq->poll_timer);
+-			}
++			if (!timer_pending(&blitq->poll_timer))
++				mod_timer(&blitq->poll_timer, jiffies + 1);
+ 		} else {
+ 			if (timer_pending(&blitq->poll_timer)) {
+ 				del_timer(&blitq->poll_timer);
+@@ -478,8 +476,7 @@ via_dmablit_timer(unsigned long data)
+ 	via_dmablit_handler(dev, engine, 0);
+ 	
+ 	if (!timer_pending(&blitq->poll_timer)) {
+-		blitq->poll_timer.expires = jiffies+1;
+-		add_timer(&blitq->poll_timer);
++		mod_timer(&blitq->poll_timer, jiffies + 1);
  
- #ifdef CONFIG_PROC_FS
-+struct ipc_proc_iter {
-+	struct ipc_namespace *ns;
-+	struct ipc_proc_iface *iface;
-+};
-+
- static void *sysvipc_proc_next(struct seq_file *s, void *it, loff_t *pos)
- {
--	struct ipc_proc_iface *iface = s->private;
-+	struct ipc_proc_iter *iter = s->private;
-+	struct ipc_proc_iface *iface = iter->iface;
- 	struct kern_ipc_perm *ipc = it;
- 	loff_t p;
- 	struct ipc_ids *ids;
- 
--	ids = current->nsproxy->ipc_ns->ids[iface->ids];
-+	ids = iter->ns->ids[iface->ids];
- 
- 	/* If we had an ipc id locked before, unlock it */
- 	if (ipc && ipc != SEQ_START_TOKEN)
-@@ -772,12 +778,13 @@ static void *sysvipc_proc_next(struct se
-  */
- static void *sysvipc_proc_start(struct seq_file *s, loff_t *pos)
- {
--	struct ipc_proc_iface *iface = s->private;
-+	struct ipc_proc_iter *iter = s->private;
-+	struct ipc_proc_iface *iface = iter->iface;
- 	struct kern_ipc_perm *ipc;
- 	loff_t p;
- 	struct ipc_ids *ids;
- 
--	ids = current->nsproxy->ipc_ns->ids[iface->ids];
-+	ids = iter->ns->ids[iface->ids];
- 
- 	/*
- 	 * Take the lock - this will be released by the corresponding
-@@ -806,21 +813,23 @@ static void *sysvipc_proc_start(struct s
- static void sysvipc_proc_stop(struct seq_file *s, void *it)
- {
- 	struct kern_ipc_perm *ipc = it;
--	struct ipc_proc_iface *iface = s->private;
-+	struct ipc_proc_iter *iter = s->private;
-+	struct ipc_proc_iface *iface = iter->iface;
- 	struct ipc_ids *ids;
- 
- 	/* If we had a locked segment, release it */
- 	if (ipc && ipc != SEQ_START_TOKEN)
- 		ipc_unlock(ipc);
- 
--	ids = current->nsproxy->ipc_ns->ids[iface->ids];
-+	ids = iter->ns->ids[iface->ids];
- 	/* Release the lock we took in start() */
- 	mutex_unlock(&ids->mutex);
+ 	       /*
+ 		* Rerun handler to delete timer if engines are off, and
+@@ -574,9 +571,8 @@ via_init_dmablit(drm_device_t *dev)
+ 		}
+ 		DRM_INIT_WAITQUEUE(&blitq->busy_queue);
+ 		INIT_WORK(&blitq->wq, via_dmablit_workqueue);
+-		init_timer(&blitq->poll_timer);
+-		blitq->poll_timer.function = &via_dmablit_timer;
+-		blitq->poll_timer.data = (unsigned long) blitq;
++		setup_timer(&blitq->poll_timer, via_dmablit_timer,
++				(unsigned long)blitq);
+ 	}	
  }
  
- static int sysvipc_proc_show(struct seq_file *s, void *it)
- {
--	struct ipc_proc_iface *iface = s->private;
-+	struct ipc_proc_iter *iter = s->private;
-+	struct ipc_proc_iface *iface = iter->iface;
+diff -puN drivers/char/dtlk.c~char-timers-cleanup drivers/char/dtlk.c
+--- a/drivers/char/dtlk.c~char-timers-cleanup
++++ a/drivers/char/dtlk.c
+@@ -72,6 +72,7 @@
+ #define TRACE_RET ((void) 0)
+ #endif				/* TRACING */
  
- 	if (it == SEQ_START_TOKEN)
- 		return seq_puts(s, iface->header);
-@@ -835,22 +844,45 @@ static struct seq_operations sysvipc_pro
- 	.show  = sysvipc_proc_show,
- };
++static void dtlk_timer_tick(unsigned long data);
  
--static int sysvipc_proc_open(struct inode *inode, struct file *file) {
-+static int sysvipc_proc_open(struct inode *inode, struct file *file)
+ static int dtlk_major;
+ static int dtlk_port_lpc;
+@@ -81,7 +82,7 @@ static int dtlk_has_indexing;
+ static unsigned int dtlk_portlist[] =
+ {0x25e, 0x29e, 0x2de, 0x31e, 0x35e, 0x39e, 0};
+ static wait_queue_head_t dtlk_process_list;
+-static struct timer_list dtlk_timer;
++static DEFINE_TIMER(dtlk_timer, dtlk_timer_tick, 0, 0);
+ 
+ /* prototypes for file_operations struct */
+ static ssize_t dtlk_read(struct file *, char __user *,
+@@ -117,7 +118,6 @@ static char dtlk_write_tts(char);
+ /*
+    static void dtlk_handle_error(char, char, unsigned int);
+  */
+-static void dtlk_timer_tick(unsigned long data);
+ 
+ static ssize_t dtlk_read(struct file *file, char __user *buf,
+ 			 size_t count, loff_t * ppos)
+@@ -318,7 +318,7 @@ static int dtlk_release(struct inode *in
+ 	}
+ 	TRACE_RET;
+ 	
+-	del_timer(&dtlk_timer);
++	del_timer_sync(&dtlk_timer);
+ 
+ 	return 0;
+ }
+@@ -336,8 +336,6 @@ static int __init dtlk_init(void)
+ 	if (dtlk_dev_probe() == 0)
+ 		printk(", MAJOR %d\n", dtlk_major);
+ 
+-	init_timer(&dtlk_timer);
+-	dtlk_timer.function = dtlk_timer_tick;
+ 	init_waitqueue_head(&dtlk_process_list);
+ 
+ 	return 0;
+diff -puN drivers/char/ip2/i2lib.c~char-timers-cleanup drivers/char/ip2/i2lib.c
+--- a/drivers/char/ip2/i2lib.c~char-timers-cleanup
++++ a/drivers/char/ip2/i2lib.c
+@@ -80,7 +80,7 @@ static int i2RetryFlushOutput(i2ChanStrP
+ // Not a documented part of the library routines (careful...) but the Diagnostic
+ // i2diag.c finds them useful to help the throughput in certain limited
+ // single-threaded operations.
+-static void iiSendPendingMail(i2eBordStrPtr);
++static inline void iiSendPendingMail(i2eBordStrPtr);
+ static void serviceOutgoingFifo(i2eBordStrPtr);
+ 
+ // Functions defined in ip2.c as part of interrupt handling
+@@ -150,6 +150,13 @@ i2Validate ( i2ChanStrPtr pCh )
+ 			  == (CHANNEL_MAGIC | CHANNEL_SUPPORT));
+ }
+ 
++static void iiSendPendingMail_t(unsigned long data)
 +{
- 	int ret;
- 	struct seq_file *seq;
-+	struct ipc_proc_iter *iter;
++	i2eBordStrPtr pB = (i2eBordStrPtr)data;
 +
-+	ret = -ENOMEM;
-+	iter = kmalloc(sizeof(*iter), GFP_KERNEL);
-+	if (!iter)
-+		goto out;
- 
- 	ret = seq_open(file, &sysvipc_proc_seqops);
--	if (!ret) {
--		seq = file->private_data;
--		seq->private = PDE(inode)->data;
--	}
-+	if (ret)
-+		goto out_kfree;
-+
-+	seq = file->private_data;
-+	seq->private = iter;
-+
-+	iter->iface = PDE(inode)->data;
-+	iter->ns    = get_ipc_ns(current->nsproxy->ipc_ns);
-+out:
- 	return ret;
-+out_kfree:
-+	kfree(iter);
-+	goto out;
++	iiSendPendingMail(pB);
 +}
 +
-+static int sysvipc_proc_release(struct inode *inode, struct file *file)
-+{
-+	struct seq_file *seq = file->private_data;
-+	struct ipc_proc_iter *iter = seq->private;
-+	put_ipc_ns(iter->ns);
-+	return seq_release_private(inode, file);
+ //******************************************************************************
+ // Function:   iiSendPendingMail(pB)
+ // Parameters: Pointer to a board structure
+@@ -184,12 +191,9 @@ iiSendPendingMail(i2eBordStrPtr pB)
+ 			/\/\|=mhw=|\/\/				*/
+ 
+ 			if( ++pB->SendPendingRetry < 16 ) {
+-
+-				init_timer( &(pB->SendPendingTimer) );
+-				pB->SendPendingTimer.expires  = jiffies + 1;
+-				pB->SendPendingTimer.function = (void*)(unsigned long)iiSendPendingMail;
+-				pB->SendPendingTimer.data     = (unsigned long)pB;
+-				add_timer( &(pB->SendPendingTimer) );
++				setup_timer(&pB->SendPendingTimer,
++					iiSendPendingMail_t, (unsigned long)pB);
++				mod_timer(&pB->SendPendingTimer, jiffies + 1);
+ 			} else {
+ 				printk( KERN_ERR "IP2: iiSendPendingMail unable to queue outbound mail\n" );
+ 			}
+@@ -1265,8 +1269,10 @@ i2RetryFlushOutput(i2ChanStrPtr pCh)
+ // soon as all the data is completely sent.
+ //******************************************************************************
+ static void
+-i2DrainWakeup(i2ChanStrPtr pCh)
++i2DrainWakeup(unsigned long d)
+ {
++	i2ChanStrPtr pCh = (i2ChanStrPtr)d;
++
+ 	ip2trace (CHANN, ITRC_DRAIN, 10, 1, pCh->BookmarkTimer.expires );
+ 
+ 	pCh->BookmarkTimer.expires = 0;
+@@ -1292,14 +1298,12 @@ i2DrainOutput(i2ChanStrPtr pCh, int time
+ 	}
+ 	if ((timeout > 0) && (pCh->BookmarkTimer.expires == 0 )) {
+ 		// One per customer (channel)
+-		init_timer( &(pCh->BookmarkTimer) );
+-		pCh->BookmarkTimer.expires  = jiffies + timeout;
+-		pCh->BookmarkTimer.function = (void*)(unsigned long)i2DrainWakeup;
+-		pCh->BookmarkTimer.data     = (unsigned long)pCh;
++		setup_timer(&pCh->BookmarkTimer, i2DrainWakeup,
++				(unsigned long)pCh);
+ 
+ 		ip2trace (CHANN, ITRC_DRAIN, 1, 1, pCh->BookmarkTimer.expires );
+ 
+-		add_timer( &(pCh->BookmarkTimer) );
++		mod_timer(&pCh->BookmarkTimer, jiffies + timeout);
+ 	}
+ 	
+ 	i2QueueCommands( PTYPE_INLINE, pCh, -1, 1, CMD_BMARK_REQ );
+diff -puN drivers/char/n_r3964.c~char-timers-cleanup drivers/char/n_r3964.c
+--- a/drivers/char/n_r3964.c~char-timers-cleanup
++++ a/drivers/char/n_r3964.c
+@@ -1005,9 +1005,7 @@ static int r3964_open(struct tty_struct 
+ 	tty->disc_data = pInfo;
+ 	tty->receive_room = 65536;
+ 
+-	init_timer(&pInfo->tmr);
+-	pInfo->tmr.data = (unsigned long)pInfo;
+-	pInfo->tmr.function = on_timeout;
++	setup_timer(&pInfo->tmr, on_timeout, (unsigned long)pInfo);
+ 
+ 	return 0;
+ }
+diff -puN drivers/char/nwbutton.c~char-timers-cleanup drivers/char/nwbutton.c
+--- a/drivers/char/nwbutton.c~char-timers-cleanup
++++ a/drivers/char/nwbutton.c
+@@ -23,8 +23,11 @@
+ #define __NWBUTTON_C		/* Tell the header file who we are */
+ #include "nwbutton.h"
+ 
++static void button_sequence_finished (unsigned long parameters);
++
+ static int button_press_count;		/* The count of button presses */
+-static struct timer_list button_timer;	/* Times for the end of a sequence */ 
++/* Times for the end of a sequence */
++static DEFINE_TIMER(button_timer, button_sequence_finished, 0, 0);
+ static DECLARE_WAIT_QUEUE_HEAD(button_wait_queue); /* Used for blocking read */
+ static char button_output_buffer[32];	/* Stores data to write out of device */
+ static int bcount;			/* The number of bytes in the buffer */
+@@ -146,14 +149,8 @@ static void button_sequence_finished (un
+ 
+ static irqreturn_t button_handler (int irq, void *dev_id)
+ {
+-	if (button_press_count) {
+-		del_timer (&button_timer);
+-	}
+ 	button_press_count++;
+-	init_timer (&button_timer);
+-	button_timer.function = button_sequence_finished;
+-	button_timer.expires = (jiffies + bdelay);
+-	add_timer (&button_timer);
++	mod_timer(&button_timer, jiffies + bdelay);
+ 
+ 	return IRQ_HANDLED;
+ }
+diff -puN drivers/char/pcmcia/cm4000_cs.c~char-timers-cleanup drivers/char/pcmcia/cm4000_cs.c
+--- a/drivers/char/pcmcia/cm4000_cs.c~char-timers-cleanup
++++ a/drivers/char/pcmcia/cm4000_cs.c
+@@ -946,8 +946,7 @@ release_io:
+ 
+ return_with_timer:
+ 	DEBUGP(7, dev, "<- monitor_card (returns with timer)\n");
+-	dev->timer.expires = jiffies + dev->mdelay;
+-	add_timer(&dev->timer);
++	mod_timer(&dev->timer, jiffies + dev->mdelay);
+ 	clear_bit(LOCK_MONITOR, &dev->flags);
  }
  
- static struct file_operations sysvipc_proc_fops = {
- 	.open    = sysvipc_proc_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
--	.release = seq_release,
-+	.release = sysvipc_proc_release,
- };
- #endif /* CONFIG_PROC_FS */
+@@ -1406,12 +1405,9 @@ static void start_monitor(struct cm4000_
+ 	DEBUGP(3, dev, "-> start_monitor\n");
+ 	if (!dev->monitor_running) {
+ 		DEBUGP(5, dev, "create, init and add timer\n");
+-		init_timer(&dev->timer);
++		setup_timer(&dev->timer, monitor_card, (unsigned long)dev);
+ 		dev->monitor_running = 1;
+-		dev->timer.expires = jiffies;
+-		dev->timer.data = (unsigned long) dev;
+-		dev->timer.function = monitor_card;
+-		add_timer(&dev->timer);
++		mod_timer(&dev->timer, jiffies);
+ 	} else
+ 		DEBUGP(5, dev, "monitor already running\n");
+ 	DEBUGP(3, dev, "<- start_monitor\n");
+diff -puN drivers/char/pcmcia/cm4040_cs.c~char-timers-cleanup drivers/char/pcmcia/cm4040_cs.c
+--- a/drivers/char/pcmcia/cm4040_cs.c~char-timers-cleanup
++++ a/drivers/char/pcmcia/cm4040_cs.c
+@@ -632,8 +632,7 @@ static int reader_probe(struct pcmcia_de
+ 	init_waitqueue_head(&dev->poll_wait);
+ 	init_waitqueue_head(&dev->read_wait);
+ 	init_waitqueue_head(&dev->write_wait);
+-	init_timer(&dev->poll_timer);
+-	dev->poll_timer.function = &cm4040_do_poll;
++	setup_timer(&dev->poll_timer, cm4040_do_poll, 0);
+ 
+ 	ret = reader_config(link, i);
+ 	if (ret)
+diff -puN drivers/char/pcmcia/synclink_cs.c~char-timers-cleanup drivers/char/pcmcia/synclink_cs.c
+--- a/drivers/char/pcmcia/synclink_cs.c~char-timers-cleanup
++++ a/drivers/char/pcmcia/synclink_cs.c
+@@ -1361,9 +1361,7 @@ static int startup(MGSLPC_INFO * info)
+ 	
+ 	memset(&info->icount, 0, sizeof(info->icount));
+ 
+-	init_timer(&info->tx_timer);
+-	info->tx_timer.data = (unsigned long)info;
+-	info->tx_timer.function = tx_timeout;
++	setup_timer(&info->tx_timer, tx_timeout, (unsigned long)info);
+ 
+ 	/* Allocate and claim adapter resources */
+ 	retval = claim_resources(info);
+@@ -1408,7 +1406,7 @@ static void shutdown(MGSLPC_INFO * info)
+ 	wake_up_interruptible(&info->status_event_wait_q);
+ 	wake_up_interruptible(&info->event_wait_q);
+ 
+-	del_timer(&info->tx_timer);	
++	del_timer_sync(&info->tx_timer);
+ 
+ 	if (info->tx_buf) {
+ 		free_page((unsigned long) info->tx_buf);
+@@ -3549,8 +3547,8 @@ static void tx_start(MGSLPC_INFO *info)
+ 		} else {
+ 			info->tx_active = 1;
+ 			tx_ready(info);
+-			info->tx_timer.expires = jiffies + msecs_to_jiffies(5000);
+-			add_timer(&info->tx_timer);	
++			mod_timer(&info->tx_timer, jiffies +
++					msecs_to_jiffies(5000));
+ 		}
+ 	}
+ 
+diff -puN drivers/char/rio/rio_linux.c~char-timers-cleanup drivers/char/rio/rio_linux.c
+--- a/drivers/char/rio/rio_linux.c~char-timers-cleanup
++++ a/drivers/char/rio/rio_linux.c
+@@ -418,8 +418,7 @@ static void rio_pollfunc(unsigned long d
+ 	func_enter();
+ 
+ 	rio_interrupt(0, &p->RIOHosts[data]);
+-	p->RIOHosts[data].timer.expires = jiffies + rio_poll;
+-	add_timer(&p->RIOHosts[data].timer);
++	mod_timer(&p->RIOHosts[data].timer, jiffies + rio_poll);
+ 
+ 	func_exit();
+ }
+@@ -1154,13 +1153,10 @@ static int __init rio_init(void)
+ 		/* Init the timer "always" to make sure that it can safely be
+ 		   deleted when we unload... */
+ 
+-		init_timer(&hp->timer);
++		setup_timer(&hp->timer, rio_pollfunc, i);
+ 		if (!hp->Ivec) {
+ 			rio_dprintk(RIO_DEBUG_INIT, "Starting polling at %dj intervals.\n", rio_poll);
+-			hp->timer.data = i;
+-			hp->timer.function = rio_pollfunc;
+-			hp->timer.expires = jiffies + rio_poll;
+-			add_timer(&hp->timer);
++			mod_timer(&hp->timer, jiffies + rio_poll);
+ 		}
+ 	}
+ 
+@@ -1191,7 +1187,7 @@ static void __exit rio_exit(void)
+ 			rio_dprintk(RIO_DEBUG_INIT, "freed irq %d.\n", hp->Ivec);
+ 		}
+ 		/* It is safe/allowed to del_timer a non-active timer */
+-		del_timer(&hp->timer);
++		del_timer_sync(&hp->timer);
+ 		if (hp->Caddr)
+ 			iounmap(hp->Caddr);
+ 		if (hp->Type == RIO_PCI)
+diff -puN drivers/char/rocket.c~char-timers-cleanup drivers/char/rocket.c
+--- a/drivers/char/rocket.c~char-timers-cleanup
++++ a/drivers/char/rocket.c
+@@ -106,6 +106,8 @@
+ 
+ /****** RocketPort Local Variables ******/
+ 
++static void rp_do_poll(unsigned long dummy);
++
+ static struct tty_driver *rocket_driver;
+ 
+ static struct rocket_version driver_version = {	
+@@ -116,7 +118,7 @@ static struct r_port *rp_table[MAX_RP_PO
+ static unsigned int xmit_flags[NUM_BOARDS];	       /*  Bit significant, indicates port had data to transmit. */
+ 						       /*  eg.  Bit 0 indicates port 0 has xmit data, ...        */
+ static atomic_t rp_num_ports_open;	               /*  Number of serial ports open                           */
+-static struct timer_list rocket_timer;
++static DEFINE_TIMER(rocket_timer, rp_do_poll, 0, 0);
+ 
+ static unsigned long board1;	                       /* ISA addresses, retrieved from rocketport.conf          */
+ static unsigned long board2;
+@@ -2368,12 +2370,6 @@ static int __init rp_init(void)
+ 		return -ENOMEM;
+ 
+ 	/*
+-	 * Set up the timer channel.
+-	 */
+-	init_timer(&rocket_timer);
+-	rocket_timer.function = rp_do_poll;
+-
+-	/*
+ 	 * Initialize the array of pointers to our own internal state
+ 	 * structures.
+ 	 */
+diff -puN drivers/char/rtc.c~char-timers-cleanup drivers/char/rtc.c
+--- a/drivers/char/rtc.c~char-timers-cleanup
++++ a/drivers/char/rtc.c
+@@ -135,7 +135,9 @@ static struct fasync_struct *rtc_async_q
+ static DECLARE_WAIT_QUEUE_HEAD(rtc_wait);
+ 
+ #ifdef RTC_IRQ
+-static struct timer_list rtc_irq_timer;
++static void rtc_dropped_irq(unsigned long data);
++
++static DEFINE_TIMER(rtc_irq_timer, rtc_dropped_irq, 0, 0);
+ #endif
+ 
+ static ssize_t rtc_read(struct file *file, char __user *buf,
+@@ -150,8 +152,6 @@ static unsigned int rtc_poll(struct file
+ 
+ static void get_rtc_alm_time (struct rtc_time *alm_tm);
+ #ifdef RTC_IRQ
+-static void rtc_dropped_irq(unsigned long data);
+-
+ static void set_rtc_irq_bit_locked(unsigned char bit);
+ static void mask_rtc_irq_bit_locked(unsigned char bit);
+ 
+@@ -454,8 +454,8 @@ static int rtc_do_ioctl(unsigned int cmd
+ 
+ 		spin_lock_irqsave (&rtc_lock, flags);
+ 		if (!(rtc_status & RTC_TIMER_ON)) {
+-			rtc_irq_timer.expires = jiffies + HZ/rtc_freq + 2*HZ/100;
+-			add_timer(&rtc_irq_timer);
++			mod_timer(&rtc_irq_timer, jiffies + HZ/rtc_freq +
++					2*HZ/100);
+ 			rtc_status |= RTC_TIMER_ON;
+ 		}
+ 		set_rtc_irq_bit_locked(RTC_PIE);
+@@ -1084,8 +1084,6 @@ no_irq:
+ 	if (rtc_has_irq == 0)
+ 		goto no_irq2;
+ 
+-	init_timer(&rtc_irq_timer);
+-	rtc_irq_timer.function = rtc_dropped_irq;
+ 	spin_lock_irq(&rtc_lock);
+ 	rtc_freq = 1024;
+ 	if (!hpet_set_periodic_freq(rtc_freq)) {
+diff -puN drivers/char/specialix.c~char-timers-cleanup drivers/char/specialix.c
+--- a/drivers/char/specialix.c~char-timers-cleanup
++++ a/drivers/char/specialix.c
+@@ -461,8 +461,7 @@ void missed_irq (unsigned long data)
+ 		sx_interrupt (((struct specialix_board *)data)->irq,
+ 				(void*)data);
+ 	}
+-	missed_irq_timer.expires = jiffies + sx_poll;
+-	add_timer (&missed_irq_timer);
++	mod_timer(&missed_irq_timer, jiffies + sx_poll);
+ }
+ #endif
+ 
+@@ -597,11 +596,8 @@ static int sx_probe(struct specialix_boa
+ 	dprintk (SX_DEBUG_INIT, " GFCR = 0x%02x\n", sx_in_off(bp, CD186x_GFRCR) );
+ 
+ #ifdef SPECIALIX_TIMER
+-	init_timer (&missed_irq_timer);
+-	missed_irq_timer.function = missed_irq;
+-	missed_irq_timer.data = (unsigned long) bp;
+-	missed_irq_timer.expires = jiffies + sx_poll;
+-	add_timer (&missed_irq_timer);
++	setup_timer(&missed_irq_timer, missed_irq, (unsigned long)bp);
++	mod_timer(&missed_irq_timer, jiffies + sx_poll);
+ #endif
+ 
+ 	printk(KERN_INFO"sx%d: specialix IO8+ board detected at 0x%03x, IRQ %d, CD%d Rev. %c.\n",
+@@ -2559,7 +2555,7 @@ static void __exit specialix_exit_module
+ 		if (sx_board[i].flags & SX_BOARD_PRESENT)
+ 			sx_release_io_range(&sx_board[i]);
+ #ifdef SPECIALIX_TIMER
+-	del_timer (&missed_irq_timer);
++	del_timer_sync(&missed_irq_timer);
+ #endif
+ 
+ 	func_exit();
+diff -puN drivers/char/synclink.c~char-timers-cleanup drivers/char/synclink.c
+--- a/drivers/char/synclink.c~char-timers-cleanup
++++ a/drivers/char/synclink.c
+@@ -1798,9 +1798,7 @@ static int startup(struct mgsl_struct * 
+ 	
+ 	memset(&info->icount, 0, sizeof(info->icount));
+ 
+-	init_timer(&info->tx_timer);
+-	info->tx_timer.data = (unsigned long)info;
+-	info->tx_timer.function = mgsl_tx_timeout;
++	setup_timer(&info->tx_timer, mgsl_tx_timeout, (unsigned long)info);
+ 	
+ 	/* Allocate and claim adapter resources */
+ 	retval = mgsl_claim_resources(info);
+@@ -1851,7 +1849,7 @@ static void shutdown(struct mgsl_struct 
+ 	wake_up_interruptible(&info->status_event_wait_q);
+ 	wake_up_interruptible(&info->event_wait_q);
+ 
+-	del_timer(&info->tx_timer);	
++	del_timer_sync(&info->tx_timer);
+ 
+ 	if (info->xmit_buf) {
+ 		free_page((unsigned long) info->xmit_buf);
+@@ -5710,8 +5708,8 @@ static void usc_start_transmitter( struc
+ 			
+ 			usc_TCmd( info, TCmd_SendFrame );
+ 			
+-			info->tx_timer.expires = jiffies + msecs_to_jiffies(5000);
+-			add_timer(&info->tx_timer);	
++			mod_timer(&info->tx_timer, jiffies +
++					msecs_to_jiffies(5000));
+ 		}
+ 		info->tx_active = 1;
+ 	}
+diff -puN drivers/char/synclink_gt.c~char-timers-cleanup drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~char-timers-cleanup
++++ a/drivers/char/synclink_gt.c
+@@ -1825,8 +1825,7 @@ static void rx_async(struct slgt_info *i
+ 		if (i < count) {
+ 			/* receive buffer not completed */
+ 			info->rbuf_index += i;
+-			info->rx_timer.expires = jiffies + 1;
+-			add_timer(&info->rx_timer);
++			mod_timer(&info->rx_timer, jiffies + 1);
+ 			break;
+ 		}
+ 
+@@ -3340,13 +3339,8 @@ static struct slgt_info *alloc_dev(int a
+ 		info->adapter_num = adapter_num;
+ 		info->port_num = port_num;
+ 
+-		init_timer(&info->tx_timer);
+-		info->tx_timer.data = (unsigned long)info;
+-		info->tx_timer.function = tx_timeout;
+-
+-		init_timer(&info->rx_timer);
+-		info->rx_timer.data = (unsigned long)info;
+-		info->rx_timer.function = rx_timeout;
++		setup_timer(&info->tx_timer, tx_timeout, (unsigned long)info);
++		setup_timer(&info->rx_timer, rx_timeout, (unsigned long)info);
+ 
+ 		/* Copy configuration info to device instance data */
+ 		info->pdev = pdev;
+@@ -3794,10 +3788,9 @@ static void tx_start(struct slgt_info *i
+ 				}
+ 			}
+ 
+-			if (info->params.mode == MGSL_MODE_HDLC) {
+-				info->tx_timer.expires = jiffies + msecs_to_jiffies(5000);
+-				add_timer(&info->tx_timer);
+-			}
++			if (info->params.mode == MGSL_MODE_HDLC)
++				mod_timer(&info->tx_timer, jiffies +
++						msecs_to_jiffies(5000));
+ 		} else {
+ 			tdma_reset(info);
+ 			/* set 1st descriptor address */
+diff -puN drivers/char/synclinkmp.c~char-timers-cleanup drivers/char/synclinkmp.c
+--- a/drivers/char/synclinkmp.c~char-timers-cleanup
++++ a/drivers/char/synclinkmp.c
+@@ -2744,8 +2744,7 @@ static int startup(SLMP_INFO * info)
+ 
+ 	change_params(info);
+ 
+-	info->status_timer.expires = jiffies + msecs_to_jiffies(10);
+-	add_timer(&info->status_timer);
++	mod_timer(&info->status_timer, jiffies + msecs_to_jiffies(10));
+ 
+ 	if (info->tty)
+ 		clear_bit(TTY_IO_ERROR, &info->tty->flags);
+@@ -3841,13 +3840,9 @@ static SLMP_INFO *alloc_dev(int adapter_
+ 		info->bus_type = MGSL_BUS_TYPE_PCI;
+ 		info->irq_flags = IRQF_SHARED;
+ 
+-		init_timer(&info->tx_timer);
+-		info->tx_timer.data = (unsigned long)info;
+-		info->tx_timer.function = tx_timeout;
+-
+-		init_timer(&info->status_timer);
+-		info->status_timer.data = (unsigned long)info;
+-		info->status_timer.function = status_timeout;
++		setup_timer(&info->tx_timer, tx_timeout, (unsigned long)info);
++		setup_timer(&info->status_timer, status_timeout,
++				(unsigned long)info);
+ 
+ 		/* Store the PCI9050 misc control register value because a flaw
+ 		 * in the PCI9050 prevents LCR registers from being read if
+@@ -4291,8 +4286,8 @@ void tx_start(SLMP_INFO *info)
+ 			write_reg(info, TXDMA + DIR, 0x40);		/* enable Tx DMA interrupts (EOM) */
+ 			write_reg(info, TXDMA + DSR, 0xf2);		/* clear Tx DMA IRQs, enable Tx DMA */
+ 	
+-			info->tx_timer.expires = jiffies + msecs_to_jiffies(5000);
+-			add_timer(&info->tx_timer);
++			mod_timer(&info->tx_timer, jiffies +
++					msecs_to_jiffies(5000));
+ 		}
+ 		else {
+ 			tx_load_fifo(info);
+@@ -5574,10 +5569,7 @@ void status_timeout(unsigned long contex
+ 	if (status)
+ 		isr_io_pin(info,status);
+ 
+-	info->status_timer.data = (unsigned long)info;
+-	info->status_timer.function = status_timeout;
+-	info->status_timer.expires = jiffies + msecs_to_jiffies(10);
+-	add_timer(&info->status_timer);
++	mod_timer(&info->status_timer, jiffies + msecs_to_jiffies(10));
+ }
+ 
+ 
+diff -puN drivers/char/tpm/tpm.c~char-timers-cleanup drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~char-timers-cleanup
++++ a/drivers/char/tpm/tpm.c
+@@ -1107,9 +1107,8 @@ struct tpm_chip *tpm_register_hardware(s
+ 
+ 	INIT_WORK(&chip->work, timeout_work);
+ 
+-	init_timer(&chip->user_read_timer);
+-	chip->user_read_timer.function = user_reader_timeout;
+-	chip->user_read_timer.data = (unsigned long) chip;
++	setup_timer(&chip->user_read_timer, user_reader_timeout,
++			(unsigned long)chip);
+ 
+ 	memcpy(&chip->vendor, entry, sizeof(struct tpm_vendor_specific));
+ 
+diff -puN drivers/char/vt.c~char-timers-cleanup drivers/char/vt.c
+--- a/drivers/char/vt.c~char-timers-cleanup
++++ a/drivers/char/vt.c
+@@ -210,7 +210,7 @@ static int scrollback_delta;
+  */
+ int (*console_blank_hook)(int);
+ 
+-static struct timer_list console_timer;
++static DEFINE_TIMER(console_timer, blank_screen_t, 0, 0);
+ static int blank_state;
+ static int blank_timer_expired;
+ enum {
+@@ -2625,8 +2625,6 @@ static int __init con_init(void)
+ 	for (i = 0; i < MAX_NR_CONSOLES; i++)
+ 		con_driver_map[i] = conswitchp;
+ 
+-	init_timer(&console_timer);
+-	console_timer.function = blank_screen_t;
+ 	if (blankinterval) {
+ 		blank_state = blank_normal_wait;
+ 		mod_timer(&console_timer, jiffies + blankinterval);
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-bugfixes-pci-devices-get-assigned-redundant-irqs.patch
-git-v9fs.patch
-x86_64-irq-simplfy-__assign_irq_vector.patch
-x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
-sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
-sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
-sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
-sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
-sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
-sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
-sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
-sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-md-remove-unnecessary-insert_at_head-flag.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-dont-set-de-owner.patch
-sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
-sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
-sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
-sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-arch-frv-kernel-pmc.patch
-sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
-sysctl-sn-remove-sysctl-abi-breakage.patch
-sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
-sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
-sysctl-mips-au1000-remove-sys_sysctl-support.patch
-sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
-sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
-sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
-sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
-sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
-sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
-sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
-sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
-sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
-sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc-fix.patch
-sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support-fix.patch
-sysctl-register-the-ocfs2-sysctl-numbers.patch
-sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
-sysctl-move-utsname-sysctls-to-their-own-file.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-remove-support-for-ctl_any.patch
-sysctl-remove-support-for-directory-strategy-routines.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
-sysctl-reimplement-the-sysctl-proc-support.patch
-sysctl-reimplement-the-sysctl-proc-support-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-sysctl-fix-the-selinux_sysctl_get_sid.patch
-selinux-enhance-selinux-to-always-ignore-private-inodes.patch
-sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+git-watchdog.patch
+shrink_slab-handle-bad-shrinkers.patch
