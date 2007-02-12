@@ -1,98 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-add-a-global-list-of-all-virtual-machines.patch removed from -mm tree
-Date: Mon, 12 Feb 2007 14:49:02 -0800
-Message-ID: <200702122249.l1CMn28G014075@shell0.pdx.osdl.net>
+Subject: - hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch removed from -mm tree
+Date: Mon, 12 Feb 2007 14:48:59 -0800
+Message-ID: <200702122248.l1CMmxtc014072@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45595 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45619 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030378AbXBLWtG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Feb 2007 17:49:06 -0500
+	id S1030334AbXBLWtR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Feb 2007 17:49:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mingo@elte.hu, oleg@tv-sign.ru, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Add a global list of all virtual machines
+     hotplug: Allow modules to use the cpu hotplug notifiers even if !CONFIG_HOTPLUG_CPU
 has been removed from the -mm tree.  Its filename was
-     kvm-add-a-global-list-of-all-virtual-machines.patch
+     hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: Add a global list of all virtual machines
+Subject: hotplug: Allow modules to use the cpu hotplug notifiers even if !CONFIG_HOTPLUG_CPU
 From: Avi Kivity <avi@qumranet.com>
 
-This will allow us to iterate over all vcpus and see which cpus they are
-running on.
+The following patchset allows a host with running virtual machines to be
+suspended and, on at least a subset of the machines tested, resumed.  Note
+that this is orthogonal to suspending and resuming an individual guest to a
+file.
 
-[akpm@osdl.org: use standard (ugly) initialisers]
+A side effect of implementing suspend/resume is that cpu hotplug is now
+supported.  This should please the owners of big iron.
+
+
+This patch:
+
+KVM wants the cpu hotplug notifications, both for cpu hotplug itself, but more
+commonly for host suspend/resume.
+
+In order to avoid extensive #ifdefs, provide stubs when CONFIG_CPU_HOTPLUG is
+not defined.
+
+In all, we have four cases:
+
+- UP: register and unregister stubbed out
+- SMP+hotplug: full register and unregister
+- SMP, no hotplug, core: register as __init, unregister stubbed
+      (cpus are brought up during core initialization)
+- SMP, no hotplug, module: register and unregister stubbed out
+      (cpus cannot be brought up during module lifetime)
+
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm.h      |    1 +
- drivers/kvm/kvm_main.c |   11 ++++++++++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ include/linux/cpu.h |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-add-a-global-list-of-all-virtual-machines drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-add-a-global-list-of-all-virtual-machines
-+++ a/drivers/kvm/kvm.h
-@@ -304,6 +304,7 @@ struct kvm {
- 	int memory_config_version;
- 	int busy;
- 	unsigned long rmap_overflow;
-+	struct list_head vm_list;
- };
+diff -puN include/linux/cpu.h~hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers include/linux/cpu.h
+--- a/include/linux/cpu.h~hotplug-allow-modules-to-use-the-cpu-hotplug-notifiers
++++ a/include/linux/cpu.h
+@@ -49,10 +49,20 @@ struct notifier_block;
  
- struct kvm_stat {
-diff -puN drivers/kvm/kvm_main.c~kvm-add-a-global-list-of-all-virtual-machines drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-add-a-global-list-of-all-virtual-machines
-+++ a/drivers/kvm/kvm_main.c
-@@ -41,6 +41,9 @@
- MODULE_AUTHOR("Qumranet");
- MODULE_LICENSE("GPL");
- 
-+static DEFINE_SPINLOCK(kvm_lock);
-+static LIST_HEAD(vm_list);
+ #ifdef CONFIG_SMP
+ /* Need to know about CPUs going up/down? */
+-extern int register_cpu_notifier(struct notifier_block *nb);
+ #ifdef CONFIG_HOTPLUG_CPU
++extern int register_cpu_notifier(struct notifier_block *nb);
+ extern void unregister_cpu_notifier(struct notifier_block *nb);
+ #else
 +
- struct kvm_arch_ops *kvm_arch_ops;
- struct kvm_stat kvm_stat;
- EXPORT_SYMBOL_GPL(kvm_stat);
-@@ -230,9 +233,13 @@ static int kvm_dev_open(struct inode *in
- 		struct kvm_vcpu *vcpu = &kvm->vcpus[i];
- 
- 		mutex_init(&vcpu->mutex);
-+		vcpu->cpu = -1;
- 		vcpu->kvm = kvm;
- 		vcpu->mmu.root_hpa = INVALID_PAGE;
- 		INIT_LIST_HEAD(&vcpu->free_pages);
-+		spin_lock(&kvm_lock);
-+		list_add(&kvm->vm_list, &vm_list);
-+		spin_unlock(&kvm_lock);
- 	}
- 	filp->private_data = kvm;
- 	return 0;
-@@ -292,6 +299,9 @@ static int kvm_dev_release(struct inode 
++#ifndef MODULE
++extern int register_cpu_notifier(struct notifier_block *nb);
++#else
++static inline int register_cpu_notifier(struct notifier_block *nb)
++{
++	return 0;
++}
++#endif
++
+ static inline void unregister_cpu_notifier(struct notifier_block *nb)
  {
- 	struct kvm *kvm = filp->private_data;
- 
-+	spin_lock(&kvm_lock);
-+	list_del(&kvm->vm_list);
-+	spin_unlock(&kvm_lock);
- 	kvm_free_vcpus(kvm);
- 	kvm_free_physmem(kvm);
- 	kfree(kvm);
-@@ -546,7 +556,6 @@ static int kvm_dev_ioctl_create_vcpu(str
- 					   FX_IMAGE_ALIGN);
- 	vcpu->guest_fx_image = vcpu->host_fx_image + FX_IMAGE_SIZE;
- 
--	vcpu->cpu = -1;  /* First load will set up TR */
- 	r = kvm_arch_ops->vcpu_create(vcpu);
- 	if (r < 0)
- 		goto out_free_vcpus;
+ }
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
