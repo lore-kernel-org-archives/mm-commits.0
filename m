@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sata_nv-handle-serror-status-indication.patch added to -mm tree
-Date: Mon, 12 Feb 2007 22:46:58 -0800
-Message-ID: <200702130646.l1D6kwCa024247@shell0.pdx.osdl.net>
+Subject: + rm9000-serial-driver.patch added to -mm tree
+Date: Mon, 12 Feb 2007 22:54:59 -0800
+Message-ID: <200702130654.l1D6sxN8024393@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56623 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56876 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161056AbXBMGrJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 01:47:09 -0500
+	id S1751125AbXBMG6p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 01:58:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org
+Cc: thomas.koeller@baslerweb.com, ralf@linux-mips.org, rmk@arm.linux.org.uk, sshtylyov@ru.mvista.com
 
 
 The patch titled
-     sata_nv: handle SError status indication
+     RM9000 serial driver
 has been added to the -mm tree.  Its filename is
-     sata_nv-handle-serror-status-indication.patch
+     rm9000-serial-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,303 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sata_nv: handle SError status indication
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: RM9000 serial driver
+From: Thomas Koeller <thomas.koeller@baslerweb.com>
 
-ADMA-capable controllers provide a bit in the status register that appears
-to indicate that the controller detected an SError condition.  Update
-sata_nv to detect this and trigger error handling in order to handle the
-fault.
+Add support for the integrated serial ports of the MIPS RM9122 processor
+and its relatives.  There has been some discussion about this patch.  The
+interesting part starts here:
 
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+http://marc.theaimsgroup.com/?l=linux-mips&m=115620115100412&w=2
+
+Signed-off-by: Thomas Koeller <thomas.koeller@baslerweb.com>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/mips/Kconfig           |    3 +
+ drivers/serial/8250.c       |  102 +++++++++++++++++++++++++---------
+ drivers/serial/Kconfig      |    9 +++
+ include/linux/serial_core.h |    3 -
+ 4 files changed, 89 insertions(+), 28 deletions(-)
 
-diff -puN drivers/ata/sata_nv.c~sata_nv-handle-serror-status-indication drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~sata_nv-handle-serror-status-indication
-+++ a/drivers/ata/sata_nv.c
-@@ -827,7 +827,8 @@ static irqreturn_t nv_adma_interrupt(int
- 			/* freeze if hotplugged or controller error */
- 			if (unlikely(status & (NV_ADMA_STAT_HOTPLUG |
- 					       NV_ADMA_STAT_HOTUNPLUG |
--					       NV_ADMA_STAT_TIMEOUT))) {
-+					       NV_ADMA_STAT_TIMEOUT |
-+					       NV_ADMA_STAT_SERROR))) {
- 				struct ata_eh_info *ehi = &ap->eh_info;
+diff -puN arch/mips/Kconfig~rm9000-serial-driver arch/mips/Kconfig
+--- a/arch/mips/Kconfig~rm9000-serial-driver
++++ a/arch/mips/Kconfig
+@@ -1012,6 +1012,9 @@ config SOC_AU1X00
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+ 	select SYS_SUPPORTS_APM_EMULATION
  
- 				ata_ehi_clear_desc(ehi);
-@@ -841,6 +842,9 @@ static irqreturn_t nv_adma_interrupt(int
- 				} else if (status & NV_ADMA_STAT_HOTUNPLUG) {
- 					ata_ehi_hotplugged(ehi);
- 					ata_ehi_push_desc(ehi, ": hot unplug");
-+				} else if (status & NV_ADMA_STAT_SERROR) {
-+					/* let libata analyze SError and figure out the cause */
-+					ata_ehi_push_desc(ehi, ": SError");
- 				}
- 				ata_port_freeze(ap);
- 				continue;
++config SERIAL_RM9000
++	bool
++
+ config PNX8550
+ 	bool
+ 	select SOC_PNX8550
+diff -puN drivers/serial/8250.c~rm9000-serial-driver drivers/serial/8250.c
+--- a/drivers/serial/8250.c~rm9000-serial-driver
++++ a/drivers/serial/8250.c
+@@ -251,9 +251,16 @@ static const struct serial8250_config ua
+ 		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
+ 		.flags		= UART_CAP_FIFO | UART_CAP_UUE,
+ 	},
++	[PORT_RM9000] = {
++		.name		= "RM9000",
++		.fifo_size	= 16,
++		.tx_loadsz	= 16,
++		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
++		.flags		= UART_CAP_FIFO,
++	},
+ };
+ 
+-#ifdef CONFIG_SERIAL_8250_AU1X00
++#if defined (CONFIG_SERIAL_8250_AU1X00)
+ 
+ /* Au1x00 UART hardware has a weird register layout */
+ static const u8 au_io_in_map[] = {
+@@ -289,6 +296,36 @@ static inline int map_8250_out_reg(struc
+ 	return au_io_out_map[offset];
+ }
+ 
++#elif defined (CONFIG_SERIAL_8250_RM9K)
++
++static const u8
++	regmap_in[8] = {
++		[UART_RX]	= 0x00,
++		[UART_IER]	= 0x0c,
++		[UART_IIR]	= 0x14,
++		[UART_LCR]	= 0x1c,
++		[UART_MCR]	= 0x20,
++		[UART_LSR]	= 0x24,
++		[UART_MSR]	= 0x28,
++		[UART_SCR]	= 0x2c
++	},
++	regmap_out[8] = {
++		[UART_TX] 	= 0x04,
++		[UART_IER]	= 0x0c,
++		[UART_FCR]	= 0x18,
++		[UART_LCR]	= 0x1c,
++		[UART_MCR]	= 0x20,
++		[UART_LSR]	= 0x24,
++		[UART_MSR]	= 0x28,
++		[UART_SCR]	= 0x2c
++	};
++
++#define map_8250_in_reg(up, offset) \
++	(((up)->port.type == PORT_RM9000) ? regmap_in[offset] : (offset))
++#define map_8250_out_reg(up, offset) \
++	(((up)->port.type == PORT_RM9000) ? regmap_out[offset] : (offset))
++
++
+ #else
+ 
+ /* sane hardware needs no mapping */
+@@ -391,21 +428,21 @@ serial_out_sync(struct uart_8250_port *u
+ #define serial_outp(up, offset, value)	serial_out(up, offset, value)
+ 
+ /* Uart divisor latch read */
+-static inline int _serial_dl_read(struct uart_8250_port *up)
++static inline unsigned int _serial_dl_read(struct uart_8250_port *up)
+ {
+ 	return serial_inp(up, UART_DLL) | serial_inp(up, UART_DLM) << 8;
+ }
+ 
+ /* Uart divisor latch write */
+-static inline void _serial_dl_write(struct uart_8250_port *up, int value)
++static inline void _serial_dl_write(struct uart_8250_port *up, unsigned int value)
+ {
+ 	serial_outp(up, UART_DLL, value & 0xff);
+ 	serial_outp(up, UART_DLM, value >> 8 & 0xff);
+ }
+ 
+-#ifdef CONFIG_SERIAL_8250_AU1X00
++#if defined (CONFIG_SERIAL_8250_AU1X00)
+ /* Au1x00 haven't got a standard divisor latch */
+-static int serial_dl_read(struct uart_8250_port *up)
++static unsigned int serial_dl_read(struct uart_8250_port *up)
+ {
+ 	if (up->port.iotype == UPIO_AU)
+ 		return __raw_readl(up->port.membase + 0x28);
+@@ -413,13 +450,26 @@ static int serial_dl_read(struct uart_82
+ 		return _serial_dl_read(up);
+ }
+ 
+-static void serial_dl_write(struct uart_8250_port *up, int value)
++static void serial_dl_write(struct uart_8250_port *up, unsigned int value)
+ {
+ 	if (up->port.iotype == UPIO_AU)
+ 		__raw_writel(value, up->port.membase + 0x28);
+ 	else
+ 		_serial_dl_write(up, value);
+ }
++#elif defined (CONFIG_SERIAL_8250_RM9K)
++static inline unsigned int serial_dl_read(struct uart_8250_port *up)
++{
++	return
++		((readl(up->port.membase + 0x10) << 8) |
++		(readl(up->port.membase + 0x08) & 0xff)) & 0xffff;
++}
++
++static inline void serial_dl_write(struct uart_8250_port *up, unsigned int value)
++{
++	writel(value, up->port.membase + 0x08);
++	writel(value >> 8, up->port.membase + 0x10);
++}
+ #else
+ #define serial_dl_read(up) _serial_dl_read(up)
+ #define serial_dl_write(up, value) _serial_dl_write(up, value)
+@@ -593,22 +643,17 @@ static int size_fifo(struct uart_8250_po
+  */
+ static unsigned int autoconfig_read_divisor_id(struct uart_8250_port *p)
+ {
+-	unsigned char old_dll, old_dlm, old_lcr;
+-	unsigned int id;
++	unsigned char old_lcr;
++	unsigned int id, old_dl;
+ 
+ 	old_lcr = serial_inp(p, UART_LCR);
+ 	serial_outp(p, UART_LCR, UART_LCR_DLAB);
++	old_dl = _serial_dl_read(p);
+ 
+-	old_dll = serial_inp(p, UART_DLL);
+-	old_dlm = serial_inp(p, UART_DLM);
+-
+-	serial_outp(p, UART_DLL, 0);
+-	serial_outp(p, UART_DLM, 0);
++	serial_dl_write(p, 0);
++	id = serial_dl_read(p);
+ 
+-	id = serial_inp(p, UART_DLL) | serial_inp(p, UART_DLM) << 8;
+-
+-	serial_outp(p, UART_DLL, old_dll);
+-	serial_outp(p, UART_DLM, old_dlm);
++	serial_dl_write(p, old_dl);
+ 	serial_outp(p, UART_LCR, old_lcr);
+ 
+ 	return id;
+@@ -621,7 +666,7 @@ static unsigned int autoconfig_read_divi
+  * its clones.  (We treat the broken original StarTech 16650 V1 as a
+  * 16550, and why not?  Startech doesn't seem to even acknowledge its
+  * existence.)
+- * 
++ *
+  * What evil have men's minds wrought...
+  */
+ static void autoconfig_has_efr(struct uart_8250_port *up)
+@@ -674,7 +719,7 @@ static void autoconfig_has_efr(struct ua
+ 			up->bugs |= UART_BUG_QUOT;
+ 		return;
+ 	}
+-	
++
+ 	/*
+ 	 * We check for a XR16C850 by setting DLL and DLM to 0, and then
+ 	 * reading back DLL and DLM.  The chip type depends on the DLM
+@@ -817,7 +862,7 @@ static void autoconfig_16550a(struct uar
+ 			status1 &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
+ 			status1 |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
+ 			serial_outp(up, 0x04, status1);
+-			
++
+ 			serial_dl_write(up, quot);
+ 
+ 			serial_outp(up, UART_LCR, 0);
+@@ -922,7 +967,7 @@ static void autoconfig(struct uart_8250_
+ 		/*
+ 		 * Do a simple existence test first; if we fail this,
+ 		 * there's no point trying anything else.
+-		 * 
++		 *
+ 		 * 0x80 is used as a nonsense port to prevent against
+ 		 * false positives due to ISA bus float.  The
+ 		 * assumption is that 0x80 is a non-existent port;
+@@ -961,7 +1006,7 @@ static void autoconfig(struct uart_8250_
+ 	save_mcr = serial_in(up, UART_MCR);
+ 	save_lcr = serial_in(up, UART_LCR);
+ 
+-	/* 
++	/*
+ 	 * Check to see if a UART is really there.  Certain broken
+ 	 * internal modems based on the Rockwell chipset fail this
+ 	 * test, because they apparently don't implement the loopback
+@@ -1068,7 +1113,7 @@ static void autoconfig(struct uart_8250_
+ 	else
+ 		serial_outp(up, UART_IER, 0);
+ 
+- out:	
++ out:
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ //	restore_flags(flags);
+ 	DEBUG_AUTOCONF("type=%s\n", uart_config[up->port.type].name);
+@@ -1094,7 +1139,7 @@ static void autoconfig_irq(struct uart_8
+ 	save_mcr = serial_inp(up, UART_MCR);
+ 	save_ier = serial_inp(up, UART_IER);
+ 	serial_outp(up, UART_MCR, UART_MCR_OUT1 | UART_MCR_OUT2);
+-	
++
+ 	irqs = probe_irq_on();
+ 	serial_outp(up, UART_MCR, 0);
+ 	udelay (10);
+@@ -1159,8 +1204,11 @@ static void serial8250_start_tx(struct u
+ 		if (up->bugs & UART_BUG_TXEN) {
+ 			unsigned char lsr, iir;
+ 			lsr = serial_in(up, UART_LSR);
+-			iir = serial_in(up, UART_IIR);
+-			if (lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT)
++			iir = serial_in(up, UART_IIR) & 0x0f;
++			if ((up->port.type == PORT_RM9000) ?
++				(lsr & UART_LSR_THRE &&
++				(iir == UART_IIR_NO_INT || iir == UART_IIR_THRI)) :
++				(lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT))
+ 				transmit_chars(up);
+ 		}
+ 	}
+@@ -1930,7 +1978,7 @@ serial8250_set_termios(struct uart_port 
+ 	/*
+ 	 * Ask the core to calculate the divisor for us.
+ 	 */
+-	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16); 
++	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16);
+ 	quot = serial8250_get_divisor(port, baud);
+ 
+ 	/*
+diff -puN drivers/serial/Kconfig~rm9000-serial-driver drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~rm9000-serial-driver
++++ a/drivers/serial/Kconfig
+@@ -264,6 +264,15 @@ config SERIAL_8250_AU1X00
+ 	  to this option.  The driver can handle 1 or 2 serial ports.
+ 	  If unsure, say N.
+ 
++config SERIAL_8250_RM9K
++	bool "Support for MIPS RM9xxx integrated serial port"
++	depends on SERIAL_8250 != n && SERIAL_RM9000
++	select SERIAL_8250_SHARE_IRQ
++	help
++	  Selecting this option will add support for the integrated serial
++	  port hardware found on MIPS RM9122 and similar processors.
++	  If unsure, say N.
++
+ comment "Non-8250 serial port support"
+ 
+ config SERIAL_AMBA_PL010
+diff -puN include/linux/serial_core.h~rm9000-serial-driver include/linux/serial_core.h
+--- a/include/linux/serial_core.h~rm9000-serial-driver
++++ a/include/linux/serial_core.h
+@@ -39,7 +39,8 @@
+ #define PORT_RSA	13
+ #define PORT_NS16550A	14
+ #define PORT_XSCALE	15
+-#define PORT_MAX_8250	15	/* max port ID */
++#define PORT_RM9000	16	/* PMC-Sierra RM9xxx internal UART */
++#define PORT_MAX_8250	16	/* max port ID */
+ 
+ /*
+  * ARM specific type numbers.  These are not currently guaranteed
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from thomas.koeller@baslerweb.com are
 
-origin.patch
-libata-warn-if-speed-limited-due-to-40-wire-cable.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
-sata_nv-handle-serror-status-indication.patch
+git-mtd.patch
+rm9000-serial-driver.patch
