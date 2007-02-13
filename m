@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch added to -mm tree
-Date: Mon, 12 Feb 2007 21:13:14 -0800
-Message-ID: <200702130513.l1D5DEHx022319@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-elevate-write-count-files-are-opened.patch added to -mm tree
+Date: Mon, 12 Feb 2007 21:13:08 -0800
+Message-ID: <200702130513.l1D5D87E022308@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54675 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54684 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161043AbXBMFNX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 00:13:23 -0500
+	id S1161048AbXBMFN1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 00:13:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, linuxram@us.ibm.com, m
 
 
 The patch titled
-     r/o bind mounts: elevate write count for do_sys_utime() and touch_atime()
+     r/o bind mounts: elevate write count files are open()ed
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+     r-o-bind-mounts-elevate-write-count-files-are-opened.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,8 +25,21 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for do_sys_utime() and touch_atime()
+Subject: r/o bind mounts: elevate write count files are open()ed
 From: Dave Hansen <hansendc@us.ibm.com>
+
+This is the first really tricky patch in the series.  It elevates the writer
+count on a mount each time a non-special file is opened for write.
+
+This is not completely apparent in the patch because the two if() conditions
+in may_open() above the mnt_want_write() call are, combined, equivalent to
+special_file().
+
+There is also an elevated count around the vfs_create() call in open_namei(). 
+The count needs to be kept elevated all the way into the may_open() call. 
+Otherwise, when the write is dropped, a ro->rw transisition could occur.  This
+would lead to having rw access on the newly created file, while the vfsmount
+is ro.  That is bad.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
@@ -36,64 +49,92 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ fs/file_table.c |    5 ++++-
+ fs/namei.c      |   22 ++++++++++++++++++----
+ ipc/mqueue.c    |    3 +++
+ 3 files changed, 25 insertions(+), 5 deletions(-)
 
-diff -puN fs/inode.c~r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime fs/inode.c
---- a/fs/inode.c~r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime
-+++ a/fs/inode.c
-@@ -1170,22 +1170,23 @@ void touch_atime(struct vfsmount *mnt, s
- 	struct inode *inode = dentry->d_inode;
- 	struct timespec now;
+diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-files-are-opened fs/file_table.c
+--- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-files-are-opened
++++ a/fs/file_table.c
+@@ -208,8 +208,11 @@ void fastcall __fput(struct file *file)
+ 	if (unlikely(S_ISCHR(inode->i_mode) && inode->i_cdev != NULL))
+ 		cdev_put(inode->i_cdev);
+ 	fops_put(file->f_op);
+-	if (file->f_mode & FMODE_WRITE)
++	if (file->f_mode & FMODE_WRITE) {
+ 		put_write_access(inode);
++		if (!special_file(inode->i_mode))
++			mnt_drop_write(mnt);
++	}
+ 	put_pid(file->f_owner.pid);
+ 	file_kill(file);
+ 	file->f_path.dentry = NULL;
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-files-are-opened fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-files-are-opened
++++ a/fs/namei.c
+@@ -1544,8 +1544,17 @@ int may_open(struct nameidata *nd, int a
+ 			return -EACCES;
  
--	if (inode->i_flags & S_NOATIME)
-+	if (mnt && mnt_want_write(mnt))
- 		return;
-+	if (inode->i_flags & S_NOATIME)
-+		goto out;
- 	if (IS_NOATIME(inode))
--		return;
-+		goto out;
- 	if ((inode->i_sb->s_flags & MS_NODIRATIME) && S_ISDIR(inode->i_mode))
--		return;
-+		goto out;
- 
+ 		flag &= ~O_TRUNC;
+-	} else if (IS_RDONLY(inode) && (flag & FMODE_WRITE))
+-		return -EROFS;
++	} else if (flag & FMODE_WRITE) {
++		/*
++		 * effectively: !special_file()
++		 * balanced by __fput()
++		 */
++		error = mnt_want_write(nd->mnt);
++		if (error)
++			return error;
++		if (IS_RDONLY(inode))
++			return -EROFS;
++	}
  	/*
- 	 * We may have a NULL vfsmount when coming from NFSD
+ 	 * An append-only file must be opened in append mode for writing.
  	 */
- 	if (mnt) {
- 		if (mnt->mnt_flags & MNT_NOATIME)
--			return;
-+			goto out;
- 		if ((mnt->mnt_flags & MNT_NODIRATIME) && S_ISDIR(inode->i_mode))
--			return;
--
-+			goto out;
- 		if (mnt->mnt_flags & MNT_RELATIME) {
- 			/*
- 			 * With relative atime, only update atime if the
-@@ -1196,16 +1197,19 @@ void touch_atime(struct vfsmount *mnt, s
- 						&inode->i_atime) < 0 &&
- 			    timespec_compare(&inode->i_ctime,
- 						&inode->i_atime) < 0)
--				return;
-+				goto out;
- 		}
+@@ -1684,14 +1693,17 @@ do_last:
  	}
  
- 	now = current_fs_time(inode->i_sb);
- 	if (timespec_equal(&inode->i_atime, &now))
--		return;
-+		goto out;
+ 	if (IS_ERR(nd->intent.open.file)) {
+-		mutex_unlock(&dir->d_inode->i_mutex);
+ 		error = PTR_ERR(nd->intent.open.file);
+-		goto exit_dput;
++		goto exit_mutex_unlock;
+ 	}
  
- 	inode->i_atime = now;
- 	mark_inode_dirty_sync(inode);
-+out:
-+	if (mnt)
-+		mnt_drop_write(mnt);
- }
- EXPORT_SYMBOL(touch_atime);
+ 	/* Negative dentry, just create the file */
+ 	if (!path.dentry->d_inode) {
++		error = mnt_want_write(nd->mnt);
++		if (error)
++			goto exit_mutex_unlock;
+ 		error = open_namei_create(nd, &path, flag, mode);
++		mnt_drop_write(nd->mnt);
+ 		if (error)
+ 			goto exit;
+ 		return 0;
+@@ -1729,6 +1741,8 @@ ok:
+ 		goto exit;
+ 	return 0;
  
++exit_mutex_unlock:
++	mutex_unlock(&dir->d_inode->i_mutex);
+ exit_dput:
+ 	dput_path(&path, nd);
+ exit:
+diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-files-are-opened ipc/mqueue.c
+--- a/ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-files-are-opened
++++ a/ipc/mqueue.c
+@@ -687,6 +687,9 @@ asmlinkage long sys_mq_open(const char _
+ 				goto out;
+ 			filp = do_open(dentry, oflag);
+ 		} else {
++			error = mnt_want_write(mqueue_mnt);
++			if (error)
++				goto out;
+ 			filp = do_create(mqueue_mnt->mnt_root, dentry,
+ 						oflag, mode, u_attr);
+ 		}
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
