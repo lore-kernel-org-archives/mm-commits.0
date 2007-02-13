@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + libata-warn-if-speed-limited-due-to-40-wire-cable.patch added to -mm tree
-Date: Mon, 12 Feb 2007 21:16:15 -0800
-Message-ID: <200702130516.l1D5GFSL022429@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch added to -mm tree
+Date: Mon, 12 Feb 2007 21:13:18 -0800
+Message-ID: <200702130513.l1D5DIJS022325@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54800 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54810 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161039AbXBMFQf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 00:16:35 -0500
+	id S1161061AbXBMFQn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 00:16:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hancockr@shaw.ca, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
+Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, linuxram@us.ibm.com, miklos@szeredi.hu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     libata: warn if speed limited due to 40-wire cable
+     r/o bind mounts: elevate mnt writers for vfs_unlink() callers
 has been added to the -mm tree.  Its filename is
-     libata-warn-if-speed-limited-due-to-40-wire-cable.patch
+     r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,72 +25,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: warn if speed limited due to 40-wire cable
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: r/o bind mounts: elevate mnt writers for vfs_unlink() callers
+From: Dave Hansen <hansendc@us.ibm.com>
 
-Print an explicit warning when a device's UDMA mode is limited due to a
-40-wire cable being detected, so that users have some idea why their device
-isn't running as fast as it should.
-
-This moves the application of the drive's mode masks before the cable rule,
-so that can tell whether the rate is being limited by the cable and not the
-drive or controller.
-
-I haven't tested whether the message actually shows up, as my system isn't
-horked in this manner..
-
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ fs/namei.c   |    4 ++++
+ ipc/mqueue.c |    5 ++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-core.c~libata-warn-if-speed-limited-due-to-40-wire-cable drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-warn-if-speed-limited-due-to-40-wire-cable
-+++ a/drivers/ata/libata-core.c
-@@ -3319,22 +3319,24 @@ static void ata_dev_xfermask(struct ata_
- 	xfer_mask = ata_pack_xfermask(ap->pio_mask,
- 				      ap->mwdma_mask, ap->udma_mask);
- 
-+	/* drive modes available */
-+	xfer_mask &= ata_pack_xfermask(dev->pio_mask,
-+				       dev->mwdma_mask, dev->udma_mask);
-+	xfer_mask &= ata_id_xfermask(dev->id);
-+
- 	/* Apply cable rule here.  Don't apply it early because when
- 	 * we handle hot plug the cable type can itself change.
-+	 * Unknown or 80 wire cables reported host side are checked
-+	 * drive side as well. Cases where we know a 40wire cable
-+	 * is used safely for 80 are not checked here.
- 	 */
--	if (ap->cbl == ATA_CBL_PATA40)
--		xfer_mask &= ~(0xF8 << ATA_SHIFT_UDMA);
--	/* Apply drive side cable rule. Unknown or 80 pin cables reported
--	 * host side are checked drive side as well. Cases where we know a
--	 * 40wire cable is used safely for 80 are not checked here.
--	 */
--        if (ata_drive_40wire(dev->id) && (ap->cbl == ATA_CBL_PATA_UNK || ap->cbl == ATA_CBL_PATA80))
-+	if ((xfer_mask & (0xF8 << ATA_SHIFT_UDMA)) &&
-+	    ((ap->cbl == ATA_CBL_PATA40) ||
-+	     (ata_drive_40wire(dev->id) &&
-+	      (ap->cbl == ATA_CBL_PATA_UNK || ap->cbl == ATA_CBL_PATA80)))) {
-+	      	ata_dev_printk(dev, KERN_WARNING, "limited to UDMA2 due to 40-wire cable\n");
- 		xfer_mask &= ~(0xF8 << ATA_SHIFT_UDMA);
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers
++++ a/fs/namei.c
+@@ -2177,7 +2177,11 @@ static long do_unlinkat(int dfd, const c
+ 		inode = dentry->d_inode;
+ 		if (inode)
+ 			atomic_inc(&inode->i_count);
++		error = mnt_want_write(nd.mnt);
++		if (error)
++			goto exit2;
+ 		error = vfs_unlink(nd.dentry->d_inode, dentry);
++		mnt_drop_write(nd.mnt);
+ 	exit2:
+ 		dput(dentry);
+ 	}
+diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers ipc/mqueue.c
+--- a/ipc/mqueue.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers
++++ a/ipc/mqueue.c
+@@ -749,8 +749,11 @@ asmlinkage long sys_mq_unlink(const char
+ 	inode = dentry->d_inode;
+ 	if (inode)
+ 		atomic_inc(&inode->i_count);
 -
--
--	xfer_mask &= ata_pack_xfermask(dev->pio_mask,
--				       dev->mwdma_mask, dev->udma_mask);
--	xfer_mask &= ata_id_xfermask(dev->id);
-+	}
++	err = mnt_want_write(mqueue_mnt);
++	if (err)
++		goto out_err;
+ 	err = vfs_unlink(dentry->d_parent->d_inode, dentry);
++	mnt_drop_write(mqueue_mnt);
+ out_err:
+ 	dput(dentry);
  
- 	/*
- 	 *	CFA Advanced TrueIDE timings are not allowed on a shared
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from hansendc@us.ibm.com are
 
-origin.patch
-libata-warn-if-speed-limited-due-to-40-wire-cable.patch
+r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
+r-o-bind-mounts-add-vfsmount-writer-counts.patch
+r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-mount_is_safe-add-comment.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-elevate-write-count-files-are-opened.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-elevate-writer-count-for-custom-struct_file.patch
+r-o-bind-mounts-gfs-check-nlink-count.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+r-o-bind-mounts-kill-open-files-traverse-on-remount-ro.patch
