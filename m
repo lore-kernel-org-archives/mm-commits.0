@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-files-are-opened.patch added to -mm tree
-Date: Mon, 12 Feb 2007 21:13:08 -0800
-Message-ID: <200702130513.l1D5D87E022308@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode.patch added to -mm tree
+Date: Mon, 12 Feb 2007 21:12:50 -0800
+Message-ID: <200702130512.l1D5CojF022278@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54684 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54698 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161048AbXBMFN1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 00:13:27 -0500
+	id S1161045AbXBMFNb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 00:13:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, linuxram@us.ibm.com, m
 
 
 The patch titled
-     r/o bind mounts: elevate write count files are open()ed
+     r/o bind mounts: record when sb_writer_count elevated for inode
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-files-are-opened.patch
+     r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,21 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count files are open()ed
+Subject: r/o bind mounts: record when sb_writer_count elevated for inode
 From: Dave Hansen <hansendc@us.ibm.com>
 
-This is the first really tricky patch in the series.  It elevates the writer
-count on a mount each time a non-special file is opened for write.
+There are a number of filesystems that do iput()s without first having messed
+with i_nlink.  In order to keep from accidentally decrementing the superblock
+writer count for these, we record when the count is bumped up, so that we can
+properly balance it.
 
-This is not completely apparent in the patch because the two if() conditions
-in may_open() above the mnt_want_write() call are, combined, equivalent to
-special_file().
+I first tried to do this by assuming that, for each dec_nlink() to zero, there
+was exactly one call to iput_final().  But, there are a number of cases where
+this isn't true, especially in error handling code.  Even if all of the
+filesystems were fixed up, it would be simple to reintroduce new bugs
+imbalancing the mnt writer count.  This patch trades that possibility for the
+chance that we will miss a i_nlink--, and not bump the sb writer count.
 
-There is also an elevated count around the vfs_create() call in open_namei(). 
-The count needs to be kept elevated all the way into the may_open() call. 
-Otherwise, when the write is dropped, a ro->rw transisition could occur.  This
-would lead to having rw access on the newly created file, while the vfsmount
-is ro.  That is bad.
+I like the idea screwing up writing out a single inode better than screwing up
+a global superblock count imbalance that will affect all inodes on the
+superblock.
+
+Also, since this is the first non-trivial use of the inc/drop_nlink()
+functions, add some kernel docs for them.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
@@ -49,92 +55,133 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |    5 ++++-
- fs/namei.c      |   22 ++++++++++++++++++----
- ipc/mqueue.c    |    3 +++
- 3 files changed, 25 insertions(+), 5 deletions(-)
+ fs/inode.c         |    7 +++++
+ fs/libfs.c         |    1 
+ include/linux/fs.h |   58 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 66 insertions(+)
 
-diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-files-are-opened fs/file_table.c
---- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-files-are-opened
-+++ a/fs/file_table.c
-@@ -208,8 +208,11 @@ void fastcall __fput(struct file *file)
- 	if (unlikely(S_ISCHR(inode->i_mode) && inode->i_cdev != NULL))
- 		cdev_put(inode->i_cdev);
- 	fops_put(file->f_op);
--	if (file->f_mode & FMODE_WRITE)
-+	if (file->f_mode & FMODE_WRITE) {
- 		put_write_access(inode);
-+		if (!special_file(inode->i_mode))
-+			mnt_drop_write(mnt);
-+	}
- 	put_pid(file->f_owner.pid);
- 	file_kill(file);
- 	file->f_path.dentry = NULL;
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-files-are-opened fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-files-are-opened
-+++ a/fs/namei.c
-@@ -1544,8 +1544,17 @@ int may_open(struct nameidata *nd, int a
- 			return -EACCES;
+diff -puN fs/inode.c~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode fs/inode.c
+--- a/fs/inode.c~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode
++++ a/fs/inode.c
+@@ -1097,10 +1097,17 @@ static inline void iput_final(struct ino
+ {
+ 	const struct super_operations *op = inode->i_sb->s_op;
+ 	void (*drop)(struct inode *) = generic_drop_inode;
++	int must_drop_sb_write = (inode->i_state & I_AWAITING_FINAL_IPUT);
++	struct super_block *sb = inode->i_sb;
  
- 		flag &= ~O_TRUNC;
--	} else if (IS_RDONLY(inode) && (flag & FMODE_WRITE))
--		return -EROFS;
-+	} else if (flag & FMODE_WRITE) {
-+		/*
-+		 * effectively: !special_file()
-+		 * balanced by __fput()
-+		 */
-+		error = mnt_want_write(nd->mnt);
-+		if (error)
-+			return error;
-+		if (IS_RDONLY(inode))
-+			return -EROFS;
+ 	if (op && op->drop_inode)
+ 		drop = op->drop_inode;
+ 	drop(inode);
++	if (must_drop_sb_write) {
++		spin_lock(&sb->s_mnt_writers_lock);
++		sb->s_writers--;
++		spin_unlock(&sb->s_mnt_writers_lock);
 +	}
- 	/*
- 	 * An append-only file must be opened in append mode for writing.
+ }
+ 
+ /**
+diff -puN fs/libfs.c~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode fs/libfs.c
+--- a/fs/libfs.c~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode
++++ a/fs/libfs.c
+@@ -388,6 +388,7 @@ int simple_fill_super(struct super_block
+ 	 * because the root inode is 1, the files array must not contain an
+ 	 * entry at index 1
  	 */
-@@ -1684,14 +1693,17 @@ do_last:
- 	}
++	inode->i_state |= I_AWAITING_FINAL_IPUT;
+ 	inode->i_ino = 1;
+ 	inode->i_mode = S_IFDIR | 0755;
+ 	inode->i_uid = inode->i_gid = 0;
+diff -puN include/linux/fs.h~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode include/linux/fs.h
+--- a/include/linux/fs.h~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode
++++ a/include/linux/fs.h
+@@ -1228,6 +1228,7 @@ struct super_operations {
+ #define I_CLEAR			32
+ #define I_NEW			64
+ #define I_WILL_FREE		128
++#define I_AWAITING_FINAL_IPUT		256
  
- 	if (IS_ERR(nd->intent.open.file)) {
--		mutex_unlock(&dir->d_inode->i_mutex);
- 		error = PTR_ERR(nd->intent.open.file);
--		goto exit_dput;
-+		goto exit_mutex_unlock;
- 	}
+ #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
  
- 	/* Negative dentry, just create the file */
- 	if (!path.dentry->d_inode) {
-+		error = mnt_want_write(nd->mnt);
-+		if (error)
-+			goto exit_mutex_unlock;
- 		error = open_namei_create(nd, &path, flag, mode);
-+		mnt_drop_write(nd->mnt);
- 		if (error)
- 			goto exit;
- 		return 0;
-@@ -1729,6 +1741,8 @@ ok:
- 		goto exit;
- 	return 0;
+@@ -1242,6 +1243,14 @@ static inline void mark_inode_dirty_sync
+ 	__mark_inode_dirty(inode, I_DIRTY_SYNC);
+ }
  
-+exit_mutex_unlock:
-+	mutex_unlock(&dir->d_inode->i_mutex);
- exit_dput:
- 	dput_path(&path, nd);
- exit:
-diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-files-are-opened ipc/mqueue.c
---- a/ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-files-are-opened
-+++ a/ipc/mqueue.c
-@@ -687,6 +687,9 @@ asmlinkage long sys_mq_open(const char _
- 				goto out;
- 			filp = do_open(dentry, oflag);
- 		} else {
-+			error = mnt_want_write(mqueue_mnt);
-+			if (error)
-+				goto out;
- 			filp = do_create(mqueue_mnt->mnt_root, dentry,
- 						oflag, mode, u_attr);
- 		}
++/**
++ * inc_nlink - directly increment an inode's link count
++ * @inode: inode
++ *
++ * This is a low-level filesystem helper to replace any
++ * direct filesystem manipulation of i_nlink.  Currently,
++ * it is only here for parity with dec_nlink().
++ */
+ static inline void inc_nlink(struct inode *inode)
+ {
+ 	inode->i_nlink++;
+@@ -1253,14 +1262,63 @@ static inline void inode_inc_link_count(
+ 	mark_inode_dirty(inode);
+ }
+ 
++/**
++ * check_nlink - check an inode's status after direct
++ * 		 i_nlink modification.
++ * @inode: inode
++ *
++ * Some filesystems can not make simple incremental changes
++ * to i_nlink, most notably clustered ones.  They must do
++ * direct manipulation of i_nlink.  This function must be
++ * called after such modifications are complete to make
++ * sure that the VFS knows that the inode is going to go
++ * away.
++ */
++static inline void check_nlink(struct inode *inode)
++{
++	if (inode->i_nlink)
++		return;
++
++	inode->i_state |= I_AWAITING_FINAL_IPUT;
++	spin_lock(&inode->i_sb->s_mnt_writers_lock);
++	inode->i_sb->s_writers++;
++	spin_unlock(&inode->i_sb->s_mnt_writers_lock);
++}
++
++/**
++ * drop_nlink - directly drop an inode's link count
++ * @inode: inode
++ *
++ * This is a low-level filesystem helper to replace any
++ * direct filesystem manipulation of i_nlink.  In cases
++ * where we are attempting to track writes to the
++ * filesystem, a decrement to zero means an imminent
++ * write when the file is truncated and actually unlinked
++ * on the filesystem.
++ */
+ static inline void drop_nlink(struct inode *inode)
+ {
+ 	inode->i_nlink--;
++	check_nlink(inode);
+ }
+ 
++/**
++ * clear_nlink - directly zero an inode's link count
++ * @inode: inode
++ *
++ * This is a low-level filesystem helper to replace any
++ * direct filesystem manipulation of i_nlink.  See
++ * drop_nlink() for why we care about i_nlink hitting zero.
++ *
++ * Note that we could do the i_state flag directly in here,
++ * but we call check_nlink() to keep the number of places
++ * where the flag is set to exactly one.  The compiler
++ * should get rid of the superfluous i_nlink check.
++ */
+ static inline void clear_nlink(struct inode *inode)
+ {
+ 	inode->i_nlink = 0;
++	check_nlink(inode);
+ }
+ 
+ static inline void inode_dec_link_count(struct inode *inode)
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
