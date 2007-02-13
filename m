@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-initialize-esp0-properly-all-the-time.patch added to -mm tree
-Date: Mon, 12 Feb 2007 23:03:06 -0800
-Message-ID: <200702130703.l1D7366a024508@shell0.pdx.osdl.net>
+Subject: + cleanup-rename-cpu_gdt_descr-and-remove-extern.patch added to -mm tree
+Date: Mon, 12 Feb 2007 23:03:12 -0800
+Message-ID: <200702130703.l1D73CD0024519@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56968 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56981 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751129AbXBMHDO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 02:03:14 -0500
+	id S1751134AbXBMHDT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 02:03:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@suse.de
+Cc: rusty@rustcorp.com.au, ak@suse.de, zach@vmware.com
 
 
 The patch titled
-     cleanup: Initialize esp0 properly all the time
+     cleanup: Rename cpu_gdt_descr and remove extern declaration from smpboot.c
 has been added to the -mm tree.  Its filename is
-     cleanup-initialize-esp0-properly-all-the-time.patch
+     cleanup-rename-cpu_gdt_descr-and-remove-extern.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cleanup: Initialize esp0 properly all the time
+Subject: cleanup: Rename cpu_gdt_descr and remove extern declaration from smpboot.c
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Whenever we schedule, __switch_to calls load_esp0 which does:
+When I implemented the DECLARE_PER_CPU(var) macros, I was careful that people
+couldn't use "var" in a non-percpu context, by prepending percpu__.  I never
+considered that this would allow them to overload the same name for a per-cpu
+and a non-percpu variable.
 
-	tss->esp0 = thread->esp0;
-
-This is never initialized for the initial thread (ie "swapper"), so when we're
-scheduling that, we end up setting esp0 to 0.  This is fine: the swapper never
-leaves ring 0, so this field is never used.
-
-lguest, however, gets upset that we're trying to used an unmapped page as our
-kernel stack.  Rather than work around it there, let's initialize it.
+It is only one of many horrors in the i386 boot code, but let's rename the
+non-perpcu cpu_gdt_descr to early_gdt_descr (not boot_gdt_descr, that's
+something else...)
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Zachary Amsden <zach@vmware.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/processor.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/i386/kernel/head.S    |    6 +++---
+ arch/i386/kernel/smpboot.c |    1 -
+ include/asm-i386/desc.h    |    2 +-
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-i386/processor.h~cleanup-initialize-esp0-properly-all-the-time include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~cleanup-initialize-esp0-properly-all-the-time
-+++ a/include/asm-i386/processor.h
-@@ -429,6 +429,7 @@ struct thread_struct {
- };
+diff -puN arch/i386/kernel/head.S~cleanup-rename-cpu_gdt_descr-and-remove-extern arch/i386/kernel/head.S
+--- a/arch/i386/kernel/head.S~cleanup-rename-cpu_gdt_descr-and-remove-extern
++++ a/arch/i386/kernel/head.S
+@@ -319,7 +319,7 @@ is386:	movl $2,%ecx		# set MP
  
- #define INIT_THREAD  {							\
-+	.esp0 = sizeof(init_stack) + (long)&init_stack,			\
- 	.vm86_info = NULL,						\
- 	.sysenter_cs = __KERNEL_CS,					\
- 	.io_bitmap_ptr = NULL,						\
+ 	call check_x87
+ 	call setup_pda
+-	lgdt cpu_gdt_descr
++	lgdt early_gdt_descr
+ 	lidt idt_descr
+ 	ljmp $(__KERNEL_CS),$1f
+ 1:	movl $(__KERNEL_DS),%eax	# reload all the segment registers
+@@ -375,7 +375,7 @@ ENTRY(setup_pda)
+ 	movl start_pda, %eax
+ 
+ 	/* slot the PDA address into the GDT */
+-	mov cpu_gdt_descr+2, %ecx
++	mov early_gdt_descr+2, %ecx
+ 	mov %ax, (__KERNEL_PDA+0+2)(%ecx)		/* base & 0x0000ffff */
+ 	shr $16, %eax
+ 	mov %al, (__KERNEL_PDA+4+0)(%ecx)		/* base & 0x00ff0000 */
+@@ -597,7 +597,7 @@ idt_descr:
+ 
+ # boot GDT descriptor (later on used by CPU#0):
+ 	.word 0				# 32 bit align gdt_desc.address
+-ENTRY(cpu_gdt_descr)
++ENTRY(early_gdt_descr)
+ 	.word GDT_ENTRIES*8-1
+ 	.long cpu_gdt_table
+ 
+diff -puN arch/i386/kernel/smpboot.c~cleanup-rename-cpu_gdt_descr-and-remove-extern arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~cleanup-rename-cpu_gdt_descr-and-remove-extern
++++ a/arch/i386/kernel/smpboot.c
+@@ -622,7 +622,6 @@ extern struct {
+ 	unsigned short ss;
+ } stack_start;
+ extern struct i386_pda *start_pda;
+-extern struct Xgt_desc_struct cpu_gdt_descr;
+ 
+ #ifdef CONFIG_NUMA
+ 
+diff -puN include/asm-i386/desc.h~cleanup-rename-cpu_gdt_descr-and-remove-extern include/asm-i386/desc.h
+--- a/include/asm-i386/desc.h~cleanup-rename-cpu_gdt_descr-and-remove-extern
++++ a/include/asm-i386/desc.h
+@@ -22,7 +22,7 @@ struct Xgt_desc_struct {
+ 
+ extern struct Xgt_desc_struct idt_descr;
+ DECLARE_PER_CPU(struct Xgt_desc_struct, cpu_gdt_descr);
+-
++extern struct Xgt_desc_struct early_gdt_descr;
+ 
+ static inline struct desc_struct *get_cpu_gdt_table(unsigned int cpu)
+ {
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
