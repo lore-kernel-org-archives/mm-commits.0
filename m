@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-rename-cpu_gdt_descr-and-remove-extern.patch added to -mm tree
-Date: Mon, 12 Feb 2007 23:03:12 -0800
-Message-ID: <200702130703.l1D73CD0024519@shell0.pdx.osdl.net>
+Subject: + cleanup-remove-extern-declaration-from.patch added to -mm tree
+Date: Mon, 12 Feb 2007 23:03:14 -0800
+Message-ID: <200702130703.l1D73ENC024522@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56981 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56985 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751134AbXBMHDT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 02:03:19 -0500
+	id S1751132AbXBMHDV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 02:03:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@suse.de, zach@vmware.com
+Cc: rusty@rustcorp.com.au, ak@suse.de
 
 
 The patch titled
-     cleanup: Rename cpu_gdt_descr and remove extern declaration from smpboot.c
+     cleanup: Remove extern declaration from mm/discontig.c, put in header.
 has been added to the -mm tree.  Its filename is
-     cleanup-rename-cpu_gdt_descr-and-remove-extern.patch
+     cleanup-remove-extern-declaration-from.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,82 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cleanup: Rename cpu_gdt_descr and remove extern declaration from smpboot.c
+Subject: cleanup: Remove extern declaration from mm/discontig.c, put in header.
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-When I implemented the DECLARE_PER_CPU(var) macros, I was careful that people
-couldn't use "var" in a non-percpu context, by prepending percpu__.  I never
-considered that this would allow them to overload the same name for a per-cpu
-and a non-percpu variable.
-
-It is only one of many horrors in the i386 boot code, but let's rename the
-non-perpcu cpu_gdt_descr to early_gdt_descr (not boot_gdt_descr, that's
-something else...)
+Extern declarations belong in headers.  Times, they are a'changin.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Zachary Amsden <zach@vmware.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/head.S    |    6 +++---
- arch/i386/kernel/smpboot.c |    1 -
- include/asm-i386/desc.h    |    2 +-
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ arch/i386/mm/discontig.c |    1 -
+ include/asm-i386/setup.h |    2 ++
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/head.S~cleanup-rename-cpu_gdt_descr-and-remove-extern arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~cleanup-rename-cpu_gdt_descr-and-remove-extern
-+++ a/arch/i386/kernel/head.S
-@@ -319,7 +319,7 @@ is386:	movl $2,%ecx		# set MP
+diff -puN arch/i386/mm/discontig.c~cleanup-remove-extern-declaration-from arch/i386/mm/discontig.c
+--- a/arch/i386/mm/discontig.c~cleanup-remove-extern-declaration-from
++++ a/arch/i386/mm/discontig.c
+@@ -101,7 +101,6 @@ extern void find_max_pfn(void);
+ extern void add_one_highpage_init(struct page *, int, int);
  
- 	call check_x87
- 	call setup_pda
--	lgdt cpu_gdt_descr
-+	lgdt early_gdt_descr
- 	lidt idt_descr
- 	ljmp $(__KERNEL_CS),$1f
- 1:	movl $(__KERNEL_DS),%eax	# reload all the segment registers
-@@ -375,7 +375,7 @@ ENTRY(setup_pda)
- 	movl start_pda, %eax
+ extern struct e820map e820;
+-extern unsigned long init_pg_tables_end;
+ extern unsigned long highend_pfn, highstart_pfn;
+ extern unsigned long max_low_pfn;
+ extern unsigned long totalram_pages;
+diff -puN include/asm-i386/setup.h~cleanup-remove-extern-declaration-from include/asm-i386/setup.h
+--- a/include/asm-i386/setup.h~cleanup-remove-extern-declaration-from
++++ a/include/asm-i386/setup.h
+@@ -77,6 +77,8 @@ int __init sanitize_e820_map(struct e820
+ void __init add_memory_region(unsigned long long start,
+ 			      unsigned long long size, int type);
  
- 	/* slot the PDA address into the GDT */
--	mov cpu_gdt_descr+2, %ecx
-+	mov early_gdt_descr+2, %ecx
- 	mov %ax, (__KERNEL_PDA+0+2)(%ecx)		/* base & 0x0000ffff */
- 	shr $16, %eax
- 	mov %al, (__KERNEL_PDA+4+0)(%ecx)		/* base & 0x00ff0000 */
-@@ -597,7 +597,7 @@ idt_descr:
++extern unsigned long init_pg_tables_end;
++
+ #endif /* __ASSEMBLY__ */
  
- # boot GDT descriptor (later on used by CPU#0):
- 	.word 0				# 32 bit align gdt_desc.address
--ENTRY(cpu_gdt_descr)
-+ENTRY(early_gdt_descr)
- 	.word GDT_ENTRIES*8-1
- 	.long cpu_gdt_table
- 
-diff -puN arch/i386/kernel/smpboot.c~cleanup-rename-cpu_gdt_descr-and-remove-extern arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~cleanup-rename-cpu_gdt_descr-and-remove-extern
-+++ a/arch/i386/kernel/smpboot.c
-@@ -622,7 +622,6 @@ extern struct {
- 	unsigned short ss;
- } stack_start;
- extern struct i386_pda *start_pda;
--extern struct Xgt_desc_struct cpu_gdt_descr;
- 
- #ifdef CONFIG_NUMA
- 
-diff -puN include/asm-i386/desc.h~cleanup-rename-cpu_gdt_descr-and-remove-extern include/asm-i386/desc.h
---- a/include/asm-i386/desc.h~cleanup-rename-cpu_gdt_descr-and-remove-extern
-+++ a/include/asm-i386/desc.h
-@@ -22,7 +22,7 @@ struct Xgt_desc_struct {
- 
- extern struct Xgt_desc_struct idt_descr;
- DECLARE_PER_CPU(struct Xgt_desc_struct, cpu_gdt_descr);
--
-+extern struct Xgt_desc_struct early_gdt_descr;
- 
- static inline struct desc_struct *get_cpu_gdt_table(unsigned int cpu)
- {
+ #endif  /*  __KERNEL__  */
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
