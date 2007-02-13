@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rm9000-serial-driver.patch added to -mm tree
-Date: Mon, 12 Feb 2007 22:54:59 -0800
-Message-ID: <200702130654.l1D6sxN8024393@shell0.pdx.osdl.net>
+Subject: + cleanup-paravirt-unhandled-fallthrough.patch added to -mm tree
+Date: Mon, 12 Feb 2007 23:03:04 -0800
+Message-ID: <200702130703.l1D734Pq024505@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56876 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56966 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751125AbXBMG6p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 01:58:45 -0500
+	id S1751128AbXBMHDN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 02:03:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thomas.koeller@baslerweb.com, ralf@linux-mips.org, rmk@arm.linux.org.uk, sshtylyov@ru.mvista.com
+Cc: rusty@rustcorp.com.au, ak@suse.de
 
 
 The patch titled
-     RM9000 serial driver
+     cleanup: paravirt unhandled fallthrough
 has been added to the -mm tree.  Its filename is
-     rm9000-serial-driver.patch
+     cleanup-paravirt-unhandled-fallthrough.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,303 +25,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RM9000 serial driver
-From: Thomas Koeller <thomas.koeller@baslerweb.com>
+Subject: cleanup: paravirt unhandled fallthrough
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Add support for the integrated serial ports of the MIPS RM9122 processor
-and its relatives.  There has been some discussion about this patch.  The
-interesting part starts here:
+The current code simply calls "start_kernel" directly if we're under a
+hypervisor and no paravirt_ops backend wants us, because paravirt.c registers
+that as a backend.
 
-http://marc.theaimsgroup.com/?l=linux-mips&m=115620115100412&w=2
+This was always a vain hope; start_kernel won't get far without setup.  It's
+also impossible for paravirt_ops backends which don't sit in the
+arch/i386/kernel directory: they can't link before paravirt.o anyway.
 
-Signed-off-by: Thomas Koeller <thomas.koeller@baslerweb.com>
-Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Keep it simple: if we pass all the registered paravirt probes, BUG().
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig           |    3 +
- drivers/serial/8250.c       |  102 +++++++++++++++++++++++++---------
- drivers/serial/Kconfig      |    9 +++
- include/linux/serial_core.h |    3 -
- 4 files changed, 89 insertions(+), 28 deletions(-)
+ arch/i386/kernel/Makefile   |    2 --
+ arch/i386/kernel/head.S     |    7 ++++++-
+ arch/i386/kernel/paravirt.c |    3 ---
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/mips/Kconfig~rm9000-serial-driver arch/mips/Kconfig
---- a/arch/mips/Kconfig~rm9000-serial-driver
-+++ a/arch/mips/Kconfig
-@@ -1012,6 +1012,9 @@ config SOC_AU1X00
- 	select SYS_SUPPORTS_32BIT_KERNEL
- 	select SYS_SUPPORTS_APM_EMULATION
+diff -puN arch/i386/kernel/Makefile~cleanup-paravirt-unhandled-fallthrough arch/i386/kernel/Makefile
+--- a/arch/i386/kernel/Makefile~cleanup-paravirt-unhandled-fallthrough
++++ a/arch/i386/kernel/Makefile
+@@ -41,8 +41,6 @@ obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
+ obj-$(CONFIG_K8_NB)		+= k8.o
  
-+config SERIAL_RM9000
-+	bool
-+
- config PNX8550
- 	bool
- 	select SOC_PNX8550
-diff -puN drivers/serial/8250.c~rm9000-serial-driver drivers/serial/8250.c
---- a/drivers/serial/8250.c~rm9000-serial-driver
-+++ a/drivers/serial/8250.c
-@@ -251,9 +251,16 @@ static const struct serial8250_config ua
- 		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
- 		.flags		= UART_CAP_FIFO | UART_CAP_UUE,
- 	},
-+	[PORT_RM9000] = {
-+		.name		= "RM9000",
-+		.fifo_size	= 16,
-+		.tx_loadsz	= 16,
-+		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
-+		.flags		= UART_CAP_FIFO,
-+	},
- };
- 
--#ifdef CONFIG_SERIAL_8250_AU1X00
-+#if defined (CONFIG_SERIAL_8250_AU1X00)
- 
- /* Au1x00 UART hardware has a weird register layout */
- static const u8 au_io_in_map[] = {
-@@ -289,6 +296,36 @@ static inline int map_8250_out_reg(struc
- 	return au_io_out_map[offset];
- }
- 
-+#elif defined (CONFIG_SERIAL_8250_RM9K)
-+
-+static const u8
-+	regmap_in[8] = {
-+		[UART_RX]	= 0x00,
-+		[UART_IER]	= 0x0c,
-+		[UART_IIR]	= 0x14,
-+		[UART_LCR]	= 0x1c,
-+		[UART_MCR]	= 0x20,
-+		[UART_LSR]	= 0x24,
-+		[UART_MSR]	= 0x28,
-+		[UART_SCR]	= 0x2c
-+	},
-+	regmap_out[8] = {
-+		[UART_TX] 	= 0x04,
-+		[UART_IER]	= 0x0c,
-+		[UART_FCR]	= 0x18,
-+		[UART_LCR]	= 0x1c,
-+		[UART_MCR]	= 0x20,
-+		[UART_LSR]	= 0x24,
-+		[UART_MSR]	= 0x28,
-+		[UART_SCR]	= 0x2c
-+	};
-+
-+#define map_8250_in_reg(up, offset) \
-+	(((up)->port.type == PORT_RM9000) ? regmap_in[offset] : (offset))
-+#define map_8250_out_reg(up, offset) \
-+	(((up)->port.type == PORT_RM9000) ? regmap_out[offset] : (offset))
-+
-+
- #else
- 
- /* sane hardware needs no mapping */
-@@ -391,21 +428,21 @@ serial_out_sync(struct uart_8250_port *u
- #define serial_outp(up, offset, value)	serial_out(up, offset, value)
- 
- /* Uart divisor latch read */
--static inline int _serial_dl_read(struct uart_8250_port *up)
-+static inline unsigned int _serial_dl_read(struct uart_8250_port *up)
- {
- 	return serial_inp(up, UART_DLL) | serial_inp(up, UART_DLM) << 8;
- }
- 
- /* Uart divisor latch write */
--static inline void _serial_dl_write(struct uart_8250_port *up, int value)
-+static inline void _serial_dl_write(struct uart_8250_port *up, unsigned int value)
- {
- 	serial_outp(up, UART_DLL, value & 0xff);
- 	serial_outp(up, UART_DLM, value >> 8 & 0xff);
- }
- 
--#ifdef CONFIG_SERIAL_8250_AU1X00
-+#if defined (CONFIG_SERIAL_8250_AU1X00)
- /* Au1x00 haven't got a standard divisor latch */
--static int serial_dl_read(struct uart_8250_port *up)
-+static unsigned int serial_dl_read(struct uart_8250_port *up)
- {
- 	if (up->port.iotype == UPIO_AU)
- 		return __raw_readl(up->port.membase + 0x28);
-@@ -413,13 +450,26 @@ static int serial_dl_read(struct uart_82
- 		return _serial_dl_read(up);
- }
- 
--static void serial_dl_write(struct uart_8250_port *up, int value)
-+static void serial_dl_write(struct uart_8250_port *up, unsigned int value)
- {
- 	if (up->port.iotype == UPIO_AU)
- 		__raw_writel(value, up->port.membase + 0x28);
- 	else
- 		_serial_dl_write(up, value);
- }
-+#elif defined (CONFIG_SERIAL_8250_RM9K)
-+static inline unsigned int serial_dl_read(struct uart_8250_port *up)
-+{
-+	return
-+		((readl(up->port.membase + 0x10) << 8) |
-+		(readl(up->port.membase + 0x08) & 0xff)) & 0xffff;
-+}
-+
-+static inline void serial_dl_write(struct uart_8250_port *up, unsigned int value)
-+{
-+	writel(value, up->port.membase + 0x08);
-+	writel(value >> 8, up->port.membase + 0x10);
-+}
- #else
- #define serial_dl_read(up) _serial_dl_read(up)
- #define serial_dl_write(up, value) _serial_dl_write(up, value)
-@@ -593,22 +643,17 @@ static int size_fifo(struct uart_8250_po
-  */
- static unsigned int autoconfig_read_divisor_id(struct uart_8250_port *p)
- {
--	unsigned char old_dll, old_dlm, old_lcr;
--	unsigned int id;
-+	unsigned char old_lcr;
-+	unsigned int id, old_dl;
- 
- 	old_lcr = serial_inp(p, UART_LCR);
- 	serial_outp(p, UART_LCR, UART_LCR_DLAB);
-+	old_dl = _serial_dl_read(p);
- 
--	old_dll = serial_inp(p, UART_DLL);
--	old_dlm = serial_inp(p, UART_DLM);
+ obj-$(CONFIG_VMI)		+= vmi.o vmitime.o
 -
--	serial_outp(p, UART_DLL, 0);
--	serial_outp(p, UART_DLM, 0);
-+	serial_dl_write(p, 0);
-+	id = serial_dl_read(p);
+-# Make sure this is linked after any other paravirt_ops structs: see head.S
+ obj-$(CONFIG_PARAVIRT)		+= paravirt.o
  
--	id = serial_inp(p, UART_DLL) | serial_inp(p, UART_DLM) << 8;
--
--	serial_outp(p, UART_DLL, old_dll);
--	serial_outp(p, UART_DLM, old_dlm);
-+	serial_dl_write(p, old_dl);
- 	serial_outp(p, UART_LCR, old_lcr);
+ EXTRA_AFLAGS   := -traditional
+diff -puN arch/i386/kernel/head.S~cleanup-paravirt-unhandled-fallthrough arch/i386/kernel/head.S
+--- a/arch/i386/kernel/head.S~cleanup-paravirt-unhandled-fallthrough
++++ a/arch/i386/kernel/head.S
+@@ -513,10 +513,11 @@ startup_paravirt:
+ 	pushl	%ecx
+ 	pushl	%eax
  
- 	return id;
-@@ -621,7 +666,7 @@ static unsigned int autoconfig_read_divi
-  * its clones.  (We treat the broken original StarTech 16650 V1 as a
-  * 16550, and why not?  Startech doesn't seem to even acknowledge its
-  * existence.)
-- * 
-+ *
-  * What evil have men's minds wrought...
-  */
- static void autoconfig_has_efr(struct uart_8250_port *up)
-@@ -674,7 +719,7 @@ static void autoconfig_has_efr(struct ua
- 			up->bugs |= UART_BUG_QUOT;
- 		return;
- 	}
--	
+-	/* paravirt.o is last in link, and that probe fn never returns */
+ 	pushl	$__start_paravirtprobe
+ 1:
+ 	movl	0(%esp), %eax
++	cmpl	$__stop_paravirtprobe, %eax
++	je	unhandled_paravirt
+ 	pushl	(%eax)
+ 	movl	8(%esp), %eax
+ 	call	*(%esp)
+@@ -528,6 +529,10 @@ startup_paravirt:
+ 
+ 	addl	$4, (%esp)
+ 	jmp	1b
 +
- 	/*
- 	 * We check for a XR16C850 by setting DLL and DLM to 0, and then
- 	 * reading back DLL and DLM.  The chip type depends on the DLM
-@@ -817,7 +862,7 @@ static void autoconfig_16550a(struct uar
- 			status1 &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
- 			status1 |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
- 			serial_outp(up, 0x04, status1);
--			
-+
- 			serial_dl_write(up, quot);
- 
- 			serial_outp(up, UART_LCR, 0);
-@@ -922,7 +967,7 @@ static void autoconfig(struct uart_8250_
- 		/*
- 		 * Do a simple existence test first; if we fail this,
- 		 * there's no point trying anything else.
--		 * 
-+		 *
- 		 * 0x80 is used as a nonsense port to prevent against
- 		 * false positives due to ISA bus float.  The
- 		 * assumption is that 0x80 is a non-existent port;
-@@ -961,7 +1006,7 @@ static void autoconfig(struct uart_8250_
- 	save_mcr = serial_in(up, UART_MCR);
- 	save_lcr = serial_in(up, UART_LCR);
- 
--	/* 
-+	/*
- 	 * Check to see if a UART is really there.  Certain broken
- 	 * internal modems based on the Rockwell chipset fail this
- 	 * test, because they apparently don't implement the loopback
-@@ -1068,7 +1113,7 @@ static void autoconfig(struct uart_8250_
- 	else
- 		serial_outp(up, UART_IER, 0);
- 
-- out:	
-+ out:
- 	spin_unlock_irqrestore(&up->port.lock, flags);
- //	restore_flags(flags);
- 	DEBUG_AUTOCONF("type=%s\n", uart_config[up->port.type].name);
-@@ -1094,7 +1139,7 @@ static void autoconfig_irq(struct uart_8
- 	save_mcr = serial_inp(up, UART_MCR);
- 	save_ier = serial_inp(up, UART_IER);
- 	serial_outp(up, UART_MCR, UART_MCR_OUT1 | UART_MCR_OUT2);
--	
-+
- 	irqs = probe_irq_on();
- 	serial_outp(up, UART_MCR, 0);
- 	udelay (10);
-@@ -1159,8 +1204,11 @@ static void serial8250_start_tx(struct u
- 		if (up->bugs & UART_BUG_TXEN) {
- 			unsigned char lsr, iir;
- 			lsr = serial_in(up, UART_LSR);
--			iir = serial_in(up, UART_IIR);
--			if (lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT)
-+			iir = serial_in(up, UART_IIR) & 0x0f;
-+			if ((up->port.type == PORT_RM9000) ?
-+				(lsr & UART_LSR_THRE &&
-+				(iir == UART_IIR_NO_INT || iir == UART_IIR_THRI)) :
-+				(lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT))
- 				transmit_chars(up);
- 		}
- 	}
-@@ -1930,7 +1978,7 @@ serial8250_set_termios(struct uart_port 
- 	/*
- 	 * Ask the core to calculate the divisor for us.
- 	 */
--	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16); 
-+	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16);
- 	quot = serial8250_get_divisor(port, baud);
- 
- 	/*
-diff -puN drivers/serial/Kconfig~rm9000-serial-driver drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~rm9000-serial-driver
-+++ a/drivers/serial/Kconfig
-@@ -264,6 +264,15 @@ config SERIAL_8250_AU1X00
- 	  to this option.  The driver can handle 1 or 2 serial ports.
- 	  If unsure, say N.
- 
-+config SERIAL_8250_RM9K
-+	bool "Support for MIPS RM9xxx integrated serial port"
-+	depends on SERIAL_8250 != n && SERIAL_RM9000
-+	select SERIAL_8250_SHARE_IRQ
-+	help
-+	  Selecting this option will add support for the integrated serial
-+	  port hardware found on MIPS RM9122 and similar processors.
-+	  If unsure, say N.
-+
- comment "Non-8250 serial port support"
- 
- config SERIAL_AMBA_PL010
-diff -puN include/linux/serial_core.h~rm9000-serial-driver include/linux/serial_core.h
---- a/include/linux/serial_core.h~rm9000-serial-driver
-+++ a/include/linux/serial_core.h
-@@ -39,7 +39,8 @@
- #define PORT_RSA	13
- #define PORT_NS16550A	14
- #define PORT_XSCALE	15
--#define PORT_MAX_8250	15	/* max port ID */
-+#define PORT_RM9000	16	/* PMC-Sierra RM9xxx internal UART */
-+#define PORT_MAX_8250	16	/* max port ID */
++unhandled_paravirt:
++	/* Nothing wanted us: we're screwed. */
++	ud2
+ #endif
  
  /*
-  * ARM specific type numbers.  These are not currently guaranteed
+diff -puN arch/i386/kernel/paravirt.c~cleanup-paravirt-unhandled-fallthrough arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~cleanup-paravirt-unhandled-fallthrough
++++ a/arch/i386/kernel/paravirt.c
+@@ -482,9 +482,6 @@ static int __init print_banner(void)
+ }
+ core_initcall(print_banner);
+ 
+-/* We simply declare start_kernel to be the paravirt probe of last resort. */
+-paravirt_probe(start_kernel);
+-
+ struct paravirt_ops paravirt_ops = {
+ 	.name = "bare hardware",
+ 	.paravirt_enabled = 0,
 _
 
-Patches currently in -mm which might be from thomas.koeller@baslerweb.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-git-mtd.patch
-rm9000-serial-driver.patch
+origin.patch
+cleanup-paravirt-unhandled-fallthrough.patch
+cleanup-initialize-esp0-properly-all-the-time.patch
+cleanup-make-hvc_consolec-compile-on-non-powerpc.patch
+cleanup-move-mce_disabled-to-asm-mceh.patch
+cleanup-rename-cpu_gdt_descr-and-remove-extern.patch
+cleanup-remove-extern-declaration-from.patch
+cleanup-make-disable_acpi-valid-w-o-config_acpi.patch
+lguest-preparation-export_symbol_gpl-5-functions.patch
+lguest-preparation-expose-futex-infrastructure.patch
+lguest-kconfig-and-headers.patch
+lguest-the-host-code-lgko.patch
+lguest-guest-code.patch
+lguest-makefile.patch
+lguest-trivial-guest-network-driver.patch
+lguest-trivial-guest-network-driver-fix.patch
+lguest-trivial-guest-console-driver.patch
+lguest-trivial-guest-block-driver.patch
+lguest-documentatation-and-example-launcher.patch
+vmi-versus-hrtimers.patch
