@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-lgko.patch added to -mm tree
-Date: Mon, 12 Feb 2007 23:03:24 -0800
-Message-ID: <200702130703.l1D73OxL024540@shell0.pdx.osdl.net>
+Subject: + lguest-trivial-guest-network-driver.patch added to -mm tree
+Date: Mon, 12 Feb 2007 23:03:30 -0800
+Message-ID: <200702130703.l1D73UVG024554@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57018 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57020 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751140AbXBMHDj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1751141AbXBMHDj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Tue, 13 Feb 2007 02:03:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rusty@rustcorp.com.au, ak@suse.de
 
 
 The patch titled
-     lguest: the host code (lg.ko).
+     lguest: trivial guest network driver
 has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-lgko.patch
+     lguest-trivial-guest-network-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,2320 +25,433 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: the host code (lg.ko).
+Subject: lguest: trivial guest network driver
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-This is the host module (lg.ko) which supports lguest:
-
-arch/i386/lguest/hypervisor.S:
-	The actual guest <-> host switching code.  This is compiled into
-	a C array, which is mapped to 0xFFC01000 in host and guests.
-
-arch/i386/lguest/core.c:
-	The core of the hypervisor, which calls into the assembler
-	code which does this actual switch.  Also contains helper
-	routines.
-
-arch/i386/lguest/hypercalls.c:
-	The entry point for the 19 hypercalls.
-
-arch/i386/lguest/interrupts_and_traps.c:
-	Handling of interrupts and traps, except page faults.
-
-arch/i386/lguest/io.c:
-	I/O from guest to host, and between guests.
-
-arch/i386/lguest/lguest_user.c:
-	/dev/lguest interface for lguest program to launch/control guests.
-
-arch/i386/lguest/page_tables.c:
-	Shadow Page table handling: generally we build up the shadow
-	page tables by converting from guest page tables when a fault occurs.
-
-arch/i386/lguest/segments.c:
-	Segmentation (GDT) handling: we have to ensure they're trimmed
-	to avoid guest access to the switching code.
+This network driver operates both to the host process, and to other guests. 
+It's pretty trivial.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/lguest/core.c                 |  432 ++++++++++++++++++++++
- arch/i386/lguest/hypercalls.c           |  186 +++++++++
- arch/i386/lguest/hypervisor.S           |  170 ++++++++
- arch/i386/lguest/interrupts_and_traps.c |  230 +++++++++++
- arch/i386/lguest/io.c                   |  413 +++++++++++++++++++++
- arch/i386/lguest/lg.h                   |    4 
- arch/i386/lguest/lguest_user.c          |  242 ++++++++++++
- arch/i386/lguest/page_tables.c          |  374 +++++++++++++++++++
- arch/i386/lguest/segments.c             |  171 ++++++++
- 9 files changed, 2220 insertions(+), 2 deletions(-)
+ drivers/net/Makefile     |    1 
+ drivers/net/lguest_net.c |  400 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 401 insertions(+)
 
-diff -puN /dev/null arch/i386/lguest/core.c
+diff -puN drivers/net/Makefile~lguest-trivial-guest-network-driver drivers/net/Makefile
+--- a/drivers/net/Makefile~lguest-trivial-guest-network-driver
++++ a/drivers/net/Makefile
+@@ -218,3 +218,4 @@ obj-$(CONFIG_NETCONSOLE) += netconsole.o
+ obj-$(CONFIG_FS_ENET) += fs_enet/
+ 
+ obj-$(CONFIG_NETXEN_NIC) += netxen/
++obj-$(CONFIG_LGUEST_GUEST) += lguest_net.o
+diff -puN /dev/null drivers/net/lguest_net.c
 --- /dev/null
-+++ a/arch/i386/lguest/core.c
-@@ -0,0 +1,432 @@
-+/* World's simplest hypervisor, to test paravirt_ops and show
-+ * unbelievers that virtualization is the future.  Plus, it's fun! */
++++ a/drivers/net/lguest_net.c
+@@ -0,0 +1,400 @@
++/* A simple network driver for lguest.
++ *
++ * Copyright 2006 Rusty Russell <rusty@rustcorp.com.au> IBM Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++//#define DEBUG
++#include <linux/netdevice.h>
++#include <linux/etherdevice.h>
 +#include <linux/module.h>
-+#include <linux/stringify.h>
-+#include <linux/stddef.h>
-+#include <linux/io.h>
-+#include <linux/mm.h>
-+#include <linux/vmalloc.h>
-+#include <linux/cpu.h>
-+#include <linux/freezer.h>
-+#include <asm/lguest.h>
-+#include <asm/paravirt.h>
-+#include <asm/desc.h>
-+#include <asm/pgtable.h>
-+#include <asm/uaccess.h>
-+#include <asm/poll.h>
-+#include <asm/highmem.h>
-+#include <asm/asm-offsets.h>
-+#include <asm/i387.h>
-+#include "lg.h"
++#include <linux/mm_types.h>
++#include <asm/io.h>
++#include <asm/lguest_device.h>
 +
-+/* This is our hypervisor, compiled from hypervisor.S. */
-+static char __initdata hypervisor_blob[] = {
-+#include "hypervisor-blob.c"
++#define SHARED_SIZE		PAGE_SIZE
++#define DATA_SIZE		1500
++#define MAX_LANS		4
++#define NUM_SKBS		8
++/* We overload multicast bit to show promiscuous mode. */
++#define PROMISC_BIT		0x80
++
++struct lguestnet_info
++{
++	/* The shared page. */
++	struct lguest_net *peer;
++	unsigned long peer_phys;
++
++	/* My peerid. */
++	unsigned int me;
++
++	struct net_device_stats stats;
++
++	/* Receive queue. */
++	struct sk_buff *skb[NUM_SKBS];
++	struct lguest_dma dma[NUM_SKBS];
 +};
 +
-+#define MAX_LGUEST_GUESTS						  \
-+	(((PAGE_SIZE << HYPERVISOR_PAGE_ORDER) - sizeof(hypervisor_blob)) \
-+	 / sizeof(struct lguest_state))
-+
-+static struct vm_struct *hypervisor_vma;
-+static int cpu_had_pge;
-+static struct {
-+	unsigned long offset;
-+	unsigned short segment;
-+} lguest_entry __attribute_used__;
-+struct page *hype_pages; /* Contiguous pages. */
-+struct lguest lguests[MAX_LGUEST_GUESTS];
-+DEFINE_MUTEX(lguest_lock);
-+
-+/* IDT entries are at start of hypervisor. */
-+const unsigned long *__lguest_default_idt_entries(void)
++/* How many bytes left in this page. */
++static unsigned int rest_of_page(void *data)
 +{
-+	return (void *)HYPE_ADDR;
++	return PAGE_SIZE - ((unsigned long)data % PAGE_SIZE);
 +}
 +
-+/* Next is switch_to_guest */
-+static void *__lguest_switch_to_guest(void)
++/* Simple convention: offset 4 * peernum. */
++static unsigned long peer_addr(struct lguestnet_info *info, unsigned peernum)
 +{
-+	return (void *)HYPE_ADDR + HYPE_DATA_SIZE;
++	return info->peer_phys + 4 * peernum;
 +}
 +
-+/* Then we use everything else to hold guest state. */
-+struct lguest_state *__lguest_states(void)
++static void skb_to_dma(const struct sk_buff *skb, unsigned int len,
++		       struct lguest_dma *dma)
 +{
-+	return (void *)HYPE_ADDR + sizeof(hypervisor_blob);
-+}
++	unsigned int i, seg;
 +
-+static __init int map_hypervisor(void)
-+{
-+	unsigned int i;
-+	int err;
-+	struct page *pages[HYPERVISOR_PAGES], **pagep = pages;
-+
-+	hype_pages = alloc_pages(GFP_KERNEL|__GFP_ZERO, HYPERVISOR_PAGE_ORDER);
-+	if (!hype_pages)
-+		return -ENOMEM;
-+
-+	hypervisor_vma = __get_vm_area(PAGE_SIZE << HYPERVISOR_PAGE_ORDER,
-+				       VM_ALLOC, HYPE_ADDR, VMALLOC_END);
-+	if (!hypervisor_vma) {
-+		err = -ENOMEM;
-+		printk("lguest: could not map hypervisor pages high\n");
-+		goto free_pages;
++	for (i = seg = 0; i < len; seg++, i += rest_of_page(skb->data + i)) {
++		dma->addr[seg] = virt_to_phys(skb->data + i);
++		dma->len[seg] = min((unsigned)(len - i),
++				    rest_of_page(skb->data + i));
 +	}
-+
-+	for (i = 0; i < HYPERVISOR_PAGES; i++)
-+		pages[i] = hype_pages + i;
-+
-+	err = map_vm_area(hypervisor_vma, PAGE_KERNEL, &pagep);
-+	if (err) {
-+		printk("lguest: map_vm_area failed: %i\n", err);
-+		goto free_vma;
++	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++, seg++) {
++		const skb_frag_t *f = &skb_shinfo(skb)->frags[i];
++		/* Should not happen with MTU less than 64k - 2 * PAGE_SIZE. */
++		if (seg == LGUEST_MAX_DMA_SECTIONS) {
++			printk("Woah dude!  Megapacket!\n");
++			break;
++		}
++		dma->addr[seg] = page_to_phys(f->page) + f->page_offset;
++		dma->len[seg] = f->size;
 +	}
-+	memcpy(hypervisor_vma->addr, hypervisor_blob, sizeof(hypervisor_blob));
-+
-+	/* Setup LGUEST segments on all cpus */
-+	for_each_possible_cpu(i) {
-+		get_cpu_gdt_table(i)[GDT_ENTRY_LGUEST_CS] = FULL_EXEC_SEGMENT;
-+		get_cpu_gdt_table(i)[GDT_ENTRY_LGUEST_DS] = FULL_SEGMENT;
-+	}
-+
-+	/* Initialize entry point into hypervisor. */
-+	lguest_entry.offset = (long)__lguest_switch_to_guest();
-+	lguest_entry.segment = LGUEST_CS;
-+
-+	printk("lguest: mapped hypervisor at %p\n", hypervisor_vma->addr);
-+	return 0;
-+
-+free_vma:
-+	vunmap(hypervisor_vma->addr);
-+free_pages:
-+	__free_pages(hype_pages, HYPERVISOR_PAGE_ORDER);
-+	return err;
++	if (seg < LGUEST_MAX_DMA_SECTIONS)
++		dma->len[seg] = 0;
 +}
 +
-+static __exit void unmap_hypervisor(void)
++static void transfer_packet(struct net_device *dev,
++			    struct sk_buff *skb,
++			    unsigned int peernum)
 +{
-+	vunmap(hypervisor_vma->addr);
-+	__free_pages(hype_pages, HYPERVISOR_PAGE_ORDER);
++	struct lguestnet_info *info = dev->priv;
++	struct lguest_dma dma;
++
++	skb_to_dma(skb, skb->len, &dma);
++	pr_debug("xfer length %04x (%u)\n", htons(skb->len), skb->len);
++
++	hcall(LHCALL_SEND_DMA, peer_addr(info,peernum), __pa(&dma),0);
++	if (dma.used_len != skb->len) {
++		info->stats.tx_carrier_errors++;
++		pr_debug("Bad xfer to peer %i: %i of %i (dma %p/%i)\n",
++			 peernum, dma.used_len, skb->len,
++			 (void *)dma.addr[0], dma.len[0]);
++	} else {
++		pr_debug("lguestnet: sent %u bytes\n", skb->len);
++		info->stats.tx_bytes += skb->len;
++		info->stats.tx_packets++;
++	}
 +}
 +
-+/* IN/OUT insns: enough to get us past boot-time probing. */
-+static int emulate_insn(struct lguest *lg)
++static int mac_eq(const unsigned char mac[ETH_ALEN],
++		  struct lguestnet_info *info, unsigned int peer)
 +{
-+	u8 insn;
-+	unsigned int insnlen = 0, in = 0, shift = 0;
-+	unsigned long physaddr = guest_pa(lg, lg->state->regs.eip);
-+
-+	/* This only works for addresses in linear mapping... */
-+	if (lg->state->regs.eip < lg->page_offset)
++	/* Ignore multicast bit, which peer turns on to mean promisc. */
++	if ((info->peer[peer].promisc & (~PROMISC_BIT)) != mac[0])
 +		return 0;
-+	lhread(lg, &insn, physaddr, 1);
-+
-+	/* Operand size prefix means it's actually for ax. */
-+	if (insn == 0x66) {
-+		shift = 16;
-+		insnlen = 1;
-+		lhread(lg, &insn, physaddr + insnlen, 1);
-+	}
-+
-+	switch (insn & 0xFE) {
-+	case 0xE4: /* in     <next byte>,%al */
-+		insnlen += 2;
-+		in = 1;
-+		break;
-+	case 0xEC: /* in     (%dx),%al */
-+		insnlen += 1;
-+		in = 1;
-+		break;
-+	case 0xE6: /* out    %al,<next byte> */
-+		insnlen += 2;
-+		break;
-+	case 0xEE: /* out    %al,(%dx) */
-+		insnlen += 1;
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	if (in) {
-+		/* Lower bit tells is whether it's a 16 or 32 bit access */
-+		if (insn & 0x1)
-+			lg->state->regs.eax = 0xFFFFFFFF;
-+		else
-+			lg->state->regs.eax |= (0xFFFF << shift);
-+	}
-+	lg->state->regs.eip += insnlen;
-+	return 1;
++	return memcmp(mac+1, info->peer[peer].mac+1, ETH_ALEN-1) == 0;
 +}
 +
-+int find_free_guest(void)
++static int unused_peer(const struct lguest_net peer[], unsigned int num)
 +{
-+	unsigned int i;
-+	for (i = 0; i < MAX_LGUEST_GUESTS; i++)
-+		if (!lguests[i].state)
-+			return i;
-+	return -1;
++	return peer[num].guestid == 0xFFFF;
 +}
 +
-+int lguest_address_ok(const struct lguest *lg, unsigned long addr)
++static int is_broadcast(const unsigned char dest[ETH_ALEN])
 +{
-+	return addr / PAGE_SIZE < lg->pfn_limit;
++	return dest[0] == 0xFF && dest[1] == 0xFF && dest[2] == 0xFF
++		&& dest[3] == 0xFF && dest[4] == 0xFF && dest[5] == 0xFF;
 +}
 +
-+/* Just like get_user, but don't let guest access lguest binary. */
-+u32 lhread_u32(struct lguest *lg, u32 addr)
++static int promisc(struct lguestnet_info *info, unsigned int peer)
 +{
-+	u32 val = 0;
-+
-+	/* Don't let them access lguest_add */
-+	if (!lguest_address_ok(lg, addr)
-+	    || get_user(val, (u32 __user *)addr) != 0)
-+		kill_guest(lg, "bad read address %u", addr);
-+	return val;
++	return info->peer[peer].promisc & PROMISC_BIT;
 +}
 +
-+void lhwrite_u32(struct lguest *lg, u32 addr, u32 val)
++static void lguestnet_set_multicast(struct net_device *dev)
 +{
-+	if (!lguest_address_ok(lg, addr)
-+	    || put_user(val, (u32 __user *)addr) != 0)
-+		kill_guest(lg, "bad write address %u", addr);
-+}
++	struct lguestnet_info *info = dev->priv;
 +
-+void lhread(struct lguest *lg, void *b, u32 addr, unsigned bytes)
-+{
-+	if (addr + bytes < addr || !lguest_address_ok(lg, addr+bytes)
-+	    || copy_from_user(b, (void __user *)addr, bytes) != 0) {
-+		/* copy_from_user should do this, but as we rely on it... */
-+		memset(b, 0, bytes);
-+		kill_guest(lg, "bad read address %u len %u", addr, bytes);
-+	}
-+}
-+
-+void lhwrite(struct lguest *lg, u32 addr, const void *b, unsigned bytes)
-+{
-+	if (addr + bytes < addr
-+	    || !lguest_address_ok(lg, addr+bytes)
-+	    || copy_to_user((void __user *)addr, b, bytes) != 0)
-+		kill_guest(lg, "bad write address %u len %u", addr, bytes);
-+}
-+
-+/* Saves exporting idt_table from kernel */
-+static struct desc_struct *get_idt_table(void)
-+{
-+	struct Xgt_desc_struct idt;
-+
-+	asm("sidt %0":"=m" (idt));
-+	return (void *)idt.address;
-+}
-+
-+static int usermode(struct lguest_regs *regs)
-+{
-+	return (regs->cs & SEGMENT_RPL_MASK) == USER_RPL;
-+}
-+
-+/* Trap page resets this when it reloads gs. */
-+static int new_gfp_eip(struct lguest *lg, struct lguest_regs *regs)
-+{
-+	u32 eip;
-+	get_user(eip, &lg->lguest_data->gs_gpf_eip);
-+	if (eip == regs->eip)
-+		return 0;
-+	put_user(regs->eip, &lg->lguest_data->gs_gpf_eip);
-+	return 1;
-+}
-+
-+static void set_ts(unsigned int guest_ts)
-+{
-+	u32 cr0;
-+	if (guest_ts) {
-+		asm("movl %%cr0,%0":"=r" (cr0));
-+		if (!(cr0 & 8))
-+			asm("movl %0,%%cr0": :"r" (cr0|8));
-+	}
-+}
-+
-+static void run_guest_once(struct lguest *lg)
-+{
-+	unsigned int clobber;
-+
-+	/* Put eflags on stack, lcall does rest. */
-+	asm volatile("pushf; lcall *lguest_entry"
-+		     : "=a"(clobber), "=d"(clobber)
-+		     : "0"(lg->state), "1"(get_idt_table())
-+		     : "memory");
-+}
-+
-+int run_guest(struct lguest *lg, char *__user user)
-+{
-+	struct lguest_regs *regs = &lg->state->regs;
-+
-+	while (!lg->dead) {
-+		unsigned int cr2 = 0; /* Damn gcc */
-+
-+		/* Hypercalls first: we might have been out to userspace */
-+		if (do_async_hcalls(lg))
-+			goto pending_dma;
-+
-+		if (regs->trapnum == LGUEST_TRAP_ENTRY) {
-+			/* Only do hypercall once. */
-+			regs->trapnum = 255;
-+			if (hypercall(lg, regs))
-+				goto pending_dma;
-+		}
-+
-+		if (signal_pending(current))
-+			return -EINTR;
-+		maybe_do_interrupt(lg);
-+
-+		try_to_freeze();
-+
-+		if (lg->dead)
-+			break;
-+
-+		if (lg->halted) {
-+			set_current_state(TASK_INTERRUPTIBLE);
-+			schedule_timeout(1);
-+			continue;
-+		}
-+
-+		/* Restore limits on TLS segments if in user mode. */
-+		if (usermode(regs)) {
-+			unsigned int i;
-+			for (i = 0; i < ARRAY_SIZE(lg->tls_limits); i++)
-+				lg->state->gdt_table[GDT_ENTRY_TLS_MIN+i].a
-+					|= lg->tls_limits[i];
-+		}
-+
-+		local_irq_disable();
-+		map_trap_page(lg);
-+
-+		/* Host state to be restored after the guest returns. */
-+		asm("sidt %0":"=m"(lg->state->host.idt));
-+		lg->state->host.gdt = __get_cpu_var(cpu_gdt_descr);
-+
-+		/* Even if *we* don't want FPU trap, guest might... */
-+		set_ts(lg->ts);
-+
-+		run_guest_once(lg);
-+
-+		/* Save cr2 now if we page-faulted. */
-+		if (regs->trapnum == 14)
-+			asm("movl %%cr2,%0" :"=r" (cr2));
-+		else if (regs->trapnum == 7)
-+			math_state_restore();
-+		local_irq_enable();
-+
-+		switch (regs->trapnum) {
-+		case 13: /* We've intercepted a GPF. */
-+			if (regs->errcode == 0) {
-+				if (emulate_insn(lg))
-+					continue;
-+
-+				/* FIXME: If it's reloading %gs in a loop? */
-+				if (usermode(regs) && new_gfp_eip(lg,regs))
-+					continue;
-+			}
-+
-+			if (reflect_trap(lg, &lg->gpf_trap, 1))
-+				continue;
-+			break;
-+		case 14: /* We've intercepted a page fault. */
-+			if (demand_page(lg, cr2, regs->errcode & 2))
-+				continue;
-+
-+			/* If lguest_data is NULL, this won't hurt. */
-+			put_user(cr2, &lg->lguest_data->cr2);
-+			if (reflect_trap(lg, &lg->page_trap, 1))
-+				continue;
-+			kill_guest(lg, "unhandled page fault at %#x"
-+				   " (eip=%#x, errcode=%#x)",
-+				   cr2, regs->eip, regs->errcode);
-+			break;
-+		case 7: /* We've intercepted a Device Not Available fault. */
-+			/* If they don't want to know, just absorb it. */
-+			if (!lg->ts)
-+				continue;
-+			if (reflect_trap(lg, &lg->fpu_trap, 0))
-+				continue;
-+			kill_guest(lg, "unhandled FPU fault at %#x",
-+				   regs->eip);
-+			break;
-+		case 32 ... 255: /* Real interrupt, fall thru */
-+			cond_resched();
-+		case LGUEST_TRAP_ENTRY: /* Handled at top of loop */
-+			continue;
-+		case 6: /* Invalid opcode before they installed handler */
-+			check_bug_kill(lg);
-+		}
-+		kill_guest(lg,"unhandled trap %i at %#x (err=%i)",
-+			   regs->trapnum, regs->eip, regs->errcode);
-+	}
-+	return -ENOENT;
-+
-+pending_dma:
-+	put_user(lg->pending_dma, (unsigned long *)user);
-+	put_user(lg->pending_addr, (unsigned long *)user+1);
-+	return sizeof(unsigned long)*2;
-+}
-+
-+#define STRUCT_LGUEST_ELEM_SIZE(elem) sizeof(((struct lguest_state *)0)->elem)
-+
-+static void adjust_pge(void *on)
-+{
-+	if (on)
-+		write_cr4(read_cr4() | X86_CR4_PGE);
++	if (dev->flags & IFF_PROMISC)
++		info->peer[info->me].promisc |= PROMISC_BIT;
 +	else
-+		write_cr4(read_cr4() & ~X86_CR4_PGE);
++		info->peer[info->me].promisc &= ~PROMISC_BIT;
 +}
 +
-+static int __init init(void)
++static int lguestnet_start_xmit(struct sk_buff *skb, struct net_device *dev)
 +{
-+	int err;
++	unsigned int i;
++	int broadcast;
++	struct lguestnet_info *info = dev->priv;
++	const unsigned char *dest = ((struct ethhdr *)skb->data)->h_dest;
 +
-+	if (paravirt_enabled())
-+		return -EPERM;
++	broadcast = is_broadcast(dest);
 +
-+	err = map_hypervisor();
-+	if (err)
-+		return err;
++	pr_debug("lguestnet %s: xmit broadcast=%i\n",
++		 dev->name, broadcast);
++	pr_debug("dest: %02x:%02x:%02x:%02x:%02x:%02x\n",
++		 dest[0], dest[1], dest[2], dest[3], dest[4], dest[5]);
 +
-+	err = init_pagetables(hype_pages);
-+	if (err) {
-+		unmap_hypervisor();
-+		return err;
++	for (i = 0; i < SHARED_SIZE/sizeof(struct lguest_net); i++) {
++		if (i == info->me || unused_peer(info->peer, i))
++			continue;
++
++		if (!broadcast && !promisc(info, i) && !mac_eq(dest, info, i))
++			continue;
++
++		pr_debug("lguestnet %s: sending from %i to %i\n",
++			 dev->name, info->me, i);
++		transfer_packet(dev, skb, i);
 +	}
-+	lguest_io_init();
-+
-+	err = lguest_device_init();
-+	if (err) {
-+		free_pagetables();
-+		unmap_hypervisor();
-+		return err;
-+	}
-+	lock_cpu_hotplug();
-+	if (cpu_has_pge) { /* We have a broader idea of "global". */
-+		cpu_had_pge = 1;
-+		on_each_cpu(adjust_pge, 0, 0, 1);
-+		clear_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
-+	}
-+	unlock_cpu_hotplug();
++	dev_kfree_skb(skb);
 +	return 0;
 +}
 +
-+static void __exit fini(void)
++static struct sk_buff *lguestnet_alloc_skb(struct net_device *dev, int gfpflags)
 +{
-+	lguest_device_remove();
-+	free_pagetables();
-+	unmap_hypervisor();
-+	lock_cpu_hotplug();
-+	if (cpu_had_pge) {
-+		set_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
-+		on_each_cpu(adjust_pge, (void *)1, 0, 1);
-+	}
-+	unlock_cpu_hotplug();
-+}
++	struct sk_buff *skb;
 +
-+module_init(init);
-+module_exit(fini);
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Rusty Russell <rusty@rustcorp.com.au>");
-diff -puN /dev/null arch/i386/lguest/hypercalls.c
---- /dev/null
-+++ a/arch/i386/lguest/hypercalls.c
-@@ -0,0 +1,186 @@
-+/*  Actual hypercalls, which allow guests to actually do something.
-+    Copyright (C) 2006 Rusty Russell IBM Corporation
-+
-+    This program is free software; you can redistribute it and/or modify
-+    it under the terms of the GNU General Public License as published by
-+    the Free Software Foundation; either version 2 of the License, or
-+    (at your option) any later version.
-+
-+    This program is distributed in the hope that it will be useful,
-+    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+    GNU General Public License for more details.
-+
-+    You should have received a copy of the GNU General Public License
-+    along with this program; if not, write to the Free Software
-+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-+*/
-+#include <linux/uaccess.h>
-+#include <linux/syscalls.h>
-+#include <linux/mm.h>
-+#include <asm/lguest.h>
-+#include <asm/page.h>
-+#include <asm/pgtable.h>
-+#include <irq_vectors.h>
-+#include "lg.h"
-+
-+static void guest_set_stack(struct lguest *lg,
-+			    u32 seg, u32 esp, unsigned int pages)
-+{
-+	/* You cannot have a stack segment with priv level 0. */
-+	if ((seg & 0x3) != GUEST_DPL)
-+		kill_guest(lg, "bad stack segment %i", seg);
-+	if (pages > 2)
-+		kill_guest(lg, "bad stack pages %u", pages);
-+	lg->state->tss.ss1 = seg;
-+	lg->state->tss.esp1 = esp;
-+	lg->stack_pages = pages;
-+	pin_stack_pages(lg);
-+}
-+
-+/* Return true if DMA to host userspace now pending. */
-+static int do_hcall(struct lguest *lg, struct lguest_regs *regs)
-+{
-+	switch (regs->eax) {
-+	case LHCALL_FLUSH_ASYNC:
-+		break;
-+	case LHCALL_LGUEST_INIT:
-+		kill_guest(lg, "already have lguest_data");
-+		break;
-+	case LHCALL_CRASH: {
-+		char msg[128];
-+		lhread(lg, msg, regs->edx, sizeof(msg));
-+		msg[sizeof(msg)-1] = '\0';
-+		kill_guest(lg, "CRASH: %s", msg);
-+		break;
-+	}
-+	case LHCALL_LOAD_GDT:
-+		load_guest_gdt(lg, regs->edx, regs->ebx);
-+		break;
-+	case LHCALL_NEW_PGTABLE:
-+		guest_new_pagetable(lg, regs->edx);
-+		break;
-+	case LHCALL_FLUSH_TLB:
-+		if (regs->edx)
-+			guest_pagetable_clear_all(lg);
-+		else
-+			guest_pagetable_flush_user(lg);
-+		break;
-+	case LHCALL_LOAD_IDT_ENTRY:
-+		load_guest_idt_entry(lg, regs->edx, regs->ebx, regs->ecx);
-+		break;
-+	case LHCALL_SET_STACK:
-+		guest_set_stack(lg, regs->edx, regs->ebx, regs->ecx);
-+		break;
-+	case LHCALL_TS:
-+		lg->ts = regs->edx;
-+		break;
-+	case LHCALL_TIMER_READ: {
-+		u32 now = jiffies;
-+		mb();
-+		regs->eax = now - lg->last_timer;
-+		lg->last_timer = now;
-+		break;
-+	}
-+	case LHCALL_TIMER_START:
-+		lg->timer_on = 1;
-+		if (regs->edx != HZ)
-+			kill_guest(lg, "Bad clock speed %i", regs->edx);
-+		lg->last_timer = jiffies;
-+		break;
-+	case LHCALL_HALT:
-+		lg->halted = 1;
-+		break;
-+	case LHCALL_GET_WALLCLOCK: {
-+		struct timeval tv;
-+		do_gettimeofday(&tv);
-+		regs->eax = tv.tv_sec;
-+		break;
-+	}
-+	case LHCALL_BIND_DMA:
-+		regs->eax = bind_dma(lg, regs->edx, regs->ebx,
-+				     regs->ecx >> 8, regs->ecx & 0xFF);
-+		break;
-+	case LHCALL_SEND_DMA:
-+		return send_dma(lg, regs->edx, regs->ebx);
-+	case LHCALL_SET_PTE:
-+		guest_set_pte(lg, regs->edx, regs->ebx, regs->ecx);
-+		break;
-+	case LHCALL_SET_UNKNOWN_PTE:
-+		guest_pagetable_clear_all(lg);
-+		break;
-+	case LHCALL_SET_PUD:
-+		guest_set_pud(lg, regs->edx, regs->ebx);
-+		break;
-+	case LHCALL_LOAD_TLS:
-+		guest_load_tls(lg, (struct desc_struct __user*)regs->edx);
-+		break;
-+	default:
-+		kill_guest(lg, "Bad hypercall %i\n", regs->eax);
-+	}
-+	return 0;
-+}
-+
-+/* We always do queued calls before actual hypercall. */
-+int do_async_hcalls(struct lguest *lg)
-+{
-+	unsigned int i, pending;
-+	u8 st[LHCALL_RING_SIZE];
-+
-+	if (!lg->lguest_data)
-+		return 0;
-+
-+	copy_from_user(&st, &lg->lguest_data->hcall_status, sizeof(st));
-+	for (i = 0; i < ARRAY_SIZE(st); i++) {
-+		struct lguest_regs regs;
-+		unsigned int n = lg->next_hcall;
-+
-+		if (st[n] == 0xFF)
-+			break;
-+
-+		if (++lg->next_hcall == LHCALL_RING_SIZE)
-+			lg->next_hcall = 0;
-+
-+		get_user(regs.eax, &lg->lguest_data->hcalls[n].eax);
-+		get_user(regs.edx, &lg->lguest_data->hcalls[n].edx);
-+		get_user(regs.ecx, &lg->lguest_data->hcalls[n].ecx);
-+		get_user(regs.ebx, &lg->lguest_data->hcalls[n].ebx);
-+		pending = do_hcall(lg, &regs);
-+		put_user(0xFF, &lg->lguest_data->hcall_status[n]);
-+		if (pending)
-+			return 1;
-+	}
-+
-+	set_wakeup_process(lg, NULL);
-+	return 0;
-+}
-+
-+int hypercall(struct lguest *lg, struct lguest_regs *regs)
-+{
-+	int pending;
-+
-+	if (!lg->lguest_data) {
-+		if (regs->eax != LHCALL_LGUEST_INIT) {
-+			kill_guest(lg, "hypercall %i before LGUEST_INIT",
-+				   regs->eax);
-+			return 0;
-+		}
-+
-+		lg->lguest_data = (struct lguest_data __user *)regs->edx;
-+		/* We check here so we can simply copy_to_user/from_user */
-+		if (!lguest_address_ok(lg, (long)lg->lguest_data)
-+		    || !lguest_address_ok(lg, (long)(lg->lguest_data+1))){
-+			kill_guest(lg, "bad guest page %p", lg->lguest_data);
-+			return 0;
-+		}
-+		get_user(lg->noirq_start, &lg->lguest_data->noirq_start);
-+		get_user(lg->noirq_end, &lg->lguest_data->noirq_end);
-+		/* We reserve the top pgd entry. */
-+		put_user(4U*1024*1024, &lg->lguest_data->reserve_mem);
-+		put_user(lg->guestid, &lg->lguest_data->guestid);
-+		return 0;
-+	}
-+	pending = do_hcall(lg, regs);
-+	set_wakeup_process(lg, NULL);
-+	return pending;
-+}
-diff -puN /dev/null arch/i386/lguest/hypervisor.S
---- /dev/null
-+++ a/arch/i386/lguest/hypervisor.S
-@@ -0,0 +1,170 @@
-+/* This code sits at 0xFFFF1000 to do the low-level guest<->host switch.
-+   Layout is: default_idt_entries (1k), then switch_to_guest entry point. */
-+#include <linux/linkage.h>
-+#include <asm/asm-offsets.h>
-+#include "lg.h"
-+
-+#define SAVE_REGS				\
-+	/* Save old guest/host state */		\
-+	pushl	%es;				\
-+	pushl	%ds;				\
-+	pushl	%fs;				\
-+	pushl	%eax;				\
-+	pushl	%gs;				\
-+	pushl	%ebp;				\
-+	pushl	%edi;				\
-+	pushl	%esi;				\
-+	pushl	%edx;				\
-+	pushl	%ecx;				\
-+	pushl	%ebx;				\
-+
-+.text
-+ENTRY(_start) /* ld complains unless _start is defined. */
-+/* %eax contains ptr to target guest state, %edx contains host idt. */
-+switch_to_guest:
-+	pushl	%ss
-+	SAVE_REGS
-+	/* Save old stack, switch to guest's stack. */
-+	movl	%esp, LGUEST_STATE_host_stackptr(%eax)
-+	movl	%eax, %esp
-+	/* Guest registers will be at: %esp-$LGUEST_STATE_regs */
-+	addl	$LGUEST_STATE_regs, %esp
-+	/* Switch to guest's GDT, IDT. */
-+	lgdt	LGUEST_STATE_gdt(%eax)
-+	lidt	LGUEST_STATE_idt(%eax)
-+	/* Save page table top. */
-+	movl	%cr3, %ebx
-+	movl	%ebx, LGUEST_STATE_host_pgdir(%eax)
-+	/* Set host's TSS to available (clear byte 5 bit 2). */
-+	movl	(LGUEST_STATE_host_gdt+2)(%eax), %ebx
-+	andb	$0xFD, (GDT_ENTRY_TSS*8 + 5)(%ebx)
-+	/* Switch to guest page tables */
-+	popl	%ebx
-+	movl	%ebx, %cr3
-+	/* Switch to guest's TSS. */
-+	movl	$(GDT_ENTRY_TSS*8), %ebx
-+	ltr	%bx
-+	/* Restore guest regs */
-+	popl	%ebx
-+	popl	%ecx
-+	popl	%edx
-+	popl	%esi
-+	popl	%edi
-+	popl	%ebp
-+	popl	%gs
-+	/* Now we've loaded gs, neuter the TLS entries down to 1 byte/page */
-+	addl	$(LGUEST_STATE_gdt_table+GDT_ENTRY_TLS_MIN*8), %eax
-+	movw	$0,(%eax)
-+	movw	$0,8(%eax)
-+	movw	$0,16(%eax)
-+	popl	%eax
-+	popl	%fs
-+	popl	%ds
-+	popl	%es
-+	/* Skip error code and trap number */
-+	addl	$8, %esp
-+	iret
-+
-+#define SWITCH_TO_HOST							\
-+	SAVE_REGS;							\
-+	/* Save old pgdir */						\
-+	movl	%cr3, %eax;						\
-+	pushl	%eax;							\
-+	/* Load lguest ds segment for convenience. */			\
-+	movl	$(LGUEST_DS), %eax;					\
-+	movl	%eax, %ds;						\
-+	/* Now figure out who we are */					\
-+	movl	%esp, %eax;						\
-+	subl	$LGUEST_STATE_regs, %eax;				\
-+	/* Switch to host page tables (GDT, IDT and stack are in host   \
-+	   mem, so need this first) */					\
-+	movl	LGUEST_STATE_host_pgdir(%eax), %ebx;			\
-+	movl	%ebx, %cr3;						\
-+	/* Set guest's TSS to available (clear byte 5 bit 2). */	\
-+	andb	$0xFD, (LGUEST_STATE_gdt_table+GDT_ENTRY_TSS*8+5)(%eax);\
-+	/* Switch to host's GDT & IDT. */				\
-+	lgdt	LGUEST_STATE_host_gdt(%eax);				\
-+	lidt	LGUEST_STATE_host_idt(%eax);				\
-+	/* Switch to host's stack. */					\
-+	movl	LGUEST_STATE_host_stackptr(%eax), %esp;			\
-+	/* Switch to host's TSS */					\
-+	movl	$(GDT_ENTRY_TSS*8), %eax;				\
-+	ltr	%ax;							\
-+	/* Restore host regs */						\
-+	popl	%ebx;							\
-+	popl	%ecx;							\
-+	popl	%edx;							\
-+	popl	%esi;							\
-+	popl	%edi;							\
-+	popl	%ebp;							\
-+	popl	%gs;							\
-+	popl	%eax;							\
-+	popl	%fs;							\
-+	popl	%ds;							\
-+	popl	%es;							\
-+	popl	%ss
-+
-+/* Return to run_guest_once. */
-+return_to_host:
-+	SWITCH_TO_HOST
-+	iret
-+
-+deliver_to_host:
-+	SWITCH_TO_HOST
-+decode_idt_and_jmp:
-+	/* Decode IDT and jump to hosts' irq handler.  When that does iret, it
-+	 * will return to run_guest_once.  This is a feature. */
-+	/* We told gcc we'd clobber edx and eax... */
-+	movl	LGUEST_STATE_trapnum(%eax), %eax
-+	leal	(%edx,%eax,8), %eax
-+	movzwl	(%eax),%edx
-+	movl	4(%eax), %eax
-+	xorw	%ax, %ax
-+	orl	%eax, %edx
-+	jmp	*%edx
-+
-+deliver_to_host_with_errcode:
-+	SWITCH_TO_HOST
-+	pushl	LGUEST_STATE_errcode(%eax)
-+	jmp decode_idt_and_jmp
-+
-+/* Real hardware interrupts are delivered straight to the host.  Others
-+   cause us to return to run_guest_once so it can decide what to do.  Note
-+   that some of these are overridden by the guest to deliver directly, and
-+   never enter here (see load_guest_idt_entry). */
-+.macro IRQ_STUB N TARGET
-+	.data; .long 1f; .text; 1:
-+ /* Make an error number for most traps, which don't have one. */
-+ .if (\N <> 2) && (\N <> 8) && (\N < 10 || \N > 14) && (\N <> 17)
-+	pushl	$0
-+ .endif
-+	pushl	$\N
-+	jmp	\TARGET
-+	ALIGN
-+.endm
-+
-+.macro IRQ_STUBS FIRST LAST TARGET
-+ irq=\FIRST
-+ .rept \LAST-\FIRST+1
-+	IRQ_STUB irq \TARGET
-+  irq=irq+1
-+ .endr
-+.endm
-+
-+/* We intercept every interrupt, because we may need to switch back to
-+ * host.  Unfortunately we can't tell them apart except by entry
-+ * point, so we need 256 entry points.
-+ */
-+irq_stubs:
-+.data
-+default_idt_entries:
-+.text
-+	IRQ_STUBS 0 1 return_to_host		/* First two traps */
-+	IRQ_STUB 2 deliver_to_host_with_errcode	/* NMI */
-+	IRQ_STUBS 3 31 return_to_host		/* Rest of traps */
-+	IRQ_STUBS 32 127 deliver_to_host	/* Real interrupts */
-+	IRQ_STUB 128 return_to_host		/* System call (overridden) */
-+	IRQ_STUBS 129 255 deliver_to_host	/* Other real interrupts */
-+
-+/* Everything after this is used for the lguest_state structs. */
-+ALIGN
-diff -puN /dev/null arch/i386/lguest/interrupts_and_traps.c
---- /dev/null
-+++ a/arch/i386/lguest/interrupts_and_traps.c
-@@ -0,0 +1,230 @@
-+#include <linux/uaccess.h>
-+#include "lg.h"
-+
-+static void push_guest_stack(struct lguest *lg, u32 __user **gstack, u32 val)
-+{
-+	lhwrite_u32(lg, (u32)--(*gstack), val);
-+}
-+
-+int reflect_trap(struct lguest *lg, const struct host_trap *trap, int has_err)
-+{
-+	u32 __user *gstack;
-+	u32 eflags, ss, irq_enable;
-+	struct lguest_regs *regs = &lg->state->regs;
-+
-+	if (!trap->addr)
-+		return 0;
-+
-+	/* If they want a ring change, we use new stack and push old ss/esp */
-+	if ((regs->ss&0x3) != GUEST_DPL) {
-+		gstack = (u32 __user *)guest_pa(lg, lg->state->tss.esp1);
-+		ss = lg->state->tss.ss1;
-+		push_guest_stack(lg, &gstack, regs->ss);
-+		push_guest_stack(lg, &gstack, regs->esp);
-+	} else {
-+		gstack = (u32 __user *)guest_pa(lg, regs->esp);
-+		ss = regs->ss;
-+	}
-+
-+	/* We use IF bit in eflags to indicate whether irqs were disabled
-+	   (it's always 0, since irqs are enabled when guest is running). */
-+	eflags = regs->eflags;
-+	get_user(irq_enable, &lg->lguest_data->irq_enabled);
-+	eflags |= (irq_enable & 512);
-+
-+	push_guest_stack(lg, &gstack, eflags);
-+	push_guest_stack(lg, &gstack, regs->cs);
-+	push_guest_stack(lg, &gstack, regs->eip);
-+
-+	if (has_err)
-+		push_guest_stack(lg, &gstack, regs->errcode);
-+
-+	/* Change the real stack so hypervisor returns to trap handler */
-+	regs->ss = ss;
-+	regs->esp = (u32)gstack + lg->page_offset;
-+	regs->cs = (__KERNEL_CS|GUEST_DPL);
-+	regs->eip = trap->addr;
-+
-+	/* GS will be neutered on way back to guest. */
-+	put_user(0, &lg->lguest_data->gs_gpf_eip);
-+
-+	/* Disable interrupts for an interrupt gate. */
-+	if (trap->disable_interrupts)
-+		put_user(0, &lg->lguest_data->irq_enabled);
-+	return 1;
-+}
-+
-+void maybe_do_interrupt(struct lguest *lg)
-+{
-+	unsigned int irq;
-+	DECLARE_BITMAP(irqs, LGUEST_IRQS);
-+
-+	if (!lg->lguest_data)
-+		return;
-+
-+	/* If timer has changed, set timer interrupt. */
-+	if (lg->timer_on && jiffies != lg->last_timer)
-+		set_bit(0, lg->irqs_pending);
-+
-+	/* Mask out any interrupts they have blocked. */
-+	copy_from_user(&irqs, lg->lguest_data->interrupts, sizeof(irqs));
-+	bitmap_andnot(irqs, lg->irqs_pending, irqs, LGUEST_IRQS);
-+
-+	irq = find_first_bit(irqs, LGUEST_IRQS);
-+	if (irq >= LGUEST_IRQS)
-+		return;
-+
-+	/* If they're halted, we re-enable interrupts. */
-+	if (lg->halted) {
-+		/* Re-enable interrupts. */
-+		put_user(512, &lg->lguest_data->irq_enabled);
-+		lg->halted = 0;
-+	} else {
-+		/* Maybe they have interrupts disabled? */
-+		u32 irq_enabled;
-+		get_user(irq_enabled, &lg->lguest_data->irq_enabled);
-+		if (!irq_enabled)
-+			return;
-+	}
-+
-+	if (lg->interrupt[irq].addr != 0) {
-+		clear_bit(irq, lg->irqs_pending);
-+		reflect_trap(lg, &lg->interrupt[irq], 0);
-+	}
-+}
-+
-+void check_bug_kill(struct lguest *lg)
-+{
-+#ifdef CONFIG_BUG
-+	u32 eip = lg->state->regs.eip - PAGE_OFFSET;
-+	u16 insn;
-+
-+	/* This only works for addresses in linear mapping... */
-+	if (lg->state->regs.eip < PAGE_OFFSET)
-+		return;
-+	lhread(lg, &insn, eip, sizeof(insn));
-+	if (insn == 0x0b0f) {
-+#ifdef CONFIG_DEBUG_BUGVERBOSE
-+		u16 l;
-+		u32 f;
-+		char file[128];
-+		lhread(lg, &l, eip+sizeof(insn), sizeof(l));
-+		lhread(lg, &f, eip+sizeof(insn)+sizeof(l), sizeof(f));
-+		lhread(lg, file, f - PAGE_OFFSET, sizeof(file));
-+		file[sizeof(file)-1] = 0;
-+		kill_guest(lg, "BUG() at %#x %s:%u", eip, file, l);
-+#else
-+		kill_guest(lg, "BUG() at %#x", eip);
-+#endif	/* CONFIG_DEBUG_BUGVERBOSE */
-+	}
-+#endif	/* CONFIG_BUG */
-+}
-+
-+static void copy_trap(struct lguest *lg,
-+		      struct host_trap *trap,
-+		      const struct desc_struct *desc)
-+{
-+	u8 type = ((desc->b >> 8) & 0xF);
-+
-+	/* Not present? */
-+	if (!(desc->b & 0x8000)) {
-+		trap->addr = 0;
-+		return;
-+	}
-+	if (type != 0xE && type != 0xF)
-+		kill_guest(lg, "bad IDT type %i", type);
-+	trap->disable_interrupts = (type == 0xE);
-+	trap->addr = ((desc->a & 0x0000FFFF) | (desc->b & 0xFFFF0000));
-+}
-+
-+/* FIXME: Put this in hypervisor.S and do something clever with relocs? */
-+static u8 tramp[]
-+= { 0x0f, 0xa8, 0x0f, 0xa9, /* push %gs; pop %gs */
-+    0x36, 0xc7, 0x05, 0x55, 0x55, 0x55, 0x55, 0x00, 0x00, 0x00, 0x00,
-+    /* movl 0, %ss:lguest_data.gs_gpf_eip */
-+    0xe9, 0x55, 0x55, 0x55, 0x55 /* jmp dstaddr */
-+};
-+#define TRAMP_MOVL_TARGET_OFF 7
-+#define TRAMP_JMP_TARGET_OFF 16
-+
-+static u32 setup_trampoline(struct lguest *lg, unsigned int i, u32 dstaddr)
-+{
-+	u32 addr, off;
-+
-+	off = sizeof(tramp)*i;
-+	memcpy(lg->trap_page + off, tramp, sizeof(tramp));
-+
-+	/* 0 is to be placed in lguest_data.gs_gpf_eip. */
-+	addr = (u32)&lg->lguest_data->gs_gpf_eip + lg->page_offset;
-+	memcpy(lg->trap_page + off + TRAMP_MOVL_TARGET_OFF, &addr, 4);
-+
-+	/* Address is relative to where end of jmp will be. */
-+	addr = dstaddr - ((-4*1024*1024) + off + sizeof(tramp));
-+	memcpy(lg->trap_page + off + TRAMP_JMP_TARGET_OFF, &addr, 4);
-+	return (-4*1024*1024) + off;
-+}
-+
-+/* We bounce through the trap page, for two reasons: firstly, we need
-+   the interrupt destination always mapped, to avoid double faults,
-+   secondly we want to reload %gs to make it innocuous on entering kernel.
-+ */
-+static void setup_idt(struct lguest *lg,
-+		      unsigned int i,
-+		      const struct desc_struct *desc)
-+{
-+	u8 type = ((desc->b >> 8) & 0xF);
-+	u32 taddr;
-+
-+	/* Not present? */
-+	if (!(desc->b & 0x8000)) {
-+		/* FIXME: When we need this, we'll know... */
-+		if (lg->state->idt_table[i].a & 0x8000)
-+			kill_guest(lg, "removing interrupts not supported");
-+		return;
-+	}
-+
-+	/* We could reflect and disable interrupts, but guest can do itself. */
-+	if (type != 0xF)
-+		kill_guest(lg, "bad direct IDT %i type %i", i, type);
-+
-+	taddr = setup_trampoline(lg, i, (desc->a&0xFFFF)|(desc->b&0xFFFF0000));
-+
-+	lg->state->idt_table[i].a = (((__KERNEL_CS|GUEST_DPL)<<16)
-+					| (taddr & 0x0000FFFF));
-+	lg->state->idt_table[i].b = (desc->b&0xEF00)|(taddr&0xFFFF0000);
-+}
-+
-+void load_guest_idt_entry(struct lguest *lg, unsigned int i, u32 low, u32 high)
-+{
-+	struct desc_struct d = { low, high };
-+
-+	switch (i) {
-+	/* Ignore NMI, doublefault, hypercall, spurious interrupt. */
-+	case 2:
-+	case 8:
-+	case 15:
-+	case LGUEST_TRAP_ENTRY:
-+	/* FIXME: We should handle debug and int3 */
-+	case 1:
-+	case 3:
-+		return;
-+	/* We intercept page fault, general protection fault and fpu missing */
-+	case 13:
-+		copy_trap(lg, &lg->gpf_trap, &d);
-+		return;
-+	case 14:
-+		copy_trap(lg, &lg->page_trap, &d);
-+		return;
-+	case 7:
-+		copy_trap(lg, &lg->fpu_trap, &d);
-+		return;
-+	}
-+
-+	/* Other traps go straight to guest. */
-+	if (i < FIRST_EXTERNAL_VECTOR || i == SYSCALL_VECTOR)
-+		setup_idt(lg, i, &d);
-+	/* A virtual interrupt */
-+	else if (i < FIRST_EXTERNAL_VECTOR + LGUEST_IRQS)
-+		copy_trap(lg, &lg->interrupt[i-FIRST_EXTERNAL_VECTOR], &d);
-+}
-+
-diff -puN /dev/null arch/i386/lguest/io.c
---- /dev/null
-+++ a/arch/i386/lguest/io.c
-@@ -0,0 +1,413 @@
-+/* Simple I/O model for guests, based on shared memory.
-+ * Copyright (C) 2006 Rusty Russell IBM Corporation
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-+ */
-+#include <linux/types.h>
-+#include <linux/futex.h>
-+#include <linux/jhash.h>
-+#include <linux/mm.h>
-+#include <linux/highmem.h>
-+#include <linux/uaccess.h>
-+#include "lg.h"
-+
-+static struct list_head dma_hash[64];
-+
-+/* FIXME: allow multi-page lengths. */
-+static int check_dma_list(struct lguest *lg, const struct lguest_dma *dma)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < LGUEST_MAX_DMA_SECTIONS; i++) {
-+		if (!dma->len[i])
-+			return 1;
-+		if (!lguest_address_ok(lg, dma->addr[i]))
-+			goto kill;
-+		if (dma->len[i] > PAGE_SIZE)
-+			goto kill;
-+		/* We could do over a page, but is it worth it? */
-+		if ((dma->addr[i] % PAGE_SIZE) + dma->len[i] > PAGE_SIZE)
-+			goto kill;
-+	}
-+	return 1;
-+
-+kill:
-+	kill_guest(lg, "bad DMA entry: %u@%#x", dma->len[i], dma->addr[i]);
-+	return 0;
-+}
-+
-+static unsigned int hash(const union futex_key *key)
-+{
-+	return jhash2((u32*)&key->both.word,
-+		      (sizeof(key->both.word)+sizeof(key->both.ptr))/4,
-+		      key->both.offset)
-+		% ARRAY_SIZE(dma_hash);
-+}
-+
-+/* Must hold read lock on dmainfo owner's current->mm->mmap_sem */
-+static void unlink_dma(struct lguest_dma_info *dmainfo)
-+{
-+	BUG_ON(!mutex_is_locked(&lguest_lock));
-+	dmainfo->interrupt = 0;
-+	list_del(&dmainfo->list);
-+	drop_futex_key_refs(&dmainfo->key);
-+}
-+
-+static inline int key_eq(const union futex_key *a, const union futex_key *b)
-+{
-+	return (a->both.word == b->both.word
-+		&& a->both.ptr == b->both.ptr
-+		&& a->both.offset == b->both.offset);
-+}
-+
-+static u32 unbind_dma(struct lguest *lg,
-+		      const union futex_key *key,
-+		      unsigned long dmas)
-+{
-+	int i, ret = 0;
-+
-+	for (i = 0; i < LGUEST_MAX_DMA; i++) {
-+		if (key_eq(key, &lg->dma[i].key) && dmas == lg->dma[i].dmas) {
-+			unlink_dma(&lg->dma[i]);
-+			ret = 1;
-+			break;
-+		}
-+	}
-+	return ret;
-+}
-+
-+u32 bind_dma(struct lguest *lg,
-+	     unsigned long addr, unsigned long dmas, u16 numdmas, u8 interrupt)
-+{
-+	unsigned int i;
-+	u32 ret = 0;
-+	union futex_key key;
-+
-+	if (interrupt >= LGUEST_IRQS)
-+		return 0;
-+
-+	mutex_lock(&lguest_lock);
-+	down_read(&current->mm->mmap_sem);
-+	if (get_futex_key((u32 __user *)addr, &key) != 0) {
-+		kill_guest(lg, "bad dma address %#lx", addr);
-+		goto unlock;
-+	}
-+	get_futex_key_refs(&key);
-+
-+	if (interrupt == 0)
-+		ret = unbind_dma(lg, &key, dmas);
-+	else {
-+		for (i = 0; i < LGUEST_MAX_DMA; i++) {
-+			if (lg->dma[i].interrupt == 0) {
-+				lg->dma[i].dmas = dmas;
-+				lg->dma[i].num_dmas = numdmas;
-+				lg->dma[i].next_dma = 0;
-+				lg->dma[i].key = key;
-+				lg->dma[i].guestid = lg->guestid;
-+				lg->dma[i].interrupt = interrupt;
-+				list_add(&lg->dma[i].list,
-+					 &dma_hash[hash(&key)]);
-+				ret = 1;
-+				goto unlock;
-+			}
-+		}
-+	}
-+	drop_futex_key_refs(&key);
-+unlock:
-+ 	up_read(&current->mm->mmap_sem);
-+	mutex_unlock(&lguest_lock);
-+	return ret;
-+}
-+
-+/* lhread from another guest */
-+static int lhread_other(struct lguest *lg,
-+			void *buf, u32 addr, unsigned bytes)
-+{
-+	if (addr + bytes < addr
-+	    || !lguest_address_ok(lg, addr+bytes)
-+	    || access_process_vm(lg->tsk, addr, buf, bytes, 0) != bytes) {
-+		memset(buf, 0, bytes);
-+		kill_guest(lg, "bad address in registered DMA struct");
-+		return 0;
-+	}
-+	return 1;
-+}
-+
-+/* lhwrite to another guest */
-+static int lhwrite_other(struct lguest *lg, u32 addr,
-+			 const void *buf, unsigned bytes)
-+{
-+	if (addr + bytes < addr
-+	    || !lguest_address_ok(lg, addr+bytes)
-+	    || (access_process_vm(lg->tsk, addr, (void *)buf, bytes, 1)
-+		!= bytes)) {
-+		kill_guest(lg, "bad address writing to registered DMA");
-+		return 0;
-+	}
-+	return 1;
-+}
-+
-+static u32 copy_data(const struct lguest_dma *src,
-+		     const struct lguest_dma *dst,
-+		     struct page *pages[])
-+{
-+	unsigned int totlen, si, di, srcoff, dstoff;
-+	void *maddr = NULL;
-+
-+	totlen = 0;
-+	si = di = 0;
-+	srcoff = dstoff = 0;
-+	while (si < LGUEST_MAX_DMA_SECTIONS && src->len[si]
-+	       && di < LGUEST_MAX_DMA_SECTIONS && dst->len[di]) {
-+		u32 len = min(src->len[si] - srcoff, dst->len[di] - dstoff);
-+
-+		if (!maddr)
-+			maddr = kmap(pages[di]);
-+
-+		/* FIXME: This is not completely portable, since
-+		   archs do different things for copy_to_user_page. */
-+		if (copy_from_user(maddr + (dst->addr[di] + dstoff)%PAGE_SIZE,
-+				   (void *__user)src->addr[si], len) != 0) {
-+			totlen = 0;
-+			break;
-+		}
-+
-+		totlen += len;
-+		srcoff += len;
-+		dstoff += len;
-+		if (srcoff == src->len[si]) {
-+			si++;
-+			srcoff = 0;
-+		}
-+		if (dstoff == dst->len[di]) {
-+			kunmap(pages[di]);
-+			maddr = NULL;
-+			di++;
-+			dstoff = 0;
-+		}
-+	}
-+
-+	if (maddr)
-+		kunmap(pages[di]);
-+
-+	return totlen;
-+}
-+
-+/* Src is us, ie. current. */
-+static u32 do_dma(struct lguest *srclg, const struct lguest_dma *src,
-+		  struct lguest *dstlg, const struct lguest_dma *dst)
-+{
-+	int i;
-+	u32 ret;
-+	struct page *pages[LGUEST_MAX_DMA_SECTIONS];
-+
-+	if (!check_dma_list(dstlg, dst) || !check_dma_list(srclg, src))
-+		return 0;
-+
-+	/* First get the destination pages */
-+	for (i = 0; i < LGUEST_MAX_DMA_SECTIONS; i++) {
-+		if (dst->len[i] == 0)
-+			break;
-+		if (get_user_pages(dstlg->tsk, dstlg->mm,
-+				   dst->addr[i], 1, 1, 1, pages+i, NULL)
-+		    != 1) {
-+			ret = 0;
-+			goto drop_pages;
-+		}
-+	}
-+
-+	/* Now copy until we run out of src or dst. */
-+	ret = copy_data(src, dst, pages);
-+
-+drop_pages:
-+	while (--i >= 0)
-+		put_page(pages[i]);
-+	return ret;
-+}
-+
-+/* We cache one process to wakeup: helps for batching & wakes outside locks. */
-+void set_wakeup_process(struct lguest *lg, struct task_struct *p)
-+{
-+	if (p == lg->wake)
-+		return;
-+
-+	if (lg->wake) {
-+		wake_up_process(lg->wake);
-+		put_task_struct(lg->wake);
-+	}
-+	lg->wake = p;
-+	if (lg->wake)
-+		get_task_struct(lg->wake);
-+}
-+
-+static int dma_transfer(struct lguest *srclg,
-+			unsigned long udma,
-+			struct lguest_dma_info *dst)
-+{
-+	struct lguest_dma dst_dma, src_dma;
-+	struct lguest *dstlg;
-+	u32 i, dma = 0;
-+
-+	dstlg = &lguests[dst->guestid];
-+	/* Get our dma list. */
-+	lhread(srclg, &src_dma, udma, sizeof(src_dma));
-+
-+	/* We can't deadlock against them dmaing to us, because this
-+	 * is all under the lguest_lock. */
-+	down_read(&dstlg->mm->mmap_sem);
-+
-+	for (i = 0; i < dst->num_dmas; i++) {
-+		dma = (dst->next_dma + i) % dst->num_dmas;
-+		if (!lhread_other(dstlg, &dst_dma,
-+				  dst->dmas + dma * sizeof(struct lguest_dma),
-+				  sizeof(dst_dma))) {
-+			goto fail;
-+		}
-+		if (!dst_dma.used_len)
-+			break;
-+	}
-+	if (i != dst->num_dmas) {
-+		unsigned long used_lenp;
-+		unsigned int ret;
-+
-+		ret = do_dma(srclg, &src_dma, dstlg, &dst_dma);
-+		/* Put used length in src. */
-+		lhwrite_u32(srclg,
-+			    udma+offsetof(struct lguest_dma, used_len), ret);
-+		if (ret == 0 && src_dma.len[0] != 0)
-+			goto fail;
-+
-+		/* Make sure destination sees contents before length. */
-+		mb();
-+		used_lenp = dst->dmas
-+			+ dma * sizeof(struct lguest_dma)
-+			+ offsetof(struct lguest_dma, used_len);
-+		lhwrite_other(dstlg, used_lenp, &ret, sizeof(ret));
-+		dst->next_dma++;
-+	}
-+ 	up_read(&dstlg->mm->mmap_sem);
-+
-+	/* Do this last so dst doesn't simply sleep on lock. */
-+	set_bit(dst->interrupt, dstlg->irqs_pending);
-+	set_wakeup_process(srclg, dstlg->tsk);
-+	return i == dst->num_dmas;
-+
-+fail:
-+	up_read(&dstlg->mm->mmap_sem);
-+	return 0;
-+}
-+
-+int send_dma(struct lguest *lg, unsigned long addr, unsigned long udma)
-+{
-+	union futex_key key;
-+	int pending = 0, empty = 0;
-+
-+again:
-+	mutex_lock(&lguest_lock);
-+	down_read(&current->mm->mmap_sem);
-+	if (get_futex_key((u32 __user *)addr, &key) != 0) {
-+		kill_guest(lg, "bad sending DMA address");
-+		goto unlock;
-+	}
-+	/* Shared mapping?  Look for other guests... */
-+	if (key.shared.offset & 1) {
-+		struct lguest_dma_info *i, *n;
-+		list_for_each_entry_safe(i, n, &dma_hash[hash(&key)], list) {
-+			if (i->guestid == lg->guestid)
-+				continue;
-+			if (!key_eq(&key, &i->key))
-+				continue;
-+
-+			empty += dma_transfer(lg, udma, i);
-+			break;
-+		}
-+		if (empty == 1) {
-+			/* Give any recipients one chance to restock. */
-+			up_read(&current->mm->mmap_sem);
-+			mutex_unlock(&lguest_lock);
-+			yield();
-+			empty++;
-+			goto again;
-+		}
-+		pending = 0;
-+	} else {
-+		/* Private mapping: tell our userspace. */
-+		lg->dma_is_pending = 1;
-+		lg->pending_dma = udma;
-+		lg->pending_addr = addr;
-+		pending = 1;
-+	}
-+unlock:
-+	up_read(&current->mm->mmap_sem);
-+	mutex_unlock(&lguest_lock);
-+	return pending;
-+}
-+
-+void release_all_dma(struct lguest *lg)
-+{
-+	unsigned int i;
-+
-+	BUG_ON(!mutex_is_locked(&lguest_lock));
-+
-+	down_read(&lg->mm->mmap_sem);
-+	for (i = 0; i < LGUEST_MAX_DMA; i++) {
-+		if (lg->dma[i].interrupt)
-+			unlink_dma(&lg->dma[i]);
-+	}
-+	up_read(&lg->mm->mmap_sem);
-+}
-+
-+/* Userspace wants a dma buffer from this guest. */
-+unsigned long get_dma_buffer(struct lguest *lg,
-+			     unsigned long addr, unsigned long *interrupt)
-+{
-+	unsigned long ret = 0;
-+	union futex_key key;
-+	struct lguest_dma_info *i;
-+
-+	mutex_lock(&lguest_lock);
-+	down_read(&current->mm->mmap_sem);
-+	if (get_futex_key((u32 __user *)addr, &key) != 0) {
-+		kill_guest(lg, "bad registered DMA buffer");
-+		goto unlock;
-+	}
-+	list_for_each_entry(i, &dma_hash[hash(&key)], list) {
-+		if (key_eq(&key, &i->key) && i->guestid == lg->guestid) {
-+			unsigned int j;
-+			for (j = 0; j < i->num_dmas; j++) {
-+				struct lguest_dma dma;
-+
-+				ret = i->dmas + j * sizeof(struct lguest_dma);
-+				lhread(lg, &dma, ret, sizeof(dma));
-+				if (dma.used_len == 0)
-+					break;
-+			}
-+			*interrupt = i->interrupt;
-+			break;
-+		}
-+	}
-+unlock:
-+	up_read(&current->mm->mmap_sem);
-+	mutex_unlock(&lguest_lock);
-+	return ret;
-+}
-+
-+void lguest_io_init(void)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(dma_hash); i++)
-+		INIT_LIST_HEAD(&dma_hash[i]);
-+}
-diff -puN arch/i386/lguest/lg.h~lguest-the-host-code-lgko arch/i386/lguest/lg.h
---- a/arch/i386/lguest/lg.h~lguest-the-host-code-lgko
-+++ a/arch/i386/lguest/lg.h
-@@ -3,8 +3,8 @@
- 
- #include <asm/desc.h>
- /* 64k ought to be enough for anybody! */
--#define HYPERVISOR_MAP_ORDER 16
--#define HYPERVISOR_PAGES ((1 << HYPERVISOR_MAP_ORDER)/PAGE_SIZE)
-+#define HYPERVISOR_PAGE_ORDER (16 - PAGE_SHIFT)
-+#define HYPERVISOR_PAGES (1 << HYPERVISOR_PAGE_ORDER)
- 
- #define GDT_ENTRY_LGUEST_CS	10
- #define GDT_ENTRY_LGUEST_DS	11
-diff -puN /dev/null arch/i386/lguest/lguest_user.c
---- /dev/null
-+++ a/arch/i386/lguest/lguest_user.c
-@@ -0,0 +1,242 @@
-+/* Userspace control of the guest, via /dev/lguest. */
-+#include <linux/uaccess.h>
-+#include <linux/miscdevice.h>
-+#include <linux/fs.h>
-+#include "lg.h"
-+
-+static struct lguest_state *setup_guest_state(unsigned int num, void *pgdir,
-+					      unsigned long start)
-+{
-+	struct lguest_state *guest = &__lguest_states()[num];
-+	unsigned int i;
-+	const long *def = __lguest_default_idt_entries();
-+	struct lguest_regs *regs;
-+
-+	guest->gdt_table[GDT_ENTRY_KERNEL_CS] = FULL_EXEC_SEGMENT;
-+	guest->gdt_table[GDT_ENTRY_KERNEL_DS] = FULL_SEGMENT;
-+	guest->gdt.size = GDT_ENTRIES*8-1;
-+	guest->gdt.address = (unsigned long)&guest->gdt_table;
-+
-+	/* Other guest's IDTs are initialized from default. */
-+	guest->idt.size = 8 * IDT_ENTRIES;
-+	guest->idt.address = (long)guest->idt_table;
-+	for (i = 0; i < IDT_ENTRIES; i++) {
-+		u32 flags = 0x8e00;
-+
-+		/* They can't "int" into any of them except hypercall. */
-+		if (i == LGUEST_TRAP_ENTRY)
-+			flags |= (GUEST_DPL << 13);
-+
-+		guest->idt_table[i].a = (LGUEST_CS<<16) | (def[i]&0x0000FFFF);
-+		guest->idt_table[i].b = (def[i]&0xFFFF0000) | flags;
-+	}
-+
-+	memset(&guest->tss, 0, sizeof(guest->tss));
-+	guest->tss.ss0 = LGUEST_DS;
-+	guest->tss.esp0 = (unsigned long)(guest+1);
-+	guest->tss.io_bitmap_base = sizeof(guest->tss); /* No I/O for you! */
-+
-+	/* Write out stack in format lguest expects, so we can switch to it. */
-+	regs = &guest->regs;
-+	regs->cr3 = __pa(pgdir);
-+	regs->eax = regs->ebx = regs->ecx = regs->edx = regs->esp = 0;
-+	regs->edi = LGUEST_MAGIC_EDI;
-+	regs->ebp = LGUEST_MAGIC_EBP;
-+	regs->esi = LGUEST_MAGIC_ESI;
-+	regs->gs = regs->fs = 0;
-+	regs->ds = regs->es = __KERNEL_DS|GUEST_DPL;
-+	regs->trapnum = regs->errcode = 0;
-+	regs->eip = start;
-+	regs->cs = __KERNEL_CS|GUEST_DPL;
-+	regs->eflags = 0x202; 	/* Interrupts enabled. */
-+	regs->ss = __KERNEL_DS|GUEST_DPL;
-+
-+	if (!fixup_gdt_table(guest->gdt_table, ARRAY_SIZE(guest->gdt_table),
-+			     &guest->regs, &guest->tss))
++	skb = alloc_skb(16 + ETH_HLEN + DATA_SIZE, gfpflags);
++	if (!skb)
 +		return NULL;
 +
-+	return guest;
++	skb->dev = dev;
++	skb_reserve(skb, 16);
++	return skb;
 +}
 +
-+/* + addr */
-+static long user_get_dma(struct lguest *lg, const u32 __user *input)
++/* Find a new skb to put in this slot in shared mem. */
++static int fill_slot(struct net_device *dev, unsigned int slot)
 +{
-+	unsigned long addr, udma, irq;
++	struct lguestnet_info *info = dev->priv;
++	/* Try to create and register a new one. */
++	info->skb[slot] = lguestnet_alloc_skb(dev, GFP_ATOMIC);
++	if (!info->skb[slot]) {
++		printk("%s: could not fill slot %i\n", dev->name, slot);
++		return -ENOMEM;
++	}
 +
-+	if (get_user(addr, input) != 0)
-+		return -EFAULT;
-+	udma = get_dma_buffer(lg, addr, &irq);
-+	if (!udma)
-+		return -ENOENT;
++	skb_to_dma(info->skb[slot], ETH_HLEN + DATA_SIZE, &info->dma[slot]);
++	wmb();
++	/* Now we tell hypervisor it can use the slot. */
++	info->dma[slot].used_len = 0;
 +
-+	/* We put irq number in udma->used_len. */
-+	lhwrite_u32(lg, udma + offsetof(struct lguest_dma, used_len), irq);
-+	return udma;
-+}
-+
-+/* + irq */
-+static int user_send_irq(struct lguest *lg, const u32 __user *input)
-+{
-+	u32 irq;
-+
-+	if (get_user(irq, input) != 0)
-+		return -EFAULT;
-+	if (irq >= LGUEST_IRQS)
-+		return -EINVAL;
-+	set_bit(irq, lg->irqs_pending);
++	pr_debug("lguestnet: %s populating slot %i with %p\n",
++		 dev->name, slot, info->skb[slot]);
 +	return 0;
 +}
 +
-+static ssize_t read(struct file *file, char __user *user, size_t size,loff_t*o)
++static irqreturn_t lguestnet_rcv(int irq, void *dev_id)
 +{
-+	struct lguest *lg = file->private_data;
++	struct net_device *dev = dev_id;
++	struct lguestnet_info *info = dev->priv;
++	unsigned int i, done = 0;
 +
-+	if (!lg)
-+		return -EINVAL;
++	for (i = 0; i < ARRAY_SIZE(info->dma); i++) {
++		unsigned int length;
++		struct sk_buff *skb;
 +
-+	if (lg->dead) {
-+		size_t len;
++		length = info->dma[i].used_len;
++		if (length == 0)
++			continue;
 +
-+		if (lg->dead == (void *)-1)
-+			return -ENOMEM;
++		done++;
++		skb = info->skb[i];
++		fill_slot(dev, i);
 +
-+		len = min(size, strlen(lg->dead)+1);
-+		if (copy_to_user(user, lg->dead, len) != 0)
-+			return -EFAULT;
-+		return len;
++		pr_debug("Received skb %p\n", skb);
++		if (length < 14 || length > 1514) {
++			pr_debug(KERN_WARNING "%s: unbelievable skb len: %i\n",
++				 dev->name, length);
++			dev_kfree_skb(skb);
++			continue;
++		}
++
++		skb_put(skb, length);
++		skb->protocol = eth_type_trans(skb, dev);
++		/* This is a reliable transport. */
++		skb->ip_summed = CHECKSUM_UNNECESSARY;
++		pr_debug("Receiving skb proto 0x%04x len %i type %i\n",
++			 ntohs(skb->protocol), skb->len,skb->pkt_type);
++
++		info->stats.rx_bytes += skb->len;
++		info->stats.rx_packets++;
++		netif_rx(skb);
 +	}
-+
-+	if (lg->dma_is_pending)
-+		lg->dma_is_pending = 0;
-+
-+	return run_guest(lg, user);
++	return done ? IRQ_HANDLED : IRQ_NONE;
 +}
 +
-+/* Take: pfnlimit, pgdir, start, pageoffset. */
-+static int initialize(struct file *file, const u32 __user *input)
++static int populate_page(struct net_device *dev)
 +{
-+	struct lguest *lg;
-+	int err, i;
-+	u32 args[4];
++	int i;
++	struct lguestnet_info *info = dev->priv;
 +
-+	if (file->private_data)
-+		return -EBUSY;
++	pr_debug("lguestnet: peer %i shared page %p me %p\n",
++	         info->me, info->peer, &info->peer[info->me]);
 +
-+	if (copy_from_user(args, input, sizeof(args)) != 0)
-+		return -EFAULT;
++	/* Set up our MAC address */
++	memcpy(info->peer[info->me].mac, dev->dev_addr, ETH_ALEN);
 +
-+	if (args[1] <= PAGE_SIZE)
-+		return -EINVAL;
++	/* Turn on promisc mode if needed */
++	lguestnet_set_multicast(dev);
 +
-+	mutex_lock(&lguest_lock);
-+	i = find_free_guest();
-+	if (i < 0) {
-+		err = -ENOSPC;
-+		goto unlock;
++	for (i = 0; i < ARRAY_SIZE(info->dma); i++) {
++		if (fill_slot(dev, i) != 0)
++			goto cleanup;
 +	}
-+	lg = &lguests[i];
-+	lg->guestid = i;
-+	lg->pfn_limit = args[0];
-+	lg->page_offset = args[3];
++	pr_debug("lguestnet: allocated %i dma recv buffers\n", i);
++	if (!hcall(LHCALL_BIND_DMA, peer_addr(info, info->me), __pa(info->dma),
++		   (NUM_SKBS << 8) | dev->irq))
++		goto cleanup;
++	return 0;
 +
-+	lg->trap_page = (u32 *)get_zeroed_page(GFP_KERNEL);
-+	if (!lg->trap_page) {
-+		err = -ENOMEM;
-+		goto release_guest;
++cleanup:
++	while (--i >= 0)
++		dev_kfree_skb(info->skb[i]);
++	return -ENOMEM;
++}
++
++static void unpopulate_page(struct lguestnet_info *info)
++{
++	unsigned int i;
++	struct lguest_net *me = &info->peer[info->me];
++
++	/* Clear all trace: others might deliver packets, we'll ignore it. */
++	memset(me, 0, sizeof(*me));
++
++	/* Deregister sg lists. */
++	hcall(LHCALL_BIND_DMA, peer_addr(info, info->me), __pa(info->dma), 0);
++	for (i = 0; i < ARRAY_SIZE(info->dma); i++)
++		dev_kfree_skb(info->skb[i]);
++}
++
++static int lguestnet_open(struct net_device *dev)
++{
++	return populate_page(dev);
++}
++
++static int lguestnet_close(struct net_device *dev)
++{
++	unpopulate_page(dev->priv);
++	return 0;
++}
++
++static struct net_device_stats *lguestnet_get_stats(struct net_device *dev)
++{
++	struct lguestnet_info *info = dev->priv;
++
++	return &info->stats;
++}
++
++static int lguestnet_probe(struct lguest_device *lhdev)
++{
++	int err, irqf = IRQF_SHARED;
++	unsigned long mapsize;
++	struct net_device *dev;
++	struct lguestnet_info *info;
++	struct lguest_device_desc *desc = &lguest_devices[lhdev->index];
++
++	pr_debug("lguest_net: probing for device %i\n", lhdev->index);
++	mapsize = PAGE_SIZE * desc->num_pages;
++
++	dev = alloc_etherdev(sizeof(struct lguestnet_info));
++	if (!dev)
++		return -ENOMEM;
++
++	SET_MODULE_OWNER(dev);
++
++	/* Ethernet defaults with some changes */
++	ether_setup(dev);
++	dev->set_mac_address = NULL;
++	dev->mtu = DATA_SIZE;
++
++	dev->dev_addr[0] = 0x02; /* set local assignment bit (IEEE802) */
++	dev->dev_addr[1] = 0x00;
++	memcpy(&dev->dev_addr[2], &lguest_data.guestid, 2);
++	dev->dev_addr[4] = 0x00;
++	dev->dev_addr[5] = 0x00;
++
++	dev->open = lguestnet_open;
++	dev->stop = lguestnet_close;
++	dev->hard_start_xmit = lguestnet_start_xmit;
++	dev->get_stats = lguestnet_get_stats;
++
++	/* Turning on/off promisc will call dev->set_multicast_list.
++	 * We don't actually support multicast yet */
++	dev->set_multicast_list = lguestnet_set_multicast;
++	dev->mem_start = ((unsigned long)desc->pfn << PAGE_SHIFT);
++	dev->mem_end = dev->mem_start + mapsize;
++	dev->irq = lhdev->index+1;
++	dev->dma = 0;
++	dev->features = NETIF_F_SG;
++	if (desc->features & LGUEST_NET_F_NOCSUM)
++		dev->features |= NETIF_F_NO_CSUM;
++
++	info = dev->priv;
++	info->peer_phys = ((unsigned long)desc->pfn << PAGE_SHIFT);
++	info->peer = (void *)ioremap(info->peer_phys, mapsize);
++	/* This stores our peerid (upper bits reserved for future). */
++	info->me = (desc->features & (mapsize-1));
++
++	/* skbs allocated on open */
++	memset(info->skb, 0, sizeof(info->skb));
++
++	err = register_netdev(dev);
++	if (err) {
++		pr_debug("lguestnet: registering device failed\n");
++		goto free;
 +	}
 +
-+	err = init_guest_pagetable(lg, args[1]);
-+	if (err)
-+		goto free_trap_page;
-+
-+	lg->state = setup_guest_state(i, lg->pgdirs[lg->pgdidx].pgdir,args[2]);
-+	if (!lg->state) {
-+		err = -ENOEXEC;
-+		goto release_pgtable;
++	if (lguest_devices[lhdev->index].features & LGUEST_DEVICE_F_RANDOMNESS)
++		irqf |= IRQF_SAMPLE_RANDOM;
++	if (request_irq(dev->irq, lguestnet_rcv, irqf, "lguestnet", dev) != 0) {
++		pr_debug("lguestnet: could not get net irq %i\n", dev->irq);
++		goto unregister;
 +	}
-+	mutex_unlock(&lguest_lock);
 +
-+	lg->tsk = current;
-+	lg->mm = get_task_mm(current);
-+	file->private_data = lg;
-+	return sizeof(args);
++	pr_debug("lguestnet: registered device %s\n", dev->name);
++	lhdev->private = dev;
++	return 0;
 +
-+release_pgtable:
-+	free_guest_pagetable(lg);
-+free_trap_page:
-+	free_page((long)lg->trap_page);
-+release_guest:
-+	memset(lg, 0, sizeof(*lg));
-+unlock:
-+	mutex_unlock(&lguest_lock);
++unregister:
++	unregister_netdev(dev);
++free:
++	free_netdev(dev);
 +	return err;
 +}
 +
-+static ssize_t write(struct file *file, const char __user *input,
-+		     size_t size, loff_t *off)
-+{
-+	struct lguest *lg = file->private_data;
-+	u32 req;
-+
-+	if (get_user(req, input) != 0)
-+		return -EFAULT;
-+	input += sizeof(req);
-+
-+	if (req != LHREQ_INITIALIZE && !lg)
-+		return -EINVAL;
-+	if (lg && lg->dead)
-+		return -ENOENT;
-+
-+	switch (req) {
-+	case LHREQ_INITIALIZE:
-+		return initialize(file, (const u32 __user *)input);
-+	case LHREQ_GETDMA:
-+		return user_get_dma(lg, (const u32 __user *)input);
-+	case LHREQ_IRQ:
-+		return user_send_irq(lg, (const u32 __user *)input);
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static int close(struct inode *inode, struct file *file)
-+{
-+	struct lguest *lg = file->private_data;
-+
-+	if (!lg)
-+		return 0;
-+
-+	mutex_lock(&lguest_lock);
-+	release_all_dma(lg);
-+	free_page((long)lg->trap_page);
-+	free_guest_pagetable(lg);
-+	mmput(lg->mm);
-+	if (lg->dead != (void *)1)
-+		kfree(lg->dead);
-+	memset(lg->state, 0, sizeof(*lg->state));
-+	memset(lg, 0, sizeof(*lg));
-+	mutex_unlock(&lguest_lock);
-+	return 0;
-+}
-+
-+static struct file_operations lguest_fops = {
-+	.owner	 = THIS_MODULE,
-+	.release = close,
-+	.write	 = write,
-+	.read	 = read,
-+};
-+static struct miscdevice lguest_dev = {
-+	.minor	= MISC_DYNAMIC_MINOR,
-+	.name	= "lguest",
-+	.fops	= &lguest_fops,
++static struct lguest_driver lguestnet_drv = {
++	.name = "lguestnet",
++	.owner = THIS_MODULE,
++	.device_type = LGUEST_DEVICE_T_NET,
++	.probe = lguestnet_probe,
 +};
 +
-+int __init lguest_device_init(void)
++static __init int lguestnet_init(void)
 +{
-+	return misc_register(&lguest_dev);
++	return register_lguest_driver(&lguestnet_drv);
 +}
++module_init(lguestnet_init);
 +
-+void __exit lguest_device_remove(void)
-+{
-+	misc_deregister(&lguest_dev);
-+}
-diff -puN /dev/null arch/i386/lguest/page_tables.c
---- /dev/null
-+++ a/arch/i386/lguest/page_tables.c
-@@ -0,0 +1,374 @@
-+/* Shadow page table operations.
-+ * Copyright (C) Rusty Russell IBm Corporation 2006.
-+ * GPL v2 and any later version */
-+#include <linux/mm.h>
-+#include <linux/types.h>
-+#include <linux/spinlock.h>
-+#include <linux/random.h>
-+#include <linux/percpu.h>
-+#include <asm/tlbflush.h>
-+#include "lg.h"
-+
-+#define PTES_PER_PAGE_SHIFT 10
-+#define PTES_PER_PAGE (1 << PTES_PER_PAGE_SHIFT)
-+#define HYPERVISOR_PGD_ENTRY (PTES_PER_PAGE - 1)
-+
-+static DEFINE_PER_CPU(u32 *, hypervisor_pte_pages) = { NULL };
-+#define hypervisor_pte_page(cpu) per_cpu(hypervisor_pte_pages, cpu)
-+
-+static unsigned vaddr_to_pgd(unsigned long vaddr)
-+{
-+	return vaddr >> (PAGE_SHIFT + PTES_PER_PAGE_SHIFT);
-+}
-+
-+/* These access the real versions. */
-+static u32 *toplev(struct lguest *lg, u32 i, unsigned long vaddr)
-+{
-+	unsigned int index = vaddr_to_pgd(vaddr);
-+
-+	if (index >= HYPERVISOR_PGD_ENTRY) {
-+		kill_guest(lg, "attempt to access hypervisor pages");
-+		index = 0;
-+	}
-+	return &lg->pgdirs[i].pgdir[index];
-+}
-+
-+static u32 *pteof(struct lguest *lg, u32 top, unsigned long vaddr)
-+{
-+	u32 *page = __va(top&PAGE_MASK);
-+	BUG_ON(!(top & _PAGE_PRESENT));
-+	return &page[(vaddr >> PAGE_SHIFT) % PTES_PER_PAGE];
-+}
-+
-+/* These access the guest versions. */
-+static u32 gtoplev(struct lguest *lg, unsigned long vaddr)
-+{
-+	unsigned int index = vaddr >> (PAGE_SHIFT + PTES_PER_PAGE_SHIFT);
-+	return lg->pgdirs[lg->pgdidx].cr3 + index * sizeof(u32);
-+}
-+
-+static u32 gpteof(struct lguest *lg, u32 gtop, unsigned long vaddr)
-+{
-+	u32 gpage = (gtop&PAGE_MASK);
-+	BUG_ON(!(gtop & _PAGE_PRESENT));
-+	return gpage + ((vaddr >> PAGE_SHIFT) % PTES_PER_PAGE) * sizeof(u32);
-+}
-+
-+static void release_pte(u32 pte)
-+{
-+	if (pte & _PAGE_PRESENT)
-+		put_page(pfn_to_page(pte >> PAGE_SHIFT));
-+}
-+
-+/* Do a virtual -> physical mapping on a user page. */
-+static unsigned long get_pfn(unsigned long virtpfn, int write)
-+{
-+	struct vm_area_struct *vma;
-+	struct page *page;
-+	unsigned long ret = -1UL;
-+
-+	down_read(&current->mm->mmap_sem);
-+	if (get_user_pages(current, current->mm, virtpfn << PAGE_SHIFT,
-+			   1, write, 1, &page, &vma) == 1)
-+		ret = page_to_pfn(page);
-+	up_read(&current->mm->mmap_sem);
-+	return ret;
-+}
-+
-+static u32 check_pgtable_entry(struct lguest *lg, u32 entry)
-+{
-+	if ((entry & (_PAGE_PWT|_PAGE_PSE))
-+	    || (entry >> PAGE_SHIFT) >= lg->pfn_limit)
-+		kill_guest(lg, "bad page table entry");
-+	return entry & ~_PAGE_GLOBAL;
-+}
-+
-+static u32 get_pte(struct lguest *lg, u32 entry, int write)
-+{
-+	u32 pfn;
-+
-+	pfn = get_pfn(entry >> PAGE_SHIFT, write);
-+	if (pfn == -1UL) {
-+		kill_guest(lg, "failed to get page %u", entry>>PAGE_SHIFT);
-+		return 0;
-+	}
-+	return ((pfn << PAGE_SHIFT) | (entry & (PAGE_SIZE-1)));
-+}
-+
-+/* FIXME: We hold reference to pages, which prevents them from being
-+   swapped.  It'd be nice to have a callback when Linux wants to swap out. */
-+
-+/* We fault pages in, which allows us to update accessed/dirty bits.
-+ * Return NULL or the pte page. */
-+static int page_in(struct lguest *lg, u32 vaddr, unsigned flags)
-+{
-+	u32 gtop, gpte;
-+	u32 *top, *pte, *ptepage;
-+	u32 val;
-+
-+	gtop = gtoplev(lg, vaddr);
-+	val = lhread_u32(lg, gtop);
-+	if (!(val & _PAGE_PRESENT))
-+		return 0;
-+
-+	top = toplev(lg, lg->pgdidx, vaddr);
-+	if (!(*top & _PAGE_PRESENT)) {
-+		/* Get a PTE page for them. */
-+		ptepage = (void *)get_zeroed_page(GFP_KERNEL);
-+		/* FIXME: Steal from self in this case? */
-+		if (!ptepage) {
-+			kill_guest(lg, "out of memory allocating pte page");
-+			return 0;
-+		}
-+		val = check_pgtable_entry(lg, val);
-+		*top = (__pa(ptepage) | (val & (PAGE_SIZE-1)));
-+	} else
-+		ptepage = __va(*top & PAGE_MASK);
-+
-+	gpte = gpteof(lg, val, vaddr);
-+	val = lhread_u32(lg, gpte);
-+
-+	/* No page, or write to readonly page? */
-+	if (!(val&_PAGE_PRESENT) || ((flags&_PAGE_DIRTY) && !(val&_PAGE_RW)))
-+		return 0;
-+
-+	pte = pteof(lg, *top, vaddr);
-+	val = check_pgtable_entry(lg, val) | flags;
-+
-+	/* We're done with the old pte. */
-+	release_pte(*pte);
-+
-+	/* We don't make it writable if this isn't a write: later
-+	 * write will fault so we can set dirty bit in guest. */
-+	if (val & _PAGE_DIRTY)
-+		*pte = get_pte(lg, val, 1);
-+	else
-+		*pte = get_pte(lg, val & ~_PAGE_RW, 0);
-+
-+	/* Now we update dirty/accessed on guest. */
-+	lhwrite_u32(lg, gpte, val);
-+	return 1;
-+}
-+
-+int demand_page(struct lguest *lg, u32 vaddr, int write)
-+{
-+	return page_in(lg, vaddr, (write ? _PAGE_DIRTY : 0)|_PAGE_ACCESSED);
-+}
-+
-+void pin_stack_pages(struct lguest *lg)
-+{
-+	unsigned int i;
-+	u32 stack = lg->state->tss.esp1;
-+
-+	for (i = 0; i < lg->stack_pages; i++)
-+		if (!demand_page(lg, stack - i*PAGE_SIZE, 1))
-+			kill_guest(lg, "bad stack page %i@%#x", i, stack);
-+}
-+
-+static unsigned int find_pgdir(struct lguest *lg, u32 pgtable)
-+{
-+	unsigned int i;
-+	for (i = 0; i < ARRAY_SIZE(lg->pgdirs); i++)
-+		if (lg->pgdirs[i].cr3 == pgtable)
-+			break;
-+	return i;
-+}
-+
-+static void release_pgd(struct lguest *lg, u32 *pgd)
-+{
-+	if (*pgd & _PAGE_PRESENT) {
-+		unsigned int i;
-+		u32 *ptepage = __va(*pgd & ~(PAGE_SIZE-1));
-+		for (i = 0; i < PTES_PER_PAGE; i++)
-+			release_pte(ptepage[i]);
-+		free_page((long)ptepage);
-+		*pgd = 0;
-+	}
-+}
-+
-+static void flush_user_mappings(struct lguest *lg, int idx)
-+{
-+	unsigned int i;
-+	for (i = 0; i < vaddr_to_pgd(lg->page_offset); i++)
-+		release_pgd(lg, lg->pgdirs[idx].pgdir + i);
-+}
-+
-+void guest_pagetable_flush_user(struct lguest *lg)
-+{
-+	flush_user_mappings(lg, lg->pgdidx);
-+}
-+
-+static unsigned int new_pgdir(struct lguest *lg, u32 cr3)
-+{
-+	unsigned int next;
-+
-+	next = (lg->pgdidx + random32()) % ARRAY_SIZE(lg->pgdirs);
-+	if (!lg->pgdirs[next].pgdir) {
-+		lg->pgdirs[next].pgdir = (u32 *)get_zeroed_page(GFP_KERNEL);
-+		if (!lg->pgdirs[next].pgdir)
-+			next = lg->pgdidx;
-+	}
-+	lg->pgdirs[next].cr3 = cr3;
-+	/* Release all the non-kernel mappings. */
-+	flush_user_mappings(lg, next);
-+
-+	return next;
-+}
-+
-+void guest_new_pagetable(struct lguest *lg, u32 pgtable)
-+{
-+	int newpgdir;
-+
-+	newpgdir = find_pgdir(lg, pgtable);
-+	if (newpgdir == ARRAY_SIZE(lg->pgdirs))
-+		newpgdir = new_pgdir(lg, pgtable);
-+	lg->pgdidx = newpgdir;
-+	lg->state->regs.cr3 = __pa(lg->pgdirs[lg->pgdidx].pgdir);
-+	pin_stack_pages(lg);
-+}
-+
-+static void release_all_pagetables(struct lguest *lg)
-+{
-+	unsigned int i, j;
-+
-+	for (i = 0; i < ARRAY_SIZE(lg->pgdirs); i++)
-+		if (lg->pgdirs[i].pgdir)
-+			for (j = 0; j < HYPERVISOR_PGD_ENTRY; j++)
-+				release_pgd(lg, lg->pgdirs[i].pgdir + j);
-+}
-+
-+void guest_pagetable_clear_all(struct lguest *lg)
-+{
-+	release_all_pagetables(lg);
-+	pin_stack_pages(lg);
-+}
-+
-+static void do_set_pte(struct lguest *lg, int idx,
-+		       unsigned long vaddr, u32 val)
-+{
-+	u32 *top = toplev(lg, idx, vaddr);
-+	if (*top & _PAGE_PRESENT) {
-+		u32 *pte = pteof(lg, *top, vaddr);
-+		release_pte(*pte);
-+		if (val & (_PAGE_DIRTY | _PAGE_ACCESSED)) {
-+			val = check_pgtable_entry(lg, val);
-+			*pte = get_pte(lg, val, val & _PAGE_DIRTY);
-+		} else
-+			*pte = 0;
-+	}
-+}
-+
-+void guest_set_pte(struct lguest *lg,
-+		   unsigned long cr3, unsigned long vaddr, u32 val)
-+{
-+	/* Kernel mappings must be changed on all top levels. */
-+	if (vaddr >= lg->page_offset) {
-+		unsigned int i;
-+		for (i = 0; i < ARRAY_SIZE(lg->pgdirs); i++)
-+			if (lg->pgdirs[i].pgdir)
-+				do_set_pte(lg, i, vaddr, val);
-+	} else {
-+		int pgdir = find_pgdir(lg, cr3);
-+		if (pgdir != ARRAY_SIZE(lg->pgdirs))
-+			do_set_pte(lg, pgdir, vaddr, val);
-+	}
-+}
-+
-+void guest_set_pud(struct lguest *lg, unsigned long cr3, u32 idx)
-+{
-+	int pgdir;
-+
-+	if (idx >= HYPERVISOR_PGD_ENTRY)
-+		return;
-+
-+	pgdir = find_pgdir(lg, cr3);
-+	if (pgdir < ARRAY_SIZE(lg->pgdirs))
-+		release_pgd(lg, lg->pgdirs[pgdir].pgdir + idx);
-+}
-+
-+int init_guest_pagetable(struct lguest *lg, u32 pgtable)
-+{
-+	/* We assume this in flush_user_mappings, so check now */
-+	if (vaddr_to_pgd(lg->page_offset) >= HYPERVISOR_PGD_ENTRY)
-+		return -EINVAL;
-+	lg->pgdidx = 0;
-+	lg->pgdirs[lg->pgdidx].cr3 = pgtable;
-+	lg->pgdirs[lg->pgdidx].pgdir = (u32*)get_zeroed_page(GFP_KERNEL);
-+	if (!lg->pgdirs[lg->pgdidx].pgdir)
-+		return -ENOMEM;
-+	return 0;
-+}
-+
-+void free_guest_pagetable(struct lguest *lg)
-+{
-+	unsigned int i;
-+
-+	release_all_pagetables(lg);
-+	for (i = 0; i < ARRAY_SIZE(lg->pgdirs); i++)
-+		free_page((long)lg->pgdirs[i].pgdir);
-+}
-+
-+/* Caller must be preempt-safe */
-+void map_trap_page(struct lguest *lg)
-+{
-+	int cpu = smp_processor_id();
-+
-+	hypervisor_pte_page(cpu)[0] = (__pa(lg->trap_page)|_PAGE_PRESENT);
-+
-+	/* Since hypervisor less that 4MB, we simply mug top pte page. */
-+	lg->pgdirs[lg->pgdidx].pgdir[HYPERVISOR_PGD_ENTRY] =
-+		(__pa(hypervisor_pte_page(cpu))| _PAGE_KERNEL);
-+}
-+
-+static void free_hypervisor_pte_pages(void)
-+{
-+	int i;
-+
-+	for_each_possible_cpu(i)
-+		free_page((long)hypervisor_pte_page(i));
-+}
-+
-+static __init int alloc_hypervisor_pte_pages(void)
-+{
-+	int i;
-+
-+	for_each_possible_cpu(i) {
-+		hypervisor_pte_page(i) = (u32 *)get_zeroed_page(GFP_KERNEL);
-+		if (!hypervisor_pte_page(i)) {
-+			free_hypervisor_pte_pages();
-+			return -ENOMEM;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static __init void populate_hypervisor_pte_page(int cpu)
-+{
-+	int i;
-+	u32 *pte = hypervisor_pte_page(cpu);
-+
-+	for (i = 0; i < HYPERVISOR_PAGES; i++) {
-+		/* First entry set dynamically in map_trap_page */
-+		pte[i+1] = ((page_to_pfn(&hype_pages[i]) << PAGE_SHIFT)
-+			    | _PAGE_KERNEL_EXEC);
-+	}
-+}
-+
-+__init int init_pagetables(struct page hype_pages[])
-+{
-+	int ret;
-+	unsigned int i;
-+
-+	ret = alloc_hypervisor_pte_pages();
-+	if (ret)
-+		return ret;
-+
-+	for_each_possible_cpu(i)
-+		populate_hypervisor_pte_page(i);
-+	return 0;
-+}
-+
-+__exit void free_pagetables(void)
-+{
-+	free_hypervisor_pte_pages();
-+}
-diff -puN /dev/null arch/i386/lguest/segments.c
---- /dev/null
-+++ a/arch/i386/lguest/segments.c
-@@ -0,0 +1,171 @@
-+#include "lg.h"
-+
-+/* Dealing with GDT entries is such a horror, I convert to sanity and back */
-+struct decoded_gdt_entry
-+{
-+	u32 base, limit;
-+	union {
-+		struct {
-+			unsigned type:4;
-+			unsigned dtype:1;
-+			unsigned dpl:2;
-+			unsigned present:1;
-+			unsigned unused:4;
-+			unsigned avl:1;
-+			unsigned mbz:1;
-+			unsigned def:1;
-+			unsigned page_granularity:1;
-+		};
-+		u16 raw_attributes;
-+	};
-+};
-+
-+static struct decoded_gdt_entry decode_gdt_entry(const struct desc_struct *en)
-+{
-+	struct decoded_gdt_entry de;
-+	de.base = ((en->a >> 16) | ((en->b & 0xff) << 16)
-+		   | (en->b & 0xFF000000));
-+	de.limit = ((en->a & 0xFFFF) | (en->b & 0xF0000));
-+	de.raw_attributes = (en->b >> 8);
-+	return de;
-+}
-+
-+static struct desc_struct encode_gdt_entry(const struct decoded_gdt_entry *de)
-+{
-+	struct desc_struct en;
-+	en.a = ((de->limit & 0xFFFF) | (de->base << 16));
-+	en.b = (((de->base >> 16) & 0xFF)
-+		 | ((((u32)de->raw_attributes) & 0xF0FF) << 8)
-+		 | (de->limit & 0xF0000)
-+		 | (de->base & 0xFF000000));
-+	return en;
-+}
-+
-+static int check_desc(const struct decoded_gdt_entry *dec)
-+{
-+	return (dec->mbz == 0 && dec->dtype == 1 && (dec->type & 4) == 0);
-+}
-+
-+static void check_segment(const struct desc_struct *gdt, u32 *segreg)
-+{
-+	if (*segreg > 255 || !(gdt[*segreg >> 3].b & 0x8000))
-+		*segreg = 0;
-+}
-+
-+/* Ensure our manually-loaded segment regs don't fault in switch_to_guest. */
-+static void check_live_segments(const struct desc_struct *gdt,
-+				struct lguest_regs *regs)
-+{
-+	check_segment(gdt, &regs->es);
-+	check_segment(gdt, &regs->ds);
-+	check_segment(gdt, &regs->fs);
-+	check_segment(gdt, &regs->gs);
-+}
-+
-+int fixup_gdt_table(struct desc_struct *gdt, unsigned int num,
-+		    struct lguest_regs *regs, struct x86_tss *tss)
-+{
-+	unsigned int i;
-+	struct decoded_gdt_entry dec;
-+
-+	for (i = 0; i < num; i++) {
-+		unsigned long base, length;
-+
-+		/* We override these ones, so we don't care what they give. */
-+		if (i == GDT_ENTRY_TSS
-+		    || i == GDT_ENTRY_LGUEST_CS
-+		    || i == GDT_ENTRY_LGUEST_DS
-+		    || i == GDT_ENTRY_DOUBLEFAULT_TSS)
-+			continue;
-+
-+		dec = decode_gdt_entry(&gdt[i]);
-+		if (!dec.present)
-+			continue;
-+
-+		if (!check_desc(&dec))
-+			return 0;
-+
-+		base = dec.base;
-+		length = dec.limit + 1;
-+		if (dec.page_granularity) {
-+			base *= PAGE_SIZE;
-+			length *= PAGE_SIZE;
-+		}
-+
-+		/* Unacceptable base? */
-+		if (base >= HYPE_ADDR)
-+			return 0;
-+
-+		/* Wrap around or segment overlaps hypervisor mem? */
-+		if (!length
-+		    || base + length < base
-+		    || base + length > HYPE_ADDR) {
-+			/* Trim to edge of hypervisor. */
-+			length = HYPE_ADDR - base;
-+			if (dec.page_granularity)
-+				dec.limit = (length / PAGE_SIZE) - 1;
-+			else
-+				dec.limit = length - 1;
-+		}
-+		if (dec.dpl == 0)
-+			dec.dpl = GUEST_DPL;
-+		gdt[i] = encode_gdt_entry(&dec);
-+	}
-+	check_live_segments(gdt, regs);
-+
-+	/* Now put in hypervisor data and code segments. */
-+	gdt[GDT_ENTRY_LGUEST_CS] = FULL_EXEC_SEGMENT;
-+	gdt[GDT_ENTRY_LGUEST_DS] = FULL_SEGMENT;
-+
-+	/* Finally, TSS entry */
-+	dec.base = (unsigned long)tss;
-+	dec.limit = sizeof(*tss)-1;
-+	dec.type = 0x9;
-+	dec.dtype = 0;
-+	dec.def = 0;
-+	dec.present = 1;
-+	dec.mbz = 0;
-+	dec.page_granularity = 0;
-+	gdt[GDT_ENTRY_TSS] = encode_gdt_entry(&dec);
-+
-+	return 1;
-+}
-+
-+void load_guest_gdt(struct lguest *lg, u32 table, u32 num)
-+{
-+	if (num > GDT_ENTRIES)
-+		kill_guest(lg, "too many gdt entries %i", num);
-+
-+	lhread(lg, lg->state->gdt_table, table,
-+	       num * sizeof(lg->state->gdt_table[0]));
-+	if (!fixup_gdt_table(lg->state->gdt_table, num,
-+			     &lg->state->regs, &lg->state->tss))
-+		kill_guest(lg, "bad gdt table");
-+}
-+
-+/* We don't care about limit here, since we only let them use these in
-+ * usermode (where lack of USER bit in pagetable protects hypervisor mem).
-+ * However, we want to ensure it doesn't fault when loaded, since *we* are
-+ * the ones who will load it in switch_to_guest.
-+ */
-+void guest_load_tls(struct lguest *lg, const struct desc_struct __user *gtls)
-+{
-+	unsigned int i;
-+	struct desc_struct *tls = &lg->state->gdt_table[GDT_ENTRY_TLS_MIN];
-+
-+	lhread(lg, tls, (u32)gtls, sizeof(*tls)*GDT_ENTRY_TLS_ENTRIES);
-+	for (i = 0; i < ARRAY_SIZE(lg->tls_limits); i++) {
-+		struct decoded_gdt_entry dec = decode_gdt_entry(&tls[i]);
-+
-+		if (!dec.present)
-+			continue;
-+
-+		/* We truncate to one byte/page (depending on G bit) to neuter
-+		   it, so ensure it's more than 1 page below trap page. */
-+		tls[i].a &= 0xFFFF0000;
-+		lg->tls_limits[i] = dec.limit;
-+		if (!check_desc(&dec) || dec.base > HYPE_ADDR - PAGE_SIZE)
-+			kill_guest(lg, "bad TLS descriptor %i", i);
-+	}
-+	check_live_segments(lg->state->gdt_table, &lg->state->regs);
-+}
++MODULE_DESCRIPTION("Lguest network driver");
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
