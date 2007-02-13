@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-epoll-compat-code-to-kernel-compatc.patch added to -mm tree
-Date: Mon, 12 Feb 2007 22:17:48 -0800
-Message-ID: <200702130617.l1D6HmMt023694@shell0.pdx.osdl.net>
+Subject: + fix-rmmod-read-write-races-in-proc-entries.patch added to -mm tree
+Date: Mon, 12 Feb 2007 22:35:57 -0800
+Message-ID: <200702130635.l1D6ZvLU024055@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56103 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56390 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161101AbXBMGSB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 01:18:01 -0500
+	id S1030626AbXBMGgN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 01:36:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, dwmw2@infradead.org, linux-arch@vger.kernel.org, rmk@arm.linux.org.uk, tony.luck@intel.com
+Cc: adobriyan@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com, oleg@tv-sign.ru, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     add epoll compat code to kernel/compat.c
+     Fix rmmod/read/write races in /proc entries
 has been added to the -mm tree.  Its filename is
-     add-epoll-compat-code-to-kernel-compatc.patch
+     fix-rmmod-read-write-races-in-proc-entries.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,262 +25,262 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add epoll compat code to kernel/compat.c
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: Fix rmmod/read/write races in /proc entries
+From: Alexey Dobriyan <adobriyan@openvz.org>
 
-Add epoll compat_ code to kernel/compat.c.  IA64 and ARM-OABI are currently
-using their own version of epoll compat_ code and they could probably wire to
-the new common code.
+Current /proc creation interfaces suffer from at least two types of races:
+--------------------------------------------------------
+1. Write via ->write_proc sleeps in copy_from_user(). Module disappears
+   meanwhile.
 
-Unfortunately, sys_epoll_pwait needs two compat versions, one for sigset_t
-only, and one for sigset_t+epoll_event.
+   pde = create_proc_entry()
+   if (!pde)
+	return -ENOMEM;
+   pde->write_proc = ...
+				open
+				write
+				copy_from_user
+   pde = create_proc_entry();
+   if (!pde) {
+	remove_proc_entry();
+	return -ENOMEM;
+	/* module unloaded */
+   }
+				*boom*
+--------------------------------------------------------
+2. Read/write happens when PDE only partially initialized. ->data is NULL
+   when create_proc_entry() returns. Almost all ->read_proc and
+   ->write_proc handlers assume that ->data is valid.
 
-Architectures that do not require epoll_event translation [1] whould wire
-compat_sys_epoll_pwait, while the ones that do require it, should wire
-compat_sys_epoll_pwait2.
+   pde = create_proc_entry();
+   if (pde) {
+	/* which dereferences ->data */
+	pde->write_proc = ...
+				open
+				write
+	pde->data = ...
+   }
+--------------------------------------------------------
 
-Architectures that do not require epoll_event translation, should *not* wire
-neither compat_sys_epoll_ctl nor compat_sys_epoll_wait.  Patch over 2.6.20.
 
+The following plan is going to be executed (as per Al Viro's explanations):
 
-[1] An architecture needs epoll_event translation is alignof(u64) in 32 
-    bits mode is 4, *and* alignof(u64) in 64 bits mode is 8.
+PDE gets counter counting reads and writes in progress done via ->read_proc,
+->write_proc, ->get_info .  Generic proc code will bump PDE's counter before
+calling into module-specific method and decrement it after it returns.
 
+remove_proc_entry() will wait until all readers and writers are done.  To do
+this reliably it will set ->proc_fops to NULL and generic proc code won't call
+into module it it sees NULL ->proc_fops.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: <linux-arch@vger.kernel.org>
+This patch implements part above.  So far, no changes in proc users required
+except that users dynamically creating ->proc_fops need to be careful to not
+get leak.  Patch fixes races of type 1.
+
+Patch survives infinite modprobe/rmmod loop in parallel with infinite read
+loops with many debugging options turned on including lockdep (albeit on
+UP-PREEMPT box).
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c         |    7 -
- include/linux/compat.h |   30 ++++++++
- kernel/compat.c        |  138 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 171 insertions(+), 4 deletions(-)
+ fs/proc/generic.c       |   83 +++++++++++++++++++++++++++++++++++++-
+ include/linux/proc_fs.h |   19 ++++++++
+ 2 files changed, 100 insertions(+), 2 deletions(-)
 
-diff -puN fs/eventpoll.c~add-epoll-compat-code-to-kernel-compatc fs/eventpoll.c
---- a/fs/eventpoll.c~add-epoll-compat-code-to-kernel-compatc
-+++ a/fs/eventpoll.c
-@@ -544,8 +544,7 @@ eexit_1:
-  * file descriptors inside the interest set.  It represents
-  * the kernel part of the user space epoll_ctl(2).
-  */
--asmlinkage long
--sys_epoll_ctl(int epfd, int op, int fd, struct epoll_event __user *event)
-+asmlinkage long sys_epoll_ctl(int epfd, int op, int fd, struct epoll_event __user *event)
- {
- 	int error;
- 	struct file *file, *tfile;
-@@ -707,8 +706,8 @@ eexit_1:
-  * part of the user space epoll_pwait(2).
-  */
- asmlinkage long sys_epoll_pwait(int epfd, struct epoll_event __user *events,
--		int maxevents, int timeout, const sigset_t __user *sigmask,
--		size_t sigsetsize)
-+				int maxevents, int timeout, const sigset_t __user *sigmask,
-+				size_t sigsetsize)
- {
- 	int error;
- 	sigset_t ksigmask, sigsaved;
-diff -puN include/linux/compat.h~add-epoll-compat-code-to-kernel-compatc include/linux/compat.h
---- a/include/linux/compat.h~add-epoll-compat-code-to-kernel-compatc
-+++ a/include/linux/compat.h
-@@ -234,5 +234,35 @@ asmlinkage long compat_sys_migrate_pages
- 		compat_ulong_t maxnode, const compat_ulong_t __user *old_nodes,
- 		const compat_ulong_t __user *new_nodes);
- 
-+/*
-+ * epoll (fs/eventpoll.c) compat bits follow ...
-+ */
-+struct epoll_event;
-+
-+struct compat_epoll_event {
-+	u32 events;
-+	u32 data[2];
-+};
-+
-+asmlinkage long compat_sys_epoll_ctl(int epfd, int op, int fd,
-+				     struct compat_epoll_event __user *event);
-+asmlinkage long compat_sys_epoll_wait(int epfd, struct compat_epoll_event __user *events,
-+				      int maxevents, int timeout);
-+/*
-+ * Architectures that does not need "struct epoll_event" translation
-+ * should wire compat_sys_epoll_pwait. The ones that needs "struct epoll_event"
-+ * translation, should wire compat_sys_epoll_pwait2. An architecture needs
-+ * "struct epoll_event" translation is alignof(u64) in 32 bits mode is 4, and
-+ * alignof(u64) in 64 bits mode is 8.
-+ */
-+asmlinkage long compat_sys_epoll_pwait(int epfd, struct epoll_event __user *events,
-+				       int maxevents, int timeout,
-+				       const compat_sigset_t __user *sigmask,
-+				       compat_size_t sigsetsize);
-+asmlinkage long compat_sys_epoll_pwait2(int epfd, struct compat_epoll_event __user *events,
-+					int maxevents, int timeout,
-+					const compat_sigset_t __user *sigmask,
-+					compat_size_t sigsetsize);
-+
- #endif /* CONFIG_COMPAT */
- #endif /* _LINUX_COMPAT_H */
-diff -puN kernel/compat.c~add-epoll-compat-code-to-kernel-compatc kernel/compat.c
---- a/kernel/compat.c~add-epoll-compat-code-to-kernel-compatc
-+++ a/kernel/compat.c
-@@ -23,6 +23,7 @@
- #include <linux/timex.h>
- #include <linux/migrate.h>
- #include <linux/posix-timers.h>
-+#include <linux/eventpoll.h>
- 
+diff -puN fs/proc/generic.c~fix-rmmod-read-write-races-in-proc-entries fs/proc/generic.c
+--- a/fs/proc/generic.c~fix-rmmod-read-write-races-in-proc-entries
++++ a/fs/proc/generic.c
+@@ -20,6 +20,7 @@
+ #include <linux/namei.h>
+ #include <linux/bitops.h>
+ #include <linux/spinlock.h>
++#include <linux/completion.h>
  #include <asm/uaccess.h>
  
-@@ -1017,6 +1018,143 @@ asmlinkage long compat_sys_migrate_pages
- }
- #endif
+ #include "internal.h"
+@@ -76,6 +77,21 @@ proc_file_read(struct file *file, char _
+ 	if (!(page = (char*) __get_free_page(GFP_KERNEL)))
+ 		return -ENOMEM;
  
-+#ifdef CONFIG_EPOLL
-+
-+/*
-+
-+ epoll (fs/eventpoll.c) compat functions follow ...
-+ */
-+
-+asmlinkage long compat_sys_epoll_ctl(int epfd, int op, int fd,
-+				     struct compat_epoll_event __user *event)
-+{
-+	long err = 0;
-+	struct compat_epoll_event user;
-+	struct epoll_event __user *kernel = NULL;
-+	union {
-+		u64 q;
-+		u32 d[2];
-+	} mux;
-+
-+	if (event) {
-+		if (copy_from_user(&user, event, sizeof(user)))
-+			return -EFAULT;
-+		kernel = compat_alloc_user_space(sizeof(struct epoll_event));
-+		err |= __put_user(user.events, &kernel->events);
-+		mux.d[0] = user.data[0];
-+		mux.d[1] = user.data[1];
-+		err |= __put_user(mux.q, &kernel->data);
-+	}
-+
-+	return err ? err: sys_epoll_ctl(epfd, op, fd, kernel);
-+}
-+
-+
-+asmlinkage long compat_sys_epoll_wait(int epfd, struct compat_epoll_event __user *events,
-+				      int maxevents, int timeout)
-+{
-+	long i, ret, err = 0;
-+	struct epoll_event __user *kbuf;
-+	struct epoll_event ev;
-+	union {
-+		u64 q;
-+		u32 d[2];
-+	} mux;
-+
-+	if (maxevents <= 0 || maxevents > (INT_MAX / sizeof(struct epoll_event)))
-+		return -EINVAL;
-+	kbuf = compat_alloc_user_space(sizeof(struct epoll_event) * maxevents);
-+	ret = sys_epoll_wait(epfd, kbuf, maxevents, timeout);
-+	for (i = 0; i < ret; i++) {
-+		err |= __get_user(ev.events, &kbuf[i].events);
-+		err |= __get_user(ev.data, &kbuf[i].data);
-+		err |= put_user(ev.events, &events->events);
-+		mux.q = ev.data;
-+		err |= put_user(mux.d[0], &events->data[0]);
-+		err |= put_user(mux.d[1], &events->data[1]);
-+		events++;
-+	}
-+
-+	return err ? -EFAULT: ret;
-+}
-+
-+
-+#ifdef TIF_RESTORE_SIGMASK
-+
-+static long __sys_epoll_pwait(int epfd, void __user *events, int maxevents,
-+			      int timeout, const compat_sigset_t __user *sigmask,
-+			      compat_size_t sigsetsize,
-+			      long (asmlinkage *proc)(int, void __user *, int, int))
-+{
-+	long err;
-+	compat_sigset_t ss32;
-+	sigset_t ksigmask, sigsaved;
-+
++	spin_lock(&dp->pde_unload_lock);
++	if (!dp->proc_fops)
++		/*
++		 * remove_proc_entry() marked PDE as "going away".
++		 * No new readers allowed.
++		 */
++		goto out_unlock;
 +	/*
-+	 * If the caller wants a certain signal mask to be set during the wait,
-+	 * we apply it here.
++	 * We are going to call into module's code via ->get_info or
++	 * ->read_proc. Bump refcount so that remove_proc_entry() will
++	 * wait for read to complete.
 +	 */
-+	if (sigmask) {
-+		if (sigsetsize != sizeof(compat_sigset_t))
-+			return -EINVAL;
-+		if (copy_from_user(&ss32, sigmask, sizeof(ss32)))
-+			return -EFAULT;
-+		sigset_from_compat(&ksigmask, &ss32);
-+		sigdelsetmask(&ksigmask, sigmask(SIGKILL) | sigmask(SIGSTOP));
-+		sigprocmask(SIG_SETMASK, &ksigmask, &sigsaved);
-+	}
++	dp->pde_users++;
++	spin_unlock(&dp->pde_unload_lock);
 +
-+	err = (*proc)(epfd, events, maxevents, timeout);
+ 	while ((nbytes > 0) && !eof) {
+ 		count = min_t(size_t, PROC_BLOCK_SIZE, nbytes);
+ 
+@@ -195,6 +211,13 @@ proc_file_read(struct file *file, char _
+ 		buf += n;
+ 		retval += n;
+ 	}
 +
++	spin_lock(&dp->pde_unload_lock);
++	dp->pde_users--;
++	if (dp->pde_unload_completion && dp->pde_users == 0)
++		complete(dp->pde_unload_completion);
++out_unlock:
++	spin_unlock(&dp->pde_unload_lock);
+ 	free_page((unsigned long) page);
+ 	return retval;
+ }
+@@ -205,14 +228,41 @@ proc_file_write(struct file *file, const
+ {
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct proc_dir_entry * dp;
++	ssize_t rv = -EIO;
+ 	
+ 	dp = PDE(inode);
+ 
+ 	if (!dp->write_proc)
+-		return -EIO;
++		goto out;
+ 
++	spin_lock(&dp->pde_unload_lock);
++	if (!dp->proc_fops)
++		/*
++		 * remove_proc_entry() marked PDE as "going away".
++		 * No new writers allowed.
++		 */
++		goto out_unlock;
 +	/*
-+	 * If we changed the signal mask, we need to restore the original one.
-+	 * In case we've got a signal while waiting, we do not restore the
-+	 * signal mask yet, and we allow do_signal() to deliver the signal on the way
-+	 * back to userspace, before the signal mask is restored.
++	 * We are going to call into module's code via ->write_proc .
++	 * Bump refcount so that module won't dissapear while ->write_proc
++	 * sleeps in copy_from_user(). remove_proc_entry() will wait for
++	 * write to complete.
 +	 */
-+	if (sigmask) {
-+		if (err == -EINTR) {
-+			memcpy(&current->saved_sigmask, &sigsaved,
-+			       sizeof(sigsaved));
-+			set_thread_flag(TIF_RESTORE_SIGMASK);
-+		} else
-+			sigprocmask(SIG_SETMASK, &sigsaved, NULL);
-+	}
++	dp->pde_users++;
++	spin_unlock(&dp->pde_unload_lock);
 +
-+	return err;
-+}
++	/* PDE is ready, refcount bumped, call into module. */
+ 	/* FIXME: does this routine need ppos?  probably... */
+-	return dp->write_proc(file, buffer, count, dp->data);
++	rv = dp->write_proc(file, buffer, count, dp->data);
 +
++	spin_lock(&dp->pde_unload_lock);
++	dp->pde_users--;
++	if (dp->pde_unload_completion && dp->pde_users == 0)
++		complete(dp->pde_unload_completion);
++out_unlock:
++	spin_unlock(&dp->pde_unload_lock);
++out:
++	return rv;
+ }
+ 
+ 
+@@ -607,6 +657,9 @@ static struct proc_dir_entry *proc_creat
+ 	ent->namelen = len;
+ 	ent->mode = mode;
+ 	ent->nlink = nlink;
++	ent->pde_users = 0;
++	spin_lock_init(&ent->pde_unload_lock);
++	ent->pde_unload_completion = NULL;
+  out:
+ 	return ent;
+ }
+@@ -728,6 +781,32 @@ void remove_proc_entry(const char *name,
+ 		de = *p;
+ 		*p = de->next;
+ 		de->next = NULL;
 +
-+/*
-+ * Architectures that does not need "struct epoll_event" translation
-+ * should wire compat_sys_epoll_pwait. The ones that needs "struct epoll_event"
-+ * translation, should wire compat_sys_epoll_pwait2. An architecture needs
-+ * "struct epoll_event" translation is alignof(u64) in 32 bits mode is 4, and
-+ * alignof(u64) in 64 bits mode is 8.
-+ */
-+asmlinkage long compat_sys_epoll_pwait(int epfd, struct epoll_event __user *events,
-+				       int maxevents, int timeout,
-+				       const compat_sigset_t __user *sigmask,
-+				       compat_size_t sigsetsize)
-+{
-+	return __sys_epoll_pwait(epfd, events, maxevents, timeout, sigmask, sigsetsize,
-+				 (long (asmlinkage *)(int, void __user *, int, int)) sys_epoll_wait);
-+}
++		spin_lock(&de->pde_unload_lock);
++		/*
++		 * Stop accepting new readers/writers. If you're dynamically
++		 * allocating ->proc_fops, save a pointer somewhere.
++		 */
++		de->proc_fops = NULL;
++		/* Wait until all existing readers/writers are done. */
++		if (de->pde_users > 0) {
++			struct completion c;
 +
++			init_completion(&c);
++			if (!de->pde_unload_completion)
++				de->pde_unload_completion = &c;
 +
-+asmlinkage long compat_sys_epoll_pwait2(int epfd, struct compat_epoll_event __user *events,
-+				       int maxevents, int timeout,
-+				       const compat_sigset_t __user *sigmask,
-+				       compat_size_t sigsetsize)
-+{
-+	return __sys_epoll_pwait(epfd, events, maxevents, timeout, sigmask, sigsetsize,
-+				 (long (asmlinkage *)(int, void __user *, int, int)) compat_sys_epoll_wait);
-+}
++			spin_unlock(&de->pde_unload_lock);
++			spin_unlock(&proc_subdir_lock);
 +
-+#endif /* #ifdef TIF_RESTORE_SIGMASK */
++			wait_for_completion(de->pde_unload_completion);
 +
-+#endif /* #ifdef CONFIG_EPOLL */
++			spin_lock(&proc_subdir_lock);
++			goto continue_removing;
++		}
++		spin_unlock(&de->pde_unload_lock);
 +
- struct compat_sysinfo {
- 	s32 uptime;
- 	u32 loads[3];
++continue_removing:
+ 		if (S_ISDIR(de->mode))
+ 			parent->nlink--;
+ 		proc_kill_inodes(de);
+diff -puN include/linux/proc_fs.h~fix-rmmod-read-write-races-in-proc-entries include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~fix-rmmod-read-write-races-in-proc-entries
++++ a/include/linux/proc_fs.h
+@@ -7,6 +7,8 @@
+ #include <linux/magic.h>
+ #include <asm/atomic.h>
+ 
++struct completion;
++
+ /*
+  * The proc filesystem constants/structures
+  */
+@@ -56,6 +58,19 @@ struct proc_dir_entry {
+ 	gid_t gid;
+ 	loff_t size;
+ 	const struct inode_operations *proc_iops;
++	/*
++	 * NULL ->proc_fops means "PDE is going away RSN" or
++	 * "PDE is just created". In either case ->get_info, ->read_proc,
++	 * ->write_proc won't be called because it's too late or too early,
++	 * respectively.
++	 *
++	 * Valid ->proc_fops means "use this file_operations" or
++	 * "->data is setup, it's safe to call ->read_proc, ->write_proc which
++	 * can dereference it".
++	 *
++	 * If you're allocating ->proc_fops dynamically, save a pointer
++	 * somewhere.
++	 */
+ 	const struct file_operations *proc_fops;
+ 	get_info_t *get_info;
+ 	struct module *owner;
+@@ -66,6 +81,10 @@ struct proc_dir_entry {
+ 	atomic_t count;		/* use count */
+ 	int deleted;		/* delete flag */
+ 	void *set;
++	int pde_users;	/* number of readers + number of writers via
++			 * ->read_proc, ->write_proc, ->get_info */
++	spinlock_t pde_unload_lock;
++	struct completion *pde_unload_completion;
+ };
+ 
+ struct kcore_list {
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from adobriyan@openvz.org are
 
-add-epoll-compat-code-to-kernel-compatc.patch
-add-epoll-compat-code-to-kernel-compatc-tidy.patch
+origin.patch
+revert-x86_64-mm-msr-on-cpu.patch
+rdmsr_on_cpu-wrmsr_on_cpu.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+allow-access-to-proc-pid-fd-after-setuid-update-2.patch
+lutimesat-simplify-utime2.patch
+lutimesat-extend-do_utimes-with-flags.patch
+lutimesat-actual-syscall-and-wire-up-on-i386.patch
