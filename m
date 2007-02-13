@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-kill-open-files-traverse-on-remount-ro.patch added to -mm tree
-Date: Mon, 12 Feb 2007 21:13:28 -0800
-Message-ID: <200702130513.l1D5DSwZ022340@shell0.pdx.osdl.net>
+Subject: + saa7134-cleanup.patch added to -mm tree
+Date: Mon, 12 Feb 2007 21:15:17 -0800
+Message-ID: <200702130515.l1D5FHIr022407@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54753 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54770 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161033AbXBMFOj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 00:14:39 -0500
+	id S1161027AbXBMFPn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 00:15:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, linuxram@us.ibm.com, miklos@szeredi.hu, viro@zeniv.linux.org.uk
+Cc: shdl@zakalwe.fi, heikki.orsila@iki.fi, mchehab@infradead.org
 
 
 The patch titled
-     r/o bind mounts: kill open files traverse on remount ro
+     saa7134: cleanup
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-kill-open-files-traverse-on-remount-ro.patch
+     saa7134-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,121 +25,193 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: kill open files traverse on remount ro
-From: Dave Hansen <hansendc@us.ibm.com>
+Subject: saa7134: cleanup
+From: Heikki Orsila <shdl@zakalwe.fi>
 
-Now that we have the sb writer count, and all of the writers marked with
-mnt_want_write(), we don't need to go looking at all of the individual open
-files.
+ - use generic sort instead of bubblesort
+ - removed useless saa7134_video_fini function
+ - small coding style changes
 
-Kill the open files walk, and use the sb writer count.
-
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Heikki Orsila <heikki.orsila@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c    |   25 -------------------------
- fs/super.c         |   13 ++++++++++++-
- include/linux/fs.h |    2 --
- 3 files changed, 12 insertions(+), 28 deletions(-)
+ drivers/media/video/saa7134/saa7134-core.c  |    1 
+ drivers/media/video/saa7134/saa7134-video.c |   76 ++++++------------
+ drivers/media/video/saa7134/saa7134.h       |    1 
+ 3 files changed, 28 insertions(+), 50 deletions(-)
 
-diff -puN fs/file_table.c~r-o-bind-mounts-kill-open-files-traverse-on-remount-ro fs/file_table.c
---- a/fs/file_table.c~r-o-bind-mounts-kill-open-files-traverse-on-remount-ro
-+++ a/fs/file_table.c
-@@ -306,31 +306,6 @@ void file_kill(struct file *file)
- 	}
+diff -puN drivers/media/video/saa7134/saa7134-core.c~saa7134-cleanup drivers/media/video/saa7134/saa7134-core.c
+--- a/drivers/media/video/saa7134/saa7134-core.c~saa7134-cleanup
++++ a/drivers/media/video/saa7134/saa7134-core.c
+@@ -703,7 +703,6 @@ static int saa7134_hwfini(struct saa7134
+ 		saa7134_ts_fini(dev);
+ 	saa7134_input_fini(dev);
+ 	saa7134_vbi_fini(dev);
+-	saa7134_video_fini(dev);
+ 	saa7134_tvaudio_fini(dev);
+ 	return 0;
+ }
+diff -puN drivers/media/video/saa7134/saa7134.h~saa7134-cleanup drivers/media/video/saa7134/saa7134.h
+--- a/drivers/media/video/saa7134/saa7134.h~saa7134-cleanup
++++ a/drivers/media/video/saa7134/saa7134.h
+@@ -620,7 +620,6 @@ int saa7134_common_ioctl(struct saa7134_
+ 
+ int saa7134_video_init1(struct saa7134_dev *dev);
+ int saa7134_video_init2(struct saa7134_dev *dev);
+-int saa7134_video_fini(struct saa7134_dev *dev);
+ void saa7134_irq_video_intl(struct saa7134_dev *dev);
+ void saa7134_irq_video_done(struct saa7134_dev *dev, unsigned long status);
+ 
+diff -puN drivers/media/video/saa7134/saa7134-video.c~saa7134-cleanup drivers/media/video/saa7134/saa7134-video.c
+--- a/drivers/media/video/saa7134/saa7134-video.c~saa7134-cleanup
++++ a/drivers/media/video/saa7134/saa7134-video.c
+@@ -26,6 +26,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
++#include <linux/sort.h>
+ 
+ #include "saa7134-reg.h"
+ #include "saa7134.h"
+@@ -516,14 +517,12 @@ static int res_get(struct saa7134_dev *d
+ 	return 1;
  }
  
--int fs_may_remount_ro(struct super_block *sb)
+-static
+-int res_check(struct saa7134_fh *fh, unsigned int bit)
++static int res_check(struct saa7134_fh *fh, unsigned int bit)
+ {
+ 	return (fh->resources & bit);
+ }
+ 
+-static
+-int res_locked(struct saa7134_dev *dev, unsigned int bit)
++static int res_locked(struct saa7134_dev *dev, unsigned int bit)
+ {
+ 	return (dev->resources & bit);
+ }
+@@ -732,25 +731,6 @@ struct cliplist {
+ 	__u8  disable;
+ };
+ 
+-static void sort_cliplist(struct cliplist *cl, int entries)
 -{
--	struct list_head *p;
+-	struct cliplist swap;
+-	int i,j,n;
 -
--	/* Check that no files are currently opened for writing. */
--	file_list_lock();
--	list_for_each(p, &sb->s_files) {
--		struct file *file = list_entry(p, struct file, f_u.fu_list);
--		struct inode *inode = file->f_path.dentry->d_inode;
--
--		/* File with pending delete? */
--		if (inode->i_nlink == 0)
--			goto too_bad;
--
--		/* Writeable file? */
--		if (S_ISREG(inode->i_mode) && (file->f_mode & FMODE_WRITE))
--			goto too_bad;
+-	for (i = entries-2; i >= 0; i--) {
+-		for (n = 0, j = 0; j <= i; j++) {
+-			if (cl[j].position > cl[j+1].position) {
+-				swap = cl[j];
+-				cl[j] = cl[j+1];
+-				cl[j+1] = swap;
+-				n++;
+-			}
+-		}
+-		if (0 == n)
+-			break;
 -	}
--	file_list_unlock();
--	return 1; /* Tis' cool bro. */
--too_bad:
--	file_list_unlock();
+-}
+-
+ static void set_cliplist(struct saa7134_dev *dev, int reg,
+ 			struct cliplist *cl, int entries, char *name)
+ {
+@@ -784,15 +764,27 @@ static int clip_range(int val)
+ 	return val;
+ }
+ 
++/* Sort into smallest position first order */
++static int cliplist_cmp(const void *a, const void *b)
++{
++	const struct cliplist *cla = a;
++	const struct cliplist *clb = b;
++	if (cla->position < clb->position)
++		return -1;
++	if (cla->position > clb->position)
++		return 1;
++	return 0;
++}
++
+ static int setup_clipping(struct saa7134_dev *dev, struct v4l2_clip *clips,
+ 			  int nclips, int interlace)
+ {
+ 	struct cliplist col[16], row[16];
+-	int cols, rows, i;
++	int cols = 0, rows = 0, i;
+ 	int div = interlace ? 2 : 1;
+ 
+-	memset(col,0,sizeof(col)); cols = 0;
+-	memset(row,0,sizeof(row)); rows = 0;
++	memset(col, 0, sizeof(col));
++	memset(row, 0, sizeof(row));
+ 	for (i = 0; i < nclips && i < 8; i++) {
+ 		col[cols].position = clip_range(clips[i].c.left);
+ 		col[cols].enable   = (1 << i);
+@@ -808,8 +800,8 @@ static int setup_clipping(struct saa7134
+ 		row[rows].disable  = (1 << i);
+ 		rows++;
+ 	}
+-	sort_cliplist(col,cols);
+-	sort_cliplist(row,rows);
++	sort(col, cols, sizeof col[0], cliplist_cmp, NULL);
++	sort(row, rows, sizeof row[0], cliplist_cmp, NULL);
+ 	set_cliplist(dev,0x380,col,cols,"cols");
+ 	set_cliplist(dev,0x384,row,rows,"rows");
+ 	return 0;
+@@ -1261,19 +1253,14 @@ static struct videobuf_queue* saa7134_qu
+ 
+ static int saa7134_resource(struct saa7134_fh *fh)
+ {
+-	int res = 0;
++	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return RESOURCE_VIDEO;
+ 
+-	switch (fh->type) {
+-	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+-		res = RESOURCE_VIDEO;
+-		break;
+-	case V4L2_BUF_TYPE_VBI_CAPTURE:
+-		res = RESOURCE_VBI;
+-		break;
+-	default:
+-		BUG();
+-	}
+-	return res;
++	if (fh->type == V4L2_BUF_TYPE_VBI_CAPTURE)
++		return RESOURCE_VBI;
++
++	BUG();
++	return 0;
+ }
+ 
+ static int video_open(struct inode *inode, struct file *file)
+@@ -1461,8 +1448,7 @@ static int video_release(struct inode *i
+ 	return 0;
+ }
+ 
+-static int
+-video_mmap(struct file *file, struct vm_area_struct * vma)
++static int video_mmap(struct file *file, struct vm_area_struct * vma)
+ {
+ 	struct saa7134_fh *fh = file->private_data;
+ 
+@@ -2461,12 +2447,6 @@ int saa7134_video_init2(struct saa7134_d
+ 	return 0;
+ }
+ 
+-int saa7134_video_fini(struct saa7134_dev *dev)
+-{
+-	/* nothing */
 -	return 0;
 -}
 -
- void __init files_init(unsigned long mempages)
- { 
- 	int n; 
-diff -puN fs/super.c~r-o-bind-mounts-kill-open-files-traverse-on-remount-ro fs/super.c
---- a/fs/super.c~r-o-bind-mounts-kill-open-files-traverse-on-remount-ro
-+++ a/fs/super.c
-@@ -580,7 +580,18 @@ static void mark_files_ro(struct super_b
- 
- static int sb_remount_ro(struct super_block *sb)
+ void saa7134_irq_video_intl(struct saa7134_dev *dev)
  {
--	return fs_may_remount_ro(sb);
-+	int ret = 0;
-+
-+	/*
-+	 * The r/o flag actually gets set
-+	 * by the caller.
-+	 */
-+	spin_lock(&sb->s_mnt_writers_lock);
-+	if (sb->s_writers)
-+		ret = -EBUSY;
-+	spin_unlock(&sb->s_mnt_writers_lock);
-+
-+	return ret;
- }
- 
- /**
-diff -puN include/linux/fs.h~r-o-bind-mounts-kill-open-files-traverse-on-remount-ro include/linux/fs.h
---- a/include/linux/fs.h~r-o-bind-mounts-kill-open-files-traverse-on-remount-ro
-+++ a/include/linux/fs.h
-@@ -1655,8 +1655,6 @@ extern const struct file_operations read
- extern const struct file_operations write_fifo_fops;
- extern const struct file_operations rdwr_fifo_fops;
- 
--extern int fs_may_remount_ro(struct super_block *);
--
- #ifdef CONFIG_BLOCK
- /*
-  * return READ, READA, or WRITE
+ 	static const char *st[] = {
 _
 
-Patches currently in -mm which might be from hansendc@us.ibm.com are
+Patches currently in -mm which might be from shdl@zakalwe.fi are
 
-r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
-r-o-bind-mounts-add-vfsmount-writer-counts.patch
-r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-mount_is_safe-add-comment.patch
-r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-elevate-write-count-files-are-opened.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-elevate-writer-count-for-custom-struct_file.patch
-r-o-bind-mounts-gfs-check-nlink-count.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-r-o-bind-mounts-kill-open-files-traverse-on-remount-ro.patch
+saa7134-cleanup.patch
