@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + br_if-oops-in-port_carrier_check.patch added to -mm tree
-Date: Mon, 12 Feb 2007 23:23:08 -0800
-Message-ID: <200702130723.l1D7N8HD024879@shell0.pdx.osdl.net>
+Subject: + lockdep-debug_locks-check-after-check_chain_key.patch added to -mm tree
+Date: Mon, 12 Feb 2007 23:23:53 -0800
+Message-ID: <200702130723.l1D7NrYb024900@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57521 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57541 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751149AbXBMHXN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 02:23:13 -0500
+	id S1751154AbXBMHYO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 02:24:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jarkao2@o2.pl
+Cc: jarkao2@o2.pl, mingo@elte.hu
 
 
 The patch titled
-     br_if: oops in port_carrier_check
+     lockdep: debug_locks check after check_chain_key
 has been added to the -mm tree.  Its filename is
-     br_if-oops-in-port_carrier_check.patch
+     lockdep-debug_locks-check-after-check_chain_key.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,97 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: br_if: oops in port_carrier_check
+Subject: lockdep: debug_locks check after check_chain_key
 From: Jarek Poplawski <jarkao2@o2.pl>
 
-On Mon, Feb 12, 2007 at 09:47:38AM -0800, Stephen Hemminger wrote:
-> On Mon, 12 Feb 2007 11:28:48 +0100
-> Jarek Poplawski <jarkao2@o2.pl> wrote:
->
-> > Here is my patch proposal for testing.
-> > If it doesn't work - forget about it.
-> > (Prepared with 2.6.20-git6 but could
-> > be applied to 2.6.20 also.)
-> >
-> > Jarek P.
-> >
-> >
-> > dev_hold/dev_put added to prevent dev kfree
-> > during port_carrier_check runnig, while dev
-> > and port are removed.
->
-> No, holding the reference just stops the kfree, it doesn't
-> stop the device from being removed from the port.
-
-But I wrote above it is only to prevent the kfree.
-
->        p = dev->br_port;
->        if (!p)
->                goto done;
->        br = p->br;
-
-Then p is NULL here and we goto done.
-
-Sorry, but the first version was wrong (incomplete).
-Below I attach a new proposal.
+In __lock_acquire check_chain_key can turn off debug_locks, so check is
+needed to assure proper return code.
 
 Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_if.c     |    8 ++++++--
- net/bridge/br_notify.c |    4 +++-
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ kernel/lockdep.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN net/bridge/br_if.c~br_if-oops-in-port_carrier_check net/bridge/br_if.c
---- a/net/bridge/br_if.c~br_if-oops-in-port_carrier_check
-+++ a/net/bridge/br_if.c
-@@ -108,6 +108,7 @@ static void port_carrier_check(struct wo
- 		spin_unlock_bh(&br->lock);
- 	}
- done:
-+	dev_put(dev);
- 	rtnl_unlock();
- }
+diff -puN kernel/lockdep.c~lockdep-debug_locks-check-after-check_chain_key kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-debug_locks-check-after-check_chain_key
++++ a/kernel/lockdep.c
+@@ -2227,6 +2227,10 @@ out_calc_hash:
  
-@@ -161,7 +162,8 @@ static void del_nbp(struct net_bridge_po
- 
- 	dev_set_promiscuity(dev, -1);
- 
--	cancel_delayed_work(&p->carrier_check);
-+	if (cancel_delayed_work(&p->carrier_check))
-+		dev_put(dev);
- 
- 	spin_lock_bh(&br->lock);
- 	br_stp_disable_port(p);
-@@ -444,7 +446,9 @@ int br_add_if(struct net_bridge *br, str
- 	spin_lock_bh(&br->lock);
- 	br_stp_recalculate_bridge_id(br);
- 	br_features_recompute(br);
--	schedule_delayed_work(&p->carrier_check, BR_PORT_DEBOUNCE);
-+	if (schedule_delayed_work(&p->carrier_check, BR_PORT_DEBOUNCE))
-+		dev_hold(dev);
-+
- 	spin_unlock_bh(&br->lock);
- 
- 	dev_set_mtu(br->dev, br_min_mtu(br));
-diff -puN net/bridge/br_notify.c~br_if-oops-in-port_carrier_check net/bridge/br_notify.c
---- a/net/bridge/br_notify.c~br_if-oops-in-port_carrier_check
-+++ a/net/bridge/br_notify.c
-@@ -56,7 +56,9 @@ static int br_device_event(struct notifi
- 
- 	case NETDEV_CHANGE:
- 		if (br->dev->flags & IFF_UP)
--			schedule_delayed_work(&p->carrier_check, BR_PORT_DEBOUNCE);
-+			if (schedule_delayed_work(&p->carrier_check,
-+						BR_PORT_DEBOUNCE))
-+				dev_hold(dev);
- 		break;
- 
- 	case NETDEV_FEAT_CHANGE:
+ 	curr->lockdep_depth++;
+ 	check_chain_key(curr);
++#ifdef CONFIG_DEBUG_LOCKDEP
++	if (unlikely(!debug_locks))
++		return 0;
++#endif
+ 	if (unlikely(curr->lockdep_depth >= MAX_LOCK_DEPTH)) {
+ 		debug_locks_off();
+ 		printk("BUG: MAX_LOCK_DEPTH too low!\n");
 _
 
 Patches currently in -mm which might be from jarkao2@o2.pl are
 
 origin.patch
 br_if-oops-in-port_carrier_check.patch
+lockdep-debug_locks-check-after-check_chain_key.patch
