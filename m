@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext-update-documentation.patch added to -mm tree
-Date: Mon, 12 Feb 2007 21:53:22 -0800
-Message-ID: <200702130553.l1D5rMdo023153@shell0.pdx.osdl.net>
+Subject: + bugfixes-and-new-hardware-support-for-arcnet-driver.patch added to -mm tree
+Date: Mon, 12 Feb 2007 21:56:51 -0800
+Message-ID: <200702130556.l1D5upgI023221@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55651 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55708 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105AbXBMFxY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 00:53:24 -0500
+	id S1751015AbXBMF5g (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 00:57:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@gmail.com
+Cc: jmorrow@jmorrow.org, davem@davemloft.net, jeff@garzik.org, jmorrow@massspec.com
 
 
 The patch titled
-     ext[234]: update documentation
+     bugfixes and new hardware support for arcnet driver
 has been added to the -mm tree.  Its filename is
-     ext-update-documentation.patch
+     bugfixes-and-new-hardware-support-for-arcnet-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,120 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext[234]: update documentation
-From: "Aneesh Kumar K.V" <aneesh.kumar@gmail.com>
+Subject: bugfixes and new hardware support for arcnet driver
+From: Jeff Morrow <jmorrow@jmorrow.org>
 
-Signed-off-by: "Aneesh Kumar K.V" <aneesh.kumar@gmail.com>
+The modifications and bug fixes noted below were done by Realtime Control
+Works and Contemporary Control Systems, Inc, Jan 2005.  They were
+incorporated into the 2.6 kernel by Jeff Morrow of Sierra Analytics, Feb
+2007.  <jmorrow@massspec.com>
+
+The changes have been tested on a Contemporary Controls PCI20U-4000.
+
+Summary of changes:
+
+Arc-rawmode.c:
+      rx():
+      - Fixed error in received packet lengths; 256 byte packets were
+        being received as 257 bytes packets.
+
+      prepare_tx():
+      - Fixed error in transmit length calcs; 257 byte packets were being
+        transmitted as 260 byte packets.
+
+com20020.c:
+      com20020_check():
+      - We now load the SETUP2 register if the 'clockm' parameter is
+        non-zero, instead of checking for ARC_CAN_10MBIT. The user is
+        now responsible for whether or not SETUP2 is loaded.  If the
+        clock multiplier is non-zero, this means that the user wants a
+        baud rate greater than 2.5Mbps. This is not possible unless the
+        SETUP2 register is present (COM20020D, or COM20022). So, we're
+        relying on the user to be smart about what kind of chip he's
+        dealing with...
+
+com20020-pci.c
+      - Added several entries to com20020pci_id_table[].
+
+Signed-off-by: Jeff Morrow <jmorrow@massspec.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/balloc.c |    2 +-
- fs/ext3/balloc.c |    2 +-
- fs/ext4/balloc.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/arcnet/arc-rawmode.c  |    4 ++--
+ drivers/net/arcnet/arcnet.c       |    2 +-
+ drivers/net/arcnet/com20020-pci.c |    3 +++
+ drivers/net/arcnet/com20020.c     |    2 +-
+ 4 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN fs/ext2/balloc.c~ext-update-documentation fs/ext2/balloc.c
---- a/fs/ext2/balloc.c~ext-update-documentation
-+++ a/fs/ext2/balloc.c
-@@ -29,7 +29,7 @@
-  * The file system contains group descriptors which are located after the
-  * super block.  Each descriptor contains the number of the bitmap block and
-  * the free blocks count in the block.  The descriptors are loaded in memory
-- * when a file system is mounted (see ext2_read_super).
-+ * when a file system is mounted (see ext2_fill_super).
+diff -puN drivers/net/arcnet/arcnet.c~bugfixes-and-new-hardware-support-for-arcnet-driver drivers/net/arcnet/arcnet.c
+--- a/drivers/net/arcnet/arcnet.c~bugfixes-and-new-hardware-support-for-arcnet-driver
++++ a/drivers/net/arcnet/arcnet.c
+@@ -41,7 +41,7 @@
+  *     <jojo@repas.de>
   */
  
+-#define VERSION "arcnet: v3.93 BETA 2000/04/29 - by Avery Pennarun et al.\n"
++#define VERSION "arcnet: v3.94 BETA 2007/02/08 - by Avery Pennarun et al.\n"
  
-diff -puN fs/ext3/balloc.c~ext-update-documentation fs/ext3/balloc.c
---- a/fs/ext3/balloc.c~ext-update-documentation
-+++ a/fs/ext3/balloc.c
-@@ -32,7 +32,7 @@
-  * The file system contains group descriptors which are located after the
-  * super block.  Each descriptor contains the number of the bitmap block and
-  * the free blocks count in the block.  The descriptors are loaded in memory
-- * when a file system is mounted (see ext3_read_super).
-+ * when a file system is mounted (see ext3_fill_super).
-  */
+ #include <linux/module.h>
+ #include <linux/types.h>
+diff -puN drivers/net/arcnet/arc-rawmode.c~bugfixes-and-new-hardware-support-for-arcnet-driver drivers/net/arcnet/arc-rawmode.c
+--- a/drivers/net/arcnet/arc-rawmode.c~bugfixes-and-new-hardware-support-for-arcnet-driver
++++ a/drivers/net/arcnet/arc-rawmode.c
+@@ -94,7 +94,7 @@ static void rx(struct net_device *dev, i
  
+ 	BUGMSG(D_DURING, "it's a raw packet (length=%d)\n", length);
  
-diff -puN fs/ext4/balloc.c~ext-update-documentation fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext-update-documentation
-+++ a/fs/ext4/balloc.c
-@@ -50,7 +50,7 @@ void ext4_get_group_no_and_offset(struct
-  * The file system contains group descriptors which are located after the
-  * super block.  Each descriptor contains the number of the bitmap block and
-  * the free blocks count in the block.  The descriptors are loaded in memory
-- * when a file system is mounted (see ext4_read_super).
-+ * when a file system is mounted (see ext4_fill_super).
-  */
+-	if (length >= MinTU)
++	if (length > MTU)
+ 		ofs = 512 - length;
+ 	else
+ 		ofs = 256 - length;
+@@ -183,7 +183,7 @@ static int prepare_tx(struct net_device 
+ 		       length, XMTU);
+ 		length = XMTU;
+ 	}
+-	if (length > MinTU) {
++	if (length >= MinTU) {
+ 		hard->offset[0] = 0;
+ 		hard->offset[1] = ofs = 512 - length;
+ 	} else if (length > MTU) {
+diff -puN drivers/net/arcnet/com20020.c~bugfixes-and-new-hardware-support-for-arcnet-driver drivers/net/arcnet/com20020.c
+--- a/drivers/net/arcnet/com20020.c~bugfixes-and-new-hardware-support-for-arcnet-driver
++++ a/drivers/net/arcnet/com20020.c
+@@ -104,7 +104,7 @@ int com20020_check(struct net_device *de
+ 	SET_SUBADR(SUB_SETUP1);
+ 	outb(lp->setup, _XREG);
  
+-	if (lp->card_flags & ARC_CAN_10MBIT)
++	if (lp->clockm != 0)
+ 	{
+ 		SET_SUBADR(SUB_SETUP2);
+ 		outb(lp->setup2, _XREG);
+diff -puN drivers/net/arcnet/com20020-pci.c~bugfixes-and-new-hardware-support-for-arcnet-driver drivers/net/arcnet/com20020-pci.c
+--- a/drivers/net/arcnet/com20020-pci.c~bugfixes-and-new-hardware-support-for-arcnet-driver
++++ a/drivers/net/arcnet/com20020-pci.c
+@@ -155,6 +155,7 @@ static struct pci_device_id com20020pci_
+ 	{ 0x1571, 0xa00b, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_IS_5MBIT },
+ 	{ 0x1571, 0xa00c, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_IS_5MBIT },
+ 	{ 0x1571, 0xa00d, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_IS_5MBIT },
++	{ 0x1571, 0xa00e, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_IS_5MBIT },
+ 	{ 0x1571, 0xa201, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
+ 	{ 0x1571, 0xa202, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
+ 	{ 0x1571, 0xa203, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
+@@ -163,6 +164,8 @@ static struct pci_device_id com20020pci_
+ 	{ 0x1571, 0xa206, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
+ 	{ 0x10B5, 0x9030, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
+ 	{ 0x10B5, 0x9050, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
++	{ 0x14BA, 0x6000, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
++	{ 0x10B5, 0x2200, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
+ 	{0,}
+ };
  
 _
 
-Patches currently in -mm which might be from aneesh.kumar@gmail.com are
+Patches currently in -mm which might be from jmorrow@jmorrow.org are
 
-origin.patch
-ext-update-documentation.patch
+bugfixes-and-new-hardware-support-for-arcnet-driver.patch
