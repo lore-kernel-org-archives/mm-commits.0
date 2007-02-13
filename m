@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-rmmod-read-write-races-in-proc-entries-fix.patch added to -mm tree
-Date: Mon, 12 Feb 2007 22:36:02 -0800
-Message-ID: <200702130636.l1D6a2S2024058@shell0.pdx.osdl.net>
+Subject: + cfag12864b-fix-crash-when-built-in-and-no-parport.patch added to -mm tree
+Date: Mon, 12 Feb 2007 22:39:17 -0800
+Message-ID: <200702130639.l1D6dHfO024095@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56391 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56455 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030653AbXBMGgN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 01:36:13 -0500
+	id S1030651AbXBMGjT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 01:39:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, ebiederm@xmission.com, oleg@tv-sign.ru, viro@zeniv.linux.org.uk
+Cc: maxextreme@gmail.com
 
 
 The patch titled
-     fix-rmmod-read-write-races-in-proc-entries-fix
+     cfag12864b: fix crash when built-in and no parport present
 has been added to the -mm tree.  Its filename is
-     fix-rmmod-read-write-races-in-proc-entries-fix.patch
+     cfag12864b-fix-crash-when-built-in-and-no-parport.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,72 +25,159 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-rmmod-read-write-races-in-proc-entries-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cfag12864b: fix crash when built-in and no parport present
+From: Miguel Ojeda <maxextreme@gmail.com>
 
-Make lockdep happy.
+The problem comes when ks0108/cfag12864b are built-in and no parallel port is
+present.  ks0108_init() is called first, as it should be, but fails to load
+(as there is no parallel port to use).
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+After that, cfag12864b_init() gets called, without knowing anything about
+ks0108 failed, and calls ks0108_writecontrol(), which dereferences an
+uninitialized pointer.
+
+Init order is OK, I think.  The problem is how to stop cfag12864b_init() being
+called if ks0108 failed to load.  modprobe does it for us, but, how when
+built-in?
+
+Signed-off-by: Miguel Ojeda Sandonis <maxextreme@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/auxdisplay/cfag12864b.c   |   19 +++++++++++++++++++
+ drivers/auxdisplay/cfag12864bfb.c |   10 +++++++++-
+ drivers/auxdisplay/ks0108.c       |   12 ++++++++++++
+ include/linux/cfag12864b.h        |    5 +++++
+ include/linux/ks0108.h            |    3 +++
+ 5 files changed, 48 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/generic.c~fix-rmmod-read-write-races-in-proc-entries-fix fs/proc/generic.c
---- a/fs/proc/generic.c~fix-rmmod-read-write-races-in-proc-entries-fix
-+++ a/fs/proc/generic.c
-@@ -790,9 +790,8 @@ void remove_proc_entry(const char *name,
- 		de->proc_fops = NULL;
- 		/* Wait until all existing readers/writers are done. */
- 		if (de->pde_users > 0) {
--			struct completion c;
-+			DECLARE_COMPLETION_ONSTACK(c);
+diff -puN drivers/auxdisplay/cfag12864b.c~cfag12864b-fix-crash-when-built-in-and-no-parport drivers/auxdisplay/cfag12864b.c
+--- a/drivers/auxdisplay/cfag12864b.c~cfag12864b-fix-crash-when-built-in-and-no-parport
++++ a/drivers/auxdisplay/cfag12864b.c
+@@ -312,6 +312,17 @@ EXPORT_SYMBOL_GPL(cfag12864b_disable);
+ EXPORT_SYMBOL_GPL(cfag12864b_isenabled);
  
--			init_completion(&c);
- 			if (!de->pde_unload_completion)
- 				de->pde_unload_completion = &c;
+ /*
++ * Is the module inited?
++ */
++
++static unsigned char cfag12864b_inited;
++unsigned char cfag12864b_isinited(void)
++{
++	return cfag12864b_inited;
++}
++EXPORT_SYMBOL_GPL(cfag12864b_isinited);
++
++/*
+  * Module Init & Exit
+  */
  
+@@ -319,6 +330,13 @@ static int __init cfag12864b_init(void)
+ {
+ 	int ret = -EINVAL;
+ 
++	/* ks0108_init() must be called first */
++	if (!ks0108_isinited()) {
++		printk(KERN_ERR CFAG12864B_NAME ": ERROR: "
++			"ks0108 is not initialized\n");
++		goto none;
++	}
++
+ 	if (PAGE_SIZE < CFAG12864B_SIZE) {
+ 		printk(KERN_ERR CFAG12864B_NAME ": ERROR: "
+ 			"page size (%i) < cfag12864b size (%i)\n",
+@@ -354,6 +372,7 @@ static int __init cfag12864b_init(void)
+ 	cfag12864b_clear();
+ 	cfag12864b_on();
+ 
++	cfag12864b_inited = 1;
+ 	return 0;
+ 
+ cachealloced:
+diff -puN drivers/auxdisplay/cfag12864bfb.c~cfag12864b-fix-crash-when-built-in-and-no-parport drivers/auxdisplay/cfag12864bfb.c
+--- a/drivers/auxdisplay/cfag12864bfb.c~cfag12864b-fix-crash-when-built-in-and-no-parport
++++ a/drivers/auxdisplay/cfag12864bfb.c
+@@ -137,7 +137,14 @@ static struct platform_device *cfag12864
+ 
+ static int __init cfag12864bfb_init(void)
+ {
+-	int ret;
++	int ret = -EINVAL;
++
++	/* cfag12864b_init() must be called first */
++	if (!cfag12864b_isinited()) {
++		printk(KERN_ERR CFAG12864BFB_NAME ": ERROR: "
++			"cfag12864b is not initialized\n");
++		goto none;
++	}
+ 
+ 	if (cfag12864b_enable()) {
+ 		printk(KERN_ERR CFAG12864BFB_NAME ": ERROR: "
+@@ -162,6 +169,7 @@ static int __init cfag12864bfb_init(void
+ 		}
+ 	}
+ 
++none:
+ 	return ret;
+ }
+ 
+diff -puN drivers/auxdisplay/ks0108.c~cfag12864b-fix-crash-when-built-in-and-no-parport drivers/auxdisplay/ks0108.c
+--- a/drivers/auxdisplay/ks0108.c~cfag12864b-fix-crash-when-built-in-and-no-parport
++++ a/drivers/auxdisplay/ks0108.c
+@@ -111,6 +111,17 @@ EXPORT_SYMBOL_GPL(ks0108_address);
+ EXPORT_SYMBOL_GPL(ks0108_page);
+ 
+ /*
++ * Is the module inited?
++ */
++
++static unsigned char ks0108_inited;
++unsigned char ks0108_isinited(void)
++{
++	return ks0108_inited;
++}
++EXPORT_SYMBOL_GPL(ks0108_isinited);
++
++/*
+  * Module Init & Exit
+  */
+ 
+@@ -142,6 +153,7 @@ static int __init ks0108_init(void)
+ 		goto registered;
+ 	}
+ 
++	ks0108_inited = 1;
+ 	return 0;
+ 
+ registered:
+diff -puN include/linux/cfag12864b.h~cfag12864b-fix-crash-when-built-in-and-no-parport include/linux/cfag12864b.h
+--- a/include/linux/cfag12864b.h~cfag12864b-fix-crash-when-built-in-and-no-parport
++++ a/include/linux/cfag12864b.h
+@@ -73,5 +73,10 @@ extern void cfag12864b_disable(void);
+  */
+ extern unsigned char cfag12864b_isenabled(void);
+ 
++/*
++ * Is the module inited?
++ */
++extern unsigned char cfag12864b_isinited(void);
++
+ #endif /* _CFAG12864B_H_ */
+ 
+diff -puN include/linux/ks0108.h~cfag12864b-fix-crash-when-built-in-and-no-parport include/linux/ks0108.h
+--- a/include/linux/ks0108.h~cfag12864b-fix-crash-when-built-in-and-no-parport
++++ a/include/linux/ks0108.h
+@@ -43,4 +43,7 @@ extern void ks0108_address(unsigned char
+ /* Set the controller's current page (0..7) */
+ extern void ks0108_page(unsigned char page);
+ 
++/* Is the module inited? */
++extern unsigned char ks0108_isinited(void);
++
+ #endif /* _KS0108_H_ */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from maxextreme@gmail.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-agpgart.patch
-git-arm.patch
-git-cifs-fix.patch
-git-cpufreq.patch
-fix-warning-in-device_add_attrs.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-infiniband.patch
-sis-warning-fixes.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-md-accel-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-git-backlight.patch
-git-backlight-sony-fix.patch
-git-nfs-fixup.patch
-git-sh.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-unionfs-fixup.patch
-git-watchdog.patch
-revert-x86_64-mm-msr-on-cpu.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-kprobes-list-all-active-probes-in-the-system.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-epoll-compat-code-to-kernel-compatc-tidy.patch
-revert-x86_64-mm-putreg-check.patch
-git-gccbug-fixup.patch
+cfag12864b-fix-crash-when-built-in-and-no-parport.patch
