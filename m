@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-some-class_device-fallout.patch added to -mm tree
-Date: Mon, 12 Feb 2007 21:51:30 -0800
-Message-ID: <200702130551.l1D5pUWB023104@shell0.pdx.osdl.net>
+Subject: + keep-track-of-network-interface-renaming.patch added to -mm tree
+Date: Mon, 12 Feb 2007 21:52:26 -0800
+Message-ID: <200702130552.l1D5qQ6w023133@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55633 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55638 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751074AbXBMFvr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 00:51:47 -0500
+	id S1751106AbXBMFw3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 00:52:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, greg@kroah.com, linux@dominikbrodowski.net, rmk@arm.linux.org.uk
+Cc: olaf@aepfle.de
 
 
 The patch titled
-     pcmcia: some class_device fallout
+     keep track of network interface renaming
 has been added to the -mm tree.  Its filename is
-     pcmcia-some-class_device-fallout.patch
+     keep-track-of-network-interface-renaming.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,82 +25,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pcmcia: some class_device fallout
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: keep track of network interface renaming
+From: Olaf Hering <olaf@aepfle.de>
 
-As found on some arm defconfigs.
+On Sun, Feb 11, Paul Rolland wrote:
 
-I only looked at how original patch changes things and other patches fix
-compilation. ;-)
+> I'm facing something quite strange... When booting one of these kernels
+> (it's a new machine, I've not been running older kernels), the boot message
+> says :
+>
+> ACPI: PCI Interrupt 0000:04:00.0[A] -> GSI 19 (level, low) -> IRQ 19
+> sky2 v1.10 addr 0xff8fc000 irq 19 Yukon-EC (0xb6) rev 2
+> sky2 eth0: addr 00:18:f3:e0:5d:d4
+> ACPI: PCI Interrupt 0000:03:00.0[A] -> GSI 16 (level, low) -> IRQ 16
+> sky2 v1.10 addr 0xff7fc000 irq 16 Yukon-EC (0xb6) rev 2
+> sky2 eth1: addr 00:18:f3:e0:36:fd
+>
+> So, I'm expecting two interfaces : eth0 and eth1
+>
+> Unfortunately, at the end of the boot process, I can find eth1 and eth2,
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Unfortunately, this patch was not applied to mainline last year.
+Maybe this year.
+
+Keep track about which network interface names were renamed after the
+network device driver printed its banner.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/at91_cf.c    |    2 +-
- drivers/pcmcia/soc_common.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ net/core/dev.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pcmcia/at91_cf.c~pcmcia-some-class_device-fallout drivers/pcmcia/at91_cf.c
---- a/drivers/pcmcia/at91_cf.c~pcmcia-some-class_device-fallout
-+++ a/drivers/pcmcia/at91_cf.c
-@@ -278,7 +278,7 @@ static int __init at91_cf_probe(struct p
- 		board->det_pin, board->irq_pin);
- 
- 	cf->socket.owner = THIS_MODULE;
--	cf->socket.dev.dev = &pdev->dev;
-+	cf->socket.dev.parent = &pdev->dev;
- 	cf->socket.ops = &at91_cf_ops;
- 	cf->socket.resource_ops = &pccard_static_ops;
- 	cf->socket.features = SS_CAP_PCCARD | SS_CAP_STATIC_MAP
-diff -puN drivers/pcmcia/soc_common.c~pcmcia-some-class_device-fallout drivers/pcmcia/soc_common.c
---- a/drivers/pcmcia/soc_common.c~pcmcia-some-class_device-fallout
-+++ a/drivers/pcmcia/soc_common.c
-@@ -478,7 +478,7 @@ dump_bits(char **p, const char *prefix, 
-  *
-  * Returns: the number of characters added to the buffer
-  */
--static ssize_t show_status(struct device *dev, char *buf)
-+static ssize_t show_status(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct soc_pcmcia_socket *skt =
- 		container_of(dev, struct soc_pcmcia_socket, socket.dev);
-@@ -501,7 +501,7 @@ static ssize_t show_status(struct device
- 
- 	return p-buf;
- }
--static CLASS_DEVICE_ATTR(status, S_IRUGO, show_status, NULL);
-+static DEVICE_ATTR(status, S_IRUGO, show_status, NULL);
- 
- 
- static struct pccard_operations soc_common_pcmcia_operations = {
-@@ -660,7 +660,7 @@ int soc_common_drv_pcmcia_probe(struct d
- 
- 		skt->socket.ops = &soc_common_pcmcia_operations;
- 		skt->socket.owner = ops->owner;
--		skt->socket.dev.dev = dev;
-+		skt->socket.dev.parent = dev;
- 
- 		init_timer(&skt->poll_timer);
- 		skt->poll_timer.function = soc_common_pcmcia_poll_event;
-@@ -747,7 +747,7 @@ int soc_common_drv_pcmcia_probe(struct d
- 
- 		add_timer(&skt->poll_timer);
- 
--		device_create_file(&skt->socket.dev, &device_attr_status);
-+		device_create_file(&skt->socket.dev, &dev_attr_status);
+diff -puN net/core/dev.c~keep-track-of-network-interface-renaming net/core/dev.c
+--- a/net/core/dev.c~keep-track-of-network-interface-renaming
++++ a/net/core/dev.c
+@@ -748,8 +748,12 @@ int dev_change_name(struct net_device *d
  	}
+ 	else if (__dev_get_by_name(newname))
+ 		return -EEXIST;
+-	else
++	else {
++		if (strncmp(newname, dev->name, IFNAMSIZ))
++			printk(KERN_INFO "%s renamed to %s\n",
++					dev->name, newname);
+ 		strlcpy(dev->name, newname, IFNAMSIZ);
++	}
  
- 	dev_set_drvdata(dev, sinfo);
+ 	err = device_rename(&dev->dev, dev->name);
+ 	if (!err) {
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 origin.patch
-pcmcia-some-class_device-fallout.patch
-git-dvb.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-mwave-interesting-flags-savings.patch
+move-variables-in-drivers-macintosh-to-bss.patch
+add-delay-around-sl82c105_reset_engine-calls.patch
+cleanup-variable-usage-in-mesh-interrupt-handler.patch
+keep-track-of-network-interface-renaming.patch
