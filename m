@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cfag12864b-fix-crash-when-built-in-and-no-parport.patch added to -mm tree
-Date: Mon, 12 Feb 2007 22:39:17 -0800
-Message-ID: <200702130639.l1D6dHfO024095@shell0.pdx.osdl.net>
+Subject: + make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch added to -mm tree
+Date: Mon, 12 Feb 2007 22:41:00 -0800
+Message-ID: <200702130641.l1D6f0EB024139@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56455 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56486 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030651AbXBMGjT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 01:39:19 -0500
+	id S1161104AbXBMGlL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 01:41:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maxextreme@gmail.com
+Cc: oleg@tv-sign.ru
 
 
 The patch titled
-     cfag12864b: fix crash when built-in and no parport present
+     make cancel_rearming_delayed_work() work on any workqueue, not just keventd_wq
 has been added to the -mm tree.  Its filename is
-     cfag12864b-fix-crash-when-built-in-and-no-parport.patch
+     make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,159 +25,157 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cfag12864b: fix crash when built-in and no parport present
-From: Miguel Ojeda <maxextreme@gmail.com>
+Subject: make cancel_rearming_delayed_work() work on any workqueue, not just keventd_wq
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The problem comes when ks0108/cfag12864b are built-in and no parallel port is
-present.  ks0108_init() is called first, as it should be, but fails to load
-(as there is no parallel port to use).
+cancel_rearming_delayed_workqueue(wq, dwork) doesn't need the first
+parameter.  We don't hang on un-queued dwork any longer, and work->data
+doesn't change its type.  This means we can always figure out "wq" from
+dwork when it is needed.
 
-After that, cfag12864b_init() gets called, without knowing anything about
-ks0108 failed, and calls ks0108_writecontrol(), which dereferences an
-uninitialized pointer.
+Remove this parameter, and rename the function to
+cancel_rearming_delayed_work().  Re-create an inline "obsolete"
+cancel_rearming_delayed_workqueue(wq) which just calls
+cancel_rearming_delayed_work().
 
-Init order is OK, I think.  The problem is how to stop cfag12864b_init() being
-called if ks0108 failed to load.  modprobe does it for us, but, how when
-built-in?
-
-Signed-off-by: Miguel Ojeda Sandonis <maxextreme@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/auxdisplay/cfag12864b.c   |   19 +++++++++++++++++++
- drivers/auxdisplay/cfag12864bfb.c |   10 +++++++++-
- drivers/auxdisplay/ks0108.c       |   12 ++++++++++++
- include/linux/cfag12864b.h        |    5 +++++
- include/linux/ks0108.h            |    3 +++
- 5 files changed, 48 insertions(+), 1 deletion(-)
+ include/linux/workqueue.h |   13 ++++++++++---
+ kernel/workqueue.c        |   27 +++++++++------------------
+ 2 files changed, 19 insertions(+), 21 deletions(-)
 
-diff -puN drivers/auxdisplay/cfag12864b.c~cfag12864b-fix-crash-when-built-in-and-no-parport drivers/auxdisplay/cfag12864b.c
---- a/drivers/auxdisplay/cfag12864b.c~cfag12864b-fix-crash-when-built-in-and-no-parport
-+++ a/drivers/auxdisplay/cfag12864b.c
-@@ -312,6 +312,17 @@ EXPORT_SYMBOL_GPL(cfag12864b_disable);
- EXPORT_SYMBOL_GPL(cfag12864b_isenabled);
+diff -puN include/linux/workqueue.h~make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq include/linux/workqueue.h
+--- a/include/linux/workqueue.h~make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq
++++ a/include/linux/workqueue.h
+@@ -185,9 +185,6 @@ extern int current_is_keventd(void);
+ extern int keventd_up(void);
+ 
+ extern void init_workqueues(void);
+-void cancel_rearming_delayed_work(struct delayed_work *work);
+-void cancel_rearming_delayed_workqueue(struct workqueue_struct *,
+-				       struct delayed_work *);
+ int execute_in_process_context(work_func_t fn, struct execute_work *);
  
  /*
-+ * Is the module inited?
-+ */
-+
-+static unsigned char cfag12864b_inited;
-+unsigned char cfag12864b_isinited(void)
-+{
-+	return cfag12864b_inited;
-+}
-+EXPORT_SYMBOL_GPL(cfag12864b_isinited);
-+
-+/*
-  * Module Init & Exit
-  */
- 
-@@ -319,6 +330,13 @@ static int __init cfag12864b_init(void)
- {
- 	int ret = -EINVAL;
- 
-+	/* ks0108_init() must be called first */
-+	if (!ks0108_isinited()) {
-+		printk(KERN_ERR CFAG12864B_NAME ": ERROR: "
-+			"ks0108 is not initialized\n");
-+		goto none;
-+	}
-+
- 	if (PAGE_SIZE < CFAG12864B_SIZE) {
- 		printk(KERN_ERR CFAG12864B_NAME ": ERROR: "
- 			"page size (%i) < cfag12864b size (%i)\n",
-@@ -354,6 +372,7 @@ static int __init cfag12864b_init(void)
- 	cfag12864b_clear();
- 	cfag12864b_on();
- 
-+	cfag12864b_inited = 1;
- 	return 0;
- 
- cachealloced:
-diff -puN drivers/auxdisplay/cfag12864bfb.c~cfag12864b-fix-crash-when-built-in-and-no-parport drivers/auxdisplay/cfag12864bfb.c
---- a/drivers/auxdisplay/cfag12864bfb.c~cfag12864b-fix-crash-when-built-in-and-no-parport
-+++ a/drivers/auxdisplay/cfag12864bfb.c
-@@ -137,7 +137,14 @@ static struct platform_device *cfag12864
- 
- static int __init cfag12864bfb_init(void)
- {
--	int ret;
-+	int ret = -EINVAL;
-+
-+	/* cfag12864b_init() must be called first */
-+	if (!cfag12864b_isinited()) {
-+		printk(KERN_ERR CFAG12864BFB_NAME ": ERROR: "
-+			"cfag12864b is not initialized\n");
-+		goto none;
-+	}
- 
- 	if (cfag12864b_enable()) {
- 		printk(KERN_ERR CFAG12864BFB_NAME ": ERROR: "
-@@ -162,6 +169,7 @@ static int __init cfag12864bfb_init(void
- 		}
- 	}
- 
-+none:
+@@ -205,4 +202,14 @@ static inline int cancel_delayed_work(st
  	return ret;
  }
  
-diff -puN drivers/auxdisplay/ks0108.c~cfag12864b-fix-crash-when-built-in-and-no-parport drivers/auxdisplay/ks0108.c
---- a/drivers/auxdisplay/ks0108.c~cfag12864b-fix-crash-when-built-in-and-no-parport
-+++ a/drivers/auxdisplay/ks0108.c
-@@ -111,6 +111,17 @@ EXPORT_SYMBOL_GPL(ks0108_address);
- EXPORT_SYMBOL_GPL(ks0108_page);
- 
- /*
-+ * Is the module inited?
-+ */
++extern void cancel_rearming_delayed_work(struct delayed_work *work);
 +
-+static unsigned char ks0108_inited;
-+unsigned char ks0108_isinited(void)
++/* Obsolete. use cancel_rearming_delayed_work() */
++static inline
++void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
++					struct delayed_work *work)
 +{
-+	return ks0108_inited;
++	cancel_rearming_delayed_work(work);
 +}
-+EXPORT_SYMBOL_GPL(ks0108_isinited);
 +
-+/*
-  * Module Init & Exit
+ #endif
+diff -puN kernel/workqueue.c~make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq kernel/workqueue.c
+--- a/kernel/workqueue.c~make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq
++++ a/kernel/workqueue.c
+@@ -554,32 +554,23 @@ void flush_work_keventd(struct work_stru
+ EXPORT_SYMBOL(flush_work_keventd);
+ 
+ /**
+- * cancel_rearming_delayed_workqueue - kill off a delayed work whose handler rearms the delayed work.
+- * @wq:   the controlling workqueue structure
++ * cancel_rearming_delayed_work - kill off a delayed work whose handler rearms the delayed work.
+  * @dwork: the delayed work struct
+  *
+  * Note that the work callback function may still be running on return from
+  * cancel_delayed_work(). Run flush_workqueue() or flush_work() to wait on it.
   */
+-void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
+-				       struct delayed_work *dwork)
++void cancel_rearming_delayed_work(struct delayed_work *dwork)
+ {
+-	/* Was it ever queued ? */
+-	if (!get_wq_data(&dwork->work))
+-		return;
++	struct cpu_workqueue_struct *cwq = get_wq_data(&dwork->work);
  
-@@ -142,6 +153,7 @@ static int __init ks0108_init(void)
- 		goto registered;
- 	}
+-	while (!cancel_delayed_work(dwork))
+-		flush_workqueue(wq);
+-}
+-EXPORT_SYMBOL(cancel_rearming_delayed_workqueue);
++	/* Was it ever queued ? */
++	if (cwq != NULL) {
++		struct workqueue_struct *wq = cwq->wq;
  
-+	ks0108_inited = 1;
- 	return 0;
+-/**
+- * cancel_rearming_delayed_work - kill off a delayed keventd work whose handler rearms the delayed work.
+- * @dwork: the delayed work struct
+- */
+-void cancel_rearming_delayed_work(struct delayed_work *dwork)
+-{
+-	cancel_rearming_delayed_workqueue(keventd_wq, dwork);
++		while (!cancel_delayed_work(dwork))
++			flush_workqueue(wq);
++	}
+ }
+ EXPORT_SYMBOL(cancel_rearming_delayed_work);
  
- registered:
-diff -puN include/linux/cfag12864b.h~cfag12864b-fix-crash-when-built-in-and-no-parport include/linux/cfag12864b.h
---- a/include/linux/cfag12864b.h~cfag12864b-fix-crash-when-built-in-and-no-parport
-+++ a/include/linux/cfag12864b.h
-@@ -73,5 +73,10 @@ extern void cfag12864b_disable(void);
-  */
- extern unsigned char cfag12864b_isenabled(void);
- 
-+/*
-+ * Is the module inited?
-+ */
-+extern unsigned char cfag12864b_isinited(void);
-+
- #endif /* _CFAG12864B_H_ */
- 
-diff -puN include/linux/ks0108.h~cfag12864b-fix-crash-when-built-in-and-no-parport include/linux/ks0108.h
---- a/include/linux/ks0108.h~cfag12864b-fix-crash-when-built-in-and-no-parport
-+++ a/include/linux/ks0108.h
-@@ -43,4 +43,7 @@ extern void ks0108_address(unsigned char
- /* Set the controller's current page (0..7) */
- extern void ks0108_page(unsigned char page);
- 
-+/* Is the module inited? */
-+extern unsigned char ks0108_isinited(void);
-+
- #endif /* _KS0108_H_ */
 _
 
-Patches currently in -mm which might be from maxextreme@gmail.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-cfag12864b-fix-crash-when-built-in-and-no-parport.patch
+git-block.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+posix-timers-rcu-optimization-for-clock_gettime.patch
+posix-timers-rcu-optimization-for-clock_gettime-fix.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+rework-compat_sys_io_submit.patch
+fix-aioh-includes.patch
+fix-access_ok-checks.patch
+make-good_sigevent-non-static.patch
+make-good_sigevent-non-static-fix.patch
+make-__sigqueue_free-and.patch
+aio-completion-signal-notification.patch
+aio-completion-signal-notification-fix.patch
+aio-completion-signal-notification-fixes-and-cleanups.patch
+aio-completion-signal-notification-small-cleanup.patch
+add-listio-syscall-support.patch
