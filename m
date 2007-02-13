@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + broken-config_compat_vdso-on-i386.patch added to -mm tree
-Date: Mon, 12 Feb 2007 23:27:17 -0800
-Message-ID: <200702130727.l1D7RHF2024946@shell0.pdx.osdl.net>
+Subject: + spi-atmel_spi-driver-fix.patch added to -mm tree
+Date: Tue, 13 Feb 2007 00:34:22 -0800
+Message-ID: <200702130834.l1D8YMii026175@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57607 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58829 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751158AbXBMH27 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 02:28:59 -0500
+	id S1751197AbXBMIef (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 03:34:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com, ak@muc.de, mingo@elte.hu, stable@kernel.org, yifeng@google.com
+Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com
 
 
 The patch titled
-     broken CONFIG_COMPAT_VDSO on i386
+     spi-atmel_spi-driver-fix
 has been added to the -mm tree.  Its filename is
-     broken-config_compat_vdso-on-i386.patch
+     spi-atmel_spi-driver-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: broken CONFIG_COMPAT_VDSO on i386
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: spi-atmel_spi-driver-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-After updating several machines to 2.6.20, I can't boot anymore the single
-one of them that supports the NX bit and is configured as a 32-bit system.
-
-My understanding is that the VDSO changes in 2.6.20-rc7 were not fully
-cooked, in that with that config option enabled VDSO_SYM(x) now equals x,
-meaning that an address in the fixmap area is now being passed to apps via
-AT_SYSINFO.  However, the page is mapped with PAGE_READONLY rather than
-PAGE_READONLY_EXEC.
-
-I'm not certain whether having app code go through the fixmap area is
-intended, but in case it is here is the simple patch that makes things work
-again.
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Yi Feng" <yifeng@google.com>
-Cc: <stable@kernel.org>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/sysenter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/atmel_spi.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/i386/kernel/sysenter.c~broken-config_compat_vdso-on-i386 arch/i386/kernel/sysenter.c
---- a/arch/i386/kernel/sysenter.c~broken-config_compat_vdso-on-i386
-+++ a/arch/i386/kernel/sysenter.c
-@@ -78,7 +78,7 @@ int __init sysenter_setup(void)
- 	syscall_pages[0] = virt_to_page(syscall_page);
+diff -puN drivers/spi/atmel_spi.c~spi-atmel_spi-driver-fix drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~spi-atmel_spi-driver-fix
++++ a/drivers/spi/atmel_spi.c
+@@ -159,7 +159,6 @@ static void atmel_spi_next_xfer(struct s
+ 		xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
+ 		xfer->rx_buf, xfer->rx_dma, spi_readl(as, IMR));
  
- #ifdef CONFIG_COMPAT_VDSO
--	__set_fixmap(FIX_VDSO, __pa(syscall_page), PAGE_READONLY);
-+	__set_fixmap(FIX_VDSO, __pa(syscall_page), PAGE_READONLY_EXEC);
- 	printk("Compat vDSO mapped to %08lx.\n", __fix_to_virt(FIX_VDSO));
- #endif
- 
+-	wmb();
+ 	spi_writel(as, TCR, len);
+ 	spi_writel(as, RCR, len);
+ 	spi_writel(as, PTCR, SPI_BIT(TXTEN) | SPI_BIT(RXTEN));
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-broken-config_compat_vdso-on-i386.patch
+git-acpi.patch
+git-acpi-fixup.patch
+git-agpgart.patch
+git-arm.patch
+git-cifs-fix.patch
+git-cpufreq.patch
+fix-warning-in-device_add_attrs.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-infiniband.patch
+sis-warning-fixes.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
+git-md-accel-fixes.patch
+git-md-accel-warning-fixes.patch
+git-md-accel-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+git-backlight.patch
+git-backlight-sony-fix.patch
+git-nfs-fixup.patch
+git-sh.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-unionfs-fixup.patch
+git-watchdog.patch
+revert-x86_64-mm-msr-on-cpu.patch
+x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+kprobes-list-all-active-probes-in-the-system.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-epoll-compat-code-to-kernel-compatc-tidy.patch
+spi-atmel_spi-driver-fix.patch
+revert-x86_64-mm-putreg-check.patch
+git-gccbug-fixup.patch
