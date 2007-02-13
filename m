@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-pit_latch_buggy-has-no-effect.patch added to -mm tree
-Date: Mon, 12 Feb 2007 21:19:00 -0800
-Message-ID: <200702130519.l1D5J0wi022462@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch added to -mm tree
+Date: Mon, 12 Feb 2007 21:12:58 -0800
+Message-ID: <200702130512.l1D5Cwgi022293@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54852 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54864 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161066AbXBMFTH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 00:19:07 -0500
+	id S1161022AbXBMFTY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 00:19:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: takada@mbf.nifty.com, ak@suse.de
+Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, linuxram@us.ibm.com, miklos@szeredi.hu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     i386: pit_latch_buggy has no effect
+     r/o bind mounts: elevate write count for link and symlink calls
 has been added to the -mm tree.  Its filename is
-     i386-pit_latch_buggy-has-no-effect.patch
+     r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: pit_latch_buggy has no effect
-From: takada <takada@mbf.nifty.com>
+Subject: r/o bind mounts: elevate write count for link and symlink calls
+From: Dave Hansen <hansendc@us.ibm.com>
 
-Eliminated the arch/i386/kernel/timers in 2.6.18, use clocksoures instead. 
-pit_latch_buggy was referred in timers/timer_tsc.c, and currently removed. 
-Therefore nobody refer it.
-
-Until 2.6.17, MediaGX's TSC works correctly.  after 2.6.18, warned "TSC
-appears to be running slowly.  Marking it as unstable".  So marked unstable
-TSC when CS55x0.
-
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cyrix.c |    2 +-
- arch/i386/kernel/time.c      |    2 --
- include/asm-i386/timer.h     |    2 --
- 3 files changed, 1 insertion(+), 5 deletions(-)
+ fs/namei.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN arch/i386/kernel/cpu/cyrix.c~i386-pit_latch_buggy-has-no-effect arch/i386/kernel/cpu/cyrix.c
---- a/arch/i386/kernel/cpu/cyrix.c~i386-pit_latch_buggy-has-no-effect
-+++ a/arch/i386/kernel/cpu/cyrix.c
-@@ -278,7 +278,7 @@ static void __cpuinit init_cyrix(struct 
- 		 *  The 5510/5520 companion chips have a funky PIT.
- 		 */  
- 		if (pci_dev_present(cyrix_55x0))
--			pit_latch_buggy = 1;
-+			mark_tsc_unstable();
- #endif
- 		c->x86_cache_size=16;	/* Yep 16K integrated cache thats it */
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls
++++ a/fs/namei.c
+@@ -2232,7 +2232,12 @@ asmlinkage long sys_symlinkat(const char
+ 	if (IS_ERR(dentry))
+ 		goto out_unlock;
  
-diff -puN arch/i386/kernel/time.c~i386-pit_latch_buggy-has-no-effect arch/i386/kernel/time.c
---- a/arch/i386/kernel/time.c~i386-pit_latch_buggy-has-no-effect
-+++ a/arch/i386/kernel/time.c
-@@ -70,8 +70,6 @@
- 
- #include <asm/i8259.h>
- 
--int pit_latch_buggy;              /* extern */
--
- #include "do_timer.h"
- 
- unsigned int cpu_khz;	/* Detected as we calibrate the TSC */
-diff -puN include/asm-i386/timer.h~i386-pit_latch_buggy-has-no-effect include/asm-i386/timer.h
---- a/include/asm-i386/timer.h~i386-pit_latch_buggy-has-no-effect
-+++ a/include/asm-i386/timer.h
-@@ -5,8 +5,6 @@
- 
- #define TICK_SIZE (tick_nsec / 1000)
- void setup_pit_timer(void);
--/* Modifiers for buggy PIT handling */
--extern int pit_latch_buggy;
- extern int timer_ack;
- extern int no_timer_check;
- extern unsigned long long (*custom_sched_clock)(void);
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
+ 	error = vfs_symlink(nd.dentry->d_inode, dentry, from, S_IALLUGO);
++	mnt_drop_write(nd.mnt);
++out_dput:
+ 	dput(dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+@@ -2327,7 +2332,12 @@ asmlinkage long sys_linkat(int olddfd, c
+ 	error = PTR_ERR(new_dentry);
+ 	if (IS_ERR(new_dentry))
+ 		goto out_unlock;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
+ 	error = vfs_link(old_nd.dentry, nd.dentry->d_inode, new_dentry);
++	mnt_drop_write(nd.mnt);
++out_dput:
+ 	dput(new_dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
 _
 
-Patches currently in -mm which might be from takada@mbf.nifty.com are
+Patches currently in -mm which might be from hansendc@us.ibm.com are
 
-i386-pit_latch_buggy-has-no-effect.patch
+r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
+r-o-bind-mounts-add-vfsmount-writer-counts.patch
+r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-mount_is_safe-add-comment.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-elevate-write-count-files-are-opened.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-elevate-writer-count-for-custom-struct_file.patch
+r-o-bind-mounts-gfs-check-nlink-count.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+r-o-bind-mounts-kill-open-files-traverse-on-remount-ro.patch
