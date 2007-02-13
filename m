@@ -1,91 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: + spi-atmel_spi-driver-fix.patch added to -mm tree
-Date: Tue, 13 Feb 2007 00:34:22 -0800
-Message-ID: <200702130834.l1D8YMii026175@shell0.pdx.osdl.net>
+Subject: - libata-warn-if-speed-limited-due-to-40-wire-cable.patch removed from -mm tree
+Date: Tue, 13 Feb 2007 09:26:52 -0800
+Message-ID: <200702131726.l1DHQsnQ003988@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58829 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45136 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751197AbXBMIef (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 03:34:35 -0500
+	id S1751317AbXBMR1h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 12:27:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com
+To: hancockr@shaw.ca, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi-atmel_spi-driver-fix
-has been added to the -mm tree.  Its filename is
-     spi-atmel_spi-driver-fix.patch
+     libata: warn if speed limited due to 40-wire cable
+has been removed from the -mm tree.  Its filename was
+     libata-warn-if-speed-limited-due-to-40-wire-cable.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: spi-atmel_spi-driver-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: libata: warn if speed limited due to 40-wire cable
+From: Robert Hancock <hancockr@shaw.ca>
 
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+Print an explicit warning when a device's UDMA mode is limited due to a
+40-wire cable being detected, so that users have some idea why their device
+isn't running as fast as it should.
+
+This moves the application of the drive's mode masks before the cable rule,
+so that can tell whether the rate is being limited by the cable and not the
+drive or controller.
+
+I haven't tested whether the message actually shows up, as my system isn't
+horked in this manner..
+
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/ata/libata-core.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN drivers/spi/atmel_spi.c~spi-atmel_spi-driver-fix drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~spi-atmel_spi-driver-fix
-+++ a/drivers/spi/atmel_spi.c
-@@ -159,7 +159,6 @@ static void atmel_spi_next_xfer(struct s
- 		xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
- 		xfer->rx_buf, xfer->rx_dma, spi_readl(as, IMR));
+diff -puN drivers/ata/libata-core.c~libata-warn-if-speed-limited-due-to-40-wire-cable drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-warn-if-speed-limited-due-to-40-wire-cable
++++ a/drivers/ata/libata-core.c
+@@ -3319,22 +3319,24 @@ static void ata_dev_xfermask(struct ata_
+ 	xfer_mask = ata_pack_xfermask(ap->pio_mask,
+ 				      ap->mwdma_mask, ap->udma_mask);
  
--	wmb();
- 	spi_writel(as, TCR, len);
- 	spi_writel(as, RCR, len);
- 	spi_writel(as, PTCR, SPI_BIT(TXTEN) | SPI_BIT(RXTEN));
++	/* drive modes available */
++	xfer_mask &= ata_pack_xfermask(dev->pio_mask,
++				       dev->mwdma_mask, dev->udma_mask);
++	xfer_mask &= ata_id_xfermask(dev->id);
++
+ 	/* Apply cable rule here.  Don't apply it early because when
+ 	 * we handle hot plug the cable type can itself change.
++	 * Unknown or 80 wire cables reported host side are checked
++	 * drive side as well. Cases where we know a 40wire cable
++	 * is used safely for 80 are not checked here.
+ 	 */
+-	if (ap->cbl == ATA_CBL_PATA40)
+-		xfer_mask &= ~(0xF8 << ATA_SHIFT_UDMA);
+-	/* Apply drive side cable rule. Unknown or 80 pin cables reported
+-	 * host side are checked drive side as well. Cases where we know a
+-	 * 40wire cable is used safely for 80 are not checked here.
+-	 */
+-        if (ata_drive_40wire(dev->id) && (ap->cbl == ATA_CBL_PATA_UNK || ap->cbl == ATA_CBL_PATA80))
++	if ((xfer_mask & (0xF8 << ATA_SHIFT_UDMA)) &&
++	    ((ap->cbl == ATA_CBL_PATA40) ||
++	     (ata_drive_40wire(dev->id) &&
++	      (ap->cbl == ATA_CBL_PATA_UNK || ap->cbl == ATA_CBL_PATA80)))) {
++	      	ata_dev_printk(dev, KERN_WARNING, "limited to UDMA2 due to 40-wire cable\n");
+ 		xfer_mask &= ~(0xF8 << ATA_SHIFT_UDMA);
+-
+-
+-	xfer_mask &= ata_pack_xfermask(dev->pio_mask,
+-				       dev->mwdma_mask, dev->udma_mask);
+-	xfer_mask &= ata_id_xfermask(dev->id);
++	}
+ 
+ 	/*
+ 	 *	CFA Advanced TrueIDE timings are not allowed on a shared
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
 origin.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-agpgart.patch
-git-arm.patch
-git-cifs-fix.patch
-git-cpufreq.patch
-fix-warning-in-device_add_attrs.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-infiniband.patch
-sis-warning-fixes.patch
+libata-warn-if-speed-limited-due-to-40-wire-cable.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
 sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-md-accel-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-git-backlight.patch
-git-backlight-sony-fix.patch
-git-nfs-fixup.patch
-git-sh.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-unionfs-fixup.patch
-git-watchdog.patch
-revert-x86_64-mm-msr-on-cpu.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-kprobes-list-all-active-probes-in-the-system.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-epoll-compat-code-to-kernel-compatc-tidy.patch
-spi-atmel_spi-driver-fix.patch
-revert-x86_64-mm-putreg-check.patch
-git-gccbug-fixup.patch
+sata_nv-handle-serror-status-indication.patch
