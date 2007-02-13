@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-variable-usage-in-mesh-interrupt-handler.patch added to -mm tree
-Date: Mon, 12 Feb 2007 21:39:23 -0800
-Message-ID: <200702130539.l1D5dNMo022774@shell0.pdx.osdl.net>
+Subject: + x86_64-i386-compat-wire-up-sys_epoll_pwait.patch added to -mm tree
+Date: Mon, 12 Feb 2007 21:40:28 -0800
+Message-ID: <200702130540.l1D5eSo6022814@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55347 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55401 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161082AbXBMFj1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Feb 2007 00:39:27 -0500
+	id S1161086AbXBMFnw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Feb 2007 00:43:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olaf@aepfle.de, James.Bottomley@steeleye.com
+Cc: ralf@linux-mips.org, ak@muc.de
 
 
 The patch titled
-     cleanup variable usage in mesh interrupt handler
+     x86_64 i386 compat: wire up sys_epoll_pwait()
 has been added to the -mm tree.  Its filename is
-     cleanup-variable-usage-in-mesh-interrupt-handler.patch
+     x86_64-i386-compat-wire-up-sys_epoll_pwait.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cleanup variable usage in mesh interrupt handler
-From: Olaf Hering <olaf@aepfle.de>
+Subject: x86_64 i386 compat: wire up sys_epoll_pwait()
+From: Ralf Baechle <ralf@linux-mips.org>
 
-_ convert void* to struct mesh_state*
-
-- remove unused irq argument from mesh_interrupt()
-
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mesh.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/x86_64/ia32/ia32entry.S |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/mesh.c~cleanup-variable-usage-in-mesh-interrupt-handler drivers/scsi/mesh.c
---- a/drivers/scsi/mesh.c~cleanup-variable-usage-in-mesh-interrupt-handler
-+++ a/drivers/scsi/mesh.c
-@@ -185,7 +185,7 @@ struct mesh_state {
-  * Driver is too messy, we need a few prototypes...
-  */
- static void mesh_done(struct mesh_state *ms, int start_next);
--static void mesh_interrupt(int irq, void *dev_id);
-+static void mesh_interrupt(struct mesh_state *ms);
- static void cmd_complete(struct mesh_state *ms);
- static void set_dma_cmds(struct mesh_state *ms, struct scsi_cmnd *cmd);
- static void halt_dma(struct mesh_state *ms);
-@@ -466,7 +466,7 @@ static void mesh_start_cmd(struct mesh_s
- 				dlog(ms, "intr b4 arb, intr/exc/err/fc=%.8x",
- 				     MKWORD(mr->interrupt, mr->exception,
- 					    mr->error, mr->fifo_count));
--				mesh_interrupt(0, (void *)ms);
-+				mesh_interrupt(ms);
- 				if (ms->phase != arbitrating)
- 					return;
- 			}
-@@ -504,7 +504,7 @@ static void mesh_start_cmd(struct mesh_s
- 		dlog(ms, "intr after disresel, intr/exc/err/fc=%.8x",
- 		     MKWORD(mr->interrupt, mr->exception,
- 			    mr->error, mr->fifo_count));
--		mesh_interrupt(0, (void *)ms);
-+		mesh_interrupt(ms);
- 		if (ms->phase != arbitrating)
- 			return;
- 		dlog(ms, "after intr after disresel, intr/exc/err/fc=%.8x",
-@@ -1018,10 +1018,11 @@ static void handle_reset(struct mesh_sta
- static irqreturn_t do_mesh_interrupt(int irq, void *dev_id)
- {
- 	unsigned long flags;
--	struct Scsi_Host *dev = ((struct mesh_state *)dev_id)->host;
-+	struct mesh_state *ms = dev_id;
-+	struct Scsi_Host *dev = ms->host;
- 	
- 	spin_lock_irqsave(dev->host_lock, flags);
--	mesh_interrupt(irq, dev_id);
-+	mesh_interrupt(ms);
- 	spin_unlock_irqrestore(dev->host_lock, flags);
- 	return IRQ_HANDLED;
- }
-@@ -1661,9 +1662,8 @@ static int mesh_queue(struct scsi_cmnd *
-  * handler (do_mesh_interrupt) or by other functions in
-  * exceptional circumstances
-  */
--static void mesh_interrupt(int irq, void *dev_id)
-+static void mesh_interrupt(struct mesh_state *ms)
- {
--	struct mesh_state *ms = (struct mesh_state *) dev_id;
- 	volatile struct mesh_regs __iomem *mr = ms->mesh;
- 	int intr;
- 
+diff -puN arch/x86_64/ia32/ia32entry.S~x86_64-i386-compat-wire-up-sys_epoll_pwait arch/x86_64/ia32/ia32entry.S
+--- a/arch/x86_64/ia32/ia32entry.S~x86_64-i386-compat-wire-up-sys_epoll_pwait
++++ a/arch/x86_64/ia32/ia32entry.S
+@@ -730,4 +730,5 @@ ia32_sys_call_table:
+ 	.quad compat_sys_vmsplice
+ 	.quad compat_sys_move_pages
+ 	.quad sys_getcpu
++	.quad sys_epoll_pwait
+ ia32_syscall_end:		
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-move-variables-in-drivers-macintosh-to-bss.patch
-add-delay-around-sl82c105_reset_engine-calls.patch
-cleanup-variable-usage-in-mesh-interrupt-handler.patch
+git-mips.patch
+mips-remove-smp_tune_scheduling.patch
+fix-pnx8550-serial-breakage.patch
+pnx8550-uart-driver.patch
+pnx8550-uart-driver-fixes.patch
+make-cardbus_mem_size-and-cardbus_io_size-boot-options.patch
+x86_64-i386-compat-wire-up-sys_epoll_pwait.patch
+simplify-the-stacktrace-code.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+clocksource-fixup-is_continous-changes-on-mips.patch
+sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
+sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
+sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
+sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
+sysctl-mips-au1000-remove-sys_sysctl-support.patch
+sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
+sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
+sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
+sysctl-remove-insert_at_head-from-register_sysctl.patch
