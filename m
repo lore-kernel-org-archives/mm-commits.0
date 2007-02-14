@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-atl1-braino.patch added to -mm tree
-Date: Wed, 14 Feb 2007 13:46:07 -0800
-Message-ID: <200702142146.l1ELkiDY010259@shell0.pdx.osdl.net>
+Subject: + mm-remove-gcc-workaround.patch added to -mm tree
+Date: Wed, 14 Feb 2007 13:50:22 -0800
+Message-ID: <200702142150.l1ELoVHS010367@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47496 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47773 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964781AbXBNVrU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 16:47:20 -0500
+	id S932445AbXBNVuf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 16:50:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viro@ftp.linux.org.uk, jeff@garzik.org, viro@zeniv.linux.org.uk
+Cc: npiggin@suse.de
 
 
 The patch titled
-     fix atl1 braino
+     mm: remove gcc workaround
 has been added to the -mm tree.  Its filename is
-     fix-atl1-braino.patch
+     mm-remove-gcc-workaround.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix atl1 braino
-From: Al Viro <viro@ftp.linux.org.uk>
+Subject: mm: remove gcc workaround
+From: Nick Piggin <npiggin@suse.de>
 
-Spot the bug...
+Minimum gcc version is 3.2 now.
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1/atl1_hw.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |   12 ------------
+ 1 files changed, 12 deletions(-)
 
-diff -puN drivers/net/atl1/atl1_hw.c~fix-atl1-braino drivers/net/atl1/atl1_hw.c
---- a/drivers/net/atl1/atl1_hw.c~fix-atl1-braino
-+++ a/drivers/net/atl1/atl1_hw.c
-@@ -357,7 +357,7 @@ void atl1_hash_set(struct atl1_hw *hw, u
- 	 */
- 	hash_reg = (hash_value >> 31) & 0x1;
- 	hash_bit = (hash_value >> 26) & 0x1F;
--	mta = ioread32((hw + REG_RX_HASH_TABLE) + (hash_reg << 2));
-+	mta = ioread32((hw->hw_addr + REG_RX_HASH_TABLE) + (hash_reg << 2));
- 	mta |= (1 << hash_bit);
- 	iowrite32(mta, (hw->hw_addr + REG_RX_HASH_TABLE) + (hash_reg << 2));
+diff -puN mm/memory.c~mm-remove-gcc-workaround mm/memory.c
+--- a/mm/memory.c~mm-remove-gcc-workaround
++++ a/mm/memory.c
+@@ -2539,12 +2539,6 @@ int __pud_alloc(struct mm_struct *mm, pg
+ 	spin_unlock(&mm->page_table_lock);
+ 	return 0;
  }
+-#else
+-/* Workaround for gcc 2.96 */
+-int __pud_alloc(struct mm_struct *mm, pgd_t *pgd, unsigned long address)
+-{
+-	return 0;
+-}
+ #endif /* __PAGETABLE_PUD_FOLDED */
+ 
+ #ifndef __PAGETABLE_PMD_FOLDED
+@@ -2573,12 +2567,6 @@ int __pmd_alloc(struct mm_struct *mm, pu
+ 	spin_unlock(&mm->page_table_lock);
+ 	return 0;
+ }
+-#else
+-/* Workaround for gcc 2.96 */
+-int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
+-{
+-	return 0;
+-}
+ #endif /* __PAGETABLE_PMD_FOLDED */
+ 
+ int make_pages_present(unsigned long addr, unsigned long end)
 _
 
-Patches currently in -mm which might be from viro@ftp.linux.org.uk are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-git-acpi.patch
-fix-atl1-braino.patch
-slab-leaks3-default-y.patch
+git-block.patch
+mm-remove-gcc-workaround.patch
+fs-fix-__block_write_full_page-error-case-buffer-submission.patch
