@@ -1,73 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch removed from -mm tree
-Date: Tue, 13 Feb 2007 22:58:11 -0800
-Message-ID: <200702140658.l1E6wBLA023817@shell0.pdx.osdl.net>
+Subject: - sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch removed from -mm tree
+Date: Tue, 13 Feb 2007 22:58:48 -0800
+Message-ID: <200702140658.l1E6wmYn023829@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43957 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43964 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751145AbXBNG6N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 01:58:13 -0500
+	id S1751146AbXBNG6t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 01:58:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry warning fix
+     sysctl-factor-out-sysctl_head_next-from-do_sysctl warning fix
 has been removed from the -mm tree.  Its filename was
-     sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+     sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
 
-This patch was dropped because it was folded into sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
+This patch was dropped because it was folded into sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
 
 ------------------------------------------------------
-Subject: sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry warning fix
+Subject: sysctl-factor-out-sysctl_head_next-from-do_sysctl warning fix
 From: Andrew Morton <akpm@osdl.org>
 
-kernel/sysctl.c:1046: warning: 'binfmt_misc_table' defined but not used
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ kernel/sysctl.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix
+diff -puN kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix
 +++ a/kernel/sysctl.c
-@@ -150,7 +150,6 @@ static struct ctl_table_header root_tabl
- static ctl_table kern_table[];
- static ctl_table vm_table[];
- static ctl_table fs_table[];
--static ctl_table binfmt_misc_table[];
- static ctl_table debug_table[];
- static ctl_table dev_table[];
- extern ctl_table random_table[];
-@@ -920,6 +919,12 @@ static ctl_table vm_table[] = {
- 	{ .ctl_name = 0 }
- };
+@@ -1156,7 +1156,6 @@ int do_sysctl(int __user *name, int nlen
+ 	       void __user *newval, size_t newlen)
+ {
+ 	struct ctl_table_header *head;
+-	struct list_head *tmp;
+ 	int error = -ENOTDIR;
  
-+#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
-+static ctl_table binfmt_misc_table[] = {
-+	{ .ctl_name = 0 }
-+};
-+#endif
-+
- static ctl_table fs_table[] = {
- 	{
- 		.ctl_name	= FS_NRINODE,
-@@ -1054,10 +1059,6 @@ static ctl_table fs_table[] = {
- 	{ .ctl_name = 0 }
- };
+ 	if (nlen <= 0 || nlen >= CTL_MAXNAME)
+@@ -1167,8 +1166,8 @@ int do_sysctl(int __user *name, int nlen
+ 			return -EFAULT;
+ 	}
  
--static ctl_table binfmt_misc_table[] = {
--	{ .ctl_name = 0 }
--};
+-	for (head = sysctl_head_next(NULL); head; head = sysctl_head_next(head)) {
 -
- static ctl_table debug_table[] = {
- 	{ .ctl_name = 0 }
- };
++	for (head = sysctl_head_next(NULL); head;
++			head = sysctl_head_next(head)) {
+ 		error = parse_table(name, nlen, oldval, oldlenp, 
+ 					newval, newlen, head->ctl_table);
+ 		if (error != -ENOTDIR) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -77,7 +62,7 @@ scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
 sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
 sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
 sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
+sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
 sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
 sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
 sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
