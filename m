@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ppc64-kdump-documentation-update-for-2620.patch added to -mm tree
-Date: Wed, 14 Feb 2007 15:11:39 -0800
-Message-ID: <200702142311.l1ENBdQi012339@shell0.pdx.osdl.net>
+Subject: + i386-adjustments-to-page-table-dump-during-oops-v3.patch added to -mm tree
+Date: Wed, 14 Feb 2007 15:26:33 -0800
+Message-ID: <200702142326.l1ENQX5Y012661@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50436 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50678 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964814AbXBNXLu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 18:11:50 -0500
+	id S964786AbXBNX0q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 18:26:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: horms@verge.net.au, mohan@in.ibm.com, paulus@samba.org, vgoyal@in.ibm.com
+Cc: jbeulich@novell.com, ak@suse.de
 
 
 The patch titled
-     PPC64 Kdump documentation update
+     i386: adjustments to page table dump during oops (v3)
 has been added to the -mm tree.  Its filename is
-     ppc64-kdump-documentation-update-for-2620.patch
+     i386-adjustments-to-page-table-dump-during-oops-v3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,94 +25,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PPC64 Kdump documentation update
-From: Simon Horman <horms@verge.net.au>
+Subject: i386: adjustments to page table dump during oops (v3)
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Patch from Mohan Kumar M to add the ppc64 portions of the kdump
-documentation.
+- make the page table contents printing PAE capable
+- make sure the address stored in current->thread.cr2 is unmodified from
+  what was read from CR2
+- don't call oops_may_print() multiple times, when one time suffices
+- print pte even in highpte case, as long as the pte page isn't in
+  actually in high memory (which is specifically the case for all page
+  tables covering kernel space)
 
-http://thread.gmane.org/gmane.linux.kernel/481689/focus=3375
-
-Cc: Mohan Kumar M <mohan@in.ibm.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/kdump.txt |   24 +++++++++++++-----------
- 1 files changed, 13 insertions(+), 11 deletions(-)
+ arch/i386/mm/fault.c |   54 +++++++++++++++++++++++++----------------
+ 1 files changed, 34 insertions(+), 20 deletions(-)
 
-diff -puN Documentation/kdump/kdump.txt~ppc64-kdump-documentation-update-for-2620 Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~ppc64-kdump-documentation-update-for-2620
-+++ a/Documentation/kdump/kdump.txt
-@@ -30,6 +30,10 @@ On x86 machines, the first 640 KB of phy
- regardless of where the kernel loads. Therefore, kexec backs up this
- region just before rebooting into the dump-capture kernel.
+diff -puN arch/i386/mm/fault.c~i386-adjustments-to-page-table-dump-during-oops-v3 arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~i386-adjustments-to-page-table-dump-during-oops-v3
++++ a/arch/i386/mm/fault.c
+@@ -20,6 +20,7 @@
+ #include <linux/tty.h>
+ #include <linux/vt_kern.h>		/* For unblank_screen() */
+ #include <linux/highmem.h>
++#include <linux/bootmem.h>		/* for max_low_pfn */
+ #include <linux/module.h>
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
+@@ -301,7 +302,6 @@ fastcall void __kprobes do_page_fault(st
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct * vma;
+ 	unsigned long address;
+-	unsigned long page;
+ 	int write, si_code;
  
-+Similarly on PPC64 machines first 32KB of physical memory is needed for
-+booting regardless of where the kernel is loaded and to support 64K page
-+size kexec backs up the first 64KB memory.
+ 	/* get the address */
+@@ -510,7 +510,9 @@ no_context:
+ 	bust_spinlocks(1);
+ 
+ 	if (oops_may_print()) {
+-	#ifdef CONFIG_X86_PAE
++		__typeof__(pte_val(__pte(0))) page;
 +
- All of the necessary information about the system kernel's core image is
- encoded in the ELF format, and stored in a reserved area of memory
- before a crash. The physical address of the start of the ELF header is
-@@ -224,7 +228,7 @@ Dump-capture kernel config options (Arch
- Dump-capture kernel config options (Arch Dependent, ppc64)
- ----------------------------------------------------------
++#ifdef CONFIG_X86_PAE
+ 		if (error_code & 16) {
+ 			pte_t *pte = lookup_address(address);
  
---  Make and install the kernel and its modules. DO NOT add this kernel
-+*  Make and install the kernel and its modules. DO NOT add this kernel
-    to the boot loader configuration files.
- 
- Dump-capture kernel config options (Arch Dependent, ia64)
-@@ -251,8 +255,8 @@ Dump-capture kernel config options (Arch
- Boot into System Kernel
- =======================
- 
--1) Make and install the kernel and its modules. Update the boot loader
--   (such as grub, yaboot, or lilo) configuration files as necessary.
-+1) Update the boot loader (such as grub, yaboot, or lilo) configuration
-+   files as necessary.
- 
- 2) Boot the system kernel with the boot parameter "crashkernel=Y@X",
-    where Y specifies how much memory to reserve for the dump-capture kernel
-@@ -356,10 +360,11 @@ If die() is called, and it happens to be
- is called inside interrupt context or die() is called and panic_on_oops is set,
- the system will boot into the dump-capture kernel.
- 
--On powererpc systems when a soft-reset is generated, die() is called by all cpus and the system will boot into the dump-capture kernel.
-+On powererpc systems when a soft-reset is generated, die() is called by all cpus
-+and the system will boot into the dump-capture kernel.
- 
- For testing purposes, you can trigger a crash by using "ALT-SysRq-c",
--"echo c > /proc/sysrq-trigger or write a module to force the panic.
-+"echo c > /proc/sysrq-trigger" or write a module to force the panic.
- 
- Write Out the Dump File
- =======================
-@@ -410,12 +415,9 @@ format. Crash is available on Dave Ander
- To Do
- =====
- 
--1) Provide a kernel pages filtering mechanism, so core file size is not
--   extreme on systems with huge memory banks.
--
--2) Relocatable kernel can help in maintaining multiple kernels for
--   crash_dump, and the same kernel as the system kernel can be used to
--   capture the dump.
-+1) Provide relocatable kernels for all architectures to help in maintaining
-+   multiple kernels for crash_dump, and the same kernel as the system kernel
-+   can be used to capture the dump.
- 
- 
- Contact
+@@ -519,7 +521,7 @@ no_context:
+ 					"NX-protected page - exploit attempt? "
+ 					"(uid: %d)\n", current->uid);
+ 		}
+-	#endif
++#endif
+ 		if (address < PAGE_SIZE)
+ 			printk(KERN_ALERT "BUG: unable to handle kernel NULL "
+ 					"pointer dereference");
+@@ -529,25 +531,37 @@ no_context:
+ 		printk(" at virtual address %08lx\n",address);
+ 		printk(KERN_ALERT " printing eip:\n");
+ 		printk("%08lx\n", regs->eip);
+-	}
+-	page = read_cr3();
+-	page = ((unsigned long *) __va(page))[address >> 22];
+-	if (oops_may_print())
++
++		page = read_cr3();
++		page = ((__typeof__(page) *) __va(page))[address >> PGDIR_SHIFT];
++#ifdef CONFIG_X86_PAE
++		printk(KERN_ALERT "*pdpt = %0*Lx\n", sizeof(page)*4, (u64)page);
++		if (page & _PAGE_PRESENT) {
++			page &= PAGE_MASK;
++			page = ((__typeof__(page) *) __va(page))[(address >> PMD_SHIFT)
++			                                         & (PTRS_PER_PMD - 1)];
++			printk(KERN_ALERT "*pde = %016Lx\n", page);
++			page &= ~_PAGE_NX;
++		}
++#else
+ 		printk(KERN_ALERT "*pde = %08lx\n", page);
+-	/*
+-	 * We must not directly access the pte in the highpte
+-	 * case, the page table might be allocated in highmem.
+-	 * And lets rather not kmap-atomic the pte, just in case
+-	 * it's allocated already.
+-	 */
+-#ifndef CONFIG_HIGHPTE
+-	if ((page & 1) && oops_may_print()) {
+-		page &= PAGE_MASK;
+-		address &= 0x003ff000;
+-		page = ((unsigned long *) __va(page))[address >> PAGE_SHIFT];
+-		printk(KERN_ALERT "*pte = %08lx\n", page);
+-	}
+ #endif
++
++		/*
++		 * We must not directly access the pte in the highpte
++		 * case if the page table is located in highmem.
++		 * And let's rather not kmap-atomic the pte, just in case
++		 * it's allocated already.
++		 */
++		if ((page >> PAGE_SHIFT) < max_low_pfn
++		    && (page & _PAGE_PRESENT)) {
++			page &= PAGE_MASK;
++			page = ((__typeof__(page) *) __va(page))[(address >> PAGE_SHIFT)
++			                                         & (PTRS_PER_PTE - 1)];
++			printk(KERN_ALERT "*pte = %0*Lx\n", sizeof(page)*4, (u64)page);
++		}
++	}
++
+ 	tsk->thread.cr2 = address;
+ 	tsk->thread.trap_no = 14;
+ 	tsk->thread.error_code = error_code;
 _
 
-Patches currently in -mm which might be from horms@verge.net.au are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
-git-ia64.patch
-ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch
-update-osdl-linux-foundation-maintainer-addresses.patch
-ppc64-kdump-documentation-update-for-2620.patch
+broken-config_compat_vdso-on-i386.patch
+x86-fatal-kernel-faults-should-update-thread-struct.patch
+i386-adjustments-to-page-table-dump-during-oops-v3.patch
+small-irq-management-simplification.patch
+x86-mtrr-range-check-correction.patch
+x86-consolidate-smp_send_stop.patch
