@@ -1,81 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch removed from -mm tree
-Date: Tue, 13 Feb 2007 23:02:29 -0800
-Message-ID: <200702140702.l1E72TPN023957@shell0.pdx.osdl.net>
+Subject: - sysctl-reimplement-the-sysctl-proc-support-fix-3.patch removed from -mm tree
+Date: Tue, 13 Feb 2007 22:59:26 -0800
+Message-ID: <200702140659.l1E6xQi2023854@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44030 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44037 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932174AbXBNHCa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 02:02:30 -0500
+	id S932168AbXBNHCj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 02:02:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables ntfs fix
+     fs/proc/: make code static
 has been removed from the -mm tree.  Its filename was
-     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
+     sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
 
-This patch was dropped because it was folded into sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
+This patch was dropped because it was folded into sysctl-reimplement-the-sysctl-proc-support.patch
 
 ------------------------------------------------------
-Subject: sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables ntfs fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: fs/proc/: make code static
+From: Adrian Bunk <bunk@stusta.de>
 
-Is this right?
+proc_match() and struct proc_sys_root can now become static.
 
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/sysctl.c |    8 --------
- 1 file changed, 8 deletions(-)
+ fs/proc/generic.c       |    2 +-
+ fs/proc/proc_sysctl.c   |    2 +-
+ include/linux/proc_fs.h |    2 --
+ 3 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/ntfs/sysctl.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix fs/ntfs/sysctl.c
---- a/fs/ntfs/sysctl.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix
-+++ a/fs/ntfs/sysctl.c
-@@ -73,14 +73,6 @@ int ntfs_sysctl(int add)
- 		sysctls_root_table = register_sysctl_table(sysctls_root);
- 		if (!sysctls_root_table)
- 			return -ENOMEM;
--#ifdef CONFIG_PROC_FS
--		/*
--		 * If the proc filesystem is in use and we are a module, need
--		 * to set the owner of our proc entry to our module. In the
--		 * non-modular case, THIS_MODULE is NULL, so this is ok.
--		 */
--		ntfs_sysctls[0].de->owner = THIS_MODULE;
--#endif
- 	} else {
- 		BUG_ON(!sysctls_root_table);
- 		unregister_sysctl_table(sysctls_root_table);
+diff -puN fs/proc/generic.c~sysctl-reimplement-the-sysctl-proc-support-fix-3 fs/proc/generic.c
+--- a/fs/proc/generic.c~sysctl-reimplement-the-sysctl-proc-support-fix-3
++++ a/fs/proc/generic.c
+@@ -32,7 +32,7 @@ static loff_t proc_file_lseek(struct fil
+ 
+ DEFINE_SPINLOCK(proc_subdir_lock);
+ 
+-int proc_match(int len, const char *name, struct proc_dir_entry *de)
++static int proc_match(int len, const char *name, struct proc_dir_entry *de)
+ {
+ 	if (de->namelen != len)
+ 		return 0;
+diff -puN fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix-3 fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~sysctl-reimplement-the-sysctl-proc-support-fix-3
++++ a/fs/proc/proc_sysctl.c
+@@ -466,7 +466,7 @@ static struct dentry_operations proc_sys
+ 	.d_revalidate	= proc_sys_revalidate,
+ };
+ 
+-struct proc_dir_entry *proc_sys_root;
++static struct proc_dir_entry *proc_sys_root;
+ 
+ int proc_sys_init(void)
+ {
+diff -puN include/linux/proc_fs.h~sysctl-reimplement-the-sysctl-proc-support-fix-3 include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~sysctl-reimplement-the-sysctl-proc-support-fix-3
++++ a/include/linux/proc_fs.h
+@@ -130,8 +130,6 @@ extern struct vfsmount *proc_mnt;
+ extern int proc_fill_super(struct super_block *,void *,int);
+ extern struct inode *proc_get_inode(struct super_block *, unsigned int, struct proc_dir_entry *);
+ 
+-extern int proc_match(int, const char *,struct proc_dir_entry *);
+-
+ /*
+  * These are generic /proc routines that use the internal
+  * "struct proc_dir_entry" tree to traverse the filesystem.
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-ata-fix.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
 sysctl-reimplement-the-sysctl-proc-support.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
