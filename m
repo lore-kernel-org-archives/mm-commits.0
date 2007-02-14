@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + i386-adjustments-to-page-table-dump-during-oops-v3.patch added to -mm tree
-Date: Wed, 14 Feb 2007 15:26:33 -0800
-Message-ID: <200702142326.l1ENQX5Y012661@shell0.pdx.osdl.net>
+Subject: + x86-consolidate-smp_send_stop.patch added to -mm tree
+Date: Wed, 14 Feb 2007 15:26:39 -0800
+Message-ID: <200702142326.l1ENQd1E012673@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50678 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50677 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964786AbXBNX0q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 18:26:46 -0500
+	id S1751360AbXBNX0o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 18:26:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jbeulich@novell.com, ak@suse.de
 
 
 The patch titled
-     i386: adjustments to page table dump during oops (v3)
+     x86: consolidate smp_send_stop()
 has been added to the -mm tree.  Its filename is
-     i386-adjustments-to-page-table-dump-during-oops-v3.patch
+     x86-consolidate-smp_send_stop.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,119 +25,205 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: adjustments to page table dump during oops (v3)
+Subject: x86: consolidate smp_send_stop()
 From: "Jan Beulich" <jbeulich@novell.com>
 
-- make the page table contents printing PAE capable
-- make sure the address stored in current->thread.cr2 is unmodified from
-  what was read from CR2
-- don't call oops_may_print() multiple times, when one time suffices
-- print pte even in highpte case, as long as the pte page isn't in
-  actually in high memory (which is specifically the case for all page
-  tables covering kernel space)
+Synchronize i386's smp_send_stop() with x86-64's in only try-locking the call
+lock to prevent deadlocks when called from panic().  In both version, disable
+interrupts before clearing the CPU off the online map to eliminate races with
+IRQ handlers inspecting this map.  Also in both versions, save/restore
+interrupts rather than disabling/ enabling them.
+
+On x86-64, eliminate one function used here by folding it into its single
+caller, convert to static, and rename for consistency with i386 (lkcd may like
+this).
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/fault.c |   54 +++++++++++++++++++++++++----------------
- 1 files changed, 34 insertions(+), 20 deletions(-)
+ arch/i386/kernel/smp.c   |   70 ++++++++++++++++++++-----------------
+ arch/x86_64/kernel/smp.c |   28 +++++---------
+ include/asm-x86_64/smp.h |    1 
+ 3 files changed, 49 insertions(+), 50 deletions(-)
 
-diff -puN arch/i386/mm/fault.c~i386-adjustments-to-page-table-dump-during-oops-v3 arch/i386/mm/fault.c
---- a/arch/i386/mm/fault.c~i386-adjustments-to-page-table-dump-during-oops-v3
-+++ a/arch/i386/mm/fault.c
-@@ -20,6 +20,7 @@
- #include <linux/tty.h>
- #include <linux/vt_kern.h>		/* For unblank_screen() */
- #include <linux/highmem.h>
-+#include <linux/bootmem.h>		/* for max_low_pfn */
- #include <linux/module.h>
- #include <linux/kprobes.h>
- #include <linux/uaccess.h>
-@@ -301,7 +302,6 @@ fastcall void __kprobes do_page_fault(st
- 	struct mm_struct *mm;
- 	struct vm_area_struct * vma;
- 	unsigned long address;
--	unsigned long page;
- 	int write, si_code;
+diff -puN arch/i386/kernel/smp.c~x86-consolidate-smp_send_stop arch/i386/kernel/smp.c
+--- a/arch/i386/kernel/smp.c~x86-consolidate-smp_send_stop
++++ a/arch/i386/kernel/smp.c
+@@ -516,35 +516,14 @@ void unlock_ipi_call_lock(void)
  
- 	/* get the address */
-@@ -510,7 +510,9 @@ no_context:
- 	bust_spinlocks(1);
+ static struct call_data_struct *call_data;
  
- 	if (oops_may_print()) {
--	#ifdef CONFIG_X86_PAE
-+		__typeof__(pte_val(__pte(0))) page;
-+
-+#ifdef CONFIG_X86_PAE
- 		if (error_code & 16) {
- 			pte_t *pte = lookup_address(address);
+-/**
+- * smp_call_function(): Run a function on all other CPUs.
+- * @func: The function to run. This must be fast and non-blocking.
+- * @info: An arbitrary pointer to pass to the function.
+- * @nonatomic: currently unused.
+- * @wait: If true, wait (atomically) until function has completed on other CPUs.
+- *
+- * Returns 0 on success, else a negative status code. Does not return until
+- * remote CPUs are nearly ready to execute <<func>> or are or have executed.
+- *
+- * You must not call this function with disabled interrupts or from a
+- * hardware interrupt handler or from a bottom half handler.
+- */
+-int smp_call_function (void (*func) (void *info), void *info, int nonatomic,
+-			int wait)
++static void __smp_call_function(void (*func) (void *info), void *info,
++				int nonatomic, int wait)
+ {
+ 	struct call_data_struct data;
+-	int cpus;
++	int cpus = num_online_cpus() - 1;
  
-@@ -519,7 +521,7 @@ no_context:
- 					"NX-protected page - exploit attempt? "
- 					"(uid: %d)\n", current->uid);
- 		}
--	#endif
-+#endif
- 		if (address < PAGE_SIZE)
- 			printk(KERN_ALERT "BUG: unable to handle kernel NULL "
- 					"pointer dereference");
-@@ -529,25 +531,37 @@ no_context:
- 		printk(" at virtual address %08lx\n",address);
- 		printk(KERN_ALERT " printing eip:\n");
- 		printk("%08lx\n", regs->eip);
+-	/* Holding any lock stops cpus from going down. */
+-	spin_lock(&call_lock);
+-	cpus = num_online_cpus() - 1;
+-	if (!cpus) {
+-		spin_unlock(&call_lock);
+-		return 0;
 -	}
--	page = read_cr3();
--	page = ((unsigned long *) __va(page))[address >> 22];
--	if (oops_may_print())
+-
+-	/* Can deadlock when called with interrupts disabled */
+-	WARN_ON(irqs_disabled());
++	if (!cpus)
++		return;
+ 
+ 	data.func = func;
+ 	data.info = info;
+@@ -566,6 +545,30 @@ int smp_call_function (void (*func) (voi
+ 	if (wait)
+ 		while (atomic_read(&data.finished) != cpus)
+ 			cpu_relax();
++}
 +
-+		page = read_cr3();
-+		page = ((__typeof__(page) *) __va(page))[address >> PGDIR_SHIFT];
-+#ifdef CONFIG_X86_PAE
-+		printk(KERN_ALERT "*pdpt = %0*Lx\n", sizeof(page)*4, (u64)page);
-+		if (page & _PAGE_PRESENT) {
-+			page &= PAGE_MASK;
-+			page = ((__typeof__(page) *) __va(page))[(address >> PMD_SHIFT)
-+			                                         & (PTRS_PER_PMD - 1)];
-+			printk(KERN_ALERT "*pde = %016Lx\n", page);
-+			page &= ~_PAGE_NX;
-+		}
-+#else
- 		printk(KERN_ALERT "*pde = %08lx\n", page);
--	/*
--	 * We must not directly access the pte in the highpte
--	 * case, the page table might be allocated in highmem.
--	 * And lets rather not kmap-atomic the pte, just in case
--	 * it's allocated already.
--	 */
--#ifndef CONFIG_HIGHPTE
--	if ((page & 1) && oops_may_print()) {
--		page &= PAGE_MASK;
--		address &= 0x003ff000;
--		page = ((unsigned long *) __va(page))[address >> PAGE_SHIFT];
--		printk(KERN_ALERT "*pte = %08lx\n", page);
++/**
++ * smp_call_function(): Run a function on all other CPUs.
++ * @func: The function to run. This must be fast and non-blocking.
++ * @info: An arbitrary pointer to pass to the function.
++ * @nonatomic: currently unused.
++ * @wait: If true, wait (atomically) until function has completed on other CPUs.
++ *
++ * Returns 0 on success, else a negative status code. Does not return until
++ * remote CPUs are nearly ready to execute <<func>> or are or have executed.
++ *
++ * You must not call this function with disabled interrupts or from a
++ * hardware interrupt handler or from a bottom half handler.
++ */
++int smp_call_function (void (*func) (void *info), void *info, int nonatomic,
++			int wait)
++{
++	/* Can deadlock when called with interrupts disabled */
++	WARN_ON(irqs_disabled());
++
++	/* Holding any lock stops cpus from going down. */
++	spin_lock(&call_lock);
++	__smp_call_function(func, info, nonatomic, wait);
+ 	spin_unlock(&call_lock);
+ 
+ 	return 0;
+@@ -574,11 +577,11 @@ EXPORT_SYMBOL(smp_call_function);
+ 
+ static void stop_this_cpu (void * dummy)
+ {
++	local_irq_disable();
+ 	/*
+ 	 * Remove this CPU:
+ 	 */
+ 	cpu_clear(smp_processor_id(), cpu_online_map);
+-	local_irq_disable();
+ 	disable_local_APIC();
+ 	if (cpu_data[smp_processor_id()].hlt_works_ok)
+ 		for(;;) halt();
+@@ -591,11 +594,16 @@ static void stop_this_cpu (void * dummy)
+ 
+ void smp_send_stop(void)
+ {
+-	smp_call_function(stop_this_cpu, NULL, 1, 0);
+-
+-	local_irq_disable();
++	/* Don't deadlock on the call lock in panic */
++	int nolock = !spin_trylock(&call_lock);
++	unsigned long flags;
++
++	local_irq_save(flags);
++	__smp_call_function(stop_this_cpu, NULL, 0, 0);
++	if (!nolock)
++		spin_unlock(&call_lock);
+ 	disable_local_APIC();
+-	local_irq_enable();
++	local_irq_restore(flags);
+ }
+ 
+ /*
+diff -puN arch/x86_64/kernel/smp.c~x86-consolidate-smp_send_stop arch/x86_64/kernel/smp.c
+--- a/arch/x86_64/kernel/smp.c~x86-consolidate-smp_send_stop
++++ a/arch/x86_64/kernel/smp.c
+@@ -452,42 +452,34 @@ int smp_call_function (void (*func) (voi
+ }
+ EXPORT_SYMBOL(smp_call_function);
+ 
+-void smp_stop_cpu(void)
++static void stop_this_cpu(void *dummy)
+ {
+-	unsigned long flags;
++	local_irq_disable();
+ 	/*
+ 	 * Remove this CPU:
+ 	 */
+ 	cpu_clear(smp_processor_id(), cpu_online_map);
+-	local_irq_save(flags);
+ 	disable_local_APIC();
+-	local_irq_restore(flags);
+-}
+-
+-static void smp_really_stop_cpu(void *dummy)
+-{
+-	smp_stop_cpu(); 
+ 	for (;;) 
+ 		halt();
+ } 
+ 
+ void smp_send_stop(void)
+ {
+-	int nolock = 0;
++	int nolock;
++	unsigned long flags;
++
+ 	if (reboot_force)
+ 		return;
++
+ 	/* Don't deadlock on the call lock in panic */
+-	if (!spin_trylock(&call_lock)) {
+-		/* ignore locking because we have panicked anyways */
+-		nolock = 1;
 -	}
- #endif
-+
-+		/*
-+		 * We must not directly access the pte in the highpte
-+		 * case if the page table is located in highmem.
-+		 * And let's rather not kmap-atomic the pte, just in case
-+		 * it's allocated already.
-+		 */
-+		if ((page >> PAGE_SHIFT) < max_low_pfn
-+		    && (page & _PAGE_PRESENT)) {
-+			page &= PAGE_MASK;
-+			page = ((__typeof__(page) *) __va(page))[(address >> PAGE_SHIFT)
-+			                                         & (PTRS_PER_PTE - 1)];
-+			printk(KERN_ALERT "*pte = %0*Lx\n", sizeof(page)*4, (u64)page);
-+		}
-+	}
-+
- 	tsk->thread.cr2 = address;
- 	tsk->thread.trap_no = 14;
- 	tsk->thread.error_code = error_code;
+-	__smp_call_function(smp_really_stop_cpu, NULL, 0, 0);
++	nolock = !spin_trylock(&call_lock);
++	local_irq_save(flags);
++	__smp_call_function(stop_this_cpu, NULL, 0, 0);
+ 	if (!nolock)
+ 		spin_unlock(&call_lock);
+-
+-	local_irq_disable();
+ 	disable_local_APIC();
+-	local_irq_enable();
++	local_irq_restore(flags);
+ }
+ 
+ /*
+diff -puN include/asm-x86_64/smp.h~x86-consolidate-smp_send_stop include/asm-x86_64/smp.h
+--- a/include/asm-x86_64/smp.h~x86-consolidate-smp_send_stop
++++ a/include/asm-x86_64/smp.h
+@@ -37,7 +37,6 @@ extern void lock_ipi_call_lock(void);
+ extern void unlock_ipi_call_lock(void);
+ extern int smp_num_siblings;
+ extern void smp_send_reschedule(int cpu);
+-void smp_stop_cpu(void);
+ 
+ extern cpumask_t cpu_sibling_map[NR_CPUS];
+ extern cpumask_t cpu_core_map[NR_CPUS];
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
