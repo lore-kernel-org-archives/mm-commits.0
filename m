@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + update-osdl-linux-foundation-maintainer-addresses.patch added to -mm tree
-Date: Wed, 14 Feb 2007 15:09:08 -0800
-Message-ID: <200702142309.l1EN98Z8012267@shell0.pdx.osdl.net>
+Subject: + smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch added to -mm tree
+Date: Wed, 14 Feb 2007 15:10:07 -0800
+Message-ID: <200702142310.l1ENAGTZ012317@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50396 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50417 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964810AbXBNXJO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 18:09:14 -0500
+	id S964812AbXBNXK0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 18:10:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: horms@verge.net.au
+Cc: rientjes@google.com, clameter@sgi.com, lethal@linux-sh.org
 
 
 The patch titled
-     Update OSDL/Linux-Foundation maintainer addresses
+     smaps: flush tlb only once for each vma
 has been added to the -mm tree.  Its filename is
-     update-osdl-linux-foundation-maintainer-addresses.patch
+     smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,101 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Update OSDL/Linux-Foundation maintainer addresses
-From: Simon Horman <horms@verge.net.au>
+Subject: smaps: flush tlb only once for each vma
+From: David Rientjes <rientjes@google.com>
 
-The patch below updates MAINTAIER address
-  Individuals (Only Andrew :): osdl.org -> linux-foundation.org
-  Lists:                       osdl.org -> lists.osdl.org
+Flush the entire user address space from the TLB for each VMA in the
+task_struct list when clearing reference bits with /proc/pid/clear_refs. 
+It's more efficient than flushing each page individually depending on
+pte_young().
 
-I assume the latter will change at some stage, but at least
-with this change the osdl/linux-foundation lists are consistent.
-
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~update-osdl-linux-foundation-maintainer-addresses MAINTAINERS
---- a/MAINTAINERS~update-osdl-linux-foundation-maintainer-addresses
-+++ a/MAINTAINERS
-@@ -1350,7 +1350,7 @@ S:	Maintained
- ETHERNET BRIDGE
- P:	Stephen Hemminger
- M:	shemminger@linux-foundation.org
--L:	bridge@osdl.org
-+L:	bridge@lists.osdl.org
- W:	http://bridge.sourceforge.net/
- S:	Maintained
+diff -puN fs/proc/task_mmu.c~smaps-add-clear_refs-file-to-clear-reference-fix-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~smaps-add-clear_refs-file-to-clear-reference-fix-fix
++++ a/fs/proc/task_mmu.c
+@@ -276,7 +276,6 @@ static void clear_refs_one_pmd(struct vm
+ 		if (pte_young(ptent)) {
+ 			ptent = pte_mkold(ptent);
+ 			set_pte_at(vma->vm_mm, addr, pte, ptent);
+-			flush_tlb_page(vma, addr);
+ 		}
+ 		ClearPageReferenced(page);
+ 	}
+@@ -358,6 +357,7 @@ void clear_refs_smap(struct mm_struct *m
+ 	for (vma = mm->mmap; vma; vma = vma->vm_next)
+ 		if (vma->vm_mm && !is_vm_hugetlb_page(vma))
+ 			for_each_pmd(vma, clear_refs_one_pmd, NULL);
++	flush_tlb_mm(mm);
+ 	up_read(&mm->mmap_sem);
+ }
  
-@@ -1365,13 +1365,13 @@ S:	Maintained
- 
- EXT3 FILE SYSTEM
- P:	Stephen Tweedie, Andrew Morton
--M:	sct@redhat.com, akpm@osdl.org, adilger@clusterfs.com
-+M:	sct@redhat.com, akpm@linux-foundation.org, adilger@clusterfs.com
- L:	linux-ext4@vger.kernel.org
- S:	Maintained
- 
- EXT4 FILE SYSTEM
- P:	Stephen Tweedie, Andrew Morton
--M:	sct@redhat.com, akpm@osdl.org, adilger@clusterfs.com
-+M:	sct@redhat.com, akpm@linux-foundation.org, adilger@clusterfs.com
- L:	linux-ext4@vger.kernel.org
- S:	Maintained
- 
-@@ -1974,7 +1974,7 @@ S:	Supported
- 
- JOURNALLING LAYER FOR BLOCK DEVICES (JBD)
- P:	Stephen Tweedie, Andrew Morton
--M:	sct@redhat.com, akpm@osdl.org
-+M:	sct@redhat.com, akpm@linux-foundation.org
- L:	linux-ext4@vger.kernel.org
- S:	Maintained
- 
-@@ -2045,7 +2045,7 @@ P:	Eric Biederman
- M:	ebiederm@xmission.com
- W:	http://www.xmission.com/~ebiederm/files/kexec/
- L:	linux-kernel@vger.kernel.org
--L:	fastboot@osdl.org
-+L:	fastboot@lists.osdl.org
- S:	Maintained
- 
- KPROBES
-@@ -2383,7 +2383,7 @@ S:	Maintained
- NETEM NETWORK EMULATOR
- P:	Stephen Hemminger
- M:	shemminger@linux-foundation.org
--L:	netem@osdl.org
-+L:	netem@lists.osdl.org
- S:	Maintained
- 
- NETFILTER/IPTABLES/IPCHAINS
-@@ -2422,7 +2422,7 @@ S:	Maintained
- 
- NETWORK DEVICE DRIVERS
- P:	Andrew Morton
--M:	akpm@osdl.org
-+M:	akpm@linux-foundation.org
- P:	Jeff Garzik
- M:	jgarzik@pobox.com
- L:	netdev@vger.kernel.org
-@@ -3117,7 +3117,7 @@ S:	Supported
- SOFTWARE SUSPEND:
- P:	Pavel Machek
- M:	pavel@suse.cz
--L:	linux-pm@osdl.org
-+L:	linux-pm@lists.osdl.org
- S:	Maintained
- 
- SONIC NETWORK DRIVER
 _
 
-Patches currently in -mm which might be from horms@verge.net.au are
+Patches currently in -mm which might be from rientjes@google.com are
 
-origin.patch
-git-ia64.patch
-ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch
-update-osdl-linux-foundation-maintainer-addresses.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-docs.patch
