@@ -1,57 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch removed from -mm tree
-Date: Tue, 13 Feb 2007 23:02:06 -0800
-Message-ID: <200702140702.l1E726hU023941@shell0.pdx.osdl.net>
+Subject: - sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch removed from -mm tree
+Date: Tue, 13 Feb 2007 23:02:22 -0800
+Message-ID: <200702140702.l1E72NvN023947@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44017 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44024 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932165AbXBNHCI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 02:02:08 -0500
+	id S932166AbXBNHC2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 02:02:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, jmorris@namei.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: Set the parent field in the root sysctl table
+     sysctl selinux: Don't look at table->de
 has been removed from the -mm tree.  Its filename was
-     sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
+     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
 
-This patch was dropped because it was folded into sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
+This patch was dropped because it was folded into sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
 
 ------------------------------------------------------
-Subject: sysctl: Set the parent field in the root sysctl table
+Subject: sysctl selinux: Don't look at table->de
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Oops I goofed and forgot to set the parent in the root sysctl table,
-the rest are covered by register_sysctl_table.
+With the sysctl cleanups sysctl is not really a part of proc it just shows
+up there, and any path based approach will not adequately describe the data
+as sysctl is essentially a union mount underneath the covers.  As designed
+this mechanism is viewer dependent so trying to be path based gets even
+worse.
+
+However the permissions in sys_sysctl are currently immutable and going
+through proc does not change the permission checks when accessing sysctl. 
+So we might as well stick with the well defined sysctl sid, as that is what
+selinux uses when proc is not compiled in.
+
+I.e.  I see no hope for salvaging the selinux_proc_get_sid call in
+selinux_sysctl so I'm removing it.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ security/selinux/hooks.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix
-+++ a/kernel/sysctl.c
-@@ -1287,6 +1287,14 @@ static void sysctl_set_parent(struct ctl
- 	}
- }
+diff -puN security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix security/selinux/hooks.c
+--- a/security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix
++++ a/security/selinux/hooks.c
+@@ -1431,12 +1431,8 @@ static int selinux_sysctl(ctl_table *tab
  
-+static __init int sysctl_init(void)
-+{
-+	sysctl_set_parent(NULL, root_table);
-+	return 0;
-+}
-+
-+core_initcall(sysctl_init);
-+
- /**
-  * register_sysctl_table - register a sysctl hierarchy
-  * @table: the top-level table structure
+ 	tsec = current->security;
+ 
+-	rc = selinux_proc_get_sid(table->de, (op == 001) ?
+-	                          SECCLASS_DIR : SECCLASS_FILE, &tsid);
+-	if (rc) {
+-		/* Default to the well-defined sysctl SID. */
+-		tsid = SECINITSID_SYSCTL;
+-	}
++	/* Use the well-defined sysctl SID. */
++	tsid = SECINITSID_SYSCTL;
+ 
+ 	/* The op values are "defined" in sysctl.c, thereby creating
+ 	 * a bad coupling between this module and sysctl.c */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -115,7 +128,6 @@ sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
 sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
 sysctl-reimplement-the-sysctl-proc-support.patch
 sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
