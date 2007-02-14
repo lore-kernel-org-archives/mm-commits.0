@@ -1,48 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-reimplement-the-sysctl-proc-support-fix-4.patch removed from -mm tree
-Date: Tue, 13 Feb 2007 22:59:29 -0800
-Message-ID: <200702140659.l1E6xTAO023860@shell0.pdx.osdl.net>
+Subject: - sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch removed from -mm tree
+Date: Tue, 13 Feb 2007 23:02:06 -0800
+Message-ID: <200702140702.l1E726hU023941@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43987 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44017 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932156AbXBNG7a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 01:59:30 -0500
+	id S932165AbXBNHCI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 02:02:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl:  Remove declaration of nonexistent sysctl_init()
+     sysctl: Set the parent field in the root sysctl table
 has been removed from the -mm tree.  Its filename was
-     sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
+     sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
 
-This patch was dropped because it was folded into sysctl-reimplement-the-sysctl-proc-support.patch
+This patch was dropped because it was folded into sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
 
 ------------------------------------------------------
-Subject: sysctl:  Remove declaration of nonexistent sysctl_init()
+Subject: sysctl: Set the parent field in the root sysctl table
 From: Eric W. Biederman <ebiederm@xmission.com>
+
+Oops I goofed and forgot to set the parent in the root sysctl table,
+the rest are covered by register_sysctl_table.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/sysctl.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/linux/sysctl.h~sysctl-reimplement-the-sysctl-proc-support-fix-4 include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-reimplement-the-sysctl-proc-support-fix-4
-+++ a/include/linux/sysctl.h
-@@ -930,8 +930,6 @@ extern struct ctl_table_header *sysctl_h
- extern void sysctl_head_finish(struct ctl_table_header *prev);
- extern int sysctl_perm(struct ctl_table *table, int op);
+diff -puN kernel/sysctl.c~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix
++++ a/kernel/sysctl.c
+@@ -1287,6 +1287,14 @@ static void sysctl_set_parent(struct ctl
+ 	}
+ }
  
--extern void sysctl_init(void);
--
- typedef struct ctl_table ctl_table;
- 
- typedef int ctl_handler (ctl_table *table, int __user *name, int nlen,
++static __init int sysctl_init(void)
++{
++	sysctl_set_parent(NULL, root_table);
++	return 0;
++}
++
++core_initcall(sysctl_init);
++
+ /**
+  * register_sysctl_table - register a sysctl hierarchy
+  * @table: the top-level table structure
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -105,7 +114,6 @@ sysctl-remove-insert_at_head-from-register_sysctl.patch
 sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
 sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
 sysctl-reimplement-the-sysctl-proc-support.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
 sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
 sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
