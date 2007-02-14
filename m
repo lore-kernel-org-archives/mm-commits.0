@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 8250-fix-gcc4-signed-unsigned-mismatch-warning.patch added to -mm tree
-Date: Wed, 14 Feb 2007 14:54:47 -0800
-Message-ID: <200702142254.l1EMslS9011930@shell0.pdx.osdl.net>
+Subject: + ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch added to -mm tree
+Date: Wed, 14 Feb 2007 15:00:50 -0800
+Message-ID: <200702142300.l1EN0o9b012100@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49988 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50082 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932642AbXBNWyv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 17:54:51 -0500
+	id S964808AbXBNXBB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 18:01:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thomas.koeller@baslerweb.com
+Cc: horms@verge.net.au, jlan@sgi.com, nanhai.zou@intel.com, tony.luck@intel.com
 
 
 The patch titled
-     8250: Fix GCC4 signed/unsigned mismatch warning
+     ia64: point saved_max_pfn to the max_pfn of the entire system
 has been added to the -mm tree.  Its filename is
-     8250-fix-gcc4-signed-unsigned-mismatch-warning.patch
+     ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 8250: Fix GCC4 signed/unsigned mismatch warning
-From: Thomas Koeller <thomas.koeller@baslerweb.com>
+Subject: ia64: point saved_max_pfn to the max_pfn of the entire system
+From: Horms <horms@verge.net.au>
 
-Signed-off-by: Thomas Koeller <thomas.koeller@baslerweb.com>
+Make saved_max_pfn point to max_pfn of entire system.
+
+Without this patch is so that vmcore is zero length on ia64.  This is
+because saved_max_pfn was wrongly being set to the max_pfn of the crash
+kernel's address space, rather than the max_pfg on the physical memory of
+the machine - the whole purpose of vmcore is to access physical memory that
+is not part of the crash kernel's addresss space.
+
+Updated for recent changes in Linus' tree.
+
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Zou Nan hai <nanhai.zou@intel.com>
+Sort-Of-Acked-By: Jay Lan <jlan@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/kernel/efi.c   |    6 ++++++
+ arch/ia64/mm/contig.c    |    5 -----
+ arch/ia64/mm/discontig.c |    6 ------
+ 3 files changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN drivers/serial/8250.c~8250-fix-gcc4-signed-unsigned-mismatch-warning drivers/serial/8250.c
---- a/drivers/serial/8250.c~8250-fix-gcc4-signed-unsigned-mismatch-warning
-+++ a/drivers/serial/8250.c
-@@ -1196,7 +1196,7 @@ static void serial8250_enable_ms(struct 
+diff -puN arch/ia64/kernel/efi.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system
++++ a/arch/ia64/kernel/efi.c
+@@ -21,6 +21,7 @@
+  *	Skip non-WB memory and ignore empty memory ranges.
+  */
+ #include <linux/module.h>
++#include <linux/bootmem.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+@@ -1009,6 +1010,11 @@ efi_memmap_init(unsigned long *s, unsign
+ 		} else
+ 			ae = efi_md_end(md);
+ 
++#ifdef CONFIG_CRASH_DUMP
++		/* saved_max_pfn should ignore max_addr= command line arg */
++		if (saved_max_pfn < (ae >> PAGE_SHIFT))
++			saved_max_pfn = (ae >> PAGE_SHIFT);
++#endif
+ 		/* keep within max_addr= and min_addr= command line arg */
+ 		as = max(as, min_addr);
+ 		ae = min(ae, max_addr);
+diff -puN arch/ia64/mm/contig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system arch/ia64/mm/contig.c
+--- a/arch/ia64/mm/contig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system
++++ a/arch/ia64/mm/contig.c
+@@ -197,11 +197,6 @@ find_memory (void)
+ 
+ 	find_initrd();
+ 
+-#ifdef CONFIG_CRASH_DUMP
+-	/* If we are doing a crash dump, we still need to know the real mem
+-	 * size before original memory map is reset. */
+-	saved_max_pfn = max_pfn;
+-#endif
  }
  
- static void
--receive_chars(struct uart_8250_port *up, int *status)
-+receive_chars(struct uart_8250_port *up, unsigned int *status)
- {
- 	struct tty_struct *tty = up->port.info->tty;
- 	unsigned char ch, lsr = *status;
+ #ifdef CONFIG_SMP
+diff -puN arch/ia64/mm/discontig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system arch/ia64/mm/discontig.c
+--- a/arch/ia64/mm/discontig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system
++++ a/arch/ia64/mm/discontig.c
+@@ -480,12 +480,6 @@ void __init find_memory(void)
+ 	max_pfn = max_low_pfn;
+ 
+ 	find_initrd();
+-
+-#ifdef CONFIG_CRASH_DUMP
+-	/* If we are doing a crash dump, we still need to know the real mem
+-	 * size before original memory map is reset. */
+-        saved_max_pfn = max_pfn;
+-#endif
+ }
+ 
+ #ifdef CONFIG_SMP
 _
 
-Patches currently in -mm which might be from thomas.koeller@baslerweb.com are
+Patches currently in -mm which might be from horms@verge.net.au are
 
-8250-fix-gcc4-signed-unsigned-mismatch-warning.patch
+origin.patch
+git-ia64.patch
+ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch
