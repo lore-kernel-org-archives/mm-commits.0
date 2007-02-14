@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + natsemi-add-support-for-using-mii-port-with-no-phy-update.patch added to -mm tree
-Date: Wed, 14 Feb 2007 15:31:43 -0800
-Message-ID: <200702142331.l1ENVhYN012821@shell0.pdx.osdl.net>
+Date: Wed, 14 Feb 2007 15:31:58 -0800
+Message-ID: <200702142331.l1ENVx6d012837@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50907 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51074 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751380AbXBNXcH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 18:32:07 -0500
+	id S964808AbXBNXf0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 18:35:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@sirena.org.uk
+Cc: broonie@sirena.org.uk, jgarzik@pobox.com, thockin@hockin.org
 
 
 The patch titled
@@ -34,6 +34,8 @@ identifiable by a quirk since it unlikely to behave correctly with an
 unmodified driver.
 
 Signed-off-by: Mark Brown <broonie@sirena.org.uk>
+Cc: Tim Hockin <thockin@hockin.org>
+Cc: Jeff Garzik <jgarzik@pobox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
