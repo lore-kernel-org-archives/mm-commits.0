@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cdrom-use-unsigned-bitfields.patch added to -mm tree
-Date: Wed, 14 Feb 2007 14:44:06 -0800
-Message-ID: <200702142244.l1EMi6pB011658@shell0.pdx.osdl.net>
+Subject: + mtd-maps-ck804xromc-pci_module_init-to-pci_register_driver.patch added to -mm tree
+Date: Wed, 14 Feb 2007 14:53:27 -0800
+Message-ID: <200702142253.l1EMrTe9011899@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49741 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49968 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751329AbXBNWoN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 17:44:13 -0500
+	id S932671AbXBNWxj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 17:53:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, axboe@suse.de
+Cc: ricknu-0@student.ltu.se, dwmw2@infradead.org
 
 
 The patch titled
-     cdrom: use unsigned bitfields
+     mtd/maps/ck804xrom.c: pci_module_init to pci_register_driver
 has been added to the -mm tree.  Its filename is
-     cdrom-use-unsigned-bitfields.patch
+     mtd-maps-ck804xromc-pci_module_init-to-pci_register_driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cdrom: use unsigned bitfields
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mtd/maps/ck804xrom.c: pci_module_init to pci_register_driver
+From: Richard Knutsson <ricknu-0@student.ltu.se>
 
-Fix 23 of these sparse warnings on x86_64 allmodconfig:
-include/linux/cdrom.h:942:19: error: dubious bitfield without explicit
-`signed' or `unsigned'
+Convert pci_module_init() to pci_register_driver().
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jens Axboe <axboe@suse.de>
+Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cdrom.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/maps/ck804xrom.c |   12 ------------
+ 1 files changed, 12 deletions(-)
 
-diff -puN include/linux/cdrom.h~cdrom-use-unsigned-bitfields include/linux/cdrom.h
---- a/include/linux/cdrom.h~cdrom-use-unsigned-bitfields
-+++ a/include/linux/cdrom.h
-@@ -939,7 +939,7 @@ struct cdrom_device_info {
- 	int speed;			/* maximum speed for reading data */
- 	int capacity;			/* number of discs in jukebox */
- /* device-related storage */
--	int options		: 30;	/* options flags */
-+	unsigned int options	: 30;	/* options flags */
- 	unsigned mc_flags	: 2;	/* media change buffer flags */
-     	int use_count;                  /* number of times device opened */
-     	char name[20];                  /* name of the device type */
+diff -puN drivers/mtd/maps/ck804xrom.c~mtd-maps-ck804xromc-pci_module_init-to-pci_register_driver drivers/mtd/maps/ck804xrom.c
+--- a/drivers/mtd/maps/ck804xrom.c~mtd-maps-ck804xromc-pci_module_init-to-pci_register_driver
++++ a/drivers/mtd/maps/ck804xrom.c
+@@ -310,15 +310,6 @@ static struct pci_device_id ck804xrom_pc
+ 
+ MODULE_DEVICE_TABLE(pci, ck804xrom_pci_tbl);
+ 
+-#if 0
+-static struct pci_driver ck804xrom_driver = {
+-	.name =		MOD_NAME,
+-	.id_table =	ck804xrom_pci_tbl,
+-	.probe =	ck804xrom_init_one,
+-	.remove =	ck804xrom_remove_one,
+-};
+-#endif
+-
+ static int __init init_ck804xrom(void)
+ {
+ 	struct pci_dev *pdev;
+@@ -337,9 +328,6 @@ static int __init init_ck804xrom(void)
+ 		return retVal;
+ 	}
+ 	return -ENXIO;
+-#if 0
+-	return pci_module_init(&ck804xrom_driver);
+-#endif
+ }
+ 
+ static void __exit cleanup_ck804xrom(void)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from ricknu-0@student.ltu.se are
 
 origin.patch
-qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
-build-errors-uevent-with-config_sysfs=n.patch
-acpi-use-null-for-ptrs.patch
-git-drm.patch
-sata-use-null-for-ptrs.patch
-git-netdev-all.patch
-phy-layer-add-kernel-doc-docbook.patch
-parisc-fix-module_param-iommu-permission.patch
-pci-sysfs-kobject-kernel-doc-fixes.patch
-ueagle-atmc-needs-schedh.patch
-kernel-doc-include-struct-short-description-in-title.patch
-tty-use-null-for-ptrs.patch
-cdrom-use-unsigned-bitfields.patch
-irq-kernel-doc-fixes.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+git-dvb.patch
+drivers-scsi-aic7xxx-convert-to-generic-boolean-values.patch
+drivers-scsi-aic7xxx_old-convert-to-generic-boolean-values.patch
+ide-pci-delkin_cbc-pci_module_init-to-pci_register_driver.patch
+mtd-maps-ck804xromc-pci_module_init-to-pci_register_driver.patch
+net-wan-pc300tooc-pci_module_init-to-pci_register_driver.patch
