@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-nfsd4-fix-non-terminated-string.patch added to -mm tree
-Date: Wed, 14 Feb 2007 13:14:23 -0800
-Message-ID: <200702142114.l1ELENnL009264@shell0.pdx.osdl.net>
+Subject: + knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list.patch added to -mm tree
+Date: Wed, 14 Feb 2007 13:14:29 -0800
+Message-ID: <200702142114.l1ELETp1009277@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46067 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46082 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932605AbXBNVO3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 16:14:29 -0500
+	id S932606AbXBNVOf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 16:14:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: nfsd4: fix non-terminated string
+     knfsd: nfsd4: represent nfsv4 acl with array instead of linked list
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd4-fix-non-terminated-string.patch
+     knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,437 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: fix non-terminated string
+Subject: knfsd: nfsd4: represent nfsv4 acl with array instead of linked list
 From: J. Bruce Fields <bfields@citi.umich.edu>
 
-The server name is expected to be a null-terminated string, so we can't pass
-in the raw client identifier.
+Simplify the memory management and code a bit by representing acls with an
+array instead of a linked list.
 
-What's more, the client identifier is just a binary, not necessarily
-printable, blob.  Let's just use the ip address instead.  The server name
-appears to exist just to help debugging by making some printk's more
-informative.
-
-Note that the string is copies into the rpc client structure, so the pointer
-to the local variable does not outlive the function call.
-
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4callback.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletion(-)
+ fs/nfsd/nfs4acl.c        |  153 ++++++++++---------------------------
+ fs/nfsd/nfs4xdr.c        |   43 ++++------
+ include/linux/nfs4.h     |    3 
+ include/linux/nfs4_acl.h |    9 +-
+ 4 files changed, 69 insertions(+), 139 deletions(-)
 
-diff -puN fs/nfsd/nfs4callback.c~knfsd-nfsd4-fix-non-terminated-string fs/nfsd/nfs4callback.c
---- a/fs/nfsd/nfs4callback.c~knfsd-nfsd4-fix-non-terminated-string
-+++ a/fs/nfsd/nfs4callback.c
-@@ -387,7 +387,6 @@ nfsd4_probe_callback(struct nfs4_client 
- 		.address	= (struct sockaddr *)&addr,
- 		.addrsize	= sizeof(addr),
- 		.timeout	= &timeparms,
--		.servername	= clp->cl_name.data,
- 		.program	= program,
- 		.version	= nfs_cb_version[1]->number,
- 		.authflavor	= RPC_AUTH_UNIX,	/* XXX: need AUTH_GSS... */
-@@ -397,6 +396,7 @@ nfsd4_probe_callback(struct nfs4_client 
- 		.rpc_proc       = &nfs4_cb_procedures[NFSPROC4_CLNT_CB_NULL],
- 		.rpc_argp       = clp,
- 	};
-+	char clientname[16];
- 	int status;
+diff -puN fs/nfsd/nfs4acl.c~knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list fs/nfsd/nfs4acl.c
+--- a/fs/nfsd/nfs4acl.c~knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list
++++ a/fs/nfsd/nfs4acl.c
+@@ -128,74 +128,58 @@ struct ace_container {
+ };
  
- 	if (atomic_read(&cb->cb_set))
-@@ -419,6 +419,11 @@ nfsd4_probe_callback(struct nfs4_client 
- 	memset(program->stats, 0, sizeof(cb->cb_stat));
- 	program->stats->program = program;
+ static short ace2type(struct nfs4_ace *);
+-static int _posix_to_nfsv4_one(struct posix_acl *, struct nfs4_acl *, unsigned int);
+-int nfs4_acl_add_ace(struct nfs4_acl *, u32, u32, u32, int, uid_t);
++static void _posix_to_nfsv4_one(struct posix_acl *, struct nfs4_acl *,
++				unsigned int);
++void nfs4_acl_add_ace(struct nfs4_acl *, u32, u32, u32, int, uid_t);
  
-+	/* Just here to make some printk's more useful: */
-+	snprintf(clientname, sizeof(clientname),
-+		"%u.%u.%u.%u", NIPQUAD(addr.sin_addr));
-+	args.servername = clientname;
+ struct nfs4_acl *
+ nfs4_acl_posix_to_nfsv4(struct posix_acl *pacl, struct posix_acl *dpacl,
+ 			unsigned int flags)
+ {
+ 	struct nfs4_acl *acl;
+-	int error = -EINVAL;
++	int size = 0;
+ 
+-	if ((pacl != NULL &&
+-		(posix_acl_valid(pacl) < 0 || pacl->a_count == 0)) ||
+-	    (dpacl != NULL &&
+-		(posix_acl_valid(dpacl) < 0 || dpacl->a_count == 0)))
+-		goto out_err;
+-
+-	acl = nfs4_acl_new();
+-	if (acl == NULL) {
+-		error = -ENOMEM;
+-		goto out_err;
+-	}
++	if (pacl) {
++		if (posix_acl_valid(pacl) < 0)
++			return ERR_PTR(-EINVAL);
++		size += 2*pacl->a_count;
++	}
++	if (dpacl) {
++		if (posix_acl_valid(dpacl) < 0)
++			return ERR_PTR(-EINVAL);
++		size += 2*dpacl->a_count;
++	}
 +
- 	/* Create RPC client */
- 	cb->cb_client = rpc_create(&args);
- 	if (IS_ERR(cb->cb_client)) {
++	/* Allocate for worst case: one (deny, allow) pair each: */
++	acl = nfs4_acl_new(size);
++	if (acl == NULL)
++		return ERR_PTR(-ENOMEM);
+ 
+-	if (pacl != NULL) {
+-		error = _posix_to_nfsv4_one(pacl, acl,
+-						flags & ~NFS4_ACL_TYPE_DEFAULT);
+-		if (error < 0)
+-			goto out_acl;
+-	}
++	if (pacl)
++		_posix_to_nfsv4_one(pacl, acl, flags & ~NFS4_ACL_TYPE_DEFAULT);
+ 
+-	if (dpacl != NULL) {
+-		error = _posix_to_nfsv4_one(dpacl, acl,
+-						flags | NFS4_ACL_TYPE_DEFAULT);
+-		if (error < 0)
+-			goto out_acl;
+-	}
+-
+-	return acl;
+-
+-out_acl:
+-	nfs4_acl_free(acl);
+-out_err:
+-	acl = ERR_PTR(error);
++	if (dpacl)
++		_posix_to_nfsv4_one(dpacl, acl, flags | NFS4_ACL_TYPE_DEFAULT);
+ 
+ 	return acl;
+ }
+ 
+-static int
++static void
+ nfs4_acl_add_pair(struct nfs4_acl *acl, int eflag, u32 mask, int whotype,
+ 		uid_t owner, unsigned int flags)
+ {
+-	int error;
+-
+-	error = nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_ALLOWED_ACE_TYPE,
++	nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_ALLOWED_ACE_TYPE,
+ 				 eflag, mask, whotype, owner);
+-	if (error < 0)
+-		return error;
+-	error = nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
++	nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
+ 				eflag, deny_mask(mask, flags), whotype, owner);
+-	return error;
+ }
+ 
+ /* We assume the acl has been verified with posix_acl_valid. */
+-static int
++static void
+ _posix_to_nfsv4_one(struct posix_acl *pacl, struct nfs4_acl *acl,
+ 						unsigned int flags)
+ {
+ 	struct posix_acl_entry *pa, *pe, *group_owner_entry;
+-	int error = -EINVAL;
+ 	u32 mask, mask_mask;
+ 	int eflag = ((flags & NFS4_ACL_TYPE_DEFAULT) ?
+ 					NFS4_INHERITANCE_FLAGS : 0);
+@@ -211,23 +195,16 @@ _posix_to_nfsv4_one(struct posix_acl *pa
+ 	pa = pacl->a_entries;
+ 	BUG_ON(pa->e_tag != ACL_USER_OBJ);
+ 	mask = mask_from_posix(pa->e_perm, flags | NFS4_ACL_OWNER);
+-	error = nfs4_acl_add_pair(acl, eflag, mask, NFS4_ACL_WHO_OWNER, 0, flags);
+-	if (error < 0)
+-		goto out;
++	nfs4_acl_add_pair(acl, eflag, mask, NFS4_ACL_WHO_OWNER, 0, flags);
+ 	pa++;
+ 
+ 	while (pa->e_tag == ACL_USER) {
+ 		mask = mask_from_posix(pa->e_perm, flags);
+-		error = nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
++		nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
+ 				eflag,  mask_mask, NFS4_ACL_WHO_NAMED, pa->e_id);
+-		if (error < 0)
+-			goto out;
+-
+ 
+-		error = nfs4_acl_add_pair(acl, eflag, mask,
++		nfs4_acl_add_pair(acl, eflag, mask,
+ 				NFS4_ACL_WHO_NAMED, pa->e_id, flags);
+-		if (error < 0)
+-			goto out;
+ 		pa++;
+ 	}
+ 
+@@ -238,34 +215,25 @@ _posix_to_nfsv4_one(struct posix_acl *pa
+ 
+ 	if (pacl->a_count > 3) {
+ 		BUG_ON(pa->e_tag != ACL_GROUP_OBJ);
+-		error = nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
++		nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
+ 				NFS4_ACE_IDENTIFIER_GROUP | eflag, mask_mask,
+ 				NFS4_ACL_WHO_GROUP, 0);
+-		if (error < 0)
+-			goto out;
+ 	}
+ 	group_owner_entry = pa;
+ 	mask = mask_from_posix(pa->e_perm, flags);
+-	error = nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_ALLOWED_ACE_TYPE,
++	nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_ALLOWED_ACE_TYPE,
+ 			NFS4_ACE_IDENTIFIER_GROUP | eflag, mask,
+ 			NFS4_ACL_WHO_GROUP, 0);
+-	if (error < 0)
+-		goto out;
+ 	pa++;
+ 
+ 	while (pa->e_tag == ACL_GROUP) {
+ 		mask = mask_from_posix(pa->e_perm, flags);
+-		error = nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
++		nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
+ 				NFS4_ACE_IDENTIFIER_GROUP | eflag, mask_mask,
+ 				NFS4_ACL_WHO_NAMED, pa->e_id);
+-		if (error < 0)
+-			goto out;
+-
+-		error = nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_ALLOWED_ACE_TYPE,
++		nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_ALLOWED_ACE_TYPE,
+ 		    		NFS4_ACE_IDENTIFIER_GROUP | eflag, mask,
+ 		    		NFS4_ACL_WHO_NAMED, pa->e_id);
+-		if (error < 0)
+-			goto out;
+ 		pa++;
+ 	}
+ 
+@@ -273,19 +241,15 @@ _posix_to_nfsv4_one(struct posix_acl *pa
+ 
+ 	pa = group_owner_entry;
+ 	mask = mask_from_posix(pa->e_perm, flags);
+-	error = nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
++	nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
+ 			NFS4_ACE_IDENTIFIER_GROUP | eflag,
+ 			deny_mask(mask, flags), NFS4_ACL_WHO_GROUP, 0);
+-	if (error < 0)
+-		goto out;
+ 	pa++;
+ 	while (pa->e_tag == ACL_GROUP) {
+ 		mask = mask_from_posix(pa->e_perm, flags);
+-		error = nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
++		nfs4_acl_add_ace(acl, NFS4_ACE_ACCESS_DENIED_ACE_TYPE,
+ 		    		NFS4_ACE_IDENTIFIER_GROUP | eflag,
+ 		    		deny_mask(mask, flags), NFS4_ACL_WHO_NAMED, pa->e_id);
+-		if (error < 0)
+-			goto out;
+ 		pa++;
+ 	}
+ 
+@@ -293,10 +257,7 @@ _posix_to_nfsv4_one(struct posix_acl *pa
+ 		pa++;
+ 	BUG_ON(pa->e_tag != ACL_OTHER);
+ 	mask = mask_from_posix(pa->e_perm, flags);
+-	error = nfs4_acl_add_pair(acl, eflag, mask, NFS4_ACL_WHO_EVERYONE, 0, flags);
+-
+-out:
+-	return error;
++	nfs4_acl_add_pair(acl, eflag, mask, NFS4_ACL_WHO_EVERYONE, 0, flags);
+ }
+ 
+ static void
+@@ -640,7 +601,7 @@ int nfs4_acl_nfsv4_to_posix(struct nfs4_
+ 	if (ret)
+ 		goto out_estate;
+ 	ret = -EINVAL;
+-	list_for_each_entry(ace, &acl->ace_head, l_ace) {
++	for (ace = acl->aces; ace < acl->aces + acl->naces; ace++) {
+ 		if (ace->type != NFS4_ACE_ACCESS_ALLOWED_ACE_TYPE &&
+ 		    ace->type != NFS4_ACE_ACCESS_DENIED_ACE_TYPE)
+ 			goto out_dstate;
+@@ -705,48 +666,22 @@ EXPORT_SYMBOL(nfs4_acl_posix_to_nfsv4);
+ EXPORT_SYMBOL(nfs4_acl_nfsv4_to_posix);
+ 
+ struct nfs4_acl *
+-nfs4_acl_new(void)
++nfs4_acl_new(int n)
+ {
+ 	struct nfs4_acl *acl;
+ 
+-	if ((acl = kmalloc(sizeof(*acl), GFP_KERNEL)) == NULL)
++	acl = kmalloc(sizeof(*acl) + n*sizeof(struct nfs4_ace), GFP_KERNEL);
++	if (acl == NULL)
+ 		return NULL;
+-
+ 	acl->naces = 0;
+-	INIT_LIST_HEAD(&acl->ace_head);
+-
+ 	return acl;
+ }
+ 
+ void
+-nfs4_acl_free(struct nfs4_acl *acl)
+-{
+-	struct list_head *h;
+-	struct nfs4_ace *ace;
+-
+-	if (!acl)
+-		return;
+-
+-	while (!list_empty(&acl->ace_head)) {
+-		h = acl->ace_head.next;
+-		list_del(h);
+-		ace = list_entry(h, struct nfs4_ace, l_ace);
+-		kfree(ace);
+-	}
+-
+-	kfree(acl);
+-
+-	return;
+-}
+-
+-int
+ nfs4_acl_add_ace(struct nfs4_acl *acl, u32 type, u32 flag, u32 access_mask,
+ 		int whotype, uid_t who)
+ {
+-	struct nfs4_ace *ace;
+-
+-	if ((ace = kmalloc(sizeof(*ace), GFP_KERNEL)) == NULL)
+-		return -ENOMEM;
++	struct nfs4_ace *ace = acl->aces + acl->naces;
+ 
+ 	ace->type = type;
+ 	ace->flag = flag;
+@@ -754,10 +689,7 @@ nfs4_acl_add_ace(struct nfs4_acl *acl, u
+ 	ace->whotype = whotype;
+ 	ace->who = who;
+ 
+-	list_add_tail(&ace->l_ace, &acl->ace_head);
+ 	acl->naces++;
+-
+-	return 0;
+ }
+ 
+ static struct {
+@@ -811,7 +743,6 @@ nfs4_acl_write_who(int who, char *p)
+ }
+ 
+ EXPORT_SYMBOL(nfs4_acl_new);
+-EXPORT_SYMBOL(nfs4_acl_free);
+ EXPORT_SYMBOL(nfs4_acl_add_ace);
+ EXPORT_SYMBOL(nfs4_acl_get_whotype);
+ EXPORT_SYMBOL(nfs4_acl_write_who);
+diff -puN fs/nfsd/nfs4xdr.c~knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list fs/nfsd/nfs4xdr.c
+--- a/fs/nfsd/nfs4xdr.c~knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list
++++ a/fs/nfsd/nfs4xdr.c
+@@ -273,42 +273,42 @@ nfsd4_decode_fattr(struct nfsd4_compound
+ 		iattr->ia_valid |= ATTR_SIZE;
+ 	}
+ 	if (bmval[0] & FATTR4_WORD0_ACL) {
+-		int nace, i;
+-		struct nfs4_ace ace;
++		int nace;
++		struct nfs4_ace *ace;
+ 
+ 		READ_BUF(4); len += 4;
+ 		READ32(nace);
+ 
+-		*acl = nfs4_acl_new();
++		if (nace > NFS4_ACL_MAX)
++			return nfserr_resource;
++
++		*acl = nfs4_acl_new(nace);
+ 		if (*acl == NULL) {
+ 			host_err = -ENOMEM;
+ 			goto out_nfserr;
+ 		}
+-		defer_free(argp, (void (*)(const void *))nfs4_acl_free, *acl);
++		defer_free(argp, kfree, *acl);
+ 
+-		for (i = 0; i < nace; i++) {
++		(*acl)->naces = nace;
++		for (ace = (*acl)->aces; ace < (*acl)->aces + nace; ace++) {
+ 			READ_BUF(16); len += 16;
+-			READ32(ace.type);
+-			READ32(ace.flag);
+-			READ32(ace.access_mask);
++			READ32(ace->type);
++			READ32(ace->flag);
++			READ32(ace->access_mask);
+ 			READ32(dummy32);
+ 			READ_BUF(dummy32);
+ 			len += XDR_QUADLEN(dummy32) << 2;
+ 			READMEM(buf, dummy32);
+-			ace.whotype = nfs4_acl_get_whotype(buf, dummy32);
++			ace->whotype = nfs4_acl_get_whotype(buf, dummy32);
+ 			host_err = 0;
+-			if (ace.whotype != NFS4_ACL_WHO_NAMED)
+-				ace.who = 0;
+-			else if (ace.flag & NFS4_ACE_IDENTIFIER_GROUP)
++			if (ace->whotype != NFS4_ACL_WHO_NAMED)
++				ace->who = 0;
++			else if (ace->flag & NFS4_ACE_IDENTIFIER_GROUP)
+ 				host_err = nfsd_map_name_to_gid(argp->rqstp,
+-						buf, dummy32, &ace.who);
++						buf, dummy32, &ace->who);
+ 			else
+ 				host_err = nfsd_map_name_to_uid(argp->rqstp,
+-						buf, dummy32, &ace.who);
+-			if (host_err)
+-				goto out_nfserr;
+-			host_err = nfs4_acl_add_ace(*acl, ace.type, ace.flag,
+-				 ace.access_mask, ace.whotype, ace.who);
++						buf, dummy32, &ace->who);
+ 			if (host_err)
+ 				goto out_nfserr;
+ 		}
+@@ -1596,7 +1596,6 @@ nfsd4_encode_fattr(struct svc_fh *fhp, s
+ 	}
+ 	if (bmval0 & FATTR4_WORD0_ACL) {
+ 		struct nfs4_ace *ace;
+-		struct list_head *h;
+ 
+ 		if (acl == NULL) {
+ 			if ((buflen -= 4) < 0)
+@@ -1609,9 +1608,7 @@ nfsd4_encode_fattr(struct svc_fh *fhp, s
+ 			goto out_resource;
+ 		WRITE32(acl->naces);
+ 
+-		list_for_each(h, &acl->ace_head) {
+-			ace = list_entry(h, struct nfs4_ace, l_ace);
+-
++		for (ace = acl->aces; ace < acl->aces + acl->naces; ace++) {
+ 			if ((buflen -= 4*3) < 0)
+ 				goto out_resource;
+ 			WRITE32(ace->type);
+@@ -1821,7 +1818,7 @@ out_acl:
+ 	status = nfs_ok;
+ 
+ out:
+-	nfs4_acl_free(acl);
++	kfree(acl);
+ 	if (fhp == &tempfh)
+ 		fh_put(&tempfh);
+ 	return status;
+diff -puN include/linux/nfs4.h~knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list include/linux/nfs4.h
+--- a/include/linux/nfs4.h~knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list
++++ a/include/linux/nfs4.h
+@@ -105,12 +105,11 @@ struct nfs4_ace {
+ 	uint32_t	access_mask;
+ 	int		whotype;
+ 	uid_t		who;
+-	struct list_head l_ace;
+ };
+ 
+ struct nfs4_acl {
+ 	uint32_t	naces;
+-	struct list_head ace_head;
++	struct nfs4_ace	aces[0];
+ };
+ 
+ typedef struct { char data[NFS4_VERIFIER_SIZE]; } nfs4_verifier;
+diff -puN include/linux/nfs4_acl.h~knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list include/linux/nfs4_acl.h
+--- a/include/linux/nfs4_acl.h~knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list
++++ a/include/linux/nfs4_acl.h
+@@ -39,9 +39,12 @@
+ 
+ #include <linux/posix_acl.h>
+ 
+-struct nfs4_acl *nfs4_acl_new(void);
+-void nfs4_acl_free(struct nfs4_acl *);
+-int nfs4_acl_add_ace(struct nfs4_acl *, u32, u32, u32, int, uid_t);
++/* Maximum ACL we'll accept from client; chosen (somewhat arbitrarily) to
++ * fit in a page: */
++#define NFS4_ACL_MAX 170
++
++struct nfs4_acl *nfs4_acl_new(int);
++void nfs4_acl_add_ace(struct nfs4_acl *, u32, u32, u32, int, uid_t);
+ int nfs4_acl_get_whotype(char *, u32);
+ int nfs4_acl_write_who(int who, char *p);
+ int nfs4_acl_permission(struct nfs4_acl *acl, uid_t owner, gid_t group,
 _
 
 Patches currently in -mm which might be from bfields@citi.umich.edu are
