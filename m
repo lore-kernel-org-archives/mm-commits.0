@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix--confusion-in-fusion-driver.patch added to -mm tree
-Date: Wed, 14 Feb 2007 13:08:07 -0800
-Message-ID: <200702142108.l1EL87gC009119@shell0.pdx.osdl.net>
+Subject: + knfsd-nfsd4-fix-non-terminated-string.patch added to -mm tree
+Date: Wed, 14 Feb 2007 13:14:23 -0800
+Message-ID: <200702142114.l1ELENnL009264@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45677 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46067 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932589AbXBNVIO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 16:08:14 -0500
+	id S932605AbXBNVO3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 16:14:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmueller@osuse.de, James.Bottomley@SteelEye.com, eric.moore@lsi.com
+Cc: bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     Fix |/|| confusion in fusion driver
+     knfsd: nfsd4: fix non-terminated string
 has been added to the -mm tree.  Its filename is
-     fix--confusion-in-fusion-driver.patch
+     knfsd-nfsd4-fix-non-terminated-string.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix |/|| confusion in fusion driver
-From: Dirk Mueller <dmueller@osuse.de>
+Subject: knfsd: nfsd4: fix non-terminated string
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-This patch corrects a |/|| confusion in mptscsih_copy_sense_data.  Using ||
-means that the data that ends up being written is (almost always) 1,
-instead of being bit-wise or'ed.
+The server name is expected to be a null-terminated string, so we can't pass
+in the raw client identifier.
 
-Cc: Eric Moore <eric.moore@lsi.com>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
+What's more, the client identifier is just a binary, not necessarily
+printable, blob.  Let's just use the ip address instead.  The server name
+appears to exist just to help debugging by making some printk's more
+informative.
+
+Note that the string is copies into the rpc client structure, so the pointer
+to the local variable does not outlive the function call.
+
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptscsih.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ fs/nfsd/nfs4callback.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/message/fusion/mptscsih.c~fix--confusion-in-fusion-driver drivers/message/fusion/mptscsih.c
---- a/drivers/message/fusion/mptscsih.c~fix--confusion-in-fusion-driver
-+++ a/drivers/message/fusion/mptscsih.c
-@@ -2474,9 +2474,9 @@ mptscsih_copy_sense_data(struct scsi_cmn
- 				ioc->events[idx].event = MPI_EVENT_SCSI_DEVICE_STATUS_CHANGE;
- 				ioc->events[idx].eventContext = ioc->eventContext;
+diff -puN fs/nfsd/nfs4callback.c~knfsd-nfsd4-fix-non-terminated-string fs/nfsd/nfs4callback.c
+--- a/fs/nfsd/nfs4callback.c~knfsd-nfsd4-fix-non-terminated-string
++++ a/fs/nfsd/nfs4callback.c
+@@ -387,7 +387,6 @@ nfsd4_probe_callback(struct nfs4_client 
+ 		.address	= (struct sockaddr *)&addr,
+ 		.addrsize	= sizeof(addr),
+ 		.timeout	= &timeparms,
+-		.servername	= clp->cl_name.data,
+ 		.program	= program,
+ 		.version	= nfs_cb_version[1]->number,
+ 		.authflavor	= RPC_AUTH_UNIX,	/* XXX: need AUTH_GSS... */
+@@ -397,6 +396,7 @@ nfsd4_probe_callback(struct nfs4_client 
+ 		.rpc_proc       = &nfs4_cb_procedures[NFSPROC4_CLNT_CB_NULL],
+ 		.rpc_argp       = clp,
+ 	};
++	char clientname[16];
+ 	int status;
  
--				ioc->events[idx].data[0] = (pReq->LUN[1] << 24) ||
--					(MPI_EVENT_SCSI_DEV_STAT_RC_SMART_DATA << 16) ||
--					(sc->device->channel << 8) || sc->device->id;
-+				ioc->events[idx].data[0] = (pReq->LUN[1] << 24) |
-+					(MPI_EVENT_SCSI_DEV_STAT_RC_SMART_DATA << 16) |
-+					(sc->device->channel << 8) | sc->device->id;
+ 	if (atomic_read(&cb->cb_set))
+@@ -419,6 +419,11 @@ nfsd4_probe_callback(struct nfs4_client 
+ 	memset(program->stats, 0, sizeof(cb->cb_stat));
+ 	program->stats->program = program;
  
- 				ioc->events[idx].data[1] = (sense_data[13] << 8) || sense_data[12];
- 
++	/* Just here to make some printk's more useful: */
++	snprintf(clientname, sizeof(clientname),
++		"%u.%u.%u.%u", NIPQUAD(addr.sin_addr));
++	args.servername = clientname;
++
+ 	/* Create RPC client */
+ 	cb->cb_client = rpc_create(&args);
+ 	if (IS_ERR(cb->cb_client)) {
 _
 
-Patches currently in -mm which might be from dmueller@osuse.de are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
-fix--confusion-in-fusion-driver.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+knfsd-nfsd4-fix-non-terminated-string.patch
+knfsd-nfsd4-relax-checking-of-acl-inheritance-bits.patch
+knfsd-nfsd4-simplify-nfsv4-posix-translation.patch
+knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list.patch
+knfsd-nfsd4-fix-memory-leak-on-kmalloc-failure-in-savemem.patch
+knfsd-nfsd4-fix-error-return-on-unsupported-acl.patch
+knfsd-nfsd4-acls-dont-return-explicit-mask.patch
+knfsd-nfsd4-acls-avoid-unnecessary-denies.patch
+knfsd-nfsd4-fix-handling-of-directories-without-default-acls.patch
