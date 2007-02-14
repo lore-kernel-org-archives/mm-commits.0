@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-use-null-for-ptrs.patch added to -mm tree
-Date: Wed, 14 Feb 2007 14:42:14 -0800
-Message-ID: <200702142242.l1EMgEOH011616@shell0.pdx.osdl.net>
+Subject: + cdrom-use-unsigned-bitfields.patch added to -mm tree
+Date: Wed, 14 Feb 2007 14:44:06 -0800
+Message-ID: <200702142244.l1EMi6pB011658@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49728 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49741 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751266AbXBNWna (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 17:43:30 -0500
+	id S1751329AbXBNWoN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 17:44:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, lenb@kernel.org
+Cc: randy.dunlap@oracle.com, axboe@suse.de
 
 
 The patch titled
-     ACPI: use NULL for ptrs
+     cdrom: use unsigned bitfields
 has been added to the -mm tree.  Its filename is
-     acpi-use-null-for-ptrs.patch
+     cdrom-use-unsigned-bitfields.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,60 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: use NULL for ptrs
+Subject: cdrom: use unsigned bitfields
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix sparse warnings in ACPI:
-drivers/acpi/osl.c:208:10: warning: Using plain integer as NULL pointer
-drivers/acpi/tables/tbxface.c:411:49: warning: Using plain integer as NULL pointer
-drivers/acpi/processor_core.c:1008:10: warning: Using plain integer as NULL pointer
+Fix 23 of these sparse warnings on x86_64 allmodconfig:
+include/linux/cdrom.h:942:19: error: dubious bitfield without explicit
+`signed' or `unsigned'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Jens Axboe <axboe@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/osl.c            |    2 +-
- drivers/acpi/processor_core.c |    2 +-
- drivers/acpi/tables/tbxface.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/cdrom.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/osl.c~acpi-use-null-for-ptrs drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~acpi-use-null-for-ptrs
-+++ a/drivers/acpi/osl.c
-@@ -202,7 +202,7 @@ void __iomem *acpi_os_map_memory(acpi_ph
- {
- 	if (phys > ULONG_MAX) {
- 		printk(KERN_ERR PREFIX "Cannot map memory that high\n");
--		return 0;
-+		return NULL;
- 	}
- 	if (acpi_gbl_permanent_mmap)
- 		/*
-diff -puN drivers/acpi/processor_core.c~acpi-use-null-for-ptrs drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-use-null-for-ptrs
-+++ a/drivers/acpi/processor_core.c
-@@ -1006,7 +1006,7 @@ static int __init acpi_processor_init(vo
- #ifdef CONFIG_SMP
- 	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
- 				(struct acpi_table_header **)&madt)))
--		madt = 0;
-+		madt = NULL;
- #endif
- 
- 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-diff -puN drivers/acpi/tables/tbxface.c~acpi-use-null-for-ptrs drivers/acpi/tables/tbxface.c
---- a/drivers/acpi/tables/tbxface.c~acpi-use-null-for-ptrs
-+++ a/drivers/acpi/tables/tbxface.c
-@@ -408,7 +408,7 @@ acpi_get_table(char *signature,
- 		}
- 
- 		if (!acpi_gbl_permanent_mmap) {
--			acpi_gbl_root_table_list.tables[i].pointer = 0;
-+			acpi_gbl_root_table_list.tables[i].pointer = NULL;
- 		}
- 
- 		return (status);
+diff -puN include/linux/cdrom.h~cdrom-use-unsigned-bitfields include/linux/cdrom.h
+--- a/include/linux/cdrom.h~cdrom-use-unsigned-bitfields
++++ a/include/linux/cdrom.h
+@@ -939,7 +939,7 @@ struct cdrom_device_info {
+ 	int speed;			/* maximum speed for reading data */
+ 	int capacity;			/* number of discs in jukebox */
+ /* device-related storage */
+-	int options		: 30;	/* options flags */
++	unsigned int options	: 30;	/* options flags */
+ 	unsigned mc_flags	: 2;	/* media change buffer flags */
+     	int use_count;                  /* number of times device opened */
+     	char name[20];                  /* name of the device type */
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -88,6 +61,7 @@ qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.pat
 build-errors-uevent-with-config_sysfs=n.patch
 acpi-use-null-for-ptrs.patch
 git-drm.patch
+sata-use-null-for-ptrs.patch
 git-netdev-all.patch
 phy-layer-add-kernel-doc-docbook.patch
 parisc-fix-module_param-iommu-permission.patch
@@ -95,9 +69,8 @@ pci-sysfs-kobject-kernel-doc-fixes.patch
 ueagle-atmc-needs-schedh.patch
 kernel-doc-include-struct-short-description-in-title.patch
 tty-use-null-for-ptrs.patch
+cdrom-use-unsigned-bitfields.patch
 irq-kernel-doc-fixes.patch
 extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
 reiser4-use-null-for-pointers.patch
 profile_likely-export-do_check_likely.patch
-sata-use-null-for-ptrs.patch
-cdrom-use-unsigned-bitfields.patch
