@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch removed from -mm tree
-Date: Wed, 14 Feb 2007 10:52:21 -0800
-Message-ID: <200702141852.l1EIqLTg005713@shell0.pdx.osdl.net>
+Subject: - r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch removed from -mm tree
+Date: Wed, 14 Feb 2007 10:52:24 -0800
+Message-ID: <200702141852.l1EIqOHJ005716@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39378 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39382 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932440AbXBNSzs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 13:55:48 -0500
+	id S932450AbXBNSzx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 13:55:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, linuxram@us.ibm.com, miklos@szeredi.hu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: elevate writer count for chown and friends
+     r/o bind mounts: elevate mnt writers for callers of vfs_mkdir()
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+     r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate writer count for chown and friends
+Subject: r/o bind mounts: elevate mnt writers for callers of vfs_mkdir()
 From: Dave Hansen <hansendc@us.ibm.com>
 
-chown/chmod,etc...  don't call permission in the same way that the normal
-"open for write" calls do.  They still write to the filesystem, so bump the
-write count during these operations.
+elevate mnt writers for callers of vfs_mkdir()
+
+Pretty self-explanatory.  Fits in with the rest of the series.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
@@ -36,130 +36,45 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   37 +++++++++++++++++++++++++++++++++----
- 1 file changed, 33 insertions(+), 4 deletions(-)
+ fs/namei.c            |    5 +++++
+ fs/nfsd/nfs4recover.c |    4 ++++
+ 2 files changed, 9 insertions(+)
 
-diff -puN fs/open.c~r-o-bind-mounts-elevate-writer-count-for-chown-and-friends fs/open.c
---- a/fs/open.c~r-o-bind-mounts-elevate-writer-count-for-chown-and-friends
-+++ a/fs/open.c
-@@ -511,9 +511,12 @@ asmlinkage long sys_fchmod(unsigned int 
- 	err = -EROFS;
- 	if (IS_RDONLY(inode))
- 		goto out_putf;
-+	err = mnt_want_write(file->f_vfsmnt);
-+	if (err)
-+		goto out_putf;
- 	err = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto out_putf;
-+		goto out_drop_write;
- 	mutex_lock(&inode->i_mutex);
- 	if (mode == (mode_t) -1)
- 		mode = inode->i_mode;
-@@ -522,6 +525,8 @@ asmlinkage long sys_fchmod(unsigned int 
- 	err = notify_change(dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
++++ a/fs/namei.c
+@@ -1959,7 +1959,12 @@ asmlinkage long sys_mkdirat(int dfd, con
  
-+out_drop_write:
-+	mnt_drop_write(file->f_vfsmnt);
- out_putf:
- 	fput(file);
- out:
-@@ -541,13 +546,16 @@ asmlinkage long sys_fchmodat(int dfd, co
- 		goto out;
- 	inode = nd.dentry->d_inode;
- 
+ 	if (!IS_POSIXACL(nd.dentry->d_inode))
+ 		mode &= ~current->fs->umask;
 +	error = mnt_want_write(nd.mnt);
 +	if (error)
-+		goto dput_and_out;
- 	error = -EROFS;
- 	if (IS_RDONLY(inode))
--		goto dput_and_out;
-+		goto out_drop_write;
- 
- 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto dput_and_out;
-+		goto out_drop_write;
- 
- 	mutex_lock(&inode->i_mutex);
- 	if (mode == (mode_t) -1)
-@@ -557,6 +565,8 @@ asmlinkage long sys_fchmodat(int dfd, co
- 	error = notify_change(nd.dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
- 
-+out_drop_write:
++		goto out_dput;
+ 	error = vfs_mkdir(nd.dentry->d_inode, dentry, mode);
 +	mnt_drop_write(nd.mnt);
- dput_and_out:
- 	path_release(&nd);
- out:
-@@ -582,7 +592,7 @@ static int chown_common(struct dentry * 
- 	error = -EROFS;
- 	if (IS_RDONLY(inode))
- 		goto out;
--	error = -EPERM;
-+ 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
- 		goto out;
- 	newattrs.ia_valid =  ATTR_CTIME;
-@@ -611,7 +621,12 @@ asmlinkage long sys_chown(const char __u
- 	error = user_path_walk(filename, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.dentry, user, group);
-+	mnt_drop_write(nd.mnt);
-+out_release:
- 	path_release(&nd);
- out:
- 	return error;
-@@ -631,7 +646,12 @@ asmlinkage long sys_fchownat(int dfd, co
- 	error = __user_walk_fd(dfd, filename, follow, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.dentry, user, group);
-+	mnt_drop_write(nd.mnt);
-+out_release:
- 	path_release(&nd);
- out:
- 	return error;
-@@ -645,7 +665,11 @@ asmlinkage long sys_lchown(const char __
- 	error = user_path_walk_link(filename, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.dentry, user, group);
-+out_release:
- 	path_release(&nd);
- out:
- 	return error;
-@@ -662,9 +686,14 @@ asmlinkage long sys_fchown(unsigned int 
- 	if (!file)
- 		goto out;
- 
-+	error = mnt_want_write(file->f_vfsmnt);
-+	if (error)
-+		goto out_fput;
- 	dentry = file->f_path.dentry;
- 	audit_inode(NULL, dentry->d_inode);
- 	error = chown_common(dentry, user, group);
-+	mnt_drop_write(file->f_vfsmnt);
-+out_fput:
- 	fput(file);
- out:
- 	return error;
++out_dput:
+ 	dput(dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/nfsd/nfs4recover.c
+--- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
++++ a/fs/nfsd/nfs4recover.c
+@@ -156,7 +156,11 @@ nfsd4_create_clid_dir(struct nfs4_client
+ 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
+ 		goto out_put;
+ 	}
++	status = mnt_want_write(rec_dir.mnt);
++	if (status)
++		goto out_put;
+ 	status = vfs_mkdir(rec_dir.dentry->d_inode, dentry, S_IRWXU);
++	mnt_drop_write(rec_dir.mnt);
+ out_put:
+ 	dput(dentry);
+ out_unlock:
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
 
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
 r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
