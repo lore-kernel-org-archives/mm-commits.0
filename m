@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-stop-nfsd-writes-from-being-broken-into-lots-of-little-writes-to-filesystem.patch added to -mm tree
-Date: Wed, 14 Feb 2007 13:45:12 -0800
-Message-ID: <200702142145.l1ELjC1Q010222@shell0.pdx.osdl.net>
+Subject: + fix-atl1-braino.patch added to -mm tree
+Date: Wed, 14 Feb 2007 13:46:07 -0800
+Message-ID: <200702142146.l1ELkiDY010259@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47413 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47496 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964786AbXBNVpU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 16:45:20 -0500
+	id S964781AbXBNVrU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 16:47:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de, nickpiggin@yahoo.com.au, norman.r.weathers@conocophillips.com, vs@namesys.com
+Cc: viro@ftp.linux.org.uk, jeff@garzik.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     knfsd: stop NFSD writes from being broken into lots of little writes to filesystem
+     fix atl1 braino
 has been added to the -mm tree.  Its filename is
-     knfsd-stop-nfsd-writes-from-being-broken-into-lots-of-little-writes-to-filesystem.patch
+     fix-atl1-braino.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,107 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: stop NFSD writes from being broken into lots of little writes to filesystem
-From: NeilBrown <neilb@suse.de>
+Subject: fix atl1 braino
+From: Al Viro <viro@ftp.linux.org.uk>
 
-When NFSD receives a write request, the data is typically in a number of
-1448 byte segments and writev is used to collect them together.
+Spot the bug...
 
-Unfortunately, generic_file_buffered_write passes these to the filesystem
-one at a time, so an e.g.  32K over-write becomes a series of partial-page
-writes to each page, causing the filesystem to have to pre-read those pages
-- wasted effort.
-
-generic_file_buffered_write handles one segment of the vector at a time as
-it has to pre-fault in each segment to avoid deadlocks.  When writing from
-kernel-space (and nfsd does) this is not an issue, so
-generic_file_buffered_write does not need to break and iovec from nfsd into
-little pieces.
-
-This patch avoids the splitting when  get_fs is KERNEL_DS as it is
-from NFSd.
-
-This issue was introduced by commit 6527c2bdf1f833cc18e8f42bd97973d583e4aa83
-
-Acked-by: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Norman Weathers <norman.r.weathers@conocophillips.com>
-Cc: Vladimir V. Saveliev <vs@namesys.com>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   32 +++++++++++++++++++-------------
- 1 files changed, 19 insertions(+), 13 deletions(-)
+ drivers/net/atl1/atl1_hw.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~knfsd-stop-nfsd-writes-from-being-broken-into-lots-of-little-writes-to-filesystem mm/filemap.c
---- a/mm/filemap.c~knfsd-stop-nfsd-writes-from-being-broken-into-lots-of-little-writes-to-filesystem
-+++ a/mm/filemap.c
-@@ -2033,21 +2033,27 @@ generic_file_buffered_write(struct kiocb
- 		/* Limit the size of the copy to the caller's write size */
- 		bytes = min(bytes, count);
- 
--		/*
--		 * Limit the size of the copy to that of the current segment,
--		 * because fault_in_pages_readable() doesn't know how to walk
--		 * segments.
-+		/* We only need to worry about prefaulting when writes are from
-+		 * user-space.  NFSd uses vfs_writev with several non-aligned
-+		 * segments in the vector, and limiting to one segment a time is
-+		 * a noticeable performance for re-write
- 		 */
--		bytes = min(bytes, cur_iov->iov_len - iov_base);
--
--		/*
--		 * Bring in the user page that we will copy from _first_.
--		 * Otherwise there's a nasty deadlock on copying from the
--		 * same page as we're writing to, without it being marked
--		 * up-to-date.
--		 */
--		fault_in_pages_readable(buf, bytes);
-+		if (!segment_eq(get_fs(), KERNEL_DS)) {
-+			/*
-+			 * Limit the size of the copy to that of the current
-+			 * segment, because fault_in_pages_readable() doesn't
-+			 * know how to walk segments.
-+			 */
-+			bytes = min(bytes, cur_iov->iov_len - iov_base);
- 
-+			/*
-+			 * Bring in the user page that we will copy from
-+			 * _first_.  Otherwise there's a nasty deadlock on
-+			 * copying from the same page as we're writing to,
-+			 * without it being marked up-to-date.
-+			 */
-+			fault_in_pages_readable(buf, bytes);
-+		}
- 		page = __grab_cache_page(mapping,index,&cached_page,&lru_pvec);
- 		if (!page) {
- 			status = -ENOMEM;
+diff -puN drivers/net/atl1/atl1_hw.c~fix-atl1-braino drivers/net/atl1/atl1_hw.c
+--- a/drivers/net/atl1/atl1_hw.c~fix-atl1-braino
++++ a/drivers/net/atl1/atl1_hw.c
+@@ -357,7 +357,7 @@ void atl1_hash_set(struct atl1_hw *hw, u
+ 	 */
+ 	hash_reg = (hash_value >> 31) & 0x1;
+ 	hash_bit = (hash_value >> 26) & 0x1F;
+-	mta = ioread32((hw + REG_RX_HASH_TABLE) + (hash_reg << 2));
++	mta = ioread32((hw->hw_addr + REG_RX_HASH_TABLE) + (hash_reg << 2));
+ 	mta |= (1 << hash_bit);
+ 	iowrite32(mta, (hw->hw_addr + REG_RX_HASH_TABLE) + (hash_reg << 2));
+ }
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from viro@ftp.linux.org.uk are
 
 origin.patch
-knfsd-fix-return-value-for-writes-to-some-files-in-nfsd-filesystem.patch
-knfsd-tidy-up-choice-of-filesystem-identifier-when-creating-a-filehandle.patch
-knfsd-add-some-new-fsid-types.patch
-knfsd-allow-the-server-to-provide-a-gid-list-when-using-auth_unix-authentication.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-knfsd-nfsd4-fix-non-terminated-string.patch
-knfsd-nfsd4-relax-checking-of-acl-inheritance-bits.patch
-knfsd-nfsd4-simplify-nfsv4-posix-translation.patch
-knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list.patch
-knfsd-nfsd4-fix-memory-leak-on-kmalloc-failure-in-savemem.patch
-knfsd-nfsd4-fix-error-return-on-unsupported-acl.patch
-knfsd-nfsd4-acls-dont-return-explicit-mask.patch
-knfsd-nfsd4-acls-avoid-unnecessary-denies.patch
-knfsd-nfsd4-fix-handling-of-directories-without-default-acls.patch
-knfsd-stop-nfsd-writes-from-being-broken-into-lots-of-little-writes-to-filesystem.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+git-acpi.patch
+fix-atl1-braino.patch
+slab-leaks3-default-y.patch
