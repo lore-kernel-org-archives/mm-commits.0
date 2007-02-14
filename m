@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch added to -mm tree
-Date: Wed, 14 Feb 2007 15:00:50 -0800
-Message-ID: <200702142300.l1EN0o9b012100@shell0.pdx.osdl.net>
+Subject: + update-osdl-linux-foundation-maintainer-addresses.patch added to -mm tree
+Date: Wed, 14 Feb 2007 15:09:08 -0800
+Message-ID: <200702142309.l1EN98Z8012267@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50082 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50396 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964808AbXBNXBB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 18:01:01 -0500
+	id S964810AbXBNXJO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 18:09:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: horms@verge.net.au, jlan@sgi.com, nanhai.zou@intel.com, tony.luck@intel.com
+Cc: horms@verge.net.au
 
 
 The patch titled
-     ia64: point saved_max_pfn to the max_pfn of the entire system
+     Update OSDL/Linux-Foundation maintainer addresses
 has been added to the -mm tree.  Its filename is
-     ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch
+     update-osdl-linux-foundation-maintainer-addresses.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,85 +25,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ia64: point saved_max_pfn to the max_pfn of the entire system
-From: Horms <horms@verge.net.au>
+Subject: Update OSDL/Linux-Foundation maintainer addresses
+From: Simon Horman <horms@verge.net.au>
 
-Make saved_max_pfn point to max_pfn of entire system.
+The patch below updates MAINTAIER address
+  Individuals (Only Andrew :): osdl.org -> linux-foundation.org
+  Lists:                       osdl.org -> lists.osdl.org
 
-Without this patch is so that vmcore is zero length on ia64.  This is
-because saved_max_pfn was wrongly being set to the max_pfn of the crash
-kernel's address space, rather than the max_pfg on the physical memory of
-the machine - the whole purpose of vmcore is to access physical memory that
-is not part of the crash kernel's addresss space.
-
-Updated for recent changes in Linus' tree.
+I assume the latter will change at some stage, but at least
+with this change the osdl/linux-foundation lists are consistent.
 
 Signed-off-by: Simon Horman <horms@verge.net.au>
-Signed-off-by: Zou Nan hai <nanhai.zou@intel.com>
-Sort-Of-Acked-By: Jay Lan <jlan@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/efi.c   |    6 ++++++
- arch/ia64/mm/contig.c    |    5 -----
- arch/ia64/mm/discontig.c |    6 ------
- 3 files changed, 6 insertions(+), 11 deletions(-)
+ MAINTAINERS |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/ia64/kernel/efi.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system arch/ia64/kernel/efi.c
---- a/arch/ia64/kernel/efi.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system
-+++ a/arch/ia64/kernel/efi.c
-@@ -21,6 +21,7 @@
-  *	Skip non-WB memory and ignore empty memory ranges.
-  */
- #include <linux/module.h>
-+#include <linux/bootmem.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/types.h>
-@@ -1009,6 +1010,11 @@ efi_memmap_init(unsigned long *s, unsign
- 		} else
- 			ae = efi_md_end(md);
+diff -puN MAINTAINERS~update-osdl-linux-foundation-maintainer-addresses MAINTAINERS
+--- a/MAINTAINERS~update-osdl-linux-foundation-maintainer-addresses
++++ a/MAINTAINERS
+@@ -1350,7 +1350,7 @@ S:	Maintained
+ ETHERNET BRIDGE
+ P:	Stephen Hemminger
+ M:	shemminger@linux-foundation.org
+-L:	bridge@osdl.org
++L:	bridge@lists.osdl.org
+ W:	http://bridge.sourceforge.net/
+ S:	Maintained
  
-+#ifdef CONFIG_CRASH_DUMP
-+		/* saved_max_pfn should ignore max_addr= command line arg */
-+		if (saved_max_pfn < (ae >> PAGE_SHIFT))
-+			saved_max_pfn = (ae >> PAGE_SHIFT);
-+#endif
- 		/* keep within max_addr= and min_addr= command line arg */
- 		as = max(as, min_addr);
- 		ae = min(ae, max_addr);
-diff -puN arch/ia64/mm/contig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system arch/ia64/mm/contig.c
---- a/arch/ia64/mm/contig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system
-+++ a/arch/ia64/mm/contig.c
-@@ -197,11 +197,6 @@ find_memory (void)
+@@ -1365,13 +1365,13 @@ S:	Maintained
  
- 	find_initrd();
+ EXT3 FILE SYSTEM
+ P:	Stephen Tweedie, Andrew Morton
+-M:	sct@redhat.com, akpm@osdl.org, adilger@clusterfs.com
++M:	sct@redhat.com, akpm@linux-foundation.org, adilger@clusterfs.com
+ L:	linux-ext4@vger.kernel.org
+ S:	Maintained
  
--#ifdef CONFIG_CRASH_DUMP
--	/* If we are doing a crash dump, we still need to know the real mem
--	 * size before original memory map is reset. */
--	saved_max_pfn = max_pfn;
--#endif
- }
+ EXT4 FILE SYSTEM
+ P:	Stephen Tweedie, Andrew Morton
+-M:	sct@redhat.com, akpm@osdl.org, adilger@clusterfs.com
++M:	sct@redhat.com, akpm@linux-foundation.org, adilger@clusterfs.com
+ L:	linux-ext4@vger.kernel.org
+ S:	Maintained
  
- #ifdef CONFIG_SMP
-diff -puN arch/ia64/mm/discontig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system arch/ia64/mm/discontig.c
---- a/arch/ia64/mm/discontig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system
-+++ a/arch/ia64/mm/discontig.c
-@@ -480,12 +480,6 @@ void __init find_memory(void)
- 	max_pfn = max_low_pfn;
+@@ -1974,7 +1974,7 @@ S:	Supported
  
- 	find_initrd();
--
--#ifdef CONFIG_CRASH_DUMP
--	/* If we are doing a crash dump, we still need to know the real mem
--	 * size before original memory map is reset. */
--        saved_max_pfn = max_pfn;
--#endif
- }
+ JOURNALLING LAYER FOR BLOCK DEVICES (JBD)
+ P:	Stephen Tweedie, Andrew Morton
+-M:	sct@redhat.com, akpm@osdl.org
++M:	sct@redhat.com, akpm@linux-foundation.org
+ L:	linux-ext4@vger.kernel.org
+ S:	Maintained
  
- #ifdef CONFIG_SMP
+@@ -2045,7 +2045,7 @@ P:	Eric Biederman
+ M:	ebiederm@xmission.com
+ W:	http://www.xmission.com/~ebiederm/files/kexec/
+ L:	linux-kernel@vger.kernel.org
+-L:	fastboot@osdl.org
++L:	fastboot@lists.osdl.org
+ S:	Maintained
+ 
+ KPROBES
+@@ -2383,7 +2383,7 @@ S:	Maintained
+ NETEM NETWORK EMULATOR
+ P:	Stephen Hemminger
+ M:	shemminger@linux-foundation.org
+-L:	netem@osdl.org
++L:	netem@lists.osdl.org
+ S:	Maintained
+ 
+ NETFILTER/IPTABLES/IPCHAINS
+@@ -2422,7 +2422,7 @@ S:	Maintained
+ 
+ NETWORK DEVICE DRIVERS
+ P:	Andrew Morton
+-M:	akpm@osdl.org
++M:	akpm@linux-foundation.org
+ P:	Jeff Garzik
+ M:	jgarzik@pobox.com
+ L:	netdev@vger.kernel.org
+@@ -3117,7 +3117,7 @@ S:	Supported
+ SOFTWARE SUSPEND:
+ P:	Pavel Machek
+ M:	pavel@suse.cz
+-L:	linux-pm@osdl.org
++L:	linux-pm@lists.osdl.org
+ S:	Maintained
+ 
+ SONIC NETWORK DRIVER
 _
 
 Patches currently in -mm which might be from horms@verge.net.au are
@@ -111,3 +122,4 @@ Patches currently in -mm which might be from horms@verge.net.au are
 origin.patch
 git-ia64.patch
 ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch
+update-osdl-linux-foundation-maintainer-addresses.patch
