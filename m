@@ -1,42 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch removed from -mm tree
-Date: Tue, 13 Feb 2007 23:02:22 -0800
-Message-ID: <200702140702.l1E72NvN023947@shell0.pdx.osdl.net>
+Subject: - sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch removed from -mm tree
+Date: Tue, 13 Feb 2007 23:02:26 -0800
+Message-ID: <200702140702.l1E72QqX023951@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44024 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44029 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932166AbXBNHC2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 02:02:28 -0500
+	id S932170AbXBNHCa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 02:02:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, jmorris@namei.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl selinux: Don't look at table->de
+     sysctl: restore the selinux path based label lookup for sysctls
 has been removed from the -mm tree.  Its filename was
-     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
+     sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
 
 This patch was dropped because it was folded into sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
 
 ------------------------------------------------------
-Subject: sysctl selinux: Don't look at table->de
+Subject: sysctl: restore the selinux path based label lookup for sysctls
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-With the sysctl cleanups sysctl is not really a part of proc it just shows
-up there, and any path based approach will not adequately describe the data
-as sysctl is essentially a union mount underneath the covers.  As designed
-this mechanism is viewer dependent so trying to be path based gets even
-worse.
+This time instead of generating the generating the paths from proc_dir_entries
+generate the labels from the names in the sysctl ctl_tables themselves.  This
+removes an unnecessary layer of indirection, allows this to work even when
+procfs support is not compiled into the kernel, and especially allows it to
+work now that ctl_tables no longer have a proc_dir_entry field.
 
-However the permissions in sys_sysctl are currently immutable and going
-through proc does not change the permission checks when accessing sysctl. 
-So we might as well stick with the well defined sysctl sid, as that is what
-selinux uses when proc is not compiled in.
-
-I.e.  I see no hope for salvaging the selinux_proc_get_sid call in
-selinux_sysctl so I'm removing it.
+I continue passing "proc" into genfs sid although that is complete nonsense to
+allow existing selinux policies to work without modification.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Stephen Smalley <sds@tycho.nsa.gov>
@@ -44,24 +39,66 @@ Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ security/selinux/hooks.c |   43 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 41 insertions(+), 2 deletions(-)
 
-diff -puN security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix security/selinux/hooks.c
---- a/security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix
+diff -puN security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2 security/selinux/hooks.c
+--- a/security/selinux/hooks.c~sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2
 +++ a/security/selinux/hooks.c
-@@ -1431,12 +1431,8 @@ static int selinux_sysctl(ctl_table *tab
+@@ -1417,6 +1417,41 @@ static int selinux_capable(struct task_s
+ 	return task_has_capability(tsk,cap);
+ }
+ 
++static int selinux_sysctl_get_sid(ctl_table *table, u16 tclass, u32 *sid)
++{
++	int buflen, rc;
++	char *buffer, *path, *end;
++
++	rc = -ENOMEM;
++	buffer = (char*)__get_free_page(GFP_KERNEL);
++	if (!buffer)
++		goto out;
++
++	buflen = PAGE_SIZE;
++	end = buffer+buflen;
++	*--end = '\0';
++	buflen--;
++	path = end-1;
++	*path = '/';
++	while (table) {
++		const char *name = table->procname;
++		size_t namelen = strlen(name);
++		buflen -= namelen + 1;
++		if (buflen < 0)
++			goto out_free;
++		end -= namelen;
++		memcpy(end, name, namelen);
++		*--end = '/';
++		path = end;
++		table = table->parent;
++	}
++	rc = security_genfs_sid("proc", path, tclass, sid);
++out_free:
++	free_page((unsigned long)buffer);
++out:
++	return rc;
++}
++
+ static int selinux_sysctl(ctl_table *table, int op)
+ {
+ 	int error = 0;
+@@ -1431,8 +1466,12 @@ static int selinux_sysctl(ctl_table *tab
  
  	tsec = current->security;
  
--	rc = selinux_proc_get_sid(table->de, (op == 001) ?
--	                          SECCLASS_DIR : SECCLASS_FILE, &tsid);
--	if (rc) {
--		/* Default to the well-defined sysctl SID. */
--		tsid = SECINITSID_SYSCTL;
--	}
-+	/* Use the well-defined sysctl SID. */
-+	tsid = SECINITSID_SYSCTL;
+-	/* Use the well-defined sysctl SID. */
+-	tsid = SECINITSID_SYSCTL;
++	rc = selinux_sysctl_get_sid(table, (op == 0001) ?
++				    SECCLASS_DIR : SECCLASS_FILE, &tsid);
++	if (rc) {
++		/* Default to the well-defined sysctl SID. */
++		tsid = SECINITSID_SYSCTL;
++	}
  
  	/* The op values are "defined" in sysctl.c, thereby creating
  	 * a bad coupling between this module and sysctl.c */
@@ -129,7 +166,6 @@ sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
 sysctl-reimplement-the-sysctl-proc-support.patch
 sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
 sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
 sysctl-fix-the-selinux_sysctl_get_sid.patch
