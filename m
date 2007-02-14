@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-reduce-stack-usage-in-ecryptfs_generate_key_packet_set.patch added to -mm tree
-Date: Wed, 14 Feb 2007 12:49:22 -0800
-Message-ID: <200702142049.l1EKnMNj008680@shell0.pdx.osdl.net>
+Subject: + x86-fatal-kernel-faults-should-update-thread-struct.patch added to -mm tree
+Date: Wed, 14 Feb 2007 12:52:31 -0800
+Message-ID: <200702142052.l1EKqVFA008741@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44925 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45077 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751243AbXBNUt2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 15:49:28 -0500
+	id S932575AbXBNUwp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 15:52:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com
+Cc: jdike@addtoit.com, ak@suse.de, jbeulich@novell.com
 
 
 The patch titled
-     eCryptfs: Reduce stack usage in ecryptfs_generate_key_packet_set()
+     x86: fatal kernel faults should update thread struct
 has been added to the -mm tree.  Its filename is
-     ecryptfs-reduce-stack-usage-in-ecryptfs_generate_key_packet_set.patch
+     x86-fatal-kernel-faults-should-update-thread-struct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,140 +25,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: Reduce stack usage in ecryptfs_generate_key_packet_set()
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: x86: fatal kernel faults should update thread struct
+From: Jeff Dike <jdike@addtoit.com>
 
-eCryptfs is gobbling a lot of stack in ecryptfs_generate_key_packet_set()
-because it allocates a temporary memory-hungry ecryptfs_key_record struct. 
-This patch introduces a new kmem_cache for that struct and converts
-ecryptfs_generate_key_packet_set() to use it.
+Fix a bug introduced in my earlier fault information pollution prevention
+patch.  That patch assumed that no kernel fault information should ever be
+put in thread.error_code and .trap_no.  It turns out that die() reads those
+fields, so fatal kernel faults, as well as userspace faults, need those
+fields set.  The case where they aren't set is kernelspace faults which are
+fixed up.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Thanks to Jan Beulich for his review and spotting this bug.
+
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/ecryptfs_kernel.h |    1 +
- fs/ecryptfs/keystore.c        |   26 ++++++++++++++++++--------
- fs/ecryptfs/main.c            |    5 +++++
- 3 files changed, 24 insertions(+), 8 deletions(-)
+ arch/i386/kernel/traps.c   |   11 +++++++++++
+ arch/x86_64/kernel/traps.c |   14 +++++++++++++-
+ 2 files changed, 24 insertions(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-reduce-stack-usage-in-ecryptfs_generate_key_packet_set fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-reduce-stack-usage-in-ecryptfs_generate_key_packet_set
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -467,6 +467,7 @@ extern struct kmem_cache *ecryptfs_heade
- extern struct kmem_cache *ecryptfs_header_cache_2;
- extern struct kmem_cache *ecryptfs_xattr_cache;
- extern struct kmem_cache *ecryptfs_lower_page_cache;
-+extern struct kmem_cache *ecryptfs_key_record_cache;
+diff -puN arch/i386/kernel/traps.c~x86-fatal-kernel-faults-should-update-thread-struct arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~x86-fatal-kernel-faults-should-update-thread-struct
++++ a/arch/i386/kernel/traps.c
+@@ -611,6 +611,15 @@ fastcall void __kprobes do_general_prote
+ 	if (!user_mode(regs))
+ 		goto gp_in_kernel;
  
- int ecryptfs_interpose(struct dentry *hidden_dentry,
- 		       struct dentry *this_dentry, struct super_block *sb,
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-reduce-stack-usage-in-ecryptfs_generate_key_packet_set fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-reduce-stack-usage-in-ecryptfs_generate_key_packet_set
-+++ a/fs/ecryptfs/keystore.c
-@@ -1639,6 +1639,8 @@ out:
- 	return rc;
- }
++	/*
++	 * We want error_code and trap_no set for userspace faults and
++	 * kernelspace faults which result in die(), but not
++	 * kernelspace faults which are fixed up.  die() gives the
++	 * process no chance to handle the signal and notice the
++	 * kernel fault information, so that won't result in polluting
++	 * the information about previously queued, but not yet
++	 * delivered, fault.
++	 */
+ 	current->thread.error_code = error_code;
+ 	current->thread.trap_no = 13;
+ 	force_sig(SIGSEGV, current);
+@@ -623,6 +632,8 @@ gp_in_vm86:
  
-+struct kmem_cache *ecryptfs_key_record_cache;
-+
- /**
-  * ecryptfs_generate_key_packet_set
-  * @dest: Virtual address from which to write the key record set
-@@ -1665,50 +1667,55 @@ ecryptfs_generate_key_packet_set(char *d
- 		&ecryptfs_superblock_to_private(
- 			ecryptfs_dentry->d_sb)->mount_crypt_stat;
- 	size_t written;
--	struct ecryptfs_key_record key_rec;
-+	struct ecryptfs_key_record *key_rec;
- 	int rc = 0;
+ gp_in_kernel:
+ 	if (!fixup_exception(regs)) {
++		current->thread.error_code = error_code;
++		current->thread.trap_no = 13;
+ 		if (notify_die(DIE_GPF, "general protection fault", regs,
+ 				error_code, 13, SIGSEGV) == NOTIFY_STOP)
+ 			return;
+diff -puN arch/x86_64/kernel/traps.c~x86-fatal-kernel-faults-should-update-thread-struct arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~x86-fatal-kernel-faults-should-update-thread-struct
++++ a/arch/x86_64/kernel/traps.c
+@@ -583,6 +583,15 @@ static void __kprobes do_trap(int trapnr
+ 	struct task_struct *tsk = current;
  
- 	(*len) = 0;
-+	key_rec = kmem_cache_alloc(ecryptfs_key_record_cache, GFP_KERNEL);
-+	if (!key_rec) {
-+		rc = -ENOMEM;
-+		goto out;
-+	}
- 	if (mount_crypt_stat->global_auth_tok) {
- 		auth_tok = mount_crypt_stat->global_auth_tok;
- 		if (auth_tok->token_type == ECRYPTFS_PASSWORD) {
- 			rc = write_tag_3_packet((dest_base + (*len)),
- 						max, auth_tok,
--						crypt_stat, &key_rec,
-+						crypt_stat, key_rec,
- 						&written);
- 			if (rc) {
- 				ecryptfs_printk(KERN_WARNING, "Error "
- 						"writing tag 3 packet\n");
--				goto out;
-+				goto out_free;
- 			}
- 			(*len) += written;
- 			/* Write auth tok signature packet */
- 			rc = write_tag_11_packet(
- 				(dest_base + (*len)),
- 				(max - (*len)),
--				key_rec.sig, ECRYPTFS_SIG_SIZE, &written);
-+				key_rec->sig, ECRYPTFS_SIG_SIZE, &written);
- 			if (rc) {
- 				ecryptfs_printk(KERN_ERR, "Error writing "
- 						"auth tok signature packet\n");
--				goto out;
-+				goto out_free;
- 			}
- 			(*len) += written;
- 		} else if (auth_tok->token_type == ECRYPTFS_PRIVATE_KEY) {
- 			rc = write_tag_1_packet(dest_base + (*len),
- 						max, auth_tok,
- 						crypt_stat,mount_crypt_stat,
--						&key_rec, &written);
-+						key_rec, &written);
- 			if (rc) {
- 				ecryptfs_printk(KERN_WARNING, "Error "
- 						"writing tag 1 packet\n");
--				goto out;
-+				goto out_free;
- 			}
- 			(*len) += written;
- 		} else {
- 			ecryptfs_printk(KERN_WARNING, "Unsupported "
- 					"authentication token type\n");
- 			rc = -EINVAL;
--			goto out;
-+			goto out_free;
- 		}
- 	} else
- 		BUG();
-@@ -1718,6 +1725,9 @@ ecryptfs_generate_key_packet_set(char *d
- 		ecryptfs_printk(KERN_ERR, "Error writing boundary byte\n");
- 		rc = -EIO;
+ 	if (user_mode(regs)) {
++		/*
++		 * We want error_code and trap_no set for userspace faults
++		 * and kernelspace faults which result in die(), but
++		 * not kernelspace faults which are fixed up.  die()
++		 * gives the process no chance to handle the signal
++		 * and notice the kernel fault information, so that
++		 * won't result in polluting the information about
++		 * previously queued, but not yet delivered, fault.
++		 */
+ 		tsk->thread.error_code = error_code;
+ 		tsk->thread.trap_no = trapnr;
+ 
+@@ -606,8 +615,11 @@ static void __kprobes do_trap(int trapnr
+ 		fixup = search_exception_tables(regs->rip);
+ 		if (fixup)
+ 			regs->rip = fixup->fixup;
+-		else	
++		else {
++			tsk->thread.error_code = error_code;
++			tsk->thread.trap_no = trapnr;
+ 			die(str, regs, error_code);
++		}
+ 		return;
  	}
-+
-+out_free:
-+	kmem_cache_free(ecryptfs_key_record_cache, key_rec);
- out:
- 	if (rc)
- 		(*len) = 0;
-diff -puN fs/ecryptfs/main.c~ecryptfs-reduce-stack-usage-in-ecryptfs_generate_key_packet_set fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-reduce-stack-usage-in-ecryptfs_generate_key_packet_set
-+++ a/fs/ecryptfs/main.c
-@@ -651,6 +651,11 @@ static struct ecryptfs_cache_info {
- 		.name = "ecryptfs_lower_page_cache",
- 		.size = PAGE_CACHE_SIZE,
- 	},
-+	{
-+		.cache = &ecryptfs_key_record_cache,
-+		.name = "ecryptfs_key_record_cache",
-+		.size = sizeof(struct ecryptfs_key_record),
-+	},
- };
- 
- static void ecryptfs_free_kmem_caches(void)
+ }
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-unionfs.patch
-ecryptfs-convert-lookup_one_len-to-lookup_one_len_nd.patch
-ecryptfs-reduce-stack-usage-in-ecryptfs_generate_key_packet_set.patch
+x86-fatal-kernel-faults-should-update-thread-struct.patch
+uml-fix-prototypes.patch
