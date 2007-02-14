@@ -1,128 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch removed from -mm tree
-Date: Tue, 13 Feb 2007 22:57:38 -0800
-Message-ID: <200702140657.l1E6vcTi023805@shell0.pdx.osdl.net>
+Subject: - sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch removed from -mm tree
+Date: Tue, 13 Feb 2007 22:57:40 -0800
+Message-ID: <200702140657.l1E6ve63023808@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43949 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43953 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751141AbXBNG5k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 01:57:40 -0500
+	id S1751142AbXBNG5m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 01:57:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: gcoady.lk@gmail.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl-move-sysv-ipc-sysctls-to-their-own-file fix
+     typo in ipc/ipc_sysctl.c -> compile failure
 has been removed from the -mm tree.  Its filename was
-     sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
+     sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
 
 This patch was dropped because it was folded into sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
 
 ------------------------------------------------------
-Subject: sysctl-move-sysv-ipc-sysctls-to-their-own-file fix
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: typo in ipc/ipc_sysctl.c -> compile failure
+From: Grant Coady <gcoady.lk@gmail.com>
 
-Incremental fix to add uacces.h so ipc_sysctl.c compiles on all
-architectures.  Something that was caught in the review and should not be
-lost.
+Fix typos causing compile failure when CONFIG_PROC_FS not set in
+ipc/ipc_sysctl.c, compile tested.
 
+ipc/ipc_sysctl.c:107: error: `proc_ipc_doulongvec_minmax' undeclared here (not in a function)
+ipc/ipc_sysctl.c:107: error: initializer element is not constant
+[...]
+ipc/ipc_sysctl.c:164: error: (near initialization for `ipc_kern_table[7]')
+make[1]: *** [ipc/ipc_sysctl.o] Error 1
+make: *** [ipc] Error 2
+
+Also applies cleanly to 2.6.20-rc6-mm3.
+
+Signed-off-by: Grant Coady <gcoady.lk@gmail.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- ipc/ipc_sysctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ ipc/ipc_sysctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN ipc/ipc_sysctl.c~sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix ipc/ipc_sysctl.c
---- a/ipc/ipc_sysctl.c~sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix
+diff -puN ipc/ipc_sysctl.c~sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2 ipc/ipc_sysctl.c
+--- a/ipc/ipc_sysctl.c~sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2
 +++ a/ipc/ipc_sysctl.c
-@@ -13,6 +13,7 @@
- #include <linux/ipc.h>
- #include <linux/nsproxy.h>
- #include <linux/sysctl.h>
-+#include <linux/uaccess.h>
+@@ -50,8 +50,8 @@ static int proc_ipc_doulongvec_minmax(ct
+ }
  
- #ifdef CONFIG_IPC_NS
- static void *get_ipc(ctl_table *table)
+ #else
+-#define proc_ipc_do_ulongvec_minmax NULL
+-#define proc_ipc_do_intvec	    NULL
++#define proc_ipc_doulongvec_minmax NULL
++#define proc_ipc_dointvec	   NULL
+ #endif
+ 
+ #ifdef CONFIG_SYSCTL_SYSCALL
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from gcoady.lk@gmail.com are
 
-origin.patch
-sysctl-x25-remove-unnecessary-insert_at_head-from-register_sysctl_table.patch
-sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
-sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
-sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
-sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
-sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
-sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ax25-remove-unnecessary-insert_at_head-flag.patch
-sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
-sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-md-remove-unnecessary-insert_at_head-flag.patch
-sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
-sysctl-cdrom-dont-set-de-owner.patch
-sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
-sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
-sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
-sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
-sysctl-c99-convert-arch-frv-kernel-pmc.patch
-sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
-sysctl-sn-remove-sysctl-abi-breakage.patch
-sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
-sysctl-c99-convert-arch-ia64-kernel-perfmon-and-remove-abi-breakage.patch
-sysctl-mips-au1000-remove-sys_sysctl-support.patch
-sysctl-c99-convert-the-ctl_tables-in-arch-mips-au1000-common-powerc.patch
-sysctl-c99-convert-arch-mips-lasat-sysctlc-and-remove-abi-breakage.patch
-sysctl-s390-move-sysctl-definitions-to-sysctlh.patch
-sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
-sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
-sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
-sysctl-x86_64-remove-unnecessary-use-of-insert_at_head.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-ia32-ia32_binfmtc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-kernel-vsyscallc.patch
-sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
-sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
-sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
-sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
-sysctl-c99-convert-ctl_tables-in-drivers-parport-procfsc.patch
-sysctl-c99-convert-coda-ctl_tables-and-remove-binary-sysctls.patch
-sysctl-c99-convert-ctl_tables-in-ntfs-and-remove-sys_sysctl-support.patch
-sysctl-register-the-ocfs2-sysctl-numbers.patch
-sysctl-move-init_irq_proc-into-init-main-where-it-belongs.patch
-sysctl-move-utsname-sysctls-to-their-own-file.patch
-sysctl-move-utsname-sysctls-to-their-own-file-fix-2.patch
 sysctl-move-sysv-ipc-sysctls-to-their-own-file.patch
-sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix.patch
 sysctl-move-sysv-ipc-sysctls-to-their-own-file-fix-2.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
-sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry-warning-fix.patch
-sysctl-remove-support-for-ctl_any.patch
-sysctl-remove-support-for-directory-strategy-routines.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
-sysctl-factor-out-sysctl_head_next-from-do_sysctl-warning-fix.patch
-sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
-sysctl-reimplement-the-sysctl-proc-support.patch
-sysctl-reimplement-the-sysctl-proc-support-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-warning-fix.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-2.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-3.patch
-sysctl-reimplement-the-sysctl-proc-support-fix-4.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry.patch
-sysctl-add-a-parent-entry-to-ctl_table-and-set-the-parent-entry-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-fix-2.patch
-sysctl-remove-the-proc_dir_entry-member-for-the-sysctl-tables-ntfs-fix.patch
-sysctl-fix-the-selinux_sysctl_get_sid.patch
-selinux-enhance-selinux-to-always-ignore-private-inodes.patch
-sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
