@@ -1,220 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - git-nfs-fixup.patch removed from -mm tree
-Date: Tue, 13 Feb 2007 21:51:20 -0800
-Message-ID: <200702140551.l1E5pKKX022763@shell0.pdx.osdl.net>
+Subject: - br_if-oops-in-port_carrier_check.patch removed from -mm tree
+Date: Tue, 13 Feb 2007 21:54:51 -0800
+Message-ID: <200702140554.l1E5sp6I022806@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42484 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42596 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751327AbXBNFvW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 00:51:22 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1E5pKhB019743
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 13 Feb 2007 21:51:21 -0800
+	id S1751514AbXBNFyz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 00:54:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jarkao2@o2.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-nfs-fixup
+     br_if: oops in port_carrier_check
 has been removed from the -mm tree.  Its filename was
-     git-nfs-fixup.patch
+     br_if-oops-in-port_carrier_check.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-nfs-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: br_if: oops in port_carrier_check
+From: Jarek Poplawski <jarkao2@o2.pl>
 
+On Mon, Feb 12, 2007 at 09:47:38AM -0800, Stephen Hemminger wrote:
+> On Mon, 12 Feb 2007 11:28:48 +0100
+> Jarek Poplawski <jarkao2@o2.pl> wrote:
+>
+> > Here is my patch proposal for testing.
+> > If it doesn't work - forget about it.
+> > (Prepared with 2.6.20-git6 but could
+> > be applied to 2.6.20 also.)
+> >
+> > Jarek P.
+> >
+> >
+> > dev_hold/dev_put added to prevent dev kfree
+> > during port_carrier_check runnig, while dev
+> > and port are removed.
+>
+> No, holding the reference just stops the kfree, it doesn't
+> stop the device from being removed from the port.
+
+But I wrote above it is only to prevent the kfree.
+
+>        p = dev->br_port;
+>        if (!p)
+>                goto done;
+>        br = p->br;
+
+Then p is NULL here and we goto done.
+
+Sorry, but the first version was wrong (incomplete).
+Below I attach a new proposal.
+
+Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/auth_gss/gss_krb5_crypto.c |    5 ---
- net/sunrpc/auth_gss/gss_spkm3_token.c |    4 --
- net/sunrpc/clnt.c                     |   40 ------------------------
- 3 files changed, 49 deletions(-)
+ net/bridge/br_if.c     |    8 ++++++--
+ net/bridge/br_notify.c |    4 +++-
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN net/sunrpc/auth_gss/gss_krb5_crypto.c~git-nfs-fixup net/sunrpc/auth_gss/gss_krb5_crypto.c
---- a/net/sunrpc/auth_gss/gss_krb5_crypto.c~git-nfs-fixup
-+++ a/net/sunrpc/auth_gss/gss_krb5_crypto.c
-@@ -66,13 +66,8 @@ krb5_encrypt(
- 		goto out;
- 
- 	if (crypto_blkcipher_ivsize(tfm) > 16) {
--<<<<<<< HEAD/net/sunrpc/auth_gss/gss_krb5_crypto.c
--		dprintk("RPC:      gss_k5encrypt: tfm iv size to large %d\n",
--			 crypto_blkcipher_ivsize(tfm));
--=======
- 		dprintk("RPC:       gss_k5encrypt: tfm iv size to large %d\n",
- 		         crypto_blkcipher_ivsize(tfm));
-->>>>>>> /net/sunrpc/auth_gss/gss_krb5_crypto.c
- 		goto out;
+diff -puN net/bridge/br_if.c~br_if-oops-in-port_carrier_check net/bridge/br_if.c
+--- a/net/bridge/br_if.c~br_if-oops-in-port_carrier_check
++++ a/net/bridge/br_if.c
+@@ -108,6 +108,7 @@ static void port_carrier_check(struct wo
+ 		spin_unlock_bh(&br->lock);
  	}
+ done:
++	dev_put(dev);
+ 	rtnl_unlock();
+ }
  
-diff -puN net/sunrpc/auth_gss/gss_spkm3_token.c~git-nfs-fixup net/sunrpc/auth_gss/gss_spkm3_token.c
---- a/net/sunrpc/auth_gss/gss_spkm3_token.c~git-nfs-fixup
-+++ a/net/sunrpc/auth_gss/gss_spkm3_token.c
-@@ -209,11 +209,7 @@ spkm3_verify_mic_token(unsigned char **t
+@@ -161,7 +162,8 @@ static void del_nbp(struct net_bridge_po
  
- 	/* spkm3 innercontext token preamble */
- 	if ((ptr[0] != 0xa4) || (ptr[2] != 0x30)) {
--<<<<<<< HEAD/net/sunrpc/auth_gss/gss_spkm3_token.c
- 		dprintk("RPC: BAD SPKM ictoken preamble\n");
--=======
--		dprintk("RPC:       BAD SPKM ictoken preamble\n");
-->>>>>>> /net/sunrpc/auth_gss/gss_spkm3_token.c
- 		goto out;
- 	}
+ 	dev_set_promiscuity(dev, -1);
  
-diff -puN net/sunrpc/clnt.c~git-nfs-fixup net/sunrpc/clnt.c
---- a/net/sunrpc/clnt.c~git-nfs-fixup
-+++ a/net/sunrpc/clnt.c
-@@ -749,13 +749,8 @@ call_allocate(struct rpc_task *task)
- 	struct rpc_xprt *xprt = task->tk_xprt;
- 	unsigned int	bufsiz;
+-	cancel_delayed_work(&p->carrier_check);
++	if (cancel_delayed_work(&p->carrier_check))
++		dev_put(dev);
  
--<<<<<<< HEAD/net/sunrpc/clnt.c
- 	dprintk("RPC: %4d call_allocate (status %d)\n",
- 				task->tk_pid, task->tk_status);
--=======
--	dprint_status(task);
--
-->>>>>>> /net/sunrpc/clnt.c
- 	task->tk_action = call_bind;
- 	if (req->rq_buffer)
- 		return;
-@@ -766,12 +761,7 @@ call_allocate(struct rpc_task *task)
+ 	spin_lock_bh(&br->lock);
+ 	br_stp_disable_port(p);
+@@ -444,7 +446,9 @@ int br_add_if(struct net_bridge *br, str
+ 	spin_lock_bh(&br->lock);
+ 	br_stp_recalculate_bridge_id(br);
+ 	br_features_recompute(br);
+-	schedule_delayed_work(&p->carrier_check, BR_PORT_DEBOUNCE);
++	if (schedule_delayed_work(&p->carrier_check, BR_PORT_DEBOUNCE))
++		dev_hold(dev);
++
+ 	spin_unlock_bh(&br->lock);
  
- 	if (xprt->ops->buf_alloc(task, bufsiz << 1) != NULL)
- 		return;
--<<<<<<< HEAD/net/sunrpc/clnt.c
--	printk(KERN_INFO "RPC: buffer allocation failed for task %p\n", task);
--=======
--
- 	dprintk("RPC: %5u rpc_buffer allocation failed\n", task->tk_pid);
-->>>>>>> /net/sunrpc/clnt.c
+ 	dev_set_mtu(br->dev, br_min_mtu(br));
+diff -puN net/bridge/br_notify.c~br_if-oops-in-port_carrier_check net/bridge/br_notify.c
+--- a/net/bridge/br_notify.c~br_if-oops-in-port_carrier_check
++++ a/net/bridge/br_notify.c
+@@ -56,7 +56,9 @@ static int br_device_event(struct notifi
  
- 	if (RPC_IS_ASYNC(task) || !signalled()) {
- 		xprt_release(task);
-@@ -808,12 +798,7 @@ call_encode(struct rpc_task *task)
- 	kxdrproc_t	encode;
- 	__be32		*p;
+ 	case NETDEV_CHANGE:
+ 		if (br->dev->flags & IFF_UP)
+-			schedule_delayed_work(&p->carrier_check, BR_PORT_DEBOUNCE);
++			if (schedule_delayed_work(&p->carrier_check,
++						BR_PORT_DEBOUNCE))
++				dev_hold(dev);
+ 		break;
  
--<<<<<<< HEAD/net/sunrpc/clnt.c
--	dprintk("RPC: %4d call_encode (status %d)\n",
--				task->tk_pid, task->tk_status);
--=======
- 	dprint_status(task);
-->>>>>>> /net/sunrpc/clnt.c
- 
- 	/* Default buffer setup */
- 	bufsiz = req->rq_bufsize >> 1;
-@@ -945,12 +930,7 @@ call_connect_status(struct rpc_task *tas
- 	struct rpc_clnt *clnt = task->tk_client;
- 	int status = task->tk_status;
- 
--<<<<<<< HEAD/net/sunrpc/clnt.c
--	dprintk("RPC: %5u call_connect_status (status %d)\n",
--				task->tk_pid, task->tk_status);
--=======
- 	dprint_status(task);
-->>>>>>> /net/sunrpc/clnt.c
- 
- 	task->tk_status = 0;
- 	if (status >= 0) {
-@@ -982,12 +962,7 @@ call_connect_status(struct rpc_task *tas
- static void
- call_transmit(struct rpc_task *task)
- {
--<<<<<<< HEAD/net/sunrpc/clnt.c
--	dprintk("RPC: %4d call_transmit (status %d)\n",
--				task->tk_pid, task->tk_status);
--=======
- 	dprint_status(task);
-->>>>>>> /net/sunrpc/clnt.c
- 
- 	task->tk_action = call_status;
- 	if (task->tk_status < 0)
-@@ -1048,12 +1023,7 @@ call_status(struct rpc_task *task)
- 	if (req->rq_received > 0 && !req->rq_bytes_sent)
- 		task->tk_status = req->rq_received;
- 
--<<<<<<< HEAD/net/sunrpc/clnt.c
--	dprintk("RPC: %4d call_status (status %d)\n",
--				task->tk_pid, task->tk_status);
--=======
- 	dprint_status(task);
-->>>>>>> /net/sunrpc/clnt.c
- 
- 	status = task->tk_status;
- 	if (status >= 0) {
-@@ -1142,13 +1112,8 @@ call_decode(struct rpc_task *task)
- 	kxdrproc_t	decode = task->tk_msg.rpc_proc->p_decode;
- 	__be32		*p;
- 
--<<<<<<< HEAD/net/sunrpc/clnt.c
--	dprintk("RPC: %4d call_decode (status %d)\n",
--				task->tk_pid, task->tk_status);
--=======
- 	dprintk("RPC: %5u call_decode (status %d)\n",
- 			task->tk_pid, task->tk_status);
-->>>>>>> /net/sunrpc/clnt.c
- 
- 	if (task->tk_flags & RPC_CALL_MAJORSEEN) {
- 		printk(KERN_NOTICE "%s: server %s OK\n",
-@@ -1225,13 +1190,8 @@ static void
- call_refreshresult(struct rpc_task *task)
- {
- 	int status = task->tk_status;
--<<<<<<< HEAD/net/sunrpc/clnt.c
--	dprintk("RPC: %4d call_refreshresult (status %d)\n",
--				task->tk_pid, task->tk_status);
--=======
- 
- 	dprint_status(task);
-->>>>>>> /net/sunrpc/clnt.c
- 
- 	task->tk_status = 0;
- 	task->tk_action = call_reserve;
+ 	case NETDEV_FEAT_CHANGE:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jarkao2@o2.pl are
 
 origin.patch
-git-acpi.patch
-git-agpgart.patch
-git-arm.patch
-git-cpufreq.patch
-powerpc-rtas-msi-support-fix.patch
-fix-warning-in-device_add_attrs.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-infiniband.patch
-sis-warning-fixes.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-md-accel-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-git-backlight.patch
-git-backlight-sony-fix.patch
-git-nfs-fixup.patch
-git-sh.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-unionfs-fixup.patch
-revert-x86_64-mm-msr-on-cpu.patch
-x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-kprobes-list-all-active-probes-in-the-system.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-epoll-compat-code-to-kernel-compatc-tidy.patch
-spi-atmel_spi-driver-fix.patch
-revert-x86_64-mm-putreg-check.patch
-git-gccbug-fixup.patch
+lockdep-debug_locks-check-after-check_chain_key.patch
