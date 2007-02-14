@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + power-management-no-valid-states-w-o-pm_ops-docs.patch added to -mm tree
-Date: Wed, 14 Feb 2007 14:07:27 -0800
-Message-ID: <200702142207.l1EM7RZK010779@shell0.pdx.osdl.net>
+Subject: + power-management-fix-struct-layout-and-docs.patch added to -mm tree
+Date: Wed, 14 Feb 2007 14:08:24 -0800
+Message-ID: <200702142208.l1EM8Ok9010786@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48416 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48435 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964800AbXBNWHu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 17:07:50 -0500
+	id S964801AbXBNWIf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 17:08:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: johannes@sipsolutions.net, greg@kroah.com, pavel@ucw.cz, rdunlap@xenotime.ne
 
 
 The patch titled
-     power management: no valid states w/o pm_ops + docs
+     power management: fix struct layout and docs
 has been added to the -mm tree.  Its filename is
-     power-management-no-valid-states-w-o-pm_ops-docs.patch
+     power-management-fix-struct-layout-and-docs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,12 +25,15 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: power management: no valid states w/o pm_ops + docs
+Subject: power management: fix struct layout and docs
 From: Johannes Berg <johannes@sipsolutions.net>
 
-Change /sys/power/state to not advertise any valid states (except for disk
-if SOFTWARE_SUSPEND is enabled) when no pm_ops have been set so userspace
-can easily discover what states should be available.
+Because the pm ops in powermac are obviously not using them as intended, I
+added documentation for it in kernel-doc format.
+
+Reordering the fields in struct pm_ops not only makes the output of kernel-doc
+make more sense but also removes a hole from the structure on 64-bit
+platforms.
 
 Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
 Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
@@ -40,28 +43,67 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/main.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ include/linux/pm.h |   37 +++++++++++++++++++++++++++++++++++--
+ 1 files changed, 35 insertions(+), 2 deletions(-)
 
-diff -puN kernel/power/main.c~power-management-no-valid-states-w-o-pm_ops-docs kernel/power/main.c
---- a/kernel/power/main.c~power-management-no-valid-states-w-o-pm_ops-docs
-+++ a/kernel/power/main.c
-@@ -167,7 +167,10 @@ static inline int valid_state(suspend_st
- 	if (state == PM_SUSPEND_DISK)
- 		return 1;
+diff -puN include/linux/pm.h~power-management-fix-struct-layout-and-docs include/linux/pm.h
+--- a/include/linux/pm.h~power-management-fix-struct-layout-and-docs
++++ a/include/linux/pm.h
+@@ -120,15 +120,48 @@ typedef int __bitwise suspend_disk_metho
+ #define	PM_DISK_TESTPROC	((__force suspend_disk_method_t) 6)
+ #define	PM_DISK_MAX		((__force suspend_disk_method_t) 7)
  
--	if (pm_ops && pm_ops->valid && !pm_ops->valid(state))
-+	/* all other states need lowlevel support and need to be
-+	 * valid to the lowlevel implementation, no valid callback
-+	 * implies that all are valid. */
-+	if (!pm_ops || (pm_ops->valid && !pm_ops->valid(state)))
- 		return 0;
- 	return 1;
- }
++/**
++ * struct pm_ops - Callbacks for managing platform dependent suspend states.
++ * @valid: Callback to determine whether the given state can be entered.
++ * 	If %CONFIG_SOFTWARE_SUSPEND is set then %PM_SUSPEND_DISK is
++ *	always valid and never passed to this call.
++ *	If not assigned, all suspend states are advertised as valid
++ *	in /sys/power/state (but can still be rejected by prepare or enter.)
++ *
++ * @prepare: Prepare the platform for the given suspend state. Can return a
++ *	negative error code if necessary.
++ *
++ * @enter: Enter the given suspend state, must be assigned. Can return a
++ *	negative error code if necessary.
++ *
++ * @finish: Called when the system has left the given state and all devices
++ *	are resumed. The return value is ignored.
++ *
++ * @pm_disk_mode: Set to the disk method that the user should be able to
++ *	configure for suspend-to-disk. Since %PM_DISK_SHUTDOWN,
++ *	%PM_DISK_REBOOT, %PM_DISK_TEST and %PM_DISK_TESTPROC
++ *	are always allowed, currently only %PM_DISK_PLATFORM
++ *	makes sense. If the user then choses %PM_DISK_PLATFORM,
++ *	the @prepare call will be called before suspending to disk
++ *	(if present), the @enter call should be present and will
++ *	be called after all state has been saved and the machine
++ *	is ready to be shut down/suspended/..., and the @finish
++ *	callback is called after state has been restored. All
++ *	these calls are called with %PM_SUSPEND_DISK as the state.
++ */
+ struct pm_ops {
+-	suspend_disk_method_t pm_disk_mode;
+ 	int (*valid)(suspend_state_t state);
+ 	int (*prepare)(suspend_state_t state);
+ 	int (*enter)(suspend_state_t state);
+ 	int (*finish)(suspend_state_t state);
++	suspend_disk_method_t pm_disk_mode;
+ };
+ 
+-extern void pm_set_ops(struct pm_ops *);
++/**
++ * pm_set_ops - set platform dependent power management ops
++ * @pm_ops: The new power management operations to set.
++ */
++extern void pm_set_ops(struct pm_ops *pm_ops);
+ extern struct pm_ops *pm_ops;
+ extern int pm_suspend(suspend_state_t state);
+ 
 _
 
 Patches currently in -mm which might be from johannes@sipsolutions.net are
 
 origin.patch
 power-management-no-valid-states-w-o-pm_ops-docs.patch
-a.patch
+power-management-fix-struct-layout-and-docs.patch
