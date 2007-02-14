@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch added to -mm tree
-Date: Wed, 14 Feb 2007 15:10:07 -0800
-Message-ID: <200702142310.l1ENAGTZ012317@shell0.pdx.osdl.net>
+Subject: + fix-cut-and-paste-breakage-in-arch-powerpc-platforms-pseries-pseriesh.patch added to -mm tree
+Date: Wed, 14 Feb 2007 15:10:50 -0800
+Message-ID: <200702142310.l1ENAoJG012330@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50417 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50423 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964812AbXBNXK0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 18:10:26 -0500
+	id S964813AbXBNXLH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 18:11:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, clameter@sgi.com, lethal@linux-sh.org
+Cc: michael@ellerman.id.au, paulus@samba.org
 
 
 The patch titled
-     smaps: flush tlb only once for each vma
+     Fix cut and paste breakage in arch/powerpc/platforms/pseries/pseries.h
 has been added to the -mm tree.  Its filename is
-     smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+     fix-cut-and-paste-breakage-in-arch-powerpc-platforms-pseries-pseriesh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: smaps: flush tlb only once for each vma
-From: David Rientjes <rientjes@google.com>
+Subject: Fix cut and paste breakage in arch/powerpc/platforms/pseries/pseries.h
+From: Michael Ellerman <michael@ellerman.id.au>
 
-Flush the entire user address space from the TLB for each VMA in the
-task_struct list when clearing reference bits with /proc/pid/clear_refs. 
-It's more efficient than flushing each page individually depending on
-pte_young().
+My "cleanup" patch (dce623e0827e8d0ad60ce7f385c3394bf1b0bae0) had a cut
+and paste error for the !CONFIG_KEXEC case. Fifty lashes for me.
 
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/platforms/pseries/pseries.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-add-clear_refs-file-to-clear-reference-fix-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-add-clear_refs-file-to-clear-reference-fix-fix
-+++ a/fs/proc/task_mmu.c
-@@ -276,7 +276,6 @@ static void clear_refs_one_pmd(struct vm
- 		if (pte_young(ptent)) {
- 			ptent = pte_mkold(ptent);
- 			set_pte_at(vma->vm_mm, addr, pte, ptent);
--			flush_tlb_page(vma, addr);
- 		}
- 		ClearPageReferenced(page);
- 	}
-@@ -358,6 +357,7 @@ void clear_refs_smap(struct mm_struct *m
- 	for (vma = mm->mmap; vma; vma = vma->vm_next)
- 		if (vma->vm_mm && !is_vm_hugetlb_page(vma))
- 			for_each_pmd(vma, clear_refs_one_pmd, NULL);
-+	flush_tlb_mm(mm);
- 	up_read(&mm->mmap_sem);
- }
+diff -puN arch/powerpc/platforms/pseries/pseries.h~fix-cut-and-paste-breakage-in-arch-powerpc-platforms-pseries-pseriesh arch/powerpc/platforms/pseries/pseries.h
+--- a/arch/powerpc/platforms/pseries/pseries.h~fix-cut-and-paste-breakage-in-arch-powerpc-platforms-pseries-pseriesh
++++ a/arch/powerpc/platforms/pseries/pseries.h
+@@ -29,8 +29,8 @@ static inline smp_init_pseries_xics(void
+ extern void setup_kexec_cpu_down_xics(void);
+ extern void setup_kexec_cpu_down_mpic(void);
+ #else
+-static inline setup_kexec_cpu_down_xics(void) { };
+-static inline setup_kexec_cpu_down_mpic(void) { };
++static inline void setup_kexec_cpu_down_xics(void) { }
++static inline void setup_kexec_cpu_down_mpic(void) { }
+ #endif
  
+ #endif /* _PSERIES_PSERIES_H */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from michael@ellerman.id.au are
 
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-docs.patch
+origin.patch
+powerpc-rtas-msi-support.patch
+fix-cut-and-paste-breakage-in-arch-powerpc-platforms-pseries-pseriesh.patch
