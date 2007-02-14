@@ -1,31 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch removed from -mm tree
-Date: Wed, 14 Feb 2007 10:52:39 -0800
-Message-ID: <200702141852.l1EIqdpd005734@shell0.pdx.osdl.net>
+Subject: - r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode.patch removed from -mm tree
+Date: Wed, 14 Feb 2007 10:52:18 -0800
+Message-ID: <200702141852.l1EIqIJN005708@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39584 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39644 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932436AbXBNTBl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 14:01:41 -0500
+	id S932451AbXBNTEG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 14:04:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, linuxram@us.ibm.com, miklos@szeredi.hu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count over calls to vfs_rename()
+     r/o bind mounts: record when sb_writer_count elevated for inode
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+     r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count over calls to vfs_rename()
+Subject: r/o bind mounts: record when sb_writer_count elevated for inode
 From: Dave Hansen <hansendc@us.ibm.com>
 
-This does create a little helper in the NFS code to make an if() a little bit
-less ugly.
+There are a number of filesystems that do iput()s without first having messed
+with i_nlink.  In order to keep from accidentally decrementing the superblock
+writer count for these, we record when the count is bumped up, so that we can
+properly balance it.
+
+I first tried to do this by assuming that, for each dec_nlink() to zero, there
+was exactly one call to iput_final().  But, there are a number of cases where
+this isn't true, especially in error handling code.  Even if all of the
+filesystems were fixed up, it would be simple to reintroduce new bugs
+imbalancing the mnt writer count.  This patch trades that possibility for the
+chance that we will miss a i_nlink--, and not bump the sb writer count.
+
+I like the idea screwing up writing out a single inode better than screwing up
+a global superblock count imbalance that will affect all inodes on the
+superblock.
+
+Also, since this is the first non-trivial use of the inc/drop_nlink()
+functions, add some kernel docs for them.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
@@ -35,73 +51,145 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c    |    4 ++++
- fs/nfsd/vfs.c |   23 +++++++++++++++++++----
- 2 files changed, 23 insertions(+), 4 deletions(-)
+ fs/inode.c         |    7 +++++
+ fs/libfs.c         |    1 
+ include/linux/fs.h |   58 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 66 insertions(+)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename
-+++ a/fs/namei.c
-@@ -2563,8 +2563,12 @@ static int do_rename(int olddfd, const c
- 	if (new_dentry == trap)
- 		goto exit5;
+diff -puN fs/inode.c~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode fs/inode.c
+--- a/fs/inode.c~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode
++++ a/fs/inode.c
+@@ -1097,10 +1097,17 @@ static inline void iput_final(struct ino
+ {
+ 	const struct super_operations *op = inode->i_sb->s_op;
+ 	void (*drop)(struct inode *) = generic_drop_inode;
++	int must_drop_sb_write = (inode->i_state & I_AWAITING_FINAL_IPUT);
++	struct super_block *sb = inode->i_sb;
  
-+	error = mnt_want_write(oldnd.mnt);
-+	if (error)
-+		goto exit5;
- 	error = vfs_rename(old_dir->d_inode, old_dentry,
- 				   new_dir->d_inode, new_dentry);
-+	mnt_drop_write(oldnd.mnt);
- exit5:
- 	dput(new_dentry);
- exit4:
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename
-+++ a/fs/nfsd/vfs.c
-@@ -1555,6 +1555,14 @@ out_nfserr:
- 	goto out_unlock;
+ 	if (op && op->drop_inode)
+ 		drop = op->drop_inode;
+ 	drop(inode);
++	if (must_drop_sb_write) {
++		spin_lock(&sb->s_mnt_writers_lock);
++		sb->s_writers--;
++		spin_unlock(&sb->s_mnt_writers_lock);
++	}
  }
  
-+static inline int svc_msnfs(struct svc_fh *ffhp)
-+{
-+#ifdef MSNFS
-+	return (ffhp->fh_export->ex_flags & NFSEXP_MSNFS);
-+#else
-+	return 0;
-+#endif
-+}
- /*
-  * Rename a file
-  * N.B. After this call _both_ ffhp and tfhp need an fh_put
-@@ -1616,13 +1624,20 @@ nfsd_rename(struct svc_rqst *rqstp, stru
- 	if (ndentry == trap)
- 		goto out_dput_new;
+ /**
+diff -puN fs/libfs.c~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode fs/libfs.c
+--- a/fs/libfs.c~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode
++++ a/fs/libfs.c
+@@ -388,6 +388,7 @@ int simple_fill_super(struct super_block
+ 	 * because the root inode is 1, the files array must not contain an
+ 	 * entry at index 1
+ 	 */
++	inode->i_state |= I_AWAITING_FINAL_IPUT;
+ 	inode->i_ino = 1;
+ 	inode->i_mode = S_IFDIR | 0755;
+ 	inode->i_uid = inode->i_gid = 0;
+diff -puN include/linux/fs.h~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode include/linux/fs.h
+--- a/include/linux/fs.h~r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode
++++ a/include/linux/fs.h
+@@ -1228,6 +1228,7 @@ struct super_operations {
+ #define I_CLEAR			32
+ #define I_NEW			64
+ #define I_WILL_FREE		128
++#define I_AWAITING_FINAL_IPUT		256
  
--#ifdef MSNFS
--	if ((ffhp->fh_export->ex_flags & NFSEXP_MSNFS) &&
-+	if (svc_msnfs(ffhp) &&
- 		((atomic_read(&odentry->d_count) > 1)
- 		 || (atomic_read(&ndentry->d_count) > 1))) {
- 			host_err = -EPERM;
--	} else
--#endif
-+			goto out_dput_new;
-+	}
+ #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
+ 
+@@ -1242,6 +1243,14 @@ static inline void mark_inode_dirty_sync
+ 	__mark_inode_dirty(inode, I_DIRTY_SYNC);
+ }
+ 
++/**
++ * inc_nlink - directly increment an inode's link count
++ * @inode: inode
++ *
++ * This is a low-level filesystem helper to replace any
++ * direct filesystem manipulation of i_nlink.  Currently,
++ * it is only here for parity with dec_nlink().
++ */
+ static inline void inc_nlink(struct inode *inode)
+ {
+ 	inode->i_nlink++;
+@@ -1253,14 +1262,63 @@ static inline void inode_inc_link_count(
+ 	mark_inode_dirty(inode);
+ }
+ 
++/**
++ * check_nlink - check an inode's status after direct
++ * 		 i_nlink modification.
++ * @inode: inode
++ *
++ * Some filesystems can not make simple incremental changes
++ * to i_nlink, most notably clustered ones.  They must do
++ * direct manipulation of i_nlink.  This function must be
++ * called after such modifications are complete to make
++ * sure that the VFS knows that the inode is going to go
++ * away.
++ */
++static inline void check_nlink(struct inode *inode)
++{
++	if (inode->i_nlink)
++		return;
 +
-+	host_err = -EXDEV;
-+	if (ffhp->fh_export->ex_mnt != tfhp->fh_export->ex_mnt)
-+		goto out_dput_new;
-+	host_err = mnt_want_write(ffhp->fh_export->ex_mnt);
-+	if (host_err)
-+		goto out_dput_new;
++	inode->i_state |= I_AWAITING_FINAL_IPUT;
++	spin_lock(&inode->i_sb->s_mnt_writers_lock);
++	inode->i_sb->s_writers++;
++	spin_unlock(&inode->i_sb->s_mnt_writers_lock);
++}
 +
- 	host_err = vfs_rename(fdir, odentry, tdir, ndentry);
- 	if (!host_err && EX_ISSYNC(tfhp->fh_export)) {
- 		host_err = nfsd_sync_dir(tdentry);
++/**
++ * drop_nlink - directly drop an inode's link count
++ * @inode: inode
++ *
++ * This is a low-level filesystem helper to replace any
++ * direct filesystem manipulation of i_nlink.  In cases
++ * where we are attempting to track writes to the
++ * filesystem, a decrement to zero means an imminent
++ * write when the file is truncated and actually unlinked
++ * on the filesystem.
++ */
+ static inline void drop_nlink(struct inode *inode)
+ {
+ 	inode->i_nlink--;
++	check_nlink(inode);
+ }
+ 
++/**
++ * clear_nlink - directly zero an inode's link count
++ * @inode: inode
++ *
++ * This is a low-level filesystem helper to replace any
++ * direct filesystem manipulation of i_nlink.  See
++ * drop_nlink() for why we care about i_nlink hitting zero.
++ *
++ * Note that we could do the i_state flag directly in here,
++ * but we call check_nlink() to keep the number of places
++ * where the flag is set to exactly one.  The compiler
++ * should get rid of the superfluous i_nlink check.
++ */
+ static inline void clear_nlink(struct inode *inode)
+ {
+ 	inode->i_nlink = 0;
++	check_nlink(inode);
+ }
+ 
+ static inline void inode_dec_link_count(struct inode *inode)
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
 
+r-o-bind-mounts-record-when-sb_writer_count-elevated-for-inode.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-mount_is_safe-add-comment.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
 r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
 r-o-bind-mounts-elevate-write-count-files-are-opened.patch
 r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
