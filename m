@@ -1,112 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - x86-fatal-kernel-faults-should-update-thread-struct.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:15:41 -0800
-Message-ID: <200702150815.l1F8Ffef024255@shell0.pdx.osdl.net>
+Subject: + before-x86_64-mm-mmconfig-share.patch added to -mm tree
+Date: Thu, 15 Feb 2007 00:18:51 -0800
+Message-ID: <200702150818.l1F8Ip18024301@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38937 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38979 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965182AbXBOIQX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:16:23 -0500
+	id S965220AbXBOISw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:18:52 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1F8IphB003132
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2007 00:18:51 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, ak@suse.de, jbeulich@novell.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     x86: fatal kernel faults should update thread struct
-has been removed from the -mm tree.  Its filename was
-     x86-fatal-kernel-faults-should-update-thread-struct.patch
+     before-x86_64-mm-mmconfig-share
+has been added to the -mm tree.  Its filename is
+     before-x86_64-mm-mmconfig-share.patch
 
-This patch was dropped because andi changes trashed it. They might have fixed it, too
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86: fatal kernel faults should update thread struct
-From: Jeff Dike <jdike@addtoit.com>
+Subject: before-x86_64-mm-mmconfig-share
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a bug introduced in my earlier fault information pollution prevention
-patch.  That patch assumed that no kernel fault information should ever be
-put in thread.error_code and .trap_no.  It turns out that die() reads those
-fields, so fatal kernel faults, as well as userspace faults, need those
-fields set.  The case where they aren't set is kernelspace faults which are
-fixed up.
-
-Thanks to Jan Beulich for his review and spotting this bug.
-
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/traps.c   |   11 +++++++++++
- arch/x86_64/kernel/traps.c |   14 +++++++++++++-
- 2 files changed, 24 insertions(+), 1 deletion(-)
+ arch/x86_64/pci/mmconfig.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/traps.c~x86-fatal-kernel-faults-should-update-thread-struct arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~x86-fatal-kernel-faults-should-update-thread-struct
-+++ a/arch/i386/kernel/traps.c
-@@ -611,6 +611,15 @@ fastcall void __kprobes do_general_prote
- 	if (!user_mode(regs))
- 		goto gp_in_kernel;
- 
-+	/*
-+	 * We want error_code and trap_no set for userspace faults and
-+	 * kernelspace faults which result in die(), but not
-+	 * kernelspace faults which are fixed up.  die() gives the
-+	 * process no chance to handle the signal and notice the
-+	 * kernel fault information, so that won't result in polluting
-+	 * the information about previously queued, but not yet
-+	 * delivered, fault.
-+	 */
- 	current->thread.error_code = error_code;
- 	current->thread.trap_no = 13;
- 	force_sig(SIGSEGV, current);
-@@ -623,6 +632,8 @@ gp_in_vm86:
- 
- gp_in_kernel:
- 	if (!fixup_exception(regs)) {
-+		current->thread.error_code = error_code;
-+		current->thread.trap_no = 13;
- 		if (notify_die(DIE_GPF, "general protection fault", regs,
- 				error_code, 13, SIGSEGV) == NOTIFY_STOP)
- 			return;
-diff -puN arch/x86_64/kernel/traps.c~x86-fatal-kernel-faults-should-update-thread-struct arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~x86-fatal-kernel-faults-should-update-thread-struct
-+++ a/arch/x86_64/kernel/traps.c
-@@ -583,6 +583,15 @@ static void __kprobes do_trap(int trapnr
- 	struct task_struct *tsk = current;
- 
- 	if (user_mode(regs)) {
-+		/*
-+		 * We want error_code and trap_no set for userspace faults
-+		 * and kernelspace faults which result in die(), but
-+		 * not kernelspace faults which are fixed up.  die()
-+		 * gives the process no chance to handle the signal
-+		 * and notice the kernel fault information, so that
-+		 * won't result in polluting the information about
-+		 * previously queued, but not yet delivered, fault.
-+		 */
- 		tsk->thread.error_code = error_code;
- 		tsk->thread.trap_no = trapnr;
- 
-@@ -606,8 +615,11 @@ static void __kprobes do_trap(int trapnr
- 		fixup = search_exception_tables(regs->rip);
- 		if (fixup)
- 			regs->rip = fixup->fixup;
--		else	
-+		else {
-+			tsk->thread.error_code = error_code;
-+			tsk->thread.trap_no = trapnr;
- 			die(str, regs, error_code);
-+		}
+diff -puN arch/x86_64/pci/mmconfig.c~before-x86_64-mm-mmconfig-share arch/x86_64/pci/mmconfig.c
+--- a/arch/x86_64/pci/mmconfig.c~before-x86_64-mm-mmconfig-share
++++ a/arch/x86_64/pci/mmconfig.c
+@@ -170,9 +170,7 @@ void __init pci_mmcfg_init(int type)
+ 	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
  		return;
- 	}
- }
+ 
+-	if (acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg))
+-		return;
+-
++	acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
+ 	if ((pci_mmcfg_config_num == 0) ||
+ 	    (pci_mmcfg_config == NULL) ||
+ 	    (pci_mmcfg_config[0].address == 0))
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-x86-fatal-kernel-faults-should-update-thread-struct.patch
-uml-fix-prototypes.patch
+git-acpi.patch
+git-agpgart.patch
+git-arm.patch
+git-cpufreq.patch
+powerpc-rtas-msi-support-fix.patch
+git-drm.patch
+git-dvb.patch
+sis-warning-fixes.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
+git-md-accel-fixes.patch
+git-md-accel-warning-fixes.patch
+git-md-accel-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+Fabric7-VIOC-driver-fixes.patch
+git-backlight.patch
+git-backlight-sony-fix.patch
+git-sh.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-unionfs-fixup.patch
+before-x86_64-mm-mmconfig-share.patch
+restore-before-x86_64-mm-mmconfig-share.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+kprobes-list-all-active-probes-in-the-system.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-epoll-compat-code-to-kernel-compatc-tidy.patch
+revert-x86_64-mm-putreg-check.patch
+r-o-bind-mounts-r-o-bind-mounts-stub-functions-fix.patch
+r-o-bind-mounts-r-o-bind-mounts-stub-functions-unhack.patch
+git-gccbug-fixup.patch
