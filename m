@@ -1,53 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-frv-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:08 -0800
-Message-ID: <200702150849.l1F8n8R8025102@shell0.pdx.osdl.net>
+Subject: - sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:42 -0800
+Message-ID: <200702150848.l1F8mgoA025072@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40086 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40078 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965440AbXBOItQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:16 -0500
+	id S965430AbXBOItN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, acme@conectiva.com.br, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: frv: remove unnecessary insert_at_head flag
+     sysctl: atalk: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     sysctl-frv-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-atalk-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: frv: remove unnecessary insert_at_head flag
+Subject: sysctl: atalk: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Since the binary sysctl numbers are unique putting the registered sysctls at
-the head of the sysctl list where they can override existing sysctls serves no
-useful purpose.
-
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/sysctl.c |    2 +-
+ net/appletalk/sysctl_net_atalk.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/kernel/sysctl.c~sysctl-frv-remove-unnecessary-insert_at_head-flag arch/frv/kernel/sysctl.c
---- a/arch/frv/kernel/sysctl.c~sysctl-frv-remove-unnecessary-insert_at_head-flag
-+++ a/arch/frv/kernel/sysctl.c
-@@ -197,7 +197,7 @@ static struct ctl_table frv_dir_table[] 
-  */
- static int __init frv_sysctl_init(void)
+diff -puN net/appletalk/sysctl_net_atalk.c~sysctl-atalk-remove-unnecessary-insert_at_head-flag net/appletalk/sysctl_net_atalk.c
+--- a/net/appletalk/sysctl_net_atalk.c~sysctl-atalk-remove-unnecessary-insert_at_head-flag
++++ a/net/appletalk/sysctl_net_atalk.c
+@@ -73,7 +73,7 @@ static struct ctl_table_header *atalk_ta
+ 
+ void atalk_register_sysctl(void)
  {
--	register_sysctl_table(frv_dir_table, 1);
-+	register_sysctl_table(frv_dir_table, 0);
- 	return 0;
+-	atalk_table_header = register_sysctl_table(atalk_root_table, 1);
++	atalk_table_header = register_sysctl_table(atalk_root_table, 0);
  }
  
+ void atalk_unregister_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
