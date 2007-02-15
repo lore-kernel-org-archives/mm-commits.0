@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-files-are-opened.patch added to -mm tree
-Date: Wed, 14 Feb 2007 21:02:46 -0800
-Message-ID: <200702150502.l1F52kln020366@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch added to -mm tree
+Date: Wed, 14 Feb 2007 21:02:36 -0800
+Message-ID: <200702150502.l1F52aHO020351@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34849 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34845 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751059AbXBOFDF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 00:03:05 -0500
+	id S1750780AbXBOFDD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 00:03:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, miklos@szeredi.hu, vir
 
 
 The patch titled
-     r/o bind mounts: elevate write count files are open()ed
+     r/o bind mounts: elevate mount count for extended attributes
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-files-are-opened.patch
+     r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,21 +25,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count files are open()ed
+Subject: r/o bind mounts: elevate mount count for extended attributes
 From: Dave Hansen <hansendc@us.ibm.com>
 
-This is the first really tricky patch in the series.  It elevates the writer
-count on a mount each time a non-special file is opened for write.
-
-This is not completely apparent in the patch because the two if() conditions
-in may_open() above the mnt_want_write() call are, combined, equivalent to
-special_file().
-
-There is also an elevated count around the vfs_create() call in open_namei(). 
-The count needs to be kept elevated all the way into the may_open() call. 
-Otherwise, when the write is dropped, a ro->rw transisition could occur.  This
-would lead to having rw access on the newly created file, while the vfsmount
-is ro.  That is bad.
+This basically audits the callers of xattr_permission(), which calls
+permission() and can perform writes to the filesystem.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -48,90 +38,93 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |    5 ++++-
- fs/namei.c      |   20 ++++++++++++++++----
- ipc/mqueue.c    |    3 +++
- 3 files changed, 23 insertions(+), 5 deletions(-)
+ fs/nfsd/nfs4proc.c |    7 ++++++-
+ fs/xattr.c         |   16 ++++++++++++++--
+ 2 files changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-files-are-opened fs/file_table.c
---- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-files-are-opened
-+++ a/fs/file_table.c
-@@ -208,8 +208,11 @@ void fastcall __fput(struct file *file)
- 	if (unlikely(S_ISCHR(inode->i_mode) && inode->i_cdev != NULL))
- 		cdev_put(inode->i_cdev);
- 	fops_put(file->f_op);
--	if (file->f_mode & FMODE_WRITE)
-+	if (file->f_mode & FMODE_WRITE) {
- 		put_write_access(inode);
-+		if(!special_file(inode->i_mode))
-+			mnt_drop_write(mnt);
-+	}
- 	put_pid(file->f_owner.pid);
- 	file_kill(file);
- 	file->f_path.dentry = NULL;
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-files-are-opened fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-files-are-opened
-+++ a/fs/namei.c
-@@ -1544,8 +1544,15 @@ int may_open(struct nameidata *nd, int a
- 			return -EACCES;
- 
- 		flag &= ~O_TRUNC;
--	} else if (IS_RDONLY(inode) && (flag & FMODE_WRITE))
--		return -EROFS;
-+	} else if (flag & FMODE_WRITE) {
-+		/*
-+		 * effectively: !special_file()
-+		 * balanced by __fput()
-+		 */
-+		error = mnt_want_write(nd->mnt);
-+		if (error)
-+			return error;
-+	}
- 	/*
- 	 * An append-only file must be opened in append mode for writing.
- 	 */
-@@ -1684,14 +1691,17 @@ do_last:
- 	}
- 
- 	if (IS_ERR(nd->intent.open.file)) {
--		mutex_unlock(&dir->d_inode->i_mutex);
- 		error = PTR_ERR(nd->intent.open.file);
--		goto exit_dput;
-+		goto exit_mutex_unlock;
- 	}
- 
- 	/* Negative dentry, just create the file */
- 	if (!path.dentry->d_inode) {
-+		error = mnt_want_write(nd->mnt);
-+		if (error)
-+			goto exit_mutex_unlock;
- 		error = open_namei_create(nd, &path, flag, mode);
-+		mnt_drop_write(nd->mnt);
- 		if (error)
- 			goto exit;
- 		return 0;
-@@ -1729,6 +1739,8 @@ ok:
- 		goto exit;
- 	return 0;
- 
-+exit_mutex_unlock:
-+	mutex_unlock(&dir->d_inode->i_mutex);
- exit_dput:
- 	dput_path(&path, nd);
- exit:
-diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-files-are-opened ipc/mqueue.c
---- a/ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-files-are-opened
-+++ a/ipc/mqueue.c
-@@ -687,6 +687,9 @@ asmlinkage long sys_mq_open(const char _
- 				goto out;
- 			filp = do_open(dentry, oflag);
- 		} else {
-+			error = mnt_want_write(mqueue_mnt);
-+			if (error)
-+				goto out;
- 			filp = do_create(mqueue_mnt->mnt_root, dentry,
- 						oflag, mode, u_attr);
+diff -puN fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes fs/nfsd/nfs4proc.c
+--- a/fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes
++++ a/fs/nfsd/nfs4proc.c
+@@ -626,14 +626,19 @@ nfsd4_setattr(struct svc_rqst *rqstp, st
+ 			return status;
  		}
+ 	}
++	status = mnt_want_write(cstate->current_fh.fh_export->ex_mnt);
++	if (status)
++		return status;
+ 	status = nfs_ok;
+ 	if (setattr->sa_acl != NULL)
+ 		status = nfsd4_set_nfs4_acl(rqstp, &cstate->current_fh,
+ 					    setattr->sa_acl);
+ 	if (status)
+-		return status;
++		goto out;
+ 	status = nfsd_setattr(rqstp, &cstate->current_fh, &setattr->sa_iattr,
+ 				0, (time_t)0);
++out:
++	mnt_drop_write(cstate->current_fh.fh_export->ex_mnt);
+ 	return status;
+ }
+ 
+diff -puN fs/xattr.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes fs/xattr.c
+--- a/fs/xattr.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes
++++ a/fs/xattr.c
+@@ -12,6 +12,7 @@
+ #include <linux/smp_lock.h>
+ #include <linux/file.h>
+ #include <linux/xattr.h>
++#include <linux/mount.h>
+ #include <linux/namei.h>
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+@@ -33,8 +34,6 @@ xattr_permission(struct inode *inode, co
+ 	 * filesystem  or on an immutable / append-only inode.
+ 	 */
+ 	if (mask & MAY_WRITE) {
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
+ 		if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+ 			return -EPERM;
+ 	}
+@@ -237,7 +236,11 @@ sys_setxattr(char __user *path, char __u
+ 	error = user_path_walk(path, &nd);
+ 	if (error)
+ 		return error;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		return error;
+ 	error = setxattr(nd.dentry, name, value, size, flags);
++	mnt_drop_write(nd.mnt);
+ 	path_release(&nd);
+ 	return error;
+ }
+@@ -252,7 +255,11 @@ sys_lsetxattr(char __user *path, char __
+ 	error = user_path_walk_link(path, &nd);
+ 	if (error)
+ 		return error;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		return error;
+ 	error = setxattr(nd.dentry, name, value, size, flags);
++	mnt_drop_write(nd.mnt);
+ 	path_release(&nd);
+ 	return error;
+ }
+@@ -268,9 +275,14 @@ sys_fsetxattr(int fd, char __user *name,
+ 	f = fget(fd);
+ 	if (!f)
+ 		return error;
++	error = mnt_want_write(f->f_vfsmnt);
++	if (error)
++		goto out_fput;
+ 	dentry = f->f_path.dentry;
+ 	audit_inode(NULL, dentry->d_inode);
+ 	error = setxattr(dentry, name, value, size, flags);
++	mnt_drop_write(f->f_vfsmnt);
++out_fput:
+ 	fput(f);
+ 	return error;
+ }
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
