@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-tree-versus-acpi-tree.patch added to -mm tree
-Date: Thu, 15 Feb 2007 14:06:32 -0800
-Message-ID: <200702152206.l1FM6WrO010127@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-kconfig-menus-fix.patch added to -mm tree
+Date: Thu, 15 Feb 2007 14:11:06 -0800
+Message-ID: <200702152211.l1FMB6tg010249@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36394 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36636 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161157AbXBOWHt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 17:07:49 -0500
+	id S1161477AbXBOWO0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 17:14:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpurdie@rpsys.net, lenb@kernel.org
+Cc: bunk@stusta.de, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     backlight tree versus acpi tree
+     MARKERS should depend on, not select MODULES
 has been added to the -mm tree.  Its filename is
-     backlight-tree-versus-acpi-tree.patch
+     linux-kernel-markers-kconfig-menus-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,74 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: backlight tree versus acpi tree
-From: Richard Purdie <rpurdie@rpsys.net>
+Subject: MARKERS should depend on, not select MODULES
+From: Adrian Bunk <bunk@stusta.de>
 
-Fix up the sony-laptop driver in git-acpi to work with the recent
-changes in the git-backlight tree.
+Never ever select MODULES.
 
-Signed-off-by: Richard Purdie <rpurdie@rpsys.net>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sony-laptop.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+ kernel/Kconfig.marker |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/misc/sony-laptop.c~backlight-tree-versus-acpi-tree drivers/misc/sony-laptop.c
---- a/drivers/misc/sony-laptop.c~backlight-tree-versus-acpi-tree
-+++ a/drivers/misc/sony-laptop.c
-@@ -384,7 +384,7 @@ static void sony_snc_pf_remove(void)
- static int sony_backlight_update_status(struct backlight_device *bd)
- {
- 	return acpi_callsetfunc(sony_acpi_handle, "SBRT",
--				bd->props->brightness + 1, NULL);
-+				bd->props.brightness + 1, NULL);
- }
+diff -puN kernel/Kconfig.marker~linux-kernel-markers-kconfig-menus-fix kernel/Kconfig.marker
+--- a/kernel/Kconfig.marker~linux-kernel-markers-kconfig-menus-fix
++++ a/kernel/Kconfig.marker
+@@ -2,8 +2,7 @@
  
- static int sony_backlight_get_brightness(struct backlight_device *bd)
-@@ -398,11 +398,9 @@ static int sony_backlight_get_brightness
- }
- 
- static struct backlight_device *sony_backlight_device;
--static struct backlight_properties sony_backlight_properties = {
--	.owner = THIS_MODULE,
-+static struct backlight_ops sony_backlight_ops = {
- 	.update_status = sony_backlight_update_status,
- 	.get_brightness = sony_backlight_get_brightness,
--	.max_brightness = SONY_MAX_BRIGHTNESS - 1,
- };
- 
- /*
-@@ -484,15 +482,17 @@ static int sony_acpi_add(struct acpi_dev
- 	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
- 		sony_backlight_device = backlight_device_register("sony", NULL,
- 								  NULL,
--								  &sony_backlight_properties);
-+								&sony_backlight_ops);
- 
- 		if (IS_ERR(sony_backlight_device)) {
- 			printk(LOG_PFX "unable to register backlight device\n");
- 			sony_backlight_device = NULL;
--		} else
--			sony_backlight_properties.brightness =
--			    sony_backlight_get_brightness
--			    (sony_backlight_device);
-+		} else {
-+			sony_backlight_device->props.brightness =
-+				sony_backlight_get_brightness(sony_backlight_device);
-+			sony_backlight_device->props.max_brightness =
-+				SONY_MAX_BRIGHTNESS - 1;
-+		}
- 	}
- 
- 	if (sony_snc_pf_add())
+ config MARKERS
+ 	bool "Activate markers"
+-	select MODULES
+-	default n
++	depends on MODULES
+ 	help
+ 	  Place an empty function call at each marker site. Can be
+ 	  dynamically changed for a probe function.
 _
 
-Patches currently in -mm which might be from rpurdie@rpsys.net are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-git-acpi.patch
-git-backlight.patch
-backlight-tree-versus-acpi-tree.patch
-git-backlight-sony-fix.patch
+ifdef-acpi_future_usage-acpi_os_readable.patch
+git-cpufreq.patch
+git-dvb.patch
+git-ieee1394.patch
+mips-remove-smp_tune_scheduling.patch
+git-mtd.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+add-debugging-feature-proc-timer_stat-cleanup.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
