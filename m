@@ -1,96 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - bugfixes-pci-devices-get-assigned-redundant-irqs.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:51:17 -0800
-Message-ID: <200702150851.l1F8pHci025287@shell0.pdx.osdl.net>
+Subject: - fix-misspelled-usbnet_mii-kernel-config-option.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:51:36 -0800
+Message-ID: <200702150851.l1F8paO5025305@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40332 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40342 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965551AbXBOIvp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:51:45 -0500
+	id S965554AbXBOIvw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:51:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.block@esd-electronics.com, ebiederm@xmission.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Bugfixes: PCI devices get assigned redundant IRQs
+     Fix misspelled "USBNET_MII" kernel config option.
 has been removed from the -mm tree.  Its filename was
-     bugfixes-pci-devices-get-assigned-redundant-irqs.patch
+     fix-misspelled-usbnet_mii-kernel-config-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Bugfixes: PCI devices get assigned redundant IRQs
-From: "Andreas Block" <andreas.block@esd-electronics.com>
+Subject: Fix misspelled "USBNET_MII" kernel config option.
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-I'm currently working on a port to a CPCI board with a MPC5200.  When
-testing the PCI interrupt routing, I discovered the following: Even devices
-which don't use interrupts (-> PCI Spec.: Interrupt Pin Register is zero),
-get an interrupt assigned (this is at least true for most of the
-PPC-targets I looked at).
+Fix the misspelling of "USBNET_MII" to "USB_USBNET_MII".
 
-The cause is pretty obvious in drivers/pci/setup-irq.c.  I guess at least
-in an ideal world with correctly designed hardware, the code should rather
-look as in the patch below.
-
-Of course it doesn't hurt anybody to have an unuseable IRQ assigned to a
-PCI-to-PCI-bridge (or something alike), but to me it seems a bit strange. 
-Please correct me, if I'm mislead.
-
-The patch below is tested on the above mentioned CPCI-MPC5200 board and is
-compiler tested with the latest git-repository kernel on x86.
-
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@osdl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/setup-irq.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ drivers/usb/net/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/setup-irq.c~bugfixes-pci-devices-get-assigned-redundant-irqs drivers/pci/setup-irq.c
---- a/drivers/pci/setup-irq.c~bugfixes-pci-devices-get-assigned-redundant-irqs
-+++ a/drivers/pci/setup-irq.c
-@@ -24,7 +24,7 @@ pdev_fixup_irq(struct pci_dev *dev,
- 	       int (*map_irq)(struct pci_dev *, u8, u8))
- {
- 	u8 pin, slot;
--	int irq;
-+	int irq = 0;
+diff -puN drivers/usb/net/Kconfig~fix-misspelled-usbnet_mii-kernel-config-option drivers/usb/net/Kconfig
+--- a/drivers/usb/net/Kconfig~fix-misspelled-usbnet_mii-kernel-config-option
++++ a/drivers/usb/net/Kconfig
+@@ -99,7 +99,7 @@ config USB_USBNET_MII
  
- 	/* If this device is not on the primary bus, we need to figure out
- 	   which interrupt pin it will come in on.   We know which slot it
-@@ -33,16 +33,18 @@ pdev_fixup_irq(struct pci_dev *dev,
- 	   apply the swizzle function.  */
- 
- 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
--	/* Cope with 0 and illegal. */
--	if (pin == 0 || pin > 4)
-+	/* Cope with illegal. */
-+	if (pin > 4)
- 		pin = 1;
- 
--	/* Follow the chain of bridges, swizzling as we go.  */
--	slot = (*swizzle)(dev, &pin);
--
--	irq = (*map_irq)(dev, slot, pin);
--	if (irq == -1)
--		irq = 0;
-+	if (pin != 0) {
-+		/* Follow the chain of bridges, swizzling as we go.  */
-+		slot = (*swizzle)(dev, &pin);
-+
-+		irq = (*map_irq)(dev, slot, pin);
-+		if (irq == -1)
-+			irq = 0;
-+	}
- 	dev->irq = irq;
- 
- 	pr_debug("PCI: fixup irq: (%s) got %d\n",
+ config USB_USBNET
+ 	tristate "Multi-purpose USB Networking Framework"
+-	select MII if USBNET_MII != n
++	select MII if USB_USBNET_MII != n
+ 	---help---
+ 	  This driver supports several kinds of network links over USB,
+ 	  with "minidrivers" built around a common network driver core
 _
 
-Patches currently in -mm which might be from andreas.block@esd-electronics.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
+
+origin.patch
+git-avr32.patch
+git-dvb.patch
+git-mips.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
