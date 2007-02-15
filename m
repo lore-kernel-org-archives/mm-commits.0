@@ -1,104 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - git-backlight-sony-fix.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 14:06:38 -0800
-Message-ID: <200702152206.l1FM6c2D010130@shell0.pdx.osdl.net>
+Subject: + backlight-tree-versus-acpi-tree.patch added to -mm tree
+Date: Thu, 15 Feb 2007 14:06:32 -0800
+Message-ID: <200702152206.l1FM6WrO010127@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36348 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36394 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161445AbXBOWGn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 17:06:43 -0500
+	id S1161157AbXBOWHt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 17:07:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rpurdie@rpsys.net, lenb@kernel.org
 
 
 The patch titled
-     git-backlight-sony-fix
-has been removed from the -mm tree.  Its filename was
-     git-backlight-sony-fix.patch
+     backlight tree versus acpi tree
+has been added to the -mm tree.  Its filename is
+     backlight-tree-versus-acpi-tree.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-backlight-sony-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: backlight tree versus acpi tree
+From: Richard Purdie <rpurdie@rpsys.net>
 
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Fix up the sony-laptop driver in git-acpi to work with the recent
+changes in the git-backlight tree.
+
+Signed-off-by: Richard Purdie <rpurdie@rpsys.net>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig       |    2 +-
- drivers/misc/sony-laptop.c |    2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/misc/sony-laptop.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/misc/sony-laptop.c~git-backlight-sony-fix drivers/misc/sony-laptop.c
---- a/drivers/misc/sony-laptop.c~git-backlight-sony-fix
+diff -puN drivers/misc/sony-laptop.c~backlight-tree-versus-acpi-tree drivers/misc/sony-laptop.c
+--- a/drivers/misc/sony-laptop.c~backlight-tree-versus-acpi-tree
 +++ a/drivers/misc/sony-laptop.c
-@@ -285,7 +285,6 @@ static ssize_t sony_acpi_store(struct de
- static struct platform_driver sncpf_driver = {
- 	.driver = {
- 		   .name = "sony-laptop",
--		   .owner = THIS_MODULE,
- 		   }
- };
- static struct platform_device *sncpf_device;
-@@ -399,7 +398,6 @@ static int sony_backlight_get_brightness
+@@ -384,7 +384,7 @@ static void sony_snc_pf_remove(void)
+ static int sony_backlight_update_status(struct backlight_device *bd)
+ {
+ 	return acpi_callsetfunc(sony_acpi_handle, "SBRT",
+-				bd->props->brightness + 1, NULL);
++				bd->props.brightness + 1, NULL);
+ }
+ 
+ static int sony_backlight_get_brightness(struct backlight_device *bd)
+@@ -398,11 +398,9 @@ static int sony_backlight_get_brightness
+ }
  
  static struct backlight_device *sony_backlight_device;
- static struct backlight_properties sony_backlight_properties = {
+-static struct backlight_properties sony_backlight_properties = {
 -	.owner = THIS_MODULE,
++static struct backlight_ops sony_backlight_ops = {
  	.update_status = sony_backlight_update_status,
  	.get_brightness = sony_backlight_get_brightness,
- 	.max_brightness = SONY_MAX_BRIGHTNESS - 1,
-diff -puN drivers/misc/Kconfig~git-backlight-sony-fix drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~git-backlight-sony-fix
-+++ a/drivers/misc/Kconfig
-@@ -109,7 +109,7 @@ config MSI_LAPTOP
+-	.max_brightness = SONY_MAX_BRIGHTNESS - 1,
+ };
  
- config SONY_LAPTOP
- 	tristate "Sony Laptop Extras"
--	depends on X86 && ACPI
-+	depends on X86 && ACPI && BROKEN
- 	select BACKLIGHT_CLASS_DEVICE
- 	  ---help---
- 	  This mini-driver drives the SNC device present in the ACPI BIOS of
+ /*
+@@ -484,15 +482,17 @@ static int sony_acpi_add(struct acpi_dev
+ 	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
+ 		sony_backlight_device = backlight_device_register("sony", NULL,
+ 								  NULL,
+-								  &sony_backlight_properties);
++								&sony_backlight_ops);
+ 
+ 		if (IS_ERR(sony_backlight_device)) {
+ 			printk(LOG_PFX "unable to register backlight device\n");
+ 			sony_backlight_device = NULL;
+-		} else
+-			sony_backlight_properties.brightness =
+-			    sony_backlight_get_brightness
+-			    (sony_backlight_device);
++		} else {
++			sony_backlight_device->props.brightness =
++				sony_backlight_get_brightness(sony_backlight_device);
++			sony_backlight_device->props.max_brightness =
++				SONY_MAX_BRIGHTNESS - 1;
++		}
+ 	}
+ 
+ 	if (sony_snc_pf_add())
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rpurdie@rpsys.net are
 
 origin.patch
 git-acpi.patch
-git-agpgart.patch
-git-arm.patch
-git-cpufreq.patch
-powerpc-rtas-msi-support-fix.patch
-git-dvb.patch
-sis-warning-fixes.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-md-accel-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-Fabric7-VIOC-driver-fixes.patch
 git-backlight.patch
+backlight-tree-versus-acpi-tree.patch
 git-backlight-sony-fix.patch
-git-sh.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-unionfs-fixup.patch
-before-x86_64-mm-mmconfig-share.patch
-after-before-x86_64-mm-mmconfig-share.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-kprobes-list-all-active-probes-in-the-system.patch
-reduce-size-of-task_struct-on-64-bit-machines-fix.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-epoll-compat-code-to-kernel-compatc-tidy.patch
-genalloc-warning-fixes.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-revert-x86_64-mm-putreg-check.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-git-gccbug-fixup.patch
