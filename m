@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch added to -mm tree
-Date: Wed, 14 Feb 2007 21:02:58 -0800
-Message-ID: <200702150502.l1F52wFU020384@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-make-access-use-mnt-check.patch added to -mm tree
+Date: Wed, 14 Feb 2007 21:02:28 -0800
+Message-ID: <200702150502.l1F52SGL020339@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34938 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34952 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751563AbXBOFG3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 00:06:29 -0500
+	id S1751565AbXBOFHT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 00:07:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, miklos@szeredi.hu, vir
 
 
 The patch titled
-     r/o bind mounts: elevate mnt writers for vfs_unlink() callers
+     r/o bind mounts: make access() use mnt check
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+     r-o-bind-mounts-make-access-use-mnt-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,8 +25,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate mnt writers for vfs_unlink() callers
+Subject: r/o bind mounts: make access() use mnt check
 From: Dave Hansen <hansendc@us.ibm.com>
+
+It is OK to let access() go without using a mnt_want/drop_write() pair because
+it doesn't actually do writes to the filesystem, and it is inherently racy
+anyway.  This is a rare case when it is OK to use __mnt_is_readonly()
+directly.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -35,41 +40,21 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c   |    4 ++++
- ipc/mqueue.c |    5 ++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ fs/open.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers
-+++ a/fs/namei.c
-@@ -2175,7 +2175,11 @@ static long do_unlinkat(int dfd, const c
- 		inode = dentry->d_inode;
- 		if (inode)
- 			atomic_inc(&inode->i_count);
-+		error = mnt_want_write(nd.mnt);
-+		if (error)
-+			goto exit2;
- 		error = vfs_unlink(nd.dentry->d_inode, dentry);
-+		mnt_drop_write(nd.mnt);
- 	exit2:
- 		dput(dentry);
- 	}
-diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers ipc/mqueue.c
---- a/ipc/mqueue.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers
-+++ a/ipc/mqueue.c
-@@ -749,8 +749,11 @@ asmlinkage long sys_mq_unlink(const char
- 	inode = dentry->d_inode;
- 	if (inode)
- 		atomic_inc(&inode->i_count);
--
-+	err = mnt_want_write(mqueue_mnt);
-+	if (err)
-+		goto out_err;
- 	err = vfs_unlink(dentry->d_parent->d_inode, dentry);
-+	mnt_drop_write(mqueue_mnt);
- out_err:
- 	dput(dentry);
+diff -puN fs/open.c~r-o-bind-mounts-make-access-use-mnt-check fs/open.c
+--- a/fs/open.c~r-o-bind-mounts-make-access-use-mnt-check
++++ a/fs/open.c
+@@ -395,7 +395,7 @@ asmlinkage long sys_faccessat(int dfd, c
+ 	   special_file(nd.dentry->d_inode->i_mode))
+ 		goto out_path_release;
  
+-	if(IS_RDONLY(nd.dentry->d_inode))
++	if(__mnt_is_readonly(nd.mnt))
+ 		res = -EROFS;
+ 
+ out_path_release:
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
