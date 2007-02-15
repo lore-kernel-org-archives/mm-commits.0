@@ -1,98 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-use-null-for-ptrs.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:50:58 -0800
-Message-ID: <200702150850.l1F8owx3025266@shell0.pdx.osdl.net>
+Subject: - cleanup-move-mce_disabled-to-asm-mceh.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:52:11 -0800
+Message-ID: <200702150852.l1F8qBl8025351@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40382 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40393 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965568AbXBOIwP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:52:15 -0500
+	id S965574AbXBOIwT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:52:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: use NULL for ptrs
+     cleanup: Move mce_disabled to asm/mce.h
 has been removed from the -mm tree.  Its filename was
-     acpi-use-null-for-ptrs.patch
+     cleanup-move-mce_disabled-to-asm-mceh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: use NULL for ptrs
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cleanup: Move mce_disabled to asm/mce.h
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Fix sparse warnings in ACPI:
-drivers/acpi/osl.c:208:10: warning: Using plain integer as NULL pointer
-drivers/acpi/tables/tbxface.c:411:49: warning: Using plain integer as NULL pointer
-drivers/acpi/processor_core.c:1008:10: warning: Using plain integer as NULL pointer
+Allows external actors to disable mce.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/osl.c            |    2 +-
- drivers/acpi/processor_core.c |    2 +-
- drivers/acpi/tables/tbxface.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ arch/i386/kernel/cpu/mcheck/mce.h |    2 +-
+ include/asm-i386/mce.h            |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/osl.c~acpi-use-null-for-ptrs drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~acpi-use-null-for-ptrs
-+++ a/drivers/acpi/osl.c
-@@ -202,7 +202,7 @@ void __iomem *acpi_os_map_memory(acpi_ph
- {
- 	if (phys > ULONG_MAX) {
- 		printk(KERN_ERR PREFIX "Cannot map memory that high\n");
--		return 0;
-+		return NULL;
- 	}
- 	if (acpi_gbl_permanent_mmap)
- 		/*
-diff -puN drivers/acpi/processor_core.c~acpi-use-null-for-ptrs drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-use-null-for-ptrs
-+++ a/drivers/acpi/processor_core.c
-@@ -1006,7 +1006,7 @@ static int __init acpi_processor_init(vo
- #ifdef CONFIG_SMP
- 	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
- 				(struct acpi_table_header **)&madt)))
--		madt = 0;
-+		madt = NULL;
+diff -puN arch/i386/kernel/cpu/mcheck/mce.h~cleanup-move-mce_disabled-to-asm-mceh arch/i386/kernel/cpu/mcheck/mce.h
+--- a/arch/i386/kernel/cpu/mcheck/mce.h~cleanup-move-mce_disabled-to-asm-mceh
++++ a/arch/i386/kernel/cpu/mcheck/mce.h
+@@ -1,4 +1,5 @@
+ #include <linux/init.h>
++#include <asm/mce.h>
+ 
+ void amd_mcheck_init(struct cpuinfo_x86 *c);
+ void intel_p4_mcheck_init(struct cpuinfo_x86 *c);
+@@ -9,6 +10,5 @@ void winchip_mcheck_init(struct cpuinfo_
+ /* Call the installed machine check handler for this CPU setup. */
+ extern fastcall void (*machine_check_vector)(struct pt_regs *, long error_code);
+ 
+-extern int mce_disabled;
+ extern int nr_mce_banks;
+ 
+diff -puN include/asm-i386/mce.h~cleanup-move-mce_disabled-to-asm-mceh include/asm-i386/mce.h
+--- a/include/asm-i386/mce.h~cleanup-move-mce_disabled-to-asm-mceh
++++ a/include/asm-i386/mce.h
+@@ -3,3 +3,5 @@ extern void mcheck_init(struct cpuinfo_x
+ #else
+ #define mcheck_init(c) do {} while(0)
  #endif
- 
- 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-diff -puN drivers/acpi/tables/tbxface.c~acpi-use-null-for-ptrs drivers/acpi/tables/tbxface.c
---- a/drivers/acpi/tables/tbxface.c~acpi-use-null-for-ptrs
-+++ a/drivers/acpi/tables/tbxface.c
-@@ -408,7 +408,7 @@ acpi_get_table(char *signature,
- 		}
- 
- 		if (!acpi_gbl_permanent_mmap) {
--			acpi_gbl_root_table_list.tables[i].pointer = 0;
-+			acpi_gbl_root_table_list.tables[i].pointer = NULL;
- 		}
- 
- 		return (status);
++
++extern int mce_disabled;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-build-errors-uevent-with-config_sysfs=n.patch
 git-acpi.patch
-git-drm.patch
-sata-use-null-for-ptrs.patch
-git-mtd.patch
-git-netdev-all.patch
-phy-layer-add-kernel-doc-docbook.patch
-parisc-fix-module_param-iommu-permission.patch
-ueagle-atmc-needs-schedh.patch
-kernel-doc-include-struct-short-description-in-title.patch
-tty-use-null-for-ptrs.patch
-cdrom-use-unsigned-bitfields.patch
-irq-kernel-doc-fixes.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+cleanup-initialize-esp0-properly-all-the-time.patch
+cleanup-make-hvc_consolec-compile-on-non-powerpc.patch
+lguest-preparation-export_symbol_gpl-5-functions.patch
+lguest-preparation-expose-futex-infrastructure.patch
+lguest-kconfig-and-headers.patch
+lguest-the-host-code-lgko.patch
+lguest-guest-code.patch
+lguest-makefile.patch
+lguest-trivial-guest-network-driver.patch
+lguest-trivial-guest-network-driver-fix.patch
+lguest-trivial-guest-console-driver.patch
+lguest-trivial-guest-block-driver.patch
+lguest-documentatation-and-example-launcher.patch
+vmi-versus-hrtimers.patch
