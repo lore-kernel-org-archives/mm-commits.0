@@ -1,101 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-c99-convert-arch-frv-kernel-pmc.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:10 -0800
-Message-ID: <200702150849.l1F8nANQ025105@shell0.pdx.osdl.net>
+Subject: - sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:41 -0800
+Message-ID: <200702150849.l1F8nf9i025150@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40090 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40129 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965441AbXBOItS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:18 -0500
+	id S965469AbXBOItp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: C99 convert arch/frv/kernel/pm.c
+     sysctl: C99 convert arch/sh64/kernel/traps.c and remove ABI breakage
 has been removed from the -mm tree.  Its filename was
-     sysctl-c99-convert-arch-frv-kernel-pmc.patch
+     sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert arch/frv/kernel/pm.c
+Subject: sysctl: C99 convert arch/sh64/kernel/traps.c and remove ABI breakage
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+While doing the C99 conversion I notices that the top level sh64 directory was
+using the binary number for CTL_KERN.  That is a no-no so I removed the
+support for the sysctl binary interface only leaving sysctl /proc support.
+
+At least the sysctl tables were placed at the end of the list so user space
+did not see this mistake.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/pm.c |   50 +++++++++++++++++++++++++++++++++++------
- 1 file changed, 43 insertions(+), 7 deletions(-)
+ arch/sh64/kernel/traps.c |   49 ++++++++++++++++++++++++++++---------
+ 1 file changed, 38 insertions(+), 11 deletions(-)
 
-diff -puN arch/frv/kernel/pm.c~sysctl-c99-convert-arch-frv-kernel-pmc arch/frv/kernel/pm.c
---- a/arch/frv/kernel/pm.c~sysctl-c99-convert-arch-frv-kernel-pmc
-+++ a/arch/frv/kernel/pm.c
-@@ -401,17 +401,53 @@ static int cm_sysctl(ctl_table *table, i
+diff -puN arch/sh64/kernel/traps.c~sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage arch/sh64/kernel/traps.c
+--- a/arch/sh64/kernel/traps.c~sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage
++++ a/arch/sh64/kernel/traps.c
+@@ -910,25 +910,52 @@ static int misaligned_fixup(struct pt_re
+ }
  
- static struct ctl_table pm_table[] =
- {
--	{CTL_PM_SUSPEND, "suspend", NULL, 0, 0200, NULL, &sysctl_pm_do_suspend},
--	{CTL_PM_CMODE, "cmode", &clock_cmode_current, sizeof(int), 0644, NULL, &cmode_procctl, &cmode_sysctl, NULL},
--	{CTL_PM_P0, "p0", &clock_p0_current, sizeof(int), 0644, NULL, &p0_procctl, &p0_sysctl, NULL},
--	{CTL_PM_CM, "cm", &clock_cm_current, sizeof(int), 0644, NULL, &cm_procctl, &cm_sysctl, NULL},
+ static ctl_table unaligned_table[] = {
+-	{1, "kernel_reports", &kernel_mode_unaligned_fixup_count,
+-		sizeof(int), 0644, NULL, &proc_dointvec},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "kernel_reports",
++		.data		= &kernel_mode_unaligned_fixup_count,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec
++	},
+ #if defined(CONFIG_SH64_USER_MISALIGNED_FIXUP)
+-	{2, "user_reports", &user_mode_unaligned_fixup_count,
+-		sizeof(int), 0644, NULL, &proc_dointvec},
+-	{3, "user_enable", &user_mode_unaligned_fixup_enable,
+-		sizeof(int), 0644, NULL, &proc_dointvec},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "user_reports",
++		.data		= &user_mode_unaligned_fixup_count,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec
++	},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "user_enable",
++		.data		= &user_mode_unaligned_fixup_enable,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec},
+ #endif
 -	{0}
-+	{
-+		.ctl_name	= CTL_PM_SUSPEND,
-+		.procname	= "suspend",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0200,
-+		.proc_handler	= &sysctl_pm_do_suspend,
-+	},
-+	{
-+		.ctl_name	= CTL_PM_CMODE,
-+		.procname	= "cmode",
-+		.data		= &clock_cmode_current,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &cmode_procctl,
-+		.strategy	= &cmode_sysctl,
-+	},
-+	{
-+		.ctl_name	= CTL_PM_P0,
-+		.procname	= "p0",
-+		.data		= &clock_p0_current,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &p0_procctl,
-+		.strategy	= &p0_sysctl,
-+	},
-+	{
-+		.ctl_name	= CTL_PM_CM,
-+		.procname	= "cm",
-+		.data		= &clock_cm_current,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &cm_procctl,
-+		.strategy	= &cm_sysctl,
-+	},
-+	{ .ctl_name = 0}
++	{}
  };
  
- static struct ctl_table pm_dir_table[] =
- {
--	{CTL_PM, "pm", NULL, 0, 0555, pm_table},
+ static ctl_table unaligned_root[] = {
+-	{1, "unaligned_fixup", NULL, 0, 0555, unaligned_table},
 -	{0}
 +	{
-+		.ctl_name	= CTL_PM,
-+		.procname	= "pm",
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "unaligned_fixup",
 +		.mode		= 0555,
-+		.child		= pm_table,
++		unaligned_table
 +	},
-+	{ .ctl_name = 0}
++	{}
  };
  
- /*
+ static ctl_table sh64_root[] = {
+-	{1, "sh64", NULL, 0, 0555, unaligned_root},
+-	{0}
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "sh64",
++		.mode		= 0555,
++		.child		= unaligned_root
++	},
++	{}
+ };
+ static struct ctl_table_header *sysctl_header;
+ static int __init init_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
