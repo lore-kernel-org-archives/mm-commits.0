@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch added to -mm tree
-Date: Wed, 14 Feb 2007 21:02:42 -0800
-Message-ID: <200702150502.l1F52gJl020360@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-elevate-write-count-for-do_utimes.patch added to -mm tree
+Date: Wed, 14 Feb 2007 21:02:52 -0800
+Message-ID: <200702150502.l1F52qU5020375@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35049 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35052 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932682AbXBOFNE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 00:13:04 -0500
+	id S932684AbXBOFNP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 00:13:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, miklos@szeredi.hu, vir
 
 
 The patch titled
-     r/o bind mounts: unix_find_other() elevate write count for touch_atime()
+     r/o bind mounts: elevate write count for do_utimes()
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
+     r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: unix_find_other() elevate write count for touch_atime()
+Subject: r/o bind mounts: elevate write count for do_utimes()
 From: Dave Hansen <hansendc@us.ibm.com>
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
@@ -35,54 +35,52 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/unix/af_unix.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ fs/utimes.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN net/unix/af_unix.c~r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime net/unix/af_unix.c
---- a/net/unix/af_unix.c~r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime
-+++ a/net/unix/af_unix.c
-@@ -703,21 +703,27 @@ static struct sock *unix_find_other(stru
- 		err = path_lookup(sunname->sun_path, LOOKUP_FOLLOW, &nd);
- 		if (err)
- 			goto fail;
-+
-+		err = mnt_want_write(nd.mnt);
-+		if (err)
-+			goto put_path_fail;
-+
- 		err = vfs_permission(&nd, MAY_WRITE);
- 		if (err)
--			goto put_fail;
-+			goto mnt_drop_write_fail;
+diff -puN fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes fs/utimes.c
+--- a/fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes
++++ a/fs/utimes.c
+@@ -58,8 +58,8 @@ static long do_utimes_nsec(int dfd, char
+ 		goto out;
+ 	inode = nd.dentry->d_inode;
  
- 		err = -ECONNREFUSED;
- 		if (!S_ISSOCK(nd.dentry->d_inode->i_mode))
--			goto put_fail;
-+			goto mnt_drop_write_fail;
- 		u=unix_find_socket_byinode(nd.dentry->d_inode);
- 		if (!u)
--			goto put_fail;
-+			goto mnt_drop_write_fail;
+-	error = -EROFS;
+-	if (IS_RDONLY(inode))
++	error = mnt_want_write(nd.mnt);
++	if (error)
+ 		goto dput_and_out;
  
- 		if (u->sk_type == type)
- 			touch_atime(nd.mnt, nd.dentry);
+ 	/* Don't worry, the checks are done in inode_change_ok() */
+@@ -67,7 +67,7 @@ static long do_utimes_nsec(int dfd, char
+ 	if (times) {
+ 		error = -EPERM;
+                 if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
+-                        goto dput_and_out;
++			goto mnt_drop_write_and_out;
  
- 		path_release(&nd);
-+		mnt_drop_write(nd.mnt);
+ 		newattrs.ia_atime = times[0];
+ 		newattrs.ia_mtime = times[1];
+@@ -75,15 +75,17 @@ static long do_utimes_nsec(int dfd, char
+ 	} else {
+ 		error = -EACCES;
+                 if (IS_IMMUTABLE(inode))
+-                        goto dput_and_out;
++			goto mnt_drop_write_and_out;
  
- 		err=-EPROTOTYPE;
- 		if (u->sk_type != type) {
-@@ -737,7 +743,9 @@ static struct sock *unix_find_other(stru
+ 		if (current->fsuid != inode->i_uid &&
+ 		    (error = vfs_permission(&nd, MAY_WRITE)) != 0)
+-			goto dput_and_out;
++			goto mnt_drop_write_and_out;
  	}
- 	return u;
- 
--put_fail:
-+mnt_drop_write_fail:
+ 	mutex_lock(&inode->i_mutex);
+ 	error = notify_change(nd.dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
++mnt_drop_write_and_out:
 +	mnt_drop_write(nd.mnt);
-+put_path_fail:
+ dput_and_out:
  	path_release(&nd);
- fail:
- 	*error=err;
+ out:
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
