@@ -1,118 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - cleanup-paravirt-unhandled-fallthrough.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:52:08 -0800
-Message-ID: <200702150852.l1F8q82l025348@shell0.pdx.osdl.net>
+Subject: - sysctl-mips-au1000-remove-sys_sysctl-support.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:22 -0800
+Message-ID: <200702150849.l1F8nMuu025120@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40388 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40411 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965571AbXBOIwR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:52:17 -0500
+	id S965588AbXBOIwj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:52:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cleanup: paravirt unhandled fallthrough
+     sysctl: mips/au1000: remove sys_sysctl support
 has been removed from the -mm tree.  Its filename was
-     cleanup-paravirt-unhandled-fallthrough.patch
+     sysctl-mips-au1000-remove-sys_sysctl-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cleanup: paravirt unhandled fallthrough
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: sysctl: mips/au1000: remove sys_sysctl support
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-The current code simply calls "start_kernel" directly if we're under a
-hypervisor and no paravirt_ops backend wants us, because paravirt.c registers
-that as a backend.
+The assignment of binary numbers for sys_sysctl use was in shambles and
+despite requiring methods.  Nothing was implemented on the sys_sysctl side.
 
-This was always a vain hope; start_kernel won't get far without setup.  It's
-also impossible for paravirt_ops backends which don't sit in the
-arch/i386/kernel directory: they can't link before paravirt.o anyway.
+So this patch gives a mercy killing to the sys_sysctl support for
+powermanagment on mips/au1000.
 
-Keep it simple: if we pass all the registered paravirt probes, BUG().
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/Makefile   |    2 --
- arch/i386/kernel/head.S     |    7 ++++++-
- arch/i386/kernel/paravirt.c |    3 ---
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ arch/mips/au1000/common/power.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN arch/i386/kernel/Makefile~cleanup-paravirt-unhandled-fallthrough arch/i386/kernel/Makefile
---- a/arch/i386/kernel/Makefile~cleanup-paravirt-unhandled-fallthrough
-+++ a/arch/i386/kernel/Makefile
-@@ -41,8 +41,6 @@ obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
- obj-$(CONFIG_K8_NB)		+= k8.o
+diff -puN arch/mips/au1000/common/power.c~sysctl-mips-au1000-remove-sys_sysctl-support arch/mips/au1000/common/power.c
+--- a/arch/mips/au1000/common/power.c~sysctl-mips-au1000-remove-sys_sysctl-support
++++ a/arch/mips/au1000/common/power.c
+@@ -62,12 +62,6 @@ extern unsigned long save_local_and_disa
+ extern void restore_local_and_enable(int controller, unsigned long mask);
+ extern void local_enable_irq(unsigned int irq_nr);
  
- obj-$(CONFIG_VMI)		+= vmi.o vmitime.o
+-/* Quick acpi hack. This will have to change! */
+-#define	CTL_ACPI 9999
+-#define	ACPI_S1_SLP_TYP 19
+-#define	ACPI_SLEEP 21
 -
--# Make sure this is linked after any other paravirt_ops structs: see head.S
- obj-$(CONFIG_PARAVIRT)		+= paravirt.o
+-
+ static DEFINE_SPINLOCK(pm_lock);
  
- EXTRA_AFLAGS   := -traditional
-diff -puN arch/i386/kernel/head.S~cleanup-paravirt-unhandled-fallthrough arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~cleanup-paravirt-unhandled-fallthrough
-+++ a/arch/i386/kernel/head.S
-@@ -513,10 +513,11 @@ startup_paravirt:
- 	pushl	%ecx
- 	pushl	%eax
+ /* We need to save/restore a bunch of core registers that are
+@@ -425,14 +419,14 @@ static int pm_do_freq(ctl_table * ctl, i
  
--	/* paravirt.o is last in link, and that probe fn never returns */
- 	pushl	$__start_paravirtprobe
- 1:
- 	movl	0(%esp), %eax
-+	cmpl	$__stop_paravirtprobe, %eax
-+	je	unhandled_paravirt
- 	pushl	(%eax)
- 	movl	8(%esp), %eax
- 	call	*(%esp)
-@@ -528,6 +529,10 @@ startup_paravirt:
  
- 	addl	$4, (%esp)
- 	jmp	1b
-+
-+unhandled_paravirt:
-+	/* Nothing wanted us: we're screwed. */
-+	ud2
- #endif
+ static struct ctl_table pm_table[] = {
+-	{ACPI_S1_SLP_TYP, "suspend", NULL, 0, 0600, NULL, &pm_do_suspend},
+-	{ACPI_SLEEP, "sleep", NULL, 0, 0600, NULL, &pm_do_sleep},
+-	{CTL_ACPI, "freq", NULL, 0, 0600, NULL, &pm_do_freq},
++	{CTL_UNNUMBERED, "suspend", NULL, 0, 0600, NULL, &pm_do_suspend},
++	{CTL_UNNUMBERED, "sleep", NULL, 0, 0600, NULL, &pm_do_sleep},
++	{CTL_UNNUMBERED, "freq", NULL, 0, 0600, NULL, &pm_do_freq},
+ 	{0}
+ };
  
- /*
-diff -puN arch/i386/kernel/paravirt.c~cleanup-paravirt-unhandled-fallthrough arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~cleanup-paravirt-unhandled-fallthrough
-+++ a/arch/i386/kernel/paravirt.c
-@@ -482,9 +482,6 @@ static int __init print_banner(void)
+ static struct ctl_table pm_dir_table[] = {
+-	{CTL_ACPI, "pm", NULL, 0, 0555, pm_table},
++	{CTL_UNNUMBERED, "pm", NULL, 0, 0555, pm_table},
+ 	{0}
+ };
+ 
+@@ -441,7 +435,7 @@ static struct ctl_table pm_dir_table[] =
+  */
+ static int __init pm_init(void)
+ {
+-	register_sysctl_table(pm_dir_table, 1);
++	register_sysctl_table(pm_dir_table, 0);
+ 	return 0;
  }
- core_initcall(print_banner);
  
--/* We simply declare start_kernel to be the paravirt probe of last resort. */
--paravirt_probe(start_kernel);
--
- struct paravirt_ops paravirt_ops = {
- 	.name = "bare hardware",
- 	.paravirt_enabled = 0,
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-git-acpi.patch
-cleanup-initialize-esp0-properly-all-the-time.patch
-cleanup-make-hvc_consolec-compile-on-non-powerpc.patch
-lguest-preparation-export_symbol_gpl-5-functions.patch
-lguest-preparation-expose-futex-infrastructure.patch
-lguest-kconfig-and-headers.patch
-lguest-the-host-code-lgko.patch
-lguest-guest-code.patch
-lguest-makefile.patch
-lguest-trivial-guest-network-driver.patch
-lguest-trivial-guest-network-driver-fix.patch
-lguest-trivial-guest-console-driver.patch
-lguest-trivial-guest-block-driver.patch
-lguest-documentatation-and-example-launcher.patch
-vmi-versus-hrtimers.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+git-v9fs.patch
+x86_64-irq-simplfy-__assign_irq_vector.patch
+x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+allow-access-to-proc-pid-fd-after-setuid-update-2.patch
+shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
+i386-apic-clean-up-the-apic-code.patch
+i386-rework-local-apic-timer-calibration.patch
+i386-prepare-nmi-watchdog-for-dynticks.patch
+edac-k8-driver-coding-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
