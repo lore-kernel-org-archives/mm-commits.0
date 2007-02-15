@@ -1,91 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:50:24 -0800
-Message-ID: <200702150850.l1F8oOK0025227@shell0.pdx.osdl.net>
+Subject: - sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:58 -0800
+Message-ID: <200702150849.l1F8nwDa025172@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40195 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40205 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965299AbXBOIu0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:50:26 -0500
+	id S965505AbXBOIud (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:50:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: create sys/fs/binfmt_misc as an ordinary sysctl entry
+     sysctl: register the sysctl number used by the arlan driver
 has been removed from the -mm tree.  Its filename was
-     sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry.patch
+     sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: create sys/fs/binfmt_misc as an ordinary sysctl entry
+Subject: sysctl: register the sysctl number used by the arlan driver
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-binfmt_misc has a mount point in the middle of the sysctl and that mount point
-is created as a proc_generic directory.
-
-Doing it that way gets in the way of cleaning up the sysctl proc support as it
-continues the existence of a horrible hack.  So instead simply create the
-directory as an ordinary sysctl directory.  At least that removes the magic
-special case.
-
-[akpm@osdl.org: warning fix]
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/root.c  |    4 ----
- kernel/sysctl.c |   14 ++++++++++++++
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/net/wireless/arlan-proc.c |    2 +-
+ include/linux/sysctl.h            |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/root.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry fs/proc/root.c
---- a/fs/proc/root.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry
-+++ a/fs/proc/root.c
-@@ -74,10 +74,6 @@ void __init proc_root_init(void)
- #ifdef CONFIG_SYSCTL
- 	proc_sys_root = proc_mkdir("sys", NULL);
- #endif
--#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
--	proc_mkdir("sys/fs", NULL);
--	proc_mkdir("sys/fs/binfmt_misc", NULL);
--#endif
- 	proc_root_fs = proc_mkdir("fs", NULL);
- 	proc_root_driver = proc_mkdir("driver", NULL);
- 	proc_mkdir("fs/nfsd", NULL); /* somewhere for the nfsd filesystem to be mounted */
-diff -puN kernel/sysctl.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-create-sys-fs-binfmt_misc-as-an-ordinary-sysctl-entry
-+++ a/kernel/sysctl.c
-@@ -881,6 +881,12 @@ static ctl_table vm_table[] = {
- 	{ .ctl_name = 0 }
- };
- 
-+#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
-+static ctl_table binfmt_misc_table[] = {
-+	{ .ctl_name = 0 }
-+};
-+#endif
-+
- static ctl_table fs_table[] = {
+diff -puN drivers/net/wireless/arlan-proc.c~sysctl-register-the-sysctl-number-used-by-the-arlan-driver drivers/net/wireless/arlan-proc.c
+--- a/drivers/net/wireless/arlan-proc.c~sysctl-register-the-sysctl-number-used-by-the-arlan-driver
++++ a/drivers/net/wireless/arlan-proc.c
+@@ -1216,7 +1216,7 @@ static ctl_table arlan_table[MAX_ARLANS 
+ static ctl_table arlan_root_table[] =
+ {
  	{
- 		.ctl_name	= FS_NRINODE,
-@@ -1004,6 +1010,14 @@ static ctl_table fs_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
-+#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "binfmt_misc",
-+		.mode		= 0555,
-+		.child		= binfmt_misc_table,
-+	},
-+#endif
- 	{ .ctl_name = 0 }
- };
- 
+-		.ctl_name	= 254,
++		.ctl_name	= CTL_ARLAN,
+ 		.procname	= "arlan",
+ 		.maxlen		= 0,
+ 		.mode		= 0555,
+diff -puN include/linux/sysctl.h~sysctl-register-the-sysctl-number-used-by-the-arlan-driver include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-register-the-sysctl-number-used-by-the-arlan-driver
++++ a/include/linux/sysctl.h
+@@ -70,6 +70,7 @@ enum
+ 	CTL_BUS=8,		/* Busses */
+ 	CTL_ABI=9,		/* Binary emulation */
+ 	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
++	CTL_ARLAN=254,		/* arlan wireless driver */
+ 	CTL_APPLDATA=2120,	/* s390 appldata */
+ 	CTL_S390DBF=5677,	/* s390 debug */
+ 	CTL_SUNRPC=7249,	/* sunrpc debug */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
