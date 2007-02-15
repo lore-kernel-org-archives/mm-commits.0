@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + opportunistically-move-mlocked-pages-off-the-lru.patch added to -mm tree
-Date: Wed, 14 Feb 2007 21:42:39 -0800
-Message-ID: <200702150542.l1F5gdKJ021114@shell0.pdx.osdl.net>
+Subject: + fs-fix-libfs-data-leak.patch added to -mm tree
+Date: Wed, 14 Feb 2007 21:44:31 -0800
+Message-ID: <200702150544.l1F5iVkH021136@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35581 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35606 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932313AbXBOFml (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 00:42:41 -0500
+	id S1750716AbXBOFof (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 00:44:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: npiggin@suse.de
 
 
 The patch titled
-     Opportunistically move mlocked pages off the LRU
+     fs: fix libfs data leak
 has been added to the -mm tree.  Its filename is
-     opportunistically-move-mlocked-pages-off-the-lru.patch
+     fs-fix-libfs-data-leak.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,119 +25,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Opportunistically move mlocked pages off the LRU
-From: Christoph Lameter <clameter@sgi.com>
+Subject: fs: fix libfs data leak
+From: Nick Piggin <npiggin@suse.de>
 
-Opportunistically move mlocked pages off the LRU
+simple_prepare_write leaks uninitialised kernel data.  This happens because
+the it leaves an uninitialised "hole" over the part of the page that the
+write is expected to go to.  This is fine, but it then marks the page
+uptodate, which means a concurrent read can come in and copy the
+uninitialised memory into userspace before it written to.
 
-Add a new function try_to_mlock() that attempts to move a page off the LRU and
-marks it mlocked.
+Fix it by simply marking it uptodate in simple_commit_write instead, after
+the hole has been filled in.  This could theoretically break an fs that
+uses simple_prepare_write and not simple_commit_write, and that relies on
+the incorrect simple_prepare_write behaviour.  Luckily, none of those
+exists in the tree.
 
-This function can then be used in various code paths to move pages off the LRU
-immediately.  Early discovery will make NR_MLOCK track the actual number of
-mlocked pages in the system more closely.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ Documentation/filesystems/vfs.txt |    5 +++++
+ fs/libfs.c                        |    5 +++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~opportunistically-move-mlocked-pages-off-the-lru mm/memory.c
---- a/mm/memory.c~opportunistically-move-mlocked-pages-off-the-lru
-+++ a/mm/memory.c
-@@ -59,6 +59,7 @@
+diff -puN Documentation/filesystems/vfs.txt~fs-fix-libfs-data-leak Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~fs-fix-libfs-data-leak
++++ a/Documentation/filesystems/vfs.txt
+@@ -617,6 +617,11 @@ struct address_space_operations {
+ 	In this case the prepare_write will be retried one the lock is
+   	regained.
  
- #include <linux/swapops.h>
- #include <linux/elf.h>
-+#include <linux/mm_inline.h>
- 
- #ifndef CONFIG_NEED_MULTIPLE_NODES
- /* use the per-pgdat data instead for discontigmem - mbligh */
-@@ -920,6 +921,34 @@ static void add_anon_page(struct vm_area
++	Note: the page _must not_ be marked uptodate in this function
++	(or anywhere else) unless it actually is uptodate right now. As
++	soon as a page is marked uptodate, it is possible for a concurrent
++	read(2) to copy it to userspace.
++
+   commit_write: If prepare_write succeeds, new data will be copied
+         into the page and then commit_write will be called.  It will
+         typically update the size of the file (if appropriate) and
+diff -puN fs/libfs.c~fs-fix-libfs-data-leak fs/libfs.c
+--- a/fs/libfs.c~fs-fix-libfs-data-leak
++++ a/fs/libfs.c
+@@ -335,17 +335,18 @@ int simple_prepare_write(struct file *fi
+ 			flush_dcache_page(page);
+ 			kunmap_atomic(kaddr, KM_USER0);
+ 		}
+-		SetPageUptodate(page);
+ 	}
+ 	return 0;
  }
  
- /*
-+ * Opportunistically move the page off the LRU
-+ * if possible. If we do not succeed then the LRU
-+ * scans will take the page off.
-+ */
-+static void try_to_set_mlocked(struct page *page)
-+{
-+	struct zone *zone;
-+	unsigned long flags;
-+
-+	if (!PageLRU(page) || PageMlocked(page))
-+		return;
-+
-+	zone = page_zone(page);
-+	if (spin_trylock_irqsave(&zone->lru_lock, flags)) {
-+		if (PageLRU(page) && !PageMlocked(page)) {
-+			ClearPageLRU(page);
-+			if (PageActive(page))
-+				del_page_from_active_list(zone, page);
-+			else
-+				del_page_from_inactive_list(zone, page);
-+			ClearPageActive(page);
-+			SetPageMlocked(page);
-+			__inc_zone_page_state(page, NR_MLOCK);
-+		}
-+		spin_unlock_irqrestore(&zone->lru_lock, flags);
-+	}
-+}
-+/*
-  * Do a quick page-table lookup for a single page.
-  */
- struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
-@@ -979,6 +1008,8 @@ struct page *follow_page(struct vm_area_
- 			set_page_dirty(page);
- 		mark_page_accessed(page);
- 	}
-+	if (vma->vm_flags & VM_LOCKED)
-+		try_to_set_mlocked(page);
- unlock:
- 	pte_unmap_unlock(ptep, ptl);
- out:
-@@ -2317,6 +2348,8 @@ retry:
- 		else {
- 			inc_mm_counter(mm, file_rss);
- 			page_add_file_rmap(new_page);
-+			if (vma->vm_flags & VM_LOCKED)
-+				try_to_set_mlocked(new_page);
- 			if (write_access) {
- 				dirty_page = new_page;
- 				get_page(dirty_page);
+ int simple_commit_write(struct file *file, struct page *page,
+-			unsigned offset, unsigned to)
++			unsigned from, unsigned to)
+ {
+ 	struct inode *inode = page->mapping->host;
+ 	loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
+ 
++	if (!PageUptodate(page))
++		SetPageUptodate(page);
+ 	/*
+ 	 * No need to use i_size_read() here, the i_size
+ 	 * cannot change under us because we hold the i_mutex.
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix.patch
-make-try_to_unmap-return-a-special-exit-code.patch
-add-pagemlocked-page-state-bit-and-lru-infrastructure.patch
-add-nr_mlock-zvc.patch
-logic-to-move-mlocked-pages.patch
-consolidate-new-anonymous-page-code-paths.patch
-avoid-putting-new-mlocked-anonymous-pages-on-lru.patch
-opportunistically-move-mlocked-pages-off-the-lru.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids-fix.patch
-slab-reduce-size-of-alien-cache-to-cover-only-possible-nodes.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-mm-implement-swap-prefetching-vs-zvc-stuff.patch
-mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
+mincore-config_swap=n-fix.patch
+mincore-fill-in-results-properly.patch
+mincore-vma-crossing-fix.patch
+git-block.patch
+mm-remove-gcc-workaround.patch
+fs-fix-__block_write_full_page-error-case-buffer-submission.patch
+fs-fix-libfs-data-leak.patch
+fs-fix-nobh-data-leak.patch
