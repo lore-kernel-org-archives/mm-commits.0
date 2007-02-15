@@ -1,78 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-megaraid_sas-update-version-and-author-info.patch removed from -mm tree
-Date: Wed, 14 Feb 2007 20:10:34 -0800
-Message-ID: <200702150410.l1F4AYMp019374@shell0.pdx.osdl.net>
+Subject: + scsi-megaraid_sas-donot-process-cmds-if-hw_crit_error-is-set.patch added to -mm tree
+Date: Wed, 14 Feb 2007 20:20:39 -0800
+Message-ID: <200702150420.l1F4KdrB019626@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33399 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33950 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932629AbXBOEKi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 23:10:38 -0500
+	id S932181AbXBOEUn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 23:20:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sumantp@lsil.com, sumant.patro@lsi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sumantp@lsil.com, sumant.patro@lsi.com
 
 
 The patch titled
-     scsi: megaraid_sas - update version and author info
-has been removed from the -mm tree.  Its filename was
-     scsi-megaraid_sas-update-version-and-author-info.patch
+     scsi: megaraid_sas - donot process cmds if hw_crit_error is set
+has been added to the -mm tree.  Its filename is
+     scsi-megaraid_sas-donot-process-cmds-if-hw_crit_error-is-set.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: scsi: megaraid_sas - update version and author info
+Subject: scsi: megaraid_sas - donot process cmds if hw_crit_error is set
 From: Sumant Patro <sumantp@lsil.com>
 
-Update version and author information.
+Checks if hw_crit_error is set.  If it is set, we donot process commands. 
+Checks added in megasas_queue_command and command completion routines.
 
 Signed-off-by: Sumant Patro <sumant.patro@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_sas.c |    8 +++++---
- drivers/scsi/megaraid/megaraid_sas.h |    6 +++---
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ drivers/scsi/megaraid/megaraid_sas.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-update-version-and-author-info drivers/scsi/megaraid/megaraid_sas.c
---- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-update-version-and-author-info
+diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-donot-process-cmds-if-hw_crit_error-is-set drivers/scsi/megaraid/megaraid_sas.c
+--- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-donot-process-cmds-if-hw_crit_error-is-set
 +++ a/drivers/scsi/megaraid/megaraid_sas.c
-@@ -10,11 +10,13 @@
-  *	   2 of the License, or (at your option) any later version.
-  *
-  * FILE		: megaraid_sas.c
-- * Version	: v00.00.03.05
-+ * Version	: v00.00.03.09-rc1
-  *
-  * Authors:
-- * 	Sreenivas Bagalkote	<Sreenivas.Bagalkote@lsi.com>
-- * 	Sumant Patro		<Sumant.Patro@lsi.com>
-+ *	(email-id : megaraidlinux@lsi.com)
-+ * 	Sreenivas Bagalkote
-+ * 	Sumant Patro
-+ *	Bo Yang
-  *
-  * List of supported controllers
-  *
-diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-update-version-and-author-info drivers/scsi/megaraid/megaraid_sas.h
---- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-update-version-and-author-info
-+++ a/drivers/scsi/megaraid/megaraid_sas.h
-@@ -18,9 +18,9 @@
- /*
-  * MegaRAID SAS Driver meta data
-  */
--#define MEGASAS_VERSION				"00.00.03.05"
--#define MEGASAS_RELDATE				"Oct 02, 2006"
--#define MEGASAS_EXT_VERSION			"Mon Oct 02 11:21:32 PDT 2006"
-+#define MEGASAS_VERSION				"00.00.03.09-rc1"
-+#define MEGASAS_RELDATE				"Feb 06, 2007"
-+#define MEGASAS_EXT_VERSION			"Tue Feb 06 12:35:46 PST 2007"
+@@ -841,6 +841,11 @@ megasas_queue_command(struct scsi_cmnd *
  
- /*
-  * Device IDs
+ 	instance = (struct megasas_instance *)
+ 	    scmd->device->host->hostdata;
++
++	/* Don't process if we have already declared adapter dead */
++	if (instance->hw_crit_error)
++		return SCSI_MLQUEUE_HOST_BUSY;
++
+ 	scmd->scsi_done = done;
+ 	scmd->result = 0;
+ 
+@@ -1282,11 +1287,13 @@ megasas_deplete_reply_queue(struct megas
+ 	if(instance->instancet->clear_intr(instance->reg_set))
+ 		return IRQ_NONE;
+ 
++	if (instance->hw_crit_error)
++		goto out_done;
+         /*
+ 	 * Schedule the tasklet for cmd completion
+ 	 */
+ 	tasklet_schedule(&instance->isr_tasklet);
+-
++out_done:
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -1741,6 +1748,10 @@ static void megasas_complete_cmd_dpc(uns
+ 	struct megasas_cmd *cmd;
+ 	struct megasas_instance *instance = (struct megasas_instance *)instance_addr;
+ 
++	/* If we have already declared adapter dead, donot complete cmds */
++	if (instance->hw_crit_error)
++		return;
++
+ 	producer = *instance->producer;
+ 	consumer = *instance->consumer;
+ 
 _
 
 Patches currently in -mm which might be from sumantp@lsil.com are
 
 origin.patch
+scsi-megaraid_sas-donot-process-cmds-if-hw_crit_error-is-set.patch
+scsi-megaraid_sas-added-bios_param-in-scsi_host_template.patch
+scsi-megaraid_sas-throttle-io-if-fw-is-busy.patch
+scsi-megaraid_sas-replace-pci_alloc_consitent-with-dma_alloc_coherent-in-ioctl-path.patch
+scsi-megaraid_sas-return-sync-cache-call-with-success.patch
 scsi-megaraid_sas-update-version-and-author-info.patch
