@@ -1,59 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:01 -0800
-Message-ID: <200702150849.l1F8n1D9025093@shell0.pdx.osdl.net>
+Subject: - sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:31 -0800
+Message-ID: <200702150848.l1F8mVnp025053@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40055 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40058 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965412AbXBOItC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:02 -0500
+	id S965417AbXBOItE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, acme@conectiva.com.br, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: move CTL_PM into sysctl.h where it belongs
+     sysctl: ipx: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     sysctl-move-ctl_pm-into-sysctlh-where-it-belongs.patch
+     sysctl-ipx-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: move CTL_PM into sysctl.h where it belongs
+Subject: sysctl: ipx: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+The sysctl numbers used are unique so setting the insert_at_head flag servers
+no semantic purpose and is just confusing.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/pm.c   |    1 -
- include/linux/sysctl.h |    1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ net/ipx/sysctl_net_ipx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/kernel/pm.c~sysctl-move-ctl_pm-into-sysctlh-where-it-belongs arch/frv/kernel/pm.c
---- a/arch/frv/kernel/pm.c~sysctl-move-ctl_pm-into-sysctlh-where-it-belongs
-+++ a/arch/frv/kernel/pm.c
-@@ -125,7 +125,6 @@ unsigned long sleep_phys_sp(void *sp)
-  * Use a temporary sysctl number. Horrid, but will be cleaned up in 2.6
-  * when all the PM interfaces exist nicely.
-  */
--#define CTL_PM 9899
- #define CTL_PM_SUSPEND 1
- #define CTL_PM_CMODE 2
- #define CTL_PM_P0 4
-diff -puN include/linux/sysctl.h~sysctl-move-ctl_pm-into-sysctlh-where-it-belongs include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-move-ctl_pm-into-sysctlh-where-it-belongs
-+++ a/include/linux/sysctl.h
-@@ -71,6 +71,7 @@ enum
- 	CTL_ABI=9,		/* Binary emulation */
- 	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
- 	CTL_SUNRPC=7249,	/* sunrpc debug */
-+	CTL_PM=9899,		/* frv power management */
- };
+diff -puN net/ipx/sysctl_net_ipx.c~sysctl-ipx-remove-unnecessary-insert_at_head-flag net/ipx/sysctl_net_ipx.c
+--- a/net/ipx/sysctl_net_ipx.c~sysctl-ipx-remove-unnecessary-insert_at_head-flag
++++ a/net/ipx/sysctl_net_ipx.c
+@@ -52,7 +52,7 @@ static struct ctl_table_header *ipx_tabl
  
- /* CTL_BUS names: */
+ void ipx_register_sysctl(void)
+ {
+-	ipx_table_header = register_sysctl_table(ipx_root_table, 1);
++	ipx_table_header = register_sysctl_table(ipx_root_table, 0);
+ }
+ 
+ void ipx_unregister_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
