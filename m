@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + local_t-mips-extension.patch added to -mm tree
-Date: Wed, 14 Feb 2007 23:06:28 -0800
-Message-ID: <200702150706.l1F76SB6022549@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-kconfig-menus.patch added to -mm tree
+Date: Wed, 14 Feb 2007 23:22:04 -0800
+Message-ID: <200702150722.l1F7M4oP022844@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37419 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37654 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964947AbXBOHJy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 02:09:54 -0500
+	id S964959AbXBOHWO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 02:22:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, ralf@linux-mips.org
+Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     local_t: mips extension
+     Linux Kernel Markers: Kconfig menus
 has been added to the -mm tree.  Its filename is
-     local_t-mips-extension.patch
+     linux-kernel-markers-kconfig-menus.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,738 +25,436 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: local_t: mips extension
+Subject: Linux Kernel Markers: Kconfig menus
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/local.h  |  542 +++++++++++++++++++++++++++++++++---
- include/asm-mips/system.h |  125 ++++++++
- 2 files changed, 627 insertions(+), 40 deletions(-)
+ Makefile               |    3 ++-
+ arch/alpha/Kconfig     |    6 ++++++
+ arch/arm/Kconfig       |    6 ++++++
+ arch/arm26/Kconfig     |    6 ++++++
+ arch/cris/Kconfig      |    6 ++++++
+ arch/frv/Kconfig       |    6 ++++++
+ arch/h8300/Kconfig     |    6 ++++++
+ arch/i386/Kconfig      |    3 +++
+ arch/ia64/Kconfig      |    3 +++
+ arch/m32r/Kconfig      |    6 ++++++
+ arch/m68k/Kconfig      |    6 ++++++
+ arch/m68knommu/Kconfig |    6 ++++++
+ arch/mips/Kconfig      |    6 ++++++
+ arch/parisc/Kconfig    |    6 ++++++
+ arch/powerpc/Kconfig   |    3 +++
+ arch/ppc/Kconfig       |    6 ++++++
+ arch/s390/Kconfig      |    2 ++
+ arch/sh/Kconfig        |    6 ++++++
+ arch/sh64/Kconfig      |    6 ++++++
+ arch/sparc/Kconfig     |    2 ++
+ arch/sparc64/Kconfig   |    3 +++
+ arch/um/Kconfig        |    6 ++++++
+ arch/v850/Kconfig      |    6 ++++++
+ arch/x86_64/Kconfig    |    3 +++
+ arch/xtensa/Kconfig    |    6 ++++++
+ kernel/Kconfig.marker  |   17 +++++++++++++++++
+ 26 files changed, 140 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-mips/local.h~local_t-mips-extension include/asm-mips/local.h
---- a/include/asm-mips/local.h~local_t-mips-extension
-+++ a/include/asm-mips/local.h
-@@ -1,60 +1,524 @@
--#ifndef _ASM_LOCAL_H
--#define _ASM_LOCAL_H
-+#ifndef _ARCH_MIPS_LOCAL_H
-+#define _ARCH_MIPS_LOCAL_H
+diff -puN Makefile~linux-kernel-markers-kconfig-menus Makefile
+--- a/Makefile~linux-kernel-markers-kconfig-menus
++++ a/Makefile
+@@ -308,7 +308,8 @@ AFLAGS_KERNEL	=
+ # Needed to be compatible with the O= option
+ LINUXINCLUDE    := -Iinclude \
+                    $(if $(KBUILD_SRC),-Iinclude2 -I$(srctree)/include) \
+-		   -include include/linux/autoconf.h
++		   -include include/linux/autoconf.h \
++		   -include linux/marker.h
  
- #include <linux/percpu.h>
- #include <asm/atomic.h>
-+#include <asm/war.h>
+ CPPFLAGS        := -D__KERNEL__ $(LINUXINCLUDE)
  
--#ifdef CONFIG_32BIT
-+typedef struct
-+{
-+	atomic_long_t a;
-+} local_t;
+diff -puN arch/alpha/Kconfig~linux-kernel-markers-kconfig-menus arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/alpha/Kconfig
+@@ -642,6 +642,12 @@ source "fs/Kconfig"
  
--typedef atomic_t local_t;
-+#define LOCAL_INIT(i)	{ local_LONG_INIT(i) }
+ source "arch/alpha/oprofile/Kconfig"
  
--#define LOCAL_INIT(i)	ATOMIC_INIT(i)
--#define local_read(v)	atomic_read(v)
--#define local_set(v,i)	atomic_set(v,i)
-+#define local_read(l)	local_long_read(&(l)->a)
-+#define local_set(l,i)	local_long_set(&(l)->a, (i))
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/alpha/Kconfig.debug"
  
--#define local_inc(v)	atomic_inc(v)
--#define local_dec(v)	atomic_dec(v)
--#define local_add(i, v)	atomic_add(i, v)
--#define local_sub(i, v)	atomic_sub(i, v)
-+#define local_add(i,l)	local_long_add((i),(&(l)->a))
-+#define local_sub(i,l)	local_long_sub((i),(&(l)->a))
-+#define local_inc(l)	local_long_inc(&(l)->a)
-+#define local_dec(l)	local_long_dec(&(l)->a)
+ source "security/Kconfig"
+diff -puN arch/arm/Kconfig~linux-kernel-markers-kconfig-menus arch/arm/Kconfig
+--- a/arch/arm/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/arm/Kconfig
+@@ -967,6 +967,12 @@ source "fs/Kconfig"
  
--#endif
+ source "arch/arm/oprofile/Kconfig"
  
--#ifdef CONFIG_64BIT
-+#ifndef CONFIG_64BIT
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/arm/Kconfig.debug"
  
--typedef atomic64_t local_t;
-+/*
-+ * Same as above, but return the result value
-+ */
-+static __inline__ int local_add_return(int i, local_t * l)
-+{
-+	unsigned long result;
-+
-+	if (cpu_has_llsc && R10000_LLSC_WAR) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	ll	%1, %2		# local_add_return	\n"
-+		"	addu	%0, %1, %3				\n"
-+		"	sc	%0, %2					\n"
-+		"	beqzl	%0, 1b					\n"
-+		"	addu	%0, %1, %3				\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else if (cpu_has_llsc) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	ll	%1, %2		# local_add_return	\n"
-+		"	addu	%0, %1, %3				\n"
-+		"	sc	%0, %2					\n"
-+		"	beqz	%0, 1b					\n"
-+		"	addu	%0, %1, %3				\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else {
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		result = l->a.counter;
-+		result += i;
-+		l->a.counter = result;
-+		local_irq_restore(flags);
-+	}
-+
-+	return result;
-+}
-+
-+static __inline__ int local_sub_return(int i, local_t * l)
-+{
-+	unsigned long result;
-+
-+	if (cpu_has_llsc && R10000_LLSC_WAR) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	ll	%1, %2		# local_sub_return	\n"
-+		"	subu	%0, %1, %3				\n"
-+		"	sc	%0, %2					\n"
-+		"	beqzl	%0, 1b					\n"
-+		"	subu	%0, %1, %3				\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else if (cpu_has_llsc) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	ll	%1, %2		# local_sub_return	\n"
-+		"	subu	%0, %1, %3				\n"
-+		"	sc	%0, %2					\n"
-+		"	beqz	%0, 1b					\n"
-+		"	subu	%0, %1, %3				\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else {
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		result = l->a.counter;
-+		result -= i;
-+		l->a.counter = result;
-+		local_irq_restore(flags);
-+	}
-+
-+	return result;
-+}
+ source "security/Kconfig"
+diff -puN arch/arm26/Kconfig~linux-kernel-markers-kconfig-menus arch/arm26/Kconfig
+--- a/arch/arm26/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/arm26/Kconfig
+@@ -244,6 +244,12 @@ source "drivers/misc/Kconfig"
  
--#define LOCAL_INIT(i)	ATOMIC64_INIT(i)
--#define local_read(v)	atomic64_read(v)
--#define local_set(v,i)	atomic64_set(v,i)
-+/*
-+ * local_sub_if_positive - conditionally subtract integer from atomic variable
-+ * @i: integer value to subtract
-+ * @l: pointer of type local_t
-+ *
-+ * Atomically test @l and subtract @i if @l is greater or equal than @i.
-+ * The function returns the old value of @l minus @i.
-+ */
-+static __inline__ int local_sub_if_positive(int i, local_t * l)
-+{
-+	unsigned long result;
-+
-+	if (cpu_has_llsc && R10000_LLSC_WAR) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	ll	%1, %2		# local_sub_if_positive\n"
-+		"	subu	%0, %1, %3				\n"
-+		"	bltz	%0, 1f					\n"
-+		"	sc	%0, %2					\n"
-+		"	.set	noreorder				\n"
-+		"	beqzl	%0, 1b					\n"
-+		"	 subu	%0, %1, %3				\n"
-+		"	.set	reorder					\n"
-+		"1:							\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else if (cpu_has_llsc) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	ll	%1, %2		# local_sub_if_positive\n"
-+		"	subu	%0, %1, %3				\n"
-+		"	bltz	%0, 1f					\n"
-+		"	sc	%0, %2					\n"
-+		"	.set	noreorder				\n"
-+		"	beqz	%0, 1b					\n"
-+		"	 subu	%0, %1, %3				\n"
-+		"	.set	reorder					\n"
-+		"1:							\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else {
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		result = l->a.counter;
-+		result -= i;
-+		if (result >= 0)
-+			l->a.counter = result;
-+		local_irq_restore(flags);
-+	}
-+
-+	return result;
-+}
-+
-+#define local_cmpxchg(l, o, n) \
-+	(cmpxchg_local(&((l)->a.counter), (o), (n)))
-+#define local_xchg(l, n) (xchg_local(&((l)->a.counter), (n)))
-+
-+/**
-+ * local_add_unless - add unless the number is a given value
-+ * @l: pointer of type local_t
-+ * @a: the amount to add to l...
-+ * @u: ...unless l is equal to u.
-+ *
-+ * Atomically adds @a to @l, so long as it was not @u.
-+ * Returns non-zero if @l was not @u, and zero otherwise.
-+ */
-+#define local_add_unless(l, a, u)				\
-+({								\
-+	long c, old;						\
-+	c = local_read(l);					\
-+	while (c != (u) && (old = local_cmpxchg((l), c, c + (a))) != c) \
-+		c = old;					\
-+	c != (u);						\
-+})
-+#define local_inc_not_zero(l) local_add_unless((l), 1, 0)
+ source "drivers/usb/Kconfig"
  
--#define local_inc(v)	atomic64_inc(v)
--#define local_dec(v)	atomic64_dec(v)
--#define local_add(i, v)	atomic64_add(i, v)
--#define local_sub(i, v)	atomic64_sub(i, v)
-+#define local_dec_return(l) local_sub_return(1,(l))
-+#define local_inc_return(l) local_add_return(1,(l))
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/arm26/Kconfig.debug"
  
--#endif
-+/*
-+ * local_sub_and_test - subtract value from variable and test result
-+ * @i: integer value to subtract
-+ * @l: pointer of type local_t
-+ *
-+ * Atomically subtracts @i from @l and returns
-+ * true if the result is zero, or false for all
-+ * other cases.
-+ */
-+#define local_sub_and_test(i,l) (local_sub_return((i), (l)) == 0)
+ source "security/Kconfig"
+diff -puN arch/cris/Kconfig~linux-kernel-markers-kconfig-menus arch/cris/Kconfig
+--- a/arch/cris/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/cris/Kconfig
+@@ -198,6 +198,12 @@ source "sound/Kconfig"
  
--#define __local_inc(v)		((v)->counter++)
--#define __local_dec(v)		((v)->counter--)
--#define __local_add(i,v)	((v)->counter+=(i))
--#define __local_sub(i,v)	((v)->counter-=(i))
-+/*
-+ * local_inc_and_test - increment and test
-+ * @l: pointer of type local_t
-+ *
-+ * Atomically increments @l by 1
-+ * and returns true if the result is zero, or false for all
-+ * other cases.
-+ */
-+#define local_inc_and_test(l) (local_inc_return(l) == 0)
+ source "drivers/usb/Kconfig"
  
- /*
-- * Use these for per-cpu local_t variables: on some archs they are
-+ * local_dec_and_test - decrement by 1 and test
-+ * @l: pointer of type local_t
-+ *
-+ * Atomically decrements @l by 1 and
-+ * returns true if the result is 0, or false for all other
-+ * cases.
-+ */
-+#define local_dec_and_test(l) (local_sub_return(1, (l)) == 0)
++menu "Instrumentation Support"
 +
-+/*
-+ * local_dec_if_positive - decrement by 1 if old value positive
-+ * @l: pointer of type local_t
-+ */
-+#define local_dec_if_positive(l)	local_sub_if_positive(1, l)
++source "kernel/Kconfig.marker"
 +
-+/*
-+ * local_add_negative - add and test if negative
-+ * @l: pointer of type local_t
-+ * @i: integer value to add
-+ *
-+ * Atomically adds @i to @l and returns true
-+ * if the result is negative, or false when
-+ * result is greater than or equal to zero.
-+ */
-+#define local_add_negative(i,l) (local_add_return(i, (l)) < 0)
++endmenu
 +
-+#else /* CONFIG_64BIT */
-+
-+/*
-+ * Same as above, but return the result value
-+ */
-+static __inline__ long local_add_return(long i, local_t * l)
-+{
-+	unsigned long result;
-+
-+	if (cpu_has_llsc && R10000_LLSC_WAR) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	lld	%1, %2		# local_add_return	\n"
-+		"	addu	%0, %1, %3				\n"
-+		"	scd	%0, %2					\n"
-+		"	beqzl	%0, 1b					\n"
-+		"	addu	%0, %1, %3				\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else if (cpu_has_llsc) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	lld	%1, %2		# local_add_return	\n"
-+		"	addu	%0, %1, %3				\n"
-+		"	scd	%0, %2					\n"
-+		"	beqz	%0, 1b					\n"
-+		"	addu	%0, %1, %3				\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else {
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		result = l->a.counter;
-+		result += i;
-+		l->a.counter = result;
-+		local_irq_restore(flags);
-+	}
-+
-+	return result;
-+}
-+
-+static __inline__ long local_sub_return(long i, local_t * l)
-+{
-+	unsigned long result;
-+
-+	if (cpu_has_llsc && R10000_LLSC_WAR) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	lld	%1, %2		# local_sub_return	\n"
-+		"	subu	%0, %1, %3				\n"
-+		"	scd	%0, %2					\n"
-+		"	beqzl	%0, 1b					\n"
-+		"	subu	%0, %1, %3				\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else if (cpu_has_llsc) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	lld	%1, %2		# local_sub_return	\n"
-+		"	subu	%0, %1, %3				\n"
-+		"	scd	%0, %2					\n"
-+		"	beqz	%0, 1b					\n"
-+		"	subu	%0, %1, %3				\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else {
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		result = l->a.counter;
-+		result -= i;
-+		l->a.counter = result;
-+		local_irq_restore(flags);
-+	}
-+
-+	return result;
-+}
-+
-+/*
-+ * local_sub_if_positive - conditionally subtract integer from atomic variable
-+ * @i: integer value to subtract
-+ * @l: pointer of type local_t
-+ *
-+ * Atomically test @l and subtract @i if @l is greater or equal than @i.
-+ * The function returns the old value of @l minus @i.
-+ */
-+static __inline__ long local_sub_if_positive(long i, local_t * l)
-+{
-+	unsigned long result;
-+
-+	if (cpu_has_llsc && R10000_LLSC_WAR) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	lld	%1, %2		# local_sub_if_positive\n"
-+		"	dsubu	%0, %1, %3				\n"
-+		"	bltz	%0, 1f					\n"
-+		"	scd	%0, %2					\n"
-+		"	.set	noreorder				\n"
-+		"	beqzl	%0, 1b					\n"
-+		"	 dsubu	%0, %1, %3				\n"
-+		"	.set	reorder					\n"
-+		"1:							\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else if (cpu_has_llsc) {
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	lld	%1, %2		# local_sub_if_positive\n"
-+		"	dsubu	%0, %1, %3				\n"
-+		"	bltz	%0, 1f					\n"
-+		"	scd	%0, %2					\n"
-+		"	.set	noreorder				\n"
-+		"	beqz	%0, 1b					\n"
-+		"	 dsubu	%0, %1, %3				\n"
-+		"	.set	reorder					\n"
-+		"1:							\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-+		: "Ir" (i), "m" (l->a.counter)
-+		: "memory");
-+	} else {
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		result = l->a.counter;
-+		result -= i;
-+		if (result >= 0)
-+			l->a.counter = result;
-+		local_irq_restore(flags);
-+	}
-+
-+	return result;
-+}
-+
-+#define local_cmpxchg(l, o, n) \
-+	((long)cmpxchg_local(&((l)->a.counter), (o), (n)))
-+#define local_xchg(l, (n)) (xchg_local(&((l)->a.counter),(n)))
-+
-+/**
-+ * local_add_unless - add unless the number is a given value
-+ * @l: pointer of type local_t
-+ * @a: the amount to add to l...
-+ * @u: ...unless l is equal to u.
-+ *
-+ * Atomically adds @a to @l, so long as it was not @u.
-+ * Returns non-zero if @l was not @u, and zero otherwise.
-+ */
-+#define local_add_unless(l, a, u)				\
-+({								\
-+	long c, old;						\
-+	c = local_read(l);					\
-+	while (c != (u) && (old = local_cmpxchg((l), c, c + (a))) != c) \
-+		c = old;					\
-+	c != (u);						\
-+})
-+#define local_inc_not_zero(l) local_add_unless((l), 1, 0)
-+
-+#define local_dec_return(l) local_sub_return(1,(l))
-+#define local_inc_return(l) local_add_return(1,(l))
-+
-+/*
-+ * local_sub_and_test - subtract value from variable and test result
-+ * @i: integer value to subtract
-+ * @l: pointer of type local_t
-+ *
-+ * Atomically subtracts @i from @l and returns
-+ * true if the result is zero, or false for all
-+ * other cases.
-+ */
-+#define local_sub_and_test(i,l) (local_sub_return((i), (l)) == 0)
-+
-+/*
-+ * local_inc_and_test - increment and test
-+ * @l: pointer of type local_t
-+ *
-+ * Atomically increments @l by 1
-+ * and returns true if the result is zero, or false for all
-+ * other cases.
-+ */
-+#define local_inc_and_test(l) (local_inc_return(l) == 0)
-+
-+/*
-+ * local_dec_and_test - decrement by 1 and test
-+ * @l: pointer of type local_t
-+ *
-+ * Atomically decrements @l by 1 and
-+ * returns true if the result is 0, or false for all other
-+ * cases.
-+ */
-+#define local_dec_and_test(l) (local_sub_return(1, (l)) == 0)
-+
-+/*
-+ * local_dec_if_positive - decrement by 1 if old value positive
-+ * @l: pointer of type local_t
-+ */
-+#define local_dec_if_positive(l)	local_sub_if_positive(1, l)
-+
-+/*
-+ * local_add_negative - add and test if negative
-+ * @l: pointer of type local_t
-+ * @i: integer value to add
-+ *
-+ * Atomically adds @i to @l and returns true
-+ * if the result is negative, or false when
-+ * result is greater than or equal to zero.
-+ */
-+#define local_add_negative(i,l) (local_add_return(i, (l)) < 0)
-+
-+#endif /* !CONFIG_64BIT */
-+
-+
-+/* Use these for per-cpu local_t variables: on some archs they are
-  * much more efficient than these naive implementations.  Note they take
-  * a variable, not an address.
-  */
--#define cpu_local_read(v)	local_read(&__get_cpu_var(v))
--#define cpu_local_set(v, i)	local_set(&__get_cpu_var(v), (i))
+ source "arch/cris/Kconfig.debug"
  
--#define cpu_local_inc(v)	local_inc(&__get_cpu_var(v))
--#define cpu_local_dec(v)	local_dec(&__get_cpu_var(v))
--#define cpu_local_add(i, v)	local_add((i), &__get_cpu_var(v))
--#define cpu_local_sub(i, v)	local_sub((i), &__get_cpu_var(v))
--
--#define __cpu_local_inc(v)	__local_inc(&__get_cpu_var(v))
--#define __cpu_local_dec(v)	__local_dec(&__get_cpu_var(v))
--#define __cpu_local_add(i, v)	__local_add((i), &__get_cpu_var(v))
--#define __cpu_local_sub(i, v)	__local_sub((i), &__get_cpu_var(v))
-+#define __local_inc(l)		((l)->a.counter++)
-+#define __local_dec(l)		((l)->a.counter++)
-+#define __local_add(i,l)	((l)->a.counter+=(i))
-+#define __local_sub(i,l)	((l)->a.counter-=(i))
-+
-+/* Need to disable preemption for the cpu local counters otherwise we could
-+   still access a variable of a previous CPU in a non atomic way. */
-+#define cpu_local_wrap_v(l)	 	\
-+	({ local_t res__;		\
-+	   preempt_disable(); 		\
-+	   res__ = (l);			\
-+	   preempt_enable();		\
-+	   res__; })
-+#define cpu_local_wrap(l)		\
-+	({ preempt_disable();		\
-+	   l;				\
-+	   preempt_enable(); })		\
-+
-+#define cpu_local_read(l)    cpu_local_wrap_v(local_read(&__get_cpu_var(l)))
-+#define cpu_local_set(l, i)  cpu_local_wrap(local_set(&__get_cpu_var(l), (i)))
-+#define cpu_local_inc(l)     cpu_local_wrap(local_inc(&__get_cpu_var(l)))
-+#define cpu_local_dec(l)     cpu_local_wrap(local_dec(&__get_cpu_var(l)))
-+#define cpu_local_add(i, l)  cpu_local_wrap(local_add((i), &__get_cpu_var(l)))
-+#define cpu_local_sub(i, l)  cpu_local_wrap(local_sub((i), &__get_cpu_var(l)))
-+
-+#define __cpu_local_inc(l)	cpu_local_inc(l)
-+#define __cpu_local_dec(l)	cpu_local_dec(l)
-+#define __cpu_local_add(i, l)	cpu_local_add((i), (l))
-+#define __cpu_local_sub(i, l)	cpu_local_sub((i), (l))
+ source "security/Kconfig"
+diff -puN arch/frv/Kconfig~linux-kernel-markers-kconfig-menus arch/frv/Kconfig
+--- a/arch/frv/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/frv/Kconfig
+@@ -379,6 +379,12 @@ source "drivers/Kconfig"
  
--#endif /* _ASM_LOCAL_H */
-+#endif /* _ARCH_MIPS_LOCAL_H */
-diff -puN include/asm-mips/system.h~local_t-mips-extension include/asm-mips/system.h
---- a/include/asm-mips/system.h~local_t-mips-extension
-+++ a/include/asm-mips/system.h
-@@ -262,6 +262,58 @@ static inline unsigned long __cmpxchg_u3
- 	return retval;
- }
+ source "fs/Kconfig"
  
-+static inline unsigned long __cmpxchg_u32_local(volatile int * m,
-+	unsigned long old, unsigned long new)
-+{
-+	__u32 retval;
++menu "Instrumentation Support"
 +
-+	if (cpu_has_llsc && R10000_LLSC_WAR) {
-+		__asm__ __volatile__(
-+		"	.set	push					\n"
-+		"	.set	noat					\n"
-+		"	.set	mips3					\n"
-+		"1:	ll	%0, %2			# __cmpxchg_u32	\n"
-+		"	bne	%0, %z3, 2f				\n"
-+		"	.set	mips0					\n"
-+		"	move	$1, %z4					\n"
-+		"	.set	mips3					\n"
-+		"	sc	$1, %1					\n"
-+		"	beqzl	$1, 1b					\n"
-+		"2:							\n"
-+		"	.set	pop					\n"
-+		: "=&r" (retval), "=R" (*m)
-+		: "R" (*m), "Jr" (old), "Jr" (new)
-+		: "memory");
-+	} else if (cpu_has_llsc) {
-+		__asm__ __volatile__(
-+		"	.set	push					\n"
-+		"	.set	noat					\n"
-+		"	.set	mips3					\n"
-+		"1:	ll	%0, %2			# __cmpxchg_u32	\n"
-+		"	bne	%0, %z3, 2f				\n"
-+		"	.set	mips0					\n"
-+		"	move	$1, %z4					\n"
-+		"	.set	mips3					\n"
-+		"	sc	$1, %1					\n"
-+		"	beqz	$1, 1b					\n"
-+		"2:							\n"
-+		"	.set	pop					\n"
-+		: "=&r" (retval), "=R" (*m)
-+		: "R" (*m), "Jr" (old), "Jr" (new)
-+		: "memory");
-+	} else {
-+		unsigned long flags;
++source "kernel/Kconfig.marker"
 +
-+		local_irq_save(flags);
-+		retval = *m;
-+		if (retval == old)
-+			*m = new;
-+		local_irq_restore(flags);	/* implies memory barrier  */
-+	}
++endmenu
 +
-+	return retval;
-+}
-+
- #ifdef CONFIG_64BIT
- static inline unsigned long __cmpxchg_u64(volatile int * m, unsigned long old,
- 	unsigned long new)
-@@ -315,10 +367,62 @@ static inline unsigned long __cmpxchg_u6
+ source "arch/frv/Kconfig.debug"
  
- 	return retval;
- }
-+
-+static inline unsigned long __cmpxchg_u64_local(volatile int * m,
-+	unsigned long old, unsigned long new)
-+{
-+	__u64 retval;
-+
-+	if (cpu_has_llsc && R10000_LLSC_WAR) {
-+		__asm__ __volatile__(
-+		"	.set	push					\n"
-+		"	.set	noat					\n"
-+		"	.set	mips3					\n"
-+		"1:	lld	%0, %2			# __cmpxchg_u64	\n"
-+		"	bne	%0, %z3, 2f				\n"
-+		"	move	$1, %z4					\n"
-+		"	scd	$1, %1					\n"
-+		"	beqzl	$1, 1b					\n"
-+		"2:							\n"
-+		"	.set	pop					\n"
-+		: "=&r" (retval), "=R" (*m)
-+		: "R" (*m), "Jr" (old), "Jr" (new)
-+		: "memory");
-+	} else if (cpu_has_llsc) {
-+		__asm__ __volatile__(
-+		"	.set	push					\n"
-+		"	.set	noat					\n"
-+		"	.set	mips3					\n"
-+		"1:	lld	%0, %2			# __cmpxchg_u64	\n"
-+		"	bne	%0, %z3, 2f				\n"
-+		"	move	$1, %z4					\n"
-+		"	scd	$1, %1					\n"
-+		"	beqz	$1, 1b					\n"
-+		"2:							\n"
-+		"	.set	pop					\n"
-+		: "=&r" (retval), "=R" (*m)
-+		: "R" (*m), "Jr" (old), "Jr" (new)
-+		: "memory");
-+	} else {
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		retval = *m;
-+		if (retval == old)
-+			*m = new;
-+		local_irq_restore(flags);	/* implies memory barrier  */
-+	}
-+
-+	return retval;
-+}
-+
- #else
- extern unsigned long __cmpxchg_u64_unsupported_on_32bit_kernels(
- 	volatile int * m, unsigned long old, unsigned long new);
- #define __cmpxchg_u64 __cmpxchg_u64_unsupported_on_32bit_kernels
-+extern unsigned long __cmpxchg_u64_local_unsupported_on_32bit_kernels(
-+	volatile int * m, unsigned long old, unsigned long new);
-+#define __cmpxchg_u64_local __cmpxchg_u64_local_unsupported_on_32bit_kernels
- #endif
+ source "security/Kconfig"
+diff -puN arch/h8300/Kconfig~linux-kernel-markers-kconfig-menus arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/h8300/Kconfig
+@@ -212,6 +212,12 @@ endmenu
  
- /* This function doesn't exist, so you'll get a linker error
-@@ -338,7 +442,26 @@ static inline unsigned long __cmpxchg(vo
- 	return old;
- }
+ source "fs/Kconfig"
  
--#define cmpxchg(ptr,old,new) ((__typeof__(*(ptr)))__cmpxchg((ptr), (unsigned long)(old), (unsigned long)(new),sizeof(*(ptr))))
-+static inline unsigned long __cmpxchg_local(volatile void * ptr,
-+	unsigned long old, unsigned long new, int size)
-+{
-+	switch (size) {
-+	case 4:
-+		return __cmpxchg_u32_local(ptr, old, new);
-+	case 8:
-+		return __cmpxchg_u64_local(ptr, old, new);
-+	}
-+	__cmpxchg_called_with_bad_pointer();
-+	return old;
-+}
++menu "Instrumentation Support"
 +
-+#define cmpxchg(ptr,old,new) \
-+	((__typeof__(*(ptr)))__cmpxchg((ptr), \
-+		(unsigned long)(old), (unsigned long)(new),sizeof(*(ptr))))
++source "kernel/Kconfig.marker"
 +
-+#define cmpxchg_local(ptr,old,new) \
-+	((__typeof__(*(ptr)))__cmpxchg_local((ptr), \
-+		(unsigned long)(old), (unsigned long)(new),sizeof(*(ptr))))
++endmenu
++
+ source "arch/h8300/Kconfig.debug"
  
- extern void set_handler (unsigned long offset, void *addr, unsigned long len);
- extern void set_uncached_handler (unsigned long offset, void *addr, unsigned long len);
+ source "security/Kconfig"
+diff -puN arch/i386/Kconfig~linux-kernel-markers-kconfig-menus arch/i386/Kconfig
+--- a/arch/i386/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/i386/Kconfig
+@@ -1258,6 +1258,9 @@ config KPROBES
+ 	  a probepoint and specifies the callback.  Kprobes is useful
+ 	  for kernel debugging, non-intrusive instrumentation and testing.
+ 	  If in doubt, say "N".
++
++source "kernel/Kconfig.marker"
++
+ endmenu
+ 
+ source "arch/i386/Kconfig.debug"
+diff -puN arch/ia64/Kconfig~linux-kernel-markers-kconfig-menus arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/ia64/Kconfig
+@@ -581,6 +581,9 @@ config KPROBES
+ 	  a probepoint and specifies the callback.  Kprobes is useful
+ 	  for kernel debugging, non-intrusive instrumentation and testing.
+ 	  If in doubt, say "N".
++
++source "kernel/Kconfig.marker"
++
+ endmenu
+ 
+ source "arch/ia64/Kconfig.debug"
+diff -puN arch/m32r/Kconfig~linux-kernel-markers-kconfig-menus arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/m32r/Kconfig
+@@ -401,6 +401,12 @@ source "fs/Kconfig"
+ 
+ source "arch/m32r/oprofile/Kconfig"
+ 
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/m32r/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/m68k/Kconfig~linux-kernel-markers-kconfig-menus arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/m68k/Kconfig
+@@ -667,6 +667,12 @@ endmenu
+ 
+ source "fs/Kconfig"
+ 
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/m68k/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/m68knommu/Kconfig~linux-kernel-markers-kconfig-menus arch/m68knommu/Kconfig
+--- a/arch/m68knommu/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/m68knommu/Kconfig
+@@ -676,6 +676,12 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/m68knommu/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/mips/Kconfig~linux-kernel-markers-kconfig-menus arch/mips/Kconfig
+--- a/arch/mips/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/mips/Kconfig
+@@ -2088,6 +2088,12 @@ source "fs/Kconfig"
+ 
+ source "arch/mips/oprofile/Kconfig"
+ 
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/mips/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/parisc/Kconfig~linux-kernel-markers-kconfig-menus arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/parisc/Kconfig
+@@ -260,6 +260,12 @@ source "fs/Kconfig"
+ 
+ source "arch/parisc/oprofile/Kconfig"
+ 
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/parisc/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/powerpc/Kconfig~linux-kernel-markers-kconfig-menus arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/powerpc/Kconfig
+@@ -1237,6 +1237,9 @@ config KPROBES
+ 	  a probepoint and specifies the callback.  Kprobes is useful
+ 	  for kernel debugging, non-intrusive instrumentation and testing.
+ 	  If in doubt, say "N".
++
++source "kernel/Kconfig.marker"
++
+ endmenu
+ 
+ source "arch/powerpc/Kconfig.debug"
+diff -puN arch/ppc/Kconfig~linux-kernel-markers-kconfig-menus arch/ppc/Kconfig
+--- a/arch/ppc/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/ppc/Kconfig
+@@ -1436,8 +1436,14 @@ endmenu
+ 
+ source "lib/Kconfig"
+ 
++menu "Instrumentation Support"
++
+ source "arch/powerpc/oprofile/Kconfig"
+ 
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/ppc/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/s390/Kconfig~linux-kernel-markers-kconfig-menus arch/s390/Kconfig
+--- a/arch/s390/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/s390/Kconfig
+@@ -546,6 +546,8 @@ config KPROBES
+ 	  for kernel debugging, non-intrusive instrumentation and testing.
+ 	  If in doubt, say "N".
+ 
++source "kernel/Kconfig.marker"
++
+ endmenu
+ 
+ source "arch/s390/Kconfig.debug"
+diff -puN arch/sh/Kconfig~linux-kernel-markers-kconfig-menus arch/sh/Kconfig
+--- a/arch/sh/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/sh/Kconfig
+@@ -712,6 +712,12 @@ source "fs/Kconfig"
+ 
+ source "arch/sh/oprofile/Kconfig"
+ 
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/sh/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/sh64/Kconfig~linux-kernel-markers-kconfig-menus arch/sh64/Kconfig
+--- a/arch/sh64/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/sh64/Kconfig
+@@ -281,6 +281,12 @@ source "fs/Kconfig"
+ 
+ source "arch/sh64/oprofile/Kconfig"
+ 
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/sh64/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/sparc/Kconfig~linux-kernel-markers-kconfig-menus arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/sparc/Kconfig
+@@ -306,6 +306,8 @@ menu "Instrumentation Support"
+ 
+ source "arch/sparc/oprofile/Kconfig"
+ 
++source "kernel/Kconfig.marker"
++
+ endmenu
+ 
+ source "arch/sparc/Kconfig.debug"
+diff -puN arch/sparc64/Kconfig~linux-kernel-markers-kconfig-menus arch/sparc64/Kconfig
+--- a/arch/sparc64/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/sparc64/Kconfig
+@@ -439,6 +439,9 @@ config KPROBES
+ 	  a probepoint and specifies the callback.  Kprobes is useful
+ 	  for kernel debugging, non-intrusive instrumentation and testing.
+ 	  If in doubt, say "N".
++
++source "kernel/Kconfig.marker"
++
+ endmenu
+ 
+ source "arch/sparc64/Kconfig.debug"
+diff -puN arch/um/Kconfig~linux-kernel-markers-kconfig-menus arch/um/Kconfig
+--- a/arch/um/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/um/Kconfig
+@@ -347,4 +347,10 @@ config INPUT
+ 	bool
+ 	default n
+ 
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/um/Kconfig.debug"
+diff -puN arch/v850/Kconfig~linux-kernel-markers-kconfig-menus arch/v850/Kconfig
+--- a/arch/v850/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/v850/Kconfig
+@@ -335,6 +335,12 @@ source "sound/Kconfig"
+ 
+ source "drivers/usb/Kconfig"
+ 
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/v850/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/x86_64/Kconfig~linux-kernel-markers-kconfig-menus arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/x86_64/Kconfig
+@@ -753,6 +753,9 @@ config KPROBES
+ 	  a probepoint and specifies the callback.  Kprobes is useful
+ 	  for kernel debugging, non-intrusive instrumentation and testing.
+ 	  If in doubt, say "N".
++
++source "kernel/Kconfig.marker"
++
+ endmenu
+ 
+ source "arch/x86_64/Kconfig.debug"
+diff -puN arch/xtensa/Kconfig~linux-kernel-markers-kconfig-menus arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~linux-kernel-markers-kconfig-menus
++++ a/arch/xtensa/Kconfig
+@@ -251,6 +251,12 @@ config EMBEDDED_RAMDISK_IMAGE
+ 	  provide one yourself.
+ endmenu
+ 
++menu "Instrumentation Support"
++
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ source "arch/xtensa/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN /dev/null kernel/Kconfig.marker
+--- /dev/null
++++ a/kernel/Kconfig.marker
+@@ -0,0 +1,17 @@
++# Code markers configuration
++
++config MARKERS
++	bool "Activate markers"
++	select MODULES
++	default n
++	help
++	  Place an empty function call at each marker site. Can be
++	  dynamically changed for a probe function.
++
++config MARKERS_ENABLE_OPTIMIZATION
++	bool "Enable marker optimization"
++	depends on MARKERS
++	default y
++	help
++	  Disable code replacement jump optimisations. Especially useful if your
++	  code is in a read-only rom/flash.
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
@@ -784,3 +482,8 @@ local_t-powerpc-extension.patch
 local_t-s390-cleanup.patch
 local_t-sparc64-cleanup.patch
 local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-non-optimized-architectures.patch
