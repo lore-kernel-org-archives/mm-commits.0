@@ -1,62 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - avoid-race-when-deregistering-the-ir-control-for-dvb-usb.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:51:11 -0800
-Message-ID: <200702150851.l1F8pBs9025281@shell0.pdx.osdl.net>
+Subject: - pci-add-systems-for-automatic-breadth-first-device-sorting.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:51:20 -0800
+Message-ID: <200702150851.l1F8pK5E025290@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40278 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40306 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965533AbXBOIvV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:51:21 -0500
+	id S965542AbXBOIvd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:51:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rankincj@yahoo.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: andy@greyhouse.net, Matt_Domsch@dell.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Avoid race when deregistering the IR control for dvb-usb
+     PCI: add systems for automatic breadth-first device sorting
 has been removed from the -mm tree.  Its filename was
-     avoid-race-when-deregistering-the-ir-control-for-dvb-usb.patch
+     pci-add-systems-for-automatic-breadth-first-device-sorting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Avoid race when deregistering the IR control for dvb-usb
-From: Chris Rankin <rankincj@yahoo.com>
+Subject: PCI: add systems for automatic breadth-first device sorting
+From: Andy Gospodarek <andy@greyhouse.net>
 
-The work item function is dvb_usb_read_remote_control():
+This is an additional list of systems that exhibit the PCI device ordering
+issue that prompted the following patch:
 
-        INIT_WORK(&d->rc_query_work, dvb_usb_read_remote_control, d);
+commit 6b4b78fed47e7380dfe9280b154e8b9bfcd4c86c
+Author: Matt Domsch <Matt_Domsch@dell.com>
+Date:   Fri Sep 29 15:23:23 2006 -0500
 
-and the last piece of work it does is:
+    PCI: optionally sort device lists breadth-first
 
-        schedule_delayed_work(&d->rc_query_work,msecs_to_jiffies(d->props.rc_interval));
+Adding these systems to the list prevents the need for the additional
+kernel command line argument.
 
-Hence you need to call "cancel_rearming_delayed_work()" and not
-"cancel_delayed_work()", correct?  I certainly haven't seen this oops
-reoccur since I applied this patch.
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andy Gospodarek <andy@greyhouse.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/dvb-usb-remote.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/pci/common.c |   88 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 88 insertions(+)
 
-diff -puN drivers/media/dvb/dvb-usb/dvb-usb-remote.c~avoid-race-when-deregistering-the-ir-control-for-dvb-usb drivers/media/dvb/dvb-usb/dvb-usb-remote.c
---- a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c~avoid-race-when-deregistering-the-ir-control-for-dvb-usb
-+++ a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-@@ -154,7 +154,7 @@ int dvb_usb_remote_init(struct dvb_usb_d
- int dvb_usb_remote_exit(struct dvb_usb_device *d)
- {
- 	if (d->state & DVB_USB_STATE_REMOTE) {
--		cancel_delayed_work(&d->rc_query_work);
-+		cancel_rearming_delayed_work(&d->rc_query_work);
- 		flush_scheduled_work();
- 		input_unregister_device(d->rc_input_dev);
- 	}
+diff -puN arch/i386/pci/common.c~pci-add-systems-for-automatic-breadth-first-device-sorting arch/i386/pci/common.c
+--- a/arch/i386/pci/common.c~pci-add-systems-for-automatic-breadth-first-device-sorting
++++ a/arch/i386/pci/common.c
+@@ -191,6 +191,94 @@ static struct dmi_system_id __devinitdat
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "PowerEdge 2950"),
+ 		},
+ 	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL20p G3",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL20p G3"),
++		},
++	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL20p G4",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL20p G4"),
++		},
++	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL30p G1",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL30p G1"),
++		},
++	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL25p G1",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL25p G1"),
++		},
++	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL35p G1",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL35p G1"),
++		},
++	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL45p G1",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL45p G1"),
++		},
++	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL45p G2",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL45p G1"),
++		},
++	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL460c G1",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL460c G1"),
++		},
++	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL465c G1",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL465c G1"),
++		},
++	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL480c G1",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL480c G1"),
++		},
++	},
++	{
++		.callback = set_bf_sort,
++		.ident = "HP ProLiant BL685c G1",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL685c G1"),
++		},
++	},
+ 	{}
+ };
+ 
 _
 
-Patches currently in -mm which might be from rankincj@yahoo.com are
+Patches currently in -mm which might be from andy@greyhouse.net are
 
-git-dvb.patch
+pci-add-systems-for-automatic-breadth-first-device-sorting-update.patch
