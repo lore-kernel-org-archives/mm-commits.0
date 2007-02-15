@@ -1,60 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - fix-apparent-typo-config_usb_cdcether.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:51:41 -0800
-Message-ID: <200702150851.l1F8pfor025311@shell0.pdx.osdl.net>
+Subject: - use-__u32-rather-than-u32-in-userspace-ioctls-in-usbdevice_fsh.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:51:46 -0800
+Message-ID: <200702150851.l1F8pkLH025317@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40355 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40366 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965559AbXBOIwC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:52:02 -0500
+	id S965562AbXBOIwG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:52:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix apparent typo CONFIG_USB_CDCETHER
+     use __u32 rather than u32 in userspace ioctls in usbdevice_fs.h
 has been removed from the -mm tree.  Its filename was
-     fix-apparent-typo-config_usb_cdcether.patch
+     use-__u32-rather-than-u32-in-userspace-ioctls-in-usbdevice_fsh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix apparent typo CONFIG_USB_CDCETHER
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: use __u32 rather than u32 in userspace ioctls in usbdevice_fs.h
+From: Mike Frysinger <vapier@gentoo.org>
 
-Replace the apparent typo CONFIG_USB_CDCETHER with CONFIG_USB_NET_CDCETHER.
+Use __u32 rather than u32 in userspace ioctl defines.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/otg_whitelist.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/usbdevice_fs.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/core/otg_whitelist.h~fix-apparent-typo-config_usb_cdcether drivers/usb/core/otg_whitelist.h
---- a/drivers/usb/core/otg_whitelist.h~fix-apparent-typo-config_usb_cdcether
-+++ a/drivers/usb/core/otg_whitelist.h
-@@ -31,7 +31,7 @@ static struct usb_device_id whitelist_ta
- { USB_DEVICE_INFO(7, 1, 3) },
- #endif
- 
--#ifdef	CONFIG_USB_CDCETHER
-+#ifdef	CONFIG_USB_NET_CDCETHER
- /* Linux-USB CDC Ethernet gadget */
- { USB_DEVICE(0x0525, 0xa4a1), },
- /* Linux-USB CDC Ethernet + RNDIS gadget */
+diff -puN include/linux/usbdevice_fs.h~use-__u32-rather-than-u32-in-userspace-ioctls-in-usbdevice_fsh include/linux/usbdevice_fs.h
+--- a/include/linux/usbdevice_fs.h~use-__u32-rather-than-u32-in-userspace-ioctls-in-usbdevice_fsh
++++ a/include/linux/usbdevice_fs.h
+@@ -159,9 +159,9 @@ struct usbdevfs_ioctl32 {
+ #define USBDEVFS_SUBMITURB32       _IOR('U', 10, struct usbdevfs_urb32)
+ #define USBDEVFS_DISCARDURB        _IO('U', 11)
+ #define USBDEVFS_REAPURB           _IOW('U', 12, void *)
+-#define USBDEVFS_REAPURB32         _IOW('U', 12, u32)
++#define USBDEVFS_REAPURB32         _IOW('U', 12, __u32)
+ #define USBDEVFS_REAPURBNDELAY     _IOW('U', 13, void *)
+-#define USBDEVFS_REAPURBNDELAY32   _IOW('U', 13, u32)
++#define USBDEVFS_REAPURBNDELAY32   _IOW('U', 13, __u32)
+ #define USBDEVFS_DISCSIGNAL        _IOR('U', 14, struct usbdevfs_disconnectsignal)
+ #define USBDEVFS_CLAIMINTERFACE    _IOR('U', 15, unsigned int)
+ #define USBDEVFS_RELEASEINTERFACE  _IOR('U', 16, unsigned int)
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-git-avr32.patch
-git-dvb.patch
-git-mips.patch
-git-netdev-all.patch
-remove-useless-find_first_bit-macro-from-cardbusc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+use-__u64-rather-than-u64-in-parisc-statfs-structs.patch
