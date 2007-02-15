@@ -1,61 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:58 -0800
-Message-ID: <200702150849.l1F8nwDa025172@shell0.pdx.osdl.net>
+Subject: - sysctl-remove-support-for-directory-strategy-routines.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:50:29 -0800
+Message-ID: <200702150850.l1F8oTGP025233@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40205 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40203 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965505AbXBOIud (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:50:33 -0500
+	id S965503AbXBOIua (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:50:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: register the sysctl number used by the arlan driver
+     sysctl: remove support for directory strategy routines
 has been removed from the -mm tree.  Its filename was
-     sysctl-register-the-sysctl-number-used-by-the-arlan-driver.patch
+     sysctl-remove-support-for-directory-strategy-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: register the sysctl number used by the arlan driver
+Subject: sysctl: remove support for directory strategy routines
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+parse_table has support for calling a strategy routine when descending into a
+directory.  To date no one has used this functionality and the /proc/sys
+interface has no analog to it.
+
+So no one is using this functionality kill it and make the binary sysctl code
+easier to follow.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/arlan-proc.c |    2 +-
- include/linux/sysctl.h            |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ kernel/sysctl.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN drivers/net/wireless/arlan-proc.c~sysctl-register-the-sysctl-number-used-by-the-arlan-driver drivers/net/wireless/arlan-proc.c
---- a/drivers/net/wireless/arlan-proc.c~sysctl-register-the-sysctl-number-used-by-the-arlan-driver
-+++ a/drivers/net/wireless/arlan-proc.c
-@@ -1216,7 +1216,7 @@ static ctl_table arlan_table[MAX_ARLANS 
- static ctl_table arlan_root_table[] =
- {
- 	{
--		.ctl_name	= 254,
-+		.ctl_name	= CTL_ARLAN,
- 		.procname	= "arlan",
- 		.maxlen		= 0,
- 		.mode		= 0555,
-diff -puN include/linux/sysctl.h~sysctl-register-the-sysctl-number-used-by-the-arlan-driver include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-register-the-sysctl-number-used-by-the-arlan-driver
-+++ a/include/linux/sysctl.h
-@@ -70,6 +70,7 @@ enum
- 	CTL_BUS=8,		/* Busses */
- 	CTL_ABI=9,		/* Binary emulation */
- 	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
-+	CTL_ARLAN=254,		/* arlan wireless driver */
- 	CTL_APPLDATA=2120,	/* s390 appldata */
- 	CTL_S390DBF=5677,	/* s390 debug */
- 	CTL_SUNRPC=7249,	/* sunrpc debug */
+diff -puN kernel/sysctl.c~sysctl-remove-support-for-directory-strategy-routines kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-remove-support-for-directory-strategy-routines
++++ a/kernel/sysctl.c
+@@ -1175,14 +1175,6 @@ repeat:
+ 			if (table->child) {
+ 				if (ctl_perm(table, 001))
+ 					return -EPERM;
+-				if (table->strategy) {
+-					error = table->strategy(
+-						table, name, nlen,
+-						oldval, oldlenp,
+-						newval, newlen);
+-					if (error)
+-						return error;
+-				}
+ 				name++;
+ 				nlen--;
+ 				table = table->child;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
