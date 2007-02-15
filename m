@@ -1,65 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-remove-support-for-ctl_any.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:50:27 -0800
-Message-ID: <200702150850.l1F8oRU1025230@shell0.pdx.osdl.net>
+Subject: - sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:50:37 -0800
+Message-ID: <200702150850.l1F8obld025242@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40198 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40210 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965501AbXBOIu2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:50:28 -0500
+	id S965508AbXBOIuj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:50:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: remove support for CTL_ANY
+     sysctl: factor out sysctl_head_next from do_sysctl
 has been removed from the -mm tree.  Its filename was
-     sysctl-remove-support-for-ctl_any.patch
+     sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: remove support for CTL_ANY
+Subject: sysctl: factor out sysctl_head_next from do_sysctl
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-There are currently no users in the kernel for CTL_ANY and it only has effect
-on the binary interface which is practically unused.
+The current logic to walk through the list of sysctl table headers is slightly
+painful and implement in a way it cannot be used by code outside sysctl.c
 
-So this complicates sysctl lookups for no good reason so just remove it.
+I am in the process of implementing a version of the sysctl proc support that
+instead of using the proc generic non-caching monster, just uses the existing
+sysctl data structure as backing store for building the dcache entries and for
+doing directory reads.  To use the existing data structures however I need a
+way to get at them.
 
+[akpm@osdl.org: warning fix]
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    1 -
- kernel/sysctl.c        |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/sysctl.h |    4 ++
+ kernel/sysctl.c        |   60 +++++++++++++++++++++++++++------------
+ 2 files changed, 47 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/sysctl.h~sysctl-remove-support-for-ctl_any include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-remove-support-for-ctl_any
+diff -puN include/linux/sysctl.h~sysctl-factor-out-sysctl_head_next-from-do_sysctl include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-factor-out-sysctl_head_next-from-do_sysctl
 +++ a/include/linux/sysctl.h
-@@ -53,7 +53,6 @@ struct __sysctl_args {
- 
- /* For internal pattern-matching use only: */
+@@ -924,6 +924,10 @@ enum
  #ifdef __KERNEL__
--#define CTL_ANY		-1	/* Matches any name */
- #define CTL_NONE	0
- #define CTL_UNNUMBERED	CTL_NONE	/* sysctl without a binary number */
- #endif
-diff -puN kernel/sysctl.c~sysctl-remove-support-for-ctl_any kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-remove-support-for-ctl_any
+ #include <linux/list.h>
+ 
++/* For the /proc/sys support */
++extern struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev);
++extern void sysctl_head_finish(struct ctl_table_header *prev);
++
+ extern void sysctl_init(void);
+ 
+ typedef struct ctl_table ctl_table;
+diff -puN kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl
 +++ a/kernel/sysctl.c
-@@ -1170,7 +1170,7 @@ repeat:
- 	for ( ; table->ctl_name || table->procname; table++) {
- 		if (!table->ctl_name)
- 			continue;
--		if (n == table->ctl_name || table->ctl_name == CTL_ANY) {
-+		if (n == table->ctl_name) {
- 			int error;
- 			if (table->child) {
- 				if (ctl_perm(table, 001))
+@@ -1070,6 +1070,42 @@ static void start_unregistering(struct c
+ 	list_del_init(&p->ctl_entry);
+ }
+ 
++void sysctl_head_finish(struct ctl_table_header *head)
++{
++	if (!head)
++		return;
++	spin_lock(&sysctl_lock);
++	unuse_table(head);
++	spin_unlock(&sysctl_lock);
++}
++
++struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev)
++{
++	struct ctl_table_header *head;
++	struct list_head *tmp;
++	spin_lock(&sysctl_lock);
++	if (prev) {
++		tmp = &prev->ctl_entry;
++		unuse_table(prev);
++		goto next;
++	}
++	tmp = &root_table_header.ctl_entry;
++	for (;;) {
++		head = list_entry(tmp, struct ctl_table_header, ctl_entry);
++
++		if (!use_table(head))
++			goto next;
++		spin_unlock(&sysctl_lock);
++		return head;
++	next:
++		tmp = tmp->next;
++		if (tmp == &root_table_header.ctl_entry)
++			break;
++	}
++	spin_unlock(&sysctl_lock);
++	return NULL;
++}
++
+ void __init sysctl_init(void)
+ {
+ #ifdef CONFIG_PROC_SYSCTL
+@@ -1081,7 +1117,7 @@ void __init sysctl_init(void)
+ int do_sysctl(int __user *name, int nlen, void __user *oldval, size_t __user *oldlenp,
+ 	       void __user *newval, size_t newlen)
+ {
+-	struct list_head *tmp;
++	struct ctl_table_header *head;
+ 	int error = -ENOTDIR;
+ 
+ 	if (nlen <= 0 || nlen >= CTL_MAXNAME)
+@@ -1091,26 +1127,16 @@ int do_sysctl(int __user *name, int nlen
+ 		if (!oldlenp || get_user(old_len, oldlenp))
+ 			return -EFAULT;
+ 	}
+-	spin_lock(&sysctl_lock);
+-	tmp = &root_table_header.ctl_entry;
+-	do {
+-		struct ctl_table_header *head =
+-			list_entry(tmp, struct ctl_table_header, ctl_entry);
+-
+-		if (!use_table(head))
+-			continue;
+-
+-		spin_unlock(&sysctl_lock);
+ 
++	for (head = sysctl_head_next(NULL); head;
++			head = sysctl_head_next(head)) {
+ 		error = parse_table(name, nlen, oldval, oldlenp, 
+ 					newval, newlen, head->ctl_table);
+-
+-		spin_lock(&sysctl_lock);
+-		unuse_table(head);
+-		if (error != -ENOTDIR)
++		if (error != -ENOTDIR) {
++			sysctl_head_finish(head);
+ 			break;
+-	} while ((tmp = tmp->next) != &root_table_header.ctl_entry);
+-	spin_unlock(&sysctl_lock);
++		}
++	}
+ 	return error;
+ }
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
