@@ -1,52 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:52 -0800
-Message-ID: <200702150848.l1F8mqnd025084@shell0.pdx.osdl.net>
+Subject: - sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:55 -0800
+Message-ID: <200702150848.l1F8mtkO025087@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40044 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40048 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965405AbXBOIs4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:48:56 -0500
+	id S965409AbXBOIs6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:48:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, benh@kernel.crashing.org, minyard@acm.org, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, James.Bottomley@SteelEye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: ipmi: remove unnecessary insert_at_head flag
+     sysctl: cdrom: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: ipmi: remove unnecessary insert_at_head flag
+Subject: sysctl: cdrom: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-With unique sysctl binary numbers setting insert_at_head is pointless.
+With unique binary sysctl numbers setting insert_at_head to override other
+sysctl entries is pointless.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Corey Minyard <minyard@acm.org>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: James Bottomley <James.Bottomley@SteelEye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_poweroff.c |    2 +-
+ drivers/cdrom/cdrom.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_poweroff.c~sysctl-ipmi-remove-unnecessary-insert_at_head-flag drivers/char/ipmi/ipmi_poweroff.c
---- a/drivers/char/ipmi/ipmi_poweroff.c~sysctl-ipmi-remove-unnecessary-insert_at_head-flag
-+++ a/drivers/char/ipmi/ipmi_poweroff.c
-@@ -686,7 +686,7 @@ static int ipmi_poweroff_init (void)
- 		printk(KERN_INFO PFX "Power cycle is enabled.\n");
+diff -puN drivers/cdrom/cdrom.c~sysctl-cdrom-remove-unnecessary-insert_at_head-flag drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~sysctl-cdrom-remove-unnecessary-insert_at_head-flag
++++ a/drivers/cdrom/cdrom.c
+@@ -3553,7 +3553,7 @@ static void cdrom_sysctl_register(void)
+ 	if (initialized == 1)
+ 		return;
  
- #ifdef CONFIG_PROC_FS
--	ipmi_table_header = register_sysctl_table(ipmi_root_table, 1);
-+	ipmi_table_header = register_sysctl_table(ipmi_root_table, 0);
- 	if (!ipmi_table_header) {
- 		printk(KERN_ERR PFX "Unable to register powercycle sysctl\n");
- 		rv = -ENOMEM;
+-	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 1);
++	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 0);
+ 	if (cdrom_root_table->ctl_name && cdrom_root_table->child->de)
+ 		cdrom_root_table->child->de->owner = THIS_MODULE;
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
