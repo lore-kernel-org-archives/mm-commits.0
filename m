@@ -1,31 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:33:13 -0800
-Message-ID: <200702150833.l1F8XDEF024609@shell0.pdx.osdl.net>
+Subject: - r-o-bind-mounts-make-access-use-mnt-check.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:33:08 -0800
+Message-ID: <200702150833.l1F8X85E024603@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39413 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39411 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965268AbXBOIdW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:33:22 -0500
+	id S965267AbXBOIdV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:33:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, miklos@szeredi.hu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count during entire ncp_ioctl()
+     r/o bind mounts: make access() use mnt check
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+     r-o-bind-mounts-make-access-use-mnt-check.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count during entire ncp_ioctl()
+Subject: r/o bind mounts: make access() use mnt check
 From: Dave Hansen <hansendc@us.ibm.com>
 
-Some ioctls need write access, but others don't.  Make a helper function to
-decide when write access is needed, and take it.
+It is OK to let access() go without using a mnt_want/drop_write() pair because
+it doesn't actually do writes to the filesystem, and it is inherently racy
+anyway.  This is a rare case when it is OK to use __mnt_is_readonly()
+directly.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -34,92 +36,27 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |   55 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 54 insertions(+), 1 deletion(-)
+ fs/open.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl
-+++ a/fs/ncpfs/ioctl.c
-@@ -14,6 +14,7 @@
- #include <linux/ioctl.h>
- #include <linux/time.h>
- #include <linux/mm.h>
-+#include <linux/mount.h>
- #include <linux/highuid.h>
- #include <linux/smp_lock.h>
- #include <linux/vmalloc.h>
-@@ -260,7 +261,7 @@ ncp_get_charsets(struct ncp_server* serv
- }
- #endif /* CONFIG_NCPFS_NLS */
+diff -puN fs/open.c~r-o-bind-mounts-make-access-use-mnt-check fs/open.c
+--- a/fs/open.c~r-o-bind-mounts-make-access-use-mnt-check
++++ a/fs/open.c
+@@ -395,7 +395,7 @@ asmlinkage long sys_faccessat(int dfd, c
+ 	   special_file(nd.dentry->d_inode->i_mode))
+ 		goto out_path_release;
  
--int ncp_ioctl(struct inode *inode, struct file *filp,
-+static int __ncp_ioctl(struct inode *inode, struct file *filp,
- 	      unsigned int cmd, unsigned long arg)
- {
- 	struct ncp_server *server = NCP_SERVER(inode);
-@@ -821,6 +822,58 @@ outrel:			
- 	return -EINVAL;
- }
+-	if(IS_RDONLY(nd.dentry->d_inode))
++	if(__mnt_is_readonly(nd.mnt))
+ 		res = -EROFS;
  
-+static int ncp_ioctl_need_write(unsigned int cmd)
-+{
-+	switch (cmd) {
-+	case NCP_IOC_GET_FS_INFO:
-+	case NCP_IOC_GET_FS_INFO_V2:
-+	case NCP_IOC_NCPREQUEST:
-+	case NCP_IOC_SETDENTRYTTL:
-+	case NCP_IOC_SIGN_INIT:
-+	case NCP_IOC_LOCKUNLOCK:
-+	case NCP_IOC_SET_SIGN_WANTED:
-+		return 1;
-+	case NCP_IOC_GETOBJECTNAME:
-+	case NCP_IOC_SETOBJECTNAME:
-+	case NCP_IOC_GETPRIVATEDATA:
-+	case NCP_IOC_SETPRIVATEDATA:
-+	case NCP_IOC_SETCHARSETS:
-+	case NCP_IOC_GETCHARSETS:
-+	case NCP_IOC_CONN_LOGGED_IN:
-+	case NCP_IOC_GETDENTRYTTL:
-+	case NCP_IOC_GETMOUNTUID2:
-+	case NCP_IOC_SIGN_WANTED:
-+	case NCP_IOC_GETROOT:
-+	case NCP_IOC_SETROOT:
-+		return 0;
-+	default:
-+		/* unkown IOCTL command, assume write */
-+		WARN_ON(1);
-+	}
-+	return 1;
-+}
-+
-+int ncp_ioctl(struct inode *inode, struct file *filp,
-+	      unsigned int cmd, unsigned long arg)
-+{
-+	int ret;
-+
-+	if (ncp_ioctl_need_write(cmd)) {
-+		/*
-+		 * inside the ioctl(), any failures which
-+		 * are because of file_permission() are
-+		 * -EACCESS, so it seems consistent to keep
-+		 *  that here.
-+		 */
-+		if (mnt_want_write(filp->f_vfsmnt))
-+			return -EACCES;
-+	}
-+	ret = __ncp_ioctl(inode, filp, cmd, arg);
-+	if (ncp_ioctl_need_write(cmd))
-+		mnt_drop_write(filp->f_vfsmnt);
-+	return ret;
-+}
-+
- #ifdef CONFIG_COMPAT
- long ncp_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
+ out_path_release:
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
 
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
