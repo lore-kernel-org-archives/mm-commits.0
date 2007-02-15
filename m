@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:06 -0800
-Message-ID: <200702150849.l1F8n6c0025099@shell0.pdx.osdl.net>
+Subject: - sysctl-c99-convert-arch-frv-kernel-sysctlc.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:12 -0800
+Message-ID: <200702150849.l1F8nCpX025108@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40081 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40093 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965417AbXBOItP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:15 -0500
+	id S965446AbXBOItU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: move CTL_FRV into sysctl.h where it belongs
+     sysctl: C99 convert arch/frv/kernel/sysctl.c
 has been removed from the -mm tree.  Its filename was
-     sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
+     sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: move CTL_FRV into sysctl.h where it belongs
+Subject: sysctl: C99 convert arch/frv/kernel/sysctl.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
@@ -29,32 +29,57 @@ Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/sysctl.c |    1 -
- include/linux/sysctl.h   |    1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ arch/frv/kernel/sysctl.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN arch/frv/kernel/sysctl.c~sysctl-move-ctl_frv-into-sysctlh-where-it-belongs arch/frv/kernel/sysctl.c
---- a/arch/frv/kernel/sysctl.c~sysctl-move-ctl_frv-into-sysctlh-where-it-belongs
+diff -puN arch/frv/kernel/sysctl.c~sysctl-c99-convert-arch-frv-kernel-sysctlc arch/frv/kernel/sysctl.c
+--- a/arch/frv/kernel/sysctl.c~sysctl-c99-convert-arch-frv-kernel-sysctlc
 +++ a/arch/frv/kernel/sysctl.c
-@@ -186,7 +186,6 @@ static struct ctl_table frv_table[] =
-  * Use a temporary sysctl number. Horrid, but will be cleaned up in 2.6
-  * when all the PM interfaces exist nicely.
+@@ -175,11 +175,25 @@ static int procctl_frv_pin_cxnr(ctl_tabl
   */
--#define CTL_FRV 9898
- static struct ctl_table frv_dir_table[] =
+ static struct ctl_table frv_table[] =
  {
- 	{CTL_FRV, "frv", NULL, 0, 0555, frv_table},
-diff -puN include/linux/sysctl.h~sysctl-move-ctl_frv-into-sysctlh-where-it-belongs include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-move-ctl_frv-into-sysctlh-where-it-belongs
-+++ a/include/linux/sysctl.h
-@@ -72,6 +72,7 @@ enum
- 	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
- 	CTL_SUNRPC=7249,	/* sunrpc debug */
- 	CTL_PM=9899,		/* frv power management */
-+	CTL_FRV=9898,		/* frv specific sysctls */
+-	{ 1, "cache-mode",	NULL, 0, 0644, NULL, &procctl_frv_cachemode },
++	{
++		.ctl_name 	= 1,
++		.procname 	= "cache-mode",
++		.data		= NULL,
++		.maxlen		= 0,
++		.mode		= 0644,
++		.proc_handler	= &procctl_frv_cachemode,
++	},
+ #ifdef CONFIG_MMU
+-	{ 2, "pin-cxnr",	NULL, 0, 0644, NULL, &procctl_frv_pin_cxnr },
++	{
++		.ctl_name	= 2,
++		.procname	= "pin-cxnr",
++		.data		= NULL,
++		.maxlen		= 0,
++		.mode		= 0644,
++		.proc_handler	= &procctl_frv_pin_cxnr
++	},
+ #endif
+-	{ 0 }
++	{}
  };
  
- /* CTL_BUS names: */
+ /*
+@@ -188,8 +202,13 @@ static struct ctl_table frv_table[] =
+  */
+ static struct ctl_table frv_dir_table[] =
+ {
+-	{CTL_FRV, "frv", NULL, 0, 0555, frv_table},
+-	{0}
++	{
++		.ctl_name	= CTL_FRV,
++		.procname	= "frv",
++		.mode 		= 0555,
++		.child		= frv_table
++	},
++	{}
+ };
+ 
+ /*
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
