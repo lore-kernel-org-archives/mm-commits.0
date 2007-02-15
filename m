@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + before-x86_64-mm-mmconfig-share.patch added to -mm tree
-Date: Thu, 15 Feb 2007 00:18:51 -0800
-Message-ID: <200702150818.l1F8Ip18024301@shell0.pdx.osdl.net>
+Subject: + after-before-x86_64-mm-mmconfig-share.patch added to -mm tree
+Date: Thu, 15 Feb 2007 00:19:07 -0800
+Message-ID: <200702150819.l1F8J77N024310@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38979 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38984 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965220AbXBOISw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:18:52 -0500
+	id S965232AbXBOITJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:19:09 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1F8IphB003132
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1F8J7hB003136
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2007 00:18:51 -0800
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2007 00:19:08 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     before-x86_64-mm-mmconfig-share
+     revert-before-x86_64-mm-mmconfig-share
 has been added to the -mm tree.  Its filename is
-     before-x86_64-mm-mmconfig-share.patch
+     after-before-x86_64-mm-mmconfig-share.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,29 +29,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: before-x86_64-mm-mmconfig-share
+Subject: revert-before-x86_64-mm-mmconfig-share
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/pci/mmconfig.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/i386/pci/mmconfig-shared.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/pci/mmconfig.c~before-x86_64-mm-mmconfig-share arch/x86_64/pci/mmconfig.c
---- a/arch/x86_64/pci/mmconfig.c~before-x86_64-mm-mmconfig-share
-+++ a/arch/x86_64/pci/mmconfig.c
-@@ -170,9 +170,7 @@ void __init pci_mmcfg_init(int type)
- 	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
- 		return;
+diff -puN arch/x86_64/pci/mmconfig.c~after-before-x86_64-mm-mmconfig-share arch/x86_64/pci/mmconfig.c
+diff -puN arch/i386/pci/mmconfig-shared.c~after-before-x86_64-mm-mmconfig-share arch/i386/pci/mmconfig-shared.c
+--- a/arch/i386/pci/mmconfig-shared.c~after-before-x86_64-mm-mmconfig-share
++++ a/arch/i386/pci/mmconfig-shared.c
+@@ -245,7 +245,8 @@ void __init pci_mmcfg_init(int type)
+ 		known_bridge = 1;
  
--	if (acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg))
--		return;
--
-+	acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
- 	if ((pci_mmcfg_config_num == 0) ||
- 	    (pci_mmcfg_config == NULL) ||
- 	    (pci_mmcfg_config[0].address == 0))
+ 	if (!known_bridge) {
+-		acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
++		if (acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg))
++			return;
+ 		pci_mmcfg_reject_broken(type);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +80,7 @@ git-sh.patch
 revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
 git-unionfs-fixup.patch
 before-x86_64-mm-mmconfig-share.patch
-restore-before-x86_64-mm-mmconfig-share.patch
+after-before-x86_64-mm-mmconfig-share.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
 fix-rmmod-read-write-races-in-proc-entries-fix.patch
 kprobes-list-all-active-probes-in-the-system.patch
