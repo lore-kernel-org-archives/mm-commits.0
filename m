@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:35 -0800
-Message-ID: <200702150849.l1F8nZ6e025140@shell0.pdx.osdl.net>
+Subject: - sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:38 -0800
+Message-ID: <200702150849.l1F8ncSX025143@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40119 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40124 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965461AbXBOItj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:39 -0500
+	id S965464AbXBOItl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: C99 convert ctl_tables in arch/powerpc/kernel/idle.c
+     sysctl: C99 convert ctl_tables entries in arch/ppc/kernel/ppc_htab.c
 has been removed from the -mm tree.  Its filename was
-     sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
+     sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert ctl_tables in arch/powerpc/kernel/idle.c
+Subject: sysctl: C99 convert ctl_tables entries in arch/ppc/kernel/ppc_htab.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This was partially done already and there was no ABI breakage what a relief.
+And make the mode of the kernel directory 0555 no one is allowed to write to
+sysctl directories.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -32,27 +33,27 @@ Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/idle.c |   11 ++++++++---
+ arch/ppc/kernel/ppc_htab.c |   11 ++++++++---
  1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/kernel/idle.c~sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec arch/powerpc/kernel/idle.c
---- a/arch/powerpc/kernel/idle.c~sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec
-+++ a/arch/powerpc/kernel/idle.c
-@@ -110,11 +110,16 @@ static ctl_table powersave_nap_ctl_table
+diff -puN arch/ppc/kernel/ppc_htab.c~sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc arch/ppc/kernel/ppc_htab.c
+--- a/arch/ppc/kernel/ppc_htab.c~sysctl-c99-convert-ctl_tables-entries-in-arch-ppc-kernel-ppc_htabc
++++ a/arch/ppc/kernel/ppc_htab.c
+@@ -442,11 +442,16 @@ static ctl_table htab_ctl_table[]={
  		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
+ 		.proc_handler	= &proc_dol2crvec,
  	},
 -	{ 0, },
 +	{}
  };
- static ctl_table powersave_nap_sysctl_root[] = {
--	{ 1, "kernel", NULL, 0, 0755, powersave_nap_ctl_table, },
+ static ctl_table htab_sysctl_root[] = {
+-	{ 1, "kernel", NULL, 0, 0755, htab_ctl_table, },
 - 	{ 0,},
 +	{
 +		.ctl_name	= CTL_KERN,
 +		.procname	= "kernel",
-+		.mode		= 0755,
-+		.child		= powersave_nap_ctl_table,
++		.mode		= 0555,
++		.child		= htab_ctl_table,
 +	},
 +	{}
  };
