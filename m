@@ -1,99 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - usb-fix-concurrent-buffer-access-in-the-hub-driver.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:51:52 -0800
-Message-ID: <200702150851.l1F8pqsk025323@shell0.pdx.osdl.net>
+Subject: - broken-config_compat_vdso-on-i386.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:52:05 -0800
+Message-ID: <200702150852.l1F8q5lV025345@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40427 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40443 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965256AbXBOIxO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:53:14 -0500
+	id S965602AbXBOIxm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:53:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, ak@muc.de, mingo@elte.hu, stable@kernel.org, yifeng@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB: fix concurrent buffer access in the hub driver
+     broken CONFIG_COMPAT_VDSO on i386
 has been removed from the -mm tree.  Its filename was
-     usb-fix-concurrent-buffer-access-in-the-hub-driver.patch
+     broken-config_compat_vdso-on-i386.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB: fix concurrent buffer access in the hub driver
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: broken CONFIG_COMPAT_VDSO on i386
+From: "Jan Beulich" <jbeulich@novell.com>
 
-This patch (as849) fixes a bug in the hub driver.  A single pre-allocated
-buffer is used for all port status reads, but nothing guarantees exclusive
-use of the buffer.  A mutex is added to provide this guarantee.
+After updating several machines to 2.6.20, I can't boot anymore the single
+one of them that supports the NX bit and is configured as a 32-bit system.
 
-It fixes the "usb somehow broken (CONFIG_USB_SUSPEND)" bug reported by
-Prakash Punnoor.
+My understanding is that the VDSO changes in 2.6.20-rc7 were not fully
+cooked, in that with that config option enabled VDSO_SYM(x) now equals x,
+meaning that an address in the fixmap area is now being passed to apps via
+AT_SYSINFO.  However, the page is mapped with PAGE_READONLY rather than
+PAGE_READONLY_EXEC.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
+I'm not certain whether having app code go through the fixmap area is
+intended, but in case it is here is the simple patch that makes things work
+again.
+
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Yi Feng" <yifeng@google.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hub.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+ arch/i386/kernel/sysenter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/core/hub.c~usb-fix-concurrent-buffer-access-in-the-hub-driver drivers/usb/core/hub.c
---- a/drivers/usb/core/hub.c~usb-fix-concurrent-buffer-access-in-the-hub-driver
-+++ a/drivers/usb/core/hub.c
-@@ -44,6 +44,7 @@ struct usb_hub {
- 		struct usb_hub_status	hub;
- 		struct usb_port_status	port;
- 	}			*status;	/* buffer for status reports */
-+	struct mutex		status_mutex;	/* for the status buffer */
+diff -puN arch/i386/kernel/sysenter.c~broken-config_compat_vdso-on-i386 arch/i386/kernel/sysenter.c
+--- a/arch/i386/kernel/sysenter.c~broken-config_compat_vdso-on-i386
++++ a/arch/i386/kernel/sysenter.c
+@@ -78,7 +78,7 @@ int __init sysenter_setup(void)
+ 	syscall_pages[0] = virt_to_page(syscall_page);
  
- 	int			error;		/* last reported error */
- 	int			nerrors;	/* track consecutive errors */
-@@ -535,6 +536,7 @@ static int hub_hub_status(struct usb_hub
- {
- 	int ret;
- 
-+	mutex_lock(&hub->status_mutex);
- 	ret = get_hub_status(hub->hdev, &hub->status->hub);
- 	if (ret < 0)
- 		dev_err (hub->intfdev,
-@@ -544,6 +546,7 @@ static int hub_hub_status(struct usb_hub
- 		*change = le16_to_cpu(hub->status->hub.wHubChange); 
- 		ret = 0;
- 	}
-+	mutex_unlock(&hub->status_mutex);
- 	return ret;
- }
- 
-@@ -617,6 +620,7 @@ static int hub_configure(struct usb_hub 
- 		ret = -ENOMEM;
- 		goto fail;
- 	}
-+	mutex_init(&hub->status_mutex);
- 
- 	hub->descriptor = kmalloc(sizeof(*hub->descriptor), GFP_KERNEL);
- 	if (!hub->descriptor) {
-@@ -1397,6 +1401,7 @@ static int hub_port_status(struct usb_hu
- {
- 	int ret;
- 
-+	mutex_lock(&hub->status_mutex);
- 	ret = get_port_status(hub->hdev, port1, &hub->status->port);
- 	if (ret < 4) {
- 		dev_err (hub->intfdev,
-@@ -1408,6 +1413,7 @@ static int hub_port_status(struct usb_hu
- 		*change = le16_to_cpu(hub->status->port.wPortChange); 
- 		ret = 0;
- 	}
-+	mutex_unlock(&hub->status_mutex);
- 	return ret;
- }
+ #ifdef CONFIG_COMPAT_VDSO
+-	__set_fixmap(FIX_VDSO, __pa(syscall_page), PAGE_READONLY);
++	__set_fixmap(FIX_VDSO, __pa(syscall_page), PAGE_READONLY_EXEC);
+ 	printk("Compat vDSO mapped to %08lx.\n", __fix_to_virt(FIX_VDSO));
+ #endif
  
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
-scsi-handle-bad-inquiry-responses.patch
+i386-adjustments-to-page-table-dump-during-oops-v3.patch
+x86-mtrr-range-check-correction.patch
+x86-consolidate-smp_send_stop.patch
+small-irq-management-simplification.patch
