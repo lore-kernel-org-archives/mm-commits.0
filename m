@@ -1,124 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-megaraid_sas-throttle-io-if-fw-is-busy.patch removed from -mm tree
-Date: Wed, 14 Feb 2007 20:10:31 -0800
-Message-ID: <200702150410.l1F4AVjp019371@shell0.pdx.osdl.net>
+Subject: - scsi-megaraid_sas-update-version-and-author-info.patch removed from -mm tree
+Date: Wed, 14 Feb 2007 20:10:34 -0800
+Message-ID: <200702150410.l1F4AYMp019374@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33394 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33399 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932616AbXBOEKe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 23:10:34 -0500
+	id S932629AbXBOEKi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 23:10:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sumantp@lsil.com, sumant.patro@lsi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: megaraid_sas - throttle io if FW is busy
+     scsi: megaraid_sas - update version and author info
 has been removed from the -mm tree.  Its filename was
-     scsi-megaraid_sas-throttle-io-if-fw-is-busy.patch
+     scsi-megaraid_sas-update-version-and-author-info.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: scsi: megaraid_sas - throttle io if FW is busy
+Subject: scsi: megaraid_sas - update version and author info
 From: Sumant Patro <sumantp@lsil.com>
 
-Checks added in megasas_queue_command to know if FW is able to process
-commands within timeout period.  If number of retries is 2 or greater, the
-driver stops sending cmd to FW.  IO is resumed if pending cmd count reduces to
-16 or 5 seconds has elapsed from the time cmds were last sent to FW.
+Update version and author information.
 
 Signed-off-by: Sumant Patro <sumant.patro@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_sas.c |   27 +++++++++++++++++++++++++
- drivers/scsi/megaraid/megaraid_sas.h |    3 ++
- 2 files changed, 30 insertions(+)
+ drivers/scsi/megaraid/megaraid_sas.c |    8 +++++---
+ drivers/scsi/megaraid/megaraid_sas.h |    6 +++---
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-throttle-io-if-fw-is-busy drivers/scsi/megaraid/megaraid_sas.c
---- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-throttle-io-if-fw-is-busy
+diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-update-version-and-author-info drivers/scsi/megaraid/megaraid_sas.c
+--- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-update-version-and-author-info
 +++ a/drivers/scsi/megaraid/megaraid_sas.c
-@@ -839,6 +839,7 @@ megasas_queue_command(struct scsi_cmnd *
- 	u32 frame_count;
- 	struct megasas_cmd *cmd;
- 	struct megasas_instance *instance;
-+	unsigned long sec;
- 
- 	instance = (struct megasas_instance *)
- 	    scmd->device->host->hostdata;
-@@ -856,6 +857,23 @@ megasas_queue_command(struct scsi_cmnd *
- 		goto out_done;
- 	}
- 
-+	/* Check if we can process cmds */
-+	if(instance->is_busy){
-+		sec = (jiffies - instance->last_time) / HZ;
-+		if(sec<5)
-+			return SCSI_MLQUEUE_HOST_BUSY;
-+		else{
-+			instance->is_busy=0;
-+			instance->last_time=0;
-+		}
-+	}
-+
-+	if(scmd->retries>1){
-+		/* FW is busy */
-+		instance->is_busy=1;
-+		instance->last_time=jiffies;
-+	}
-+
- 	cmd = megasas_get_cmd(instance);
- 	if (!cmd)
- 		return SCSI_MLQUEUE_HOST_BUSY;
-@@ -1200,6 +1218,7 @@ megasas_complete_cmd(struct megasas_inst
- {
- 	int exception = 0;
- 	struct megasas_header *hdr = &cmd->frame->hdr;
-+	int outstanding;
- 
- 	if (cmd->scmd) {
- 		cmd->scmd->SCp.ptr = (char *)0;
-@@ -1313,6 +1332,12 @@ megasas_complete_cmd(struct megasas_inst
- 		       hdr->cmd);
- 		break;
- 	}
-+
-+	if(instance->is_busy){
-+		outstanding = atomic_read(&instance->fw_outstanding);
-+		if(outstanding<17)
-+			instance->is_busy=0;
-+	}
- }
- 
- /**
-@@ -2384,6 +2409,8 @@ megasas_probe_one(struct pci_dev *pdev, 
- 	instance->init_id = MEGASAS_DEFAULT_INIT_ID;
- 
- 	megasas_dbg_lvl = 0;
-+	instance->is_busy = 0;
-+	instance->last_time = 0;
- 
- 	/*
- 	 * Initialize MFI Firmware
-diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-throttle-io-if-fw-is-busy drivers/scsi/megaraid/megaraid_sas.h
---- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-throttle-io-if-fw-is-busy
+@@ -10,11 +10,13 @@
+  *	   2 of the License, or (at your option) any later version.
+  *
+  * FILE		: megaraid_sas.c
+- * Version	: v00.00.03.05
++ * Version	: v00.00.03.09-rc1
+  *
+  * Authors:
+- * 	Sreenivas Bagalkote	<Sreenivas.Bagalkote@lsi.com>
+- * 	Sumant Patro		<Sumant.Patro@lsi.com>
++ *	(email-id : megaraidlinux@lsi.com)
++ * 	Sreenivas Bagalkote
++ * 	Sumant Patro
++ *	Bo Yang
+  *
+  * List of supported controllers
+  *
+diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-update-version-and-author-info drivers/scsi/megaraid/megaraid_sas.h
+--- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-update-version-and-author-info
 +++ a/drivers/scsi/megaraid/megaraid_sas.h
-@@ -1102,6 +1102,9 @@ struct megasas_instance {
- 	atomic_t fw_outstanding;
- 	u32 hw_crit_error;
+@@ -18,9 +18,9 @@
+ /*
+  * MegaRAID SAS Driver meta data
+  */
+-#define MEGASAS_VERSION				"00.00.03.05"
+-#define MEGASAS_RELDATE				"Oct 02, 2006"
+-#define MEGASAS_EXT_VERSION			"Mon Oct 02 11:21:32 PDT 2006"
++#define MEGASAS_VERSION				"00.00.03.09-rc1"
++#define MEGASAS_RELDATE				"Feb 06, 2007"
++#define MEGASAS_EXT_VERSION			"Tue Feb 06 12:35:46 PST 2007"
  
-+	u8 is_busy;
-+	unsigned long last_time;
-+
- 	struct megasas_instance_template *instancet;
- 	struct tasklet_struct isr_tasklet;
- };
+ /*
+  * Device IDs
 _
 
 Patches currently in -mm which might be from sumantp@lsil.com are
 
 origin.patch
-scsi-megaraid_sas-throttle-io-if-fw-is-busy.patch
 scsi-megaraid_sas-update-version-and-author-info.patch
