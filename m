@@ -1,49 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:44 -0800
-Message-ID: <200702150848.l1F8milM025075@shell0.pdx.osdl.net>
+Subject: - sysctl-md-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:46 -0800
+Message-ID: <200702150848.l1F8mkIo025078@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40028 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40032 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965397AbXBOIss (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:48:48 -0500
+	id S965400AbXBOIsv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:48:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, neilb@cse.unsw.edu.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: scsi: remove unnecessary insert_at_head flag
+     sysctl: md: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-md-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: scsi: remove unnecessary insert_at_head flag
+Subject: sysctl: md: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+The sysctls used by the md driver are have unique binary numbers so remove the
+insert_at_head flag as it serves no useful purpose.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Neil Brown <neilb@cse.unsw.edu.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_sysctl.c |    2 +-
+ drivers/md/md.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/scsi_sysctl.c~sysctl-scsi-remove-unnecessary-insert_at_head-flag drivers/scsi/scsi_sysctl.c
---- a/drivers/scsi/scsi_sysctl.c~sysctl-scsi-remove-unnecessary-insert_at_head-flag
-+++ a/drivers/scsi/scsi_sysctl.c
-@@ -41,7 +41,7 @@ static struct ctl_table_header *scsi_tab
+diff -puN drivers/md/md.c~sysctl-md-remove-unnecessary-insert_at_head-flag drivers/md/md.c
+--- a/drivers/md/md.c~sysctl-md-remove-unnecessary-insert_at_head-flag
++++ a/drivers/md/md.c
+@@ -5581,7 +5581,7 @@ static int __init md_init(void)
+ 			    md_probe, NULL, NULL);
  
- int __init scsi_init_sysctl(void)
- {
--	scsi_table_header = register_sysctl_table(scsi_root_table, 1);
-+	scsi_table_header = register_sysctl_table(scsi_root_table, 0);
- 	if (!scsi_table_header)
- 		return -ENOMEM;
- 	return 0;
+ 	register_reboot_notifier(&md_notifier);
+-	raid_table_header = register_sysctl_table(raid_root_table, 1);
++	raid_table_header = register_sysctl_table(raid_root_table, 0);
+ 
+ 	md_geninit();
+ 	return (0);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
