@@ -1,149 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:50:37 -0800
-Message-ID: <200702150850.l1F8obld025242@shell0.pdx.osdl.net>
+Subject: - sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:50:40 -0800
+Message-ID: <200702150850.l1F8oexE025245@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40210 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40214 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965508AbXBOIuj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:50:39 -0500
+	id S965510AbXBOIum (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:50:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: factor out sysctl_head_next from do_sysctl
+     sysctl: allow sysctl_perm to be called from outside of sysctl.c
 has been removed from the -mm tree.  Its filename was
-     sysctl-factor-out-sysctl_head_next-from-do_sysctl.patch
+     sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: factor out sysctl_head_next from do_sysctl
+Subject: sysctl: allow sysctl_perm to be called from outside of sysctl.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The current logic to walk through the list of sysctl table headers is slightly
-painful and implement in a way it cannot be used by code outside sysctl.c
-
-I am in the process of implementing a version of the sysctl proc support that
-instead of using the proc generic non-caching monster, just uses the existing
-sysctl data structure as backing store for building the dcache entries and for
-doing directory reads.  To use the existing data structures however I need a
-way to get at them.
-
-[akpm@osdl.org: warning fix]
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    4 ++
- kernel/sysctl.c        |   60 +++++++++++++++++++++++++++------------
- 2 files changed, 47 insertions(+), 17 deletions(-)
+ include/linux/sysctl.h |    2 ++
+ kernel/sysctl.c        |   10 +++++-----
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/sysctl.h~sysctl-factor-out-sysctl_head_next-from-do_sysctl include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-factor-out-sysctl_head_next-from-do_sysctl
+diff -puN include/linux/sysctl.h~sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc
 +++ a/include/linux/sysctl.h
-@@ -924,6 +924,10 @@ enum
- #ifdef __KERNEL__
+@@ -925,8 +925,10 @@ enum
  #include <linux/list.h>
  
-+/* For the /proc/sys support */
-+extern struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev);
-+extern void sysctl_head_finish(struct ctl_table_header *prev);
-+
+ /* For the /proc/sys support */
++struct ctl_table;
+ extern struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev);
+ extern void sysctl_head_finish(struct ctl_table_header *prev);
++extern int sysctl_perm(struct ctl_table *table, int op);
+ 
  extern void sysctl_init(void);
  
- typedef struct ctl_table ctl_table;
-diff -puN kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-factor-out-sysctl_head_next-from-do_sysctl
+diff -puN kernel/sysctl.c~sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-allow-sysctl_perm-to-be-called-from-outside-of-sysctlc
 +++ a/kernel/sysctl.c
-@@ -1070,6 +1070,42 @@ static void start_unregistering(struct c
- 	list_del_init(&p->ctl_entry);
+@@ -1157,7 +1157,7 @@ asmlinkage long sys_sysctl(struct __sysc
+ #endif /* CONFIG_SYSCTL_SYSCALL */
+ 
+ /*
+- * ctl_perm does NOT grant the superuser all rights automatically, because
++ * sysctl_perm does NOT grant the superuser all rights automatically, because
+  * some sysctl variables are readonly even to root.
+  */
+ 
+@@ -1172,7 +1172,7 @@ static int test_perm(int mode, int op)
+ 	return -EACCES;
  }
  
-+void sysctl_head_finish(struct ctl_table_header *head)
-+{
-+	if (!head)
-+		return;
-+	spin_lock(&sysctl_lock);
-+	unuse_table(head);
-+	spin_unlock(&sysctl_lock);
-+}
-+
-+struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev)
-+{
-+	struct ctl_table_header *head;
-+	struct list_head *tmp;
-+	spin_lock(&sysctl_lock);
-+	if (prev) {
-+		tmp = &prev->ctl_entry;
-+		unuse_table(prev);
-+		goto next;
-+	}
-+	tmp = &root_table_header.ctl_entry;
-+	for (;;) {
-+		head = list_entry(tmp, struct ctl_table_header, ctl_entry);
-+
-+		if (!use_table(head))
-+			goto next;
-+		spin_unlock(&sysctl_lock);
-+		return head;
-+	next:
-+		tmp = tmp->next;
-+		if (tmp == &root_table_header.ctl_entry)
-+			break;
-+	}
-+	spin_unlock(&sysctl_lock);
-+	return NULL;
-+}
-+
- void __init sysctl_init(void)
+-static inline int ctl_perm(ctl_table *table, int op)
++int sysctl_perm(ctl_table *table, int op)
  {
- #ifdef CONFIG_PROC_SYSCTL
-@@ -1081,7 +1117,7 @@ void __init sysctl_init(void)
- int do_sysctl(int __user *name, int nlen, void __user *oldval, size_t __user *oldlenp,
- 	       void __user *newval, size_t newlen)
- {
--	struct list_head *tmp;
-+	struct ctl_table_header *head;
- 	int error = -ENOTDIR;
+ 	int error;
+ 	error = security_sysctl(table, op);
+@@ -1199,7 +1199,7 @@ repeat:
+ 		if (n == table->ctl_name) {
+ 			int error;
+ 			if (table->child) {
+-				if (ctl_perm(table, 001))
++				if (sysctl_perm(table, 001))
+ 					return -EPERM;
+ 				name++;
+ 				nlen--;
+@@ -1228,7 +1228,7 @@ int do_sysctl_strategy (ctl_table *table
+ 		op |= 004;
+ 	if (newval) 
+ 		op |= 002;
+-	if (ctl_perm(table, op))
++	if (sysctl_perm(table, op))
+ 		return -EPERM;
  
- 	if (nlen <= 0 || nlen >= CTL_MAXNAME)
-@@ -1091,26 +1127,16 @@ int do_sysctl(int __user *name, int nlen
- 		if (!oldlenp || get_user(old_len, oldlenp))
- 			return -EFAULT;
- 	}
--	spin_lock(&sysctl_lock);
--	tmp = &root_table_header.ctl_entry;
--	do {
--		struct ctl_table_header *head =
--			list_entry(tmp, struct ctl_table_header, ctl_entry);
--
--		if (!use_table(head))
--			continue;
--
--		spin_unlock(&sysctl_lock);
- 
-+	for (head = sysctl_head_next(NULL); head;
-+			head = sysctl_head_next(head)) {
- 		error = parse_table(name, nlen, oldval, oldlenp, 
- 					newval, newlen, head->ctl_table);
--
--		spin_lock(&sysctl_lock);
--		unuse_table(head);
--		if (error != -ENOTDIR)
-+		if (error != -ENOTDIR) {
-+			sysctl_head_finish(head);
- 			break;
--	} while ((tmp = tmp->next) != &root_table_header.ctl_entry);
--	spin_unlock(&sysctl_lock);
-+		}
-+	}
- 	return error;
- }
- 
+ 	if (table->strategy) {
+@@ -1498,7 +1498,7 @@ static ssize_t do_rw_proc(int write, str
+ 			goto out;
+ 		error = -EPERM;
+ 		op = (write ? 002 : 004);
+-		if (ctl_perm(table, op))
++		if (sysctl_perm(table, op))
+ 			goto out;
+ 		
+ 		/* careful: calling conventions are nasty here */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
