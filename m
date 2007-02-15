@@ -1,53 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:33 -0800
-Message-ID: <200702150848.l1F8mXdQ025058@shell0.pdx.osdl.net>
+Subject: - sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:44 -0800
+Message-ID: <200702150848.l1F8milM025075@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40009 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40028 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965393AbXBOIsj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:48:39 -0500
+	id S965397AbXBOIss (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:48:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, patrick@tykepenguin.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: decnet: remove unnecessary insert_at_head flag
+     sysctl: scsi: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-scsi-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: decnet: remove unnecessary insert_at_head flag
+Subject: sysctl: scsi: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The sysctl numbers used are unique so setting the insert_at_head flag does not
-succeed in overriding any sysctls, and is just confusing because it doesn't. 
-Clear the flag.
-
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Patrick Caulfield <patrick@tykepenguin.com>
+Acked-by: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/decnet/sysctl_net_decnet.c |    2 +-
+ drivers/scsi/scsi_sysctl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/decnet/sysctl_net_decnet.c~sysctl-decnet-remove-unnecessary-insert_at_head-flag net/decnet/sysctl_net_decnet.c
---- a/net/decnet/sysctl_net_decnet.c~sysctl-decnet-remove-unnecessary-insert_at_head-flag
-+++ a/net/decnet/sysctl_net_decnet.c
-@@ -491,7 +491,7 @@ static ctl_table dn_root_table[] = {
+diff -puN drivers/scsi/scsi_sysctl.c~sysctl-scsi-remove-unnecessary-insert_at_head-flag drivers/scsi/scsi_sysctl.c
+--- a/drivers/scsi/scsi_sysctl.c~sysctl-scsi-remove-unnecessary-insert_at_head-flag
++++ a/drivers/scsi/scsi_sysctl.c
+@@ -41,7 +41,7 @@ static struct ctl_table_header *scsi_tab
  
- void dn_register_sysctl(void)
+ int __init scsi_init_sysctl(void)
  {
--	dn_table_header = register_sysctl_table(dn_root_table, 1);
-+	dn_table_header = register_sysctl_table(dn_root_table, 0);
- }
- 
- void dn_unregister_sysctl(void)
+-	scsi_table_header = register_sysctl_table(scsi_root_table, 1);
++	scsi_table_header = register_sysctl_table(scsi_root_table, 0);
+ 	if (!scsi_table_header)
+ 		return -ENOMEM;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
