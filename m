@@ -1,106 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-sn-remove-sysctl-abi-breakage.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:14 -0800
-Message-ID: <200702150849.l1F8nE7D025111@shell0.pdx.osdl.net>
+Subject: - sysctl-c99-convert-arch-frv-kernel-pmc.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:10 -0800
+Message-ID: <200702150849.l1F8nANQ025105@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40085 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40090 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965438AbXBOItQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:16 -0500
+	id S965441AbXBOItS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: sn: remove sysctl ABI BREAKAGE
+     sysctl: C99 convert arch/frv/kernel/pm.c
 has been removed from the -mm tree.  Its filename was
-     sysctl-sn-remove-sysctl-abi-breakage.patch
+     sysctl-c99-convert-arch-frv-kernel-pmc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: sn: remove sysctl ABI BREAKAGE
+Subject: sysctl: C99 convert arch/frv/kernel/pm.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-By not using the enumeration in sysctl.h (or even understanding it) the SN
-platform placed their arch specific xpc directory on top of CTL_KERN and only
-because they didn't have 4 entries in their xpc directory got lucky and didn't
-break glibc.
-
-This is totally irresponsible.  So this patch entirely removes sys_sysctl
-support from their sysctl code.  Hopefully they don't have ascii name
-conflicts as well.
-
-And now that they have no ABI numbers add them to the end instead of the
-sysctl list instead of the head so nothing else will be overridden.
-
-Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/kernel/xpc_main.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/frv/kernel/pm.c |   50 +++++++++++++++++++++++++++++++++++------
+ 1 file changed, 43 insertions(+), 7 deletions(-)
 
-diff -puN arch/ia64/sn/kernel/xpc_main.c~sysctl-sn-remove-sysctl-abi-breakage arch/ia64/sn/kernel/xpc_main.c
---- a/arch/ia64/sn/kernel/xpc_main.c~sysctl-sn-remove-sysctl-abi-breakage
-+++ a/arch/ia64/sn/kernel/xpc_main.c
-@@ -101,7 +101,7 @@ static int xpc_disengage_request_max_tim
+diff -puN arch/frv/kernel/pm.c~sysctl-c99-convert-arch-frv-kernel-pmc arch/frv/kernel/pm.c
+--- a/arch/frv/kernel/pm.c~sysctl-c99-convert-arch-frv-kernel-pmc
++++ a/arch/frv/kernel/pm.c
+@@ -401,17 +401,53 @@ static int cm_sysctl(ctl_table *table, i
  
- static ctl_table xpc_sys_xpc_hb_dir[] = {
- 	{
--		1,
-+		CTL_UNNUMBERED,
- 		"hb_interval",
- 		&xpc_hb_interval,
- 		sizeof(int),
-@@ -114,7 +114,7 @@ static ctl_table xpc_sys_xpc_hb_dir[] = 
- 		&xpc_hb_max_interval
- 	},
- 	{
--		2,
-+		CTL_UNNUMBERED,
- 		"hb_check_interval",
- 		&xpc_hb_check_interval,
- 		sizeof(int),
-@@ -130,7 +130,7 @@ static ctl_table xpc_sys_xpc_hb_dir[] = 
+ static struct ctl_table pm_table[] =
+ {
+-	{CTL_PM_SUSPEND, "suspend", NULL, 0, 0200, NULL, &sysctl_pm_do_suspend},
+-	{CTL_PM_CMODE, "cmode", &clock_cmode_current, sizeof(int), 0644, NULL, &cmode_procctl, &cmode_sysctl, NULL},
+-	{CTL_PM_P0, "p0", &clock_p0_current, sizeof(int), 0644, NULL, &p0_procctl, &p0_sysctl, NULL},
+-	{CTL_PM_CM, "cm", &clock_cm_current, sizeof(int), 0644, NULL, &cm_procctl, &cm_sysctl, NULL},
+-	{0}
++	{
++		.ctl_name	= CTL_PM_SUSPEND,
++		.procname	= "suspend",
++		.data		= NULL,
++		.maxlen		= 0,
++		.mode		= 0200,
++		.proc_handler	= &sysctl_pm_do_suspend,
++	},
++	{
++		.ctl_name	= CTL_PM_CMODE,
++		.procname	= "cmode",
++		.data		= &clock_cmode_current,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &cmode_procctl,
++		.strategy	= &cmode_sysctl,
++	},
++	{
++		.ctl_name	= CTL_PM_P0,
++		.procname	= "p0",
++		.data		= &clock_p0_current,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &p0_procctl,
++		.strategy	= &p0_sysctl,
++	},
++	{
++		.ctl_name	= CTL_PM_CM,
++		.procname	= "cm",
++		.data		= &clock_cm_current,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &cm_procctl,
++		.strategy	= &cm_sysctl,
++	},
++	{ .ctl_name = 0}
  };
- static ctl_table xpc_sys_xpc_dir[] = {
- 	{
--		1,
-+		CTL_UNNUMBERED,
- 		"hb",
- 		NULL,
- 		0,
-@@ -138,7 +138,7 @@ static ctl_table xpc_sys_xpc_dir[] = {
- 		xpc_sys_xpc_hb_dir
- 	},
- 	{
--		2,
-+		CTL_UNNUMBERED,
- 		"disengage_request_timelimit",
- 		&xpc_disengage_request_timelimit,
- 		sizeof(int),
-@@ -154,7 +154,7 @@ static ctl_table xpc_sys_xpc_dir[] = {
+ 
+ static struct ctl_table pm_dir_table[] =
+ {
+-	{CTL_PM, "pm", NULL, 0, 0555, pm_table},
+-	{0}
++	{
++		.ctl_name	= CTL_PM,
++		.procname	= "pm",
++		.mode		= 0555,
++		.child		= pm_table,
++	},
++	{ .ctl_name = 0}
  };
- static ctl_table xpc_sys_dir[] = {
- 	{
--		1,
-+		CTL_UNNUMBERED,
- 		"xpc",
- 		NULL,
- 		0,
-@@ -1251,7 +1251,7 @@ xpc_init(void)
- 	snprintf(xpc_part->bus_id, BUS_ID_SIZE, "part");
- 	snprintf(xpc_chan->bus_id, BUS_ID_SIZE, "chan");
  
--	xpc_sysctl = register_sysctl_table(xpc_sys_dir, 1);
-+	xpc_sysctl = register_sysctl_table(xpc_sys_dir, 0);
- 
- 	/*
- 	 * The first few fields of each entry of xpc_partitions[] need to
+ /*
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
