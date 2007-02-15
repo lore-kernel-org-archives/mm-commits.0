@@ -1,100 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:52:00 -0800
-Message-ID: <200702150852.l1F8q0Oo025339@shell0.pdx.osdl.net>
+Subject: - acpi-use-null-for-ptrs.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:50:58 -0800
+Message-ID: <200702150850.l1F8owx3025266@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40385 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40382 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965569AbXBOIwQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:52:16 -0500
+	id S965568AbXBOIwP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:52:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, luigi.genoni@pirelli.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-survive-having-no-irq-mapping-for-a-vector-fix
+     ACPI: use NULL for ptrs
 has been removed from the -mm tree.  Its filename was
-     x86_64-survive-having-no-irq-mapping-for-a-vector-fix.patch
+     acpi-use-null-for-ptrs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64-survive-having-no-irq-mapping-for-a-vector-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ACPI: use NULL for ptrs
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: "Luigi Genoni" <luigi.genoni@pirelli.com>
-Cc: Andi Kleen <ak@suse.de>
+Fix sparse warnings in ACPI:
+drivers/acpi/osl.c:208:10: warning: Using plain integer as NULL pointer
+drivers/acpi/tables/tbxface.c:411:49: warning: Using plain integer as NULL pointer
+drivers/acpi/processor_core.c:1008:10: warning: Using plain integer as NULL pointer
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/irq.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/acpi/osl.c            |    2 +-
+ drivers/acpi/processor_core.c |    2 +-
+ drivers/acpi/tables/tbxface.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/irq.c~x86_64-survive-having-no-irq-mapping-for-a-vector-fix arch/x86_64/kernel/irq.c
---- a/arch/x86_64/kernel/irq.c~x86_64-survive-having-no-irq-mapping-for-a-vector-fix
-+++ a/arch/x86_64/kernel/irq.c
-@@ -15,9 +15,11 @@
- #include <linux/seq_file.h>
- #include <linux/module.h>
- #include <linux/delay.h>
-+
- #include <asm/uaccess.h>
- #include <asm/io_apic.h>
- #include <asm/idle.h>
-+#include <asm/smp.h>
- 
- atomic_t irq_err_count;
- 
-@@ -140,10 +142,10 @@ asmlinkage unsigned int do_IRQ(struct pt
- 	else {
- 		if (!disable_apic)
- 			ack_APIC_irq();
--
- 		if (printk_ratelimit())
--			printk(KERN_EMERG "%s: %d.%d No irq handler for vector\n",
--				__func__, smp_processor_id(), vector);
-+			printk(KERN_EMERG "%s: %d.%d No irq handler for "
-+					"vector\n", __FUNCTION__,
-+					smp_processor_id(), vector);
+diff -puN drivers/acpi/osl.c~acpi-use-null-for-ptrs drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~acpi-use-null-for-ptrs
++++ a/drivers/acpi/osl.c
+@@ -202,7 +202,7 @@ void __iomem *acpi_os_map_memory(acpi_ph
+ {
+ 	if (phys > ULONG_MAX) {
+ 		printk(KERN_ERR PREFIX "Cannot map memory that high\n");
+-		return 0;
++		return NULL;
  	}
+ 	if (acpi_gbl_permanent_mmap)
+ 		/*
+diff -puN drivers/acpi/processor_core.c~acpi-use-null-for-ptrs drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-use-null-for-ptrs
++++ a/drivers/acpi/processor_core.c
+@@ -1006,7 +1006,7 @@ static int __init acpi_processor_init(vo
+ #ifdef CONFIG_SMP
+ 	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
+ 				(struct acpi_table_header **)&madt)))
+-		madt = 0;
++		madt = NULL;
+ #endif
  
- 	irq_exit();
+ 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+diff -puN drivers/acpi/tables/tbxface.c~acpi-use-null-for-ptrs drivers/acpi/tables/tbxface.c
+--- a/drivers/acpi/tables/tbxface.c~acpi-use-null-for-ptrs
++++ a/drivers/acpi/tables/tbxface.c
+@@ -408,7 +408,7 @@ acpi_get_table(char *signature,
+ 		}
+ 
+ 		if (!acpi_gbl_permanent_mmap) {
+-			acpi_gbl_root_table_list.tables[i].pointer = 0;
++			acpi_gbl_root_table_list.tables[i].pointer = NULL;
+ 		}
+ 
+ 		return (status);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+build-errors-uevent-with-config_sysfs=n.patch
 git-acpi.patch
-git-agpgart.patch
-git-arm.patch
-git-cpufreq.patch
-powerpc-rtas-msi-support-fix.patch
 git-drm.patch
-git-dvb.patch
-sis-warning-fixes.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-md-accel-fix.patch
-git-mips-fixup.patch
+sata-use-null-for-ptrs.patch
 git-mtd.patch
 git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-Fabric7-VIOC-driver-fixes.patch
-git-backlight.patch
-git-backlight-sony-fix.patch
-git-sh.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-unionfs-fixup.patch
-before-x86_64-mm-mmconfig-share.patch
-after-before-x86_64-mm-mmconfig-share.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-kprobes-list-all-active-probes-in-the-system.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-epoll-compat-code-to-kernel-compatc-tidy.patch
-revert-x86_64-mm-putreg-check.patch
-git-gccbug-fixup.patch
+phy-layer-add-kernel-doc-docbook.patch
+parisc-fix-module_param-iommu-permission.patch
+ueagle-atmc-needs-schedh.patch
+kernel-doc-include-struct-short-description-in-title.patch
+tty-use-null-for-ptrs.patch
+cdrom-use-unsigned-bitfields.patch
+irq-kernel-doc-fixes.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
