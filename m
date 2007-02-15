@@ -1,63 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - pl2303-willcom-ws002in-support.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:51:43 -0800
-Message-ID: <200702150851.l1F8phYk025314@shell0.pdx.osdl.net>
+Subject: - fix-apparent-typo-config_usb_cdcether.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:51:41 -0800
+Message-ID: <200702150851.l1F8pfor025311@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40361 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40355 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965561AbXBOIwF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:52:05 -0500
+	id S965559AbXBOIwC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:52:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yoshfuji@linux-ipv6.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usbserial: PL2303: Willcom WS002IN Support
+     Fix apparent typo CONFIG_USB_CDCETHER
 has been removed from the -mm tree.  Its filename was
-     pl2303-willcom-ws002in-support.patch
+     fix-apparent-typo-config_usb_cdcether.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usbserial: PL2303: Willcom WS002IN Support
-From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Subject: Fix apparent typo CONFIG_USB_CDCETHER
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Replace the apparent typo CONFIG_USB_CDCETHER with CONFIG_USB_NET_CDCETHER.
+
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/pl2303.c |    1 +
- drivers/usb/serial/pl2303.h |    5 +++++
- 2 files changed, 6 insertions(+)
+ drivers/usb/core/otg_whitelist.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/pl2303.c~pl2303-willcom-ws002in-support drivers/usb/serial/pl2303.c
---- a/drivers/usb/serial/pl2303.c~pl2303-willcom-ws002in-support
-+++ a/drivers/usb/serial/pl2303.c
-@@ -83,6 +83,7 @@ static struct usb_device_id id_table [] 
- 	{ USB_DEVICE(BELKIN_VENDOR_ID, BELKIN_PRODUCT_ID) },
- 	{ USB_DEVICE(ALCOR_VENDOR_ID, ALCOR_PRODUCT_ID) },
- 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_ID) },
-+	{ USB_DEVICE(WS002IN_VENDOR_ID, WS002IN_PRODUCT_ID) },
- 	{ }					/* Terminating entry */
- };
+diff -puN drivers/usb/core/otg_whitelist.h~fix-apparent-typo-config_usb_cdcether drivers/usb/core/otg_whitelist.h
+--- a/drivers/usb/core/otg_whitelist.h~fix-apparent-typo-config_usb_cdcether
++++ a/drivers/usb/core/otg_whitelist.h
+@@ -31,7 +31,7 @@ static struct usb_device_id whitelist_ta
+ { USB_DEVICE_INFO(7, 1, 3) },
+ #endif
  
-diff -puN drivers/usb/serial/pl2303.h~pl2303-willcom-ws002in-support drivers/usb/serial/pl2303.h
---- a/drivers/usb/serial/pl2303.h~pl2303-willcom-ws002in-support
-+++ a/drivers/usb/serial/pl2303.h
-@@ -97,3 +97,8 @@
- /* Huawei E620 UMTS/HSDPA card (ID: 12d1:1001) */
- #define HUAWEI_VENDOR_ID	0x12d1
- #define HUAWEI_PRODUCT_ID	0x1001
-+
-+/* Willcom WS002IN Data Driver (by NetIndex Inc.) */
-+#define WS002IN_VENDOR_ID	0x11f6
-+#define WS002IN_PRODUCT_ID	0x2001
-+
+-#ifdef	CONFIG_USB_CDCETHER
++#ifdef	CONFIG_USB_NET_CDCETHER
+ /* Linux-USB CDC Ethernet gadget */
+ { USB_DEVICE(0x0525, 0xa4a1), },
+ /* Linux-USB CDC Ethernet + RNDIS gadget */
 _
 
-Patches currently in -mm which might be from yoshfuji@linux-ipv6.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
+git-avr32.patch
+git-dvb.patch
+git-mips.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
