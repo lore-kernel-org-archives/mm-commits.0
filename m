@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-nr_mlock-zvc.patch added to -mm tree
-Date: Wed, 14 Feb 2007 21:42:31 -0800
-Message-ID: <200702150542.l1F5gVqM021102@shell0.pdx.osdl.net>
+Subject: + make-try_to_unmap-return-a-special-exit-code.patch added to -mm tree
+Date: Wed, 14 Feb 2007 21:42:27 -0800
+Message-ID: <200702150542.l1F5gRja021096@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35566 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35563 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932276AbXBOFmd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 00:42:33 -0500
+	id S932237AbXBOFmc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 00:42:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     Add NR_MLOCK ZVC
+     Make try_to_unmap return a special exit code
 has been added to the -mm tree.  Its filename is
-     add-nr_mlock-zvc.patch
+     make-try_to_unmap-return-a-special-exit-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add NR_MLOCK ZVC
+Subject: Make try_to_unmap return a special exit code
 From: Christoph Lameter <clameter@sgi.com>
 
-Basic infrastructure to support NR_MLOCK
+The patchset removes mlocked pages from the LRU and maintains a counter for
+the number of discovered mlocked pages.
 
-Add a new ZVC to support NR_MLOCK.  NR_MLOCK counts the number of mlocked
-pages taken off the LRU.  Get rid of wrong calculation of cache line size in
-the comments in mmzone.h.
+This is a lazy scheme for accounting for mlocked pages.  The pages may only be
+discovered to be mlocked during reclaim.  However, we attempt to detect
+mlocked pages at various other opportune moments.  So in general the mlock
+counter is not far off the number of actual mlocked pages in the system.
+
+
+
+This patch:
+
+Modify try_to_unmap() so that we can distinguish failing to unmap due to a
+mlocked page from other causes.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |    2 ++
- fs/proc/proc_misc.c    |    2 ++
- include/linux/mmzone.h |    3 +--
- mm/vmstat.c            |    1 +
- 4 files changed, 6 insertions(+), 2 deletions(-)
+ include/linux/rmap.h |    1 +
+ mm/rmap.c            |   21 +++++++++++++++------
+ mm/vmscan.c          |    1 +
+ 3 files changed, 17 insertions(+), 6 deletions(-)
 
-diff -puN drivers/base/node.c~add-nr_mlock-zvc drivers/base/node.c
---- a/drivers/base/node.c~add-nr_mlock-zvc
-+++ a/drivers/base/node.c
-@@ -60,6 +60,7 @@ static ssize_t node_read_meminfo(struct 
- 		       "Node %d FilePages:    %8lu kB\n"
- 		       "Node %d Mapped:       %8lu kB\n"
- 		       "Node %d AnonPages:    %8lu kB\n"
-+		       "Node %d Mlock:        %8lu KB\n"
- 		       "Node %d PageTables:   %8lu kB\n"
- 		       "Node %d NFS_Unstable: %8lu kB\n"
- 		       "Node %d Bounce:       %8lu kB\n"
-@@ -82,6 +83,7 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(node_page_state(nid, NR_FILE_PAGES)),
- 		       nid, K(node_page_state(nid, NR_FILE_MAPPED)),
- 		       nid, K(node_page_state(nid, NR_ANON_PAGES)),
-+		       nid, K(node_page_state(nid, NR_MLOCK)),
- 		       nid, K(node_page_state(nid, NR_PAGETABLE)),
- 		       nid, K(node_page_state(nid, NR_UNSTABLE_NFS)),
- 		       nid, K(node_page_state(nid, NR_BOUNCE)),
-diff -puN fs/proc/proc_misc.c~add-nr_mlock-zvc fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~add-nr_mlock-zvc
-+++ a/fs/proc/proc_misc.c
-@@ -166,6 +166,7 @@ static int meminfo_read_proc(char *page,
- 		"Writeback:    %8lu kB\n"
- 		"AnonPages:    %8lu kB\n"
- 		"Mapped:       %8lu kB\n"
-+		"Mlock:        %8lu KB\n"
- 		"Slab:         %8lu kB\n"
- 		"SReclaimable: %8lu kB\n"
- 		"SUnreclaim:   %8lu kB\n"
-@@ -196,6 +197,7 @@ static int meminfo_read_proc(char *page,
- 		K(global_page_state(NR_WRITEBACK)),
- 		K(global_page_state(NR_ANON_PAGES)),
- 		K(global_page_state(NR_FILE_MAPPED)),
-+		K(global_page_state(NR_MLOCK)),
- 		K(global_page_state(NR_SLAB_RECLAIMABLE) +
- 				global_page_state(NR_SLAB_UNRECLAIMABLE)),
- 		K(global_page_state(NR_SLAB_RECLAIMABLE)),
-diff -puN include/linux/mmzone.h~add-nr_mlock-zvc include/linux/mmzone.h
---- a/include/linux/mmzone.h~add-nr_mlock-zvc
-+++ a/include/linux/mmzone.h
-@@ -47,17 +47,16 @@ struct zone_padding {
- #endif
+diff -puN include/linux/rmap.h~make-try_to_unmap-return-a-special-exit-code include/linux/rmap.h
+--- a/include/linux/rmap.h~make-try_to_unmap-return-a-special-exit-code
++++ a/include/linux/rmap.h
+@@ -134,5 +134,6 @@ static inline int page_mkclean(struct pa
+ #define SWAP_SUCCESS	0
+ #define SWAP_AGAIN	1
+ #define SWAP_FAIL	2
++#define SWAP_MLOCK	3
  
- enum zone_stat_item {
--	/* First 128 byte cacheline (assuming 64 bit words) */
- 	NR_FREE_PAGES,
- 	NR_INACTIVE,
- 	NR_ACTIVE,
-+	NR_MLOCK,	/* Mlocked pages */
- 	NR_ANON_PAGES,	/* Mapped anonymous pages */
- 	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
- 			   only modified from process context */
- 	NR_FILE_PAGES,
- 	NR_FILE_DIRTY,
- 	NR_WRITEBACK,
--	/* Second 128 byte cacheline */
- 	NR_SLAB_RECLAIMABLE,
- 	NR_SLAB_UNRECLAIMABLE,
- 	NR_PAGETABLE,		/* used for pagetables */
-diff -puN mm/vmstat.c~add-nr_mlock-zvc mm/vmstat.c
---- a/mm/vmstat.c~add-nr_mlock-zvc
-+++ a/mm/vmstat.c
-@@ -434,6 +434,7 @@ static const char * const vmstat_text[] 
- 	"nr_free_pages",
- 	"nr_active",
- 	"nr_inactive",
-+	"nr_mlock",
- 	"nr_anon_pages",
- 	"nr_mapped",
- 	"nr_file_pages",
+ #endif	/* _LINUX_RMAP_H */
+diff -puN mm/rmap.c~make-try_to_unmap-return-a-special-exit-code mm/rmap.c
+--- a/mm/rmap.c~make-try_to_unmap-return-a-special-exit-code
++++ a/mm/rmap.c
+@@ -631,10 +631,16 @@ static int try_to_unmap_one(struct page 
+ 	 * If it's recently referenced (perhaps page_referenced
+ 	 * skipped over this mm) then we should reactivate it.
+ 	 */
+-	if (!migration && ((vma->vm_flags & VM_LOCKED) ||
+-			(ptep_clear_flush_young(vma, address, pte)))) {
+-		ret = SWAP_FAIL;
+-		goto out_unmap;
++	if (!migration) {
++		if (vma->vm_flags & VM_LOCKED) {
++			ret = SWAP_MLOCK;
++			goto out_unmap;
++		}
++
++		if (ptep_clear_flush_young(vma, address, pte)) {
++			ret = SWAP_FAIL;
++			goto out_unmap;
++		}
+ 	}
+ 
+ 	/* Nuke the page table entry. */
+@@ -799,7 +805,8 @@ static int try_to_unmap_anon(struct page
+ 
+ 	list_for_each_entry(vma, &anon_vma->head, anon_vma_node) {
+ 		ret = try_to_unmap_one(page, vma, migration);
+-		if (ret == SWAP_FAIL || !page_mapped(page))
++		if (ret == SWAP_FAIL || ret == SWAP_MLOCK ||
++				!page_mapped(page))
+ 			break;
+ 	}
+ 	spin_unlock(&anon_vma->lock);
+@@ -830,7 +837,8 @@ static int try_to_unmap_file(struct page
+ 	spin_lock(&mapping->i_mmap_lock);
+ 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
+ 		ret = try_to_unmap_one(page, vma, migration);
+-		if (ret == SWAP_FAIL || !page_mapped(page))
++		if (ret == SWAP_FAIL || ret == SWAP_MLOCK ||
++				!page_mapped(page))
+ 			goto out;
+ 	}
+ 
+@@ -913,6 +921,7 @@ out:
+  * SWAP_SUCCESS	- we succeeded in removing all mappings
+  * SWAP_AGAIN	- we missed a mapping, try again later
+  * SWAP_FAIL	- the page is unswappable
++ * SWAP_MLOCK	- the page is under mlock()
+  */
+ int try_to_unmap(struct page *page, int migration)
+ {
+diff -puN mm/vmscan.c~make-try_to_unmap-return-a-special-exit-code mm/vmscan.c
+--- a/mm/vmscan.c~make-try_to_unmap-return-a-special-exit-code
++++ a/mm/vmscan.c
+@@ -509,6 +509,7 @@ static unsigned long shrink_page_list(st
+ 		if (page_mapped(page) && mapping) {
+ 			switch (try_to_unmap(page, 0)) {
+ 			case SWAP_FAIL:
++			case SWAP_MLOCK:
+ 				goto activate_locked;
+ 			case SWAP_AGAIN:
+ 				goto keep_locked;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
