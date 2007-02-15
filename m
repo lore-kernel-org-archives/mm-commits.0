@@ -1,93 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - usb_rtl8150-must-select-mii.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:51:25 -0800
-Message-ID: <200702150851.l1F8pPcC025296@shell0.pdx.osdl.net>
+Subject: - make-cardbus_mem_size-and-cardbus_io_size-boot-options.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:51:14 -0800
+Message-ID: <200702150851.l1F8pEkV025284@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40466 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40468 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965608AbXBOIyn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:54:43 -0500
+	id S965609AbXBOIyo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:54:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, greg@kroah.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, daniel.ritz@gmx.ch, greg@kroah.com, ink@jurassic.park.msu.ru, linux@dominikbrodowski.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB_RTL8150 must select MII
+     Make CARDBUS_MEM_SIZE and CARDBUS_IO_SIZE boot options
 has been removed from the -mm tree.  Its filename was
-     usb_rtl8150-must-select-mii.patch
+     make-cardbus_mem_size-and-cardbus_io_size-boot-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB_RTL8150 must select MII
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Make CARDBUS_MEM_SIZE and CARDBUS_IO_SIZE boot options
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-USB_RTL8150 must select MII to avoid link errors.
+CARDBUS_MEM_SIZE was increased to 64MB on 2.6.20-rc2, but larger size might
+result in allocation failure for the reserving itself on some platforms
+(for example typical 32bit MIPS).  Make it (and CARDBUS_IO_SIZE too)
+customizable by "pci=" option for such platforms.
 
-Stolen from a patch by Randy Dunlap.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Cc: Greg KH <greg@kroah.com>
+Cc: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/net/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/kernel-parameters.txt |    6 +++++
+ drivers/pci/pci.c                   |   10 +++++++++
+ drivers/pci/setup-bus.c             |   27 +++++++++-----------------
+ include/linux/pci.h                 |    3 ++
+ 4 files changed, 29 insertions(+), 17 deletions(-)
 
-diff -puN drivers/usb/net/Kconfig~usb_rtl8150-must-select-mii drivers/usb/net/Kconfig
---- a/drivers/usb/net/Kconfig~usb_rtl8150-must-select-mii
-+++ a/drivers/usb/net/Kconfig
-@@ -84,6 +84,7 @@ config USB_PEGASUS
- config USB_RTL8150
- 	tristate "USB RTL8150 based ethernet device support (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	select MII
- 	help
- 	  Say Y here if you have RTL8150 based usb-ethernet adapter.
- 	  Send me <petkan@users.sourceforge.net> any comments you may have.
+diff -puN Documentation/kernel-parameters.txt~make-cardbus_mem_size-and-cardbus_io_size-boot-options Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~make-cardbus_mem_size-and-cardbus_io_size-boot-options
++++ a/Documentation/kernel-parameters.txt
+@@ -1264,6 +1264,12 @@ and is between 256 and 4096 characters. 
+ 				This sorting is done to get a device
+ 				order compatible with older (<= 2.4) kernels.
+ 		nobfsort	Don't sort PCI devices into breadth-first order.
++		cbiosize=nn[KMG]	The fixed amount of bus space which is
++				reserved for the CardBus bridge's IO window.
++				The default value is 256 bytes.
++		cbmemsize=nn[KMG]	The fixed amount of bus space which is
++				reserved for the CardBus bridge's memory
++				window. The default value is 64 megabytes.
+ 
+ 	pcmv=		[HW,PCMCIA] BadgePAD 4
+ 
+diff -puN drivers/pci/pci.c~make-cardbus_mem_size-and-cardbus_io_size-boot-options drivers/pci/pci.c
+--- a/drivers/pci/pci.c~make-cardbus_mem_size-and-cardbus_io_size-boot-options
++++ a/drivers/pci/pci.c
+@@ -21,6 +21,12 @@
+ 
+ unsigned int pci_pm_d3_delay = 10;
+ 
++#define DEFAULT_CARDBUS_IO_SIZE		(256)
++#define DEFAULT_CARDBUS_MEM_SIZE	(64*1024*1024)
++/* pci=cbmemsize=nnM,cbiosize=nn can override this */
++unsigned long pci_cardbus_io_size = DEFAULT_CARDBUS_IO_SIZE;
++unsigned long pci_cardbus_mem_size = DEFAULT_CARDBUS_MEM_SIZE;
++
+ /**
+  * pci_bus_max_busnr - returns maximum PCI bus number of given bus' children
+  * @bus: pointer to PCI bus structure to search
+@@ -1333,6 +1339,10 @@ static int __devinit pci_setup(char *str
+ 		if (*str && (str = pcibios_setup(str)) && *str) {
+ 			if (!strcmp(str, "nomsi")) {
+ 				pci_no_msi();
++			} else if (!strncmp(str, "cbiosize=", 9)) {
++				pci_cardbus_io_size = memparse(str + 9, &str);
++			} else if (!strncmp(str, "cbmemsize=", 10)) {
++				pci_cardbus_mem_size = memparse(str + 10, &str);
+ 			} else {
+ 				printk(KERN_ERR "PCI: Unknown option `%s'\n",
+ 						str);
+diff -puN drivers/pci/setup-bus.c~make-cardbus_mem_size-and-cardbus_io_size-boot-options drivers/pci/setup-bus.c
+--- a/drivers/pci/setup-bus.c~make-cardbus_mem_size-and-cardbus_io_size-boot-options
++++ a/drivers/pci/setup-bus.c
+@@ -36,13 +36,6 @@
+ 
+ #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+ 
+-/*
+- * FIXME: IO should be max 256 bytes.  However, since we may
+- * have a P2P bridge below a cardbus bridge, we need 4K.
+- */
+-#define CARDBUS_IO_SIZE		(256)
+-#define CARDBUS_MEM_SIZE	(64*1024*1024)
+-
+ static void __devinit
+ pbus_assign_resources_sorted(struct pci_bus *bus)
+ {
+@@ -415,12 +408,12 @@ pci_bus_size_cardbus(struct pci_bus *bus
+ 	 * Reserve some resources for CardBus.  We reserve
+ 	 * a fixed amount of bus space for CardBus bridges.
+ 	 */
+-	b_res[0].start = CARDBUS_IO_SIZE;
+-	b_res[0].end = b_res[0].start + CARDBUS_IO_SIZE - 1;
++	b_res[0].start = pci_cardbus_io_size;
++	b_res[0].end = b_res[0].start + pci_cardbus_io_size - 1;
+ 	b_res[0].flags |= IORESOURCE_IO;
+ 
+-	b_res[1].start = CARDBUS_IO_SIZE;
+-	b_res[1].end = b_res[1].start + CARDBUS_IO_SIZE - 1;
++	b_res[1].start = pci_cardbus_io_size;
++	b_res[1].end = b_res[1].start + pci_cardbus_io_size - 1;
+ 	b_res[1].flags |= IORESOURCE_IO;
+ 
+ 	/*
+@@ -440,16 +433,16 @@ pci_bus_size_cardbus(struct pci_bus *bus
+ 	 * twice the size.
+ 	 */
+ 	if (ctrl & PCI_CB_BRIDGE_CTL_PREFETCH_MEM0) {
+-		b_res[2].start = CARDBUS_MEM_SIZE;
+-		b_res[2].end = b_res[2].start + CARDBUS_MEM_SIZE - 1;
++		b_res[2].start = pci_cardbus_mem_size;
++		b_res[2].end = b_res[2].start + pci_cardbus_mem_size - 1;
+ 		b_res[2].flags |= IORESOURCE_MEM | IORESOURCE_PREFETCH;
+ 
+-		b_res[3].start = CARDBUS_MEM_SIZE;
+-		b_res[3].end = b_res[3].start + CARDBUS_MEM_SIZE - 1;
++		b_res[3].start = pci_cardbus_mem_size;
++		b_res[3].end = b_res[3].start + pci_cardbus_mem_size - 1;
+ 		b_res[3].flags |= IORESOURCE_MEM;
+ 	} else {
+-		b_res[3].start = CARDBUS_MEM_SIZE * 2;
+-		b_res[3].end = b_res[3].start + CARDBUS_MEM_SIZE * 2 - 1;
++		b_res[3].start = pci_cardbus_mem_size * 2;
++		b_res[3].end = b_res[3].start + pci_cardbus_mem_size * 2 - 1;
+ 		b_res[3].flags |= IORESOURCE_MEM;
+ 	}
+ }
+diff -puN include/linux/pci.h~make-cardbus_mem_size-and-cardbus_io_size-boot-options include/linux/pci.h
+--- a/include/linux/pci.h~make-cardbus_mem_size-and-cardbus_io_size-boot-options
++++ a/include/linux/pci.h
+@@ -852,5 +852,8 @@ extern int pci_pci_problems;
+ #define PCIPCI_ALIMAGIK		32	/* Need low latency setting */
+ #define PCIAGP_FAIL		64	/* No PCI to AGP DMA */
+ 
++extern unsigned long pci_cardbus_io_size;
++extern unsigned long pci_cardbus_mem_size;
++
+ #endif /* __KERNEL__ */
+ #endif /* LINUX_PCI_H */
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
-ifdef-acpi_future_usage-acpi_os_readable.patch
-git-cpufreq.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
-mips-remove-smp_tune_scheduling.patch
-git-mtd.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-lumpy-reclaim-cleanup.patch
-gtod-persistent-clock-support.patch
-i386-use-gtod-persistent-clock-support.patch
-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-clockevents-i383-drivers.patch
-add-debugging-feature-proc-timer_stat-cleanup.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+git-mips.patch
