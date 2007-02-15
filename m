@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + local_t-parisc-cleanup.patch added to -mm tree
-Date: Wed, 14 Feb 2007 23:06:30 -0800
-Message-ID: <200702150706.l1F76UBk022552@shell0.pdx.osdl.net>
+Subject: + local_t-s390-cleanup.patch added to -mm tree
+Date: Wed, 14 Feb 2007 23:06:34 -0800
+Message-ID: <200702150706.l1F76Y05022558@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37346 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37350 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964944AbXBOHHC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 02:07:02 -0500
+	id S964946AbXBOHHF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 02:07:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, grundler@parisc-linux.org, kyle@mcmartin.ca, willy@debian.org
+Cc: mathieu.desnoyers@polymtl.ca, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     local_t: parisc cleanup
+     local_t: s390 cleanup
 has been added to the -mm tree.  Its filename is
-     local_t-parisc-cleanup.patch
+     local_t-s390-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: local_t: parisc cleanup
+Subject: local_t: s390 cleanup
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-parisc architecture local_t cleanup : use asm-generic/local.h.
+s390 architecture local_t cleanup : use asm-generic/local.h.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <willy@debian.org>
-Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-parisc/local.h |   41 -----------------------------------
- 1 file changed, 1 insertion(+), 40 deletions(-)
+ include/asm-s390/local.h |   59 -------------------------------------
+ 1 file changed, 1 insertion(+), 58 deletions(-)
 
-diff -puN include/asm-parisc/local.h~local_t-parisc-cleanup include/asm-parisc/local.h
---- a/include/asm-parisc/local.h~local_t-parisc-cleanup
-+++ a/include/asm-parisc/local.h
-@@ -1,40 +1 @@
--#ifndef _ARCH_PARISC_LOCAL_H
--#define _ARCH_PARISC_LOCAL_H
+diff -puN include/asm-s390/local.h~local_t-s390-cleanup include/asm-s390/local.h
+--- a/include/asm-s390/local.h~local_t-s390-cleanup
++++ a/include/asm-s390/local.h
+@@ -1,58 +1 @@
+-#ifndef _ASM_LOCAL_H
+-#define _ASM_LOCAL_H
 -
 -#include <linux/percpu.h>
 -#include <asm/atomic.h>
 -
--typedef atomic_long_t local_t;
+-#ifndef __s390x__
 -
--#define LOCAL_INIT(i)	ATOMIC_LONG_INIT(i)
--#define local_read(v)	atomic_long_read(v)
--#define local_set(v,i)	atomic_long_set(v,i)
+-typedef atomic_t local_t;
 -
--#define local_inc(v)	atomic_long_inc(v)
--#define local_dec(v)	atomic_long_dec(v)
--#define local_add(i, v)	atomic_long_add(i, v)
--#define local_sub(i, v)	atomic_long_sub(i, v)
+-#define LOCAL_INIT(i)	ATOMIC_INIT(i)
+-#define local_read(v)	atomic_read(v)
+-#define local_set(v,i)	atomic_set(v,i)
+-
+-#define local_inc(v)	atomic_inc(v)
+-#define local_dec(v)	atomic_dec(v)
+-#define local_add(i, v)	atomic_add(i, v)
+-#define local_sub(i, v)	atomic_sub(i, v)
+-
+-#else
+-
+-typedef atomic64_t local_t;
+-
+-#define LOCAL_INIT(i)	ATOMIC64_INIT(i)
+-#define local_read(v)	atomic64_read(v)
+-#define local_set(v,i)	atomic64_set(v,i)
+-
+-#define local_inc(v)	atomic64_inc(v)
+-#define local_dec(v)	atomic64_dec(v)
+-#define local_add(i, v)	atomic64_add(i, v)
+-#define local_sub(i, v)	atomic64_sub(i, v)
+-
+-#endif
 -
 -#define __local_inc(v)		((v)->counter++)
 -#define __local_dec(v)		((v)->counter--)
 -#define __local_add(i,v)	((v)->counter+=(i))
 -#define __local_sub(i,v)	((v)->counter-=(i))
 -
--/* Use these for per-cpu local_t variables: on some archs they are
+-/*
+- * Use these for per-cpu local_t variables: on some archs they are
 - * much more efficient than these naive implementations.  Note they take
 - * a variable, not an address.
 - */
@@ -83,7 +100,7 @@ diff -puN include/asm-parisc/local.h~local_t-parisc-cleanup include/asm-parisc/l
 -#define __cpu_local_add(i, v)	__local_add((i), &__get_cpu_var(v))
 -#define __cpu_local_sub(i, v)	__local_sub((i), &__get_cpu_var(v))
 -
--#endif /* _ARCH_PARISC_LOCAL_H */
+-#endif /* _ASM_LOCAL_H */
 +#include <asm-generic/local.h>
 _
 
