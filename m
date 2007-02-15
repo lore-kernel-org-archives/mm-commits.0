@@ -1,61 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-cdrom-dont-set-de-owner.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:58 -0800
-Message-ID: <200702150848.l1F8mw5h025090@shell0.pdx.osdl.net>
+Subject: - sysctl-llc-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:28 -0800
+Message-ID: <200702150848.l1F8mSms025050@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40061 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40057 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965418AbXBOItG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:06 -0500
+	id S965416AbXBOItE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, James.Bottomley@SteelEye.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, acme@conectiva.com.br, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: cdrom: don't set de->owner
+     sysctl: llc: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     sysctl-cdrom-dont-set-de-owner.patch
+     sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: cdrom: don't set de->owner
+Subject: sysctl: llc: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-There is no need for open files in /proc/sys/XXX to hold a reference count on
-the module that provides the file to prevent module unload races.  While there
-is code active in the module p->used in the sysctl_table_header is
-incremented, preventing the sysctl from being unregisted.  Once the sysctl is
-unregistered it cannot be found.  Open files are also not a problem as they
-revalidate the sysctl information and bump p->used before accessing module
-code.
-
-So setting de->owner is unnecessary, makes for a bad example and gets in my
-way of removing ctl_table->de.
+The sysctl numbers used are unique so setting the insert_at_head flag serves
+no semantis purpose, and is just confusing.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Jens Axboe <jens.axboe@oracle.com>
-Acked-by: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |    2 --
- 1 file changed, 2 deletions(-)
+ net/llc/sysctl_net_llc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cdrom/cdrom.c~sysctl-cdrom-dont-set-de-owner drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~sysctl-cdrom-dont-set-de-owner
-+++ a/drivers/cdrom/cdrom.c
-@@ -3554,8 +3554,6 @@ static void cdrom_sysctl_register(void)
- 		return;
+diff -puN net/llc/sysctl_net_llc.c~sysctl-llc-remove-unnecessary-insert_at_head-flag net/llc/sysctl_net_llc.c
+--- a/net/llc/sysctl_net_llc.c~sysctl-llc-remove-unnecessary-insert_at_head-flag
++++ a/net/llc/sysctl_net_llc.c
+@@ -116,7 +116,7 @@ static struct ctl_table_header *llc_tabl
  
- 	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 0);
--	if (cdrom_root_table->ctl_name && cdrom_root_table->child->de)
--		cdrom_root_table->child->de->owner = THIS_MODULE;
+ int __init llc_sysctl_init(void)
+ {
+-	llc_table_header = register_sysctl_table(llc_root_table, 1);
++	llc_table_header = register_sysctl_table(llc_root_table, 0);
  
- 	/* set the defaults */
- 	cdrom_sysctl_settings.autoclose = autoclose;
+ 	return llc_table_header ? 0 : -ENOMEM;
+ }
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
