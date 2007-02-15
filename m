@@ -1,748 +1,527 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-add-some-new-fsid-types.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:47:48 -0800
-Message-ID: <200702150847.l1F8lmsC025010@shell0.pdx.osdl.net>
+Subject: - oss-replace-kmallocmemset-combos-with-kzalloc.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:47:57 -0800
+Message-ID: <200702150847.l1F8lvnh025019@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39945 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39953 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965369AbXBOIry (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:47:54 -0500
+	id S965377AbXBOIsB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:48:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: add some new fsid types
+     OSS: replace kmalloc()+memset() combos with kzalloc()
 has been removed from the -mm tree.  Its filename was
-     knfsd-add-some-new-fsid-types.patch
+     oss-replace-kmallocmemset-combos-with-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: add some new fsid types
-From: NeilBrown <neilb@suse.de>
+Subject: OSS: replace kmalloc()+memset() combos with kzalloc()
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Add support for using a filesystem UUID to identify and export point in the
-filehandle.
+Replace kmalloc() + memset() pairs with the appropriate kzalloc() calls.
 
-For NFSv2, this UUID is xor-ed down to 4 or 8 bytes so that it doesn't take up
-too much room.  For NFSv3+, we use the full 16 bytes, and possibly also a
-64bit inode number for exports beneath the root of a filesystem.
-
-When generating an fsid to return in 'stat' information, use the UUID (hashed
-down to size) if it is available and a small 'fsid' was not specifically
-provided.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c            |  106 +++++++++++++++++++++------------
- fs/nfsd/nfs3xdr.c           |   31 +++++++--
- fs/nfsd/nfs4xdr.c           |   10 ++-
- fs/nfsd/nfsfh.c             |   88 ++++++++++++++-------------
- fs/nfsd/nfsxdr.c            |   19 +++++-
- include/linux/nfsd/export.h |    7 +-
- include/linux/nfsd/nfsd.h   |   12 ---
- include/linux/nfsd/nfsfh.h  |  107 +++++++++++++++++++++++++---------
- 8 files changed, 246 insertions(+), 134 deletions(-)
+ sound/oss/ac97_codec.c          |    3 +--
+ sound/oss/ad1889.c              |    3 +--
+ sound/oss/btaudio.c             |    3 +--
+ sound/oss/cs46xx.c              |    9 +++------
+ sound/oss/dmasound/dac3550a.c   |    3 +--
+ sound/oss/dmasound/tas3001c.c   |    3 +--
+ sound/oss/dmasound/tas3004.c    |    3 +--
+ sound/oss/dmasound/tas_common.c |    3 +--
+ sound/oss/emu10k1/main.c        |   11 +++--------
+ sound/oss/es1371.c              |    3 +--
+ sound/oss/hal2.c                |    3 +--
+ sound/oss/i810_audio.c          |    9 +++------
+ sound/oss/kahlua.c              |    3 +--
+ sound/oss/nec_vrc5477.c         |    3 +--
+ sound/oss/opl3.c                |    3 +--
+ sound/oss/sb_card.c             |    6 ++----
+ sound/oss/swarm_cs4297a.c       |   13 +++++--------
+ sound/oss/trident.c             |    9 +++------
+ sound/oss/waveartist.c          |    4 +---
+ 19 files changed, 32 insertions(+), 65 deletions(-)
 
-diff -puN fs/nfsd/export.c~knfsd-add-some-new-fsid-types fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-add-some-new-fsid-types
-+++ a/fs/nfsd/export.c
-@@ -190,18 +190,17 @@ static int expkey_show(struct seq_file *
- 		       struct cache_head *h)
+diff -puN sound/oss/ac97_codec.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/ac97_codec.c
+--- a/sound/oss/ac97_codec.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/ac97_codec.c
+@@ -744,11 +744,10 @@ static int ac97_check_modem(struct ac97_
+  
+ struct ac97_codec *ac97_alloc_codec(void)
  {
- 	struct svc_expkey *ek ;
-+	int i;
+-	struct ac97_codec *codec = kmalloc(sizeof(struct ac97_codec), GFP_KERNEL);
++	struct ac97_codec *codec = kzalloc(sizeof(struct ac97_codec), GFP_KERNEL);
+ 	if(!codec)
+ 		return NULL;
  
- 	if (h ==NULL) {
- 		seq_puts(m, "#domain fsidtype fsid [path]\n");
- 		return 0;
- 	}
- 	ek = container_of(h, struct svc_expkey, h);
--	seq_printf(m, "%s %d 0x%08x", ek->ek_client->name,
--		   ek->ek_fsidtype, ek->ek_fsid[0]);
--	if (ek->ek_fsidtype != 1)
--		seq_printf(m, "%08x", ek->ek_fsid[1]);
--	if (ek->ek_fsidtype == 2)
--		seq_printf(m, "%08x", ek->ek_fsid[2]);
-+	seq_printf(m, "%s %d 0x", ek->ek_client->name,
-+		   ek->ek_fsidtype);
-+	for (i=0; i < key_len(ek->ek_fsidtype)/4; i++)
-+		seq_printf(m, "%08x", ek->ek_fsid[i]);
- 	if (test_bit(CACHE_VALID, &h->flags) && 
- 	    !test_bit(CACHE_NEGATIVE, &h->flags)) {
- 		seq_printf(m, " ");
-@@ -232,9 +231,8 @@ static inline void expkey_init(struct ca
- 	kref_get(&item->ek_client->ref);
- 	new->ek_client = item->ek_client;
- 	new->ek_fsidtype = item->ek_fsidtype;
--	new->ek_fsid[0] = item->ek_fsid[0];
--	new->ek_fsid[1] = item->ek_fsid[1];
--	new->ek_fsid[2] = item->ek_fsid[2];
-+
-+	memcpy(new->ek_fsid, item->ek_fsid, sizeof(new->ek_fsid));
- }
+-	memset(codec, 0, sizeof(*codec));
+ 	spin_lock_init(&codec->lock);
+ 	INIT_LIST_HEAD(&codec->list);
+ 	return codec;
+diff -puN sound/oss/ad1889.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/ad1889.c
+--- a/sound/oss/ad1889.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/ad1889.c
+@@ -230,9 +230,8 @@ static ad1889_dev_t *ad1889_alloc_dev(st
+ 	struct dmabuf *dmabuf;
+ 	int i;
  
- static inline void expkey_update(struct cache_head *cnew,
-@@ -363,7 +361,7 @@ static struct svc_export *svc_export_upd
- 					    struct svc_export *old);
- static struct svc_export *svc_export_lookup(struct svc_export *);
+-	if ((dev = kmalloc(sizeof(ad1889_dev_t), GFP_KERNEL)) == NULL) 
++	if ((dev = kzalloc(sizeof(ad1889_dev_t), GFP_KERNEL)) == NULL)
+ 		return NULL;
+-	memset(dev, 0, sizeof(ad1889_dev_t));
+ 	spin_lock_init(&dev->lock);
+ 	dev->pci = pci;
  
--static int check_export(struct inode *inode, int flags)
-+static int check_export(struct inode *inode, int flags, unsigned char *uuid)
- {
- 
- 	/* We currently export only dirs and regular files.
-@@ -376,12 +374,13 @@ static int check_export(struct inode *in
- 	/* There are two requirements on a filesystem to be exportable.
- 	 * 1:  We must be able to identify the filesystem from a number.
- 	 *       either a device number (so FS_REQUIRES_DEV needed)
--	 *       or an FSID number (so NFSEXP_FSID needed).
-+	 *       or an FSID number (so NFSEXP_FSID or ->uuid is needed).
- 	 * 2:  We must be able to find an inode from a filehandle.
- 	 *       This means that s_export_op must be set.
- 	 */
- 	if (!(inode->i_sb->s_type->fs_flags & FS_REQUIRES_DEV) &&
--	    !(flags & NFSEXP_FSID)) {
-+	    !(flags & NFSEXP_FSID) &&
-+	    uuid == NULL) {
- 		dprintk("exp_export: export of non-dev fs without fsid\n");
- 		return -EINVAL;
- 	}
-@@ -406,10 +405,6 @@ fsloc_parse(char **mesg, char *buf, stru
- 	int len;
- 	int migrated, i, err;
- 
--	len = qword_get(mesg, buf, PAGE_SIZE);
--	if (len != 5 || memcmp(buf, "fsloc", 5))
--		return 0;
--
- 	/* listsize */
- 	err = get_int(mesg, &fsloc->locations_count);
- 	if (err)
-@@ -520,6 +515,8 @@ static int svc_export_parse(struct cache
- 	exp.ex_fslocs.locations_count = 0;
- 	exp.ex_fslocs.migrated = 0;
- 
-+	exp.ex_uuid = NULL;
-+
- 	/* flags */
- 	err = get_int(&mesg, &an_int);
- 	if (err == -ENOENT)
-@@ -543,12 +540,33 @@ static int svc_export_parse(struct cache
- 		if (err) goto out;
- 		exp.ex_fsid = an_int;
- 
--		err = check_export(nd.dentry->d_inode, exp.ex_flags);
--		if (err) goto out;
-+		while ((len = qword_get(&mesg, buf, PAGE_SIZE)) > 0) {
-+			if (strcmp(buf, "fsloc") == 0)
-+				err = fsloc_parse(&mesg, buf, &exp.ex_fslocs);
-+			else if (strcmp(buf, "uuid") == 0) {
-+				/* expect a 16 byte uuid encoded as \xXXXX... */
-+				len = qword_get(&mesg, buf, PAGE_SIZE);
-+				if (len != 16)
-+					err  = -EINVAL;
-+				else {
-+					exp.ex_uuid =
-+						kmemdup(buf, 16, GFP_KERNEL);
-+					if (exp.ex_uuid == NULL)
-+						err = -ENOMEM;
-+				}
-+			} else
-+				/* quietly ignore unknown words and anything
-+				 * following. Newer user-space can try to set
-+				 * new values, then see what the result was.
-+				 */
-+				break;
-+			if (err)
-+				goto out;
-+		}
- 
--		err = fsloc_parse(&mesg, buf, &exp.ex_fslocs);
--		if (err)
--			goto out;
-+		err = check_export(nd.dentry->d_inode, exp.ex_flags,
-+				   exp.ex_uuid);
-+		if (err) goto out;
+diff -puN sound/oss/btaudio.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/btaudio.c
+--- a/sound/oss/btaudio.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/btaudio.c
+@@ -915,12 +915,11 @@ static int __devinit btaudio_probe(struc
+ 		return -EBUSY;
  	}
  
- 	expp = svc_export_lookup(&exp);
-@@ -562,6 +580,8 @@ static int svc_export_parse(struct cache
- 	else
- 		exp_put(expp);
-  out:
-+	nfsd4_fslocs_free(&exp.ex_fslocs);
-+	kfree(exp.ex_uuid);
-  	kfree(exp.ex_path);
- 	if (nd.dentry)
- 		path_release(&nd);
-@@ -591,9 +611,19 @@ static int svc_export_show(struct seq_fi
- 	seq_escape(m, exp->ex_client->name, " \t\n\\");
- 	seq_putc(m, '(');
- 	if (test_bit(CACHE_VALID, &h->flags) && 
--	    !test_bit(CACHE_NEGATIVE, &h->flags))
-+	    !test_bit(CACHE_NEGATIVE, &h->flags)) {
- 		exp_flags(m, exp->ex_flags, exp->ex_fsid,
- 			  exp->ex_anon_uid, exp->ex_anon_gid, &exp->ex_fslocs);
-+		if (exp->ex_uuid) {
-+			int i;
-+			seq_puts(m, ",uuid=");
-+			for (i=0; i<16; i++) {
-+				if ((i&3) == 0 && i)
-+					seq_putc(m, ':');
-+				seq_printf(m, "%02x", exp->ex_uuid[i]);
-+			}
-+		}
-+	}
- 	seq_puts(m, ")\n");
- 	return 0;
- }
-@@ -630,6 +660,8 @@ static void export_update(struct cache_h
- 	new->ex_anon_uid = item->ex_anon_uid;
- 	new->ex_anon_gid = item->ex_anon_gid;
- 	new->ex_fsid = item->ex_fsid;
-+	new->ex_uuid = item->ex_uuid;
-+	item->ex_uuid = NULL;
- 	new->ex_path = item->ex_path;
- 	item->ex_path = NULL;
- 	new->ex_fslocs.locations = item->ex_fslocs.locations;
-@@ -752,11 +784,11 @@ exp_get_key(svc_client *clp, dev_t dev, 
- 	u32 fsidv[3];
+-	bta = kmalloc(sizeof(*bta),GFP_ATOMIC);
++	bta = kzalloc(sizeof(*bta),GFP_ATOMIC);
+ 	if (!bta) {
+ 		rc = -ENOMEM;
+ 		goto fail0;
+ 	}
+-	memset(bta,0,sizeof(*bta));
+ 
+ 	bta->pci  = pci_dev;
+ 	bta->irq  = pci_dev->irq;
+diff -puN sound/oss/cs46xx.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/cs46xx.c
+--- a/sound/oss/cs46xx.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/cs46xx.c
+@@ -3048,10 +3048,9 @@ static int cs_open(struct inode *inode, 
+ 		CS_DBGOUT(CS_WAVE_READ, 2, printk("cs46xx: cs_open() FMODE_READ\n") );
+ 		if (card->states[0] == NULL) {
+ 			state = card->states[0] =
+-				kmalloc(sizeof(struct cs_state), GFP_KERNEL);
++				kzalloc(sizeof(struct cs_state), GFP_KERNEL);
+ 			if (state == NULL)
+ 				return -ENOMEM;
+-			memset(state, 0, sizeof(struct cs_state));
+ 			mutex_init(&state->sem);
+ 			dmabuf = &state->dmabuf;
+ 			dmabuf->pbuf = (void *)get_zeroed_page(GFP_KERNEL | GFP_DMA);
+@@ -3114,10 +3113,9 @@ static int cs_open(struct inode *inode, 
+ 		CS_DBGOUT(CS_OPEN, 2, printk("cs46xx: cs_open() FMODE_WRITE\n") );
+ 		if (card->states[1] == NULL) {
+ 			state = card->states[1] =
+-				kmalloc(sizeof(struct cs_state), GFP_KERNEL);
++				kzalloc(sizeof(struct cs_state), GFP_KERNEL);
+ 			if (state == NULL)
+ 				return -ENOMEM;
+-			memset(state, 0, sizeof(struct cs_state));
+ 			mutex_init(&state->sem);
+ 			dmabuf = &state->dmabuf;
+ 			dmabuf->pbuf = (void *)get_zeroed_page(GFP_KERNEL | GFP_DMA);
+@@ -5075,11 +5073,10 @@ static int __devinit cs46xx_probe(struct
+ 	pci_read_config_word(pci_dev, PCI_SUBSYSTEM_VENDOR_ID, &ss_vendor);
+ 	pci_read_config_word(pci_dev, PCI_SUBSYSTEM_ID, &ss_card);
+ 
+-	if ((card = kmalloc(sizeof(struct cs_card), GFP_KERNEL)) == NULL) {
++	if ((card = kzalloc(sizeof(struct cs_card), GFP_KERNEL)) == NULL) {
+ 		printk(KERN_ERR "cs46xx: out of memory\n");
+ 		return -ENOMEM;
+ 	}
+-	memset(card, 0, sizeof(*card));
+ 	card->ba0_addr = RSRCADDRESS(pci_dev, 0);
+ 	card->ba1_addr = RSRCADDRESS(pci_dev, 1);
+ 	card->pci_dev = pci_dev;
+diff -puN sound/oss/dmasound/dac3550a.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/dmasound/dac3550a.c
+--- a/sound/oss/dmasound/dac3550a.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/dmasound/dac3550a.c
+@@ -163,10 +163,9 @@ static int daca_detect_client(struct i2c
+ 	struct i2c_client *new_client;
+ 	int rc = -ENODEV;
+ 
+-	new_client = kmalloc(sizeof(*new_client), GFP_KERNEL);
++	new_client = kzalloc(sizeof(*new_client), GFP_KERNEL);
+ 	if (!new_client)
+ 		return -ENOMEM;
+-	memset(new_client, 0, sizeof(*new_client));
+ 
+ 	new_client->addr = address;
+ 	new_client->adapter = adapter;
+diff -puN sound/oss/dmasound/tas3001c.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/dmasound/tas3001c.c
+--- a/sound/oss/dmasound/tas3001c.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/dmasound/tas3001c.c
+@@ -807,10 +807,9 @@ tas3001c_init(struct i2c_client *client)
+ 	size_t sz = sizeof(*self) + (TAS3001C_REG_MAX*sizeof(tas_shadow_t));
+ 	int i, j;
+ 
+-	self = kmalloc(sz, GFP_KERNEL);
++	self = kzalloc(sz, GFP_KERNEL);
+ 	if (!self)
+ 		return -ENOMEM;
+-	memset(self, 0, sz);
+ 
+ 	self->super.client = client;
+ 	self->super.shadow = (tas_shadow_t *)(self+1);
+diff -puN sound/oss/dmasound/tas3004.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/dmasound/tas3004.c
+--- a/sound/oss/dmasound/tas3004.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/dmasound/tas3004.c
+@@ -1092,10 +1092,9 @@ tas3004_init(struct i2c_client *client)
+ 	char mcr2 = 0;
+ 	int i, j;
+ 
+-	self = kmalloc(sz, GFP_KERNEL);
++	self = kzalloc(sz, GFP_KERNEL);
+ 	if (!self)
+ 		return -ENOMEM;
+-	memset(self, 0, sz);
+ 
+ 	self->super.client = client;
+ 	self->super.shadow = (tas_shadow_t *)(self+1);
+diff -puN sound/oss/dmasound/tas_common.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/dmasound/tas_common.c
+--- a/sound/oss/dmasound/tas_common.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/dmasound/tas_common.c
+@@ -135,10 +135,9 @@ tas_detect_client(struct i2c_adapter *ad
+ 		return -ENODEV;
+ 	}
  	
- 	if (old_valid_dev(dev)) {
--		mk_fsid_v0(fsidv, dev, ino);
--		return exp_find_key(clp, 0, fsidv, NULL);
-+		mk_fsid(FSID_DEV, fsidv, dev, ino, 0, NULL);
-+		return exp_find_key(clp, FSID_DEV, fsidv, NULL);
- 	}
--	mk_fsid_v3(fsidv, dev, ino);
--	return exp_find_key(clp, 3, fsidv, NULL);
-+	mk_fsid(FSID_ENCODE_DEV, fsidv, dev, ino, 0, NULL);
-+	return exp_find_key(clp, FSID_ENCODE_DEV, fsidv, NULL);
- }
+-	new_client = kmalloc(sizeof(*new_client), GFP_KERNEL);
++	new_client = kzalloc(sizeof(*new_client), GFP_KERNEL);
+ 	if (!new_client)
+ 		return -ENOMEM;
+-	memset(new_client, 0, sizeof(*new_client));
  
- /*
-@@ -767,9 +799,9 @@ exp_get_fsid_key(svc_client *clp, int fs
+ 	new_client->addr = address;
+ 	new_client->adapter = adapter;
+diff -puN sound/oss/emu10k1/main.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/emu10k1/main.c
+--- a/sound/oss/emu10k1/main.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/emu10k1/main.c
+@@ -455,15 +455,13 @@ static int __devinit emu10k1_midi_init(s
  {
- 	u32 fsidv[2];
+ 	int ret;
  
--	mk_fsid_v1(fsidv, fsid);
-+	mk_fsid(FSID_NUM, fsidv, 0, 0, fsid, NULL);
+-	card->mpuout = kmalloc(sizeof(struct emu10k1_mpuout), GFP_KERNEL);
++	card->mpuout = kzalloc(sizeof(struct emu10k1_mpuout), GFP_KERNEL);
+ 	if (card->mpuout == NULL) {
+ 		printk(KERN_WARNING "emu10k1: Unable to allocate emu10k1_mpuout: out of memory\n");
+ 		ret = -ENOMEM;
+ 		goto err_out1;
+ 	}
  
--	return exp_find_key(clp, 1, fsidv, NULL);
-+	return exp_find_key(clp, FSID_NUM, fsidv, NULL);
- }
+-	memset(card->mpuout, 0, sizeof(struct emu10k1_mpuout));
+-
+ 	card->mpuout->intr = 1;
+ 	card->mpuout->status = FLAGS_AVAILABLE;
+ 	card->mpuout->state = CARDMIDIOUT_STATE_DEFAULT;
+@@ -472,15 +470,13 @@ static int __devinit emu10k1_midi_init(s
  
- svc_export *
-@@ -883,8 +915,8 @@ static int exp_fsid_hash(svc_client *clp
- 	if ((exp->ex_flags & NFSEXP_FSID) == 0)
+ 	spin_lock_init(&card->mpuout->lock);
+ 
+-	card->mpuin = kmalloc(sizeof(struct emu10k1_mpuin), GFP_KERNEL);
++	card->mpuin = kzalloc(sizeof(struct emu10k1_mpuin), GFP_KERNEL);
+ 	if (card->mpuin == NULL) {
+ 		printk(KERN_WARNING "emu10k1: Unable to allocate emu10k1_mpuin: out of memory\n");
+ 		ret = -ENOMEM;
+                 goto err_out2;
+ 	}
+ 
+-	memset(card->mpuin, 0, sizeof(struct emu10k1_mpuin));
+-
+ 	card->mpuin->status = FLAGS_AVAILABLE;
+ 
+ 	tasklet_init(&card->mpuin->tasklet, emu10k1_mpuin_bh, (unsigned long) card->mpuin);
+@@ -1280,11 +1276,10 @@ static int __devinit emu10k1_probe(struc
+ 
+ 	pci_set_master(pci_dev);
+ 
+-	if ((card = kmalloc(sizeof(struct emu10k1_card), GFP_KERNEL)) == NULL) {
++	if ((card = kzalloc(sizeof(struct emu10k1_card), GFP_KERNEL)) == NULL) {
+                 printk(KERN_ERR "emu10k1: out of memory\n");
+                 return -ENOMEM;
+         }
+-        memset(card, 0, sizeof(struct emu10k1_card));
+ 
+ 	card->iobase = pci_resource_start(pci_dev, 0);
+ 	card->length = pci_resource_len(pci_dev, 0); 
+diff -puN sound/oss/es1371.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/es1371.c
+--- a/sound/oss/es1371.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/es1371.c
+@@ -2871,11 +2871,10 @@ static int __devinit es1371_probe(struct
+ 		printk(KERN_WARNING "es1371: architecture does not support 32bit PCI busmaster DMA\n");
+ 		return i;
+ 	}
+-	if (!(s = kmalloc(sizeof(struct es1371_state), GFP_KERNEL))) {
++	if (!(s = kzalloc(sizeof(struct es1371_state), GFP_KERNEL))) {
+ 		printk(KERN_WARNING PFX "out of memory\n");
+ 		return -ENOMEM;
+ 	}
+-	memset(s, 0, sizeof(struct es1371_state));
+ 	
+ 	s->codec = ac97_alloc_codec();
+ 	if(s->codec == NULL)
+diff -puN sound/oss/hal2.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/hal2.c
+--- a/sound/oss/hal2.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/hal2.c
+@@ -1435,10 +1435,9 @@ static int hal2_init_card(struct hal2_ca
+ 	int ret = 0;
+ 	struct hal2_card *hal2;
+ 
+-	hal2 = kmalloc(sizeof(struct hal2_card), GFP_KERNEL);
++	hal2 = kzalloc(sizeof(struct hal2_card), GFP_KERNEL);
+ 	if (!hal2)
+ 		return -ENOMEM;
+-	memset(hal2, 0, sizeof(struct hal2_card));
+ 
+ 	hal2->ctl_regs = (struct hal2_ctl_regs *)hpc3->pbus_extregs[0];
+ 	hal2->aes_regs = (struct hal2_aes_regs *)hpc3->pbus_extregs[1];
+diff -puN sound/oss/i810_audio.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/i810_audio.c
+--- a/sound/oss/i810_audio.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/i810_audio.c
+@@ -2580,10 +2580,9 @@ static int i810_open(struct inode *inode
+ 		for (i = 0; i < NR_HW_CH && card && !card->initializing; i++) {
+ 			if (card->states[i] == NULL) {
+ 				state = card->states[i] = (struct i810_state *)
+-					kmalloc(sizeof(struct i810_state), GFP_KERNEL);
++					kzalloc(sizeof(struct i810_state), GFP_KERNEL);
+ 				if (state == NULL)
+ 					return -ENOMEM;
+-				memset(state, 0, sizeof(struct i810_state));
+ 				dmabuf = &state->dmabuf;
+ 				goto found_virt;
+ 			}
+@@ -3205,10 +3204,9 @@ static void __devinit i810_configure_clo
+ 	 */
+ 	if(card != NULL) {
+ 		state = card->states[0] = (struct i810_state *)
+-					kmalloc(sizeof(struct i810_state), GFP_KERNEL);
++					kzalloc(sizeof(struct i810_state), GFP_KERNEL);
+ 		if (state == NULL)
+ 			return;
+-		memset(state, 0, sizeof(struct i810_state));
+ 		dmabuf = &state->dmabuf;
+ 
+ 		dmabuf->write_channel = card->alloc_pcm_channel(card);
+@@ -3273,11 +3271,10 @@ static int __devinit i810_probe(struct p
+ 		return -ENODEV;
+ 	}
+ 	
+-	if ((card = kmalloc(sizeof(struct i810_card), GFP_KERNEL)) == NULL) {
++	if ((card = kzalloc(sizeof(struct i810_card), GFP_KERNEL)) == NULL) {
+ 		printk(KERN_ERR "i810_audio: out of memory\n");
+ 		return -ENOMEM;
+ 	}
+-	memset(card, 0, sizeof(*card));
+ 
+ 	card->initializing = 1;
+ 	card->pci_dev = pci_dev;
+diff -puN sound/oss/kahlua.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/kahlua.c
+--- a/sound/oss/kahlua.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/kahlua.c
+@@ -139,13 +139,12 @@ static int __devinit probe_one(struct pc
+ 	printk(KERN_INFO "kahlua: XpressAudio on IRQ %d, DMA %d, %d\n",
+ 		irq, dma8, dma16);
+ 	
+-	hw_config = kmalloc(sizeof(struct address_info), GFP_KERNEL);
++	hw_config = kzalloc(sizeof(struct address_info), GFP_KERNEL);
+ 	if(hw_config == NULL)
+ 	{
+ 		printk(KERN_ERR "kahlua: out of memory.\n");
+ 		return 1;
+ 	}
+-	memset(hw_config, 0, sizeof(*hw_config));
+ 	
+ 	pci_set_drvdata(pdev, hw_config);
+ 	
+diff -puN sound/oss/nec_vrc5477.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/nec_vrc5477.c
+--- a/sound/oss/nec_vrc5477.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/nec_vrc5477.c
+@@ -1860,11 +1860,10 @@ static int __devinit vrc5477_ac97_probe(
+ 	if (pcidev->irq == 0) 
+ 		return -1;
+ 
+-	if (!(s = kmalloc(sizeof(struct vrc5477_ac97_state), GFP_KERNEL))) {
++	if (!(s = kzalloc(sizeof(struct vrc5477_ac97_state), GFP_KERNEL))) {
+ 		printk(KERN_ERR PFX "alloc of device struct failed\n");
+ 		return -1;
+ 	}
+-	memset(s, 0, sizeof(struct vrc5477_ac97_state));
+ 
+ 	init_waitqueue_head(&s->dma_adc.wait);
+ 	init_waitqueue_head(&s->dma_dac.wait);
+diff -puN sound/oss/opl3.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/opl3.c
+--- a/sound/oss/opl3.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/opl3.c
+@@ -166,7 +166,7 @@ int opl3_detect(int ioaddr, int *osp)
  		return 0;
- 
--	mk_fsid_v1(fsid, exp->ex_fsid);
--	return exp_set_key(clp, 1, fsid, exp);
-+	mk_fsid(FSID_NUM, fsid, 0, 0, exp->ex_fsid, NULL);
-+	return exp_set_key(clp, FSID_NUM, fsid, exp);
- }
- 
- static int exp_hash(struct auth_domain *clp, struct svc_export *exp)
-@@ -894,11 +926,11 @@ static int exp_hash(struct auth_domain *
- 	dev_t dev = inode->i_sb->s_dev;
- 
- 	if (old_valid_dev(dev)) {
--		mk_fsid_v0(fsid, dev, inode->i_ino);
--		return exp_set_key(clp, 0, fsid, exp);
-+		mk_fsid(FSID_DEV, fsid, dev, inode->i_ino, 0, NULL);
-+		return exp_set_key(clp, FSID_DEV, fsid, exp);
- 	}
--	mk_fsid_v3(fsid, dev, inode->i_ino);
--	return exp_set_key(clp, 3, fsid, exp);
-+	mk_fsid(FSID_ENCODE_DEV, fsid, dev, inode->i_ino, 0, NULL);
-+	return exp_set_key(clp, FSID_ENCODE_DEV, fsid, exp);
- }
- 
- static void exp_unhash(struct svc_export *exp)
-@@ -977,7 +1009,7 @@ exp_export(struct nfsctl_export *nxp)
- 		goto finish;
  	}
  
--	err = check_export(nd.dentry->d_inode, nxp->ex_flags);
-+	err = check_export(nd.dentry->d_inode, nxp->ex_flags, NULL);
- 	if (err) goto finish;
+-	devc = kmalloc(sizeof(*devc), GFP_KERNEL);
++	devc = kzalloc(sizeof(*devc), GFP_KERNEL);
  
- 	err = -ENOMEM;
-@@ -1170,9 +1202,9 @@ exp_pseudoroot(struct auth_domain *clp, 
- 	__be32 rv;
- 	u32 fsidv[2];
- 
--	mk_fsid_v1(fsidv, 0);
-+	mk_fsid(FSID_NUM, fsidv, 0, 0, 0, NULL);
- 
--	exp = exp_find(clp, 1, fsidv, creq);
-+	exp = exp_find(clp, FSID_NUM, fsidv, creq);
- 	if (IS_ERR(exp))
- 		return nfserrno(PTR_ERR(exp));
- 	if (exp == NULL)
-diff -puN fs/nfsd/nfs3xdr.c~knfsd-add-some-new-fsid-types fs/nfsd/nfs3xdr.c
---- a/fs/nfsd/nfs3xdr.c~knfsd-add-some-new-fsid-types
-+++ a/fs/nfsd/nfs3xdr.c
-@@ -149,6 +149,27 @@ decode_sattr3(__be32 *p, struct iattr *i
- 	return p;
- }
- 
-+static __be32 *encode_fsid(__be32 *p, struct svc_fh *fhp)
-+{
-+	u64 f;
-+	switch(fsid_source(fhp)) {
-+	default:
-+	case FSIDSOURCE_DEV:
-+		p = xdr_encode_hyper(p, (u64)huge_encode_dev
-+				     (fhp->fh_dentry->d_inode->i_sb->s_dev));
-+		break;
-+	case FSIDSOURCE_FSID:
-+		p = xdr_encode_hyper(p, (u64) fhp->fh_export->ex_fsid);
-+		break;
-+	case FSIDSOURCE_UUID:
-+		f = ((u64*)fhp->fh_export->ex_uuid)[0];
-+		f ^= ((u64*)fhp->fh_export->ex_uuid)[1];
-+		p = xdr_encode_hyper(p, f);
-+		break;
-+	}
-+	return p;
-+}
-+
- static __be32 *
- encode_fattr3(struct svc_rqst *rqstp, __be32 *p, struct svc_fh *fhp,
- 	      struct kstat *stat)
-@@ -169,10 +190,7 @@ encode_fattr3(struct svc_rqst *rqstp, __
- 	p = xdr_encode_hyper(p, ((u64)stat->blocks) << 9);
- 	*p++ = htonl((u32) MAJOR(stat->rdev));
- 	*p++ = htonl((u32) MINOR(stat->rdev));
--	if (is_fsid(fhp, rqstp->rq_reffh))
--		p = xdr_encode_hyper(p, (u64) fhp->fh_export->ex_fsid);
--	else
--		p = xdr_encode_hyper(p, (u64) huge_encode_dev(stat->dev));
-+	p = encode_fsid(p, fhp);
- 	p = xdr_encode_hyper(p, (u64) stat->ino);
- 	p = encode_time3(p, &stat->atime);
- 	lease_get_mtime(dentry->d_inode, &time); 
-@@ -203,10 +221,7 @@ encode_saved_post_attr(struct svc_rqst *
- 	p = xdr_encode_hyper(p, ((u64)fhp->fh_post_blocks) << 9);
- 	*p++ = fhp->fh_post_rdev[0];
- 	*p++ = fhp->fh_post_rdev[1];
--	if (is_fsid(fhp, rqstp->rq_reffh))
--		p = xdr_encode_hyper(p, (u64) fhp->fh_export->ex_fsid);
--	else
--		p = xdr_encode_hyper(p, (u64)huge_encode_dev(inode->i_sb->s_dev));
-+	p = encode_fsid(p, fhp);
- 	p = xdr_encode_hyper(p, (u64) inode->i_ino);
- 	p = encode_time3(p, &fhp->fh_post_atime);
- 	p = encode_time3(p, &fhp->fh_post_mtime);
-diff -puN fs/nfsd/nfs4xdr.c~knfsd-add-some-new-fsid-types fs/nfsd/nfs4xdr.c
---- a/fs/nfsd/nfs4xdr.c~knfsd-add-some-new-fsid-types
-+++ a/fs/nfsd/nfs4xdr.c
-@@ -1563,14 +1563,20 @@ nfsd4_encode_fattr(struct svc_fh *fhp, s
- 		if (exp->ex_fslocs.migrated) {
- 			WRITE64(NFS4_REFERRAL_FSID_MAJOR);
- 			WRITE64(NFS4_REFERRAL_FSID_MINOR);
--		} else if (is_fsid(fhp, rqstp->rq_reffh)) {
-+		} else switch(fsid_source(fhp)) {
-+		case FSIDSOURCE_FSID:
- 			WRITE64((u64)exp->ex_fsid);
- 			WRITE64((u64)0);
--		} else {
-+			break;
-+		case FSIDSOURCE_DEV:
- 			WRITE32(0);
- 			WRITE32(MAJOR(stat.dev));
- 			WRITE32(0);
- 			WRITE32(MINOR(stat.dev));
-+			break;
-+		case FSIDSOURCE_UUID:
-+			WRITEMEM(exp->ex_uuid, 16);
-+			break;
- 		}
+ 	if (devc == NULL)
+ 	{
+@@ -175,7 +175,6 @@ int opl3_detect(int ioaddr, int *osp)
+ 		return 0;
  	}
- 	if (bmval0 & FATTR4_WORD0_UNIQUE_HANDLES) {
-diff -puN fs/nfsd/nfsfh.c~knfsd-add-some-new-fsid-types fs/nfsd/nfsfh.c
---- a/fs/nfsd/nfsfh.c~knfsd-add-some-new-fsid-types
-+++ a/fs/nfsd/nfsfh.c
-@@ -119,9 +119,6 @@ fh_verify(struct svc_rqst *rqstp, struct
  
- 	dprintk("nfsd: fh_verify(%s)\n", SVCFH_fmt(fhp));
+-	memset(devc, 0, sizeof(*devc));
+ 	strcpy(devc->fm_info.name, "OPL2");
  
--	/* keep this filehandle for possible reference  when encoding attributes */
--	rqstp->rq_reffh = fh;
--
- 	if (!fhp->fh_dentry) {
- 		__u32 *datap=NULL;
- 		__u32 tfh[3];		/* filehandle fragment for oldstyle filehandles */
-@@ -146,10 +143,10 @@ fh_verify(struct svc_rqst *rqstp, struct
- 			}
- 			len = key_len(fh->fh_fsid_type) / 4;
- 			if (len == 0) goto out;
--			if  (fh->fh_fsid_type == 2) {
-+			if  (fh->fh_fsid_type == FSID_MAJOR_MINOR) {
- 				/* deprecated, convert to type 3 */
--				len = 3;
--				fh->fh_fsid_type = 3;
-+				len = key_len(FSID_ENCODE_DEV)/4;
-+				fh->fh_fsid_type = FSID_ENCODE_DEV;
- 				fh->fh_fsid[0] = new_encode_dev(MKDEV(ntohl(fh->fh_fsid[0]), ntohl(fh->fh_fsid[1])));
- 				fh->fh_fsid[1] = fh->fh_fsid[2];
- 			}
-@@ -164,8 +161,9 @@ fh_verify(struct svc_rqst *rqstp, struct
- 			/* assume old filehandle format */
- 			xdev = old_decode_dev(fh->ofh_xdev);
- 			xino = u32_to_ino_t(fh->ofh_xino);
--			mk_fsid_v0(tfh, xdev, xino);
--			exp = exp_find(rqstp->rq_client, 0, tfh, &rqstp->rq_chandle);
-+			mk_fsid(FSID_DEV, tfh, xdev, xino, 0, NULL);
-+			exp = exp_find(rqstp->rq_client, FSID_DEV, tfh,
-+				       &rqstp->rq_chandle);
- 		}
- 
- 		if (IS_ERR(exp) && (PTR_ERR(exp) == -EAGAIN
-@@ -334,6 +332,7 @@ fh_compose(struct svc_fh *fhp, struct sv
- 	struct dentry *parent = dentry->d_parent;
- 	__u32 *datap;
- 	dev_t ex_dev = exp->ex_dentry->d_inode->i_sb->s_dev;
-+	int root_export = (exp->ex_dentry == exp->ex_dentry->d_sb->s_root);
- 
- 	dprintk("nfsd: fh_compose(exp %02x:%02x/%ld %s/%s, ino=%ld)\n",
- 		MAJOR(ex_dev), MINOR(ex_dev),
-@@ -348,19 +347,31 @@ fh_compose(struct svc_fh *fhp, struct sv
- 	if (ref_fh && ref_fh->fh_export == exp) {
- 		version = ref_fh->fh_handle.fh_version;
- 		if (version == 0xca)
--			fsid_type = 0;
-+			fsid_type = FSID_DEV;
- 		else
- 			fsid_type = ref_fh->fh_handle.fh_fsid_type;
- 		/* We know this version/type works for this export
- 		 * so there is no need for further checks.
- 		 */
-+	} else if (exp->ex_uuid) {
-+		if (fhp->fh_maxsize >= 64) {
-+			if (root_export)
-+				fsid_type = FSID_UUID16;
-+			else
-+				fsid_type = FSID_UUID16_INUM;
-+		} else {
-+			if (root_export)
-+				fsid_type = FSID_UUID8;
-+			else
-+				fsid_type = FSID_UUID4_INUM;
-+		}
- 	} else if (exp->ex_flags & NFSEXP_FSID)
--		fsid_type = 1;
-+		fsid_type = FSID_NUM;
- 	else if (!old_valid_dev(ex_dev))
- 		/* for newer device numbers, we must use a newer fsid format */
--		fsid_type = 3;
-+		fsid_type = FSID_ENCODE_DEV;
- 	else
--		fsid_type = 0;
-+		fsid_type = FSID_DEV;
- 
- 	if (ref_fh == fhp)
- 		fh_put(ref_fh);
-@@ -396,36 +407,10 @@ fh_compose(struct svc_fh *fhp, struct sv
- 		fhp->fh_handle.fh_auth_type = 0;
- 		datap = fhp->fh_handle.fh_auth+0;
- 		fhp->fh_handle.fh_fsid_type = fsid_type;
--		switch (fsid_type) {
--		case 0:
--			/*
--			 * fsid_type 0:
--			 * 2byte major, 2byte minor, 4byte inode
--			 */
--			mk_fsid_v0(datap, ex_dev,
--				   exp->ex_dentry->d_inode->i_ino);
--			break;
--		case 1:
--			/* fsid_type 1 == 4 bytes filesystem id */
--			mk_fsid_v1(datap, exp->ex_fsid);
--			break;
--		case 2:
--			/*
--			 * fsid_type 2:
--			 * 4byte major, 4byte minor, 4byte inode
--			 */
--			mk_fsid_v2(datap, ex_dev,
--				   exp->ex_dentry->d_inode->i_ino);
--			break;
--		case 3:
--			/*
--			 * fsid_type 3:
--			 * 4byte devicenumber, 4byte inode
--			 */
--			mk_fsid_v3(datap, ex_dev,
--				   exp->ex_dentry->d_inode->i_ino);
--			break;
--		}
-+		mk_fsid(fsid_type, datap, ex_dev,
-+			exp->ex_dentry->d_inode->i_ino,
-+			exp->ex_fsid, exp->ex_uuid);
-+
- 		len = key_len(fsid_type);
- 		datap += len/4;
- 		fhp->fh_handle.fh_size = 4 + len;
-@@ -530,3 +515,22 @@ char * SVCFH_fmt(struct svc_fh *fhp)
- 		fh->fh_base.fh_pad[5]);
- 	return buf;
- }
-+
-+enum fsid_source fsid_source(struct svc_fh *fhp)
-+{
-+	if (fhp->fh_handle.fh_version != 1)
-+		return FSIDSOURCE_DEV;
-+	switch(fhp->fh_handle.fh_fsid_type) {
-+	case FSID_DEV:
-+	case FSID_ENCODE_DEV:
-+	case FSID_MAJOR_MINOR:
-+		return FSIDSOURCE_DEV;
-+	case FSID_NUM:
-+		return FSIDSOURCE_FSID;
-+	default:
-+		if (fhp->fh_export->ex_flags & NFSEXP_FSID)
-+			return FSIDSOURCE_FSID;
-+		else
-+			return FSIDSOURCE_UUID;
-+	}
-+}
-diff -puN fs/nfsd/nfsxdr.c~knfsd-add-some-new-fsid-types fs/nfsd/nfsxdr.c
---- a/fs/nfsd/nfsxdr.c~knfsd-add-some-new-fsid-types
-+++ a/fs/nfsd/nfsxdr.c
-@@ -153,6 +153,7 @@ encode_fattr(struct svc_rqst *rqstp, __b
- 	struct dentry	*dentry = fhp->fh_dentry;
- 	int type;
- 	struct timespec time;
-+	u32 f;
- 
- 	type = (stat->mode & S_IFMT);
- 
-@@ -173,10 +174,22 @@ encode_fattr(struct svc_rqst *rqstp, __b
- 	else
- 		*p++ = htonl(0xffffffff);
- 	*p++ = htonl((u32) stat->blocks);
--	if (is_fsid(fhp, rqstp->rq_reffh))
--		*p++ = htonl((u32) fhp->fh_export->ex_fsid);
--	else
-+	switch (fsid_source(fhp)) {
-+	default:
-+	case FSIDSOURCE_DEV:
- 		*p++ = htonl(new_encode_dev(stat->dev));
-+		break;
-+	case FSIDSOURCE_FSID:
-+		*p++ = htonl((u32) fhp->fh_export->ex_fsid);
-+		break;
-+	case FSIDSOURCE_UUID:
-+		f = ((u32*)fhp->fh_export->ex_uuid)[0];
-+		f ^= ((u32*)fhp->fh_export->ex_uuid)[1];
-+		f ^= ((u32*)fhp->fh_export->ex_uuid)[2];
-+		f ^= ((u32*)fhp->fh_export->ex_uuid)[3];
-+		*p++ = htonl(f);
-+		break;
-+	}
- 	*p++ = htonl((u32) stat->ino);
- 	*p++ = htonl((u32) stat->atime.tv_sec);
- 	*p++ = htonl(stat->atime.tv_nsec ? stat->atime.tv_nsec / 1000 : 0);
-diff -puN include/linux/nfsd/export.h~knfsd-add-some-new-fsid-types include/linux/nfsd/export.h
---- a/include/linux/nfsd/export.h~knfsd-add-some-new-fsid-types
-+++ a/include/linux/nfsd/export.h
-@@ -74,19 +74,20 @@ struct svc_export {
- 	uid_t			ex_anon_uid;
- 	gid_t			ex_anon_gid;
- 	int			ex_fsid;
-+	unsigned char *		ex_uuid; /* 16 byte fsid */
- 	struct nfsd4_fs_locations ex_fslocs;
- };
- 
- /* an "export key" (expkey) maps a filehandlefragement to an
-- * svc_export for a given client.  There can be two per export, one
-- * for type 0 (dev/ino), one for type 1 (fsid)
-+ * svc_export for a given client.  There can be several per export,
-+ * for the different fsid types.
-  */
- struct svc_expkey {
- 	struct cache_head	h;
- 
- 	struct auth_domain *	ek_client;
- 	int			ek_fsidtype;
--	u32			ek_fsid[3];
-+	u32			ek_fsid[6];
- 
- 	struct vfsmount *	ek_mnt;
- 	struct dentry *		ek_dentry;
-diff -puN include/linux/nfsd/nfsd.h~knfsd-add-some-new-fsid-types include/linux/nfsd/nfsd.h
---- a/include/linux/nfsd/nfsd.h~knfsd-add-some-new-fsid-types
-+++ a/include/linux/nfsd/nfsd.h
-@@ -254,18 +254,6 @@ void		nfsd_lockd_shutdown(void);
-  */
- extern struct timeval	nfssvc_boot;
- 
--static inline int is_fsid(struct svc_fh *fh, struct knfsd_fh *reffh)
--{
--	if (fh->fh_export->ex_flags & NFSEXP_FSID) {
--		struct vfsmount *mnt = fh->fh_export->ex_mnt;
--		if (!old_valid_dev(mnt->mnt_sb->s_dev) ||
--		    (reffh->fh_version == 1 && reffh->fh_fsid_type == 1))
--			return 1;
--	}
--	return 0;
--}
--
--
- #ifdef CONFIG_NFSD_V4
- 
- /* before processing a COMPOUND operation, we have to check that there
-diff -puN include/linux/nfsd/nfsfh.h~knfsd-add-some-new-fsid-types include/linux/nfsd/nfsfh.h
---- a/include/linux/nfsd/nfsfh.h~knfsd-add-some-new-fsid-types
-+++ a/include/linux/nfsd/nfsfh.h
-@@ -165,38 +165,91 @@ typedef struct svc_fh {
- 
- } svc_fh;
- 
--static inline void mk_fsid_v0(u32 *fsidv, dev_t dev, ino_t ino)
--{
--	fsidv[0] = htonl((MAJOR(dev)<<16) |
--			MINOR(dev));
--	fsidv[1] = ino_t_to_u32(ino);
--}
--
--static inline void mk_fsid_v1(u32 *fsidv, u32 fsid)
--{
--	fsidv[0] = fsid;
--}
--
--static inline void mk_fsid_v2(u32 *fsidv, dev_t dev, ino_t ino)
--{
--	fsidv[0] = htonl(MAJOR(dev));
--	fsidv[1] = htonl(MINOR(dev));
--	fsidv[2] = ino_t_to_u32(ino);
--}
--
--static inline void mk_fsid_v3(u32 *fsidv, dev_t dev, ino_t ino)
--{
--	fsidv[0] = new_encode_dev(dev);
--	fsidv[1] = ino_t_to_u32(ino);
-+enum nfsd_fsid {
-+	FSID_DEV = 0,
-+	FSID_NUM,
-+	FSID_MAJOR_MINOR,
-+	FSID_ENCODE_DEV,
-+	FSID_UUID4_INUM,
-+	FSID_UUID8,
-+	FSID_UUID16,
-+	FSID_UUID16_INUM,
-+};
-+
-+enum fsid_source {
-+	FSIDSOURCE_DEV,
-+	FSIDSOURCE_FSID,
-+	FSIDSOURCE_UUID,
-+};
-+extern enum fsid_source fsid_source(struct svc_fh *fhp);
-+
-+
-+/* This might look a little large to "inline" but in all calls except
-+ * one, 'vers' is constant so moste of the function disappears.
-+ */
-+static inline void mk_fsid(int vers, u32 *fsidv, dev_t dev, ino_t ino,
-+			   u32 fsid, unsigned char *uuid)
-+{
-+	u32 *up;
-+	switch(vers) {
-+	case FSID_DEV:
-+		fsidv[0] = htonl((MAJOR(dev)<<16) |
-+				 MINOR(dev));
-+		fsidv[1] = ino_t_to_u32(ino);
-+		break;
-+	case FSID_NUM:
-+		fsidv[0] = fsid;
-+		break;
-+	case FSID_MAJOR_MINOR:
-+		fsidv[0] = htonl(MAJOR(dev));
-+		fsidv[1] = htonl(MINOR(dev));
-+		fsidv[2] = ino_t_to_u32(ino);
-+		break;
-+
-+	case FSID_ENCODE_DEV:
-+		fsidv[0] = new_encode_dev(dev);
-+		fsidv[1] = ino_t_to_u32(ino);
-+		break;
-+
-+	case FSID_UUID4_INUM:
-+		/* 4 byte fsid and inode number */
-+		up = (u32*)uuid;
-+		fsidv[0] = ino_t_to_u32(ino);
-+		fsidv[1] = up[0] ^ up[1] ^ up[2] ^ up[3];
-+		break;
-+
-+	case FSID_UUID8:
-+		/* 8 byte fsid  */
-+		up = (u32*)uuid;
-+		fsidv[0] = up[0] ^ up[2];
-+		fsidv[1] = up[1] ^ up[3];
-+		break;
-+
-+	case FSID_UUID16:
-+		/* 16 byte fsid - NFSv3+ only */
-+		memcpy(fsidv, uuid, 16);
-+		break;
-+
-+	case FSID_UUID16_INUM:
-+		/* 8 byte inode and 16 byte fsid */
-+		*(u64*)fsidv = (u64)ino;
-+		memcpy(fsidv+2, uuid, 16);
-+		break;
-+	default: BUG();
-+	}
- }
- 
- static inline int key_len(int type)
+ 	if (!request_region(ioaddr, 4, devc->fm_info.name)) {
+diff -puN sound/oss/sb_card.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/sb_card.c
+--- a/sound/oss/sb_card.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/sb_card.c
+@@ -137,11 +137,10 @@ static int __init sb_init_legacy(void)
  {
- 	switch(type) {
--	case 0: return 8;
--	case 1: return 4;
--	case 2: return 12;
--	case 3: return 8;
-+	case FSID_DEV:		return 8;
-+	case FSID_NUM: 		return 4;
-+	case FSID_MAJOR_MINOR:	return 12;
-+	case FSID_ENCODE_DEV:	return 8;
-+	case FSID_UUID4_INUM:	return 8;
-+	case FSID_UUID8:	return 8;
-+	case FSID_UUID16:	return 16;
-+	case FSID_UUID16_INUM:	return 24;
- 	default: return 0;
+ 	struct sb_module_options sbmo = {0};
+ 
+-	if((legacy = kmalloc(sizeof(struct sb_card_config), GFP_KERNEL)) == NULL) {
++	if((legacy = kzalloc(sizeof(struct sb_card_config), GFP_KERNEL)) == NULL) {
+ 		printk(KERN_ERR "sb: Error: Could not allocate memory\n");
+ 		return -ENOMEM;
  	}
- }
+-	memset(legacy, 0, sizeof(struct sb_card_config));
+ 
+ 	legacy->conf.io_base      = io;
+ 	legacy->conf.irq          = irq;
+@@ -247,11 +246,10 @@ static int sb_pnp_probe(struct pnp_card_
+ 		return -EBUSY;
+ 	}
+ 
+-	if((scc = kmalloc(sizeof(struct sb_card_config), GFP_KERNEL)) == NULL) {
++	if((scc = kzalloc(sizeof(struct sb_card_config), GFP_KERNEL)) == NULL) {
+ 		printk(KERN_ERR "sb: Error: Could not allocate memory\n");
+ 		return -ENOMEM;
+ 	}
+-	memset(scc, 0, sizeof(struct sb_card_config));
+ 
+ 	printk(KERN_INFO "sb: PnP: Found Card Named = \"%s\", Card PnP id = " \
+ 	       "%s, Device PnP id = %s\n", card->card->name, card_id->id,
+diff -puN sound/oss/swarm_cs4297a.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/swarm_cs4297a.c
+--- a/sound/oss/swarm_cs4297a.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/swarm_cs4297a.c
+@@ -616,25 +616,23 @@ static int init_serdma(serdma_t *dma)
+ 
+         /* Descriptors */
+         dma->ringsz = DMA_DESCR;
+-        dma->descrtab = kmalloc(dma->ringsz * sizeof(serdma_descr_t), GFP_KERNEL);
++        dma->descrtab = kzalloc(dma->ringsz * sizeof(serdma_descr_t), GFP_KERNEL);
+         if (!dma->descrtab) {
+-                printk(KERN_ERR "cs4297a: kmalloc descrtab failed\n");
++                printk(KERN_ERR "cs4297a: kzalloc descrtab failed\n");
+                 return -1;
+         }
+-        memset(dma->descrtab, 0, dma->ringsz * sizeof(serdma_descr_t));
+         dma->descrtab_end = dma->descrtab + dma->ringsz;
+ 	/* XXX bloddy mess, use proper DMA API here ...  */
+ 	dma->descrtab_phys = CPHYSADDR((long)dma->descrtab);
+         dma->descr_add = dma->descr_rem = dma->descrtab;
+ 
+         /* Frame buffer area */
+-        dma->dma_buf = kmalloc(DMA_BUF_SIZE, GFP_KERNEL);
++        dma->dma_buf = kzalloc(DMA_BUF_SIZE, GFP_KERNEL);
+         if (!dma->dma_buf) {
+-                printk(KERN_ERR "cs4297a: kmalloc dma_buf failed\n");
++                printk(KERN_ERR "cs4297a: kzalloc dma_buf failed\n");
+                 kfree(dma->descrtab);
+                 return -1;
+         }
+-        memset(dma->dma_buf, 0, DMA_BUF_SIZE);
+         dma->dma_buf_phys = CPHYSADDR((long)dma->dma_buf);
+ 
+         /* Samples buffer area */
+@@ -2619,12 +2617,11 @@ static int __init cs4297a_init(void)
+         udelay(100);
+ #endif
+ 
+-	if (!(s = kmalloc(sizeof(struct cs4297a_state), GFP_KERNEL))) {
++	if (!(s = kzalloc(sizeof(struct cs4297a_state), GFP_KERNEL))) {
+ 		CS_DBGOUT(CS_ERROR, 1, printk(KERN_ERR
+ 		      "cs4297a: probe() no memory for state struct.\n"));
+ 		return -1;
+ 	}
+-	memset(s, 0, sizeof(struct cs4297a_state));
+         s->magic = CS4297a_MAGIC;
+ 	init_waitqueue_head(&s->dma_adc.wait);
+ 	init_waitqueue_head(&s->dma_dac.wait);
+diff -puN sound/oss/trident.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/trident.c
+--- a/sound/oss/trident.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/trident.c
+@@ -2729,12 +2729,11 @@ trident_open(struct inode *inode, struct
+ 		}
+ 		for (i = 0; i < NR_HW_CH; i++) {
+ 			if (card->states[i] == NULL) {
+-				state = card->states[i] = kmalloc(sizeof(*state), GFP_KERNEL);
++				state = card->states[i] = kzalloc(sizeof(*state), GFP_KERNEL);
+ 				if (state == NULL) {
+ 					mutex_unlock(&card->open_mutex);
+ 					return -ENOMEM;
+ 				}
+-				memset(state, 0, sizeof(*state));
+ 				mutex_init(&state->sem);
+ 				dmabuf = &state->dmabuf;
+ 				goto found_virt;
+@@ -3618,7 +3617,7 @@ ali_allocate_other_states_resources(stru
+ 			}
+ 			return -EBUSY;
+ 		}
+-		s = card->states[i] = kmalloc(sizeof(*state), GFP_KERNEL);
++		s = card->states[i] = kzalloc(sizeof(*state), GFP_KERNEL);
+ 		if (!s) {
+ 			num = ali_multi_channels_5_1[state_count];
+ 			ali_free_pcm_channel(card, num);
+@@ -3630,7 +3629,6 @@ ali_allocate_other_states_resources(stru
+ 			}
+ 			return -ENOMEM;
+ 		}
+-		memset(s, 0, sizeof(*state));
+ 
+ 		s->dmabuf.channel = channel;
+ 		s->dmabuf.ossfragshift = s->dmabuf.ossmaxfrags =
+@@ -4399,11 +4397,10 @@ trident_probe(struct pci_dev *pci_dev, c
+ 	}
+ 
+ 	rc = -ENOMEM;
+-	if ((card = kmalloc(sizeof(*card), GFP_KERNEL)) == NULL) {
++	if ((card = kzalloc(sizeof(*card), GFP_KERNEL)) == NULL) {
+ 		printk(KERN_ERR "trident: out of memory\n");
+ 		goto out_release_region;
+ 	}
+-	memset(card, 0, sizeof (*card));
+ 
+ 	init_timer(&card->timer);
+ 	card->iobase = iobase;
+diff -puN sound/oss/waveartist.c~oss-replace-kmallocmemset-combos-with-kzalloc sound/oss/waveartist.c
+--- a/sound/oss/waveartist.c~oss-replace-kmallocmemset-combos-with-kzalloc
++++ a/sound/oss/waveartist.c
+@@ -1267,12 +1267,10 @@ static int __init waveartist_init(wavnc_
+ 	conf_printf2(dev_name, devc->hw.io_base, devc->hw.irq,
+ 		     devc->hw.dma, devc->hw.dma2);
+ 
+-	portc = kmalloc(sizeof(wavnc_port_info), GFP_KERNEL);
++	portc = kzalloc(sizeof(wavnc_port_info), GFP_KERNEL);
+ 	if (portc == NULL)
+ 		goto nomem;
+ 
+-	memset(portc, 0, sizeof(wavnc_port_info));
+-
+ 	my_dev = sound_install_audiodrv(AUDIO_DRIVER_VERSION, dev_name,
+ 			&waveartist_audio_driver, sizeof(struct audio_driver),
+ 			devc->audio_flags, AFMT_U8 | AFMT_S16_LE | AFMT_S8,
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-replace-highest_possible_node_id-with-nr_node_ids.patch
-convert-highest_possible_processor_id-to-nr_cpu_ids.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-knfsd-nfsd4-fix-non-terminated-string.patch
-knfsd-nfsd4-relax-checking-of-acl-inheritance-bits.patch
-knfsd-nfsd4-simplify-nfsv4-posix-translation.patch
-knfsd-nfsd4-represent-nfsv4-acl-with-array-instead-of-linked-list.patch
-knfsd-nfsd4-fix-memory-leak-on-kmalloc-failure-in-savemem.patch
-knfsd-nfsd4-fix-error-return-on-unsupported-acl.patch
-knfsd-nfsd4-acls-dont-return-explicit-mask.patch
-knfsd-nfsd4-acls-avoid-unnecessary-denies.patch
-knfsd-nfsd4-fix-handling-of-directories-without-default-acls.patch
-knfsd-stop-nfsd-writes-from-being-broken-into-lots-of-little-writes-to-filesystem.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+git-avr32.patch
+git-dvb.patch
+git-mips.patch
+git-netdev-all.patch
+remove-useless-find_first_bit-macro-from-cardbusc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
