@@ -1,49 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:38 -0800
-Message-ID: <200702150848.l1F8mccg025066@shell0.pdx.osdl.net>
+Subject: - sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:17 -0800
+Message-ID: <200702150849.l1F8nHCt025114@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40072 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40097 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965421AbXBOItL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:11 -0500
+	id S965417AbXBOItV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, acme@conectiva.com.br, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: dccp: remove unnecessary insert_at_head flag
+     sysctl: C99 Convert arch/ia64/sn/kernel/xpc_main.c
 has been removed from the -mm tree.  Its filename was
-     sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: dccp: remove unnecessary insert_at_head flag
+Subject: sysctl: C99 Convert arch/ia64/sn/kernel/xpc_main.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/dccp/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/sn/kernel/xpc_main.c |   86 +++++++++++++------------------
+ 1 file changed, 38 insertions(+), 48 deletions(-)
 
-diff -puN net/dccp/sysctl.c~sysctl-dccp-remove-unnecessary-insert_at_head-flag net/dccp/sysctl.c
---- a/net/dccp/sysctl.c~sysctl-dccp-remove-unnecessary-insert_at_head-flag
-+++ a/net/dccp/sysctl.c
-@@ -127,7 +127,7 @@ static struct ctl_table_header *dccp_tab
+diff -puN arch/ia64/sn/kernel/xpc_main.c~sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc arch/ia64/sn/kernel/xpc_main.c
+--- a/arch/ia64/sn/kernel/xpc_main.c~sysctl-c99-convert-arch-ia64-sn-kernel-xpc_mainc
++++ a/arch/ia64/sn/kernel/xpc_main.c
+@@ -101,67 +101,57 @@ static int xpc_disengage_request_max_tim
  
- int __init dccp_sysctl_init(void)
- {
--	dccp_table_header = register_sysctl_table(dccp_root_table, 1);
-+	dccp_table_header = register_sysctl_table(dccp_root_table, 0);
+ static ctl_table xpc_sys_xpc_hb_dir[] = {
+ 	{
+-		CTL_UNNUMBERED,
+-		"hb_interval",
+-		&xpc_hb_interval,
+-		sizeof(int),
+-		0644,
+-		NULL,
+-		&proc_dointvec_minmax,
+-		&sysctl_intvec,
+-		NULL,
+-		&xpc_hb_min_interval,
+-		&xpc_hb_max_interval
++		.ctl_name 	= CTL_UNNUMBERED,
++		.procname	= "hb_interval",
++		.data		= &xpc_hb_interval,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &xpc_hb_min_interval,
++		.extra2		= &xpc_hb_max_interval
+ 	},
+ 	{
+-		CTL_UNNUMBERED,
+-		"hb_check_interval",
+-		&xpc_hb_check_interval,
+-		sizeof(int),
+-		0644,
+-		NULL,
+-		&proc_dointvec_minmax,
+-		&sysctl_intvec,
+-		NULL,
+-		&xpc_hb_check_min_interval,
+-		&xpc_hb_check_max_interval
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "hb_check_interval",
++		.data		= &xpc_hb_check_interval,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &xpc_hb_check_min_interval,
++		.extra2		= &xpc_hb_check_max_interval
+ 	},
+-	{0}
++	{}
+ };
+ static ctl_table xpc_sys_xpc_dir[] = {
+ 	{
+-		CTL_UNNUMBERED,
+-		"hb",
+-		NULL,
+-		0,
+-		0555,
+-		xpc_sys_xpc_hb_dir
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "hb",
++		.mode		= 0555,
++		.child		= xpc_sys_xpc_hb_dir
+ 	},
+ 	{
+-		CTL_UNNUMBERED,
+-		"disengage_request_timelimit",
+-		&xpc_disengage_request_timelimit,
+-		sizeof(int),
+-		0644,
+-		NULL,
+-		&proc_dointvec_minmax,
+-		&sysctl_intvec,
+-		NULL,
+-		&xpc_disengage_request_min_timelimit,
+-		&xpc_disengage_request_max_timelimit
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "disengage_request_timelimit",
++		.data		= &xpc_disengage_request_timelimit,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &xpc_disengage_request_min_timelimit,
++		.extra2		= &xpc_disengage_request_max_timelimit
+ 	},
+-	{0}
++	{}
+ };
+ static ctl_table xpc_sys_dir[] = {
+ 	{
+-		CTL_UNNUMBERED,
+-		"xpc",
+-		NULL,
+-		0,
+-		0555,
+-		xpc_sys_xpc_dir
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "xpc",
++		.mode		= 0555,
++		.child		= xpc_sys_xpc_dir
+ 	},
+-	{0}
++	{}
+ };
+ static struct ctl_table_header *xpc_sysctl;
  
- 	return dccp_table_header != NULL ? 0 : -ENOMEM;
- }
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
