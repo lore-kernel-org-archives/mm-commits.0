@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-reiser4-remove-is_rdonly-checks.patch added to -mm tree
-Date: Wed, 14 Feb 2007 21:05:01 -0800
-Message-ID: <200702150505.l1F551F3020430@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch added to -mm tree
+Date: Wed, 14 Feb 2007 21:02:30 -0800
+Message-ID: <200702150502.l1F52Upj020342@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34887 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34901 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751511AbXBOFFN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 00:05:13 -0500
+	id S1751512AbXBOFFr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 00:05:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, miklos@szeredi.hu, vir
 
 
 The patch titled
-     r/o bind mounts: reiser4: remove IS_RDONLY() checks
+     r/o bind mounts: elevate mnt writers for callers of vfs_mkdir()
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-reiser4-remove-is_rdonly-checks.patch
+     r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,14 +25,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: reiser4: remove IS_RDONLY() checks
+Subject: r/o bind mounts: elevate mnt writers for callers of vfs_mkdir()
 From: Dave Hansen <hansendc@us.ibm.com>
 
-This removes all reiser4 users of IS_RDONLY() except for some assert()s, and
-reiser4_update_sd().
+elevate mnt writers for callers of vfs_mkdir()
 
-reiser4_update_sd()'s use appears pretty confined to places already covered by
-vfs calls which have already bumped the mnt writer count.
+Pretty self-explanatory.  Fits in with the rest of the series.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -41,22 +39,41 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/file.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/namei.c            |    5 +++++
+ fs/nfsd/nfs4recover.c |    4 ++++
+ 2 files changed, 9 insertions(+)
 
-diff -puN fs/reiser4/plugin/file/file.c~r-o-bind-mounts-reiser4-remove-is_rdonly-checks fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~r-o-bind-mounts-reiser4-remove-is_rdonly-checks
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -1815,7 +1815,8 @@ int mmap_unix_file(struct file *file, st
- 	down(&uf_info->write);
- 	get_exclusive_access(uf_info);
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
++++ a/fs/namei.c
+@@ -1959,7 +1959,12 @@ asmlinkage long sys_mkdirat(int dfd, con
  
--	if (!IS_RDONLY(inode) && (vma->vm_flags & (VM_MAYWRITE | VM_SHARED))) {
-+	if (!__mnt_is_readonly(file->f_vfsmnt) &&
-+	    (vma->vm_flags & (VM_MAYWRITE | VM_SHARED))) {
- 		/*
- 		 * we need file built of extent items. If it is still built of
- 		 * tail items we have to convert it. Find what items the file
+ 	if (!IS_POSIXACL(nd.dentry->d_inode))
+ 		mode &= ~current->fs->umask;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
+ 	error = vfs_mkdir(nd.dentry->d_inode, dentry, mode);
++	mnt_drop_write(nd.mnt);
++out_dput:
+ 	dput(dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/nfsd/nfs4recover.c
+--- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
++++ a/fs/nfsd/nfs4recover.c
+@@ -156,7 +156,11 @@ nfsd4_create_clid_dir(struct nfs4_client
+ 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
+ 		goto out_put;
+ 	}
++	status = mnt_want_write(rec_dir.mnt);
++	if (status)
++		goto out_put;
+ 	status = vfs_mkdir(rec_dir.dentry->d_inode, dentry, S_IRWXU);
++	mnt_drop_write(rec_dir.mnt);
+ out_put:
+ 	dput(dentry);
+ out_unlock:
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
