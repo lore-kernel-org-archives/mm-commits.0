@@ -1,60 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:47:01 -0800
-Message-ID: <200702150847.l1F8l1as024956@shell0.pdx.osdl.net>
+Subject: - qconf-back-button-behaviour-normalization.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:47:12 -0800
+Message-ID: <200702150847.l1F8lCSs024965@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39868 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39881 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965337AbXBOIrK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:47:10 -0500
+	id S965341AbXBOIrS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:47:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fzu@wemgehoertderstaat.de, randy.dunlap@oracle.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     qconf: immediately update integer and string values in xconfig display
+     qconf: Back button behaviour normalization
 has been removed from the -mm tree.  Its filename was
-     qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2.patch
+     qconf-back-button-behaviour-normalization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: qconf: immediately update integer and string values in xconfig display
-From: Karsten Wiese <fzu@wemgehoertderstaat.de>
+Subject: qconf: Back button behaviour normalization
+From: "Cyrill V. Gorcunov" <gorcunov@gmail.com>
 
-In xconfig's display integer and string values are also shown as part of
-the config item's descriptive text.
+Do "Back" button behaviour normalization so it is enabled starting from
+second-level menu only.
 
-This patch updates the descriptive text, when the corresponding value has
-been changed.  Fix for http://bugzilla.kernel.org/show_bug.cgi?id=7744
-
-Take2 uses updateList() so config values dependending on the changed value
-see the change.
-
-Signed-off-by: Karsten Wiese <fzu@wemgehoertderstaat.de>
+Signed-off-by: Cyrill V. Gorcunov <gorcunov@gmail.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/qconf.cc |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/kconfig/qconf.cc |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN scripts/kconfig/qconf.cc~qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2 scripts/kconfig/qconf.cc
---- a/scripts/kconfig/qconf.cc~qconf-immediately-update-integer-and-string-values-in-xconfig-display-take-2
+diff -puN scripts/kconfig/qconf.cc~qconf-back-button-behaviour-normalization scripts/kconfig/qconf.cc
+--- a/scripts/kconfig/qconf.cc~qconf-back-button-behaviour-normalization
 +++ a/scripts/kconfig/qconf.cc
-@@ -89,6 +89,7 @@ void ConfigItem::okRename(int col)
+@@ -1472,7 +1472,10 @@ void ConfigMainWindow::searchConfig(void
+ void ConfigMainWindow::changeMenu(struct menu *menu)
  {
- 	Parent::okRename(col);
- 	sym_set_string_value(menu->sym, text(dataColIdx).latin1());
-+	listView()->updateList(this);
+ 	configList->setRootMenu(menu);
+-	backAction->setEnabled(TRUE);
++	if (configList->rootEntry->parent == &rootmenu)
++		backAction->setEnabled(FALSE);
++	else
++		backAction->setEnabled(TRUE);
  }
- #endif
  
+ void ConfigMainWindow::setMenuLink(struct menu *menu)
 _
 
-Patches currently in -mm which might be from fzu@wemgehoertderstaat.de are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
