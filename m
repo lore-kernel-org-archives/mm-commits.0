@@ -1,226 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - fix-pnx8550-serial-breakage.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:47:35 -0800
-Message-ID: <200702150847.l1F8lZcO024992@shell0.pdx.osdl.net>
+Subject: - sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:50:56 -0800
+Message-ID: <200702150850.l1F8ouNV025263@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40246 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40249 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965520AbXBOIu4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:50:56 -0500
+	id S965522AbXBOIu5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:50:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitalywool@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix PNX8550 serial breakage
+     sysctl: hide the sysctl proc inodes from selinux
 has been removed from the -mm tree.  Its filename was
-     fix-pnx8550-serial-breakage.patch
+     sysctl-hide-the-sysctl-proc-inodes-from-selinux.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix PNX8550 serial breakage
-From: Vitaly Wool <vitalywool@gmail.com>
+Subject: sysctl: hide the sysctl proc inodes from selinux
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Fix the serial header breakage for the PNX8550 MIPS platform.
+Since the security checks are applied on each read and write of a sysctl file,
+just like they are applied when calling sys_sysctl, they are redundant on the
+standard VFS constructs.  Since it is difficult to compute the security labels
+on the standard VFS constructs we just mark the sysctl inodes in proc private
+so selinux won't even bother with them.
 
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/serial_core.h    |    2 
- include/linux/serial_ip3106.h  |   81 -------------------------------
- include/linux/serial_pnx8xxx.h |   81 +++++++++++++++++++++++++++++++
- 3 files changed, 82 insertions(+), 82 deletions(-)
+ fs/proc/proc_sysctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/serial_core.h~fix-pnx8550-serial-breakage include/linux/serial_core.h
---- a/include/linux/serial_core.h~fix-pnx8550-serial-breakage
-+++ a/include/linux/serial_core.h
-@@ -122,7 +122,7 @@
- /*Digi jsm */
- #define PORT_JSM        69
- 
--#define PORT_IP3106	70
-+#define PORT_PNX8XXX	70
- 
- /* Hilscher netx */
- #define PORT_NETX	71
-diff -puN include/linux/serial_ip3106.h~fix-pnx8550-serial-breakage /dev/null
---- a/include/linux/serial_ip3106.h
-+++ /dev/null
-@@ -1,81 +0,0 @@
--/*
-- * Embedded Alley Solutions, source@embeddedalley.com.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- */
--
--#ifndef _LINUX_SERIAL_IP3106_H
--#define _LINUX_SERIAL_IP3106_H
--
--#include <linux/serial_core.h>
--#include <linux/device.h>
--
--#define IP3106_NR_PORTS		2
--
--struct ip3106_port {
--	struct uart_port	port;
--	struct timer_list	timer;
--	unsigned int		old_status;
--};
--
--/* register offsets */
--#define IP3106_LCR		0
--#define IP3106_MCR		0x004
--#define IP3106_BAUD		0x008
--#define IP3106_CFG		0x00c
--#define IP3106_FIFO		0x028
--#define IP3106_ISTAT		0xfe0
--#define IP3106_IEN		0xfe4
--#define IP3106_ICLR		0xfe8
--#define IP3106_ISET		0xfec
--#define IP3106_PD		0xff4
--#define IP3106_MID		0xffc
--
--#define IP3106_UART_LCR_TXBREAK		(1<<30)
--#define IP3106_UART_LCR_PAREVN		0x10000000
--#define IP3106_UART_LCR_PAREN		0x08000000
--#define IP3106_UART_LCR_2STOPB		0x04000000
--#define IP3106_UART_LCR_8BIT		0x01000000
--#define IP3106_UART_LCR_TX_RST		0x00040000
--#define IP3106_UART_LCR_RX_RST		0x00020000
--#define IP3106_UART_LCR_RX_NEXT		0x00010000
--
--#define IP3106_UART_MCR_SCR		0xFF000000
--#define IP3106_UART_MCR_DCD		0x00800000
--#define IP3106_UART_MCR_CTS		0x00100000
--#define IP3106_UART_MCR_LOOP		0x00000010
--#define IP3106_UART_MCR_RTS		0x00000002
--#define IP3106_UART_MCR_DTR		0x00000001
--
--#define IP3106_UART_INT_TX		0x00000080
--#define IP3106_UART_INT_EMPTY		0x00000040
--#define IP3106_UART_INT_RCVTO		0x00000020
--#define IP3106_UART_INT_RX		0x00000010
--#define IP3106_UART_INT_RXOVRN		0x00000008
--#define IP3106_UART_INT_FRERR		0x00000004
--#define IP3106_UART_INT_BREAK		0x00000002
--#define IP3106_UART_INT_PARITY		0x00000001
--#define IP3106_UART_INT_ALLRX		0x0000003F
--#define IP3106_UART_INT_ALLTX		0x000000C0
--
--#define IP3106_UART_FIFO_TXFIFO		0x001F0000
--#define IP3106_UART_FIFO_TXFIFO_STA	(0x1f<<16)
--#define IP3106_UART_FIFO_RXBRK		0x00008000
--#define IP3106_UART_FIFO_RXFE		0x00004000
--#define IP3106_UART_FIFO_RXPAR		0x00002000
--#define IP3106_UART_FIFO_RXFIFO		0x00001F00
--#define IP3106_UART_FIFO_RBRTHR		0x000000FF
--
--#endif
-diff -puN /dev/null include/linux/serial_pnx8xxx.h
---- /dev/null
-+++ a/include/linux/serial_pnx8xxx.h
-@@ -0,0 +1,81 @@
-+/*
-+ * Embedded Alley Solutions, source@embeddedalley.com.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#ifndef _LINUX_SERIAL_PNX8XXX_H
-+#define _LINUX_SERIAL_PNX8XXX_H
-+
-+#include <linux/serial_core.h>
-+#include <linux/device.h>
-+
-+#define PNX8XXX_NR_PORTS	2
-+
-+struct pnx8xxx_port {
-+	struct uart_port	port;
-+	struct timer_list	timer;
-+	unsigned int		old_status;
-+};
-+
-+/* register offsets */
-+#define PNX8XXX_LCR		0
-+#define PNX8XXX_MCR		0x004
-+#define PNX8XXX_BAUD		0x008
-+#define PNX8XXX_CFG		0x00c
-+#define PNX8XXX_FIFO		0x028
-+#define PNX8XXX_ISTAT		0xfe0
-+#define PNX8XXX_IEN		0xfe4
-+#define PNX8XXX_ICLR		0xfe8
-+#define PNX8XXX_ISET		0xfec
-+#define PNX8XXX_PD		0xff4
-+#define PNX8XXX_MID		0xffc
-+
-+#define PNX8XXX_UART_LCR_TXBREAK	(1<<30)
-+#define PNX8XXX_UART_LCR_PAREVN		0x10000000
-+#define PNX8XXX_UART_LCR_PAREN		0x08000000
-+#define PNX8XXX_UART_LCR_2STOPB		0x04000000
-+#define PNX8XXX_UART_LCR_8BIT		0x01000000
-+#define PNX8XXX_UART_LCR_TX_RST		0x00040000
-+#define PNX8XXX_UART_LCR_RX_RST		0x00020000
-+#define PNX8XXX_UART_LCR_RX_NEXT	0x00010000
-+
-+#define PNX8XXX_UART_MCR_SCR		0xFF000000
-+#define PNX8XXX_UART_MCR_DCD		0x00800000
-+#define PNX8XXX_UART_MCR_CTS		0x00100000
-+#define PNX8XXX_UART_MCR_LOOP		0x00000010
-+#define PNX8XXX_UART_MCR_RTS		0x00000002
-+#define PNX8XXX_UART_MCR_DTR		0x00000001
-+
-+#define PNX8XXX_UART_INT_TX		0x00000080
-+#define PNX8XXX_UART_INT_EMPTY		0x00000040
-+#define PNX8XXX_UART_INT_RCVTO		0x00000020
-+#define PNX8XXX_UART_INT_RX		0x00000010
-+#define PNX8XXX_UART_INT_RXOVRN		0x00000008
-+#define PNX8XXX_UART_INT_FRERR		0x00000004
-+#define PNX8XXX_UART_INT_BREAK		0x00000002
-+#define PNX8XXX_UART_INT_PARITY		0x00000001
-+#define PNX8XXX_UART_INT_ALLRX		0x0000003F
-+#define PNX8XXX_UART_INT_ALLTX		0x000000C0
-+
-+#define PNX8XXX_UART_FIFO_TXFIFO	0x001F0000
-+#define PNX8XXX_UART_FIFO_TXFIFO_STA	(0x1f<<16)
-+#define PNX8XXX_UART_FIFO_RXBRK		0x00008000
-+#define PNX8XXX_UART_FIFO_RXFE		0x00004000
-+#define PNX8XXX_UART_FIFO_RXPAR		0x00002000
-+#define PNX8XXX_UART_FIFO_RXFIFO	0x00001F00
-+#define PNX8XXX_UART_FIFO_RBRTHR	0x000000FF
-+
-+#endif
+diff -puN fs/proc/proc_sysctl.c~sysctl-hide-the-sysctl-proc-inodes-from-selinux fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~sysctl-hide-the-sysctl-proc-inodes-from-selinux
++++ a/fs/proc/proc_sysctl.c
+@@ -47,6 +47,7 @@ static struct inode *proc_sys_make_inode
+ 	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
+ 	inode->i_op = &proc_sys_inode_operations;
+ 	inode->i_fop = &proc_sys_file_operations;
++	inode->i_flags |= S_PRIVATE; /* tell selinux to ignore this inode */
+ 	proc_sys_refresh_inode(inode, table);
+ out:
+ 	return inode;
 _
 
-Patches currently in -mm which might be from vitalywool@gmail.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-8250-make-probing-for-txen-bug-a-config-option.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+git-v9fs.patch
+x86_64-irq-simplfy-__assign_irq_vector.patch
+x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+allow-access-to-proc-pid-fd-after-setuid-update-2.patch
+shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
+i386-apic-clean-up-the-apic-code.patch
+i386-rework-local-apic-timer-calibration.patch
+i386-prepare-nmi-watchdog-for-dynticks.patch
+edac-k8-driver-coding-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
