@@ -1,66 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - usb-mass-storage-us_fl_ignore_residue-needed-for-aiptek-mp3-player.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:51:34 -0800
-Message-ID: <200702150851.l1F8pYMv025302@shell0.pdx.osdl.net>
+Subject: - bugfixes-pci-devices-get-assigned-redundant-irqs.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:51:17 -0800
+Message-ID: <200702150851.l1F8pHci025287@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40331 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40332 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965550AbXBOIvo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:51:44 -0500
+	id S965551AbXBOIvp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:51:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: d13f00l@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: andreas.block@esd-electronics.com, ebiederm@xmission.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB MASS STORAGE: US_FL_IGNORE_RESIDUE needed for Aiptek MP3 Player
+     Bugfixes: PCI devices get assigned redundant IRQs
 has been removed from the -mm tree.  Its filename was
-     usb-mass-storage-us_fl_ignore_residue-needed-for-aiptek-mp3-player.patch
+     bugfixes-pci-devices-get-assigned-redundant-irqs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB MASS STORAGE: US_FL_IGNORE_RESIDUE needed for Aiptek MP3 Player
-From: Dylan Taft <d13f00l@gmail.com>
+Subject: Bugfixes: PCI devices get assigned redundant IRQs
+From: "Andreas Block" <andreas.block@esd-electronics.com>
 
-Device will not work as a mass storage device without US_FL_IGNORE_RESIDUE.
+I'm currently working on a port to a CPCI board with a MPC5200.  When
+testing the PCI interrupt routing, I discovered the following: Even devices
+which don't use interrupts (-> PCI Spec.: Interrupt Pin Register is zero),
+get an interrupt assigned (this is at least true for most of the
+PPC-targets I looked at).
 
-I bought this mp3 player that takes SD cards here
+The cause is pretty obvious in drivers/pci/setup-irq.c.  I guess at least
+in an ideal world with correctly designed hardware, the code should rather
+look as in the patch below.
 
-http://www.aiptek.com/Merchant2/merchant.mvc?Screen=PROD&Product_Code=AX4&Category_Code=MP3&Store_Code=AS
+Of course it doesn't hurt anybody to have an unuseable IRQ assigned to a
+PCI-to-PCI-bridge (or something alike), but to me it seems a bit strange. 
+Please correct me, if I'm mislead.
 
-I can provide the errors in dmesg, if necessary, but this flag was
-determined as necessary by doing a quick google on the errors that were
-shown in dmesg.
+The patch below is tested on the above mentioned CPCI-MPC5200 board and is
+compiler tested with the latest git-repository kernel on x86.
 
-Signed-off-by: Dylan Taft <d13f00l@gmail.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Linus Torvalds <torvalds@osdl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/unusual_devs.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/pci/setup-irq.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN drivers/usb/storage/unusual_devs.h~usb-mass-storage-us_fl_ignore_residue-needed-for-aiptek-mp3-player drivers/usb/storage/unusual_devs.h
---- a/drivers/usb/storage/unusual_devs.h~usb-mass-storage-us_fl_ignore_residue-needed-for-aiptek-mp3-player
-+++ a/drivers/usb/storage/unusual_devs.h
-@@ -1108,6 +1108,15 @@ UNUSUAL_DEV(  0x08bd, 0x1100, 0x0000, 0x
- 		US_SC_DEVICE, US_PR_DEVICE, NULL,
- 		US_FL_SINGLE_LUN),
+diff -puN drivers/pci/setup-irq.c~bugfixes-pci-devices-get-assigned-redundant-irqs drivers/pci/setup-irq.c
+--- a/drivers/pci/setup-irq.c~bugfixes-pci-devices-get-assigned-redundant-irqs
++++ a/drivers/pci/setup-irq.c
+@@ -24,7 +24,7 @@ pdev_fixup_irq(struct pci_dev *dev,
+ 	       int (*map_irq)(struct pci_dev *, u8, u8))
+ {
+ 	u8 pin, slot;
+-	int irq;
++	int irq = 0;
  
-+/* Submitted by Dylan Taft <d13f00l@gmail.com>
-+ * US_FL_IGNORE_RESIDUE Needed
-+ */
-+UNUSUAL_DEV(  0x08ca, 0x3103, 0x0100, 0x0100,
-+                "AIPTEK",
-+                "Aiptek USB Keychain MP3 Player",
-+                US_SC_DEVICE, US_PR_DEVICE, NULL,
-+                US_FL_IGNORE_RESIDUE),
+ 	/* If this device is not on the primary bus, we need to figure out
+ 	   which interrupt pin it will come in on.   We know which slot it
+@@ -33,16 +33,18 @@ pdev_fixup_irq(struct pci_dev *dev,
+ 	   apply the swizzle function.  */
+ 
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
+-	/* Cope with 0 and illegal. */
+-	if (pin == 0 || pin > 4)
++	/* Cope with illegal. */
++	if (pin > 4)
+ 		pin = 1;
+ 
+-	/* Follow the chain of bridges, swizzling as we go.  */
+-	slot = (*swizzle)(dev, &pin);
+-
+-	irq = (*map_irq)(dev, slot, pin);
+-	if (irq == -1)
+-		irq = 0;
++	if (pin != 0) {
++		/* Follow the chain of bridges, swizzling as we go.  */
++		slot = (*swizzle)(dev, &pin);
 +
- /* Entry needed for flags. Moreover, all devices with this ID use
-  * bulk-only transport, but _some_ falsely report Control/Bulk instead.
-  * One example is "Trumpion Digital Research MYMP3".
++		irq = (*map_irq)(dev, slot, pin);
++		if (irq == -1)
++			irq = 0;
++	}
+ 	dev->irq = irq;
+ 
+ 	pr_debug("PCI: fixup irq: (%s) got %d\n",
 _
 
-Patches currently in -mm which might be from d13f00l@gmail.com are
+Patches currently in -mm which might be from andreas.block@esd-electronics.com are
