@@ -1,111 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:41 -0800
-Message-ID: <200702150849.l1F8nf9i025150@shell0.pdx.osdl.net>
+Subject: - sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:35 -0800
+Message-ID: <200702150849.l1F8nZ6e025140@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40129 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40119 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965469AbXBOItp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:45 -0500
+	id S965461AbXBOItj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: C99 convert arch/sh64/kernel/traps.c and remove ABI breakage
+     sysctl: C99 convert ctl_tables in arch/powerpc/kernel/idle.c
 has been removed from the -mm tree.  Its filename was
-     sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage.patch
+     sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert arch/sh64/kernel/traps.c and remove ABI breakage
+Subject: sysctl: C99 convert ctl_tables in arch/powerpc/kernel/idle.c
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-While doing the C99 conversion I notices that the top level sh64 directory was
-using the binary number for CTL_KERN.  That is a no-no so I removed the
-support for the sysctl binary interface only leaving sysctl /proc support.
-
-At least the sysctl tables were placed at the end of the list so user space
-did not see this mistake.
+This was partially done already and there was no ABI breakage what a relief.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh64/kernel/traps.c |   49 ++++++++++++++++++++++++++++---------
- 1 file changed, 38 insertions(+), 11 deletions(-)
+ arch/powerpc/kernel/idle.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN arch/sh64/kernel/traps.c~sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage arch/sh64/kernel/traps.c
---- a/arch/sh64/kernel/traps.c~sysctl-c99-convert-arch-sh64-kernel-trapsc-and-remove-abi-breakage
-+++ a/arch/sh64/kernel/traps.c
-@@ -910,25 +910,52 @@ static int misaligned_fixup(struct pt_re
- }
- 
- static ctl_table unaligned_table[] = {
--	{1, "kernel_reports", &kernel_mode_unaligned_fixup_count,
--		sizeof(int), 0644, NULL, &proc_dointvec},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "kernel_reports",
-+		.data		= &kernel_mode_unaligned_fixup_count,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec
-+	},
- #if defined(CONFIG_SH64_USER_MISALIGNED_FIXUP)
--	{2, "user_reports", &user_mode_unaligned_fixup_count,
--		sizeof(int), 0644, NULL, &proc_dointvec},
--	{3, "user_enable", &user_mode_unaligned_fixup_enable,
--		sizeof(int), 0644, NULL, &proc_dointvec},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "user_reports",
-+		.data		= &user_mode_unaligned_fixup_count,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec
-+	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "user_enable",
-+		.data		= &user_mode_unaligned_fixup_enable,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec},
- #endif
--	{0}
+diff -puN arch/powerpc/kernel/idle.c~sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec arch/powerpc/kernel/idle.c
+--- a/arch/powerpc/kernel/idle.c~sysctl-c99-convert-ctl_tables-in-arch-powerpc-kernel-idlec
++++ a/arch/powerpc/kernel/idle.c
+@@ -110,11 +110,16 @@ static ctl_table powersave_nap_ctl_table
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+-	{ 0, },
 +	{}
  };
- 
- static ctl_table unaligned_root[] = {
--	{1, "unaligned_fixup", NULL, 0, 0555, unaligned_table},
--	{0}
+ static ctl_table powersave_nap_sysctl_root[] = {
+-	{ 1, "kernel", NULL, 0, 0755, powersave_nap_ctl_table, },
+- 	{ 0,},
 +	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "unaligned_fixup",
-+		.mode		= 0555,
-+		unaligned_table
++		.ctl_name	= CTL_KERN,
++		.procname	= "kernel",
++		.mode		= 0755,
++		.child		= powersave_nap_ctl_table,
 +	},
 +	{}
  };
  
- static ctl_table sh64_root[] = {
--	{1, "sh64", NULL, 0, 0555, unaligned_root},
--	{0}
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "sh64",
-+		.mode		= 0555,
-+		.child		= unaligned_root
-+	},
-+	{}
- };
- static struct ctl_table_header *sysctl_header;
- static int __init init_sysctl(void)
+ static int __init
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
