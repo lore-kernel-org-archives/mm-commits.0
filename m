@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-writer-count-for-custom-struct_file.patch added to -mm tree
-Date: Wed, 14 Feb 2007 21:03:02 -0800
-Message-ID: <200702150503.l1F53253020392@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch added to -mm tree
+Date: Wed, 14 Feb 2007 21:02:50 -0800
+Message-ID: <200702150502.l1F52oIe020372@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34982 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34989 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751571AbXBOFJu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 00:09:50 -0500
+	id S1751573AbXBOFKE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 00:10:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, miklos@szeredi.hu, vir
 
 
 The patch titled
-     r/o bind mounts: elevate writer count for custom struct_file
+     r/o bind mounts: elevate writer count for do_sys_truncate()
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-writer-count-for-custom-struct_file.patch
+     r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,13 +25,8 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate writer count for custom struct_file
+Subject: r/o bind mounts: elevate writer count for do_sys_truncate()
 From: Dave Hansen <hansendc@us.ibm.com>
-
-Some filesystems forego the use of normal vfs calls to create struct files. 
-Make sure that these users elevate the mnt writer count.  These probably don't
-have any real meaning because there is no real backing store for these mounts,
-but it is here for consistency.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -40,23 +35,57 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/open.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN fs/file_table.c~r-o-bind-mounts-elevate-writer-count-for-custom-struct_file fs/file_table.c
---- a/fs/file_table.c~r-o-bind-mounts-elevate-writer-count-for-custom-struct_file
-+++ a/fs/file_table.c
-@@ -170,6 +170,10 @@ int init_file(struct file *file, struct 
- 	file->f_mapping = dentry->d_inode->i_mapping;
- 	file->f_mode = mode;
- 	file->f_op = fop;
-+	if (mode & FMODE_WRITE) {
-+		error = mnt_want_write(mnt);
-+		WARN_ON(error);
-+	}
- 	return error;
- }
+diff -puN fs/open.c~r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate fs/open.c
+--- a/fs/open.c~r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate
++++ a/fs/open.c
+@@ -241,28 +241,28 @@ static long do_sys_truncate(const char _
+ 	if (!S_ISREG(inode->i_mode))
+ 		goto dput_and_out;
  
+-	error = vfs_permission(&nd, MAY_WRITE);
++	error = mnt_want_write(nd.mnt);
+ 	if (error)
+ 		goto dput_and_out;
+ 
+-	error = -EROFS;
+-	if (IS_RDONLY(inode))
+-		goto dput_and_out;
++	error = vfs_permission(&nd, MAY_WRITE);
++	if (error)
++		goto mnt_drop_write_and_out;
+ 
+ 	error = -EPERM;
+ 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+-		goto dput_and_out;
++		goto mnt_drop_write_and_out;
+ 
+ 	/*
+ 	 * Make sure that there are no leases.
+ 	 */
+ 	error = break_lease(inode, FMODE_WRITE);
+ 	if (error)
+-		goto dput_and_out;
++		goto mnt_drop_write_and_out;
+ 
+ 	error = get_write_access(inode);
+ 	if (error)
+-		goto dput_and_out;
++		goto mnt_drop_write_and_out;
+ 
+ 	error = locks_verify_truncate(inode, NULL, length);
+ 	if (!error) {
+@@ -271,6 +271,8 @@ static long do_sys_truncate(const char _
+ 	}
+ 	put_write_access(inode);
+ 
++mnt_drop_write_and_out:
++	mnt_drop_write(nd.mnt);
+ dput_and_out:
+ 	path_release(&nd);
+ out:
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
