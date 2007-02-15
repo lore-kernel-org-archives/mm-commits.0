@@ -1,61 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - input-hid-add-cidc-usb-device-to-hid-blacklist.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:51:28 -0800
-Message-ID: <200702150851.l1F8pSSE025299@shell0.pdx.osdl.net>
+Subject: - cleanup-paravirt-unhandled-fallthrough.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:52:08 -0800
+Message-ID: <200702150852.l1F8q82l025348@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40404 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40388 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965586AbXBOIwc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:52:32 -0500
+	id S965571AbXBOIwR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:52:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhengxiaojun@hsic.com.cn, dtor@mail.ru, greg@kroah.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: HID: add CIDC USB device to HID blacklist
+     cleanup: paravirt unhandled fallthrough
 has been removed from the -mm tree.  Its filename was
-     input-hid-add-cidc-usb-device-to-hid-blacklist.patch
+     cleanup-paravirt-unhandled-fallthrough.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: input: HID: add CIDC USB device to HID blacklist
-From: Zheng XiaoJun <zhengxiaojun@hsic.com.cn>
+Subject: cleanup: paravirt unhandled fallthrough
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Add CIDC USB device to HID blacklist since it is actually a USB token
-and has its own driver.
+The current code simply calls "start_kernel" directly if we're under a
+hypervisor and no paravirt_ops backend wants us, because paravirt.c registers
+that as a backend.
 
-Signed-off-by: Zheng XiaoJun <zhengxiaojun@hsic.com.cn>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Greg KH <greg@kroah.com>
+This was always a vain hope; start_kernel won't get far without setup.  It's
+also impossible for paravirt_ops backends which don't sit in the
+arch/i386/kernel directory: they can't link before paravirt.o anyway.
+
+Keep it simple: if we pass all the registered paravirt probes, BUG().
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/input/hid-core.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/i386/kernel/Makefile   |    2 --
+ arch/i386/kernel/head.S     |    7 ++++++-
+ arch/i386/kernel/paravirt.c |    3 ---
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/usb/input/hid-core.c~input-hid-add-cidc-usb-device-to-hid-blacklist drivers/usb/input/hid-core.c
---- a/drivers/usb/input/hid-core.c~input-hid-add-cidc-usb-device-to-hid-blacklist
-+++ a/drivers/usb/input/hid-core.c
-@@ -516,6 +516,7 @@ void usbhid_close(struct hid_device *hid
+diff -puN arch/i386/kernel/Makefile~cleanup-paravirt-unhandled-fallthrough arch/i386/kernel/Makefile
+--- a/arch/i386/kernel/Makefile~cleanup-paravirt-unhandled-fallthrough
++++ a/arch/i386/kernel/Makefile
+@@ -41,8 +41,6 @@ obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
+ obj-$(CONFIG_K8_NB)		+= k8.o
  
- #define USB_VENDOR_ID_TURBOX		0x062a
- #define USB_DEVICE_ID_TURBOX_KEYBOARD	0x0201
-+#define USB_VENDOR_ID_CIDC		0x1677
+ obj-$(CONFIG_VMI)		+= vmi.o vmitime.o
+-
+-# Make sure this is linked after any other paravirt_ops structs: see head.S
+ obj-$(CONFIG_PARAVIRT)		+= paravirt.o
+ 
+ EXTRA_AFLAGS   := -traditional
+diff -puN arch/i386/kernel/head.S~cleanup-paravirt-unhandled-fallthrough arch/i386/kernel/head.S
+--- a/arch/i386/kernel/head.S~cleanup-paravirt-unhandled-fallthrough
++++ a/arch/i386/kernel/head.S
+@@ -513,10 +513,11 @@ startup_paravirt:
+ 	pushl	%ecx
+ 	pushl	%eax
+ 
+-	/* paravirt.o is last in link, and that probe fn never returns */
+ 	pushl	$__start_paravirtprobe
+ 1:
+ 	movl	0(%esp), %eax
++	cmpl	$__stop_paravirtprobe, %eax
++	je	unhandled_paravirt
+ 	pushl	(%eax)
+ 	movl	8(%esp), %eax
+ 	call	*(%esp)
+@@ -528,6 +529,10 @@ startup_paravirt:
+ 
+ 	addl	$4, (%esp)
+ 	jmp	1b
++
++unhandled_paravirt:
++	/* Nothing wanted us: we're screwed. */
++	ud2
+ #endif
  
  /*
-  * Initialize all reports
-@@ -954,6 +955,8 @@ static const struct hid_blacklist {
+diff -puN arch/i386/kernel/paravirt.c~cleanup-paravirt-unhandled-fallthrough arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~cleanup-paravirt-unhandled-fallthrough
++++ a/arch/i386/kernel/paravirt.c
+@@ -482,9 +482,6 @@ static int __init print_banner(void)
+ }
+ core_initcall(print_banner);
  
- 	{ USB_VENDOR_ID_SONY, USB_DEVICE_ID_SONY_PS3_CONTROLLER, HID_QUIRK_SONY_PS3_CONTROLLER },
- 
-+	{ USB_VENDOR_ID_CIDC, 0x0103, HID_QUIRK_IGNORE },
-+
- 	{ 0, 0 }
- };
- 
+-/* We simply declare start_kernel to be the paravirt probe of last resort. */
+-paravirt_probe(start_kernel);
+-
+ struct paravirt_ops paravirt_ops = {
+ 	.name = "bare hardware",
+ 	.paravirt_enabled = 0,
 _
 
-Patches currently in -mm which might be from zhengxiaojun@hsic.com.cn are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
+
+origin.patch
+git-acpi.patch
+cleanup-initialize-esp0-properly-all-the-time.patch
+cleanup-make-hvc_consolec-compile-on-non-powerpc.patch
+lguest-preparation-export_symbol_gpl-5-functions.patch
+lguest-preparation-expose-futex-infrastructure.patch
+lguest-kconfig-and-headers.patch
+lguest-the-host-code-lgko.patch
+lguest-guest-code.patch
+lguest-makefile.patch
+lguest-trivial-guest-network-driver.patch
+lguest-trivial-guest-network-driver-fix.patch
+lguest-trivial-guest-console-driver.patch
+lguest-trivial-guest-block-driver.patch
+lguest-documentatation-and-example-launcher.patch
+vmi-versus-hrtimers.patch
