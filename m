@@ -1,52 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-rose-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:23 -0800
-Message-ID: <200702150848.l1F8mNR4025044@shell0.pdx.osdl.net>
+Subject: - sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:25 -0800
+Message-ID: <200702150848.l1F8mPjq025047@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40320 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40326 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965546AbXBOIvk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:51:40 -0500
+	id S965548AbXBOIvm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:51:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: rose: remove unnecessary insert_at_head flag
+     sysctl: netrom: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     sysctl-rose-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-netrom-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: rose: remove unnecessary insert_at_head flag
+Subject: sysctl: netrom: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
 The sysctl numbers used are unique so setting the insert_at_head flag serves
-no semantic purpose.
+no semantic purpose, so it is just confusing.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/rose/sysctl_net_rose.c |    2 +-
+ net/netrom/sysctl_net_netrom.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/rose/sysctl_net_rose.c~sysctl-rose-remove-unnecessary-insert_at_head-flag net/rose/sysctl_net_rose.c
---- a/net/rose/sysctl_net_rose.c~sysctl-rose-remove-unnecessary-insert_at_head-flag
-+++ a/net/rose/sysctl_net_rose.c
-@@ -160,7 +160,7 @@ static ctl_table rose_root_table[] = {
+diff -puN net/netrom/sysctl_net_netrom.c~sysctl-netrom-remove-unnecessary-insert_at_head-flag net/netrom/sysctl_net_netrom.c
+--- a/net/netrom/sysctl_net_netrom.c~sysctl-netrom-remove-unnecessary-insert_at_head-flag
++++ a/net/netrom/sysctl_net_netrom.c
+@@ -192,7 +192,7 @@ static ctl_table nr_root_table[] = {
  
- void __init rose_register_sysctl(void)
+ void __init nr_register_sysctl(void)
  {
--	rose_table_header = register_sysctl_table(rose_root_table, 1);
-+	rose_table_header = register_sysctl_table(rose_root_table, 0);
+-	nr_table_header = register_sysctl_table(nr_root_table, 1);
++	nr_table_header = register_sysctl_table(nr_root_table, 0);
  }
  
- void rose_unregister_sysctl(void)
+ void nr_unregister_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
