@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix.patch added to -mm tree
-Date: Wed, 14 Feb 2007 20:42:39 -0800
-Message-ID: <200702150442.l1F4gdeM019980@shell0.pdx.osdl.net>
+Subject: + use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch added to -mm tree
+Date: Wed, 14 Feb 2007 20:42:36 -0800
+Message-ID: <200702150442.l1F4gan4019977@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34475 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34472 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932685AbXBOEml (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 23:42:41 -0500
+	id S932684AbXBOEmj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 23:42:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     Use ZVC counters to establish exact size of dirtyable pages (fix)
+     Use ZVC counters to establish exact size of dirtyable pages
 has been added to the -mm tree.  Its filename is
-     use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix.patch
+     use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use ZVC counters to establish exact size of dirtyable pages (fix)
+Subject: Use ZVC counters to establish exact size of dirtyable pages
 From: Christoph Lameter <clameter@sgi.com>
 
-Insure that dirtyable memory calculation always returns positive number
+We can use the global ZVC counters to establish the exact size of the LRU
+and the free pages.  This allows a more accurate determination of the dirty
+ratio.
 
-In order to avoid division by zero and strange results we insure that
-the memory calculation of dirtyable memory always returns at least 1.
+This patch will fix the broken ratio calculations if large amounts of
+memory are allocated to huge pags or other consumers that do not put the
+pages on to the LRU.
 
-We need to make sure that highmem_dirtyable_memory() never returns a number
-larger than the total dirtyable memory. Counter deferrals and strange VM
-situations with unimagiably small lowmem may make the count go negative.
+Notes:
+- I did not add NR_SLAB_RECLAIMABLE to the calculation of the
+  dirtyable pages. Those may be reclaimable but they are at this
+  point not dirtyable. If NR_SLAB_RECLAIMABLE would be considered
+  then a huge number of reclaimable pages would stop writeback
+  from occurring.
 
-Also base the calculation of the mapped_ratio on the amount of dirtyable
-memory.
+- This patch used to be in mm as the last one in a series of patches.
+  It was removed when Linus updated the treatment of highmem because
+  there was a conflict. I updated the patch to follow Linus' approach.
+  This patch is neede to fulfill the claims made in the beginning of the
+  patchset that is now in Linus' tree.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ mm/page-writeback.c |   42 +++++++++++++++++++++++++++++++++---------
+ 1 file changed, 33 insertions(+), 9 deletions(-)
 
-diff -puN mm/page-writeback.c~use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix mm/page-writeback.c
---- a/mm/page-writeback.c~use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix
+diff -puN mm/page-writeback.c~use-zvc-counters-to-establish-exact-size-of-dirtyable-pages mm/page-writeback.c
+--- a/mm/page-writeback.c~use-zvc-counters-to-establish-exact-size-of-dirtyable-pages
 +++ a/mm/page-writeback.c
-@@ -120,7 +120,7 @@ static void background_writeout(unsigned
+@@ -119,6 +119,38 @@ static void background_writeout(unsigned
+  * We make sure that the background writeout level is below the adjusted
   * clamping level.
   */
- 
--static unsigned long highmem_dirtyable_memory(void)
-+static unsigned long highmem_dirtyable_memory(unsigned long total)
- {
- #ifdef CONFIG_HIGHMEM
- 	int node;
-@@ -134,7 +134,13 @@ static unsigned long highmem_dirtyable_m
- 			+ zone_page_state(z, NR_INACTIVE)
- 			+ zone_page_state(z, NR_ACTIVE);
- 	}
--	return x;
-+	/*
-+	 * Make sure that the number of highmem pages is never larger
-+	 * than the number of the total dirtyable memory. This can only
-+	 * occur in very strange VM situations but we want to make sure
-+	 * that this does not occur.
-+	 */
-+	return min(x, total);
- #else
- 	return 0;
- #endif
-@@ -146,9 +152,9 @@ static unsigned long determine_dirtyable
- 
- 	x = global_page_state(NR_FREE_PAGES)
- 		+ global_page_state(NR_INACTIVE)
--		+ global_page_state(NR_ACTIVE)
--		- highmem_dirtyable_memory();
--	return x;
-+		+ global_page_state(NR_ACTIVE);
-+	x -= highmem_dirtyable_memory(x);
-+	return x + 1;	/* Ensure that we never return 0 */
- }
- 
++
++static unsigned long highmem_dirtyable_memory(void)
++{
++#ifdef CONFIG_HIGHMEM
++	int node;
++	unsigned long x = 0;
++
++	for_each_online_node(node) {
++		struct zone *z =
++			&NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
++
++		x += zone_page_state(z, NR_FREE_PAGES)
++			+ zone_page_state(z, NR_INACTIVE)
++			+ zone_page_state(z, NR_ACTIVE);
++	}
++	return x;
++#else
++	return 0;
++#endif
++}
++
++static unsigned long determine_dirtyable_memory(void)
++{
++	unsigned long x;
++
++	x = global_page_state(NR_FREE_PAGES)
++		+ global_page_state(NR_INACTIVE)
++		+ global_page_state(NR_ACTIVE)
++		- highmem_dirtyable_memory();
++	return x;
++}
++
  static void
-@@ -165,7 +171,7 @@ get_dirty_limits(long *pbackground, long
+ get_dirty_limits(long *pbackground, long *pdirty,
+ 					struct address_space *mapping)
+@@ -128,17 +160,9 @@ get_dirty_limits(long *pbackground, long
+ 	int unmapped_ratio;
+ 	long background;
+ 	long dirty;
+-	unsigned long available_memory = vm_total_pages;
++	unsigned long available_memory = determine_dirtyable_memory();
+ 	struct task_struct *tsk;
  
+-#ifdef CONFIG_HIGHMEM
+-	/*
+-	 * We always exclude high memory from our count.
+-	 */
+-	available_memory -= totalhigh_pages;
+-#endif
+-
+-
  	unmapped_ratio = 100 - ((global_page_state(NR_FILE_MAPPED) +
  				global_page_state(NR_ANON_PAGES)) * 100) /
--					vm_total_pages;
-+					available_memory;
- 
- 	dirty_ratio = vm_dirty_ratio;
- 	if (dirty_ratio > unmapped_ratio / 2)
+ 					vm_total_pages;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
