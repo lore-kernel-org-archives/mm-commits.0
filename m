@@ -1,61 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:52 -0800
-Message-ID: <200702150849.l1F8nqsj025165@shell0.pdx.osdl.net>
+Subject: - sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:32 -0800
+Message-ID: <200702150849.l1F8nWWX025135@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40163 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40160 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965489AbXBOIuB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:50:01 -0500
+	id S965487AbXBOIt7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, clemens@ladisch.de, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: remove sys_sysctl support from the hpet timer driver
+     sysctl: s390: remove unnecessary use of insert_at_head
 has been removed from the -mm tree.  Its filename was
-     sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
+     sysctl-s390-remove-unnecessary-use-of-insert_at_head.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: remove sys_sysctl support from the hpet timer driver
+Subject: sysctl: s390: remove unnecessary use of insert_at_head
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-In the binary sysctl interface the hpet driver was claiming to be the cdrom
-driver.  This is a no-no so remove support for the binary interface.
-
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Clemens Ladisch <clemens@ladisch.de>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/s390/appldata/appldata_base.c |    4 ++--
+ arch/s390/kernel/debug.c           |    2 +-
+ arch/s390/mm/cmm.c                 |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/hpet.c~sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver drivers/char/hpet.c
---- a/drivers/char/hpet.c~sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver
-+++ a/drivers/char/hpet.c
-@@ -703,7 +703,7 @@ int hpet_control(struct hpet_task *tp, u
+diff -puN arch/s390/appldata/appldata_base.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head arch/s390/appldata/appldata_base.c
+--- a/arch/s390/appldata/appldata_base.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head
++++ a/arch/s390/appldata/appldata_base.c
+@@ -506,7 +506,7 @@ int appldata_register_ops(struct appldat
  
- static ctl_table hpet_table[] = {
- 	{
--	 .ctl_name = 1,
-+	 .ctl_name = CTL_UNNUMBERED,
- 	 .procname = "max-user-freq",
- 	 .data = &hpet_max_freq,
- 	 .maxlen = sizeof(int),
-@@ -715,7 +715,7 @@ static ctl_table hpet_table[] = {
+ 	ops->ctl_table[3].ctl_name = 0;
  
- static ctl_table hpet_root[] = {
- 	{
--	 .ctl_name = 1,
-+	 .ctl_name = CTL_UNNUMBERED,
- 	 .procname = "hpet",
- 	 .maxlen = 0,
- 	 .mode = 0555,
+-	ops->sysctl_header = register_sysctl_table(ops->ctl_table,1);
++	ops->sysctl_header = register_sysctl_table(ops->ctl_table,0);
+ 
+ 	P_INFO("%s-ops registered!\n", ops->name);
+ 	return 0;
+@@ -606,7 +606,7 @@ static int __init appldata_init(void)
+ 	/* Register cpu hotplug notifier */
+ 	register_hotcpu_notifier(&appldata_nb);
+ 
+-	appldata_sysctl_header = register_sysctl_table(appldata_dir_table, 1);
++	appldata_sysctl_header = register_sysctl_table(appldata_dir_table, 0);
+ #ifdef MODULE
+ 	appldata_dir_table[0].de->owner = THIS_MODULE;
+ 	appldata_table[0].de->owner = THIS_MODULE;
+diff -puN arch/s390/kernel/debug.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head arch/s390/kernel/debug.c
+--- a/arch/s390/kernel/debug.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head
++++ a/arch/s390/kernel/debug.c
+@@ -1053,7 +1053,7 @@ __init debug_init(void)
+ {
+ 	int rc = 0;
+ 
+-	s390dbf_sysctl_header = register_sysctl_table(s390dbf_dir_table, 1);
++	s390dbf_sysctl_header = register_sysctl_table(s390dbf_dir_table, 0);
+ 	down(&debug_lock);
+ 	debug_debugfs_root_entry = debugfs_create_dir(DEBUG_DIR_ROOT,NULL);
+ 	printk(KERN_INFO "debug: Initialization complete\n");
+diff -puN arch/s390/mm/cmm.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head arch/s390/mm/cmm.c
+--- a/arch/s390/mm/cmm.c~sysctl-s390-remove-unnecessary-use-of-insert_at_head
++++ a/arch/s390/mm/cmm.c
+@@ -418,7 +418,7 @@ cmm_init (void)
+ 	int rc = -ENOMEM;
+ 
+ #ifdef CONFIG_CMM_PROC
+-	cmm_sysctl_header = register_sysctl_table(cmm_dir_table, 1);
++	cmm_sysctl_header = register_sysctl_table(cmm_dir_table, 0);
+ 	if (!cmm_sysctl_header)
+ 		goto out;
+ #endif
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
