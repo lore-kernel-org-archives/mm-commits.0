@@ -1,99 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:55 -0800
-Message-ID: <200702150849.l1F8ntPC025168@shell0.pdx.osdl.net>
+Subject: - usb_rtl8150-must-select-mii.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:51:25 -0800
+Message-ID: <200702150851.l1F8pPcC025296@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40456 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40466 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965606AbXBOIyV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:54:21 -0500
+	id S965608AbXBOIyn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:54:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, a.zummo@towertech.it, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, greg@kroah.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: remove sys_sysctl support from drivers/char/rtc.c
+     USB_RTL8150 must select MII
 has been removed from the -mm tree.  Its filename was
-     sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc.patch
+     usb_rtl8150-must-select-mii.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: remove sys_sysctl support from drivers/char/rtc.c
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: USB_RTL8150 must select MII
+From: Adrian Bunk <bunk@stusta.de>
 
-The real time clock driver was using the binary number reserved for cdroms in
-the sysctl binary number interface, which is a no-no.  So since the sysctl
-binary interface is wrong remove it.
+USB_RTL8150 must select MII to avoid link errors.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Stolen from a patch by Randy Dunlap.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rtc.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/usb/net/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/rtc.c~sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc drivers/char/rtc.c
---- a/drivers/char/rtc.c~sysctl-remove-sys_sysctl-support-from-drivers-char-rtcc
-+++ a/drivers/char/rtc.c
-@@ -282,7 +282,7 @@ irqreturn_t rtc_interrupt(int irq, void 
-  */
- static ctl_table rtc_table[] = {
- 	{
--		.ctl_name	= 1,
-+		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "max-user-freq",
- 		.data		= &rtc_max_user_freq,
- 		.maxlen		= sizeof(int),
-@@ -294,9 +294,8 @@ static ctl_table rtc_table[] = {
- 
- static ctl_table rtc_root[] = {
- 	{
--		.ctl_name	= 1,
-+		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "rtc",
--		.maxlen		= 0,
- 		.mode		= 0555,
- 		.child		= rtc_table,
- 	},
-@@ -307,7 +306,6 @@ static ctl_table dev_root[] = {
- 	{
- 		.ctl_name	= CTL_DEV,
- 		.procname	= "dev",
--		.maxlen		= 0,
- 		.mode		= 0555,
- 		.child		= rtc_root,
- 	},
+diff -puN drivers/usb/net/Kconfig~usb_rtl8150-must-select-mii drivers/usb/net/Kconfig
+--- a/drivers/usb/net/Kconfig~usb_rtl8150-must-select-mii
++++ a/drivers/usb/net/Kconfig
+@@ -84,6 +84,7 @@ config USB_PEGASUS
+ config USB_RTL8150
+ 	tristate "USB RTL8150 based ethernet device support (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	select MII
+ 	help
+ 	  Say Y here if you have RTL8150 based usb-ethernet adapter.
+ 	  Send me <petkan@users.sourceforge.net> any comments you may have.
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-git-v9fs.patch
-x86_64-irq-simplfy-__assign_irq_vector.patch
-x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+ifdef-acpi_future_usage-acpi_os_readable.patch
+git-cpufreq.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+mips-remove-smp_tune_scheduling.patch
+git-mtd.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+lumpy-reclaim-cleanup.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+clockevents-i383-drivers.patch
+add-debugging-feature-proc-timer_stat-cleanup.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
