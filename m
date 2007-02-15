@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + local_t-s390-cleanup.patch added to -mm tree
-Date: Wed, 14 Feb 2007 23:06:34 -0800
-Message-ID: <200702150706.l1F76Y05022558@shell0.pdx.osdl.net>
+Subject: + atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch added to -mm tree
+Date: Wed, 14 Feb 2007 23:06:04 -0800
+Message-ID: <200702150706.l1F764qA022516@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37350 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37384 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964946AbXBOHHF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 02:07:05 -0500
+	id S964947AbXBOHJa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 02:09:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: mathieu.desnoyers@polymtl.ca, ralf@linux-mips.org
 
 
 The patch titled
-     local_t: s390 cleanup
+     atomic.h: add atomic64 cmpxchg, xchg and add_unless to mips
 has been added to the -mm tree.  Its filename is
-     local_t-s390-cleanup.patch
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,83 +25,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: local_t: s390 cleanup
+Subject: atomic.h: add atomic64 cmpxchg, xchg and add_unless to mips
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-s390 architecture local_t cleanup : use asm-generic/local.h.
-
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-s390/local.h |   59 -------------------------------------
- 1 file changed, 1 insertion(+), 58 deletions(-)
+ include/asm-mips/atomic.h |   29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-s390/local.h~local_t-s390-cleanup include/asm-s390/local.h
---- a/include/asm-s390/local.h~local_t-s390-cleanup
-+++ a/include/asm-s390/local.h
-@@ -1,58 +1 @@
--#ifndef _ASM_LOCAL_H
--#define _ASM_LOCAL_H
--
--#include <linux/percpu.h>
--#include <asm/atomic.h>
--
--#ifndef __s390x__
--
--typedef atomic_t local_t;
--
--#define LOCAL_INIT(i)	ATOMIC_INIT(i)
--#define local_read(v)	atomic_read(v)
--#define local_set(v,i)	atomic_set(v,i)
--
--#define local_inc(v)	atomic_inc(v)
--#define local_dec(v)	atomic_dec(v)
--#define local_add(i, v)	atomic_add(i, v)
--#define local_sub(i, v)	atomic_sub(i, v)
--
--#else
--
--typedef atomic64_t local_t;
--
--#define LOCAL_INIT(i)	ATOMIC64_INIT(i)
--#define local_read(v)	atomic64_read(v)
--#define local_set(v,i)	atomic64_set(v,i)
--
--#define local_inc(v)	atomic64_inc(v)
--#define local_dec(v)	atomic64_dec(v)
--#define local_add(i, v)	atomic64_add(i, v)
--#define local_sub(i, v)	atomic64_sub(i, v)
--
--#endif
--
--#define __local_inc(v)		((v)->counter++)
--#define __local_dec(v)		((v)->counter--)
--#define __local_add(i,v)	((v)->counter+=(i))
--#define __local_sub(i,v)	((v)->counter-=(i))
--
--/*
-- * Use these for per-cpu local_t variables: on some archs they are
-- * much more efficient than these naive implementations.  Note they take
-- * a variable, not an address.
-- */
--#define cpu_local_read(v)	local_read(&__get_cpu_var(v))
--#define cpu_local_set(v, i)	local_set(&__get_cpu_var(v), (i))
--
--#define cpu_local_inc(v)	local_inc(&__get_cpu_var(v))
--#define cpu_local_dec(v)	local_dec(&__get_cpu_var(v))
--#define cpu_local_add(i, v)	local_add((i), &__get_cpu_var(v))
--#define cpu_local_sub(i, v)	local_sub((i), &__get_cpu_var(v))
--
--#define __cpu_local_inc(v)	__local_inc(&__get_cpu_var(v))
--#define __cpu_local_dec(v)	__local_dec(&__get_cpu_var(v))
--#define __cpu_local_add(i, v)	__local_add((i), &__get_cpu_var(v))
--#define __cpu_local_sub(i, v)	__local_sub((i), &__get_cpu_var(v))
--
--#endif /* _ASM_LOCAL_H */
-+#include <asm-generic/local.h>
+diff -puN include/asm-mips/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips include/asm-mips/atomic.h
+--- a/include/asm-mips/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips
++++ a/include/asm-mips/atomic.h
+@@ -306,8 +306,8 @@ static __inline__ int atomic_sub_if_posi
+ 	return result;
+ }
+ 
+-#define atomic_cmpxchg(v, o, n) ((int)cmpxchg(&((v)->counter), (o), (n)))
+-#define atomic_xchg(v, new) (xchg(&((v)->counter), new))
++#define atomic_cmpxchg(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
++#define atomic_xchg(v, new) (xchg(&((v)->counter), (new)))
+ 
+ /**
+  * atomic_add_unless - add unless the number is a given value
+@@ -320,7 +320,7 @@ static __inline__ int atomic_sub_if_posi
+  */
+ #define atomic_add_unless(v, a, u)				\
+ ({								\
+-	int c, old;						\
++	__typeof__((v)->counter) c, old;			\
+ 	c = atomic_read(v);					\
+ 	while (c != (u) && (old = atomic_cmpxchg((v), c, c + (a))) != c) \
+ 		c = old;					\
+@@ -681,6 +681,29 @@ static __inline__ long atomic64_sub_if_p
+ 	return result;
+ }
+ 
++#define atomic64_cmpxchg(v, o, n) \
++	(((__typeof__((v)->counter)))cmpxchg(&((v)->counter), (o), (n)))
++#define atomic64_xchg(v, new) (xchg(&((v)->counter), (new)))
++
++/**
++ * atomic64_add_unless - add unless the number is a given value
++ * @v: pointer of type atomic64_t
++ * @a: the amount to add to v...
++ * @u: ...unless v is equal to u.
++ *
++ * Atomically adds @a to @v, so long as it was not @u.
++ * Returns non-zero if @v was not @u, and zero otherwise.
++ */
++#define atomic64_add_unless(v, a, u)				\
++({								\
++	__typeof__((v)->counter) c, old;			\
++	c = atomic_read(v);					\
++	while (c != (u) && (old = atomic64_cmpxchg((v), c, c + (a))) != c) \
++		c = old;					\
++	c != (u);						\
++})
++#define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
++
+ #define atomic64_dec_return(v) atomic64_sub_return(1,(v))
+ #define atomic64_inc_return(v) atomic64_add_return(1,(v))
+ 
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
