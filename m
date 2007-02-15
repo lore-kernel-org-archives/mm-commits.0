@@ -1,31 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:17 -0800
-Message-ID: <200702150848.l1F8mHNR025038@shell0.pdx.osdl.net>
+Subject: - sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:14 -0800
+Message-ID: <200702150848.l1F8mEBA025035@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39996 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40002 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965296AbXBOIse (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:48:34 -0500
+	id S965385AbXBOIsg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:48:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, neilb@cse.unsw.edu.au, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: sunrpc: remove unnecessary insert_at_head flag
+     sysctl: move CTL_SUNRPC to sysctl.h where it belongs
 has been removed from the -mm tree.  Its filename was
-     sysctl-sunrpc-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: sunrpc: remove unnecessary insert_at_head flag
+Subject: sysctl: move CTL_SUNRPC to sysctl.h where it belongs
 From: Eric W. Biederman <ebiederm@xmission.com>
-
-Because the sunrpc sysctls don't conflict with any other sysctls the setting
-the insert at head flag to register_sysctl has no semantic meaning.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -33,34 +30,34 @@ Cc: Neil Brown <neilb@cse.unsw.edu.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/sysctl.c   |    2 +-
- net/sunrpc/xprtsock.c |    2 +-
+ include/linux/sunrpc/debug.h |    1 -
+ include/linux/sysctl.h       |    3 ++-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/sunrpc/sysctl.c~sysctl-sunrpc-remove-unnecessary-insert_at_head-flag net/sunrpc/sysctl.c
---- a/net/sunrpc/sysctl.c~sysctl-sunrpc-remove-unnecessary-insert_at_head-flag
-+++ a/net/sunrpc/sysctl.c
-@@ -36,7 +36,7 @@ void
- rpc_register_sysctl(void)
- {
- 	if (!sunrpc_table_header) {
--		sunrpc_table_header = register_sysctl_table(sunrpc_table, 1);
-+		sunrpc_table_header = register_sysctl_table(sunrpc_table, 0);
- #ifdef CONFIG_PROC_FS
- 		if (sunrpc_table[0].de)
- 			sunrpc_table[0].de->owner = THIS_MODULE;
-diff -puN net/sunrpc/xprtsock.c~sysctl-sunrpc-remove-unnecessary-insert_at_head-flag net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~sysctl-sunrpc-remove-unnecessary-insert_at_head-flag
-+++ a/net/sunrpc/xprtsock.c
-@@ -1636,7 +1636,7 @@ int init_socket_xprt(void)
- {
- #ifdef RPC_DEBUG
- 	if (!sunrpc_table_header) {
--		sunrpc_table_header = register_sysctl_table(sunrpc_table, 1);
-+		sunrpc_table_header = register_sysctl_table(sunrpc_table, 0);
- #ifdef CONFIG_PROC_FS
- 		if (sunrpc_table[0].de)
- 			sunrpc_table[0].de->owner = THIS_MODULE;
+diff -puN include/linux/sunrpc/debug.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs include/linux/sunrpc/debug.h
+--- a/include/linux/sunrpc/debug.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs
++++ a/include/linux/sunrpc/debug.h
+@@ -78,7 +78,6 @@ void		rpc_unregister_sysctl(void);
+  * module currently registers its sysctl table dynamically, the sysctl path
+  * for module FOO is <CTL_SUNRPC, CTL_FOODEBUG>.
+  */
+-#define CTL_SUNRPC	7249	/* arbitrary and hopefully unused */
+ 
+ enum {
+ 	CTL_RPCDEBUG = 1,
+diff -puN include/linux/sysctl.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs
++++ a/include/linux/sysctl.h
+@@ -69,7 +69,8 @@ enum
+ 	CTL_DEV=7,		/* Devices */
+ 	CTL_BUS=8,		/* Busses */
+ 	CTL_ABI=9,		/* Binary emulation */
+-	CTL_CPU=10		/* CPU stuff (speed scaling, etc) */
++	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
++	CTL_SUNRPC=7249,	/* sunrpc debug */
+ };
+ 
+ /* CTL_BUS names: */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
