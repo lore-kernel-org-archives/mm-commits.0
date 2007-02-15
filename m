@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-ext3-remove-extra-is_rdonly-check.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:32:57 -0800
-Message-ID: <200702150832.l1F8Wv1w024588@shell0.pdx.osdl.net>
+Subject: - r-o-bind-mounts-ext4-remove-extra-is_rdonly-check.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:33:00 -0800
+Message-ID: <200702150833.l1F8X0cb024591@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39375 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39388 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965263AbXBOIdF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:33:05 -0500
+	id S965265AbXBOIdN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:33:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, miklos@szeredi.hu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: ext3: remove extra IS_RDONLY() check
+     r/o bind mounts: ext4: remove extra IS_RDONLY() check
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-ext3-remove-extra-is_rdonly-check.patch
+     r-o-bind-mounts-ext4-remove-extra-is_rdonly-check.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: r/o bind mounts: ext3: remove extra IS_RDONLY() check
+Subject: r/o bind mounts: ext4: remove extra IS_RDONLY() check
 From: Dave Hansen <hansendc@us.ibm.com>
 
-ext3_change_inode_journal_flag() is only called from one location:
-ext3_ioctl(EXT3_IOC_SETFLAGS).  That ioctl case already has a IS_RDONLY() call
+ext4_change_inode_journal_flag() is only called from one location:
+ext4_ioctl(EXT3_IOC_SETFLAGS).  That ioctl case already has a IS_RDONLY() call
 in it so this one is superfluous.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
@@ -35,26 +35,25 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |    2 +-
+ fs/ext4/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext3/inode.c~r-o-bind-mounts-ext3-remove-extra-is_rdonly-check fs/ext3/inode.c
---- a/fs/ext3/inode.c~r-o-bind-mounts-ext3-remove-extra-is_rdonly-check
-+++ a/fs/ext3/inode.c
-@@ -3244,7 +3244,7 @@ int ext3_change_inode_journal_flag(struc
+diff -puN fs/ext4/inode.c~r-o-bind-mounts-ext4-remove-extra-is_rdonly-check fs/ext4/inode.c
+--- a/fs/ext4/inode.c~r-o-bind-mounts-ext4-remove-extra-is_rdonly-check
++++ a/fs/ext4/inode.c
+@@ -3258,7 +3258,7 @@ int ext4_change_inode_journal_flag(struc
  	 */
  
- 	journal = EXT3_JOURNAL(inode);
+ 	journal = EXT4_JOURNAL(inode);
 -	if (is_journal_aborted(journal) || IS_RDONLY(inode))
 +	if (is_journal_aborted(journal))
  		return -EROFS;
  
- 	journal_lock_updates(journal);
+ 	jbd2_journal_lock_updates(journal);
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
 
-r-o-bind-mounts-ext3-remove-extra-is_rdonly-check.patch
 r-o-bind-mounts-ext4-remove-extra-is_rdonly-check.patch
 r-o-bind-mounts-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
 r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
