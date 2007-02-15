@@ -1,70 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-add-pci-remove-handling.patch added to -mm tree
-Date: Wed, 14 Feb 2007 19:57:38 -0800
-Message-ID: <200702150357.l1F3vcSh019133@shell0.pdx.osdl.net>
+Subject: - scsi-megaraid_sas-stop-cmd-processing-if.patch removed from -mm tree
+Date: Wed, 14 Feb 2007 20:10:25 -0800
+Message-ID: <200702150410.l1F4AQlm019365@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:32902 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33382 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932140AbXBOD5k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Feb 2007 22:57:40 -0500
+	id S932151AbXBOEKa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Feb 2007 23:10:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: minyard@acm.org
+To: sumantp@lsil.com, sumant.patro@lsi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipmi: add pci remove handling
-has been added to the -mm tree.  Its filename is
-     ipmi-add-pci-remove-handling.patch
+     scsi: megaraid_sas - stop cmd processing if hw_crit_error is set
+has been removed from the -mm tree.  Its filename was
+     scsi-megaraid_sas-stop-cmd-processing-if.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ipmi: add pci remove handling
-From: Corey Minyard <minyard@acm.org>
+Subject: scsi: megaraid_sas - stop cmd processing if hw_crit_error is set
+From: Sumant Patro <sumantp@lsil.com>
 
-Add pci_remove handling to the driver, so it will clean up if the device is
-hot-removed.
+Checks if hw_crit_error is set before processing cmds.  Added in
+megasas_queue_command and command completion routines.
 
-Signed-off-by: Corey Minyard <minyard@acm.org>
+Signed-off-by: Sumant Patro <sumant.patro@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/scsi/megaraid/megaraid_sas.c |   13 ++++++++++++-
+ 1 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-pci-remove-handling drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-pci-remove-handling
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2189,12 +2189,15 @@ static int __devinit ipmi_pci_probe(stru
- 		info->irq_setup = std_irq_setup;
+diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-stop-cmd-processing-if drivers/scsi/megaraid/megaraid_sas.c
+--- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-stop-cmd-processing-if
++++ a/drivers/scsi/megaraid/megaraid_sas.c
+@@ -841,6 +841,11 @@ megasas_queue_command(struct scsi_cmnd *
  
- 	info->dev = &pdev->dev;
-+	pdev->dev->driver_data = info;
+ 	instance = (struct megasas_instance *)
+ 	    scmd->device->host->hostdata;
++
++	/* Don't process if we have already declared adapter dead */
++	if(instance->hw_crit_error)
++		return SCSI_MLQUEUE_HOST_BUSY;
++
+ 	scmd->scsi_done = done;
+ 	scmd->result = 0;
  
- 	return try_smi_init(info);
+@@ -1282,11 +1287,13 @@ megasas_deplete_reply_queue(struct megas
+ 	if(instance->instancet->clear_intr(instance->reg_set))
+ 		return IRQ_NONE;
+ 
++	if(instance->hw_crit_error)
++		goto out_done;
+         /*
+ 	 * Schedule the tasklet for cmd completion
+ 	 */
+ 	tasklet_schedule(&instance->isr_tasklet);
+-
++out_done:
+ 	return IRQ_HANDLED;
  }
  
- static void __devexit ipmi_pci_remove(struct pci_dev *pdev)
- {
-+	struct smi_info *info = pdev->dev->driver_data;
-+	cleanup_one_si(info);
- }
+@@ -1741,6 +1748,10 @@ static void megasas_complete_cmd_dpc(uns
+ 	struct megasas_cmd *cmd;
+ 	struct megasas_instance *instance = (struct megasas_instance *)instance_addr;
  
- #ifdef CONFIG_PM
++	/* If we have already declared adapter dead, donot complete cmds */
++	if(instance->hw_crit_error)
++		return;
++
+ 	producer = *instance->producer;
+ 	consumer = *instance->consumer;
+ 
 _
 
-Patches currently in -mm which might be from minyard@acm.org are
+Patches currently in -mm which might be from sumantp@lsil.com are
 
 origin.patch
-sysctl-ipmi-remove-unnecessary-insert_at_head-flag.patch
-sysctl-remove-insert_at_head-from-register_sysctl.patch
-ipmi-add-powerpc-openfirmware-sensing.patch
-ipmi-allow-shared-interrupts.patch
-ipmi-add-pci-remove-handling.patch
-ipmi-add-new-ipmi-nmi-watchdog-handling.patch
+scsi-megaraid_sas-stop-cmd-processing-if.patch
+scsi-megaraid_sas-added-bios_param-in.patch
+scsi-megaraid_sas-throttle-io-if-fw-is-busy.patch
+scsi-megaraid_sas-update-version-and-author-info.patch
