@@ -1,52 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-llc-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:28 -0800
-Message-ID: <200702150848.l1F8mSms025050@shell0.pdx.osdl.net>
+Subject: - sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:06 -0800
+Message-ID: <200702150849.l1F8n6c0025099@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40057 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40081 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965416AbXBOItE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:04 -0500
+	id S965417AbXBOItP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, acme@conectiva.com.br, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: llc: remove unnecessary insert_at_head flag
+     sysctl: move CTL_FRV into sysctl.h where it belongs
 has been removed from the -mm tree.  Its filename was
-     sysctl-llc-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-move-ctl_frv-into-sysctlh-where-it-belongs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: llc: remove unnecessary insert_at_head flag
+Subject: sysctl: move CTL_FRV into sysctl.h where it belongs
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The sysctl numbers used are unique so setting the insert_at_head flag serves
-no semantis purpose, and is just confusing.
-
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/llc/sysctl_net_llc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/frv/kernel/sysctl.c |    1 -
+ include/linux/sysctl.h   |    1 +
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/llc/sysctl_net_llc.c~sysctl-llc-remove-unnecessary-insert_at_head-flag net/llc/sysctl_net_llc.c
---- a/net/llc/sysctl_net_llc.c~sysctl-llc-remove-unnecessary-insert_at_head-flag
-+++ a/net/llc/sysctl_net_llc.c
-@@ -116,7 +116,7 @@ static struct ctl_table_header *llc_tabl
- 
- int __init llc_sysctl_init(void)
+diff -puN arch/frv/kernel/sysctl.c~sysctl-move-ctl_frv-into-sysctlh-where-it-belongs arch/frv/kernel/sysctl.c
+--- a/arch/frv/kernel/sysctl.c~sysctl-move-ctl_frv-into-sysctlh-where-it-belongs
++++ a/arch/frv/kernel/sysctl.c
+@@ -186,7 +186,6 @@ static struct ctl_table frv_table[] =
+  * Use a temporary sysctl number. Horrid, but will be cleaned up in 2.6
+  * when all the PM interfaces exist nicely.
+  */
+-#define CTL_FRV 9898
+ static struct ctl_table frv_dir_table[] =
  {
--	llc_table_header = register_sysctl_table(llc_root_table, 1);
-+	llc_table_header = register_sysctl_table(llc_root_table, 0);
+ 	{CTL_FRV, "frv", NULL, 0, 0555, frv_table},
+diff -puN include/linux/sysctl.h~sysctl-move-ctl_frv-into-sysctlh-where-it-belongs include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-move-ctl_frv-into-sysctlh-where-it-belongs
++++ a/include/linux/sysctl.h
+@@ -72,6 +72,7 @@ enum
+ 	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
+ 	CTL_SUNRPC=7249,	/* sunrpc debug */
+ 	CTL_PM=9899,		/* frv power management */
++	CTL_FRV=9898,		/* frv specific sysctls */
+ };
  
- 	return llc_table_header ? 0 : -ENOMEM;
- }
+ /* CTL_BUS names: */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
