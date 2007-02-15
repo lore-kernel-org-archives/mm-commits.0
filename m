@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hil-fix-improper-call-of-release_region-v2.patch added to -mm tree
-Date: Thu, 15 Feb 2007 14:58:58 -0800
-Message-ID: <200702152258.l1FMwwRX011327@shell0.pdx.osdl.net>
+Subject: + missing-__user-in-pointer-referenced-within-copy_from_user.patch added to -mm tree
+Date: Thu, 15 Feb 2007 15:01:17 -0800
+Message-ID: <200702152301.l1FN1HNN011389@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37875 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37900 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161640AbXBOW7G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 17:59:06 -0500
+	id S1161644AbXBOXBa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 18:01:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@gmail.com, deller@gmx.de, dmitry.torokhov@gmail.com
+Cc: gcosta@redhat.com
 
 
 The patch titled
-     HIL: fix improper call of release_region v2
+     Missing __user in pointer referenced within copy_from_user
 has been added to the -mm tree.  Its filename is
-     hil-fix-improper-call-of-release_region-v2.patch
+     missing-__user-in-pointer-referenced-within-copy_from_user.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: HIL: fix improper call of release_region v2
-From: "Cyrill V. Gorcunov" <gorcunov@gmail.com>
+Subject: Missing __user in pointer referenced within copy_from_user
+From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-Thist patch prevents from improper call of release_region
-if the code has been compiled without CONFIG_HP300 support.
+Pointers to user data should be marked with a __user hint.  This one is
+missing.
 
-Signed-off-by: Cyrill V. Gorcunov <gorcunov@gmail.com>
-Acked-by: Helge Deller <deller@gmx.de>
-Cc: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
+Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/keyboard/hilkbd.c |    2 ++
- 1 files changed, 2 insertions(+)
+ fs/proc/base.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/keyboard/hilkbd.c~hil-fix-improper-call-of-release_region-v2 drivers/input/keyboard/hilkbd.c
---- a/drivers/input/keyboard/hilkbd.c~hil-fix-improper-call-of-release_region-v2
-+++ a/drivers/input/keyboard/hilkbd.c
-@@ -294,8 +294,10 @@ err3:
- 	disable_irq(HIL_IRQ);
- 	free_irq(HIL_IRQ, hil_dev.dev_id);
- err2:
-+#if defined(CONFIG_HP300)
- 	release_region(HILBASE + HIL_DATA, 2);
- err1:
-+#endif
- 	input_free_device(hil_dev.dev);
- 	hil_dev.dev = NULL;
- 	return err;
+diff -puN fs/proc/base.c~missing-__user-in-pointer-referenced-within-copy_from_user fs/proc/base.c
+--- a/fs/proc/base.c~missing-__user-in-pointer-referenced-within-copy_from_user
++++ a/fs/proc/base.c
+@@ -617,7 +617,7 @@ out_no_task:
+ 
+ #ifndef mem_write
+ /* This is a security hazard */
+-static ssize_t mem_write(struct file * file, const char * buf,
++static ssize_t mem_write(struct file * file, const char __user *buf,
+ 			 size_t count, loff_t *ppos)
+ {
+ 	int copied;
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from gcosta@redhat.com are
 
-origin.patch
-hil-fix-improper-call-of-release_region-v2.patch
+missing-__user-in-pointer-referenced-within-copy_from_user.patch
