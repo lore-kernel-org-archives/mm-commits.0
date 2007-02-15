@@ -1,85 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-fix-the-selinux_sysctl_get_sid.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:50:51 -0800
-Message-ID: <200702150850.l1F8opqM025257@shell0.pdx.osdl.net>
+Subject: - selinux-enhance-selinux-to-always-ignore-private-inodes.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:50:53 -0800
+Message-ID: <200702150850.l1F8ordQ025260@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40242 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40247 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965516AbXBOIuy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:50:54 -0500
+	id S965516AbXBOIu4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:50:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: sds@tycho.nsa.gov, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: fix the selinux_sysctl_get_sid
+     selinux: enhance selinux to always ignore private inodes
 has been removed from the -mm tree.  Its filename was
-     sysctl-fix-the-selinux_sysctl_get_sid.patch
+     selinux-enhance-selinux-to-always-ignore-private-inodes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: fix the selinux_sysctl_get_sid
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: selinux: enhance selinux to always ignore private inodes
+From: Stephen Smalley <sds@tycho.nsa.gov>
 
-I goofed and when reenabling the fine grained selinux labels for
-sysctls and forgot to add the "/sys" prefix before consulting
-the policy database.  When computing the same path using
-proc_dir_entries we got the "/sys" for free as it was part
-of the tree, but it isn't true for clt_table trees.
+Hmmm...turns out to not be quite enough, as the /proc/sys inodes aren't truly
+private to the fs, so we can run into them in a variety of security hooks
+beyond just the inode hooks, such as security_file_permission (when reading
+and writing them via the vfs helpers), security_sb_mount (when mounting other
+filesystems on directories in proc like binfmt_misc), and deeper within the
+security module itself (as in flush_unauthorized_files upon inheritance across
+execve).  So I think we have to add an IS_PRIVATE() guard within SELinux, as
+below.  Note however that the use of the private flag here could be confusing,
+as these inodes are _not_ private to the fs, are exposed to userspace, and
+security modules must implement the sysctl hook to get any access control over
+them.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
+Signed-off-by: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ security/selinux/hooks.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN security/selinux/hooks.c~sysctl-fix-the-selinux_sysctl_get_sid security/selinux/hooks.c
---- a/security/selinux/hooks.c~sysctl-fix-the-selinux_sysctl_get_sid
+diff -puN security/selinux/hooks.c~selinux-enhance-selinux-to-always-ignore-private-inodes security/selinux/hooks.c
+--- a/security/selinux/hooks.c~selinux-enhance-selinux-to-always-ignore-private-inodes
 +++ a/security/selinux/hooks.c
-@@ -1451,6 +1451,12 @@ static int selinux_sysctl_get_sid(ctl_ta
- 		path = end;
- 		table = table->parent;
- 	}
-+	buflen -= 4;
-+	if (buflen < 0)
-+		goto out_free;
-+	end -= 4;
-+	memcpy(end, "/sys", 4);
-+	path = end;
- 	rc = security_genfs_sid("proc", path, tclass, sid);
- out_free:
- 	free_page((unsigned long)buffer);
+@@ -1077,6 +1077,9 @@ static int inode_has_perm(struct task_st
+ 	struct inode_security_struct *isec;
+ 	struct avc_audit_data ad;
+ 
++	if (unlikely (IS_PRIVATE (inode)))
++		return 0;
++
+ 	tsec = tsk->security;
+ 	isec = inode->i_security;
+ 
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from sds@tycho.nsa.gov are
 
 origin.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-git-v9fs.patch
-x86_64-irq-simplfy-__assign_irq_vector.patch
-x86_64-irq-handle-irqs-pending-in-irr-during-irq-migration.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
-i386-apic-clean-up-the-apic-code.patch
-i386-rework-local-apic-timer-calibration.patch
-i386-prepare-nmi-watchdog-for-dynticks.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+git-mips.patch
+implement-file-posix-capabilities.patch
+file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
+file-capabilities-honor-secure_noroot.patch
+mprotect-patch-for-use-by-slim.patch
+integrity-service-api-and-dummy-provider.patch
+slim-main-patch.patch
+slim-main-include-fix.patch
+slim-secfs-patch.patch
+slim-make-and-config-stuff.patch
+slim-debug-output.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+slim-fix-security-issue-with-the-task_post_setuid-hook.patch
+slim-documentation.patch
+panic-on-slim-selinux.patch
