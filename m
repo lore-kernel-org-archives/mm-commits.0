@@ -1,28 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:14 -0800
-Message-ID: <200702150848.l1F8mEBA025035@shell0.pdx.osdl.net>
+Subject: - sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:20 -0800
+Message-ID: <200702150848.l1F8mKmF025041@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40002 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40006 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965385AbXBOIsg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:48:36 -0500
+	id S965389AbXBOIsi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:48:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, neilb@cse.unsw.edu.au, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: move CTL_SUNRPC to sysctl.h where it belongs
+     sysctl: sunrpc: don't unnecessarily set ctl_table->de
 has been removed from the -mm tree.  Its filename was
-     sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs.patch
+     sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: move CTL_SUNRPC to sysctl.h where it belongs
+Subject: sysctl: sunrpc: don't unnecessarily set ctl_table->de
 From: Eric W. Biederman <ebiederm@xmission.com>
+
+We don't need this to prevent module unload races so remove the unnecessary
+code.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -30,34 +33,47 @@ Cc: Neil Brown <neilb@cse.unsw.edu.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/debug.h |    1 -
- include/linux/sysctl.h       |    3 ++-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/sunrpc/sysctl.c   |    8 +-------
+ net/sunrpc/xprtsock.c |    7 +------
+ 2 files changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/sunrpc/debug.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs include/linux/sunrpc/debug.h
---- a/include/linux/sunrpc/debug.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs
-+++ a/include/linux/sunrpc/debug.h
-@@ -78,7 +78,6 @@ void		rpc_unregister_sysctl(void);
-  * module currently registers its sysctl table dynamically, the sysctl path
-  * for module FOO is <CTL_SUNRPC, CTL_FOODEBUG>.
-  */
--#define CTL_SUNRPC	7249	/* arbitrary and hopefully unused */
+diff -puN net/sunrpc/sysctl.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de net/sunrpc/sysctl.c
+--- a/net/sunrpc/sysctl.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de
++++ a/net/sunrpc/sysctl.c
+@@ -35,14 +35,8 @@ static ctl_table		sunrpc_table[];
+ void
+ rpc_register_sysctl(void)
+ {
+-	if (!sunrpc_table_header) {
++	if (!sunrpc_table_header)
+ 		sunrpc_table_header = register_sysctl_table(sunrpc_table, 0);
+-#ifdef CONFIG_PROC_FS
+-		if (sunrpc_table[0].de)
+-			sunrpc_table[0].de->owner = THIS_MODULE;
+-#endif
+-	}
+-
+ }
  
- enum {
- 	CTL_RPCDEBUG = 1,
-diff -puN include/linux/sysctl.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-move-ctl_sunrpc-to-sysctlh-where-it-belongs
-+++ a/include/linux/sysctl.h
-@@ -69,7 +69,8 @@ enum
- 	CTL_DEV=7,		/* Devices */
- 	CTL_BUS=8,		/* Busses */
- 	CTL_ABI=9,		/* Binary emulation */
--	CTL_CPU=10		/* CPU stuff (speed scaling, etc) */
-+	CTL_CPU=10,		/* CPU stuff (speed scaling, etc) */
-+	CTL_SUNRPC=7249,	/* sunrpc debug */
- };
+ void
+diff -puN net/sunrpc/xprtsock.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de
++++ a/net/sunrpc/xprtsock.c
+@@ -1635,13 +1635,8 @@ struct rpc_xprt *xs_setup_tcp(struct soc
+ int init_socket_xprt(void)
+ {
+ #ifdef RPC_DEBUG
+-	if (!sunrpc_table_header) {
++	if (!sunrpc_table_header)
+ 		sunrpc_table_header = register_sysctl_table(sunrpc_table, 0);
+-#ifdef CONFIG_PROC_FS
+-		if (sunrpc_table[0].de)
+-			sunrpc_table[0].de->owner = THIS_MODULE;
+-#endif
+-	}
+ #endif
  
- /* CTL_BUS names: */
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
