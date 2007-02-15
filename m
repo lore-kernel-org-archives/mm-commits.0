@@ -1,52 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:03 -0800
-Message-ID: <200702150849.l1F8n3On025096@shell0.pdx.osdl.net>
+Subject: - sysctl-sn-remove-sysctl-abi-breakage.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:14 -0800
+Message-ID: <200702150849.l1F8nE7D025111@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40075 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40085 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965418AbXBOItM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:12 -0500
+	id S965438AbXBOItQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: frv: pm remove unnecessary insert_at_head flag
+     sysctl: sn: remove sysctl ABI BREAKAGE
 has been removed from the -mm tree.  Its filename was
-     sysctl-frv-pm-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-sn-remove-sysctl-abi-breakage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: frv: pm remove unnecessary insert_at_head flag
+Subject: sysctl: sn: remove sysctl ABI BREAKAGE
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-With unique binary numbers setting insert_at_head to insert yourself at the
-head of sysctl list and thus override existing sysctl entries serves no point.
+By not using the enumeration in sysctl.h (or even understanding it) the SN
+platform placed their arch specific xpc directory on top of CTL_KERN and only
+because they didn't have 4 entries in their xpc directory got lucky and didn't
+break glibc.
 
+This is totally irresponsible.  So this patch entirely removes sys_sysctl
+support from their sysctl code.  Hopefully they don't have ascii name
+conflicts as well.
+
+And now that they have no ABI numbers add them to the end instead of the
+sysctl list instead of the head so nothing else will be overridden.
+
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/pm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/sn/kernel/xpc_main.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/frv/kernel/pm.c~sysctl-frv-pm-remove-unnecessary-insert_at_head-flag arch/frv/kernel/pm.c
---- a/arch/frv/kernel/pm.c~sysctl-frv-pm-remove-unnecessary-insert_at_head-flag
-+++ a/arch/frv/kernel/pm.c
-@@ -419,7 +419,7 @@ static struct ctl_table pm_dir_table[] =
-  */
- static int __init pm_init(void)
- {
--	register_sysctl_table(pm_dir_table, 1);
-+	register_sysctl_table(pm_dir_table, 0);
- 	return 0;
- }
+diff -puN arch/ia64/sn/kernel/xpc_main.c~sysctl-sn-remove-sysctl-abi-breakage arch/ia64/sn/kernel/xpc_main.c
+--- a/arch/ia64/sn/kernel/xpc_main.c~sysctl-sn-remove-sysctl-abi-breakage
++++ a/arch/ia64/sn/kernel/xpc_main.c
+@@ -101,7 +101,7 @@ static int xpc_disengage_request_max_tim
  
+ static ctl_table xpc_sys_xpc_hb_dir[] = {
+ 	{
+-		1,
++		CTL_UNNUMBERED,
+ 		"hb_interval",
+ 		&xpc_hb_interval,
+ 		sizeof(int),
+@@ -114,7 +114,7 @@ static ctl_table xpc_sys_xpc_hb_dir[] = 
+ 		&xpc_hb_max_interval
+ 	},
+ 	{
+-		2,
++		CTL_UNNUMBERED,
+ 		"hb_check_interval",
+ 		&xpc_hb_check_interval,
+ 		sizeof(int),
+@@ -130,7 +130,7 @@ static ctl_table xpc_sys_xpc_hb_dir[] = 
+ };
+ static ctl_table xpc_sys_xpc_dir[] = {
+ 	{
+-		1,
++		CTL_UNNUMBERED,
+ 		"hb",
+ 		NULL,
+ 		0,
+@@ -138,7 +138,7 @@ static ctl_table xpc_sys_xpc_dir[] = {
+ 		xpc_sys_xpc_hb_dir
+ 	},
+ 	{
+-		2,
++		CTL_UNNUMBERED,
+ 		"disengage_request_timelimit",
+ 		&xpc_disengage_request_timelimit,
+ 		sizeof(int),
+@@ -154,7 +154,7 @@ static ctl_table xpc_sys_xpc_dir[] = {
+ };
+ static ctl_table xpc_sys_dir[] = {
+ 	{
+-		1,
++		CTL_UNNUMBERED,
+ 		"xpc",
+ 		NULL,
+ 		0,
+@@ -1251,7 +1251,7 @@ xpc_init(void)
+ 	snprintf(xpc_part->bus_id, BUS_ID_SIZE, "part");
+ 	snprintf(xpc_chan->bus_id, BUS_ID_SIZE, "chan");
+ 
+-	xpc_sysctl = register_sysctl_table(xpc_sys_dir, 1);
++	xpc_sysctl = register_sysctl_table(xpc_sys_dir, 0);
+ 
+ 	/*
+ 	 * The first few fields of each entry of xpc_partitions[] need to
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
