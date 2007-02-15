@@ -1,79 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:20 -0800
-Message-ID: <200702150848.l1F8mKmF025041@shell0.pdx.osdl.net>
+Subject: - sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:33 -0800
+Message-ID: <200702150848.l1F8mXdQ025058@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40006 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40009 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965389AbXBOIsi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:48:38 -0500
+	id S965393AbXBOIsj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:48:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, neilb@cse.unsw.edu.au, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, patrick@tykepenguin.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: sunrpc: don't unnecessarily set ctl_table->de
+     sysctl: decnet: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de.patch
+     sysctl-decnet-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: sunrpc: don't unnecessarily set ctl_table->de
+Subject: sysctl: decnet: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-We don't need this to prevent module unload races so remove the unnecessary
-code.
+The sysctl numbers used are unique so setting the insert_at_head flag does not
+succeed in overriding any sysctls, and is just confusing because it doesn't. 
+Clear the flag.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@cse.unsw.edu.au>
+Cc: Patrick Caulfield <patrick@tykepenguin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/sysctl.c   |    8 +-------
- net/sunrpc/xprtsock.c |    7 +------
- 2 files changed, 2 insertions(+), 13 deletions(-)
+ net/decnet/sysctl_net_decnet.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sunrpc/sysctl.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de net/sunrpc/sysctl.c
---- a/net/sunrpc/sysctl.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de
-+++ a/net/sunrpc/sysctl.c
-@@ -35,14 +35,8 @@ static ctl_table		sunrpc_table[];
- void
- rpc_register_sysctl(void)
+diff -puN net/decnet/sysctl_net_decnet.c~sysctl-decnet-remove-unnecessary-insert_at_head-flag net/decnet/sysctl_net_decnet.c
+--- a/net/decnet/sysctl_net_decnet.c~sysctl-decnet-remove-unnecessary-insert_at_head-flag
++++ a/net/decnet/sysctl_net_decnet.c
+@@ -491,7 +491,7 @@ static ctl_table dn_root_table[] = {
+ 
+ void dn_register_sysctl(void)
  {
--	if (!sunrpc_table_header) {
-+	if (!sunrpc_table_header)
- 		sunrpc_table_header = register_sysctl_table(sunrpc_table, 0);
--#ifdef CONFIG_PROC_FS
--		if (sunrpc_table[0].de)
--			sunrpc_table[0].de->owner = THIS_MODULE;
--#endif
--	}
--
+-	dn_table_header = register_sysctl_table(dn_root_table, 1);
++	dn_table_header = register_sysctl_table(dn_root_table, 0);
  }
  
- void
-diff -puN net/sunrpc/xprtsock.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~sysctl-sunrpc-dont-unnecessarily-set-ctl_table-de
-+++ a/net/sunrpc/xprtsock.c
-@@ -1635,13 +1635,8 @@ struct rpc_xprt *xs_setup_tcp(struct soc
- int init_socket_xprt(void)
- {
- #ifdef RPC_DEBUG
--	if (!sunrpc_table_header) {
-+	if (!sunrpc_table_header)
- 		sunrpc_table_header = register_sysctl_table(sunrpc_table, 0);
--#ifdef CONFIG_PROC_FS
--		if (sunrpc_table[0].de)
--			sunrpc_table[0].de->owner = THIS_MODULE;
--#endif
--	}
- #endif
- 
- 	return 0;
+ void dn_unregister_sysctl(void)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
