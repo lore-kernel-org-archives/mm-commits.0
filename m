@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-nfs-check-mnt-instead-of-sb.patch added to -mm tree
-Date: Wed, 14 Feb 2007 21:02:48 -0800
-Message-ID: <200702150502.l1F52mAV020369@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-remove-is_rdonly-from-permission.patch added to -mm tree
+Date: Wed, 14 Feb 2007 21:03:04 -0800
+Message-ID: <200702150503.l1F534lu020397@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34915 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34933 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751560AbXBOFGI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 00:06:08 -0500
+	id S1751558AbXBOFGZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 00:06:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, miklos@szeredi.hu, vir
 
 
 The patch titled
-     r/o bind mounts: nfs-check-mnt-instead-of-sb
+     r/o bind mounts: remove IS_RDONLY() from permission()
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-nfs-check-mnt-instead-of-sb.patch
+     r-o-bind-mounts-remove-is_rdonly-from-permission.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,8 +25,15 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: nfs-check-mnt-instead-of-sb
+Subject: r/o bind mounts: remove IS_RDONLY() from permission()
 From: Dave Hansen <hansendc@us.ibm.com>
+
+All callers of permission() should be updated now to use the
+mnt_want/drop_write() functions.  It is now safe to remove this check.
+
+We'll put a BUG_ON() in here for now just in case some user manages to get in
+here by code that gets added in the future but forgets its
+mnt_want/drop_write() pair.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -35,44 +42,30 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/dir.c  |    3 ++-
- fs/nfsd/vfs.c |    4 ++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ fs/namei.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/nfs/dir.c~r-o-bind-mounts-nfs-check-mnt-instead-of-sb fs/nfs/dir.c
---- a/fs/nfs/dir.c~r-o-bind-mounts-nfs-check-mnt-instead-of-sb
-+++ a/fs/nfs/dir.c
-@@ -980,7 +980,8 @@ static int is_atomic_open(struct inode *
- 	if (nd->flags & LOOKUP_DIRECTORY)
- 		return 0;
- 	/* Are we trying to write to a read only partition? */
--	if (IS_RDONLY(dir) && (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
-+	if (__mnt_is_readonly(nd->mnt) &&
-+	    (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
- 		return 0;
- 	return 1;
- }
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-sb fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-sb
-+++ a/fs/nfsd/vfs.c
-@@ -1811,7 +1811,7 @@ nfsd_permission(struct svc_export *exp, 
- 		inode->i_mode,
- 		IS_IMMUTABLE(inode)?	" immut" : "",
- 		IS_APPEND(inode)?	" append" : "",
--		IS_RDONLY(inode)?	" ro" : "");
-+		__mnt_is_readonly(exp->mnt)?	" ro" : "");
- 	dprintk("      owner %d/%d user %d/%d\n",
- 		inode->i_uid, inode->i_gid, current->fsuid, current->fsgid);
- #endif
-@@ -1822,7 +1822,7 @@ nfsd_permission(struct svc_export *exp, 
- 	 */
- 	if (!(acc & MAY_LOCAL_ACCESS))
- 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
--			if (EX_RDONLY(exp) || IS_RDONLY(inode))
-+			if (EX_RDONLY(exp))
- 				return nfserr_rofs;
- 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
- 				return nfserr_perm;
+diff -puN fs/namei.c~r-o-bind-mounts-remove-is_rdonly-from-permission fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-remove-is_rdonly-from-permission
++++ a/fs/namei.c
+@@ -231,13 +231,12 @@ int permission(struct inode *inode, int 
+ 	int retval, submask;
+ 
+ 	if (mask & MAY_WRITE) {
+-
+ 		/*
+-		 * Nobody gets write access to a read-only fs.
++		 * Nobody should have been able to get here with
++		 * a r/o filesystem.
+ 		 */
+-		if (IS_RDONLY(inode) &&
+-		    (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)))
+-			return -EROFS;
++		BUG_ON(IS_RDONLY(inode) &&
++                       (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)));
+ 
+ 		/*
+ 		 * Nobody gets write access to an immutable file.
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
