@@ -1,201 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: - add-pm_trace-x86_64-support.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 04:01:31 -0800
-Message-ID: <200702151202.l1FC2lmI028676@shell0.pdx.osdl.net>
+Subject: + shm-make-sysv-ipc-shared-memory-use-stacked-files-fix.patch added to -mm tree
+Date: Thu, 15 Feb 2007 14:02:38 -0800
+Message-ID: <200702152202.l1FM2eIs010061@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44936 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36223 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965701AbXBOMC4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 07:02:56 -0500
+	id S932834AbXBOWCo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 17:02:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nigel@nigel.suspend2.net, ak@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, michal.k.k.piotrowski@gmail.com
 
 
 The patch titled
-     Add PM_TRACE x86_64 support
-has been removed from the -mm tree.  Its filename was
-     add-pm_trace-x86_64-support.patch
+     shm-make-sysv-ipc-shared-memory-use-stacked-files-fix
+has been added to the -mm tree.  Its filename is
+     shm-make-sysv-ipc-shared-memory-use-stacked-files-fix.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Add PM_TRACE x86_64 support
-From: Nigel Cunningham <nigel@nigel.suspend2.net>
+Subject: shm-make-sysv-ipc-shared-memory-use-stacked-files-fix
+From: Andrew Morton <akpm@osdl.org>
 
-Add x86_64 support for PM_TRACE, and shift per-arch code to the appropriate
-subdirectories.
-
-Symbol exports are added so tracing can be used from drivers built as
-modules too.
-
-Signed-off-by: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Andi Kleen <ak@suse.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/vmlinux.lds.S  |    7 +++++++
- drivers/base/power/trace.c        |    5 ++++-
- include/asm-i386/resume-trace.h   |   21 +++++++++++++++++++++
- include/asm-x86_64/resume-trace.h |   21 +++++++++++++++++++++
- include/linux/resume-trace.h      |   24 ++++++------------------
- kernel/power/Kconfig              |    2 +-
- 6 files changed, 60 insertions(+), 20 deletions(-)
+ ipc/shm.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86_64/kernel/vmlinux.lds.S~add-pm_trace-x86_64-support arch/x86_64/kernel/vmlinux.lds.S
---- a/arch/x86_64/kernel/vmlinux.lds.S~add-pm_trace-x86_64-support
-+++ a/arch/x86_64/kernel/vmlinux.lds.S
-@@ -54,6 +54,13 @@ SECTIONS
+diff -puN ipc/shm.c~shm-make-sysv-ipc-shared-memory-use-stacked-files-fix ipc/shm.c
+--- a/ipc/shm.c~shm-make-sysv-ipc-shared-memory-use-stacked-files-fix
++++ a/ipc/shm.c
+@@ -818,7 +818,7 @@ long do_shmat(int shmid, char __user *sh
+ 	int acc_mode;
+ 	void *user_addr;
+ 	struct ipc_namespace *ns;
+-	struct shm_file_data *sfd;
++	struct shm_file_data *sfd = NULL;
+ 	mode_t f_mode;
  
-   BUG_TABLE
+ 	if (shmid < 0) {
+@@ -856,6 +856,8 @@ long do_shmat(int shmid, char __user *sh
+ 		acc_mode |= S_IXUGO;
+ 	}
  
-+  . = ALIGN(4);
-+  .tracedata : AT(ADDR(.tracedata) - LOAD_OFFSET) {
-+  	__tracedata_start = .;
-+	*(.tracedata)
-+  	__tracedata_end = .;
-+  }
++	sfd = kzalloc(sizeof(*sfd), GFP_KERNEL);
 +
-   . = ALIGN(PAGE_SIZE);        /* Align data segment to page size boundary */
- 				/* Data */
-   .data : AT(ADDR(.data) - LOAD_OFFSET) {
-diff -puN drivers/base/power/trace.c~add-pm_trace-x86_64-support drivers/base/power/trace.c
---- a/drivers/base/power/trace.c~add-pm_trace-x86_64-support
-+++ a/drivers/base/power/trace.c
-@@ -142,6 +142,7 @@ void set_trace_device(struct device *dev
- {
- 	dev_hash_value = hash_string(DEVSEED, dev->bus_id, DEVHASH);
- }
-+EXPORT_SYMBOL(set_trace_device);
+ 	/*
+ 	 * We cannot rely on the fs check since SYSV IPC does have an
+ 	 * additional creator id...
+@@ -879,13 +881,12 @@ long do_shmat(int shmid, char __user *sh
+ 		goto out_unlock;
  
- /*
-  * We could just take the "tracedata" index into the .tracedata
-@@ -162,6 +163,7 @@ void generate_resume_trace(void *traceda
- 	file_hash_value = hash_string(lineno, file, FILEHASH);
- 	set_magic_time(user_hash_value, file_hash_value, dev_hash_value);
- }
-+EXPORT_SYMBOL(generate_resume_trace);
+ 	err = -ENOMEM;
+-	sfd = kzalloc(sizeof(*sfd), GFP_KERNEL);
+ 	if (!sfd)
+ 		goto out_unlock;
  
- extern char __tracedata_start, __tracedata_end;
- static int show_file_hash(unsigned int value)
-@@ -170,7 +172,8 @@ static int show_file_hash(unsigned int v
- 	char *tracedata;
+ 	file = get_empty_filp();
+ 	if (!file)
+-		goto out_free;
++		goto out_unlock;
  
- 	match = 0;
--	for (tracedata = &__tracedata_start ; tracedata < &__tracedata_end ; tracedata += 6) {
-+	for (tracedata = &__tracedata_start ; tracedata < &__tracedata_end ;
-+			tracedata += 2 + sizeof(unsigned long)) {
- 		unsigned short lineno = *(unsigned short *)tracedata;
- 		const char *file = *(const char **)(tracedata + 2);
- 		unsigned int hash = hash_string(lineno, file, FILEHASH);
-diff -puN /dev/null include/asm-i386/resume-trace.h
---- /dev/null
-+++ a/include/asm-i386/resume-trace.h
-@@ -0,0 +1,21 @@
-+#ifndef ARCH_RESUME_TRACE_H
-+#define ARCH_RESUME_TRACE_H
-+
-+#ifdef CONFIG_PM_TRACE
-+#define TRACE_RESUME(user) do {					\
-+	if (pm_trace_enabled) {					\
-+		void *tracedata;				\
-+		asm volatile("movl $1f,%0\n"			\
-+			".section .tracedata,\"a\"\n"		\
-+			"1:\t.word %c1\n"			\
-+			"\t.long %c2\n"				\
-+			".previous"				\
-+			:"=r" (tracedata)			\
-+			: "i" (__LINE__), "i" (__FILE__));	\
-+		generate_resume_trace(tracedata, user);		\
-+	}							\
-+} while (0)
-+#else
-+#define TRACE_RESUME(user) do { } while (0)
-+#endif
-+#endif
-diff -puN /dev/null include/asm-x86_64/resume-trace.h
---- /dev/null
-+++ a/include/asm-x86_64/resume-trace.h
-@@ -0,0 +1,21 @@
-+#ifndef ARCH_RESUME_TRACE_H
-+#define ARCH_RESUME_TRACE_H
-+
-+#ifdef CONFIG_PM_TRACE
-+#define TRACE_RESUME(user) do {					\
-+	if (pm_trace_enabled) {					\
-+		void *tracedata;				\
-+		asm volatile("movq $1f,%0\n"			\
-+			".section .tracedata,\"a\"\n"		\
-+			"1:\t.word %c1\n"			\
-+			"\t.quad %c2\n"				\
-+			".previous"				\
-+			:"=r" (tracedata)			\
-+			: "i" (__LINE__), "i" (__FILE__));	\
-+		generate_resume_trace(tracedata, user);		\
-+	}							\
-+} while (0)
-+#else
-+#define TRACE_RESUME(user) do { } while (0)
-+#endif
-+#endif
-diff -puN include/linux/resume-trace.h~add-pm_trace-x86_64-support include/linux/resume-trace.h
---- a/include/linux/resume-trace.h~add-pm_trace-x86_64-support
-+++ a/include/linux/resume-trace.h
-@@ -1,6 +1,8 @@
- #ifndef RESUME_TRACE_H
- #define RESUME_TRACE_H
- 
-+#include <asm/resume-trace.h>
-+
- #ifdef CONFIG_PM_TRACE
- 
- extern int pm_trace_enabled;
-@@ -9,26 +11,12 @@ struct device;
- extern void set_trace_device(struct device *);
- extern void generate_resume_trace(void *tracedata, unsigned int user);
- 
--#define TRACE_DEVICE(dev) set_trace_device(dev)
--#define TRACE_RESUME(user) do {					\
--	if (pm_trace_enabled) {					\
--		void *tracedata;				\
--		asm volatile("movl $1f,%0\n"			\
--			".section .tracedata,\"a\"\n"		\
--			"1:\t.word %c1\n"			\
--			"\t.long %c2\n"				\
--			".previous"				\
--			:"=r" (tracedata)			\
--			: "i" (__LINE__), "i" (__FILE__));	\
--		generate_resume_trace(tracedata, user);		\
--	}							\
--} while (0)
--
-+#define TRACE_DEVICE(dev) do { \
-+	if (pm_trace_enabled) \
-+		set_trace_device(dev); \
-+	} while(0)
- #else
--
- #define TRACE_DEVICE(dev) do { } while (0)
--#define TRACE_RESUME(dev) do { } while (0)
--
- #endif
- 
- #endif
-diff -puN kernel/power/Kconfig~add-pm_trace-x86_64-support kernel/power/Kconfig
---- a/kernel/power/Kconfig~add-pm_trace-x86_64-support
-+++ a/kernel/power/Kconfig
-@@ -50,7 +50,7 @@ config DISABLE_CONSOLE_SUSPEND
- 
- config PM_TRACE
- 	bool "Suspend/resume event tracing"
--	depends on PM && PM_DEBUG && X86_32 && EXPERIMENTAL
-+	depends on PM && PM_DEBUG && X86 && EXPERIMENTAL
- 	default n
- 	---help---
- 	This enables some cheesy code to save the last PM event point in the
+ 	file->f_op = &shm_file_operations;
+ 	file->private_data = sfd;
+@@ -939,9 +940,8 @@ invalid:
+ 	if (IS_ERR(user_addr))
+ 		err = PTR_ERR(user_addr);
+ out:
+-	return err;
+-out_free:
+ 	kfree(sfd);
++	return err;
+ out_unlock:
+ 	shm_unlock(shp);
+ 	goto out;
 _
 
-Patches currently in -mm which might be from nigel@nigel.suspend2.net are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-add-pm_trace-x86_64-support.patch
+origin.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-agpgart.patch
+git-dvb.patch
+git-ia64.patch
+git-ieee1394.patch
+git-libata-all.patch
+git-lxdialog-fixup.patch
+git-mtd.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+git-backlight.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-xfs-barriers-broke.patch
+nokia-e70-is-an-unusual-device.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+touchkit-ps-2-touchscreen-driver.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+vmi-versus-hrtimers.patch
+add-a-functions-to-handle-interrupt-affinity-setting-alpha-fix.patch
+i386-use-gtod-persistent-clock-support.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+clockevents-i383-drivers.patch
+generic-vsyscall-gtod-support-for-generic_time-tidy.patch
+revert-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-split-x86_64-kernel-timec-up-tidy.patch
+time-x86_64-split-x86_64-kernel-timec-up-fix.patch
+reapply-x86_64-mm-ignore-long-smi-interrupts-in-clock-calibration.patch
+time-x86_64-convert-x86_64-to-use-generic_time-fix.patch
+time-x86_64-convert-x86_64-to-use-generic_time-tidy.patch
+time-x86_64-re-enable-vsyscall-support-for-x86_64-tidy.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+rcu-preemptible-rcu.patch
+local_t-powerpc-extension-fix.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
+shm-make-sysv-ipc-shared-memory-use-stacked-files-fix.patch
