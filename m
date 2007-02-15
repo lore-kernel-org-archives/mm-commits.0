@@ -1,157 +1,337 @@
 From: akpm@linux-foundation.org
-Subject: - add-mailmap-for-proper-git-shortlog-output.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:46:58 -0800
-Message-ID: <200702150846.l1F8kwEl024947@shell0.pdx.osdl.net>
+Subject: - serial-replace-kmallocmemset-with-kzalloc.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:47:33 -0800
+Message-ID: <200702150847.l1F8lXbb024989@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39906 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39910 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965352AbXBOIrc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:47:32 -0500
+	id S965294AbXBOIrg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:47:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nico@cam.org, junkio@cox.net, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: yan_952@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add .mailmap for proper git-shortlog output
+     serial: replace kmalloc+memset with kzalloc
 has been removed from the -mm tree.  Its filename was
-     add-mailmap-for-proper-git-shortlog-output.patch
+     serial-replace-kmallocmemset-with-kzalloc.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add .mailmap for proper git-shortlog output
-=46rom: Nicolas Pitre <nico@cam.org>
+Subject: serial: replace kmalloc+memset with kzalloc
+From: "Burman Yan" <yan_952@hotmail.com>
 
-This list was built into the git-shortlog tool and has been removed in =
-the
-latest version.  It should be maintained separately so this is what thi=
-s
-patch does.
 
-A couple more entries were added to the original list as well.
 
-Signed-off-by: Nicolas Pitre <nico@cam.org>
-Acked-by: Junio C Hamano <junkio@cox.net>
-Cc: Linus Torvalds <torvalds@osdl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |   96 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 96 insertions(+)
+ drivers/serial/8250_acorn.c     |    3 +--
+ drivers/serial/8250_pci.c       |    5 +----
+ drivers/serial/icom.c           |    4 +---
+ drivers/serial/ioc3_serial.c    |    6 ++----
+ drivers/serial/ioc4_serial.c    |    9 +++------
+ drivers/serial/ip22zilog.c      |    8 +-------
+ drivers/serial/jsm/jsm_driver.c |    6 ++----
+ drivers/serial/jsm/jsm_tty.c    |   12 ++++--------
+ drivers/serial/serial_core.c    |    7 ++-----
+ drivers/serial/serial_cs.c      |    3 +--
+ 10 files changed, 18 insertions(+), 45 deletions(-)
 
-diff -puN /dev/null .mailmap
---- /dev/null
-+++ a/.mailmap
-@@ -0,0 +1,96 @@
-+#
-+# This list is used by git-shortlog to fix a few botched name translat=
-ions
-+# in the git archive, either because the author's full name was messed=
- up
-+# and/or not always written the same way, making contributions from th=
-e
-+# same person appearing not to be so or badly displayed.
-+#
-+# repo-abbrev: /pub/scm/linux/kernel/git/
-+#
-+
-+Aaron Durbin <adurbin@google.com>
-+Adam Oldham <oldhamca@gmail.com>
-+Adam Radford <aradford@gmail.com>
-+Adrian Bunk <bunk@stusta.de>
-+Alan Cox <alan@lxorguk.ukuu.org.uk>
-+Alan Cox <root@hraefn.swansea.linux.org.uk>
-+Aleksey Gorelov <aleksey_gorelov@phoenix.com>
-+Al Viro <viro@ftp.linux.org.uk>
-+Al Viro <viro@zenIV.linux.org.uk>
-+Andreas Herrmann <aherrman@de.ibm.com>
-+Andrew Morton <akpm@osdl.org>
-+Andrew Vasquez <andrew.vasquez@qlogic.com>
-+Andy Adamson <andros@citi.umich.edu>
-+Arnaud Patard <arnaud.patard@rtp-net.org>
-+Arnd Bergmann <arnd@arndb.de>
-+Axel Dyks <xl@xlsigned.net>
-+Ben Gardner <bgardner@wabtec.com>
-+Ben M Cahill <ben.m.cahill@intel.com>
-+Bj=C3=B6rn Steinbrink <B.Steinbrink@gmx.de>
-+Brian Avery <b.avery@hp.com>
-+Brian King <brking@us.ibm.com>
-+Christoph Hellwig <hch@lst.de>
-+Corey Minyard <minyard@acm.org>
-+David Brownell <david-b@pacbell.net>
-+David Woodhouse <dwmw2@shinybook.infradead.org>
-+Domen Puncer <domen@coderock.org>
-+Douglas Gilbert <dougg@torque.net>
-+Ed L. Cashin <ecashin@coraid.com>
-+Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+Felipe W Damasio <felipewd@terra.com.br>
-+Felix Kuhling <fxkuehl@gmx.de>
-+Felix Moeller <felix@derklecks.de>
-+Filipe Lautert <filipe@icewall.org>
-+Franck Bui-Huu <vagabon.xyz@gmail.com>
-+Frank Zago <fzago@systemfabricworks.com>
-+Greg Kroah-Hartman <greg@echidna.(none)>
-+Greg Kroah-Hartman <gregkh@suse.de>
-+Greg Kroah-Hartman <greg@kroah.com>
-+Henk Vergonet <Henk.Vergonet@gmail.com>
-+Henrik Kretzschmar <henne@nachtwindheim.de>
-+Herbert Xu <herbert@gondor.apana.org.au>
-+Jacob Shin <Jacob.Shin@amd.com>
-+James Bottomley <jejb@mulgrave.(none)>
-+James Bottomley <jejb@titanic.il.steeleye.com>
-+James E Wilson <wilson@specifix.com>
-+James Ketrenos <jketreno@io.(none)>
-+Jean Tourrilhes <jt@hpl.hp.com>
-+Jeff Garzik <jgarzik@pretzel.yyz.us>
-+Jens Axboe <axboe@suse.de>
-+Jens Osterkamp <Jens.Osterkamp@de.ibm.com>
-+John Stultz <johnstul@us.ibm.com>
-+Juha Yrjola <at solidboot.com>
-+Juha Yrjola <juha.yrjola@nokia.com>
-+Juha Yrjola <juha.yrjola@solidboot.com>
-+Kay Sievers <kay.sievers@vrfy.org>
-+Kenneth W Chen <kenneth.w.chen@intel.com>
-+Koushik <raghavendra.koushik@neterion.com>
-+Leonid I Ananiev <leonid.i.ananiev@intel.com>
-+Linas Vepstas <linas@austin.ibm.com>
-+Matthieu CASTET <castet.matthieu@free.fr>
-+Michel D=C3=A4nzer <michel@tungstengraphics.com>
-+Mitesh shah <mshah@teja.com>
-+Morten Welinder <terra@gnome.org>
-+Morten Welinder <welinder@anemone.rentec.com>
-+Morten Welinder <welinder@darter.rentec.com>
-+Morten Welinder <welinder@troll.com>
-+Nguyen Anh Quynh <aquynh@gmail.com>
-+Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-+Patrick Mochel <mochel@digitalimplant.org>
-+Peter A Jonsson <pj@ludd.ltu.se>
-+Praveen BP <praveenbp@ti.com>
-+Rajesh Shah <rajesh.shah@intel.com>
-+Ralf Baechle <ralf@linux-mips.org>
-+Ralf Wildenhues <Ralf.Wildenhues@gmx.de>
-+R=C3=A9mi Denis-Courmont <rdenis@simphalempin.com>
-+Rudolf Marek <R.Marek@sh.cvut.cz>
-+Rui Saraiva <rmps@joel.ist.utl.pt>
-+Sachin P Sant <ssant@in.ibm.com>
-+Sam Ravnborg <sam@mars.ravnborg.org>
-+Simon Kelley <simon@thekelleys.org.uk>
-+St=C3=A9phane Witzmann <stephane.witzmann@ubpmes.univ-bpclermont.fr>
-+Stephen Hemminger <shemminger@osdl.org>
-+Tejun Heo <htejun@gmail.com>
-+Thomas Graf <tgraf@suug.ch>
-+Tony Luck <tony.luck@intel.com>
-+Tsuneo Yoshioka <Tsuneo.Yoshioka@f-secure.com>
-+Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+diff -puN drivers/serial/8250_acorn.c~serial-replace-kmallocmemset-with-kzalloc drivers/serial/8250_acorn.c
+--- a/drivers/serial/8250_acorn.c~serial-replace-kmallocmemset-with-kzalloc
++++ a/drivers/serial/8250_acorn.c
+@@ -47,11 +47,10 @@ serial_card_probe(struct expansion_card 
+ 	unsigned long bus_addr;
+ 	unsigned int i;
+ 
+-	info = kmalloc(sizeof(struct serial_card_info), GFP_KERNEL);
++	info = kzalloc(sizeof(struct serial_card_info), GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+ 
+-	memset(info, 0, sizeof(struct serial_card_info));
+ 	info->num_ports = type->num_ports;
+ 
+ 	bus_addr = ecard_resource_start(ec, type->type);
+diff -puN drivers/serial/8250_pci.c~serial-replace-kmallocmemset-with-kzalloc drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~serial-replace-kmallocmemset-with-kzalloc
++++ a/drivers/serial/8250_pci.c
+@@ -1628,7 +1628,7 @@ pciserial_init_ports(struct pci_dev *dev
+ 			nr_ports = rc;
+ 	}
+ 
+-	priv = kmalloc(sizeof(struct serial_private) +
++	priv = kzalloc(sizeof(struct serial_private) +
+ 		       sizeof(unsigned int) * nr_ports,
+ 		       GFP_KERNEL);
+ 	if (!priv) {
+@@ -1636,9 +1636,6 @@ pciserial_init_ports(struct pci_dev *dev
+ 		goto err_deinit;
+ 	}
+ 
+-	memset(priv, 0, sizeof(struct serial_private) +
+-			sizeof(unsigned int) * nr_ports);
+-
+ 	priv->dev = dev;
+ 	priv->quirk = quirk;
+ 
+diff -puN drivers/serial/icom.c~serial-replace-kmallocmemset-with-kzalloc drivers/serial/icom.c
+--- a/drivers/serial/icom.c~serial-replace-kmallocmemset-with-kzalloc
++++ a/drivers/serial/icom.c
+@@ -1417,14 +1417,12 @@ static int __devinit icom_alloc_adapter(
+ 	struct list_head *tmp;
+ 
+ 	icom_adapter = (struct icom_adapter *)
+-	    kmalloc(sizeof(struct icom_adapter), GFP_KERNEL);
++	    kzalloc(sizeof(struct icom_adapter), GFP_KERNEL);
+ 
+ 	if (!icom_adapter) {
+ 		return -ENOMEM;
+ 	}
+ 
+-	memset(icom_adapter, 0, sizeof(struct icom_adapter));
+-
+ 	list_for_each(tmp, &icom_adapter_head) {
+ 		cur_adapter_entry =
+ 		    list_entry(tmp, struct icom_adapter,
+diff -puN drivers/serial/ioc3_serial.c~serial-replace-kmallocmemset-with-kzalloc drivers/serial/ioc3_serial.c
+--- a/drivers/serial/ioc3_serial.c~serial-replace-kmallocmemset-with-kzalloc
++++ a/drivers/serial/ioc3_serial.c
+@@ -2019,13 +2019,12 @@ ioc3uart_probe(struct ioc3_submodule *is
+ 
+ 	DPRINT_CONFIG(("%s (0x%p, 0x%p)\n", __FUNCTION__, is, idd));
+ 
+-	card_ptr = kmalloc(sizeof(struct ioc3_card), GFP_KERNEL);
++	card_ptr = kzalloc(sizeof(struct ioc3_card), GFP_KERNEL);
+ 	if (!card_ptr) {
+ 		printk(KERN_WARNING "ioc3_attach_one"
+ 		       ": unable to get memory for the IOC3\n");
+ 		return -ENOMEM;
+ 	}
+-	memset(card_ptr, 0, sizeof(struct ioc3_card));
+ 	idd->data[is->id] = card_ptr;
+ 	Submodule_slot = is->id;
+ 
+@@ -2040,13 +2039,12 @@ ioc3uart_probe(struct ioc3_submodule *is
+ 
+ 	/* Create port structures for each port */
+ 	for (phys_port = 0; phys_port < PORTS_PER_CARD; phys_port++) {
+-		port = kmalloc(sizeof(struct ioc3_port), GFP_KERNEL);
++		port = kzalloc(sizeof(struct ioc3_port), GFP_KERNEL);
+ 		if (!port) {
+ 			printk(KERN_WARNING
+ 			       "IOC3 serial memory not available for port\n");
+ 			goto out4;
+ 		}
+-		memset(port, 0, sizeof(struct ioc3_port));
+ 		spin_lock_init(&port->ip_lock);
+ 
+ 		/* we need to remember the previous ones, to point back to
+diff -puN drivers/serial/ioc4_serial.c~serial-replace-kmallocmemset-with-kzalloc drivers/serial/ioc4_serial.c
+--- a/drivers/serial/ioc4_serial.c~serial-replace-kmallocmemset-with-kzalloc
++++ a/drivers/serial/ioc4_serial.c
+@@ -1076,13 +1076,12 @@ static int inline ioc4_attach_local(stru
+ 	/* Create port structures for each port */
+ 	for (port_number = 0; port_number < IOC4_NUM_SERIAL_PORTS;
+ 							port_number++) {
+-		port = kmalloc(sizeof(struct ioc4_port), GFP_KERNEL);
++		port = kzalloc(sizeof(struct ioc4_port), GFP_KERNEL);
+ 		if (!port) {
+ 			printk(KERN_WARNING
+ 				"IOC4 serial memory not available for port\n");
+ 			return -ENOMEM;
+ 		}
+-		memset(port, 0, sizeof(struct ioc4_port));
+ 		spin_lock_init(&port->ip_lock);
+ 
+ 		/* we need to remember the previous ones, to point back to
+@@ -2811,7 +2810,7 @@ ioc4_serial_attach_one(struct ioc4_drive
+ 				(void *)serial));
+ 
+ 	/* Get memory for the new card */
+-	control = kmalloc(sizeof(struct ioc4_control), GFP_KERNEL);
++	control = kzalloc(sizeof(struct ioc4_control), GFP_KERNEL);
+ 
+ 	if (!control) {
+ 		printk(KERN_WARNING "ioc4_attach_one"
+@@ -2819,11 +2818,10 @@ ioc4_serial_attach_one(struct ioc4_drive
+ 		ret = -ENOMEM;
+ 		goto out2;
+ 	}
+-	memset(control, 0, sizeof(struct ioc4_control));
+ 	idd->idd_serial_data = control;
+ 
+ 	/* Allocate the soft structure */
+-	soft = kmalloc(sizeof(struct ioc4_soft), GFP_KERNEL);
++	soft = kzalloc(sizeof(struct ioc4_soft), GFP_KERNEL);
+ 	if (!soft) {
+ 		printk(KERN_WARNING
+ 		       "ioc4 (%p): unable to get memory for the soft struct\n",
+@@ -2831,7 +2829,6 @@ ioc4_serial_attach_one(struct ioc4_drive
+ 		ret = -ENOMEM;
+ 		goto out3;
+ 	}
+-	memset(soft, 0, sizeof(struct ioc4_soft));
+ 
+ 	spin_lock_init(&soft->is_ir_lock);
+ 	soft->is_ioc4_misc_addr = idd->idd_misc_regs;
+diff -puN drivers/serial/ip22zilog.c~serial-replace-kmallocmemset-with-kzalloc drivers/serial/ip22zilog.c
+--- a/drivers/serial/ip22zilog.c~serial-replace-kmallocmemset-with-kzalloc
++++ a/drivers/serial/ip22zilog.c
+@@ -922,13 +922,7 @@ static int zilog_irq = -1;
+ 
+ static void * __init alloc_one_table(unsigned long size)
+ {
+-	void *ret;
+-
+-	ret = kmalloc(size, GFP_KERNEL);
+-	if (ret != NULL)
+-		memset(ret, 0, size);
+-
+-	return ret;
++	return kzalloc(size, GFP_KERNEL);
+ }
+ 
+ static void __init ip22zilog_alloc_tables(void)
+diff -puN drivers/serial/jsm/jsm_driver.c~serial-replace-kmallocmemset-with-kzalloc drivers/serial/jsm/jsm_driver.c
+--- a/drivers/serial/jsm/jsm_driver.c~serial-replace-kmallocmemset-with-kzalloc
++++ a/drivers/serial/jsm/jsm_driver.c
+@@ -71,14 +71,13 @@ static int jsm_probe_one(struct pci_dev 
+ 		goto out_disable_device;
+ 	}
+ 
+-	brd = kmalloc(sizeof(struct jsm_board), GFP_KERNEL);
++	brd = kzalloc(sizeof(struct jsm_board), GFP_KERNEL);
+ 	if (!brd) {
+ 		dev_err(&pdev->dev,
+ 			"memory allocation for board structure failed\n");
+ 		rc = -ENOMEM;
+ 		goto out_release_regions;
+ 	}
+-	memset(brd, 0, sizeof(struct jsm_board));
+ 
+ 	/* store the info for the board we've found */
+ 	brd->boardnum = adapter_count++;
+@@ -152,7 +151,7 @@ static int jsm_probe_one(struct pci_dev 
+ 	 * Okay to malloc with GFP_KERNEL, we are not at interrupt
+ 	 * context, and there are no locks held.
+ 	 */
+-	brd->flipbuf = kmalloc(MYFLIPLEN, GFP_KERNEL);
++	brd->flipbuf = kzalloc(MYFLIPLEN, GFP_KERNEL);
+ 	if (!brd->flipbuf) {
+ 		/* XXX: leaking all resources from jsm_tty_init and
+ 		 	jsm_uart_port_init here! */
+@@ -160,7 +159,6 @@ static int jsm_probe_one(struct pci_dev 
+ 		retval = -ENOMEM;
+ 		goto out_free_irq;
+ 	}
+-	memset(brd->flipbuf, 0, MYFLIPLEN);
+ 
+ 	pci_set_drvdata(pdev, brd);
+ 
+diff -puN drivers/serial/jsm/jsm_tty.c~serial-replace-kmallocmemset-with-kzalloc drivers/serial/jsm/jsm_tty.c
+--- a/drivers/serial/jsm/jsm_tty.c~serial-replace-kmallocmemset-with-kzalloc
++++ a/drivers/serial/jsm/jsm_tty.c
+@@ -194,31 +194,28 @@ static int jsm_tty_open(struct uart_port
+ 	/* Drop locks, as malloc with GFP_KERNEL can sleep */
+ 
+ 	if (!channel->ch_rqueue) {
+-		channel->ch_rqueue = (u8 *) kmalloc(RQUEUESIZE, GFP_KERNEL);
++		channel->ch_rqueue = kzalloc(RQUEUESIZE, GFP_KERNEL);
+ 		if (!channel->ch_rqueue) {
+ 			jsm_printk(INIT, ERR, &channel->ch_bd->pci_dev,
+ 				"unable to allocate read queue buf");
+ 			return -ENOMEM;
+ 		}
+-		memset(channel->ch_rqueue, 0, RQUEUESIZE);
+ 	}
+ 	if (!channel->ch_equeue) {
+-		channel->ch_equeue = (u8 *) kmalloc(EQUEUESIZE, GFP_KERNEL);
++		channel->ch_equeue = kzalloc(EQUEUESIZE, GFP_KERNEL);
+ 		if (!channel->ch_equeue) {
+ 			jsm_printk(INIT, ERR, &channel->ch_bd->pci_dev,
+ 				"unable to allocate error queue buf");
+ 			return -ENOMEM;
+ 		}
+-		memset(channel->ch_equeue, 0, EQUEUESIZE);
+ 	}
+ 	if (!channel->ch_wqueue) {
+-		channel->ch_wqueue = (u8 *) kmalloc(WQUEUESIZE, GFP_KERNEL);
++		channel->ch_wqueue = kzalloc(WQUEUESIZE, GFP_KERNEL);
+ 		if (!channel->ch_wqueue) {
+ 			jsm_printk(INIT, ERR, &channel->ch_bd->pci_dev,
+ 				"unable to allocate write queue buf");
+ 			return -ENOMEM;
+ 		}
+-		memset(channel->ch_wqueue, 0, WQUEUESIZE);
+ 	}
+ 
+ 	channel->ch_flags &= ~(CH_OPENING);
+@@ -392,13 +389,12 @@ int jsm_tty_init(struct jsm_board *brd)
+ 			 * Okay to malloc with GFP_KERNEL, we are not at
+ 			 * interrupt context, and there are no locks held.
+ 			 */
+-			brd->channels[i] = kmalloc(sizeof(struct jsm_channel), GFP_KERNEL);
++			brd->channels[i] = kzalloc(sizeof(struct jsm_channel), GFP_KERNEL);
+ 			if (!brd->channels[i]) {
+ 				jsm_printk(CORE, ERR, &brd->pci_dev,
+ 					"%s:%d Unable to allocate memory for channel struct\n",
+ 							 __FILE__, __LINE__);
+ 			}
+-			memset(brd->channels[i], 0, sizeof(struct jsm_channel));
+ 		}
+ 	}
+ 
+diff -puN drivers/serial/serial_core.c~serial-replace-kmallocmemset-with-kzalloc drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-replace-kmallocmemset-with-kzalloc
++++ a/drivers/serial/serial_core.c
+@@ -1523,9 +1523,8 @@ static struct uart_state *uart_get(struc
+ 	}
+ 
+ 	if (!state->info) {
+-		state->info = kmalloc(sizeof(struct uart_info), GFP_KERNEL);
++		state->info = kzalloc(sizeof(struct uart_info), GFP_KERNEL);
+ 		if (state->info) {
+-			memset(state->info, 0, sizeof(struct uart_info));
+ 			init_waitqueue_head(&state->info->open_wait);
+ 			init_waitqueue_head(&state->info->delta_msr_wait);
+ 
+@@ -2178,13 +2177,11 @@ int uart_register_driver(struct uart_dri
+ 	 * Maybe we should be using a slab cache for this, especially if
+ 	 * we have a large number of ports to handle.
+ 	 */
+-	drv->state = kmalloc(sizeof(struct uart_state) * drv->nr, GFP_KERNEL);
++	drv->state = kzalloc(sizeof(struct uart_state) * drv->nr, GFP_KERNEL);
+ 	retval = -ENOMEM;
+ 	if (!drv->state)
+ 		goto out;
+ 
+-	memset(drv->state, 0, sizeof(struct uart_state) * drv->nr);
+-
+ 	normal  = alloc_tty_driver(drv->nr);
+ 	if (!normal)
+ 		goto out;
+diff -puN drivers/serial/serial_cs.c~serial-replace-kmallocmemset-with-kzalloc drivers/serial/serial_cs.c
+--- a/drivers/serial/serial_cs.c~serial-replace-kmallocmemset-with-kzalloc
++++ a/drivers/serial/serial_cs.c
+@@ -334,10 +334,9 @@ static int serial_probe(struct pcmcia_de
+ 	DEBUG(0, "serial_attach()\n");
+ 
+ 	/* Create new serial device */
+-	info = kmalloc(sizeof (*info), GFP_KERNEL);
++	info = kzalloc(sizeof (*info), GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+-	memset(info, 0, sizeof (*info));
+ 	info->p_dev = link;
+ 	link->priv = info;
+ 
 _
 
-Patches currently in -mm which might be from nico@cam.org are
+Patches currently in -mm which might be from yan_952@hotmail.com are
 
 origin.patch
-git-arm.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
