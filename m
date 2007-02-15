@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch added to -mm tree
-Date: Wed, 14 Feb 2007 21:02:32 -0800
-Message-ID: <200702150502.l1F52WNL020345@shell0.pdx.osdl.net>
+Subject: + r-o-bind-mounts-nfs-check-mnt-instead-of-sb.patch added to -mm tree
+Date: Wed, 14 Feb 2007 21:02:48 -0800
+Message-ID: <200702150502.l1F52mAV020369@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34911 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34915 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751527AbXBOFF7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 00:05:59 -0500
+	id S1751560AbXBOFGI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 00:06:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hansendc@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, miklos@szeredi.hu, vir
 
 
 The patch titled
-     r/o bind mounts: elevate write count during entire ncp_ioctl()
+     r/o bind mounts: nfs-check-mnt-instead-of-sb
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+     r-o-bind-mounts-nfs-check-mnt-instead-of-sb.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,8 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count during entire ncp_ioctl()
+Subject: r/o bind mounts: nfs-check-mnt-instead-of-sb
 From: Dave Hansen <hansendc@us.ibm.com>
-
-Some ioctls need write access, but others don't.  Make a helper function to
-decide when write access is needed, and take it.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -38,88 +35,44 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |   55 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 54 insertions(+), 1 deletion(-)
+ fs/nfs/dir.c  |    3 ++-
+ fs/nfsd/vfs.c |    4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl
-+++ a/fs/ncpfs/ioctl.c
-@@ -14,6 +14,7 @@
- #include <linux/ioctl.h>
- #include <linux/time.h>
- #include <linux/mm.h>
-+#include <linux/mount.h>
- #include <linux/highuid.h>
- #include <linux/smp_lock.h>
- #include <linux/vmalloc.h>
-@@ -260,7 +261,7 @@ ncp_get_charsets(struct ncp_server* serv
+diff -puN fs/nfs/dir.c~r-o-bind-mounts-nfs-check-mnt-instead-of-sb fs/nfs/dir.c
+--- a/fs/nfs/dir.c~r-o-bind-mounts-nfs-check-mnt-instead-of-sb
++++ a/fs/nfs/dir.c
+@@ -980,7 +980,8 @@ static int is_atomic_open(struct inode *
+ 	if (nd->flags & LOOKUP_DIRECTORY)
+ 		return 0;
+ 	/* Are we trying to write to a read only partition? */
+-	if (IS_RDONLY(dir) && (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
++	if (__mnt_is_readonly(nd->mnt) &&
++	    (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
+ 		return 0;
+ 	return 1;
  }
- #endif /* CONFIG_NCPFS_NLS */
- 
--int ncp_ioctl(struct inode *inode, struct file *filp,
-+static int __ncp_ioctl(struct inode *inode, struct file *filp,
- 	      unsigned int cmd, unsigned long arg)
- {
- 	struct ncp_server *server = NCP_SERVER(inode);
-@@ -821,6 +822,58 @@ outrel:			
- 	return -EINVAL;
- }
- 
-+static int ncp_ioctl_need_write(unsigned int cmd)
-+{
-+	switch (cmd) {
-+	case NCP_IOC_GET_FS_INFO:
-+	case NCP_IOC_GET_FS_INFO_V2:
-+	case NCP_IOC_NCPREQUEST:
-+	case NCP_IOC_SETDENTRYTTL:
-+	case NCP_IOC_SIGN_INIT:
-+	case NCP_IOC_LOCKUNLOCK:
-+	case NCP_IOC_SET_SIGN_WANTED:
-+		return 1;
-+	case NCP_IOC_GETOBJECTNAME:
-+	case NCP_IOC_SETOBJECTNAME:
-+	case NCP_IOC_GETPRIVATEDATA:
-+	case NCP_IOC_SETPRIVATEDATA:
-+	case NCP_IOC_SETCHARSETS:
-+	case NCP_IOC_GETCHARSETS:
-+	case NCP_IOC_CONN_LOGGED_IN:
-+	case NCP_IOC_GETDENTRYTTL:
-+	case NCP_IOC_GETMOUNTUID2:
-+	case NCP_IOC_SIGN_WANTED:
-+	case NCP_IOC_GETROOT:
-+	case NCP_IOC_SETROOT:
-+		return 0;
-+	default:
-+		/* unkown IOCTL command, assume write */
-+		WARN_ON(1);
-+	}
-+	return 1;
-+}
-+
-+int ncp_ioctl(struct inode *inode, struct file *filp,
-+	      unsigned int cmd, unsigned long arg)
-+{
-+	int ret;
-+
-+	if (ncp_ioctl_need_write(cmd)) {
-+		/*
-+		 * inside the ioctl(), any failures which
-+		 * are because of file_permission() are
-+		 * -EACCESS, so it seems consistent to keep
-+		 *  that here.
-+		 */
-+		if (mnt_want_write(filp->f_vfsmnt))
-+			return -EACCES;
-+	}
-+	ret = __ncp_ioctl(inode, filp, cmd, arg);
-+	if (ncp_ioctl_need_write(cmd))
-+		mnt_drop_write(filp->f_vfsmnt);
-+	return ret;
-+}
-+
- #ifdef CONFIG_COMPAT
- long ncp_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-sb fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-sb
++++ a/fs/nfsd/vfs.c
+@@ -1811,7 +1811,7 @@ nfsd_permission(struct svc_export *exp, 
+ 		inode->i_mode,
+ 		IS_IMMUTABLE(inode)?	" immut" : "",
+ 		IS_APPEND(inode)?	" append" : "",
+-		IS_RDONLY(inode)?	" ro" : "");
++		__mnt_is_readonly(exp->mnt)?	" ro" : "");
+ 	dprintk("      owner %d/%d user %d/%d\n",
+ 		inode->i_uid, inode->i_gid, current->fsuid, current->fsgid);
+ #endif
+@@ -1822,7 +1822,7 @@ nfsd_permission(struct svc_export *exp, 
+ 	 */
+ 	if (!(acc & MAY_LOCAL_ACCESS))
+ 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
+-			if (EX_RDONLY(exp) || IS_RDONLY(inode))
++			if (EX_RDONLY(exp))
+ 				return nfserr_rofs;
+ 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
+ 				return nfserr_perm;
 _
 
 Patches currently in -mm which might be from hansendc@us.ibm.com are
