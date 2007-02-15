@@ -1,72 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:50 -0800
-Message-ID: <200702150849.l1F8noK9025162@shell0.pdx.osdl.net>
+Subject: - sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:49:52 -0800
+Message-ID: <200702150849.l1F8nqsj025165@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40154 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40163 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965481AbXBOItx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:53 -0500
+	id S965489AbXBOIuB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:50:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, ak@suse.de, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, clemens@ladisch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: C99 convert ctl_tables in arch/x86_64/mm/init.c
+     sysctl: remove sys_sysctl support from the hpet timer driver
 has been removed from the -mm tree.  Its filename was
-     sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc.patch
+     sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert ctl_tables in arch/x86_64/mm/init.c
+Subject: sysctl: remove sys_sysctl support from the hpet timer driver
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+In the binary sysctl interface the hpet driver was claiming to be the cdrom
+driver.  This is a no-no so remove support for the binary interface.
+
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Andi Kleen <ak@suse.de>
+Acked-by: Clemens Ladisch <clemens@ladisch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/init.c |   22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+ drivers/char/hpet.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/mm/init.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc arch/x86_64/mm/init.c
---- a/arch/x86_64/mm/init.c~sysctl-c99-convert-ctl_tables-in-arch-x86_64-mm-initc
-+++ a/arch/x86_64/mm/init.c
-@@ -711,15 +711,25 @@ int kern_addr_valid(unsigned long addr) 
- extern int exception_trace, page_fault_trace;
+diff -puN drivers/char/hpet.c~sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver drivers/char/hpet.c
+--- a/drivers/char/hpet.c~sysctl-remove-sys_sysctl-support-from-the-hpet-timer-driver
++++ a/drivers/char/hpet.c
+@@ -703,7 +703,7 @@ int hpet_control(struct hpet_task *tp, u
  
- static ctl_table debug_table2[] = {
--	{ 99, "exception-trace", &exception_trace, sizeof(int), 0644, NULL,
--	  proc_dointvec },
--	{ 0, }
-+	{
-+		.ctl_name	= 99,
-+		.procname	= "exception-trace",
-+		.data		= &exception_trace,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec
-+	},
-+	{}
- }; 
+ static ctl_table hpet_table[] = {
+ 	{
+-	 .ctl_name = 1,
++	 .ctl_name = CTL_UNNUMBERED,
+ 	 .procname = "max-user-freq",
+ 	 .data = &hpet_max_freq,
+ 	 .maxlen = sizeof(int),
+@@ -715,7 +715,7 @@ static ctl_table hpet_table[] = {
  
- static ctl_table debug_root_table2[] = { 
--	{ .ctl_name = CTL_DEBUG, .procname = "debug", .mode = 0555, 
--	   .child = debug_table2 }, 
--	{ 0 }, 
-+	{
-+		.ctl_name = CTL_DEBUG,
-+		.procname = "debug",
-+		.mode = 0555,
-+		.child = debug_table2
-+	},
-+	{}
- }; 
- 
- static __init int x8664_sysctl_init(void)
+ static ctl_table hpet_root[] = {
+ 	{
+-	 .ctl_name = 1,
++	 .ctl_name = CTL_UNNUMBERED,
+ 	 .procname = "hpet",
+ 	 .maxlen = 0,
+ 	 .mode = 0555,
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
