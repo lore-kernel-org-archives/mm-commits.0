@@ -1,61 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-remove-support-for-directory-strategy-routines.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:50:29 -0800
-Message-ID: <200702150850.l1F8oTGP025233@shell0.pdx.osdl.net>
+Subject: - sysctl-remove-support-for-ctl_any.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:50:27 -0800
+Message-ID: <200702150850.l1F8oRU1025230@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40203 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40198 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965503AbXBOIua (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:50:30 -0500
+	id S965501AbXBOIu2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:50:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: remove support for directory strategy routines
+     sysctl: remove support for CTL_ANY
 has been removed from the -mm tree.  Its filename was
-     sysctl-remove-support-for-directory-strategy-routines.patch
+     sysctl-remove-support-for-ctl_any.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: remove support for directory strategy routines
+Subject: sysctl: remove support for CTL_ANY
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-parse_table has support for calling a strategy routine when descending into a
-directory.  To date no one has used this functionality and the /proc/sys
-interface has no analog to it.
+There are currently no users in the kernel for CTL_ANY and it only has effect
+on the binary interface which is practically unused.
 
-So no one is using this functionality kill it and make the binary sysctl code
-easier to follow.
+So this complicates sysctl lookups for no good reason so just remove it.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    8 --------
- 1 file changed, 8 deletions(-)
+ include/linux/sysctl.h |    1 -
+ kernel/sysctl.c        |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-remove-support-for-directory-strategy-routines kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-remove-support-for-directory-strategy-routines
+diff -puN include/linux/sysctl.h~sysctl-remove-support-for-ctl_any include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-remove-support-for-ctl_any
++++ a/include/linux/sysctl.h
+@@ -53,7 +53,6 @@ struct __sysctl_args {
+ 
+ /* For internal pattern-matching use only: */
+ #ifdef __KERNEL__
+-#define CTL_ANY		-1	/* Matches any name */
+ #define CTL_NONE	0
+ #define CTL_UNNUMBERED	CTL_NONE	/* sysctl without a binary number */
+ #endif
+diff -puN kernel/sysctl.c~sysctl-remove-support-for-ctl_any kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-remove-support-for-ctl_any
 +++ a/kernel/sysctl.c
-@@ -1175,14 +1175,6 @@ repeat:
+@@ -1170,7 +1170,7 @@ repeat:
+ 	for ( ; table->ctl_name || table->procname; table++) {
+ 		if (!table->ctl_name)
+ 			continue;
+-		if (n == table->ctl_name || table->ctl_name == CTL_ANY) {
++		if (n == table->ctl_name) {
+ 			int error;
  			if (table->child) {
  				if (ctl_perm(table, 001))
- 					return -EPERM;
--				if (table->strategy) {
--					error = table->strategy(
--						table, name, nlen,
--						oldval, oldlenp,
--						newval, newlen);
--					if (error)
--						return error;
--				}
- 				name++;
- 				nlen--;
- 				table = table->child;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
