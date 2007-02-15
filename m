@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atl1-add-l1-device-id-to-pci_ids-then-use-it.patch added to -mm tree
-Date: Wed, 14 Feb 2007 21:48:40 -0800
-Message-ID: <200702150548.l1F5meMP021252@shell0.pdx.osdl.net>
+Subject: + atl1-drop-net_pci-from-kconfig.patch added to -mm tree
+Date: Wed, 14 Feb 2007 21:48:34 -0800
+Message-ID: <200702150548.l1F5mYKw021237@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35722 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35713 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751560AbXBOFs4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 00:48:56 -0500
+	id S1751397AbXBOFss (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 00:48:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: csnook@redhat.com, jacliburn@bellsouth.net
+Cc: jacliburn@bellsouth.net, csnook@redhat.com
 
 
 The patch titled
-     atl1: add L1 device id to pci_ids, then use it
+     atl1: drop NET_PCI from Kconfig
 has been added to the -mm tree.  Its filename is
-     atl1-add-l1-device-id-to-pci_ids-then-use-it.patch
+     atl1-drop-net_pci-from-kconfig.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atl1: add L1 device id to pci_ids, then use it
-From: Chris Snook <csnook@redhat.com>
+Subject: atl1: drop NET_PCI from Kconfig
+From: Jay Cliburn <jacliburn@bellsouth.net>
 
-Add device id for the Attansic L1 chip to pci_ids.h, then use it.
+The atl1 driver doesn't need NET_PCI.  Remove it from Kconfig.  Noticed by
+Chad Sprouse.
 
-Signed-off-by: Chris Snook <csnook@redhat.com>
 Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
+Signed-off-by: Chris Snook <csnook@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1/atl1_main.c |    2 +-
- include/linux/pci_ids.h      |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/atl1/atl1_main.c~atl1-add-l1-device-id-to-pci_ids-then-use-it drivers/net/atl1/atl1_main.c
---- a/drivers/net/atl1/atl1_main.c~atl1-add-l1-device-id-to-pci_ids-then-use-it
-+++ a/drivers/net/atl1/atl1_main.c
-@@ -99,7 +99,7 @@ MODULE_VERSION(DRIVER_VERSION);
-  * atl1_pci_tbl - PCI Device ID Table
-  */
- static const struct pci_device_id atl1_pci_tbl[] = {
--	{PCI_DEVICE(PCI_VENDOR_ID_ATTANSIC, 0x1048)},
-+	{PCI_DEVICE(PCI_VENDOR_ID_ATTANSIC, PCI_DEVICE_ID_ATTANSIC_L1)},
- 	/* required last entry */
- 	{0,}
- };
-diff -puN include/linux/pci_ids.h~atl1-add-l1-device-id-to-pci_ids-then-use-it include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~atl1-add-l1-device-id-to-pci_ids-then-use-it
-+++ a/include/linux/pci_ids.h
-@@ -2089,6 +2089,7 @@
- #define PCI_VENDOR_ID_PASEMI		0x1959
+diff -puN drivers/net/Kconfig~atl1-drop-net_pci-from-kconfig drivers/net/Kconfig
+--- a/drivers/net/Kconfig~atl1-drop-net_pci-from-kconfig
++++ a/drivers/net/Kconfig
+@@ -2337,7 +2337,7 @@ config QLA3XXX
  
- #define PCI_VENDOR_ID_ATTANSIC		0x1969
-+#define PCI_DEVICE_ID_ATTANSIC_L1	0x1048
- 
- #define PCI_VENDOR_ID_JMICRON		0x197B
- #define PCI_DEVICE_ID_JMICRON_JMB360	0x2360
+ config ATL1
+ 	tristate "Attansic L1 Gigabit Ethernet support (EXPERIMENTAL)"
+-	depends on NET_PCI && PCI && EXPERIMENTAL
++	depends on PCI && EXPERIMENTAL
+ 	select CRC32
+ 	select MII
+ 	help
 _
 
-Patches currently in -mm which might be from csnook@redhat.com are
+Patches currently in -mm which might be from jacliburn@bellsouth.net are
 
+origin.patch
 atl1-drop-net_pci-from-kconfig.patch
 atl1-read-mac-address-from-register.patch
 atl1-remove-unused-define.patch
 atl1-add-l1-device-id-to-pci_ids-then-use-it.patch
+atl1-bump-version-number.patch
