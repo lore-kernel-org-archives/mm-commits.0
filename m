@@ -1,85 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-c99-convert-arch-frv-kernel-sysctlc.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:49:12 -0800
-Message-ID: <200702150849.l1F8nCpX025108@shell0.pdx.osdl.net>
+Subject: - sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:38 -0800
+Message-ID: <200702150848.l1F8mccg025066@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40093 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40072 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965446AbXBOItU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:49:20 -0500
+	id S965421AbXBOItL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, acme@conectiva.com.br, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: C99 convert arch/frv/kernel/sysctl.c
+     sysctl: dccp: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     sysctl-c99-convert-arch-frv-kernel-sysctlc.patch
+     sysctl-dccp-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: C99 convert arch/frv/kernel/sysctl.c
+Subject: sysctl: dccp: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/sysctl.c |   29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ net/dccp/sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/kernel/sysctl.c~sysctl-c99-convert-arch-frv-kernel-sysctlc arch/frv/kernel/sysctl.c
---- a/arch/frv/kernel/sysctl.c~sysctl-c99-convert-arch-frv-kernel-sysctlc
-+++ a/arch/frv/kernel/sysctl.c
-@@ -175,11 +175,25 @@ static int procctl_frv_pin_cxnr(ctl_tabl
-  */
- static struct ctl_table frv_table[] =
- {
--	{ 1, "cache-mode",	NULL, 0, 0644, NULL, &procctl_frv_cachemode },
-+	{
-+		.ctl_name 	= 1,
-+		.procname 	= "cache-mode",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0644,
-+		.proc_handler	= &procctl_frv_cachemode,
-+	},
- #ifdef CONFIG_MMU
--	{ 2, "pin-cxnr",	NULL, 0, 0644, NULL, &procctl_frv_pin_cxnr },
-+	{
-+		.ctl_name	= 2,
-+		.procname	= "pin-cxnr",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0644,
-+		.proc_handler	= &procctl_frv_pin_cxnr
-+	},
- #endif
--	{ 0 }
-+	{}
- };
+diff -puN net/dccp/sysctl.c~sysctl-dccp-remove-unnecessary-insert_at_head-flag net/dccp/sysctl.c
+--- a/net/dccp/sysctl.c~sysctl-dccp-remove-unnecessary-insert_at_head-flag
++++ a/net/dccp/sysctl.c
+@@ -127,7 +127,7 @@ static struct ctl_table_header *dccp_tab
  
- /*
-@@ -188,8 +202,13 @@ static struct ctl_table frv_table[] =
-  */
- static struct ctl_table frv_dir_table[] =
+ int __init dccp_sysctl_init(void)
  {
--	{CTL_FRV, "frv", NULL, 0, 0555, frv_table},
--	{0}
-+	{
-+		.ctl_name	= CTL_FRV,
-+		.procname	= "frv",
-+		.mode 		= 0555,
-+		.child		= frv_table
-+	},
-+	{}
- };
+-	dccp_table_header = register_sysctl_table(dccp_root_table, 1);
++	dccp_table_header = register_sysctl_table(dccp_root_table, 0);
  
- /*
+ 	return dccp_table_header != NULL ? 0 : -ENOMEM;
+ }
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
