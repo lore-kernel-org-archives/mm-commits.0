@@ -1,52 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 00:48:55 -0800
-Message-ID: <200702150848.l1F8mtkO025087@shell0.pdx.osdl.net>
+Subject: - sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 00:48:49 -0800
+Message-ID: <200702150848.l1F8mnBt025081@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40048 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40051 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965409AbXBOIs6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 03:48:58 -0500
+	id S965411AbXBOItA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 03:49:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, James.Bottomley@SteelEye.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, benh@kernel.crashing.org, dtor@mail.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: cdrom: remove unnecessary insert_at_head flag
+     sysctl: mac_hid: remove unnecessary insert_at_head flag
 has been removed from the -mm tree.  Its filename was
-     sysctl-cdrom-remove-unnecessary-insert_at_head-flag.patch
+     sysctl-mac_hid-remove-unnecessary-insert_at_head-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: cdrom: remove unnecessary insert_at_head flag
+Subject: sysctl: mac_hid: remove unnecessary insert_at_head flag
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-With unique binary sysctl numbers setting insert_at_head to override other
-sysctl entries is pointless.
+With unique sysctl binary numbers setting insert_at_head is pointless.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |    2 +-
+ drivers/macintosh/mac_hid.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cdrom/cdrom.c~sysctl-cdrom-remove-unnecessary-insert_at_head-flag drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~sysctl-cdrom-remove-unnecessary-insert_at_head-flag
-+++ a/drivers/cdrom/cdrom.c
-@@ -3553,7 +3553,7 @@ static void cdrom_sysctl_register(void)
- 	if (initialized == 1)
- 		return;
+diff -puN drivers/macintosh/mac_hid.c~sysctl-mac_hid-remove-unnecessary-insert_at_head-flag drivers/macintosh/mac_hid.c
+--- a/drivers/macintosh/mac_hid.c~sysctl-mac_hid-remove-unnecessary-insert_at_head-flag
++++ a/drivers/macintosh/mac_hid.c
+@@ -138,7 +138,7 @@ int __init mac_hid_init(void)
+ 		return err;
  
--	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 1);
-+	cdrom_sysctl_header = register_sysctl_table(cdrom_root_table, 0);
- 	if (cdrom_root_table->ctl_name && cdrom_root_table->child->de)
- 		cdrom_root_table->child->de->owner = THIS_MODULE;
+ #if defined(CONFIG_SYSCTL)
+-	mac_hid_sysctl_header = register_sysctl_table(mac_hid_root_dir, 1);
++	mac_hid_sysctl_header = register_sysctl_table(mac_hid_root_dir, 0);
+ #endif /* CONFIG_SYSCTL */
  
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
