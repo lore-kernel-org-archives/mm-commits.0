@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt-allocate-and-free-vmalloc-areas.patch added to -mm tree
-Date: Thu, 15 Feb 2007 23:00:20 -0800
-Message-ID: <200702160700.l1G70KAY022634@shell0.pdx.osdl.net>
+Subject: + xen-paravirt-add-nosegneg-capability-to-the-vsyscall-page-notes.patch added to -mm tree
+Date: Thu, 15 Feb 2007 23:00:22 -0800
+Message-ID: <200702160700.l1G70Mum022641@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55209 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55203 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932182AbXBPHBS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 02:01:18 -0500
+	id S1423378AbXBPHBQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 02:01:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, Christian.Limpach@cl.cam.ac.uk, ak@suse.de, chrisw@sous-sol.org, ian.pratt@xensource.com, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com
+Cc: jeremy@goop.org, Christian.Limpach@cl.cam.ac.uk, ak@suse.de, chrisw@sous-sol.org, ian.pratt@xensource.com, rusty@rustcorp.com.au, zach@vmware.com
 
 
 The patch titled
-     Xen-paravirt: allocate and free vmalloc areas
+     Xen-paravirt: add nosegneg capability to the vsyscall page notes
 has been added to the -mm tree.  Its filename is
-     xen-paravirt-allocate-and-free-vmalloc-areas.patch
+     xen-paravirt-add-nosegneg-capability-to-the-vsyscall-page-notes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,124 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Xen-paravirt: allocate and free vmalloc areas
+Subject: Xen-paravirt: add nosegneg capability to the vsyscall page notes
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Allocate/destroy a 'vmalloc' VM area: alloc_vm_area and free_vm_area The alloc
-function ensures that page tables are constructed for the region of kernel
-virtual address space and mapped into init_mm.
-
-Lock an area so that PTEs are accessible in the current address space:
-lock_vm_area and unlock_vm_area.  The lock function prevents context switches
-to a lazy mm that doesn't have the area mapped into its page tables.  It also
-ensures that the page tables are mapped into the current mm by causing the
-page fault handler to copy the page directory pointers from init_mm into the
-current mm.
-
-These functions are not particularly Xen-specific, so they're put into
-mm/vmalloc.c.
+Add the "nosegneg" fake capabilty to the vsyscall page notes.  This is used by
+the runtime linker to select a glibc version which then disables
+negative-offset accesses to the thread-local segment via %gs.  These accesses
+require emulation in Xen (because segments are truncated to protect the
+hypervisor address space) and avoiding them provides a measurable performance
+boost.
 
 Signed-off-by: Ian Pratt <ian.pratt@xensource.com>
 Signed-off-by: Christian Limpach <Christian.Limpach@cl.cam.ac.uk>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Zachary Amsden <zach@vmware.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    8 ++++
- mm/vmalloc.c            |   62 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 70 insertions(+)
+ arch/i386/kernel/vsyscall-note.S |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff -puN include/linux/vmalloc.h~xen-paravirt-allocate-and-free-vmalloc-areas include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~xen-paravirt-allocate-and-free-vmalloc-areas
-+++ a/include/linux/vmalloc.h
-@@ -68,6 +68,14 @@ extern int map_vm_area(struct vm_struct 
- 			struct page ***pages);
- extern void unmap_vm_area(struct vm_struct *area);
- 
-+/* Allocate/destroy a 'vmalloc' VM area. */
-+extern struct vm_struct *alloc_vm_area(unsigned long size);
-+extern void free_vm_area(struct vm_struct *area);
+diff -puN arch/i386/kernel/vsyscall-note.S~xen-paravirt-add-nosegneg-capability-to-the-vsyscall-page-notes arch/i386/kernel/vsyscall-note.S
+--- a/arch/i386/kernel/vsyscall-note.S~xen-paravirt-add-nosegneg-capability-to-the-vsyscall-page-notes
++++ a/arch/i386/kernel/vsyscall-note.S
+@@ -23,3 +23,31 @@
+ 	ASM_ELF_NOTE_BEGIN(".note.kernel-version", "a", UTS_SYSNAME, 0)
+ 	.long LINUX_VERSION_CODE
+ 	ASM_ELF_NOTE_END
 +
-+/* Lock an area so that PTEs are accessible in the current address space. */
-+extern void lock_vm_area(struct vm_struct *area);
-+extern void unlock_vm_area(struct vm_struct *area);
++#ifdef CONFIG_XEN
++/*
++ * Add a special note telling glibc's dynamic linker a fake hardware
++ * flavor that it will use to choose the search path for libraries in the
++ * same way it uses real hardware capabilities like "mmx".
++ * We supply "nosegneg" as the fake capability, to indicate that we
++ * do not like negative offsets in instructions using segment overrides,
++ * since we implement those inefficiently.  This makes it possible to
++ * install libraries optimized to avoid those access patterns in someplace
++ * like /lib/i686/tls/nosegneg.  Note that an /etc/ld.so.conf.d/file
++ * corresponding to the bits here is needed to make ldconfig work right.
++ * It should contain:
++ *	hwcap 0 nosegneg
++ * to match the mapping of bit to name that we give here.
++ */
++#define NOTE_KERNELCAP_BEGIN(ncaps, mask) \
++	ASM_ELF_NOTE_BEGIN(".note.kernelcap", "a", "GNU", 2) \
++	.long ncaps, mask
++#define NOTE_KERNELCAP(bit, name) \
++	.byte bit; .asciz name
++#define NOTE_KERNELCAP_END ASM_ELF_NOTE_END
 +
- /*
-  *	Internals.  Dont't use..
-  */
-diff -puN mm/vmalloc.c~xen-paravirt-allocate-and-free-vmalloc-areas mm/vmalloc.c
---- a/mm/vmalloc.c~xen-paravirt-allocate-and-free-vmalloc-areas
-+++ a/mm/vmalloc.c
-@@ -749,3 +749,65 @@ out_einval_locked:
- }
- EXPORT_SYMBOL(remap_vmalloc_range);
- 
-+static int f(pte_t *pte, struct page *pmd_page, unsigned long addr, void *data)
-+{
-+	/* apply_to_page_range() does all the hard work. */
-+	return 0;
-+}
++NOTE_KERNELCAP_BEGIN(1, 1)
++NOTE_KERNELCAP(1, "nosegneg")
++NOTE_KERNELCAP_END
++#endif
 +
-+struct vm_struct *alloc_vm_area(unsigned long size)
-+{
-+	struct vm_struct *area;
-+
-+	area = get_vm_area(size, VM_IOREMAP);
-+	if (area == NULL)
-+		return NULL;
-+
-+	/*
-+	 * This ensures that page tables are constructed for this region
-+	 * of kernel virtual address space and mapped into init_mm.
-+	 */
-+	if (apply_to_page_range(&init_mm, (unsigned long)area->addr,
-+				area->size, f, NULL)) {
-+		free_vm_area(area);
-+		return NULL;
-+	}
-+
-+	return area;
-+}
-+EXPORT_SYMBOL_GPL(alloc_vm_area);
-+
-+void free_vm_area(struct vm_struct *area)
-+{
-+	struct vm_struct *ret;
-+	ret = remove_vm_area(area->addr);
-+	BUG_ON(ret != area);
-+	kfree(area);
-+}
-+EXPORT_SYMBOL_GPL(free_vm_area);
-+
-+void lock_vm_area(struct vm_struct *area)
-+{
-+	unsigned long i;
-+	char c;
-+
-+	/*
-+	 * Prevent context switch to a lazy mm that doesn't have this area
-+	 * mapped into its page tables.
-+	 */
-+	preempt_disable();
-+
-+	/*
-+	 * Ensure that the page tables are mapped into the current mm. The
-+	 * page-fault path will copy the page directory pointers from init_mm.
-+	 */
-+	for (i = 0; i < area->size; i += PAGE_SIZE)
-+		(void)__get_user(c, (char __user *)area->addr + i);
-+}
-+EXPORT_SYMBOL_GPL(lock_vm_area);
-+
-+void unlock_vm_area(struct vm_struct *area)
-+{
-+	preempt_enable();
-+}
-+EXPORT_SYMBOL_GPL(unlock_vm_area);
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
