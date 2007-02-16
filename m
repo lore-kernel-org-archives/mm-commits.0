@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + at91_rtc-updates.patch added to -mm tree
-Date: Fri, 16 Feb 2007 13:53:54 -0800
-Message-ID: <200702162153.l1GLrspv010821@shell0.pdx.osdl.net>
+Subject: + local_t-powerpc-extension-shrink-powerpc-localh.patch added to -mm tree
+Date: Fri, 16 Feb 2007 13:54:49 -0800
+Message-ID: <200702162154.l1GLsnrC010837@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37833 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37851 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946074AbXBPVyE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 16:54:04 -0500
+	id S932632AbXBPVzE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 16:55:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
+Cc: mathieu.desnoyers@polymtl.ca, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     at91_rtc updates
+     local_t: powerpc extension: shrink powerpc local.h
 has been added to the -mm tree.  Its filename is
-     at91_rtc-updates.patch
+     local_t-powerpc-extension-shrink-powerpc-localh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,123 +25,335 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: at91_rtc updates
-From: David Brownell <david-b@pacbell.net>
+Subject: local_t: powerpc extension: shrink powerpc local.h
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Various bug fixes to the at91rm9200 RTC:
+By using PPC_LLARX and PPC_STLCX, we can cut in half the size of powerpc
+local.h.
 
- - alarm:  setalarm() should pay attention to the "enabled" flag
-
- - init:  cleaner handling of the wakeup flags, which cpu init should
-   really have set up.  Doing it here is just a workaround.
-
- - linkage:  since the at91_rtc driver probe() routine is in the init
-   section, it should use platform_driver_probe() instead of leaving
-   that pointer around in the driver struct after init section removal.
-
- - linkage:  likewise, remove() belongs in the exit section.
-
-Among other things, the init and alarm changes ensure that this driver
-handles the new sysfs "wakealarm" attribute properly.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |   19 +++++++++++++------
- 1 files changed, 13 insertions(+), 6 deletions(-)
+ include/asm-powerpc/local.h |  190 ++++------------------------------
+ 1 files changed, 24 insertions(+), 166 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~at91_rtc-updates drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~at91_rtc-updates
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -164,6 +164,7 @@ static int at91_rtc_setalarm(struct devi
- 	tm.tm_min = alrm->time.tm_min;
- 	tm.tm_sec = alrm->time.tm_sec;
+diff -puN include/asm-powerpc/local.h~local_t-powerpc-extension-shrink-powerpc-localh include/asm-powerpc/local.h
+--- a/include/asm-powerpc/local.h~local_t-powerpc-extension-shrink-powerpc-localh
++++ a/include/asm-powerpc/local.h
+@@ -19,17 +19,15 @@ typedef struct
+ #define local_inc(l)	atomic_long_inc(&(l)->a)
+ #define local_dec(l)	atomic_long_dec(&(l)->a)
  
-+	at91_sys_write(AT91_RTC_IDR, AT91_RTC_ALARM);
- 	at91_sys_write(AT91_RTC_TIMALR,
- 		  BIN2BCD(tm.tm_sec) << 0
- 		| BIN2BCD(tm.tm_min) << 8
-@@ -174,6 +175,9 @@ static int at91_rtc_setalarm(struct devi
- 		| BIN2BCD(tm.tm_mday) << 24
- 		| AT91_RTC_DATEEN | AT91_RTC_MTHEN);
+-#ifndef __powerpc64__
+-
+-static __inline__ int local_add_return(int a, local_t *l)
++static __inline__ long local_add_return(long a, local_t *l)
+ {
+-	int t;
++	long t;
  
-+	if (alrm->enabled)
-+		at91_sys_write(AT91_RTC_IER, AT91_RTC_ALARM);
-+
- 	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __FUNCTION__,
- 		at91_alarm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour,
- 		tm.tm_min, tm.tm_sec);
-@@ -303,6 +307,12 @@ static int __init at91_rtc_probe(struct 
- 		return ret;
- 	}
+ 	__asm__ __volatile__(
+-"1:	lwarx	%0,0,%2		# local_add_return\n\
++"1:"	PPC_LLARX	"%0,0,%2		# local_add_return\n\
+ 	add	%0,%1,%0\n"
+ 	PPC405_ERR77(0,%2)
+-"	stwcx.	%0,0,%2 \n\
++	PPC_STLCX	"%0,0,%2 \n\
+ 	bne-	1b"
+ 	: "=&r" (t)
+ 	: "r" (a), "r" (&(l->a.counter))
+@@ -40,15 +38,15 @@ static __inline__ int local_add_return(i
  
-+	/* cpu init code should really have flagged this device as
-+	 * being wake-capable; if it didn't, do that here.
-+	 */
-+	if (!device_can_wakeup(&pdev->dev))
-+		device_init_wakeup(&pdev->dev, 1);
-+
- 	rtc = rtc_device_register(pdev->name, &pdev->dev,
- 				&at91_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc)) {
-@@ -310,7 +320,6 @@ static int __init at91_rtc_probe(struct 
- 		return PTR_ERR(rtc);
- 	}
- 	platform_set_drvdata(pdev, rtc);
--	device_init_wakeup(&pdev->dev, 1);
+ #define local_add_negative(a, l)	(local_add_return((a), (l)) < 0)
  
- 	printk(KERN_INFO "AT91 Real Time Clock driver.\n");
- 	return 0;
-@@ -319,7 +328,7 @@ static int __init at91_rtc_probe(struct 
- /*
-  * Disable and remove the RTC driver
+-static __inline__ int local_sub_return(int a, local_t *l)
++static __inline__ long local_sub_return(long a, local_t *l)
+ {
+-	int t;
++	long t;
+ 
+ 	__asm__ __volatile__(
+-"1:	lwarx	%0,0,%2		# local_sub_return\n\
++"1:"	PPC_LLARX	"%0,0,%2		# local_sub_return\n\
+ 	subf	%0,%1,%0\n"
+ 	PPC405_ERR77(0,%2)
+-"	stwcx.	%0,0,%2 \n\
++	PPC_STLCX	"%0,0,%2 \n\
+ 	bne-	1b"
+ 	: "=&r" (t)
+ 	: "r" (a), "r" (&(l->a.counter))
+@@ -57,15 +55,15 @@ static __inline__ int local_sub_return(i
+ 	return t;
+ }
+ 
+-static __inline__ int local_inc_return(local_t *l)
++static __inline__ long local_inc_return(local_t *l)
+ {
+-	int t;
++	long t;
+ 
+ 	__asm__ __volatile__(
+-"1:	lwarx	%0,0,%1		# local_inc_return\n\
++"1:"	PPC_LLARX	"%0,0,%1		# local_inc_return\n\
+ 	addic	%0,%0,1\n"
+ 	PPC405_ERR77(0,%1)
+-"	stwcx.	%0,0,%1 \n\
++	PPC_STLCX	"%0,0,%1 \n\
+ 	bne-	1b"
+ 	: "=&r" (t)
+ 	: "r" (&(l->a.counter))
+@@ -84,15 +82,15 @@ static __inline__ int local_inc_return(l
   */
--static int __devexit at91_rtc_remove(struct platform_device *pdev)
-+static int __exit at91_rtc_remove(struct platform_device *pdev)
+ #define local_inc_and_test(l) (local_inc_return(l) == 0)
+ 
+-static __inline__ int local_dec_return(local_t *l)
++static __inline__ long local_dec_return(local_t *l)
  {
- 	struct rtc_device *rtc = platform_get_drvdata(pdev);
+-	int t;
++	long t;
  
-@@ -331,7 +340,6 @@ static int __devexit at91_rtc_remove(str
- 
- 	rtc_device_unregister(rtc);
- 	platform_set_drvdata(pdev, NULL);
--	device_init_wakeup(&pdev->dev, 0);
- 
- 	return 0;
- }
-@@ -404,8 +412,7 @@ static int at91_rtc_resume(struct platfo
- #endif
- 
- static struct platform_driver at91_rtc_driver = {
--	.probe		= at91_rtc_probe,
--	.remove		= at91_rtc_remove,
-+	.remove		= __exit_p(at91_rtc_remove),
- 	.suspend	= at91_rtc_suspend,
- 	.resume		= at91_rtc_resume,
- 	.driver		= {
-@@ -416,7 +423,7 @@ static struct platform_driver at91_rtc_d
- 
- static int __init at91_rtc_init(void)
+ 	__asm__ __volatile__(
+-"1:	lwarx	%0,0,%1		# local_dec_return\n\
++"1:"	PPC_LLARX	"%0,0,%1		# local_dec_return\n\
+ 	addic	%0,%0,-1\n"
+ 	PPC405_ERR77(0,%1)
+-"	stwcx.	%0,0,%1\n\
++	PPC_STLCX	"%0,0,%1\n\
+ 	bne-	1b"
+ 	: "=&r" (t)
+ 	: "r" (&(l->a.counter))
+@@ -114,17 +112,17 @@ static __inline__ int local_dec_return(l
+  * Atomically adds @a to @l, so long as it was not @u.
+  * Returns non-zero if @l was not @u, and zero otherwise.
+  */
+-static __inline__ int local_add_unless(local_t *l, int a, int u)
++static __inline__ int local_add_unless(local_t *l, long a, long u)
  {
--	return platform_driver_register(&at91_rtc_driver);
-+	return platform_driver_probe(&at91_rtc_driver, at91_rtc_probe);
+-	int t;
++	long t;
+ 
+ 	__asm__ __volatile__ (
+-"1:	lwarx	%0,0,%1		# local_add_unless\n\
++"1:"	PPC_LLARX	"%0,0,%1		# local_add_unless\n\
+ 	cmpw	0,%0,%3 \n\
+ 	beq-	2f \n\
+ 	add	%0,%2,%0 \n"
+ 	PPC405_ERR77(0,%2)
+-"	stwcx.	%0,0,%1 \n\
++	PPC_STLCX	"%0,0,%1 \n\
+ 	bne-	1b \n"
+ "	subf	%0,%2,%0 \n\
+ 2:"
+@@ -144,17 +142,17 @@ static __inline__ int local_add_unless(l
+  * Atomically test *l and decrement if it is greater than 0.
+  * The function returns the old value of *l minus 1.
+  */
+-static __inline__ int local_dec_if_positive(local_t *l)
++static __inline__ long local_dec_if_positive(local_t *l)
+ {
+-	int t;
++	long t;
+ 
+ 	__asm__ __volatile__(
+-"1:	lwarx	%0,0,%1		# local_dec_if_positive\n\
++"1:"	PPC_LLARX	"%0,0,%1		# local_dec_if_positive\n\
+ 	cmpwi	%0,1\n\
+ 	addi	%0,%0,-1\n\
+ 	blt-	2f\n"
+ 	PPC405_ERR77(0,%1)
+-"	stwcx.	%0,0,%1\n\
++	PPC_STLCX	"%0,0,%1\n\
+ 	bne-	1b"
+ 	"\n\
+ 2:"	: "=&b" (t)
+@@ -164,146 +162,6 @@ static __inline__ int local_dec_if_posit
+ 	return t;
  }
  
- static void __exit at91_rtc_exit(void)
+-#else /* __powerpc64__ */
+-
+-static __inline__ long local_add_return(long a, local_t *l)
+-{
+-	long t;
+-
+-	__asm__ __volatile__(
+-"1:	ldarx	%0,0,%2		# local_add_return\n\
+-	add	%0,%1,%0\n\
+-	stdcx.	%0,0,%2 \n\
+-	bne-	1b"
+-	: "=&r" (t)
+-	: "r" (a), "r" (&(l->a.counter))
+-	: "cc", "memory");
+-
+-	return t;
+-}
+-
+-#define local_add_negative(a, l)	(local_add_return((a), (l)) < 0)
+-
+-static __inline__ long local_sub_return(long a, local_t *l)
+-{
+-	long t;
+-
+-	__asm__ __volatile__(
+-"1:	ldarx	%0,0,%2		# local_sub_return\n\
+-	subf	%0,%1,%0\n\
+-	stdcx.	%0,0,%2 \n\
+-	bne-	1b"
+-	: "=&r" (t)
+-	: "r" (a), "r" (&(l->a.counter))
+-	: "cc", "memory");
+-
+-	return t;
+-}
+-
+-static __inline__ long local_inc_return(local_t *l)
+-{
+-	long t;
+-
+-	__asm__ __volatile__(
+-"1:	ldarx	%0,0,%1		# local_inc_return\n\
+-	addic	%0,%0,1\n\
+-	stdcx.	%0,0,%1 \n\
+-	bne-	1b"
+-	: "=&r" (t)
+-	: "r" (&(l->a.counter))
+-	: "cc", "memory");
+-
+-	return t;
+-}
+-
+-/*
+- * local_inc_and_test - increment and test
+- * @l: pointer of type local_t
+- *
+- * Atomically increments @l by 1
+- * and returns true if the result is zero, or false for all
+- * other cases.
+- */
+-#define local_inc_and_test(l) (local_inc_return(l) == 0)
+-
+-static __inline__ long local_dec_return(local_t *l)
+-{
+-	long t;
+-
+-	__asm__ __volatile__(
+-"1:	ldarx	%0,0,%1		# local_dec_return\n\
+-	addic	%0,%0,-1\n\
+-	stdcx.	%0,0,%1\n\
+-	bne-	1b"
+-	: "=&r" (t)
+-	: "r" (&(l->a.counter))
+-	: "cc", "memory");
+-
+-	return t;
+-}
+-
+-#define local_sub_and_test(a, l)	(local_sub_return((a), (l)) == 0)
+-#define local_dec_and_test(l)	(local_dec_return((l)) == 0)
+-
+-/*
+- * Atomically test *l and decrement if it is greater than 0.
+- * The function returns the old value of *l minus 1.
+- */
+-static __inline__ long local_dec_if_positive(local_t *l)
+-{
+-	long t;
+-
+-	__asm__ __volatile__(
+-"1:	ldarx	%0,0,%1		# local_dec_if_positive\n\
+-	addic.	%0,%0,-1\n\
+-	blt-	2f\n\
+-	stdcx.	%0,0,%1\n\
+-	bne-	1b"
+-	"\n\
+-2:"	: "=&r" (t)
+-	: "r" (&(l->a.counter))
+-	: "cc", "memory");
+-
+-	return t;
+-}
+-
+-#define local_cmpxchg(l, o, n) \
+-	((long)cmpxchg_local(&((l)->a.counter), (o), (n)))
+-#define local_xchg(l, n) (xchg_local(&((l)->a.counter), (n)))
+-
+-/**
+- * local_add_unless - add unless the number is a given value
+- * @l: pointer of type local_t
+- * @a: the amount to add to l...
+- * @u: ...unless l is equal to u.
+- *
+- * Atomically adds @a to @l, so long as it was not @u.
+- * Returns non-zero if @l was not @u, and zero otherwise.
+- */
+-static __inline__ int local_add_unless(local_t *l, long a, long u)
+-{
+-	long t;
+-
+-	__asm__ __volatile__ (
+-"1:	ldarx	%0,0,%1		# local_add_unless\n\
+-	cmpd	0,%0,%3 \n\
+-	beq-	2f \n\
+-	add	%0,%2,%0 \n"
+-"	stdcx.	%0,0,%1 \n\
+-	bne-	1b \n"
+-"	subf	%0,%2,%0 \n\
+-2:"
+-	: "=&r" (t)
+-	: "r" (&(l->a.counter)), "r" (a), "r" (u)
+-	: "cc", "memory");
+-
+-	return t != u;
+-}
+-
+-#define local_inc_not_zero(l) local_add_unless((l), 1, 0)
+-
+-#endif /* !__powerpc64__ */
+-
+ /* Use these for per-cpu local_t variables: on some archs they are
+  * much more efficient than these naive implementations.  Note they take
+  * a variable, not an address.
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-gpio-core-documentation.patch
-git-acpi.patch
-git-avr32.patch
-git-md-accel.patch
-8250-make-probing-for-txen-bug-a-config-option.patch
-loosen-dependancy-on-rtc-cmos.patch
-rtc-sa1100-rtc_wklarmenabled-bugfixes.patch
-at91_rtc-updates.patch
-remove-modpost-false-warnings-on-arm.patch
-spi-controller-build-warning-fixes.patch
+git-powerpc.patch
+powerpc-move-of_irq_to_resource-to-prom_parsec.patch
+git-mips.patch
+git-s390.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+local_t-architecture-independant-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-mips-extension-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-powerpc-extension-fix.patch
+local_t-powerpc-extension-shrink-powerpc-localh.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-kconfig-menus-fix-2.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-non-optimized-architectures.patch
+linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-fix.patch
