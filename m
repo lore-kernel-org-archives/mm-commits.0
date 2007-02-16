@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + b44-increase-wait-loop.patch added to -mm tree
-Date: Fri, 16 Feb 2007 14:01:45 -0800
-Message-ID: <200702162201.l1GM1j4M011007@shell0.pdx.osdl.net>
+Subject: + kbuild-override-build-timestamp.patch added to -mm tree
+Date: Fri, 16 Feb 2007 14:05:59 -0800
+Message-ID: <200702162205.l1GM5xrF011073@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38304 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38473 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946150AbXBPWBv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 17:01:51 -0500
+	id S1946158AbXBPWGF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 17:06:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zambrano@broadcom.com
+Cc: olaf@aepfle.de, sam@ravnborg.org
 
 
 The patch titled
-     B44: increase wait loop
+     kbuild: override build timestamp
 has been added to the -mm tree.  Its filename is
-     b44-increase-wait-loop.patch
+     kbuild-override-build-timestamp.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: B44: increase wait loop
-From: "Gary Zambrano" <zambrano@broadcom.com>
+Subject: kbuild: override build timestamp
+From: Olaf Hering <olaf@aepfle.de>
 
-The b44 Enet control disable bit may take longer to clear on some systems,
-so the loop count is increased with this patch.  Functionality is not
-compromised, but a debug message can be seen when the bit is not cleared
-within the count value.  Thanks to Vasileios Lourdas who reported the
-problem.
+Pass a timestamp to kbuild via an enviroment variable.
 
-Signed-off by: Gary Zambrano <zambrano@broadcom.com>
+    TZ=UTC BUILD_TIMESTAMP=2007-01-01 make -kj O=../O vmlinux
 
+This can be used when the kernel source is in a SCM and uname -v
+is supposed to give the commit date and not the package build time.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/b44.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ scripts/mkcompile_h |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/b44.c~b44-increase-wait-loop drivers/net/b44.c
---- a/drivers/net/b44.c~b44-increase-wait-loop
-+++ a/drivers/net/b44.c
-@@ -1289,7 +1289,7 @@ static void b44_chip_reset(struct b44 *b
- 	if (ssb_is_core_up(bp)) {
- 		bw32(bp, B44_RCV_LAZY, 0);
- 		bw32(bp, B44_ENET_CTRL, ENET_CTRL_DISABLE);
--		b44_wait_bit(bp, B44_ENET_CTRL, ENET_CTRL_DISABLE, 100, 1);
-+		b44_wait_bit(bp, B44_ENET_CTRL, ENET_CTRL_DISABLE, 200, 1);
- 		bw32(bp, B44_DMATX_CTRL, 0);
- 		bp->tx_prod = bp->tx_cons = 0;
- 		if (br32(bp, B44_DMARX_STAT) & DMARX_STAT_EMASK) {
+diff -puN scripts/mkcompile_h~kbuild-override-build-timestamp scripts/mkcompile_h
+--- a/scripts/mkcompile_h~kbuild-override-build-timestamp
++++ a/scripts/mkcompile_h
+@@ -30,7 +30,12 @@ UTS_VERSION="#$VERSION"
+ CONFIG_FLAGS=""
+ if [ -n "$SMP" ] ; then CONFIG_FLAGS="SMP"; fi
+ if [ -n "$PREEMPT" ] ; then CONFIG_FLAGS="$CONFIG_FLAGS PREEMPT"; fi
+-UTS_VERSION="$UTS_VERSION $CONFIG_FLAGS `LC_ALL=C LANG=C date`"
++if [ -n "$BUILD_TIMESTAMP" ]; then
++  TIMESTAMP="`LC_ALL=C LANG=C date -d "$BUILD_TIMESTAMP"`"
++else
++  TIMESTAMP="`LC_ALL=C LANG=C date`"
++fi
++UTS_VERSION="$UTS_VERSION $CONFIG_FLAGS $TIMESTAMP"
+ 
+ # Truncate to maximum length
+ 
 _
 
-Patches currently in -mm which might be from zambrano@broadcom.com are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
-arm-dma-mappingh.patch
-avr32-dma-mappingh.patch
-b44-increase-wait-loop.patch
+origin.patch
+kbuild-override-build-timestamp.patch
+cleanup-variable-usage-in-mesh-interrupt-handler.patch
+keep-track-of-network-interface-renaming.patch
