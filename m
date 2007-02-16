@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + local_t-powerpc-extension-shrink-powerpc-localh.patch added to -mm tree
-Date: Fri, 16 Feb 2007 13:54:49 -0800
-Message-ID: <200702162154.l1GLsnrC010837@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-documentation-update-adds-context.patch added to -mm tree
+Date: Fri, 16 Feb 2007 13:55:28 -0800
+Message-ID: <200702162155.l1GLtSfH010844@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37851 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37873 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932632AbXBPVzE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 16:55:04 -0500
+	id S1946141AbXBPVzg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 16:55:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, benh@kernel.crashing.org, paulus@samba.org
+Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     local_t: powerpc extension: shrink powerpc local.h
+     Linux Kernel Markers: Documentation update (adds context)
 has been added to the -mm tree.  Its filename is
-     local_t-powerpc-extension-shrink-powerpc-localh.patch
+     linux-kernel-markers-documentation-update-adds-context.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,297 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: local_t: powerpc extension: shrink powerpc local.h
+Subject: Linux Kernel Markers: Documentation update (adds context)
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-By using PPC_LLARX and PPC_STLCX, we can cut in half the size of powerpc
-local.h.
+Following a comment from David Wilder, who read the documentation from a
+non-expert-yet point of view, I decided to add some paragraphs explaining
+"what is a marker" a little better.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/local.h |  190 ++++------------------------------
- 1 files changed, 24 insertions(+), 166 deletions(-)
+ Documentation/marker.txt |   25 +++++++++++++++++++++----
+ 1 files changed, 21 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-powerpc/local.h~local_t-powerpc-extension-shrink-powerpc-localh include/asm-powerpc/local.h
---- a/include/asm-powerpc/local.h~local_t-powerpc-extension-shrink-powerpc-localh
-+++ a/include/asm-powerpc/local.h
-@@ -19,17 +19,15 @@ typedef struct
- #define local_inc(l)	atomic_long_inc(&(l)->a)
- #define local_dec(l)	atomic_long_dec(&(l)->a)
+diff -puN Documentation/marker.txt~linux-kernel-markers-documentation-update-adds-context Documentation/marker.txt
+--- a/Documentation/marker.txt~linux-kernel-markers-documentation-update-adds-context
++++ a/Documentation/marker.txt
+@@ -3,14 +3,21 @@
+ 			    Mathieu Desnoyers
  
--#ifndef __powerpc64__
--
--static __inline__ int local_add_return(int a, local_t *l)
-+static __inline__ long local_add_return(long a, local_t *l)
- {
--	int t;
-+	long t;
  
- 	__asm__ __volatile__(
--"1:	lwarx	%0,0,%2		# local_add_return\n\
-+"1:"	PPC_LLARX	"%0,0,%2		# local_add_return\n\
- 	add	%0,%1,%0\n"
- 	PPC405_ERR77(0,%2)
--"	stwcx.	%0,0,%2 \n\
-+	PPC_STLCX	"%0,0,%2 \n\
- 	bne-	1b"
- 	: "=&r" (t)
- 	: "r" (a), "r" (&(l->a.counter))
-@@ -40,15 +38,15 @@ static __inline__ int local_add_return(i
+-	This document discusses the purpose of markers. It shows some usage
+-examples of the Linux Kernel Markers : how to insert markers within the kernel
+-and how to connect probes to a marker. Finally, it has some probe module
+-examples. This is what connects to a marker.
++	This document introduces to markers and discusses its purpose. It
++shows some usage examples of the Linux Kernel Markers : how to insert markers
++within the kernel and how to connect probes to a marker. Finally, it has some
++probe module examples. This is what connects to a marker.
  
- #define local_add_negative(a, l)	(local_add_return((a), (l)) < 0)
  
--static __inline__ int local_sub_return(int a, local_t *l)
-+static __inline__ long local_sub_return(long a, local_t *l)
- {
--	int t;
-+	long t;
+ * Purpose of markers
  
- 	__asm__ __volatile__(
--"1:	lwarx	%0,0,%2		# local_sub_return\n\
-+"1:"	PPC_LLARX	"%0,0,%2		# local_sub_return\n\
- 	subf	%0,%1,%0\n"
- 	PPC405_ERR77(0,%2)
--"	stwcx.	%0,0,%2 \n\
-+	PPC_STLCX	"%0,0,%2 \n\
- 	bne-	1b"
- 	: "=&r" (t)
- 	: "r" (a), "r" (&(l->a.counter))
-@@ -57,15 +55,15 @@ static __inline__ int local_sub_return(i
- 	return t;
- }
++A marker placed in your code provides a hook to a function (probe) that
++you can provide at runtime. A marker can be on (a probe is connected to it)
++or off (no probe is attached). An "off" marker has no effect. When turned on,
++the function you provide is called each time the marker is executed in the
++execution context of the caller. When the function provided ends its execution,
++it returns to the caller (probe site).
++
+ You can put markers at important locations in the code. They act as
+ lightweight hooks that can pass an arbitrary number of parameters,
+ described in a printk-like format string, to a function whenever the marker
+@@ -42,6 +49,16 @@ The expression %p[struct task_struct] is
+ standard that could eventually be used for pointer type checking in
+ sparse. The brackets contain the type to which the pointer refers.
  
--static __inline__ int local_inc_return(local_t *l)
-+static __inline__ long local_inc_return(local_t *l)
- {
--	int t;
-+	long t;
- 
- 	__asm__ __volatile__(
--"1:	lwarx	%0,0,%1		# local_inc_return\n\
-+"1:"	PPC_LLARX	"%0,0,%1		# local_inc_return\n\
- 	addic	%0,%0,1\n"
- 	PPC405_ERR77(0,%1)
--"	stwcx.	%0,0,%1 \n\
-+	PPC_STLCX	"%0,0,%1 \n\
- 	bne-	1b"
- 	: "=&r" (t)
- 	: "r" (&(l->a.counter))
-@@ -84,15 +82,15 @@ static __inline__ int local_inc_return(l
-  */
- #define local_inc_and_test(l) (local_inc_return(l) == 0)
- 
--static __inline__ int local_dec_return(local_t *l)
-+static __inline__ long local_dec_return(local_t *l)
- {
--	int t;
-+	long t;
- 
- 	__asm__ __volatile__(
--"1:	lwarx	%0,0,%1		# local_dec_return\n\
-+"1:"	PPC_LLARX	"%0,0,%1		# local_dec_return\n\
- 	addic	%0,%0,-1\n"
- 	PPC405_ERR77(0,%1)
--"	stwcx.	%0,0,%1\n\
-+	PPC_STLCX	"%0,0,%1\n\
- 	bne-	1b"
- 	: "=&r" (t)
- 	: "r" (&(l->a.counter))
-@@ -114,17 +112,17 @@ static __inline__ int local_dec_return(l
-  * Atomically adds @a to @l, so long as it was not @u.
-  * Returns non-zero if @l was not @u, and zero otherwise.
-  */
--static __inline__ int local_add_unless(local_t *l, int a, int u)
-+static __inline__ int local_add_unless(local_t *l, long a, long u)
- {
--	int t;
-+	long t;
- 
- 	__asm__ __volatile__ (
--"1:	lwarx	%0,0,%1		# local_add_unless\n\
-+"1:"	PPC_LLARX	"%0,0,%1		# local_add_unless\n\
- 	cmpw	0,%0,%3 \n\
- 	beq-	2f \n\
- 	add	%0,%2,%0 \n"
- 	PPC405_ERR77(0,%2)
--"	stwcx.	%0,0,%1 \n\
-+	PPC_STLCX	"%0,0,%1 \n\
- 	bne-	1b \n"
- "	subf	%0,%2,%0 \n\
- 2:"
-@@ -144,17 +142,17 @@ static __inline__ int local_add_unless(l
-  * Atomically test *l and decrement if it is greater than 0.
-  * The function returns the old value of *l minus 1.
-  */
--static __inline__ int local_dec_if_positive(local_t *l)
-+static __inline__ long local_dec_if_positive(local_t *l)
- {
--	int t;
-+	long t;
- 
- 	__asm__ __volatile__(
--"1:	lwarx	%0,0,%1		# local_dec_if_positive\n\
-+"1:"	PPC_LLARX	"%0,0,%1		# local_dec_if_positive\n\
- 	cmpwi	%0,1\n\
- 	addi	%0,%0,-1\n\
- 	blt-	2f\n"
- 	PPC405_ERR77(0,%1)
--"	stwcx.	%0,0,%1\n\
-+	PPC_STLCX	"%0,0,%1\n\
- 	bne-	1b"
- 	"\n\
- 2:"	: "=&b" (t)
-@@ -164,146 +162,6 @@ static __inline__ int local_dec_if_posit
- 	return t;
- }
- 
--#else /* __powerpc64__ */
--
--static __inline__ long local_add_return(long a, local_t *l)
--{
--	long t;
--
--	__asm__ __volatile__(
--"1:	ldarx	%0,0,%2		# local_add_return\n\
--	add	%0,%1,%0\n\
--	stdcx.	%0,0,%2 \n\
--	bne-	1b"
--	: "=&r" (t)
--	: "r" (a), "r" (&(l->a.counter))
--	: "cc", "memory");
--
--	return t;
--}
--
--#define local_add_negative(a, l)	(local_add_return((a), (l)) < 0)
--
--static __inline__ long local_sub_return(long a, local_t *l)
--{
--	long t;
--
--	__asm__ __volatile__(
--"1:	ldarx	%0,0,%2		# local_sub_return\n\
--	subf	%0,%1,%0\n\
--	stdcx.	%0,0,%2 \n\
--	bne-	1b"
--	: "=&r" (t)
--	: "r" (a), "r" (&(l->a.counter))
--	: "cc", "memory");
--
--	return t;
--}
--
--static __inline__ long local_inc_return(local_t *l)
--{
--	long t;
--
--	__asm__ __volatile__(
--"1:	ldarx	%0,0,%1		# local_inc_return\n\
--	addic	%0,%0,1\n\
--	stdcx.	%0,0,%1 \n\
--	bne-	1b"
--	: "=&r" (t)
--	: "r" (&(l->a.counter))
--	: "cc", "memory");
--
--	return t;
--}
--
--/*
-- * local_inc_and_test - increment and test
-- * @l: pointer of type local_t
-- *
-- * Atomically increments @l by 1
-- * and returns true if the result is zero, or false for all
-- * other cases.
-- */
--#define local_inc_and_test(l) (local_inc_return(l) == 0)
--
--static __inline__ long local_dec_return(local_t *l)
--{
--	long t;
--
--	__asm__ __volatile__(
--"1:	ldarx	%0,0,%1		# local_dec_return\n\
--	addic	%0,%0,-1\n\
--	stdcx.	%0,0,%1\n\
--	bne-	1b"
--	: "=&r" (t)
--	: "r" (&(l->a.counter))
--	: "cc", "memory");
--
--	return t;
--}
--
--#define local_sub_and_test(a, l)	(local_sub_return((a), (l)) == 0)
--#define local_dec_and_test(l)	(local_dec_return((l)) == 0)
--
--/*
-- * Atomically test *l and decrement if it is greater than 0.
-- * The function returns the old value of *l minus 1.
-- */
--static __inline__ long local_dec_if_positive(local_t *l)
--{
--	long t;
--
--	__asm__ __volatile__(
--"1:	ldarx	%0,0,%1		# local_dec_if_positive\n\
--	addic.	%0,%0,-1\n\
--	blt-	2f\n\
--	stdcx.	%0,0,%1\n\
--	bne-	1b"
--	"\n\
--2:"	: "=&r" (t)
--	: "r" (&(l->a.counter))
--	: "cc", "memory");
--
--	return t;
--}
--
--#define local_cmpxchg(l, o, n) \
--	((long)cmpxchg_local(&((l)->a.counter), (o), (n)))
--#define local_xchg(l, n) (xchg_local(&((l)->a.counter), (n)))
--
--/**
-- * local_add_unless - add unless the number is a given value
-- * @l: pointer of type local_t
-- * @a: the amount to add to l...
-- * @u: ...unless l is equal to u.
-- *
-- * Atomically adds @a to @l, so long as it was not @u.
-- * Returns non-zero if @l was not @u, and zero otherwise.
-- */
--static __inline__ int local_add_unless(local_t *l, long a, long u)
--{
--	long t;
--
--	__asm__ __volatile__ (
--"1:	ldarx	%0,0,%1		# local_add_unless\n\
--	cmpd	0,%0,%3 \n\
--	beq-	2f \n\
--	add	%0,%2,%0 \n"
--"	stdcx.	%0,0,%1 \n\
--	bne-	1b \n"
--"	subf	%0,%2,%0 \n\
--2:"
--	: "=&r" (t)
--	: "r" (&(l->a.counter)), "r" (a), "r" (u)
--	: "cc", "memory");
--
--	return t != u;
--}
--
--#define local_inc_not_zero(l) local_add_unless((l), 1, 0)
--
--#endif /* !__powerpc64__ */
--
- /* Use these for per-cpu local_t variables: on some archs they are
-  * much more efficient than these naive implementations.  Note they take
-  * a variable, not an address.
++In order to use the macro MARK, you should include linux/marker.h or
++linux/kernel.h (which also includes linux/marker.h).
++
++Connecting a function (probe) to a marker is done by providing a probe
++(function to call) for the specific marker through marker_set_probe(). It will
++automatically connect the function and enable the marker site. Removing a probe
++is done through marker_remove_probe(). Probe removal is preempt safe because
++preemption is disabled around the probe call. See the "Probe example" section
++below for a sample probe module.
++
+ The marker mechanism supports multiple instances of the same marker.
+ Markers can be put in inline functions, inlined static functions and
+ unrolled loops.
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
@@ -357,3 +126,4 @@ linux-kernel-markers-i386-optimization.patch
 linux-kernel-markers-non-optimized-architectures.patch
 linux-kernel-markers-documentation.patch
 linux-kernel-markers-documentation-fix.patch
+linux-kernel-markers-documentation-update-adds-context.patch
