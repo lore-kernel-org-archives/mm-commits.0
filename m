@@ -1,161 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - input-psmouse-allow-disabling-of-synaptics-protocol-extension.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 23:52:09 -0800
-Message-ID: <200702160752.l1G7q9Ra023752@shell0.pdx.osdl.net>
+Subject: - before-x86_64-mm-mmconfig-share.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 23:54:59 -0800
+Message-ID: <200702160754.l1G7sxqi023778@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58297 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58512 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966173AbXBPHwS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 02:52:18 -0500
+	id S966176AbXBPHzB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 02:55:01 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1G7sxhB014538
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2007 23:55:00 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@debian.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: psmouse: allow disabling of synaptics protocol extension
+     before-x86_64-mm-mmconfig-share
 has been removed from the -mm tree.  Its filename was
-     input-psmouse-allow-disabling-of-synaptics-protocol-extension.patch
+     before-x86_64-mm-mmconfig-share.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: input: psmouse: allow disabling of synaptics protocol extension
-From: Andres Salomon <dilinger@debian.org>
+Subject: before-x86_64-mm-mmconfig-share
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Allow disabling of synaptics via CONFIG_MOUSE_PS2_SYNAPTICS; we leave
-synaptic_detect and synaptic_reset (for synaptics hardware that emulates other
-protocols), but get rid of synaptic_init.
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/psmouse-base.c |    5 +++
- drivers/input/mouse/synaptics.c    |   34 +++++++++++++++++----------
- 2 files changed, 27 insertions(+), 12 deletions(-)
+ arch/x86_64/pci/mmconfig.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/input/mouse/psmouse-base.c~input-psmouse-allow-disabling-of-synaptics-protocol-extension drivers/input/mouse/psmouse-base.c
---- a/drivers/input/mouse/psmouse-base.c~input-psmouse-allow-disabling-of-synaptics-protocol-extension
-+++ a/drivers/input/mouse/psmouse-base.c
-@@ -595,8 +595,11 @@ static int psmouse_extensions(struct psm
- 		synaptics_hardware = 1;
+diff -puN arch/x86_64/pci/mmconfig.c~before-x86_64-mm-mmconfig-share arch/x86_64/pci/mmconfig.c
+--- a/arch/x86_64/pci/mmconfig.c~before-x86_64-mm-mmconfig-share
++++ a/arch/x86_64/pci/mmconfig.c
+@@ -170,9 +170,7 @@ void __init pci_mmcfg_init(int type)
+ 	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
+ 		return;
  
- 		if (max_proto > PSMOUSE_IMEX) {
-+#ifdef CONFIG_MOUSE_PS2_SYNAPTICS
- 			if (!set_properties || synaptics_init(psmouse) == 0)
- 				return PSMOUSE_SYNAPTICS;
-+#endif
-+
- /*
-  * Some Synaptics touchpads can emulate extended protocols (like IMPS/2).
-  * Unfortunately Logitech/Genius probes confuse some firmware versions so
-@@ -714,6 +717,7 @@ static const struct psmouse_protocol psm
- 		.maxproto	= 1,
- 		.detect		= im_explorer_detect,
- 	},
-+#ifdef CONFIG_MOUSE_PS2_SYNAPTICS
- 	{
- 		.type		= PSMOUSE_SYNAPTICS,
- 		.name		= "SynPS/2",
-@@ -721,6 +725,7 @@ static const struct psmouse_protocol psm
- 		.detect		= synaptics_detect,
- 		.init		= synaptics_init,
- 	},
-+#endif
- #ifdef CONFIG_MOUSE_PS2_ALPS
- 	{
- 		.type		= PSMOUSE_ALPS,
-diff -puN drivers/input/mouse/synaptics.c~input-psmouse-allow-disabling-of-synaptics-protocol-extension drivers/input/mouse/synaptics.c
---- a/drivers/input/mouse/synaptics.c~input-psmouse-allow-disabling-of-synaptics-protocol-extension
-+++ a/drivers/input/mouse/synaptics.c
-@@ -45,28 +45,30 @@
-  ****************************************************************************/
- 
- /*
-- * Send a command to the synpatics touchpad by special commands
-+ * Set the synaptics touchpad mode byte by special commands
-  */
--static int synaptics_send_cmd(struct psmouse *psmouse, unsigned char c, unsigned char *param)
-+static int synaptics_mode_cmd(struct psmouse *psmouse, unsigned char mode)
- {
--	if (psmouse_sliced_command(psmouse, c))
-+	unsigned char param[1];
-+
-+	if (psmouse_sliced_command(psmouse, mode))
- 		return -1;
--	if (ps2_command(&psmouse->ps2dev, param, PSMOUSE_CMD_GETINFO))
-+	param[0] = SYN_PS_SET_MODE2;
-+	if (ps2_command(&psmouse->ps2dev, param, PSMOUSE_CMD_SETRATE))
- 		return -1;
- 	return 0;
- }
- 
-+#ifdef CONFIG_MOUSE_PS2_SYNAPTICS
-+
- /*
-- * Set the synaptics touchpad mode byte by special commands
-+ * Send a command to the synpatics touchpad by special commands
-  */
--static int synaptics_mode_cmd(struct psmouse *psmouse, unsigned char mode)
-+static int synaptics_send_cmd(struct psmouse *psmouse, unsigned char c, unsigned char *param)
- {
--	unsigned char param[1];
+-	if (acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg))
+-		return;
 -
--	if (psmouse_sliced_command(psmouse, mode))
-+	if (psmouse_sliced_command(psmouse, c))
- 		return -1;
--	param[0] = SYN_PS_SET_MODE2;
--	if (ps2_command(&psmouse->ps2dev, param, PSMOUSE_CMD_SETRATE))
-+	if (ps2_command(&psmouse->ps2dev, param, PSMOUSE_CMD_GETINFO))
- 		return -1;
- 	return 0;
- }
-@@ -529,12 +531,16 @@ static void set_input_params(struct inpu
- 	clear_bit(REL_Y, dev->relbit);
- }
- 
-+#endif /* CONFIG_MOUSE_PS2_SYNAPTICS */
-+
- void synaptics_reset(struct psmouse *psmouse)
- {
- 	/* reset touchpad back to relative mode, gestures enabled */
- 	synaptics_mode_cmd(psmouse, 0);
- }
- 
-+#ifdef CONFIG_MOUSE_PS2_SYNAPTICS
-+
- static void synaptics_disconnect(struct psmouse *psmouse)
- {
- 	synaptics_reset(psmouse);
-@@ -569,6 +575,8 @@ static int synaptics_reconnect(struct ps
- 	return 0;
- }
- 
-+#endif /* CONFIG_MOUSE_PS2_SYNAPTICS */
-+
- int synaptics_detect(struct psmouse *psmouse, int set_properties)
- {
- 	struct ps2dev *ps2dev = &psmouse->ps2dev;
-@@ -593,6 +601,8 @@ int synaptics_detect(struct psmouse *psm
- 	return 0;
- }
- 
-+#ifdef CONFIG_MOUSE_PS2_SYNAPTICS
-+
- #if defined(__i386__)
- #include <linux/dmi.h>
- static struct dmi_system_id toshiba_dmi_table[] = {
-@@ -679,4 +689,4 @@ int synaptics_init(struct psmouse *psmou
- 	return -1;
- }
- 
--
-+#endif /* CONFIG_MOUSE_PS2_SYNAPTICS */
++	acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
+ 	if ((pci_mmcfg_config_num == 0) ||
+ 	    (pci_mmcfg_config == NULL) ||
+ 	    (pci_mmcfg_config[0].address == 0))
 _
 
-Patches currently in -mm which might be from dilinger@debian.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-input-psmouse-allow-disabling-of-synaptics-protocol-extension.patch
+origin.patch
+git-acpi.patch
+git-agpgart.patch
+git-arm.patch
+git-cpufreq.patch
+git-powerpc.patch
+powerpc-rtas-msi-support-fix.patch
+git-drm.patch
+git-dvb.patch
+git-input.patch
+sis-warning-fixes.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
+git-md-accel-fixes.patch
+git-md-accel-warning-fixes.patch
+git-md-accel-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-netdev-all.patch
+e1000-fix-shared-interrupt-warning-message-fix.patch
+Fabric7-VIOC-driver-fixes.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+git-s390.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-unionfs-fixup.patch
+before-x86_64-mm-mmconfig-share.patch
+after-before-x86_64-mm-mmconfig-share.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+kprobes-list-all-active-probes-in-the-system.patch
+reduce-size-of-task_struct-on-64-bit-machines-fix.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-epoll-compat-code-to-kernel-compatc-tidy.patch
+genalloc-warning-fixes.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+revert-x86_64-mm-putreg-check.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+git-gccbug-fixup.patch
