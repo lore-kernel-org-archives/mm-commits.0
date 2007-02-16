@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-dma-mappingh.patch added to -mm tree
-Date: Fri, 16 Feb 2007 14:00:53 -0800
-Message-ID: <200702162200.l1GM0r3F010985@shell0.pdx.osdl.net>
+Subject: + b44-increase-wait-loop.patch added to -mm tree
+Date: Fri, 16 Feb 2007 14:01:45 -0800
+Message-ID: <200702162201.l1GM1j4M011007@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38224 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38304 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932647AbXBPWBE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 17:01:04 -0500
+	id S1946150AbXBPWBv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 17:01:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zambrano@broadcom.com, hskinnemoen@atmel.com
+Cc: zambrano@broadcom.com
 
 
 The patch titled
-     avr32: dma-mapping.h
+     B44: increase wait loop
 has been added to the -mm tree.  Its filename is
-     avr32-dma-mappingh.patch
+     b44-increase-wait-loop.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: avr32: dma-mapping.h
+Subject: B44: increase wait loop
 From: "Gary Zambrano" <zambrano@broadcom.com>
 
-Added dma_sync_single_range_for_cpu/device to dma-mapping.h in asm-avr32 to
-call dma_sync_single_for_cpu/device.  This patch enables b44 to compile on
-systems with these cpus.  This patch was created with the assumption that
-another method of dma_sync_single_range_for_cpu/device does not exist on these
-architectures.
+The b44 Enet control disable bit may take longer to clear on some systems,
+so the loop count is increased with this patch.  Functionality is not
+compromised, but a debug message can be seen when the bit is not cleared
+within the count value.  Thanks to Vasileios Lourdas who reported the
+problem.
 
 Signed-off by: Gary Zambrano <zambrano@broadcom.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-avr32/dma-mapping.h |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+)
+ drivers/net/b44.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-avr32/dma-mapping.h~avr32-dma-mappingh include/asm-avr32/dma-mapping.h
---- a/include/asm-avr32/dma-mapping.h~avr32-dma-mappingh
-+++ a/include/asm-avr32/dma-mapping.h
-@@ -242,6 +242,24 @@ dma_unmap_sg(struct device *dev, struct 
- {
- 
- }
-+static inline void
-+dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t dma_handle,
-+			      unsigned long offset, size_t size,
-+			      enum dma_data_direction direction)
-+{
-+	/* just sync everything, that's all the pci API can do */
-+	dma_sync_single_for_cpu(dev, dma_handle, offset+size, direction);
-+}
-+
-+static inline void
-+dma_sync_single_range_for_device(struct device *dev, dma_addr_t dma_handle,
-+				 unsigned long offset, size_t size,
-+				 enum dma_data_direction direction)
-+{
-+	/* just sync everything, that's all the pci API can do */
-+	dma_sync_single_for_device(dev, dma_handle, offset+size, direction);
-+}
-+
- 
- /**
-  * dma_sync_single_for_cpu
+diff -puN drivers/net/b44.c~b44-increase-wait-loop drivers/net/b44.c
+--- a/drivers/net/b44.c~b44-increase-wait-loop
++++ a/drivers/net/b44.c
+@@ -1289,7 +1289,7 @@ static void b44_chip_reset(struct b44 *b
+ 	if (ssb_is_core_up(bp)) {
+ 		bw32(bp, B44_RCV_LAZY, 0);
+ 		bw32(bp, B44_ENET_CTRL, ENET_CTRL_DISABLE);
+-		b44_wait_bit(bp, B44_ENET_CTRL, ENET_CTRL_DISABLE, 100, 1);
++		b44_wait_bit(bp, B44_ENET_CTRL, ENET_CTRL_DISABLE, 200, 1);
+ 		bw32(bp, B44_DMATX_CTRL, 0);
+ 		bp->tx_prod = bp->tx_cons = 0;
+ 		if (br32(bp, B44_DMARX_STAT) & DMARX_STAT_EMASK) {
 _
 
 Patches currently in -mm which might be from zambrano@broadcom.com are
 
 arm-dma-mappingh.patch
 avr32-dma-mappingh.patch
+b44-increase-wait-loop.patch
