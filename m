@@ -1,58 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-rtas-msi-support-fix.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 01:37:22 -0800
-Message-ID: <200702160937.l1G9bMHa026336@shell0.pdx.osdl.net>
+Subject: - sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 01:39:40 -0800
+Message-ID: <200702160939.l1G9deFl026397@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36312 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36427 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966264AbXBPJhY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 04:37:24 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1G9bNhB018467
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 16 Feb 2007 01:37:23 -0800
+	id S1423474AbXBPJjs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 04:39:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc-rtas-msi-support-fix
+     sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy
 has been removed from the -mm tree.  Its filename was
-     powerpc-rtas-msi-support-fix.patch
+     sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
 
-This patch was dropped because it was folded into powerpc-rtas-msi-support.patch
+This patch was dropped because it was folded into sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
 
 ------------------------------------------------------
-Subject: powerpc-rtas-msi-support-fix
+Subject: sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Moer kernely.
+
+Cc: Robert Hancock <hancockr@shaw.ca>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/setup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/ata/sata_nv.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN arch/powerpc/platforms/pseries/setup.c~powerpc-rtas-msi-support-fix arch/powerpc/platforms/pseries/setup.c
---- a/arch/powerpc/platforms/pseries/setup.c~powerpc-rtas-msi-support-fix
-+++ a/arch/powerpc/platforms/pseries/setup.c
-@@ -64,6 +64,7 @@
- #include <asm/i8259.h>
- #include <asm/udbg.h>
- #include <asm/smp.h>
-+#include <asm/msi.h>
- #include <asm/firmware.h>
+diff -puN drivers/ata/sata_nv.c~sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy
++++ a/drivers/ata/sata_nv.c
+@@ -1447,31 +1447,38 @@ static void nv_adma_error_handler(struct
+ 		int i;
+ 		u16 tmp;
  
- #include "plpar_wrappers.h"
-@@ -237,6 +238,7 @@ static void __init pseries_discover_pic(
- 			ppc_md.init_IRQ       = xics_init_IRQ;
- 			setup_kexec_cpu_down_xics();
- 			smp_init_pseries_xics();
-+			msi_rtas_init();
- 			return;
+-		if(ata_tag_valid(ap->active_tag) || ap->sactive) {
++		if (ata_tag_valid(ap->active_tag) || ap->sactive) {
+ 			u32 notifier = readl(mmio + NV_ADMA_NOTIFIER);
+ 			u32 notifier_error = readl(mmio + NV_ADMA_NOTIFIER_ERROR);
+ 			u32 gen_ctl = readl(pp->gen_block + NV_ADMA_GEN_CTL);
+ 			u32 status = readw(mmio + NV_ADMA_STAT);
+ 
+-			ata_port_printk(ap, KERN_ERR, "EH in ADMA mode, notifier 0x%X "
+-				"notifier_error 0x%X gen_ctl 0x%X status 0x%X\n",
++			ata_port_printk(ap, KERN_ERR, "EH in ADMA mode, "
++				"notifier 0x%X notifier_error 0x%X gen_ctl "
++				"0x%X status 0x%X\n",
+ 				notifier, notifier_error, gen_ctl, status);
+ 
+-			for( i=0;i<NV_ADMA_MAX_CPBS;i++) {
++			for (i = 0; i < NV_ADMA_MAX_CPBS; i++) {
+ 				struct nv_adma_cpb *cpb = &pp->cpb[i];
+-				if( (ata_tag_valid(ap->active_tag) && i == ap->active_tag) ||
+-				    ap->sactive & (1 << i) )
+-					ata_port_printk(ap, KERN_ERR,
+-						"CPB %d: ctl_flags 0x%x, resp_flags 0x%x\n",
+-						i, cpb->ctl_flags, cpb->resp_flags);
++				if ((ata_tag_valid(ap->active_tag) &&
++						i == ap->active_tag) ||
++						ap->sactive & (1 << i))
++					ata_port_printk(ap, KERN_ERR, "CPB %d: "
++						"ctl_flags 0x%x, resp_flags "
++						"0x%x\n",
++						i, cpb->ctl_flags,
++						cpb->resp_flags);
+ 			}
  		}
- 	}
+ 
+ 		/* Push us back into port register mode for error handling. */
+ 		nv_adma_register_mode(ap);
+ 
+-		/* Mark all of the CPBs as invalid to prevent them from being executed */
+-		for( i=0;i<NV_ADMA_MAX_CPBS;i++)
++		/*
++		 * Mark all of the CPBs as invalid to prevent them from being
++		 * executed
++		*/
++		for (i = 0; i< NV_ADMA_MAX_CPBS; i++)
+ 			pp->cpb[i].ctl_flags &= ~NV_CPB_CTL_CPB_VALID;
+ 
+ 		/* clear CPB fetch count */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,12 +98,11 @@ git-agpgart.patch
 git-arm.patch
 git-cpufreq.patch
 git-powerpc.patch
-powerpc-rtas-msi-support.patch
-powerpc-rtas-msi-support-fix.patch
 git-drm.patch
 git-dvb.patch
 git-input.patch
 sis-warning-fixes.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
 sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
 git-md-accel-fixes.patch
 git-md-accel-warning-fixes.patch
