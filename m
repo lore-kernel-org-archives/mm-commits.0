@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fault-injection-split-up-stacktrace-filter-kconfig-option.patch added to -mm tree
-Date: Thu, 15 Feb 2007 17:07:43 -0800
-Message-ID: <200702160107.l1G17hEF015046@shell0.pdx.osdl.net>
+Subject: + uml-fix-2620-hang.patch added to -mm tree
+Date: Thu, 15 Feb 2007 17:06:49 -0800
+Message-ID: <200702160106.l1G16n4a015036@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41774 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41780 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751810AbXBPBHq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 20:07:46 -0500
+	id S1751818AbXBPBID (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 20:08:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, blaisorblade@yahoo.it
+Cc: jdike@addtoit.com, stable@kernel.org
 
 
 The patch titled
-     fault injection: split up stacktrace filter Kconfig option
+     uml: fix 2.6.20 hang
 has been added to the -mm tree.  Its filename is
-     fault-injection-split-up-stacktrace-filter-kconfig-option.patch
+     uml-fix-2620-hang.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,147 +25,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fault injection: split up stacktrace filter Kconfig option
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: uml: fix 2.6.20 hang
+From: Jeff Dike <jdike@addtoit.com>
 
-There is no prompt for CONFIG_STACKTRACE, so FAULT_INJECTION cannot be
-selected without LOCKDEP enabled.  (found by Paolo 'Blaisorblade'
-Giarrusso)
+A previous cleanup misused need_poll, which had a fairly broken interface. 
+It implemented a growable array, changing the used elements count itself,
+but leaving it up to the caller to fill in the actual elements, including
+the entire array if the array had to be reallocated.  This worked because
+the previous users were switching between two such structures, and the
+elements were copied from the inactive array to the active array after
+making sure the active array had enough room.
 
-In order to fix such broken Kconfig dependency, this patch splits up the
-stacktrace filter support for fault injection by new Kconfig option, which
-enables to use fault injection on the architecture which doesn't have
-general stacktrace support.
+maybe_sigio_broken was made to use need_poll, but it was operating on a
+single array, so when the buffer was reallocated, the previous contents
+were lost.
 
-Cc: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+This patch makes need_poll implement more sane semantics.  It merely
+assures that the array is of the proper size and that the contents are
+preserved.  It is up to the caller to adjust the used elements count and to
+ensure that the proper elements are resent.
+
+This manifested itself as a hang in 2.6.20 as the uninitialized buffer
+convinced UML that one of its own file descriptors didn't support SIGIO and
+needed to be watched by poll in a separate thread.  The result was an
+interrupt flood as control traffic over this descriptor sparked interrupts,
+which resulted in more control traffic, ad nauseum.
+
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug  |   10 ++++++++--
- lib/fault-inject.c |   41 +++++++++++++++++++++--------------------
- 2 files changed, 29 insertions(+), 22 deletions(-)
+ arch/um/os-Linux/sigio.c |   38 +++++++++++++++++++------------------
+ 1 files changed, 20 insertions(+), 18 deletions(-)
 
-diff -puN lib/Kconfig.debug~fault-injection-split-up-stacktrace-filter-kconfig-option lib/Kconfig.debug
---- a/lib/Kconfig.debug~fault-injection-split-up-stacktrace-filter-kconfig-option
-+++ a/lib/Kconfig.debug
-@@ -400,8 +400,6 @@ config LKDTM
- config FAULT_INJECTION
- 	bool "Fault-injection framework"
- 	depends on DEBUG_KERNEL
--	depends on STACKTRACE
--	select FRAME_POINTER
- 	help
- 	  Provide fault-injection framework.
- 	  For more details, see Documentation/fault-injection/.
-@@ -429,3 +427,11 @@ config FAULT_INJECTION_DEBUG_FS
- 	depends on FAULT_INJECTION && SYSFS && DEBUG_FS
- 	help
- 	  Enable configuration of fault-injection capabilities via debugfs.
+diff -puN arch/um/os-Linux/sigio.c~uml-fix-2620-hang arch/um/os-Linux/sigio.c
+--- a/arch/um/os-Linux/sigio.c~uml-fix-2620-hang
++++ a/arch/um/os-Linux/sigio.c
+@@ -97,20 +97,22 @@ static int write_sigio_thread(void *unus
+ 
+ static int need_poll(struct pollfds *polls, int n)
+ {
+-	if(n <= polls->size){
+-		polls->used = n;
++	struct pollfd *new;
 +
-+config FAULT_INJECTION_STACKTRACE_FILTER
-+	bool "stacktrace filter for fault-injection capabilities"
-+	depends on FAULT_INJECTION_DEBUG_FS && STACKTRACE_SUPPORT
-+	select STACKTRACE
-+	select FRAME_POINTER
-+	help
-+	  Provide stacktrace filter for fault-injection capabilities
-diff -puN lib/fault-inject.c~fault-injection-split-up-stacktrace-filter-kconfig-option lib/fault-inject.c
---- a/lib/fault-inject.c~fault-injection-split-up-stacktrace-filter-kconfig-option
-+++ a/lib/fault-inject.c
-@@ -55,7 +55,7 @@ static bool fail_task(struct fault_attr 
- 
- #define MAX_STACK_TRACE_DEPTH 32
- 
--#if defined(CONFIG_STACKTRACE)
-+#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
- 
- static bool fail_stacktrace(struct fault_attr *attr)
- {
-@@ -89,17 +89,10 @@ static bool fail_stacktrace(struct fault
- 
- static inline bool fail_stacktrace(struct fault_attr *attr)
- {
--	static bool firsttime = true;
--
--	if (firsttime) {
--		printk(KERN_WARNING
--		"This architecture does not implement save_stack_trace()\n");
--		firsttime = false;
++	if(n <= polls->size)
+ 		return 0;
 -	}
--	return false;
-+	return true;
+-	kfree(polls->poll);
+-	polls->poll = um_kmalloc_atomic(n * sizeof(struct pollfd));
+-	if(polls->poll == NULL){
++
++	new = um_kmalloc_atomic(n * sizeof(struct pollfd));
++	if(new == NULL){
+ 		printk("need_poll : failed to allocate new pollfds\n");
+-		polls->size = 0;
+-		polls->used = 0;
+ 		return -ENOMEM;
+ 	}
++
++	memcpy(new, polls->poll, polls->used * sizeof(struct pollfd));
++	kfree(polls->poll);
++
++	polls->poll = new;
+ 	polls->size = n;
+-	polls->used = n;
+ 	return 0;
  }
  
--#endif
-+#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+@@ -171,15 +173,15 @@ int add_sigio_fd(int fd)
+ 			goto out;
+ 	}
  
- /*
-  * This code is stolen from failmalloc-1.0
-@@ -216,6 +209,8 @@ void cleanup_fault_attr_dentries(struct 
- 	debugfs_remove(attr->dentries.task_filter_file);
- 	attr->dentries.task_filter_file = NULL;
+-	n = current_poll.used + 1;
+-	err = need_poll(&next_poll, n);
++	n = current_poll.used;
++	err = need_poll(&next_poll, n + 1);
+ 	if(err)
+ 		goto out;
  
-+#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
-+
- 	debugfs_remove(attr->dentries.stacktrace_depth_file);
- 	attr->dentries.stacktrace_depth_file = NULL;
- 
-@@ -231,6 +226,8 @@ void cleanup_fault_attr_dentries(struct 
- 	debugfs_remove(attr->dentries.reject_end_file);
- 	attr->dentries.reject_end_file = NULL;
- 
-+#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
-+
- 	if (attr->dentries.dir)
- 		WARN_ON(!simple_empty(attr->dentries.dir));
- 
-@@ -268,6 +265,13 @@ int init_fault_attr_dentries(struct faul
- 	attr->dentries.task_filter_file = debugfs_create_bool("task-filter",
- 						mode, dir, &attr->task_filter);
- 
-+	if (!attr->dentries.probability_file || !attr->dentries.interval_file ||
-+	    !attr->dentries.times_file || !attr->dentries.space_file ||
-+	    !attr->dentries.verbose_file || !attr->dentries.task_filter_file)
-+		goto fail;
-+
-+#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
-+
- 	attr->dentries.stacktrace_depth_file =
- 		debugfs_create_ul_MAX_STACK_TRACE_DEPTH(
- 			"stacktrace-depth", mode, dir, &attr->stacktrace_depth);
-@@ -284,18 +288,15 @@ int init_fault_attr_dentries(struct faul
- 	attr->dentries.reject_end_file =
- 		debugfs_create_ul("reject-end", mode, dir, &attr->reject_end);
- 
+-	for(i = 0; i < current_poll.used; i++)
+-		next_poll.poll[i] = current_poll.poll[i];
 -
--	if (!attr->dentries.probability_file || !attr->dentries.interval_file
--	    || !attr->dentries.times_file || !attr->dentries.space_file
--	    || !attr->dentries.verbose_file || !attr->dentries.task_filter_file
--	    || !attr->dentries.stacktrace_depth_file
--	    || !attr->dentries.require_start_file
--	    || !attr->dentries.require_end_file
--	    || !attr->dentries.reject_start_file
--	    || !attr->dentries.reject_end_file
--	    )
-+	if (!attr->dentries.stacktrace_depth_file ||
-+	    !attr->dentries.require_start_file ||
-+	    !attr->dentries.require_end_file ||
-+	    !attr->dentries.reject_start_file ||
-+	    !attr->dentries.reject_end_file)
- 		goto fail;
+-	next_poll.poll[n - 1] = *p;
++	memcpy(next_poll.poll, current_poll.poll,
++	       current_poll.used * sizeof(struct pollfd));
++	next_poll.poll[n] = *p;
++	next_poll.used = n + 1;
+ 	update_thread();
+  out:
+ 	sigio_unlock();
+@@ -214,6 +216,7 @@ int ignore_sigio_fd(int fd)
+ 		if(p->fd != fd)
+ 			next_poll.poll[n++] = *p;
+ 	}
++	next_poll.used = current_poll.used - 1;
  
-+#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+ 	update_thread();
+  out:
+@@ -331,10 +334,9 @@ void maybe_sigio_broken(int fd, int read
+ 
+ 	sigio_lock();
+ 	err = need_poll(&all_sigio_fds, all_sigio_fds.used + 1);
+-	if(err){
+-		printk("maybe_sigio_broken - failed to add pollfd\n");
++	if(err)
+ 		goto out;
+-	}
 +
- 	return 0;
- fail:
- 	cleanup_fault_attr_dentries(attr);
+ 	all_sigio_fds.poll[all_sigio_fds.used++] =
+ 		((struct pollfd) { .fd  	= fd,
+ 				   .events 	= read ? POLLIN : POLLOUT,
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-simplify-the-stacktrace-code.patch
-fault-injection-split-up-stacktrace-filter-kconfig-option.patch
-kconfig-fault_injection-can-be-selected-only-if-lockdep-is-enabled.patch
+uml-fix-2620-hang.patch
+fix-i386-and-x86_64-fault-information-pollution.patch
+uml-fix-prototypes.patch
