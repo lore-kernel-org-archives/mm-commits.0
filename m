@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction.patch added to -mm tree
-Date: Thu, 15 Feb 2007 23:00:16 -0800
-Message-ID: <200702160700.l1G70GKr022628@shell0.pdx.osdl.net>
+Subject: + xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries.patch added to -mm tree
+Date: Thu, 15 Feb 2007 23:00:04 -0800
+Message-ID: <200702160700.l1G704JC022601@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55189 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55190 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423372AbXBPHBL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1423373AbXBPHBL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 16 Feb 2007 02:01:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, rust
 
 
 The patch titled
-     Xen-paravirt: add hooks to intercept mm creation and destruction
+     Xen-paravirt: add pagetable accessors to pack and unpack pagetable entries
 has been added to the -mm tree.  Its filename is
-     xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction.patch
+     xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,10 +25,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Xen-paravirt: add hooks to intercept mm creation and destruction
+Subject: Xen-paravirt: add pagetable accessors to pack and unpack pagetable entries
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Add hooks to allow a paravirt implementation to track the lifetime of an mm.
+Add a set of accessors to pack, unpack and modify page table entries (at all
+levels).  This allows a paravirt implementation to control the contents of
+pgd/pmd/pte entries.  For example, Xen uses this to convert the
+(pseudo-)physical address into a machine address when populating a pagetable
+entry, and converting back to pphys address when an entry is read.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Zachary Amsden <zach@vmware.com>
@@ -38,153 +42,485 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c    |    4 +++
- include/asm-i386/mmu_context.h |    8 ++++--
- include/asm-i386/paravirt.h    |   39 +++++++++++++++++++++++++++++++
- include/linux/sched.h          |    6 ++++
- kernel/fork.c                  |    1 
- mm/mmap.c                      |    2 +
- 6 files changed, 58 insertions(+), 2 deletions(-)
+ arch/i386/kernel/paravirt.c       |  116 +++++++++++++++++++++++++---
+ arch/i386/kernel/vmlinux.lds.S    |    3 
+ include/asm-i386/page.h           |   16 +++
+ include/asm-i386/paravirt.h       |   68 +++++++++++++++-
+ include/asm-i386/pgtable-2level.h |    5 -
+ include/asm-i386/pgtable-3level.h |   27 +++---
+ 6 files changed, 201 insertions(+), 34 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
+diff -puN arch/i386/kernel/paravirt.c~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries
 +++ a/arch/i386/kernel/paravirt.c
-@@ -706,6 +706,10 @@ struct paravirt_ops paravirt_ops = {
+@@ -34,7 +34,7 @@
+ #include <asm/tlbflush.h>
+ 
+ /* nop stub */
+-static void native_nop(void)
++void native_nop(void)
+ {
+ }
+ 
+@@ -400,38 +400,76 @@ static void native_flush_tlb_single(u32 
+ }
+ 
+ #ifndef CONFIG_X86_PAE
+-static void native_set_pte(pte_t *ptep, pte_t pteval)
++void native_set_pte(pte_t *ptep, pte_t pteval)
+ {
+ 	*ptep = pteval;
+ }
+ 
+-static void native_set_pte_at(struct mm_struct *mm, u32 addr, pte_t *ptep, pte_t pteval)
++void native_set_pte_at(struct mm_struct *mm, u32 addr,
++		       pte_t *ptep, pte_t pteval)
+ {
+ 	*ptep = pteval;
+ }
+ 
+-static void native_set_pmd(pmd_t *pmdp, pmd_t pmdval)
++void native_set_pmd(pmd_t *pmdp, pmd_t pmdval)
+ {
+ 	*pmdp = pmdval;
+ }
+ 
++unsigned long native_pte_val(pte_t pte)
++{
++	return pte.pte_low;
++}
++
++unsigned long native_pmd_val(pmd_t pmd)
++{
++	BUG();
++	return 0;
++}
++
++unsigned long native_pgd_val(pgd_t pgd)
++{
++	return pgd.pgd;
++}
++
++pte_t native_make_pte(unsigned long pte)
++{
++	return (pte_t){ pte };
++}
++
++pmd_t native_make_pmd(unsigned long pmd)
++{
++	BUG();
++}
++
++pgd_t native_make_pgd(unsigned long pgd)
++{
++	return (pgd_t){ pgd };
++}
++
++pte_t native_ptep_get_and_clear(pte_t *ptep)
++{
++	return __pte(xchg(&(ptep)->pte_low, 0));
++}
++
+ #else /* CONFIG_X86_PAE */
+ 
+-static void native_set_pte(pte_t *ptep, pte_t pte)
++void native_set_pte(pte_t *ptep, pte_t pte)
+ {
+ 	ptep->pte_high = pte.pte_high;
+ 	smp_wmb();
+ 	ptep->pte_low = pte.pte_low;
+ }
+ 
+-static void native_set_pte_at(struct mm_struct *mm, u32 addr, pte_t *ptep, pte_t pte)
++void native_set_pte_at(struct mm_struct *mm, u32 addr, pte_t *ptep, pte_t pte)
+ {
+ 	ptep->pte_high = pte.pte_high;
+ 	smp_wmb();
+ 	ptep->pte_low = pte.pte_low;
+ }
+ 
+-static void native_set_pte_present(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pte)
++void native_set_pte_present(struct mm_struct *mm, u32 addr,
++			    pte_t *ptep, pte_t pte)
+ {
+ 	ptep->pte_low = 0;
+ 	smp_wmb();
+@@ -440,35 +478,78 @@ static void native_set_pte_present(struc
+ 	ptep->pte_low = pte.pte_low;
+ }
+ 
+-static void native_set_pte_atomic(pte_t *ptep, pte_t pteval)
++void native_set_pte_atomic(pte_t *ptep, pte_t pteval)
+ {
+ 	set_64bit((unsigned long long *)ptep,pte_val(pteval));
+ }
+ 
+-static void native_set_pmd(pmd_t *pmdp, pmd_t pmdval)
++void native_set_pmd(pmd_t *pmdp, pmd_t pmdval)
+ {
+ 	set_64bit((unsigned long long *)pmdp,pmd_val(pmdval));
+ }
+ 
+-static void native_set_pud(pud_t *pudp, pud_t pudval)
++void native_set_pud(pud_t *pudp, pud_t pudval)
+ {
+ 	*pudp = pudval;
+ }
+ 
+-static void native_pte_clear(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
++void native_pte_clear(struct mm_struct *mm, u32 addr, pte_t *ptep)
+ {
+ 	ptep->pte_low = 0;
+ 	smp_wmb();
+ 	ptep->pte_high = 0;
+ }
+ 
+-static void native_pmd_clear(pmd_t *pmd)
++void native_pmd_clear(pmd_t *pmd)
+ {
+ 	u32 *tmp = (u32 *)pmd;
+ 	*tmp = 0;
+ 	smp_wmb();
+ 	*(tmp + 1) = 0;
+ }
++
++unsigned long long native_pte_val(pte_t pte)
++{
++	return pte.pte_low | ((unsigned long long)pte.pte_high << 32);
++}
++
++unsigned long long native_pmd_val(pmd_t pmd)
++{
++	return pmd.pmd;
++}
++
++unsigned long long native_pgd_val(pgd_t pgd)
++{
++	return pgd.pgd;
++}
++
++pte_t native_make_pte(unsigned long long pte)
++{
++	return (pte_t){ pte };
++}
++
++pmd_t native_make_pmd(unsigned long long pmd)
++{
++	return (pmd_t){ pmd };
++}
++
++pgd_t native_make_pgd(unsigned long long pgd)
++{
++	return (pgd_t){ pgd };
++}
++
++pte_t native_ptep_get_and_clear(pte_t *ptep)
++{
++	pte_t res;
++
++	/* xchg acts as a barrier before the setting of the high bits */
++	res.pte_low = xchg(&ptep->pte_low, 0);
++	res.pte_high = ptep->pte_high;
++	ptep->pte_high = 0;
++
++	return res;
++}
++
+ #endif /* CONFIG_X86_PAE */
+ 
+ /* These are in entry.S */
+@@ -561,6 +642,9 @@ struct paravirt_ops paravirt_ops = {
+ 	.set_pmd = native_set_pmd,
+ 	.pte_update = (void *)native_nop,
+ 	.pte_update_defer = (void *)native_nop,
++
++	.ptep_get_and_clear = native_ptep_get_and_clear,
++
+ #ifdef CONFIG_X86_PAE
+ 	.set_pte_atomic = native_set_pte_atomic,
+ 	.set_pte_present = native_set_pte_present,
+@@ -569,6 +653,14 @@ struct paravirt_ops paravirt_ops = {
+ 	.pmd_clear = native_pmd_clear,
+ #endif
+ 
++	.pte_val = native_pte_val,
++	.pmd_val = native_pmd_val,
++	.pgd_val = native_pgd_val,
++
++	.make_pte = native_make_pte,
++	.make_pmd = native_make_pmd,
++	.make_pgd = native_make_pgd,
++
  	.irq_enable_sysexit = native_irq_enable_sysexit,
  	.iret = native_iret,
  
-+	.dup_mmap = (void *)native_nop,
-+	.exit_mmap = (void *)native_nop,
-+	.activate_mm = (void *)native_nop,
-+
- 	.startup_ipi_hook = (void *)native_nop,
- };
+diff -puN arch/i386/kernel/vmlinux.lds.S~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -22,6 +22,9 @@
+ #include <asm/cache.h>
+ #include <asm/boot.h>
  
-diff -puN include/asm-i386/mmu_context.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/mmu_context.h
---- a/include/asm-i386/mmu_context.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-i386/mmu_context.h
-@@ -5,6 +5,7 @@
- #include <asm/atomic.h>
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
++#undef ENTRY
++#undef ALIGN
++
+ OUTPUT_FORMAT("elf32-i386", "elf32-i386", "elf32-i386")
+ OUTPUT_ARCH(i386)
+ ENTRY(phys_startup_32)
+diff -puN include/asm-i386/page.h~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries include/asm-i386/page.h
+--- a/include/asm-i386/page.h~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries
++++ a/include/asm-i386/page.h
+@@ -12,7 +12,6 @@
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+ 
+-
+ #ifdef CONFIG_X86_USE_3DNOW
+ 
+ #include <asm/mmx.h>
+@@ -48,9 +47,11 @@ typedef struct { unsigned long pte_low, 
+ typedef struct { unsigned long long pmd; } pmd_t;
+ typedef struct { unsigned long long pgd; } pgd_t;
+ typedef struct { unsigned long long pgprot; } pgprot_t;
++#ifndef CONFIG_PARAVIRT
+ #define pmd_val(x)	((x).pmd)
+ #define pte_val(x)	((x).pte_low | ((unsigned long long)(x).pte_high << 32))
+ #define __pmd(x) ((pmd_t) { (x) } )
++#endif	/* CONFIG_PARAVIRT */
+ #define HPAGE_SHIFT	21
+ #include <asm-generic/pgtable-nopud.h>
+ #else
+@@ -58,7 +59,9 @@ typedef struct { unsigned long pte_low; 
+ typedef struct { unsigned long pgd; } pgd_t;
+ typedef struct { unsigned long pgprot; } pgprot_t;
+ #define boot_pte_t pte_t /* or would you rather have a typedef */
++#ifndef CONFIG_PARAVIRT
+ #define pte_val(x)	((x).pte_low)
++#endif
+ #define HPAGE_SHIFT	22
+ #include <asm-generic/pgtable-nopmd.h>
+ #endif
+@@ -71,12 +74,14 @@ typedef struct { unsigned long pgprot; }
+ #define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ #endif
+ 
+-#define pgd_val(x)	((x).pgd)
+ #define pgprot_val(x)	((x).pgprot)
++#define __pgprot(x)	((pgprot_t) { (x) } )
+ 
++#ifndef CONFIG_PARAVIRT
++#define pgd_val(x)	((x).pgd)
+ #define __pte(x) ((pte_t) { (x) } )
+ #define __pgd(x) ((pgd_t) { (x) } )
+-#define __pgprot(x)	((pgprot_t) { (x) } )
++#endif
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+@@ -143,6 +148,11 @@ extern int page_is_ram(unsigned long pag
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/page.h>
+ 
++#ifdef CONFIG_PARAVIRT
++/* After pte_t, etc, have been defined */
 +#include <asm/paravirt.h>
- 
- /*
-  * Used for LDT copy/destruction.
-@@ -65,7 +66,10 @@ static inline void switch_mm(struct mm_s
- #define deactivate_mm(tsk, mm)			\
- 	asm("movl %0,%%gs": :"r" (0));
- 
--#define activate_mm(prev, next) \
--	switch_mm((prev),(next),NULL)
-+#define activate_mm(prev, next)				\
-+	do {						\
-+		arch_activate_mm(prev, next);		\
-+		switch_mm((prev),(next),NULL);		\
-+	} while(0);
- 
- #endif
-diff -puN include/asm-i386/paravirt.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-i386/paravirt.h
-@@ -126,6 +126,12 @@ struct paravirt_ops
- 	void (*io_delay)(void);
- 	void (*const_udelay)(unsigned long loops);
- 
-+	void (fastcall *activate_mm)(struct mm_struct *prev,
-+				     struct mm_struct *next);
-+	void (fastcall *dup_mmap)(struct mm_struct *oldmm,
-+				  struct mm_struct *mm);
-+	void (fastcall *exit_mmap)(struct mm_struct *mm);
-+
- #ifdef CONFIG_X86_LOCAL_APIC
- 	void (*apic_write)(unsigned long reg, unsigned long v);
- 	void (*apic_write_atomic)(unsigned long reg, unsigned long v);
-@@ -429,6 +435,24 @@ static inline void startup_ipi_hook(int 
- }
- #endif
- 
-+#define __HAVE_ARCH_MM_LIFETIME
-+static inline void arch_activate_mm(struct mm_struct *prev,
-+				    struct mm_struct *next)
-+{
-+	paravirt_ops.activate_mm(prev, next);
-+}
-+
-+static inline void arch_dup_mmap(struct mm_struct *oldmm,
-+				 struct mm_struct *mm)
-+{
-+	paravirt_ops.dup_mmap(oldmm, mm);
-+}
-+
-+static inline void arch_exit_mmap(struct mm_struct *mm)
-+{
-+	paravirt_ops.exit_mmap(mm);
-+}
-+
- #define __flush_tlb() paravirt_ops.flush_tlb_user()
- #define __flush_tlb_global() paravirt_ops.flush_tlb_kernel()
- #define __flush_tlb_single(addr) paravirt_ops.flush_tlb_single(addr)
-@@ -673,5 +697,20 @@ static inline void paravirt_pagetable_se
- 	set_pgd(&base[0], base[USER_PTRS_PER_PGD]);
- #endif
- }
-+
-+static inline void paravirt_activate_mm(struct mm_struct *prev,
-+					struct mm_struct *next)
-+{
-+}
-+
-+static inline void paravirt_dup_mmap(struct mm_struct *oldmm,
-+				     struct mm_struct *mm)
-+{
-+}
-+
-+static inline void paravirt_exit_mmap(struct mm_struct *mm)
-+{
-+}
-+
- #endif /* CONFIG_PARAVIRT */
- #endif	/* __ASM_PARAVIRT_H */
-diff -puN include/linux/sched.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction include/linux/sched.h
---- a/include/linux/sched.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/linux/sched.h
-@@ -375,6 +375,12 @@ struct mm_struct {
- 	struct kioctx		*ioctx_list;
- };
- 
-+#ifndef __HAVE_ARCH_MM_LIFETIME
-+#define arch_activate_mm(prev, next)	do {} while(0)
-+#define arch_dup_mmap(oldmm, mm)	do {} while(0)
-+#define arch_exit_mmap(mm)		do {} while(0)
 +#endif
 +
- struct sighand_struct {
- 	atomic_t		count;
- 	struct k_sigaction	action[_NSIG];
-diff -puN kernel/fork.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction kernel/fork.c
---- a/kernel/fork.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/kernel/fork.c
-@@ -287,6 +287,7 @@ static inline int dup_mmap(struct mm_str
- 		if (retval)
- 			goto out;
- 	}
-+	arch_dup_mmap(oldmm, mm);
- 	retval = 0;
- out:
- 	up_write(&mm->mmap_sem);
-diff -puN mm/mmap.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction mm/mmap.c
---- a/mm/mmap.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/mm/mmap.c
-@@ -1977,6 +1977,8 @@ void exit_mmap(struct mm_struct *mm)
- 	unsigned long nr_accounted = 0;
- 	unsigned long end;
+ #ifndef CONFIG_COMPAT_VDSO
+ #define __HAVE_ARCH_GATE_AREA 1
+ #endif
+diff -puN include/asm-i386/paravirt.h~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries
++++ a/include/asm-i386/paravirt.h
+@@ -25,6 +25,8 @@
+ #define CLBR_ANY 0x7
  
-+	arch_exit_mmap(mm);
+ #ifndef __ASSEMBLY__
++#include <linux/types.h>
 +
- 	lru_add_drain();
- 	flush_cache_mm(mm);
- 	tlb = tlb_gather_mmu(mm, 1);
+ struct thread_struct;
+ struct Xgt_desc_struct;
+ struct tss_struct;
+@@ -140,12 +142,31 @@ struct paravirt_ops
+ 	void (*set_pmd)(pmd_t *pmdp, pmd_t pmdval);
+ 	void (*pte_update)(struct mm_struct *mm, u32 addr, pte_t *ptep);
+ 	void (*pte_update_defer)(struct mm_struct *mm, u32 addr, pte_t *ptep);
++
++ 	pte_t (*ptep_get_and_clear)(pte_t *ptep);
++
+ #ifdef CONFIG_X86_PAE
+ 	void (*set_pte_atomic)(pte_t *ptep, pte_t pteval);
+-	void (*set_pte_present)(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pte);
++ 	void (*set_pte_present)(struct mm_struct *mm, u32 addr, pte_t *ptep, pte_t pte);
+ 	void (*set_pud)(pud_t *pudp, pud_t pudval);
+-	void (*pte_clear)(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
++ 	void (*pte_clear)(struct mm_struct *mm, u32 addr, pte_t *ptep);
+ 	void (*pmd_clear)(pmd_t *pmdp);
++
++	unsigned long long (*pte_val)(pte_t);
++	unsigned long long (*pmd_val)(pmd_t);
++	unsigned long long (*pgd_val)(pgd_t);
++
++	pte_t (*make_pte)(unsigned long long pte);
++	pmd_t (*make_pmd)(unsigned long long pmd);
++	pgd_t (*make_pgd)(unsigned long long pgd);
++#else
++	unsigned long (*pte_val)(pte_t);
++	unsigned long (*pmd_val)(pmd_t);
++	unsigned long (*pgd_val)(pgd_t);
++
++	pte_t (*make_pte)(unsigned long pte);
++	pmd_t (*make_pmd)(unsigned long pmd);
++	pgd_t (*make_pgd)(unsigned long pgd);
+ #endif
+ 
+ 	void (*set_lazy_mode)(int mode);
+@@ -164,6 +185,24 @@ struct paravirt_ops
+ 
+ extern struct paravirt_ops paravirt_ops;
+ 
++#ifdef CONFIG_X86_PAE
++unsigned long long native_pte_val(pte_t);
++unsigned long long native_pmd_val(pmd_t);
++unsigned long long native_pgd_val(pgd_t);
++
++pte_t native_make_pte(unsigned long long pte);
++pmd_t native_make_pmd(unsigned long long pmd);
++pgd_t native_make_pgd(unsigned long long pgd);
++#else
++unsigned long native_pte_val(pte_t);
++unsigned long native_pmd_val(pmd_t);
++unsigned long native_pgd_val(pgd_t);
++
++pte_t native_make_pte(unsigned long pte);
++pmd_t native_make_pmd(unsigned long pmd);
++pgd_t native_make_pgd(unsigned long pgd);
++#endif
++
+ #define paravirt_enabled() (paravirt_ops.paravirt_enabled)
+ 
+ static inline void load_esp0(struct tss_struct *tss,
+@@ -216,6 +255,8 @@ static inline void __cpuid(unsigned int 
+ #define read_cr4_safe(x) paravirt_ops.read_cr4_safe()
+ #define write_cr4(x) paravirt_ops.write_cr4(x)
+ 
++#define raw_ptep_get_and_clear(xp)	(paravirt_ops.ptep_get_and_clear(xp))
++
+ static inline void raw_safe_halt(void)
+ {
+ 	paravirt_ops.safe_halt();
+@@ -297,6 +338,17 @@ static inline void halt(void)
+ 	(paravirt_ops.write_idt_entry((dt), (entry), (low), (high)))
+ #define set_iopl_mask(mask) (paravirt_ops.set_iopl_mask(mask))
+ 
++#define __pte(x)	paravirt_ops.make_pte(x)
++#define __pgd(x)	paravirt_ops.make_pgd(x)
++
++#define pte_val(x)	paravirt_ops.pte_val(x)
++#define pgd_val(x)	paravirt_ops.pgd_val(x)
++
++#ifdef CONFIG_X86_PAE
++#define __pmd(x)	paravirt_ops.make_pmd(x)
++#define pmd_val(x)	paravirt_ops.pmd_val(x)
++#endif
++
+ /* The paravirtualized I/O functions */
+ static inline void slow_down_io(void) {
+ 	paravirt_ops.io_delay();
+@@ -337,6 +389,18 @@ static inline void setup_secondary_clock
+ }
+ #endif
+ 
++
++void native_set_pte(pte_t *ptep, pte_t pteval);
++void native_set_pte_at(struct mm_struct *mm, u32 addr, pte_t *ptep, pte_t pteval);
++void native_set_pmd(pmd_t *pmdp, pmd_t pmdval);
++void native_set_pte_present(struct mm_struct *mm, u32 addr, pte_t *ptep, pte_t pte);
++void native_set_pte_atomic(pte_t *ptep, pte_t pteval);
++void native_set_pud(pud_t *pudp, pud_t pudval);
++void native_pte_clear(struct mm_struct *mm, u32 addr, pte_t *ptep);
++void native_pmd_clear(pmd_t *pmd);
++pte_t native_ptep_get_and_clear(pte_t *ptep);
++void native_nop(void);
++
+ #ifdef CONFIG_SMP
+ static inline void startup_ipi_hook(int phys_apicid, unsigned long start_eip,
+ 				    unsigned long start_esp)
+diff -puN include/asm-i386/pgtable-2level.h~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries include/asm-i386/pgtable-2level.h
+--- a/include/asm-i386/pgtable-2level.h~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries
++++ a/include/asm-i386/pgtable-2level.h
+@@ -15,6 +15,7 @@
+ #define set_pte(pteptr, pteval) (*(pteptr) = pteval)
+ #define set_pte_at(mm,addr,ptep,pteval) set_pte(ptep,pteval)
+ #define set_pmd(pmdptr, pmdval) (*(pmdptr) = (pmdval))
++#define raw_ptep_get_and_clear(xp)	__pte(xchg(&(xp)->pte_low, 0))
+ #endif
+ 
+ #define set_pte_atomic(pteptr, pteval) set_pte(pteptr,pteval)
+@@ -23,11 +24,9 @@
+ #define pte_clear(mm,addr,xp)	do { set_pte_at(mm, addr, xp, __pte(0)); } while (0)
+ #define pmd_clear(xp)	do { set_pmd(xp, __pmd(0)); } while (0)
+ 
+-#define raw_ptep_get_and_clear(xp)	__pte(xchg(&(xp)->pte_low, 0))
+-
+ #define pte_page(x)		pfn_to_page(pte_pfn(x))
+ #define pte_none(x)		(!(x).pte_low)
+-#define pte_pfn(x)		((unsigned long)(((x).pte_low >> PAGE_SHIFT)))
++#define pte_pfn(x)		(pte_val(x) >> PAGE_SHIFT)
+ #define pfn_pte(pfn, prot)	__pte(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
+ #define pfn_pmd(pfn, prot)	__pmd(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
+ 
+diff -puN include/asm-i386/pgtable-3level.h~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries include/asm-i386/pgtable-3level.h
+--- a/include/asm-i386/pgtable-3level.h~xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries
++++ a/include/asm-i386/pgtable-3level.h
+@@ -98,6 +98,18 @@ static inline void pmd_clear(pmd_t *pmd)
+ 	smp_wmb();
+ 	*(tmp + 1) = 0;
+ }
++
++static inline pte_t raw_ptep_get_and_clear(pte_t *ptep)
++{
++	pte_t res;
++
++	/* xchg acts as a barrier before the setting of the high bits */
++	res.pte_low = xchg(&ptep->pte_low, 0);
++	res.pte_high = ptep->pte_high;
++	ptep->pte_high = 0;
++
++	return res;
++}
+ #endif
+ 
+ /*
+@@ -119,18 +131,6 @@ static inline void pud_clear (pud_t * pu
+ #define pmd_offset(pud, address) ((pmd_t *) pud_page(*(pud)) + \
+ 			pmd_index(address))
+ 
+-static inline pte_t raw_ptep_get_and_clear(pte_t *ptep)
+-{
+-	pte_t res;
+-
+-	/* xchg acts as a barrier before the setting of the high bits */
+-	res.pte_low = xchg(&ptep->pte_low, 0);
+-	res.pte_high = ptep->pte_high;
+-	ptep->pte_high = 0;
+-
+-	return res;
+-}
+-
+ #define __HAVE_ARCH_PTE_SAME
+ static inline int pte_same(pte_t a, pte_t b)
+ {
+@@ -146,8 +146,7 @@ static inline int pte_none(pte_t pte)
+ 
+ static inline unsigned long pte_pfn(pte_t pte)
+ {
+-	return (pte.pte_low >> PAGE_SHIFT) |
+-		(pte.pte_high << (32 - PAGE_SHIFT));
++	return pte_val(pte) >> PAGE_SHIFT;
+ }
+ 
+ extern unsigned long long __supported_pte_mask;
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
