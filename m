@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-i386-and-x86_64-fault-information-pollution.patch added to -mm tree
-Date: Thu, 15 Feb 2007 17:05:15 -0800
-Message-ID: <200702160105.l1G15FKH015004@shell0.pdx.osdl.net>
+Subject: + fault-injection-split-up-stacktrace-filter-kconfig-option.patch added to -mm tree
+Date: Thu, 15 Feb 2007 17:07:43 -0800
+Message-ID: <200702160107.l1G17hEF015046@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41752 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41774 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751797AbXBPBF0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 20:05:26 -0500
+	id S1751810AbXBPBHq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 20:07:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, ak@suse.de, jbeulich@novell.com
+Cc: akinobu.mita@gmail.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     Fix i386 and x86_64 fault information pollution
+     fault injection: split up stacktrace filter Kconfig option
 has been added to the -mm tree.  Its filename is
-     fix-i386-and-x86_64-fault-information-pollution.patch
+     fault-injection-split-up-stacktrace-filter-kconfig-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,159 +25,147 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix i386 and x86_64 fault information pollution
-From: Jeff Dike <jdike@addtoit.com>
+Subject: fault injection: split up stacktrace filter Kconfig option
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-A userspace fault or a kernelspace fault which will result in the immediate
-death of the process.  They should not be filled in as a result of a
-kernelspace fault which can be fixed up.
+There is no prompt for CONFIG_STACKTRACE, so FAULT_INJECTION cannot be
+selected without LOCKDEP enabled.  (found by Paolo 'Blaisorblade'
+Giarrusso)
 
-Otherwise, if the process is handling SIGSEGV and examining the fault
-information, this can result in the kernel space fault trashing the
-previously stored fault information if it arrives between the userspace
-fault happening and the SIGSEGV being delivered to the process.
+In order to fix such broken Kconfig dependency, this patch splits up the
+stacktrace filter support for fault injection by new Kconfig option, which
+enables to use fault injection on the architecture which doesn't have
+general stacktrace support.
 
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
-Acked-by: Jan Beulich <jbeulich@novell.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/traps.c   |   24 ++++++++++++++++++------
- arch/x86_64/kernel/traps.c |   30 +++++++++++++++++++++++-------
- 2 files changed, 41 insertions(+), 13 deletions(-)
+ lib/Kconfig.debug  |   10 ++++++++--
+ lib/fault-inject.c |   41 +++++++++++++++++++++--------------------
+ 2 files changed, 29 insertions(+), 22 deletions(-)
 
-diff -puN arch/i386/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution
-+++ a/arch/i386/kernel/traps.c
-@@ -477,8 +477,6 @@ static void __kprobes do_trap(int trapnr
- 			      siginfo_t *info)
- {
- 	struct task_struct *tsk = current;
--	tsk->thread.error_code = error_code;
--	tsk->thread.trap_no = trapnr;
- 
- 	if (regs->eflags & VM_MASK) {
- 		if (vm86)
-@@ -490,6 +488,18 @@ static void __kprobes do_trap(int trapnr
- 		goto kernel_trap;
- 
- 	trap_signal: {
-+		/*
-+		 * We want error_code and trap_no set for userspace faults and
-+		 * kernelspace faults which result in die(), but not
-+		 * kernelspace faults which are fixed up.  die() gives the
-+		 * process no chance to handle the signal and notice the
-+		 * kernel fault information, so that won't result in polluting
-+		 * the information about previously queued, but not yet
-+		 * delivered, faults.  See also do_general_protection below.
-+		 */
-+		tsk->thread.error_code = error_code;
-+		tsk->thread.trap_no = trapnr;
+diff -puN lib/Kconfig.debug~fault-injection-split-up-stacktrace-filter-kconfig-option lib/Kconfig.debug
+--- a/lib/Kconfig.debug~fault-injection-split-up-stacktrace-filter-kconfig-option
++++ a/lib/Kconfig.debug
+@@ -400,8 +400,6 @@ config LKDTM
+ config FAULT_INJECTION
+ 	bool "Fault-injection framework"
+ 	depends on DEBUG_KERNEL
+-	depends on STACKTRACE
+-	select FRAME_POINTER
+ 	help
+ 	  Provide fault-injection framework.
+ 	  For more details, see Documentation/fault-injection/.
+@@ -429,3 +427,11 @@ config FAULT_INJECTION_DEBUG_FS
+ 	depends on FAULT_INJECTION && SYSFS && DEBUG_FS
+ 	help
+ 	  Enable configuration of fault-injection capabilities via debugfs.
 +
- 		if (info)
- 			force_sig_info(signr, info, tsk);
- 		else
-@@ -498,8 +508,11 @@ static void __kprobes do_trap(int trapnr
- 	}
++config FAULT_INJECTION_STACKTRACE_FILTER
++	bool "stacktrace filter for fault-injection capabilities"
++	depends on FAULT_INJECTION_DEBUG_FS && STACKTRACE_SUPPORT
++	select STACKTRACE
++	select FRAME_POINTER
++	help
++	  Provide stacktrace filter for fault-injection capabilities
+diff -puN lib/fault-inject.c~fault-injection-split-up-stacktrace-filter-kconfig-option lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-injection-split-up-stacktrace-filter-kconfig-option
++++ a/lib/fault-inject.c
+@@ -55,7 +55,7 @@ static bool fail_task(struct fault_attr 
  
- 	kernel_trap: {
--		if (!fixup_exception(regs))
-+		if (!fixup_exception(regs)) {
-+			tsk->thread.error_code = error_code;
-+			tsk->thread.trap_no = trapnr;
- 			die(str, regs, error_code);
-+		}
- 		return;
- 	}
+ #define MAX_STACK_TRACE_DEPTH 32
  
-@@ -604,9 +617,6 @@ fastcall void __kprobes do_general_prote
- 	}
- 	put_cpu();
+-#if defined(CONFIG_STACKTRACE)
++#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
  
--	current->thread.error_code = error_code;
--	current->thread.trap_no = 13;
--
- 	if (regs->eflags & VM_MASK)
- 		goto gp_in_vm86;
- 
-@@ -625,6 +635,8 @@ gp_in_vm86:
- 
- gp_in_kernel:
- 	if (!fixup_exception(regs)) {
-+		current->thread.error_code = error_code;
-+		current->thread.trap_no = 13;
- 		if (notify_die(DIE_GPF, "general protection fault", regs,
- 				error_code, 13, SIGSEGV) == NOTIFY_STOP)
- 			return;
-diff -puN arch/x86_64/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution
-+++ a/arch/x86_64/kernel/traps.c
-@@ -582,10 +582,20 @@ static void __kprobes do_trap(int trapnr
+ static bool fail_stacktrace(struct fault_attr *attr)
  {
- 	struct task_struct *tsk = current;
+@@ -89,17 +89,10 @@ static bool fail_stacktrace(struct fault
  
--	tsk->thread.error_code = error_code;
--	tsk->thread.trap_no = trapnr;
+ static inline bool fail_stacktrace(struct fault_attr *attr)
+ {
+-	static bool firsttime = true;
 -
- 	if (user_mode(regs)) {
-+		/*
-+		 * We want error_code and trap_no set for userspace
-+		 * faults and kernelspace faults which result in
-+		 * die(), but not kernelspace faults which are fixed
-+		 * up.  die() gives the process no chance to handle
-+		 * the signal and notice the kernel fault information,
-+		 * so that won't result in polluting the information
-+		 * about previously queued, but not yet delivered,
-+		 * faults.  See also do_general_protection below.
-+		 */
-+		tsk->thread.error_code = error_code;
-+		tsk->thread.trap_no = trapnr;
-+
- 		if (exception_trace && unhandled_signal(tsk, signr))
- 			printk(KERN_INFO
- 			       "%s[%d] trap %s rip:%lx rsp:%lx error:%lx\n",
-@@ -606,8 +616,11 @@ static void __kprobes do_trap(int trapnr
- 		fixup = search_exception_tables(regs->rip);
- 		if (fixup)
- 			regs->rip = fixup->fixup;
--		else	
-+		else {
-+			tsk->thread.error_code = error_code;
-+			tsk->thread.trap_no = trapnr;
- 			die(str, regs, error_code);
-+		}
- 		return;
- 	}
+-	if (firsttime) {
+-		printk(KERN_WARNING
+-		"This architecture does not implement save_stack_trace()\n");
+-		firsttime = false;
+-	}
+-	return false;
++	return true;
  }
-@@ -683,10 +696,10 @@ asmlinkage void __kprobes do_general_pro
  
- 	conditional_sti(regs);
+-#endif
++#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
  
--	tsk->thread.error_code = error_code;
--	tsk->thread.trap_no = 13;
+ /*
+  * This code is stolen from failmalloc-1.0
+@@ -216,6 +209,8 @@ void cleanup_fault_attr_dentries(struct 
+ 	debugfs_remove(attr->dentries.task_filter_file);
+ 	attr->dentries.task_filter_file = NULL;
+ 
++#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
++
+ 	debugfs_remove(attr->dentries.stacktrace_depth_file);
+ 	attr->dentries.stacktrace_depth_file = NULL;
+ 
+@@ -231,6 +226,8 @@ void cleanup_fault_attr_dentries(struct 
+ 	debugfs_remove(attr->dentries.reject_end_file);
+ 	attr->dentries.reject_end_file = NULL;
+ 
++#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
++
+ 	if (attr->dentries.dir)
+ 		WARN_ON(!simple_empty(attr->dentries.dir));
+ 
+@@ -268,6 +265,13 @@ int init_fault_attr_dentries(struct faul
+ 	attr->dentries.task_filter_file = debugfs_create_bool("task-filter",
+ 						mode, dir, &attr->task_filter);
+ 
++	if (!attr->dentries.probability_file || !attr->dentries.interval_file ||
++	    !attr->dentries.times_file || !attr->dentries.space_file ||
++	    !attr->dentries.verbose_file || !attr->dentries.task_filter_file)
++		goto fail;
++
++#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
++
+ 	attr->dentries.stacktrace_depth_file =
+ 		debugfs_create_ul_MAX_STACK_TRACE_DEPTH(
+ 			"stacktrace-depth", mode, dir, &attr->stacktrace_depth);
+@@ -284,18 +288,15 @@ int init_fault_attr_dentries(struct faul
+ 	attr->dentries.reject_end_file =
+ 		debugfs_create_ul("reject-end", mode, dir, &attr->reject_end);
+ 
 -
- 	if (user_mode(regs)) {
-+		tsk->thread.error_code = error_code;
-+		tsk->thread.trap_no = 13;
+-	if (!attr->dentries.probability_file || !attr->dentries.interval_file
+-	    || !attr->dentries.times_file || !attr->dentries.space_file
+-	    || !attr->dentries.verbose_file || !attr->dentries.task_filter_file
+-	    || !attr->dentries.stacktrace_depth_file
+-	    || !attr->dentries.require_start_file
+-	    || !attr->dentries.require_end_file
+-	    || !attr->dentries.reject_start_file
+-	    || !attr->dentries.reject_end_file
+-	    )
++	if (!attr->dentries.stacktrace_depth_file ||
++	    !attr->dentries.require_start_file ||
++	    !attr->dentries.require_end_file ||
++	    !attr->dentries.reject_start_file ||
++	    !attr->dentries.reject_end_file)
+ 		goto fail;
+ 
++#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
 +
- 		if (exception_trace && unhandled_signal(tsk, SIGSEGV))
- 			printk(KERN_INFO
- 		       "%s[%d] general protection rip:%lx rsp:%lx error:%lx\n",
-@@ -705,6 +718,9 @@ asmlinkage void __kprobes do_general_pro
- 			regs->rip = fixup->fixup;
- 			return;
- 		}
-+
-+		tsk->thread.error_code = error_code;
-+		tsk->thread.trap_no = 13;
- 		if (notify_die(DIE_GPF, "general protection fault", regs,
- 					error_code, 13, SIGSEGV) == NOTIFY_STOP)
- 			return;
+ 	return 0;
+ fail:
+ 	cleanup_fault_attr_dentries(attr);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-fix-i386-and-x86_64-fault-information-pollution.patch
-uml-fix-prototypes.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+simplify-the-stacktrace-code.patch
+fault-injection-split-up-stacktrace-filter-kconfig-option.patch
+kconfig-fault_injection-can-be-selected-only-if-lockdep-is-enabled.patch
