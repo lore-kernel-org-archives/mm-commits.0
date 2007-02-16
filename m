@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - input-psmouse-wrap-protocol-extensions-except-synaptics-with-ifdefs.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 23:52:04 -0800
-Message-ID: <200702160752.l1G7q421023742@shell0.pdx.osdl.net>
+Subject: - input-psmouse-create-ps-2-protocol-options-for-kconfig.patch removed from -mm tree
+Date: Thu, 15 Feb 2007 23:52:00 -0800
+Message-ID: <200702160752.l1G7q0RT023739@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58291 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58290 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966170AbXBPHwK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S966169AbXBPHwK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 16 Feb 2007 02:52:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,127 +14,107 @@ To: dilinger@debian.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: psmouse: wrap protocol extensions (except synaptics) with ifdefs
+     input: psmouse: create PS/2 protocol options for Kconfig
 has been removed from the -mm tree.  Its filename was
-     input-psmouse-wrap-protocol-extensions-except-synaptics-with-ifdefs.patch
+     input-psmouse-create-ps-2-protocol-options-for-kconfig.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: input: psmouse: wrap protocol extensions (except synaptics) with ifdefs
+Subject: input: psmouse: create PS/2 protocol options for Kconfig
 From: Andres Salomon <dilinger@debian.org>
 
-Allow ALPS, LOGIPS2PP, LIFEBOOK, and TRACKPOINT protocol extensions (in the
-psmouse driver) to be disabled during compilation.  The synaptics stuff is
-left alone for now, since it needs special handling for synaptic pass-through
-ports.
+Initial framework for disabling PS/2 protocol extensions.  The current
+protocols can only be disabled if CONFIG_EMBEDDED is selected.  No source
+files are changed, merely build stuff.
 
 Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/psmouse-base.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+)
+ drivers/input/mouse/Kconfig  |   50 +++++++++++++++++++++++++++++++++
+ drivers/input/mouse/Makefile |    7 +++-
+ 2 files changed, 56 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/mouse/psmouse-base.c~input-psmouse-wrap-protocol-extensions-except-synaptics-with-ifdefs drivers/input/mouse/psmouse-base.c
---- a/drivers/input/mouse/psmouse-base.c~input-psmouse-wrap-protocol-extensions-except-synaptics-with-ifdefs
-+++ a/drivers/input/mouse/psmouse-base.c
-@@ -567,6 +567,7 @@ static int psmouse_extensions(struct psm
- {
- 	int synaptics_hardware = 0;
+diff -puN drivers/input/mouse/Kconfig~input-psmouse-create-ps-2-protocol-options-for-kconfig drivers/input/mouse/Kconfig
+--- a/drivers/input/mouse/Kconfig~input-psmouse-create-ps-2-protocol-options-for-kconfig
++++ a/drivers/input/mouse/Kconfig
+@@ -37,6 +37,56 @@ config MOUSE_PS2
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called psmouse.
  
-+#ifdef CONFIG_MOUSE_PS2_LIFEBOOK
- /*
-  * We always check for lifebook because it does not disturb mouse
-  * (it only checks DMI information).
-@@ -577,6 +578,7 @@ static int psmouse_extensions(struct psm
- 				return PSMOUSE_LIFEBOOK;
- 		}
- 	}
-+#endif
++config MOUSE_PS2_ALPS
++	bool "ALPS PS/2 mouse protocol extension" if EMBEDDED
++	default y
++	depends on MOUSE_PS2
++	---help---
++	  Say Y here if you have an ALPS PS/2 touchpad connected to
++	  your system.
++
++	  If unsure, say Y.
++
++config MOUSE_PS2_LOGIPS2PP
++	bool "Logictech PS/2++ mouse protocol extension" if EMBEDDED
++	default y
++	depends on MOUSE_PS2
++	---help---
++	  Say Y here if you have a Logictech PS/2++ mouse connected to
++	  your system.
++
++	  If unsure, say Y.
++
++config MOUSE_PS2_SYNAPTICS
++	bool "Synaptics PS/2 mouse protocol extension" if EMBEDDED
++	default y
++	depends on MOUSE_PS2
++	---help---
++	  Say Y here if you have a Synaptics PS/2 TouchPad connected to
++	  your system.
++
++	  If unsure, say Y.
++
++config MOUSE_PS2_LIFEBOOK
++	bool "Fujitsu Lifebook PS/2 mouse protocol extension" if EMBEDDED
++	default y
++	depends on MOUSE_PS2
++	---help---
++	  Say Y here if you have a Fujitsu B-series Lifebook PS/2
++	  TouchScreen connected to your system.
++
++	  If unsure, say Y.
++
++config MOUSE_PS2_TRACKPOINT
++	bool "IBM Trackpoint PS/2 mouse protocol extension" if EMBEDDED
++	default y
++	depends on MOUSE_PS2
++	---help---
++	  Say Y here if you have an IBM Trackpoint PS/2 mouse connected
++	  to your system.
++
++	  If unsure, say Y.
++
+ config MOUSE_SERIAL
+ 	tristate "Serial mouse"
+ 	select SERIO
+diff -puN drivers/input/mouse/Makefile~input-psmouse-create-ps-2-protocol-options-for-kconfig drivers/input/mouse/Makefile
+--- a/drivers/input/mouse/Makefile~input-psmouse-create-ps-2-protocol-options-for-kconfig
++++ a/drivers/input/mouse/Makefile
+@@ -14,4 +14,9 @@ obj-$(CONFIG_MOUSE_SERIAL)	+= sermouse.o
+ obj-$(CONFIG_MOUSE_HIL)		+= hil_ptr.o
+ obj-$(CONFIG_MOUSE_VSXXXAA)	+= vsxxxaa.o
  
- /*
-  * Try Kensington ThinkingMouse (we try first, because synaptics probe
-@@ -608,6 +610,7 @@ static int psmouse_extensions(struct psm
- 		synaptics_reset(psmouse);
- 	}
- 
-+#ifdef CONFIG_MOUSE_PS2_ALPS
- /*
-  * Try ALPS TouchPad
-  */
-@@ -622,15 +625,20 @@ static int psmouse_extensions(struct psm
- 			max_proto = PSMOUSE_IMEX;
- 		}
- 	}
-+#endif
- 
- 	if (max_proto > PSMOUSE_IMEX && genius_detect(psmouse, set_properties) == 0)
- 		return PSMOUSE_GENPS;
- 
-+#ifdef CONFIG_MOUSE_PS2_LOGIPS2PP
- 	if (max_proto > PSMOUSE_IMEX && ps2pp_init(psmouse, set_properties) == 0)
- 		return PSMOUSE_PS2PP;
-+#endif
- 
-+#ifdef CONFIG_MOUSE_PS2_TRACKPOINT
- 	if (max_proto > PSMOUSE_IMEX && trackpoint_detect(psmouse, set_properties) == 0)
- 		return PSMOUSE_TRACKPOINT;
-+#endif
- 
- /*
-  * Reset to defaults in case the device got confused by extended
-@@ -672,12 +680,14 @@ static const struct psmouse_protocol psm
- 		.maxproto	= 1,
- 		.detect		= ps2bare_detect,
- 	},
-+#ifdef CONFIG_MOUSE_PS2_LOGIPS2PP
- 	{
- 		.type		= PSMOUSE_PS2PP,
- 		.name		= "PS2++",
- 		.alias		= "logitech",
- 		.detect		= ps2pp_init,
- 	},
-+#endif
- 	{
- 		.type		= PSMOUSE_THINKPS,
- 		.name		= "ThinkPS/2",
-@@ -711,6 +721,7 @@ static const struct psmouse_protocol psm
- 		.detect		= synaptics_detect,
- 		.init		= synaptics_init,
- 	},
-+#ifdef CONFIG_MOUSE_PS2_ALPS
- 	{
- 		.type		= PSMOUSE_ALPS,
- 		.name		= "AlpsPS/2",
-@@ -718,18 +729,23 @@ static const struct psmouse_protocol psm
- 		.detect		= alps_detect,
- 		.init		= alps_init,
- 	},
-+#endif
-+#ifdef CONFIG_MOUSE_PS2_LIFEBOOK
- 	{
- 		.type		= PSMOUSE_LIFEBOOK,
- 		.name		= "LBPS/2",
- 		.alias		= "lifebook",
- 		.init		= lifebook_init,
- 	},
-+#endif
-+#ifdef CONFIG_MOUSE_PS2_TRACKPOINT
- 	{
- 		.type		= PSMOUSE_TRACKPOINT,
- 		.name		= "TPPS/2",
- 		.alias		= "trackpoint",
- 		.detect		= trackpoint_detect,
- 	},
-+#endif
- 	{
- 		.type		= PSMOUSE_AUTO,
- 		.name		= "auto",
+-psmouse-objs  := psmouse-base.o alps.o logips2pp.o synaptics.o lifebook.o trackpoint.o
++psmouse-objs := psmouse-base.o synaptics.o
++
++psmouse-$(CONFIG_MOUSE_PS2_ALPS)       += alps.o
++psmouse-$(CONFIG_MOUSE_PS2_LOGIPS2PP)  += logips2pp.o
++psmouse-$(CONFIG_MOUSE_PS2_LIFEBOOK)   += lifebook.o
++psmouse-$(CONFIG_MOUSE_PS2_TRACKPOINT) += trackpoint.o
 _
 
 Patches currently in -mm which might be from dilinger@debian.org are
 
+input-psmouse-create-ps-2-protocol-options-for-kconfig.patch
 input-psmouse-wrap-protocol-extensions-except-synaptics-with-ifdefs.patch
 input-psmouse-allow-disabling-of-synaptics-protocol-extension.patch
