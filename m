@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-remove-airprime-device-from-optionc.patch added to -mm tree
-Date: Thu, 15 Feb 2007 22:12:31 -0800
-Message-ID: <200702160612.l1G6CVBw021616@shell0.pdx.osdl.net>
+Subject: + no-need-to-use-traditional-for-processing-asm-in-i386-kernel.patch added to -mm tree
+Date: Thu, 15 Feb 2007 22:13:53 -0800
+Message-ID: <200702160613.l1G6Dr49021635@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52796 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52901 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423323AbXBPGMh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 01:12:37 -0500
+	id S1423325AbXBPGOF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 01:14:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@sierrawireless.com, greg@kroah.com
+Cc: jeremy@goop.org, ak@muc.de, jeremy@xensource.com, sam@ravnborg.org
 
 
 The patch titled
-     usb: remove Airprime device from option.c
+     No need to use -traditional for processing asm in i386/kernel/
 has been added to the -mm tree.  Its filename is
-     usb-remove-airprime-device-from-optionc.patch
+     no-need-to-use-traditional-for-processing-asm-in-i386-kernel.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb: remove Airprime device from option.c
-From: Kevin Lloyd <linux@sierrawireless.com>
+Subject: No need to use -traditional for processing asm in i386/kernel/
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Remove the Airprime 5220 device (branded as Audiovox) from the option.c
-driver.  This device is already supported by the sierra.c driver.
-
-Signed-off-by: Kevin Lloyd <linux@sierrawireless.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/i386/boot/Makefile            |    4 ++--
+ arch/i386/boot/compressed/Makefile |    1 -
+ arch/i386/kernel/Makefile          |    2 --
+ arch/i386/kernel/entry.S           |    2 +-
+ include/asm-i386/percpu.h          |    4 ++--
+ 5 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/serial/option.c~usb-remove-airprime-device-from-optionc drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-remove-airprime-device-from-optionc
-+++ a/drivers/usb/serial/option.c
-@@ -69,7 +69,6 @@ static int  option_send_setup(struct usb
- /* Vendor and product IDs */
- #define OPTION_VENDOR_ID                0x0AF0
- #define HUAWEI_VENDOR_ID                0x12D1
--#define AUDIOVOX_VENDOR_ID              0x0F3D
- #define NOVATELWIRELESS_VENDOR_ID       0x1410
- #define ANYDATA_VENDOR_ID               0x16d5
+diff -puN arch/i386/boot/compressed/Makefile~no-need-to-use-traditional-for-processing-asm-in-i386-kernel arch/i386/boot/compressed/Makefile
+--- a/arch/i386/boot/compressed/Makefile~no-need-to-use-traditional-for-processing-asm-in-i386-kernel
++++ a/arch/i386/boot/compressed/Makefile
+@@ -6,7 +6,6 @@
  
-@@ -81,7 +80,6 @@ static int  option_send_setup(struct usb
- #define OPTION_PRODUCT_GTMAX36          0x6701
- #define HUAWEI_PRODUCT_E600             0x1001
- #define HUAWEI_PRODUCT_E220             0x1003
--#define AUDIOVOX_PRODUCT_AIRCARD        0x0112
- #define NOVATELWIRELESS_PRODUCT_U740    0x1400
- #define ANYDATA_PRODUCT_ID              0x6501
+ targets		:= vmlinux vmlinux.bin vmlinux.bin.gz head.o misc.o piggy.o \
+ 			vmlinux.bin.all vmlinux.relocs
+-EXTRA_AFLAGS	:= -traditional
  
-@@ -94,7 +92,6 @@ static struct usb_device_id option_ids[]
- 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_GTMAX36) },
- 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E600) },
- 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E220) },
--	{ USB_DEVICE(AUDIOVOX_VENDOR_ID, AUDIOVOX_PRODUCT_AIRCARD) },
- 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID,NOVATELWIRELESS_PRODUCT_U740) },
- 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ID) },
- 	{ } /* Terminating entry */
-@@ -109,7 +106,6 @@ static struct usb_device_id option_ids1[
- 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_GTMAX36) },
- 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E600) },
- 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E220) },
--	{ USB_DEVICE(AUDIOVOX_VENDOR_ID, AUDIOVOX_PRODUCT_AIRCARD) },
- 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID,NOVATELWIRELESS_PRODUCT_U740) },
- 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ID) },
- 	{ } /* Terminating entry */
+ LDFLAGS_vmlinux := -T
+ CFLAGS_misc.o += -fPIC
+diff -puN arch/i386/boot/Makefile~no-need-to-use-traditional-for-processing-asm-in-i386-kernel arch/i386/boot/Makefile
+--- a/arch/i386/boot/Makefile~no-need-to-use-traditional-for-processing-asm-in-i386-kernel
++++ a/arch/i386/boot/Makefile
+@@ -36,9 +36,9 @@ HOSTCFLAGS_build.o := $(LINUXINCLUDE)
+ # ---------------------------------------------------------------------------
+ 
+ $(obj)/zImage:  IMAGE_OFFSET := 0x1000
+-$(obj)/zImage:  EXTRA_AFLAGS := -traditional $(SVGA_MODE) $(RAMDISK)
++$(obj)/zImage:  EXTRA_AFLAGS := $(SVGA_MODE) $(RAMDISK)
+ $(obj)/bzImage: IMAGE_OFFSET := 0x100000
+-$(obj)/bzImage: EXTRA_AFLAGS := -traditional $(SVGA_MODE) $(RAMDISK) -D__BIG_KERNEL__
++$(obj)/bzImage: EXTRA_AFLAGS := $(SVGA_MODE) $(RAMDISK) -D__BIG_KERNEL__
+ $(obj)/bzImage: BUILDFLAGS   := -b
+ 
+ quiet_cmd_image = BUILD   $@
+diff -puN arch/i386/kernel/entry.S~no-need-to-use-traditional-for-processing-asm-in-i386-kernel arch/i386/kernel/entry.S
+--- a/arch/i386/kernel/entry.S~no-need-to-use-traditional-for-processing-asm-in-i386-kernel
++++ a/arch/i386/kernel/entry.S
+@@ -635,7 +635,7 @@ ENTRY(name)				\
+ 	SAVE_ALL;			\
+ 	TRACE_IRQS_OFF			\
+ 	movl %esp,%eax;			\
+-	call smp_/**/name;		\
++	call smp_##name;		\
+ 	jmp ret_from_intr;		\
+ 	CFI_ENDPROC;			\
+ ENDPROC(name)
+diff -puN arch/i386/kernel/Makefile~no-need-to-use-traditional-for-processing-asm-in-i386-kernel arch/i386/kernel/Makefile
+--- a/arch/i386/kernel/Makefile~no-need-to-use-traditional-for-processing-asm-in-i386-kernel
++++ a/arch/i386/kernel/Makefile
+@@ -44,8 +44,6 @@ obj-$(CONFIG_VMI)		+= vmi.o vmitime.o
+ obj-$(CONFIG_PARAVIRT)		+= paravirt.o
+ obj-y				+= pcspeaker.o
+ 
+-EXTRA_AFLAGS   := -traditional
+-
+ obj-$(CONFIG_SCx200)		+= scx200.o
+ 
+ # vsyscall.o contains the vsyscall DSO images as __initdata.
+diff -puN include/asm-i386/percpu.h~no-need-to-use-traditional-for-processing-asm-in-i386-kernel include/asm-i386/percpu.h
+--- a/include/asm-i386/percpu.h~no-need-to-use-traditional-for-processing-asm-in-i386-kernel
++++ a/include/asm-i386/percpu.h
+@@ -20,10 +20,10 @@
+ #ifdef CONFIG_SMP
+ #define PER_CPU(var, cpu) \
+ 	movl __per_cpu_offset(,cpu,4), cpu;	\
+-	addl $per_cpu__/**/var, cpu;
++	addl $per_cpu__##var, cpu;
+ #else /* ! SMP */
+ #define PER_CPU(var, cpu) \
+-	movl $per_cpu__/**/var, cpu;
++	movl $per_cpu__##var, cpu;
+ #endif	/* SMP */
+ 
+ #endif /* !__ASSEMBLY__ */
 _
 
-Patches currently in -mm which might be from linux@sierrawireless.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-origin.patch
-usb-remove-airprime-device-from-optionc.patch
+i386-probe_roms-cleanup.patch
+no-need-to-use-traditional-for-processing-asm-in-i386-kernel.patch
+uninline-jiffiesh-functions.patch
