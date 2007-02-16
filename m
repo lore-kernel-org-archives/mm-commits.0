@@ -1,73 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - x86-dont-probe-for-ddc-on-vbe12-fix.patch removed from -mm tree
-Date: Thu, 15 Feb 2007 21:00:42 -0800
-Message-ID: <200702160500.l1G50gjq020043@shell0.pdx.osdl.net>
+Subject: + avoid-putting-new-mlocked-anonymous-pages-on-lru.patch added to -mm tree
+Date: Thu, 15 Feb 2007 21:18:14 -0800
+Message-ID: <200702160518.l1G5IE9h020346@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49862 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50135 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423200AbXBPFA7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 00:00:59 -0500
+	id S1423261AbXBPFS2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 00:18:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zwane@infradead.org, ak@suse.de, hpa@zytor.com, randy.dunlap@oracle.com, tobias.hain@gmx.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     x86-dont-probe-for-ddc-on-vbe12 fix
-has been removed from the -mm tree.  Its filename was
-     x86-dont-probe-for-ddc-on-vbe12-fix.patch
+     Avoid putting new mlocked anonymous pages on LRU
+has been added to the -mm tree.  Its filename is
+     avoid-putting-new-mlocked-anonymous-pages-on-lru.patch
 
-This patch was dropped because it was folded into x86-dont-probe-for-ddc-on-vbe12.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86-dont-probe-for-ddc-on-vbe12 fix
-From: Zwane Mwaikambo <zwane@infradead.org>
+Subject: Avoid putting new mlocked anonymous pages on LRU
+From: Christoph Lameter <clameter@sgi.com>
 
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Tobias Hain <tobias.hain@gmx.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Mark new anonymous pages mlocked if they are in a mlocked VMA.
+
+Avoid putting pages onto the LRU that are allocated in a VMA with VM_LOCKED
+set.  NR_MLOCK will be more accurate.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/boot/video.S   |    4 ++--
- arch/x86_64/boot/video.S |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/memory.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/boot/video.S~x86-dont-probe-for-ddc-on-vbe12-fix arch/i386/boot/video.S
---- a/arch/i386/boot/video.S~x86-dont-probe-for-ddc-on-vbe12-fix
-+++ a/arch/i386/boot/video.S
-@@ -1956,8 +1956,8 @@ store_edid:
- 	cmpw	$0x004f, %ax
- 	jne	no_edid
+diff -puN mm/memory.c~avoid-putting-new-mlocked-anonymous-pages-on-lru mm/memory.c
+--- a/mm/memory.c~avoid-putting-new-mlocked-anonymous-pages-on-lru
++++ a/mm/memory.c
+@@ -906,7 +906,16 @@ static void add_anon_page(struct vm_area
+ 				unsigned long address)
+ {
+ 	inc_mm_counter(vma->vm_mm, anon_rss);
+-	lru_cache_add_active(page);
++	if (vma->vm_flags & VM_LOCKED) {
++		/*
++		 * Page is new and therefore not on the LRU
++		 * so we can directly mark it as mlocked
++		 */
++		SetPageMlocked(page);
++		ClearPageActive(page);
++		inc_zone_page_state(page, NR_MLOCK);
++	} else
++		lru_cache_add_active(page);
+ 	page_add_new_anon_rmap(page, vma, address);
+ }
  
--	cmpw	$0x0102, 4(%di)			# only do EDID on > 1.2
--	jle	no_edid
-+	cmpw	$0x0200, 4(%di)			# only do EDID on >= VBE2.0
-+	jl	no_edid
- 
- 	pushw   %es				# save ES
- 	xorw    %di, %di                        # Report Capability
-diff -puN arch/x86_64/boot/video.S~x86-dont-probe-for-ddc-on-vbe12-fix arch/x86_64/boot/video.S
---- a/arch/x86_64/boot/video.S~x86-dont-probe-for-ddc-on-vbe12-fix
-+++ a/arch/x86_64/boot/video.S
-@@ -1956,8 +1956,8 @@ store_edid:
- 	cmpw	$0x004f, %ax
- 	jne	no_edid
- 
--	cmpw	$0x0102, 4(%di)			# only do EDID on > 1.2
--	jle	no_edid
-+	cmpw	$0x0200, 4(%di)			# only do EDID on >= VBE2.0
-+	jl	no_edid
- 
- 	pushw   %es				# save ES
- 	xorw    %di, %di                        # Report Capability
 _
 
-Patches currently in -mm which might be from zwane@infradead.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-agpgart.patch
-fix-mtrr-compat-ioctl.patch
-x86-dont-probe-for-ddc-on-vbe12.patch
-x86-dont-probe-for-ddc-on-vbe12-fix.patch
+origin.patch
+fix-mempolicys-check-on-a-system-with-memory-less-node.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix.patch
+make-try_to_unmap-return-a-special-exit-code.patch
+add-pagemlocked-page-state-bit-and-lru-infrastructure.patch
+add-nr_mlock-zvc.patch
+logic-to-move-mlocked-pages.patch
+consolidate-new-anonymous-page-code-paths.patch
+avoid-putting-new-mlocked-anonymous-pages-on-lru.patch
+opportunistically-move-mlocked-pages-off-the-lru.patch
+a.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+replace-highest_possible_node_id-with-nr_node_ids.patch
+convert-highest_possible_processor_id-to-nr_cpu_ids.patch
+convert-highest_possible_processor_id-to-nr_cpu_ids-fix.patch
+slab-reduce-size-of-alien-cache-to-cover-only-possible-nodes.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+mm-implement-swap-prefetching-vs-zvc-stuff.patch
+mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
+readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
