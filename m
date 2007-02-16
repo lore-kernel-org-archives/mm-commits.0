@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dmfe-add-support-for-wake-on-lan.patch added to -mm tree
-Date: Thu, 15 Feb 2007 22:11:34 -0800
-Message-ID: <200702160611.l1G6BY0c021600@shell0.pdx.osdl.net>
+Subject: + usb-remove-airprime-device-from-optionc.patch added to -mm tree
+Date: Thu, 15 Feb 2007 22:12:31 -0800
+Message-ID: <200702160612.l1G6CVBw021616@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52743 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52796 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423318AbXBPGLl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 01:11:41 -0500
+	id S1423323AbXBPGMh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 01:12:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maximlevitsky@gmail.com, jeff@garzik.org, val_henson@linux.intel.com
+Cc: linux@sierrawireless.com, greg@kroah.com
 
 
 The patch titled
-     dmfe: add support for Wake on lan
+     usb: remove Airprime device from option.c
 has been added to the -mm tree.  Its filename is
-     dmfe-add-support-for-wake-on-lan.patch
+     usb-remove-airprime-device-from-optionc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,161 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dmfe: add support for Wake on lan
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: usb: remove Airprime device from option.c
+From: Kevin Lloyd <linux@sierrawireless.com>
 
-Add support for WOL on Magic Packet and on link change
+Remove the Airprime 5220 device (branded as Audiovox) from the option.c
+driver.  This device is already supported by the sierra.c driver.
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Valerie Henson <val_henson@linux.intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Kevin Lloyd <linux@sierrawireless.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/dmfe.c |   66 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 64 insertions(+), 2 deletions(-)
+ drivers/usb/serial/option.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/net/tulip/dmfe.c~dmfe-add-support-for-wake-on-lan drivers/net/tulip/dmfe.c
---- a/drivers/net/tulip/dmfe.c~dmfe-add-support-for-wake-on-lan
-+++ a/drivers/net/tulip/dmfe.c
-@@ -122,6 +122,11 @@
- #define DM9801_NOISE_FLOOR 8
- #define DM9802_NOISE_FLOOR 5
+diff -puN drivers/usb/serial/option.c~usb-remove-airprime-device-from-optionc drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c~usb-remove-airprime-device-from-optionc
++++ a/drivers/usb/serial/option.c
+@@ -69,7 +69,6 @@ static int  option_send_setup(struct usb
+ /* Vendor and product IDs */
+ #define OPTION_VENDOR_ID                0x0AF0
+ #define HUAWEI_VENDOR_ID                0x12D1
+-#define AUDIOVOX_VENDOR_ID              0x0F3D
+ #define NOVATELWIRELESS_VENDOR_ID       0x1410
+ #define ANYDATA_VENDOR_ID               0x16d5
  
-+#define DMFE_WOL_LINKCHANGE	0x20000000
-+#define DMFE_WOL_SAMPLEPACKET	0x10000000
-+#define DMFE_WOL_MAGICPACKET	0x08000000
-+
-+
- #define DMFE_10MHF      0
- #define DMFE_100MHF     1
- #define DMFE_10MFD      4
-@@ -248,6 +253,7 @@ struct dmfe_board_info {
- 	u8 wait_reset;			/* Hardware failed, need to reset */
- 	u8 dm910x_chk_mode;		/* Operating mode check */
- 	u8 first_in_callback;		/* Flag to record state */
-+	u8 wol_mode;			/* user WOL settings */
- 	struct timer_list timer;
+@@ -81,7 +80,6 @@ static int  option_send_setup(struct usb
+ #define OPTION_PRODUCT_GTMAX36          0x6701
+ #define HUAWEI_PRODUCT_E600             0x1001
+ #define HUAWEI_PRODUCT_E220             0x1003
+-#define AUDIOVOX_PRODUCT_AIRCARD        0x0112
+ #define NOVATELWIRELESS_PRODUCT_U740    0x1400
+ #define ANYDATA_PRODUCT_ID              0x6501
  
- 	/* System defined statistic counter */
-@@ -428,6 +434,7 @@ static int __devinit dmfe_init_one (stru
- 	db->chip_id = ent->driver_data;
- 	db->ioaddr = pci_resource_start(pdev, 0);
- 	db->chip_revision = dev_rev;
-+	db->wol_mode = 0;
- 
- 	db->pdev = pdev;
- 
-@@ -1062,7 +1069,11 @@ static void dmfe_set_filter_mode(struct 
- 	spin_unlock_irqrestore(&db->lock, flags);
- }
- 
--static void netdev_get_drvinfo(struct net_device *dev,
-+/*
-+ * 	Ethtool interace
-+ */
-+
-+static void dmfe_ethtool_get_drvinfo(struct net_device *dev,
- 			       struct ethtool_drvinfo *info)
- {
- 	struct dmfe_board_info *np = netdev_priv(dev);
-@@ -1076,9 +1087,35 @@ static void netdev_get_drvinfo(struct ne
- 			dev->base_addr, dev->irq);
- }
- 
-+static int dmfe_ethtool_set_wol(struct net_device *dev,
-+				struct ethtool_wolinfo *wolinfo)
-+{
-+	struct dmfe_board_info *db = netdev_priv(dev);
-+
-+	if (wolinfo->wolopts & (WAKE_UCAST | WAKE_MCAST | WAKE_BCAST |
-+		   		WAKE_ARP | WAKE_MAGICSECURE))
-+		   return -EOPNOTSUPP;
-+
-+	db->wol_mode = wolinfo->wolopts;
-+	return 0;
-+}
-+
-+static void dmfe_ethtool_get_wol(struct net_device *dev,
-+				 struct ethtool_wolinfo *wolinfo)
-+{
-+	struct dmfe_board_info *db = netdev_priv(dev);
-+
-+	wolinfo->supported = WAKE_PHY | WAKE_MAGIC;
-+	wolinfo->wolopts = db->wol_mode;
-+	return;
-+}
-+
-+
- static const struct ethtool_ops netdev_ethtool_ops = {
--	.get_drvinfo		= netdev_get_drvinfo,
-+	.get_drvinfo		= dmfe_ethtool_get_drvinfo,
- 	.get_link               = ethtool_op_get_link,
-+	.set_wol		= dmfe_ethtool_set_wol,
-+	.get_wol		= dmfe_ethtool_get_wol,
- };
- 
- /*
-@@ -2052,6 +2089,7 @@ static int dmfe_suspend(struct pci_dev *
- {
- 	struct net_device *dev = pci_get_drvdata(pci_dev);
- 	struct dmfe_board_info *db = netdev_priv(dev);
-+	u32 tmp;
- 
- 	/* Disable upper layer interface */
- 	netif_device_detach(dev);
-@@ -2067,6 +2105,20 @@ static int dmfe_suspend(struct pci_dev *
- 	/* Fre RX buffers */
- 	dmfe_free_rxbuffer(db);
- 
-+	/* Enable WOL */
-+	pci_read_config_dword(pci_dev, 0x40, &tmp);
-+	tmp &= ~(DMFE_WOL_LINKCHANGE|DMFE_WOL_MAGICPACKET);
-+
-+	if (db->wol_mode & WAKE_PHY)
-+		tmp |= DMFE_WOL_LINKCHANGE;
-+	if (db->wol_mode & WAKE_MAGIC)
-+		tmp |= DMFE_WOL_MAGICPACKET;
-+
-+	pci_write_config_dword(pci_dev, 0x40, tmp);
-+
-+	pci_enable_wake(pci_dev, PCI_D3hot, 1);
-+	pci_enable_wake(pci_dev, PCI_D3cold, 1);
-+
- 	/* Power down device*/
- 	pci_set_power_state(pci_dev, pci_choose_state (pci_dev,state));
- 	pci_save_state(pci_dev);
-@@ -2077,6 +2129,7 @@ static int dmfe_suspend(struct pci_dev *
- static int dmfe_resume(struct pci_dev *pci_dev)
- {
- 	struct net_device *dev = pci_get_drvdata(pci_dev);
-+	u32 tmp;
- 
- 	pci_restore_state(pci_dev);
- 	pci_set_power_state(pci_dev, PCI_D0);
-@@ -2084,6 +2137,15 @@ static int dmfe_resume(struct pci_dev *p
- 	/* Re-initilize DM910X board */
- 	dmfe_init_dm910x(dev);
- 
-+	/* Disable WOL */
-+	pci_read_config_dword(pci_dev, 0x40, &tmp);
-+
-+	tmp &= ~(DMFE_WOL_LINKCHANGE | DMFE_WOL_MAGICPACKET);
-+	pci_write_config_dword(pci_dev, 0x40, tmp);
-+
-+	pci_enable_wake(pci_dev, PCI_D3hot, 0);
-+	pci_enable_wake(pci_dev, PCI_D3cold, 0);
-+
- 	/* Restart upper layer interface */
- 	netif_device_attach(dev);
- 
+@@ -94,7 +92,6 @@ static struct usb_device_id option_ids[]
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_GTMAX36) },
+ 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E600) },
+ 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E220) },
+-	{ USB_DEVICE(AUDIOVOX_VENDOR_ID, AUDIOVOX_PRODUCT_AIRCARD) },
+ 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID,NOVATELWIRELESS_PRODUCT_U740) },
+ 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ID) },
+ 	{ } /* Terminating entry */
+@@ -109,7 +106,6 @@ static struct usb_device_id option_ids1[
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_GTMAX36) },
+ 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E600) },
+ 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E220) },
+-	{ USB_DEVICE(AUDIOVOX_VENDOR_ID, AUDIOVOX_PRODUCT_AIRCARD) },
+ 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID,NOVATELWIRELESS_PRODUCT_U740) },
+ 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ID) },
+ 	{ } /* Terminating entry */
 _
 
-Patches currently in -mm which might be from maximlevitsky@gmail.com are
+Patches currently in -mm which might be from linux@sierrawireless.com are
 
-dmfe-trivial-spelling-fixes.patch
-dmfe-fix-two-bugs.patch
-dmfe-fix-link-detection.patch
-dmfe-add-support-for-suspend-resume.patch
-dmfe-add-support-for-suspend-resume-fix.patch
-dmfe-add-support-for-wake-on-lan.patch
+origin.patch
+usb-remove-airprime-device-from-optionc.patch
