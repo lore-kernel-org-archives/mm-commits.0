@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt-remove-ctor-for-pgd-cache.patch added to -mm tree
-Date: Thu, 15 Feb 2007 23:00:10 -0800
-Message-ID: <200702160700.l1G70AJX022616@shell0.pdx.osdl.net>
+Subject: + xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch added to -mm tree
+Date: Thu, 15 Feb 2007 23:00:12 -0800
+Message-ID: <200702160700.l1G70C9c022622@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55165 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55180 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423354AbXBPHBA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 02:01:00 -0500
+	id S1423369AbXBPHBJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 02:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, rust
 
 
 The patch titled
-     Xen-paravirt: remove ctor for pgd cache
+     Xen-paravirt: allow paravirt backend to choose kernel PMD sharing
 has been added to the -mm tree.  Its filename is
-     xen-paravirt-remove-ctor-for-pgd-cache.patch
+     xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,118 +25,321 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Xen-paravirt: remove ctor for pgd cache
+Subject: Xen-paravirt: allow paravirt backend to choose kernel PMD sharing
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Remove the ctor for the pgd cache.  There's no point in having the cache
-machinery do this via an indirect call when all pgd are freed in the one place
-anyway.
+Xen does not allow guests to have the kernel pmd shared between page tables,
+so parameterize pgtable.c to allow both modes of operation.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Acked-by: Zachary Amsden <zach@vmware.com>
+Cc: Zachary Amsden <zach@vmware.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/init.c        |    8 +++-----
- arch/i386/mm/pgtable.c     |   15 +++++++++++----
- include/asm-i386/pgtable.h |    2 --
- 3 files changed, 14 insertions(+), 11 deletions(-)
+ arch/i386/kernel/paravirt.c            |    1 
+ arch/i386/mm/fault.c                   |    6 +-
+ arch/i386/mm/pageattr.c                |    2 
+ arch/i386/mm/pgtable.c                 |   57 ++++++++++++++---------
+ include/asm-i386/page.h                |    7 +-
+ include/asm-i386/paravirt.h            |    1 
+ include/asm-i386/pgtable-2level-defs.h |    2 
+ include/asm-i386/pgtable-2level.h      |    2 
+ include/asm-i386/pgtable-3level-defs.h |    6 ++
+ include/asm-i386/pgtable-3level.h      |   16 +-----
+ include/asm-i386/pgtable.h             |    7 ++
+ 11 files changed, 66 insertions(+), 41 deletions(-)
 
-diff -puN arch/i386/mm/init.c~xen-paravirt-remove-ctor-for-pgd-cache arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~xen-paravirt-remove-ctor-for-pgd-cache
-+++ a/arch/i386/mm/init.c
-@@ -728,11 +728,9 @@ void __init pgtable_cache_init(void)
- 			panic("pgtable_cache_init(): cannot create pmd cache");
- 	}
- 	pgd_cache = kmem_cache_create("pgd",
--				PTRS_PER_PGD*sizeof(pgd_t),
--				PTRS_PER_PGD*sizeof(pgd_t),
--				0,
--				pgd_ctor,
--				PTRS_PER_PMD == 1 ? pgd_dtor : NULL);
-+				      PTRS_PER_PGD*sizeof(pgd_t),
-+				      PTRS_PER_PGD*sizeof(pgd_t),
-+				      0, NULL, NULL);
- 	if (!pgd_cache)
- 		panic("pgtable_cache_init(): Cannot create pgd cache");
- }
-diff -puN arch/i386/mm/pgtable.c~xen-paravirt-remove-ctor-for-pgd-cache arch/i386/mm/pgtable.c
---- a/arch/i386/mm/pgtable.c~xen-paravirt-remove-ctor-for-pgd-cache
-+++ a/arch/i386/mm/pgtable.c
-@@ -238,7 +238,7 @@ static inline void pgd_list_del(pgd_t *p
- 		set_page_private(next, (unsigned long)pprev);
+diff -puN arch/i386/kernel/paravirt.c~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/arch/i386/kernel/paravirt.c
+@@ -604,6 +604,7 @@ struct paravirt_ops paravirt_ops = {
+ 	.name = "bare hardware",
+ 	.paravirt_enabled = 0,
+ 	.kernel_rpl = 0,
++	.shared_kernel_pmd = 1,	/* Only used when CONFIG_X86_PAE is set */
+ 
+  	.patch = native_patch,
+ 	.banner = default_banner,
+diff -puN arch/i386/mm/fault.c~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/arch/i386/mm/fault.c
+@@ -602,8 +602,7 @@ do_sigbus:
+ 	force_sig_info_fault(SIGBUS, BUS_ADRERR, address, tsk);
  }
  
--void pgd_ctor(void *pgd, struct kmem_cache *cache, unsigned long unused)
-+static void pgd_ctor(pgd_t *pgd)
+-#ifndef CONFIG_X86_PAE
+-void vmalloc_sync_all(void)
++void _vmalloc_sync_all(void)
  {
+ 	/*
+ 	 * Note that races in the updates of insync and start aren't
+@@ -615,6 +614,8 @@ void vmalloc_sync_all(void)
+ 	static unsigned long start = TASK_SIZE;
+ 	unsigned long address;
+ 
++	BUG_ON(SHARED_KERNEL_PMD);
++
+ 	BUILD_BUG_ON(TASK_SIZE & ~PGDIR_MASK);
+ 	for (address = start; address >= TASK_SIZE; address += PGDIR_SIZE) {
+ 		if (!test_bit(pgd_index(address), insync)) {
+@@ -637,4 +638,3 @@ void vmalloc_sync_all(void)
+ 			start = address + PGDIR_SIZE;
+ 	}
+ }
+-#endif
+diff -puN arch/i386/mm/pageattr.c~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing arch/i386/mm/pageattr.c
+--- a/arch/i386/mm/pageattr.c~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/arch/i386/mm/pageattr.c
+@@ -91,7 +91,7 @@ static void set_pmd_pte(pte_t *kpte, uns
  	unsigned long flags;
  
-@@ -247,7 +247,7 @@ void pgd_ctor(void *pgd, struct kmem_cac
- 		spin_lock_irqsave(&pgd_lock, flags);
- 	}
+ 	set_pte_atomic(kpte, pte); 	/* change init_mm */
+-	if (PTRS_PER_PMD > 1)
++	if (SHARED_KERNEL_PMD)
+ 		return;
  
--	clone_pgd_range((pgd_t *)pgd + USER_PTRS_PER_PGD,
-+	clone_pgd_range(pgd + USER_PTRS_PER_PGD,
- 			swapper_pg_dir + USER_PTRS_PER_PGD,
- 			KERNEL_PGD_PTRS);
+ 	spin_lock_irqsave(&pgd_lock, flags);
+diff -puN arch/i386/mm/pgtable.c~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing arch/i386/mm/pgtable.c
+--- a/arch/i386/mm/pgtable.c~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/arch/i386/mm/pgtable.c
+@@ -243,31 +243,42 @@ static void pgd_ctor(pgd_t *pgd)
+ 	unsigned long flags;
  
-@@ -263,11 +263,13 @@ void pgd_ctor(void *pgd, struct kmem_cac
- 	spin_unlock_irqrestore(&pgd_lock, flags);
+ 	if (PTRS_PER_PMD == 1) {
++		/* !PAE, no pagetable sharing */
+ 		memset(pgd, 0, USER_PTRS_PER_PGD*sizeof(pgd_t));
+-		spin_lock_irqsave(&pgd_lock, flags);
+-	}
+-
+-	clone_pgd_range(pgd + USER_PTRS_PER_PGD,
+-			swapper_pg_dir + USER_PTRS_PER_PGD,
+-			KERNEL_PGD_PTRS);
+ 
+-	if (PTRS_PER_PMD > 1)
+-		return;
++		clone_pgd_range(pgd + USER_PTRS_PER_PGD,
++				swapper_pg_dir + USER_PTRS_PER_PGD,
++				KERNEL_PGD_PTRS);
+ 
+-	/* must happen under lock */
+-	paravirt_alloc_pd_clone(__pa(pgd) >> PAGE_SHIFT,
+-			__pa(swapper_pg_dir) >> PAGE_SHIFT,
+-			USER_PTRS_PER_PGD, PTRS_PER_PGD - USER_PTRS_PER_PGD);
++		spin_lock_irqsave(&pgd_lock, flags);
+ 
+-	pgd_list_add(pgd);
+-	spin_unlock_irqrestore(&pgd_lock, flags);
++		/* must happen under lock */
++		paravirt_alloc_pd_clone(__pa(pgd) >> PAGE_SHIFT,
++					__pa(swapper_pg_dir) >> PAGE_SHIFT,
++					USER_PTRS_PER_PGD,
++					PTRS_PER_PGD - USER_PTRS_PER_PGD);
++
++		pgd_list_add(pgd);
++		spin_unlock_irqrestore(&pgd_lock, flags);
++	} else {
++		/* PAE, PMD may be shared */
++		if (SHARED_KERNEL_PMD) {
++			clone_pgd_range((pgd_t *)pgd + USER_PTRS_PER_PGD,
++					swapper_pg_dir + USER_PTRS_PER_PGD,
++					KERNEL_PGD_PTRS);
++		} else {
++			spin_lock_irqsave(&pgd_lock, flags);
++			pgd_list_add(pgd);
++			spin_unlock_irqrestore(&pgd_lock, flags);
++		}
++	}
  }
  
--/* never called when PTRS_PER_PMD > 1 */
--void pgd_dtor(void *pgd, struct kmem_cache *cache, unsigned long unused)
-+static void pgd_dtor(pgd_t *pgd)
+ static void pgd_dtor(pgd_t *pgd)
  {
  	unsigned long flags; /* can be called from interrupt context */
  
-+	if (PTRS_PER_PMD == 1)
-+		return;
-+
+-	if (PTRS_PER_PMD == 1)
++	if (SHARED_KERNEL_PMD)
+ 		return;
+ 
  	paravirt_release_pd(__pa(pgd) >> PAGE_SHIFT);
- 	spin_lock_irqsave(&pgd_lock, flags);
- 	pgd_list_del(pgd);
-@@ -279,6 +281,9 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
+@@ -281,19 +292,25 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
  	int i;
  	pgd_t *pgd = kmem_cache_alloc(pgd_cache, GFP_KERNEL);
  
-+	if (pgd)
-+		pgd_ctor(pgd);
-+
- 	if (PTRS_PER_PMD == 1 || !pgd)
+-	if (pgd)
++	if (likely(pgd))
+ 		pgd_ctor(pgd);
+ 
+-	if (PTRS_PER_PMD == 1 || !pgd)
++	if (PTRS_PER_PMD == 1 || unlikely(!pgd))
  		return pgd;
  
-@@ -298,6 +303,7 @@ out_oom:
- 		paravirt_release_pd(__pa(pmd) >> PAGE_SHIFT);
- 		kmem_cache_free(pmd_cache, pmd);
+-	for (i = 0; i < USER_PTRS_PER_PGD; ++i) {
++	for (i = 0; i < (SHARED_KERNEL_PMD ? USER_PTRS_PER_PGD : PTRS_PER_PGD); ++i) {
+ 		pmd_t *pmd = kmem_cache_alloc(pmd_cache, GFP_KERNEL);
+-		if (!pmd)
++		if (unlikely(!pmd))
+ 			goto out_oom;
++
++		if (i >= USER_PTRS_PER_PGD)
++			memcpy(pmd, (void *)pgd_page_vaddr(swapper_pg_dir[i]),
++			       sizeof(pmd_t) * PTRS_PER_PMD);
++
+ 		paravirt_alloc_pd(__pa(pmd) >> PAGE_SHIFT);
+ 		set_pgd(&pgd[i], __pgd(1 + __pa(pmd)));
  	}
-+	pgd_dtor(pgd);
- 	kmem_cache_free(pgd_cache, pgd);
- 	return NULL;
++
+ 	return pgd;
+ 
+ out_oom:
+@@ -314,7 +331,7 @@ void pgd_free(pgd_t *pgd)
+ 
+ 	/* in the PAE case user pgd entries are overwritten before usage */
+ 	if (PTRS_PER_PMD > 1)
+-		for (i = 0; i < USER_PTRS_PER_PGD; ++i) {
++		for (i = 0; i < (SHARED_KERNEL_PMD ? USER_PTRS_PER_PGD : PTRS_PER_PGD); ++i) {
+ 			pgd_t pgdent = pgd[i];
+ 			void* pmd = (void *)__va(pgd_val(pgdent)-1);
+ 			paravirt_release_pd(__pa(pmd) >> PAGE_SHIFT);
+diff -puN include/asm-i386/page.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/page.h
+--- a/include/asm-i386/page.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/page.h
+@@ -50,21 +50,23 @@ typedef struct { unsigned long long pgpr
+ #ifndef CONFIG_PARAVIRT
+ #define pmd_val(x)	((x).pmd)
+ #define pte_val(x)	((x).pte_low | ((unsigned long long)(x).pte_high << 32))
++#define __pte(x) ((pte_t) { .pte_low = (x), .pte_high = ((x) >> 32) } )
+ #define __pmd(x) ((pmd_t) { (x) } )
+ #endif	/* CONFIG_PARAVIRT */
+ #define HPAGE_SHIFT	21
+ #include <asm-generic/pgtable-nopud.h>
+-#else
++#else  /* !CONFIG_X86_PAE */
+ typedef struct { unsigned long pte_low; } pte_t;
+ typedef struct { unsigned long pgd; } pgd_t;
+ typedef struct { unsigned long pgprot; } pgprot_t;
+ #define boot_pte_t pte_t /* or would you rather have a typedef */
+ #ifndef CONFIG_PARAVIRT
++#define __pte(x) ((pte_t) { (x) })
+ #define pte_val(x)	((x).pte_low)
+ #endif
+ #define HPAGE_SHIFT	22
+ #include <asm-generic/pgtable-nopmd.h>
+-#endif
++#endif	/* CONFIG_X86_PAE */
+ #define PTE_MASK	PAGE_MASK
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+@@ -79,7 +81,6 @@ typedef struct { unsigned long pgprot; }
+ 
+ #ifndef CONFIG_PARAVIRT
+ #define pgd_val(x)	((x).pgd)
+-#define __pte(x) ((pte_t) { (x) } )
+ #define __pgd(x) ((pgd_t) { (x) } )
+ #endif
+ 
+diff -puN include/asm-i386/paravirt.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/paravirt.h
+@@ -34,6 +34,7 @@ struct mm_struct;
+ struct paravirt_ops
+ {
+ 	unsigned int kernel_rpl;
++	int shared_kernel_pmd;
+  	int paravirt_enabled;
+ 	const char *name;
+ 
+diff -puN include/asm-i386/pgtable-2level-defs.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/pgtable-2level-defs.h
+--- a/include/asm-i386/pgtable-2level-defs.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/pgtable-2level-defs.h
+@@ -1,6 +1,8 @@
+ #ifndef _I386_PGTABLE_2LEVEL_DEFS_H
+ #define _I386_PGTABLE_2LEVEL_DEFS_H
+ 
++#define SHARED_KERNEL_PMD	0
++
+ /*
+  * traditional i386 two-level paging structure:
+  */
+diff -puN include/asm-i386/pgtable-2level.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/pgtable-2level.h
+--- a/include/asm-i386/pgtable-2level.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/pgtable-2level.h
+@@ -65,6 +65,4 @@ static inline int pte_exec_kernel(pte_t 
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { (pte).pte_low })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ 
+-void vmalloc_sync_all(void);
+-
+ #endif /* _I386_PGTABLE_2LEVEL_H */
+diff -puN include/asm-i386/pgtable-3level-defs.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/pgtable-3level-defs.h
+--- a/include/asm-i386/pgtable-3level-defs.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/pgtable-3level-defs.h
+@@ -1,6 +1,12 @@
+ #ifndef _I386_PGTABLE_3LEVEL_DEFS_H
+ #define _I386_PGTABLE_3LEVEL_DEFS_H
+ 
++#ifdef CONFIG_PARAVIRT
++#define SHARED_KERNEL_PMD	(paravirt_ops.shared_kernel_pmd)
++#else
++#define SHARED_KERNEL_PMD	1
++#endif
++
+ /*
+  * PGDIR_SHIFT determines what a top-level page table entry can map
+  */
+diff -puN include/asm-i386/pgtable-3level.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/pgtable-3level.h
+--- a/include/asm-i386/pgtable-3level.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/pgtable-3level.h
+@@ -153,20 +153,14 @@ extern unsigned long long __supported_pt
+ 
+ static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
+ {
+-	pte_t pte;
+-
+-	pte.pte_high = (page_nr >> (32 - PAGE_SHIFT)) | \
+-					(pgprot_val(pgprot) >> 32);
+-	pte.pte_high &= (__supported_pte_mask >> 32);
+-	pte.pte_low = ((page_nr << PAGE_SHIFT) | pgprot_val(pgprot)) & \
+-							__supported_pte_mask;
+-	return pte;
++	return __pte((((unsigned long long)page_nr << PAGE_SHIFT) |
++		      pgprot_val(pgprot)) & __supported_pte_mask);
  }
-@@ -315,5 +321,6 @@ void pgd_free(pgd_t *pgd)
- 			kmem_cache_free(pmd_cache, pmd);
- 		}
- 	/* in the non-PAE case, free_pgtables() clears user pgd entries */
-+	pgd_dtor(pgd);
- 	kmem_cache_free(pgd_cache, pgd);
+ 
+ static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
+ {
+-	return __pmd((((unsigned long long)page_nr << PAGE_SHIFT) | \
+-			pgprot_val(pgprot)) & __supported_pte_mask);
++	return __pmd((((unsigned long long)page_nr << PAGE_SHIFT) |
++		      pgprot_val(pgprot)) & __supported_pte_mask);
  }
-diff -puN include/asm-i386/pgtable.h~xen-paravirt-remove-ctor-for-pgd-cache include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~xen-paravirt-remove-ctor-for-pgd-cache
+ 
+ /*
+@@ -186,6 +180,4 @@ static inline pmd_t pfn_pmd(unsigned lon
+ 
+ #define __pmd_free_tlb(tlb, x)		do { } while (0)
+ 
+-#define vmalloc_sync_all() ((void)0)
+-
+ #endif /* _I386_PGTABLE_3LEVEL_H */
+diff -puN include/asm-i386/pgtable.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing
 +++ a/include/asm-i386/pgtable.h
-@@ -44,8 +44,6 @@ extern spinlock_t pgd_lock;
- extern struct page *pgd_list;
+@@ -242,6 +242,13 @@ static inline pte_t pte_mkyoung(pte_t pt
+ static inline pte_t pte_mkwrite(pte_t pte)	{ (pte).pte_low |= _PAGE_RW; return pte; }
+ static inline pte_t pte_mkhuge(pte_t pte)	{ (pte).pte_low |= _PAGE_PSE; return pte; }
  
- void pmd_ctor(void *, struct kmem_cache *, unsigned long);
--void pgd_ctor(void *, struct kmem_cache *, unsigned long);
--void pgd_dtor(void *, struct kmem_cache *, unsigned long);
- void pgtable_cache_init(void);
- void paging_init(void);
- 
++extern void _vmalloc_sync_all(void);
++static inline void vmalloc_sync_all(void)
++{
++	if (!SHARED_KERNEL_PMD)
++		_vmalloc_sync_all();
++}
++
+ #ifdef CONFIG_X86_PAE
+ # include <asm/pgtable-3level.h>
+ #else
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
