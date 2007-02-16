@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-sa1100-rtc_wklarmenabled-bugfixes.patch added to -mm tree
-Date: Thu, 15 Feb 2007 19:11:17 -0800
-Message-ID: <200702160311.l1G3BHGd017745@shell0.pdx.osdl.net>
+Subject: + gpio-api-pxa-wrapper-cleanup.patch added to -mm tree
+Date: Thu, 15 Feb 2007 19:15:02 -0800
+Message-ID: <200702160315.l1G3F3Ye017840@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47813 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47916 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932566AbXBPDLj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 22:11:39 -0500
+	id S1161709AbXBPDPt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 22:15:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
+Cc: philipp.zabel@gmail.com, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk
 
 
 The patch titled
-     rtc-sa1100 rtc_wklarm.enabled bugfixes
+     GPIO API: PXA wrapper cleanup
 has been added to the -mm tree.  Its filename is
-     rtc-sa1100-rtc_wklarmenabled-bugfixes.patch
+     gpio-api-pxa-wrapper-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,72 +25,183 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-sa1100 rtc_wklarm.enabled bugfixes
-From: David Brownell <david-b@pacbell.net>
+Subject: GPIO API: PXA wrapper cleanup
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Some rtc-sa1100 bugfixes:
+Based on the discussion last december (http://lkml.org/lkml/2006/12/20/242),
+this patch:
 
- - The read_alarm() method reports the rtc_wkalrm.enabled field properly.
-   This patch is already in the handhelds.org tree.
+  - moves the PXA_LAST_GPIO check into pxa_gpio_mode
+  - fixes comment and includes in gpio.h
+  - replaces the gpio_set/get_value macros with inline
+    functions and adds a non-inline version to avoid
+    code explosion when gpio is not a constant.
 
- - And the set_alarm() method now handles that flag correctly, rather than
-   making mismatched {en,dis}able_irq_wake() calls, which trigger runtime
-   warning messages.  (Those calls are best made in suspend/resume methods.)
-
-Note that while this SA1100/PXA RTC is fully capable of waking those ARM
-processors from sleep states, that mechanism isn't properly supported on
-either processor family, or in this driver.  Some boards have board-specific
-PM glue providing partial workarounds for the weak generic PM support.
-
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sa1100.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ arch/arm/mach-pxa/generic.c         |   28 ++++++++++++++++-
+ include/asm-arm/arch-pxa/gpio.h     |   42 +++++++++++++++-----------
+ include/asm-arm/arch-pxa/hardware.h |   12 ++++++-
+ 3 files changed, 63 insertions(+), 19 deletions(-)
 
-diff -puN drivers/rtc/rtc-sa1100.c~rtc-sa1100-rtc_wklarmenabled-bugfixes drivers/rtc/rtc-sa1100.c
---- a/drivers/rtc/rtc-sa1100.c~rtc-sa1100-rtc_wklarmenabled-bugfixes
-+++ a/drivers/rtc/rtc-sa1100.c
-@@ -263,8 +263,12 @@ static int sa1100_rtc_set_time(struct de
+diff -puN arch/arm/mach-pxa/generic.c~gpio-api-pxa-wrapper-cleanup arch/arm/mach-pxa/generic.c
+--- a/arch/arm/mach-pxa/generic.c~gpio-api-pxa-wrapper-cleanup
++++ a/arch/arm/mach-pxa/generic.c
+@@ -36,6 +36,7 @@
+ #include <asm/mach/map.h>
  
- static int sa1100_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
+ #include <asm/arch/pxa-regs.h>
++#include <asm/arch/gpio.h>
+ #include <asm/arch/udc.h>
+ #include <asm/arch/pxafb.h>
+ #include <asm/arch/mmc.h>
+@@ -106,13 +107,16 @@ unsigned long long sched_clock(void)
+  * Handy function to set GPIO alternate functions
+  */
+ 
+-void pxa_gpio_mode(int gpio_mode)
++int pxa_gpio_mode(int gpio_mode)
  {
-+	u32	rtsr;
+ 	unsigned long flags;
+ 	int gpio = gpio_mode & GPIO_MD_MASK_NR;
+ 	int fn = (gpio_mode & GPIO_MD_MASK_FN) >> 8;
+ 	int gafr;
+ 
++	if (gpio > PXA_LAST_GPIO)
++		return -EINVAL;
 +
- 	memcpy(&alrm->time, &rtc_alarm, sizeof(struct rtc_time));
--	alrm->pending = RTSR & RTSR_AL ? 1 : 0;
-+	rtsr = RTSR;
-+	alrm->enabled = (rtsr & RTSR_ALE) ? 1 : 0;
-+	alrm->pending = (rtsr & RTSR_AL) ? 1 : 0;
- 	return 0;
+ 	local_irq_save(flags);
+ 	if (gpio_mode & GPIO_DFLT_LOW)
+ 		GPCR(gpio) = GPIO_bit(gpio);
+@@ -125,11 +129,33 @@ void pxa_gpio_mode(int gpio_mode)
+ 	gafr = GAFR(gpio) & ~(0x3 << (((gpio) & 0xf)*2));
+ 	GAFR(gpio) = gafr |  (fn  << (((gpio) & 0xf)*2));
+ 	local_irq_restore(flags);
++
++	return 0;
  }
  
-@@ -275,12 +279,10 @@ static int sa1100_rtc_set_alarm(struct d
- 	spin_lock_irq(&sa1100_rtc_lock);
- 	ret = rtc_update_alarm(&alrm->time);
- 	if (ret == 0) {
--		memcpy(&rtc_alarm, &alrm->time, sizeof(struct rtc_time));
--
- 		if (alrm->enabled)
--			enable_irq_wake(IRQ_RTCAlrm);
-+			RTSR |= RTSR_ALE;
- 		else
--			disable_irq_wake(IRQ_RTCAlrm);
-+			RTSR &= ~RTSR_ALE;
- 	}
- 	spin_unlock_irq(&sa1100_rtc_lock);
+ EXPORT_SYMBOL(pxa_gpio_mode);
  
+ /*
++ * Return GPIO level
++ */
++int pxa_gpio_get_value(unsigned gpio)
++{
++	return __gpio_get_value(gpio);
++}
++
++EXPORT_SYMBOL(pxa_gpio_get_value);
++
++/*
++ * Set output GPIO level
++ */
++void pxa_gpio_set_value(unsigned gpio, int value)
++{
++	__gpio_set_value(gpio, value);
++}
++
++EXPORT_SYMBOL(pxa_gpio_set_value);
++
++/*
+  * Routine to safely enable or disable a clock in the CKEN
+  */
+ void pxa_set_cken(int clock, int enable)
+diff -puN include/asm-arm/arch-pxa/gpio.h~gpio-api-pxa-wrapper-cleanup include/asm-arm/arch-pxa/gpio.h
+--- a/include/asm-arm/arch-pxa/gpio.h~gpio-api-pxa-wrapper-cleanup
++++ a/include/asm-arm/arch-pxa/gpio.h
+@@ -25,10 +25,8 @@
+ #define __ASM_ARCH_PXA_GPIO_H
+ 
+ #include <asm/arch/pxa-regs.h>
+-#include <asm/arch/irqs.h>
+-#include <asm/arch/hardware.h>
+-
+-#include <asm/errno.h>
++#include <asm/irq.h>
++#include <asm/hardware.h>
+ 
+ static inline int gpio_request(unsigned gpio, const char *label)
+ {
+@@ -42,26 +40,36 @@ static inline void gpio_free(unsigned gp
+ 
+ static inline int gpio_direction_input(unsigned gpio)
+ {
+-	if (gpio > PXA_LAST_GPIO)
+-		return -EINVAL;
+-	pxa_gpio_mode(gpio | GPIO_IN);
++	return pxa_gpio_mode(gpio | GPIO_IN);
+ }
+ 
+ static inline int gpio_direction_output(unsigned gpio)
+ {
+-	if (gpio > PXA_LAST_GPIO)
+-		return -EINVAL;
+-	pxa_gpio_mode(gpio | GPIO_OUT);
++	return pxa_gpio_mode(gpio | GPIO_OUT);
++}
++
++static inline int __gpio_get_value(unsigned gpio)
++{
++	return GPLR(gpio) & GPIO_bit(gpio);
+ }
+ 
+-/* REVISIT these macros are correct, but suffer code explosion
+- * for non-constant parameters.  Provide out-line versions too.
+- */
+-#define gpio_get_value(gpio) \
+-	(GPLR(gpio) & GPIO_bit(gpio))
++#define gpio_get_value(gpio)			\
++	(__builtin_constant_p(gpio) ?		\
++	 __gpio_get_value(gpio) :		\
++	 pxa_gpio_get_value(gpio))
++
++static inline void __gpio_set_value(unsigned gpio, int value)
++{
++	if (value)
++		GPSR(gpio) = GPIO_bit(gpio);
++	else
++		GPCR(gpio) = GPIO_bit(gpio);
++}
+ 
+-#define gpio_set_value(gpio,value) \
+-	((value) ? (GPSR(gpio) = GPIO_bit(gpio)):(GPCR(gpio) = GPIO_bit(gpio)))
++#define gpio_set_value(gpio,value)		\
++	(__builtin_constant_p(gpio) ?		\
++	 __gpio_set_value(gpio, value) :	\
++	 pxa_gpio_set_value(gpio, value))
+ 
+ #include <asm-generic/gpio.h>			/* cansleep wrappers */
+ 
+diff -puN include/asm-arm/arch-pxa/hardware.h~gpio-api-pxa-wrapper-cleanup include/asm-arm/arch-pxa/hardware.h
+--- a/include/asm-arm/arch-pxa/hardware.h~gpio-api-pxa-wrapper-cleanup
++++ a/include/asm-arm/arch-pxa/hardware.h
+@@ -65,7 +65,17 @@
+ /*
+  * Handy routine to set GPIO alternate functions
+  */
+-extern void pxa_gpio_mode( int gpio_mode );
++extern int pxa_gpio_mode( int gpio_mode );
++
++/*
++ * Return GPIO level, nonzero means high, zero is low
++ */
++extern int pxa_gpio_get_value(unsigned gpio);
++
++/*
++ * Set output GPIO level
++ */
++extern void pxa_gpio_set_value(unsigned gpio, int value);
+ 
+ /*
+  * Routine to enable or disable CKEN
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
 origin.patch
-gpio-core-documentation.patch
-git-acpi.patch
-git-avr32.patch
-git-md-accel.patch
-8250-make-probing-for-txen-bug-a-config-option.patch
-loosen-dependancy-on-rtc-cmos.patch
-rtc-sa1100-rtc_wklarmenabled-bugfixes.patch
+gpio-api-pxa-wrapper-cleanup.patch
