@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + s2io-rtnl-and-flush_scheduled_work-deadlock.patch added to -mm tree
-Date: Thu, 15 Feb 2007 17:20:43 -0800
-Message-ID: <200702160120.l1G1KhCK015325@shell0.pdx.osdl.net>
+Subject: + s2io-add-pci-error-recovery-support.patch added to -mm tree
+Date: Thu, 15 Feb 2007 17:20:45 -0800
+Message-ID: <200702160120.l1G1Kjnh015328@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42086 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42100 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751864AbXBPBUq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 20:20:46 -0500
+	id S1751867AbXBPBU6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 20:20:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: romieu@fr.zoreil.com
+Cc: linas@austin.ibm.com, Ananda.Raju@neterion.com, Ramkrishna.Vepa@neterion.com, raghavendra.koushik@neterion.com, wenxiong@us.ibm.com
 
 
 The patch titled
-     s2io: RTNL and flush_scheduled_work deadlock
+     s2io: add PCI error recovery support
 has been added to the -mm tree.  Its filename is
-     s2io-rtnl-and-flush_scheduled_work-deadlock.patch
+     s2io-add-pci-error-recovery-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,92 +25,235 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s2io: RTNL and flush_scheduled_work deadlock
-From: Francois Romieu <romieu@fr.zoreil.com>
+Subject: s2io: add PCI error recovery support
+From: Linas Vepstas <linas@austin.ibm.com>
 
-Mantra: don't use flush_scheduled_work with RTNL held.
+Add PCI error recovery support to the s2io 10-Gigabit ethernet device driver. 
+Fourth revision, blocks interrupts and the watchdog.  Adds a flag to
+s2io_down(), to avoid doing I/O when PCI bus is offline.
 
-Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
+Acked-by: Ramkrishna Vepa <Ramkrishna.Vepa@neterion.com>
+Cc: Raghavendra Koushik <raghavendra.koushik@neterion.com>
+Cc: Ananda Raju <Ananda.Raju@neterion.com>
+Cc: Wen Xiong <wenxiong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/s2io.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+ drivers/net/s2io.c |  116 +++++++++++++++++++++++++++++++++++++++++--
+ drivers/net/s2io.h |    5 +
+ 2 files changed, 116 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/s2io.c~s2io-rtnl-and-flush_scheduled_work-deadlock drivers/net/s2io.c
---- a/drivers/net/s2io.c~s2io-rtnl-and-flush_scheduled_work-deadlock
+diff -puN drivers/net/s2io.c~s2io-add-pci-error-recovery-support drivers/net/s2io.c
+--- a/drivers/net/s2io.c~s2io-add-pci-error-recovery-support
 +++ a/drivers/net/s2io.c
-@@ -3758,7 +3758,6 @@ static int s2io_close(struct net_device 
- {
- 	struct s2io_nic *sp = dev->priv;
+@@ -434,11 +434,18 @@ static struct pci_device_id s2io_tbl[] _
  
--	flush_scheduled_work();
- 	netif_stop_queue(dev);
- 	/* Reset card, kill tasklet and free Tx and Rx buffers. */
- 	s2io_card_down(sp);
-@@ -5847,9 +5846,14 @@ static void s2io_set_link(struct work_st
- 	register u64 val64;
- 	u16 subid;
+ MODULE_DEVICE_TABLE(pci, s2io_tbl);
  
-+	rtnl_lock();
++static struct pci_error_handlers s2io_err_handler = {
++	.error_detected = s2io_io_error_detected,
++	.slot_reset = s2io_io_slot_reset,
++	.resume = s2io_io_resume,
++};
 +
-+	if (!netif_running(dev))
-+		goto out_unlock;
-+
- 	if (test_and_set_bit(0, &(nic->link_state))) {
- 		/* The card is being reset, no point doing anything */
--		return;
-+		goto out_unlock;
- 	}
+ static struct pci_driver s2io_driver = {
+       .name = "S2IO",
+       .id_table = s2io_tbl,
+       .probe = s2io_init_nic,
+       .remove = __devexit_p(s2io_rem_nic),
++      .err_handler = &s2io_err_handler,
+ };
  
- 	subid = nic->pdev->subsystem_device;
-@@ -5903,6 +5907,9 @@ static void s2io_set_link(struct work_st
- 		s2io_link(nic, LINK_DOWN);
- 	}
- 	clear_bit(0, &(nic->link_state));
-+
-+out_unlock:
-+	rtnl_lock();
- }
+ /* A simplifier macro used both by init and free shared_mem Fns(). */
+@@ -2576,6 +2583,9 @@ static void s2io_netpoll(struct net_devi
+ 	u64 val64 = 0xFFFFFFFFFFFFFFFFULL;
+ 	int i;
  
- static int set_rxd_buffer_pointer(struct s2io_nic *sp, struct RxD_t *rxdp,
-@@ -6356,6 +6363,11 @@ static void s2io_restart_nic(struct work
- 	struct s2io_nic *sp = container_of(work, struct s2io_nic, rst_timer_task);
- 	struct net_device *dev = sp->dev;
- 
-+	rtnl_lock();
++	if (pci_channel_offline(nic->pdev))
++		return;
 +
-+	if (!netif_running(dev))
-+		goto out_unlock;
-+
- 	s2io_card_down(sp);
- 	if (s2io_card_up(sp)) {
- 		DBG_PRINT(ERR_DBG, "%s: Device bring up failed\n",
-@@ -6364,7 +6376,8 @@ static void s2io_restart_nic(struct work
- 	netif_wake_queue(dev);
- 	DBG_PRINT(ERR_DBG, "%s: was reset by Tx watchdog timer\n",
- 		  dev->name);
--
-+out_unlock:
-+	rtnl_unlock();
- }
+ 	disable_irq(dev->irq);
  
- /**
-@@ -7173,6 +7186,8 @@ static void __devexit s2io_rem_nic(struc
+ 	atomic_inc(&nic->isr_cnt);
+@@ -3078,6 +3088,8 @@ static void alarm_intr_handler(struct s2
+ 	int i;
+ 	if (atomic_read(&nic->card_state) == CARD_DOWN)
  		return;
- 	}
++	if (pci_channel_offline(nic->pdev))
++		return;
+ 	nic->mac_control.stats_info->sw_stat.ring_full_cnt = 0;
+ 	/* Handling the XPAK counters update */
+ 	if(nic->mac_control.stats_info->xpak_stat.xpak_timer_count < 72000) {
+@@ -4115,6 +4127,10 @@ static irqreturn_t s2io_isr(int irq, voi
+ 	struct mac_info *mac_control;
+ 	struct config_param *config;
  
-+	flush_scheduled_work();
++	/* Pretend we handled any irq's from a disconnected card */
++	if (pci_channel_offline(sp->pdev))
++		return IRQ_NONE;
 +
- 	sp = dev->priv;
- 	unregister_netdev(dev);
+ 	atomic_inc(&sp->isr_cnt);
+ 	mac_control = &sp->mac_control;
+ 	config = &sp->config;
+@@ -6194,7 +6210,7 @@ static void s2io_rem_isr(struct s2io_nic
+ 	} while(cnt < 5);
+ }
  
+-static void s2io_card_down(struct s2io_nic * sp)
++static void do_s2io_card_down(struct s2io_nic * sp, int do_io)
+ {
+ 	int cnt = 0;
+ 	struct XENA_dev_config __iomem *bar0 = sp->bar0;
+@@ -6209,7 +6225,8 @@ static void s2io_card_down(struct s2io_n
+ 	atomic_set(&sp->card_state, CARD_DOWN);
+ 
+ 	/* disable Tx and Rx traffic on the NIC */
+-	stop_nic(sp);
++	if (do_io)
++		stop_nic(sp);
+ 
+ 	s2io_rem_isr(sp);
+ 
+@@ -6217,7 +6234,7 @@ static void s2io_card_down(struct s2io_n
+ 	tasklet_kill(&sp->task);
+ 
+ 	/* Check if the device is Quiescent and then Reset the NIC */
+-	do {
++	while(do_io) {
+ 		/* As per the HW requirement we need to replenish the
+ 		 * receive buffer to avoid the ring bump. Since there is
+ 		 * no intention of processing the Rx frame at this pointwe are
+@@ -6242,8 +6259,9 @@ static void s2io_card_down(struct s2io_n
+ 				  (unsigned long long) val64);
+ 			break;
+ 		}
+-	} while (1);
+-	s2io_reset(sp);
++	}
++	if (do_io)
++		s2io_reset(sp);
+ 
+ 	spin_lock_irqsave(&sp->tx_lock, flags);
+ 	/* Free all Tx buffers */
+@@ -6258,6 +6276,11 @@ static void s2io_card_down(struct s2io_n
+ 	clear_bit(0, &(sp->link_state));
+ }
+ 
++static void s2io_card_down(struct s2io_nic * sp)
++{
++	do_s2io_card_down(sp, 1);
++}
++
+ static int s2io_card_up(struct s2io_nic * sp)
+ {
+ 	int i, ret = 0;
+@@ -7550,3 +7573,86 @@ static void lro_append_pkt(struct s2io_n
+ 	sp->mac_control.stats_info->sw_stat.clubbed_frms_cnt++;
+ 	return;
+ }
++
++/**
++ * s2io_io_error_detected - called when PCI error is detected
++ * @pdev: Pointer to PCI device
++ * @state: The current pci conneection state
++ *
++ * This function is called after a PCI bus error affecting
++ * this device has been detected.
++ */
++static pci_ers_result_t s2io_io_error_detected(struct pci_dev *pdev,
++                                               pci_channel_state_t state)
++{
++	struct net_device *netdev = pci_get_drvdata(pdev);
++	struct s2io_nic *sp = netdev->priv;
++
++	netif_device_detach(netdev);
++
++	if (netif_running(netdev)) {
++		/* Bring down the card, while avoiding PCI I/O */
++		do_s2io_card_down(sp, 0);
++		sp->device_close_flag = TRUE;	/* Device is shut down. */
++	}
++	pci_disable_device(pdev);
++
++	return PCI_ERS_RESULT_NEED_RESET;
++}
++
++/**
++ * s2io_io_slot_reset - called after the pci bus has been reset.
++ * @pdev: Pointer to PCI device
++ *
++ * Restart the card from scratch, as if from a cold-boot.
++ * At this point, the card has exprienced a hard reset,
++ * followed by fixups by BIOS, and has its config space
++ * set up identically to what it was at cold boot.
++ */
++static pci_ers_result_t s2io_io_slot_reset(struct pci_dev *pdev)
++{
++	struct net_device *netdev = pci_get_drvdata(pdev);
++	struct s2io_nic *sp = netdev->priv;
++
++	if (pci_enable_device(pdev)) {
++		printk(KERN_ERR "s2io: "
++		       "Cannot re-enable PCI device after reset.\n");
++		return PCI_ERS_RESULT_DISCONNECT;
++	}
++
++	pci_set_master(pdev);
++	s2io_reset(sp);
++
++	return PCI_ERS_RESULT_RECOVERED;
++}
++
++/**
++ * s2io_io_resume - called when traffic can start flowing again.
++ * @pdev: Pointer to PCI device
++ *
++ * This callback is called when the error recovery driver tells
++ * us that its OK to resume normal operation.
++ */
++static void s2io_io_resume(struct pci_dev *pdev)
++{
++	struct net_device *netdev = pci_get_drvdata(pdev);
++	struct s2io_nic *sp = netdev->priv;
++
++	if (netif_running(netdev)) {
++		if (s2io_card_up(sp)) {
++			printk(KERN_ERR "s2io: "
++			       "Can't bring device back up after reset.\n");
++			return;
++		}
++
++		if (s2io_set_mac_addr(netdev, netdev->dev_addr) == FAILURE) {
++			s2io_card_down(sp);
++			printk(KERN_ERR "s2io: "
++			       "Can't resetore mac addr after reset.\n");
++			return;
++		}
++	}
++
++	netif_device_attach(netdev);
++	netif_wake_queue(netdev);
++}
+diff -puN drivers/net/s2io.h~s2io-add-pci-error-recovery-support drivers/net/s2io.h
+--- a/drivers/net/s2io.h~s2io-add-pci-error-recovery-support
++++ a/drivers/net/s2io.h
+@@ -1020,6 +1020,11 @@ static void update_L3L4_header(struct s2
+ static void lro_append_pkt(struct s2io_nic *sp, struct lro *lro,
+ 			   struct sk_buff *skb, u32 tcp_len);
+ 
++static pci_ers_result_t s2io_io_error_detected(struct pci_dev *pdev,
++			                      pci_channel_state_t state);
++static pci_ers_result_t s2io_io_slot_reset(struct pci_dev *pdev);
++static void s2io_io_resume(struct pci_dev *pdev);
++
+ #define s2io_tcp_mss(skb) skb_shinfo(skb)->gso_size
+ #define s2io_udp_mss(skb) skb_shinfo(skb)->gso_size
+ #define s2io_offload_type(skb) skb_shinfo(skb)->gso_type
 _
 
-Patches currently in -mm which might be from romieu@fr.zoreil.com are
+Patches currently in -mm which might be from linas@austin.ibm.com are
 
 origin.patch
-r8169-rtnl-and-flush_scheduled_work-deadlock.patch
-sis190-rtnl-and-flush_scheduled_work-deadlock.patch
-8139too-rtnl-and-flush_scheduled_work-deadlock.patch
-s2io-rtnl-and-flush_scheduled_work-deadlock.patch
+s2io-add-pci-error-recovery-support.patch
+lpfc-add-pci-error-recovery-support.patch
