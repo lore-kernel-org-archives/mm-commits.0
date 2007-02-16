@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt-paravirt_ops-allocate-a-fixmap-slot.patch added to -mm tree
-Date: Thu, 15 Feb 2007 23:00:08 -0800
-Message-ID: <200702160700.l1G708Eh022613@shell0.pdx.osdl.net>
+Subject: + xen-paravirt-ignore-vgacon-if-hardware-not-present.patch added to -mm tree
+Date: Thu, 15 Feb 2007 23:00:01 -0800
+Message-ID: <200702160700.l1G701lW022573@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55155 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55138 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423334AbXBPHA6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 02:00:58 -0500
+	id S1423318AbXBPHAx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 02:00:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, rust
 
 
 The patch titled
-     Xen-paravirt: paravirt_ops: allocate a fixmap slot
+     Xen-paravirt: ignore vgacon if hardware not present
 has been added to the -mm tree.  Its filename is
-     xen-paravirt-paravirt_ops-allocate-a-fixmap-slot.patch
+     xen-paravirt-ignore-vgacon-if-hardware-not-present.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,12 +25,8 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Xen-paravirt: paravirt_ops: allocate a fixmap slot
+Subject: Xen-paravirt: ignore vgacon if hardware not present
 From: Jeremy Fitzhardinge <jeremy@goop.org>
-
-Allocate a fixmap slot for use by a paravirt_ops implementation.  Xen uses
-this to map the hypervisor's shared info page, which doesn't have a
-pseudo-physical page number, and therefore can't be mapped ordinarily.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Zachary Amsden <zach@vmware.com>
@@ -40,22 +36,22 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/fixmap.h |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/video/console/vgacon.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-i386/fixmap.h~xen-paravirt-paravirt_ops-allocate-a-fixmap-slot include/asm-i386/fixmap.h
---- a/include/asm-i386/fixmap.h~xen-paravirt-paravirt_ops-allocate-a-fixmap-slot
-+++ a/include/asm-i386/fixmap.h
-@@ -88,6 +88,9 @@ enum fixed_addresses {
- #ifdef CONFIG_PCI_MMCONFIG
- 	FIX_PCIE_MCFG,
- #endif
-+#ifdef CONFIG_PARAVIRT
-+	FIX_PARAVIRT,
-+#endif
- 	__end_of_permanent_fixed_addresses,
- 	/* temporary boot-time mappings, used before ioremap() is functional */
- #define NR_FIX_BTMAPS	16
+diff -puN drivers/video/console/vgacon.c~xen-paravirt-ignore-vgacon-if-hardware-not-present drivers/video/console/vgacon.c
+--- a/drivers/video/console/vgacon.c~xen-paravirt-ignore-vgacon-if-hardware-not-present
++++ a/drivers/video/console/vgacon.c
+@@ -371,7 +371,8 @@ static const char *vgacon_startup(void)
+ 	}
+ 
+ 	/* VGA16 modes are not handled by VGACON */
+-	if ((ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
++	if ((ORIG_VIDEO_MODE == 0x00) ||	/* SCREEN_INFO not initialized */
++	    (ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
+ 	    (ORIG_VIDEO_MODE == 0x0E) ||	/* 640x200/4 */
+ 	    (ORIG_VIDEO_MODE == 0x10) ||	/* 640x350/4 */
+ 	    (ORIG_VIDEO_MODE == 0x12) ||	/* 640x480/4 */
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
