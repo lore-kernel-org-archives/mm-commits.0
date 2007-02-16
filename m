@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt-fix-typo-in-sync_constant_test_bits-name.patch added to -mm tree
-Date: Thu, 15 Feb 2007 22:59:55 -0800
-Message-ID: <200702160659.l1G6xtcG022566@shell0.pdx.osdl.net>
+Subject: + xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment.patch added to -mm tree
+Date: Thu, 15 Feb 2007 23:00:14 -0800
+Message-ID: <200702160700.l1G70E5u022625@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55125 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55182 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423314AbXBPHAr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 02:00:47 -0500
+	id S1423370AbXBPHBJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 02:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, rust
 
 
 The patch titled
-     Xen-paravirt: fix typo in sync_constant_test_bit()s name
+     Xen-paravirt: allow paravirt backend to select PGD allocation alignment
 has been added to the -mm tree.  Its filename is
-     xen-paravirt-fix-typo-in-sync_constant_test_bits-name.patch
+     xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,25 +25,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Xen-paravirt: fix typo in sync_constant_test_bit()s name
+Subject: Xen-paravirt: allow paravirt backend to select PGD allocation alignment
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-This patch series implements the Linux Xen guest in terms of the paravirt-ops
-interface.  The features in implemented this patch series are:
-
- * domU only
- * UP only (most code is SMP-safe, but there's no way to create a new vcpu)
- * writable pagetables, with late pinning/early unpinning
-   (no shadow pagetable support)
- * supports both PAE and non-PAE modes
- * xen console
- * virtual block device (blockfront)
- * virtual network device (netfront)
-
-
-This patch:
-
-Fix typo in sync_constant_test_bit()s name
+Xen requires pgds to be page-aligned, so make this a parameter which can be
+set in the paravirt_ops structure.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Zachary Amsden <zach@vmware.com>
@@ -53,21 +39,68 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/sync_bitops.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/paravirt.c |    1 +
+ arch/i386/mm/init.c         |    2 +-
+ include/asm-i386/paravirt.h |    5 ++++-
+ include/asm-i386/pgtable.h  |    6 ++++++
+ 4 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-i386/sync_bitops.h~xen-paravirt-fix-typo-in-sync_constant_test_bits-name include/asm-i386/sync_bitops.h
---- a/include/asm-i386/sync_bitops.h~xen-paravirt-fix-typo-in-sync_constant_test_bits-name
-+++ a/include/asm-i386/sync_bitops.h
-@@ -130,7 +130,7 @@ static inline int sync_test_and_change_b
- 	return oldbit;
- }
+diff -puN arch/i386/kernel/paravirt.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
++++ a/arch/i386/kernel/paravirt.c
+@@ -605,6 +605,7 @@ struct paravirt_ops paravirt_ops = {
+ 	.paravirt_enabled = 0,
+ 	.kernel_rpl = 0,
+ 	.shared_kernel_pmd = 1,	/* Only used when CONFIG_X86_PAE is set */
++	.pgd_alignment = sizeof(pgd_t) * PTRS_PER_PGD,
  
--static __always_inline int sync_const_test_bit(int nr, const volatile unsigned long *addr)
-+static __always_inline int sync_constant_test_bit(int nr, const volatile unsigned long *addr)
+  	.patch = native_patch,
+ 	.banner = default_banner,
+diff -puN arch/i386/mm/init.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment arch/i386/mm/init.c
+--- a/arch/i386/mm/init.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
++++ a/arch/i386/mm/init.c
+@@ -729,7 +729,7 @@ void __init pgtable_cache_init(void)
+ 	}
+ 	pgd_cache = kmem_cache_create("pgd",
+ 				      PTRS_PER_PGD*sizeof(pgd_t),
+-				      PTRS_PER_PGD*sizeof(pgd_t),
++				      PGD_ALIGNMENT,
+ 				      0, NULL, NULL);
+ 	if (!pgd_cache)
+ 		panic("pgtable_cache_init(): Cannot create pgd cache");
+diff -puN include/asm-i386/paravirt.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
++++ a/include/asm-i386/paravirt.h
+@@ -33,9 +33,12 @@ struct tss_struct;
+ struct mm_struct;
+ struct paravirt_ops
  {
- 	return ((1UL << (nr & 31)) &
- 		(((const volatile unsigned int *)addr)[nr >> 5])) != 0;
++ 	int paravirt_enabled;
+ 	unsigned int kernel_rpl;
++
+ 	int shared_kernel_pmd;
+- 	int paravirt_enabled;
++	int pgd_alignment;
++
+ 	const char *name;
+ 
+ 	/*
+diff -puN include/asm-i386/pgtable.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
++++ a/include/asm-i386/pgtable.h
+@@ -273,6 +273,12 @@ static inline void vmalloc_sync_all(void
+ #define pte_update_defer(mm, addr, ptep)	do { } while (0)
+ #endif
+ 
++#ifdef CONFIG_PARAVIRT
++#define PGD_ALIGNMENT	(paravirt_ops.pgd_alignment)
++#else
++#define PGD_ALIGNMENT	(sizeof(pgd_t) * PTRS_PER_PGD)
++#endif
++
+ /*
+  * We only update the dirty/accessed state if we set
+  * the dirty bit by hand in the kernel, since the hardware
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
