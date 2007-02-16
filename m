@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + s2io-add-pci-error-recovery-support.patch added to -mm tree
-Date: Thu, 15 Feb 2007 17:20:45 -0800
-Message-ID: <200702160120.l1G1Kjnh015328@shell0.pdx.osdl.net>
+Subject: + local_t-mips-extension-fix.patch added to -mm tree
+Date: Thu, 15 Feb 2007 17:17:52 -0800
+Message-ID: <200702160117.l1G1Hqmg015252@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42100 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42114 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751867AbXBPBU6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 20:20:58 -0500
+	id S1751870AbXBPBVP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 20:21:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linas@austin.ibm.com, Ananda.Raju@neterion.com, Ramkrishna.Vepa@neterion.com, raghavendra.koushik@neterion.com, wenxiong@us.ibm.com
+Cc: mathieu.desnoyers@polymtl.ca, ralf@linux-mips.org
 
 
 The patch titled
-     s2io: add PCI error recovery support
+     Fix macro error in MIPS local.h
 has been added to the -mm tree.  Its filename is
-     s2io-add-pci-error-recovery-support.patch
+     local_t-mips-extension-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,235 +25,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s2io: add PCI error recovery support
-From: Linas Vepstas <linas@austin.ibm.com>
+Subject: Fix macro error in MIPS local.h
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Add PCI error recovery support to the s2io 10-Gigabit ethernet device driver. 
-Fourth revision, blocks interrupts and the watchdog.  Adds a flag to
-s2io_down(), to avoid doing I/O when PCI bus is offline.
+This error breaks the MIPS build. () within macro parameters are not
+good.
 
-Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
-Acked-by: Ramkrishna Vepa <Ramkrishna.Vepa@neterion.com>
-Cc: Raghavendra Koushik <raghavendra.koushik@neterion.com>
-Cc: Ananda Raju <Ananda.Raju@neterion.com>
-Cc: Wen Xiong <wenxiong@us.ibm.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/s2io.c |  116 +++++++++++++++++++++++++++++++++++++++++--
- drivers/net/s2io.h |    5 +
- 2 files changed, 116 insertions(+), 5 deletions(-)
+ include/asm-mips/local.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/s2io.c~s2io-add-pci-error-recovery-support drivers/net/s2io.c
---- a/drivers/net/s2io.c~s2io-add-pci-error-recovery-support
-+++ a/drivers/net/s2io.c
-@@ -434,11 +434,18 @@ static struct pci_device_id s2io_tbl[] _
+diff -puN include/asm-mips/local.h~local_t-mips-extension-fix include/asm-mips/local.h
+--- a/include/asm-mips/local.h~local_t-mips-extension-fix
++++ a/include/asm-mips/local.h
+@@ -411,7 +411,7 @@ static __inline__ long local_sub_if_posi
  
- MODULE_DEVICE_TABLE(pci, s2io_tbl);
+ #define local_cmpxchg(l, o, n) \
+ 	((long)cmpxchg_local(&((l)->a.counter), (o), (n)))
+-#define local_xchg(l, (n)) (xchg_local(&((l)->a.counter),(n)))
++#define local_xchg(l, n) (xchg_local(&((l)->a.counter),(n)))
  
-+static struct pci_error_handlers s2io_err_handler = {
-+	.error_detected = s2io_io_error_detected,
-+	.slot_reset = s2io_io_slot_reset,
-+	.resume = s2io_io_resume,
-+};
-+
- static struct pci_driver s2io_driver = {
-       .name = "S2IO",
-       .id_table = s2io_tbl,
-       .probe = s2io_init_nic,
-       .remove = __devexit_p(s2io_rem_nic),
-+      .err_handler = &s2io_err_handler,
- };
- 
- /* A simplifier macro used both by init and free shared_mem Fns(). */
-@@ -2576,6 +2583,9 @@ static void s2io_netpoll(struct net_devi
- 	u64 val64 = 0xFFFFFFFFFFFFFFFFULL;
- 	int i;
- 
-+	if (pci_channel_offline(nic->pdev))
-+		return;
-+
- 	disable_irq(dev->irq);
- 
- 	atomic_inc(&nic->isr_cnt);
-@@ -3078,6 +3088,8 @@ static void alarm_intr_handler(struct s2
- 	int i;
- 	if (atomic_read(&nic->card_state) == CARD_DOWN)
- 		return;
-+	if (pci_channel_offline(nic->pdev))
-+		return;
- 	nic->mac_control.stats_info->sw_stat.ring_full_cnt = 0;
- 	/* Handling the XPAK counters update */
- 	if(nic->mac_control.stats_info->xpak_stat.xpak_timer_count < 72000) {
-@@ -4115,6 +4127,10 @@ static irqreturn_t s2io_isr(int irq, voi
- 	struct mac_info *mac_control;
- 	struct config_param *config;
- 
-+	/* Pretend we handled any irq's from a disconnected card */
-+	if (pci_channel_offline(sp->pdev))
-+		return IRQ_NONE;
-+
- 	atomic_inc(&sp->isr_cnt);
- 	mac_control = &sp->mac_control;
- 	config = &sp->config;
-@@ -6194,7 +6210,7 @@ static void s2io_rem_isr(struct s2io_nic
- 	} while(cnt < 5);
- }
- 
--static void s2io_card_down(struct s2io_nic * sp)
-+static void do_s2io_card_down(struct s2io_nic * sp, int do_io)
- {
- 	int cnt = 0;
- 	struct XENA_dev_config __iomem *bar0 = sp->bar0;
-@@ -6209,7 +6225,8 @@ static void s2io_card_down(struct s2io_n
- 	atomic_set(&sp->card_state, CARD_DOWN);
- 
- 	/* disable Tx and Rx traffic on the NIC */
--	stop_nic(sp);
-+	if (do_io)
-+		stop_nic(sp);
- 
- 	s2io_rem_isr(sp);
- 
-@@ -6217,7 +6234,7 @@ static void s2io_card_down(struct s2io_n
- 	tasklet_kill(&sp->task);
- 
- 	/* Check if the device is Quiescent and then Reset the NIC */
--	do {
-+	while(do_io) {
- 		/* As per the HW requirement we need to replenish the
- 		 * receive buffer to avoid the ring bump. Since there is
- 		 * no intention of processing the Rx frame at this pointwe are
-@@ -6242,8 +6259,9 @@ static void s2io_card_down(struct s2io_n
- 				  (unsigned long long) val64);
- 			break;
- 		}
--	} while (1);
--	s2io_reset(sp);
-+	}
-+	if (do_io)
-+		s2io_reset(sp);
- 
- 	spin_lock_irqsave(&sp->tx_lock, flags);
- 	/* Free all Tx buffers */
-@@ -6258,6 +6276,11 @@ static void s2io_card_down(struct s2io_n
- 	clear_bit(0, &(sp->link_state));
- }
- 
-+static void s2io_card_down(struct s2io_nic * sp)
-+{
-+	do_s2io_card_down(sp, 1);
-+}
-+
- static int s2io_card_up(struct s2io_nic * sp)
- {
- 	int i, ret = 0;
-@@ -7550,3 +7573,86 @@ static void lro_append_pkt(struct s2io_n
- 	sp->mac_control.stats_info->sw_stat.clubbed_frms_cnt++;
- 	return;
- }
-+
-+/**
-+ * s2io_io_error_detected - called when PCI error is detected
-+ * @pdev: Pointer to PCI device
-+ * @state: The current pci conneection state
-+ *
-+ * This function is called after a PCI bus error affecting
-+ * this device has been detected.
-+ */
-+static pci_ers_result_t s2io_io_error_detected(struct pci_dev *pdev,
-+                                               pci_channel_state_t state)
-+{
-+	struct net_device *netdev = pci_get_drvdata(pdev);
-+	struct s2io_nic *sp = netdev->priv;
-+
-+	netif_device_detach(netdev);
-+
-+	if (netif_running(netdev)) {
-+		/* Bring down the card, while avoiding PCI I/O */
-+		do_s2io_card_down(sp, 0);
-+		sp->device_close_flag = TRUE;	/* Device is shut down. */
-+	}
-+	pci_disable_device(pdev);
-+
-+	return PCI_ERS_RESULT_NEED_RESET;
-+}
-+
-+/**
-+ * s2io_io_slot_reset - called after the pci bus has been reset.
-+ * @pdev: Pointer to PCI device
-+ *
-+ * Restart the card from scratch, as if from a cold-boot.
-+ * At this point, the card has exprienced a hard reset,
-+ * followed by fixups by BIOS, and has its config space
-+ * set up identically to what it was at cold boot.
-+ */
-+static pci_ers_result_t s2io_io_slot_reset(struct pci_dev *pdev)
-+{
-+	struct net_device *netdev = pci_get_drvdata(pdev);
-+	struct s2io_nic *sp = netdev->priv;
-+
-+	if (pci_enable_device(pdev)) {
-+		printk(KERN_ERR "s2io: "
-+		       "Cannot re-enable PCI device after reset.\n");
-+		return PCI_ERS_RESULT_DISCONNECT;
-+	}
-+
-+	pci_set_master(pdev);
-+	s2io_reset(sp);
-+
-+	return PCI_ERS_RESULT_RECOVERED;
-+}
-+
-+/**
-+ * s2io_io_resume - called when traffic can start flowing again.
-+ * @pdev: Pointer to PCI device
-+ *
-+ * This callback is called when the error recovery driver tells
-+ * us that its OK to resume normal operation.
-+ */
-+static void s2io_io_resume(struct pci_dev *pdev)
-+{
-+	struct net_device *netdev = pci_get_drvdata(pdev);
-+	struct s2io_nic *sp = netdev->priv;
-+
-+	if (netif_running(netdev)) {
-+		if (s2io_card_up(sp)) {
-+			printk(KERN_ERR "s2io: "
-+			       "Can't bring device back up after reset.\n");
-+			return;
-+		}
-+
-+		if (s2io_set_mac_addr(netdev, netdev->dev_addr) == FAILURE) {
-+			s2io_card_down(sp);
-+			printk(KERN_ERR "s2io: "
-+			       "Can't resetore mac addr after reset.\n");
-+			return;
-+		}
-+	}
-+
-+	netif_device_attach(netdev);
-+	netif_wake_queue(netdev);
-+}
-diff -puN drivers/net/s2io.h~s2io-add-pci-error-recovery-support drivers/net/s2io.h
---- a/drivers/net/s2io.h~s2io-add-pci-error-recovery-support
-+++ a/drivers/net/s2io.h
-@@ -1020,6 +1020,11 @@ static void update_L3L4_header(struct s2
- static void lro_append_pkt(struct s2io_nic *sp, struct lro *lro,
- 			   struct sk_buff *skb, u32 tcp_len);
- 
-+static pci_ers_result_t s2io_io_error_detected(struct pci_dev *pdev,
-+			                      pci_channel_state_t state);
-+static pci_ers_result_t s2io_io_slot_reset(struct pci_dev *pdev);
-+static void s2io_io_resume(struct pci_dev *pdev);
-+
- #define s2io_tcp_mss(skb) skb_shinfo(skb)->gso_size
- #define s2io_udp_mss(skb) skb_shinfo(skb)->gso_size
- #define s2io_offload_type(skb) skb_shinfo(skb)->gso_type
+ /**
+  * local_add_unless - add unless the number is a given value
 _
 
-Patches currently in -mm which might be from linas@austin.ibm.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-s2io-add-pci-error-recovery-support.patch
-lpfc-add-pci-error-recovery-support.patch
+powerpc-move-of_irq_to_resource-to-prom_parsec.patch
+git-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64_xchg-to-s390.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+local_t-architecture-independant-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-mips-extension-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-powerpc-extension-fix.patch
+local_t-s390-cleanup.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-kconfig-menus-fix-2.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-non-optimized-architectures.patch
