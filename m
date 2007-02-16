@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + freezer-task-exit_state-should-be-treated-as-bolean.patch added to -mm tree
-Date: Fri, 16 Feb 2007 14:49:39 -0800
-Message-ID: <200702162249.l1GMndQ3012034@shell0.pdx.osdl.net>
+Subject: + softlockup-trivial-s-99-max_rt_prio.patch added to -mm tree
+Date: Fri, 16 Feb 2007 14:50:54 -0800
+Message-ID: <200702162250.l1GMosTg012069@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39858 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39893 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751612AbXBPWuP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 17:50:15 -0500
+	id S1751615AbXBPWvG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 17:51:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, mingo@elte.hu, nickpiggin@yahoo.com.au, pavel@ucw.cz, rjw@sisk.pl
+Cc: oleg@tv-sign.ru, mingo@elte.hu
 
 
 The patch titled
-     freezer: task->exit_state should be treated as bolean
+     softlockup: s/99/MAX_RT_PRIO/
 has been added to the -mm tree.  Its filename is
-     freezer-task-exit_state-should-be-treated-as-bolean.patch
+     softlockup-trivial-s-99-max_rt_prio.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: freezer: task->exit_state should be treated as bolean
+Subject: softlockup: s/99/MAX_RT_PRIO/
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Except for BUG_ON() checks, we should not use EXIT_XXXX defines outside of
-exit/wait paths.
+Don't use hardcoded 99 value, use MAX_RT_PRIO.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/process.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ kernel/softlockup.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/power/process.c~freezer-task-exit_state-should-be-treated-as-bolean kernel/power/process.c
---- a/kernel/power/process.c~freezer-task-exit_state-should-be-treated-as-bolean
-+++ a/kernel/power/process.c
-@@ -25,10 +25,9 @@
- 
- static inline int freezeable(struct task_struct * p)
+diff -puN kernel/softlockup.c~softlockup-trivial-s-99-max_rt_prio kernel/softlockup.c
+--- a/kernel/softlockup.c~softlockup-trivial-s-99-max_rt_prio
++++ a/kernel/softlockup.c
+@@ -82,7 +82,7 @@ void softlockup_tick(void)
+  */
+ static int watchdog(void * __bind_cpu)
  {
--	if ((p == current) || 
-+	if ((p == current) ||
- 	    (p->flags & PF_NOFREEZE) ||
--	    (p->exit_state == EXIT_ZOMBIE) ||
--	    (p->exit_state == EXIT_DEAD))
-+	    (p->exit_state != 0))
- 		return 0;
- 	return 1;
- }
+-	struct sched_param param = { .sched_priority = 99 };
++	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
+ 
+ 	sched_setscheduler(current, SCHED_FIFO, &param);
+ 	current->flags |= PF_NOFREEZE;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -76,6 +68,7 @@ allow-access-to-proc-pid-fd-after-setuid.patch
 allow-access-to-proc-pid-fd-after-setuid-fix.patch
 allow-access-to-proc-pid-fd-after-setuid-update.patch
 freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
 reimplement-flush_workqueue.patch
 implement-flush_work.patch
 implement-flush_work-sanity.patch
