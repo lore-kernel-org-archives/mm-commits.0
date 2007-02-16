@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-dont-probe-for-ddc-on-vbe12.patch added to -mm tree
-Date: Thu, 15 Feb 2007 17:01:31 -0800
-Message-ID: <200702160101.l1G11V8Z014930@shell0.pdx.osdl.net>
+Subject: + fix-i386-and-x86_64-fault-information-pollution.patch added to -mm tree
+Date: Thu, 15 Feb 2007 17:05:15 -0800
+Message-ID: <200702160105.l1G15FKH015004@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41568 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41752 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751791AbXBPBBr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 20:01:47 -0500
+	id S1751797AbXBPBF0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 20:05:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zwane@infradead.org, ak@suse.de, hpa@zytor.com, randy.dunlap@oracle.com, tobias.hain@gmx.de
+Cc: jdike@addtoit.com, ak@suse.de, jbeulich@novell.com
 
 
 The patch titled
-     x86: don't probe for DDC on VBE1.2
+     Fix i386 and x86_64 fault information pollution
 has been added to the -mm tree.  Its filename is
-     x86-dont-probe-for-ddc-on-vbe12.patch
+     fix-i386-and-x86_64-fault-information-pollution.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,83 +25,159 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86: don't probe for DDC on VBE1.2
-From: Zwane Mwaikambo <zwane@infradead.org>
+Subject: Fix i386 and x86_64 fault information pollution
+From: Jeff Dike <jdike@addtoit.com>
 
-VBE1.2 doesn't support function 15h (DDC) resulting in a 'hang' whilst
-uncompressing kernel with some video cards. Make sure we check VBE version
-before fiddling around with DDC.
+A userspace fault or a kernelspace fault which will result in the immediate
+death of the process.  They should not be filled in as a result of a
+kernelspace fault which can be fixed up.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=1458
+Otherwise, if the process is handling SIGSEGV and examining the fault
+information, this can result in the kernel space fault trashing the
+previously stored fault information if it arrives between the userspace
+fault happening and the SIGSEGV being delivered to the process.
 
-Opened: 2003-10-30 09:12 Last update: 2007-02-13 22:03
-
-:(
-
-Signed-off-by: Zwane Mwaikambo <zwane@infradead.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Acked-by: Jan Beulich <jbeulich@novell.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Tobias Hain <tobias.hain@gmx.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/boot/video.S   |   14 ++++++++++++++
- arch/x86_64/boot/video.S |   14 ++++++++++++++
- 2 files changed, 28 insertions(+)
+ arch/i386/kernel/traps.c   |   24 ++++++++++++++++++------
+ arch/x86_64/kernel/traps.c |   30 +++++++++++++++++++++++-------
+ 2 files changed, 41 insertions(+), 13 deletions(-)
 
-diff -puN arch/i386/boot/video.S~x86-dont-probe-for-ddc-on-vbe12 arch/i386/boot/video.S
---- a/arch/i386/boot/video.S~x86-dont-probe-for-ddc-on-vbe12
-+++ a/arch/i386/boot/video.S
-@@ -1945,6 +1945,20 @@ store_edid:
- 	rep
- 	stosl
+diff -puN arch/i386/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution
++++ a/arch/i386/kernel/traps.c
+@@ -477,8 +477,6 @@ static void __kprobes do_trap(int trapnr
+ 			      siginfo_t *info)
+ {
+ 	struct task_struct *tsk = current;
+-	tsk->thread.error_code = error_code;
+-	tsk->thread.trap_no = trapnr;
  
-+	pushw	%es
-+	pushw	%ds
-+	popw	%es
-+	leaw	modelist+1024, %di
-+	movw	$0x4f00, %ax
-+	int	$0x10
-+	popw	%es
-+
-+	cmpw	$0x004f, %ax
-+	jne	no_edid
-+
-+	cmpw	$0x0102, 4(%di)			# only do EDID on > 1.2
-+	jle	no_edid
-+
- 	pushw   %es				# save ES
- 	xorw    %di, %di                        # Report Capability
- 	pushw   %di
-diff -puN arch/x86_64/boot/video.S~x86-dont-probe-for-ddc-on-vbe12 arch/x86_64/boot/video.S
---- a/arch/x86_64/boot/video.S~x86-dont-probe-for-ddc-on-vbe12
-+++ a/arch/x86_64/boot/video.S
-@@ -1945,6 +1945,20 @@ store_edid:
- 	rep
- 	stosl
+ 	if (regs->eflags & VM_MASK) {
+ 		if (vm86)
+@@ -490,6 +488,18 @@ static void __kprobes do_trap(int trapnr
+ 		goto kernel_trap;
  
-+	pushw	%es
-+	pushw	%ds
-+	popw	%es
-+	leaw	modelist+1024, %di
-+	movw	$0x4f00, %ax
-+	int	$0x10
-+	popw	%es
+ 	trap_signal: {
++		/*
++		 * We want error_code and trap_no set for userspace faults and
++		 * kernelspace faults which result in die(), but not
++		 * kernelspace faults which are fixed up.  die() gives the
++		 * process no chance to handle the signal and notice the
++		 * kernel fault information, so that won't result in polluting
++		 * the information about previously queued, but not yet
++		 * delivered, faults.  See also do_general_protection below.
++		 */
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = trapnr;
 +
-+	cmpw	$0x004f, %ax
-+	jne	no_edid
+ 		if (info)
+ 			force_sig_info(signr, info, tsk);
+ 		else
+@@ -498,8 +508,11 @@ static void __kprobes do_trap(int trapnr
+ 	}
+ 
+ 	kernel_trap: {
+-		if (!fixup_exception(regs))
++		if (!fixup_exception(regs)) {
++			tsk->thread.error_code = error_code;
++			tsk->thread.trap_no = trapnr;
+ 			die(str, regs, error_code);
++		}
+ 		return;
+ 	}
+ 
+@@ -604,9 +617,6 @@ fastcall void __kprobes do_general_prote
+ 	}
+ 	put_cpu();
+ 
+-	current->thread.error_code = error_code;
+-	current->thread.trap_no = 13;
+-
+ 	if (regs->eflags & VM_MASK)
+ 		goto gp_in_vm86;
+ 
+@@ -625,6 +635,8 @@ gp_in_vm86:
+ 
+ gp_in_kernel:
+ 	if (!fixup_exception(regs)) {
++		current->thread.error_code = error_code;
++		current->thread.trap_no = 13;
+ 		if (notify_die(DIE_GPF, "general protection fault", regs,
+ 				error_code, 13, SIGSEGV) == NOTIFY_STOP)
+ 			return;
+diff -puN arch/x86_64/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution
++++ a/arch/x86_64/kernel/traps.c
+@@ -582,10 +582,20 @@ static void __kprobes do_trap(int trapnr
+ {
+ 	struct task_struct *tsk = current;
+ 
+-	tsk->thread.error_code = error_code;
+-	tsk->thread.trap_no = trapnr;
+-
+ 	if (user_mode(regs)) {
++		/*
++		 * We want error_code and trap_no set for userspace
++		 * faults and kernelspace faults which result in
++		 * die(), but not kernelspace faults which are fixed
++		 * up.  die() gives the process no chance to handle
++		 * the signal and notice the kernel fault information,
++		 * so that won't result in polluting the information
++		 * about previously queued, but not yet delivered,
++		 * faults.  See also do_general_protection below.
++		 */
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = trapnr;
 +
-+	cmpw	$0x0102, 4(%di)			# only do EDID on > 1.2
-+	jle	no_edid
+ 		if (exception_trace && unhandled_signal(tsk, signr))
+ 			printk(KERN_INFO
+ 			       "%s[%d] trap %s rip:%lx rsp:%lx error:%lx\n",
+@@ -606,8 +616,11 @@ static void __kprobes do_trap(int trapnr
+ 		fixup = search_exception_tables(regs->rip);
+ 		if (fixup)
+ 			regs->rip = fixup->fixup;
+-		else	
++		else {
++			tsk->thread.error_code = error_code;
++			tsk->thread.trap_no = trapnr;
+ 			die(str, regs, error_code);
++		}
+ 		return;
+ 	}
+ }
+@@ -683,10 +696,10 @@ asmlinkage void __kprobes do_general_pro
+ 
+ 	conditional_sti(regs);
+ 
+-	tsk->thread.error_code = error_code;
+-	tsk->thread.trap_no = 13;
+-
+ 	if (user_mode(regs)) {
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = 13;
 +
- 	pushw   %es				# save ES
- 	xorw    %di, %di                        # Report Capability
- 	pushw   %di
+ 		if (exception_trace && unhandled_signal(tsk, SIGSEGV))
+ 			printk(KERN_INFO
+ 		       "%s[%d] general protection rip:%lx rsp:%lx error:%lx\n",
+@@ -705,6 +718,9 @@ asmlinkage void __kprobes do_general_pro
+ 			regs->rip = fixup->fixup;
+ 			return;
+ 		}
++
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = 13;
+ 		if (notify_die(DIE_GPF, "general protection fault", regs,
+ 					error_code, 13, SIGSEGV) == NOTIFY_STOP)
+ 			return;
 _
 
-Patches currently in -mm which might be from zwane@infradead.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-git-agpgart.patch
-fix-mtrr-compat-ioctl.patch
-x86-dont-probe-for-ddc-on-vbe12.patch
+origin.patch
+fix-i386-and-x86_64-fault-information-pollution.patch
+uml-fix-prototypes.patch
