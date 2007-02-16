@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-psmouse-create-ps-2-protocol-options-for-kconfig.patch added to -mm tree
-Date: Thu, 15 Feb 2007 16:44:53 -0800
-Message-ID: <200702160044.l1G0isZl014204@shell0.pdx.osdl.net>
+Subject: + mm-__page_symlink-retry-loop-error-code-fix.patch added to -mm tree
+Date: Thu, 15 Feb 2007 16:47:44 -0800
+Message-ID: <200702160047.l1G0licd014584@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40907 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40973 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422950AbXBPApE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Feb 2007 19:45:04 -0500
+	id S1422963AbXBPArs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Feb 2007 19:47:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@debian.org, dtor@mail.ru
+Cc: dmonakhov@openvz.org
 
 
 The patch titled
-     input: psmouse: create PS/2 protocol options for Kconfig
+     __page_symlink retry loop error code fix
 has been added to the -mm tree.  Its filename is
-     input-psmouse-create-ps-2-protocol-options-for-kconfig.patch
+     mm-__page_symlink-retry-loop-error-code-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,100 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: input: psmouse: create PS/2 protocol options for Kconfig
-From: Andres Salomon <dilinger@debian.org>
+Subject: __page_symlink retry loop error code fix
+From: Dmitriy Monakhov <dmonakhov@openvz.org>
 
-Initial framework for disabling PS/2 protocol extensions.  The current
-protocols can only be disabled if CONFIG_EMBEDDED is selected.  No source
-files are changed, merely build stuff.
+If prepare_write or commit_write return AOP_TRUNCATED_PAGE we jump to
+"retry" label and than if find_or_create_page() failed function return
+incorrect error code.
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Dmitriy Monakhov <dmonakhov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/Kconfig  |   50 +++++++++++++++++++++++++++++++++
- drivers/input/mouse/Makefile |    7 +++-
- 2 files changed, 56 insertions(+), 1 deletion(-)
+ fs/namei.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/mouse/Kconfig~input-psmouse-create-ps-2-protocol-options-for-kconfig drivers/input/mouse/Kconfig
---- a/drivers/input/mouse/Kconfig~input-psmouse-create-ps-2-protocol-options-for-kconfig
-+++ a/drivers/input/mouse/Kconfig
-@@ -37,6 +37,56 @@ config MOUSE_PS2
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called psmouse.
+diff -puN fs/namei.c~mm-__page_symlink-retry-loop-error-code-fix fs/namei.c
+--- a/fs/namei.c~mm-__page_symlink-retry-loop-error-code-fix
++++ a/fs/namei.c
+@@ -2688,10 +2688,11 @@ int __page_symlink(struct inode *inode, 
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct page *page;
+-	int err = -ENOMEM;
++	int err;
+ 	char *kaddr;
  
-+config MOUSE_PS2_ALPS
-+	bool "ALPS PS/2 mouse protocol extension" if EMBEDDED
-+	default y
-+	depends on MOUSE_PS2
-+	---help---
-+	  Say Y here if you have an ALPS PS/2 touchpad connected to
-+	  your system.
-+
-+	  If unsure, say Y.
-+
-+config MOUSE_PS2_LOGIPS2PP
-+	bool "Logictech PS/2++ mouse protocol extension" if EMBEDDED
-+	default y
-+	depends on MOUSE_PS2
-+	---help---
-+	  Say Y here if you have a Logictech PS/2++ mouse connected to
-+	  your system.
-+
-+	  If unsure, say Y.
-+
-+config MOUSE_PS2_SYNAPTICS
-+	bool "Synaptics PS/2 mouse protocol extension" if EMBEDDED
-+	default y
-+	depends on MOUSE_PS2
-+	---help---
-+	  Say Y here if you have a Synaptics PS/2 TouchPad connected to
-+	  your system.
-+
-+	  If unsure, say Y.
-+
-+config MOUSE_PS2_LIFEBOOK
-+	bool "Fujitsu Lifebook PS/2 mouse protocol extension" if EMBEDDED
-+	default y
-+	depends on MOUSE_PS2
-+	---help---
-+	  Say Y here if you have a Fujitsu B-series Lifebook PS/2
-+	  TouchScreen connected to your system.
-+
-+	  If unsure, say Y.
-+
-+config MOUSE_PS2_TRACKPOINT
-+	bool "IBM Trackpoint PS/2 mouse protocol extension" if EMBEDDED
-+	default y
-+	depends on MOUSE_PS2
-+	---help---
-+	  Say Y here if you have an IBM Trackpoint PS/2 mouse connected
-+	  to your system.
-+
-+	  If unsure, say Y.
-+
- config MOUSE_SERIAL
- 	tristate "Serial mouse"
- 	select SERIO
-diff -puN drivers/input/mouse/Makefile~input-psmouse-create-ps-2-protocol-options-for-kconfig drivers/input/mouse/Makefile
---- a/drivers/input/mouse/Makefile~input-psmouse-create-ps-2-protocol-options-for-kconfig
-+++ a/drivers/input/mouse/Makefile
-@@ -14,4 +14,9 @@ obj-$(CONFIG_MOUSE_SERIAL)	+= sermouse.o
- obj-$(CONFIG_MOUSE_HIL)		+= hil_ptr.o
- obj-$(CONFIG_MOUSE_VSXXXAA)	+= vsxxxaa.o
- 
--psmouse-objs  := psmouse-base.o alps.o logips2pp.o synaptics.o lifebook.o trackpoint.o
-+psmouse-objs := psmouse-base.o synaptics.o
-+
-+psmouse-$(CONFIG_MOUSE_PS2_ALPS)       += alps.o
-+psmouse-$(CONFIG_MOUSE_PS2_LOGIPS2PP)  += logips2pp.o
-+psmouse-$(CONFIG_MOUSE_PS2_LIFEBOOK)   += lifebook.o
-+psmouse-$(CONFIG_MOUSE_PS2_TRACKPOINT) += trackpoint.o
+ retry:
++	err = -ENOMEM;
+ 	page = find_or_create_page(mapping, 0, gfp_mask);
+ 	if (!page)
+ 		goto fail;
 _
 
-Patches currently in -mm which might be from dilinger@debian.org are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
-input-psmouse-create-ps-2-protocol-options-for-kconfig.patch
-input-psmouse-wrap-protocol-extensions-except-synaptics-with-ifdefs.patch
-input-psmouse-allow-disabling-of-synaptics-protocol-extension.patch
+origin.patch
+mm-__page_symlink-retry-loop-error-code-fix.patch
