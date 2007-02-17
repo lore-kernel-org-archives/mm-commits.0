@@ -1,179 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - gtod-persistent-clock-support.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:13:36 -0800
-Message-ID: <200702170713.l1H7DaJA021466@shell0.pdx.osdl.net>
+Subject: - pa-risc-fix-bogus-warnings-from-modpost.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:17:12 -0800
+Message-ID: <200702170717.l1H7HC3L021774@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51231 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51235 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946543AbXBQHRQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:17:16 -0500
+	id S1946546AbXBQHRR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:17:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, bunk@stusta.de, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: matthew@wil.cx, kyle@mcmartin.ca, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     GTOD: persistent clock support
+     PA-RISC: Fix bogus warnings from modpost
 has been removed from the -mm tree.  Its filename was
-     gtod-persistent-clock-support.patch
+     pa-risc-fix-bogus-warnings-from-modpost.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: GTOD: persistent clock support
-From: John Stultz <johnstul@us.ibm.com>
+Subject: PA-RISC: Fix bogus warnings from modpost
+From: Matthew Wilcox <matthew@wil.cx>
 
-Persistent clock support: do proper timekeeping across suspend/resume.
+parisc and parisc64 seem to name sections a little differently from other
+targets.  parisc64 gives spurious warnings like:
 
-[bunk@stusta.de: cleanup]
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Adrian Bunk <bunk@stusta.de>
+WARNING: drivers/net/dummy.o - Section mismatch: reference to .init.text:dummy_setup from .data.rel.ro between '.LC1' (at offset 0x0) and '.LC6'
+
+and parisc gives spurious warnings like:
+
+WARNING: drivers/net/dummy.o - Section mismatch: reference to .init.text:dummy_setup from .rodata.cst4 between '.LC1' (at offset 0x0) and '.LC6'
+
+Given the other comments in modpost.c, it seems that the best solution is
+to move rodata down to the 'match at start of name' section and add
+.data.rel.ro to the 'match entire name' section.
+
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hrtimer.h |    3 ++
- include/linux/time.h    |    1 
- kernel/hrtimer.c        |    8 +++++++
- kernel/timer.c          |   39 +++++++++++++++++++++++++++++++++++++-
- 4 files changed, 50 insertions(+), 1 deletion(-)
+ scripts/mod/modpost.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/hrtimer.h~gtod-persistent-clock-support include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~gtod-persistent-clock-support
-+++ a/include/linux/hrtimer.h
-@@ -146,6 +146,9 @@ extern void hrtimer_init_sleeper(struct 
- /* Soft interrupt function to run the hrtimer queues: */
- extern void hrtimer_run_queues(void);
- 
-+/* Resume notification */
-+void hrtimer_notify_resume(void);
-+
- /* Bootup initialization: */
- extern void __init hrtimers_init(void);
- 
-diff -puN include/linux/time.h~gtod-persistent-clock-support include/linux/time.h
---- a/include/linux/time.h~gtod-persistent-clock-support
-+++ a/include/linux/time.h
-@@ -92,6 +92,7 @@ extern struct timespec xtime;
- extern struct timespec wall_to_monotonic;
- extern seqlock_t xtime_lock __attribute__((weak));
- 
-+extern unsigned long read_persistent_clock(void);
- void timekeeping_init(void);
- 
- static inline unsigned long get_seconds(void)
-diff -puN kernel/hrtimer.c~gtod-persistent-clock-support kernel/hrtimer.c
---- a/kernel/hrtimer.c~gtod-persistent-clock-support
-+++ a/kernel/hrtimer.c
-@@ -292,6 +292,14 @@ static unsigned long ktime_divns(const k
- #endif /* BITS_PER_LONG >= 64 */
- 
- /*
-+ * Timekeeping resumed notification
-+ */
-+void hrtimer_notify_resume(void)
-+{
-+	clock_was_set();
-+}
-+
-+/*
-  * Counterpart to lock_timer_base above:
-  */
- static inline
-diff -puN kernel/timer.c~gtod-persistent-clock-support kernel/timer.c
---- a/kernel/timer.c~gtod-persistent-clock-support
-+++ a/kernel/timer.c
-@@ -878,12 +878,27 @@ int timekeeping_is_continuous(void)
- 	return ret;
- }
- 
-+/**
-+ * read_persistent_clock -  Return time in seconds from the persistent clock.
-+ *
-+ * Weak dummy function for arches that do not yet support it.
-+ * Returns seconds from epoch using the battery backed persistent clock.
-+ * Returns zero if unsupported.
-+ *
-+ *  XXX - Do be sure to remove it once all arches implement it.
-+ */
-+unsigned long __attribute__((weak)) read_persistent_clock(void)
-+{
-+	return 0;
-+}
-+
- /*
-  * timekeeping_init - Initializes the clocksource and common timekeeping values
-  */
- void __init timekeeping_init(void)
- {
- 	unsigned long flags;
-+	unsigned long sec = read_persistent_clock();
- 
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 
-@@ -893,11 +908,20 @@ void __init timekeeping_init(void)
- 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
- 	clock->cycle_last = clocksource_read(clock);
- 
-+	xtime.tv_sec = sec;
-+	xtime.tv_nsec = 0;
-+	set_normalized_timespec(&wall_to_monotonic,
-+		-xtime.tv_sec, -xtime.tv_nsec);
-+
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
- }
- 
- 
-+/* flag for if timekeeping is suspended */
- static int timekeeping_suspended;
-+/* time in seconds when suspend began */
-+static unsigned long timekeeping_suspend_time;
-+
- /**
-  * timekeeping_resume - Resumes the generic timekeeping subsystem.
-  * @dev:	unused
-@@ -909,13 +933,25 @@ static int timekeeping_suspended;
- static int timekeeping_resume(struct sys_device *dev)
- {
- 	unsigned long flags;
-+	unsigned long now = read_persistent_clock();
- 
- 	write_seqlock_irqsave(&xtime_lock, flags);
--	/* restart the last cycle value */
-+
-+	if (now && (now > timekeeping_suspend_time)) {
-+		unsigned long sleep_length = now - timekeeping_suspend_time;
-+
-+		xtime.tv_sec += sleep_length;
-+		wall_to_monotonic.tv_sec -= sleep_length;
-+	}
-+	/* re-base the last cycle value */
- 	clock->cycle_last = clocksource_read(clock);
- 	clock->error = 0;
- 	timekeeping_suspended = 0;
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
-+
-+	touch_softlockup_watchdog();
-+	hrtimer_notify_resume();
-+
- 	return 0;
- }
- 
-@@ -925,6 +961,7 @@ static int timekeeping_suspend(struct sy
- 
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 	timekeeping_suspended = 1;
-+	timekeeping_suspend_time = read_persistent_clock();
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
- 	return 0;
- }
+diff -puN scripts/mod/modpost.c~pa-risc-fix-bogus-warnings-from-modpost scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~pa-risc-fix-bogus-warnings-from-modpost
++++ a/scripts/mod/modpost.c
+@@ -941,7 +941,7 @@ static int init_section_ref_ok(const cha
+ 		".opd",   /* see comment [OPD] at exit_section_ref_ok() */
+ 		".toc1",  /* used by ppc64 */
+ 		".stab",
+-		".rodata",
++		".data.rel.ro", /* used by parisc64 */
+ 		".parainstructions",
+ 		".text.lock",
+ 		"__bug_table", /* used by powerpc for BUG() */
+@@ -964,6 +964,7 @@ static int init_section_ref_ok(const cha
+ 		".eh_frame",
+ 		".debug",
+ 		".parainstructions",
++		".rodata",
+ 		NULL
+ 	};
+ 	/* part of section name */
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from matthew@wil.cx are
 
 origin.patch
-git-acpi.patch
-profile-likely-unlikely-macros-x86_64-fix.patch
+make-sure-nobodys-leaking-resources.patch
