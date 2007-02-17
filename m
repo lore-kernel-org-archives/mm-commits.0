@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-warning-fix.patch added to -mm tree
-Date: Sat, 17 Feb 2007 03:05:47 -0800
-Message-ID: <200702171107.l1HB751Q025352@shell0.pdx.osdl.net>
+Subject: + cafe-warning-fix.patch added to -mm tree
+Date: Sat, 17 Feb 2007 03:08:49 -0800
+Message-ID: <200702171110.l1HBA7qu025388@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56443 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56530 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946648AbXBQLHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 06:07:20 -0500
+	id S1946652AbXBQLKT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 06:10:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dgc@sgi.com
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     xfs warning fix
+     cafe warning fix
 has been added to the -mm tree.  Its filename is
-     xfs-warning-fix.patch
+     cafe-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xfs warning fix
+Subject: cafe warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/xfs/linux-2.6/xfs_super.c:903: warning: 'noinline' attribute ignored
+drivers/mtd/nand/cafe.c: In function 'cafe_nand_cmdfunc':
+drivers/mtd/nand/cafe.c:269: warning: 'irqs' may be used uninitialized in this function
 
-Cc: David Chinner <dgc@sgi.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/nand/cafe.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_super.c~xfs-warning-fix fs/xfs/linux-2.6/xfs_super.c
---- a/fs/xfs/linux-2.6/xfs_super.c~xfs-warning-fix
-+++ a/fs/xfs/linux-2.6/xfs_super.c
-@@ -900,7 +900,7 @@ static struct quotactl_ops xfs_quotactl_
- 	.set_xquota		= xfs_fs_setxquota,
- };
+diff -puN drivers/mtd/nand/cafe.c~cafe-warning-fix drivers/mtd/nand/cafe.c
+--- a/drivers/mtd/nand/cafe.c~cafe-warning-fix
++++ a/drivers/mtd/nand/cafe.c
+@@ -265,10 +265,10 @@ static void cafe_nand_cmdfunc(struct mtd
+ 	ndelay(100);
  
--STATIC struct file_system_type xfs_fs_type = {
-+static struct file_system_type xfs_fs_type = {
- 	.owner			= THIS_MODULE,
- 	.name			= "xfs",
- 	.get_sb			= xfs_fs_get_sb,
+ 	if (1) {
+-		int c = 500000;
++		int c;
+ 		uint32_t irqs;
+ 
+-		while (c--) {
++		for (c = 500000; c != 0; c--) {
+ 			irqs = cafe_readl(cafe, NAND_IRQ);
+ 			if (irqs & doneint)
+ 				break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+xfs-warning-fix.patch
 make-aout-executables-work-again-fix.patch
 git-acpi.patch
 git-arm.patch
@@ -103,4 +109,4 @@ utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
 fb-sm501-framebuffer-driver-5-fix.patch
 git-gccbug-fixup.patch
-xfs-warning-fix.patch
+cafe-warning-fix.patch
