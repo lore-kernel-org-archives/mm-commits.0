@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sc520cdp-warning-fix.patch added to -mm tree
-Date: Sat, 17 Feb 2007 02:40:05 -0800
-Message-ID: <200702171041.l1HAfNQT024946@shell0.pdx.osdl.net>
+Subject: + netsc520-warning-fix.patch added to -mm tree
+Date: Sat, 17 Feb 2007 02:41:21 -0800
+Message-ID: <200702171042.l1HAgdw9024968@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55463 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55527 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965153AbXBQKlg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 05:41:36 -0500
+	id S932698AbXBQKmv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 05:42:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     sc520cdp warning fix
+     netsc520 warning fix
 has been added to the -mm tree.  Its filename is
-     sc520cdp-warning-fix.patch
+     netsc520-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sc520cdp warning fix
+Subject: netsc520 warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/maps/sc520cdp.c:241: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'resource_size_t'
 drivers/mtd/maps/netsc520.c: In function 'init_netsc520':
+drivers/mtd/maps/netsc520.c:97: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'resource_size_t'
 
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/sc520cdp.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/mtd/maps/netsc520.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/maps/sc520cdp.c~sc520cdp-warning-fix drivers/mtd/maps/sc520cdp.c
---- a/drivers/mtd/maps/sc520cdp.c~sc520cdp-warning-fix
-+++ a/drivers/mtd/maps/sc520cdp.c
-@@ -237,8 +237,9 @@ static int __init init_sc520cdp(void)
- #endif
+diff -puN drivers/mtd/maps/netsc520.c~netsc520-warning-fix drivers/mtd/maps/netsc520.c
+--- a/drivers/mtd/maps/netsc520.c~netsc520-warning-fix
++++ a/drivers/mtd/maps/netsc520.c
+@@ -94,7 +94,9 @@ static struct mtd_info *mymtd;
  
- 	for (i = 0; i < NUM_FLASH_BANKS; i++) {
--		printk(KERN_NOTICE "SC520 CDP flash device: 0x%lx at 0x%lx\n",
--		       sc520cdp_map[i].size, sc520cdp_map[i].phys);
-+		printk(KERN_NOTICE "SC520 CDP flash device: 0x%Lx at 0x%Lx\n",
-+			(unsigned long long)sc520cdp_map[i].size,
-+			(unsigned long long)sc520cdp_map[i].phys);
+ static int __init init_netsc520(void)
+ {
+-	printk(KERN_NOTICE "NetSc520 flash device: 0x%lx at 0x%lx\n", netsc520_map.size, netsc520_map.phys);
++	printk(KERN_NOTICE "NetSc520 flash device: 0x%Lx at 0x%Lx\n",
++			(unsigned long long)netsc520_map.size,
++			(unsigned long long)netsc520_map.phys);
+ 	netsc520_map.virt = ioremap_nocache(netsc520_map.phys, netsc520_map.size);
  
- 		sc520cdp_map[i].virt = ioremap_nocache(sc520cdp_map[i].phys, sc520cdp_map[i].size);
- 
+ 	if (!netsc520_map.virt) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +70,7 @@ dmaengine-uninline-large-functions.patch
 git-mips-fixup.patch
 git-mtd.patch
 onenand_base-warning-fix.patch
+sc520cdp-warning-fix.patch
 git-netdev-all.patch
 e1000-fix-shared-interrupt-warning-message-fix.patch
 Fabric7-VIOC-driver-fixes.patch
@@ -97,4 +97,4 @@ utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
 fb-sm501-framebuffer-driver-5-fix.patch
 git-gccbug-fixup.patch
-sc520cdp-warning-fix.patch
+netsc520-warning-fix.patch
