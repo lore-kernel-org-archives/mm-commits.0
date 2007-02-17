@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + softlockup-trivial-s-99-max_rt_prio.patch added to -mm tree
-Date: Fri, 16 Feb 2007 14:50:54 -0800
-Message-ID: <200702162250.l1GMosTg012069@shell0.pdx.osdl.net>
+Subject: + ds1374-check-for-workqueue-creation.patch added to -mm tree
+Date: Fri, 16 Feb 2007 17:26:23 -0800
+Message-ID: <200702170126.l1H1QNq0015718@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39893 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43846 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751615AbXBPWvG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 17:51:06 -0500
+	id S1946360AbXBQB0Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 20:26:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, mingo@elte.hu
+Cc: gorcunov@gmail.com
 
 
 The patch titled
-     softlockup: s/99/MAX_RT_PRIO/
+     DS1374: check for workqueue creation
 has been added to the -mm tree.  Its filename is
-     softlockup-trivial-s-99-max_rt_prio.patch
+     ds1374-check-for-workqueue-creation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,92 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: softlockup: s/99/MAX_RT_PRIO/
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: DS1374: check for workqueue creation
+From: "Cyrill V. Gorcunov" <gorcunov@gmail.com>
 
-Don't use hardcoded 99 value, use MAX_RT_PRIO.
+Check if workqueue creation failed.  Further usage of NULL pointed
+workqueue is not good I guess ;)
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Cyrill V. Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/i2c/chips/ds1374.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN kernel/softlockup.c~softlockup-trivial-s-99-max_rt_prio kernel/softlockup.c
---- a/kernel/softlockup.c~softlockup-trivial-s-99-max_rt_prio
-+++ a/kernel/softlockup.c
-@@ -82,7 +82,7 @@ void softlockup_tick(void)
-  */
- static int watchdog(void * __bind_cpu)
- {
--	struct sched_param param = { .sched_priority = 99 };
-+	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
+diff -puN drivers/i2c/chips/ds1374.c~ds1374-check-for-workqueue-creation drivers/i2c/chips/ds1374.c
+--- a/drivers/i2c/chips/ds1374.c~ds1374-check-for-workqueue-creation
++++ a/drivers/i2c/chips/ds1374.c
+@@ -207,6 +207,10 @@ static int ds1374_probe(struct i2c_adapt
+ 	client->driver = &ds1374_driver;
  
- 	sched_setscheduler(current, SCHED_FIFO, &param);
- 	current->flags |= PF_NOFREEZE;
+ 	ds1374_workqueue = create_singlethread_workqueue("ds1374");
++	if (!ds1374_workqueue) {
++		kfree(client);
++		return -ENOMEM;	/* most expected reason */
++	}
+ 
+ 	if ((rc = i2c_attach_client(client)) != 0) {
+ 		kfree(client);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-posix-timers-rcu-optimization-for-clock_gettime.patch
-git-block.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-make-queue_delayed_work-friendly-to-flush_fork.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch
-workqueue-introduce-wq_per_cpu-helper.patch
-make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
-ipvs-flush-defense_work-before-module-unload.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
-rework-compat_sys_io_submit.patch
-fix-aioh-includes.patch
-fix-access_ok-checks.patch
-make-good_sigevent-non-static.patch
-make-good_sigevent-non-static-fix.patch
-make-__sigqueue_free-and.patch
-aio-completion-signal-notification.patch
-aio-completion-signal-notification-fix.patch
-aio-completion-signal-notification-fixes-and-cleanups.patch
-aio-completion-signal-notification-small-cleanup.patch
-add-listio-syscall-support.patch
+ds1374-check-for-workqueue-creation.patch
+git-input.patch
