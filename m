@@ -1,78 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: + spi_s3c2410_gpioc-spi-mode-2-and-3-support.patch added to -mm tree
-Date: Fri, 16 Feb 2007 17:47:36 -0800
-Message-ID: <200702170147.l1H1laDG016080@shell0.pdx.osdl.net>
+Subject: - powerpc-move-of_irq_to_resource-to-prom_parsec.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 17:57:14 -0800
+Message-ID: <200702170157.l1H1vE4L016240@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44177 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44372 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932632AbXBQBsU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 20:48:20 -0500
+	id S932623AbXBQB53 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 20:57:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: laforge@openmoko.org, ben-linux@fluff.org, dbrownell@users.sourceforge.net
+To: mathieu.desnoyers@polymtl.ca, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_s3c2410_gpio.c spi mode 2 and 3 support
-has been added to the -mm tree.  Its filename is
-     spi_s3c2410_gpioc-spi-mode-2-and-3-support.patch
+     move of_irq_to_resource to prom_parse.c (powerpc)
+has been removed from the -mm tree.  Its filename was
+     powerpc-move-of_irq_to_resource-to-prom_parsec.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: spi_s3c2410_gpio.c spi mode 2 and 3 support
-From: Harald Welte <laforge@openmoko.org>
+Subject: move of_irq_to_resource to prom_parse.c (powerpc)
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Add transfer modes 2 and 3 to the S3C24XX gpio SPI driver
+Here is the patch that follows Benjamin Herrenschmidt's comments to move
+of_irq_to_resource from prom.h to prom_parse.c. It solves the following issue :
 
-Signed-off-by: Harald Welte <laforge@openmoko.org>
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> include/asm/prom.h: In function `of_irq_to_resource':
+> include/asm/prom.h:339: warning: implicit declaration of function `irq_of_parse_and_map'
+> include/asm/prom.h:343: error: `NO_IRQ' undeclared (first use in this function)
+> include/asm/prom.h:343: error: (Each undeclared identifier is reported only once
+> include/asm/prom.h:343: error: for each function it appears in.)
+>
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_s3c24xx_gpio.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+)
+ arch/powerpc/kernel/prom_parse.c |   15 +++++++++++++++
+ include/asm-powerpc/prom.h       |   17 +++--------------
+ 2 files changed, 18 insertions(+), 14 deletions(-)
 
-diff -puN drivers/spi/spi_s3c24xx_gpio.c~spi_s3c2410_gpioc-spi-mode-2-and-3-support drivers/spi/spi_s3c24xx_gpio.c
---- a/drivers/spi/spi_s3c24xx_gpio.c~spi_s3c2410_gpioc-spi-mode-2-and-3-support
-+++ a/drivers/spi/spi_s3c24xx_gpio.c
-@@ -73,6 +73,19 @@ static u32 s3c2410_spigpio_txrx_mode1(st
- 	return bitbang_txrx_be_cpha1(spi, nsecs, 0, word, bits);
+diff -puN arch/powerpc/kernel/prom_parse.c~powerpc-move-of_irq_to_resource-to-prom_parsec arch/powerpc/kernel/prom_parse.c
+--- a/arch/powerpc/kernel/prom_parse.c~powerpc-move-of_irq_to_resource-to-prom_parsec
++++ a/arch/powerpc/kernel/prom_parse.c
+@@ -1003,3 +1003,18 @@ int of_irq_map_one(struct device_node *d
+ 	return res;
  }
- 
-+static u32 s3c2410_spigpio_txrx_mode2(struct spi_device *spi,
-+				      unsigned nsecs, u32 word, u8 bits)
+ EXPORT_SYMBOL_GPL(of_irq_map_one);
++
++int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
 +{
-+	return bitbang_txrx_be_cpha0(spi, nsecs, 1, word, bits);
++	int irq = irq_of_parse_and_map(dev, index);
++
++	/* Only dereference the resource if both the
++	 * resource and the irq are valid. */
++	if (r && irq != NO_IRQ) {
++		r->start = r->end = irq;
++		r->flags = IORESOURCE_IRQ;
++	}
++
++	return irq;
 +}
-+
-+static u32 s3c2410_spigpio_txrx_mode3(struct spi_device *spi,
-+				      unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha1(spi, nsecs, 1, word, bits);
-+}
-+
-+
- static void s3c2410_spigpio_chipselect(struct spi_device *dev, int value)
- {
- 	struct s3c2410_spigpio *sg = spidev_to_sg(dev);
-@@ -108,6 +121,8 @@ static int s3c2410_spigpio_probe(struct 
++EXPORT_SYMBOL_GPL(of_irq_to_resource);
+diff -puN include/asm-powerpc/prom.h~powerpc-move-of_irq_to_resource-to-prom_parsec include/asm-powerpc/prom.h
+--- a/include/asm-powerpc/prom.h~powerpc-move-of_irq_to_resource-to-prom_parsec
++++ a/include/asm-powerpc/prom.h
+@@ -19,6 +19,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/platform_device.h>
+ #include <asm/atomic.h>
++#include <asm/irq.h>
  
- 	sp->bitbang.txrx_word[SPI_MODE_0] = s3c2410_spigpio_txrx_mode0;
- 	sp->bitbang.txrx_word[SPI_MODE_1] = s3c2410_spigpio_txrx_mode1;
-+	sp->bitbang.txrx_word[SPI_MODE_2] = s3c2410_spigpio_txrx_mode2;
-+	sp->bitbang.txrx_word[SPI_MODE_3] = s3c2410_spigpio_txrx_mode3;
+ /* Definitions used by the flattened device tree */
+ #define OF_DT_HEADER		0xd00dfeed	/* marker */
+@@ -334,20 +335,8 @@ extern int of_irq_map_one(struct device_
+ struct pci_dev;
+ extern int of_irq_map_pci(struct pci_dev *pdev, struct of_irq *out_irq);
  
- 	/* set state of spi pins */
- 	s3c2410_gpio_setpin(sp->info->pin_clk, 0);
+-static inline int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
+-{
+-	int irq = irq_of_parse_and_map(dev, index);
+-
+-	/* Only dereference the resource if both the
+-	 * resource and the irq are valid. */
+-	if (r && irq != NO_IRQ) {
+-		r->start = r->end = irq;
+-		r->flags = IORESOURCE_IRQ;
+-	}
+-
+-	return irq;
+-}
+-
++extern int of_irq_to_resource(struct device_node *dev, int index,
++			struct resource *r);
+ 
+ #endif /* __KERNEL__ */
+ #endif /* _POWERPC_PROM_H */
 _
 
-Patches currently in -mm which might be from laforge@openmoko.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-spi_s3c2410_gpioc-spi-mode-2-and-3-support.patch
+origin.patch
+git-powerpc.patch
+powerpc-move-of_irq_to_resource-to-prom_parsec.patch
+git-mips.patch
+git-s390.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+local_t-architecture-independant-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-mips-extension-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-powerpc-extension-fix.patch
+local_t-powerpc-extension-shrink-powerpc-localh.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-kconfig-menus-fix-2.patch
+linux-kernel-markers-kconfig-menus-fix-3.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-non-optimized-architectures.patch
+linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-fix.patch
+linux-kernel-markers-documentation-update-adds-context.patch
+linux-kernel-markers-documentation-update-markerh.patch
