@@ -1,844 +1,363 @@
 From: akpm@linux-foundation.org
-Subject: - time-x86_64-convert-x86_64-to-use-generic_time.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:15:38 -0800
-Message-ID: <200702170715.l1H7FcQa021653@shell0.pdx.osdl.net>
+Subject: - hrtimers-namespace-and-enum-cleanup.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:14:22 -0800
+Message-ID: <200702170714.l1H7EM53021521@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51542 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51567 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946607AbXBQHZy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:25:54 -0500
+	id S1946464AbXBQH1p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:27:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, ak@muc.de, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, dtor@mail.ru, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: x86_64: convert x86_64 to use GENERIC_TIME
+     hrtimers: namespace and enum cleanup
 has been removed from the -mm tree.  Its filename was
-     time-x86_64-convert-x86_64-to-use-generic_time.patch
+     hrtimers-namespace-and-enum-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: time: x86_64: convert x86_64 to use GENERIC_TIME
-From: john stultz <johnstul@us.ibm.com>
+Subject: hrtimers: namespace and enum cleanup
+From: Thomas Gleixner <tglx@linutronix.de>
 
-This patch converts x86_64 to use the GENERIC_TIME infrastructure and adds
-clocksource structures for both TSC and HPET (ACPI PM is shared w/ i386).
+- hrtimers did not use the hrtimer_restart enum and relied on the implict
+  int representation. Fix the prototypes and the functions using the enums.
+- Use seperate name spaces for the enumerations
+- Convert hrtimer_restart macro to inline function
+- Add comments
 
-[akpm@osdl.org: fix printk timestamps]
-[akpm@osdl.org: fix printk ckeanups]
-[akpm@osdl.org: hpet build fix]
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@muc.de>
+No functional changes.
+
+[akpm@osdl.org: fix input driver]
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/Kconfig            |    4 
- arch/x86_64/kernel/apic.c      |    2 
- arch/x86_64/kernel/hpet.c      |   64 +++++-
- arch/x86_64/kernel/pmtimer.c   |   58 -----
- arch/x86_64/kernel/smpboot.c   |    1 
- arch/x86_64/kernel/time.c      |  300 -------------------------------
- arch/x86_64/kernel/tsc.c       |  103 +++++-----
- drivers/char/hangcheck-timer.c |    2 
- include/asm-x86_64/proto.h     |    2 
- include/asm-x86_64/timex.h     |    5 
- 10 files changed, 126 insertions(+), 415 deletions(-)
+ drivers/input/touchscreen/ads7846.c |   11 ++++++-----
+ include/linux/hrtimer.h             |   20 ++++++++++++--------
+ include/linux/timer.h               |    2 +-
+ kernel/fork.c                       |    2 +-
+ kernel/futex.c                      |    2 +-
+ kernel/hrtimer.c                    |   18 +++++++++---------
+ kernel/itimer.c                     |    4 ++--
+ kernel/posix-timers.c               |   13 +++++++------
+ kernel/rtmutex.c                    |    2 +-
+ 9 files changed, 40 insertions(+), 34 deletions(-)
 
-diff -puN arch/x86_64/Kconfig~time-x86_64-convert-x86_64-to-use-generic_time arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~time-x86_64-convert-x86_64-to-use-generic_time
-+++ a/arch/x86_64/Kconfig
-@@ -24,6 +24,10 @@ config X86
- 	bool
- 	default y
+diff -puN drivers/input/touchscreen/ads7846.c~hrtimers-namespace-and-enum-cleanup drivers/input/touchscreen/ads7846.c
+--- a/drivers/input/touchscreen/ads7846.c~hrtimers-namespace-and-enum-cleanup
++++ a/drivers/input/touchscreen/ads7846.c
+@@ -546,7 +546,7 @@ static void ads7846_rx(void *ads)
+ 			ts->spi->dev.bus_id, ts->tc.ignore, Rt);
+ #endif
+ 		hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD),
+-			      HRTIMER_REL);
++			      HRTIMER_MODE_REL);
+ 		return;
+ 	}
  
-+config GENERIC_TIME
-+	bool
-+	default y
-+
- config ZONE_DMA32
- 	bool
- 	default y
-diff -puN arch/x86_64/kernel/apic.c~time-x86_64-convert-x86_64-to-use-generic_time arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~time-x86_64-convert-x86_64-to-use-generic_time
-+++ a/arch/x86_64/kernel/apic.c
-@@ -786,7 +786,7 @@ static void setup_APIC_timer(unsigned in
- 	/* Turn off PIT interrupt if we use APIC timer as main timer.
- 	   Only works with the PM timer right now
- 	   TBD fix it for HPET too. */
--	if (vxtime.mode == VXTIME_PMTMR &&
-+	if ((pmtmr_ioport != 0) &&
- 		smp_processor_id() == boot_cpu_id &&
- 		apic_runs_main_timer == 1 &&
- 		!cpu_isset(boot_cpu_id, timer_interrupt_broadcast_ipi_mask)) {
-diff -puN arch/x86_64/kernel/hpet.c~time-x86_64-convert-x86_64-to-use-generic_time arch/x86_64/kernel/hpet.c
---- a/arch/x86_64/kernel/hpet.c~time-x86_64-convert-x86_64-to-use-generic_time
-+++ a/arch/x86_64/kernel/hpet.c
-@@ -21,12 +21,6 @@ unsigned long hpet_tick;	/* HPET clocks 
- int hpet_use_timer;		/* Use counter of hpet for time keeping,
- 				 * otherwise PIT
- 				 */
--unsigned int do_gettimeoffset_hpet(void)
--{
--	/* cap counter read to one tick to avoid inconsistencies */
--	unsigned long counter = hpet_readl(HPET_COUNTER) - vxtime.last;
--	return (min(counter,hpet_tick) * vxtime.quot) >> US_SCALE;
--}
+@@ -578,7 +578,8 @@ static void ads7846_rx(void *ads)
+ #endif
+ 	}
  
- #ifdef	CONFIG_HPET
- static __init int late_hpet_init(void)
-@@ -451,3 +445,61 @@ static int __init nohpet_setup(char *s)
- 
- __setup("nohpet", nohpet_setup);
- 
-+#define HPET_MASK	0xFFFFFFFF
-+#define HPET_SHIFT	22
-+
-+/* FSEC = 10^-15 NSEC = 10^-9 */
-+#define FSEC_PER_NSEC	1000000
-+
-+static void *hpet_ptr;
-+
-+static cycle_t read_hpet(void)
-+{
-+	return (cycle_t)readl(hpet_ptr);
-+}
-+
-+struct clocksource clocksource_hpet = {
-+	.name		= "hpet",
-+	.rating		= 250,
-+	.read		= read_hpet,
-+	.mask		= (cycle_t)HPET_MASK,
-+	.mult		= 0, /* set below */
-+	.shift		= HPET_SHIFT,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
-+};
-+
-+static int __init init_hpet_clocksource(void)
-+{
-+	unsigned long hpet_period;
-+	void __iomem *hpet_base;
-+	u64 tmp;
-+
-+	if (!hpet_address)
-+		return -ENODEV;
-+
-+	/* calculate the hpet address: */
-+	hpet_base = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
-+	hpet_ptr = hpet_base + HPET_COUNTER;
-+
-+	/* calculate the frequency: */
-+	hpet_period = readl(hpet_base + HPET_PERIOD);
-+
-+	/*
-+	 * hpet period is in femto seconds per cycle
-+	 * so we need to convert this to ns/cyc units
-+	 * aproximated by mult/2^shift
-+	 *
-+	 *  fsec/cyc * 1nsec/1000000fsec = nsec/cyc = mult/2^shift
-+	 *  fsec/cyc * 1ns/1000000fsec * 2^shift = mult
-+	 *  fsec/cyc * 2^shift * 1nsec/1000000fsec = mult
-+	 *  (fsec/cyc << shift)/1000000 = mult
-+	 *  (hpet_period << shift)/FSEC_PER_NSEC = mult
-+	 */
-+	tmp = (u64)hpet_period << HPET_SHIFT;
-+	do_div(tmp, FSEC_PER_NSEC);
-+	clocksource_hpet.mult = (u32)tmp;
-+
-+	return clocksource_register(&clocksource_hpet);
-+}
-+
-+module_init(init_hpet_clocksource);
-diff -puN arch/x86_64/kernel/pmtimer.c~time-x86_64-convert-x86_64-to-use-generic_time arch/x86_64/kernel/pmtimer.c
---- a/arch/x86_64/kernel/pmtimer.c~time-x86_64-convert-x86_64-to-use-generic_time
-+++ a/arch/x86_64/kernel/pmtimer.c
-@@ -24,15 +24,6 @@
- #include <asm/msr.h>
- #include <asm/vsyscall.h>
- 
--/* The I/O port the PMTMR resides at.
-- * The location is detected during setup_arch(),
-- * in arch/i386/kernel/acpi/boot.c */
--u32 pmtmr_ioport __read_mostly;
--
--/* value of the Power timer at last timer interrupt */
--static u32 offset_delay;
--static u32 last_pmtmr_tick;
--
- #define ACPI_PM_MASK 0xFFFFFF /* limit it to 24 bits */
- 
- static inline u32 cyc2us(u32 cycles)
-@@ -48,38 +39,6 @@ static inline u32 cyc2us(u32 cycles)
- 	return (cycles >> 10);
+-	hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD), HRTIMER_REL);
++	hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD),
++			HRTIMER_MODE_REL);
  }
  
--int pmtimer_mark_offset(void)
--{
--	static int first_run = 1;
--	unsigned long tsc;
--	u32 lost;
--
--	u32 tick = inl(pmtmr_ioport);
--	u32 delta;
--
--	delta = cyc2us((tick - last_pmtmr_tick) & ACPI_PM_MASK);
--
--	last_pmtmr_tick = tick;
--	monotonic_base += delta * NSEC_PER_USEC;
--
--	delta += offset_delay;
--
--	lost = delta / (USEC_PER_SEC / HZ);
--	offset_delay = delta % (USEC_PER_SEC / HZ);
--
--	rdtscll(tsc);
--	vxtime.last_tsc = tsc - offset_delay * (u64)cpu_khz / 1000;
--
--	/* don't calculate delay for first run,
--	   or if we've got less then a tick */
--	if (first_run || (lost < 1)) {
--		first_run = 0;
--		offset_delay = 0;
--	}
--
--	return lost - 1;
--}
--
- static unsigned pmtimer_wait_tick(void)
- {
- 	u32 a, b;
-@@ -101,23 +60,6 @@ void pmtimer_wait(unsigned us)
- 	} while (cyc2us(b - a) < us);
+ static int ads7846_debounce(void *ads, int data_idx, int *val)
+@@ -667,7 +668,7 @@ static void ads7846_rx_val(void *ads)
+ 				status);
  }
  
--void pmtimer_resume(void)
--{
--	last_pmtmr_tick = inl(pmtmr_ioport);
--}
--
--unsigned int do_gettimeoffset_pm(void)
--{
--	u32 now, offset, delta = 0;
--
--	offset = last_pmtmr_tick;
--	now = inl(pmtmr_ioport);
--	delta = (now - offset) & ACPI_PM_MASK;
--
--	return offset_delay + cyc2us(delta);
--}
--
--
- static int __init nopmtimer_setup(char *s)
+-static int ads7846_timer(struct hrtimer *handle)
++static enum hrtimer_restart ads7846_timer(struct hrtimer *handle)
  {
- 	pmtmr_ioport = 0;
-diff -puN arch/x86_64/kernel/smpboot.c~time-x86_64-convert-x86_64-to-use-generic_time arch/x86_64/kernel/smpboot.c
---- a/arch/x86_64/kernel/smpboot.c~time-x86_64-convert-x86_64-to-use-generic_time
-+++ a/arch/x86_64/kernel/smpboot.c
-@@ -982,7 +982,6 @@ void __init smp_cpus_done(unsigned int m
- 	smp_cleanup_boot();
- 	setup_ioapic_dest();
- 	check_nmi_watchdog();
--	time_init_gtod();
- }
+ 	struct ads7846	*ts = container_of(handle, struct ads7846, timer);
+ 	int		status = 0;
+@@ -724,7 +725,7 @@ static irqreturn_t ads7846_irq(int irq, 
+ 			disable_irq(ts->spi->irq);
+ 			ts->pending = 1;
+ 			hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_DELAY),
+-					HRTIMER_REL);
++					HRTIMER_MODE_REL);
+ 		}
+ 	}
+ 	spin_unlock_irqrestore(&ts->lock, flags);
+@@ -862,7 +863,7 @@ static int __devinit ads7846_probe(struc
+ 	ts->spi = spi;
+ 	ts->input = input_dev;
  
- #ifdef CONFIG_HOTPLUG_CPU
-diff -puN arch/x86_64/kernel/time.c~time-x86_64-convert-x86_64-to-use-generic_time arch/x86_64/kernel/time.c
---- a/arch/x86_64/kernel/time.c~time-x86_64-convert-x86_64-to-use-generic_time
-+++ a/arch/x86_64/kernel/time.c
-@@ -44,9 +44,6 @@
- #include <asm/apic.h>
- #include <asm/hpet.h>
+-	hrtimer_init(&ts->timer, CLOCK_MONOTONIC, HRTIMER_REL);
++	hrtimer_init(&ts->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 	ts->timer.function = ads7846_timer;
  
--#ifdef CONFIG_CPU_FREQ
--extern void cpufreq_delayed_get(void);
--#endif
- extern void i8254_timer_resume(void);
- extern int using_apic_timer;
- 
-@@ -57,8 +54,6 @@ EXPORT_SYMBOL(rtc_lock);
- DEFINE_SPINLOCK(i8253_lock);
- 
- unsigned long vxtime_hz = PIT_TICK_RATE;
--int report_lost_ticks;				/* command line option */
--unsigned long long monotonic_base;
- 
- struct vxtime_data __vxtime __section_vxtime;	/* for vsyscalls */
- 
-@@ -66,76 +61,6 @@ volatile unsigned long __jiffies __secti
- struct timespec __xtime __section_xtime;
- struct timezone __sys_tz __section_sys_tz;
- 
--unsigned int (*do_gettimeoffset)(void) = do_gettimeoffset_tsc;
--
--/*
-- * This version of gettimeofday() has microsecond resolution and better than
-- * microsecond precision, as we're using at least a 10 MHz (usually 14.31818
-- * MHz) HPET timer.
-- */
--
--void do_gettimeofday(struct timeval *tv)
--{
--	unsigned long seq;
-- 	unsigned int sec, usec;
--
--	do {
--		seq = read_seqbegin(&xtime_lock);
--
--		sec = xtime.tv_sec;
--		usec = xtime.tv_nsec / NSEC_PER_USEC;
--
--		/* i386 does some correction here to keep the clock 
--		   monotonous even when ntpd is fixing drift.
--		   But they didn't work for me, there is a non monotonic
--		   clock anyways with ntp.
--		   I dropped all corrections now until a real solution can
--		   be found. Note when you fix it here you need to do the same
--		   in arch/x86_64/kernel/vsyscall.c and export all needed
--		   variables in vmlinux.lds. -AK */ 
--		usec += do_gettimeoffset();
--
--	} while (read_seqretry(&xtime_lock, seq));
--
--	tv->tv_sec = sec + usec / USEC_PER_SEC;
--	tv->tv_usec = usec % USEC_PER_SEC;
--}
--
--EXPORT_SYMBOL(do_gettimeofday);
--
--/*
-- * settimeofday() first undoes the correction that gettimeofday would do
-- * on the time, and then saves it. This is ugly, but has been like this for
-- * ages already.
-- */
--
--int do_settimeofday(struct timespec *tv)
--{
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
--
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_seqlock_irq(&xtime_lock);
--
--	nsec -= do_gettimeoffset() * NSEC_PER_USEC;
--
--	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
--
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
--
--	ntp_clear();
--
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--	return 0;
--}
--
--EXPORT_SYMBOL(do_settimeofday);
--
- unsigned long profile_pc(struct pt_regs *regs)
- {
- 	unsigned long pc = instruction_pointer(regs);
-@@ -225,85 +150,9 @@ static void set_rtc_mmss(unsigned long n
- }
- 
- 
--/* monotonic_clock(): returns # of nanoseconds passed since time_init()
-- *		Note: This function is required to return accurate
-- *		time even in the absence of multiple timer ticks.
-- */
--extern unsigned long long cycles_2_ns(unsigned long long cyc);
--unsigned long long monotonic_clock(void)
--{
--	unsigned long seq;
-- 	u32 last_offset, this_offset, offset;
--	unsigned long long base;
--
--	if (vxtime.mode == VXTIME_HPET) {
--		do {
--			seq = read_seqbegin(&xtime_lock);
--
--			last_offset = vxtime.last;
--			base = monotonic_base;
--			this_offset = hpet_readl(HPET_COUNTER);
--		} while (read_seqretry(&xtime_lock, seq));
--		offset = (this_offset - last_offset);
--		offset *= NSEC_PER_TICK / hpet_tick;
--	} else {
--		do {
--			seq = read_seqbegin(&xtime_lock);
--
--			last_offset = vxtime.last_tsc;
--			base = monotonic_base;
--		} while (read_seqretry(&xtime_lock, seq));
--		this_offset = get_cycles_sync();
--		offset = cycles_2_ns(this_offset - last_offset);
--	}
--	return base + offset;
--}
--EXPORT_SYMBOL(monotonic_clock);
--
--static noinline void handle_lost_ticks(int lost)
--{
--	static long lost_count;
--	static int warned;
--	if (report_lost_ticks) {
--		printk(KERN_WARNING "time.c: Lost %d timer tick(s)! ", lost);
--		print_symbol("rip %s)\n", get_irq_regs()->rip);
--	}
--
--	if (lost_count == 1000 && !warned) {
--		printk(KERN_WARNING "warning: many lost ticks.\n"
--		       KERN_WARNING "Your time source seems to be instable or "
--		   		"some driver is hogging interupts\n");
--		print_symbol("rip %s\n", get_irq_regs()->rip);
--		if (vxtime.mode == VXTIME_TSC && hpet_address) {
--			printk(KERN_WARNING "Falling back to HPET\n");
--			if (hpet_use_timer)
--				vxtime.last = hpet_readl(HPET_T0_CMP) - 
--							hpet_tick;
--			else
--				vxtime.last = hpet_readl(HPET_COUNTER);
--			vxtime.mode = VXTIME_HPET;
--			vxtime.hpet_address = hpet_address;
--			do_gettimeoffset = do_gettimeoffset_hpet;
--		}
--		/* else should fall back to PIT, but code missing. */
--		warned = 1;
--	} else
--		lost_count++;
--
--#ifdef CONFIG_CPU_FREQ
--	/* In some cases the CPU can change frequency without us noticing
--	   Give cpufreq a change to catch up. */
--	if ((lost_count+1) % 25 == 0)
--		cpufreq_delayed_get();
--#endif
--}
--
- void main_timer_handler(void)
- {
- 	static unsigned long rtc_update = 0;
--	unsigned long tsc;
--	int delay = 0, offset = 0, lost = 0;
--
- /*
-  * Here we are in the timer irq handler. We have irqs locally disabled (so we
-  * don't need spin_lock_irqsave()) but we don't know if the timer_bh is running
-@@ -313,72 +162,11 @@ void main_timer_handler(void)
- 
- 	write_seqlock(&xtime_lock);
- 
--	if (hpet_address)
--		offset = hpet_readl(HPET_COUNTER);
--
--	if (hpet_use_timer) {
--		/* if we're using the hpet timer functionality,
--		 * we can more accurately know the counter value
--		 * when the timer interrupt occured.
--		 */
--		offset = hpet_readl(HPET_T0_CMP) - hpet_tick;
--		delay = hpet_readl(HPET_COUNTER) - offset;
--	} else if (!pmtmr_ioport) {
--		spin_lock(&i8253_lock);
--		outb_p(0x00, 0x43);
--		delay = inb_p(0x40);
--		delay |= inb(0x40) << 8;
--		spin_unlock(&i8253_lock);
--		delay = LATCH - 1 - delay;
--	}
--
--	tsc = get_cycles_sync();
--
--	if (vxtime.mode == VXTIME_HPET) {
--		if (offset - vxtime.last > hpet_tick) {
--			lost = (offset - vxtime.last) / hpet_tick - 1;
--		}
--
--		monotonic_base += 
--			(offset - vxtime.last) * NSEC_PER_TICK / hpet_tick;
--
--		vxtime.last = offset;
--#ifdef CONFIG_X86_PM_TIMER
--	} else if (vxtime.mode == VXTIME_PMTMR) {
--		lost = pmtimer_mark_offset();
--#endif
--	} else {
--		offset = (((tsc - vxtime.last_tsc) *
--			   vxtime.tsc_quot) >> US_SCALE) - USEC_PER_TICK;
--
--		if (offset < 0)
--			offset = 0;
--
--		if (offset > USEC_PER_TICK) {
--			lost = offset / USEC_PER_TICK;
--			offset %= USEC_PER_TICK;
--		}
--
--		monotonic_base += cycles_2_ns(tsc - vxtime.last_tsc);
--
--		vxtime.last_tsc = tsc - vxtime.quot * delay / vxtime.tsc_quot;
--
--		if ((((tsc - vxtime.last_tsc) *
--		      vxtime.tsc_quot) >> US_SCALE) < offset)
--			vxtime.last_tsc = tsc -
--				(((long) offset << US_SCALE) / vxtime.tsc_quot) - 1;
--	}
--
--	if (lost > 0)
--		handle_lost_ticks(lost);
--	else
--		lost = 0;
--
- /*
-  * Do the timer stuff.
+ 	spin_lock_init(&ts->lock);
+diff -puN include/linux/hrtimer.h~hrtimers-namespace-and-enum-cleanup include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~hrtimers-namespace-and-enum-cleanup
++++ a/include/linux/hrtimer.h
+@@ -25,17 +25,18 @@
+  * Mode arguments of xxx_hrtimer functions:
   */
- 
--	do_timer(lost + 1);
-+	do_timer(1);
- #ifndef CONFIG_SMP
- 	update_process_times(user_mode(get_irq_regs()));
- #endif
-@@ -537,12 +325,6 @@ void __init stop_timer_interrupt(void)
- 	printk(KERN_INFO "timer: %s interrupt stopped.\n", name);
- }
- 
--int __init time_setup(char *str)
--{
--	report_lost_ticks = 1;
--	return 1;
--}
--
- static struct irqaction irq0 = {
- 	timer_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "timer", NULL, NULL
+ enum hrtimer_mode {
+-	HRTIMER_ABS,	/* Time value is absolute */
+-	HRTIMER_REL,	/* Time value is relative to now */
++	HRTIMER_MODE_ABS,	/* Time value is absolute */
++	HRTIMER_MODE_REL,	/* Time value is relative to now */
  };
-@@ -557,9 +339,7 @@ void __init time_init(void)
- 	set_normalized_timespec(&wall_to_monotonic,
- 	                        -xtime.tv_sec, -xtime.tv_nsec);
  
--	if (!hpet_arch_init())
--                vxtime_hz = (FSEC_PER_SEC + hpet_period / 2) / hpet_period;
--	else
-+	if (hpet_arch_init())
- 		hpet_address = 0;
++/*
++ * Return values for the callback function
++ */
+ enum hrtimer_restart {
+-	HRTIMER_NORESTART,
+-	HRTIMER_RESTART,
++	HRTIMER_NORESTART,	/* Timer is not restarted */
++	HRTIMER_RESTART,	/* Timer must be restarted */
+ };
  
- 	if (hpet_use_timer) {
-@@ -567,82 +347,26 @@ void __init time_init(void)
- 	  	tick_nsec = TICK_NSEC_HPET;
- 		cpu_khz = hpet_calibrate_tsc();
- 		timename = "HPET";
--#ifdef CONFIG_X86_PM_TIMER
--	} else if (pmtmr_ioport && !hpet_address) {
--		vxtime_hz = PM_TIMER_FREQUENCY;
--		timename = "PM";
--		pit_init();
--		cpu_khz = pit_calibrate_tsc();
--#endif
- 	} else {
- 		pit_init();
- 		cpu_khz = pit_calibrate_tsc();
- 		timename = "PIT";
- 	}
- 
--	vxtime.mode = VXTIME_TSC;
--	vxtime.quot = (USEC_PER_SEC << US_SCALE) / vxtime_hz;
--	vxtime.tsc_quot = (USEC_PER_MSEC << US_SCALE) / cpu_khz;
--	vxtime.last_tsc = get_cycles_sync();
--	set_cyc2ns_scale(cpu_khz);
--	setup_irq(0, &irq0);
+-#define HRTIMER_INACTIVE	((void *)1UL)
 -
--#ifndef CONFIG_SMP
--	time_init_gtod();
--#endif
--}
--
--/*
-- * Decide what mode gettimeofday should use.
-- */
--void time_init_gtod(void)
--{
--	char *timetype;
--
- 	if (unsynchronized_tsc())
--		notsc = 1;
-+		mark_tsc_unstable();
+ struct hrtimer_base;
  
- 	if (cpu_has(&boot_cpu_data, X86_FEATURE_RDTSCP))
- 		vgetcpu_mode = VGETCPU_RDTSCP;
- 	else
- 		vgetcpu_mode = VGETCPU_LSL;
+ /**
+@@ -52,7 +53,7 @@ struct hrtimer_base;
+ struct hrtimer {
+ 	struct rb_node		node;
+ 	ktime_t			expires;
+-	int			(*function)(struct hrtimer *);
++	enum hrtimer_restart	(*function)(struct hrtimer *);
+ 	struct hrtimer_base	*base;
+ };
  
--	if (hpet_address && notsc) {
--		timetype = hpet_use_timer ? "HPET" : "PIT/HPET";
--		if (hpet_use_timer)
--			vxtime.last = hpet_readl(HPET_T0_CMP) - hpet_tick;
--		else
--			vxtime.last = hpet_readl(HPET_COUNTER);
--		vxtime.mode = VXTIME_HPET;
--		vxtime.hpet_address = hpet_address;
--		do_gettimeoffset = do_gettimeoffset_hpet;
--#ifdef CONFIG_X86_PM_TIMER
--	/* Using PM for gettimeofday is quite slow, but we have no other
--	   choice because the TSC is too unreliable on some systems. */
--	} else if (pmtmr_ioport && !hpet_address && notsc) {
--		timetype = "PM";
--		do_gettimeoffset = do_gettimeoffset_pm;
--		vxtime.mode = VXTIME_PMTMR;
--		sysctl_vsyscall = 0;
--		printk(KERN_INFO "Disabling vsyscall due to use of PM timer\n");
--#endif
--	} else {
--		timetype = hpet_use_timer ? "HPET/TSC" : "PIT/TSC";
--		vxtime.mode = VXTIME_TSC;
--	}
--
--	printk(KERN_INFO "time.c: Using %ld.%06ld MHz WALL %s GTOD %s timer.\n",
--	       vxtime_hz / 1000000, vxtime_hz % 1000000, timename, timetype);
-+	set_cyc2ns_scale(cpu_khz);
- 	printk(KERN_INFO "time.c: Detected %d.%03d MHz processor.\n",
- 		cpu_khz / 1000, cpu_khz % 1000);
--	vxtime.quot = (USEC_PER_SEC << US_SCALE) / vxtime_hz;
--	vxtime.tsc_quot = (USEC_PER_MSEC << US_SCALE) / cpu_khz;
--	vxtime.last_tsc = get_cycles_sync();
--
--	set_cyc2ns_scale(cpu_khz);
-+	setup_irq(0, &irq0);
- }
+@@ -114,7 +115,10 @@ extern int hrtimer_start(struct hrtimer 
+ extern int hrtimer_cancel(struct hrtimer *timer);
+ extern int hrtimer_try_to_cancel(struct hrtimer *timer);
  
--__setup("report_lost_ticks", time_setup);
- 
- static long clock_cmos_diff;
- static unsigned long sleep_start;
-@@ -688,20 +412,8 @@ static int timer_resume(struct sys_devic
- 	write_seqlock_irqsave(&xtime_lock,flags);
- 	xtime.tv_sec = sec;
- 	xtime.tv_nsec = 0;
--	if (vxtime.mode == VXTIME_HPET) {
--		if (hpet_use_timer)
--			vxtime.last = hpet_readl(HPET_T0_CMP) - hpet_tick;
--		else
--			vxtime.last = hpet_readl(HPET_COUNTER);
--#ifdef CONFIG_X86_PM_TIMER
--	} else if (vxtime.mode == VXTIME_PMTMR) {
--		pmtimer_resume();
--#endif
--	} else
--		vxtime.last_tsc = get_cycles_sync();
--	write_sequnlock_irqrestore(&xtime_lock,flags);
- 	jiffies += sleep_length;
--	monotonic_base += sleep_length * (NSEC_PER_SEC/HZ);
-+	write_sequnlock_irqrestore(&xtime_lock,flags);
- 	touch_softlockup_watchdog();
- 	return 0;
- }
-diff -puN arch/x86_64/kernel/tsc.c~time-x86_64-convert-x86_64-to-use-generic_time arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~time-x86_64-convert-x86_64-to-use-generic_time
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -9,32 +9,11 @@
- 
- #include <asm/timex.h>
- 
--int notsc __initdata = 0;
-+static int notsc __initdata = 0;
- 
- unsigned int cpu_khz;		/* TSC clocks / usec, not used here */
- EXPORT_SYMBOL(cpu_khz);
- 
--/*
-- * do_gettimeoffset() returns microseconds since last timer interrupt was
-- * triggered by hardware. A memory read of HPET is slower than a register read
-- * of TSC, but much more reliable. It's also synchronized to the timer
-- * interrupt. Note that do_gettimeoffset() may return more than hpet_tick, if a
-- * timer interrupt has happened already, but vxtime.trigger wasn't updated yet.
-- * This is not a problem, because jiffies hasn't updated either. They are bound
-- * together by xtime_lock.
-- */
--
--unsigned int do_gettimeoffset_tsc(void)
--{
--	unsigned long t;
--	unsigned long x;
--	t = get_cycles_sync();
--	if (t < vxtime.last_tsc)
--		t = vxtime.last_tsc; /* hack */
--	x = ((t - vxtime.last_tsc) * vxtime.tsc_quot) >> US_SCALE;
--	return x;
--}
--
- static unsigned int cyc2ns_scale __read_mostly;
- 
- void set_cyc2ns_scale(unsigned long khz)
-@@ -42,7 +21,7 @@ void set_cyc2ns_scale(unsigned long khz)
- 	cyc2ns_scale = (NSEC_PER_MSEC << NS_SCALE) / khz;
- }
- 
--unsigned long long cycles_2_ns(unsigned long long cyc)
-+static unsigned long long cycles_2_ns(unsigned long long cyc)
- {
- 	return (cyc * cyc2ns_scale) >> NS_SCALE;
- }
-@@ -61,6 +40,12 @@ unsigned long long sched_clock(void)
- 	return cycles_2_ns(a);
- }
- 
-+static int tsc_unstable;
-+
-+static inline int check_tsc_unstable(void)
+-#define hrtimer_restart(timer) hrtimer_start((timer), (timer)->expires, HRTIMER_ABS)
++static inline int hrtimer_restart(struct hrtimer *timer)
 +{
-+	return tsc_unstable;
++	return hrtimer_start(timer, timer->expires, HRTIMER_MODE_ABS);
 +}
- #ifdef CONFIG_CPU_FREQ
  
- /* Frequency scaling support. Adjust the TSC based timer when the cpu frequency
-@@ -89,24 +74,6 @@ static void handle_cpufreq_delayed_get(s
- 	cpufreq_delayed_issched = 0;
- }
+ /* Query timers: */
+ extern ktime_t hrtimer_get_remaining(const struct hrtimer *timer);
+diff -puN include/linux/timer.h~hrtimers-namespace-and-enum-cleanup include/linux/timer.h
+--- a/include/linux/timer.h~hrtimers-namespace-and-enum-cleanup
++++ a/include/linux/timer.h
+@@ -106,7 +106,7 @@ static inline void add_timer(struct time
+ extern void init_timers(void);
+ extern void run_local_timers(void);
+ struct hrtimer;
+-extern int it_real_fn(struct hrtimer *);
++extern enum hrtimer_restart it_real_fn(struct hrtimer *);
  
--/* if we notice lost ticks, schedule a call to cpufreq_get() as it tries
-- * to verify the CPU frequency the timing core thinks the CPU is running
-- * at is still correct.
-- */
--void cpufreq_delayed_get(void)
--{
--	static int warned;
--	if (cpufreq_init && !cpufreq_delayed_issched) {
--		cpufreq_delayed_issched = 1;
--		if (!warned) {
--			warned = 1;
--			printk(KERN_DEBUG "Losing some ticks... "
--				"checking if CPU frequency changed.\n");
--		}
--		schedule_work(&cpufreq_delayed_get_work);
--	}
--}
--
- static unsigned int  ref_freq = 0;
- static unsigned long loops_per_jiffy_ref = 0;
+ unsigned long __round_jiffies(unsigned long j, int cpu);
+ unsigned long __round_jiffies_relative(unsigned long j, int cpu);
+diff -puN kernel/fork.c~hrtimers-namespace-and-enum-cleanup kernel/fork.c
+--- a/kernel/fork.c~hrtimers-namespace-and-enum-cleanup
++++ a/kernel/fork.c
+@@ -858,7 +858,7 @@ static inline int copy_signal(unsigned l
+ 	init_sigpending(&sig->shared_pending);
+ 	INIT_LIST_HEAD(&sig->posix_timers);
  
-@@ -142,7 +109,7 @@ static int time_cpufreq_notifier(struct 
+-	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_REL);
++	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 	sig->it_real_incr.tv64 = 0;
+ 	sig->real_timer.function = it_real_fn;
+ 	sig->tsk = tsk;
+diff -puN kernel/futex.c~hrtimers-namespace-and-enum-cleanup kernel/futex.c
+--- a/kernel/futex.c~hrtimers-namespace-and-enum-cleanup
++++ a/kernel/futex.c
+@@ -1134,7 +1134,7 @@ static int futex_lock_pi(u32 __user *uad
  
- 		cpu_khz = cpufreq_scale(cpu_khz_ref, ref_freq, freq->new);
- 		if (!(freq->flags & CPUFREQ_CONST_LOOPS))
--			vxtime.tsc_quot = (USEC_PER_MSEC << US_SCALE) / cpu_khz;
-+			mark_tsc_unstable();
+ 	if (sec != MAX_SCHEDULE_TIMEOUT) {
+ 		to = &timeout;
+-		hrtimer_init(&to->timer, CLOCK_REALTIME, HRTIMER_ABS);
++		hrtimer_init(&to->timer, CLOCK_REALTIME, HRTIMER_MODE_ABS);
+ 		hrtimer_init_sleeper(to, current);
+ 		to->timer.expires = ktime_set(sec, nsec);
  	}
+diff -puN kernel/hrtimer.c~hrtimers-namespace-and-enum-cleanup kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimers-namespace-and-enum-cleanup
++++ a/kernel/hrtimer.c
+@@ -444,7 +444,7 @@ hrtimer_start(struct hrtimer *timer, kti
+ 	/* Switch the timer base, if necessary: */
+ 	new_base = switch_hrtimer_base(timer, base);
  
- 	set_cyc2ns_scale(cpu_khz_ref);
-@@ -169,12 +136,6 @@ core_initcall(cpufreq_tsc);
+-	if (mode == HRTIMER_REL) {
++	if (mode == HRTIMER_MODE_REL) {
+ 		tim = ktime_add(tim, new_base->get_time());
+ 		/*
+ 		 * CONFIG_TIME_LOW_RES is a temporary way for architectures
+@@ -583,7 +583,7 @@ void hrtimer_init(struct hrtimer *timer,
  
- static int tsc_unstable = 0;
+ 	bases = __raw_get_cpu_var(hrtimer_bases);
  
--void mark_tsc_unstable(void)
--{
--	tsc_unstable = 1;
--}
--EXPORT_SYMBOL_GPL(mark_tsc_unstable);
--
+-	if (clock_id == CLOCK_REALTIME && mode != HRTIMER_ABS)
++	if (clock_id == CLOCK_REALTIME && mode != HRTIMER_MODE_ABS)
+ 		clock_id = CLOCK_MONOTONIC;
+ 
+ 	timer->base = &bases[clock_id];
+@@ -627,7 +627,7 @@ static inline void run_hrtimer_queue(str
+ 
+ 	while ((node = base->first)) {
+ 		struct hrtimer *timer;
+-		int (*fn)(struct hrtimer *);
++		enum hrtimer_restart (*fn)(struct hrtimer *);
+ 		int restart;
+ 
+ 		timer = rb_entry(node, struct hrtimer, node);
+@@ -669,7 +669,7 @@ void hrtimer_run_queues(void)
  /*
-  * Make an educated guess if the TSC is trustworthy and synchronized
-  * over all CPUs.
-@@ -210,3 +171,49 @@ int __init notsc_setup(char *s)
+  * Sleep related functions:
+  */
+-static int hrtimer_wakeup(struct hrtimer *timer)
++static enum hrtimer_restart hrtimer_wakeup(struct hrtimer *timer)
+ {
+ 	struct hrtimer_sleeper *t =
+ 		container_of(timer, struct hrtimer_sleeper, timer);
+@@ -699,7 +699,7 @@ static int __sched do_nanosleep(struct h
+ 		schedule();
+ 
+ 		hrtimer_cancel(&t->timer);
+-		mode = HRTIMER_ABS;
++		mode = HRTIMER_MODE_ABS;
+ 
+ 	} while (t->task && !signal_pending(current));
+ 
+@@ -715,10 +715,10 @@ long __sched hrtimer_nanosleep_restart(s
+ 
+ 	restart->fn = do_no_restart_syscall;
+ 
+-	hrtimer_init(&t.timer, restart->arg0, HRTIMER_ABS);
++	hrtimer_init(&t.timer, restart->arg0, HRTIMER_MODE_ABS);
+ 	t.timer.expires.tv64 = ((u64)restart->arg3 << 32) | (u64) restart->arg2;
+ 
+-	if (do_nanosleep(&t, HRTIMER_ABS))
++	if (do_nanosleep(&t, HRTIMER_MODE_ABS))
+ 		return 0;
+ 
+ 	rmtp = (struct timespec __user *) restart->arg1;
+@@ -751,7 +751,7 @@ long hrtimer_nanosleep(struct timespec *
+ 		return 0;
+ 
+ 	/* Absolute timers do not update the rmtp value and restart: */
+-	if (mode == HRTIMER_ABS)
++	if (mode == HRTIMER_MODE_ABS)
+ 		return -ERESTARTNOHAND;
+ 
+ 	if (rmtp) {
+@@ -784,7 +784,7 @@ sys_nanosleep(struct timespec __user *rq
+ 	if (!timespec_valid(&tu))
+ 		return -EINVAL;
+ 
+-	return hrtimer_nanosleep(&tu, rmtp, HRTIMER_REL, CLOCK_MONOTONIC);
++	return hrtimer_nanosleep(&tu, rmtp, HRTIMER_MODE_REL, CLOCK_MONOTONIC);
  }
  
- __setup("notsc", notsc_setup);
-+
-+
-+/* clock source code: */
-+static cycle_t read_tsc(void)
-+{
-+	cycle_t ret = (cycle_t)get_cycles_sync();
-+	return ret;
-+}
-+
-+static struct clocksource clocksource_tsc = {
-+	.name			= "tsc",
-+	.rating			= 300,
-+	.read			= read_tsc,
-+	.mask			= CLOCKSOURCE_MASK(64),
-+	.shift			= 22,
-+	.flags			= CLOCK_SOURCE_IS_CONTINUOUS |
-+				  CLOCK_SOURCE_MUST_VERIFY,
-+};
-+
-+void mark_tsc_unstable(void)
-+{
-+	if (!tsc_unstable) {
-+		tsc_unstable = 1;
-+		/* Change only the rating, when not registered */
-+		if (clocksource_tsc.mult)
-+			clocksource_change_rating(&clocksource_tsc, 0);
-+		else
-+			clocksource_tsc.rating = 0;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(mark_tsc_unstable);
-+
-+static int __init init_tsc_clocksource(void)
-+{
-+	if (!notsc) {
-+		clocksource_tsc.mult = clocksource_khz2mult(cpu_khz,
-+							clocksource_tsc.shift);
-+		if (check_tsc_unstable())
-+			clocksource_tsc.rating = 0;
-+
-+		return clocksource_register(&clocksource_tsc);
-+	}
-+	return 0;
-+}
-+
-+module_init(init_tsc_clocksource);
-diff -puN drivers/char/hangcheck-timer.c~time-x86_64-convert-x86_64-to-use-generic_time drivers/char/hangcheck-timer.c
---- a/drivers/char/hangcheck-timer.c~time-x86_64-convert-x86_64-to-use-generic_time
-+++ a/drivers/char/hangcheck-timer.c
-@@ -117,7 +117,7 @@ __setup("hcheck_reboot", hangcheck_parse
- __setup("hcheck_dump_tasks", hangcheck_parse_dump_tasks);
- #endif /* not MODULE */
+ /*
+diff -puN kernel/itimer.c~hrtimers-namespace-and-enum-cleanup kernel/itimer.c
+--- a/kernel/itimer.c~hrtimers-namespace-and-enum-cleanup
++++ a/kernel/itimer.c
+@@ -128,7 +128,7 @@ asmlinkage long sys_getitimer(int which,
+ /*
+  * The timer is automagically restarted, when interval != 0
+  */
+-int it_real_fn(struct hrtimer *timer)
++enum hrtimer_restart it_real_fn(struct hrtimer *timer)
+ {
+ 	struct signal_struct *sig =
+ 	    container_of(timer, struct signal_struct, real_timer);
+@@ -235,7 +235,7 @@ again:
+ 			timeval_to_ktime(value->it_interval);
+ 		expires = timeval_to_ktime(value->it_value);
+ 		if (expires.tv64 != 0)
+-			hrtimer_start(timer, expires, HRTIMER_REL);
++			hrtimer_start(timer, expires, HRTIMER_MODE_REL);
+ 		spin_unlock_irq(&tsk->sighand->siglock);
+ 		break;
+ 	case ITIMER_VIRTUAL:
+diff -puN kernel/posix-timers.c~hrtimers-namespace-and-enum-cleanup kernel/posix-timers.c
+--- a/kernel/posix-timers.c~hrtimers-namespace-and-enum-cleanup
++++ a/kernel/posix-timers.c
+@@ -145,7 +145,7 @@ static int common_timer_set(struct k_iti
+ 			    struct itimerspec *, struct itimerspec *);
+ static int common_timer_del(struct k_itimer *timer);
  
--#if defined(CONFIG_X86_64) || defined(CONFIG_S390)
-+#if defined(CONFIG_S390)
- # define HAVE_MONOTONIC
- # define TIMER_FREQ 1000000000ULL
- #elif defined(CONFIG_IA64)
-diff -puN include/asm-x86_64/proto.h~time-x86_64-convert-x86_64-to-use-generic_time include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~time-x86_64-convert-x86_64-to-use-generic_time
-+++ a/include/asm-x86_64/proto.h
-@@ -45,11 +45,9 @@ extern u32 pmtmr_ioport;
- #else
- #define pmtmr_ioport 0
- #endif
--extern unsigned long long monotonic_base;
- extern int sysctl_vsyscall;
- extern int nohpet;
- extern unsigned long vxtime_hz;
--extern void time_init_gtod(void);
+-static int posix_timer_fn(struct hrtimer *data);
++static enum hrtimer_restart posix_timer_fn(struct hrtimer *data);
  
- extern void early_printk(const char *fmt, ...) __attribute__((format(printf,1,2)));
+ static struct k_itimer *lock_timer(timer_t timer_id, unsigned long *flags);
  
-diff -puN include/asm-x86_64/timex.h~time-x86_64-convert-x86_64-to-use-generic_time include/asm-x86_64/timex.h
---- a/include/asm-x86_64/timex.h~time-x86_64-convert-x86_64-to-use-generic_time
-+++ a/include/asm-x86_64/timex.h
-@@ -28,9 +28,6 @@ extern int read_current_timer(unsigned l
- #define US_SCALE        32 /* 2^32, arbitralrily chosen */
+@@ -334,12 +334,12 @@ EXPORT_SYMBOL_GPL(posix_timer_event);
  
- extern struct vxtime_data vxtime;
--
--extern unsigned int do_gettimeoffset_hpet(void);
--extern unsigned int do_gettimeoffset_tsc(void);
-+extern void mark_tsc_unstable(void);
- extern void set_cyc2ns_scale(unsigned long khz);
--extern int notsc;
- #endif
+  * This code is for CLOCK_REALTIME* and CLOCK_MONOTONIC* timers.
+  */
+-static int posix_timer_fn(struct hrtimer *timer)
++static enum hrtimer_restart posix_timer_fn(struct hrtimer *timer)
+ {
+ 	struct k_itimer *timr;
+ 	unsigned long flags;
+ 	int si_private = 0;
+-	int ret = HRTIMER_NORESTART;
++	enum hrtimer_restart ret = HRTIMER_NORESTART;
+ 
+ 	timr = container_of(timer, struct k_itimer, it.real.timer);
+ 	spin_lock_irqsave(&timr->it_lock, flags);
+@@ -722,7 +722,7 @@ common_timer_set(struct k_itimer *timr, 
+ 	if (!new_setting->it_value.tv_sec && !new_setting->it_value.tv_nsec)
+ 		return 0;
+ 
+-	mode = flags & TIMER_ABSTIME ? HRTIMER_ABS : HRTIMER_REL;
++	mode = flags & TIMER_ABSTIME ? HRTIMER_MODE_ABS : HRTIMER_MODE_REL;
+ 	hrtimer_init(&timr->it.real.timer, timr->it_clock, mode);
+ 	timr->it.real.timer.function = posix_timer_fn;
+ 
+@@ -734,7 +734,7 @@ common_timer_set(struct k_itimer *timr, 
+ 	/* SIGEV_NONE timers are not queued ! See common_timer_get */
+ 	if (((timr->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE)) {
+ 		/* Setup correct expiry time for relative timers */
+-		if (mode == HRTIMER_REL)
++		if (mode == HRTIMER_MODE_REL)
+ 			timer->expires = ktime_add(timer->expires,
+ 						   timer->base->get_time());
+ 		return 0;
+@@ -950,7 +950,8 @@ static int common_nsleep(const clockid_t
+ 			 struct timespec *tsave, struct timespec __user *rmtp)
+ {
+ 	return hrtimer_nanosleep(tsave, rmtp, flags & TIMER_ABSTIME ?
+-				 HRTIMER_ABS : HRTIMER_REL, which_clock);
++				 HRTIMER_MODE_ABS : HRTIMER_MODE_REL,
++				 which_clock);
+ }
+ 
+ asmlinkage long
+diff -puN kernel/rtmutex.c~hrtimers-namespace-and-enum-cleanup kernel/rtmutex.c
+--- a/kernel/rtmutex.c~hrtimers-namespace-and-enum-cleanup
++++ a/kernel/rtmutex.c
+@@ -625,7 +625,7 @@ rt_mutex_slowlock(struct rt_mutex *lock,
+ 	/* Setup the timer, when timeout != NULL */
+ 	if (unlikely(timeout))
+ 		hrtimer_start(&timeout->timer, timeout->timer.expires,
+-			      HRTIMER_ABS);
++			      HRTIMER_MODE_ABS);
+ 
+ 	for (;;) {
+ 		/* Try to acquire the lock: */
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
 git-acpi.patch
-profile-likely-unlikely-macros-x86_64-fix.patch
+git-block.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
