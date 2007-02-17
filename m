@@ -1,568 +1,603 @@
 From: akpm@linux-foundation.org
-Subject: - i386-rework-local-apic-timer-calibration.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:15:01 -0800
-Message-ID: <200702170715.l1H7F1Wh021590@shell0.pdx.osdl.net>
+Subject: - add-debugging-feature-proc-timer_list.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:15:23 -0800
+Message-ID: <200702170715.l1H7FNFK021622@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51046 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51063 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946468AbXBQHPs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:15:48 -0500
+	id S1946472AbXBQHPz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:15:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, ebiederm@xmission.com, johnstul@us.ibm.com, mingo@elte.hu, rohitseth@google.com, zach@vmware.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 rework local apic timer calibration
+     Add debugging feature /proc/timer_list
 has been removed from the -mm tree.  Its filename was
-     i386-rework-local-apic-timer-calibration.patch
+     add-debugging-feature-proc-timer_list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 rework local apic timer calibration
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Add debugging feature /proc/timer_list
+From: Ingo Molnar <mingo@elte.hu>
 
-The local apic timer calibration has two problem cases:
+add /proc/timer_list, which prints all currently pending (high-res) timers,
+all clock-event sources and their parameters in a human-readable form.
 
-1.  The calibration is based on readout of the PIT/HPET timer to detect the
-   wrap of the periodic tick.  It happens that a box gets stuck in the
-   calibration loop due to a PIT with a broken readout function.
+Sample output:
 
-2.  CoreDuo boxen show a sporadic PIT runs too slow defect, which results
-   in a wrong lapic calibration.  The PIT goes back to normal operation once
-   the lapic timer is switched to periodic mode.
+Timer List Version: v0.1
+HRTIMER_MAX_CLOCK_BASES: 2
+now at 4246046273872 nsecs
 
-Both are existing and unfixed problems in the current upstream kernel and
-prevent certain laptops and other systems from booting Linux.
+cpu: 0
+ clock 0:
+  .index:      0
+  .resolution: 1 nsecs
+  .get_time:   ktime_get_real
+  .offset:     1273998312645738432 nsecs
+active timers:
+ clock 1:
+  .index:      1
+  .resolution: 1 nsecs
+  .get_time:   ktime_get
+  .offset:     0 nsecs
+active timers:
+ #0: <f5a90ec8>, hrtimer_sched_tick, hrtimer_stop_sched_tick, swapper/0
+ # expires at 4246432689566 nsecs [in 386415694 nsecs]
+ #1: <f5a90ec8>, hrtimer_wakeup, do_nanosleep, pcscd/2050
+ # expires at 4247018194689 nsecs [in 971920817 nsecs]
+ #2: <f5a90ec8>, hrtimer_wakeup, do_nanosleep, irqbalance/1909
+ # expires at 4247351358392 nsecs [in 1305084520 nsecs]
+ #3: <f5a90ec8>, hrtimer_wakeup, do_nanosleep, crond/2157
+ # expires at 4249097614968 nsecs [in 3051341096 nsecs]
+ #4: <f5a90ec8>, it_real_fn, do_setitimer, syslogd/1888
+ # expires at 4251329900926 nsecs [in 5283627054 nsecs]
+  .expires_next   : 4246432689566 nsecs
+  .hres_active    : 1
+  .check_clocks   : 0
+  .nr_events      : 31306
+  .idle_tick      : 4246020791890 nsecs
+  .tick_stopped   : 1
+  .idle_jiffies   : 986504
+  .idle_calls     : 40700
+  .idle_sleeps    : 36014
+  .idle_entrytime : 4246019418883 nsecs
+  .idle_sleeptime : 4178181972709 nsecs
 
-Rework the code to address both problems:
+cpu: 1
+ clock 0:
+  .index:      0
+  .resolution: 1 nsecs
+  .get_time:   ktime_get_real
+  .offset:     1273998312645738432 nsecs
+active timers:
+ clock 1:
+  .index:      1
+  .resolution: 1 nsecs
+  .get_time:   ktime_get
+  .offset:     0 nsecs
+active timers:
+ #0: <f5a90ec8>, hrtimer_sched_tick, hrtimer_restart_sched_tick, swapper/0
+ # expires at 4246050084568 nsecs [in 3810696 nsecs]
+ #1: <f5a90ec8>, hrtimer_wakeup, do_nanosleep, atd/2227
+ # expires at 4261010635003 nsecs [in 14964361131 nsecs]
+ #2: <f5a90ec8>, hrtimer_wakeup, do_nanosleep, smartd/2332
+ # expires at 5469485798970 nsecs [in 1223439525098 nsecs]
+  .expires_next   : 4246050084568 nsecs
+  .hres_active    : 1
+  .check_clocks   : 0
+  .nr_events      : 24043
+  .idle_tick      : 4246046084568 nsecs
+  .tick_stopped   : 0
+  .idle_jiffies   : 986510
+  .idle_calls     : 26360
+  .idle_sleeps    : 22551
+  .idle_entrytime : 4246043874339 nsecs
+  .idle_sleeptime : 4170763761184 nsecs
 
-- Make the calibration interrupt driven.  This removes the wait_timer_tick
-  magic hackery from lapic.c and time_hpet.c.  The clockevents framework
-  allows easy substitution of the global tick event handler for the
-  calibration.  This is more accurate than monitoring jiffies.  At this point
-  of the boot process, nothing disturbes the interrupt delivery, so the
-  results are very accurate.
+tick_broadcast_mask: 00000003
+event_broadcast_mask: 00000001
 
-- Verify the calibration against the PM timer, when available by using the
-  early access function.  When the measured calibration period is outside of
-  an one percent window, then the lapic timer calibration is adjusted to the
-  pm timer result.
+CPU#0's local event device:
 
-- Verify the calibration by running the lapic timer with the calibration
-  handler.  Disable lapic timer in case of deviation.
+Clock Event Device: lapic
+ capabilities:   0000000e
+ max_delta_ns:   807385544
+ min_delta_ns:   1443
+ mult:           44624025
+ shift:          32
+ set_next_event: lapic_next_event
+ set_mode:       lapic_timer_setup
+ event_handler:  hrtimer_interrupt
+  .installed:  1
+  .expires:    4246432689566 nsecs
 
-This also removes the "synchronization" of the local apic timer to the global
-tick.  This synchronization never worked, as there is no way to synchronize
-PIT(HPET) and local APIC timer.  The synchronization by waiting for the tick
-just alignes the local APIC timer for the first events, but later the events
-drift away due to the different clocks.  Removing the "sync" is just
-randomizing the asynchronous behaviour at setup time.
+CPU#1's local event device:
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Clock Event Device: lapic
+ capabilities:   0000000e
+ max_delta_ns:   807385544
+ min_delta_ns:   1443
+ mult:           44624025
+ shift:          32
+ set_next_event: lapic_next_event
+ set_mode:       lapic_timer_setup
+ event_handler:  hrtimer_interrupt
+  .installed:  1
+  .expires:    4246050084568 nsecs
+
+Clock Event Device: hpet
+ capabilities:   00000007
+ max_delta_ns:   2147483647
+ min_delta_ns:   3352
+ mult:           61496110
+ shift:          32
+ set_next_event: hpet_next_event
+ set_mode:       hpet_set_mode
+ event_handler:  handle_nextevt_broadcast
+
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Zachary Amsden <zach@vmware.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Rohit Seth <rohitseth@google.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/apic.c |  371 ++++++++++++++++++++++----------------
- include/asm-i386/apic.h |    2 
- 2 files changed, 218 insertions(+), 155 deletions(-)
+ include/linux/tick.h         |   11 +
+ kernel/time/Makefile         |    2 
+ kernel/time/tick-broadcast.c |   21 ++
+ kernel/time/tick-common.c    |    8 
+ kernel/time/tick-sched.c     |    5 
+ kernel/time/timer_list.c     |  287 +++++++++++++++++++++++++++++++++
+ 6 files changed, 333 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/apic.c~i386-rework-local-apic-timer-calibration arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~i386-rework-local-apic-timer-calibration
-+++ a/arch/i386/kernel/apic.c
-@@ -26,6 +26,7 @@
- #include <linux/sysdev.h>
- #include <linux/cpu.h>
- #include <linux/clockchips.h>
-+#include <linux/acpi_pmtmr.h>
- #include <linux/module.h>
+diff -puN include/linux/tick.h~add-debugging-feature-proc-timer_list include/linux/tick.h
+--- a/include/linux/tick.h~add-debugging-feature-proc-timer_list
++++ a/include/linux/tick.h
+@@ -59,6 +59,7 @@ struct tick_sched {
  
- #include <asm/atomic.h>
-@@ -59,8 +60,8 @@
-  */
- static int enable_local_apic __initdata = 0;
+ extern void __init tick_init(void);
+ extern int tick_is_oneshot_available(void);
++extern struct tick_device *tick_get_device(int cpu);
  
--/* Enable local APIC timer for highres/dyntick on UP */
--static int enable_local_apic_timer __initdata = 0;
-+/* Local APIC timer verification ok */
-+static int local_apic_timer_verify_ok;
+ # ifdef CONFIG_HIGH_RES_TIMERS
+ extern int tick_init_highres(void);
+@@ -69,6 +70,16 @@ extern void tick_cancel_sched_timer(int 
+ static inline void tick_cancel_sched_timer(int cpu) { }
+ # endif /* HIGHRES */
  
- /*
-  * Debug level, exported for io_apic.c
-@@ -82,7 +83,7 @@ static void apic_pm_activate(void);
- static struct clock_event_device lapic_clockevent = {
- 	.name		= "lapic",
- 	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT
--			| CLOCK_EVT_FEAT_C3STOP,
-+			| CLOCK_EVT_FEAT_C3STOP | CLOCK_EVT_FEAT_DUMMY,
- 	.shift		= 32,
- 	.set_mode	= lapic_timer_setup,
- 	.set_next_event	= lapic_next_event,
-@@ -159,64 +160,8 @@ int lapic_get_maxlvt(void)
-  * Local APIC timer
-  */
- 
--/*
-- * This part sets up the APIC 32 bit clock in LVTT1, with HZ interrupts
-- * per second. We assume that the caller has already set up the local
-- * APIC.
-- *
-- * The APIC timer is not exactly sync with the external timer chip, it
-- * closely follows bus clocks.
-- */
--
--/*
-- * FIXME: Move this to i8253.h. There is no need to keep the access to
-- * the PIT scattered all around the place -tglx
-- */
--
--/*
-- * The timer chip is already set up at HZ interrupts per second here,
-- * but we do not accept timer interrupts yet. We only allow the BP
-- * to calibrate.
-- */
--static unsigned int __devinit get_8254_timer_count(void)
--{
--	unsigned long flags;
--
--	unsigned int count;
--
--	spin_lock_irqsave(&i8253_lock, flags);
--
--	outb_p(0x00, PIT_MODE);
--	count = inb_p(PIT_CH0);
--	count |= inb_p(PIT_CH0) << 8;
--
--	spin_unlock_irqrestore(&i8253_lock, flags);
--
--	return count;
--}
--
--/* next tick in 8254 can be caught by catching timer wraparound */
--static void __devinit wait_8254_wraparound(void)
--{
--	unsigned int curr_count, prev_count;
--
--	curr_count = get_8254_timer_count();
--	do {
--		prev_count = curr_count;
--		curr_count = get_8254_timer_count();
--
--		/* workaround for broken Mercury/Neptune */
--		if (prev_count >= curr_count + 0x100)
--			curr_count = get_8254_timer_count();
--
--	} while (prev_count >= curr_count);
--}
--
--/*
-- * Default initialization for 8254 timers. If we use other timers like HPET,
-- * we override this later
-- */
--void (*wait_timer_tick)(void) __devinitdata = wait_8254_wraparound;
-+/* Clock divisor is set to 16 */
-+#define APIC_DIVISOR 16
- 
- /*
-  * This function sets up the local APIC timer, with a timeout of
-@@ -228,9 +173,6 @@ void (*wait_timer_tick)(void) __devinitd
-  * We do reads before writes even if unnecessary, to get around the
-  * P5 APIC double write bug.
-  */
--
--#define APIC_DIVISOR 16
--
- static void __setup_APIC_LVTT(unsigned int clocks, int oneshot, int irqen)
- {
- 	unsigned int lvtt_value, tmp_value;
-@@ -277,6 +219,10 @@ static void lapic_timer_setup(enum clock
- 	unsigned long flags;
- 	unsigned int v;
- 
-+	/* Lapic used for broadcast ? */
-+	if (!local_apic_timer_verify_ok)
-+		return;
++# ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
++extern struct tick_device *tick_get_broadcast_device(void);
++extern cpumask_t *tick_get_broadcast_mask(void);
 +
- 	local_irq_save(flags);
++#  ifdef CONFIG_TICK_ONESHOT
++extern cpumask_t *tick_get_broadcast_oneshot_mask(void);
++#  endif
++
++# endif /* BROADCAST */
++
+ # ifdef CONFIG_TICK_ONESHOT
+ extern void tick_clock_notify(void);
+ extern int tick_check_oneshot_change(int allow_nohz);
+diff -puN kernel/time/Makefile~add-debugging-feature-proc-timer_list kernel/time/Makefile
+--- a/kernel/time/Makefile~add-debugging-feature-proc-timer_list
++++ a/kernel/time/Makefile
+@@ -1,4 +1,4 @@
+-obj-y += ntp.o clocksource.o jiffies.o
++obj-y += ntp.o clocksource.o jiffies.o timer_list.o
  
- 	switch (mode) {
-@@ -321,111 +267,238 @@ static void __devinit setup_APIC_timer(v
- }
+ obj-$(CONFIG_GENERIC_CLOCKEVENTS)		+= clockevents.o
+ obj-$(CONFIG_GENERIC_CLOCKEVENTS)		+= tick-common.o
+diff -puN kernel/time/tick-broadcast.c~add-debugging-feature-proc-timer_list kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~add-debugging-feature-proc-timer_list
++++ a/kernel/time/tick-broadcast.c
+@@ -32,6 +32,19 @@ static cpumask_t tick_broadcast_mask;
+ static DEFINE_SPINLOCK(tick_broadcast_lock);
  
  /*
-- * In this function we calibrate APIC bus clocks to the external
-- * timer. Unfortunately we cannot use jiffies and the timer irq
-- * to calibrate, since some later bootup code depends on getting
-- * the first irq? Ugh.
-+ * In this functions we calibrate APIC bus clocks to the external timer.
-+ *
-+ * We want to do the calibration only once since we want to have local timer
-+ * irqs syncron. CPUs connected by the same APIC bus have the very same bus
-+ * frequency.
-  *
-- * TODO: Fix this rather than saying "Ugh" -tglx
-+ * This was previously done by reading the PIT/HPET and waiting for a wrap
-+ * around to find out, that a tick has elapsed. I have a box, where the PIT
-+ * readout is broken, so it never gets out of the wait loop again. This was
-+ * also reported by others.
-  *
-- * We want to do the calibration only once since we
-- * want to have local timer irqs syncron. CPUs connected
-- * by the same APIC bus have the very same bus frequency.
-- * And we want to have irqs off anyways, no accidental
-- * APIC irq that way.
-+ * Monitoring the jiffies value is inaccurate and the clockevents
-+ * infrastructure allows us to do a simple substitution of the interrupt
-+ * handler.
-+ *
-+ * The calibration routine also uses the pm_timer when possible, as the PIT
-+ * happens to run way too slow (factor 2.3 on my VAIO CoreDuo, which goes
-+ * back to normal later in the boot process).
++ * Debugging: see timer_list.c
 + */
-+
-+#define LAPIC_CAL_LOOPS		(HZ/10)
-+
-+static __initdata volatile int lapic_cal_loops = -1;
-+static __initdata long lapic_cal_t1, lapic_cal_t2;
-+static __initdata unsigned long long lapic_cal_tsc1, lapic_cal_tsc2;
-+static __initdata unsigned long lapic_cal_pm1, lapic_cal_pm2;
-+static __initdata unsigned long lapic_cal_j1, lapic_cal_j2;
-+
-+/*
-+ * Temporary interrupt handler.
-  */
-+static void __init lapic_cal_handler(struct clock_event_device *dev)
++struct tick_device *tick_get_broadcast_device(void)
 +{
-+	unsigned long long tsc = 0;
-+	long tapic = apic_read(APIC_TMCCT);
-+	unsigned long pm = acpi_pm_read_early();
-+
-+	if (cpu_has_tsc)
-+		rdtscll(tsc);
-+
-+	switch (lapic_cal_loops++) {
-+	case 0:
-+		lapic_cal_t1 = tapic;
-+		lapic_cal_tsc1 = tsc;
-+		lapic_cal_pm1 = pm;
-+		lapic_cal_j1 = jiffies;
-+		break;
-+
-+	case LAPIC_CAL_LOOPS:
-+		lapic_cal_t2 = tapic;
-+		lapic_cal_tsc2 = tsc;
-+		if (pm < lapic_cal_pm1)
-+			pm += ACPI_PM_OVRRUN;
-+		lapic_cal_pm2 = pm;
-+		lapic_cal_j2 = jiffies;
-+		break;
-+	}
++	return &tick_broadcast_device;
 +}
- 
--static int __init calibrate_APIC_clock(void)
++
++cpumask_t *tick_get_broadcast_mask(void)
++{
++	return &tick_broadcast_mask;
++}
++
 +/*
-+ * Setup the boot APIC
-+ *
-+ * Calibrate and verify the result.
+  * Start the device in periodic mode
+  */
+ static void tick_broadcast_start_periodic(struct clock_event_device *bc)
+@@ -275,6 +288,14 @@ void tick_shutdown_broadcast(unsigned in
+ 
+ static cpumask_t tick_broadcast_oneshot_mask;
+ 
++/*
++ * Debugging: see timer_list.c
 + */
-+void __init setup_boot_APIC_clock(void)
++cpumask_t *tick_get_broadcast_oneshot_mask(void)
++{
++	return &tick_broadcast_oneshot_mask;
++}
++
+ static int tick_broadcast_set_event(ktime_t expires, int force)
  {
--	unsigned long long t1 = 0, t2 = 0;
--	long tt1, tt2;
--	long result;
--	int i;
--	const int LOOPS = HZ/10;
-+	struct clock_event_device *levt = &__get_cpu_var(lapic_events);
-+	const long pm_100ms = PMTMR_TICKS_PER_SEC/10;
-+	const long pm_thresh = pm_100ms/100;
-+	void (*real_handler)(struct clock_event_device *dev);
-+	unsigned long deltaj;
-+	long delta, deltapm;
+ 	struct clock_event_device *bc = tick_broadcast_device.evtdev;
+diff -puN kernel/time/tick-common.c~add-debugging-feature-proc-timer_list kernel/time/tick-common.c
+--- a/kernel/time/tick-common.c~add-debugging-feature-proc-timer_list
++++ a/kernel/time/tick-common.c
+@@ -34,6 +34,14 @@ ktime_t tick_period;
+ static int tick_do_timer_cpu = -1;
+ DEFINE_SPINLOCK(tick_device_lock);
+ 
++/*
++ * Debugging: see timer_list.c
++ */
++struct tick_device *tick_get_device(int cpu)
++{
++	return &per_cpu(tick_cpu_device, cpu);
++}
 +
-+	apic_printk(APIC_VERBOSE, "Using local APIC timer interrupts.\n"
-+		    "calibrating APIC timer ...\n");
+ /**
+  * tick_is_oneshot_available - check for a oneshot capable event device
+  */
+diff -puN kernel/time/tick-sched.c~add-debugging-feature-proc-timer_list kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~add-debugging-feature-proc-timer_list
++++ a/kernel/time/tick-sched.c
+@@ -33,6 +33,11 @@ static DEFINE_PER_CPU(struct tick_sched,
+  */
+ static ktime_t last_jiffies_update;
  
--	apic_printk(APIC_VERBOSE, "calibrating APIC timer ...\n");
-+	local_irq_disable();
++struct tick_sched *tick_get_tick_sched(int cpu)
++{
++	return &per_cpu(tick_cpu_sched, cpu);
++}
 +
-+	/* Replace the global interrupt handler */
-+	real_handler = global_clock_event->event_handler;
-+	global_clock_event->event_handler = lapic_cal_handler;
- 
- 	/*
--	 * Put whatever arbitrary (but long enough) timeout
--	 * value into the APIC clock, we just want to get the
--	 * counter running for calibration.
-+	 * Setup the APIC counter to 1e9. There is no way the lapic
-+	 * can underflow in the 100ms detection time frame
- 	 */
- 	__setup_APIC_LVTT(1000000000, 0, 0);
- 
--	/*
--	 * The timer chip counts down to zero. Let's wait
--	 * for a wraparound to start exact measurement:
--	 * (the current tick might have been already half done)
--	 */
-+	/* Let the interrupts run */
-+	local_irq_enable();
- 
--	wait_timer_tick();
-+	while(lapic_cal_loops <= LAPIC_CAL_LOOPS);
- 
--	/*
--	 * We wrapped around just now. Let's start:
--	 */
--	if (cpu_has_tsc)
--		rdtscll(t1);
--	tt1 = apic_read(APIC_TMCCT);
-+	local_irq_disable();
- 
--	/*
--	 * Let's wait LOOPS wraprounds:
--	 */
--	for (i = 0; i < LOOPS; i++)
--		wait_timer_tick();
-+	/* Restore the real event handler */
-+	global_clock_event->event_handler = real_handler;
- 
--	tt2 = apic_read(APIC_TMCCT);
--	if (cpu_has_tsc)
--		rdtscll(t2);
-+	/* Build delta t1-t2 as apic timer counts down */
-+	delta = lapic_cal_t1 - lapic_cal_t2;
-+	apic_printk(APIC_VERBOSE, "... lapic delta = %ld\n", delta);
- 
--	/*
--	 * The APIC bus clock counter is 32 bits only, it
--	 * might have overflown, but note that we use signed
--	 * longs, thus no extra care needed.
--	 *
--	 * underflown to be exact, as the timer counts down ;)
--	 */
-+	/* Check, if the PM timer is available */
-+	deltapm = lapic_cal_pm2 - lapic_cal_pm1;
-+	apic_printk(APIC_VERBOSE, "... PM timer delta = %ld\n", deltapm);
- 
--	result = (tt1-tt2)*APIC_DIVISOR/LOOPS;
-+	if (deltapm) {
-+		unsigned long mult;
-+		u64 res;
+ /*
+  * Must be called with interrupts disabled !
+  */
+diff -puN /dev/null kernel/time/timer_list.c
+--- /dev/null
++++ a/kernel/time/timer_list.c
+@@ -0,0 +1,287 @@
++/*
++ * kernel/time/timer_list.c
++ *
++ * List pending timers
++ *
++ * Copyright(C) 2006, Red Hat, Inc., Ingo Molnar
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+		mult = clocksource_hz2mult(PMTMR_TICKS_PER_SEC, 22);
++#include <linux/proc_fs.h>
++#include <linux/module.h>
++#include <linux/spinlock.h>
++#include <linux/sched.h>
++#include <linux/seq_file.h>
++#include <linux/kallsyms.h>
++#include <linux/tick.h>
 +
-+		if (deltapm > (pm_100ms - pm_thresh) &&
-+		    deltapm < (pm_100ms + pm_thresh)) {
-+			apic_printk(APIC_VERBOSE, "... PM timer result ok\n");
-+		} else {
-+			res = (((u64) deltapm) *  mult) >> 22;
-+			do_div(res, 1000000);
-+			printk(KERN_WARNING "APIC calibration not consistent "
-+			       "with PM Timer: %ldms instead of 100ms\n",
-+			       (long)res);
-+			/* Correct the lapic counter value */
-+			res = (((u64) delta ) * pm_100ms);
-+			do_div(res, deltapm);
-+			printk(KERN_INFO "APIC delta adjusted to PM-Timer: "
-+			       "%lu (%ld)\n", (unsigned long) res, delta);
-+			delta = (long) res;
-+		}
-+	}
- 
- 	/* Calculate the scaled math multiplication factor */
--	lapic_clockevent.mult = div_sc(tt1-tt2, TICK_NSEC * LOOPS, 32);
-+	lapic_clockevent.mult = div_sc(delta, TICK_NSEC * LAPIC_CAL_LOOPS, 32);
- 	lapic_clockevent.max_delta_ns =
- 		clockevent_delta2ns(0x7FFFFF, &lapic_clockevent);
- 	lapic_clockevent.min_delta_ns =
- 		clockevent_delta2ns(0xF, &lapic_clockevent);
- 
--	apic_printk(APIC_VERBOSE, "..... tt1-tt2 %ld\n", tt1 - tt2);
-+	calibration_result = (delta * APIC_DIVISOR) / LAPIC_CAL_LOOPS;
++#include <asm/uaccess.h>
 +
-+	apic_printk(APIC_VERBOSE, "..... delta %ld\n", delta);
- 	apic_printk(APIC_VERBOSE, "..... mult: %ld\n", lapic_clockevent.mult);
--	apic_printk(APIC_VERBOSE, "..... calibration result: %ld\n", result);
-+	apic_printk(APIC_VERBOSE, "..... calibration result: %u\n",
-+		    calibration_result);
- 
--	if (cpu_has_tsc)
-+	if (cpu_has_tsc) {
-+		delta = (long)(lapic_cal_tsc2 - lapic_cal_tsc1);
- 		apic_printk(APIC_VERBOSE, "..... CPU clock speed is "
--			"%ld.%04ld MHz.\n",
--			((long)(t2-t1)/LOOPS)/(1000000/HZ),
--			((long)(t2-t1)/LOOPS)%(1000000/HZ));
-+			    "%ld.%04ld MHz.\n",
-+			    (delta / LAPIC_CAL_LOOPS) / (1000000 / HZ),
-+			    (delta / LAPIC_CAL_LOOPS) % (1000000 / HZ));
-+	}
- 
- 	apic_printk(APIC_VERBOSE, "..... host bus clock speed is "
--		"%ld.%04ld MHz.\n",
--		result/(1000000/HZ),
--		result%(1000000/HZ));
--
--	return result;
--}
--
--void __init setup_boot_APIC_clock(void)
--{
--	unsigned long flags;
--	apic_printk(APIC_VERBOSE, "Using local APIC timer interrupts.\n");
-+		    "%u.%04u MHz.\n",
-+		    calibration_result / (1000000 / HZ),
-+		    calibration_result % (1000000 / HZ));
++typedef void (*print_fn_t)(struct seq_file *m, unsigned int *classes);
 +
++DECLARE_PER_CPU(struct hrtimer_cpu_base, hrtimer_bases);
 +
-+	apic_printk(APIC_VERBOSE, "... verify APIC timer\n");
++/*
++ * This allows printing both to /proc/timer_list and
++ * to the console (on SysRq-Q):
++ */
++#define SEQ_printf(m, x...)			\
++ do {						\
++	if (m)					\
++		seq_printf(m, x);		\
++	else					\
++		printk(x);			\
++ } while (0)
 +
++static void print_name_offset(struct seq_file *m, void *sym)
++{
++	unsigned long addr = (unsigned long)sym;
++	char namebuf[KSYM_NAME_LEN+1];
++	unsigned long size, offset;
++	const char *sym_name;
++	char *modname;
++
++	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
++	if (sym_name)
++		SEQ_printf(m, "%s", sym_name);
++	else
++		SEQ_printf(m, "<%p>", sym);
++}
++
++static void
++print_timer(struct seq_file *m, struct hrtimer *timer, int idx, u64 now)
++{
++#ifdef CONFIG_TIMER_STATS
++	char tmp[TASK_COMM_LEN + 1];
++#endif
++	SEQ_printf(m, " #%d: ", idx);
++	print_name_offset(m, timer);
++	SEQ_printf(m, ", ");
++	print_name_offset(m, timer->function);
++	SEQ_printf(m, ", S:%02lx", timer->state);
++#ifdef CONFIG_TIMER_STATS
++	SEQ_printf(m, ", ");
++	print_name_offset(m, timer->start_site);
++	memcpy(tmp, timer->start_comm, TASK_COMM_LEN);
++	tmp[TASK_COMM_LEN] = 0;
++	SEQ_printf(m, ", %s/%d", tmp, timer->start_pid);
++#endif
++	SEQ_printf(m, "\n");
++	SEQ_printf(m, " # expires at %Ld nsecs [in %Ld nsecs]\n",
++		(unsigned long long)ktime_to_ns(timer->expires),
++		(unsigned long long)(ktime_to_ns(timer->expires) - now));
++}
++
++static void
++print_active_timers(struct seq_file *m, struct hrtimer_clock_base *base,
++		    u64 now)
++{
++	struct hrtimer *timer, tmp;
++	unsigned long next = 0, i;
++	struct rb_node *curr;
++	unsigned long flags;
++
++next_one:
++	i = 0;
++	spin_lock_irqsave(&base->cpu_base->lock, flags);
++
++	curr = base->first;
 +	/*
-+	 * Setup the apic timer manually
++	 * Crude but we have to do this O(N*N) thing, because
++	 * we have to unlock the base when printing:
 +	 */
-+	local_apic_timer_verify_ok = 1;
-+	levt->event_handler = lapic_cal_handler;
-+	lapic_timer_setup(CLOCK_EVT_MODE_PERIODIC, levt);
-+	lapic_cal_loops = -1;
-+
-+	/* Let the interrupts run */
-+	local_irq_enable();
-+
-+	while(lapic_cal_loops <= LAPIC_CAL_LOOPS);
-+
-+	local_irq_disable();
-+
-+	/* Stop the lapic timer */
-+	lapic_timer_setup(CLOCK_EVT_MODE_SHUTDOWN, levt);
-+
-+	local_irq_enable();
-+
-+	/* Jiffies delta */
-+	deltaj = lapic_cal_j2 - lapic_cal_j1;
-+	apic_printk(APIC_VERBOSE, "... jiffies delta = %lu\n", deltaj);
-+
-+	/* Check, if the PM timer is available */
-+	deltapm = lapic_cal_pm2 - lapic_cal_pm1;
-+	apic_printk(APIC_VERBOSE, "... PM timer delta = %ld\n", deltapm);
-+
-+	local_apic_timer_verify_ok = 0;
-+
-+	if (deltapm) {
-+		if (deltapm > (pm_100ms - pm_thresh) &&
-+		    deltapm < (pm_100ms + pm_thresh)) {
-+			apic_printk(APIC_VERBOSE, "... PM timer result ok\n");
-+			/* Check, if the jiffies result is consistent */
-+			if (deltaj < LAPIC_CAL_LOOPS-2 ||
-+			    deltaj > LAPIC_CAL_LOOPS+2) {
-+				/*
-+				 * Not sure, what we can do about this one.
-+				 * When high resultion timers are active
-+				 * and the lapic timer does not stop in C3
-+				 * we are fine. Otherwise more trouble might
-+				 * be waiting. -- tglx
-+				 */
-+				printk(KERN_WARNING "Global event device %s "
-+				       "has wrong frequency "
-+				       "(%lu ticks instead of %d)\n",
-+				       global_clock_event->name, deltaj,
-+				       LAPIC_CAL_LOOPS);
-+			}
-+			local_apic_timer_verify_ok = 1;
-+		}
-+	} else {
-+		/* Check, if the jiffies result is consistent */
-+		if (deltaj >= LAPIC_CAL_LOOPS-2 &&
-+		    deltaj <= LAPIC_CAL_LOOPS+2) {
-+			apic_printk(APIC_VERBOSE, "... jiffies result ok\n");
-+			local_apic_timer_verify_ok = 1;
-+		}
++	while (curr && i < next) {
++		curr = rb_next(curr);
++		i++;
 +	}
- 
--	local_irq_save(flags);
-+	if (!local_apic_timer_verify_ok) {
-+		printk(KERN_WARNING
-+		       "APIC timer disabled due to verification failure.\n");
-+		/* No broadcast on UP ! */
-+		if (num_possible_cpus() == 1)
-+			return;
-+	} else
-+		lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
- 
--	calibration_result = calibrate_APIC_clock();
--	/*
--	 * Now set up the timer for real.
--	 */
-+	/* Setup the lapic or request the broadcast */
- 	setup_APIC_timer();
--
--	local_irq_restore(flags);
- }
- 
- void __devinit setup_secondary_APIC_clock(void)
-@@ -442,16 +515,15 @@ static void local_apic_timer_interrupt(v
- 	struct clock_event_device *evt = &per_cpu(lapic_events, cpu);
- 
- 	/*
--	 * Normally we should not be here till LAPIC has been
--	 * initialized but in some cases like kdump, its possible that
--	 * there is a pending LAPIC timer interrupt from previous
--	 * kernel's context and is delivered in new kernel the moment
--	 * interrupts are enabled.
-+	 * Normally we should not be here till LAPIC has been initialized but
-+	 * in some cases like kdump, its possible that there is a pending LAPIC
-+	 * timer interrupt from previous kernel's context and is delivered in
-+	 * new kernel the moment interrupts are enabled.
- 	 *
--	 * Interrupts are enabled early and LAPIC is setup much later,
--	 * hence its possible that when we get here evt->event_handler
--	 * is NULL. Check for event_handler being NULL and discard
--	 * the interrupt as spurious.
-+	 * Interrupts are enabled early and LAPIC is setup much later, hence
-+	 * its possible that when we get here evt->event_handler is NULL.
-+	 * Check for event_handler being NULL and discard the interrupt as
-+	 * spurious.
- 	 */
- 	if (!evt->event_handler) {
- 		printk(KERN_WARNING
-@@ -1126,13 +1198,6 @@ static int __init parse_nolapic(char *ar
- }
- early_param("nolapic", parse_nolapic);
- 
--static int __init apic_enable_lapic_timer(char *str)
--{
--	enable_local_apic_timer = 1;
--	return 0;
--}
--early_param("lapictimer", apic_enable_lapic_timer);
--
- static int __init apic_set_verbosity(char *str)
- {
- 	if (strcmp("debug", str) == 0)
-diff -puN include/asm-i386/apic.h~i386-rework-local-apic-timer-calibration include/asm-i386/apic.h
---- a/include/asm-i386/apic.h~i386-rework-local-apic-timer-calibration
-+++ a/include/asm-i386/apic.h
-@@ -95,8 +95,6 @@ static inline void ack_APIC_irq(void)
- 	apic_write_around(APIC_EOI, 0);
- }
- 
--extern void (*wait_timer_tick)(void);
--
- extern int lapic_get_maxlvt(void);
- extern void clear_local_APIC(void);
- extern void connect_bsp_APIC (void);
++
++	if (curr) {
++
++		timer = rb_entry(curr, struct hrtimer, node);
++		tmp = *timer;
++		spin_unlock_irqrestore(&base->cpu_base->lock, flags);
++
++		print_timer(m, &tmp, i, now);
++		next++;
++		goto next_one;
++	}
++	spin_unlock_irqrestore(&base->cpu_base->lock, flags);
++}
++
++static void
++print_base(struct seq_file *m, struct hrtimer_clock_base *base, u64 now)
++{
++	SEQ_printf(m, "  .index:      %d\n",
++			base->index);
++	SEQ_printf(m, "  .resolution: %Ld nsecs\n",
++			(unsigned long long)ktime_to_ns(base->resolution));
++	SEQ_printf(m,   "  .get_time:   ");
++	print_name_offset(m, base->get_time);
++	SEQ_printf(m,   "\n");
++#ifdef CONFIG_HIGH_RES_TIMERS
++	SEQ_printf(m, "  .offset:     %Ld nsecs\n",
++			ktime_to_ns(base->offset));
++#endif
++	SEQ_printf(m,   "active timers:\n");
++	print_active_timers(m, base, now);
++}
++
++static void print_cpu(struct seq_file *m, int cpu, u64 now)
++{
++	struct hrtimer_cpu_base *cpu_base = &per_cpu(hrtimer_bases, cpu);
++	int i;
++
++	SEQ_printf(m, "\ncpu: %d\n", cpu);
++	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
++		SEQ_printf(m, " clock %d:\n", i);
++		print_base(m, cpu_base->clock_base + i, now);
++	}
++#define P(x) \
++	SEQ_printf(m, "  .%-15s: %Ld\n", #x, (u64)(cpu_base->x))
++#define P_ns(x) \
++	SEQ_printf(m, "  .%-15s: %Ld nsecs\n", #x, \
++		(u64)(ktime_to_ns(cpu_base->x)))
++
++#ifdef CONFIG_HIGH_RES_TIMERS
++	P_ns(expires_next);
++	P(hres_active);
++	P(nr_events);
++#endif
++#undef P
++#undef P_ns
++
++#ifdef CONFIG_TICK_ONESHOT
++# define P(x) \
++	SEQ_printf(m, "  .%-15s: %Ld\n", #x, (u64)(ts->x))
++# define P_ns(x) \
++	SEQ_printf(m, "  .%-15s: %Ld nsecs\n", #x, \
++		(u64)(ktime_to_ns(ts->x)))
++	{
++		struct tick_sched *ts = tick_get_tick_sched(cpu);
++		P(nohz_mode);
++		P_ns(idle_tick);
++		P(tick_stopped);
++		P(idle_jiffies);
++		P(idle_calls);
++		P(idle_sleeps);
++		P_ns(idle_entrytime);
++		P_ns(idle_sleeptime);
++		P(last_jiffies);
++		P(next_jiffies);
++		P_ns(idle_expires);
++		SEQ_printf(m, "jiffies: %Ld\n", (u64)jiffies);
++	}
++#endif
++
++#undef P
++#undef P_ns
++}
++
++#ifdef CONFIG_GENERIC_CLOCKEVENTS
++static void
++print_tickdevice(struct seq_file *m, struct tick_device *td)
++{
++	struct clock_event_device *dev = td->evtdev;
++
++	SEQ_printf(m, "\nTick Device: mode:     %d\n", td->mode);
++
++	SEQ_printf(m, "Clock Event Device: ");
++	if (!dev) {
++		SEQ_printf(m, "<NULL>\n");
++		return;
++	}
++	SEQ_printf(m, "%s\n", dev->name);
++	SEQ_printf(m, " max_delta_ns:   %ld\n", dev->max_delta_ns);
++	SEQ_printf(m, " min_delta_ns:   %ld\n", dev->min_delta_ns);
++	SEQ_printf(m, " mult:           %ld\n", dev->mult);
++	SEQ_printf(m, " shift:          %d\n", dev->shift);
++	SEQ_printf(m, " mode:           %d\n", dev->mode);
++	SEQ_printf(m, " next_event:     %Ld nsecs\n",
++		   (unsigned long long) ktime_to_ns(dev->next_event));
++
++	SEQ_printf(m, " set_next_event: ");
++	print_name_offset(m, dev->set_next_event);
++	SEQ_printf(m, "\n");
++
++	SEQ_printf(m, " set_mode:       ");
++	print_name_offset(m, dev->set_mode);
++	SEQ_printf(m, "\n");
++
++	SEQ_printf(m, " event_handler:  ");
++	print_name_offset(m, dev->event_handler);
++	SEQ_printf(m, "\n");
++}
++
++static void timer_list_show_tickdevices(struct seq_file *m)
++{
++	int cpu;
++
++#ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
++	print_tickdevice(m, tick_get_broadcast_device());
++	SEQ_printf(m, "tick_broadcast_mask: %08lx\n",
++		   tick_get_broadcast_mask()->bits[0]);
++#ifdef CONFIG_TICK_ONESHOT
++	SEQ_printf(m, "tick_broadcast_oneshot_mask: %08lx\n",
++		   tick_get_broadcast_oneshot_mask()->bits[0]);
++#endif
++	SEQ_printf(m, "\n");
++#endif
++	for_each_online_cpu(cpu)
++		   print_tickdevice(m, tick_get_device(cpu));
++	SEQ_printf(m, "\n");
++}
++#else
++static void timer_list_show_tickdevices(struct seq_file *m) { }
++#endif
++
++static int timer_list_show(struct seq_file *m, void *v)
++{
++	u64 now = ktime_to_ns(ktime_get());
++	int cpu;
++
++	SEQ_printf(m, "Timer List Version: v0.3\n");
++	SEQ_printf(m, "HRTIMER_MAX_CLOCK_BASES: %d\n", HRTIMER_MAX_CLOCK_BASES);
++	SEQ_printf(m, "now at %Ld nsecs\n", (unsigned long long)now);
++
++	for_each_online_cpu(cpu)
++		print_cpu(m, cpu, now);
++
++	SEQ_printf(m, "\n");
++	timer_list_show_tickdevices(m);
++
++	return 0;
++}
++
++void sysrq_timer_list_show(void)
++{
++	timer_list_show(NULL, NULL);
++}
++
++static int timer_list_open(struct inode *inode, struct file *filp)
++{
++	return single_open(filp, timer_list_show, NULL);
++}
++
++static struct file_operations timer_list_fops = {
++	.open		= timer_list_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
++
++static int __init init_timer_list_procfs(void)
++{
++	struct proc_dir_entry *pe;
++
++	pe = create_proc_entry("timer_list", 0644, NULL);
++	if (!pe)
++		return -ENOMEM;
++
++	pe->proc_fops = &timer_list_fops;
++
++	return 0;
++}
++__initcall(init_timer_list_procfs);
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
 git-acpi.patch
-git-block.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+lockdep-debug_locks-check-after-check_chain_key.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_blocking.patch
+fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-aio-o_sync-filesystem-write.patch
+aio-is-unlikely.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
