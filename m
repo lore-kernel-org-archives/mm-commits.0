@@ -1,107 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - mark-tsc-on-geodelx-reliable.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:14:11 -0800
-Message-ID: <200702170714.l1H7EB3g021509@shell0.pdx.osdl.net>
+Subject: - generic-vsyscall-gtod-support-for-generic_time.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:15:29 -0800
+Message-ID: <200702170715.l1H7FTVD021631@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51481 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51503 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946454AbXBQHX6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:23:58 -0500
+	id S1946606AbXBQHYP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:24:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcelo@kvack.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, ak@muc.de, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Mark TSC on GeodeLX reliable
+     generic: vsyscall-gtod support for GENERIC_TIME
 has been removed from the -mm tree.  Its filename was
-     mark-tsc-on-geodelx-reliable.patch
+     generic-vsyscall-gtod-support-for-generic_time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Mark TSC on GeodeLX reliable
-From: Marcelo Tosatti <marcelo@kvack.org>
+Subject: generic: vsyscall-gtod support for GENERIC_TIME
+From: john stultz <johnstul@us.ibm.com>
 
-The Geode can safely use the TSC for highres, since:
+Provides generic infrastructure for vsyscall-gtod.
 
-1) Does not support frequency scaling,
-
-2) The TSC _does_ count when the CPU is halted.  Furthermore, the Geode
-   supports a mode called "suspension on halt", where Suspend mode (which
-   interacts with the power management states) is entered.  TSC counting
-   during suspend mode is controlled by bit 8 of the Bus Controller
-   Configuration Register #0 (thanks Tom!).
-
-3) no SMP :)
-
-Check if "RTSC counts during suspension" and remove the requirement for
-verification, so the clocksource code can safely select it as an timesource
-for the highres timers subsystem.
-
-Signed-off-by: Marcelo Tosatti <marcelo@kvack.org>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
+[akpm@osdl.org: cleanup]
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@muc.de>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/tsc.c |   20 ++++++++++++++++++++
- include/asm-i386/msr.h |    3 +++
- 2 files changed, 23 insertions(+)
+ include/linux/clocksource.h |   10 ++++++++++
+ kernel/timer.c              |    1 +
+ 2 files changed, 11 insertions(+)
 
-diff -puN arch/i386/kernel/tsc.c~mark-tsc-on-geodelx-reliable arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~mark-tsc-on-geodelx-reliable
-+++ a/arch/i386/kernel/tsc.c
-@@ -364,6 +364,25 @@ __cpuinit int unsynchronized_tsc(void)
- 	return tsc_unstable;
- }
+diff -puN include/linux/clocksource.h~generic-vsyscall-gtod-support-for-generic_time include/linux/clocksource.h
+--- a/include/linux/clocksource.h~generic-vsyscall-gtod-support-for-generic_time
++++ a/include/linux/clocksource.h
+@@ -47,6 +47,7 @@ struct clocksource;
+  * @mult:		cycle to nanosecond multiplier
+  * @shift:		cycle to nanosecond divisor (power of two)
+  * @flags:		flags describing special properties
++ * @vread:		vsyscall based read
+  * @cycle_interval:	Used internally by timekeeping core, please ignore.
+  * @xtime_interval:	Used internally by timekeeping core, please ignore.
+  */
+@@ -59,6 +60,7 @@ struct clocksource {
+ 	u32 mult;
+ 	u32 shift;
+ 	unsigned long flags;
++	cycle_t (*vread)(void);
  
-+/*
-+ * Geode_LX - the OLPC CPU has a possibly a very reliable TSC
-+ */
-+#ifdef CONFIG_MGEODE_LX
-+/* RTSC counts during suspend */
-+#define RTSC_SUSP 0x100
-+
-+static void __init check_geode_tsc_reliable(void)
-+{
-+	unsigned long val;
-+
-+	rdmsrl(MSR_GEODE_BUSCONT_CONF0, val);
-+	if ((val & RTSC_SUSP))
-+		clocksource_tsc.flags &= ~CLOCK_SOURCE_MUST_VERIFY;
-+}
+ 	/* timekeeping specific data, ignore */
+ 	cycle_t cycle_last, cycle_interval;
+@@ -197,4 +199,12 @@ extern int clocksource_register(struct c
+ extern struct clocksource* clocksource_get_next(void);
+ extern void clocksource_change_rating(struct clocksource *cs, int rating);
+ 
++#ifdef CONFIG_GENERIC_TIME_VSYSCALL
++extern void update_vsyscall(struct timespec *ts, struct clocksource *c);
 +#else
-+static inline void check_geode_tsc_reliable(void) { }
++static inline void update_vsyscall(struct timespec *ts, struct clocksource *c)
++{
++}
 +#endif
 +
- static int __init init_tsc_clocksource(void)
- {
+ #endif /* _LINUX_CLOCKSOURCE_H */
+diff -puN kernel/timer.c~generic-vsyscall-gtod-support-for-generic_time kernel/timer.c
+--- a/kernel/timer.c~generic-vsyscall-gtod-support-for-generic_time
++++ a/kernel/timer.c
+@@ -1174,6 +1174,7 @@ static void update_wall_time(void)
  
-@@ -372,6 +391,7 @@ static int __init init_tsc_clocksource(v
- 		dmi_check_system(bad_tsc_dmi_table);
+ 	/* check to see if there is a new clocksource to use */
+ 	change_clocksource();
++	update_vsyscall(&xtime, clock);
+ }
  
- 		unsynchronized_tsc();
-+		check_geode_tsc_reliable();
- 		current_tsc_khz = tsc_khz;
- 		clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
- 							clocksource_tsc.shift);
-diff -puN include/asm-i386/msr.h~mark-tsc-on-geodelx-reliable include/asm-i386/msr.h
---- a/include/asm-i386/msr.h~mark-tsc-on-geodelx-reliable
-+++ a/include/asm-i386/msr.h
-@@ -307,4 +307,7 @@ static inline void wrmsrl (unsigned long
- #define MSR_CORE_PERF_GLOBAL_CTRL	0x38f
- #define MSR_CORE_PERF_GLOBAL_OVF_CTRL	0x390
- 
-+/* Geode defined MSRs */
-+#define MSR_GEODE_BUSCONT_CONF0         0x1900
-+
- #endif /* __ASM_MSR_H */
+ /*
 _
 
-Patches currently in -mm which might be from marcelo@kvack.org are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
 origin.patch
+git-acpi.patch
+profile-likely-unlikely-macros-x86_64-fix.patch
