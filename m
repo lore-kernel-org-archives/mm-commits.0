@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sk98lin-planned-removal.patch added to -mm tree
-Date: Fri, 16 Feb 2007 17:26:56 -0800
-Message-ID: <200702170126.l1H1QuOi015724@shell0.pdx.osdl.net>
+Subject: + fix-saa7146_clipping_mem-size.patch added to -mm tree
+Date: Fri, 16 Feb 2007 17:27:36 -0800
+Message-ID: <200702170127.l1H1RarR015740@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43864 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43914 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946285AbXBQB05 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 20:26:57 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1H1QuhB014095
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 16 Feb 2007 17:26:56 -0800
+	id S1946298AbXBQB1j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 20:27:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org
+Cc: olaf@aepfle.de
 
 
 The patch titled
-     sk98lin: planned removal
+     fix SAA7146_CLIPPING_MEM size
 has been added to the -mm tree.  Its filename is
-     sk98lin-planned-removal.patch
+     fix-saa7146_clipping_mem-size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,34 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sk98lin: planned removal
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: fix SAA7146_CLIPPING_MEM size
+From: Olaf Hering <olaf@aepfle.de>
 
-Nag message about planned sk98lin removal.
+Limit the pci_alloc_consistent size to 128K PAGE_SIZE can be 64K, which
+leads to a 896K allocation.
 
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+calculate_clipping_registers_rect() uses not more than 257 bytes because
+saa7146_video.c:s_fmt limits ov.nclips to 16
+
+But bttv-driver.c does not allow up to 2048 clips in win->clipcount
+btcx_screen_clips() may add 4 more clips.
+
+So a max array size of 131329 is enough.  Right now only 56K get allocated.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sk98lin/skge.c |    3 +++
- 1 files changed, 3 insertions(+)
+ include/media/saa7146_vv.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/sk98lin/skge.c~sk98lin-planned-removal drivers/net/sk98lin/skge.c
---- a/drivers/net/sk98lin/skge.c~sk98lin-planned-removal
-+++ a/drivers/net/sk98lin/skge.c
-@@ -5188,6 +5188,9 @@ static struct pci_driver skge_driver = {
+diff -puN include/media/saa7146_vv.h~fix-saa7146_clipping_mem-size include/media/saa7146_vv.h
+--- a/include/media/saa7146_vv.h~fix-saa7146_clipping_mem-size
++++ a/include/media/saa7146_vv.h
+@@ -239,7 +239,8 @@ void saa7146_res_free(struct saa7146_fh 
+ #define SAA7146_HPS_SYNC_PORT_B		0x01
  
- static int __init skge_init(void)
- {
-+	printk(KERN_NOTICE "sk98lin: driver has been replaced by the skge driver"
-+	       " and is scheduled for removal\n");
-+
- 	return pci_register_driver(&skge_driver);
- }
+ /* some memory sizes */
+-#define SAA7146_CLIPPING_MEM	(14*PAGE_SIZE)
++/* see saa7146_hlp.c:calculate_clipping_registers_rect and bttv-driver.c:setup_window */
++#define SAA7146_CLIPPING_MEM	( ( ( 2048 + 4 ) * ( 2 * (2 * 16) ) ) + 1 )
  
+ /* some defines for the various clipping-modes */
+ #define SAA7146_CLIPPING_RECT		0x4
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 origin.patch
-sk98lin-planned-removal.patch
+fix-saa7146_clipping_mem-size.patch
+remove-stack-hard-limit-on-ia64.patch
+kbuild-override-build-timestamp.patch
+cleanup-variable-usage-in-mesh-interrupt-handler.patch
+keep-track-of-network-interface-renaming.patch
