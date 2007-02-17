@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt-core-xen-implementation-fix.patch added to -mm tree
-Date: Sat, 17 Feb 2007 01:54:50 -0800
-Message-ID: <200702170956.l1H9u9TR024227@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-kconfig-menus-fix-4.patch added to -mm tree
+Date: Sat, 17 Feb 2007 01:56:42 -0800
+Message-ID: <200702170958.l1H9w0Zo024237@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53757 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53776 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946551AbXBQJ4O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 04:56:14 -0500
+	id S1946551AbXBQJ6K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 04:58:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeremy@goop.org
+Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     xen-paravirt-core-xen-implementation-fix
+     linux-kernel-markers-kconfig-menus-fix-4
 has been added to the -mm tree.  Its filename is
-     xen-paravirt-core-xen-implementation-fix.patch
+     linux-kernel-markers-kconfig-menus-fix-4.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xen-paravirt-core-xen-implementation-fix
+Subject: linux-kernel-markers-kconfig-menus-fix-4
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/time.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/module.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/xen/time.c~xen-paravirt-core-xen-implementation-fix arch/i386/xen/time.c
---- a/arch/i386/xen/time.c~xen-paravirt-core-xen-implementation-fix
-+++ a/arch/i386/xen/time.c
-@@ -304,7 +304,7 @@ static struct clocksource xen_clocksourc
- 	.mask = ~0,
- 	.mult = 1<<XEN_SHIFT,		/* time directly in nanoseconds */
- 	.shift = XEN_SHIFT,
--	.is_continuous = 1
-+	.flags = CLOCK_SOURCE_IS_CONTINUOUS,
- };
- 
- static void init_missing_ticks_accounting(int cpu)
+diff -puN kernel/module.c~linux-kernel-markers-kconfig-menus-fix-4 kernel/module.c
+--- a/kernel/module.c~linux-kernel-markers-kconfig-menus-fix-4
++++ a/kernel/module.c
+@@ -31,6 +31,7 @@
+ #include <linux/cpu.h>
+ #include <linux/moduleparam.h>
+ #include <linux/errno.h>
++#include <linux/marker.h>
+ #include <linux/err.h>
+ #include <linux/vermagic.h>
+ #include <linux/notifier.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,5 +83,5 @@ genalloc-warning-fixes.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 revert-x86_64-mm-putreg-check.patch
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
 git-gccbug-fixup.patch
-a.patch
