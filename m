@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ds1374-check-for-workqueue-creation.patch added to -mm tree
-Date: Fri, 16 Feb 2007 17:26:23 -0800
-Message-ID: <200702170126.l1H1QNq0015718@shell0.pdx.osdl.net>
+Subject: + acpi_boot_init-making-bad-check-on-return-code.patch added to -mm tree
+Date: Fri, 16 Feb 2007 17:25:43 -0800
+Message-ID: <200702170125.l1H1PhPr015706@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43846 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43862 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946360AbXBQB0Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 20:26:25 -0500
+	id S1946248AbXBQB04 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Feb 2007 20:26:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@gmail.com
+Cc: jpk@sgi.com, ayoung@sgi.com, lenb@kernel.org, tony.luck@intel.com
 
 
 The patch titled
-     DS1374: check for workqueue creation
+     acpi_boot_init() making bad check on return code
 has been added to the -mm tree.  Its filename is
-     ds1374-check-for-workqueue-creation.patch
+     acpi_boot_init-making-bad-check-on-return-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: DS1374: check for workqueue creation
-From: "Cyrill V. Gorcunov" <gorcunov@gmail.com>
+Subject: acpi_boot_init() making bad check on return code
+From: John Keller <jpk@sgi.com>
 
-Check if workqueue creation failed.  Further usage of NULL pointed
-workqueue is not good I guess ;)
+acpi_boot_init() is making a bad check on the return status from
+acpi_table_parse().  acpi_table_parse() now returns zero on success, one on
+failure.
 
-Signed-off-by: Cyrill V. Gorcunov <gorcunov@gmail.com>
+Signed-off-by: Aaron Young <ayoung@sgi.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/chips/ds1374.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ arch/ia64/kernel/acpi.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/i2c/chips/ds1374.c~ds1374-check-for-workqueue-creation drivers/i2c/chips/ds1374.c
---- a/drivers/i2c/chips/ds1374.c~ds1374-check-for-workqueue-creation
-+++ a/drivers/i2c/chips/ds1374.c
-@@ -207,6 +207,10 @@ static int ds1374_probe(struct i2c_adapt
- 	client->driver = &ds1374_driver;
+diff -puN arch/ia64/kernel/acpi.c~acpi_boot_init-making-bad-check-on-return-code arch/ia64/kernel/acpi.c
+--- a/arch/ia64/kernel/acpi.c~acpi_boot_init-making-bad-check-on-return-code
++++ a/arch/ia64/kernel/acpi.c
+@@ -651,7 +651,7 @@ int __init acpi_boot_init(void)
+ 	 * information -- the successor to MPS tables.
+ 	 */
  
- 	ds1374_workqueue = create_singlethread_workqueue("ds1374");
-+	if (!ds1374_workqueue) {
-+		kfree(client);
-+		return -ENOMEM;	/* most expected reason */
-+	}
+-	if (acpi_table_parse(ACPI_SIG_MADT, acpi_parse_madt) < 1) {
++	if (acpi_table_parse(ACPI_SIG_MADT, acpi_parse_madt)) {
+ 		printk(KERN_ERR PREFIX "Can't find MADT\n");
+ 		goto skip_madt;
+ 	}
+@@ -702,7 +702,7 @@ int __init acpi_boot_init(void)
+ 	 * gets interrupts such as power and sleep buttons.  If it's not
+ 	 * on a Legacy interrupt, it needs to be setup.
+ 	 */
+-	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt) < 1)
++	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt))
+ 		printk(KERN_ERR PREFIX "Can't find FADT\n");
  
- 	if ((rc = i2c_attach_client(client)) != 0) {
- 		kfree(client);
+ #ifdef CONFIG_SMP
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from jpk@sgi.com are
 
 origin.patch
-ds1374-check-for-workqueue-creation.patch
-git-input.patch
+git-acpi.patch
+acpi_boot_init-making-bad-check-on-return-code.patch
