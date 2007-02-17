@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernel-markers-kconfig-menus-fix-4.patch added to -mm tree
-Date: Sat, 17 Feb 2007 01:56:42 -0800
-Message-ID: <200702170958.l1H9w0Zo024237@shell0.pdx.osdl.net>
+Subject: + mincore-warning-fix.patch added to -mm tree
+Date: Sat, 17 Feb 2007 02:01:19 -0800
+Message-ID: <200702171002.l1HA2bnL024335@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53776 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53889 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946551AbXBQJ6K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 04:58:10 -0500
+	id S965122AbXBQKCl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 05:02:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca
+Cc: akpm@linux-foundation.org, clameter@engr.sgi.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     linux-kernel-markers-kconfig-menus-fix-4
+     mincore warning fix
 has been added to the -mm tree.  Its filename is
-     linux-kernel-markers-kconfig-menus-fix-4.patch
+     mincore-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,27 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-kconfig-menus-fix-4
+Subject: mincore warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+allnoconfig:
+
+mm/mincore.c: In function 'do_mincore':
+mm/mincore.c:122: warning: unused variable 'entry'
+
+Yet another entry in the why-macros-are-wrong encyclopedia.
+
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/swapops.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/module.c~linux-kernel-markers-kconfig-menus-fix-4 kernel/module.c
---- a/kernel/module.c~linux-kernel-markers-kconfig-menus-fix-4
-+++ a/kernel/module.c
-@@ -31,6 +31,7 @@
- #include <linux/cpu.h>
- #include <linux/moduleparam.h>
- #include <linux/errno.h>
-+#include <linux/marker.h>
- #include <linux/err.h>
- #include <linux/vermagic.h>
- #include <linux/notifier.h>
+diff -puN include/linux/swapops.h~mincore-warning-fix include/linux/swapops.h
+--- a/include/linux/swapops.h~mincore-warning-fix
++++ a/include/linux/swapops.h
+@@ -108,7 +108,10 @@ extern void migration_entry_wait(struct 
+ #else
+ 
+ #define make_migration_entry(page, write) swp_entry(0, 0)
+-#define is_migration_entry(swp) 0
++static inline int is_migration_entry(swp_entry_t swp)
++{
++	return 0;
++}
+ #define migration_entry_to_page(swp) NULL
+ static inline void make_migration_entry_read(swp_entry_t *entryp) { }
+ static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,3 +97,4 @@ revert-x86_64-mm-putreg-check.patch
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
 git-gccbug-fixup.patch
+mincore-warning-fix.patch
