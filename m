@@ -1,179 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - allow-early-access-to-the-power-management-timer.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:14:38 -0800
-Message-ID: <200702170714.l1H7EcSc021539@shell0.pdx.osdl.net>
+Subject: - extend-next_timer_interrupt-to-use-a-reference-jiffie.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:14:19 -0800
+Message-ID: <200702170714.l1H7EJ1S021518@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51269 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51271 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946440AbXBQHSR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:18:17 -0500
+	id S1946566AbXBQHSU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:18:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, bunk@stusta.de, cotte@de.ibm.com, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Allow early access to the power management timer
+     Extend next_timer_interrupt() to use a reference jiffie
 has been removed from the -mm tree.  Its filename was
-     allow-early-access-to-the-power-management-timer.patch
+     extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Allow early access to the power management timer
+Subject: Extend next_timer_interrupt() to use a reference jiffie
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Allow early access to the power management timer by exposing the verified read
-function and providing a helper function which checks the pmtmr_ioport
-variable and returns either the pm timer readout or 0 in case the pm timer is
-not available.
+For CONFIG_NO_HZ we need to calculate the next timer wheel event based on a
+given jiffie value.  Extend the existing code to allow the extra 'now'
+argument.  Provide a compability function for the existing implementations to
+call the function with now == jiffies.  (This also solves the racyness of the
+original code vs.  jiffies changing during the iteration.)
 
-Create a new header file and replace also the ifdef'ed extern definition in
-arch/i386/kernel/acpi/boot.c
+No functional changes to existing users of this infrastructure.
 
-This is a preperatory patch for the rework of the local apic timer
-calibration.
-
-No functional changes.
-
+[ remove WARN_ON() that triggered on s390, by Carsten Otte <cotte@de.ibm.com> ]
+[ made new helper static, Adrian Bunk <bunk@stusta.de> ]
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/boot.c  |    5 ----
- drivers/clocksource/acpi_pm.c |   17 +++++++-------
- include/linux/acpi_pmtmr.h    |   38 ++++++++++++++++++++++++++++++++
- 3 files changed, 48 insertions(+), 12 deletions(-)
+ include/linux/timer.h |   10 ++++++++++
+ kernel/hrtimer.c      |    2 +-
+ kernel/timer.c        |   14 +++++++++++---
+ 3 files changed, 22 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/boot.c~allow-early-access-to-the-power-management-timer arch/i386/kernel/acpi/boot.c
---- a/arch/i386/kernel/acpi/boot.c~allow-early-access-to-the-power-management-timer
-+++ a/arch/i386/kernel/acpi/boot.c
-@@ -25,6 +25,7 @@
+diff -puN include/linux/timer.h~extend-next_timer_interrupt-to-use-a-reference-jiffie include/linux/timer.h
+--- a/include/linux/timer.h~extend-next_timer_interrupt-to-use-a-reference-jiffie
++++ a/include/linux/timer.h
+@@ -61,7 +61,17 @@ extern int del_timer(struct timer_list *
+ extern int __mod_timer(struct timer_list *timer, unsigned long expires);
+ extern int mod_timer(struct timer_list *timer, unsigned long expires);
  
- #include <linux/init.h>
- #include <linux/acpi.h>
-+#include <linux/acpi_pmtmr.h>
- #include <linux/efi.h>
- #include <linux/cpumask.h>
- #include <linux/module.h>
-@@ -676,10 +677,6 @@ static int __init acpi_parse_hpet(struct
- #define	acpi_parse_hpet	NULL
++/*
++ * Return when the next timer-wheel timeout occurs (in absolute jiffies),
++ * locks the timer base:
++ */
+ extern unsigned long next_timer_interrupt(void);
++/*
++ * Return when the next timer-wheel timeout occurs (in absolute jiffies),
++ * locks the timer base and does the comparison against the given
++ * jiffie.
++ */
++extern unsigned long get_next_timer_interrupt(unsigned long now);
+ 
+ /**
+  * add_timer - start a timer
+diff -puN kernel/hrtimer.c~extend-next_timer_interrupt-to-use-a-reference-jiffie kernel/hrtimer.c
+--- a/kernel/hrtimer.c~extend-next_timer_interrupt-to-use-a-reference-jiffie
++++ a/kernel/hrtimer.c
+@@ -533,7 +533,7 @@ ktime_t hrtimer_get_remaining(const stru
+ }
+ EXPORT_SYMBOL_GPL(hrtimer_get_remaining);
+ 
+-#ifdef CONFIG_NO_IDLE_HZ
++#if defined(CONFIG_NO_IDLE_HZ) || defined(CONFIG_NO_HZ)
+ /**
+  * hrtimer_get_next_event - get the time until next expiry event
+  *
+diff -puN kernel/timer.c~extend-next_timer_interrupt-to-use-a-reference-jiffie kernel/timer.c
+--- a/kernel/timer.c~extend-next_timer_interrupt-to-use-a-reference-jiffie
++++ a/kernel/timer.c
+@@ -591,7 +591,7 @@ static inline void __run_timers(tvec_bas
+ 	spin_unlock_irq(&base->lock);
+ }
+ 
+-#ifdef CONFIG_NO_IDLE_HZ
++#if defined(CONFIG_NO_IDLE_HZ) || defined(CONFIG_NO_HZ)
+ /*
+  * Find out when the next timer event is due to happen. This
+  * is used on S/390 to stop all activity when a cpus is idle.
+@@ -687,10 +687,10 @@ static unsigned long cmp_next_hrtimer_ev
+ /**
+  * next_timer_interrupt - return the jiffy of the next pending timer
+  */
+-unsigned long next_timer_interrupt(void)
++unsigned long get_next_timer_interrupt(unsigned long now)
+ {
+ 	tvec_base_t *base = __get_cpu_var(tvec_bases);
+-	unsigned long expires, now = jiffies;
++	unsigned long expires;
+ 
+ 	spin_lock(&base->lock);
+ 	expires = __next_timer_interrupt(base);
+@@ -701,6 +701,14 @@ unsigned long next_timer_interrupt(void)
+ 
+ 	return cmp_next_hrtimer_event(now, expires);
+ }
++
++#ifdef CONFIG_NO_IDLE_HZ
++unsigned long next_timer_interrupt(void)
++{
++	return get_next_timer_interrupt(jiffies);
++}
++#endif
++
  #endif
  
--#ifdef CONFIG_X86_PM_TIMER
--extern u32 pmtmr_ioport;
--#endif
--
- static int __init acpi_parse_fadt(struct acpi_table_header *table)
- {
- 
-diff -puN drivers/clocksource/acpi_pm.c~allow-early-access-to-the-power-management-timer drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~allow-early-access-to-the-power-management-timer
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -16,15 +16,13 @@
-  * This file is licensed under the GPL v2.
-  */
- 
-+#include <linux/acpi_pmtmr.h>
- #include <linux/clocksource.h>
- #include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/pci.h>
- #include <asm/io.h>
- 
--/* Number of PMTMR ticks expected during calibration run */
--#define PMTMR_TICKS_PER_SEC 3579545
--
- /*
-  * The I/O port the PMTMR resides at.
-  * The location is detected during setup_arch(),
-@@ -32,15 +30,13 @@
-  */
- u32 pmtmr_ioport __read_mostly;
- 
--#define ACPI_PM_MASK CLOCKSOURCE_MASK(24) /* limit it to 24 bits */
--
- static inline u32 read_pmtmr(void)
- {
- 	/* mask the output to 24 bits */
- 	return inl(pmtmr_ioport) & ACPI_PM_MASK;
- }
- 
--static cycle_t acpi_pm_read_verified(void)
-+u32 acpi_pm_read_verified(void)
- {
- 	u32 v1 = 0, v2 = 0, v3 = 0;
- 
-@@ -57,7 +53,12 @@ static cycle_t acpi_pm_read_verified(voi
- 	} while (unlikely((v1 > v2 && v1 < v3) || (v2 > v3 && v2 < v1)
- 			  || (v3 > v1 && v3 < v2)));
- 
--	return (cycle_t)v2;
-+	return v2;
-+}
-+
-+static cycle_t acpi_pm_read_slow(void)
-+{
-+	return (cycle_t)acpi_pm_read_verified();
- }
- 
- static cycle_t acpi_pm_read(void)
-@@ -88,7 +89,7 @@ __setup("acpi_pm_good", acpi_pm_good_set
- 
- static inline void acpi_pm_need_workaround(void)
- {
--	clocksource_acpi_pm.read = acpi_pm_read_verified;
-+	clocksource_acpi_pm.read = acpi_pm_read_slow;
- 	clocksource_acpi_pm.rating = 110;
- }
- 
-diff -puN /dev/null include/linux/acpi_pmtmr.h
---- /dev/null
-+++ a/include/linux/acpi_pmtmr.h
-@@ -0,0 +1,38 @@
-+#ifndef _ACPI_PMTMR_H_
-+#define _ACPI_PMTMR_H_
-+
-+#include <linux/clocksource.h>
-+
-+/* Number of PMTMR ticks expected during calibration run */
-+#define PMTMR_TICKS_PER_SEC 3579545
-+
-+/* limit it to 24 bits */
-+#define ACPI_PM_MASK CLOCKSOURCE_MASK(24)
-+
-+/* Overrun value */
-+#define ACPI_PM_OVRRUN	(1<<24)
-+
-+#ifdef CONFIG_X86_PM_TIMER
-+
-+extern u32 acpi_pm_read_verified(void);
-+extern u32 pmtmr_ioport;
-+
-+static inline u32 acpi_pm_read_early(void)
-+{
-+	if (!pmtmr_ioport)
-+		return 0;
-+	/* mask the output to 24 bits */
-+	return acpi_pm_read_verified() & ACPI_PM_MASK;
-+}
-+
-+#else
-+
-+static inline u32 acpi_pm_read_early(void)
-+{
-+	return 0;
-+}
-+
-+#endif
-+
-+#endif
-+
+ /******************************************************************/
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
