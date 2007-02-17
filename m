@@ -1,86 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-megaraid_sas-replace-pci_alloc_consitent-with-dma_alloc_coherent-in-ioctl-path.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:17:06 -0800
-Message-ID: <200702170717.l1H7H68h021764@shell0.pdx.osdl.net>
+Subject: - fix-timeout-overflow-with-jiffies.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:13:34 -0800
+Message-ID: <200702170713.l1H7DYft021463@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51209 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51221 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946537AbXBQHRJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:17:09 -0500
+	id S1946541AbXBQHRN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:17:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sumantp@lsil.com, sumant.patro@lsi.com, mm-commits@vger.kernel.org
+To: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: megaraid_sas - replace pci_alloc_consitent with dma_alloc_coherent in ioctl path
+     Fix timeout overflow with jiffies
 has been removed from the -mm tree.  Its filename was
-     scsi-megaraid_sas-replace-pci_alloc_consitent-with-dma_alloc_coherent-in-ioctl-path.patch
+     fix-timeout-overflow-with-jiffies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi: megaraid_sas - replace pci_alloc_consitent with dma_alloc_coherent in ioctl path
-From: Sumant Patro <sumantp@lsil.com>
+Subject: Fix timeout overflow with jiffies
+From: Ingo Molnar <mingo@elte.hu>
 
-Replaced pci_alloc_consistent with dma_alloc_coherent from the ioctl path. 
-This is to avoid situations where ioctl fails for lack of memory (when system
-under heavy stress).
+Prevent timeout overflow if timer ticks are behind jiffies (due to high
+softirq load or due to dyntick), by limiting the valid timeout range to
+MAX_LONG/2.
 
-Signed-off-by: Sumant Patro <sumant.patro@lsi.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_sas.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/jiffies.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-replace-pci_alloc_consitent-with-dma_alloc_coherent-in-ioctl-path drivers/scsi/megaraid/megaraid_sas.c
---- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-replace-pci_alloc_consitent-with-dma_alloc_coherent-in-ioctl-path
-+++ a/drivers/scsi/megaraid/megaraid_sas.c
-@@ -2738,9 +2738,9 @@ megasas_mgmt_fw_ioctl(struct megasas_ins
- 	 * For each user buffer, create a mirror buffer and copy in
- 	 */
- 	for (i = 0; i < ioc->sge_count; i++) {
--		kbuff_arr[i] = pci_alloc_consistent(instance->pdev,
-+		kbuff_arr[i] = dma_alloc_coherent(&instance->pdev->dev,
- 						    ioc->sgl[i].iov_len,
--						    &buf_handle);
-+						    &buf_handle, GFP_KERNEL);
- 		if (!kbuff_arr[i]) {
- 			printk(KERN_DEBUG "megasas: Failed to alloc "
- 			       "kernel SGL buffer for IOCTL \n");
-@@ -2767,8 +2767,8 @@ megasas_mgmt_fw_ioctl(struct megasas_ins
- 	}
+diff -puN include/linux/jiffies.h~fix-timeout-overflow-with-jiffies include/linux/jiffies.h
+--- a/include/linux/jiffies.h~fix-timeout-overflow-with-jiffies
++++ a/include/linux/jiffies.h
+@@ -142,13 +142,13 @@ static inline u64 get_jiffies_64(void)
+  *
+  * And some not so obvious.
+  *
+- * Note that we don't want to return MAX_LONG, because
++ * Note that we don't want to return LONG_MAX, because
+  * for various timeout reasons we often end up having
+  * to wait "jiffies+1" in order to guarantee that we wait
+  * at _least_ "jiffies" - so "jiffies+1" had better still
+  * be positive.
+  */
+-#define MAX_JIFFY_OFFSET ((~0UL >> 1)-1)
++#define MAX_JIFFY_OFFSET ((LONG_MAX >> 1)-1)
  
- 	if (ioc->sense_len) {
--		sense = pci_alloc_consistent(instance->pdev, ioc->sense_len,
--					     &sense_handle);
-+		sense = dma_alloc_coherent(&instance->pdev->dev, ioc->sense_len,
-+					     &sense_handle, GFP_KERNEL);
- 		if (!sense) {
- 			error = -ENOMEM;
- 			goto out;
-@@ -2827,12 +2827,12 @@ megasas_mgmt_fw_ioctl(struct megasas_ins
- 
-       out:
- 	if (sense) {
--		pci_free_consistent(instance->pdev, ioc->sense_len,
-+		dma_free_coherent(&instance->pdev->dev, ioc->sense_len,
- 				    sense, sense_handle);
- 	}
- 
- 	for (i = 0; i < ioc->sge_count && kbuff_arr[i]; i++) {
--		pci_free_consistent(instance->pdev,
-+		dma_free_coherent(&instance->pdev->dev,
- 				    kern_sge32[i].length,
- 				    kbuff_arr[i], kern_sge32[i].phys_addr);
- 	}
+ /*
+  * We want to do realistic conversions of time so we need to use the same
 _
 
-Patches currently in -mm which might be from sumantp@lsil.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-git-scsi-misc.patch
-scsi-megaraid_sas-throttle-io-if-fw-is-busy.patch
-scsi-megaraid_sas-return-sync-cache-call-with-success.patch
+git-acpi.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+lockdep-debug_locks-check-after-check_chain_key.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_blocking.patch
+fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-aio-o_sync-filesystem-write.patch
+aio-is-unlikely.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
