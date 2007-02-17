@@ -1,157 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:13:31 -0800
-Message-ID: <200702170713.l1H7DVgn021460@shell0.pdx.osdl.net>
+Subject: - vmi-versus-hrtimers.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:13:15 -0800
+Message-ID: <200702170713.l1H7DFgA021442@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50776 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50807 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946438AbXBQHNy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:13:54 -0500
+	id S1946440AbXBQHOM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:14:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix multiple conversion bugs in msecs_to_jiffies
+     vmi-versus-hrtimers
 has been removed from the -mm tree.  Its filename was
-     fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+     vmi-versus-hrtimers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix multiple conversion bugs in msecs_to_jiffies
-From: Ingo Molnar <mingo@elte.hu>
+Subject: vmi-versus-hrtimers
+From: Andrew Morton <akpm@osdl.org>
 
-Fix multiple conversion bugs in msecs_to_jiffies().
+arch/i386/kernel/built-in.o: In function `vmi_stop_hz_timer':
+: undefined reference to `next_timer_interrupt'
 
-The main problem is that this condition:
+If CONFIG_NO_HZ, next_timer_interrupt() doesn't exist (and presumably doesn't
+make sense).
 
-	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
+Perhaps VMI shouildn't be playing with timer internals at this level.
 
-overflows if HZ is smaller than 1000!
-
-This change is user-visible: for HZ=250 SUS-compliant poll()-timeout
-value of -20 is mistakenly converted to 'immediate timeout'.
-
-(The new dyntick code also triggered this, that's how we noticed.)
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |   43 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 42 insertions(+), 1 deletion(-)
+ arch/i386/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/time.c~fix-multiple-conversion-bugs-in-msecs_to_jiffies kernel/time.c
---- a/kernel/time.c~fix-multiple-conversion-bugs-in-msecs_to_jiffies
-+++ a/kernel/time.c
-@@ -500,15 +500,56 @@ unsigned int jiffies_to_usecs(const unsi
- }
- EXPORT_SYMBOL(jiffies_to_usecs);
+diff -puN arch/i386/Kconfig~vmi-versus-hrtimers arch/i386/Kconfig
+--- a/arch/i386/Kconfig~vmi-versus-hrtimers
++++ a/arch/i386/Kconfig
+@@ -205,7 +205,7 @@ config PARAVIRT
  
-+/*
-+ * When we convert to jiffies then we interpret incoming values
-+ * the following way:
-+ *
-+ * - negative values mean 'infinite timeout' (MAX_JIFFY_OFFSET)
-+ *
-+ * - 'too large' values [that would result in larger than
-+ *   MAX_JIFFY_OFFSET values] mean 'infinite timeout' too.
-+ *
-+ * - all other values are converted to jiffies by either multiplying
-+ *   the input value by a factor or dividing it with a factor
-+ *
-+ * We must also be careful about 32-bit overflows.
-+ */
- unsigned long msecs_to_jiffies(const unsigned int m)
- {
--	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+	/*
-+	 * Negative value, means infinite timeout:
-+	 */
-+	if ((int)m < 0)
- 		return MAX_JIFFY_OFFSET;
-+
- #if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
-+	/*
-+	 * HZ is equal to or smaller than 1000, and 1000 is a nice
-+	 * round multiple of HZ, divide with the factor between them,
-+	 * but round upwards:
-+	 */
- 	return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
- #elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
-+	/*
-+	 * HZ is larger than 1000, and HZ is a nice round multiple of
-+	 * 1000 - simply multiply with the factor between them.
-+	 *
-+	 * But first make sure the multiplication result cannot
-+	 * overflow:
-+	 */
-+	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+
- 	return m * (HZ / MSEC_PER_SEC);
- #else
-+	/*
-+	 * Generic case - multiply, round and divide. But first
-+	 * check that if we are doing a net multiplication, that
-+	 * we wouldnt overflow:
-+	 */
-+	if (HZ > MSEC_PER_SEC && m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+
- 	return (m * HZ + MSEC_PER_SEC - 1) / MSEC_PER_SEC;
- #endif
- }
+ config VMI
+ 	bool "VMI Paravirt-ops support"
+-	depends on PARAVIRT
++	depends on PARAVIRT && !NO_HZ
+ 	default y
+ 	help
+ 	  VMI provides a paravirtualized interface to multiple hypervisors
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-acpi.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-simplify-the-stacktrace-code.patch
-lockdep-debug_locks-check-after-check_chain_key.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
+git-dvb.patch
+git-ia64.patch
+git-ieee1394.patch
+git-libata-all.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-lxdialog-fixup.patch
+git-mtd.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+git-backlight.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-xfs-barriers-broke.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+consolidate-generic_writepages-and-mpage_writepages-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
 schedule_on_each_cpu-use-preempt_disable.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_blocking.patch
-fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-aio-o_sync-filesystem-write.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
 aio-is-unlikely.patch
-mm-only-sched-add-a-few-scheduler-event-counters.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+rcu-preemptible-rcu.patch
+local_t-powerpc-extension-fix.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
