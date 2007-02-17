@@ -1,101 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: + sata_via-fix-resource-managed-iomap-conversion.patch added to -mm tree
-Date: Sat, 17 Feb 2007 15:36:30 -0800
-Message-ID: <200702172336.l1HNaUT6005406@shell0.pdx.osdl.net>
+Subject: - fix-mtrr-compat-ioctl.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 16:48:22 -0700
+Message-ID: <200702172348.l1HNmNUr005641@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49239 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50032 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933093AbXBQXgc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 18:36:32 -0500
+	id S965395AbXBQXty (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 18:49:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com
+To: zwane@infradead.org, ak@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sata_via: fix resource-managed iomap conversion
-has been added to the -mm tree.  Its filename is
-     sata_via-fix-resource-managed-iomap-conversion.patch
+     Fix MTRR compat ioctl
+has been removed from the -mm tree.  Its filename was
+     fix-mtrr-compat-ioctl.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: sata_via: fix resource-managed iomap conversion
-From: Tejun Heo <htejun@gmail.com>
+Subject: Fix MTRR compat ioctl
+From: Zwane Mwaikambo <zwane@infradead.org>
 
-Conversion to resource-managed iomap was buggy causing init failures on
-both vt6420 and 6421 - BAR5 wasn't mapped for both controllers while on
-vt6420 sata_via tried to map BAR0-4 twice.  Fix it.
+The MTRR compat code wasn't calling the lowlevel MTRR setup due to a switch
+block not handling the compat case.
 
+Before:
+(WW) I810(0): Failed to set up write-combining range (0xd0000000,0x10000000)
 
+After:
+reg00: base=0x00000000 (   0MB), size=1024MB: write-back, count=1
+reg01: base=0x40000000 (1024MB), size= 512MB: write-back, count=1
+reg02: base=0x5f700000 (1527MB), size=   1MB: uncachable, count=1
+reg03: base=0x5f800000 (1528MB), size=   8MB: uncachable, count=1
+reg04: base=0xd0000000 (3328MB), size= 256MB: write-combining, count=1
+
+Signed-off-by: Zwane Mwaikambo <zwane@infradead.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_via.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ arch/i386/kernel/cpu/mtrr/if.c |   33 +++++++++++++++++++------------
+ 1 file changed, 21 insertions(+), 12 deletions(-)
 
-diff -puN drivers/ata/sata_via.c~sata_via-fix-resource-managed-iomap-conversion drivers/ata/sata_via.c
---- a/drivers/ata/sata_via.c~sata_via-fix-resource-managed-iomap-conversion
-+++ a/drivers/ata/sata_via.c
-@@ -423,16 +423,21 @@ static struct ata_probe_ent *vt6420_init
- {
- 	struct ata_probe_ent *probe_ent;
- 	struct ata_port_info *ppi[2];
--	void __iomem * const *iomap;
-+	void __iomem *bar5;
+diff -puN arch/i386/kernel/cpu/mtrr/if.c~fix-mtrr-compat-ioctl arch/i386/kernel/cpu/mtrr/if.c
+--- a/arch/i386/kernel/cpu/mtrr/if.c~fix-mtrr-compat-ioctl
++++ a/arch/i386/kernel/cpu/mtrr/if.c
+@@ -158,8 +158,9 @@ mtrr_ioctl(struct file *file, unsigned i
+ 	struct mtrr_sentry sentry;
+ 	struct mtrr_gentry gentry;
+ 	void __user *arg = (void __user *) __arg;
++	unsigned int compat_cmd = cmd;
  
- 	ppi[0] = ppi[1] = &vt6420_port_info;
- 	probe_ent = ata_pci_init_native_mode(pdev, ppi, ATA_PORT_PRIMARY | ATA_PORT_SECONDARY);
- 	if (!probe_ent)
- 		return NULL;
- 
--	iomap = pcim_iomap_table(pdev);
--	probe_ent->port[0].scr_addr = svia_scr_addr(iomap[5], 0);
--	probe_ent->port[1].scr_addr = svia_scr_addr(iomap[5], 1);
-+	bar5 = pcim_iomap(pdev, 5, 0);
-+	if (!bar5) {
-+		dev_printk(KERN_ERR, &pdev->dev, "failed to iomap PCI BAR 5\n");
-+		return NULL;
-+	}
+-	switch (cmd) {
++	switch (compat_cmd) {
+ 	case MTRRIOC_ADD_ENTRY:
+ 	case MTRRIOC_SET_ENTRY:
+ 	case MTRRIOC_DEL_ENTRY:
+@@ -177,14 +178,20 @@ mtrr_ioctl(struct file *file, unsigned i
+ 			return -EFAULT;
+ 		break;
+ #ifdef CONFIG_COMPAT
+-	case MTRRIOC32_ADD_ENTRY:
+-	case MTRRIOC32_SET_ENTRY:
+-	case MTRRIOC32_DEL_ENTRY:
+-	case MTRRIOC32_KILL_ENTRY:
+-	case MTRRIOC32_ADD_PAGE_ENTRY:
+-	case MTRRIOC32_SET_PAGE_ENTRY:
+-	case MTRRIOC32_DEL_PAGE_ENTRY:
+-	case MTRRIOC32_KILL_PAGE_ENTRY: {
++#define MTRR_COMPAT_OP(op, type)\
++	case MTRRIOC32_##op:	\
++	cmd = MTRRIOC_##op;	\
++	goto compat_get_##type
 +
-+	probe_ent->port[0].scr_addr = svia_scr_addr(bar5, 0);
-+	probe_ent->port[1].scr_addr = svia_scr_addr(bar5, 1);
++	MTRR_COMPAT_OP(ADD_ENTRY, sentry);
++	MTRR_COMPAT_OP(SET_ENTRY, sentry);
++	MTRR_COMPAT_OP(DEL_ENTRY, sentry);
++	MTRR_COMPAT_OP(KILL_ENTRY, sentry);
++	MTRR_COMPAT_OP(ADD_PAGE_ENTRY, sentry);
++	MTRR_COMPAT_OP(SET_PAGE_ENTRY, sentry);
++	MTRR_COMPAT_OP(DEL_PAGE_ENTRY, sentry);
++	MTRR_COMPAT_OP(KILL_PAGE_ENTRY, sentry);
++compat_get_sentry: {
+ 		struct mtrr_sentry32 __user *s32 = (struct mtrr_sentry32 __user *)__arg;
+ 		err = get_user(sentry.base, &s32->base);
+ 		err |= get_user(sentry.size, &s32->size);
+@@ -193,8 +200,9 @@ mtrr_ioctl(struct file *file, unsigned i
+ 			return err;
+ 		break;
+ 	}
+-	case MTRRIOC32_GET_ENTRY:
+-	case MTRRIOC32_GET_PAGE_ENTRY: {
++	MTRR_COMPAT_OP(GET_ENTRY, gentry);
++	MTRR_COMPAT_OP(GET_PAGE_ENTRY, gentry);
++compat_get_gentry: {
+ 		struct mtrr_gentry32 __user *g32 = (struct mtrr_gentry32 __user *)__arg;
+ 		err = get_user(gentry.regnum, &g32->regnum);
+ 		err |= get_user(gentry.base, &g32->base);
+@@ -204,6 +212,7 @@ mtrr_ioctl(struct file *file, unsigned i
+ 			return err;
+ 		break;
+ 	}
++#undef MTRR_COMPAT_OP
+ #endif
+ 	}
  
- 	return probe_ent;
- }
-@@ -460,6 +465,13 @@ static struct ata_probe_ent *vt6421_init
- 	probe_ent->mwdma_mask	= 0x07;
- 	probe_ent->udma_mask	= 0x7f;
+@@ -317,7 +326,7 @@ mtrr_ioctl(struct file *file, unsigned i
+ 	if (err)
+ 		return err;
  
-+	for (i = 0; i < 6; i++)
-+		if (!pcim_iomap(pdev, i, 0)) {
-+			dev_printk(KERN_ERR, &pdev->dev,
-+				   "failed to iomap PCI BAR %d\n", i);
-+			return NULL;
-+		}
-+
- 	for (i = 0; i < N_PORTS; i++)
- 		vt6421_init_addrs(probe_ent, pcim_iomap_table(pdev), i);
- 
-@@ -522,7 +534,7 @@ static int svia_init_one (struct pci_dev
- 	if (rc)
- 		return rc;
- 
--	rc = pcim_iomap_regions(pdev, 0x1f, DRV_NAME);
-+	rc = pci_request_regions(pdev, DRV_NAME);
- 	if (rc) {
- 		pcim_pin_device(pdev);
- 		return rc;
+-	switch(cmd) {
++	switch(compat_cmd) {
+ 	case MTRRIOC_GET_ENTRY:
+ 	case MTRRIOC_GET_PAGE_ENTRY:
+ 		if (copy_to_user(arg, &gentry, sizeof gentry))
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from zwane@infradead.org are
 
 origin.patch
-git-libata-all.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-sata_via-fix-resource-managed-iomap-conversion.patch
