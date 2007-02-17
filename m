@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cafe-warning-fix.patch added to -mm tree
-Date: Sat, 17 Feb 2007 03:08:49 -0800
-Message-ID: <200702171110.l1HBA7qu025388@shell0.pdx.osdl.net>
+Subject: + sony-laptop-fix-uninitialised-variable.patch added to -mm tree
+Date: Sat, 17 Feb 2007 03:10:53 -0800
+Message-ID: <200702171112.l1HBCBL9025415@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56530 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56611 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946652AbXBQLKT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 06:10:19 -0500
+	id S965134AbXBQLNm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 06:13:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, lenb@kernel.org, malattia@linux.it
 
 
 The patch titled
-     cafe warning fix
+     sony-laptop fix uninitialised variable
 has been added to the -mm tree.  Its filename is
-     cafe-warning-fix.patch
+     sony-laptop-fix-uninitialised-variable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cafe warning fix
+Subject: sony-laptop fix uninitialised variable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/nand/cafe.c: In function 'cafe_nand_cmdfunc':
-drivers/mtd/nand/cafe.c:269: warning: 'irqs' may be used uninitialized in this function
+drivers/misc/sony-laptop.c: In function 'sony_acpi_add':
+drivers/misc/sony-laptop.c:456: warning: 'result' may be used uninitialized in this function
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+The compiler seems to actually be telling the truth this time.
+
+Cc: Mattia Dongili <malattia@linux.it>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/cafe.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/misc/sony-laptop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/cafe.c~cafe-warning-fix drivers/mtd/nand/cafe.c
---- a/drivers/mtd/nand/cafe.c~cafe-warning-fix
-+++ a/drivers/mtd/nand/cafe.c
-@@ -265,10 +265,10 @@ static void cafe_nand_cmdfunc(struct mtd
- 	ndelay(100);
+diff -puN drivers/misc/sony-laptop.c~sony-laptop-fix-uninitialised-variable drivers/misc/sony-laptop.c
+--- a/drivers/misc/sony-laptop.c~sony-laptop-fix-uninitialised-variable
++++ a/drivers/misc/sony-laptop.c
+@@ -453,7 +453,7 @@ static int sony_acpi_resume(struct acpi_
+ static int sony_acpi_add(struct acpi_device *device)
+ {
+ 	acpi_status status;
+-	int result;
++	int result = 0;
+ 	acpi_handle handle;
  
- 	if (1) {
--		int c = 500000;
-+		int c;
- 		uint32_t irqs;
- 
--		while (c--) {
-+		for (c = 500000; c != 0; c--) {
- 			irqs = cafe_readl(cafe, NAND_IRQ);
- 			if (irqs & doneint)
- 				break;
+ 	sony_acpi_acpi_device = device;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +80,7 @@ esb2rom-warning-fixes.patch
 amd76xrom-warning-fix.patch
 ichxrom-warning-fix.patch
 jffs2-warning-fixes.patch
+cafe-warning-fix.patch
 git-netdev-all.patch
 e1000-fix-shared-interrupt-warning-message-fix.patch
 Fabric7-VIOC-driver-fixes.patch
@@ -109,4 +109,4 @@ utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
 fb-sm501-framebuffer-driver-5-fix.patch
 git-gccbug-fixup.patch
-cafe-warning-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
