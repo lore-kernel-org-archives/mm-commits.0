@@ -1,194 +1,232 @@
 From: akpm@linux-foundation.org
-Subject: - clocksource-replace-is_continuous-by-a-flag-field.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:13:49 -0800
-Message-ID: <200702170713.l1H7DnSf021483@shell0.pdx.osdl.net>
+Subject: - hrtimers-add-state-tracking.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:14:29 -0800
+Message-ID: <200702170714.l1H7ETZw021527@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50892 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50907 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946447AbXBQHOt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:14:49 -0500
+	id S1946449AbXBQHOx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:14:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clocksource: replace is_continuous by a flag field
+     hrtimers; add state tracking
 has been removed from the -mm tree.  Its filename was
-     clocksource-replace-is_continuous-by-a-flag-field.patch
+     hrtimers-add-state-tracking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clocksource: replace is_continuous by a flag field
+Subject: hrtimers; add state tracking
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Using a flag filed allows to encode more than one information into a variable.
-Preparatory patch for the generic clocksource verification.
+Reintroduce ktimers feature "optimized away" by the ktimers review process:
+multiple hrtimer states to enable the running of hrtimers without holding the
+cpu-base-lock.
 
-[mingo@elte.hu: convert vmitime.c to the new clocksource flag]
+(The "optimized" rbtree hack carried only 2 states worth of information and we
+need 4 for high resolution timers and dynamic ticks.)
+
+No functional changes.
+
+Build-fixes-from: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/hpet.c          |    2 +-
- arch/i386/kernel/tsc.c           |    7 +++++--
- arch/i386/kernel/vmitime.c       |    2 +-
- drivers/clocksource/acpi_pm.c    |    3 ++-
- drivers/clocksource/cyclone.c    |    2 +-
- drivers/clocksource/scx200_hrt.c |    2 +-
- include/linux/clocksource.h      |   10 ++++++++--
- kernel/time/jiffies.c            |    1 -
- kernel/timer.c                   |    2 +-
- 9 files changed, 20 insertions(+), 11 deletions(-)
+ include/linux/hrtimer.h |   36 +++++++++++++++++++++++++++++++++-
+ kernel/hrtimer.c        |   40 ++++++++++++++++++++++++++++++--------
+ 2 files changed, 67 insertions(+), 9 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~clocksource-replace-is_continuous-by-a-flag-field arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/arch/i386/kernel/hpet.c
-@@ -26,7 +26,7 @@ static struct clocksource clocksource_hp
- 	.mask		= HPET_MASK,
- 	.mult		= 0, /* set below */
- 	.shift		= HPET_SHIFT,
--	.is_continuous	= 1,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
- 
- static int __init init_hpet_clocksource(void)
-diff -puN arch/i386/kernel/tsc.c~clocksource-replace-is_continuous-by-a-flag-field arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/arch/i386/kernel/tsc.c
-@@ -314,7 +314,8 @@ static struct clocksource clocksource_ts
- 	.mult			= 0, /* to be set */
- 	.shift			= 22,
- 	.update_callback	= tsc_update_callback,
--	.is_continuous		= 1,
-+	.flags			= CLOCK_SOURCE_IS_CONTINUOUS |
-+				  CLOCK_SOURCE_MUST_VERIFY,
- };
- 
- static int tsc_update_callback(void)
-@@ -434,8 +435,10 @@ static int __init init_tsc_clocksource(v
- 		clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
- 							clocksource_tsc.shift);
- 		/* lower the rating if we already know its unstable: */
--		if (check_tsc_unstable())
-+		if (check_tsc_unstable()) {
- 			clocksource_tsc.rating = 0;
-+			clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
-+		}
- 
- 		init_timer(&verify_tsc_freq_timer);
- 		verify_tsc_freq_timer.function = verify_tsc_freq;
-diff -puN arch/i386/kernel/vmitime.c~clocksource-replace-is_continuous-by-a-flag-field arch/i386/kernel/vmitime.c
---- a/arch/i386/kernel/vmitime.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/arch/i386/kernel/vmitime.c
-@@ -115,7 +115,7 @@ static struct clocksource clocksource_vm
- 	.mask			= CLOCKSOURCE_MASK(64),
- 	.mult			= 0, /* to be set */
- 	.shift			= 22,
--	.is_continuous		= 1,
-+	.flags			= CLOCK_SOURCE_IS_CONTINUOUS,
- };
- 
- 
-diff -puN drivers/clocksource/acpi_pm.c~clocksource-replace-is_continuous-by-a-flag-field drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -72,7 +72,8 @@ static struct clocksource clocksource_ac
- 	.mask		= (cycle_t)ACPI_PM_MASK,
- 	.mult		= 0, /*to be caluclated*/
- 	.shift		= 22,
--	.is_continuous	= 1,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
-+
- };
- 
- 
-diff -puN drivers/clocksource/cyclone.c~clocksource-replace-is_continuous-by-a-flag-field drivers/clocksource/cyclone.c
---- a/drivers/clocksource/cyclone.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/drivers/clocksource/cyclone.c
-@@ -31,7 +31,7 @@ static struct clocksource clocksource_cy
- 	.mask		= CYCLONE_TIMER_MASK,
- 	.mult		= 10,
- 	.shift		= 0,
--	.is_continuous	= 1,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
- 
- static int __init init_cyclone_clocksource(void)
-diff -puN drivers/clocksource/scx200_hrt.c~clocksource-replace-is_continuous-by-a-flag-field drivers/clocksource/scx200_hrt.c
---- a/drivers/clocksource/scx200_hrt.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/drivers/clocksource/scx200_hrt.c
-@@ -57,7 +57,7 @@ static struct clocksource cs_hrt = {
- 	.rating		= 250,
- 	.read		= read_hrt,
- 	.mask		= CLOCKSOURCE_MASK(32),
--	.is_continuous	= 1,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- 	/* mult, shift are set based on mhz27 flag */
- };
- 
-diff -puN include/linux/clocksource.h~clocksource-replace-is_continuous-by-a-flag-field include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/include/linux/clocksource.h
-@@ -45,7 +45,7 @@ typedef u64 cycle_t;
-  * @mult:		cycle to nanosecond multiplier
-  * @shift:		cycle to nanosecond divisor (power of two)
-  * @update_callback:	called when safe to alter clocksource values
-- * @is_continuous:	defines if clocksource is free-running.
-+ * @flags:		flags describing special properties
-  * @cycle_interval:	Used internally by timekeeping core, please ignore.
-  * @xtime_interval:	Used internally by timekeeping core, please ignore.
-  */
-@@ -58,7 +58,7 @@ struct clocksource {
- 	u32 mult;
- 	u32 shift;
- 	int (*update_callback)(void);
--	int is_continuous;
-+	unsigned long flags;
- 
- 	/* timekeeping specific data, ignore */
- 	cycle_t cycle_last, cycle_interval;
-@@ -66,6 +66,12 @@ struct clocksource {
- 	s64 error;
+diff -puN include/linux/hrtimer.h~hrtimers-add-state-tracking include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~hrtimers-add-state-tracking
++++ a/include/linux/hrtimer.h
+@@ -40,6 +40,34 @@ enum hrtimer_restart {
+ 	HRTIMER_RESTART,	/* Timer must be restarted */
  };
  
 +/*
-+ * Clock source flags bits::
++ * Bit values to track state of the timer
++ *
++ * Possible states:
++ *
++ * 0x00		inactive
++ * 0x01		enqueued into rbtree
++ * 0x02		callback function running
++ * 0x03		callback function running and enqueued
++ *		(was requeued on another CPU)
++ *
++ * The "callback function running and enqueued" status is only possible on
++ * SMP. It happens for example when a posix timer expired and the callback
++ * queued a signal. Between dropping the lock which protects the posix timer
++ * and reacquiring the base lock of the hrtimer, another CPU can deliver the
++ * signal and rearm the timer. We have to preserve the callback running state,
++ * as otherwise the timer could be removed before the softirq code finishes the
++ * the handling of the timer.
++ *
++ * The HRTIMER_STATE_ENQUEUE bit is always or'ed to the current state to
++ * preserve the HRTIMER_STATE_CALLBACK bit in the above scenario.
++ *
++ * All state transitions are protected by cpu_base->lock.
 + */
-+#define CLOCK_SOURCE_IS_CONTINUOUS	0x01
-+#define CLOCK_SOURCE_MUST_VERIFY	0x02
++#define HRTIMER_STATE_INACTIVE	0x00
++#define HRTIMER_STATE_ENQUEUED	0x01
++#define HRTIMER_STATE_CALLBACK	0x02
 +
- /* simplify initialization of mask field */
- #define CLOCKSOURCE_MASK(bits) (cycle_t)(bits<64 ? ((1ULL<<bits)-1) : -1)
- 
-diff -puN kernel/time/jiffies.c~clocksource-replace-is_continuous-by-a-flag-field kernel/time/jiffies.c
---- a/kernel/time/jiffies.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/kernel/time/jiffies.c
-@@ -62,7 +62,6 @@ struct clocksource clocksource_jiffies =
- 	.mask		= 0xffffffff, /*32bits*/
- 	.mult		= NSEC_PER_JIFFY << JIFFIES_SHIFT, /* details above */
- 	.shift		= JIFFIES_SHIFT,
--	.is_continuous	= 0, /* tick based, not free running */
+ /**
+  * struct hrtimer - the basic hrtimer structure
+  * @node:	red black tree node for time ordered insertion
+@@ -48,6 +76,7 @@ enum hrtimer_restart {
+  *		which the timer is based.
+  * @function:	timer expiry callback function
+  * @base:	pointer to the timer base (per cpu and per clock)
++ * @state:	state information (See bit values above)
+  *
+  * The hrtimer structure must be initialized by init_hrtimer_#CLOCKTYPE()
+  */
+@@ -56,6 +85,7 @@ struct hrtimer {
+ 	ktime_t				expires;
+ 	enum hrtimer_restart		(*function)(struct hrtimer *);
+ 	struct hrtimer_clock_base	*base;
++	unsigned long			state;
  };
  
- static int __init init_jiffies_clocksource(void)
-diff -puN kernel/timer.c~clocksource-replace-is_continuous-by-a-flag-field kernel/timer.c
---- a/kernel/timer.c~clocksource-replace-is_continuous-by-a-flag-field
-+++ a/kernel/timer.c
-@@ -871,7 +871,7 @@ int timekeeping_is_continuous(void)
- 	do {
- 		seq = read_seqbegin(&xtime_lock);
+ /**
+@@ -141,9 +171,13 @@ extern int hrtimer_get_res(const clockid
+ extern ktime_t hrtimer_get_next_event(void);
+ #endif
  
--		ret = clock->is_continuous;
-+		ret = clock->flags & CLOCK_SOURCE_IS_CONTINUOUS;
++/*
++ * A timer is active, when it is enqueued into the rbtree or the callback
++ * function is running.
++ */
+ static inline int hrtimer_active(const struct hrtimer *timer)
+ {
+-	return rb_parent(&timer->node) != &timer->node;
++	return timer->state != HRTIMER_STATE_INACTIVE;
+ }
  
- 	} while (read_seqretry(&xtime_lock, seq));
+ /* Forward a hrtimer so it expires after now: */
+diff -puN kernel/hrtimer.c~hrtimers-add-state-tracking kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimers-add-state-tracking
++++ a/kernel/hrtimer.c
+@@ -150,6 +150,23 @@ static void hrtimer_get_softirq_time(str
+ }
  
+ /*
++ * Helper function to check, whether the timer is on one of the queues
++ */
++static inline int hrtimer_is_queued(struct hrtimer *timer)
++{
++	return timer->state & HRTIMER_STATE_ENQUEUED;
++}
++
++/*
++ * Helper function to check, whether the timer is running the callback
++ * function
++ */
++static inline int hrtimer_callback_running(struct hrtimer *timer)
++{
++	return timer->state & HRTIMER_STATE_CALLBACK;
++}
++
++/*
+  * Functions and macros which are different for UP/SMP systems are kept in a
+  * single place
+  */
+@@ -390,6 +407,11 @@ static void enqueue_hrtimer(struct hrtim
+ 	 */
+ 	rb_link_node(&timer->node, parent, link);
+ 	rb_insert_color(&timer->node, &base->active);
++	/*
++	 * HRTIMER_STATE_ENQUEUED is or'ed to the current state to preserve the
++	 * state of a possibly running callback.
++	 */
++	timer->state |= HRTIMER_STATE_ENQUEUED;
+ 
+ 	if (!base->first || timer->expires.tv64 <
+ 	    rb_entry(base->first, struct hrtimer, node)->expires.tv64)
+@@ -402,7 +424,8 @@ static void enqueue_hrtimer(struct hrtim
+  * Caller must hold the base lock.
+  */
+ static void __remove_hrtimer(struct hrtimer *timer,
+-			     struct hrtimer_clock_base *base)
++			     struct hrtimer_clock_base *base,
++			     unsigned long newstate)
+ {
+ 	/*
+ 	 * Remove the timer from the rbtree and replace the
+@@ -411,7 +434,7 @@ static void __remove_hrtimer(struct hrti
+ 	if (base->first == &timer->node)
+ 		base->first = rb_next(&timer->node);
+ 	rb_erase(&timer->node, &base->active);
+-	rb_set_parent(&timer->node, &timer->node);
++	timer->state = newstate;
+ }
+ 
+ /*
+@@ -420,8 +443,8 @@ static void __remove_hrtimer(struct hrti
+ static inline int
+ remove_hrtimer(struct hrtimer *timer, struct hrtimer_clock_base *base)
+ {
+-	if (hrtimer_active(timer)) {
+-		__remove_hrtimer(timer, base);
++	if (hrtimer_is_queued(timer)) {
++		__remove_hrtimer(timer, base, HRTIMER_STATE_INACTIVE);
+ 		return 1;
+ 	}
+ 	return 0;
+@@ -493,7 +516,7 @@ int hrtimer_try_to_cancel(struct hrtimer
+ 
+ 	base = lock_hrtimer_base(timer, &flags);
+ 
+-	if (base->cpu_base->curr_timer != timer)
++	if (!hrtimer_callback_running(timer))
+ 		ret = remove_hrtimer(timer, base);
+ 
+ 	unlock_hrtimer_base(timer, &flags);
+@@ -598,7 +621,6 @@ void hrtimer_init(struct hrtimer *timer,
+ 		clock_id = CLOCK_MONOTONIC;
+ 
+ 	timer->base = &cpu_base->clock_base[clock_id];
+-	rb_set_parent(&timer->node, &timer->node);
+ }
+ EXPORT_SYMBOL_GPL(hrtimer_init);
+ 
+@@ -649,13 +671,14 @@ static inline void run_hrtimer_queue(str
+ 
+ 		fn = timer->function;
+ 		set_curr_timer(cpu_base, timer);
+-		__remove_hrtimer(timer, base);
++		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK);
+ 		spin_unlock_irq(&cpu_base->lock);
+ 
+ 		restart = fn(timer);
+ 
+ 		spin_lock_irq(&cpu_base->lock);
+ 
++		timer->state &= ~HRTIMER_STATE_CALLBACK;
+ 		if (restart != HRTIMER_NORESTART) {
+ 			BUG_ON(hrtimer_active(timer));
+ 			enqueue_hrtimer(timer, base);
+@@ -826,7 +849,8 @@ static void migrate_hrtimer_list(struct 
+ 
+ 	while ((node = rb_first(&old_base->active))) {
+ 		timer = rb_entry(node, struct hrtimer, node);
+-		__remove_hrtimer(timer, old_base);
++		BUG_ON(timer->state & HRTIMER_STATE_CALLBACK);
++		__remove_hrtimer(timer, old_base, HRTIMER_STATE_INACTIVE);
+ 		timer->base = new_base;
+ 		enqueue_hrtimer(timer, new_base);
+ 	}
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
