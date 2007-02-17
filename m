@@ -1,191 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - hz-free-ntp.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:13:26 -0800
-Message-ID: <200702170713.l1H7DQv5021454@shell0.pdx.osdl.net>
+Subject: - add-irq-flag-to-disable-balancing-for-an-interrupt.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:13:18 -0800
+Message-ID: <200702170713.l1H7DIXv021446@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51185 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51196 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946520AbXBQHQ6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:16:58 -0500
+	id S1946526AbXBQHRB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:17:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     HZ free ntp
+     Add irq flag to disable balancing for an interrupt
 has been removed from the -mm tree.  Its filename was
-     hz-free-ntp.patch
+     add-irq-flag-to-disable-balancing-for-an-interrupt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: HZ free ntp
-From: john stultz <johnstul@us.ibm.com>
+Subject: Add irq flag to disable balancing for an interrupt
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Distangle the NTP update from HZ.  This is necessary for dynamic tick enabled
-kernels.
+Add a flag so we can prevent the irq balancing of an interrupt.  Move the
+bits, so we have room for more :)
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Necessary for the ability to setup clocksources more flexible (e.g.  use the
+different HPET channels per CPU)
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timex.h |    7 +++++++
- kernel/hrtimer.c      |   11 ++++++++---
- kernel/time/ntp.c     |   30 +++++++++++++++++++-----------
- kernel/timer.c        |    4 ++--
- 4 files changed, 36 insertions(+), 16 deletions(-)
+ arch/i386/kernel/io_apic.c |    4 +--
+ include/linux/interrupt.h  |    3 ++
+ include/linux/irq.h        |   42 ++++++++++++++++++++---------------
+ kernel/irq/manage.c        |    4 +++
+ kernel/irq/proc.c          |    2 -
+ 5 files changed, 35 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/timex.h~hz-free-ntp include/linux/timex.h
---- a/include/linux/timex.h~hz-free-ntp
-+++ a/include/linux/timex.h
-@@ -286,6 +286,13 @@ static inline void time_interpolator_upd
- 
- #define TICK_LENGTH_SHIFT	32
- 
-+#ifdef CONFIG_NO_HZ
-+#define NTP_INTERVAL_FREQ  (2)
-+#else
-+#define NTP_INTERVAL_FREQ  (HZ)
-+#endif
-+#define NTP_INTERVAL_LENGTH (NSEC_PER_SEC/NTP_INTERVAL_FREQ)
-+
- /* Returns how long ticks are at present, in ns / 2^(SHIFT_SCALE-10). */
- extern u64 current_tick_length(void);
- 
-diff -puN kernel/hrtimer.c~hz-free-ntp kernel/hrtimer.c
---- a/kernel/hrtimer.c~hz-free-ntp
-+++ a/kernel/hrtimer.c
-@@ -128,15 +128,20 @@ EXPORT_SYMBOL_GPL(ktime_get_ts);
- static void hrtimer_get_softirq_time(struct hrtimer_base *base)
- {
- 	ktime_t xtim, tomono;
-+	struct timespec xts;
- 	unsigned long seq;
- 
- 	do {
- 		seq = read_seqbegin(&xtime_lock);
--		xtim = timespec_to_ktime(xtime);
--		tomono = timespec_to_ktime(wall_to_monotonic);
--
-+#ifdef CONFIG_NO_HZ
-+		getnstimeofday(&xts);
-+#else
-+		xts = xtime;
-+#endif
- 	} while (read_seqretry(&xtime_lock, seq));
- 
-+	xtim = timespec_to_ktime(xts);
-+	tomono = timespec_to_ktime(wall_to_monotonic);
- 	base[CLOCK_REALTIME].softirq_time = xtim;
- 	base[CLOCK_MONOTONIC].softirq_time = ktime_add(xtim, tomono);
- }
-diff -puN kernel/time/ntp.c~hz-free-ntp kernel/time/ntp.c
---- a/kernel/time/ntp.c~hz-free-ntp
-+++ a/kernel/time/ntp.c
-@@ -24,7 +24,7 @@ static u64 tick_length, tick_length_base
- 
- #define MAX_TICKADJ		500		/* microsecs */
- #define MAX_TICKADJ_SCALED	(((u64)(MAX_TICKADJ * NSEC_PER_USEC) << \
--				  TICK_LENGTH_SHIFT) / HZ)
-+				  TICK_LENGTH_SHIFT) / NTP_INTERVAL_FREQ)
+diff -puN arch/i386/kernel/io_apic.c~add-irq-flag-to-disable-balancing-for-an-interrupt arch/i386/kernel/io_apic.c
+--- a/arch/i386/kernel/io_apic.c~add-irq-flag-to-disable-balancing-for-an-interrupt
++++ a/arch/i386/kernel/io_apic.c
+@@ -482,8 +482,8 @@ static void do_irq_balance(void)
+ 		package_index = CPU_TO_PACKAGEINDEX(i);
+ 		for (j = 0; j < NR_IRQS; j++) {
+ 			unsigned long value_now, delta;
+-			/* Is this an active IRQ? */
+-			if (!irq_desc[j].action)
++			/* Is this an active IRQ or balancing disabled ? */
++			if (!irq_desc[j].action || irq_balancing_disabled(j))
+ 				continue;
+ 			if ( package_index == i )
+ 				IRQ_DELTA(package_index,j) = 0;
+diff -puN include/linux/interrupt.h~add-irq-flag-to-disable-balancing-for-an-interrupt include/linux/interrupt.h
+--- a/include/linux/interrupt.h~add-irq-flag-to-disable-balancing-for-an-interrupt
++++ a/include/linux/interrupt.h
+@@ -42,6 +42,8 @@
+  * IRQF_SHARED - allow sharing the irq among several devices
+  * IRQF_PROBE_SHARED - set by callers when they expect sharing mismatches to occur
+  * IRQF_TIMER - Flag to mark this interrupt as timer interrupt
++ * IRQF_PERCPU - Interrupt is per cpu
++ * IRQF_NOBALANCING - Flag to exclude this interrupt from irq balancing
+  */
+ #define IRQF_DISABLED		0x00000020
+ #define IRQF_SAMPLE_RANDOM	0x00000040
+@@ -49,6 +51,7 @@
+ #define IRQF_PROBE_SHARED	0x00000100
+ #define IRQF_TIMER		0x00000200
+ #define IRQF_PERCPU		0x00000400
++#define IRQF_NOBALANCING	0x00000800
  
  /*
-  * phase-lock loop variables
-@@ -46,13 +46,17 @@ long time_adjust;
+  * Migration helpers. Scheduled for removal in 1/2007
+diff -puN include/linux/irq.h~add-irq-flag-to-disable-balancing-for-an-interrupt include/linux/irq.h
+--- a/include/linux/irq.h~add-irq-flag-to-disable-balancing-for-an-interrupt
++++ a/include/linux/irq.h
+@@ -31,7 +31,7 @@ typedef	void fastcall (*irq_flow_handler
+ /*
+  * IRQ line status.
+  *
+- * Bits 0-16 are reserved for the IRQF_* bits in linux/interrupt.h
++ * Bits 0-7 are reserved for the IRQF_* bits in linux/interrupt.h
+  *
+  * IRQ types
+  */
+@@ -45,28 +45,31 @@ typedef	void fastcall (*irq_flow_handler
+ #define IRQ_TYPE_PROBE		0x00000010	/* Probing in progress */
  
- static void ntp_update_frequency(void)
- {
--	tick_length_base = (u64)(tick_usec * NSEC_PER_USEC * USER_HZ) << TICK_LENGTH_SHIFT;
--	tick_length_base += (s64)CLOCK_TICK_ADJUST << TICK_LENGTH_SHIFT;
--	tick_length_base += (s64)time_freq << (TICK_LENGTH_SHIFT - SHIFT_NSEC);
-+	u64 second_length = (u64)(tick_usec * NSEC_PER_USEC * USER_HZ)
-+				<< TICK_LENGTH_SHIFT;
-+	second_length += (s64)CLOCK_TICK_ADJUST << TICK_LENGTH_SHIFT;
-+	second_length += (s64)time_freq << (TICK_LENGTH_SHIFT - SHIFT_NSEC);
- 
--	do_div(tick_length_base, HZ);
-+	tick_length_base = second_length;
- 
--	tick_nsec = tick_length_base >> TICK_LENGTH_SHIFT;
-+	do_div(second_length, HZ);
-+	tick_nsec = second_length >> TICK_LENGTH_SHIFT;
+ /* Internal flags */
+-#define IRQ_INPROGRESS		0x00010000	/* IRQ handler active - do not enter! */
+-#define IRQ_DISABLED		0x00020000	/* IRQ disabled - do not enter! */
+-#define IRQ_PENDING		0x00040000	/* IRQ pending - replay on enable */
+-#define IRQ_REPLAY		0x00080000	/* IRQ has been replayed but not acked yet */
+-#define IRQ_AUTODETECT		0x00100000	/* IRQ is being autodetected */
+-#define IRQ_WAITING		0x00200000	/* IRQ not yet seen - for autodetection */
+-#define IRQ_LEVEL		0x00400000	/* IRQ level triggered */
+-#define IRQ_MASKED		0x00800000	/* IRQ masked - shouldn't be seen again */
+-#define IRQ_PER_CPU		0x01000000	/* IRQ is per CPU */
++#define IRQ_INPROGRESS		0x00000100	/* IRQ handler active - do not enter! */
++#define IRQ_DISABLED		0x00000200	/* IRQ disabled - do not enter! */
++#define IRQ_PENDING		0x00000400	/* IRQ pending - replay on enable */
++#define IRQ_REPLAY		0x00000800	/* IRQ has been replayed but not acked yet */
++#define IRQ_AUTODETECT		0x00001000	/* IRQ is being autodetected */
++#define IRQ_WAITING		0x00002000	/* IRQ not yet seen - for autodetection */
++#define IRQ_LEVEL		0x00004000	/* IRQ level triggered */
++#define IRQ_MASKED		0x00008000	/* IRQ masked - shouldn't be seen again */
++#define IRQ_PER_CPU		0x00010000	/* IRQ is per CPU */
++#define IRQ_NOPROBE		0x00020000	/* IRQ is not valid for probing */
++#define IRQ_NOREQUEST		0x00040000	/* IRQ cannot be requested */
++#define IRQ_NOAUTOEN		0x00080000	/* IRQ will not be enabled on request irq */
++#define IRQ_DELAYED_DISABLE	0x00100000	/* IRQ disable (masking) happens delayed. */
++#define IRQ_WAKEUP		0x00200000	/* IRQ triggers system wakeup */
++#define IRQ_MOVE_PENDING	0x00400000	/* need to re-target IRQ destination */
++#define IRQ_NO_BALANCING	0x00800000	/* IRQ is excluded from balancing */
 +
-+	do_div(tick_length_base, NTP_INTERVAL_FREQ);
- }
+ #ifdef CONFIG_IRQ_PER_CPU
+ # define CHECK_IRQ_PER_CPU(var) ((var) & IRQ_PER_CPU)
++# define IRQ_NO_BALANCING_MASK	(IRQ_PER_CPU | IRQ_NO_BALANCING)
+ #else
+ # define CHECK_IRQ_PER_CPU(var) 0
++# define IRQ_NO_BALANCING_MASK	IRQ_NO_BALANCING
+ #endif
  
- /**
-@@ -162,7 +166,7 @@ void second_overflow(void)
- 			tick_length -= MAX_TICKADJ_SCALED;
- 		} else {
- 			tick_length += (s64)(time_adjust * NSEC_PER_USEC /
--					     HZ) << TICK_LENGTH_SHIFT;
-+					NTP_INTERVAL_FREQ) << TICK_LENGTH_SHIFT;
- 			time_adjust = 0;
- 		}
- 	}
-@@ -239,7 +243,8 @@ int do_adjtimex(struct timex *txc)
- 		    result = -EINVAL;
- 		    goto leave;
- 		}
--		time_freq = ((s64)txc->freq * NSEC_PER_USEC) >> (SHIFT_USEC - SHIFT_NSEC);
-+		time_freq = ((s64)txc->freq * NSEC_PER_USEC)
-+				>> (SHIFT_USEC - SHIFT_NSEC);
- 	    }
+-#define IRQ_NOPROBE		0x02000000	/* IRQ is not valid for probing */
+-#define IRQ_NOREQUEST		0x04000000	/* IRQ cannot be requested */
+-#define IRQ_NOAUTOEN		0x08000000	/* IRQ will not be enabled on request irq */
+-#define IRQ_DELAYED_DISABLE	0x10000000	/* IRQ disable (masking) happens delayed. */
+-#define IRQ_WAKEUP		0x20000000	/* IRQ triggers system wakeup */
+-#define IRQ_MOVE_PENDING	0x40000000	/* need to re-target IRQ destination */
+-
+ struct proc_dir_entry;
+ struct msi_desc;
  
- 	    if (txc->modes & ADJ_MAXERROR) {
-@@ -309,7 +314,8 @@ int do_adjtimex(struct timex *txc)
- 		    freq_adj += time_freq;
- 		    freq_adj = min(freq_adj, (s64)MAXFREQ_NSEC);
- 		    time_freq = max(freq_adj, (s64)-MAXFREQ_NSEC);
--		    time_offset = (time_offset / HZ) << SHIFT_UPDATE;
-+		    time_offset = (time_offset / NTP_INTERVAL_FREQ)
-+		    			<< SHIFT_UPDATE;
- 		} /* STA_PLL */
- 	    } /* txc->modes & ADJ_OFFSET */
- 	    if (txc->modes & ADJ_TICK)
-@@ -324,8 +330,10 @@ leave:	if ((time_status & (STA_UNSYNC|ST
- 	if ((txc->modes & ADJ_OFFSET_SINGLESHOT) == ADJ_OFFSET_SINGLESHOT)
- 	    txc->offset	   = save_adjust;
- 	else
--	    txc->offset    = shift_right(time_offset, SHIFT_UPDATE) * HZ / 1000;
--	txc->freq	   = (time_freq / NSEC_PER_USEC) << (SHIFT_USEC - SHIFT_NSEC);
-+	    txc->offset    = shift_right(time_offset, SHIFT_UPDATE)
-+	    			* NTP_INTERVAL_FREQ / 1000;
-+	txc->freq	   = (time_freq / NSEC_PER_USEC)
-+				<< (SHIFT_USEC - SHIFT_NSEC);
- 	txc->maxerror	   = time_maxerror;
- 	txc->esterror	   = time_esterror;
- 	txc->status	   = time_status;
-diff -puN kernel/timer.c~hz-free-ntp kernel/timer.c
---- a/kernel/timer.c~hz-free-ntp
-+++ a/kernel/timer.c
-@@ -890,7 +890,7 @@ void __init timekeeping_init(void)
- 	ntp_clear();
+@@ -261,6 +264,11 @@ static inline int select_smp_affinity(un
  
- 	clock = clocksource_get_next();
--	clocksource_calculate_interval(clock, tick_nsec);
-+	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
- 	clock->cycle_last = clocksource_read(clock);
+ extern int no_irq_affinity;
  
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
-@@ -1092,7 +1092,7 @@ static void update_wall_time(void)
- 	if (change_clocksource()) {
- 		clock->error = 0;
- 		clock->xtime_nsec = 0;
--		clocksource_calculate_interval(clock, tick_nsec);
-+		clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
- 	}
- }
++static inline int irq_balancing_disabled(unsigned int irq)
++{
++	return irq_desc[irq].status & IRQ_NO_BALANCING_MASK;
++}
++
+ /* Handle irq action chains: */
+ extern int handle_IRQ_event(unsigned int irq, struct irqaction *action);
  
+diff -puN kernel/irq/manage.c~add-irq-flag-to-disable-balancing-for-an-interrupt kernel/irq/manage.c
+--- a/kernel/irq/manage.c~add-irq-flag-to-disable-balancing-for-an-interrupt
++++ a/kernel/irq/manage.c
+@@ -281,6 +281,10 @@ int setup_irq(unsigned int irq, struct i
+ 	if (new->flags & IRQF_PERCPU)
+ 		desc->status |= IRQ_PER_CPU;
+ #endif
++	/* Exclude IRQ from balancing */
++	if (new->flags & IRQF_NOBALANCING)
++		desc->status |= IRQ_NO_BALANCING;
++
+ 	if (!shared) {
+ 		irq_chip_set_defaults(desc->chip);
+ 
+diff -puN kernel/irq/proc.c~add-irq-flag-to-disable-balancing-for-an-interrupt kernel/irq/proc.c
+--- a/kernel/irq/proc.c~add-irq-flag-to-disable-balancing-for-an-interrupt
++++ a/kernel/irq/proc.c
+@@ -55,7 +55,7 @@ static int irq_affinity_write_proc(struc
+ 	cpumask_t new_value, tmp;
+ 
+ 	if (!irq_desc[irq].chip->set_affinity || no_irq_affinity ||
+-				CHECK_IRQ_PER_CPU(irq_desc[irq].status))
++	    irq_balancing_disabled(irq))
+ 		return -EIO;
+ 
+ 	err = cpumask_parse_user(buffer, count, new_value);
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
 git-acpi.patch
-profile-likely-unlikely-macros-x86_64-fix.patch
+git-block.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
