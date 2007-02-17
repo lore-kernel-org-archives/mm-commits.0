@@ -1,72 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-nfsd4-fix-error-return-on-unsupported-acl.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:16:20 -0800
-Message-ID: <200702170716.l1H7GKCl021694@shell0.pdx.osdl.net>
+Subject: - irq-kernel-doc-fixes.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:15:54 -0800
+Message-ID: <200702170715.l1H7Fs7C021669@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51116 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51120 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946489AbXBQHQZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:16:25 -0500
+	id S1946490AbXBQHQ0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:16:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: nfsd4: fix error return on unsupported acl
+     IRQ kernel-doc fixes
 has been removed from the -mm tree.  Its filename was
-     knfsd-nfsd4-fix-error-return-on-unsupported-acl.patch
+     irq-kernel-doc-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: fix error return on unsupported acl
-From: J. Bruce Fields <bfields@citi.umich.edu>
+Subject: IRQ kernel-doc fixes
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-We should be returning ATTRNOTSUPP, not NOTSUPP, when acls are unsupported.
+Fix kernel-doc warnings in IRQ management.
 
-Also fix a comment.
-
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4xdr.c |    2 +-
- fs/nfsd/vfs.c     |    5 ++++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ include/linux/irq.h |    1 +
+ kernel/irq/chip.c   |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/nfsd/nfs4xdr.c~knfsd-nfsd4-fix-error-return-on-unsupported-acl fs/nfsd/nfs4xdr.c
---- a/fs/nfsd/nfs4xdr.c~knfsd-nfsd4-fix-error-return-on-unsupported-acl
-+++ a/fs/nfsd/nfs4xdr.c
-@@ -253,7 +253,7 @@ nfsd4_decode_fattr(struct nfsd4_compound
- 		return status;
- 
- 	/*
--	 * According to spec, unsupported attributes return ERR_NOTSUPP;
-+	 * According to spec, unsupported attributes return ERR_ATTRNOTSUPP;
- 	 * read-only attributes return ERR_INVAL.
- 	 */
- 	if ((bmval[0] & ~NFSD_SUPPORTED_ATTRS_WORD0) || (bmval[1] & ~NFSD_SUPPORTED_ATTRS_WORD1))
-diff -puN fs/nfsd/vfs.c~knfsd-nfsd4-fix-error-return-on-unsupported-acl fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~knfsd-nfsd4-fix-error-return-on-unsupported-acl
-+++ a/fs/nfsd/vfs.c
-@@ -466,7 +466,10 @@ out:
- 	posix_acl_release(dpacl);
- 	return (error);
- out_nfserr:
--	error = nfserrno(host_error);
-+	if (host_error == -EOPNOTSUPP)
-+		error = nfserr_attrnotsupp;
-+	else
-+		error = nfserrno(host_error);
- 	goto out;
- }
- 
+diff -puN include/linux/irq.h~irq-kernel-doc-fixes include/linux/irq.h
+--- a/include/linux/irq.h~irq-kernel-doc-fixes
++++ a/include/linux/irq.h
+@@ -129,6 +129,7 @@ struct irq_chip {
+  *
+  * @handle_irq:		highlevel irq-events handler [if NULL, __do_IRQ()]
+  * @chip:		low level interrupt hardware access
++ * @msi_desc:		MSI descriptor
+  * @handler_data:	per-IRQ data for the irq_chip methods
+  * @chip_data:		platform-specific per-chip private data for the chip
+  *			methods, to allow shared chip implementations
+diff -puN kernel/irq/chip.c~irq-kernel-doc-fixes kernel/irq/chip.c
+--- a/kernel/irq/chip.c~irq-kernel-doc-fixes
++++ a/kernel/irq/chip.c
+@@ -168,7 +168,7 @@ EXPORT_SYMBOL(set_irq_data);
+ /**
+  *	set_irq_data - set irq type data for an irq
+  *	@irq:	Interrupt number
+- *	@data:	Pointer to interrupt specific data
++ *	@entry:	Pointer to MSI descriptor data
+  *
+  *	Set the hardware irq controller data for an irq
+  */
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-acpi.patch
+build-errors-uevent-with-config_sysfs=n.patch
+git-drm.patch
+sata-use-null-for-ptrs.patch
+git-mtd.patch
+git-netdev-all.patch
+phy-layer-add-kernel-doc-docbook.patch
+ueagle-atmc-needs-schedh.patch
+kernel-doc-include-struct-short-description-in-title.patch
+tty-use-null-for-ptrs.patch
+cdrom-use-unsigned-bitfields.patch
+update-doc-oops-tracingtxt-for-taint_user.patch
+update-doc-oops-tracingtxt-for-taint_user-fix.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
