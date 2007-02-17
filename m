@@ -1,112 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - hrtimers-clean-up-callback-tracking.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:14:31 -0800
-Message-ID: <200702170714.l1H7EV79021530@shell0.pdx.osdl.net>
+Subject: - allow-early-access-to-the-power-management-timer.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:14:38 -0800
+Message-ID: <200702170714.l1H7EcSc021539@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51259 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51269 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946560AbXBQHR5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:17:57 -0500
+	id S1946440AbXBQHSR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:18:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimers: clean up callback tracking
+     Allow early access to the power management timer
 has been removed from the -mm tree.  Its filename was
-     hrtimers-clean-up-callback-tracking.patch
+     allow-early-access-to-the-power-management-timer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hrtimers: clean up callback tracking
+Subject: Allow early access to the power management timer
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Reintroduce ktimers feature "optimized away" by the ktimers review process:
-remove the curr_timer pointer from the cpu-base and use the hrtimer state.
+Allow early access to the power management timer by exposing the verified read
+function and providing a helper function which checks the pmtmr_ioport
+variable and returns either the pm timer readout or 0 in case the pm timer is
+not available.
+
+Create a new header file and replace also the ifdef'ed extern definition in
+arch/i386/kernel/acpi/boot.c
+
+This is a preperatory patch for the rework of the local apic timer
+calibration.
 
 No functional changes.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hrtimer.h |    1 -
- kernel/hrtimer.c        |   10 +---------
- 2 files changed, 1 insertion(+), 10 deletions(-)
+ arch/i386/kernel/acpi/boot.c  |    5 ----
+ drivers/clocksource/acpi_pm.c |   17 +++++++-------
+ include/linux/acpi_pmtmr.h    |   38 ++++++++++++++++++++++++++++++++
+ 3 files changed, 48 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/hrtimer.h~hrtimers-clean-up-callback-tracking include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~hrtimers-clean-up-callback-tracking
-+++ a/include/linux/hrtimer.h
-@@ -136,7 +136,6 @@ struct hrtimer_cpu_base {
- 	spinlock_t			lock;
- 	struct lock_class_key		lock_key;
- 	struct hrtimer_clock_base	clock_base[HRTIMER_MAX_CLOCK_BASES];
--	struct hrtimer			*curr_timer;
- };
+diff -puN arch/i386/kernel/acpi/boot.c~allow-early-access-to-the-power-management-timer arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~allow-early-access-to-the-power-management-timer
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -25,6 +25,7 @@
  
- /*
-diff -puN kernel/hrtimer.c~hrtimers-clean-up-callback-tracking kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimers-clean-up-callback-tracking
-+++ a/kernel/hrtimer.c
-@@ -172,8 +172,6 @@ static inline int hrtimer_callback_runni
-  */
- #ifdef CONFIG_SMP
+ #include <linux/init.h>
+ #include <linux/acpi.h>
++#include <linux/acpi_pmtmr.h>
+ #include <linux/efi.h>
+ #include <linux/cpumask.h>
+ #include <linux/module.h>
+@@ -676,10 +677,6 @@ static int __init acpi_parse_hpet(struct
+ #define	acpi_parse_hpet	NULL
+ #endif
  
--#define set_curr_timer(b, t)		do { (b)->curr_timer = (t); } while (0)
+-#ifdef CONFIG_X86_PM_TIMER
+-extern u32 pmtmr_ioport;
+-#endif
 -
- /*
-  * We are using hashed locking: holding per_cpu(hrtimer_bases)[n].lock
-  * means that all timers which are tied to this base via timer->base are
-@@ -227,7 +225,7 @@ switch_hrtimer_base(struct hrtimer *time
- 		 * completed. There is no conflict as we hold the lock until
- 		 * the timer is enqueued.
- 		 */
--		if (unlikely(base->cpu_base->curr_timer == timer))
-+		if (unlikely(timer->state & HRTIMER_STATE_CALLBACK))
- 			return base;
- 
- 		/* See the comment in lock_timer_base() */
-@@ -241,8 +239,6 @@ switch_hrtimer_base(struct hrtimer *time
- 
- #else /* CONFIG_SMP */
- 
--#define set_curr_timer(b, t)		do { } while (0)
--
- static inline struct hrtimer_clock_base *
- lock_hrtimer_base(const struct hrtimer *timer, unsigned long *flags)
+ static int __init acpi_parse_fadt(struct acpi_table_header *table)
  {
-@@ -670,7 +666,6 @@ static inline void run_hrtimer_queue(str
- 			break;
  
- 		fn = timer->function;
--		set_curr_timer(cpu_base, timer);
- 		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK);
- 		spin_unlock_irq(&cpu_base->lock);
+diff -puN drivers/clocksource/acpi_pm.c~allow-early-access-to-the-power-management-timer drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~allow-early-access-to-the-power-management-timer
++++ a/drivers/clocksource/acpi_pm.c
+@@ -16,15 +16,13 @@
+  * This file is licensed under the GPL v2.
+  */
  
-@@ -684,7 +679,6 @@ static inline void run_hrtimer_queue(str
- 			enqueue_hrtimer(timer, base);
- 		}
- 	}
--	set_curr_timer(cpu_base, NULL);
- 	spin_unlock_irq(&cpu_base->lock);
++#include <linux/acpi_pmtmr.h>
+ #include <linux/clocksource.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <asm/io.h>
+ 
+-/* Number of PMTMR ticks expected during calibration run */
+-#define PMTMR_TICKS_PER_SEC 3579545
+-
+ /*
+  * The I/O port the PMTMR resides at.
+  * The location is detected during setup_arch(),
+@@ -32,15 +30,13 @@
+  */
+ u32 pmtmr_ioport __read_mostly;
+ 
+-#define ACPI_PM_MASK CLOCKSOURCE_MASK(24) /* limit it to 24 bits */
+-
+ static inline u32 read_pmtmr(void)
+ {
+ 	/* mask the output to 24 bits */
+ 	return inl(pmtmr_ioport) & ACPI_PM_MASK;
  }
  
-@@ -871,8 +865,6 @@ static void migrate_hrtimers(int cpu)
- 	spin_lock(&old_base->lock);
+-static cycle_t acpi_pm_read_verified(void)
++u32 acpi_pm_read_verified(void)
+ {
+ 	u32 v1 = 0, v2 = 0, v3 = 0;
  
- 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
--		BUG_ON(old_base->curr_timer);
--
- 		migrate_hrtimer_list(&old_base->clock_base[i],
- 				     &new_base->clock_base[i]);
- 	}
+@@ -57,7 +53,12 @@ static cycle_t acpi_pm_read_verified(voi
+ 	} while (unlikely((v1 > v2 && v1 < v3) || (v2 > v3 && v2 < v1)
+ 			  || (v3 > v1 && v3 < v2)));
+ 
+-	return (cycle_t)v2;
++	return v2;
++}
++
++static cycle_t acpi_pm_read_slow(void)
++{
++	return (cycle_t)acpi_pm_read_verified();
+ }
+ 
+ static cycle_t acpi_pm_read(void)
+@@ -88,7 +89,7 @@ __setup("acpi_pm_good", acpi_pm_good_set
+ 
+ static inline void acpi_pm_need_workaround(void)
+ {
+-	clocksource_acpi_pm.read = acpi_pm_read_verified;
++	clocksource_acpi_pm.read = acpi_pm_read_slow;
+ 	clocksource_acpi_pm.rating = 110;
+ }
+ 
+diff -puN /dev/null include/linux/acpi_pmtmr.h
+--- /dev/null
++++ a/include/linux/acpi_pmtmr.h
+@@ -0,0 +1,38 @@
++#ifndef _ACPI_PMTMR_H_
++#define _ACPI_PMTMR_H_
++
++#include <linux/clocksource.h>
++
++/* Number of PMTMR ticks expected during calibration run */
++#define PMTMR_TICKS_PER_SEC 3579545
++
++/* limit it to 24 bits */
++#define ACPI_PM_MASK CLOCKSOURCE_MASK(24)
++
++/* Overrun value */
++#define ACPI_PM_OVRRUN	(1<<24)
++
++#ifdef CONFIG_X86_PM_TIMER
++
++extern u32 acpi_pm_read_verified(void);
++extern u32 pmtmr_ioport;
++
++static inline u32 acpi_pm_read_early(void)
++{
++	if (!pmtmr_ioport)
++		return 0;
++	/* mask the output to 24 bits */
++	return acpi_pm_read_verified() & ACPI_PM_MASK;
++}
++
++#else
++
++static inline u32 acpi_pm_read_early(void)
++{
++	return 0;
++}
++
++#endif
++
++#endif
++
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
