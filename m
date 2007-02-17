@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fb-sm501-framebuffer-driver-5-fix.patch added to -mm tree
-Date: Sat, 17 Feb 2007 02:29:49 -0800
-Message-ID: <200702171031.l1HAV7it024799@shell0.pdx.osdl.net>
+Subject: + pvrusb-warning-fix.patch added to -mm tree
+Date: Sat, 17 Feb 2007 02:36:02 -0800
+Message-ID: <200702171037.l1HAbKRj024878@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55050 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55281 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932337AbXBQKbg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 05:31:36 -0500
+	id S965142AbXBQKhe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 05:37:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ben-linux@fluff.org, jsimmons@infradead.org, vince@arm.linux.org.u
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     fb-sm501-framebuffer-driver-5-fix
+     pvrusb warning fix
 has been added to the -mm tree.  Its filename is
-     fb-sm501-framebuffer-driver-5-fix.patch
+     pvrusb-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,62 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fb-sm501-framebuffer-driver-5-fix
+Subject: pvrusb warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/sm501fb.c:1105: warning: initialization from incompatible pointer type
-drivers/video/sm501fb.c:1105: warning: initialization from incompatible pointer type
-drivers/video/sm501fb.c:1141: warning: initialization from incompatible pointer type
-drivers/video/sm501fb.c:1160: warning: initialization from incompatible pointer type
+drivers/media/video/pvrusb2/pvrusb2-hdw.c: In function 'pvr2_upload_firmware2':
+drivers/media/video/pvrusb2/pvrusb2-hdw.c:1269: warning: format '%u' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
 
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Vincent Sanders <vince@arm.linux.org.u.>
-Cc: James Simmons <jsimmons@infradead.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sm501fb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/video/pvrusb2/pvrusb2-hdw.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/sm501fb.c~fb-sm501-framebuffer-driver-5-fix drivers/video/sm501fb.c
---- a/drivers/video/sm501fb.c~fb-sm501-framebuffer-driver-5-fix
-+++ a/drivers/video/sm501fb.c
-@@ -1046,7 +1046,7 @@ int sm501fb_cursor(struct fb_info *info,
-  * device attribute code to show where the crt output is sourced from
- */
- 
--static int sm501fb_crtsrc_show(struct device *dev,
-+static ssize_t sm501fb_crtsrc_show(struct device *dev,
- 			       struct device_attribute *attr, char *buf)
- {
- 	struct sm501fb_info *info = dev_get_drvdata(dev);
-@@ -1063,7 +1063,7 @@ static int sm501fb_crtsrc_show(struct de
-  * device attribute code to set where the crt output is sourced from
- */
- 
--static int sm501fb_crtsrc_store(struct device *dev,
-+static ssize_t sm501fb_crtsrc_store(struct device *dev,
- 				struct device_attribute *attr,
- 				const char *buf, size_t len)
- {
-@@ -1126,7 +1126,7 @@ static int sm501fb_show_regs(struct sm50
-  * show the crt control and cursor registers
- */
- 
--static int sm501fb_debug_show_crt(struct device *dev,
-+static ssize_t sm501fb_debug_show_crt(struct device *dev,
- 				  struct device_attribute *attr, char *buf)
- {
- 	struct sm501fb_info *info = dev_get_drvdata(dev);
-@@ -1145,7 +1145,7 @@ static DEVICE_ATTR(fbregs_crt, 0444, sm5
-  * show the panel control and cursor registers
- */
- 
--static int sm501fb_debug_show_pnl(struct device *dev,
-+static ssize_t sm501fb_debug_show_pnl(struct device *dev,
- 				  struct device_attribute *attr, char *buf)
- {
- 	struct sm501fb_info *info = dev_get_drvdata(dev);
+diff -puN drivers/media/video/pvrusb2/pvrusb2-hdw.c~pvrusb-warning-fix drivers/media/video/pvrusb2/pvrusb2-hdw.c
+--- a/drivers/media/video/pvrusb2/pvrusb2-hdw.c~pvrusb-warning-fix
++++ a/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+@@ -1268,7 +1268,7 @@ int pvr2_upload_firmware2(struct pvr2_hd
+ 	if (fw_len % sizeof(u32)) {
+ 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
+ 			   "size of %s firmware"
+-			   " must be a multiple of %u bytes",
++			   " must be a multiple of %zu bytes",
+ 			   fw_files[fwidx],sizeof(u32));
+ 		release_firmware(fw_entry);
+ 		return -1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,3 +92,4 @@ utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
 fb-sm501-framebuffer-driver-5-fix.patch
 git-gccbug-fixup.patch
+pvrusb-warning-fix.patch
