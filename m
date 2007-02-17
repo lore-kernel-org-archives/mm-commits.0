@@ -1,452 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - time-x86_64-re-enable-vsyscall-support-for-x86_64.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:15:41 -0800
-Message-ID: <200702170715.l1H7Ff6N021656@shell0.pdx.osdl.net>
+Subject: - i386-remove-useless-code-in-tscc.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:13:42 -0800
+Message-ID: <200702170713.l1H7DgbU021472@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51307 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51316 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946575AbXBQHTd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:19:33 -0500
+	id S1946580AbXBQHTq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:19:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, ak@muc.de, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: x86_64: re-enable vsyscall support for x86_64
+     i386 Remove useless code in tsc.c
 has been removed from the -mm tree.  Its filename was
-     time-x86_64-re-enable-vsyscall-support-for-x86_64.patch
+     i386-remove-useless-code-in-tscc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: time: x86_64: re-enable vsyscall support for x86_64
-From: john stultz <johnstul@us.ibm.com>
+Subject: i386 Remove useless code in tsc.c
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Cleanup and re-enable vsyscall gettimeofday using the generic clocksource
-infrastructure.
+The delayed work code in arch/i386/kernel/tsc.c is an unused leftover of the
+GTOD conversion. Remove it.
 
-[akpm@osdl.org: cleanup]
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@muc.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/Kconfig              |    4 
- arch/x86_64/kernel/hpet.c        |    6 +
- arch/x86_64/kernel/time.c        |    6 -
- arch/x86_64/kernel/tsc.c         |    7 +
- arch/x86_64/kernel/vmlinux.lds.S |   28 ++----
- arch/x86_64/kernel/vsyscall.c    |  119 +++++++++++++++++------------
- include/asm-x86_64/proto.h       |    2 
- include/asm-x86_64/timex.h       |    1 
- include/asm-x86_64/vsyscall.h    |   31 +------
- 9 files changed, 105 insertions(+), 99 deletions(-)
+ arch/i386/kernel/tsc.c |   40 +--------------------------------------
+ 1 file changed, 2 insertions(+), 38 deletions(-)
 
-diff -puN arch/x86_64/Kconfig~time-x86_64-re-enable-vsyscall-support-for-x86_64 arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~time-x86_64-re-enable-vsyscall-support-for-x86_64
-+++ a/arch/x86_64/Kconfig
-@@ -28,6 +28,10 @@ config GENERIC_TIME
- 	bool
- 	default y
+diff -puN arch/i386/kernel/tsc.c~i386-remove-useless-code-in-tscc arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~i386-remove-useless-code-in-tscc
++++ a/arch/i386/kernel/tsc.c
+@@ -222,34 +222,6 @@ out_no_tsc:
  
-+config GENERIC_TIME_VSYSCALL
-+	bool
-+	default y
-+
- config ZONE_DMA32
- 	bool
- 	default y
-diff -puN arch/x86_64/kernel/hpet.c~time-x86_64-re-enable-vsyscall-support-for-x86_64 arch/x86_64/kernel/hpet.c
---- a/arch/x86_64/kernel/hpet.c~time-x86_64-re-enable-vsyscall-support-for-x86_64
-+++ a/arch/x86_64/kernel/hpet.c
-@@ -458,6 +458,11 @@ static cycle_t read_hpet(void)
- 	return (cycle_t)readl(hpet_ptr);
- }
+ #ifdef CONFIG_CPU_FREQ
  
-+static cycle_t __vsyscall_fn vread_hpet(void)
-+{
-+	return readl((void __iomem *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
-+}
-+
- struct clocksource clocksource_hpet = {
- 	.name		= "hpet",
- 	.rating		= 250,
-@@ -466,6 +471,7 @@ struct clocksource clocksource_hpet = {
- 	.mult		= 0, /* set below */
- 	.shift		= HPET_SHIFT,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
-+	.vread		= vread_hpet,
- };
- 
- static int __init init_hpet_clocksource(void)
-diff -puN arch/x86_64/kernel/time.c~time-x86_64-re-enable-vsyscall-support-for-x86_64 arch/x86_64/kernel/time.c
---- a/arch/x86_64/kernel/time.c~time-x86_64-re-enable-vsyscall-support-for-x86_64
-+++ a/arch/x86_64/kernel/time.c
-@@ -53,13 +53,7 @@ DEFINE_SPINLOCK(rtc_lock);
- EXPORT_SYMBOL(rtc_lock);
- DEFINE_SPINLOCK(i8253_lock);
- 
--unsigned long vxtime_hz = PIT_TICK_RATE;
+-static unsigned int cpufreq_delayed_issched = 0;
+-static unsigned int cpufreq_init = 0;
+-static struct work_struct cpufreq_delayed_get_work;
 -
--struct vxtime_data __vxtime __section_vxtime;	/* for vsyscalls */
+-static void handle_cpufreq_delayed_get(struct work_struct *work)
+-{
+-	unsigned int cpu;
 -
- volatile unsigned long __jiffies __section_jiffies = INITIAL_JIFFIES;
--struct timespec __xtime __section_xtime;
--struct timezone __sys_tz __section_sys_tz;
- 
- unsigned long profile_pc(struct pt_regs *regs)
- {
-diff -puN arch/x86_64/kernel/tsc.c~time-x86_64-re-enable-vsyscall-support-for-x86_64 arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~time-x86_64-re-enable-vsyscall-support-for-x86_64
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -180,6 +180,12 @@ static cycle_t read_tsc(void)
- 	return ret;
- }
- 
-+static cycle_t __vsyscall_fn vread_tsc(void)
-+{
-+	cycle_t ret = (cycle_t)get_cycles_sync();
-+	return ret;
-+}
-+
- static struct clocksource clocksource_tsc = {
- 	.name			= "tsc",
- 	.rating			= 300,
-@@ -188,6 +194,7 @@ static struct clocksource clocksource_ts
- 	.shift			= 22,
- 	.flags			= CLOCK_SOURCE_IS_CONTINUOUS |
- 				  CLOCK_SOURCE_MUST_VERIFY,
-+	.vread			= vread_tsc,
- };
- 
- void mark_tsc_unstable(void)
-diff -puN arch/x86_64/kernel/vmlinux.lds.S~time-x86_64-re-enable-vsyscall-support-for-x86_64 arch/x86_64/kernel/vmlinux.lds.S
---- a/arch/x86_64/kernel/vmlinux.lds.S~time-x86_64-re-enable-vsyscall-support-for-x86_64
-+++ a/arch/x86_64/kernel/vmlinux.lds.S
-@@ -88,31 +88,25 @@ SECTIONS
-   __vsyscall_0 = VSYSCALL_VIRT_ADDR;
- 
-   . = ALIGN(CONFIG_X86_L1_CACHE_BYTES);
--  .xtime_lock : AT(VLOAD(.xtime_lock)) { *(.xtime_lock) }
--  xtime_lock = VVIRT(.xtime_lock);
+-	for_each_online_cpu(cpu)
+-		cpufreq_get(cpu);
 -
--  .vxtime : AT(VLOAD(.vxtime)) { *(.vxtime) }
--  vxtime = VVIRT(.vxtime);
-+  .vsyscall_fn : AT(VLOAD(.vsyscall_fn)) { *(.vsyscall_fn) }
-+  . = ALIGN(CONFIG_X86_L1_CACHE_BYTES);
-+  .vsyscall_gtod_data : AT(VLOAD(.vsyscall_gtod_data))
-+		{ *(.vsyscall_gtod_data) }
-+  vsyscall_gtod_data = VVIRT(.vsyscall_gtod_data);
- 
-   .vgetcpu_mode : AT(VLOAD(.vgetcpu_mode)) { *(.vgetcpu_mode) }
-   vgetcpu_mode = VVIRT(.vgetcpu_mode);
- 
--  .sys_tz : AT(VLOAD(.sys_tz)) { *(.sys_tz) }
--  sys_tz = VVIRT(.sys_tz);
+-	cpufreq_delayed_issched = 0;
+-}
 -
--  .sysctl_vsyscall : AT(VLOAD(.sysctl_vsyscall)) { *(.sysctl_vsyscall) }
--  sysctl_vsyscall = VVIRT(.sysctl_vsyscall);
--
--  .xtime : AT(VLOAD(.xtime)) { *(.xtime) }
--  xtime = VVIRT(.xtime);
--
-   . = ALIGN(CONFIG_X86_L1_CACHE_BYTES);
-   .jiffies : AT(VLOAD(.jiffies)) { *(.jiffies) }
-   jiffies = VVIRT(.jiffies);
- 
--  .vsyscall_1 ADDR(.vsyscall_0) + 1024: AT(VLOAD(.vsyscall_1)) { *(.vsyscall_1) }
--  .vsyscall_2 ADDR(.vsyscall_0) + 2048: AT(VLOAD(.vsyscall_2)) { *(.vsyscall_2) }
--  .vsyscall_3 ADDR(.vsyscall_0) + 3072: AT(VLOAD(.vsyscall_3)) { *(.vsyscall_3) }
-+  .vsyscall_1 ADDR(.vsyscall_0) + 1024: AT(VLOAD(.vsyscall_1))
-+		{ *(.vsyscall_1) }
-+  .vsyscall_2 ADDR(.vsyscall_0) + 2048: AT(VLOAD(.vsyscall_2))
-+		{ *(.vsyscall_2) }
-+  .vsyscall_3 ADDR(.vsyscall_0) + 3072: AT(VLOAD(.vsyscall_3))
-+		{ *(.vsyscall_3) }
- 
-   . = VSYSCALL_VIRT_ADDR + 4096;
- 
-diff -puN arch/x86_64/kernel/vsyscall.c~time-x86_64-re-enable-vsyscall-support-for-x86_64 arch/x86_64/kernel/vsyscall.c
---- a/arch/x86_64/kernel/vsyscall.c~time-x86_64-re-enable-vsyscall-support-for-x86_64
-+++ a/arch/x86_64/kernel/vsyscall.c
-@@ -26,6 +26,7 @@
- #include <linux/seqlock.h>
- #include <linux/jiffies.h>
- #include <linux/sysctl.h>
-+#include <linux/clocksource.h>
- #include <linux/getcpu.h>
- #include <linux/cpu.h>
- #include <linux/smp.h>
-@@ -34,6 +35,7 @@
- #include <asm/vsyscall.h>
- #include <asm/pgtable.h>
- #include <asm/page.h>
-+#include <asm/unistd.h>
- #include <asm/fixmap.h>
- #include <asm/errno.h>
- #include <asm/io.h>
-@@ -44,56 +46,41 @@
- #define __vsyscall(nr) __attribute__ ((unused,__section__(".vsyscall_" #nr)))
- #define __syscall_clobber "r11","rcx","memory"
- 
--int __sysctl_vsyscall __section_sysctl_vsyscall = 1;
--seqlock_t __xtime_lock __section_xtime_lock = SEQLOCK_UNLOCKED;
-+struct vsyscall_gtod_data_t {
-+	seqlock_t lock;
-+	int sysctl_enabled;
-+	struct timeval wall_time_tv;
-+	struct timezone sys_tz;
-+	cycle_t offset_base;
-+	struct clocksource clock;
-+};
- int __vgetcpu_mode __section_vgetcpu_mode;
- 
--#include <asm/unistd.h>
--
--static __always_inline void timeval_normalize(struct timeval * tv)
-+struct vsyscall_gtod_data_t __vsyscall_gtod_data __section_vsyscall_gtod_data =
- {
--	time_t __sec;
--
--	__sec = tv->tv_usec / 1000000;
--	if (__sec) {
--		tv->tv_usec %= 1000000;
--		tv->tv_sec += __sec;
+-/*
+- * if we notice cpufreq oddness, schedule a call to cpufreq_get() as it tries
+- * to verify the CPU frequency the timing core thinks the CPU is running
+- * at is still correct.
+- */
+-static inline void cpufreq_delayed_get(void)
+-{
+-	if (cpufreq_init && !cpufreq_delayed_issched) {
+-		cpufreq_delayed_issched = 1;
+-		printk(KERN_DEBUG "Checking if CPU frequency changed.\n");
+-		schedule_work(&cpufreq_delayed_get_work);
 -	}
 -}
-+	.lock = SEQLOCK_UNLOCKED,
-+	.sysctl_enabled = 1,
-+};
- 
--static __always_inline void do_vgettimeofday(struct timeval * tv)
-+void update_vsyscall(struct timespec *wall_time, struct clocksource *clock)
- {
--	long sequence, t;
--	unsigned long sec, usec;
-+	unsigned long flags;
- 
--	do {
--		sequence = read_seqbegin(&__xtime_lock);
--		
--		sec = __xtime.tv_sec;
--		usec = __xtime.tv_nsec / 1000;
 -
--		if (__vxtime.mode != VXTIME_HPET) {
--			t = get_cycles_sync();
--			if (t < __vxtime.last_tsc)
--				t = __vxtime.last_tsc;
--			usec += ((t - __vxtime.last_tsc) *
--				 __vxtime.tsc_quot) >> 32;
--			/* See comment in x86_64 do_gettimeofday. */
--		} else {
--			usec += ((readl((void __iomem *)
--				   fix_to_virt(VSYSCALL_HPET) + 0xf0) -
--				  __vxtime.last) * __vxtime.quot) >> 32;
--		}
--	} while (read_seqretry(&__xtime_lock, sequence));
+ /*
+  * if the CPU frequency is scaled, TSC-based delays will need a different
+  * loops_per_jiffy value to function properly.
+@@ -313,17 +285,9 @@ static struct notifier_block time_cpufre
+ 
+ static int __init cpufreq_tsc(void)
+ {
+-	int ret;
 -
--	tv->tv_sec = sec + usec / 1000000;
--	tv->tv_usec = usec % 1000000;
-+	write_seqlock_irqsave(&vsyscall_gtod_data.lock, flags);
-+	/* copy vsyscall data */
-+	vsyscall_gtod_data.clock = *clock;
-+	vsyscall_gtod_data.wall_time_tv.tv_sec = wall_time->tv_sec;
-+	vsyscall_gtod_data.wall_time_tv.tv_usec = wall_time->tv_nsec/1000;
-+	vsyscall_gtod_data.sys_tz = sys_tz;
-+	write_sequnlock_irqrestore(&vsyscall_gtod_data.lock, flags);
+-	INIT_WORK(&cpufreq_delayed_get_work, handle_cpufreq_delayed_get);
+-	ret = cpufreq_register_notifier(&time_cpufreq_notifier_block,
+-					CPUFREQ_TRANSITION_NOTIFIER);
+-	if (!ret)
+-		cpufreq_init = 1;
+-
+-	return ret;
++	return cpufreq_register_notifier(&time_cpufreq_notifier_block,
++					 CPUFREQ_TRANSITION_NOTIFIER);
  }
+-
+ core_initcall(cpufreq_tsc);
  
--/* RED-PEN may want to readd seq locking, but then the variable should be write-once. */
-+/* RED-PEN may want to readd seq locking, but then the variable should be
-+ * write-once.
-+ */
- static __always_inline void do_get_tz(struct timezone * tz)
- {
--	*tz = __sys_tz;
-+	*tz = __vsyscall_gtod_data.sys_tz;
- }
- 
- static __always_inline int gettimeofday(struct timeval *tv, struct timezone *tz)
-@@ -101,7 +88,8 @@ static __always_inline int gettimeofday(
- 	int ret;
- 	asm volatile("vsysc2: syscall"
- 		: "=a" (ret)
--		: "0" (__NR_gettimeofday),"D" (tv),"S" (tz) : __syscall_clobber );
-+		: "0" (__NR_gettimeofday),"D" (tv),"S" (tz)
-+		: __syscall_clobber );
- 	return ret;
- }
- 
-@@ -114,10 +102,44 @@ static __always_inline long time_syscall
- 	return secs;
- }
- 
-+static __always_inline void do_vgettimeofday(struct timeval * tv)
-+{
-+	cycle_t now, base, mask, cycle_delta;
-+	unsigned long seq, mult, shift, nsec_delta;
-+	cycle_t (*vread)(void);
-+	do {
-+		seq = read_seqbegin(&__vsyscall_gtod_data.lock);
-+
-+		vread = __vsyscall_gtod_data.clock.vread;
-+		if (unlikely(!__vsyscall_gtod_data.sysctl_enabled || !vread)) {
-+			gettimeofday(tv,0);
-+			return;
-+		}
-+		now = vread();
-+		base = __vsyscall_gtod_data.clock.cycle_last;
-+		mask = __vsyscall_gtod_data.clock.mask;
-+		mult = __vsyscall_gtod_data.clock.mult;
-+		shift = __vsyscall_gtod_data.clock.shift;
-+
-+		*tv = __vsyscall_gtod_data.wall_time_tv;
-+
-+	} while (read_seqretry(&__vsyscall_gtod_data.lock, seq));
-+
-+	/* calculate interval: */
-+	cycle_delta = (now - base) & mask;
-+	/* convert to nsecs: */
-+	nsec_delta = (cycle_delta * mult) >> shift;
-+
-+	/* convert to usecs and add to timespec: */
-+	tv->tv_usec += nsec_delta / NSEC_PER_USEC;
-+	while (tv->tv_usec > USEC_PER_SEC) {
-+		tv->tv_sec += 1;
-+		tv->tv_usec -= USEC_PER_SEC;
-+	}
-+}
-+
- int __vsyscall(0) vgettimeofday(struct timeval * tv, struct timezone * tz)
- {
--	if (!__sysctl_vsyscall)
--		return gettimeofday(tv,tz);
- 	if (tv)
- 		do_vgettimeofday(tv);
- 	if (tz)
-@@ -129,11 +151,11 @@ int __vsyscall(0) vgettimeofday(struct t
-  * unlikely */
- time_t __vsyscall(1) vtime(time_t *t)
- {
--	if (!__sysctl_vsyscall)
-+	if (unlikely(!__vsyscall_gtod_data.sysctl_enabled))
- 		return time_syscall(t);
- 	else if (t)
--		*t = __xtime.tv_sec;		
--	return __xtime.tv_sec;
-+		*t = __vsyscall_gtod_data.wall_time_tv.tv_sec;
-+	return __vsyscall_gtod_data.wall_time_tv.tv_sec;
- }
- 
- /* Fast way to get current CPU and node.
-@@ -210,7 +232,7 @@ static int vsyscall_sysctl_change(ctl_ta
- 		ret = -ENOMEM;
- 		goto out;
- 	}
--	if (!sysctl_vsyscall) {
-+	if (!vsyscall_gtod_data.sysctl_enabled) {
- 		writew(SYSCALL, map1);
- 		writew(SYSCALL, map2);
- 	} else {
-@@ -232,7 +254,8 @@ static int vsyscall_sysctl_nostrat(ctl_t
- 
- static ctl_table kernel_table2[] = {
- 	{ .ctl_name = 99, .procname = "vsyscall64",
--	  .data = &sysctl_vsyscall, .maxlen = sizeof(int), .mode = 0644,
-+	  .data = &vsyscall_gtod_data.sysctl_enabled, .maxlen = sizeof(int),
-+	  .mode = 0644,
- 	  .strategy = vsyscall_sysctl_nostrat,
- 	  .proc_handler = vsyscall_sysctl_change },
- 	{}
-diff -puN include/asm-x86_64/proto.h~time-x86_64-re-enable-vsyscall-support-for-x86_64 include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~time-x86_64-re-enable-vsyscall-support-for-x86_64
-+++ a/include/asm-x86_64/proto.h
-@@ -45,9 +45,7 @@ extern u32 pmtmr_ioport;
- #else
- #define pmtmr_ioport 0
  #endif
--extern int sysctl_vsyscall;
- extern int nohpet;
--extern unsigned long vxtime_hz;
- 
- extern void early_printk(const char *fmt, ...) __attribute__((format(printf,1,2)));
- 
-diff -puN include/asm-x86_64/timex.h~time-x86_64-re-enable-vsyscall-support-for-x86_64 include/asm-x86_64/timex.h
---- a/include/asm-x86_64/timex.h~time-x86_64-re-enable-vsyscall-support-for-x86_64
-+++ a/include/asm-x86_64/timex.h
-@@ -27,7 +27,6 @@ extern int read_current_timer(unsigned l
- #define NS_SCALE        10 /* 2^10, carefully chosen */
- #define US_SCALE        32 /* 2^32, arbitralrily chosen */
- 
--extern struct vxtime_data vxtime;
- extern void mark_tsc_unstable(void);
- extern void set_cyc2ns_scale(unsigned long khz);
- #endif
-diff -puN include/asm-x86_64/vsyscall.h~time-x86_64-re-enable-vsyscall-support-for-x86_64 include/asm-x86_64/vsyscall.h
---- a/include/asm-x86_64/vsyscall.h~time-x86_64-re-enable-vsyscall-support-for-x86_64
-+++ a/include/asm-x86_64/vsyscall.h
-@@ -16,46 +16,27 @@ enum vsyscall_num {
- #ifdef __KERNEL__
- #include <linux/seqlock.h>
- 
--#define __section_vxtime __attribute__ ((unused, __section__ (".vxtime"), aligned(16)))
- #define __section_vgetcpu_mode __attribute__ ((unused, __section__ (".vgetcpu_mode"), aligned(16)))
- #define __section_jiffies __attribute__ ((unused, __section__ (".jiffies"), aligned(16)))
--#define __section_sys_tz __attribute__ ((unused, __section__ (".sys_tz"), aligned(16)))
--#define __section_sysctl_vsyscall __attribute__ ((unused, __section__ (".sysctl_vsyscall"), aligned(16)))
--#define __section_xtime __attribute__ ((unused, __section__ (".xtime"), aligned(16)))
--#define __section_xtime_lock __attribute__ ((unused, __section__ (".xtime_lock"), aligned(16)))
--
--#define VXTIME_TSC	1
--#define VXTIME_HPET	2
--#define VXTIME_PMTMR	3
-+
-+/* Definitions for CONFIG_GENERIC_TIME definitions */
-+#define __section_vsyscall_gtod_data __attribute__ \
-+	((unused, __section__ (".vsyscall_gtod_data"),aligned(16)))
-+#define __vsyscall_fn __attribute__ ((unused,__section__(".vsyscall_fn")))
- 
- #define VGETCPU_RDTSCP	1
- #define VGETCPU_LSL	2
- 
--struct vxtime_data {
--	long hpet_address;	/* HPET base address */
--	int last;
--	unsigned long last_tsc;
--	long quot;
--	long tsc_quot;
--	int mode;
--};
--
- #define hpet_readl(a)           readl((const void __iomem *)fix_to_virt(FIX_HPET_BASE) + a)
- #define hpet_writel(d,a)        writel(d, (void __iomem *)fix_to_virt(FIX_HPET_BASE) + a)
- 
--/* vsyscall space (readonly) */
--extern struct vxtime_data __vxtime;
- extern int __vgetcpu_mode;
--extern struct timespec __xtime;
- extern volatile unsigned long __jiffies;
--extern struct timezone __sys_tz;
--extern seqlock_t __xtime_lock;
- 
- /* kernel space (writeable) */
--extern struct vxtime_data vxtime;
- extern int vgetcpu_mode;
- extern struct timezone sys_tz;
--extern int sysctl_vsyscall;
-+extern struct vsyscall_gtod_data_t vsyscall_gtod_data;
- 
- #endif /* __KERNEL__ */
- 
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
 git-acpi.patch
-profile-likely-unlikely-macros-x86_64-fix.patch
+git-block.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
