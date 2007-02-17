@@ -1,80 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - irq-kernel-doc-fixes.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:15:54 -0800
-Message-ID: <200702170715.l1H7Fs7C021669@shell0.pdx.osdl.net>
+Subject: - knfsd-nfsd4-fix-memory-leak-on-kmalloc-failure-in-savemem.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:16:17 -0800
+Message-ID: <200702170716.l1H7GHsm021691@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51120 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51122 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946490AbXBQHQ0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1946492AbXBQHQ0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Sat, 17 Feb 2007 02:16:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: bfields@snoopy.citi.umich.edu, bfields@citi.umich.edu, bhalevy@panasas.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IRQ kernel-doc fixes
+     knfsd: nfsd4: fix memory leak on kmalloc failure in savemem
 has been removed from the -mm tree.  Its filename was
-     irq-kernel-doc-fixes.patch
+     knfsd-nfsd4-fix-memory-leak-on-kmalloc-failure-in-savemem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IRQ kernel-doc fixes
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: knfsd: nfsd4: fix memory leak on kmalloc failure in savemem
+From: J. Bruce Fields <bfields@snoopy.citi.umich.edu>
 
-Fix kernel-doc warnings in IRQ management.
+The wrong pointer is being kfree'd in savemem() when defer_free returns with
+an error.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Benny Halevy <bhalevy@panasas.com>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irq.h |    1 +
- kernel/irq/chip.c   |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/nfsd/nfs4xdr.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/irq.h~irq-kernel-doc-fixes include/linux/irq.h
---- a/include/linux/irq.h~irq-kernel-doc-fixes
-+++ a/include/linux/irq.h
-@@ -129,6 +129,7 @@ struct irq_chip {
-  *
-  * @handle_irq:		highlevel irq-events handler [if NULL, __do_IRQ()]
-  * @chip:		low level interrupt hardware access
-+ * @msi_desc:		MSI descriptor
-  * @handler_data:	per-IRQ data for the irq_chip methods
-  * @chip_data:		platform-specific per-chip private data for the chip
-  *			methods, to allow shared chip implementations
-diff -puN kernel/irq/chip.c~irq-kernel-doc-fixes kernel/irq/chip.c
---- a/kernel/irq/chip.c~irq-kernel-doc-fixes
-+++ a/kernel/irq/chip.c
-@@ -168,7 +168,7 @@ EXPORT_SYMBOL(set_irq_data);
- /**
-  *	set_irq_data - set irq type data for an irq
-  *	@irq:	Interrupt number
-- *	@data:	Pointer to interrupt specific data
-+ *	@entry:	Pointer to MSI descriptor data
-  *
-  *	Set the hardware irq controller data for an irq
-  */
+diff -puN fs/nfsd/nfs4xdr.c~knfsd-nfsd4-fix-memory-leak-on-kmalloc-failure-in-savemem fs/nfsd/nfs4xdr.c
+--- a/fs/nfsd/nfs4xdr.c~knfsd-nfsd4-fix-memory-leak-on-kmalloc-failure-in-savemem
++++ a/fs/nfsd/nfs4xdr.c
+@@ -199,24 +199,22 @@ defer_free(struct nfsd4_compoundargs *ar
+ 
+ static char *savemem(struct nfsd4_compoundargs *argp, __be32 *p, int nbytes)
+ {
+-	void *new = NULL;
+ 	if (p == argp->tmp) {
+-		new = kmalloc(nbytes, GFP_KERNEL);
+-		if (!new) return NULL;
+-		p = new;
++		p = kmalloc(nbytes, GFP_KERNEL);
++		if (!p)
++			return NULL;
+ 		memcpy(p, argp->tmp, nbytes);
+ 	} else {
+ 		BUG_ON(p != argp->tmpp);
+ 		argp->tmpp = NULL;
+ 	}
+ 	if (defer_free(argp, kfree, p)) {
+-		kfree(new);
++		kfree(p);
+ 		return NULL;
+ 	} else
+ 		return (char *)p;
+ }
+ 
+-
+ static __be32
+ nfsd4_decode_bitmap(struct nfsd4_compoundargs *argp, u32 *bmval)
+ {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bfields@snoopy.citi.umich.edu are
 
 origin.patch
-git-acpi.patch
-build-errors-uevent-with-config_sysfs=n.patch
-git-drm.patch
-sata-use-null-for-ptrs.patch
-git-mtd.patch
-git-netdev-all.patch
-phy-layer-add-kernel-doc-docbook.patch
-ueagle-atmc-needs-schedh.patch
-kernel-doc-include-struct-short-description-in-title.patch
-tty-use-null-for-ptrs.patch
-cdrom-use-unsigned-bitfields.patch
-update-doc-oops-tracingtxt-for-taint_user.patch
-update-doc-oops-tracingtxt-for-taint_user-fix.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
