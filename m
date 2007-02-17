@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sony-laptop-fix-uninitialised-variable.patch added to -mm tree
-Date: Sat, 17 Feb 2007 03:10:53 -0800
-Message-ID: <200702171112.l1HBCBL9025415@shell0.pdx.osdl.net>
+Subject: + machzwd-warning-fix.patch added to -mm tree
+Date: Sat, 17 Feb 2007 03:13:07 -0800
+Message-ID: <200702171114.l1HBEPVd025437@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56611 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56637 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965134AbXBQLNm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 06:13:42 -0500
+	id S965173AbXBQLOf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 06:14:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, malattia@linux.it
+Cc: akpm@linux-foundation.org, wim@iguana.be
 
 
 The patch titled
-     sony-laptop fix uninitialised variable
+     machzwd warning fix
 has been added to the -mm tree.  Its filename is
-     sony-laptop-fix-uninitialised-variable.patch
+     machzwd-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sony-laptop fix uninitialised variable
+Subject: machzwd warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/misc/sony-laptop.c: In function 'sony_acpi_add':
-drivers/misc/sony-laptop.c:456: warning: 'result' may be used uninitialized in this function
+drivers/char/watchdog/machzwd.c: In function 'zf_ioctl':
+drivers/char/watchdog/machzwd.c:327: warning: passing argument 1 of 'zf_ping' makes integer from pointer without a cast
 
-The compiler seems to actually be telling the truth this time.
-
-Cc: Mattia Dongili <malattia@linux.it>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sony-laptop.c |    2 +-
+ drivers/char/watchdog/machzwd.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/sony-laptop.c~sony-laptop-fix-uninitialised-variable drivers/misc/sony-laptop.c
---- a/drivers/misc/sony-laptop.c~sony-laptop-fix-uninitialised-variable
-+++ a/drivers/misc/sony-laptop.c
-@@ -453,7 +453,7 @@ static int sony_acpi_resume(struct acpi_
- static int sony_acpi_add(struct acpi_device *device)
- {
- 	acpi_status status;
--	int result;
-+	int result = 0;
- 	acpi_handle handle;
+diff -puN drivers/char/watchdog/machzwd.c~machzwd-warning-fix drivers/char/watchdog/machzwd.c
+--- a/drivers/char/watchdog/machzwd.c~machzwd-warning-fix
++++ a/drivers/char/watchdog/machzwd.c
+@@ -324,7 +324,7 @@ static int zf_ioctl(struct inode *inode,
+ 			return put_user(0, p);
  
- 	sony_acpi_acpi_device = device;
+ 		case WDIOC_KEEPALIVE:
+-			zf_ping(NULL);
++			zf_ping(0);
+ 			break;
+ 
+ 		default:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,6 +58,7 @@ origin.patch
 xfs-warning-fix.patch
 make-aout-executables-work-again-fix.patch
 git-acpi.patch
+sony-laptop-fix-uninitialised-variable.patch
 git-arm.patch
 git-powerpc.patch
 git-drm.patch
@@ -109,4 +107,4 @@ utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
 fb-sm501-framebuffer-driver-5-fix.patch
 git-gccbug-fixup.patch
-sony-laptop-fix-uninitialised-variable.patch
+machzwd-warning-fix.patch
