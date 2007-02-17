@@ -1,120 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - genirq-do-not-mask-interrupts-by-default.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:15:47 -0800
-Message-ID: <200702170715.l1H7FlTt021662@shell0.pdx.osdl.net>
+Subject: - genirq-remove-irq_disabled.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:15:49 -0800
+Message-ID: <200702170715.l1H7FnvO021666@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51065 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51077 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946473AbXBQHP4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:15:56 -0500
+	id S1946436AbXBQHQE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:16:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     genirq: do not mask interrupts by default
+     genirq: remove IRQ_DISABLED
 has been removed from the -mm tree.  Its filename was
-     genirq-do-not-mask-interrupts-by-default.patch
+     genirq-remove-irq_disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: genirq: do not mask interrupts by default
+Subject: genirq: remove IRQ_DISABLED
 From: Ingo Molnar <mingo@elte.hu>
 
-Never mask interrupts immediately upon request.  Disabling interrupts in
-high-performance codepaths is rare, and on the other hand this change could
-recover lost edges (or even other types of lost interrupts) by conservatively
-only masking interrupts after they happen.  (NOTE: with this change the
-highlevel irq-disable code still soft-disables this IRQ line - and if such an
-interrupt happens then the IRQ flow handler keeps the IRQ masked.)
-
-Mark i8529A controllers as 'never loses an edge'.
+Now that disable_irq() defaults to delayed-disable semantics, the IRQ_DISABLED
+flag is not needed anymore.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/i8259.c   |    1 +
- arch/x86_64/kernel/i8259.c |    1 +
- kernel/irq/chip.c          |   17 ++++++++++-------
- 3 files changed, 12 insertions(+), 7 deletions(-)
+ arch/arm/kernel/irq.c                 |    3 +--
+ arch/i386/kernel/io_apic.c            |    4 +---
+ arch/powerpc/platforms/powermac/pic.c |    2 --
+ arch/x86_64/kernel/io_apic.c          |    4 +---
+ include/linux/irq.h                   |    7 +++----
+ 5 files changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN arch/i386/kernel/i8259.c~genirq-do-not-mask-interrupts-by-default arch/i386/kernel/i8259.c
---- a/arch/i386/kernel/i8259.c~genirq-do-not-mask-interrupts-by-default
-+++ a/arch/i386/kernel/i8259.c
-@@ -41,6 +41,7 @@ static void mask_and_ack_8259A(unsigned 
- static struct irq_chip i8259A_chip = {
- 	.name		= "XT-PIC",
- 	.mask		= disable_8259A_irq,
-+	.disable	= disable_8259A_irq,
- 	.unmask		= enable_8259A_irq,
- 	.mask_ack	= mask_and_ack_8259A,
- };
-diff -puN arch/x86_64/kernel/i8259.c~genirq-do-not-mask-interrupts-by-default arch/x86_64/kernel/i8259.c
---- a/arch/x86_64/kernel/i8259.c~genirq-do-not-mask-interrupts-by-default
-+++ a/arch/x86_64/kernel/i8259.c
-@@ -103,6 +103,7 @@ static void mask_and_ack_8259A(unsigned 
- static struct irq_chip i8259A_chip = {
- 	.name		= "XT-PIC",
- 	.mask		= disable_8259A_irq,
-+	.disable	= disable_8259A_irq,
- 	.unmask		= enable_8259A_irq,
- 	.mask_ack	= mask_and_ack_8259A,
- };
-diff -puN kernel/irq/chip.c~genirq-do-not-mask-interrupts-by-default kernel/irq/chip.c
---- a/kernel/irq/chip.c~genirq-do-not-mask-interrupts-by-default
-+++ a/kernel/irq/chip.c
-@@ -230,10 +230,6 @@ static void default_enable(unsigned int 
-  */
- static void default_disable(unsigned int irq)
- {
--	struct irq_desc *desc = irq_desc + irq;
--
--	if (!(desc->status & IRQ_DELAYED_DISABLE))
--		desc->chip->mask(irq);
+diff -puN arch/arm/kernel/irq.c~genirq-remove-irq_disabled arch/arm/kernel/irq.c
+--- a/arch/arm/kernel/irq.c~genirq-remove-irq_disabled
++++ a/arch/arm/kernel/irq.c
+@@ -159,8 +159,7 @@ void __init init_IRQ(void)
+ 	int irq;
+ 
+ 	for (irq = 0; irq < NR_IRQS; irq++)
+-		irq_desc[irq].status |= IRQ_NOREQUEST | IRQ_DELAYED_DISABLE |
+-			IRQ_NOPROBE;
++		irq_desc[irq].status |= IRQ_NOREQUEST | IRQ_NOPROBE;
+ 
+ #ifdef CONFIG_SMP
+ 	bad_irq_desc.affinity = CPU_MASK_ALL;
+diff -puN arch/i386/kernel/io_apic.c~genirq-remove-irq_disabled arch/i386/kernel/io_apic.c
+--- a/arch/i386/kernel/io_apic.c~genirq-remove-irq_disabled
++++ a/arch/i386/kernel/io_apic.c
+@@ -1281,11 +1281,9 @@ static void ioapic_register_intr(int irq
+ 			trigger == IOAPIC_LEVEL)
+ 		set_irq_chip_and_handler_name(irq, &ioapic_chip,
+ 					 handle_fasteoi_irq, "fasteoi");
+-	else {
+-		irq_desc[irq].status |= IRQ_DELAYED_DISABLE;
++	else
+ 		set_irq_chip_and_handler_name(irq, &ioapic_chip,
+ 					 handle_edge_irq, "edge");
+-	}
+ 	set_intr_gate(vector, interrupt[irq]);
  }
  
- /*
-@@ -298,13 +294,18 @@ handle_simple_irq(unsigned int irq, stru
+diff -puN arch/powerpc/platforms/powermac/pic.c~genirq-remove-irq_disabled arch/powerpc/platforms/powermac/pic.c
+--- a/arch/powerpc/platforms/powermac/pic.c~genirq-remove-irq_disabled
++++ a/arch/powerpc/platforms/powermac/pic.c
+@@ -305,8 +305,6 @@ static int pmac_pic_host_map(struct irq_
+ 	level = !!(level_mask[hw >> 5] & (1UL << (hw & 0x1f)));
+ 	if (level)
+ 		desc->status |= IRQ_LEVEL;
+-	else
+-		desc->status |= IRQ_DELAYED_DISABLE;
+ 	set_irq_chip_and_handler(virq, &pmac_pic, level ?
+ 				 handle_level_irq : handle_edge_irq);
+ 	return 0;
+diff -puN arch/x86_64/kernel/io_apic.c~genirq-remove-irq_disabled arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~genirq-remove-irq_disabled
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -810,11 +810,9 @@ static void ioapic_register_intr(int irq
+ 			trigger == IOAPIC_LEVEL)
+ 		set_irq_chip_and_handler_name(irq, &ioapic_chip,
+ 					      handle_fasteoi_irq, "fasteoi");
+-	else {
+-		irq_desc[irq].status |= IRQ_DELAYED_DISABLE;
++	else
+ 		set_irq_chip_and_handler_name(irq, &ioapic_chip,
+ 					      handle_edge_irq, "edge");
+-	}
+ }
+ static void __init setup_IO_APIC_irq(int apic, int pin, int idx, int irq)
+ {
+diff -puN include/linux/irq.h~genirq-remove-irq_disabled include/linux/irq.h
+--- a/include/linux/irq.h~genirq-remove-irq_disabled
++++ a/include/linux/irq.h
+@@ -57,10 +57,9 @@ typedef	void fastcall (*irq_flow_handler
+ #define IRQ_NOPROBE		0x00020000	/* IRQ is not valid for probing */
+ #define IRQ_NOREQUEST		0x00040000	/* IRQ cannot be requested */
+ #define IRQ_NOAUTOEN		0x00080000	/* IRQ will not be enabled on request irq */
+-#define IRQ_DELAYED_DISABLE	0x00100000	/* IRQ disable (masking) happens delayed. */
+-#define IRQ_WAKEUP		0x00200000	/* IRQ triggers system wakeup */
+-#define IRQ_MOVE_PENDING	0x00400000	/* need to re-target IRQ destination */
+-#define IRQ_NO_BALANCING	0x00800000	/* IRQ is excluded from balancing */
++#define IRQ_WAKEUP		0x00100000	/* IRQ triggers system wakeup */
++#define IRQ_MOVE_PENDING	0x00200000	/* need to re-target IRQ destination */
++#define IRQ_NO_BALANCING	0x00400000	/* IRQ is excluded from balancing */
  
- 	if (unlikely(desc->status & IRQ_INPROGRESS))
- 		goto out_unlock;
--	desc->status &= ~(IRQ_REPLAY | IRQ_WAITING);
- 	kstat_cpu(cpu).irqs[irq]++;
- 
- 	action = desc->action;
--	if (unlikely(!action || (desc->status & IRQ_DISABLED)))
-+	if (unlikely(!action || (desc->status & IRQ_DISABLED))) {
-+		if (desc->chip->mask)
-+			desc->chip->mask(irq);
-+		desc->status &= ~(IRQ_REPLAY | IRQ_WAITING);
-+		desc->status |= IRQ_PENDING;
- 		goto out_unlock;
-+	}
- 
-+	desc->status &= ~(IRQ_REPLAY | IRQ_WAITING | IRQ_PENDING);
- 	desc->status |= IRQ_INPROGRESS;
- 	spin_unlock(&desc->lock);
- 
-@@ -396,11 +397,13 @@ handle_fasteoi_irq(unsigned int irq, str
- 
- 	/*
- 	 * If its disabled or no action available
--	 * keep it masked and get out of here
-+	 * then mask it and get out of here:
- 	 */
- 	action = desc->action;
- 	if (unlikely(!action || (desc->status & IRQ_DISABLED))) {
- 		desc->status |= IRQ_PENDING;
-+		if (desc->chip->mask)
-+			desc->chip->mask(irq);
- 		goto out;
- 	}
- 
+ #ifdef CONFIG_IRQ_PER_CPU
+ # define CHECK_IRQ_PER_CPU(var) ((var) & IRQ_PER_CPU)
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
