@@ -1,105 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - i386-remove-useless-code-in-tscc.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:13:42 -0800
-Message-ID: <200702170713.l1H7DgbU021472@shell0.pdx.osdl.net>
+Subject: - posix-timers-rcu-optimization-for-clock_gettime.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:15:44 -0800
+Message-ID: <200702170715.l1H7FioE021659@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51316 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51315 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946580AbXBQHTq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:19:46 -0500
+	id S1946579AbXBQHTp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:19:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: paulmck@linux.vnet.ibm.com, johnstul@us.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 Remove useless code in tsc.c
+     posix timers: RCU optimization for clock_gettime()
 has been removed from the -mm tree.  Its filename was
-     i386-remove-useless-code-in-tscc.patch
+     posix-timers-rcu-optimization-for-clock_gettime.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 Remove useless code in tsc.c
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: posix timers: RCU optimization for clock_gettime()
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-The delayed work code in arch/i386/kernel/tsc.c is an unused leftover of the
-GTOD conversion. Remove it.
+Use RCU to avoid the need to acquire tasklist_lock in the single-threaded
+case of clock_gettime().  It still acquires tasklist_lock when for a
+(potentially multithreaded) process.  This change allows realtime
+applications to frequently monitor CPU consumption of individual tasks, as
+requested (and now deployed) by some off-list users.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+This has been in Ingo Molnar's -rt patchset since late 2005 with no
+problems reported, and tests successfully on 2.6.20-rc6, so I believe that
+it is long-since ready for mainline adoption.
+
+[paulmck@linux.vnet.ibm.com: fix exit()/posix_cpu_clock_get() race spotted by Oleg]
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/tsc.c |   40 +--------------------------------------
- 1 file changed, 2 insertions(+), 38 deletions(-)
+ kernel/posix-cpu-timers.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/kernel/tsc.c~i386-remove-useless-code-in-tscc arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~i386-remove-useless-code-in-tscc
-+++ a/arch/i386/kernel/tsc.c
-@@ -222,34 +222,6 @@ out_no_tsc:
+diff -puN kernel/posix-cpu-timers.c~posix-timers-rcu-optimization-for-clock_gettime kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~posix-timers-rcu-optimization-for-clock_gettime
++++ a/kernel/posix-cpu-timers.c
+@@ -304,7 +304,7 @@ int posix_cpu_clock_get(const clockid_t 
+ 		 * should be able to see it.
+ 		 */
+ 		struct task_struct *p;
+-		read_lock(&tasklist_lock);
++		rcu_read_lock();
+ 		p = find_task_by_pid(pid);
+ 		if (p) {
+ 			if (CPUCLOCK_PERTHREAD(which_clock)) {
+@@ -312,12 +312,17 @@ int posix_cpu_clock_get(const clockid_t 
+ 					error = cpu_clock_sample(which_clock,
+ 								 p, &rtn);
+ 				}
+-			} else if (p->tgid == pid && p->signal) {
+-				error = cpu_clock_sample_group(which_clock,
+-							       p, &rtn);
++			} else {
++				read_lock(&tasklist_lock);
++				if (p->tgid == pid && p->signal) {
++					error =
++					    cpu_clock_sample_group(which_clock,
++							           p, &rtn);
++				}
++				read_unlock(&tasklist_lock);
+ 			}
+ 		}
+-		read_unlock(&tasklist_lock);
++		rcu_read_unlock();
+ 	}
  
- #ifdef CONFIG_CPU_FREQ
- 
--static unsigned int cpufreq_delayed_issched = 0;
--static unsigned int cpufreq_init = 0;
--static struct work_struct cpufreq_delayed_get_work;
--
--static void handle_cpufreq_delayed_get(struct work_struct *work)
--{
--	unsigned int cpu;
--
--	for_each_online_cpu(cpu)
--		cpufreq_get(cpu);
--
--	cpufreq_delayed_issched = 0;
--}
--
--/*
-- * if we notice cpufreq oddness, schedule a call to cpufreq_get() as it tries
-- * to verify the CPU frequency the timing core thinks the CPU is running
-- * at is still correct.
-- */
--static inline void cpufreq_delayed_get(void)
--{
--	if (cpufreq_init && !cpufreq_delayed_issched) {
--		cpufreq_delayed_issched = 1;
--		printk(KERN_DEBUG "Checking if CPU frequency changed.\n");
--		schedule_work(&cpufreq_delayed_get_work);
--	}
--}
--
- /*
-  * if the CPU frequency is scaled, TSC-based delays will need a different
-  * loops_per_jiffy value to function properly.
-@@ -313,17 +285,9 @@ static struct notifier_block time_cpufre
- 
- static int __init cpufreq_tsc(void)
- {
--	int ret;
--
--	INIT_WORK(&cpufreq_delayed_get_work, handle_cpufreq_delayed_get);
--	ret = cpufreq_register_notifier(&time_cpufreq_notifier_block,
--					CPUFREQ_TRANSITION_NOTIFIER);
--	if (!ret)
--		cpufreq_init = 1;
--
--	return ret;
-+	return cpufreq_register_notifier(&time_cpufreq_notifier_block,
-+					 CPUFREQ_TRANSITION_NOTIFIER);
- }
--
- core_initcall(cpufreq_tsc);
- 
- #endif
+ 	if (error)
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
 origin.patch
-git-acpi.patch
 git-block.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
