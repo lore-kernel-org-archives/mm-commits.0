@@ -1,2224 +1,1126 @@
 From: akpm@linux-foundation.org
-Subject: - clockevents-i383-drivers.patch removed from -mm tree
-Date: Fri, 16 Feb 2007 23:14:58 -0800
-Message-ID: <200702170714.l1H7Ewgn021564@shell0.pdx.osdl.net>
+Subject: - hrtimers-add-high-resolution-timer-support.patch removed from -mm tree
+Date: Fri, 16 Feb 2007 23:15:14 -0800
+Message-ID: <200702170715.l1H7FEVq021607@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51524 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51540 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946457AbXBQHZS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 02:25:18 -0500
+	id S1946429AbXBQHZu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 02:25:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, akpm@linux-foundation.org, arjan@infradead.org, bunk@stusta.de, johnstul@us.ibm.com, mingo@elte.hu, vgoyal@in.ibm.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clockevents: i386 drivers
+     hrtimers: add high resolution timer support
 has been removed from the -mm tree.  Its filename was
-     clockevents-i383-drivers.patch
+     hrtimers-add-high-resolution-timer-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clockevents: i386 drivers
+Subject: hrtimers: add high resolution timer support
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Add clockevent drivers for i386: lapic (local) and PIT/HPET (global).  Update
-the timer IRQ to call into the PIT/HPET driver's event handler and the
-lapic-timer IRQ to call into the lapic clockevent driver.  The assignement of
-timer functionality is delegated to the core framework code and replaces the
-compile and runtime evalution in do_timer_interrupt_hook()
+Implement high resolution timers on top of the hrtimers infrastructure and the
+clockevents / tick-management framework.  This provides accurate timers for
+all hrtimer subsystem users.
 
-Use the clockevents broadcast support and implement the lapic_broadcast
-function for ACPI.
-
-No changes to existing functionality.
-
-[ kdump fix from Vivek Goyal <vgoyal@in.ibm.com> ]
-[ fixes based on review feedback from Arjan van de Ven <arjan@infradead.org> ]
-Cleanups-from: Adrian Bunk <bunk@stusta.de>
-Build-fixes-from: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig                        |    8 
- arch/i386/kernel/Makefile                |    1 
- arch/i386/kernel/apic.c                  |  293 ++++++------
- arch/i386/kernel/hpet.c                  |  496 ++++++++++++++++++++
- arch/i386/kernel/i8253.c                 |   96 +++-
- arch/i386/kernel/i8259.c                 |    6 
- arch/i386/kernel/smpboot.c               |    5 
- arch/i386/kernel/time.c                  |   70 --
- arch/i386/kernel/time_hpet.c             |  497 ---------------------
- arch/i386/mach-default/setup.c           |    8 
- drivers/acpi/processor_idle.c            |   38 +
- include/asm-i386/apic.h                  |    5 
- include/asm-i386/hpet.h                  |   16 
- include/asm-i386/i8253.h                 |   15 
- include/asm-i386/mach-default/do_timer.h |   78 ---
- include/asm-i386/mach-voyager/do_timer.h |   27 -
- include/asm-i386/mpspec.h                |    1 
- 17 files changed, 812 insertions(+), 848 deletions(-)
+ Documentation/kernel-parameters.txt |    4 
+ include/linux/hrtimer.h             |  116 +++++
+ include/linux/interrupt.h           |    3 
+ include/linux/ktime.h               |    3 
+ kernel/hrtimer.c                    |  572 +++++++++++++++++++++++---
+ kernel/itimer.c                     |    2 
+ kernel/posix-timers.c               |    2 
+ kernel/time/Kconfig                 |   10 
+ 8 files changed, 652 insertions(+), 60 deletions(-)
 
-diff -puN arch/i386/Kconfig~clockevents-i383-drivers arch/i386/Kconfig
---- a/arch/i386/Kconfig~clockevents-i383-drivers
-+++ a/arch/i386/Kconfig
-@@ -22,6 +22,14 @@ config CLOCKSOURCE_WATCHDOG
- 	bool
- 	default y
+diff -puN Documentation/kernel-parameters.txt~hrtimers-add-high-resolution-timer-support Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~hrtimers-add-high-resolution-timer-support
++++ a/Documentation/kernel-parameters.txt
+@@ -609,6 +609,10 @@ and is between 256 and 4096 characters. 
+ 			highmem otherwise. This also works to reduce highmem
+ 			size on bigger boxes.
  
-+config GENERIC_CLOCKEVENTS
-+	bool
-+	default y
++	highres=	[KNL] Enable/disable high resolution timer mode.
++			Valid parameters: "on", "off"
++			Default: "on"
 +
-+config GENERIC_CLOCKEVENTS_BROADCAST
-+	bool
-+	default y
-+
- config LOCKDEP_SUPPORT
- 	bool
- 	default y
-diff -puN arch/i386/kernel/Makefile~clockevents-i383-drivers arch/i386/kernel/Makefile
---- a/arch/i386/kernel/Makefile~clockevents-i383-drivers
-+++ a/arch/i386/kernel/Makefile
-@@ -32,7 +32,6 @@ obj-$(CONFIG_KPROBES)		+= kprobes.o
- obj-$(CONFIG_MODULES)		+= module.o
- obj-y				+= sysenter.o vsyscall.o
- obj-$(CONFIG_ACPI_SRAT) 	+= srat.o
--obj-$(CONFIG_HPET_TIMER) 	+= time_hpet.o
- obj-$(CONFIG_EFI) 		+= efi.o efi_stub.o
- obj-$(CONFIG_DOUBLEFAULT) 	+= doublefault.o
- obj-$(CONFIG_VM86)		+= vm86.o
-diff -puN arch/i386/kernel/apic.c~clockevents-i383-drivers arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~clockevents-i383-drivers
-+++ a/arch/i386/kernel/apic.c
-@@ -25,6 +25,7 @@
- #include <linux/kernel_stat.h>
- #include <linux/sysdev.h>
- #include <linux/cpu.h>
-+#include <linux/clockchips.h>
- #include <linux/module.h>
+ 	hisax=		[HW,ISDN]
+ 			See Documentation/isdn/README.HiSax.
  
- #include <asm/atomic.h>
-@@ -52,28 +53,44 @@
- #endif
- 
- /*
-- * cpu_mask that denotes the CPUs that needs timer interrupt coming in as
-- * IPIs in place of local APIC timers
-- */
--static cpumask_t timer_bcast_ipi;
--
--/*
-  * Knob to control our willingness to enable the local APIC.
-  *
-  * -1=force-disable, +1=force-enable
-  */
- static int enable_local_apic __initdata = 0;
- 
-+/* Enable local APIC timer for highres/dyntick on UP */
-+static int enable_local_apic_timer __initdata = 0;
-+
- /*
-  * Debug level, exported for io_apic.c
-  */
- int apic_verbosity;
- 
--static void apic_pm_activate(void);
-+static unsigned int calibration_result;
- 
-+static int lapic_next_event(unsigned long delta,
-+			    struct clock_event_device *evt);
-+static void lapic_timer_setup(enum clock_event_mode mode,
-+			      struct clock_event_device *evt);
-+static void lapic_timer_broadcast(cpumask_t mask);
-+static void apic_pm_activate(void);
- 
--/* Using APIC to generate smp_local_timer_interrupt? */
--int using_apic_timer __read_mostly = 0;
-+/*
-+ * The local apic timer can be used for any function which is CPU local.
-+ */
-+static struct clock_event_device lapic_clockevent = {
-+	.name		= "lapic",
-+	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT
-+			| CLOCK_EVT_FEAT_C3STOP,
-+	.shift		= 32,
-+	.set_mode	= lapic_timer_setup,
-+	.set_next_event	= lapic_next_event,
-+	.broadcast	= lapic_timer_broadcast,
-+	.rating		= 100,
-+	.irq		= -1,
-+};
-+static DEFINE_PER_CPU(struct clock_event_device, lapic_events);
- 
- /* Local APIC was disabled by the BIOS and enabled by the kernel */
- static int enabled_via_apicbase;
-@@ -152,6 +169,11 @@ int lapic_get_maxlvt(void)
-  */
- 
- /*
-+ * FIXME: Move this to i8253.h. There is no need to keep the access to
-+ * the PIT scattered all around the place -tglx
-+ */
-+
-+/*
-  * The timer chip is already set up at HZ interrupts per second here,
-  * but we do not accept timer interrupts yet. We only allow the BP
-  * to calibrate.
-@@ -209,16 +231,17 @@ void (*wait_timer_tick)(void) __devinitd
- 
- #define APIC_DIVISOR 16
- 
--static void __setup_APIC_LVTT(unsigned int clocks)
-+static void __setup_APIC_LVTT(unsigned int clocks, int oneshot, int irqen)
- {
- 	unsigned int lvtt_value, tmp_value;
--	int cpu = smp_processor_id();
- 
--	lvtt_value = APIC_LVT_TIMER_PERIODIC | LOCAL_TIMER_VECTOR;
-+	lvtt_value = LOCAL_TIMER_VECTOR;
-+	if (!oneshot)
-+		lvtt_value |= APIC_LVT_TIMER_PERIODIC;
- 	if (!lapic_is_integrated())
- 		lvtt_value |= SET_APIC_TIMER_BASE(APIC_TIMER_BASE_DIV);
- 
--	if (cpu_isset(cpu, timer_bcast_ipi))
-+	if (!irqen)
- 		lvtt_value |= APIC_LVT_MASKED;
- 
- 	apic_write_around(APIC_LVTT, lvtt_value);
-@@ -231,31 +254,80 @@ static void __setup_APIC_LVTT(unsigned i
- 				& ~(APIC_TDR_DIV_1 | APIC_TDR_DIV_TMBASE))
- 				| APIC_TDR_DIV_16);
- 
--	apic_write_around(APIC_TMICT, clocks/APIC_DIVISOR);
-+	if (!oneshot)
-+		apic_write_around(APIC_TMICT, clocks/APIC_DIVISOR);
-+}
-+
-+/*
-+ * Program the next event, relative to now
-+ */
-+static int lapic_next_event(unsigned long delta,
-+			    struct clock_event_device *evt)
-+{
-+	apic_write_around(APIC_TMICT, delta);
-+	return 0;
- }
- 
--static void __devinit setup_APIC_timer(unsigned int clocks)
-+/*
-+ * Setup the lapic timer in periodic or oneshot mode
-+ */
-+static void lapic_timer_setup(enum clock_event_mode mode,
-+			      struct clock_event_device *evt)
- {
- 	unsigned long flags;
-+	unsigned int v;
- 
- 	local_irq_save(flags);
- 
--	/*
--	 * Wait for IRQ0's slice:
--	 */
--	wait_timer_tick();
--
--	__setup_APIC_LVTT(clocks);
-+	switch (mode) {
-+	case CLOCK_EVT_MODE_PERIODIC:
-+	case CLOCK_EVT_MODE_ONESHOT:
-+		__setup_APIC_LVTT(calibration_result,
-+				  mode != CLOCK_EVT_MODE_PERIODIC, 1);
-+		break;
-+	case CLOCK_EVT_MODE_UNUSED:
-+	case CLOCK_EVT_MODE_SHUTDOWN:
-+		v = apic_read(APIC_LVTT);
-+		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
-+		apic_write_around(APIC_LVTT, v);
-+		break;
-+	}
- 
- 	local_irq_restore(flags);
- }
- 
- /*
-+ * Local APIC timer broadcast function
-+ */
-+static void lapic_timer_broadcast(cpumask_t mask)
-+{
-+#ifdef CONFIG_SMP
-+	send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
-+#endif
-+}
-+
-+/*
-+ * Setup the local APIC timer for this CPU. Copy the initilized values
-+ * of the boot CPU and register the clock event in the framework.
-+ */
-+static void __devinit setup_APIC_timer(void)
-+{
-+	struct clock_event_device *levt = &__get_cpu_var(lapic_events);
-+
-+	memcpy(levt, &lapic_clockevent, sizeof(*levt));
-+	levt->cpumask = cpumask_of_cpu(smp_processor_id());
-+
-+	clockevents_register_device(levt);
-+}
-+
-+/*
-  * In this function we calibrate APIC bus clocks to the external
-  * timer. Unfortunately we cannot use jiffies and the timer irq
-  * to calibrate, since some later bootup code depends on getting
-  * the first irq? Ugh.
-  *
-+ * TODO: Fix this rather than saying "Ugh" -tglx
-+ *
-  * We want to do the calibration only once since we
-  * want to have local timer irqs syncron. CPUs connected
-  * by the same APIC bus have the very same bus frequency.
-@@ -278,7 +350,7 @@ static int __init calibrate_APIC_clock(v
- 	 * value into the APIC clock, we just want to get the
- 	 * counter running for calibration.
- 	 */
--	__setup_APIC_LVTT(1000000000);
-+	__setup_APIC_LVTT(1000000000, 0, 0);
- 
- 	/*
- 	 * The timer chip counts down to zero. Let's wait
-@@ -315,6 +387,17 @@ static int __init calibrate_APIC_clock(v
- 
- 	result = (tt1-tt2)*APIC_DIVISOR/LOOPS;
- 
-+	/* Calculate the scaled math multiplication factor */
-+	lapic_clockevent.mult = div_sc(tt1-tt2, TICK_NSEC * LOOPS, 32);
-+	lapic_clockevent.max_delta_ns =
-+		clockevent_delta2ns(0x7FFFFF, &lapic_clockevent);
-+	lapic_clockevent.min_delta_ns =
-+		clockevent_delta2ns(0xF, &lapic_clockevent);
-+
-+	apic_printk(APIC_VERBOSE, "..... tt1-tt2 %ld\n", tt1 - tt2);
-+	apic_printk(APIC_VERBOSE, "..... mult: %ld\n", lapic_clockevent.mult);
-+	apic_printk(APIC_VERBOSE, "..... calibration result: %ld\n", result);
-+
- 	if (cpu_has_tsc)
- 		apic_printk(APIC_VERBOSE, "..... CPU clock speed is "
- 			"%ld.%04ld MHz.\n",
-@@ -329,13 +412,10 @@ static int __init calibrate_APIC_clock(v
- 	return result;
- }
- 
--static unsigned int calibration_result;
--
- void __init setup_boot_APIC_clock(void)
- {
- 	unsigned long flags;
- 	apic_printk(APIC_VERBOSE, "Using local APIC timer interrupts.\n");
--	using_apic_timer = 1;
- 
- 	local_irq_save(flags);
- 
-@@ -343,97 +423,47 @@ void __init setup_boot_APIC_clock(void)
- 	/*
- 	 * Now set up the timer for real.
- 	 */
--	setup_APIC_timer(calibration_result);
-+	setup_APIC_timer();
- 
- 	local_irq_restore(flags);
- }
- 
- void __devinit setup_secondary_APIC_clock(void)
- {
--	setup_APIC_timer(calibration_result);
--}
--
--void disable_APIC_timer(void)
--{
--	if (using_apic_timer) {
--		unsigned long v;
--
--		v = apic_read(APIC_LVTT);
--		/*
--		 * When an illegal vector value (0-15) is written to an LVT
--		 * entry and delivery mode is Fixed, the APIC may signal an
--		 * illegal vector error, with out regard to whether the mask
--		 * bit is set or whether an interrupt is actually seen on
--		 * input.
--		 *
--		 * Boot sequence might call this function when the LVTT has
--		 * '0' vector value. So make sure vector field is set to
--		 * valid value.
--		 */
--		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
--		apic_write_around(APIC_LVTT, v);
--	}
--}
--
--void enable_APIC_timer(void)
--{
--	int cpu = smp_processor_id();
--
--	if (using_apic_timer && !cpu_isset(cpu, timer_bcast_ipi)) {
--		unsigned long v;
--
--		v = apic_read(APIC_LVTT);
--		apic_write_around(APIC_LVTT, v & ~APIC_LVT_MASKED);
--	}
--}
--
--void switch_APIC_timer_to_ipi(void *cpumask)
--{
--	cpumask_t mask = *(cpumask_t *)cpumask;
--	int cpu = smp_processor_id();
--
--	if (cpu_isset(cpu, mask) &&
--	    !cpu_isset(cpu, timer_bcast_ipi)) {
--		disable_APIC_timer();
--		cpu_set(cpu, timer_bcast_ipi);
--	}
--}
--EXPORT_SYMBOL(switch_APIC_timer_to_ipi);
--
--void switch_ipi_to_APIC_timer(void *cpumask)
--{
--	cpumask_t mask = *(cpumask_t *)cpumask;
--	int cpu = smp_processor_id();
--
--	if (cpu_isset(cpu, mask) &&
--	    cpu_isset(cpu, timer_bcast_ipi)) {
--		cpu_clear(cpu, timer_bcast_ipi);
--		enable_APIC_timer();
--	}
-+	setup_APIC_timer();
- }
--EXPORT_SYMBOL(switch_ipi_to_APIC_timer);
- 
- /*
-- * Local timer interrupt handler. It does both profiling and
-- * process statistics/rescheduling.
-+ * The guts of the apic timer interrupt
-  */
--inline void smp_local_timer_interrupt(void)
-+static void local_apic_timer_interrupt(void)
- {
--	profile_tick(CPU_PROFILING);
--#ifdef CONFIG_SMP
--	update_process_times(user_mode_vm(get_irq_regs()));
--#endif
-+	int cpu = smp_processor_id();
-+	struct clock_event_device *evt = &per_cpu(lapic_events, cpu);
- 
- 	/*
--	 * We take the 'long' return path, and there every subsystem
--	 * grabs the apropriate locks (kernel lock/ irq lock).
--	 *
--	 * we might want to decouple profiling from the 'long path',
--	 * and do the profiling totally in assembly.
-+	 * Normally we should not be here till LAPIC has been
-+	 * initialized but in some cases like kdump, its possible that
-+	 * there is a pending LAPIC timer interrupt from previous
-+	 * kernel's context and is delivered in new kernel the moment
-+	 * interrupts are enabled.
- 	 *
--	 * Currently this isn't too much of an issue (performance wise),
--	 * we can take more than 100K local irqs per second on a 100 MHz P5.
--	 */
-+	 * Interrupts are enabled early and LAPIC is setup much later,
-+	 * hence its possible that when we get here evt->event_handler
-+	 * is NULL. Check for event_handler being NULL and discard
-+	 * the interrupt as spurious.
-+	 */
-+	if (!evt->event_handler) {
-+		printk(KERN_WARNING
-+		       "Spurious LAPIC timer interrupt on cpu %d\n", cpu);
-+		/* Switch it off */
-+		lapic_timer_setup(CLOCK_EVT_MODE_SHUTDOWN, evt);
-+		return;
-+	}
-+
-+	per_cpu(irq_stat, cpu).apic_timer_irqs++;
-+
-+	evt->event_handler(evt);
- }
- 
- /*
-@@ -445,15 +475,9 @@ inline void smp_local_timer_interrupt(vo
-  *   interrupt as well. Thus we cannot inline the local irq ... ]
-  */
- 
--fastcall void smp_apic_timer_interrupt(struct pt_regs *regs)
-+void fastcall smp_apic_timer_interrupt(struct pt_regs *regs)
- {
- 	struct pt_regs *old_regs = set_irq_regs(regs);
--	int cpu = smp_processor_id();
--
--	/*
--	 * the NMI deadlock-detector uses this.
--	 */
--	per_cpu(irq_stat, cpu).apic_timer_irqs++;
- 
- 	/*
- 	 * NOTE! We'd better ACK the irq immediately,
-@@ -467,41 +491,10 @@ fastcall void smp_apic_timer_interrupt(s
- 	 */
- 	exit_idle();
- 	irq_enter();
--	smp_local_timer_interrupt();
-+	local_apic_timer_interrupt();
- 	irq_exit();
--	set_irq_regs(old_regs);
--}
- 
--#ifndef CONFIG_SMP
--static void up_apic_timer_interrupt_call(void)
--{
--	int cpu = smp_processor_id();
--
--	/*
--	 * the NMI deadlock-detector uses this.
--	 */
--	per_cpu(irq_stat, cpu).apic_timer_irqs++;
--
--	smp_local_timer_interrupt();
--}
--#endif
--
--void smp_send_timer_broadcast_ipi(void)
--{
--	cpumask_t mask;
--
--	cpus_and(mask, cpu_online_map, timer_bcast_ipi);
--	if (!cpus_empty(mask)) {
--#ifdef CONFIG_SMP
--		send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
--#else
--		/*
--		 * We can directly call the apic timer interrupt handler
--		 * in UP case. Minus all irq related functions
--		 */
--		up_apic_timer_interrupt_call();
--#endif
--	}
-+	set_irq_regs(old_regs);
- }
- 
- int setup_profiling_timer(unsigned int multiplier)
-@@ -914,6 +907,11 @@ void __devinit setup_local_APIC(void)
- 			printk(KERN_INFO "No ESR for 82489DX.\n");
- 	}
- 
-+	/* Disable the local apic timer */
-+	value = apic_read(APIC_LVTT);
-+	value |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
-+	apic_write_around(APIC_LVTT, value);
-+
- 	setup_apic_nmi_watchdog(NULL);
- 	apic_pm_activate();
- }
-@@ -1128,6 +1126,13 @@ static int __init parse_nolapic(char *ar
- }
- early_param("nolapic", parse_nolapic);
- 
-+static int __init apic_enable_lapic_timer(char *str)
-+{
-+	enable_local_apic_timer = 1;
-+	return 0;
-+}
-+early_param("lapictimer", apic_enable_lapic_timer);
-+
- static int __init apic_set_verbosity(char *str)
- {
- 	if (strcmp("debug", str) == 0)
-@@ -1147,7 +1152,7 @@ __setup("apic=", apic_set_verbosity);
- /*
-  * This interrupt should _never_ happen with our APIC/SMP architecture
-  */
--fastcall void smp_spurious_interrupt(struct pt_regs *regs)
-+void smp_spurious_interrupt(struct pt_regs *regs)
- {
- 	unsigned long v;
- 
-@@ -1171,7 +1176,7 @@ fastcall void smp_spurious_interrupt(str
- /*
-  * This interrupt should never happen with our APIC/SMP architecture
-  */
--fastcall void smp_error_interrupt(struct pt_regs *regs)
-+void smp_error_interrupt(struct pt_regs *regs)
- {
- 	unsigned long v, v1;
- 
-diff -puN arch/i386/kernel/hpet.c~clockevents-i383-drivers arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~clockevents-i383-drivers
-+++ a/arch/i386/kernel/hpet.c
-@@ -1,4 +1,5 @@
- #include <linux/clocksource.h>
-+#include <linux/clockchips.h>
- #include <linux/errno.h>
- #include <linux/hpet.h>
- #include <linux/init.h>
-@@ -6,17 +7,278 @@
- #include <asm/hpet.h>
- #include <asm/io.h>
- 
-+extern struct clock_event_device *global_clock_event;
-+
- #define HPET_MASK	CLOCKSOURCE_MASK(32)
- #define HPET_SHIFT	22
- 
- /* FSEC = 10^-15 NSEC = 10^-9 */
- #define FSEC_PER_NSEC	1000000
- 
--static void __iomem *hpet_ptr;
-+/*
-+ * HPET address is set in acpi/boot.c, when an ACPI entry exists
-+ */
-+unsigned long hpet_address;
-+static void __iomem * hpet_virt_address;
-+
-+static inline unsigned long hpet_readl(unsigned long a)
-+{
-+	return readl(hpet_virt_address + a);
-+}
-+
-+static inline void hpet_writel(unsigned long d, unsigned long a)
-+{
-+	writel(d, hpet_virt_address + a);
-+}
-+
-+/*
-+ * HPET command line enable / disable
-+ */
-+static int boot_hpet_disable;
-+
-+static int __init hpet_setup(char* str)
-+{
-+	if (str) {
-+		if (!strncmp("disable", str, 7))
-+			boot_hpet_disable = 1;
-+	}
-+	return 1;
-+}
-+__setup("hpet=", hpet_setup);
-+
-+static inline int is_hpet_capable(void)
-+{
-+	return (!boot_hpet_disable && hpet_address);
-+}
-+
-+/*
-+ * HPET timer interrupt enable / disable
-+ */
-+static int hpet_legacy_int_enabled;
-+
-+/**
-+ * is_hpet_enabled - check whether the hpet timer interrupt is enabled
-+ */
-+int is_hpet_enabled(void)
-+{
-+	return is_hpet_capable() && hpet_legacy_int_enabled;
-+}
-+
-+/*
-+ * When the hpet driver (/dev/hpet) is enabled, we need to reserve
-+ * timer 0 and timer 1 in case of RTC emulation.
-+ */
-+#ifdef CONFIG_HPET
-+static void hpet_reserve_platform_timers(unsigned long id)
-+{
-+	struct hpet __iomem *hpet = hpet_virt_address;
-+	struct hpet_timer __iomem *timer = &hpet->hpet_timers[2];
-+	unsigned int nrtimers, i;
-+	struct hpet_data hd;
-+
-+	nrtimers = ((id & HPET_ID_NUMBER) >> HPET_ID_NUMBER_SHIFT) + 1;
-+
-+	memset(&hd, 0, sizeof (hd));
-+	hd.hd_phys_address = hpet_address;
-+	hd.hd_address = hpet_virt_address;
-+	hd.hd_nirqs = nrtimers;
-+	hd.hd_flags = HPET_DATA_PLATFORM;
-+	hpet_reserve_timer(&hd, 0);
-+
-+#ifdef CONFIG_HPET_EMULATE_RTC
-+	hpet_reserve_timer(&hd, 1);
-+#endif
-+
-+	hd.hd_irq[0] = HPET_LEGACY_8254;
-+	hd.hd_irq[1] = HPET_LEGACY_RTC;
-+
-+	for (i = 2; i < nrtimers; timer++, i++)
-+		hd.hd_irq[i] = (timer->hpet_config & Tn_INT_ROUTE_CNF_MASK) >>
-+			Tn_INT_ROUTE_CNF_SHIFT;
-+
-+	hpet_alloc(&hd);
-+
-+}
-+#else
-+static void hpet_reserve_platform_timers(unsigned long id) { }
-+#endif
-+
-+/*
-+ * Common hpet info
-+ */
-+static unsigned long hpet_period;
-+
-+static void hpet_set_mode(enum clock_event_mode mode,
-+			  struct clock_event_device *evt);
-+static int hpet_next_event(unsigned long delta,
-+			   struct clock_event_device *evt);
-+
-+/*
-+ * The hpet clock event device
-+ */
-+static struct clock_event_device hpet_clockevent = {
-+	.name		= "hpet",
-+	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
-+	.set_mode	= hpet_set_mode,
-+	.set_next_event = hpet_next_event,
-+	.shift		= 32,
-+	.irq		= 0,
-+};
-+
-+static void hpet_start_counter(void)
-+{
-+	unsigned long cfg = hpet_readl(HPET_CFG);
-+
-+	cfg &= ~HPET_CFG_ENABLE;
-+	hpet_writel(cfg, HPET_CFG);
-+	hpet_writel(0, HPET_COUNTER);
-+	hpet_writel(0, HPET_COUNTER + 4);
-+	cfg |= HPET_CFG_ENABLE;
-+	hpet_writel(cfg, HPET_CFG);
-+}
-+
-+static void hpet_enable_int(void)
-+{
-+	unsigned long cfg = hpet_readl(HPET_CFG);
- 
-+	cfg |= HPET_CFG_LEGACY;
-+	hpet_writel(cfg, HPET_CFG);
-+	hpet_legacy_int_enabled = 1;
-+}
-+
-+static void hpet_set_mode(enum clock_event_mode mode,
-+			  struct clock_event_device *evt)
-+{
-+	unsigned long cfg, cmp, now;
-+	uint64_t delta;
-+
-+	switch(mode) {
-+	case CLOCK_EVT_MODE_PERIODIC:
-+		delta = ((uint64_t)(NSEC_PER_SEC/HZ)) * hpet_clockevent.mult;
-+		delta >>= hpet_clockevent.shift;
-+		now = hpet_readl(HPET_COUNTER);
-+		cmp = now + (unsigned long) delta;
-+		cfg = hpet_readl(HPET_T0_CFG);
-+		cfg |= HPET_TN_ENABLE | HPET_TN_PERIODIC |
-+		       HPET_TN_SETVAL | HPET_TN_32BIT;
-+		hpet_writel(cfg, HPET_T0_CFG);
-+		/*
-+		 * The first write after writing TN_SETVAL to the
-+		 * config register sets the counter value, the second
-+		 * write sets the period.
-+		 */
-+		hpet_writel(cmp, HPET_T0_CMP);
-+		udelay(1);
-+		hpet_writel((unsigned long) delta, HPET_T0_CMP);
-+		break;
-+
-+	case CLOCK_EVT_MODE_ONESHOT:
-+		cfg = hpet_readl(HPET_T0_CFG);
-+		cfg &= ~HPET_TN_PERIODIC;
-+		cfg |= HPET_TN_ENABLE | HPET_TN_32BIT;
-+		hpet_writel(cfg, HPET_T0_CFG);
-+		break;
-+
-+	case CLOCK_EVT_MODE_UNUSED:
-+	case CLOCK_EVT_MODE_SHUTDOWN:
-+		cfg = hpet_readl(HPET_T0_CFG);
-+		cfg &= ~HPET_TN_ENABLE;
-+		hpet_writel(cfg, HPET_T0_CFG);
-+		break;
-+	}
-+}
-+
-+static int hpet_next_event(unsigned long delta,
-+			   struct clock_event_device *evt)
-+{
-+	unsigned long cnt;
-+
-+	cnt = hpet_readl(HPET_COUNTER);
-+	cnt += delta;
-+	hpet_writel(cnt, HPET_T0_CMP);
-+
-+	return ((long)(hpet_readl(HPET_COUNTER) - cnt ) > 0);
-+}
-+
-+/*
-+ * Try to setup the HPET timer
-+ */
-+int __init hpet_enable(void)
-+{
-+	unsigned long id;
-+	uint64_t hpet_freq;
-+
-+	if (!is_hpet_capable())
-+		return 0;
-+
-+	hpet_virt_address = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
-+
-+	/*
-+	 * Read the period and check for a sane value:
-+	 */
-+	hpet_period = hpet_readl(HPET_PERIOD);
-+	if (hpet_period < HPET_MIN_PERIOD || hpet_period > HPET_MAX_PERIOD)
-+		goto out_nohpet;
-+
-+	/*
-+	 * The period is a femto seconds value. We need to calculate the
-+	 * scaled math multiplication factor for nanosecond to hpet tick
-+	 * conversion.
-+	 */
-+	hpet_freq = 1000000000000000ULL;
-+	do_div(hpet_freq, hpet_period);
-+	hpet_clockevent.mult = div_sc((unsigned long) hpet_freq,
-+				      NSEC_PER_SEC, 32);
-+	/* Calculate the min / max delta */
-+	hpet_clockevent.max_delta_ns = clockevent_delta2ns(0x7FFFFFFF,
-+							   &hpet_clockevent);
-+	hpet_clockevent.min_delta_ns = clockevent_delta2ns(0x30,
-+							   &hpet_clockevent);
-+
-+	/*
-+	 * Read the HPET ID register to retrieve the IRQ routing
-+	 * information and the number of channels
-+	 */
-+	id = hpet_readl(HPET_ID);
-+
-+#ifdef CONFIG_HPET_EMULATE_RTC
-+	/*
-+	 * The legacy routing mode needs at least two channels, tick timer
-+	 * and the rtc emulation channel.
-+	 */
-+	if (!(id & HPET_ID_NUMBER))
-+		goto out_nohpet;
-+#endif
-+
-+	/* Start the counter */
-+	hpet_start_counter();
-+
-+	if (id & HPET_ID_LEGSUP) {
-+		hpet_enable_int();
-+		hpet_reserve_platform_timers(id);
-+		/*
-+		 * Start hpet with the boot cpu mask and make it
-+		 * global after the IO_APIC has been initialized.
-+		 */
-+		hpet_clockevent.cpumask =cpumask_of_cpu(0);
-+		clockevents_register_device(&hpet_clockevent);
-+		global_clock_event = &hpet_clockevent;
-+		return 1;
-+	}
-+	return 0;
-+
-+out_nohpet:
-+	iounmap(hpet_virt_address);
-+	hpet_virt_address = NULL;
-+	return 0;
-+}
-+
-+/*
-+ * Clock source related code
-+ */
- static cycle_t read_hpet(void)
- {
--	return (cycle_t)readl(hpet_ptr);
-+	return (cycle_t)hpet_readl(HPET_COUNTER);
- }
- 
- static struct clocksource clocksource_hpet = {
-@@ -24,28 +286,17 @@ static struct clocksource clocksource_hp
- 	.rating		= 250,
- 	.read		= read_hpet,
- 	.mask		= HPET_MASK,
--	.mult		= 0, /* set below */
- 	.shift		= HPET_SHIFT,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+diff -puN include/linux/hrtimer.h~hrtimers-add-high-resolution-timer-support include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~hrtimers-add-high-resolution-timer-support
++++ a/include/linux/hrtimer.h
+@@ -41,16 +41,35 @@ enum hrtimer_restart {
  };
  
- static int __init init_hpet_clocksource(void)
- {
--	unsigned long hpet_period;
--	void __iomem* hpet_base;
- 	u64 tmp;
--	int err;
- 
--	if (!is_hpet_enabled())
-+	if (!hpet_virt_address)
- 		return -ENODEV;
- 
--	/* calculate the hpet address: */
--	hpet_base = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
--	hpet_ptr = hpet_base + HPET_COUNTER;
--
--	/* calculate the frequency: */
--	hpet_period = readl(hpet_base + HPET_PERIOD);
--
- 	/*
- 	 * hpet period is in femto seconds per cycle
- 	 * so we need to convert this to ns/cyc units
-@@ -61,11 +312,218 @@ static int __init init_hpet_clocksource(
- 	do_div(tmp, FSEC_PER_NSEC);
- 	clocksource_hpet.mult = (u32)tmp;
- 
--	err = clocksource_register(&clocksource_hpet);
--	if (err)
--		iounmap(hpet_base);
--
--	return err;
-+	return clocksource_register(&clocksource_hpet);
- }
- 
- module_init(init_hpet_clocksource);
-+
-+#ifdef CONFIG_HPET_EMULATE_RTC
-+
-+/* HPET in LegacyReplacement Mode eats up RTC interrupt line. When, HPET
-+ * is enabled, we support RTC interrupt functionality in software.
-+ * RTC has 3 kinds of interrupts:
-+ * 1) Update Interrupt - generate an interrupt, every sec, when RTC clock
-+ *    is updated
-+ * 2) Alarm Interrupt - generate an interrupt at a specific time of day
-+ * 3) Periodic Interrupt - generate periodic interrupt, with frequencies
-+ *    2Hz-8192Hz (2Hz-64Hz for non-root user) (all freqs in powers of 2)
-+ * (1) and (2) above are implemented using polling at a frequency of
-+ * 64 Hz. The exact frequency is a tradeoff between accuracy and interrupt
-+ * overhead. (DEFAULT_RTC_INT_FREQ)
-+ * For (3), we use interrupts at 64Hz or user specified periodic
-+ * frequency, whichever is higher.
+ /*
+- * Bit values to track state of the timer
++ * hrtimer callback modes:
++ *
++ *	HRTIMER_CB_SOFTIRQ:		Callback must run in softirq context
++ *	HRTIMER_CB_IRQSAFE:		Callback may run in hardirq context
++ *	HRTIMER_CB_IRQSAFE_NO_RESTART:	Callback may run in hardirq context and
++ *					does not restart the timer
++ *	HRTIMER_CB_IRQSAFE_NO_SOFTIRQ:	Callback must run in softirq context
++ *					Special mode for tick emultation
 + */
-+#include <linux/mc146818rtc.h>
-+#include <linux/rtc.h>
-+
-+#define DEFAULT_RTC_INT_FREQ	64
-+#define DEFAULT_RTC_SHIFT	6
-+#define RTC_NUM_INTS		1
-+
-+static unsigned long hpet_rtc_flags;
-+static unsigned long hpet_prev_update_sec;
-+static struct rtc_time hpet_alarm_time;
-+static unsigned long hpet_pie_count;
-+static unsigned long hpet_t1_cmp;
-+static unsigned long hpet_default_delta;
-+static unsigned long hpet_pie_delta;
-+static unsigned long hpet_pie_limit;
++enum hrtimer_cb_mode {
++	HRTIMER_CB_SOFTIRQ,
++	HRTIMER_CB_IRQSAFE,
++	HRTIMER_CB_IRQSAFE_NO_RESTART,
++	HRTIMER_CB_IRQSAFE_NO_SOFTIRQ,
++};
 +
 +/*
-+ * Timer 1 for RTC emulation. We use one shot mode, as periodic mode
-+ * is not supported by all HPET implementations for timer 1.
++ * Values to track state of the timer
+  *
+  * Possible states:
+  *
+  * 0x00		inactive
+  * 0x01		enqueued into rbtree
+  * 0x02		callback function running
++ * 0x04		callback pending (high resolution mode)
 + *
-+ * hpet_rtc_timer_init() is called when the rtc is initialized.
++ * Special case:
+  * 0x03		callback function running and enqueued
+  *		(was requeued on another CPU)
+- *
+  * The "callback function running and enqueued" status is only possible on
+  * SMP. It happens for example when a posix timer expired and the callback
+  * queued a signal. Between dropping the lock which protects the posix timer
+@@ -67,6 +86,7 @@ enum hrtimer_restart {
+ #define HRTIMER_STATE_INACTIVE	0x00
+ #define HRTIMER_STATE_ENQUEUED	0x01
+ #define HRTIMER_STATE_CALLBACK	0x02
++#define HRTIMER_STATE_PENDING	0x04
+ 
+ /**
+  * struct hrtimer - the basic hrtimer structure
+@@ -77,8 +97,17 @@ enum hrtimer_restart {
+  * @function:	timer expiry callback function
+  * @base:	pointer to the timer base (per cpu and per clock)
+  * @state:	state information (See bit values above)
++ * @cb_mode:	high resolution timer feature to select the callback execution
++ *		 mode
++ * @cb_entry:	list head to enqueue an expired timer into the callback list
++ * @start_site:	timer statistics field to store the site where the timer
++ *		was started
++ * @start_comm: timer statistics field to store the name of the process which
++ *		started the timer
++ * @start_pid: timer statistics field to store the pid of the task which
++ *		started the timer
+  *
+- * The hrtimer structure must be initialized by init_hrtimer_#CLOCKTYPE()
++ * The hrtimer structure must be initialized by hrtimer_init()
+  */
+ struct hrtimer {
+ 	struct rb_node			node;
+@@ -86,6 +115,10 @@ struct hrtimer {
+ 	enum hrtimer_restart		(*function)(struct hrtimer *);
+ 	struct hrtimer_clock_base	*base;
+ 	unsigned long			state;
++#ifdef CONFIG_HIGH_RES_TIMERS
++	enum hrtimer_cb_mode		cb_mode;
++	struct list_head		cb_entry;
++#endif
+ };
+ 
+ /**
+@@ -110,6 +143,9 @@ struct hrtimer_sleeper {
+  * @get_time:		function to retrieve the current time of the clock
+  * @get_softirq_time:	function to retrieve the current time from the softirq
+  * @softirq_time:	the time when running the hrtimer queue in the softirq
++ * @cb_pending:		list of timers where the callback is pending
++ * @offset:		offset of this clock to the monotonic base
++ * @reprogram:		function to reprogram the timer event
+  */
+ struct hrtimer_clock_base {
+ 	struct hrtimer_cpu_base	*cpu_base;
+@@ -120,6 +156,12 @@ struct hrtimer_clock_base {
+ 	ktime_t			(*get_time)(void);
+ 	ktime_t			(*get_softirq_time)(void);
+ 	ktime_t			softirq_time;
++#ifdef CONFIG_HIGH_RES_TIMERS
++	ktime_t			offset;
++	int			(*reprogram)(struct hrtimer *t,
++					     struct hrtimer_clock_base *b,
++					     ktime_t n);
++#endif
+ };
+ 
+ #define HRTIMER_MAX_CLOCK_BASES 2
+@@ -131,19 +173,74 @@ struct hrtimer_clock_base {
+  * @lock_key:		the lock_class_key for use with lockdep
+  * @clock_base:		array of clock bases for this cpu
+  * @curr_timer:		the timer which is executing a callback right now
++ * @expires_next:	absolute time of the next event which was scheduled
++ *			via clock_set_next_event()
++ * @hres_active:	State of high resolution mode
++ * @check_clocks:	Indictator, when set evaluate time source and clock
++ *			event devices whether high resolution mode can be
++ *			activated.
++ * @cb_pending:		Expired timers are moved from the rbtree to this
++ *			list in the timer interrupt. The list is processed
++ *			in the softirq.
++ * @nr_events:		Total number of timer interrupt events
+  */
+ struct hrtimer_cpu_base {
+ 	spinlock_t			lock;
+ 	struct lock_class_key		lock_key;
+ 	struct hrtimer_clock_base	clock_base[HRTIMER_MAX_CLOCK_BASES];
++#ifdef CONFIG_HIGH_RES_TIMERS
++	ktime_t				expires_next;
++	int				hres_active;
++	struct list_head		cb_pending;
++	unsigned long			nr_events;
++#endif
+ };
+ 
++#ifdef CONFIG_HIGH_RES_TIMERS
++struct clock_event_device;
++
++extern void clock_was_set(void);
++extern void hrtimer_interrupt(struct clock_event_device *dev);
++
++/*
++ * In high resolution mode the time reference must be read accurate
 + */
-+int hpet_rtc_timer_init(void)
++static inline ktime_t hrtimer_cb_get_time(struct hrtimer *timer)
 +{
-+	unsigned long cfg, cnt, delta, flags;
++	return timer->base->get_time();
++}
 +
-+	if (!is_hpet_enabled())
++/*
++ * The resolution of the clocks. The resolution value is returned in
++ * the clock_getres() system call to give application programmers an
++ * idea of the (in)accuracy of timers. Timer values are rounded up to
++ * this resolution values.
++ */
++# define KTIME_HIGH_RES		(ktime_t) { .tv64 = 1 }
++# define KTIME_MONOTONIC_RES	KTIME_HIGH_RES
++
++#else
++
++# define KTIME_MONOTONIC_RES	KTIME_LOW_RES
++
+ /*
+  * clock_was_set() is a NOP for non- high-resolution systems. The
+  * time-sorted order guarantees that a timer does not expire early and
+  * is expired in the next softirq when the clock was advanced.
+  */
+-#define clock_was_set()		do { } while (0)
++static inline void clock_was_set(void) { }
++
++/*
++ * In non high resolution mode the time reference is taken from
++ * the base softirq time variable.
++ */
++static inline ktime_t hrtimer_cb_get_time(struct hrtimer *timer)
++{
++	return timer->base->softirq_time;
++}
++
++#endif
++
+ extern ktime_t ktime_get(void);
+ extern ktime_t ktime_get_real(void);
+ 
+@@ -168,9 +265,7 @@ static inline int hrtimer_restart(struct
+ extern ktime_t hrtimer_get_remaining(const struct hrtimer *timer);
+ extern int hrtimer_get_res(const clockid_t which_clock, struct timespec *tp);
+ 
+-#ifdef CONFIG_NO_IDLE_HZ
+ extern ktime_t hrtimer_get_next_event(void);
+-#endif
+ 
+ /*
+  * A timer is active, when it is enqueued into the rbtree or the callback
+@@ -181,6 +276,15 @@ static inline int hrtimer_active(const s
+ 	return timer->state != HRTIMER_STATE_INACTIVE;
+ }
+ 
++/*
++ * Helper function to check, whether the timer is on one of the queues
++ */
++static inline int hrtimer_is_queued(struct hrtimer *timer)
++{
++	return timer->state &
++		(HRTIMER_STATE_ENQUEUED | HRTIMER_STATE_PENDING);
++}
++
+ /* Forward a hrtimer so it expires after now: */
+ extern unsigned long
+ hrtimer_forward(struct hrtimer *timer, ktime_t now, ktime_t interval);
+diff -puN include/linux/interrupt.h~hrtimers-add-high-resolution-timer-support include/linux/interrupt.h
+--- a/include/linux/interrupt.h~hrtimers-add-high-resolution-timer-support
++++ a/include/linux/interrupt.h
+@@ -242,6 +242,9 @@ enum
+ 	BLOCK_SOFTIRQ,
+ 	TASKLET_SOFTIRQ,
+ 	SCHED_SOFTIRQ,
++#ifdef CONFIG_HIGH_RES_TIMERS
++	HRTIMER_SOFTIRQ,
++#endif
+ };
+ 
+ /* softirq mask and active fields moved to irq_cpustat_t in
+diff -puN include/linux/ktime.h~hrtimers-add-high-resolution-timer-support include/linux/ktime.h
+--- a/include/linux/ktime.h~hrtimers-add-high-resolution-timer-support
++++ a/include/linux/ktime.h
+@@ -261,8 +261,7 @@ static inline s64 ktime_to_ns(const ktim
+  * idea of the (in)accuracy of timers. Timer values are rounded up to
+  * this resolution values.
+  */
+-#define KTIME_REALTIME_RES	(ktime_t){ .tv64 = TICK_NSEC }
+-#define KTIME_MONOTONIC_RES	(ktime_t){ .tv64 = TICK_NSEC }
++#define KTIME_LOW_RES		(ktime_t){ .tv64 = TICK_NSEC }
+ 
+ /* Get the monotonic time in timespec format: */
+ extern void ktime_get_ts(struct timespec *ts);
+diff -puN kernel/hrtimer.c~hrtimers-add-high-resolution-timer-support kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimers-add-high-resolution-timer-support
++++ a/kernel/hrtimer.c
+@@ -3,7 +3,7 @@
+  *
+  *  Copyright(C) 2005-2006, Thomas Gleixner <tglx@linutronix.de>
+  *  Copyright(C) 2005-2007, Red Hat, Inc., Ingo Molnar
+- *  Copyright(C) 2006-2007  Timesys Corp., Thomas Gleixner <tglx@timesys.com>
++ *  Copyright(C) 2006-2007  Timesys Corp., Thomas Gleixner
+  *
+  *  High-resolution kernel timers
+  *
+@@ -32,13 +32,17 @@
+  */
+ 
+ #include <linux/cpu.h>
++#include <linux/irq.h>
+ #include <linux/module.h>
+ #include <linux/percpu.h>
+ #include <linux/hrtimer.h>
+ #include <linux/notifier.h>
+ #include <linux/syscalls.h>
++#include <linux/kallsyms.h>
+ #include <linux/interrupt.h>
+ #include <linux/tick.h>
++#include <linux/seq_file.h>
++#include <linux/err.h>
+ 
+ #include <asm/uaccess.h>
+ 
+@@ -81,7 +85,7 @@ EXPORT_SYMBOL_GPL(ktime_get_real);
+  * This ensures that we capture erroneous accesses to these clock ids
+  * rather than moving them into the range of valid clock id's.
+  */
+-static DEFINE_PER_CPU(struct hrtimer_cpu_base, hrtimer_bases) =
++DEFINE_PER_CPU(struct hrtimer_cpu_base, hrtimer_bases) =
+ {
+ 
+ 	.clock_base =
+@@ -89,12 +93,12 @@ static DEFINE_PER_CPU(struct hrtimer_cpu
+ 		{
+ 			.index = CLOCK_REALTIME,
+ 			.get_time = &ktime_get_real,
+-			.resolution = KTIME_REALTIME_RES,
++			.resolution = KTIME_LOW_RES,
+ 		},
+ 		{
+ 			.index = CLOCK_MONOTONIC,
+ 			.get_time = &ktime_get,
+-			.resolution = KTIME_MONOTONIC_RES,
++			.resolution = KTIME_LOW_RES,
+ 		},
+ 	}
+ };
+@@ -151,14 +155,6 @@ static void hrtimer_get_softirq_time(str
+ }
+ 
+ /*
+- * Helper function to check, whether the timer is on one of the queues
+- */
+-static inline int hrtimer_is_queued(struct hrtimer *timer)
+-{
+-	return timer->state & HRTIMER_STATE_ENQUEUED;
+-}
+-
+-/*
+  * Helper function to check, whether the timer is running the callback
+  * function
+  */
+@@ -226,7 +222,7 @@ switch_hrtimer_base(struct hrtimer *time
+ 		 * completed. There is no conflict as we hold the lock until
+ 		 * the timer is enqueued.
+ 		 */
+-		if (unlikely(timer->state & HRTIMER_STATE_CALLBACK))
++		if (unlikely(hrtimer_callback_running(timer)))
+ 			return base;
+ 
+ 		/* See the comment in lock_timer_base() */
+@@ -250,7 +246,7 @@ lock_hrtimer_base(const struct hrtimer *
+ 	return base;
+ }
+ 
+-#define switch_hrtimer_base(t, b)	(b)
++# define switch_hrtimer_base(t, b)	(b)
+ 
+ #endif	/* !CONFIG_SMP */
+ 
+@@ -281,9 +277,6 @@ ktime_t ktime_add_ns(const ktime_t kt, u
+ 
+ 	return ktime_add(kt, tmp);
+ }
+-
+-#else /* CONFIG_KTIME_SCALAR */
+-
+ # endif /* !CONFIG_KTIME_SCALAR */
+ 
+ /*
+@@ -308,6 +301,290 @@ unsigned long ktime_divns(const ktime_t 
+ }
+ #endif /* BITS_PER_LONG >= 64 */
+ 
++/* High resolution timer related functions */
++#ifdef CONFIG_HIGH_RES_TIMERS
++
++/*
++ * High resolution timer enabled ?
++ */
++static int hrtimer_hres_enabled __read_mostly  = 1;
++
++/*
++ * Enable / Disable high resolution mode
++ */
++static int __init setup_hrtimer_hres(char *str)
++{
++	if (!strcmp(str, "off"))
++		hrtimer_hres_enabled = 0;
++	else if (!strcmp(str, "on"))
++		hrtimer_hres_enabled = 1;
++	else
 +		return 0;
++	return 1;
++}
 +
-+	if (!hpet_default_delta) {
-+		uint64_t clc;
++__setup("highres=", setup_hrtimer_hres);
 +
-+		clc = (uint64_t) hpet_clockevent.mult * NSEC_PER_SEC;
-+		clc >>= hpet_clockevent.shift + DEFAULT_RTC_SHIFT;
-+		hpet_default_delta = (unsigned long) clc;
++/*
++ * hrtimer_high_res_enabled - query, if the highres mode is enabled
++ */
++static inline int hrtimer_is_hres_enabled(void)
++{
++	return hrtimer_hres_enabled;
++}
++
++/*
++ * Is the high resolution mode active ?
++ */
++static inline int hrtimer_hres_active(void)
++{
++	return __get_cpu_var(hrtimer_bases).hres_active;
++}
++
++/*
++ * Reprogram the event source with checking both queues for the
++ * next event
++ * Called with interrupts disabled and base->lock held
++ */
++static void hrtimer_force_reprogram(struct hrtimer_cpu_base *cpu_base)
++{
++	int i;
++	struct hrtimer_clock_base *base = cpu_base->clock_base;
++	ktime_t expires;
++
++	cpu_base->expires_next.tv64 = KTIME_MAX;
++
++	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++, base++) {
++		struct hrtimer *timer;
++
++		if (!base->first)
++			continue;
++		timer = rb_entry(base->first, struct hrtimer, node);
++		expires = ktime_sub(timer->expires, base->offset);
++		if (expires.tv64 < cpu_base->expires_next.tv64)
++			cpu_base->expires_next = expires;
 +	}
 +
-+	if (!(hpet_rtc_flags & RTC_PIE) || hpet_pie_limit)
-+		delta = hpet_default_delta;
-+	else
-+		delta = hpet_pie_delta;
++	if (cpu_base->expires_next.tv64 != KTIME_MAX)
++		tick_program_event(cpu_base->expires_next, 1);
++}
++
++/*
++ * Shared reprogramming for clock_realtime and clock_monotonic
++ *
++ * When a timer is enqueued and expires earlier than the already enqueued
++ * timers, we have to check, whether it expires earlier than the timer for
++ * which the clock event device was armed.
++ *
++ * Called with interrupts disabled and base->cpu_base.lock held
++ */
++static int hrtimer_reprogram(struct hrtimer *timer,
++			     struct hrtimer_clock_base *base)
++{
++	ktime_t *expires_next = &__get_cpu_var(hrtimer_bases).expires_next;
++	ktime_t expires = ktime_sub(timer->expires, base->offset);
++	int res;
++
++	/*
++	 * When the callback is running, we do not reprogram the clock event
++	 * device. The timer callback is either running on a different CPU or
++	 * the callback is executed in the hrtimer_interupt context. The
++	 * reprogramming is handled either by the softirq, which called the
++	 * callback or at the end of the hrtimer_interrupt.
++	 */
++	if (hrtimer_callback_running(timer))
++		return 0;
++
++	if (expires.tv64 >= expires_next->tv64)
++		return 0;
++
++	/*
++	 * Clockevents returns -ETIME, when the event was in the past.
++	 */
++	res = tick_program_event(expires, 0);
++	if (!IS_ERR_VALUE(res))
++		*expires_next = expires;
++	return res;
++}
++
++
++/*
++ * Retrigger next event is called after clock was set
++ *
++ * Called with interrupts disabled via on_each_cpu()
++ */
++static void retrigger_next_event(void *arg)
++{
++	struct hrtimer_cpu_base *base;
++	struct timespec realtime_offset;
++	unsigned long seq;
++
++	if (!hrtimer_hres_active())
++		return;
++
++	do {
++		seq = read_seqbegin(&xtime_lock);
++		set_normalized_timespec(&realtime_offset,
++					-wall_to_monotonic.tv_sec,
++					-wall_to_monotonic.tv_nsec);
++	} while (read_seqretry(&xtime_lock, seq));
++
++	base = &__get_cpu_var(hrtimer_bases);
++
++	/* Adjust CLOCK_REALTIME offset */
++	spin_lock(&base->lock);
++	base->clock_base[CLOCK_REALTIME].offset =
++		timespec_to_ktime(realtime_offset);
++
++	hrtimer_force_reprogram(base);
++	spin_unlock(&base->lock);
++}
++
++/*
++ * Clock realtime was set
++ *
++ * Change the offset of the realtime clock vs. the monotonic
++ * clock.
++ *
++ * We might have to reprogram the high resolution timer interrupt. On
++ * SMP we call the architecture specific code to retrigger _all_ high
++ * resolution timer interrupts. On UP we just disable interrupts and
++ * call the high resolution interrupt code.
++ */
++void clock_was_set(void)
++{
++	/* Retrigger the CPU local events everywhere */
++	on_each_cpu(retrigger_next_event, NULL, 0, 1);
++}
++
++/*
++ * Check, whether the timer is on the callback pending list
++ */
++static inline int hrtimer_cb_pending(const struct hrtimer *timer)
++{
++	return timer->state & HRTIMER_STATE_PENDING;
++}
++
++/*
++ * Remove a timer from the callback pending list
++ */
++static inline void hrtimer_remove_cb_pending(struct hrtimer *timer)
++{
++	list_del_init(&timer->cb_entry);
++}
++
++/*
++ * Initialize the high resolution related parts of cpu_base
++ */
++static inline void hrtimer_init_hres(struct hrtimer_cpu_base *base)
++{
++	base->expires_next.tv64 = KTIME_MAX;
++	base->hres_active = 0;
++	INIT_LIST_HEAD(&base->cb_pending);
++}
++
++/*
++ * Initialize the high resolution related parts of a hrtimer
++ */
++static inline void hrtimer_init_timer_hres(struct hrtimer *timer)
++{
++	INIT_LIST_HEAD(&timer->cb_entry);
++}
++
++/*
++ * When High resolution timers are active, try to reprogram. Note, that in case
++ * the state has HRTIMER_STATE_CALLBACK set, no reprogramming and no expiry
++ * check happens. The timer gets enqueued into the rbtree. The reprogramming
++ * and expiry check is done in the hrtimer_interrupt or in the softirq.
++ */
++static inline int hrtimer_enqueue_reprogram(struct hrtimer *timer,
++					    struct hrtimer_clock_base *base)
++{
++	if (base->cpu_base->hres_active && hrtimer_reprogram(timer, base)) {
++
++		/* Timer is expired, act upon the callback mode */
++		switch(timer->cb_mode) {
++		case HRTIMER_CB_IRQSAFE_NO_RESTART:
++			/*
++			 * We can call the callback from here. No restart
++			 * happens, so no danger of recursion
++			 */
++			BUG_ON(timer->function(timer) != HRTIMER_NORESTART);
++			return 1;
++		case HRTIMER_CB_IRQSAFE_NO_SOFTIRQ:
++			/*
++			 * This is solely for the sched tick emulation with
++			 * dynamic tick support to ensure that we do not
++			 * restart the tick right on the edge and end up with
++			 * the tick timer in the softirq ! The calling site
++			 * takes care of this.
++			 */
++			return 1;
++		case HRTIMER_CB_IRQSAFE:
++		case HRTIMER_CB_SOFTIRQ:
++			/*
++			 * Move everything else into the softirq pending list !
++			 */
++			list_add_tail(&timer->cb_entry,
++				      &base->cpu_base->cb_pending);
++			timer->state = HRTIMER_STATE_PENDING;
++			raise_softirq(HRTIMER_SOFTIRQ);
++			return 1;
++		default:
++			BUG();
++		}
++	}
++	return 0;
++}
++
++/*
++ * Switch to high resolution mode
++ */
++static void hrtimer_switch_to_hres(void)
++{
++	struct hrtimer_cpu_base *base = &__get_cpu_var(hrtimer_bases);
++	unsigned long flags;
++
++	if (base->hres_active)
++		return;
 +
 +	local_irq_save(flags);
 +
-+	cnt = delta + hpet_readl(HPET_COUNTER);
-+	hpet_writel(cnt, HPET_T1_CMP);
-+	hpet_t1_cmp = cnt;
-+
-+	cfg = hpet_readl(HPET_T1_CFG);
-+	cfg &= ~HPET_TN_PERIODIC;
-+	cfg |= HPET_TN_ENABLE | HPET_TN_32BIT;
-+	hpet_writel(cfg, HPET_T1_CFG);
-+
-+	local_irq_restore(flags);
-+
-+	return 1;
-+}
-+
-+/*
-+ * The functions below are called from rtc driver.
-+ * Return 0 if HPET is not being used.
-+ * Otherwise do the necessary changes and return 1.
-+ */
-+int hpet_mask_rtc_irq_bit(unsigned long bit_mask)
-+{
-+	if (!is_hpet_enabled())
-+		return 0;
-+
-+	hpet_rtc_flags &= ~bit_mask;
-+	return 1;
-+}
-+
-+int hpet_set_rtc_irq_bit(unsigned long bit_mask)
-+{
-+	unsigned long oldbits = hpet_rtc_flags;
-+
-+	if (!is_hpet_enabled())
-+		return 0;
-+
-+	hpet_rtc_flags |= bit_mask;
-+
-+	if (!oldbits)
-+		hpet_rtc_timer_init();
-+
-+	return 1;
-+}
-+
-+int hpet_set_alarm_time(unsigned char hrs, unsigned char min,
-+			unsigned char sec)
-+{
-+	if (!is_hpet_enabled())
-+		return 0;
-+
-+	hpet_alarm_time.tm_hour = hrs;
-+	hpet_alarm_time.tm_min = min;
-+	hpet_alarm_time.tm_sec = sec;
-+
-+	return 1;
-+}
-+
-+int hpet_set_periodic_freq(unsigned long freq)
-+{
-+	uint64_t clc;
-+
-+	if (!is_hpet_enabled())
-+		return 0;
-+
-+	if (freq <= DEFAULT_RTC_INT_FREQ)
-+		hpet_pie_limit = DEFAULT_RTC_INT_FREQ / freq;
-+	else {
-+		clc = (uint64_t) hpet_clockevent.mult * NSEC_PER_SEC;
-+		do_div(clc, freq);
-+		clc >>= hpet_clockevent.shift;
-+		hpet_pie_delta = (unsigned long) clc;
-+	}
-+	return 1;
-+}
-+
-+int hpet_rtc_dropped_irq(void)
-+{
-+	return is_hpet_enabled();
-+}
-+
-+static void hpet_rtc_timer_reinit(void)
-+{
-+	unsigned long cfg, delta;
-+	int lost_ints = -1;
-+
-+	if (unlikely(!hpet_rtc_flags)) {
-+		cfg = hpet_readl(HPET_T1_CFG);
-+		cfg &= ~HPET_TN_ENABLE;
-+		hpet_writel(cfg, HPET_T1_CFG);
++	if (tick_init_highres()) {
++		local_irq_restore(flags);
 +		return;
 +	}
++	base->hres_active = 1;
++	base->clock_base[CLOCK_REALTIME].resolution = KTIME_HIGH_RES;
++	base->clock_base[CLOCK_MONOTONIC].resolution = KTIME_HIGH_RES;
 +
-+	if (!(hpet_rtc_flags & RTC_PIE) || hpet_pie_limit)
-+		delta = hpet_default_delta;
-+	else
-+		delta = hpet_pie_delta;
++	tick_setup_sched_timer();
 +
-+	/*
-+	 * Increment the comparator value until we are ahead of the
-+	 * current count.
-+	 */
-+	do {
-+		hpet_t1_cmp += delta;
-+		hpet_writel(hpet_t1_cmp, HPET_T1_CMP);
-+		lost_ints++;
-+	} while ((long)(hpet_readl(HPET_COUNTER) - hpet_t1_cmp) > 0);
-+
-+	if (lost_ints) {
-+		if (hpet_rtc_flags & RTC_PIE)
-+			hpet_pie_count += lost_ints;
-+		if (printk_ratelimit())
-+			printk(KERN_WARNING "rtc: lost %d interrupts\n",
-+				lost_ints);
-+	}
++	/* "Retrigger" the interrupt to get things going */
++	retrigger_next_event(NULL);
++	local_irq_restore(flags);
++	printk(KERN_INFO "Switched to high resolution mode on CPU %d\n",
++	       smp_processor_id());
 +}
 +
-+irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id)
++#else
++
++static inline int hrtimer_hres_active(void) { return 0; }
++static inline int hrtimer_is_hres_enabled(void) { return 0; }
++static inline void hrtimer_switch_to_hres(void) { }
++static inline void hrtimer_force_reprogram(struct hrtimer_cpu_base *base) { }
++static inline int hrtimer_enqueue_reprogram(struct hrtimer *timer,
++					    struct hrtimer_clock_base *base)
 +{
-+	struct rtc_time curr_time;
-+	unsigned long rtc_int_flag = 0;
-+
-+	hpet_rtc_timer_reinit();
-+
-+	if (hpet_rtc_flags & (RTC_UIE | RTC_AIE))
-+		rtc_get_rtc_time(&curr_time);
-+
-+	if (hpet_rtc_flags & RTC_UIE &&
-+	    curr_time.tm_sec != hpet_prev_update_sec) {
-+		rtc_int_flag = RTC_UF;
-+		hpet_prev_update_sec = curr_time.tm_sec;
-+	}
-+
-+	if (hpet_rtc_flags & RTC_PIE &&
-+	    ++hpet_pie_count >= hpet_pie_limit) {
-+		rtc_int_flag |= RTC_PF;
-+		hpet_pie_count = 0;
-+	}
-+
-+	if (hpet_rtc_flags & RTC_PIE &&
-+	    (curr_time.tm_sec == hpet_alarm_time.tm_sec) &&
-+	    (curr_time.tm_min == hpet_alarm_time.tm_min) &&
-+	    (curr_time.tm_hour == hpet_alarm_time.tm_hour))
-+			rtc_int_flag |= RTC_AF;
-+
-+	if (rtc_int_flag) {
-+		rtc_int_flag |= (RTC_IRQF | (RTC_NUM_INTS << 8));
-+		rtc_interrupt(rtc_int_flag, dev_id);
-+	}
-+	return IRQ_HANDLED;
-+}
-+#endif
-diff -puN arch/i386/kernel/i8253.c~clockevents-i383-drivers arch/i386/kernel/i8253.c
---- a/arch/i386/kernel/i8253.c~clockevents-i383-drivers
-+++ a/arch/i386/kernel/i8253.c
-@@ -2,7 +2,7 @@
-  * i8253.c  8253/PIT functions
-  *
-  */
--#include <linux/clocksource.h>
-+#include <linux/clockchips.h>
- #include <linux/spinlock.h>
- #include <linux/jiffies.h>
- #include <linux/sysdev.h>
-@@ -19,20 +19,100 @@
- DEFINE_SPINLOCK(i8253_lock);
- EXPORT_SYMBOL(i8253_lock);
- 
--void setup_pit_timer(void)
-+/*
-+ * HPET replaces the PIT, when enabled. So we need to know, which of
-+ * the two timers is used
-+ */
-+struct clock_event_device *global_clock_event;
-+
-+/*
-+ * Initialize the PIT timer.
-+ *
-+ * This is also called after resume to bring the PIT into operation again.
-+ */
-+static void init_pit_timer(enum clock_event_mode mode,
-+			   struct clock_event_device *evt)
- {
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&i8253_lock, flags);
--	outb_p(0x34,PIT_MODE);		/* binary, mode 2, LSB/MSB, ch 0 */
--	udelay(10);
--	outb_p(LATCH & 0xff , PIT_CH0);	/* LSB */
--	udelay(10);
--	outb(LATCH >> 8 , PIT_CH0);	/* MSB */
-+
-+	switch(mode) {
-+	case CLOCK_EVT_MODE_PERIODIC:
-+		/* binary, mode 2, LSB/MSB, ch 0 */
-+		outb_p(0x34, PIT_MODE);
-+		udelay(10);
-+		outb_p(LATCH & 0xff , PIT_CH0);	/* LSB */
-+		udelay(10);
-+		outb(LATCH >> 8 , PIT_CH0);	/* MSB */
-+		break;
-+
-+	case CLOCK_EVT_MODE_ONESHOT:
-+	case CLOCK_EVT_MODE_SHUTDOWN:
-+	case CLOCK_EVT_MODE_UNUSED:
-+		/* One shot setup */
-+		outb_p(0x38, PIT_MODE);
-+		udelay(10);
-+		break;
-+	}
- 	spin_unlock_irqrestore(&i8253_lock, flags);
- }
- 
- /*
-+ * Program the next event in oneshot mode
-+ *
-+ * Delta is given in PIT ticks
-+ */
-+static int pit_next_event(unsigned long delta, struct clock_event_device *evt)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&i8253_lock, flags);
-+	outb_p(delta & 0xff , PIT_CH0);	/* LSB */
-+	outb(delta >> 8 , PIT_CH0);	/* MSB */
-+	spin_unlock_irqrestore(&i8253_lock, flags);
-+
 +	return 0;
 +}
++static inline int hrtimer_cb_pending(struct hrtimer *timer) { return 0; }
++static inline void hrtimer_remove_cb_pending(struct hrtimer *timer) { }
++static inline void hrtimer_init_hres(struct hrtimer_cpu_base *base) { }
++static inline void hrtimer_init_timer_hres(struct hrtimer *timer) { }
 +
-+/*
-+ * On UP the PIT can serve all of the possible timer functions. On SMP systems
-+ * it can be solely used for the global tick.
-+ *
-+ * The profiling and update capabilites are switched off once the local apic is
-+ * registered. This mechanism replaces the previous #ifdef LOCAL_APIC -
-+ * !using_apic_timer decisions in do_timer_interrupt_hook()
-+ */
-+struct clock_event_device pit_clockevent = {
-+	.name		= "pit",
-+	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
-+	.set_mode	= init_pit_timer,
-+	.set_next_event = pit_next_event,
-+	.shift		= 32,
-+	.irq		= 0,
-+};
++#endif /* CONFIG_HIGH_RES_TIMERS */
 +
-+/*
-+ * Initialize the conversion factor and the min/max deltas of the clock event
-+ * structure and register the clock event source with the framework.
-+ */
-+void __init setup_pit_timer(void)
-+{
-+	/*
-+	 * Start pit with the boot cpu mask and make it global after the
-+	 * IO_APIC has been initialized.
-+	 */
-+	pit_clockevent.cpumask = cpumask_of_cpu(0);
-+	pit_clockevent.mult = div_sc(CLOCK_TICK_RATE, NSEC_PER_SEC, 32);
-+	pit_clockevent.max_delta_ns =
-+		clockevent_delta2ns(0x7FFF, &pit_clockevent);
-+	pit_clockevent.min_delta_ns =
-+		clockevent_delta2ns(0xF, &pit_clockevent);
-+	clockevents_register_device(&pit_clockevent);
-+	global_clock_event = &pit_clockevent;
-+}
-+
-+/*
-  * Since the PIT overflows every tick, its not very useful
-  * to just read by itself. So use jiffies to emulate a free
-  * running counter:
-@@ -46,7 +126,7 @@ static cycle_t pit_read(void)
- 	static u32 old_jifs;
- 
- 	spin_lock_irqsave(&i8253_lock, flags);
--        /*
-+	/*
- 	 * Although our caller may have the read side of xtime_lock,
- 	 * this is now a seqlock, and we are cheating in this routine
- 	 * by having side effects on state that we cannot undo if
-diff -puN arch/i386/kernel/i8259.c~clockevents-i383-drivers arch/i386/kernel/i8259.c
---- a/arch/i386/kernel/i8259.c~clockevents-i383-drivers
-+++ a/arch/i386/kernel/i8259.c
-@@ -410,12 +410,6 @@ void __init native_init_IRQ(void)
- 	intr_init_hook();
- 
- 	/*
--	 * Set the clock to HZ Hz, we already have a valid
--	 * vector now:
--	 */
--	setup_pit_timer();
--
--	/*
- 	 * External FPU? Set up irq13 if so, for
- 	 * original braindamaged IBM FERR coupling.
- 	 */
-diff -puN arch/i386/kernel/smpboot.c~clockevents-i383-drivers arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~clockevents-i383-drivers
-+++ a/arch/i386/kernel/smpboot.c
-@@ -287,9 +287,7 @@ static void __cpuinit smp_callin(void)
- 	/*
- 	 * Save our processor parameters
- 	 */
-- 	smp_store_cpu_info(cpuid);
--
--	disable_APIC_timer();
-+	smp_store_cpu_info(cpuid);
- 
- 	/*
- 	 * Allow the master to continue.
-@@ -408,7 +406,6 @@ static void __cpuinit start_secondary(vo
- 		enable_NMI_through_LVT0(NULL);
- 		enable_8259A_irq(0);
- 	}
--	enable_APIC_timer();
- 	/*
- 	 * low-memory mappings have been cleared, flush them from
- 	 * the local TLBs too.
-diff -puN arch/i386/kernel/time.c~clockevents-i383-drivers arch/i386/kernel/time.c
---- a/arch/i386/kernel/time.c~clockevents-i383-drivers
-+++ a/arch/i386/kernel/time.c
-@@ -159,15 +159,6 @@ EXPORT_SYMBOL(profile_pc);
+ /*
+  * Counterpart to lock_timer_base above:
   */
- irqreturn_t timer_interrupt(int irq, void *dev_id)
+@@ -365,7 +642,7 @@ hrtimer_forward(struct hrtimer *timer, k
+  * red black tree is O(log(n)). Must hold the base lock.
+  */
+ static void enqueue_hrtimer(struct hrtimer *timer,
+-			    struct hrtimer_clock_base *base)
++			    struct hrtimer_clock_base *base, int reprogram)
  {
--	/*
--	 * Here we are in the timer irq handler. We just have irqs locally
--	 * disabled but we don't know if the timer_bh is running on the other
--	 * CPU. We need to avoid to SMP race with it. NOTE: we don' t need
--	 * the irq version of write_lock because as just said we have irq
--	 * locally disabled. -arca
--	 */
--	write_seqlock(&xtime_lock);
+ 	struct rb_node **link = &base->active.rb_node;
+ 	struct rb_node *parent = NULL;
+@@ -391,6 +668,22 @@ static void enqueue_hrtimer(struct hrtim
+ 	 * Insert the timer to the rbtree and check whether it
+ 	 * replaces the first pending timer
+ 	 */
++	if (!base->first || timer->expires.tv64 <
++	    rb_entry(base->first, struct hrtimer, node)->expires.tv64) {
++		/*
++		 * Reprogram the clock event device. When the timer is already
++		 * expired hrtimer_enqueue_reprogram has either called the
++		 * callback or added it to the pending list and raised the
++		 * softirq.
++		 *
++		 * This is a NOP for !HIGHRES
++		 */
++		if (reprogram && hrtimer_enqueue_reprogram(timer, base))
++			return;
++
++		base->first = &timer->node;
++	}
++
+ 	rb_link_node(&timer->node, parent, link);
+ 	rb_insert_color(&timer->node, &base->active);
+ 	/*
+@@ -398,28 +691,38 @@ static void enqueue_hrtimer(struct hrtim
+ 	 * state of a possibly running callback.
+ 	 */
+ 	timer->state |= HRTIMER_STATE_ENQUEUED;
 -
- #ifdef CONFIG_X86_IO_APIC
- 	if (timer_ack) {
- 		/*
-@@ -186,7 +177,6 @@ irqreturn_t timer_interrupt(int irq, voi
- 
- 	do_timer_interrupt_hook();
- 
--
- 	if (MCA_bus) {
- 		/* The PS/2 uses level-triggered interrupts.  You can't
- 		turn them off, nor would you want to (any attempt to
-@@ -201,13 +191,6 @@ irqreturn_t timer_interrupt(int irq, voi
- 		outb_p( irq_v|0x80, 0x61 );	/* reset the IRQ */
- 	}
- 
--	write_sequnlock(&xtime_lock);
--
--#ifdef CONFIG_X86_LOCAL_APIC
--	if (using_apic_timer)
--		smp_send_timer_broadcast_ipi();
--#endif
--
- 	return IRQ_HANDLED;
+-	if (!base->first || timer->expires.tv64 <
+-	    rb_entry(base->first, struct hrtimer, node)->expires.tv64)
+-		base->first = &timer->node;
  }
- 
-@@ -277,63 +260,16 @@ void notify_arch_cmos_timer(void)
- 		mod_timer(&sync_cmos_timer, jiffies + 1);
- }
- 
--static int timer_resume(struct sys_device *dev)
--{
--#ifdef CONFIG_HPET_TIMER
--	if (is_hpet_enabled())
--		hpet_reenable();
--#endif
--	setup_pit_timer();
--	touch_softlockup_watchdog();
--	return 0;
--}
--
--static struct sysdev_class timer_sysclass = {
--	.resume = timer_resume,
--	set_kset_name("timer"),
--};
--
--
--/* XXX this driverfs stuff should probably go elsewhere later -john */
--static struct sys_device device_timer = {
--	.id	= 0,
--	.cls	= &timer_sysclass,
--};
--
--static int time_init_device(void)
--{
--	int error = sysdev_class_register(&timer_sysclass);
--	if (!error)
--		error = sysdev_register(&device_timer);
--	return error;
--}
--
--device_initcall(time_init_device);
--
--#ifdef CONFIG_HPET_TIMER
- extern void (*late_time_init)(void);
- /* Duplicate of time_init() below, with hpet_enable part added */
- static void __init hpet_time_init(void)
- {
--	if ((hpet_enable() >= 0) && hpet_use_timer) {
--		printk("Using HPET for base-timer\n");
--	}
--
-+	if (!hpet_enable())
-+		setup_pit_timer();
- 	do_time_init();
- }
--#endif
- 
- void __init time_init(void)
- {
--#ifdef CONFIG_HPET_TIMER
--	if (is_hpet_capable()) {
--		/*
--		 * HPET initialization needs to do memory-mapped io. So, let
--		 * us do a late initialization after mem_init().
--		 */
--		late_time_init = hpet_time_init;
--		return;
--	}
--#endif
--	do_time_init();
-+	late_time_init = hpet_time_init;
- }
-diff -puN arch/i386/kernel/time_hpet.c~clockevents-i383-drivers /dev/null
---- a/arch/i386/kernel/time_hpet.c
-+++ /dev/null
-@@ -1,497 +0,0 @@
--/*
-- *  linux/arch/i386/kernel/time_hpet.c
-- *  This code largely copied from arch/x86_64/kernel/time.c
-- *  See that file for credits.
-- *
-- *  2003-06-30    Venkatesh Pallipadi - Additional changes for HPET support
-- */
--
--#include <linux/errno.h>
--#include <linux/kernel.h>
--#include <linux/param.h>
--#include <linux/string.h>
--#include <linux/init.h>
--#include <linux/smp.h>
--
--#include <asm/timer.h>
--#include <asm/fixmap.h>
--#include <asm/apic.h>
--
--#include <linux/timex.h>
--
--#include <asm/hpet.h>
--#include <linux/hpet.h>
--
--static unsigned long hpet_period;	/* fsecs / HPET clock */
--unsigned long hpet_tick;		/* hpet clks count per tick */
--unsigned long hpet_address;		/* hpet memory map physical address */
--int hpet_use_timer;
--
--static int use_hpet; 		/* can be used for runtime check of hpet */
--static int boot_hpet_disable; 	/* boottime override for HPET timer */
--static void __iomem * hpet_virt_address;	/* hpet kernel virtual address */
--
--#define FSEC_TO_USEC (1000000000UL)
--
--int hpet_readl(unsigned long a)
--{
--	return readl(hpet_virt_address + a);
--}
--
--static void hpet_writel(unsigned long d, unsigned long a)
--{
--	writel(d, hpet_virt_address + a);
--}
--
--#ifdef CONFIG_X86_LOCAL_APIC
--/*
-- * HPET counters dont wrap around on every tick. They just change the
-- * comparator value and continue. Next tick can be caught by checking
-- * for a change in the comparator value. Used in apic.c.
-- */
--static void __devinit wait_hpet_tick(void)
--{
--	unsigned int start_cmp_val, end_cmp_val;
--
--	start_cmp_val = hpet_readl(HPET_T0_CMP);
--	do {
--		end_cmp_val = hpet_readl(HPET_T0_CMP);
--	} while (start_cmp_val == end_cmp_val);
--}
--#endif
--
--static int hpet_timer_stop_set_go(unsigned long tick)
--{
--	unsigned int cfg;
--
--	/*
--	 * Stop the timers and reset the main counter.
--	 */
--	cfg = hpet_readl(HPET_CFG);
--	cfg &= ~HPET_CFG_ENABLE;
--	hpet_writel(cfg, HPET_CFG);
--	hpet_writel(0, HPET_COUNTER);
--	hpet_writel(0, HPET_COUNTER + 4);
--
--	if (hpet_use_timer) {
--		/*
--		 * Set up timer 0, as periodic with first interrupt to happen at
--		 * hpet_tick, and period also hpet_tick.
--		 */
--		cfg = hpet_readl(HPET_T0_CFG);
--		cfg |= HPET_TN_ENABLE | HPET_TN_PERIODIC |
--		       HPET_TN_SETVAL | HPET_TN_32BIT;
--		hpet_writel(cfg, HPET_T0_CFG);
--
--		/*
--		 * The first write after writing TN_SETVAL to the config register sets
--		 * the counter value, the second write sets the threshold.
--		 */
--		hpet_writel(tick, HPET_T0_CMP);
--		hpet_writel(tick, HPET_T0_CMP);
--	}
--	/*
-- 	 * Go!
-- 	 */
--	cfg = hpet_readl(HPET_CFG);
--	if (hpet_use_timer)
--		cfg |= HPET_CFG_LEGACY;
--	cfg |= HPET_CFG_ENABLE;
--	hpet_writel(cfg, HPET_CFG);
--
--	return 0;
--}
--
--/*
-- * Check whether HPET was found by ACPI boot parse. If yes setup HPET
-- * counter 0 for kernel base timer.
-- */
--int __init hpet_enable(void)
--{
--	unsigned int id;
--	unsigned long tick_fsec_low, tick_fsec_high; /* tick in femto sec */
--	unsigned long hpet_tick_rem;
--
--	if (boot_hpet_disable)
--		return -1;
--
--	if (!hpet_address) {
--		return -1;
--	}
--	hpet_virt_address = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
--	/*
--	 * Read the period, compute tick and quotient.
--	 */
--	id = hpet_readl(HPET_ID);
--
--	/*
--	 * We are checking for value '1' or more in number field if
--	 * CONFIG_HPET_EMULATE_RTC is set because we will need an
--	 * additional timer for RTC emulation.
--	 * However, we can do with one timer otherwise using the
--	 * the single HPET timer for system time.
--	 */
--#ifdef CONFIG_HPET_EMULATE_RTC
--	if (!(id & HPET_ID_NUMBER)) {
--		iounmap(hpet_virt_address);
--		hpet_virt_address = NULL;
--		return -1;
--	}
--#endif
--
--
--	hpet_period = hpet_readl(HPET_PERIOD);
--	if ((hpet_period < HPET_MIN_PERIOD) || (hpet_period > HPET_MAX_PERIOD)) {
--		iounmap(hpet_virt_address);
--		hpet_virt_address = NULL;
--		return -1;
--	}
--
--	/*
--	 * 64 bit math
--	 * First changing tick into fsec
--	 * Then 64 bit div to find number of hpet clk per tick
--	 */
--	ASM_MUL64_REG(tick_fsec_low, tick_fsec_high,
--			KERNEL_TICK_USEC, FSEC_TO_USEC);
--	ASM_DIV64_REG(hpet_tick, hpet_tick_rem,
--			hpet_period, tick_fsec_low, tick_fsec_high);
--
--	if (hpet_tick_rem > (hpet_period >> 1))
--		hpet_tick++; /* rounding the result */
--
--	hpet_use_timer = id & HPET_ID_LEGSUP;
--
--	if (hpet_timer_stop_set_go(hpet_tick)) {
--		iounmap(hpet_virt_address);
--		hpet_virt_address = NULL;
--		return -1;
--	}
--
--	use_hpet = 1;
--
--#ifdef	CONFIG_HPET
--	{
--		struct hpet_data	hd;
--		unsigned int 		ntimer;
--
--		memset(&hd, 0, sizeof (hd));
--
--		ntimer = hpet_readl(HPET_ID);
--		ntimer = (ntimer & HPET_ID_NUMBER) >> HPET_ID_NUMBER_SHIFT;
--		ntimer++;
--
--		/*
--		 * Register with driver.
--		 * Timer0 and Timer1 is used by platform.
--		 */
--		hd.hd_phys_address = hpet_address;
--		hd.hd_address = hpet_virt_address;
--		hd.hd_nirqs = ntimer;
--		hd.hd_flags = HPET_DATA_PLATFORM;
--		hpet_reserve_timer(&hd, 0);
--#ifdef	CONFIG_HPET_EMULATE_RTC
--		hpet_reserve_timer(&hd, 1);
--#endif
--		hd.hd_irq[0] = HPET_LEGACY_8254;
--		hd.hd_irq[1] = HPET_LEGACY_RTC;
--		if (ntimer > 2) {
--			struct hpet __iomem	*hpet;
--			struct hpet_timer __iomem *timer;
--			int			i;
--
--			hpet = hpet_virt_address;
--
--			for (i = 2, timer = &hpet->hpet_timers[2]; i < ntimer;
--				timer++, i++)
--				hd.hd_irq[i] = (timer->hpet_config &
--					Tn_INT_ROUTE_CNF_MASK) >>
--					Tn_INT_ROUTE_CNF_SHIFT;
--
--		}
--
--		hpet_alloc(&hd);
--	}
--#endif
--
--#ifdef CONFIG_X86_LOCAL_APIC
--	if (hpet_use_timer)
--		wait_timer_tick = wait_hpet_tick;
--#endif
--	return 0;
--}
--
--int hpet_reenable(void)
--{
--	return hpet_timer_stop_set_go(hpet_tick);
--}
--
--int is_hpet_enabled(void)
--{
--	return use_hpet;
--}
--
--int is_hpet_capable(void)
--{
--	if (!boot_hpet_disable && hpet_address)
--		return 1;
--	return 0;
--}
--
--static int __init hpet_setup(char* str)
--{
--	if (str) {
--		if (!strncmp("disable", str, 7))
--			boot_hpet_disable = 1;
--	}
--	return 1;
--}
--
--__setup("hpet=", hpet_setup);
--
--#ifdef CONFIG_HPET_EMULATE_RTC
--/* HPET in LegacyReplacement Mode eats up RTC interrupt line. When, HPET
-- * is enabled, we support RTC interrupt functionality in software.
-- * RTC has 3 kinds of interrupts:
-- * 1) Update Interrupt - generate an interrupt, every sec, when RTC clock
-- *    is updated
-- * 2) Alarm Interrupt - generate an interrupt at a specific time of day
-- * 3) Periodic Interrupt - generate periodic interrupt, with frequencies
-- *    2Hz-8192Hz (2Hz-64Hz for non-root user) (all freqs in powers of 2)
-- * (1) and (2) above are implemented using polling at a frequency of
-- * 64 Hz. The exact frequency is a tradeoff between accuracy and interrupt
-- * overhead. (DEFAULT_RTC_INT_FREQ)
-- * For (3), we use interrupts at 64Hz or user specified periodic
-- * frequency, whichever is higher.
-- */
--#include <linux/mc146818rtc.h>
--#include <linux/rtc.h>
--
--#define DEFAULT_RTC_INT_FREQ 	64
--#define RTC_NUM_INTS 		1
--
--static unsigned long UIE_on;
--static unsigned long prev_update_sec;
--
--static unsigned long AIE_on;
--static struct rtc_time alarm_time;
--
--static unsigned long PIE_on;
--static unsigned long PIE_freq = DEFAULT_RTC_INT_FREQ;
--static unsigned long PIE_count;
--
--static unsigned long hpet_rtc_int_freq; /* RTC interrupt frequency */
--static unsigned int hpet_t1_cmp; /* cached comparator register */
--
--/*
-- * Timer 1 for RTC, we do not use periodic interrupt feature,
-- * even if HPET supports periodic interrupts on Timer 1.
-- * The reason being, to set up a periodic interrupt in HPET, we need to
-- * stop the main counter. And if we do that everytime someone diables/enables
-- * RTC, we will have adverse effect on main kernel timer running on Timer 0.
-- * So, for the time being, simulate the periodic interrupt in software.
-- *
-- * hpet_rtc_timer_init() is called for the first time and during subsequent
-- * interuppts reinit happens through hpet_rtc_timer_reinit().
-- */
--int hpet_rtc_timer_init(void)
--{
--	unsigned int cfg, cnt;
--	unsigned long flags;
--
--	if (!is_hpet_enabled())
--		return 0;
--	/*
--	 * Set the counter 1 and enable the interrupts.
--	 */
--	if (PIE_on && (PIE_freq > DEFAULT_RTC_INT_FREQ))
--		hpet_rtc_int_freq = PIE_freq;
--	else
--		hpet_rtc_int_freq = DEFAULT_RTC_INT_FREQ;
--
--	local_irq_save(flags);
--
--	cnt = hpet_readl(HPET_COUNTER);
--	cnt += ((hpet_tick*HZ)/hpet_rtc_int_freq);
--	hpet_writel(cnt, HPET_T1_CMP);
--	hpet_t1_cmp = cnt;
--
--	cfg = hpet_readl(HPET_T1_CFG);
--	cfg &= ~HPET_TN_PERIODIC;
--	cfg |= HPET_TN_ENABLE | HPET_TN_32BIT;
--	hpet_writel(cfg, HPET_T1_CFG);
--
--	local_irq_restore(flags);
--
--	return 1;
--}
--
--static void hpet_rtc_timer_reinit(void)
--{
--	unsigned int cfg, cnt, ticks_per_int, lost_ints;
--
--	if (unlikely(!(PIE_on | AIE_on | UIE_on))) {
--		cfg = hpet_readl(HPET_T1_CFG);
--		cfg &= ~HPET_TN_ENABLE;
--		hpet_writel(cfg, HPET_T1_CFG);
--		return;
--	}
--
--	if (PIE_on && (PIE_freq > DEFAULT_RTC_INT_FREQ))
--		hpet_rtc_int_freq = PIE_freq;
--	else
--		hpet_rtc_int_freq = DEFAULT_RTC_INT_FREQ;
--
--	/* It is more accurate to use the comparator value than current count.*/
--	ticks_per_int = hpet_tick * HZ / hpet_rtc_int_freq;
--	hpet_t1_cmp += ticks_per_int;
--	hpet_writel(hpet_t1_cmp, HPET_T1_CMP);
--
--	/*
--	 * If the interrupt handler was delayed too long, the write above tries
--	 * to schedule the next interrupt in the past and the hardware would
--	 * not interrupt until the counter had wrapped around.
--	 * So we have to check that the comparator wasn't set to a past time.
--	 */
--	cnt = hpet_readl(HPET_COUNTER);
--	if (unlikely((int)(cnt - hpet_t1_cmp) > 0)) {
--		lost_ints = (cnt - hpet_t1_cmp) / ticks_per_int + 1;
--		/* Make sure that, even with the time needed to execute
--		 * this code, the next scheduled interrupt has been moved
--		 * back to the future: */
--		lost_ints++;
--
--		hpet_t1_cmp += lost_ints * ticks_per_int;
--		hpet_writel(hpet_t1_cmp, HPET_T1_CMP);
--
--		if (PIE_on)
--			PIE_count += lost_ints;
--
--		printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n",
--		       hpet_rtc_int_freq);
--	}
--}
--
--/*
-- * The functions below are called from rtc driver.
-- * Return 0 if HPET is not being used.
-- * Otherwise do the necessary changes and return 1.
-- */
--int hpet_mask_rtc_irq_bit(unsigned long bit_mask)
--{
--	if (!is_hpet_enabled())
--		return 0;
--
--	if (bit_mask & RTC_UIE)
--		UIE_on = 0;
--	if (bit_mask & RTC_PIE)
--		PIE_on = 0;
--	if (bit_mask & RTC_AIE)
--		AIE_on = 0;
--
--	return 1;
--}
--
--int hpet_set_rtc_irq_bit(unsigned long bit_mask)
--{
--	int timer_init_reqd = 0;
--
--	if (!is_hpet_enabled())
--		return 0;
--
--	if (!(PIE_on | AIE_on | UIE_on))
--		timer_init_reqd = 1;
--
--	if (bit_mask & RTC_UIE) {
--		UIE_on = 1;
--	}
--	if (bit_mask & RTC_PIE) {
--		PIE_on = 1;
--		PIE_count = 0;
--	}
--	if (bit_mask & RTC_AIE) {
--		AIE_on = 1;
--	}
--
--	if (timer_init_reqd)
--		hpet_rtc_timer_init();
--
--	return 1;
--}
--
--int hpet_set_alarm_time(unsigned char hrs, unsigned char min, unsigned char sec)
--{
--	if (!is_hpet_enabled())
--		return 0;
--
--	alarm_time.tm_hour = hrs;
--	alarm_time.tm_min = min;
--	alarm_time.tm_sec = sec;
--
--	return 1;
--}
--
--int hpet_set_periodic_freq(unsigned long freq)
--{
--	if (!is_hpet_enabled())
--		return 0;
--
--	PIE_freq = freq;
--	PIE_count = 0;
--
--	return 1;
--}
--
--int hpet_rtc_dropped_irq(void)
--{
--	if (!is_hpet_enabled())
--		return 0;
--
--	return 1;
--}
--
--irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id)
--{
--	struct rtc_time curr_time;
--	unsigned long rtc_int_flag = 0;
--	int call_rtc_interrupt = 0;
--
--	hpet_rtc_timer_reinit();
--
--	if (UIE_on | AIE_on) {
--		rtc_get_rtc_time(&curr_time);
--	}
--	if (UIE_on) {
--		if (curr_time.tm_sec != prev_update_sec) {
--			/* Set update int info, call real rtc int routine */
--			call_rtc_interrupt = 1;
--			rtc_int_flag = RTC_UF;
--			prev_update_sec = curr_time.tm_sec;
--		}
--	}
--	if (PIE_on) {
--		PIE_count++;
--		if (PIE_count >= hpet_rtc_int_freq/PIE_freq) {
--			/* Set periodic int info, call real rtc int routine */
--			call_rtc_interrupt = 1;
--			rtc_int_flag |= RTC_PF;
--			PIE_count = 0;
--		}
--	}
--	if (AIE_on) {
--		if ((curr_time.tm_sec == alarm_time.tm_sec) &&
--		    (curr_time.tm_min == alarm_time.tm_min) &&
--		    (curr_time.tm_hour == alarm_time.tm_hour)) {
--			/* Set alarm int info, call real rtc int routine */
--			call_rtc_interrupt = 1;
--			rtc_int_flag |= RTC_AF;
--		}
--	}
--	if (call_rtc_interrupt) {
--		rtc_int_flag |= (RTC_IRQF | (RTC_NUM_INTS << 8));
--		rtc_interrupt(rtc_int_flag, dev_id);
--	}
--	return IRQ_HANDLED;
--}
--#endif
--
-diff -puN arch/i386/mach-default/setup.c~clockevents-i383-drivers arch/i386/mach-default/setup.c
---- a/arch/i386/mach-default/setup.c~clockevents-i383-drivers
-+++ a/arch/i386/mach-default/setup.c
-@@ -79,7 +79,12 @@ void __init trap_init_hook(void)
- {
- }
- 
--static struct irqaction irq0  = { timer_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "timer", NULL, NULL};
-+static struct irqaction irq0  = {
-+	.handler = timer_interrupt,
-+	.flags = IRQF_DISABLED | IRQF_NOBALANCING,
-+	.mask = CPU_MASK_NONE,
-+	.name = "timer"
-+};
- 
- /**
-  * time_init_hook - do any specific initialisations for the system timer.
-@@ -90,6 +95,7 @@ static struct irqaction irq0  = { timer_
-  **/
- void __init time_init_hook(void)
- {
-+	irq0.mask = cpumask_of_cpu(0);
- 	setup_irq(0, &irq0);
- }
- 
-diff -puN drivers/acpi/processor_idle.c~clockevents-i383-drivers drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~clockevents-i383-drivers
-+++ a/drivers/acpi/processor_idle.c
-@@ -39,6 +39,7 @@
- #include <linux/moduleparam.h>
- #include <linux/sched.h>	/* need_resched() */
- #include <linux/latency.h>
-+#include <linux/clockchips.h>
  
  /*
-  * Include the apic definitions for x86 to have the APIC timer related defines
-@@ -274,12 +275,40 @@ static void acpi_timer_check_state(int s
- 
- static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
- {
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
-+	unsigned long reason;
-+
-+	reason = pr->power.timer_broadcast_on_state < INT_MAX ?
-+		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
-+
-+	clockevents_notify(reason, &pr->id);
-+#else
- 	cpumask_t mask = cpumask_of_cpu(pr->id);
- 
- 	if (pr->power.timer_broadcast_on_state < INT_MAX)
- 		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
- 	else
- 		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
-+#endif
-+}
-+
-+/* Power(C) State timer broadcast control */
-+static void acpi_state_timer_broadcast(struct acpi_processor *pr,
-+				       struct acpi_processor_cx *cx,
-+				       int broadcast)
-+{
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
-+
-+	int state = cx - pr->power.states;
-+
-+	if (state >= pr->power.timer_broadcast_on_state) {
-+		unsigned long reason;
-+
-+		reason = broadcast ?  CLOCK_EVT_NOTIFY_BROADCAST_ENTER :
-+			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
-+		clockevents_notify(reason, &pr->id);
-+	}
-+#endif
- }
- 
- #else
-@@ -287,6 +316,11 @@ static void acpi_propagate_timer_broadca
- static void acpi_timer_check_state(int state, struct acpi_processor *pr,
- 				   struct acpi_processor_cx *cstate) { }
- static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
-+static void acpi_state_timer_broadcast(struct acpi_processor *pr,
-+				       struct acpi_processor_cx *cx,
-+				       int broadcast)
-+{
-+}
- 
- #endif
- 
-@@ -434,6 +468,7 @@ static void acpi_processor_idle(void)
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 		/* Invoke C2 */
-+		acpi_state_timer_broadcast(pr, cx, 1);
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-@@ -448,6 +483,7 @@ static void acpi_processor_idle(void)
- 		/* Compute time (ticks) that we were actually asleep */
- 		sleep_ticks =
- 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C2_OVERHEAD;
-+		acpi_state_timer_broadcast(pr, cx, 0);
- 		break;
- 
- 	case ACPI_STATE_C3:
-@@ -469,6 +505,7 @@ static void acpi_processor_idle(void)
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 		/* Invoke C3 */
-+		acpi_state_timer_broadcast(pr, cx, 1);
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-@@ -488,6 +525,7 @@ static void acpi_processor_idle(void)
- 		/* Compute time (ticks) that we were actually asleep */
- 		sleep_ticks =
- 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C3_OVERHEAD;
-+		acpi_state_timer_broadcast(pr, cx, 0);
- 		break;
- 
- 	default:
-diff -puN include/asm-i386/apic.h~clockevents-i383-drivers include/asm-i386/apic.h
---- a/include/asm-i386/apic.h~clockevents-i383-drivers
-+++ a/include/asm-i386/apic.h
-@@ -113,14 +113,9 @@ extern void smp_local_timer_interrupt (v
- extern void setup_boot_APIC_clock (void);
- extern void setup_secondary_APIC_clock (void);
- extern int APIC_init_uniprocessor (void);
--extern void disable_APIC_timer(void);
--extern void enable_APIC_timer(void);
- 
- extern void enable_NMI_through_LVT0 (void * dummy);
- 
--void smp_send_timer_broadcast_ipi(void);
--void switch_APIC_timer_to_ipi(void *cpumask);
--void switch_ipi_to_APIC_timer(void *cpumask);
- #define ARCH_APICTIMER_STOPS_ON_C3	1
- 
- extern int timer_over_8254;
-diff -puN include/asm-i386/hpet.h~clockevents-i383-drivers include/asm-i386/hpet.h
---- a/include/asm-i386/hpet.h~clockevents-i383-drivers
-+++ a/include/asm-i386/hpet.h
-@@ -90,16 +90,19 @@
- #define HPET_MIN_PERIOD (100000UL)
- #define HPET_TICK_RATE  (HZ * 100000UL)
- 
--extern unsigned long hpet_tick;  	/* hpet clks count per tick */
- extern unsigned long hpet_address;	/* hpet memory map physical address */
--extern int hpet_use_timer;
-+extern int is_hpet_enabled(void);
- 
-+#ifdef CONFIG_X86_64
-+extern unsigned long hpet_tick;	/* hpet clks count per tick */
-+extern int hpet_use_timer;
- extern int hpet_rtc_timer_init(void);
- extern int hpet_enable(void);
--extern int hpet_reenable(void);
--extern int is_hpet_enabled(void);
- extern int is_hpet_capable(void);
- extern int hpet_readl(unsigned long a);
-+#else
-+extern int hpet_enable(void);
-+#endif
- 
- #ifdef CONFIG_HPET_EMULATE_RTC
- extern int hpet_mask_rtc_irq_bit(unsigned long bit_mask);
-@@ -110,5 +113,10 @@ extern int hpet_rtc_dropped_irq(void);
- extern int hpet_rtc_timer_init(void);
- extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
- #endif /* CONFIG_HPET_EMULATE_RTC */
-+
-+#else
-+
-+static inline int hpet_enable(void) { return 0; }
-+
- #endif /* CONFIG_HPET_TIMER */
- #endif /* _I386_HPET_H */
-diff -puN include/asm-i386/i8253.h~clockevents-i383-drivers include/asm-i386/i8253.h
---- a/include/asm-i386/i8253.h~clockevents-i383-drivers
-+++ a/include/asm-i386/i8253.h
-@@ -1,6 +1,21 @@
- #ifndef __ASM_I8253_H__
- #define __ASM_I8253_H__
- 
-+#include <linux/clockchips.h>
-+
- extern spinlock_t i8253_lock;
- 
-+extern struct clock_event_device *global_clock_event;
-+
-+/**
-+ * pit_interrupt_hook - hook into timer tick
-+ * @regs:	standard registers from interrupt
-+ *
-+ * Call the global clock event handler.
-+ **/
-+static inline void pit_interrupt_hook(void)
-+{
-+	global_clock_event->event_handler(global_clock_event);
-+}
-+
- #endif	/* __ASM_I8253_H__ */
-diff -puN include/asm-i386/mach-default/do_timer.h~clockevents-i383-drivers include/asm-i386/mach-default/do_timer.h
---- a/include/asm-i386/mach-default/do_timer.h~clockevents-i383-drivers
-+++ a/include/asm-i386/mach-default/do_timer.h
-@@ -1,86 +1,16 @@
- /* defines for inline arch setup functions */
-+#include <linux/clockchips.h>
- 
--#include <asm/apic.h>
- #include <asm/i8259.h>
-+#include <asm/i8253.h>
- 
- /**
-  * do_timer_interrupt_hook - hook into timer tick
-- * @regs:	standard registers from interrupt
+  * __remove_hrtimer - internal function to remove a timer
   *
-- * Description:
-- *	This hook is called immediately after the timer interrupt is ack'd.
-- *	It's primary purpose is to allow architectures that don't possess
-- *	individual per CPU clocks (like the CPU APICs supply) to broadcast the
-- *	timer interrupt as a means of triggering reschedules etc.
-+ * Call the pit clock event handler. see asm/i8253.h
-  **/
- 
- static inline void do_timer_interrupt_hook(void)
- {
--	do_timer(1);
--#ifndef CONFIG_SMP
--	update_process_times(user_mode_vm(get_irq_regs()));
--#endif
--/*
-- * In the SMP case we use the local APIC timer interrupt to do the
-- * profiling, except when we simulate SMP mode on a uniprocessor
-- * system, in that case we have to call the local interrupt handler.
-- */
--#ifndef CONFIG_X86_LOCAL_APIC
--	profile_tick(CPU_PROFILING);
--#else
--	if (!using_apic_timer)
--		smp_local_timer_interrupt();
--#endif
--}
--
--
--/* you can safely undefine this if you don't have the Neptune chipset */
--
--#define BUGGY_NEPTUN_TIMER
--
--/**
-- * do_timer_overflow - process a detected timer overflow condition
-- * @count:	hardware timer interrupt count on overflow
-- *
-- * Description:
-- *	This call is invoked when the jiffies count has not incremented but
-- *	the hardware timer interrupt has.  It means that a timer tick interrupt
-- *	came along while the previous one was pending, thus a tick was missed
-- **/
--static inline int do_timer_overflow(int count)
--{
--	int i;
--
--	spin_lock(&i8259A_lock);
--	/*
--	 * This is tricky when I/O APICs are used;
--	 * see do_timer_interrupt().
--	 */
--	i = inb(0x20);
--	spin_unlock(&i8259A_lock);
--	
--	/* assumption about timer being IRQ0 */
--	if (i & 0x01) {
--		/*
--		 * We cannot detect lost timer interrupts ... 
--		 * well, that's why we call them lost, don't we? :)
--		 * [hmm, on the Pentium and Alpha we can ... sort of]
--		 */
--		count -= LATCH;
--	} else {
--#ifdef BUGGY_NEPTUN_TIMER
--		/*
--		 * for the Neptun bug we know that the 'latch'
--		 * command doesn't latch the high and low value
--		 * of the counter atomically. Thus we have to 
--		 * substract 256 from the counter 
--		 * ... funny, isnt it? :)
--		 */
--		
--		count -= 256;
--#else
--		printk("do_slow_gettimeoffset(): hardware timer problem?\n");
--#endif
--	}
--	return count;
-+	pit_interrupt_hook();
- }
-diff -puN include/asm-i386/mach-voyager/do_timer.h~clockevents-i383-drivers include/asm-i386/mach-voyager/do_timer.h
---- a/include/asm-i386/mach-voyager/do_timer.h~clockevents-i383-drivers
-+++ a/include/asm-i386/mach-voyager/do_timer.h
-@@ -1,25 +1,18 @@
- /* defines for inline arch setup functions */
-+#include <linux/clockchips.h>
-+
- #include <asm/voyager.h>
-+#include <asm/i8253.h>
- 
-+/**
-+ * do_timer_interrupt_hook - hook into timer tick
-+ * @regs:     standard registers from interrupt
+  * Caller must hold the base lock.
 + *
-+ * Call the pit clock event handler. see asm/i8253.h
-+ **/
- static inline void do_timer_interrupt_hook(void)
++ * High resolution timer mode reprograms the clock event device when the
++ * timer is the one which expires next. The caller can disable this by setting
++ * reprogram to zero. This is useful, when the context does a reprogramming
++ * anyway (e.g. timer interrupt)
+  */
+ static void __remove_hrtimer(struct hrtimer *timer,
+ 			     struct hrtimer_clock_base *base,
+-			     unsigned long newstate)
++			     unsigned long newstate, int reprogram)
  {
--	do_timer(1);
--#ifndef CONFIG_SMP
--	update_process_times(user_mode_vm(irq_regs));
--#endif
--
-+	pit_interrupt_hook();
- 	voyager_timer_interrupt();
+-	/*
+-	 * Remove the timer from the rbtree and replace the
+-	 * first entry pointer if necessary.
+-	 */
+-	if (base->first == &timer->node)
+-		base->first = rb_next(&timer->node);
+-	rb_erase(&timer->node, &base->active);
++	/* High res. callback list. NOP for !HIGHRES */
++	if (hrtimer_cb_pending(timer))
++		hrtimer_remove_cb_pending(timer);
++	else {
++		/*
++		 * Remove the timer from the rbtree and replace the
++		 * first entry pointer if necessary.
++		 */
++		if (base->first == &timer->node) {
++			base->first = rb_next(&timer->node);
++			/* Reprogram the clock event device. if enabled */
++			if (reprogram && hrtimer_hres_active())
++				hrtimer_force_reprogram(base->cpu_base);
++		}
++		rb_erase(&timer->node, &base->active);
++	}
+ 	timer->state = newstate;
  }
  
--static inline int do_timer_overflow(int count)
--{
--	/* can't read the ISR, just assume 1 tick
--	   overflow */
--	if(count > LATCH || count < 0) {
--		printk(KERN_ERR "VOYAGER PROBLEM: count is %d, latch is %d\n", count, LATCH);
--		count = LATCH;
--	}
--	count -= LATCH;
--
--	return count;
--}
-diff -puN include/asm-i386/mpspec.h~clockevents-i383-drivers include/asm-i386/mpspec.h
---- a/include/asm-i386/mpspec.h~clockevents-i383-drivers
-+++ a/include/asm-i386/mpspec.h
-@@ -23,7 +23,6 @@ extern struct mpc_config_intsrc mp_irqs 
- extern int mpc_default_type;
- extern unsigned long mp_lapic_addr;
- extern int pic_mode;
--extern int using_apic_timer;
+@@ -430,7 +733,19 @@ static inline int
+ remove_hrtimer(struct hrtimer *timer, struct hrtimer_clock_base *base)
+ {
+ 	if (hrtimer_is_queued(timer)) {
+-		__remove_hrtimer(timer, base, HRTIMER_STATE_INACTIVE);
++		int reprogram;
++
++		/*
++		 * Remove the timer and force reprogramming when high
++		 * resolution mode is active and the timer is on the current
++		 * CPU. If we remove a timer on another CPU, reprogramming is
++		 * skipped. The interrupt event on this CPU is fired and
++		 * reprogramming happens in the interrupt handler. This is a
++		 * rare case and less expensive than a smp call.
++		 */
++		reprogram = base->cpu_base == &__get_cpu_var(hrtimer_bases);
++		__remove_hrtimer(timer, base, HRTIMER_STATE_INACTIVE,
++				 reprogram);
+ 		return 1;
+ 	}
+ 	return 0;
+@@ -476,7 +791,7 @@ hrtimer_start(struct hrtimer *timer, kti
+ 	}
+ 	timer->expires = tim;
  
- #ifdef CONFIG_ACPI
- extern void mp_register_lapic (u8 id, u8 enabled);
+-	enqueue_hrtimer(timer, new_base);
++	enqueue_hrtimer(timer, new_base, base == new_base);
+ 
+ 	unlock_hrtimer_base(timer, &flags);
+ 
+@@ -567,17 +882,19 @@ ktime_t hrtimer_get_next_event(void)
+ 
+ 	spin_lock_irqsave(&cpu_base->lock, flags);
+ 
+-	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++, base++) {
+-		struct hrtimer *timer;
+-
+-		if (!base->first)
+-			continue;
+-
+-		timer = rb_entry(base->first, struct hrtimer, node);
+-		delta.tv64 = timer->expires.tv64;
+-		delta = ktime_sub(delta, base->get_time());
+-		if (delta.tv64 < mindelta.tv64)
+-			mindelta.tv64 = delta.tv64;
++	if (!hrtimer_hres_active()) {
++		for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++, base++) {
++			struct hrtimer *timer;
++
++			if (!base->first)
++				continue;
++
++			timer = rb_entry(base->first, struct hrtimer, node);
++			delta.tv64 = timer->expires.tv64;
++			delta = ktime_sub(delta, base->get_time());
++			if (delta.tv64 < mindelta.tv64)
++				mindelta.tv64 = delta.tv64;
++		}
+ 	}
+ 
+ 	spin_unlock_irqrestore(&cpu_base->lock, flags);
+@@ -607,6 +924,7 @@ void hrtimer_init(struct hrtimer *timer,
+ 		clock_id = CLOCK_MONOTONIC;
+ 
+ 	timer->base = &cpu_base->clock_base[clock_id];
++	hrtimer_init_timer_hres(timer);
+ }
+ EXPORT_SYMBOL_GPL(hrtimer_init);
+ 
+@@ -629,6 +947,139 @@ int hrtimer_get_res(const clockid_t whic
+ }
+ EXPORT_SYMBOL_GPL(hrtimer_get_res);
+ 
++#ifdef CONFIG_HIGH_RES_TIMERS
++
++/*
++ * High resolution timer interrupt
++ * Called with interrupts disabled
++ */
++void hrtimer_interrupt(struct clock_event_device *dev)
++{
++	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
++	struct hrtimer_clock_base *base;
++	ktime_t expires_next, now;
++	int i, raise = 0;
++
++	BUG_ON(!cpu_base->hres_active);
++	cpu_base->nr_events++;
++	dev->next_event.tv64 = KTIME_MAX;
++
++ retry:
++	now = ktime_get();
++
++	expires_next.tv64 = KTIME_MAX;
++
++	base = cpu_base->clock_base;
++
++	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
++		ktime_t basenow;
++		struct rb_node *node;
++
++		spin_lock(&cpu_base->lock);
++
++		basenow = ktime_add(now, base->offset);
++
++		while ((node = base->first)) {
++			struct hrtimer *timer;
++
++			timer = rb_entry(node, struct hrtimer, node);
++
++			if (basenow.tv64 < timer->expires.tv64) {
++				ktime_t expires;
++
++				expires = ktime_sub(timer->expires,
++						    base->offset);
++				if (expires.tv64 < expires_next.tv64)
++					expires_next = expires;
++				break;
++			}
++
++			/* Move softirq callbacks to the pending list */
++			if (timer->cb_mode == HRTIMER_CB_SOFTIRQ) {
++				__remove_hrtimer(timer, base,
++						 HRTIMER_STATE_PENDING, 0);
++				list_add_tail(&timer->cb_entry,
++					      &base->cpu_base->cb_pending);
++				raise = 1;
++				continue;
++			}
++
++			__remove_hrtimer(timer, base,
++					 HRTIMER_STATE_CALLBACK, 0);
++
++			/*
++			 * Note: We clear the CALLBACK bit after
++			 * enqueue_hrtimer to avoid reprogramming of
++			 * the event hardware. This happens at the end
++			 * of this function anyway.
++			 */
++			if (timer->function(timer) != HRTIMER_NORESTART) {
++				BUG_ON(timer->state != HRTIMER_STATE_CALLBACK);
++				enqueue_hrtimer(timer, base, 0);
++			}
++			timer->state &= ~HRTIMER_STATE_CALLBACK;
++		}
++		spin_unlock(&cpu_base->lock);
++		base++;
++	}
++
++	cpu_base->expires_next = expires_next;
++
++	/* Reprogramming necessary ? */
++	if (expires_next.tv64 != KTIME_MAX) {
++		if (tick_program_event(expires_next, 0))
++			goto retry;
++	}
++
++	/* Raise softirq ? */
++	if (raise)
++		raise_softirq(HRTIMER_SOFTIRQ);
++}
++
++static void run_hrtimer_softirq(struct softirq_action *h)
++{
++	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
++
++	spin_lock_irq(&cpu_base->lock);
++
++	while (!list_empty(&cpu_base->cb_pending)) {
++		enum hrtimer_restart (*fn)(struct hrtimer *);
++		struct hrtimer *timer;
++		int restart;
++
++		timer = list_entry(cpu_base->cb_pending.next,
++				   struct hrtimer, cb_entry);
++
++		fn = timer->function;
++		__remove_hrtimer(timer, timer->base, HRTIMER_STATE_CALLBACK, 0);
++		spin_unlock_irq(&cpu_base->lock);
++
++		restart = fn(timer);
++
++		spin_lock_irq(&cpu_base->lock);
++
++		timer->state &= ~HRTIMER_STATE_CALLBACK;
++		if (restart == HRTIMER_RESTART) {
++			BUG_ON(hrtimer_active(timer));
++			/*
++			 * Enqueue the timer, allow reprogramming of the event
++			 * device
++			 */
++			enqueue_hrtimer(timer, timer->base, 1);
++		} else if (hrtimer_active(timer)) {
++			/*
++			 * If the timer was rearmed on another CPU, reprogram
++			 * the event device.
++			 */
++			if (timer->base->first == &timer->node)
++				hrtimer_reprogram(timer, timer->base);
++		}
++	}
++	spin_unlock_irq(&cpu_base->lock);
++}
++
++#endif	/* CONFIG_HIGH_RES_TIMERS */
++
+ /*
+  * Expire the per base hrtimer-queue:
+  */
+@@ -656,7 +1107,7 @@ static inline void run_hrtimer_queue(str
+ 			break;
+ 
+ 		fn = timer->function;
+-		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK);
++		__remove_hrtimer(timer, base, HRTIMER_STATE_CALLBACK, 0);
+ 		spin_unlock_irq(&cpu_base->lock);
+ 
+ 		restart = fn(timer);
+@@ -666,7 +1117,7 @@ static inline void run_hrtimer_queue(str
+ 		timer->state &= ~HRTIMER_STATE_CALLBACK;
+ 		if (restart != HRTIMER_NORESTART) {
+ 			BUG_ON(hrtimer_active(timer));
+-			enqueue_hrtimer(timer, base);
++			enqueue_hrtimer(timer, base, 0);
+ 		}
+ 	}
+ 	spin_unlock_irq(&cpu_base->lock);
+@@ -674,12 +1125,19 @@ static inline void run_hrtimer_queue(str
+ 
+ /*
+  * Called from timer softirq every jiffy, expire hrtimers:
++ *
++ * For HRT its the fall back code to run the softirq in the timer
++ * softirq context in case the hrtimer initialization failed or has
++ * not been done yet.
+  */
+ void hrtimer_run_queues(void)
+ {
+ 	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
+ 	int i;
+ 
++	if (hrtimer_hres_active())
++		return;
++
+ 	/*
+ 	 * This _is_ ugly: We have to check in the softirq context,
+ 	 * whether we can switch to highres and / or nohz mode. The
+@@ -688,7 +1146,8 @@ void hrtimer_run_queues(void)
+ 	 * check bit in the tick_oneshot code, otherwise we might
+ 	 * deadlock vs. xtime_lock.
+ 	 */
+-	tick_check_oneshot_change(1);
++	if (tick_check_oneshot_change(!hrtimer_is_hres_enabled()))
++		hrtimer_switch_to_hres();
+ 
+ 	hrtimer_get_softirq_time(cpu_base);
+ 
+@@ -716,6 +1175,9 @@ void hrtimer_init_sleeper(struct hrtimer
+ {
+ 	sl->timer.function = hrtimer_wakeup;
+ 	sl->task = task;
++#ifdef CONFIG_HIGH_RES_TIMERS
++	sl->timer.cb_mode = HRTIMER_CB_IRQSAFE_NO_RESTART;
++#endif
+ }
+ 
+ static int __sched do_nanosleep(struct hrtimer_sleeper *t, enum hrtimer_mode mode)
+@@ -726,7 +1188,8 @@ static int __sched do_nanosleep(struct h
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 		hrtimer_start(&t->timer, t->timer.expires, mode);
+ 
+-		schedule();
++		if (likely(t->task))
++			schedule();
+ 
+ 		hrtimer_cancel(&t->timer);
+ 		mode = HRTIMER_MODE_ABS;
+@@ -831,6 +1294,7 @@ static void __devinit init_hrtimers_cpu(
+ 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++)
+ 		cpu_base->clock_base[i].cpu_base = cpu_base;
+ 
++	hrtimer_init_hres(cpu_base);
+ }
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -843,10 +1307,13 @@ static void migrate_hrtimer_list(struct 
+ 
+ 	while ((node = rb_first(&old_base->active))) {
+ 		timer = rb_entry(node, struct hrtimer, node);
+-		BUG_ON(timer->state & HRTIMER_STATE_CALLBACK);
+-		__remove_hrtimer(timer, old_base, HRTIMER_STATE_INACTIVE);
++		BUG_ON(hrtimer_callback_running(timer));
++		__remove_hrtimer(timer, old_base, HRTIMER_STATE_INACTIVE, 0);
+ 		timer->base = new_base;
+-		enqueue_hrtimer(timer, new_base);
++		/*
++		 * Enqueue the timer. Allow reprogramming of the event device
++		 */
++		enqueue_hrtimer(timer, new_base, 1);
+ 	}
+ }
+ 
+@@ -859,6 +1326,8 @@ static void migrate_hrtimers(int cpu)
+ 	old_base = &per_cpu(hrtimer_bases, cpu);
+ 	new_base = &get_cpu_var(hrtimer_bases);
+ 
++	tick_cancel_sched_timer(cpu);
++
+ 	local_irq_disable();
+ 
+ 	spin_lock(&new_base->lock);
+@@ -910,5 +1379,8 @@ void __init hrtimers_init(void)
+ 	hrtimer_cpu_notify(&hrtimers_nb, (unsigned long)CPU_UP_PREPARE,
+ 			  (void *)(long)smp_processor_id());
+ 	register_cpu_notifier(&hrtimers_nb);
++#ifdef CONFIG_HIGH_RES_TIMERS
++	open_softirq(HRTIMER_SOFTIRQ, run_hrtimer_softirq, NULL);
++#endif
+ }
+ 
+diff -puN kernel/itimer.c~hrtimers-add-high-resolution-timer-support kernel/itimer.c
+--- a/kernel/itimer.c~hrtimers-add-high-resolution-timer-support
++++ a/kernel/itimer.c
+@@ -136,7 +136,7 @@ enum hrtimer_restart it_real_fn(struct h
+ 	send_group_sig_info(SIGALRM, SEND_SIG_PRIV, sig->tsk);
+ 
+ 	if (sig->it_real_incr.tv64 != 0) {
+-		hrtimer_forward(timer, timer->base->softirq_time,
++		hrtimer_forward(timer, hrtimer_cb_get_time(timer),
+ 				sig->it_real_incr);
+ 		return HRTIMER_RESTART;
+ 	}
+diff -puN kernel/posix-timers.c~hrtimers-add-high-resolution-timer-support kernel/posix-timers.c
+--- a/kernel/posix-timers.c~hrtimers-add-high-resolution-timer-support
++++ a/kernel/posix-timers.c
+@@ -356,7 +356,7 @@ static enum hrtimer_restart posix_timer_
+ 		if (timr->it.real.interval.tv64 != 0) {
+ 			timr->it_overrun +=
+ 				hrtimer_forward(timer,
+-						timer->base->softirq_time,
++						hrtimer_cb_get_time(timer),
+ 						timr->it.real.interval);
+ 			ret = HRTIMER_RESTART;
+ 			++timr->it_requeue_pending;
+diff -puN kernel/time/Kconfig~hrtimers-add-high-resolution-timer-support kernel/time/Kconfig
+--- a/kernel/time/Kconfig~hrtimers-add-high-resolution-timer-support
++++ a/kernel/time/Kconfig
+@@ -13,3 +13,13 @@ config NO_HZ
+ 	  This option enables a tickless system: timer interrupts will
+ 	  only trigger on an as-needed basis both when the system is
+ 	  busy and when the system is idle.
++
++config HIGH_RES_TIMERS
++	bool "High Resolution Timer Support"
++	depends on GENERIC_TIME && GENERIC_CLOCKEVENTS
++	select TICK_ONESHOT
++	help
++	  This option enables high resolution timer support. If your
++	  hardware is not capable then this option only increases
++	  the size of the kernel image.
++
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
