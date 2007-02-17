@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + esb2rom-warning-fixes.patch added to -mm tree
-Date: Sat, 17 Feb 2007 02:43:46 -0800
-Message-ID: <200702171045.l1HAj4UB025025@shell0.pdx.osdl.net>
+Subject: + amd76xrom-warning-fix.patch added to -mm tree
+Date: Sat, 17 Feb 2007 02:44:40 -0800
+Message-ID: <200702171045.l1HAjwG9025051@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55601 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55641 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965155AbXBQKpU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 05:45:20 -0500
+	id S1946632AbXBQKqK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 05:46:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     esb2rom warning fixes
+     amd76xrom warning fix
 has been added to the -mm tree.  Its filename is
-     esb2rom-warning-fixes.patch
+     amd76xrom-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,24 +25,23 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: esb2rom warning fixes
+Subject: amd76xrom warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/maps/esb2rom.c: In function 'esb2rom_init_one':
-drivers/mtd/maps/esb2rom.c:293: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
-
+drivers/mtd/maps/amd76xrom.c: In function 'amd76xrom_init_one':
+drivers/mtd/maps/amd76xrom.c:209: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
 
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/esb2rom.c |    4 ++--
+ drivers/mtd/maps/amd76xrom.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/maps/esb2rom.c~esb2rom-warning-fixes drivers/mtd/maps/esb2rom.c
---- a/drivers/mtd/maps/esb2rom.c~esb2rom-warning-fixes
-+++ a/drivers/mtd/maps/esb2rom.c
-@@ -289,8 +289,8 @@ static int __devinit esb2rom_init_one(st
+diff -puN drivers/mtd/maps/amd76xrom.c~amd76xrom-warning-fix drivers/mtd/maps/amd76xrom.c
+--- a/drivers/mtd/maps/amd76xrom.c~amd76xrom-warning-fix
++++ a/drivers/mtd/maps/amd76xrom.c
+@@ -205,8 +205,8 @@ static int __devinit amd76xrom_init_one 
  			(((unsigned long)(window->virt)) + offset);
  		map->map.size = 0xffffffffUL - map_top + 1UL;
  		/* Set the name of the map to the address I am trying */
@@ -51,8 +50,8 @@ diff -puN drivers/mtd/maps/esb2rom.c~esb2rom-warning-fixes drivers/mtd/maps/esb2
 +		sprintf(map->map_name, "%s @%08Lx",
 +			MOD_NAME, (unsigned long long)map->map.phys);
  
- 		/* Firmware hubs only use vpp when being programmed
- 		 * in a factory setting.  So in-place programming
+ 		/* There is no generic VPP support */
+ 		for(map->map.bankwidth = 32; map->map.bankwidth;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +73,7 @@ onenand_base-warning-fix.patch
 sc520cdp-warning-fix.patch
 netsc520-warning-fix.patch
 ck804xrom-warning-fix.patch
+esb2rom-warning-fixes.patch
 git-netdev-all.patch
 e1000-fix-shared-interrupt-warning-message-fix.patch
 Fabric7-VIOC-driver-fixes.patch
@@ -100,4 +100,4 @@ utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
 fb-sm501-framebuffer-driver-5-fix.patch
 git-gccbug-fixup.patch
-esb2rom-warning-fixes.patch
+amd76xrom-warning-fix.patch
