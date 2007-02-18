@@ -1,228 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - x86-consolidate-smp_send_stop.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:15:55 -0800
-Message-ID: <200702180215.l1I2Ft2g008438@shell0.pdx.osdl.net>
+Subject: - fix-i386-and-x86_64-fault-information-pollution.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 18:15:57 -0800
+Message-ID: <200702180215.l1I2FvqP008441@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55735 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55739 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993132AbXBRCQC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:16:02 -0500
+	id S2993131AbXBRCQE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:16:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, ak@suse.de, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, ak@suse.de, jbeulich@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: consolidate smp_send_stop()
+     Fix i386 and x86_64 fault information pollution
 has been removed from the -mm tree.  Its filename was
-     x86-consolidate-smp_send_stop.patch
+     fix-i386-and-x86_64-fault-information-pollution.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: consolidate smp_send_stop()
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: Fix i386 and x86_64 fault information pollution
+From: Jeff Dike <jdike@addtoit.com>
 
-Synchronize i386's smp_send_stop() with x86-64's in only try-locking the call
-lock to prevent deadlocks when called from panic().  In both version, disable
-interrupts before clearing the CPU off the online map to eliminate races with
-IRQ handlers inspecting this map.  Also in both versions, save/restore
-interrupts rather than disabling/ enabling them.
+A userspace fault or a kernelspace fault which will result in the immediate
+death of the process.  They should not be filled in as a result of a
+kernelspace fault which can be fixed up.
 
-On x86-64, eliminate one function used here by folding it into its single
-caller, convert to static, and rename for consistency with i386 (lkcd may like
-this).
+Otherwise, if the process is handling SIGSEGV and examining the fault
+information, this can result in the kernel space fault trashing the
+previously stored fault information if it arrives between the userspace
+fault happening and the SIGSEGV being delivered to the process.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Acked-by: Jan Beulich <jbeulich@novell.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smp.c   |   70 ++++++++++++++++++++-----------------
- arch/x86_64/kernel/smp.c |   28 +++++---------
- include/asm-x86_64/smp.h |    1 
- 3 files changed, 49 insertions(+), 50 deletions(-)
+ arch/i386/kernel/traps.c   |   24 ++++++++++++++++++------
+ arch/x86_64/kernel/traps.c |   30 +++++++++++++++++++++++-------
+ 2 files changed, 41 insertions(+), 13 deletions(-)
 
-diff -puN arch/i386/kernel/smp.c~x86-consolidate-smp_send_stop arch/i386/kernel/smp.c
---- a/arch/i386/kernel/smp.c~x86-consolidate-smp_send_stop
-+++ a/arch/i386/kernel/smp.c
-@@ -516,35 +516,14 @@ void unlock_ipi_call_lock(void)
- 
- static struct call_data_struct *call_data;
- 
--/**
-- * smp_call_function(): Run a function on all other CPUs.
-- * @func: The function to run. This must be fast and non-blocking.
-- * @info: An arbitrary pointer to pass to the function.
-- * @nonatomic: currently unused.
-- * @wait: If true, wait (atomically) until function has completed on other CPUs.
-- *
-- * Returns 0 on success, else a negative status code. Does not return until
-- * remote CPUs are nearly ready to execute <<func>> or are or have executed.
-- *
-- * You must not call this function with disabled interrupts or from a
-- * hardware interrupt handler or from a bottom half handler.
-- */
--int smp_call_function (void (*func) (void *info), void *info, int nonatomic,
--			int wait)
-+static void __smp_call_function(void (*func) (void *info), void *info,
-+				int nonatomic, int wait)
+diff -puN arch/i386/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution
++++ a/arch/i386/kernel/traps.c
+@@ -477,8 +477,6 @@ static void __kprobes do_trap(int trapnr
+ 			      siginfo_t *info)
  {
- 	struct call_data_struct data;
--	int cpus;
-+	int cpus = num_online_cpus() - 1;
+ 	struct task_struct *tsk = current;
+-	tsk->thread.error_code = error_code;
+-	tsk->thread.trap_no = trapnr;
  
--	/* Holding any lock stops cpus from going down. */
--	spin_lock(&call_lock);
--	cpus = num_online_cpus() - 1;
--	if (!cpus) {
--		spin_unlock(&call_lock);
--		return 0;
--	}
--
--	/* Can deadlock when called with interrupts disabled */
--	WARN_ON(irqs_disabled());
-+	if (!cpus)
-+		return;
+ 	if (regs->eflags & VM_MASK) {
+ 		if (vm86)
+@@ -490,6 +488,18 @@ static void __kprobes do_trap(int trapnr
+ 		goto kernel_trap;
  
- 	data.func = func;
- 	data.info = info;
-@@ -566,6 +545,30 @@ int smp_call_function (void (*func) (voi
- 	if (wait)
- 		while (atomic_read(&data.finished) != cpus)
- 			cpu_relax();
-+}
+ 	trap_signal: {
++		/*
++		 * We want error_code and trap_no set for userspace faults and
++		 * kernelspace faults which result in die(), but not
++		 * kernelspace faults which are fixed up.  die() gives the
++		 * process no chance to handle the signal and notice the
++		 * kernel fault information, so that won't result in polluting
++		 * the information about previously queued, but not yet
++		 * delivered, faults.  See also do_general_protection below.
++		 */
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = trapnr;
 +
-+/**
-+ * smp_call_function(): Run a function on all other CPUs.
-+ * @func: The function to run. This must be fast and non-blocking.
-+ * @info: An arbitrary pointer to pass to the function.
-+ * @nonatomic: currently unused.
-+ * @wait: If true, wait (atomically) until function has completed on other CPUs.
-+ *
-+ * Returns 0 on success, else a negative status code. Does not return until
-+ * remote CPUs are nearly ready to execute <<func>> or are or have executed.
-+ *
-+ * You must not call this function with disabled interrupts or from a
-+ * hardware interrupt handler or from a bottom half handler.
-+ */
-+int smp_call_function (void (*func) (void *info), void *info, int nonatomic,
-+			int wait)
-+{
-+	/* Can deadlock when called with interrupts disabled */
-+	WARN_ON(irqs_disabled());
-+
-+	/* Holding any lock stops cpus from going down. */
-+	spin_lock(&call_lock);
-+	__smp_call_function(func, info, nonatomic, wait);
- 	spin_unlock(&call_lock);
+ 		if (info)
+ 			force_sig_info(signr, info, tsk);
+ 		else
+@@ -498,8 +508,11 @@ static void __kprobes do_trap(int trapnr
+ 	}
  
- 	return 0;
-@@ -574,11 +577,11 @@ EXPORT_SYMBOL(smp_call_function);
- 
- static void stop_this_cpu (void * dummy)
- {
-+	local_irq_disable();
- 	/*
- 	 * Remove this CPU:
- 	 */
- 	cpu_clear(smp_processor_id(), cpu_online_map);
--	local_irq_disable();
- 	disable_local_APIC();
- 	if (cpu_data[smp_processor_id()].hlt_works_ok)
- 		for(;;) halt();
-@@ -591,11 +594,16 @@ static void stop_this_cpu (void * dummy)
- 
- void smp_send_stop(void)
- {
--	smp_call_function(stop_this_cpu, NULL, 1, 0);
--
--	local_irq_disable();
-+	/* Don't deadlock on the call lock in panic */
-+	int nolock = !spin_trylock(&call_lock);
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__smp_call_function(stop_this_cpu, NULL, 0, 0);
-+	if (!nolock)
-+		spin_unlock(&call_lock);
- 	disable_local_APIC();
--	local_irq_enable();
-+	local_irq_restore(flags);
- }
- 
- /*
-diff -puN arch/x86_64/kernel/smp.c~x86-consolidate-smp_send_stop arch/x86_64/kernel/smp.c
---- a/arch/x86_64/kernel/smp.c~x86-consolidate-smp_send_stop
-+++ a/arch/x86_64/kernel/smp.c
-@@ -452,42 +452,34 @@ int smp_call_function (void (*func) (voi
- }
- EXPORT_SYMBOL(smp_call_function);
- 
--void smp_stop_cpu(void)
-+static void stop_this_cpu(void *dummy)
- {
--	unsigned long flags;
-+	local_irq_disable();
- 	/*
- 	 * Remove this CPU:
- 	 */
- 	cpu_clear(smp_processor_id(), cpu_online_map);
--	local_irq_save(flags);
- 	disable_local_APIC();
--	local_irq_restore(flags);
--}
--
--static void smp_really_stop_cpu(void *dummy)
--{
--	smp_stop_cpu(); 
- 	for (;;) 
- 		halt();
- } 
- 
- void smp_send_stop(void)
- {
--	int nolock = 0;
-+	int nolock;
-+	unsigned long flags;
-+
- 	if (reboot_force)
+ 	kernel_trap: {
+-		if (!fixup_exception(regs))
++		if (!fixup_exception(regs)) {
++			tsk->thread.error_code = error_code;
++			tsk->thread.trap_no = trapnr;
+ 			die(str, regs, error_code);
++		}
  		return;
-+
- 	/* Don't deadlock on the call lock in panic */
--	if (!spin_trylock(&call_lock)) {
--		/* ignore locking because we have panicked anyways */
--		nolock = 1;
--	}
--	__smp_call_function(smp_really_stop_cpu, NULL, 0, 0);
-+	nolock = !spin_trylock(&call_lock);
-+	local_irq_save(flags);
-+	__smp_call_function(stop_this_cpu, NULL, 0, 0);
- 	if (!nolock)
- 		spin_unlock(&call_lock);
+ 	}
+ 
+@@ -604,9 +617,6 @@ fastcall void __kprobes do_general_prote
+ 	}
+ 	put_cpu();
+ 
+-	current->thread.error_code = error_code;
+-	current->thread.trap_no = 13;
 -
--	local_irq_disable();
- 	disable_local_APIC();
--	local_irq_enable();
-+	local_irq_restore(flags);
+ 	if (regs->eflags & VM_MASK)
+ 		goto gp_in_vm86;
+ 
+@@ -625,6 +635,8 @@ gp_in_vm86:
+ 
+ gp_in_kernel:
+ 	if (!fixup_exception(regs)) {
++		current->thread.error_code = error_code;
++		current->thread.trap_no = 13;
+ 		if (notify_die(DIE_GPF, "general protection fault", regs,
+ 				error_code, 13, SIGSEGV) == NOTIFY_STOP)
+ 			return;
+diff -puN arch/x86_64/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution
++++ a/arch/x86_64/kernel/traps.c
+@@ -582,10 +582,20 @@ static void __kprobes do_trap(int trapnr
+ {
+ 	struct task_struct *tsk = current;
+ 
+-	tsk->thread.error_code = error_code;
+-	tsk->thread.trap_no = trapnr;
+-
+ 	if (user_mode(regs)) {
++		/*
++		 * We want error_code and trap_no set for userspace
++		 * faults and kernelspace faults which result in
++		 * die(), but not kernelspace faults which are fixed
++		 * up.  die() gives the process no chance to handle
++		 * the signal and notice the kernel fault information,
++		 * so that won't result in polluting the information
++		 * about previously queued, but not yet delivered,
++		 * faults.  See also do_general_protection below.
++		 */
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = trapnr;
++
+ 		if (exception_trace && unhandled_signal(tsk, signr))
+ 			printk(KERN_INFO
+ 			       "%s[%d] trap %s rip:%lx rsp:%lx error:%lx\n",
+@@ -606,8 +616,11 @@ static void __kprobes do_trap(int trapnr
+ 		fixup = search_exception_tables(regs->rip);
+ 		if (fixup)
+ 			regs->rip = fixup->fixup;
+-		else	
++		else {
++			tsk->thread.error_code = error_code;
++			tsk->thread.trap_no = trapnr;
+ 			die(str, regs, error_code);
++		}
+ 		return;
+ 	}
  }
+@@ -683,10 +696,10 @@ asmlinkage void __kprobes do_general_pro
  
- /*
-diff -puN include/asm-x86_64/smp.h~x86-consolidate-smp_send_stop include/asm-x86_64/smp.h
---- a/include/asm-x86_64/smp.h~x86-consolidate-smp_send_stop
-+++ a/include/asm-x86_64/smp.h
-@@ -37,7 +37,6 @@ extern void lock_ipi_call_lock(void);
- extern void unlock_ipi_call_lock(void);
- extern int smp_num_siblings;
- extern void smp_send_reschedule(int cpu);
--void smp_stop_cpu(void);
+ 	conditional_sti(regs);
  
- extern cpumask_t cpu_sibling_map[NR_CPUS];
- extern cpumask_t cpu_core_map[NR_CPUS];
+-	tsk->thread.error_code = error_code;
+-	tsk->thread.trap_no = 13;
+-
+ 	if (user_mode(regs)) {
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = 13;
++
+ 		if (exception_trace && unhandled_signal(tsk, SIGSEGV))
+ 			printk(KERN_INFO
+ 		       "%s[%d] general protection rip:%lx rsp:%lx error:%lx\n",
+@@ -705,6 +718,9 @@ asmlinkage void __kprobes do_general_pro
+ 			regs->rip = fixup->fixup;
+ 			return;
+ 		}
++
++		tsk->thread.error_code = error_code;
++		tsk->thread.trap_no = 13;
+ 		if (notify_die(DIE_GPF, "general protection fault", regs,
+ 					error_code, 13, SIGSEGV) == NOTIFY_STOP)
+ 			return;
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-adjust-legacy-ide-resource-setting-v2.patch
+uml-fix-prototypes.patch
