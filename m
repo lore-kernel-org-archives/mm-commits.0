@@ -1,69 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - ueagle-atmc-needs-schedh.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:15:21 -0800
-Message-ID: <200702180215.l1I2FLFN008382@shell0.pdx.osdl.net>
+Subject: - x86_64-irq-simplfy-__assign_irq_vector.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 18:15:33 -0800
+Message-ID: <200702180215.l1I2FXnC008401@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55758 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55762 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993142AbXBRCQp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:16:45 -0500
+	id S2993145AbXBRCQu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:16:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, ak@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ueagle-atm.c needs sched.h
+     x86_64 irq: Simplfy __assign_irq_vector
 has been removed from the -mm tree.  Its filename was
-     ueagle-atmc-needs-schedh.patch
+     x86_64-irq-simplfy-__assign_irq_vector.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ueagle-atm.c needs sched.h
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: x86_64 irq: Simplfy __assign_irq_vector
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Driver needs sched.h for try_to_freeze().
+By precomputing old_mask I remove an extra if statement, remove an
+indentation level and make the code slightly easier to read.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+This comes before my bugfix in the next patch so the patch and the
+resulting code stay readable.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/atm/ueagle-atm.c |    1 +
- 1 files changed, 1 insertion(+)
+ arch/x86_64/kernel/io_apic.c |   13 +++++--------
+ 1 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/atm/ueagle-atm.c~ueagle-atmc-needs-schedh drivers/usb/atm/ueagle-atm.c
---- a/drivers/usb/atm/ueagle-atm.c~ueagle-atmc-needs-schedh
-+++ a/drivers/usb/atm/ueagle-atm.c
-@@ -61,6 +61,7 @@
- #include <linux/usb.h>
- #include <linux/firmware.h>
- #include <linux/ctype.h>
-+#include <linux/sched.h>
- #include <linux/kthread.h>
- #include <linux/version.h>
- #include <linux/mutex.h>
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-irq-simplfy-__assign_irq_vector arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-irq-simplfy-__assign_irq_vector
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -685,6 +685,7 @@ static int __assign_irq_vector(int irq, 
+ 	 * 0x80, because int 0x80 is hm, kind of importantish. ;)
+ 	 */
+ 	static int current_vector = FIRST_DEVICE_VECTOR, current_offset = 0;
++	cpumask_t old_mask = CPU_MASK_NONE;
+ 	int old_vector = -1;
+ 	int cpu;
+ 
+@@ -699,11 +700,12 @@ static int __assign_irq_vector(int irq, 
+ 		cpus_and(*result, irq_domain[irq], mask);
+ 		if (!cpus_empty(*result))
+ 			return old_vector;
++		cpus_and(old_mask, irq_domain[irq], cpu_online_map);
+ 	}
+ 
+ 	for_each_cpu_mask(cpu, mask) {
+ 		cpumask_t domain, new_mask;
+-		int new_cpu;
++		int new_cpu, old_cpu;
+ 		int vector, offset;
+ 
+ 		domain = vector_allocation_domain(cpu);
+@@ -728,13 +730,8 @@ next:
+ 		/* Found one! */
+ 		current_vector = vector;
+ 		current_offset = offset;
+-		if (old_vector >= 0) {
+-			cpumask_t old_mask;
+-			int old_cpu;
+-			cpus_and(old_mask, irq_domain[irq], cpu_online_map);
+-			for_each_cpu_mask(old_cpu, old_mask)
+-				per_cpu(vector_irq, old_cpu)[old_vector] = -1;
+-		}
++		for_each_cpu_mask(old_cpu, old_mask)
++			per_cpu(vector_irq, old_cpu)[old_vector] = -1;
+ 		for_each_cpu_mask(new_cpu, new_mask)
+ 			per_cpu(vector_irq, new_cpu)[vector] = irq;
+ 		irq_vector[irq] = vector;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-git-acpi.patch
-git-drm.patch
-sata-use-null-for-ptrs.patch
-git-mtd.patch
-git-netdev-all.patch
-phy-layer-add-kernel-doc-docbook.patch
-git-parisc.patch
-x86-dont-probe-for-ddc-on-vbe12.patch
-kernel-doc-include-struct-short-description-in-title.patch
-tty-use-null-for-ptrs.patch
-cdrom-use-unsigned-bitfields.patch
-update-doc-oops-tracingtxt-for-taint_user.patch
-update-doc-oops-tracingtxt-for-taint_user-fix.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+git-v9fs.patch
+i386-irq-kill-irq-compression.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+allow-access-to-proc-pid-fd-after-setuid-update-2.patch
+shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
+shm-make-sysv-ipc-shared-memory-use-stacked-files-real-fix.patch
+edac-k8-driver-coding-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
