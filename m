@@ -1,77 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - usb-remove-airprime-device-from-optionc.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:15:23 -0800
-Message-ID: <200702180215.l1I2FNMc008385@shell0.pdx.osdl.net>
+Subject: - ecryptfs-convert-lookup_one_len-to-lookup_one_len_nd.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 18:15:19 -0800
+Message-ID: <200702180215.l1I2FJ9Z008379@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55678 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55670 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993112AbXBRCP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:15:28 -0500
+	id S2993108AbXBRCPY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:15:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@sierrawireless.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: remove Airprime device from option.c
+     eCryptfs: convert lookup_one_len() to lookup_one_len_nd()
 has been removed from the -mm tree.  Its filename was
-     usb-remove-airprime-device-from-optionc.patch
+     ecryptfs-convert-lookup_one_len-to-lookup_one_len_nd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb: remove Airprime device from option.c
-From: Kevin Lloyd <linux@sierrawireless.com>
+Subject: eCryptfs: convert lookup_one_len() to lookup_one_len_nd()
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Remove the Airprime 5220 device (branded as Audiovox) from the option.c
-driver.  This device is already supported by the sierra.c driver.
+Call the new lookup_one_len_nd() rather than lookup_one_len().  This fixes an
+oops when stacked on NFS.
 
-Signed-off-by: Kevin Lloyd <linux@sierrawireless.com>
-Cc: Greg KH <greg@kroah.com>
+Note that there are still some issues with eCryptfs on NFS having to do with
+directory deletion (I'm not getting an oops, just an -EBUSY).
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/ecryptfs/inode.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/serial/option.c~usb-remove-airprime-device-from-optionc drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-remove-airprime-device-from-optionc
-+++ a/drivers/usb/serial/option.c
-@@ -69,7 +69,6 @@ static int  option_send_setup(struct usb
- /* Vendor and product IDs */
- #define OPTION_VENDOR_ID                0x0AF0
- #define HUAWEI_VENDOR_ID                0x12D1
--#define AUDIOVOX_VENDOR_ID              0x0F3D
- #define NOVATELWIRELESS_VENDOR_ID       0x1410
- #define ANYDATA_VENDOR_ID               0x16d5
- 
-@@ -81,7 +80,6 @@ static int  option_send_setup(struct usb
- #define OPTION_PRODUCT_GTMAX36          0x6701
- #define HUAWEI_PRODUCT_E600             0x1001
- #define HUAWEI_PRODUCT_E220             0x1003
--#define AUDIOVOX_PRODUCT_AIRCARD        0x0112
- #define NOVATELWIRELESS_PRODUCT_U740    0x1400
- #define ANYDATA_PRODUCT_ID              0x6501
- 
-@@ -94,7 +92,6 @@ static struct usb_device_id option_ids[]
- 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_GTMAX36) },
- 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E600) },
- 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E220) },
--	{ USB_DEVICE(AUDIOVOX_VENDOR_ID, AUDIOVOX_PRODUCT_AIRCARD) },
- 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID,NOVATELWIRELESS_PRODUCT_U740) },
- 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ID) },
- 	{ } /* Terminating entry */
-@@ -109,7 +106,6 @@ static struct usb_device_id option_ids1[
- 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_GTMAX36) },
- 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E600) },
- 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E220) },
--	{ USB_DEVICE(AUDIOVOX_VENDOR_ID, AUDIOVOX_PRODUCT_AIRCARD) },
- 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID,NOVATELWIRELESS_PRODUCT_U740) },
- 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ID) },
- 	{ } /* Terminating entry */
+diff -puN fs/ecryptfs/inode.c~ecryptfs-convert-lookup_one_len-to-lookup_one_len_nd fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-convert-lookup_one_len-to-lookup_one_len_nd
++++ a/fs/ecryptfs/inode.c
+@@ -283,7 +283,9 @@ static struct dentry *ecryptfs_lookup(st
+ 	int rc = 0;
+ 	struct dentry *lower_dir_dentry;
+ 	struct dentry *lower_dentry;
++	struct dentry *dentry_save;
+ 	struct vfsmount *lower_mnt;
++	struct vfsmount *mnt_save;
+ 	char *encoded_name;
+ 	unsigned int encoded_namelen;
+ 	struct ecryptfs_crypt_stat *crypt_stat = NULL;
+@@ -311,9 +313,13 @@ static struct dentry *ecryptfs_lookup(st
+ 	}
+ 	ecryptfs_printk(KERN_DEBUG, "encoded_name = [%s]; encoded_namelen "
+ 			"= [%d]\n", encoded_name, encoded_namelen);
+-	lower_dentry = lookup_one_len(encoded_name, lower_dir_dentry,
+-				      encoded_namelen - 1);
++	dentry_save = nd->dentry;
++	mnt_save = nd->mnt;
++	lower_dentry = lookup_one_len_nd(encoded_name, lower_dir_dentry,
++					 (encoded_namelen - 1), nd);
+ 	kfree(encoded_name);
++	nd->mnt = mnt_save;
++	nd->dentry = dentry_save;
+ 	if (IS_ERR(lower_dentry)) {
+ 		ecryptfs_printk(KERN_ERR, "ERR from lower_dentry\n");
+ 		rc = PTR_ERR(lower_dentry);
 _
 
-Patches currently in -mm which might be from linux@sierrawireless.com are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
+git-unionfs.patch
