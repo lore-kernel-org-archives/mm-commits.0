@@ -1,178 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - fix-i386-and-x86_64-fault-information-pollution.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:15:57 -0800
-Message-ID: <200702180215.l1I2FvqP008441@shell0.pdx.osdl.net>
+Subject: - no-need-to-use-traditional-for-processing-asm-in-i386-kernel.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 18:16:00 -0800
+Message-ID: <200702180216.l1I2G0kC008444@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55739 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55743 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993131AbXBRCQE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:16:04 -0500
+	id S2993138AbXBRCQM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:16:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, ak@suse.de, jbeulich@novell.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@muc.de, jeremy@xensource.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix i386 and x86_64 fault information pollution
+     No need to use -traditional for processing asm in i386/kernel/
 has been removed from the -mm tree.  Its filename was
-     fix-i386-and-x86_64-fault-information-pollution.patch
+     no-need-to-use-traditional-for-processing-asm-in-i386-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix i386 and x86_64 fault information pollution
-From: Jeff Dike <jdike@addtoit.com>
+Subject: No need to use -traditional for processing asm in i386/kernel/
 
-A userspace fault or a kernelspace fault which will result in the immediate
-death of the process.  They should not be filled in as a result of a
-kernelspace fault which can be fixed up.
 
-Otherwise, if the process is handling SIGSEGV and examining the fault
-information, this can result in the kernel space fault trashing the
-previously stored fault information if it arrives between the userspace
-fault happening and the SIGSEGV being delivered to the process.
-
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
-Acked-by: Jan Beulich <jbeulich@novell.com>
-Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/i386/kernel/traps.c   |   24 ++++++++++++++++++------
- arch/x86_64/kernel/traps.c |   30 +++++++++++++++++++++++-------
- 2 files changed, 41 insertions(+), 13 deletions(-)
-
-diff -puN arch/i386/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution
-+++ a/arch/i386/kernel/traps.c
-@@ -477,8 +477,6 @@ static void __kprobes do_trap(int trapnr
- 			      siginfo_t *info)
- {
- 	struct task_struct *tsk = current;
--	tsk->thread.error_code = error_code;
--	tsk->thread.trap_no = trapnr;
- 
- 	if (regs->eflags & VM_MASK) {
- 		if (vm86)
-@@ -490,6 +488,18 @@ static void __kprobes do_trap(int trapnr
- 		goto kernel_trap;
- 
- 	trap_signal: {
-+		/*
-+		 * We want error_code and trap_no set for userspace faults and
-+		 * kernelspace faults which result in die(), but not
-+		 * kernelspace faults which are fixed up.  die() gives the
-+		 * process no chance to handle the signal and notice the
-+		 * kernel fault information, so that won't result in polluting
-+		 * the information about previously queued, but not yet
-+		 * delivered, faults.  See also do_general_protection below.
-+		 */
-+		tsk->thread.error_code = error_code;
-+		tsk->thread.trap_no = trapnr;
-+
- 		if (info)
- 			force_sig_info(signr, info, tsk);
- 		else
-@@ -498,8 +508,11 @@ static void __kprobes do_trap(int trapnr
- 	}
- 
- 	kernel_trap: {
--		if (!fixup_exception(regs))
-+		if (!fixup_exception(regs)) {
-+			tsk->thread.error_code = error_code;
-+			tsk->thread.trap_no = trapnr;
- 			die(str, regs, error_code);
-+		}
- 		return;
- 	}
- 
-@@ -604,9 +617,6 @@ fastcall void __kprobes do_general_prote
- 	}
- 	put_cpu();
- 
--	current->thread.error_code = error_code;
--	current->thread.trap_no = 13;
--
- 	if (regs->eflags & VM_MASK)
- 		goto gp_in_vm86;
- 
-@@ -625,6 +635,8 @@ gp_in_vm86:
- 
- gp_in_kernel:
- 	if (!fixup_exception(regs)) {
-+		current->thread.error_code = error_code;
-+		current->thread.trap_no = 13;
- 		if (notify_die(DIE_GPF, "general protection fault", regs,
- 				error_code, 13, SIGSEGV) == NOTIFY_STOP)
- 			return;
-diff -puN arch/x86_64/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~fix-i386-and-x86_64-fault-information-pollution
-+++ a/arch/x86_64/kernel/traps.c
-@@ -582,10 +582,20 @@ static void __kprobes do_trap(int trapnr
- {
- 	struct task_struct *tsk = current;
- 
--	tsk->thread.error_code = error_code;
--	tsk->thread.trap_no = trapnr;
--
- 	if (user_mode(regs)) {
-+		/*
-+		 * We want error_code and trap_no set for userspace
-+		 * faults and kernelspace faults which result in
-+		 * die(), but not kernelspace faults which are fixed
-+		 * up.  die() gives the process no chance to handle
-+		 * the signal and notice the kernel fault information,
-+		 * so that won't result in polluting the information
-+		 * about previously queued, but not yet delivered,
-+		 * faults.  See also do_general_protection below.
-+		 */
-+		tsk->thread.error_code = error_code;
-+		tsk->thread.trap_no = trapnr;
-+
- 		if (exception_trace && unhandled_signal(tsk, signr))
- 			printk(KERN_INFO
- 			       "%s[%d] trap %s rip:%lx rsp:%lx error:%lx\n",
-@@ -606,8 +616,11 @@ static void __kprobes do_trap(int trapnr
- 		fixup = search_exception_tables(regs->rip);
- 		if (fixup)
- 			regs->rip = fixup->fixup;
--		else	
-+		else {
-+			tsk->thread.error_code = error_code;
-+			tsk->thread.trap_no = trapnr;
- 			die(str, regs, error_code);
-+		}
- 		return;
- 	}
- }
-@@ -683,10 +696,10 @@ asmlinkage void __kprobes do_general_pro
- 
- 	conditional_sti(regs);
- 
--	tsk->thread.error_code = error_code;
--	tsk->thread.trap_no = 13;
--
- 	if (user_mode(regs)) {
-+		tsk->thread.error_code = error_code;
-+		tsk->thread.trap_no = 13;
-+
- 		if (exception_trace && unhandled_signal(tsk, SIGSEGV))
- 			printk(KERN_INFO
- 		       "%s[%d] general protection rip:%lx rsp:%lx error:%lx\n",
-@@ -705,6 +718,9 @@ asmlinkage void __kprobes do_general_pro
- 			regs->rip = fixup->fixup;
- 			return;
- 		}
-+
-+		tsk->thread.error_code = error_code;
-+		tsk->thread.trap_no = 13;
- 		if (notify_die(DIE_GPF, "general protection fault", regs,
- 					error_code, 13, SIGSEGV) == NOTIFY_STOP)
- 			return;
-_
-
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
 origin.patch
-uml-fix-prototypes.patch
+xen-paravirt-fix-typo-in-sync_constant_test_bits-name.patch
+xen-paravirt-ignore-vgacon-if-hardware-not-present.patch
+xen-paravirt-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries.patch
+xen-paravirt-paravirt_ops-hooks-to-set-up-initial-pagetable.patch
+xen-paravirt-paravirt_ops-allocate-a-fixmap-slot.patch
+xen-paravirt-remove-ctor-for-pgd-cache.patch
+xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment.patch
+xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction.patch
+xen-paravirt-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+xen-paravirt-allocate-and-free-vmalloc-areas.patch
+xen-paravirt-add-nosegneg-capability-to-the-vsyscall-page-notes.patch
+xen-paravirt-add-xen-config-options-and-disable-unsupported-config-options.patch
+xen-paravirt-add-xen-interface-header-files.patch
+xen-paravirt-core-xen-implementation.patch
+xen-paravirt-core-xen-implementation-fix.patch
+xen-paravirt-add-the-xen-virtual-console-driver.patch
+xen-paravirt-add-xen-grant-table-support.patch
+xen-paravirt-add-the-xenbus-sysfs-and-virtual-device-hotplug-driver.patch
+xen-paravirt-add-xen-virtual-block-device-driver.patch
+xen-paravirt-add-the-xen-virtual-network-device-driver.patch
