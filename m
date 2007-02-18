@@ -1,49 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: + atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch added to -mm tree
-Date: Sat, 17 Feb 2007 17:20:04 -0700
-Message-ID: <200702180020.l1I0K5P9006205@shell0.pdx.osdl.net>
+Subject: + ide-fix-pmac-breakage.patch added to -mm tree
+Date: Sat, 17 Feb 2007 17:31:18 -0700
+Message-ID: <200702180031.l1I0VJm6006393@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51477 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51978 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965424AbXBRAUN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 19:20:13 -0500
+	id S965458AbXBRAbZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 19:31:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, bzolnier@gmail.com, paulus@samba.org
 
 
 The patch titled
-     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2
+     ide: fix pmac breakage
 has been added to the -mm tree.  Its filename is
-     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
+     ide-fix-pmac-breakage.patch
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2
+Subject: ide: fix pmac breakage
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Fix breakage added int he IDE devel tree.
+
+Add header, then fix
+
+drivers/ide/ppc/pmac.c: In function `pmac_ide_setup_dma':
+drivers/ide/ppc/pmac.c:2044: warning: assignment from incompatible pointer type
+drivers/ide/ppc/pmac.c: In function `pmac_ide_dma_host_on':
+drivers/ide/ppc/pmac.c:1989: warning: control reaches end of non-void function
+include/linux/pci.h: In function `pmac_ide_init':
+drivers/ide/ppc/pmac.c:1563: warning: ignoring return value of `pci_register_driver', declared with attribute warn_unused_result
+
+Then add some apparently-long-missing error handling.
+
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-powerpc/atomic.h |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/ide/ppc/pmac.c |   37 +++++++++++++++++++++++++------------
+ 1 files changed, 25 insertions(+), 12 deletions(-)
 
-diff -puN include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2 include/asm-powerpc/atomic.h
---- a/include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2
-+++ a/include/asm-powerpc/atomic.h
-@@ -420,7 +420,6 @@ static __inline__ long atomic64_dec_if_p
+diff -puN drivers/ide/ppc/pmac.c~ide-fix-pmac-breakage drivers/ide/ppc/pmac.c
+--- a/drivers/ide/ppc/pmac.c~ide-fix-pmac-breakage
++++ a/drivers/ide/ppc/pmac.c
+@@ -48,7 +48,7 @@
+ #include <asm/mediabay.h>
+ #endif
  
- #define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
+-#include "ide-timing.h"
++#include "../ide-timing.h"
  
--#define atomic64_cmpxchg(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
- #define atomic64_xchg(v, new) (xchg(&((v)->counter), new))
+ #undef IDE_PMAC_DEBUG
  
- /**
+@@ -1553,19 +1553,34 @@ static struct pci_driver pmac_ide_pci_dr
+ };
+ MODULE_DEVICE_TABLE(pci, pmac_ide_pci_match);
+ 
+-/* TODO: return error values */
+-static void __init pmac_ide_probe(void)
++static int __init pmac_ide_probe(void)
+ {
++	int error;
++
+ 	if (!machine_is(powermac))
+-		return;
++		return -ENODEV;
+ 
+ #ifdef CONFIG_BLK_DEV_IDE_PMAC_ATA100FIRST
+-	pci_register_driver(&pmac_ide_pci_driver);
+-	macio_register_driver(&pmac_ide_macio_driver);
++	error = pci_register_driver(&pmac_ide_pci_driver);
++	if (error)
++		goto out;
++	error = macio_register_driver(&pmac_ide_macio_driver);
++	if (error) {
++		pci_unregister_driver(&pmac_ide_pci_driver);
++		goto out;
++	}
+ #else
+-	macio_register_driver(&pmac_ide_macio_driver);
+-	pci_register_driver(&pmac_ide_pci_driver);
++	error = macio_register_driver(&pmac_ide_macio_driver);
++	if (error)
++		goto out;
++	error = pci_register_driver(&pmac_ide_pci_driver);
++	if (error) {
++		macio_unregister_driver(&pmac_ide_macio_driver);
++		goto out;
++	}
+ #endif
++out:
++	return error;
+ }
+ 
+ #ifdef CONFIG_BLK_DEV_IDEDMA_PMAC
+@@ -1985,7 +2000,7 @@ static void pmac_ide_dma_host_off(ide_dr
+ {
+ }
+ 
+-static int pmac_ide_dma_host_on(ide_drive_t *drive)
++static void pmac_ide_dma_host_on(ide_drive_t *drive)
+ {
+ }
+ 
+@@ -2075,9 +2090,7 @@ pmac_ide_setup_dma(pmac_ide_hwif_t *pmif
+ 
+ static int __init pmac_ide_init(void)
+ {
+-	pmac_ide_probe();
+-
+-	return 0;
++	return pmac_ide_probe();
+ }
+ 
+ module_init(pmac_ide_init);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -150,3 +228,4 @@ ia64-enable-config_debug_spinlock_sleep.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
+ide-fix-pmac-breakage.patch
