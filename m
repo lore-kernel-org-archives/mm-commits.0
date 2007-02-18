@@ -1,92 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - at91-correct-value-for-at91_rstc_key.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:14:40 -0800
-Message-ID: <200702180214.l1I2Een2008301@shell0.pdx.osdl.net>
+Subject: - usb-remove-airprime-device-from-optionc.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 18:15:23 -0800
+Message-ID: <200702180215.l1I2FNMc008385@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55650 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55678 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993099AbXBRCPJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:15:09 -0500
+	id S2993112AbXBRCP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:15:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan@linutronix.de, andrew@sanpeople.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: linux@sierrawireless.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     at91: correct value for AT91_RSTC_KEY
+     usb: remove Airprime device from option.c
 has been removed from the -mm tree.  Its filename was
-     at91-correct-value-for-at91_rstc_key.patch
+     usb-remove-airprime-device-from-optionc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: at91: correct value for AT91_RSTC_KEY
-From: Jan Altenberg <jan@linutronix.de>
+Subject: usb: remove Airprime device from option.c
+From: Kevin Lloyd <linux@sierrawireless.com>
 
-- Remove a duplicated define for AT91_RSTC_KEY
-- Set AT91_RSTC_KEY to the correct value
-- Replace the hardcoded keys in at91sam9620.c and at91sam9261.c
-  by AT91_RSTC_KEY
+Remove the Airprime 5220 device (branded as Audiovox) from the option.c
+driver.  This device is already supported by the sierra.c driver.
 
-Signed-off-by: Jan Altenberg <jan@linutronix.de>
-Acked-by: Andrew Victor <andrew@sanpeople.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Kevin Lloyd <linux@sierrawireless.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/at91sam9260.c      |    2 +-
- arch/arm/mach-at91/at91sam9261.c      |    2 +-
- include/asm-arm/arch-at91/at91_rstc.h |    3 +--
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/usb/serial/option.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/arm/mach-at91/at91sam9260.c~at91-correct-value-for-at91_rstc_key arch/arm/mach-at91/at91sam9260.c
---- a/arch/arm/mach-at91/at91sam9260.c~at91-correct-value-for-at91_rstc_key
-+++ a/arch/arm/mach-at91/at91sam9260.c
-@@ -247,7 +247,7 @@ static struct at91_gpio_bank at91sam9260
+diff -puN drivers/usb/serial/option.c~usb-remove-airprime-device-from-optionc drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c~usb-remove-airprime-device-from-optionc
++++ a/drivers/usb/serial/option.c
+@@ -69,7 +69,6 @@ static int  option_send_setup(struct usb
+ /* Vendor and product IDs */
+ #define OPTION_VENDOR_ID                0x0AF0
+ #define HUAWEI_VENDOR_ID                0x12D1
+-#define AUDIOVOX_VENDOR_ID              0x0F3D
+ #define NOVATELWIRELESS_VENDOR_ID       0x1410
+ #define ANYDATA_VENDOR_ID               0x16d5
  
- static void at91sam9260_reset(void)
- {
--	at91_sys_write(AT91_RSTC_CR, (0xA5 << 24) | AT91_RSTC_PROCRST | AT91_RSTC_PERRST);
-+	at91_sys_write(AT91_RSTC_CR, AT91_RSTC_KEY | AT91_RSTC_PROCRST | AT91_RSTC_PERRST);
- }
+@@ -81,7 +80,6 @@ static int  option_send_setup(struct usb
+ #define OPTION_PRODUCT_GTMAX36          0x6701
+ #define HUAWEI_PRODUCT_E600             0x1001
+ #define HUAWEI_PRODUCT_E220             0x1003
+-#define AUDIOVOX_PRODUCT_AIRCARD        0x0112
+ #define NOVATELWIRELESS_PRODUCT_U740    0x1400
+ #define ANYDATA_PRODUCT_ID              0x6501
  
- 
-diff -puN arch/arm/mach-at91/at91sam9261.c~at91-correct-value-for-at91_rstc_key arch/arm/mach-at91/at91sam9261.c
---- a/arch/arm/mach-at91/at91sam9261.c~at91-correct-value-for-at91_rstc_key
-+++ a/arch/arm/mach-at91/at91sam9261.c
-@@ -225,7 +225,7 @@ static struct at91_gpio_bank at91sam9261
- 
- static void at91sam9261_reset(void)
- {
--	at91_sys_write(AT91_RSTC_CR, (0xA5 << 24) | AT91_RSTC_PROCRST | AT91_RSTC_PERRST);
-+	at91_sys_write(AT91_RSTC_CR, AT91_RSTC_KEY | AT91_RSTC_PROCRST | AT91_RSTC_PERRST);
- }
- 
- 
-diff -puN include/asm-arm/arch-at91/at91_rstc.h~at91-correct-value-for-at91_rstc_key include/asm-arm/arch-at91/at91_rstc.h
---- a/include/asm-arm/arch-at91/at91_rstc.h~at91-correct-value-for-at91_rstc_key
-+++ a/include/asm-arm/arch-at91/at91_rstc.h
-@@ -17,7 +17,7 @@
- #define		AT91_RSTC_PROCRST	(1 << 0)		/* Processor Reset */
- #define		AT91_RSTC_PERRST	(1 << 2)		/* Peripheral Reset */
- #define		AT91_RSTC_EXTRST	(1 << 3)		/* External Reset */
--#define		AT91_RSTC_KEY		(0xff << 24)		/* KEY Password */
-+#define		AT91_RSTC_KEY		(0xa5 << 24)		/* KEY Password */
- 
- #define AT91_RSTC_SR		(AT91_RSTC + 0x04)	/* Reset Controller Status Register */
- #define		AT91_RSTC_URSTS		(1 << 0)		/* User Reset Status */
-@@ -34,6 +34,5 @@
- #define		AT91_RSTC_URSTEN	(1 << 0)		/* User Reset Enable */
- #define		AT91_RSTC_URSTIEN	(1 << 4)		/* User Reset Interrupt Enable */
- #define		AT91_RSTC_ERSTL		(0xf << 8)		/* External Reset Length */
--#define		AT91_RSTC_KEY		(0xff << 24)		/* KEY Password */
- 
- #endif
+@@ -94,7 +92,6 @@ static struct usb_device_id option_ids[]
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_GTMAX36) },
+ 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E600) },
+ 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E220) },
+-	{ USB_DEVICE(AUDIOVOX_VENDOR_ID, AUDIOVOX_PRODUCT_AIRCARD) },
+ 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID,NOVATELWIRELESS_PRODUCT_U740) },
+ 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ID) },
+ 	{ } /* Terminating entry */
+@@ -109,7 +106,6 @@ static struct usb_device_id option_ids1[
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_GTMAX36) },
+ 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E600) },
+ 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E220) },
+-	{ USB_DEVICE(AUDIOVOX_VENDOR_ID, AUDIOVOX_PRODUCT_AIRCARD) },
+ 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID,NOVATELWIRELESS_PRODUCT_U740) },
+ 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ID) },
+ 	{ } /* Terminating entry */
 _
 
-Patches currently in -mm which might be from jan@linutronix.de are
+Patches currently in -mm which might be from linux@sierrawireless.com are
 
 origin.patch
-git-arm.patch
-git-mips.patch
