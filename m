@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bus_remove_driver-fix.patch added to -mm tree
-Date: Sun, 18 Feb 2007 00:43:06 -0800
-Message-ID: <200702180843.l1I8h6A8013600@shell0.pdx.osdl.net>
+Subject: + local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix-2.patch added to -mm tree
+Date: Sun, 18 Feb 2007 14:34:21 -0800
+Message-ID: <200702182234.l1IMYMkf026419@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34417 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59475 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161128AbXBRInL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Feb 2007 03:43:11 -0500
+	id S1752303AbXBRWec (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Feb 2007 17:34:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: efault@gmx.de, greg@kroah.com
+Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     bus_remove_driver() fix
+     fix wrong definition of LOCAL_INIT in mips
 has been added to the -mm tree.  Its filename is
-     bus_remove_driver-fix.patch
+     local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bus_remove_driver() fix
-From: Mike Galbraith <efault@gmx.de>
+Subject: fix wrong definition of LOCAL_INIT in mips
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-The reason it's hanging is that nobody releases the driver, so we wait
-forever in driver_unregister().  With the below, box boots fine...
+fix wrong definition of LOCAL_INIT in mips
 
-Cc: Greg KH <greg@kroah.com>
+Applies on top of
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/bus.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-mips/local.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/bus.c~bus_remove_driver-fix drivers/base/bus.c
---- a/drivers/base/bus.c~bus_remove_driver-fix
-+++ a/drivers/base/bus.c
-@@ -588,6 +588,7 @@ void bus_remove_driver(struct device_dri
- 	driver_detach(drv);
- 	module_remove_driver(drv);
- 	kobject_unregister(&drv->kobj);
-+	driver_release(&drv->kobj);
- 	put_bus(drv->bus);
- }
+diff -puN include/asm-mips/local.h~local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix-2 include/asm-mips/local.h
+--- a/include/asm-mips/local.h~local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix-2
++++ a/include/asm-mips/local.h
+@@ -11,7 +11,7 @@ typedef struct
+ 	atomic_long_t a;
+ } local_t;
  
+-#define LOCAL_INIT(i)	{ local_LONG_INIT(i) }
++#define LOCAL_INIT(i)	{ ATOMIC_LONG_INIT(i) }
+ 
+ #define local_read(l)	atomic_long_read(&(l)->a)
+ #define local_set(l,i)	atomic_long_set(&(l)->a, (i))
 _
 
-Patches currently in -mm which might be from efault@gmx.de are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-bus_remove_driver-fix.patch
-readahead-call-scheme.patch
+origin.patch
+git-powerpc.patch
+git-mips.patch
+git-s390.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+local_t-architecture-independant-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-mips-extension-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix-2.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-powerpc-extension-fix.patch
+local_t-powerpc-extension-shrink-powerpc-localh.patch
+local_t-powerpc-extension-fix-build-fix.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-kconfig-menus-fix-2.patch
+linux-kernel-markers-kconfig-menus-fix-3.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-non-optimized-architectures.patch
+linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-fix.patch
+linux-kernel-markers-documentation-update-adds-context.patch
+linux-kernel-markers-documentation-update-markerh.patch
