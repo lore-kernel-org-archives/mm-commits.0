@@ -1,189 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - rdmsr_on_cpu-wrmsr_on_cpu.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:15:30 -0800
-Message-ID: <200702180215.l1I2FU4S008394@shell0.pdx.osdl.net>
+Subject: - i386-pit_latch_buggy-has-no-effect.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 18:15:42 -0800
+Message-ID: <200702180215.l1I2Fg1r008423@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55699 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55711 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993120AbXBRCPj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:15:39 -0500
+	id S2993123AbXBRCPr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:15:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@openvz.org, ak@suse.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: takada@mbf.nifty.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rdmsr_on_cpu, wrmsr_on_cpu
+     i386: pit_latch_buggy has no effect
 has been removed from the -mm tree.  Its filename was
-     rdmsr_on_cpu-wrmsr_on_cpu.patch
+     i386-pit_latch_buggy-has-no-effect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rdmsr_on_cpu, wrmsr_on_cpu
-From: Alexey Dobriyan <adobriyan@openvz.org>
+Subject: i386: pit_latch_buggy has no effect
+From: takada <takada@mbf.nifty.com>
 
-There was OpenVZ specific bug rendering some cpufreq drivers unusable on SMP. 
-In short, when cpufreq code thinks it confined itself to needed cpu by means
-of set_cpus_allowed() to execute rdmsr, some "virtual cpu" feature can migrate
-process to anywhere.  This triggers bugons and does wrong things in general.
+Eliminated the arch/i386/kernel/timers in 2.6.18, use clocksoures instead. 
+pit_latch_buggy was referred in timers/timer_tsc.c, and currently removed. 
+Therefore nobody refer it.
 
-This got fixed by introducing rdmsr_on_cpu and wrmsr_on_cpu executing rdmsr
-and wrmsr on given physical cpu by means of smp_call_function_single().
+Until 2.6.17, MediaGX's TSC works correctly.  after 2.6.18, warned "TSC
+appears to be running slowly.  Marking it as unstable".  So marked unstable
+TSC when CS55x0.
 
-Dave Jones mentioned cpufreq might be not only user of rdmsr_on_cpu() and
-wrmsr_on_cpu(), so I'm putting them into arch/{i386,x86_64}/lib/ .
-
-Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
 Cc: Andi Kleen <ak@suse.de>
-Acked-by: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/lib/Makefile       |    2 
- arch/i386/lib/msr-on-cpu.c   |   70 +++++++++++++++++++++++++++++++++
- arch/x86_64/lib/Makefile     |    2 
- arch/x86_64/lib/msr-on-cpu.c |    1 
- include/asm-i386/msr.h       |    3 +
- include/asm-x86_64/msr.h     |    2 
- 6 files changed, 79 insertions(+), 1 deletion(-)
+ arch/i386/kernel/cpu/cyrix.c |    2 +-
+ arch/i386/kernel/time.c      |    2 --
+ include/asm-i386/timer.h     |    2 --
+ 3 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/i386/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu arch/i386/lib/Makefile
---- a/arch/i386/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu
-+++ a/arch/i386/lib/Makefile
-@@ -7,3 +7,5 @@ lib-y = checksum.o delay.o usercopy.o ge
- 	bitops.o semaphore.o
- 
- lib-$(CONFIG_X86_USE_3DNOW) += mmx.o
-+
-+obj-y = msr-on-cpu.o
-diff -puN /dev/null arch/i386/lib/msr-on-cpu.c
---- /dev/null
-+++ a/arch/i386/lib/msr-on-cpu.c
-@@ -0,0 +1,70 @@
-+#include <linux/module.h>
-+#include <linux/preempt.h>
-+#include <linux/smp.h>
-+#include <asm/msr.h>
-+
-+#ifdef CONFIG_SMP
-+struct msr_info {
-+	u32 msr_no;
-+	u32 l, h;
-+};
-+
-+static void __rdmsr_on_cpu(void *info)
-+{
-+	struct msr_info *rv = info;
-+
-+	rdmsr(rv->msr_no, rv->l, rv->h);
-+}
-+
-+void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
-+{
-+	preempt_disable();
-+	if (smp_processor_id() == cpu)
-+		rdmsr(msr_no, *l, *h);
-+	else {
-+		struct msr_info rv;
-+
-+		rv.msr_no = msr_no;
-+		smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
-+		*l = rv.l;
-+		*h = rv.h;
-+	}
-+	preempt_enable();
-+}
-+
-+static void __wrmsr_on_cpu(void *info)
-+{
-+	struct msr_info *rv = info;
-+
-+	wrmsr(rv->msr_no, rv->l, rv->h);
-+}
-+
-+void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
-+{
-+	preempt_disable();
-+	if (smp_processor_id() == cpu)
-+		wrmsr(msr_no, l, h);
-+	else {
-+		struct msr_info rv;
-+
-+		rv.msr_no = msr_no;
-+		rv.l = l;
-+		rv.h = h;
-+		smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
-+	}
-+	preempt_enable();
-+}
-+#else
-+void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
-+{
-+	rdmsr(msr_no, *l, *h);
-+}
-+
-+void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
-+{
-+	wrmsr(msr_no, l, h);
-+}
-+#endif
-+
-+EXPORT_SYMBOL(rdmsr_on_cpu);
-+EXPORT_SYMBOL(wrmsr_on_cpu);
-diff -puN arch/x86_64/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu arch/x86_64/lib/Makefile
---- a/arch/x86_64/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu
-+++ a/arch/x86_64/lib/Makefile
-@@ -4,7 +4,7 @@
- 
- CFLAGS_csum-partial.o := -funroll-loops
- 
--obj-y := io.o iomap_copy.o
-+obj-y := io.o iomap_copy.o msr-on-cpu.o
- 
- lib-y := csum-partial.o csum-copy.o csum-wrappers.o delay.o \
- 	usercopy.o getuser.o putuser.o  \
-diff -puN /dev/null arch/x86_64/lib/msr-on-cpu.c
---- /dev/null
-+++ a/arch/x86_64/lib/msr-on-cpu.c
-@@ -0,0 +1 @@
-+#include "../../i386/lib/msr-on-cpu.c"
-diff -puN include/asm-i386/msr.h~rdmsr_on_cpu-wrmsr_on_cpu include/asm-i386/msr.h
---- a/include/asm-i386/msr.h~rdmsr_on_cpu-wrmsr_on_cpu
-+++ a/include/asm-i386/msr.h
-@@ -83,6 +83,9 @@ static inline void wrmsrl (unsigned long
- 			  : "c" (counter))
- #endif	/* !CONFIG_PARAVIRT */
- 
-+void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
-+void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
-+
- /* symbolic names for some interesting MSRs */
- /* Intel defined MSRs. */
- #define MSR_IA32_P5_MC_ADDR		0
-diff -puN include/asm-x86_64/msr.h~rdmsr_on_cpu-wrmsr_on_cpu include/asm-x86_64/msr.h
---- a/include/asm-x86_64/msr.h~rdmsr_on_cpu-wrmsr_on_cpu
-+++ a/include/asm-x86_64/msr.h
-@@ -160,6 +160,8 @@ static inline unsigned int cpuid_edx(uns
- #define MSR_IA32_UCODE_WRITE		0x79
- #define MSR_IA32_UCODE_REV		0x8b
- 
-+void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
-+void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
- 
+diff -puN arch/i386/kernel/cpu/cyrix.c~i386-pit_latch_buggy-has-no-effect arch/i386/kernel/cpu/cyrix.c
+--- a/arch/i386/kernel/cpu/cyrix.c~i386-pit_latch_buggy-has-no-effect
++++ a/arch/i386/kernel/cpu/cyrix.c
+@@ -279,7 +279,7 @@ static void __cpuinit init_cyrix(struct 
+ 		 */  
+ 		if (vendor == PCI_VENDOR_ID_CYRIX &&
+ 	 (device == PCI_DEVICE_ID_CYRIX_5510 || device == PCI_DEVICE_ID_CYRIX_5520))
+-			pit_latch_buggy = 1;
++			mark_tsc_unstable();
+ 	}
  #endif
+ 		c->x86_cache_size=16;	/* Yep 16K integrated cache thats it */
+diff -puN arch/i386/kernel/time.c~i386-pit_latch_buggy-has-no-effect arch/i386/kernel/time.c
+--- a/arch/i386/kernel/time.c~i386-pit_latch_buggy-has-no-effect
++++ a/arch/i386/kernel/time.c
+@@ -70,8 +70,6 @@
  
+ #include <asm/i8259.h>
+ 
+-int pit_latch_buggy;              /* extern */
+-
+ #include "do_timer.h"
+ 
+ unsigned int cpu_khz;	/* Detected as we calibrate the TSC */
+diff -puN include/asm-i386/timer.h~i386-pit_latch_buggy-has-no-effect include/asm-i386/timer.h
+--- a/include/asm-i386/timer.h~i386-pit_latch_buggy-has-no-effect
++++ a/include/asm-i386/timer.h
+@@ -5,8 +5,6 @@
+ 
+ #define TICK_SIZE (tick_nsec / 1000)
+ void setup_pit_timer(void);
+-/* Modifiers for buggy PIT handling */
+-extern int pit_latch_buggy;
+ extern int timer_ack;
+ extern int no_timer_check;
+ extern unsigned long long (*custom_sched_clock)(void);
 _
 
-Patches currently in -mm which might be from adobriyan@openvz.org are
+Patches currently in -mm which might be from takada@mbf.nifty.com are
 
 origin.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-lutimesat-simplify-utime2.patch
-lutimesat-extend-do_utimes-with-flags.patch
-lutimesat-actual-syscall-and-wire-up-on-i386.patch
