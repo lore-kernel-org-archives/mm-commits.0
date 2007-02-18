@@ -1,58 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - net-wan-pc300tooc-pci_module_init-to-pci_register_driver.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:14:52 -0800
-Message-ID: <200702180214.l1I2Eq4N008316@shell0.pdx.osdl.net>
+Subject: - atl1-bump-version-number.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 18:15:04 -0800
+Message-ID: <200702180215.l1I2F4al008354@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55640 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55646 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993090AbXBRCPE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:15:04 -0500
+	id S2993096AbXBRCPH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:15:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ricknu-0@student.ltu.se, khc@pm.waw.pl, mm-commits@vger.kernel.org
+To: jacliburn@bellsouth.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/wan/pc300too.c: pci_module_init to pci_register_driver
+     atl1: bump version number
 has been removed from the -mm tree.  Its filename was
-     net-wan-pc300tooc-pci_module_init-to-pci_register_driver.patch
+     atl1-bump-version-number.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net/wan/pc300too.c: pci_module_init to pci_register_driver
-From: Richard Knutsson <ricknu-0@student.ltu.se>
+Subject: atl1: bump version number
+From: Jay Cliburn <jacliburn@bellsouth.net>
 
-Convert pci_module_init() to pci_register_driver().
+Bump the version number.
 
-Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
+Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/pc300too.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/atl1/atl1_main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wan/pc300too.c~net-wan-pc300tooc-pci_module_init-to-pci_register_driver drivers/net/wan/pc300too.c
---- a/drivers/net/wan/pc300too.c~net-wan-pc300tooc-pci_module_init-to-pci_register_driver
-+++ a/drivers/net/wan/pc300too.c
-@@ -542,7 +542,7 @@ static int __init pc300_init_module(void
+diff -puN drivers/net/atl1/atl1_main.c~atl1-bump-version-number drivers/net/atl1/atl1_main.c
+--- a/drivers/net/atl1/atl1_main.c~atl1-bump-version-number
++++ a/drivers/net/atl1/atl1_main.c
+@@ -82,7 +82,7 @@
  
- 	CLOCK_BASE = use_crystal_clock ? 24576000 : pci_clock_freq;
+ #include "atl1.h"
  
--	return pci_module_init(&pc300_pci_driver);
-+	return pci_register_driver(&pc300_pci_driver);
- }
+-#define DRIVER_VERSION "2.0.6"
++#define DRIVER_VERSION "2.0.7"
  
- 
+ char atl1_driver_name[] = "atl1";
+ static const char atl1_driver_string[] = "Attansic L1 Ethernet Network Driver";
 _
 
-Patches currently in -mm which might be from ricknu-0@student.ltu.se are
+Patches currently in -mm which might be from jacliburn@bellsouth.net are
 
 origin.patch
-git-dvb.patch
-ide-pci-delkin_cbc-pci_module_init-to-pci_register_driver.patch
-mtd-maps-ck804xromc-pci_module_init-to-pci_register_driver.patch
 git-netdev-all.patch
-git-scsi-misc.patch
-drivers-scsi-aic7xxx_old-convert-to-generic-boolean-values.patch
