@@ -1,127 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: + ide-fix-pmac-breakage.patch added to -mm tree
-Date: Sat, 17 Feb 2007 17:31:18 -0700
-Message-ID: <200702180031.l1I0VJm6006393@shell0.pdx.osdl.net>
+Subject: + fix-missing-declaration-of-init_irq_proc.patch added to -mm tree
+Date: Sat, 17 Feb 2007 18:09:41 -0700
+Message-ID: <200702180109.l1I19g1Q006982@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51978 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53402 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965458AbXBRAbZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 19:31:25 -0500
+	id S2992972AbXBRBKJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 20:10:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, bzolnier@gmail.com, paulus@samba.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, tglx@linutronix.de
 
 
 The patch titled
-     ide: fix pmac breakage
+     fix missing declaration of init_irq_proc
 has been added to the -mm tree.  Its filename is
-     ide-fix-pmac-breakage.patch
+     fix-missing-declaration-of-init_irq_proc.patch
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ide: fix pmac breakage
+Subject: fix missing declaration of init_irq_proc
 From: Andrew Morton <akpm@osdl.org>
 
-Fix breakage added int he IDE devel tree.
+powerpc gets:
 
-Add header, then fix
+init/main.c: In function `do_basic_setup':
+init/main.c:714: warning: implicit declaration of function `init_irq_proc'
 
-drivers/ide/ppc/pmac.c: In function `pmac_ide_setup_dma':
-drivers/ide/ppc/pmac.c:2044: warning: assignment from incompatible pointer type
-drivers/ide/ppc/pmac.c: In function `pmac_ide_dma_host_on':
-drivers/ide/ppc/pmac.c:1989: warning: control reaches end of non-void function
-include/linux/pci.h: In function `pmac_ide_init':
-drivers/ide/ppc/pmac.c:1563: warning: ignoring return value of `pci_register_driver', declared with attribute warn_unused_result
+but we cannot include linux/irq.h in generic code.
 
-Then add some apparently-long-missing error handling.
+Fix it by moving the declaration into linux/interrupt.h instead.
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+And make sure all code that defines init_irq_proc() is including
+linux/interrupt.h.
+
+And nuke an ifdef-in-C
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/ide/ppc/pmac.c |   37 +++++++++++++++++++++++++------------
- 1 files changed, 25 insertions(+), 12 deletions(-)
+ arch/h8300/kernel/ints.c            |    1 +
+ arch/h8300/platform/h8s/ints.c      |    1 +
+ arch/m68k/kernel/ints.c             |    1 +
+ arch/m68knommu/platform/5307/ints.c |    1 +
+ include/linux/interrupt.h           |    9 +++++++++
+ include/linux/irq.h                 |    3 ---
+ init/main.c                         |    5 +----
+ 7 files changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ide/ppc/pmac.c~ide-fix-pmac-breakage drivers/ide/ppc/pmac.c
---- a/drivers/ide/ppc/pmac.c~ide-fix-pmac-breakage
-+++ a/drivers/ide/ppc/pmac.c
-@@ -48,7 +48,7 @@
- #include <asm/mediabay.h>
+diff -puN arch/h8300/kernel/ints.c~fix-missing-declaration-of-init_irq_proc arch/h8300/kernel/ints.c
+--- a/arch/h8300/kernel/ints.c~fix-missing-declaration-of-init_irq_proc
++++ a/arch/h8300/kernel/ints.c
+@@ -19,6 +19,7 @@
+ #include <linux/sched.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/seq_file.h>
++#include <linux/interrupt.h>
+ #include <linux/init.h>
+ #include <linux/random.h>
+ #include <linux/bootmem.h>
+diff -puN arch/h8300/platform/h8s/ints.c~fix-missing-declaration-of-init_irq_proc arch/h8300/platform/h8s/ints.c
+--- a/arch/h8300/platform/h8s/ints.c~fix-missing-declaration-of-init_irq_proc
++++ a/arch/h8300/platform/h8s/ints.c
+@@ -20,6 +20,7 @@
+ #include <linux/kernel_stat.h>
+ #include <linux/seq_file.h>
+ #include <linux/init.h>
++#include <linux/interrupt.h>
+ #include <linux/bootmem.h>
+ #include <linux/random.h>
+ #include <linux/hardirq.h>
+diff -puN arch/m68k/kernel/ints.c~fix-missing-declaration-of-init_irq_proc arch/m68k/kernel/ints.c
+--- a/arch/m68k/kernel/ints.c~fix-missing-declaration-of-init_irq_proc
++++ a/arch/m68k/kernel/ints.c
+@@ -28,6 +28,7 @@
+ #include <linux/module.h>
+ #include <linux/types.h>
+ #include <linux/sched.h>
++#include <linux/interrupt.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+diff -puN arch/m68knommu/platform/5307/ints.c~fix-missing-declaration-of-init_irq_proc arch/m68knommu/platform/5307/ints.c
+--- a/arch/m68knommu/platform/5307/ints.c~fix-missing-declaration-of-init_irq_proc
++++ a/arch/m68knommu/platform/5307/ints.c
+@@ -19,6 +19,7 @@
+ #include <linux/types.h>
+ #include <linux/init.h>
+ #include <linux/sched.h>
++#include <linux/interrupt.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/errno.h>
+ #include <linux/seq_file.h>
+diff -puN include/linux/interrupt.h~fix-missing-declaration-of-init_irq_proc include/linux/interrupt.h
+--- a/include/linux/interrupt.h~fix-missing-declaration-of-init_irq_proc
++++ a/include/linux/interrupt.h
+@@ -424,4 +424,13 @@ extern int probe_irq_off(unsigned long);
+ extern unsigned int probe_irq_mask(unsigned long);	/* returns mask of ISA interrupts */
  #endif
  
--#include "ide-timing.h"
-+#include "../ide-timing.h"
- 
- #undef IDE_PMAC_DEBUG
- 
-@@ -1553,19 +1553,34 @@ static struct pci_driver pmac_ide_pci_dr
- };
- MODULE_DEVICE_TABLE(pci, pmac_ide_pci_match);
- 
--/* TODO: return error values */
--static void __init pmac_ide_probe(void)
-+static int __init pmac_ide_probe(void)
- {
-+	int error;
++#ifdef CONFIG_PROC_FS
++/* Initialize /proc/irq/ */
++extern void init_irq_proc(void);
++#else
++static inline void init_irq_proc(void)
++{
++}
++#endif
 +
- 	if (!machine_is(powermac))
--		return;
-+		return -ENODEV;
- 
- #ifdef CONFIG_BLK_DEV_IDE_PMAC_ATA100FIRST
--	pci_register_driver(&pmac_ide_pci_driver);
--	macio_register_driver(&pmac_ide_macio_driver);
-+	error = pci_register_driver(&pmac_ide_pci_driver);
-+	if (error)
-+		goto out;
-+	error = macio_register_driver(&pmac_ide_macio_driver);
-+	if (error) {
-+		pci_unregister_driver(&pmac_ide_pci_driver);
-+		goto out;
-+	}
- #else
--	macio_register_driver(&pmac_ide_macio_driver);
--	pci_register_driver(&pmac_ide_pci_driver);
-+	error = macio_register_driver(&pmac_ide_macio_driver);
-+	if (error)
-+		goto out;
-+	error = pci_register_driver(&pmac_ide_pci_driver);
-+	if (error) {
-+		macio_unregister_driver(&pmac_ide_macio_driver);
-+		goto out;
-+	}
  #endif
-+out:
-+	return error;
- }
+diff -puN include/linux/irq.h~fix-missing-declaration-of-init_irq_proc include/linux/irq.h
+--- a/include/linux/irq.h~fix-missing-declaration-of-init_irq_proc
++++ a/include/linux/irq.h
+@@ -328,9 +328,6 @@ extern void note_interrupt(unsigned int 
+ /* Resending of interrupts :*/
+ void check_irq_resend(struct irq_desc *desc, unsigned int irq);
  
- #ifdef CONFIG_BLK_DEV_IDEDMA_PMAC
-@@ -1985,7 +2000,7 @@ static void pmac_ide_dma_host_off(ide_dr
- {
- }
- 
--static int pmac_ide_dma_host_on(ide_drive_t *drive)
-+static void pmac_ide_dma_host_on(ide_drive_t *drive)
- {
- }
- 
-@@ -2075,9 +2090,7 @@ pmac_ide_setup_dma(pmac_ide_hwif_t *pmif
- 
- static int __init pmac_ide_init(void)
- {
--	pmac_ide_probe();
+-/* Initialize /proc/irq/ */
+-extern void init_irq_proc(void);
 -
--	return 0;
-+	return pmac_ide_probe();
+ /* Enable/disable irq debugging output: */
+ extern int noirqdebug_setup(char *str);
+ 
+diff -puN init/main.c~fix-missing-declaration-of-init_irq_proc init/main.c
+--- a/init/main.c~fix-missing-declaration-of-init_irq_proc
++++ a/init/main.c
+@@ -41,6 +41,7 @@
+ #include <linux/cpuset.h>
+ #include <linux/efi.h>
+ #include <linux/tick.h>
++#include <linux/interrupt.h>
+ #include <linux/taskstats_kern.h>
+ #include <linux/delayacct.h>
+ #include <linux/unistd.h>
+@@ -709,11 +710,7 @@ static void __init do_basic_setup(void)
+ 	init_workqueues();
+ 	usermodehelper_init();
+ 	driver_init();
+-
+-#ifdef CONFIG_PROC_FS
+ 	init_irq_proc();
+-#endif
+-
+ 	do_initcalls();
  }
  
- module_init(pmac_ide_init);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -134,6 +167,7 @@ git-ia64.patch
 git-ieee1394.patch
 git-libata-all.patch
 sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+ide-fix-pmac-breakage.patch
 git-lxdialog-fixup.patch
 git-mtd.patch
 git-ubi.patch
@@ -227,5 +261,5 @@ shrink_slab-handle-bad-shrinkers.patch
 ia64-enable-config_debug_spinlock_sleep.patch
 squash-ipc-warnings.patch
 squash-udf-warnings.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
-ide-fix-pmac-breakage.patch
+local_t-powerpc-extension-fix-build-fix.patch
+fix-missing-declaration-of-init_irq_proc.patch
