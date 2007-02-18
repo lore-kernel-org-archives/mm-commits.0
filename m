@@ -1,140 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - bugfixes-and-new-hardware-support-for-arcnet-driver.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:15:16 -0800
-Message-ID: <200702180215.l1I2FGbx008376@shell0.pdx.osdl.net>
+Subject: + local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch added to -mm tree
+Date: Sat, 17 Feb 2007 19:44:51 -0800
+Message-ID: <200702180344.l1I3ipGt009693@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55809 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57108 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993158AbXBRCUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:20:55 -0500
+	id S1750798AbXBRDsT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 22:48:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmorrow@jmorrow.org, davem@davemloft.net, jeff@garzik.org, jmorrow@massspec.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, ralf@linux-mips.org
 
 
 The patch titled
-     bugfixes and new hardware support for arcnet driver
-has been removed from the -mm tree.  Its filename was
-     bugfixes-and-new-hardware-support-for-arcnet-driver.patch
+     local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix
+has been added to the -mm tree.  Its filename is
+     local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: bugfixes and new hardware support for arcnet driver
-From: Jeff Morrow <jmorrow@jmorrow.org>
+Subject: local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The modifications and bug fixes noted below were done by Realtime Control
-Works and Contemporary Control Systems, Inc, Jan 2005.  They were
-incorporated into the 2.6 kernel by Jeff Morrow of Sierra Analytics, Feb
-2007.  <jmorrow@massspec.com>
-
-The changes have been tested on a Contemporary Controls PCI20U-4000.
-
-Summary of changes:
-
-Arc-rawmode.c:
-      rx():
-      - Fixed error in received packet lengths; 256 byte packets were
-        being received as 257 bytes packets.
-
-      prepare_tx():
-      - Fixed error in transmit length calcs; 257 byte packets were being
-        transmitted as 260 byte packets.
-
-com20020.c:
-      com20020_check():
-      - We now load the SETUP2 register if the 'clockm' parameter is
-        non-zero, instead of checking for ARC_CAN_10MBIT. The user is
-        now responsible for whether or not SETUP2 is loaded.  If the
-        clock multiplier is non-zero, this means that the user wants a
-        baud rate greater than 2.5Mbps. This is not possible unless the
-        SETUP2 register is present (COM20020D, or COM20022). So, we're
-        relying on the user to be smart about what kind of chip he's
-        dealing with...
-
-com20020-pci.c
-      - Added several entries to com20020pci_id_table[].
-
-Signed-off-by: Jeff Morrow <jmorrow@massspec.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/arcnet/arc-rawmode.c  |    4 ++--
- drivers/net/arcnet/arcnet.c       |    2 +-
- drivers/net/arcnet/com20020-pci.c |    3 +++
- drivers/net/arcnet/com20020.c     |    2 +-
- 4 files changed, 7 insertions(+), 4 deletions(-)
+ include/asm-mips/local.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/arcnet/arcnet.c~bugfixes-and-new-hardware-support-for-arcnet-driver drivers/net/arcnet/arcnet.c
---- a/drivers/net/arcnet/arcnet.c~bugfixes-and-new-hardware-support-for-arcnet-driver
-+++ a/drivers/net/arcnet/arcnet.c
-@@ -41,7 +41,7 @@
-  *     <jojo@repas.de>
-  */
+diff -puN include/asm-mips/local.h~local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix include/asm-mips/local.h
+--- a/include/asm-mips/local.h~local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix
++++ a/include/asm-mips/local.h
+@@ -13,13 +13,13 @@ typedef struct
  
--#define VERSION "arcnet: v3.93 BETA 2000/04/29 - by Avery Pennarun et al.\n"
-+#define VERSION "arcnet: v3.94 BETA 2007/02/08 - by Avery Pennarun et al.\n"
+ #define LOCAL_INIT(i)	{ local_LONG_INIT(i) }
  
- #include <linux/module.h>
- #include <linux/types.h>
-diff -puN drivers/net/arcnet/arc-rawmode.c~bugfixes-and-new-hardware-support-for-arcnet-driver drivers/net/arcnet/arc-rawmode.c
---- a/drivers/net/arcnet/arc-rawmode.c~bugfixes-and-new-hardware-support-for-arcnet-driver
-+++ a/drivers/net/arcnet/arc-rawmode.c
-@@ -94,7 +94,7 @@ static void rx(struct net_device *dev, i
+-#define local_read(l)	local_long_read(&(l)->a)
+-#define local_set(l,i)	local_long_set(&(l)->a, (i))
++#define local_read(l)	atomic_long_read(&(l)->a)
++#define local_set(l,i)	atomic_long_set(&(l)->a, (i))
  
- 	BUGMSG(D_DURING, "it's a raw packet (length=%d)\n", length);
+-#define local_add(i,l)	local_long_add((i),(&(l)->a))
+-#define local_sub(i,l)	local_long_sub((i),(&(l)->a))
+-#define local_inc(l)	local_long_inc(&(l)->a)
+-#define local_dec(l)	local_long_dec(&(l)->a)
++#define local_add(i,l)	atomic_long_add((i),(&(l)->a))
++#define local_sub(i,l)	atomic_long_sub((i),(&(l)->a))
++#define local_inc(l)	atomic_long_inc(&(l)->a)
++#define local_dec(l)	atomic_long_dec(&(l)->a)
  
--	if (length >= MinTU)
-+	if (length > MTU)
- 		ofs = 512 - length;
- 	else
- 		ofs = 256 - length;
-@@ -183,7 +183,7 @@ static int prepare_tx(struct net_device 
- 		       length, XMTU);
- 		length = XMTU;
- 	}
--	if (length > MinTU) {
-+	if (length >= MinTU) {
- 		hard->offset[0] = 0;
- 		hard->offset[1] = ofs = 512 - length;
- 	} else if (length > MTU) {
-diff -puN drivers/net/arcnet/com20020.c~bugfixes-and-new-hardware-support-for-arcnet-driver drivers/net/arcnet/com20020.c
---- a/drivers/net/arcnet/com20020.c~bugfixes-and-new-hardware-support-for-arcnet-driver
-+++ a/drivers/net/arcnet/com20020.c
-@@ -104,7 +104,7 @@ int com20020_check(struct net_device *de
- 	SET_SUBADR(SUB_SETUP1);
- 	outb(lp->setup, _XREG);
- 
--	if (lp->card_flags & ARC_CAN_10MBIT)
-+	if (lp->clockm != 0)
- 	{
- 		SET_SUBADR(SUB_SETUP2);
- 		outb(lp->setup2, _XREG);
-diff -puN drivers/net/arcnet/com20020-pci.c~bugfixes-and-new-hardware-support-for-arcnet-driver drivers/net/arcnet/com20020-pci.c
---- a/drivers/net/arcnet/com20020-pci.c~bugfixes-and-new-hardware-support-for-arcnet-driver
-+++ a/drivers/net/arcnet/com20020-pci.c
-@@ -155,6 +155,7 @@ static struct pci_device_id com20020pci_
- 	{ 0x1571, 0xa00b, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_IS_5MBIT },
- 	{ 0x1571, 0xa00c, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_IS_5MBIT },
- 	{ 0x1571, 0xa00d, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_IS_5MBIT },
-+	{ 0x1571, 0xa00e, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_IS_5MBIT },
- 	{ 0x1571, 0xa201, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
- 	{ 0x1571, 0xa202, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
- 	{ 0x1571, 0xa203, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
-@@ -163,6 +164,8 @@ static struct pci_device_id com20020pci_
- 	{ 0x1571, 0xa206, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
- 	{ 0x10B5, 0x9030, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
- 	{ 0x10B5, 0x9050, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
-+	{ 0x14BA, 0x6000, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
-+	{ 0x10B5, 0x2200, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ARC_CAN_10MBIT },
- 	{0,}
- };
- 
+ /*
+  * Same as above, but return the result value
 _
 
-Patches currently in -mm which might be from jmorrow@jmorrow.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+xfs-warning-fix.patch
+machzwd-warning-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-arm.patch
+git-powerpc.patch
+git-dvb.patch
+pvrusb-warning-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+sis-warning-fixes.patch
+dmaengine-uninline-large-functions.patch
+git-mips-fixup.patch
+git-mtd.patch
+onenand_base-warning-fix.patch
+sc520cdp-warning-fix.patch
+netsc520-warning-fix.patch
+ck804xrom-warning-fix.patch
+esb2rom-warning-fixes.patch
+amd76xrom-warning-fix.patch
+ichxrom-warning-fix.patch
+jffs2-warning-fixes.patch
+cafe-warning-fix.patch
 git-netdev-all.patch
+Fabric7-VIOC-driver-fixes.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+git-parisc.patch
+git-parisc-fixup.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-misc.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-wireless-fixup.patch
+after-before-x86_64-mm-mmconfig-share.patch
+xen-paravirt-core-xen-implementation-fix.patch
+mincore-warning-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+kprobes-list-all-active-probes-in-the-system.patch
+reduce-size-of-task_struct-on-64-bit-machines-fix.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-epoll-compat-code-to-kernel-compatc-tidy.patch
+genalloc-warning-fixes.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
+fb-sm501-framebuffer-driver-5-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
