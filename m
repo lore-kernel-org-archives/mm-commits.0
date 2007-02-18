@@ -1,69 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - git-gccbug-fixup.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:04:45 -0800
-Message-ID: <200702180204.l1I24jLP008166@shell0.pdx.osdl.net>
+Subject: + git-parisc-fixup.patch added to -mm tree
+Date: Sat, 17 Feb 2007 18:07:41 -0800
+Message-ID: <200702180207.l1I27fwl008205@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55508 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55536 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161048AbXBRCEr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:04:47 -0500
+	id S2993071AbXBRCHn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:07:43 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1I24khB021726
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1I27fhB021790
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 17 Feb 2007 18:04:46 -0800
+	for <mm-commits@vger.kernel.org>; Sat, 17 Feb 2007 18:07:41 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-gccbug-fixup
-has been removed from the -mm tree.  Its filename was
-     git-gccbug-fixup.patch
+     git-parisc-fixup
+has been added to the -mm tree.  Its filename is
+     git-parisc-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-gccbug-fixup
+Subject: git-parisc-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/net/kaweth.c |    4 ----
- kernel/auditfilter.c     |    4 ----
- 2 files changed, 8 deletions(-)
+ include/linux/sched.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/usb/net/kaweth.c~git-gccbug-fixup drivers/usb/net/kaweth.c
---- a/drivers/usb/net/kaweth.c~git-gccbug-fixup
-+++ a/drivers/usb/net/kaweth.c
-@@ -1291,11 +1291,7 @@ static int kaweth_internal_control_msg(s
- {
-         struct urb *urb;
-         int retv;
--<<<<<<< HEAD/drivers/usb/net/kaweth.c
--        int length = 0; /* shut up GCC */
+diff -puN include/linux/sched.h~git-parisc-fixup include/linux/sched.h
+--- a/include/linux/sched.h~git-parisc-fixup
++++ a/include/linux/sched.h
+@@ -1329,12 +1329,6 @@ extern int kill_pid_info(int sig, struct
+ extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
+ extern int kill_pgrp(struct pid *pid, int sig, int priv);
+ extern int kill_pid(struct pid *pid, int sig, int priv);
+-<<<<<<< HEAD/include/linux/sched.h
 -=======
-         int length = 0;
-->>>>>>> /drivers/usb/net/kaweth.c
- 
-         urb = usb_alloc_urb(0, GFP_NOIO);
-         if (!urb)
-diff -puN kernel/auditfilter.c~git-gccbug-fixup kernel/auditfilter.c
---- a/kernel/auditfilter.c~git-gccbug-fixup
-+++ a/kernel/auditfilter.c
-@@ -1604,10 +1604,6 @@ int audit_filter_user(struct netlink_skb
- {
- 	enum audit_state state = AUDIT_DISABLED;
- 	struct audit_entry *e;
--<<<<<<< HEAD/kernel/auditfilter.c
--=======
--	enum audit_state state = AUDIT_DISABLED;
-->>>>>>> /kernel/auditfilter.c
- 	int ret = 1;
- 
- 	rcu_read_lock();
+-extern int __kill_pg_info(int sig, struct siginfo *info, pid_t pgrp);
+-extern int kill_pg_info(int, struct siginfo *, pid_t);
+-extern int kill_proc_info(int, struct siginfo *, pid_t);
+->>>>>>> /include/linux/sched.h
+ extern void do_notify_parent(struct task_struct *, int);
+ extern void force_sig(int, struct task_struct *);
+ extern void force_sig_specific(int, struct task_struct *);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +90,7 @@ revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
 dmfe-add-support-for-suspend-resume-fix.patch
 sis900-warning-fixes.patch
 git-parisc.patch
+git-parisc-fixup.patch
 git-pciseg.patch
 git-s390.patch
 git-scsi-misc.patch
@@ -121,4 +112,3 @@ call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
 fb-sm501-framebuffer-driver-5-fix.patch
-git-gccbug-fixup.patch
