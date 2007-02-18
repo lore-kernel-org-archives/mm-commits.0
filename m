@@ -1,125 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - fix-mtrr-compat-ioctl.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 16:48:22 -0700
-Message-ID: <200702172348.l1HNmNUr005641@shell0.pdx.osdl.net>
+Subject: + atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch added to -mm tree
+Date: Sat, 17 Feb 2007 17:16:52 -0700
+Message-ID: <200702180016.l1I0GrwM006123@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50032 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51313 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965395AbXBQXty (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 18:49:54 -0500
+	id S2992894AbXBRARH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 19:17:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zwane@infradead.org, ak@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     Fix MTRR compat ioctl
-has been removed from the -mm tree.  Its filename was
-     fix-mtrr-compat-ioctl.patch
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix
+has been added to the -mm tree.  Its filename is
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
 
-This patch was dropped because it is obsolete
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Fix MTRR compat ioctl
-From: Zwane Mwaikambo <zwane@infradead.org>
+Subject: atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix
+From: Andrew Morton <akpm@osdl.org>
 
-The MTRR compat code wasn't calling the lowlevel MTRR setup due to a switch
-block not handling the compat case.
-
-Before:
-(WW) I810(0): Failed to set up write-combining range (0xd0000000,0x10000000)
-
-After:
-reg00: base=0x00000000 (   0MB), size=1024MB: write-back, count=1
-reg01: base=0x40000000 (1024MB), size= 512MB: write-back, count=1
-reg02: base=0x5f700000 (1527MB), size=   1MB: uncachable, count=1
-reg03: base=0x5f800000 (1528MB), size=   8MB: uncachable, count=1
-reg04: base=0xd0000000 (3328MB), size= 256MB: write-combining, count=1
-
-Signed-off-by: Zwane Mwaikambo <zwane@infradead.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: <stable@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/if.c |   33 +++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
+ include/asm-powerpc/atomic.h |   31 -------------------------------
+ 1 files changed, 31 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/if.c~fix-mtrr-compat-ioctl arch/i386/kernel/cpu/mtrr/if.c
---- a/arch/i386/kernel/cpu/mtrr/if.c~fix-mtrr-compat-ioctl
-+++ a/arch/i386/kernel/cpu/mtrr/if.c
-@@ -158,8 +158,9 @@ mtrr_ioctl(struct file *file, unsigned i
- 	struct mtrr_sentry sentry;
- 	struct mtrr_gentry gentry;
- 	void __user *arg = (void __user *) __arg;
-+	unsigned int compat_cmd = cmd;
+diff -puN include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix include/asm-powerpc/atomic.h
+--- a/include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix
++++ a/include/asm-powerpc/atomic.h
+@@ -418,37 +418,6 @@ static __inline__ long atomic64_dec_if_p
+ 	((__typeof__((v)->counter))cmpxchg(&((v)->counter), (o), (n)))
+ #define atomic64_xchg(v, new) (xchg(&((v)->counter), new))
  
--	switch (cmd) {
-+	switch (compat_cmd) {
- 	case MTRRIOC_ADD_ENTRY:
- 	case MTRRIOC_SET_ENTRY:
- 	case MTRRIOC_DEL_ENTRY:
-@@ -177,14 +178,20 @@ mtrr_ioctl(struct file *file, unsigned i
- 			return -EFAULT;
- 		break;
- #ifdef CONFIG_COMPAT
--	case MTRRIOC32_ADD_ENTRY:
--	case MTRRIOC32_SET_ENTRY:
--	case MTRRIOC32_DEL_ENTRY:
--	case MTRRIOC32_KILL_ENTRY:
--	case MTRRIOC32_ADD_PAGE_ENTRY:
--	case MTRRIOC32_SET_PAGE_ENTRY:
--	case MTRRIOC32_DEL_PAGE_ENTRY:
--	case MTRRIOC32_KILL_PAGE_ENTRY: {
-+#define MTRR_COMPAT_OP(op, type)\
-+	case MTRRIOC32_##op:	\
-+	cmd = MTRRIOC_##op;	\
-+	goto compat_get_##type
-+
-+	MTRR_COMPAT_OP(ADD_ENTRY, sentry);
-+	MTRR_COMPAT_OP(SET_ENTRY, sentry);
-+	MTRR_COMPAT_OP(DEL_ENTRY, sentry);
-+	MTRR_COMPAT_OP(KILL_ENTRY, sentry);
-+	MTRR_COMPAT_OP(ADD_PAGE_ENTRY, sentry);
-+	MTRR_COMPAT_OP(SET_PAGE_ENTRY, sentry);
-+	MTRR_COMPAT_OP(DEL_PAGE_ENTRY, sentry);
-+	MTRR_COMPAT_OP(KILL_PAGE_ENTRY, sentry);
-+compat_get_sentry: {
- 		struct mtrr_sentry32 __user *s32 = (struct mtrr_sentry32 __user *)__arg;
- 		err = get_user(sentry.base, &s32->base);
- 		err |= get_user(sentry.size, &s32->size);
-@@ -193,8 +200,9 @@ mtrr_ioctl(struct file *file, unsigned i
- 			return err;
- 		break;
- 	}
--	case MTRRIOC32_GET_ENTRY:
--	case MTRRIOC32_GET_PAGE_ENTRY: {
-+	MTRR_COMPAT_OP(GET_ENTRY, gentry);
-+	MTRR_COMPAT_OP(GET_PAGE_ENTRY, gentry);
-+compat_get_gentry: {
- 		struct mtrr_gentry32 __user *g32 = (struct mtrr_gentry32 __user *)__arg;
- 		err = get_user(gentry.regnum, &g32->regnum);
- 		err |= get_user(gentry.base, &g32->base);
-@@ -204,6 +212,7 @@ mtrr_ioctl(struct file *file, unsigned i
- 			return err;
- 		break;
- 	}
-+#undef MTRR_COMPAT_OP
- #endif
- 	}
+-/**
+- * atomic64_add_unless - add unless the number is a given value
+- * @v: pointer of type atomic64_t
+- * @a: the amount to add to v...
+- * @u: ...unless v is equal to u.
+- *
+- * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
+- */
+-static __inline__ int atomic64_add_unless(atomic64_t *v, long a, long u)
+-{
+-	long t;
+-
+-	__asm__ __volatile__ (
+-	LWSYNC_ON_SMP
+-"1:	ldarx	%0,0,%1		# atomic_add_unless\n\
+-	cmpd	0,%0,%3 \n\
+-	beq-	2f \n\
+-	add	%0,%2,%0 \n"
+-"	stdcx.	%0,0,%1 \n\
+-	bne-	1b \n"
+-	ISYNC_ON_SMP
+-"	subf	%0,%2,%0 \n\
+-2:"
+-	: "=&r" (t)
+-	: "r" (&v->counter), "r" (a), "r" (u)
+-	: "cc", "memory");
+-
+-	return t != u;
+-}
+-
+ #define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
  
-@@ -317,7 +326,7 @@ mtrr_ioctl(struct file *file, unsigned i
- 	if (err)
- 		return err;
- 
--	switch(cmd) {
-+	switch(compat_cmd) {
- 	case MTRRIOC_GET_ENTRY:
- 	case MTRRIOC_GET_PAGE_ENTRY:
- 		if (copy_to_user(arg, &gentry, sizeof gentry))
+ #define atomic64_cmpxchg(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
 _
 
-Patches currently in -mm which might be from zwane@infradead.org are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-acpi.patch
+git-dvb.patch
+git-ia64.patch
+git-ieee1394.patch
+git-libata-all.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-lxdialog-fixup.patch
+git-mtd.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+git-backlight.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-xfs-barriers-broke.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+consolidate-generic_writepages-and-mpage_writepages-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+rcu-preemptible-rcu.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+local_t-powerpc-extension-fix.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
