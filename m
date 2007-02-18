@@ -1,346 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - build-errors-uevent-with-config_sysfs=n.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:14:44 -0800
-Message-ID: <200702180214.l1I2Einp008304@shell0.pdx.osdl.net>
+Subject: - e1000-fix-shared-interrupt-warning-message-fix.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 18:14:48 -0800
+Message-ID: <200702180214.l1I2Ems7008310@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55622 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55621 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993087AbXBRCOu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S2993083AbXBRCOu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Sat, 17 Feb 2007 21:14:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, jesse.brandeburg@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     build errors: uevent with CONFIG_SYSFS=n
+     e1000-fix-shared-interrupt-warning-message-fix
 has been removed from the -mm tree.  Its filename was
-     build-errors-uevent-with-config_sysfs=n.patch
+     e1000-fix-shared-interrupt-warning-message-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: build errors: uevent with CONFIG_SYSFS=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: e1000-fix-shared-interrupt-warning-message-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix source files to build with CONFIG_SYSFS=n.  module_subsys is not
-available.
-
-SYSFS=n, MODULES=y:	T:y
-SYSFS=n, MODULES=n:	T:y
-
-SYSFS=y, MODULES=y:	T:y
-SYSFS=y, MODULES=n:	T:y
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h      |   53 ++++++++++++++++++++++++++++------
- include/linux/moduleparam.h |   12 +++++++
- kernel/module.c             |   14 ++++++--
- kernel/params.c             |   28 +++++++++--------
- 4 files changed, 81 insertions(+), 26 deletions(-)
+ drivers/net/e1000/e1000_main.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/module.h~build-errors-uevent-with-config_sysfs=n include/linux/module.h
---- a/include/linux/module.h~build-errors-uevent-with-config_sysfs=n
-+++ a/include/linux/module.h
-@@ -76,8 +76,6 @@ void sort_extable(struct exception_table
- 		  struct exception_table_entry *finish);
- void sort_main_extable(void);
+diff -puN drivers/net/e1000/e1000_main.c~e1000-fix-shared-interrupt-warning-message-fix drivers/net/e1000/e1000_main.c
+--- a/drivers/net/e1000/e1000_main.c~e1000-fix-shared-interrupt-warning-message-fix
++++ a/drivers/net/e1000/e1000_main.c
+@@ -1441,7 +1441,6 @@ e1000_open(struct net_device *netdev)
  
--extern struct subsystem module_subsys;
--
- #ifdef MODULE
- #define MODULE_GENERIC_TABLE(gtype,name)			\
- extern const struct gtype##_id __mod_##gtype##_table		\
-@@ -467,10 +465,6 @@ int unregister_module_notifier(struct no
- 
- extern void print_modules(void);
- 
--struct device_driver;
--void module_add_driver(struct module *, struct device_driver *);
--void module_remove_driver(struct device_driver *);
--
- #else /* !CONFIG_MODULES... */
- #define EXPORT_SYMBOL(sym)
- #define EXPORT_SYMBOL_GPL(sym)
-@@ -568,18 +562,59 @@ static inline void print_modules(void)
- {
- }
- 
-+#endif /* CONFIG_MODULES */
-+
- struct device_driver;
-+#ifdef CONFIG_SYSFS
- struct module;
- 
--static inline void module_add_driver(struct module *module, struct device_driver *driver)
-+extern struct subsystem module_subsys;
-+
-+int mod_sysfs_init(struct module *mod);
-+int mod_sysfs_setup(struct module *mod,
-+			   struct kernel_param *kparam,
-+			   unsigned int num_params);
-+int module_add_modinfo_attrs(struct module *mod);
-+void module_remove_modinfo_attrs(struct module *mod);
-+
-+#else /* !CONFIG_SYSFS */
-+
-+static inline int mod_sysfs_init(struct module *mod)
- {
-+	return 0;
- }
- 
--static inline void module_remove_driver(struct device_driver *driver)
-+static inline int mod_sysfs_setup(struct module *mod,
-+			   struct kernel_param *kparam,
-+			   unsigned int num_params)
- {
-+	return 0;
- }
- 
--#endif /* CONFIG_MODULES */
-+static inline int module_add_modinfo_attrs(struct module *mod)
-+{
-+	return 0;
-+}
-+
-+static inline void module_remove_modinfo_attrs(struct module *mod)
-+{ }
-+
-+#endif /* CONFIG_SYSFS */
-+
-+#if defined(CONFIG_SYSFS) && defined(CONFIG_MODULES)
-+
-+void module_add_driver(struct module *mod, struct device_driver *drv);
-+void module_remove_driver(struct device_driver *drv);
-+
-+#else /* not both CONFIG_SYSFS && CONFIG_MODULES */
-+
-+static inline void module_add_driver(struct module *mod, struct device_driver *drv)
-+{ }
-+
-+static inline void module_remove_driver(struct device_driver *drv)
-+{ }
-+
-+#endif
- 
- #define symbol_request(x) try_then_request_module(symbol_get(x), "symbol:" #x)
- 
-diff -puN include/linux/moduleparam.h~build-errors-uevent-with-config_sysfs=n include/linux/moduleparam.h
---- a/include/linux/moduleparam.h~build-errors-uevent-with-config_sysfs=n
-+++ a/include/linux/moduleparam.h
-@@ -169,10 +169,22 @@ extern int param_get_string(char *buffer
- 
- struct module;
- 
-+#if defined(CONFIG_SYSFS) && defined(CONFIG_MODULES)
- extern int module_param_sysfs_setup(struct module *mod,
- 				    struct kernel_param *kparam,
- 				    unsigned int num_params);
- 
- extern void module_param_sysfs_remove(struct module *mod);
-+#else
-+static inline int module_param_sysfs_setup(struct module *mod,
-+			     struct kernel_param *kparam,
-+			     unsigned int num_params)
-+{
-+	return 0;
-+}
-+
-+static inline void module_param_sysfs_remove(struct module *mod)
-+{ }
-+#endif
- 
- #endif /* _LINUX_MODULE_PARAMS_H */
-diff -puN kernel/module.c~build-errors-uevent-with-config_sysfs=n kernel/module.c
---- a/kernel/module.c~build-errors-uevent-with-config_sysfs=n
-+++ a/kernel/module.c
-@@ -1074,7 +1074,8 @@ static inline void remove_sect_attrs(str
- }
- #endif /* CONFIG_KALLSYMS */
- 
--static int module_add_modinfo_attrs(struct module *mod)
-+#ifdef CONFIG_SYSFS
-+int module_add_modinfo_attrs(struct module *mod)
- {
- 	struct module_attribute *attr;
- 	struct module_attribute *temp_attr;
-@@ -1100,7 +1101,7 @@ static int module_add_modinfo_attrs(stru
- 	return error;
- }
- 
--static void module_remove_modinfo_attrs(struct module *mod)
-+void module_remove_modinfo_attrs(struct module *mod)
- {
- 	struct module_attribute *attr;
- 	int i;
-@@ -1115,8 +1116,10 @@ static void module_remove_modinfo_attrs(
- 	}
- 	kfree(mod->modinfo_attrs);
- }
-+#endif
- 
--static int mod_sysfs_init(struct module *mod)
-+#ifdef CONFIG_SYSFS
-+int mod_sysfs_init(struct module *mod)
- {
- 	int err;
- 
-@@ -1139,7 +1142,7 @@ out:
- 	return err;
- }
- 
--static int mod_sysfs_setup(struct module *mod,
-+int mod_sysfs_setup(struct module *mod,
- 			   struct kernel_param *kparam,
- 			   unsigned int num_params)
- {
-@@ -1175,6 +1178,7 @@ out_unreg:
- out:
- 	return err;
- }
-+#endif
- 
- static void mod_kobject_remove(struct module *mod)
- {
-@@ -2348,6 +2352,7 @@ void print_modules(void)
- 	printk("\n");
- }
- 
-+#ifdef CONFIG_SYSFS
- static char *make_driver_name(struct device_driver *drv)
- {
- 	char *driver_name;
-@@ -2422,6 +2427,7 @@ void module_remove_driver(struct device_
- 	}
- }
- EXPORT_SYMBOL(module_remove_driver);
-+#endif
- 
- #ifdef CONFIG_MODVERSIONS
- /* Generate the signature for struct module here, too, for modversions. */
-diff -puN kernel/params.c~build-errors-uevent-with-config_sysfs=n kernel/params.c
---- a/kernel/params.c~build-errors-uevent-with-config_sysfs=n
-+++ a/kernel/params.c
-@@ -30,8 +30,6 @@
- #define DEBUGP(fmt, a...)
- #endif
- 
--static struct kobj_type module_ktype;
--
- static inline char dash2underscore(char c)
- {
- 	if (c == '-')
-@@ -391,6 +389,7 @@ struct module_param_attrs
- 	struct param_attribute attrs[0];
- };
- 
-+#ifdef CONFIG_SYSFS
- #define to_param_attr(n) container_of(n, struct param_attribute, mattr);
- 
- static ssize_t param_attr_show(struct module_attribute *mattr,
-@@ -426,6 +425,7 @@ static ssize_t param_attr_store(struct m
- 		return len;
- 	return err;
- }
-+#endif
- 
- #ifdef CONFIG_MODULES
- #define __modinit
-@@ -433,6 +433,7 @@ static ssize_t param_attr_store(struct m
- #define __modinit __init
- #endif
- 
-+#ifdef CONFIG_SYSFS
- /*
-  * param_sysfs_setup - setup sysfs support for one module or KBUILD_MODNAME
-  * @mk: struct module_kobject (contains parent kobject)
-@@ -500,9 +501,7 @@ param_sysfs_setup(struct module_kobject 
- 	return mp;
- }
- 
--
- #ifdef CONFIG_MODULES
--
- /*
-  * module_param_sysfs_setup - setup sysfs support for one module
-  * @mod: module
-@@ -625,7 +624,6 @@ static void __init param_sysfs_builtin(v
- 
- 
- /* module-related sysfs stuff */
--#ifdef CONFIG_SYSFS
- 
- #define to_module_attr(n) container_of(n, struct module_attribute, attr);
- #define to_module_kobject(n) container_of(n, struct module_kobject, kobj);
-@@ -673,6 +671,8 @@ static struct sysfs_ops module_sysfs_ops
- 	.store = module_attr_store,
- };
- 
-+static struct kobj_type module_ktype;
-+
- static int uevent_filter(struct kset *kset, struct kobject *kobj)
- {
- 	struct kobj_type *ktype = get_ktype(kobj);
-@@ -686,19 +686,12 @@ static struct kset_uevent_ops module_uev
- 	.filter = uevent_filter,
- };
- 
--#else
--static struct sysfs_ops module_sysfs_ops = {
--	.show = NULL,
--	.store = NULL,
--};
--#endif
-+decl_subsys(module, &module_ktype, &module_uevent_ops);
- 
- static struct kobj_type module_ktype = {
- 	.sysfs_ops =	&module_sysfs_ops,
- };
- 
--decl_subsys(module, &module_ktype, &module_uevent_ops);
--
- /*
-  * param_sysfs_init - wrapper for built-in params support
-  */
-@@ -720,6 +713,15 @@ static int __init param_sysfs_init(void)
- }
- subsys_initcall(param_sysfs_init);
- 
-+#else
-+#if 0
-+static struct sysfs_ops module_sysfs_ops = {
-+	.show = NULL,
-+	.store = NULL,
-+};
-+#endif
-+#endif
-+
- EXPORT_SYMBOL(param_set_byte);
- EXPORT_SYMBOL(param_get_byte);
- EXPORT_SYMBOL(param_set_short);
+ err_req_irq:
+ 	e1000_down(adapter);
+-	e1000_free_irq(adapter);
+ err_up:
+ 	e1000_power_down_phy(adapter);
+ 	e1000_free_all_rx_resources(adapter);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+xfs-warning-fix.patch
+machzwd-warning-fix.patch
+make-aout-executables-work-again-fix.patch
 git-acpi.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-arm.patch
+git-powerpc.patch
 git-drm.patch
-sata-use-null-for-ptrs.patch
+git-dvb.patch
+pvrusb-warning-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+sis-warning-fixes.patch
+dmaengine-uninline-large-functions.patch
+git-mips-fixup.patch
 git-mtd.patch
+onenand_base-warning-fix.patch
+sc520cdp-warning-fix.patch
+netsc520-warning-fix.patch
+ck804xrom-warning-fix.patch
+esb2rom-warning-fixes.patch
+amd76xrom-warning-fix.patch
+ichxrom-warning-fix.patch
+jffs2-warning-fixes.patch
+cafe-warning-fix.patch
 git-netdev-all.patch
-phy-layer-add-kernel-doc-docbook.patch
+Fabric7-VIOC-driver-fixes.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
 git-parisc.patch
-x86-dont-probe-for-ddc-on-vbe12.patch
-kernel-doc-include-struct-short-description-in-title.patch
-tty-use-null-for-ptrs.patch
-cdrom-use-unsigned-bitfields.patch
-update-doc-oops-tracingtxt-for-taint_user.patch
-update-doc-oops-tracingtxt-for-taint_user-fix.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+git-parisc-fixup.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-misc.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-wireless-fixup.patch
+after-before-x86_64-mm-mmconfig-share.patch
+xen-paravirt-core-xen-implementation-fix.patch
+mincore-warning-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+kprobes-list-all-active-probes-in-the-system.patch
+reduce-size-of-task_struct-on-64-bit-machines-fix.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-epoll-compat-code-to-kernel-compatc-tidy.patch
+genalloc-warning-fixes.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
+fb-sm501-framebuffer-driver-5-fix.patch
