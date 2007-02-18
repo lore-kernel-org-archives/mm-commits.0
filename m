@@ -1,58 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - sk98lin-planned-removal.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:15:09 -0800
-Message-ID: <200702180215.l1I2F9XT008361@shell0.pdx.osdl.net>
+Subject: - fix-atl1-braino.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 18:14:50 -0800
+Message-ID: <200702180214.l1I2Eov6008313@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55654 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55680 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993095AbXBRCPL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:15:11 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1I2F9hB022053
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 17 Feb 2007 18:15:10 -0800
+	id S2993113AbXBRCP3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:15:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: viro@ftp.linux.org.uk, jeff@garzik.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sk98lin: planned removal
+     fix atl1 braino
 has been removed from the -mm tree.  Its filename was
-     sk98lin-planned-removal.patch
+     fix-atl1-braino.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sk98lin: planned removal
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: fix atl1 braino
+From: Al Viro <viro@ftp.linux.org.uk>
 
-Nag message about planned sk98lin removal.
+Spot the bug...
 
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sk98lin/skge.c |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/net/atl1/atl1_hw.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/sk98lin/skge.c~sk98lin-planned-removal drivers/net/sk98lin/skge.c
---- a/drivers/net/sk98lin/skge.c~sk98lin-planned-removal
-+++ a/drivers/net/sk98lin/skge.c
-@@ -5188,6 +5188,9 @@ static struct pci_driver skge_driver = {
- 
- static int __init skge_init(void)
- {
-+	printk(KERN_NOTICE "sk98lin: driver has been replaced by the skge driver"
-+	       " and is scheduled for removal\n");
-+
- 	return pci_register_driver(&skge_driver);
+diff -puN drivers/net/atl1/atl1_hw.c~fix-atl1-braino drivers/net/atl1/atl1_hw.c
+--- a/drivers/net/atl1/atl1_hw.c~fix-atl1-braino
++++ a/drivers/net/atl1/atl1_hw.c
+@@ -357,7 +357,7 @@ void atl1_hash_set(struct atl1_hw *hw, u
+ 	 */
+ 	hash_reg = (hash_value >> 31) & 0x1;
+ 	hash_bit = (hash_value >> 26) & 0x1F;
+-	mta = ioread32((hw + REG_RX_HASH_TABLE) + (hash_reg << 2));
++	mta = ioread32((hw->hw_addr + REG_RX_HASH_TABLE) + (hash_reg << 2));
+ 	mta |= (1 << hash_bit);
+ 	iowrite32(mta, (hw->hw_addr + REG_RX_HASH_TABLE) + (hash_reg << 2));
  }
- 
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from viro@ftp.linux.org.uk are
 
 origin.patch
-git-netdev-all.patch
+git-acpi.patch
+slab-leaks3-default-y.patch
