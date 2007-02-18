@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-parisc-fixup.patch added to -mm tree
-Date: Sat, 17 Feb 2007 18:07:41 -0800
-Message-ID: <200702180207.l1I27fwl008205@shell0.pdx.osdl.net>
+Subject: + git-wireless-fixup.patch added to -mm tree
+Date: Sat, 17 Feb 2007 18:10:25 -0800
+Message-ID: <200702180210.l1I2AP96008240@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55536 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55562 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993071AbXBRCHn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:07:43 -0500
+	id S1161066AbXBRCK1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:10:27 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1I27fhB021790
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1I2APhB021860
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 17 Feb 2007 18:07:41 -0800
+	for <mm-commits@vger.kernel.org>; Sat, 17 Feb 2007 18:10:26 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-parisc-fixup
+     git-wireless-fixup
 has been added to the -mm tree.  Its filename is
-     git-parisc-fixup.patch
+     git-wireless-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,31 +29,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-parisc-fixup
+Subject: git-wireless-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    6 ------
- 1 file changed, 6 deletions(-)
+ net/ieee80211/softmac/ieee80211softmac_module.c |    6 ------
+ net/ieee80211/softmac/ieee80211softmac_wx.c     |    6 ------
+ 2 files changed, 12 deletions(-)
 
-diff -puN include/linux/sched.h~git-parisc-fixup include/linux/sched.h
---- a/include/linux/sched.h~git-parisc-fixup
-+++ a/include/linux/sched.h
-@@ -1329,12 +1329,6 @@ extern int kill_pid_info(int sig, struct
- extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
- extern int kill_pgrp(struct pid *pid, int sig, int priv);
- extern int kill_pid(struct pid *pid, int sig, int priv);
--<<<<<<< HEAD/include/linux/sched.h
+diff -puN net/ieee80211/softmac/ieee80211softmac_module.c~git-wireless-fixup net/ieee80211/softmac/ieee80211softmac_module.c
+--- a/net/ieee80211/softmac/ieee80211softmac_module.c~git-wireless-fixup
++++ a/net/ieee80211/softmac/ieee80211softmac_module.c
+@@ -265,18 +265,12 @@ void ieee80211softmac_init_bss(struct ie
+ 	/* Change the default txrate to the highest possible value.
+ 	 * The txrate machine will lower it, if it is too high.
+ 	 */
+-<<<<<<< HEAD/net/ieee80211/softmac/ieee80211softmac_module.c
+ 	/* FIXME: We don't correctly handle backing down to lower
+ 	   rates, so 801.11g devices start off at 11M for now. People
+ 	   can manually change it if they really need to, but 11M is
+ 	   more reliable. Note similar logic in
+ 	   ieee80211softmac_wx_set_rate() */
+ 	if (ieee->modulation & IEEE80211_CCK_MODULATION) {
 -=======
--extern int __kill_pg_info(int sig, struct siginfo *info, pid_t pgrp);
--extern int kill_pg_info(int, struct siginfo *, pid_t);
--extern int kill_proc_info(int, struct siginfo *, pid_t);
-->>>>>>> /include/linux/sched.h
- extern void do_notify_parent(struct task_struct *, int);
- extern void force_sig(int, struct task_struct *);
- extern void force_sig_specific(int, struct task_struct *);
+-	if (ieee->modulation & IEEE80211_OFDM_MODULATION)
+-		txrates->user_rate = IEEE80211_OFDM_RATE_24MB;
+-	else
+->>>>>>> /net/ieee80211/softmac/ieee80211softmac_module.c
+ 		txrates->user_rate = IEEE80211_CCK_RATE_11MB;
+ 
+ 	txrates->default_rate = IEEE80211_CCK_RATE_1MB;
+diff -puN net/ieee80211/softmac/ieee80211softmac_wx.c~git-wireless-fixup net/ieee80211/softmac/ieee80211softmac_wx.c
+--- a/net/ieee80211/softmac/ieee80211softmac_wx.c~git-wireless-fixup
++++ a/net/ieee80211/softmac/ieee80211softmac_wx.c
+@@ -177,18 +177,12 @@ ieee80211softmac_wx_set_rate(struct net_
+ 	int err = -EINVAL;
+ 
+ 	if (in_rate == -1) {
+-<<<<<<< HEAD/net/ieee80211/softmac/ieee80211softmac_wx.c
+ 		/* FIXME: We don't correctly handle backing down to lower
+ 		   rates, so 801.11g devices start off at 11M for now. People
+ 		   can manually change it if they really need to, but 11M is
+ 		   more reliable. Note similar logic in
+ 		   ieee80211softmac_wx_set_rate() */
+ 		if (ieee->modulation & IEEE80211_CCK_MODULATION)
+-=======
+-		if (ieee->modulation & IEEE80211_OFDM_MODULATION)
+-			in_rate = 24000000;
+-		else
+->>>>>>> /net/ieee80211/softmac/ieee80211softmac_wx.c
+ 			in_rate = 11000000;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,3 +141,4 @@ call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
 fb-sm501-framebuffer-driver-5-fix.patch
+git-wireless-fixup.patch
