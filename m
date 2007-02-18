@@ -1,59 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - b44-increase-wait-loop.patch removed from -mm tree
-Date: Sat, 17 Feb 2007 18:15:06 -0800
-Message-ID: <200702180215.l1I2F6mJ008357@shell0.pdx.osdl.net>
+Subject: - sk98lin-planned-removal.patch removed from -mm tree
+Date: Sat, 17 Feb 2007 18:15:09 -0800
+Message-ID: <200702180215.l1I2F9XT008361@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55653 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55654 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993101AbXBRCPK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 Feb 2007 21:15:10 -0500
+	id S2993095AbXBRCPL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 17 Feb 2007 21:15:11 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1I2F9hB022053
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 17 Feb 2007 18:15:10 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zambrano@broadcom.com, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     B44: increase wait loop
+     sk98lin: planned removal
 has been removed from the -mm tree.  Its filename was
-     b44-increase-wait-loop.patch
+     sk98lin-planned-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: B44: increase wait loop
-From: "Gary Zambrano" <zambrano@broadcom.com>
+Subject: sk98lin: planned removal
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-The b44 Enet control disable bit may take longer to clear on some systems,
-so the loop count is increased with this patch.  Functionality is not
-compromised, but a debug message can be seen when the bit is not cleared
-within the count value.  Thanks to Vasileios Lourdas who reported the
-problem.
+Nag message about planned sk98lin removal.
 
-Signed-off by: Gary Zambrano <zambrano@broadcom.com>
-
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/b44.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/sk98lin/skge.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/net/b44.c~b44-increase-wait-loop drivers/net/b44.c
---- a/drivers/net/b44.c~b44-increase-wait-loop
-+++ a/drivers/net/b44.c
-@@ -1289,7 +1289,7 @@ static void b44_chip_reset(struct b44 *b
- 	if (ssb_is_core_up(bp)) {
- 		bw32(bp, B44_RCV_LAZY, 0);
- 		bw32(bp, B44_ENET_CTRL, ENET_CTRL_DISABLE);
--		b44_wait_bit(bp, B44_ENET_CTRL, ENET_CTRL_DISABLE, 100, 1);
-+		b44_wait_bit(bp, B44_ENET_CTRL, ENET_CTRL_DISABLE, 200, 1);
- 		bw32(bp, B44_DMATX_CTRL, 0);
- 		bp->tx_prod = bp->tx_cons = 0;
- 		if (br32(bp, B44_DMARX_STAT) & DMARX_STAT_EMASK) {
+diff -puN drivers/net/sk98lin/skge.c~sk98lin-planned-removal drivers/net/sk98lin/skge.c
+--- a/drivers/net/sk98lin/skge.c~sk98lin-planned-removal
++++ a/drivers/net/sk98lin/skge.c
+@@ -5188,6 +5188,9 @@ static struct pci_driver skge_driver = {
+ 
+ static int __init skge_init(void)
+ {
++	printk(KERN_NOTICE "sk98lin: driver has been replaced by the skge driver"
++	       " and is scheduled for removal\n");
++
+ 	return pci_register_driver(&skge_driver);
+ }
+ 
 _
 
-Patches currently in -mm which might be from zambrano@broadcom.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-arm-dma-mappingh.patch
-avr32-dma-mappingh.patch
+origin.patch
 git-netdev-all.patch
