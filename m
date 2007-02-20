@@ -1,51 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - onenand_base-warning-fix.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 12:09:29 -0800
-Message-ID: <200702202009.l1KK9TFp018223@shell0.pdx.osdl.net>
+Subject: - sc520cdp-warning-fix.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 12:09:33 -0800
+Message-ID: <200702202009.l1KK9X4v018226@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46888 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46894 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965259AbXBTUJp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 15:09:45 -0500
+	id S965262AbXBTUJq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 15:09:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     onenand_base warning fix
+     sc520cdp warning fix
 has been removed from the -mm tree.  Its filename was
-     onenand_base-warning-fix.patch
+     sc520cdp-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: onenand_base warning fix
+Subject: sc520cdp warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/onenand/onenand_base.c: In function 'onenand_bbt_read_oob':
-drivers/mtd/onenand/onenand_base.c:1033: warning: format '%i' expects type 'int', but argument 3 has type 'size_t'
+drivers/mtd/maps/sc520cdp.c:241: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'resource_size_t'
+drivers/mtd/maps/netsc520.c: In function 'init_netsc520':
 
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/onenand/onenand_base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/maps/sc520cdp.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/onenand/onenand_base.c~onenand_base-warning-fix drivers/mtd/onenand/onenand_base.c
---- a/drivers/mtd/onenand/onenand_base.c~onenand_base-warning-fix
-+++ a/drivers/mtd/onenand/onenand_base.c
-@@ -1030,7 +1030,7 @@ int onenand_bbt_read_oob(struct mtd_info
- 	size_t len = ops->ooblen;
- 	u_char *buf = ops->oobbuf;
+diff -puN drivers/mtd/maps/sc520cdp.c~sc520cdp-warning-fix drivers/mtd/maps/sc520cdp.c
+--- a/drivers/mtd/maps/sc520cdp.c~sc520cdp-warning-fix
++++ a/drivers/mtd/maps/sc520cdp.c
+@@ -237,8 +237,9 @@ static int __init init_sc520cdp(void)
+ #endif
  
--	DEBUG(MTD_DEBUG_LEVEL3, "onenand_bbt_read_oob: from = 0x%08x, len = %i\n", (unsigned int) from, len);
-+	DEBUG(MTD_DEBUG_LEVEL3, "onenand_bbt_read_oob: from = 0x%08x, len = %zi\n", (unsigned int) from, len);
+ 	for (i = 0; i < NUM_FLASH_BANKS; i++) {
+-		printk(KERN_NOTICE "SC520 CDP flash device: 0x%lx at 0x%lx\n",
+-		       sc520cdp_map[i].size, sc520cdp_map[i].phys);
++		printk(KERN_NOTICE "SC520 CDP flash device: 0x%Lx at 0x%Lx\n",
++			(unsigned long long)sc520cdp_map[i].size,
++			(unsigned long long)sc520cdp_map[i].phys);
  
- 	/* Initialize return value */
- 	ops->oobretlen = 0;
+ 		sc520cdp_map[i].virt = ioremap_nocache(sc520cdp_map[i].phys, sc520cdp_map[i].size);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
