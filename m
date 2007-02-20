@@ -1,85 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - git-wireless-fixup.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 12:07:17 -0800
-Message-ID: <200702202007.l1KK7HVP018151@shell0.pdx.osdl.net>
+Subject: - machzwd-warning-fix.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 12:08:33 -0800
+Message-ID: <200702202008.l1KK8XSb018188@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46779 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46819 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965250AbXBTUHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 15:07:20 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1KK7IhB021754
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2007 12:07:18 -0800
+	id S965242AbXBTUIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 15:08:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-wireless-fixup
+     machzwd warning fix
 has been removed from the -mm tree.  Its filename was
-     git-wireless-fixup.patch
+     machzwd-warning-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-wireless-fixup
+Subject: machzwd warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/char/watchdog/machzwd.c: In function 'zf_ioctl':
+drivers/char/watchdog/machzwd.c:327: warning: passing argument 1 of 'zf_ping' makes integer from pointer without a cast
+
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ieee80211/softmac/ieee80211softmac_module.c |    8 +-------
- net/ieee80211/softmac/ieee80211softmac_wx.c     |    6 ------
- 2 files changed, 1 insertion(+), 13 deletions(-)
+ drivers/char/watchdog/machzwd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/ieee80211/softmac/ieee80211softmac_module.c~git-wireless-fixup net/ieee80211/softmac/ieee80211softmac_module.c
---- a/net/ieee80211/softmac/ieee80211softmac_module.c~git-wireless-fixup
-+++ a/net/ieee80211/softmac/ieee80211softmac_module.c
-@@ -265,18 +265,12 @@ void ieee80211softmac_init_bss(struct ie
- 	/* Change the default txrate to the highest possible value.
- 	 * The txrate machine will lower it, if it is too high.
- 	 */
--<<<<<<< HEAD/net/ieee80211/softmac/ieee80211softmac_module.c
- 	/* FIXME: We don't correctly handle backing down to lower
- 	   rates, so 801.11g devices start off at 11M for now. People
- 	   can manually change it if they really need to, but 11M is
- 	   more reliable. Note similar logic in
- 	   ieee80211softmac_wx_set_rate() */
--	if (ieee->modulation & IEEE80211_CCK_MODULATION) {
--=======
--	if (ieee->modulation & IEEE80211_OFDM_MODULATION)
--		txrates->user_rate = IEEE80211_OFDM_RATE_24MB;
--	else
-->>>>>>> /net/ieee80211/softmac/ieee80211softmac_module.c
-+	if (ieee->modulation & IEEE80211_CCK_MODULATION)
- 		txrates->user_rate = IEEE80211_CCK_RATE_11MB;
+diff -puN drivers/char/watchdog/machzwd.c~machzwd-warning-fix drivers/char/watchdog/machzwd.c
+--- a/drivers/char/watchdog/machzwd.c~machzwd-warning-fix
++++ a/drivers/char/watchdog/machzwd.c
+@@ -324,7 +324,7 @@ static int zf_ioctl(struct inode *inode,
+ 			return put_user(0, p);
  
- 	txrates->default_rate = IEEE80211_CCK_RATE_1MB;
-diff -puN net/ieee80211/softmac/ieee80211softmac_wx.c~git-wireless-fixup net/ieee80211/softmac/ieee80211softmac_wx.c
---- a/net/ieee80211/softmac/ieee80211softmac_wx.c~git-wireless-fixup
-+++ a/net/ieee80211/softmac/ieee80211softmac_wx.c
-@@ -177,18 +177,12 @@ ieee80211softmac_wx_set_rate(struct net_
- 	int err = -EINVAL;
+ 		case WDIOC_KEEPALIVE:
+-			zf_ping(NULL);
++			zf_ping(0);
+ 			break;
  
- 	if (in_rate == -1) {
--<<<<<<< HEAD/net/ieee80211/softmac/ieee80211softmac_wx.c
- 		/* FIXME: We don't correctly handle backing down to lower
- 		   rates, so 801.11g devices start off at 11M for now. People
- 		   can manually change it if they really need to, but 11M is
- 		   more reliable. Note similar logic in
- 		   ieee80211softmac_wx_set_rate() */
- 		if (ieee->modulation & IEEE80211_CCK_MODULATION)
--=======
--		if (ieee->modulation & IEEE80211_OFDM_MODULATION)
--			in_rate = 24000000;
--		else
-->>>>>>> /net/ieee80211/softmac/ieee80211softmac_wx.c
- 			in_rate = 11000000;
- 	}
- 
+ 		default:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,7 +75,6 @@ revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
 git-block-fixup.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
-git-wireless-fixup.patch
 after-before-x86_64-mm-mmconfig-share.patch
 xen-paravirt-core-xen-implementation-fix.patch
 mincore-warning-fix.patch
