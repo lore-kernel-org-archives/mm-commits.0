@@ -1,195 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - shm-make-sysv-ipc-shared-memory-use-stacked-files-real-fix.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 13:24:57 -0800
-Message-ID: <200702202126.l1KLQLqn020175@shell0.pdx.osdl.net>
+Subject: - kprobes-list-all-active-probes-in-the-system-fix.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 13:25:36 -0800
+Message-ID: <200702202127.l1KLR1bY020178@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50006 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50023 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030434AbXBTV0X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 16:26:23 -0500
+	id S1030433AbXBTV1H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 16:27:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, michal.k.k.piotrowski@gmail.com, mm-commits@vger.kernel.org
+To: ananth@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shm: fix the locking and cleanup error handling in do_shmat
+     kprobes-list-all-active-probes-in-the-system fix
 has been removed from the -mm tree.  Its filename was
-     shm-make-sysv-ipc-shared-memory-use-stacked-files-real-fix.patch
+     kprobes-list-all-active-probes-in-the-system-fix.patch
 
-This patch was dropped because it was folded into shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
+This patch was dropped because it was folded into kprobes-list-all-active-probes-in-the-system.patch
 
 ------------------------------------------------------
-Subject: shm: fix the locking and cleanup error handling in do_shmat
-From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: kprobes-list-all-active-probes-in-the-system fix
+From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 
-When enhancing do_shmat I forgot to take into account that shm_lock
-is a spinlock, and was allocating memory with the lock held.
+Fix kprobes compilation breakage on sparc64 caused due to
+kprobes-list-all-active-probes-in-the-system.patch
 
-This patch fixes that by grabbing a reference to the dentry and mounts of
-shm_file before we drop the shm_lock and then performing the memory
-allocations.
-
-This is also a bit of a general scrub on the error handling.  Everything is
-now forced through the single return statement for clarity, and the
-handling of the return address now uses fewer casts.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   53 +++++++++++++++++++++++++++++-----------------------
- 1 files changed, 30 insertions(+), 23 deletions(-)
+ kernel/kprobes.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN ipc/shm.c~shm-make-sysv-ipc-shared-memory-use-stacked-files-real-fix ipc/shm.c
---- a/ipc/shm.c~shm-make-sysv-ipc-shared-memory-use-stacked-files-real-fix
-+++ a/ipc/shm.c
-@@ -816,15 +816,16 @@ long do_shmat(int shmid, char __user *sh
- 	unsigned long flags;
- 	unsigned long prot;
- 	int acc_mode;
--	void *user_addr;
-+	unsigned long user_addr;
- 	struct ipc_namespace *ns;
- 	struct shm_file_data *sfd;
-+	struct path path;
- 	mode_t f_mode;
- 
--	if (shmid < 0) {
--		err = -EINVAL;
-+	err = -EINVAL;
-+	if (shmid < 0)
- 		goto out;
--	} else if ((addr = (ulong)shmaddr)) {
-+	else if ((addr = (ulong)shmaddr)) {
- 		if (addr & (SHMLBA-1)) {
- 			if (shmflg & SHM_RND)
- 				addr &= ~(SHMLBA-1);	   /* round down */
-@@ -832,12 +833,12 @@ long do_shmat(int shmid, char __user *sh
- #ifndef __ARCH_FORCE_SHMLBA
- 				if (addr & ~PAGE_MASK)
- #endif
--					return -EINVAL;
-+					goto out;
- 		}
- 		flags = MAP_SHARED | MAP_FIXED;
- 	} else {
- 		if ((shmflg & SHM_REMAP))
--			return -EINVAL;
-+			goto out;
- 
- 		flags = MAP_SHARED;
- 	}
-@@ -861,7 +862,6 @@ long do_shmat(int shmid, char __user *sh
- 	 * additional creator id...
- 	 */
- 	ns = current->nsproxy->ipc_ns;
--	err = -EINVAL;
- 	shp = shm_lock(ns, shmid);
- 	if(shp == NULL)
- 		goto out;
-@@ -878,19 +878,25 @@ long do_shmat(int shmid, char __user *sh
- 	if (err)
- 		goto out_unlock;
- 
-+	path.dentry = dget(shp->shm_file->f_path.dentry);
-+	path.mnt    = mntget(shp->shm_file->f_path.mnt);
-+	shp->shm_nattch++;
-+	size = i_size_read(path.dentry->d_inode);
-+	shm_unlock(shp);
-+
- 	err = -ENOMEM;
- 	sfd = kzalloc(sizeof(*sfd), GFP_KERNEL);
- 	if (!sfd)
--		goto out_unlock;
-+		goto out_put_path;
- 
-+	err = -ENOMEM;
- 	file = get_empty_filp();
- 	if (!file)
- 		goto out_free;
- 
- 	file->f_op = &shm_file_operations;
- 	file->private_data = sfd;
--	file->f_path.dentry = dget(shp->shm_file->f_path.dentry);
--	file->f_path.mnt = mntget(shp->shm_file->f_path.mnt);
-+	file->f_path = path;
- 	file->f_mapping = shp->shm_file->f_mapping;
- 	file->f_mode = f_mode;
- 	sfd->id = shp->id;
-@@ -898,13 +904,9 @@ long do_shmat(int shmid, char __user *sh
- 	sfd->file = shp->shm_file;
- 	sfd->vm_ops = NULL;
- 
--	size = i_size_read(file->f_path.dentry->d_inode);
--	shp->shm_nattch++;
--	shm_unlock(shp);
--
- 	down_write(&current->mm->mmap_sem);
- 	if (addr && !(shmflg & SHM_REMAP)) {
--		user_addr = ERR_PTR(-EINVAL);
-+		err = -EINVAL;
- 		if (find_vma_intersection(current->mm, addr, addr + size))
- 			goto invalid;
- 		/*
-@@ -916,13 +918,17 @@ long do_shmat(int shmid, char __user *sh
- 			goto invalid;
- 	}
- 		
--	user_addr = (void*) do_mmap (file, addr, size, prot, flags, 0);
--
-+	user_addr = do_mmap (file, addr, size, prot, flags, 0);
-+	*raddr = user_addr;
-+	err = 0;
-+	if (IS_ERR_VALUE(user_addr))
-+		err = (long)user_addr;
- invalid:
- 	up_write(&current->mm->mmap_sem);
- 
- 	fput(file);
- 
-+out_nattch:
- 	mutex_lock(&shm_ids(ns).mutex);
- 	shp = shm_lock(ns, shmid);
- 	BUG_ON(!shp);
-@@ -934,18 +940,19 @@ invalid:
- 		shm_unlock(shp);
- 	mutex_unlock(&shm_ids(ns).mutex);
- 
--	*raddr = (unsigned long) user_addr;
--	err = 0;
--	if (IS_ERR(user_addr))
--		err = PTR_ERR(user_addr);
- out:
- 	return err;
--out_free:
--	kfree(sfd);
-+
- out_unlock:
- 	shm_unlock(shp);
- 	goto out;
- 
-+out_free:
-+	kfree(sfd);
-+out_put_path:
-+	dput(path.dentry);
-+	mntput(path.mnt);
-+	goto out_nattch;
+diff -puN kernel/kprobes.c~kprobes-list-all-active-probes-in-the-system-fix kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-list-all-active-probes-in-the-system-fix
++++ a/kernel/kprobes.c
+@@ -780,6 +780,12 @@ int __kprobes register_kretprobe(struct 
+ 	return -ENOSYS;
  }
  
- asmlinkage long sys_shmat(int shmid, char __user *shmaddr, int shmflg)
++static int __kprobes pre_handler_kretprobe(struct kprobe *p,
++					   struct pt_regs *regs)
++{
++	return 0;
++}
++
+ #endif /* ARCH_SUPPORTS_KRETPROBES */
+ 
+ void __kprobes unregister_kretprobe(struct kretprobe *rp)
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from ananth@in.ibm.com are
 
-origin.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
-shm-make-sysv-ipc-shared-memory-use-stacked-files-real-fix.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+kprobes-list-all-active-probes-in-the-system.patch
+kprobes-list-all-active-probes-in-the-system-fix.patch
