@@ -1,62 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - update-doc-oops-tracingtxt-for-taint_user-fix.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 13:29:41 -0800
-Message-ID: <200702202131.l1KLV5tx020333@shell0.pdx.osdl.net>
+Subject: - fb-sm501-framebuffer-driver-5-fix.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 13:31:12 -0800
+Message-ID: <200702202132.l1KLWbJZ020366@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50171 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50222 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030430AbXBTVbK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 16:31:10 -0500
+	id S1030449AbXBTVcu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 16:32:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ben-linux@fluff.org, jsimmons@infradead.org, vince@arm.linux.org.u, mm-commits@vger.kernel.org
 
 
 The patch titled
-     update Doc/oops-tracing.txt for TAINT_USER (fix)
+     fb-sm501-framebuffer-driver-5-fix
 has been removed from the -mm tree.  Its filename was
-     update-doc-oops-tracingtxt-for-taint_user-fix.patch
+     fb-sm501-framebuffer-driver-5-fix.patch
 
-This patch was dropped because it was folded into update-doc-oops-tracingtxt-for-taint_user.patch
+This patch was dropped because it was folded into fb-sm501-framebuffer-driver-5.patch
 
 ------------------------------------------------------
-Subject: update Doc/oops-tracing.txt for TAINT_USER (fix)
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: fb-sm501-framebuffer-driver-5-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add TAINT_USER description to Tainted flags in oops-tracing.txt.
+drivers/video/sm501fb.c:1105: warning: initialization from incompatible pointer type
+drivers/video/sm501fb.c:1105: warning: initialization from incompatible pointer type
+drivers/video/sm501fb.c:1141: warning: initialization from incompatible pointer type
+drivers/video/sm501fb.c:1160: warning: initialization from incompatible pointer type
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Vincent Sanders <vince@arm.linux.org.u.>
+Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/oops-tracing.txt |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/video/sm501fb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/oops-tracing.txt~update-doc-oops-tracingtxt-for-taint_user-fix Documentation/oops-tracing.txt
---- a/Documentation/oops-tracing.txt~update-doc-oops-tracingtxt-for-taint_user-fix
-+++ a/Documentation/oops-tracing.txt
-@@ -237,6 +237,9 @@ characters, each representing a particul
-   7: 'U' if a user specifically requested that the Tainted flag be set,
-      ' ' otherwise.
+diff -puN drivers/video/sm501fb.c~fb-sm501-framebuffer-driver-5-fix drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~fb-sm501-framebuffer-driver-5-fix
++++ a/drivers/video/sm501fb.c
+@@ -1046,7 +1046,7 @@ int sm501fb_cursor(struct fb_info *info,
+  * device attribute code to show where the crt output is sourced from
+ */
  
-+  7: 'U' if a user or user application specifically requested that the
-+     Tainted flag be set, ' ' otherwise.
-+
- The primary reason for the 'Tainted: ' string is to tell kernel
- debuggers if this is a clean kernel or if anything unusual has
- occurred.  Tainting is permanent: even if an offending module is
+-static int sm501fb_crtsrc_show(struct device *dev,
++static ssize_t sm501fb_crtsrc_show(struct device *dev,
+ 			       struct device_attribute *attr, char *buf)
+ {
+ 	struct sm501fb_info *info = dev_get_drvdata(dev);
+@@ -1063,7 +1063,7 @@ static int sm501fb_crtsrc_show(struct de
+  * device attribute code to set where the crt output is sourced from
+ */
+ 
+-static int sm501fb_crtsrc_store(struct device *dev,
++static ssize_t sm501fb_crtsrc_store(struct device *dev,
+ 				struct device_attribute *attr,
+ 				const char *buf, size_t len)
+ {
+@@ -1126,7 +1126,7 @@ static int sm501fb_show_regs(struct sm50
+  * show the crt control and cursor registers
+ */
+ 
+-static int sm501fb_debug_show_crt(struct device *dev,
++static ssize_t sm501fb_debug_show_crt(struct device *dev,
+ 				  struct device_attribute *attr, char *buf)
+ {
+ 	struct sm501fb_info *info = dev_get_drvdata(dev);
+@@ -1145,7 +1145,7 @@ static DEVICE_ATTR(fbregs_crt, 0444, sm5
+  * show the panel control and cursor registers
+ */
+ 
+-static int sm501fb_debug_show_pnl(struct device *dev,
++static ssize_t sm501fb_debug_show_pnl(struct device *dev,
+ 				  struct device_attribute *attr, char *buf)
+ {
+ 	struct sm501fb_info *info = dev_get_drvdata(dev);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-kernel-doc-include-struct-short-description-in-title.patch
-tty-use-null-for-ptrs.patch
-cdrom-use-unsigned-bitfields.patch
-update-doc-oops-tracingtxt-for-taint_user.patch
-update-doc-oops-tracingtxt-for-taint_user-fix.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+xfs-warning-fix.patch
+rework-reserved-major-handling.patch
+mincore-warning-fix.patch
+kprobes-list-all-active-probes-in-the-system.patch
+add-epoll-compat-code-to-kernel-compatc.patch
+genalloc-warning-fixes.patch
+fb-sm501-framebuffer-driver-5.patch
+fb-sm501-framebuffer-driver-5-fix.patch
