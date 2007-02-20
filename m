@@ -1,44 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: - esb2rom-warning-fixes.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 12:09:46 -0800
-Message-ID: <200702202009.l1KK9kHJ018241@shell0.pdx.osdl.net>
+Subject: - ck804xrom-warning-fix.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 12:09:41 -0800
+Message-ID: <200702202009.l1KK9flV018236@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46911 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46903 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030383AbXBTUJ4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 15:09:56 -0500
+	id S1030386AbXBTUJw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 15:09:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     esb2rom warning fixes
+     ck804xrom warning fix
 has been removed from the -mm tree.  Its filename was
-     esb2rom-warning-fixes.patch
+     ck804xrom-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: esb2rom warning fixes
+Subject: ck804xrom warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/maps/esb2rom.c: In function 'esb2rom_init_one':
-drivers/mtd/maps/esb2rom.c:293: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
-
+drivers/mtd/maps/ck804xrom.c: In function 'ck804xrom_init_one':
+drivers/mtd/maps/ck804xrom.c:211: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
+drivers/mtd/maps/ck804xrom.c:211: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
 
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/esb2rom.c |    4 ++--
+ drivers/mtd/maps/ck804xrom.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/maps/esb2rom.c~esb2rom-warning-fixes drivers/mtd/maps/esb2rom.c
---- a/drivers/mtd/maps/esb2rom.c~esb2rom-warning-fixes
-+++ a/drivers/mtd/maps/esb2rom.c
-@@ -289,8 +289,8 @@ static int __devinit esb2rom_init_one(st
+diff -puN drivers/mtd/maps/ck804xrom.c~ck804xrom-warning-fix drivers/mtd/maps/ck804xrom.c
+--- a/drivers/mtd/maps/ck804xrom.c~ck804xrom-warning-fix
++++ a/drivers/mtd/maps/ck804xrom.c
+@@ -207,8 +207,8 @@ static int __devinit ck804xrom_init_one 
  			(((unsigned long)(window->virt)) + offset);
  		map->map.size = 0xffffffffUL - map_top + 1UL;
  		/* Set the name of the map to the address I am trying */
@@ -47,8 +47,8 @@ diff -puN drivers/mtd/maps/esb2rom.c~esb2rom-warning-fixes drivers/mtd/maps/esb2
 +		sprintf(map->map_name, "%s @%08Lx",
 +			MOD_NAME, (unsigned long long)map->map.phys);
  
- 		/* Firmware hubs only use vpp when being programmed
- 		 * in a factory setting.  So in-place programming
+ 		/* There is no generic VPP support */
+ 		for(map->map.bankwidth = 32; map->map.bankwidth;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
