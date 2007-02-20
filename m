@@ -1,54 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - ck804xrom-warning-fix.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 12:09:41 -0800
-Message-ID: <200702202009.l1KK9flV018236@shell0.pdx.osdl.net>
+Subject: - netsc520-warning-fix.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 12:09:37 -0800
+Message-ID: <200702202009.l1KK9b94018232@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46903 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46897 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030386AbXBTUJw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 15:09:52 -0500
+	id S1030382AbXBTUJs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 15:09:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ck804xrom warning fix
+     netsc520 warning fix
 has been removed from the -mm tree.  Its filename was
-     ck804xrom-warning-fix.patch
+     netsc520-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ck804xrom warning fix
+Subject: netsc520 warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/maps/ck804xrom.c: In function 'ck804xrom_init_one':
-drivers/mtd/maps/ck804xrom.c:211: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
-drivers/mtd/maps/ck804xrom.c:211: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
+drivers/mtd/maps/netsc520.c: In function 'init_netsc520':
+drivers/mtd/maps/netsc520.c:97: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'resource_size_t'
 
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/ck804xrom.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/maps/netsc520.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/maps/ck804xrom.c~ck804xrom-warning-fix drivers/mtd/maps/ck804xrom.c
---- a/drivers/mtd/maps/ck804xrom.c~ck804xrom-warning-fix
-+++ a/drivers/mtd/maps/ck804xrom.c
-@@ -207,8 +207,8 @@ static int __devinit ck804xrom_init_one 
- 			(((unsigned long)(window->virt)) + offset);
- 		map->map.size = 0xffffffffUL - map_top + 1UL;
- 		/* Set the name of the map to the address I am trying */
--		sprintf(map->map_name, "%s @%08lx",
--			MOD_NAME, map->map.phys);
-+		sprintf(map->map_name, "%s @%08Lx",
-+			MOD_NAME, (unsigned long long)map->map.phys);
+diff -puN drivers/mtd/maps/netsc520.c~netsc520-warning-fix drivers/mtd/maps/netsc520.c
+--- a/drivers/mtd/maps/netsc520.c~netsc520-warning-fix
++++ a/drivers/mtd/maps/netsc520.c
+@@ -94,7 +94,9 @@ static struct mtd_info *mymtd;
  
- 		/* There is no generic VPP support */
- 		for(map->map.bankwidth = 32; map->map.bankwidth;
+ static int __init init_netsc520(void)
+ {
+-	printk(KERN_NOTICE "NetSc520 flash device: 0x%lx at 0x%lx\n", netsc520_map.size, netsc520_map.phys);
++	printk(KERN_NOTICE "NetSc520 flash device: 0x%Lx at 0x%Lx\n",
++			(unsigned long long)netsc520_map.size,
++			(unsigned long long)netsc520_map.phys);
+ 	netsc520_map.virt = ioremap_nocache(netsc520_map.phys, netsc520_map.size);
+ 
+ 	if (!netsc520_map.virt) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
