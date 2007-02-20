@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - ichxrom-warning-fix.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 12:09:53 -0800
-Message-ID: <200702202009.l1KK9rwe018247@shell0.pdx.osdl.net>
+Subject: - amd76xrom-warning-fix.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 12:09:49 -0800
+Message-ID: <200702202009.l1KK9n45018244@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46921 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46922 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030390AbXBTUKB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030391AbXBTUKB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Tue, 20 Feb 2007 15:10:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,31 +14,30 @@ To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ichxrom warning fix
+     amd76xrom warning fix
 has been removed from the -mm tree.  Its filename was
-     ichxrom-warning-fix.patch
+     amd76xrom-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ichxrom warning fix
+Subject: amd76xrom warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/maps/ichxrom.c: In function 'ichxrom_init_one':
-drivers/mtd/maps/ichxrom.c:231: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
-drivers/mtd/maps/ichxrom.c:231: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
+drivers/mtd/maps/amd76xrom.c: In function 'amd76xrom_init_one':
+drivers/mtd/maps/amd76xrom.c:209: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
 
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/ichxrom.c |    4 ++--
+ drivers/mtd/maps/amd76xrom.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/maps/ichxrom.c~ichxrom-warning-fix drivers/mtd/maps/ichxrom.c
---- a/drivers/mtd/maps/ichxrom.c~ichxrom-warning-fix
-+++ a/drivers/mtd/maps/ichxrom.c
-@@ -227,8 +227,8 @@ static int __devinit ichxrom_init_one (s
+diff -puN drivers/mtd/maps/amd76xrom.c~amd76xrom-warning-fix drivers/mtd/maps/amd76xrom.c
+--- a/drivers/mtd/maps/amd76xrom.c~amd76xrom-warning-fix
++++ a/drivers/mtd/maps/amd76xrom.c
+@@ -205,8 +205,8 @@ static int __devinit amd76xrom_init_one 
  			(((unsigned long)(window->virt)) + offset);
  		map->map.size = 0xffffffffUL - map_top + 1UL;
  		/* Set the name of the map to the address I am trying */
@@ -47,8 +46,8 @@ diff -puN drivers/mtd/maps/ichxrom.c~ichxrom-warning-fix drivers/mtd/maps/ichxro
 +		sprintf(map->map_name, "%s @%08Lx",
 +			MOD_NAME, (unsigned long long)map->map.phys);
  
- 		/* Firmware hubs only use vpp when being programmed
- 		 * in a factory setting.  So in-place programming
+ 		/* There is no generic VPP support */
+ 		for(map->map.bankwidth = 32; map->map.bankwidth;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
