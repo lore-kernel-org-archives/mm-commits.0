@@ -1,74 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - reduce-size-of-task_struct-on-64-bit-machines-fix.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 13:27:51 -0800
-Message-ID: <200702202129.l1KLTFGw020241@shell0.pdx.osdl.net>
+Subject: + reduce-size-of-task_struct-on-64-bit-machines.patch added to -mm tree
+Date: Tue, 20 Feb 2007 13:27:48 -0800
+Message-ID: <200702202129.l1KLTChl020236@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50123 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50124 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030447AbXBTV3Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 16:29:24 -0500
+	id S1030448AbXBTV30 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 16:29:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, wcohen@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: wcohen@redhat.com, linux-arch@vger.kernel.org
 
 
 The patch titled
-     reduce-size-of-task_struct-on-64-bit-machines-fix
-has been removed from the -mm tree.  Its filename was
-     reduce-size-of-task_struct-on-64-bit-machines-fix.patch
+     reduce size of task_struct on 64-bit machines
+has been added to the -mm tree.  Its filename is
+     reduce-size-of-task_struct-on-64-bit-machines.patch
 
-This patch was dropped because it was folded into reduce-size-of-task_struct-on-64-bit-machines.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: reduce-size-of-task_struct-on-64-bit-machines-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reduce size of task_struct on 64-bit machines
+From: William Cohen <wcohen@redhat.com>
 
-am finding quite a few of these..
+This past week I was playing around with that pahole tool
+(http://oops.ghostprotocols.net:81/acme/dwarves/) and looking at the size
+of various struct in the kernel.  I was surprised by the size of the
+task_struct on x86_64, approaching 4K.  I looked through the fields in
+task_struct and found that a number of them were declared as "unsigned
+long" rather than "unsigned int" despite them appearing okay as 32-bit
+sized fields.  On x86_64 "unsigned long" ends up being 8 bytes in size and
+forces 8 byte alignment.  Is there a reason there a reason they are
+"unsigned long"?
 
-fs/proc/array.c: In function 'do_task_stat':
-fs/proc/array.c:460: warning: format '%lu' expects type 'long unsigned int', but argument 11 has type 'unsigned int'
-fs/proc/array.c:460: warning: format '%lu' expects type 'long unsigned int', but argument 41 has type 'unsigned int'
-fs/proc/array.c:460: warning: format '%lu' expects type 'long unsigned int', but argument 42 has type 'unsigned int'
+The patch below drops the size of the struct from 3808 bytes (60 64-byte
+cachelines) to 3760 bytes (59 64-byte cachelines).  A couple other fields
+in the task struct take a signficant amount of space:
 
-Cc: William Cohen <wcohen@redhat.com>
+struct thread_struct       thread;               688
+struct held_lock           held_locks[30];       1680
+
+CONFIG_LOCKDEP is turned on in the .config
+
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/sched.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/array.c~reduce-size-of-task_struct-on-64-bit-machines-fix fs/proc/array.c
---- a/fs/proc/array.c~reduce-size-of-task_struct-on-64-bit-machines-fix
-+++ a/fs/proc/array.c
-@@ -410,9 +410,9 @@ static int do_task_stat(struct task_stru
- 	/* convert nsec -> ticks */
- 	start_time = nsec_to_clock_t(start_time);
+diff -puN include/linux/sched.h~reduce-size-of-task_struct-on-64-bit-machines include/linux/sched.h
+--- a/include/linux/sched.h~reduce-size-of-task_struct-on-64-bit-machines
++++ a/include/linux/sched.h
+@@ -802,8 +802,8 @@ struct task_struct {
+ 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
+ 	struct thread_info *thread_info;
+ 	atomic_t usage;
+-	unsigned long flags;	/* per process flags, defined below */
+-	unsigned long ptrace;
++	unsigned int flags;	/* per process flags, defined below */
++	unsigned int ptrace;
  
--	res = sprintf(buffer,"%d (%s) %c %d %d %d %d %d %lu %lu \
-+	res = sprintf(buffer,"%d (%s) %c %d %d %d %d %d %u %lu \
- %lu %lu %lu %lu %lu %ld %ld %ld %ld %d 0 %llu %lu %ld %lu %lu %lu %lu %lu \
--%lu %lu %lu %lu %lu %lu %lu %lu %d %d %lu %lu %llu\n",
-+%lu %lu %lu %lu %lu %lu %lu %lu %d %d %u %u %llu\n",
- 		task->pid,
- 		tcomm,
- 		state,
+ 	int lock_depth;		/* BKL lock depth */
+ 
+@@ -826,7 +826,7 @@ struct task_struct {
+ 	unsigned long long sched_time; /* sched_clock time spent running */
+ 	enum sleep_type sleep_type;
+ 
+-	unsigned long policy;
++	unsigned int policy;
+ 	cpumask_t cpus_allowed;
+ 	unsigned int time_slice, first_time_slice;
+ 
+@@ -846,11 +846,11 @@ struct task_struct {
+ 
+ /* task state */
+ 	struct linux_binfmt *binfmt;
+-	long exit_state;
++	int exit_state;
+ 	int exit_code, exit_signal;
+ 	int pdeath_signal;  /*  The signal sent when the parent dies  */
+ 	/* ??? */
+-	unsigned long personality;
++	unsigned int personality;
+ 	unsigned did_exec:1;
+ 	pid_t pid;
+ 	pid_t tgid;
+@@ -882,7 +882,7 @@ struct task_struct {
+ 	int __user *set_child_tid;		/* CLONE_CHILD_SETTID */
+ 	int __user *clear_child_tid;		/* CLONE_CHILD_CLEARTID */
+ 
+-	unsigned long rt_priority;
++	unsigned int rt_priority;
+ 	cputime_t utime, stime;
+ 	unsigned long nvcsw, nivcsw; /* context switch counts */
+ 	struct timespec start_time;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wcohen@redhat.com are
 
-origin.patch
-xfs-warning-fix.patch
-rework-reserved-major-handling.patch
-mincore-warning-fix.patch
-kprobes-list-all-active-probes-in-the-system.patch
 reduce-size-of-task_struct-on-64-bit-machines.patch
 reduce-size-of-task_struct-on-64-bit-machines-fix.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-epoll-compat-code-to-kernel-compatc-tidy.patch
-genalloc-warning-fixes.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
-linux-kernel-markers-kconfig-menus-fix-4.patch
-fb-sm501-framebuffer-driver-5-fix.patch
