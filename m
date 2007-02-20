@@ -1,92 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: - machzwd-warning-fix.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 12:08:33 -0800
-Message-ID: <200702202008.l1KK8XSb018188@shell0.pdx.osdl.net>
+Subject: - fix-missing-declaration-of-init_irq_proc.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 12:08:37 -0800
+Message-ID: <200702202008.l1KK8boW018191@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46819 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46832 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965242AbXBTUIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 15:08:39 -0500
+	id S965250AbXBTUJJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 15:09:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     machzwd warning fix
+     fix missing declaration of init_irq_proc
 has been removed from the -mm tree.  Its filename was
-     machzwd-warning-fix.patch
+     fix-missing-declaration-of-init_irq_proc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: machzwd warning fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix missing declaration of init_irq_proc
+From: Andrew Morton <akpm@osdl.org>
 
-drivers/char/watchdog/machzwd.c: In function 'zf_ioctl':
-drivers/char/watchdog/machzwd.c:327: warning: passing argument 1 of 'zf_ping' makes integer from pointer without a cast
+powerpc gets:
 
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+init/main.c: In function `do_basic_setup':
+init/main.c:714: warning: implicit declaration of function `init_irq_proc'
+
+but we cannot include linux/irq.h in generic code.
+
+Fix it by moving the declaration into linux/interrupt.h instead.
+
+And make sure all code that defines init_irq_proc() is including
+linux/interrupt.h.
+
+And nuke an ifdef-in-C
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/watchdog/machzwd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/h8300/kernel/ints.c            |    1 +
+ arch/h8300/platform/h8s/ints.c      |    1 +
+ arch/m68k/kernel/ints.c             |    1 +
+ arch/m68knommu/platform/5307/ints.c |    1 +
+ include/linux/interrupt.h           |    9 +++++++++
+ include/linux/irq.h                 |    3 ---
+ init/main.c                         |    5 +----
+ 7 files changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/watchdog/machzwd.c~machzwd-warning-fix drivers/char/watchdog/machzwd.c
---- a/drivers/char/watchdog/machzwd.c~machzwd-warning-fix
-+++ a/drivers/char/watchdog/machzwd.c
-@@ -324,7 +324,7 @@ static int zf_ioctl(struct inode *inode,
- 			return put_user(0, p);
+diff -puN arch/h8300/kernel/ints.c~fix-missing-declaration-of-init_irq_proc arch/h8300/kernel/ints.c
+--- a/arch/h8300/kernel/ints.c~fix-missing-declaration-of-init_irq_proc
++++ a/arch/h8300/kernel/ints.c
+@@ -19,6 +19,7 @@
+ #include <linux/sched.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/seq_file.h>
++#include <linux/interrupt.h>
+ #include <linux/init.h>
+ #include <linux/random.h>
+ #include <linux/bootmem.h>
+diff -puN arch/h8300/platform/h8s/ints.c~fix-missing-declaration-of-init_irq_proc arch/h8300/platform/h8s/ints.c
+--- a/arch/h8300/platform/h8s/ints.c~fix-missing-declaration-of-init_irq_proc
++++ a/arch/h8300/platform/h8s/ints.c
+@@ -20,6 +20,7 @@
+ #include <linux/kernel_stat.h>
+ #include <linux/seq_file.h>
+ #include <linux/init.h>
++#include <linux/interrupt.h>
+ #include <linux/bootmem.h>
+ #include <linux/random.h>
+ #include <linux/hardirq.h>
+diff -puN arch/m68k/kernel/ints.c~fix-missing-declaration-of-init_irq_proc arch/m68k/kernel/ints.c
+--- a/arch/m68k/kernel/ints.c~fix-missing-declaration-of-init_irq_proc
++++ a/arch/m68k/kernel/ints.c
+@@ -28,6 +28,7 @@
+ #include <linux/module.h>
+ #include <linux/types.h>
+ #include <linux/sched.h>
++#include <linux/interrupt.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+diff -puN arch/m68knommu/platform/5307/ints.c~fix-missing-declaration-of-init_irq_proc arch/m68knommu/platform/5307/ints.c
+--- a/arch/m68knommu/platform/5307/ints.c~fix-missing-declaration-of-init_irq_proc
++++ a/arch/m68knommu/platform/5307/ints.c
+@@ -19,6 +19,7 @@
+ #include <linux/types.h>
+ #include <linux/init.h>
+ #include <linux/sched.h>
++#include <linux/interrupt.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/errno.h>
+ #include <linux/seq_file.h>
+diff -puN include/linux/interrupt.h~fix-missing-declaration-of-init_irq_proc include/linux/interrupt.h
+--- a/include/linux/interrupt.h~fix-missing-declaration-of-init_irq_proc
++++ a/include/linux/interrupt.h
+@@ -423,4 +423,13 @@ extern int probe_irq_off(unsigned long);
+ extern unsigned int probe_irq_mask(unsigned long);	/* returns mask of ISA interrupts */
+ #endif
  
- 		case WDIOC_KEEPALIVE:
--			zf_ping(NULL);
-+			zf_ping(0);
- 			break;
++#ifdef CONFIG_PROC_FS
++/* Initialize /proc/irq/ */
++extern void init_irq_proc(void);
++#else
++static inline void init_irq_proc(void)
++{
++}
++#endif
++
+ #endif
+diff -puN include/linux/irq.h~fix-missing-declaration-of-init_irq_proc include/linux/irq.h
+--- a/include/linux/irq.h~fix-missing-declaration-of-init_irq_proc
++++ a/include/linux/irq.h
+@@ -328,9 +328,6 @@ extern void note_interrupt(unsigned int 
+ /* Resending of interrupts :*/
+ void check_irq_resend(struct irq_desc *desc, unsigned int irq);
  
- 		default:
+-/* Initialize /proc/irq/ */
+-extern void init_irq_proc(void);
+-
+ /* Enable/disable irq debugging output: */
+ extern int noirqdebug_setup(char *str);
+ 
+diff -puN init/main.c~fix-missing-declaration-of-init_irq_proc init/main.c
+--- a/init/main.c~fix-missing-declaration-of-init_irq_proc
++++ a/init/main.c
+@@ -41,6 +41,7 @@
+ #include <linux/cpuset.h>
+ #include <linux/efi.h>
+ #include <linux/tick.h>
++#include <linux/interrupt.h>
+ #include <linux/taskstats_kern.h>
+ #include <linux/delayacct.h>
+ #include <linux/unistd.h>
+@@ -702,11 +703,7 @@ static void __init do_basic_setup(void)
+ 	init_workqueues();
+ 	usermodehelper_init();
+ 	driver_init();
+-
+-#ifdef CONFIG_PROC_FS
+ 	init_irq_proc();
+-#endif
+-
+ 	do_initcalls();
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-xfs-warning-fix.patch
-rework-reserved-major-handling.patch
-make-aout-executables-work-again-fix.patch
-sony-laptop-fix-uninitialised-variable.patch
-git-drm.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
 git-dvb.patch
-pvrusb-warning-fix.patch
-git-input.patch
-setstream-param-for-psmouse-tweak.patch
-git-libata-all.patch
-dmaengine-uninline-large-functions.patch
-git-mips-fixup.patch
-Fabric7-VIOC-driver-fixes.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-dmfe-add-support-for-suspend-resume-fix.patch
-sis900-warning-fixes.patch
-git-parisc.patch
-git-parisc-fixup.patch
-git-pciseg.patch
-git-s390.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-after-before-x86_64-mm-mmconfig-share.patch
-xen-paravirt-core-xen-implementation-fix.patch
-mincore-warning-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-kprobes-list-all-active-probes-in-the-system.patch
-reduce-size-of-task_struct-on-64-bit-machines-fix.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-epoll-compat-code-to-kernel-compatc-tidy.patch
-genalloc-warning-fixes.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
-linux-kernel-markers-kconfig-menus-fix-4.patch
-fb-sm501-framebuffer-driver-5-fix.patch
+git-ia64.patch
+git-ieee1394.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-lxdialog-fixup.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-block-xfs-barriers-broke.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
+lumpy-reclaim-v2-tidy.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+consolidate-generic_writepages-and-mpage_writepages-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+rcu-preemptible-rcu.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
+local_t-powerpc-extension-fix.patch
+local_t-powerpc-extension-fix-build-fix.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-vs-git-block.patch
+reiser4-vs-git-block-2.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
