@@ -1,58 +1,243 @@
 From: akpm@linux-foundation.org
-Subject: - remove-useless-find_first_bit-macro-from-cardbusc.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 12:10:50 -0800
-Message-ID: <200702202010.l1KKAo0c018305@shell0.pdx.osdl.net>
+Subject: - natsemi-add-support-for-using-mii-port-with-no-phy.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 12:10:35 -0800
+Message-ID: <200702202010.l1KKAZXC018289@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46978 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46979 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030412AbXBTUK6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030415AbXBTUK6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Tue, 20 Feb 2007 15:10:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
+To: broonie@sirena.org.uk, jgarzik@pobox.com, thockin@hockin.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove useless FIND_FIRST_BIT() macro from cardbus.c
+     natsemi: Add support for using MII port with no PHY
 has been removed from the -mm tree.  Its filename was
-     remove-useless-find_first_bit-macro-from-cardbusc.patch
+     natsemi-add-support-for-using-mii-port-with-no-phy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove useless FIND_FIRST_BIT() macro from cardbus.c
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: natsemi: Add support for using MII port with no PHY
+From: Mark Brown <broonie@sirena.org.uk>
 
-Delete the definition of the unused FIND_FIRST_BIT() macro.
+Provide a module option which configures the natsemi driver to use the
+external MII port on the chip but ignore any PHYs that may be attached to it. 
+The link state will be left as it was when the driver started and can be
+configured via ethtool.  Any PHYs that are present can be accessed via the MII
+ioctl()s.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+This is useful for systems where the device is connected without a PHY or
+where either information or actions outside the scope of the driver are
+required in order to use the PHYs.
+
+Jeff sez:
+
+ NAK.
+
+ The proper way to do this is via the force_media boolean flag found in 
+ several net drivers.
+
+ In general I agree with the motivation to do something like this...
+
+Signed-off-by: Mark Brown <broonie@sirena.org.uk>
+Cc: Tim Hockin <thockin@hockin.org>
+Cc: Jeff Garzik <jgarzik@pobox.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pcmcia/cardbus.c |    2 --
- 1 files changed, 2 deletions(-)
+ drivers/net/natsemi.c |  103 +++++++++++++++++++++++++---------------
+ 1 file changed, 66 insertions(+), 37 deletions(-)
 
-diff -puN drivers/pcmcia/cardbus.c~remove-useless-find_first_bit-macro-from-cardbusc drivers/pcmcia/cardbus.c
---- a/drivers/pcmcia/cardbus.c~remove-useless-find_first_bit-macro-from-cardbusc
-+++ a/drivers/pcmcia/cardbus.c
-@@ -40,8 +40,6 @@
+diff -puN drivers/net/natsemi.c~natsemi-add-support-for-using-mii-port-with-no-phy drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-add-support-for-using-mii-port-with-no-phy
++++ a/drivers/net/natsemi.c
+@@ -146,7 +146,7 @@ MODULE_PARM_DESC(debug, "DP8381x default
+ MODULE_PARM_DESC(rx_copybreak,
+ 	"DP8381x copy breakpoint for copy-only-tiny-frames");
+ MODULE_PARM_DESC(options,
+-	"DP8381x: Bits 0-3: media type, bit 17: full duplex");
++	"DP8381x: Bits 0-3: media type, bit 17: full duplex, bit 18: ignore PHY");
+ MODULE_PARM_DESC(full_duplex, "DP8381x full duplex setting(s) (1)");
  
- /*====================================================================*/
+ /*
+@@ -568,6 +568,8 @@ struct netdev_private {
+ 	u32 intr_status;
+ 	/* Do not touch the nic registers */
+ 	int hands_off;
++	/* Don't pay attention to the reported link state. */
++	int ignore_phy;
+ 	/* external phy that is used: only valid if dev->if_port != PORT_TP */
+ 	int mii;
+ 	int phy_addr_external;
+@@ -696,7 +698,10 @@ static void __devinit natsemi_init_media
+ 	struct netdev_private *np = netdev_priv(dev);
+ 	u32 tmp;
  
--#define FIND_FIRST_BIT(n)	((n) - ((n) & ((n)-1)))
+-	netif_carrier_off(dev);
++	if (np->ignore_phy)
++		netif_carrier_on(dev);
++	else
++		netif_carrier_off(dev);
+ 
+ 	/* get the initial settings from hardware */
+ 	tmp            = mdio_read(dev, MII_BMCR);
+@@ -807,7 +812,19 @@ static int __devinit natsemi_probe1 (str
+ 	np->intr_status = 0;
+ 	np->eeprom_size = natsemi_pci_info[chip_idx].eeprom_size;
+ 
++	option = find_cnt < MAX_UNITS ? options[find_cnt] : 0;
++	if (dev->mem_start)
++		option = dev->mem_start;
++
++	/* Ignore the PHY status? */
++	if (option & 0x400) {
++		np->ignore_phy = 1;
++	} else {
++		np->ignore_phy = 0;
++	}
++
+ 	/* Initial port:
++	 * - If configured to ignore the PHY set up for external.
+ 	 * - If the nic was configured to use an external phy and if find_mii
+ 	 *   finds a phy: use external port, first phy that replies.
+ 	 * - Otherwise: internal port.
+@@ -815,7 +832,7 @@ static int __devinit natsemi_probe1 (str
+ 	 * The address would be used to access a phy over the mii bus, but
+ 	 * the internal phy is accessed through mapped registers.
+ 	 */
+-	if (readl(ioaddr + ChipConfig) & CfgExtPhy)
++	if (np->ignore_phy || readl(ioaddr + ChipConfig) & CfgExtPhy)
+ 		dev->if_port = PORT_MII;
+ 	else
+ 		dev->if_port = PORT_TP;
+@@ -825,7 +842,9 @@ static int __devinit natsemi_probe1 (str
+ 
+ 	if (dev->if_port != PORT_TP) {
+ 		np->phy_addr_external = find_mii(dev);
+-		if (np->phy_addr_external == PHY_ADDR_NONE) {
++		/* If we're ignoring the PHY it doesn't matter if we can't
++		 * find one. */
++		if (!np->ignore_phy && np->phy_addr_external == PHY_ADDR_NONE) {
+ 			dev->if_port = PORT_TP;
+ 			np->phy_addr_external = PHY_ADDR_INTERNAL;
+ 		}
+@@ -833,10 +852,6 @@ static int __devinit natsemi_probe1 (str
+ 		np->phy_addr_external = PHY_ADDR_INTERNAL;
+ 	}
+ 
+-	option = find_cnt < MAX_UNITS ? options[find_cnt] : 0;
+-	if (dev->mem_start)
+-		option = dev->mem_start;
 -
- /* Offsets in the Expansion ROM Image Header */
- #define ROM_SIGNATURE		0x0000	/* 2 bytes */
- #define ROM_DATA_PTR		0x0018	/* 2 bytes */
+ 	/* The lower four bits are the media type. */
+ 	if (option) {
+ 		if (option & 0x200)
+@@ -891,6 +906,8 @@ static int __devinit natsemi_probe1 (str
+ 		printk("%02x, IRQ %d", dev->dev_addr[i], irq);
+ 		if (dev->if_port == PORT_TP)
+ 			printk(", port TP.\n");
++		else if (np->ignore_phy)
++			printk(", port MII, ignoring PHY\n");
+ 		else
+ 			printk(", port MII, phy ad %d.\n", np->phy_addr_external);
+ 	}
+@@ -1571,42 +1588,44 @@ static void check_link(struct net_device
+ {
+ 	struct netdev_private *np = netdev_priv(dev);
+ 	void __iomem * ioaddr = ns_ioaddr(dev);
+-	int duplex;
++	int duplex = np->full_duplex;
+ 	u16 bmsr;
+ 
+-	/* The link status field is latched: it remains low after a temporary
+-	 * link failure until it's read. We need the current link status,
+-	 * thus read twice.
+-	 */
+-	mdio_read(dev, MII_BMSR);
+-	bmsr = mdio_read(dev, MII_BMSR);
++	/* If we're not paying attention to the PHY status then don't check. */
++	if (!np->ignore_phy) {
++		/* The link status field is latched: it remains low
++		 * after a temporary link failure until it's read. We
++		 * need the current link status, thus read twice.
++		 */
++		mdio_read(dev, MII_BMSR);
++		bmsr = mdio_read(dev, MII_BMSR);
+ 
+-	if (!(bmsr & BMSR_LSTATUS)) {
+-		if (netif_carrier_ok(dev)) {
++		if (!(bmsr & BMSR_LSTATUS)) {
++			if (netif_carrier_ok(dev)) {
++				if (netif_msg_link(np))
++					printk(KERN_NOTICE "%s: link down.\n",
++					       dev->name);
++				netif_carrier_off(dev);
++				undo_cable_magic(dev);
++			}
++			return;
++		}
++		if (!netif_carrier_ok(dev)) {
+ 			if (netif_msg_link(np))
+-				printk(KERN_NOTICE "%s: link down.\n",
+-					dev->name);
+-			netif_carrier_off(dev);
+-			undo_cable_magic(dev);
++				printk(KERN_NOTICE "%s: link up.\n", dev->name);
++			netif_carrier_on(dev);
++			do_cable_magic(dev);
+ 		}
+-		return;
+-	}
+-	if (!netif_carrier_ok(dev)) {
+-		if (netif_msg_link(np))
+-			printk(KERN_NOTICE "%s: link up.\n", dev->name);
+-		netif_carrier_on(dev);
+-		do_cable_magic(dev);
+-	}
+ 
+-	duplex = np->full_duplex;
+-	if (!duplex) {
+-		if (bmsr & BMSR_ANEGCOMPLETE) {
+-			int tmp = mii_nway_result(
+-				np->advertising & mdio_read(dev, MII_LPA));
+-			if (tmp == LPA_100FULL || tmp == LPA_10FULL)
++		if (!duplex) {
++			if (bmsr & BMSR_ANEGCOMPLETE) {
++				int tmp = mii_nway_result(
++					np->advertising & mdio_read(dev, MII_LPA));
++				if (tmp == LPA_100FULL || tmp == LPA_10FULL)
++					duplex = 1;
++			} else if (mdio_read(dev, MII_BMCR) & BMCR_FULLDPLX)
+ 				duplex = 1;
+-		} else if (mdio_read(dev, MII_BMCR) & BMCR_FULLDPLX)
+-			duplex = 1;
++		}
+ 	}
+ 
+ 	/* if duplex is set then bit 28 must be set, too */
+@@ -2819,6 +2838,16 @@ static int netdev_set_ecmd(struct net_de
+ 	}
+ 
+ 	/*
++	 * If we're ignoring the PHY then autoneg and the internal
++	 * transciever are really not going to work so don't let the
++	 * user select them.
++	 */
++	if (np->ignore_phy && (ecmd->autoneg == AUTONEG_ENABLE ||
++			       ecmd->port == PORT_TP)) {
++		return -EINVAL;
++	}
++
++	/*
+ 	 * maxtxpkt, maxrxpkt: ignored for now.
+ 	 *
+ 	 * transceiver:
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from broonie@sirena.org.uk are
 
 origin.patch
-git-avr32.patch
-git-dvb.patch
-git-mips.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
