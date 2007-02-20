@@ -1,129 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - jffs2-warning-fixes.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 12:09:56 -0800
-Message-ID: <200702202009.l1KK9ue0018250@shell0.pdx.osdl.net>
+Subject: - r8169-rtnl-and-flush_scheduled_work-deadlock.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 12:10:15 -0800
+Message-ID: <200702202010.l1KKAFvC018275@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46929 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46935 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030394AbXBTUKN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 15:10:13 -0500
+	id S1030397AbXBTUKY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 15:10:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: romieu@fr.zoreil.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jffs2 warning fixes
+     r8169: RTNL and flush_scheduled_work deadlock
 has been removed from the -mm tree.  Its filename was
-     jffs2-warning-fixes.patch
+     r8169-rtnl-and-flush_scheduled_work-deadlock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jffs2 warning fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: r8169: RTNL and flush_scheduled_work deadlock
+From: Francois Romieu <romieu@fr.zoreil.com>
 
-fs/jffs2/wbuf.c: In function 'jffs2_check_oob_empty':
-fs/jffs2/wbuf.c:993: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
-fs/jffs2/wbuf.c:993: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
-fs/jffs2/wbuf.c: In function 'jffs2_check_nand_cleanmarker':
-fs/jffs2/wbuf.c:1036: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
-fs/jffs2/wbuf.c:1036: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
-fs/jffs2/wbuf.c: In function 'jffs2_write_nand_cleanmarker':
-fs/jffs2/wbuf.c:1062: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
-fs/jffs2/wbuf.c:1062: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
+flush_scheduled_work() in net_device->close has a slight tendency to deadlock
+with tasks on the workqueue that hold RTNL.
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+rtl8169_close/down simply need the recovery tasks to not meddle with the
+hardware while the device is going down.
+
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/wbuf.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/net/r8169.c |   25 ++++++++++++++++++-------
+ 1 files changed, 18 insertions(+), 7 deletions(-)
 
-diff -puN fs/jffs2/wbuf.c~jffs2-warning-fixes fs/jffs2/wbuf.c
---- a/fs/jffs2/wbuf.c~jffs2-warning-fixes
-+++ a/fs/jffs2/wbuf.c
-@@ -988,9 +988,9 @@ int jffs2_check_oob_empty(struct jffs2_s
+diff -puN drivers/net/r8169.c~r8169-rtnl-and-flush_scheduled_work-deadlock drivers/net/r8169.c
+--- a/drivers/net/r8169.c~r8169-rtnl-and-flush_scheduled_work-deadlock
++++ a/drivers/net/r8169.c
+@@ -1733,6 +1733,8 @@ rtl8169_remove_one(struct pci_dev *pdev)
+ 	assert(dev != NULL);
+ 	assert(tp != NULL);
  
- 	ret = c->mtd->read_oob(c->mtd, jeb->offset, &ops);
- 	if (ret || ops.oobretlen != ops.ooblen) {
--		printk(KERN_ERR "cannot read OOB for EB at %08x, requested %d "
--				"bytes, read %d bytes, error %d\n", jeb->offset,
--				ops.ooblen, ops.oobretlen, ret);
-+		printk(KERN_ERR "cannot read OOB for EB at %08x, requested %zd"
-+				" bytes, read %zd bytes, error %d\n",
-+				jeb->offset, ops.ooblen, ops.oobretlen, ret);
- 		if (!ret)
- 			ret = -EIO;
- 		return ret;
-@@ -1031,9 +1031,9 @@ int jffs2_check_nand_cleanmarker(struct 
++	flush_scheduled_work();
++
+ 	unregister_netdev(dev);
+ 	rtl8169_release_board(pdev, dev, tp->mmio_addr);
+ 	pci_set_drvdata(pdev, NULL);
+@@ -2161,10 +2163,13 @@ static void rtl8169_reinit_task(struct w
+ 	struct net_device *dev = tp->dev;
+ 	int ret;
  
- 	ret = c->mtd->read_oob(c->mtd, jeb->offset, &ops);
- 	if (ret || ops.oobretlen != ops.ooblen) {
--		printk(KERN_ERR "cannot read OOB for EB at %08x, requested %d "
--				"bytes, read %d bytes, error %d\n", jeb->offset,
--				ops.ooblen, ops.oobretlen, ret);
-+		printk(KERN_ERR "cannot read OOB for EB at %08x, requested %zd"
-+				" bytes, read %zd bytes, error %d\n",
-+				jeb->offset, ops.ooblen, ops.oobretlen, ret);
- 		if (!ret)
- 			ret = -EIO;
- 		return ret;
-@@ -1057,9 +1057,9 @@ int jffs2_write_nand_cleanmarker(struct 
+-	if (netif_running(dev)) {
+-		rtl8169_wait_for_quiescence(dev);
+-		rtl8169_close(dev);
+-	}
++	rtnl_lock();
++
++	if (!netif_running(dev))
++		goto out_unlock;
++
++	rtl8169_wait_for_quiescence(dev);
++	rtl8169_close(dev);
  
- 	ret = c->mtd->write_oob(c->mtd, jeb->offset, &ops);
- 	if (ret || ops.oobretlen != ops.ooblen) {
--		printk(KERN_ERR "cannot write OOB for EB at %08x, requested %d "
--				"bytes, read %d bytes, error %d\n", jeb->offset,
--				ops.ooblen, ops.oobretlen, ret);
-+		printk(KERN_ERR "cannot write OOB for EB at %08x, requested %zd"
-+				" bytes, read %zd bytes, error %d\n",
-+				jeb->offset, ops.ooblen, ops.oobretlen, ret);
- 		if (!ret)
- 			ret = -EIO;
- 		return ret;
+ 	ret = rtl8169_open(dev);
+ 	if (unlikely(ret < 0)) {
+@@ -2179,6 +2184,9 @@ static void rtl8169_reinit_task(struct w
+ 		}
+ 		rtl8169_schedule_work(dev, rtl8169_reinit_task);
+ 	}
++
++out_unlock:
++	rtnl_unlock();
+ }
+ 
+ static void rtl8169_reset_task(struct work_struct *work)
+@@ -2187,8 +2195,10 @@ static void rtl8169_reset_task(struct wo
+ 		container_of(work, struct rtl8169_private, task.work);
+ 	struct net_device *dev = tp->dev;
+ 
++	rtnl_lock();
++
+ 	if (!netif_running(dev))
+-		return;
++		goto out_unlock;
+ 
+ 	rtl8169_wait_for_quiescence(dev);
+ 
+@@ -2210,6 +2220,9 @@ static void rtl8169_reset_task(struct wo
+ 		}
+ 		rtl8169_schedule_work(dev, rtl8169_reset_task);
+ 	}
++
++out_unlock:
++	rtnl_unlock();
+ }
+ 
+ static void rtl8169_tx_timeout(struct net_device *dev)
+@@ -2722,8 +2735,6 @@ static void rtl8169_down(struct net_devi
+ 
+ 	netif_stop_queue(dev);
+ 
+-	flush_scheduled_work();
+-
+ core_down:
+ 	spin_lock_irq(&tp->lock);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from romieu@fr.zoreil.com are
 
 origin.patch
-xfs-warning-fix.patch
-rework-reserved-major-handling.patch
-make-aout-executables-work-again-fix.patch
-sony-laptop-fix-uninitialised-variable.patch
-git-drm.patch
-git-dvb.patch
-pvrusb-warning-fix.patch
-git-input.patch
-setstream-param-for-psmouse-tweak.patch
-git-libata-all.patch
-dmaengine-uninline-large-functions.patch
-git-mips-fixup.patch
-Fabric7-VIOC-driver-fixes.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-dmfe-add-support-for-suspend-resume-fix.patch
-sis900-warning-fixes.patch
-git-parisc.patch
-git-parisc-fixup.patch
-git-pciseg.patch
-git-s390.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-after-before-x86_64-mm-mmconfig-share.patch
-xen-paravirt-core-xen-implementation-fix.patch
-mincore-warning-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-kprobes-list-all-active-probes-in-the-system.patch
-reduce-size-of-task_struct-on-64-bit-machines-fix.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-epoll-compat-code-to-kernel-compatc-tidy.patch
-genalloc-warning-fixes.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
-linux-kernel-markers-kconfig-menus-fix-4.patch
-fb-sm501-framebuffer-driver-5-fix.patch
