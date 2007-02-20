@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - shm-make-sysv-ipc-shared-memory-use-stacked-files.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 13:23:09 -0800
-Message-ID: <200702202124.l1KLOYpr020140@shell0.pdx.osdl.net>
+Subject: + shm-make-sysv-ipc-shared-memory-use-stacked-files.patch added to -mm tree
+Date: Tue, 20 Feb 2007 13:24:51 -0800
+Message-ID: <200702202126.l1KLQFs1020172@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49920 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50000 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030419AbXBTVYg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 16:24:36 -0500
+	id S1030430AbXBTV0S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 16:26:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ebiederm@xmission.com
 
 
 The patch titled
      shm: make sysv ipc shared memory use stacked files
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
 
-This patch was dropped because it was folded into slab-reduce-size-of-alien-cache-to-cover-only-possible-nodes.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: shm: make sysv ipc shared memory use stacked files
@@ -64,7 +68,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  ipc/shm.c |  205 +++++++++++++++++++++++++++++++++-------------------
- 1 files changed, 134 insertions(+), 71 deletions(-)
+ 1 file changed, 134 insertions(+), 71 deletions(-)
 
 diff -puN ipc/shm.c~shm-make-sysv-ipc-shared-memory-use-stacked-files ipc/shm.c
 --- a/ipc/shm.c~shm-make-sysv-ipc-shared-memory-use-stacked-files
@@ -438,7 +442,6 @@ _
 Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-slab-reduce-size-of-alien-cache-to-cover-only-possible-nodes.patch
 shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
 shm-make-sysv-ipc-shared-memory-use-stacked-files-real-fix.patch
 edac-k8-driver-coding-tidy.patch
