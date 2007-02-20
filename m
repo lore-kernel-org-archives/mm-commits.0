@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - cafe-warning-fix.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 12:09:59 -0800
-Message-ID: <200702202009.l1KK9xGb018253@shell0.pdx.osdl.net>
+Subject: - jffs2-warning-fixes.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 12:09:56 -0800
+Message-ID: <200702202009.l1KK9ue0018250@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46928 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46929 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030393AbXBTUKN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1030394AbXBTUKN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Tue, 20 Feb 2007 15:10:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,42 +14,75 @@ To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cafe warning fix
+     jffs2 warning fixes
 has been removed from the -mm tree.  Its filename was
-     cafe-warning-fix.patch
+     jffs2-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cafe warning fix
+Subject: jffs2 warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/nand/cafe.c: In function 'cafe_nand_cmdfunc':
-drivers/mtd/nand/cafe.c:269: warning: 'irqs' may be used uninitialized in this function
+fs/jffs2/wbuf.c: In function 'jffs2_check_oob_empty':
+fs/jffs2/wbuf.c:993: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+fs/jffs2/wbuf.c:993: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
+fs/jffs2/wbuf.c: In function 'jffs2_check_nand_cleanmarker':
+fs/jffs2/wbuf.c:1036: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+fs/jffs2/wbuf.c:1036: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
+fs/jffs2/wbuf.c: In function 'jffs2_write_nand_cleanmarker':
+fs/jffs2/wbuf.c:1062: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+fs/jffs2/wbuf.c:1062: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
 
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/cafe.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/jffs2/wbuf.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/mtd/nand/cafe.c~cafe-warning-fix drivers/mtd/nand/cafe.c
---- a/drivers/mtd/nand/cafe.c~cafe-warning-fix
-+++ a/drivers/mtd/nand/cafe.c
-@@ -265,10 +265,10 @@ static void cafe_nand_cmdfunc(struct mtd
- 	ndelay(100);
+diff -puN fs/jffs2/wbuf.c~jffs2-warning-fixes fs/jffs2/wbuf.c
+--- a/fs/jffs2/wbuf.c~jffs2-warning-fixes
++++ a/fs/jffs2/wbuf.c
+@@ -988,9 +988,9 @@ int jffs2_check_oob_empty(struct jffs2_s
  
- 	if (1) {
--		int c = 500000;
-+		int c;
- 		uint32_t irqs;
+ 	ret = c->mtd->read_oob(c->mtd, jeb->offset, &ops);
+ 	if (ret || ops.oobretlen != ops.ooblen) {
+-		printk(KERN_ERR "cannot read OOB for EB at %08x, requested %d "
+-				"bytes, read %d bytes, error %d\n", jeb->offset,
+-				ops.ooblen, ops.oobretlen, ret);
++		printk(KERN_ERR "cannot read OOB for EB at %08x, requested %zd"
++				" bytes, read %zd bytes, error %d\n",
++				jeb->offset, ops.ooblen, ops.oobretlen, ret);
+ 		if (!ret)
+ 			ret = -EIO;
+ 		return ret;
+@@ -1031,9 +1031,9 @@ int jffs2_check_nand_cleanmarker(struct 
  
--		while (c--) {
-+		for (c = 500000; c != 0; c--) {
- 			irqs = cafe_readl(cafe, NAND_IRQ);
- 			if (irqs & doneint)
- 				break;
+ 	ret = c->mtd->read_oob(c->mtd, jeb->offset, &ops);
+ 	if (ret || ops.oobretlen != ops.ooblen) {
+-		printk(KERN_ERR "cannot read OOB for EB at %08x, requested %d "
+-				"bytes, read %d bytes, error %d\n", jeb->offset,
+-				ops.ooblen, ops.oobretlen, ret);
++		printk(KERN_ERR "cannot read OOB for EB at %08x, requested %zd"
++				" bytes, read %zd bytes, error %d\n",
++				jeb->offset, ops.ooblen, ops.oobretlen, ret);
+ 		if (!ret)
+ 			ret = -EIO;
+ 		return ret;
+@@ -1057,9 +1057,9 @@ int jffs2_write_nand_cleanmarker(struct 
+ 
+ 	ret = c->mtd->write_oob(c->mtd, jeb->offset, &ops);
+ 	if (ret || ops.oobretlen != ops.ooblen) {
+-		printk(KERN_ERR "cannot write OOB for EB at %08x, requested %d "
+-				"bytes, read %d bytes, error %d\n", jeb->offset,
+-				ops.ooblen, ops.oobretlen, ret);
++		printk(KERN_ERR "cannot write OOB for EB at %08x, requested %zd"
++				" bytes, read %zd bytes, error %d\n",
++				jeb->offset, ops.ooblen, ops.oobretlen, ret);
+ 		if (!ret)
+ 			ret = -EIO;
+ 		return ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
