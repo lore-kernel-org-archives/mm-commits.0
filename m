@@ -1,54 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - sc520cdp-warning-fix.patch removed from -mm tree
-Date: Tue, 20 Feb 2007 12:09:33 -0800
-Message-ID: <200702202009.l1KK9X4v018226@shell0.pdx.osdl.net>
+Subject: - esb2rom-warning-fixes.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 12:09:46 -0800
+Message-ID: <200702202009.l1KK9kHJ018241@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46894 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46911 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965262AbXBTUJq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 15:09:46 -0500
+	id S1030383AbXBTUJ4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 15:09:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sc520cdp warning fix
+     esb2rom warning fixes
 has been removed from the -mm tree.  Its filename was
-     sc520cdp-warning-fix.patch
+     esb2rom-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sc520cdp warning fix
+Subject: esb2rom warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/maps/sc520cdp.c:241: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'resource_size_t'
-drivers/mtd/maps/netsc520.c: In function 'init_netsc520':
+drivers/mtd/maps/esb2rom.c: In function 'esb2rom_init_one':
+drivers/mtd/maps/esb2rom.c:293: warning: format '%08lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
+
 
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/sc520cdp.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/mtd/maps/esb2rom.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/maps/sc520cdp.c~sc520cdp-warning-fix drivers/mtd/maps/sc520cdp.c
---- a/drivers/mtd/maps/sc520cdp.c~sc520cdp-warning-fix
-+++ a/drivers/mtd/maps/sc520cdp.c
-@@ -237,8 +237,9 @@ static int __init init_sc520cdp(void)
- #endif
+diff -puN drivers/mtd/maps/esb2rom.c~esb2rom-warning-fixes drivers/mtd/maps/esb2rom.c
+--- a/drivers/mtd/maps/esb2rom.c~esb2rom-warning-fixes
++++ a/drivers/mtd/maps/esb2rom.c
+@@ -289,8 +289,8 @@ static int __devinit esb2rom_init_one(st
+ 			(((unsigned long)(window->virt)) + offset);
+ 		map->map.size = 0xffffffffUL - map_top + 1UL;
+ 		/* Set the name of the map to the address I am trying */
+-		sprintf(map->map_name, "%s @%08lx",
+-			MOD_NAME, map->map.phys);
++		sprintf(map->map_name, "%s @%08Lx",
++			MOD_NAME, (unsigned long long)map->map.phys);
  
- 	for (i = 0; i < NUM_FLASH_BANKS; i++) {
--		printk(KERN_NOTICE "SC520 CDP flash device: 0x%lx at 0x%lx\n",
--		       sc520cdp_map[i].size, sc520cdp_map[i].phys);
-+		printk(KERN_NOTICE "SC520 CDP flash device: 0x%Lx at 0x%Lx\n",
-+			(unsigned long long)sc520cdp_map[i].size,
-+			(unsigned long long)sc520cdp_map[i].phys);
- 
- 		sc520cdp_map[i].virt = ioremap_nocache(sc520cdp_map[i].phys, sc520cdp_map[i].size);
- 
+ 		/* Firmware hubs only use vpp when being programmed
+ 		 * in a factory setting.  So in-place programming
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
