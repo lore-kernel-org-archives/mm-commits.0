@@ -1,108 +1,243 @@
 From: akpm@linux-foundation.org
-Subject: + reduce-size-of-task_struct-on-64-bit-machines.patch added to -mm tree
-Date: Tue, 20 Feb 2007 13:27:48 -0800
-Message-ID: <200702202129.l1KLTChl020236@shell0.pdx.osdl.net>
+Subject: - add-epoll-compat-code-to-kernel-compatc-tidy.patch removed from -mm tree
+Date: Tue, 20 Feb 2007 13:28:37 -0800
+Message-ID: <200702202130.l1KLU2K3020294@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50124 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50135 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030448AbXBTV30 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Feb 2007 16:29:26 -0500
+	id S1030461AbXBTVaH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Feb 2007 16:30:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: wcohen@redhat.com, linux-arch@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reduce size of task_struct on 64-bit machines
-has been added to the -mm tree.  Its filename is
-     reduce-size-of-task_struct-on-64-bit-machines.patch
+     add-epoll-compat-code-to-kernel-compatc-tidy
+has been removed from the -mm tree.  Its filename was
+     add-epoll-compat-code-to-kernel-compatc-tidy.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into add-epoll-compat-code-to-kernel-compatc.patch
 
 ------------------------------------------------------
-Subject: reduce size of task_struct on 64-bit machines
-From: William Cohen <wcohen@redhat.com>
+Subject: add-epoll-compat-code-to-kernel-compatc-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This past week I was playing around with that pahole tool
-(http://oops.ghostprotocols.net:81/acme/dwarves/) and looking at the size
-of various struct in the kernel.  I was surprised by the size of the
-task_struct on x86_64, approaching 4K.  I looked through the fields in
-task_struct and found that a number of them were declared as "unsigned
-long" rather than "unsigned int" despite them appearing okay as 32-bit
-sized fields.  On x86_64 "unsigned long" ends up being 8 bytes in size and
-forces 8 byte alignment.  Is there a reason there a reason they are
-"unsigned long"?
-
-The patch below drops the size of the struct from 3808 bytes (60 64-byte
-cachelines) to 3760 bytes (59 64-byte cachelines).  A couple other fields
-in the task struct take a signficant amount of space:
-
-struct thread_struct       thread;               688
-struct held_lock           held_locks[30];       1680
-
-CONFIG_LOCKDEP is turned on in the .config
-
-Cc: <linux-arch@vger.kernel.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/eventpoll.c         |    6 ++-
+ include/linux/compat.h |   26 +++++++++-------
+ kernel/compat.c        |   61 +++++++++++++++++++++------------------
+ 3 files changed, 52 insertions(+), 41 deletions(-)
 
-diff -puN include/linux/sched.h~reduce-size-of-task_struct-on-64-bit-machines include/linux/sched.h
---- a/include/linux/sched.h~reduce-size-of-task_struct-on-64-bit-machines
-+++ a/include/linux/sched.h
-@@ -802,8 +802,8 @@ struct task_struct {
- 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
- 	struct thread_info *thread_info;
- 	atomic_t usage;
--	unsigned long flags;	/* per process flags, defined below */
--	unsigned long ptrace;
-+	unsigned int flags;	/* per process flags, defined below */
-+	unsigned int ptrace;
+diff -puN fs/eventpoll.c~add-epoll-compat-code-to-kernel-compatc-tidy fs/eventpoll.c
+--- a/fs/eventpoll.c~add-epoll-compat-code-to-kernel-compatc-tidy
++++ a/fs/eventpoll.c
+@@ -544,7 +544,8 @@ eexit_1:
+  * file descriptors inside the interest set.  It represents
+  * the kernel part of the user space epoll_ctl(2).
+  */
+-asmlinkage long sys_epoll_ctl(int epfd, int op, int fd, struct epoll_event __user *event)
++asmlinkage long sys_epoll_ctl(int epfd, int op, int fd,
++				struct epoll_event __user *event)
+ {
+ 	int error;
+ 	struct file *file, *tfile;
+@@ -706,7 +707,8 @@ eexit_1:
+  * part of the user space epoll_pwait(2).
+  */
+ asmlinkage long sys_epoll_pwait(int epfd, struct epoll_event __user *events,
+-				int maxevents, int timeout, const sigset_t __user *sigmask,
++				int maxevents, int timeout,
++				const sigset_t __user *sigmask,
+ 				size_t sigsetsize)
+ {
+ 	int error;
+diff -puN include/linux/compat.h~add-epoll-compat-code-to-kernel-compatc-tidy include/linux/compat.h
+--- a/include/linux/compat.h~add-epoll-compat-code-to-kernel-compatc-tidy
++++ a/include/linux/compat.h
+@@ -245,9 +245,11 @@ struct compat_epoll_event {
+ };
  
- 	int lock_depth;		/* BKL lock depth */
+ asmlinkage long compat_sys_epoll_ctl(int epfd, int op, int fd,
+-				     struct compat_epoll_event __user *event);
+-asmlinkage long compat_sys_epoll_wait(int epfd, struct compat_epoll_event __user *events,
+-				      int maxevents, int timeout);
++				struct compat_epoll_event __user *event);
++asmlinkage long compat_sys_epoll_wait(int epfd,
++				struct compat_epoll_event __user *events,
++				int maxevents, int timeout);
++
+ /*
+  * Architectures that does not need "struct epoll_event" translation
+  * should wire compat_sys_epoll_pwait. The ones that needs "struct epoll_event"
+@@ -255,14 +257,16 @@ asmlinkage long compat_sys_epoll_wait(in
+  * "struct epoll_event" translation is alignof(u64) in 32 bits mode is 4, and
+  * alignof(u64) in 64 bits mode is 8.
+  */
+-asmlinkage long compat_sys_epoll_pwait(int epfd, struct epoll_event __user *events,
+-				       int maxevents, int timeout,
+-				       const compat_sigset_t __user *sigmask,
+-				       compat_size_t sigsetsize);
+-asmlinkage long compat_sys_epoll_pwait2(int epfd, struct compat_epoll_event __user *events,
+-					int maxevents, int timeout,
+-					const compat_sigset_t __user *sigmask,
+-					compat_size_t sigsetsize);
++asmlinkage long compat_sys_epoll_pwait(int epfd,
++				struct epoll_event __user *events,
++				int maxevents, int timeout,
++				const compat_sigset_t __user *sigmask,
++				compat_size_t sigsetsize);
++asmlinkage long compat_sys_epoll_pwait2(int epfd,
++				struct compat_epoll_event __user *events,
++				int maxevents, int timeout,
++				const compat_sigset_t __user *sigmask,
++				compat_size_t sigsetsize);
  
-@@ -826,7 +826,7 @@ struct task_struct {
- 	unsigned long long sched_time; /* sched_clock time spent running */
- 	enum sleep_type sleep_type;
+ #endif /* CONFIG_COMPAT */
+ #endif /* _LINUX_COMPAT_H */
+diff -puN kernel/compat.c~add-epoll-compat-code-to-kernel-compatc-tidy kernel/compat.c
+--- a/kernel/compat.c~add-epoll-compat-code-to-kernel-compatc-tidy
++++ a/kernel/compat.c
+@@ -1021,8 +1021,7 @@ asmlinkage long compat_sys_migrate_pages
+ #ifdef CONFIG_EPOLL
  
--	unsigned long policy;
-+	unsigned int policy;
- 	cpumask_t cpus_allowed;
- 	unsigned int time_slice, first_time_slice;
+ /*
+-
+- epoll (fs/eventpoll.c) compat functions follow ...
++ * epoll (fs/eventpoll.c) compat functions follow ...
+  */
  
-@@ -846,11 +846,11 @@ struct task_struct {
+ asmlinkage long compat_sys_epoll_ctl(int epfd, int op, int fd,
+@@ -1050,8 +1049,9 @@ asmlinkage long compat_sys_epoll_ctl(int
+ }
  
- /* task state */
- 	struct linux_binfmt *binfmt;
--	long exit_state;
-+	int exit_state;
- 	int exit_code, exit_signal;
- 	int pdeath_signal;  /*  The signal sent when the parent dies  */
- 	/* ??? */
--	unsigned long personality;
-+	unsigned int personality;
- 	unsigned did_exec:1;
- 	pid_t pid;
- 	pid_t tgid;
-@@ -882,7 +882,7 @@ struct task_struct {
- 	int __user *set_child_tid;		/* CLONE_CHILD_SETTID */
- 	int __user *clear_child_tid;		/* CLONE_CHILD_CLEARTID */
  
--	unsigned long rt_priority;
-+	unsigned int rt_priority;
- 	cputime_t utime, stime;
- 	unsigned long nvcsw, nivcsw; /* context switch counts */
- 	struct timespec start_time;
+-asmlinkage long compat_sys_epoll_wait(int epfd, struct compat_epoll_event __user *events,
+-				      int maxevents, int timeout)
++asmlinkage long compat_sys_epoll_wait(int epfd,
++				struct compat_epoll_event __user *events,
++				int maxevents, int timeout)
+ {
+ 	long i, ret, err = 0;
+ 	struct epoll_event __user *kbuf;
+@@ -1061,9 +1061,11 @@ asmlinkage long compat_sys_epoll_wait(in
+ 		u32 d[2];
+ 	} mux;
+ 
+-	if (maxevents <= 0 || maxevents > (INT_MAX / sizeof(struct epoll_event)))
++		if (maxevents <= 0 || maxevents > (INT_MAX /
++						sizeof(struct epoll_event)))
+ 		return -EINVAL;
+-	kbuf = compat_alloc_user_space(sizeof(struct epoll_event) * maxevents);
++		kbuf = compat_alloc_user_space(sizeof(struct epoll_event) *
++						maxevents);
+ 	ret = sys_epoll_wait(epfd, kbuf, maxevents, timeout);
+ 	for (i = 0; i < ret; i++) {
+ 		err |= __get_user(ev.events, &kbuf[i].events);
+@@ -1082,9 +1084,9 @@ asmlinkage long compat_sys_epoll_wait(in
+ #ifdef TIF_RESTORE_SIGMASK
+ 
+ static long __sys_epoll_pwait(int epfd, void __user *events, int maxevents,
+-			      int timeout, const compat_sigset_t __user *sigmask,
+-			      compat_size_t sigsetsize,
+-			      long (asmlinkage *proc)(int, void __user *, int, int))
++			int timeout, const compat_sigset_t __user *sigmask,
++			compat_size_t sigsetsize,
++			long (asmlinkage *proc)(int, void __user *, int, int))
+ {
+ 	long err;
+ 	compat_sigset_t ss32;
+@@ -1109,8 +1111,8 @@ static long __sys_epoll_pwait(int epfd, 
+ 	/*
+ 	 * If we changed the signal mask, we need to restore the original one.
+ 	 * In case we've got a signal while waiting, we do not restore the
+-	 * signal mask yet, and we allow do_signal() to deliver the signal on the way
+-	 * back to userspace, before the signal mask is restored.
++	 * signal mask yet, and we allow do_signal() to deliver the signal on
++	 * the way back to userspace, before the signal mask is restored.
+ 	 */
+ 	if (sigmask) {
+ 		if (err == -EINTR) {
+@@ -1124,7 +1126,6 @@ static long __sys_epoll_pwait(int epfd, 
+ 	return err;
+ }
+ 
+-
+ /*
+  * Architectures that does not need "struct epoll_event" translation
+  * should wire compat_sys_epoll_pwait. The ones that needs "struct epoll_event"
+@@ -1132,28 +1133,33 @@ static long __sys_epoll_pwait(int epfd, 
+  * "struct epoll_event" translation is alignof(u64) in 32 bits mode is 4, and
+  * alignof(u64) in 64 bits mode is 8.
+  */
+-asmlinkage long compat_sys_epoll_pwait(int epfd, struct epoll_event __user *events,
+-				       int maxevents, int timeout,
+-				       const compat_sigset_t __user *sigmask,
+-				       compat_size_t sigsetsize)
++asmlinkage long compat_sys_epoll_pwait(int epfd,
++				struct epoll_event __user *events,
++				int maxevents, int timeout,
++				const compat_sigset_t __user *sigmask,
++				compat_size_t sigsetsize)
+ {
+-	return __sys_epoll_pwait(epfd, events, maxevents, timeout, sigmask, sigsetsize,
+-				 (long (asmlinkage *)(int, void __user *, int, int)) sys_epoll_wait);
++	return __sys_epoll_pwait(epfd, events, maxevents, timeout, sigmask,
++			sigsetsize,
++			(long (asmlinkage *)(int, void __user *, int, int))
++				sys_epoll_wait);
+ }
+ 
+ 
+-asmlinkage long compat_sys_epoll_pwait2(int epfd, struct compat_epoll_event __user *events,
+-				       int maxevents, int timeout,
+-				       const compat_sigset_t __user *sigmask,
+-				       compat_size_t sigsetsize)
++asmlinkage long compat_sys_epoll_pwait2(int epfd,
++				struct compat_epoll_event __user *events,
++				int maxevents, int timeout,
++				const compat_sigset_t __user *sigmask,
++				compat_size_t sigsetsize)
+ {
+-	return __sys_epoll_pwait(epfd, events, maxevents, timeout, sigmask, sigsetsize,
+-				 (long (asmlinkage *)(int, void __user *, int, int)) compat_sys_epoll_wait);
++	return __sys_epoll_pwait(epfd, events, maxevents, timeout, sigmask,
++			sigsetsize,
++			(long (asmlinkage *)(int, void __user *, int, int))
++				compat_sys_epoll_wait);
+ }
+ 
+-#endif /* #ifdef TIF_RESTORE_SIGMASK */
+-
+-#endif /* #ifdef CONFIG_EPOLL */
++#endif /* TIF_RESTORE_SIGMASK */
++#endif /* CONFIG_EPOLL */
+ 
+ struct compat_sysinfo {
+ 	s32 uptime;
+@@ -1219,4 +1225,3 @@ compat_sys_sysinfo(struct compat_sysinfo
+ 
+ 	return 0;
+ }
+-
 _
 
-Patches currently in -mm which might be from wcohen@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-reduce-size-of-task_struct-on-64-bit-machines.patch
-reduce-size-of-task_struct-on-64-bit-machines-fix.patch
+origin.patch
+xfs-warning-fix.patch
+rework-reserved-major-handling.patch
+mincore-warning-fix.patch
+kprobes-list-all-active-probes-in-the-system.patch
+add-epoll-compat-code-to-kernel-compatc.patch
+add-epoll-compat-code-to-kernel-compatc-tidy.patch
+genalloc-warning-fixes.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
+fb-sm501-framebuffer-driver-5-fix.patch
