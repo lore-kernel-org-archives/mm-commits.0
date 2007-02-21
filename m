@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:11:36 -0800
-Message-ID: <200702212211.l1LMBarP027933@shell0.pdx.osdl.net>
+Subject: + make-kernel-kmodckmod_mk-static.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:12:33 -0800
+Message-ID: <200702212212.l1LMCYFA027946@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51724 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51803 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161360AbXBUWOt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:14:49 -0500
+	id S1423179AbXBUWPs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:15:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: bunk@stusta.de, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     make fs/partitions/msdos.c:check_sane_values() static
+     make kernel/kmod.c:kmod_mk static
 has been added to the -mm tree.  Its filename is
-     filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
+     make-kernel-kmodckmod_mk-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make fs/partitions/msdos.c:check_sane_values() static
+Subject: make kernel/kmod.c:kmod_mk static
 From: Adrian Bunk <bunk@stusta.de>
 
+> +gregkh-driver-driver-core-let-request_module-send-a-sys-modules-kmod-uevent.patch
 
-
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/msdos.c |    2 +-
+ kernel/kmod.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe-fix fs/partitions/msdos.c
---- a/fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe-fix
-+++ a/fs/partitions/msdos.c
-@@ -431,7 +431,7 @@ static struct {
-  *
-  * Copyright 31 January 2007, TJ <linux@tjworld.net>
-  */
--int check_sane_values(struct partition *p, struct block_device *bdev)
-+static int check_sane_values(struct partition *p, struct block_device *bdev)
- {
- 	unsigned char *data;
- 	struct partition *ext;
+diff -puN kernel/kmod.c~make-kernel-kmodckmod_mk-static kernel/kmod.c
+--- a/kernel/kmod.c~make-kernel-kmodckmod_mk-static
++++ a/kernel/kmod.c
+@@ -48,7 +48,7 @@ static struct workqueue_struct *khelper_
+ 	modprobe_path is set via /proc/sys.
+ */
+ char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
+-struct module_kobject kmod_mk;
++static struct module_kobject kmod_mk;
+ 
+ /**
+  * request_module - try to load a kernel module
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 arch-arm26-kernel-entrys-remove-dead-code.patch
 git-cpufreq.patch
+make-kernel-kmodckmod_mk-static.patch
 git-drm.patch
 git-dvb.patch
 make-dvb_usb_gl861_debug-static.patch
