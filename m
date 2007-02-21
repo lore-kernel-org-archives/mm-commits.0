@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + make-dvb_usb_gl861_debug-static.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:08:08 -0800
-Message-ID: <200702212208.l1LM88Vi027857@shell0.pdx.osdl.net>
+Subject: + make-pvr2_encoder_prep_config-static.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:08:56 -0800
+Message-ID: <200702212208.l1LM8uQ5027869@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51436 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51470 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965010AbXBUWLa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:11:30 -0500
+	id S965014AbXBUWMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:12:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@stusta.de, mchehab@infradead.org
 
 
 The patch titled
-     make dvb_usb_gl861_debug static
+     make pvr2_encoder_prep_config() static
 has been added to the -mm tree.  Its filename is
-     make-dvb_usb_gl861_debug-static.patch
+     make-pvr2_encoder_prep_config-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make dvb_usb_gl861_debug static
+Subject: make pvr2_encoder_prep_config() static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
@@ -33,21 +33,21 @@ Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/gl861.c |    2 +-
+ drivers/media/video/pvrusb2/pvrusb2-encoder.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/dvb-usb/gl861.c~make-dvb_usb_gl861_debug-static drivers/media/dvb/dvb-usb/gl861.c
---- a/drivers/media/dvb/dvb-usb/gl861.c~make-dvb_usb_gl861_debug-static
-+++ a/drivers/media/dvb/dvb-usb/gl861.c
-@@ -12,7 +12,7 @@
- #include "qt1010.h"
+diff -puN drivers/media/video/pvrusb2/pvrusb2-encoder.c~make-pvr2_encoder_prep_config-static drivers/media/video/pvrusb2/pvrusb2-encoder.c
+--- a/drivers/media/video/pvrusb2/pvrusb2-encoder.c~make-pvr2_encoder_prep_config-static
++++ a/drivers/media/video/pvrusb2/pvrusb2-encoder.c
+@@ -324,7 +324,7 @@ static int pvr2_encoder_vcmd(struct pvr2
  
- /* debug */
--int dvb_usb_gl861_debug;
-+static int dvb_usb_gl861_debug;
- module_param_named(debug,dvb_usb_gl861_debug, int, 0644);
- MODULE_PARM_DESC(debug, "set debugging level (1=rc (or-able))." DVB_USB_DEBUG_STATUS);
- 
+ /* This implements some extra setup for the encoder that seems to be
+    specific to the PVR USB2 hardware. */
+-int pvr2_encoder_prep_config(struct pvr2_hdw *hdw)
++static int pvr2_encoder_prep_config(struct pvr2_hdw *hdw)
+ {
+ 	int ret = 0;
+ 	int encMisc3Arg = 0;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -57,6 +57,7 @@ git-cpufreq.patch
 git-drm.patch
 git-dvb.patch
 make-dvb_usb_gl861_debug-static.patch
+make-pvr2_encoder_prep_config-static.patch
 git-ieee1394.patch
 mips-remove-smp_tune_scheduling.patch
 remove-fs-jffs2-ioctlc.patch
