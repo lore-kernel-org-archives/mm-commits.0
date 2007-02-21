@@ -1,87 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-sa1100-rtc_wklarmenabled-bugfixes.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:46:27 -0800
-Message-ID: <200702211046.l1LAkR4F006472@shell0.pdx.osdl.net>
+Subject: - update-doc-oops-tracingtxt-for-taint_user.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:46:25 -0800
+Message-ID: <200702211046.l1LAkPE4006469@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46991 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47003 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965378AbXBUKqz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:46:55 -0500
+	id S932506AbXBUKrF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:47:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-sa1100 rtc_wklarm.enabled bugfixes
+     update Doc/oops-tracing.txt for TAINT_USER
 has been removed from the -mm tree.  Its filename was
-     rtc-sa1100-rtc_wklarmenabled-bugfixes.patch
+     update-doc-oops-tracingtxt-for-taint_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc-sa1100 rtc_wklarm.enabled bugfixes
-From: David Brownell <david-b@pacbell.net>
+Subject: update Doc/oops-tracing.txt for TAINT_USER
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Some rtc-sa1100 bugfixes:
+Add TAINT_USER description to Tainted flags in oops-tracing.txt.
 
- - The read_alarm() method reports the rtc_wkalrm.enabled field properly.
-   This patch is already in the handhelds.org tree.
-
- - And the set_alarm() method now handles that flag correctly, rather than
-   making mismatched {en,dis}able_irq_wake() calls, which trigger runtime
-   warning messages.  (Those calls are best made in suspend/resume methods.)
-
-Note that while this SA1100/PXA RTC is fully capable of waking those ARM
-processors from sleep states, that mechanism isn't properly supported on
-either processor family, or in this driver.  Some boards have board-specific
-PM glue providing partial workarounds for the weak generic PM support.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sa1100.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ Documentation/oops-tracing.txt |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/rtc/rtc-sa1100.c~rtc-sa1100-rtc_wklarmenabled-bugfixes drivers/rtc/rtc-sa1100.c
---- a/drivers/rtc/rtc-sa1100.c~rtc-sa1100-rtc_wklarmenabled-bugfixes
-+++ a/drivers/rtc/rtc-sa1100.c
-@@ -263,8 +263,12 @@ static int sa1100_rtc_set_time(struct de
+diff -puN Documentation/oops-tracing.txt~update-doc-oops-tracingtxt-for-taint_user Documentation/oops-tracing.txt
+--- a/Documentation/oops-tracing.txt~update-doc-oops-tracingtxt-for-taint_user
++++ a/Documentation/oops-tracing.txt
+@@ -234,6 +234,12 @@ characters, each representing a particul
+   6: 'B' if a page-release function has found a bad page reference or
+      some unexpected page flags.
  
- static int sa1100_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
- {
-+	u32	rtsr;
++  7: 'U' if a user specifically requested that the Tainted flag be set,
++     ' ' otherwise.
 +
- 	memcpy(&alrm->time, &rtc_alarm, sizeof(struct rtc_time));
--	alrm->pending = RTSR & RTSR_AL ? 1 : 0;
-+	rtsr = RTSR;
-+	alrm->enabled = (rtsr & RTSR_ALE) ? 1 : 0;
-+	alrm->pending = (rtsr & RTSR_AL) ? 1 : 0;
- 	return 0;
- }
- 
-@@ -275,12 +279,10 @@ static int sa1100_rtc_set_alarm(struct d
- 	spin_lock_irq(&sa1100_rtc_lock);
- 	ret = rtc_update_alarm(&alrm->time);
- 	if (ret == 0) {
--		memcpy(&rtc_alarm, &alrm->time, sizeof(struct rtc_time));
--
- 		if (alrm->enabled)
--			enable_irq_wake(IRQ_RTCAlrm);
-+			RTSR |= RTSR_ALE;
- 		else
--			disable_irq_wake(IRQ_RTCAlrm);
-+			RTSR &= ~RTSR_ALE;
- 	}
- 	spin_unlock_irq(&sa1100_rtc_lock);
- 
++  7: 'U' if a user or user application specifically requested that the
++     Tainted flag be set, ' ' otherwise.
++
+ The primary reason for the 'Tainted: ' string is to tell kernel
+ debuggers if this is a clean kernel or if anything unusual has
+ occurred.  Tainting is permanent: even if an offending module is
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-git-avr32.patch
-git-md-accel.patch
-8250-make-probing-for-txen-bug-a-config-option.patch
+git-drm.patch
+git-libata-all.patch
+phy-layer-add-kernel-doc-docbook.patch
+git-parisc.patch
+x86-dont-probe-for-ddc-on-vbe12.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
