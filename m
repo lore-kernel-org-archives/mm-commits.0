@@ -1,101 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - fs-fix-nobh-data-leak.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:46:09 -0800
-Message-ID: <200702211046.l1LAk94E006445@shell0.pdx.osdl.net>
+Subject: - autofs4-header-file-update.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:46:11 -0800
+Message-ID: <200702211046.l1LAkBR7006448@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46951 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46945 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964988AbXBUKqb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:46:31 -0500
+	id S964945AbXBUKq2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:46:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: fix nobh data leak
+     autofs4: header file update
 has been removed from the -mm tree.  Its filename was
-     fs-fix-nobh-data-leak.patch
+     autofs4-header-file-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: fix nobh data leak
-From: Nick Piggin <npiggin@suse.de>
+Subject: autofs4: header file update
+From: Ian Kent <raven@themaw.net>
 
-nobh_prepare_write leaks data similarly to how simple_prepare_write did. Fix
-by not marking the page uptodate until nobh_commit_write time. Again, this
-could break weird use-cases, but none appear to exist in the tree.
+The current header file definitions for autofs version 5 have caused a couple
+of problems for application builds downstream.
 
-We can safely remove the set_page_dirty, because as the comment says,
-nobh_commit_write does set_page_dirty. If a filesystem wants to allocate
-backing store for a page dirtied via mmap, page_mkwrite is the suggested
-approach.
+This fixes the problem by separating the definitions.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   21 +++------------------
- 1 file changed, 3 insertions(+), 18 deletions(-)
+ fs/autofs4/waitq.c       |   12 ++++++++----
+ include/linux/auto_fs4.h |   16 ++++++++++++----
+ 2 files changed, 20 insertions(+), 8 deletions(-)
 
-diff -puN fs/buffer.c~fs-fix-nobh-data-leak fs/buffer.c
---- a/fs/buffer.c~fs-fix-nobh-data-leak
-+++ a/fs/buffer.c
-@@ -2248,7 +2248,6 @@ int nobh_prepare_write(struct page *page
- 	int i;
- 	int ret = 0;
- 	int is_mapped_to_disk = 1;
--	int dirtied_it = 0;
+diff -puN fs/autofs4/waitq.c~autofs4-header-file-update fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs4-header-file-update
++++ a/fs/autofs4/waitq.c
+@@ -84,7 +84,11 @@ static void autofs4_notify_daemon(struct
+ 				 struct autofs_wait_queue *wq,
+ 				 int type)
+ {
+-	union autofs_packet_union pkt;
++	union {
++		struct autofs_packet_hdr hdr;
++		union autofs_packet_union v4_pkt;
++		union autofs_v5_packet_union v5_pkt;
++	} pkt;
+ 	size_t pktsz;
  
- 	if (PageMappedToDisk(page))
- 		return 0;
-@@ -2285,14 +2284,10 @@ int nobh_prepare_write(struct page *page
- 			continue;
- 		if (buffer_new(&map_bh) || !buffer_mapped(&map_bh)) {
- 			kaddr = kmap_atomic(page, KM_USER0);
--			if (block_start < from) {
-+			if (block_start < from)
- 				memset(kaddr+block_start, 0, from-block_start);
--				dirtied_it = 1;
--			}
--			if (block_end > to) {
-+			if (block_end > to)
- 				memset(kaddr + to, 0, block_end - to);
--				dirtied_it = 1;
--			}
- 			flush_dcache_page(page);
- 			kunmap_atomic(kaddr, KM_USER0);
- 			continue;
-@@ -2347,17 +2342,6 @@ int nobh_prepare_write(struct page *page
+ 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
+@@ -98,7 +102,7 @@ static void autofs4_notify_daemon(struct
+ 	/* Kernel protocol v4 missing and expire packets */
+ 	case autofs_ptype_missing:
+ 	{
+-		struct autofs_packet_missing *mp = &pkt.missing;
++		struct autofs_packet_missing *mp = &pkt.v4_pkt.missing;
  
- 	if (is_mapped_to_disk)
- 		SetPageMappedToDisk(page);
--	SetPageUptodate(page);
--
--	/*
--	 * Setting the page dirty here isn't necessary for the prepare_write
--	 * function - commit_write will do that.  But if/when this function is
--	 * used within the pagefault handler to ensure that all mmapped pages
--	 * have backing space in the filesystem, we will need to dirty the page
--	 * if its contents were altered.
--	 */
--	if (dirtied_it)
--		set_page_dirty(page);
+ 		pktsz = sizeof(*mp);
  
- 	return 0;
+@@ -110,7 +114,7 @@ static void autofs4_notify_daemon(struct
+ 	}
+ 	case autofs_ptype_expire_multi:
+ 	{
+-		struct autofs_packet_expire_multi *ep = &pkt.expire_multi;
++		struct autofs_packet_expire_multi *ep = &pkt.v4_pkt.expire_multi;
  
-@@ -2387,6 +2371,7 @@ int nobh_commit_write(struct file *file,
- 	struct inode *inode = page->mapping->host;
- 	loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
+ 		pktsz = sizeof(*ep);
  
-+	SetPageUptodate(page);
- 	set_page_dirty(page);
- 	if (pos > inode->i_size) {
- 		i_size_write(inode, pos);
+@@ -129,7 +133,7 @@ static void autofs4_notify_daemon(struct
+ 	case autofs_ptype_missing_direct:
+ 	case autofs_ptype_expire_direct:
+ 	{
+-		struct autofs_v5_packet *packet = &pkt.v5_packet;
++		struct autofs_v5_packet *packet = &pkt.v5_pkt.v5_packet;
+ 
+ 		pktsz = sizeof(*packet);
+ 
+diff -puN include/linux/auto_fs4.h~autofs4-header-file-update include/linux/auto_fs4.h
+--- a/include/linux/auto_fs4.h~autofs4-header-file-update
++++ a/include/linux/auto_fs4.h
+@@ -59,6 +59,13 @@ struct autofs_packet_expire_multi {
+ 	char name[NAME_MAX+1];
+ };
+ 
++union autofs_packet_union {
++	struct autofs_packet_hdr hdr;
++	struct autofs_packet_missing missing;
++	struct autofs_packet_expire expire;
++	struct autofs_packet_expire_multi expire_multi;
++};
++
+ /* autofs v5 common packet struct */
+ struct autofs_v5_packet {
+ 	struct autofs_packet_hdr hdr;
+@@ -78,12 +85,13 @@ typedef struct autofs_v5_packet autofs_p
+ typedef struct autofs_v5_packet autofs_packet_missing_direct_t;
+ typedef struct autofs_v5_packet autofs_packet_expire_direct_t;
+ 
+-union autofs_packet_union {
++union autofs_v5_packet_union {
+ 	struct autofs_packet_hdr hdr;
+-	struct autofs_packet_missing missing;
+-	struct autofs_packet_expire expire;
+-	struct autofs_packet_expire_multi expire_multi;
+ 	struct autofs_v5_packet v5_packet;
++	autofs_packet_missing_indirect_t missing_indirect;
++	autofs_packet_expire_indirect_t expire_indirect;
++	autofs_packet_missing_direct_t missing_direct;
++	autofs_packet_expire_direct_t expire_direct;
+ };
+ 
+ #define AUTOFS_IOC_EXPIRE_MULTI		_IOW(0x93,0x66,int)
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
-
-git-block.patch
+Patches currently in -mm which might be from raven@themaw.net are
