@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-more-0-null-conversions.patch added to -mm tree
-Date: Wed, 21 Feb 2007 12:49:53 -0800
-Message-ID: <200702212049.l1LKnrpf025493@shell0.pdx.osdl.net>
+Subject: + throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations.patch added to -mm tree
+Date: Wed, 21 Feb 2007 13:06:26 -0800
+Message-ID: <200702212106.l1LL6Q93026026@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44159 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47542 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161356AbXBUUuA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 15:50:00 -0500
+	id S1423123AbXBUVGi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 16:06:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avi@qumranet.com
+Cc: akpm@linux-foundation.org, galak@kernel.crashing.org, hirofumi@mail.parknet.co.jp, nickpiggin@yahoo.com.au, zaitcev@redhat.com
 
 
 The patch titled
-     KVM: More 0 -> NULL conversions
+     throttle_vm_writeout(): don't loop on GFP_NOFS and GFP_NOIO allocations
 has been added to the -mm tree.  Its filename is
-     kvm-more-0-null-conversions.patch
+     throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: More 0 -> NULL conversions
-From: Avi Kivity <avi@qumranet.com>
+Subject: throttle_vm_writeout(): don't loop on GFP_NOFS and GFP_NOIO allocations
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+throttle_vm_writeout() is designed to wait for the dirty levels to subside. 
+But if the caller holds IO or FS locks, we might be holding up that writeout.
+
+So change it to take a single nap to give other devices a chance to clean some
+memory, then return.
+
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm_main.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ linux/writeback.h   |    0 
+ mm/page-writeback.c |   13 +++++++++++--
+ mm/vmscan.c         |    2 +-
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-more-0-null-conversions drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-more-0-null-conversions
-+++ a/drivers/kvm/kvm_main.c
-@@ -2229,13 +2229,13 @@ static void kvm_exit_debug(void)
- static int kvm_suspend(struct sys_device *dev, pm_message_t state)
+diff -puN mm/vmscan.c~throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations mm/vmscan.c
+--- a/mm/vmscan.c~throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations
++++ a/mm/vmscan.c
+@@ -952,7 +952,7 @@ static unsigned long shrink_zone(int pri
+ 		}
+ 	}
+ 
+-	throttle_vm_writeout();
++	throttle_vm_writeout(sc->gfp_mask);
+ 
+ 	atomic_dec(&zone->reclaim_in_progress);
+ 	return nr_reclaimed;
+diff -puN mm/page-writeback.c~throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations mm/page-writeback.c
+--- a/mm/page-writeback.c~throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations
++++ a/mm/page-writeback.c
+@@ -296,11 +296,21 @@ void balance_dirty_pages_ratelimited_nr(
+ }
+ EXPORT_SYMBOL(balance_dirty_pages_ratelimited_nr);
+ 
+-void throttle_vm_writeout(void)
++void throttle_vm_writeout(gfp_t gfp_mask)
  {
- 	decache_vcpus_on_cpu(raw_smp_processor_id());
--	on_each_cpu(kvm_arch_ops->hardware_disable, 0, 0, 1);
-+	on_each_cpu(kvm_arch_ops->hardware_disable, NULL, 0, 1);
- 	return 0;
+ 	long background_thresh;
+ 	long dirty_thresh;
+ 
++	if ((gfp_mask & (__GFP_FS|__GFP_IO)) != __GFP_FS|__GFP_IO) {
++		/*
++		 * The caller might hold locks which can prevert IO completion
++		 * or progress in the filesystem.  So we cannot just sit here
++		 * waiting for IO to complete.
++		 */
++		congestion_wait(WRITE, HZ/10);
++		return;
++	}
++
+         for ( ; ; ) {
+ 		get_dirty_limits(&background_thresh, &dirty_thresh, NULL);
+ 
+@@ -317,7 +327,6 @@ void throttle_vm_writeout(void)
+         }
  }
  
- static int kvm_resume(struct sys_device *dev)
- {
--	on_each_cpu(kvm_arch_ops->hardware_enable, 0, 0, 1);
-+	on_each_cpu(kvm_arch_ops->hardware_enable, NULL, 0, 1);
- 	return 0;
- }
- 
+-
+ /*
+  * writeback at least _min_pages, and keep writing until the amount of dirty
+  * memory is less than the background threshold, or until we're all clean.
+diff -puN include/linux/writeback.h~throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations include/linux/writeback.h
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kvm-mmu-add-missing-dirty-page-tracking-cases.patch
-kvm-move-virtualization-deactivation-from-cpu_dead.patch
-kvm-cosmetics.patch
-kvm-vmx-hack-set_cr0_no_modeswitch-to-actually-do.patch
-kvm-use-array_size-macro-instead-of-manual-calculation.patch
-kvm-use-page_private-set_page_private-apis.patch
-kvm-add-msr-based-hypercall-api.patch
-kvm-add-host-hypercall-support-for-vmx.patch
-kvm-add-hypercall-host-support-for-svm.patch
-kvm-wire-up-hypercall-handlers-to-a-central.patch
-kvm-svm-init-cr0-with-the-wp-bit-set.patch
-kvm-svm-intercept-smi-to-handle-it-at-host-level.patch
-kvm-more-0-null-conversions.patch
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-agpgart.patch
+git-cpufreq.patch
+git-drm.patch
+git-dvb.patch
+pvrusb-warning-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+git-libata-all.patch
+dmaengine-uninline-large-functions.patch
+git-mips-fixup.patch
+Fabric7-VIOC-driver-fixes.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+git-parisc.patch
+git-parisc-fixup.patch
+git-pciseg.patch
+git-s390.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+after-before-x86_64-mm-mmconfig-share.patch
+xen-paravirt-core-xen-implementation-fix.patch
+throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
