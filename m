@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-fix-congestion-control-use-atomic_longs.patch added to -mm tree
-Date: Wed, 21 Feb 2007 15:31:42 -0800
-Message-ID: <200702212331.l1LNVgaa030033@shell0.pdx.osdl.net>
+Subject: + fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch added to -mm tree
+Date: Wed, 21 Feb 2007 15:29:56 -0800
+Message-ID: <200702212329.l1LNTuhT029935@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57501 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57545 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423086AbXBUXcI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 18:32:08 -0500
+	id S1423098AbXBUXdk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 18:33:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, trond.myklebust@fys.uio.no
+Cc: kraxel@suse.de, ak@suse.de, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, ink@jurassic.park.msu.ru, jeremy@goop.org, lethal@linux-sh.org, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net
 
 
 The patch titled
-     nfs: fix congestion control: use atomic_longs
+     Fixes and cleanups for earlyprintk aka boot console
 has been added to the -mm tree.  Its filename is
-     nfs-fix-congestion-control-use-atomic_longs.patch
+     fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,62 +25,322 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nfs: fix congestion control: use atomic_longs
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: Fixes and cleanups for earlyprintk aka boot console
+From: Gerd Hoffmann <kraxel@suse.de>
 
-Change the atomic_t in struct nfs_server to atomic_long_t in anticipation
-of machines that can handle 8+TB of (4K) pages under writeback.
+The console subsystem already has an idea of a boot console, using the
+CON_BOOT flag.  The implementation has some flaws though.  The major
+problem is that presence of a boot console makes register_console() ignore
+any other console devices (unless explicitly specified on the kernel
+command line).
 
-However I suspect other things in NFS will start going *bang* by then.
+This patch fixes the console selection code to *not* consider a boot
+console a full-featured one, so the first non-boot console registering will
+become the default console instead.  This way the unregister call for the
+boot console in the register_console() function actually triggers and the
+handover from the boot console to the real console device works smoothly. 
+Added a printk for the handover, so you know which console device the
+output goes to when the boot console stops printing messages.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+The disable_early_printk() call is obsolete with that patch, explicitly
+disabling the early console isn't needed any more as it works automagically
+with that patch.
+
+I've walked through the tree, dropped all disable_early_printk() instances
+found below arch/ and tagged the consoles with CON_BOOT if needed.  The
+code is tested on x86 only so far.
+
+Signed-off-by: Gerd Hoffmann <kraxel@suse.de>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c            |    4 ++--
- include/linux/nfs_fs_sb.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/alpha/kernel/setup.c         |    9 ---------
+ arch/alpha/kernel/srmcons.c       |    2 +-
+ arch/mips/cobalt/console.c        |    5 -----
+ arch/mips/dec/prom/console.c      |    5 +----
+ arch/mips/sgi-ip27/ip27-console.c |    5 -----
+ arch/powerpc/kernel/udbg.c        |   14 +-------------
+ arch/sh/kernel/early_printk.c     |   18 ++++++------------
+ arch/sh64/kernel/early_printk.c   |    8 +-------
+ arch/x86_64/kernel/early_printk.c |   20 +++++---------------
+ drivers/char/tty_io.c             |    5 -----
+ kernel/printk.c                   |   26 ++++++++++++++++----------
+ 11 files changed, 31 insertions(+), 86 deletions(-)
 
-diff -puN fs/nfs/write.c~nfs-fix-congestion-control-use-atomic_longs fs/nfs/write.c
---- a/fs/nfs/write.c~nfs-fix-congestion-control-use-atomic_longs
-+++ a/fs/nfs/write.c
-@@ -224,7 +224,7 @@ static void nfs_set_page_writeback(struc
- 		struct inode *inode = page->mapping->host;
- 		struct nfs_server *nfss = NFS_SERVER(inode);
+diff -puN arch/alpha/kernel/setup.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/alpha/kernel/setup.c
+--- a/arch/alpha/kernel/setup.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/arch/alpha/kernel/setup.c
+@@ -744,15 +744,6 @@ setup_arch(char **cmdline_p)
+ 	paging_init();
+ }
  
--		if (atomic_inc_return(&nfss->writeback) >
-+		if (atomic_long_inc_return(&nfss->writeback) >
- 				NFS_CONGESTION_ON_THRESH)
- 			set_bdi_congested(&nfss->backing_dev_info, WRITE);
- 	}
-@@ -236,7 +236,7 @@ static void nfs_end_page_writeback(struc
- 	struct nfs_server *nfss = NFS_SERVER(inode);
+-void __init
+-disable_early_printk(void)
+-{
+-	if (alpha_using_srm && srmcons_output) {
+-		unregister_srm_console();
+-		srmcons_output = 0;
+-	}
+-}
+-
+ static char sys_unknown[] = "Unknown";
+ static char systype_names[][16] = {
+ 	"0",
+diff -puN arch/alpha/kernel/srmcons.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/alpha/kernel/srmcons.c
+--- a/arch/alpha/kernel/srmcons.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/arch/alpha/kernel/srmcons.c
+@@ -300,7 +300,7 @@ static struct console srmcons = {
+ 	.write		= srm_console_write,
+ 	.device		= srm_console_device,
+ 	.setup		= srm_console_setup,
+-	.flags		= CON_PRINTBUFFER,
++	.flags		= CON_PRINTBUFFER | CON_BOOT,
+ 	.index		= -1,
+ };
  
- 	end_page_writeback(page);
--	if (atomic_dec_return(&nfss->writeback) < NFS_CONGESTION_OFF_THRESH) {
-+	if (atomic_long_dec_return(&nfss->writeback) < NFS_CONGESTION_OFF_THRESH) {
- 		clear_bdi_congested(&nfss->backing_dev_info, WRITE);
- 		congestion_end(WRITE);
+diff -puN arch/mips/cobalt/console.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/mips/cobalt/console.c
+--- a/arch/mips/cobalt/console.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/arch/mips/cobalt/console.c
+@@ -40,8 +40,3 @@ void __init cobalt_early_console(void)
+ 
+ 	printk("Cobalt: early console registered\n");
+ }
+-
+-void __init disable_early_printk(void)
+-{
+-	unregister_console(&cons_info);
+-}
+diff -puN arch/mips/dec/prom/console.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/mips/dec/prom/console.c
+--- a/arch/mips/dec/prom/console.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/arch/mips/dec/prom/console.c
+@@ -29,7 +29,7 @@ static void __init prom_console_write(st
+ static struct console promcons __initdata = {
+ 	.name	= "prom",
+ 	.write	= prom_console_write,
+-	.flags	= CON_PRINTBUFFER,
++	.flags	= CON_PRINTBUFFER | CON_BOOT,
+ 	.index	= -1,
+ };
+ 
+@@ -50,6 +50,3 @@ void __init unregister_prom_console(void
+ 		promcons_output = 0;
  	}
-diff -puN include/linux/nfs_fs_sb.h~nfs-fix-congestion-control-use-atomic_longs include/linux/nfs_fs_sb.h
---- a/include/linux/nfs_fs_sb.h~nfs-fix-congestion-control-use-atomic_longs
-+++ a/include/linux/nfs_fs_sb.h
-@@ -82,7 +82,7 @@ struct nfs_server {
- 	struct rpc_clnt *	client_acl;	/* ACL RPC client handle */
- 	struct nfs_iostats *	io_stats;	/* I/O statistics */
- 	struct backing_dev_info	backing_dev_info;
--	atomic_t		writeback;	/* number of writeback pages */
-+	atomic_long_t		writeback;	/* number of writeback pages */
- 	int			flags;		/* various flags */
- 	unsigned int		caps;		/* server capabilities */
- 	unsigned int		rsize;		/* read size */
+ }
+-
+-void disable_early_printk(void)
+-	__attribute__((alias("unregister_prom_console")));
+diff -puN arch/mips/sgi-ip27/ip27-console.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/mips/sgi-ip27/ip27-console.c
+--- a/arch/mips/sgi-ip27/ip27-console.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/arch/mips/sgi-ip27/ip27-console.c
+@@ -67,8 +67,3 @@ __init void ip27_setup_console(void)
+ {
+ 	register_console(&ioc3_console);
+ }
+-
+-void __init disable_early_printk(void)
+-{
+-	unregister_console(&ioc3_console);
+-}
+diff -puN arch/powerpc/kernel/udbg.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/powerpc/kernel/udbg.c
+--- a/arch/powerpc/kernel/udbg.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/arch/powerpc/kernel/udbg.c
+@@ -142,24 +142,12 @@ static void udbg_console_write(struct co
+ static struct console udbg_console = {
+ 	.name	= "udbg",
+ 	.write	= udbg_console_write,
+-	.flags	= CON_PRINTBUFFER | CON_ENABLED,
++	.flags	= CON_PRINTBUFFER | CON_ENABLED | CON_BOOT,
+ 	.index	= -1,
+ };
+ 
+ static int early_console_initialized;
+ 
+-void __init disable_early_printk(void)
+-{
+-	if (!early_console_initialized)
+-		return;
+-	if (strstr(boot_command_line, "udbg-immortal")) {
+-		printk(KERN_INFO "early console immortal !\n");
+-		return;
+-	}
+-	unregister_console(&udbg_console);
+-	early_console_initialized = 0;
+-}
+-
+ /* called by setup_system */
+ void register_early_udbg_console(void)
+ {
+diff -puN arch/sh/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/sh/kernel/early_printk.c
+--- a/arch/sh/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/arch/sh/kernel/early_printk.c
+@@ -192,20 +192,14 @@ int __init setup_early_printk(char *buf)
+ 	}
+ #endif
+ 
+-	if (likely(early_console))
++	if (likely(early_console)) {
++		if (keep_early)
++			early_console->flags &= ~CON_BOOT;
++		else
++			early_console->flags |= CON_BOOT;
+ 		register_console(early_console);
++	}
+ 
+ 	return 0;
+ }
+ early_param("earlyprintk", setup_early_printk);
+-
+-void __init disable_early_printk(void)
+-{
+-	if (!early_console_initialized || !early_console)
+-		return;
+-	if (!keep_early) {
+-		printk("disabling early console\n");
+-		unregister_console(early_console);
+-	} else
+-		printk("keeping early console\n");
+-}
+diff -puN arch/sh64/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/sh64/kernel/early_printk.c
+--- a/arch/sh64/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/arch/sh64/kernel/early_printk.c
+@@ -79,7 +79,7 @@ static struct console sh_console = {
+ 	.name		= "scifcon",
+ 	.write		= sh_console_write,
+ 	.setup		= sh_console_setup,
+-	.flags		= CON_PRINTBUFFER,
++	.flags		= CON_PRINTBUFFER | CON_BOOT,
+ 	.index		= -1,
+ };
+ 
+@@ -97,9 +97,3 @@ void __init enable_early_printk(void)
+ 
+ 	register_console(&sh_console);
+ }
+-
+-void disable_early_printk(void)
+-{
+-	unregister_console(&sh_console);
+-}
+-
+diff -puN arch/x86_64/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/x86_64/kernel/early_printk.c
+--- a/arch/x86_64/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/arch/x86_64/kernel/early_printk.c
+@@ -244,22 +244,12 @@ static int __init setup_early_printk(cha
+  		early_console = &simnow_console;
+  		keep_early = 1;
+ 	}
++
++	if (keep_early)
++		early_console->flags &= ~CON_BOOT;
++	else
++		early_console->flags |= CON_BOOT;
+ 	register_console(early_console);
+ 	return 0;
+ }
+-
+ early_param("earlyprintk", setup_early_printk);
+-
+-void __init disable_early_printk(void)
+-{
+-	if (!early_console_initialized || !early_console)
+-		return;
+-	if (!keep_early) {
+-		printk("disabling early console\n");
+-		unregister_console(early_console);
+-		early_console_initialized = 0;
+-	} else {
+-		printk("keeping early console\n");
+-	}
+-}
+-
+diff -puN drivers/char/tty_io.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/drivers/char/tty_io.c
+@@ -141,8 +141,6 @@ static DECLARE_MUTEX(allocated_ptys_lock
+ static int ptmx_open(struct inode *, struct file *);
+ #endif
+ 
+-extern void disable_early_printk(void);
+-
+ static void initialize_tty_struct(struct tty_struct *tty);
+ 
+ static ssize_t tty_read(struct file *, char __user *, size_t, loff_t *);
+@@ -3879,9 +3877,6 @@ void __init console_init(void)
+ 	 * set up the console device so that later boot sequences can 
+ 	 * inform about problems etc..
+ 	 */
+-#ifdef CONFIG_EARLY_PRINTK
+-	disable_early_printk();
+-#endif
+ 	call = __con_initcall_start;
+ 	while (call < __con_initcall_end) {
+ 		(*call)();
+diff -puN kernel/printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console kernel/printk.c
+--- a/kernel/printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
++++ a/kernel/printk.c
+@@ -931,8 +931,16 @@ void register_console(struct console *co
+ {
+ 	int i;
+ 	unsigned long flags;
++	struct console *bootconsole = NULL;
+ 
+-	if (preferred_console < 0)
++	if (console_drivers) {
++		if (console->flags & CON_BOOT)
++			return;
++		if (console_drivers->flags & CON_BOOT)
++			bootconsole = console_drivers;
++	}
++
++	if (preferred_console < 0 || bootconsole || !console_drivers)
+ 		preferred_console = selected_console;
+ 
+ 	/*
+@@ -978,8 +986,11 @@ void register_console(struct console *co
+ 	if (!(console->flags & CON_ENABLED))
+ 		return;
+ 
+-	if (console_drivers && (console_drivers->flags & CON_BOOT)) {
+-		unregister_console(console_drivers);
++	if (bootconsole) {
++		printk(KERN_INFO "console handover: boot [%s%d] -> real [%s%d]\n",
++		       bootconsole->name, bootconsole->index,
++		       console->name, console->index);
++		unregister_console(bootconsole);
+ 		console->flags &= ~CON_PRINTBUFFER;
+ 	}
+ 
+@@ -1030,16 +1041,11 @@ int unregister_console(struct console *c
+ 		}
+ 	}
+ 
+-	/* If last console is removed, we re-enable picking the first
+-	 * one that gets registered. Without that, pmac early boot console
+-	 * would prevent fbcon from taking over.
+-	 *
++	/*
+ 	 * If this isn't the last console and it has CON_CONSDEV set, we
+ 	 * need to set it on the next preferred console.
+ 	 */
+-	if (console_drivers == NULL)
+-		preferred_console = selected_console;
+-	else if (console->flags & CON_CONSDEV)
++	if (console_drivers != NULL && console->flags & CON_CONSDEV)
+ 		console_drivers->flags |= CON_CONSDEV;
+ 
+ 	release_console_sem();
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from kraxel@suse.de are
 
-nfs-fix-congestion-control-v4.patch
-lumpy-reclaim-v2.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-nfs-fix-congestion-control-use-atomic_longs.patch
+git-dvb.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
