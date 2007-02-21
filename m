@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-cosmetics.patch added to -mm tree
-Date: Wed, 21 Feb 2007 12:49:33 -0800
-Message-ID: <200702212049.l1LKnX8v025455@shell0.pdx.osdl.net>
+Subject: + kvm-use-array_size-macro-instead-of-manual-calculation.patch added to -mm tree
+Date: Wed, 21 Feb 2007 12:49:37 -0800
+Message-ID: <200702212049.l1LKnbnA025463@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44101 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44123 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161339AbXBUUtf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 15:49:35 -0500
+	id S1161340AbXBUUto (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 15:49:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avi@qumranet.com
+Cc: darwish.07@gmail.com, avi@qumranet.com, dor.laor@qumranet.com
 
 
 The patch titled
-     KVM: Cosmetics
+     KVM: Use ARRAY_SIZE macro instead of manual calculation
 has been added to the -mm tree.  Its filename is
-     kvm-cosmetics.patch
+     kvm-use-array_size-macro-instead-of-manual-calculation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,172 +25,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: Cosmetics
-From: Avi Kivity <avi@qumranet.com>
+Subject: KVM: Use ARRAY_SIZE macro instead of manual calculation
+From: Ahmed S. Darwish <darwish.07@gmail.com>
 
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Signed-off-by: Dor Laor <dor.laor@qumranet.com>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm_main.c    |   21 ++++++++-------------
- drivers/kvm/paging_tmpl.h |    3 +--
- drivers/kvm/svm.c         |   10 +++++-----
- drivers/kvm/vmx.c         |    4 +---
- 4 files changed, 15 insertions(+), 23 deletions(-)
+ drivers/kvm/kvm_svm.h |    3 ++-
+ drivers/kvm/svm.c     |    5 +++--
+ drivers/kvm/vmx.c     |    3 ++-
+ 3 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-cosmetics drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-cosmetics
-+++ a/drivers/kvm/kvm_main.c
-@@ -126,10 +126,8 @@ static inline int valid_vcpu(int n)
- 	return likely(n >= 0 && n < KVM_MAX_VCPUS);
- }
+diff -puN drivers/kvm/kvm_svm.h~kvm-use-array_size-macro-instead-of-manual-calculation drivers/kvm/kvm_svm.h
+--- a/drivers/kvm/kvm_svm.h~kvm-use-array_size-macro-instead-of-manual-calculation
++++ a/drivers/kvm/kvm_svm.h
+@@ -1,6 +1,7 @@
+ #ifndef __KVM_SVM_H
+ #define __KVM_SVM_H
  
--int kvm_read_guest(struct kvm_vcpu *vcpu,
--			     gva_t addr,
--			     unsigned long size,
--			     void *dest)
-+int kvm_read_guest(struct kvm_vcpu *vcpu, gva_t addr, unsigned long size,
-+		   void *dest)
- {
- 	unsigned char *host_buf = dest;
- 	unsigned long req_size = size;
-@@ -161,10 +159,8 @@ int kvm_read_guest(struct kvm_vcpu *vcpu
- }
- EXPORT_SYMBOL_GPL(kvm_read_guest);
++#include <linux/kernel.h>
+ #include <linux/types.h>
+ #include <linux/list.h>
+ #include <asm/msr.h>
+@@ -18,7 +19,7 @@ static const u32 host_save_msrs[] = {
+ 	MSR_IA32_LASTBRANCHTOIP, MSR_IA32_LASTINTFROMIP,MSR_IA32_LASTINTTOIP,*/
+ };
  
--int kvm_write_guest(struct kvm_vcpu *vcpu,
--			     gva_t addr,
--			     unsigned long size,
--			     void *data)
-+int kvm_write_guest(struct kvm_vcpu *vcpu, gva_t addr, unsigned long size,
-+		    void *data)
- {
- 	unsigned char *host_buf = data;
- 	unsigned long req_size = size;
-@@ -457,7 +453,7 @@ EXPORT_SYMBOL_GPL(set_cr4);
- void set_cr3(struct kvm_vcpu *vcpu, unsigned long cr3)
- {
- 	if (is_long_mode(vcpu)) {
--		if ( cr3 & CR3_L_MODE_RESEVED_BITS) {
-+		if (cr3 & CR3_L_MODE_RESEVED_BITS) {
- 			printk(KERN_DEBUG "set_cr3: #GP, reserved bits\n");
- 			inject_gp(vcpu);
- 			return;
-@@ -774,7 +770,6 @@ static int kvm_dev_ioctl_get_dirty_log(s
- 	if (copy_to_user(log->dirty_bitmap, memslot->dirty_bitmap, n))
- 		goto out;
+-#define NR_HOST_SAVE_MSRS (sizeof(host_save_msrs) / sizeof(*host_save_msrs))
++#define NR_HOST_SAVE_MSRS ARRAY_SIZE(host_save_msrs)
+ #define NUM_DB_REGS 4
  
--
- 	if (any) {
- 		cleared = 0;
- 		for (i = 0; i < KVM_MAX_VCPUS; ++i) {
-@@ -903,8 +898,9 @@ static int emulator_read_emulated(unsign
- 		return X86EMUL_CONTINUE;
- 	else {
- 		gpa_t gpa = vcpu->mmu.gva_to_gpa(vcpu, addr);
-+
- 		if (gpa == UNMAPPED_GVA)
--			return vcpu_printf(vcpu, "not present\n"), X86EMUL_PROPAGATE_FAULT;
-+			return X86EMUL_PROPAGATE_FAULT;
- 		vcpu->mmio_needed = 1;
- 		vcpu->mmio_phys_addr = gpa;
- 		vcpu->mmio_size = bytes;
-@@ -1801,12 +1797,11 @@ static long kvm_dev_ioctl(struct file *f
- 	case KVM_GET_API_VERSION:
- 		r = KVM_API_VERSION;
- 		break;
--	case KVM_CREATE_VCPU: {
-+	case KVM_CREATE_VCPU:
- 		r = kvm_dev_ioctl_create_vcpu(kvm, arg);
- 		if (r)
- 			goto out;
- 		break;
--	}
- 	case KVM_RUN: {
- 		struct kvm_run kvm_run;
- 
-diff -puN drivers/kvm/paging_tmpl.h~kvm-cosmetics drivers/kvm/paging_tmpl.h
---- a/drivers/kvm/paging_tmpl.h~kvm-cosmetics
-+++ a/drivers/kvm/paging_tmpl.h
-@@ -441,9 +441,8 @@ static int FNAME(page_fault)(struct kvm_
- 	/*
- 	 * mmio: emulate if accessible, otherwise its a guest fault.
- 	 */
--	if (is_io_pte(*shadow_pte)) {
-+	if (is_io_pte(*shadow_pte))
- 		return 1;
--	}
- 
- 	++kvm_stat.pf_fixed;
- 	kvm_mmu_audit(vcpu, "post page fault (fixed)");
-diff -puN drivers/kvm/svm.c~kvm-cosmetics drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~kvm-cosmetics
+ struct vcpu_svm {
+diff -puN drivers/kvm/svm.c~kvm-use-array_size-macro-instead-of-manual-calculation drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-use-array_size-macro-instead-of-manual-calculation
 +++ a/drivers/kvm/svm.c
-@@ -1042,22 +1042,22 @@ static int io_interception(struct kvm_vc
+@@ -15,6 +15,7 @@
+  */
  
- 		addr_mask = io_adress(vcpu, _in, &kvm_run->io.address);
- 		if (!addr_mask) {
--			printk(KERN_DEBUG "%s: get io address failed\n", __FUNCTION__);
-+			printk(KERN_DEBUG "%s: get io address failed\n",
-+			       __FUNCTION__);
- 			return 1;
- 		}
+ #include <linux/module.h>
++#include <linux/kernel.h>
+ #include <linux/vmalloc.h>
+ #include <linux/highmem.h>
+ #include <linux/profile.h>
+@@ -75,7 +76,7 @@ struct svm_init_data {
  
- 		if (kvm_run->io.rep) {
--			kvm_run->io.count = vcpu->regs[VCPU_REGS_RCX] & addr_mask;
-+			kvm_run->io.count
-+				= vcpu->regs[VCPU_REGS_RCX] & addr_mask;
- 			kvm_run->io.string_down = (vcpu->svm->vmcb->save.rflags
- 						   & X86_EFLAGS_DF) != 0;
- 		}
--	} else {
-+	} else
- 		kvm_run->io.value = vcpu->svm->vmcb->save.rax;
--	}
- 	return 0;
- }
+ static u32 msrpm_ranges[] = {0, 0xc0000000, 0xc0010000};
  
--
- static int nop_on_interception(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
- {
- 	return 1;
-diff -puN drivers/kvm/vmx.c~kvm-cosmetics drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-cosmetics
+-#define NUM_MSR_MAPS (sizeof(msrpm_ranges) / sizeof(*msrpm_ranges))
++#define NUM_MSR_MAPS ARRAY_SIZE(msrpm_ranges)
+ #define MSRS_RANGE_SIZE 2048
+ #define MSRS_IN_RANGE (MSRS_RANGE_SIZE * 8 / 2)
+ 
+@@ -1297,7 +1298,7 @@ static int handle_exit(struct kvm_vcpu *
+ 		       __FUNCTION__, vcpu->svm->vmcb->control.exit_int_info,
+ 		       exit_code);
+ 
+-	if (exit_code >= sizeof(svm_exit_handlers) / sizeof(*svm_exit_handlers)
++	if (exit_code >= ARRAY_SIZE(svm_exit_handlers)
+ 	    || svm_exit_handlers[exit_code] == 0) {
+ 		kvm_run->exit_reason = KVM_EXIT_UNKNOWN;
+ 		printk(KERN_ERR "%s: 0x%x @ 0x%llx cr0 0x%lx rflags 0x%llx\n",
+diff -puN drivers/kvm/vmx.c~kvm-use-array_size-macro-instead-of-manual-calculation drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-use-array_size-macro-instead-of-manual-calculation
 +++ a/drivers/kvm/vmx.c
-@@ -27,7 +27,6 @@
+@@ -19,6 +19,7 @@
+ #include "vmx.h"
+ #include "kvm_vmx.h"
+ #include <linux/module.h>
++#include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
+ #include <linux/profile.h>
+@@ -75,7 +76,7 @@ static const u32 vmx_msr_index[] = {
+ #endif
+ 	MSR_EFER, MSR_K6_STAR,
+ };
+-#define NR_VMX_MSR (sizeof(vmx_msr_index) / sizeof(*vmx_msr_index))
++#define NR_VMX_MSR ARRAY_SIZE(vmx_msr_index)
  
- #include "segment_descriptor.h"
- 
--
- MODULE_AUTHOR("Qumranet");
- MODULE_LICENSE("GPL");
- 
-@@ -418,10 +417,9 @@ static int vmx_set_msr(struct kvm_vcpu *
- 	case MSR_IA32_SYSENTER_ESP:
- 		vmcs_write32(GUEST_SYSENTER_ESP, data);
- 		break;
--	case MSR_IA32_TIME_STAMP_COUNTER: {
-+	case MSR_IA32_TIME_STAMP_COUNTER:
- 		guest_write_tsc(data);
- 		break;
--	}
- 	default:
- 		msr = find_msr_entry(vcpu, msr_index);
- 		if (msr) {
+ static inline int is_page_fault(u32 intr_info)
+ {
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
-kvm-mmu-add-missing-dirty-page-tracking-cases.patch
-kvm-move-virtualization-deactivation-from-cpu_dead.patch
-kvm-cosmetics.patch
-kvm-vmx-hack-set_cr0_no_modeswitch-to-actually-do.patch
+git-avr32.patch
+git-drm.patch
+git-dvb.patch
+git-mips.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
 kvm-use-array_size-macro-instead-of-manual-calculation.patch
-kvm-use-page_private-set_page_private-apis.patch
-kvm-add-msr-based-hypercall-api.patch
-kvm-add-host-hypercall-support-for-vmx.patch
-kvm-add-hypercall-host-support-for-svm.patch
-kvm-wire-up-hypercall-handlers-to-a-central.patch
-kvm-svm-init-cr0-with-the-wp-bit-set.patch
-kvm-svm-intercept-smi-to-handle-it-at-host-level.patch
-kvm-more-0-null-conversions.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
