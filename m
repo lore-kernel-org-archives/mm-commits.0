@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-cpia_ppc-dont-use-_work_nar.patch added to -mm tree
-Date: Wed, 21 Feb 2007 12:41:46 -0800
-Message-ID: <200702212041.l1LKfkZL025251@shell0.pdx.osdl.net>
+Subject: + fix-refrigerator-vs-thaw_process-race.patch added to -mm tree
+Date: Wed, 21 Feb 2007 12:42:37 -0800
+Message-ID: <200702212042.l1LKgbh2025289@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43583 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43646 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932568AbXBUUmM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 15:42:12 -0500
+	id S932560AbXBUUnJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 15:43:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, dhowells@redhat.com, mchehab@infradead.org
+Cc: oleg@tv-sign.ru, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     drivers/media/video/cpia_pp.c: don't use _WORK_NAR
+     fix refrigerator() vs thaw_process() race
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
+     fix-refrigerator-vs-thaw_process-race.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/media/video/cpia_pp.c: don't use _WORK_NAR
+Subject: fix refrigerator() vs thaw_process() race
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-pp_cam_entry->cb_task need not to be _NOAUTOREL ... because in fact it is
-never used ???
+refrigerator() can miss a wakeup, "wait event" loop needs a proper memory
+ordering.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-By: David Howells <dhowells@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cpia_pp.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ kernel/power/process.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/cpia_pp.c~drivers-media-video-cpia_ppc-dont-use-_work_nar drivers/media/video/cpia_pp.c
---- a/drivers/media/video/cpia_pp.c~drivers-media-video-cpia_ppc-dont-use-_work_nar
-+++ a/drivers/media/video/cpia_pp.c
-@@ -141,7 +141,6 @@ static void cpia_pp_run_callback(struct 
- 	cam = container_of(work, struct pp_cam_entry, cb_task);
- 	cb_func = cam->cb_func;
- 	cb_data = cam->cb_data;
--	work_release(work);
+diff -puN kernel/power/process.c~fix-refrigerator-vs-thaw_process-race kernel/power/process.c
+--- a/kernel/power/process.c~fix-refrigerator-vs-thaw_process-race
++++ a/kernel/power/process.c
+@@ -47,8 +47,10 @@ void refrigerator(void)
+ 	recalc_sigpending(); /* We sent fake signal, clean it up */
+ 	spin_unlock_irq(&current->sighand->siglock);
  
- 	cb_func(cb_data);
- }
-@@ -682,7 +681,7 @@ static int cpia_pp_registerCallback(void
- 	if(cam->port->irq != PARPORT_IRQ_NONE) {
- 		cam->cb_func = cb;
- 		cam->cb_data = cbdata;
--		INIT_WORK_NAR(&cam->cb_task, cpia_pp_run_callback);
-+		INIT_WORK(&cam->cb_task, cpia_pp_run_callback);
- 	} else {
- 		retval = -1;
+-	while (frozen(current)) {
+-		current->state = TASK_UNINTERRUPTIBLE;
++	for (;;) {
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		if (!frozen(current))
++			break;
+ 		schedule();
  	}
+ 	pr_debug("%s left refrigerator\n", current->comm);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -68,6 +64,7 @@ git-cpufreq.patch
 drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
 git-block.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-refrigerator-vs-thaw_process-race.patch
 doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
 procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
 procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
