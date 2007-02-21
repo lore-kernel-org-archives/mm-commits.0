@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:09:42 -0800
-Message-ID: <200702212209.l1LM9g1s027890@shell0.pdx.osdl.net>
+Subject: + filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:11:36 -0800
+Message-ID: <200702212211.l1LMBarP027933@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51532 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51724 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161178AbXBUWM5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:12:57 -0500
+	id S1161360AbXBUWOt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:14:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, greg@kroah.com
+Cc: bunk@stusta.de
 
 
 The patch titled
-     make drivers/usb/misc/iowarrior.c:iowarrior_ids[] static
+     make fs/partitions/msdos.c:check_sane_values() static
 has been added to the -mm tree.  Its filename is
-     make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch
+     filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make drivers/usb/misc/iowarrior.c:iowarrior_ids[] static
+Subject: make fs/partitions/msdos.c:check_sane_values() static
 From: Adrian Bunk <bunk@stusta.de>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Greg KH <greg@kroah.com>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/iowarrior.c |    2 +-
+ fs/partitions/msdos.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/misc/iowarrior.c~make-drivers-usb-misc-iowarriorciowarrior_ids-static drivers/usb/misc/iowarrior.c
---- a/drivers/usb/misc/iowarrior.c~make-drivers-usb-misc-iowarriorciowarrior_ids-static
-+++ a/drivers/usb/misc/iowarrior.c
-@@ -140,7 +140,7 @@ static int usb_set_report(struct usb_int
- /* driver registration */
- /*---------------------*/
- /* table of devices that work with this driver */
--struct usb_device_id iowarrior_ids[] = {
-+static struct usb_device_id iowarrior_ids[] = {
- 	{USB_DEVICE(USB_VENDOR_ID_CODEMERCS, USB_DEVICE_ID_CODEMERCS_IOW40)},
- 	{USB_DEVICE(USB_VENDOR_ID_CODEMERCS, USB_DEVICE_ID_CODEMERCS_IOW24)},
- 	{USB_DEVICE(USB_VENDOR_ID_CODEMERCS, USB_DEVICE_ID_CODEMERCS_IOWPV1)},
+diff -puN fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe-fix fs/partitions/msdos.c
+--- a/fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe-fix
++++ a/fs/partitions/msdos.c
+@@ -431,7 +431,7 @@ static struct {
+  *
+  * Copyright 31 January 2007, TJ <linux@tjworld.net>
+  */
+-int check_sane_values(struct partition *p, struct block_device *bdev)
++static int check_sane_values(struct partition *p, struct block_device *bdev)
+ {
+ 	unsigned char *data;
+ 	struct partition *ext;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -82,6 +82,7 @@ arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
 make-struct-vmi_ops-static.patch
 proper-prototype-for-hugetlb_get_unmapped_area.patch
 lumpy-reclaim-cleanup.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
 kill-net-rxrpc-rxrpc_symsc.patch
 make-ext2_get_blocks-static.patch
 drivers-edac-make-code-static.patch
