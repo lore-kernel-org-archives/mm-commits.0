@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-use-page_private-set_page_private-apis.patch added to -mm tree
-Date: Wed, 21 Feb 2007 12:49:39 -0800
-Message-ID: <200702212049.l1LKndm0025466@shell0.pdx.osdl.net>
+Subject: + kvm-wire-up-hypercall-handlers-to-a-central.patch added to -mm tree
+Date: Wed, 21 Feb 2007 12:49:47 -0800
+Message-ID: <200702212049.l1LKnlFk025481@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44122 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44141 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161342AbXBUUto (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 15:49:44 -0500
+	id S1161349AbXBUUtx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 15:49:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: markus.rechberger@amd.com, avi@qumranet.com
+Cc: avi@qumranet.com
 
 
 The patch titled
-     KVM: Use page_private()/set_page_private() apis
+     KVM: Wire up hypercall handlers to a central arch-independent location
 has been added to the -mm tree.  Its filename is
-     kvm-use-page_private-set_page_private-apis.patch
+     kvm-wire-up-hypercall-handlers-to-a-central.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,142 +25,133 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: KVM: Use page_private()/set_page_private() apis
-From: Markus Rechberger <markus.rechberger@amd.com>
+Subject: KVM: Wire up hypercall handlers to a central arch-independent location
+From: Avi Kivity <avi@qumranet.com>
 
-Besides using an established api, this allows using kvm in older kernels.
-
-Signed-off-by: Markus Rechberger <markus.rechberger@amd.com>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm.h      |    2 +-
- drivers/kvm/kvm_main.c |    2 +-
- drivers/kvm/mmu.c      |   36 ++++++++++++++++++------------------
- 3 files changed, 20 insertions(+), 20 deletions(-)
+ drivers/kvm/kvm.h      |    2 ++
+ drivers/kvm/kvm_main.c |   36 ++++++++++++++++++++++++++++++++++++
+ drivers/kvm/svm.c      |   10 +---------
+ drivers/kvm/vmx.c      |   10 +---------
+ 4 files changed, 40 insertions(+), 18 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-use-page_private-set_page_private-apis drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-use-page_private-set_page_private-apis
+diff -puN drivers/kvm/kvm.h~kvm-wire-up-hypercall-handlers-to-a-central drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-wire-up-hypercall-handlers-to-a-central
 +++ a/drivers/kvm/kvm.h
-@@ -523,7 +523,7 @@ static inline struct kvm_mmu_page *page_
+@@ -482,6 +482,8 @@ void kvm_mmu_post_write(struct kvm_vcpu 
+ int kvm_mmu_unprotect_page_virt(struct kvm_vcpu *vcpu, gva_t gva);
+ void kvm_mmu_free_some_pages(struct kvm_vcpu *vcpu);
+ 
++int kvm_hypercall(struct kvm_vcpu *vcpu, struct kvm_run *run);
++
+ static inline int kvm_mmu_page_fault(struct kvm_vcpu *vcpu, gva_t gva,
+ 				     u32 error_code)
  {
- 	struct page *page = pfn_to_page(shadow_page >> PAGE_SHIFT);
- 
--	return (struct kvm_mmu_page *)page->private;
-+	return (struct kvm_mmu_page *)page_private(page);
- }
- 
- static inline u16 read_fs(void)
-diff -puN drivers/kvm/kvm_main.c~kvm-use-page_private-set_page_private-apis drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-use-page_private-set_page_private-apis
+diff -puN drivers/kvm/kvm_main.c~kvm-wire-up-hypercall-handlers-to-a-central drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-wire-up-hypercall-handlers-to-a-central
 +++ a/drivers/kvm/kvm_main.c
-@@ -670,7 +670,7 @@ raced:
- 						     | __GFP_ZERO);
- 			if (!new.phys_mem[i])
- 				goto out_free;
-- 			new.phys_mem[i]->private = 0;
-+			set_page_private(new.phys_mem[i],0);
- 		}
- 	}
+@@ -1138,6 +1138,42 @@ int emulate_instruction(struct kvm_vcpu 
+ }
+ EXPORT_SYMBOL_GPL(emulate_instruction);
  
-diff -puN drivers/kvm/mmu.c~kvm-use-page_private-set_page_private-apis drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-use-page_private-set_page_private-apis
-+++ a/drivers/kvm/mmu.c
-@@ -298,18 +298,18 @@ static void rmap_add(struct kvm_vcpu *vc
- 	if (!is_rmap_pte(*spte))
- 		return;
- 	page = pfn_to_page((*spte & PT64_BASE_ADDR_MASK) >> PAGE_SHIFT);
--	if (!page->private) {
-+	if (!page_private(page)) {
- 		rmap_printk("rmap_add: %p %llx 0->1\n", spte, *spte);
--		page->private = (unsigned long)spte;
--	} else if (!(page->private & 1)) {
-+		set_page_private(page,(unsigned long)spte);
-+	} else if (!(page_private(page) & 1)) {
- 		rmap_printk("rmap_add: %p %llx 1->many\n", spte, *spte);
- 		desc = mmu_alloc_rmap_desc(vcpu);
--		desc->shadow_ptes[0] = (u64 *)page->private;
-+		desc->shadow_ptes[0] = (u64 *)page_private(page);
- 		desc->shadow_ptes[1] = spte;
--		page->private = (unsigned long)desc | 1;
-+		set_page_private(page,(unsigned long)desc | 1);
- 	} else {
- 		rmap_printk("rmap_add: %p %llx many->many\n", spte, *spte);
--		desc = (struct kvm_rmap_desc *)(page->private & ~1ul);
-+		desc = (struct kvm_rmap_desc *)(page_private(page) & ~1ul);
- 		while (desc->shadow_ptes[RMAP_EXT-1] && desc->more)
- 			desc = desc->more;
- 		if (desc->shadow_ptes[RMAP_EXT-1]) {
-@@ -337,12 +337,12 @@ static void rmap_desc_remove_entry(struc
- 	if (j != 0)
- 		return;
- 	if (!prev_desc && !desc->more)
--		page->private = (unsigned long)desc->shadow_ptes[0];
-+		set_page_private(page,(unsigned long)desc->shadow_ptes[0]);
- 	else
- 		if (prev_desc)
- 			prev_desc->more = desc->more;
- 		else
--			page->private = (unsigned long)desc->more | 1;
-+			set_page_private(page,(unsigned long)desc->more | 1);
- 	mmu_free_rmap_desc(vcpu, desc);
++int kvm_hypercall(struct kvm_vcpu *vcpu, struct kvm_run *run)
++{
++	unsigned long nr, a0, a1, a2, a3, a4, a5, ret;
++
++	kvm_arch_ops->decache_regs(vcpu);
++	ret = -KVM_EINVAL;
++#ifdef CONFIG_X86_64
++	if (is_long_mode(vcpu)) {
++		nr = vcpu->regs[VCPU_REGS_RAX];
++		a0 = vcpu->regs[VCPU_REGS_RDI];
++		a1 = vcpu->regs[VCPU_REGS_RSI];
++		a2 = vcpu->regs[VCPU_REGS_RDX];
++		a3 = vcpu->regs[VCPU_REGS_RCX];
++		a4 = vcpu->regs[VCPU_REGS_R8];
++		a5 = vcpu->regs[VCPU_REGS_R9];
++	} else
++#endif
++	{
++		nr = vcpu->regs[VCPU_REGS_RBX] & -1u;
++		a0 = vcpu->regs[VCPU_REGS_RAX] & -1u;
++		a1 = vcpu->regs[VCPU_REGS_RCX] & -1u;
++		a2 = vcpu->regs[VCPU_REGS_RDX] & -1u;
++		a3 = vcpu->regs[VCPU_REGS_RSI] & -1u;
++		a4 = vcpu->regs[VCPU_REGS_RDI] & -1u;
++		a5 = vcpu->regs[VCPU_REGS_RBP] & -1u;
++	}
++	switch (nr) {
++	default:
++		;
++	}
++	vcpu->regs[VCPU_REGS_RAX] = ret;
++	kvm_arch_ops->cache_regs(vcpu);
++	return 1;
++}
++EXPORT_SYMBOL_GPL(kvm_hypercall);
++
+ static u64 mk_cr_64(u64 curr_cr, u32 new_val)
+ {
+ 	return (curr_cr & ~((1ULL << 32) - 1)) | new_val;
+diff -puN drivers/kvm/svm.c~kvm-wire-up-hypercall-handlers-to-a-central drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-wire-up-hypercall-handlers-to-a-central
++++ a/drivers/kvm/svm.c
+@@ -1078,16 +1078,8 @@ static int halt_interception(struct kvm_
+ 
+ static int vmmcall_interception(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
+ {
+-	printk(KERN_DEBUG "got vmmcall at RIP %08llx\n",
+-	       vcpu->svm->vmcb->save.rip);
+-	printk(KERN_DEBUG "vmmcall params: %08llx, %08lx, %08lx, %08lx\n",
+-	       vcpu->svm->vmcb->save.rax,
+-	       vcpu->regs[VCPU_REGS_RCX],
+-	       vcpu->regs[VCPU_REGS_RDX],
+-	       vcpu->regs[VCPU_REGS_RBP]);
+-	vcpu->svm->vmcb->save.rax = 0;
+ 	vcpu->svm->vmcb->save.rip += 3;
+-	return 1;
++	return kvm_hypercall(vcpu, kvm_run);
  }
  
-@@ -356,20 +356,20 @@ static void rmap_remove(struct kvm_vcpu 
- 	if (!is_rmap_pte(*spte))
- 		return;
- 	page = pfn_to_page((*spte & PT64_BASE_ADDR_MASK) >> PAGE_SHIFT);
--	if (!page->private) {
-+	if (!page_private(page)) {
- 		printk(KERN_ERR "rmap_remove: %p %llx 0->BUG\n", spte, *spte);
- 		BUG();
--	} else if (!(page->private & 1)) {
-+	} else if (!(page_private(page) & 1)) {
- 		rmap_printk("rmap_remove:  %p %llx 1->0\n", spte, *spte);
--		if ((u64 *)page->private != spte) {
-+		if ((u64 *)page_private(page) != spte) {
- 			printk(KERN_ERR "rmap_remove:  %p %llx 1->BUG\n",
- 			       spte, *spte);
- 			BUG();
- 		}
--		page->private = 0;
-+		set_page_private(page,0);
- 	} else {
- 		rmap_printk("rmap_remove:  %p %llx many->many\n", spte, *spte);
--		desc = (struct kvm_rmap_desc *)(page->private & ~1ul);
-+		desc = (struct kvm_rmap_desc *)(page_private(page) & ~1ul);
- 		prev_desc = NULL;
- 		while (desc) {
- 			for (i = 0; i < RMAP_EXT && desc->shadow_ptes[i]; ++i)
-@@ -398,11 +398,11 @@ static void rmap_write_protect(struct kv
- 	BUG_ON(!slot);
- 	page = gfn_to_page(slot, gfn);
+ static int invalid_op_interception(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
+diff -puN drivers/kvm/vmx.c~kvm-wire-up-hypercall-handlers-to-a-central drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-wire-up-hypercall-handlers-to-a-central
++++ a/drivers/kvm/vmx.c
+@@ -1659,16 +1659,8 @@ static int handle_halt(struct kvm_vcpu *
  
--	while (page->private) {
--		if (!(page->private & 1))
--			spte = (u64 *)page->private;
-+	while (page_private(page)) {
-+		if (!(page_private(page) & 1))
-+			spte = (u64 *)page_private(page);
- 		else {
--			desc = (struct kvm_rmap_desc *)(page->private & ~1ul);
-+			desc = (struct kvm_rmap_desc *)(page_private(page) & ~1ul);
- 			spte = desc->shadow_ptes[0];
- 		}
- 		BUG_ON(!spte);
-@@ -1218,7 +1218,7 @@ static int alloc_mmu_pages(struct kvm_vc
- 		INIT_LIST_HEAD(&page_header->link);
- 		if ((page = alloc_page(GFP_KERNEL)) == NULL)
- 			goto error_1;
--		page->private = (unsigned long)page_header;
-+		set_page_private(page, (unsigned long)page_header);
- 		page_header->page_hpa = (hpa_t)page_to_pfn(page) << PAGE_SHIFT;
- 		memset(__va(page_header->page_hpa), 0, PAGE_SIZE);
- 		list_add(&page_header->link, &vcpu->free_pages);
+ static int handle_vmcall(struct kvm_vcpu *vcpu, struct kvm_run *kvm_run)
+ {
+-	kvm_run->exit_reason = KVM_EXIT_DEBUG;
+-	printk(KERN_DEBUG "got vmcall at RIP %08lx\n", vmcs_readl(GUEST_RIP));
+-	printk(KERN_DEBUG "vmcall params: %08lx, %08lx, %08lx, %08lx\n",
+-		vcpu->regs[VCPU_REGS_RAX],
+-		vcpu->regs[VCPU_REGS_RCX],
+-		vcpu->regs[VCPU_REGS_RDX],
+-		vcpu->regs[VCPU_REGS_RBP]);
+-	vcpu->regs[VCPU_REGS_RAX] = 0;
+ 	vmcs_writel(GUEST_RIP, vmcs_readl(GUEST_RIP)+3);
+-	return 1;
++	return kvm_hypercall(vcpu, kvm_run);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from markus.rechberger@amd.com are
+Patches currently in -mm which might be from avi@qumranet.com are
 
+kvm-mmu-add-missing-dirty-page-tracking-cases.patch
+kvm-move-virtualization-deactivation-from-cpu_dead.patch
+kvm-cosmetics.patch
 kvm-vmx-hack-set_cr0_no_modeswitch-to-actually-do.patch
+kvm-use-array_size-macro-instead-of-manual-calculation.patch
 kvm-use-page_private-set_page_private-apis.patch
+kvm-add-msr-based-hypercall-api.patch
+kvm-add-host-hypercall-support-for-vmx.patch
+kvm-add-hypercall-host-support-for-svm.patch
+kvm-wire-up-hypercall-handlers-to-a-central.patch
+kvm-svm-init-cr0-with-the-wp-bit-set.patch
+kvm-svm-intercept-smi-to-handle-it-at-host-level.patch
+kvm-more-0-null-conversions.patch
