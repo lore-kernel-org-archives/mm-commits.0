@@ -1,53 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - pktcdvd-correctly-set-cmd_len-field-in-pkt_generic_packet.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:45:34 -0800
-Message-ID: <200702211045.l1LAjYDk006380@shell0.pdx.osdl.net>
+Subject: - parport_pc-fix-parport_pc_probe_port-section-warning.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:46:44 -0800
+Message-ID: <200702211046.l1LAkidD006490@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47012 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47014 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932813AbXBUKrT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:47:19 -0500
+	id S932780AbXBUKrX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:47:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gd@spherenet.de, petero2@telia.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pktcdvd: Correctly set cmd_len field in pkt_generic_packet
+     parport_pc: fix parport_pc_probe_port section warning
 has been removed from the -mm tree.  Its filename was
-     pktcdvd-correctly-set-cmd_len-field-in-pkt_generic_packet.patch
+     parport_pc-fix-parport_pc_probe_port-section-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pktcdvd: Correctly set cmd_len field in pkt_generic_packet
-From: Gerhard Dirschl <gd@spherenet.de>
+Subject: parport_pc: fix parport_pc_probe_port section warning
+From: Jean Delvare <khali@linux-fr.org>
 
-Fixes http://bugzilla.kernel.org/show_bug.cgi?id=7810 - a silly
-copy-paste bug introduced by the latest change.
+WARNING: drivers/parport/parport_pc.o - Section mismatch: reference
+to .init.text: from .text between 'parport_pc_probe_port' (at offset
+0x14f7) and 'parport_pc_unregister_port'
 
-Signed-off-by: Gerhard Dirschl <gd@spherenet.de>
-Cc: Peter Osterlund <petero2@telia.com>
-Cc: <stable@kernel.org>
+parport_dma_probe() cannot be declared __devinit as it is called
+from parport_pc_probe_port() which isn't.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/parport/parport_pc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~pktcdvd-correctly-set-cmd_len-field-in-pkt_generic_packet drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~pktcdvd-correctly-set-cmd_len-field-in-pkt_generic_packet
-+++ a/drivers/block/pktcdvd.c
-@@ -765,7 +765,7 @@ static int pkt_generic_packet(struct pkt
- 			goto out;
- 	}
+diff -puN drivers/parport/parport_pc.c~parport_pc-fix-parport_pc_probe_port-section-warning drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~parport_pc-fix-parport_pc_probe_port-section-warning
++++ a/drivers/parport/parport_pc.c
+@@ -1546,7 +1546,7 @@ static void __devinit detect_and_report_
+ }
+ #endif /* CONFIG_PARPORT_PC_SUPERIO */
  
--	rq->cmd_len = COMMAND_SIZE(rq->cmd[0]);
-+	rq->cmd_len = COMMAND_SIZE(cgc->cmd[0]);
- 	memcpy(rq->cmd, cgc->cmd, CDROM_PACKET_SIZE);
- 	if (sizeof(rq->cmd) > CDROM_PACKET_SIZE)
- 		memset(rq->cmd + CDROM_PACKET_SIZE, 0, sizeof(rq->cmd) - CDROM_PACKET_SIZE);
+-static int __devinit get_superio_dma (struct parport *p)
++static int get_superio_dma (struct parport *p)
+ {
+ 	int i=0;
+ 	while( (superios[i].io != p->base) && (i<NR_SUPERIOS))
+@@ -2106,7 +2106,7 @@ static int parport_irq_probe(struct parp
+ /* --- DMA detection -------------------------------------- */
+ 
+ /* Only if chipset conforms to ECP ISA Interface Standard */
+-static int __devinit programmable_dma_support (struct parport *p)
++static int programmable_dma_support (struct parport *p)
+ {
+ 	unsigned char oecr = inb (ECONTROL (p));
+ 	int dma;
+@@ -2123,7 +2123,7 @@ static int __devinit programmable_dma_su
+ 	return dma;
+ }
+ 
+-static int __devinit parport_dma_probe (struct parport *p)
++static int parport_dma_probe (struct parport *p)
+ {
+ 	const struct parport_pc_private *priv = p->private_data;
+ 	if (priv->ecr)
 _
 
-Patches currently in -mm which might be from gd@spherenet.de are
+Patches currently in -mm which might be from khali@linux-fr.org are
