@@ -1,164 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - fault-injection-split-up-stacktrace-filter-kconfig-option.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:45:32 -0800
-Message-ID: <200702211045.l1LAjWsk006377@shell0.pdx.osdl.net>
+Subject: - mwave-interesting-flags-savings.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:45:37 -0800
+Message-ID: <200702211045.l1LAjbBc006384@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46849 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46868 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932568AbXBUKph (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:45:37 -0500
+	id S932446AbXBUKpn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:45:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault injection: split up stacktrace filter Kconfig option
+     mwave: interesting flags savings
 has been removed from the -mm tree.  Its filename was
-     fault-injection-split-up-stacktrace-filter-kconfig-option.patch
+     mwave-interesting-flags-savings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fault injection: split up stacktrace filter Kconfig option
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mwave: interesting flags savings
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-There is no prompt for CONFIG_STACKTRACE, so FAULT_INJECTION cannot be
-selected without LOCKDEP enabled.  (found by Paolo 'Blaisorblade'
-Giarrusso)
+Flags from spin_lock_irqsave() are saved into global variable and restored
+from it.  My gut feeling this is very racy.
 
-In order to fix such broken Kconfig dependency, this patch splits up the
-stacktrace filter support for fault injection by new Kconfig option, which
-enables to use fault injection on the architecture which doesn't have
-general stacktrace support.
-
-Cc: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug  |   10 ++++++++--
- lib/fault-inject.c |   41 +++++++++++++++++++++--------------------
- 2 files changed, 29 insertions(+), 22 deletions(-)
+ drivers/char/mwave/3780i.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN lib/Kconfig.debug~fault-injection-split-up-stacktrace-filter-kconfig-option lib/Kconfig.debug
---- a/lib/Kconfig.debug~fault-injection-split-up-stacktrace-filter-kconfig-option
-+++ a/lib/Kconfig.debug
-@@ -411,8 +411,6 @@ config LKDTM
- config FAULT_INJECTION
- 	bool "Fault-injection framework"
- 	depends on DEBUG_KERNEL
--	depends on STACKTRACE
--	select FRAME_POINTER
- 	help
- 	  Provide fault-injection framework.
- 	  For more details, see Documentation/fault-injection/.
-@@ -440,3 +438,11 @@ config FAULT_INJECTION_DEBUG_FS
- 	depends on FAULT_INJECTION && SYSFS && DEBUG_FS
- 	help
- 	  Enable configuration of fault-injection capabilities via debugfs.
-+
-+config FAULT_INJECTION_STACKTRACE_FILTER
-+	bool "stacktrace filter for fault-injection capabilities"
-+	depends on FAULT_INJECTION_DEBUG_FS && STACKTRACE_SUPPORT
-+	select STACKTRACE
-+	select FRAME_POINTER
-+	help
-+	  Provide stacktrace filter for fault-injection capabilities
-diff -puN lib/fault-inject.c~fault-injection-split-up-stacktrace-filter-kconfig-option lib/fault-inject.c
---- a/lib/fault-inject.c~fault-injection-split-up-stacktrace-filter-kconfig-option
-+++ a/lib/fault-inject.c
-@@ -55,7 +55,7 @@ static bool fail_task(struct fault_attr 
+diff -puN drivers/char/mwave/3780i.c~mwave-interesting-flags-savings drivers/char/mwave/3780i.c
+--- a/drivers/char/mwave/3780i.c~mwave-interesting-flags-savings
++++ a/drivers/char/mwave/3780i.c
+@@ -63,8 +63,6 @@
+ #include "3780i.h"
  
- #define MAX_STACK_TRACE_DEPTH 32
- 
--#if defined(CONFIG_STACKTRACE)
-+#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
- 
- static bool fail_stacktrace(struct fault_attr *attr)
- {
-@@ -90,17 +90,10 @@ static bool fail_stacktrace(struct fault
- 
- static inline bool fail_stacktrace(struct fault_attr *attr)
- {
--	static bool firsttime = true;
+ static DEFINE_SPINLOCK(dsp_lock);
+-static unsigned long flags;
 -
--	if (firsttime) {
--		printk(KERN_WARNING
--		"This architecture does not implement save_stack_trace()\n");
--		firsttime = false;
--	}
--	return false;
-+	return true;
- }
  
--#endif
-+#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+ static void PaceMsaAccess(unsigned short usDspBaseIO)
+ {
+@@ -76,6 +74,7 @@ static void PaceMsaAccess(unsigned short
+ unsigned short dsp3780I_ReadMsaCfg(unsigned short usDspBaseIO,
+                                    unsigned long ulMsaAddr)
+ {
++	unsigned long flags;
+ 	unsigned short val;
  
- /*
-  * This code is stolen from failmalloc-1.0
-@@ -217,6 +210,8 @@ void cleanup_fault_attr_dentries(struct 
- 	debugfs_remove(attr->dentries.task_filter_file);
- 	attr->dentries.task_filter_file = NULL;
+ 	PRINTK_3(TRACE_3780I,
+@@ -96,6 +95,7 @@ unsigned short dsp3780I_ReadMsaCfg(unsig
+ void dsp3780I_WriteMsaCfg(unsigned short usDspBaseIO,
+                           unsigned long ulMsaAddr, unsigned short usValue)
+ {
++	unsigned long flags;
  
-+#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
-+
- 	debugfs_remove(attr->dentries.stacktrace_depth_file);
- 	attr->dentries.stacktrace_depth_file = NULL;
+ 	PRINTK_4(TRACE_3780I,
+ 		"3780i::dsp3780i_WriteMsaCfg entry usDspBaseIO %x ulMsaAddr %lx usValue %x\n",
+@@ -175,6 +175,7 @@ int dsp3780I_EnableDSP(DSP_3780I_CONFIG_
+                        unsigned short *pIrqMap,
+                        unsigned short *pDmaMap)
+ {
++	unsigned long flags;
+ 	unsigned short usDspBaseIO = pSettings->usDspBaseIO;
+ 	int i;
+ 	DSP_UART_CFG_1 rUartCfg1;
+@@ -354,6 +355,7 @@ int dsp3780I_EnableDSP(DSP_3780I_CONFIG_
  
-@@ -232,6 +227,8 @@ void cleanup_fault_attr_dentries(struct 
- 	debugfs_remove(attr->dentries.reject_end_file);
- 	attr->dentries.reject_end_file = NULL;
+ int dsp3780I_DisableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings)
+ {
++	unsigned long flags;
+ 	unsigned short usDspBaseIO = pSettings->usDspBaseIO;
+ 	DSP_ISA_SLAVE_CONTROL rSlaveControl;
  
-+#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
-+
- 	if (attr->dentries.dir)
- 		WARN_ON(!simple_empty(attr->dentries.dir));
+@@ -383,6 +385,7 @@ int dsp3780I_DisableDSP(DSP_3780I_CONFIG
  
-@@ -269,6 +266,13 @@ int init_fault_attr_dentries(struct faul
- 	attr->dentries.task_filter_file = debugfs_create_bool("task-filter",
- 						mode, dir, &attr->task_filter);
+ int dsp3780I_Reset(DSP_3780I_CONFIG_SETTINGS * pSettings)
+ {
++	unsigned long flags;
+ 	unsigned short usDspBaseIO = pSettings->usDspBaseIO;
+ 	DSP_BOOT_DOMAIN rBootDomain;
+ 	DSP_HBRIDGE_CONTROL rHBridgeControl;
+@@ -427,6 +430,7 @@ int dsp3780I_Reset(DSP_3780I_CONFIG_SETT
  
-+	if (!attr->dentries.probability_file || !attr->dentries.interval_file ||
-+	    !attr->dentries.times_file || !attr->dentries.space_file ||
-+	    !attr->dentries.verbose_file || !attr->dentries.task_filter_file)
-+		goto fail;
-+
-+#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
-+
- 	attr->dentries.stacktrace_depth_file =
- 		debugfs_create_ul_MAX_STACK_TRACE_DEPTH(
- 			"stacktrace-depth", mode, dir, &attr->stacktrace_depth);
-@@ -285,18 +289,15 @@ int init_fault_attr_dentries(struct faul
- 	attr->dentries.reject_end_file =
- 		debugfs_create_ul("reject-end", mode, dir, &attr->reject_end);
+ int dsp3780I_Run(DSP_3780I_CONFIG_SETTINGS * pSettings)
+ {
++	unsigned long flags;
+ 	unsigned short usDspBaseIO = pSettings->usDspBaseIO;
+ 	DSP_BOOT_DOMAIN rBootDomain;
+ 	DSP_HBRIDGE_CONTROL rHBridgeControl;
+@@ -473,6 +477,7 @@ int dsp3780I_Run(DSP_3780I_CONFIG_SETTIN
+ int dsp3780I_ReadDStore(unsigned short usDspBaseIO, void __user *pvBuffer,
+                         unsigned uCount, unsigned long ulDSPAddr)
+ {
++	unsigned long flags;
+ 	unsigned short __user *pusBuffer = pvBuffer;
+ 	unsigned short val;
  
--
--	if (!attr->dentries.probability_file || !attr->dentries.interval_file
--	    || !attr->dentries.times_file || !attr->dentries.space_file
--	    || !attr->dentries.verbose_file || !attr->dentries.task_filter_file
--	    || !attr->dentries.stacktrace_depth_file
--	    || !attr->dentries.require_start_file
--	    || !attr->dentries.require_end_file
--	    || !attr->dentries.reject_start_file
--	    || !attr->dentries.reject_end_file
--	    )
-+	if (!attr->dentries.stacktrace_depth_file ||
-+	    !attr->dentries.require_start_file ||
-+	    !attr->dentries.require_end_file ||
-+	    !attr->dentries.reject_start_file ||
-+	    !attr->dentries.reject_end_file)
- 		goto fail;
+@@ -514,6 +519,7 @@ int dsp3780I_ReadAndClearDStore(unsigned
+                                 void __user *pvBuffer, unsigned uCount,
+                                 unsigned long ulDSPAddr)
+ {
++	unsigned long flags;
+ 	unsigned short __user *pusBuffer = pvBuffer;
+ 	unsigned short val;
  
-+#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
-+
- 	return 0;
- fail:
- 	cleanup_fault_attr_dentries(attr);
+@@ -555,6 +561,7 @@ int dsp3780I_ReadAndClearDStore(unsigned
+ int dsp3780I_WriteDStore(unsigned short usDspBaseIO, void __user *pvBuffer,
+                          unsigned uCount, unsigned long ulDSPAddr)
+ {
++	unsigned long flags;
+ 	unsigned short __user *pusBuffer = pvBuffer;
+ 
+ 
+@@ -596,6 +603,7 @@ int dsp3780I_WriteDStore(unsigned short 
+ int dsp3780I_ReadIStore(unsigned short usDspBaseIO, void __user *pvBuffer,
+                         unsigned uCount, unsigned long ulDSPAddr)
+ {
++	unsigned long flags;
+ 	unsigned short __user *pusBuffer = pvBuffer;
+ 
+ 	PRINTK_5(TRACE_3780I,
+@@ -643,6 +651,7 @@ int dsp3780I_ReadIStore(unsigned short u
+ int dsp3780I_WriteIStore(unsigned short usDspBaseIO, void __user *pvBuffer,
+                          unsigned uCount, unsigned long ulDSPAddr)
+ {
++	unsigned long flags;
+ 	unsigned short __user *pusBuffer = pvBuffer;
+ 
+ 	PRINTK_5(TRACE_3780I,
+@@ -691,6 +700,7 @@ int dsp3780I_WriteIStore(unsigned short 
+ int dsp3780I_GetIPCSource(unsigned short usDspBaseIO,
+                           unsigned short *pusIPCSource)
+ {
++	unsigned long flags;
+ 	DSP_HBRIDGE_CONTROL rHBridgeControl;
+ 	unsigned short temp;
+ 
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-simplify-the-stacktrace-code.patch
+git-dvb.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
