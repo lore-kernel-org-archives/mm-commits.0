@@ -1,50 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - xfs-warning-fix.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:45:05 -0800
-Message-ID: <200702211045.l1LAj5fc006327@shell0.pdx.osdl.net>
+Subject: - mincore-warning-fix.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:45:14 -0800
+Message-ID: <200702211045.l1LAjEXi006341@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46781 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46796 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932401AbXBUKpK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:45:10 -0500
+	id S932403AbXBUKpT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:45:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dgc@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@engr.sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xfs warning fix
+     mincore warning fix
 has been removed from the -mm tree.  Its filename was
-     xfs-warning-fix.patch
+     mincore-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: xfs warning fix
+Subject: mincore warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/xfs/linux-2.6/xfs_super.c:903: warning: 'noinline' attribute ignored
+allnoconfig:
 
-Cc: David Chinner <dgc@sgi.com>
+mm/mincore.c: In function 'do_mincore':
+mm/mincore.c:122: warning: unused variable 'entry'
+
+Yet another entry in the why-macros-are-wrong encyclopedia.
+
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swapops.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_super.c~xfs-warning-fix fs/xfs/linux-2.6/xfs_super.c
---- a/fs/xfs/linux-2.6/xfs_super.c~xfs-warning-fix
-+++ a/fs/xfs/linux-2.6/xfs_super.c
-@@ -900,7 +900,7 @@ static struct quotactl_ops xfs_quotactl_
- 	.set_xquota		= xfs_fs_setxquota,
- };
+diff -puN include/linux/swapops.h~mincore-warning-fix include/linux/swapops.h
+--- a/include/linux/swapops.h~mincore-warning-fix
++++ a/include/linux/swapops.h
+@@ -108,7 +108,10 @@ extern void migration_entry_wait(struct 
+ #else
  
--STATIC struct file_system_type xfs_fs_type = {
-+static struct file_system_type xfs_fs_type = {
- 	.owner			= THIS_MODULE,
- 	.name			= "xfs",
- 	.get_sb			= xfs_fs_get_sb,
+ #define make_migration_entry(page, write) swp_entry(0, 0)
+-#define is_migration_entry(swp) 0
++static inline int is_migration_entry(swp_entry_t swp)
++{
++	return 0;
++}
+ #define migration_entry_to_page(swp) NULL
+ static inline void make_migration_entry_read(swp_entry_t *entryp) { }
+ static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
