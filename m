@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:26:19 -0800
-Message-ID: <200702212226.l1LMQKi4028364@shell0.pdx.osdl.net>
+Subject: + libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:27:32 -0800
+Message-ID: <200702212227.l1LMRWVm028382@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52889 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52964 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423204AbXBUW0Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:26:25 -0500
+	id S1423203AbXBUW1m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:27:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: agruen@suse.de, neilb@suse.de
+Cc: hancockr@shaw.ca, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
 
 
 The patch titled
-     Fix __d_path() for lazy unmounts and make it unambiguous
+     libata: warn if speed limited due to 40-wire cable
 has been added to the -mm tree.  Its filename is
-     fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
+     libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,440 +25,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix __d_path() for lazy unmounts and make it unambiguous
-From: Andreas Gruenbacher <agruen@suse.de>
+Subject: libata: warn if speed limited due to 40-wire cable
+From: Robert Hancock <hancockr@shaw.ca>
 
-First, when d_path() hits a lazily unmounted mount point, it tries to
-prepend the name of the lazily unmounted dentry to the path name.  It gets
-this wrong, and also overwrites the slash that separates the name from the
-following pathname component.
+Warn the user if a drive's transfer rate is limited because of a 40-wire
+cable detection.
 
-Second, it isn't always possible to tell from the __d_path result whether
-the specified root and rootmnt (i.e., the chroot) was reached: lazy
-unmounts of bind mounts will produce a path that does start with a
-non-slash so we can tell from that, but other lazy unmounts will produce a
-path that starts with a slash, just like "ordinary" paths.
-
-Third, sys_getcwd() shouldn't return disconnected paths.  The patch checks
-for that, and makes it fail with -ENOENT in that case.
-
-The patch cleans up __d_path() to fix the bug with overlapping pathname
-components.  It also adds a @fail_deleted argument, which allows to get rid
-of some of the mess in sys_getcwd().  We make sure that paths will only
-start with a slash if the path leads all the way up to the root.  If the
-resulting path would otherwise be empty, we return "." instead so that some
-users of seq_path for files in /proc won't break.
-
-The @fail_deleted argument allows sys_getcwd() to be simplified.  Grabbing
-the dcache_lock can be moved into __d_path().
-
-The @fail_deleted argument could be added to d_path() as well: this would
-allow callers to recognize deleted files without having to resort to the
-ambiguous check for the " (deleted)" string at the end of the pathnames.
-This is not currently done, but it might be worthwhile.
-
-Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
-Reviewed-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c    |  157 ++++++++++++++++++++++++++---------------------
- fs/namespace.c |   21 +++++-
- fs/proc/base.c |   51 ++++++---------
- 3 files changed, 128 insertions(+), 101 deletions(-)
+ drivers/ata/libata-core.c |   33 ++++++++++++++++++++-------------
+ 1 files changed, 20 insertions(+), 13 deletions(-)
 
-diff -puN fs/dcache.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous fs/dcache.c
---- a/fs/dcache.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous
-+++ a/fs/dcache.c
-@@ -1763,52 +1763,51 @@ shouldnt_be_hashed:
- }
+diff -puN drivers/ata/libata-core.c~libata-warn-if-speed-limited-due-to-40-wire-cable-v2 drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-warn-if-speed-limited-due-to-40-wire-cable-v2
++++ a/drivers/ata/libata-core.c
+@@ -3366,19 +3366,7 @@ static void ata_dev_xfermask(struct ata_
+ 	xfer_mask = ata_pack_xfermask(ap->pio_mask,
+ 				      ap->mwdma_mask, ap->udma_mask);
  
- /**
-- * d_path - return the path of a dentry
-+ * __d_path - return the path of a dentry
-  * @dentry: dentry to report
-  * @vfsmnt: vfsmnt to which the dentry belongs
-  * @root: root dentry
-  * @rootmnt: vfsmnt to which the root dentry belongs
-  * @buffer: buffer to return value in
-  * @buflen: buffer length
-+ * @fail_deleted: what to return for deleted files
-  *
-- * Convert a dentry into an ASCII path name. If the entry has been deleted
-+ * Convert a dentry into an ASCII path name. If the entry has been deleted,
-+ * then if @fail_deleted is true, ERR_PTR(-ENOENT) is returned. Otherwise,
-  * the string " (deleted)" is appended. Note that this is ambiguous.
-  *
-- * Returns the buffer or an error code if the path was too long.
-+ * If @dentry is not connected to @root, the path returned will be relative
-+ * (i.e., it will not start with a slash).
-  *
-- * "buflen" should be positive. Caller holds the dcache_lock.
-+ * Returns the buffer or an error code.
-  */
--static char * __d_path( struct dentry *dentry, struct vfsmount *vfsmnt,
--			struct dentry *root, struct vfsmount *rootmnt,
--			char *buffer, int buflen)
--{
--	char * end = buffer+buflen;
--	char * retval;
--	int namelen;
-+static char *__d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
-+		      struct dentry *root, struct vfsmount *rootmnt,
-+		      char *buffer, int buflen, int fail_deleted)
-+{
-+	int namelen, is_slash;
-+
-+	if (buflen < 2)
-+		return ERR_PTR(-ENAMETOOLONG);
-+	buffer += --buflen;
-+	*buffer = '\0';
- 
--	*--end = '\0';
--	buflen--;
-+	spin_lock(&dcache_lock);
- 	if (!IS_ROOT(dentry) && d_unhashed(dentry)) {
--		buflen -= 10;
--		end -= 10;
--		if (buflen < 0)
-+		if (fail_deleted) {
-+			buffer = ERR_PTR(-ENOENT);
-+			goto out;
-+		}
-+		if (buflen < 10)
- 			goto Elong;
--		memcpy(end, " (deleted)", 10);
-+		buflen -= 10;
-+		buffer -= 10;
-+		memcpy(buffer, " (deleted)", 10);
- 	}
+-	/* Apply cable rule here.  Don't apply it early because when
+-	 * we handle hot plug the cable type can itself change.
+-	 */
+-	if (ap->cbl == ATA_CBL_PATA40)
+-		xfer_mask &= ~(0xF8 << ATA_SHIFT_UDMA);
+-	/* Apply drive side cable rule. Unknown or 80 pin cables reported
+-	 * host side are checked drive side as well. Cases where we know a
+-	 * 40wire cable is used safely for 80 are not checked here.
+-	 */
+-        if (ata_drive_40wire(dev->id) && (ap->cbl == ATA_CBL_PATA_UNK || ap->cbl == ATA_CBL_PATA80))
+-		xfer_mask &= ~(0xF8 << ATA_SHIFT_UDMA);
 -
--	if (buflen < 1)
--		goto Elong;
--	/* Get '/' right */
--	retval = end-1;
--	*retval = '/';
 -
--	for (;;) {
-+	while (dentry != root || vfsmnt != rootmnt) {
- 		struct dentry * parent;
++	/* drive modes available */
+ 	xfer_mask &= ata_pack_xfermask(dev->pio_mask,
+ 				       dev->mwdma_mask, dev->udma_mask);
+ 	xfer_mask &= ata_id_xfermask(dev->id);
+@@ -3409,6 +3397,25 @@ static void ata_dev_xfermask(struct ata_
+ 	if (ap->ops->mode_filter)
+ 		xfer_mask = ap->ops->mode_filter(ap, dev, xfer_mask);
  
--		if (dentry == root && vfsmnt == rootmnt)
--			break;
- 		if (dentry == vfsmnt->mnt_root || IS_ROOT(dentry)) {
--			/* Global root? */
- 			spin_lock(&vfsmount_lock);
- 			if (vfsmnt->mnt_parent == vfsmnt) {
- 				spin_unlock(&vfsmount_lock);
-@@ -1822,33 +1821,63 @@ static char * __d_path( struct dentry *d
- 		parent = dentry->d_parent;
- 		prefetch(parent);
- 		namelen = dentry->d_name.len;
--		buflen -= namelen + 1;
--		if (buflen < 0)
-+		if (buflen < namelen + 1)
- 			goto Elong;
--		end -= namelen;
--		memcpy(end, dentry->d_name.name, namelen);
--		*--end = '/';
--		retval = end;
-+		buflen -= namelen + 1;
-+		buffer -= namelen;
-+		memcpy(buffer, dentry->d_name.name, namelen);
-+		*--buffer = '/';
- 		dentry = parent;
- 	}
-+	/* Get '/' right. */
-+	if (*buffer != '/')
-+		*--buffer = '/';
- 
--	return retval;
-+out:
-+	spin_unlock(&dcache_lock);
-+	return buffer;
- 
- global_root:
-+	/*
-+	 * We went past the (vfsmount, dentry) we were looking for and have
-+	 * either hit a root dentry, a lazily unmounted dentry, an
-+	 * unconnected dentry, or the file is on a pseudo filesystem.
++	/* Apply cable rule here.  Don't apply it early because when
++	 * we handle hot plug the cable type can itself change.
++	 * Check this last so that we know if the transfer rate was
++	 * solely limited by the cable.
++	 * Unknown or 80 wire cables reported host side are checked
++	 * drive side as well. Cases where we know a 40wire cable
++	 * is used safely for 80 are not checked here.
 +	 */
- 	namelen = dentry->d_name.len;
--	buflen -= namelen;
--	if (buflen < 0)
-+	is_slash = (namelen == 1 && *dentry->d_name.name == '/');
-+	if (is_slash || (dentry->d_sb->s_flags & MS_NOUSER)) {
-+		/*
-+		 * Make sure we won't return a pathname starting with '/'.
-+		 *
-+		 * Historically, we also glue together the root dentry and
-+		 * remaining name for pseudo filesystems like pipefs, which
-+		 * have the MS_NOUSER flag set. This results in pathnames
-+		 * like "pipe:[439336]".
-+		 */
-+		if (*buffer == '/') {
-+			buffer++;
-+			buflen++;
++	if (xfer_mask & (0xF8 << ATA_SHIFT_UDMA))
++		/* UDMA/44 or higher would be available */
++		if((ap->cbl == ATA_CBL_PATA40) ||
++   		    (ata_drive_40wire(dev->id) &&
++		     (ap->cbl == ATA_CBL_PATA_UNK ||
++                     ap->cbl == ATA_CBL_PATA80))) {
++		      	ata_dev_printk(dev, KERN_WARNING,
++				 "limited to UDMA/33 due to 40-wire cable\n");
++			xfer_mask &= ~(0xF8 << ATA_SHIFT_UDMA);
 +		}
-+		if (is_slash) {
-+			if (*buffer == '\0')
-+				*--buffer = '.';
-+			goto out;
-+		}
-+	}
-+	if (buflen < namelen)
- 		goto Elong;
--	retval -= namelen-1;	/* hit the slash */
--	memcpy(retval, dentry->d_name.name, namelen);
--	return retval;
-+	buffer -= namelen;
-+	memcpy(buffer, dentry->d_name.name, namelen);
-+	goto out;
 +
- Elong:
--	return ERR_PTR(-ENAMETOOLONG);
-+	buffer = ERR_PTR(-ENAMETOOLONG);
-+	goto out;
+ 	ata_unpack_xfermask(xfer_mask, &dev->pio_mask,
+ 			    &dev->mwdma_mask, &dev->udma_mask);
  }
- 
- /* write full pathname into buffer and return start of pathname */
--char * d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
--				char *buf, int buflen)
-+char *d_path(struct dentry *dentry, struct vfsmount *vfsmnt, char *buf,
-+	     int buflen)
- {
- 	char *res;
- 	struct vfsmount *rootmnt;
-@@ -1858,9 +1887,7 @@ char * d_path(struct dentry *dentry, str
- 	rootmnt = mntget(current->fs->rootmnt);
- 	root = dget(current->fs->root);
- 	read_unlock(&current->fs->lock);
--	spin_lock(&dcache_lock);
--	res = __d_path(dentry, vfsmnt, root, rootmnt, buf, buflen);
--	spin_unlock(&dcache_lock);
-+	res = __d_path(dentry, vfsmnt, root, rootmnt, buf, buflen, 0);
- 	dput(root);
- 	mntput(rootmnt);
- 	return res;
-@@ -1886,10 +1913,10 @@ char * d_path(struct dentry *dentry, str
-  */
- asmlinkage long sys_getcwd(char __user *buf, unsigned long size)
- {
--	int error;
-+	int error, len;
- 	struct vfsmount *pwdmnt, *rootmnt;
- 	struct dentry *pwd, *root;
--	char *page = (char *) __get_free_page(GFP_USER);
-+	char *page = (char *) __get_free_page(GFP_USER), *cwd;
- 
- 	if (!page)
- 		return -ENOMEM;
-@@ -1901,29 +1928,21 @@ asmlinkage long sys_getcwd(char __user *
- 	root = dget(current->fs->root);
- 	read_unlock(&current->fs->lock);
- 
-+	cwd = __d_path(pwd, pwdmnt, root, rootmnt, page, PAGE_SIZE, 1);
-+	error = PTR_ERR(cwd);
-+	if (IS_ERR(cwd))
-+		goto out;
- 	error = -ENOENT;
--	/* Has the current directory has been unlinked? */
--	spin_lock(&dcache_lock);
--	if (pwd->d_parent == pwd || !d_unhashed(pwd)) {
--		unsigned long len;
--		char * cwd;
--
--		cwd = __d_path(pwd, pwdmnt, root, rootmnt, page, PAGE_SIZE);
--		spin_unlock(&dcache_lock);
--
--		error = PTR_ERR(cwd);
--		if (IS_ERR(cwd))
--			goto out;
-+	if (*cwd != '/')
-+		goto out;
- 
--		error = -ERANGE;
--		len = PAGE_SIZE + page - cwd;
--		if (len <= size) {
--			error = len;
--			if (copy_to_user(buf, cwd, len))
--				error = -EFAULT;
--		}
--	} else
--		spin_unlock(&dcache_lock);
-+	error = -ERANGE;
-+	len = PAGE_SIZE + page - cwd;
-+	if (len <= size) {
-+		error = len;
-+		if (copy_to_user(buf, cwd, len))
-+			error = -EFAULT;
-+	}
- 
- out:
- 	dput(pwd);
-diff -puN fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous fs/namespace.c
---- a/fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous
-+++ a/fs/namespace.c
-@@ -348,8 +348,16 @@ static inline void mangle(struct seq_fil
- 	seq_escape(m, s, " \t\n\\");
- }
- 
-+/* Keep in sync with fs/proc/base.c! */
-+struct proc_mounts {
-+        struct seq_file m;
-+        void *page;
-+        int event;
-+};
-+
- static int show_vfsmnt(struct seq_file *m, void *v)
- {
-+	void *page = container_of(m, struct proc_mounts, m)->page;
- 	struct vfsmount *mnt = v;
- 	int err = 0;
- 	static struct proc_fs_info {
-@@ -372,9 +380,13 @@ static int show_vfsmnt(struct seq_file *
- 	};
- 	struct proc_fs_info *fs_infop;
- 
-+	char *path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
-+	if (IS_ERR(path) || *path != '/')
-+		return err;
-+
- 	mangle(m, mnt->mnt_devname ? mnt->mnt_devname : "none");
- 	seq_putc(m, ' ');
--	seq_path(m, mnt, mnt->mnt_root, " \t\n\\");
-+	mangle(m, path);
- 	seq_putc(m, ' ');
- 	mangle(m, mnt->mnt_sb->s_type->name);
- 	seq_puts(m, mnt->mnt_sb->s_flags & MS_RDONLY ? " ro" : " rw");
-@@ -401,9 +413,14 @@ struct seq_operations mounts_op = {
- 
- static int show_vfsstat(struct seq_file *m, void *v)
- {
-+	void *page = container_of(m, struct proc_mounts, m)->page;
- 	struct vfsmount *mnt = v;
- 	int err = 0;
- 
-+	char *path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
-+	if (IS_ERR(path) || *path != '/')
-+		return err; /* error or path unreachable from chroot */
-+
- 	/* device */
- 	if (mnt->mnt_devname) {
- 		seq_puts(m, "device ");
-@@ -413,7 +430,7 @@ static int show_vfsstat(struct seq_file 
- 
- 	/* mount point */
- 	seq_puts(m, " mounted on ");
--	seq_path(m, mnt, mnt->mnt_root, " \t\n\\");
-+	mangle(m, path);
- 	seq_putc(m, ' ');
- 
- 	/* file system type */
-diff -puN fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous fs/proc/base.c
---- a/fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous
-+++ a/fs/proc/base.c
-@@ -356,13 +356,16 @@ static const struct inode_operations pro
- 	.setattr	= proc_setattr,
- };
- 
-+/* Keep in sync with fs/namespace.c! */
- extern struct seq_operations mounts_op;
- struct proc_mounts {
- 	struct seq_file m;
-+	void *page;
- 	int event;
- };
- 
--static int mounts_open(struct inode *inode, struct file *file)
-+static int __mounts_open(struct inode *inode, struct file *file,
-+			 struct seq_operations *seq_ops)
- {
- 	struct task_struct *task = get_proc_task(inode);
- 	struct mnt_namespace *ns = NULL;
-@@ -385,12 +388,16 @@ static int mounts_open(struct inode *ino
- 		p = kmalloc(sizeof(struct proc_mounts), GFP_KERNEL);
- 		if (p) {
- 			file->private_data = &p->m;
--			ret = seq_open(file, &mounts_op);
-+			p->page = (void *)__get_free_page(GFP_KERNEL);
-+			if (p->page)
-+				ret = seq_open(file, seq_ops);
- 			if (!ret) {
- 				p->m.private = ns;
- 				p->event = ns->event;
- 				return 0;
- 			}
-+			if (p->page)
-+				free_page((unsigned long)p->page);
- 			kfree(p);
- 		}
- 		put_mnt_ns(ns);
-@@ -398,17 +405,25 @@ static int mounts_open(struct inode *ino
- 	return ret;
- }
- 
-+static int mounts_open(struct inode *inode, struct file *file)
-+{
-+	return __mounts_open(inode, file, &mounts_op);
-+}
-+
- static int mounts_release(struct inode *inode, struct file *file)
- {
--	struct seq_file *m = file->private_data;
--	struct mnt_namespace *ns = m->private;
-+	struct proc_mounts *p =
-+		container_of(file->private_data, struct proc_mounts, m);
-+	struct mnt_namespace *ns = p->m.private;
-+	free_page((unsigned long)p->page);
- 	put_mnt_ns(ns);
- 	return seq_release(inode, file);
- }
- 
- static unsigned mounts_poll(struct file *file, poll_table *wait)
- {
--	struct proc_mounts *p = file->private_data;
-+	struct proc_mounts *p =
-+		container_of(file->private_data, struct proc_mounts, m);
- 	struct mnt_namespace *ns = p->m.private;
- 	unsigned res = 0;
- 
-@@ -435,31 +450,7 @@ static const struct file_operations proc
- extern struct seq_operations mountstats_op;
- static int mountstats_open(struct inode *inode, struct file *file)
- {
--	int ret = seq_open(file, &mountstats_op);
--
--	if (!ret) {
--		struct seq_file *m = file->private_data;
--		struct mnt_namespace *mnt_ns = NULL;
--		struct task_struct *task = get_proc_task(inode);
--
--		if (task) {
--			task_lock(task);
--			if (task->nsproxy)
--				mnt_ns = task->nsproxy->mnt_ns;
--			if (mnt_ns)
--				get_mnt_ns(mnt_ns);
--			task_unlock(task);
--			put_task_struct(task);
--		}
--
--		if (mnt_ns)
--			m->private = mnt_ns;
--		else {
--			seq_release(inode, file);
--			ret = -EINVAL;
--		}
--	}
--	return ret;
-+	return __mounts_open(inode, file, &mountstats_op);
- }
- 
- static const struct file_operations proc_mountstats_operations = {
 _
 
-Patches currently in -mm which might be from agruen@suse.de are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
+git-libata-all.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
