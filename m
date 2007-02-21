@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-make-nmi-use-perfctr1-for-architectural-perfmon-take-2.patch added to -mm tree
-Date: Wed, 21 Feb 2007 12:32:40 -0800
-Message-ID: <200702212032.l1LKWe2i025021@shell0.pdx.osdl.net>
+Subject: + kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch added to -mm tree
+Date: Wed, 21 Feb 2007 12:39:47 -0800
+Message-ID: <200702212039.l1LKdl5L025181@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43244 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43321 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932503AbXBUUjK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 15:39:10 -0500
+	id S932506AbXBUUj5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 15:39:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eranian@hpl.hp.com, ak@suse.de
+Cc: rpjday@mindspring.com, bzolnier@gmail.com, sam@ravnborg.org
 
 
 The patch titled
-     x86_64: make NMI use PERFCTR1 for architectural perfmon (take 2)
+     kbuild: Add the code maturity levels DEPRECATED and OBSOLETE.
 has been added to the -mm tree.  Its filename is
-     x86_64-make-nmi-use-perfctr1-for-architectural-perfmon-take-2.patch
+     kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,60 +25,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: make NMI use PERFCTR1 for architectural perfmon (take 2)
-From: Stephane Eranian <eranian@hpl.hp.com>
+Subject: kbuild: Add the code maturity levels DEPRECATED and OBSOLETE.
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Make the NMI watchdog use PERFSEL1/PERFCTR1 instead of PERFSEL0/PERFCTR0 on
-processors supporting Intel architectural perfmon, such as Intel Core 2. 
-Although all PMU events can work on both counters, the Precise Event-Based
-Sampling (PEBS) requires that the event be in PERFCTR0 to work correctly
-(see section 18.14.4.1 in the IA32 SDM Vol 3b).  This versions has 3 chunks
-compared to previous where we had missed on check.
+Add two new maturity levels of DEPRECATED and OBSOLETE to the kbuild
+structure.
 
-Signed-off-by: stephane eranian <eranian@hpl.hp.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/nmi.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ init/Kconfig |   30 +++++++++++++++++++++++++++---
+ 1 files changed, 27 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/nmi.c~x86_64-make-nmi-use-perfctr1-for-architectural-perfmon-take-2 arch/x86_64/kernel/nmi.c
---- a/arch/x86_64/kernel/nmi.c~x86_64-make-nmi-use-perfctr1-for-architectural-perfmon-take-2
-+++ a/arch/x86_64/kernel/nmi.c
-@@ -285,7 +285,7 @@ int __init check_nmi_watchdog (void)
- 		struct nmi_watchdog_ctlblk *wd = &__get_cpu_var(nmi_watchdog_ctlblk);
+diff -puN init/Kconfig~kbuild-add-the-code-maturity-levels-deprecated-and-obsolete init/Kconfig
+--- a/init/Kconfig~kbuild-add-the-code-maturity-levels-deprecated-and-obsolete
++++ a/init/Kconfig
+@@ -29,9 +29,10 @@ config EXPERIMENTAL
+ 	  <file:Documentation/BUG-HUNTING>, and
+ 	  <file:Documentation/oops-tracing.txt> in the kernel source).
  
- 		nmi_hz = 1;
--	 	if (wd->perfctr_msr == MSR_ARCH_PERFMON_PERFCTR0)
-+	 	if (wd->perfctr_msr == MSR_ARCH_PERFMON_PERFCTR1)
- 			nmi_hz = adjust_for_32bit_ctr(nmi_hz);
- 	}
+-	  This option will also make obsoleted drivers available. These are
+-	  drivers that have been replaced by something else, and/or are
+-	  scheduled to be removed in a future kernel release.
++	  At the moment, this option also makes obsolete drivers available,
++	  but such drivers really should be removed from the EXPERIMENTAL
++	  category and added to either DEPRECATED or OBSOLETE, depending
++	  on their status.
  
-@@ -650,8 +650,8 @@ static int setup_intel_arch_watchdog(voi
- 	    (ebx & ARCH_PERFMON_UNHALTED_CORE_CYCLES_PRESENT))
- 		goto fail;
+ 	  Unless you intend to help test and develop a feature or driver that
+ 	  falls into this category, or you have a situation that requires
+@@ -40,6 +41,29 @@ config EXPERIMENTAL
+ 	  you say Y here, you will be offered the choice of using features or
+ 	  drivers that are currently considered to be in the alpha-test phase.
  
--	perfctr_msr = MSR_ARCH_PERFMON_PERFCTR0;
--	evntsel_msr = MSR_ARCH_PERFMON_EVENTSEL0;
-+	perfctr_msr = MSR_ARCH_PERFMON_PERFCTR1;
-+	evntsel_msr = MSR_ARCH_PERFMON_EVENTSEL1;
++config DEPRECATED
++	bool "Prompt for deprecated code/drivers"
++	default y
++	---help---
++	  Code that is tagged as "deprecated" is officially still available
++	  for use but will typically have already been scheduled for removal
++	  at some point, so it's in your best interests to start looking for
++	  an alternative.
++
++	  Check the file Documentation/feature-removal-schedule.txt to see
++	  if a particular feature has an official scheduled removal date.
++
++config OBSOLETE
++	bool "Prompt for obsolete code/drivers"
++	default n
++	---help---
++	  Code that is tagged as "obsolete" is officially no longer supported
++	  and shouldn't play a part in any normal build, but those features
++	  might still be available if you absolutely need access to them.
++
++	  You are *strongly* discouraged from continuing to depend on
++	  obsolete code on an ongoing, long-term basis.
++
+ config BROKEN
+ 	bool
  
- 	if (!reserve_perfctr_nmi(perfctr_msr))
- 		goto fail;
-@@ -895,7 +895,7 @@ int __kprobes nmi_watchdog_tick(struct p
- 				/* start the cycle over again */
- 				wrmsrl(wd->perfctr_msr,
- 				       -((u64)cpu_khz * 1000 / nmi_hz));
--	 		} else if (wd->perfctr_msr == MSR_ARCH_PERFMON_PERFCTR0) {
-+	 		} else if (wd->perfctr_msr == MSR_ARCH_PERFMON_PERFCTR1) {
- 				/*
- 				 * ArchPerfom/Core Duo needs to re-unmask
- 				 * the apic vector
 _
 
-Patches currently in -mm which might be from eranian@hpl.hp.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-git-ia64.patch
-i386-make-nmi-use-perfctr1-for-architectural-perfmon-take-2.patch
-x86_64-make-nmi-use-perfctr1-for-architectural-perfmon-take-2.patch
+git-avr32.patch
+git-dvb.patch
+kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch
+git-mips.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
