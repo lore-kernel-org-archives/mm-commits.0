@@ -1,72 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - spi_s3c2410_gpioc-spi-mode-2-and-3-support.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:46:50 -0800
-Message-ID: <200702211046.l1LAkoV5006496@shell0.pdx.osdl.net>
+Subject: - fix-modular-agpgart-ia64-allmodconfig.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:47:02 -0800
+Message-ID: <200702211047.l1LAl2Ib006514@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47034 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47037 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161209AbXBUKry (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:47:54 -0500
+	id S1161216AbXBUKrz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:47:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laforge@openmoko.org, ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: zwane@infradead.org, davej@codemonkey.org.uk, kyle@mcmartin.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_s3c2410_gpio.c spi mode 2 and 3 support
+     Fix modular AGPGART (ia64 allmodconfig)
 has been removed from the -mm tree.  Its filename was
-     spi_s3c2410_gpioc-spi-mode-2-and-3-support.patch
+     fix-modular-agpgart-ia64-allmodconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi_s3c2410_gpio.c spi mode 2 and 3 support
-From: Harald Welte <laforge@openmoko.org>
+Subject: Fix modular AGPGART (ia64 allmodconfig)
+From: Zwane Mwaikambo <zwane@infradead.org>
 
-Add transfer modes 2 and 3 to the S3C24XX gpio SPI driver
+My previous compat AGP patch broke modular AGPGART.
 
-Signed-off-by: Harald Welte <laforge@openmoko.org>
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Test built on;
+
+i386 CONFIG_AGP=y,m
+x86_64 CONFIG_AGP=y
+ia64 CONFIG_AGP=m
+
+Signed-off-by: Zwane Mwaikambo <zwane@infradead.org>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_s3c24xx_gpio.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/char/agp/Makefile |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_s3c24xx_gpio.c~spi_s3c2410_gpioc-spi-mode-2-and-3-support drivers/spi/spi_s3c24xx_gpio.c
---- a/drivers/spi/spi_s3c24xx_gpio.c~spi_s3c2410_gpioc-spi-mode-2-and-3-support
-+++ a/drivers/spi/spi_s3c24xx_gpio.c
-@@ -73,6 +73,19 @@ static u32 s3c2410_spigpio_txrx_mode1(st
- 	return bitbang_txrx_be_cpha1(spi, nsecs, 0, word, bits);
- }
+diff -puN drivers/char/agp/Makefile~fix-modular-agpgart-ia64-allmodconfig drivers/char/agp/Makefile
+--- a/drivers/char/agp/Makefile~fix-modular-agpgart-ia64-allmodconfig
++++ a/drivers/char/agp/Makefile
+@@ -1,7 +1,8 @@
+ agpgart-y := backend.o frontend.o generic.o isoch.o
  
-+static u32 s3c2410_spigpio_txrx_mode2(struct spi_device *spi,
-+				      unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha0(spi, nsecs, 1, word, bits);
-+}
++agpgart-$(CONFIG_COMPAT)	+= compat_ioctl.o
 +
-+static u32 s3c2410_spigpio_txrx_mode3(struct spi_device *spi,
-+				      unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha1(spi, nsecs, 1, word, bits);
-+}
-+
-+
- static void s3c2410_spigpio_chipselect(struct spi_device *dev, int value)
- {
- 	struct s3c2410_spigpio *sg = spidev_to_sg(dev);
-@@ -108,6 +121,8 @@ static int s3c2410_spigpio_probe(struct 
- 
- 	sp->bitbang.txrx_word[SPI_MODE_0] = s3c2410_spigpio_txrx_mode0;
- 	sp->bitbang.txrx_word[SPI_MODE_1] = s3c2410_spigpio_txrx_mode1;
-+	sp->bitbang.txrx_word[SPI_MODE_2] = s3c2410_spigpio_txrx_mode2;
-+	sp->bitbang.txrx_word[SPI_MODE_3] = s3c2410_spigpio_txrx_mode3;
- 
- 	/* set state of spi pins */
- 	s3c2410_gpio_setpin(sp->info->pin_clk, 0);
+ obj-$(CONFIG_AGP)		+= agpgart.o
+-obj-$(CONFIG_COMPAT)		+= compat_ioctl.o
+ obj-$(CONFIG_AGP_ALI)		+= ali-agp.o
+ obj-$(CONFIG_AGP_ATI)		+= ati-agp.o
+ obj-$(CONFIG_AGP_AMD)		+= amd-k7-agp.o
 _
 
-Patches currently in -mm which might be from laforge@openmoko.org are
+Patches currently in -mm which might be from zwane@infradead.org are
+
+git-agpgart.patch
+x86-dont-probe-for-ddc-on-vbe12.patch
