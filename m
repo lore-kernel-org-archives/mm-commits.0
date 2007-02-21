@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-failure-paths-in-modules-init-in-umemc.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:32:56 -0800
-Message-ID: <200702212232.l1LMWuok028513@shell0.pdx.osdl.net>
+Subject: + gfs2-fix-locking-mistake.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:37:59 -0800
+Message-ID: <200702212237.l1LMbxF0028615@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53206 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53469 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423211AbXBUWdH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:33:07 -0500
+	id S1423218AbXBUWjX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:39:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de, jens.axboe@oracle.com, pg@cs.stanford.edu
+Cc: jwhiter@redhat.com, stable@kernel.org, swhiteho@redhat.com
 
 
 The patch titled
-     Fix failure paths in modules init in umem.c
+     gfs2: fix locking mistake
 has been added to the -mm tree.  Its filename is
-     fix-failure-paths-in-modules-init-in-umemc.patch
+     gfs2-fix-locking-mistake.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix failure paths in modules init in umem.c
-From: NeilBrown <neilb@suse.de>
+Subject: gfs2: fix locking mistake
+From: Josef Whiter <jwhiter@redhat.com>
 
-If register_blkdev() or alloc-disk fail in mm_init() after
-pci_register_driver() succeeds, then mm_pci_driver is not unregistered
-properly:
+Fix a locking mistake in the quota code, we do a mutex_lock instead of a
+mutex_unlock.
 
-Cc: Philip Guo <pg@cs.stanford.edu>
-Signed-off-by: Neil Brown <neilb@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Josef Whiter <jwhiter@redhat.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/umem.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ fs/gfs2/quota.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/umem.c~fix-failure-paths-in-modules-init-in-umemc drivers/block/umem.c
---- a/drivers/block/umem.c~fix-failure-paths-in-modules-init-in-umemc
-+++ a/drivers/block/umem.c
-@@ -1179,8 +1179,10 @@ static int __init mm_init(void)
- 		return -ENOMEM;
+diff -puN fs/gfs2/quota.c~gfs2-fix-locking-mistake fs/gfs2/quota.c
+--- a/fs/gfs2/quota.c~gfs2-fix-locking-mistake
++++ a/fs/gfs2/quota.c
+@@ -279,7 +279,7 @@ static int bh_get(struct gfs2_quota_data
+ 		(bh->b_data + sizeof(struct gfs2_meta_header) +
+ 		 offset * sizeof(struct gfs2_quota_change));
  
- 	err = major_nr = register_blkdev(0, "umem");
--	if (err < 0)
-+	if (err < 0) {
-+		pci_unregister_driver(&mm_pci_driver);
- 		return -EIO;
-+	}
+-	mutex_lock(&sdp->sd_quota_mutex);
++	mutex_unlock(&sdp->sd_quota_mutex);
  
- 	for (i = 0; i < num_cards; i++) {
- 		mm_gendisk[i] = alloc_disk(1 << MM_SHIFT);
-@@ -1207,6 +1209,7 @@ static int __init mm_init(void)
  	return 0;
  
- out:
-+	pci_unregister_driver(&mm_pci_driver);
- 	unregister_blkdev(major_nr, "umem");
- 	while (i--)
- 		put_disk(mm_gendisk[i]);
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from jwhiter@redhat.com are
 
-fix-failure-paths-in-modules-init-in-umemc.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+gfs2-fix-locking-mistake.patch
