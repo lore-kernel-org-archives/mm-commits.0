@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-pvr2_encoder_prep_config-static.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:08:56 -0800
-Message-ID: <200702212208.l1LM8uQ5027869@shell0.pdx.osdl.net>
+Subject: + make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:09:42 -0800
+Message-ID: <200702212209.l1LM9g1s027890@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51470 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51532 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965014AbXBUWMP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:12:15 -0500
+	id S1161178AbXBUWM5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:12:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, mchehab@infradead.org
+Cc: bunk@stusta.de, greg@kroah.com
 
 
 The patch titled
-     make pvr2_encoder_prep_config() static
+     make drivers/usb/misc/iowarrior.c:iowarrior_ids[] static
 has been added to the -mm tree.  Its filename is
-     make-pvr2_encoder_prep_config-static.patch
+     make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make pvr2_encoder_prep_config() static
+Subject: make drivers/usb/misc/iowarrior.c:iowarrior_ids[] static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pvrusb2/pvrusb2-encoder.c |    2 +-
+ drivers/usb/misc/iowarrior.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/pvrusb2/pvrusb2-encoder.c~make-pvr2_encoder_prep_config-static drivers/media/video/pvrusb2/pvrusb2-encoder.c
---- a/drivers/media/video/pvrusb2/pvrusb2-encoder.c~make-pvr2_encoder_prep_config-static
-+++ a/drivers/media/video/pvrusb2/pvrusb2-encoder.c
-@@ -324,7 +324,7 @@ static int pvr2_encoder_vcmd(struct pvr2
- 
- /* This implements some extra setup for the encoder that seems to be
-    specific to the PVR USB2 hardware. */
--int pvr2_encoder_prep_config(struct pvr2_hdw *hdw)
-+static int pvr2_encoder_prep_config(struct pvr2_hdw *hdw)
- {
- 	int ret = 0;
- 	int encMisc3Arg = 0;
+diff -puN drivers/usb/misc/iowarrior.c~make-drivers-usb-misc-iowarriorciowarrior_ids-static drivers/usb/misc/iowarrior.c
+--- a/drivers/usb/misc/iowarrior.c~make-drivers-usb-misc-iowarriorciowarrior_ids-static
++++ a/drivers/usb/misc/iowarrior.c
+@@ -140,7 +140,7 @@ static int usb_set_report(struct usb_int
+ /* driver registration */
+ /*---------------------*/
+ /* table of devices that work with this driver */
+-struct usb_device_id iowarrior_ids[] = {
++static struct usb_device_id iowarrior_ids[] = {
+ 	{USB_DEVICE(USB_VENDOR_ID_CODEMERCS, USB_DEVICE_ID_CODEMERCS_IOW40)},
+ 	{USB_DEVICE(USB_VENDOR_ID_CODEMERCS, USB_DEVICE_ID_CODEMERCS_IOW24)},
+ 	{USB_DEVICE(USB_VENDOR_ID_CODEMERCS, USB_DEVICE_ID_CODEMERCS_IOWPV1)},
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -76,6 +76,7 @@ make-seagate_st0x_detect-static.patch
 drivers-scsi-aacraid-cleanups.patch
 remove-the-broken-scsi_acornscsi_3-driver.patch
 git-unionfs.patch
+make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch
 git-ipwireless_cs.patch
 arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
 make-struct-vmi_ops-static.patch
