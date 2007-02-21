@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-ipc-shmcshm_nopage-static.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:14:17 -0800
-Message-ID: <200702212214.l1LMEHkW028001@shell0.pdx.osdl.net>
+Subject: + mm-tiny-shmemc-cleanups.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:15:09 -0800
+Message-ID: <200702212215.l1LMF9OJ028044@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52028 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52197 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423190AbXBUWRa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:17:30 -0500
+	id S1423185AbXBUWS0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:18:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, ebiederm@xmission.com
+Cc: bunk@stusta.de, ebiederm@xmission.com, hugh@veritas.com
 
 
 The patch titled
-     make ipc/shm.c:shm_nopage() static
+     mm/{,tiny-}shmem.c cleanups
 has been added to the -mm tree.  Its filename is
-     make-ipc-shmcshm_nopage-static.patch
+     mm-tiny-shmemc-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make ipc/shm.c:shm_nopage() static
+Subject: mm/{,tiny-}shmem.c cleanups
 From: Adrian Bunk <bunk@stusta.de>
 
-shm_nopage() can become static.
+shmem_{nopage,mmap} are no longer used in ipc/shm.c
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    5 -----
+ mm/shmem.c         |    5 +++--
+ mm/tiny-shmem.c    |    2 ++
+ 3 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN ipc/shm.c~make-ipc-shmcshm_nopage-static ipc/shm.c
---- a/ipc/shm.c~make-ipc-shmcshm_nopage-static
-+++ a/ipc/shm.c
-@@ -226,8 +226,8 @@ static void shm_close(struct vm_area_str
- 	mutex_unlock(&shm_ids(ns).mutex);
+diff -puN include/linux/mm.h~mm-tiny-shmemc-cleanups include/linux/mm.h
+--- a/include/linux/mm.h~mm-tiny-shmemc-cleanups
++++ a/include/linux/mm.h
+@@ -660,15 +660,11 @@ static inline int page_mapped(struct pag
+ extern void show_free_areas(void);
+ 
+ #ifdef CONFIG_SHMEM
+-struct page *shmem_nopage(struct vm_area_struct *vma,
+-			unsigned long address, int *type);
+ int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new);
+ struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
+ 					unsigned long addr);
+ int shmem_lock(struct file *file, int lock, struct user_struct *user);
+ #else
+-#define shmem_nopage filemap_nopage
+-
+ static inline int shmem_lock(struct file *file, int lock,
+ 			     struct user_struct *user)
+ {
+@@ -688,7 +684,6 @@ static inline struct mempolicy *shmem_ge
+ }
+ #endif
+ struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags);
+-extern int shmem_mmap(struct file *file, struct vm_area_struct *vma);
+ 
+ int shmem_zero_setup(struct vm_area_struct *);
+ 
+diff -puN mm/shmem.c~mm-tiny-shmemc-cleanups mm/shmem.c
+--- a/mm/shmem.c~mm-tiny-shmemc-cleanups
++++ a/mm/shmem.c
+@@ -1228,7 +1228,8 @@ failed:
+ 	return error;
  }
  
--struct page *shm_nopage(struct vm_area_struct *vma, unsigned long address,
--			int *type)
-+static struct page *shm_nopage(struct vm_area_struct *vma,
-+			       unsigned long address, int *type)
+-struct page *shmem_nopage(struct vm_area_struct *vma, unsigned long address, int *type)
++static struct page *shmem_nopage(struct vm_area_struct *vma,
++				 unsigned long address, int *type)
  {
- 	struct file *file = vma->vm_file;
- 	struct shm_file_data *sfd = shm_file_data(file);
+ 	struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+ 	struct page *page = NULL;
+@@ -1335,7 +1336,7 @@ out_nomem:
+ 	return retval;
+ }
+ 
+-int shmem_mmap(struct file *file, struct vm_area_struct *vma)
++static int shmem_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	file_accessed(file);
+ 	vma->vm_ops = &shmem_vm_ops;
+diff -puN mm/tiny-shmem.c~mm-tiny-shmemc-cleanups mm/tiny-shmem.c
+--- a/mm/tiny-shmem.c~mm-tiny-shmemc-cleanups
++++ a/mm/tiny-shmem.c
+@@ -126,6 +126,7 @@ int shmem_unuse(swp_entry_t entry, struc
+ 	return 0;
+ }
+ 
++#if 0
+ int shmem_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	file_accessed(file);
+@@ -135,6 +136,7 @@ int shmem_mmap(struct file *file, struct
+ 	return 0;
+ #endif
+ }
++#endif  /*  0  */
+ 
+ #ifndef CONFIG_MMU
+ unsigned long shmem_get_unmapped_area(struct file *file,
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 arch-arm26-kernel-entrys-remove-dead-code.patch
 make-ipc-shmcshm_nopage-static.patch
+mm-tiny-shmemc-cleanups.patch
 git-cpufreq.patch
 make-kernel-kmodckmod_mk-static.patch
 git-drm.patch
