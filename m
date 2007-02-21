@@ -1,111 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - ppc64-kdump-documentation-update-for-2620.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:46:02 -0800
-Message-ID: <200702211046.l1LAk2Ma006427@shell0.pdx.osdl.net>
+Subject: - cdrom-use-unsigned-bitfields.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:45:56 -0800
+Message-ID: <200702211045.l1LAjuFf006410@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46971 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46978 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964988AbXBUKqn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:46:43 -0500
+	id S965363AbXBUKqq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:46:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: horms@verge.net.au, mohan@in.ibm.com, paulus@samba.org, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, axboe@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PPC64 Kdump documentation update
+     cdrom: use unsigned bitfields
 has been removed from the -mm tree.  Its filename was
-     ppc64-kdump-documentation-update-for-2620.patch
+     cdrom-use-unsigned-bitfields.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PPC64 Kdump documentation update
-From: Simon Horman <horms@verge.net.au>
+Subject: cdrom: use unsigned bitfields
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Patch from Mohan Kumar M to add the ppc64 portions of the kdump
-documentation.
+Fix 23 of these sparse warnings on x86_64 allmodconfig:
+include/linux/cdrom.h:942:19: error: dubious bitfield without explicit
+`signed' or `unsigned'
 
-http://thread.gmane.org/gmane.linux.kernel/481689/focus=3375
-
-Cc: Mohan Kumar M <mohan@in.ibm.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jens Axboe <axboe@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/kdump.txt |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ include/linux/cdrom.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kdump/kdump.txt~ppc64-kdump-documentation-update-for-2620 Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~ppc64-kdump-documentation-update-for-2620
-+++ a/Documentation/kdump/kdump.txt
-@@ -30,6 +30,10 @@ On x86 machines, the first 640 KB of phy
- regardless of where the kernel loads. Therefore, kexec backs up this
- region just before rebooting into the dump-capture kernel.
- 
-+Similarly on PPC64 machines first 32KB of physical memory is needed for
-+booting regardless of where the kernel is loaded and to support 64K page
-+size kexec backs up the first 64KB memory.
-+
- All of the necessary information about the system kernel's core image is
- encoded in the ELF format, and stored in a reserved area of memory
- before a crash. The physical address of the start of the ELF header is
-@@ -224,7 +228,7 @@ Dump-capture kernel config options (Arch
- Dump-capture kernel config options (Arch Dependent, ppc64)
- ----------------------------------------------------------
- 
---  Make and install the kernel and its modules. DO NOT add this kernel
-+*  Make and install the kernel and its modules. DO NOT add this kernel
-    to the boot loader configuration files.
- 
- Dump-capture kernel config options (Arch Dependent, ia64)
-@@ -251,8 +255,8 @@ Dump-capture kernel config options (Arch
- Boot into System Kernel
- =======================
- 
--1) Make and install the kernel and its modules. Update the boot loader
--   (such as grub, yaboot, or lilo) configuration files as necessary.
-+1) Update the boot loader (such as grub, yaboot, or lilo) configuration
-+   files as necessary.
- 
- 2) Boot the system kernel with the boot parameter "crashkernel=Y@X",
-    where Y specifies how much memory to reserve for the dump-capture kernel
-@@ -356,10 +360,11 @@ If die() is called, and it happens to be
- is called inside interrupt context or die() is called and panic_on_oops is set,
- the system will boot into the dump-capture kernel.
- 
--On powererpc systems when a soft-reset is generated, die() is called by all cpus and the system will boot into the dump-capture kernel.
-+On powererpc systems when a soft-reset is generated, die() is called by all cpus
-+and the system will boot into the dump-capture kernel.
- 
- For testing purposes, you can trigger a crash by using "ALT-SysRq-c",
--"echo c > /proc/sysrq-trigger or write a module to force the panic.
-+"echo c > /proc/sysrq-trigger" or write a module to force the panic.
- 
- Write Out the Dump File
- =======================
-@@ -410,12 +415,9 @@ format. Crash is available on Dave Ander
- To Do
- =====
- 
--1) Provide a kernel pages filtering mechanism, so core file size is not
--   extreme on systems with huge memory banks.
--
--2) Relocatable kernel can help in maintaining multiple kernels for
--   crash_dump, and the same kernel as the system kernel can be used to
--   capture the dump.
-+1) Provide relocatable kernels for all architectures to help in maintaining
-+   multiple kernels for crash_dump, and the same kernel as the system kernel
-+   can be used to capture the dump.
- 
- 
- Contact
+diff -puN include/linux/cdrom.h~cdrom-use-unsigned-bitfields include/linux/cdrom.h
+--- a/include/linux/cdrom.h~cdrom-use-unsigned-bitfields
++++ a/include/linux/cdrom.h
+@@ -939,7 +939,7 @@ struct cdrom_device_info {
+ 	int speed;			/* maximum speed for reading data */
+ 	int capacity;			/* number of discs in jukebox */
+ /* device-related storage */
+-	int options		: 30;	/* options flags */
++	unsigned int options	: 30;	/* options flags */
+ 	unsigned mc_flags	: 2;	/* media change buffer flags */
+     	int use_count;                  /* number of times device opened */
+     	char name[20];                  /* name of the device type */
 _
 
-Patches currently in -mm which might be from horms@verge.net.au are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-git-ia64.patch
-ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch
+git-drm.patch
+git-libata-all.patch
+phy-layer-add-kernel-doc-docbook.patch
+git-parisc.patch
+x86-dont-probe-for-ddc-on-vbe12.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
