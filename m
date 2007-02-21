@@ -1,71 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-include-struct-short-description-in-title.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:45:52 -0800
-Message-ID: <200702211045.l1LAjqLw006404@shell0.pdx.osdl.net>
+Subject: - genalloc-warning-fixes.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:46:21 -0800
+Message-ID: <200702211046.l1LAkLaA006460@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46934 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46936 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932503AbXBUKqZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:46:25 -0500
+	id S932560AbXBUKq0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:46:26 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1LAkLhB016022
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2007 02:46:21 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, johannes@sipsolutions.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: include struct short description in title output
+     genalloc warning fixes
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-include-struct-short-description-in-title.patch
+     genalloc-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel-doc: include struct short description in title output
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: genalloc warning fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Output of a function or struct in html mode needs to include the short
-description from the function/struct name line in the output title line.
+lib/genalloc.c: In function 'gen_pool_alloc':
+lib/genalloc.c:151: warning: passing argument 2 of '__set_bit' from incompatible pointer type
+lib/genalloc.c: In function 'gen_pool_free':
+lib/genalloc.c:190: warning: passing argument 2 of '__clear_bit' from incompatible pointer type
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Johannes Berg <johannes@sipsolutions.net>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    4 ++--
+ lib/genalloc.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-include-struct-short-description-in-title scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-include-struct-short-description-in-title
-+++ a/scripts/kernel-doc
-@@ -452,7 +452,7 @@ sub output_struct_html(%) {
-     my %args = %{$_[0]};
-     my ($parameter);
- 
--    print "<h2>".$args{'type'}." ".$args{'struct'}."</h2>\n";
-+    print "<h2>".$args{'type'}." ".$args{'struct'}. " - " .$args{'purpose'}."</h2>\n";
-     print "<b>".$args{'type'}." ".$args{'struct'}."</b> {<br>\n";
-     foreach $parameter (@{$args{'parameterlist'}}) {
- 	if ($parameter =~ /^#/) {
-@@ -498,8 +498,8 @@ sub output_function_html(%) {
-     my %args = %{$_[0]};
-     my ($parameter, $section);
-     my $count;
--    print "<h2>Function</h2>\n";
- 
-+    print "<h2>" .$args{'function'}." - ".$args{'purpose'}."</h2>\n";
-     print "<i>".$args{'functiontype'}."</i>\n";
-     print "<b>".$args{'function'}."</b>\n";
-     print "(";
+diff -puN lib/genalloc.c~genalloc-warning-fixes lib/genalloc.c
+--- a/lib/genalloc.c~genalloc-warning-fixes
++++ a/lib/genalloc.c
+@@ -148,7 +148,7 @@ unsigned long gen_pool_alloc(struct gen_
+ 			addr = chunk->start_addr +
+ 					    ((unsigned long)start_bit << order);
+ 			while (nbits--)
+-				__set_bit(start_bit++, &chunk->bits);
++				__set_bit(start_bit++, chunk->bits);
+ 			spin_unlock_irqrestore(&chunk->lock, flags);
+ 			read_unlock(&pool->lock);
+ 			return addr;
+@@ -187,7 +187,7 @@ void gen_pool_free(struct gen_pool *pool
+ 			spin_lock_irqsave(&chunk->lock, flags);
+ 			bit = (addr - chunk->start_addr) >> order;
+ 			while (nbits--)
+-				__clear_bit(bit++, &chunk->bits);
++				__clear_bit(bit++, chunk->bits);
+ 			spin_unlock_irqrestore(&chunk->lock, flags);
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-agpgart.patch
+git-cpufreq.patch
 git-drm.patch
+git-dvb.patch
+pvrusb-warning-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
 git-libata-all.patch
-phy-layer-add-kernel-doc-docbook.patch
+dmaengine-uninline-large-functions.patch
+git-mips-fixup.patch
+Fabric7-VIOC-driver-fixes.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
 git-parisc.patch
-x86-dont-probe-for-ddc-on-vbe12.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+git-parisc-fixup.patch
+git-pciseg.patch
+git-s390.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+after-before-x86_64-mm-mmconfig-share.patch
+xen-paravirt-core-xen-implementation-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
