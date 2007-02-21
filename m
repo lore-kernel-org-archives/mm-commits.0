@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:26:22 -0800
-Message-ID: <200702212226.l1LMQMR5028367@shell0.pdx.osdl.net>
+Subject: + fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:26:19 -0800
+Message-ID: <200702212226.l1LMQKi4028364@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52892 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52889 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423203AbXBUW01 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:26:27 -0500
+	id S1423204AbXBUW0Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:26:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agruen@suse.de, neilb@suse.de
+Cc: agruen@suse.de, neilb@suse.de
 
 
 The patch titled
-     fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
+     Fix __d_path() for lazy unmounts and make it unambiguous
 has been added to the -mm tree.  Its filename is
-     fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
+     fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,156 +25,440 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
-From: Andrew Morton <akpm@osdl.org>
+Subject: Fix __d_path() for lazy unmounts and make it unambiguous
+From: Andreas Gruenbacher <agruen@suse.de>
 
-It looks like c99-style definition-after-statement, but it isn't, but it
-could easily become so.
+First, when d_path() hits a lazily unmounted mount point, it tries to
+prepend the name of the lazily unmounted dentry to the path name.  It gets
+this wrong, and also overwrites the slash that separates the name from the
+following pathname component.
 
-Cc: Andreas Gruenbacher <agruen@suse.de>
-Cc: NeilBrown <neilb@suse.de>
+Second, it isn't always possible to tell from the __d_path result whether
+the specified root and rootmnt (i.e., the chroot) was reached: lazy
+unmounts of bind mounts will produce a path that does start with a
+non-slash so we can tell from that, but other lazy unmounts will produce a
+path that starts with a slash, just like "ordinary" paths.
+
+Third, sys_getcwd() shouldn't return disconnected paths.  The patch checks
+for that, and makes it fail with -ENOENT in that case.
+
+The patch cleans up __d_path() to fix the bug with overlapping pathname
+components.  It also adds a @fail_deleted argument, which allows to get rid
+of some of the mess in sys_getcwd().  We make sure that paths will only
+start with a slash if the path leads all the way up to the root.  If the
+resulting path would otherwise be empty, we return "." instead so that some
+users of seq_path for files in /proc won't break.
+
+The @fail_deleted argument allows sys_getcwd() to be simplified.  Grabbing
+the dcache_lock can be moved into __d_path().
+
+The @fail_deleted argument could be added to d_path() as well: this would
+allow callers to recognize deleted files without having to resort to the
+ambiguous check for the " (deleted)" string at the end of the pathnames.
+This is not currently done, but it might be worthwhile.
+
+Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
+Reviewed-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    6 ++++--
- fs/proc/base.c |    1 +
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ fs/dcache.c    |  157 ++++++++++++++++++++++++++---------------------
+ fs/namespace.c |   21 +++++-
+ fs/proc/base.c |   51 ++++++---------
+ 3 files changed, 128 insertions(+), 101 deletions(-)
 
-diff -puN fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy fs/namespace.c
---- a/fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
+diff -puN fs/dcache.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous fs/dcache.c
+--- a/fs/dcache.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous
++++ a/fs/dcache.c
+@@ -1763,52 +1763,51 @@ shouldnt_be_hashed:
+ }
+ 
+ /**
+- * d_path - return the path of a dentry
++ * __d_path - return the path of a dentry
+  * @dentry: dentry to report
+  * @vfsmnt: vfsmnt to which the dentry belongs
+  * @root: root dentry
+  * @rootmnt: vfsmnt to which the root dentry belongs
+  * @buffer: buffer to return value in
+  * @buflen: buffer length
++ * @fail_deleted: what to return for deleted files
+  *
+- * Convert a dentry into an ASCII path name. If the entry has been deleted
++ * Convert a dentry into an ASCII path name. If the entry has been deleted,
++ * then if @fail_deleted is true, ERR_PTR(-ENOENT) is returned. Otherwise,
+  * the string " (deleted)" is appended. Note that this is ambiguous.
+  *
+- * Returns the buffer or an error code if the path was too long.
++ * If @dentry is not connected to @root, the path returned will be relative
++ * (i.e., it will not start with a slash).
+  *
+- * "buflen" should be positive. Caller holds the dcache_lock.
++ * Returns the buffer or an error code.
+  */
+-static char * __d_path( struct dentry *dentry, struct vfsmount *vfsmnt,
+-			struct dentry *root, struct vfsmount *rootmnt,
+-			char *buffer, int buflen)
+-{
+-	char * end = buffer+buflen;
+-	char * retval;
+-	int namelen;
++static char *__d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
++		      struct dentry *root, struct vfsmount *rootmnt,
++		      char *buffer, int buflen, int fail_deleted)
++{
++	int namelen, is_slash;
++
++	if (buflen < 2)
++		return ERR_PTR(-ENAMETOOLONG);
++	buffer += --buflen;
++	*buffer = '\0';
+ 
+-	*--end = '\0';
+-	buflen--;
++	spin_lock(&dcache_lock);
+ 	if (!IS_ROOT(dentry) && d_unhashed(dentry)) {
+-		buflen -= 10;
+-		end -= 10;
+-		if (buflen < 0)
++		if (fail_deleted) {
++			buffer = ERR_PTR(-ENOENT);
++			goto out;
++		}
++		if (buflen < 10)
+ 			goto Elong;
+-		memcpy(end, " (deleted)", 10);
++		buflen -= 10;
++		buffer -= 10;
++		memcpy(buffer, " (deleted)", 10);
+ 	}
+-
+-	if (buflen < 1)
+-		goto Elong;
+-	/* Get '/' right */
+-	retval = end-1;
+-	*retval = '/';
+-
+-	for (;;) {
++	while (dentry != root || vfsmnt != rootmnt) {
+ 		struct dentry * parent;
+ 
+-		if (dentry == root && vfsmnt == rootmnt)
+-			break;
+ 		if (dentry == vfsmnt->mnt_root || IS_ROOT(dentry)) {
+-			/* Global root? */
+ 			spin_lock(&vfsmount_lock);
+ 			if (vfsmnt->mnt_parent == vfsmnt) {
+ 				spin_unlock(&vfsmount_lock);
+@@ -1822,33 +1821,63 @@ static char * __d_path( struct dentry *d
+ 		parent = dentry->d_parent;
+ 		prefetch(parent);
+ 		namelen = dentry->d_name.len;
+-		buflen -= namelen + 1;
+-		if (buflen < 0)
++		if (buflen < namelen + 1)
+ 			goto Elong;
+-		end -= namelen;
+-		memcpy(end, dentry->d_name.name, namelen);
+-		*--end = '/';
+-		retval = end;
++		buflen -= namelen + 1;
++		buffer -= namelen;
++		memcpy(buffer, dentry->d_name.name, namelen);
++		*--buffer = '/';
+ 		dentry = parent;
+ 	}
++	/* Get '/' right. */
++	if (*buffer != '/')
++		*--buffer = '/';
+ 
+-	return retval;
++out:
++	spin_unlock(&dcache_lock);
++	return buffer;
+ 
+ global_root:
++	/*
++	 * We went past the (vfsmount, dentry) we were looking for and have
++	 * either hit a root dentry, a lazily unmounted dentry, an
++	 * unconnected dentry, or the file is on a pseudo filesystem.
++	 */
+ 	namelen = dentry->d_name.len;
+-	buflen -= namelen;
+-	if (buflen < 0)
++	is_slash = (namelen == 1 && *dentry->d_name.name == '/');
++	if (is_slash || (dentry->d_sb->s_flags & MS_NOUSER)) {
++		/*
++		 * Make sure we won't return a pathname starting with '/'.
++		 *
++		 * Historically, we also glue together the root dentry and
++		 * remaining name for pseudo filesystems like pipefs, which
++		 * have the MS_NOUSER flag set. This results in pathnames
++		 * like "pipe:[439336]".
++		 */
++		if (*buffer == '/') {
++			buffer++;
++			buflen++;
++		}
++		if (is_slash) {
++			if (*buffer == '\0')
++				*--buffer = '.';
++			goto out;
++		}
++	}
++	if (buflen < namelen)
+ 		goto Elong;
+-	retval -= namelen-1;	/* hit the slash */
+-	memcpy(retval, dentry->d_name.name, namelen);
+-	return retval;
++	buffer -= namelen;
++	memcpy(buffer, dentry->d_name.name, namelen);
++	goto out;
++
+ Elong:
+-	return ERR_PTR(-ENAMETOOLONG);
++	buffer = ERR_PTR(-ENAMETOOLONG);
++	goto out;
+ }
+ 
+ /* write full pathname into buffer and return start of pathname */
+-char * d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
+-				char *buf, int buflen)
++char *d_path(struct dentry *dentry, struct vfsmount *vfsmnt, char *buf,
++	     int buflen)
+ {
+ 	char *res;
+ 	struct vfsmount *rootmnt;
+@@ -1858,9 +1887,7 @@ char * d_path(struct dentry *dentry, str
+ 	rootmnt = mntget(current->fs->rootmnt);
+ 	root = dget(current->fs->root);
+ 	read_unlock(&current->fs->lock);
+-	spin_lock(&dcache_lock);
+-	res = __d_path(dentry, vfsmnt, root, rootmnt, buf, buflen);
+-	spin_unlock(&dcache_lock);
++	res = __d_path(dentry, vfsmnt, root, rootmnt, buf, buflen, 0);
+ 	dput(root);
+ 	mntput(rootmnt);
+ 	return res;
+@@ -1886,10 +1913,10 @@ char * d_path(struct dentry *dentry, str
+  */
+ asmlinkage long sys_getcwd(char __user *buf, unsigned long size)
+ {
+-	int error;
++	int error, len;
+ 	struct vfsmount *pwdmnt, *rootmnt;
+ 	struct dentry *pwd, *root;
+-	char *page = (char *) __get_free_page(GFP_USER);
++	char *page = (char *) __get_free_page(GFP_USER), *cwd;
+ 
+ 	if (!page)
+ 		return -ENOMEM;
+@@ -1901,29 +1928,21 @@ asmlinkage long sys_getcwd(char __user *
+ 	root = dget(current->fs->root);
+ 	read_unlock(&current->fs->lock);
+ 
++	cwd = __d_path(pwd, pwdmnt, root, rootmnt, page, PAGE_SIZE, 1);
++	error = PTR_ERR(cwd);
++	if (IS_ERR(cwd))
++		goto out;
+ 	error = -ENOENT;
+-	/* Has the current directory has been unlinked? */
+-	spin_lock(&dcache_lock);
+-	if (pwd->d_parent == pwd || !d_unhashed(pwd)) {
+-		unsigned long len;
+-		char * cwd;
+-
+-		cwd = __d_path(pwd, pwdmnt, root, rootmnt, page, PAGE_SIZE);
+-		spin_unlock(&dcache_lock);
+-
+-		error = PTR_ERR(cwd);
+-		if (IS_ERR(cwd))
+-			goto out;
++	if (*cwd != '/')
++		goto out;
+ 
+-		error = -ERANGE;
+-		len = PAGE_SIZE + page - cwd;
+-		if (len <= size) {
+-			error = len;
+-			if (copy_to_user(buf, cwd, len))
+-				error = -EFAULT;
+-		}
+-	} else
+-		spin_unlock(&dcache_lock);
++	error = -ERANGE;
++	len = PAGE_SIZE + page - cwd;
++	if (len <= size) {
++		error = len;
++		if (copy_to_user(buf, cwd, len))
++			error = -EFAULT;
++	}
+ 
+ out:
+ 	dput(pwd);
+diff -puN fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous fs/namespace.c
+--- a/fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous
 +++ a/fs/namespace.c
-@@ -379,8 +379,9 @@ static int show_vfsmnt(struct seq_file *
- 		{ 0, NULL }
- 	};
- 	struct proc_fs_info *fs_infop;
-+	char *path;
+@@ -348,8 +348,16 @@ static inline void mangle(struct seq_fil
+ 	seq_escape(m, s, " \t\n\\");
+ }
  
--	char *path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
-+	path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
- 	if (IS_ERR(path) || *path != '/')
- 		return err;
- 
-@@ -416,8 +417,9 @@ static int show_vfsstat(struct seq_file 
- 	void *page = container_of(m, struct proc_mounts, m)->page;
++/* Keep in sync with fs/proc/base.c! */
++struct proc_mounts {
++        struct seq_file m;
++        void *page;
++        int event;
++};
++
+ static int show_vfsmnt(struct seq_file *m, void *v)
+ {
++	void *page = container_of(m, struct proc_mounts, m)->page;
  	struct vfsmount *mnt = v;
  	int err = 0;
-+	char *path;
+ 	static struct proc_fs_info {
+@@ -372,9 +380,13 @@ static int show_vfsmnt(struct seq_file *
+ 	};
+ 	struct proc_fs_info *fs_infop;
  
--	char *path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
-+	path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
- 	if (IS_ERR(path) || *path != '/')
- 		return err; /* error or path unreachable from chroot */
- 
-diff -puN fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy fs/proc/base.c
---- a/fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
-+++ a/fs/proc/base.c
-@@ -415,6 +415,7 @@ static int mounts_release(struct inode *
- 	struct proc_mounts *p =
- 		container_of(file->private_data, struct proc_mounts, m);
- 	struct mnt_namespace *ns = p->m.private;
++	char *path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
++	if (IS_ERR(path) || *path != '/')
++		return err;
 +
- 	free_page((unsigned long)p->page);
+ 	mangle(m, mnt->mnt_devname ? mnt->mnt_devname : "none");
+ 	seq_putc(m, ' ');
+-	seq_path(m, mnt, mnt->mnt_root, " \t\n\\");
++	mangle(m, path);
+ 	seq_putc(m, ' ');
+ 	mangle(m, mnt->mnt_sb->s_type->name);
+ 	seq_puts(m, mnt->mnt_sb->s_flags & MS_RDONLY ? " ro" : " rw");
+@@ -401,9 +413,14 @@ struct seq_operations mounts_op = {
+ 
+ static int show_vfsstat(struct seq_file *m, void *v)
+ {
++	void *page = container_of(m, struct proc_mounts, m)->page;
+ 	struct vfsmount *mnt = v;
+ 	int err = 0;
+ 
++	char *path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
++	if (IS_ERR(path) || *path != '/')
++		return err; /* error or path unreachable from chroot */
++
+ 	/* device */
+ 	if (mnt->mnt_devname) {
+ 		seq_puts(m, "device ");
+@@ -413,7 +430,7 @@ static int show_vfsstat(struct seq_file 
+ 
+ 	/* mount point */
+ 	seq_puts(m, " mounted on ");
+-	seq_path(m, mnt, mnt->mnt_root, " \t\n\\");
++	mangle(m, path);
+ 	seq_putc(m, ' ');
+ 
+ 	/* file system type */
+diff -puN fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous fs/proc/base.c
+--- a/fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous
++++ a/fs/proc/base.c
+@@ -356,13 +356,16 @@ static const struct inode_operations pro
+ 	.setattr	= proc_setattr,
+ };
+ 
++/* Keep in sync with fs/namespace.c! */
+ extern struct seq_operations mounts_op;
+ struct proc_mounts {
+ 	struct seq_file m;
++	void *page;
+ 	int event;
+ };
+ 
+-static int mounts_open(struct inode *inode, struct file *file)
++static int __mounts_open(struct inode *inode, struct file *file,
++			 struct seq_operations *seq_ops)
+ {
+ 	struct task_struct *task = get_proc_task(inode);
+ 	struct mnt_namespace *ns = NULL;
+@@ -385,12 +388,16 @@ static int mounts_open(struct inode *ino
+ 		p = kmalloc(sizeof(struct proc_mounts), GFP_KERNEL);
+ 		if (p) {
+ 			file->private_data = &p->m;
+-			ret = seq_open(file, &mounts_op);
++			p->page = (void *)__get_free_page(GFP_KERNEL);
++			if (p->page)
++				ret = seq_open(file, seq_ops);
+ 			if (!ret) {
+ 				p->m.private = ns;
+ 				p->event = ns->event;
+ 				return 0;
+ 			}
++			if (p->page)
++				free_page((unsigned long)p->page);
+ 			kfree(p);
+ 		}
+ 		put_mnt_ns(ns);
+@@ -398,17 +405,25 @@ static int mounts_open(struct inode *ino
+ 	return ret;
+ }
+ 
++static int mounts_open(struct inode *inode, struct file *file)
++{
++	return __mounts_open(inode, file, &mounts_op);
++}
++
+ static int mounts_release(struct inode *inode, struct file *file)
+ {
+-	struct seq_file *m = file->private_data;
+-	struct mnt_namespace *ns = m->private;
++	struct proc_mounts *p =
++		container_of(file->private_data, struct proc_mounts, m);
++	struct mnt_namespace *ns = p->m.private;
++	free_page((unsigned long)p->page);
  	put_mnt_ns(ns);
  	return seq_release(inode, file);
+ }
+ 
+ static unsigned mounts_poll(struct file *file, poll_table *wait)
+ {
+-	struct proc_mounts *p = file->private_data;
++	struct proc_mounts *p =
++		container_of(file->private_data, struct proc_mounts, m);
+ 	struct mnt_namespace *ns = p->m.private;
+ 	unsigned res = 0;
+ 
+@@ -435,31 +450,7 @@ static const struct file_operations proc
+ extern struct seq_operations mountstats_op;
+ static int mountstats_open(struct inode *inode, struct file *file)
+ {
+-	int ret = seq_open(file, &mountstats_op);
+-
+-	if (!ret) {
+-		struct seq_file *m = file->private_data;
+-		struct mnt_namespace *mnt_ns = NULL;
+-		struct task_struct *task = get_proc_task(inode);
+-
+-		if (task) {
+-			task_lock(task);
+-			if (task->nsproxy)
+-				mnt_ns = task->nsproxy->mnt_ns;
+-			if (mnt_ns)
+-				get_mnt_ns(mnt_ns);
+-			task_unlock(task);
+-			put_task_struct(task);
+-		}
+-
+-		if (mnt_ns)
+-			m->private = mnt_ns;
+-		else {
+-			seq_release(inode, file);
+-			ret = -EINVAL;
+-		}
+-	}
+-	return ret;
++	return __mounts_open(inode, file, &mountstats_op);
+ }
+ 
+ static const struct file_operations proc_mountstats_operations = {
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from agruen@suse.de are
 
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-dvb.patch
-git-ia64.patch
-git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-git-lxdialog-fixup.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-block-xfs-barriers-broke.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-lumpy-reclaim-v2-page_to_pfn-fix.patch
-lumpy-reclaim-v2-tidy.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-factor-outstanding-i-o-error-handling-tidy.patch
-block_write_full_page-handle-enospc.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
 fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
-consolidate-generic_writepages-and-mpage_writepages-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-rcu-preemptible-rcu.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
-local_t-powerpc-extension-fix.patch
-local_t-powerpc-extension-fix-build-fix.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-reiser4-vs-git-block.patch
-reiser4-vs-git-block-2.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
