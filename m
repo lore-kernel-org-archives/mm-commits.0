@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-fs-jffs2-ioctlc.patch added to -mm tree
-Date: Wed, 21 Feb 2007 13:58:33 -0800
-Message-ID: <200702212158.l1LLwXBj027650@shell0.pdx.osdl.net>
+Subject: + kill-net-rxrpc-rxrpc_symsc.patch added to -mm tree
+Date: Wed, 21 Feb 2007 13:59:27 -0800
+Message-ID: <200702212159.l1LLxR1A027671@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51007 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51026 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751359AbXBUWB5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:01:57 -0500
+	id S1751364AbXBUWCt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:02:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, dwmw2@infradead.org
+Cc: bunk@stusta.de, dhowells@redhat.com
 
 
 The patch titled
-     remove fs/jffs2/ioctl.c
+     kill net/rxrpc/rxrpc_syms.c
 has been added to the -mm tree.  Its filename is
-     remove-fs-jffs2-ioctlc.patch
+     kill-net-rxrpc-rxrpc_symsc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,100 +25,170 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove fs/jffs2/ioctl.c
+Subject: kill net/rxrpc/rxrpc_syms.c
 From: Adrian Bunk <bunk@stusta.de>
 
-fs/jffs2/ioctl.c is already for so long in the "might be used later"
-state that I doubt it will ever be actually used...
-
-And if it will ever be used, reverting this patch will be trivial.
+Move the EXPORT_SYMBOL's from net/rxrpc/rxrpc_syms.c to the files with the
+actual functions.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/Makefile   |    2 +-
- fs/jffs2/dir.c      |    1 -
- fs/jffs2/file.c     |    1 -
- fs/jffs2/ioctl.c    |   23 -----------------------
- fs/jffs2/os-linux.h |    3 ---
- 5 files changed, 1 insertion(+), 29 deletions(-)
+ net/rxrpc/Makefile     |    1 -
+ net/rxrpc/call.c       |    5 +++++
+ net/rxrpc/connection.c |    2 ++
+ net/rxrpc/rxrpc_syms.c |   34 ----------------------------------
+ net/rxrpc/transport.c  |    4 ++++
+ 5 files changed, 11 insertions(+), 35 deletions(-)
 
-diff -puN fs/jffs2/Makefile~remove-fs-jffs2-ioctlc fs/jffs2/Makefile
---- a/fs/jffs2/Makefile~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/Makefile
-@@ -6,7 +6,7 @@
+diff -puN net/rxrpc/Makefile~kill-net-rxrpc-rxrpc_symsc net/rxrpc/Makefile
+--- a/net/rxrpc/Makefile~kill-net-rxrpc-rxrpc_symsc
++++ a/net/rxrpc/Makefile
+@@ -12,7 +12,6 @@ rxrpc-objs := \
+ 	krxtimod.o \
+ 	main.o \
+ 	peer.o \
+-	rxrpc_syms.o \
+ 	transport.o
  
- obj-$(CONFIG_JFFS2_FS) += jffs2.o
+ ifeq ($(CONFIG_PROC_FS),y)
+diff -puN net/rxrpc/call.c~kill-net-rxrpc-rxrpc_symsc net/rxrpc/call.c
+--- a/net/rxrpc/call.c~kill-net-rxrpc-rxrpc_symsc
++++ a/net/rxrpc/call.c
+@@ -314,6 +314,7 @@ int rxrpc_create_call(struct rxrpc_conne
+ 	_leave(" = %d", ret);
+ 	return ret;
+ } /* end rxrpc_create_call() */
++EXPORT_SYMBOL(rxrpc_create_call);
  
--jffs2-y	:= compr.o dir.o file.o ioctl.o nodelist.o malloc.o
-+jffs2-y	:= compr.o dir.o file.o nodelist.o malloc.o
- jffs2-y	+= read.o nodemgmt.o readinode.o write.o scan.o gc.o
- jffs2-y	+= symlink.o build.o erase.o background.o fs.o writev.o
- jffs2-y	+= super.o debug.o
-diff -puN fs/jffs2/dir.c~remove-fs-jffs2-ioctlc fs/jffs2/dir.c
---- a/fs/jffs2/dir.c~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/dir.c
-@@ -40,7 +40,6 @@ const struct file_operations jffs2_dir_o
- {
- 	.read =		generic_read_dir,
- 	.readdir =	jffs2_readdir,
--	.ioctl =	jffs2_ioctl,
- 	.fsync =	jffs2_fsync
- };
+ /*****************************************************************************/
+ /*
+@@ -465,6 +466,7 @@ void rxrpc_put_call(struct rxrpc_call *c
  
-diff -puN fs/jffs2/file.c~remove-fs-jffs2-ioctlc fs/jffs2/file.c
---- a/fs/jffs2/file.c~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/file.c
-@@ -46,7 +46,6 @@ const struct file_operations jffs2_file_
-  	.aio_read =	generic_file_aio_read,
-  	.write =	do_sync_write,
-  	.aio_write =	generic_file_aio_write,
--	.ioctl =	jffs2_ioctl,
- 	.mmap =		generic_file_readonly_mmap,
- 	.fsync =	jffs2_fsync,
- 	.sendfile =	generic_file_sendfile
-diff -puN fs/jffs2/ioctl.c~remove-fs-jffs2-ioctlc /dev/null
---- a/fs/jffs2/ioctl.c
+ 	_leave(" [destroyed]");
+ } /* end rxrpc_put_call() */
++EXPORT_SYMBOL(rxrpc_put_call);
+ 
+ /*****************************************************************************/
+ /*
+@@ -923,6 +925,7 @@ int rxrpc_call_abort(struct rxrpc_call *
+ 	return __rxrpc_call_abort(call, error);
+ 
+ } /* end rxrpc_call_abort() */
++EXPORT_SYMBOL(rxrpc_call_abort);
+ 
+ /*****************************************************************************/
+ /*
+@@ -1910,6 +1913,7 @@ int rxrpc_call_read_data(struct rxrpc_ca
+ 	}
+ 
+ } /* end rxrpc_call_read_data() */
++EXPORT_SYMBOL(rxrpc_call_read_data);
+ 
+ /*****************************************************************************/
+ /*
+@@ -2076,6 +2080,7 @@ int rxrpc_call_write_data(struct rxrpc_c
+ 	return ret;
+ 
+ } /* end rxrpc_call_write_data() */
++EXPORT_SYMBOL(rxrpc_call_write_data);
+ 
+ /*****************************************************************************/
+ /*
+diff -puN net/rxrpc/connection.c~kill-net-rxrpc-rxrpc_symsc net/rxrpc/connection.c
+--- a/net/rxrpc/connection.c~kill-net-rxrpc-rxrpc_symsc
++++ a/net/rxrpc/connection.c
+@@ -207,6 +207,7 @@ int rxrpc_create_connection(struct rxrpc
+ 	spin_unlock(&peer->conn_gylock);
+ 	goto make_active;
+ } /* end rxrpc_create_connection() */
++EXPORT_SYMBOL(rxrpc_create_connection);
+ 
+ /*****************************************************************************/
+ /*
+@@ -411,6 +412,7 @@ void rxrpc_put_connection(struct rxrpc_c
+ 
+ 	_leave(" [killed]");
+ } /* end rxrpc_put_connection() */
++EXPORT_SYMBOL(rxrpc_put_connection);
+ 
+ /*****************************************************************************/
+ /*
+diff -puN net/rxrpc/rxrpc_syms.c~kill-net-rxrpc-rxrpc_symsc /dev/null
+--- a/net/rxrpc/rxrpc_syms.c
 +++ /dev/null
-@@ -1,23 +0,0 @@
--/*
-- * JFFS2 -- Journalling Flash File System, Version 2.
+@@ -1,34 +0,0 @@
+-/* rxrpc_syms.c: exported Rx RPC layer interface symbols
 - *
-- * Copyright (C) 2001-2003 Red Hat, Inc.
+- * Copyright (C) 2002 Red Hat, Inc. All Rights Reserved.
+- * Written by David Howells (dhowells@redhat.com)
 - *
-- * Created by David Woodhouse <dwmw2@infradead.org>
-- *
-- * For licensing information, see the file 'LICENCE' in this directory.
-- *
-- * $Id: ioctl.c,v 1.10 2005/11/07 11:14:40 gleixner Exp $
-- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * as published by the Free Software Foundation; either version
+- * 2 of the License, or (at your option) any later version.
 - */
 -
--#include <linux/fs.h>
+-#include <linux/module.h>
 -
--int jffs2_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
--		unsigned long arg)
--{
--	/* Later, this will provide for lsattr.jffs2 and chattr.jffs2, which
--	   will include compression support etc. */
--	return -ENOTTY;
--}
+-#include <rxrpc/transport.h>
+-#include <rxrpc/connection.h>
+-#include <rxrpc/call.h>
+-#include <rxrpc/krxiod.h>
 -
-diff -puN fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc fs/jffs2/os-linux.h
---- a/fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/os-linux.h
-@@ -168,9 +168,6 @@ extern const struct address_space_operat
- int jffs2_fsync(struct file *, struct dentry *, int);
- int jffs2_do_readpage_unlock (struct inode *inode, struct page *pg);
+-/* call.c */
+-EXPORT_SYMBOL(rxrpc_create_call);
+-EXPORT_SYMBOL(rxrpc_put_call);
+-EXPORT_SYMBOL(rxrpc_call_abort);
+-EXPORT_SYMBOL(rxrpc_call_read_data);
+-EXPORT_SYMBOL(rxrpc_call_write_data);
+-
+-/* connection.c */
+-EXPORT_SYMBOL(rxrpc_create_connection);
+-EXPORT_SYMBOL(rxrpc_put_connection);
+-
+-/* transport.c */
+-EXPORT_SYMBOL(rxrpc_create_transport);
+-EXPORT_SYMBOL(rxrpc_put_transport);
+-EXPORT_SYMBOL(rxrpc_add_service);
+-EXPORT_SYMBOL(rxrpc_del_service);
+diff -puN net/rxrpc/transport.c~kill-net-rxrpc-rxrpc_symsc net/rxrpc/transport.c
+--- a/net/rxrpc/transport.c~kill-net-rxrpc-rxrpc_symsc
++++ a/net/rxrpc/transport.c
+@@ -145,6 +145,7 @@ int rxrpc_create_transport(unsigned shor
+ 	_leave(" = %d", ret);
+ 	return ret;
+ } /* end rxrpc_create_transport() */
++EXPORT_SYMBOL(rxrpc_create_transport);
  
--/* ioctl.c */
--int jffs2_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
--
- /* symlink.c */
- extern const struct inode_operations jffs2_symlink_inode_operations;
+ /*****************************************************************************/
+ /*
+@@ -195,6 +196,7 @@ void rxrpc_put_transport(struct rxrpc_tr
  
+ 	_leave("");
+ } /* end rxrpc_put_transport() */
++EXPORT_SYMBOL(rxrpc_put_transport);
+ 
+ /*****************************************************************************/
+ /*
+@@ -230,6 +232,7 @@ int rxrpc_add_service(struct rxrpc_trans
+ 	_leave("= %d", ret);
+ 	return ret;
+ } /* end rxrpc_add_service() */
++EXPORT_SYMBOL(rxrpc_add_service);
+ 
+ /*****************************************************************************/
+ /*
+@@ -247,6 +250,7 @@ void rxrpc_del_service(struct rxrpc_tran
+ 
+ 	_leave("");
+ } /* end rxrpc_del_service() */
++EXPORT_SYMBOL(rxrpc_del_service);
+ 
+ /*****************************************************************************/
+ /*
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -147,6 +217,7 @@ arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
 make-struct-vmi_ops-static.patch
 proper-prototype-for-hugetlb_get_unmapped_area.patch
 lumpy-reclaim-cleanup.patch
+kill-net-rxrpc-rxrpc_symsc.patch
 make-ext2_get_blocks-static.patch
 drivers-edac-make-code-static.patch
 linux-kernel-markers-kconfig-menus-fix.patch
