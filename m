@@ -1,73 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - parport_pc-fix-parport_pc_probe_port-section-warning.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:46:44 -0800
-Message-ID: <200702211046.l1LAkidD006490@shell0.pdx.osdl.net>
+Subject: - spi-controller-build-warning-fixes.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:46:47 -0800
+Message-ID: <200702211046.l1LAklDi006493@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47014 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47016 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932780AbXBUKrX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:47:23 -0500
+	id S965375AbXBUKrc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:47:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport_pc: fix parport_pc_probe_port section warning
+     SPI controller build/warning fixes
 has been removed from the -mm tree.  Its filename was
-     parport_pc-fix-parport_pc_probe_port-section-warning.patch
+     spi-controller-build-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: parport_pc: fix parport_pc_probe_port section warning
-From: Jean Delvare <khali@linux-fr.org>
+Subject: SPI controller build/warning fixes
+From: David Brownell <david-b@pacbell.net>
 
-WARNING: drivers/parport/parport_pc.o - Section mismatch: reference
-to .init.text: from .text between 'parport_pc_probe_port' (at offset
-0x14f7) and 'parport_pc_unregister_port'
+The signature of the per-device cleanup() routine changed to remove its
+const-ness.  Three new SPI controller drivers now need that change, to
+eliminate build warnings.
 
-parport_dma_probe() cannot be declared __devinit as it is called
-from parport_pc_probe_port() which isn't.
+This also fixes a build bug with atmel_spi on AT91 systems.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/spi/atmel_spi.c  |    6 +++++-
+ drivers/spi/omap_uwire.c |    2 +-
+ drivers/spi/spi_imx.c    |    5 ++---
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN drivers/parport/parport_pc.c~parport_pc-fix-parport_pc_probe_port-section-warning drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport_pc-fix-parport_pc_probe_port-section-warning
-+++ a/drivers/parport/parport_pc.c
-@@ -1546,7 +1546,7 @@ static void __devinit detect_and_report_
- }
- #endif /* CONFIG_PARPORT_PC_SUPERIO */
+diff -puN drivers/spi/atmel_spi.c~spi-controller-build-warning-fixes drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~spi-controller-build-warning-fixes
++++ a/drivers/spi/atmel_spi.c
+@@ -23,6 +23,10 @@
+ #include <asm/arch/board.h>
+ #include <asm/arch/gpio.h>
  
--static int __devinit get_superio_dma (struct parport *p)
-+static int get_superio_dma (struct parport *p)
- {
- 	int i=0;
- 	while( (superios[i].io != p->base) && (i<NR_SUPERIOS))
-@@ -2106,7 +2106,7 @@ static int parport_irq_probe(struct parp
- /* --- DMA detection -------------------------------------- */
++#ifdef CONFIG_ARCH_AT91
++#include <asm/arch/cpu.h>
++#endif
++
+ #include "atmel_spi.h"
  
- /* Only if chipset conforms to ECP ISA Interface Standard */
--static int __devinit programmable_dma_support (struct parport *p)
-+static int programmable_dma_support (struct parport *p)
- {
- 	unsigned char oecr = inb (ECONTROL (p));
- 	int dma;
-@@ -2123,7 +2123,7 @@ static int __devinit programmable_dma_su
- 	return dma;
+ /*
+@@ -491,7 +495,7 @@ static int atmel_spi_transfer(struct spi
+ 	return 0;
  }
  
--static int __devinit parport_dma_probe (struct parport *p)
-+static int parport_dma_probe (struct parport *p)
+-static void atmel_spi_cleanup(const struct spi_device *spi)
++static void atmel_spi_cleanup(struct spi_device *spi)
  {
- 	const struct parport_pc_private *priv = p->private_data;
- 	if (priv->ecr)
+ 	if (spi->controller_state)
+ 		gpio_free((unsigned int)spi->controller_data);
+diff -puN drivers/spi/omap_uwire.c~spi-controller-build-warning-fixes drivers/spi/omap_uwire.c
+--- a/drivers/spi/omap_uwire.c~spi-controller-build-warning-fixes
++++ a/drivers/spi/omap_uwire.c
+@@ -459,7 +459,7 @@ static int uwire_setup(struct spi_device
+ 	return uwire_setup_transfer(spi, NULL);
+ }
+ 
+-static void uwire_cleanup(const struct spi_device *spi)
++static void uwire_cleanup(struct spi_device *spi)
+ {
+ 	kfree(spi->controller_state);
+ }
+diff -puN drivers/spi/spi_imx.c~spi-controller-build-warning-fixes drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi-controller-build-warning-fixes
++++ a/drivers/spi/spi_imx.c
+@@ -1361,10 +1361,9 @@ err_first_setup:
+ 	return status;
+ }
+ 
+-static void cleanup(const struct spi_device *spi)
++static void cleanup(struct spi_device *spi)
+ {
+-	struct chip_data *chip = spi_get_ctldata((struct spi_device *)spi);
+-	kfree(chip);
++	kfree(spi_get_ctldata(spi));
+ }
+ 
+ static int init_queue(struct driver_data *drv_data)
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
+
+git-avr32.patch
+git-md-accel.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
