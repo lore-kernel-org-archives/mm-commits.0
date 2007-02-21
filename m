@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-ask-driver-writers-to-provide-pm-support.patch added to -mm tree
-Date: Wed, 21 Feb 2007 13:40:31 -0800
-Message-ID: <200702212140.l1LLeVVi027264@shell0.pdx.osdl.net>
+Subject: + rm9000-serial-driver.patch added to -mm tree
+Date: Wed, 21 Feb 2007 13:48:37 -0800
+Message-ID: <200702212148.l1LLmcLA027453@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50178 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50760 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423183AbXBUVk6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 16:40:58 -0500
+	id S1751341AbXBUVwK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 16:52:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, alan@lxorguk.ukuu.org.uk, david-b@pacbell.net, greg@kroah.com, ncunningham@linuxmail.org, pavel@ucw.cz
+Cc: thomas.koeller@baslerweb.com, ralf@linux-mips.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     Documentation: Ask driver writers to provide PM support
+     RM9000 serial driver
 has been added to the -mm tree.  Its filename is
-     documentation-ask-driver-writers-to-provide-pm-support.patch
+     rm9000-serial-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,218 +25,275 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Documentation: Ask driver writers to provide PM support
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: RM9000 serial driver
+From: Thomas Koeller <thomas.koeller@baslerweb.com>
 
-Add a paragraph in Documentation/SubmittingDrivers requesting that the
-basic PM support be provided by new device drivers.
+Add support for the integrated serial ports of the MIPS RM9122 processor
+and its relatives.
 
-Add two new documents in Documentation/power/ giving general instructions
-on debugging the suspend/resume functionality and testing the suspend and
-resume support in device drivers.
+The patch also does some whitespace cleanup.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Nigel Cunningham <ncunningham@linuxmail.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Thomas Koeller <thomas.koeller@baslerweb.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingDrivers            |   15 ++
- Documentation/power/basic-pm-debugging.txt |  106 +++++++++++++++++++
- Documentation/power/drivers-testing.txt    |   42 +++++++
- 3 files changed, 163 insertions(+)
+ arch/mips/Kconfig           |    3 +
+ drivers/serial/8250.c       |   84 +++++++++++++++++++++++++++++-----
+ drivers/serial/Kconfig      |    9 +++
+ include/linux/serial_core.h |    4 +
+ 4 files changed, 87 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/SubmittingDrivers~documentation-ask-driver-writers-to-provide-pm-support Documentation/SubmittingDrivers
---- a/Documentation/SubmittingDrivers~documentation-ask-driver-writers-to-provide-pm-support
-+++ a/Documentation/SubmittingDrivers
-@@ -87,6 +87,21 @@ Clarity:	It helps if anyone can see how 
- 		driver that intentionally obfuscates how the hardware works
- 		it will go in the bitbucket.
+diff -puN arch/mips/Kconfig~rm9000-serial-driver arch/mips/Kconfig
+--- a/arch/mips/Kconfig~rm9000-serial-driver
++++ a/arch/mips/Kconfig
+@@ -1021,6 +1021,9 @@ config SOC_AU1X00
+ 	select SYS_SUPPORTS_APM_EMULATION
+ 	select SYS_SUPPORTS_KGDB
  
-+PM support:	Since Linux is used on many portable and desktop systems, your
-+		driver is likely to be used on such a system and therefore it
-+		should support basic power management by implementing, if
-+		necessary, the .suspend and .resume methods used during the
-+		system-wide suspend and resume transitions.  You should verify
-+		that your driver correctly handles the suspend and resume, but
-+		if you are unable to ensure that, please at least define the
-+		.suspend method returning the -ENOSYS ("Function not
-+		implemented") error.  You should also try to make sure that your
-+		driver uses as little power as possible when it's not doing
-+		anything.  For the driver testing instructions see
-+		Documentation/power/drivers-testing.txt and for a relatively
-+		complete overview of the power management issues related to
-+		drivers see Documentation/power/devices.txt .
++config SERIAL_RM9000
++	bool
 +
- Control:	In general if there is active maintainance of a driver by
- 		the author then patches will be redirected to them unless
- 		they are totally obvious and without need of checking.
-diff -puN /dev/null Documentation/power/basic-pm-debugging.txt
---- /dev/null
-+++ a/Documentation/power/basic-pm-debugging.txt
-@@ -0,0 +1,106 @@
-+Debugging suspend and resume
-+	(C) 2007 Rafael J. Wysocki <rjw@sisk.pl>, GPL
+ config PNX8550
+ 	bool
+ 	select SOC_PNX8550
+diff -puN drivers/serial/8250.c~rm9000-serial-driver drivers/serial/8250.c
+--- a/drivers/serial/8250.c~rm9000-serial-driver
++++ a/drivers/serial/8250.c
+@@ -251,9 +251,16 @@ static const struct serial8250_config ua
+ 		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
+ 		.flags		= UART_CAP_FIFO | UART_CAP_UUE,
+ 	},
++	[PORT_RM9000] = {
++		.name		= "RM9000",
++		.fifo_size	= 16,
++		.tx_loadsz	= 16,
++		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
++		.flags		= UART_CAP_FIFO,
++	},
+ };
+ 
+-#ifdef CONFIG_SERIAL_8250_AU1X00
++#if defined (CONFIG_SERIAL_8250_AU1X00)
+ 
+ /* Au1x00 UART hardware has a weird register layout */
+ static const u8 au_io_in_map[] = {
+@@ -289,6 +296,36 @@ static inline int map_8250_out_reg(struc
+ 	return au_io_out_map[offset];
+ }
+ 
++#elif defined (CONFIG_SERIAL_8250_RM9K)
 +
-+1. Testing suspend to disk (STD)
++static const u8
++	regmap_in[8] = {
++		[UART_RX]	= 0x00,
++		[UART_IER]	= 0x0c,
++		[UART_IIR]	= 0x14,
++		[UART_LCR]	= 0x1c,
++		[UART_MCR]	= 0x20,
++		[UART_LSR]	= 0x24,
++		[UART_MSR]	= 0x28,
++		[UART_SCR]	= 0x2c
++	},
++	regmap_out[8] = {
++		[UART_TX] 	= 0x04,
++		[UART_IER]	= 0x0c,
++		[UART_FCR]	= 0x18,
++		[UART_LCR]	= 0x1c,
++		[UART_MCR]	= 0x20,
++		[UART_LSR]	= 0x24,
++		[UART_MSR]	= 0x28,
++		[UART_SCR]	= 0x2c
++	};
 +
-+To verify that the STD works, you can try to suspend in the "reboot" mode:
++#define map_8250_in_reg(up, offset) \
++	(((up)->port.iotype == UPIO_RM9000) ? regmap_in[offset] : (offset))
++#define map_8250_out_reg(up, offset) \
++	(((up)->port.iotype == UPIO_RM9000) ? regmap_out[offset] : (offset))
 +
-+# echo reboot > /sys/power/disk
-+# echo disk > /sys/power/state
 +
-+and the system should suspend, reboot, resume and get back to the command prompt
-+where you have started the transition.  If that happens, the STD is most likely
-+to work correctly, but you need to repeat the test at least a couple of times in
-+a row for confidence.  This is necessary, because some problems only show up on
-+a second attempt at suspending and resuming the system.  You should also test
-+the "platform" and "shutdown" modes of suspend:
+ #else
+ 
+ /* sane hardware needs no mapping */
+@@ -310,6 +347,7 @@ static unsigned int serial_in(struct uar
+ 	case UPIO_MEM:
+ 		return readb(up->port.membase + offset);
+ 
++	case UPIO_RM9000:
+ 	case UPIO_MEM32:
+ 		return readl(up->port.membase + offset);
+ 
+@@ -345,6 +383,7 @@ serial_out(struct uart_8250_port *up, in
+ 		writeb(value, up->port.membase + offset);
+ 		break;
+ 
++	case UPIO_RM9000:
+ 	case UPIO_MEM32:
+ 		writel(value, up->port.membase + offset);
+ 		break;
+@@ -403,7 +442,7 @@ static inline void _serial_dl_write(stru
+ 	serial_outp(up, UART_DLM, value >> 8 & 0xff);
+ }
+ 
+-#ifdef CONFIG_SERIAL_8250_AU1X00
++#if defined (CONFIG_SERIAL_8250_AU1X00)
+ /* Au1x00 haven't got a standard divisor latch */
+ static int serial_dl_read(struct uart_8250_port *up)
+ {
+@@ -420,6 +459,24 @@ static void serial_dl_write(struct uart_
+ 	else
+ 		_serial_dl_write(up, value);
+ }
++#elif defined (CONFIG_SERIAL_8250_RM9K)
++static int serial_dl_read(struct uart_8250_port *up)
++{
++	return	(up->port.iotype == UPIO_RM9000) ?
++		(((__raw_readl(up->port.membase + 0x10) << 8) |
++		(__raw_readl(up->port.membase + 0x08) & 0xff)) & 0xffff) :
++		_serial_dl_read(up);
++}
 +
-+# echo platform > /sys/power/disk
-+# echo disk > /sys/power/state
++static void serial_dl_write(struct uart_8250_port *up, int value)
++{
++	if (up->port.iotype == UPIO_RM9000) {
++		__raw_writel(value, up->port.membase + 0x08);
++		__raw_writel(value >> 8, up->port.membase + 0x10);
++	} else {
++		_serial_dl_write(up, value);
++	}
++}
+ #else
+ #define serial_dl_read(up) _serial_dl_read(up)
+ #define serial_dl_write(up, value) _serial_dl_write(up, value)
+@@ -621,7 +678,7 @@ static unsigned int autoconfig_read_divi
+  * its clones.  (We treat the broken original StarTech 16650 V1 as a
+  * 16550, and why not?  Startech doesn't seem to even acknowledge its
+  * existence.)
+- * 
++ *
+  * What evil have men's minds wrought...
+  */
+ static void autoconfig_has_efr(struct uart_8250_port *up)
+@@ -674,7 +731,7 @@ static void autoconfig_has_efr(struct ua
+ 			up->bugs |= UART_BUG_QUOT;
+ 		return;
+ 	}
+-	
 +
-+or
+ 	/*
+ 	 * We check for a XR16C850 by setting DLL and DLM to 0, and then
+ 	 * reading back DLL and DLM.  The chip type depends on the DLM
+@@ -817,7 +874,7 @@ static void autoconfig_16550a(struct uar
+ 			status1 &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
+ 			status1 |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
+ 			serial_outp(up, 0x04, status1);
+-			
 +
-+# echo shutdown > /sys/power/disk
-+# echo disk > /sys/power/state
+ 			serial_dl_write(up, quot);
+ 
+ 			serial_outp(up, UART_LCR, 0);
+@@ -922,7 +979,7 @@ static void autoconfig(struct uart_8250_
+ 		/*
+ 		 * Do a simple existence test first; if we fail this,
+ 		 * there's no point trying anything else.
+-		 * 
++		 *
+ 		 * 0x80 is used as a nonsense port to prevent against
+ 		 * false positives due to ISA bus float.  The
+ 		 * assumption is that 0x80 is a non-existent port;
+@@ -961,7 +1018,7 @@ static void autoconfig(struct uart_8250_
+ 	save_mcr = serial_in(up, UART_MCR);
+ 	save_lcr = serial_in(up, UART_LCR);
+ 
+-	/* 
++	/*
+ 	 * Check to see if a UART is really there.  Certain broken
+ 	 * internal modems based on the Rockwell chipset fail this
+ 	 * test, because they apparently don't implement the loopback
+@@ -1068,7 +1125,7 @@ static void autoconfig(struct uart_8250_
+ 	else
+ 		serial_outp(up, UART_IER, 0);
+ 
+- out:	
++ out:
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ //	restore_flags(flags);
+ 	DEBUG_AUTOCONF("type=%s\n", uart_config[up->port.type].name);
+@@ -1094,7 +1151,7 @@ static void autoconfig_irq(struct uart_8
+ 	save_mcr = serial_inp(up, UART_MCR);
+ 	save_ier = serial_inp(up, UART_IER);
+ 	serial_outp(up, UART_MCR, UART_MCR_OUT1 | UART_MCR_OUT2);
+-	
 +
-+in which cases you will have to press the power button to make the system
-+resume.  If that does not work, you will need to identify what goes wrong.
+ 	irqs = probe_irq_on();
+ 	serial_outp(up, UART_MCR, 0);
+ 	udelay (10);
+@@ -1159,8 +1216,11 @@ static void serial8250_start_tx(struct u
+ 		if (up->bugs & UART_BUG_TXEN) {
+ 			unsigned char lsr, iir;
+ 			lsr = serial_in(up, UART_LSR);
+-			iir = serial_in(up, UART_IIR);
+-			if (lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT)
++			iir = serial_in(up, UART_IIR) & 0x0f;
++			if ((up->port.type == PORT_RM9000) ?
++				(lsr & UART_LSR_THRE &&
++				(iir == UART_IIR_NO_INT || iir == UART_IIR_THRI)) :
++				(lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT))
+ 				transmit_chars(up);
+ 		}
+ 	}
+@@ -1926,7 +1986,7 @@ serial8250_set_termios(struct uart_port 
+ 	/*
+ 	 * Ask the core to calculate the divisor for us.
+ 	 */
+-	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16); 
++	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16);
+ 	quot = serial8250_get_divisor(port, baud);
+ 
+ 	/*
+diff -puN drivers/serial/Kconfig~rm9000-serial-driver drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~rm9000-serial-driver
++++ a/drivers/serial/Kconfig
+@@ -254,6 +254,15 @@ config SERIAL_8250_AU1X00
+ 	  to this option.  The driver can handle 1 or 2 serial ports.
+ 	  If unsure, say N.
+ 
++config SERIAL_8250_RM9K
++	bool "Support for MIPS RM9xxx integrated serial port"
++	depends on SERIAL_8250 != n && SERIAL_RM9000
++	select SERIAL_8250_SHARE_IRQ
++	help
++	  Selecting this option will add support for the integrated serial
++	  port hardware found on MIPS RM9122 and similar processors.
++	  If unsure, say N.
 +
-+a) Test mode of STD
-+
-+To verify if there are any drivers that cause problems you can run the STD
-+in the test mode:
-+
-+# echo test > /sys/power/disk
-+# echo disk > /sys/power/state
-+
-+in which case the system should freeze tasks, suspend devices, disable nonboot
-+CPUs (if any), wait for 5 seconds, enable nonboot CPUs, resume devices, thaw
-+tasks and return to your command prompt.  If that fails, most likely there is
-+a driver that fails to either suspend or resume (in the latter case the system
-+may hang or be unstable after the test, so please take that into consideration).
-+To find this driver, you can carry out a binary search according to the rules:
-+- if the test fails, unload a half of the drivers currently loaded and repeat
-+(that would probably involve rebooting the system, so always note what drivers
-+have been loaded before the test),
-+- if the test succeeds, load a half of the drivers you have unloaded most
-+recently and repeat.
-+
-+Once you have found the failing driver (there can be more than just one of
-+them), you have to unload it every time before the STD transition.  In that case
-+please make sure to report the problem with the driver.
-+
-+It is also possible that a cycle can still fail after you have unloaded
-+all modules. In that case, you would want to look in your kernel configuration
-+for the drivers that can be compiled as modules (testing again with them as
-+modules), and possibly also try boot time options such as "noapic" or "noacpi".
-+
-+b) Testing minimal configuration
-+
-+If the test mode of STD works, you can boot the system with "init=/bin/bash"
-+and attempt to suspend in the "reboot", "shutdown" and "platform" modes.  If
-+that does not work, there probably is a problem with a driver statically
-+compiled into the kernel and you can try to compile more drivers as modules,
-+so that they can be tested individually.  Otherwise, there is a problem with a
-+modular driver and you can find it by loading a half of the modules you normally
-+use and binary searching in accordance with the algorithm:
-+- if there are n modules loaded and the attempt to suspend and resume fails,
-+unload n/2 of the modules and try again (that would probably involve rebooting
-+the system),
-+- if there are n modules loaded and the attempt to suspend and resume succeeds,
-+load n/2 modules more and try again.
-+
-+Again, if you find the offending module(s), it(they) must be unloaded every time
-+before the STD transition, and please report the problem with it(them).
-+
-+c) Advanced debugging
-+
-+In case the STD does not work on your system even in the minimal configuration
-+and compiling more drivers as modules is not practical or some modules cannot
-+be unloaded, you can use one of the more advanced debugging techniques to find
-+the problem.  First, if there is a serial port in your box, you can set the
-+CONFIG_DISABLE_CONSOLE_SUSPEND kernel configuration option and try to log kernel
-+messages using the serial console.  This may provide you with some information
-+about the reasons of the suspend (resume) failure.  Alternatively, it may be
-+possible to use a FireWire port for debugging with firescope
-+(ftp://ftp.firstfloor.org/pub/ak/firescope/).  On i386 it is also possible to
-+use the PM_TRACE mechanism documented in Documentation/s2ram.txt .
-+
-+2. Testing suspend to RAM (STR)
-+
-+To verify that the STR works, it is generally more convenient to use the s2ram
-+tool available from http://suspend.sf.net and documented at
-+http://en.opensuse.org/s2ram .  However, before doing that it is recommended to
-+carry out the procedure described in section 1.
-+
-+Assume you have resolved the problems with the STD and you have found some
-+failing drivers.  These drivers are also likely to fail during the STR or
-+during the resume, so it is better to unload them every time before the STR
-+transition.  Now, you can follow the instructions at
-+http://en.opensuse.org/s2ram to test the system, but if it does not work
-+"out of the box", you may need to boot it with "init=/bin/bash" and test
-+s2ram in the minimal configuration.  In that case, you may be able to search
-+for failing drivers by following the procedure analogous to the one described in
-+1b).  If you find some failing drivers, you will have to unload them every time
-+before the STR transition (ie. before you run s2ram), and please report the
-+problems with them.
-diff -puN /dev/null Documentation/power/drivers-testing.txt
---- /dev/null
-+++ a/Documentation/power/drivers-testing.txt
-@@ -0,0 +1,42 @@
-+Testing suspend and resume support in device drivers
-+	(C) 2007 Rafael J. Wysocki <rjw@sisk.pl>, GPL
-+
-+1. Preparing the test system
-+
-+Unfortunately, to effectively test the support for the system-wide suspend and
-+resume transitions in a driver, it is necessary to suspend and resume a fully
-+functional system with this driver loaded.  Moreover, that should be done
-+several times, preferably several times in a row, and separately for the suspend
-+to disk (STD) and the suspend to RAM (STR) transitions, because each of these
-+cases involves different ordering of operations and different interactions with
-+the machine's BIOS.
-+
-+Of course, for this purpose the test system has to be known to suspend and
-+resume without the driver being tested.  Thus, if possible, you should first
-+resolve all suspend/resume-related problems in the test system before you start
-+testing the new driver.  Please see Documents/power/basic-pm-debugging.txt for
-+more information about the debugging of suspend/resume functionality.
-+
-+2. Testing the driver
-+
-+Once you have resolved the suspend/resume-related problems with your test system
-+without the new driver, you are ready to test it:
-+
-+a) Build the driver as a module, load it and try the STD in the test mode (see:
-+Documents/power/basic-pm-debugging.txt, 1a)).
-+
-+b) Load the driver and attempt to suspend to disk in the "reboot", "shutdown"
-+and "platform" modes (see: Documents/power/basic-pm-debugging.txt, 1).
-+
-+c) Compile the driver directly into the kernel and try the STD in the test mode.
-+
-+d) Attempt to suspend to disk with the driver compiled directly into the kernel
-+in the "reboot", "shutdown" and "platform" modes.
-+
-+e) Attempt to suspend to RAM using the s2ram tool with the driver loaded (see:
-+Documents/power/basic-pm-debugging.txt, 2).  As far as the STR tests are
-+concerned, it should not matter whether or not the driver is built as a module.
-+
-+Each of the above tests should be repeated several times and the STD tests
-+should be mixed with the STR tests.  If any of them fails, the driver cannot be
-+regarded as suspend/resume-safe.
+ comment "Non-8250 serial port support"
+ 
+ config SERIAL_AMBA_PL010
+diff -puN include/linux/serial_core.h~rm9000-serial-driver include/linux/serial_core.h
+--- a/include/linux/serial_core.h~rm9000-serial-driver
++++ a/include/linux/serial_core.h
+@@ -39,7 +39,8 @@
+ #define PORT_RSA	13
+ #define PORT_NS16550A	14
+ #define PORT_XSCALE	15
+-#define PORT_MAX_8250	15	/* max port ID */
++#define PORT_RM9000	16	/* PMC-Sierra RM9xxx internal UART */
++#define PORT_MAX_8250	16	/* max port ID */
+ 
+ /*
+  * ARM specific type numbers.  These are not currently guaranteed
+@@ -233,6 +234,7 @@ struct uart_port {
+ #define UPIO_MEM32		(3)
+ #define UPIO_AU			(4)			/* Au1x00 type IO */
+ #define UPIO_TSI		(5)			/* Tsi108/109 type IO */
++#define UPIO_RM9000		(6)			/* RM9000 type IO */
+ 
+ 	unsigned int		read_status_mask;	/* driver specific */
+ 	unsigned int		ignore_status_mask;	/* driver specific */
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from thomas.koeller@baslerweb.com are
 
-power-management-no-valid-states-w-o-pm_ops-docs.patch
-power-management-fix-struct-layout-and-docs.patch
-fix-refrigerator-vs-thaw_process-race.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-shrink_slab-handle-bad-shrinkers.patch
+rm9000-serial-driver.patch
