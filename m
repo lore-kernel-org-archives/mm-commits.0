@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-struct-vmi_ops-static.patch added to -mm tree
-Date: Wed, 21 Feb 2007 13:53:24 -0800
-Message-ID: <200702212153.l1LLrOrU027576@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-i386-optimization-export-fix.patch added to -mm tree
+Date: Wed, 21 Feb 2007 13:56:36 -0800
+Message-ID: <200702212156.l1LLua4w027618@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50914 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50979 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750850AbXBUV4m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 16:56:42 -0500
+	id S1751347AbXBUWAB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:00:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, ak@suse.de, zach@vmware.com
+Cc: bunk@stusta.de, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     make struct vmi_ops static
+     marker exports must be EXPORT_SYMBOL_GPL
 has been added to the -mm tree.  Its filename is
-     make-struct-vmi_ops-static.patch
+     linux-kernel-markers-i386-optimization-export-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make struct vmi_ops static
+Subject: marker exports must be EXPORT_SYMBOL_GPL
 From: Adrian Bunk <bunk@stusta.de>
 
+This is definitely functionality illegal modules have no business to
+use.
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Zachary Amsden <zach@vmware.com>
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmi.c |    2 +-
+ arch/i386/kernel/marker.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/vmi.c~make-struct-vmi_ops-static arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~make-struct-vmi_ops-static
-+++ a/arch/i386/kernel/vmi.c
-@@ -56,7 +56,7 @@ static int disable_tsc;
- static int disable_mtrr;
- 
- /* Cached VMI operations */
--struct {
-+static struct {
- 	void (*cpuid)(void /* non-c */);
- 	void (*_set_ldt)(u32 selector);
- 	void (*set_tr)(u32 selector);
+diff -puN arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-export-fix arch/i386/kernel/marker.c
+--- a/arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-export-fix
++++ a/arch/i386/kernel/marker.c
+@@ -91,4 +91,4 @@ int arch_marker_set_ins_enable(void *add
+ 	flush_icache_range(address, size);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(arch_marker_set_ins_enable);
++EXPORT_SYMBOL_GPL(arch_marker_set_ins_enable);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -78,6 +77,8 @@ lumpy-reclaim-cleanup.patch
 make-ext2_get_blocks-static.patch
 drivers-edac-make-code-static.patch
 linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+a.patch
 readahead-events-accounting-make-readahead_debug_level-static.patch
 reiser4-export-remove_from_page_cache-fix.patch
 fs-reiser4-possible-cleanups.patch
