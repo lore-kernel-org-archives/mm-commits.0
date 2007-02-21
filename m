@@ -1,516 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: - shm-make-sysv-ipc-shared-memory-use-stacked-files.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:45:22 -0800
-Message-ID: <200702211045.l1LAjMS4006353@shell0.pdx.osdl.net>
+Subject: - convert-highest_possible_processor_id-to-nr_cpu_ids.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:45:18 -0800
+Message-ID: <200702211045.l1LAjIfM006347@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46824 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46842 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932490AbXBUKp3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:45:29 -0500
+	id S932516AbXBUKpg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:45:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, michal.k.k.piotrowski@gmail.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, frederik.deweerdt@gmail.com, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shm: make sysv ipc shared memory use stacked files
+     Convert highest_possible_processor_id to nr_cpu_ids
 has been removed from the -mm tree.  Its filename was
-     shm-make-sysv-ipc-shared-memory-use-stacked-files.patch
+     convert-highest_possible_processor_id-to-nr_cpu_ids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: shm: make sysv ipc shared memory use stacked files
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: Convert highest_possible_processor_id to nr_cpu_ids
+From: Christoph Lameter <clameter@sgi.com>
 
-The current ipc shared memory code runs into several problems because it
-does not quiet use files like the rest of the kernel.  With the option of
-backing ipc shared memory with either hugetlbfs or ordinary shared memory
-the problems got worse.  With the added support for ipc namespaces things
-behaved so unexpected that we now have several bad namespace reference
-counting bugs when using what appears at first glance to be a reasonable
-idiom.
+We frequently need the maximum number of possible processors in order to
+allocate arrays for all processors.  So far this was done using
+highest_possible_processor_id().  However, we do need the number of
+processors not the highest id.  Moreover the number was so far dynamically
+calculated on each invokation.  The number of possible processors does not
+change when the system is running.  We can therefore calculate that number
+once.
 
-So to attack these problems and hopefully make the code more maintainable
-this patch simply uses the files provided by other parts of the kernel and
-builds it's own files out of them.  The shm files are allocated in do_shmat
-and freed when their reference count drops to zero with their last unmap. 
-The file and vm operations that we don't want to implement or we don't
-implement completely we just delegate to the operations of our backing
-file.
-
-This means that we now get an accurate shm_nattch count for we have a
-hugetlbfs inode for backing store, and the shm accounting of last attach
-and last detach time work as well.
-
-This means that getting a reference to the ipc namespace when we create the
-file and dropping the referenece in the release method is now safe and
-correct.
-
-This means we no longer need a special case for clearing VM_MAYWRITE
-as our file descriptor now only has write permissions when we have
-requested write access when calling shmat.  Although VM_SHARED is now
-cleared as well which I believe is harmless and is mostly likely a
-minor bug fix.
-
-By using the same set of operations for both the hugetlb case and regular
-shared memory case shmdt is not simplified and made slightly more correct
-as now the test "vma->vm_ops == &shm_vm_ops" is 100% accurate in spotting
-all shared memory regions generated from sysvipc shared memory.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Frederik Deweerdt <frederik.deweerdt@gmail.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |  240 +++++++++++++++++++++++++++++++++-------------------
- 1 file changed, 155 insertions(+), 85 deletions(-)
+ include/linux/cpumask.h         |    4 ++--
+ init/main.c                     |   13 +++++++++----
+ lib/cpumask.c                   |   18 ++----------------
+ net/bridge/netfilter/ebtables.c |    9 +++------
+ net/sunrpc/svc.c                |    2 +-
+ 5 files changed, 17 insertions(+), 29 deletions(-)
 
-diff -puN ipc/shm.c~shm-make-sysv-ipc-shared-memory-use-stacked-files ipc/shm.c
---- a/ipc/shm.c~shm-make-sysv-ipc-shared-memory-use-stacked-files
-+++ a/ipc/shm.c
-@@ -37,11 +37,21 @@
- #include <linux/seq_file.h>
- #include <linux/mutex.h>
- #include <linux/nsproxy.h>
-+#include <linux/mount.h>
+diff -puN include/linux/cpumask.h~convert-highest_possible_processor_id-to-nr_cpu_ids include/linux/cpumask.h
+--- a/include/linux/cpumask.h~convert-highest_possible_processor_id-to-nr_cpu_ids
++++ a/include/linux/cpumask.h
+@@ -398,11 +398,11 @@ extern cpumask_t cpu_present_map;
+ #endif
  
- #include <asm/uaccess.h>
+ #ifdef CONFIG_SMP
+-int highest_possible_processor_id(void);
++extern int nr_cpu_ids;
+ #define any_online_cpu(mask) __any_online_cpu(&(mask))
+ int __any_online_cpu(const cpumask_t *mask);
+ #else
+-#define highest_possible_processor_id()	0
++#define nr_cpu_ids			1
+ #define any_online_cpu(mask)		0
+ #endif
  
- #include "util.h"
- 
-+struct shm_file_data {
-+	int id;
-+	struct ipc_namespace *ns;
-+	struct file *file;
-+	const struct vm_operations_struct *vm_ops;
-+};
-+
-+#define shm_file_data(file) (*((struct shm_file_data **)&(file)->private_data))
-+
- static const struct file_operations shm_file_operations;
- static struct vm_operations_struct shm_vm_ops;
- 
-@@ -60,8 +70,8 @@ static struct ipc_ids init_shm_ids;
- 
- static int newseg (struct ipc_namespace *ns, key_t key,
- 		int shmflg, size_t size);
--static void shm_open (struct vm_area_struct *shmd);
--static void shm_close (struct vm_area_struct *shmd);
-+static void shm_open(struct vm_area_struct *vma);
-+static void shm_close(struct vm_area_struct *vma);
- static void shm_destroy (struct ipc_namespace *ns, struct shmid_kernel *shp);
- #ifdef CONFIG_PROC_FS
- static int sysvipc_shm_proc_show(struct seq_file *s, void *it);
-@@ -150,11 +160,14 @@ static inline int shm_addid(struct ipc_n
- 
- 
- 
--static inline void shm_inc(struct ipc_namespace *ns, int id)
-+/* This is called by fork, once for every shm attach. */
-+static void shm_open(struct vm_area_struct *vma)
+diff -puN init/main.c~convert-highest_possible_processor_id-to-nr_cpu_ids init/main.c
+--- a/init/main.c~convert-highest_possible_processor_id-to-nr_cpu_ids
++++ a/init/main.c
+@@ -387,14 +387,19 @@ static void __init setup_per_cpu_areas(v
+ /* Called by boot processor to activate the rest. */
+ static void __init smp_init(void)
  {
-+	struct file *file = vma->vm_file;
-+	struct shm_file_data *sfd = shm_file_data(file);
- 	struct shmid_kernel *shp;
+-	unsigned int i;
++	unsigned int cpu;
++	unsigned highest = 0;
++
++	for_each_cpu_mask(cpu, cpu_possible_map)
++		highest = cpu;
++	nr_cpu_ids = highest + 1;
  
--	shp = shm_lock(ns, id);
-+	shp = shm_lock(sfd->ns, sfd->id);
- 	BUG_ON(!shp);
- 	shp->shm_atim = get_seconds();
- 	shp->shm_lprid = current->tgid;
-@@ -162,15 +175,6 @@ static inline void shm_inc(struct ipc_na
- 	shm_unlock(shp);
+ 	/* FIXME: This should be done in userspace --RR */
+-	for_each_present_cpu(i) {
++	for_each_present_cpu(cpu) {
+ 		if (num_online_cpus() >= max_cpus)
+ 			break;
+-		if (!cpu_online(i))
+-			cpu_up(i);
++		if (!cpu_online(cpu))
++			cpu_up(cpu);
+ 	}
+ 
+ 	/* Any cleanup work */
+diff -puN lib/cpumask.c~convert-highest_possible_processor_id-to-nr_cpu_ids lib/cpumask.c
+--- a/lib/cpumask.c~convert-highest_possible_processor_id-to-nr_cpu_ids
++++ a/lib/cpumask.c
+@@ -15,22 +15,8 @@ int __next_cpu(int n, const cpumask_t *s
  }
+ EXPORT_SYMBOL(__next_cpu);
  
--#define shm_file_ns(file) (*((struct ipc_namespace **)&(file)->private_data))
--
--/* This is called by fork, once for every shm attach. */
--static void shm_open(struct vm_area_struct *shmd)
+-/*
+- * Find the highest possible smp_processor_id()
+- *
+- * Note: if we're prepared to assume that cpu_possible_map never changes
+- * (reasonable) then this function should cache its return value.
+- */
+-int highest_possible_processor_id(void)
 -{
--	shm_inc(shm_file_ns(shmd->vm_file),
--			shmd->vm_file->f_path.dentry->d_inode->i_ino);
+-	unsigned int cpu;
+-	unsigned highest = 0;
+-
+-	for_each_cpu_mask(cpu, cpu_possible_map)
+-		highest = cpu;
+-	return highest;
 -}
--
- /*
-  * shm_destroy - free the struct shmid_kernel
-  *
-@@ -195,23 +199,21 @@ static void shm_destroy(struct ipc_names
- }
+-EXPORT_SYMBOL(highest_possible_processor_id);
++int nr_cpu_ids;
++EXPORT_SYMBOL(nr_cpu_ids);
  
- /*
-- * remove the attach descriptor shmd.
-+ * remove the attach descriptor vma.
-  * free memory for segment if it is marked destroyed.
-  * The descriptor has already been removed from the current->mm->mmap list
-  * and will later be kfree()d.
-  */
--static void shm_close (struct vm_area_struct *shmd)
-+static void shm_close(struct vm_area_struct *vma)
+ int __any_online_cpu(const cpumask_t *mask)
  {
--	struct file * file = shmd->vm_file;
--	int id = file->f_path.dentry->d_inode->i_ino;
-+	struct file * file = vma->vm_file;
-+	struct shm_file_data *sfd = shm_file_data(file);
- 	struct shmid_kernel *shp;
--	struct ipc_namespace *ns;
--
--	ns = shm_file_ns(file);
-+	struct ipc_namespace *ns = sfd->ns;
+diff -puN net/bridge/netfilter/ebtables.c~convert-highest_possible_processor_id-to-nr_cpu_ids net/bridge/netfilter/ebtables.c
+--- a/net/bridge/netfilter/ebtables.c~convert-highest_possible_processor_id-to-nr_cpu_ids
++++ a/net/bridge/netfilter/ebtables.c
+@@ -833,8 +833,7 @@ static int translate_table(char *name, s
+ 		/* this will get free'd in do_replace()/ebt_register_table()
+ 		   if an error occurs */
+ 		newinfo->chainstack =
+-			vmalloc((highest_possible_processor_id()+1)
+-					* sizeof(*(newinfo->chainstack)));
++			vmalloc(nr_cpu_ids * sizeof(*(newinfo->chainstack)));
+ 		if (!newinfo->chainstack)
+ 			return -ENOMEM;
+ 		for_each_possible_cpu(i) {
+@@ -947,8 +946,7 @@ static int do_replace(void __user *user,
+ 	if (tmp.num_counters >= INT_MAX / sizeof(struct ebt_counter))
+ 		return -ENOMEM;
  
- 	mutex_lock(&shm_ids(ns).mutex);
- 	/* remove from the list of attaches of the shm segment */
--	shp = shm_lock(ns, id);
-+	shp = shm_lock(ns, sfd->id);
- 	BUG_ON(!shp);
- 	shp->shm_lprid = current->tgid;
- 	shp->shm_dtim = get_seconds();
-@@ -224,46 +226,91 @@ static void shm_close (struct vm_area_st
- 	mutex_unlock(&shm_ids(ns).mutex);
- }
+-	countersize = COUNTER_OFFSET(tmp.nentries) *
+-					(highest_possible_processor_id()+1);
++	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
+ 	newinfo = vmalloc(sizeof(*newinfo) + countersize);
+ 	if (!newinfo)
+ 		return -ENOMEM;
+@@ -1168,8 +1166,7 @@ int ebt_register_table(struct ebt_table 
+ 		return -EINVAL;
+ 	}
  
-+struct page *shm_nopage(struct vm_area_struct *vma, unsigned long address,
-+			int *type)
-+{
-+	struct file *file = vma->vm_file;
-+	struct shm_file_data *sfd = shm_file_data(file);
-+
-+	return sfd->vm_ops->nopage(vma, address, type);
-+}
-+
-+#ifdef CONFIG_NUMA
-+int shm_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
-+{
-+	struct file *file = vma->vm_file;
-+	struct shm_file_data *sfd = shm_file_data(file);
-+	int err = 0;
-+	if (sfd->vm_ops->set_policy)
-+		err = sfd->vm_ops->set_policy(vma, new);
-+	return err;
-+}
-+
-+struct mempolicy *shm_get_policy(struct vm_area_struct *vma, unsigned long addr)
-+{
-+	struct file *file = vma->vm_file;
-+	struct shm_file_data *sfd = shm_file_data(file);
-+	struct mempolicy *pol = NULL;
-+
-+	if (sfd->vm_ops->get_policy)
-+		pol = sfd->vm_ops->get_policy(vma, addr);
-+	else
-+		pol = vma->vm_policy;
-+	return pol;
-+}
-+#endif
-+
- static int shm_mmap(struct file * file, struct vm_area_struct * vma)
+-	countersize = COUNTER_OFFSET(repl->nentries) *
+-					(highest_possible_processor_id()+1);
++	countersize = COUNTER_OFFSET(repl->nentries) * nr_cpu_ids;
+ 	newinfo = vmalloc(sizeof(*newinfo) + countersize);
+ 	ret = -ENOMEM;
+ 	if (!newinfo)
+diff -puN net/sunrpc/svc.c~convert-highest_possible_processor_id-to-nr_cpu_ids net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~convert-highest_possible_processor_id-to-nr_cpu_ids
++++ a/net/sunrpc/svc.c
+@@ -115,7 +115,7 @@ fail:
+ static int
+ svc_pool_map_init_percpu(struct svc_pool_map *m)
  {
-+	struct shm_file_data *sfd = shm_file_data(file);
- 	int ret;
- 
--	ret = shmem_mmap(file, vma);
--	if (ret == 0) {
--		vma->vm_ops = &shm_vm_ops;
--		if (!(vma->vm_flags & VM_WRITE))
--			vma->vm_flags &= ~VM_MAYWRITE;
--		shm_inc(shm_file_ns(file), file->f_path.dentry->d_inode->i_ino);
--	}
-+	ret = sfd->file->f_op->mmap(sfd->file, vma);
-+	if (ret != 0)
-+		return ret;
-+	sfd->vm_ops = vma->vm_ops;
-+	vma->vm_ops = &shm_vm_ops;
-+	shm_open(vma);
- 
- 	return ret;
- }
- 
- static int shm_release(struct inode *ino, struct file *file)
- {
--	struct ipc_namespace *ns;
-+	struct shm_file_data *sfd = shm_file_data(file);
- 
--	ns = shm_file_ns(file);
--	put_ipc_ns(ns);
--	shm_file_ns(file) = NULL;
-+	put_ipc_ns(sfd->ns);
-+	shm_file_data(file) = NULL;
-+	kfree(sfd);
- 	return 0;
- }
- 
-+#ifndef CONFIG_MMU
-+static unsigned long shm_get_unmapped_area(struct file *file,
-+	unsigned long addr, unsigned long len, unsigned long pgoff,
-+	unsigned long flags)
-+{
-+	struct shm_file_data *sfd = shm_file_data(file);
-+	return sfd->file->f_op->get_unmapped_area(sfd->file, addr, len, pgoff,
-+							flags);
-+}
-+#else
-+#define shm_get_unmapped_area NULL
-+#endif
-+
- static const struct file_operations shm_file_operations = {
- 	.mmap		= shm_mmap,
- 	.release	= shm_release,
--#ifndef CONFIG_MMU
--	.get_unmapped_area = shmem_get_unmapped_area,
--#endif
-+	.get_unmapped_area	= shm_get_unmapped_area,
- };
- 
- static struct vm_operations_struct shm_vm_ops = {
- 	.open	= shm_open,	/* callback for a new vm-area open */
- 	.close	= shm_close,	/* callback for when the vm-area is released */
--	.nopage	= shmem_nopage,
--#if defined(CONFIG_NUMA) && defined(CONFIG_SHMEM)
--	.set_policy = shmem_set_policy,
--	.get_policy = shmem_get_policy,
-+	.nopage	= shm_nopage,
-+#if defined(CONFIG_NUMA)
-+	.set_policy = shm_set_policy,
-+	.get_policy = shm_get_policy,
- #endif
- };
- 
-@@ -330,13 +377,6 @@ static int newseg (struct ipc_namespace 
- 	shp->shm_nattch = 0;
- 	shp->id = shm_buildid(ns, id, shp->shm_perm.seq);
- 	shp->shm_file = file;
--	file->f_path.dentry->d_inode->i_ino = shp->id;
--
--	shm_file_ns(file) = get_ipc_ns(ns);
--
--	/* Hugetlb ops would have already been assigned. */
--	if (!(shmflg & SHM_HUGETLB))
--		file->f_op = &shm_file_operations;
- 
- 	ns->shm_tot += numpages;
- 	shm_unlock(shp);
-@@ -607,10 +647,7 @@ asmlinkage long sys_shmctl (int shmid, i
- 		tbuf.shm_ctime	= shp->shm_ctim;
- 		tbuf.shm_cpid	= shp->shm_cprid;
- 		tbuf.shm_lpid	= shp->shm_lprid;
--		if (!is_file_hugepages(shp->shm_file))
--			tbuf.shm_nattch	= shp->shm_nattch;
--		else
--			tbuf.shm_nattch = file_count(shp->shm_file) - 1;
-+		tbuf.shm_nattch	= shp->shm_nattch;
- 		shm_unlock(shp);
- 		if(copy_shmid_to_user (buf, &tbuf, version))
- 			err = -EFAULT;
-@@ -779,13 +816,16 @@ long do_shmat(int shmid, char __user *sh
- 	unsigned long flags;
- 	unsigned long prot;
- 	int acc_mode;
--	void *user_addr;
-+	unsigned long user_addr;
- 	struct ipc_namespace *ns;
-+	struct shm_file_data *sfd;
-+	struct path path;
-+	mode_t f_mode;
- 
--	if (shmid < 0) {
--		err = -EINVAL;
-+	err = -EINVAL;
-+	if (shmid < 0)
- 		goto out;
--	} else if ((addr = (ulong)shmaddr)) {
-+	else if ((addr = (ulong)shmaddr)) {
- 		if (addr & (SHMLBA-1)) {
- 			if (shmflg & SHM_RND)
- 				addr &= ~(SHMLBA-1);	   /* round down */
-@@ -793,12 +833,12 @@ long do_shmat(int shmid, char __user *sh
- #ifndef __ARCH_FORCE_SHMLBA
- 				if (addr & ~PAGE_MASK)
- #endif
--					return -EINVAL;
-+					goto out;
- 		}
- 		flags = MAP_SHARED | MAP_FIXED;
- 	} else {
- 		if ((shmflg & SHM_REMAP))
--			return -EINVAL;
-+			goto out;
- 
- 		flags = MAP_SHARED;
- 	}
-@@ -806,9 +846,11 @@ long do_shmat(int shmid, char __user *sh
- 	if (shmflg & SHM_RDONLY) {
- 		prot = PROT_READ;
- 		acc_mode = S_IRUGO;
-+		f_mode = FMODE_READ;
- 	} else {
- 		prot = PROT_READ | PROT_WRITE;
- 		acc_mode = S_IRUGO | S_IWUGO;
-+		f_mode = FMODE_READ | FMODE_WRITE;
- 	}
- 	if (shmflg & SHM_EXEC) {
- 		prot |= PROT_EXEC;
-@@ -821,35 +863,50 @@ long do_shmat(int shmid, char __user *sh
- 	 */
- 	ns = current->nsproxy->ipc_ns;
- 	shp = shm_lock(ns, shmid);
--	if(shp == NULL) {
--		err = -EINVAL;
-+	if(shp == NULL)
- 		goto out;
--	}
-+
- 	err = shm_checkid(ns, shp,shmid);
--	if (err) {
--		shm_unlock(shp);
--		goto out;
--	}
--	if (ipcperms(&shp->shm_perm, acc_mode)) {
--		shm_unlock(shp);
--		err = -EACCES;
--		goto out;
--	}
-+	if (err)
-+		goto out_unlock;
-+
-+	err = -EACCES;
-+	if (ipcperms(&shp->shm_perm, acc_mode))
-+		goto out_unlock;
- 
- 	err = security_shm_shmat(shp, shmaddr, shmflg);
--	if (err) {
--		shm_unlock(shp);
--		return err;
--	}
--		
--	file = shp->shm_file;
--	size = i_size_read(file->f_path.dentry->d_inode);
-+	if (err)
-+		goto out_unlock;
-+
-+	path.dentry = dget(shp->shm_file->f_path.dentry);
-+	path.mnt    = mntget(shp->shm_file->f_path.mnt);
- 	shp->shm_nattch++;
-+	size = i_size_read(path.dentry->d_inode);
- 	shm_unlock(shp);
- 
-+	err = -ENOMEM;
-+	sfd = kzalloc(sizeof(*sfd), GFP_KERNEL);
-+	if (!sfd)
-+		goto out_put_path;
-+
-+	err = -ENOMEM;
-+	file = get_empty_filp();
-+	if (!file)
-+		goto out_free;
-+
-+	file->f_op = &shm_file_operations;
-+	file->private_data = sfd;
-+	file->f_path = path;
-+	file->f_mapping = shp->shm_file->f_mapping;
-+	file->f_mode = f_mode;
-+	sfd->id = shp->id;
-+	sfd->ns = get_ipc_ns(ns);
-+	sfd->file = shp->shm_file;
-+	sfd->vm_ops = NULL;
-+
- 	down_write(&current->mm->mmap_sem);
- 	if (addr && !(shmflg & SHM_REMAP)) {
--		user_addr = ERR_PTR(-EINVAL);
-+		err = -EINVAL;
- 		if (find_vma_intersection(current->mm, addr, addr + size))
- 			goto invalid;
- 		/*
-@@ -861,11 +918,17 @@ long do_shmat(int shmid, char __user *sh
- 			goto invalid;
- 	}
- 		
--	user_addr = (void*) do_mmap (file, addr, size, prot, flags, 0);
--
-+	user_addr = do_mmap (file, addr, size, prot, flags, 0);
-+	*raddr = user_addr;
-+	err = 0;
-+	if (IS_ERR_VALUE(user_addr))
-+		err = (long)user_addr;
- invalid:
- 	up_write(&current->mm->mmap_sem);
- 
-+	fput(file);
-+
-+out_nattch:
- 	mutex_lock(&shm_ids(ns).mutex);
- 	shp = shm_lock(ns, shmid);
- 	BUG_ON(!shp);
-@@ -877,12 +940,19 @@ invalid:
- 		shm_unlock(shp);
- 	mutex_unlock(&shm_ids(ns).mutex);
- 
--	*raddr = (unsigned long) user_addr;
--	err = 0;
--	if (IS_ERR(user_addr))
--		err = PTR_ERR(user_addr);
- out:
- 	return err;
-+
-+out_unlock:
-+	shm_unlock(shp);
-+	goto out;
-+
-+out_free:
-+	kfree(sfd);
-+out_put_path:
-+	dput(path.dentry);
-+	mntput(path.mnt);
-+	goto out_nattch;
- }
- 
- asmlinkage long sys_shmat(int shmid, char __user *shmaddr, int shmflg)
-@@ -944,7 +1014,7 @@ asmlinkage long sys_shmdt(char __user *s
- 		 * a fragment created by mprotect() and/or munmap(), or it
- 		 * otherwise it starts at this address with no hassles.
- 		 */
--		if ((vma->vm_ops == &shm_vm_ops || is_vm_hugetlb_page(vma)) &&
-+		if ((vma->vm_ops == &shm_vm_ops) &&
- 			(vma->vm_start - addr)/PAGE_SIZE == vma->vm_pgoff) {
- 
- 
-@@ -973,7 +1043,7 @@ asmlinkage long sys_shmdt(char __user *s
- 		next = vma->vm_next;
- 
- 		/* finding a matching vma now does not alter retval */
--		if ((vma->vm_ops == &shm_vm_ops || is_vm_hugetlb_page(vma)) &&
-+		if ((vma->vm_ops == &shm_vm_ops) &&
- 			(vma->vm_start - addr)/PAGE_SIZE == vma->vm_pgoff)
- 
- 			do_munmap(mm, vma->vm_start, vma->vm_end - vma->vm_start);
-@@ -1004,7 +1074,7 @@ static int sysvipc_shm_proc_show(struct 
- 			  shp->shm_segsz,
- 			  shp->shm_cprid,
- 			  shp->shm_lprid,
--			  is_file_hugepages(shp->shm_file) ? (file_count(shp->shm_file) - 1) : shp->shm_nattch,
-+			  shp->shm_nattch,
- 			  shp->shm_perm.uid,
- 			  shp->shm_perm.gid,
- 			  shp->shm_perm.cuid,
+-	unsigned int maxpools = highest_possible_processor_id() + 1;
++	unsigned int maxpools = nr_cpu_ids;
+ 	unsigned int pidx = 0;
+ 	unsigned int cpu;
+ 	int err;
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-i386-irq-kill-irq-compression.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix.patch
+make-try_to_unmap-return-a-special-exit-code.patch
+add-nr_mlock-zvc.patch
+add-pagemlocked-page-state-bit-and-lru-infrastructure.patch
+add-pagemlocked-page-state-bit-and-lru-infrastructure-fix.patch
+logic-to-move-mlocked-pages.patch
+consolidate-new-anonymous-page-code-paths.patch
+avoid-putting-new-mlocked-anonymous-pages-on-lru.patch
+opportunistically-move-mlocked-pages-off-the-lru.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+mm-implement-swap-prefetching-vs-zvc-stuff.patch
+mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
+zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
+reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
+numa-add-zone_to_nid-function-swap_prefetch.patch
+remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
+readahead-state-based-method-aging-accounting.patch
+readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
