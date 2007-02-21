@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mmc-kconfig-source-drivers-mmc-card-kconfig.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:13:23 -0800
-Message-ID: <200702212213.l1LMDNtr027970@shell0.pdx.osdl.net>
+Subject: + make-ipc-shmcshm_nopage-static.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:14:17 -0800
+Message-ID: <200702212214.l1LMEHkW028001@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51893 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52028 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423186AbXBUWQn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:16:43 -0500
+	id S1423190AbXBUWRa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:17:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, drzeus-list@drzeus.cx
+Cc: bunk@stusta.de, ebiederm@xmission.com
 
 
 The patch titled
-     drivers/mmc/Kconfig source drivers/mmc/card/Kconfig
+     make ipc/shm.c:shm_nopage() static
 has been added to the -mm tree.  Its filename is
-     drivers-mmc-kconfig-source-drivers-mmc-card-kconfig.patch
+     make-ipc-shmcshm_nopage-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/mmc/Kconfig source drivers/mmc/card/Kconfig
+Subject: make ipc/shm.c:shm_nopage() static
 From: Adrian Bunk <bunk@stusta.de>
 
-The MMC_BLOCK option was accidentally lost.
+shm_nopage() can become static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/Kconfig |    1 +
- 1 files changed, 1 insertion(+)
+ ipc/shm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/Kconfig~drivers-mmc-kconfig-source-drivers-mmc-card-kconfig drivers/mmc/Kconfig
---- a/drivers/mmc/Kconfig~drivers-mmc-kconfig-source-drivers-mmc-card-kconfig
-+++ a/drivers/mmc/Kconfig
-@@ -19,6 +19,7 @@ config MMC_DEBUG
- 	  This is an option for use by developers; most people should
- 	  say N here.  This enables MMC core and driver debugging.
+diff -puN ipc/shm.c~make-ipc-shmcshm_nopage-static ipc/shm.c
+--- a/ipc/shm.c~make-ipc-shmcshm_nopage-static
++++ a/ipc/shm.c
+@@ -226,8 +226,8 @@ static void shm_close(struct vm_area_str
+ 	mutex_unlock(&shm_ids(ns).mutex);
+ }
  
-+source "drivers/mmc/card/Kconfig"
- source "drivers/mmc/host/Kconfig"
- 
- endmenu
+-struct page *shm_nopage(struct vm_area_struct *vma, unsigned long address,
+-			int *type)
++static struct page *shm_nopage(struct vm_area_struct *vma,
++			       unsigned long address, int *type)
+ {
+ 	struct file *file = vma->vm_file;
+ 	struct shm_file_data *sfd = shm_file_data(file);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 arch-arm26-kernel-entrys-remove-dead-code.patch
+make-ipc-shmcshm_nopage-static.patch
 git-cpufreq.patch
 make-kernel-kmodckmod_mk-static.patch
 git-drm.patch
