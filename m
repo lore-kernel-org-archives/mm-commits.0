@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-tiny-shmemc-cleanups.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:15:09 -0800
-Message-ID: <200702212215.l1LMF9OJ028044@shell0.pdx.osdl.net>
+Subject: + drivers-video-sm501fbc-make-4-functions-static.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:16:01 -0800
+Message-ID: <200702212216.l1LMG1V8028104@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52197 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52355 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423185AbXBUWS0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:18:26 -0500
+	id S1423193AbXBUWTX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:19:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, ebiederm@xmission.com, hugh@veritas.com
+Cc: bunk@stusta.de, ben-linux@fluff.org
 
 
 The patch titled
-     mm/{,tiny-}shmem.c cleanups
+     drivers/video/sm501fb.c: make 4 functions static
 has been added to the -mm tree.  Its filename is
-     mm-tiny-shmemc-cleanups.patch
+     drivers-video-sm501fbc-make-4-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm/{,tiny-}shmem.c cleanups
+Subject: drivers/video/sm501fb.c: make 4 functions static
 From: Adrian Bunk <bunk@stusta.de>
 
-shmem_{nopage,mmap} are no longer used in ipc/shm.c
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    5 -----
- mm/shmem.c         |    5 +++--
- mm/tiny-shmem.c    |    2 ++
- 3 files changed, 5 insertions(+), 7 deletions(-)
+ drivers/video/sm501fb.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mm.h~mm-tiny-shmemc-cleanups include/linux/mm.h
---- a/include/linux/mm.h~mm-tiny-shmemc-cleanups
-+++ a/include/linux/mm.h
-@@ -660,15 +660,11 @@ static inline int page_mapped(struct pag
- extern void show_free_areas(void);
+diff -puN drivers/video/sm501fb.c~drivers-video-sm501fbc-make-4-functions-static drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~drivers-video-sm501fbc-make-4-functions-static
++++ a/drivers/video/sm501fb.c
+@@ -136,8 +136,8 @@ static inline void sm501fb_sync_regs(str
+ #define SM501_MEMF_CRT			(4)
+ #define SM501_MEMF_ACCEL		(8)
  
- #ifdef CONFIG_SHMEM
--struct page *shmem_nopage(struct vm_area_struct *vma,
--			unsigned long address, int *type);
- int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new);
- struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
- 					unsigned long addr);
- int shmem_lock(struct file *file, int lock, struct user_struct *user);
- #else
--#define shmem_nopage filemap_nopage
--
- static inline int shmem_lock(struct file *file, int lock,
- 			     struct user_struct *user)
+-int sm501_alloc_mem(struct sm501fb_info *inf, struct sm501_mem *mem,
+-		    unsigned int why, size_t size)
++static int sm501_alloc_mem(struct sm501fb_info *inf, struct sm501_mem *mem,
++			   unsigned int why, size_t size)
  {
-@@ -688,7 +684,6 @@ static inline struct mempolicy *shmem_ge
- }
- #endif
- struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags);
--extern int shmem_mmap(struct file *file, struct vm_area_struct *vma);
+ 	unsigned int ptr = 0;
  
- int shmem_zero_setup(struct vm_area_struct *);
+@@ -926,7 +926,7 @@ static int sm501fb_blank_crt(int blank_m
+  * set or change the hardware cursor parameters
+ */
  
-diff -puN mm/shmem.c~mm-tiny-shmemc-cleanups mm/shmem.c
---- a/mm/shmem.c~mm-tiny-shmemc-cleanups
-+++ a/mm/shmem.c
-@@ -1228,7 +1228,8 @@ failed:
- 	return error;
- }
- 
--struct page *shmem_nopage(struct vm_area_struct *vma, unsigned long address, int *type)
-+static struct page *shmem_nopage(struct vm_area_struct *vma,
-+				 unsigned long address, int *type)
+-int sm501fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
++static int sm501fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
  {
- 	struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
- 	struct page *page = NULL;
-@@ -1335,7 +1336,7 @@ out_nomem:
- 	return retval;
- }
+ 	struct sm501fb_par  *par = info->par;
+ 	struct sm501fb_info *fbi = par->info;
+@@ -1225,7 +1225,7 @@ static struct sm501fb_info *sm501fb_info
+  * initialise hw cursor parameters
+ */
  
--int shmem_mmap(struct file *file, struct vm_area_struct *vma)
-+static int shmem_mmap(struct file *file, struct vm_area_struct *vma)
+-int sm501_init_cursor(struct fb_info *fbi, unsigned int reg_base)
++static int sm501_init_cursor(struct fb_info *fbi, unsigned int reg_base)
  {
- 	file_accessed(file);
- 	vma->vm_ops = &shmem_vm_ops;
-diff -puN mm/tiny-shmem.c~mm-tiny-shmemc-cleanups mm/tiny-shmem.c
---- a/mm/tiny-shmem.c~mm-tiny-shmemc-cleanups
-+++ a/mm/tiny-shmem.c
-@@ -126,6 +126,7 @@ int shmem_unuse(swp_entry_t entry, struc
- 	return 0;
- }
+ 	struct sm501fb_par *par = fbi->par;
+ 	struct sm501fb_info *info = par->info;
+@@ -1768,7 +1768,7 @@ static struct platform_driver sm501fb_dr
+ 	},
+ };
  
-+#if 0
- int shmem_mmap(struct file *file, struct vm_area_struct *vma)
+-int __devinit sm501fb_init(void)
++static int __devinit sm501fb_init(void)
  {
- 	file_accessed(file);
-@@ -135,6 +136,7 @@ int shmem_mmap(struct file *file, struct
- 	return 0;
- #endif
+ 	return platform_driver_register(&sm501fb_driver);
  }
-+#endif  /*  0  */
- 
- #ifndef CONFIG_MMU
- unsigned long shmem_get_unmapped_area(struct file *file,
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -116,6 +84,7 @@ Patches currently in -mm which might be from bunk@stusta.de are
 arch-arm26-kernel-entrys-remove-dead-code.patch
 make-ipc-shmcshm_nopage-static.patch
 mm-tiny-shmemc-cleanups.patch
+drivers-video-sm501fbc-make-4-functions-static.patch
 git-cpufreq.patch
 make-kernel-kmodckmod_mk-static.patch
 git-drm.patch
