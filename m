@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + serial-define-fixed_port-flag-for-serial_core.patch added to -mm tree
-Date: Wed, 21 Feb 2007 14:31:36 -0800
-Message-ID: <200702212231.l1LMVadL028494@shell0.pdx.osdl.net>
+Subject: + serial-use-resource_size_t-for-serial-port-io-addresses.patch added to -mm tree
+Date: Wed, 21 Feb 2007 14:31:41 -0800
+Message-ID: <200702212231.l1LMVfOO028497@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53178 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53180 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423209AbXBUWcD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:32:03 -0500
+	id S1423210AbXBUWcF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:32:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: david@gibson.dropbear.id.au, dwg@au1.ibm.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     serial: define FIXED_PORT flag for serial_core
+     serial: use resource_size_t for serial port IO addresses
 has been added to the -mm tree.  Its filename is
-     serial-define-fixed_port-flag-for-serial_core.patch
+     serial-use-resource_size_t-for-serial-port-io-addresses.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,119 +25,147 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: define FIXED_PORT flag for serial_core
+Subject: serial: use resource_size_t for serial port IO addresses
 From: David Gibson <david@gibson.dropbear.id.au>
 
-At present, the serial core always allows setserial in userspace to change the
-port address, irq and base clock of any serial port.  That makes sense for
-legacy ISA ports, but not for (say) embedded ns16550 compatible serial ports
-at peculiar addresses.  In these cases, the kernel code configuring the ports
-must know exactly where they are, and their clocking arrangements (which can
-be unusual on embedded boards).  It doesn't make sense for userspace to change
-these settings.
+At present, various parts of the serial code use unsigned long to define
+resource addresses.  This is a problem, because some 32-bit platforms have
+physical addresses larger than 32-bits, and have mmio serial uarts located
+above the 4GB point.
 
-Therefore, this patch defines a UPF_FIXED_PORT flag for the uart_port
-structure.  If this flag is set when the serial port is configured, any
-attempts to alter the port's type, io address, irq or base clock with
-setserial are ignored.
-
-In addition this patch uses the new flag for on-chip serial ports probed in
-arch/powerpc/kernel/legacy_serial.c, and for other hard-wired serial ports
-probed by drivers/serial/of_serial.c.
+This patch changes the type of mapbase in both struct uart_port and struct
+plat_serial8250_port to resource_size_t, which can be configured to be 64 bits
+on such platforms.  The mapbase in serial_struct can't safely be changed,
+because that structure is user visible.
 
 Signed-off-by: David Gibson <dwg@au1.ibm.com>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/legacy_serial.c |    3 ++-
- drivers/serial/of_serial.c          |    3 ++-
- drivers/serial/serial_core.c        |   22 +++++++++++++---------
- include/linux/serial_core.h         |    1 +
- 4 files changed, 18 insertions(+), 11 deletions(-)
+ drivers/serial/8250.c        |    5 +++--
+ drivers/serial/8250_early.c  |   16 +++++++++-------
+ drivers/serial/serial_core.c |    9 +++++----
+ include/linux/serial_8250.h  |    2 +-
+ include/linux/serial_core.h  |    2 +-
+ 5 files changed, 19 insertions(+), 15 deletions(-)
 
-diff -puN arch/powerpc/kernel/legacy_serial.c~serial-define-fixed_port-flag-for-serial_core arch/powerpc/kernel/legacy_serial.c
---- a/arch/powerpc/kernel/legacy_serial.c~serial-define-fixed_port-flag-for-serial_core
-+++ a/arch/powerpc/kernel/legacy_serial.c
-@@ -115,7 +115,8 @@ static int __init add_legacy_soc_port(st
- {
- 	u64 addr;
- 	const u32 *addrp;
--	upf_t flags = UPF_BOOT_AUTOCONF | UPF_SKIP_TEST | UPF_SHARE_IRQ;
-+	upf_t flags = UPF_BOOT_AUTOCONF | UPF_SKIP_TEST | UPF_SHARE_IRQ
-+		| UPF_FIXED_PORT;
- 	struct device_node *tsi = of_get_parent(np);
- 
- 	/* We only support ports that have a clock frequency properly
-diff -puN drivers/serial/of_serial.c~serial-define-fixed_port-flag-for-serial_core drivers/serial/of_serial.c
---- a/drivers/serial/of_serial.c~serial-define-fixed_port-flag-for-serial_core
-+++ a/drivers/serial/of_serial.c
-@@ -48,7 +48,8 @@ static int __devinit of_platform_serial_
- 	port->iotype = UPIO_MEM;
- 	port->type = type;
- 	port->uartclk = *clk;
--	port->flags = UPF_SHARE_IRQ | UPF_BOOT_AUTOCONF | UPF_IOREMAP;
-+	port->flags = UPF_SHARE_IRQ | UPF_BOOT_AUTOCONF | UPF_IOREMAP
-+		| UPF_FIXED_PORT;
- 	port->dev = &ofdev->dev;
- 	port->custom_divisor = *clk / (16 * (*spd));
- 
-diff -puN drivers/serial/serial_core.c~serial-define-fixed_port-flag-for-serial_core drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-define-fixed_port-flag-for-serial_core
-+++ a/drivers/serial/serial_core.c
-@@ -672,19 +672,21 @@ static int uart_set_info(struct uart_sta
- 	 */
- 	mutex_lock(&state->mutex);
- 
--	change_irq  = new_serial.irq != port->irq;
-+	change_irq  = !(port->flags & UPF_FIXED_PORT)
-+		&& new_serial.irq != port->irq;
- 
- 	/*
- 	 * Since changing the 'type' of the port changes its resource
- 	 * allocations, we should treat type changes the same as
- 	 * IO port changes.
- 	 */
--	change_port = new_port != port->iobase ||
--		      (unsigned long)new_serial.iomem_base != port->mapbase ||
--		      new_serial.hub6 != port->hub6 ||
--		      new_serial.io_type != port->iotype ||
--		      new_serial.iomem_reg_shift != port->regshift ||
--		      new_serial.type != port->type;
-+	change_port = !(port->flags & UPF_FIXED_PORT)
-+		&& (new_port != port->iobase ||
-+		    (unsigned long)new_serial.iomem_base != port->mapbase ||
-+		    new_serial.hub6 != port->hub6 ||
-+		    new_serial.io_type != port->iotype ||
-+		    new_serial.iomem_reg_shift != port->regshift ||
-+		    new_serial.type != port->type);
- 
- 	old_flags = port->flags;
- 	new_flags = new_serial.flags;
-@@ -796,8 +798,10 @@ static int uart_set_info(struct uart_sta
+diff -puN drivers/serial/8250.c~serial-use-resource_size_t-for-serial-port-io-addresses drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-use-resource_size_t-for-serial-port-io-addresses
++++ a/drivers/serial/8250.c
+@@ -2652,8 +2652,9 @@ static int __devinit serial8250_probe(st
+ 		ret = serial8250_register_port(&port);
+ 		if (ret < 0) {
+ 			dev_err(&dev->dev, "unable to register port at index %d "
+-				"(IO%lx MEM%lx IRQ%d): %d\n", i,
+-				p->iobase, p->mapbase, p->irq, ret);
++				"(IO%lx MEM%llx IRQ%d): %d\n", i,
++				p->iobase, (unsigned long long)p->mapbase,
++				p->irq, ret);
  		}
  	}
+ 	return 0;
+diff -puN drivers/serial/8250_early.c~serial-use-resource_size_t-for-serial-port-io-addresses drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~serial-use-resource_size_t-for-serial-port-io-addresses
++++ a/drivers/serial/8250_early.c
+@@ -145,8 +145,9 @@ static int __init parse_options(struct e
+ 		port->mapbase = simple_strtoul(options + 5, &options, 0);
+ 		port->membase = ioremap(port->mapbase, mapsize);
+ 		if (!port->membase) {
+-			printk(KERN_ERR "%s: Couldn't ioremap 0x%lx\n",
+-				__FUNCTION__, port->mapbase);
++			printk(KERN_ERR "%s: Couldn't ioremap 0x%llx\n",
++				__FUNCTION__,
++			       (unsigned long long)port->mapbase);
+ 			return -ENOMEM;
+ 		}
+ 		mmio = 1;
+@@ -168,9 +169,10 @@ static int __init parse_options(struct e
+ 			device->baud);
+ 	}
  
--	port->irq              = new_serial.irq;
--	port->uartclk          = new_serial.baud_base * 16;
-+	if (change_irq)
-+		port->irq      = new_serial.irq;
-+	if (!(port->flags & UPF_FIXED_PORT))
-+		port->uartclk  = new_serial.baud_base * 16;
- 	port->flags            = (port->flags & ~UPF_CHANGE_MASK) |
- 				 (new_flags & UPF_CHANGE_MASK);
- 	port->custom_divisor   = new_serial.custom_divisor;
-diff -puN include/linux/serial_core.h~serial-define-fixed_port-flag-for-serial_core include/linux/serial_core.h
---- a/include/linux/serial_core.h~serial-define-fixed_port-flag-for-serial_core
+-	printk(KERN_INFO "Early serial console at %s 0x%lx (options '%s')\n",
++	printk(KERN_INFO "Early serial console at %s 0x%llx (options '%s')\n",
+ 		mmio ? "MMIO" : "I/O port",
+-		mmio ? port->mapbase : (unsigned long) port->iobase,
++		mmio ? (unsigned long long) port->mapbase
++	             : (unsigned long long) port->iobase,
+ 		device->options);
+ 	return 0;
+ }
+@@ -236,10 +238,10 @@ static int __init early_uart_console_swi
+ 	mmio = (port->iotype == UPIO_MEM);
+ 	line = serial8250_start_console(port, device->options);
+ 	if (line < 0)
+-		printk("No ttyS device at %s 0x%lx for console\n",
++		printk("No ttyS device at %s 0x%llx for console\n",
+ 			mmio ? "MMIO" : "I/O port",
+-			mmio ? port->mapbase :
+-			    (unsigned long) port->iobase);
++			mmio ? (unsigned long long) port->mapbase
++		             : (unsigned long long) port->iobase);
+ 
+ 	unregister_console(&early_uart_console);
+ 	if (mmio)
+diff -puN drivers/serial/serial_core.c~serial-use-resource_size_t-for-serial-port-io-addresses drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-use-resource_size_t-for-serial-port-io-addresses
++++ a/drivers/serial/serial_core.c
+@@ -633,7 +633,7 @@ static int uart_get_info(struct uart_sta
+ 	tmp.hub6	    = port->hub6;
+ 	tmp.io_type         = port->iotype;
+ 	tmp.iomem_reg_shift = port->regshift;
+-	tmp.iomem_base      = (void *)port->mapbase;
++	tmp.iomem_base      = (void *)(unsigned long)port->mapbase;
+ 
+ 	if (copy_to_user(retinfo, &tmp, sizeof(*retinfo)))
+ 		return -EFAULT;
+@@ -1673,10 +1673,11 @@ static int uart_line_info(char *buf, str
+ 		return 0;
+ 
+ 	mmio = port->iotype >= UPIO_MEM;
+-	ret = sprintf(buf, "%d: uart:%s %s%08lX irq:%d",
++	ret = sprintf(buf, "%d: uart:%s %s%08llX irq:%d",
+ 			port->line, uart_type(port),
+ 			mmio ? "mmio:0x" : "port:",
+-			mmio ? port->mapbase : (unsigned long) port->iobase,
++			mmio ? (unsigned long long)port->mapbase
++		             : (unsigned long long) port->iobase,
+ 			port->irq);
+ 
+ 	if (port->type == PORT_UNKNOWN) {
+@@ -2070,7 +2071,7 @@ uart_report_port(struct uart_driver *drv
+ 	case UPIO_TSI:
+ 	case UPIO_DWAPB:
+ 		snprintf(address, sizeof(address),
+-			 "MMIO 0x%lx", port->mapbase);
++			 "MMIO 0x%llx", (unsigned long long)port->mapbase);
+ 		break;
+ 	default:
+ 		strlcpy(address, "*unknown*", sizeof(address));
+diff -puN include/linux/serial_8250.h~serial-use-resource_size_t-for-serial-port-io-addresses include/linux/serial_8250.h
+--- a/include/linux/serial_8250.h~serial-use-resource_size_t-for-serial-port-io-addresses
++++ a/include/linux/serial_8250.h
+@@ -20,7 +20,7 @@
+ struct plat_serial8250_port {
+ 	unsigned long	iobase;		/* io base address */
+ 	void __iomem	*membase;	/* ioremap cookie or NULL */
+-	unsigned long	mapbase;	/* resource base */
++	resource_size_t	mapbase;	/* resource base */
+ 	unsigned int	irq;		/* interrupt number */
+ 	unsigned int	uartclk;	/* UART clock rate */
+ 	unsigned char	regshift;	/* register shift */
+diff -puN include/linux/serial_core.h~serial-use-resource_size_t-for-serial-port-io-addresses include/linux/serial_core.h
+--- a/include/linux/serial_core.h~serial-use-resource_size_t-for-serial-port-io-addresses
 +++ a/include/linux/serial_core.h
-@@ -263,6 +263,7 @@ struct uart_port {
- #define UPF_CONS_FLOW		((__force upf_t) (1 << 23))
- #define UPF_SHARE_IRQ		((__force upf_t) (1 << 24))
- #define UPF_BOOT_AUTOCONF	((__force upf_t) (1 << 28))
-+#define UPF_FIXED_PORT		((__force upf_t) (1 << 29))
- #define UPF_DEAD		((__force upf_t) (1 << 30))
- #define UPF_IOREMAP		((__force upf_t) (1 << 31))
- 
+@@ -276,7 +276,7 @@ struct uart_port {
+ 	const struct uart_ops	*ops;
+ 	unsigned int		custom_divisor;
+ 	unsigned int		line;			/* port index */
+-	unsigned long		mapbase;		/* for ioremap */
++	resource_size_t		mapbase;		/* for ioremap */
+ 	struct device		*dev;			/* parent device */
+ 	unsigned char		hub6;			/* this should be in the 8250 driver */
+ 	unsigned char		unused[3];
 _
 
 Patches currently in -mm which might be from david@gibson.dropbear.id.au are
