@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + usb-section-fixes.patch added to -mm tree
-Date: Wed, 21 Feb 2007 15:10:11 -0800
-Message-ID: <200702212310.l1LNADQA029506@shell0.pdx.osdl.net>
+Subject: + git-md-accel-vs-md.patch added to -mm tree
+Date: Wed, 21 Feb 2007 15:13:04 -0800
+Message-ID: <200702212313.l1LND4jk029558@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55888 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56027 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423199AbXBUXKR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 18:10:17 -0500
+	id S1945910AbXBUXNF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 18:13:05 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1LND4hB009391
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 21 Feb 2007 15:13:04 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, greg@kroah.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     usb section fixes
+     git-md-accel-vs-md
 has been added to the -mm tree.  Its filename is
-     usb-section-fixes.patch
+     git-md-accel-vs-md.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,70 +29,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb section fixes
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: git-md-accel-vs-md
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fixes this link error. (found on ia64.)
-
-  LD      .tmp_vmlinux1
-`mon_bin_exit' referenced in section `.init.text' of drivers/built-in.o: defined in discarded section `.exit.text' of drivers/built-in.o
-`mon_text_exit' referenced in section `.init.text' of drivers/built-in.o: defined in discarded section `.exit.text' of drivers/built-in.o
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/mon/mon_bin.c  |    2 +-
- drivers/usb/mon/mon_text.c |    2 +-
- drivers/usb/mon/usb_mon.h  |    8 ++++----
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/md/raid5.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/mon/mon_bin.c~usb-section-fixes drivers/usb/mon/mon_bin.c
---- a/drivers/usb/mon/mon_bin.c~usb-section-fixes
-+++ a/drivers/usb/mon/mon_bin.c
-@@ -1165,7 +1165,7 @@ err_dev:
- 	return rc;
- }
- 
--void __exit mon_bin_exit(void)
-+void mon_bin_exit(void)
+diff -puN drivers/md/raid5.c~git-md-accel-vs-md drivers/md/raid5.c
+--- a/drivers/md/raid5.c~git-md-accel-vs-md
++++ a/drivers/md/raid5.c
+@@ -1567,7 +1567,7 @@ static void compute_parity6(struct strip
+ static void compute_block_1(struct stripe_head *sh, int dd_idx, int nozero)
  {
- 	cdev_del(&mon_bin_cdev);
- 	unregister_chrdev_region(mon_bin_dev0, MON_BIN_MAX_MINOR);
-diff -puN drivers/usb/mon/mon_text.c~usb-section-fixes drivers/usb/mon/mon_text.c
---- a/drivers/usb/mon/mon_text.c~usb-section-fixes
-+++ a/drivers/usb/mon/mon_text.c
-@@ -520,7 +520,7 @@ int __init mon_text_init(void)
- 	return 0;
- }
+ 	int i, count, disks = sh->disks;
+-	void *ptr[MAX_XOR_BLOCKS], *p;
++	void *ptr[MAX_XOR_BLOCKS], *dest, *p;
+ 	int pd_idx = sh->pd_idx;
+ 	int qd_idx = raid6_next_disk(pd_idx, disks);
  
--void __exit mon_text_exit(void)
-+void mon_text_exit(void)
- {
- 	debugfs_remove(mon_dir);
- }
-diff -puN drivers/usb/mon/usb_mon.h~usb-section-fixes drivers/usb/mon/usb_mon.h
---- a/drivers/usb/mon/usb_mon.h~usb-section-fixes
-+++ a/drivers/usb/mon/usb_mon.h
-@@ -56,10 +56,10 @@ int /*bool*/ mon_text_add(struct mon_bus
- void mon_text_del(struct mon_bus *mbus);
- // void mon_bin_add(struct mon_bus *);
- 
--int __init mon_text_init(void);
--void __exit mon_text_exit(void);
--int __init mon_bin_init(void);
--void __exit mon_bin_exit(void);
-+extern int mon_text_init(void) __init;
-+extern void mon_text_exit(void);
-+extern int  mon_bin_init(void) __init;
-+extern void mon_bin_exit(void);
- 
- /*
-  * DMA interface.
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-usb-section-fixes.patch
-reiser4-hardirq-include-fix.patch
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-agpgart.patch
+git-cpufreq.patch
+git-drm.patch
+git-dvb.patch
+pvrusb-warning-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+git-libata-all.patch
+git-md-accel-vs-md.patch
+dmaengine-uninline-large-functions.patch
+git-mips-fixup.patch
+Fabric7-VIOC-driver-fixes.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+git-parisc.patch
+git-parisc-fixup.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-s390.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+after-before-x86_64-mm-mmconfig-share.patch
+xen-paravirt-core-xen-implementation-fix.patch
+throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
