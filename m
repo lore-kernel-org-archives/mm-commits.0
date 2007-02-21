@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-refrigerator-vs-thaw_process-race.patch added to -mm tree
-Date: Wed, 21 Feb 2007 12:42:37 -0800
-Message-ID: <200702212042.l1LKgbh2025289@shell0.pdx.osdl.net>
+Subject: + driver-core-refcounting-fix.patch added to -mm tree
+Date: Wed, 21 Feb 2007 12:45:35 -0800
+Message-ID: <200702212045.l1LKjZCs025361@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43646 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43813 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932560AbXBUUnJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 15:43:09 -0500
+	id S1161172AbXBUUpn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 15:45:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, pavel@ucw.cz, rjw@sisk.pl
+Cc: efault@gmx.de, greg@kroah.com
 
 
 The patch titled
-     fix refrigerator() vs thaw_process() race
+     driver core: refcounting fix
 has been added to the -mm tree.  Its filename is
-     fix-refrigerator-vs-thaw_process-race.patch
+     driver-core-refcounting-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,99 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix refrigerator() vs thaw_process() race
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: driver core: refcounting fix
+From: Mike Galbraith <efault@gmx.de>
 
-refrigerator() can miss a wakeup, "wait event" loop needs a proper memory
-ordering.
+Fix a reference counting bug exposed by commit
+725522b5453dd680412f2b6463a988e4fd148757.  If driver.mod_name exists, we
+take a reference in module_add_driver(), and never release it.  Undo that
+reference in module_remove_driver().
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Mike Galbraith <efault@gmx.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/process.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ kernel/module.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN kernel/power/process.c~fix-refrigerator-vs-thaw_process-race kernel/power/process.c
---- a/kernel/power/process.c~fix-refrigerator-vs-thaw_process-race
-+++ a/kernel/power/process.c
-@@ -47,8 +47,10 @@ void refrigerator(void)
- 	recalc_sigpending(); /* We sent fake signal, clean it up */
- 	spin_unlock_irq(&current->sighand->siglock);
- 
--	while (frozen(current)) {
--		current->state = TASK_UNINTERRUPTIBLE;
-+	for (;;) {
-+		set_current_state(TASK_UNINTERRUPTIBLE);
-+		if (!frozen(current))
-+			break;
- 		schedule();
+diff -puN kernel/module.c~driver-core-refcounting-fix kernel/module.c
+--- a/kernel/module.c~driver-core-refcounting-fix
++++ a/kernel/module.c
+@@ -2425,6 +2425,12 @@ void module_remove_driver(struct device_
+ 			kfree(driver_name);
+ 		}
  	}
- 	pr_debug("%s left refrigerator\n", current->comm);
++	/*
++	 * Undo the additional reference we added in module_add_driver()
++	 * via kset_find_obj()
++	 */
++	if (drv->mod_name)
++		kobject_put(&drv->kobj);
+ }
+ EXPORT_SYMBOL(module_remove_driver);
+ #endif
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from efault@gmx.de are
 
-git-cpufreq.patch
-drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
-git-block.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-refrigerator-vs-thaw_process-race.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-make-queue_delayed_work-friendly-to-flush_fork.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch
-workqueue-introduce-wq_per_cpu-helper.patch
-make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
-ipvs-flush-defense_work-before-module-unload.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
-rework-compat_sys_io_submit.patch
-fix-aioh-includes.patch
-fix-access_ok-checks.patch
-make-good_sigevent-non-static.patch
-make-good_sigevent-non-static-fix.patch
-make-__sigqueue_free-and.patch
-aio-completion-signal-notification.patch
-aio-completion-signal-notification-fix.patch
-aio-completion-signal-notification-fixes-and-cleanups.patch
-aio-completion-signal-notification-small-cleanup.patch
-add-listio-syscall-support.patch
+driver-core-refcounting-fix.patch
+readahead-call-scheme.patch
