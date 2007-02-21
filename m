@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernel-markers-architecture-independant-code-license-fix.patch added to -mm tree
-Date: Wed, 21 Feb 2007 13:57:06 -0800
-Message-ID: <200702212157.l1LLv6tq027621@shell0.pdx.osdl.net>
+Subject: + proper-prototype-for-hugetlb_get_unmapped_area.patch added to -mm tree
+Date: Wed, 21 Feb 2007 13:57:48 -0800
+Message-ID: <200702212157.l1LLvmN8027634@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50986 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50996 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751357AbXBUWA1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 17:00:27 -0500
+	id S1751358AbXBUWBE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 17:01:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, mathieu.desnoyers@polymtl.ca
+Cc: bunk@stusta.de, wli@holomorphy.com
 
 
 The patch titled
-     marker exports must be EXPORT_SYMBOL_GPL
+     proper prototype for hugetlb_get_unmapped_area()
 has been added to the -mm tree.  Its filename is
-     linux-kernel-markers-architecture-independant-code-license-fix.patch
+     proper-prototype-for-hugetlb_get_unmapped_area.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: marker exports must be EXPORT_SYMBOL_GPL
+Subject: proper prototype for hugetlb_get_unmapped_area()
 From: Adrian Bunk <bunk@stusta.de>
 
-This is definitely functionality illegal modules have no business to
-use.
+Add a proper prototype for hugetlb_get_unmapped_area() in
+include/linux/hugetlb.h.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Acked-by: William Irwin <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ fs/hugetlbfs/inode.c    |    5 +----
+ include/linux/hugetlb.h |    6 ++++++
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN kernel/module.c~linux-kernel-markers-architecture-independant-code-license-fix kernel/module.c
---- a/kernel/module.c~linux-kernel-markers-architecture-independant-code-license-fix
-+++ a/kernel/module.c
-@@ -305,7 +305,7 @@ static struct module *find_module(const 
- void __mark_empty_function(const char *fmt, ...)
- {
- }
--EXPORT_SYMBOL(__mark_empty_function);
-+EXPORT_SYMBOL_GPL(__mark_empty_function);
+diff -puN fs/hugetlbfs/inode.c~proper-prototype-for-hugetlb_get_unmapped_area fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~proper-prototype-for-hugetlb_get_unmapped_area
++++ a/fs/hugetlbfs/inode.c
+@@ -98,10 +98,7 @@ out:
+  * Called under down_write(mmap_sem).
+  */
  
- #ifdef MARK_POLYMORPHIC
- static int marker_set_ins_enable(void *address, char enable)
-@@ -462,7 +462,7 @@ int marker_set_probe(const char *name, c
- 	mutex_unlock(&module_mutex);
- 	return found;
- }
--EXPORT_SYMBOL(marker_set_probe);
-+EXPORT_SYMBOL_GPL(marker_set_probe);
+-#ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+-unsigned long hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+-		unsigned long len, unsigned long pgoff, unsigned long flags);
+-#else
++#ifndef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ static unsigned long
+ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 		unsigned long len, unsigned long pgoff, unsigned long flags)
+diff -puN include/linux/hugetlb.h~proper-prototype-for-hugetlb_get_unmapped_area include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~proper-prototype-for-hugetlb_get_unmapped_area
++++ a/include/linux/hugetlb.h
+@@ -183,4 +183,10 @@ static inline void set_file_hugepages(st
  
- int marker_remove_probe(marker_probe_func *probe)
- {
-@@ -482,7 +482,7 @@ int marker_remove_probe(marker_probe_fun
- 	mutex_unlock(&module_mutex);
- 	return found;
- }
--EXPORT_SYMBOL(marker_remove_probe);
-+EXPORT_SYMBOL_GPL(marker_remove_probe);
+ #endif /* !CONFIG_HUGETLBFS */
  
- int marker_list_probe(marker_probe_func *probe)
- {
-@@ -506,7 +506,7 @@ int marker_list_probe(marker_probe_func 
- 	mutex_unlock(&module_mutex);
- 	return found;
- }
--EXPORT_SYMBOL(marker_list_probe);
-+EXPORT_SYMBOL_GPL(marker_list_probe);
- #endif
- 
- #ifdef CONFIG_SMP
-@@ -2511,7 +2511,7 @@ void list_modules(void)
- 	}
- 	mutex_unlock(&module_mutex);
- }
--EXPORT_SYMBOL(list_modules);
-+EXPORT_SYMBOL_GPL(list_modules);
- 
- /* Given an address, look for it in the module exception tables. */
- const struct exception_table_entry *search_module_extables(unsigned long addr)
++#ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
++unsigned long hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
++					unsigned long len, unsigned long pgoff,
++					unsigned long flags);
++#endif /* HAVE_ARCH_HUGETLB_UNMAPPED_AREA */
++
+ #endif /* _LINUX_HUGETLB_H */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -112,6 +94,7 @@ git-unionfs.patch
 git-ipwireless_cs.patch
 arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
 make-struct-vmi_ops-static.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
 lumpy-reclaim-cleanup.patch
 make-ext2_get_blocks-static.patch
 drivers-edac-make-code-static.patch
