@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + change-sysenter_setup-to-__cpuinit-improve-__init.patch added to -mm tree
-Date: Wed, 21 Feb 2007 13:52:22 -0800
-Message-ID: <200702212152.l1LLqMUC027551@shell0.pdx.osdl.net>
+Subject: + make-struct-vmi_ops-static.patch added to -mm tree
+Date: Wed, 21 Feb 2007 13:53:24 -0800
+Message-ID: <200702212153.l1LLrOrU027576@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50797 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50914 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422655AbXBUVwt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 16:52:49 -0500
+	id S1750850AbXBUV4m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 16:56:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: prarit@redhat.com, ak@suse.de, mingo@elte.hu, zwane@infradead.org
+Cc: bunk@stusta.de, ak@suse.de, zach@vmware.com
 
 
 The patch titled
-     Change sysenter_setup to __cpuinit & improve __INIT, __INITDATA
+     make struct vmi_ops static
 has been added to the -mm tree.  Its filename is
-     change-sysenter_setup-to-__cpuinit-improve-__init.patch
+     make-struct-vmi_ops-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,89 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Change sysenter_setup to __cpuinit & improve __INIT, __INITDATA
-From: Prarit Bhargava <prarit@redhat.com>
+Subject: make struct vmi_ops static
+From: Adrian Bunk <bunk@stusta.de>
 
-Change sysenter_setup to __cpuinit.
-Add __CPUINIT & __CPUINITDATA.
-
-Resolve MODPOST warnings similar to:
-
-WARNING: vmlinux - Section mismatch: reference to .init.text:sysenter_setup from
- .text between 'identify_cpu' (at offset 0xc040a380) and 'detect_ht'
-
-and
-
-WARNING: vmlinux - Section mismatch: reference to .init.data:vsyscall_int80_end
-from .text between 'sysenter_setup' (at offset 0xc041a269) and 'enable_sep_cpu'
-WARNING: vmlinux - Section mismatch: reference to
-.init.data:vsyscall_int80_start from .text between 'sysenter_setup' (at offset
-0xc041a26e) and 'enable_sep_cpu'
-WARNING: vmlinux - Section mismatch: reference to
-.init.data:vsyscall_sysenter_end from .text between 'sysenter_setup' (at offset
-0xc041a275) and 'enable_sep_cpu'
-WARNING: vmlinux - Section mismatch: reference to
-.init.data:vsyscall_sysenter_start from .text between 'sysenter_setup' (at
-offset 0xc041a27a) and 'enable_sep_cpu'
-
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Zwane Mwaikambo <zwane@infradead.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/sysenter.c |    2 +-
- arch/x86_64/kernel/head.S   |    4 +---
- include/linux/init.h        |    8 ++++++++
- 3 files changed, 10 insertions(+), 4 deletions(-)
+ arch/i386/kernel/vmi.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/sysenter.c~change-sysenter_setup-to-__cpuinit-improve-__init arch/i386/kernel/sysenter.c
---- a/arch/i386/kernel/sysenter.c~change-sysenter_setup-to-__cpuinit-improve-__init
-+++ a/arch/i386/kernel/sysenter.c
-@@ -72,7 +72,7 @@ extern const char vsyscall_int80_start, 
- extern const char vsyscall_sysenter_start, vsyscall_sysenter_end;
- static struct page *syscall_pages[1];
+diff -puN arch/i386/kernel/vmi.c~make-struct-vmi_ops-static arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~make-struct-vmi_ops-static
++++ a/arch/i386/kernel/vmi.c
+@@ -56,7 +56,7 @@ static int disable_tsc;
+ static int disable_mtrr;
  
--int __init sysenter_setup(void)
-+int __cpuinit sysenter_setup(void)
- {
- 	void *syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
- 	syscall_pages[0] = virt_to_page(syscall_page);
-diff -puN arch/x86_64/kernel/head.S~change-sysenter_setup-to-__cpuinit-improve-__init arch/x86_64/kernel/head.S
---- a/arch/x86_64/kernel/head.S~change-sysenter_setup-to-__cpuinit-improve-__init
-+++ a/arch/x86_64/kernel/head.S
-@@ -324,9 +324,7 @@ ENTRY(wakeup_level4_pgt)
- 	.quad	phys_level3_kernel_pgt | 0x007
- #endif
- 
--#ifndef CONFIG_HOTPLUG_CPU
--	__INITDATA
--#endif
-+	__CPUINITDATA
- 	/*
- 	 * This default setting generates an ident mapping at address 0x100000
- 	 * and a mapping for the kernel that precisely maps virtual address
-diff -puN include/linux/init.h~change-sysenter_setup-to-__cpuinit-improve-__init include/linux/init.h
---- a/include/linux/init.h~change-sysenter_setup-to-__cpuinit-improve-__init
-+++ a/include/linux/init.h
-@@ -56,6 +56,14 @@
- #define __FINIT		.previous
- #define __INITDATA	.section	".init.data","aw"
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+#define __CPUINIT	.section	".text","ax"
-+#define __CPUINITDATA	.section	".data","ax"
-+#else
-+#define __CPUINIT	__INIT
-+#define __CPUINITDATA	__INITDATA
-+#endif
-+
- #ifndef __ASSEMBLY__
- /*
-  * Used for initialization calls..
+ /* Cached VMI operations */
+-struct {
++static struct {
+ 	void (*cpuid)(void /* non-c */);
+ 	void (*_set_ldt)(u32 selector);
+ 	void (*set_tr)(u32 selector);
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-change-sysenter_setup-to-__cpuinit-improve-__init.patch
+git-cpufreq.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+mips-remove-smp_tune_scheduling.patch
+git-ubi.patch
+git-net.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+lumpy-reclaim-cleanup.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
