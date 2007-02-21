@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + forcedeth-fixed-missing-call-in-napi-poll.patch added to -mm tree
-Date: Wed, 21 Feb 2007 13:26:12 -0800
-Message-ID: <200702212126.l1LLQC8A026846@shell0.pdx.osdl.net>
+Subject: + forcedeth-fix-checksum-feature-in-mcp65.patch added to -mm tree
+Date: Wed, 21 Feb 2007 13:26:17 -0800
+Message-ID: <200702212126.l1LLQcGe026863@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49450 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49462 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423150AbXBUV0T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 16:26:19 -0500
+	id S1423170AbXBUV0l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 16:26:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: aabdulla@nvidia.com
 
 
 The patch titled
-     forcedeth: fixed missing call in napi poll
+     forcedeth: fix checksum feature in mcp65
 has been added to the -mm tree.  Its filename is
-     forcedeth-fixed-missing-call-in-napi-poll.patch
+     forcedeth-fix-checksum-feature-in-mcp65.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: forcedeth: fixed missing call in napi poll
+Subject: forcedeth: fix checksum feature in mcp65
 From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-The napi poll routine was missing the call to the optimized rx process
-routine.  This patch adds the missing call for the optimized path.
+This patch removes checksum offload feature in mcp65 chipsets as they are not
+supported in hw.
 
 Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/net/forcedeth.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-fixed-missing-call-in-napi-poll drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-fixed-missing-call-in-napi-poll
+diff -puN drivers/net/forcedeth.c~forcedeth-fix-checksum-feature-in-mcp65 drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-fix-checksum-feature-in-mcp65
 +++ a/drivers/net/forcedeth.c
-@@ -3104,13 +3104,17 @@ static int nv_napi_poll(struct net_devic
- 	struct fe_priv *np = netdev_priv(dev);
- 	u8 __iomem *base = get_hwbase(dev);
- 	unsigned long flags;
-+	u32 retcode;
- 
--	if (np->desc_ver == DESC_VER_1 || np->desc_ver == DESC_VER_2)
-+	if (np->desc_ver == DESC_VER_1 || np->desc_ver == DESC_VER_2) {
- 		pkts = nv_rx_process(dev, limit);
--	else
-+		retcode = nv_alloc_rx(dev);
-+	} else {
- 		pkts = nv_rx_process_optimized(dev, limit);
-+		retcode = nv_alloc_rx_optimized(dev);
-+	}
- 
--	if (nv_alloc_rx(dev)) {
-+	if (retcode) {
- 		spin_lock_irqsave(&np->lock, flags);
- 		if (!np->in_shutdown)
- 			mod_timer(&np->oom_kick, jiffies + OOM_REFILL);
+@@ -5374,19 +5374,19 @@ static struct pci_device_id pci_tbl[] = 
+ 	},
+ 	{	/* MCP65 Ethernet Controller */
+ 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_20),
+-		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
++		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
+ 	},
+ 	{	/* MCP65 Ethernet Controller */
+ 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_21),
+-		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
++		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
+ 	},
+ 	{	/* MCP65 Ethernet Controller */
+ 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_22),
+-		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
++		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
+ 	},
+ 	{	/* MCP65 Ethernet Controller */
+ 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_23),
+-		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
++		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_LARGEDESC|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
+ 	},
+ 	{	/* MCP67 Ethernet Controller */
+ 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_24),
 _
 
 Patches currently in -mm which might be from aabdulla@nvidia.com are
