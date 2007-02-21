@@ -1,53 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - minix-v3-fix-superblock-definition.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:45:07 -0800
-Message-ID: <200702211045.l1LAj71O006330@shell0.pdx.osdl.net>
+Subject: - fix-mempolicys-check-on-a-system-with-memory-less-node.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:45:12 -0800
+Message-ID: <200702211045.l1LAjCIu006338@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46807 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46815 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932421AbXBUKpW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:45:22 -0500
+	id S932457AbXBUKp0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:45:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Andries.Brouwer@cwi.nl, cedric.augonnet@gmail.com, danarag@gmail.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, ak@suse.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     minix v3: fix superblock definition
+     fix mempolicy's check on a system with memory-less-node
 has been removed from the -mm tree.  Its filename was
-     minix-v3-fix-superblock-definition.patch
+     fix-mempolicys-check-on-a-system-with-memory-less-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: minix v3: fix superblock definition
-From: Andries Brouwer <Andries.Brouwer@cwi.nl>
+Subject: fix mempolicy's check on a system with memory-less-node
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Somehow we got the layout of the v3 superblock wrong, which causes crashes due
-to overindexing of the buffer_head array in statfs on large fielsystems.
+bind_zonelist() can create zero-length zonelist if there is a
+memory-less-node.  This patch checks the length of zonelist.  If length is
+0, returns -EINVAL.
 
-Cc: "Cedric Augonnet" <cedric.augonnet@gmail.com>
-Cc: "Daniel Aragones" <danarag@gmail.com>
+tested on ia64/NUMA with memory-less-node.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/minix_fs.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mempolicy.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/minix_fs.h~minix-v3-fix-superblock-definition include/linux/minix_fs.h
---- a/include/linux/minix_fs.h~minix-v3-fix-superblock-definition
-+++ a/include/linux/minix_fs.h
-@@ -78,8 +78,7 @@ struct minix_super_block {
-  * V3 minix super-block data on disk
-  */
- struct minix3_super_block {
--	__u16 s_ninodes;
--	__u16 s_nzones;
-+	__u32 s_ninodes;
- 	__u16 s_pad0;
- 	__u16 s_imap_blocks;
- 	__u16 s_zmap_blocks;
+diff -puN mm/mempolicy.c~fix-mempolicys-check-on-a-system-with-memory-less-node mm/mempolicy.c
+--- a/mm/mempolicy.c~fix-mempolicys-check-on-a-system-with-memory-less-node
++++ a/mm/mempolicy.c
+@@ -144,7 +144,7 @@ static struct zonelist *bind_zonelist(no
+ 	max++;			/* space for zlcache_ptr (see mmzone.h) */
+ 	zl = kmalloc(sizeof(struct zone *) * max, GFP_KERNEL);
+ 	if (!zl)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 	zl->zlcache_ptr = NULL;
+ 	num = 0;
+ 	/* First put in the highest zones from all nodes, then all the next 
+@@ -162,6 +162,10 @@ static struct zonelist *bind_zonelist(no
+ 			break;
+ 		k--;
+ 	}
++	if (num == 0) {
++		kfree(zl);
++		return ERR_PTR(-EINVAL);
++	}
+ 	zl->zones[num] = NULL;
+ 	return zl;
+ }
+@@ -193,9 +197,10 @@ static struct mempolicy *mpol_new(int mo
+ 		break;
+ 	case MPOL_BIND:
+ 		policy->v.zonelist = bind_zonelist(nodes);
+-		if (policy->v.zonelist == NULL) {
++		if (IS_ERR(policy->v.zonelist)) {
++			void *error_code = policy->v.zonelist;
+ 			kmem_cache_free(policy_cache, policy);
+-			return ERR_PTR(-ENOMEM);
++			return error_code;
+ 		}
+ 		break;
+ 	}
+@@ -1667,7 +1672,7 @@ void mpol_rebind_policy(struct mempolicy
+ 		 * then zonelist_policy() will "FALL THROUGH" to MPOL_DEFAULT.
+ 		 */
+ 
+-		if (zonelist) {
++		if (!IS_ERR(zonelist)) {
+ 			/* Good - got mem - substitute new zonelist */
+ 			kfree(pol->v.zonelist);
+ 			pol->v.zonelist = zonelist;
 _
 
-Patches currently in -mm which might be from Andries.Brouwer@cwi.nl are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+
+mm-only-sched-add-a-few-scheduler-event-counters.patch
+reiser4-hardirq-include-fix.patch
