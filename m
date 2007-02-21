@@ -1,93 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-api-s3c2410-wrapper-cleanup-2.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 02:46:53 -0800
-Message-ID: <200702211046.l1LAkr5v006502@shell0.pdx.osdl.net>
+Subject: - spi_s3c2410_gpioc-spi-mode-2-and-3-support.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 02:46:50 -0800
+Message-ID: <200702211046.l1LAkoV5006496@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47029 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47034 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161194AbXBUKrt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 05:47:49 -0500
+	id S1161209AbXBUKry (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 05:47:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philipp.zabel@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: laforge@openmoko.org, ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     GPIO API: S3C2410 wrapper cleanup
+     spi_s3c2410_gpio.c spi mode 2 and 3 support
 has been removed from the -mm tree.  Its filename was
-     gpio-api-s3c2410-wrapper-cleanup-2.patch
+     spi_s3c2410_gpioc-spi-mode-2-and-3-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: GPIO API: S3C2410 wrapper cleanup
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Subject: spi_s3c2410_gpio.c spi mode 2 and 3 support
+From: Harald Welte <laforge@openmoko.org>
 
-this one adds an #include <asm/arch/regs-gpio.h>.
-Tested by Roman Moravcik on s3c2440.
+Add transfer modes 2 and 3 to the S3C24XX gpio SPI driver
 
-Based on the discussion last december
-(http://lkml.org/lkml/2006/12/20/243), this patch
- - fixes comment and includes in gpio.h
- - adds the gpio_to_irq definition for S3C2400
- - includes asm/arch/regs-gpio.h for pin direction
-   definitions
-
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Signed-off-by: Harald Welte <laforge@openmoko.org>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-s3c2410/gpio.h |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ drivers/spi/spi_s3c24xx_gpio.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN include/asm-arm/arch-s3c2410/gpio.h~gpio-api-s3c2410-wrapper-cleanup-2 include/asm-arm/arch-s3c2410/gpio.h
---- a/include/asm-arm/arch-s3c2410/gpio.h~gpio-api-s3c2410-wrapper-cleanup-2
-+++ a/include/asm-arm/arch-s3c2410/gpio.h
-@@ -1,7 +1,7 @@
- /*
-- * linux/include/asm-arm/arch-pxa/gpio.h
-+ * linux/include/asm-arm/arch-s3c2410/gpio.h
-  *
-- * S3C2400 GPIO wrappers for arch-neutral GPIO calls
-+ * S3C2410 GPIO wrappers for arch-neutral GPIO calls
-  *
-  * Written by Philipp Zabel <philipp.zabel@gmail.com>
-  *
-@@ -21,14 +21,12 @@
-  *
-  */
+diff -puN drivers/spi/spi_s3c24xx_gpio.c~spi_s3c2410_gpioc-spi-mode-2-and-3-support drivers/spi/spi_s3c24xx_gpio.c
+--- a/drivers/spi/spi_s3c24xx_gpio.c~spi_s3c2410_gpioc-spi-mode-2-and-3-support
++++ a/drivers/spi/spi_s3c24xx_gpio.c
+@@ -73,6 +73,19 @@ static u32 s3c2410_spigpio_txrx_mode1(st
+ 	return bitbang_txrx_be_cpha1(spi, nsecs, 0, word, bits);
+ }
  
--#ifndef __ASM_ARCH_PXA_GPIO_H
--#define __ASM_ARCH_PXA_GPIO_H
-+#ifndef __ASM_ARCH_S3C2410_GPIO_H
-+#define __ASM_ARCH_S3C2410_GPIO_H
- 
--#include <asm/arch/pxa-regs.h>
--#include <asm/arch/irqs.h>
--#include <asm/arch/hardware.h>
--
--#include <asm/errno.h>
-+#include <asm/irq.h>
-+#include <asm/hardware.h>
-+#include <asm/arch/regs-gpio.h>
- 
- static inline int gpio_request(unsigned gpio, const char *label)
++static u32 s3c2410_spigpio_txrx_mode2(struct spi_device *spi,
++				      unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha0(spi, nsecs, 1, word, bits);
++}
++
++static u32 s3c2410_spigpio_txrx_mode3(struct spi_device *spi,
++				      unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha1(spi, nsecs, 1, word, bits);
++}
++
++
+ static void s3c2410_spigpio_chipselect(struct spi_device *dev, int value)
  {
-@@ -57,8 +55,11 @@ static inline int gpio_direction_output(
+ 	struct s3c2410_spigpio *sg = spidev_to_sg(dev);
+@@ -108,6 +121,8 @@ static int s3c2410_spigpio_probe(struct 
  
- #include <asm-generic/gpio.h>			/* cansleep wrappers */
+ 	sp->bitbang.txrx_word[SPI_MODE_0] = s3c2410_spigpio_txrx_mode0;
+ 	sp->bitbang.txrx_word[SPI_MODE_1] = s3c2410_spigpio_txrx_mode1;
++	sp->bitbang.txrx_word[SPI_MODE_2] = s3c2410_spigpio_txrx_mode2;
++	sp->bitbang.txrx_word[SPI_MODE_3] = s3c2410_spigpio_txrx_mode3;
  
--/* FIXME or maybe s3c2400_gpio_getirq() ... */
-+#ifdef CONFIG_CPU_S3C2400
-+#define gpio_to_irq(gpio)		s3c2400_gpio_getirq(gpio)
-+#else
- #define gpio_to_irq(gpio)		s3c2410_gpio_getirq(gpio)
-+#endif
- 
- /* FIXME implement irq_to_gpio() */
- 
+ 	/* set state of spi pins */
+ 	s3c2410_gpio_setpin(sp->info->pin_clk, 0);
 _
 
-Patches currently in -mm which might be from philipp.zabel@gmail.com are
+Patches currently in -mm which might be from laforge@openmoko.org are
