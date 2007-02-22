@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt_ops-some-generic-early-printk-boot-console-fixups.patch added to -mm tree
-Date: Wed, 21 Feb 2007 18:53:43 -0800
-Message-ID: <200702220253.l1M2rhg9002506@shell0.pdx.osdl.net>
+Subject: + xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch added to -mm tree
+Date: Wed, 21 Feb 2007 18:53:45 -0800
+Message-ID: <200702220253.l1M2rjuL002509@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34622 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34636 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751451AbXBVCyF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 21:54:05 -0500
+	id S1751456AbXBVCyK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 21:54:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: jeremy@goop.org, jeremy@xensource.com, kraxel@suse.de
 The patch titled
      From: Jeremy Fitzhardinge <jeremy@goop.org>
 has been added to the -mm tree.  Its filename is
-     xen-paravirt_ops-some-generic-early-printk-boot-console-fixups.patch
+     xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,128 +28,241 @@ out what to do about this
 Subject: From: Jeremy Fitzhardinge <jeremy@goop.org>
 From: Gerd Hoffmann <kraxel@suse.de>
 
-Some generic early printk & boot console fixups
-(already sent to lkml).
+Implement a Xen back-end for hvc console.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+
 ---
+ arch/i386/xen/Kconfig         |    1
+ arch/i386/xen/events.c        |    3
+ drivers/xen/console/Makefile  |    3
+ include/xen/events.h          |    1
 
 ===================================================================
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/early_printk.c |   20 +++++---------------
- drivers/char/tty_io.c             |    5 -----
- kernel/printk.c                   |   26 ++++++++++++++++----------
- 3 files changed, 21 insertions(+), 30 deletions(-)
+ arch/i386/xen/Kconfig      |    1 
+ arch/i386/xen/events.c     |    3 
+ drivers/Makefile           |    3 
+ drivers/char/hvc_console.c |    4 +
+ drivers/xen/Makefile       |    1 
+ drivers/xen/hvc-console.c  |  134 +++++++++++++++++++++++++++++++++++
+ include/xen/events.h       |    1 
+ 7 files changed, 146 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/early_printk.c~xen-paravirt_ops-some-generic-early-printk-boot-console-fixups arch/x86_64/kernel/early_printk.c
---- a/arch/x86_64/kernel/early_printk.c~xen-paravirt_ops-some-generic-early-printk-boot-console-fixups
-+++ a/arch/x86_64/kernel/early_printk.c
-@@ -244,22 +244,12 @@ static int __init setup_early_printk(cha
-  		early_console = &simnow_console;
-  		keep_early = 1;
- 	}
-+
-+	if (keep_early)
-+		early_console->flags &= ~CON_BOOT;
-+	else
-+		early_console->flags |= CON_BOOT;
- 	register_console(early_console);
- 	return 0;
+diff -puN arch/i386/xen/Kconfig~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console arch/i386/xen/Kconfig
+--- a/arch/i386/xen/Kconfig~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
++++ a/arch/i386/xen/Kconfig
+@@ -5,6 +5,7 @@
+ config XEN
+ 	bool "Enable support for Xen hypervisor"
+ 	depends on PARAVIRT && HZ_100 && !PREEMPT && !NO_HZ
++	select HVC_DRIVER
+ 	default y
+ 	help
+ 	  This is the Linux Xen port.
+diff -puN arch/i386/xen/events.c~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console arch/i386/xen/events.c
+--- a/arch/i386/xen/events.c~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
++++ a/arch/i386/xen/events.c
+@@ -209,7 +209,7 @@ static int find_unbound_irq(void)
+ 	return irq;
  }
--
- early_param("earlyprintk", setup_early_printk);
--
--void __init disable_early_printk(void)
--{
--	if (!early_console_initialized || !early_console)
--		return;
--	if (!keep_early) {
--		printk("disabling early console\n");
--		unregister_console(early_console);
--		early_console_initialized = 0;
--	} else {
--		printk("keeping early console\n");
--	}
--}
--
-diff -puN drivers/char/tty_io.c~xen-paravirt_ops-some-generic-early-printk-boot-console-fixups drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~xen-paravirt_ops-some-generic-early-printk-boot-console-fixups
-+++ a/drivers/char/tty_io.c
-@@ -141,8 +141,6 @@ static DECLARE_MUTEX(allocated_ptys_lock
- static int ptmx_open(struct inode *, struct file *);
+ 
+-static int bind_evtchn_to_irq(unsigned int evtchn)
++int bind_evtchn_to_irq(unsigned int evtchn)
+ {
+ 	int irq;
+ 
+@@ -233,6 +233,7 @@ static int bind_evtchn_to_irq(unsigned i
+ 
+ 	return irq;
+ }
++EXPORT_SYMBOL_GPL(bind_evtchn_to_irq);
+ 
+ static int bind_virq_to_irq(unsigned int virq, unsigned int cpu)
+ {
+diff -puN drivers/Makefile~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console drivers/Makefile
+--- a/drivers/Makefile~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
++++ a/drivers/Makefile
+@@ -15,6 +15,9 @@ obj-$(CONFIG_ACPI)		+= acpi/
+ obj-$(CONFIG_PNP)		+= pnp/
+ obj-$(CONFIG_ARM_AMBA)		+= amba/
+ 
++# Xen is the default console when running as a guest
++obj-$(CONFIG_XEN)		+= xen/
++
+ # char/ comes before serial/ etc so that the VT console is the boot-time
+ # default.
+ obj-y				+= char/
+diff -puN drivers/char/hvc_console.c~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console drivers/char/hvc_console.c
+--- a/drivers/char/hvc_console.c~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
++++ a/drivers/char/hvc_console.c
+@@ -53,6 +53,10 @@
+ #define NO_IRQ 0
  #endif
  
--extern void disable_early_printk(void);
--
- static void initialize_tty_struct(struct tty_struct *tty);
- 
- static ssize_t tty_read(struct file *, char __user *, size_t, loff_t *);
-@@ -3879,9 +3877,6 @@ void __init console_init(void)
- 	 * set up the console device so that later boot sequences can 
- 	 * inform about problems etc..
- 	 */
--#ifdef CONFIG_EARLY_PRINTK
--	disable_early_printk();
--#endif
- 	call = __con_initcall_start;
- 	while (call < __con_initcall_end) {
- 		(*call)();
-diff -puN kernel/printk.c~xen-paravirt_ops-some-generic-early-printk-boot-console-fixups kernel/printk.c
---- a/kernel/printk.c~xen-paravirt_ops-some-generic-early-printk-boot-console-fixups
-+++ a/kernel/printk.c
-@@ -931,8 +931,16 @@ void register_console(struct console *co
- {
- 	int i;
- 	unsigned long flags;
-+	struct console *bootconsole = NULL;
- 
--	if (preferred_console < 0)
-+	if (console_drivers) {
-+		if (console->flags & CON_BOOT)
-+			return;
-+		if (console_drivers->flags & CON_BOOT)
-+			bootconsole = console_drivers;
-+	}
++#ifndef NO_IRQ
++#define NO_IRQ 0
++#endif
 +
-+	if (preferred_console < 0 || bootconsole || !console_drivers)
- 		preferred_console = selected_console;
+ /*
+  * Wait this long per iteration while trying to push buffered data to the
+  * hypervisor before allowing the tty to complete a close operation.
+diff -puN /dev/null drivers/xen/Makefile
+--- /dev/null
++++ a/drivers/xen/Makefile
+@@ -0,0 +1 @@
++obj-y	+= hvc-console.o
+diff -puN /dev/null drivers/xen/hvc-console.c
+--- /dev/null
++++ a/drivers/xen/hvc-console.c
+@@ -0,0 +1,134 @@
++/*
++ * xen console driver interface to hvc_console.c
++ *
++ * (c) 2007 Gerd Hoffmann <kraxel@suse.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ */
++
++#include <linux/console.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/types.h>
++
++#include <asm/xen/hypervisor.h>
++#include <xen/page.h>
++#include <xen/events.h>
++#include <xen/interface/io/console.h>
++
++#include "../char/hvc_console.h"
++
++#define HVC_COOKIE   0x58656e /* "Xen" in hex */
++
++static struct hvc_struct *hvc;
++static int xencons_irq;
++
++/* ------------------------------------------------------------------ */
++
++static inline struct xencons_interface *xencons_interface(void)
++{
++	return mfn_to_virt(xen_start_info->console.domU.mfn);
++}
++
++static inline void notify_daemon(void)
++{
++	/* Use evtchn: this is called early, before irq is set up. */
++	notify_remote_via_evtchn(xen_start_info->console.domU.evtchn);
++}
++
++static int write_console(uint32_t vtermno, const char *data, int len)
++{
++	struct xencons_interface *intf = xencons_interface();
++	XENCONS_RING_IDX cons, prod;
++	int sent = 0;
++
++	cons = intf->out_cons;
++	prod = intf->out_prod;
++	mb();
++	BUG_ON((prod - cons) > sizeof(intf->out));
++
++	while ((sent < len) && ((prod - cons) < sizeof(intf->out)))
++		intf->out[MASK_XENCONS_IDX(prod++, intf->out)] = data[sent++];
++
++	wmb();
++	intf->out_prod = prod;
++
++	notify_daemon();
++	return sent;
++}
++
++static int read_console(uint32_t vtermno, char *buf, int len)
++{
++	struct xencons_interface *intf = xencons_interface();
++	XENCONS_RING_IDX cons, prod;
++	int recv = 0;
++
++	cons = intf->in_cons;
++	prod = intf->in_prod;
++	mb();
++	BUG_ON((prod - cons) > sizeof(intf->in));
++
++	while (cons != prod && recv < len)
++		buf[recv++] = intf->in[MASK_XENCONS_IDX(cons++,intf->in)];
++
++	mb();
++	intf->in_cons = cons;
++
++	notify_daemon();
++	return recv;
++}
++
++static struct hv_ops hvc_ops = {
++	.get_chars = read_console,
++	.put_chars = write_console,
++};
++
++static int __init xen_init(void)
++{
++	struct hvc_struct *hp;
++
++	if (!is_running_on_xen())
++		return 0;
++
++	xencons_irq = bind_evtchn_to_irq(xen_start_info->console.domU.evtchn);
++	if (xencons_irq < 0)
++		xencons_irq = 0 /* NO_IRQ */;
++	hp = hvc_alloc(HVC_COOKIE, xencons_irq, &hvc_ops, 256);
++	if (IS_ERR(hp))
++		return PTR_ERR(hp);
++
++	hvc = hp;
++	return 0;
++}
++
++static void __exit xen_fini(void)
++{
++	if (hvc)
++		hvc_remove(hvc);
++}
++
++static int xen_cons_init(void)
++{
++	if (!is_running_on_xen())
++		return 0;
++
++	hvc_instantiate(HVC_COOKIE, 0, &hvc_ops);
++	return 0;
++}
++
++module_init(xen_init);
++module_exit(xen_fini);
++console_initcall(xen_cons_init);
+diff -puN include/xen/events.h~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console include/xen/events.h
+--- a/include/xen/events.h~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
++++ a/include/xen/events.h
+@@ -3,6 +3,7 @@
  
- 	/*
-@@ -978,8 +986,11 @@ void register_console(struct console *co
- 	if (!(console->flags & CON_ENABLED))
- 		return;
+ #include <linux/irq.h>
  
--	if (console_drivers && (console_drivers->flags & CON_BOOT)) {
--		unregister_console(console_drivers);
-+	if (bootconsole) {
-+		printk(KERN_INFO "console handover: boot [%s%d] -> real [%s%d]\n",
-+		       bootconsole->name, bootconsole->index,
-+		       console->name, console->index);
-+		unregister_console(bootconsole);
- 		console->flags &= ~CON_PRINTBUFFER;
- 	}
- 
-@@ -1030,16 +1041,11 @@ int unregister_console(struct console *c
- 		}
- 	}
- 
--	/* If last console is removed, we re-enable picking the first
--	 * one that gets registered. Without that, pmac early boot console
--	 * would prevent fbcon from taking over.
--	 *
-+	/*
- 	 * If this isn't the last console and it has CON_CONSDEV set, we
- 	 * need to set it on the next preferred console.
- 	 */
--	if (console_drivers == NULL)
--		preferred_console = selected_console;
--	else if (console->flags & CON_CONSDEV)
-+	if (console_drivers != NULL && console->flags & CON_CONSDEV)
- 		console_drivers->flags |= CON_CONSDEV;
- 
- 	release_console_sem();
++int bind_evtchn_to_irq(unsigned int evtchn);
+ int bind_evtchn_to_irqhandler(unsigned int evtchn,
+ 			      irqreturn_t (*handler)(int, void *),
+ 			      unsigned long irqflags, const char *devname,
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
