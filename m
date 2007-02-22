@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-pte_mkread-fix.patch added to -mm tree
-Date: Wed, 21 Feb 2007 16:21:41 -0800
-Message-ID: <200702220021.l1M0LfgE031092@shell0.pdx.osdl.net>
+Subject: + always-build-arch-ia64-lib-xoro.patch added to -mm tree
+Date: Wed, 21 Feb 2007 16:23:00 -0800
+Message-ID: <200702220023.l1M0N0Mr031120@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59234 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59291 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965029AbXBVAVn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 19:21:43 -0500
+	id S965057AbXBVAXE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 19:23:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it
+Cc: Lee.Schermerhorn@hp.com, bob.picco@hp.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, tony.luck@intel.com
 
 
 The patch titled
-     uml: pte_mkread fix
+     always build arch/ia64/lib/xor.o
 has been added to the -mm tree.  Its filename is
-     uml-pte_mkread-fix.patch
+     always-build-arch-ia64-lib-xoro.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: pte_mkread fix
-From: Jeff Dike <jdike@addtoit.com>
+Subject: always build arch/ia64/lib/xor.o
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Fix the fact that pte_mkread set _PAGE_RW instead of _PAGE_USER (the logic is
-copied from i386 in most place, so it is really as bad as you're thinking).
+Always build ia64 xor.o because multiple config options now depend on it.
 
-Thus currently page tables are more permissive than they should.
+Necessary to build .20-mm* on ia64 when, e.g., CONFIG_ASYNC_TX_DMA is
+defined.  Don't know if '_ASYNC_TX_DMA makes sense on ia64.  If not, maybe
+Kconfig should preclude it.
 
-Such a change may trigger other latent bugs, so be careful with this.
+Could have defined a Kconfig option that defaults to true if MD_RAID456 ||
+ASYNC_TX_DMA to control building of xor.o, but xor.o is only 848 bytes and
+this IS ia64...
 
-Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Bob Picco <bob.picco@hp.com>
+Cc: Eric Whitney <eric.whitney@hp.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/pgtable.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/lib/Makefile |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/asm-um/pgtable.h~uml-pte_mkread-fix include/asm-um/pgtable.h
---- a/include/asm-um/pgtable.h~uml-pte_mkread-fix
-+++ a/include/asm-um/pgtable.h
-@@ -270,7 +270,7 @@ static inline pte_t pte_wrprotect(pte_t 
+diff -puN arch/ia64/lib/Makefile~always-build-arch-ia64-lib-xoro arch/ia64/lib/Makefile
+--- a/arch/ia64/lib/Makefile~always-build-arch-ia64-lib-xoro
++++ a/arch/ia64/lib/Makefile
+@@ -9,12 +9,11 @@ lib-y := __divsi3.o __udivsi3.o __modsi3
+ 	checksum.o clear_page.o csum_partial_copy.o			\
+ 	clear_user.o strncpy_from_user.o strlen_user.o strnlen_user.o	\
+ 	flush.o ip_fast_csum.o do_csum.o				\
+-	memset.o strlen.o
++	memset.o strlen.o xor.o
  
- static inline pte_t pte_mkread(pte_t pte)
- { 
--	pte_set_bits(pte, _PAGE_RW);
-+	pte_set_bits(pte, _PAGE_USER);
- 	return(pte_mknewprot(pte)); 
- }
+ lib-$(CONFIG_ITANIUM)	+= copy_page.o copy_user.o memcpy.o
+ lib-$(CONFIG_MCKINLEY)	+= copy_page_mck.o memcpy_mck.o
+ lib-$(CONFIG_PERFMON)	+= carta_random.o
+-lib-$(CONFIG_MD_RAID456)	+= xor.o
  
+ AFLAGS___divdi3.o	=
+ AFLAGS___udivdi3.o	= -DUNSIGNED
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-uml-enable-raw.patch
-uml-host-vdso-fix.patch
-uml-pte_mkread-fix.patch
-uml-fix-prototypes.patch
+always-build-arch-ia64-lib-xoro.patch
