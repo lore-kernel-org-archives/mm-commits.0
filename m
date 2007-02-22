@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + frv-no-zone_dma.patch added to -mm tree
-Date: Wed, 21 Feb 2007 16:04:54 -0800
-Message-ID: <200702220004.l1M04s8g030755@shell0.pdx.osdl.net>
+Subject: + uml-host-vdso-fix.patch added to -mm tree
+Date: Wed, 21 Feb 2007 16:21:39 -0800
+Message-ID: <200702220021.l1M0LdLN031089@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58877 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59231 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945914AbXBVAFG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 19:05:06 -0500
+	id S965016AbXBVAVn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 19:21:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it
 
 
 The patch titled
-     FRV: No ZONE_DMA
+     uml: host VDSO fix
 has been added to the -mm tree.  Its filename is
-     frv-no-zone_dma.patch
+     uml-host-vdso-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: FRV: No ZONE_DMA
-From: David Howells <dhowells@redhat.com>
+Subject: uml: host VDSO fix
+From: Jeff Dike <jdike@addtoit.com>
 
-FRV does not require a ZONE_DMA, so all DMA'able pages that aren't highmem
-should be in ZONE_NORMAL.
+This fixes a problem seen by a number of people running UML on newer host
+kernels.  init would hang with an infinite segfault loop.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+It turns out that the host kernel was providing a AT_SYSINFO_EHDR of
+0xffffe000, which faked UML into believing that the host VDSO page could be
+reused.  However, AT_SYSINFO pointed into the middle of the address space, and
+was unmapped as a result.  Because UML was providing AT_SYSINFO_EHDR and
+AT_SYSINFO to its own processes, these would branch to nowhere when trying to
+use the VDSO.
+
+The fix is to also check the location of AT_SYSINFO when deciding whether to
+use the host's VDSO.
+
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/init.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ arch/um/os-Linux/elf_aux.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN arch/frv/mm/init.c~frv-no-zone_dma arch/frv/mm/init.c
---- a/arch/frv/mm/init.c~frv-no-zone_dma
-+++ a/arch/frv/mm/init.c
-@@ -126,8 +126,7 @@ void __init paging_init(void)
- 
- 	/* distribute the allocatable pages across the various zones and pass them to the allocator
- 	 */
--	zones_size[ZONE_DMA]     = max_low_pfn - min_low_pfn;
--	zones_size[ZONE_NORMAL]  = 0;
-+	zones_size[ZONE_NORMAL]  = max_low_pfn - min_low_pfn;
- #ifdef CONFIG_HIGHMEM
- 	zones_size[ZONE_HIGHMEM] = num_physpages - num_mappedpages;
- #endif
+diff -puN arch/um/os-Linux/elf_aux.c~uml-host-vdso-fix arch/um/os-Linux/elf_aux.c
+--- a/arch/um/os-Linux/elf_aux.c~uml-host-vdso-fix
++++ a/arch/um/os-Linux/elf_aux.c
+@@ -39,6 +39,9 @@ __init void scan_elf_aux( char **envp)
+ 		switch ( auxv->a_type ) {
+ 			case AT_SYSINFO:
+ 				__kernel_vsyscall = auxv->a_un.a_val;
++				/* See if the page is under TASK_SIZE */
++				if (__kernel_vsyscall < (unsigned long) envp)
++					__kernel_vsyscall = 0;
+ 				break;
+ 			case AT_SYSINFO_EHDR:
+ 				vsyscall_ehdr = auxv->a_un.a_val;
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-frv-no-zone_dma.patch
-git-cpufreq.patch
-drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
-git-parisc.patch
-frv-missing-error-defs.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-reiser4-get_sb_dev-fix.patch
-mutex-subsystem-synchro-test-module.patch
+uml-enable-raw.patch
+uml-host-vdso-fix.patch
+uml-pte_mkread-fix.patch
+uml-fix-prototypes.patch
