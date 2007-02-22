@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + serial-serial_txx9-driver-update-fix.patch added to -mm tree
-Date: Wed, 21 Feb 2007 17:07:45 -0800
-Message-ID: <200702220107.l1M17jr4032411@shell0.pdx.osdl.net>
+Subject: + serial-serial_txx9-driver-update-3.patch added to -mm tree
+Date: Wed, 21 Feb 2007 17:13:50 -0800
+Message-ID: <200702220113.l1M1DoHQ032549@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60840 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60862 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965010AbXBVBLM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 20:11:12 -0500
+	id S1422851AbXBVBOA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 20:14:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, alan@lxorguk.ukuu.org.uk, ralf@linux-mips.org, rmk@arm.linux.org.uk
+Cc: anemo@mba.ocn.ne.jp, alan@redhat.com
 
 
 The patch titled
-     serial: serial_txx9 driver update (fix)
+     serial: serial_txx9 driver update (take 2) (3, actually)
 has been added to the -mm tree.  Its filename is
-     serial-serial_txx9-driver-update-fix.patch
+     serial-serial_txx9-driver-update-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: serial_txx9 driver update (fix)
+Subject: serial: serial_txx9 driver update (take 2) (3, actually)
 From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Update the serial_txx9 driver.
+
+ * Use platform_device.
+ * Fix and cleanup suspend/resume/initialization codes.
+
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_txx9.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/serial/serial_txx9.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/serial_txx9.c~serial-serial_txx9-driver-update-fix drivers/serial/serial_txx9.c
---- a/drivers/serial/serial_txx9.c~serial-serial_txx9-driver-update-fix
+diff -puN drivers/serial/serial_txx9.c~serial-serial_txx9-driver-update-3 drivers/serial/serial_txx9.c
+--- a/drivers/serial/serial_txx9.c~serial-serial_txx9-driver-update-3
 +++ a/drivers/serial/serial_txx9.c
-@@ -277,16 +277,15 @@ static void serial_txx9_enable_ms(struct
- static void serial_txx9_initialize(struct uart_port *port)
- {
- 	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	unsigned int tmout = 10000;
+@@ -39,7 +39,7 @@
+  *		Do not call uart_add_one_port for absent ports.
+  *	1.07	Use CONFIG_SERIAL_TXX9_NR_UARTS.  Cleanup.
+  *	1.08	Use platform_device.
+- *		Fix and cleanup suspend/resume codes.
++ *		Fix and cleanup suspend/resume/initialization codes.
+  */
  
- 	sio_out(up, TXX9_SIFCR, TXX9_SIFCR_SWRST);
--#ifdef CONFIG_CPU_TX49XX
- 	/* TX4925 BUG WORKAROUND.  Accessing SIOC register
- 	 * immediately after soft reset causes bus error. */
--	iob();
-+	mmiowb();
- 	udelay(1);
--#endif
--	while (sio_in(up, TXX9_SIFCR) & TXX9_SIFCR_SWRST)
--		;
-+	while ((sio_in(up, TXX9_SIFCR) & TXX9_SIFCR_SWRST) && --tmout)
-+		udelay(1);
- 	/* TX Int by FIFO Empty, RX Int by Receiving 1 char. */
- 	sio_set(up, TXX9_SIFCR,
- 		TXX9_SIFCR_TDIL_MAX | TXX9_SIFCR_RDIL_1);
+ #if defined(CONFIG_SERIAL_TXX9_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
 _
 
 Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
@@ -68,3 +60,4 @@ Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 git-mips.patch
 serial-serial_txx9-driver-update.patch
 serial-serial_txx9-driver-update-fix.patch
+serial-serial_txx9-driver-update-3.patch
