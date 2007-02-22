@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-more-rmap-checking.patch added to -mm tree
-Date: Wed, 21 Feb 2007 20:19:10 -0800
-Message-ID: <200702220419.l1M4JARe004249@shell0.pdx.osdl.net>
+Subject: + fs-introduce-some-page-buffer-invariants.patch added to -mm tree
+Date: Wed, 21 Feb 2007 20:20:04 -0800
+Message-ID: <200702220420.l1M4K4Hv004266@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36408 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36419 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751378AbXBVETS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 23:19:18 -0500
+	id S1751379AbXBVEUI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 23:20:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, hugh@veritas.com
+Cc: npiggin@suse.de
 
 
 The patch titled
-     mm: more rmap checking
+     fs: introduce some page/buffer invariants
 has been added to the -mm tree.  Its filename is
-     mm-more-rmap-checking.patch
+     fs-introduce-some-page-buffer-invariants.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,156 +25,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: more rmap checking
+Subject: fs: introduce some page/buffer invariants
 From: Nick Piggin <npiggin@suse.de>
 
-Re-introduce rmap verification patches that Hugh removed when he removed
-PG_map_lock. PG_map_lock actually isn't needed to synchronise access to
-anonymous pages, because PG_locked and PTL together already do.
+It is a bug to set a page dirty if it is not uptodate unless it has
+buffers.  If the page has buffers, then the page may be dirty (some buffers
+dirty) but not uptodate (some buffers not uptodate).  The exception to this
+rule is if the set_page_dirty caller is racing with truncate or invalidate.
 
-These checks were important in discovering and fixing a rare rmap corruption
-in SLES9.
+A buffer can not be set dirty if it is not uptodate.
+
+If either of these situations occurs, it indicates there could be some data
+loss problem.  Some of these warnings could be a harmless one where the
+page or buffer is set uptodate immediately after it is dirtied, however we
+should fix those up, and enforce this ordering.
+
+Bring the order of operations for truncate into line with those of
+invalidate.  This will prevent a page from being able to go !uptodate while
+we're holding the tree_lock, which is probably a good thing anyway.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   13 ---------
- mm/memory.c          |    2 -
- mm/rmap.c            |   54 +++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 54 insertions(+), 15 deletions(-)
+ fs/buffer.c         |   54 ++++++++++++++++++++++++++++--------------
+ mm/page-writeback.c |    1 
+ mm/truncate.c       |    2 -
+ 3 files changed, 39 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-more-rmap-checking include/linux/rmap.h
---- a/include/linux/rmap.h~mm-more-rmap-checking
-+++ a/include/linux/rmap.h
-@@ -72,20 +72,9 @@ void __anon_vma_link(struct vm_area_stru
- void page_add_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
- void page_add_new_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
- void page_add_file_rmap(struct page *);
-+void page_dup_rmap(struct page *page, struct vm_area_struct *vma, unsigned long address);
- void page_remove_rmap(struct page *, struct vm_area_struct *);
+diff -puN fs/buffer.c~fs-introduce-some-page-buffer-invariants fs/buffer.c
+--- a/fs/buffer.c~fs-introduce-some-page-buffer-invariants
++++ a/fs/buffer.c
+@@ -675,6 +675,39 @@ void mark_buffer_dirty_inode(struct buff
+ EXPORT_SYMBOL(mark_buffer_dirty_inode);
  
--/**
-- * page_dup_rmap - duplicate pte mapping to a page
-- * @page:	the page to add the mapping to
-- *
-- * For copy_page_range only: minimal extract from page_add_rmap,
-- * avoiding unnecessary tests (already checked) so it's quicker.
-- */
--static inline void page_dup_rmap(struct page *page)
--{
--	atomic_inc(&page->_mapcount);
--}
--
  /*
-  * Called from mm/vmscan.c to handle paging out
++ * Mark the page dirty, and set it dirty in the radix tree, and mark the inode
++ * dirty.
++ *
++ * If warn is true, then emit a warning if the page is not uptodate and has
++ * not been truncated.
++ */
++static int __set_page_dirty(struct page *page,
++		struct address_space *mapping, int warn)
++{
++	if (unlikely(!mapping))
++		return !TestSetPageDirty(page);
++
++	if (TestSetPageDirty(page))
++		return 0;
++
++	write_lock_irq(&mapping->tree_lock);
++	if (page->mapping) {	/* Race with truncate? */
++		WARN_ON(warn && !PageUptodate(page));
++
++		if (mapping_cap_account_dirty(mapping)) {
++			__inc_zone_page_state(page, NR_FILE_DIRTY);
++			task_io_account_write(PAGE_CACHE_SIZE);
++		}
++		radix_tree_tag_set(&mapping->page_tree,
++				page_index(page), PAGECACHE_TAG_DIRTY);
++	}
++	write_unlock_irq(&mapping->tree_lock);
++	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
++
++	return 1;
++}
++
++/*
+  * Add a page to the dirty page list.
+  *
+  * It is a sad fact of life that this function is called from several places
+@@ -701,7 +734,7 @@ EXPORT_SYMBOL(mark_buffer_dirty_inode);
   */
-diff -puN mm/memory.c~mm-more-rmap-checking mm/memory.c
---- a/mm/memory.c~mm-more-rmap-checking
-+++ a/mm/memory.c
-@@ -482,7 +482,7 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 	page = vm_normal_page(vma, addr, pte);
- 	if (page) {
- 		get_page(page);
--		page_dup_rmap(page);
-+		page_dup_rmap(page, vma, addr);
- 		rss[!!PageAnon(page)]++;
+ int __set_page_dirty_buffers(struct page *page)
+ {
+-	struct address_space * const mapping = page_mapping(page);
++	struct address_space *mapping = page_mapping(page);
+ 
+ 	if (unlikely(!mapping))
+ 		return !TestSetPageDirty(page);
+@@ -718,21 +751,7 @@ int __set_page_dirty_buffers(struct page
  	}
+ 	spin_unlock(&mapping->private_lock);
  
-diff -puN mm/rmap.c~mm-more-rmap-checking mm/rmap.c
---- a/mm/rmap.c~mm-more-rmap-checking
-+++ a/mm/rmap.c
-@@ -522,19 +522,49 @@ static void __page_set_anon_rmap(struct 
+-	if (TestSetPageDirty(page))
+-		return 0;
+-
+-	write_lock_irq(&mapping->tree_lock);
+-	if (page->mapping) {	/* Race with truncate? */
+-		if (mapping_cap_account_dirty(mapping)) {
+-			__inc_zone_page_state(page, NR_FILE_DIRTY);
+-			task_io_account_write(PAGE_CACHE_SIZE);
+-		}
+-		radix_tree_tag_set(&mapping->page_tree,
+-				page_index(page), PAGECACHE_TAG_DIRTY);
+-	}
+-	write_unlock_irq(&mapping->tree_lock);
+-	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+-	return 1;
++	return __set_page_dirty(page, mapping, 1);
  }
+ EXPORT_SYMBOL(__set_page_dirty_buffers);
  
- /**
-+ * page_set_anon_rmap - sanity check anonymous rmap addition
-+ * @page:	the page to add the mapping to
-+ * @vma:	the vm area in which the mapping is added
-+ * @address:	the user virtual address mapped
-+ */
-+static void __page_check_anon_rmap(struct page *page,
-+	struct vm_area_struct *vma, unsigned long address)
-+{
-+	/*
-+	 * The page's anon-rmap details (mapping and index) are guaranteed to
-+	 * be set up correctly at this point.
-+	 *
-+	 * We have exclusion against page_add_anon_rmap because the caller
-+	 * always holds the page locked, except if called from page_dup_rmap,
-+	 * in which case the page is already known to be setup.
-+	 *
-+	 * We have exclusion against page_add_new_anon_rmap because those pages
-+	 * are initially only visible via the pagetables, and the pte is locked
-+	 * over the call to page_add_new_anon_rmap.
-+	 */
-+	struct anon_vma *anon_vma = vma->anon_vma;
-+	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
-+	BUG_ON(page->mapping != (struct address_space *)anon_vma);
-+	BUG_ON(page->index != linear_page_index(vma, address));
-+}
-+
-+/**
-  * page_add_anon_rmap - add pte mapping to an anonymous page
-  * @page:	the page to add the mapping to
-  * @vma:	the vm area in which the mapping is added
-  * @address:	the user virtual address mapped
-  *
-- * The caller needs to hold the pte lock.
-+ * The caller needs to hold the pte lock and the page must be locked.
+@@ -1135,8 +1154,9 @@ __getblk_slow(struct block_device *bdev,
   */
- void page_add_anon_rmap(struct page *page,
- 	struct vm_area_struct *vma, unsigned long address)
+ void fastcall mark_buffer_dirty(struct buffer_head *bh)
  {
-+	BUG_ON(!PageLocked(page));
-+	BUG_ON(address < vma->vm_start || address >= vma->vm_end);
- 	if (atomic_inc_and_test(&page->_mapcount))
- 		__page_set_anon_rmap(page, vma, address);
--	/* else checking page index and mapping is racy */
-+	else
-+		__page_check_anon_rmap(page, vma, address);
++	WARN_ON(!buffer_uptodate(bh));
+ 	if (!buffer_dirty(bh) && !test_set_buffer_dirty(bh))
+-		__set_page_dirty_nobuffers(bh->b_page);
++		__set_page_dirty(bh->b_page, page_mapping(bh->b_page), 0);
  }
  
  /*
-@@ -545,10 +575,12 @@ void page_add_anon_rmap(struct page *pag
-  *
-  * Same as page_add_anon_rmap but must only be called on *new* pages.
-  * This means the inc-and-test can be bypassed.
-+ * Page does not have to be locked.
-  */
- void page_add_new_anon_rmap(struct page *page,
- 	struct vm_area_struct *vma, unsigned long address)
- {
-+	BUG_ON(address < vma->vm_start || address >= vma->vm_end);
- 	atomic_set(&page->_mapcount, 0); /* elevate count by 1 (starts at -1) */
- 	__page_set_anon_rmap(page, vma, address);
- }
-@@ -566,6 +598,24 @@ void page_add_file_rmap(struct page *pag
+diff -puN mm/page-writeback.c~fs-introduce-some-page-buffer-invariants mm/page-writeback.c
+--- a/mm/page-writeback.c~fs-introduce-some-page-buffer-invariants
++++ a/mm/page-writeback.c
+@@ -811,6 +811,7 @@ int __set_page_dirty_nobuffers(struct pa
+ 		mapping2 = page_mapping(page);
+ 		if (mapping2) { /* Race with truncate? */
+ 			BUG_ON(mapping2 != mapping);
++			WARN_ON(!PageUptodate(page));
+ 			if (mapping_cap_account_dirty(mapping)) {
+ 				__inc_zone_page_state(page, NR_FILE_DIRTY);
+ 				task_io_account_write(PAGE_CACHE_SIZE);
+diff -puN mm/truncate.c~fs-introduce-some-page-buffer-invariants mm/truncate.c
+--- a/mm/truncate.c~fs-introduce-some-page-buffer-invariants
++++ a/mm/truncate.c
+@@ -99,9 +99,9 @@ truncate_complete_page(struct address_sp
+ 	if (PagePrivate(page))
+ 		do_invalidatepage(page, 0);
+ 
++	remove_from_page_cache(page);
+ 	ClearPageUptodate(page);
+ 	ClearPageMappedToDisk(page);
+-	remove_from_page_cache(page);
+ 	page_cache_release(page);	/* pagecache ref */
  }
  
- /**
-+ * page_dup_rmap - duplicate pte mapping to a page
-+ * @page:	the page to add the mapping to
-+ *
-+ * For copy_page_range only: minimal extract from page_add_file_rmap /
-+ * page_add_anon_rmap, avoiding unnecessary tests (already checked) so it's
-+ * quicker.
-+ *
-+ * The caller needs to hold the pte lock.
-+ */
-+void page_dup_rmap(struct page *page, struct vm_area_struct *vma, unsigned long address)
-+{
-+	BUG_ON(page_mapcount(page) == 0);
-+	if (PageAnon(page))
-+		__page_check_anon_rmap(page, vma, address);
-+	atomic_inc(&page->_mapcount);
-+}
-+
-+/**
-  * page_remove_rmap - take down pte mapping from a page
-  * @page: page to remove mapping from
-  *
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -182,3 +171,4 @@ Patches currently in -mm which might be from npiggin@suse.de are
 git-block.patch
 mm-remove-gcc-workaround.patch
 mm-more-rmap-checking.patch
+fs-introduce-some-page-buffer-invariants.patch
