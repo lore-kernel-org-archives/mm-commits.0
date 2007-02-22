@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot.patch added to -mm tree
-Date: Wed, 21 Feb 2007 18:53:21 -0800
-Message-ID: <200702220253.l1M2rLer002452@shell0.pdx.osdl.net>
+Subject: + xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch added to -mm tree
+Date: Wed, 21 Feb 2007 18:53:25 -0800
+Message-ID: <200702220253.l1M2rPPO002464@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34561 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34570 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751449AbXBVCxY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 21:53:24 -0500
+	id S1751449AbXBVCx3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 21:53:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: jeremy@goop.org, jeremy@xensource.com
 The patch titled
      From: Jeremy Fitzhardinge <jeremy@goop.org>
 has been added to the -mm tree.  Its filename is
-     xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot.patch
+     xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,36 +28,152 @@ out what to do about this
 Subject: From: Jeremy Fitzhardinge <jeremy@goop.org>
 
 
-Allocate a fixmap slot for use by a paravirt_ops implementation.  Xen
-uses this to map the hypervisor's shared info page, which doesn't have
-a pseudo-physical page number, and therefore can't be mapped
-ordinarily.
+Add hooks to allow a paravirt implementation to track the lifetime of
+an mm.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-
+Cc: linux-arch@vger.kernel.org
 --
- 1 file changed, 3 insertions(+)
 
 ===================================================================
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/fixmap.h |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/i386/kernel/paravirt.c    |    4 ++++
+ include/asm-i386/mmu_context.h |    8 ++++++--
+ include/asm-i386/paravirt.h    |   25 +++++++++++++++++++++++++
+ include/linux/sched.h          |    6 ++++++
+ kernel/fork.c                  |    2 ++
+ mm/mmap.c                      |    3 +++
+ 6 files changed, 46 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-i386/fixmap.h~xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot include/asm-i386/fixmap.h
---- a/include/asm-i386/fixmap.h~xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot
-+++ a/include/asm-i386/fixmap.h
-@@ -88,6 +88,9 @@ enum fixed_addresses {
- #ifdef CONFIG_PCI_MMCONFIG
- 	FIX_PCIE_MCFG,
+diff -puN arch/i386/kernel/paravirt.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/arch/i386/kernel/paravirt.c
+@@ -705,6 +705,10 @@ struct paravirt_ops paravirt_ops = {
+ 	.irq_enable_sysexit = native_irq_enable_sysexit,
+ 	.iret = native_iret,
+ 
++	.dup_mmap = (void *)native_nop,
++	.exit_mmap = (void *)native_nop,
++	.activate_mm = (void *)native_nop,
++
+ 	.startup_ipi_hook = (void *)native_nop,
+ };
+ 
+diff -puN include/asm-i386/mmu_context.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/mmu_context.h
+--- a/include/asm-i386/mmu_context.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-i386/mmu_context.h
+@@ -5,6 +5,7 @@
+ #include <asm/atomic.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
++#include <asm/paravirt.h>
+ 
+ /*
+  * Used for LDT copy/destruction.
+@@ -65,7 +66,10 @@ static inline void switch_mm(struct mm_s
+ #define deactivate_mm(tsk, mm)			\
+ 	asm("movl %0,%%gs": :"r" (0));
+ 
+-#define activate_mm(prev, next) \
+-	switch_mm((prev),(next),NULL)
++#define activate_mm(prev, next)				\
++	do {						\
++		arch_activate_mm(prev, next);		\
++		switch_mm((prev),(next),NULL);		\
++	} while(0);
+ 
  #endif
-+#ifdef CONFIG_PARAVIRT
-+	FIX_PARAVIRT,
+diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-i386/paravirt.h
+@@ -123,6 +123,12 @@ struct paravirt_ops
+ 	void (*io_delay)(void);
+ 	void (*const_udelay)(unsigned long loops);
+ 
++	void (*activate_mm)(struct mm_struct *prev,
++			    struct mm_struct *next);
++	void (*dup_mmap)(struct mm_struct *oldmm,
++			 struct mm_struct *mm);
++	void (*exit_mmap)(struct mm_struct *mm);
++
+ #ifdef CONFIG_X86_LOCAL_APIC
+ 	void (*apic_write)(unsigned long reg, unsigned long v);
+ 	void (*apic_write_atomic)(unsigned long reg, unsigned long v);
+@@ -426,6 +432,24 @@ static inline void startup_ipi_hook(int 
+ }
+ #endif
+ 
++#define __HAVE_ARCH_MM_LIFETIME
++static inline void arch_activate_mm(struct mm_struct *prev,
++				    struct mm_struct *next)
++{
++	paravirt_ops.activate_mm(prev, next);
++}
++
++static inline void arch_dup_mmap(struct mm_struct *oldmm,
++				 struct mm_struct *mm)
++{
++	paravirt_ops.dup_mmap(oldmm, mm);
++}
++
++static inline void arch_exit_mmap(struct mm_struct *mm)
++{
++	paravirt_ops.exit_mmap(mm);
++}
++
+ #define __flush_tlb() paravirt_ops.flush_tlb_user()
+ #define __flush_tlb_global() paravirt_ops.flush_tlb_kernel()
+ #define __flush_tlb_single(addr) paravirt_ops.flush_tlb_single(addr)
+@@ -670,5 +694,6 @@ static inline void paravirt_pagetable_se
+ 	set_pgd(&base[0], base[USER_PTRS_PER_PGD]);
+ #endif
+ }
++
+ #endif /* CONFIG_PARAVIRT */
+ #endif	/* __ASM_PARAVIRT_H */
+diff -puN include/linux/sched.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/linux/sched.h
+--- a/include/linux/sched.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/linux/sched.h
+@@ -375,6 +375,12 @@ struct mm_struct {
+ 	struct kioctx		*ioctx_list;
+ };
+ 
++#ifndef __HAVE_ARCH_MM_LIFETIME
++#define arch_activate_mm(prev, next)	do {} while(0)
++#define arch_dup_mmap(oldmm, mm)	do {} while(0)
++#define arch_exit_mmap(mm)		do {} while(0)
 +#endif
- 	__end_of_permanent_fixed_addresses,
- 	/* temporary boot-time mappings, used before ioremap() is functional */
- #define NR_FIX_BTMAPS	16
++
+ struct sighand_struct {
+ 	atomic_t		count;
+ 	struct k_sigaction	action[_NSIG];
+diff -puN kernel/fork.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction kernel/fork.c
+--- a/kernel/fork.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/kernel/fork.c
+@@ -287,6 +287,8 @@ static inline int dup_mmap(struct mm_str
+ 		if (retval)
+ 			goto out;
+ 	}
++	/* a new mm has just been created */
++	arch_dup_mmap(oldmm, mm);
+ 	retval = 0;
+ out:
+ 	up_write(&mm->mmap_sem);
+diff -puN mm/mmap.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction mm/mmap.c
+--- a/mm/mmap.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/mm/mmap.c
+@@ -1977,6 +1977,9 @@ void exit_mmap(struct mm_struct *mm)
+ 	unsigned long nr_accounted = 0;
+ 	unsigned long end;
+ 
++	/* mm's last user has gone, and its about to be pulled down */
++	arch_exit_mmap(mm);
++
+ 	lru_add_drain();
+ 	flush_cache_mm(mm);
+ 	tlb = tlb_gather_mmu(mm, 1);
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
