@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + always-build-arch-ia64-lib-xoro.patch added to -mm tree
-Date: Wed, 21 Feb 2007 16:23:00 -0800
-Message-ID: <200702220023.l1M0N0Mr031120@shell0.pdx.osdl.net>
+Subject: + expose-set_mode-method-so-it-can-be-wrapped.patch added to -mm tree
+Date: Wed, 21 Feb 2007 16:31:07 -0800
+Message-ID: <200702220031.l1M0V7IW031323@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59291 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59517 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965057AbXBVAXE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 19:23:04 -0500
+	id S965081AbXBVAb2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 19:31:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, bob.picco@hp.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, tony.luck@intel.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     always build arch/ia64/lib/xor.o
+     pata: expose set_mode method so it can be wrapped
 has been added to the -mm tree.  Its filename is
-     always-build-arch-ia64-lib-xoro.patch
+     expose-set_mode-method-so-it-can-be-wrapped.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,129 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: always build arch/ia64/lib/xor.o
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: pata: expose set_mode method so it can be wrapped
+From: Alan <alan@lxorguk.ukuu.org.uk>
 
-Always build ia64 xor.o because multiple config options now depend on it.
+This splits set_mode into do_set_mode and the wrapper so that a driver can
+call the standard method inside its own.  This in theory also obsoletes
+->post_set_mode().
 
-Necessary to build .20-mm* on ia64 when, e.g., CONFIG_ASYNC_TX_DMA is
-defined.  Don't know if '_ASYNC_TX_DMA makes sense on ia64.  If not, maybe
-Kconfig should preclude it.
+Needed for ACPI driver.
 
-Could have defined a Kconfig option that defaults to true if MD_RAID456 ||
-ASYNC_TX_DMA to control building of xor.o, but xor.o is only 848 bytes and
-this IS ia64...
-
-Signed-off-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Bob Picco <bob.picco@hp.com>
-Cc: Eric Whitney <eric.whitney@hp.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/lib/Makefile |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/ata/libata-core.c |   37 +++++++++++++++++++++++++++++-------
+ include/linux/libata.h    |    1 
+ 2 files changed, 31 insertions(+), 7 deletions(-)
 
-diff -puN arch/ia64/lib/Makefile~always-build-arch-ia64-lib-xoro arch/ia64/lib/Makefile
---- a/arch/ia64/lib/Makefile~always-build-arch-ia64-lib-xoro
-+++ a/arch/ia64/lib/Makefile
-@@ -9,12 +9,11 @@ lib-y := __divsi3.o __udivsi3.o __modsi3
- 	checksum.o clear_page.o csum_partial_copy.o			\
- 	clear_user.o strncpy_from_user.o strlen_user.o strnlen_user.o	\
- 	flush.o ip_fast_csum.o do_csum.o				\
--	memset.o strlen.o
-+	memset.o strlen.o xor.o
+diff -puN drivers/ata/libata-core.c~expose-set_mode-method-so-it-can-be-wrapped drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~expose-set_mode-method-so-it-can-be-wrapped
++++ a/drivers/ata/libata-core.c
+@@ -2462,12 +2462,13 @@ static int ata_dev_set_mode(struct ata_d
+ }
  
- lib-$(CONFIG_ITANIUM)	+= copy_page.o copy_user.o memcpy.o
- lib-$(CONFIG_MCKINLEY)	+= copy_page_mck.o memcpy_mck.o
- lib-$(CONFIG_PERFMON)	+= carta_random.o
--lib-$(CONFIG_MD_RAID456)	+= xor.o
+ /**
+- *	ata_set_mode - Program timings and issue SET FEATURES - XFER
++ *	ata_do_set_mode - Program timings and issue SET FEATURES - XFER
+  *	@ap: port on which timings will be programmed
+  *	@r_failed_dev: out paramter for failed device
+  *
+- *	Set ATA device disk transfer mode (PIO3, UDMA6, etc.).  If
+- *	ata_set_mode() fails, pointer to the failing device is
++ *	Standard implementation of the function used to tune and set
++ *	ATA device disk transfer mode (PIO3, UDMA6, etc.).  If
++ *	ata_dev_set_mode() fails, pointer to the failing device is
+  *	returned in @r_failed_dev.
+  *
+  *	LOCKING:
+@@ -2476,14 +2477,12 @@ static int ata_dev_set_mode(struct ata_d
+  *	RETURNS:
+  *	0 on success, negative errno otherwise
+  */
+-int ata_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev)
++
++int ata_do_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev)
+ {
+ 	struct ata_device *dev;
+ 	int i, rc = 0, used_dma = 0, found = 0;
  
- AFLAGS___divdi3.o	=
- AFLAGS___udivdi3.o	= -DUNSIGNED
+-	/* has private set_mode? */
+-	if (ap->ops->set_mode)
+-		return ap->ops->set_mode(ap, r_failed_dev);
+ 
+ 	/* step 1: calculate xfer_mask */
+ 	for (i = 0; i < ATA_MAX_DEVICES; i++) {
+@@ -2569,6 +2568,29 @@ int ata_set_mode(struct ata_port *ap, st
+ }
+ 
+ /**
++ *	ata_set_mode - Program timings and issue SET FEATURES - XFER
++ *	@ap: port on which timings will be programmed
++ *	@r_failed_dev: out paramter for failed device
++ *
++ *	Set ATA device disk transfer mode (PIO3, UDMA6, etc.).  If
++ *	ata_set_mode() fails, pointer to the failing device is
++ *	returned in @r_failed_dev.
++ *
++ *	LOCKING:
++ *	PCI/etc. bus probe sem.
++ *
++ *	RETURNS:
++ *	0 on success, negative errno otherwise
++ */
++int ata_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev)
++{
++	/* has private set_mode? */
++	if (ap->ops->set_mode)
++		return ap->ops->set_mode(ap, r_failed_dev);
++	return ata_do_set_mode(ap, r_failed_dev);
++}
++
++/**
+  *	ata_tf_to_host - issue ATA taskfile to host controller
+  *	@ap: port to which command is being issued
+  *	@tf: ATA taskfile register set
+@@ -6310,6 +6332,7 @@ EXPORT_SYMBOL_GPL(ata_altstatus);
+ EXPORT_SYMBOL_GPL(ata_exec_command);
+ EXPORT_SYMBOL_GPL(ata_port_start);
+ EXPORT_SYMBOL_GPL(ata_interrupt);
++EXPORT_SYMBOL_GPL(ata_do_set_mode);
+ EXPORT_SYMBOL_GPL(ata_data_xfer);
+ EXPORT_SYMBOL_GPL(ata_data_xfer_noirq);
+ EXPORT_SYMBOL_GPL(ata_qc_prep);
+diff -puN include/linux/libata.h~expose-set_mode-method-so-it-can-be-wrapped include/linux/libata.h
+--- a/include/linux/libata.h~expose-set_mode-method-so-it-can-be-wrapped
++++ a/include/linux/libata.h
+@@ -823,6 +823,7 @@ extern void ata_scsi_slave_destroy(struc
+ extern int ata_scsi_change_queue_depth(struct scsi_device *sdev,
+ 				       int queue_depth);
+ extern struct ata_device *ata_dev_pair(struct ata_device *adev);
++extern int ata_do_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev);
+ extern u8 ata_irq_on(struct ata_port *ap);
+ extern u8 ata_dummy_irq_on(struct ata_port *ap);
+ extern u8 ata_irq_ack(struct ata_port *ap, unsigned int chk_drq);
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-always-build-arch-ia64-lib-xoro.patch
+git-libata-all.patch
+libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
+add-id_to_dma_mode-function-for-printing-dma-modes.patch
+expose-set_mode-method-so-it-can-be-wrapped.patch
+acpi-driver-support-for-pata.patch
+libata-use-new-id_to_dma_mode-function-to-tidy-reporting.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+adjust-legacy-ide-resource-setting-v2.patch
+resend-iphase-64bit-cleanup.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+driver_bfin_serial_core.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
