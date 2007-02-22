@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext-ea-block-reference-count-racing-fix-fix.patch added to -mm tree
-Date: Wed, 21 Feb 2007 20:32:45 -0800
-Message-ID: <200702220432.l1M4Wjx5004479__49545.5346921974$1172118788$gmane$org@shell0.pdx.osdl.net>
+Subject: + acpi-driver-support-for-pata-fix.patch added to -mm tree
+Date: Wed, 21 Feb 2007 21:44:59 -0800
+Message-ID: <200702220546.l1M5kQVW005792@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36642 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38299 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751403AbXBVEcy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 23:32:54 -0500
+	id S1751419AbXBVFrz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Feb 2007 00:47:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agruen@suse.de, cmm@us.ibm.com, linux-ext4@vger.kernel.org
+Cc: akpm@linux-foundation.org, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, lenb@kernel.org
 
 
 The patch titled
-     ext-ea-block-reference-count-racing-fix-fix
+     acpi-driver-support-for-pata-fix
 has been added to the -mm tree.  Its filename is
-     ext-ea-block-reference-count-racing-fix-fix.patch
+     acpi-driver-support-for-pata-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext-ea-block-reference-count-racing-fix-fix
+Subject: acpi-driver-support-for-pata-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Andreas Gruenbacher <agruen@suse.de>
-Cc: Mingming Cao <cmm@us.ibm.com>
+They've been renaming stuff again.
+
+Cc: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/xattr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/libata-acpi.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/ext3/xattr.c~ext-ea-block-reference-count-racing-fix-fix fs/ext3/xattr.c
-diff -puN fs/ext4/xattr.c~ext-ea-block-reference-count-racing-fix-fix fs/ext4/xattr.c
---- a/fs/ext4/xattr.c~ext-ea-block-reference-count-racing-fix-fix
-+++ a/fs/ext4/xattr.c
-@@ -721,7 +721,7 @@ ext4_xattr_block_set(handle_t *handle, s
- 			int offset = (char *)s->here - bs->bh->b_data;
+diff -puN drivers/ata/libata-acpi.c~acpi-driver-support-for-pata-fix drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~acpi-driver-support-for-pata-fix
++++ a/drivers/ata/libata-acpi.c
+@@ -295,8 +295,8 @@ static int do_drive_get_GTF(struct ata_p
  
- 			unlock_buffer(bs->bh);
--			journal_release_buffer(handle, bs->bh);
-+			jbd2_journal_release_buffer(handle, bs->bh);
- 			if (ce) {
- 				mb_cache_entry_release(ce);
- 				ce = NULL;
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(atadev, KERN_DEBUG,
+-			"%s: ENTER: ap->id: %d, port#: %d\n",
+-			__FUNCTION__, ap->id, ap->port_no);
++			"%s: ENTER: ap->print_id: %d, port#: %d\n",
++			__FUNCTION__, ap->print_id, ap->port_no);
+ 
+ 	if (!ata_dev_enabled(atadev) || (ap->flags & ATA_FLAG_DISABLED)) {
+ 		if (ata_msg_probe(ap))
+@@ -522,8 +522,8 @@ static int do_drive_set_taskfiles(struct
+ 
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(atadev, KERN_DEBUG,
+-			"%s: ENTER: ap->id: %d, port#: %d\n",
+-			__FUNCTION__, ap->id, ap->port_no);
++			"%s: ENTER: ap->print_id: %d, port#: %d\n",
++			__FUNCTION__, ap->print_id, ap->port_no);
+ 
+ 	if (noacpi || !(ap->cbl == ATA_CBL_SATA))
+ 		return 0;
+@@ -628,8 +628,8 @@ int ata_acpi_push_id(struct ata_port *ap
+ 
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(atadev, KERN_DEBUG,
+-			"%s: ap->id: %d, ix = %d, port#: %d\n",
+-			__FUNCTION__, ap->id, ix, ap->port_no);
++			"%s: ap->print_id: %d, ix = %d, port#: %d\n",
++			__FUNCTION__, ap->print_id, ix, ap->port_no);
+ 
+ 	/* Don't continue if not a SATA device. */
+ 	if (!(ap->cbl == ATA_CBL_SATA)) {
+@@ -686,7 +686,7 @@ int ata_acpi_push_id(struct ata_port *ap
+ 		if (ata_msg_probe(ap))
+ 			ata_dev_printk(atadev, KERN_DEBUG,
+ 				"ata%u(%u): %s _SDD error: status = 0x%x\n",
+-				ap->id, ap->device->devno,
++				ap->print_id, ap->device->devno,
+ 				__FUNCTION__, status);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +99,7 @@ pvrusb-warning-fix.patch
 git-input.patch
 setstream-param-for-psmouse-tweak.patch
 git-libata-all.patch
+acpi-driver-support-for-pata-fix.patch
 git-md-accel-vs-md.patch
 dmaengine-uninline-large-functions.patch
 git-mips-fixup.patch
