@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt_ops-fix-typo-in-sync_constant_test_bits-name.patch added to -mm tree
-Date: Wed, 21 Feb 2007 18:53:13 -0800
-Message-ID: <200702220253.l1M2rDq3002440@shell0.pdx.osdl.net>
+Subject: + xen-paravirt_ops-ignore-vgacon-if-hardware-not-present.patch added to -mm tree
+Date: Wed, 21 Feb 2007 18:53:15 -0800
+Message-ID: <200702220253.l1M2rFL4002443@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34546 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34551 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751443AbXBVCxQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 21:53:16 -0500
+	id S1750923AbXBVCxS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 21:53:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: jeremy@goop.org, jeremy@xensource.com
 The patch titled
      From: Jeremy Fitzhardinge <jeremy@goop.org>
 has been added to the -mm tree.  Its filename is
-     xen-paravirt_ops-fix-typo-in-sync_constant_test_bits-name.patch
+     xen-paravirt_ops-ignore-vgacon-if-hardware-not-present.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -34,21 +34,22 @@ Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/sync_bitops.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/console/vgacon.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-i386/sync_bitops.h~xen-paravirt_ops-fix-typo-in-sync_constant_test_bits-name include/asm-i386/sync_bitops.h
---- a/include/asm-i386/sync_bitops.h~xen-paravirt_ops-fix-typo-in-sync_constant_test_bits-name
-+++ a/include/asm-i386/sync_bitops.h
-@@ -130,7 +130,7 @@ static inline int sync_test_and_change_b
- 	return oldbit;
- }
+diff -puN drivers/video/console/vgacon.c~xen-paravirt_ops-ignore-vgacon-if-hardware-not-present drivers/video/console/vgacon.c
+--- a/drivers/video/console/vgacon.c~xen-paravirt_ops-ignore-vgacon-if-hardware-not-present
++++ a/drivers/video/console/vgacon.c
+@@ -371,7 +371,8 @@ static const char *vgacon_startup(void)
+ 	}
  
--static __always_inline int sync_const_test_bit(int nr, const volatile unsigned long *addr)
-+static __always_inline int sync_constant_test_bit(int nr, const volatile unsigned long *addr)
- {
- 	return ((1UL << (nr & 31)) &
- 		(((const volatile unsigned int *)addr)[nr >> 5])) != 0;
+ 	/* VGA16 modes are not handled by VGACON */
+-	if ((ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
++	if ((ORIG_VIDEO_MODE == 0x00) ||	/* SCREEN_INFO not initialized */
++	    (ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
+ 	    (ORIG_VIDEO_MODE == 0x0E) ||	/* 640x200/4 */
+ 	    (ORIG_VIDEO_MODE == 0x10) ||	/* 640x350/4 */
+ 	    (ORIG_VIDEO_MODE == 0x12) ||	/* 640x480/4 */
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
