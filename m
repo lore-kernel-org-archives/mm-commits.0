@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 18:36:12 -0800
-Message-ID: <200702220236.l1M2aCVE001994@shell0.pdx.osdl.net>
+Subject: - xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 18:36:15 -0800
+Message-ID: <200702220236.l1M2aFN8002003@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34267 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34273 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751416AbXBVChH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 21:37:07 -0500
+	id S1751420AbXBVChJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 21:37:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Xen-paravirt: allow paravirt backend to select PGD allocation alignment
+     Xen-paravirt: add hooks to intercept mm creation and destruction
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment.patch
+     xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Xen-paravirt: allow paravirt backend to select PGD allocation alignment
+Subject: Xen-paravirt: add hooks to intercept mm creation and destruction
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Xen requires pgds to be page-aligned, so make this a parameter which can be
-set in the paravirt_ops structure.
+Add hooks to allow a paravirt implementation to track the lifetime of an mm.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Zachary Amsden <zach@vmware.com>
@@ -35,73 +34,157 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |    1 +
- arch/i386/mm/init.c         |    2 +-
- include/asm-i386/paravirt.h |    5 ++++-
- include/asm-i386/pgtable.h  |    6 ++++++
- 4 files changed, 12 insertions(+), 2 deletions(-)
+ arch/i386/kernel/paravirt.c    |    4 +++
+ include/asm-i386/mmu_context.h |    8 ++++--
+ include/asm-i386/paravirt.h    |   39 +++++++++++++++++++++++++++++++
+ include/linux/sched.h          |    6 ++++
+ kernel/fork.c                  |    1 
+ mm/mmap.c                      |    2 +
+ 6 files changed, 58 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
+diff -puN arch/i386/kernel/paravirt.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
 +++ a/arch/i386/kernel/paravirt.c
-@@ -605,6 +605,7 @@ struct paravirt_ops paravirt_ops = {
- 	.paravirt_enabled = 0,
- 	.kernel_rpl = 0,
- 	.shared_kernel_pmd = 1,	/* Only used when CONFIG_X86_PAE is set */
-+	.pgd_alignment = sizeof(pgd_t) * PTRS_PER_PGD,
+@@ -706,6 +706,10 @@ struct paravirt_ops paravirt_ops = {
+ 	.irq_enable_sysexit = native_irq_enable_sysexit,
+ 	.iret = native_iret,
  
-  	.patch = native_patch,
- 	.banner = default_banner,
-diff -puN arch/i386/mm/init.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
-+++ a/arch/i386/mm/init.c
-@@ -729,7 +729,7 @@ void __init pgtable_cache_init(void)
- 	}
- 	pgd_cache = kmem_cache_create("pgd",
- 				      PTRS_PER_PGD*sizeof(pgd_t),
--				      PTRS_PER_PGD*sizeof(pgd_t),
-+				      PGD_ALIGNMENT,
- 				      0, NULL, NULL);
- 	if (!pgd_cache)
- 		panic("pgtable_cache_init(): Cannot create pgd cache");
-diff -puN include/asm-i386/paravirt.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
++	.dup_mmap = (void *)native_nop,
++	.exit_mmap = (void *)native_nop,
++	.activate_mm = (void *)native_nop,
++
+ 	.startup_ipi_hook = (void *)native_nop,
+ };
+ 
+diff -puN include/asm-i386/mmu_context.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/mmu_context.h
+--- a/include/asm-i386/mmu_context.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-i386/mmu_context.h
+@@ -5,6 +5,7 @@
+ #include <asm/atomic.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
++#include <asm/paravirt.h>
+ 
+ /*
+  * Used for LDT copy/destruction.
+@@ -65,7 +66,10 @@ static inline void switch_mm(struct mm_s
+ #define deactivate_mm(tsk, mm)			\
+ 	asm("movl %0,%%gs": :"r" (0));
+ 
+-#define activate_mm(prev, next) \
+-	switch_mm((prev),(next),NULL)
++#define activate_mm(prev, next)				\
++	do {						\
++		arch_activate_mm(prev, next);		\
++		switch_mm((prev),(next),NULL);		\
++	} while(0);
+ 
+ #endif
+diff -puN include/asm-i386/paravirt.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
 +++ a/include/asm-i386/paravirt.h
-@@ -33,9 +33,12 @@ struct tss_struct;
- struct mm_struct;
- struct paravirt_ops
- {
-+ 	int paravirt_enabled;
- 	unsigned int kernel_rpl;
-+
- 	int shared_kernel_pmd;
-- 	int paravirt_enabled;
-+	int pgd_alignment;
-+
- 	const char *name;
+@@ -126,6 +126,12 @@ struct paravirt_ops
+ 	void (*io_delay)(void);
+ 	void (*const_udelay)(unsigned long loops);
  
- 	/*
-diff -puN include/asm-i386/pgtable.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
-+++ a/include/asm-i386/pgtable.h
-@@ -273,6 +273,12 @@ static inline void vmalloc_sync_all(void
- #define pte_update_defer(mm, addr, ptep)	do { } while (0)
++	void (fastcall *activate_mm)(struct mm_struct *prev,
++				     struct mm_struct *next);
++	void (fastcall *dup_mmap)(struct mm_struct *oldmm,
++				  struct mm_struct *mm);
++	void (fastcall *exit_mmap)(struct mm_struct *mm);
++
+ #ifdef CONFIG_X86_LOCAL_APIC
+ 	void (*apic_write)(unsigned long reg, unsigned long v);
+ 	void (*apic_write_atomic)(unsigned long reg, unsigned long v);
+@@ -429,6 +435,24 @@ static inline void startup_ipi_hook(int 
+ }
  #endif
  
-+#ifdef CONFIG_PARAVIRT
-+#define PGD_ALIGNMENT	(paravirt_ops.pgd_alignment)
-+#else
-+#define PGD_ALIGNMENT	(sizeof(pgd_t) * PTRS_PER_PGD)
++#define __HAVE_ARCH_MM_LIFETIME
++static inline void arch_activate_mm(struct mm_struct *prev,
++				    struct mm_struct *next)
++{
++	paravirt_ops.activate_mm(prev, next);
++}
++
++static inline void arch_dup_mmap(struct mm_struct *oldmm,
++				 struct mm_struct *mm)
++{
++	paravirt_ops.dup_mmap(oldmm, mm);
++}
++
++static inline void arch_exit_mmap(struct mm_struct *mm)
++{
++	paravirt_ops.exit_mmap(mm);
++}
++
+ #define __flush_tlb() paravirt_ops.flush_tlb_user()
+ #define __flush_tlb_global() paravirt_ops.flush_tlb_kernel()
+ #define __flush_tlb_single(addr) paravirt_ops.flush_tlb_single(addr)
+@@ -673,5 +697,20 @@ static inline void paravirt_pagetable_se
+ 	set_pgd(&base[0], base[USER_PTRS_PER_PGD]);
+ #endif
+ }
++
++static inline void paravirt_activate_mm(struct mm_struct *prev,
++					struct mm_struct *next)
++{
++}
++
++static inline void paravirt_dup_mmap(struct mm_struct *oldmm,
++				     struct mm_struct *mm)
++{
++}
++
++static inline void paravirt_exit_mmap(struct mm_struct *mm)
++{
++}
++
+ #endif /* CONFIG_PARAVIRT */
+ #endif	/* __ASM_PARAVIRT_H */
+diff -puN include/linux/sched.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction include/linux/sched.h
+--- a/include/linux/sched.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/linux/sched.h
+@@ -375,6 +375,12 @@ struct mm_struct {
+ 	struct kioctx		*ioctx_list;
+ };
+ 
++#ifndef __HAVE_ARCH_MM_LIFETIME
++#define arch_activate_mm(prev, next)	do {} while(0)
++#define arch_dup_mmap(oldmm, mm)	do {} while(0)
++#define arch_exit_mmap(mm)		do {} while(0)
 +#endif
 +
- /*
-  * We only update the dirty/accessed state if we set
-  * the dirty bit by hand in the kernel, since the hardware
+ struct sighand_struct {
+ 	atomic_t		count;
+ 	struct k_sigaction	action[_NSIG];
+diff -puN kernel/fork.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction kernel/fork.c
+--- a/kernel/fork.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/kernel/fork.c
+@@ -287,6 +287,7 @@ static inline int dup_mmap(struct mm_str
+ 		if (retval)
+ 			goto out;
+ 	}
++	arch_dup_mmap(oldmm, mm);
+ 	retval = 0;
+ out:
+ 	up_write(&mm->mmap_sem);
+diff -puN mm/mmap.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction mm/mmap.c
+--- a/mm/mmap.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/mm/mmap.c
+@@ -1977,6 +1977,8 @@ void exit_mmap(struct mm_struct *mm)
+ 	unsigned long nr_accounted = 0;
+ 	unsigned long end;
+ 
++	arch_exit_mmap(mm);
++
+ 	lru_add_drain();
+ 	flush_cache_mm(mm);
+ 	tlb = tlb_gather_mmu(mm, 1);
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
 
-xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment.patch
 xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction.patch
 xen-paravirt-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
 xen-paravirt-allocate-and-free-vmalloc-areas.patch
