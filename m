@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bridge-eliminate-port_check-workqueue.patch added to -mm tree
-Date: Wed, 21 Feb 2007 16:47:02 -0800
-Message-ID: <200702220047.l1M0l2Ae031748@shell0.pdx.osdl.net>
+Subject: + type-cast-clean-up-for-find_next_zero_bit.patch added to -mm tree
+Date: Wed, 21 Feb 2007 16:49:35 -0800
+Message-ID: <200702220049.l1M0nZOa031903@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60076 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60170 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751374AbXBVArO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 19:47:14 -0500
+	id S1751350AbXBVAtj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 19:49:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, oleg@tv-sign.ru
+Cc: kenchen@google.com
 
 
 The patch titled
-     bridge: eliminate port_check workqueue
+     type cast clean up for find_next_zero_bit
 has been added to the -mm tree.  Its filename is
-     bridge-eliminate-port_check-workqueue.patch
+     type-cast-clean-up-for-find_next_zero_bit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,202 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bridge: eliminate port_check workqueue
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: type cast clean up for find_next_zero_bit
+From: "Ken Chen" <kenchen@google.com>
 
-For testing purposes
+clean up unneeded type cast by properly declare data type.
 
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Ken Chen <kenchen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_if.c      |   32 +++++++-------------------------
- net/bridge/br_notify.c  |   25 +++++++++++--------------
- net/bridge/br_private.h |    5 ++---
- 3 files changed, 20 insertions(+), 42 deletions(-)
+ arch/i386/lib/bitops.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/bridge/br_if.c~bridge-eliminate-port_check-workqueue net/bridge/br_if.c
---- a/net/bridge/br_if.c~bridge-eliminate-port_check-workqueue
-+++ a/net/bridge/br_if.c
-@@ -77,26 +77,15 @@ static int port_cost(struct net_device *
-  * Called from work queue to allow for calling functions that
-  * might sleep (such as speed check), and to debounce.
+diff -puN arch/i386/lib/bitops.c~type-cast-clean-up-for-find_next_zero_bit arch/i386/lib/bitops.c
+--- a/arch/i386/lib/bitops.c~type-cast-clean-up-for-find_next_zero_bit
++++ a/arch/i386/lib/bitops.c
+@@ -43,7 +43,7 @@ EXPORT_SYMBOL(find_next_bit);
   */
--static void port_carrier_check(struct work_struct *work)
-+void br_port_carrier_check(struct net_bridge_port *p)
+ int find_next_zero_bit(const unsigned long *addr, int size, int offset)
  {
--	struct net_bridge_port *p;
--	struct net_device *dev;
--	struct net_bridge *br;
--
--	dev = container_of(work, struct net_bridge_port,
--			   carrier_check.work)->dev;
--	work_release(work);
--
--	rtnl_lock();
--	p = dev->br_port;
--	if (!p)
--		goto done;
--	br = p->br;
-+	struct net_device *dev = p->dev;
-+	struct net_bridge *br = p->br;
+-	unsigned long * p = ((unsigned long *) addr) + (offset >> 5);
++	const unsigned long *p = addr + (offset >> 5);
+ 	int set = 0, bit = offset & 31, res;
  
- 	if (netif_carrier_ok(dev))
- 		p->path_cost = port_cost(dev);
- 
--	if (br->dev->flags & IFF_UP) {
-+	if (netif_running(br->dev)) {
- 		spin_lock_bh(&br->lock);
- 		if (netif_carrier_ok(dev)) {
- 			if (p->state == BR_STATE_DISABLED)
-@@ -107,9 +96,6 @@ static void port_carrier_check(struct wo
- 		}
- 		spin_unlock_bh(&br->lock);
- 	}
--done:
--	dev_put(dev);
--	rtnl_unlock();
+ 	if (bit) {
+@@ -64,7 +64,7 @@ int find_next_zero_bit(const unsigned lo
+ 	/*
+ 	 * No zero yet, search remaining full bytes for a zero
+ 	 */
+-	res = find_first_zero_bit (p, size - 32 * (p - (unsigned long *) addr));
++	res = find_first_zero_bit(p, size - 32 * (p - addr));
+ 	return (offset + set + res);
  }
- 
- static void release_nbp(struct kobject *kobj)
-@@ -162,9 +148,6 @@ static void del_nbp(struct net_bridge_po
- 
- 	dev_set_promiscuity(dev, -1);
- 
--	if (cancel_delayed_work(&p->carrier_check))
--		dev_put(dev);
--
- 	spin_lock_bh(&br->lock);
- 	br_stp_disable_port(p);
- 	spin_unlock_bh(&br->lock);
-@@ -282,7 +265,6 @@ static struct net_bridge_port *new_nbp(s
- 	p->port_no = index;
- 	br_init_port(p);
- 	p->state = BR_STATE_DISABLED;
--	INIT_DELAYED_WORK_NAR(&p->carrier_check, port_carrier_check);
- 	br_stp_port_timer_init(p);
- 
- 	kobject_init(&p->kobj);
-@@ -446,12 +428,12 @@ int br_add_if(struct net_bridge *br, str
- 	spin_lock_bh(&br->lock);
- 	br_stp_recalculate_bridge_id(br);
- 	br_features_recompute(br);
--	if (schedule_delayed_work(&p->carrier_check, BR_PORT_DEBOUNCE))
--		dev_hold(dev);
--
- 	spin_unlock_bh(&br->lock);
- 
- 	dev_set_mtu(br->dev, br_min_mtu(br));
-+
-+	br_port_carrier_check(p);
-+
- 	kobject_uevent(&p->kobj, KOBJ_ADD);
- 
- 	return 0;
-diff -puN net/bridge/br_notify.c~bridge-eliminate-port_check-workqueue net/bridge/br_notify.c
---- a/net/bridge/br_notify.c~bridge-eliminate-port_check-workqueue
-+++ a/net/bridge/br_notify.c
-@@ -42,51 +42,48 @@ static int br_device_event(struct notifi
- 
- 	br = p->br;
- 
--	spin_lock_bh(&br->lock);
- 	switch (event) {
- 	case NETDEV_CHANGEMTU:
- 		dev_set_mtu(br->dev, br_min_mtu(br));
- 		break;
- 
- 	case NETDEV_CHANGEADDR:
-+		spin_lock_bh(&br->lock);
- 		br_fdb_changeaddr(p, dev->dev_addr);
- 		br_ifinfo_notify(RTM_NEWLINK, p);
- 		br_stp_recalculate_bridge_id(br);
-+		spin_unlock_bh(&br->lock);
- 		break;
- 
- 	case NETDEV_CHANGE:
--		if (br->dev->flags & IFF_UP)
--			if (schedule_delayed_work(&p->carrier_check,
--						BR_PORT_DEBOUNCE))
--				dev_hold(dev);
-+		br_port_carrier_check(p);
- 		break;
- 
- 	case NETDEV_FEAT_CHANGE:
--		if (br->dev->flags & IFF_UP)
-+		spin_lock_bh(&br->lock);
-+		if (netif_running(br->dev))
- 			br_features_recompute(br);
--
--		/* could do recursive feature change notification
--		 * but who would care??
--		 */
-+		spin_unlock_bh(&br->lock);
- 		break;
- 
- 	case NETDEV_DOWN:
-+		spin_lock_bh(&br->lock);
- 		if (br->dev->flags & IFF_UP)
- 			br_stp_disable_port(p);
-+		spin_unlock_bh(&br->lock);
- 		break;
- 
- 	case NETDEV_UP:
-+		spin_lock_bh(&br->lock);
- 		if (netif_carrier_ok(dev) && (br->dev->flags & IFF_UP))
- 			br_stp_enable_port(p);
-+		spin_unlock_bh(&br->lock);
- 		break;
- 
- 	case NETDEV_UNREGISTER:
--		spin_unlock_bh(&br->lock);
- 		br_del_if(br, dev);
--		goto done;
-+		break;
- 	}
--	spin_unlock_bh(&br->lock);
- 
-- done:
- 	return NOTIFY_DONE;
- }
-diff -puN net/bridge/br_private.h~bridge-eliminate-port_check-workqueue net/bridge/br_private.h
---- a/net/bridge/br_private.h~bridge-eliminate-port_check-workqueue
-+++ a/net/bridge/br_private.h
-@@ -16,7 +16,6 @@
- #define _BR_PRIVATE_H
- 
- #include <linux/netdevice.h>
--#include <linux/miscdevice.h>
- #include <linux/if_bridge.h>
- 
- #define BR_HASH_BITS 8
-@@ -29,7 +28,7 @@
- 
- #define BR_PORT_DEBOUNCE (HZ/10)
- 
--#define BR_VERSION	"2.2"
-+#define BR_VERSION	"2.3"
- 
- typedef struct bridge_id bridge_id;
- typedef struct mac_addr mac_addr;
-@@ -82,7 +81,6 @@ struct net_bridge_port
- 	struct timer_list		hold_timer;
- 	struct timer_list		message_age_timer;
- 	struct kobject			kobj;
--	struct delayed_work		carrier_check;
- 	struct rcu_head			rcu;
- };
- 
-@@ -173,6 +171,7 @@ extern void br_flood_forward(struct net_
- 		      int clone);
- 
- /* br_if.c */
-+extern void br_port_carrier_check(struct net_bridge_port *p);
- extern int br_add_bridge(const char *name);
- extern int br_del_bridge(const char *name);
- extern void br_cleanup_bridges(void);
+ EXPORT_SYMBOL(find_next_zero_bit);
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from kenchen@google.com are
 
-bridge-eliminate-port_check-workqueue.patch
+type-cast-clean-up-for-find_next_zero_bit.patch
