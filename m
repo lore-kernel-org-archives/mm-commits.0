@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + devpts-add-fsnotify-create-event.patch added to -mm tree
-Date: Wed, 21 Feb 2007 16:53:02 -0800
-Message-ID: <200702220053.l1M0r2BY032000@shell0.pdx.osdl.net>
+Subject: + slab-ensure-cache_alloc_refill-terminates.patch added to -mm tree
+Date: Wed, 21 Feb 2007 16:55:50 -0800
+Message-ID: <200702220055.l1M0toeW032057@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60268 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60364 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751375AbXBVAxE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 19:53:04 -0500
+	id S932780AbXBVA4M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 19:56:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fmalita@gmail.com
+Cc: penberg@cs.helsinki.fi, clameter@sgi.com, mcr@sandelman.ca
 
 
 The patch titled
-     devpts: add fsnotify create event
+     slab: ensure cache_alloc_refill terminates
 has been added to the -mm tree.  Its filename is
-     devpts-add-fsnotify-create-event.patch
+     slab-ensure-cache_alloc_refill-terminates.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: devpts: add fsnotify create event
-From: Florin Malita <fmalita@gmail.com>
+Subject: slab: ensure cache_alloc_refill terminates
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Currently, devpts doesn't generate an fsnotify event upon pts creation
-because the regular vfs paths aren't involved.  Deallocation, on the other
-hand, correctly generates a nameremove event thanks to the d_delete()
-invocation in devpts_pty_kill().
+If slab->inuse is corrupted, cache_alloc_refill can enter an infinite
+loop as detailed by Michael Richardson in the following post:
+<http://lkml.org/lkml/2007/2/16/292>. This adds a BUG_ON to catch
+those cases.
 
-This patch adds the missing fsnotify_create() trigger in devpts_pty_new().
-
-Signed-off-by: Florin Malita <fmalita@gmail.com>
+Cc: Michael Richardson <mcr@sandelman.ca>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ mm/slab.c |    8 ++++++++
+ 1 files changed, 8 insertions(+)
 
-diff -puN fs/devpts/inode.c~devpts-add-fsnotify-create-event fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-add-fsnotify-create-event
-+++ a/fs/devpts/inode.c
-@@ -19,6 +19,7 @@
- #include <linux/tty.h>
- #include <linux/devpts_fs.h>
- #include <linux/parser.h>
-+#include <linux/fsnotify.h>
- 
- #define DEVPTS_SUPER_MAGIC 0x1cd1
- 
-@@ -178,8 +179,10 @@ int devpts_pty_new(struct tty_struct *tt
- 	inode->i_private = tty;
- 
- 	dentry = get_node(number);
--	if (!IS_ERR(dentry) && !dentry->d_inode)
-+	if (!IS_ERR(dentry) && !dentry->d_inode) {
- 		d_instantiate(dentry, inode);
-+		fsnotify_create(devpts_root->d_inode, dentry);
-+	}
- 
- 	mutex_unlock(&devpts_root->d_inode->i_mutex);
- 
+diff -puN mm/slab.c~slab-ensure-cache_alloc_refill-terminates mm/slab.c
+--- a/mm/slab.c~slab-ensure-cache_alloc_refill-terminates
++++ a/mm/slab.c
+@@ -2987,6 +2987,14 @@ retry:
+ 		slabp = list_entry(entry, struct slab, list);
+ 		check_slabp(cachep, slabp);
+ 		check_spinlock_acquired(cachep);
++
++		/*
++		 * The slab was either on partial or free list so
++		 * there must be at least one object available for
++		 * allocation.
++		 */
++		BUG_ON(slabp->inuse < 0 || slabp->inuse >= cachep->num);
++
+ 		while (slabp->inuse < cachep->num && batchcount--) {
+ 			STATS_INC_ALLOCED(cachep);
+ 			STATS_INC_ACTIVE(cachep);
 _
 
-Patches currently in -mm which might be from fmalita@gmail.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
-devpts-add-fsnotify-create-event.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+slab-use-cpu_lock_.patch
+slab-leaks3-default-y.patch
