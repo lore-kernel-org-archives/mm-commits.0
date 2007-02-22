@@ -1,31 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 18:36:15 -0800
-Message-ID: <200702220236.l1M2aFN8002003@shell0.pdx.osdl.net>
+Subject: - xen-paravirt-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 18:36:18 -0800
+Message-ID: <200702220236.l1M2aIw8002008@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34273 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34287 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751420AbXBVChJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 21:37:09 -0500
+	id S1751421AbXBVChX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 21:37:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, Christian.Limpach@cl.cam.ac.uk, ak@suse.de, chrisw@sous-sol.org, ian.pratt@xensource.com, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Xen-paravirt: add hooks to intercept mm creation and destruction
+     Xen-paravirt: add apply_to_page_range() which applies a function to a pte range
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction.patch
+     xen-paravirt-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Xen-paravirt: add hooks to intercept mm creation and destruction
+Subject: Xen-paravirt: add apply_to_page_range() which applies a function to a pte range
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Add hooks to allow a paravirt implementation to track the lifetime of an mm.
+Add a new mm function apply_to_page_range() which applies a given function to
+every pte in a given virtual address range in a given mm structure.  This is a
+generic alternative to cut-and-pasting the Linux idiomatic pagetable walking
+code in every place that a sequence of PTEs must be accessed.
 
+Although this interface is intended to be useful in a wide range of
+situations, it is currently used specifically by several Xen subsystems, for
+example: to ensure that pagetables have been allocated for a virtual address
+range, and to construct batched special pagetable update requests to map I/O
+memory (in ioremap()).
+
+Signed-off-by: Ian Pratt <ian.pratt@xensource.com>
+Signed-off-by: Christian Limpach <Christian.Limpach@cl.cam.ac.uk>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Zachary Amsden <zach@vmware.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
@@ -34,158 +46,133 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c    |    4 +++
- include/asm-i386/mmu_context.h |    8 ++++--
- include/asm-i386/paravirt.h    |   39 +++++++++++++++++++++++++++++++
- include/linux/sched.h          |    6 ++++
- kernel/fork.c                  |    1 
- mm/mmap.c                      |    2 +
- 6 files changed, 58 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    5 ++
+ mm/memory.c        |   94 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 99 insertions(+)
 
-diff -puN arch/i386/kernel/paravirt.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/arch/i386/kernel/paravirt.c
-@@ -706,6 +706,10 @@ struct paravirt_ops paravirt_ops = {
- 	.irq_enable_sysexit = native_irq_enable_sysexit,
- 	.iret = native_iret,
+diff -puN include/linux/mm.h~xen-paravirt-add-apply_to_page_range-which-applies-a-function-to-a-pte-range include/linux/mm.h
+--- a/include/linux/mm.h~xen-paravirt-add-apply_to_page_range-which-applies-a-function-to-a-pte-range
++++ a/include/linux/mm.h
+@@ -1135,6 +1135,11 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_GET	0x04	/* do get_page on page */
+ #define FOLL_ANON	0x08	/* give ZERO_PAGE if no pgtable */
  
-+	.dup_mmap = (void *)native_nop,
-+	.exit_mmap = (void *)native_nop,
-+	.activate_mm = (void *)native_nop,
++typedef int (*pte_fn_t)(pte_t *pte, struct page *pmd_page, unsigned long addr,
++			void *data);
++extern int apply_to_page_range(struct mm_struct *mm, unsigned long address,
++			       unsigned long size, pte_fn_t fn, void *data);
 +
- 	.startup_ipi_hook = (void *)native_nop,
- };
+ #ifdef CONFIG_PROC_FS
+ void vm_stat_account(struct mm_struct *, unsigned long, struct file *, long);
+ #else
+diff -puN mm/memory.c~xen-paravirt-add-apply_to_page_range-which-applies-a-function-to-a-pte-range mm/memory.c
+--- a/mm/memory.c~xen-paravirt-add-apply_to_page_range-which-applies-a-function-to-a-pte-range
++++ a/mm/memory.c
+@@ -1448,6 +1448,100 @@ int remap_pfn_range(struct vm_area_struc
+ }
+ EXPORT_SYMBOL(remap_pfn_range);
  
-diff -puN include/asm-i386/mmu_context.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/mmu_context.h
---- a/include/asm-i386/mmu_context.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-i386/mmu_context.h
-@@ -5,6 +5,7 @@
- #include <asm/atomic.h>
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
-+#include <asm/paravirt.h>
- 
++static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
++				     unsigned long addr, unsigned long end,
++				     pte_fn_t fn, void *data)
++{
++	pte_t *pte;
++	int err;
++	struct page *pmd_page;
++	spinlock_t *ptl;
++
++	pte = (mm == &init_mm) ?
++		pte_alloc_kernel(pmd, addr) :
++		pte_alloc_map_lock(mm, pmd, addr, &ptl);
++	if (!pte)
++		return -ENOMEM;
++
++	BUG_ON(pmd_huge(*pmd));
++
++	pmd_page = pmd_page(*pmd);
++
++	do {
++		err = fn(pte, pmd_page, addr, data);
++		if (err)
++			break;
++	} while (pte++, addr += PAGE_SIZE, addr != end);
++
++	if (mm != &init_mm)
++		pte_unmap_unlock(pte-1, ptl);
++	return err;
++}
++
++static int apply_to_pmd_range(struct mm_struct *mm, pud_t *pud,
++				     unsigned long addr, unsigned long end,
++				     pte_fn_t fn, void *data)
++{
++	pmd_t *pmd;
++	unsigned long next;
++	int err;
++
++	pmd = pmd_alloc(mm, pud, addr);
++	if (!pmd)
++		return -ENOMEM;
++	do {
++		next = pmd_addr_end(addr, end);
++		err = apply_to_pte_range(mm, pmd, addr, next, fn, data);
++		if (err)
++			break;
++	} while (pmd++, addr = next, addr != end);
++	return err;
++}
++
++static int apply_to_pud_range(struct mm_struct *mm, pgd_t *pgd,
++				     unsigned long addr, unsigned long end,
++				     pte_fn_t fn, void *data)
++{
++	pud_t *pud;
++	unsigned long next;
++	int err;
++
++	pud = pud_alloc(mm, pgd, addr);
++	if (!pud)
++		return -ENOMEM;
++	do {
++		next = pud_addr_end(addr, end);
++		err = apply_to_pmd_range(mm, pud, addr, next, fn, data);
++		if (err)
++			break;
++	} while (pud++, addr = next, addr != end);
++	return err;
++}
++
++/*
++ * Scan a region of virtual memory, filling in page tables as necessary
++ * and calling a provided function on each leaf page table.
++ */
++int apply_to_page_range(struct mm_struct *mm, unsigned long addr,
++			unsigned long size, pte_fn_t fn, void *data)
++{
++	pgd_t *pgd;
++	unsigned long next;
++	unsigned long end = addr + size;
++	int err;
++
++	BUG_ON(addr >= end);
++	pgd = pgd_offset(mm, addr);
++	do {
++		next = pgd_addr_end(addr, end);
++		err = apply_to_pud_range(mm, pgd, addr, next, fn, data);
++		if (err)
++			break;
++	} while (pgd++, addr = next, addr != end);
++	return err;
++}
++EXPORT_SYMBOL_GPL(apply_to_page_range);
++
  /*
-  * Used for LDT copy/destruction.
-@@ -65,7 +66,10 @@ static inline void switch_mm(struct mm_s
- #define deactivate_mm(tsk, mm)			\
- 	asm("movl %0,%%gs": :"r" (0));
- 
--#define activate_mm(prev, next) \
--	switch_mm((prev),(next),NULL)
-+#define activate_mm(prev, next)				\
-+	do {						\
-+		arch_activate_mm(prev, next);		\
-+		switch_mm((prev),(next),NULL);		\
-+	} while(0);
- 
- #endif
-diff -puN include/asm-i386/paravirt.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-i386/paravirt.h
-@@ -126,6 +126,12 @@ struct paravirt_ops
- 	void (*io_delay)(void);
- 	void (*const_udelay)(unsigned long loops);
- 
-+	void (fastcall *activate_mm)(struct mm_struct *prev,
-+				     struct mm_struct *next);
-+	void (fastcall *dup_mmap)(struct mm_struct *oldmm,
-+				  struct mm_struct *mm);
-+	void (fastcall *exit_mmap)(struct mm_struct *mm);
-+
- #ifdef CONFIG_X86_LOCAL_APIC
- 	void (*apic_write)(unsigned long reg, unsigned long v);
- 	void (*apic_write_atomic)(unsigned long reg, unsigned long v);
-@@ -429,6 +435,24 @@ static inline void startup_ipi_hook(int 
- }
- #endif
- 
-+#define __HAVE_ARCH_MM_LIFETIME
-+static inline void arch_activate_mm(struct mm_struct *prev,
-+				    struct mm_struct *next)
-+{
-+	paravirt_ops.activate_mm(prev, next);
-+}
-+
-+static inline void arch_dup_mmap(struct mm_struct *oldmm,
-+				 struct mm_struct *mm)
-+{
-+	paravirt_ops.dup_mmap(oldmm, mm);
-+}
-+
-+static inline void arch_exit_mmap(struct mm_struct *mm)
-+{
-+	paravirt_ops.exit_mmap(mm);
-+}
-+
- #define __flush_tlb() paravirt_ops.flush_tlb_user()
- #define __flush_tlb_global() paravirt_ops.flush_tlb_kernel()
- #define __flush_tlb_single(addr) paravirt_ops.flush_tlb_single(addr)
-@@ -673,5 +697,20 @@ static inline void paravirt_pagetable_se
- 	set_pgd(&base[0], base[USER_PTRS_PER_PGD]);
- #endif
- }
-+
-+static inline void paravirt_activate_mm(struct mm_struct *prev,
-+					struct mm_struct *next)
-+{
-+}
-+
-+static inline void paravirt_dup_mmap(struct mm_struct *oldmm,
-+				     struct mm_struct *mm)
-+{
-+}
-+
-+static inline void paravirt_exit_mmap(struct mm_struct *mm)
-+{
-+}
-+
- #endif /* CONFIG_PARAVIRT */
- #endif	/* __ASM_PARAVIRT_H */
-diff -puN include/linux/sched.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction include/linux/sched.h
---- a/include/linux/sched.h~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/linux/sched.h
-@@ -375,6 +375,12 @@ struct mm_struct {
- 	struct kioctx		*ioctx_list;
- };
- 
-+#ifndef __HAVE_ARCH_MM_LIFETIME
-+#define arch_activate_mm(prev, next)	do {} while(0)
-+#define arch_dup_mmap(oldmm, mm)	do {} while(0)
-+#define arch_exit_mmap(mm)		do {} while(0)
-+#endif
-+
- struct sighand_struct {
- 	atomic_t		count;
- 	struct k_sigaction	action[_NSIG];
-diff -puN kernel/fork.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction kernel/fork.c
---- a/kernel/fork.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/kernel/fork.c
-@@ -287,6 +287,7 @@ static inline int dup_mmap(struct mm_str
- 		if (retval)
- 			goto out;
- 	}
-+	arch_dup_mmap(oldmm, mm);
- 	retval = 0;
- out:
- 	up_write(&mm->mmap_sem);
-diff -puN mm/mmap.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction mm/mmap.c
---- a/mm/mmap.c~xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/mm/mmap.c
-@@ -1977,6 +1977,8 @@ void exit_mmap(struct mm_struct *mm)
- 	unsigned long nr_accounted = 0;
- 	unsigned long end;
- 
-+	arch_exit_mmap(mm);
-+
- 	lru_add_drain();
- 	flush_cache_mm(mm);
- 	tlb = tlb_gather_mmu(mm, 1);
+  * handle_pte_fault chooses page fault handler according to an entry
+  * which was read non-atomically.  Before making any commitment, on
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
 
-xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction.patch
 xen-paravirt-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
 xen-paravirt-allocate-and-free-vmalloc-areas.patch
 xen-paravirt-add-nosegneg-capability-to-the-vsyscall-page-notes.patch
