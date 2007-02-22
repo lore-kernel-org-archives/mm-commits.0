@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - cleanup-make-hvc_consolec-compile-on-non-powerpc.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 18:42:17 -0800
-Message-ID: <200702220242.l1M2gHsd002179@shell0.pdx.osdl.net>
+Subject: + cleanup-make-hvc_consolec-compile-on-non-powerpc.patch added to -mm tree
+Date: Wed, 21 Feb 2007 18:43:14 -0800
+Message-ID: <200702220243.l1M2hEDw002197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34398 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34408 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751400AbXBVCmY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 21:42:24 -0500
+	id S1751438AbXBVCnV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 21:43:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rusty@rustcorp.com.au, ak@suse.de
 
 
 The patch titled
      cleanup: Make hvc_console.c compile on non-PowerPC
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      cleanup-make-hvc_consolec-compile-on-non-powerpc.patch
 
-This patch was dropped because it's reappeared in the Xen patches too
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: cleanup: Make hvc_console.c compile on non-PowerPC
@@ -56,8 +60,8 @@ _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-cleanup-initialize-esp0-properly-all-the-time.patch
 cleanup-make-hvc_consolec-compile-on-non-powerpc.patch
+cleanup-initialize-esp0-properly-all-the-time.patch
 lguest-preparation-export_symbol_gpl-5-functions.patch
 lguest-preparation-expose-futex-infrastructure.patch
 lguest-kconfig-and-headers.patch
