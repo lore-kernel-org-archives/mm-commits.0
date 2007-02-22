@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-move-kvm_vm_ioctl_create_vcpu-around.patch added to -mm tree
-Date: Wed, 21 Feb 2007 18:21:01 -0800
-Message-ID: <200702220221.l1M2L1kR001698@shell0.pdx.osdl.net>
+Subject: + kvm-bump-api-version.patch added to -mm tree
+Date: Wed, 21 Feb 2007 18:21:05 -0800
+Message-ID: <200702220221.l1M2L5C3001708@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33958 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33965 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751383AbXBVCVE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 21:21:04 -0500
+	id S1751381AbXBVCVH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 21:21:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: avi@qumranet.com
 
 
 The patch titled
-     kvm: move kvm_vm_ioctl_create_vcpu() around
+     kvm: bump API version
 has been added to the -mm tree.  Its filename is
-     kvm-move-kvm_vm_ioctl_create_vcpu-around.patch
+     kvm-bump-api-version.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,137 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kvm: move kvm_vm_ioctl_create_vcpu() around
+Subject: kvm: bump API version
 From: Avi Kivity <avi@qumranet.com>
-
-In preparation of some hacking.
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm_main.c |  102 +++++++++++++++++++--------------------
- 1 file changed, 51 insertions(+), 51 deletions(-)
+ include/linux/kvm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-move-kvm_vm_ioctl_create_vcpu-around drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-move-kvm_vm_ioctl_create_vcpu-around
-+++ a/drivers/kvm/kvm_main.c
-@@ -599,57 +599,6 @@ void fx_init(struct kvm_vcpu *vcpu)
- EXPORT_SYMBOL_GPL(fx_init);
+diff -puN include/linux/kvm.h~kvm-bump-api-version include/linux/kvm.h
+--- a/include/linux/kvm.h~kvm-bump-api-version
++++ a/include/linux/kvm.h
+@@ -11,7 +11,7 @@
+ #include <asm/types.h>
+ #include <linux/ioctl.h>
+ 
+-#define KVM_API_VERSION 3
++#define KVM_API_VERSION 4
  
  /*
-- * Creates some virtual cpus.  Good luck creating more than one.
-- */
--static int kvm_vm_ioctl_create_vcpu(struct kvm *kvm, int n)
--{
--	int r;
--	struct kvm_vcpu *vcpu;
--
--	r = -EINVAL;
--	if (!valid_vcpu(n))
--		goto out;
--
--	vcpu = &kvm->vcpus[n];
--
--	mutex_lock(&vcpu->mutex);
--
--	if (vcpu->vmcs) {
--		mutex_unlock(&vcpu->mutex);
--		return -EEXIST;
--	}
--
--	vcpu->host_fx_image = (char*)ALIGN((hva_t)vcpu->fx_buf,
--					   FX_IMAGE_ALIGN);
--	vcpu->guest_fx_image = vcpu->host_fx_image + FX_IMAGE_SIZE;
--
--	r = kvm_arch_ops->vcpu_create(vcpu);
--	if (r < 0)
--		goto out_free_vcpus;
--
--	r = kvm_mmu_create(vcpu);
--	if (r < 0)
--		goto out_free_vcpus;
--
--	kvm_arch_ops->vcpu_load(vcpu);
--	r = kvm_mmu_setup(vcpu);
--	if (r >= 0)
--		r = kvm_arch_ops->vcpu_setup(vcpu);
--	vcpu_put(vcpu);
--
--	if (r < 0)
--		goto out_free_vcpus;
--
--	return 0;
--
--out_free_vcpus:
--	kvm_free_vcpu(vcpu);
--	mutex_unlock(&vcpu->mutex);
--out:
--	return r;
--}
--
--/*
-  * Allocate some memory and give it an address in the guest physical address
-  * space.
-  *
-@@ -1964,6 +1913,57 @@ static int kvm_vm_ioctl_debug_guest(stru
- 	return r;
- }
- 
-+/*
-+ * Creates some virtual cpus.  Good luck creating more than one.
-+ */
-+static int kvm_vm_ioctl_create_vcpu(struct kvm *kvm, int n)
-+{
-+	int r;
-+	struct kvm_vcpu *vcpu;
-+
-+	r = -EINVAL;
-+	if (!valid_vcpu(n))
-+		goto out;
-+
-+	vcpu = &kvm->vcpus[n];
-+
-+	mutex_lock(&vcpu->mutex);
-+
-+	if (vcpu->vmcs) {
-+		mutex_unlock(&vcpu->mutex);
-+		return -EEXIST;
-+	}
-+
-+	vcpu->host_fx_image = (char*)ALIGN((hva_t)vcpu->fx_buf,
-+					   FX_IMAGE_ALIGN);
-+	vcpu->guest_fx_image = vcpu->host_fx_image + FX_IMAGE_SIZE;
-+
-+	r = kvm_arch_ops->vcpu_create(vcpu);
-+	if (r < 0)
-+		goto out_free_vcpus;
-+
-+	r = kvm_mmu_create(vcpu);
-+	if (r < 0)
-+		goto out_free_vcpus;
-+
-+	kvm_arch_ops->vcpu_load(vcpu);
-+	r = kvm_mmu_setup(vcpu);
-+	if (r >= 0)
-+		r = kvm_arch_ops->vcpu_setup(vcpu);
-+	vcpu_put(vcpu);
-+
-+	if (r < 0)
-+		goto out_free_vcpus;
-+
-+	return 0;
-+
-+out_free_vcpus:
-+	kvm_free_vcpu(vcpu);
-+	mutex_unlock(&vcpu->mutex);
-+out:
-+	return r;
-+}
-+
- static long kvm_vm_ioctl(struct file *filp,
- 			 unsigned int ioctl, unsigned long arg)
- {
+  * Architectural interrupt line count, and the size of the bitmap needed
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
