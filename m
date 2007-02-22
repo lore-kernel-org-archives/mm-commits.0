@@ -1,133 +1,265 @@
 From: akpm@linux-foundation.org
-Subject: - cciss-add-reboot-notifier-support-to-driver.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 19:35:40 -0800
-Message-ID: <200702220335.l1M3Zeec003369@shell0.pdx.osdl.net>
+Subject: + ext-ea-block-reference-count-racing-fix.patch added to -mm tree
+Date: Wed, 21 Feb 2007 19:41:17 -0800
+Message-ID: <200702220341.l1M3fHNr003499__44021.126550115$1172115697$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35705 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35723 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751493AbXBVDi4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 22:38:56 -0500
+	id S1751495AbXBVDlY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 22:41:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikem@beardog.cca.cpqcorp.net, mike.miller@hp.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: cmm@us.ibm.com, agruen@suse.de, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     cciss: add reboot notifier support to driver
-has been removed from the -mm tree.  Its filename was
-     cciss-add-reboot-notifier-support-to-driver.patch
+     ext[34]" EA block reference count racing fix
+has been added to the -mm tree.  Its filename is
+     ext-ea-block-reference-count-racing-fix.patch
 
-This patch was dropped because it was nacked by the maintainer
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: cciss: add reboot notifier support to driver
-From: "Mike Miller (OS Dev)" <mikem@beardog.cca.cpqcorp.net>
+Subject: ext[34]" EA block reference count racing fix
+From: Mingming Cao <cmm@us.ibm.com>
 
-This patch adds reboot_notifier support to cciss.  Changes in firmware make
-this patch essential.  Without this patch there may be valid data left in the
-controller's battery backed write cache (BBWC) on shutdown.  We found out the
-hard way that the kernel does not call our cleanup routines on shutdown or
-reboot.  It seems that only rmmod calls the cleanup.  Please consider this for
-inclusion.
+There are race issues around ext[34] xattr block release code.
 
-Signed-off-by: Mike Miller <mike.miller@hp.com
+ext[34]_xattr_release_block() checks the reference count of xattr block
+(h_refcount) and frees that xattr block if it is the last one reference it.
+ Unlike ext2, the check of this counter is unprotected by any lock. 
+ext[34]_xattr_release_block() will free the mb_cache entry before freeing
+that xattr block.  There is a small window between the check for the re
+h_refcount ==1 and the call to mb_cache_entry_free().  During this small
+window another inode might find this xattr block from the mbcache and reuse
+it, racing a refcount updates.  The xattr block will later be freed by the
+first inode without notice other inode is still use it.  Later if that
+block is reallocated as a datablock for other file, then more serious
+problem might happen.
+
+We need put a lock around places checking the refount as well to avoid
+racing issue.  Another place need this kind of protection is in
+ext3_xattr_block_set(), where it will modify the xattr block content in-
+the-fly if the refcount is 1 (means it's the only inode reference it).
+
+This will also fix another issue: the xattr block may not get freed at all
+if no lock is to protect the refcount check at the release time.  It is
+possible that the last two inodes could release the shared xattr block at
+the same time.  But both of them think they are not the last one so only
+decreased the h_refcount without freeing xattr block at all.
+
+We need to call lock_buffer() after ext3_journal_get_write_access() to
+avoid deadlock (because the later will call lock_buffer()/unlock_buffer
+() as well).
+
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Cc: Andreas Gruenbacher <agruen@suse.de>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   42 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ fs/ext3/xattr.c |   42 ++++++++++++++++++++++++++----------------
+ fs/ext4/xattr.c |   41 +++++++++++++++++++++++++----------------
+ 2 files changed, 51 insertions(+), 32 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-add-reboot-notifier-support-to-driver drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-add-reboot-notifier-support-to-driver
-+++ a/drivers/block/cciss.c
-@@ -45,6 +45,7 @@
- #include <linux/blkdev.h>
- #include <linux/genhd.h>
- #include <linux/completion.h>
-+#include <linux/reboot.h>
+diff -puN fs/ext3/xattr.c~ext-ea-block-reference-count-racing-fix fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~ext-ea-block-reference-count-racing-fix
++++ a/fs/ext3/xattr.c
+@@ -475,8 +475,15 @@ ext3_xattr_release_block(handle_t *handl
+ 			 struct buffer_head *bh)
+ {
+ 	struct mb_cache_entry *ce = NULL;
++	int error = 0;
  
- #define CCISS_DRIVER_VERSION(maj,min,submin) ((maj<<16)|(min<<8)|(submin))
- #define DRIVER_NAME "HP CISS Driver (v 3.6.14)"
-@@ -132,6 +133,7 @@ static struct board_type products[] = {
- #define MAX_CTLR_ORIG 	8
- 
- static ctlr_info_t *hba[MAX_CTLR];
-+static int notify_count;
- 
- static void do_cciss_request(request_queue_t *q);
- static irqreturn_t do_cciss_intr(int irq, void *dev_id);
-@@ -142,6 +144,8 @@ static int cciss_ioctl(struct inode *ino
- static int cciss_getgeo(struct block_device *bdev, struct hd_geometry *geo);
- 
- static int cciss_revalidate(struct gendisk *disk);
-+static int cciss_notify_reboot(struct notifier_block *this,
-+					unsigned long code, void *x);
- static int rebuild_lun_table(ctlr_info_t *h, struct gendisk *del_disk);
- static int deregister_disk(struct gendisk *disk, drive_info_struct *drv,
- 			   int clear_all);
-@@ -193,6 +197,36 @@ static struct block_device_operations cc
- 	.revalidate_disk = cciss_revalidate,
- };
- 
-+static struct notifier_block cciss_notifier = {
-+	.notifier_call  = cciss_notify_reboot,
-+};
+ 	ce = mb_cache_entry_get(ext3_xattr_cache, bh->b_bdev, bh->b_blocknr);
++	error = ext3_journal_get_write_access(handle, bh);
++	if (error)
++		 goto out;
 +
-+static int cciss_notify_reboot(struct notifier_block *this,
-+                            unsigned long code, void *x)
-+{
-+	int i, return_code;
-+	char flush_buf[4];
++	lock_buffer(bh);
 +
-+	if ((code == SYS_DOWN) || (code == SYS_HALT) ||
-+					(code == SYS_POWER_OFF)) {
-+		printk(KERN_INFO "cciss: stopping all cciss devices.\n");
-+		/* double check that all controller entrys have been removed */
-+		for (i = 0; i < MAX_CTLR; i++) {
-+			if (hba[i] != NULL) {
-+				printk(KERN_WARNING "cciss: removing "
-+						"controller %d\n", i);
-+				/* flush data in battery backed cache to disks */
-+				memset(flush_buf, 0, 4);
-+				return_code = sendcmd(CCISS_CACHE_FLUSH, i, flush_buf, 4, 								0, 0, 0, NULL, TYPE_CMD);
-+				if(return_code != IO_OK) {
-+					printk(KERN_WARNING "Error Flushing cache on "
-+								" controller %d\n", i);
-+				}
-+			}
-+		}
-+	}
-+	return NOTIFY_DONE;
-+}
- /*
-  * Enqueuing and dequeuing functions for cmdlists.
-  */
-@@ -3287,6 +3321,12 @@ static int __devinit cciss_init_one(stru
- 	       ((hba[i]->nr_cmds + BITS_PER_LONG -
- 		 1) / BITS_PER_LONG) * sizeof(unsigned long));
+ 	if (BHDR(bh)->h_refcount == cpu_to_le32(1)) {
+ 		ea_bdebug(bh, "refcount now=0; freeing");
+ 		if (ce)
+@@ -485,21 +492,20 @@ ext3_xattr_release_block(handle_t *handl
+ 		get_bh(bh);
+ 		ext3_forget(handle, 1, inode, bh, bh->b_blocknr);
+ 	} else {
+-		if (ext3_journal_get_write_access(handle, bh) == 0) {
+-			lock_buffer(bh);
+-			BHDR(bh)->h_refcount = cpu_to_le32(
++		BHDR(bh)->h_refcount = cpu_to_le32(
+ 				le32_to_cpu(BHDR(bh)->h_refcount) - 1);
+-			ext3_journal_dirty_metadata(handle, bh);
+-			if (IS_SYNC(inode))
+-				handle->h_sync = 1;
+-			DQUOT_FREE_BLOCK(inode, 1);
+-			unlock_buffer(bh);
+-			ea_bdebug(bh, "refcount now=%d; releasing",
+-				  le32_to_cpu(BHDR(bh)->h_refcount));
+-		}
++		error = ext3_journal_dirty_metadata(handle, bh);
++		handle->h_sync = 1;
++		DQUOT_FREE_BLOCK(inode, 1);
++		ea_bdebug(bh, "refcount now=%d; releasing",
++			  le32_to_cpu(BHDR(bh)->h_refcount));
+ 		if (ce)
+ 			mb_cache_entry_release(ce);
+ 	}
++	unlock_buffer(bh);
++out:
++	ext3_std_error(inode->i_sb, error);
++	return;
+ }
  
-+	if (notify_count == 0) {
-+		register_reboot_notifier(&cciss_notifier);
-+		notify_count=1;
-+	}
-+
-+
- #ifdef CCISS_DEBUG
- 	printk(KERN_DEBUG "Scanning for drives on controller cciss%d\n", i);
- #endif				/* CCISS_DEBUG */
-@@ -3494,6 +3534,8 @@ static void __exit cciss_cleanup(void)
- 	int i;
+ struct ext3_xattr_info {
+@@ -675,7 +681,7 @@ ext3_xattr_block_set(handle_t *handle, s
+ 	struct buffer_head *new_bh = NULL;
+ 	struct ext3_xattr_search *s = &bs->s;
+ 	struct mb_cache_entry *ce = NULL;
+-	int error;
++	int error = 0;
  
- 	pci_unregister_driver(&cciss_pci_driver);
-+	if (notify_count)
-+		unregister_reboot_notifier(&cciss_notifier);
- 	/* double check that all controller entrys have been removed */
- 	for (i = 0; i < MAX_CTLR; i++) {
- 		if (hba[i] != NULL) {
+ #define header(x) ((struct ext3_xattr_header *)(x))
+ 
+@@ -684,16 +690,17 @@ ext3_xattr_block_set(handle_t *handle, s
+ 	if (s->base) {
+ 		ce = mb_cache_entry_get(ext3_xattr_cache, bs->bh->b_bdev,
+ 					bs->bh->b_blocknr);
++		error = ext3_journal_get_write_access(handle, bs->bh);
++		if (error)
++			goto cleanup;
++		lock_buffer(bs->bh);
++
+ 		if (header(s->base)->h_refcount == cpu_to_le32(1)) {
+ 			if (ce) {
+ 				mb_cache_entry_free(ce);
+ 				ce = NULL;
+ 			}
+ 			ea_bdebug(bs->bh, "modifying in-place");
+-			error = ext3_journal_get_write_access(handle, bs->bh);
+-			if (error)
+-				goto cleanup;
+-			lock_buffer(bs->bh);
+ 			error = ext3_xattr_set_entry(i, s);
+ 			if (!error) {
+ 				if (!IS_LAST_ENTRY(s->first))
+@@ -713,6 +720,9 @@ ext3_xattr_block_set(handle_t *handle, s
+ 		} else {
+ 			int offset = (char *)s->here - bs->bh->b_data;
+ 
++			unlock_buffer(bs->bh);
++			journal_release_buffer(handle, bs->bh);
++
+ 			if (ce) {
+ 				mb_cache_entry_release(ce);
+ 				ce = NULL;
+diff -puN fs/ext4/xattr.c~ext-ea-block-reference-count-racing-fix fs/ext4/xattr.c
+--- a/fs/ext4/xattr.c~ext-ea-block-reference-count-racing-fix
++++ a/fs/ext4/xattr.c
+@@ -475,8 +475,14 @@ ext4_xattr_release_block(handle_t *handl
+ 			 struct buffer_head *bh)
+ {
+ 	struct mb_cache_entry *ce = NULL;
++	int error = 0;
+ 
+ 	ce = mb_cache_entry_get(ext4_xattr_cache, bh->b_bdev, bh->b_blocknr);
++	error = ext4_journal_get_write_access(handle, bh);
++	if (error)
++		goto out;
++
++	lock_buffer(bh);
+ 	if (BHDR(bh)->h_refcount == cpu_to_le32(1)) {
+ 		ea_bdebug(bh, "refcount now=0; freeing");
+ 		if (ce)
+@@ -485,21 +491,21 @@ ext4_xattr_release_block(handle_t *handl
+ 		get_bh(bh);
+ 		ext4_forget(handle, 1, inode, bh, bh->b_blocknr);
+ 	} else {
+-		if (ext4_journal_get_write_access(handle, bh) == 0) {
+-			lock_buffer(bh);
+-			BHDR(bh)->h_refcount = cpu_to_le32(
++		BHDR(bh)->h_refcount = cpu_to_le32(
+ 				le32_to_cpu(BHDR(bh)->h_refcount) - 1);
+-			ext4_journal_dirty_metadata(handle, bh);
+-			if (IS_SYNC(inode))
+-				handle->h_sync = 1;
+-			DQUOT_FREE_BLOCK(inode, 1);
+-			unlock_buffer(bh);
+-			ea_bdebug(bh, "refcount now=%d; releasing",
+-				  le32_to_cpu(BHDR(bh)->h_refcount));
+-		}
++		error = ext4_journal_dirty_metadata(handle, bh);
++		if (IS_SYNC(inode))
++			handle->h_sync = 1;
++		DQUOT_FREE_BLOCK(inode, 1);
++		ea_bdebug(bh, "refcount now=%d; releasing",
++			  le32_to_cpu(BHDR(bh)->h_refcount));
+ 		if (ce)
+ 			mb_cache_entry_release(ce);
+ 	}
++	unlock_buffer(bh);
++out:
++	ext4_std_error(inode->i_sb, error);
++	return;
+ }
+ 
+ struct ext4_xattr_info {
+@@ -675,7 +681,7 @@ ext4_xattr_block_set(handle_t *handle, s
+ 	struct buffer_head *new_bh = NULL;
+ 	struct ext4_xattr_search *s = &bs->s;
+ 	struct mb_cache_entry *ce = NULL;
+-	int error;
++	int error = 0;
+ 
+ #define header(x) ((struct ext4_xattr_header *)(x))
+ 
+@@ -684,16 +690,17 @@ ext4_xattr_block_set(handle_t *handle, s
+ 	if (s->base) {
+ 		ce = mb_cache_entry_get(ext4_xattr_cache, bs->bh->b_bdev,
+ 					bs->bh->b_blocknr);
++		error = ext4_journal_get_write_access(handle, bs->bh);
++		if (error)
++			goto cleanup;
++		lock_buffer(bs->bh);
++
+ 		if (header(s->base)->h_refcount == cpu_to_le32(1)) {
+ 			if (ce) {
+ 				mb_cache_entry_free(ce);
+ 				ce = NULL;
+ 			}
+ 			ea_bdebug(bs->bh, "modifying in-place");
+-			error = ext4_journal_get_write_access(handle, bs->bh);
+-			if (error)
+-				goto cleanup;
+-			lock_buffer(bs->bh);
+ 			error = ext4_xattr_set_entry(i, s);
+ 			if (!error) {
+ 				if (!IS_LAST_ENTRY(s->first))
+@@ -713,6 +720,8 @@ ext4_xattr_block_set(handle_t *handle, s
+ 		} else {
+ 			int offset = (char *)s->here - bs->bh->b_data;
+ 
++			unlock_buffer(bs->bh);
++			journal_release_buffer(handle, bs->bh);
+ 			if (ce) {
+ 				mb_cache_entry_release(ce);
+ 				ce = NULL;
 _
 
-Patches currently in -mm which might be from mikem@beardog.cca.cpqcorp.net are
+Patches currently in -mm which might be from cmm@us.ibm.com are
 
-cciss-fix-for-2tb-support.patch
-cciss-add-reboot-notifier-support-to-driver.patch
+ext-ea-block-reference-count-racing-fix.patch
+ext2-reservations.patch
+ext2-fix-reservation-extension.patch
+ext2-balloc-fix-_with_rsv-freeze.patch
+ext2-balloc-reset-windowsz-when-full.patch
+ext2-balloc-fix-off-by-one-against-rsv_end.patch
+ext2-balloc-fix-off-by-one-against-grp_goal.patch
+ext2-balloc-say-rb_entry-not-list_entry.patch
+ext2-balloc-use-io_error-label.patch
