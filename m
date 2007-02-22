@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt-paravirt_ops-allocate-a-fixmap-slot.patch removed from -mm tree
-Date: Wed, 21 Feb 2007 18:36:03 -0800
-Message-ID: <200702220236.l1M2a3iA001977@shell0.pdx.osdl.net>
+Subject: - xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment.patch removed from -mm tree
+Date: Wed, 21 Feb 2007 18:36:12 -0800
+Message-ID: <200702220236.l1M2aCVE001994@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34275 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34267 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751419AbXBVChJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Feb 2007 21:37:09 -0500
+	id S1751416AbXBVChH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Feb 2007 21:37:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Xen-paravirt: paravirt_ops: allocate a fixmap slot
+     Xen-paravirt: allow paravirt backend to select PGD allocation alignment
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt-paravirt_ops-allocate-a-fixmap-slot.patch
+     xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Xen-paravirt: paravirt_ops: allocate a fixmap slot
+Subject: Xen-paravirt: allow paravirt backend to select PGD allocation alignment
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Allocate a fixmap slot for use by a paravirt_ops implementation.  Xen uses
-this to map the hypervisor's shared info page, which doesn't have a
-pseudo-physical page number, and therefore can't be mapped ordinarily.
+Xen requires pgds to be page-aligned, so make this a parameter which can be
+set in the paravirt_ops structure.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Zachary Amsden <zach@vmware.com>
@@ -36,29 +35,72 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/fixmap.h |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/i386/kernel/paravirt.c |    1 +
+ arch/i386/mm/init.c         |    2 +-
+ include/asm-i386/paravirt.h |    5 ++++-
+ include/asm-i386/pgtable.h  |    6 ++++++
+ 4 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-i386/fixmap.h~xen-paravirt-paravirt_ops-allocate-a-fixmap-slot include/asm-i386/fixmap.h
---- a/include/asm-i386/fixmap.h~xen-paravirt-paravirt_ops-allocate-a-fixmap-slot
-+++ a/include/asm-i386/fixmap.h
-@@ -88,6 +88,9 @@ enum fixed_addresses {
- #ifdef CONFIG_PCI_MMCONFIG
- 	FIX_PCIE_MCFG,
+diff -puN arch/i386/kernel/paravirt.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
++++ a/arch/i386/kernel/paravirt.c
+@@ -605,6 +605,7 @@ struct paravirt_ops paravirt_ops = {
+ 	.paravirt_enabled = 0,
+ 	.kernel_rpl = 0,
+ 	.shared_kernel_pmd = 1,	/* Only used when CONFIG_X86_PAE is set */
++	.pgd_alignment = sizeof(pgd_t) * PTRS_PER_PGD,
+ 
+  	.patch = native_patch,
+ 	.banner = default_banner,
+diff -puN arch/i386/mm/init.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment arch/i386/mm/init.c
+--- a/arch/i386/mm/init.c~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
++++ a/arch/i386/mm/init.c
+@@ -729,7 +729,7 @@ void __init pgtable_cache_init(void)
+ 	}
+ 	pgd_cache = kmem_cache_create("pgd",
+ 				      PTRS_PER_PGD*sizeof(pgd_t),
+-				      PTRS_PER_PGD*sizeof(pgd_t),
++				      PGD_ALIGNMENT,
+ 				      0, NULL, NULL);
+ 	if (!pgd_cache)
+ 		panic("pgtable_cache_init(): Cannot create pgd cache");
+diff -puN include/asm-i386/paravirt.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
++++ a/include/asm-i386/paravirt.h
+@@ -33,9 +33,12 @@ struct tss_struct;
+ struct mm_struct;
+ struct paravirt_ops
+ {
++ 	int paravirt_enabled;
+ 	unsigned int kernel_rpl;
++
+ 	int shared_kernel_pmd;
+- 	int paravirt_enabled;
++	int pgd_alignment;
++
+ 	const char *name;
+ 
+ 	/*
+diff -puN include/asm-i386/pgtable.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment
++++ a/include/asm-i386/pgtable.h
+@@ -273,6 +273,12 @@ static inline void vmalloc_sync_all(void
+ #define pte_update_defer(mm, addr, ptep)	do { } while (0)
  #endif
+ 
 +#ifdef CONFIG_PARAVIRT
-+	FIX_PARAVIRT,
++#define PGD_ALIGNMENT	(paravirt_ops.pgd_alignment)
++#else
++#define PGD_ALIGNMENT	(sizeof(pgd_t) * PTRS_PER_PGD)
 +#endif
- 	__end_of_permanent_fixed_addresses,
- 	/* temporary boot-time mappings, used before ioremap() is functional */
- #define NR_FIX_BTMAPS	16
++
+ /*
+  * We only update the dirty/accessed state if we set
+  * the dirty bit by hand in the kernel, since the hardware
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
 
-xen-paravirt-paravirt_ops-allocate-a-fixmap-slot.patch
-xen-paravirt-remove-ctor-for-pgd-cache.patch
-xen-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
 xen-paravirt-allow-paravirt-backend-to-select-pgd-allocation-alignment.patch
 xen-paravirt-add-hooks-to-intercept-mm-creation-and-destruction.patch
 xen-paravirt-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
