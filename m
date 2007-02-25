@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-allow-multiple-calls-to-pcim_pin_device.patch added to -mm tree
-Date: Sun, 25 Feb 2007 04:36:01 -0800
-Message-ID: <200702251236.l1PCa3G6029387@shell0.pdx.osdl.net>
+Subject: + pcmcia-pccard-deadlock-fix.patch added to -mm tree
+Date: Sun, 25 Feb 2007 04:52:37 -0800
+Message-ID: <200702251252.l1PCqdOc029609@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35011 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35421 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964865AbXBYMgJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Feb 2007 07:36:09 -0500
+	id S964872AbXBYMwu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Feb 2007 07:52:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com, greg@kroah.com, ian.mcdonald@jandi.co.nz
+Cc: markus.rechberger@amd.com, linux@dominikbrodowski.net
 
 
 The patch titled
-     pci: allow multiple calls to pcim_pin_device()
+     pcmcia/pccard deadlock fix
 has been added to the -mm tree.  Its filename is
-     pci-allow-multiple-calls-to-pcim_pin_device.patch
+     pcmcia-pccard-deadlock-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci: allow multiple calls to pcim_pin_device()
-From: Tejun Heo <htejun@gmail.com>
+Subject: pcmcia/pccard deadlock fix
+From: "Markus Rechberger" <markus.rechberger@amd.com>
 
-Sanity check in pcim_pin_device() was too restrictive in that it didn't
-allow multiple calls to the function, which is against the devres
-philosohpy of fire-and-forget.  Track pinned status separately and allow
-pinning multiple times.
+Prevent a mutex/semaphore deadlock within the pcmcia framework when
+ejecting devices multiple times using pccardctl eject.
 
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Acked-by: Ian McDonald <ian.mcdonald@jandi.co.nz>
-Cc: Greg KH <greg@kroah.com>
+For some more details see:
+http://lkml.org/lkml/2007/2/19/58
+
+Signed-off-by: Markus Rechberger <markus.rechberger@amd.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/pcmcia/cs.c |    3 ++-
+ drivers/pcmcia/ds.c |    4 +++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/pci.c~pci-allow-multiple-calls-to-pcim_pin_device drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-allow-multiple-calls-to-pcim_pin_device
-+++ a/drivers/pci/pci.c
-@@ -757,7 +757,8 @@ int pci_enable_device(struct pci_dev *de
-  * when a device is enabled using managed PCI device enable interface.
-  */
- struct pci_devres {
--	unsigned int disable:1;
-+	unsigned int enabled:1;
-+	unsigned int pinned:1;
- 	unsigned int orig_intx:1;
- 	unsigned int restore_intx:1;
- 	u32 region_mask;
-@@ -781,7 +782,7 @@ static void pcim_release(struct device *
- 	if (this->restore_intx)
- 		pci_intx(dev, this->orig_intx);
+diff -puN drivers/pcmcia/cs.c~pcmcia-pccard-deadlock-fix drivers/pcmcia/cs.c
+--- a/drivers/pcmcia/cs.c~pcmcia-pccard-deadlock-fix
++++ a/drivers/pcmcia/cs.c
+@@ -856,7 +856,8 @@ int pcmcia_eject_card(struct pcmcia_sock
+     
+ 	cs_dbg(skt, 1, "user eject request\n");
  
--	if (this->disable)
-+	if (this->enabled && !this->pinned)
- 		pci_disable_device(dev);
- }
+-	mutex_lock(&skt->skt_mutex);
++	if (!mutex_trylock(&skt->skt_mutex))
++		return -EAGAIN;
+ 	do {
+ 		if (!(skt->state & SOCKET_PRESENT)) {
+ 			ret = -ENODEV;
+diff -puN drivers/pcmcia/ds.c~pcmcia-pccard-deadlock-fix drivers/pcmcia/ds.c
+--- a/drivers/pcmcia/ds.c~pcmcia-pccard-deadlock-fix
++++ a/drivers/pcmcia/ds.c
+@@ -1100,7 +1100,9 @@ static ssize_t pcmcia_store_allow_func_i
+ 	if (!count)
+ 		return -EINVAL;
  
-@@ -820,12 +821,12 @@ int pcim_enable_device(struct pci_dev *p
- 	dr = get_pci_dr(pdev);
- 	if (unlikely(!dr))
- 		return -ENOMEM;
--	WARN_ON(!!dr->disable);
-+	WARN_ON(!!dr->enabled);
+-	mutex_lock(&p_dev->socket->skt_mutex);
++	if (!mutex_trylock(&p_dev->socket->skt_mutex))
++		return -EAGAIN;
++
+ 	p_dev->allow_func_id_match = 1;
+ 	mutex_unlock(&p_dev->socket->skt_mutex);
  
- 	rc = pci_enable_device(pdev);
- 	if (!rc) {
- 		pdev->is_managed = 1;
--		dr->disable = 1;
-+		dr->enabled = 1;
- 	}
- 	return rc;
- }
-@@ -843,9 +844,9 @@ void pcim_pin_device(struct pci_dev *pde
- 	struct pci_devres *dr;
- 
- 	dr = find_pci_dr(pdev);
--	WARN_ON(!dr || !dr->disable);
-+	WARN_ON(!dr || !dr->enabled);
- 	if (dr)
--		dr->disable = 0;
-+		dr->pinned = 1;
- }
- 
- /**
-@@ -876,7 +877,7 @@ pci_disable_device(struct pci_dev *dev)
- 
- 	dr = find_pci_dr(dev);
- 	if (dr)
--		dr->disable = 0;
-+		dr->enabled = 0;
- 
- 	if (atomic_sub_return(1, &dev->enable_cnt) != 0)
- 		return;
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from markus.rechberger@amd.com are
 
-git-libata-all.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-add-id_to_dma_mode-function-for-printing-dma-modes.patch
-expose-set_mode-method-so-it-can-be-wrapped.patch
-acpi-driver-support-for-pata.patch
-acpi-driver-support-for-pata-fix.patch
-libata-use-new-id_to_dma_mode-function-to-tidy-reporting.patch
-pci-allow-multiple-calls-to-pcim_pin_device.patch
+pcmcia-pccard-deadlock-fix.patch
+kvm-vmx-hack-set_cr0_no_modeswitch-to-actually-do.patch
+kvm-use-page_private-set_page_private-apis.patch
