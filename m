@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + spidernet-load-firmware-when-open.patch added to -mm tree
-Date: Sun, 25 Feb 2007 05:00:59 -0800
-Message-ID: <200702251301.l1PD11wb029804@shell0.pdx.osdl.net>
+Subject: + spidernet-remove-txram-full-logging.patch added to -mm tree
+Date: Sun, 25 Feb 2007 05:01:09 -0800
+Message-ID: <200702251301.l1PD1Ba9029810@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35591 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35604 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964912AbXBYNBV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Feb 2007 08:01:21 -0500
+	id S964914AbXBYNBc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Feb 2007 08:01:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kou.ishizaki@toshiba.co.jp, linas@austin.ibm.com
 
 
 The patch titled
-     spidernet: load firmware when open
+     spidernet: remove txram full logging
 has been added to the -mm tree.  Its filename is
-     spidernet-load-firmware-when-open.patch
+     spidernet-remove-txram-full-logging.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,312 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spidernet: load firmware when open
-From: Kou Ishizaki <kou.ishizaki@toshiba.co.jp>
+Subject: spidernet: remove txram full logging
+From: Ishizaki Kou <kou.ishizaki@toshiba.co.jp>
 
-This patch moves calling init_firmware() from spider_net_probe() to
-spider_net_open() so as to use the driver by built-in.
+This patch removes logging for SPIDER_NET_GTMFLLINT interrupts.  Since the
+interrupts are not irregular, and they happen frequently when using 100Mbps
+network switches.
 
 Signed-off-by: Kou Ishizaki <kou.ishizaki@toshiba.co.jp>
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/spider_net.c |  247 ++++++++++++++++++-------------------
- 1 file changed, 123 insertions(+), 124 deletions(-)
+ drivers/net/spider_net.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-load-firmware-when-open drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-load-firmware-when-open
+diff -puN drivers/net/spider_net.c~spidernet-remove-txram-full-logging drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-remove-txram-full-logging
 +++ a/drivers/net/spider_net.c
-@@ -1705,6 +1705,124 @@ spider_net_enable_card(struct spider_net
- }
- 
- /**
-+ * spider_net_download_firmware - loads firmware into the adapter
-+ * @card: card structure
-+ * @firmware_ptr: pointer to firmware data
-+ *
-+ * spider_net_download_firmware loads the firmware data into the
-+ * adapter. It assumes the length etc. to be allright.
-+ */
-+static int
-+spider_net_download_firmware(struct spider_net_card *card,
-+			     const void *firmware_ptr)
-+{
-+	int sequencer, i;
-+	const u32 *fw_ptr = firmware_ptr;
-+
-+	/* stop sequencers */
-+	spider_net_write_reg(card, SPIDER_NET_GSINIT,
-+			     SPIDER_NET_STOP_SEQ_VALUE);
-+
-+	for (sequencer = 0; sequencer < SPIDER_NET_FIRMWARE_SEQS;
-+	     sequencer++) {
-+		spider_net_write_reg(card,
-+				     SPIDER_NET_GSnPRGADR + sequencer * 8, 0);
-+		for (i = 0; i < SPIDER_NET_FIRMWARE_SEQWORDS; i++) {
-+			spider_net_write_reg(card, SPIDER_NET_GSnPRGDAT +
-+					     sequencer * 8, *fw_ptr);
-+			fw_ptr++;
-+		}
-+	}
-+
-+	if (spider_net_read_reg(card, SPIDER_NET_GSINIT))
-+		return -EIO;
-+
-+	spider_net_write_reg(card, SPIDER_NET_GSINIT,
-+			     SPIDER_NET_RUN_SEQ_VALUE);
-+
-+	return 0;
-+}
-+
-+/**
-+ * spider_net_init_firmware - reads in firmware parts
-+ * @card: card structure
-+ *
-+ * Returns 0 on success, <0 on failure
-+ *
-+ * spider_net_init_firmware opens the sequencer firmware and does some basic
-+ * checks. This function opens and releases the firmware structure. A call
-+ * to download the firmware is performed before the release.
-+ *
-+ * Firmware format
-+ * ===============
-+ * spider_fw.bin is expected to be a file containing 6*1024*4 bytes, 4k being
-+ * the program for each sequencer. Use the command
-+ *    tail -q -n +2 Seq_code1_0x088.txt Seq_code2_0x090.txt              \
-+ *         Seq_code3_0x098.txt Seq_code4_0x0A0.txt Seq_code5_0x0A8.txt   \
-+ *         Seq_code6_0x0B0.txt | xxd -r -p -c4 > spider_fw.bin
-+ *
-+ * to generate spider_fw.bin, if you have sequencer programs with something
-+ * like the following contents for each sequencer:
-+ *    <ONE LINE COMMENT>
-+ *    <FIRST 4-BYTES-WORD FOR SEQUENCER>
-+ *    <SECOND 4-BYTES-WORD FOR SEQUENCER>
-+ *     ...
-+ *    <1024th 4-BYTES-WORD FOR SEQUENCER>
-+ */
-+static int
-+spider_net_init_firmware(struct spider_net_card *card)
-+{
-+	struct firmware *firmware = NULL;
-+	struct device_node *dn;
-+	const u8 *fw_prop = NULL;
-+	int err = -ENOENT;
-+	int fw_size;
-+
-+	if (request_firmware((const struct firmware **)&firmware,
-+			     SPIDER_NET_FIRMWARE_NAME, &card->pdev->dev) == 0) {
-+		if ( (firmware->size != SPIDER_NET_FIRMWARE_LEN) &&
-+		     netif_msg_probe(card) ) {
-+			pr_err("Incorrect size of spidernet firmware in " \
-+			       "filesystem. Looking in host firmware...\n");
-+			goto try_host_fw;
-+		}
-+		err = spider_net_download_firmware(card, firmware->data);
-+
-+		release_firmware(firmware);
-+		if (err)
-+			goto try_host_fw;
-+
-+		goto done;
-+	}
-+
-+try_host_fw:
-+	dn = pci_device_to_OF_node(card->pdev);
-+	if (!dn)
-+		goto out_err;
-+
-+	fw_prop = get_property(dn, "firmware", &fw_size);
-+	if (!fw_prop)
-+		goto out_err;
-+
-+	if ( (fw_size != SPIDER_NET_FIRMWARE_LEN) &&
-+	     netif_msg_probe(card) ) {
-+		pr_err("Incorrect size of spidernet firmware in " \
-+		       "host firmware\n");
-+		goto done;
-+	}
-+
-+	err = spider_net_download_firmware(card, fw_prop);
-+
-+done:
-+	return err;
-+out_err:
-+	if (netif_msg_probe(card))
-+		pr_err("Couldn't find spidernet firmware in filesystem " \
-+		       "or host firmware\n");
-+	return err;
-+}
-+
-+/**
-  * spider_net_open - called upon ifonfig up
-  * @netdev: interface device structure
-  *
-@@ -1719,6 +1837,10 @@ spider_net_open(struct net_device *netde
- 	struct spider_net_card *card = netdev_priv(netdev);
- 	int result;
- 
-+	result = spider_net_init_firmware(card);
-+	if (result)
-+		goto init_firmware_failed;
-+
- 	/* start probing with copper */
- 	spider_net_setup_aneg(card);
- 	if (card->phy.def->phy_id)
-@@ -1762,6 +1884,7 @@ alloc_rx_failed:
- 	spider_net_free_chain(card, &card->tx_chain);
- alloc_tx_failed:
- 	del_timer_sync(&card->aneg_timer);
-+init_firmware_failed:
- 	return result;
- }
- 
-@@ -1873,124 +1996,6 @@ spider_net_setup_phy(struct spider_net_c
- }
- 
- /**
-- * spider_net_download_firmware - loads firmware into the adapter
-- * @card: card structure
-- * @firmware_ptr: pointer to firmware data
-- *
-- * spider_net_download_firmware loads the firmware data into the
-- * adapter. It assumes the length etc. to be allright.
-- */
--static int
--spider_net_download_firmware(struct spider_net_card *card,
--			     const void *firmware_ptr)
--{
--	int sequencer, i;
--	const u32 *fw_ptr = firmware_ptr;
--
--	/* stop sequencers */
--	spider_net_write_reg(card, SPIDER_NET_GSINIT,
--			     SPIDER_NET_STOP_SEQ_VALUE);
--
--	for (sequencer = 0; sequencer < SPIDER_NET_FIRMWARE_SEQS;
--	     sequencer++) {
--		spider_net_write_reg(card,
--				     SPIDER_NET_GSnPRGADR + sequencer * 8, 0);
--		for (i = 0; i < SPIDER_NET_FIRMWARE_SEQWORDS; i++) {
--			spider_net_write_reg(card, SPIDER_NET_GSnPRGDAT +
--					     sequencer * 8, *fw_ptr);
--			fw_ptr++;
--		}
--	}
--
--	if (spider_net_read_reg(card, SPIDER_NET_GSINIT))
--		return -EIO;
--
--	spider_net_write_reg(card, SPIDER_NET_GSINIT,
--			     SPIDER_NET_RUN_SEQ_VALUE);
--
--	return 0;
--}
--
--/**
-- * spider_net_init_firmware - reads in firmware parts
-- * @card: card structure
-- *
-- * Returns 0 on success, <0 on failure
-- *
-- * spider_net_init_firmware opens the sequencer firmware and does some basic
-- * checks. This function opens and releases the firmware structure. A call
-- * to download the firmware is performed before the release.
-- *
-- * Firmware format
-- * ===============
-- * spider_fw.bin is expected to be a file containing 6*1024*4 bytes, 4k being
-- * the program for each sequencer. Use the command
-- *    tail -q -n +2 Seq_code1_0x088.txt Seq_code2_0x090.txt              \
-- *         Seq_code3_0x098.txt Seq_code4_0x0A0.txt Seq_code5_0x0A8.txt   \
-- *         Seq_code6_0x0B0.txt | xxd -r -p -c4 > spider_fw.bin
-- *
-- * to generate spider_fw.bin, if you have sequencer programs with something
-- * like the following contents for each sequencer:
-- *    <ONE LINE COMMENT>
-- *    <FIRST 4-BYTES-WORD FOR SEQUENCER>
-- *    <SECOND 4-BYTES-WORD FOR SEQUENCER>
-- *     ...
-- *    <1024th 4-BYTES-WORD FOR SEQUENCER>
-- */
--static int
--spider_net_init_firmware(struct spider_net_card *card)
--{
--	struct firmware *firmware = NULL;
--	struct device_node *dn;
--	const u8 *fw_prop = NULL;
--	int err = -ENOENT;
--	int fw_size;
--
--	if (request_firmware((const struct firmware **)&firmware,
--			     SPIDER_NET_FIRMWARE_NAME, &card->pdev->dev) == 0) {
--		if ( (firmware->size != SPIDER_NET_FIRMWARE_LEN) &&
--		     netif_msg_probe(card) ) {
--			pr_err("Incorrect size of spidernet firmware in " \
--			       "filesystem. Looking in host firmware...\n");
--			goto try_host_fw;
--		}
--		err = spider_net_download_firmware(card, firmware->data);
--
--		release_firmware(firmware);
--		if (err)
--			goto try_host_fw;
--
--		goto done;
--	}
--
--try_host_fw:
--	dn = pci_device_to_OF_node(card->pdev);
--	if (!dn)
--		goto out_err;
--
--	fw_prop = get_property(dn, "firmware", &fw_size);
--	if (!fw_prop)
--		goto out_err;
--
--	if ( (fw_size != SPIDER_NET_FIRMWARE_LEN) &&
--	     netif_msg_probe(card) ) {
--		pr_err("Incorrect size of spidernet firmware in " \
--		       "host firmware\n");
--		goto done;
--	}
--
--	err = spider_net_download_firmware(card, fw_prop);
--
--done:
--	return err;
--out_err:
--	if (netif_msg_probe(card))
--		pr_err("Couldn't find spidernet firmware in filesystem " \
--		       "or host firmware\n");
--	return err;
--}
--
--/**
-  * spider_net_workaround_rxramfull - work around firmware bug
-  * @card: card structure
-  *
-@@ -2090,8 +2095,6 @@ spider_net_tx_timeout_task(struct work_s
- 
- 	if (spider_net_setup_phy(card))
- 		goto out;
--	if (spider_net_init_firmware(card))
--		goto out;
- 
- 	spider_net_open(netdev);
- 	spider_net_kick_tx_dma(card);
-@@ -2363,10 +2366,6 @@ spider_net_probe(struct pci_dev *pdev, c
- 	if (err)
- 		goto out_undo_pci;
- 
--	err = spider_net_init_firmware(card);
--	if (err)
--		goto out_undo_pci;
--
- 	err = spider_net_setup_netdev(card);
- 	if (err)
- 		goto out_undo_pci;
+@@ -1422,8 +1422,8 @@ spider_net_handle_error_irq(struct spide
+ 				switch (i)
+ 	{
+ 	case SPIDER_NET_GTMFLLINT:
+-		if (netif_msg_intr(card) && net_ratelimit())
+-			pr_err("Spider TX RAM full\n");
++		/* TX RAM full may happen on a usual case.
++		 * Logging is not needed. */
+ 		show_error = 0;
+ 		break;
+ 	case SPIDER_NET_GRFDFLLINT: /* fallthrough */
 _
 
 Patches currently in -mm which might be from kou.ishizaki@toshiba.co.jp are
