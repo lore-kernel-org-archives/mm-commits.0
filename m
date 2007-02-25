@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-spot-slave-decode-flaws-for-testing.patch added to -mm tree
-Date: Sun, 25 Feb 2007 04:54:48 -0800
-Message-ID: <200702251254.l1PCsoL7029645@shell0.pdx.osdl.net>
+Subject: + spidernet-load-firmware-when-open.patch added to -mm tree
+Date: Sun, 25 Feb 2007 05:00:59 -0800
+Message-ID: <200702251301.l1PD11wb029804@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35464 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35591 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964886AbXBYMzH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Feb 2007 07:55:07 -0500
+	id S964912AbXBYNBV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Feb 2007 08:01:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: kou.ishizaki@toshiba.co.jp, linas@austin.ibm.com
 
 
 The patch titled
-     pcmcia - spot slave decode flaws (for testing)
+     spidernet: load firmware when open
 has been added to the -mm tree.  Its filename is
-     pcmcia-spot-slave-decode-flaws-for-testing.patch
+     spidernet-load-firmware-when-open.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,320 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pcmcia - spot slave decode flaws (for testing)
-From: Alan <alan@lxorguk.ukuu.org.uk>
+Subject: spidernet: load firmware when open
+From: Kou Ishizaki <kou.ishizaki@toshiba.co.jp>
 
-If you've got a CF adapter or PCMCIA disc which shows up twice in libata
-pata_pcmcia can you try this patch on top of the updates posted.  It tries
-to spot when the slave is a mirror of the master and to fix up problems
-that causes.
+This patch moves calling init_firmware() from spider_net_probe() to
+spider_net_open() so as to use the driver by built-in.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Kou Ishizaki <kou.ishizaki@toshiba.co.jp>
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pcmcia.c |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ drivers/net/spider_net.c |  247 ++++++++++++++++++-------------------
+ 1 file changed, 123 insertions(+), 124 deletions(-)
 
-diff -puN drivers/ata/pata_pcmcia.c~pcmcia-spot-slave-decode-flaws-for-testing drivers/ata/pata_pcmcia.c
---- a/drivers/ata/pata_pcmcia.c~pcmcia-spot-slave-decode-flaws-for-testing
-+++ a/drivers/ata/pata_pcmcia.c
-@@ -54,6 +54,39 @@ struct ata_pcmcia_info {
- 	dev_node_t	node;
- };
+diff -puN drivers/net/spider_net.c~spidernet-load-firmware-when-open drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-load-firmware-when-open
++++ a/drivers/net/spider_net.c
+@@ -1705,6 +1705,124 @@ spider_net_enable_card(struct spider_net
+ }
  
-+/**
-+ *	pcmcia_set_mode	-	PCMCIA specific mode setup
-+ *	@ap: Port
-+ *	@r_failed_dev: Return pointer for failed device
+ /**
++ * spider_net_download_firmware - loads firmware into the adapter
++ * @card: card structure
++ * @firmware_ptr: pointer to firmware data
 + *
-+ *	Perform the tuning and setup of the devices and timings, which
-+ *	for PCMCIA is the same as any other controller. We wrap it however
-+ *	as we need to spot hardware with incorrect or missing master/slave
-+ *	decode, which alas is embarrassingly common in the PC world
++ * spider_net_download_firmware loads the firmware data into the
++ * adapter. It assumes the length etc. to be allright.
 + */
-+
-+static int pcmcia_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev)
++static int
++spider_net_download_firmware(struct spider_net_card *card,
++			     const void *firmware_ptr)
 +{
-+	struct ata_device *master = &ap->device[0];
-+	struct ata_device *slave = &ap->device[1];
++	int sequencer, i;
++	const u32 *fw_ptr = firmware_ptr;
 +
-+	if (!ata_dev_enabled(master) || !ata_dev_enabled(slave))
-+		return ata_do_set_mode(ap, r_failed_dev);
++	/* stop sequencers */
++	spider_net_write_reg(card, SPIDER_NET_GSINIT,
++			     SPIDER_NET_STOP_SEQ_VALUE);
 +
-+	if (memcmp(master->id + ATA_ID_FW_REV,  slave->id + ATA_ID_FW_REV,
-+			   ATA_ID_FW_REV_LEN + ATA_ID_PROD_LEN) == 0)
-+	{
-+		/* Suspicious match, but could be two cards from
-+		   the same vendor - check serial */
-+		if (memcmp(master->id + ATA_ID_SERNO, slave->id + ATA_ID_SERNO,
-+			   ATA_ID_SERNO_LEN) == 0 && master->id[ATA_ID_SERNO] >> 8) {
-+			ata_dev_printk(slave, KERN_WARNING, "is a ghost device, ignoring.\n");
-+			ata_dev_disable(slave);
++	for (sequencer = 0; sequencer < SPIDER_NET_FIRMWARE_SEQS;
++	     sequencer++) {
++		spider_net_write_reg(card,
++				     SPIDER_NET_GSnPRGADR + sequencer * 8, 0);
++		for (i = 0; i < SPIDER_NET_FIRMWARE_SEQWORDS; i++) {
++			spider_net_write_reg(card, SPIDER_NET_GSnPRGDAT +
++					     sequencer * 8, *fw_ptr);
++			fw_ptr++;
 +		}
 +	}
-+	return ata_do_set_mode(ap, r_failed_dev);
++
++	if (spider_net_read_reg(card, SPIDER_NET_GSINIT))
++		return -EIO;
++
++	spider_net_write_reg(card, SPIDER_NET_GSINIT,
++			     SPIDER_NET_RUN_SEQ_VALUE);
++
++	return 0;
 +}
 +
- static struct scsi_host_template pcmcia_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -73,6 +106,7 @@ static struct scsi_host_template pcmcia_
- };
++/**
++ * spider_net_init_firmware - reads in firmware parts
++ * @card: card structure
++ *
++ * Returns 0 on success, <0 on failure
++ *
++ * spider_net_init_firmware opens the sequencer firmware and does some basic
++ * checks. This function opens and releases the firmware structure. A call
++ * to download the firmware is performed before the release.
++ *
++ * Firmware format
++ * ===============
++ * spider_fw.bin is expected to be a file containing 6*1024*4 bytes, 4k being
++ * the program for each sequencer. Use the command
++ *    tail -q -n +2 Seq_code1_0x088.txt Seq_code2_0x090.txt              \
++ *         Seq_code3_0x098.txt Seq_code4_0x0A0.txt Seq_code5_0x0A8.txt   \
++ *         Seq_code6_0x0B0.txt | xxd -r -p -c4 > spider_fw.bin
++ *
++ * to generate spider_fw.bin, if you have sequencer programs with something
++ * like the following contents for each sequencer:
++ *    <ONE LINE COMMENT>
++ *    <FIRST 4-BYTES-WORD FOR SEQUENCER>
++ *    <SECOND 4-BYTES-WORD FOR SEQUENCER>
++ *     ...
++ *    <1024th 4-BYTES-WORD FOR SEQUENCER>
++ */
++static int
++spider_net_init_firmware(struct spider_net_card *card)
++{
++	struct firmware *firmware = NULL;
++	struct device_node *dn;
++	const u8 *fw_prop = NULL;
++	int err = -ENOENT;
++	int fw_size;
++
++	if (request_firmware((const struct firmware **)&firmware,
++			     SPIDER_NET_FIRMWARE_NAME, &card->pdev->dev) == 0) {
++		if ( (firmware->size != SPIDER_NET_FIRMWARE_LEN) &&
++		     netif_msg_probe(card) ) {
++			pr_err("Incorrect size of spidernet firmware in " \
++			       "filesystem. Looking in host firmware...\n");
++			goto try_host_fw;
++		}
++		err = spider_net_download_firmware(card, firmware->data);
++
++		release_firmware(firmware);
++		if (err)
++			goto try_host_fw;
++
++		goto done;
++	}
++
++try_host_fw:
++	dn = pci_device_to_OF_node(card->pdev);
++	if (!dn)
++		goto out_err;
++
++	fw_prop = get_property(dn, "firmware", &fw_size);
++	if (!fw_prop)
++		goto out_err;
++
++	if ( (fw_size != SPIDER_NET_FIRMWARE_LEN) &&
++	     netif_msg_probe(card) ) {
++		pr_err("Incorrect size of spidernet firmware in " \
++		       "host firmware\n");
++		goto done;
++	}
++
++	err = spider_net_download_firmware(card, fw_prop);
++
++done:
++	return err;
++out_err:
++	if (netif_msg_probe(card))
++		pr_err("Couldn't find spidernet firmware in filesystem " \
++		       "or host firmware\n");
++	return err;
++}
++
++/**
+  * spider_net_open - called upon ifonfig up
+  * @netdev: interface device structure
+  *
+@@ -1719,6 +1837,10 @@ spider_net_open(struct net_device *netde
+ 	struct spider_net_card *card = netdev_priv(netdev);
+ 	int result;
  
- static struct ata_port_operations pcmcia_port_ops = {
-+	.set_mode	= pcmcia_set_mode,
- 	.port_disable	= ata_port_disable,
- 	.tf_load	= ata_tf_load,
- 	.tf_read	= ata_tf_read,
++	result = spider_net_init_firmware(card);
++	if (result)
++		goto init_firmware_failed;
++
+ 	/* start probing with copper */
+ 	spider_net_setup_aneg(card);
+ 	if (card->phy.def->phy_id)
+@@ -1762,6 +1884,7 @@ alloc_rx_failed:
+ 	spider_net_free_chain(card, &card->tx_chain);
+ alloc_tx_failed:
+ 	del_timer_sync(&card->aneg_timer);
++init_firmware_failed:
+ 	return result;
+ }
+ 
+@@ -1873,124 +1996,6 @@ spider_net_setup_phy(struct spider_net_c
+ }
+ 
+ /**
+- * spider_net_download_firmware - loads firmware into the adapter
+- * @card: card structure
+- * @firmware_ptr: pointer to firmware data
+- *
+- * spider_net_download_firmware loads the firmware data into the
+- * adapter. It assumes the length etc. to be allright.
+- */
+-static int
+-spider_net_download_firmware(struct spider_net_card *card,
+-			     const void *firmware_ptr)
+-{
+-	int sequencer, i;
+-	const u32 *fw_ptr = firmware_ptr;
+-
+-	/* stop sequencers */
+-	spider_net_write_reg(card, SPIDER_NET_GSINIT,
+-			     SPIDER_NET_STOP_SEQ_VALUE);
+-
+-	for (sequencer = 0; sequencer < SPIDER_NET_FIRMWARE_SEQS;
+-	     sequencer++) {
+-		spider_net_write_reg(card,
+-				     SPIDER_NET_GSnPRGADR + sequencer * 8, 0);
+-		for (i = 0; i < SPIDER_NET_FIRMWARE_SEQWORDS; i++) {
+-			spider_net_write_reg(card, SPIDER_NET_GSnPRGDAT +
+-					     sequencer * 8, *fw_ptr);
+-			fw_ptr++;
+-		}
+-	}
+-
+-	if (spider_net_read_reg(card, SPIDER_NET_GSINIT))
+-		return -EIO;
+-
+-	spider_net_write_reg(card, SPIDER_NET_GSINIT,
+-			     SPIDER_NET_RUN_SEQ_VALUE);
+-
+-	return 0;
+-}
+-
+-/**
+- * spider_net_init_firmware - reads in firmware parts
+- * @card: card structure
+- *
+- * Returns 0 on success, <0 on failure
+- *
+- * spider_net_init_firmware opens the sequencer firmware and does some basic
+- * checks. This function opens and releases the firmware structure. A call
+- * to download the firmware is performed before the release.
+- *
+- * Firmware format
+- * ===============
+- * spider_fw.bin is expected to be a file containing 6*1024*4 bytes, 4k being
+- * the program for each sequencer. Use the command
+- *    tail -q -n +2 Seq_code1_0x088.txt Seq_code2_0x090.txt              \
+- *         Seq_code3_0x098.txt Seq_code4_0x0A0.txt Seq_code5_0x0A8.txt   \
+- *         Seq_code6_0x0B0.txt | xxd -r -p -c4 > spider_fw.bin
+- *
+- * to generate spider_fw.bin, if you have sequencer programs with something
+- * like the following contents for each sequencer:
+- *    <ONE LINE COMMENT>
+- *    <FIRST 4-BYTES-WORD FOR SEQUENCER>
+- *    <SECOND 4-BYTES-WORD FOR SEQUENCER>
+- *     ...
+- *    <1024th 4-BYTES-WORD FOR SEQUENCER>
+- */
+-static int
+-spider_net_init_firmware(struct spider_net_card *card)
+-{
+-	struct firmware *firmware = NULL;
+-	struct device_node *dn;
+-	const u8 *fw_prop = NULL;
+-	int err = -ENOENT;
+-	int fw_size;
+-
+-	if (request_firmware((const struct firmware **)&firmware,
+-			     SPIDER_NET_FIRMWARE_NAME, &card->pdev->dev) == 0) {
+-		if ( (firmware->size != SPIDER_NET_FIRMWARE_LEN) &&
+-		     netif_msg_probe(card) ) {
+-			pr_err("Incorrect size of spidernet firmware in " \
+-			       "filesystem. Looking in host firmware...\n");
+-			goto try_host_fw;
+-		}
+-		err = spider_net_download_firmware(card, firmware->data);
+-
+-		release_firmware(firmware);
+-		if (err)
+-			goto try_host_fw;
+-
+-		goto done;
+-	}
+-
+-try_host_fw:
+-	dn = pci_device_to_OF_node(card->pdev);
+-	if (!dn)
+-		goto out_err;
+-
+-	fw_prop = get_property(dn, "firmware", &fw_size);
+-	if (!fw_prop)
+-		goto out_err;
+-
+-	if ( (fw_size != SPIDER_NET_FIRMWARE_LEN) &&
+-	     netif_msg_probe(card) ) {
+-		pr_err("Incorrect size of spidernet firmware in " \
+-		       "host firmware\n");
+-		goto done;
+-	}
+-
+-	err = spider_net_download_firmware(card, fw_prop);
+-
+-done:
+-	return err;
+-out_err:
+-	if (netif_msg_probe(card))
+-		pr_err("Couldn't find spidernet firmware in filesystem " \
+-		       "or host firmware\n");
+-	return err;
+-}
+-
+-/**
+  * spider_net_workaround_rxramfull - work around firmware bug
+  * @card: card structure
+  *
+@@ -2090,8 +2095,6 @@ spider_net_tx_timeout_task(struct work_s
+ 
+ 	if (spider_net_setup_phy(card))
+ 		goto out;
+-	if (spider_net_init_firmware(card))
+-		goto out;
+ 
+ 	spider_net_open(netdev);
+ 	spider_net_kick_tx_dma(card);
+@@ -2363,10 +2366,6 @@ spider_net_probe(struct pci_dev *pdev, c
+ 	if (err)
+ 		goto out_undo_pci;
+ 
+-	err = spider_net_init_firmware(card);
+-	if (err)
+-		goto out_undo_pci;
+-
+ 	err = spider_net_setup_netdev(card);
+ 	if (err)
+ 		goto out_undo_pci;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from kou.ishizaki@toshiba.co.jp are
 
 git-libata-all.patch
-libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
-add-id_to_dma_mode-function-for-printing-dma-modes.patch
-expose-set_mode-method-so-it-can-be-wrapped.patch
-acpi-driver-support-for-pata.patch
-libata-use-new-id_to_dma_mode-function-to-tidy-reporting.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-adjust-legacy-ide-resource-setting-v2.patch
-ide-remove-a-ton-of-pointless-undef-really_slow_io.patch
-net-remove-a-collection-of-unneeded-undef-really_slow_io.patch
-resend-iphase-64bit-cleanup.patch
-serial-serial_txx9-driver-update.patch
-serial-serial_txx9-driver-update-fix.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-driver_bfin_serial_core.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-tty-clarify-documentation-of-write.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
+spidernet-autoneg-support-for-celleb.patch
+spidernet-load-firmware-when-open.patch
+spidernet-spidernet-add-support-for-celleb.patch
+spidernet-remove-txram-full-logging.patch
+spidernet-fix-racy-double-free-of-skb.patch
+spidernet-maintainership.patch
