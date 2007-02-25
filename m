@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-hvc_consolec-cleanups.patch added to -mm tree
-Date: Sun, 25 Feb 2007 04:25:17 -0800
-Message-ID: <200702251225.l1PCPJOj029221@shell0.pdx.osdl.net>
+Subject: + fix-the-sysctl=n-compilation.patch added to -mm tree
+Date: Sun, 25 Feb 2007 04:26:52 -0800
+Message-ID: <200702251226.l1PCQsWn029253@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34591 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34669 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964854AbXBYM2u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Feb 2007 07:28:50 -0500
+	id S964856AbXBYMaU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Feb 2007 07:30:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, sfr@canb.auug.org.au
+Cc: bunk@stusta.de, ebiederm@xmission.com
 
 
 The patch titled
-     drivers/char/hvc_console.c: cleanups
+     fix the SYSCTL=n compilation
 has been added to the -mm tree.  Its filename is
-     drivers-char-hvc_consolec-cleanups.patch
+     fix-the-sysctl=n-compilation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,80 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/char/hvc_console.c: cleanups
+Subject: fix the SYSCTL=n compilation
 From: Adrian Bunk <bunk@stusta.de>
 
-- make needlessly global code static
-- remove the unused EXPORT_SYMBOL's
+/home/bunk/linux/kernel-2.6/linux-2.6.20-mm2/kernel/sysctl.c:1411: error: conflicting types for 'register_sysctl_table'
+/home/bunk/linux/kernel-2.6/linux-2.6.20-mm2/include/linux/sysctl.h:1042: error: previous declaration of 'register_sysctl_table' was here
+make[2]: *** [kernel/sysctl.o] Error 1
+
+Caused by commit 0b4d414714f0d2f922d39424b0c5c82ad900a381.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hvc_console.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ kernel/sysctl.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/char/hvc_console.c~drivers-char-hvc_consolec-cleanups drivers/char/hvc_console.c
---- a/drivers/char/hvc_console.c~drivers-char-hvc_consolec-cleanups
-+++ a/drivers/char/hvc_console.c
-@@ -121,7 +121,7 @@ static int last_hvc = -1;
-  * lock held.  If successful, this function increments the kobject reference
-  * count against the target hvc_struct so it should be released when finished.
-  */
--struct hvc_struct *hvc_get_by_index(int index)
-+static struct hvc_struct *hvc_get_by_index(int index)
- {
- 	struct hvc_struct *hp;
- 	unsigned long flags;
-@@ -160,7 +160,8 @@ static uint32_t vtermnos[MAX_NR_HVC_CONS
-  * hvc_console_setup() finds adapters.
-  */
- 
--void hvc_console_print(struct console *co, const char *b, unsigned count)
-+static void hvc_console_print(struct console *co, const char *b,
-+			      unsigned count)
- {
- 	char c[N_OUTBUF] __ALIGNED__;
- 	unsigned i = 0, n = 0;
-@@ -218,7 +219,7 @@ static int __init hvc_console_setup(stru
- 	return 0;
+diff -puN kernel/sysctl.c~fix-the-sysctl=n-compilation kernel/sysctl.c
+--- a/kernel/sysctl.c~fix-the-sysctl=n-compilation
++++ a/kernel/sysctl.c
+@@ -1359,8 +1359,7 @@ void unregister_sysctl_table(struct ctl_
  }
  
--struct console hvc_con_driver = {
-+static struct console hvc_con_driver = {
- 	.name		= "hvc",
- 	.write		= hvc_console_print,
- 	.device		= hvc_console_device,
-@@ -288,7 +289,6 @@ int hvc_instantiate(uint32_t vtermno, in
- 
- 	return 0;
- }
--EXPORT_SYMBOL(hvc_instantiate);
- 
- /* Wake the sleeping khvcd */
- static void hvc_kick(void)
-@@ -781,7 +781,6 @@ struct hvc_struct __devinit *hvc_alloc(u
- 
- 	return hp;
- }
--EXPORT_SYMBOL(hvc_alloc);
- 
- int __devexit hvc_remove(struct hvc_struct *hp)
+ #else /* !CONFIG_SYSCTL */
+-struct ctl_table_header * register_sysctl_table(ctl_table * table,
+-						int insert_at_head)
++struct ctl_table_header *register_sysctl_table(ctl_table * table)
  {
-@@ -817,11 +816,10 @@ int __devexit hvc_remove(struct hvc_stru
- 		tty_hangup(tty);
- 	return 0;
+ 	return NULL;
  }
--EXPORT_SYMBOL(hvc_remove);
- 
- /* Driver initialization.  Follow console initialization.  This is where the TTY
-  * interfaces start to become available. */
--int __init hvc_init(void)
-+static int __init hvc_init(void)
- {
- 	struct tty_driver *drv;
- 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -107,6 +63,7 @@ arch-arm26-kernel-entrys-remove-dead-code.patch
 make-ipc-shmcshm_nopage-static.patch
 mm-tiny-shmemc-cleanups.patch
 drivers-video-sm501fbc-make-4-functions-static.patch
+fix-the-sysctl=n-compilation.patch
 git-cpufreq.patch
 make-kernel-kmodckmod_mk-static.patch
 git-drm.patch
