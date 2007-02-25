@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-the-sysctl=n-compilation.patch added to -mm tree
-Date: Sun, 25 Feb 2007 04:26:52 -0800
-Message-ID: <200702251226.l1PCQsWn029253@shell0.pdx.osdl.net>
+Subject: + is_power_of_2-in-fs-hfs.patch added to -mm tree
+Date: Sun, 25 Feb 2007 04:30:55 -0800
+Message-ID: <200702251230.l1PCUve9029320@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34669 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34745 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964856AbXBYMaU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Feb 2007 07:30:20 -0500
+	id S964855AbXBYMbL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Feb 2007 07:31:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, ebiederm@xmission.com
+Cc: vignesh.babu@wipro.com, zippel@linux-m68k.org
 
 
 The patch titled
-     fix the SYSCTL=n compilation
+     is_power_of_2 in fs/hfs
 has been added to the -mm tree.  Its filename is
-     fix-the-sysctl=n-compilation.patch
+     is_power_of_2-in-fs-hfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,92 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix the SYSCTL=n compilation
-From: Adrian Bunk <bunk@stusta.de>
+Subject: is_power_of_2 in fs/hfs
+From: Vignesh Babu BM <vignesh.babu@wipro.com>
 
-/home/bunk/linux/kernel-2.6/linux-2.6.20-mm2/kernel/sysctl.c:1411: error: conflicting types for 'register_sysctl_table'
-/home/bunk/linux/kernel-2.6/linux-2.6.20-mm2/include/linux/sysctl.h:1042: error: previous declaration of 'register_sysctl_table' was here
-make[2]: *** [kernel/sysctl.o] Error 1
+Replace (n & (n-1)) in the context of power of 2 checks with is_power_of_2
 
-Caused by commit 0b4d414714f0d2f922d39424b0c5c82ad900a381.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/hfs/btree.c     |    3 ++-
+ fs/hfsplus/btree.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sysctl.c~fix-the-sysctl=n-compilation kernel/sysctl.c
---- a/kernel/sysctl.c~fix-the-sysctl=n-compilation
-+++ a/kernel/sysctl.c
-@@ -1359,8 +1359,7 @@ void unregister_sysctl_table(struct ctl_
- }
+diff -puN fs/hfs/btree.c~is_power_of_2-in-fs-hfs fs/hfs/btree.c
+--- a/fs/hfs/btree.c~is_power_of_2-in-fs-hfs
++++ a/fs/hfs/btree.c
+@@ -9,6 +9,7 @@
+  */
  
- #else /* !CONFIG_SYSCTL */
--struct ctl_table_header * register_sysctl_table(ctl_table * table,
--						int insert_at_head)
-+struct ctl_table_header *register_sysctl_table(ctl_table * table)
- {
- 	return NULL;
- }
+ #include <linux/pagemap.h>
++#include <linux/log2.h>
+ 
+ #include "btree.h"
+ 
+@@ -76,7 +77,7 @@ struct hfs_btree *hfs_btree_open(struct 
+ 	tree->depth = be16_to_cpu(head->depth);
+ 
+ 	size = tree->node_size;
+-	if (!size || size & (size - 1))
++	if (!is_power_of_2(size))
+ 		goto fail_page;
+ 	if (!tree->node_count)
+ 		goto fail_page;
+diff -puN fs/hfsplus/btree.c~is_power_of_2-in-fs-hfs fs/hfsplus/btree.c
+--- a/fs/hfsplus/btree.c~is_power_of_2-in-fs-hfs
++++ a/fs/hfsplus/btree.c
+@@ -10,6 +10,7 @@
+ 
+ #include <linux/slab.h>
+ #include <linux/pagemap.h>
++#include <linux/log2.h>
+ 
+ #include "hfsplus_fs.h"
+ #include "hfsplus_raw.h"
+@@ -69,7 +70,7 @@ struct hfs_btree *hfs_btree_open(struct 
+ 	}
+ 
+ 	size = tree->node_size;
+-	if (!size || size & (size - 1))
++	if (!is_power_of_2(size))
+ 		goto fail_page;
+ 	if (!tree->node_count)
+ 		goto fail_page;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from vignesh.babu@wipro.com are
 
-arch-arm26-kernel-entrys-remove-dead-code.patch
-make-ipc-shmcshm_nopage-static.patch
-mm-tiny-shmemc-cleanups.patch
-drivers-video-sm501fbc-make-4-functions-static.patch
-fix-the-sysctl=n-compilation.patch
-git-cpufreq.patch
-make-kernel-kmodckmod_mk-static.patch
-git-drm.patch
-git-dvb.patch
-make-dvb_usb_gl861_debug-static.patch
-make-pvr2_encoder_prep_config-static.patch
-git-ieee1394.patch
-mips-remove-smp_tune_scheduling.patch
-drivers-mmc-kconfig-source-drivers-mmc-card-kconfig.patch
-remove-fs-jffs2-ioctlc.patch
-git-ubi.patch
-mtd_ubi_debug-must-depend-on-sysfs.patch
-drivers-net-vioc-possible-cleanups.patch
-git-net.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-lumpy-reclaim-cleanup.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-linux-kernel-markers-kconfig-menus-fix.patch
-linux-kernel-markers-architecture-independant-code-license-fix.patch
-linux-kernel-markers-i386-optimization-export-fix.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+is_power_of_2-in-fat.patch
+is_power_of_2-in-fs-hfs.patch
