@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spidernet-fix-racy-double-free-of-skb.patch added to -mm tree
-Date: Sun, 25 Feb 2007 05:01:29 -0800
-Message-ID: <200702251301.l1PD1VPq029834@shell0.pdx.osdl.net>
+Subject: + sungem_phy-support-bcm5461-phy-autoneg.patch added to -mm tree
+Date: Sun, 25 Feb 2007 05:00:39 -0800
+Message-ID: <200702251300.l1PD0f50029793@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35660 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35691 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964918AbXBYNDl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Feb 2007 08:03:41 -0500
+	id S964920AbXBYNEj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Feb 2007 08:04:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linas@austin.ibm.com, Jens.Osterkamp@de.ibm.com, kou.ishizaki@toshiba.co.jp
+Cc: jens@de.ibm.com, arnd.bergmann@de.ibm.com, linas@austin.ibm.com
 
 
 The patch titled
-     spidernet: fix racy double-free of skb
+     sungem_phy: support bcm5461 phy, autoneg.
 has been added to the -mm tree.  Its filename is
-     spidernet-fix-racy-double-free-of-skb.patch
+     sungem_phy-support-bcm5461-phy-autoneg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,127 +25,500 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spidernet: fix racy double-free of skb
-From: Linas Vepstas <linas@austin.ibm.com>
+Subject: sungem_phy: support bcm5461 phy, autoneg.
+From: Jens Osterkamp <jens@de.ibm.com>
 
-It appears that under certain circumstances, a race will result in a
-double-free of an skb.  This patch null's out the skb pointer upon the skb
-free, avoiding the inadvertent deref of bogus data.  The next patch fixes the
-actual race.
+This version moves the medium variable to the card specific structure and
+changes the GMII_* to BCM54XX_* #defines.
 
-Cc: Jens Osterkamp <Jens.Osterkamp@de.ibm.com>
-Cc: Kou Ishizaki <kou.ishizaki@toshiba.co.jp>
+This patch adds improved version of enable_fiber for both the 5421 and the
+5461 phy.  It is now possible to specify with these wether you want
+autonegotiation or not.  This is needed for bladecenter switches where some
+expect autonegotiation and some dont seem to like this at all.  Depending on
+this flag it sets phy->autoneg accordingly for the fiber mode.
+
+More importantly it implements proper read_link and poll_link functions for
+both phys which can handle both copper and fiber mode by determining the
+medium first and then branching to the required functions.  For fiber they all
+work fine, for copper they are not tested but return the result of the
+genmii_* function anyway which is supposed to work.
+
+The patch moves the genmii_* functions around to avoid foreward declarations.
+
+Signed-off-by: Jens Osterkamp <jens@de.ibm.com>
+Signed-off-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/spider_net.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ drivers/net/sungem_phy.c |  389 ++++++++++++++++++++++++-------------
+ drivers/net/sungem_phy.h |   10 
+ 2 files changed, 263 insertions(+), 136 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-fix-racy-double-free-of-skb drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-fix-racy-double-free-of-skb
-+++ a/drivers/net/spider_net.c
-@@ -396,10 +396,11 @@ spider_net_free_rx_chain_contents(struct
- 	descr = card->rx_chain.head;
- 	do {
- 		if (descr->skb) {
--			dev_kfree_skb(descr->skb);
- 			pci_unmap_single(card->pdev, descr->hwdescr->buf_addr,
- 					 SPIDER_NET_MAX_FRAME,
- 					 PCI_DMA_BIDIRECTIONAL);
-+			dev_kfree_skb(descr->skb);
-+			descr->skb = NULL;
- 		}
- 		descr = descr->next;
- 	} while (descr != card->rx_chain.head);
-@@ -453,6 +454,7 @@ spider_net_prepare_rx_descr(struct spide
- 			SPIDER_NET_MAX_FRAME, PCI_DMA_FROMDEVICE);
- 	if (pci_dma_mapping_error(buf)) {
- 		dev_kfree_skb_any(descr->skb);
-+		descr->skb = NULL;
- 		if (netif_msg_rx_err(card) && net_ratelimit())
- 			pr_err("Could not iommu-map rx buffer\n");
- 		card->spider_stats.rx_iommu_map_error++;
-@@ -682,6 +684,7 @@ static int
- spider_net_prepare_tx_descr(struct spider_net_card *card,
- 			    struct sk_buff *skb)
- {
-+	struct spider_net_descr_chain *chain = &card->tx_chain;
- 	struct spider_net_descr *descr;
- 	struct spider_net_hw_descr *hwdescr;
- 	dma_addr_t buf;
-@@ -696,10 +699,15 @@ spider_net_prepare_tx_descr(struct spide
- 		return -ENOMEM;
- 	}
- 
--	spin_lock_irqsave(&card->tx_chain.lock, flags);
-+	spin_lock_irqsave(&chain->lock, flags);
- 	descr = card->tx_chain.head;
-+	if (descr->next == chain->tail->prev) {
-+		spin_unlock_irqrestore(&chain->lock, flags);
-+		pci_unmap_single(card->pdev, buf, skb->len, PCI_DMA_TODEVICE);
-+		return -ENOMEM;
-+	}
- 	hwdescr = descr->hwdescr;
--	card->tx_chain.head = descr->next;
-+	chain->head = descr->next;
- 
- 	descr->skb = skb;
- 	hwdescr->buf_addr = buf;
-@@ -709,7 +717,7 @@ spider_net_prepare_tx_descr(struct spide
- 
- 	hwdescr->dmac_cmd_status =
- 			SPIDER_NET_DESCR_CARDOWNED | SPIDER_NET_DMAC_NOCS;
--	spin_unlock_irqrestore(&card->tx_chain.lock, flags);
-+	spin_unlock_irqrestore(&chain->lock, flags);
- 
- 	if (skb->protocol == htons(ETH_P_IP))
- 		switch (skb->nh.iph->protocol) {
-@@ -838,6 +846,7 @@ spider_net_release_tx_chain(struct spide
- 		chain->tail = descr->next;
- 		hwdescr->dmac_cmd_status |= SPIDER_NET_DESCR_NOT_IN_USE;
- 		skb = descr->skb;
-+		descr->skb = NULL;
- 		buf_addr = hwdescr->buf_addr;
- 		spin_unlock_irqrestore(&chain->lock, flags);
- 
-@@ -903,13 +912,10 @@ spider_net_xmit(struct sk_buff *skb, str
- {
- 	int cnt;
- 	struct spider_net_card *card = netdev_priv(netdev);
--	struct spider_net_descr_chain *chain = &card->tx_chain;
- 
- 	spider_net_release_tx_chain(card, 0);
- 
--	if ((chain->head->next == chain->tail->prev) ||
--	   (spider_net_prepare_tx_descr(card, skb) != 0)) {
--
-+	if (spider_net_prepare_tx_descr(card, skb) != 0) {
- 		card->netdev_stats.tx_dropped++;
- 		netif_stop_queue(netdev);
- 		return NETDEV_TX_BUSY;
-@@ -1127,6 +1133,7 @@ spider_net_decode_one_descr(struct spide
- 
- bad_desc:
- 	dev_kfree_skb_irq(descr->skb);
-+	descr->skb = NULL;
- 	hwdescr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
+diff -puN drivers/net/sungem_phy.c~sungem_phy-support-bcm5461-phy-autoneg drivers/net/sungem_phy.c
+--- a/drivers/net/sungem_phy.c~sungem_phy-support-bcm5461-phy-autoneg
++++ a/drivers/net/sungem_phy.c
+@@ -310,6 +310,107 @@ static int bcm5411_init(struct mii_phy* 
  	return 0;
  }
+ 
++static int genmii_setup_aneg(struct mii_phy *phy, u32 advertise)
++{
++	u16 ctl, adv;
++
++	phy->autoneg = 1;
++	phy->speed = SPEED_10;
++	phy->duplex = DUPLEX_HALF;
++	phy->pause = 0;
++	phy->advertising = advertise;
++
++	/* Setup standard advertise */
++	adv = phy_read(phy, MII_ADVERTISE);
++	adv &= ~(ADVERTISE_ALL | ADVERTISE_100BASE4);
++	if (advertise & ADVERTISED_10baseT_Half)
++		adv |= ADVERTISE_10HALF;
++	if (advertise & ADVERTISED_10baseT_Full)
++		adv |= ADVERTISE_10FULL;
++	if (advertise & ADVERTISED_100baseT_Half)
++		adv |= ADVERTISE_100HALF;
++	if (advertise & ADVERTISED_100baseT_Full)
++		adv |= ADVERTISE_100FULL;
++	phy_write(phy, MII_ADVERTISE, adv);
++
++	/* Start/Restart aneg */
++	ctl = phy_read(phy, MII_BMCR);
++	ctl |= (BMCR_ANENABLE | BMCR_ANRESTART);
++	phy_write(phy, MII_BMCR, ctl);
++
++	return 0;
++}
++
++static int genmii_setup_forced(struct mii_phy *phy, int speed, int fd)
++{
++	u16 ctl;
++
++	phy->autoneg = 0;
++	phy->speed = speed;
++	phy->duplex = fd;
++	phy->pause = 0;
++
++	ctl = phy_read(phy, MII_BMCR);
++	ctl &= ~(BMCR_FULLDPLX|BMCR_SPEED100|BMCR_ANENABLE);
++
++	/* First reset the PHY */
++	phy_write(phy, MII_BMCR, ctl | BMCR_RESET);
++
++	/* Select speed & duplex */
++	switch(speed) {
++	case SPEED_10:
++		break;
++	case SPEED_100:
++		ctl |= BMCR_SPEED100;
++		break;
++	case SPEED_1000:
++	default:
++		return -EINVAL;
++	}
++	if (fd == DUPLEX_FULL)
++		ctl |= BMCR_FULLDPLX;
++	phy_write(phy, MII_BMCR, ctl);
++
++	return 0;
++}
++
++static int genmii_poll_link(struct mii_phy *phy)
++{
++	u16 status;
++
++	(void)phy_read(phy, MII_BMSR);
++	status = phy_read(phy, MII_BMSR);
++	if ((status & BMSR_LSTATUS) == 0)
++		return 0;
++	if (phy->autoneg && !(status & BMSR_ANEGCOMPLETE))
++		return 0;
++	return 1;
++}
++
++static int genmii_read_link(struct mii_phy *phy)
++{
++	u16 lpa;
++
++	if (phy->autoneg) {
++		lpa = phy_read(phy, MII_LPA);
++
++		if (lpa & (LPA_10FULL | LPA_100FULL))
++			phy->duplex = DUPLEX_FULL;
++		else
++			phy->duplex = DUPLEX_HALF;
++		if (lpa & (LPA_100FULL | LPA_100HALF))
++			phy->speed = SPEED_100;
++		else
++			phy->speed = SPEED_10;
++		phy->pause = 0;
++	}
++	/* On non-aneg, we assume what we put in BMCR is the speed,
++	 * though magic-aneg shouldn't prevent this case from occurring
++	 */
++
++	 return 0;
++}
++
+ static int generic_suspend(struct mii_phy* phy)
+ {
+ 	phy_write(phy, MII_BMCR, BMCR_PDOWN);
+@@ -364,30 +465,6 @@ static int bcm5421_init(struct mii_phy* 
+ 	return 0;
+ }
+ 
+-static int bcm5421_enable_fiber(struct mii_phy* phy)
+-{
+-	/* enable fiber mode */
+-	phy_write(phy, MII_NCONFIG, 0x9020);
+-	/* LEDs active in both modes, autosense prio = fiber */
+-	phy_write(phy, MII_NCONFIG, 0x945f);
+-
+-	/* switch off fibre autoneg */
+-	phy_write(phy, MII_NCONFIG, 0xfc01);
+-	phy_write(phy, 0x0b, 0x0004);
+-
+-	return 0;
+-}
+-
+-static int bcm5461_enable_fiber(struct mii_phy* phy)
+-{
+-	phy_write(phy, MII_NCONFIG, 0xfc0c);
+-	phy_write(phy, MII_BMCR, 0x4140);
+-	phy_write(phy, MII_NCONFIG, 0xfc0b);
+-	phy_write(phy, MII_BMCR, 0x0140);
+-
+-	return 0;
+-}
+-
+ static int bcm54xx_setup_aneg(struct mii_phy *phy, u32 advertise)
+ {
+ 	u16 ctl, adv;
+@@ -515,6 +592,155 @@ static int marvell88e1111_init(struct mi
+ 	return 0;
+ }
+ 
++#define BCM5421_MODE_MASK	(1 << 5)
++
++static int bcm5421_poll_link(struct mii_phy* phy)
++{
++	u32 phy_reg;
++	int mode;
++
++	/* find out in what mode we are */
++	phy_write(phy, MII_NCONFIG, 0x1000);
++	phy_reg = phy_read(phy, MII_NCONFIG);
++
++	mode = (phy_reg & BCM5421_MODE_MASK) >> 5;
++
++	if ( mode == BCM54XX_COPPER)
++		return genmii_poll_link(phy);
++
++	/* try to find out wether we have a link */
++	phy_write(phy, MII_NCONFIG, 0x2000);
++	phy_reg = phy_read(phy, MII_NCONFIG);
++
++	if (phy_reg & 0x0020)
++		return 0;
++	else
++		return 1;
++}
++
++static int bcm5421_read_link(struct mii_phy* phy)
++{
++	u32 phy_reg;
++	int mode;
++
++	/* find out in what mode we are */
++	phy_write(phy, MII_NCONFIG, 0x1000);
++	phy_reg = phy_read(phy, MII_NCONFIG);
++
++	mode = (phy_reg & BCM5421_MODE_MASK ) >> 5;
++
++	if ( mode == BCM54XX_COPPER)
++		return bcm54xx_read_link(phy);
++
++	phy->speed = SPEED_1000;
++
++	/* find out wether we are running half- or full duplex */
++	phy_write(phy, MII_NCONFIG, 0x2000);
++	phy_reg = phy_read(phy, MII_NCONFIG);
++
++	if ( (phy_reg & 0x0080) >> 7)
++		phy->duplex |=  DUPLEX_HALF;
++	else
++		phy->duplex |=  DUPLEX_FULL;
++
++	return 0;
++}
++
++static int bcm5421_enable_fiber(struct mii_phy* phy, int autoneg)
++{
++	/* enable fiber mode */
++	phy_write(phy, MII_NCONFIG, 0x9020);
++	/* LEDs active in both modes, autosense prio = fiber */
++	phy_write(phy, MII_NCONFIG, 0x945f);
++
++	if (!autoneg) {
++		/* switch off fibre autoneg */
++		phy_write(phy, MII_NCONFIG, 0xfc01);
++		phy_write(phy, 0x0b, 0x0004);
++	}
++
++	phy->autoneg = autoneg;
++
++	return 0;
++}
++
++#define BCM5461_FIBER_LINK	(1 << 2)
++#define BCM5461_MODE_MASK	(3 << 1)
++
++static int bcm5461_poll_link(struct mii_phy* phy)
++{
++	u32 phy_reg;
++	int mode;
++
++	/* find out in what mode we are */
++	phy_write(phy, MII_NCONFIG, 0x7c00);
++	phy_reg = phy_read(phy, MII_NCONFIG);
++
++	mode = (phy_reg & BCM5461_MODE_MASK ) >> 1;
++
++	if ( mode == BCM54XX_COPPER)
++		return genmii_poll_link(phy);
++
++	/* find out wether we have a link */
++	phy_write(phy, MII_NCONFIG, 0x7000);
++	phy_reg = phy_read(phy, MII_NCONFIG);
++
++	if (phy_reg & BCM5461_FIBER_LINK)
++		return 1;
++	else
++		return 0;
++}
++
++#define BCM5461_FIBER_DUPLEX	(1 << 3)
++
++static int bcm5461_read_link(struct mii_phy* phy)
++{
++	u32 phy_reg;
++	int mode;
++
++	/* find out in what mode we are */
++	phy_write(phy, MII_NCONFIG, 0x7c00);
++	phy_reg = phy_read(phy, MII_NCONFIG);
++
++	mode = (phy_reg & BCM5461_MODE_MASK ) >> 1;
++
++	if ( mode == BCM54XX_COPPER) {
++		return bcm54xx_read_link(phy);
++	}
++
++	phy->speed = SPEED_1000;
++
++	/* find out wether we are running half- or full duplex */
++	phy_write(phy, MII_NCONFIG, 0x7000);
++	phy_reg = phy_read(phy, MII_NCONFIG);
++
++	if (phy_reg & BCM5461_FIBER_DUPLEX)
++		phy->duplex |=  DUPLEX_FULL;
++	else
++		phy->duplex |=  DUPLEX_HALF;
++
++	return 0;
++}
++
++static int bcm5461_enable_fiber(struct mii_phy* phy, int autoneg)
++{
++	/* select fiber mode, enable 1000 base-X registers */
++	phy_write(phy, MII_NCONFIG, 0xfc0b);
++
++	if (autoneg) {
++		/* enable fiber with no autonegotiation */
++		phy_write(phy, MII_ADVERTISE, 0x01e0);
++		phy_write(phy, MII_BMCR, 0x1140);
++	} else {
++		/* enable fiber with autonegotiation */
++		phy_write(phy, MII_BMCR, 0x0140);
++	}
++
++	phy->autoneg = autoneg;
++
++	return 0;
++}
++
+ static int marvell_setup_aneg(struct mii_phy *phy, u32 advertise)
+ {
+ 	u16 ctl, adv;
+@@ -645,113 +871,6 @@ static int marvell_read_link(struct mii_
+ 	return 0;
+ }
+ 
+-static int genmii_setup_aneg(struct mii_phy *phy, u32 advertise)
+-{
+-	u16 ctl, adv;
+-
+-	phy->autoneg = 1;
+-	phy->speed = SPEED_10;
+-	phy->duplex = DUPLEX_HALF;
+-	phy->pause = 0;
+-	phy->advertising = advertise;
+-
+-	/* Setup standard advertise */
+-	adv = phy_read(phy, MII_ADVERTISE);
+-	adv &= ~(ADVERTISE_ALL | ADVERTISE_100BASE4);
+-	if (advertise & ADVERTISED_10baseT_Half)
+-		adv |= ADVERTISE_10HALF;
+-	if (advertise & ADVERTISED_10baseT_Full)
+-		adv |= ADVERTISE_10FULL;
+-	if (advertise & ADVERTISED_100baseT_Half)
+-		adv |= ADVERTISE_100HALF;
+-	if (advertise & ADVERTISED_100baseT_Full)
+-		adv |= ADVERTISE_100FULL;
+-	if (advertise & ADVERTISED_Pause)
+-		adv |= ADVERTISE_PAUSE_CAP;
+-	if (advertise & ADVERTISED_Asym_Pause)
+-		adv |= ADVERTISE_PAUSE_ASYM;
+-	phy_write(phy, MII_ADVERTISE, adv);
+-
+-	/* Start/Restart aneg */
+-	ctl = phy_read(phy, MII_BMCR);
+-	ctl |= (BMCR_ANENABLE | BMCR_ANRESTART);
+-	phy_write(phy, MII_BMCR, ctl);
+-
+-	return 0;
+-}
+-
+-static int genmii_setup_forced(struct mii_phy *phy, int speed, int fd)
+-{
+-	u16 ctl;
+-
+-	phy->autoneg = 0;
+-	phy->speed = speed;
+-	phy->duplex = fd;
+-	phy->pause = 0;
+-
+-	ctl = phy_read(phy, MII_BMCR);
+-	ctl &= ~(BMCR_FULLDPLX|BMCR_SPEED100|BMCR_ANENABLE);
+-
+-	/* First reset the PHY */
+-	phy_write(phy, MII_BMCR, ctl | BMCR_RESET);
+-
+-	/* Select speed & duplex */
+-	switch(speed) {
+-	case SPEED_10:
+-		break;
+-	case SPEED_100:
+-		ctl |= BMCR_SPEED100;
+-		break;
+-	case SPEED_1000:
+-	default:
+-		return -EINVAL;
+-	}
+-	if (fd == DUPLEX_FULL)
+-		ctl |= BMCR_FULLDPLX;
+-	phy_write(phy, MII_BMCR, ctl);
+-
+-	return 0;
+-}
+-
+-static int genmii_poll_link(struct mii_phy *phy)
+-{
+-	u16 status;
+-
+-	(void)phy_read(phy, MII_BMSR);
+-	status = phy_read(phy, MII_BMSR);
+-	if ((status & BMSR_LSTATUS) == 0)
+-		return 0;
+-	if (phy->autoneg && !(status & BMSR_ANEGCOMPLETE))
+-		return 0;
+-	return 1;
+-}
+-
+-static int genmii_read_link(struct mii_phy *phy)
+-{
+-	u16 lpa;
+-
+-	if (phy->autoneg) {
+-		lpa = phy_read(phy, MII_LPA);
+-
+-		if (lpa & (LPA_10FULL | LPA_100FULL))
+-			phy->duplex = DUPLEX_FULL;
+-		else
+-			phy->duplex = DUPLEX_HALF;
+-		if (lpa & (LPA_100FULL | LPA_100HALF))
+-			phy->speed = SPEED_100;
+-		else
+-			phy->speed = SPEED_10;
+-		phy->pause = (phy->duplex == DUPLEX_FULL) &&
+-			((lpa & LPA_PAUSE) != 0);
+-	}
+-	/* On non-aneg, we assume what we put in BMCR is the speed,
+-	 * though magic-aneg shouldn't prevent this case from occurring
+-	 */
+-
+-	 return 0;
+-}
+-
+-
+ #define MII_BASIC_FEATURES \
+ 	(SUPPORTED_10baseT_Half | SUPPORTED_10baseT_Full |	\
+ 	 SUPPORTED_100baseT_Half | SUPPORTED_100baseT_Full |	\
+@@ -885,8 +1004,8 @@ static struct mii_phy_ops bcm5421_phy_op
+ 	.suspend	= generic_suspend,
+ 	.setup_aneg	= bcm54xx_setup_aneg,
+ 	.setup_forced	= bcm54xx_setup_forced,
+-	.poll_link	= genmii_poll_link,
+-	.read_link	= bcm54xx_read_link,
++	.poll_link	= bcm5421_poll_link,
++	.read_link	= bcm5421_read_link,
+ 	.enable_fiber   = bcm5421_enable_fiber,
+ };
+ 
+@@ -923,8 +1042,8 @@ static struct mii_phy_ops bcm5461_phy_op
+ 	.suspend	= generic_suspend,
+ 	.setup_aneg	= bcm54xx_setup_aneg,
+ 	.setup_forced	= bcm54xx_setup_forced,
+-	.poll_link	= genmii_poll_link,
+-	.read_link	= bcm54xx_read_link,
++	.poll_link	= bcm5461_poll_link,
++	.read_link	= bcm5461_read_link,
+ 	.enable_fiber   = bcm5461_enable_fiber,
+ };
+ 
+diff -puN drivers/net/sungem_phy.h~sungem_phy-support-bcm5461-phy-autoneg drivers/net/sungem_phy.h
+--- a/drivers/net/sungem_phy.h~sungem_phy-support-bcm5461-phy-autoneg
++++ a/drivers/net/sungem_phy.h
+@@ -12,7 +12,7 @@ struct mii_phy_ops
+ 	int		(*setup_forced)(struct mii_phy *phy, int speed, int fd);
+ 	int		(*poll_link)(struct mii_phy *phy);
+ 	int		(*read_link)(struct mii_phy *phy);
+-	int		(*enable_fiber)(struct mii_phy *phy);
++	int		(*enable_fiber)(struct mii_phy *phy, int autoneg);
+ };
+ 
+ /* Structure used to statically define an mii/gii based PHY */
+@@ -26,6 +26,14 @@ struct mii_phy_def
+ 	const struct mii_phy_ops*	ops;
+ };
+ 
++enum {
++	BCM54XX_COPPER,
++	BCM54XX_FIBER,
++	BCM54XX_GBIC,
++	BCM54XX_SGMII,
++	BCM54XX_UNKNOWN,
++};
++
+ /* An instance of a PHY, partially borrowed from mii_if_info */
+ struct mii_phy
+ {
 _
 
-Patches currently in -mm which might be from linas@austin.ibm.com are
+Patches currently in -mm which might be from jens@de.ibm.com are
 
-s2io-add-pci-error-recovery-support.patch
 sungem_phy-support-bcm5461-phy-autoneg.patch
-spidernet-compile-break.patch
-spidernet-autoneg-support-for-celleb.patch
-spidernet-load-firmware-when-open.patch
-spidernet-spidernet-add-support-for-celleb.patch
-spidernet-remove-txram-full-logging.patch
 spidernet-move-medium-variable-into-card-struct.patch
-spidernet-separate-hardware-state-from-driver-state.patch
-spidernet-fix-racy-double-free-of-skb.patch
-spidernet-transmit-race.patch
-spidernet-janitorial-typos.patch
-spidernet-maintainership.patch
