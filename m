@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch added to -mm tree
-Date: Sun, 25 Feb 2007 05:09:51 -0800
-Message-ID: <200702251309.l1PD9rjS029981@shell0.pdx.osdl.net>
+Subject: + siimage-drac4-note.patch added to -mm tree
+Date: Sun, 25 Feb 2007 05:13:57 -0800
+Message-ID: <200702251313.l1PDDx40030028@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35917 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35931 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964958AbXBYNN0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Feb 2007 08:13:26 -0500
+	id S964953AbXBYNOR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Feb 2007 08:14:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, ak@muc.de
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     i386 asm-offsets.c: workaround for a -Wmissing-prototypes warning
+     siimage: DRAC4 note
 has been added to the -mm tree.  Its filename is
-     i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+     siimage-drac4-note.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,92 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 asm-offsets.c: workaround for a -Wmissing-prototypes warning
-From: Adrian Bunk <bunk@stusta.de>
+Subject: siimage: DRAC4 note
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Work around a warning with -Wmissing-prototypes in
-arch/i386/kernel/asm-offsets.c
+Revised DRAC4 warning as Jeff suggested, this one includes more info about
+why the problem occurs
 
-The warning isn't gcc's fault - asm-offsets.c is simply a special file.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Andi Kleen <ak@muc.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/asm-offsets.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/ide/pci/siimage.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN arch/i386/kernel/asm-offsets.c~i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning arch/i386/kernel/asm-offsets.c
---- a/arch/i386/kernel/asm-offsets.c~i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning
-+++ a/arch/i386/kernel/asm-offsets.c
-@@ -25,6 +25,9 @@
- #define OFFSET(sym, str, mem) \
- 	DEFINE(sym, offsetof(struct str, mem));
+diff -puN drivers/ide/pci/siimage.c~siimage-drac4-note drivers/ide/pci/siimage.c
+--- a/drivers/ide/pci/siimage.c~siimage-drac4-note
++++ a/drivers/ide/pci/siimage.c
+@@ -26,6 +26,11 @@
+  *	If you have strange problems with nVidia chipset systems please
+  *	see the SI support documentation and update your system BIOS
+  *	if neccessary
++ *
++ *  The Dell DRAC4 has some interesting features including effectively hot
++ *  unplugging/replugging the virtual CD interface when the DRAC is reset.
++ *  This often causes drivers/ide/siimage to panic but is ok with the rather
++ *  smarter code in libata.
+  */
  
-+/* workaround for a warning with -Wmissing-prototypes */
-+void foo(void);
-+
- void foo(void)
- {
- 	OFFSET(SIGCONTEXT_eax, sigcontext, eax);
+ #include <linux/types.h>
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-arch-arm26-kernel-entrys-remove-dead-code.patch
-make-ipc-shmcshm_nopage-static.patch
-mm-tiny-shmemc-cleanups.patch
-drivers-video-sm501fbc-make-4-functions-static.patch
-fix-the-sysctl=n-compilation.patch
-git-cpufreq.patch
-make-kernel-kmodckmod_mk-static.patch
-git-drm.patch
-git-dvb.patch
-make-dvb_usb_gl861_debug-static.patch
-make-pvr2_encoder_prep_config-static.patch
-git-ieee1394.patch
-mips-remove-smp_tune_scheduling.patch
-drivers-mmc-kconfig-source-drivers-mmc-card-kconfig.patch
-remove-fs-jffs2-ioctlc.patch
-git-ubi.patch
-mtd_ubi_debug-must-depend-on-sysfs.patch
-drivers-net-vioc-possible-cleanups.patch
-git-net.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-lumpy-reclaim-cleanup.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-linux-kernel-markers-kconfig-menus-fix.patch
-linux-kernel-markers-architecture-independant-code-license-fix.patch
-linux-kernel-markers-i386-optimization-export-fix.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+git-libata-all.patch
+libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
+add-id_to_dma_mode-function-for-printing-dma-modes.patch
+expose-set_mode-method-so-it-can-be-wrapped.patch
+acpi-driver-support-for-pata.patch
+libata-use-new-id_to_dma_mode-function-to-tidy-reporting.patch
+pcmcia-spot-slave-decode-flaws-for-testing.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+adjust-legacy-ide-resource-setting-v2.patch
+ide-remove-a-ton-of-pointless-undef-really_slow_io.patch
+siimage-drac4-note.patch
+net-remove-a-collection-of-unneeded-undef-really_slow_io.patch
+resend-iphase-64bit-cleanup.patch
+serial-serial_txx9-driver-update.patch
+serial-serial_txx9-driver-update-fix.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+driver_bfin_serial_core.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+tty-clarify-documentation-of-write.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
