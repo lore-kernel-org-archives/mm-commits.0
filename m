@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + freevxfs-possible-null-pointer-dereference-fix.patch added to -mm tree
-Date: Sun, 25 Feb 2007 04:32:47 -0800
-Message-ID: <200702251232.l1PCWn7c029355@shell0.pdx.osdl.net>
+Subject: + reiserfs-possible-null-pointer-dereference-during-resize.patch added to -mm tree
+Date: Sun, 25 Feb 2007 04:34:48 -0800
+Message-ID: <200702251234.l1PCYoBT029379@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34897 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34977 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964861AbXBYMds (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Feb 2007 07:33:48 -0500
+	id S964862AbXBYMf3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Feb 2007 07:35:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@sw.ru, dmonakhov@openvz.org, hch@lst.de
+Cc: dmonakhov@sw.ru, dmonakhov@openvz.org
 
 
 The patch titled
-     freevxfs: possible null pointer dereference fix
+     reiserfs: possible null pointer dereference during resize
 has been added to the -mm tree.  Its filename is
-     freevxfs-possible-null-pointer-dereference-fix.patch
+     reiserfs-possible-null-pointer-dereference-during-resize.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: freevxfs: possible null pointer dereference fix
+Subject: reiserfs: possible null pointer dereference during resize
 From: Dmitriy Monakhov <dmonakhov@sw.ru>
 
-sb_read may return NULL, so let's explicitly check it.
+sb_read may return NULL, let's explicitly check it.
+If so free new bitmap blocks array, after this we may 		safely exit as it done
+above during bitmap allocation.
 
 Signed-off-by: Dmitriy Monakhov <dmonakhov@openvz.org>
-Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/freevxfs/vxfs_bmap.c  |    2 +-
- fs/freevxfs/vxfs_inode.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/reiserfs/resize.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/freevxfs/vxfs_bmap.c~freevxfs-possible-null-pointer-dereference-fix fs/freevxfs/vxfs_bmap.c
---- a/fs/freevxfs/vxfs_bmap.c~freevxfs-possible-null-pointer-dereference-fix
-+++ a/fs/freevxfs/vxfs_bmap.c
-@@ -137,7 +137,7 @@ vxfs_bmap_indir(struct inode *ip, long i
- 
- 		bp = sb_bread(ip->i_sb,
- 				indir + (i / VXFS_TYPED_PER_BLOCK(ip->i_sb)));
--		if (!buffer_mapped(bp))
-+		if (!bp || !buffer_mapped(bp))
- 			return 0;
- 
- 		typ = ((struct vxfs_typed *)bp->b_data) +
-diff -puN fs/freevxfs/vxfs_inode.c~freevxfs-possible-null-pointer-dereference-fix fs/freevxfs/vxfs_inode.c
---- a/fs/freevxfs/vxfs_inode.c~freevxfs-possible-null-pointer-dereference-fix
-+++ a/fs/freevxfs/vxfs_inode.c
-@@ -99,7 +99,7 @@ vxfs_blkiget(struct super_block *sbp, u_
- 	offset = ((ino % (sbp->s_blocksize / VXFS_ISIZE)) * VXFS_ISIZE);
- 	bp = sb_bread(sbp, block);
- 
--	if (buffer_mapped(bp)) {
-+	if (bp && buffer_mapped(bp)) {
- 		struct vxfs_inode_info	*vip;
- 		struct vxfs_dinode	*dip;
- 
+diff -puN fs/reiserfs/resize.c~reiserfs-possible-null-pointer-dereference-during-resize fs/reiserfs/resize.c
+--- a/fs/reiserfs/resize.c~reiserfs-possible-null-pointer-dereference-during-resize
++++ a/fs/reiserfs/resize.c
+@@ -131,6 +131,10 @@ int reiserfs_resize(struct super_block *
+ 			/* don't use read_bitmap_block since it will cache
+ 			 * the uninitialized bitmap */
+ 			bh = sb_bread(s, i * s->s_blocksize * 8);
++			if (!bh) {
++				vfree(bitmap);
++				return -EIO;
++			}
+ 			memset(bh->b_data, 0, sb_blocksize(sb));
+ 			reiserfs_test_and_set_le_bit(0, bh->b_data);
+ 			reiserfs_cache_bitmap_metadata(s, bh, bitmap + i);
 _
 
 Patches currently in -mm which might be from dmonakhov@sw.ru are
 
 freevxfs-possible-null-pointer-dereference-fix.patch
+reiserfs-possible-null-pointer-dereference-during-resize.patch
