@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spidernet-janitorial-typos.patch added to -mm tree
-Date: Sun, 25 Feb 2007 05:01:52 -0800
-Message-ID: <200702251301.l1PD1snq029845@shell0.pdx.osdl.net>
+Subject: + spidernet-fix-racy-double-free-of-skb.patch added to -mm tree
+Date: Sun, 25 Feb 2007 05:01:29 -0800
+Message-ID: <200702251301.l1PD1VPq029834@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35645 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35660 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964918AbXBYNCt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Feb 2007 08:02:49 -0500
+	id S964918AbXBYNDl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Feb 2007 08:03:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linas@austin.ibm.com
+Cc: linas@austin.ibm.com, Jens.Osterkamp@de.ibm.com, kou.ishizaki@toshiba.co.jp
 
 
 The patch titled
-     spidernet: janitorial, typos
+     spidernet: fix racy double-free of skb
 has been added to the -mm tree.  Its filename is
-     spidernet-janitorial-typos.patch
+     spidernet-fix-racy-double-free-of-skb.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spidernet: janitorial, typos
+Subject: spidernet: fix racy double-free of skb
 From: Linas Vepstas <linas@austin.ibm.com>
 
-Janitorial patch. Undo long lines, fix typo in err msg.
+It appears that under certain circumstances, a race will result in a
+double-free of an skb.  This patch null's out the skb pointer upon the skb
+free, avoiding the inadvertent deref of bogus data.  The next patch fixes the
+actual race.
 
+Cc: Jens Osterkamp <Jens.Osterkamp@de.ibm.com>
+Cc: Kou Ishizaki <kou.ishizaki@toshiba.co.jp>
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/spider_net.c |   13 +++++++------
- drivers/net/spider_net.h |    2 +-
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/net/spider_net.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-janitorial-typos drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-janitorial-typos
+diff -puN drivers/net/spider_net.c~spidernet-fix-racy-double-free-of-skb drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-fix-racy-double-free-of-skb
 +++ a/drivers/net/spider_net.c
-@@ -1053,14 +1053,15 @@ static void show_rx_chain(struct spider_
- #endif
+@@ -396,10 +396,11 @@ spider_net_free_rx_chain_contents(struct
+ 	descr = card->rx_chain.head;
+ 	do {
+ 		if (descr->skb) {
+-			dev_kfree_skb(descr->skb);
+ 			pci_unmap_single(card->pdev, descr->hwdescr->buf_addr,
+ 					 SPIDER_NET_MAX_FRAME,
+ 					 PCI_DMA_BIDIRECTIONAL);
++			dev_kfree_skb(descr->skb);
++			descr->skb = NULL;
+ 		}
+ 		descr = descr->next;
+ 	} while (descr != card->rx_chain.head);
+@@ -453,6 +454,7 @@ spider_net_prepare_rx_descr(struct spide
+ 			SPIDER_NET_MAX_FRAME, PCI_DMA_FROMDEVICE);
+ 	if (pci_dma_mapping_error(buf)) {
+ 		dev_kfree_skb_any(descr->skb);
++		descr->skb = NULL;
+ 		if (netif_msg_rx_err(card) && net_ratelimit())
+ 			pr_err("Could not iommu-map rx buffer\n");
+ 		card->spider_stats.rx_iommu_map_error++;
+@@ -682,6 +684,7 @@ static int
+ spider_net_prepare_tx_descr(struct spider_net_card *card,
+ 			    struct sk_buff *skb)
+ {
++	struct spider_net_descr_chain *chain = &card->tx_chain;
+ 	struct spider_net_descr *descr;
+ 	struct spider_net_hw_descr *hwdescr;
+ 	dma_addr_t buf;
+@@ -696,10 +699,15 @@ spider_net_prepare_tx_descr(struct spide
+ 		return -ENOMEM;
+ 	}
  
- /**
-- * spider_net_decode_one_descr - processes an rx descriptor
-+ * spider_net_decode_one_descr - processes an RX descriptor
-  * @card: card structure
-  *
-- * Returns 1 if a packet has been sent to the stack, otherwise 0
-+ * Returns 1 if a packet has been sent to the stack, otherwise 0.
-  *
-- * Processes an rx descriptor by iommu-unmapping the data buffer and passing
-- * the packet up to the stack. This function is called in softirq
-- * context, e.g. either bottom half from interrupt or NAPI polling context
-+ * Processes an RX descriptor by iommu-unmapping the data buffer
-+ * and passing the packet up to the stack. This function is called
-+ * in softirq context, e.g. either bottom half from interrupt or
-+ * NAPI polling context.
-  */
- static int
- spider_net_decode_one_descr(struct spider_net_card *card)
-@@ -1097,7 +1098,7 @@ spider_net_decode_one_descr(struct spide
- 	if ( (status != SPIDER_NET_DESCR_COMPLETE) &&
- 	     (status != SPIDER_NET_DESCR_FRAME_END) ) {
- 		if (netif_msg_rx_err(card))
--			pr_err("%s: RX descriptor with unkown state %d\n",
-+			pr_err("%s: RX descriptor with unknown state %d\n",
- 			       card->netdev->name, status);
- 		card->spider_stats.rx_desc_unk_state++;
- 		goto bad_desc;
-diff -puN drivers/net/spider_net.h~spidernet-janitorial-typos drivers/net/spider_net.h
---- a/drivers/net/spider_net.h~spidernet-janitorial-typos
-+++ a/drivers/net/spider_net.h
-@@ -25,7 +25,7 @@
- #ifndef _SPIDER_NET_H
- #define _SPIDER_NET_H
+-	spin_lock_irqsave(&card->tx_chain.lock, flags);
++	spin_lock_irqsave(&chain->lock, flags);
+ 	descr = card->tx_chain.head;
++	if (descr->next == chain->tail->prev) {
++		spin_unlock_irqrestore(&chain->lock, flags);
++		pci_unmap_single(card->pdev, buf, skb->len, PCI_DMA_TODEVICE);
++		return -ENOMEM;
++	}
+ 	hwdescr = descr->hwdescr;
+-	card->tx_chain.head = descr->next;
++	chain->head = descr->next;
  
--#define VERSION "1.6 C"
-+#define VERSION "2.0 A"
+ 	descr->skb = skb;
+ 	hwdescr->buf_addr = buf;
+@@ -709,7 +717,7 @@ spider_net_prepare_tx_descr(struct spide
  
- #include "sungem_phy.h"
+ 	hwdescr->dmac_cmd_status =
+ 			SPIDER_NET_DESCR_CARDOWNED | SPIDER_NET_DMAC_NOCS;
+-	spin_unlock_irqrestore(&card->tx_chain.lock, flags);
++	spin_unlock_irqrestore(&chain->lock, flags);
  
+ 	if (skb->protocol == htons(ETH_P_IP))
+ 		switch (skb->nh.iph->protocol) {
+@@ -838,6 +846,7 @@ spider_net_release_tx_chain(struct spide
+ 		chain->tail = descr->next;
+ 		hwdescr->dmac_cmd_status |= SPIDER_NET_DESCR_NOT_IN_USE;
+ 		skb = descr->skb;
++		descr->skb = NULL;
+ 		buf_addr = hwdescr->buf_addr;
+ 		spin_unlock_irqrestore(&chain->lock, flags);
+ 
+@@ -903,13 +912,10 @@ spider_net_xmit(struct sk_buff *skb, str
+ {
+ 	int cnt;
+ 	struct spider_net_card *card = netdev_priv(netdev);
+-	struct spider_net_descr_chain *chain = &card->tx_chain;
+ 
+ 	spider_net_release_tx_chain(card, 0);
+ 
+-	if ((chain->head->next == chain->tail->prev) ||
+-	   (spider_net_prepare_tx_descr(card, skb) != 0)) {
+-
++	if (spider_net_prepare_tx_descr(card, skb) != 0) {
+ 		card->netdev_stats.tx_dropped++;
+ 		netif_stop_queue(netdev);
+ 		return NETDEV_TX_BUSY;
+@@ -1127,6 +1133,7 @@ spider_net_decode_one_descr(struct spide
+ 
+ bad_desc:
+ 	dev_kfree_skb_irq(descr->skb);
++	descr->skb = NULL;
+ 	hwdescr->dmac_cmd_status = SPIDER_NET_DESCR_NOT_IN_USE;
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from linas@austin.ibm.com are
