@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch added to -mm tree
-Date: Tue, 27 Feb 2007 13:02:26 -0800
-Message-ID: <200702272102.l1RL2Uu9028537@shell0.pdx.osdl.net>
+Subject: + utrace-prep.patch added to -mm tree
+Date: Tue, 27 Feb 2007 13:02:31 -0800
+Message-ID: <200702272102.l1RL2ZOp028540@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52097 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52095 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752617AbXB0VCk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 16:02:40 -0500
+	id S1752616AbXB0VCh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 16:02:37 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1RL2ahB017926
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 27 Feb 2007 13:02:36 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@openvz.org, ak@suse.de, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy
+     utrace-prep
 has been added to the -mm tree.  Its filename is
-     lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
+     utrace-prep.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +29,26 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy
+Subject: utrace-prep
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/x86_64/ia32/ptrace32.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/compat.c~lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy fs/compat.c
---- a/fs/compat.c~lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy
-+++ a/fs/compat.c
-@@ -116,10 +116,8 @@ asmlinkage long compat_sys_lutimesat(int
- 	struct timespec ts[2];
- 
- 	if (utimes) {
--		if (get_user(ts[0].tv_sec, &utimes[0].tv_sec) ||
--		    get_user(ts[0].tv_nsec, &utimes[0].tv_nsec) ||
--		    get_user(ts[1].tv_sec, &utimes[1].tv_sec) ||
--		    get_user(ts[1].tv_nsec, &utimes[1].tv_nsec))
-+		if (get_compat_timespec(&ts[0], &utimes[0]) ||
-+		    get_compat_timespec(&ts[1], &utimes[1]))
- 			return -EFAULT;
- 	}
- 	return do_utimes_nsec(dfd, filename,
+diff -puN arch/x86_64/ia32/ptrace32.c~utrace-prep arch/x86_64/ia32/ptrace32.c
+--- a/arch/x86_64/ia32/ptrace32.c~utrace-prep
++++ a/arch/x86_64/ia32/ptrace32.c
+@@ -243,7 +243,6 @@ asmlinkage long sys32_ptrace(long reques
+ 	case PTRACE_SINGLESTEP:
+ 	case PTRACE_DETACH:
+ 	case PTRACE_SYSCALL:
+-	case PTRACE_OLDSETOPTIONS:
+ 	case PTRACE_SETOPTIONS:
+ 	case PTRACE_SET_THREAD_AREA:
+ 	case PTRACE_GET_THREAD_AREA:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
