@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-kernel-doc-whitespace-cleanup.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:58:15 -0800
-Message-ID: <200702272058.l1RKwJlG028375@shell0.pdx.osdl.net>
+Subject: + reiserfs-shrink-superblock-if-no-xattrs.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:58:41 -0800
+Message-ID: <200702272058.l1RKwime028400@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51963 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51986 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751838AbXB0U6m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:58:42 -0500
+	id S1752533AbXB0U64 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:58:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: adobriyan@gmail.com, reiserfs-dev@namesys.com
 
 
 The patch titled
-     scripts: kernel-doc whitespace cleanup
+     reiserfs: shrink superblock if no xattrs
 has been added to the -mm tree.  Its filename is
-     scripts-kernel-doc-whitespace-cleanup.patch
+     reiserfs-shrink-superblock-if-no-xattrs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,363 +25,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scripts: kernel-doc whitespace cleanup
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: reiserfs: shrink superblock if no xattrs
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Whitespace cleanup only:  convert some series of spaces to tabs.
+This makes in-core superblock fit into one cacheline here.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Before:
+    struct dentry *            xattr_root;           /*   124     4 */
+    /* --- cacheline 1 boundary (128 bytes) --- */
+    struct rw_semaphore        xattr_dir_sem;        /*   128    12 */
+    int                        j_errno;              /*   140     4 */
+    }; /* size: 144, cachelines: 2 */
+       /* sum members: 142, holes: 1, sum holes: 2 */
+       /* last cacheline: 16 bytes */
+
+After:
+    int                        j_errno;              /*   124     4 */
+    /* --- cacheline 1 boundary (128 bytes) --- */
+    }; /* size: 128, cachelines: 1 */
+       /* sum members: 126, holes: 1, sum holes: 2 */
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <reiserfs-dev@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   96 +++++++++++++++++++++----------------------
- 1 file changed, 48 insertions(+), 48 deletions(-)
+ fs/reiserfs/super.c            |    6 ++++--
+ include/linux/reiserfs_fs_sb.h |    3 ++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN scripts/kernel-doc~scripts-kernel-doc-whitespace-cleanup scripts/kernel-doc
---- a/scripts/kernel-doc~scripts-kernel-doc-whitespace-cleanup
-+++ a/scripts/kernel-doc
-@@ -381,10 +381,10 @@ sub output_highlight {
-     eval $dohighlight;
-     die $@ if $@;
-     foreach $line (split "\n", $contents) {
--      if ($line eq ""){
-+	if ($line eq ""){
- 	    print $lineprefix, $blankline;
- 	} else {
--            $line =~ s/\\\\\\/\&/g;
-+	    $line =~ s/\\\\\\/\&/g;
- 	    print $lineprefix, $line;
- 	}
- 	print "\n";
-@@ -414,7 +414,7 @@ sub output_enum_html(%) {
-     print "<b>enum ".$args{'enum'}."</b> {<br>\n";
-     $count = 0;
-     foreach $parameter (@{$args{'parameterlist'}}) {
--        print " <b>".$parameter."</b>";
-+	print " <b>".$parameter."</b>";
- 	if ($count != $#{$args{'parameterlist'}}) {
- 	    $count++;
- 	    print ",\n";
-@@ -462,7 +462,7 @@ sub output_struct_html(%) {
- 	my $parameter_name = $parameter;
- 	$parameter_name =~ s/\[.*//;
- 
--        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-+	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	$type = $args{'parametertypes'}{$parameter};
- 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
- 	    # pointer-to-function
-@@ -483,7 +483,7 @@ sub output_struct_html(%) {
- 	my $parameter_name = $parameter;
- 	$parameter_name =~ s/\[.*//;
- 
--        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-+	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	print "<dt><b>".$parameter."</b>\n";
- 	print "<dd>";
- 	output_highlight($args{'parameterdescs'}{$parameter_name});
-@@ -525,7 +525,7 @@ sub output_function_html(%) {
- 	my $parameter_name = $parameter;
- 	$parameter_name =~ s/\[.*//;
- 
--        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-+	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	print "<dt><b>".$parameter."</b>\n";
- 	print "<dd>";
- 	output_highlight($args{'parameterdescs'}{$parameter_name});
-@@ -691,7 +691,7 @@ sub output_struct_xml(%) {
- 	$parameter_name =~ s/\[.*//;
- 
- 	defined($args{'parameterdescs'}{$parameter_name}) || next;
--        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-+	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	$type = $args{'parametertypes'}{$parameter};
- 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
- 	    # pointer-to-function
-@@ -767,11 +767,11 @@ sub output_enum_xml(%) {
-     print "enum ".$args{'enum'}." {\n";
-     $count = 0;
-     foreach $parameter (@{$args{'parameterlist'}}) {
--        print "  $parameter";
--        if ($count != $#{$args{'parameterlist'}}) {
-+	print "  $parameter";
-+	if ($count != $#{$args{'parameterlist'}}) {
- 	    $count++;
- 	    print ",";
--        }
-+	}
- 	print "\n";
-     }
-     print "};";
-@@ -1007,7 +1007,7 @@ sub output_enum_man(%) {
-     print "enum ".$args{'enum'}." {\n";
-     $count = 0;
-     foreach my $parameter (@{$args{'parameterlist'}}) {
--        print ".br\n.BI \"    $parameter\"\n";
-+	print ".br\n.BI \"    $parameter\"\n";
- 	if ($count == $#{$args{'parameterlist'}}) {
- 	    print "\n};\n";
- 	    last;
-@@ -1054,7 +1054,7 @@ sub output_struct_man(%) {
- 	my $parameter_name = $parameter;
- 	$parameter_name =~ s/\[.*//;
- 
--        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-+	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	$type = $args{'parametertypes'}{$parameter};
- 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
- 	    # pointer-to-function
-@@ -1077,7 +1077,7 @@ sub output_struct_man(%) {
- 	my $parameter_name = $parameter;
- 	$parameter_name =~ s/\[.*//;
- 
--        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-+	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	print ".IP \"".$parameter."\" 12\n";
- 	output_highlight($args{'parameterdescs'}{$parameter_name});
-     }
-@@ -1187,7 +1187,7 @@ sub output_enum_text(%) {
-     print "enum ".$args{'enum'}." {\n";
-     $count = 0;
-     foreach $parameter (@{$args{'parameterlist'}}) {
--        print "\t$parameter";
-+	print "\t$parameter";
- 	if ($count != $#{$args{'parameterlist'}}) {
- 	    $count++;
- 	    print ",";
-@@ -1232,7 +1232,7 @@ sub output_struct_text(%) {
- 	my $parameter_name = $parameter;
- 	$parameter_name =~ s/\[.*//;
- 
--        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-+	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	$type = $args{'parametertypes'}{$parameter};
- 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
- 	    # pointer-to-function
-@@ -1252,7 +1252,7 @@ sub output_struct_text(%) {
- 	my $parameter_name = $parameter;
- 	$parameter_name =~ s/\[.*//;
- 
--        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
-+	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
- 	print "$parameter\n\t";
- 	print $args{'parameterdescs'}{$parameter_name}."\n";
-     }
-@@ -1284,7 +1284,7 @@ sub output_declaration {
- 	( $function_only == 1 && defined($function_table{$name})) ||
- 	( $function_only == 2 && !defined($function_table{$name})))
-     {
--        &$func(@_);
-+	&$func(@_);
- 	$section_counter++;
-     }
- }
-@@ -1317,8 +1317,8 @@ sub dump_struct($$) {
-     my $file = shift;
- 
-     if ($x =~/(struct|union)\s+(\w+)\s*{(.*)}/) {
--        $declaration_name = $2;
--        my $members = $3;
-+	$declaration_name = $2;
-+	my $members = $3;
- 
- 	# ignore embedded structs or unions
- 	$members =~ s/{.*?}//g;
-@@ -1345,7 +1345,7 @@ sub dump_struct($$) {
- 			   });
-     }
-     else {
--        print STDERR "Error(${file}:$.): Cannot parse struct or union!\n";
-+	print STDERR "Error(${file}:$.): Cannot parse struct or union!\n";
- 	++$errors;
-     }
- }
-@@ -1356,15 +1356,15 @@ sub dump_enum($$) {
- 
-     $x =~ s@/\*.*?\*/@@gos;	# strip comments.
-     if ($x =~ /enum\s+(\w+)\s*{(.*)}/) {
--        $declaration_name = $1;
--        my $members = $2;
-+	$declaration_name = $1;
-+	my $members = $2;
- 
- 	foreach my $arg (split ',', $members) {
- 	    $arg =~ s/^\s*(\w+).*/$1/;
- 	    push @parameterlist, $arg;
- 	    if (!$parameterdescs{$arg}) {
--	        $parameterdescs{$arg} = $undescribed;
--	        print STDERR "Warning(${file}:$.): Enum value '$arg' ".
-+		$parameterdescs{$arg} = $undescribed;
-+		print STDERR "Warning(${file}:$.): Enum value '$arg' ".
- 		    "not described in enum '$declaration_name'\n";
- 	    }
- 
-@@ -1382,7 +1382,7 @@ sub dump_enum($$) {
- 			   });
-     }
-     else {
--        print STDERR "Error(${file}:$.): Cannot parse enum!\n";
-+	print STDERR "Error(${file}:$.): Cannot parse enum!\n";
- 	++$errors;
-     }
- }
-@@ -1393,12 +1393,12 @@ sub dump_typedef($$) {
- 
-     $x =~ s@/\*.*?\*/@@gos;	# strip comments.
-     while (($x =~ /\(*.\)\s*;$/) || ($x =~ /\[*.\]\s*;$/)) {
--        $x =~ s/\(*.\)\s*;$/;/;
-+	$x =~ s/\(*.\)\s*;$/;/;
- 	$x =~ s/\[*.\]\s*;$/;/;
-     }
- 
-     if ($x =~ /typedef.*\s+(\w+)\s*;/) {
--        $declaration_name = $1;
-+	$declaration_name = $1;
- 
- 	output_declaration($declaration_name,
- 			   'typedef',
-@@ -1410,7 +1410,7 @@ sub dump_typedef($$) {
- 			   });
-     }
-     else {
--        print STDERR "Error(${file}:$.): Cannot parse typedef!\n";
-+	print STDERR "Error(${file}:$.): Cannot parse typedef!\n";
- 	++$errors;
-     }
- }
-@@ -1424,14 +1424,14 @@ sub create_parameterlist($$$) {
- 
-     # temporarily replace commas inside function pointer definition
-     while ($args =~ /(\([^\),]+),/) {
--        $args =~ s/(\([^\),]+),/$1#/g;
-+	$args =~ s/(\([^\),]+),/$1#/g;
-     }
- 
-     foreach my $arg (split($splitter, $args)) {
- 	# strip comments
- 	$arg =~ s/\/\*.*\*\///;
--        # strip leading/trailing spaces
--        $arg =~ s/^\s*//;
-+	# strip leading/trailing spaces
-+	$arg =~ s/^\s*//;
- 	$arg =~ s/\s*$//;
- 	$arg =~ s/\s+/ /;
- 
-@@ -1514,15 +1514,15 @@ sub push_parameter($$$) {
- 	    $parameterdescs{$param_name} = $undescribed;
- 
- 	    if (($type eq 'function') || ($type eq 'enum')) {
--	        print STDERR "Warning(${file}:$.): Function parameter ".
-+		print STDERR "Warning(${file}:$.): Function parameter ".
- 		    "or member '$param' not " .
- 		    "described in '$declaration_name'\n";
- 	    }
- 	    print STDERR "Warning(${file}:$.):".
--	                 " No description found for parameter '$param'\n";
-+			 " No description found for parameter '$param'\n";
- 	    ++$warnings;
--        }
--        }
-+	}
-+	}
- 
- 	push @parameterlist, $param;
- 	$parametertypes{$param} = $type;
-@@ -1664,10 +1664,10 @@ sub process_state3_function($$) {
- 	# do nothing
-     }
-     elsif ($x =~ /([^\{]*)/) {
--        $prototype .= $1;
-+	$prototype .= $1;
-     }
-     if (($x =~ /\{/) || ($x =~ /\#define/) || ($x =~ /;/)) {
--        $prototype =~ s@/\*.*?\*/@@gos;	# strip comments.
-+	$prototype =~ s@/\*.*?\*/@@gos;	# strip comments.
- 	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/cr's.
- 	$prototype =~ s@^\s+@@gos; # strip leading spaces
- 	dump_function($prototype,$file);
-@@ -1688,17 +1688,17 @@ sub process_state3_type($$) {
-     }
- 
-     while (1) {
--        if ( $x =~ /([^{};]*)([{};])(.*)/ ) {
-+	if ( $x =~ /([^{};]*)([{};])(.*)/ ) {
- 	    $prototype .= $1 . $2;
- 	    ($2 eq '{') && $brcount++;
- 	    ($2 eq '}') && $brcount--;
- 	    if (($2 eq ';') && ($brcount == 0)) {
--	        dump_declaration($prototype,$file);
-+		dump_declaration($prototype,$file);
- 		reset_state();
--	        last;
-+		last;
- 	    }
- 	    $x = $3;
--        } else {
-+	} else {
- 	    $prototype .= $x;
- 	    last;
- 	}
-@@ -1756,7 +1756,7 @@ sub process_file($) {
- 		} else {
- 			$section = $1;
+diff -puN fs/reiserfs/super.c~reiserfs-shrink-superblock-if-no-xattrs fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~reiserfs-shrink-superblock-if-no-xattrs
++++ a/fs/reiserfs/super.c
+@@ -433,12 +433,13 @@ int remove_save_link(struct inode *inode
+ static void reiserfs_kill_sb(struct super_block *s)
+ {
+ 	if (REISERFS_SB(s)) {
++#ifdef CONFIG_REISERFS_FS_XATTR
+ 		if (REISERFS_SB(s)->xattr_root) {
+ 			d_invalidate(REISERFS_SB(s)->xattr_root);
+ 			dput(REISERFS_SB(s)->xattr_root);
+ 			REISERFS_SB(s)->xattr_root = NULL;
  		}
--            }
-+	    }
- 	    elsif (/$doc_decl/o) {
- 		$identifier = $1;
- 		if (/\s*([\w\s]+?)\s*-/) {
-@@ -1849,13 +1849,13 @@ sub process_file($) {
- 	    }
- 	} elsif ($state == 3) {	# scanning for function '{' (end of prototype)
- 	    if ($decl_type eq 'function') {
--	        process_state3_function($_, $file);
-+		process_state3_function($_, $file);
- 	    } else {
--	        process_state3_type($_, $file);
-+		process_state3_type($_, $file);
- 	    }
- 	} elsif ($state == 4) {
- 		# Documentation block
--	        if (/$doc_block/) {
-+		if (/$doc_block/) {
- 			dump_section($section, $contents);
- 			output_intro({'sectionlist' => \@sectionlist,
- 				      'sections' => \%sections });
-@@ -1873,7 +1873,7 @@ sub process_file($) {
- 			} else {
- 				$section = $1;
- 			}
--                }
-+		}
- 		elsif (/$doc_end/)
- 		{
- 			dump_section($section, $contents);
-@@ -1900,8 +1900,8 @@ sub process_file($) {
- 			{
- 				$contents .= $1 . "\n";
- 			}
--        	}
--          }
-+		}
-+	}
-     }
-     if ($initial_section_counter == $section_counter) {
- 	print STDERR "Warning(${file}): no structured comments found\n";
+-
++#endif
+ 		if (REISERFS_SB(s)->priv_root) {
+ 			d_invalidate(REISERFS_SB(s)->priv_root);
+ 			dput(REISERFS_SB(s)->priv_root);
+@@ -1563,9 +1564,10 @@ static int reiserfs_fill_super(struct su
+ 	REISERFS_SB(s)->s_alloc_options.preallocmin = 0;
+ 	/* Preallocate by 16 blocks (17-1) at once */
+ 	REISERFS_SB(s)->s_alloc_options.preallocsize = 17;
++#ifdef CONFIG_REISERFS_FS_XATTR
+ 	/* Initialize the rwsem for xattr dir */
+ 	init_rwsem(&REISERFS_SB(s)->xattr_dir_sem);
+-
++#endif
+ 	/* setup default block allocator options */
+ 	reiserfs_init_alloc_options(s);
+ 
+diff -puN include/linux/reiserfs_fs_sb.h~reiserfs-shrink-superblock-if-no-xattrs include/linux/reiserfs_fs_sb.h
+--- a/include/linux/reiserfs_fs_sb.h~reiserfs-shrink-superblock-if-no-xattrs
++++ a/include/linux/reiserfs_fs_sb.h
+@@ -401,9 +401,10 @@ struct reiserfs_sb_info {
+ 	int reserved_blocks;	/* amount of blocks reserved for further allocations */
+ 	spinlock_t bitmap_lock;	/* this lock on now only used to protect reserved_blocks variable */
+ 	struct dentry *priv_root;	/* root of /.reiserfs_priv */
++#ifdef CONFIG_REISERFS_FS_XATTR
+ 	struct dentry *xattr_root;	/* root of /.reiserfs_priv/.xa */
+ 	struct rw_semaphore xattr_dir_sem;
+-
++#endif
+ 	int j_errno;
+ #ifdef CONFIG_QUOTA
+ 	char *s_qf_names[MAXQUOTAS];
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-kernel-doc-allow-space-after-__attribute__.patch
-kernel-doc-fixes-for-2620-git15-non-drivers.patch
-add-mm-testing-in-submitchecklist.patch
-git-drm.patch
-git-libata-all.patch
-phy-layer-add-kernel-doc-docbook.patch
-git-parisc.patch
-fusion-kernel-doc-warning-fixes.patch
-x86-dont-probe-for-ddc-on-vbe12.patch
-scripts-kernel-doc-whitespace-cleanup.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+git-dvb.patch
+parisc-unbreak-setupc-re-command_line.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reiserfs-shrink-superblock-if-no-xattrs.patch
