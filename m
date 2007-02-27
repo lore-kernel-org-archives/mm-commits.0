@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + convert-h8-300-to-generic-timekeeping.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:56:44 -0800
-Message-ID: <200702272056.l1RKumXM028316@shell0.pdx.osdl.net>
+Subject: + ____call_usermodehelper-dont-flush_signals.patch added to -mm tree
+Date: Tue, 27 Feb 2007 13:00:11 -0800
+Message-ID: <200702272100.l1RL0FdJ028465@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52012 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52033 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752548AbXB0VAD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 16:00:03 -0500
+	id S1752548AbXB0VAf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 16:00:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, ysato@users.sourceforge.jp
+Cc: oleg@tv-sign.ru, rusty@rustcorp.com.au
 
 
 The patch titled
-     Convert h8/300 to generic timekeeping
+     ____call_usermodehelper: don't flush_signals()
 has been added to the -mm tree.  Its filename is
-     convert-h8-300-to-generic-timekeeping.patch
+     ____call_usermodehelper-dont-flush_signals.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,103 +25,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Convert h8/300 to generic timekeeping
-From: john stultz <johnstul@us.ibm.com>
+Subject: ____call_usermodehelper: don't flush_signals()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Currently h8/300 does not implement sub-jiffy timekeeping, so there is no
-benefit to having arch specific timekeeping code.
+____call_usermodehelper() has no reason for flush_signals().  It is a fresh
+forked process which is going to exec a user-space application or exit on
+failure.
 
-This patch simply removes those functions and enables the generic
-timekeeping code.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/Kconfig       |    4 ++
- arch/h8300/kernel/time.c |   52 -------------------------------------
- 2 files changed, 4 insertions(+), 52 deletions(-)
+ kernel/kmod.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/h8300/Kconfig~convert-h8-300-to-generic-timekeeping arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~convert-h8-300-to-generic-timekeeping
-+++ a/arch/h8300/Kconfig
-@@ -53,6 +53,10 @@ config GENERIC_CALIBRATE_DELAY
- 	bool
- 	default y
+diff -puN kernel/kmod.c~____call_usermodehelper-dont-flush_signals kernel/kmod.c
+--- a/kernel/kmod.c~____call_usermodehelper-dont-flush_signals
++++ a/kernel/kmod.c
+@@ -256,7 +256,6 @@ static int ____call_usermodehelper(void 
  
-+config GENERIC_TIME
-+	bool
-+	default y
-+
- config TIME_LOW_RES
- 	bool
- 	default y
-diff -puN arch/h8300/kernel/time.c~convert-h8-300-to-generic-timekeeping arch/h8300/kernel/time.c
---- a/arch/h8300/kernel/time.c~convert-h8-300-to-generic-timekeeping
-+++ a/arch/h8300/kernel/time.c
-@@ -66,55 +66,3 @@ void time_init(void)
- 
- 	platform_timer_setup(timer_interrupt);
- }
--
--/*
-- * This version of gettimeofday has near microsecond resolution.
-- */
--void do_gettimeofday(struct timeval *tv)
--{
--	unsigned long flags;
--	unsigned long usec, sec;
--
--	read_lock_irqsave(&xtime_lock, flags);
--	usec = 0;
--	sec = xtime.tv_sec;
--	usec += (xtime.tv_nsec / 1000);
--	read_unlock_irqrestore(&xtime_lock, flags);
--
--	while (usec >= 1000000) {
--		usec -= 1000000;
--		sec++;
--	}
--
--	tv->tv_sec = sec;
--	tv->tv_usec = usec;
--}
--
--EXPORT_SYMBOL(do_gettimeofday);
--
--int do_settimeofday(struct timespec *tv)
--{
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_lock_irq(&xtime_lock);
--	/* This is revolting. We need to set the xtime.tv_usec
--	 * correctly. However, the value in this location is
--	 * is value at the last tick.
--	 * Discover what correction gettimeofday
--	 * would have done, and then undo it!
--	 */
--	while (tv->tv_nsec < 0) {
--		tv->tv_nsec += NSEC_PER_SEC;
--		tv->tv_sec--;
--	}
--
--	xtime.tv_sec = tv->tv_sec;
--	xtime.tv_nsec = tv->tv_nsec;
--	ntp_clear();
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--	return 0;
--}
--
--EXPORT_SYMBOL(do_settimeofday);
+ 	/* Unblock all signals and set the session keyring. */
+ 	new_session = key_get(sub_info->ring);
+-	flush_signals(current);
+ 	spin_lock_irq(&current->sighand->siglock);
+ 	old_session = __install_session_keyring(current, new_session);
+ 	flush_signal_handlers(current, 1);
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-log-reason-why-tsc-was-marked-unstable.patch
-clocksource-init-adjustments-fix-bug-7426.patch
-convert-h8-300-to-generic-timekeeping.patch
-v850-generic-timekeeping-conversion.patch
-profile-likely-unlikely-macros-x86_64-fix.patch
+git-cpufreq.patch
+drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
+bridge-eliminate-port_check-workqueue.patch
+git-block.patch
+adapt-page_lock_anon_vma-to-preempt_rcu.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-refrigerator-vs-thaw_process-race.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch
+workqueue-introduce-wq_per_cpu-helper.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+workqueue-kill-noautorel-works.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+____call_usermodehelper-dont-flush_signals.patch
+rework-compat_sys_io_submit.patch
+fix-aioh-includes.patch
+fix-access_ok-checks.patch
+make-good_sigevent-non-static.patch
+make-good_sigevent-non-static-fix.patch
+make-__sigqueue_free-and.patch
+aio-completion-signal-notification.patch
+aio-completion-signal-notification-fix.patch
+aio-completion-signal-notification-fixes-and-cleanups.patch
+aio-completion-signal-notification-small-cleanup.patch
+add-listio-syscall-support.patch
