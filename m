@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:46:26 -0800
-Message-ID: <200702272046.l1RKkURp027901@shell0.pdx.osdl.net>
+Subject: + unionfs-fix-slab-abuses-with-krealloc.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:50:25 -0800
+Message-ID: <200702272050.l1RKoTSm028088@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51237 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51289 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752574AbXB0Utt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:49:49 -0500
+	id S1752577AbXB0Uuj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:50:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, ralf@linux-mips.org
+Cc: penberg@cs.helsinki.fi, jsipek@fsl.cs.sunysb.edu
 
 
 The patch titled
-     MIPS: Remove unreferenced _IOC_SLMASK macro in ioctl.h
+     unionfs: fix slab abuses with krealloc
 has been added to the -mm tree.  Its filename is
-     mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh.patch
+     unionfs-fix-slab-abuses-with-krealloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,168 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MIPS: Remove unreferenced _IOC_SLMASK macro in ioctl.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: unionfs: fix slab abuses with krealloc
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Delete the definition of the apparently unreferenced macro _IOC_SLMASK.
+This changes unionfs to use krealloc() for reallocating memory so that we
+don't need to play tricks with slab internals.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/ioctl.h |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/unionfs/copyup.c |   35 +++++++++++++----------------------
+ fs/unionfs/lookup.c |   33 +++++++++++++--------------------
+ 2 files changed, 26 insertions(+), 42 deletions(-)
 
-diff -puN include/asm-mips/ioctl.h~mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh include/asm-mips/ioctl.h
---- a/include/asm-mips/ioctl.h~mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh
-+++ a/include/asm-mips/ioctl.h
-@@ -38,11 +38,6 @@
- #define _IOC_DIRSHIFT	(_IOC_SIZESHIFT+_IOC_SIZEBITS)
+diff -puN fs/unionfs/copyup.c~unionfs-fix-slab-abuses-with-krealloc fs/unionfs/copyup.c
+--- a/fs/unionfs/copyup.c~unionfs-fix-slab-abuses-with-krealloc
++++ a/fs/unionfs/copyup.c
+@@ -603,23 +603,16 @@ static struct dentry *create_parents_nam
+ 	const char *childname;
+ 	unsigned int childnamelen;
  
- /*
-- * We to additionally limit parameters to a maximum 255 bytes.
-- */
--#define _IOC_SLMASK	0xff
+-	int old_kmalloc_size;
+-	int kmalloc_size;
+-	int num_dentry;
++	int nr_dentry;
+ 	int count;
+ 
+ 	int old_bstart;
+ 	int old_bend;
+ 	struct dentry **path = NULL;
+-	struct dentry **tmp_path;
+ 	struct super_block *sb;
+ 
+ 	verify_locked(dentry);
+ 
+-	/* There is no sense allocating any less than the minimum. */
+-	kmalloc_size = malloc_sizes[0].cs_size;
+-	num_dentry = kmalloc_size / sizeof(struct dentry *);
 -
--/*
-  * Direction bits _IOC_NONE could be 0, but OSF/1 gives it a bit.
-  * And this turns out useful to catch old ioctl numbers in header
-  * files for us.
+ 	if ((err = is_robranch_super(dir->i_sb, bindex))) {
+ 		hidden_dentry = ERR_PTR(err);
+ 		goto out;
+@@ -629,7 +622,10 @@ static struct dentry *create_parents_nam
+ 	old_bend = dbend(dentry);
+ 
+ 	hidden_dentry = ERR_PTR(-ENOMEM);
+-	path = kzalloc(kmalloc_size, GFP_KERNEL);
++
++	/* There is no sense allocating any less than the minimum. */
++	nr_dentry = 1;
++	path = kmalloc(nr_dentry * sizeof(struct dentry *), GFP_KERNEL);
+ 	if (!path)
+ 		goto out;
+ 
+@@ -655,26 +651,21 @@ static struct dentry *create_parents_nam
+ 		/* find out the hidden_parent_dentry in the given branch */
+ 		hidden_parent_dentry = unionfs_lower_dentry_idx(parent_dentry, bindex);
+ 
+-		/* store the child dentry */
+-		path[count++] = child_dentry;
+-
+ 		/* grow path table */
+-		if (count == num_dentry) {
+-			old_kmalloc_size = kmalloc_size;
+-			kmalloc_size *= 2;
+-			num_dentry = kmalloc_size / sizeof(struct dentry *);
++		if (count == nr_dentry) {
++			void *p;
+ 
+-			tmp_path = kzalloc(kmalloc_size, GFP_KERNEL);
+-			if (!tmp_path) {
++			nr_dentry *= 2;
++			p = krealloc(path, nr_dentry * sizeof(struct dentry *), GFP_KERNEL);
++			if (!p) {
+ 				hidden_dentry = ERR_PTR(-ENOMEM);
+ 				goto out;
+ 			}
+-			memcpy(tmp_path, path, old_kmalloc_size);
+-			kfree(path);
+-			path = tmp_path;
+-			tmp_path = NULL;
++			path = p;
+ 		}
+ 
++		/* store the child dentry */
++		path[count++] = child_dentry;
+ 	} while (!hidden_parent_dentry);
+ 	count--;
+ 
+diff -puN fs/unionfs/lookup.c~unionfs-fix-slab-abuses-with-krealloc fs/unionfs/lookup.c
+--- a/fs/unionfs/lookup.c~unionfs-fix-slab-abuses-with-krealloc
++++ a/fs/unionfs/lookup.c
+@@ -428,9 +428,8 @@ void free_dentry_private_data(struct uni
+ /* allocate new dentry private data, free old one if necessary */
+ int new_dentry_private_data(struct dentry *dentry)
+ {
+-	int newsize;
+-	int oldsize = 0;
+ 	struct unionfs_dentry_info *info = UNIONFS_D(dentry);
++	int new_size, size;
+ 
+ 	spin_lock(&dentry->d_lock);
+ 	if (!info) {
+@@ -445,8 +444,9 @@ int new_dentry_private_data(struct dentr
+ 		mutex_lock(&info->lock);
+ 
+ 		info->lower_paths = NULL;
++		size = 0;
+ 	} else
+-		oldsize = sizeof(struct path) * info->bcount;
++		size = sizeof(struct path) * info->bcount;
+ 
+ 	info->bstart = -1;
+ 	info->bend = -1;
+@@ -454,28 +454,21 @@ int new_dentry_private_data(struct dentr
+ 	info->bcount = sbmax(dentry->d_sb);
+ 	atomic_set(&info->generation,
+ 		   atomic_read(&UNIONFS_SB(dentry->d_sb)->generation));
+-	newsize = sizeof(struct path) * sbmax(dentry->d_sb);
++
++	new_size = sizeof(struct path) * sbmax(dentry->d_sb);
+ 
+ 	/* Don't reallocate when we already have enough space. */
+-	/* It would be ideal if we could actually use the slab macros to
+-	 * determine what our object sizes is, but those are not exported.
+-	 */
+-	if (oldsize) {
+-		int minsize = malloc_sizes[0].cs_size;
+-
+-		if (!newsize || ((oldsize < newsize) && (newsize > minsize))) {
+-			kfree(info->lower_paths);
+-			info->lower_paths = NULL;
+-		}
+-	}
++	if (new_size > size) {
++		void *p;
+ 
+-	if (!info->lower_paths && newsize) {
+-		info->lower_paths = kmalloc(newsize, GFP_ATOMIC);
+-		if (!info->lower_paths)
++		p = krealloc(info->lower_paths, new_size, GFP_ATOMIC);
++		if (!p)
+ 			goto out_free;
+-	}
+ 
+-	memset(info->lower_paths, 0, (oldsize > newsize ? oldsize : newsize));
++		info->lower_paths = p;
++		size = new_size;
++	}
++	memset(info->lower_paths, 0, size);
+ 
+ 	spin_unlock(&dentry->d_lock);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
-git-avr32.patch
-git-dvb.patch
-kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch
-git-mips.patch
-mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
+slab-introduce-krealloc.patch
+unionfs-fix-slab-abuses-with-krealloc.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+slab-remove-colouroff-from-struct-slab.patch
+module-use-krealloc.patch
+slab-use-cpu_lock_.patch
+slab-leaks3-default-y.patch
