@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cxacru-export-detailed-device-info-through-sysfs-updated.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:50:55 -0800
-Message-ID: <200702272051.l1RKoxd1028112@shell0.pdx.osdl.net>
+Subject: + x86_64-fix-section-mismatch-warnings.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:52:16 -0800
+Message-ID: <200702272052.l1RKqKQs028154@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51351 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51398 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752580AbXB0Uvc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:51:32 -0500
+	id S1752582AbXB0Uwa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:52:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: simon@arlott.org, duncan.sands@free.fr, greg@kroah.com, simon@fire.lp0.eu
+Cc: sam@ravnborg.org, ak@suse.de, anemo@mba.ocn.ne.jp
 
 
 The patch titled
-     cxacru: export detailed device info through sysfs
+     x86_64: fix section mismatch warnings
 has been added to the -mm tree.  Its filename is
-     cxacru-export-detailed-device-info-through-sysfs-updated.patch
+     x86_64-fix-section-mismatch-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,289 +25,197 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cxacru: export detailed device info through sysfs
-From: Simon Arlott <simon@arlott.org>
+Subject: x86_64: fix section mismatch warnings
+From: Sam Ravnborg <sam@ravnborg.org>
 
-When the device is polled for status there is a lot of useful status
-information available that is ignored.  This patch stores the device info
-array when the status is polled and adds sysfs files to the usb device to
-allow userspace to query it.  Since the device updates its status
-internally once a second the poll time is changed to this, and
-round_jiffies_relative is used to avoid waking the cpu unnecessarily.
+Fix the following section mismatch warnings on x86_64:
+(build using defconfig)
 
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
-Cc: Duncan Sands <duncan.sands@free.fr>
-Cc: Greg KH <greg@kroah.com>
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:mtrr_bp_init from .text between 'identify_cpu' (at offset 0x65eb) and 'IRQ0x20_interrupt'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data: from .text between 'finish_e820_parsing' (at offset 0x7dc2) and 'early_panic'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:e820_print_map from .text between 'finish_e820_parsing' (at offset 0x7de1) and 'early_panic'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:num_processors from .text between 'acpi_unmap_lsapic' (at offset 0xc88f) and 'acpi_register_ioapic'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:disabled_cpus from .text between 'MP_processor_info' (at offset 0x11f35) and 'mp_register_lapic'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:num_processors from .text between 'MP_processor_info' (at offset 0x11f6e) and 'mp_register_lapic'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:num_processors from .text between 'MP_processor_info' (at offset 0x11f93) and 'mp_register_lapic'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:fix_aperture from .text between 'gart_parse_options' (at offset 0x15517) and 'iommu_full'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:fix_aperture from .text between 'gart_parse_options' (at offset 0x1552c) and 'iommu_full'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_allowed from .text between 'gart_parse_options' (at offset 0x1553d) and 'iommu_full'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_allowed from .text between 'gart_parse_options' (at offset 0x15552) and 'iommu_full'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_allowed from .text between 'gart_parse_options' (at offset 0x15561) and 'iommu_full'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_allowed from .text between 'gart_parse_options' (at offset 0x15577) and 'iommu_full'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:fallback_aper_force from .text between 'gart_parse_options' (at offset 0x1558a) and 'iommu_full'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:fallback_aper_order from .text between 'gart_parse_options' (at offset 0x155bf) and 'iommu_full'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:timer_over_8254 from .text between 'ati_bugs' (at offset 0x16344) and 'via_bugs'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:timer_over_8254 from .text between 'ati_bugs' (at offset 0x16356) and 'via_bugs'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_allowed from .text between 'via_bugs' (at offset 0x16380) and 'nvidia_bugs'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_disabled from .text between 'via_bugs' (at offset 0x16397) and 'nvidia_bugs'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:acpi_use_timer_override from .text between 'nvidia_bugs' (at offset 0x163a7) and 'arch_unregister_cpu'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:nvidia_hpet_check from .text between 'nvidia_bugs' (at offset 0x163b1) and 'arch_unregister_cpu'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data: from .text between 'nvidia_bugs' (at offset 0x163be) and 'arch_unregister_cpu'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data: from .text between 'nvidia_bugs' (at offset 0x163d1) and 'arch_unregister_cpu'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:acpi_skip_timer_override from .text between 'nvidia_bugs' (at offset 0x163e1) and 'arch_unregister_cpu'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:quirk_intel_irqbalance from .text between 'intel_bugs' (at offset 0x1633c) and 'ati_bugs'
+
+But adds:
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:get_mtrr_state from .text between 'mtrr_bp_init' (at offset 0xb887) and 'ipi_handler'
+
+The warnings does not show up during a normal build due to kbuild
+failing to check for section mismatch in vmlinux.
+To see these warnings run:
+scripts/mod/modpost arch/x86_64/kernel/built-in.o
+
+kbuild will be fixed but the 'noise-level' had to be decresed first.
+There remains a few section mismatch warnigns for x86_64 for areas where I did
+not feel confident.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/cxacru.c |  181 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 176 insertions(+), 5 deletions(-)
+ arch/i386/kernel/cpu/mtrr/main.c  |    2 +-
+ arch/x86_64/kernel/e820.c         |    2 +-
+ arch/x86_64/kernel/early-quirks.c |    8 ++++----
+ arch/x86_64/kernel/mpparse.c      |    4 ++--
+ arch/x86_64/kernel/pci-gart.c     |    2 +-
+ include/asm-x86_64/proto.h        |    2 +-
+ include/asm-x86_64/smp.h          |    3 ++-
+ 7 files changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN drivers/usb/atm/cxacru.c~cxacru-export-detailed-device-info-through-sysfs-updated drivers/usb/atm/cxacru.c
---- a/drivers/usb/atm/cxacru.c~cxacru-export-detailed-device-info-through-sysfs-updated
-+++ a/drivers/usb/atm/cxacru.c
-@@ -34,14 +34,14 @@
- #include <linux/errno.h>
- #include <linux/slab.h>
- #include <linux/init.h>
--#include <linux/device.h>	/* FIXME: linux/firmware.h should include it itself */
-+#include <linux/device.h>
- #include <linux/firmware.h>
- #include <linux/mutex.h>
- 
- #include "usbatm.h"
- 
--#define DRIVER_AUTHOR	"Roman Kagan, David Woodhouse, Duncan Sands"
--#define DRIVER_VERSION	"0.2"
-+#define DRIVER_AUTHOR	"Roman Kagan, David Woodhouse, Duncan Sands, Simon Arlott"
-+#define DRIVER_VERSION	"0.3"
- #define DRIVER_DESC	"Conexant AccessRunner ADSL USB modem driver"
- 
- static const char cxacru_driver_name[] = "cxacru";
-@@ -64,7 +64,7 @@ static const char cxacru_driver_name[] =
- #define SDRAM_ENA	0x1
- 
- #define CMD_TIMEOUT	2000	/* msecs */
--#define POLL_INTERVAL	5000	/* msecs */
-+#define POLL_INTERVAL	1	/* secs */
- 
- /* commands for interaction with the modem through the control channel before
-  * firmware is loaded  */
-@@ -159,6 +159,7 @@ struct cxacru_data {
- 
- 	int line_status;
- 	struct delayed_work poll_work;
-+	u32 card_info[CXINF_MAX];
- 
- 	/* contol handles */
- 	struct mutex cm_serialize;
-@@ -170,6 +171,151 @@ struct cxacru_data {
- 	struct completion snd_done;
- };
- 
-+/* Card info exported through sysfs */
-+#define CXACRU__ATTR_INIT(_name) \
-+static DEVICE_ATTR(_name, S_IRUGO, cxacru_sysfs_show_##_name, NULL)
-+
-+#define CXACRU_ATTR_INIT(_value, _type, _name) \
-+static ssize_t cxacru_sysfs_show_##_name(struct device *dev, \
-+	struct device_attribute *attr, char *buf) \
-+{ \
-+	struct usb_interface *intf = to_usb_interface(dev); \
-+	struct usbatm_data *usbatm_instance = usb_get_intfdata(intf); \
-+	struct cxacru_data *instance = usbatm_instance->driver_data; \
-+	return cxacru_sysfs_showattr_##_type(instance->card_info[_value], buf); \
-+} \
-+CXACRU__ATTR_INIT(_name)
-+
-+#define CXACRU_ATTR_CREATE(_v, _t, _name) CXACRU_DEVICE_CREATE_FILE(_name)
-+#define CXACRU__ATTR_CREATE(_name)        CXACRU_DEVICE_CREATE_FILE(_name)
-+
-+#define CXACRU_ATTR_REMOVE(_v, _t, _name) CXACRU_DEVICE_REMOVE_FILE(_name)
-+#define CXACRU__ATTR_REMOVE(_name)        CXACRU_DEVICE_REMOVE_FILE(_name)
-+
-+static ssize_t cxacru_sysfs_showattr_u32(u32 value, char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%u\n", value);
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_s8(s8 value, char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", value);
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_dB(s16 value, char *buf)
-+{
-+	if (unlikely(value < 0)) {
-+		return snprintf(buf, PAGE_SIZE, "%d.%02u\n",
-+						value / 100, -value % 100);
-+	} else {
-+		return snprintf(buf, PAGE_SIZE, "%d.%02u\n",
-+						value / 100, value % 100);
-+	}
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_bool(u32 value, char *buf)
-+{
-+	switch (value) {
-+	case 0: return snprintf(buf, PAGE_SIZE, "no\n");
-+	case 1: return snprintf(buf, PAGE_SIZE, "yes\n");
-+	default: return 0;
-+	}
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_LINK(u32 value, char *buf)
-+{
-+	switch (value) {
-+	case 1: return snprintf(buf, PAGE_SIZE, "not connected\n");
-+	case 2: return snprintf(buf, PAGE_SIZE, "connected\n");
-+	case 3: return snprintf(buf, PAGE_SIZE, "lost\n");
-+	default: return snprintf(buf, PAGE_SIZE, "unknown (%u)\n", value);
-+	}
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_LINE(u32 value, char *buf)
-+{
-+	switch (value) {
-+	case 0: return snprintf(buf, PAGE_SIZE, "down\n");
-+	case 1: return snprintf(buf, PAGE_SIZE, "attempting to activate\n");
-+	case 2: return snprintf(buf, PAGE_SIZE, "training\n");
-+	case 3: return snprintf(buf, PAGE_SIZE, "channel analysis\n");
-+	case 4: return snprintf(buf, PAGE_SIZE, "exchange\n");
-+	case 5: return snprintf(buf, PAGE_SIZE, "up\n");
-+	case 6: return snprintf(buf, PAGE_SIZE, "waiting\n");
-+	case 7: return snprintf(buf, PAGE_SIZE, "initialising\n");
-+	default: return snprintf(buf, PAGE_SIZE, "unknown (%u)\n", value);
-+	}
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_MODU(u32 value, char *buf)
-+{
-+	switch (value) {
-+	case 0: return 0;
-+	case 1: return snprintf(buf, PAGE_SIZE, "ANSI T1.413\n");
-+	case 2: return snprintf(buf, PAGE_SIZE, "ITU-T G.992.1 (G.DMT)\n");
-+	case 3: return snprintf(buf, PAGE_SIZE, "ITU-T G.992.2 (G.LITE)\n");
-+	default: return snprintf(buf, PAGE_SIZE, "unknown (%u)\n", value);
-+	}
-+}
-+
-+/*
-+ * This could use MAC_ADDRESS_HIGH and MAC_ADDRESS_LOW, but since
-+ * this data is already in atm_dev there's no point.
-+ *
-+ * MAC_ADDRESS_HIGH = 0x????5544
-+ * MAC_ADDRESS_LOW  = 0x33221100
-+ * Where 00-55 are bytes 0-5 of the MAC.
-+ */
-+static ssize_t cxacru_sysfs_show_mac_address(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	struct usb_interface *intf = to_usb_interface(dev);
-+	struct usbatm_data *usbatm_instance = usb_get_intfdata(intf);
-+	struct atm_dev *atm_dev = usbatm_instance->atm_dev;
-+
-+	return snprintf(buf, PAGE_SIZE, "%02x:%02x:%02x:%02x:%02x:%02x\n",
-+			atm_dev->esi[0], atm_dev->esi[1], atm_dev->esi[2],
-+			atm_dev->esi[3], atm_dev->esi[4], atm_dev->esi[5]);
-+}
-+
-+/*
-+ * All device attributes are included in CXACRU_ALL_FILES
-+ * so that the same list can be used multiple times:
-+ *     INIT   (define the device attributes)
-+ *     CREATE (create all the device files)
-+ *     REMOVE (remove all the device files)
-+ *
-+ * With the last two being defined as needed in the functions
-+ * they are used in before calling CXACRU_ALL_FILES()
-+ */
-+#define CXACRU_ALL_FILES(_action) \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_RATE,           u32,  downstream_rate); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_RATE,             u32,  upstream_rate); \
-+CXACRU_ATTR_##_action(CXINF_LINK_STATUS,               LINK, link_status); \
-+CXACRU_ATTR_##_action(CXINF_LINE_STATUS,               LINE, line_status); \
-+CXACRU__ATTR_##_action(                                      mac_address); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_SNR_MARGIN,       dB,   upstream_snr_margin); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_SNR_MARGIN,     dB,   downstream_snr_margin); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_ATTENUATION,      dB,   upstream_attenuation); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_ATTENUATION,    dB,   downstream_attenuation); \
-+CXACRU_ATTR_##_action(CXINF_TRANSMITTER_POWER,         s8,   transmitter_power); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_BITS_PER_FRAME,   u32,  upstream_bits_per_frame); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_BITS_PER_FRAME, u32,  downstream_bits_per_frame); \
-+CXACRU_ATTR_##_action(CXINF_STARTUP_ATTEMPTS,          u32,  startup_attempts); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_CRC_ERRORS,       u32,  upstream_crc_errors); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_CRC_ERRORS,     u32,  downstream_crc_errors); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_FEC_ERRORS,       u32,  upstream_fec_errors); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_FEC_ERRORS,     u32,  downstream_fec_errors); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_HEC_ERRORS,       u32,  upstream_hec_errors); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_HEC_ERRORS,     u32,  downstream_hec_errors); \
-+CXACRU_ATTR_##_action(CXINF_LINE_STARTABLE,            bool, line_startable); \
-+CXACRU_ATTR_##_action(CXINF_MODULATION,                MODU, modulation); \
-+CXACRU_ATTR_##_action(CXINF_ADSL_HEADEND,              u32,  adsl_headend); \
-+CXACRU_ATTR_##_action(CXINF_ADSL_HEADEND_ENVIRONMENT,  u32,  adsl_headend_environment); \
-+CXACRU_ATTR_##_action(CXINF_CONTROLLER_VERSION,        u32,  adsl_controller_version);
-+
-+CXACRU_ALL_FILES(INIT);
-+
- /* the following three functions are stolen from drivers/usb/core/message.c */
- static void cxacru_blocking_completion(struct urb *urb)
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~x86_64-fix-section-mismatch-warnings arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~x86_64-fix-section-mismatch-warnings
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -639,7 +639,7 @@ static struct sysdev_driver mtrr_sysdev_
+  * initialized (i.e. before smp_init()).
+  * 
+  */
+-void __init mtrr_bp_init(void)
++void __cpuinit mtrr_bp_init(void)
  {
-@@ -395,6 +541,8 @@ static void cxacru_poll_status(struct wo
- 		goto reschedule;
- 	}
+ 	init_ifs();
  
-+	memcpy(instance->card_info, buf, sizeof(instance->card_info));
-+
- 	if (instance->line_status == buf[CXINF_LINE_STATUS])
- 		goto reschedule;
+diff -puN arch/x86_64/kernel/e820.c~x86_64-fix-section-mismatch-warnings arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~x86_64-fix-section-mismatch-warnings
++++ a/arch/x86_64/kernel/e820.c
+@@ -662,7 +662,7 @@ static int __init parse_memmap_opt(char 
+ }
+ early_param("memmap", parse_memmap_opt);
  
-@@ -449,7 +597,8 @@ static void cxacru_poll_status(struct wo
- 		break;
- 	}
- reschedule:
--	schedule_delayed_work(&instance->poll_work, msecs_to_jiffies(POLL_INTERVAL));
-+	schedule_delayed_work(&instance->poll_work,
-+			round_jiffies_relative(msecs_to_jiffies(POLL_INTERVAL*1000)));
+-void finish_e820_parsing(void)
++void __init finish_e820_parsing(void)
+ {
+ 	if (userdef) {
+ 		printk(KERN_INFO "user-defined physical RAM map:\n");
+diff -puN arch/x86_64/kernel/early-quirks.c~x86_64-fix-section-mismatch-warnings arch/x86_64/kernel/early-quirks.c
+--- a/arch/x86_64/kernel/early-quirks.c~x86_64-fix-section-mismatch-warnings
++++ a/arch/x86_64/kernel/early-quirks.c
+@@ -16,7 +16,7 @@
+ #include <asm/proto.h>
+ #include <asm/dma.h>
+ 
+-static void via_bugs(void)
++static void __init via_bugs(void)
+ {
+ #ifdef CONFIG_IOMMU
+ 	if ((end_pfn > MAX_DMA32_PFN ||  force_iommu) &&
+@@ -39,7 +39,7 @@ static int __init nvidia_hpet_check(stru
+ }
+ #endif
+ 
+-static void nvidia_bugs(void)
++static void __init nvidia_bugs(void)
+ {
+ #ifdef CONFIG_ACPI
+ 	/*
+@@ -69,7 +69,7 @@ static void nvidia_bugs(void)
+ 
  }
  
- static int cxacru_fw(struct usb_device *usb_dev, enum cxacru_fw_request fw,
-@@ -684,6 +833,7 @@ static int cxacru_bind(struct usbatm_dat
+-static void ati_bugs(void)
++static void __init ati_bugs(void)
+ {
+ 	if (timer_over_8254 == 1) {
+ 		timer_over_8254 = 0;
+@@ -83,7 +83,7 @@ struct chipset {
+ 	void (*f)(void);
+ };
  
- 	instance->usbatm = usbatm_instance;
- 	instance->modem_type = (struct cxacru_modem_type *) id->driver_info;
-+	memset(instance->card_info, 0, sizeof(instance->card_info));
+-static struct chipset early_qrk[] = {
++static struct __initdata chipset early_qrk[] = {
+ 	{ PCI_VENDOR_ID_NVIDIA, nvidia_bugs },
+ 	{ PCI_VENDOR_ID_VIA, via_bugs },
+ 	{ PCI_VENDOR_ID_ATI, ati_bugs },
+diff -puN arch/x86_64/kernel/mpparse.c~x86_64-fix-section-mismatch-warnings arch/x86_64/kernel/mpparse.c
+--- a/arch/x86_64/kernel/mpparse.c~x86_64-fix-section-mismatch-warnings
++++ a/arch/x86_64/kernel/mpparse.c
+@@ -60,9 +60,9 @@ unsigned long mp_lapic_addr = 0;
+ /* Processor that is doing the boot up */
+ unsigned int boot_cpu_id = -1U;
+ /* Internal processor count */
+-unsigned int num_processors __initdata = 0;
++unsigned int num_processors __cpuinitdata = 0;
  
- 	instance->rcv_buf = (u8 *) __get_free_page(GFP_KERNEL);
- 	if (!instance->rcv_buf) {
-@@ -710,6 +860,13 @@ static int cxacru_bind(struct usbatm_dat
- 		goto fail;
- 	}
+-unsigned disabled_cpus __initdata;
++unsigned disabled_cpus __cpuinitdata;
  
-+	#define CXACRU_DEVICE_CREATE_FILE(_name) \
-+		ret = device_create_file(&intf->dev, &dev_attr_##_name); \
-+		if (unlikely(ret)) \
-+			goto fail_sysfs;
-+	CXACRU_ALL_FILES(CREATE);
-+	#undef CXACRU_DEVICE_CREATE_FILE
-+
- 	usb_fill_int_urb(instance->rcv_urb,
- 			usb_dev, usb_rcvintpipe(usb_dev, CXACRU_EP_CMD),
- 			instance->rcv_buf, PAGE_SIZE,
-@@ -730,6 +887,14 @@ static int cxacru_bind(struct usbatm_dat
+ /* Bitmask of physically existing CPUs */
+ physid_mask_t phys_cpu_present_map = PHYSID_MASK_NONE;
+diff -puN arch/x86_64/kernel/pci-gart.c~x86_64-fix-section-mismatch-warnings arch/x86_64/kernel/pci-gart.c
+--- a/arch/x86_64/kernel/pci-gart.c~x86_64-fix-section-mismatch-warnings
++++ a/arch/x86_64/kernel/pci-gart.c
+@@ -675,7 +675,7 @@ void __init gart_iommu_init(void)
+ 	dma_ops = &gart_dma_ops;
+ } 
  
- 	return 0;
+-void gart_parse_options(char *p)
++void __init gart_parse_options(char *p)
+ {
+ 	int arg;
  
-+ fail_sysfs:
-+	dbg("cxacru_bind: device_create_file failed (%d)\n", ret);
-+
-+	#define CXACRU_DEVICE_REMOVE_FILE(_name) \
-+		device_remove_file(&intf->dev, &dev_attr_##_name);
-+	CXACRU_ALL_FILES(REMOVE);
-+	#undef CXACRU_DEVICE_REVOVE_FILE
-+
-  fail:
- 	free_page((unsigned long) instance->snd_buf);
- 	free_page((unsigned long) instance->rcv_buf);
-@@ -762,6 +927,12 @@ static void cxacru_unbind(struct usbatm_
+diff -puN include/asm-x86_64/proto.h~x86_64-fix-section-mismatch-warnings include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~x86_64-fix-section-mismatch-warnings
++++ a/include/asm-x86_64/proto.h
+@@ -98,7 +98,7 @@ extern int force_iommu, no_iommu;
+ extern int iommu_detected;
+ #ifdef CONFIG_IOMMU
+ extern void gart_iommu_init(void);
+-extern void gart_parse_options(char *);
++extern void __init gart_parse_options(char *);
+ extern void iommu_hole_init(void);
+ extern int fallback_aper_order;
+ extern int fallback_aper_force;
+diff -puN include/asm-x86_64/smp.h~x86_64-fix-section-mismatch-warnings include/asm-x86_64/smp.h
+--- a/include/asm-x86_64/smp.h~x86_64-fix-section-mismatch-warnings
++++ a/include/asm-x86_64/smp.h
+@@ -7,6 +7,7 @@
+ #include <linux/threads.h>
+ #include <linux/cpumask.h>
+ #include <linux/bitops.h>
++#include <linux/init.h>
+ extern int disable_apic;
  
- 	free_page((unsigned long) instance->snd_buf);
- 	free_page((unsigned long) instance->rcv_buf);
-+
-+	#define CXACRU_DEVICE_REMOVE_FILE(_name) \
-+		device_remove_file(&intf->dev, &dev_attr_##_name);
-+	CXACRU_ALL_FILES(REMOVE);
-+	#undef CXACRU_DEVICE_REVOVE_FILE
-+
- 	kfree(instance);
+ #include <asm/mpspec.h>
+@@ -66,7 +67,7 @@ extern int __cpu_disable(void);
+ extern void __cpu_die(unsigned int cpu);
+ extern void prefill_possible_map(void);
+ extern unsigned num_processors;
+-extern unsigned disabled_cpus;
++extern unsigned __cpuinitdata disabled_cpus;
  
- 	usbatm_instance->driver_data = NULL;
+ #define NO_PROC_ID		0xFF		/* No processor magic marker */
+ 
 _
 
-Patches currently in -mm which might be from simon@arlott.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-usbatm-create-sysfs-link-device-from-atm-class-device.patch
-usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
-cxacru-export-detailed-device-info-through-sysfs-updated.patch
-maintainers-add-myself-for-cxacru-in-drivers-usb-atm.patch
+fix-section-mismatch-warning-in-lockdep.patch
+kbuild-override-build-timestamp.patch
+kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+allow-kernel-to-build-on-cygwin.patch
+git-lxdialog.patch
+git-parisc.patch
+x86_64-fix-section-mismatch-warnings.patch
+fix-section-mismatch-warning-in-lib-swiotlbc.patch
