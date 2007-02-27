@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 8139too-fix-irq-problem-with-napi-netpoll.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:47:29 -0800
-Message-ID: <200702272047.l1RKlXKu027966@shell0.pdx.osdl.net>
+Subject: + drivers-net-vioc-vioc_driverc-replace-pci_module_init-with-pci_register_driver.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:47:59 -0800
+Message-ID: <200702272048.l1RKm3Jv027997@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51086 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51106 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751859AbXB0Urs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:47:48 -0500
+	id S1751870AbXB0UsM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:48:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, jeff@garzik.org, romieu@fr.zoreil.com
+Cc: ricknu-0@student.ltu.se, driver-support@fabric7.comsupport@fabric7.com
 
 
 The patch titled
-     8139too.c: fix irq problem with NAPI + NETPOLL
+     drivers/net/vioc/vioc_driver.c: replace pci_module_init with pci_register_driver
 has been added to the -mm tree.  Its filename is
-     8139too-fix-irq-problem-with-napi-netpoll.patch
+     drivers-net-vioc-vioc_driverc-replace-pci_module_init-with-pci_register_driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 8139too.c: fix irq problem with NAPI + NETPOLL
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: drivers/net/vioc/vioc_driver.c: replace pci_module_init with pci_register_driver
+From: Richard Knutsson <ricknu-0@student.ltu.se>
 
-It seems netif_receive_skb() was designed not to call from irq context, but
-NAPI + NETPOLL break this rule.  If netif_receive_skb() was called from irq
-context, redirect to netif_rx() instead of processing the skb in that
-context.
+Replace pci_module_init with pci_register_driver
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Francois Romieu <romieu@fr.zoreil.com>
+Signed-off-by: Richard Knutson <ricknu-0@student.ltu.se>
+Cc: <support@fabric7.com>
+Cc: <driver-support@fabric7.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/dev.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/net/vioc/vioc_driver.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/core/dev.c~8139too-fix-irq-problem-with-napi-netpoll net/core/dev.c
---- a/net/core/dev.c~8139too-fix-irq-problem-with-napi-netpoll
-+++ a/net/core/dev.c
-@@ -1769,8 +1769,15 @@ int netif_receive_skb(struct sk_buff *sk
- 	__be16 type;
+diff -puN drivers/net/vioc/vioc_driver.c~drivers-net-vioc-vioc_driverc-replace-pci_module_init-with-pci_register_driver drivers/net/vioc/vioc_driver.c
+--- a/drivers/net/vioc/vioc_driver.c~drivers-net-vioc-vioc_driverc-replace-pci_module_init-with-pci_register_driver
++++ a/drivers/net/vioc/vioc_driver.c
+@@ -841,9 +841,9 @@ static int __init vioc_module_init(void)
+ 	vioc_irq_init();
+ 	spp_init();
  
- 	/* if we've gotten here through NAPI, check netpoll */
--	if (skb->dev->poll && netpoll_rx(skb))
--		return NET_RX_DROP;
-+#ifdef CONFIG_NET_POLL_CONTROLLER
-+	if (skb->dev->poll && skb->dev->poll_controller) {
-+		/* NAPI poll might be called in irq context on NETPOLL */
-+		if (in_irq() || irqs_disabled())
-+			return netif_rx(skb);
-+		if (netpoll_rx(skb))
-+			return NET_RX_DROP;
-+	}
-+#endif
- 
- 	if (!skb->tstamp.off_sec)
- 		net_timestamp(skb);
+-	ret = pci_module_init(&vioc_driver);
++	ret = pci_register_driver(&vioc_driver);
+ 	if (ret) {
+-		printk(KERN_ERR "%s: pci_module_init() -> %d\n", __FUNCTION__,
++		printk(KERN_ERR "%s: pci_register_driver() -> %d\n", __FUNCTION__,
+ 		       ret);
+ 		vioc_irq_exit();
+ 		return ret;
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from ricknu-0@student.ltu.se are
 
-git-mips.patch
-8139too-fix-irq-problem-with-napi-netpoll.patch
-serial-serial_txx9-driver-update.patch
-serial-serial_txx9-driver-update-fix.patch
-serial-serial_txx9-driver-update-3.patch
-x86_64-fix-section-mismatch-warnings.patch
+git-dvb.patch
+ide-pci-delkin_cbc-pci_module_init-to-pci_register_driver.patch
+mtd-maps-ck804xromc-pci_module_init-to-pci_register_driver.patch
+drivers-net-vioc-vioc_driverc-replace-pci_module_init-with-pci_register_driver.patch
+drivers-scsi-aic7xxx_old-convert-to-generic-boolean-values.patch
+drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver.patch
