@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + genirq-mask-irqs-when-migrating-them.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:54:23 -0800
-Message-ID: <200702272054.l1RKsRwZ028234@shell0.pdx.osdl.net>
+Subject: + sched-fix-smt-scheduler-bug.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:53:56 -0800
+Message-ID: <200702272054.l1RKs0oi028202@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51512 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51474 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752597AbXB0Uyd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:54:33 -0500
+	id S1752594AbXB0UyX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:54:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, ak@suse.de, suresh.b.siddha@intel.com
+Cc: mingo@elte.hu, michal.k.k.piotrowski@gmail.com, nickpiggin@yahoo.com.au, tglx@linutronix.de
 
 
 The patch titled
-     genirq: Mask irqs when migrating them
+     sched: fix SMT scheduler bug
 has been added to the -mm tree.  Its filename is
-     genirq-mask-irqs-when-migrating-them.patch
+     sched-fix-smt-scheduler-bug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,76 +25,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: genirq: Mask irqs when migrating them
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: sched: fix SMT scheduler bug
+From: Ingo Molnar <mingo@elte.hu>
 
-move_native_irqs tries to do the right thing when migrating irqs by disabling
-them.  However disabling them is a software logical thing, not a hardware
-thing.  This has always been a little flaky and after Ingo's latest round of
-changes it is guaranteed to not mask the apic.
+The SMT scheduler incorrectly skips kernel threads even if they are
+runnable (but they are preempted by a higher-prio user-space task which got
+SMT-delayed by an even higher-priority task running on a sibling CPU).
 
-So this patch fixes move_native_irq to directly call the mask and unmask chip
-methods to guarantee that we mask the irq when we are migrating it.  We must
-do this as it is required by all code that call into the path.
+Fix this for now by only doing the SMT-nice optimization if the
+to-be-delayed task is the only runnable task.  (This should cover most of
+the real-life cases anyway.)
 
-Since we don't know the masked status when IRQ_DISABLED is set so we will not
-be able to restore it.  The patch makes the code just give up and trying again
-the next time this routing is called.
+This bug has been in the SMT scheduler since 2.6.17 or so, but has only
+been noticed now by the active check in the dynticks code.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/migration.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ kernel/sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/irq/migration.c~genirq-mask-irqs-when-migrating-them kernel/irq/migration.c
---- a/kernel/irq/migration.c~genirq-mask-irqs-when-migrating-them
-+++ a/kernel/irq/migration.c
-@@ -65,12 +65,11 @@ void move_native_irq(int irq)
- 	if (likely(!(desc->status & IRQ_MOVE_PENDING)))
- 		return;
- 
--	if (likely(!(desc->status & IRQ_DISABLED)))
--		desc->chip->disable(irq);
-+	if (unlikely(desc->status & IRQ_DISABLED))
-+		return;
- 
-+	desc->chip->mask(irq);
- 	move_masked_irq(irq);
--
--	if (likely(!(desc->status & IRQ_DISABLED)))
--		desc->chip->enable(irq);
-+	desc->chip->unmask(irq);
- }
- 
+diff -puN kernel/sched.c~sched-fix-smt-scheduler-bug kernel/sched.c
+--- a/kernel/sched.c~sched-fix-smt-scheduler-bug
++++ a/kernel/sched.c
+@@ -3549,7 +3549,7 @@ need_resched_nonpreemptible:
+ 		}
+ 	}
+ 	next->sleep_type = SLEEP_NORMAL;
+-	if (dependent_sleeper(cpu, rq, next))
++	if (rq->nr_running == 1 && dependent_sleeper(cpu, rq, next))
+ 		next = rq->idle;
+ switch_tasks:
+ 	if (next == rq->idle)
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-make-ipc-shmcshm_nopage-static.patch
-mm-tiny-shmemc-cleanups.patch
-fix-the-sysctl=n-compilation.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-i386-irq-kill-irq-compression.patch
-i386-irq-kill-irq-compression-fix.patch
-xen-paravirt_ops-clean-up-elf-note-generation.patch
-genirq-mask-irqs-when-migrating-them.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
+fix-posix-cpu-timer-breakage-caused-by-stale-p-last_ran.patch
+fix-section-mismatch-warning-in-lockdep.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+change-sysenter_setup-to-__cpuinit-improve-__init.patch
+log-reason-why-tsc-was-marked-unstable.patch
+clocksource-init-adjustments-fix-bug-7426.patch
+sched-fix-smt-scheduler-bug.patch
+kvm-add-msr-based-hypercall-api.patch
+kvm-add-host-hypercall-support-for-vmx.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_blocking.patch
+fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-aio-o_sync-filesystem-write.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
 mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
