@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + adapt-page_lock_anon_vma-to-preempt_rcu.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:54:06 -0800
-Message-ID: <200702272054.l1RKsAgX028217@shell0.pdx.osdl.net>
+Subject: + documentation-cpu-load-calculation-description.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:54:00 -0800
+Message-ID: <200702272054.l1RKs4uG028205@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51521 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51532 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752601AbXB0Uyj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:54:39 -0500
+	id S1752603AbXB0Uyq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:54:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, clameter@engr.sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, paulus@samba.org
+Cc: av1474@comtv.ru
 
 
 The patch titled
-     adapt page_lock_anon_vma() to PREEMPT_RCU
+     Documentation: CPU load calculation description
 has been added to the -mm tree.  Its filename is
-     adapt-page_lock_anon_vma-to-preempt_rcu.patch
+     documentation-cpu-load-calculation-description.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,141 +25,138 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: adapt page_lock_anon_vma() to PREEMPT_RCU
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: Documentation: CPU load calculation description
+From: Vassili Karpov <av1474@comtv.ru>
 
-page_lock_anon_vma() uses spin_lock() to block RCU.  This doesn't work with
-PREEMPT_RCU, we have to do rcu_read_lock() explicitely.  Otherwise, it is
-theoretically possible that slab returns anon_vma's memory to the system
-before we do spin_unlock(&anon_vma->lock).
+Describes how/when the information exported to `/proc/stat' is calculated,
+and possible problems with this approach.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Vassili Karpov <av1474@comtv.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ Documentation/cpu-load.txt |  113 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 113 insertions(+)
 
-diff -puN mm/rmap.c~adapt-page_lock_anon_vma-to-preempt_rcu mm/rmap.c
---- a/mm/rmap.c~adapt-page_lock_anon_vma-to-preempt_rcu
-+++ a/mm/rmap.c
-@@ -183,7 +183,7 @@ void __init anon_vma_init(void)
-  */
- static struct anon_vma *page_lock_anon_vma(struct page *page)
- {
--	struct anon_vma *anon_vma = NULL;
-+	struct anon_vma *anon_vma;
- 	unsigned long anon_mapping;
- 
- 	rcu_read_lock();
-@@ -195,9 +195,16 @@ static struct anon_vma *page_lock_anon_v
- 
- 	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
- 	spin_lock(&anon_vma->lock);
-+	return anon_vma;
- out:
- 	rcu_read_unlock();
--	return anon_vma;
-+	return NULL;
+diff -puN /dev/null Documentation/cpu-load.txt
+--- /dev/null
++++ a/Documentation/cpu-load.txt
+@@ -0,0 +1,113 @@
++CPU load
++--------
++
++Linux exports various bits of information via `/proc/stat' and
++`/proc/uptime' that userland tools, such as top(1), use to calculate
++the average time system spent in a particular state, for example:
++
++    $ iostat
++    Linux 2.6.18.3-exp (linmac)     02/20/2007
++
++    avg-cpu:  %user   %nice %system %iowait  %steal   %idle
++              10.01    0.00    2.92    5.44    0.00   81.63
++
++    ...
++
++Here the system thinks that over the default sampling period the
++system spent 10.01% of the time doing work in user space, 2.92% in the
++kernel, and was overall 81.63% of the time idle.
++
++In most cases the `/proc/stat' information reflects the reality quite
++closely, however due to the nature of how/when the kernel collects
++this data sometimes it can not be trusted at all.
++
++So how is this information collected?  Whenever timer interrupt is
++signalled the kernel looks what kind of task was running at this
++moment and increments the counter that corresponds to this tasks
++kind/state.  The problem with this is that the system could have
++switched between various states multiple times between two timer
++interrupts yet the counter is incremented only for the last state.
++
++
++Example
++-------
++
++If we imagine the system with one task that periodically burns cycles
++in the following manner:
++
++ time line between two timer interrupts
++|--------------------------------------|
++ ^                                    ^
++ |_ something begins working          |
++                                      |_ something goes to sleep
++                                     (only to be awaken quite soon)
++
++In the above situation the system will be 0% loaded according to the
++`/proc/stat' (since the timer interrupt will always happen when the
++system is executing the idle handler), but in reality the load is
++closer to 99%.
++
++One can imagine many more situations where this behavior of the kernel
++will lead to quite erratic information inside `/proc/stat'.
++
++
++/* gcc -o hog smallhog.c */
++#include <time.h>
++#include <limits.h>
++#include <signal.h>
++#include <sys/time.h>
++#define HIST 10
++
++static volatile sig_atomic_t stop;
++
++static void sighandler (int signr)
++{
++     (void) signr;
++     stop = 1;
++}
++static unsigned long hog (unsigned long niters)
++{
++     stop = 0;
++     while (!stop && --niters);
++     return niters;
++}
++int main (void)
++{
++     int i;
++     struct itimerval it = { .it_interval = { .tv_sec = 0, .tv_usec = 1 },
++                             .it_value = { .tv_sec = 0, .tv_usec = 1 } };
++     sigset_t set;
++     unsigned long v[HIST];
++     double tmp = 0.0;
++     unsigned long n;
++     signal (SIGALRM, &sighandler);
++     setitimer (ITIMER_REAL, &it, NULL);
++
++     hog (ULONG_MAX);
++     for (i = 0; i < HIST; ++i) v[i] = ULONG_MAX - hog (ULONG_MAX);
++     for (i = 0; i < HIST; ++i) tmp += v[i];
++     tmp /= HIST;
++     n = tmp - (tmp / 3.0);
++
++     sigemptyset (&set);
++     sigaddset (&set, SIGALRM);
++
++     for (;;) {
++         hog (n);
++         sigwait (&set, &i);
++     }
++     return 0;
 +}
 +
-+static void page_unlock_anon_vma(struct anon_vma *anon_vma)
-+{
-+	spin_unlock(&anon_vma->lock);
-+	rcu_read_unlock();
- }
- 
- /*
-@@ -333,7 +340,8 @@ static int page_referenced_anon(struct p
- 		if (!mapcount)
- 			break;
- 	}
--	spin_unlock(&anon_vma->lock);
 +
-+	page_unlock_anon_vma(anon_vma);
- 	return referenced;
- }
- 
-@@ -802,7 +810,8 @@ static int try_to_unmap_anon(struct page
- 		if (ret == SWAP_FAIL || !page_mapped(page))
- 			break;
- 	}
--	spin_unlock(&anon_vma->lock);
++References
++----------
 +
-+	page_unlock_anon_vma(anon_vma);
- 	return ret;
- }
- 
++http://lkml.org/lkml/2007/2/12/6
++Documentation/filesystems/proc.txt (1.8)
++
++
++Thanks
++------
++
++Con Kolivas, Pavel Machek
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from av1474@comtv.ru are
 
-git-cpufreq.patch
-drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
-bridge-eliminate-port_check-workqueue.patch
-git-block.patch
-adapt-page_lock_anon_vma-to-preempt_rcu.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-refrigerator-vs-thaw_process-race.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-make-queue_delayed_work-friendly-to-flush_fork.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch
-workqueue-introduce-wq_per_cpu-helper.patch
-make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
-ipvs-flush-defense_work-before-module-unload.patch
-workqueue-kill-noautorel-works.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
-____call_usermodehelper-dont-flush_signals.patch
-rework-compat_sys_io_submit.patch
-fix-aioh-includes.patch
-fix-access_ok-checks.patch
-make-good_sigevent-non-static.patch
-make-good_sigevent-non-static-fix.patch
-make-__sigqueue_free-and.patch
-aio-completion-signal-notification.patch
-aio-completion-signal-notification-fix.patch
-aio-completion-signal-notification-fixes-and-cleanups.patch
-aio-completion-signal-notification-small-cleanup.patch
-add-listio-syscall-support.patch
+documentation-cpu-load-calculation-description.patch
