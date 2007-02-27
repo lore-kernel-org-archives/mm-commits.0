@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + selinux-always-initialize-arguments-to-security_sid_to_context.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:33:00 -0800
-Message-ID: <200702272033.l1RKX4T8027490@shell0.pdx.osdl.net>
+Subject: + rtc_cmos-oops-fix.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:32:57 -0800
+Message-ID: <200702272033.l1RKX1Hr027487@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50623 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50625 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751838AbXB0UdM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:33:12 -0500
+	id S1752113AbXB0UdW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:33:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sds@tycho.nsa.gov
+Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     selinux:  always initialize arguments to security_sid_to_context
+     rtc_cmos oops fix
 has been added to the -mm tree.  Its filename is
-     selinux-always-initialize-arguments-to-security_sid_to_context.patch
+     rtc_cmos-oops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: selinux:  always initialize arguments to security_sid_to_context
-From: Stephen Smalley <sds@tycho.nsa.gov>
+Subject: rtc_cmos oops fix
+From: David Brownell <david-b@pacbell.net>
 
-Always initialize *scontext and *scontext_len in security_sid_to_context.
+Fix an oops on the rtc_device_unregister() path by waiting until the last
+moment before nulling the rtc->ops vector.  Fix some potential oopses by
+having the rtc_class_open()/rtc_class_close() interface increase the RTC's
+reference count while an RTC handle is available outside the RTC framework.
 
-Signed-off-by:  Stephen Smalley <sds@tycho.nsa.gov>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/ss/services.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/rtc/class.c     |   14 ++++++++++----
+ drivers/rtc/interface.c |    3 ++-
+ 2 files changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN security/selinux/ss/services.c~selinux-always-initialize-arguments-to-security_sid_to_context security/selinux/ss/services.c
---- a/security/selinux/ss/services.c~selinux-always-initialize-arguments-to-security_sid_to_context
-+++ a/security/selinux/ss/services.c
-@@ -609,6 +609,9 @@ int security_sid_to_context(u32 sid, cha
- 	struct context *context;
- 	int rc = 0;
+diff -puN drivers/rtc/class.c~rtc_cmos-oops-fix drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc_cmos-oops-fix
++++ a/drivers/rtc/class.c
+@@ -113,10 +113,16 @@ EXPORT_SYMBOL_GPL(rtc_device_register);
+  */
+ void rtc_device_unregister(struct rtc_device *rtc)
+ {
+-	mutex_lock(&rtc->ops_lock);
+-	rtc->ops = NULL;
+-	mutex_unlock(&rtc->ops_lock);
+-	class_device_unregister(&rtc->class_dev);
++	if (class_device_get(&rtc->class_dev) != NULL) {
++		mutex_lock(&rtc->ops_lock);
++		/* remove innards of this RTC, then disable it, before
++		 * letting any rtc_class_open() users access it again
++		 */
++		class_device_unregister(&rtc->class_dev);
++		rtc->ops = NULL;
++		mutex_unlock(&rtc->ops_lock);
++		class_device_put(&rtc->class_dev);
++	}
+ }
+ EXPORT_SYMBOL_GPL(rtc_device_unregister);
  
-+	*scontext = NULL;
-+	*scontext_len  = 0;
-+
- 	if (!ss_initialized) {
- 		if (sid <= SECINITSID_NUM) {
- 			char *scontextp;
+diff -puN drivers/rtc/interface.c~rtc_cmos-oops-fix drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc_cmos-oops-fix
++++ a/drivers/rtc/interface.c
+@@ -179,7 +179,7 @@ struct class_device *rtc_class_open(char
+ 	down(&rtc_class->sem);
+ 	list_for_each_entry(class_dev_tmp, &rtc_class->children, node) {
+ 		if (strncmp(class_dev_tmp->class_id, name, BUS_ID_SIZE) == 0) {
+-			class_dev = class_dev_tmp;
++			class_dev = class_device_get(class_dev_tmp);
+ 			break;
+ 		}
+ 	}
+@@ -197,6 +197,7 @@ EXPORT_SYMBOL_GPL(rtc_class_open);
+ void rtc_class_close(struct class_device *class_dev)
+ {
+ 	module_put(to_rtc_device(class_dev)->owner);
++	class_device_put(class_dev);
+ }
+ EXPORT_SYMBOL_GPL(rtc_class_close);
+ 
 _
 
-Patches currently in -mm which might be from sds@tycho.nsa.gov are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-selinux-always-initialize-arguments-to-security_sid_to_context.patch
-git-mips.patch
-implement-file-posix-capabilities.patch
-file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
-file-capabilities-honor-secure_noroot.patch
-mprotect-patch-for-use-by-slim.patch
-integrity-service-api-and-dummy-provider.patch
-slim-main-patch.patch
-slim-main-include-fix.patch
-slim-secfs-patch.patch
-slim-make-and-config-stuff.patch
-slim-debug-output.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-slim-fix-security-issue-with-the-task_post_setuid-hook.patch
-slim-documentation.patch
-panic-on-slim-selinux.patch
+rtc_cmos-oops-fix.patch
+git-avr32.patch
+git-md-accel.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
