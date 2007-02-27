@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-fix-section-mismatch-warnings.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:52:16 -0800
-Message-ID: <200702272052.l1RKqKQs028154@shell0.pdx.osdl.net>
+Subject: + clocksource-init-adjustments-fix-bug-7426.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:52:25 -0800
+Message-ID: <200702272052.l1RKqSkM028160@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51398 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51421 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752582AbXB0Uwa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:52:30 -0500
+	id S1752586AbXB0Uwq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:52:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, ak@suse.de, anemo@mba.ocn.ne.jp
+Cc: johnstul@us.ibm.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86_64: fix section mismatch warnings
+     clocksource init adjustments (fix bug #7426)
 has been added to the -mm tree.  Its filename is
-     x86_64-fix-section-mismatch-warnings.patch
+     clocksource-init-adjustments-fix-bug-7426.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,197 +25,525 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: fix section mismatch warnings
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: clocksource init adjustments (fix bug #7426)
+From: john stultz <johnstul@us.ibm.com>
 
-Fix the following section mismatch warnings on x86_64:
-(build using defconfig)
+This patch resolves the issue found here:
+http://bugme.osdl.org/show_bug.cgi?id=7426
 
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:mtrr_bp_init from .text between 'identify_cpu' (at offset 0x65eb) and 'IRQ0x20_interrupt'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data: from .text between 'finish_e820_parsing' (at offset 0x7dc2) and 'early_panic'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:e820_print_map from .text between 'finish_e820_parsing' (at offset 0x7de1) and 'early_panic'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:num_processors from .text between 'acpi_unmap_lsapic' (at offset 0xc88f) and 'acpi_register_ioapic'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:disabled_cpus from .text between 'MP_processor_info' (at offset 0x11f35) and 'mp_register_lapic'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:num_processors from .text between 'MP_processor_info' (at offset 0x11f6e) and 'mp_register_lapic'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:num_processors from .text between 'MP_processor_info' (at offset 0x11f93) and 'mp_register_lapic'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:fix_aperture from .text between 'gart_parse_options' (at offset 0x15517) and 'iommu_full'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:fix_aperture from .text between 'gart_parse_options' (at offset 0x1552c) and 'iommu_full'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_allowed from .text between 'gart_parse_options' (at offset 0x1553d) and 'iommu_full'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_allowed from .text between 'gart_parse_options' (at offset 0x15552) and 'iommu_full'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_allowed from .text between 'gart_parse_options' (at offset 0x15561) and 'iommu_full'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_allowed from .text between 'gart_parse_options' (at offset 0x15577) and 'iommu_full'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:fallback_aper_force from .text between 'gart_parse_options' (at offset 0x1558a) and 'iommu_full'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:fallback_aper_order from .text between 'gart_parse_options' (at offset 0x155bf) and 'iommu_full'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:timer_over_8254 from .text between 'ati_bugs' (at offset 0x16344) and 'via_bugs'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:timer_over_8254 from .text between 'ati_bugs' (at offset 0x16356) and 'via_bugs'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_allowed from .text between 'via_bugs' (at offset 0x16380) and 'nvidia_bugs'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:iommu_aperture_disabled from .text between 'via_bugs' (at offset 0x16397) and 'nvidia_bugs'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:acpi_use_timer_override from .text between 'nvidia_bugs' (at offset 0x163a7) and 'arch_unregister_cpu'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:nvidia_hpet_check from .text between 'nvidia_bugs' (at offset 0x163b1) and 'arch_unregister_cpu'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data: from .text between 'nvidia_bugs' (at offset 0x163be) and 'arch_unregister_cpu'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data: from .text between 'nvidia_bugs' (at offset 0x163d1) and 'arch_unregister_cpu'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:acpi_skip_timer_override from .text between 'nvidia_bugs' (at offset 0x163e1) and 'arch_unregister_cpu'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:quirk_intel_irqbalance from .text between 'intel_bugs' (at offset 0x1633c) and 'ati_bugs'
+The basic summary is:
+Currently we register most of i386/x86_64 clocksources at module_init
+time. Then we enable clocksource selection at late_initcall time. This
+causes some problems for drivers that use gettimeofday for init
+calibration routines (specifically the es1968 driver in this case),
+where durring module_init, the only clocksource available is the low-res
+jiffies clocksource. This may cause slight calibration errors, due to
+the small sampling time used.
 
-But adds:
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:get_mtrr_state from .text between 'mtrr_bp_init' (at offset 0xb887) and 'ipi_handler'
+It should be noted that drivers that require fine grained time may not
+function on architectures that do not have better then jiffies
+resolution timekeeping (there are a few). However, this does not
+discount the reasonable need for such fine-grained timekeeping at init
+time.
 
-The warnings does not show up during a normal build due to kbuild
-failing to check for section mismatch in vmlinux.
-To see these warnings run:
-scripts/mod/modpost arch/x86_64/kernel/built-in.o
+Thus the solution here is to register clocksources earlier (ideally when
+the hardware is being initialized), and then we enable clocksource
+selection at fs_initcall (before device_initcall).
 
-kbuild will be fixed but the 'noise-level' had to be decresed first.
-There remains a few section mismatch warnigns for x86_64 for areas where I did
-not feel confident.
+This patch should probably get some testing time in -mm, since
+clocksource selection is one of the most important issues for correct
+timekeeping, and I've only been able to test this on a few of my own
+boxes.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/main.c  |    2 +-
- arch/x86_64/kernel/e820.c         |    2 +-
- arch/x86_64/kernel/early-quirks.c |    8 ++++----
- arch/x86_64/kernel/mpparse.c      |    4 ++--
- arch/x86_64/kernel/pci-gart.c     |    2 +-
- include/asm-x86_64/proto.h        |    2 +-
- include/asm-x86_64/smp.h          |    3 ++-
- 7 files changed, 12 insertions(+), 11 deletions(-)
+ arch/i386/kernel/hpet.c       |   80 +++++++++-----------
+ arch/i386/kernel/i8253.c      |    2 
+ arch/i386/kernel/setup.c      |    1 
+ arch/i386/kernel/time.c       |    1 
+ arch/i386/kernel/tsc.c        |   83 +++++++++------------
+ arch/x86_64/kernel/hpet.c     |  122 ++++++++++++++------------------
+ arch/x86_64/kernel/tsc.c      |    7 -
+ drivers/clocksource/acpi_pm.c |    5 +
+ drivers/clocksource/cyclone.c |    2 
+ kernel/time/clocksource.c     |    8 +-
+ 10 files changed, 145 insertions(+), 166 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~x86_64-fix-section-mismatch-warnings arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~x86_64-fix-section-mismatch-warnings
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -639,7 +639,7 @@ static struct sysdev_driver mtrr_sysdev_
-  * initialized (i.e. before smp_init()).
-  * 
+diff -puN arch/i386/kernel/hpet.c~clocksource-init-adjustments-fix-bug-7426 arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~clocksource-init-adjustments-fix-bug-7426
++++ a/arch/i386/kernel/hpet.c
+@@ -201,12 +201,30 @@ static int hpet_next_event(unsigned long
+ }
+ 
+ /*
++ * Clock source related code
++ */
++static cycle_t read_hpet(void)
++{
++	return (cycle_t)hpet_readl(HPET_COUNTER);
++}
++
++static struct clocksource clocksource_hpet = {
++	.name		= "hpet",
++	.rating		= 250,
++	.read		= read_hpet,
++	.mask		= HPET_MASK,
++	.shift		= HPET_SHIFT,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
++};
++
++/*
+  * Try to setup the HPET timer
   */
--void __init mtrr_bp_init(void)
-+void __cpuinit mtrr_bp_init(void)
+ int __init hpet_enable(void)
  {
- 	init_ifs();
+ 	unsigned long id;
+ 	uint64_t hpet_freq;
++	u64 tmp;
  
-diff -puN arch/x86_64/kernel/e820.c~x86_64-fix-section-mismatch-warnings arch/x86_64/kernel/e820.c
---- a/arch/x86_64/kernel/e820.c~x86_64-fix-section-mismatch-warnings
-+++ a/arch/x86_64/kernel/e820.c
-@@ -662,7 +662,7 @@ static int __init parse_memmap_opt(char 
+ 	if (!is_hpet_capable())
+ 		return 0;
+@@ -253,6 +271,25 @@ int __init hpet_enable(void)
+ 	/* Start the counter */
+ 	hpet_start_counter();
+ 
++	/* Initialize and register HPET clocksource
++	 *
++	 * hpet period is in femto seconds per cycle
++	 * so we need to convert this to ns/cyc units
++	 * aproximated by mult/2^shift
++	 *
++	 *  fsec/cyc * 1nsec/1000000fsec = nsec/cyc = mult/2^shift
++	 *  fsec/cyc * 1ns/1000000fsec * 2^shift = mult
++	 *  fsec/cyc * 2^shift * 1nsec/1000000fsec = mult
++	 *  (fsec/cyc << shift)/1000000 = mult
++	 *  (hpet_period << shift)/FSEC_PER_NSEC = mult
++	 */
++	tmp = (u64)hpet_period << HPET_SHIFT;
++	do_div(tmp, FSEC_PER_NSEC);
++	clocksource_hpet.mult = (u32)tmp;
++
++	clocksource_register(&clocksource_hpet);
++
++
+ 	if (id & HPET_ID_LEGSUP) {
+ 		hpet_enable_int();
+ 		hpet_reserve_platform_timers(id);
+@@ -273,49 +310,6 @@ out_nohpet:
+ 	return 0;
  }
- early_param("memmap", parse_memmap_opt);
  
--void finish_e820_parsing(void)
-+void __init finish_e820_parsing(void)
- {
- 	if (userdef) {
- 		printk(KERN_INFO "user-defined physical RAM map:\n");
-diff -puN arch/x86_64/kernel/early-quirks.c~x86_64-fix-section-mismatch-warnings arch/x86_64/kernel/early-quirks.c
---- a/arch/x86_64/kernel/early-quirks.c~x86_64-fix-section-mismatch-warnings
-+++ a/arch/x86_64/kernel/early-quirks.c
-@@ -16,7 +16,7 @@
- #include <asm/proto.h>
- #include <asm/dma.h>
+-/*
+- * Clock source related code
+- */
+-static cycle_t read_hpet(void)
+-{
+-	return (cycle_t)hpet_readl(HPET_COUNTER);
+-}
+-
+-static struct clocksource clocksource_hpet = {
+-	.name		= "hpet",
+-	.rating		= 250,
+-	.read		= read_hpet,
+-	.mask		= HPET_MASK,
+-	.shift		= HPET_SHIFT,
+-	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+-};
+-
+-static int __init init_hpet_clocksource(void)
+-{
+-	u64 tmp;
+-
+-	if (!hpet_virt_address)
+-		return -ENODEV;
+-
+-	/*
+-	 * hpet period is in femto seconds per cycle
+-	 * so we need to convert this to ns/cyc units
+-	 * aproximated by mult/2^shift
+-	 *
+-	 *  fsec/cyc * 1nsec/1000000fsec = nsec/cyc = mult/2^shift
+-	 *  fsec/cyc * 1ns/1000000fsec * 2^shift = mult
+-	 *  fsec/cyc * 2^shift * 1nsec/1000000fsec = mult
+-	 *  (fsec/cyc << shift)/1000000 = mult
+-	 *  (hpet_period << shift)/FSEC_PER_NSEC = mult
+-	 */
+-	tmp = (u64)hpet_period << HPET_SHIFT;
+-	do_div(tmp, FSEC_PER_NSEC);
+-	clocksource_hpet.mult = (u32)tmp;
+-
+-	return clocksource_register(&clocksource_hpet);
+-}
+-
+-module_init(init_hpet_clocksource);
  
--static void via_bugs(void)
-+static void __init via_bugs(void)
- {
- #ifdef CONFIG_IOMMU
- 	if ((end_pfn > MAX_DMA32_PFN ||  force_iommu) &&
-@@ -39,7 +39,7 @@ static int __init nvidia_hpet_check(stru
+ #ifdef CONFIG_HPET_EMULATE_RTC
+ 
+diff -puN arch/i386/kernel/i8253.c~clocksource-init-adjustments-fix-bug-7426 arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~clocksource-init-adjustments-fix-bug-7426
++++ a/arch/i386/kernel/i8253.c
+@@ -195,4 +195,4 @@ static int __init init_pit_clocksource(v
+ 	clocksource_pit.mult = clocksource_hz2mult(CLOCK_TICK_RATE, 20);
+ 	return clocksource_register(&clocksource_pit);
  }
+-module_init(init_pit_clocksource);
++arch_initcall(init_pit_clocksource);
+diff -puN arch/i386/kernel/setup.c~clocksource-init-adjustments-fix-bug-7426 arch/i386/kernel/setup.c
+--- a/arch/i386/kernel/setup.c~clocksource-init-adjustments-fix-bug-7426
++++ a/arch/i386/kernel/setup.c
+@@ -657,5 +657,4 @@ void __init setup_arch(char **cmdline_p)
+ 	conswitchp = &dummy_con;
+ #endif
+ #endif
+-	tsc_init();
+ }
+diff -puN arch/i386/kernel/time.c~clocksource-init-adjustments-fix-bug-7426 arch/i386/kernel/time.c
+--- a/arch/i386/kernel/time.c~clocksource-init-adjustments-fix-bug-7426
++++ a/arch/i386/kernel/time.c
+@@ -269,5 +269,6 @@ static void __init hpet_time_init(void)
+ 
+ void __init time_init(void)
+ {
++	tsc_init();
+ 	late_time_init = hpet_time_init;
+ }
+diff -puN arch/i386/kernel/tsc.c~clocksource-init-adjustments-fix-bug-7426 arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~clocksource-init-adjustments-fix-bug-7426
++++ a/arch/i386/kernel/tsc.c
+@@ -186,34 +186,6 @@ int recalibrate_cpu_khz(void)
+ 
+ EXPORT_SYMBOL(recalibrate_cpu_khz);
+ 
+-void __init tsc_init(void)
+-{
+-	if (!cpu_has_tsc || tsc_disable)
+-		goto out_no_tsc;
+-
+-	cpu_khz = calculate_cpu_khz();
+-	tsc_khz = cpu_khz;
+-
+-	if (!cpu_khz)
+-		goto out_no_tsc;
+-
+-	printk("Detected %lu.%03lu MHz processor.\n",
+-				(unsigned long)cpu_khz / 1000,
+-				(unsigned long)cpu_khz % 1000);
+-
+-	set_cyc2ns_scale(cpu_khz);
+-	use_tsc_delay();
+-	return;
+-
+-out_no_tsc:
+-	/*
+-	 * Set the tsc_disable flag if there's no TSC support, this
+-	 * makes it a fast flag for the kernel to see whether it
+-	 * should be using the TSC.
+-	 */
+-	tsc_disable = 1;
+-}
+-
+ #ifdef CONFIG_CPU_FREQ
+ 
+ /*
+@@ -384,28 +356,47 @@ static void __init check_geode_tsc_relia
+ static inline void check_geode_tsc_reliable(void) { }
  #endif
  
--static void nvidia_bugs(void)
-+static void __init nvidia_bugs(void)
+-static int __init init_tsc_clocksource(void)
++
++void __init tsc_init(void)
  {
- #ifdef CONFIG_ACPI
- 	/*
-@@ -69,7 +69,7 @@ static void nvidia_bugs(void)
++	if (!cpu_has_tsc || tsc_disable)
++		goto out_no_tsc;
  
+-	if (cpu_has_tsc && tsc_khz && !tsc_disable) {
+-		/* check blacklist */
+-		dmi_check_system(bad_tsc_dmi_table);
++	cpu_khz = calculate_cpu_khz();
++	tsc_khz = cpu_khz;
+ 
+-		unsynchronized_tsc();
+-		check_geode_tsc_reliable();
+-		current_tsc_khz = tsc_khz;
+-		clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
+-							clocksource_tsc.shift);
+-		/* lower the rating if we already know its unstable: */
+-		if (check_tsc_unstable()) {
+-			clocksource_tsc.rating = 0;
+-			clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
+-		}
++	if (!cpu_khz)
++		goto out_no_tsc;
+ 
+-		return clocksource_register(&clocksource_tsc);
++	printk("Detected %lu.%03lu MHz processor.\n",
++				(unsigned long)cpu_khz / 1000,
++				(unsigned long)cpu_khz % 1000);
++
++	set_cyc2ns_scale(cpu_khz);
++	use_tsc_delay();
++
++	/* Check and install the TSC clocksource */
++	dmi_check_system(bad_tsc_dmi_table);
++
++	unsynchronized_tsc();
++	check_geode_tsc_reliable();
++	current_tsc_khz = tsc_khz;
++	clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
++							clocksource_tsc.shift);
++	/* lower the rating if we already know its unstable: */
++	if (check_tsc_unstable()) {
++		clocksource_tsc.rating = 0;
++		clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
+ 	}
++	clocksource_register(&clocksource_tsc);
+ 
+-	return 0;
+-}
++	return;
+ 
+-module_init(init_tsc_clocksource);
++out_no_tsc:
++	/*
++	 * Set the tsc_disable flag if there's no TSC support, this
++	 * makes it a fast flag for the kernel to see whether it
++	 * should be using the TSC.
++	 */
++	tsc_disable = 1;
++}
+diff -puN arch/x86_64/kernel/hpet.c~clocksource-init-adjustments-fix-bug-7426 arch/x86_64/kernel/hpet.c
+--- a/arch/x86_64/kernel/hpet.c~clocksource-init-adjustments-fix-bug-7426
++++ a/arch/x86_64/kernel/hpet.c
+@@ -12,6 +12,14 @@
+ #include <asm/timex.h>
+ #include <asm/hpet.h>
+ 
++#define HPET_MASK	0xFFFFFFFF
++#define HPET_SHIFT	22
++
++/* FSEC = 10^-15 NSEC = 10^-9 */
++#define FSEC_PER_NSEC	1000000
++
++static void *hpet_ptr;
++
+ int nohpet __initdata;
+ 
+ unsigned long hpet_address;
+@@ -106,9 +114,34 @@ int hpet_timer_stop_set_go(unsigned long
+ 	return 0;
  }
  
--static void ati_bugs(void)
-+static void __init ati_bugs(void)
++static cycle_t read_hpet(void)
++{
++	return (cycle_t)readl(hpet_ptr);
++}
++
++static cycle_t __vsyscall_fn vread_hpet(void)
++{
++	return readl((void __iomem *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
++}
++
++struct clocksource clocksource_hpet = {
++	.name		= "hpet",
++	.rating		= 250,
++	.read		= read_hpet,
++	.mask		= (cycle_t)HPET_MASK,
++	.mult		= 0, /* set below */
++	.shift		= HPET_SHIFT,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
++	.vread		= vread_hpet,
++};
++
+ int hpet_arch_init(void)
  {
- 	if (timer_over_8254 == 1) {
- 		timer_over_8254 = 0;
-@@ -83,7 +83,7 @@ struct chipset {
- 	void (*f)(void);
- };
++	unsigned long hpet_period;
++	void __iomem *hpet_base;
+ 	unsigned int id;
++	u64 tmp;
++
  
--static struct chipset early_qrk[] = {
-+static struct __initdata chipset early_qrk[] = {
- 	{ PCI_VENDOR_ID_NVIDIA, nvidia_bugs },
- 	{ PCI_VENDOR_ID_VIA, via_bugs },
- 	{ PCI_VENDOR_ID_ATI, ati_bugs },
-diff -puN arch/x86_64/kernel/mpparse.c~x86_64-fix-section-mismatch-warnings arch/x86_64/kernel/mpparse.c
---- a/arch/x86_64/kernel/mpparse.c~x86_64-fix-section-mismatch-warnings
-+++ a/arch/x86_64/kernel/mpparse.c
-@@ -60,9 +60,9 @@ unsigned long mp_lapic_addr = 0;
- /* Processor that is doing the boot up */
- unsigned int boot_cpu_id = -1U;
- /* Internal processor count */
--unsigned int num_processors __initdata = 0;
-+unsigned int num_processors __cpuinitdata = 0;
+ 	if (!hpet_address)
+ 		return -1;
+@@ -132,6 +165,30 @@ int hpet_arch_init(void)
  
--unsigned disabled_cpus __initdata;
-+unsigned disabled_cpus __cpuinitdata;
+ 	hpet_use_timer = (id & HPET_ID_LEGSUP);
  
- /* Bitmask of physically existing CPUs */
- physid_mask_t phys_cpu_present_map = PHYSID_MASK_NONE;
-diff -puN arch/x86_64/kernel/pci-gart.c~x86_64-fix-section-mismatch-warnings arch/x86_64/kernel/pci-gart.c
---- a/arch/x86_64/kernel/pci-gart.c~x86_64-fix-section-mismatch-warnings
-+++ a/arch/x86_64/kernel/pci-gart.c
-@@ -675,7 +675,7 @@ void __init gart_iommu_init(void)
- 	dma_ops = &gart_dma_ops;
- } 
++
++	/* calculate the hpet address: */
++	hpet_base = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
++	hpet_ptr = hpet_base + HPET_COUNTER;
++
++	/* calculate the frequency: */
++	hpet_period = readl(hpet_base + HPET_PERIOD);
++
++	/*
++	 * hpet period is in femto seconds per cycle
++	 * so we need to convert this to ns/cyc units
++	 * aproximated by mult/2^shift
++	 *
++	 *  fsec/cyc * 1nsec/1000000fsec = nsec/cyc = mult/2^shift
++	 *  fsec/cyc * 1ns/1000000fsec * 2^shift = mult
++	 *  fsec/cyc * 2^shift * 1nsec/1000000fsec = mult
++	 *  (fsec/cyc << shift)/1000000 = mult
++	 *  (hpet_period << shift)/FSEC_PER_NSEC = mult
++	 */
++	tmp = (u64)hpet_period << HPET_SHIFT;
++	do_div(tmp, FSEC_PER_NSEC);
++	clocksource_hpet.mult = (u32)tmp;
++	clocksource_register(&clocksource_hpet);
++
+ 	return hpet_timer_stop_set_go(hpet_tick);
+ }
  
--void gart_parse_options(char *p)
-+void __init gart_parse_options(char *p)
+@@ -444,68 +501,3 @@ static int __init nohpet_setup(char *s)
+ }
+ 
+ __setup("nohpet", nohpet_setup);
+-
+-#define HPET_MASK	0xFFFFFFFF
+-#define HPET_SHIFT	22
+-
+-/* FSEC = 10^-15 NSEC = 10^-9 */
+-#define FSEC_PER_NSEC	1000000
+-
+-static void *hpet_ptr;
+-
+-static cycle_t read_hpet(void)
+-{
+-	return (cycle_t)readl(hpet_ptr);
+-}
+-
+-static cycle_t __vsyscall_fn vread_hpet(void)
+-{
+-	return readl((void __iomem *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
+-}
+-
+-struct clocksource clocksource_hpet = {
+-	.name		= "hpet",
+-	.rating		= 250,
+-	.read		= read_hpet,
+-	.mask		= (cycle_t)HPET_MASK,
+-	.mult		= 0, /* set below */
+-	.shift		= HPET_SHIFT,
+-	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+-	.vread		= vread_hpet,
+-};
+-
+-static int __init init_hpet_clocksource(void)
+-{
+-	unsigned long hpet_period;
+-	void __iomem *hpet_base;
+-	u64 tmp;
+-
+-	if (!hpet_address)
+-		return -ENODEV;
+-
+-	/* calculate the hpet address: */
+-	hpet_base = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
+-	hpet_ptr = hpet_base + HPET_COUNTER;
+-
+-	/* calculate the frequency: */
+-	hpet_period = readl(hpet_base + HPET_PERIOD);
+-
+-	/*
+-	 * hpet period is in femto seconds per cycle
+-	 * so we need to convert this to ns/cyc units
+-	 * aproximated by mult/2^shift
+-	 *
+-	 *  fsec/cyc * 1nsec/1000000fsec = nsec/cyc = mult/2^shift
+-	 *  fsec/cyc * 1ns/1000000fsec * 2^shift = mult
+-	 *  fsec/cyc * 2^shift * 1nsec/1000000fsec = mult
+-	 *  (fsec/cyc << shift)/1000000 = mult
+-	 *  (hpet_period << shift)/FSEC_PER_NSEC = mult
+-	 */
+-	tmp = (u64)hpet_period << HPET_SHIFT;
+-	do_div(tmp, FSEC_PER_NSEC);
+-	clocksource_hpet.mult = (u32)tmp;
+-
+-	return clocksource_register(&clocksource_hpet);
+-}
+-
+-module_init(init_hpet_clocksource);
+diff -puN arch/x86_64/kernel/tsc.c~clocksource-init-adjustments-fix-bug-7426 arch/x86_64/kernel/tsc.c
+--- a/arch/x86_64/kernel/tsc.c~clocksource-init-adjustments-fix-bug-7426
++++ a/arch/x86_64/kernel/tsc.c
+@@ -211,7 +211,7 @@ void mark_tsc_unstable(char *reason)
+ }
+ EXPORT_SYMBOL_GPL(mark_tsc_unstable);
+ 
+-static int __init init_tsc_clocksource(void)
++void __init init_tsc_clocksource(void)
  {
- 	int arg;
+ 	if (!notsc) {
+ 		clocksource_tsc.mult = clocksource_khz2mult(cpu_khz,
+@@ -219,9 +219,6 @@ static int __init init_tsc_clocksource(v
+ 		if (check_tsc_unstable())
+ 			clocksource_tsc.rating = 0;
  
-diff -puN include/asm-x86_64/proto.h~x86_64-fix-section-mismatch-warnings include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~x86_64-fix-section-mismatch-warnings
-+++ a/include/asm-x86_64/proto.h
-@@ -98,7 +98,7 @@ extern int force_iommu, no_iommu;
- extern int iommu_detected;
- #ifdef CONFIG_IOMMU
- extern void gart_iommu_init(void);
--extern void gart_parse_options(char *);
-+extern void __init gart_parse_options(char *);
- extern void iommu_hole_init(void);
- extern int fallback_aper_order;
- extern int fallback_aper_force;
-diff -puN include/asm-x86_64/smp.h~x86_64-fix-section-mismatch-warnings include/asm-x86_64/smp.h
---- a/include/asm-x86_64/smp.h~x86_64-fix-section-mismatch-warnings
-+++ a/include/asm-x86_64/smp.h
-@@ -7,6 +7,7 @@
- #include <linux/threads.h>
- #include <linux/cpumask.h>
- #include <linux/bitops.h>
-+#include <linux/init.h>
- extern int disable_apic;
+-		return clocksource_register(&clocksource_tsc);
++		clocksource_register(&clocksource_tsc);
+ 	}
+-	return 0;
+ }
+-
+-module_init(init_tsc_clocksource);
+diff -puN drivers/clocksource/acpi_pm.c~clocksource-init-adjustments-fix-bug-7426 drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~clocksource-init-adjustments-fix-bug-7426
++++ a/drivers/clocksource/acpi_pm.c
+@@ -214,4 +214,7 @@ pm_good:
+ 	return clocksource_register(&clocksource_acpi_pm);
+ }
  
- #include <asm/mpspec.h>
-@@ -66,7 +67,7 @@ extern int __cpu_disable(void);
- extern void __cpu_die(unsigned int cpu);
- extern void prefill_possible_map(void);
- extern unsigned num_processors;
--extern unsigned disabled_cpus;
-+extern unsigned __cpuinitdata disabled_cpus;
+-module_init(init_acpi_pm_clocksource);
++/* We use fs_initcall because we want the PCI fixups to have run
++ * but we still need to load before device_initcall
++ */
++fs_initcall(init_acpi_pm_clocksource);
+diff -puN drivers/clocksource/cyclone.c~clocksource-init-adjustments-fix-bug-7426 drivers/clocksource/cyclone.c
+--- a/drivers/clocksource/cyclone.c~clocksource-init-adjustments-fix-bug-7426
++++ a/drivers/clocksource/cyclone.c
+@@ -116,4 +116,4 @@ static int __init init_cyclone_clocksour
+ 	return clocksource_register(&clocksource_cyclone);
+ }
  
- #define NO_PROC_ID		0xFF		/* No processor magic marker */
+-module_init(init_cyclone_clocksource);
++arch_initcall(init_cyclone_clocksource);
+diff -puN kernel/time/clocksource.c~clocksource-init-adjustments-fix-bug-7426 kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-init-adjustments-fix-bug-7426
++++ a/kernel/time/clocksource.c
+@@ -55,16 +55,18 @@ static DEFINE_SPINLOCK(clocksource_lock)
+ static char override_name[32];
+ static int finished_booting;
  
+-/* clocksource_done_booting - Called near the end of bootup
++/* clocksource_done_booting - Called near the end of core bootup
+  *
+- * Hack to avoid lots of clocksource churn at boot time
++ * Hack to avoid lots of clocksource churn at boot time.
++ * We use fs_initcall because we want this to start before
++ * device_initcall but after subsys_initcall.
+  */
+ static int __init clocksource_done_booting(void)
+ {
+ 	finished_booting = 1;
+ 	return 0;
+ }
+-late_initcall(clocksource_done_booting);
++fs_initcall(clocksource_done_booting);
+ 
+ #ifdef CONFIG_CLOCKSOURCE_WATCHDOG
+ static LIST_HEAD(watchdog_list);
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-fix-section-mismatch-warning-in-lockdep.patch
-kbuild-override-build-timestamp.patch
-kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-allow-kernel-to-build-on-cygwin.patch
-git-lxdialog.patch
-git-parisc.patch
-x86_64-fix-section-mismatch-warnings.patch
-fix-section-mismatch-warning-in-lib-swiotlbc.patch
+log-reason-why-tsc-was-marked-unstable.patch
+clocksource-init-adjustments-fix-bug-7426.patch
+convert-h8-300-to-generic-timekeeping.patch
+v850-generic-timekeeping-conversion.patch
+profile-likely-unlikely-macros-x86_64-fix.patch
