@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + take-anonymous-pages-off-the-lru-if-we-have-no-swap.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:55:35 -0800
-Message-ID: <200702272055.l1RKtdpG028283@shell0.pdx.osdl.net>
+Subject: + lguest-kconfig-and-headers-fix.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:52:34 -0800
+Message-ID: <200702272052.l1RKqcME028166@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51608 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51625 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751872AbXB0Uzt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:55:49 -0500
+	id S1752607AbXB0U4A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:56:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au
+Cc: bunk@stusta.de, ak@suse.de, rusty@rustcorp.com.au
 
 
 The patch titled
-     Take anonymous pages off the LRU if we have no swap
+     LGUEST must depend on NET
 has been added to the -mm tree.  Its filename is
-     take-anonymous-pages-off-the-lru-if-we-have-no-swap.patch
+     lguest-kconfig-and-headers-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,128 +25,122 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Take anonymous pages off the LRU if we have no swap
-From: Christoph Lameter <clameter@sgi.com>
+Subject: LGUEST must depend on NET
+From: Adrian Bunk <bunk@stusta.de>
 
-If the kernel was compiled without support for swapping then we have no
-means of evicting anonymous pages and they become like mlocked pages.
+CONFIG_LGUEST=y, CONFIG_NET=n results in the following compile error:
 
-Do not add new anonymous pages to the LRU and if we find one on the LRU
-then take it off.  This is also going to reduce the overhead of allocating
-anonymous pages since the LRU lock must no longer be taken to put pages
-onto the active list.  Probably mostly of interest to embedded systems
-since normal kernels support swap.
+<--  snip  -->
 
-On linux-mm we also discussed taking anonymous pages off the LRU if there
-is no swap defined or not enough swap.  However, there is no easy way of
-putting the pages back to the LRU since we have no list of mlocked pages. 
-We could set up such a list but then list manipulation would complicate the
-mlocked page treatment and require taking the lru lock.  I'd rather leave
-the mlocked handling as simple as it is right now.
+...
+  LD      .tmp_vmlinux1
+drivers/built-in.o: In function `lguestnet_close':
+lguest_net.c:(.text+0x3b8de): undefined reference to `kfree_skb'
+drivers/built-in.o: In function `fill_slot':
+lguest_net.c:(.text+0x3ba08): undefined reference to `__alloc_skb'
+drivers/built-in.o: In function `lguestnet_open':
+lguest_net.c:(.text+0x3bada): undefined reference to `kfree_skb'
+drivers/built-in.o: In function `lguestnet_start_xmit':
+lguest_net.c:(.text+0x3bc03): undefined reference to `kfree_skb'
+drivers/built-in.o: In function `lguestnet_rcv':
+lguest_net.c:(.text+0x3bc61): undefined reference to `kfree_skb'
+lguest_net.c:(.text+0x3bc6c): undefined reference to `skb_put'
+lguest_net.c:(.text+0x3bc76): undefined reference to `eth_type_trans'
+lguest_net.c:(.text+0x3bc94): undefined reference to `netif_rx'
+drivers/built-in.o: In function `lguestnet_probe':
+lguest_net.c:(.text+0x3bcdb): undefined reference to `alloc_etherdev'
+lguest_net.c:(.text+0x3bcea): undefined reference to `ether_setup'
+lguest_net.c:(.text+0x3bdc1): undefined reference to `register_netdev'
+lguest_net.c:(.text+0x3be10): undefined reference to `unregister_netdev'
+lguest_net.c:(.text+0x3be17): undefined reference to `free_netdev'
+make[1]: *** [.tmp_vmlinux1] Error 1
 
-Anonymous pages will be accounted as mlocked pages.
+<--  snip  -->
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   29 +++++++++++++++++++----------
- mm/vmscan.c |    4 +++-
- 2 files changed, 22 insertions(+), 11 deletions(-)
+ arch/i386/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~take-anonymous-pages-off-the-lru-if-we-have-no-swap mm/memory.c
---- a/mm/memory.c~take-anonymous-pages-off-the-lru-if-we-have-no-swap
-+++ a/mm/memory.c
-@@ -907,17 +907,26 @@ static void add_anon_page(struct vm_area
- 				unsigned long address)
- {
- 	inc_mm_counter(vma->vm_mm, anon_rss);
--	if (vma->vm_flags & VM_LOCKED) {
--		/*
--		 * Page is new and therefore not on the LRU
--		 * so we can directly mark it as mlocked
--		 */
--		SetPageMlocked(page);
--		ClearPageActive(page);
--		inc_zone_page_state(page, NR_MLOCK);
--	} else
--		lru_cache_add_active(page);
- 	page_add_new_anon_rmap(page, vma, address);
-+
-+#ifdef CONFIG_SWAP
-+	/*
-+	 * It only makes sense to put anonymous pages on the
-+	 * LRU if we have a way of evicting anonymous pages.
-+	 */
-+	if (!(vma->vm_flags & VM_LOCKED)) {
-+		lru_cache_add_active(page);
-+		return;
-+	}
-+#endif
-+
-+	/*
-+	 * Page is new and therefore not on the LRU
-+	 * so we can directly mark it as mlocked
-+	 */
-+	SetPageMlocked(page);
-+	ClearPageActive(page);
-+	inc_zone_page_state(page, NR_MLOCK);
- }
+diff -puN arch/i386/Kconfig~lguest-kconfig-and-headers-fix arch/i386/Kconfig
+--- a/arch/i386/Kconfig~lguest-kconfig-and-headers-fix
++++ a/arch/i386/Kconfig
+@@ -257,7 +257,7 @@ source "arch/i386/Kconfig.cpu"
  
- /*
-diff -puN mm/vmscan.c~take-anonymous-pages-off-the-lru-if-we-have-no-swap mm/vmscan.c
---- a/mm/vmscan.c~take-anonymous-pages-off-the-lru-if-we-have-no-swap
-+++ a/mm/vmscan.c
-@@ -488,14 +488,16 @@ static unsigned long shrink_page_list(st
- 		if (referenced && page_mapping_inuse(page))
- 			goto activate_locked;
- 
--#ifdef CONFIG_SWAP
- 		/*
- 		 * Anonymous process memory has backing store?
- 		 * Try to allocate it some swap space here.
- 		 */
- 		if (PageAnon(page) && !PageSwapCache(page))
-+#ifdef CONFIG_SWAP
- 			if (!add_to_swap(page, GFP_ATOMIC))
- 				goto activate_locked;
-+#else
-+			goto mlocked;
- #endif /* CONFIG_SWAP */
- 
- 		mapping = page_mapping(page);
+ config LGUEST
+ 	tristate "Linux hypervisor example code"
+-	depends on X86 && PARAVIRT && EXPERIMENTAL && !X86_PAE
++	depends on X86 && PARAVIRT && NET && EXPERIMENTAL && !X86_PAE
+ 	select LGUEST_GUEST
+ 	select HVC_DRIVER
+ 	---help---
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-slab-introduce-krealloc.patch
-xen-paravirt_ops-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix.patch
-make-try_to_unmap-return-a-special-exit-code.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-slab-remove-colouroff-from-struct-slab.patch
-add-nr_mlock-zvc.patch
-add-pagemlocked-page-state-bit-and-lru-infrastructure.patch
-add-pagemlocked-page-state-bit-and-lru-infrastructure-fix.patch
-logic-to-move-mlocked-pages.patch
-consolidate-new-anonymous-page-code-paths.patch
-avoid-putting-new-mlocked-anonymous-pages-on-lru.patch
-opportunistically-move-mlocked-pages-off-the-lru.patch
-take-anonymous-pages-off-the-lru-if-we-have-no-swap.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching-vs-zvc-stuff.patch
-mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
+arch-arm26-kernel-entrys-remove-dead-code.patch
+make-ipc-shmcshm_nopage-static.patch
+mm-tiny-shmemc-cleanups.patch
+drivers-video-sm501fbc-make-4-functions-static.patch
+fix-the-sysctl=n-compilation.patch
+remove-the-jffs-maintainers-entry.patch
+drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix.patch
+git-cpufreq.patch
+make-kernel-kmodckmod_mk-static.patch
+git-drm.patch
+git-dvb.patch
+make-dvb_usb_gl861_debug-static.patch
+make-pvr2_encoder_prep_config-static.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+mips-remove-smp_tune_scheduling.patch
+drivers-mmc-kconfig-source-drivers-mmc-card-kconfig.patch
+remove-fs-jffs2-ioctlc.patch
+git-ubi.patch
+mtd_ubi_debug-must-depend-on-sysfs.patch
+drivers-net-vioc-possible-cleanups.patch
+git-net.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-cleanup.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-architecture-independant-code-license-fix.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
