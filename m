@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + update-__copy_to_user_inatomic.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:58:36 -0800
-Message-ID: <200702272058.l1RKweOJ028397@shell0.pdx.osdl.net>
+Subject: + scripts-kernel-doc-whitespace-cleanup.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:58:15 -0800
+Message-ID: <200702272058.l1RKwJlG028375@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51964 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51963 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752113AbXB0U6n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:58:43 -0500
+	id S1751838AbXB0U6m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:58:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@gmail.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     Update  __copy_to_user_inatomic documentation
+     scripts: kernel-doc whitespace cleanup
 has been added to the -mm tree.  Its filename is
-     update-__copy_to_user_inatomic.patch
+     scripts-kernel-doc-whitespace-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,363 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Update  __copy_to_user_inatomic documentation
-From: "Aneesh Kumar K.V" <aneesh.kumar@gmail.com>
+Subject: scripts: kernel-doc whitespace cleanup
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Explicity specify that the caller should pin the user memory otherwise the
-function will sleep
+Whitespace cleanup only:  convert some series of spaces to tabs.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@gmail.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/uaccess.h |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ scripts/kernel-doc |   96 +++++++++++++++++++++----------------------
+ 1 file changed, 48 insertions(+), 48 deletions(-)
 
-diff -puN include/asm-i386/uaccess.h~update-__copy_to_user_inatomic include/asm-i386/uaccess.h
---- a/include/asm-i386/uaccess.h~update-__copy_to_user_inatomic
-+++ a/include/asm-i386/uaccess.h
-@@ -397,7 +397,19 @@ unsigned long __must_check __copy_from_u
- unsigned long __must_check __copy_from_user_ll_nocache_nozero(void *to,
- 				const void __user *from, unsigned long n);
+diff -puN scripts/kernel-doc~scripts-kernel-doc-whitespace-cleanup scripts/kernel-doc
+--- a/scripts/kernel-doc~scripts-kernel-doc-whitespace-cleanup
++++ a/scripts/kernel-doc
+@@ -381,10 +381,10 @@ sub output_highlight {
+     eval $dohighlight;
+     die $@ if $@;
+     foreach $line (split "\n", $contents) {
+-      if ($line eq ""){
++	if ($line eq ""){
+ 	    print $lineprefix, $blankline;
+ 	} else {
+-            $line =~ s/\\\\\\/\&/g;
++	    $line =~ s/\\\\\\/\&/g;
+ 	    print $lineprefix, $line;
+ 	}
+ 	print "\n";
+@@ -414,7 +414,7 @@ sub output_enum_html(%) {
+     print "<b>enum ".$args{'enum'}."</b> {<br>\n";
+     $count = 0;
+     foreach $parameter (@{$args{'parameterlist'}}) {
+-        print " <b>".$parameter."</b>";
++	print " <b>".$parameter."</b>";
+ 	if ($count != $#{$args{'parameterlist'}}) {
+ 	    $count++;
+ 	    print ",\n";
+@@ -462,7 +462,7 @@ sub output_struct_html(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
  
--/*
-+/**
-+ * __copy_to_user_inatomic: - Copy a block of data into user space, with less checking.
-+ * @to:   Destination address, in user space.
-+ * @from: Source address, in kernel space.
-+ * @n:    Number of bytes to copy.
-+ *
-+ * Context: User context only.
-+ *
-+ * Copy data from kernel space to user space.  Caller must check
-+ * the specified block with access_ok() before calling this function.
-+ * The caller should also make sure he pins the user space address
-+ * so that the we don't result in page fault and sleep.
-+ *
-  * Here we special-case 1, 2 and 4-byte copy_*_user invocations.  On a fault
-  * we return the initial request size (1, 2 or 4), as copy_*_user should do.
-  * If a store crosses a page boundary and gets a fault, the x86 will not write
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+@@ -483,7 +483,7 @@ sub output_struct_html(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	print "<dt><b>".$parameter."</b>\n";
+ 	print "<dd>";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+@@ -525,7 +525,7 @@ sub output_function_html(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	print "<dt><b>".$parameter."</b>\n";
+ 	print "<dd>";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+@@ -691,7 +691,7 @@ sub output_struct_xml(%) {
+ 	$parameter_name =~ s/\[.*//;
+ 
+ 	defined($args{'parameterdescs'}{$parameter_name}) || next;
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+@@ -767,11 +767,11 @@ sub output_enum_xml(%) {
+     print "enum ".$args{'enum'}." {\n";
+     $count = 0;
+     foreach $parameter (@{$args{'parameterlist'}}) {
+-        print "  $parameter";
+-        if ($count != $#{$args{'parameterlist'}}) {
++	print "  $parameter";
++	if ($count != $#{$args{'parameterlist'}}) {
+ 	    $count++;
+ 	    print ",";
+-        }
++	}
+ 	print "\n";
+     }
+     print "};";
+@@ -1007,7 +1007,7 @@ sub output_enum_man(%) {
+     print "enum ".$args{'enum'}." {\n";
+     $count = 0;
+     foreach my $parameter (@{$args{'parameterlist'}}) {
+-        print ".br\n.BI \"    $parameter\"\n";
++	print ".br\n.BI \"    $parameter\"\n";
+ 	if ($count == $#{$args{'parameterlist'}}) {
+ 	    print "\n};\n";
+ 	    last;
+@@ -1054,7 +1054,7 @@ sub output_struct_man(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+@@ -1077,7 +1077,7 @@ sub output_struct_man(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	print ".IP \"".$parameter."\" 12\n";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+     }
+@@ -1187,7 +1187,7 @@ sub output_enum_text(%) {
+     print "enum ".$args{'enum'}." {\n";
+     $count = 0;
+     foreach $parameter (@{$args{'parameterlist'}}) {
+-        print "\t$parameter";
++	print "\t$parameter";
+ 	if ($count != $#{$args{'parameterlist'}}) {
+ 	    $count++;
+ 	    print ",";
+@@ -1232,7 +1232,7 @@ sub output_struct_text(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+@@ -1252,7 +1252,7 @@ sub output_struct_text(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	print "$parameter\n\t";
+ 	print $args{'parameterdescs'}{$parameter_name}."\n";
+     }
+@@ -1284,7 +1284,7 @@ sub output_declaration {
+ 	( $function_only == 1 && defined($function_table{$name})) ||
+ 	( $function_only == 2 && !defined($function_table{$name})))
+     {
+-        &$func(@_);
++	&$func(@_);
+ 	$section_counter++;
+     }
+ }
+@@ -1317,8 +1317,8 @@ sub dump_struct($$) {
+     my $file = shift;
+ 
+     if ($x =~/(struct|union)\s+(\w+)\s*{(.*)}/) {
+-        $declaration_name = $2;
+-        my $members = $3;
++	$declaration_name = $2;
++	my $members = $3;
+ 
+ 	# ignore embedded structs or unions
+ 	$members =~ s/{.*?}//g;
+@@ -1345,7 +1345,7 @@ sub dump_struct($$) {
+ 			   });
+     }
+     else {
+-        print STDERR "Error(${file}:$.): Cannot parse struct or union!\n";
++	print STDERR "Error(${file}:$.): Cannot parse struct or union!\n";
+ 	++$errors;
+     }
+ }
+@@ -1356,15 +1356,15 @@ sub dump_enum($$) {
+ 
+     $x =~ s@/\*.*?\*/@@gos;	# strip comments.
+     if ($x =~ /enum\s+(\w+)\s*{(.*)}/) {
+-        $declaration_name = $1;
+-        my $members = $2;
++	$declaration_name = $1;
++	my $members = $2;
+ 
+ 	foreach my $arg (split ',', $members) {
+ 	    $arg =~ s/^\s*(\w+).*/$1/;
+ 	    push @parameterlist, $arg;
+ 	    if (!$parameterdescs{$arg}) {
+-	        $parameterdescs{$arg} = $undescribed;
+-	        print STDERR "Warning(${file}:$.): Enum value '$arg' ".
++		$parameterdescs{$arg} = $undescribed;
++		print STDERR "Warning(${file}:$.): Enum value '$arg' ".
+ 		    "not described in enum '$declaration_name'\n";
+ 	    }
+ 
+@@ -1382,7 +1382,7 @@ sub dump_enum($$) {
+ 			   });
+     }
+     else {
+-        print STDERR "Error(${file}:$.): Cannot parse enum!\n";
++	print STDERR "Error(${file}:$.): Cannot parse enum!\n";
+ 	++$errors;
+     }
+ }
+@@ -1393,12 +1393,12 @@ sub dump_typedef($$) {
+ 
+     $x =~ s@/\*.*?\*/@@gos;	# strip comments.
+     while (($x =~ /\(*.\)\s*;$/) || ($x =~ /\[*.\]\s*;$/)) {
+-        $x =~ s/\(*.\)\s*;$/;/;
++	$x =~ s/\(*.\)\s*;$/;/;
+ 	$x =~ s/\[*.\]\s*;$/;/;
+     }
+ 
+     if ($x =~ /typedef.*\s+(\w+)\s*;/) {
+-        $declaration_name = $1;
++	$declaration_name = $1;
+ 
+ 	output_declaration($declaration_name,
+ 			   'typedef',
+@@ -1410,7 +1410,7 @@ sub dump_typedef($$) {
+ 			   });
+     }
+     else {
+-        print STDERR "Error(${file}:$.): Cannot parse typedef!\n";
++	print STDERR "Error(${file}:$.): Cannot parse typedef!\n";
+ 	++$errors;
+     }
+ }
+@@ -1424,14 +1424,14 @@ sub create_parameterlist($$$) {
+ 
+     # temporarily replace commas inside function pointer definition
+     while ($args =~ /(\([^\),]+),/) {
+-        $args =~ s/(\([^\),]+),/$1#/g;
++	$args =~ s/(\([^\),]+),/$1#/g;
+     }
+ 
+     foreach my $arg (split($splitter, $args)) {
+ 	# strip comments
+ 	$arg =~ s/\/\*.*\*\///;
+-        # strip leading/trailing spaces
+-        $arg =~ s/^\s*//;
++	# strip leading/trailing spaces
++	$arg =~ s/^\s*//;
+ 	$arg =~ s/\s*$//;
+ 	$arg =~ s/\s+/ /;
+ 
+@@ -1514,15 +1514,15 @@ sub push_parameter($$$) {
+ 	    $parameterdescs{$param_name} = $undescribed;
+ 
+ 	    if (($type eq 'function') || ($type eq 'enum')) {
+-	        print STDERR "Warning(${file}:$.): Function parameter ".
++		print STDERR "Warning(${file}:$.): Function parameter ".
+ 		    "or member '$param' not " .
+ 		    "described in '$declaration_name'\n";
+ 	    }
+ 	    print STDERR "Warning(${file}:$.):".
+-	                 " No description found for parameter '$param'\n";
++			 " No description found for parameter '$param'\n";
+ 	    ++$warnings;
+-        }
+-        }
++	}
++	}
+ 
+ 	push @parameterlist, $param;
+ 	$parametertypes{$param} = $type;
+@@ -1664,10 +1664,10 @@ sub process_state3_function($$) {
+ 	# do nothing
+     }
+     elsif ($x =~ /([^\{]*)/) {
+-        $prototype .= $1;
++	$prototype .= $1;
+     }
+     if (($x =~ /\{/) || ($x =~ /\#define/) || ($x =~ /;/)) {
+-        $prototype =~ s@/\*.*?\*/@@gos;	# strip comments.
++	$prototype =~ s@/\*.*?\*/@@gos;	# strip comments.
+ 	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/cr's.
+ 	$prototype =~ s@^\s+@@gos; # strip leading spaces
+ 	dump_function($prototype,$file);
+@@ -1688,17 +1688,17 @@ sub process_state3_type($$) {
+     }
+ 
+     while (1) {
+-        if ( $x =~ /([^{};]*)([{};])(.*)/ ) {
++	if ( $x =~ /([^{};]*)([{};])(.*)/ ) {
+ 	    $prototype .= $1 . $2;
+ 	    ($2 eq '{') && $brcount++;
+ 	    ($2 eq '}') && $brcount--;
+ 	    if (($2 eq ';') && ($brcount == 0)) {
+-	        dump_declaration($prototype,$file);
++		dump_declaration($prototype,$file);
+ 		reset_state();
+-	        last;
++		last;
+ 	    }
+ 	    $x = $3;
+-        } else {
++	} else {
+ 	    $prototype .= $x;
+ 	    last;
+ 	}
+@@ -1756,7 +1756,7 @@ sub process_file($) {
+ 		} else {
+ 			$section = $1;
+ 		}
+-            }
++	    }
+ 	    elsif (/$doc_decl/o) {
+ 		$identifier = $1;
+ 		if (/\s*([\w\s]+?)\s*-/) {
+@@ -1849,13 +1849,13 @@ sub process_file($) {
+ 	    }
+ 	} elsif ($state == 3) {	# scanning for function '{' (end of prototype)
+ 	    if ($decl_type eq 'function') {
+-	        process_state3_function($_, $file);
++		process_state3_function($_, $file);
+ 	    } else {
+-	        process_state3_type($_, $file);
++		process_state3_type($_, $file);
+ 	    }
+ 	} elsif ($state == 4) {
+ 		# Documentation block
+-	        if (/$doc_block/) {
++		if (/$doc_block/) {
+ 			dump_section($section, $contents);
+ 			output_intro({'sectionlist' => \@sectionlist,
+ 				      'sections' => \%sections });
+@@ -1873,7 +1873,7 @@ sub process_file($) {
+ 			} else {
+ 				$section = $1;
+ 			}
+-                }
++		}
+ 		elsif (/$doc_end/)
+ 		{
+ 			dump_section($section, $contents);
+@@ -1900,8 +1900,8 @@ sub process_file($) {
+ 			{
+ 				$contents .= $1 . "\n";
+ 			}
+-        	}
+-          }
++		}
++	}
+     }
+     if ($initial_section_counter == $section_counter) {
+ 	print STDERR "Warning(${file}): no structured comments found\n";
 _
 
-Patches currently in -mm which might be from aneesh.kumar@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-update-__copy_to_user_inatomic.patch
+kernel-doc-allow-space-after-__attribute__.patch
+kernel-doc-fixes-for-2620-git15-non-drivers.patch
+add-mm-testing-in-submitchecklist.patch
+git-drm.patch
+git-libata-all.patch
+phy-layer-add-kernel-doc-docbook.patch
+git-parisc.patch
+fusion-kernel-doc-warning-fixes.patch
+x86-dont-probe-for-ddc-on-vbe12.patch
+scripts-kernel-doc-whitespace-cleanup.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
