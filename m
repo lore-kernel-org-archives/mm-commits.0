@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + log-reason-why-tsc-was-marked-unstable.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:52:20 -0800
-Message-ID: <200702272052.l1RKqOvs028157@shell0.pdx.osdl.net>
+Subject: + ps3-introduce-config_ps3_advanced.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:53:51 -0800
+Message-ID: <200702272053.l1RKrt7H028199@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51423 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51484 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752593AbXB0Uws (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:52:48 -0500
+	id S1752595AbXB0Uy1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:54:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
+Cc: Geert.Uytterhoeven@sonycom.com, geoffrey.levand@am.sony.com, paulus@samba.org, zippel@linux-m68k.org
 
 
 The patch titled
-     Log reason why TSC was marked unstable
+     ps3: introduce CONFIG_PS3_ADVANCED
 has been added to the -mm tree.  Its filename is
-     log-reason-why-tsc-was-marked-unstable.patch
+     ps3-introduce-config_ps3_advanced.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,179 +25,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Log reason why TSC was marked unstable
-From: john stultz <johnstul@us.ibm.com>
+Subject: ps3: introduce CONFIG_PS3_ADVANCED
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Change mark_tsc_unstable() so it takes a string argument, which holds the
-reason the TSC was marked unstable.
+ps3: Introduce CONFIG_PS3_ADVANCED, as suggested by Roman Zippel, and use
+it to control questions about PS3 subsystems that may not be obvious for
+the casual user.
 
-This is then displayed the first time mark_tsc_unstable is called.
+This gets rid of the following warning on non-powerpc platforms: |
+drivers/video/Kconfig:1604:warning: 'select' used by config symbol 'FB_PS3'
+refer to undefined symbol 'PS3_PS3AV'
 
-This should help us better debug why the TSC was marked unstable on certain
-systems and allow us to make sure we're not being overly paranoid when
-throwing out this troublesome clocksource.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Acked-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/tsc.c                      |    5 +++--
- arch/x86_64/kernel/time.c                   |    2 +-
- arch/x86_64/kernel/tsc.c                    |    5 +++--
- arch/x86_64/kernel/tsc_sync.c               |    2 +-
- drivers/acpi/processor_idle.c               |    4 ++--
- include/asm-i386/mach-summit/mach_mpparse.h |    4 ++--
- include/asm-x86_64/timex.h                  |    2 +-
- include/asm-x86_64/tsc.h                    |    2 +-
- 8 files changed, 14 insertions(+), 12 deletions(-)
+ arch/powerpc/platforms/ps3/Kconfig |   28 ++++++++++++++++++++-------
+ drivers/video/Kconfig              |    3 --
+ 2 files changed, 22 insertions(+), 9 deletions(-)
 
-diff -puN arch/i386/kernel/tsc.c~log-reason-why-tsc-was-marked-unstable arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~log-reason-why-tsc-was-marked-unstable
-+++ a/arch/i386/kernel/tsc.c
-@@ -262,7 +262,7 @@ time_cpufreq_notifier(struct notifier_bl
- 				 * TSC based sched_clock turns
- 				 * to junk w/ cpufreq
- 				 */
--				mark_tsc_unstable();
-+				mark_tsc_unstable("cpufreq changes");
- 			}
- 		}
- 	}
-@@ -310,10 +310,11 @@ static struct clocksource clocksource_ts
- 				  CLOCK_SOURCE_MUST_VERIFY,
- };
+diff -puN arch/powerpc/platforms/ps3/Kconfig~ps3-introduce-config_ps3_advanced arch/powerpc/platforms/ps3/Kconfig
+--- a/arch/powerpc/platforms/ps3/Kconfig~ps3-introduce-config_ps3_advanced
++++ a/arch/powerpc/platforms/ps3/Kconfig
+@@ -1,9 +1,24 @@
+ menu "PS3 Platform Options"
+ 	depends on PPC_PS3
  
--void mark_tsc_unstable(void)
-+void mark_tsc_unstable(char *reason)
- {
- 	if (!tsc_unstable) {
- 		tsc_unstable = 1;
-+		printk("Marking TSC unstable due to: %s.\n", reason);
- 		/* Can be called before registration */
- 		if (clocksource_tsc.mult)
- 			clocksource_change_rating(&clocksource_tsc, 0);
-diff -puN arch/x86_64/kernel/time.c~log-reason-why-tsc-was-marked-unstable arch/x86_64/kernel/time.c
---- a/arch/x86_64/kernel/time.c~log-reason-why-tsc-was-marked-unstable
-+++ a/arch/x86_64/kernel/time.c
-@@ -348,7 +348,7 @@ void __init time_init(void)
- 	}
++config PS3_ADVANCED
++	depends on PPC_PS3
++	bool "PS3 Advanced configuration options"
++	help
++	  This gives you access to some advanced options for the PS3. The
++	  defaults should be fine for most users, but these options may make
++	  it possible to better control the kernel configuration if you know
++	  what you are doing.
++
++	  Note that the answer to this question won't directly affect the
++	  kernel: saying N will just cause the configurator to skip all
++	  the questions about these options.
++
++	  Most users should say N to this question.
++
+ config PS3_HTAB_SIZE
+ 	depends on PPC_PS3
+-	int "PS3 Platform pagetable size"
++	int "PS3 Platform pagetable size" if PS3_ADVANCED
+ 	range 18 20
+ 	default 20
+ 	help
+@@ -42,7 +57,7 @@ config PS3_USE_LPAR_ADDR
  
- 	if (unsynchronized_tsc())
--		mark_tsc_unstable();
-+		mark_tsc_unstable("TSCs unsynchronized");
+ config PS3_VUART
+ 	depends on PPC_PS3
+-	bool "PS3 Virtual UART support"
++	bool "PS3 Virtual UART support" if PS3_ADVANCED
+ 	default y
+ 	help
+ 	  Include support for the PS3 Virtual UART.
+@@ -52,9 +67,8 @@ config PS3_VUART
+ 	  general, all users will say Y.
  
- 	if (cpu_has(&boot_cpu_data, X86_FEATURE_RDTSCP))
- 		vgetcpu_mode = VGETCPU_RDTSCP;
-diff -puN arch/x86_64/kernel/tsc.c~log-reason-why-tsc-was-marked-unstable arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~log-reason-why-tsc-was-marked-unstable
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -109,7 +109,7 @@ static int time_cpufreq_notifier(struct 
+ config PS3_PS3AV
+-	tristate "PS3 AV settings driver"
+-	depends on PPC_PS3
+-	select PS3_VUART
++	tristate "PS3 AV settings driver" if PS3_ADVANCED
++	depends on PS3_VUART
+ 	default y
+ 	help
+ 	  Include support for the PS3 AV Settings driver.
+@@ -63,8 +77,8 @@ config PS3_PS3AV
+ 	  general, all users will say Y or M.
  
- 		cpu_khz = cpufreq_scale(cpu_khz_ref, ref_freq, freq->new);
- 		if (!(freq->flags & CPUFREQ_CONST_LOOPS))
--			mark_tsc_unstable();
-+			mark_tsc_unstable("cpufreq changes");
- 	}
+ config PS3_SYS_MANAGER
+-	bool "PS3 System Manager driver"
+-	select PS3_VUART
++	bool "PS3 System Manager driver" if PS3_ADVANCED
++	depends on PS3_VUART
+ 	default y
+ 	help
+ 	  Include support for the PS3 System Manager.
+diff -puN drivers/video/Kconfig~ps3-introduce-config_ps3_advanced drivers/video/Kconfig
+--- a/drivers/video/Kconfig~ps3-introduce-config_ps3_advanced
++++ a/drivers/video/Kconfig
+@@ -1618,8 +1618,7 @@ config FB_IBM_GXT4500
  
- 	set_cyc2ns_scale(cpu_khz_ref);
-@@ -197,10 +197,11 @@ static struct clocksource clocksource_ts
- 	.vread			= vread_tsc,
- };
- 
--void mark_tsc_unstable(void)
-+void mark_tsc_unstable(char *reason)
- {
- 	if (!tsc_unstable) {
- 		tsc_unstable = 1;
-+		printk("Marking TSC unstable due to %s\n", reason);
- 		/* Change only the rating, when not registered */
- 		if (clocksource_tsc.mult)
- 			clocksource_change_rating(&clocksource_tsc, 0);
-diff -puN arch/x86_64/kernel/tsc_sync.c~log-reason-why-tsc-was-marked-unstable arch/x86_64/kernel/tsc_sync.c
---- a/arch/x86_64/kernel/tsc_sync.c~log-reason-why-tsc-was-marked-unstable
-+++ a/arch/x86_64/kernel/tsc_sync.c
-@@ -138,7 +138,7 @@ void __cpuinit check_tsc_sync_source(int
- 		printk("\n");
- 		printk(KERN_WARNING "Measured %Ld cycles TSC warp between CPUs,"
- 				    " turning off TSC clock.\n", max_warp);
--		mark_tsc_unstable();
-+		mark_tsc_unstable("check_tsc_sync_source failed");
- 		nr_warps = 0;
- 		max_warp = 0;
- 		last_tsc = 0;
-diff -puN drivers/acpi/processor_idle.c~log-reason-why-tsc-was-marked-unstable drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~log-reason-why-tsc-was-marked-unstable
-+++ a/drivers/acpi/processor_idle.c
-@@ -482,7 +482,7 @@ static void acpi_processor_idle(void)
- 
- #ifdef CONFIG_GENERIC_TIME
- 		/* TSC halts in C2, so notify users */
--		mark_tsc_unstable();
-+		mark_tsc_unstable("possible TSC halt in C2");
- #endif
- 		/* Re-enable interrupts */
- 		local_irq_enable();
-@@ -524,7 +524,7 @@ static void acpi_processor_idle(void)
- 
- #ifdef CONFIG_GENERIC_TIME
- 		/* TSC halts in C3, so notify users */
--		mark_tsc_unstable();
-+		mark_tsc_unstable("TSC halts in C3");
- #endif
- 		/* Re-enable interrupts */
- 		local_irq_enable();
-diff -puN include/asm-i386/mach-summit/mach_mpparse.h~log-reason-why-tsc-was-marked-unstable include/asm-i386/mach-summit/mach_mpparse.h
---- a/include/asm-i386/mach-summit/mach_mpparse.h~log-reason-why-tsc-was-marked-unstable
-+++ a/include/asm-i386/mach-summit/mach_mpparse.h
-@@ -30,7 +30,7 @@ static inline int mps_oem_check(struct m
- 			(!strncmp(productid, "VIGIL SMP", 9) 
- 			 || !strncmp(productid, "EXA", 3)
- 			 || !strncmp(productid, "RUTHLESS SMP", 12))){
--		mark_tsc_unstable();
-+		mark_tsc_unstable("Summit based system");
- 		use_cyclone = 1; /*enable cyclone-timer*/
- 		setup_summit();
- 		return 1;
-@@ -44,7 +44,7 @@ static inline int acpi_madt_oem_check(ch
- 	if (!strncmp(oem_id, "IBM", 3) &&
- 	    (!strncmp(oem_table_id, "SERVIGIL", 8)
- 	     || !strncmp(oem_table_id, "EXA", 3))){
--		mark_tsc_unstable();
-+		mark_tsc_unstable("Summit based system");
- 		use_cyclone = 1; /*enable cyclone-timer*/
- 		setup_summit();
- 		return 1;
-diff -puN include/asm-x86_64/timex.h~log-reason-why-tsc-was-marked-unstable include/asm-x86_64/timex.h
---- a/include/asm-x86_64/timex.h~log-reason-why-tsc-was-marked-unstable
-+++ a/include/asm-x86_64/timex.h
-@@ -27,6 +27,6 @@ extern int read_current_timer(unsigned l
- #define NS_SCALE        10 /* 2^10, carefully chosen */
- #define US_SCALE        32 /* 2^32, arbitralrily chosen */
- 
--extern void mark_tsc_unstable(void);
-+extern void mark_tsc_unstable(char*);
- extern void set_cyc2ns_scale(unsigned long khz);
- #endif
-diff -puN include/asm-x86_64/tsc.h~log-reason-why-tsc-was-marked-unstable include/asm-x86_64/tsc.h
---- a/include/asm-x86_64/tsc.h~log-reason-why-tsc-was-marked-unstable
-+++ a/include/asm-x86_64/tsc.h
-@@ -53,7 +53,7 @@ static __always_inline cycles_t get_cycl
- }
- 
- extern void tsc_init(void);
--extern void mark_tsc_unstable(void);
-+extern void mark_tsc_unstable(char*);
- extern int unsynchronized_tsc(void);
- 
- /*
+ config FB_PS3
+ 	bool "PS3 GPU framebuffer driver"
+-	depends on FB && PPC_PS3
+-	select PS3_PS3AV
++	depends on FB && PS3_PS3AV
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
-log-reason-why-tsc-was-marked-unstable.patch
-clocksource-init-adjustments-fix-bug-7426.patch
-convert-h8-300-to-generic-timekeeping.patch
-v850-generic-timekeeping-conversion.patch
-profile-likely-unlikely-macros-x86_64-fix.patch
+ps3-introduce-config_ps3_advanced.patch
+ps3fb-thread-updates.patch
+ps3fb-thread-updates-update.patch
+ps3fb-thread-updates-2.patch
+ps3fb-thread-updates-42.patch
+ps3av-thread-updates.patch
+ps3fb-kill-superfluous-zero-initializations.patch
+ps3fb-atomic-fixes.patch
+ps3av-misc-updates.patch
