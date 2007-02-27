@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usbatm-create-sysfs-link-device-from-atm-class-device.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:50:40 -0800
-Message-ID: <200702272050.l1RKoiSR028100@shell0.pdx.osdl.net>
+Subject: + usb-elan-ftdi-check-for-workqueue-creation-v2.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:50:51 -0800
+Message-ID: <200702272050.l1RKotsj028107@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51328 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51330 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752575AbXB0UvI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:51:08 -0500
+	id S1752579AbXB0UvJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:51:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: simon@arlott.org, duncan.sands@math.u-psud.fr, greg@kroah.com, simon@fire.lp0.eu
+Cc: gorcunov@gmail.com, greg@kroah.com, zaitcev@redhat.com
 
 
 The patch titled
-     usbatm: create sysfs link "device" from atm class device to usb interface
+     USB Elan FTDI: check for workqueue creation
 has been added to the -mm tree.  Its filename is
-     usbatm-create-sysfs-link-device-from-atm-class-device.patch
+     usb-elan-ftdi-check-for-workqueue-creation-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,73 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usbatm: create sysfs link "device" from atm class device to usb interface
-From: Simon Arlott <simon@arlott.org>
+Subject: USB Elan FTDI: check for workqueue creation
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-There is currently no path from the ATM device in /sys to the USB device's
-interface that the driver is using; this patch creates a "device" symlink.  It
-is then possible to get to the cxacru ADSL statistics
-(http://lkml.org/lkml/2007/2/23/328):
+Avoid NULL pointer usage if workqueue creation failed.
 
-/sys/class/atm/cxacru0/device $ ls *_rate *_margin *_attenuation
-downstream_attenuation  downstream_snr_margin  upstream_rate
-downstream_rate         upstream_attenuation   upstream_snr_margin
-
-If this link is not appropriate I'd have to create device files in
-/sys/class/atm/cxacru0 instead - which seems less appropriate since the ADSL
-statistics are for the USB device not ATM (which is running over the ADSL).
-
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
-Cc: Duncan Sands <duncan.sands@math.u-psud.fr>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/usbatm.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/usb/misc/ftdi-elan.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/atm/usbatm.c~usbatm-create-sysfs-link-device-from-atm-class-device drivers/usb/atm/usbatm.c
---- a/drivers/usb/atm/usbatm.c~usbatm-create-sysfs-link-device-from-atm-class-device
-+++ a/drivers/usb/atm/usbatm.c
-@@ -966,6 +966,12 @@ static int usbatm_atm_init(struct usbatm
- 	/* temp init ATM device, set to 128kbit */
- 	atm_dev->link_rate = 128 * 1000 / 424;
- 
-+	ret = sysfs_create_link(&atm_dev->class_dev.kobj, &instance->usb_intf->dev.kobj, "device");
-+	if (ret) {
-+		atm_err(instance, "%s: sysfs_create_link failed: %d\n", __func__, ret);
-+		goto fail_sysfs;
-+	}
+diff -puN drivers/usb/misc/ftdi-elan.c~usb-elan-ftdi-check-for-workqueue-creation-v2 drivers/usb/misc/ftdi-elan.c
+--- a/drivers/usb/misc/ftdi-elan.c~usb-elan-ftdi-check-for-workqueue-creation-v2
++++ a/drivers/usb/misc/ftdi-elan.c
+@@ -2905,17 +2905,31 @@ static int __init ftdi_elan_init(void)
+ {
+         int result;
+         printk(KERN_INFO "driver %s built at %s on %s\n", ftdi_elan_driver.name,
+-                 __TIME__, __DATE__);
++	       __TIME__, __DATE__);
+         init_MUTEX(&ftdi_module_lock);
+         INIT_LIST_HEAD(&ftdi_static_list);
+         status_queue = create_singlethread_workqueue("ftdi-status-control");
++	if (!status_queue)
++		goto err1;
+         command_queue = create_singlethread_workqueue("ftdi-command-engine");
++	if (!command_queue)
++		goto err2;
+         respond_queue = create_singlethread_workqueue("ftdi-respond-engine");
++	if (!respond_queue)
++		goto err3;
+         result = usb_register(&ftdi_elan_driver);
+         if (result)
+                 printk(KERN_ERR "usb_register failed. Error number %d\n",
+-                        result);
++		       result);
+         return result;
 +
- 	if (instance->driver->atm_start && ((ret = instance->driver->atm_start(instance, atm_dev)) < 0)) {
- 		atm_err(instance, "%s: atm_start failed: %d!\n", __func__, ret);
- 		goto fail;
-@@ -984,6 +990,8 @@ static int usbatm_atm_init(struct usbatm
- 	return 0;
- 
-  fail:
-+	sysfs_remove_link(&atm_dev->class_dev.kobj, "device");
-+ fail_sysfs:
- 	instance->atm_dev = NULL;
- 	atm_dev_deregister(atm_dev); /* usbatm_atm_dev_close will eventually be called */
- 	return ret;
-@@ -1316,8 +1324,10 @@ void usbatm_usb_disconnect(struct usb_in
- 	kfree(instance->cell_buf);
- 
- 	/* ATM finalize */
--	if (instance->atm_dev)
-+	if (instance->atm_dev) {
-+		sysfs_remove_link(&instance->atm_dev->class_dev.kobj, "device");
- 		atm_dev_deregister(instance->atm_dev);
-+	}
- 
- 	usbatm_put_instance(instance);	/* taken in usbatm_usb_probe */
++ err3:
++	destroy_workqueue(command_queue);
++ err2:
++	destroy_workqueue(status_queue);
++ err1:
++	printk(KERN_ERR "%s couldn't create workqueue\n", ftdi_elan_driver.name);
++	return -ENOMEM;
  }
+ 
+ static void __exit ftdi_elan_exit(void)
 _
 
-Patches currently in -mm which might be from simon@arlott.org are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-usbatm-create-sysfs-link-device-from-atm-class-device.patch
-usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
-cxacru-export-detailed-device-info-through-sysfs-updated.patch
-maintainers-add-myself-for-cxacru-in-drivers-usb-atm.patch
+ds1374-check-for-workqueue-creation.patch
+usb-elan-ftdi-check-for-workqueue-creation-v2.patch
