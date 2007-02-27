@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:58:27 -0800
-Message-ID: <200702272058.l1RKwVOI028386@shell0.pdx.osdl.net>
+Subject: + dont-assume-arguments-to-init-have-no-period-in-them.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:58:49 -0800
+Message-ID: <200702272058.l1RKwrT6028406@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51974 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51993 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752129AbXB0U6u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:58:50 -0500
+	id S1752546AbXB0U7A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:59:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ricknu-0@student.ltu.se, ben-linux@fluff.org
+Cc: rob@landley.net, rusty@rustcorp.com.au
 
 
 The patch titled
-     drivers/mfd/sm501.c: replace pci_module_init with pci_register_driver
+     Don't assume arguments to init have no period in them.
 has been added to the -mm tree.  Its filename is
-     drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver.patch
+     dont-assume-arguments-to-init-have-no-period-in-them.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/mfd/sm501.c: replace pci_module_init with pci_register_driver
-From: Richard Knutsson <ricknu-0@student.ltu.se>
+Subject: Don't assume arguments to init have no period in them.
+From: Rob Landley <rob@landley.net>
 
-Replace pci_module_init with pci_register_driver
+The kernel assumes that nobody will ever legitimately feed in a kernel
+command line option with a period in it, and the kernel is wrong: I'm
+feeding the path to a script as an argument to my init program, the name of
+the script ends in .sh.
 
-Signed-off-by: Richard Knutson <ricknu-0@student.ltu.se>
-Acked-by: Ben Dooks <ben-linux@fluff.org>
+I've been using this patch ever since 2.6.13, and I still need it.
+
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/main.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver
-+++ a/drivers/mfd/sm501.c
-@@ -1131,7 +1131,7 @@ static struct platform_driver sm501_plat
- static int __init sm501_base_init(void)
- {
- 	platform_driver_register(&sm501_plat_drv);
--	return pci_module_init(&sm501_pci_drv);
-+	return pci_register_driver(&sm501_pci_drv);
- }
+diff -puN init/main.c~dont-assume-arguments-to-init-have-no-period-in-them init/main.c
+--- a/init/main.c~dont-assume-arguments-to-init-have-no-period-in-them
++++ a/init/main.c
+@@ -273,15 +273,6 @@ static int __init unknown_bootoption(cha
+ 	if (obsolete_checksetup(param))
+ 		return 0;
  
- static void __exit sm501_base_exit(void)
+-	/*
+-	 * Preemptive maintenance for "why didn't my mispelled command
+-	 * line work?"
+-	 */
+-	if (strchr(param, '.') && (!val || strchr(param, '.') < val)) {
+-		printk(KERN_ERR "Unknown boot option `%s': ignoring\n", param);
+-		return 0;
+-	}
+-
+ 	if (panic_later)
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from ricknu-0@student.ltu.se are
+Patches currently in -mm which might be from rob@landley.net are
 
-git-dvb.patch
-ide-pci-delkin_cbc-pci_module_init-to-pci_register_driver.patch
-mtd-maps-ck804xromc-pci_module_init-to-pci_register_driver.patch
-drivers-net-vioc-vioc_driverc-replace-pci_module_init-with-pci_register_driver.patch
-drivers-scsi-aic7xxx_old-convert-to-generic-boolean-values.patch
-drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver.patch
+dont-assume-arguments-to-init-have-no-period-in-them.patch
