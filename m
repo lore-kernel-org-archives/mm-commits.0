@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + atyfb-kill-dead-code.patch added to -mm tree
-Date: Tue, 27 Feb 2007 13:10:16 -0800
-Message-ID: <200702272110.l1RLAKeA028704@shell0.pdx.osdl.net>
+Subject: + neofb-fill-transp-msb_right-with-the-correct.patch added to -mm tree
+Date: Tue, 27 Feb 2007 13:10:12 -0800
+Message-ID: <200702272110.l1RLAG4s028699@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52311 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52297 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752634AbXB0VKY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 16:10:24 -0500
+	id S1752631AbXB0VKT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 16:10:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     atyfb: kill dead code
+     neofb: fill transp->msb_right with the correct  value
 has been added to the -mm tree.  Its filename is
-     atyfb-kill-dead-code.patch
+     neofb-fill-transp-msb_right-with-the-correct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atyfb: kill dead code
+Subject: neofb: fill transp->msb_right with the correct  value
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Coverity Bug 68, kill dead code.
+Fill transp->msb_right with the correct value.  fbcon ignores this, but user
+apps may not.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/neofb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-kill-dead-code drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-kill-dead-code
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -2332,6 +2332,7 @@ static int __devinit aty_init(struct fb_
- 		case DAC_IBMRGB514:
- 			par->dac_ops = &aty_dac_ibm514;
- 			break;
-+#ifdef CONFIG_ATARI
- 		case DAC_ATI68860_B:
- 		case DAC_ATI68860_C:
- 			par->dac_ops = &aty_dac_ati68860b;
-@@ -2340,6 +2341,7 @@ static int __devinit aty_init(struct fb_
- 		case DAC_ATT21C498:
- 			par->dac_ops = &aty_dac_att21c498;
- 			break;
-+#endif
- 		default:
- 			PRINTKI("aty_init: DAC type not implemented yet!\n");
- 			par->dac_ops = &aty_dac_unsupported;
+diff -puN drivers/video/neofb.c~neofb-fill-transp-msb_right-with-the-correct drivers/video/neofb.c
+--- a/drivers/video/neofb.c~neofb-fill-transp-msb_right-with-the-correct
++++ a/drivers/video/neofb.c
+@@ -665,6 +665,7 @@ neofb_check_var(struct fb_var_screeninfo
+ 	var->red.msb_right = 0;
+ 	var->green.msb_right = 0;
+ 	var->blue.msb_right = 0;
++	var->transp.msb_right = 0;
+ 
+ 	switch (var->bits_per_pixel) {
+ 	case 8:		/* PSEUDOCOLOUR, 256 */
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
