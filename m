@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sata_promise-fix-20619-new-eh-merge-error.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:38:23 -0800
-Message-ID: <200702272038.l1RKcRYu027668@shell0.pdx.osdl.net>
+Subject: + libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:39:12 -0800
+Message-ID: <200702272039.l1RKdGKK027686@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50840 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50887 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933092AbXB0Uic (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:38:32 -0500
+	id S1751815AbXB0Uj5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:39:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikpe@it.uu.se
+Cc: dmonakhov@sw.ru, dmonakhov@openvz.org
 
 
 The patch titled
-     sata_promise: fix 20619 new EH merge error
+     libata: handle ata_pci_device_do_resume() failure while resuming
 has been added to the -mm tree.  Its filename is
-     sata_promise-fix-20619-new-eh-merge-error.patch
+     libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sata_promise: fix 20619 new EH merge error
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: libata: handle ata_pci_device_do_resume() failure while resuming
+From: Dmitriy Monakhov <dmonakhov@sw.ru>
 
-When I merged my 20619 new EH conversion with #libata-upstream I had to
-manually resolve a conflict, and inadvertently lost pdc_pata_ops'
-->post_internal_cmd binding.  Corrected by this patch.
+Since commit:553c4aa630af7bc885e056d0436e4eb7f238579b
+ata_pci_device_do_resume() can return error code, all callers was updated
+except this one.
 
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_promise.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/sata_inic162x.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_promise.c~sata_promise-fix-20619-new-eh-merge-error drivers/ata/sata_promise.c
---- a/drivers/ata/sata_promise.c~sata_promise-fix-20619-new-eh-merge-error
-+++ a/drivers/ata/sata_promise.c
-@@ -218,6 +218,7 @@ static const struct ata_port_operations 
- 	.freeze			= pdc_freeze,
- 	.thaw			= pdc_thaw,
- 	.error_handler		= pdc_error_handler,
-+	.post_internal_cmd	= pdc_post_internal_cmd,
- 	.data_xfer		= ata_data_xfer,
- 	.irq_handler		= pdc_interrupt,
- 	.irq_clear		= pdc_irq_clear,
+diff -puN drivers/ata/sata_inic162x.c~libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2 drivers/ata/sata_inic162x.c
+--- a/drivers/ata/sata_inic162x.c~libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2
++++ a/drivers/ata/sata_inic162x.c
+@@ -639,7 +639,9 @@ static int inic_pci_device_resume(struct
+ 	void __iomem *mmio_base = host->iomap[MMIO_BAR];
+ 	int rc;
+ 
+-	ata_pci_device_do_resume(pdev);
++	rc = ata_pci_device_do_resume(pdev);
++	if (rc)
++		return rc;
+ 
+ 	if (pdev->dev.power.power_state.event == PM_EVENT_SUSPEND) {
+ 		printk("XXX\n");
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from dmonakhov@sw.ru are
 
-credits-update-mikpes-email-address.patch
-sata_promise-simplify-port-setup.patch
-sata_promise-fix-20619-new-eh-merge-error.patch
+libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
+3c59x-handle-pci_enable_device-failure-while-resuming.patch
+freevxfs-possible-null-pointer-dereference-fix.patch
+reiserfs-possible-null-pointer-dereference-during-resize.patch
