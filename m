@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + patch-maintainers-update-email-address.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:32:24 -0800
-Message-ID: <200702272032.l1RKWS2X027437@shell0.pdx.osdl.net>
+Subject: + tick-schedc-build-fix.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:32:29 -0800
+Message-ID: <200702272032.l1RKWWEt027446@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50593 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50602 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751816AbXB0Ucb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:32:31 -0500
+	id S1752129AbXB0Uci (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:32:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com
+Cc: davem@davemloft.net, tglx@linutronix.de
 
 
 The patch titled
-     MAINTAINERS: Update email address
+     tick-sched.c build fix
 has been added to the -mm tree.  Its filename is
-     patch-maintainers-update-email-address.patch
+     tick-schedc-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,69 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Update email address
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: tick-sched.c build fix
+From: David Miller <davem@davemloft.net>
 
-adaplas@pol.net is still alive, but is choking on the traffic.
+While getting dynticks/hrtimers up on sparc64 I ran into the following
+build problem.  If you use get_irq_regs() you need to include
+asm/irq_regs.h
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/time/tick-sched.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN MAINTAINERS~patch-maintainers-update-email-address MAINTAINERS
---- a/MAINTAINERS~patch-maintainers-update-email-address
-+++ a/MAINTAINERS
-@@ -1345,7 +1345,7 @@ S:	Supported
+diff -puN kernel/time/tick-sched.c~tick-schedc-build-fix kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~tick-schedc-build-fix
++++ a/kernel/time/tick-sched.c
+@@ -21,6 +21,8 @@
+ #include <linux/sched.h>
+ #include <linux/tick.h>
  
- FRAMEBUFFER LAYER
- P:	Antonino Daplas
--M:	adaplas@pol.net
-+M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
- W:	http://linux-fbdev.sourceforge.net/
- S:	Maintained
-@@ -1750,7 +1750,7 @@ S:	Maintained
++#include <asm/irq_regs.h>
++
+ #include "tick-internal.h"
  
- INTEL 810/815 FRAMEBUFFER DRIVER
- P:	Antonino Daplas
--M:	adaplas@pol.net
-+M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
- S:	Maintained
- 
-@@ -2472,7 +2472,7 @@ S:	Maintained
- 
- NVIDIA (rivafb and nvidiafb) FRAMEBUFFER DRIVER
- P:	Antonino Daplas
--M:	adaplas@pol.net
-+M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
- S:	Maintained
- 
-@@ -2856,7 +2856,7 @@ S:	Orphan
- 
- S3 SAVAGE FRAMEBUFFER DRIVER
- P:	Antonino Daplas
--M:	adaplas@pol.net
-+M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
- S:	Maintained
- 
+ /*
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from davem@davemloft.net are
 
-patch-maintainers-update-email-address.patch
-atyfb-fix-kconfig-error.patch
-fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
-intelfb-fix-ring-space-calculation.patch
-nvidiafb-bring-back-generic-ddc-reading.patch
-fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
-fbdev-fix-obvious-bug-in-show_pan.patch
-neofb-fill-transp-msb_right-with-the-correct.patch
-atyfb-kill-dead-code.patch
-fbdev-mm-deferred-io-support.patch
-fbdev-hecuba-framebuffer-driver.patch
+tick-schedc-build-fix.patch
+generic-one-shot-bug.patch
+git-net.patch
+resend-iphase-64bit-cleanup.patch
+simplify-the-stacktrace-code.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+ipvs-flush-defense_work-before-module-unload.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+local_t-sparc64-cleanup.patch
