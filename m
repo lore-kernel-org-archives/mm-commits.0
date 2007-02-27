@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mpt-fusion-handle-mpt_resume-failure-while-resuming.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:49:32 -0800
-Message-ID: <200702272049.l1RKnanh028052@shell0.pdx.osdl.net>
+Subject: + mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:46:26 -0800
+Message-ID: <200702272046.l1RKkURp027901@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51235 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51237 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752572AbXB0Uts (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:49:48 -0500
+	id S1752574AbXB0Utt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:49:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org, Eric.Moore@lsil.com, James.Bottomley@steeleye.com, jeff@garzik.org
+Cc: rpjday@mindspring.com, ralf@linux-mips.org
 
 
 The patch titled
-     MPT fusion: handle mpt_resume() failure while resuming
+     MIPS: Remove unreferenced _IOC_SLMASK macro in ioctl.h
 has been added to the -mm tree.  Its filename is
-     mpt-fusion-handle-mpt_resume-failure-while-resuming.patch
+     mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MPT fusion: handle mpt_resume() failure while resuming
-From: Dmitriy Monakhov <dmonakhov@openvz.org>
+Subject: MIPS: Remove unreferenced _IOC_SLMASK macro in ioctl.h
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Since mpt-fusion-handle-pci-layer-error-on-resume.patch function
-mpt_resume() can return error code.
+Delete the definition of the apparently unreferenced macro _IOC_SLMASK.
 
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptscsih.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/asm-mips/ioctl.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/message/fusion/mptscsih.c~mpt-fusion-handle-mpt_resume-failure-while-resuming drivers/message/fusion/mptscsih.c
---- a/drivers/message/fusion/mptscsih.c~mpt-fusion-handle-mpt_resume-failure-while-resuming
-+++ a/drivers/message/fusion/mptscsih.c
-@@ -1191,8 +1191,11 @@ mptscsih_resume(struct pci_dev *pdev)
- 	MPT_ADAPTER 		*ioc = pci_get_drvdata(pdev);
- 	struct Scsi_Host 	*host = ioc->sh;
- 	MPT_SCSI_HOST		*hd;
-+	int ret;
+diff -puN include/asm-mips/ioctl.h~mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh include/asm-mips/ioctl.h
+--- a/include/asm-mips/ioctl.h~mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh
++++ a/include/asm-mips/ioctl.h
+@@ -38,11 +38,6 @@
+ #define _IOC_DIRSHIFT	(_IOC_SIZESHIFT+_IOC_SIZEBITS)
  
--	mpt_resume(pdev);
-+	ret = mpt_resume(pdev);
-+	if (ret)
-+		return  ret;
- 
- 	if(!host)
- 		return 0;
+ /*
+- * We to additionally limit parameters to a maximum 255 bytes.
+- */
+-#define _IOC_SLMASK	0xff
+-
+-/*
+  * Direction bits _IOC_NONE could be 0, but OSF/1 gives it a bit.
+  * And this turns out useful to catch old ioctl numbers in header
+  * files for us.
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-ecryptfs-set-o_largefile-when-opening-lower-file.patch
-ecryptfs-remove-unnecessary-flush_dcache_page.patch
-ecryptfs-no-path_release-after-path_lookup-error.patch
-libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
-3c59x-handle-pci_enable_device-failure-while-resuming.patch
-mpt-fusion-handle-mpt_resume-failure-while-resuming.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
-ecryptfs-handles-aop_truncated_page-better.patch
+git-avr32.patch
+git-dvb.patch
+kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch
+git-mips.patch
+mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
