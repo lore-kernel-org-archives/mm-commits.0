@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-set-o_largefile-when-opening-lower-file.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:33:53 -0800
-Message-ID: <200702272033.l1RKXv4c027525@shell0.pdx.osdl.net>
+Subject: + acpi-make-bay-depend-on-dock.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:34:10 -0800
+Message-ID: <200702272034.l1RKYD9W027553@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50684 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50704 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752548AbXB0Ued (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:34:33 -0500
+	id S1752550AbXB0Ufe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:35:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com, dmonakhov@openvz.org
+Cc: kristen.c.accardi@intel.com, lenb@kernel.org
 
 
 The patch titled
-     eCryptfs: set O_LARGEFILE when opening lower file
+     ACPI: make bay depend on dock
 has been added to the -mm tree.  Its filename is
-     ecryptfs-set-o_largefile-when-opening-lower-file.patch
+     acpi-make-bay-depend-on-dock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: set O_LARGEFILE when opening lower file
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: ACPI: make bay depend on dock
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-O_LARGEFILE should be set here when opening the lower file.
+Since the bay driver depends on the dock driver for proper notification,
+make this driver depend on the dock driver.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Dmitriy Monakhov <dmonakhov@openvz.org>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/file.c  |    1 +
- fs/ecryptfs/inode.c |    3 ---
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/acpi/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ecryptfs/file.c~ecryptfs-set-o_largefile-when-opening-lower-file fs/ecryptfs/file.c
---- a/fs/ecryptfs/file.c~ecryptfs-set-o_largefile-when-opening-lower-file
-+++ a/fs/ecryptfs/file.c
-@@ -205,6 +205,7 @@ int ecryptfs_open_lower_file(struct file
- {
- 	int rc = 0;
+diff -puN drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock
++++ a/drivers/acpi/Kconfig
+@@ -143,6 +143,7 @@ config ACPI_FAN
+ config ACPI_DOCK
+ 	tristate "Dock"
+ 	depends on EXPERIMENTAL
++	depends on ACPI_DOCK
+ 	help
+ 	  This driver adds support for ACPI controlled docking stations
  
-+	flags |= O_LARGEFILE;
- 	dget(lower_dentry);
- 	mntget(lower_mnt);
- 	*lower_file = dentry_open(lower_dentry, lower_mnt, flags);
-diff -puN fs/ecryptfs/inode.c~ecryptfs-set-o_largefile-when-opening-lower-file fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-set-o_largefile-when-opening-lower-file
-+++ a/fs/ecryptfs/inode.c
-@@ -200,9 +200,6 @@ static int ecryptfs_initialize_file(stru
- 	inode = ecryptfs_dentry->d_inode;
- 	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
- 	lower_flags = ((O_CREAT | O_TRUNC) & O_ACCMODE) | O_RDWR;
--#if BITS_PER_LONG != 32
--	lower_flags |= O_LARGEFILE;
--#endif
- 	lower_mnt = ecryptfs_dentry_to_lower_mnt(ecryptfs_dentry);
- 	/* Corresponding fput() at end of this function */
- 	if ((rc = ecryptfs_open_lower_file(&lower_file, lower_dentry, lower_mnt,
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-ecryptfs-resolve-lower-page-unlocking-problem.patch
-ecryptfs-set-o_largefile-when-opening-lower-file.patch
-ecryptfs-remove-unnecessary-flush_dcache_page.patch
-ecryptfs-no-path_release-after-path_lookup-error.patch
-git-unionfs.patch
-ecryptfs-handles-aop_truncated_page-better.patch
+acpi-make-bay-depend-on-dock.patch
