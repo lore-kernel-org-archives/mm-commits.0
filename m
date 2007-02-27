@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-unbreak-setupc-re-command_line.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:48:50 -0800
-Message-ID: <200702272048.l1RKms7H028029@shell0.pdx.osdl.net>
+Subject: + mpt-fusion-handle-mpt_resume-failure-while-resuming.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:49:32 -0800
+Message-ID: <200702272049.l1RKnanh028052@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51179 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51235 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752568AbXB0UtE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:49:04 -0500
+	id S1752572AbXB0Uts (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:49:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, kyle@mcmartin.ca
+Cc: dmonakhov@openvz.org, Eric.Moore@lsil.com, James.Bottomley@steeleye.com, jeff@garzik.org
 
 
 The patch titled
-     parisc: unbreak setup.c re command_line
+     MPT fusion: handle mpt_resume() failure while resuming
 has been added to the -mm tree.  Its filename is
-     parisc-unbreak-setupc-re-command_line.patch
+     mpt-fusion-handle-mpt_resume-failure-while-resuming.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: parisc: unbreak setup.c re command_line
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: MPT fusion: handle mpt_resume() failure while resuming
+From: Dmitriy Monakhov <dmonakhov@openvz.org>
 
-What compiler is supposed to do upon seeing
+Since mpt-fusion-handle-pci-layer-error-on-resume.patch function
+mpt_resume() can return error code.
 
-	char __attribute__((__section__ (".init.data")))	command_line[1024]
-	     __attribute__((__section__(".data.read_mostly")));
-
-?
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
+Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/setup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/message/fusion/mptscsih.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/parisc/kernel/setup.c~parisc-unbreak-setupc-re-command_line arch/parisc/kernel/setup.c
---- a/arch/parisc/kernel/setup.c~parisc-unbreak-setupc-re-command_line
-+++ a/arch/parisc/kernel/setup.c
-@@ -45,7 +45,7 @@
- #include <asm/io.h>
- #include <asm/setup.h>
+diff -puN drivers/message/fusion/mptscsih.c~mpt-fusion-handle-mpt_resume-failure-while-resuming drivers/message/fusion/mptscsih.c
+--- a/drivers/message/fusion/mptscsih.c~mpt-fusion-handle-mpt_resume-failure-while-resuming
++++ a/drivers/message/fusion/mptscsih.c
+@@ -1191,8 +1191,11 @@ mptscsih_resume(struct pci_dev *pdev)
+ 	MPT_ADAPTER 		*ioc = pci_get_drvdata(pdev);
+ 	struct Scsi_Host 	*host = ioc->sh;
+ 	MPT_SCSI_HOST		*hd;
++	int ret;
  
--char	__initdata command_line[COMMAND_LINE_SIZE] __read_mostly;
-+static char __initdata command_line[COMMAND_LINE_SIZE];
+-	mpt_resume(pdev);
++	ret = mpt_resume(pdev);
++	if (ret)
++		return  ret;
  
- /* Intended for ccio/sba/cpu statistics under /proc/bus/{runway|gsc} */
- struct proc_dir_entry * proc_runway_root __read_mostly = NULL;
+ 	if(!host)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
-git-dvb.patch
-parisc-unbreak-setupc-re-command_line.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-reiserfs-shrink-superblock-if-no-xattrs.patch
+ecryptfs-set-o_largefile-when-opening-lower-file.patch
+ecryptfs-remove-unnecessary-flush_dcache_page.patch
+ecryptfs-no-path_release-after-path_lookup-error.patch
+libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
+3c59x-handle-pci_enable_device-failure-while-resuming.patch
+mpt-fusion-handle-mpt_resume-failure-while-resuming.patch
+freevxfs-possible-null-pointer-dereference-fix.patch
+reiserfs-possible-null-pointer-dereference-during-resize.patch
+ecryptfs-handles-aop_truncated_page-better.patch
