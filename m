@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + clocksource-init-adjustments-fix-bug-7426.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:52:25 -0800
-Message-ID: <200702272052.l1RKqSkM028160@shell0.pdx.osdl.net>
+Subject: + log-reason-why-tsc-was-marked-unstable.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:52:20 -0800
+Message-ID: <200702272052.l1RKqOvs028157@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51421 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51423 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752586AbXB0Uwq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:52:46 -0500
+	id S1752593AbXB0Uws (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:52:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: johnstul@us.ibm.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     clocksource init adjustments (fix bug #7426)
+     Log reason why TSC was marked unstable
 has been added to the -mm tree.  Its filename is
-     clocksource-init-adjustments-fix-bug-7426.patch
+     log-reason-why-tsc-was-marked-unstable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,519 +25,173 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clocksource init adjustments (fix bug #7426)
+Subject: Log reason why TSC was marked unstable
 From: john stultz <johnstul@us.ibm.com>
 
-This patch resolves the issue found here:
-http://bugme.osdl.org/show_bug.cgi?id=7426
+Change mark_tsc_unstable() so it takes a string argument, which holds the
+reason the TSC was marked unstable.
 
-The basic summary is:
-Currently we register most of i386/x86_64 clocksources at module_init
-time. Then we enable clocksource selection at late_initcall time. This
-causes some problems for drivers that use gettimeofday for init
-calibration routines (specifically the es1968 driver in this case),
-where durring module_init, the only clocksource available is the low-res
-jiffies clocksource. This may cause slight calibration errors, due to
-the small sampling time used.
+This is then displayed the first time mark_tsc_unstable is called.
 
-It should be noted that drivers that require fine grained time may not
-function on architectures that do not have better then jiffies
-resolution timekeeping (there are a few). However, this does not
-discount the reasonable need for such fine-grained timekeeping at init
-time.
+This should help us better debug why the TSC was marked unstable on certain
+systems and allow us to make sure we're not being overly paranoid when
+throwing out this troublesome clocksource.
 
-Thus the solution here is to register clocksources earlier (ideally when
-the hardware is being initialized), and then we enable clocksource
-selection at fs_initcall (before device_initcall).
-
-This patch should probably get some testing time in -mm, since
-clocksource selection is one of the most important issues for correct
-timekeeping, and I've only been able to test this on a few of my own
-boxes.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/hpet.c       |   80 +++++++++-----------
- arch/i386/kernel/i8253.c      |    2 
- arch/i386/kernel/setup.c      |    1 
- arch/i386/kernel/time.c       |    1 
- arch/i386/kernel/tsc.c        |   83 +++++++++------------
- arch/x86_64/kernel/hpet.c     |  122 ++++++++++++++------------------
- arch/x86_64/kernel/tsc.c      |    7 -
- drivers/clocksource/acpi_pm.c |    5 +
- drivers/clocksource/cyclone.c |    2 
- kernel/time/clocksource.c     |    8 +-
- 10 files changed, 145 insertions(+), 166 deletions(-)
+ arch/i386/kernel/tsc.c                      |    5 +++--
+ arch/x86_64/kernel/time.c                   |    2 +-
+ arch/x86_64/kernel/tsc.c                    |    5 +++--
+ arch/x86_64/kernel/tsc_sync.c               |    2 +-
+ drivers/acpi/processor_idle.c               |    4 ++--
+ include/asm-i386/mach-summit/mach_mpparse.h |    4 ++--
+ include/asm-x86_64/timex.h                  |    2 +-
+ include/asm-x86_64/tsc.h                    |    2 +-
+ 8 files changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~clocksource-init-adjustments-fix-bug-7426 arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~clocksource-init-adjustments-fix-bug-7426
-+++ a/arch/i386/kernel/hpet.c
-@@ -201,12 +201,30 @@ static int hpet_next_event(unsigned long
- }
- 
- /*
-+ * Clock source related code
-+ */
-+static cycle_t read_hpet(void)
-+{
-+	return (cycle_t)hpet_readl(HPET_COUNTER);
-+}
-+
-+static struct clocksource clocksource_hpet = {
-+	.name		= "hpet",
-+	.rating		= 250,
-+	.read		= read_hpet,
-+	.mask		= HPET_MASK,
-+	.shift		= HPET_SHIFT,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
-+};
-+
-+/*
-  * Try to setup the HPET timer
-  */
- int __init hpet_enable(void)
- {
- 	unsigned long id;
- 	uint64_t hpet_freq;
-+	u64 tmp;
- 
- 	if (!is_hpet_capable())
- 		return 0;
-@@ -253,6 +271,25 @@ int __init hpet_enable(void)
- 	/* Start the counter */
- 	hpet_start_counter();
- 
-+	/* Initialize and register HPET clocksource
-+	 *
-+	 * hpet period is in femto seconds per cycle
-+	 * so we need to convert this to ns/cyc units
-+	 * aproximated by mult/2^shift
-+	 *
-+	 *  fsec/cyc * 1nsec/1000000fsec = nsec/cyc = mult/2^shift
-+	 *  fsec/cyc * 1ns/1000000fsec * 2^shift = mult
-+	 *  fsec/cyc * 2^shift * 1nsec/1000000fsec = mult
-+	 *  (fsec/cyc << shift)/1000000 = mult
-+	 *  (hpet_period << shift)/FSEC_PER_NSEC = mult
-+	 */
-+	tmp = (u64)hpet_period << HPET_SHIFT;
-+	do_div(tmp, FSEC_PER_NSEC);
-+	clocksource_hpet.mult = (u32)tmp;
-+
-+	clocksource_register(&clocksource_hpet);
-+
-+
- 	if (id & HPET_ID_LEGSUP) {
- 		hpet_enable_int();
- 		hpet_reserve_platform_timers(id);
-@@ -273,49 +310,6 @@ out_nohpet:
- 	return 0;
- }
- 
--/*
-- * Clock source related code
-- */
--static cycle_t read_hpet(void)
--{
--	return (cycle_t)hpet_readl(HPET_COUNTER);
--}
--
--static struct clocksource clocksource_hpet = {
--	.name		= "hpet",
--	.rating		= 250,
--	.read		= read_hpet,
--	.mask		= HPET_MASK,
--	.shift		= HPET_SHIFT,
--	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
--};
--
--static int __init init_hpet_clocksource(void)
--{
--	u64 tmp;
--
--	if (!hpet_virt_address)
--		return -ENODEV;
--
--	/*
--	 * hpet period is in femto seconds per cycle
--	 * so we need to convert this to ns/cyc units
--	 * aproximated by mult/2^shift
--	 *
--	 *  fsec/cyc * 1nsec/1000000fsec = nsec/cyc = mult/2^shift
--	 *  fsec/cyc * 1ns/1000000fsec * 2^shift = mult
--	 *  fsec/cyc * 2^shift * 1nsec/1000000fsec = mult
--	 *  (fsec/cyc << shift)/1000000 = mult
--	 *  (hpet_period << shift)/FSEC_PER_NSEC = mult
--	 */
--	tmp = (u64)hpet_period << HPET_SHIFT;
--	do_div(tmp, FSEC_PER_NSEC);
--	clocksource_hpet.mult = (u32)tmp;
--
--	return clocksource_register(&clocksource_hpet);
--}
--
--module_init(init_hpet_clocksource);
- 
- #ifdef CONFIG_HPET_EMULATE_RTC
- 
-diff -puN arch/i386/kernel/i8253.c~clocksource-init-adjustments-fix-bug-7426 arch/i386/kernel/i8253.c
---- a/arch/i386/kernel/i8253.c~clocksource-init-adjustments-fix-bug-7426
-+++ a/arch/i386/kernel/i8253.c
-@@ -195,4 +195,4 @@ static int __init init_pit_clocksource(v
- 	clocksource_pit.mult = clocksource_hz2mult(CLOCK_TICK_RATE, 20);
- 	return clocksource_register(&clocksource_pit);
- }
--module_init(init_pit_clocksource);
-+arch_initcall(init_pit_clocksource);
-diff -puN arch/i386/kernel/setup.c~clocksource-init-adjustments-fix-bug-7426 arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~clocksource-init-adjustments-fix-bug-7426
-+++ a/arch/i386/kernel/setup.c
-@@ -657,5 +657,4 @@ void __init setup_arch(char **cmdline_p)
- 	conswitchp = &dummy_con;
- #endif
- #endif
--	tsc_init();
- }
-diff -puN arch/i386/kernel/time.c~clocksource-init-adjustments-fix-bug-7426 arch/i386/kernel/time.c
---- a/arch/i386/kernel/time.c~clocksource-init-adjustments-fix-bug-7426
-+++ a/arch/i386/kernel/time.c
-@@ -269,5 +269,6 @@ static void __init hpet_time_init(void)
- 
- void __init time_init(void)
- {
-+	tsc_init();
- 	late_time_init = hpet_time_init;
- }
-diff -puN arch/i386/kernel/tsc.c~clocksource-init-adjustments-fix-bug-7426 arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~clocksource-init-adjustments-fix-bug-7426
+diff -puN arch/i386/kernel/tsc.c~log-reason-why-tsc-was-marked-unstable arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~log-reason-why-tsc-was-marked-unstable
 +++ a/arch/i386/kernel/tsc.c
-@@ -186,34 +186,6 @@ int recalibrate_cpu_khz(void)
+@@ -262,7 +262,7 @@ time_cpufreq_notifier(struct notifier_bl
+ 				 * TSC based sched_clock turns
+ 				 * to junk w/ cpufreq
+ 				 */
+-				mark_tsc_unstable();
++				mark_tsc_unstable("cpufreq changes");
+ 			}
+ 		}
+ 	}
+@@ -310,10 +310,11 @@ static struct clocksource clocksource_ts
+ 				  CLOCK_SOURCE_MUST_VERIFY,
+ };
  
- EXPORT_SYMBOL(recalibrate_cpu_khz);
+-void mark_tsc_unstable(void)
++void mark_tsc_unstable(char *reason)
+ {
+ 	if (!tsc_unstable) {
+ 		tsc_unstable = 1;
++		printk("Marking TSC unstable due to: %s.\n", reason);
+ 		/* Can be called before registration */
+ 		if (clocksource_tsc.mult)
+ 			clocksource_change_rating(&clocksource_tsc, 0);
+diff -puN arch/x86_64/kernel/time.c~log-reason-why-tsc-was-marked-unstable arch/x86_64/kernel/time.c
+--- a/arch/x86_64/kernel/time.c~log-reason-why-tsc-was-marked-unstable
++++ a/arch/x86_64/kernel/time.c
+@@ -348,7 +348,7 @@ void __init time_init(void)
+ 	}
  
--void __init tsc_init(void)
--{
--	if (!cpu_has_tsc || tsc_disable)
--		goto out_no_tsc;
--
--	cpu_khz = calculate_cpu_khz();
--	tsc_khz = cpu_khz;
--
--	if (!cpu_khz)
--		goto out_no_tsc;
--
--	printk("Detected %lu.%03lu MHz processor.\n",
--				(unsigned long)cpu_khz / 1000,
--				(unsigned long)cpu_khz % 1000);
--
--	set_cyc2ns_scale(cpu_khz);
--	use_tsc_delay();
--	return;
--
--out_no_tsc:
--	/*
--	 * Set the tsc_disable flag if there's no TSC support, this
--	 * makes it a fast flag for the kernel to see whether it
--	 * should be using the TSC.
--	 */
--	tsc_disable = 1;
--}
--
- #ifdef CONFIG_CPU_FREQ
+ 	if (unsynchronized_tsc())
+-		mark_tsc_unstable();
++		mark_tsc_unstable("TSCs unsynchronized");
+ 
+ 	if (cpu_has(&boot_cpu_data, X86_FEATURE_RDTSCP))
+ 		vgetcpu_mode = VGETCPU_RDTSCP;
+diff -puN arch/x86_64/kernel/tsc.c~log-reason-why-tsc-was-marked-unstable arch/x86_64/kernel/tsc.c
+--- a/arch/x86_64/kernel/tsc.c~log-reason-why-tsc-was-marked-unstable
++++ a/arch/x86_64/kernel/tsc.c
+@@ -109,7 +109,7 @@ static int time_cpufreq_notifier(struct 
+ 
+ 		cpu_khz = cpufreq_scale(cpu_khz_ref, ref_freq, freq->new);
+ 		if (!(freq->flags & CPUFREQ_CONST_LOOPS))
+-			mark_tsc_unstable();
++			mark_tsc_unstable("cpufreq changes");
+ 	}
+ 
+ 	set_cyc2ns_scale(cpu_khz_ref);
+@@ -197,10 +197,11 @@ static struct clocksource clocksource_ts
+ 	.vread			= vread_tsc,
+ };
+ 
+-void mark_tsc_unstable(void)
++void mark_tsc_unstable(char *reason)
+ {
+ 	if (!tsc_unstable) {
+ 		tsc_unstable = 1;
++		printk("Marking TSC unstable due to %s\n", reason);
+ 		/* Change only the rating, when not registered */
+ 		if (clocksource_tsc.mult)
+ 			clocksource_change_rating(&clocksource_tsc, 0);
+diff -puN arch/x86_64/kernel/tsc_sync.c~log-reason-why-tsc-was-marked-unstable arch/x86_64/kernel/tsc_sync.c
+--- a/arch/x86_64/kernel/tsc_sync.c~log-reason-why-tsc-was-marked-unstable
++++ a/arch/x86_64/kernel/tsc_sync.c
+@@ -138,7 +138,7 @@ void __cpuinit check_tsc_sync_source(int
+ 		printk("\n");
+ 		printk(KERN_WARNING "Measured %Ld cycles TSC warp between CPUs,"
+ 				    " turning off TSC clock.\n", max_warp);
+-		mark_tsc_unstable();
++		mark_tsc_unstable("check_tsc_sync_source failed");
+ 		nr_warps = 0;
+ 		max_warp = 0;
+ 		last_tsc = 0;
+diff -puN drivers/acpi/processor_idle.c~log-reason-why-tsc-was-marked-unstable drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~log-reason-why-tsc-was-marked-unstable
++++ a/drivers/acpi/processor_idle.c
+@@ -482,7 +482,7 @@ static void acpi_processor_idle(void)
+ 
+ #ifdef CONFIG_GENERIC_TIME
+ 		/* TSC halts in C2, so notify users */
+-		mark_tsc_unstable();
++		mark_tsc_unstable("possible TSC halt in C2");
+ #endif
+ 		/* Re-enable interrupts */
+ 		local_irq_enable();
+@@ -524,7 +524,7 @@ static void acpi_processor_idle(void)
+ 
+ #ifdef CONFIG_GENERIC_TIME
+ 		/* TSC halts in C3, so notify users */
+-		mark_tsc_unstable();
++		mark_tsc_unstable("TSC halts in C3");
+ #endif
+ 		/* Re-enable interrupts */
+ 		local_irq_enable();
+diff -puN include/asm-i386/mach-summit/mach_mpparse.h~log-reason-why-tsc-was-marked-unstable include/asm-i386/mach-summit/mach_mpparse.h
+--- a/include/asm-i386/mach-summit/mach_mpparse.h~log-reason-why-tsc-was-marked-unstable
++++ a/include/asm-i386/mach-summit/mach_mpparse.h
+@@ -30,7 +30,7 @@ static inline int mps_oem_check(struct m
+ 			(!strncmp(productid, "VIGIL SMP", 9) 
+ 			 || !strncmp(productid, "EXA", 3)
+ 			 || !strncmp(productid, "RUTHLESS SMP", 12))){
+-		mark_tsc_unstable();
++		mark_tsc_unstable("Summit based system");
+ 		use_cyclone = 1; /*enable cyclone-timer*/
+ 		setup_summit();
+ 		return 1;
+@@ -44,7 +44,7 @@ static inline int acpi_madt_oem_check(ch
+ 	if (!strncmp(oem_id, "IBM", 3) &&
+ 	    (!strncmp(oem_table_id, "SERVIGIL", 8)
+ 	     || !strncmp(oem_table_id, "EXA", 3))){
+-		mark_tsc_unstable();
++		mark_tsc_unstable("Summit based system");
+ 		use_cyclone = 1; /*enable cyclone-timer*/
+ 		setup_summit();
+ 		return 1;
+diff -puN include/asm-x86_64/timex.h~log-reason-why-tsc-was-marked-unstable include/asm-x86_64/timex.h
+--- a/include/asm-x86_64/timex.h~log-reason-why-tsc-was-marked-unstable
++++ a/include/asm-x86_64/timex.h
+@@ -27,6 +27,6 @@ extern int read_current_timer(unsigned l
+ #define NS_SCALE        10 /* 2^10, carefully chosen */
+ #define US_SCALE        32 /* 2^32, arbitralrily chosen */
+ 
+-extern void mark_tsc_unstable(void);
++extern void mark_tsc_unstable(char*);
+ extern void set_cyc2ns_scale(unsigned long khz);
+ #endif
+diff -puN include/asm-x86_64/tsc.h~log-reason-why-tsc-was-marked-unstable include/asm-x86_64/tsc.h
+--- a/include/asm-x86_64/tsc.h~log-reason-why-tsc-was-marked-unstable
++++ a/include/asm-x86_64/tsc.h
+@@ -53,7 +53,7 @@ static __always_inline cycles_t get_cycl
+ }
+ 
+ extern void tsc_init(void);
+-extern void mark_tsc_unstable(void);
++extern void mark_tsc_unstable(char*);
+ extern int unsynchronized_tsc(void);
  
  /*
-@@ -384,28 +356,47 @@ static void __init check_geode_tsc_relia
- static inline void check_geode_tsc_reliable(void) { }
- #endif
- 
--static int __init init_tsc_clocksource(void)
-+
-+void __init tsc_init(void)
- {
-+	if (!cpu_has_tsc || tsc_disable)
-+		goto out_no_tsc;
- 
--	if (cpu_has_tsc && tsc_khz && !tsc_disable) {
--		/* check blacklist */
--		dmi_check_system(bad_tsc_dmi_table);
-+	cpu_khz = calculate_cpu_khz();
-+	tsc_khz = cpu_khz;
- 
--		unsynchronized_tsc();
--		check_geode_tsc_reliable();
--		current_tsc_khz = tsc_khz;
--		clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
--							clocksource_tsc.shift);
--		/* lower the rating if we already know its unstable: */
--		if (check_tsc_unstable()) {
--			clocksource_tsc.rating = 0;
--			clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
--		}
-+	if (!cpu_khz)
-+		goto out_no_tsc;
- 
--		return clocksource_register(&clocksource_tsc);
-+	printk("Detected %lu.%03lu MHz processor.\n",
-+				(unsigned long)cpu_khz / 1000,
-+				(unsigned long)cpu_khz % 1000);
-+
-+	set_cyc2ns_scale(cpu_khz);
-+	use_tsc_delay();
-+
-+	/* Check and install the TSC clocksource */
-+	dmi_check_system(bad_tsc_dmi_table);
-+
-+	unsynchronized_tsc();
-+	check_geode_tsc_reliable();
-+	current_tsc_khz = tsc_khz;
-+	clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
-+							clocksource_tsc.shift);
-+	/* lower the rating if we already know its unstable: */
-+	if (check_tsc_unstable()) {
-+		clocksource_tsc.rating = 0;
-+		clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
- 	}
-+	clocksource_register(&clocksource_tsc);
- 
--	return 0;
--}
-+	return;
- 
--module_init(init_tsc_clocksource);
-+out_no_tsc:
-+	/*
-+	 * Set the tsc_disable flag if there's no TSC support, this
-+	 * makes it a fast flag for the kernel to see whether it
-+	 * should be using the TSC.
-+	 */
-+	tsc_disable = 1;
-+}
-diff -puN arch/x86_64/kernel/hpet.c~clocksource-init-adjustments-fix-bug-7426 arch/x86_64/kernel/hpet.c
---- a/arch/x86_64/kernel/hpet.c~clocksource-init-adjustments-fix-bug-7426
-+++ a/arch/x86_64/kernel/hpet.c
-@@ -12,6 +12,14 @@
- #include <asm/timex.h>
- #include <asm/hpet.h>
- 
-+#define HPET_MASK	0xFFFFFFFF
-+#define HPET_SHIFT	22
-+
-+/* FSEC = 10^-15 NSEC = 10^-9 */
-+#define FSEC_PER_NSEC	1000000
-+
-+static void *hpet_ptr;
-+
- int nohpet __initdata;
- 
- unsigned long hpet_address;
-@@ -106,9 +114,34 @@ int hpet_timer_stop_set_go(unsigned long
- 	return 0;
- }
- 
-+static cycle_t read_hpet(void)
-+{
-+	return (cycle_t)readl(hpet_ptr);
-+}
-+
-+static cycle_t __vsyscall_fn vread_hpet(void)
-+{
-+	return readl((void __iomem *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
-+}
-+
-+struct clocksource clocksource_hpet = {
-+	.name		= "hpet",
-+	.rating		= 250,
-+	.read		= read_hpet,
-+	.mask		= (cycle_t)HPET_MASK,
-+	.mult		= 0, /* set below */
-+	.shift		= HPET_SHIFT,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
-+	.vread		= vread_hpet,
-+};
-+
- int hpet_arch_init(void)
- {
-+	unsigned long hpet_period;
-+	void __iomem *hpet_base;
- 	unsigned int id;
-+	u64 tmp;
-+
- 
- 	if (!hpet_address)
- 		return -1;
-@@ -132,6 +165,30 @@ int hpet_arch_init(void)
- 
- 	hpet_use_timer = (id & HPET_ID_LEGSUP);
- 
-+
-+	/* calculate the hpet address: */
-+	hpet_base = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
-+	hpet_ptr = hpet_base + HPET_COUNTER;
-+
-+	/* calculate the frequency: */
-+	hpet_period = readl(hpet_base + HPET_PERIOD);
-+
-+	/*
-+	 * hpet period is in femto seconds per cycle
-+	 * so we need to convert this to ns/cyc units
-+	 * aproximated by mult/2^shift
-+	 *
-+	 *  fsec/cyc * 1nsec/1000000fsec = nsec/cyc = mult/2^shift
-+	 *  fsec/cyc * 1ns/1000000fsec * 2^shift = mult
-+	 *  fsec/cyc * 2^shift * 1nsec/1000000fsec = mult
-+	 *  (fsec/cyc << shift)/1000000 = mult
-+	 *  (hpet_period << shift)/FSEC_PER_NSEC = mult
-+	 */
-+	tmp = (u64)hpet_period << HPET_SHIFT;
-+	do_div(tmp, FSEC_PER_NSEC);
-+	clocksource_hpet.mult = (u32)tmp;
-+	clocksource_register(&clocksource_hpet);
-+
- 	return hpet_timer_stop_set_go(hpet_tick);
- }
- 
-@@ -444,68 +501,3 @@ static int __init nohpet_setup(char *s)
- }
- 
- __setup("nohpet", nohpet_setup);
--
--#define HPET_MASK	0xFFFFFFFF
--#define HPET_SHIFT	22
--
--/* FSEC = 10^-15 NSEC = 10^-9 */
--#define FSEC_PER_NSEC	1000000
--
--static void *hpet_ptr;
--
--static cycle_t read_hpet(void)
--{
--	return (cycle_t)readl(hpet_ptr);
--}
--
--static cycle_t __vsyscall_fn vread_hpet(void)
--{
--	return readl((void __iomem *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
--}
--
--struct clocksource clocksource_hpet = {
--	.name		= "hpet",
--	.rating		= 250,
--	.read		= read_hpet,
--	.mask		= (cycle_t)HPET_MASK,
--	.mult		= 0, /* set below */
--	.shift		= HPET_SHIFT,
--	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
--	.vread		= vread_hpet,
--};
--
--static int __init init_hpet_clocksource(void)
--{
--	unsigned long hpet_period;
--	void __iomem *hpet_base;
--	u64 tmp;
--
--	if (!hpet_address)
--		return -ENODEV;
--
--	/* calculate the hpet address: */
--	hpet_base = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
--	hpet_ptr = hpet_base + HPET_COUNTER;
--
--	/* calculate the frequency: */
--	hpet_period = readl(hpet_base + HPET_PERIOD);
--
--	/*
--	 * hpet period is in femto seconds per cycle
--	 * so we need to convert this to ns/cyc units
--	 * aproximated by mult/2^shift
--	 *
--	 *  fsec/cyc * 1nsec/1000000fsec = nsec/cyc = mult/2^shift
--	 *  fsec/cyc * 1ns/1000000fsec * 2^shift = mult
--	 *  fsec/cyc * 2^shift * 1nsec/1000000fsec = mult
--	 *  (fsec/cyc << shift)/1000000 = mult
--	 *  (hpet_period << shift)/FSEC_PER_NSEC = mult
--	 */
--	tmp = (u64)hpet_period << HPET_SHIFT;
--	do_div(tmp, FSEC_PER_NSEC);
--	clocksource_hpet.mult = (u32)tmp;
--
--	return clocksource_register(&clocksource_hpet);
--}
--
--module_init(init_hpet_clocksource);
-diff -puN arch/x86_64/kernel/tsc.c~clocksource-init-adjustments-fix-bug-7426 arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~clocksource-init-adjustments-fix-bug-7426
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -211,7 +211,7 @@ void mark_tsc_unstable(char *reason)
- }
- EXPORT_SYMBOL_GPL(mark_tsc_unstable);
- 
--static int __init init_tsc_clocksource(void)
-+void __init init_tsc_clocksource(void)
- {
- 	if (!notsc) {
- 		clocksource_tsc.mult = clocksource_khz2mult(cpu_khz,
-@@ -219,9 +219,6 @@ static int __init init_tsc_clocksource(v
- 		if (check_tsc_unstable())
- 			clocksource_tsc.rating = 0;
- 
--		return clocksource_register(&clocksource_tsc);
-+		clocksource_register(&clocksource_tsc);
- 	}
--	return 0;
- }
--
--module_init(init_tsc_clocksource);
-diff -puN drivers/clocksource/acpi_pm.c~clocksource-init-adjustments-fix-bug-7426 drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~clocksource-init-adjustments-fix-bug-7426
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -214,4 +214,7 @@ pm_good:
- 	return clocksource_register(&clocksource_acpi_pm);
- }
- 
--module_init(init_acpi_pm_clocksource);
-+/* We use fs_initcall because we want the PCI fixups to have run
-+ * but we still need to load before device_initcall
-+ */
-+fs_initcall(init_acpi_pm_clocksource);
-diff -puN drivers/clocksource/cyclone.c~clocksource-init-adjustments-fix-bug-7426 drivers/clocksource/cyclone.c
---- a/drivers/clocksource/cyclone.c~clocksource-init-adjustments-fix-bug-7426
-+++ a/drivers/clocksource/cyclone.c
-@@ -116,4 +116,4 @@ static int __init init_cyclone_clocksour
- 	return clocksource_register(&clocksource_cyclone);
- }
- 
--module_init(init_cyclone_clocksource);
-+arch_initcall(init_cyclone_clocksource);
-diff -puN kernel/time/clocksource.c~clocksource-init-adjustments-fix-bug-7426 kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-init-adjustments-fix-bug-7426
-+++ a/kernel/time/clocksource.c
-@@ -55,16 +55,18 @@ static DEFINE_SPINLOCK(clocksource_lock)
- static char override_name[32];
- static int finished_booting;
- 
--/* clocksource_done_booting - Called near the end of bootup
-+/* clocksource_done_booting - Called near the end of core bootup
-  *
-- * Hack to avoid lots of clocksource churn at boot time
-+ * Hack to avoid lots of clocksource churn at boot time.
-+ * We use fs_initcall because we want this to start before
-+ * device_initcall but after subsys_initcall.
-  */
- static int __init clocksource_done_booting(void)
- {
- 	finished_booting = 1;
- 	return 0;
- }
--late_initcall(clocksource_done_booting);
-+fs_initcall(clocksource_done_booting);
- 
- #ifdef CONFIG_CLOCKSOURCE_WATCHDOG
- static LIST_HEAD(watchdog_list);
 _
 
 Patches currently in -mm which might be from johnstul@us.ibm.com are
