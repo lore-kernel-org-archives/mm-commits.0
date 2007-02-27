@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-config_has_dma.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:55:00 -0800
-Message-ID: <200702272055.l1RKt47d028253@shell0.pdx.osdl.net>
+Subject: + mm-slabc-proper-prototypes.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:55:08 -0800
+Message-ID: <200702272055.l1RKtCqU028260@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51746 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51947 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751832AbXB0U5C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:57:02 -0500
+	id S1751832AbXB0U61 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:58:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, James.Bottomley@SteelEye.com, geert@linux-m68k.org, htejun@gmail.com, jeff@garzik.org, kyle@parisc-linux.org, linville@tuxdriver.com, schwidefsky@de.ibm.com, spyro@f2s.com, uclinux-v850@lsi.nec.co.jp, ysato@users.sourceforge.jp, zippel@linux-m68k.org
+Cc: bunk@stusta.de
 
 
 The patch titled
-     Introduce CONFIG_HAS_DMA
+     mm/slab.c: proper prototypes
 has been added to the -mm tree.  Its filename is
-     introduce-config_has_dma.patch
+     mm-slabc-proper-prototypes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Introduce CONFIG_HAS_DMA
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mm/slab.c: proper prototypes
+From: Adrian Bunk <bunk@stusta.de>
 
-Architectures that don't support DMA can say so by adding a config NO_DMA
-to their Kconfig file.  This will prevent compilation of some dma specific
-driver code.  Also dma-mapping-broken.h isn't needed anymore on at least
-s390.  This avoids compilation and linking of otherwise dead/broken code.
+Add proper prototypes in include/linux/slab.h.
 
-Other architectures that include dma-mapping-broken.h are arm26, h8300,
-m68k, m68knommu and v850.  If these could be converted as well we could get
-rid of the header file.
-
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-"John W. Linville" <linville@tuxdriver.com>
-Cc: Kyle McMartin <kyle@parisc-linux.org>
-Cc: <James.Bottomley@SteelEye.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: <geert@linux-m68k.org>
-Cc: <zippel@linux-m68k.org>
-Cc: <spyro@f2s.com>
-Cc: <uclinux-v850@lsi.nec.co.jp>
-Cc: <ysato@users.sourceforge.jp>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/Kconfig              |    3 +++
- drivers/base/Makefile          |    4 ++--
- include/asm-s390/dma-mapping.h |    2 --
- lib/Kconfig                    |    5 +++++
- 4 files changed, 10 insertions(+), 4 deletions(-)
+ fs/proc/proc_misc.c  |    2 --
+ include/linux/slab.h |    3 +++
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/s390/Kconfig~introduce-config_has_dma arch/s390/Kconfig
---- a/arch/s390/Kconfig~introduce-config_has_dma
-+++ a/arch/s390/Kconfig
-@@ -44,6 +44,9 @@ config GENERIC_TIME
- config NO_IOMEM
- 	def_bool y
+diff -puN fs/proc/proc_misc.c~mm-slabc-proper-prototypes fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~mm-slabc-proper-prototypes
++++ a/fs/proc/proc_misc.c
+@@ -398,8 +398,6 @@ static const struct file_operations proc
+ #endif
  
-+config NO_DMA
-+	def_bool y
+ #ifdef CONFIG_SLAB
+-extern struct seq_operations slabinfo_op;
+-extern ssize_t slabinfo_write(struct file *, const char __user *, size_t, loff_t *);
+ static int slabinfo_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &slabinfo_op);
+diff -puN include/linux/slab.h~mm-slabc-proper-prototypes include/linux/slab.h
+--- a/include/linux/slab.h~mm-slabc-proper-prototypes
++++ a/include/linux/slab.h
+@@ -219,6 +219,9 @@ extern void *__kmalloc_node_track_caller
+ 
+ #endif /* DEBUG_SLAB */
+ 
++extern const struct seq_operations slabinfo_op;
++ssize_t slabinfo_write(struct file *, const char __user *, size_t, loff_t *);
 +
- mainmenu "Linux Kernel Configuration"
+ #endif	/* __KERNEL__ */
+ #endif	/* _LINUX_SLAB_H */
  
- config S390
-diff -puN drivers/base/Makefile~introduce-config_has_dma drivers/base/Makefile
---- a/drivers/base/Makefile~introduce-config_has_dma
-+++ a/drivers/base/Makefile
-@@ -2,10 +2,10 @@
- 
- obj-y			:= core.o sys.o bus.o dd.o \
- 			   driver.o class.o platform.o \
--			   cpu.o firmware.o init.o map.o dmapool.o \
--			   dma-mapping.o devres.o \
-+			   cpu.o firmware.o init.o map.o devres.o \
- 			   attribute_container.o transport_class.o
- obj-y			+= power/
-+obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o dmapool.o
- obj-$(CONFIG_ISA)	+= isa.o
- obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
- obj-$(CONFIG_NUMA)	+= node.o
-diff -puN include/asm-s390/dma-mapping.h~introduce-config_has_dma include/asm-s390/dma-mapping.h
---- a/include/asm-s390/dma-mapping.h~introduce-config_has_dma
-+++ a/include/asm-s390/dma-mapping.h
-@@ -9,6 +9,4 @@
- #ifndef _ASM_DMA_MAPPING_H
- #define _ASM_DMA_MAPPING_H
- 
--#include <asm-generic/dma-mapping-broken.h>
--
- #endif /* _ASM_DMA_MAPPING_H */
-diff -puN lib/Kconfig~introduce-config_has_dma lib/Kconfig
---- a/lib/Kconfig~introduce-config_has_dma
-+++ a/lib/Kconfig
-@@ -111,4 +111,9 @@ config HAS_IOPORT
- 	depends on HAS_IOMEM && !NO_IOPORT
- 	default y
- 
-+config HAS_DMA
-+	boolean
-+	depends on !NO_DMA
-+	default y
-+
- endmenu
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-git-s390.patch
-introduce-config_has_dma.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
+arch-arm26-kernel-entrys-remove-dead-code.patch
+make-ipc-shmcshm_nopage-static.patch
+mm-tiny-shmemc-cleanups.patch
+drivers-video-sm501fbc-make-4-functions-static.patch
+fix-the-sysctl=n-compilation.patch
+remove-the-jffs-maintainers-entry.patch
+drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix.patch
+git-cpufreq.patch
+make-kernel-kmodckmod_mk-static.patch
+git-drm.patch
+git-dvb.patch
+make-dvb_usb_gl861_debug-static.patch
+make-pvr2_encoder_prep_config-static.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+mips-remove-smp_tune_scheduling.patch
+drivers-mmc-kconfig-source-drivers-mmc-card-kconfig.patch
+remove-fs-jffs2-ioctlc.patch
+git-ubi.patch
+mtd_ubi_debug-must-depend-on-sysfs.patch
+drivers-net-vioc-possible-cleanups.patch
+git-net.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-cleanup.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-architecture-independant-code-license-fix.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
