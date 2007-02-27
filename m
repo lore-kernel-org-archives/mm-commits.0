@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ps3-introduce-config_ps3_advanced.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:53:51 -0800
-Message-ID: <200702272053.l1RKrt7H028199@shell0.pdx.osdl.net>
+Subject: + genirq-mask-irqs-when-migrating-them.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:54:23 -0800
+Message-ID: <200702272054.l1RKsRwZ028234@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51484 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51512 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752595AbXB0Uy1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:54:27 -0500
+	id S1752597AbXB0Uyd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:54:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Geert.Uytterhoeven@sonycom.com, geoffrey.levand@am.sony.com, paulus@samba.org, zippel@linux-m68k.org
+Cc: ebiederm@xmission.com, ak@suse.de, suresh.b.siddha@intel.com
 
 
 The patch titled
-     ps3: introduce CONFIG_PS3_ADVANCED
+     genirq: Mask irqs when migrating them
 has been added to the -mm tree.  Its filename is
-     ps3-introduce-config_ps3_advanced.patch
+     genirq-mask-irqs-when-migrating-them.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,112 +25,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3: introduce CONFIG_PS3_ADVANCED
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: genirq: Mask irqs when migrating them
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-ps3: Introduce CONFIG_PS3_ADVANCED, as suggested by Roman Zippel, and use
-it to control questions about PS3 subsystems that may not be obvious for
-the casual user.
+move_native_irqs tries to do the right thing when migrating irqs by disabling
+them.  However disabling them is a software logical thing, not a hardware
+thing.  This has always been a little flaky and after Ingo's latest round of
+changes it is guaranteed to not mask the apic.
 
-This gets rid of the following warning on non-powerpc platforms: |
-drivers/video/Kconfig:1604:warning: 'select' used by config symbol 'FB_PS3'
-refer to undefined symbol 'PS3_PS3AV'
+So this patch fixes move_native_irq to directly call the mask and unmask chip
+methods to guarantee that we mask the irq when we are migrating it.  We must
+do this as it is required by all code that call into the path.
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Acked-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Since we don't know the masked status when IRQ_DISABLED is set so we will not
+be able to restore it.  The patch makes the code just give up and trying again
+the next time this routing is called.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/ps3/Kconfig |   28 ++++++++++++++++++++-------
- drivers/video/Kconfig              |    3 --
- 2 files changed, 22 insertions(+), 9 deletions(-)
+ kernel/irq/migration.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/platforms/ps3/Kconfig~ps3-introduce-config_ps3_advanced arch/powerpc/platforms/ps3/Kconfig
---- a/arch/powerpc/platforms/ps3/Kconfig~ps3-introduce-config_ps3_advanced
-+++ a/arch/powerpc/platforms/ps3/Kconfig
-@@ -1,9 +1,24 @@
- menu "PS3 Platform Options"
- 	depends on PPC_PS3
+diff -puN kernel/irq/migration.c~genirq-mask-irqs-when-migrating-them kernel/irq/migration.c
+--- a/kernel/irq/migration.c~genirq-mask-irqs-when-migrating-them
++++ a/kernel/irq/migration.c
+@@ -65,12 +65,11 @@ void move_native_irq(int irq)
+ 	if (likely(!(desc->status & IRQ_MOVE_PENDING)))
+ 		return;
  
-+config PS3_ADVANCED
-+	depends on PPC_PS3
-+	bool "PS3 Advanced configuration options"
-+	help
-+	  This gives you access to some advanced options for the PS3. The
-+	  defaults should be fine for most users, but these options may make
-+	  it possible to better control the kernel configuration if you know
-+	  what you are doing.
-+
-+	  Note that the answer to this question won't directly affect the
-+	  kernel: saying N will just cause the configurator to skip all
-+	  the questions about these options.
-+
-+	  Most users should say N to this question.
-+
- config PS3_HTAB_SIZE
- 	depends on PPC_PS3
--	int "PS3 Platform pagetable size"
-+	int "PS3 Platform pagetable size" if PS3_ADVANCED
- 	range 18 20
- 	default 20
- 	help
-@@ -42,7 +57,7 @@ config PS3_USE_LPAR_ADDR
+-	if (likely(!(desc->status & IRQ_DISABLED)))
+-		desc->chip->disable(irq);
++	if (unlikely(desc->status & IRQ_DISABLED))
++		return;
  
- config PS3_VUART
- 	depends on PPC_PS3
--	bool "PS3 Virtual UART support"
-+	bool "PS3 Virtual UART support" if PS3_ADVANCED
- 	default y
- 	help
- 	  Include support for the PS3 Virtual UART.
-@@ -52,9 +67,8 @@ config PS3_VUART
- 	  general, all users will say Y.
++	desc->chip->mask(irq);
+ 	move_masked_irq(irq);
+-
+-	if (likely(!(desc->status & IRQ_DISABLED)))
+-		desc->chip->enable(irq);
++	desc->chip->unmask(irq);
+ }
  
- config PS3_PS3AV
--	tristate "PS3 AV settings driver"
--	depends on PPC_PS3
--	select PS3_VUART
-+	tristate "PS3 AV settings driver" if PS3_ADVANCED
-+	depends on PS3_VUART
- 	default y
- 	help
- 	  Include support for the PS3 AV Settings driver.
-@@ -63,8 +77,8 @@ config PS3_PS3AV
- 	  general, all users will say Y or M.
- 
- config PS3_SYS_MANAGER
--	bool "PS3 System Manager driver"
--	select PS3_VUART
-+	bool "PS3 System Manager driver" if PS3_ADVANCED
-+	depends on PS3_VUART
- 	default y
- 	help
- 	  Include support for the PS3 System Manager.
-diff -puN drivers/video/Kconfig~ps3-introduce-config_ps3_advanced drivers/video/Kconfig
---- a/drivers/video/Kconfig~ps3-introduce-config_ps3_advanced
-+++ a/drivers/video/Kconfig
-@@ -1618,8 +1618,7 @@ config FB_IBM_GXT4500
- 
- config FB_PS3
- 	bool "PS3 GPU framebuffer driver"
--	depends on FB && PPC_PS3
--	select PS3_PS3AV
-+	depends on FB && PS3_PS3AV
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-ps3-introduce-config_ps3_advanced.patch
-ps3fb-thread-updates.patch
-ps3fb-thread-updates-update.patch
-ps3fb-thread-updates-2.patch
-ps3fb-thread-updates-42.patch
-ps3av-thread-updates.patch
-ps3fb-kill-superfluous-zero-initializations.patch
-ps3fb-atomic-fixes.patch
-ps3av-misc-updates.patch
+make-ipc-shmcshm_nopage-static.patch
+mm-tiny-shmemc-cleanups.patch
+fix-the-sysctl=n-compilation.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+i386-irq-kill-irq-compression.patch
+i386-irq-kill-irq-compression-fix.patch
+xen-paravirt_ops-clean-up-elf-note-generation.patch
+genirq-mask-irqs-when-migrating-them.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+allow-access-to-proc-pid-fd-after-setuid-update-2.patch
+edac-k8-driver-coding-tidy.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+sysctl-remove-insert_at_head-from-register_sysctl-fix.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
