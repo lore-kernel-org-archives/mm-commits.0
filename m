@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-correct-misspelled-reiserfs_proc_info-to.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:58:53 -0800
-Message-ID: <200702272058.l1RKwvdu028409@shell0.pdx.osdl.net>
+Subject: + drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:58:27 -0800
+Message-ID: <200702272058.l1RKwVOI028386@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51992 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51974 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752539AbXB0U7A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:59:00 -0500
+	id S1752129AbXB0U6u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:58:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: ricknu-0@student.ltu.se, ben-linux@fluff.org
 
 
 The patch titled
-     reiserfs: correct misspelled "REISERFS_PROC_INFO" to "CONFIG_REISERFS_PROC_INFO"
+     drivers/mfd/sm501.c: replace pci_module_init with pci_register_driver
 has been added to the -mm tree.  Its filename is
-     reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+     drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: correct misspelled "REISERFS_PROC_INFO" to "CONFIG_REISERFS_PROC_INFO"
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: drivers/mfd/sm501.c: replace pci_module_init with pci_register_driver
+From: Richard Knutsson <ricknu-0@student.ltu.se>
 
-Correct the misspelling of the preprocessor check of a Kconfig option to refer
-to CONFIG_REISERFS_PROC_INFO and not just the incorrect REISERFS_PROC_INFO.
+Replace pci_module_init with pci_register_driver
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Signed-off-by: Richard Knutson <ricknu-0@student.ltu.se>
+Acked-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/procfs.c |    2 +-
+ drivers/mfd/sm501.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/procfs.c~reiserfs-correct-misspelled-reiserfs_proc_info-to fs/reiserfs/procfs.c
---- a/fs/reiserfs/procfs.c~reiserfs-correct-misspelled-reiserfs_proc_info-to
-+++ a/fs/reiserfs/procfs.c
-@@ -20,7 +20,7 @@
- #include <linux/init.h>
- #include <linux/proc_fs.h>
+diff -puN drivers/mfd/sm501.c~drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver
++++ a/drivers/mfd/sm501.c
+@@ -1131,7 +1131,7 @@ static struct platform_driver sm501_plat
+ static int __init sm501_base_init(void)
+ {
+ 	platform_driver_register(&sm501_plat_drv);
+-	return pci_module_init(&sm501_pci_drv);
++	return pci_register_driver(&sm501_pci_drv);
+ }
  
--#if defined( REISERFS_PROC_INFO )
-+#ifdef CONFIG_REISERFS_PROC_INFO
- 
- /*
-  * LOCKING:
+ static void __exit sm501_base_exit(void)
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from ricknu-0@student.ltu.se are
 
-git-avr32.patch
 git-dvb.patch
-kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch
-git-mips.patch
-mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
+ide-pci-delkin_cbc-pci_module_init-to-pci_register_driver.patch
+mtd-maps-ck804xromc-pci_module_init-to-pci_register_driver.patch
+drivers-net-vioc-vioc_driverc-replace-pci_module_init-with-pci_register_driver.patch
+drivers-scsi-aic7xxx_old-convert-to-generic-boolean-values.patch
+drivers-mfd-sm501c-replace-pci_module_init-with-pci_register_driver.patch
