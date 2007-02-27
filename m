@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + natsemi-fix-detection-of-vanilla-natsemi-cards.patch added to -mm tree
-Date: Tue, 27 Feb 2007 12:54:19 -0800
-Message-ID: <200702272054.l1RKsNaj028230@shell0.pdx.osdl.net>
+Subject: + tty_io-fix-race-in-master-pty-close-slave-pty-close-path.patch added to -mm tree
+Date: Tue, 27 Feb 2007 12:54:35 -0800
+Message-ID: <200702272054.l1RKsd7f028244@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51530 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51546 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752601AbXB0Uyq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Feb 2007 15:54:46 -0500
+	id S1752598AbXB0Uyy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Feb 2007 15:54:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@sirena.org.uk, rct@gherkin.frus.com
+Cc: aristeu.sergio@gmail.com, aris@ruivo.org, cebbert@redhat.com, hpa@zytor.com
 
 
 The patch titled
-     natsemi: fix detection of vanilla natsemi cards
+     tty_io: fix race in master pty close/slave pty close path
 has been added to the -mm tree.  Its filename is
-     natsemi-fix-detection-of-vanilla-natsemi-cards.patch
+     tty_io-fix-race-in-master-pty-close-slave-pty-close-path.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,150 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: natsemi: fix detection of vanilla natsemi cards
-From: Mark Brown <broonie@sirena.org.uk>
+Subject: tty_io: fix race in master pty close/slave pty close path
+From: Aristeu Sergio Rozanski Filho <aristeu.sergio@gmail.com>
 
-Bob Tracy <rct@gherkin.frus.com> reported that the addition of support for
-Aculab E1/T1 cPCI carrier cards broke detection of vanilla natsemi cards. 
-This patch fixes that: the problem is that the driver-specific ta in the
-PCI device table is an index into a second table and this had not been
-updated for the vanilla cards.
+This patch fixes a possible race that leads to double freeing an idr index.
+ When the master begin to close, release_dev() is called and then
+pty_close() is called:
 
-This patch fixes the problem minimally.
+        if (tty->driver->close)
+                tty->driver->close(tty, filp);
 
-Signed-off-by: Mark Brown <broonie@sirena.org.uk>
+This is done without helding any locks other than BKL.  Inside pty_close(),
+being a master close, the devpts entry will be removed:
+
+#ifdef CONFIG_UNIX98_PTYS
+                if (tty->driver == ptm_driver)
+                        devpts_pty_kill(tty->index);
+#endif
+
+But devpts_pty_kill() will call get_node() that may sleep while waiting for
+&devpts_root->d_inode->i_sem.  When this happens and the slave is being
+opened, tty_open() just found the driver and index:
+
+        driver = get_tty_driver(device, &index);
+        if (!driver) {
+                mutex_unlock(&tty_mutex);
+                return -ENODEV;
+        }
+
+This part of the code is already protected under tty_mute.  The problem is
+that the slave close already got an index.  Then init_dev() is called and
+blocks waiting for the same &devpts_root->d_inode->i_sem.
+
+When the master close resumes, it removes the devpts entry, and the
+relation between idr index and the tty is gone.  The master then sleeps
+waiting for the tty_mutex on release_dev().
+
+Slave open resumes and found no tty for that index.  As result, a NULL tty
+is returned and init_dev() doesn't flow to fast_track:
+
+        /* check whether we're reopening an existing tty */
+        if (driver->flags & TTY_DRIVER_DEVPTS_MEM) {
+                tty = devpts_get_tty(idx);
+                if (tty && driver->subtype == PTY_TYPE_MASTER)
+                        tty = tty->link;
+        } else {
+                tty = driver->ttys[idx];
+        }
+        if (tty) goto fast_track;
+
+The result of this, is that a new tty will be created and init_dev() returns
+sucessfull. After returning, tty_mutex is dropped and master close may resume.
+
+Master close finds it's the only use and both sides are closing, then releases
+the tty and the index. At this point, the idr index is free, but slave still
+has it.
+
+Slave open then calls pty_open() and finds that tty->link->count is 0,
+because there's no master and returns error.  Then tty_open() calls
+release_dev() which executes without any warning, as it was a case of last
+slave close when the master is already closed (master->count == 0,
+slave->count == 1).  The tty is then released with the already released idr
+index.
+
+This normally would only issue a warning on idr_remove() but in case of a
+customer's critical application, it's never too simple:
+
+thread1: opens master, gets index X
+thread1: begin closing master
+thread2: begin opening slave with index X
+thread1: finishes closing master, index X released
+thread3: opens master, gets index X, just released
+thread2: fails opening slave, releases index X         <----
+thread4: opens master, gets index X, init_dev() then find an already in use
+	 and healthy tty and fails
+
+If no more indexes are released, ptmx_open() will keep failing, as the
+first free index available is X, and it will make init_dev() fail because
+you're trying to "reopen a master" which isn't valid.
+
+The patch notices when this race happens and make init_dev() fail
+imediately.  The init_dev() function is called with tty_mutex held, so it's
+safe to continue with tty till the end of function because release_dev()
+won't make any further changes without grabbing the tty_mutex.
+
+Without the patch, on some machines it's possible get easily idr warnings
+like this one:
+
+idr_remove called for id=15 which is not allocated.
+ [<c02555b9>] idr_remove+0x139/0x170
+ [<c02a1b62>] release_mem+0x182/0x230
+ [<c02a28e7>] release_dev+0x4b7/0x700
+ [<c02a0ea7>] tty_ldisc_enable+0x27/0x30
+ [<c02a1e64>] init_dev+0x254/0x580
+ [<c02a0d64>] check_tty_count+0x14/0xb0
+ [<c02a4f05>] tty_open+0x1c5/0x340
+ [<c02a4d40>] tty_open+0x0/0x340
+ [<c017388f>] chrdev_open+0xaf/0x180
+ [<c017c2ac>] open_namei+0x8c/0x760
+ [<c01737e0>] chrdev_open+0x0/0x180
+ [<c0167bc9>] __dentry_open+0xc9/0x210
+ [<c0167e2c>] do_filp_open+0x5c/0x70
+ [<c0167a91>] get_unused_fd+0x61/0xd0
+ [<c0167e93>] do_sys_open+0x53/0x100
+ [<c0167f97>] sys_open+0x27/0x30
+ [<c010303b>] syscall_call+0x7/0xb
+
+using this test application available on:
+ http://www.ruivo.org/~aris/pty_sodomizer.c
+
+Signed-off-by: Aristeu Sergio Rozanski Filho <aris@ruivo.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/natsemi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/tty_io.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN drivers/net/natsemi.c~natsemi-fix-detection-of-vanilla-natsemi-cards drivers/net/natsemi.c
---- a/drivers/net/natsemi.c~natsemi-fix-detection-of-vanilla-natsemi-cards
-+++ a/drivers/net/natsemi.c
-@@ -260,7 +260,7 @@ static const struct {
- 
- static const struct pci_device_id natsemi_pci_tbl[] __devinitdata = {
- 	{ PCI_VENDOR_ID_NS, 0x0020, 0x12d9,     0x000c,     0, 0, 0 },
--	{ PCI_VENDOR_ID_NS, 0x0020, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
-+	{ PCI_VENDOR_ID_NS, 0x0020, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 1 },
- 	{ }	/* terminate list */
- };
- MODULE_DEVICE_TABLE(pci, natsemi_pci_tbl);
+diff -puN drivers/char/tty_io.c~tty_io-fix-race-in-master-pty-close-slave-pty-close-path drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty_io-fix-race-in-master-pty-close-slave-pty-close-path
++++ a/drivers/char/tty_io.c
+@@ -1901,6 +1901,20 @@ static int init_dev(struct tty_driver *d
+ 	/* check whether we're reopening an existing tty */
+ 	if (driver->flags & TTY_DRIVER_DEVPTS_MEM) {
+ 		tty = devpts_get_tty(idx);
++		/*
++		 * If we don't have a tty here on a slave open, it's because
++		 * the master already started the close process and there's
++		 * no relation between devpts file and tty anymore.
++		 */
++		if (!tty && driver->subtype == PTY_TYPE_SLAVE) {
++			retval = -EIO;
++			goto end_init;
++		}
++		/*
++		 * It's safe from now on because init_dev() is called with
++		 * tty_mutex held and release_dev() won't change tty->count
++		 * or tty->flags without having to grab tty_mutex
++		 */
+ 		if (tty && driver->subtype == PTY_TYPE_MASTER)
+ 			tty = tty->link;
+ 	} else {
 _
 
-Patches currently in -mm which might be from broonie@sirena.org.uk are
+Patches currently in -mm which might be from aristeu.sergio@gmail.com are
 
-natsemi-fix-detection-of-vanilla-natsemi-cards.patch
+tty_io-fix-race-in-master-pty-close-slave-pty-close-path.patch
