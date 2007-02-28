@@ -1,120 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - sata_promise-simplify-port-setup.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:52:07 -0800
-Message-ID: <200702282352.l1SNq7to030967@shell0.pdx.osdl.net>
+Subject: - add-id_to_dma_mode-function-for-printing-dma-modes.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:51:57 -0800
+Message-ID: <200702282351.l1SNpvHG030955@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48205 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48207 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932609AbXB1XwO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S932615AbXB1XwO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Wed, 28 Feb 2007 18:52:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikpe@it.uu.se, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sata_promise: simplify port setup
+     Add id_to_dma_mode function for printing DMA modes
 has been removed from the -mm tree.  Its filename was
-     sata_promise-simplify-port-setup.patch
+     add-id_to_dma_mode-function-for-printing-dma-modes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sata_promise: simplify port setup
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: Add id_to_dma_mode function for printing DMA modes
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Each place in pdc_ata_init_one() that initialises a SATA port first calls
-pdc_ata_setup_port(), and then manually assigns the port's ->scr_addr. 
-Simplify the code by extending pdc_ata_setup_port() to also handle scr_addr
-initialisation; for PATA ports we pass NULL as scr_addr.
+Also export dev_disable as this is needed by drivers doing slave decode
+filtering, which will follow shortly
 
-The initialisation of the PATA-only 20619 redundantly set up scr_addr for
-the ports.  Remove this.
-
-Tested on 20619, 20575, and 20775 chips.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_promise.c |   29 ++++++++++-------------------
- 1 file changed, 10 insertions(+), 19 deletions(-)
+ drivers/ata/libata-core.c |   44 ++++++++++++++++++++++++++++++++++++
+ include/linux/libata.h    |    2 +
+ 2 files changed, 46 insertions(+)
 
-diff -puN drivers/ata/sata_promise.c~sata_promise-simplify-port-setup drivers/ata/sata_promise.c
---- a/drivers/ata/sata_promise.c~sata_promise-simplify-port-setup
-+++ a/drivers/ata/sata_promise.c
-@@ -776,7 +776,8 @@ static int pdc_old_check_atapi_dma(struc
- 	return pdc_check_atapi_dma(qc);
+diff -puN drivers/ata/libata-core.c~add-id_to_dma_mode-function-for-printing-dma-modes drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~add-id_to_dma_mode-function-for-printing-dma-modes
++++ a/drivers/ata/libata-core.c
+@@ -824,6 +824,48 @@ static u64 ata_id_n_sectors(const u16 *i
  }
  
--static void pdc_ata_setup_port(struct ata_ioports *port, void __iomem *base)
-+static void pdc_ata_setup_port(struct ata_ioports *port, void __iomem *base,
-+			       void __iomem *scr_addr)
- {
- 	port->cmd_addr		= base;
- 	port->data_addr		= base;
-@@ -791,6 +792,7 @@ static void pdc_ata_setup_port(struct at
- 	port->status_addr	= base + 0x1c;
- 	port->altstatus_addr	=
- 	port->ctl_addr		= base + 0x38;
-+	port->scr_addr		= scr_addr;
- }
+ /**
++ *	ata_id_to_dma_mode	-	Identify DMA mode from id block
++ *	@dev: device to identify
++ *	@mode: mode to assume if we cannot tell
++ *
++ *	Set up the timing values for the device based upon the identify
++ *	reported values for the DMA mode. This function is used by drivers
++ *	which rely upon firmware configured modes, but wish to report the
++ *	mode correctly when possible.
++ *
++ *	In addition we emit similarly formatted messages to the default
++ *	ata_dev_set_mode handler, in order to provide consistency of
++ *	presentation.
++ */
++
++void ata_id_to_dma_mode(struct ata_device *dev, u8 unknown)
++{
++	unsigned int mask;
++	u8 mode;
++
++	/* Pack the DMA modes */
++	mask = ((dev->id[63] >> 8) << ATA_SHIFT_MWDMA) & ATA_MASK_MWDMA;
++	if (dev->id[53] & 0x04)
++		mask |= ((dev->id[88] >> 8) << ATA_SHIFT_UDMA) & ATA_MASK_UDMA;
++
++	/* Select the mode in use */
++	mode = ata_xfer_mask2mode(mask);
++
++	if (mode != 0) {
++		ata_dev_printk(dev, KERN_INFO, "configured for %s\n",
++		       ata_mode_string(mask));
++	} else {
++		/* SWDMA perhaps ? */
++		mode = unknown;
++		ata_dev_printk(dev, KERN_INFO, "configured for DMA\n");
++	}
++
++	/* Configure the device reporting */
++	dev->xfer_mode = mode;
++	dev->xfer_shift = ata_xfer_mode2shift(mode);
++}
++
++/**
+  *	ata_noop_dev_select - Select device 0/1 on ATA bus
+  *	@ap: ATA channel to manipulate
+  *	@device: ATA device (numbered from zero) to select
+@@ -6283,6 +6325,7 @@ EXPORT_SYMBOL_GPL(ata_bmdma_drive_eh);
+ EXPORT_SYMBOL_GPL(ata_bmdma_error_handler);
+ EXPORT_SYMBOL_GPL(ata_bmdma_post_internal_cmd);
+ EXPORT_SYMBOL_GPL(ata_port_probe);
++EXPORT_SYMBOL_GPL(ata_dev_disable);
+ EXPORT_SYMBOL_GPL(sata_set_spd);
+ EXPORT_SYMBOL_GPL(sata_phy_debounce);
+ EXPORT_SYMBOL_GPL(sata_phy_resume);
+@@ -6317,6 +6360,7 @@ EXPORT_SYMBOL_GPL(ata_host_suspend);
+ EXPORT_SYMBOL_GPL(ata_host_resume);
+ EXPORT_SYMBOL_GPL(ata_id_string);
+ EXPORT_SYMBOL_GPL(ata_id_c_string);
++EXPORT_SYMBOL_GPL(ata_id_to_dma_mode);
+ EXPORT_SYMBOL_GPL(ata_device_blacklisted);
+ EXPORT_SYMBOL_GPL(ata_scsi_simulate);
  
- 
-@@ -903,11 +905,8 @@ static int pdc_ata_init_one (struct pci_
- 
- 	base = probe_ent->iomap[PDC_MMIO_BAR];
- 
--	pdc_ata_setup_port(&probe_ent->port[0], base + 0x200);
--	pdc_ata_setup_port(&probe_ent->port[1], base + 0x280);
--
--	probe_ent->port[0].scr_addr = base + 0x400;
--	probe_ent->port[1].scr_addr = base + 0x500;
-+	pdc_ata_setup_port(&probe_ent->port[0], base + 0x200, base + 0x400);
-+	pdc_ata_setup_port(&probe_ent->port[1], base + 0x280, base + 0x500);
- 
- 	/* notice 4-port boards */
- 	switch (board_idx) {
-@@ -916,12 +915,8 @@ static int pdc_ata_init_one (struct pci_
- 		/* Fall through */
- 	case board_20319:
-        		probe_ent->n_ports = 4;
--
--		pdc_ata_setup_port(&probe_ent->port[2], base + 0x300);
--		pdc_ata_setup_port(&probe_ent->port[3], base + 0x380);
--
--		probe_ent->port[2].scr_addr = base + 0x600;
--		probe_ent->port[3].scr_addr = base + 0x700;
-+		pdc_ata_setup_port(&probe_ent->port[2], base + 0x300, base + 0x600);
-+		pdc_ata_setup_port(&probe_ent->port[3], base + 0x380, base + 0x700);
- 		break;
- 	case board_2057x:
- 		hp->flags |= PDC_FLAG_GEN_II;
-@@ -931,7 +926,7 @@ static int pdc_ata_init_one (struct pci_
- 		tmp = readb(base + PDC_FLASH_CTL+1);
- 		if (!(tmp & 0x80)) {
- 			probe_ent->n_ports = 3;
--			pdc_ata_setup_port(&probe_ent->port[2], base + 0x300);
-+			pdc_ata_setup_port(&probe_ent->port[2], base + 0x300, NULL);
- 			hp->port_flags[2] = ATA_FLAG_SLAVE_POSS;
- 			printk(KERN_INFO DRV_NAME " PATA port found\n");
- 		} else
-@@ -941,12 +936,8 @@ static int pdc_ata_init_one (struct pci_
- 		break;
- 	case board_20619:
- 		probe_ent->n_ports = 4;
--
--		pdc_ata_setup_port(&probe_ent->port[2], base + 0x300);
--		pdc_ata_setup_port(&probe_ent->port[3], base + 0x380);
--
--		probe_ent->port[2].scr_addr = base + 0x600;
--		probe_ent->port[3].scr_addr = base + 0x700;
-+		pdc_ata_setup_port(&probe_ent->port[2], base + 0x300, NULL);
-+		pdc_ata_setup_port(&probe_ent->port[3], base + 0x380, NULL);
- 		break;
- 	default:
- 		BUG();
+diff -puN include/linux/libata.h~add-id_to_dma_mode-function-for-printing-dma-modes include/linux/libata.h
+--- a/include/linux/libata.h~add-id_to_dma_mode-function-for-printing-dma-modes
++++ a/include/linux/libata.h
+@@ -788,10 +788,12 @@ extern void ata_sg_init_one(struct ata_q
+ extern void ata_sg_init(struct ata_queued_cmd *qc, struct scatterlist *sg,
+ 		 unsigned int n_elem);
+ extern unsigned int ata_dev_classify(const struct ata_taskfile *tf);
++extern void ata_dev_disable(struct ata_device *adev);
+ extern void ata_id_string(const u16 *id, unsigned char *s,
+ 			  unsigned int ofs, unsigned int len);
+ extern void ata_id_c_string(const u16 *id, unsigned char *s,
+ 			    unsigned int ofs, unsigned int len);
++extern void ata_id_to_dma_mode(struct ata_device *dev, u8 unknown);
+ extern unsigned long ata_device_blacklisted(const struct ata_device *dev);
+ extern void ata_bmdma_setup (struct ata_queued_cmd *qc);
+ extern void ata_bmdma_start (struct ata_queued_cmd *qc);
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+
+libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
+expose-set_mode-method-so-it-can-be-wrapped.patch
+acpi-driver-support-for-pata.patch
+pcmcia-spot-slave-decode-flaws-for-testing.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+resend-iphase-64bit-cleanup.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+driver_bfin_serial_core.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+tty-clarify-documentation-of-write.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
