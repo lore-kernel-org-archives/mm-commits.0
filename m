@@ -1,54 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - gfs2-add-newline-to-printk-message.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:51:51 -0800
-Message-ID: <200702282351.l1SNppaV030949@shell0.pdx.osdl.net>
+Subject: - libata-test-major-version-in-ata_id_is_sata.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:52:05 -0800
+Message-ID: <200702282352.l1SNq5l0030964@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48180 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48192 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932570AbXB1XwD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:52:03 -0500
+	id S932578AbXB1XwH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:52:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richardfearn@gmail.com, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gfs2: add newline to printk message
+     libata: test major version in ata_id_is_sata()
 has been removed from the -mm tree.  Its filename was
-     gfs2-add-newline-to-printk-message.patch
+     libata-test-major-version-in-ata_id_is_sata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gfs2: add newline to printk message
-From: Richard Fearn <richardfearn@gmail.com>
+Subject: libata: test major version in ata_id_is_sata()
+From: Tejun Heo <htejun@gmail.com>
 
-Add a missing newline to one of the printk messages in
-fs/gfs2/ops_fstype.c.
+Test major version in ata_id_is_sata() not separately.
 
-Signed-off-by: Richard Fearn <richardfearn@gmail.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/ops_fstype.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/ata.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/gfs2/ops_fstype.c~gfs2-add-newline-to-printk-message fs/gfs2/ops_fstype.c
---- a/fs/gfs2/ops_fstype.c~gfs2-add-newline-to-printk-message
-+++ a/fs/gfs2/ops_fstype.c
-@@ -840,7 +840,7 @@ static struct super_block* get_gfs2_sb(c
- 	}
+diff -puN include/linux/ata.h~libata-test-major-version-in-ata_id_is_sata include/linux/ata.h
+--- a/include/linux/ata.h~libata-test-major-version-in-ata_id_is_sata
++++ a/include/linux/ata.h
+@@ -282,7 +282,6 @@ struct ata_taskfile {
+ };
  
- 	printk(KERN_WARNING "GFS2: Unrecognized block device or "
--	       "mount point %s", dev_name);
-+	       "mount point %s\n", dev_name);
+ #define ata_id_is_ata(id)	(((id)[0] & (1 << 15)) == 0)
+-#define ata_id_is_sata(id)	((id)[93] == 0)
+ #define ata_id_rahead_enabled(id) ((id)[85] & (1 << 6))
+ #define ata_id_wcache_enabled(id) ((id)[85] & (1 << 5))
+ #define ata_id_hpa_enabled(id)	((id)[85] & (1 << 10))
+@@ -324,6 +323,11 @@ static inline unsigned int ata_id_major_
+ 	return mver;
+ }
  
- free_nd:
- 	path_release(&nd);
++static inline int ata_id_is_sata(const u16 *id)
++{
++	return ata_id_major_version(id) >= 5 && id[93] == 0;
++}
++
+ static inline int ata_id_current_chs_valid(const u16 *id)
+ {
+ 	/* For ATA-1 devices, if the INITIALIZE DEVICE PARAMETERS command
+@@ -350,7 +354,7 @@ static inline int ata_id_is_cfa(const u1
+ 
+ static inline int ata_drive_40wire(const u16 *dev_id)
+ {
+-	if (ata_id_major_version(dev_id) >= 5 && ata_id_is_sata(dev_id))
++	if (ata_id_is_sata(dev_id))
+ 		return 0;	/* SATA */
+ 	if ((dev_id[93] & 0xE000) == 0x6000)
+ 		return 0;	/* 80 wire */
 _
 
-Patches currently in -mm which might be from richardfearn@gmail.com are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-git-gfs2-nmw.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+expose-set_mode-method-so-it-can-be-wrapped.patch
+acpi-driver-support-for-pata.patch
+introduce-config_has_dma.patch
