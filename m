@@ -1,87 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - libata-use-new-id_to_dma_mode-function-to-tidy-reporting.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:52:00 -0800
-Message-ID: <200702282352.l1SNq0TV030958@shell0.pdx.osdl.net>
+Subject: - power-management-fix-struct-layout-and-docs.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:51:40 -0800
+Message-ID: <200702282351.l1SNpenh030937@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48211 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48231 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932619AbXB1XwQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:52:16 -0500
+	id S932643AbXB1Xw1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:52:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: johannes@sipsolutions.net, greg@kroah.com, pavel@ucw.cz, rdunlap@xenotime.net, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: Use new id_to_dma_mode function to tidy reporting  in more drivers (minimally tested)
+     power management: fix struct layout and docs
 has been removed from the -mm tree.  Its filename was
-     libata-use-new-id_to_dma_mode-function-to-tidy-reporting.patch
+     power-management-fix-struct-layout-and-docs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: Use new id_to_dma_mode function to tidy reporting  in more drivers (minimally tested)
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: power management: fix struct layout and docs
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Because the pm ops in powermac are obviously not using them as intended, I
+added documentation for it in kernel-doc format.
+
+Reordering the fields in struct pm_ops not only makes the output of kernel-doc
+make more sense but also removes a hole from the structure on 64-bit
+platforms.
+
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Pavel Macheck <pavel@ucw.cz>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_generic.c |    4 ++--
- drivers/ata/pata_it821x.c |    2 ++
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ include/linux/pm.h |   37 +++++++++++++++++++++++++++++++++++--
+ 1 files changed, 35 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/ata_generic.c~libata-use-new-id_to_dma_mode-function-to-tidy-reporting drivers/ata/ata_generic.c
---- a/drivers/ata/ata_generic.c~libata-use-new-id_to_dma_mode-function-to-tidy-reporting
-+++ a/drivers/ata/ata_generic.c
-@@ -90,10 +90,10 @@ static int generic_set_mode(struct ata_p
- 			/* We do need the right mode information for DMA or PIO
- 			   and this comes from the current configuration flags */
- 			if (dma_enabled & (1 << (5 + i))) {
--				dev->xfer_mode = XFER_MW_DMA_0;
--				dev->xfer_shift = ATA_SHIFT_MWDMA;
-+				ata_id_to_dma_mode(dev, XFER_MW_DMA_0);
- 				dev->flags &= ~ATA_DFLAG_PIO;
- 			} else {
-+				ata_dev_printk(dev, KERN_INFO, "configured for PIO\n");
- 				dev->xfer_mode = XFER_PIO_0;
- 				dev->xfer_shift = ATA_SHIFT_PIO;
- 				dev->flags |= ATA_DFLAG_PIO;
-diff -puN drivers/ata/pata_it821x.c~libata-use-new-id_to_dma_mode-function-to-tidy-reporting drivers/ata/pata_it821x.c
---- a/drivers/ata/pata_it821x.c~libata-use-new-id_to_dma_mode-function-to-tidy-reporting
-+++ a/drivers/ata/pata_it821x.c
-@@ -503,10 +503,12 @@ static int it821x_smart_set_mode(struct 
- 			/* We do need the right mode information for DMA or PIO
- 			   and this comes from the current configuration flags */
- 			if (dma_enabled & (1 << (5 + i))) {
-+				ata_dev_printk(dev, KERN_INFO, "configured for DMA\n");
- 				dev->xfer_mode = XFER_MW_DMA_0;
- 				dev->xfer_shift = ATA_SHIFT_MWDMA;
- 				dev->flags &= ~ATA_DFLAG_PIO;
- 			} else {
-+				ata_dev_printk(dev, KERN_INFO, "configured for PIO\n");
- 				dev->xfer_mode = XFER_PIO_0;
- 				dev->xfer_shift = ATA_SHIFT_PIO;
- 				dev->flags |= ATA_DFLAG_PIO;
+diff -puN include/linux/pm.h~power-management-fix-struct-layout-and-docs include/linux/pm.h
+--- a/include/linux/pm.h~power-management-fix-struct-layout-and-docs
++++ a/include/linux/pm.h
+@@ -120,15 +120,48 @@ typedef int __bitwise suspend_disk_metho
+ #define	PM_DISK_TESTPROC	((__force suspend_disk_method_t) 6)
+ #define	PM_DISK_MAX		((__force suspend_disk_method_t) 7)
+ 
++/**
++ * struct pm_ops - Callbacks for managing platform dependent suspend states.
++ * @valid: Callback to determine whether the given state can be entered.
++ * 	If %CONFIG_SOFTWARE_SUSPEND is set then %PM_SUSPEND_DISK is
++ *	always valid and never passed to this call.
++ *	If not assigned, all suspend states are advertised as valid
++ *	in /sys/power/state (but can still be rejected by prepare or enter.)
++ *
++ * @prepare: Prepare the platform for the given suspend state. Can return a
++ *	negative error code if necessary.
++ *
++ * @enter: Enter the given suspend state, must be assigned. Can return a
++ *	negative error code if necessary.
++ *
++ * @finish: Called when the system has left the given state and all devices
++ *	are resumed. The return value is ignored.
++ *
++ * @pm_disk_mode: Set to the disk method that the user should be able to
++ *	configure for suspend-to-disk. Since %PM_DISK_SHUTDOWN,
++ *	%PM_DISK_REBOOT, %PM_DISK_TEST and %PM_DISK_TESTPROC
++ *	are always allowed, currently only %PM_DISK_PLATFORM
++ *	makes sense. If the user then choses %PM_DISK_PLATFORM,
++ *	the @prepare call will be called before suspending to disk
++ *	(if present), the @enter call should be present and will
++ *	be called after all state has been saved and the machine
++ *	is ready to be shut down/suspended/..., and the @finish
++ *	callback is called after state has been restored. All
++ *	these calls are called with %PM_SUSPEND_DISK as the state.
++ */
+ struct pm_ops {
+-	suspend_disk_method_t pm_disk_mode;
+ 	int (*valid)(suspend_state_t state);
+ 	int (*prepare)(suspend_state_t state);
+ 	int (*enter)(suspend_state_t state);
+ 	int (*finish)(suspend_state_t state);
++	suspend_disk_method_t pm_disk_mode;
+ };
+ 
+-extern void pm_set_ops(struct pm_ops *);
++/**
++ * pm_set_ops - set platform dependent power management ops
++ * @pm_ops: The new power management operations to set.
++ */
++extern void pm_set_ops(struct pm_ops *pm_ops);
+ extern struct pm_ops *pm_ops;
+ extern int pm_suspend(suspend_state_t state);
+ 
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
-
-libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
-expose-set_mode-method-so-it-can-be-wrapped.patch
-acpi-driver-support-for-pata.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-resend-iphase-64bit-cleanup.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-driver_bfin_serial_core.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-tty-clarify-documentation-of-write.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
+Patches currently in -mm which might be from johannes@sipsolutions.net are
