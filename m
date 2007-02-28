@@ -1,115 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - mtd_ubi_debug-must-depend-on-sysfs.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:52:29 -0800
-Message-ID: <200702282352.l1SNqT9g030998@shell0.pdx.osdl.net>
+Subject: - mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:52:26 -0800
+Message-ID: <200702282352.l1SNqQij030995@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48589 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48587 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932779AbXB1Xzt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:55:49 -0500
+	id S932776AbXB1Xzo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:55:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, Artem.Bityutskiy@nokia.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MTD_UBI_DEBUG must depend on SYSFS
+     MIPS: Remove unreferenced _IOC_SLMASK macro in ioctl.h
 has been removed from the -mm tree.  Its filename was
-     mtd_ubi_debug-must-depend-on-sysfs.patch
+     mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MTD_UBI_DEBUG must depend on SYSFS
-From: Adrian Bunk <bunk@stusta.de>
+Subject: MIPS: Remove unreferenced _IOC_SLMASK macro in ioctl.h
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-If you select an option, you have to ensure that the dependencies of all
-options you are select'ing are fulfilled.
+Delete the definition of the apparently unreferenced macro _IOC_SLMASK.
 
-This patch fixes the following compile error:
-
-fs/built-in.o: In function `debugfs_init':
-inode.c:(.init.text+0x3621): undefined reference to `kernel_subsys'
-
-I've also removed the superfluous "default n".
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/ubi/Kconfig.debug |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/asm-mips/ioctl.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/mtd/ubi/Kconfig.debug~mtd_ubi_debug-must-depend-on-sysfs drivers/mtd/ubi/Kconfig.debug
---- a/drivers/mtd/ubi/Kconfig.debug~mtd_ubi_debug-must-depend-on-sysfs
-+++ a/drivers/mtd/ubi/Kconfig.debug
-@@ -5,7 +5,7 @@ comment "UBI debugging options"
+diff -puN include/asm-mips/ioctl.h~mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh include/asm-mips/ioctl.h
+--- a/include/asm-mips/ioctl.h~mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh
++++ a/include/asm-mips/ioctl.h
+@@ -38,11 +38,6 @@
+ #define _IOC_DIRSHIFT	(_IOC_SIZESHIFT+_IOC_SIZEBITS)
  
- config MTD_UBI_DEBUG
- 	bool "UBI debugging"
--	default n
-+	depends on SYSFS
- 	depends on MTD_UBI
- 	select DEBUG_FS
- 	select KALLSYMS_ALL
+ /*
+- * We to additionally limit parameters to a maximum 255 bytes.
+- */
+-#define _IOC_SLMASK	0xff
+-
+-/*
+  * Direction bits _IOC_NONE could be 0, but OSF/1 gives it a bit.
+  * And this turns out useful to catch old ioctl numbers in header
+  * files for us.
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-arch-arm26-kernel-entrys-remove-dead-code.patch
-make-ipc-shmcshm_nopage-static.patch
-mm-tiny-shmemc-cleanups.patch
-drivers-video-sm501fbc-make-4-functions-static.patch
-fix-the-sysctl=n-compilation.patch
-drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-hid.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-drivers-mmc-kconfig-source-drivers-mmc-card-kconfig.patch
-remove-fs-jffs2-ioctlc.patch
-git-ubi.patch
-drivers-net-vioc-possible-cleanups.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-lguest-kconfig-and-headers-fix.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-lumpy-reclaim-cleanup.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-linux-kernel-markers-kconfig-menus-fix.patch
-linux-kernel-markers-architecture-independant-code-license-fix.patch
-linux-kernel-markers-i386-optimization-export-fix.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+git-avr32.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
