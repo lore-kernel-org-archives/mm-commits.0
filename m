@@ -1,223 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - bridge-eliminate-port_check-workqueue.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:53:31 -0800
-Message-ID: <200702282353.l1SNrVOB031103@shell0.pdx.osdl.net>
+Subject: - remove-ancient-changelog.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:53:29 -0800
+Message-ID: <200702282353.l1SNrT2M031100@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48395 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48381 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932650AbXB1Xxn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:53:43 -0500
+	id S932609AbXB1Xxg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:53:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@linux-foundation.org, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: eike-kernel@sf-tec.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bridge: eliminate port_check workqueue
+     ipx: remove ancient changelog
 has been removed from the -mm tree.  Its filename was
-     bridge-eliminate-port_check-workqueue.patch
+     remove-ancient-changelog.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: bridge: eliminate port_check workqueue
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: ipx: remove ancient changelog
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
 
-For testing purposes
-
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_if.c      |   32 +++++++-------------------------
- net/bridge/br_notify.c  |   25 +++++++++++--------------
- net/bridge/br_private.h |    5 ++---
- 3 files changed, 20 insertions(+), 42 deletions(-)
+ net/ipx/ChangeLog |  101 --------------------------------------------
+ 1 files changed, 101 deletions(-)
 
-diff -puN net/bridge/br_if.c~bridge-eliminate-port_check-workqueue net/bridge/br_if.c
---- a/net/bridge/br_if.c~bridge-eliminate-port_check-workqueue
-+++ a/net/bridge/br_if.c
-@@ -77,26 +77,15 @@ static int port_cost(struct net_device *
-  * Called from work queue to allow for calling functions that
-  * might sleep (such as speed check), and to debounce.
-  */
--static void port_carrier_check(struct work_struct *work)
-+void br_port_carrier_check(struct net_bridge_port *p)
- {
--	struct net_bridge_port *p;
--	struct net_device *dev;
--	struct net_bridge *br;
+diff -puN net/ipx/ChangeLog~remove-ancient-changelog /dev/null
+--- a/net/ipx/ChangeLog
++++ /dev/null
+@@ -1,101 +0,0 @@
+- Revision 0.21:	Uses the new generic socket option code.
 -
--	dev = container_of(work, struct net_bridge_port,
--			   carrier_check.work)->dev;
--	work_release(work);
+- Revision 0.22:	Gcc clean ups and drop out device registration. Use the
+- 		new multi-protocol edition of hard_header
 -
--	rtnl_lock();
--	p = dev->br_port;
--	if (!p)
--		goto done;
--	br = p->br;
-+	struct net_device *dev = p->dev;
-+	struct net_bridge *br = p->br;
- 
- 	if (netif_carrier_ok(dev))
- 		p->path_cost = port_cost(dev);
- 
--	if (br->dev->flags & IFF_UP) {
-+	if (netif_running(br->dev)) {
- 		spin_lock_bh(&br->lock);
- 		if (netif_carrier_ok(dev)) {
- 			if (p->state == BR_STATE_DISABLED)
-@@ -107,9 +96,6 @@ static void port_carrier_check(struct wo
- 		}
- 		spin_unlock_bh(&br->lock);
- 	}
--done:
--	dev_put(dev);
--	rtnl_unlock();
- }
- 
- static void release_nbp(struct kobject *kobj)
-@@ -162,9 +148,6 @@ static void del_nbp(struct net_bridge_po
- 
- 	dev_set_promiscuity(dev, -1);
- 
--	if (cancel_delayed_work(&p->carrier_check))
--		dev_put(dev);
+- Revision 0.23: IPX /proc by Mark Evans. Adding a route will
+- 		will overwrite any existing route to the same network.
 -
- 	spin_lock_bh(&br->lock);
- 	br_stp_disable_port(p);
- 	spin_unlock_bh(&br->lock);
-@@ -282,7 +265,6 @@ static struct net_bridge_port *new_nbp(s
- 	p->port_no = index;
- 	br_init_port(p);
- 	p->state = BR_STATE_DISABLED;
--	INIT_DELAYED_WORK_NAR(&p->carrier_check, port_carrier_check);
- 	br_stp_port_timer_init(p);
- 
- 	kobject_init(&p->kobj);
-@@ -446,12 +428,12 @@ int br_add_if(struct net_bridge *br, str
- 	spin_lock_bh(&br->lock);
- 	br_stp_recalculate_bridge_id(br);
- 	br_features_recompute(br);
--	if (schedule_delayed_work(&p->carrier_check, BR_PORT_DEBOUNCE))
--		dev_hold(dev);
+- Revision 0.24:	Supports new /proc with no 4K limit
 -
- 	spin_unlock_bh(&br->lock);
- 
- 	dev_set_mtu(br->dev, br_min_mtu(br));
-+
-+	br_port_carrier_check(p);
-+
- 	kobject_uevent(&p->kobj, KOBJ_ADD);
- 
- 	return 0;
-diff -puN net/bridge/br_notify.c~bridge-eliminate-port_check-workqueue net/bridge/br_notify.c
---- a/net/bridge/br_notify.c~bridge-eliminate-port_check-workqueue
-+++ a/net/bridge/br_notify.c
-@@ -42,51 +42,48 @@ static int br_device_event(struct notifi
- 
- 	br = p->br;
- 
--	spin_lock_bh(&br->lock);
- 	switch (event) {
- 	case NETDEV_CHANGEMTU:
- 		dev_set_mtu(br->dev, br_min_mtu(br));
- 		break;
- 
- 	case NETDEV_CHANGEADDR:
-+		spin_lock_bh(&br->lock);
- 		br_fdb_changeaddr(p, dev->dev_addr);
- 		br_ifinfo_notify(RTM_NEWLINK, p);
- 		br_stp_recalculate_bridge_id(br);
-+		spin_unlock_bh(&br->lock);
- 		break;
- 
- 	case NETDEV_CHANGE:
--		if (br->dev->flags & IFF_UP)
--			if (schedule_delayed_work(&p->carrier_check,
--						BR_PORT_DEBOUNCE))
--				dev_hold(dev);
-+		br_port_carrier_check(p);
- 		break;
- 
- 	case NETDEV_FEAT_CHANGE:
--		if (br->dev->flags & IFF_UP)
-+		spin_lock_bh(&br->lock);
-+		if (netif_running(br->dev))
- 			br_features_recompute(br);
+- Revision 0.25:	Add ephemeral sockets, passive local network
+- 		identification, support for local net 0 and
+- 		multiple datalinks <Greg Page>
 -
--		/* could do recursive feature change notification
--		 * but who would care??
--		 */
-+		spin_unlock_bh(&br->lock);
- 		break;
- 
- 	case NETDEV_DOWN:
-+		spin_lock_bh(&br->lock);
- 		if (br->dev->flags & IFF_UP)
- 			br_stp_disable_port(p);
-+		spin_unlock_bh(&br->lock);
- 		break;
- 
- 	case NETDEV_UP:
-+		spin_lock_bh(&br->lock);
- 		if (netif_carrier_ok(dev) && (br->dev->flags & IFF_UP))
- 			br_stp_enable_port(p);
-+		spin_unlock_bh(&br->lock);
- 		break;
- 
- 	case NETDEV_UNREGISTER:
--		spin_unlock_bh(&br->lock);
- 		br_del_if(br, dev);
--		goto done;
-+		break;
- 	}
--	spin_unlock_bh(&br->lock);
- 
-- done:
- 	return NOTIFY_DONE;
- }
-diff -puN net/bridge/br_private.h~bridge-eliminate-port_check-workqueue net/bridge/br_private.h
---- a/net/bridge/br_private.h~bridge-eliminate-port_check-workqueue
-+++ a/net/bridge/br_private.h
-@@ -16,7 +16,6 @@
- #define _BR_PRIVATE_H
- 
- #include <linux/netdevice.h>
--#include <linux/miscdevice.h>
- #include <linux/if_bridge.h>
- 
- #define BR_HASH_BITS 8
-@@ -29,7 +28,7 @@
- 
- #define BR_PORT_DEBOUNCE (HZ/10)
- 
--#define BR_VERSION	"2.2"
-+#define BR_VERSION	"2.3"
- 
- typedef struct bridge_id bridge_id;
- typedef struct mac_addr mac_addr;
-@@ -82,7 +81,6 @@ struct net_bridge_port
- 	struct timer_list		hold_timer;
- 	struct timer_list		message_age_timer;
- 	struct kobject			kobj;
--	struct delayed_work		carrier_check;
- 	struct rcu_head			rcu;
- };
- 
-@@ -173,6 +171,7 @@ extern void br_flood_forward(struct net_
- 		      int clone);
- 
- /* br_if.c */
-+extern void br_port_carrier_check(struct net_bridge_port *p);
- extern int br_add_bridge(const char *name);
- extern int br_del_bridge(const char *name);
- extern void br_cleanup_bridges(void);
+- Revision 0.26: Device drop kills IPX routes via it. (needed for module)
+-
+- Revision 0.27: Autobind <Mark Evans>
+-
+- Revision 0.28: Small fix for multiple local networks <Thomas Winder>
+-
+- Revision 0.29: Assorted major errors removed <Mark Evans>
+- 		Small correction to promisc mode error fix <Alan Cox>
+- 		Asynchronous I/O support. Changed to use notifiers
+- 		and the newer packet_type stuff. Assorted major
+- 		fixes <Alejandro Liu>
+-
+- Revision 0.30:	Moved to net/ipx/...	<Alan Cox>
+- 		Don't set address length on recvfrom that errors.
+- 		Incorrect verify_area.
+-
+- Revision 0.31:	New sk_buffs. This still needs a lot of 
+- 		testing. <Alan Cox>
+-
+- Revision 0.32: Using sock_alloc_send_skb, firewall hooks. <Alan Cox>
+- 		Supports sendmsg/recvmsg
+-
+- Revision 0.33:	Internal network support, routing changes, uses a
+- 		protocol private area for ipx data.
+-
+- Revision 0.34:	Module support. <Jim Freeman>
+-
+- Revision 0.35: Checksum support. <Neil Turton>, hooked in by <Alan Cox>
+- 		Handles WIN95 discovery packets <Volker Lendecke>
+-
+- Revision 0.36:	Internal bump up for 2.1
+-
+- Revision 0.37:	Began adding POSIXisms.
+-
+- Revision 0.38: Asynchronous socket stuff made current.
+-
+- Revision 0.39: SPX interfaces
+-
+- Revision 0.40: Tiny SIOCGSTAMP fix (chris@cybernet.co.nz)
+-
+- Revision 0.41: 802.2TR removed (p.norton@computer.org)
+- 		Fixed connecting to primary net,
+- 		Automatic binding on send & receive,
+- 		Martijn van Oosterhout <kleptogimp@geocities.com>
+-
+- Revision 042:  Multithreading - use spinlocks and refcounting to
+- 		protect some structures: ipx_interface sock list, list
+- 		of ipx interfaces, etc. 
+- 		Bugfixes - do refcounting on net_devices, check function
+- 		results, etc. Thanks to davem and freitag for
+- 		suggestions and guidance.
+- 		Arnaldo Carvalho de Melo <acme@conectiva.com.br>,
+- 		November, 2000
+-
+- Revision 043:	Shared SKBs, don't mangle packets, some cleanups
+- 		Arnaldo Carvalho de Melo <acme@conectiva.com.br>,
+- 		December, 2000
+-
+- Revision 044:	Call ipxitf_hold on NETDEV_UP - acme
+-
+- Revision 045:	fix PPROP routing bug - acme
+-
+- Revision 046:	Further fixes to PPROP, ipxitf_create_internal was
+- 		doing an unneeded MOD_INC_USE_COUNT, implement
+- 		sysctl for ipx_pprop_broacasting, fix the ipx sysctl
+- 		handling, making it dynamic, some cleanups, thanks to
+- 		Petr Vandrovec for review and good suggestions. (acme)
+-
+- Revision 047:	Cleanups, CodingStyle changes, move the ncp connection
+- 		hack out of line - acme
+-
+- Revision 048:	Use sk->protinfo to store the pointer to IPX private
+- 		area, remove af_ipx from sk->protinfo and move ipx_opt
+- 		to include/net/ipx.h, use IPX_SK like DecNET, etc - acme
+-
+- Revision 049:	SPX support dropped, see comment in ipx_create - acme
+-
+- Revision 050:	Use seq_file for proc stuff, moving it to ipx_proc.c - acme
+-
+-Other fixes:
+- 
+- Protect the module by a MOD_INC_USE_COUNT/MOD_DEC_USE_COUNT pair. Also, now
+- usage count is managed this way:
+- -Count one if the auto_interface mode is on
+- -Count one per configured interface
+- 
+- Jacques Gelinas (jacques@solucorp.qc.ca)
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from eike-kernel@sf-tec.de are
 
-git-netdev-all.patch
 git-net.patch
