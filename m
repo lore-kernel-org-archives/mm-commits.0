@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-use-dynamic-lattice-for-adaptive-compression.patch added to -mm tree
-Date: Tue, 27 Feb 2007 22:32:29 -0800
-Message-ID: <200702280632.l1S6WXLi008914@shell0.pdx.osdl.net>
+Subject: + reiser4-drop-unused-semaphores.patch added to -mm tree
+Date: Tue, 27 Feb 2007 22:32:27 -0800
+Message-ID: <200702280632.l1S6WVVa008908@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42071 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42070 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751017AbXB1Gcj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1750992AbXB1Gcj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Wed, 28 Feb 2007 01:32:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: edward@namesys.com
 
 
 The patch titled
-     reiser4: use dynamic lattice for adaptive compression  modes
+     reiser4: drop unused semaphores
 has been added to the -mm tree.  Its filename is
-     reiser4-use-dynamic-lattice-for-adaptive-compression.patch
+     reiser4-drop-unused-semaphores.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,343 +25,321 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiser4: use dynamic lattice for adaptive compression  modes
+Subject: reiser4: drop unused semaphores
 From: Edward Shishkin <edward@namesys.com>
 
-Use one dynamic lattice instead of many static lattices with various factors
-for adaptive compression modes.
+. Drop artefact semaphores:
+   - mutex_write (in common part of reiser4 inode)
+   - lock (in cryptcompress specific part of reiser4 inode)
+
+. Add missed remove_suid() in write_cryptcompress()
 
 Signed-off-by: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/init_super.c                    |    2 
- fs/reiser4/plugin/compress/compress_mode.c |  122 +++++++++----------
- fs/reiser4/plugin/file/cryptcompress.c     |    3 
- fs/reiser4/plugin/file/cryptcompress.h     |   39 +++++-
- fs/reiser4/plugin/file/file_conversion.c   |    2 
- fs/reiser4/plugin/plugin.h                 |   10 -
- 6 files changed, 105 insertions(+), 73 deletions(-)
+ fs/reiser4/inode.h                       |   11 -----
+ fs/reiser4/plugin/file/cryptcompress.c   |   46 +++++----------------
+ fs/reiser4/plugin/file/cryptcompress.h   |    1 
+ fs/reiser4/plugin/file/file.c            |    9 ----
+ fs/reiser4/plugin/file/file_conversion.c |    3 -
+ fs/reiser4/plugin/item/extent_file_ops.c |    2 
+ fs/reiser4/super_ops.c                   |    1 
+ 7 files changed, 13 insertions(+), 60 deletions(-)
 
-diff -puN fs/reiser4/init_super.c~reiser4-use-dynamic-lattice-for-adaptive-compression fs/reiser4/init_super.c
---- a/fs/reiser4/init_super.c~reiser4-use-dynamic-lattice-for-adaptive-compression
-+++ a/fs/reiser4/init_super.c
-@@ -649,7 +649,7 @@ static struct {
- 	},
- 	[PSET_COMPRESSION_MODE] = {
- 		.type = REISER4_COMPRESSION_MODE_PLUGIN_TYPE,
--		.id = COL_16_COMPRESSION_MODE_ID
-+		.id = CONVX_COMPRESSION_MODE_ID
- 	},
- 	[PSET_CLUSTER] = {
- 		.type = REISER4_CLUSTER_PLUGIN_TYPE,
-diff -puN fs/reiser4/plugin/compress/compress_mode.c~reiser4-use-dynamic-lattice-for-adaptive-compression fs/reiser4/plugin/compress/compress_mode.c
---- a/fs/reiser4/plugin/compress/compress_mode.c~reiser4-use-dynamic-lattice-for-adaptive-compression
-+++ a/fs/reiser4/plugin/compress/compress_mode.c
-@@ -9,11 +9,6 @@
- #include "../../inode.h"
- #include "../plugin.h"
+diff -puN fs/reiser4/inode.h~reiser4-drop-unused-semaphores fs/reiser4/inode.h
+--- a/fs/reiser4/inode.h~reiser4-drop-unused-semaphores
++++ a/fs/reiser4/inode.h
+@@ -136,17 +136,6 @@ struct reiser4_inode {
+ 		cryptcompress_info_t cryptcompress_info;
+ 	} file_plugin_data;
  
--static int should_deflate_test(struct inode * inode, cloff_t index)
--{
--	return !test_bit(0, &index);
--}
+- 	/* this semaphore is used to serialize writes of any file plugin,
+-	 * and should be invariant during file plugin conversion (which
+-	 * is going in the context of ->write()).
+- 	 * inode->i_mutex can not be used for the serialization, because
+- 	 * write_unix_file uses get_user_pages which is to be used under
+- 	 * mm->mmap_sem and because it is required to take mm->mmap_sem before
+- 	 * inode->i_mutex, so inode->i_mutex would have to be up()-ed before
+- 	 * calling to get_user_pages which is unacceptable.
+-	 */
+- 	struct semaphore mutex_write;
 -
- static int should_deflate_none(struct inode * inode, cloff_t index)
- {
- 	return 0;
-@@ -24,62 +19,57 @@ static int should_deflate_common(struct 
- 	return compression_is_on(cryptcompress_inode_data(inode));
- }
- 
--static int turn_off_compression(struct inode *inode, cloff_t index)
-+static int discard_hook_ultim(struct inode *inode, cloff_t index)
- {
--	toggle_compression(cryptcompress_inode_data(inode), 0);
-+	turn_off_compression(cryptcompress_inode_data(inode));
-+	return 0;
-+}
-+
-+static int discard_hook_lattd(struct inode *inode, cloff_t index)
-+{
-+	cryptcompress_info_t * info = cryptcompress_inode_data(inode);
-+
-+	assert("edward-1462",
-+	       get_lattice_factor(info) >= MIN_LATTICE_FACTOR &&
-+	       get_lattice_factor(info) <= MAX_LATTICE_FACTOR);
-+
-+	turn_off_compression(info);
-+	if (get_lattice_factor(info) < MAX_LATTICE_FACTOR)
-+		set_lattice_factor(info, get_lattice_factor(info) << 1);
- 	return 0;
- }
- 
--static int turn_on_compression(struct inode *inode, cloff_t index)
-+static int accept_hook_lattd(struct inode *inode, cloff_t index)
- {
--	toggle_compression(cryptcompress_inode_data(inode), 1);
-+	turn_on_compression(cryptcompress_inode_data(inode));
-+	set_lattice_factor(cryptcompress_inode_data(inode), MIN_LATTICE_FACTOR);
- 	return 0;
- }
- 
--/* Check on lattice (COL) of some sparseness factor,
--   the family of adaptive compression modes which define
--   the following behavior:
-+/* Check on dynamic lattice, the adaptive compression modes which
-+   defines the following behavior:
- 
-    Compression is on: try to compress everything and turn
-    it off, whenever cluster is incompressible.
- 
-    Compression is off: try to compress clusters of indexes
-    k * FACTOR (k = 0, 1, 2, ...) and turn it on, if some of
--   them is compressible. */
-+   them is compressible. If incompressible, then increase FACTOR */
- 
- /* check if @index belongs to one-dimensional lattice
-    of sparce factor @factor */
--static int check_on_lattice(cloff_t index, int factor)
-+static int is_on_lattice(cloff_t index, int factor)
- {
- 	return (factor ? index % factor == 0: index == 0);
- }
- 
--#define DEFINE_CHECK_ON_LATTICE(FACTOR)                                 \
--	static int check_on_lattice_ ## FACTOR (struct inode * inode,   \
--						cloff_t index)		\
--{                                                                       \
--	return should_deflate_common(inode, index) ||			\
--		check_on_lattice(index, FACTOR);			\
--}
--
--#define SUPPORT_COL_COMPRESSION_MODE(FACTOR, LABEL)                     \
--[COL_ ## FACTOR ## _COMPRESSION_MODE_ID] = {                            \
--	.h = {                                                          \
--		.type_id = REISER4_COMPRESSION_MODE_PLUGIN_TYPE,        \
--		.id = COL_ ## FACTOR ## _COMPRESSION_MODE_ID,           \
--		.pops = NULL,                                           \
--		.label = LABEL,                                         \
--		.desc = LABEL,                                          \
--		.linkage = {NULL, NULL}                                 \
--	},                                                              \
--	.should_deflate = check_on_lattice_ ## FACTOR,                  \
--	.accept_hook =  turn_on_compression,                            \
--	.discard_hook = turn_off_compression                            \
--}
--
--DEFINE_CHECK_ON_LATTICE(8)
--DEFINE_CHECK_ON_LATTICE(16)
--DEFINE_CHECK_ON_LATTICE(32)
-+static int should_deflate_lattd(struct inode * inode, cloff_t index)
-+{
-+	return should_deflate_common(inode, index) ||
-+		is_on_lattice(index,
-+			      get_lattice_factor
-+			      (cryptcompress_inode_data(inode)));
-+}
- 
- /* compression mode_plugins */
- compression_mode_plugin compression_mode_plugins[LAST_COMPRESSION_MODE_ID] = {
-@@ -96,28 +86,37 @@ compression_mode_plugin compression_mode
- 		.accept_hook = NULL,
- 		.discard_hook = NULL
- 	},
--	/* Check-on-lattice adaptive compression modes.
--	   Turn compression on/off in flush time */
--	SUPPORT_COL_COMPRESSION_MODE(8, "col8"),
--	SUPPORT_COL_COMPRESSION_MODE(16, "col16"),
--	SUPPORT_COL_COMPRESSION_MODE(32, "col32"),
--	/* In this mode items will be converted to extents and management
--	   will be passed to (classic) unix file plugin as soon as ->write()
--	   detects that the first complete logical cluster (of index #0) is
--	   incompressible. */
--	[CONVX_COMPRESSION_MODE_ID] = {
-+	/* Check-on-dynamic-lattice adaptive compression mode */
-+	[LATTD_COMPRESSION_MODE_ID] = {
- 		.h = {
- 			.type_id = REISER4_COMPRESSION_MODE_PLUGIN_TYPE,
--			.id = CONVX_COMPRESSION_MODE_ID,
-+			.id = LATTD_COMPRESSION_MODE_ID,
- 			.pops = NULL,
--			.label = "conv",
--			.desc = "Convert to extent",
-+			.label = "lattd",
-+			.desc = "Check on dynamic lattice",
-+			.linkage = {NULL, NULL}
-+		},
-+		.should_deflate = should_deflate_lattd,
-+		.accept_hook = accept_hook_lattd,
-+		.discard_hook = discard_hook_lattd
-+	},
-+	/* Check-ultimately compression mode:
-+	   Turn off compression forever as soon as we meet
-+	   incompressible data */
-+	[ULTIM_COMPRESSION_MODE_ID] = {
-+		.h = {
-+			.type_id = REISER4_COMPRESSION_MODE_PLUGIN_TYPE,
-+			.id = ULTIM_COMPRESSION_MODE_ID,
-+			.pops = NULL,
-+			.label = "ultim",
-+			.desc = "Check ultimately",
- 			.linkage = {NULL, NULL}
- 		},
- 		.should_deflate = should_deflate_common,
- 		.accept_hook = NULL,
--		.discard_hook = NULL
-+		.discard_hook = discard_hook_ultim
- 	},
-+	/* Force-to-compress-everything compression mode */
- 	[FORCE_COMPRESSION_MODE_ID] = {
- 		.h = {
- 			.type_id = REISER4_COMPRESSION_MODE_PLUGIN_TYPE,
-@@ -131,16 +130,21 @@ compression_mode_plugin compression_mode
- 		.accept_hook = NULL,
- 		.discard_hook = NULL
- 	},
--	[TEST_COMPRESSION_MODE_ID] = {
-+	/* Convert-to-extent compression mode.
-+	   In this mode items will be converted to extents and management
-+	   will be passed to (classic) unix file plugin as soon as ->write()
-+	   detects that the first complete logical cluster (of index #0) is
-+	   incompressible. */
-+	[CONVX_COMPRESSION_MODE_ID] = {
- 		.h = {
- 			.type_id = REISER4_COMPRESSION_MODE_PLUGIN_TYPE,
--			.id = TEST_COMPRESSION_MODE_ID,
-+			.id = CONVX_COMPRESSION_MODE_ID,
- 			.pops = NULL,
--			.label = "test", /* This mode is for benchmarks only */
--			.desc = "Don't compress odd clusters",
-+			.label = "conv",
-+			.desc = "Convert to extent",
- 			.linkage = {NULL, NULL}
- 		},
--		.should_deflate = should_deflate_test,
-+		.should_deflate = should_deflate_common,
- 		.accept_hook = NULL,
- 		.discard_hook = NULL
- 	}
-diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-use-dynamic-lattice-for-adaptive-compression fs/reiser4/plugin/file/cryptcompress.c
---- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-use-dynamic-lattice-for-adaptive-compression
+ 	/* this semaphore is to serialize readers and writers of @pset->file
+ 	 * when file plugin conversion is enabled
+ 	 */
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-drop-unused-semaphores fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-drop-unused-semaphores
 +++ a/fs/reiser4/plugin/file/cryptcompress.c
-@@ -38,7 +38,8 @@ void init_inode_data_cryptcompress(struc
+@@ -38,7 +38,6 @@ void init_inode_data_cryptcompress(struc
  
  	memset(data, 0, sizeof(*data));
  
--	toggle_compression(data, 1);
-+	turn_on_compression(data);
-+	set_lattice_factor(data, MIN_LATTICE_FACTOR);
+-	init_rwsem(&data->lock);
+ 	toggle_compression(data, 1);
  	init_inode_ordering(inode, crd, create);
  }
+@@ -2783,24 +2782,28 @@ ssize_t write_cryptcompress(struct file 
+ 	if (IS_ERR(ctx))
+ 		return PTR_ERR(ctx);
  
-diff -puN fs/reiser4/plugin/file/cryptcompress.h~reiser4-use-dynamic-lattice-for-adaptive-compression fs/reiser4/plugin/file/cryptcompress.h
---- a/fs/reiser4/plugin/file/cryptcompress.h~reiser4-use-dynamic-lattice-for-adaptive-compression
-+++ a/fs/reiser4/plugin/file/cryptcompress.h
-@@ -10,12 +10,14 @@
+-  	down(&reiser4_inode_data(inode)->mutex_write);
++ 	mutex_lock(&inode->i_mutex);
  
- #include <linux/pagemap.h>
- 
--#define MIN_CLUSTER_SIZE PAGE_CACHE_SIZE
- #define MIN_CLUSTER_SHIFT PAGE_CACHE_SHIFT
- #define MAX_CLUSTER_SHIFT 16
- #define MAX_CLUSTER_NRPAGES (1U << MAX_CLUSTER_SHIFT >> PAGE_CACHE_SHIFT)
- #define DC_CHECKSUM_SIZE 4
- 
-+#define MIN_LATTICE_FACTOR 1
-+#define MAX_LATTICE_FACTOR 32
+ 	result = generic_write_checks(file, &pos, &count, 0);
+   	if (unlikely(result != 0))
+ 		goto out;
+   	if (unlikely(count == 0))
+ 		goto out;
+-	down_write(&info->lock);
++	result = remove_suid(file->f_dentry);
++	if (unlikely(result != 0))
++		goto out;
++	/* remove_suid might create a transaction */
++	reiser4_txn_restart(ctx);
 +
- /* this mask contains all non-standard plugins that might
-    be present in reiser4-specific part of inode managed by
-    cryptcompress file plugin */
-@@ -446,23 +448,50 @@ static inline void dec_keyload_count(cry
+ 	result = write_cryptcompress_flow(file, inode, buf, count, pos, conv);
+-  	if (*conv == 0)
+-  		up_write(&info->lock);
+ 
+   	if (result < 0)
+ 		goto out;
+   	/* update position in a file */
+   	*off = pos + result;
+  out:
+-	up(&reiser4_inode_data(inode)->mutex_write);
++	mutex_unlock(&inode->i_mutex);
++
+ 	context_set_commit_async(ctx);
+ 	reiser4_exit_context(ctx);
+ 	return result;
+@@ -2871,12 +2874,10 @@ ssize_t read_cryptcompress(struct file *
+ 		return result;
+ 	}
+ 
+-	down_read(&info->lock);
+ 	LOCK_CNT_INC(inode_sem_r);
+ 
+ 	result = do_sync_read(file, buf, size, off);
+ 
+-	up_read(&info->lock);
+ 	LOCK_CNT_DEC(inode_sem_r);
+ 
+ 	context_set_commit_async(ctx);
+@@ -3562,16 +3563,6 @@ writepages_cryptcompress(struct address_
+ 	do {
+ 		reiser4_context *ctx;
+ 
+-		if (is_in_reiser4_context()) {
+-			/* It can be in the context of write system call from
+-			   balance_dirty_pages() */
+-			if (down_read_trylock(&info->lock) == 0) {
+-				result = RETERR(-EBUSY);
+-				break;
+-			}
+-		} else
+-			down_read(&info->lock);
+-
+ 		ctx = reiser4_init_context(inode->i_sb);
+ 		if (IS_ERR(ctx)) {
+ 			result = PTR_ERR(ctx);
+@@ -3588,10 +3579,6 @@ writepages_cryptcompress(struct address_
+ 		    capture_anonymous_clusters(inode->i_mapping, &index,
+ 					       to_capture);
+ 
+-		up_read(&info->lock);
+-
+-		LOCK_CNT_DEC(inode_sem_r);
+-
+ 		if (result != 0 || wbc->sync_mode != WB_SYNC_ALL) {
+ 			reiser4_exit_context(ctx);
+ 			break;
+@@ -3647,13 +3634,12 @@ int mmap_cryptcompress(struct file *file
+ int delete_object_cryptcompress(struct inode *inode)
+ {
+ 	int result;
+-	cryptcompress_info_t *info = cryptcompress_inode_data(inode);
++
+ 	assert("edward-429", inode->i_nlink == 0);
+ 
+ 	reiser4_txn_restart_current();
+-	down_write(&info->lock);
++
+ 	result = cryptcompress_truncate(inode, 0, 0);
+-	up_write(&info->lock);
+ 	if (result) {
+ 		warning("edward-430",
+ 			"cannot truncate cryptcompress file  %lli: %i",
+@@ -3677,16 +3663,11 @@ int setattr_cryptcompress(struct dentry 
+ 		if (inode->i_size != attr->ia_size) {
+ 			reiser4_context *ctx;
+ 			loff_t old_size;
+-			cryptcompress_info_t *info =
+-			    cryptcompress_inode_data(inode);
+ 
+ 			ctx = reiser4_init_context(dentry->d_inode->i_sb);
+ 			if (IS_ERR(ctx))
+ 				return PTR_ERR(ctx);
+ 
+-			down_write(&info->lock);
+-			LOCK_CNT_INC(inode_sem_w);
+-
+ 			inode_check_scale(inode, inode->i_size, attr->ia_size);
+ 
+ 			old_size = inode->i_size;
+@@ -3702,8 +3683,6 @@ int setattr_cryptcompress(struct dentry 
+ 					get_inode_oid(inode), old_size,
+ 					attr->ia_size, result);
+ 			}
+-			up_write(&info->lock);
+-			LOCK_CNT_DEC(inode_sem_w);
+ 			context_set_commit_async(ctx);
+ 			reiser4_exit_context(ctx);
+ 		} else
+@@ -3736,9 +3715,8 @@ sendfile_cryptcompress(struct file *file
+ 	if (result)
+ 		goto exit;
+ 	info = cryptcompress_inode_data(inode);
+-	down_read(&info->lock);
++
+ 	result = generic_file_sendfile(file, ppos, count, actor, target);
+-	up_read(&info->lock);
+  exit:
+ 	reiser4_exit_context(ctx);
+ 	return result;
+diff -puN fs/reiser4/plugin/file/cryptcompress.h~reiser4-drop-unused-semaphores fs/reiser4/plugin/file/cryptcompress.h
+--- a/fs/reiser4/plugin/file/cryptcompress.h~reiser4-drop-unused-semaphores
++++ a/fs/reiser4/plugin/file/cryptcompress.h
+@@ -445,7 +445,6 @@ static inline void dec_keyload_count(cry
+ 
  /* cryptcompress specific part of reiser4_inode */
  typedef struct cryptcompress_info {
+-	struct rw_semaphore lock;
  	crypto_stat_t *crypt;
--	int compress_toggle;      /* current status of compressibility
--				     is set by compression mode plugin */
-+	/* the following 2 fields are controlled by compression mode plugin */
-+	int compress_toggle; /* current status of compressibility */
-+	int lattice_factor;  /* factor of dynamic lattice. FIXME: Have a
-+				compression_toggle to keep the factor */
- #if REISER4_DEBUG
- 	int pgcount;              /* number of captured pages */
- #endif
- } cryptcompress_info_t;
+ 	int compress_toggle;      /* current status of compressibility
+ 				     is set by compression mode plugin */
+diff -puN fs/reiser4/plugin/file/file.c~reiser4-drop-unused-semaphores fs/reiser4/plugin/file/file.c
+--- a/fs/reiser4/plugin/file/file.c~reiser4-drop-unused-semaphores
++++ a/fs/reiser4/plugin/file/file.c
+@@ -1933,7 +1933,6 @@ int mmap_unix_file(struct file *file, st
  
--static inline void toggle_compression (cryptcompress_info_t * info, int val)
-+static inline void set_compression_toggle (cryptcompress_info_t * info, int val)
- {
- 	info->compress_toggle = val;
- }
+ 	uf_info = unix_file_inode_data(inode);
  
--static inline int compression_is_on (cryptcompress_info_t * info)
-+static inline int get_compression_toggle (cryptcompress_info_t * info)
- {
- 	return info->compress_toggle;
- }
+-	down(&reiser4_inode_data(inode)->mutex_write);
+ 	get_exclusive_access(uf_info);
  
-+static inline int compression_is_on(cryptcompress_info_t * info)
-+{
-+	return get_compression_toggle(info) == 1;
-+}
-+
-+static inline void turn_on_compression(cryptcompress_info_t * info)
-+{
-+	set_compression_toggle(info, 1);
-+}
-+
-+static inline void turn_off_compression(cryptcompress_info_t * info)
-+{
-+	set_compression_toggle(info, 0);
-+}
-+
-+static inline void set_lattice_factor(cryptcompress_info_t * info, int val)
-+{
-+	info->lattice_factor = val;
-+}
-+
-+static inline int get_lattice_factor(cryptcompress_info_t * info)
-+{
-+	return info->lattice_factor;
-+}
-+
- cryptcompress_info_t *cryptcompress_inode_data(const struct inode *);
- int equal_to_rdk(znode *, const reiser4_key *);
- int goto_right_neighbor(coord_t *, lock_handle *);
-diff -puN fs/reiser4/plugin/file/file_conversion.c~reiser4-use-dynamic-lattice-for-adaptive-compression fs/reiser4/plugin/file/file_conversion.c
---- a/fs/reiser4/plugin/file/file_conversion.c~reiser4-use-dynamic-lattice-for-adaptive-compression
-+++ a/fs/reiser4/plugin/file/file_conversion.c
-@@ -187,7 +187,7 @@ static int disable_conversion_no_update_
- 	       force_plugin_pset(inode,
- 				 PSET_COMPRESSION_MODE,
- 				 (reiser4_plugin *)compression_mode_plugin_by_id
--				 (COL_8_COMPRESSION_MODE_ID));
-+				 (LATTD_COMPRESSION_MODE_ID));
- 	assert("edward-1500",
- 	       ergo(!result, disabled_conversion_inode_ok(inode)));
+ 	if (!IS_RDONLY(inode) && (vma->vm_flags & (VM_MAYWRITE | VM_SHARED))) {
+@@ -1945,7 +1944,6 @@ int mmap_unix_file(struct file *file, st
+ 		result = find_file_state(inode, uf_info);
+ 		if (result != 0) {
+ 			drop_exclusive_access(uf_info);
+-			up(&reiser4_inode_data(inode)->mutex_write);
+ 			reiser4_exit_context(ctx);
+ 			return result;
+ 		}
+@@ -1961,7 +1959,6 @@ int mmap_unix_file(struct file *file, st
+ 			result = check_pages_unix_file(file, inode);
+ 			if (result) {
+ 				drop_exclusive_access(uf_info);
+-				up(&reiser4_inode_data(inode)->mutex_write);
+ 				reiser4_exit_context(ctx);
+ 				return result;
+ 			}
+@@ -1976,7 +1973,6 @@ int mmap_unix_file(struct file *file, st
+ 	result = reiser4_grab_space_force(needed, BA_CAN_COMMIT);
+ 	if (result) {
+ 		drop_exclusive_access(uf_info);
+-		up(&reiser4_inode_data(inode)->mutex_write);
+ 		reiser4_exit_context(ctx);
+ 		return result;
+ 	}
+@@ -1988,7 +1984,6 @@ int mmap_unix_file(struct file *file, st
+ 	}
+ 
+ 	drop_exclusive_access(uf_info);
+-	up(&reiser4_inode_data(inode)->mutex_write);
+ 	reiser4_exit_context(ctx);
  	return result;
-diff -puN fs/reiser4/plugin/plugin.h~reiser4-use-dynamic-lattice-for-adaptive-compression fs/reiser4/plugin/plugin.h
---- a/fs/reiser4/plugin/plugin.h~reiser4-use-dynamic-lattice-for-adaptive-compression
-+++ a/fs/reiser4/plugin/plugin.h
-@@ -727,13 +727,11 @@ typedef enum {
- /* builtin compression mode plugins */
- typedef enum {
- 	NONE_COMPRESSION_MODE_ID,
--	COL_8_COMPRESSION_MODE_ID,
--	COL_16_COMPRESSION_MODE_ID,
--	COL_32_COMPRESSION_MODE_ID,
--	CONVX_COMPRESSION_MODE_ID,
-+	LATTD_COMPRESSION_MODE_ID,
-+	ULTIM_COMPRESSION_MODE_ID,
- 	FORCE_COMPRESSION_MODE_ID,
--	TEST_COMPRESSION_MODE_ID,
--  	LAST_COMPRESSION_MODE_ID
-+	CONVX_COMPRESSION_MODE_ID,
-+	LAST_COMPRESSION_MODE_ID
- } reiser4_compression_mode_id;
+ }
+@@ -2368,7 +2363,6 @@ int release_unix_file(struct inode *inod
+ 	if (in_reiser4 == 0) {
+ 		uf_info = unix_file_inode_data(inode);
  
- /* builtin cluster plugins */
+-		down(&reiser4_inode_data(inode)->mutex_write);
+ 		get_exclusive_access(uf_info);
+ 		if (atomic_read(&file->f_dentry->d_count) == 1 &&
+ 		    uf_info->container == UF_CONTAINER_EXTENTS &&
+@@ -2384,7 +2378,6 @@ int release_unix_file(struct inode *inod
+ 			}
+ 		}
+ 		drop_exclusive_access(uf_info);
+-		up(&reiser4_inode_data(inode)->mutex_write);
+ 	} else {
+ 		/*
+ 		   we are within reiser4 context already. How latter is
+@@ -2679,11 +2672,9 @@ int setattr_unix_file(struct dentry *den
+ 			return PTR_ERR(ctx);
+ 
+ 		uf_info = unix_file_inode_data(dentry->d_inode);
+-		down(&reiser4_inode_data(dentry->d_inode)->mutex_write);
+ 		get_exclusive_access(uf_info);
+ 		result = setattr_truncate(dentry->d_inode, attr);
+ 		drop_exclusive_access(uf_info);
+-		up(&reiser4_inode_data(dentry->d_inode)->mutex_write);
+ 		context_set_commit_async(ctx);
+ 		reiser4_exit_context(ctx);
+ 	} else
+diff -puN fs/reiser4/plugin/file/file_conversion.c~reiser4-drop-unused-semaphores fs/reiser4/plugin/file/file_conversion.c
+--- a/fs/reiser4/plugin/file/file_conversion.c~reiser4-drop-unused-semaphores
++++ a/fs/reiser4/plugin/file/file_conversion.c
+@@ -443,14 +443,12 @@ static int cryptcompress2unixfile(struct
+ 	   reserved disk space) were released by ->kill_hook() method
+ 	   of the item plugin */
+ 
+-	up_write(&cr_info->lock);
+ 	result = __cryptcompress2unixfile(file, inode);
+ 	if (result)
+ 		goto out;
+ 	/* At this point file is managed by unix file plugin */
+ 
+ 	uf_info = unix_file_inode_data(inode);
+-	//	get_exclusive_access(uf_info);
+ 
+ 	assert("edward-1518",
+ 	       ergo(jprivate(clust->pages[0]),
+@@ -467,7 +465,6 @@ static int cryptcompress2unixfile(struct
+ 		uf_info->container = UF_CONTAINER_EXTENTS;
+ 		complete_file_conversion(inode);
+ 	}
+-	//	drop_exclusive_access(uf_info);
+  out:
+ 	all_grabbed2free();
+ 	if (result)
+diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-drop-unused-semaphores fs/reiser4/plugin/item/extent_file_ops.c
+--- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-drop-unused-semaphores
++++ a/fs/reiser4/plugin/item/extent_file_ops.c
+@@ -1030,9 +1030,9 @@ ssize_t reiser4_write_extent(struct file
+ 				/* wait for read completion */
+ 				lock_page(page);
+ 				BUG_ON(!PageUptodate(page));
+-				unlock_page(page);
+ 			} else
+ 				result = 0;
++			unlock_page(page);
+ 		}
+ 
+ 		BUG_ON(get_current_context()->trans->atom != NULL);
+diff -puN fs/reiser4/super_ops.c~reiser4-drop-unused-semaphores fs/reiser4/super_ops.c
+--- a/fs/reiser4/super_ops.c~reiser4-drop-unused-semaphores
++++ a/fs/reiser4/super_ops.c
+@@ -44,7 +44,6 @@ static void init_once(void *obj, struct 
+ 		 * etc. that will be added to our private inode part.
+ 		 */
+ 		INIT_LIST_HEAD(get_readdir_list(&info->vfs_inode));
+-		sema_init(&info->p.mutex_write, 1);
+ 		init_rwsem(&info->p.conv_sem);
+ 		/* init semaphore which is used during inode loading */
+ 		loading_init_once(&info->p);
 _
 
 Patches currently in -mm which might be from edward@namesys.com are
