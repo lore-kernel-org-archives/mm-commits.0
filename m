@@ -1,144 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - mips-remove-smp_tune_scheduling.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:34:54 -0800
-Message-ID: <200702282334.l1SNYsBL030541@shell0.pdx.osdl.net>
+Subject: - git-mips-fixup.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:45:31 -0800
+Message-ID: <200702282345.l1SNjV3H030804@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47897 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47976 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932425AbXB1XlZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:41:25 -0500
+	id S932503AbXB1Xpe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:45:34 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1SNjVhB000769
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2007 15:45:32 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MIPS: remove smp_tune_scheduling()
+     git-mips-fixup
 has been removed from the -mm tree.  Its filename was
-     mips-remove-smp_tune_scheduling.patch
+     git-mips-fixup.patch
 
-This patch was dropped because this function got redone and it looks like it does something now
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: MIPS: remove smp_tune_scheduling()
-From: Adrian Bunk <bunk@stusta.de>
+Subject: git-mips-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Since smp_tune_scheduling() didn't do anything we can simply remove it.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/smp.c |   28 ----------------------------
- 1 file changed, 28 deletions(-)
+ arch/mips/Kconfig          |   32 --------------------------------
+ arch/mips/kernel/linux32.c |    3 ---
+ arch/mips/kernel/signal.c  |    6 ------
+ 3 files changed, 41 deletions(-)
 
-diff -puN arch/mips/kernel/smp.c~mips-remove-smp_tune_scheduling arch/mips/kernel/smp.c
---- a/arch/mips/kernel/smp.c~mips-remove-smp_tune_scheduling
-+++ a/arch/mips/kernel/smp.c
-@@ -51,33 +51,6 @@ int __cpu_logical_map[NR_CPUS];		/* Map 
- EXPORT_SYMBOL(phys_cpu_present_map);
- EXPORT_SYMBOL(cpu_online_map);
+diff -puN arch/mips/Kconfig~git-mips-fixup arch/mips/Kconfig
+--- a/arch/mips/Kconfig~git-mips-fixup
++++ a/arch/mips/Kconfig
+@@ -2076,43 +2076,11 @@ config BINFMT_ELF32
+ 	bool
+ 	default y if MIPS32_O32 || MIPS32_N32
  
--static void smp_tune_scheduling (void)
--{
--	struct cache_desc *cd = &current_cpu_data.scache;
--	unsigned long cachesize;       /* kB   */
--	unsigned long cpu_khz;
--
--	/*
--	 * Crude estimate until we actually meassure ...
--	 */
--	cpu_khz = loops_per_jiffy * 2 * HZ / 1000;
--
--	/*
--	 * Rough estimation for SMP scheduling, this is the number of
--	 * cycles it takes for a fully memory-limited process to flush
--	 * the SMP-local cache.
--	 *
--	 * (For a P5 this pretty much means we will choose another idle
--	 *  CPU almost always at wakeup time (this is due to the small
--	 *  L1 cache), on PIIs it's around 50-100 usecs, depending on
--	 *  the cache size)
--	 */
--	if (!cpu_khz)
--		return;
--
--	cachesize = cd->linesz * cd->sets * cd->ways;
--}
--
- extern void __init calibrate_delay(void);
- extern ATTRIB_NORET void cpu_idle(void);
+-<<<<<<< HEAD/arch/mips/Kconfig
+ endmenu
  
-@@ -245,7 +218,6 @@ void __init smp_prepare_cpus(unsigned in
- {
- 	init_new_context(current, &init_mm);
- 	current_thread_info()->cpu = 0;
--	smp_tune_scheduling();
- 	plat_prepare_cpus(max_cpus);
- #ifndef CONFIG_HOTPLUG_CPU
- 	cpu_present_map = cpu_possible_map;
+ menu "Power management options"
+ 
+ source "kernel/power/Kconfig"
+-=======
+-config PM
+-	bool "Power Management support (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && SOC_AU1X00
+-
+-config APM
+-        tristate "Advanced Power Management Emulation"
+-	depends on PM
+-        ---help---
+-	  APM is a BIOS specification for saving power using several different
+-	  techniques. This is mostly useful for battery powered systems with
+-	  APM compliant BIOSes. If you say Y here, the system time will be
+-	  reset after a RESUME operation, the /proc/apm device will provide
+-	  battery status information, and user-space programs will receive
+-	  notification of APM "events" (e.g. battery status change).
+-
+-	  In order to use APM, you will need supporting software. For location
+-	  and more information, read <file:Documentation/pm.txt> and the
+-	  Battery Powered Linux mini-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>.
+-
+-	  This driver does not spin down disk drives (see the hdparm(8)
+-	  manpage ("man 8 hdparm") for that), and it doesn't turn off
+-	  VESA-compliant "green" monitors.
+-
+-	  Generally, if you don't have a battery in your machine, there isn't
+-	  much point in using this driver and you should say N. If you get
+-	  random kernel OOPSes or reboots that don't seem to be related to
+-	  anything, try disabling/enabling this option (or disabling/enabling
+-	  APM in your BIOS).
+->>>>>>> /arch/mips/Kconfig
+ 
+ endmenu
+ 
+diff -puN arch/mips/kernel/linux32.c~git-mips-fixup arch/mips/kernel/linux32.c
+--- a/arch/mips/kernel/linux32.c~git-mips-fixup
++++ a/arch/mips/kernel/linux32.c
+@@ -194,8 +194,6 @@ sysn32_waitid(int which, compat_pid_t pi
+ 	return ret;
+ }
+ 
+-<<<<<<< HEAD/arch/mips/kernel/linux32.c
+-=======
+ struct sysinfo32 {
+ 	s32 uptime;
+ 	u32 loads[3];
+@@ -240,7 +238,6 @@ asmlinkage int sys32_sysinfo(struct sysi
+ 	return ret;
+ }
+ 
+->>>>>>> /arch/mips/kernel/linux32.c
+ #define RLIM_INFINITY32	0x7fffffff
+ #define RESOURCE32(x) ((x > RLIM_INFINITY32) ? RLIM_INFINITY32 : x)
+ 
+diff -puN arch/mips/kernel/signal.c~git-mips-fixup arch/mips/kernel/signal.c
+--- a/arch/mips/kernel/signal.c~git-mips-fixup
++++ a/arch/mips/kernel/signal.c
+@@ -434,14 +434,8 @@ int setup_frame(struct k_sigaction * ka,
+ 
+ 	DEBUGP("SIG deliver (%s:%d): sp=0x%p pc=0x%lx ra=0x%lx\n",
+ 	       current->comm, current->pid,
+-<<<<<<< HEAD/arch/mips/kernel/signal.c
+-	       frame, regs->cp0_epc, regs->regs[31]);
+-	return 0;
+-=======
+ 	       frame, regs->cp0_epc, frame->regs[31]);
+-#endif
+ 	return 0;
+->>>>>>> /arch/mips/kernel/signal.c
+ 
+ give_sigsegv:
+ 	force_sigsegv(signr, current);
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arch-arm26-kernel-entrys-remove-dead-code.patch
-make-ipc-shmcshm_nopage-static.patch
-mm-tiny-shmemc-cleanups.patch
-drivers-video-sm501fbc-make-4-functions-static.patch
-fix-the-sysctl=n-compilation.patch
-drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix.patch
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
 git-drm.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-git-hid.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-mips-remove-smp_tune_scheduling.patch
-drivers-mmc-kconfig-source-drivers-mmc-card-kconfig.patch
-remove-fs-jffs2-ioctlc.patch
+pvrusb-warning-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+git-leds-fixup.patch
+git-md-accel-vs-md.patch
+git-mips-fixup.patch
+nommu-present-backing-device-capabilities-for-mtd-fix.patch
 git-ubi.patch
-mtd_ubi_debug-must-depend-on-sysfs.patch
-drivers-net-vioc-possible-cleanups.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-qla3xxx.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-block-another-md-fix.patch
 git-unionfs.patch
-make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-lguest-kconfig-and-headers-fix.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-lumpy-reclaim-cleanup.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-linux-kernel-markers-kconfig-menus-fix.patch
-linux-kernel-markers-architecture-independant-code-license-fix.patch
-linux-kernel-markers-i386-optimization-export-fix.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+after-before-x86_64-mm-mmconfig-share.patch
+throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations.patch
+ext-ea-block-reference-count-racing-fix-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+kvm-add-internal-filesystem-for-generating-inodes-tweak.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
+utrace-prep.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
