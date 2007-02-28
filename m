@@ -1,162 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-use-page_private-set_page_private-apis.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:54:41 -0800
-Message-ID: <200702282354.l1SNsfoY031210@shell0.pdx.osdl.net>
+Subject: - kvm-use-array_size-macro-instead-of-manual-calculation.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:54:38 -0800
+Message-ID: <200702282354.l1SNscY1031207@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48520 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48510 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932741AbXB1Xys (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:54:48 -0500
+	id S932746AbXB1Xym (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:54:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: markus.rechberger@amd.com, avi@qumranet.com, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, avi@qumranet.com, dor.laor@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Use page_private()/set_page_private() apis
+     KVM: Use ARRAY_SIZE macro instead of manual calculation
 has been removed from the -mm tree.  Its filename was
-     kvm-use-page_private-set_page_private-apis.patch
+     kvm-use-array_size-macro-instead-of-manual-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: Use page_private()/set_page_private() apis
-From: Markus Rechberger <markus.rechberger@amd.com>
+Subject: KVM: Use ARRAY_SIZE macro instead of manual calculation
+From: Ahmed S. Darwish <darwish.07@gmail.com>
 
-Besides using an established api, this allows using kvm in older kernels.
-
-Signed-off-by: Markus Rechberger <markus.rechberger@amd.com>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Signed-off-by: Dor Laor <dor.laor@qumranet.com>
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm.h      |    2 +-
- drivers/kvm/kvm_main.c |    2 +-
- drivers/kvm/mmu.c      |   36 ++++++++++++++++++------------------
- 3 files changed, 20 insertions(+), 20 deletions(-)
+ drivers/kvm/kvm_svm.h |    3 ++-
+ drivers/kvm/svm.c     |    5 +++--
+ drivers/kvm/vmx.c     |    3 ++-
+ 3 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/kvm/kvm.h~kvm-use-page_private-set_page_private-apis drivers/kvm/kvm.h
---- a/drivers/kvm/kvm.h~kvm-use-page_private-set_page_private-apis
-+++ a/drivers/kvm/kvm.h
-@@ -523,7 +523,7 @@ static inline struct kvm_mmu_page *page_
+diff -puN drivers/kvm/kvm_svm.h~kvm-use-array_size-macro-instead-of-manual-calculation drivers/kvm/kvm_svm.h
+--- a/drivers/kvm/kvm_svm.h~kvm-use-array_size-macro-instead-of-manual-calculation
++++ a/drivers/kvm/kvm_svm.h
+@@ -1,6 +1,7 @@
+ #ifndef __KVM_SVM_H
+ #define __KVM_SVM_H
+ 
++#include <linux/kernel.h>
+ #include <linux/types.h>
+ #include <linux/list.h>
+ #include <asm/msr.h>
+@@ -18,7 +19,7 @@ static const u32 host_save_msrs[] = {
+ 	MSR_IA32_LASTBRANCHTOIP, MSR_IA32_LASTINTFROMIP,MSR_IA32_LASTINTTOIP,*/
+ };
+ 
+-#define NR_HOST_SAVE_MSRS (sizeof(host_save_msrs) / sizeof(*host_save_msrs))
++#define NR_HOST_SAVE_MSRS ARRAY_SIZE(host_save_msrs)
+ #define NUM_DB_REGS 4
+ 
+ struct vcpu_svm {
+diff -puN drivers/kvm/svm.c~kvm-use-array_size-macro-instead-of-manual-calculation drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-use-array_size-macro-instead-of-manual-calculation
++++ a/drivers/kvm/svm.c
+@@ -15,6 +15,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/kernel.h>
+ #include <linux/vmalloc.h>
+ #include <linux/highmem.h>
+ #include <linux/profile.h>
+@@ -75,7 +76,7 @@ struct svm_init_data {
+ 
+ static u32 msrpm_ranges[] = {0, 0xc0000000, 0xc0010000};
+ 
+-#define NUM_MSR_MAPS (sizeof(msrpm_ranges) / sizeof(*msrpm_ranges))
++#define NUM_MSR_MAPS ARRAY_SIZE(msrpm_ranges)
+ #define MSRS_RANGE_SIZE 2048
+ #define MSRS_IN_RANGE (MSRS_RANGE_SIZE * 8 / 2)
+ 
+@@ -1297,7 +1298,7 @@ static int handle_exit(struct kvm_vcpu *
+ 		       __FUNCTION__, vcpu->svm->vmcb->control.exit_int_info,
+ 		       exit_code);
+ 
+-	if (exit_code >= sizeof(svm_exit_handlers) / sizeof(*svm_exit_handlers)
++	if (exit_code >= ARRAY_SIZE(svm_exit_handlers)
+ 	    || svm_exit_handlers[exit_code] == 0) {
+ 		kvm_run->exit_reason = KVM_EXIT_UNKNOWN;
+ 		printk(KERN_ERR "%s: 0x%x @ 0x%llx cr0 0x%lx rflags 0x%llx\n",
+diff -puN drivers/kvm/vmx.c~kvm-use-array_size-macro-instead-of-manual-calculation drivers/kvm/vmx.c
+--- a/drivers/kvm/vmx.c~kvm-use-array_size-macro-instead-of-manual-calculation
++++ a/drivers/kvm/vmx.c
+@@ -19,6 +19,7 @@
+ #include "vmx.h"
+ #include "kvm_vmx.h"
+ #include <linux/module.h>
++#include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
+ #include <linux/profile.h>
+@@ -75,7 +76,7 @@ static const u32 vmx_msr_index[] = {
+ #endif
+ 	MSR_EFER, MSR_K6_STAR,
+ };
+-#define NR_VMX_MSR (sizeof(vmx_msr_index) / sizeof(*vmx_msr_index))
++#define NR_VMX_MSR ARRAY_SIZE(vmx_msr_index)
+ 
+ static inline int is_page_fault(u32 intr_info)
  {
- 	struct page *page = pfn_to_page(shadow_page >> PAGE_SHIFT);
- 
--	return (struct kvm_mmu_page *)page->private;
-+	return (struct kvm_mmu_page *)page_private(page);
- }
- 
- static inline u16 read_fs(void)
-diff -puN drivers/kvm/kvm_main.c~kvm-use-page_private-set_page_private-apis drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-use-page_private-set_page_private-apis
-+++ a/drivers/kvm/kvm_main.c
-@@ -670,7 +670,7 @@ raced:
- 						     | __GFP_ZERO);
- 			if (!new.phys_mem[i])
- 				goto out_free;
-- 			new.phys_mem[i]->private = 0;
-+			set_page_private(new.phys_mem[i],0);
- 		}
- 	}
- 
-diff -puN drivers/kvm/mmu.c~kvm-use-page_private-set_page_private-apis drivers/kvm/mmu.c
---- a/drivers/kvm/mmu.c~kvm-use-page_private-set_page_private-apis
-+++ a/drivers/kvm/mmu.c
-@@ -298,18 +298,18 @@ static void rmap_add(struct kvm_vcpu *vc
- 	if (!is_rmap_pte(*spte))
- 		return;
- 	page = pfn_to_page((*spte & PT64_BASE_ADDR_MASK) >> PAGE_SHIFT);
--	if (!page->private) {
-+	if (!page_private(page)) {
- 		rmap_printk("rmap_add: %p %llx 0->1\n", spte, *spte);
--		page->private = (unsigned long)spte;
--	} else if (!(page->private & 1)) {
-+		set_page_private(page,(unsigned long)spte);
-+	} else if (!(page_private(page) & 1)) {
- 		rmap_printk("rmap_add: %p %llx 1->many\n", spte, *spte);
- 		desc = mmu_alloc_rmap_desc(vcpu);
--		desc->shadow_ptes[0] = (u64 *)page->private;
-+		desc->shadow_ptes[0] = (u64 *)page_private(page);
- 		desc->shadow_ptes[1] = spte;
--		page->private = (unsigned long)desc | 1;
-+		set_page_private(page,(unsigned long)desc | 1);
- 	} else {
- 		rmap_printk("rmap_add: %p %llx many->many\n", spte, *spte);
--		desc = (struct kvm_rmap_desc *)(page->private & ~1ul);
-+		desc = (struct kvm_rmap_desc *)(page_private(page) & ~1ul);
- 		while (desc->shadow_ptes[RMAP_EXT-1] && desc->more)
- 			desc = desc->more;
- 		if (desc->shadow_ptes[RMAP_EXT-1]) {
-@@ -337,12 +337,12 @@ static void rmap_desc_remove_entry(struc
- 	if (j != 0)
- 		return;
- 	if (!prev_desc && !desc->more)
--		page->private = (unsigned long)desc->shadow_ptes[0];
-+		set_page_private(page,(unsigned long)desc->shadow_ptes[0]);
- 	else
- 		if (prev_desc)
- 			prev_desc->more = desc->more;
- 		else
--			page->private = (unsigned long)desc->more | 1;
-+			set_page_private(page,(unsigned long)desc->more | 1);
- 	mmu_free_rmap_desc(vcpu, desc);
- }
- 
-@@ -356,20 +356,20 @@ static void rmap_remove(struct kvm_vcpu 
- 	if (!is_rmap_pte(*spte))
- 		return;
- 	page = pfn_to_page((*spte & PT64_BASE_ADDR_MASK) >> PAGE_SHIFT);
--	if (!page->private) {
-+	if (!page_private(page)) {
- 		printk(KERN_ERR "rmap_remove: %p %llx 0->BUG\n", spte, *spte);
- 		BUG();
--	} else if (!(page->private & 1)) {
-+	} else if (!(page_private(page) & 1)) {
- 		rmap_printk("rmap_remove:  %p %llx 1->0\n", spte, *spte);
--		if ((u64 *)page->private != spte) {
-+		if ((u64 *)page_private(page) != spte) {
- 			printk(KERN_ERR "rmap_remove:  %p %llx 1->BUG\n",
- 			       spte, *spte);
- 			BUG();
- 		}
--		page->private = 0;
-+		set_page_private(page,0);
- 	} else {
- 		rmap_printk("rmap_remove:  %p %llx many->many\n", spte, *spte);
--		desc = (struct kvm_rmap_desc *)(page->private & ~1ul);
-+		desc = (struct kvm_rmap_desc *)(page_private(page) & ~1ul);
- 		prev_desc = NULL;
- 		while (desc) {
- 			for (i = 0; i < RMAP_EXT && desc->shadow_ptes[i]; ++i)
-@@ -398,11 +398,11 @@ static void rmap_write_protect(struct kv
- 	BUG_ON(!slot);
- 	page = gfn_to_page(slot, gfn);
- 
--	while (page->private) {
--		if (!(page->private & 1))
--			spte = (u64 *)page->private;
-+	while (page_private(page)) {
-+		if (!(page_private(page) & 1))
-+			spte = (u64 *)page_private(page);
- 		else {
--			desc = (struct kvm_rmap_desc *)(page->private & ~1ul);
-+			desc = (struct kvm_rmap_desc *)(page_private(page) & ~1ul);
- 			spte = desc->shadow_ptes[0];
- 		}
- 		BUG_ON(!spte);
-@@ -1218,7 +1218,7 @@ static int alloc_mmu_pages(struct kvm_vc
- 		INIT_LIST_HEAD(&page_header->link);
- 		if ((page = alloc_page(GFP_KERNEL)) == NULL)
- 			goto error_1;
--		page->private = (unsigned long)page_header;
-+		set_page_private(page, (unsigned long)page_header);
- 		page_header->page_hpa = (hpa_t)page_to_pfn(page) << PAGE_SHIFT;
- 		memset(__va(page_header->page_hpa), 0, PAGE_SIZE);
- 		list_add(&page_header->link, &vcpu->free_pages);
 _
 
-Patches currently in -mm which might be from markus.rechberger@amd.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
+git-avr32.patch
+git-drm.patch
 git-kvm.patch
-pcmcia-pccard-deadlock-fix.patch
+s390-kmalloc-kzalloc-casting-cleanups.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
