@@ -1,364 +1,244 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-create-an-inode-per-virtual-machine.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:54:59 -0800
-Message-ID: <200702282354.l1SNsxkF031240@shell0.pdx.osdl.net>
+Subject: - kvm-rename-some-kvm_dev_ioctl_-functions-to.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:55:02 -0800
+Message-ID: <200702282355.l1SNt2Bh031243@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48551 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48553 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932739AbXB1XzE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:55:04 -0500
+	id S932743AbXB1XzF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:55:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kvm: create an inode per virtual machine
+     kvm: rename some kvm_dev_ioctl_*() functions to kvm_vm_ioctl_*()
 has been removed from the -mm tree.  Its filename was
-     kvm-create-an-inode-per-virtual-machine.patch
+     kvm-rename-some-kvm_dev_ioctl_-functions-to.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kvm: create an inode per virtual machine
+Subject: kvm: rename some kvm_dev_ioctl_*() functions to kvm_vm_ioctl_*()
 From: Avi Kivity <avi@qumranet.com>
 
-This avoids having filp->f_op and the corresponding inode->i_fop different,
-which is a little unorthodox.
-
-The ioctl list is split into two: global kvm ioctls and per-vm ioctls.  A new
-ioctl, KVM_CREATE_VM, is used to create VMs and return the VM fd.
+This reflects the changed scope, from device-wide to single vm (previously
+every device open created a virtual machine).
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm_main.c |  212 +++++++++++++++++++++++++++++++--------
- include/linux/kvm.h    |   10 +
- 2 files changed, 180 insertions(+), 42 deletions(-)
+ drivers/kvm/kvm_main.c |   48 +++++++++++++++++++--------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-create-an-inode-per-virtual-machine drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-create-an-inode-per-virtual-machine
+diff -puN drivers/kvm/kvm_main.c~kvm-rename-some-kvm_dev_ioctl_-functions-to drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-rename-some-kvm_dev_ioctl_-functions-to
 +++ a/drivers/kvm/kvm_main.c
-@@ -37,6 +37,7 @@
- #include <asm/desc.h>
- #include <linux/sysdev.h>
- #include <linux/cpu.h>
-+#include <linux/file.h>
- #include <linux/fs.h>
- #include <linux/mount.h>
- 
-@@ -95,6 +96,55 @@ struct segment_descriptor_64 {
- 
- #endif
- 
-+static struct inode *kvmfs_inode(struct file_operations *fops)
-+{
-+	int error = -ENOMEM;
-+	struct inode *inode = new_inode(kvmfs_mnt->mnt_sb);
-+
-+	if (!inode)
-+		goto eexit_1;
-+
-+	inode->i_fop = fops;
-+
-+	/*
-+	 * Mark the inode dirty from the very beginning,
-+	 * that way it will never be moved to the dirty
-+	 * list because mark_inode_dirty() will think
-+	 * that it already _is_ on the dirty list.
-+	 */
-+	inode->i_state = I_DIRTY;
-+	inode->i_mode = S_IRUSR | S_IWUSR;
-+	inode->i_uid = current->fsuid;
-+	inode->i_gid = current->fsgid;
-+	inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
-+	return inode;
-+
-+eexit_1:
-+	return ERR_PTR(error);
-+}
-+
-+static struct file *kvmfs_file(struct inode *inode, void *private_data)
-+{
-+	struct file *file = get_empty_filp();
-+
-+	if (!file)
-+		return ERR_PTR(-ENFILE);
-+
-+	file->f_path.mnt = mntget(kvmfs_mnt);
-+	file->f_path.dentry = d_alloc_anon(inode);
-+	if (!file->f_path.dentry)
-+		return ERR_PTR(-ENOMEM);
-+	file->f_mapping = inode->i_mapping;
-+
-+	file->f_pos = 0;
-+	file->f_flags = O_RDWR;
-+	file->f_op = inode->i_fop;
-+	file->f_mode = FMODE_READ | FMODE_WRITE;
-+	file->f_version = 0;
-+	file->private_data = private_data;
-+	return file;
-+}
-+
- unsigned long segment_base(u16 selector)
+@@ -601,7 +601,7 @@ EXPORT_SYMBOL_GPL(fx_init);
+ /*
+  * Creates some virtual cpus.  Good luck creating more than one.
+  */
+-static int kvm_dev_ioctl_create_vcpu(struct kvm *kvm, int n)
++static int kvm_vm_ioctl_create_vcpu(struct kvm *kvm, int n)
  {
- 	struct descriptor_table gdt;
-@@ -222,13 +272,13 @@ static void vcpu_put(struct kvm_vcpu *vc
- 	mutex_unlock(&vcpu->mutex);
- }
- 
--static int kvm_dev_open(struct inode *inode, struct file *filp)
-+static struct kvm *kvm_create_vm(void)
+ 	int r;
+ 	struct kvm_vcpu *vcpu;
+@@ -655,8 +655,8 @@ out:
+  *
+  * Discontiguous memory is allowed, mostly for framebuffers.
+  */
+-static int kvm_dev_ioctl_set_memory_region(struct kvm *kvm,
+-					   struct kvm_memory_region *mem)
++static int kvm_vm_ioctl_set_memory_region(struct kvm *kvm,
++					  struct kvm_memory_region *mem)
  {
- 	struct kvm *kvm = kzalloc(sizeof(struct kvm), GFP_KERNEL);
- 	int i;
- 
- 	if (!kvm)
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	spin_lock_init(&kvm->lock);
- 	INIT_LIST_HEAD(&kvm->active_mmu_pages);
-@@ -244,7 +294,11 @@ static int kvm_dev_open(struct inode *in
- 		list_add(&kvm->vm_list, &vm_list);
- 		spin_unlock(&kvm_lock);
- 	}
--	filp->private_data = kvm;
-+	return kvm;
-+}
-+
-+static int kvm_dev_open(struct inode *inode, struct file *filp)
-+{
- 	return 0;
- }
- 
-@@ -300,14 +354,24 @@ static void kvm_free_vcpus(struct kvm *k
- 
- static int kvm_dev_release(struct inode *inode, struct file *filp)
+ 	int r;
+ 	gfn_t base_gfn;
+@@ -804,8 +804,8 @@ static void do_remove_write_access(struc
+ /*
+  * Get (and clear) the dirty memory log for a memory slot.
+  */
+-static int kvm_dev_ioctl_get_dirty_log(struct kvm *kvm,
+-				       struct kvm_dirty_log *log)
++static int kvm_vm_ioctl_get_dirty_log(struct kvm *kvm,
++				      struct kvm_dirty_log *log)
  {
--	struct kvm *kvm = filp->private_data;
-+	return 0;
-+}
- 
-+static void kvm_destroy_vm(struct kvm *kvm)
-+{
- 	spin_lock(&kvm_lock);
- 	list_del(&kvm->vm_list);
- 	spin_unlock(&kvm_lock);
- 	kvm_free_vcpus(kvm);
- 	kvm_free_physmem(kvm);
- 	kfree(kvm);
-+}
-+
-+static int kvm_vm_release(struct inode *inode, struct file *filp)
-+{
-+	struct kvm *kvm = filp->private_data;
-+
-+	kvm_destroy_vm(kvm);
- 	return 0;
+ 	struct kvm_memory_slot *memslot;
+ 	int r, i;
+@@ -1535,7 +1535,7 @@ void save_msrs(struct vmx_msr_entry *e, 
  }
+ EXPORT_SYMBOL_GPL(save_msrs);
  
-@@ -1900,17 +1964,14 @@ static int kvm_dev_ioctl_debug_guest(str
+-static int kvm_dev_ioctl_run(struct kvm *kvm, struct kvm_run *kvm_run)
++static int kvm_vm_ioctl_run(struct kvm *kvm, struct kvm_run *kvm_run)
+ {
+ 	struct kvm_vcpu *vcpu;
+ 	int r;
+@@ -1568,7 +1568,7 @@ static int kvm_dev_ioctl_run(struct kvm 
  	return r;
  }
  
--static long kvm_dev_ioctl(struct file *filp,
--			  unsigned int ioctl, unsigned long arg)
-+static long kvm_vm_ioctl(struct file *filp,
-+			 unsigned int ioctl, unsigned long arg)
+-static int kvm_dev_ioctl_get_regs(struct kvm *kvm, struct kvm_regs *regs)
++static int kvm_vm_ioctl_get_regs(struct kvm *kvm, struct kvm_regs *regs)
  {
- 	struct kvm *kvm = filp->private_data;
- 	void __user *argp = (void __user *)arg;
- 	int r = -EINVAL;
+ 	struct kvm_vcpu *vcpu;
+ 
+@@ -1614,7 +1614,7 @@ static int kvm_dev_ioctl_get_regs(struct
+ 	return 0;
+ }
+ 
+-static int kvm_dev_ioctl_set_regs(struct kvm *kvm, struct kvm_regs *regs)
++static int kvm_vm_ioctl_set_regs(struct kvm *kvm, struct kvm_regs *regs)
+ {
+ 	struct kvm_vcpu *vcpu;
+ 
+@@ -1660,7 +1660,7 @@ static void get_segment(struct kvm_vcpu 
+ 	return kvm_arch_ops->get_segment(vcpu, var, seg);
+ }
+ 
+-static int kvm_dev_ioctl_get_sregs(struct kvm *kvm, struct kvm_sregs *sregs)
++static int kvm_vm_ioctl_get_sregs(struct kvm *kvm, struct kvm_sregs *sregs)
+ {
+ 	struct kvm_vcpu *vcpu;
+ 	struct descriptor_table dt;
+@@ -1711,7 +1711,7 @@ static void set_segment(struct kvm_vcpu 
+ 	return kvm_arch_ops->set_segment(vcpu, var, seg);
+ }
+ 
+-static int kvm_dev_ioctl_set_sregs(struct kvm *kvm, struct kvm_sregs *sregs)
++static int kvm_vm_ioctl_set_sregs(struct kvm *kvm, struct kvm_sregs *sregs)
+ {
+ 	struct kvm_vcpu *vcpu;
+ 	int mmu_reset_needed = 0;
+@@ -1904,7 +1904,7 @@ out:
+ /*
+  * Translate a guest virtual address to a guest physical address.
+  */
+-static int kvm_dev_ioctl_translate(struct kvm *kvm, struct kvm_translation *tr)
++static int kvm_vm_ioctl_translate(struct kvm *kvm, struct kvm_translation *tr)
+ {
+ 	unsigned long vaddr = tr->linear_address;
+ 	struct kvm_vcpu *vcpu;
+@@ -1925,7 +1925,7 @@ static int kvm_dev_ioctl_translate(struc
+ 	return 0;
+ }
+ 
+-static int kvm_dev_ioctl_interrupt(struct kvm *kvm, struct kvm_interrupt *irq)
++static int kvm_vm_ioctl_interrupt(struct kvm *kvm, struct kvm_interrupt *irq)
+ {
+ 	struct kvm_vcpu *vcpu;
+ 
+@@ -1945,7 +1945,7 @@ static int kvm_dev_ioctl_interrupt(struc
+ 	return 0;
+ }
+ 
+-static int kvm_dev_ioctl_debug_guest(struct kvm *kvm,
++static int kvm_vm_ioctl_debug_guest(struct kvm *kvm,
+ 				     struct kvm_debug_guest *dbg)
+ {
+ 	struct kvm_vcpu *vcpu;
+@@ -1973,7 +1973,7 @@ static long kvm_vm_ioctl(struct file *fi
  
  	switch (ioctl) {
--	case KVM_GET_API_VERSION:
--		r = KVM_API_VERSION;
--		break;
  	case KVM_CREATE_VCPU:
- 		r = kvm_dev_ioctl_create_vcpu(kvm, arg);
+-		r = kvm_dev_ioctl_create_vcpu(kvm, arg);
++		r = kvm_vm_ioctl_create_vcpu(kvm, arg);
  		if (r)
-@@ -2052,6 +2113,107 @@ static long kvm_dev_ioctl(struct file *f
- 	case KVM_SET_MSRS:
- 		r = msr_io(kvm, argp, do_set_msr, 0);
+ 			goto out;
  		break;
-+	default:
-+		;
-+	}
-+out:
-+	return r;
-+}
-+
-+static struct page *kvm_vm_nopage(struct vm_area_struct *vma,
-+				  unsigned long address,
-+				  int *type)
-+{
-+	struct kvm *kvm = vma->vm_file->private_data;
-+	unsigned long pgoff;
-+	struct kvm_memory_slot *slot;
-+	struct page *page;
-+
-+	*type = VM_FAULT_MINOR;
-+	pgoff = ((address - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
-+	slot = gfn_to_memslot(kvm, pgoff);
-+	if (!slot)
-+		return NOPAGE_SIGBUS;
-+	page = gfn_to_page(slot, pgoff);
-+	if (!page)
-+		return NOPAGE_SIGBUS;
-+	get_page(page);
-+	return page;
-+}
-+
-+static struct vm_operations_struct kvm_vm_vm_ops = {
-+	.nopage = kvm_vm_nopage,
-+};
-+
-+static int kvm_vm_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	vma->vm_ops = &kvm_vm_vm_ops;
-+	return 0;
-+}
-+
-+static struct file_operations kvm_vm_fops = {
-+	.release        = kvm_vm_release,
-+	.unlocked_ioctl = kvm_vm_ioctl,
-+	.compat_ioctl   = kvm_vm_ioctl,
-+	.mmap           = kvm_vm_mmap,
-+};
-+
-+static int kvm_dev_ioctl_create_vm(void)
-+{
-+	int fd, r;
-+	struct inode *inode;
-+	struct file *file;
-+	struct kvm *kvm;
-+
-+	inode = kvmfs_inode(&kvm_vm_fops);
-+	if (IS_ERR(inode)) {
-+		r = PTR_ERR(inode);
-+		goto out1;
-+	}
-+
-+	kvm = kvm_create_vm();
-+	if (IS_ERR(kvm)) {
-+		r = PTR_ERR(kvm);
-+		goto out2;
-+	}
-+
-+	file = kvmfs_file(inode, kvm);
-+	if (IS_ERR(file)) {
-+		r = PTR_ERR(file);
-+		goto out3;
-+	}
-+
-+	r = get_unused_fd();
-+	if (r < 0)
-+		goto out4;
-+	fd = r;
-+	fd_install(fd, file);
-+
-+	return fd;
-+
-+out4:
-+	fput(file);
-+out3:
-+	kvm_destroy_vm(kvm);
-+out2:
-+	iput(inode);
-+out1:
-+	return r;
-+}
-+
-+static long kvm_dev_ioctl(struct file *filp,
-+			  unsigned int ioctl, unsigned long arg)
-+{
-+	void __user *argp = (void __user *)arg;
-+	int r = -EINVAL;
-+
-+	switch (ioctl) {
-+	case KVM_GET_API_VERSION:
-+		r = KVM_API_VERSION;
-+		break;
-+	case KVM_CREATE_VM:
-+		r = kvm_dev_ioctl_create_vm();
-+		break;
- 	case KVM_GET_MSR_INDEX_LIST: {
- 		struct kvm_msr_list __user *user_msr_list = argp;
- 		struct kvm_msr_list msr_list;
-@@ -2086,43 +2248,11 @@ out:
- 	return r;
- }
- 
--static struct page *kvm_dev_nopage(struct vm_area_struct *vma,
--				   unsigned long address,
--				   int *type)
--{
--	struct kvm *kvm = vma->vm_file->private_data;
--	unsigned long pgoff;
--	struct kvm_memory_slot *slot;
--	struct page *page;
--
--	*type = VM_FAULT_MINOR;
--	pgoff = ((address - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
--	slot = gfn_to_memslot(kvm, pgoff);
--	if (!slot)
--		return NOPAGE_SIGBUS;
--	page = gfn_to_page(slot, pgoff);
--	if (!page)
--		return NOPAGE_SIGBUS;
--	get_page(page);
--	return page;
--}
--
--static struct vm_operations_struct kvm_dev_vm_ops = {
--	.nopage = kvm_dev_nopage,
--};
--
--static int kvm_dev_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	vma->vm_ops = &kvm_dev_vm_ops;
--	return 0;
--}
--
- static struct file_operations kvm_chardev_ops = {
- 	.open		= kvm_dev_open,
- 	.release        = kvm_dev_release,
- 	.unlocked_ioctl = kvm_dev_ioctl,
- 	.compat_ioctl   = kvm_dev_ioctl,
--	.mmap           = kvm_dev_mmap,
- };
- 
- static struct miscdevice kvm_dev = {
-diff -puN include/linux/kvm.h~kvm-create-an-inode-per-virtual-machine include/linux/kvm.h
---- a/include/linux/kvm.h~kvm-create-an-inode-per-virtual-machine
-+++ a/include/linux/kvm.h
-@@ -224,7 +224,16 @@ struct kvm_dirty_log {
- 
- #define KVMIO 0xAE
- 
-+/*
-+ * ioctls for /dev/kvm fds:
-+ */
- #define KVM_GET_API_VERSION       _IO(KVMIO, 1)
-+#define KVM_CREATE_VM             _IO(KVMIO, 2) /* returns a VM fd */
-+#define KVM_GET_MSR_INDEX_LIST    _IOWR(KVMIO, 15, struct kvm_msr_list)
-+
-+/*
-+ * ioctls for VM fds
-+ */
- #define KVM_RUN                   _IOWR(KVMIO, 2, struct kvm_run)
- #define KVM_GET_REGS              _IOWR(KVMIO, 3, struct kvm_regs)
- #define KVM_SET_REGS              _IOW(KVMIO, 4, struct kvm_regs)
-@@ -238,6 +247,5 @@ struct kvm_dirty_log {
- #define KVM_GET_DIRTY_LOG         _IOW(KVMIO, 12, struct kvm_dirty_log)
- #define KVM_GET_MSRS              _IOWR(KVMIO, 13, struct kvm_msrs)
- #define KVM_SET_MSRS              _IOWR(KVMIO, 14, struct kvm_msrs)
--#define KVM_GET_MSR_INDEX_LIST    _IOWR(KVMIO, 15, struct kvm_msr_list)
- 
- #endif
+@@ -1983,7 +1983,7 @@ static long kvm_vm_ioctl(struct file *fi
+ 		r = -EFAULT;
+ 		if (copy_from_user(&kvm_run, argp, sizeof kvm_run))
+ 			goto out;
+-		r = kvm_dev_ioctl_run(kvm, &kvm_run);
++		r = kvm_vm_ioctl_run(kvm, &kvm_run);
+ 		if (r < 0 &&  r != -EINTR)
+ 			goto out;
+ 		if (copy_to_user(argp, &kvm_run, sizeof kvm_run)) {
+@@ -1998,7 +1998,7 @@ static long kvm_vm_ioctl(struct file *fi
+ 		r = -EFAULT;
+ 		if (copy_from_user(&kvm_regs, argp, sizeof kvm_regs))
+ 			goto out;
+-		r = kvm_dev_ioctl_get_regs(kvm, &kvm_regs);
++		r = kvm_vm_ioctl_get_regs(kvm, &kvm_regs);
+ 		if (r)
+ 			goto out;
+ 		r = -EFAULT;
+@@ -2013,7 +2013,7 @@ static long kvm_vm_ioctl(struct file *fi
+ 		r = -EFAULT;
+ 		if (copy_from_user(&kvm_regs, argp, sizeof kvm_regs))
+ 			goto out;
+-		r = kvm_dev_ioctl_set_regs(kvm, &kvm_regs);
++		r = kvm_vm_ioctl_set_regs(kvm, &kvm_regs);
+ 		if (r)
+ 			goto out;
+ 		r = 0;
+@@ -2025,7 +2025,7 @@ static long kvm_vm_ioctl(struct file *fi
+ 		r = -EFAULT;
+ 		if (copy_from_user(&kvm_sregs, argp, sizeof kvm_sregs))
+ 			goto out;
+-		r = kvm_dev_ioctl_get_sregs(kvm, &kvm_sregs);
++		r = kvm_vm_ioctl_get_sregs(kvm, &kvm_sregs);
+ 		if (r)
+ 			goto out;
+ 		r = -EFAULT;
+@@ -2040,7 +2040,7 @@ static long kvm_vm_ioctl(struct file *fi
+ 		r = -EFAULT;
+ 		if (copy_from_user(&kvm_sregs, argp, sizeof kvm_sregs))
+ 			goto out;
+-		r = kvm_dev_ioctl_set_sregs(kvm, &kvm_sregs);
++		r = kvm_vm_ioctl_set_sregs(kvm, &kvm_sregs);
+ 		if (r)
+ 			goto out;
+ 		r = 0;
+@@ -2052,7 +2052,7 @@ static long kvm_vm_ioctl(struct file *fi
+ 		r = -EFAULT;
+ 		if (copy_from_user(&tr, argp, sizeof tr))
+ 			goto out;
+-		r = kvm_dev_ioctl_translate(kvm, &tr);
++		r = kvm_vm_ioctl_translate(kvm, &tr);
+ 		if (r)
+ 			goto out;
+ 		r = -EFAULT;
+@@ -2067,7 +2067,7 @@ static long kvm_vm_ioctl(struct file *fi
+ 		r = -EFAULT;
+ 		if (copy_from_user(&irq, argp, sizeof irq))
+ 			goto out;
+-		r = kvm_dev_ioctl_interrupt(kvm, &irq);
++		r = kvm_vm_ioctl_interrupt(kvm, &irq);
+ 		if (r)
+ 			goto out;
+ 		r = 0;
+@@ -2079,7 +2079,7 @@ static long kvm_vm_ioctl(struct file *fi
+ 		r = -EFAULT;
+ 		if (copy_from_user(&dbg, argp, sizeof dbg))
+ 			goto out;
+-		r = kvm_dev_ioctl_debug_guest(kvm, &dbg);
++		r = kvm_vm_ioctl_debug_guest(kvm, &dbg);
+ 		if (r)
+ 			goto out;
+ 		r = 0;
+@@ -2091,7 +2091,7 @@ static long kvm_vm_ioctl(struct file *fi
+ 		r = -EFAULT;
+ 		if (copy_from_user(&kvm_mem, argp, sizeof kvm_mem))
+ 			goto out;
+-		r = kvm_dev_ioctl_set_memory_region(kvm, &kvm_mem);
++		r = kvm_vm_ioctl_set_memory_region(kvm, &kvm_mem);
+ 		if (r)
+ 			goto out;
+ 		break;
+@@ -2102,7 +2102,7 @@ static long kvm_vm_ioctl(struct file *fi
+ 		r = -EFAULT;
+ 		if (copy_from_user(&log, argp, sizeof log))
+ 			goto out;
+-		r = kvm_dev_ioctl_get_dirty_log(kvm, &log);
++		r = kvm_vm_ioctl_get_dirty_log(kvm, &log);
+ 		if (r)
+ 			goto out;
+ 		break;
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
