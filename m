@@ -1,1646 +1,332 @@
 From: akpm@linux-foundation.org
-Subject: - cpuidle-take2-core-cpuidle-infrastructure.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:54:08 -0800
-Message-ID: <200702282354.l1SNs841031175@shell0.pdx.osdl.net>
+Subject: - spidernet-load-firmware-when-open.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:52:51 -0800
+Message-ID: <200702282352.l1SNqpe3031031@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48585 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48596 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932770AbXB1Xzl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:55:41 -0500
+	id S932782AbXB1X4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:56:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, abelay@novell.com, ak@suse.de, davej@codemonkey.org.uk, lenb@kernel.org, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: kou.ishizaki@toshiba.co.jp, linas@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuidle take2: Core cpuidle infrastructure
+     spidernet: load firmware when open
 has been removed from the -mm tree.  Its filename was
-     cpuidle-take2-core-cpuidle-infrastructure.patch
+     spidernet-load-firmware-when-open.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpuidle take2: Core cpuidle infrastructure
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: spidernet: load firmware when open
+From: Kou Ishizaki <kou.ishizaki@toshiba.co.jp>
 
-Announcing 'cpuidle', a new CPU power management infrastructure to manage idle
-CPUs in a clean and efficient manner.  cpuidle separates out the drivers that
-can provide support for multiple types of idle states and policy governors
-that decide on what idle state to use at run time.
+This patch moves calling init_firmware() from spider_net_probe() to
+spider_net_open() so as to use the driver by built-in.
 
-A cpuidle driver can support multiple idle states based on parameters like
-varying power consumption, wakeup latency, etc (ACPI C-states for example).  A
-cpuidle governor can be usage model specific (laptop, server, laptop on
-battery etc).
-
-Main advantage of the infrastructure being, it allows independent development
-of drivers and governors and allows for better CPU power management.
-
-A huge thanks to Adam Belay and Shaohua Li who were part of this mini-project
-since its beginning and are greatly responsible for this patchset.
-
-This patch:
-
-Core cpuidle infrastructure.
-Introduces a new abstraction layer for cpuidle:
-* which manages drivers that can support multiple idles states. Drivers
-  can be generic or particular to specific hardware/platform
-* allows pluging in multiple policy governors that can take idle state policy
-  decision
-* The core also has a set of sysfs interfaces with which administrato can know
-  about supported drivers and governors and switch them at run time.
-
-Signed-off-by: Adam Belay <abelay@novell.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Kou Ishizaki <kou.ishizaki@toshiba.co.jp>
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig                  |    2 
- arch/x86_64/Kconfig                |    2 
- drivers/Makefile                   |    1 
- drivers/cpuidle/Kconfig            |   28 ++
- drivers/cpuidle/Makefile           |    5 
- drivers/cpuidle/cpuidle.c          |  287 ++++++++++++++++++++++
- drivers/cpuidle/cpuidle.h          |   52 ++++
- drivers/cpuidle/driver.c           |  219 +++++++++++++++++
- drivers/cpuidle/governor.c         |  160 ++++++++++++
- drivers/cpuidle/governors/Makefile |    5 
- drivers/cpuidle/governors/ladder.c |  229 ++++++++++++++++++
- drivers/cpuidle/sysfs.c            |  340 +++++++++++++++++++++++++++
- include/linux/cpuidle.h            |  160 ++++++++++++
- 13 files changed, 1490 insertions(+)
+ drivers/net/spider_net.c |  247 ++++++++++++++++++-------------------
+ 1 file changed, 123 insertions(+), 124 deletions(-)
 
-diff -puN arch/i386/Kconfig~cpuidle-take2-core-cpuidle-infrastructure arch/i386/Kconfig
---- a/arch/i386/Kconfig~cpuidle-take2-core-cpuidle-infrastructure
-+++ a/arch/i386/Kconfig
-@@ -1089,6 +1089,8 @@ endmenu
+diff -puN drivers/net/spider_net.c~spidernet-load-firmware-when-open drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-load-firmware-when-open
++++ a/drivers/net/spider_net.c
+@@ -1705,6 +1705,124 @@ spider_net_enable_card(struct spider_net
+ }
  
- source "arch/i386/kernel/cpu/cpufreq/Kconfig"
- 
-+source "drivers/cpuidle/Kconfig"
-+
- endmenu
- 
- menu "Bus options (PCI, PCMCIA, EISA, MCA, ISA)"
-diff -puN arch/x86_64/Kconfig~cpuidle-take2-core-cpuidle-infrastructure arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~cpuidle-take2-core-cpuidle-infrastructure
-+++ a/arch/x86_64/Kconfig
-@@ -670,6 +670,8 @@ source "drivers/acpi/Kconfig"
- 
- source "arch/x86_64/kernel/cpufreq/Kconfig"
- 
-+source "drivers/cpuidle/Kconfig"
-+
- endmenu
- 
- menu "Bus options (PCI etc.)"
-diff -puN drivers/Makefile~cpuidle-take2-core-cpuidle-infrastructure drivers/Makefile
---- a/drivers/Makefile~cpuidle-take2-core-cpuidle-infrastructure
-+++ a/drivers/Makefile
-@@ -75,6 +75,7 @@ obj-$(CONFIG_EDAC)		+= edac/
- obj-$(CONFIG_MCA)		+= mca/
- obj-$(CONFIG_EISA)		+= eisa/
- obj-$(CONFIG_CPU_FREQ)		+= cpufreq/
-+obj-$(CONFIG_CPU_IDLE)		+= cpuidle/
- obj-$(CONFIG_MMC)		+= mmc/
- obj-$(CONFIG_NEW_LEDS)		+= leds/
- obj-$(CONFIG_INFINIBAND)	+= infiniband/
-diff -puN /dev/null drivers/cpuidle/Kconfig
---- /dev/null
-+++ a/drivers/cpuidle/Kconfig
-@@ -0,0 +1,28 @@
-+menu "CPU idle PM support"
-+
-+config CPU_IDLE
-+	bool "CPU idle PM support"
-+	help
-+	  CPU idle is a generic framework for supporting software-controlled
-+	  idle processor power management.  It includes modular cross-platform
-+	  governors that can be swapped during runtime.
-+
-+	  If you're using a mobile platform that supports CPU idle PM (e.g.
-+	  an ACPI-capable notebook), you should say Y here.
-+
-+if CPU_IDLE
-+
-+comment "Governors"
-+
-+config CPU_IDLE_GOV_LADDER
-+	tristate "'ladder' governor"
-+	depends on CPU_IDLE
-+	default y
-+	help
-+	  This cpuidle governor promotes and demotes through the supported idle
-+	  states using residency time and bus master activity as metrics.  This
-+	  algorithm was originally introduced in the old ACPI processor driver.
-+
-+endif	# CPU_IDLE
-+
-+endmenu
-diff -puN /dev/null drivers/cpuidle/Makefile
---- /dev/null
-+++ a/drivers/cpuidle/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for cpuidle.
-+#
-+
-+obj-y += cpuidle.o driver.o governor.o sysfs.o governors/
-diff -puN /dev/null drivers/cpuidle/cpuidle.c
---- /dev/null
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -0,0 +1,287 @@
-+/*
-+ * cpuidle.c - core cpuidle infrastructure
+ /**
++ * spider_net_download_firmware - loads firmware into the adapter
++ * @card: card structure
++ * @firmware_ptr: pointer to firmware data
 + *
-+ * (C) 2006-2007 Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-+ *               Shaohua Li <shaohua.li@intel.com>
-+ *               Adam Belay <abelay@novell.com>
-+ *
-+ * This code is licenced under the GPL.
++ * spider_net_download_firmware loads the firmware data into the
++ * adapter. It assumes the length etc. to be allright.
 + */
-+
-+#include <linux/kernel.h>
-+#include <linux/mutex.h>
-+#include <linux/sched.h>
-+#include <linux/notifier.h>
-+#include <linux/cpu.h>
-+#include <linux/latency.h>
-+#include <linux/cpuidle.h>
-+
-+#include "cpuidle.h"
-+
-+DEFINE_PER_CPU(struct cpuidle_device, cpuidle_devices);
-+EXPORT_PER_CPU_SYMBOL_GPL(cpuidle_devices);
-+
-+DEFINE_MUTEX(cpuidle_lock);
-+LIST_HEAD(cpuidle_detected_devices);
-+static void (*pm_idle_old)(void);
-+
-+
-+/**
-+ * cpuidle_idle_call - the main idle loop
-+ *
-+ * NOTE: no locks or semaphores should be used here
-+ * FIXME: DYNTICKS handling
-+ */
-+static void cpuidle_idle_call(void)
++static int
++spider_net_download_firmware(struct spider_net_card *card,
++			     const void *firmware_ptr)
 +{
-+	struct cpuidle_device *dev = &__get_cpu_var(cpuidle_devices);
++	int sequencer, i;
++	const u32 *fw_ptr = firmware_ptr;
 +
-+	struct cpuidle_state *target_state;
-+	int next_state;
++	/* stop sequencers */
++	spider_net_write_reg(card, SPIDER_NET_GSINIT,
++			     SPIDER_NET_STOP_SEQ_VALUE);
 +
-+	/* check if the device is ready */
-+	if (dev->status != CPUIDLE_STATUS_DOIDLE) {
-+		if (pm_idle_old)
-+			pm_idle_old();
-+		return;
++	for (sequencer = 0; sequencer < SPIDER_NET_FIRMWARE_SEQS;
++	     sequencer++) {
++		spider_net_write_reg(card,
++				     SPIDER_NET_GSnPRGADR + sequencer * 8, 0);
++		for (i = 0; i < SPIDER_NET_FIRMWARE_SEQWORDS; i++) {
++			spider_net_write_reg(card, SPIDER_NET_GSnPRGDAT +
++					     sequencer * 8, *fw_ptr);
++			fw_ptr++;
++		}
 +	}
 +
-+	if (cpuidle_curr_governor->prepare_idle)
-+		cpuidle_curr_governor->prepare_idle(dev);
-+
-+	while(!need_resched()) {
-+		next_state = cpuidle_curr_governor->select_state(dev);
-+		if (need_resched())
-+			break;
-+
-+		target_state = &dev->states[next_state];
-+
-+		dev->last_residency = target_state->enter(dev, target_state);
-+		dev->last_state = target_state;
-+		target_state->time += dev->last_residency;
-+		target_state->usage++;
-+
-+		if (dev->status != CPUIDLE_STATUS_DOIDLE)
-+			break;
-+	}
-+}
-+
-+/**
-+ * cpuidle_install_idle_handler - installs the cpuidle idle loop handler
-+ */
-+void cpuidle_install_idle_handler(void)
-+{
-+	if (pm_idle != cpuidle_idle_call) {
-+		/* Make sure all changes finished before we switch to new idle */
-+		smp_wmb();
-+		pm_idle = cpuidle_idle_call;
-+	}
-+}
-+
-+/**
-+ * cpuidle_uninstall_idle_handler - uninstalls the cpuidle idle loop handler
-+ */
-+void cpuidle_uninstall_idle_handler(void)
-+{
-+	if (pm_idle != pm_idle_old) {
-+		pm_idle = pm_idle_old;
-+		cpu_idle_wait();
-+	}
-+}
-+
-+/**
-+ * cpuidle_rescan_device - prepares for a new state configuration
-+ * @dev: the target device
-+ *
-+ * Must be called with cpuidle_lock aquired.
-+ */
-+void cpuidle_rescan_device(struct cpuidle_device *dev)
-+{
-+	int i;
-+
-+	if (cpuidle_curr_governor->scan)
-+		cpuidle_curr_governor->scan(dev);
-+
-+	for (i = 0; i < dev->state_count; i++) {
-+		dev->states[i].usage = 0;
-+		dev->states[i].time = 0;
-+	}
-+}
-+
-+/**
-+ * cpuidle_add_device - attaches the driver to a CPU instance
-+ * @sys_dev: the system device (driver model CPU representation)
-+ */
-+static int cpuidle_add_device(struct sys_device *sys_dev)
-+{
-+	int cpu = sys_dev->id;
-+	struct cpuidle_device *dev;
-+
-+	dev = &per_cpu(cpuidle_devices, cpu);
-+
-+	mutex_lock(&cpuidle_lock);
-+	if (cpu_is_offline(cpu)) {
-+		mutex_unlock(&cpuidle_lock);
-+		return 0;
-+	}
-+
-+	if (dev->status & CPUIDLE_STATUS_DETECTED) {
-+		mutex_unlock(&cpuidle_lock);
-+		return 0;
-+	}
-+	dev->status |= CPUIDLE_STATUS_DETECTED;
-+	list_add(&dev->device_list, &cpuidle_detected_devices);
-+	cpuidle_add_sysfs(sys_dev);
-+	if (cpuidle_curr_driver)
-+		cpuidle_attach_driver(dev);
-+	if (cpuidle_curr_governor)
-+		cpuidle_attach_governor(dev);
-+	if (cpuidle_device_can_idle(dev))
-+		cpuidle_install_idle_handler();
-+	mutex_unlock(&cpuidle_lock);
-+
-+	return 0;
-+}
-+
-+/**
-+ * __cpuidle_remove_device - detaches the driver from a CPU instance
-+ * @sys_dev: the system device (driver model CPU representation)
-+ *
-+ * Must be called with cpuidle_lock aquired.
-+ */
-+static int __cpuidle_remove_device(struct sys_device *sys_dev)
-+{
-+	struct cpuidle_device *dev;
-+
-+	dev = &per_cpu(cpuidle_devices, sys_dev->id);
-+
-+	if (!(dev->status & CPUIDLE_STATUS_DETECTED)) {
-+		return 0;
-+	}
-+	dev->status &= ~CPUIDLE_STATUS_DETECTED;
-+	/* NOTE: we don't wait because the cpu is already offline */
-+	if (cpuidle_curr_governor)
-+		cpuidle_detach_governor(dev);
-+	if (cpuidle_curr_driver)
-+		cpuidle_detach_driver(dev);
-+	cpuidle_remove_sysfs(sys_dev);
-+	list_del(&dev->device_list);
-+
-+	return 0;
-+}
-+
-+/**
-+ * cpuidle_remove_device - detaches the driver from a CPU instance
-+ * @sys_dev: the system device (driver model CPU representation)
-+ */
-+static int cpuidle_remove_device(struct sys_device *sys_dev)
-+{
-+	int ret;
-+	mutex_lock(&cpuidle_lock);
-+	ret = __cpuidle_remove_device(sys_dev);
-+	mutex_unlock(&cpuidle_lock);
-+
-+	return ret;
-+}
-+
-+static struct sysdev_driver cpuidle_sysdev_driver = {
-+	.add		= cpuidle_add_device,
-+	.remove		= cpuidle_remove_device,
-+};
-+
-+#ifdef CONFIG_SMP
-+
-+#ifdef CONFIG_HOTPLUG_CPU
-+
-+static int cpuidle_cpu_callback(struct notifier_block *nfb,
-+					unsigned long action, void *hcpu)
-+{
-+	struct sys_device *sys_dev;
-+
-+	sys_dev = get_cpu_sysdev((unsigned long)hcpu);
-+
-+	switch (action) {
-+	case CPU_ONLINE:
-+		cpuidle_add_device(sys_dev);
-+		break;
-+	case CPU_DOWN_PREPARE:
-+		mutex_lock(&cpuidle_lock);
-+		break;
-+	case CPU_DEAD:
-+		__cpuidle_remove_device(sys_dev);
-+		mutex_unlock(&cpuidle_lock);
-+		break;
-+	case CPU_DOWN_FAILED:
-+		mutex_unlock(&cpuidle_lock);
-+		break;
-+	}
-+
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block __cpuinitdata cpuidle_cpu_notifier =
-+{
-+    .notifier_call = cpuidle_cpu_callback,
-+};
-+
-+#endif /* CONFIG_HOTPLUG_CPU */
-+
-+static void smp_callback(void *v)
-+{
-+	/* we already woke the CPU up, nothing more to do */
-+}
-+
-+/*
-+ * This function gets called when a part of the kernel has a new latency
-+ * requirement.  This means we need to get all processors out of their C-state,
-+ * and then recalculate a new suitable C-state. Just do a cross-cpu IPI; that
-+ * wakes them all right up.
-+ */
-+static int cpuidle_latency_notify(struct notifier_block *b,
-+		unsigned long l, void *v)
-+{
-+	smp_call_function(smp_callback, NULL, 0, 1);
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block cpuidle_latency_notifier = {
-+	.notifier_call = cpuidle_latency_notify,
-+};
-+
-+#define latency_notifier_init(x) do { register_latency_notifier(x); } while (0)
-+
-+#else /* CONFIG_SMP */
-+
-+#define latency_notifier_init(x) do { } while (0)
-+
-+#endif /* CONFIG_SMP */
-+
-+/**
-+ * cpuidle_init - core initializer
-+ */
-+static int __init cpuidle_init(void)
-+{
-+	int ret;
-+
-+	pm_idle_old = pm_idle;
-+
-+	ret = cpuidle_add_class_sysfs(&cpu_sysdev_class);
-+	if (ret)
-+		return ret;
-+
-+	register_hotcpu_notifier(&cpuidle_cpu_notifier);
-+
-+	ret = sysdev_driver_register(&cpu_sysdev_class, &cpuidle_sysdev_driver);
-+
-+	if (ret) {
-+		cpuidle_remove_class_sysfs(&cpu_sysdev_class);
-+		printk(KERN_ERR "cpuidle: failed to initialize\n");
-+		return ret;
-+	}
-+
-+	latency_notifier_init(&cpuidle_latency_notifier);
-+
-+	return 0;
-+}
-+
-+core_initcall(cpuidle_init);
-diff -puN /dev/null drivers/cpuidle/cpuidle.h
---- /dev/null
-+++ a/drivers/cpuidle/cpuidle.h
-@@ -0,0 +1,52 @@
-+/*
-+ * cpuidle.h - The internal header file
-+ */
-+
-+#ifndef __DRIVER_CPUIDLE_H
-+#define __DRIVER_CPUIDLE_H
-+
-+#include <linux/sysdev.h>
-+
-+/* For internal use only */
-+extern struct cpuidle_governor *cpuidle_curr_governor;
-+extern struct cpuidle_driver *cpuidle_curr_driver;
-+extern struct list_head cpuidle_drivers;
-+extern struct list_head cpuidle_governors;
-+extern struct list_head cpuidle_detected_devices;
-+extern struct mutex cpuidle_lock;
-+
-+/* idle loop */
-+extern void cpuidle_install_idle_handler(void);
-+extern void cpuidle_uninstall_idle_handler(void);
-+extern void cpuidle_rescan_device(struct cpuidle_device *dev);
-+
-+/* drivers */
-+extern int cpuidle_attach_driver(struct cpuidle_device *dev);
-+extern void cpuidle_detach_driver(struct cpuidle_device *dev);
-+extern struct cpuidle_driver * __cpuidle_find_driver(const char *str);
-+extern int cpuidle_switch_driver(struct cpuidle_driver *drv);
-+
-+/* governors */
-+extern int cpuidle_attach_governor(struct cpuidle_device *dev);
-+extern void cpuidle_detach_governor(struct cpuidle_device *dev);
-+extern struct cpuidle_governor * __cpuidle_find_governor(const char *str);
-+extern int cpuidle_switch_governor(struct cpuidle_governor *gov);
-+
-+/* sysfs */
-+extern int cpuidle_add_class_sysfs(struct sysdev_class *cls);
-+extern void cpuidle_remove_class_sysfs(struct sysdev_class *cls);
-+extern int cpuidle_add_driver_sysfs(struct cpuidle_device *device);
-+extern void cpuidle_remove_driver_sysfs(struct cpuidle_device *device);
-+extern int cpuidle_add_sysfs(struct sys_device *sysdev);
-+extern void cpuidle_remove_sysfs(struct sys_device *sysdev);
-+
-+/**
-+ * cpuidle_device_can_idle - determines if a CPU can utilize the idle loop
-+ * @dev: the target CPU
-+ */
-+static inline int cpuidle_device_can_idle(struct cpuidle_device *dev)
-+{
-+	return (dev->status == CPUIDLE_STATUS_DOIDLE);
-+}
-+
-+#endif /* __DRIVER_CPUIDLE_H */
-diff -puN /dev/null drivers/cpuidle/driver.c
---- /dev/null
-+++ a/drivers/cpuidle/driver.c
-@@ -0,0 +1,219 @@
-+/*
-+ * driver.c - driver support
-+ *
-+ * (C) 2006-2007 Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-+ *               Shaohua Li <shaohua.li@intel.com>
-+ *               Adam Belay <abelay@novell.com>
-+ *
-+ * This code is licenced under the GPL.
-+ */
-+
-+#include <linux/mutex.h>
-+#include <linux/module.h>
-+#include <linux/cpuidle.h>
-+
-+#include "cpuidle.h"
-+
-+LIST_HEAD(cpuidle_drivers);
-+struct cpuidle_driver *cpuidle_curr_driver;
-+
-+
-+/**
-+ * cpuidle_attach_driver - attaches a driver to a CPU
-+ * @dev: the target CPU
-+ *
-+ * Must be called with cpuidle_lock aquired.
-+ */
-+int cpuidle_attach_driver(struct cpuidle_device *dev)
-+{
-+	int ret;
-+
-+	if (dev->status & CPUIDLE_STATUS_DRIVER_ATTACHED)
++	if (spider_net_read_reg(card, SPIDER_NET_GSINIT))
 +		return -EIO;
 +
-+	if (!try_module_get(cpuidle_curr_driver->owner))
-+		return -EINVAL;
-+
-+	ret = cpuidle_curr_driver->init(dev);
-+	if (ret) {
-+		module_put(cpuidle_curr_driver->owner);
-+		printk(KERN_ERR "cpuidle: driver %s failed to attach to cpu %d\n",
-+			cpuidle_curr_driver->name, dev->cpu);
-+	} else {
-+		if (dev->status & CPUIDLE_STATUS_GOVERNOR_ATTACHED)
-+			cpuidle_rescan_device(dev);
-+		smp_wmb();
-+		dev->status |= CPUIDLE_STATUS_DRIVER_ATTACHED;
-+		cpuidle_add_driver_sysfs(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-+ * cpuidle_detach_govenor - detaches a driver from a CPU
-+ * @dev: the target CPU
-+ *
-+ * Must be called with cpuidle_lock aquired.
-+ */
-+void cpuidle_detach_driver(struct cpuidle_device *dev)
-+{
-+	if (dev->status & CPUIDLE_STATUS_DRIVER_ATTACHED) {
-+		cpuidle_remove_driver_sysfs(dev);
-+		dev->status &= ~CPUIDLE_STATUS_DRIVER_ATTACHED;
-+		if (cpuidle_curr_driver->exit)
-+			cpuidle_curr_driver->exit(dev);
-+		module_put(cpuidle_curr_driver->owner);
-+	}
-+}
-+
-+/**
-+ * __cpuidle_find_driver - finds a driver of the specified name
-+ * @str: the name
-+ *
-+ * Must be called with cpuidle_lock aquired.
-+ */
-+struct cpuidle_driver * __cpuidle_find_driver(const char *str)
-+{
-+	struct cpuidle_driver *drv;
-+
-+	list_for_each_entry(drv, &cpuidle_drivers, driver_list)
-+		if (!strnicmp(str, drv->name, CPUIDLE_NAME_LEN))
-+			return drv;
-+
-+	return NULL;
-+}
-+
-+/**
-+ * cpuidle_switch_driver - changes the driver
-+ * @drv: the new target driver
-+ *
-+ * NOTE: "drv" can be NULL to specify disabled
-+ * Must be called with cpuidle_lock aquired.
-+ */
-+int cpuidle_switch_driver(struct cpuidle_driver *drv)
-+{
-+	struct cpuidle_device *dev;
-+
-+	if (drv == cpuidle_curr_driver)
-+		return -EINVAL;
-+
-+	cpuidle_uninstall_idle_handler();
-+
-+	if (cpuidle_curr_driver)
-+		list_for_each_entry(dev, &cpuidle_detected_devices, device_list)
-+			cpuidle_detach_driver(dev);
-+
-+	cpuidle_curr_driver = drv;
-+
-+	if (drv) {
-+		list_for_each_entry(dev, &cpuidle_detected_devices, device_list)
-+			cpuidle_attach_driver(dev);
-+		if (cpuidle_curr_governor)
-+			cpuidle_install_idle_handler();
-+		printk(KERN_INFO "cpuidle: using driver %s\n", drv->name);
-+	}
++	spider_net_write_reg(card, SPIDER_NET_GSINIT,
++			     SPIDER_NET_RUN_SEQ_VALUE);
 +
 +	return 0;
 +}
 +
 +/**
-+ * cpuidle_register_driver - registers a driver
-+ * @drv: the driver
-+ */
-+int cpuidle_register_driver(struct cpuidle_driver *drv)
-+{
-+	int ret = -EEXIST;
-+
-+	if (!drv || !drv->init)
-+		return -EINVAL;
-+
-+	mutex_lock(&cpuidle_lock);
-+	if (__cpuidle_find_driver(drv->name) == NULL) {
-+		ret = 0;
-+		list_add_tail(&drv->driver_list, &cpuidle_drivers);
-+		if (!cpuidle_curr_driver)
-+			cpuidle_switch_driver(drv);
-+	}
-+	mutex_unlock(&cpuidle_lock);
-+
-+	return ret;
-+}
-+
-+EXPORT_SYMBOL_GPL(cpuidle_register_driver);
-+
-+/**
-+ * cpuidle_unregister_driver - unregisters a driver
-+ * @drv: the driver
-+ */
-+void cpuidle_unregister_driver(struct cpuidle_driver *drv)
-+{
-+	if (!drv)
-+		return;
-+
-+	mutex_lock(&cpuidle_lock);
-+	if (drv == cpuidle_curr_driver)
-+		cpuidle_switch_driver(NULL);
-+	list_del(&drv->driver_list);
-+	mutex_unlock(&cpuidle_lock);
-+}
-+
-+EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
-+
-+/**
-+ * cpuidle_force_redetect - redetects the idle states of a CPU
++ * spider_net_init_firmware - reads in firmware parts
++ * @card: card structure
 + *
-+ * @dev: the CPU to redetect
++ * Returns 0 on success, <0 on failure
 + *
-+ * Generally, the driver will call this when the supported states set has
-+ * changed. (e.g. as the result of an ACPI transition to battery power)
-+ */
-+int cpuidle_force_redetect(struct cpuidle_device *dev)
-+{
-+	int uninstalled = 0;
-+
-+	mutex_lock(&cpuidle_lock);
-+
-+	if (!(dev->status & CPUIDLE_STATUS_DRIVER_ATTACHED) ||
-+	    !cpuidle_curr_driver->redetect) {
-+		mutex_unlock(&cpuidle_lock);
-+		return -EIO;
-+	}
-+
-+	if (cpuidle_device_can_idle(dev)) {
-+		uninstalled = 1;
-+		cpuidle_uninstall_idle_handler();
-+	}
-+
-+	cpuidle_remove_driver_sysfs(dev);
-+	cpuidle_curr_driver->redetect(dev);
-+	cpuidle_add_driver_sysfs(dev);
-+
-+	if (cpuidle_device_can_idle(dev)) {
-+		cpuidle_rescan_device(dev);
-+		cpuidle_install_idle_handler();
-+	}
-+
-+	/* other devices are still ok */
-+	if (uninstalled)
-+		cpuidle_install_idle_handler();
-+
-+	mutex_unlock(&cpuidle_lock);
-+
-+	return 0;
-+}
-+
-+EXPORT_SYMBOL_GPL(cpuidle_force_redetect);
-+
-+/**
-+ * cpuidle_get_bm_activity - determines if BM activity has occured
-+ */
-+int cpuidle_get_bm_activity(void)
-+{
-+	if (cpuidle_curr_driver->bm_check)
-+		return cpuidle_curr_driver->bm_check();
-+	else
-+		return 0;
-+}
-+EXPORT_SYMBOL_GPL(cpuidle_get_bm_activity);
-+
-diff -puN /dev/null drivers/cpuidle/governor.c
---- /dev/null
-+++ a/drivers/cpuidle/governor.c
-@@ -0,0 +1,160 @@
-+/*
-+ * governor.c - governor support
++ * spider_net_init_firmware opens the sequencer firmware and does some basic
++ * checks. This function opens and releases the firmware structure. A call
++ * to download the firmware is performed before the release.
 + *
-+ * (C) 2006-2007 Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-+ *               Shaohua Li <shaohua.li@intel.com>
-+ *               Adam Belay <abelay@novell.com>
++ * Firmware format
++ * ===============
++ * spider_fw.bin is expected to be a file containing 6*1024*4 bytes, 4k being
++ * the program for each sequencer. Use the command
++ *    tail -q -n +2 Seq_code1_0x088.txt Seq_code2_0x090.txt              \
++ *         Seq_code3_0x098.txt Seq_code4_0x0A0.txt Seq_code5_0x0A8.txt   \
++ *         Seq_code6_0x0B0.txt | xxd -r -p -c4 > spider_fw.bin
 + *
-+ * This code is licenced under the GPL.
++ * to generate spider_fw.bin, if you have sequencer programs with something
++ * like the following contents for each sequencer:
++ *    <ONE LINE COMMENT>
++ *    <FIRST 4-BYTES-WORD FOR SEQUENCER>
++ *    <SECOND 4-BYTES-WORD FOR SEQUENCER>
++ *     ...
++ *    <1024th 4-BYTES-WORD FOR SEQUENCER>
 + */
-+
-+#include <linux/mutex.h>
-+#include <linux/module.h>
-+#include <linux/cpuidle.h>
-+
-+#include "cpuidle.h"
-+
-+LIST_HEAD(cpuidle_governors);
-+struct cpuidle_governor *cpuidle_curr_governor;
-+
-+
-+/**
-+ * cpuidle_attach_governor - attaches a governor to a CPU
-+ * @dev: the target CPU
-+ *
-+ * Must be called with cpuidle_lock aquired.
-+ */
-+int cpuidle_attach_governor(struct cpuidle_device *dev)
++static int
++spider_net_init_firmware(struct spider_net_card *card)
 +{
-+	int ret = 0;
++	struct firmware *firmware = NULL;
++	struct device_node *dn;
++	const u8 *fw_prop = NULL;
++	int err = -ENOENT;
++	int fw_size;
 +
-+	if(dev->status & CPUIDLE_STATUS_GOVERNOR_ATTACHED)
-+		return -EIO;
-+
-+	if (!try_module_get(cpuidle_curr_governor->owner))
-+		return -EINVAL;
-+
-+	if (cpuidle_curr_governor->init)
-+		ret = cpuidle_curr_governor->init(dev);
-+	if (ret) {
-+		module_put(cpuidle_curr_governor->owner);
-+		printk(KERN_ERR "cpuidle: governor %s failed to attach to cpu %d\n",
-+			cpuidle_curr_governor->name, dev->cpu);
-+	} else {
-+		if (dev->status & CPUIDLE_STATUS_DRIVER_ATTACHED)
-+			cpuidle_rescan_device(dev);
-+		smp_wmb();
-+		dev->status |= CPUIDLE_STATUS_GOVERNOR_ATTACHED;
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-+ * cpuidle_detach_govenor - detaches a governor from a CPU
-+ * @dev: the target CPU
-+ *
-+ * Must be called with cpuidle_lock aquired.
-+ */
-+void cpuidle_detach_governor(struct cpuidle_device *dev)
-+{
-+	if (dev->status & CPUIDLE_STATUS_GOVERNOR_ATTACHED) {
-+		dev->status &= ~CPUIDLE_STATUS_GOVERNOR_ATTACHED;
-+		if (cpuidle_curr_governor->exit)
-+			cpuidle_curr_governor->exit(dev);
-+		module_put(cpuidle_curr_governor->owner);
-+	}
-+}
-+
-+/**
-+ * __cpuidle_find_governor - finds a governor of the specified name
-+ * @str: the name
-+ *
-+ * Must be called with cpuidle_lock aquired.
-+ */
-+struct cpuidle_governor * __cpuidle_find_governor(const char *str)
-+{
-+	struct cpuidle_governor *gov;
-+
-+	list_for_each_entry(gov, &cpuidle_governors, governor_list)
-+		if (!strnicmp(str, gov->name, CPUIDLE_NAME_LEN))
-+			return gov;
-+
-+	return NULL;
-+}
-+
-+/**
-+ * cpuidle_switch_governor - changes the governor
-+ * @gov: the new target governor
-+ *
-+ * NOTE: "gov" can be NULL to specify disabled
-+ * Must be called with cpuidle_lock aquired.
-+ */
-+int cpuidle_switch_governor(struct cpuidle_governor *gov)
-+{
-+	struct cpuidle_device *dev;
-+
-+	if (gov == cpuidle_curr_governor)
-+		return -EINVAL;
-+
-+	cpuidle_uninstall_idle_handler();
-+
-+	if (cpuidle_curr_governor)
-+		list_for_each_entry(dev, &cpuidle_detected_devices, device_list)
-+			cpuidle_detach_governor(dev);
-+
-+	cpuidle_curr_governor = gov;
-+
-+	if (gov) {
-+		list_for_each_entry(dev, &cpuidle_detected_devices, device_list)
-+			cpuidle_attach_governor(dev);
-+		if (cpuidle_curr_driver)
-+			cpuidle_install_idle_handler();
-+		printk(KERN_INFO "cpuidle: using governor %s\n", gov->name);
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * cpuidle_register_governor - registers a governor
-+ * @gov: the governor
-+ */
-+int cpuidle_register_governor(struct cpuidle_governor *gov)
-+{
-+	int ret = -EEXIST;
-+
-+	if (!gov || !gov->select_state)
-+		return -EINVAL;
-+
-+	mutex_lock(&cpuidle_lock);
-+	if (__cpuidle_find_governor(gov->name) == NULL) {
-+		ret = 0;
-+		list_add_tail(&gov->governor_list, &cpuidle_governors);
-+		if (!cpuidle_curr_governor)
-+			cpuidle_switch_governor(gov);
-+	}
-+	mutex_unlock(&cpuidle_lock);
-+
-+	return ret;
-+}
-+
-+EXPORT_SYMBOL_GPL(cpuidle_register_governor);
-+
-+/**
-+ * cpuidle_unregister_governor - unregisters a governor
-+ * @gov: the governor
-+ */
-+void cpuidle_unregister_governor(struct cpuidle_governor *gov)
-+{
-+	if (!gov)
-+		return;
-+
-+	mutex_lock(&cpuidle_lock);
-+	if (gov == cpuidle_curr_governor)
-+		cpuidle_switch_governor(NULL);
-+	list_del(&gov->governor_list);
-+	mutex_unlock(&cpuidle_lock);
-+}
-+
-+EXPORT_SYMBOL_GPL(cpuidle_unregister_governor);
-diff -puN /dev/null drivers/cpuidle/governors/Makefile
---- /dev/null
-+++ a/drivers/cpuidle/governors/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for cpuidle governors.
-+#
-+
-+obj-$(CONFIG_CPU_IDLE_GOV_LADDER) += ladder.o
-diff -puN /dev/null drivers/cpuidle/governors/ladder.c
---- /dev/null
-+++ a/drivers/cpuidle/governors/ladder.c
-@@ -0,0 +1,229 @@
-+/*
-+ * ladder.c - the residency ladder algorithm
-+ *
-+ *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-+ *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-+ *  Copyright (C) 2004, 2005 Dominik Brodowski <linux@brodo.de>
-+ *
-+ * (C) 2006-2007 Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-+ *               Shaohua Li <shaohua.li@intel.com>
-+ *               Adam Belay <abelay@novell.com>
-+ *
-+ * This code is licenced under the GPL.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/cpuidle.h>
-+#include <linux/acpi.h>
-+#include <linux/latency.h>
-+#include <linux/moduleparam.h>
-+#include <linux/jiffies.h>
-+#include <acpi/processor.h>
-+
-+#include <asm/io.h>
-+#include <asm/uaccess.h>
-+
-+#define PROMOTION_COUNT 4
-+#define DEMOTION_COUNT 1
-+
-+/*
-+ * bm_history -- bit-mask with a bit per jiffy of bus-master activity
-+ * 1000 HZ: 0xFFFFFFFF: 32 jiffies = 32ms
-+ * 800 HZ: 0xFFFFFFFF: 32 jiffies = 40ms
-+ * 100 HZ: 0x0000000F: 4 jiffies = 40ms
-+ * reduce history for more aggressive entry into C3
-+ */
-+static unsigned int bm_history __read_mostly =
-+    (HZ >= 800 ? 0xFFFFFFFF : ((1U << (HZ / 25)) - 1));
-+module_param(bm_history, uint, 0644);
-+
-+struct ladder_device_state {
-+	struct {
-+		u32 promotion_count;
-+		u32 demotion_count;
-+		u32 promotion_time;
-+		u32 demotion_time;
-+		u32 bm;
-+	} threshold;
-+	struct {
-+		int promotion_count;
-+		int demotion_count;
-+	} stats;
-+};
-+
-+struct ladder_device {
-+	struct ladder_device_state states[CPUIDLE_STATE_MAX];
-+	int bm_check:1;
-+	unsigned long bm_check_timestamp;
-+	unsigned long bm_activity; /* FIXME: bm activity should be global */
-+	int last_state_idx;
-+};
-+
-+/**
-+ * ladder_do_selection - prepares private data for a state change
-+ * @ldev: the ladder device
-+ * @old_idx: the current state index
-+ * @new_idx: the new target state index
-+ */
-+static inline void ladder_do_selection(struct ladder_device *ldev,
-+				       int old_idx, int new_idx)
-+{
-+	ldev->states[old_idx].stats.promotion_count = 0;
-+	ldev->states[old_idx].stats.demotion_count = 0;
-+	ldev->last_state_idx = new_idx;
-+}
-+
-+/**
-+ * ladder_select_state - selects the next state to enter
-+ * @dev: the CPU
-+ */
-+static int ladder_select_state(struct cpuidle_device *dev)
-+{
-+	struct ladder_device *ldev = dev->governor_data;
-+	struct ladder_device_state *last_state;
-+	int last_residency, last_idx = ldev->last_state_idx;
-+
-+	if (unlikely(!ldev))
-+		return 0;
-+
-+	last_state = &ldev->states[last_idx];
-+
-+	/* demote if within BM threshold */
-+	if (ldev->bm_check) {
-+		unsigned long diff;
-+
-+		diff = jiffies - ldev->bm_check_timestamp;
-+		if (diff > 31)
-+			diff = 31;
-+
-+		ldev->bm_activity <<= diff;
-+		if (cpuidle_get_bm_activity())
-+			ldev->bm_activity |= ((1 << diff) - 1);
-+
-+		ldev->bm_check_timestamp = jiffies;
-+		if ((last_idx > 0) &&
-+		    (last_state->threshold.bm & ldev->bm_activity)) {
-+			ladder_do_selection(ldev, last_idx, last_idx - 1);
-+			return last_idx - 1;
++	if (request_firmware((const struct firmware **)&firmware,
++			     SPIDER_NET_FIRMWARE_NAME, &card->pdev->dev) == 0) {
++		if ( (firmware->size != SPIDER_NET_FIRMWARE_LEN) &&
++		     netif_msg_probe(card) ) {
++			pr_err("Incorrect size of spidernet firmware in " \
++			       "filesystem. Looking in host firmware...\n");
++			goto try_host_fw;
 +		}
++		err = spider_net_download_firmware(card, firmware->data);
++
++		release_firmware(firmware);
++		if (err)
++			goto try_host_fw;
++
++		goto done;
 +	}
 +
-+	if (dev->states[last_idx].flags & CPUIDLE_FLAG_TIME_VALID)
-+		last_residency = cpuidle_get_last_residency(dev) - dev->states[last_idx].exit_latency;
-+	else
-+		last_residency = last_state->threshold.promotion_time + 1;
++try_host_fw:
++	dn = pci_device_to_OF_node(card->pdev);
++	if (!dn)
++		goto out_err;
 +
-+	/* consider promotion */
-+	if (last_idx < dev->state_count - 1 &&
-+	    last_residency > last_state->threshold.promotion_time &&
-+	    dev->states[last_idx + 1].exit_latency <= system_latency_constraint()) {
-+		last_state->stats.promotion_count++;
-+		last_state->stats.demotion_count = 0;
-+		if (last_state->stats.promotion_count >= last_state->threshold.promotion_count) {
-+			ladder_do_selection(ldev, last_idx, last_idx + 1);
-+			return last_idx + 1;
-+		}
++	fw_prop = get_property(dn, "firmware", &fw_size);
++	if (!fw_prop)
++		goto out_err;
++
++	if ( (fw_size != SPIDER_NET_FIRMWARE_LEN) &&
++	     netif_msg_probe(card) ) {
++		pr_err("Incorrect size of spidernet firmware in " \
++		       "host firmware\n");
++		goto done;
 +	}
 +
-+	/* consider demotion */
-+	if (last_idx > 0 &&
-+	    last_residency < last_state->threshold.demotion_time) {
-+		last_state->stats.demotion_count++;
-+		last_state->stats.promotion_count = 0;
-+		if (last_state->stats.demotion_count >= last_state->threshold.demotion_count) {
-+			ladder_do_selection(ldev, last_idx, last_idx - 1);
-+			return last_idx - 1;
-+		}
-+	}
++	err = spider_net_download_firmware(card, fw_prop);
 +
-+	/* otherwise remain at the current state */
-+	return last_idx;
++done:
++	return err;
++out_err:
++	if (netif_msg_probe(card))
++		pr_err("Couldn't find spidernet firmware in filesystem " \
++		       "or host firmware\n");
++	return err;
 +}
 +
 +/**
-+ * ladder_scan_device - scans a CPU's states and does setup
-+ * @dev: the CPU
-+ */
-+static void ladder_scan_device(struct cpuidle_device *dev)
-+{
-+	int i, bm_check = 0;
-+	struct ladder_device *ldev = dev->governor_data;
-+	struct ladder_device_state *lstate;
-+	struct cpuidle_state *state;
-+
-+	ldev->last_state_idx = 0;
-+	ldev->bm_check_timestamp = 0;
-+	ldev->bm_activity = 0;
-+
-+	for (i = 0; i < dev->state_count; i++) {
-+		state = &dev->states[i];
-+		lstate = &ldev->states[i];
-+
-+		lstate->stats.promotion_count = 0;
-+		lstate->stats.demotion_count = 0;
-+
-+		lstate->threshold.promotion_count = PROMOTION_COUNT;
-+		lstate->threshold.demotion_count = DEMOTION_COUNT;
-+
-+		if (i < dev->state_count - 1)
-+			lstate->threshold.promotion_time = state->exit_latency;
-+		if (i > 0)
-+			lstate->threshold.demotion_time = state->exit_latency;
-+		if (state->flags & CPUIDLE_FLAG_CHECK_BM) {
-+			lstate->threshold.bm = bm_history;
-+			bm_check = 1;
-+		} else
-+			lstate->threshold.bm = 0;
-+	}
-+
-+	ldev->bm_check = bm_check;
-+}
-+
-+/**
-+ * ladder_init_device - initializes a CPU-instance
-+ * @dev: the CPU
-+ */
-+static int ladder_init_device(struct cpuidle_device *dev)
-+{
-+	dev->governor_data = kmalloc(sizeof(struct ladder_device), GFP_KERNEL);
-+
-+	return !dev->governor_data;
-+}
-+
-+/**
-+ * ladder_exit_device - exits a CPU-instance
-+ * @dev: the CPU
-+ */
-+static void ladder_exit_device(struct cpuidle_device *dev)
-+{
-+	kfree(dev->governor_data);
-+}
-+
-+struct cpuidle_governor ladder_governor = {
-+	.name =		"ladder",
-+	.init =		ladder_init_device,
-+	.exit =		ladder_exit_device,
-+	.scan =		ladder_scan_device,
-+	.select_state =	ladder_select_state,
-+	.owner =	THIS_MODULE,
-+};
-+
-+/**
-+ * init_ladder - initializes the governor
-+ */
-+static int __init init_ladder(void)
-+{
-+	return cpuidle_register_governor(&ladder_governor);
-+}
-+
-+/**
-+ * exit_ladder - exits the governor
-+ */
-+static void __exit exit_ladder(void)
-+{
-+	cpuidle_unregister_governor(&ladder_governor);
-+}
-+
-+MODULE_LICENSE("GPL");
-+module_init(init_ladder);
-+module_exit(exit_ladder);
-diff -puN /dev/null drivers/cpuidle/sysfs.c
---- /dev/null
-+++ a/drivers/cpuidle/sysfs.c
-@@ -0,0 +1,340 @@
-+/*
-+ * sysfs.c - sysfs support
-+ *
-+ * (C) 2006-2007 Shaohua Li <shaohua.li@intel.com>
-+ *
-+ * This code is licenced under the GPL.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/cpuidle.h>
-+#include <linux/sysfs.h>
-+#include <linux/cpu.h>
-+
-+#include "cpuidle.h"
-+
-+static ssize_t show_available_drivers(struct sys_device *dev, char *buf)
-+{
-+	ssize_t i = 0;
-+	struct cpuidle_driver *tmp;
-+
-+	mutex_lock(&cpuidle_lock);
-+	list_for_each_entry(tmp, &cpuidle_drivers, driver_list) {
-+		if (i >= (ssize_t)((PAGE_SIZE/sizeof(char)) - CPUIDLE_NAME_LEN - 2))
-+			goto out;
-+		i += scnprintf(&buf[i], CPUIDLE_NAME_LEN, "%s ", tmp->name);
-+	}
-+out:
-+	i+= sprintf(&buf[i], "\n");
-+	mutex_unlock(&cpuidle_lock);
-+	return i;
-+}
-+
-+static ssize_t show_available_governors(struct sys_device *dev, char *buf)
-+{
-+	ssize_t i = 0;
-+	struct cpuidle_governor *tmp;
-+
-+	mutex_lock(&cpuidle_lock);
-+	list_for_each_entry(tmp, &cpuidle_governors, governor_list) {
-+		if (i >= (ssize_t)((PAGE_SIZE/sizeof(char)) - CPUIDLE_NAME_LEN - 2))
-+			goto out;
-+		i += scnprintf(&buf[i], CPUIDLE_NAME_LEN, "%s ", tmp->name);
-+	}
-+	if (list_empty(&cpuidle_governors))
-+		i+= sprintf(&buf[i], "no governors");
-+out:
-+	i+= sprintf(&buf[i], "\n");
-+	mutex_unlock(&cpuidle_lock);
-+	return i;
-+}
-+
-+static ssize_t show_current_driver(struct sys_device *dev, char *buf)
-+{
-+	ssize_t ret;
-+
-+	mutex_lock(&cpuidle_lock);
-+	ret = sprintf(buf, "%s\n", cpuidle_curr_driver->name);
-+	mutex_unlock(&cpuidle_lock);
-+	return ret;
-+}
-+
-+static ssize_t store_current_driver(struct sys_device *dev,
-+	const char *buf, size_t count)
-+{
-+	char str[CPUIDLE_NAME_LEN];
-+	int len = count;
-+	struct cpuidle_driver *tmp, *found = NULL;
-+
-+	if (len > CPUIDLE_NAME_LEN)
-+		len = CPUIDLE_NAME_LEN;
-+
-+	if (sscanf(buf, "%s", str) != 1)
-+		return -EINVAL;
-+
-+	mutex_lock(&cpuidle_lock);
-+	list_for_each_entry(tmp, &cpuidle_drivers, driver_list) {
-+		if (strncmp(tmp->name, str, CPUIDLE_NAME_LEN) == 0) {
-+			found = tmp;
-+			break;
-+		}
-+	}
-+	if (found)
-+		cpuidle_switch_driver(found);
-+	mutex_unlock(&cpuidle_lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_current_governor(struct sys_device *dev, char *buf)
-+{
-+	ssize_t i;
-+
-+	mutex_lock(&cpuidle_lock);
-+	if (cpuidle_curr_governor)
-+		i = sprintf(buf, "%s\n", cpuidle_curr_governor->name);
-+	else
-+		i = sprintf(buf, "no governor\n");
-+	mutex_unlock(&cpuidle_lock);
-+
-+	return i;
-+}
-+
-+static ssize_t store_current_governor(struct sys_device *dev,
-+	const char *buf, size_t count)
-+{
-+	char str[CPUIDLE_NAME_LEN];
-+	int len = count;
-+	struct cpuidle_governor *tmp, *found = NULL;
-+
-+	if (len > CPUIDLE_NAME_LEN)
-+		len = CPUIDLE_NAME_LEN;
-+
-+	if (sscanf(buf, "%s", str) != 1)
-+		return -EINVAL;
-+
-+	mutex_lock(&cpuidle_lock);
-+	list_for_each_entry(tmp, &cpuidle_governors, governor_list) {
-+		if (strncmp(tmp->name, str, CPUIDLE_NAME_LEN) == 0) {
-+			found = tmp;
-+			break;
-+		}
-+	}
-+	if (found)
-+		cpuidle_switch_governor(found);
-+	mutex_unlock(&cpuidle_lock);
-+
-+	return count;
-+}
-+
-+static SYSDEV_ATTR(available_drivers, 0444, show_available_drivers, NULL);
-+static SYSDEV_ATTR(available_governors, 0444, show_available_governors, NULL);
-+static SYSDEV_ATTR(current_driver, 0644, show_current_driver,
-+	store_current_driver);
-+static SYSDEV_ATTR(current_governor, 0644, show_current_governor,
-+	store_current_governor);
-+
-+static struct attribute *cpuclass_default_attrs[] = {
-+	&attr_available_drivers.attr,
-+	&attr_available_governors.attr,
-+	&attr_current_driver.attr,
-+	&attr_current_governor.attr,
-+	NULL
-+};
-+
-+static struct attribute_group cpuclass_attr_group = {
-+	.attrs = cpuclass_default_attrs,
-+	.name = "cpuidle",
-+};
-+
-+/**
-+ * cpuidle_add_class_sysfs - add CPU global sysfs attributes
-+ */
-+int cpuidle_add_class_sysfs(struct sysdev_class *cls)
-+{
-+	return sysfs_create_group(&cls->kset.kobj, &cpuclass_attr_group);
-+}
-+
-+/**
-+ * cpuidle_remove_class_sysfs - remove CPU global sysfs attributes
-+ */
-+void cpuidle_remove_class_sysfs(struct sysdev_class *cls)
-+{
-+	sysfs_remove_group(&cls->kset.kobj, &cpuclass_attr_group);
-+}
-+
-+struct cpuidle_attr {
-+	struct attribute attr;
-+	ssize_t (*show)(struct cpuidle_device *, char *);
-+	ssize_t (*store)(struct cpuidle_device *, const char *, size_t count);
-+};
-+
-+#define define_one_ro(_name, show) \
-+	static struct cpuidle_attr attr_##_name = __ATTR(_name, 0444, show, NULL)
-+#define define_one_rw(_name, show, store) \
-+	static struct cpuidle_attr attr_##_name = __ATTR(_name, 0644, show, store)
-+
-+#define kobj_to_cpuidledev(k) container_of(k, struct cpuidle_device, kobj)
-+#define attr_to_cpuidleattr(a) container_of(a, struct cpuidle_attr, attr)
-+static ssize_t cpuidle_show(struct kobject * kobj, struct attribute * attr ,char * buf)
-+{
-+	int ret = -EIO;
-+	struct cpuidle_device *dev = kobj_to_cpuidledev(kobj);
-+	struct cpuidle_attr * cattr = attr_to_cpuidleattr(attr);
-+
-+	if (cattr->show) {
-+		mutex_lock(&cpuidle_lock);
-+		ret = cattr->show(dev, buf);
-+		mutex_unlock(&cpuidle_lock);
-+	}
-+	return ret;
-+}
-+
-+static ssize_t cpuidle_store(struct kobject * kobj, struct attribute * attr,
-+		     const char * buf, size_t count)
-+{
-+	int ret = -EIO;
-+	struct cpuidle_device *dev = kobj_to_cpuidledev(kobj);
-+	struct cpuidle_attr * cattr = attr_to_cpuidleattr(attr);
-+
-+	if (cattr->store) {
-+		mutex_lock(&cpuidle_lock);
-+		ret = cattr->store(dev, buf, count);
-+		mutex_unlock(&cpuidle_lock);
-+	}
-+	return ret;
-+}
-+
-+static struct sysfs_ops cpuidle_sysfs_ops = {
-+	.show = cpuidle_show,
-+	.store = cpuidle_store,
-+};
-+
-+static struct kobj_type ktype_cpuidle = {
-+	.sysfs_ops = &cpuidle_sysfs_ops,
-+};
-+
-+struct cpuidle_state_attr {
-+	struct attribute attr;
-+	ssize_t (*show)(struct cpuidle_state *, char *);
-+	ssize_t (*store)(struct cpuidle_state *, const char *, size_t);
-+};
-+
-+#define define_one_state_ro(_name, show) \
-+static struct cpuidle_state_attr attr_##_name = __ATTR(_name, 0444, show, NULL)
-+
-+#define define_show_state_function(_name) \
-+static ssize_t show_state_##_name(struct cpuidle_state *state, char *buf) \
-+{ \
-+	return sprintf(buf, "%d\n", state->_name);\
-+}
-+
-+define_show_state_function(exit_latency)
-+define_show_state_function(power_usage)
-+define_show_state_function(usage)
-+define_show_state_function(time)
-+define_one_state_ro(latency, show_state_exit_latency);
-+define_one_state_ro(power, show_state_power_usage);
-+define_one_state_ro(usage, show_state_usage);
-+define_one_state_ro(time, show_state_time);
-+
-+static struct attribute *cpuidle_state_default_attrs[] = {
-+	&attr_latency.attr,
-+	&attr_power.attr,
-+	&attr_usage.attr,
-+	&attr_time.attr,
-+	NULL
-+};
-+
-+#define kobj_to_state(k) container_of(k, struct cpuidle_state, kobj)
-+#define attr_to_stateattr(a) container_of(a, struct cpuidle_state_attr, attr)
-+static ssize_t cpuidle_state_show(struct kobject * kobj,
-+	struct attribute * attr ,char * buf)
-+{
-+	int ret = -EIO;
-+	struct cpuidle_state *state = kobj_to_state(kobj);
-+	struct cpuidle_state_attr * cattr = attr_to_stateattr(attr);
-+
-+	if (cattr->show)
-+		ret = cattr->show(state, buf);
-+
-+	return ret;
-+}
-+
-+static struct sysfs_ops cpuidle_state_sysfs_ops = {
-+	.show = cpuidle_state_show,
-+};
-+
-+static struct kobj_type ktype_state_cpuidle = {
-+	.sysfs_ops = &cpuidle_state_sysfs_ops,
-+	.default_attrs = cpuidle_state_default_attrs,
-+};
-+
-+/**
-+ * cpuidle_add_driver_sysfs - adds driver-specific sysfs attributes
-+ * @device: the target device
-+ */
-+int cpuidle_add_driver_sysfs(struct cpuidle_device *device)
-+{
-+	int i, ret;
-+	struct cpuidle_state *state;
-+
-+	/* state statistics */
-+	for (i = 0; i < device->state_count; i++) {
-+		state = &device->states[i];
-+		state->kobj.parent = &device->kobj;
-+		state->kobj.ktype = &ktype_state_cpuidle;
-+		kobject_set_name(&state->kobj, "state%d", i);
-+		ret = kobject_register(&state->kobj);
-+		if (ret)
-+			goto error_state;
-+	}
-+
-+	return 0;
-+
-+error_state:
-+	for (i = i - 1; i >= 0; i--)
-+		kobject_unregister(&device->states[i].kobj);
-+	return ret;
-+}
-+
-+/**
-+ * cpuidle_remove_driver_sysfs - removes driver-specific sysfs attributes
-+ * @device: the target device
-+ */
-+void cpuidle_remove_driver_sysfs(struct cpuidle_device *device)
-+{
-+	int i;
-+
-+	for (i = 0; i < device->state_count; i++)
-+		kobject_unregister(&device->states[i].kobj);
-+}
-+
-+/**
-+ * cpuidle_add_sysfs - creates a sysfs instance for the target device
-+ * @sysdev: the target device
-+ */
-+int cpuidle_add_sysfs(struct sys_device *sysdev)
-+{
-+	int cpu = sysdev->id;
-+	struct cpuidle_device *dev;
-+
-+	dev = &per_cpu(cpuidle_devices, cpu);
-+	dev->kobj.parent = &sysdev->kobj;
-+	dev->kobj.ktype = &ktype_cpuidle;
-+	kobject_set_name(&dev->kobj, "%s", "cpuidle");
-+	return kobject_register(&dev->kobj);
-+}
-+
-+/**
-+ * cpuidle_remove_sysfs - deletes a sysfs instance on the target device
-+ * @sysdev: the target device
-+ */
-+void cpuidle_remove_sysfs(struct sys_device *sysdev)
-+{
-+	int cpu = sysdev->id;
-+	struct cpuidle_device *dev;
-+
-+	dev = &per_cpu(cpuidle_devices, cpu);
-+	kobject_unregister(&dev->kobj);
-+}
-diff -puN /dev/null include/linux/cpuidle.h
---- /dev/null
-+++ a/include/linux/cpuidle.h
-@@ -0,0 +1,160 @@
-+/*
-+ * cpuidle.h - a generic framework for CPU idle power management
-+ *
-+ * (C) 2007 Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-+ *          Shaohua Li <shaohua.li@intel.com>
-+ *          Adam Belay <abelay@novell.com>
-+ *
-+ * This code is licenced under the GPL.
-+ */
-+
-+#ifndef _LINUX_CPUIDLE_H
-+#define _LINUX_CPUIDLE_H
-+
-+#include <linux/percpu.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/kobject.h>
-+#include <linux/completion.h>
-+
-+#define CPUIDLE_STATE_MAX	8
-+#define CPUIDLE_NAME_LEN	16
-+
-+struct cpuidle_device;
-+
-+
-+/****************************
-+ * CPUIDLE DEVICE INTERFACE *
-+ ****************************/
-+
-+struct cpuidle_state {
-+	char		name[CPUIDLE_NAME_LEN];
-+	void		*driver_data;
-+
-+	unsigned int	flags;
-+	unsigned int	exit_latency; /* in US */
-+	unsigned int	power_usage; /* in mW */
-+	unsigned int	target_residency; /* in US */
-+
-+	unsigned int	usage;
-+	unsigned int	time; /* in US */
-+
-+	int (*enter)	(struct cpuidle_device *dev,
-+			 struct cpuidle_state *state);
-+
-+	struct kobject	kobj;
-+};
-+
-+/* Idle State Flags */
-+#define CPUIDLE_FLAG_TIME_VALID	(0x01) /* is residency time measurable? */
-+#define CPUIDLE_FLAG_CHECK_BM	(0x02) /* BM activity will exit state */
-+#define CPUIDLE_FLAG_SHALLOW	(0x10) /* low latency, minimal savings */
-+#define CPUIDLE_FLAG_BALANCED	(0x20) /* medium latency, moderate savings */
-+#define CPUIDLE_FLAG_DEEP	(0x40) /* high latency, large savings */
-+
-+#define CPUIDLE_DRIVER_FLAGS_MASK (0xFFFF0000)
-+
-+/**
-+ * cpuidle_get_statedata - retrieves private driver state data
-+ * @state: the state
-+ */
-+static inline void * cpuidle_get_statedata(struct cpuidle_state *state)
-+{
-+	return state->driver_data;
-+}
-+
-+/**
-+ * cpuidle_set_statedata - stores private driver state data
-+ * @state: the state
-+ * @data: the private data
-+ */
-+static inline void
-+cpuidle_set_statedata(struct cpuidle_state *state, void *data)
-+{
-+	state->driver_data = data;
-+}
-+
-+struct cpuidle_device {
-+	unsigned int		status;
-+	int			cpu;
-+
-+	int			last_residency;
-+	int			state_count;
-+	struct cpuidle_state	states[CPUIDLE_STATE_MAX];
-+	struct cpuidle_state	*last_state;
-+
-+	struct list_head 	device_list;
-+	struct kobject		kobj;
-+	struct completion	kobj_unregister;
-+	void			*governor_data;
-+};
-+
-+#define to_cpuidle_device(n) container_of(n, struct cpuidle_device, kobj);
-+
-+DECLARE_PER_CPU(struct cpuidle_device, cpuidle_devices);
-+
-+/* Device Status Flags */
-+#define CPUIDLE_STATUS_DETECTED		 (0x1)
-+#define CPUIDLE_STATUS_DRIVER_ATTACHED	 (0x2)
-+#define CPUIDLE_STATUS_GOVERNOR_ATTACHED (0x4)
-+#define CPUIDLE_STATUS_DOIDLE		 (CPUIDLE_STATUS_DETECTED | \
-+					  CPUIDLE_STATUS_DRIVER_ATTACHED | \
-+					  CPUIDLE_STATUS_GOVERNOR_ATTACHED)
-+
-+/**
-+ * cpuidle_get_last_residency - retrieves the last state's residency time
-+ * @dev: the target CPU
-+ *
-+ * NOTE: this value is invalid if CPUIDLE_FLAG_TIME_VALID isn't set
-+ */
-+static inline int cpuidle_get_last_residency(struct cpuidle_device *dev)
-+{
-+	return dev->last_residency;
-+}
-+
-+
-+/****************************
-+ * CPUIDLE DRIVER INTERFACE *
-+ ****************************/
-+
-+struct cpuidle_driver {
-+	char			name[CPUIDLE_NAME_LEN];
-+	struct list_head 	driver_list;
-+
-+	int  (*init)		(struct cpuidle_device *dev);
-+	void (*exit)		(struct cpuidle_device *dev);
-+	int  (*redetect)	(struct cpuidle_device *dev);
-+
-+	int  (*bm_check)	(void);
-+
-+	struct module 		*owner;
-+};
-+
-+extern int cpuidle_register_driver(struct cpuidle_driver *drv);
-+extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
-+extern int cpuidle_force_redetect(struct cpuidle_device *dev);
-+
-+
-+/******************************
-+ * CPUIDLE GOVERNOR INTERFACE *
-+ ******************************/
-+
-+struct cpuidle_governor {
-+	char			name[CPUIDLE_NAME_LEN];
-+	struct list_head 	governor_list;
-+
-+	int  (*init)		(struct cpuidle_device *dev);
-+	void (*exit)		(struct cpuidle_device *dev);
-+	void (*scan)		(struct cpuidle_device *dev);
-+
-+	void (*prepare_idle)	(struct cpuidle_device *dev);
-+	int  (*select_state)	(struct cpuidle_device *dev);
-+
-+	struct module 		*owner;
-+};
-+
-+extern int cpuidle_register_governor(struct cpuidle_governor *gov);
-+extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
-+extern int cpuidle_get_bm_activity(void);
-+
-+#endif /* _LINUX_CPUIDLE_H */
+  * spider_net_open - called upon ifonfig up
+  * @netdev: interface device structure
+  *
+@@ -1719,6 +1837,10 @@ spider_net_open(struct net_device *netde
+ 	struct spider_net_card *card = netdev_priv(netdev);
+ 	int result;
+ 
++	result = spider_net_init_firmware(card);
++	if (result)
++		goto init_firmware_failed;
++
+ 	/* start probing with copper */
+ 	spider_net_setup_aneg(card);
+ 	if (card->phy.def->phy_id)
+@@ -1762,6 +1884,7 @@ alloc_rx_failed:
+ 	spider_net_free_chain(card, &card->tx_chain);
+ alloc_tx_failed:
+ 	del_timer_sync(&card->aneg_timer);
++init_firmware_failed:
+ 	return result;
+ }
+ 
+@@ -1873,124 +1996,6 @@ spider_net_setup_phy(struct spider_net_c
+ }
+ 
+ /**
+- * spider_net_download_firmware - loads firmware into the adapter
+- * @card: card structure
+- * @firmware_ptr: pointer to firmware data
+- *
+- * spider_net_download_firmware loads the firmware data into the
+- * adapter. It assumes the length etc. to be allright.
+- */
+-static int
+-spider_net_download_firmware(struct spider_net_card *card,
+-			     const void *firmware_ptr)
+-{
+-	int sequencer, i;
+-	const u32 *fw_ptr = firmware_ptr;
+-
+-	/* stop sequencers */
+-	spider_net_write_reg(card, SPIDER_NET_GSINIT,
+-			     SPIDER_NET_STOP_SEQ_VALUE);
+-
+-	for (sequencer = 0; sequencer < SPIDER_NET_FIRMWARE_SEQS;
+-	     sequencer++) {
+-		spider_net_write_reg(card,
+-				     SPIDER_NET_GSnPRGADR + sequencer * 8, 0);
+-		for (i = 0; i < SPIDER_NET_FIRMWARE_SEQWORDS; i++) {
+-			spider_net_write_reg(card, SPIDER_NET_GSnPRGDAT +
+-					     sequencer * 8, *fw_ptr);
+-			fw_ptr++;
+-		}
+-	}
+-
+-	if (spider_net_read_reg(card, SPIDER_NET_GSINIT))
+-		return -EIO;
+-
+-	spider_net_write_reg(card, SPIDER_NET_GSINIT,
+-			     SPIDER_NET_RUN_SEQ_VALUE);
+-
+-	return 0;
+-}
+-
+-/**
+- * spider_net_init_firmware - reads in firmware parts
+- * @card: card structure
+- *
+- * Returns 0 on success, <0 on failure
+- *
+- * spider_net_init_firmware opens the sequencer firmware and does some basic
+- * checks. This function opens and releases the firmware structure. A call
+- * to download the firmware is performed before the release.
+- *
+- * Firmware format
+- * ===============
+- * spider_fw.bin is expected to be a file containing 6*1024*4 bytes, 4k being
+- * the program for each sequencer. Use the command
+- *    tail -q -n +2 Seq_code1_0x088.txt Seq_code2_0x090.txt              \
+- *         Seq_code3_0x098.txt Seq_code4_0x0A0.txt Seq_code5_0x0A8.txt   \
+- *         Seq_code6_0x0B0.txt | xxd -r -p -c4 > spider_fw.bin
+- *
+- * to generate spider_fw.bin, if you have sequencer programs with something
+- * like the following contents for each sequencer:
+- *    <ONE LINE COMMENT>
+- *    <FIRST 4-BYTES-WORD FOR SEQUENCER>
+- *    <SECOND 4-BYTES-WORD FOR SEQUENCER>
+- *     ...
+- *    <1024th 4-BYTES-WORD FOR SEQUENCER>
+- */
+-static int
+-spider_net_init_firmware(struct spider_net_card *card)
+-{
+-	struct firmware *firmware = NULL;
+-	struct device_node *dn;
+-	const u8 *fw_prop = NULL;
+-	int err = -ENOENT;
+-	int fw_size;
+-
+-	if (request_firmware((const struct firmware **)&firmware,
+-			     SPIDER_NET_FIRMWARE_NAME, &card->pdev->dev) == 0) {
+-		if ( (firmware->size != SPIDER_NET_FIRMWARE_LEN) &&
+-		     netif_msg_probe(card) ) {
+-			pr_err("Incorrect size of spidernet firmware in " \
+-			       "filesystem. Looking in host firmware...\n");
+-			goto try_host_fw;
+-		}
+-		err = spider_net_download_firmware(card, firmware->data);
+-
+-		release_firmware(firmware);
+-		if (err)
+-			goto try_host_fw;
+-
+-		goto done;
+-	}
+-
+-try_host_fw:
+-	dn = pci_device_to_OF_node(card->pdev);
+-	if (!dn)
+-		goto out_err;
+-
+-	fw_prop = get_property(dn, "firmware", &fw_size);
+-	if (!fw_prop)
+-		goto out_err;
+-
+-	if ( (fw_size != SPIDER_NET_FIRMWARE_LEN) &&
+-	     netif_msg_probe(card) ) {
+-		pr_err("Incorrect size of spidernet firmware in " \
+-		       "host firmware\n");
+-		goto done;
+-	}
+-
+-	err = spider_net_download_firmware(card, fw_prop);
+-
+-done:
+-	return err;
+-out_err:
+-	if (netif_msg_probe(card))
+-		pr_err("Couldn't find spidernet firmware in filesystem " \
+-		       "or host firmware\n");
+-	return err;
+-}
+-
+-/**
+  * spider_net_workaround_rxramfull - work around firmware bug
+  * @card: card structure
+  *
+@@ -2090,8 +2095,6 @@ spider_net_tx_timeout_task(struct work_s
+ 
+ 	if (spider_net_setup_phy(card))
+ 		goto out;
+-	if (spider_net_init_firmware(card))
+-		goto out;
+ 
+ 	spider_net_open(netdev);
+ 	spider_net_kick_tx_dma(card);
+@@ -2363,10 +2366,6 @@ spider_net_probe(struct pci_dev *pdev, c
+ 	if (err)
+ 		goto out_undo_pci;
+ 
+-	err = spider_net_init_firmware(card);
+-	if (err)
+-		goto out_undo_pci;
+-
+ 	err = spider_net_setup_netdev(card);
+ 	if (err)
+ 		goto out_undo_pci;
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
-
-git-acpi.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+Patches currently in -mm which might be from kou.ishizaki@toshiba.co.jp are
