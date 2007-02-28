@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bug-in-mm_rb-debugging.patch added to -mm tree
-Date: Tue, 27 Feb 2007 22:28:48 -0800
-Message-ID: <200702280628.l1S6Sqgj008785@shell0.pdx.osdl.net>
+Subject: + agp-prevent-probe-collision-of-sis-agp-and-amd64_agp.patch added to -mm tree
+Date: Tue, 27 Feb 2007 22:28:52 -0800
+Message-ID: <200702280628.l1S6Su74008788@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41940 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41924 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750758AbXB1G32 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 01:29:28 -0500
+	id S1750945AbXB1G3C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 01:29:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, andrea@novell.com
+Cc: oneukum@suse.de
 
 
 The patch titled
-     Bug in MM_RB debugging
+     agp: prevent probe collision of sis-agp and amd64_agp
 has been added to the -mm tree.  Its filename is
-     bug-in-mm_rb-debugging.patch
+     agp-prevent-probe-collision-of-sis-agp-and-amd64_agp.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,337 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Bug in MM_RB debugging
-From: David Miller <davem@davemloft.net>
+Subject: agp: prevent probe collision of sis-agp and amd64_agp
+From: Oliver Neukum <oneukum@suse.de>
 
-The code is seemingly trying to make sure that rb_next() brings us to
-successive increasing vma entries.
+For some vendor/id pairs the kernel will autoload both the sis-agp and the
+amd64_agp modules as the sis-agp module will load for all sis devices. 
+This collision causes the bug reported in:
+http://bugzilla.novell.com/show_bug.cgi?id=248665
 
-But the two variables, prev and pend, used to perform these checks, are
-never advanced.
+As currently sis_probe does its own matching, requesting the whole range
+gains nothing.  The clean fix seems to me to leave the matching to the core
+and advertise only the devices actually supported.  This patch does so.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: Andrea Arcangeli <andrea@novell.com>
+Signed-off-by: Oliver Neukum <oneukum@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/char/agp/sis-agp.c |  278 +++++++++++++++++++++--------------
+ 1 file changed, 167 insertions(+), 111 deletions(-)
 
-diff -puN mm/mmap.c~bug-in-mm_rb-debugging mm/mmap.c
---- a/mm/mmap.c~bug-in-mm_rb-debugging
-+++ a/mm/mmap.c
-@@ -299,6 +299,8 @@ static int browse_rb(struct rb_root *roo
- 			printk("vm_end %lx < vm_start %lx\n", vma->vm_end, vma->vm_start);
- 		i++;
- 		pn = nd;
-+		prev = vma->vm_start;
-+		pend = vma->vm_end;
- 	}
- 	j = 0;
- 	for (nd = pn; nd; nd = rb_prev(nd)) {
+diff -puN drivers/char/agp/sis-agp.c~agp-prevent-probe-collision-of-sis-agp-and-amd64_agp drivers/char/agp/sis-agp.c
+--- a/drivers/char/agp/sis-agp.c~agp-prevent-probe-collision-of-sis-agp-and-amd64_agp
++++ a/drivers/char/agp/sis-agp.c
+@@ -143,96 +143,6 @@ static struct agp_bridge_driver sis_driv
+ 	.agp_type_to_mask_type  = agp_generic_type_to_mask_type,
+ };
+ 
+-static struct agp_device_ids sis_agp_device_ids[] __devinitdata =
+-{
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_5591_AGP,
+-		.chipset_name	= "5591",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_530,
+-		.chipset_name	= "530",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_540,
+-		.chipset_name	= "540",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_550,
+-		.chipset_name	= "550",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_620,
+-		.chipset_name	= "620",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_630,
+-		.chipset_name	= "630",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_635,
+-		.chipset_name	= "635",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_645,
+-		.chipset_name	= "645",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_646,
+-		.chipset_name	= "646",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_648,
+-		.chipset_name	= "648",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_650,
+-		.chipset_name	= "650",
+-	},
+-	{
+-		.device_id  = PCI_DEVICE_ID_SI_651,
+-		.chipset_name   = "651",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_655,
+-		.chipset_name	= "655",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_661,
+-		.chipset_name	= "661",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_730,
+-		.chipset_name	= "730",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_735,
+-		.chipset_name	= "735",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_740,
+-		.chipset_name	= "740",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_741,
+-		.chipset_name	= "741",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_745,
+-		.chipset_name	= "745",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_746,
+-		.chipset_name	= "746",
+-	},
+-	{
+-		.device_id	= PCI_DEVICE_ID_SI_760,
+-		.chipset_name	= "760",
+-	},
+-	{ }, /* dummy final entry, always present */
+-};
+-
+-
+ // chipsets that require the 'delay hack'
+ static int sis_broken_chipsets[] __devinitdata = {
+ 	PCI_DEVICE_ID_SI_648,
+@@ -269,29 +179,15 @@ static void __devinit sis_get_driver(str
+ static int __devinit agp_sis_probe(struct pci_dev *pdev,
+ 				   const struct pci_device_id *ent)
+ {
+-	struct agp_device_ids *devs = sis_agp_device_ids;
+ 	struct agp_bridge_data *bridge;
+ 	u8 cap_ptr;
+-	int j;
+ 
+ 	cap_ptr = pci_find_capability(pdev, PCI_CAP_ID_AGP);
+ 	if (!cap_ptr)
+ 		return -ENODEV;
+ 
+-	/* probe for known chipsets */
+-	for (j = 0; devs[j].chipset_name; j++) {
+-		if (pdev->device == devs[j].device_id) {
+-			printk(KERN_INFO PFX "Detected SiS %s chipset\n",
+-					devs[j].chipset_name);
+-			goto found;
+-		}
+-	}
+-
+-	printk(KERN_ERR PFX "Unsupported SiS chipset (device id: %04x)\n",
+-		    pdev->device);
+-	return -ENODEV;
+ 
+-found:
++	printk(KERN_INFO PFX "Detected SiS chipset - id:%i\n", pdev->device);
+ 	bridge = agp_alloc_bridge();
+ 	if (!bridge)
+ 		return -ENOMEM;
+@@ -320,12 +216,172 @@ static void __devexit agp_sis_remove(str
+ 
+ static struct pci_device_id agp_sis_pci_table[] = {
+ 	{
+-	.class		= (PCI_CLASS_BRIDGE_HOST << 8),
+-	.class_mask	= ~0,
+-	.vendor		= PCI_VENDOR_ID_SI,
+-	.device		= PCI_ANY_ID,
+-	.subvendor	= PCI_ANY_ID,
+-	.subdevice	= PCI_ANY_ID,
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_5591_AGP,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_530,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_540,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_550,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_620,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_630,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_635,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_645,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_646,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_648,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_650,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_651,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_655,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_661,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_730,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_735,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_740,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_741,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_745,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_746,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++	},
++	{
++		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
++		.class_mask	= ~0,
++		.vendor		= PCI_VENDOR_ID_SI,
++		.device		= PCI_DEVICE_ID_SI_760,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
+ 	},
+ 	{ }
+ };
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from oneukum@suse.de are
 
-tick-schedc-build-fix.patch
-generic-one-shot-bug.patch
-bug-in-mm_rb-debugging.patch
-git-net.patch
-resend-iphase-64bit-cleanup.patch
-simplify-the-stacktrace-code.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-ipvs-flush-defense_work-before-module-unload.patch
-unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
-local_t-sparc64-cleanup.patch
+agp-prevent-probe-collision-of-sis-agp-and-amd64_agp.patch
