@@ -1,75 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - libata-test-major-version-in-ata_id_is_sata.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:52:05 -0800
-Message-ID: <200702282352.l1SNq5l0030964@shell0.pdx.osdl.net>
+Subject: - sata_promise-simplify-port-setup.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:52:07 -0800
+Message-ID: <200702282352.l1SNq7to030967@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48192 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48205 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932578AbXB1XwH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:52:07 -0500
+	id S932609AbXB1XwO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:52:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: htejun@gmail.com, mm-commits@vger.kernel.org
+To: mikpe@it.uu.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: test major version in ata_id_is_sata()
+     sata_promise: simplify port setup
 has been removed from the -mm tree.  Its filename was
-     libata-test-major-version-in-ata_id_is_sata.patch
+     sata_promise-simplify-port-setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: test major version in ata_id_is_sata()
-From: Tejun Heo <htejun@gmail.com>
+Subject: sata_promise: simplify port setup
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-Test major version in ata_id_is_sata() not separately.
+Each place in pdc_ata_init_one() that initialises a SATA port first calls
+pdc_ata_setup_port(), and then manually assigns the port's ->scr_addr. 
+Simplify the code by extending pdc_ata_setup_port() to also handle scr_addr
+initialisation; for PATA ports we pass NULL as scr_addr.
 
-Signed-off-by: Tejun Heo <htejun@gmail.com>
+The initialisation of the PATA-only 20619 redundantly set up scr_addr for
+the ports.  Remove this.
+
+Tested on 20619, 20575, and 20775 chips.
+
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ata.h |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/ata/sata_promise.c |   29 ++++++++++-------------------
+ 1 file changed, 10 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/ata.h~libata-test-major-version-in-ata_id_is_sata include/linux/ata.h
---- a/include/linux/ata.h~libata-test-major-version-in-ata_id_is_sata
-+++ a/include/linux/ata.h
-@@ -282,7 +282,6 @@ struct ata_taskfile {
- };
- 
- #define ata_id_is_ata(id)	(((id)[0] & (1 << 15)) == 0)
--#define ata_id_is_sata(id)	((id)[93] == 0)
- #define ata_id_rahead_enabled(id) ((id)[85] & (1 << 6))
- #define ata_id_wcache_enabled(id) ((id)[85] & (1 << 5))
- #define ata_id_hpa_enabled(id)	((id)[85] & (1 << 10))
-@@ -324,6 +323,11 @@ static inline unsigned int ata_id_major_
- 	return mver;
+diff -puN drivers/ata/sata_promise.c~sata_promise-simplify-port-setup drivers/ata/sata_promise.c
+--- a/drivers/ata/sata_promise.c~sata_promise-simplify-port-setup
++++ a/drivers/ata/sata_promise.c
+@@ -776,7 +776,8 @@ static int pdc_old_check_atapi_dma(struc
+ 	return pdc_check_atapi_dma(qc);
  }
  
-+static inline int ata_id_is_sata(const u16 *id)
-+{
-+	return ata_id_major_version(id) >= 5 && id[93] == 0;
-+}
-+
- static inline int ata_id_current_chs_valid(const u16 *id)
+-static void pdc_ata_setup_port(struct ata_ioports *port, void __iomem *base)
++static void pdc_ata_setup_port(struct ata_ioports *port, void __iomem *base,
++			       void __iomem *scr_addr)
  {
- 	/* For ATA-1 devices, if the INITIALIZE DEVICE PARAMETERS command
-@@ -350,7 +354,7 @@ static inline int ata_id_is_cfa(const u1
+ 	port->cmd_addr		= base;
+ 	port->data_addr		= base;
+@@ -791,6 +792,7 @@ static void pdc_ata_setup_port(struct at
+ 	port->status_addr	= base + 0x1c;
+ 	port->altstatus_addr	=
+ 	port->ctl_addr		= base + 0x38;
++	port->scr_addr		= scr_addr;
+ }
  
- static inline int ata_drive_40wire(const u16 *dev_id)
- {
--	if (ata_id_major_version(dev_id) >= 5 && ata_id_is_sata(dev_id))
-+	if (ata_id_is_sata(dev_id))
- 		return 0;	/* SATA */
- 	if ((dev_id[93] & 0xE000) == 0x6000)
- 		return 0;	/* 80 wire */
+ 
+@@ -903,11 +905,8 @@ static int pdc_ata_init_one (struct pci_
+ 
+ 	base = probe_ent->iomap[PDC_MMIO_BAR];
+ 
+-	pdc_ata_setup_port(&probe_ent->port[0], base + 0x200);
+-	pdc_ata_setup_port(&probe_ent->port[1], base + 0x280);
+-
+-	probe_ent->port[0].scr_addr = base + 0x400;
+-	probe_ent->port[1].scr_addr = base + 0x500;
++	pdc_ata_setup_port(&probe_ent->port[0], base + 0x200, base + 0x400);
++	pdc_ata_setup_port(&probe_ent->port[1], base + 0x280, base + 0x500);
+ 
+ 	/* notice 4-port boards */
+ 	switch (board_idx) {
+@@ -916,12 +915,8 @@ static int pdc_ata_init_one (struct pci_
+ 		/* Fall through */
+ 	case board_20319:
+        		probe_ent->n_ports = 4;
+-
+-		pdc_ata_setup_port(&probe_ent->port[2], base + 0x300);
+-		pdc_ata_setup_port(&probe_ent->port[3], base + 0x380);
+-
+-		probe_ent->port[2].scr_addr = base + 0x600;
+-		probe_ent->port[3].scr_addr = base + 0x700;
++		pdc_ata_setup_port(&probe_ent->port[2], base + 0x300, base + 0x600);
++		pdc_ata_setup_port(&probe_ent->port[3], base + 0x380, base + 0x700);
+ 		break;
+ 	case board_2057x:
+ 		hp->flags |= PDC_FLAG_GEN_II;
+@@ -931,7 +926,7 @@ static int pdc_ata_init_one (struct pci_
+ 		tmp = readb(base + PDC_FLASH_CTL+1);
+ 		if (!(tmp & 0x80)) {
+ 			probe_ent->n_ports = 3;
+-			pdc_ata_setup_port(&probe_ent->port[2], base + 0x300);
++			pdc_ata_setup_port(&probe_ent->port[2], base + 0x300, NULL);
+ 			hp->port_flags[2] = ATA_FLAG_SLAVE_POSS;
+ 			printk(KERN_INFO DRV_NAME " PATA port found\n");
+ 		} else
+@@ -941,12 +936,8 @@ static int pdc_ata_init_one (struct pci_
+ 		break;
+ 	case board_20619:
+ 		probe_ent->n_ports = 4;
+-
+-		pdc_ata_setup_port(&probe_ent->port[2], base + 0x300);
+-		pdc_ata_setup_port(&probe_ent->port[3], base + 0x380);
+-
+-		probe_ent->port[2].scr_addr = base + 0x600;
+-		probe_ent->port[3].scr_addr = base + 0x700;
++		pdc_ata_setup_port(&probe_ent->port[2], base + 0x300, NULL);
++		pdc_ata_setup_port(&probe_ent->port[3], base + 0x380, NULL);
+ 		break;
+ 	default:
+ 		BUG();
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
-
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-expose-set_mode-method-so-it-can-be-wrapped.patch
-acpi-driver-support-for-pata.patch
-introduce-config_has_dma.patch
+Patches currently in -mm which might be from mikpe@it.uu.se are
