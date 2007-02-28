@@ -1,94 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fixup.patch added to -mm tree
-Date: Thu, 15 Feb 2007 23:53:17 -0800
-Message-ID: <200702160753.l1G7rHWW023759@shell0.pdx.osdl.net>
+Subject: - xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:15:36 -0800
+Message-ID: <200702282315.l1SNFaqd029999@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58399 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47114 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423369AbXBPHxT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Feb 2007 02:53:19 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1G7rHhB014471
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2007 23:53:18 -0800
+	id S1751947AbXB1XPk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:15:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: jeremy@goop.org, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-fixup
-has been added to the -mm tree.  Its filename is
-     git-block-fixup.patch
+     From: Jeremy Fitzhardinge <jeremy@goop.org>
+has been removed from the -mm tree.  Its filename was
+     xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: git-block-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: From: Jeremy Fitzhardinge <jeremy@goop.org>
 
+
+Add hooks to allow a paravirt implementation to track the lifetime of
+an mm.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: linux-arch@vger.kernel.org
+--
+
+===================================================================
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/i386/kernel/paravirt.c    |    4 ++++
+ include/asm-i386/mmu_context.h |    8 ++++++--
+ include/asm-i386/paravirt.h    |   25 +++++++++++++++++++++++++
+ include/linux/sched.h          |    6 ++++++
+ kernel/fork.c                  |    2 ++
+ mm/mmap.c                      |    3 +++
+ 6 files changed, 46 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~git-block-fixup fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~git-block-fixup
-+++ a/fs/ocfs2/aops.c
-@@ -681,7 +681,6 @@ const struct address_space_operations oc
- 	.prepare_write	= ocfs2_prepare_write,
- 	.commit_write	= ocfs2_commit_write,
- 	.bmap		= ocfs2_bmap,
--	.sync_page	= block_sync_page,
- 	.direct_IO	= ocfs2_direct_IO,
- 	.invalidatepage	= ocfs2_invalidatepage,
- 	.releasepage	= ocfs2_releasepage,
+diff -puN arch/i386/kernel/paravirt.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/arch/i386/kernel/paravirt.c
+@@ -705,6 +705,10 @@ struct paravirt_ops paravirt_ops = {
+ 	.irq_enable_sysexit = native_irq_enable_sysexit,
+ 	.iret = native_iret,
+ 
++	.dup_mmap = (void *)native_nop,
++	.exit_mmap = (void *)native_nop,
++	.activate_mm = (void *)native_nop,
++
+ 	.startup_ipi_hook = (void *)native_nop,
+ };
+ 
+diff -puN include/asm-i386/mmu_context.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/mmu_context.h
+--- a/include/asm-i386/mmu_context.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-i386/mmu_context.h
+@@ -5,6 +5,7 @@
+ #include <asm/atomic.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
++#include <asm/paravirt.h>
+ 
+ /*
+  * Used for LDT copy/destruction.
+@@ -65,7 +66,10 @@ static inline void switch_mm(struct mm_s
+ #define deactivate_mm(tsk, mm)			\
+ 	asm("movl %0,%%gs": :"r" (0));
+ 
+-#define activate_mm(prev, next) \
+-	switch_mm((prev),(next),NULL)
++#define activate_mm(prev, next)				\
++	do {						\
++		arch_activate_mm(prev, next);		\
++		switch_mm((prev),(next),NULL);		\
++	} while(0);
+ 
+ #endif
+diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-i386/paravirt.h
+@@ -123,6 +123,12 @@ struct paravirt_ops
+ 	void (*io_delay)(void);
+ 	void (*const_udelay)(unsigned long loops);
+ 
++	void (*activate_mm)(struct mm_struct *prev,
++			    struct mm_struct *next);
++	void (*dup_mmap)(struct mm_struct *oldmm,
++			 struct mm_struct *mm);
++	void (*exit_mmap)(struct mm_struct *mm);
++
+ #ifdef CONFIG_X86_LOCAL_APIC
+ 	void (*apic_write)(unsigned long reg, unsigned long v);
+ 	void (*apic_write_atomic)(unsigned long reg, unsigned long v);
+@@ -426,6 +432,24 @@ static inline void startup_ipi_hook(int 
+ }
+ #endif
+ 
++#define __HAVE_ARCH_MM_LIFETIME
++static inline void arch_activate_mm(struct mm_struct *prev,
++				    struct mm_struct *next)
++{
++	paravirt_ops.activate_mm(prev, next);
++}
++
++static inline void arch_dup_mmap(struct mm_struct *oldmm,
++				 struct mm_struct *mm)
++{
++	paravirt_ops.dup_mmap(oldmm, mm);
++}
++
++static inline void arch_exit_mmap(struct mm_struct *mm)
++{
++	paravirt_ops.exit_mmap(mm);
++}
++
+ #define __flush_tlb() paravirt_ops.flush_tlb_user()
+ #define __flush_tlb_global() paravirt_ops.flush_tlb_kernel()
+ #define __flush_tlb_single(addr) paravirt_ops.flush_tlb_single(addr)
+@@ -670,5 +694,6 @@ static inline void paravirt_pagetable_se
+ 	set_pgd(&base[0], base[USER_PTRS_PER_PGD]);
+ #endif
+ }
++
+ #endif /* CONFIG_PARAVIRT */
+ #endif	/* __ASM_PARAVIRT_H */
+diff -puN include/linux/sched.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/linux/sched.h
+--- a/include/linux/sched.h~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/linux/sched.h
+@@ -375,6 +375,12 @@ struct mm_struct {
+ 	struct kioctx		*ioctx_list;
+ };
+ 
++#ifndef __HAVE_ARCH_MM_LIFETIME
++#define arch_activate_mm(prev, next)	do {} while(0)
++#define arch_dup_mmap(oldmm, mm)	do {} while(0)
++#define arch_exit_mmap(mm)		do {} while(0)
++#endif
++
+ struct sighand_struct {
+ 	atomic_t		count;
+ 	struct k_sigaction	action[_NSIG];
+diff -puN kernel/fork.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction kernel/fork.c
+--- a/kernel/fork.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/kernel/fork.c
+@@ -287,6 +287,8 @@ static inline int dup_mmap(struct mm_str
+ 		if (retval)
+ 			goto out;
+ 	}
++	/* a new mm has just been created */
++	arch_dup_mmap(oldmm, mm);
+ 	retval = 0;
+ out:
+ 	up_write(&mm->mmap_sem);
+diff -puN mm/mmap.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction mm/mmap.c
+--- a/mm/mmap.c~xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/mm/mmap.c
+@@ -1977,6 +1977,9 @@ void exit_mmap(struct mm_struct *mm)
+ 	unsigned long nr_accounted = 0;
+ 	unsigned long end;
+ 
++	/* mm's last user has gone, and its about to be pulled down */
++	arch_exit_mmap(mm);
++
+ 	lru_add_drain();
+ 	flush_cache_mm(mm);
+ 	tlb = tlb_gather_mmu(mm, 1);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-origin.patch
-git-acpi.patch
-git-agpgart.patch
-git-arm.patch
-git-cpufreq.patch
-git-powerpc.patch
-powerpc-rtas-msi-support-fix.patch
-git-drm.patch
-git-dvb.patch
-git-input.patch
-sis-warning-fixes.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler-tidy.patch
-git-md-accel-fixes.patch
-git-md-accel-warning-fixes.patch
-git-md-accel-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-netdev-all.patch
-e1000-fix-shared-interrupt-warning-message-fix.patch
-Fabric7-VIOC-driver-fixes.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-dmfe-add-support-for-suspend-resume-fix.patch
-git-s390.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-block-fixup.patch
-git-unionfs-fixup.patch
-before-x86_64-mm-mmconfig-share.patch
-after-before-x86_64-mm-mmconfig-share.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-kprobes-list-all-active-probes-in-the-system.patch
-reduce-size-of-task_struct-on-64-bit-machines-fix.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-epoll-compat-code-to-kernel-compatc-tidy.patch
-genalloc-warning-fixes.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-revert-x86_64-mm-putreg-check.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-git-gccbug-fixup.patch
+make-hvc_consolec-compile-on-non-powerpc-remove-no_irq.patch
+xen-paravirt_ops-no-need-to-use-traditional-for-processing-asm-in-arch-i386.patch
+xen-paravirt_ops-clean-up-elf-note-generation.patch
+xen-paravirt_ops-fix-typo-in-sync_constant_test_bits-name.patch
+xen-paravirt_ops-ignore-vgacon-if-hardware-not-present.patch
+xen-paravirt_ops-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries.patch
+xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable.patch
+xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot.patch
+xen-paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch
+xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations.patch
+xen-paravirt_ops-allocate-and-free-vmalloc-areas.patch
+xen-paravirt_ops-add-nosegneg-capability-to-the-vsyscall-page-notes.patch
+xen-paravirt_ops-add-xen-config-options.patch
+xen-paravirt_ops-add-xen-interface-header-files.patch
+xen-paravirt_ops-core-xen-implementation.patch
+xen-paravirt_ops-some-generic-early-printk-boot-console-fixups.patch
+xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch
+xen-paravirt_ops-add-xen-grant-table-support.patch
+xen-paravirt_ops-add-the-xenbus-sysfs-and-virtual-device-hotplug-driver.patch
+xen-paravirt_ops-add-xen-virtual-block-device-driver.patch
+xen-paravirt_ops-add-the-xen-virtual-network-device-driver.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
