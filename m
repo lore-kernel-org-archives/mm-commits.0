@@ -1,55 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-more-0-null-conversions.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:54:55 -0800
-Message-ID: <200702282354.l1SNstu4031234@shell0.pdx.osdl.net>
+Subject: - kvm-svm-init-cr0-with-the-wp-bit-set.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:54:51 -0800
+Message-ID: <200702282354.l1SNspL6031228@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48542 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48534 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932714AbXB1Xy6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:54:58 -0500
+	id S932715AbXB1Xyz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:54:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: More 0 -> NULL conversions
+     KVM: svm: init cr0 with the wp bit set
 has been removed from the -mm tree.  Its filename was
-     kvm-more-0-null-conversions.patch
+     kvm-svm-init-cr0-with-the-wp-bit-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: More 0 -> NULL conversions
+Subject: KVM: svm: init cr0 with the wp bit set
 From: Avi Kivity <avi@qumranet.com>
 
 Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm_main.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/kvm/svm.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-more-0-null-conversions drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-more-0-null-conversions
-+++ a/drivers/kvm/kvm_main.c
-@@ -2229,13 +2229,13 @@ static void kvm_exit_debug(void)
- static int kvm_suspend(struct sys_device *dev, pm_message_t state)
- {
- 	decache_vcpus_on_cpu(raw_smp_processor_id());
--	on_each_cpu(kvm_arch_ops->hardware_disable, 0, 0, 1);
-+	on_each_cpu(kvm_arch_ops->hardware_disable, NULL, 0, 1);
- 	return 0;
+diff -puN drivers/kvm/svm.c~kvm-svm-init-cr0-with-the-wp-bit-set drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~kvm-svm-init-cr0-with-the-wp-bit-set
++++ a/drivers/kvm/svm.c
+@@ -554,7 +554,7 @@ static void init_vmcb(struct vmcb *vmcb)
+ 	 * cr0 val on cpu init should be 0x60000010, we enable cpu
+ 	 * cache by default. the orderly way is to enable cache in bios.
+ 	 */
+-	save->cr0 = 0x00000010 | CR0_PG_MASK;
++	save->cr0 = 0x00000010 | CR0_PG_MASK | CR0_WP_MASK;
+ 	save->cr4 = CR4_PAE_MASK;
+ 	/* rdx = ?? */
  }
- 
- static int kvm_resume(struct sys_device *dev)
- {
--	on_each_cpu(kvm_arch_ops->hardware_enable, 0, 0, 1);
-+	on_each_cpu(kvm_arch_ops->hardware_enable, NULL, 0, 1);
- 	return 0;
- }
- 
 _
 
 Patches currently in -mm which might be from avi@qumranet.com are
