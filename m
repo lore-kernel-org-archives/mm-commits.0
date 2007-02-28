@@ -1,86 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - spidernet-janitorial-typos.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:53:09 -0800
-Message-ID: <200702282353.l1SNr9Tm031062@shell0.pdx.osdl.net>
+Subject: - spidernet-move-medium-variable-into-card-struct.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:52:58 -0800
+Message-ID: <200702282352.l1SNqwdd031044@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48343 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48373 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932689AbXB1XxQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:53:16 -0500
+	id S932688AbXB1Xxa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:53:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linas@austin.ibm.com, mm-commits@vger.kernel.org
+To: jens@de.ibm.com, linas@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spidernet: janitorial, typos
+     spidernet: move medium variable into card struct
 has been removed from the -mm tree.  Its filename was
-     spidernet-janitorial-typos.patch
+     spidernet-move-medium-variable-into-card-struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spidernet: janitorial, typos
-From: Linas Vepstas <linas@austin.ibm.com>
+Subject: spidernet: move medium variable into card struct
+From: Jens Osterkamp <jens@de.ibm.com>
 
-Janitorial patch. Undo long lines, fix typo in err msg.
+This moves the medium variable into the spidernet card structure.  It renames
+the GMII_ variables to BCM54XX specific ones.
 
+Signed-off-by: Jens Osterkamp <jens@de.ibm.com>
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/spider_net.c |   13 +++++++------
- drivers/net/spider_net.h |    2 +-
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/net/spider_net.c |   14 +++++++-------
+ drivers/net/spider_net.h |    2 ++
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-janitorial-typos drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-janitorial-typos
+diff -puN drivers/net/spider_net.c~spidernet-move-medium-variable-into-card-struct drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-move-medium-variable-into-card-struct
 +++ a/drivers/net/spider_net.c
-@@ -1053,14 +1053,15 @@ static void show_rx_chain(struct spider_
- #endif
+@@ -1909,26 +1909,26 @@ static void spider_net_link_phy(unsigned
  
- /**
-- * spider_net_decode_one_descr - processes an rx descriptor
-+ * spider_net_decode_one_descr - processes an RX descriptor
-  * @card: card structure
-  *
-- * Returns 1 if a packet has been sent to the stack, otherwise 0
-+ * Returns 1 if a packet has been sent to the stack, otherwise 0.
-  *
-- * Processes an rx descriptor by iommu-unmapping the data buffer and passing
-- * the packet up to the stack. This function is called in softirq
-- * context, e.g. either bottom half from interrupt or NAPI polling context
-+ * Processes an RX descriptor by iommu-unmapping the data buffer
-+ * and passing the packet up to the stack. This function is called
-+ * in softirq context, e.g. either bottom half from interrupt or
-+ * NAPI polling context.
-  */
- static int
- spider_net_decode_one_descr(struct spider_net_card *card)
-@@ -1097,7 +1098,7 @@ spider_net_decode_one_descr(struct spide
- 	if ( (status != SPIDER_NET_DESCR_COMPLETE) &&
- 	     (status != SPIDER_NET_DESCR_FRAME_END) ) {
- 		if (netif_msg_rx_err(card))
--			pr_err("%s: RX descriptor with unkown state %d\n",
-+			pr_err("%s: RX descriptor with unknown state %d\n",
- 			       card->netdev->name, status);
- 		card->spider_stats.rx_desc_unk_state++;
- 		goto bad_desc;
-diff -puN drivers/net/spider_net.h~spidernet-janitorial-typos drivers/net/spider_net.h
---- a/drivers/net/spider_net.h~spidernet-janitorial-typos
+ 		pr_info("%s: link is down trying to bring it up\n", card->netdev->name);
+ 
+-		switch (phy->medium) {
+-		case GMII_COPPER:
++		switch (card->medium) {
++		case BCM54XX_COPPER:
+ 			/* enable fiber with autonegotiation first */
+ 			if (phy->def->ops->enable_fiber)
+ 				phy->def->ops->enable_fiber(phy, 1);
+-			phy->medium = GMII_FIBER;
++			card->medium = BCM54XX_FIBER;
+ 			break;
+ 
+-		case GMII_FIBER:
++		case BCM54XX_FIBER:
+ 			/* fiber didn't come up, try to disable fiber autoneg */
+ 			if (phy->def->ops->enable_fiber)
+ 				phy->def->ops->enable_fiber(phy, 0);
+-			phy->medium = GMII_UNKNOWN;
++			card->medium = BCM54XX_UNKNOWN;
+ 			break;
+ 
+-		case GMII_UNKNOWN:
++		case BCM54XX_UNKNOWN:
+ 			/* copper, fiber with and without failed,
+ 			 * retry from beginning */
+ 			spider_net_setup_aneg(card);
+-			phy->medium = GMII_COPPER;
++			card->medium = BCM54XX_COPPER;
+ 			break;
+ 		}
+ 
+diff -puN drivers/net/spider_net.h~spidernet-move-medium-variable-into-card-struct drivers/net/spider_net.h
+--- a/drivers/net/spider_net.h~spidernet-move-medium-variable-into-card-struct
 +++ a/drivers/net/spider_net.h
-@@ -25,7 +25,7 @@
- #ifndef _SPIDER_NET_H
- #define _SPIDER_NET_H
+@@ -444,6 +444,8 @@ struct spider_net_card {
+ 	struct pci_dev *pdev;
+ 	struct mii_phy phy;
  
--#define VERSION "1.6 C"
-+#define VERSION "2.0 A"
++	int medium;
++
+ 	void __iomem *regs;
  
- #include "sungem_phy.h"
- 
+ 	struct spider_net_descr_chain tx_chain;
 _
 
-Patches currently in -mm which might be from linas@austin.ibm.com are
-
-s2io-add-pci-error-recovery-support.patch
+Patches currently in -mm which might be from jens@de.ibm.com are
