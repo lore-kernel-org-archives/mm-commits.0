@@ -1,140 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: - cxgb3-unmap-offload-packets-when-they-are-freed.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:53:20 -0800
-Message-ID: <200702282353.l1SNrKn1031077@shell0.pdx.osdl.net>
+Subject: - x86-dont-probe-for-ddc-on-vbe12.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:53:56 -0800
+Message-ID: <200702282353.l1SNru2E031160@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48442 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48452 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932677AbXB1XyF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:54:05 -0500
+	id S932658AbXB1XyP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:54:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: divy@chelsio.com, mm-commits@vger.kernel.org
+To: zwane@infradead.org, ak@suse.de, hpa@zytor.com, randy.dunlap@oracle.com, tobias.hain@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cxgb3: unmap offload packets when they are freed
+     x86: don't probe for DDC on VBE1.2
 has been removed from the -mm tree.  Its filename was
-     cxgb3-unmap-offload-packets-when-they-are-freed.patch
+     x86-dont-probe-for-ddc-on-vbe12.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cxgb3: unmap offload packets when they are freed
-From: Divy Le Ray <divy@chelsio.com>
+Subject: x86: don't probe for DDC on VBE1.2
+From: Zwane Mwaikambo <zwane@infradead.org>
+Return-Path: <zwane@infradead.org>
+Received: from localhost (bix [127.0.0.1])
+	by localhost.localdomain (8.12.10/8.12.10) with ESMTP id l1H8ZWfJ027389
+	for <akpm@localhost>; Sat, 17 Feb 2007 00:35:32 -0800
+Received: from bix [127.0.0.1]
+	by localhost with POP3 (fetchmail-6.2.0)
+	for akpm@localhost (single-drop); Sat, 17 Feb 2007 00:35:32 -0800 (PST)
+Received: from smtp1.osdl.org (smtp1.osdl.org [65.172.181.25])
+	by shell0.pdx.osdl.net (8.13.1/8.11.6) with ESMTP id l1H8aAmC022980
+	for <akpm@mail.gateway.osdl.net>; Sat, 17 Feb 2007 00:36:10 -0800
+Received: from pd2mo2so.prod.shaw.ca (shawidc-mo1.cg.shawcable.net [24.71.223.10])
+	by smtp1.osdl.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l1H8a3aK020841
+	for <akpm@linux-foundation.org>; Sat, 17 Feb 2007 00:36:04 -0800
+Received: from pd3mr4so.prod.shaw.ca
+ (pd3mr4so-qfe3.prod.shaw.ca [10.0.141.180]) by l-daemon
+ (Sun ONE Messaging Server 6.0 HotFix 1.01 (built Mar 15 2004))
+ with ESMTP id <0JDL00EKEMK3S6A0@l-daemon> for akpm@linux-foundation.org; Sat,
+ 17 Feb 2007 01:36:03 -0700 (MST)
+Received: from pn2ml7so.prod.shaw.ca ([10.0.121.151])
+ by pd3mr4so.prod.shaw.ca (Sun Java System Messaging Server 6.2-7.05 (built Sep
+ 5 2006)) with ESMTP id <0JDL00F1GMK3CX60@pd3mr4so.prod.shaw.ca> for
+ akpm@linux-foundation.org; Sat, 17 Feb 2007 01:36:04 -0700 (MST)
+Received: from montezuma.fsmlabs.com ([24.85.144.101])
+ by l-daemon (Sun ONE Messaging Server 6.0 HotFix 1.01 (built Mar 15 2004))
+ with ESMTP id <0JDL00162MJULPH1@l-daemon> for akpm@linux-foundation.org; Sat,
+ 17 Feb 2007 01:35:58 -0700 (MST)
+Received: from montezuma.fsmlabs.com (zwane@localhost [127.0.0.1])
+	by montezuma.fsmlabs.com (8.13.8/8.13.8/Debian-2)
+ with ESMTP id l1H8Zrqd011418; Sat, 17 Feb 2007 00:35:53 -0800
+Received: from localhost (zwane@localhost)
+	by montezuma.fsmlabs.com (8.13.8/8.13.8/Submit) with ESMTP id l1H8Zq8v011413;
+ Sat, 17 Feb 2007 00:35:53 -0800
+Date: Sat, 17 Feb 2007 00:35:52 -0800 (PST)
+Subject: Re: [PATCH] Don't probe for DDC on VBE1.2
+In-reply-to: <20070216102206.343e0b0d.akpm@linux-foundation.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, Andi Kleen <ak@suse.de>,
+        Tobias Hain <tobias.hain@gmx.de>, "H. Peter Anvin" <hpa@zytor.com>
+Message-id: <Pine.LNX.4.64.0702170024270.11321@montezuma.fsmlabs.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN; charset=US-ASCII
+References: <Pine.LNX.4.64.0702132145460.28458@montezuma.fsmlabs.com>
+ <20070215205658.56096f97.akpm@linux-foundation.org>
+ <Pine.LNX.4.64.0702152134190.12571@montezuma.fsmlabs.com>
+ <20070215214506.f795acc4.akpm@linux-foundation.org>
+ <20070215215125.9161e3dc.akpm@linux-foundation.org>
+ <Pine.LNX.4.64.0702152158210.12571@montezuma.fsmlabs.com>
+ <20070215230243.515ec6b3.akpm@linux-foundation.org>
+ <Pine.LNX.4.64.0702160500210.31650@montezuma.fsmlabs.com>
+ <20070216102206.343e0b0d.akpm@linux-foundation.org>
+X-Authentication-warning: montezuma.fsmlabs.com: zwane owned process doing -bs
+Received-SPF: none (domain of zwane@infradead.org does not designate permitted sender hosts)
+X-MIMEDefang-Filter: osdl$Revision: 1.176 $
+X-Scanned-By: MIMEDefang 2.53 on 65.172.181.25
+X-Spam-Checker-Version: SpamAssassin 3.0.2 (2004-11-16) on bix
+X-Spam-Level: 
+X-Spam-Status: No, score=-1.5 required=2.0 tests=AWL,BAYES_00,
+	FORGED_RCVD_HELO autolearn=ham version=3.0.2
 
-Offload packets may be DMAed long after their SGE Tx descriptors are done so
-they must remain mapped until they are freed rather than until their
-descriptors are freed.  Unmap such packets through an skb destructor.
+On Fri, 16 Feb 2007, Andrew Morton wrote:
 
-Signed-off-by: Divy Le Ray <divy@chelsio.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+> On Fri, 16 Feb 2007 06:39:45 -0800 (PST) Zwane Mwaikambo <zwane@infradead.org> wrote:
+> 
+> > On Thu, 15 Feb 2007, Andrew Morton wrote:
+> > 
+> > > It's not an X problem - the screen is black immediately upon loading the
+> > > kernel.
+> > > 
+> > > But I guess you knew that and you're just after display info:
+> > > http://userweb.kernel.org/~akpm/Xorg.0.log.txt
+> > 
+> > Thanks, the X log told me your VBE version. I tried to reproduce it on my 
+> > thinkpad which seems to have a very similar video setup to no avail, Could 
+> > you test the following on the VAIO? If this isn't the case, i suspect i'm 
+> > corrupting your modelist.
+> 
+> It's still all black.
 
- drivers/net/cxgb3/sge.c |   63 ++++++++++++++++++++++++++++++++++++--
- 1 file changed, 61 insertions(+), 2 deletions(-)
+Ok it looks like i was corrupting the modelist. The following should take 
+care of your VAIO, but i haven't tested the failure case as Tobias is away 
+this weekend.
 
-diff -puN drivers/net/cxgb3/sge.c~cxgb3-unmap-offload-packets-when-they-are-freed drivers/net/cxgb3/sge.c
---- a/drivers/net/cxgb3/sge.c~cxgb3-unmap-offload-packets-when-they-are-freed
-+++ a/drivers/net/cxgb3/sge.c
-@@ -105,6 +105,15 @@ struct unmap_info {		/* packet unmapping
- };
+Index: linux-2.6.20-mm1/arch/i386/boot/video.S
+===================================================================
+RCS file: /home/cvsroot/linux-2.6.20-mm1/arch/i386/boot/video.S,v
+retrieving revision 1.1.1.1
+diff -u -p -B -r1.1.1.1 video.S
+--- linux-2.6.20-mm1/arch/i386/boot/video.S	15 Feb 2007 17:35:57 -0000	1.1.1.1
++++ linux-2.6.20-mm1/arch/i386/boot/video.S	17 Feb 2007 08:29:11 -0000
+@@ -571,6 +571,16 @@ setr1:	lodsw
+ 	jmp	_m_s
  
- /*
-+ * Holds unmapping information for Tx packets that need deferred unmapping.
-+ * This structure lives at skb->head and must be allocated by callers.
-+ */
-+struct deferred_unmap_info {
-+	struct pci_dev *pdev;
-+	dma_addr_t addr[MAX_SKB_FRAGS + 1];
-+};
-+
-+/*
-  * Maps a number of flits to the number of Tx descriptors that can hold them.
-  * The formula is
-  *
-@@ -252,10 +261,13 @@ static void free_tx_desc(struct adapter 
- 	struct pci_dev *pdev = adapter->pdev;
- 	unsigned int cidx = q->cidx;
+ check_vesa:
++#ifdef CONFIG_FIRMWARE_EDID
++	leaw	modelist+1024, %di
++	movw	$0x4f00, %ax
++	int	$0x10
++	cmpw	$0x004f, %ax
++	jnz	setbad
++	
++	movw	4(%di), %ax
++	movw	%ax, vbe_version
++#endif
+ 	leaw	modelist+1024, %di
+ 	subb	$VIDEO_FIRST_VESA>>8, %bh
+ 	movw	%bx, %cx			# Get mode information structure
+@@ -1945,6 +1955,9 @@ store_edid:
+ 	rep
+ 	stosl
  
-+	const int need_unmap = need_skb_unmap() &&
-+			       q->cntxt_id >= FW_TUNNEL_SGEEC_START;
++	cmpw	$0x0200, vbe_version		# only do EDID on >= VBE2.0
++	jl	no_edid
 +
- 	d = &q->sdesc[cidx];
- 	while (n--) {
- 		if (d->skb) {	/* an SGL is present */
--			if (need_skb_unmap())
-+			if (need_unmap)
- 				unmap_skb(d->skb, q, cidx, pdev);
- 			if (d->skb->priority == cidx)
- 				kfree_skb(d->skb);
-@@ -1227,6 +1239,50 @@ int t3_mgmt_tx(struct adapter *adap, str
- }
+ 	pushw   %es				# save ES
+ 	xorw    %di, %di                        # Report Capability
+ 	pushw   %di
+@@ -1987,6 +2000,7 @@ do_restore:	.byte	0	# Screen contents al
+ svga_prefix:	.byte	VIDEO_FIRST_BIOS>>8	# Default prefix for BIOS modes
+ graphic_mode:	.byte	0	# Graphic mode with a linear frame buffer
+ dac_size:	.byte	6	# DAC bit depth
++vbe_version:	.word	0	# VBE bios version
  
- /**
-+ *	deferred_unmap_destructor - unmap a packet when it is freed
-+ *	@skb: the packet
-+ *
-+ *	This is the packet destructor used for Tx packets that need to remain
-+ *	mapped until they are freed rather than until their Tx descriptors are
-+ *	freed.
-+ */
-+static void deferred_unmap_destructor(struct sk_buff *skb)
-+{
-+	int i;
-+	const dma_addr_t *p;
-+	const struct skb_shared_info *si;
-+	const struct deferred_unmap_info *dui;
-+	const struct unmap_info *ui = (struct unmap_info *)skb->cb;
-+
-+	dui = (struct deferred_unmap_info *)skb->head;
-+	p = dui->addr;
-+
-+	if (ui->len)
-+		pci_unmap_single(dui->pdev, *p++, ui->len, PCI_DMA_TODEVICE);
-+
-+	si = skb_shinfo(skb);
-+	for (i = 0; i < si->nr_frags; i++)
-+		pci_unmap_page(dui->pdev, *p++, si->frags[i].size,
-+			       PCI_DMA_TODEVICE);
-+}
-+
-+static void setup_deferred_unmapping(struct sk_buff *skb, struct pci_dev *pdev,
-+				     const struct sg_ent *sgl, int sgl_flits)
-+{
-+	dma_addr_t *p;
-+	struct deferred_unmap_info *dui;
-+
-+	dui = (struct deferred_unmap_info *)skb->head;
-+	dui->pdev = pdev;
-+	for (p = dui->addr; sgl_flits >= 3; sgl++, sgl_flits -= 3) {
-+		*p++ = be64_to_cpu(sgl->addr[0]);
-+		*p++ = be64_to_cpu(sgl->addr[1]);
-+	}
-+	if (sgl_flits)
-+		*p = be64_to_cpu(sgl->addr[0]);
-+}
-+
-+/**
-  *	write_ofld_wr - write an offload work request
-  *	@adap: the adapter
-  *	@skb: the packet to send
-@@ -1262,8 +1318,11 @@ static void write_ofld_wr(struct adapter
- 	sgp = ndesc == 1 ? (struct sg_ent *)&d->flit[flits] : sgl;
- 	sgl_flits = make_sgl(skb, sgp, skb->h.raw, skb->tail - skb->h.raw,
- 			     adap->pdev);
--	if (need_skb_unmap())
-+	if (need_skb_unmap()) {
-+		setup_deferred_unmapping(skb, adap->pdev, sgp, sgl_flits);
-+		skb->destructor = deferred_unmap_destructor;
- 		((struct unmap_info *)skb->cb)->len = skb->tail - skb->h.raw;
-+	}
+ # Status messages
+ keymsg:		.ascii	"Press <RETURN> to see video modes available, "
+Index: linux-2.6.20-mm1/arch/x86_64/boot/video.S
+===================================================================
+RCS file: /home/cvsroot/linux-2.6.20-mm1/arch/x86_64/boot/video.S,v
+retrieving revision 1.1.1.1
+diff -u -p -B -r1.1.1.1 video.S
+--- linux-2.6.20-mm1/arch/x86_64/boot/video.S	15 Feb 2007 17:36:18 -0000	1.1.1.1
++++ linux-2.6.20-mm1/arch/x86_64/boot/video.S	17 Feb 2007 08:29:11 -0000
+@@ -571,6 +571,16 @@ setr1:	lodsw
+ 	jmp	_m_s
  
- 	write_wr_hdr_sgl(ndesc, skb, d, pidx, q, sgl, flits, sgl_flits,
- 			 gen, from->wr_hi, from->wr_lo);
-_
+ check_vesa:
++#ifdef CONFIG_FIRMWARE_EDID
++	leaw	modelist+1024, %di
++	movw	$0x4f00, %ax
++	int	$0x10
++	cmpw	$0x004f, %ax
++	jnz	setbad
++	
++	movw	4(%di), %ax
++	movw	%ax, vbe_version
++#endif
+ 	leaw	modelist+1024, %di
+ 	subb	$VIDEO_FIRST_VESA>>8, %bh
+ 	movw	%bx, %cx			# Get mode information structure
+@@ -1945,6 +1955,9 @@ store_edid:
+ 	rep
+ 	stosl
+ 
++	cmpw	$0x0200, vbe_version		# only do EDID on >= VBE2.0
++	jl	no_edid
++
+ 	pushw   %es				# save ES
+ 	xorw    %di, %di                        # Report Capability
+ 	pushw   %di
+@@ -1987,6 +2000,7 @@ do_restore:	.byte	0	# Screen contents al
+ svga_prefix:	.byte	VIDEO_FIRST_BIOS>>8	# Default prefix for BIOS modes
+ graphic_mode:	.byte	0	# Graphic mode with a linear frame buffer
+ dac_size:	.byte	6	# DAC bit depth
++vbe_version:	.word	0	# VBE bios version
+ 
+ # Status messages
+ keymsg:		.ascii	"Press <RETURN> to see video modes available, "
 
-Patches currently in -mm which might be from divy@chelsio.com are
-
-cxgb3-add-sw-lro-support.patch
+Patches currently in -mm which might be from zwane@infradead.org are
