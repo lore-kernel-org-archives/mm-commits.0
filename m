@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + swapcache-use-pg_owner_priv_1.patch added to -mm tree
-Date: Tue, 27 Feb 2007 22:30:48 -0800
-Message-ID: <200702280630.l1S6UqQM008869@shell0.pdx.osdl.net>
+Subject: + irq-add-__must_check-to-request_irq.patch added to -mm tree
+Date: Tue, 27 Feb 2007 22:31:15 -0800
+Message-ID: <200702280631.l1S6VJDB008878@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42026 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42041 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750977AbXB1Ga4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 01:30:56 -0500
+	id S1750995AbXB1GbV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 01:31:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nickpiggin@yahoo.com.au, npiggin@suse.de
+Cc: dmonakhov@openvz.org
 
 
 The patch titled
-     Swapcache: use PG_owner_priv_1 
+     IRQ: add __must_check to request_irq
 has been added to the -mm tree.  Its filename is
-     swapcache-use-pg_owner_priv_1.patch
+     irq-add-__must_check-to-request_irq.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,86 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Swapcache: use PG_owner_priv_1 
-From: Nick Piggin <nickpiggin@yahoo.com.au>
+Subject: IRQ: add __must_check to request_irq
+From: Monakhov Dmitriy <dmonakhov@openvz.org>
 
-Swapcache can use PG_owner_priv_1 rather than take up its own bit for
-PG_swapcache, thereby saving a page flag.
+This could help to find buggy drivers where request_irq return value wasn't
+checked.  There's just no reason to ignore errors which can and do occur. 
+Anyone who got warning during compilation have to realise what it is't
+realy safe code.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   10 +++++-----
- mm/page_alloc.c            |    3 ---
- 2 files changed, 5 insertions(+), 8 deletions(-)
+ include/linux/interrupt.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/page-flags.h~swapcache-use-pg_owner_priv_1 include/linux/page-flags.h
---- a/include/linux/page-flags.h~swapcache-use-pg_owner_priv_1
-+++ a/include/linux/page-flags.h
-@@ -84,15 +84,15 @@
- #define PG_writeback		12	/* Page is under writeback */
- #define PG_nosave		13	/* Used for system suspend/resume */
- #define PG_compound		14	/* Part of a compound page */
--#define PG_swapcache		15	/* Swap page: swp_entry_t in private */
-+#define PG_mappedtodisk		15	/* Has blocks allocated on-disk */
+diff -puN include/linux/interrupt.h~irq-add-__must_check-to-request_irq include/linux/interrupt.h
+--- a/include/linux/interrupt.h~irq-add-__must_check-to-request_irq
++++ a/include/linux/interrupt.h
+@@ -83,11 +83,11 @@ struct irqaction {
+ };
  
--#define PG_mappedtodisk		16	/* Has blocks allocated on-disk */
--#define PG_reclaim		17	/* To be reclaimed asap */
--#define PG_nosave_free		18	/* Used for system suspend/resume */
--#define PG_buddy		19	/* Page is free, on buddy lists */
-+#define PG_reclaim		16	/* To be reclaimed asap */
-+#define PG_nosave_free		17	/* Used for system suspend/resume */
-+#define PG_buddy		18	/* Page is free, on buddy lists */
+ extern irqreturn_t no_action(int cpl, void *dev_id);
+-extern int request_irq(unsigned int, irq_handler_t handler,
++extern int __must_check request_irq(unsigned int, irq_handler_t handler,
+ 		       unsigned long, const char *, void *);
+ extern void free_irq(unsigned int, void *);
  
- /* PG_owner_priv_1 users should have descriptive aliases */
- #define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
-+#define PG_swapcache		PG_owner_priv_1	/* swp_entry_t in private */
- 
- #if (BITS_PER_LONG > 32)
- /*
-diff -puN mm/page_alloc.c~swapcache-use-pg_owner_priv_1 mm/page_alloc.c
---- a/mm/page_alloc.c~swapcache-use-pg_owner_priv_1
-+++ a/mm/page_alloc.c
-@@ -201,7 +201,6 @@ static void bad_page(struct page *page)
- 			1 << PG_dirty	|
- 			1 << PG_reclaim |
- 			1 << PG_slab    |
--			1 << PG_swapcache |
- 			1 << PG_writeback |
- 			1 << PG_buddy );
- 	set_page_count(page, 0);
-@@ -435,7 +434,6 @@ static inline int free_pages_check(struc
- 			1 << PG_active	|
- 			1 << PG_reclaim	|
- 			1 << PG_slab	|
--			1 << PG_swapcache |
- 			1 << PG_writeback |
- 			1 << PG_reserved |
- 			1 << PG_buddy ))))
-@@ -585,7 +583,6 @@ static int prep_new_page(struct page *pa
- 			1 << PG_dirty	|
- 			1 << PG_reclaim	|
- 			1 << PG_slab    |
--			1 << PG_swapcache |
- 			1 << PG_writeback |
- 			1 << PG_reserved |
- 			1 << PG_buddy ))))
+-extern int devm_request_irq(struct device *dev, unsigned int irq,
++extern int __must_check devm_request_irq(struct device *dev, unsigned int irq,
+ 			    irq_handler_t handler, unsigned long irqflags,
+ 			    const char *devname, void *dev_id);
+ extern void devm_free_irq(struct device *dev, unsigned int irq, void *dev_id);
 _
 
-Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
-rename-pg_checked-to-pg_owner_priv_1.patch
-throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations.patch
-sched-fix-smt-scheduler-bug.patch
-adapt-page_lock_anon_vma-to-preempt_rcu.patch
-swapcache-use-pg_owner_priv_1.patch
-take-anonymous-pages-off-the-lru-if-we-have-no-swap.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-kblockd-use-flush_work.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-sched2-sched-domain-sysctl.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+ecryptfs-set-o_largefile-when-opening-lower-file.patch
+ecryptfs-remove-unnecessary-flush_dcache_page.patch
+ecryptfs-no-path_release-after-path_lookup-error.patch
+libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
+3c59x-handle-pci_enable_device-failure-while-resuming.patch
+sk98lin-handle-pci_enable_device-return-value-in-skge_resume.patch
+mpt-fusion-handle-mpt_resume-failure-while-resuming.patch
+freevxfs-possible-null-pointer-dereference-fix.patch
+reiserfs-possible-null-pointer-dereference-during-resize.patch
+irq-add-__must_check-to-request_irq.patch
+ecryptfs-handles-aop_truncated_page-better.patch
