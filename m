@@ -1,136 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt_ops-allocate-and-free-vmalloc-areas.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:16:02 -0800
-Message-ID: <200702282316.l1SNG2E0030032@shell0.pdx.osdl.net>
+Subject: - make-kernel-kmodckmod_mk-static.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:22:55 -0800
+Message-ID: <200702282322.l1SNMtql030229@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47267 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47405 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752207AbXB1XRP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:17:15 -0500
+	id S1752225AbXB1X0K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:26:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, Christian.Limpach@cl.cam.ac.uk, JBeulich@novell.com, ak@muc.de, chrisw@sous-sol.org, ian.pratt@xensource.com, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Jeremy Fitzhardinge <jeremy@goop.org>
+     make kernel/kmod.c:kmod_mk static
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt_ops-allocate-and-free-vmalloc-areas.patch
+     make-kernel-kmodckmod_mk-static.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: make kernel/kmod.c:kmod_mk static
+From: Adrian Bunk <bunk@stusta.de>
 
+> +gregkh-driver-driver-core-let-request_module-send-a-sys-modules-kmod-uevent.patch
 
-Allocate/destroy a 'vmalloc' VM area: alloc_vm_area and free_vm_area
-The alloc function ensures that page tables are constructed for the
-region of kernel virtual address space and mapped into init_mm.
-
-Signed-off-by: Ian Pratt <ian.pratt@xensource.com>
-Signed-off-by: Christian Limpach <Christian.Limpach@cl.cam.ac.uk>
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: "Jan Beulich" <JBeulich@novell.com>
-Cc: "Andi Kleen" <ak@muc.de>
-
---
-
-===================================================================
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/fault.c    |   43 ++++++++++++++++++++++++++++++++++++++
- include/linux/vmalloc.h |    4 +++
- 2 files changed, 47 insertions(+)
+ kernel/kmod.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/mm/fault.c~xen-paravirt_ops-allocate-and-free-vmalloc-areas arch/i386/mm/fault.c
---- a/arch/i386/mm/fault.c~xen-paravirt_ops-allocate-and-free-vmalloc-areas
-+++ a/arch/i386/mm/fault.c
-@@ -24,6 +24,7 @@
- #include <linux/module.h>
- #include <linux/kprobes.h>
- #include <linux/uaccess.h>
-+#include <linux/vmalloc.h>
+diff -puN kernel/kmod.c~make-kernel-kmodckmod_mk-static kernel/kmod.c
+--- a/kernel/kmod.c~make-kernel-kmodckmod_mk-static
++++ a/kernel/kmod.c
+@@ -48,7 +48,7 @@ static struct workqueue_struct *khelper_
+ 	modprobe_path is set via /proc/sys.
+ */
+ char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
+-struct module_kobject kmod_mk;
++static struct module_kobject kmod_mk;
  
- #include <asm/system.h>
- #include <asm/desc.h>
-@@ -639,3 +640,45 @@ void _vmalloc_sync_all(void)
- 			start = address + PGDIR_SIZE;
- 	}
- }
-+
-+
-+static int f(pte_t *pte, struct page *pmd_page, unsigned long addr, void *data)
-+{
-+	/* apply_to_page_range() does all the hard work. */
-+	return 0;
-+}
-+
-+struct vm_struct *alloc_vm_area(unsigned long size)
-+{
-+	struct vm_struct *area;
-+
-+	area = get_vm_area(size, VM_IOREMAP);
-+	if (area == NULL)
-+		return NULL;
-+
-+	/*
-+	 * This ensures that page tables are constructed for this region
-+	 * of kernel virtual address space and mapped into init_mm.
-+	 */
-+	if (apply_to_page_range(&init_mm, (unsigned long)area->addr,
-+				area->size, f, NULL)) {
-+		free_vm_area(area);
-+		return NULL;
-+	}
-+
-+	/* Make sure the pagetables are constructed in process kernel
-+	   mappings */
-+	vmalloc_sync_all();
-+
-+	return area;
-+}
-+EXPORT_SYMBOL_GPL(alloc_vm_area);
-+
-+void free_vm_area(struct vm_struct *area)
-+{
-+	struct vm_struct *ret;
-+	ret = remove_vm_area(area->addr);
-+	BUG_ON(ret != area);
-+	kfree(area);
-+}
-+EXPORT_SYMBOL_GPL(free_vm_area);
-diff -puN include/linux/vmalloc.h~xen-paravirt_ops-allocate-and-free-vmalloc-areas include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~xen-paravirt_ops-allocate-and-free-vmalloc-areas
-+++ a/include/linux/vmalloc.h
-@@ -68,6 +68,10 @@ extern int map_vm_area(struct vm_struct 
- 			struct page ***pages);
- extern void unmap_vm_area(struct vm_struct *area);
- 
-+/* Allocate/destroy a 'vmalloc' VM area. */
-+extern struct vm_struct *alloc_vm_area(unsigned long size);
-+extern void free_vm_area(struct vm_struct *area);
-+
- /*
-  *	Internals.  Dont't use..
-  */
+ /**
+  * request_module - try to load a kernel module
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-make-hvc_consolec-compile-on-non-powerpc-remove-no_irq.patch
-xen-paravirt_ops-no-need-to-use-traditional-for-processing-asm-in-arch-i386.patch
-xen-paravirt_ops-clean-up-elf-note-generation.patch
-xen-paravirt_ops-fix-typo-in-sync_constant_test_bits-name.patch
-xen-paravirt_ops-ignore-vgacon-if-hardware-not-present.patch
-xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable.patch
-xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot.patch
-xen-paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
-xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations.patch
-xen-paravirt_ops-allocate-and-free-vmalloc-areas.patch
-xen-paravirt_ops-core-xen-implementation.patch
-xen-paravirt_ops-some-generic-early-printk-boot-console-fixups.patch
-xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+arch-arm26-kernel-entrys-remove-dead-code.patch
+make-ipc-shmcshm_nopage-static.patch
+mm-tiny-shmemc-cleanups.patch
+drivers-video-sm501fbc-make-4-functions-static.patch
+fix-the-sysctl=n-compilation.patch
+drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix.patch
+make-kernel-kmodckmod_mk-static.patch
+git-drm.patch
+git-dvb.patch
+make-dvb_usb_gl861_debug-static.patch
+make-pvr2_encoder_prep_config-static.patch
+git-gfs2-nmw.patch
+git-hid.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+mips-remove-smp_tune_scheduling.patch
+drivers-mmc-kconfig-source-drivers-mmc-card-kconfig.patch
+remove-fs-jffs2-ioctlc.patch
+git-ubi.patch
+mtd_ubi_debug-must-depend-on-sysfs.patch
+drivers-net-vioc-possible-cleanups.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-qla3xxx.patch
+git-unionfs.patch
+make-drivers-usb-misc-iowarriorciowarrior_ids-static.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-cleanup.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-architecture-independant-code-license-fix.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
