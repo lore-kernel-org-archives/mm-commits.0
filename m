@@ -1,142 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - add-id_to_dma_mode-function-for-printing-dma-modes.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:51:57 -0800
-Message-ID: <200702282351.l1SNpvHG030955@shell0.pdx.osdl.net>
+Subject: - sata_nv-complain-on-spurious-completion-notifiers.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:52:11 -0800
+Message-ID: <200702282352.l1SNqB6r030973@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48207 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48203 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932615AbXB1XwO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:52:14 -0500
+	id S932601AbXB1XwN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:52:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: hancockr@shaw.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add id_to_dma_mode function for printing DMA modes
+     sata_nv: complain on spurious completion notifiers
 has been removed from the -mm tree.  Its filename was
-     add-id_to_dma_mode-function-for-printing-dma-modes.patch
+     sata_nv-complain-on-spurious-completion-notifiers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add id_to_dma_mode function for printing DMA modes
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: sata_nv: complain on spurious completion notifiers
+From: Robert Hancock <hancockr@shaw.ca>
 
-Also export dev_disable as this is needed by drivers doing slave decode
-filtering, which will follow shortly
+Recently Tejun wrote a patch to ahci.c to make it raise a HSM violation if
+the drive attempted to complete a tag that wasn't outstanding.  We could
+run into the same problem with sata_nv ADMA.  This adds code to raise a HSM
+violation error if the controller gives us a notifier tag that isn't
+outstanding, since the drive may be issuing spurious completions.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   44 ++++++++++++++++++++++++++++++++++++
- include/linux/libata.h    |    2 +
- 2 files changed, 46 insertions(+)
+ drivers/ata/sata_nv.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN drivers/ata/libata-core.c~add-id_to_dma_mode-function-for-printing-dma-modes drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~add-id_to_dma_mode-function-for-printing-dma-modes
-+++ a/drivers/ata/libata-core.c
-@@ -824,6 +824,48 @@ static u64 ata_id_n_sectors(const u16 *i
- }
- 
- /**
-+ *	ata_id_to_dma_mode	-	Identify DMA mode from id block
-+ *	@dev: device to identify
-+ *	@mode: mode to assume if we cannot tell
-+ *
-+ *	Set up the timing values for the device based upon the identify
-+ *	reported values for the DMA mode. This function is used by drivers
-+ *	which rely upon firmware configured modes, but wish to report the
-+ *	mode correctly when possible.
-+ *
-+ *	In addition we emit similarly formatted messages to the default
-+ *	ata_dev_set_mode handler, in order to provide consistency of
-+ *	presentation.
-+ */
-+
-+void ata_id_to_dma_mode(struct ata_device *dev, u8 unknown)
-+{
-+	unsigned int mask;
-+	u8 mode;
-+
-+	/* Pack the DMA modes */
-+	mask = ((dev->id[63] >> 8) << ATA_SHIFT_MWDMA) & ATA_MASK_MWDMA;
-+	if (dev->id[53] & 0x04)
-+		mask |= ((dev->id[88] >> 8) << ATA_SHIFT_UDMA) & ATA_MASK_UDMA;
-+
-+	/* Select the mode in use */
-+	mode = ata_xfer_mask2mode(mask);
-+
-+	if (mode != 0) {
-+		ata_dev_printk(dev, KERN_INFO, "configured for %s\n",
-+		       ata_mode_string(mask));
-+	} else {
-+		/* SWDMA perhaps ? */
-+		mode = unknown;
-+		ata_dev_printk(dev, KERN_INFO, "configured for DMA\n");
-+	}
-+
-+	/* Configure the device reporting */
-+	dev->xfer_mode = mode;
-+	dev->xfer_shift = ata_xfer_mode2shift(mode);
-+}
-+
-+/**
-  *	ata_noop_dev_select - Select device 0/1 on ATA bus
-  *	@ap: ATA channel to manipulate
-  *	@device: ATA device (numbered from zero) to select
-@@ -6283,6 +6325,7 @@ EXPORT_SYMBOL_GPL(ata_bmdma_drive_eh);
- EXPORT_SYMBOL_GPL(ata_bmdma_error_handler);
- EXPORT_SYMBOL_GPL(ata_bmdma_post_internal_cmd);
- EXPORT_SYMBOL_GPL(ata_port_probe);
-+EXPORT_SYMBOL_GPL(ata_dev_disable);
- EXPORT_SYMBOL_GPL(sata_set_spd);
- EXPORT_SYMBOL_GPL(sata_phy_debounce);
- EXPORT_SYMBOL_GPL(sata_phy_resume);
-@@ -6317,6 +6360,7 @@ EXPORT_SYMBOL_GPL(ata_host_suspend);
- EXPORT_SYMBOL_GPL(ata_host_resume);
- EXPORT_SYMBOL_GPL(ata_id_string);
- EXPORT_SYMBOL_GPL(ata_id_c_string);
-+EXPORT_SYMBOL_GPL(ata_id_to_dma_mode);
- EXPORT_SYMBOL_GPL(ata_device_blacklisted);
- EXPORT_SYMBOL_GPL(ata_scsi_simulate);
- 
-diff -puN include/linux/libata.h~add-id_to_dma_mode-function-for-printing-dma-modes include/linux/libata.h
---- a/include/linux/libata.h~add-id_to_dma_mode-function-for-printing-dma-modes
-+++ a/include/linux/libata.h
-@@ -788,10 +788,12 @@ extern void ata_sg_init_one(struct ata_q
- extern void ata_sg_init(struct ata_queued_cmd *qc, struct scatterlist *sg,
- 		 unsigned int n_elem);
- extern unsigned int ata_dev_classify(const struct ata_taskfile *tf);
-+extern void ata_dev_disable(struct ata_device *adev);
- extern void ata_id_string(const u16 *id, unsigned char *s,
- 			  unsigned int ofs, unsigned int len);
- extern void ata_id_c_string(const u16 *id, unsigned char *s,
- 			    unsigned int ofs, unsigned int len);
-+extern void ata_id_to_dma_mode(struct ata_device *dev, u8 unknown);
- extern unsigned long ata_device_blacklisted(const struct ata_device *dev);
- extern void ata_bmdma_setup (struct ata_queued_cmd *qc);
- extern void ata_bmdma_start (struct ata_queued_cmd *qc);
+diff -puN drivers/ata/sata_nv.c~sata_nv-complain-on-spurious-completion-notifiers drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-complain-on-spurious-completion-notifiers
++++ a/drivers/ata/sata_nv.c
+@@ -740,6 +740,17 @@ static int nv_adma_check_cpb(struct ata_
+ 			DPRINTK("Completing qc from tag %d with err_mask %u\n",cpb_num,
+ 				qc->err_mask);
+ 			ata_qc_complete(qc);
++		} else {
++			struct ata_eh_info *ehi = &ap->eh_info;
++			/* Notifier bits set without a command may indicate the drive
++			   is misbehaving. Raise host state machine violation on this
++			   condition. */
++			ata_port_printk(ap, KERN_ERR, "notifier for tag %d with no command?\n",
++				cpb_num);
++			ehi->err_mask |= AC_ERR_HSM;
++			ehi->action |= ATA_EH_SOFTRESET;
++			ata_port_freeze(ap);
++			return 1;
+ 		}
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
 libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
-expose-set_mode-method-so-it-can-be-wrapped.patch
-acpi-driver-support-for-pata.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-resend-iphase-64bit-cleanup.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-driver_bfin_serial_core.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-tty-clarify-documentation-of-write.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
+libata-add-ncq-blacklist-entries-from-silicon-image-windows.patch
