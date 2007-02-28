@@ -1,56 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - spidernet-maintainership.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:53:11 -0800
-Message-ID: <200702282353.l1SNrBM3031065@shell0.pdx.osdl.net>
+Subject: - ipv6-anycast-refcnt-fix.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:53:33 -0800
+Message-ID: <200702282353.l1SNrXPG031106@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48388 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48392 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932621AbXB1Xxk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:53:40 -0500
+	id S932630AbXB1Xxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:53:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linas@austin.ibm.com, Jens.Osterkamp@de.ibm.com, kou.ishizaki@toshiba.co.jp, mm-commits@vger.kernel.org
+To: xmxwx@asn.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spidernet: maintainership
+     IPv6 anycast refcnt fix
 has been removed from the -mm tree.  Its filename was
-     spidernet-maintainership.patch
+     ipv6-anycast-refcnt-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spidernet: maintainership
-From: Linas Vepstas <linas@austin.ibm.com>
+Subject: IPv6 anycast refcnt fix
+From: Michal Wrobel <xmxwx@asn.pl>
 
-Update driver support contact info.
+Fix a bug in Linux IPv6 stack which caused anycast address to be added to a
+device prior DAD has been completed.  This led to incorrect reference count
+which resulted in infinite wait for unregister_netdevice completion on
+interface removal.
 
-Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
-Cc: Jens Osterkamp <Jens.Osterkamp@de.ibm.com>
-Cc: Kou Ishizaki <kou.ishizaki@toshiba.co.jp>
+Signed-off-by: Michal Wrobel <xmxwx@asn.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/ipv6/addrconf.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN MAINTAINERS~spidernet-maintainership MAINTAINERS
---- a/MAINTAINERS~spidernet-maintainership
-+++ a/MAINTAINERS
-@@ -3186,8 +3186,8 @@ L:	linux-kernel@vger.kernel.org ?
- S:	Supported
- 
- SPIDERNET NETWORK DRIVER for CELL
--P:	Jim Lewis
--M:	jim@jklewis.com
-+P:	Linas Vepstas
-+M:	linas@austin.ibm.com
- L:	netdev@vger.kernel.org
- S:	Supported
- 
+diff -puN net/ipv6/addrconf.c~ipv6-anycast-refcnt-fix net/ipv6/addrconf.c
+--- a/net/ipv6/addrconf.c~ipv6-anycast-refcnt-fix
++++ a/net/ipv6/addrconf.c
+@@ -468,6 +468,8 @@ static void dev_forward_change(struct in
+ 			ipv6_dev_mc_dec(dev, &addr);
+ 	}
+ 	for (ifa=idev->addr_list; ifa; ifa=ifa->if_next) {
++		if (ifa->flags&IFA_F_TENTATIVE)
++			continue;
+ 		if (idev->cnf.forwarding)
+ 			addrconf_join_anycast(ifa);
+ 		else
 _
 
-Patches currently in -mm which might be from linas@austin.ibm.com are
+Patches currently in -mm which might be from xmxwx@asn.pl are
 
-s2io-add-pci-error-recovery-support.patch
+git-net.patch
