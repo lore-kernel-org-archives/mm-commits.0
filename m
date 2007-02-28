@@ -1,120 +1,518 @@
 From: akpm@linux-foundation.org
-Subject: - goku_udc-remove-crude-cache-coherency-code.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:53:54 -0800
-Message-ID: <200702282353.l1SNrsIe031156@shell0.pdx.osdl.net>
+Subject: - serial-serial_txx9-driver-update.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:53:36 -0800
+Message-ID: <200702282353.l1SNragI031122@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48626 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48625 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932784AbXB1X5P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:57:15 -0500
+	id S932777AbXB1X5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:57:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, alan@lxorguk.ukuu.org.uk, ralf@linux-mips.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: goku_udc: Remove crude cache coherency code
+     serial: serial_txx9 driver update
 has been removed from the -mm tree.  Its filename was
-     goku_udc-remove-crude-cache-coherency-code.patch
+     serial-serial_txx9-driver-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb: goku_udc: Remove crude cache coherency code
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: serial: serial_txx9 driver update
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Return-Path: <anemo@mba.ocn.ne.jp>
+Received: from localhost (bix [127.0.0.1])
+	by localhost.localdomain (8.12.10/8.12.10) with ESMTP id l1LFUtfJ030065
+	for <akpm@localhost>; Wed, 21 Feb 2007 07:30:55 -0800
+Received: from bix [127.0.0.1]
+	by localhost with POP3 (fetchmail-6.2.0)
+	for akpm@localhost (single-drop); Wed, 21 Feb 2007 07:30:55 -0800 (PST)
+Received: from smtp1.osdl.org (smtp1.osdl.org [65.172.181.25])
+	by shell0.pdx.osdl.net (8.13.1/8.11.6) with ESMTP id l1LFVrGa017512
+	for <akpm@mail.gateway.osdl.net>; Wed, 21 Feb 2007 07:31:53 -0800
+Received: from smtp.mba.ocn.ne.jp (mba.ocn.ne.jp [210.190.142.172])
+	by smtp1.osdl.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l1LFViba016283
+	for <akpm@linux-foundation.org>; Wed, 21 Feb 2007 07:31:46 -0800
+Received: from localhost (p7058-ipad205funabasi.chiba.ocn.ne.jp [222.146.102.58])
+	by smtp.mba.ocn.ne.jp (Postfix) with ESMTP
+	id 0C9CFBA61; Thu, 22 Feb 2007 00:31:43 +0900 (JST)
+Date: Thu, 22 Feb 2007 00:31:42 +0900 (JST)
+Message-Id: <20070222.003142.106263613.anemo@mba.ocn.ne.jp>
+To: linux-kernel@vger.kernel.org
+Cc: akpm@linux-foundation.org, ralf@linux-mips.org
+Subject: [PATCH 2.6.21-rc1] serial: serial_txx9 driver update
+X-Fingerprint: 6ACA 1623 39BD 9A94 9B1A  B746 CA77 FE94 2874 D52F
+X-Pgp-Public-Key: http://wwwkeys.pgp.net/pks/lookup?op=get&search=0x2874D52F
+X-Mailer: Mew version 3.3 on Emacs 21.4 / Mule 5.0 (SAKAKI)
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Received-SPF: pass (domain of anemo@mba.ocn.ne.jp designates 210.190.142.172 as permitted sender)
+X-MIMEDefang-Filter: osdl$Revision: 1.176 $
+X-Scanned-By: MIMEDefang 2.53 on 65.172.181.25
+X-Spam-Checker-Version: SpamAssassin 3.0.2 (2004-11-16) on bix
+X-Spam-Level: 
+X-Spam-Status: No, score=-1.7 required=2.0 tests=BAYES_00 autolearn=ham 
+	version=3.0.2
 
-This is deep architecture specific magic and does should not to exist in a
-driver.
+Update the serial_txx9 driver.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Greg KH <greg@kroah.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+ * Use platform_device.
+ * Fix and cleanup suspend/resume codes.
+
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 ---
-
- drivers/usb/gadget/goku_udc.c |   29 -----------------------------
- 1 file changed, 29 deletions(-)
-
-diff -puN drivers/usb/gadget/goku_udc.c~goku_udc-remove-crude-cache-coherency-code drivers/usb/gadget/goku_udc.c
---- a/drivers/usb/gadget/goku_udc.c~goku_udc-remove-crude-cache-coherency-code
-+++ a/drivers/usb/gadget/goku_udc.c
-@@ -297,27 +297,6 @@ goku_free_request(struct usb_ep *_ep, st
+diff --git a/drivers/serial/serial_txx9.c b/drivers/serial/serial_txx9.c
+index f4440d3..124d056 100644
+--- a/drivers/serial/serial_txx9.c
++++ b/drivers/serial/serial_txx9.c
+@@ -38,6 +38,8 @@
+  *		Fix some spin_locks.
+  *		Do not call uart_add_one_port for absent ports.
+  *	1.07	Use CONFIG_SERIAL_TXX9_NR_UARTS.  Cleanup.
++ *	1.08	Use platform_device.
++ *		Fix and cleanup suspend/resume codes.
+  */
  
- /*-------------------------------------------------------------------------*/
+ #if defined(CONFIG_SERIAL_TXX9_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
+@@ -50,7 +52,7 @@
+ #include <linux/console.h>
+ #include <linux/sysrq.h>
+ #include <linux/delay.h>
+-#include <linux/device.h>
++#include <linux/platform_device.h>
+ #include <linux/pci.h>
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+@@ -60,7 +62,7 @@
  
--#undef USE_KMALLOC
--
--/* many common platforms have dma-coherent caches, which means that it's
-- * safe to use kmalloc() memory for all i/o buffers without using any
-- * cache flushing calls.  (unless you're trying to share cache lines
-- * between dma and non-dma activities, which is a slow idea in any case.)
-- *
-- * other platforms need more care, with 2.6 having a moderately general
-- * solution except for the common "buffer is smaller than a page" case.
-- */
--#if	defined(CONFIG_X86)
--#define USE_KMALLOC
--
--#elif	defined(CONFIG_MIPS) && !defined(CONFIG_DMA_NONCOHERENT)
--#define USE_KMALLOC
--
--#elif	defined(CONFIG_PPC) && !defined(CONFIG_NOT_COHERENT_CACHE)
--#define USE_KMALLOC
--
--#endif
--
- /* allocating buffers this way eliminates dma mapping overhead, which
-  * on some platforms will mean eliminating a per-io buffer copy.  with
-  * some kinds of system caches, further tweaks may still be needed.
-@@ -334,11 +313,6 @@ goku_alloc_buffer(struct usb_ep *_ep, un
- 		return NULL;
- 	*dma = DMA_ADDR_INVALID;
+ #include <asm/io.h>
  
--#if	defined(USE_KMALLOC)
--	retval = kmalloc(bytes, gfp_flags);
--	if (retval)
--		*dma = virt_to_phys(retval);
--#else
- 	if (ep->dma) {
- 		/* the main problem with this call is that it wastes memory
- 		 * on typical 1/N page allocations: it allocates 1-N pages.
-@@ -348,7 +322,6 @@ goku_alloc_buffer(struct usb_ep *_ep, un
- 				bytes, dma, gfp_flags);
- 	} else
- 		retval = kmalloc(bytes, gfp_flags);
--#endif
- 	return retval;
+-static char *serial_version = "1.07";
++static char *serial_version = "1.08";
+ static char *serial_name = "TX39/49 Serial driver";
+ 
+ #define PASS_LIMIT	256
+@@ -94,12 +96,7 @@ static char *serial_name = "TX39/49 Seri
+ 
+ struct uart_txx9_port {
+ 	struct uart_port	port;
+-
+-	/*
+-	 * We provide a per-port pm hook.
+-	 */
+-	void			(*pm)(struct uart_port *port,
+-				      unsigned int state, unsigned int old);
++	/* No additional info for now */
+ };
+ 
+ #define TXX9_REGION_SIZE	0x24
+@@ -277,6 +274,32 @@ static void serial_txx9_enable_ms(struct
+ 	/* TXX9-SIO can not control DTR... */
  }
  
-@@ -356,7 +329,6 @@ static void
- goku_free_buffer(struct usb_ep *_ep, void *buf, dma_addr_t dma, unsigned bytes)
++static void serial_txx9_initialize(struct uart_port *port)
++{
++	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
++
++	sio_out(up, TXX9_SIFCR, TXX9_SIFCR_SWRST);
++#ifdef CONFIG_CPU_TX49XX
++	/* TX4925 BUG WORKAROUND.  Accessing SIOC register
++	 * immediately after soft reset causes bus error. */
++	iob();
++	udelay(1);
++#endif
++	while (sio_in(up, TXX9_SIFCR) & TXX9_SIFCR_SWRST)
++		;
++	/* TX Int by FIFO Empty, RX Int by Receiving 1 char. */
++	sio_set(up, TXX9_SIFCR,
++		TXX9_SIFCR_TDIL_MAX | TXX9_SIFCR_RDIL_1);
++	/* initial settings */
++	sio_out(up, TXX9_SILCR,
++		TXX9_SILCR_UMODE_8BIT | TXX9_SILCR_USBL_1BIT |
++		((up->port.flags & UPF_TXX9_USE_SCLK) ?
++		 TXX9_SILCR_SCS_SCLK_BG : TXX9_SILCR_SCS_IMCLK_BG));
++	sio_quot_set(up, uart_get_divisor(port, 9600));
++	sio_out(up, TXX9_SIFLCR, TXX9_SIFLCR_RTSTL_MAX /* 15 */);
++	sio_out(up, TXX9_SIDICR, 0);
++}
++
+ static inline void
+ receive_chars(struct uart_txx9_port *up, unsigned int *status)
  {
- 	/* free memory into the right allocator */
--#ifndef	USE_KMALLOC
- 	if (dma != DMA_ADDR_INVALID) {
- 		struct goku_ep	*ep;
- 
-@@ -365,7 +337,6 @@ goku_free_buffer(struct usb_ep *_ep, voi
- 			return;
- 		dma_free_coherent(&ep->dev->pdev->dev, bytes, buf, dma);
- 	} else
--#endif
- 		kfree (buf);
+@@ -657,9 +680,8 @@ static void
+ serial_txx9_pm(struct uart_port *port, unsigned int state,
+ 	      unsigned int oldstate)
+ {
+-	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
+-	if (up->pm)
+-		up->pm(port, state, oldstate);
++	if (state == 0)
++		serial_txx9_initialize(port);
  }
  
-_
+ static int serial_txx9_request_resource(struct uart_txx9_port *up)
+@@ -732,7 +754,6 @@ static int serial_txx9_request_port(stru
+ static void serial_txx9_config_port(struct uart_port *port, int uflags)
+ {
+ 	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
+-	unsigned long flags;
+ 	int ret;
+ 
+ 	/*
+@@ -749,30 +770,7 @@ static void serial_txx9_config_port(stru
+ 	if (up->port.line == up->port.cons->index)
+ 		return;
+ #endif
+-	spin_lock_irqsave(&up->port.lock, flags);
+-	/*
+-	 * Reset the UART.
+-	 */
+-	sio_out(up, TXX9_SIFCR, TXX9_SIFCR_SWRST);
+-#ifdef CONFIG_CPU_TX49XX
+-	/* TX4925 BUG WORKAROUND.  Accessing SIOC register
+-	 * immediately after soft reset causes bus error. */
+-	iob();
+-	udelay(1);
+-#endif
+-	while (sio_in(up, TXX9_SIFCR) & TXX9_SIFCR_SWRST)
+-		;
+-	/* TX Int by FIFO Empty, RX Int by Receiving 1 char. */
+-	sio_set(up, TXX9_SIFCR,
+-		TXX9_SIFCR_TDIL_MAX | TXX9_SIFCR_RDIL_1);
+-	/* initial settings */
+-	sio_out(up, TXX9_SILCR,
+-		TXX9_SILCR_UMODE_8BIT | TXX9_SILCR_USBL_1BIT |
+-		((up->port.flags & UPF_TXX9_USE_SCLK) ?
+-		 TXX9_SILCR_SCS_SCLK_BG : TXX9_SILCR_SCS_IMCLK_BG));
+-	sio_quot_set(up, uart_get_divisor(port, 9600));
+-	sio_out(up, TXX9_SIFLCR, TXX9_SIFLCR_RTSTL_MAX /* 15 */);
+-	spin_unlock_irqrestore(&up->port.lock, flags);
++	serial_txx9_initialize(port);
+ }
+ 
+ static int
+@@ -818,7 +816,8 @@ static struct uart_ops serial_txx9_pops
+ 
+ static struct uart_txx9_port serial_txx9_ports[UART_NR];
+ 
+-static void __init serial_txx9_register_ports(struct uart_driver *drv)
++static void __init serial_txx9_register_ports(struct uart_driver *drv,
++					      struct device *dev)
+ {
+ 	int i;
+ 
+@@ -827,6 +826,7 @@ static void __init serial_txx9_register_
+ 
+ 		up->port.line = i;
+ 		up->port.ops = &serial_txx9_pops;
++		up->port.dev = dev;
+ 		if (up->port.iobase || up->port.mapbase)
+ 			uart_add_one_port(drv, &up->port);
+ 	}
+@@ -898,7 +898,7 @@ serial_txx9_console_write(struct console
+ 	sio_out(up, TXX9_SIDICR, ier);
+ }
+ 
+-static int serial_txx9_console_setup(struct console *co, char *options)
++static int __init serial_txx9_console_setup(struct console *co, char *options)
+ {
+ 	struct uart_port *port;
+ 	struct uart_txx9_port *up;
+@@ -919,17 +919,7 @@ static int serial_txx9_console_setup(str
+ 	if (!port->ops)
+ 		return -ENODEV;
+ 
+-	/*
+-	 *	Disable UART interrupts, set DTR and RTS high
+-	 *	and set speed.
+-	 */
+-	sio_out(up, TXX9_SIDICR, 0);
+-	/* initial settings */
+-	sio_out(up, TXX9_SILCR,
+-		TXX9_SILCR_UMODE_8BIT | TXX9_SILCR_USBL_1BIT |
+-		((port->flags & UPF_TXX9_USE_SCLK) ?
+-		 TXX9_SILCR_SCS_SCLK_BG : TXX9_SILCR_SCS_IMCLK_BG));
+-	sio_out(up, TXX9_SIFLCR, TXX9_SIFLCR_RTSTL_MAX /* 15 */);
++	serial_txx9_initialize(&up->port);
+ 
+ 	if (options)
+ 		uart_parse_options(options, &baud, &parity, &bits, &flow);
+@@ -981,31 +971,6 @@ int __init early_serial_txx9_setup(struc
+ 	return 0;
+ }
+ 
+-#ifdef ENABLE_SERIAL_TXX9_PCI
+-#ifdef CONFIG_PM
+-/**
+- *	serial_txx9_suspend_port - suspend one serial port
+- *	@line:  serial line number
+- *
+- *	Suspend one serial port.
+- */
+-static void serial_txx9_suspend_port(int line)
+-{
+-	uart_suspend_port(&serial_txx9_reg, &serial_txx9_ports[line].port);
+-}
+-
+-/**
+- *	serial_txx9_resume_port - resume one serial port
+- *	@line:  serial line number
+- *
+- *	Resume one serial port.
+- */
+-static void serial_txx9_resume_port(int line)
+-{
+-	uart_resume_port(&serial_txx9_reg, &serial_txx9_ports[line].port);
+-}
+-#endif
+-
+ static DEFINE_MUTEX(serial_txx9_mutex);
+ 
+ /**
+@@ -1028,8 +993,18 @@ static int __devinit serial_txx9_registe
+ 	mutex_lock(&serial_txx9_mutex);
+ 	for (i = 0; i < UART_NR; i++) {
+ 		uart = &serial_txx9_ports[i];
+-		if (!(uart->port.iobase || uart->port.mapbase))
++		if (uart_match_port(&uart->port, port)) {
++			uart_remove_one_port(&serial_txx9_reg, &uart->port);
+ 			break;
++		}
++	}
++	if (i == UART_NR) {
++		/* Find unused port */
++		for (i = 0; i < UART_NR; i++) {
++			uart = &serial_txx9_ports[i];
++			if (!(uart->port.iobase || uart->port.mapbase))
++				break;
++		}
+ 	}
+ 	if (i < UART_NR) {
+ 		uart->port.iobase = port->iobase;
+@@ -1072,6 +1047,95 @@ static void __devexit serial_txx9_unregi
+ }
+ 
+ /*
++ * Register a set of serial devices attached to a platform device.
++ */
++static int __devinit serial_txx9_probe(struct platform_device *dev)
++{
++	struct uart_port *p = dev->dev.platform_data;
++	struct uart_port port;
++	int ret, i;
++
++	memset(&port, 0, sizeof(struct uart_port));
++	for (i = 0; p && p->uartclk != 0; p++, i++) {
++		port.iobase	= p->iobase;
++		port.membase	= p->membase;
++		port.irq	= p->irq;
++		port.uartclk	= p->uartclk;
++		port.iotype	= p->iotype;
++		port.flags	= p->flags;
++		port.mapbase	= p->mapbase;
++		port.dev	= &dev->dev;
++		ret = serial_txx9_register_port(&port);
++		if (ret < 0) {
++			dev_err(&dev->dev, "unable to register port at index %d "
++				"(IO%x MEM%lx IRQ%d): %d\n", i,
++				p->iobase, p->mapbase, p->irq, ret);
++		}
++	}
++	return 0;
++}
++
++/*
++ * Remove serial ports registered against a platform device.
++ */
++static int __devexit serial_txx9_remove(struct platform_device *dev)
++{
++	int i;
++
++	for (i = 0; i < UART_NR; i++) {
++		struct uart_txx9_port *up = &serial_txx9_ports[i];
++
++		if (up->port.dev == &dev->dev)
++			serial_txx9_unregister_port(i);
++	}
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int serial_txx9_suspend(struct platform_device *dev, pm_message_t state)
++{
++	int i;
++
++	for (i = 0; i < UART_NR; i++) {
++		struct uart_txx9_port *up = &serial_txx9_ports[i];
++
++		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
++			uart_suspend_port(&serial_txx9_reg, &up->port);
++	}
++
++	return 0;
++}
++
++static int serial_txx9_resume(struct platform_device *dev)
++{
++	int i;
++
++	for (i = 0; i < UART_NR; i++) {
++		struct uart_txx9_port *up = &serial_txx9_ports[i];
++
++		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
++			uart_resume_port(&serial_txx9_reg, &up->port);
++	}
++
++	return 0;
++}
++#endif
++
++static struct platform_driver serial_txx9_plat_driver = {
++	.probe		= serial_txx9_probe,
++	.remove		= __devexit_p(serial_txx9_remove),
++#ifdef CONFIG_PM
++	.suspend	= serial_txx9_suspend,
++	.resume		= serial_txx9_resume,
++#endif
++	.driver		= {
++		.name	= "serial_txx9",
++		.owner	= THIS_MODULE,
++	},
++};
++
++#ifdef ENABLE_SERIAL_TXX9_PCI
++/*
+  * Probe one serial board.  Unfortunately, there is no rhyme nor reason
+  * to the arrangement of serial ports on a PCI card.
+  */
+@@ -1097,20 +1161,22 @@ pciserial_txx9_init_one(struct pci_dev *
+ 	line = serial_txx9_register_port(&port);
+ 	if (line < 0) {
+ 		printk(KERN_WARNING "Couldn't register serial port %s: %d\n", pci_name(dev), line);
++		pci_disable_device(dev);
++		return line;
+ 	}
+-	pci_set_drvdata(dev, (void *)(long)line);
++	pci_set_drvdata(dev, &serial_txx9_ports[line]);
+ 
+ 	return 0;
+ }
+ 
+ static void __devexit pciserial_txx9_remove_one(struct pci_dev *dev)
+ {
+-	int line = (int)(long)pci_get_drvdata(dev);
++	struct uart_txx9_port *up = pci_get_drvdata(dev);
+ 
+ 	pci_set_drvdata(dev, NULL);
+ 
+-	if (line) {
+-		serial_txx9_unregister_port(line);
++	if (up) {
++		serial_txx9_unregister_port(up->port.line);
+ 		pci_disable_device(dev);
+ 	}
+ }
+@@ -1118,10 +1184,10 @@ static void __devexit pciserial_txx9_rem
+ #ifdef CONFIG_PM
+ static int pciserial_txx9_suspend_one(struct pci_dev *dev, pm_message_t state)
+ {
+-	int line = (int)(long)pci_get_drvdata(dev);
++	struct uart_txx9_port *up = pci_get_drvdata(dev);
+ 
+-	if (line)
+-		serial_txx9_suspend_port(line);
++	if (up)
++		uart_suspend_port(&serial_txx9_reg, &up->port);
+ 	pci_save_state(dev);
+ 	pci_set_power_state(dev, pci_choose_state(dev, state));
+ 	return 0;
+@@ -1129,15 +1195,12 @@ static int pciserial_txx9_suspend_one(st
+ 
+ static int pciserial_txx9_resume_one(struct pci_dev *dev)
+ {
+-	int line = (int)(long)pci_get_drvdata(dev);
++	struct uart_txx9_port *up = pci_get_drvdata(dev);
+ 
+ 	pci_set_power_state(dev, PCI_D0);
+ 	pci_restore_state(dev);
+-
+-	if (line) {
+-		pci_enable_device(dev);
+-		serial_txx9_resume_port(line);
+-	}
++	if (up)
++		uart_resume_port(&serial_txx9_reg, &up->port);
+ 	return 0;
+ }
+ #endif
+@@ -1161,6 +1224,8 @@ static struct pci_driver serial_txx9_pci
+ MODULE_DEVICE_TABLE(pci, serial_txx9_pci_tbl);
+ #endif /* ENABLE_SERIAL_TXX9_PCI */
+ 
++static struct platform_device *serial_txx9_plat_devs;
++
+ static int __init serial_txx9_init(void)
+ {
+ 	int ret;
+@@ -1168,13 +1233,39 @@ static int __init serial_txx9_init(void)
+  	printk(KERN_INFO "%s version %s\n", serial_name, serial_version);
+ 
+ 	ret = uart_register_driver(&serial_txx9_reg);
+-	if (ret >= 0) {
+-		serial_txx9_register_ports(&serial_txx9_reg);
++	if (ret)
++		goto out;
++
++	serial_txx9_plat_devs = platform_device_alloc("serial_txx9", -1);
++	if (!serial_txx9_plat_devs) {
++		ret = -ENOMEM;
++		goto unreg_uart_drv;
++	}
++
++	ret = platform_device_add(serial_txx9_plat_devs);
++	if (ret)
++		goto put_dev;
++
++	serial_txx9_register_ports(&serial_txx9_reg,
++				   &serial_txx9_plat_devs->dev);
++
++	ret = platform_driver_register(&serial_txx9_plat_driver);
++	if (ret)
++		goto del_dev;
+ 
+ #ifdef ENABLE_SERIAL_TXX9_PCI
+-		ret = pci_register_driver(&serial_txx9_pci_driver);
++	ret = pci_register_driver(&serial_txx9_pci_driver);
+ #endif
+-	}
++	if (ret == 0)
++		goto out;
++
++ del_dev:
++	platform_device_del(serial_txx9_plat_devs);
++ put_dev:
++	platform_device_put(serial_txx9_plat_devs);
++ unreg_uart_drv:
++	uart_unregister_driver(&serial_txx9_reg);
++ out:
+ 	return ret;
+ }
+ 
+@@ -1185,6 +1276,8 @@ static void __exit serial_txx9_exit(void
+ #ifdef ENABLE_SERIAL_TXX9_PCI
+ 	pci_unregister_driver(&serial_txx9_pci_driver);
+ #endif
++	platform_driver_unregister(&serial_txx9_plat_driver);
++	platform_device_unregister(serial_txx9_plat_devs);
+ 	for (i = 0; i < UART_NR; i++) {
+ 		struct uart_txx9_port *up = &serial_txx9_ports[i];
+ 		if (up->port.iobase || up->port.mapbase)
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-serial-driver-pmc-msp71xx.patch
-rm9000-serial-driver.patch
-rm9000-serial-driver-tidy.patch
-simplify-the-stacktrace-code.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-local_t-mips-extension.patch
-local_t-mips-extension-fix.patch
-local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
-local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+8139too-fix-irq-problem-with-napi-netpoll.patch
+x86_64-fix-section-mismatch-warnings.patch
