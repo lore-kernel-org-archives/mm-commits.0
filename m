@@ -1,94 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: + git-leds-fixup.patch added to -mm tree
-Date: Wed, 28 Feb 2007 15:26:43 -0800
-Message-ID: <200702282326.l1SNQh4F030302@shell0.pdx.osdl.net>
+Subject: - acpi-driver-support-for-pata-fix.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:29:06 -0800
+Message-ID: <200702282329.l1SNT6fD030379@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47420 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47499 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752244AbXB1X0p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:26:45 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l1SNQhhB032615
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 28 Feb 2007 15:26:44 -0800
+	id S1752246AbXB1Xah (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:30:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-leds-fixup
-has been added to the -mm tree.  Its filename is
-     git-leds-fixup.patch
+     acpi-driver-support-for-pata-fix
+has been removed from the -mm tree.  Its filename was
+     acpi-driver-support-for-pata-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-leds-fixup
+Subject: acpi-driver-support-for-pata-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+They've been renaming stuff again.
+
+Cc: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig  |   15 ---------------
- drivers/leds/Makefile |    5 -----
- 2 files changed, 20 deletions(-)
+ drivers/ata/libata-acpi.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/leds/Kconfig~git-leds-fixup drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~git-leds-fixup
-+++ a/drivers/leds/Kconfig
-@@ -82,20 +82,6 @@ config LEDS_WRAP
- 	help
- 	  This option enables support for the PCEngines WRAP programmable LEDs.
+diff -puN drivers/ata/libata-acpi.c~acpi-driver-support-for-pata-fix drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~acpi-driver-support-for-pata-fix
++++ a/drivers/ata/libata-acpi.c
+@@ -295,8 +295,8 @@ static int do_drive_get_GTF(struct ata_p
  
--<<<<<<< HEAD/drivers/leds/Kconfig
--config LEDS_H1940
--	tristate "LED Support for iPAQ H1940 device"
--	depends LEDS_CLASS && ARCH_H1940
--	help
--	  This option enables support for the LEDs on the h1940.
--
--config LEDS_COBALT
--	tristate "LED Support for Cobalt Server front LED"
--	depends on LEDS_CLASS && MIPS_COBALT
--	help
--	  This option enables support for the front LED on Cobalt Server
--
--=======
- config LEDS_H1940
- 	tristate "LED Support for iPAQ H1940 device"
- 	depends LEDS_CLASS && ARCH_H1940
-@@ -116,7 +102,6 @@ config LEDS_GPIO
- 	  outputs. To be useful the particular board must have LEDs 
- 	  and they must be connected to the GPIO lines. 
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(atadev, KERN_DEBUG,
+-			"%s: ENTER: ap->id: %d, port#: %d\n",
+-			__FUNCTION__, ap->id, ap->port_no);
++			"%s: ENTER: ap->print_id: %d, port#: %d\n",
++			__FUNCTION__, ap->print_id, ap->port_no);
  
-->>>>>>> /drivers/leds/Kconfig
- comment "LED Triggers"
+ 	if (!ata_dev_enabled(atadev) || (ap->flags & ATA_FLAG_DISABLED)) {
+ 		if (ata_msg_probe(ap))
+@@ -522,8 +522,8 @@ static int do_drive_set_taskfiles(struct
  
- config LEDS_TRIGGERS
-diff -puN drivers/leds/Makefile~git-leds-fixup drivers/leds/Makefile
---- a/drivers/leds/Makefile~git-leds-fixup
-+++ a/drivers/leds/Makefile
-@@ -14,14 +14,9 @@ obj-$(CONFIG_LEDS_S3C24XX)		+= leds-s3c2
- obj-$(CONFIG_LEDS_AMS_DELTA)		+= leds-ams-delta.o
- obj-$(CONFIG_LEDS_NET48XX)		+= leds-net48xx.o
- obj-$(CONFIG_LEDS_WRAP)			+= leds-wrap.o
--<<<<<<< HEAD/drivers/leds/Makefile
--obj-$(CONFIG_LEDS_H1940)		+= leds-h1940.o
--obj-$(CONFIG_LEDS_COBALT)		+= leds-cobalt.o
--=======
- obj-$(CONFIG_LEDS_H1940)		+= leds-h1940.o
- obj-$(CONFIG_LEDS_COBALT)		+= leds-cobalt.o
- obj-$(CONFIG_LEDS_GPIO)			+= leds-gpio.o
-->>>>>>> /drivers/leds/Makefile
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(atadev, KERN_DEBUG,
+-			"%s: ENTER: ap->id: %d, port#: %d\n",
+-			__FUNCTION__, ap->id, ap->port_no);
++			"%s: ENTER: ap->print_id: %d, port#: %d\n",
++			__FUNCTION__, ap->print_id, ap->port_no);
  
- # LED Triggers
- obj-$(CONFIG_LEDS_TRIGGER_TIMER)	+= ledtrig-timer.o
+ 	if (noacpi || !(ap->cbl == ATA_CBL_SATA))
+ 		return 0;
+@@ -628,8 +628,8 @@ int ata_acpi_push_id(struct ata_port *ap
+ 
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(atadev, KERN_DEBUG,
+-			"%s: ap->id: %d, ix = %d, port#: %d\n",
+-			__FUNCTION__, ap->id, ix, ap->port_no);
++			"%s: ap->print_id: %d, ix = %d, port#: %d\n",
++			__FUNCTION__, ap->print_id, ix, ap->port_no);
+ 
+ 	/* Don't continue if not a SATA device. */
+ 	if (!(ap->cbl == ATA_CBL_SATA)) {
+@@ -686,7 +686,7 @@ int ata_acpi_push_id(struct ata_port *ap
+ 		if (ata_msg_probe(ap))
+ 			ata_dev_printk(atadev, KERN_DEBUG,
+ 				"ata%u(%u): %s _SDD error: status = 0x%x\n",
+-				ap->id, ap->device->devno,
++				ap->print_id, ap->device->devno,
+ 				__FUNCTION__, status);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
