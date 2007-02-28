@@ -1,62 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - spidernet-compile-break.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:52:46 -0800
-Message-ID: <200702282352.l1SNqkvs031022@shell0.pdx.osdl.net>
+Subject: - spidernet-janitorial-typos.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:53:09 -0800
+Message-ID: <200702282353.l1SNr9Tm031062@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48270 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48343 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932649AbXB1Xwt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:52:49 -0500
+	id S932689AbXB1XxQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:53:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linas@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spidernet: compile break
+     spidernet: janitorial, typos
 has been removed from the -mm tree.  Its filename was
-     spidernet-compile-break.patch
+     spidernet-janitorial-typos.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spidernet: compile break
+Subject: spidernet: janitorial, typos
 From: Linas Vepstas <linas@austin.ibm.com>
 
-As of 2.6.20-git4, the spider_net driver does not compile.  This appears to be
-due to some archaic usage involving kobjects.
-
-It also fixes a nasty double-free during ifdown of the interface.
+Janitorial patch. Undo long lines, fix typo in err msg.
 
 Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/spider_net.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/net/spider_net.c |   13 +++++++------
+ drivers/net/spider_net.h |    2 +-
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/spider_net.c~spidernet-compile-break drivers/net/spider_net.c
---- a/drivers/net/spider_net.c~spidernet-compile-break
+diff -puN drivers/net/spider_net.c~spidernet-janitorial-typos drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~spidernet-janitorial-typos
 +++ a/drivers/net/spider_net.c
-@@ -1906,8 +1906,7 @@ spider_net_stop(struct net_device *netde
- 	spider_net_write_reg(card, SPIDER_NET_GHIINT1MSK, 0);
- 	spider_net_write_reg(card, SPIDER_NET_GHIINT2MSK, 0);
+@@ -1053,14 +1053,15 @@ static void show_rx_chain(struct spider_
+ #endif
  
--	/* free_irq(netdev->irq, netdev);*/
--	free_irq(to_pci_dev(netdev->dev.parent)->irq, netdev);
-+	free_irq(netdev->irq, netdev);
+ /**
+- * spider_net_decode_one_descr - processes an rx descriptor
++ * spider_net_decode_one_descr - processes an RX descriptor
+  * @card: card structure
+  *
+- * Returns 1 if a packet has been sent to the stack, otherwise 0
++ * Returns 1 if a packet has been sent to the stack, otherwise 0.
+  *
+- * Processes an rx descriptor by iommu-unmapping the data buffer and passing
+- * the packet up to the stack. This function is called in softirq
+- * context, e.g. either bottom half from interrupt or NAPI polling context
++ * Processes an RX descriptor by iommu-unmapping the data buffer
++ * and passing the packet up to the stack. This function is called
++ * in softirq context, e.g. either bottom half from interrupt or
++ * NAPI polling context.
+  */
+ static int
+ spider_net_decode_one_descr(struct spider_net_card *card)
+@@ -1097,7 +1098,7 @@ spider_net_decode_one_descr(struct spide
+ 	if ( (status != SPIDER_NET_DESCR_COMPLETE) &&
+ 	     (status != SPIDER_NET_DESCR_FRAME_END) ) {
+ 		if (netif_msg_rx_err(card))
+-			pr_err("%s: RX descriptor with unkown state %d\n",
++			pr_err("%s: RX descriptor with unknown state %d\n",
+ 			       card->netdev->name, status);
+ 		card->spider_stats.rx_desc_unk_state++;
+ 		goto bad_desc;
+diff -puN drivers/net/spider_net.h~spidernet-janitorial-typos drivers/net/spider_net.h
+--- a/drivers/net/spider_net.h~spidernet-janitorial-typos
++++ a/drivers/net/spider_net.h
+@@ -25,7 +25,7 @@
+ #ifndef _SPIDER_NET_H
+ #define _SPIDER_NET_H
  
- 	spider_net_write_reg(card, SPIDER_NET_GDTDMACCNTR,
- 			     SPIDER_NET_DMA_TX_FEND_VALUE);
-@@ -1919,8 +1918,6 @@ spider_net_stop(struct net_device *netde
- 	spider_net_release_tx_chain(card, 1);
- 	spider_net_free_rx_chain_contents(card);
+-#define VERSION "1.6 C"
++#define VERSION "2.0 A"
  
--	spider_net_free_rx_chain_contents(card);
--
- 	spider_net_free_chain(card, &card->tx_chain);
- 	spider_net_free_chain(card, &card->rx_chain);
+ #include "sungem_phy.h"
  
 _
 
