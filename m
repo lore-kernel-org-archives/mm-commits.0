@@ -1,160 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - cpuidle-take2-basic-documentation-for-cpuidle.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:54:17 -0800
-Message-ID: <200702282354.l1SNsHv4031183@shell0.pdx.osdl.net>
+Subject: - mtd_ubi_debug-must-depend-on-sysfs.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:52:29 -0800
+Message-ID: <200702282352.l1SNqT9g030998@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48578 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48589 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932767AbXB1Xzf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:55:35 -0500
+	id S932779AbXB1Xzt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:55:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, abelay@novell.com, ak@suse.de, davej@codemonkey.org.uk, lenb@kernel.org, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, Artem.Bityutskiy@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuidle take2: Basic documentation for cpuidle
+     MTD_UBI_DEBUG must depend on SYSFS
 has been removed from the -mm tree.  Its filename was
-     cpuidle-take2-basic-documentation-for-cpuidle.patch
+     mtd_ubi_debug-must-depend-on-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpuidle take2: Basic documentation for cpuidle
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: MTD_UBI_DEBUG must depend on SYSFS
+From: Adrian Bunk <bunk@stusta.de>
 
-Documentation for cpuidle infrastructure
+If you select an option, you have to ensure that the dependencies of all
+options you are select'ing are fulfilled.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Signed-off-by: Adam Belay <abelay@novell.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+This patch fixes the following compile error:
+
+fs/built-in.o: In function `debugfs_init':
+inode.c:(.init.text+0x3621): undefined reference to `kernel_subsys'
+
+I've also removed the superfluous "default n".
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cpuidle/core.txt     |   17 +++++++++++++++++
- Documentation/cpuidle/driver.txt   |   24 ++++++++++++++++++++++++
- Documentation/cpuidle/governor.txt |   24 ++++++++++++++++++++++++
- Documentation/cpuidle/sysfs.txt    |   27 +++++++++++++++++++++++++++
- 4 files changed, 92 insertions(+)
+ drivers/mtd/ubi/Kconfig.debug |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/cpuidle/core.txt
---- /dev/null
-+++ a/Documentation/cpuidle/core.txt
-@@ -0,0 +1,17 @@
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle
-+
-+General Information:
-+
-+Various CPUs today support multiple idle levels that are differentiated
-+by varying exit latencies and power consumption during idle.
-+cpuidle is a generic in-kernel infrastructure that separates
-+idle policy (governor) from idle mechanism (driver) and provides a
-+standardized infrastructure to support independent development of
-+governors and drivers.
-+
-+cpuidle resides under /drivers/cpuidle.
-+
-+
-diff -puN /dev/null Documentation/cpuidle/driver.txt
---- /dev/null
-+++ a/Documentation/cpuidle/driver.txt
-@@ -0,0 +1,24 @@
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle drivers
-+
-+
-+
-+
-+cpuidle driver supports capability detection for a particular system. The
-+init and exit routines will be called for each online CPU, with a percpu
-+cpuidle_driver object and driver should fill in cpuidle_states inside
-+cpuidle_driver depending on the CPU capability.
-+
-+Driver can handle dynamic state changes (like battery<->AC), by calling
-+force_redetect interface.
-+
-+It is possible to have more than one driver registered at the same time and
-+user can switch between drivers using /sysfs interface.
-+
-+Interfaces:
-+int cpuidle_register_driver(struct cpuidle_driver *drv);
-+void cpuidle_unregister_driver(struct cpuidle_driver *drv);
-+int cpuidle_force_redetect(struct cpuidle_device *dev);
-diff -puN /dev/null Documentation/cpuidle/governor.txt
---- /dev/null
-+++ a/Documentation/cpuidle/governor.txt
-@@ -0,0 +1,24 @@
-+
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle governors
-+
-+
-+
-+
-+cpuidle governor is policy routine that decides what idle state to enter at
-+any given time. cpuidle core uses different callbacks to governor while
-+handling idle entry.
-+* select_state callback where governor can determine next idle state to enter
-+* prepare_idle callback is called before entering an idle state
-+* scan callback is called after a driver forces redetection of the states
-+
-+More than one governor can be registered at the same time and
-+user can switch between drivers using /sysfs interface.
-+
-+Interfaces:
-+int cpuidle_register_governor(struct cpuidle_governor *gov);
-+void cpuidle_unregister_governor(struct cpuidle_governor *gov);
-+
-diff -puN /dev/null Documentation/cpuidle/sysfs.txt
---- /dev/null
-+++ a/Documentation/cpuidle/sysfs.txt
-@@ -0,0 +1,27 @@
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle sysfs
-+
-+System global cpuidle information are under
-+/sys/devices/system/cpu/cpuidle
-+
-+The current interfaces in this directory has self-explanatory names:
-+* available_drivers
-+* available_governors
-+* current_driver
-+* current_governor
-+
-+Per logical CPU specific cpuidle information are under
-+/sys/devices/system/cpu/cpuX/cpuidle
-+for each online cpu X
-+
-+Under this percpu directory, there is a directory for each idle state supported
-+by the driver, which in turn has
-+* latency
-+* power
-+* time
-+* usage
-+
-+
+diff -puN drivers/mtd/ubi/Kconfig.debug~mtd_ubi_debug-must-depend-on-sysfs drivers/mtd/ubi/Kconfig.debug
+--- a/drivers/mtd/ubi/Kconfig.debug~mtd_ubi_debug-must-depend-on-sysfs
++++ a/drivers/mtd/ubi/Kconfig.debug
+@@ -5,7 +5,7 @@ comment "UBI debugging options"
+ 
+ config MTD_UBI_DEBUG
+ 	bool "UBI debugging"
+-	default n
++	depends on SYSFS
+ 	depends on MTD_UBI
+ 	select DEBUG_FS
+ 	select KALLSYMS_ALL
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-git-acpi.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+arch-arm26-kernel-entrys-remove-dead-code.patch
+make-ipc-shmcshm_nopage-static.patch
+mm-tiny-shmemc-cleanups.patch
+drivers-video-sm501fbc-make-4-functions-static.patch
+fix-the-sysctl=n-compilation.patch
+drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-hid.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+drivers-mmc-kconfig-source-drivers-mmc-card-kconfig.patch
+remove-fs-jffs2-ioctlc.patch
+git-ubi.patch
+drivers-net-vioc-possible-cleanups.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-cleanup.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-architecture-independant-code-license-fix.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
