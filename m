@@ -1,70 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - siimage-drac4-note.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:52:21 -0800
-Message-ID: <200702282352.l1SNqLgh030986@shell0.pdx.osdl.net>
+Subject: - forcedeth-fixed-missing-call-in-napi-poll.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:52:35 -0800
+Message-ID: <200702282352.l1SNqZs4031006@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48240 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48257 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932609AbXB1Xwb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:52:31 -0500
+	id S932629AbXB1Xwn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:52:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: aabdulla@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     siimage: DRAC4 note
+     forcedeth: fixed missing call in napi poll
 has been removed from the -mm tree.  Its filename was
-     siimage-drac4-note.patch
+     forcedeth-fixed-missing-call-in-napi-poll.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: siimage: DRAC4 note
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: forcedeth: fixed missing call in napi poll
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-Revised DRAC4 warning as Jeff suggested, this one includes more info about
-why the problem occurs
+The napi poll routine was missing the call to the optimized rx process
+routine.  This patch adds the missing call for the optimized path.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/pci/siimage.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/net/forcedeth.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ide/pci/siimage.c~siimage-drac4-note drivers/ide/pci/siimage.c
---- a/drivers/ide/pci/siimage.c~siimage-drac4-note
-+++ a/drivers/ide/pci/siimage.c
-@@ -26,6 +26,11 @@
-  *	If you have strange problems with nVidia chipset systems please
-  *	see the SI support documentation and update your system BIOS
-  *	if neccessary
-+ *
-+ *  The Dell DRAC4 has some interesting features including effectively hot
-+ *  unplugging/replugging the virtual CD interface when the DRAC is reset.
-+ *  This often causes drivers/ide/siimage to panic but is ok with the rather
-+ *  smarter code in libata.
-  */
+diff -puN drivers/net/forcedeth.c~forcedeth-fixed-missing-call-in-napi-poll drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-fixed-missing-call-in-napi-poll
++++ a/drivers/net/forcedeth.c
+@@ -3104,13 +3104,17 @@ static int nv_napi_poll(struct net_devic
+ 	struct fe_priv *np = netdev_priv(dev);
+ 	u8 __iomem *base = get_hwbase(dev);
+ 	unsigned long flags;
++	u32 retcode;
  
- #include <linux/types.h>
+-	if (np->desc_ver == DESC_VER_1 || np->desc_ver == DESC_VER_2)
++	if (np->desc_ver == DESC_VER_1 || np->desc_ver == DESC_VER_2) {
+ 		pkts = nv_rx_process(dev, limit);
+-	else
++		retcode = nv_alloc_rx(dev);
++	} else {
+ 		pkts = nv_rx_process_optimized(dev, limit);
++		retcode = nv_alloc_rx_optimized(dev);
++	}
+ 
+-	if (nv_alloc_rx(dev)) {
++	if (retcode) {
+ 		spin_lock_irqsave(&np->lock, flags);
+ 		if (!np->in_shutdown)
+ 			mod_timer(&np->oom_kick, jiffies + OOM_REFILL);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
-
-libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
-expose-set_mode-method-so-it-can-be-wrapped.patch
-acpi-driver-support-for-pata.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-resend-iphase-64bit-cleanup.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-driver_bfin_serial_core.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-tty-clarify-documentation-of-write.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
+Patches currently in -mm which might be from aabdulla@nvidia.com are
