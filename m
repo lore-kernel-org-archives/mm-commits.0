@@ -1,64 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - remove-outdated-information-from-kconfig.patch removed from -mm tree
-Date: Wed, 28 Feb 2007 15:53:26 -0800
-Message-ID: <200702282353.l1SNrQSb031087@shell0.pdx.osdl.net>
+Subject: - pci-allow-multiple-calls-to-pcim_pin_device.patch removed from -mm tree
+Date: Wed, 28 Feb 2007 15:53:45 -0800
+Message-ID: <200702282353.l1SNrjfp031141@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48380 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48414 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932574AbXB1Xxg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 18:53:36 -0500
+	id S932609AbXB1Xxt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 18:53:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eike-kernel@sf-tec.de, mm-commits@vger.kernel.org
+To: htejun@gmail.com, greg@kroah.com, ian.mcdonald@jandi.co.nz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipx: remove outdated information from Kconfig
+     pci: allow multiple calls to pcim_pin_device()
 has been removed from the -mm tree.  Its filename was
-     remove-outdated-information-from-kconfig.patch
+     pci-allow-multiple-calls-to-pcim_pin_device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipx: remove outdated information from Kconfig
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Subject: pci: allow multiple calls to pcim_pin_device()
+From: Tejun Heo <htejun@gmail.com>
 
-SPX was removed in early 2.5.  How to connect to a Mac or the other OS isn't
-hard to find out these days.
+Sanity check in pcim_pin_device() was too restrictive in that it didn't
+allow multiple calls to the function, which is against the devres
+philosohpy of fire-and-forget.  Track pinned status separately and allow
+pinning multiple times.
 
-Signed-off-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Acked-by: Ian McDonald <ian.mcdonald@jandi.co.nz>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipx/Kconfig |    6 +-----
- 1 files changed, 1 insertion(+), 5 deletions(-)
+ drivers/pci/pci.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN net/ipx/Kconfig~remove-outdated-information-from-kconfig net/ipx/Kconfig
---- a/net/ipx/Kconfig~remove-outdated-information-from-kconfig
-+++ a/net/ipx/Kconfig
-@@ -16,8 +16,7 @@ config IPX
- 	  support", below.
+diff -puN drivers/pci/pci.c~pci-allow-multiple-calls-to-pcim_pin_device drivers/pci/pci.c
+--- a/drivers/pci/pci.c~pci-allow-multiple-calls-to-pcim_pin_device
++++ a/drivers/pci/pci.c
+@@ -757,7 +757,8 @@ int pci_enable_device(struct pci_dev *de
+  * when a device is enabled using managed PCI device enable interface.
+  */
+ struct pci_devres {
+-	unsigned int disable:1;
++	unsigned int enabled:1;
++	unsigned int pinned:1;
+ 	unsigned int orig_intx:1;
+ 	unsigned int restore_intx:1;
+ 	u32 region_mask;
+@@ -781,7 +782,7 @@ static void pcim_release(struct device *
+ 	if (this->restore_intx)
+ 		pci_intx(dev, this->orig_intx);
  
- 	  IPX is similar in scope to IP, while SPX, which runs on top of IPX,
--	  is similar to TCP. There is also experimental support for SPX in
--	  Linux (see "SPX networking", below).
-+	  is similar to TCP.
+-	if (this->disable)
++	if (this->enabled && !this->pinned)
+ 		pci_disable_device(dev);
+ }
  
- 	  To turn your Linux box into a fully featured NetWare file server and
- 	  IPX router, say Y here and fetch either lwared from
-@@ -26,9 +25,6 @@ config IPX
- 	  information, read the IPX-HOWTO available from
- 	  <http://www.tldp.org/docs.html#howto>.
+@@ -820,12 +821,12 @@ int pcim_enable_device(struct pci_dev *p
+ 	dr = get_pci_dr(pdev);
+ 	if (unlikely(!dr))
+ 		return -ENOMEM;
+-	WARN_ON(!!dr->disable);
++	WARN_ON(!!dr->enabled);
  
--	  General information about how to connect Linux, Windows machines and
--	  Macs is on the WWW at <http://www.eats.com/linux_mac_win.html>.
--
- 	  The IPX driver would enlarge your kernel by about 16 KB. To compile
- 	  this driver as a module, choose M here: the module will be called ipx.
- 	  Unless you want to integrate your Linux box with a local Novell
+ 	rc = pci_enable_device(pdev);
+ 	if (!rc) {
+ 		pdev->is_managed = 1;
+-		dr->disable = 1;
++		dr->enabled = 1;
+ 	}
+ 	return rc;
+ }
+@@ -843,9 +844,9 @@ void pcim_pin_device(struct pci_dev *pde
+ 	struct pci_devres *dr;
+ 
+ 	dr = find_pci_dr(pdev);
+-	WARN_ON(!dr || !dr->disable);
++	WARN_ON(!dr || !dr->enabled);
+ 	if (dr)
+-		dr->disable = 0;
++		dr->pinned = 1;
+ }
+ 
+ /**
+@@ -876,7 +877,7 @@ pci_disable_device(struct pci_dev *dev)
+ 
+ 	dr = find_pci_dr(dev);
+ 	if (dr)
+-		dr->disable = 0;
++		dr->enabled = 0;
+ 
+ 	if (atomic_sub_return(1, &dev->enable_cnt) != 0)
+ 		return;
 _
 
-Patches currently in -mm which might be from eike-kernel@sf-tec.de are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-git-net.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+expose-set_mode-method-so-it-can-be-wrapped.patch
+acpi-driver-support-for-pata.patch
+introduce-config_has_dma.patch
