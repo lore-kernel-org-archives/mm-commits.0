@@ -1,130 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: + goku_udc-remove-crude-cache-coherency-code.patch added to -mm tree
-Date: Tue, 27 Feb 2007 22:30:16 -0800
-Message-ID: <200702280630.l1S6UKlK008856@shell0.pdx.osdl.net>
+Subject: - kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch removed from -mm tree
+Date: Tue, 27 Feb 2007 23:22:16 -0800
+Message-ID: <200702280722.l1S7MGPE009788@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42093 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43109 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751111AbXB1Gdj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 01:33:39 -0500
+	id S1750943AbXB1HWW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 02:22:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, greg@kroah.com
+To: rpjday@mindspring.com, bzolnier@gmail.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: goku_udc: Remove crude cache coherency code
-has been added to the -mm tree.  Its filename is
-     goku_udc-remove-crude-cache-coherency-code.patch
+     kbuild: Add the code maturity levels DEPRECATED and OBSOLETE.
+has been removed from the -mm tree.  Its filename was
+     kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: usb: goku_udc: Remove crude cache coherency code
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: kbuild: Add the code maturity levels DEPRECATED and OBSOLETE.
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-This is deep architecture specific magic and does should not to exist in a
-driver.
+To go along with the code maturity level of EXPERIMENTAL, add levels of
+DEPRECATED and OBSOLETE, so that developers can officially tag any Kconfig
+selections as one of those levels, and they can with one selection choose to
+remove any deprecated and/or obsolete features from their build.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/goku_udc.c |   29 -----------------------------
- 1 file changed, 29 deletions(-)
+ init/Kconfig |   30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/gadget/goku_udc.c~goku_udc-remove-crude-cache-coherency-code drivers/usb/gadget/goku_udc.c
---- a/drivers/usb/gadget/goku_udc.c~goku_udc-remove-crude-cache-coherency-code
-+++ a/drivers/usb/gadget/goku_udc.c
-@@ -297,27 +297,6 @@ goku_free_request(struct usb_ep *_ep, st
+diff -puN init/Kconfig~kbuild-add-the-code-maturity-levels-deprecated-and-obsolete init/Kconfig
+--- a/init/Kconfig~kbuild-add-the-code-maturity-levels-deprecated-and-obsolete
++++ a/init/Kconfig
+@@ -29,9 +29,10 @@ config EXPERIMENTAL
+ 	  <file:Documentation/BUG-HUNTING>, and
+ 	  <file:Documentation/oops-tracing.txt> in the kernel source).
  
- /*-------------------------------------------------------------------------*/
+-	  This option will also make obsoleted drivers available. These are
+-	  drivers that have been replaced by something else, and/or are
+-	  scheduled to be removed in a future kernel release.
++	  At the moment, this option also makes obsolete drivers available,
++	  but such drivers really should be removed from the EXPERIMENTAL
++	  category and added to either DEPRECATED or OBSOLETE, depending
++	  on their status.
  
--#undef USE_KMALLOC
--
--/* many common platforms have dma-coherent caches, which means that it's
-- * safe to use kmalloc() memory for all i/o buffers without using any
-- * cache flushing calls.  (unless you're trying to share cache lines
-- * between dma and non-dma activities, which is a slow idea in any case.)
-- *
-- * other platforms need more care, with 2.6 having a moderately general
-- * solution except for the common "buffer is smaller than a page" case.
-- */
--#if	defined(CONFIG_X86)
--#define USE_KMALLOC
--
--#elif	defined(CONFIG_MIPS) && !defined(CONFIG_DMA_NONCOHERENT)
--#define USE_KMALLOC
--
--#elif	defined(CONFIG_PPC) && !defined(CONFIG_NOT_COHERENT_CACHE)
--#define USE_KMALLOC
--
--#endif
--
- /* allocating buffers this way eliminates dma mapping overhead, which
-  * on some platforms will mean eliminating a per-io buffer copy.  with
-  * some kinds of system caches, further tweaks may still be needed.
-@@ -334,11 +313,6 @@ goku_alloc_buffer(struct usb_ep *_ep, un
- 		return NULL;
- 	*dma = DMA_ADDR_INVALID;
+ 	  Unless you intend to help test and develop a feature or driver that
+ 	  falls into this category, or you have a situation that requires
+@@ -40,6 +41,29 @@ config EXPERIMENTAL
+ 	  you say Y here, you will be offered the choice of using features or
+ 	  drivers that are currently considered to be in the alpha-test phase.
  
--#if	defined(USE_KMALLOC)
--	retval = kmalloc(bytes, gfp_flags);
--	if (retval)
--		*dma = virt_to_phys(retval);
--#else
- 	if (ep->dma) {
- 		/* the main problem with this call is that it wastes memory
- 		 * on typical 1/N page allocations: it allocates 1-N pages.
-@@ -348,7 +322,6 @@ goku_alloc_buffer(struct usb_ep *_ep, un
- 				bytes, dma, gfp_flags);
- 	} else
- 		retval = kmalloc(bytes, gfp_flags);
--#endif
- 	return retval;
- }
- 
-@@ -356,7 +329,6 @@ static void
- goku_free_buffer(struct usb_ep *_ep, void *buf, dma_addr_t dma, unsigned bytes)
- {
- 	/* free memory into the right allocator */
--#ifndef	USE_KMALLOC
- 	if (dma != DMA_ADDR_INVALID) {
- 		struct goku_ep	*ep;
- 
-@@ -365,7 +337,6 @@ goku_free_buffer(struct usb_ep *_ep, voi
- 			return;
- 		dma_free_coherent(&ep->dev->pdev->dev, bytes, buf, dma);
- 	} else
--#endif
- 		kfree (buf);
- }
++config DEPRECATED
++	bool "Prompt for deprecated code/drivers"
++	default y
++	---help---
++	  Code that has been tagged as "deprecated" generally still works and
++	  is probably still supported, but there is already a newer and better
++	  alternative available and you should seriously consider switching to
++	  that newer alternative.
++
++	  Code that is marked as deprecated for quite some time also has a
++	  tendency to eventually become "obsolete," at which point it will
++	  probably be removed entirely from the kernel.
++
++config OBSOLETE
++	bool "Prompt for obsolete code/drivers"
++	default n
++	---help---
++	  Code that has been tagged as "obsolete" is no longer officially
++	  supported and shouldn't play a part in any normal build.  Obsolete
++	  code might already be scheduled for removal as well, so you might
++	  want to check the file Documentation/feature-removal-schedule.txt for
++	  any proposed removal dates.
++
+ config BROKEN
+ 	bool
  
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-linux-sysdevh-needs-to-include-linux-moduleh.patch
+git-avr32.patch
+git-dvb.patch
+kbuild-add-the-code-maturity-levels-deprecated-and-obsolete.patch
 git-mips.patch
-mips-remove-smp_tune_scheduling.patch
 mips-remove-unreferenced-_ioc_slmask-macro-in-ioctlh.patch
-serial-driver-pmc-msp71xx.patch
-rm9000-serial-driver.patch
-rm9000-serial-driver-tidy.patch
-serial-serial_txx9-driver-update.patch
-serial-serial_txx9-driver-update-fix.patch
-goku_udc-remove-crude-cache-coherency-code.patch
-simplify-the-stacktrace-code.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-local_t-mips-extension.patch
-local_t-mips-extension-fix.patch
-local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
-local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
