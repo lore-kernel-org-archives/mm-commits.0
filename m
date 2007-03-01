@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cisco_ioctl-initialise-header_cache_update.patch added to -mm tree
-Date: Thu, 01 Mar 2007 15:09:25 -0800
-Message-ID: <200703012309.l21N9Pqw025426@shell0.pdx.osdl.net>
+Subject: + x86_64-fix-ia32_binfmtc-build-error.patch added to -mm tree
+Date: Thu, 01 Mar 2007 15:10:31 -0800
+Message-ID: <200703012310.l21NAVl2025449@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53125 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53245 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161136AbXCAXJc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 18:09:32 -0500
+	id S1161169AbXCAXNy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 18:13:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, khc@pm.waw.pl
+Cc: ralf@linux-mips.org, ak@suse.de
 
 
 The patch titled
-     cisco_ioctl(): initialise header_cache_update
+     x86_64: fix ia32_binfmt.c build error
 has been added to the -mm tree.  Its filename is
-     cisco_ioctl-initialise-header_cache_update.patch
+     x86_64-fix-ia32_binfmtc-build-error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,74 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cisco_ioctl(): initialise header_cache_update
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86_64: fix ia32_binfmt.c build error
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=8107: we weren't initialising
-the header_cache_update field.
+Reorder code to avoid multiple inclusion of elf.h.
 
-Cc: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: "David S. Miller" <davem@davemloft.net>
+#undef several symbols to avoid build errors over redefinitions.
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/hdlc_cisco.c |    1 +
- 1 files changed, 1 insertion(+)
+ arch/x86_64/ia32/ia32_binfmt.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/wan/hdlc_cisco.c~cisco_ioctl-initialise-header_cache_update drivers/net/wan/hdlc_cisco.c
---- a/drivers/net/wan/hdlc_cisco.c~cisco_ioctl-initialise-header_cache_update
-+++ a/drivers/net/wan/hdlc_cisco.c
-@@ -366,6 +366,7 @@ static int cisco_ioctl(struct net_device
- 		dev->hard_start_xmit = hdlc->xmit;
- 		dev->hard_header = cisco_hard_header;
- 		dev->hard_header_cache = NULL;
-+		dev->header_cache_update = NULL;
- 		dev->type = ARPHRD_CISCO;
- 		dev->flags = IFF_POINTOPOINT | IFF_NOARP;
- 		dev->addr_len = 0;
+diff -puN arch/x86_64/ia32/ia32_binfmt.c~x86_64-fix-ia32_binfmtc-build-error arch/x86_64/ia32/ia32_binfmt.c
+--- a/arch/x86_64/ia32/ia32_binfmt.c~x86_64-fix-ia32_binfmtc-build-error
++++ a/arch/x86_64/ia32/ia32_binfmt.c
+@@ -5,6 +5,11 @@
+  * This tricks binfmt_elf.c into loading 32bit binaries using lots 
+  * of ugly preprocessor tricks. Talk about very very poor man's inheritance.
+  */ 
++#define __ASM_X86_64_ELF_H 1
++
++#undef ELF_CLASS
++#define ELF_CLASS ELFCLASS32
++
+ #include <linux/types.h>
+ #include <linux/stddef.h>
+ #include <linux/rwsem.h>
+@@ -50,9 +55,6 @@ struct elf_phdr; 
+ #undef ELF_ARCH
+ #define ELF_ARCH EM_386
+ 
+-#undef ELF_CLASS
+-#define ELF_CLASS ELFCLASS32
+-
+ #define ELF_DATA	ELFDATA2LSB
+ 
+ #define USE_ELF_CORE_DUMP 1
+@@ -136,7 +138,7 @@ struct elf_prpsinfo
+ 
+ #define user user32
+ 
+-#define __ASM_X86_64_ELF_H 1
++#undef elf_read_implies_exec
+ #define elf_read_implies_exec(ex, executable_stack)     (executable_stack != EXSTACK_DISABLE_X)
+ //#include <asm/ia32.h>
+ #include <linux/elf.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations.patch
-cyclades-return-closing_wait.patch
-make-aout-executables-work-again-fix.patch
-sony-laptop-fix-uninitialised-variable.patch
-git-drm.patch
-git-dvb.patch
-pvrusb-warning-fix.patch
-git-hid-fix.patch
-git-input.patch
-setstream-param-for-psmouse-tweak.patch
-git-leds-fixup.patch
-git-leds-make-it-compile.patch
-git-md-accel-vs-md.patch
-nommu-present-backing-device-capabilities-for-mtd-fix.patch
-git-ubi.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-dmfe-add-support-for-suspend-resume-fix.patch
-sis900-warning-fixes.patch
-cisco_ioctl-initialise-header_cache_update.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
+serial-driver-pmc-msp71xx.patch
+rm9000-serial-driver.patch
 rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-block-fixup.patch
-git-block-another-md-fix.patch
-git-unionfs.patch
-usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
-after-before-x86_64-mm-mmconfig-share.patch
-log-reason-why-tsc-was-marked-unstable-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-kvm-add-internal-filesystem-for-generating-inodes-tweak.patch
-driver_bfin_serial_core-update.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
-utrace-prep.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+x86_64-fix-ia32_binfmtc-build-error.patch
+simplify-the-stacktrace-code.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+local_t-mips-extension.patch
+local_t-mips-extension-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
 local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
-linux-kernel-markers-kconfig-menus-fix-4.patch
