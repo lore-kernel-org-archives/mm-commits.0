@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + log-reason-why-tsc-was-marked-unstable-fix.patch added to -mm tree
-Date: Wed, 28 Feb 2007 20:34:46 -0800
-Message-ID: <200703010436.l214aKYN004723@shell0.pdx.osdl.net>
+Subject: + git-wireless-fix.patch added to -mm tree
+Date: Wed, 28 Feb 2007 20:47:43 -0800
+Message-ID: <200703010449.l214nGJm004955@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55278 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55586 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752185AbXCAEgo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 23:36:44 -0500
+	id S1750709AbXCAEtv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 23:49:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com, yi.zhu@intel.com
 
 
 The patch titled
-     log-reason-why-tsc-was-marked-unstable-fix
+     git-wireless-fix
 has been added to the -mm tree.  Its filename is
-     log-reason-why-tsc-was-marked-unstable-fix.patch
+     git-wireless-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: log-reason-why-tsc-was-marked-unstable-fix
+Subject: git-wireless-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+testing much?
+
+Cc: Zhu Yi <yi.zhu@intel.com>
+Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cyrix.c |    2 +-
+ drivers/net/wireless/ipw2200.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/cyrix.c~log-reason-why-tsc-was-marked-unstable-fix arch/i386/kernel/cpu/cyrix.c
---- a/arch/i386/kernel/cpu/cyrix.c~log-reason-why-tsc-was-marked-unstable-fix
-+++ a/arch/i386/kernel/cpu/cyrix.c
-@@ -279,7 +279,7 @@ static void __cpuinit init_cyrix(struct 
- 		 */  
- 		if (vendor == PCI_VENDOR_ID_CYRIX &&
- 	 (device == PCI_DEVICE_ID_CYRIX_5510 || device == PCI_DEVICE_ID_CYRIX_5520))
--			mark_tsc_unstable();
-+			mark_tsc_unstable("Cyrix 5510/5520 detected");
- 	}
- #endif
- 		c->x86_cache_size=16;	/* Yep 16K integrated cache thats it */
+diff -puN drivers/net/wireless/ipw2200.c~git-wireless-fix drivers/net/wireless/ipw2200.c
+--- a/drivers/net/wireless/ipw2200.c~git-wireless-fix
++++ a/drivers/net/wireless/ipw2200.c
+@@ -1852,7 +1852,7 @@ static ssize_t show_channels(struct devi
+ 			     char *buf)
+ {
+ 	struct ipw_priv *priv = dev_get_drvdata(d);
+-	const struct ieee80211_geo *geo = ipw_get_geo(priv->ieee);
++	const struct ieee80211_geo *geo = ieee80211_get_geo(priv->ieee);
+ 	int len = 0, i;
+ 
+ 	len = sprintf(&buf[len],
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +79,7 @@ git-block-fixup.patch
 git-block-another-md-fix.patch
 git-unionfs.patch
 usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+git-wireless-fix.patch
 after-before-x86_64-mm-mmconfig-share.patch
 log-reason-why-tsc-was-marked-unstable-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
