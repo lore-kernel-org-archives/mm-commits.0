@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-leds-make-it-compile.patch added to -mm tree
-Date: Wed, 28 Feb 2007 18:25:53 -0800
-Message-ID: <200703010227.l212RQPn001807@shell0.pdx.osdl.net>
+Subject: + git-hid-fix.patch added to -mm tree
+Date: Wed, 28 Feb 2007 18:29:53 -0800
+Message-ID: <200703010231.l212VQq0001923@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52191 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52259 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932503AbXCAC1i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 21:27:38 -0500
+	id S932572AbXCACbe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 21:31:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, raph@8d.com, rpurdie@rpsys.net
+Cc: akpm@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz
 
 
 The patch titled
-     git-leds: make it compile
+     git-hid fix
 has been added to the -mm tree.  Its filename is
-     git-leds-make-it-compile.patch
+     git-hid-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-leds: make it compile
+Subject: git-hid fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allmodconfig:
-
-drivers/leds/leds-gpio.c:16:22: error: asm/gpio.h: No such file or directory
-drivers/leds/leds-gpio.c: In function 'gpio_led_set':
-drivers/leds/leds-gpio.c:40: warning: implicit declaration of function 'gpio_set_value'
-drivers/leds/leds-gpio.c: In function 'gpio_led_probe':
-drivers/leds/leds-gpio.c:68: warning: implicit declaration of function 'gpio_request'
-drivers/leds/leds-gpio.c:72: warning: implicit declaration of function 'gpio_direction_output'
-drivers/leds/leds-gpio.c:74: warning: implicit declaration of function 'gpio_get_value'
-drivers/leds/leds-gpio.c:82: warning: implicit declaration of function 'gpio_free'
-
-Cc: Raphael Assenat <raph@8d.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hid/usbhid/Makefile |    3 ++-
+ drivers/usb/input/Makefile  |    2 --
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/leds/Kconfig~git-leds-make-it-compile drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~git-leds-make-it-compile
-+++ a/drivers/leds/Kconfig
-@@ -96,7 +96,7 @@ config LEDS_COBALT
+diff -puN drivers/hid/usbhid/Makefile~git-hid-fix drivers/hid/usbhid/Makefile
+--- a/drivers/hid/usbhid/Makefile~git-hid-fix
++++ a/drivers/hid/usbhid/Makefile
+@@ -30,4 +30,5 @@ ifeq ($(CONFIG_HID_FF),y)
+ endif
  
- config LEDS_GPIO
- 	tristate "LED Support for GPIO connected LEDs"
--	depends on LEDS_CLASS 
-+	depends on LEDS_CLASS && BROKEN
- 	help
- 	  This option enables support for the LEDs connected to GPIO
- 	  outputs. To be useful the particular board must have LEDs 
+ obj-$(CONFIG_USB_HID)	+= usbhid.o
+-
++obj-$(CONFIG_USB_KBD)	+= usbkbd.o
++obj-$(CONFIG_USB_MOUSE)	+= usbmouse.o
+diff -puN drivers/usb/input/Makefile~git-hid-fix drivers/usb/input/Makefile
+--- a/drivers/usb/input/Makefile~git-hid-fix
++++ a/drivers/usb/input/Makefile
+@@ -10,10 +10,8 @@ wacom-objs	:= wacom_wac.o wacom_sys.o
+ obj-$(CONFIG_USB_AIPTEK)	+= aiptek.o
+ obj-$(CONFIG_USB_ATI_REMOTE)	+= ati_remote.o
+ obj-$(CONFIG_USB_ATI_REMOTE2)	+= ati_remote2.o
+-obj-$(CONFIG_USB_KBD)		+= usbkbd.o
+ obj-$(CONFIG_USB_KBTAB)		+= kbtab.o
+ obj-$(CONFIG_USB_KEYSPAN_REMOTE)	+= keyspan_remote.o
+-obj-$(CONFIG_USB_MOUSE)		+= usbmouse.o
+ obj-$(CONFIG_USB_MTOUCH)	+= mtouchusb.o
+ obj-$(CONFIG_USB_ITMTOUCH)	+= itmtouch.o
+ obj-$(CONFIG_USB_EGALAX)	+= touchkitusb.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,6 +70,7 @@ sony-laptop-fix-uninitialised-variable.patch
 git-drm.patch
 git-dvb.patch
 pvrusb-warning-fix.patch
+git-hid-fix.patch
 git-input.patch
 setstream-param-for-psmouse-tweak.patch
 git-leds-fixup.patch
