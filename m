@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-fix.patch added to -mm tree
-Date: Wed, 28 Feb 2007 20:47:43 -0800
-Message-ID: <200703010449.l214nGJm004955@shell0.pdx.osdl.net>
+Subject: + libata-clear-drvdata-in-ata_host_release-take2.patch added to -mm tree
+Date: Wed, 28 Feb 2007 20:59:52 -0800
+Message-ID: <200703010459.l214xq7e005110@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55586 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55779 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750709AbXCAEtv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Feb 2007 23:49:51 -0500
+	id S1751065AbXCAE7z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Feb 2007 23:59:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com, yi.zhu@intel.com
+Cc: htejun@gmail.com
 
 
 The patch titled
-     git-wireless-fix
+     libata: clear drvdata in ata_host_release()
 has been added to the -mm tree.  Its filename is
-     git-wireless-fix.patch
+     libata-clear-drvdata-in-ata_host_release-take2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,71 +25,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-wireless-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: libata: clear drvdata in ata_host_release()
+From: Tejun Heo <htejun@gmail.com>
 
-testing much?
+Clearing drvdata in ->remove_one causes NULL pointer deference.  Clear
+drvdata only in ata_host_release() after all resources are freed.
 
-Cc: Zhu Yi <yi.zhu@intel.com>
-Cc: John W. Linville <linville@tuxdriver.com>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ipw2200.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/libata-core.c   |    3 ++-
+ drivers/ata/pata_cs5520.c   |    1 -
+ drivers/ata/pata_isapnp.c   |    1 -
+ drivers/ata/pata_platform.c |    1 -
+ 4 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/wireless/ipw2200.c~git-wireless-fix drivers/net/wireless/ipw2200.c
---- a/drivers/net/wireless/ipw2200.c~git-wireless-fix
-+++ a/drivers/net/wireless/ipw2200.c
-@@ -1852,7 +1852,7 @@ static ssize_t show_channels(struct devi
- 			     char *buf)
- {
- 	struct ipw_priv *priv = dev_get_drvdata(d);
--	const struct ieee80211_geo *geo = ipw_get_geo(priv->ieee);
-+	const struct ieee80211_geo *geo = ieee80211_get_geo(priv->ieee);
- 	int len = 0, i;
+diff -puN drivers/ata/libata-core.c~libata-clear-drvdata-in-ata_host_release-take2 drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-clear-drvdata-in-ata_host_release-take2
++++ a/drivers/ata/libata-core.c
+@@ -5731,6 +5731,8 @@ static void ata_host_release(struct devi
  
- 	len = sprintf(&buf[len],
+ 	if (host->ops->host_stop)
+ 		host->ops->host_stop(host);
++
++	dev_set_drvdata(gendev, NULL);
+ }
+ 
+ /**
+@@ -5953,7 +5955,6 @@ int ata_device_add(const struct ata_prob
+ 
+  err_out:
+ 	devres_release_group(dev, ata_device_add);
+-	dev_set_drvdata(dev, NULL);
+ 	VPRINTK("EXIT, returning %d\n", rc);
+ 	return 0;
+ }
+diff -puN drivers/ata/pata_cs5520.c~libata-clear-drvdata-in-ata_host_release-take2 drivers/ata/pata_cs5520.c
+--- a/drivers/ata/pata_cs5520.c~libata-clear-drvdata-in-ata_host_release-take2
++++ a/drivers/ata/pata_cs5520.c
+@@ -306,7 +306,6 @@ static void __devexit cs5520_remove_one(
+ 	struct ata_host *host = dev_get_drvdata(dev);
+ 
+ 	ata_host_detach(host);
+-	dev_set_drvdata(dev, NULL);
+ }
+ 
+ /**
+diff -puN drivers/ata/pata_isapnp.c~libata-clear-drvdata-in-ata_host_release-take2 drivers/ata/pata_isapnp.c
+--- a/drivers/ata/pata_isapnp.c~libata-clear-drvdata-in-ata_host_release-take2
++++ a/drivers/ata/pata_isapnp.c
+@@ -128,7 +128,6 @@ static void isapnp_remove_one(struct pnp
+ 	struct ata_host *host = dev_get_drvdata(dev);
+ 
+ 	ata_host_detach(host);
+-	dev_set_drvdata(dev, NULL);
+ }
+ 
+ static struct pnp_device_id isapnp_devices[] = {
+diff -puN drivers/ata/pata_platform.c~libata-clear-drvdata-in-ata_host_release-take2 drivers/ata/pata_platform.c
+--- a/drivers/ata/pata_platform.c~libata-clear-drvdata-in-ata_host_release-take2
++++ a/drivers/ata/pata_platform.c
+@@ -228,7 +228,6 @@ static int __devexit pata_platform_remov
+ 	struct ata_host *host = dev_get_drvdata(dev);
+ 
+ 	ata_host_detach(host);
+-	dev_set_drvdata(dev, NULL);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations.patch
-make-aout-executables-work-again-fix.patch
-sony-laptop-fix-uninitialised-variable.patch
-git-drm.patch
-git-dvb.patch
-pvrusb-warning-fix.patch
-git-hid-fix.patch
-git-input.patch
-setstream-param-for-psmouse-tweak.patch
-git-leds-fixup.patch
-git-leds-make-it-compile.patch
-git-md-accel-vs-md.patch
-nommu-present-backing-device-capabilities-for-mtd-fix.patch
-git-ubi.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-dmfe-add-support-for-suspend-resume-fix.patch
-sis900-warning-fixes.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-block-fixup.patch
-git-block-another-md-fix.patch
-git-unionfs.patch
-usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
-git-wireless-fix.patch
-after-before-x86_64-mm-mmconfig-share.patch
-log-reason-why-tsc-was-marked-unstable-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-kvm-add-internal-filesystem-for-generating-inodes-tweak.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
-utrace-prep.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
-linux-kernel-markers-kconfig-menus-fix-4.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+expose-set_mode-method-so-it-can-be-wrapped.patch
+acpi-driver-support-for-pata.patch
+libata-clear-drvdata-in-ata_host_release-take2.patch
+introduce-config_has_dma.patch
