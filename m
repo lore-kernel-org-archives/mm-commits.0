@@ -1,72 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - afs-remove-all-afs-proc-entries-in-module-cleanup.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 02:11:31 -0800
-Message-ID: <200703011011.l21ABVMp010366@shell0.pdx.osdl.net>
+Subject: + cisco_ioctl-initialise-header_cache_update.patch added to -mm tree
+Date: Thu, 01 Mar 2007 15:09:25 -0800
+Message-ID: <200703012309.l21N9Pqw025426@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37756 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53125 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964863AbXCAKLp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 05:11:45 -0500
+	id S1161136AbXCAXJc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 18:09:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: poornima@in.ibm.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net, khc@pm.waw.pl
 
 
 The patch titled
-     AFS: remove all AFS /proc entries in module cleanup
-has been removed from the -mm tree.  Its filename was
-     afs-remove-all-afs-proc-entries-in-module-cleanup.patch
+     cisco_ioctl(): initialise header_cache_update
+has been added to the -mm tree.  Its filename is
+     cisco_ioctl-initialise-header_cache_update.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: AFS: remove all AFS /proc entries in module cleanup
-From: B N Poornima <poornima@in.ibm.com>
+Subject: cisco_ioctl(): initialise header_cache_update
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This is regarding a bug in the 'kafs' module.  Whenever the kafs module is
-unloaded, it produces the following stack trace.
+Fix http://bugzilla.kernel.org/show_bug.cgi?id=8107: we weren't initialising
+the header_cache_update field.
 
-********************************************************************
-kAFS: Red Hat AFS client v0.1 unregistering.
-BUG: at fs/proc/generic.c:732 remove_proc_entry()
- [<c0195380>] remove_proc_entry+0x11b/0x175
- [<c013b52e>] sys_delete_module+0x1a5/0x1cf
- [<c0158bc2>] remove_vma+0x36/0x3b
- [<c01594ca>] do_munmap+0x193/0x1ac
- [<c0103da0>] syscall_call+0x7/0xb
- [<c02a0033>] nf_ip_checksum+0xd4/0xe1
- =======================
-***************************************************************
-
-The problem is reproducible on the latest rc kernel - 2.6.20-rc5.  The
-cause of the problem being kafs driver trying to free the /proc/fs/afs
-directory which is not empty.
-
-Signed-off-by: B N Poornima <poornima@in.ibm.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/proc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/wan/hdlc_cisco.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN fs/afs/proc.c~afs-remove-all-afs-proc-entries-in-module-cleanup fs/afs/proc.c
---- a/fs/afs/proc.c~afs-remove-all-afs-proc-entries-in-module-cleanup
-+++ a/fs/afs/proc.c
-@@ -177,9 +177,8 @@ int afs_proc_init(void)
- void afs_proc_cleanup(void)
- {
- 	remove_proc_entry("cells", proc_afs);
--
-+	remove_proc_entry("rootcell", proc_afs);
- 	remove_proc_entry("fs/afs", NULL);
--
- } /* end afs_proc_cleanup() */
- 
- /*****************************************************************************/
+diff -puN drivers/net/wan/hdlc_cisco.c~cisco_ioctl-initialise-header_cache_update drivers/net/wan/hdlc_cisco.c
+--- a/drivers/net/wan/hdlc_cisco.c~cisco_ioctl-initialise-header_cache_update
++++ a/drivers/net/wan/hdlc_cisco.c
+@@ -366,6 +366,7 @@ static int cisco_ioctl(struct net_device
+ 		dev->hard_start_xmit = hdlc->xmit;
+ 		dev->hard_header = cisco_hard_header;
+ 		dev->hard_header_cache = NULL;
++		dev->header_cache_update = NULL;
+ 		dev->type = ARPHRD_CISCO;
+ 		dev->flags = IFF_POINTOPOINT | IFF_NOARP;
+ 		dev->addr_len = 0;
 _
 
-Patches currently in -mm which might be from poornima@in.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-afs-remove-all-afs-proc-entries-in-module-cleanup.patch
+throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations.patch
+cyclades-return-closing_wait.patch
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-drm.patch
+git-dvb.patch
+pvrusb-warning-fix.patch
+git-hid-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+git-leds-fixup.patch
+git-leds-make-it-compile.patch
+git-md-accel-vs-md.patch
+nommu-present-backing-device-capabilities-for-mtd-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+cisco_ioctl-initialise-header_cache_update.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-block-another-md-fix.patch
+git-unionfs.patch
+usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+after-before-x86_64-mm-mmconfig-share.patch
+log-reason-why-tsc-was-marked-unstable-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+kvm-add-internal-filesystem-for-generating-inodes-tweak.patch
+driver_bfin_serial_core-update.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
+utrace-prep.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
