@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-check-xattr-operation-support-fix.patch added to -mm tree
-Date: Wed, 28 Feb 2007 23:58:38 -0800
-Message-ID: <200703010758.l217wcR8007991@shell0.pdx.osdl.net>
+Subject: + worker_thread-dont-play-with-signals.patch added to -mm tree
+Date: Wed, 28 Feb 2007 23:59:56 -0800
+Message-ID: <200703010759.l217xuUZ008035@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33140 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33152 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752355AbXCAH7a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 02:59:30 -0500
+	id S1752353AbXCAIAE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 03:00:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@sw.ru, dmonakhov@openvz.org, mhalcrow@us.ibm.com
+Cc: oleg@tv-sign.ru
 
 
 The patch titled
-     ecryptfs: check xattr operation support fix
+     worker_thread: don't play with signals
 has been added to the -mm tree.  Its filename is
-     ecryptfs-check-xattr-operation-support-fix.patch
+     worker_thread-dont-play-with-signals.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ecryptfs: check xattr operation support fix
-From: Dmitriy Monakhov <dmonakhov@sw.ru>
+Subject: worker_thread: don't play with signals
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-  - ecryptfs_write_inode_size_to_metadata() error code was ignored.
-  - i_op->setxattr() must be supported by lower fs because used below.
+worker_thread() doesn't need to "Block and flush all signals", this was
+already done by its caller, kthread().
 
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
-Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |    6 +++---
- fs/ecryptfs/mmap.c  |    3 ++-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ kernel/workqueue.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-check-xattr-operation-support-fix fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-check-xattr-operation-support-fix
-+++ a/fs/ecryptfs/inode.c
-@@ -168,9 +168,9 @@ static int grow_file(struct dentry *ecry
- 		goto out;
- 	}
- 	i_size_write(inode, 0);
--	ecryptfs_write_inode_size_to_metadata(lower_file, lower_inode, inode,
--					      ecryptfs_dentry,
--					      ECRYPTFS_LOWER_I_MUTEX_NOT_HELD);
-+	rc = ecryptfs_write_inode_size_to_metadata(lower_file, lower_inode,
-+			inode, ecryptfs_dentry,
-+			ECRYPTFS_LOWER_I_MUTEX_NOT_HELD);
- 	ecryptfs_inode_to_private(inode)->crypt_stat.flags |= ECRYPTFS_NEW_FILE;
- out:
- 	return rc;
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-check-xattr-operation-support-fix fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-check-xattr-operation-support-fix
-+++ a/fs/ecryptfs/mmap.c
-@@ -502,7 +502,8 @@ static int ecryptfs_write_inode_size_to_
- 		goto out;
- 	}
- 	lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
--	if (!lower_dentry->d_inode->i_op->getxattr) {
-+	if (!lower_dentry->d_inode->i_op->getxattr ||
-+			!lower_dentry->d_inode->i_op->setxattr) {
- 		printk(KERN_WARNING
- 		       "No support for setting xattr in lower filesystem\n");
- 		rc = -ENOSYS;
+diff -puN kernel/workqueue.c~worker_thread-dont-play-with-signals kernel/workqueue.c
+--- a/kernel/workqueue.c~worker_thread-dont-play-with-signals
++++ a/kernel/workqueue.c
+@@ -290,18 +290,11 @@ static int worker_thread(void *__cwq)
+ 	struct cpu_workqueue_struct *cwq = __cwq;
+ 	DEFINE_WAIT(wait);
+ 	struct k_sigaction sa;
+-	sigset_t blocked;
+ 
+ 	if (!cwq->wq->freezeable)
+ 		current->flags |= PF_NOFREEZE;
+ 
+ 	set_user_nice(current, -5);
+-
+-	/* Block and flush all signals */
+-	sigfillset(&blocked);
+-	sigprocmask(SIG_BLOCK, &blocked, NULL);
+-	flush_signals(current);
+-
+ 	/*
+ 	 * We inherited MPOL_INTERLEAVE from the booting kernel.
+ 	 * Set MPOL_DEFAULT to insure node local allocations.
 _
 
-Patches currently in -mm which might be from dmonakhov@sw.ru are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-ecryptfs-check-xattr-operation-support-fix.patch
-libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
-3c59x-handle-pci_enable_device-failure-while-resuming.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
+adapt-page_lock_anon_vma-to-preempt_rcu.patch
+drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
+bonding-replace-system-timer-with-work-queue.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-block.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-refrigerator-vs-thaw_process-race.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch
+workqueue-introduce-wq_per_cpu-helper.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+workqueue-kill-noautorel-works.patch
+worker_thread-dont-play-with-signals.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+____call_usermodehelper-dont-flush_signals.patch
+rework-compat_sys_io_submit.patch
+fix-aioh-includes.patch
+fix-access_ok-checks.patch
+make-good_sigevent-non-static.patch
+make-good_sigevent-non-static-fix.patch
+make-__sigqueue_free-and.patch
+aio-completion-signal-notification.patch
+aio-completion-signal-notification-fix.patch
+aio-completion-signal-notification-fixes-and-cleanups.patch
+aio-completion-signal-notification-small-cleanup.patch
+add-listio-syscall-support.patch
