@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-remove-sys-class-rtc-dev.patch added to -mm tree
-Date: Thu, 01 Mar 2007 02:01:06 -0800
-Message-ID: <200703011001.l21A16Hq010034@shell0.pdx.osdl.net>
+Subject: + rtc-simplified-rtc-sysfs-attribute-handling.patch added to -mm tree
+Date: Thu, 01 Mar 2007 02:01:19 -0800
+Message-ID: <200703011001.l21A1JjW010040@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37380 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37392 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964790AbXCAKBh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 05:01:37 -0500
+	id S964792AbXCAKBk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 05:01:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, 
 
 
 The patch titled
-     rtc: remove /sys/class/rtc-dev/*
+     rtc: simplified rtc sysfs attribute handling
 has been added to the -mm tree.  Its filename is
-     rtc-remove-sys-class-rtc-dev.patch
+     rtc-simplified-rtc-sysfs-attribute-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,13 +25,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: remove /sys/class/rtc-dev/*
+Subject: rtc: simplified rtc sysfs attribute handling
 From: David Brownell <david-b@pacbell.net>
 
-This simplifies the /dev support by removing a superfluous class_device (the
-/sys/class/rtc-dev stuff) and the class_interface that hooks it into the rtc
-core.  Accordingly, if it's configured then /dev support is now part of the
-RTC core, and is never a separate module.
+This simplifies the RTC sysfs support by removing the class_interface that
+hooks it into the rtc core.  If it's configured, then sysfs support is now
+part of the RTC core, and is never a separate module.
 
 It's another step towards being able to remove "struct class_device".
 
@@ -41,263 +40,230 @@ Acked-By: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig    |    2 
- drivers/rtc/Makefile   |    3 -
- drivers/rtc/class.c    |    8 ++
- drivers/rtc/rtc-core.h |   15 +++++
- drivers/rtc/rtc-dev.c  |  105 +++++++--------------------------------
- include/linux/rtc.h    |    1 
- 6 files changed, 45 insertions(+), 89 deletions(-)
+ drivers/rtc/Kconfig     |    2 
+ drivers/rtc/Makefile    |    2 
+ drivers/rtc/class.c     |    3 +
+ drivers/rtc/rtc-core.h  |   14 ++++++
+ drivers/rtc/rtc-sysfs.c |   87 ++++++++++----------------------------
+ 5 files changed, 42 insertions(+), 66 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-remove-sys-class-rtc-dev drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-remove-sys-class-rtc-dev
+diff -puN drivers/rtc/Kconfig~rtc-simplified-rtc-sysfs-attribute-handling drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-simplified-rtc-sysfs-attribute-handling
 +++ a/drivers/rtc/Kconfig
-@@ -71,7 +71,7 @@ config RTC_INTF_PROC
- 	  will be called rtc-proc.
- 
- config RTC_INTF_DEV
--	tristate "dev"
-+	boolean "dev"
+@@ -48,7 +48,7 @@ comment "RTC interfaces"
  	depends on RTC_CLASS
+ 
+ config RTC_INTF_SYSFS
+-	tristate "sysfs"
++	boolean "sysfs"
+ 	depends on RTC_CLASS && SYSFS
  	default RTC_CLASS
  	help
-diff -puN drivers/rtc/Makefile~rtc-remove-sys-class-rtc-dev drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-remove-sys-class-rtc-dev
+diff -puN drivers/rtc/Makefile~rtc-simplified-rtc-sysfs-attribute-handling drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-simplified-rtc-sysfs-attribute-handling
 +++ a/drivers/rtc/Makefile
-@@ -11,9 +11,10 @@ obj-$(CONFIG_RTC_HCTOSYS)	+= hctosys.o
- obj-$(CONFIG_RTC_CLASS)		+= rtc-core.o
+@@ -12,8 +12,8 @@ obj-$(CONFIG_RTC_CLASS)		+= rtc-core.o
  rtc-core-y			:= class.o interface.o
  
-+rtc-core-$(CONFIG_RTC_INTF_DEV)	+= rtc-dev.o
-+
- obj-$(CONFIG_RTC_INTF_SYSFS)	+= rtc-sysfs.o
+ rtc-core-$(CONFIG_RTC_INTF_DEV)	+= rtc-dev.o
++rtc-core-$(CONFIG_RTC_INTF_SYSFS) += rtc-sysfs.o
+ 
+-obj-$(CONFIG_RTC_INTF_SYSFS)	+= rtc-sysfs.o
  obj-$(CONFIG_RTC_INTF_PROC)	+= rtc-proc.o
--obj-$(CONFIG_RTC_INTF_DEV)	+= rtc-dev.o
  
  obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
- obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
-diff -puN drivers/rtc/class.c~rtc-remove-sys-class-rtc-dev drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-remove-sys-class-rtc-dev
+diff -puN drivers/rtc/class.c~rtc-simplified-rtc-sysfs-attribute-handling drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc-simplified-rtc-sysfs-attribute-handling
 +++ a/drivers/rtc/class.c
-@@ -16,6 +16,9 @@
- #include <linux/kdev_t.h>
- #include <linux/idr.h>
- 
-+#include "rtc-core.h"
-+
-+
- static DEFINE_IDR(rtc_idr);
- static DEFINE_MUTEX(idr_lock);
- struct class *rtc_class;
-@@ -85,6 +88,8 @@ struct rtc_device *rtc_device_register(c
- 	if (err)
+@@ -89,6 +89,7 @@ struct rtc_device *rtc_device_register(c
  		goto exit_kfree;
  
-+	rtc_dev_add_device(rtc);
-+
+ 	rtc_dev_add_device(rtc);
++	rtc_sysfs_add_device(rtc);
+ 
  	dev_info(dev, "rtc core: registered %s as %s\n",
  			rtc->name, rtc->class_dev.class_id);
- 
-@@ -118,6 +123,7 @@ void rtc_device_unregister(struct rtc_de
+@@ -123,6 +124,7 @@ void rtc_device_unregister(struct rtc_de
  		/* remove innards of this RTC, then disable it, before
  		 * letting any rtc_class_open() users access it again
  		 */
-+		rtc_dev_del_device(rtc);
++		rtc_sysfs_del_device(rtc);
+ 		rtc_dev_del_device(rtc);
  		class_device_unregister(&rtc->class_dev);
  		rtc->ops = NULL;
- 		mutex_unlock(&rtc->ops_lock);
-@@ -140,11 +146,13 @@ static int __init rtc_init(void)
- 		printk(KERN_ERR "%s: couldn't create class\n", __FILE__);
+@@ -147,6 +149,7 @@ static int __init rtc_init(void)
  		return PTR_ERR(rtc_class);
  	}
-+	rtc_dev_init();
+ 	rtc_dev_init();
++	rtc_sysfs_init(rtc_class);
  	return 0;
  }
  
- static void __exit rtc_exit(void)
- {
-+	rtc_dev_exit();
- 	class_destroy(rtc_class);
- }
- 
-diff -puN /dev/null drivers/rtc/rtc-core.h
---- /dev/null
+diff -puN drivers/rtc/rtc-core.h~rtc-simplified-rtc-sysfs-attribute-handling drivers/rtc/rtc-core.h
+--- a/drivers/rtc/rtc-core.h~rtc-simplified-rtc-sysfs-attribute-handling
 +++ a/drivers/rtc/rtc-core.h
-@@ -0,0 +1,15 @@
-+#ifdef CONFIG_RTC_INTF_DEV
+@@ -15,3 +15,17 @@ extern void rtc_dev_del_device(struct rt
+ #define rtc_dev_del_device(r)	do{}while(0)
+ 
+ #endif
 +
-+extern void __init rtc_dev_init(void);
-+extern void __exit rtc_dev_exit(void);
-+extern void rtc_dev_add_device(struct rtc_device *rtc);
-+extern void rtc_dev_del_device(struct rtc_device *rtc);
++#ifdef CONFIG_RTC_INTF_SYSFS
++
++extern void __init rtc_sysfs_init(struct class *);
++extern void rtc_sysfs_add_device(struct rtc_device *rtc);
++extern void rtc_sysfs_del_device(struct rtc_device *rtc);
 +
 +#else
 +
-+#define rtc_dev_init()		do{}while(0)
-+#define rtc_dev_exit()		do{}while(0)
-+#define rtc_dev_add_device(r)	do{}while(0)
-+#define rtc_dev_del_device(r)	do{}while(0)
++#define rtc_sysfs_init(c)	do{}while(0)
++#define rtc_sysfs_add_device(r)	do{}while(0)
++#define rtc_sysfs_del_device(r)	do{}while(0)
 +
 +#endif
-diff -puN drivers/rtc/rtc-dev.c~rtc-remove-sys-class-rtc-dev drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-remove-sys-class-rtc-dev
-+++ a/drivers/rtc/rtc-dev.c
-@@ -14,7 +14,6 @@
- #include <linux/module.h>
- #include <linux/rtc.h>
- 
--static struct class *rtc_dev_class;
- static dev_t rtc_devt;
- 
- #define RTC_DEV_MAX 16 /* 16 RTCs should be enough for everyone... */
-@@ -397,17 +396,18 @@ static const struct file_operations rtc_
- 
- /* insertion/removal hooks */
- 
--static int rtc_dev_add_device(struct class_device *class_dev,
--				struct class_interface *class_intf)
-+void rtc_dev_add_device(struct rtc_device *rtc)
+diff -puN drivers/rtc/rtc-sysfs.c~rtc-simplified-rtc-sysfs-attribute-handling drivers/rtc/rtc-sysfs.c
+--- a/drivers/rtc/rtc-sysfs.c~rtc-simplified-rtc-sysfs-attribute-handling
++++ a/drivers/rtc/rtc-sysfs.c
+@@ -21,7 +21,6 @@ static ssize_t rtc_sysfs_show_name(struc
  {
--	int err = 0;
--	struct rtc_device *rtc = to_rtc_device(class_dev);
-+	if (!rtc_devt)
-+		return;
+ 	return sprintf(buf, "%s\n", to_rtc_device(dev)->name);
+ }
+-static CLASS_DEVICE_ATTR(name, S_IRUGO, rtc_sysfs_show_name, NULL);
  
- 	if (rtc->id >= RTC_DEV_MAX) {
--		dev_err(class_dev->dev, "too many RTCs\n");
--		return -EINVAL;
-+		pr_debug("%s: too many RTC devices\n", rtc->name);
-+		return;
- 	}
+ static ssize_t rtc_sysfs_show_date(struct class_device *dev, char *buf)
+ {
+@@ -36,7 +35,6 @@ static ssize_t rtc_sysfs_show_date(struc
  
-+	rtc->class_dev.devt = MKDEV(MAJOR(rtc_devt), rtc->id);
-+
- 	mutex_init(&rtc->char_lock);
- 	spin_lock_init(&rtc->irq_lock);
- 	init_waitqueue_head(&rtc->irq_queue);
-@@ -419,99 +419,32 @@ static int rtc_dev_add_device(struct cla
- 	cdev_init(&rtc->char_dev, &rtc_dev_fops);
- 	rtc->char_dev.owner = rtc->owner;
+ 	return retval;
+ }
+-static CLASS_DEVICE_ATTR(date, S_IRUGO, rtc_sysfs_show_date, NULL);
  
--	if (cdev_add(&rtc->char_dev, MKDEV(MAJOR(rtc_devt), rtc->id), 1)) {
--		dev_err(class_dev->dev,
--			"failed to add char device %d:%d\n",
-+	if (cdev_add(&rtc->char_dev, rtc->class_dev.devt, 1))
-+		printk(KERN_WARNING "%s: failed to add char device %d:%d\n",
-+			rtc->name, MAJOR(rtc_devt), rtc->id);
-+	else
-+		pr_debug("%s: dev (%d:%d)\n", rtc->name,
- 			MAJOR(rtc_devt), rtc->id);
--		return -ENODEV;
--	}
+ static ssize_t rtc_sysfs_show_time(struct class_device *dev, char *buf)
+ {
+@@ -51,7 +49,6 @@ static ssize_t rtc_sysfs_show_time(struc
+ 
+ 	return retval;
+ }
+-static CLASS_DEVICE_ATTR(time, S_IRUGO, rtc_sysfs_show_time, NULL);
+ 
+ static ssize_t rtc_sysfs_show_since_epoch(struct class_device *dev, char *buf)
+ {
+@@ -67,21 +64,15 @@ static ssize_t rtc_sysfs_show_since_epoc
+ 
+ 	return retval;
+ }
+-static CLASS_DEVICE_ATTR(since_epoch, S_IRUGO, rtc_sysfs_show_since_epoch, NULL);
+ 
+-static struct attribute *rtc_attrs[] = {
+-	&class_device_attr_name.attr,
+-	&class_device_attr_date.attr,
+-	&class_device_attr_time.attr,
+-	&class_device_attr_since_epoch.attr,
+-	NULL,
++static struct class_device_attribute rtc_attrs[] = {
++	__ATTR(name, S_IRUGO, rtc_sysfs_show_name, NULL),
++	__ATTR(date, S_IRUGO, rtc_sysfs_show_date, NULL),
++	__ATTR(time, S_IRUGO, rtc_sysfs_show_time, NULL),
++	__ATTR(since_epoch, S_IRUGO, rtc_sysfs_show_since_epoch, NULL),
++	{ },
+ };
+ 
+-static struct attribute_group rtc_attr_group = {
+-	.attrs = rtc_attrs,
+-};
 -
--	rtc->rtc_dev = class_device_create(rtc_dev_class, NULL,
--						MKDEV(MAJOR(rtc_devt), rtc->id),
--						class_dev->dev, "rtc%d", rtc->id);
--	if (IS_ERR(rtc->rtc_dev)) {
--		dev_err(class_dev->dev, "cannot create rtc_dev device\n");
--		err = PTR_ERR(rtc->rtc_dev);
--		goto err_cdev_del;
--	}
 -
--	dev_dbg(class_dev->dev, "rtc intf: dev (%d:%d)\n",
--		MAJOR(rtc->rtc_dev->devt),
--		MINOR(rtc->rtc_dev->devt));
+ static ssize_t
+ rtc_sysfs_show_wakealarm(struct class_device *dev, char *buf)
+ {
+@@ -157,71 +148,39 @@ static const CLASS_DEVICE_ATTR(wakealarm
+  * suspend-to-disk.  So: no attribute unless that side effect is possible.
+  * (Userspace may disable that mechanism later.)
+  */
+-static inline int rtc_does_wakealarm(struct class_device *class_dev)
++static inline int rtc_does_wakealarm(struct rtc_device *rtc)
+ {
+-	struct rtc_device *rtc;
 -
--	return 0;
--
--err_cdev_del:
--
--	cdev_del(&rtc->char_dev);
--	return err;
+-	if (!device_can_wakeup(class_dev->dev))
++	if (!device_can_wakeup(rtc->class_dev.dev))
+ 		return 0;
+-	rtc = to_rtc_device(class_dev);
+ 	return rtc->ops->set_alarm != NULL;
  }
  
--static void rtc_dev_remove_device(struct class_device *class_dev,
+ 
+-static int rtc_sysfs_add_device(struct class_device *class_dev,
 -					struct class_interface *class_intf)
-+void rtc_dev_del_device(struct rtc_device *rtc)
++void rtc_sysfs_add_device(struct rtc_device *rtc)
  {
--	struct rtc_device *rtc = to_rtc_device(class_dev);
--
--	if (rtc->rtc_dev) {
--		dev_dbg(class_dev->dev, "removing char %d:%d\n",
--			MAJOR(rtc->rtc_dev->devt),
--			MINOR(rtc->rtc_dev->devt));
--
--		class_device_unregister(rtc->rtc_dev);
-+	if (rtc->class_dev.devt)
- 		cdev_del(&rtc->char_dev);
+ 	int err;
+ 
+-	dev_dbg(class_dev->dev, "rtc intf: sysfs\n");
++	/* not all RTCs support both alarms and wakeup */
++	if (!rtc_does_wakealarm(rtc))
++		return;
+ 
+-	err = sysfs_create_group(&class_dev->kobj, &rtc_attr_group);
++	err = class_device_create_file(&rtc->class_dev,
++				&class_device_attr_wakealarm);
+ 	if (err)
+-		dev_err(class_dev->dev, "failed to create %s\n",
+-				"sysfs attributes");
+-	else if (rtc_does_wakealarm(class_dev)) {
+-		/* not all RTCs support both alarms and wakeup */
+-		err = class_device_create_file(class_dev,
+-					&class_device_attr_wakealarm);
+-		if (err) {
+-			dev_err(class_dev->dev, "failed to create %s\n",
+-					"alarm attribute");
+-			sysfs_remove_group(&class_dev->kobj, &rtc_attr_group);
+-		}
 -	}
+-
+-	return err;
++		dev_err(rtc->class_dev.dev, "failed to create "
++				"alarm attribute, %d",
++				err);
+ }
+ 
+-static void rtc_sysfs_remove_device(struct class_device *class_dev,
+-				struct class_interface *class_intf)
++void rtc_sysfs_del_device(struct rtc_device *rtc)
+ {
+-	if (rtc_does_wakealarm(class_dev))
+-		class_device_remove_file(class_dev,
++	/* REVISIT did we add it successfully? */
++	if (rtc_does_wakealarm(rtc))
++		class_device_remove_file(&rtc->class_dev,
+ 				&class_device_attr_wakealarm);
+-	sysfs_remove_group(&class_dev->kobj, &rtc_attr_group);
  }
  
 -/* interface registration */
 -
--static struct class_interface rtc_dev_interface = {
--	.add = &rtc_dev_add_device,
--	.remove = &rtc_dev_remove_device,
+-static struct class_interface rtc_sysfs_interface = {
+-	.add = &rtc_sysfs_add_device,
+-	.remove = &rtc_sysfs_remove_device,
 -};
 -
--static int __init rtc_dev_init(void)
-+void __init rtc_dev_init(void)
+-static int __init rtc_sysfs_init(void)
++void __init rtc_sysfs_init(struct class *rtc_class)
  {
- 	int err;
- 
--	rtc_dev_class = class_create(THIS_MODULE, "rtc-dev");
--	if (IS_ERR(rtc_dev_class))
--		return PTR_ERR(rtc_dev_class);
--
- 	err = alloc_chrdev_region(&rtc_devt, 0, RTC_DEV_MAX, "rtc");
--	if (err < 0) {
-+	if (err < 0)
- 		printk(KERN_ERR "%s: failed to allocate char dev region\n",
- 			__FILE__);
--		goto err_destroy_class;
--	}
--
--	err = rtc_interface_register(&rtc_dev_interface);
--	if (err < 0) {
--		printk(KERN_ERR "%s: failed to register the interface\n",
--			__FILE__);
--		goto err_unregister_chrdev;
--	}
--
--	return 0;
--
--err_unregister_chrdev:
--	unregister_chrdev_region(rtc_devt, RTC_DEV_MAX);
--
--err_destroy_class:
--	class_destroy(rtc_dev_class);
--
--	return err;
- }
- 
--static void __exit rtc_dev_exit(void)
-+void __exit rtc_dev_exit(void)
- {
--	class_interface_unregister(&rtc_dev_interface);
--	class_destroy(rtc_dev_class);
--	unregister_chrdev_region(rtc_devt, RTC_DEV_MAX);
-+	if (rtc_devt)
-+		unregister_chrdev_region(rtc_devt, RTC_DEV_MAX);
+-	return rtc_interface_register(&rtc_sysfs_interface);
++	rtc_class->class_dev_attrs = rtc_attrs;
  }
 -
--subsys_initcall(rtc_dev_init);
--module_exit(rtc_dev_exit);
+-static void __exit rtc_sysfs_exit(void)
+-{
+-	class_interface_unregister(&rtc_sysfs_interface);
+-}
+-
+-subsys_initcall(rtc_sysfs_init);
+-module_exit(rtc_sysfs_exit);
 -
 -MODULE_AUTHOR("Alessandro Zummo <a.zummo@towertech.it>");
--MODULE_DESCRIPTION("RTC class dev interface");
+-MODULE_DESCRIPTION("RTC class sysfs interface");
 -MODULE_LICENSE("GPL");
-diff -puN include/linux/rtc.h~rtc-remove-sys-class-rtc-dev include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-remove-sys-class-rtc-dev
-+++ a/include/linux/rtc.h
-@@ -145,7 +145,6 @@ struct rtc_device
- 	const struct rtc_class_ops *ops;
- 	struct mutex ops_lock;
- 
--	struct class_device *rtc_dev;
- 	struct cdev char_dev;
- 	struct mutex char_lock;
- 
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
