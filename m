@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernel-markers-non-optimized-architures-fallback-flags.patch added to -mm tree
-Date: Thu, 01 Mar 2007 15:28:33 -0800
-Message-ID: <200703012328.l21NSXrB025781@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-documentation-update-flags.patch added to -mm tree
+Date: Thu, 01 Mar 2007 15:28:41 -0800
+Message-ID: <200703012328.l21NSfAv025784@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53801 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53811 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161178AbXCAX2l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 18:28:41 -0500
+	id S1161162AbXCAX2t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 18:28:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     linux-kernel-markers-non-optimized-architures-fallback-flags
+     linux-kernel-markers-documentation-update-flags
 has been added to the -mm tree.  Its filename is
-     linux-kernel-markers-non-optimized-architures-fallback-flags.patch
+     linux-kernel-markers-documentation-update-flags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,75 +25,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-non-optimized-architures-fallback-flags
+Subject: linux-kernel-markers-documentation-update-flags
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-linux-kernel-markers-non-optimized-architures-fallback-flags
+linux-kernel-markers-documentation-update-flags
 
-- asm-generic/marker.h is now only used as a fallback defining _MARK as
-  MARK_GENERIC.
-- flags support
+Documents the flag usage.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/marker.h |   38 ++++++++++++---------------------
- 1 files changed, 14 insertions(+), 24 deletions(-)
+ Documentation/marker.txt |   30 ++++++++++++++++++++++++++++++
+ 1 files changed, 30 insertions(+)
 
-diff -puN include/asm-generic/marker.h~linux-kernel-markers-non-optimized-architures-fallback-flags include/asm-generic/marker.h
---- a/include/asm-generic/marker.h~linux-kernel-markers-non-optimized-architures-fallback-flags
-+++ a/include/asm-generic/marker.h
-@@ -1,3 +1,6 @@
-+#ifndef _ASM_GENERIC_MARKER_H
-+#define _ASM_GENERIC_MARKER_H
+diff -puN Documentation/marker.txt~linux-kernel-markers-documentation-update-flags Documentation/marker.txt
+--- a/Documentation/marker.txt~linux-kernel-markers-documentation-update-flags
++++ a/Documentation/marker.txt
+@@ -78,6 +78,21 @@ which saves a data cache hit, but also r
+ order to support embedded systems which use read-only memory for their code, the
+ optimization can be disabled through menu options.
+ 
++The MF_* flags can be used to control the type of marker. See the
++include/marker.h header for the list of flags. They can be specified as the
++first parameter of the _MARK() macro, such as the following example which is
++safe wrt lockdep.c (useful for marking lockdep.c functions).
 +
- /*
-  * marker.h
-  *
-@@ -10,31 +13,18 @@
-  * "used" attribute to fix a gcc 4.1.x bug.
-  */
++_MARK(_MF_DEFAULT | ~_MF_LOCKDEP, subsystem_eventb,
++  MARK_NOARGS);
++
++Another example is to specify that a specific marker must never call printk :
++_MARK(_MF_DEFAULT | ~_MF_PRINTK, subsystem_eventc,
++  "%d %s %p[struct task_struct]",
++  someint, somestring, current);
++
++Flag compatibility is checked before connecting the probe to the marker.
++
  
--#ifdef CONFIG_MARKERS
-+#define _MF_DEFAULT			(_MF_LOCKDEP | _MF_PRINTK)
+ * Probe example
  
--#define GEN_MARK(name, format, args...) \
--	do { \
--		static marker_probe_func *__mark_call_##name = \
--					__mark_empty_function; \
--		static char __marker_enable_##name = 0; \
--		static const struct __mark_marker_c __mark_c_##name \
--			__attribute__((section(".markers.c"))) = \
--			{ #name, &__mark_call_##name, format, \
--			MARKER_GENERIC } ; \
--		static const struct __mark_marker __mark_##name \
--			__attribute__((section(".markers"))) = \
--			{ &__mark_c_##name, &__marker_enable_##name } ; \
--		asm volatile ( "" : : "i" (&__mark_##name)); \
--		__mark_check_format(format, ## args); \
--		if (unlikely(__marker_enable_##name)) { \
--			preempt_disable(); \
--			(*__mark_call_##name)(format, ## args); \
--			preempt_enable(); \
--		} \
--	} while (0)
-+#define MARK_OPTIMIZED			MARK_GENERIC
-+#define _MARK				MARK_GENERIC
-+#define MARK(format, args...)		_MARK(_MF_DEFAULT, format, ## args)
+@@ -122,6 +137,13 @@ void probe_subsystem_event(const char *f
+ 	va_end(ap);
+ }
  
-+#define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET \
-+		MARK_GENERIC_ENABLE_IMMEDIATE_OFFSET
-+#define MARK_OPTIMIZED_ENABLE_TYPE	MARK_GENERIC_ENABLE_TYPE
-+/* Dereference enable as lvalue from a pointer to its instruction */
-+#define MARK_OPTIMIZED_ENABLE		MARK_GENERIC_ENABLE
++#define SUBSYSTEM_EVENTB_FORMAT MARK_NOARGS
++void probe_subsystem_eventb(const char *format, ...)
++{
++	/* Increment counters, trace, ... but _never_ generate a call to
++	 * lockdep.c ! */
++}
++
+ static int __init probe_init(void)
+ {
+ 	int result;
+@@ -130,16 +152,24 @@ static int __init probe_init(void)
+ 			probe_subsystem_event);
+ 	if (!result)
+ 		goto cleanup;
++	result = _marker_set_probe(_MF_DEFAULT & ~_MF_LOCKDEP,
++			"subsystem_eventb",
++			SUBSYSTEM_EVENTB_FORMAT,
++			probe_subsystem_eventb);
++	if (!result)
++		goto cleanup;
+ 	return 0;
  
--#define GEN_MARK_ENABLE_IMMEDIATE_OFFSET 0
--#define GEN_MARK_ENABLE_TYPE char
-+#define marker_optimized_set_enable marker_generic_set_enable
+ cleanup:
+ 	marker_remove_probe(probe_subsystem_event);
++	marker_remove_probe(probe_subsystem_eventb);
+ 	return -EPERM;
+ }
  
--#endif
-+#endif /* _ASM_GENERIC_MARKER_H */
+ static void __exit probe_fini(void)
+ {
+ 	marker_remove_probe(probe_subsystem_event);
++	marker_remove_probe(probe_subsystem_eventb);
+ }
+ 
+ module_init(probe_init);
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
