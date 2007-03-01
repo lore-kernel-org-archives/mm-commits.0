@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-display-class-update.patch added to -mm tree
-Date: Wed, 28 Feb 2007 23:54:13 -0800
-Message-ID: <200703010754.l217sDNl007954@shell0.pdx.osdl.net>
+Subject: + change-sysenter_setup-to-__cpuinit-improve-__init-fix.patch added to -mm tree
+Date: Wed, 28 Feb 2007 23:57:28 -0800
+Message-ID: <200703010757.l217vSbE007982@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33013 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33093 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752343AbXCAHyc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 02:54:32 -0500
+	id S1752350AbXCAH5r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 02:57:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jsimmons@infradead.org, adaplas@pol.net, greg@kroah.com
+Cc: prarit@redhat.com, ak@suse.de
 
 
 The patch titled
-     display class update
+     change-sysenter_setup-to-__cpuinit-improve-__init fix
 has been added to the -mm tree.  Its filename is
-     fbdev-display-class-update.patch
+     change-sysenter_setup-to-__cpuinit-improve-__init-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,201 +25,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: display class update
-From: James Simmons <jsimmons@infradead.org>
+Subject: change-sysenter_setup-to-__cpuinit-improve-__init fix
+From: Prarit Bhargava <prarit@redhat.com>
 
-Signed-off-by: James Simmons <jsimmons@infradead.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Greg KH <greg@kroah.com>
+I missed a chunk to arch/i386/kernel/vsyscall.S.
+
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/display/display-sysfs.c |   94 +++++++++++++-----------
- 1 file changed, 54 insertions(+), 40 deletions(-)
+ arch/i386/kernel/vsyscall.S |    2 +-
+ arch/x86_64/kernel/head.S   |    4 +---
+ include/linux/init.h        |   13 ++++++++-----
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/display/display-sysfs.c~fbdev-display-class-update drivers/video/display/display-sysfs.c
---- a/drivers/video/display/display-sysfs.c~fbdev-display-class-update
-+++ a/drivers/video/display/display-sysfs.c
-@@ -23,26 +23,26 @@
-  */
- #include <linux/module.h>
- #include <linux/display.h>
--#include <linux/bitmap.h>
--#include <linux/err.h>
- #include <linux/ctype.h>
-+#include <linux/idr.h>
-+#include <linux/err.h>
+diff -puN arch/i386/kernel/vsyscall.S~change-sysenter_setup-to-__cpuinit-improve-__init-fix arch/i386/kernel/vsyscall.S
+--- a/arch/i386/kernel/vsyscall.S~change-sysenter_setup-to-__cpuinit-improve-__init-fix
++++ a/arch/i386/kernel/vsyscall.S
+@@ -1,6 +1,6 @@
+ #include <linux/init.h>
  
--static ssize_t display_show_name(struct device *dev, struct device_attribute *attr,
--				char *buf)
-+static ssize_t display_show_name(struct device *dev,
-+				struct device_attribute *attr, char *buf)
- {
- 	struct display_device *dsp = dev_get_drvdata(dev);
- 	return snprintf(buf, PAGE_SIZE, "%s\n", dsp->name);
- }
+-__INITDATA
++__CPUINITDATA
  
--static ssize_t display_show_type(struct device *dev, struct device_attribute *attr,
--				char *buf)
-+static ssize_t display_show_type(struct device *dev,
-+				struct device_attribute *attr, char *buf)
- {
- 	struct display_device *dsp = dev_get_drvdata(dev);
- 	return snprintf(buf, PAGE_SIZE, "%s\n", dsp->type);
- }
+ 	.globl vsyscall_int80_start, vsyscall_int80_end
+ vsyscall_int80_start:
+diff -puN arch/x86_64/kernel/head.S~change-sysenter_setup-to-__cpuinit-improve-__init-fix arch/x86_64/kernel/head.S
+--- a/arch/x86_64/kernel/head.S~change-sysenter_setup-to-__cpuinit-improve-__init-fix
++++ a/arch/x86_64/kernel/head.S
+@@ -324,9 +324,7 @@ ENTRY(wakeup_level4_pgt)
+ 	.quad	phys_level3_kernel_pgt | 0x007
+ #endif
  
--static ssize_t display_show_contrast(struct device *dev, struct device_attribute *attr,
--				char *buf)
-+static ssize_t display_show_contrast(struct device *dev,
-+				struct device_attribute *attr, char *buf)
- {
- 	struct display_device *dsp = dev_get_drvdata(dev);
- 	ssize_t rc = -ENXIO;
-@@ -54,8 +54,9 @@ static ssize_t display_show_contrast(str
- 	return rc;
- }
- 
--static ssize_t display_store_contrast(struct device *dev, struct device_attribute *attr,
--				const char *buf, size_t count)
-+static ssize_t display_store_contrast(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t count)
- {
- 	struct display_device *dsp = dev_get_drvdata(dev);
- 	ssize_t ret = -EINVAL, size;
-@@ -81,7 +82,8 @@ static ssize_t display_store_contrast(st
- 	return ret;
- }
- 
--static ssize_t display_show_max_contrast(struct device *dev, struct device_attribute *attr,
-+static ssize_t display_show_max_contrast(struct device *dev,
-+					struct device_attribute *attr,
- 					char *buf)
- {
- 	struct display_device *dsp = dev_get_drvdata(dev);
-@@ -123,38 +125,50 @@ static int display_resume(struct device 
- 	return 0;
- };
- 
-+static struct mutex allocated_dsp_lock;
-+static DEFINE_IDR(allocated_dsp);
- struct class *display_class;
--EXPORT_SYMBOL(display_class);
--
--#define NUM_OF_DISPLAYS		32
--DECLARE_BITMAP(inuse, NUM_OF_DISPLAYS);
- 
- struct display_device *display_device_register(struct display_driver *driver,
- 						struct device *parent, void *devdata)
- {
--	int idx = find_first_zero_bit(inuse, NUM_OF_DISPLAYS);
- 	struct display_device *new_dev = NULL;
--	struct device *display_device = NULL;
-+	int ret = -EINVAL;
- 
- 	if (unlikely(!driver))
--		return ERR_PTR(-EINVAL);
-+		return ERR_PTR(ret);
- 
--	display_device = device_create(display_class, parent, 0, "display%d", idx);
--	if (IS_ERR(display_device))
--		return ERR_PTR(-ENOMEM);
-+	mutex_lock(&allocated_dsp_lock);
-+	ret = idr_pre_get(&allocated_dsp, GFP_KERNEL);
-+	mutex_unlock(&allocated_dsp_lock);
-+	if (!ret)
-+		return ERR_PTR(ret);
- 
- 	new_dev = kzalloc(sizeof(struct display_device), GFP_KERNEL);
- 	if (likely(new_dev) && unlikely(driver->probe(new_dev, devdata))) {
--		dev_set_drvdata(display_device, new_dev);
--		new_dev->dev = display_device;
--		new_dev->parent = parent;
--		new_dev->driver = driver;
--		mutex_init(&new_dev->lock);
--		set_bit(idx, inuse);
--		new_dev->idx = idx;
--	} else
--		device_unregister(display_device);
--	return new_dev;
-+		// Reserve the index for this display
-+		mutex_lock(&allocated_dsp_lock);
-+		ret = idr_get_new(&allocated_dsp, new_dev, &new_dev->idx);
-+		mutex_unlock(&allocated_dsp_lock);
-+
-+		if (!ret) {
-+			new_dev->dev = device_create(display_class, parent, 0,
-+						"display%d", new_dev->idx);
-+			if (!IS_ERR(new_dev->dev)) {
-+				dev_set_drvdata(new_dev->dev, new_dev);
-+				new_dev->parent = parent;
-+				new_dev->driver = driver;
-+				mutex_init(&new_dev->lock);
-+				return new_dev;
-+			}
-+			mutex_lock(&allocated_dsp_lock);
-+			idr_remove(&allocated_dsp, new_dev->idx);
-+			mutex_unlock(&allocated_dsp_lock);
-+			ret = -EINVAL;
-+		}
-+	}
-+	kfree(new_dev);
-+	return ERR_PTR(ret);
- }
- EXPORT_SYMBOL(display_device_register);
- 
-@@ -162,10 +176,14 @@ void display_device_unregister(struct di
- {
- 	if (!ddev)
- 		return;
-+	// Free device
- 	mutex_lock(&ddev->lock);
--	device_unregister(ddev->parent);
--	clear_bit(ddev->idx, inuse);
-+	device_unregister(ddev->dev);
- 	mutex_unlock(&ddev->lock);
-+	// Mark device index as avaliable
-+	mutex_lock(&allocated_dsp_lock);
-+	idr_remove(&allocated_dsp, ddev->idx);
-+	mutex_unlock(&allocated_dsp_lock);
- 	kfree(ddev);
- }
- EXPORT_SYMBOL(display_device_unregister);
-@@ -181,21 +199,17 @@ static int __init display_class_init(voi
- 	display_class->dev_attrs = display_attrs;
- 	display_class->suspend = display_suspend;
- 	display_class->resume = display_resume;
--	bitmap_zero(inuse, NUM_OF_DISPLAYS);
-+	mutex_init(&allocated_dsp_lock);
- 	return 0;
- }
- 
--#ifdef MODULE
--module_init(display_class_init);
--
- static void __exit display_class_exit(void)
- {
- 	class_destroy(display_class);
- }
-+
-+module_init(display_class_init);
- module_exit(display_class_exit);
--#else
--subsys_initcall(display_class_init);
+-#ifndef CONFIG_HOTPLUG_CPU
+-	__INITDATA
 -#endif
++	__CPUINITDATA
+ 	/*
+ 	 * This default setting generates an ident mapping at address 0x100000
+ 	 * and a mapping for the kernel that precisely maps virtual address
+diff -puN include/linux/init.h~change-sysenter_setup-to-__cpuinit-improve-__init-fix include/linux/init.h
+--- a/include/linux/init.h~change-sysenter_setup-to-__cpuinit-improve-__init-fix
++++ a/include/linux/init.h
+@@ -52,14 +52,17 @@
+ #endif
  
- MODULE_DESCRIPTION("Display Hardware handling");
- MODULE_AUTHOR("James Simmons <jsimmons@infradead.org>");
+ /* For assembly routines */
+-#ifdef CONFIG_HOTPLUG_CPU
+-#define __INIT		.section	".text","ax"
+-#define __INITDATA	.section	".data","aw"
+-#else
+ #define __INIT		.section	".init.text","ax"
++#define __FINIT		.previous
+ #define __INITDATA	.section	".init.data","aw"
++
++#ifdef CONFIG_HOTPLUG_CPU
++#define __CPUINIT	.section	".text","ax"
++#define __CPUINITDATA	.section	".data","ax"
++#else
++#define __CPUINIT	__INIT
++#define __CPUINITDATA	__INITDATA
+ #endif
+-#define __FINIT		.previous
+ 
+ #ifndef __ASSEMBLY__
+ /*
 _
 
-Patches currently in -mm which might be from jsimmons@infradead.org are
+Patches currently in -mm which might be from prarit@redhat.com are
 
-ps3fb-thread-updates.patch
-ps3av-thread-updates.patch
-ps3fb-kill-superfluous-zero-initializations.patch
-ps3av-misc-updates.patch
-aty128fb-fix-blanking.patch
+__devinit-__devexit-cleanups-for-de2104x-driver.patch
+change-sysenter_setup-to-__cpuinit-improve-__init-fix.patch
+use-stop_machine_run-in-the-intel-rng-driver.patch
 change-rivafb_remove-to-__devexit.patch
-atyfb-replace-busy-loop-with-mdelay.patch
-fbdev-display-class.patch
-fbdev-display-class-update.patch
