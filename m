@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + worker_thread-dont-play-with-signals.patch added to -mm tree
-Date: Wed, 28 Feb 2007 23:59:56 -0800
-Message-ID: <200703010759.l217xuUZ008035@shell0.pdx.osdl.net>
+Subject: + x86_64-shut-up-vm862.patch added to -mm tree
+Date: Thu, 01 Mar 2007 00:00:55 -0800
+Message-ID: <200703010800.l2180tgD008094@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33152 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33186 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752353AbXCAIAE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 03:00:04 -0500
+	id S932518AbXCAIA7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 03:00:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru
+Cc: adobriyan@gmail.com, ak@suse.de
 
 
 The patch titled
-     worker_thread: don't play with signals
+     x86_64: shut up vm86(2)
 has been added to the -mm tree.  Its filename is
-     worker_thread-dont-play-with-signals.patch
+     x86_64-shut-up-vm862.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,108 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: worker_thread: don't play with signals
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: x86_64: shut up vm86(2)
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-worker_thread() doesn't need to "Block and flush all signals", this was
-already done by its caller, kthread().
+Change from originally rate-limited printk, to just printk, to current
+version.  Everybody had enough time to learn about vm86(2) absense.  Also
+remove possibility of dmesg spamming.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    7 -------
- 1 file changed, 7 deletions(-)
+ arch/x86_64/ia32/ia32entry.S |    4 ++--
+ arch/x86_64/ia32/sys_ia32.c  |   12 ------------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
-diff -puN kernel/workqueue.c~worker_thread-dont-play-with-signals kernel/workqueue.c
---- a/kernel/workqueue.c~worker_thread-dont-play-with-signals
-+++ a/kernel/workqueue.c
-@@ -290,18 +290,11 @@ static int worker_thread(void *__cwq)
- 	struct cpu_workqueue_struct *cwq = __cwq;
- 	DEFINE_WAIT(wait);
- 	struct k_sigaction sa;
--	sigset_t blocked;
+diff -puN arch/x86_64/ia32/ia32entry.S~x86_64-shut-up-vm862 arch/x86_64/ia32/ia32entry.S
+--- a/arch/x86_64/ia32/ia32entry.S~x86_64-shut-up-vm862
++++ a/arch/x86_64/ia32/ia32entry.S
+@@ -512,7 +512,7 @@ ia32_sys_call_table:
+ 	.quad stub32_iopl		/* 110 */
+ 	.quad sys_vhangup
+ 	.quad quiet_ni_syscall	/* old "idle" system call */
+-	.quad sys32_vm86_warning	/* vm86old */ 
++	.quad quiet_ni_syscall	/* vm86old */ 
+ 	.quad compat_sys_wait4
+ 	.quad sys_swapoff		/* 115 */
+ 	.quad compat_sys_sysinfo
+@@ -565,7 +565,7 @@ ia32_sys_call_table:
+ 	.quad sys_mremap
+ 	.quad sys_setresuid16
+ 	.quad sys_getresuid16	/* 165 */
+-	.quad sys32_vm86_warning	/* vm86 */ 
++	.quad quiet_ni_syscall	/* vm86 */ 
+ 	.quad quiet_ni_syscall	/* query_module */
+ 	.quad sys_poll
+ 	.quad compat_sys_nfsservctl
+diff -puN arch/x86_64/ia32/sys_ia32.c~x86_64-shut-up-vm862 arch/x86_64/ia32/sys_ia32.c
+--- a/arch/x86_64/ia32/sys_ia32.c~x86_64-shut-up-vm862
++++ a/arch/x86_64/ia32/sys_ia32.c
+@@ -842,18 +842,6 @@ long sys32_fadvise64_64(int fd, __u32 of
+ 			       advice); 
+ } 
  
- 	if (!cwq->wq->freezeable)
- 		current->flags |= PF_NOFREEZE;
- 
- 	set_user_nice(current, -5);
+-long sys32_vm86_warning(void)
+-{ 
+-	struct task_struct *me = current;
+-	static char lastcomm[sizeof(me->comm)];
+-	if (strncmp(lastcomm, me->comm, sizeof(lastcomm))) {
+-		compat_printk(KERN_INFO "%s: vm86 mode not supported on 64 bit kernel\n",
+-		       me->comm);
+-		strncpy(lastcomm, me->comm, sizeof(lastcomm));
+-	} 
+-	return -ENOSYS;
+-} 
 -
--	/* Block and flush all signals */
--	sigfillset(&blocked);
--	sigprocmask(SIG_BLOCK, &blocked, NULL);
--	flush_signals(current);
--
- 	/*
- 	 * We inherited MPOL_INTERLEAVE from the booting kernel.
- 	 * Set MPOL_DEFAULT to insure node local allocations.
+ long sys32_lookup_dcookie(u32 addr_low, u32 addr_high,
+ 			  char __user * buf, size_t len)
+ {
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-adapt-page_lock_anon_vma-to-preempt_rcu.patch
-drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
-bonding-replace-system-timer-with-work-queue.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-block.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-refrigerator-vs-thaw_process-race.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+parisc-unbreak-setupc-re-command_line.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+x86_64-shut-up-vm862.patch
 fix-rmmod-read-write-races-in-proc-entries.patch
 fix-rmmod-read-write-races-in-proc-entries-fix.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-make-queue_delayed_work-friendly-to-flush_fork.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch
-workqueue-introduce-wq_per_cpu-helper.patch
-make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
-ipvs-flush-defense_work-before-module-unload.patch
-workqueue-kill-noautorel-works.patch
-worker_thread-dont-play-with-signals.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
-____call_usermodehelper-dont-flush_signals.patch
-rework-compat_sys_io_submit.patch
-fix-aioh-includes.patch
-fix-access_ok-checks.patch
-make-good_sigevent-non-static.patch
-make-good_sigevent-non-static-fix.patch
-make-__sigqueue_free-and.patch
-aio-completion-signal-notification.patch
-aio-completion-signal-notification-fix.patch
-aio-completion-signal-notification-fixes-and-cleanups.patch
-aio-completion-signal-notification-small-cleanup.patch
-add-listio-syscall-support.patch
+reiserfs-shrink-superblock-if-no-xattrs.patch
