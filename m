@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + change-sysenter_setup-to-__cpuinit-improve-__init-fix.patch added to -mm tree
-Date: Wed, 28 Feb 2007 23:57:28 -0800
-Message-ID: <200703010757.l217vSbE007982@shell0.pdx.osdl.net>
+Subject: + ecryptfs-check-xattr-operation-support-fix.patch added to -mm tree
+Date: Wed, 28 Feb 2007 23:58:38 -0800
+Message-ID: <200703010758.l217wcR8007991@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33093 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33140 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752350AbXCAH5r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 02:57:47 -0500
+	id S1752355AbXCAH7a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 02:59:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: prarit@redhat.com, ak@suse.de
+Cc: dmonakhov@sw.ru, dmonakhov@openvz.org, mhalcrow@us.ibm.com
 
 
 The patch titled
-     change-sysenter_setup-to-__cpuinit-improve-__init fix
+     ecryptfs: check xattr operation support fix
 has been added to the -mm tree.  Its filename is
-     change-sysenter_setup-to-__cpuinit-improve-__init-fix.patch
+     ecryptfs-check-xattr-operation-support-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: change-sysenter_setup-to-__cpuinit-improve-__init fix
-From: Prarit Bhargava <prarit@redhat.com>
+Subject: ecryptfs: check xattr operation support fix
+From: Dmitriy Monakhov <dmonakhov@sw.ru>
 
-I missed a chunk to arch/i386/kernel/vsyscall.S.
+  - ecryptfs_write_inode_size_to_metadata() error code was ignored.
+  - i_op->setxattr() must be supported by lower fs because used below.
 
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
+Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vsyscall.S |    2 +-
- arch/x86_64/kernel/head.S   |    4 +---
- include/linux/init.h        |   13 ++++++++-----
- 3 files changed, 10 insertions(+), 9 deletions(-)
+ fs/ecryptfs/inode.c |    6 +++---
+ fs/ecryptfs/mmap.c  |    3 ++-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/vsyscall.S~change-sysenter_setup-to-__cpuinit-improve-__init-fix arch/i386/kernel/vsyscall.S
---- a/arch/i386/kernel/vsyscall.S~change-sysenter_setup-to-__cpuinit-improve-__init-fix
-+++ a/arch/i386/kernel/vsyscall.S
-@@ -1,6 +1,6 @@
- #include <linux/init.h>
- 
--__INITDATA
-+__CPUINITDATA
- 
- 	.globl vsyscall_int80_start, vsyscall_int80_end
- vsyscall_int80_start:
-diff -puN arch/x86_64/kernel/head.S~change-sysenter_setup-to-__cpuinit-improve-__init-fix arch/x86_64/kernel/head.S
---- a/arch/x86_64/kernel/head.S~change-sysenter_setup-to-__cpuinit-improve-__init-fix
-+++ a/arch/x86_64/kernel/head.S
-@@ -324,9 +324,7 @@ ENTRY(wakeup_level4_pgt)
- 	.quad	phys_level3_kernel_pgt | 0x007
- #endif
- 
--#ifndef CONFIG_HOTPLUG_CPU
--	__INITDATA
--#endif
-+	__CPUINITDATA
- 	/*
- 	 * This default setting generates an ident mapping at address 0x100000
- 	 * and a mapping for the kernel that precisely maps virtual address
-diff -puN include/linux/init.h~change-sysenter_setup-to-__cpuinit-improve-__init-fix include/linux/init.h
---- a/include/linux/init.h~change-sysenter_setup-to-__cpuinit-improve-__init-fix
-+++ a/include/linux/init.h
-@@ -52,14 +52,17 @@
- #endif
- 
- /* For assembly routines */
--#ifdef CONFIG_HOTPLUG_CPU
--#define __INIT		.section	".text","ax"
--#define __INITDATA	.section	".data","aw"
--#else
- #define __INIT		.section	".init.text","ax"
-+#define __FINIT		.previous
- #define __INITDATA	.section	".init.data","aw"
-+
-+#ifdef CONFIG_HOTPLUG_CPU
-+#define __CPUINIT	.section	".text","ax"
-+#define __CPUINITDATA	.section	".data","ax"
-+#else
-+#define __CPUINIT	__INIT
-+#define __CPUINITDATA	__INITDATA
- #endif
--#define __FINIT		.previous
- 
- #ifndef __ASSEMBLY__
- /*
+diff -puN fs/ecryptfs/inode.c~ecryptfs-check-xattr-operation-support-fix fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-check-xattr-operation-support-fix
++++ a/fs/ecryptfs/inode.c
+@@ -168,9 +168,9 @@ static int grow_file(struct dentry *ecry
+ 		goto out;
+ 	}
+ 	i_size_write(inode, 0);
+-	ecryptfs_write_inode_size_to_metadata(lower_file, lower_inode, inode,
+-					      ecryptfs_dentry,
+-					      ECRYPTFS_LOWER_I_MUTEX_NOT_HELD);
++	rc = ecryptfs_write_inode_size_to_metadata(lower_file, lower_inode,
++			inode, ecryptfs_dentry,
++			ECRYPTFS_LOWER_I_MUTEX_NOT_HELD);
+ 	ecryptfs_inode_to_private(inode)->crypt_stat.flags |= ECRYPTFS_NEW_FILE;
+ out:
+ 	return rc;
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-check-xattr-operation-support-fix fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-check-xattr-operation-support-fix
++++ a/fs/ecryptfs/mmap.c
+@@ -502,7 +502,8 @@ static int ecryptfs_write_inode_size_to_
+ 		goto out;
+ 	}
+ 	lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
+-	if (!lower_dentry->d_inode->i_op->getxattr) {
++	if (!lower_dentry->d_inode->i_op->getxattr ||
++			!lower_dentry->d_inode->i_op->setxattr) {
+ 		printk(KERN_WARNING
+ 		       "No support for setting xattr in lower filesystem\n");
+ 		rc = -ENOSYS;
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from dmonakhov@sw.ru are
 
-__devinit-__devexit-cleanups-for-de2104x-driver.patch
-change-sysenter_setup-to-__cpuinit-improve-__init-fix.patch
-use-stop_machine_run-in-the-intel-rng-driver.patch
-change-rivafb_remove-to-__devexit.patch
+ecryptfs-check-xattr-operation-support-fix.patch
+libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
+3c59x-handle-pci_enable_device-failure-while-resuming.patch
+freevxfs-possible-null-pointer-dereference-fix.patch
+reiserfs-possible-null-pointer-dereference-during-resize.patch
