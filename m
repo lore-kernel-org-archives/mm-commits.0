@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch added to -mm tree
-Date: Thu, 01 Mar 2007 15:26:30 -0800
-Message-ID: <200703012327.l21NR3TH025754@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-non-optimized-architures-fallback-flags.patch added to -mm tree
+Date: Thu, 01 Mar 2007 15:28:33 -0800
+Message-ID: <200703012328.l21NSXrB025781@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53758 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53801 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161159AbXCAX1e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 18:27:34 -0500
+	id S1161178AbXCAX2l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 18:28:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fernando@oss.ntt.co.jp, ak@suse.de, benh@kernel.crashing.org, davem@davemloft.net, ebiederm@xmission.com, heiko.carstens@de.ibm.com, ink@jurassic.park.msu.ru, jdike@addtoit.com, paulus@samba.org, rth@twiddle.net, schwidefsky@de.ibm.com, takata@linux-m32r.org, tony.luck@intel.com, vgoyal@in.ibm.com
+Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     Move definition of hard_smp_processor_id to asm/smp.h - alpha, m32r, powerpc, s390, sparc, sparc64, um
+     linux-kernel-markers-non-optimized-architures-fallback-flags
 has been added to the -mm tree.  Its filename is
-     remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch
+     linux-kernel-markers-non-optimized-architures-fallback-flags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,128 +25,126 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Move definition of hard_smp_processor_id to asm/smp.h - alpha, m32r, powerpc, s390, sparc, sparc64, um
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: linux-kernel-markers-non-optimized-architures-fallback-flags
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Move definition of hard_smp_processor_id to asm/smp.h on alpha, m32r, powerpc,
-s390, sparc, sparc64, and um architectures.
+linux-kernel-markers-non-optimized-architures-fallback-flags
 
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+- asm-generic/marker.h is now only used as a fallback defining _MARK as
+  MARK_GENERIC.
+- flags support
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/smp.h   |    1 +
- include/asm-m32r/smp.h    |    6 +++++-
- include/asm-powerpc/smp.h |    1 +
- include/asm-s390/smp.h    |    1 +
- include/asm-sparc/smp.h   |    1 +
- include/asm-sparc64/smp.h |    1 +
- include/asm-um/smp.h      |    4 ++++
- 7 files changed, 14 insertions(+), 1 deletion(-)
+ include/asm-generic/marker.h |   38 ++++++++++++---------------------
+ 1 files changed, 14 insertions(+), 24 deletions(-)
 
-diff -puN include/asm-alpha/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-alpha/smp.h
---- a/include/asm-alpha/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
-+++ a/include/asm-alpha/smp.h
-@@ -51,6 +51,7 @@ int smp_call_function_on_cpu(void (*func
- 
- #else /* CONFIG_SMP */
- 
-+#define hard_smp_processor_id()		0
- #define smp_call_function_on_cpu(func,info,retry,wait,cpu)    ({ 0; })
- 
- #endif /* CONFIG_SMP */
-diff -puN include/asm-m32r/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-m32r/smp.h
---- a/include/asm-m32r/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
-+++ a/include/asm-m32r/smp.h
-@@ -108,6 +108,10 @@ extern unsigned long send_IPI_mask_phys(
- #define IPI_SHIFT	(0)
- #define NR_IPIS		(8)
- 
--#endif	/* CONFIG_SMP */
-+#else	/* CONFIG_SMP */
+diff -puN include/asm-generic/marker.h~linux-kernel-markers-non-optimized-architures-fallback-flags include/asm-generic/marker.h
+--- a/include/asm-generic/marker.h~linux-kernel-markers-non-optimized-architures-fallback-flags
++++ a/include/asm-generic/marker.h
+@@ -1,3 +1,6 @@
++#ifndef _ASM_GENERIC_MARKER_H
++#define _ASM_GENERIC_MARKER_H
 +
-+#define hard_smp_processor_id()		0
-+
-+#endif /* CONFIG_SMP */
+ /*
+  * marker.h
+  *
+@@ -10,31 +13,18 @@
+  * "used" attribute to fix a gcc 4.1.x bug.
+  */
  
- #endif	/* _ASM_M32R_SMP_H */
-diff -puN include/asm-powerpc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-powerpc/smp.h
---- a/include/asm-powerpc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
-+++ a/include/asm-powerpc/smp.h
-@@ -83,6 +83,7 @@ extern void __cpu_die(unsigned int cpu);
+-#ifdef CONFIG_MARKERS
++#define _MF_DEFAULT			(_MF_LOCKDEP | _MF_PRINTK)
  
- #else
- /* for UP */
-+#define hard_smp_processor_id()		0
- #define smp_setup_cpu_maps()
+-#define GEN_MARK(name, format, args...) \
+-	do { \
+-		static marker_probe_func *__mark_call_##name = \
+-					__mark_empty_function; \
+-		static char __marker_enable_##name = 0; \
+-		static const struct __mark_marker_c __mark_c_##name \
+-			__attribute__((section(".markers.c"))) = \
+-			{ #name, &__mark_call_##name, format, \
+-			MARKER_GENERIC } ; \
+-		static const struct __mark_marker __mark_##name \
+-			__attribute__((section(".markers"))) = \
+-			{ &__mark_c_##name, &__marker_enable_##name } ; \
+-		asm volatile ( "" : : "i" (&__mark_##name)); \
+-		__mark_check_format(format, ## args); \
+-		if (unlikely(__marker_enable_##name)) { \
+-			preempt_disable(); \
+-			(*__mark_call_##name)(format, ## args); \
+-			preempt_enable(); \
+-		} \
+-	} while (0)
++#define MARK_OPTIMIZED			MARK_GENERIC
++#define _MARK				MARK_GENERIC
++#define MARK(format, args...)		_MARK(_MF_DEFAULT, format, ## args)
  
- #endif /* CONFIG_SMP */
-diff -puN include/asm-s390/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-s390/smp.h
---- a/include/asm-s390/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
-+++ a/include/asm-s390/smp.h
-@@ -113,6 +113,7 @@ static inline void smp_send_stop(void)
- 	__load_psw_mask(psw_kernel_bits & ~PSW_MASK_MCHECK);
- }
++#define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET \
++		MARK_GENERIC_ENABLE_IMMEDIATE_OFFSET
++#define MARK_OPTIMIZED_ENABLE_TYPE	MARK_GENERIC_ENABLE_TYPE
++/* Dereference enable as lvalue from a pointer to its instruction */
++#define MARK_OPTIMIZED_ENABLE		MARK_GENERIC_ENABLE
  
-+#define hard_smp_processor_id()		0
- #define smp_cpu_not_running(cpu)	1
- #define smp_get_cpu(cpu) ({ 0; })
- #define smp_put_cpu(cpu) ({ 0; })
-diff -puN include/asm-sparc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-sparc/smp.h
---- a/include/asm-sparc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
-+++ a/include/asm-sparc/smp.h
-@@ -165,6 +165,7 @@ void smp_setup_cpu_possible_map(void);
+-#define GEN_MARK_ENABLE_IMMEDIATE_OFFSET 0
+-#define GEN_MARK_ENABLE_TYPE char
++#define marker_optimized_set_enable marker_generic_set_enable
  
- #else /* SMP */
- 
-+#define hard_smp_processor_id()		0
- #define smp_setup_cpu_possible_map() do { } while (0)
- 
- #endif /* !(SMP) */
-diff -puN include/asm-sparc64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-sparc64/smp.h
---- a/include/asm-sparc64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
-+++ a/include/asm-sparc64/smp.h
-@@ -47,6 +47,7 @@ extern void smp_setup_cpu_possible_map(v
- 
- #else
- 
-+#define hard_smp_processor_id()		0
- #define smp_setup_cpu_possible_map() do { } while (0)
- 
- #endif /* !(CONFIG_SMP) */
-diff -puN include/asm-um/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-um/smp.h
---- a/include/asm-um/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
-+++ a/include/asm-um/smp.h
-@@ -24,6 +24,10 @@ extern inline void smp_cpus_done(unsigne
- 
- extern struct task_struct *idle_threads[NR_CPUS];
- 
-+#else
-+
-+#define hard_smp_processor_id()		0
-+
- #endif
- 
- #endif
+-#endif
++#endif /* _ASM_GENERIC_MARKER_H */
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+local_t-architecture-independant-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-mips-extension-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix-2.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-powerpc-extension-fix.patch
+local_t-powerpc-extension-shrink-powerpc-localh.patch
+local_t-powerpc-extension-fix-build-fix.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-kconfig-menus-fix-2.patch
+linux-kernel-markers-kconfig-menus-fix-3.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
+linux-kernel-markers-kconfig-menus-fix-5.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-architecture-independant-code-license-fix.patch
+linux-kernel-markers-architecture-independant-code-flags.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-powerpc-optimization-flags.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-i386-optimization-fix.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+linux-kernel-markers-i386-optimization-flags.patch
+linux-kernel-markers-non-optimized-architectures.patch
+linux-kernel-markers-non-optimized-architures-fallback-flags.patch
+linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-fix.patch
+linux-kernel-markers-documentation-update-adds-context.patch
+linux-kernel-markers-documentation-update-markerh.patch
+linux-kernel-markers-documentation-update-flags.patch
