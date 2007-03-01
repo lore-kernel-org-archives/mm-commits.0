@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + linux-sysdevh-needs-to-include-linux-moduleh.patch added to -mm tree
-Date: Thu, 01 Mar 2007 15:10:53 -0800
-Message-ID: <200703012310.l21NAr8g025459@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-kconfig-menus-fix-5.patch added to -mm tree
+Date: Thu, 01 Mar 2007 15:14:06 -0800
+Message-ID: <200703012314.l21NE6Ud025505@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53278 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53279 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161142AbXCAXOP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 18:14:15 -0500
+	id S1161217AbXCAXOR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 18:14:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, ak@suse.de
+Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     <linux/sysdev.h> needs to include <linux/module.h>
+     linux-kernel-markers-kconfig-menus-fix-5
 has been added to the -mm tree.  Its filename is
-     linux-sysdevh-needs-to-include-linux-moduleh.patch
+     linux-kernel-markers-kconfig-menus-fix-5.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: <linux/sysdev.h> needs to include <linux/module.h>
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: linux-kernel-markers-kconfig-menus-fix-5
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-sysdev.h uses THIS_MODULE so should include <linux/module.h>.
+linux-kernel-markers-kconfig-menus-fix-5
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Andi Kleen <ak@suse.de>
+- Change CONFIG_MARKERS_ENABLE_OPTIMIZATION for
+  CONFIG_MARKERS_DISABLE_OPTIMIZATION.
+- Have CONFIG_MARKERS_DISABLE_OPTIMIZATION depend on EMBEDDED.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysdev.h |    1 +
- 1 files changed, 1 insertion(+)
+ kernel/Kconfig.marker |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/sysdev.h~linux-sysdevh-needs-to-include-linux-moduleh include/linux/sysdev.h
---- a/include/linux/sysdev.h~linux-sysdevh-needs-to-include-linux-moduleh
-+++ a/include/linux/sysdev.h
-@@ -22,6 +22,7 @@
- #define _SYSDEV_H_
+diff -puN kernel/Kconfig.marker~linux-kernel-markers-kconfig-menus-fix-5 kernel/Kconfig.marker
+--- a/kernel/Kconfig.marker~linux-kernel-markers-kconfig-menus-fix-5
++++ a/kernel/Kconfig.marker
+@@ -7,10 +7,14 @@ config MARKERS
+ 	  Place an empty function call at each marker site. Can be
+ 	  dynamically changed for a probe function.
  
- #include <linux/kobject.h>
-+#include <linux/module.h>
- #include <linux/pm.h>
- 
- 
+-config MARKERS_ENABLE_OPTIMIZATION
+-	bool "Enable marker optimization"
+-	depends on MARKERS
+-	default y
++config MARKERS_DISABLE_OPTIMIZATION
++	bool "Disable marker optimization"
++	depends on MARKERS && EMBEDDED
++	default n
+ 	help
+ 	  Disable code replacement jump optimisations. Especially useful if your
+ 	  code is in a read-only rom/flash.
++
++config MARKERS_ENABLE_OPTIMIZATION
++	def_bool y
++	depends on MARKERS && !MARKERS_DISABLE_OPTIMIZATION
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-serial-driver-pmc-msp71xx.patch
-rm9000-serial-driver.patch
-rm9000-serial-driver-tidy.patch
-x86_64-fix-ia32_binfmtc-build-error.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-simplify-the-stacktrace-code.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+local_t-architecture-independant-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
 local_t-mips-extension.patch
 local_t-mips-extension-fix.patch
 local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
 local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix-2.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-powerpc-extension-fix.patch
+local_t-powerpc-extension-shrink-powerpc-localh.patch
+local_t-powerpc-extension-fix-build-fix.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-kconfig-menus-fix-2.patch
+linux-kernel-markers-kconfig-menus-fix-3.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
+linux-kernel-markers-kconfig-menus-fix-5.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-architecture-independant-code-license-fix.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-i386-optimization-fix.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+linux-kernel-markers-non-optimized-architectures.patch
+linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-fix.patch
+linux-kernel-markers-documentation-update-adds-context.patch
+linux-kernel-markers-documentation-update-markerh.patch
