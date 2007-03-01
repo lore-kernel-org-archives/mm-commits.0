@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + always-ask-the-hardware-to-obtain-hardware-processor.patch added to -mm tree
-Date: Thu, 01 Mar 2007 15:27:09 -0800
-Message-ID: <200703012327.l21NR9bN025763@shell0.pdx.osdl.net>
+Subject: + use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch added to -mm tree
+Date: Thu, 01 Mar 2007 15:27:07 -0800
+Message-ID: <200703012327.l21NR77I025760@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53744 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53741 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161155AbXCAX1T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 18:27:19 -0500
+	id S1161152AbXCAX1S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 18:27:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: fernando@oss.ntt.co.jp, ak@suse.de, ebiederm@xmission.com, tony.luck@intel.c
 
 
 The patch titled
-     Always ask the hardware to obtain hardware processor id - ia64
+     Use the APIC to determine the hardware processor id - x86_64
 has been added to the -mm tree.  Its filename is
-     always-ask-the-hardware-to-obtain-hardware-processor.patch
+     use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Always ask the hardware to obtain hardware processor id - ia64
+Subject: Use the APIC to determine the hardware processor id - x86_64
 From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
-Always ask the hardware to determine the hardware processor id in both UP and
-SMP kernels.
+Use the APIC to determine the hardware processor id in both UP and SMP
+kernels.
 
 Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 Cc: Andi Kleen <ak@suse.de>
@@ -39,39 +39,40 @@ Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/smp.h |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ include/asm-x86_64/smp.h |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/asm-ia64/smp.h~always-ask-the-hardware-to-obtain-hardware-processor include/asm-ia64/smp.h
---- a/include/asm-ia64/smp.h~always-ask-the-hardware-to-obtain-hardware-processor
-+++ a/include/asm-ia64/smp.h
-@@ -38,6 +38,8 @@ ia64_get_lid (void)
- 	return lid.f.id << 8 | lid.f.eid;
- }
+diff -puN include/asm-x86_64/smp.h~use-the-apic-to-determine-the-hardware-processor-id-x86_64 include/asm-x86_64/smp.h
+--- a/include/asm-x86_64/smp.h~use-the-apic-to-determine-the-hardware-processor-id-x86_64
++++ a/include/asm-x86_64/smp.h
+@@ -57,12 +57,6 @@ static inline int num_booting_cpus(void)
  
-+#define hard_smp_processor_id()		ia64_get_lid()
-+
- #ifdef CONFIG_SMP
+ #define raw_smp_processor_id() read_pda(cpunumber)
  
- #define XTP_OFFSET		0x1e0008
-@@ -110,8 +112,6 @@ max_xtp (void)
- 		writeb(0x0f, ipi_base_addr + XTP_OFFSET); /* Set XTP to max */
- }
- 
--#define hard_smp_processor_id()		ia64_get_lid()
+-static inline int hard_smp_processor_id(void)
+-{
+-	/* we don't want to mark this access volatile - bad code generation */
+-	return GET_APIC_ID(*(unsigned int *)(APIC_BASE+APIC_ID));
+-}
 -
- /* Upping and downing of CPUs */
- extern int __cpu_disable (void);
- extern void __cpu_die (unsigned int cpu);
-@@ -128,7 +128,7 @@ extern void unlock_ipi_calllock(void);
- extern void identify_siblings (struct cpuinfo_ia64 *);
- extern int is_multithreading_enabled(void);
+ extern int __cpu_disable(void);
+ extern void __cpu_die(unsigned int cpu);
+ extern void prefill_possible_map(void);
+@@ -71,7 +65,13 @@ extern unsigned __cpuinitdata disabled_c
  
--#else
-+#else /* CONFIG_SMP */
+ #define NO_PROC_ID		0xFF		/* No processor magic marker */
  
- #define cpu_logical_id(i)		0
- #define cpu_physical_id(i)		ia64_get_lid()
+-#endif
++#endif /* CONFIG_SMP */
++
++static inline int hard_smp_processor_id(void)
++{
++	/* we don't want to mark this access volatile - bad code generation */
++	return GET_APIC_ID(*(unsigned int *)(APIC_BASE+APIC_ID));
++}
+ 
+ /*
+  * Some lowlevel functions might want to know about
 _
 
 Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
