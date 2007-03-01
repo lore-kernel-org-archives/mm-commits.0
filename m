@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fully-honor-vdso_enabled.patch added to -mm tree
-Date: Wed, 28 Feb 2007 21:33:15 -0800
-Message-ID: <200703010533.l215XFEA005630@shell0.pdx.osdl.net>
+Subject: + cyclades-return-closing_wait.patch added to -mm tree
+Date: Wed, 28 Feb 2007 21:37:31 -0800
+Message-ID: <200703010537.l215bVMo005685@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56472 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56598 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752230AbXCAFdq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 00:33:46 -0500
+	id S1752319AbXCAFht (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 00:37:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jreiser@BitWagon.com, ak@suse.de, arjan@infradead.org, lethal@linux-sh.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk, shanlu@cs.uiuc.edu
 
 
 The patch titled
-     fully honor vdso_enabled [i386, sh; x86_64?]
+     cyclades: return closing_wait
 has been added to the -mm tree.  Its filename is
-     fully-honor-vdso_enabled.patch
+     cyclades-return-closing_wait.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,106 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fully honor vdso_enabled [i386, sh; x86_64?]
-From: John Reiser <jreiser@BitWagon.com>
+Subject: cyclades: return closing_wait
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Architectures such as i386, sh, x86_64 have a flag
-/proc/sys/vm/vdso_enabled to choose whether the kernel should setup a
-process to use vdso after execve().  Informing the user code via
-AT_SYSINFO* is controlled by macro ARCH_DLINFO in fs/binfmt_elf.c and
-include/asm-$ARCH/elf.h, but the vdso page is established always via
-arch_setup_additonal_pages() called from load_elf_binary().  If
-vdso_enabled is off, then current code wastes kernel time during execve()
-and fragments the address space unnecessarily.
+In http://bugzilla.kernel.org/show_bug.cgi?id=8065, Shen points out that the
+cyclades driver forget to return closing_wait to userspace.
 
-This patch changes arch_setup_additonal_pages() to honor vdso_enabled.  For
-i386 it also allows the option of a fixed addresss to avoid fragmenting the
-address space.  Compiles and runs on i386.  x86_64 [IA32 support] and sh
-maintainers also please comment.
-
-For some related history, including interaction with exec-shield, see:
-http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229304
-and also 207020 and 162797.
-
-Signed-off-by: John Reiser <jreiser@BitWagon.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Shen <shanlu@cs.uiuc.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/sysenter.c        |   19 ++++++++++++++++++-
- arch/sh/kernel/vsyscall/vsyscall.c |    3 +++
- include/asm-i386/a.out.h           |    2 +-
- 3 files changed, 22 insertions(+), 2 deletions(-)
+ drivers/char/cyclades.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/sysenter.c~fully-honor-vdso_enabled arch/i386/kernel/sysenter.c
---- a/arch/i386/kernel/sysenter.c~fully-honor-vdso_enabled
-+++ a/arch/i386/kernel/sysenter.c
-@@ -22,6 +22,8 @@
- #include <asm/msr.h>
- #include <asm/pgtable.h>
- #include <asm/unistd.h>
-+#include <asm/a.out.h>
-+#include <asm/mman.h>
- 
- /*
-  * Should the kernel map a VDSO page into processes and pass its
-@@ -105,10 +107,25 @@ int arch_setup_additional_pages(struct l
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr;
-+	unsigned long flags;
- 	int ret;
- 
-+	switch (vdso_enabled) {
-+	case 0:  /* none */
-+		return 0;
-+	default:
-+	case 1:  /* vdso in random available page */
-+		addr = 0ul;
-+		flags = 0ul;
-+		break;
-+	case 2:  /* out of user's way */
-+		addr = STACK_TOP;
-+		flags = MAP_FIXED;
-+		break;
-+	}
-+
- 	down_write(&mm->mmap_sem);
--	addr = get_unmapped_area(NULL, 0, PAGE_SIZE, 0, 0);
-+	addr = get_unmapped_area(NULL, addr, PAGE_SIZE, 0, flags);
- 	if (IS_ERR_VALUE(addr)) {
- 		ret = addr;
- 		goto up_fail;
-diff -puN arch/sh/kernel/vsyscall/vsyscall.c~fully-honor-vdso_enabled arch/sh/kernel/vsyscall/vsyscall.c
---- a/arch/sh/kernel/vsyscall/vsyscall.c~fully-honor-vdso_enabled
-+++ a/arch/sh/kernel/vsyscall/vsyscall.c
-@@ -64,6 +64,9 @@ int arch_setup_additional_pages(struct l
- 	unsigned long addr;
- 	int ret;
- 
-+	if (!vdso_enabled)
-+		return 0;
-+
- 	down_write(&mm->mmap_sem);
- 	addr = get_unmapped_area(NULL, 0, PAGE_SIZE, 0, 0);
- 	if (IS_ERR_VALUE(addr)) {
-diff -puN include/asm-i386/a.out.h~fully-honor-vdso_enabled include/asm-i386/a.out.h
---- a/include/asm-i386/a.out.h~fully-honor-vdso_enabled
-+++ a/include/asm-i386/a.out.h
-@@ -19,7 +19,7 @@ struct exec
- 
- #ifdef __KERNEL__
- 
--#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP	(TASK_SIZE - PAGE_SIZE)  /* 1 page optional for vdso */
- 
- #endif
- 
+diff -puN drivers/char/cyclades.c~cyclades-return-closing_wait drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~cyclades-return-closing_wait
++++ a/drivers/char/cyclades.c
+@@ -3501,6 +3501,7 @@ get_serial_info(struct cyclades_port *in
+ 	tmp.irq = cinfo->irq;
+ 	tmp.flags = info->flags;
+ 	tmp.close_delay = info->close_delay;
++	tmp.closing_wait = info->closing_wait;
+ 	tmp.baud_base = info->baud;
+ 	tmp.custom_divisor = info->custom_divisor;
+ 	tmp.hub6 = 0;		/*!!! */
 _
 
-Patches currently in -mm which might be from jreiser@BitWagon.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fully-honor-vdso_enabled.patch
+throttle_vm_writeout-dont-loop-on-gfp_nofs-and-gfp_noio-allocations.patch
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-drm.patch
+git-dvb.patch
+pvrusb-warning-fix.patch
+git-hid-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+git-leds-fixup.patch
+git-leds-make-it-compile.patch
+git-md-accel-vs-md.patch
+nommu-present-backing-device-capabilities-for-mtd-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-block-another-md-fix.patch
+git-unionfs.patch
+usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+after-before-x86_64-mm-mmconfig-share.patch
+log-reason-why-tsc-was-marked-unstable-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+kvm-add-internal-filesystem-for-generating-inodes-tweak.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
+utrace-prep.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
+cyclades-return-closing_wait.patch
