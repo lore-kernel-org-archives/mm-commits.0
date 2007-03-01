@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cap-shmmax-at-int_max-in-compat-shminfo.patch added to -mm tree
-Date: Wed, 28 Feb 2007 22:42:11 -0800
-Message-ID: <200703010642.l216gBCN006672@shell0.pdx.osdl.net>
+Subject: + usb-serial-secret-patch.patch added to -mm tree
+Date: Wed, 28 Feb 2007 22:47:57 -0800
+Message-ID: <200703010647.l216lvo2006753@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57714 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57966 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932696AbXCAGmZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 01:42:25 -0500
+	id S932700AbXCAGsE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 01:48:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: streeter@redhat.com
+Cc: oliver@neukum.org, greg@kroah.com, web.alexander@web.de
 
 
 The patch titled
-     Cap shmmax at INT_MAX in compat shminfo
+     usb-serial: secret patch
 has been added to the -mm tree.  Its filename is
-     cap-shmmax-at-int_max-in-compat-shminfo.patch
+     usb-serial-secret-patch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Cap shmmax at INT_MAX in compat shminfo
-From: Guy Streeter <streeter@redhat.com>
+Subject: usb-serial: secret patch
+From: Oliver Neukum <oliver@neukum.org>
 
-The value of shmmax may be larger than will fit in the struct used by
-the 32bit compat version of sys_shmctl. This change mirrors what the
-normal sys_shmctl does when called with the old IPC_INFO command.
+> http://bugzilla.kernel.org/show_bug.cgi?id=8094
+>
+>            Summary: ipaq oops on connecting  "Vodafone VPA-II"
+>     Kernel Version: 2.6.21-rc1-git1
+>             Status: NEW
+>           Severity: normal
+>              Owner: greg@kroah.com
+>          Submitter: web.alexander@web.de
 
-Signed-off-by: Guy Streeter <streeter@redhat.com>
+Most likely a known bug I caused. This should help.
+
+
+
+akpm:
+
+	- it is unknown what this patch does
+	- it _seems_ that it prevents the oops, but that's not clear
+	- The post-2.6.18 regression appears to still be unfixed.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Alexander Weber <web.alexander@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/compat.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/usb/serial/usb-serial.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/compat.c~cap-shmmax-at-int_max-in-compat-shminfo ipc/compat.c
---- a/ipc/compat.c~cap-shmmax-at-int_max-in-compat-shminfo
-+++ a/ipc/compat.c
-@@ -542,6 +542,8 @@ static inline int put_compat_shminfo64(s
+diff -puN drivers/usb/serial/usb-serial.c~usb-serial-secret-patch drivers/usb/serial/usb-serial.c
+--- a/drivers/usb/serial/usb-serial.c~usb-serial-secret-patch
++++ a/drivers/usb/serial/usb-serial.c
+@@ -826,7 +826,6 @@ int usb_serial_probe(struct usb_interfac
+ 			num_ports = type->num_ports;
+ 	}
  
- 	if (!access_ok(VERIFY_WRITE, up64, sizeof(*up64)))
- 		return -EFAULT;
-+	if (smi->shmmax > INT_MAX)
-+		smi->shmmax = INT_MAX;
- 	err  = __put_user(smi->shmmax, &up64->shmmax);
- 	err |= __put_user(smi->shmmin, &up64->shmmin);
- 	err |= __put_user(smi->shmmni, &up64->shmmni);
-@@ -557,6 +559,8 @@ static inline int put_compat_shminfo(str
+-	serial->minor = minor;
+ 	serial->num_ports = num_ports;
+ 	serial->num_bulk_in = num_bulk_in;
+ 	serial->num_bulk_out = num_bulk_out;
+@@ -980,6 +979,7 @@ int usb_serial_probe(struct usb_interfac
+ 		dev_err(&interface->dev, "No more free serial devices\n");
+ 		goto probe_error;
+ 	}
++	serial->minor = minor;
  
- 	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)))
- 		return -EFAULT;
-+	if (smi->shmmax > INT_MAX)
-+		smi->shmmax = INT_MAX;
- 	err  = __put_user(smi->shmmax, &up->shmmax);
- 	err |= __put_user(smi->shmmin, &up->shmmin);
- 	err |= __put_user(smi->shmmni, &up->shmmni);
+ 	/* register all of the individual ports with the driver core */
+ 	for (i = 0; i < num_ports; ++i) {
 _
 
-Patches currently in -mm which might be from streeter@redhat.com are
+Patches currently in -mm which might be from oliver@neukum.org are
 
-cap-shmmax-at-int_max-in-compat-shminfo.patch
+usb-serial-secret-patch.patch
