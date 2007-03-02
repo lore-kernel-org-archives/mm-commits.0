@@ -1,122 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-resolve-lower-page-unlocking-problem.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:06:20 -0800
-Message-ID: <200703020506.l2256KPb000787@shell0.pdx.osdl.net>
+Subject: - patch-maintainers-update-email-address.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:06:32 -0800
+Message-ID: <200703020506.l2256W53000805@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42268 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42293 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422681AbXCBFGZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:06:25 -0500
+	id S1422723AbXCBFGe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:06:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: resolve lower page unlocking problem
+     MAINTAINERS: Update email address
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-resolve-lower-page-unlocking-problem.patch
+     patch-maintainers-update-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: resolve lower page unlocking problem
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: MAINTAINERS: Update email address
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-eCryptfs lower file handling code has several issues:
-  - Retval from prepare_write()/commit_write() wasn't checked to equality
-    to AOP_TRUNCATED_PAGE.
-  - In some places page wasn't unmapped and unlocked after error.
+adaplas@pol.net is still alive, but is choking on the traffic.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/mmap.c |   28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-resolve-lower-page-unlocking-problem fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-resolve-lower-page-unlocking-problem
-+++ a/fs/ecryptfs/mmap.c
-@@ -422,9 +422,11 @@ out:
- 	return rc;
- }
+diff -puN MAINTAINERS~patch-maintainers-update-email-address MAINTAINERS
+--- a/MAINTAINERS~patch-maintainers-update-email-address
++++ a/MAINTAINERS
+@@ -1345,7 +1345,7 @@ S:	Supported
  
--static void ecryptfs_release_lower_page(struct page *lower_page)
-+static
-+void ecryptfs_release_lower_page(struct page *lower_page, int page_locked)
- {
--	unlock_page(lower_page);
-+	if (page_locked)
-+		unlock_page(lower_page);
- 	page_cache_release(lower_page);
- }
+ FRAMEBUFFER LAYER
+ P:	Antonino Daplas
+-M:	adaplas@pol.net
++M:	adaplas@gmail.com
+ L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
+ W:	http://linux-fbdev.sourceforge.net/
+ S:	Maintained
+@@ -1756,7 +1756,7 @@ S:	Maintained
  
-@@ -454,6 +456,13 @@ static int ecryptfs_write_inode_size_to_
- 	}
- 	lower_a_ops = lower_inode->i_mapping->a_ops;
- 	rc = lower_a_ops->prepare_write(lower_file, header_page, 0, 8);
-+	if (rc) {
-+		if (rc == AOP_TRUNCATED_PAGE)
-+			ecryptfs_release_lower_page(header_page, 0);
-+		else
-+			ecryptfs_release_lower_page(header_page, 1);
-+		goto out;
-+	}
- 	file_size = (u64)i_size_read(inode);
- 	ecryptfs_printk(KERN_DEBUG, "Writing size: [0x%.16x]\n", file_size);
- 	file_size = cpu_to_be64(file_size);
-@@ -465,7 +474,10 @@ static int ecryptfs_write_inode_size_to_
- 	if (rc < 0)
- 		ecryptfs_printk(KERN_ERR, "Error commiting header page "
- 				"write\n");
--	ecryptfs_release_lower_page(header_page);
-+	if (rc == AOP_TRUNCATED_PAGE)
-+		ecryptfs_release_lower_page(header_page, 0);
-+	else
-+		ecryptfs_release_lower_page(header_page, 1);
- 	lower_inode->i_mtime = lower_inode->i_ctime = CURRENT_TIME;
- 	mark_inode_dirty_sync(inode);
- out:
-@@ -572,7 +584,10 @@ int ecryptfs_get_lower_page(struct page 
- 	}
- out:
- 	if (rc && (*lower_page)) {
--		ecryptfs_release_lower_page(*lower_page);
-+		if (rc == AOP_TRUNCATED_PAGE)
-+			ecryptfs_release_lower_page(*lower_page, 0);
-+		else
-+			ecryptfs_release_lower_page(*lower_page, 1);
- 		(*lower_page) = NULL;
- 	}
- 	return rc;
-@@ -588,16 +603,19 @@ ecryptfs_commit_lower_page(struct page *
- 			   struct file *lower_file, int byte_offset,
- 			   int region_size)
- {
-+	int page_locked = 1;
- 	int rc = 0;
+ INTEL 810/815 FRAMEBUFFER DRIVER
+ P:	Antonino Daplas
+-M:	adaplas@pol.net
++M:	adaplas@gmail.com
+ L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
+ S:	Maintained
  
- 	rc = lower_inode->i_mapping->a_ops->commit_write(
- 		lower_file, lower_page, byte_offset, region_size);
-+	if (rc == AOP_TRUNCATED_PAGE)
-+		page_locked = 0;
- 	if (rc < 0) {
- 		ecryptfs_printk(KERN_ERR,
- 				"Error committing write; rc = [%d]\n", rc);
- 	} else
- 		rc = 0;
--	ecryptfs_release_lower_page(lower_page);
-+	ecryptfs_release_lower_page(lower_page, page_locked);
- 	return rc;
- }
+@@ -2471,7 +2471,7 @@ S:	Maintained
+ 
+ NVIDIA (rivafb and nvidiafb) FRAMEBUFFER DRIVER
+ P:	Antonino Daplas
+-M:	adaplas@pol.net
++M:	adaplas@gmail.com
+ L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
+ S:	Maintained
+ 
+@@ -2855,7 +2855,7 @@ S:	Orphan
+ 
+ S3 SAVAGE FRAMEBUFFER DRIVER
+ P:	Antonino Daplas
+-M:	adaplas@pol.net
++M:	adaplas@gmail.com
+ L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
+ S:	Maintained
  
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-ecryptfs-check-xattr-operation-support-fix.patch
-git-unionfs.patch
-ecryptfs-handles-aop_truncated_page-better.patch
+fix-radeon-blanking-return-value.patch
+atyfb-fix-kconfig-error.patch
+fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
+intelfb-fix-ring-space-calculation.patch
+nvidiafb-bring-back-generic-ddc-reading.patch
+fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
+fbdev-fix-obvious-bug-in-show_pan.patch
+neofb-fill-transp-msb_right-with-the-correct.patch
+atyfb-kill-dead-code.patch
+fbdev-mm-deferred-io-support.patch
+fbdev-hecuba-framebuffer-driver.patch
