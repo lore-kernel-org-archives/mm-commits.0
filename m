@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + utrace-prep-2.patch added to -mm tree
-Date: Thu, 01 Mar 2007 17:11:01 -0800
-Message-ID: <200703020111.l221B1Tr028349@shell0.pdx.osdl.net>
+Subject: + revert-utrace-prep-2.patch added to -mm tree
+Date: Thu, 01 Mar 2007 17:12:01 -0800
+Message-ID: <200703020112.l221C1bQ028370@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33467 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33489 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964792AbXCBBLD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 20:11:03 -0500
+	id S964795AbXCBBMC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 20:12:02 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l221B1Ab030307
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l221C1Ab030327
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 1 Mar 2007 17:11:02 -0800
+	for <mm-commits@vger.kernel.org>; Thu, 1 Mar 2007 17:12:01 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     utrace-prep-2
+     revert-utrace-prep-2
 has been added to the -mm tree.  Its filename is
-     utrace-prep-2.patch
+     revert-utrace-prep-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,28 +29,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: utrace-prep-2
+Subject: revert-utrace-prep-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 --
- 1 files changed, 2 deletions(-)
+ kernel/fork.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN kernel/fork.c~utrace-prep-2 kernel/fork.c
---- a/kernel/fork.c~utrace-prep-2
+diff -puN kernel/fork.c~revert-utrace-prep-2 kernel/fork.c
+--- a/kernel/fork.c~revert-utrace-prep-2
 +++ a/kernel/fork.c
-@@ -1419,9 +1419,7 @@ long do_fork(unsigned long clone_flags,
- 		}
+@@ -1393,7 +1393,9 @@ long do_fork(unsigned long clone_flags,
+ 		tracehook_report_clone_complete(clone_flags, nr, p);
  
  		if (clone_flags & CLONE_VFORK) {
--			freezer_do_not_count();
++			freezer_do_not_count();
  			wait_for_completion(&vfork);
--			freezer_count();
- 			if (unlikely (current->ptrace & PT_TRACE_VFORK_DONE)) {
- 				current->ptrace_message = nr;
- 				ptrace_notify ((PTRACE_EVENT_VFORK_DONE << 8) | SIGTRAP);
++			freezer_count();
+ 			tracehook_report_vfork_done(p, nr);
+ 		}
+ 	} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,3 +98,4 @@ utrace-prep-2.patch
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
+revert-utrace-prep-2.patch
