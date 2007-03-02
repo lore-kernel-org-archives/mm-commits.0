@@ -1,90 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - patch-maintainers-update-email-address.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:06:32 -0800
-Message-ID: <200703020506.l2256W53000805@shell0.pdx.osdl.net>
+Subject: - add-mm-testing-in-submitchecklist.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:06:30 -0800
+Message-ID: <200703020506.l2256UqV000802@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42293 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42292 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422723AbXCBFGe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1422716AbXCBFGe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 2 Mar 2007 00:06:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: Update email address
+     add -mm testing in SubmitChecklist
 has been removed from the -mm tree.  Its filename was
-     patch-maintainers-update-email-address.patch
+     add-mm-testing-in-submitchecklist.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Update email address
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: add -mm testing in SubmitChecklist
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-adaplas@pol.net is still alive, but is choking on the traffic.
+Add -mm testing to SubmitChecklist.
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/SubmitChecklist |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN MAINTAINERS~patch-maintainers-update-email-address MAINTAINERS
---- a/MAINTAINERS~patch-maintainers-update-email-address
-+++ a/MAINTAINERS
-@@ -1345,7 +1345,7 @@ S:	Supported
- 
- FRAMEBUFFER LAYER
- P:	Antonino Daplas
--M:	adaplas@pol.net
-+M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
- W:	http://linux-fbdev.sourceforge.net/
- S:	Maintained
-@@ -1756,7 +1756,7 @@ S:	Maintained
- 
- INTEL 810/815 FRAMEBUFFER DRIVER
- P:	Antonino Daplas
--M:	adaplas@pol.net
-+M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
- S:	Maintained
- 
-@@ -2471,7 +2471,7 @@ S:	Maintained
- 
- NVIDIA (rivafb and nvidiafb) FRAMEBUFFER DRIVER
- P:	Antonino Daplas
--M:	adaplas@pol.net
-+M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
- S:	Maintained
- 
-@@ -2855,7 +2855,7 @@ S:	Orphan
- 
- S3 SAVAGE FRAMEBUFFER DRIVER
- P:	Antonino Daplas
--M:	adaplas@pol.net
-+M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
- S:	Maintained
- 
+diff -puN Documentation/SubmitChecklist~add-mm-testing-in-submitchecklist Documentation/SubmitChecklist
+--- a/Documentation/SubmitChecklist~add-mm-testing-in-submitchecklist
++++ a/Documentation/SubmitChecklist
+@@ -76,3 +76,7 @@ kernel patches.
+ 22: Newly-added code has been compiled with `gcc -W'.  This will generate
+     lots of noise, but is good for finding bugs like "warning: comparison
+     between signed and unsigned".
++
++23: Tested after it has been merged into the -mm patchset to make sure
++    that it still works with all of the other queued patches and various
++    changes in the VM, VFS, and other subsystems.
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-fix-radeon-blanking-return-value.patch
-atyfb-fix-kconfig-error.patch
-fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
-intelfb-fix-ring-space-calculation.patch
-nvidiafb-bring-back-generic-ddc-reading.patch
-fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
-fbdev-fix-obvious-bug-in-show_pan.patch
-neofb-fill-transp-msb_right-with-the-correct.patch
-atyfb-kill-dead-code.patch
-fbdev-mm-deferred-io-support.patch
-fbdev-hecuba-framebuffer-driver.patch
+git-drm.patch
+phy-layer-add-kernel-doc-docbook.patch
+fusion-kernel-doc-warning-fixes.patch
+scripts-kernel-doc-whitespace-cleanup.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
+reiser4-use-null-for-pointers.patch
+profile_likely-export-do_check_likely.patch
