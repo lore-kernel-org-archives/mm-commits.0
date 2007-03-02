@@ -1,35 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 20:57:06 -0800
-Message-ID: <200703020457.l224v6Qs000499@shell0.pdx.osdl.net>
+Subject: - xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 20:57:03 -0800
+Message-ID: <200703020457.l224v3VQ000496@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41932 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41919 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422908AbXCBE5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 23:57:14 -0500
+	id S1422907AbXCBE5L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 23:57:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen-paravirt_ops: use patch site IDs computed from offset in paravirt_ops structure
+     xen-paravirt_ops: rename struct paravirt_patch to paravirt_patch_site for clarity
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
+     xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
 
 This patch was dropped because Zach's patches destroyed it all
 
 ------------------------------------------------------
-Subject: xen-paravirt_ops: use patch site IDs computed from offset in paravirt_ops structure
+Subject: xen-paravirt_ops: rename struct paravirt_patch to paravirt_patch_site for clarity
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Use patch type identifiers derived from the offset of the operation in the
-paravirt_ops structure.  This avoids having to maintain a separate enum for
-patch site types.
-
-This patch also drops the fused save_fl+cli operation, which doesn't really
-add much and makes things more complex.
+Rename struct paravirt_patch to paravirt_patch_site, so that it clearly refers
+to a callsite, and not the patch which may be applied to that callsite.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
@@ -37,301 +33,95 @@ Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/asm-offsets.c |    5 +
- arch/i386/kernel/paravirt.c    |   14 +---
- arch/i386/kernel/vmi.c         |   39 +----------
- include/asm-i386/paravirt.h    |  106 +++++++++++++++----------------
- 4 files changed, 70 insertions(+), 94 deletions(-)
+ arch/i386/kernel/alternative.c |    6 ++----
+ arch/i386/kernel/vmi.c         |    4 ----
+ include/asm-i386/alternative.h |    6 +++---
+ include/asm-i386/paravirt.h    |    5 ++++-
+ 4 files changed, 9 insertions(+), 12 deletions(-)
 
-diff -puN arch/i386/kernel/asm-offsets.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure arch/i386/kernel/asm-offsets.c
---- a/arch/i386/kernel/asm-offsets.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
-+++ a/arch/i386/kernel/asm-offsets.c
-@@ -117,6 +117,11 @@ void foo(void)
- 	OFFSET(PARAVIRT_irq_enable_sysexit, paravirt_ops, irq_enable_sysexit);
- 	OFFSET(PARAVIRT_iret, paravirt_ops, iret);
- 	OFFSET(PARAVIRT_read_cr0, paravirt_ops, read_cr0);
-+
-+	DEFINE(PARAVIRT_IRQ_DISABLE, PARAVIRT_PATCH(irq_disable));
-+	DEFINE(PARAVIRT_IRQ_ENABLE, PARAVIRT_PATCH(irq_enable));
-+	DEFINE(PARAVIRT_STI_SYSEXIT, PARAVIRT_PATCH(irq_enable_sysexit));
-+	DEFINE(PARAVIRT_INTERRUPT_RETURN, PARAVIRT_PATCH(iret));
+diff -puN arch/i386/kernel/alternative.c~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity
++++ a/arch/i386/kernel/alternative.c
+@@ -350,9 +350,9 @@ void alternatives_smp_switch(int smp)
  #endif
  
- #ifdef CONFIG_LGUEST_GUEST
-diff -puN arch/i386/kernel/paravirt.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
-+++ a/arch/i386/kernel/paravirt.c
-@@ -58,7 +58,6 @@ DEF_NATIVE(cli, "cli");
- DEF_NATIVE(sti, "sti");
- DEF_NATIVE(popf, "push %eax; popf");
- DEF_NATIVE(pushf, "pushf; pop %eax");
--DEF_NATIVE(pushf_cli, "pushf; pop %eax; cli");
- DEF_NATIVE(iret, "iret");
- DEF_NATIVE(sti_sysexit, "sti; sysexit");
- 
-@@ -66,13 +65,12 @@ static const struct native_insns
+ #ifdef CONFIG_PARAVIRT
+-void apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end)
++void apply_paravirt(struct paravirt_patch_site *start, struct paravirt_patch_site *end)
  {
- 	const char *start, *end;
- } native_insns[] = {
--	[PARAVIRT_IRQ_DISABLE] = { start_cli, end_cli },
--	[PARAVIRT_IRQ_ENABLE] = { start_sti, end_sti },
--	[PARAVIRT_RESTORE_FLAGS] = { start_popf, end_popf },
--	[PARAVIRT_SAVE_FLAGS] = { start_pushf, end_pushf },
--	[PARAVIRT_SAVE_FLAGS_IRQ_DISABLE] = { start_pushf_cli, end_pushf_cli },
--	[PARAVIRT_INTERRUPT_RETURN] = { start_iret, end_iret },
--	[PARAVIRT_STI_SYSEXIT] = { start_sti_sysexit, end_sti_sysexit },
-+	[PARAVIRT_PATCH(irq_disable)] = { start_cli, end_cli },
-+	[PARAVIRT_PATCH(irq_enable)] = { start_sti, end_sti },
-+	[PARAVIRT_PATCH(restore_fl)] = { start_popf, end_popf },
-+	[PARAVIRT_PATCH(save_fl)] = { start_pushf, end_pushf },
-+	[PARAVIRT_PATCH(iret)] = { start_iret, end_iret },
-+	[PARAVIRT_PATCH(irq_enable_sysexit)] = { start_sti_sysexit, end_sti_sysexit },
+-	struct paravirt_patch *p;
++	struct paravirt_patch_site *p;
+ 
+ 	for (p = start; p < end; p++) {
+ 		unsigned int used;
+@@ -379,8 +379,6 @@ void apply_paravirt(struct paravirt_patc
+ 	/* Sync to be conservative, in case we patched following instructions */
+ 	sync_core();
+ }
+-extern struct paravirt_patch __start_parainstructions[],
+-	__stop_parainstructions[];
+ #endif	/* CONFIG_PARAVIRT */
+ 
+ void __init alternative_instructions(void)
+diff -puN arch/i386/kernel/vmi.c~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity
++++ a/arch/i386/kernel/vmi.c
+@@ -71,10 +71,6 @@ static struct {
+ 	void (*halt)(void);
+ } vmi_ops;
+ 
+-/* XXX move this to alternative.h */
+-extern struct paravirt_patch __start_parainstructions[],
+-	__stop_parainstructions[];
+-
+ /*
+  * VMI patching routines.
+  */
+diff -puN include/asm-i386/alternative.h~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity include/asm-i386/alternative.h
+--- a/include/asm-i386/alternative.h~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity
++++ a/include/asm-i386/alternative.h
+@@ -118,12 +118,12 @@ static inline void alternatives_smp_swit
+ #define LOCK_PREFIX ""
+ #endif
+ 
+-struct paravirt_patch;
++struct paravirt_patch_site;
+ #ifdef CONFIG_PARAVIRT
+-void apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end);
++void apply_paravirt(struct paravirt_patch_site *start, struct paravirt_patch_site *end);
+ #else
+ static inline void
+-apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end)
++apply_paravirt(struct paravirt_patch_site *start, struct paravirt_patch_site *end)
+ {}
+ #define __start_parainstructions NULL
+ #define __stop_parainstructions NULL
+diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity
++++ a/include/asm-i386/paravirt.h
+@@ -493,13 +493,16 @@ void _paravirt_nop(void);
+ #define paravirt_nop	((void *)_paravirt_nop)
+ 
+ /* These all sit in the .parainstructions section to tell us what to patch. */
+-struct paravirt_patch {
++struct paravirt_patch_site {
+ 	u8 *instr; 		/* original instructions */
+ 	u8 instrtype;		/* type of this instruction */
+ 	u8 len;			/* length of original instruction */
+ 	u16 clobbers;		/* what registers you may clobber */
  };
  
- static unsigned native_patch(u8 type, u16 clobbers, void *insns, unsigned len)
-diff -puN arch/i386/kernel/vmi.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
-+++ a/arch/i386/kernel/vmi.c
-@@ -79,11 +79,6 @@ static struct {
- #define MNEM_JMP  0xe9
- #define MNEM_RET  0xc3
- 
--static char irq_save_disable_callout[] = {
--	MNEM_CALL, 0, 0, 0, 0,
--	MNEM_CALL, 0, 0, 0, 0,
--	MNEM_RET
--};
- #define IRQ_PATCH_INT_MASK 0
- #define IRQ_PATCH_DISABLE  5
- 
-@@ -131,33 +126,17 @@ static unsigned patch_internal(int call,
- static unsigned vmi_patch(u8 type, u16 clobbers, void *insns, unsigned len)
- {
- 	switch (type) {
--		case PARAVIRT_IRQ_DISABLE:
-+		case PARAVIRT_PATCH(irq_disable):
- 			return patch_internal(VMI_CALL_DisableInterrupts, len, insns);
--		case PARAVIRT_IRQ_ENABLE:
-+		case PARAVIRT_PATCH(irq_enable):
- 			return patch_internal(VMI_CALL_EnableInterrupts, len, insns);
--		case PARAVIRT_RESTORE_FLAGS:
-+		case PARAVIRT_PATCH(restore_fl):
- 			return patch_internal(VMI_CALL_SetInterruptMask, len, insns);
--		case PARAVIRT_SAVE_FLAGS:
-+		case PARAVIRT_PATCH(save_fl):
- 			return patch_internal(VMI_CALL_GetInterruptMask, len, insns);
--        	case PARAVIRT_SAVE_FLAGS_IRQ_DISABLE:
--			if (len >= 10) {
--				patch_internal(VMI_CALL_GetInterruptMask, len, insns);
--				patch_internal(VMI_CALL_DisableInterrupts, len-5, insns+5);
--				return 10;
--			} else {
--				/*
--				 * You bastards didn't leave enough room to
--				 * patch save_flags_irq_disable inline.  Patch
--				 * to a helper
--				 */
--				BUG_ON(len < 5);
--				*(char *)insns = MNEM_CALL;
--				patch_offset(insns, irq_save_disable_callout);
--				return 5;
--			}
--		case PARAVIRT_INTERRUPT_RETURN:
-+		case PARAVIRT_PATCH(iret):
- 			return patch_internal(VMI_CALL_IRET, len, insns);
--		case PARAVIRT_STI_SYSEXIT:
-+		case PARAVIRT_PATCH(irq_enable_sysexit):
- 			return patch_internal(VMI_CALL_SYSEXIT, len, insns);
- 		default:
- 			break;
-@@ -768,12 +747,6 @@ static inline int __init activate_vmi(vo
- 	para_fill(irq_disable, DisableInterrupts);
- 	para_fill(irq_enable, EnableInterrupts);
- 
--	/* irq_save_disable !!! sheer pain */
--	patch_offset(&irq_save_disable_callout[IRQ_PATCH_INT_MASK],
--		     (char *)paravirt_ops.save_fl);
--	patch_offset(&irq_save_disable_callout[IRQ_PATCH_DISABLE],
--		     (char *)paravirt_ops.irq_disable);
--
- 	para_fill(wbinvd, WBINVD);
- 	para_fill(read_tsc, RDTSC);
- 
-diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
-+++ a/include/asm-i386/paravirt.h
-@@ -4,19 +4,8 @@
-  * para-virtualization: those hooks are defined here. */
- 
- #ifdef CONFIG_PARAVIRT
--#include <linux/stringify.h>
- #include <asm/page.h>
- 
--/* These are the most performance critical ops, so we want to be able to patch
-- * callers */
--#define PARAVIRT_IRQ_DISABLE 0
--#define PARAVIRT_IRQ_ENABLE 1
--#define PARAVIRT_RESTORE_FLAGS 2
--#define PARAVIRT_SAVE_FLAGS 3
--#define PARAVIRT_SAVE_FLAGS_IRQ_DISABLE 4
--#define PARAVIRT_INTERRUPT_RETURN 5
--#define PARAVIRT_STI_SYSEXIT 6
--
- /* Bitmask of what can be clobbered: usually at least eax. */
- #define CLBR_NONE 0x0
- #define CLBR_EAX 0x1
-@@ -27,6 +16,23 @@
- #ifndef __ASSEMBLY__
- #include <linux/types.h>
- 
-+#define paravirt_type(type)		[paravirt_typenum] "i" (type)
-+#define paravirt_clobber(clobber)	[paravirt_clobber] "i" (clobber)
++extern struct paravirt_patch_site __start_parainstructions[],
++	__stop_parainstructions[];
 +
-+#define PARAVIRT_PATCH(x)		(offsetof(struct paravirt_ops, x) / sizeof(void *))
-+
-+#define _paravirt_alt(insn_string, type, clobber)	\
-+	"771:\n\t" insn_string "\n" "772:\n"		\
-+	".pushsection .parainstructions,\"a\"\n"	\
-+	"  .long 771b\n"				\
-+	"  .byte " type "\n"				\
-+	"  .byte 772b-771b\n"				\
-+	"  .short " clobber "\n"			\
-+	".popsection\n"
-+
-+#define paravirt_alt(insn_string)				\
-+	_paravirt_alt(insn_string, "%c[paravirt_typenum]", "%c[paravirt_clobber]")
-+
- struct thread_struct;
- struct Xgt_desc_struct;
- struct tss_struct;
-@@ -511,24 +517,16 @@ struct paravirt_patch_site {
- extern struct paravirt_patch_site __start_parainstructions[],
- 	__stop_parainstructions[];
- 
--#define paravirt_alt(insn_string, typenum, clobber)	\
--	"771:\n\t" insn_string "\n" "772:\n"		\
--	".pushsection .parainstructions,\"a\"\n"	\
--	"  .long 771b\n"				\
--	"  .byte " __stringify(typenum) "\n"		\
--	"  .byte 772b-771b\n"				\
--	"  .short " __stringify(clobber) "\n"		\
--	".popsection"
--
- static inline unsigned long __raw_local_save_flags(void)
- {
- 	unsigned long f;
- 
- 	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
- 					   "call *%1;"
--					   "popl %%edx; popl %%ecx",
--					  PARAVIRT_SAVE_FLAGS, CLBR_NONE)
--			     : "=a"(f): "m"(paravirt_ops.save_fl)
-+					   "popl %%edx; popl %%ecx")
-+			     : "=a"(f): "m"(paravirt_ops.save_fl),
-+			       paravirt_type(PARAVIRT_PATCH(save_fl)),
-+			       paravirt_clobber(CLBR_NONE)
- 			     : "memory", "cc");
- 	return f;
- }
-@@ -537,9 +535,10 @@ static inline void raw_local_irq_restore
- {
- 	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
- 					   "call *%1;"
--					   "popl %%edx; popl %%ecx",
--					  PARAVIRT_RESTORE_FLAGS, CLBR_EAX)
--			     : "=a"(f) : "m" (paravirt_ops.restore_fl), "0"(f)
-+					   "popl %%edx; popl %%ecx")
-+			     : "=a"(f) : "m" (paravirt_ops.restore_fl), "0"(f),
-+			       paravirt_type(PARAVIRT_PATCH(restore_fl)),
-+			       paravirt_clobber(CLBR_EAX)
- 			     : "memory", "cc");
- }
- 
-@@ -547,9 +546,10 @@ static inline void raw_local_irq_disable
- {
- 	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
- 					   "call *%0;"
--					   "popl %%edx; popl %%ecx",
--					  PARAVIRT_IRQ_DISABLE, CLBR_EAX)
--			     : : "m" (paravirt_ops.irq_disable)
-+					   "popl %%edx; popl %%ecx")
-+			     : : "m" (paravirt_ops.irq_disable),
-+			       paravirt_type(PARAVIRT_PATCH(irq_disable)),
-+			       paravirt_clobber(CLBR_EAX)
- 			     : "memory", "eax", "cc");
- }
- 
-@@ -557,9 +557,10 @@ static inline void raw_local_irq_enable(
- {
- 	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
- 					   "call *%0;"
--					   "popl %%edx; popl %%ecx",
--					  PARAVIRT_IRQ_ENABLE, CLBR_EAX)
--			     : : "m" (paravirt_ops.irq_enable)
-+					   "popl %%edx; popl %%ecx")
-+			     : : "m" (paravirt_ops.irq_enable),
-+			       paravirt_type(PARAVIRT_PATCH(irq_enable)),
-+			       paravirt_clobber(CLBR_EAX)
- 			     : "memory", "eax", "cc");
- }
- 
-@@ -567,32 +568,31 @@ static inline unsigned long __raw_local_
- {
- 	unsigned long f;
- 
--	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
--					   "call *%1; pushl %%eax;"
--					   "call *%2; popl %%eax;"
--					   "popl %%edx; popl %%ecx",
--					  PARAVIRT_SAVE_FLAGS_IRQ_DISABLE,
--					  CLBR_NONE)
--			     : "=a"(f)
--			     : "m" (paravirt_ops.save_fl),
--			       "m" (paravirt_ops.irq_disable)
--			     : "memory", "cc");
-+	f = __raw_local_save_flags();
-+	raw_local_irq_disable();
-+
- 	return f;
- }
- 
--#define CLI_STRING paravirt_alt("pushl %%ecx; pushl %%edx;"		\
--		     "call *paravirt_ops+%c[irq_disable];"		\
--		     "popl %%edx; popl %%ecx",				\
--		     PARAVIRT_IRQ_DISABLE, CLBR_EAX)
--
--#define STI_STRING paravirt_alt("pushl %%ecx; pushl %%edx;"		\
--		     "call *paravirt_ops+%c[irq_enable];"		\
--		     "popl %%edx; popl %%ecx",				\
--		     PARAVIRT_IRQ_ENABLE, CLBR_EAX)
-+#define CLI_STRING _paravirt_alt("pushl %%ecx; pushl %%edx;"		\
-+				 "call *paravirt_ops+%c[irq_disable];"	\
-+				 "popl %%edx; popl %%ecx",		\
-+				 "%c[paravirt_cli_type]", "%c[paravirt_clobber]")
-+
-+#define STI_STRING _paravirt_alt("pushl %%ecx; pushl %%edx;"		\
-+				"call *paravirt_ops+%c[irq_enable];"	\
-+				 "popl %%edx; popl %%ecx",		\
-+				 "%c[paravirt_cli_type]", "%c[paravirt_clobber]")
-+
-+
- #define CLI_STI_CLOBBERS , "%eax"
- #define __CLI_STI_INPUT_ARGS						\
--	[irq_disable] "i" (offsetof(struct paravirt_ops, irq_disable)),	\
--	[irq_enable] "i" (offsetof(struct paravirt_ops, irq_enable))
-+	,								\
-+		[irq_disable] "i" (offsetof(struct paravirt_ops, irq_disable)),\
-+		[irq_enable] "i" (offsetof(struct paravirt_ops, irq_enable)), \
-+		[paravirt_cli_type] "i" (PARAVIRT_PATCH(irq_disable)),	\
-+		[paravirt_sti_type] "i" (PARAVIRT_PATCH(irq_disable)),	\
-+		paravirt_clobber(CLBR_NONE)
- #define CLI_STI_INPUT_ARGS , __CLI_STI_INPUT_ARGS
- 
- #else  /* __ASSEMBLY__ */
+ #define paravirt_alt(insn_string, typenum, clobber)	\
+ 	"771:\n\t" insn_string "\n" "772:\n"		\
+ 	".pushsection .parainstructions,\"a\"\n"	\
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
 
+xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
 xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
 xen-paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
 xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
