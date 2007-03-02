@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-fake-numa-for-cpusets-document.patch added to -mm tree
-Date: Thu, 01 Mar 2007 17:03:43 -0800
-Message-ID: <200703020103.l2213hDa028230@shell0.pdx.osdl.net>
+Subject: + schedule-wext-rtnl-for-removal.patch added to -mm tree
+Date: Thu, 01 Mar 2007 17:00:11 -0800
+Message-ID: <200703020100.l2210Cdo028168@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33159 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33222 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932702AbXCBBDw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 20:03:52 -0500
+	id S932714AbXCBBFV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 20:05:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, ak@suse.de, clameter@engr.sgi.com, pj@sgi.com
+Cc: johannes@sipsolutions.net, jeff@garzik.org, linville@tuxdriver.com
 
 
 The patch titled
-     x86_64: fake numa for cpusets document
+     schedule wext/rtnl for removal
 has been added to the -mm tree.  Its filename is
-     x86_64-fake-numa-for-cpusets-document.patch
+     schedule-wext-rtnl-for-removal.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,108 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: fake numa for cpusets document
-From: David Rientjes <rientjes@google.com>
+Subject: schedule wext/rtnl for removal
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Create a document to explain how to use numa=fake in conjunction with cpusets
-for coarse memory resource management.
+Since wext is being replaced as fast as we can (it'll probably stick around
+for legacy drivers though) and the wext/netlink stuff was never really
+used, this schedules it for removal.
 
-An attempt to get more awareness and testing for this feature.
+The removal schedule is tight but there are no users of the code, the main
+user of the wext user interface are the wireless-tools, they only have an
+alpha version using the netlink interface and even that is incomplete.
 
-Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/x86_64/fake-numa-for-cpusets |   66 +++++++++++++++++++
- 1 files changed, 66 insertions(+)
+ Documentation/feature-removal-schedule.txt |   12 ++++++++++++
+ 1 files changed, 12 insertions(+)
 
-diff -puN /dev/null Documentation/x86_64/fake-numa-for-cpusets
---- /dev/null
-+++ a/Documentation/x86_64/fake-numa-for-cpusets
-@@ -0,0 +1,66 @@
-+Using numa=fake and CPUSets for Resource Management
-+Written by David Rientjes <rientjes@cs.washington.edu>
+diff -puN Documentation/feature-removal-schedule.txt~schedule-wext-rtnl-for-removal Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~schedule-wext-rtnl-for-removal
++++ a/Documentation/feature-removal-schedule.txt
+@@ -287,3 +287,15 @@ Why:	The code says it was obsolete when 
+ Who:	Richard Purdie <rpurdie@rpsys.net>
+ 
+ ---------------------------
 +
-+This document describes how the numa=fake x86_64 command-line option can be used
-+in conjunction with cpusets for coarse memory management.  Using this feature,
-+you can create fake NUMA nodes that represent contiguous chunks of memory and
-+assign them to cpusets and their attached tasks.  This is a way of limiting the
-+amount of system memory that are available to a certain class of tasks.
++What:	Wireless extensions over netlink (CONFIG_NET_WIRELESS_RTNETLINK)
++When:	with the merge of wireless-dev, 2.6.22 or later
++Why:	The option/code is
++	 * not enabled on most kernels
++	 * not required by any userspace tools (except an experimental one,
++	   and even there only for some parts, others use ioctl)
++	 * pointless since wext is no longer evolving and the ioctl
++	   interface needs to be kept
++Who:	Johannes Berg <johannes@sipsolutions.net>
 +
-+For more information on the features of cpusets, see Documentation/cpusets.txt.
-+There are a number of different configurations you can use for your needs.  For
-+more information on the numa=fake command line option and its various ways of
-+configuring fake nodes, see Documentation/x86_64/boot-options.txt.
-+
-+For the purposes of this introduction, we'll assume a very primitive NUMA
-+emulation setup of "numa=fake=4*512,".  This will split our system memory into
-+four equal chunks of 512M each that we can now use to assign to cpusets.  As
-+you become more familiar with using this combination for resource control,
-+you'll determine a better setup to minimize the number of nodes you have to deal
-+with.
-+
-+A machine may be split as follows with "numa=fake=4*512," as reported by dmesg:
-+
-+	Faking node 0 at 0000000000000000-0000000020000000 (512MB)
-+	Faking node 1 at 0000000020000000-0000000040000000 (512MB)
-+	Faking node 2 at 0000000040000000-0000000060000000 (512MB)
-+	Faking node 3 at 0000000060000000-0000000080000000 (512MB)
-+	...
-+	On node 0 totalpages: 130975
-+	On node 1 totalpages: 131072
-+	On node 2 totalpages: 131072
-+	On node 3 totalpages: 131072
-+
-+Now following the instructions for mounting the cpusets filesystem from
-+Documentation/cpusets.txt, you can assign fake nodes (i.e. contiguous memory
-+address spaces) to individual cpusets:
-+
-+	[root@xroads /]# mkdir exampleset
-+	[root@xroads /]# mount -t cpuset none exampleset
-+	[root@xroads /]# mkdir exampleset/ddset
-+	[root@xroads /]# cd exampleset/ddset
-+	[root@xroads /exampleset/ddset]# echo 0-1 > cpus
-+	[root@xroads /exampleset/ddset]# echo 0-1 > mems
-+
-+Now this cpuset, 'ddset', will only allowed access to fake nodes 0 and 1 for
-+memory allocations (1G).
-+
-+You can now assign tasks to these cpusets to limit the memory resources
-+available to them according to the fake nodes assigned as mems:
-+
-+	[root@xroads /exampleset/ddset]# echo $$ > tasks
-+	[root@xroads /exampleset/ddset]# dd if=/dev/zero of=tmp bs=1024 count=1G
-+	[1] 13425
-+
-+Notice the difference between the system memory usage as reported by
-+/proc/meminfo between the restricted cpuset case above and the unrestricted
-+case (i.e. running the same 'dd' command without assigning it to a fake NUMA
-+cpuset):
-+				Unrestricted	Restricted
-+	MemTotal:		3091900 kB	3091900 kB
-+	MemFree:		  42113 kB	1513236 kB
-+
-+This allows for coarse memory management for the tasks you assign to particular
-+cpusets.  Since cpusets can form a hierarchy, you can create some pretty
-+interesting combinations of use-cases for various classes of tasks for your
-+memory management needs.
++---------------------------
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
-x86_64-configurable-fake-numa-node-sizes.patch
-x86_64-split-remaining-fake-nodes-equally.patch
-x86_64-fixed-size-remaining-fake-nodes.patch
-x86_64-map-fake-nodes-to-real-nodes.patch
-x86_64-disable-alien-cache-for-fake-numa.patch
-x86_64-export-physnode-mapping-to-userspace.patch
-x86_64-fake-numa-for-cpusets-document.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-docs.patch
+schedule-wext-rtnl-for-removal.patch
+git-wireless.patch
