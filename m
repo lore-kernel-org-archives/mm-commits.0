@@ -1,78 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + fix-nmi-appears-to-be-stuck.patch added to -mm tree
-Date: Fri, 02 Mar 2007 14:16:16 -0800
-Message-ID: <200703022216.l22MGGRc020648@shell0.pdx.osdl.net>
+Subject: - timer-run-calc_load-halfway-through-each-round_jiffies.patch removed from -mm tree
+Date: Fri, 02 Mar 2007 14:16:56 -0800
+Message-ID: <200703022216.l22MGuPd020657@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43456 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43529 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030603AbXCBWQY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 17:16:24 -0500
+	id S1030608AbXCBWRP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 17:17:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, mingo@elte.hu
+To: simon@fire.lp0.eu, arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "NMI appears to be stuck"
-has been added to the -mm tree.  Its filename is
-     fix-nmi-appears-to-be-stuck.patch
+     timer: run calc_load halfway through each round_jiffies  second
+has been removed from the -mm tree.  Its filename was
+     timer-run-calc_load-halfway-through-each-round_jiffies.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it seems to need more thought
 
 ------------------------------------------------------
-Subject: fix "NMI appears to be stuck"
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: timer: run calc_load halfway through each round_jiffies  second
+From: Simon Arlott <simon@fire.lp0.eu>
 
-  Testing NMI watchdog ... CPU#0: NMI appears to be stuck (54->54)!
-  CPU#1: NMI appears to be stuck (0->0)!
+Whenever jiffies is started at a multiple of 5*HZ or wraps, calc_load is
+run exactly on the second which is when tasks using round_jiffies will be
+scheduled to run.  This has a bad effect on the load average, making it
+tend towards 1.00 if a task happens to run every time the load is being
+calculated.
 
-Keep the PIT/HPET alive when nmi_watchdog = 1 is given on the command
-line.
+This changes calc_load so that it updates load half a second after any
+tasks scheduled using round_jiffies.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Without this change or an appropriate equivalent, my change to cxacru
+causes the load to stay around 1.00 even when mostly idle since it now
+runs every second using round_jiffies:
+> [  332.416288] cxacru_poll_status(..), jiffies=5000 [start]
+> [  332.417312] calc_load(1), count=-1, jiffies=5001 [start]
+> [  332.417322] calc_load(1), count=4999, jiffies=5001 [finish]
+> [  332.423382] cxacru_poll_status(..), jiffies=5007, next=993 [finish]
+
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/apic.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ kernel/timer.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/apic.c~fix-nmi-appears-to-be-stuck arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~fix-nmi-appears-to-be-stuck
-+++ a/arch/i386/kernel/apic.c
-@@ -493,8 +493,15 @@ void __init setup_boot_APIC_clock(void)
- 		/* No broadcast on UP ! */
- 		if (num_possible_cpus() == 1)
- 			return;
--	} else
--		lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
-+	} else {
-+		/*
-+		 * If nmi_watchdog is set to IO_APIC, we need the
-+		 * PIT/HPET going.  Otherwise register lapic as a dummy
-+		 * device.
-+		 */
-+		if (nmi_watchdog != NMI_IO_APIC)
-+			lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
-+	}
+diff -puN kernel/timer.c~timer-run-calc_load-halfway-through-each-round_jiffies kernel/timer.c
+--- a/kernel/timer.c~timer-run-calc_load-halfway-through-each-round_jiffies
++++ a/kernel/timer.c
+@@ -1226,17 +1226,19 @@ EXPORT_SYMBOL(avenrun);
+ static inline void calc_load(unsigned long ticks)
+ {
+ 	unsigned long active_tasks; /* fixed-point */
+-	static int count = LOAD_FREQ;
++	static int count = LOAD_FREQ + HZ/2;
  
- 	/* Setup the lapic or request the broadcast */
- 	setup_APIC_timer();
+ 	count -= ticks;
+-	if (unlikely(count < 0)) {
++	if (unlikely(count <= 0)) {
+ 		active_tasks = count_active_tasks();
+ 		do {
+ 			CALC_LOAD(avenrun[0], EXP_1, active_tasks);
+ 			CALC_LOAD(avenrun[1], EXP_5, active_tasks);
+ 			CALC_LOAD(avenrun[2], EXP_15, active_tasks);
+ 			count += LOAD_FREQ;
+-		} while (count < 0);
++		} while (count <= 0);
++
++		count = round_jiffies_relative(count + HZ/2) - HZ/2;
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from simon@fire.lp0.eu are
 
-origin.patch
-fix-nmi-appears-to-be-stuck.patch
-git-block.patch
-log-reason-why-tsc-was-marked-unstable.patch
+usbatm-create-sysfs-link-device-from-atm-class-device.patch
+cxacru-export-detailed-device-info-through-sysfs-updated.patch
+maintainers-add-myself-for-cxacru-in-drivers-usb-atm.patch
 timer-run-calc_load-halfway-through-each-round_jiffies.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
