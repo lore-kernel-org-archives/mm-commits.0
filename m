@@ -1,62 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-hid-fix.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 20:43:11 -0800
-Message-ID: <200703020443.l224hBuE032663@shell0.pdx.osdl.net>
+Subject: + git-md-accel-fixup.patch added to -mm tree
+Date: Thu, 01 Mar 2007 20:44:48 -0800
+Message-ID: <200703020444.l224imQp032698@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41590 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41637 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422879AbXCBEnV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 23:43:21 -0500
+	id S1422883AbXCBEot (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 23:44:49 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l224imAb004122
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 1 Mar 2007 20:44:48 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-hid fix
-has been removed from the -mm tree.  Its filename was
-     git-hid-fix.patch
+     git-md-accel-fixup
+has been added to the -mm tree.  Its filename is
+     git-md-accel-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-hid fix
+Subject: git-md-accel-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/usbhid/Makefile |    3 ++-
- drivers/usb/input/Makefile  |    2 --
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/md/raid5.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/hid/usbhid/Makefile~git-hid-fix drivers/hid/usbhid/Makefile
---- a/drivers/hid/usbhid/Makefile~git-hid-fix
-+++ a/drivers/hid/usbhid/Makefile
-@@ -30,4 +30,5 @@ ifeq ($(CONFIG_HID_FF),y)
- endif
+diff -puN drivers/md/raid5.c~git-md-accel-fixup drivers/md/raid5.c
+--- a/drivers/md/raid5.c~git-md-accel-fixup
++++ a/drivers/md/raid5.c
+@@ -1566,14 +1566,9 @@ static void compute_parity6(struct strip
+ /* Compute one missing block */
+ static void compute_block_1(struct stripe_head *sh, int dd_idx, int nozero)
+ {
+-<<<<<<< HEAD/drivers/md/raid5.c
+-	int i, count, disks = sh->disks;
+-	void *ptr[MAX_XOR_BLOCKS], *p;
+-=======
+ 	raid6_conf_t *conf = sh->raid_conf;
+ 	int i, count, disks = conf->raid_disks;
+ 	void *ptr[MAX_XOR_BLOCKS], *dest, *p;
+->>>>>>> /drivers/md/raid5.c
+ 	int pd_idx = sh->pd_idx;
+ 	int qd_idx = raid6_next_disk(pd_idx, disks);
  
- obj-$(CONFIG_USB_HID)	+= usbhid.o
--
-+obj-$(CONFIG_USB_KBD)	+= usbkbd.o
-+obj-$(CONFIG_USB_MOUSE)	+= usbmouse.o
-diff -puN drivers/usb/input/Makefile~git-hid-fix drivers/usb/input/Makefile
---- a/drivers/usb/input/Makefile~git-hid-fix
-+++ a/drivers/usb/input/Makefile
-@@ -10,10 +10,8 @@ wacom-objs	:= wacom_wac.o wacom_sys.o
- obj-$(CONFIG_USB_AIPTEK)	+= aiptek.o
- obj-$(CONFIG_USB_ATI_REMOTE)	+= ati_remote.o
- obj-$(CONFIG_USB_ATI_REMOTE2)	+= ati_remote2.o
--obj-$(CONFIG_USB_KBD)		+= usbkbd.o
- obj-$(CONFIG_USB_KBTAB)		+= kbtab.o
- obj-$(CONFIG_USB_KEYSPAN_REMOTE)	+= keyspan_remote.o
--obj-$(CONFIG_USB_MOUSE)		+= usbmouse.o
- obj-$(CONFIG_USB_MTOUCH)	+= mtouchusb.o
- obj-$(CONFIG_USB_ITMTOUCH)	+= itmtouch.o
- obj-$(CONFIG_USB_EGALAX)	+= touchkitusb.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,12 +69,12 @@ git-drm.patch
 git-dvb.patch
 git-dvb-fixup.patch
 pvrusb-warning-fix.patch
-git-hid-fix.patch
 git-input.patch
 setstream-param-for-psmouse-tweak.patch
 git-kvm.patch
 git-leds-fixup.patch
 git-leds-make-it-compile.patch
+git-md-accel-fixup.patch
 git-md-accel-vs-md.patch
 nommu-present-backing-device-capabilities-for-mtd-fix.patch
 git-ubi.patch
