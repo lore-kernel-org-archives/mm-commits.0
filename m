@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-get_unmapped_area-and-fsync-for-hugetlb-shm-segments.patch added to -mm tree
-Date: Thu, 01 Mar 2007 16:29:00 -0800
-Message-ID: <200703020029.l220T0Y0027455@shell0.pdx.osdl.net>
+Subject: + dz-remove-struct-pt_regs-references.patch added to -mm tree
+Date: Thu, 01 Mar 2007 16:39:05 -0800
+Message-ID: <200703020039.l220d5LS027672@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59465 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59907 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422657AbXCBA3H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 19:29:07 -0500
+	id S1422658AbXCBAmW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 19:42:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: agl@us.ibm.com, ebiederm@xmission.com
+Cc: macro@linux-mips.org
 
 
 The patch titled
-     Fix get_unmapped_area and fsync for hugetlb shm segments
+     dz: remove struct pt_regs references
 has been added to the -mm tree.  Its filename is
-     fix-get_unmapped_area-and-fsync-for-hugetlb-shm-segments.patch
+     dz-remove-struct-pt_regs-references.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,130 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix get_unmapped_area and fsync for hugetlb shm segments
-From: Adam Litke <agl@us.ibm.com>
+Subject: dz: remove struct pt_regs references
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-This patch provides the following hugetlb-related fixes to the recent stacked
-shm files changes:
- - Update is_file_hugepages() so it will reconize hugetlb shm segments.
- - get_unmapped_area must be called with the nested file struct to handle
-   the sfd->file->f_ops->get_unmapped_area == NULL case.
- - The fsync f_op must be wrapped since it is specified in the hugetlbfs
-   f_ops.
+Remove remaining references to saved registers now that
+uart_handle_sysrq_char() does not want them.
 
-This is based on proposed fixes from Eric Biederman that were debugged and
-tested by me.  Without it, attempting to use hugetlb shared memory segments
-on powerpc (and likely ia64) will kill your box.
-
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    8 +++++++-
- include/linux/shm.h     |    5 +++++
- ipc/shm.c               |   32 ++++++++++++++++++++++++++------
- 3 files changed, 38 insertions(+), 7 deletions(-)
+ drivers/serial/dz.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/hugetlb.h~fix-get_unmapped_area-and-fsync-for-hugetlb-shm-segments include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~fix-get_unmapped_area-and-fsync-for-hugetlb-shm-segments
-+++ a/include/linux/hugetlb.h
-@@ -4,6 +4,7 @@
- #ifdef CONFIG_HUGETLB_PAGE
- 
- #include <linux/mempolicy.h>
-+#include <linux/shm.h>
- #include <asm/tlbflush.h>
- 
- struct ctl_table;
-@@ -168,7 +169,12 @@ void hugetlb_put_quota(struct address_sp
- 
- static inline int is_file_hugepages(struct file *file)
+diff -puN drivers/serial/dz.c~dz-remove-struct-pt_regs-references drivers/serial/dz.c
+--- a/drivers/serial/dz.c~dz-remove-struct-pt_regs-references
++++ a/drivers/serial/dz.c
+@@ -170,8 +170,7 @@ static void dz_enable_ms(struct uart_por
+  * This routine deals with inputs from any lines.
+  * ------------------------------------------------------------
+  */
+-static inline void dz_receive_chars(struct dz_port *dport_in,
+-				    struct pt_regs *regs)
++static inline void dz_receive_chars(struct dz_port *dport_in)
  {
--	return file->f_op == &hugetlbfs_file_operations;
-+	if (file->f_op == &hugetlbfs_file_operations)
-+		return 1;
-+	if (is_file_shm_hugepages(file))
-+		return 1;
-+
-+	return 0;
- }
+ 	struct dz_port *dport;
+ 	struct tty_struct *tty = NULL;
+@@ -226,7 +225,7 @@ static inline void dz_receive_chars(stru
+ 			break;
+ 		}
  
- static inline void set_file_hugepages(struct file *file)
-diff -puN include/linux/shm.h~fix-get_unmapped_area-and-fsync-for-hugetlb-shm-segments include/linux/shm.h
---- a/include/linux/shm.h~fix-get_unmapped_area-and-fsync-for-hugetlb-shm-segments
-+++ a/include/linux/shm.h
-@@ -96,12 +96,17 @@ struct shmid_kernel /* private to the ke
+-		if (uart_handle_sysrq_char(&dport->port, ch, regs))
++		if (uart_handle_sysrq_char(&dport->port, ch))
+ 			continue;
  
- #ifdef CONFIG_SYSVIPC
- long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr);
-+extern int is_file_shm_hugepages(struct file *file);
- #else
- static inline long do_shmat(int shmid, char __user *shmaddr,
- 				int shmflg, unsigned long *addr)
- {
- 	return -ENOSYS;
- }
-+static inline int is_file_shm_hugepages(struct file *file)
-+{
-+	return 0;
-+}
- #endif
+ 		if ((status & dport->port.ignore_status_mask) == 0) {
+@@ -332,7 +331,7 @@ static irqreturn_t dz_interrupt(int irq,
+ 	status = dz_in(dport, DZ_CSR);
  
- #endif /* __KERNEL__ */
-diff -puN ipc/shm.c~fix-get_unmapped_area-and-fsync-for-hugetlb-shm-segments ipc/shm.c
---- a/ipc/shm.c~fix-get_unmapped_area-and-fsync-for-hugetlb-shm-segments
-+++ a/ipc/shm.c
-@@ -285,21 +285,41 @@ static int shm_release(struct inode *ino
- 	return 0;
- }
+ 	if ((status & (DZ_RDONE | DZ_RIE)) == (DZ_RDONE | DZ_RIE))
+-		dz_receive_chars(dport, regs);
++		dz_receive_chars(dport);
  
--#ifndef CONFIG_MMU
-+static int shm_fsync(struct file *file, struct dentry *dentry, int datasync)
-+{
-+	int (*fsync) (struct file *, struct dentry *, int datasync);
-+	struct shm_file_data *sfd = shm_file_data(file);
-+	int ret = -EINVAL;
-+
-+	fsync = sfd->file->f_op->fsync;
-+	if (fsync)
-+		ret = fsync(sfd->file, sfd->file->f_path.dentry, datasync);
-+	return ret;
-+}
-+
- static unsigned long shm_get_unmapped_area(struct file *file,
- 	unsigned long addr, unsigned long len, unsigned long pgoff,
- 	unsigned long flags)
- {
- 	struct shm_file_data *sfd = shm_file_data(file);
--	return sfd->file->f_op->get_unmapped_area(sfd->file, addr, len, pgoff,
--							flags);
-+	return get_unmapped_area(sfd->file, addr, len, pgoff, flags);
-+}
-+
-+int is_file_shm_hugepages(struct file *file)
-+{
-+	int ret = 0;
-+
-+	if (file->f_op == &shm_file_operations) {
-+		struct shm_file_data *sfd;
-+		sfd = shm_file_data(file);
-+		ret = is_file_hugepages(sfd->file);
-+	}
-+	return ret;
- }
--#else
--#define shm_get_unmapped_area NULL
--#endif
- 
- static const struct file_operations shm_file_operations = {
- 	.mmap		= shm_mmap,
-+	.fsync		= shm_fsync,
- 	.release	= shm_release,
- 	.get_unmapped_area	= shm_get_unmapped_area,
- };
+ 	if ((status & (DZ_TRDY | DZ_TIE)) == (DZ_TRDY | DZ_TIE))
+ 		dz_transmit_chars(dport);
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-fix-get_unmapped_area-and-fsync-for-hugetlb-shm-segments.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+tgafb-turbochannel-support.patch
+dz-remove-struct-pt_regs-references.patch
