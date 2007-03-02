@@ -1,132 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: - ps3-introduce-config_ps3_advanced.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:07:11 -0800
-Message-ID: <200703020507.l2257BKe000859@shell0.pdx.osdl.net>
+Subject: - adapt-page_lock_anon_vma-to-preempt_rcu.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:07:20 -0800
+Message-ID: <200703020507.l2257KO3000868@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42411 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42404 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422772AbXCBFHn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:07:43 -0500
+	id S1422767AbXCBFHj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:07:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, geoffrey.levand@am.sony.com, paulus@samba.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, clameter@engr.sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3: introduce CONFIG_PS3_ADVANCED
+     adapt page_lock_anon_vma() to PREEMPT_RCU
 has been removed from the -mm tree.  Its filename was
-     ps3-introduce-config_ps3_advanced.patch
+     adapt-page_lock_anon_vma-to-preempt_rcu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ps3: introduce CONFIG_PS3_ADVANCED
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: adapt page_lock_anon_vma() to PREEMPT_RCU
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-ps3: Introduce CONFIG_PS3_ADVANCED, as suggested by Roman Zippel, and use
-it to control questions about PS3 subsystems that may not be obvious for
-the casual user.
+page_lock_anon_vma() uses spin_lock() to block RCU.  This doesn't work with
+PREEMPT_RCU, we have to do rcu_read_lock() explicitely.  Otherwise, it is
+theoretically possible that slab returns anon_vma's memory to the system
+before we do spin_unlock(&anon_vma->lock).
 
-This gets rid of the following warning on non-powerpc platforms: |
-drivers/video/Kconfig:1604:warning: 'select' used by config symbol 'FB_PS3'
-refer to undefined symbol 'PS3_PS3AV'
-
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Acked-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Acked-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/ps3/Kconfig |   28 ++++++++++++++++++++-------
- drivers/video/Kconfig              |    3 --
- 2 files changed, 22 insertions(+), 9 deletions(-)
+ mm/rmap.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/platforms/ps3/Kconfig~ps3-introduce-config_ps3_advanced arch/powerpc/platforms/ps3/Kconfig
---- a/arch/powerpc/platforms/ps3/Kconfig~ps3-introduce-config_ps3_advanced
-+++ a/arch/powerpc/platforms/ps3/Kconfig
-@@ -1,9 +1,24 @@
- menu "PS3 Platform Options"
- 	depends on PPC_PS3
+diff -puN mm/rmap.c~adapt-page_lock_anon_vma-to-preempt_rcu mm/rmap.c
+--- a/mm/rmap.c~adapt-page_lock_anon_vma-to-preempt_rcu
++++ a/mm/rmap.c
+@@ -183,7 +183,7 @@ void __init anon_vma_init(void)
+  */
+ static struct anon_vma *page_lock_anon_vma(struct page *page)
+ {
+-	struct anon_vma *anon_vma = NULL;
++	struct anon_vma *anon_vma;
+ 	unsigned long anon_mapping;
  
-+config PS3_ADVANCED
-+	depends on PPC_PS3
-+	bool "PS3 Advanced configuration options"
-+	help
-+	  This gives you access to some advanced options for the PS3. The
-+	  defaults should be fine for most users, but these options may make
-+	  it possible to better control the kernel configuration if you know
-+	  what you are doing.
+ 	rcu_read_lock();
+@@ -195,9 +195,16 @@ static struct anon_vma *page_lock_anon_v
+ 
+ 	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
+ 	spin_lock(&anon_vma->lock);
++	return anon_vma;
+ out:
+ 	rcu_read_unlock();
+-	return anon_vma;
++	return NULL;
++}
 +
-+	  Note that the answer to this question won't directly affect the
-+	  kernel: saying N will just cause the configurator to skip all
-+	  the questions about these options.
++static void page_unlock_anon_vma(struct anon_vma *anon_vma)
++{
++	spin_unlock(&anon_vma->lock);
++	rcu_read_unlock();
+ }
+ 
+ /*
+@@ -333,7 +340,8 @@ static int page_referenced_anon(struct p
+ 		if (!mapcount)
+ 			break;
+ 	}
+-	spin_unlock(&anon_vma->lock);
 +
-+	  Most users should say N to this question.
++	page_unlock_anon_vma(anon_vma);
+ 	return referenced;
+ }
+ 
+@@ -802,7 +810,8 @@ static int try_to_unmap_anon(struct page
+ 		if (ret == SWAP_FAIL || !page_mapped(page))
+ 			break;
+ 	}
+-	spin_unlock(&anon_vma->lock);
 +
- config PS3_HTAB_SIZE
- 	depends on PPC_PS3
--	int "PS3 Platform pagetable size"
-+	int "PS3 Platform pagetable size" if PS3_ADVANCED
- 	range 18 20
- 	default 20
- 	help
-@@ -42,7 +57,7 @@ config PS3_USE_LPAR_ADDR
++	page_unlock_anon_vma(anon_vma);
+ 	return ret;
+ }
  
- config PS3_VUART
- 	depends on PPC_PS3
--	bool "PS3 Virtual UART support"
-+	bool "PS3 Virtual UART support" if PS3_ADVANCED
- 	default y
- 	help
- 	  Include support for the PS3 Virtual UART.
-@@ -52,9 +67,8 @@ config PS3_VUART
- 	  general, all users will say Y.
- 
- config PS3_PS3AV
--	tristate "PS3 AV settings driver"
--	depends on PPC_PS3
--	select PS3_VUART
-+	tristate "PS3 AV settings driver" if PS3_ADVANCED
-+	depends on PS3_VUART
- 	default y
- 	help
- 	  Include support for the PS3 AV Settings driver.
-@@ -63,8 +77,8 @@ config PS3_PS3AV
- 	  general, all users will say Y or M.
- 
- config PS3_SYS_MANAGER
--	bool "PS3 System Manager driver"
--	select PS3_VUART
-+	bool "PS3 System Manager driver" if PS3_ADVANCED
-+	depends on PS3_VUART
- 	default y
- 	help
- 	  Include support for the PS3 System Manager.
-diff -puN drivers/video/Kconfig~ps3-introduce-config_ps3_advanced drivers/video/Kconfig
---- a/drivers/video/Kconfig~ps3-introduce-config_ps3_advanced
-+++ a/drivers/video/Kconfig
-@@ -1618,8 +1618,7 @@ config FB_IBM_GXT4500
- 
- config FB_PS3
- 	bool "PS3 GPU framebuffer driver"
--	depends on FB && PPC_PS3
--	select PS3_PS3AV
-+	depends on FB && PS3_PS3AV
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-ps3fb-thread-updates.patch
-ps3fb-thread-updates-update.patch
-ps3fb-thread-updates-2.patch
-ps3fb-thread-updates-42.patch
-ps3av-thread-updates.patch
-ps3fb-kill-superfluous-zero-initializations.patch
-ps3fb-atomic-fixes.patch
-ps3av-misc-updates.patch
+drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
+bonding-replace-system-timer-with-work-queue.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-block.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-refrigerator-vs-thaw_process-race.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+allow-access-to-proc-pid-fd-after-setuid-update.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch
+workqueue-introduce-wq_per_cpu-helper.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+workqueue-kill-noautorel-works.patch
+worker_thread-dont-play-with-signals.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+____call_usermodehelper-dont-flush_signals.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+rework-compat_sys_io_submit.patch
+fix-aioh-includes.patch
+fix-access_ok-checks.patch
+make-good_sigevent-non-static.patch
+make-good_sigevent-non-static-fix.patch
+make-__sigqueue_free-and.patch
+aio-completion-signal-notification.patch
+aio-completion-signal-notification-fix.patch
+aio-completion-signal-notification-fixes-and-cleanups.patch
+aio-completion-signal-notification-small-cleanup.patch
+add-listio-syscall-support.patch
