@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_legacy-fix-missing-methods-and-add-cable-types.patch added to -mm tree
-Date: Thu, 01 Mar 2007 18:25:31 -0800
-Message-ID: <200703020225.l222PVhI029983@shell0.pdx.osdl.net>
+Subject: + pata_winbond-set-cable-type.patch added to -mm tree
+Date: Thu, 01 Mar 2007 18:25:41 -0800
+Message-ID: <200703020225.l222PfGU030000@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35793 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35801 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422778AbXCBCZ7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 21:25:59 -0500
+	id S1422784AbXCBC0A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 21:26:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_legacy: Fix missing methods and add cable types
+     pata_winbond: set cable type
 has been added to the -mm tree.  Its filename is
-     pata_legacy-fix-missing-methods-and-add-cable-types.patch
+     pata_winbond-set-cable-type.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,23 +25,20 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_legacy: Fix missing methods and add cable types
+Subject: pata_winbond: set cable type
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Several method sets lacked freeze/resume methods. Fix this and while we
-are at it force the cable to 40wire
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_legacy.c |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+)
+ drivers/ata/pata_winbond.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_legacy.c~pata_legacy-fix-missing-methods-and-add-cable-types drivers/ata/pata_legacy.c
---- a/drivers/ata/pata_legacy.c~pata_legacy-fix-missing-methods-and-add-cable-types
-+++ a/drivers/ata/pata_legacy.c
-@@ -162,6 +162,7 @@ static struct ata_port_operations simple
+diff -puN drivers/ata/pata_winbond.c~pata_winbond-set-cable-type drivers/ata/pata_winbond.c
+--- a/drivers/ata/pata_winbond.c~pata_winbond-set-cable-type
++++ a/drivers/ata/pata_winbond.c
+@@ -152,6 +152,7 @@ static struct ata_port_operations winbon
  	.thaw		= ata_bmdma_thaw,
  	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
@@ -49,78 +46,6 @@ diff -puN drivers/ata/pata_legacy.c~pata_legacy-fix-missing-methods-and-add-cabl
  
  	.qc_prep 	= ata_qc_prep,
  	.qc_issue	= ata_qc_issue_prot,
-@@ -186,7 +187,11 @@ static struct ata_port_operations legacy
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
- 
-+	.freeze		= ata_bmdma_freeze,
-+	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
-+	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-@@ -298,7 +303,11 @@ static struct ata_port_operations pdc202
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
- 
-+	.freeze		= ata_bmdma_freeze,
-+	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
-+	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-@@ -350,7 +359,11 @@ static struct ata_port_operations ht6560
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
- 
-+	.freeze		= ata_bmdma_freeze,
-+	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
-+	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-@@ -413,7 +426,11 @@ static struct ata_port_operations ht6560
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
- 
-+	.freeze		= ata_bmdma_freeze,
-+	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
-+	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-@@ -531,7 +548,11 @@ static struct ata_port_operations opti82
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
- 
-+	.freeze		= ata_bmdma_freeze,
-+	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
-+	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-@@ -661,7 +682,11 @@ static struct ata_port_operations opti82
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
- 
-+	.freeze		= ata_bmdma_freeze,
-+	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
-+	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= opti82c46x_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
