@@ -1,69 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-set-o_largefile-when-opening-lower-file.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:06:37 -0800
-Message-ID: <200703020506.l2256bHc000811@shell0.pdx.osdl.net>
+Subject: + md-fix-for-raid6-reshape.patch added to -mm tree
+Date: Thu, 01 Mar 2007 21:06:39 -0800
+Message-ID: <200703020506.l2256dOv000815@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42307 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42315 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422741AbXCBFGl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:06:41 -0500
+	id S1422742AbXCBFGn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:06:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, dmonakhov@openvz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: neilb@suse.de
 
 
 The patch titled
-     eCryptfs: set O_LARGEFILE when opening lower file
-has been removed from the -mm tree.  Its filename was
-     ecryptfs-set-o_largefile-when-opening-lower-file.patch
+     md: fix for raid6 reshape
+has been added to the -mm tree.  Its filename is
+     md-fix-for-raid6-reshape.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: set O_LARGEFILE when opening lower file
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: md: fix for raid6 reshape
+From: NeilBrown <neilb@suse.de>
 
-O_LARGEFILE should be set here when opening the lower file.
+Recent patch for raid6 reshape had a change missing that showed up in
+subsequent review.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Dmitriy Monakhov <dmonakhov@openvz.org>
+Many places in the raid5 code used "conf->raid_disks-1" to mean "number of
+data disks".  With raid6 that had to be changed to "conf->raid_disk -
+conf->max_degraded" or similar.  One place was missed.
+
+This bug means that if a raid6 reshape were aborted in the middle the
+recorded position would be wrong.  On restart it would either fail (as the
+position wasn't on an appropriate boundary) or would leave a section of the
+array unreshaped, causing data corruption.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/file.c  |    1 +
- fs/ecryptfs/inode.c |    3 ---
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/md/raid5.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/file.c~ecryptfs-set-o_largefile-when-opening-lower-file fs/ecryptfs/file.c
---- a/fs/ecryptfs/file.c~ecryptfs-set-o_largefile-when-opening-lower-file
-+++ a/fs/ecryptfs/file.c
-@@ -205,6 +205,7 @@ int ecryptfs_open_lower_file(struct file
- {
- 	int rc = 0;
- 
-+	flags |= O_LARGEFILE;
- 	dget(lower_dentry);
- 	mntget(lower_mnt);
- 	*lower_file = dentry_open(lower_dentry, lower_mnt, flags);
-diff -puN fs/ecryptfs/inode.c~ecryptfs-set-o_largefile-when-opening-lower-file fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-set-o_largefile-when-opening-lower-file
-+++ a/fs/ecryptfs/inode.c
-@@ -200,9 +200,6 @@ static int ecryptfs_initialize_file(stru
- 	inode = ecryptfs_dentry->d_inode;
- 	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
- 	lower_flags = ((O_CREAT | O_TRUNC) & O_ACCMODE) | O_RDWR;
--#if BITS_PER_LONG != 32
--	lower_flags |= O_LARGEFILE;
--#endif
- 	lower_mnt = ecryptfs_dentry_to_lower_mnt(ecryptfs_dentry);
- 	/* Corresponding fput() at end of this function */
- 	if ((rc = ecryptfs_open_lower_file(&lower_file, lower_dentry, lower_mnt,
+diff -puN drivers/md/raid5.c~md-fix-for-raid6-reshape drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-fix-for-raid6-reshape
++++ a/drivers/md/raid5.c
+@@ -3642,7 +3642,7 @@ static sector_t reshape_request(mddev_t 
+ 		release_stripe(sh);
+ 	}
+ 	spin_lock_irq(&conf->device_lock);
+-	conf->expand_progress = (sector_nr + i)*(conf->raid_disks-1);
++	conf->expand_progress = (sector_nr + i) * new_data_disks);
+ 	spin_unlock_irq(&conf->device_lock);
+ 	/* Ok, those stripe are ready. We can start scheduling
+ 	 * reads on the source stripes.
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-ecryptfs-check-xattr-operation-support-fix.patch
-git-unionfs.patch
-ecryptfs-handles-aop_truncated_page-better.patch
+knfsd-use-recv_msg-to-get-peer-address-for-nfsd-instead-of-code-copying.patch
+knfsd-avoid-checksum-checks-when-collecting-metadata-for-a-udp-packet.patch
+knfsd-remove-config_ipv6-ifdefs-from-sunrpc-server-code.patch
+md-fix-for-raid6-reshape.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
+the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
