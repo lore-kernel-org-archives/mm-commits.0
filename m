@@ -1,65 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - fix-failure-paths-in-modules-init-in-umemc.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:05:53 -0800
-Message-ID: <200703020505.l2255r65000749@shell0.pdx.osdl.net>
+Subject: - md-fix-raid10-recovery-problem.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:05:58 -0800
+Message-ID: <200703020505.l2255wUw000753@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42224 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42209 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422654AbXCBFGH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:06:07 -0500
+	id S964863AbXCBFGC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:06:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, jens.axboe@oracle.com, pg@cs.stanford.edu, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix failure paths in modules init in umem.c
+     md: fix raid10 recovery problem.
 has been removed from the -mm tree.  Its filename was
-     fix-failure-paths-in-modules-init-in-umemc.patch
+     md-fix-raid10-recovery-problem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix failure paths in modules init in umem.c
+Subject: md: fix raid10 recovery problem.
 From: NeilBrown <neilb@suse.de>
 
-If register_blkdev() or alloc-disk fail in mm_init() after
-pci_register_driver() succeeds, then mm_pci_driver is not unregistered
-properly:
+There are two errors that can lead to recovery problems with raid10
+when used in 'far' more (not the default).
 
-Cc: Philip Guo <pg@cs.stanford.edu>
+Due to a '>' instead of '>=' the wrong block is located which would result in
+garbage being written to some random location, quite possible outside the
+range of the device, causing the newly reconstructed device to fail.
+
+The device size calculation had some rounding errors (it didn't round when it
+should) and so recovery would go a few blocks too far which would again cause
+a write to a random block address and probably a device error.
+
+The code for working with device sizes was fairly confused and spread out, so
+this has been tided up a bit.
+
 Signed-off-by: Neil Brown <neilb@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/umem.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/md/raid10.c |   38 ++++++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
-diff -puN drivers/block/umem.c~fix-failure-paths-in-modules-init-in-umemc drivers/block/umem.c
---- a/drivers/block/umem.c~fix-failure-paths-in-modules-init-in-umemc
-+++ a/drivers/block/umem.c
-@@ -1179,8 +1179,10 @@ static int __init mm_init(void)
- 		return -ENOMEM;
+diff -puN drivers/md/raid10.c~md-fix-raid10-recovery-problem drivers/md/raid10.c
+--- a/drivers/md/raid10.c~md-fix-raid10-recovery-problem
++++ a/drivers/md/raid10.c
+@@ -429,7 +429,7 @@ static sector_t raid10_find_virt(conf_t 
+ 		if (dev < 0)
+ 			dev += conf->raid_disks;
+ 	} else {
+-		while (sector > conf->stride) {
++		while (sector >= conf->stride) {
+ 			sector -= conf->stride;
+ 			if (dev < conf->near_copies)
+ 				dev += conf->raid_disks - conf->near_copies;
+@@ -1801,6 +1801,7 @@ static sector_t sync_request(mddev_t *md
+ 						for (k=0; k<conf->copies; k++)
+ 							if (r10_bio->devs[k].devnum == i)
+ 								break;
++						BUG_ON(k == conf->copies);
+ 						bio = r10_bio->devs[1].bio;
+ 						bio->bi_next = biolist;
+ 						biolist = bio;
+@@ -2021,19 +2022,30 @@ static int run(mddev_t *mddev)
+ 	if (!conf->tmppage)
+ 		goto out_free_conf;
  
- 	err = major_nr = register_blkdev(0, "umem");
--	if (err < 0)
-+	if (err < 0) {
-+		pci_unregister_driver(&mm_pci_driver);
- 		return -EIO;
-+	}
++	conf->mddev = mddev;
++	conf->raid_disks = mddev->raid_disks;
+ 	conf->near_copies = nc;
+ 	conf->far_copies = fc;
+ 	conf->copies = nc*fc;
+ 	conf->far_offset = fo;
+ 	conf->chunk_mask = (sector_t)(mddev->chunk_size>>9)-1;
+ 	conf->chunk_shift = ffz(~mddev->chunk_size) - 9;
++	size = mddev->size >> (conf->chunk_shift-1);
++	sector_div(size, fc);
++	size = size * conf->raid_disks;
++	sector_div(size, nc);
++	/* 'size' is now the number of chunks in the array */
++	/* calculate "used chunks per device" in 'stride' */
++	stride = size * conf->copies;
++	sector_div(stride, conf->raid_disks);
++	mddev->size = stride  << (conf->chunk_shift-1);
++
+ 	if (fo)
+-		conf->stride = 1 << conf->chunk_shift;
+-	else {
+-		stride = mddev->size >> (conf->chunk_shift-1);
++		stride = 1;
++	else
+ 		sector_div(stride, fc);
+-		conf->stride = stride << conf->chunk_shift;
+-	}
++	conf->stride = stride << conf->chunk_shift;
++
+ 	conf->r10bio_pool = mempool_create(NR_RAID10_BIOS, r10bio_pool_alloc,
+ 						r10bio_pool_free, conf);
+ 	if (!conf->r10bio_pool) {
+@@ -2063,8 +2075,6 @@ static int run(mddev_t *mddev)
  
- 	for (i = 0; i < num_cards; i++) {
- 		mm_gendisk[i] = alloc_disk(1 << MM_SHIFT);
-@@ -1207,6 +1209,7 @@ static int __init mm_init(void)
- 	return 0;
+ 		disk->head_position = 0;
+ 	}
+-	conf->raid_disks = mddev->raid_disks;
+-	conf->mddev = mddev;
+ 	spin_lock_init(&conf->device_lock);
+ 	INIT_LIST_HEAD(&conf->retry_list);
  
- out:
-+	pci_unregister_driver(&mm_pci_driver);
- 	unregister_blkdev(major_nr, "umem");
- 	while (i--)
- 		put_disk(mm_gendisk[i]);
+@@ -2106,16 +2116,8 @@ static int run(mddev_t *mddev)
+ 	/*
+ 	 * Ok, everything is just fine now
+ 	 */
+-	if (conf->far_offset) {
+-		size = mddev->size >> (conf->chunk_shift-1);
+-		size *= conf->raid_disks;
+-		size <<= conf->chunk_shift;
+-		sector_div(size, conf->far_copies);
+-	} else
+-		size = conf->stride * conf->raid_disks;
+-	sector_div(size, conf->near_copies);
+-	mddev->array_size = size/2;
+-	mddev->resync_max_sectors = size;
++	mddev->array_size = size << (conf->chunk_shift-1);
++	mddev->resync_max_sectors = size << conf->chunk_shift;
+ 
+ 	mddev->queue->unplug_fn = raid10_unplug;
+ 	mddev->queue->issue_flush_fn = raid10_issue_flush;
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
