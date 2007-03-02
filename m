@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slab-introduce-krealloc-fix.patch added to -mm tree
-Date: Thu, 01 Mar 2007 23:20:36 -0800
-Message-ID: <200703020722.l227MBBa003133@shell0.pdx.osdl.net>
+Subject: + ide-ide-fix-pmac-breakage-fix.patch added to -mm tree
+Date: Fri, 02 Mar 2007 00:26:08 -0700
+Message-ID: <200703020726.l227QApR003195@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46638 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46752 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932696AbXCBHWj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 02:22:39 -0500
+	id S932690AbXCBH0M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 02:26:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, jsipek@fsl.cs.sunysb.edu, mpm@selenic.com, penberg@cs.helsinki.fi
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     slab-introduce-krealloc-fix
+     ide-ide-fix-pmac-breakage-fix
 has been added to the -mm tree.  Its filename is
-     slab-introduce-krealloc-fix.patch
+     ide-ide-fix-pmac-breakage-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab-introduce-krealloc-fix
+Subject: ide-ide-fix-pmac-breakage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/slob.c: In function 'krealloc':
-mm/slob.c:219: warning: comparison of distinct pointer types lacks a cast
-mm/slob.c:219: warning: comparison of distinct pointer types lacks a cast
-mm/slab.c: In function 'krealloc':
-mm/slab.c:3779: warning: comparison of distinct pointer types lacks a cast
-mm/slab.c:3779: warning: comparison of distinct pointer types lacks a cast
-
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 +-
- mm/slab.c            |    2 +-
- mm/slob.c            |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/ide/ppc/pmac.c |    2 ++
+ ide/ide.c              |    0 
+ 2 files changed, 2 insertions(+)
 
-diff -puN include/linux/slab.h~slab-introduce-krealloc-fix include/linux/slab.h
---- a/include/linux/slab.h~slab-introduce-krealloc-fix
-+++ a/include/linux/slab.h
-@@ -74,7 +74,7 @@ void *__kmalloc(size_t, gfp_t);
- void *__kzalloc(size_t, gfp_t);
- void * __must_check krealloc(const void *, size_t, gfp_t);
- void kfree(const void *);
--unsigned int ksize(const void *);
-+size_t ksize(const void *);
+diff -puN drivers/ide/ide.c~ide-ide-fix-pmac-breakage-fix drivers/ide/ide.c
+diff -puN drivers/ide/ppc/pmac.c~ide-ide-fix-pmac-breakage-fix drivers/ide/ppc/pmac.c
+--- a/drivers/ide/ppc/pmac.c~ide-ide-fix-pmac-breakage-fix
++++ a/drivers/ide/ppc/pmac.c
+@@ -1553,6 +1553,8 @@ MODULE_DEVICE_TABLE(pci, pmac_ide_pci_ma
  
- /**
-  * kcalloc - allocate memory for an array. The memory is set to zero.
-diff -puN mm/slab.c~slab-introduce-krealloc-fix mm/slab.c
---- a/mm/slab.c~slab-introduce-krealloc-fix
-+++ a/mm/slab.c
-@@ -4525,7 +4525,7 @@ const struct seq_operations slabstats_op
-  * allocated with either kmalloc() or kmem_cache_alloc(). The object
-  * must not be freed during the duration of the call.
-  */
--unsigned int ksize(const void *objp)
-+size_t ksize(const void *objp)
+ int __init pmac_ide_probe(void)
  {
- 	if (unlikely(objp == NULL))
- 		return 0;
-diff -puN mm/slob.c~slab-introduce-krealloc-fix mm/slob.c
---- a/mm/slob.c~slab-introduce-krealloc-fix
-+++ a/mm/slob.c
-@@ -252,7 +252,7 @@ void kfree(const void *block)
++	int error;
++
+ 	if (!machine_is(powermac))
+ 		return -ENODEV;
  
- EXPORT_SYMBOL(kfree);
- 
--unsigned int ksize(const void *block)
-+size_t ksize(const void *block)
- {
- 	bigblock_t *bb;
- 	unsigned long flags;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +56,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 cyclades-return-closing_wait.patch
 md-fix-for-raid6-reshape-fix.patch
-slab-introduce-krealloc-fix.patch
 make-aout-executables-work-again-fix.patch
 sony-laptop-fix-uninitialised-variable.patch
 git-drm.patch
@@ -139,3 +104,4 @@ revert-utrace-prep-2.patch
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
+ide-ide-fix-pmac-breakage-fix.patch
