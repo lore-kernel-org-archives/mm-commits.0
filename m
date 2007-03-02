@@ -1,77 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-sm501fbc-make-4-functions-static.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:05:50 -0800
-Message-ID: <200703020505.l2255oeR000746@shell0.pdx.osdl.net>
+Subject: - fix-the-sysctl=n-compilation.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:06:24 -0800
+Message-ID: <200703020506.l2256OQW000793@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42508 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42520 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422773AbXCBFJK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:09:10 -0500
+	id S1422782AbXCBFJh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:09:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, ben-linux@fluff.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/sm501fb.c: make 4 functions static
+     fix the SYSCTL=n compilation
 has been removed from the -mm tree.  Its filename was
-     drivers-video-sm501fbc-make-4-functions-static.patch
+     fix-the-sysctl=n-compilation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/video/sm501fb.c: make 4 functions static
+Subject: fix the SYSCTL=n compilation
 From: Adrian Bunk <bunk@stusta.de>
 
+/home/bunk/linux/kernel-2.6/linux-2.6.20-mm2/kernel/sysctl.c:1411: error: conflicting types for 'register_sysctl_table'
+/home/bunk/linux/kernel-2.6/linux-2.6.20-mm2/include/linux/sysctl.h:1042: error: previous declaration of 'register_sysctl_table' was here
+make[2]: *** [kernel/sysctl.o] Error 1
+
+Caused by commit 0b4d414714f0d2f922d39424b0c5c82ad900a381.
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sm501fb.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/sysctl.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/video/sm501fb.c~drivers-video-sm501fbc-make-4-functions-static drivers/video/sm501fb.c
---- a/drivers/video/sm501fb.c~drivers-video-sm501fbc-make-4-functions-static
-+++ a/drivers/video/sm501fb.c
-@@ -136,8 +136,8 @@ static inline void sm501fb_sync_regs(str
- #define SM501_MEMF_CRT			(4)
- #define SM501_MEMF_ACCEL		(8)
+diff -puN kernel/sysctl.c~fix-the-sysctl=n-compilation kernel/sysctl.c
+--- a/kernel/sysctl.c~fix-the-sysctl=n-compilation
++++ a/kernel/sysctl.c
+@@ -1359,8 +1359,7 @@ void unregister_sysctl_table(struct ctl_
+ }
  
--int sm501_alloc_mem(struct sm501fb_info *inf, struct sm501_mem *mem,
--		    unsigned int why, size_t size)
-+static int sm501_alloc_mem(struct sm501fb_info *inf, struct sm501_mem *mem,
-+			   unsigned int why, size_t size)
+ #else /* !CONFIG_SYSCTL */
+-struct ctl_table_header * register_sysctl_table(ctl_table * table,
+-						int insert_at_head)
++struct ctl_table_header *register_sysctl_table(ctl_table * table)
  {
- 	unsigned int ptr = 0;
- 
-@@ -926,7 +926,7 @@ static int sm501fb_blank_crt(int blank_m
-  * set or change the hardware cursor parameters
- */
- 
--int sm501fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
-+static int sm501fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
- {
- 	struct sm501fb_par  *par = info->par;
- 	struct sm501fb_info *fbi = par->info;
-@@ -1225,7 +1225,7 @@ static struct sm501fb_info *sm501fb_info
-  * initialise hw cursor parameters
- */
- 
--int sm501_init_cursor(struct fb_info *fbi, unsigned int reg_base)
-+static int sm501_init_cursor(struct fb_info *fbi, unsigned int reg_base)
- {
- 	struct sm501fb_par *par = fbi->par;
- 	struct sm501fb_info *info = par->info;
-@@ -1768,7 +1768,7 @@ static struct platform_driver sm501fb_dr
- 	},
- };
- 
--int __devinit sm501fb_init(void)
-+static int __devinit sm501fb_init(void)
- {
- 	return platform_driver_register(&sm501fb_driver);
+ 	return NULL;
  }
 _
 
