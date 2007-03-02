@@ -1,53 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - make-ipc-shmcshm_nopage-static.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:05:45 -0800
-Message-ID: <200703020505.l2255j0E000740@shell0.pdx.osdl.net>
+Subject: - arch-arm26-kernel-entrys-remove-dead-code.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:05:42 -0800
+Message-ID: <200703020505.l2255gPf000737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42481 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42482 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422777AbXCBFJA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1422779AbXCBFJA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 2 Mar 2007 00:09:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, spyro@f2s.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make ipc/shm.c:shm_nopage() static
+     arch/arm26/kernel/entry.S: remove dead code
 has been removed from the -mm tree.  Its filename was
-     make-ipc-shmcshm_nopage-static.patch
+     arch-arm26-kernel-entrys-remove-dead-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make ipc/shm.c:shm_nopage() static
+Subject: arch/arm26/kernel/entry.S: remove dead code
 From: Adrian Bunk <bunk@stusta.de>
 
-shm_nopage() can become static.
+CONFIG_ALIGNMENT_TRAP is never set on arm26.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: Ian Molton <spyro@f2s.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm26/kernel/entry.S |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN ipc/shm.c~make-ipc-shmcshm_nopage-static ipc/shm.c
---- a/ipc/shm.c~make-ipc-shmcshm_nopage-static
-+++ a/ipc/shm.c
-@@ -226,8 +226,8 @@ static void shm_close(struct vm_area_str
- 	mutex_unlock(&shm_ids(ns).mutex);
- }
+diff -puN arch/arm26/kernel/entry.S~arch-arm26-kernel-entrys-remove-dead-code arch/arm26/kernel/entry.S
+--- a/arch/arm26/kernel/entry.S~arch-arm26-kernel-entrys-remove-dead-code
++++ a/arch/arm26/kernel/entry.S
+@@ -245,11 +245,6 @@ ENTRY(vector_swi)
+ 	zero_fp
+ 	get_scno
  
--struct page *shm_nopage(struct vm_area_struct *vma, unsigned long address,
--			int *type)
-+static struct page *shm_nopage(struct vm_area_struct *vma,
-+			       unsigned long address, int *type)
- {
- 	struct file *file = vma->vm_file;
- 	struct shm_file_data *sfd = shm_file_data(file);
+-#ifdef CONFIG_ALIGNMENT_TRAP
+-	ldr	ip, __cr_alignment
+-	ldr	ip, [ip]
+-	mcr	p15, 0, ip, c1, c0		@ update control register
+-#endif
+ 	enable_irqs ip
+ 
+ 	str	r4, [sp, #-S_OFF]!		@ push fifth arg
+@@ -299,11 +294,6 @@ __sys_trace_return:
+ 	b	ret_slow_syscall
+ 
+ 	.align	5
+-#ifdef CONFIG_ALIGNMENT_TRAP
+-	.type	__cr_alignment, #object
+-__cr_alignment:
+-	.word	cr_alignment
+-#endif
+ 
+ 	.type	sys_call_table, #object
+ ENTRY(sys_call_table)
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
