@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timer-add-an-initial-05s-delay-to-calc_load.patch added to -mm tree
-Date: Thu, 01 Mar 2007 17:19:08 -0800
-Message-ID: <200703020119.l221J81E028533@shell0.pdx.osdl.net>
+Subject: - timer-add-an-initial-05s-delay-to-calc_load.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 17:19:33 -0800
+Message-ID: <200703020119.l221JYrY028555@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33709 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33736 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422654AbXCBBTe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 20:19:34 -0500
+	id S1422672AbXCBBT6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 20:19:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: simon@fire.lp0.eu, arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de
+To: simon@fire.lp0.eu, arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      timer: add an initial 0.5s delay to calc_load
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      timer-add-an-initial-05s-delay-to-calc_load.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: timer: add an initial 0.5s delay to calc_load
