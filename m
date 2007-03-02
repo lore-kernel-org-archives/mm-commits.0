@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch added to -mm tree
-Date: Thu, 01 Mar 2007 21:38:36 -0800
-Message-ID: <200703020540.l225eC1B001466@shell0.pdx.osdl.net>
+Subject: + safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix.patch added to -mm tree
+Date: Thu, 01 Mar 2007 21:51:39 -0800
+Message-ID: <200703020553.l225rDjU001660@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43810 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43984 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422924AbXCBFpq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:45:46 -0500
+	id S1422922AbXCBFxS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:53:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmission.com, pbadari@us.ibm.com, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix
+     safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix
 has been added to the -mm tree.  Its filename is
-     merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch
+     safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix
+Subject: safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-There's just less and less excuse for this sort of thing.
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: <containers@lists.osdl.org>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/utsname.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/sched.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/utsname.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix include/linux/utsname.h
---- a/include/linux/utsname.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix
-+++ a/include/linux/utsname.h
-@@ -57,7 +57,8 @@ static inline void put_uts_ns(struct uts
- 	kref_put(&ns->kref, free_uts_ns);
+diff -puN kernel/sched.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix kernel/sched.c
+--- a/kernel/sched.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix
++++ a/kernel/sched.c
+@@ -5279,6 +5279,11 @@ int __init migration_init(void)
+ #endif
+ 
+ #ifdef CONFIG_SMP
++
++/* Number of possible processor ids */
++int nr_cpu_ids = NR_CPUS;
++EXPORT_SYMBOL(nr_cpu_ids);
++
+ #undef SCHED_DOMAIN_DEBUG
+ #ifdef SCHED_DOMAIN_DEBUG
+ static void sched_domain_debug(struct sched_domain *sd, int cpu)
+@@ -6758,10 +6763,6 @@ int in_sched_functions(unsigned long add
+ 		&& addr < (unsigned long)__sched_text_end);
  }
- #else
--static inline int copy_utsname(int flags, struct uts_namespace *ns)
-+static inline struct uts_namespace *
-+copy_utsname(int flags, struct uts_namespace *ns)
+ 
+-/* Number of possible processor ids */
+-int nr_cpu_ids = NR_CPUS;
+-EXPORT_SYMBOL(nr_cpu_ids);
+-
+ void __init sched_init(void)
  {
- 	return ns;
- }
+ 	int i, j, k;
+@@ -6802,11 +6803,11 @@ void __init sched_init(void)
+ 		}
+ 		highest_cpu = i;
+ 	}
+-	nr_cpu_ids = highest_cpu + 1;
+ 
+ 	set_load_weight(&init_task);
+ 
+ #ifdef CONFIG_SMP
++	nr_cpu_ids = highest_cpu + 1;
+ 	open_softirq(SCHED_SOFTIRQ, run_rebalance_domains, NULL);
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +108,7 @@ git-block-another-md-fix.patch
 git-unionfs.patch
 usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
 after-before-x86_64-mm-mmconfig-share.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix.patch
 safer-nr_node_ids-and-nr_node_ids-determination-and-initial-tweak.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
 driver_bfin_serial_core-update.patch
