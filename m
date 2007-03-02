@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + choose-pages-from-the-per-cpu-list-based-on-migration-type.patch added to -mm tree
-Date: Fri, 02 Mar 2007 13:41:33 -0800
-Message-ID: <200703022141.l22LfXw9019762@shell0.pdx.osdl.net>
+Subject: + add-a-configure-option-to-group-pages-by-mobility.patch added to -mm tree
+Date: Fri, 02 Mar 2007 13:41:35 -0800
+Message-ID: <200703022141.l22LfZcO019767@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42046 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42059 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751113AbXCBVlh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 16:41:37 -0500
+	id S1030192AbXCBVlq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 16:41:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie
+Cc: mel@csn.ul.ie, jschopp@austin.ibm.com
 
 
 The patch titled
-     Choose pages from the per-cpu list based on migration type
+     Add a configure option to group pages by mobility
 has been added to the -mm tree.  Its filename is
-     choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+     add-a-configure-option-to-group-pages-by-mobility.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,83 +25,140 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Choose pages from the per-cpu list based on migration type
+Subject: Add a configure option to group pages by mobility
 From: Mel Gorman <mel@csn.ul.ie>
 
-The freelists for each migrate type can slowly become polluted due to the
-per-cpu list.  Consider what happens when the following happens
-
-1. A 2^(MAX_ORDER-1) list is reserved for __GFP_MOVABLE pages
-2. An order-0 page is allocated from the newly reserved block
-3. The page is freed and placed on the per-cpu list
-4. alloc_page() is called with GFP_KERNEL as the gfp_mask
-5. The per-cpu list is used to satisfy the allocation
-
-This results in a kernel page is in the middle of a migratable region. This
-patch prevents this leak occuring by storing the MIGRATE_ type of the page in
-page->private. On allocate, a page will only be returned of the desired type,
-else more pages will be allocated. This may temporarily allow a per-cpu list
-to go over the pcp->high limit but it'll be corrected on the next free. Care
-is taken to preserve the hotness of pages recently freed.
-
-The additional code is not measurably slower for the workloads we've tested.
+The grouping mechanism has some memory overhead and a more complex allocation
+path.  This patch allows the strategy to be disabled for small memory systems
+or if it is known the workload is suffering because of the strategy.  It also
+acts to show where the page groupings strategy interacts with the standard
+buddy allocator.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Joel Schopp <jschopp@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   28 ++++++++++++++++++++++++----
- 1 files changed, 24 insertions(+), 4 deletions(-)
+ include/linux/mmzone.h |    6 ++++++
+ init/Kconfig           |   13 +++++++++++++
+ mm/page_alloc.c        |   31 +++++++++++++++++++++++++++++++
+ 3 files changed, 50 insertions(+)
 
-diff -puN mm/page_alloc.c~choose-pages-from-the-per-cpu-list-based-on-migration-type mm/page_alloc.c
---- a/mm/page_alloc.c~choose-pages-from-the-per-cpu-list-based-on-migration-type
+diff -puN include/linux/mmzone.h~add-a-configure-option-to-group-pages-by-mobility include/linux/mmzone.h
+--- a/include/linux/mmzone.h~add-a-configure-option-to-group-pages-by-mobility
++++ a/include/linux/mmzone.h
+@@ -25,9 +25,15 @@
+ #endif
+ #define MAX_ORDER_NR_PAGES (1 << (MAX_ORDER - 1))
+ 
++#ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ #define MIGRATE_UNMOVABLE     0
+ #define MIGRATE_MOVABLE       1
+ #define MIGRATE_TYPES         2
++#else
++#define MIGRATE_UNMOVABLE     0
++#define MIGRATE_MOVABLE       0
++#define MIGRATE_TYPES         1
++#endif
+ 
+ #define for_each_migratetype_order(order, type) \
+ 	for (order = 0; order < MAX_ORDER; order++) \
+diff -puN init/Kconfig~add-a-configure-option-to-group-pages-by-mobility init/Kconfig
+--- a/init/Kconfig~add-a-configure-option-to-group-pages-by-mobility
++++ a/init/Kconfig
+@@ -495,6 +495,19 @@ config SLOB
+ 	default !SLAB
+ 	bool
+ 
++config PAGE_GROUP_BY_MOBILITY
++	bool "Group pages based on their mobility in the page allocator"
++	def_bool y
++	help
++	  The standard allocator will fragment memory over time which means
++	  that high order allocations will fail even if kswapd is running. If
++	  this option is set, the allocator will try and group page types
++	  based on their ability to migrate or reclaim. This is a best effort
++	  attempt at lowering fragmentation which a few workloads care about.
++	  The loss is a more complex allocator that may perform slower. If
++	  you are interested in working with large pages, say Y and set
++	  /proc/sys/vm/min_free_bytes to 16374. Otherwise say N
++
+ menu "Loadable module support"
+ 
+ config MODULES
+diff -puN mm/page_alloc.c~add-a-configure-option-to-group-pages-by-mobility mm/page_alloc.c
+--- a/mm/page_alloc.c~add-a-configure-option-to-group-pages-by-mobility
 +++ a/mm/page_alloc.c
-@@ -747,7 +747,8 @@ static int rmqueue_bulk(struct zone *zon
- 		struct page *page = __rmqueue(zone, order, migratetype);
- 		if (unlikely(page == NULL))
- 			break;
--		list_add_tail(&page->lru, list);
-+		list_add(&page->lru, list);
-+		set_page_private(page, migratetype);
- 	}
- 	spin_unlock(&zone->lock);
- 	return i;
-@@ -912,6 +913,7 @@ static void fastcall free_hot_cold_page(
- 	local_irq_save(flags);
- 	__count_vm_event(PGFREE);
- 	list_add(&page->lru, &pcp->list);
-+	set_page_private(page, get_pageblock_migratetype(page));
- 	pcp->count++;
- 	if (pcp->count >= pcp->high) {
- 		free_pages_bulk(zone, pcp->batch, &pcp->list, 0);
-@@ -976,9 +978,27 @@ again:
+@@ -136,6 +136,7 @@ static unsigned long __initdata dma_rese
+ #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
+ #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
+ 
++#ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ static inline int get_pageblock_migratetype(struct page *page)
+ {
+ 	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
+@@ -152,6 +153,22 @@ static inline int gfpflags_to_migratetyp
+ 	return ((gfp_flags & __GFP_MOVABLE) != 0);
+ }
+ 
++#else
++static inline int get_pageblock_migratetype(struct page *page)
++{
++	return MIGRATE_UNMOVABLE;
++}
++
++static void set_pageblock_migratetype(struct page *page, int migratetype)
++{
++}
++
++static inline int gfpflags_to_migratetype(gfp_t gfp_flags)
++{
++	return MIGRATE_UNMOVABLE;
++}
++#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
++
+ #ifdef CONFIG_DEBUG_VM
+ static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
+ {
+@@ -640,6 +657,7 @@ static int prep_new_page(struct page *pa
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ /*
+  * This array describes the order lists are fallen back to when
+  * the free lists for the desirable migrate type are depleted
+@@ -696,6 +714,13 @@ static struct page *__rmqueue_fallback(s
+ 
+ 	return NULL;
+ }
++#else
++static struct page *__rmqueue_fallback(struct zone *zone, int order,
++						int start_migratetype)
++{
++	return NULL;
++}
++#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
+ 
+ /* 
+  * Do the hard work of removing an element from the buddy allocator.
+@@ -978,6 +1003,7 @@ again:
  			if (unlikely(!pcp->count))
  				goto failed;
  		}
--		page = list_entry(pcp->list.next, struct page, lru);
--		list_del(&page->lru);
--		pcp->count--;
-+		/* Find a page of the appropriate migrate type */
-+		list_for_each_entry(page, &pcp->list, lru) {
-+			if (page_private(page) == migratetype) {
-+				list_del(&page->lru);
-+				pcp->count--;
-+				break;
-+			}
-+		}
-+
-+		/*
-+		 * Check if a page of the appropriate migrate type
-+		 * was found. If not, allocate more to the pcp list
-+		 */
-+		if (&page->lru == &pcp->list) {
-+			pcp->count += rmqueue_bulk(zone, 0,
-+					pcp->batch, &pcp->list, migratetype);
-+			page = list_entry(pcp->list.next, struct page, lru);
-+			VM_BUG_ON(page_private(page) != migratetype);
-+			list_del(&page->lru);
-+			pcp->count--;
-+		}
++#ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ 		/* Find a page of the appropriate migrate type */
+ 		list_for_each_entry(page, &pcp->list, lru) {
+ 			if (page_private(page) == migratetype) {
+@@ -999,6 +1025,11 @@ again:
+ 			list_del(&page->lru);
+ 			pcp->count--;
+ 		}
++#else
++		page = list_entry(pcp->list.next, struct page, lru);
++		list_del(&page->lru);
++		pcp->count--;
++#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
  	} else {
  		spin_lock_irqsave(&zone->lock, flags);
  		page = __rmqueue(zone, order, migratetype);
