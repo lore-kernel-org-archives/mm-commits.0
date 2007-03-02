@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-lower-root-result-must-be-adirectory.patch added to -mm tree
-Date: Fri, 02 Mar 2007 14:24:24 -0800
-Message-ID: <200703022224.l22MOOLV020819@shell0.pdx.osdl.net>
+Subject: + kvm-t60-resume-fix.patch added to -mm tree
+Date: Fri, 02 Mar 2007 14:28:19 -0800
+Message-ID: <200703022228.l22MSJ5L020927@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44092 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44386 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030584AbXCBWZI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 17:25:08 -0500
+	id S1030648AbXCBW2h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 17:28:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@sw.ru, dmonakhov@openvz.org, mhalcrow@us.ibm.com
+Cc: mingo@elte.hu, avi@qumranet.com
 
 
 The patch titled
-     ecryptfs: lower root result must be adirectory
+     KVM: T60 resume fix
 has been added to the -mm tree.  Its filename is
-     ecryptfs-lower-root-result-must-be-adirectory.patch
+     kvm-t60-resume-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,94 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ecryptfs: lower root result must be adirectory
-From: Dmitriy Monakhov <dmonakhov@sw.ru>
+Subject: KVM: T60 resume fix
+From: Ingo Molnar <mingo@elte.hu>
 
-- Currently after path_lookup succeed we dot't have any guarantie what
-  it is DIR. This must be explicitly demanded.
-- path_lookup can't return negative dentry, So inode check is useless.
+My T60 laptop does not resume correctly due to KVM attempting to send an
+IPI to a CPU that might be down (or not up yet).  (Doing so also triggers
+the send_IPI_mask_bitmask() warning in arch/i386/kernel/smp.c, line 732.)
 
-Signed-off-by: Dmitriy Monakhov <dmonakhov@openvz.org>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+with this fix applied my laptop does not hang during resume.
+
+[ KVM will have to disable/enable virtualization on the CPU itself that
+  goes down / comes up, not via an IPI sent from the requesting CPU. ]
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/main.c |    8 +-------
- 1 files changed, 1 insertion(+), 7 deletions(-)
+ drivers/kvm/kvm_main.c |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN fs/ecryptfs/main.c~ecryptfs-lower-root-result-must-be-adirectory fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-lower-root-result-must-be-adirectory
-+++ a/fs/ecryptfs/main.c
-@@ -484,18 +484,12 @@ static int ecryptfs_read_super(struct su
- 	struct vfsmount *lower_mnt;
- 
- 	memset(&nd, 0, sizeof(struct nameidata));
--	rc = path_lookup(dev_name, LOOKUP_FOLLOW, &nd);
-+	rc = path_lookup(dev_name, LOOKUP_FOLLOW | LOOKUP_DIRECTORY, &nd);
- 	if (rc) {
- 		ecryptfs_printk(KERN_WARNING, "path_lookup() failed\n");
- 		goto out;
+diff -puN drivers/kvm/kvm_main.c~kvm-t60-resume-fix drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-t60-resume-fix
++++ a/drivers/kvm/kvm_main.c
+@@ -2083,12 +2083,6 @@ static int kvm_cpu_hotplug(struct notifi
+ 	case CPU_DEAD:
+ 	case CPU_UP_CANCELED:
+ 		decache_vcpus_on_cpu(cpu);
+-		smp_call_function_single(cpu, kvm_arch_ops->hardware_disable,
+-					 NULL, 0, 1);
+-		break;
+-	case CPU_UP_PREPARE:
+-		smp_call_function_single(cpu, kvm_arch_ops->hardware_enable,
+-					 NULL, 0, 1);
+ 		break;
  	}
- 	lower_root = nd.dentry;
--	if (!lower_root->d_inode) {
--		ecryptfs_printk(KERN_WARNING,
--				"No directory to interpose on\n");
--		rc = -ENOENT;
--		goto out_free;
--	}
- 	lower_mnt = nd.mnt;
- 	ecryptfs_set_superblock_lower(sb, lower_root->d_sb);
- 	sb->s_maxbytes = lower_root->d_sb->s_maxbytes;
+ 	return NOTIFY_OK;
 _
 
-Patches currently in -mm which might be from dmonakhov@sw.ru are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-ecryptfs-check-xattr-operation-support-fix.patch
-ecryptfs-lower-root-result-must-be-adirectory.patch
-libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
-3c59x-handle-pci_enable_device-failure-while-resuming.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
+origin.patch
+sched-remove-smt-nice.patch
+fix-nmi-appears-to-be-stuck.patch
+kvm-t60-resume-fix.patch
+git-kvm.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+log-reason-why-tsc-was-marked-unstable.patch
+fully-honor-vdso_enabled.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_blocking.patch
+fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-aio-o_sync-filesystem-write.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+speedup-divides-by-cpu_power-in-scheduler-up-fix.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
