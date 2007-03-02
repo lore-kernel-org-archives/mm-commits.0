@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch added to -mm tree
-Date: Fri, 02 Mar 2007 13:41:29 -0800
-Message-ID: <200703022141.l22LfUsu019756@shell0.pdx.osdl.net>
+Subject: + choose-pages-from-the-per-cpu-list-based-on-migration-type.patch added to -mm tree
+Date: Fri, 02 Mar 2007 13:41:33 -0800
+Message-ID: <200703022141.l22LfXw9019762@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42037 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42046 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751098AbXCBVle (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 16:41:34 -0500
+	id S1751113AbXCBVlh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 16:41:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mel@csn.ul.ie
 
 
 The patch titled
-     Add __GFP_MOVABLE for callers to flag allocations from low memory that may be migrated
+     Choose pages from the per-cpu list based on migration type
 has been added to the -mm tree.  Its filename is
-     add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
+     choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add __GFP_MOVABLE for callers to flag allocations from low memory that may be migrated
+Subject: Choose pages from the per-cpu list based on migration type
 From: Mel Gorman <mel@csn.ul.ie>
 
-This patch flags the allocations from low memory that may be migrated.
+The freelists for each migrate type can slowly become polluted due to the
+per-cpu list.  Consider what happens when the following happens
 
-A GFP_USER_MOVABLE similar to GFP_HIGH_MOVABLE is not provided in this patch
-because it would only be used once.  This patch uses __GFP_MOVABLE twice for a
-GFP_USER and a GFP_NOIO allocation.  There is little point defining
-GFP_*_MOVABLE for one use unless people feel it would help self-documentation.
+1. A 2^(MAX_ORDER-1) list is reserved for __GFP_MOVABLE pages
+2. An order-0 page is allocated from the newly reserved block
+3. The page is freed and placed on the per-cpu list
+4. alloc_page() is called with GFP_KERNEL as the gfp_mask
+5. The per-cpu list is used to satisfy the allocation
+
+This results in a kernel page is in the middle of a migratable region. This
+patch prevents this leak occuring by storing the MIGRATE_ type of the page in
+page->private. On allocate, a page will only be returned of the desired type,
+else more pages will be allocated. This may temporarily allow a per-cpu list
+to go over the pcp->high limit but it'll be corrected on the next free. Care
+is taken to preserve the hotness of pages recently freed.
+
+The additional code is not measurably slower for the workloads we've tested.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    2 +-
- fs/buffer.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   28 ++++++++++++++++++++++++----
+ 1 files changed, 24 insertions(+), 4 deletions(-)
 
-diff -puN fs/block_dev.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated fs/block_dev.c
---- a/fs/block_dev.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated
-+++ a/fs/block_dev.c
-@@ -574,7 +574,7 @@ struct block_device *bdget(dev_t dev)
- 		inode->i_rdev = dev;
- 		inode->i_bdev = bdev;
- 		inode->i_data.a_ops = &def_blk_aops;
--		mapping_set_gfp_mask(&inode->i_data, GFP_USER);
-+		mapping_set_gfp_mask(&inode->i_data, GFP_USER|__GFP_MOVABLE);
- 		inode->i_data.backing_dev_info = &default_backing_dev_info;
- 		spin_lock(&bdev_lock);
- 		list_add(&bdev->bd_list, &all_bdevs);
-diff -puN fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated fs/buffer.c
---- a/fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated
-+++ a/fs/buffer.c
-@@ -2633,7 +2633,7 @@ int submit_bh(int rw, struct buffer_head
- 	 * from here on down, it's all bio -- do the initial mapping,
- 	 * submit_bio -> generic_make_request may further map this bio around
- 	 */
--	bio = bio_alloc(GFP_NOIO, 1);
-+	bio = bio_alloc(GFP_NOIO|__GFP_MOVABLE, 1);
- 
- 	bio->bi_sector = bh->b_blocknr * (bh->b_size >> 9);
- 	bio->bi_bdev = bh->b_bdev;
+diff -puN mm/page_alloc.c~choose-pages-from-the-per-cpu-list-based-on-migration-type mm/page_alloc.c
+--- a/mm/page_alloc.c~choose-pages-from-the-per-cpu-list-based-on-migration-type
++++ a/mm/page_alloc.c
+@@ -747,7 +747,8 @@ static int rmqueue_bulk(struct zone *zon
+ 		struct page *page = __rmqueue(zone, order, migratetype);
+ 		if (unlikely(page == NULL))
+ 			break;
+-		list_add_tail(&page->lru, list);
++		list_add(&page->lru, list);
++		set_page_private(page, migratetype);
+ 	}
+ 	spin_unlock(&zone->lock);
+ 	return i;
+@@ -912,6 +913,7 @@ static void fastcall free_hot_cold_page(
+ 	local_irq_save(flags);
+ 	__count_vm_event(PGFREE);
+ 	list_add(&page->lru, &pcp->list);
++	set_page_private(page, get_pageblock_migratetype(page));
+ 	pcp->count++;
+ 	if (pcp->count >= pcp->high) {
+ 		free_pages_bulk(zone, pcp->batch, &pcp->list, 0);
+@@ -976,9 +978,27 @@ again:
+ 			if (unlikely(!pcp->count))
+ 				goto failed;
+ 		}
+-		page = list_entry(pcp->list.next, struct page, lru);
+-		list_del(&page->lru);
+-		pcp->count--;
++		/* Find a page of the appropriate migrate type */
++		list_for_each_entry(page, &pcp->list, lru) {
++			if (page_private(page) == migratetype) {
++				list_del(&page->lru);
++				pcp->count--;
++				break;
++			}
++		}
++
++		/*
++		 * Check if a page of the appropriate migrate type
++		 * was found. If not, allocate more to the pcp list
++		 */
++		if (&page->lru == &pcp->list) {
++			pcp->count += rmqueue_bulk(zone, 0,
++					pcp->batch, &pcp->list, migratetype);
++			page = list_entry(pcp->list.next, struct page, lru);
++			VM_BUG_ON(page_private(page) != migratetype);
++			list_del(&page->lru);
++			pcp->count--;
++		}
+ 	} else {
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 		page = __rmqueue(zone, order, migratetype);
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
