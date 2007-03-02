@@ -1,170 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - tty_io-fix-race-in-master-pty-close-slave-pty-close-path.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:07:28 -0800
-Message-ID: <200703020507.l2257S8s000878@shell0.pdx.osdl.net>
+Subject: - documentation-cpu-load-calculation-description.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:07:17 -0800
+Message-ID: <200703020507.l2257H9c000865@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42421 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42425 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422775AbXCBFHu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:07:50 -0500
+	id S1422776AbXCBFHv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:07:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aristeu.sergio@gmail.com, aris@ruivo.org, cebbert@redhat.com, hpa@zytor.com, mm-commits@vger.kernel.org
+To: av1474@comtv.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty_io: fix race in master pty close/slave pty close path
+     Documentation: CPU load calculation description
 has been removed from the -mm tree.  Its filename was
-     tty_io-fix-race-in-master-pty-close-slave-pty-close-path.patch
+     documentation-cpu-load-calculation-description.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty_io: fix race in master pty close/slave pty close path
-From: Aristeu Sergio Rozanski Filho <aristeu.sergio@gmail.com>
+Subject: Documentation: CPU load calculation description
+From: Vassili Karpov <av1474@comtv.ru>
 
-This patch fixes a possible race that leads to double freeing an idr index.
- When the master begin to close, release_dev() is called and then
-pty_close() is called:
+Describes how/when the information exported to `/proc/stat' is calculated,
+and possible problems with this approach.
 
-        if (tty->driver->close)
-                tty->driver->close(tty, filp);
-
-This is done without helding any locks other than BKL.  Inside pty_close(),
-being a master close, the devpts entry will be removed:
-
-#ifdef CONFIG_UNIX98_PTYS
-                if (tty->driver == ptm_driver)
-                        devpts_pty_kill(tty->index);
-#endif
-
-But devpts_pty_kill() will call get_node() that may sleep while waiting for
-&devpts_root->d_inode->i_sem.  When this happens and the slave is being
-opened, tty_open() just found the driver and index:
-
-        driver = get_tty_driver(device, &index);
-        if (!driver) {
-                mutex_unlock(&tty_mutex);
-                return -ENODEV;
-        }
-
-This part of the code is already protected under tty_mute.  The problem is
-that the slave close already got an index.  Then init_dev() is called and
-blocks waiting for the same &devpts_root->d_inode->i_sem.
-
-When the master close resumes, it removes the devpts entry, and the
-relation between idr index and the tty is gone.  The master then sleeps
-waiting for the tty_mutex on release_dev().
-
-Slave open resumes and found no tty for that index.  As result, a NULL tty
-is returned and init_dev() doesn't flow to fast_track:
-
-        /* check whether we're reopening an existing tty */
-        if (driver->flags & TTY_DRIVER_DEVPTS_MEM) {
-                tty = devpts_get_tty(idx);
-                if (tty && driver->subtype == PTY_TYPE_MASTER)
-                        tty = tty->link;
-        } else {
-                tty = driver->ttys[idx];
-        }
-        if (tty) goto fast_track;
-
-The result of this, is that a new tty will be created and init_dev() returns
-sucessfull. After returning, tty_mutex is dropped and master close may resume.
-
-Master close finds it's the only use and both sides are closing, then releases
-the tty and the index. At this point, the idr index is free, but slave still
-has it.
-
-Slave open then calls pty_open() and finds that tty->link->count is 0,
-because there's no master and returns error.  Then tty_open() calls
-release_dev() which executes without any warning, as it was a case of last
-slave close when the master is already closed (master->count == 0,
-slave->count == 1).  The tty is then released with the already released idr
-index.
-
-This normally would only issue a warning on idr_remove() but in case of a
-customer's critical application, it's never too simple:
-
-thread1: opens master, gets index X
-thread1: begin closing master
-thread2: begin opening slave with index X
-thread1: finishes closing master, index X released
-thread3: opens master, gets index X, just released
-thread2: fails opening slave, releases index X         <----
-thread4: opens master, gets index X, init_dev() then find an already in use
-	 and healthy tty and fails
-
-If no more indexes are released, ptmx_open() will keep failing, as the
-first free index available is X, and it will make init_dev() fail because
-you're trying to "reopen a master" which isn't valid.
-
-The patch notices when this race happens and make init_dev() fail
-imediately.  The init_dev() function is called with tty_mutex held, so it's
-safe to continue with tty till the end of function because release_dev()
-won't make any further changes without grabbing the tty_mutex.
-
-Without the patch, on some machines it's possible get easily idr warnings
-like this one:
-
-idr_remove called for id=15 which is not allocated.
- [<c02555b9>] idr_remove+0x139/0x170
- [<c02a1b62>] release_mem+0x182/0x230
- [<c02a28e7>] release_dev+0x4b7/0x700
- [<c02a0ea7>] tty_ldisc_enable+0x27/0x30
- [<c02a1e64>] init_dev+0x254/0x580
- [<c02a0d64>] check_tty_count+0x14/0xb0
- [<c02a4f05>] tty_open+0x1c5/0x340
- [<c02a4d40>] tty_open+0x0/0x340
- [<c017388f>] chrdev_open+0xaf/0x180
- [<c017c2ac>] open_namei+0x8c/0x760
- [<c01737e0>] chrdev_open+0x0/0x180
- [<c0167bc9>] __dentry_open+0xc9/0x210
- [<c0167e2c>] do_filp_open+0x5c/0x70
- [<c0167a91>] get_unused_fd+0x61/0xd0
- [<c0167e93>] do_sys_open+0x53/0x100
- [<c0167f97>] sys_open+0x27/0x30
- [<c010303b>] syscall_call+0x7/0xb
-
-using this test application available on:
- http://www.ruivo.org/~aris/pty_sodomizer.c
-
-Signed-off-by: Aristeu Sergio Rozanski Filho <aris@ruivo.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Chuck Ebbert <cebbert@redhat.com>
+Signed-off-by: Vassili Karpov <av1474@comtv.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ Documentation/cpu-load.txt |  113 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 113 insertions(+)
 
-diff -puN drivers/char/tty_io.c~tty_io-fix-race-in-master-pty-close-slave-pty-close-path drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty_io-fix-race-in-master-pty-close-slave-pty-close-path
-+++ a/drivers/char/tty_io.c
-@@ -1901,6 +1901,20 @@ static int init_dev(struct tty_driver *d
- 	/* check whether we're reopening an existing tty */
- 	if (driver->flags & TTY_DRIVER_DEVPTS_MEM) {
- 		tty = devpts_get_tty(idx);
-+		/*
-+		 * If we don't have a tty here on a slave open, it's because
-+		 * the master already started the close process and there's
-+		 * no relation between devpts file and tty anymore.
-+		 */
-+		if (!tty && driver->subtype == PTY_TYPE_SLAVE) {
-+			retval = -EIO;
-+			goto end_init;
-+		}
-+		/*
-+		 * It's safe from now on because init_dev() is called with
-+		 * tty_mutex held and release_dev() won't change tty->count
-+		 * or tty->flags without having to grab tty_mutex
-+		 */
- 		if (tty && driver->subtype == PTY_TYPE_MASTER)
- 			tty = tty->link;
- 	} else {
+diff -puN /dev/null Documentation/cpu-load.txt
+--- /dev/null
++++ a/Documentation/cpu-load.txt
+@@ -0,0 +1,113 @@
++CPU load
++--------
++
++Linux exports various bits of information via `/proc/stat' and
++`/proc/uptime' that userland tools, such as top(1), use to calculate
++the average time system spent in a particular state, for example:
++
++    $ iostat
++    Linux 2.6.18.3-exp (linmac)     02/20/2007
++
++    avg-cpu:  %user   %nice %system %iowait  %steal   %idle
++              10.01    0.00    2.92    5.44    0.00   81.63
++
++    ...
++
++Here the system thinks that over the default sampling period the
++system spent 10.01% of the time doing work in user space, 2.92% in the
++kernel, and was overall 81.63% of the time idle.
++
++In most cases the `/proc/stat' information reflects the reality quite
++closely, however due to the nature of how/when the kernel collects
++this data sometimes it can not be trusted at all.
++
++So how is this information collected?  Whenever timer interrupt is
++signalled the kernel looks what kind of task was running at this
++moment and increments the counter that corresponds to this tasks
++kind/state.  The problem with this is that the system could have
++switched between various states multiple times between two timer
++interrupts yet the counter is incremented only for the last state.
++
++
++Example
++-------
++
++If we imagine the system with one task that periodically burns cycles
++in the following manner:
++
++ time line between two timer interrupts
++|--------------------------------------|
++ ^                                    ^
++ |_ something begins working          |
++                                      |_ something goes to sleep
++                                     (only to be awaken quite soon)
++
++In the above situation the system will be 0% loaded according to the
++`/proc/stat' (since the timer interrupt will always happen when the
++system is executing the idle handler), but in reality the load is
++closer to 99%.
++
++One can imagine many more situations where this behavior of the kernel
++will lead to quite erratic information inside `/proc/stat'.
++
++
++/* gcc -o hog smallhog.c */
++#include <time.h>
++#include <limits.h>
++#include <signal.h>
++#include <sys/time.h>
++#define HIST 10
++
++static volatile sig_atomic_t stop;
++
++static void sighandler (int signr)
++{
++     (void) signr;
++     stop = 1;
++}
++static unsigned long hog (unsigned long niters)
++{
++     stop = 0;
++     while (!stop && --niters);
++     return niters;
++}
++int main (void)
++{
++     int i;
++     struct itimerval it = { .it_interval = { .tv_sec = 0, .tv_usec = 1 },
++                             .it_value = { .tv_sec = 0, .tv_usec = 1 } };
++     sigset_t set;
++     unsigned long v[HIST];
++     double tmp = 0.0;
++     unsigned long n;
++     signal (SIGALRM, &sighandler);
++     setitimer (ITIMER_REAL, &it, NULL);
++
++     hog (ULONG_MAX);
++     for (i = 0; i < HIST; ++i) v[i] = ULONG_MAX - hog (ULONG_MAX);
++     for (i = 0; i < HIST; ++i) tmp += v[i];
++     tmp /= HIST;
++     n = tmp - (tmp / 3.0);
++
++     sigemptyset (&set);
++     sigaddset (&set, SIGALRM);
++
++     for (;;) {
++         hog (n);
++         sigwait (&set, &i);
++     }
++     return 0;
++}
++
++
++References
++----------
++
++http://lkml.org/lkml/2007/2/12/6
++Documentation/filesystems/proc.txt (1.8)
++
++
++Thanks
++------
++
++Con Kolivas, Pavel Machek
 _
 
-Patches currently in -mm which might be from aristeu.sergio@gmail.com are
+Patches currently in -mm which might be from av1474@comtv.ru are
 
 origin.patch
