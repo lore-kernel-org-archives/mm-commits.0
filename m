@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fb-sm501fb-off-by-1-sysfs-store.patch added to -mm tree
-Date: Thu, 01 Mar 2007 18:35:00 -0800
-Message-ID: <200703020235.l222Z0G5030168@shell0.pdx.osdl.net>
+Subject: + fix-radeon-blanking-return-value.patch added to -mm tree
+Date: Thu, 01 Mar 2007 18:36:38 -0800
+Message-ID: <200703020236.l222aci0030184@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35947 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35970 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422643AbXCBCf2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 21:35:28 -0500
+	id S1422650AbXCBCgt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 21:36:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, adaplas@pol.net, ben-linux@fluff.org
+Cc: davem@davemloft.net, adaplas@gmail.com
 
 
 The patch titled
-     fb: sm501fb off-by-1 sysfs store
+     Fix radeon blanking return value
 has been added to the -mm tree.  Its filename is
-     fb-sm501fb-off-by-1-sysfs-store.patch
+     fix-radeon-blanking-return-value.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,69 +25,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fb: sm501fb off-by-1 sysfs store
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: Fix radeon blanking return value
+From: David Miller <davem@davemloft.net>
 
-Currently sm501fb_crtsrc_store() won't allow the routing to be changed via
-echos from userspace in to the sysfs file.  The reason for this is that the
-strnicmp() for both heads uses a sizeof() for the string length, which ends
-up being strlen() + 1 (\0 in the normal case, but the echo gives a newline,
-which is where the issue occurs), this then causes a mismatch and
-subsequently bails with the -EINVAL.
+Over a year ago, I pointed out that the current Radeon driver erroneously
+returns -EINVAL for valid blanking codes, here is a link to that thread:
 
-In addition to this, the hardcoded lengths were then used for the store
-length that was returned, which ended up being erroneous and resulting in a
-write error.  There's also no point in returning anything but the full
-length since it will -EINVAL out on a mismatch well before then anyways.
+	http://lkml.org/lkml/2006/1/28/6
 
-sizeof("string") is great for making sure you have space in your buffer,
-but rather less so for string comparisons :-)
+No other driver does this, and it confuses the X server into thinking that
+the device does not support blanking properly.
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Ben Dooks <ben-linux@fluff.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+As a result I have to switch to a console VC and back to the X server to
+unblank the screen, which is rediculious.
+
+I've had to do this for more than 3 years and I'm really tired of this
+problem still being around :-)
+
+I looked again and there is simply no reason for the Radeon driver to
+return -EINVAL for FB_BLANK_NORMAL.  It claims it wants to do this in order
+to convince fbcon to blank in software, right here:
+
+			if (fb_blank(info, blank))
+				fbcon_generic_blank(vc, info, blank);
+
+to software blank the screen.  But it only causes that to happen in the
+FB_BLANK_NORMAL case.
+
+That makes no sense because the Radeon code does this:
+
+		val |= CRTC_DISPLAY_DIS;
+
+in the FB_BLANK_NORMAL case so should be blanking the hardware, and there
+is therefore no reason to SW blank by returning -EINVAL.
+
+Therefore I propose we finally apply the following patch.  No other fbdev
+driver does this madness, and as I've shown above there is no justification
+for the behavior at all :-)
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Acked-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sm501fb.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/aty/radeon_base.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/video/sm501fb.c~fb-sm501fb-off-by-1-sysfs-store drivers/video/sm501fb.c
---- a/drivers/video/sm501fb.c~fb-sm501fb-off-by-1-sysfs-store
-+++ a/drivers/video/sm501fb.c
-@@ -1074,9 +1074,9 @@ static ssize_t sm501fb_crtsrc_store(stru
- 	if (len < 1)
- 		return -EINVAL;
+diff -puN drivers/video/aty/radeon_base.c~fix-radeon-blanking-return-value drivers/video/aty/radeon_base.c
+--- a/drivers/video/aty/radeon_base.c~fix-radeon-blanking-return-value
++++ a/drivers/video/aty/radeon_base.c
+@@ -1026,8 +1026,7 @@ int radeon_screen_blank(struct radeonfb_
+ 		break;
+ 	}
  
--	if (strnicmp(buf, "crt", sizeof("crt")) == 0)
-+	if (strnicmp(buf, "crt", 3) == 0)
- 		head = HEAD_CRT;
--	else if (strnicmp(buf, "panel", sizeof("panel")) == 0)
-+	else if (strnicmp(buf, "panel", 5) == 0)
- 		head = HEAD_PANEL;
- 	else
- 		return -EINVAL;
-@@ -1098,7 +1098,7 @@ static ssize_t sm501fb_crtsrc_store(stru
- 	writel(ctrl, info->regs + SM501_DC_CRT_CONTROL);
- 	sm501fb_sync_regs(info);
- 
--	return (head == HEAD_CRT) ? 3 : 5;
-+	return len;
+-	/* let fbcon do a soft blank for us */
+-	return (blank == FB_BLANK_NORMAL) ? -EINVAL : 0;
++	return 0;
  }
  
- /* Prepare the device_attr for registration with sysfs later */
+ static int radeonfb_blank (int blank, struct fb_info *info)
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from davem@davemloft.net are
 
-fb-sm501fb-off-by-1-sysfs-store.patch
-make-aout-executables-work-again.patch
-git-sh.patch
-fully-honor-vdso_enabled.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+bug-in-mm_rb-debugging.patch
+fix-radeon-blanking-return-value.patch
+8139too-fix-irq-problem-with-napi-netpoll.patch
+git-net.patch
+cisco_ioctl-initialise-header_cache_update.patch
+resend-iphase-64bit-cleanup.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch
 simplify-the-stacktrace-code.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+ipvs-flush-defense_work-before-module-unload.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+local_t-sparc64-cleanup.patch
