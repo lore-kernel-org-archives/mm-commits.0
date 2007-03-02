@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch added to -mm tree
-Date: Thu, 01 Mar 2007 18:25:19 -0800
-Message-ID: <200703020225.l222PJcY029962@shell0.pdx.osdl.net>
+Subject: + pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch added to -mm tree
+Date: Thu, 01 Mar 2007 18:25:21 -0800
+Message-ID: <200703020225.l222PL4W029965@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35740 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35730 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422741AbXCBCZj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 21:25:39 -0500
+	id S1422774AbXCBCZm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 21:25:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     ata_generic: Remove lots of code using the new cable_detect method
+     pata_ali: remove lots of code by using the cable_detect method
 has been added to the -mm tree.  Its filename is
-     ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
+     pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata_generic: Remove lots of code using the new cable_detect method
+Subject: pata_ali: remove lots of code by using the cable_detect method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-(And correct the cable type to unknown while we are at it)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_generic.c |   32 ++------------------------------
- 1 files changed, 2 insertions(+), 30 deletions(-)
+ drivers/ata/pata_ali.c |   65 ++++-----------------------------------
+ 1 files changed, 8 insertions(+), 57 deletions(-)
 
-diff -puN drivers/ata/ata_generic.c~ata_generic-remove-lots-of-code-using-the-new-cable_detect drivers/ata/ata_generic.c
---- a/drivers/ata/ata_generic.c~ata_generic-remove-lots-of-code-using-the-new-cable_detect
-+++ a/drivers/ata/ata_generic.c
-@@ -33,35 +33,6 @@
-  */
+diff -puN drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect drivers/ata/pata_ali.c
+--- a/drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect
++++ a/drivers/ata/pata_ali.c
+@@ -90,59 +90,6 @@ static int ali_c2_cable_detect(struct at
+ }
  
  /**
-- *	generic_pre_reset		-	probe begin
+- *	ali_early_error_handler	-	reset for eary chip
 - *	@ap: ATA port
 - *
-- *	Set up cable type and use generic probe init
+- *	Handle the reset callback for the later chips with cable detect
 - */
 -
--static int generic_pre_reset(struct ata_port *ap)
+-static int ali_c2_pre_reset(struct ata_port *ap)
 -{
--	ap->cbl = ATA_CBL_PATA80;
+-	ap->cbl = ali_c2_cable_detect(ap);
 -	return ata_std_prereset(ap);
 -}
 -
--
--/**
-- *	generic_error_handler - Probe specified port on PATA host controller
-- *	@ap: Port to probe
-- *	@classes:
-- *
-- *	LOCKING:
-- *	None (inherited from caller).
-- */
--
--
--static void generic_error_handler(struct ata_port *ap)
+-static void ali_c2_error_handler(struct ata_port *ap)
 -{
--	ata_bmdma_drive_eh(ap, generic_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-	ata_bmdma_drive_eh(ap, ali_c2_pre_reset,
+-			       ata_std_softreset, NULL,
+-			       ata_std_postreset);
 -}
 -
 -/**
-  *	generic_set_mode	-	mode setting
-  *	@ap: interface to set up
-  *	@unused: returned device on error
-@@ -142,8 +113,9 @@ static struct ata_port_operations generi
+- *	ali_early_cable_detect	-	cable detection
+- *	@ap: ATA port
+- *
+- *	Perform cable detection for older chipsets. This turns out to be
+- *	rather easy to implement
+- */
+-
+-static int ali_early_cable_detect(struct ata_port *ap)
+-{
+-	return ATA_CBL_PATA40;
+-}
+-
+-/**
+- *	ali_early_probe_init	-	reset for early chip
+- *	@ap: ATA port
+- *
+- *	Handle the reset callback for the early (pre cable detect) chips.
+- */
+-
+-static int ali_early_pre_reset(struct ata_port *ap)
+-{
+-	ap->cbl = ali_early_cable_detect(ap);
+-	return ata_std_prereset(ap);
+-}
+-
+-static void ali_early_error_handler(struct ata_port *ap)
+-{
+-	return ata_bmdma_drive_eh(ap, ali_early_pre_reset,
+-				     ata_std_softreset, NULL,
+-				     ata_std_postreset);
+-}
+-
+-/**
+  *	ali_20_filter		-	filter for earlier ALI DMA
+  *	@ap: ALi ATA port
+  *	@adev: attached device
+@@ -364,8 +311,9 @@ static struct ata_port_operations ali_ea
  
  	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= generic_error_handler,
+-	.error_handler	= ali_early_error_handler,
 +	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_unknown,
++	.cable_detect	= ata_cable_40wire,
  
  	.qc_prep 	= ata_qc_prep,
  	.qc_issue	= ata_qc_issue_prot,
+@@ -400,8 +348,9 @@ static struct ata_port_operations ali_20
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_early_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -438,8 +387,9 @@ static struct ata_port_operations ali_c2
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_c2_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ali_c2_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -475,8 +425,9 @@ static struct ata_port_operations ali_c5
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_c2_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ali_c2_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
