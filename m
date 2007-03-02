@@ -1,66 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - fix-memory-leak-dma_declare_coherent_memory.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:07:25 -0800
-Message-ID: <200703020507.l2257P0X000874@shell0.pdx.osdl.net>
+Subject: - vm-invalidate_inode_pages2_range-should-not-exit-early.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:07:37 -0800
+Message-ID: <200703020507.l2257bj4000884@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42390 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42407 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422764AbXCBFHa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:07:30 -0500
+	id S1422764AbXCBFHk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:07:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yoichi_yuasa@tripeaks.co.jp, mm-commits@vger.kernel.org
+To: Trond.Myklebust@netapp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix memory leak in dma_declare_coherent_memory()
+     VM: invalidate_inode_pages2_range() should not exit early
 has been removed from the -mm tree.  Its filename was
-     fix-memory-leak-dma_declare_coherent_memory.patch
+     vm-invalidate_inode_pages2_range-should-not-exit-early.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix memory leak in dma_declare_coherent_memory()
-From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Subject: VM: invalidate_inode_pages2_range() should not exit early
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
 
-When it goes to free1_out, dev->dma_mem has not been freed.
+Fix invalidate_inode_pages2_range() so that it does not immediately exit
+just because a single page in the specified range could not be removed.
 
-Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/drivers/pci/dma.c |    2 +-
- arch/i386/kernel/pci-dma.c           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/truncate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/cris/arch-v32/drivers/pci/dma.c~fix-memory-leak-dma_declare_coherent_memory arch/cris/arch-v32/drivers/pci/dma.c
---- a/arch/cris/arch-v32/drivers/pci/dma.c~fix-memory-leak-dma_declare_coherent_memory
-+++ a/arch/cris/arch-v32/drivers/pci/dma.c
-@@ -111,7 +111,7 @@ int dma_declare_coherent_memory(struct d
- 	return DMA_MEMORY_IO;
+diff -puN mm/truncate.c~vm-invalidate_inode_pages2_range-should-not-exit-early mm/truncate.c
+--- a/mm/truncate.c~vm-invalidate_inode_pages2_range-should-not-exit-early
++++ a/mm/truncate.c
+@@ -375,10 +375,10 @@ int invalidate_inode_pages2_range(struct
  
-  free1_out:
--	kfree(dev->dma_mem->bitmap);
-+	kfree(dev->dma_mem);
-  out:
- 	return 0;
- }
-diff -puN arch/i386/kernel/pci-dma.c~fix-memory-leak-dma_declare_coherent_memory arch/i386/kernel/pci-dma.c
---- a/arch/i386/kernel/pci-dma.c~fix-memory-leak-dma_declare_coherent_memory
-+++ a/arch/i386/kernel/pci-dma.c
-@@ -110,7 +110,7 @@ int dma_declare_coherent_memory(struct d
- 	return DMA_MEMORY_IO;
+ 	pagevec_init(&pvec, 0);
+ 	next = start;
+-	while (next <= end && !ret && !wrapped &&
++	while (next <= end && !wrapped &&
+ 		pagevec_lookup(&pvec, mapping, next,
+ 			min(end - next, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
+-		for (i = 0; !ret && i < pagevec_count(&pvec); i++) {
++		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 			pgoff_t page_index;
  
-  free1_out:
--	kfree(dev->dma_mem->bitmap);
-+	kfree(dev->dma_mem);
-  out:
- 	if (mem_base)
- 		iounmap(mem_base);
 _
 
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
 
 origin.patch
-git-input.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+nfs-kill-the-obsolete-nfs_paranoia.patch
+nfs-nfs_getattr-cant-call-nfs_sync_mapping_range-for-non-regular-files.patch
