@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dz-remove-struct-pt_regs-references.patch added to -mm tree
-Date: Thu, 01 Mar 2007 16:39:05 -0800
-Message-ID: <200703020039.l220d5LS027672@shell0.pdx.osdl.net>
+Subject: + freezer-remove-pf_nofreeze-from-bluetooth-threads.patch added to -mm tree
+Date: Thu, 01 Mar 2007 16:55:32 -0800
+Message-ID: <200703020055.l220tWtu028047@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59907 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60843 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422658AbXCBAmW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 19:42:22 -0500
+	id S1422667AbXCBA4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 19:56:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org
+Cc: rjw@sisk.pl, aneesh.kumar@gmail.com, ego@in.ibm.com, marcel@holtmann.org, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, pavel@ucw.cz, vatsa@in.ibm.com
 
 
 The patch titled
-     dz: remove struct pt_regs references
+     freezer: remove PF_NOFREEZE from bluetooth threads
 has been added to the -mm tree.  Its filename is
-     dz-remove-struct-pt_regs-references.patch
+     freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,60 +25,147 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dz: remove struct pt_regs references
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: freezer: remove PF_NOFREEZE from bluetooth threads
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Remove remaining references to saved registers now that
-uart_handle_sysrq_char() does not want them.
+Remove PF_NOFREEZE from the bluetooth threads, adding try_to_freeze() calls as
+required.
 
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Marcel Holtmann <marcel@holtmann.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Aneesh Kumar <aneesh.kumar@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/dz.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ net/bluetooth/bnep/core.c   |    4 +++-
+ net/bluetooth/cmtp/core.c   |    4 +++-
+ net/bluetooth/hidp/core.c   |    4 +++-
+ net/bluetooth/rfcomm/core.c |    4 +++-
+ 4 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/dz.c~dz-remove-struct-pt_regs-references drivers/serial/dz.c
---- a/drivers/serial/dz.c~dz-remove-struct-pt_regs-references
-+++ a/drivers/serial/dz.c
-@@ -170,8 +170,7 @@ static void dz_enable_ms(struct uart_por
-  * This routine deals with inputs from any lines.
-  * ------------------------------------------------------------
-  */
--static inline void dz_receive_chars(struct dz_port *dport_in,
--				    struct pt_regs *regs)
-+static inline void dz_receive_chars(struct dz_port *dport_in)
- {
- 	struct dz_port *dport;
- 	struct tty_struct *tty = NULL;
-@@ -226,7 +225,7 @@ static inline void dz_receive_chars(stru
- 			break;
- 		}
+diff -puN net/bluetooth/bnep/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads net/bluetooth/bnep/core.c
+--- a/net/bluetooth/bnep/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads
++++ a/net/bluetooth/bnep/core.c
+@@ -39,6 +39,7 @@
+ #include <linux/errno.h>
+ #include <linux/smp_lock.h>
+ #include <linux/net.h>
++#include <linux/freezer.h>
+ #include <net/sock.h>
  
--		if (uart_handle_sysrq_char(&dport->port, ch, regs))
-+		if (uart_handle_sysrq_char(&dport->port, ch))
- 			continue;
+ #include <linux/socket.h>
+@@ -473,11 +474,12 @@ static int bnep_session(void *arg)
  
- 		if ((status & dport->port.ignore_status_mask) == 0) {
-@@ -332,7 +331,7 @@ static irqreturn_t dz_interrupt(int irq,
- 	status = dz_in(dport, DZ_CSR);
+ 	daemonize("kbnepd %s", dev->name);
+ 	set_user_nice(current, -15);
+-	current->flags |= PF_NOFREEZE;
  
- 	if ((status & (DZ_RDONE | DZ_RIE)) == (DZ_RDONE | DZ_RIE))
--		dz_receive_chars(dport, regs);
-+		dz_receive_chars(dport);
+ 	init_waitqueue_entry(&wait, current);
+ 	add_wait_queue(sk->sk_sleep, &wait);
+ 	while (!atomic_read(&s->killed)) {
++		try_to_freeze();
++
+ 		set_current_state(TASK_INTERRUPTIBLE);
  
- 	if ((status & (DZ_TRDY | DZ_TIE)) == (DZ_TRDY | DZ_TIE))
- 		dz_transmit_chars(dport);
+ 		// RX
+diff -puN net/bluetooth/cmtp/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads net/bluetooth/cmtp/core.c
+--- a/net/bluetooth/cmtp/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads
++++ a/net/bluetooth/cmtp/core.c
+@@ -34,6 +34,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/file.h>
+ #include <linux/init.h>
++#include <linux/freezer.h>
+ #include <net/sock.h>
+ 
+ #include <linux/isdn/capilli.h>
+@@ -287,11 +288,12 @@ static int cmtp_session(void *arg)
+ 
+ 	daemonize("kcmtpd_ctr_%d", session->num);
+ 	set_user_nice(current, -15);
+-	current->flags |= PF_NOFREEZE;
+ 
+ 	init_waitqueue_entry(&wait, current);
+ 	add_wait_queue(sk->sk_sleep, &wait);
+ 	while (!atomic_read(&session->terminate)) {
++		try_to_freeze();
++
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 		if (sk->sk_state != BT_CONNECTED)
+diff -puN net/bluetooth/hidp/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads net/bluetooth/hidp/core.c
+--- a/net/bluetooth/hidp/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads
++++ a/net/bluetooth/hidp/core.c
+@@ -35,6 +35,7 @@
+ #include <linux/file.h>
+ #include <linux/init.h>
+ #include <linux/wait.h>
++#include <linux/freezer.h>
+ #include <net/sock.h>
+ 
+ #include <linux/input.h>
+@@ -547,13 +548,14 @@ static int hidp_session(void *arg)
+ 
+ 	daemonize("khidpd_%04x%04x", vendor, product);
+ 	set_user_nice(current, -15);
+-	current->flags |= PF_NOFREEZE;
+ 
+ 	init_waitqueue_entry(&ctrl_wait, current);
+ 	init_waitqueue_entry(&intr_wait, current);
+ 	add_wait_queue(ctrl_sk->sk_sleep, &ctrl_wait);
+ 	add_wait_queue(intr_sk->sk_sleep, &intr_wait);
+ 	while (!atomic_read(&session->terminate)) {
++		try_to_freeze();
++
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 		if (ctrl_sk->sk_state != BT_CONNECTED || intr_sk->sk_state != BT_CONNECTED)
+diff -puN net/bluetooth/rfcomm/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads net/bluetooth/rfcomm/core.c
+--- a/net/bluetooth/rfcomm/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads
++++ a/net/bluetooth/rfcomm/core.c
+@@ -37,6 +37,7 @@
+ #include <linux/device.h>
+ #include <linux/net.h>
+ #include <linux/mutex.h>
++#include <linux/freezer.h>
+ 
+ #include <net/sock.h>
+ #include <asm/uaccess.h>
+@@ -1851,6 +1852,8 @@ static void rfcomm_worker(void)
+ 	BT_DBG("");
+ 
+ 	while (!atomic_read(&terminate)) {
++		try_to_freeze();
++
+ 		if (!test_bit(RFCOMM_SCHED_WAKEUP, &rfcomm_event)) {
+ 			/* No pending events. Let's sleep.
+ 			 * Incoming connections and data will wake us up. */
+@@ -1937,7 +1940,6 @@ static int rfcomm_run(void *unused)
+ 
+ 	daemonize("krfcommd");
+ 	set_user_nice(current, -10);
+-	current->flags |= PF_NOFREEZE;
+ 
+ 	BT_DBG("");
+ 
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-tgafb-turbochannel-support.patch
-dz-remove-struct-pt_regs-references.patch
+make-xfs-workqueues-nonfreezable.patch
+fix-refrigerator-vs-thaw_process-race.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+shrink_slab-handle-bad-shrinkers.patch
