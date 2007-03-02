@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-the-apic-to-determine-the-hardware-processor-id-i386-fix.patch added to -mm tree
-Date: Fri, 02 Mar 2007 14:10:58 -0800
-Message-ID: <200703022210.l22MAw9J020518@shell0.pdx.osdl.net>
+Subject: + fix-nmi-appears-to-be-stuck.patch added to -mm tree
+Date: Fri, 02 Mar 2007 14:15:40 -0800
+Message-ID: <200703022215.l22MFhrK020633@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43128 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43392 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030573AbXCBWLC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 17:11:02 -0500
+	id S1030599AbXCBWPy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 17:15:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fernando@oss.ntt.co.jp
+Cc: tglx@linutronix.de, ak@suse.de, mingo@elte.hu
 
 
 The patch titled
-     hard_smp_processor_id definition for UP systems without APIC (i386)
+     fix "NMI appears to be stuck"
 has been added to the -mm tree.  Its filename is
-     use-the-apic-to-determine-the-hardware-processor-id-i386-fix.patch
+     fix-nmi-appears-to-be-stuck.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hard_smp_processor_id definition for UP systems without APIC (i386)
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: fix "NMI appears to be stuck"
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Provide hard_smp_processor_id definition also for non apic case.
+  Testing NMI watchdog ... CPU#0: NMI appears to be stuck (54->54)!
+  CPU#1: NMI appears to be stuck (0->0)!
 
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Keep the PIT/HPET alive when nmi_watchdog = 1 is given on the command
+line.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/smp.h |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ arch/i386/kernel/apic.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-i386/smp.h~use-the-apic-to-determine-the-hardware-processor-id-i386-fix include/asm-i386/smp.h
---- a/include/asm-i386/smp.h~use-the-apic-to-determine-the-hardware-processor-id-i386-fix
-+++ a/include/asm-i386/smp.h
-@@ -90,6 +90,7 @@ extern unsigned int num_processors;
- #ifndef __ASSEMBLY__
+diff -puN arch/i386/kernel/apic.c~fix-nmi-appears-to-be-stuck arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~fix-nmi-appears-to-be-stuck
++++ a/arch/i386/kernel/apic.c
+@@ -493,8 +493,15 @@ void __init setup_boot_APIC_clock(void)
+ 		/* No broadcast on UP ! */
+ 		if (num_possible_cpus() == 1)
+ 			return;
+-	} else
+-		lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
++	} else {
++		/*
++		 * If nmi_watchdog is set to IO_APIC, we need the
++		 * PIT/HPET going. So we register lapic as a dummy
++		 * device.
++		 */
++		if (nmi_watchdog != NMI_IO_APIC)
++			lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
++	}
  
- #ifdef CONFIG_X86_LOCAL_APIC
-+
- #ifdef APIC_DEFINITION
- extern int hard_smp_processor_id(void);
- #else
-@@ -100,6 +101,13 @@ static inline int hard_smp_processor_id(
- 	return GET_APIC_ID(*(unsigned long *)(APIC_BASE+APIC_ID));
- }
- #endif /* APIC_DEFINITION */
-+
-+#else /* CONFIG_X86_LOCAL_APIC */
-+
-+#ifndef CONFIG_SMP
-+#define hard_smp_processor_id()		0
-+#endif
-+
- #endif /* CONFIG_X86_LOCAL_APIC */
- 
- extern u8 apicid_2_node[];
+ 	/* Setup the lapic or request the broadcast */
+ 	setup_APIC_timer();
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386-fix.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor.patch
+origin.patch
+fix-nmi-appears-to-be-stuck.patch
+git-block.patch
+log-reason-why-tsc-was-marked-unstable.patch
+timer-run-calc_load-halfway-through-each-round_jiffies.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
