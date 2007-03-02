@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch added to -mm tree
-Date: Fri, 02 Mar 2007 13:41:25 -0800
-Message-ID: <200703022141.l22LfPAs019746@shell0.pdx.osdl.net>
+Subject: + split-the-free-lists-for-movable-and-unmovable-allocations.patch added to -mm tree
+Date: Fri, 02 Mar 2007 13:41:31 -0800
+Message-ID: <200703022141.l22LfWTY019759@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42029 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42044 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087AbXCBVlc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 16:41:32 -0500
+	id S1751112AbXCBVlh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 16:41:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mel@csn.ul.ie
 
 
 The patch titled
-     Add a bitmap that is used to track flags affecting a block of pages
+     Split the free lists for movable and unmovable allocations
 has been added to the -mm tree.  Its filename is
-     add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+     split-the-free-lists-for-movable-and-unmovable-allocations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,388 +25,339 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add a bitmap that is used to track flags affecting a block of pages
+Subject: Split the free lists for movable and unmovable allocations
 From: Mel Gorman <mel@csn.ul.ie>
 
-Here is the latest revision of the anti-fragmentation patches.  Of particular
-note in this version is special treatment of high-order atomic allocations. 
-Care is taken to group them together and avoid grouping pages of other types
-near them.  Artifical tests imply that it works.  I'm trying to get the
-hardware together that would allow setting up of a "real" test.  If anyone
-already has a setup and test that can trigger the atomic-allocation problem,
-I'd appreciate a test of these patches and a report.  The second major change
-is that these patches will apply cleanly with patches that implement
-anti-fragmentation through zones.
-
-kernbench shows effectively no performance difference varying between -0.2%
-and +2% on a variety of test machines.  Success rates for huge page allocation
-are dramatically increased.  For example, on a ppc64 machine, the vanilla
-kernel was only able to allocate 1% of memory as a hugepage and this was due
-to a single hugepage reserved as min_free_kbytes.  With these patches applied,
-17% was allocatable as superpages.  With reclaim-related fixes from Andy
-Whitcroft, it was 40% and further reclaim-related improvements should increase
-this further.
-
-Changelog Since V28
-o Group high-order atomic allocations together
-o It is no longer required to set min_free_kbytes to 10% of memory. A value
-  of 16384 in most cases will be sufficient
-o Now applied with zone-based anti-fragmentation
-o Fix incorrect VM_BUG_ON within buffered_rmqueue()
-o Reorder the stack so later patches do not back out work from earlier patches
-o Fix bug were journal pages were being treated as movable
-o Bias placement of non-movable pages to lower PFNs
-o More agressive clustering of reclaimable pages in reactions to workloads
-  like updatedb that flood the size of inode caches
-
-Changelog Since V27
-
-o Renamed anti-fragmentation to Page Clustering. Anti-fragmentation was giving
-  the mistaken impression that it was the 100% solution for high order
-  allocations. Instead, it greatly increases the chances high-order
-  allocations will succeed and lays the foundation for defragmentation and
-  memory hot-remove to work properly
-o Redefine page groupings based on ability to migrate or reclaim instead of
-  basing on reclaimability alone
-o Get rid of spurious inits
-o Per-cpu lists are no longer split up per-type. Instead the per-cpu list is
-  searched for a page of the appropriate type
-o Added more explanation commentary
-o Fix up bug in pageblock code where bitmap was used before being initalised
-
-Changelog Since V26
-o Fix double init of lists in setup_pageset
-
-Changelog Since V25
-o Fix loop order of for_each_rclmtype_order so that order of loop matches args
-o gfpflags_to_rclmtype uses gfp_t instead of unsigned long
-o Rename get_pageblock_type() to get_page_rclmtype()
-o Fix alignment problem in move_freepages()
-o Add mechanism for assigning flags to blocks of pages instead of page->flags
-o On fallback, do not examine the preferred list of free pages a second time
-
-The purpose of these patches is to reduce external fragmentation by grouping
-pages of related types together.  When pages are migrated (or reclaimed under
-memory pressure), large contiguous pages will be freed.  
-
-This patch works by categorising allocations by their ability to migrate;
-
-Movable - The pages may be moved with the page migration mechanism. These are
-	generally userspace pages. 
-
-Reclaimable - These are allocations for some kernel caches that are
-	reclaimable or allocations that are known to be very short-lived.
-
-Unmovable - These are pages that are allocated by the kernel that
-	are not trivially reclaimed. For example, the memory allocated for a
-	loaded module would be in this category. By default, allocations are
-	considered to be of this type
-
-HighAtomic - These are high-order allocations belonging to callers that
-	cannot sleep or perform any IO. In practice, this is restricted to
-	jumbo frame allocation for network receive. It is assumed that the
-	allocations are short-lived
-
-Instead of having one MAX_ORDER-sized array of free lists in struct free_area,
-there is one for each type of reclaimability.  Once a 2^MAX_ORDER block of
-pages is split for a type of allocation, it is added to the free-lists for
-that type, in effect reserving it.  Hence, over time, pages of the different
-types can be clustered together.
-
-When the preferred freelists are expired, the largest possible block is taken
-from an alternative list.  Buddies that are split from that large block are
-placed on the preferred allocation-type freelists to mitigate fragmentation.
-
-This implementation gives best-effort for low fragmentation in all zones. 
-Ideally, min_free_kbytes needs to be set to a value equal to 4 * (1 <<
-(MAX_ORDER-1)) pages in most cases.  This would be 16384 on x86 and x86_64 for
-example.
-
-Our tests show that about 60-70% of physical memory can be allocated on a
-desktop after a few days uptime.  In benchmarks and stress tests, we are
-finding that 80% of memory is available as contiguous blocks at the end of the
-test.  To compare, a standard kernel was getting < 1% of memory as large pages
-on a desktop and about 8-12% of memory as large pages at the end of stress
-tests.
-
-Following this email are 12 patches that implement thie page grouping feature.
- The first patch introduces a mechanism for storing flags related to a whole
-block of pages.  Then allocations are split between movable and all other
-allocations.  Following that are patches to deal with per-cpu pages and make
-the mechanism configurable.  The next patch moves free pages between lists
-when partially allocated blocks are used for pages of another migrate type. 
-The second last patch groups reclaimable kernel allocations such as inode
-caches together.  The final patch related to groupings keeps high-order atomic
-allocations.
-
-The last two patches are more concerned with control of fragmentation.  The
-second last patch biases placement of non-movable allocations towards the
-start of memory.  This is with a view of supporting memory hot-remove of DIMMs
-with higher PFNs in the future.  The biasing could be enforced a lot heavier
-but it would cost.  The last patch agressively clusters reclaimable pages like
-inode caches together.
-
-
-
-
-The fragmentation reduction strategy needs to track if pages within a block
-can be moved or reclaimed so that pages are freed to the appropriate list. 
-This patch adds a bitmap for flags affecting a whole a MAX_ORDER block of
-pages.
-
-In non-SPARSEMEM configurations, the bitmap is stored in the struct zone and
-allocated during initialisation.  SPARSEMEM statically allocates the bitmap in
-a struct mem_section so that bitmaps do not have to be resized during memory
-hotadd.  This wastes a small amount of memory per unused section (usually
-sizeof(unsigned long)) but the complexity of dynamically allocating the memory
-is quite high.
-
-Additional credit to Andy Whitcroft who reviewed up an earlier implementation
-of the mechanism an suggested how to make it a *lot* cleaner.
+This patch adds the core of the fragmentation reduction strategy.  It works by
+grouping pages together based on their ability to migrate or be reclaimed. 
+Basically, it works by breaking the list in zone->free_area list into
+MIGRATE_TYPES number of lists.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h          |   13 +++
- include/linux/pageblock-flags.h |   51 +++++++++++++
- mm/page_alloc.c                 |  113 ++++++++++++++++++++++++++++++
- 3 files changed, 177 insertions(+)
+ include/linux/mmzone.h          |   10 +-
+ include/linux/pageblock-flags.h |    1 
+ mm/page_alloc.c                 |  140 +++++++++++++++++++++++++-----
+ 3 files changed, 127 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/mmzone.h~add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages include/linux/mmzone.h
---- a/include/linux/mmzone.h~add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages
+diff -puN include/linux/mmzone.h~split-the-free-lists-for-movable-and-unmovable-allocations include/linux/mmzone.h
+--- a/include/linux/mmzone.h~split-the-free-lists-for-movable-and-unmovable-allocations
 +++ a/include/linux/mmzone.h
-@@ -13,6 +13,7 @@
- #include <linux/init.h>
- #include <linux/seqlock.h>
- #include <linux/nodemask.h>
-+#include <linux/pageblock-flags.h>
- #include <asm/atomic.h>
- #include <asm/page.h>
- 
-@@ -209,6 +210,14 @@ struct zone {
+@@ -25,8 +25,16 @@
  #endif
- 	struct free_area	free_area[MAX_ORDER];
+ #define MAX_ORDER_NR_PAGES (1 << (MAX_ORDER - 1))
  
-+#ifndef CONFIG_SPARSEMEM
-+	/*
-+	 * Flags for a MAX_ORDER_NR_PAGES block. See pageblock-flags.h.
-+	 * In SPARSEMEM, this map is stored in struct mem_section
-+	 */
-+	unsigned long		*pageblock_flags;
-+#endif /* CONFIG_SPARSEMEM */
++#define MIGRATE_UNMOVABLE     0
++#define MIGRATE_MOVABLE       1
++#define MIGRATE_TYPES         2
 +
- 
- 	ZONE_PADDING(_pad1_)
- 
-@@ -658,6 +667,9 @@ extern struct zone *next_zone(struct zon
- #define PAGES_PER_SECTION       (1UL << PFN_SECTION_SHIFT)
- #define PAGE_SECTION_MASK	(~(PAGES_PER_SECTION-1))
- 
-+#define SECTION_BLOCKFLAGS_BITS \
-+		((SECTION_SIZE_BITS - (MAX_ORDER-1)) * NR_PAGEBLOCK_BITS)
++#define for_each_migratetype_order(order, type) \
++	for (order = 0; order < MAX_ORDER; order++) \
++		for (type = 0; type < MIGRATE_TYPES; type++)
 +
- #if (MAX_ORDER - 1 + PAGE_SHIFT) > SECTION_SIZE_BITS
- #error Allocator MAX_ORDER exceeds SECTION_SIZE
- #endif
-@@ -677,6 +689,7 @@ struct mem_section {
- 	 * before using it wrong.
- 	 */
- 	unsigned long section_mem_map;
-+	DECLARE_BITMAP(pageblock_flags, SECTION_BLOCKFLAGS_BITS);
+ struct free_area {
+-	struct list_head	free_list;
++	struct list_head	free_list[MIGRATE_TYPES];
+ 	unsigned long		nr_free;
  };
  
- #ifdef CONFIG_SPARSEMEM_EXTREME
-diff -puN include/linux/pageblock-flags.h~add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages include/linux/pageblock-flags.h
---- a/include/linux/pageblock-flags.h~add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages
+diff -puN include/linux/pageblock-flags.h~split-the-free-lists-for-movable-and-unmovable-allocations include/linux/pageblock-flags.h
+--- a/include/linux/pageblock-flags.h~split-the-free-lists-for-movable-and-unmovable-allocations
 +++ a/include/linux/pageblock-flags.h
-@@ -0,0 +1,51 @@
-+/*
-+ * Macros for manipulating and testing flags related to a
-+ * MAX_ORDER_NR_PAGES block of pages.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation version 2 of the License
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-+ *
-+ * Copyright (C) IBM Corporation, 2006
-+ *
-+ * Original author, Mel Gorman
-+ * Major cleanups and reduction of bit operations, Andy Whitcroft
-+ */
-+#ifndef PAGEBLOCK_FLAGS_H
-+#define PAGEBLOCK_FLAGS_H
-+
-+#include <linux/types.h>
-+
-+/* Macro to aid the definition of ranges of bits */
-+#define PB_range(name, required_bits) \
-+	name, name ## _end = (name + required_bits) - 1
-+
-+/* Bit indices that affect a whole block of pages */
-+enum pageblock_bits {
-+	NR_PAGEBLOCK_BITS
-+};
-+
-+/* Forward declaration */
-+struct page;
-+
-+/* Declarations for getting and setting flags. See mm/page_alloc.c */
-+unsigned long get_pageblock_flags_group(struct page *page,
-+					int start_bitidx, int end_bitidx);
-+void set_pageblock_flags_group(struct page *page, unsigned long flags,
-+					int start_bitidx, int end_bitidx);
-+
-+#define get_pageblock_flags(page) \
-+			get_pageblock_flags_group(page, 0, NR_PAGEBLOCK_BITS-1)
-+#define set_pageblock_flags(page) \
-+			set_pageblock_flags_group(page, 0, NR_PAGEBLOCK_BITS-1)
-+
-+#endif	/* PAGEBLOCK_FLAGS_H */
-diff -puN mm/page_alloc.c~add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages mm/page_alloc.c
---- a/mm/page_alloc.c~add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages
+@@ -31,6 +31,7 @@
+ 
+ /* Bit indices that affect a whole block of pages */
+ enum pageblock_bits {
++	PB_range(PB_migrate, 1), /* 1 bit required for migrate types */
+ 	NR_PAGEBLOCK_BITS
+ };
+ 
+diff -puN mm/page_alloc.c~split-the-free-lists-for-movable-and-unmovable-allocations mm/page_alloc.c
+--- a/mm/page_alloc.c~split-the-free-lists-for-movable-and-unmovable-allocations
 +++ a/mm/page_alloc.c
-@@ -2607,6 +2607,41 @@ static void __init calculate_node_totalp
- 							realtotalpages);
+@@ -136,6 +136,22 @@ static unsigned long __initdata dma_rese
+ #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
+ #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
+ 
++static inline int get_pageblock_migratetype(struct page *page)
++{
++	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
++}
++
++static void set_pageblock_migratetype(struct page *page, int migratetype)
++{
++	set_pageblock_flags_group(page, (unsigned long)migratetype,
++					PB_migrate, PB_migrate_end);
++}
++
++static inline int gfpflags_to_migratetype(gfp_t gfp_flags)
++{
++	return ((gfp_flags & __GFP_MOVABLE) != 0);
++}
++
+ #ifdef CONFIG_DEBUG_VM
+ static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
+ {
+@@ -391,6 +407,7 @@ static inline void __free_one_page(struc
+ {
+ 	unsigned long page_idx;
+ 	int order_size = 1 << order;
++	int migratetype = get_pageblock_migratetype(page);
+ 
+ 	if (unlikely(PageCompound(page)))
+ 		destroy_compound_page(page, order);
+@@ -403,7 +420,6 @@ static inline void __free_one_page(struc
+ 	__mod_zone_page_state(zone, NR_FREE_PAGES, order_size);
+ 	while (order < MAX_ORDER-1) {
+ 		unsigned long combined_idx;
+-		struct free_area *area;
+ 		struct page *buddy;
+ 
+ 		buddy = __page_find_buddy(page, page_idx, order);
+@@ -411,8 +427,7 @@ static inline void __free_one_page(struc
+ 			break;		/* Move the buddy up one level. */
+ 
+ 		list_del(&buddy->lru);
+-		area = zone->free_area + order;
+-		area->nr_free--;
++		zone->free_area[order].nr_free--;
+ 		rmv_page_order(buddy);
+ 		combined_idx = __find_combined_index(page_idx, order);
+ 		page = page + (combined_idx - page_idx);
+@@ -420,7 +435,8 @@ static inline void __free_one_page(struc
+ 		order++;
+ 	}
+ 	set_page_order(page, order);
+-	list_add(&page->lru, &zone->free_area[order].free_list);
++	list_add(&page->lru,
++		&zone->free_area[order].free_list[migratetype]);
+ 	zone->free_area[order].nr_free++;
  }
  
-+#ifndef CONFIG_SPARSEMEM
+@@ -560,7 +576,8 @@ void fastcall __init __free_pages_bootme
+  * -- wli
+  */
+ static inline void expand(struct zone *zone, struct page *page,
+- 	int low, int high, struct free_area *area)
++	int low, int high, struct free_area *area,
++	int migratetype)
+ {
+ 	unsigned long size = 1 << high;
+ 
+@@ -569,7 +586,7 @@ static inline void expand(struct zone *z
+ 		high--;
+ 		size >>= 1;
+ 		VM_BUG_ON(bad_range(zone, &page[size]));
+-		list_add(&page[size].lru, &area->free_list);
++		list_add(&page[size].lru, &area->free_list[migratetype]);
+ 		area->nr_free++;
+ 		set_page_order(&page[size], high);
+ 	}
+@@ -623,31 +640,95 @@ static int prep_new_page(struct page *pa
+ 	return 0;
+ }
+ 
 +/*
-+ * Calculate the size of the zone->blockflags rounded to an unsigned long
-+ * Start by making sure zonesize is a multiple of MAX_ORDER-1 by rounding up
-+ * Then figure 1 NR_PAGEBLOCK_BITS worth of bits per MAX_ORDER-1, finally
-+ * round what is now in bits to nearest long in bits, then return it in
-+ * bytes.
++ * This array describes the order lists are fallen back to when
++ * the free lists for the desirable migrate type are depleted
 + */
-+static unsigned long __init usemap_size(unsigned long zonesize)
++static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
++	[MIGRATE_UNMOVABLE] = { MIGRATE_MOVABLE   },
++	[MIGRATE_MOVABLE]   = { MIGRATE_UNMOVABLE },
++};
++
++/* Remove an element from the buddy allocator from the fallback list */
++static struct page *__rmqueue_fallback(struct zone *zone, int order,
++						int start_migratetype)
 +{
-+	unsigned long usemapsize;
++	struct free_area * area;
++	int current_order;
++	struct page *page;
++	int migratetype, i;
 +
-+	usemapsize = roundup(zonesize, MAX_ORDER_NR_PAGES);
-+	usemapsize = usemapsize >> (MAX_ORDER-1);
-+	usemapsize *= NR_PAGEBLOCK_BITS;
-+	usemapsize = roundup(usemapsize, 8 * sizeof(unsigned long));
++	/* Find the largest possible block of pages in the other list */
++	for (current_order = MAX_ORDER-1; current_order >= order;
++						--current_order) {
++		for (i = 0; i < MIGRATE_TYPES - 1; i++) {
++			migratetype = fallbacks[start_migratetype][i];
 +
-+	return usemapsize / 8;
-+}
++			area = &(zone->free_area[current_order]);
++			if (list_empty(&area->free_list[migratetype]))
++				continue;
 +
-+static void __init setup_usemap(struct pglist_data *pgdat,
-+				struct zone *zone, unsigned long zonesize)
-+{
-+	unsigned long usemapsize = usemap_size(zonesize);
-+	zone->pageblock_flags = NULL;
-+	if (usemapsize) {
-+		zone->pageblock_flags = alloc_bootmem_node(pgdat, usemapsize);
-+		memset(zone->pageblock_flags, 0, usemapsize);
++			page = list_entry(area->free_list[migratetype].next,
++					struct page, lru);
++			area->nr_free--;
++
++			/*
++			 * If breaking a large block of pages, place the buddies
++			 * on the preferred allocation list
++			 */
++			if (unlikely(current_order >= MAX_ORDER / 2))
++				migratetype = start_migratetype;
++
++			/* Remove the page from the freelists */
++			list_del(&page->lru);
++			rmv_page_order(page);
++			__mod_zone_page_state(zone, NR_FREE_PAGES,
++							-(1UL << order));
++
++			if (current_order == MAX_ORDER - 1)
++				set_pageblock_migratetype(page,
++							start_migratetype);
++
++			expand(zone, page, order, current_order, area, migratetype);
++			return page;
++		}
 +	}
-+}
-+#else
-+static void inline setup_usemap(struct pglist_data *pgdat,
-+				struct zone *zone, unsigned long zonesize) {}
-+#endif /* CONFIG_SPARSEMEM */
 +
- /*
-  * Set up the zone data structures:
-  *   - mark all pages reserved
-@@ -2687,6 +2722,7 @@ static void __meminit free_area_init_cor
- 		if (!size)
++	return NULL;
++}
++
+ /* 
+  * Do the hard work of removing an element from the buddy allocator.
+  * Call me with the zone->lock already held.
+  */
+-static struct page *__rmqueue(struct zone *zone, unsigned int order)
++static struct page *__rmqueue(struct zone *zone, unsigned int order,
++						int migratetype)
+ {
+ 	struct free_area * area;
+ 	unsigned int current_order;
+ 	struct page *page;
+ 
++	/* Find a page of the appropriate size in the preferred list */
+ 	for (current_order = order; current_order < MAX_ORDER; ++current_order) {
+-		area = zone->free_area + current_order;
+-		if (list_empty(&area->free_list))
++		area = &(zone->free_area[current_order]);
++		if (list_empty(&area->free_list[migratetype]))
  			continue;
  
-+		setup_usemap(pgdat, zone, size);
- 		ret = init_currently_empty_zone(zone, zone_start_pfn,
- 						size, MEMMAP_EARLY);
- 		BUG_ON(ret);
-@@ -3398,4 +3434,81 @@ EXPORT_SYMBOL(pfn_to_page);
- EXPORT_SYMBOL(page_to_pfn);
- #endif /* CONFIG_OUT_OF_LINE_PFN_TO_PAGE */
+-		page = list_entry(area->free_list.next, struct page, lru);
++		page = list_entry(area->free_list[migratetype].next,
++							struct page, lru);
+ 		list_del(&page->lru);
+ 		rmv_page_order(page);
+ 		area->nr_free--;
+ 		__mod_zone_page_state(zone, NR_FREE_PAGES, - (1UL << order));
+-		expand(zone, page, order, current_order, area);
+-		return page;
++		expand(zone, page, order, current_order, area, migratetype);
++		goto got_page;
+ 	}
  
-+/* Return a pointer to the bitmap storing bits affecting a block of pages */
-+static inline unsigned long *get_pageblock_bitmap(struct zone *zone,
-+							unsigned long pfn)
-+{
-+#ifdef CONFIG_SPARSEMEM
-+	unsigned long blockpfn;
-+	blockpfn = pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+	return __pfn_to_section(blockpfn)->pageblock_flags;
-+#else
-+	return zone->pageblock_flags;
-+#endif /* CONFIG_SPARSEMEM */
-+}
+-	return NULL;
++	page = __rmqueue_fallback(zone, order, migratetype);
 +
-+static inline int pfn_to_bitidx(struct zone *zone, unsigned long pfn)
-+{
-+#ifdef CONFIG_SPARSEMEM
-+	pfn &= (PAGES_PER_SECTION-1);
-+	return (pfn >> (MAX_ORDER-1)) * NR_PAGEBLOCK_BITS;
-+#else
-+	pfn = pfn - zone->zone_start_pfn;
-+	return (pfn >> (MAX_ORDER-1)) * NR_PAGEBLOCK_BITS;
-+#endif /* CONFIG_SPARSEMEM */
-+}
++got_page:
++
++	return page;
+ }
  
-+/**
-+ * get_pageblock_flags_group - Return the requested group of flags for the MAX_ORDER_NR_PAGES block of pages
-+ * @page: The page within the block of interest
-+ * @start_bitidx: The first bit of interest to retrieve
-+ * @end_bitidx: The last bit of interest
-+ * returns pageblock_bits flags
-+ */
-+unsigned long get_pageblock_flags_group(struct page *page,
-+					int start_bitidx, int end_bitidx)
-+{
-+	struct zone *zone;
-+	unsigned long *bitmap;
-+	unsigned long pfn, bitidx;
-+	unsigned long flags = 0;
-+	unsigned long value = 1;
+ /* 
+@@ -656,13 +737,14 @@ static struct page *__rmqueue(struct zon
+  * Returns the number of new pages which were placed at *list.
+  */
+ static int rmqueue_bulk(struct zone *zone, unsigned int order, 
+-			unsigned long count, struct list_head *list)
++			unsigned long count, struct list_head *list,
++			int migratetype)
+ {
+ 	int i;
+ 	
+ 	spin_lock(&zone->lock);
+ 	for (i = 0; i < count; ++i) {
+-		struct page *page = __rmqueue(zone, order);
++		struct page *page = __rmqueue(zone, order, migratetype);
+ 		if (unlikely(page == NULL))
+ 			break;
+ 		list_add_tail(&page->lru, list);
+@@ -764,7 +846,7 @@ void mark_free_pages(struct zone *zone)
+ {
+ 	unsigned long pfn, max_zone_pfn;
+ 	unsigned long flags;
+-	int order;
++	int order, t;
+ 	struct list_head *curr;
+ 
+ 	if (!zone->spanned_pages)
+@@ -781,14 +863,15 @@ void mark_free_pages(struct zone *zone)
+ 				ClearPageNosaveFree(page);
+ 		}
+ 
+-	for (order = MAX_ORDER - 1; order >= 0; --order)
+-		list_for_each(curr, &zone->free_area[order].free_list) {
++	for_each_migratetype_order(order, t) {
++		list_for_each(curr, &zone->free_area[order].free_list[t]) {
+ 			unsigned long i;
+ 
+ 			pfn = page_to_pfn(list_entry(curr, struct page, lru));
+ 			for (i = 0; i < (1UL << order); i++)
+ 				SetPageNosaveFree(pfn_to_page(pfn + i));
+ 		}
++	}
+ 
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+@@ -878,6 +961,7 @@ static struct page *buffered_rmqueue(str
+ 	struct page *page;
+ 	int cold = !!(gfp_flags & __GFP_COLD);
+ 	int cpu;
++	int migratetype = gfpflags_to_migratetype(gfp_flags);
+ 
+ again:
+ 	cpu  = get_cpu();
+@@ -888,7 +972,7 @@ again:
+ 		local_irq_save(flags);
+ 		if (!pcp->count) {
+ 			pcp->count = rmqueue_bulk(zone, 0,
+-						pcp->batch, &pcp->list);
++					pcp->batch, &pcp->list, migratetype);
+ 			if (unlikely(!pcp->count))
+ 				goto failed;
+ 		}
+@@ -897,7 +981,7 @@ again:
+ 		pcp->count--;
+ 	} else {
+ 		spin_lock_irqsave(&zone->lock, flags);
+-		page = __rmqueue(zone, order);
++		page = __rmqueue(zone, order, migratetype);
+ 		spin_unlock(&zone->lock);
+ 		if (!page)
+ 			goto failed;
+@@ -1978,6 +2062,16 @@ void __meminit memmap_init_zone(unsigned
+ 		init_page_count(page);
+ 		reset_page_mapcount(page);
+ 		SetPageReserved(page);
 +
-+	zone = page_zone(page);
-+	pfn = page_to_pfn(page);
-+	bitmap = get_pageblock_bitmap(zone, pfn);
-+	bitidx = pfn_to_bitidx(zone, pfn);
++		/*
++		 * Mark the block movable so that blocks are reserved for
++		 * movable at startup. This will force kernel allocations
++		 * to reserve their blocks rather than leaking throughout
++		 * the address space during boot when many long-lived
++		 * kernel allocations are made
++		 */
++		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
 +
-+	for (; start_bitidx <= end_bitidx; start_bitidx++, value <<= 1)
-+		if (test_bit(bitidx + start_bitidx, bitmap))
-+			flags |= value;
-+
-+	return flags;
-+}
-+
-+/**
-+ * set_pageblock_flags_group - Set the requested group of flags for a MAX_ORDER_NR_PAGES block of pages
-+ * @page: The page within the block of interest
-+ * @start_bitidx: The first bit of interest
-+ * @end_bitidx: The last bit of interest
-+ * @flags: The flags to set
-+ */
-+void set_pageblock_flags_group(struct page *page, unsigned long flags,
-+					int start_bitidx, int end_bitidx)
-+{
-+	struct zone *zone;
-+	unsigned long *bitmap;
-+	unsigned long pfn, bitidx;
-+	unsigned long value = 1;
-+
-+	zone = page_zone(page);
-+	pfn = page_to_pfn(page);
-+	bitmap = get_pageblock_bitmap(zone, pfn);
-+	bitidx = pfn_to_bitidx(zone, pfn);
-+
-+	for (; start_bitidx <= end_bitidx; start_bitidx++, value <<= 1)
-+		if (flags & value)
-+			__set_bit(bitidx + start_bitidx, bitmap);
-+		else
-+			__clear_bit(bitidx + start_bitidx, bitmap);
-+}
+ 		INIT_LIST_HEAD(&page->lru);
+ #ifdef WANT_PAGE_VIRTUAL
+ 		/* The shift won't overflow because ZONE_NORMAL is below 4G. */
+@@ -1990,9 +2084,9 @@ void __meminit memmap_init_zone(unsigned
+ void zone_init_free_lists(struct pglist_data *pgdat, struct zone *zone,
+ 				unsigned long size)
+ {
+-	int order;
+-	for (order = 0; order < MAX_ORDER ; order++) {
+-		INIT_LIST_HEAD(&zone->free_area[order].free_list);
++	int order, t;
++	for_each_migratetype_order(order, t) {
++		INIT_LIST_HEAD(&zone->free_area[order].free_list[t]);
+ 		zone->free_area[order].nr_free = 0;
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
