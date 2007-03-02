@@ -1,74 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - fix-section-mismatch-warning-in-lockdep.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:06:28 -0800
-Message-ID: <200703020506.l2256SjN000799@shell0.pdx.osdl.net>
+Subject: - tty_io-fix-race-in-master-pty-close-slave-pty-close-path.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:07:28 -0800
+Message-ID: <200703020507.l2257S8s000878@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42432 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42421 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422787AbXCBFH4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:07:56 -0500
+	id S1422775AbXCBFHu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:07:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: aristeu.sergio@gmail.com, aris@ruivo.org, cebbert@redhat.com, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix section mismatch warning in lockdep
+     tty_io: fix race in master pty close/slave pty close path
 has been removed from the -mm tree.  Its filename was
-     fix-section-mismatch-warning-in-lockdep.patch
+     tty_io-fix-race-in-master-pty-close-slave-pty-close-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix section mismatch warning in lockdep
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: tty_io: fix race in master pty close/slave pty close path
+From: Aristeu Sergio Rozanski Filho <aristeu.sergio@gmail.com>
 
-lockdep_init() is marked __init but used in several places
-outside __init code. This causes following warnings:
-$ scripts/mod/modpost kernel/lockdep.o
-WARNING: kernel/built-in.o - Section mismatch: reference to .init.text:lockdep_init from .text.lockdep_init_map after 'lockdep_init_map' (at offset 0x105)
-WARNING: kernel/built-in.o - Section mismatch: reference to .init.text:lockdep_init from .text.lockdep_reset_lock after 'lockdep_reset_lock' (at offset 0x35)
-WARNING: kernel/built-in.o - Section mismatch: reference to .init.text:lockdep_init from .text.__lock_acquire after '__lock_acquire' (at offset 0xb2)
+This patch fixes a possible race that leads to double freeing an idr index.
+ When the master begin to close, release_dev() is called and then
+pty_close() is called:
 
-The warnings are less obviously due to heavy inlining by gcc - this is not
-altered.
+        if (tty->driver->close)
+                tty->driver->close(tty, filp);
 
-Fix the section mismatch warnings by removing the __init marking, which
-seems obviously wrong.
+This is done without helding any locks other than BKL.  Inside pty_close(),
+being a master close, the devpts entry will be removed:
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+#ifdef CONFIG_UNIX98_PTYS
+                if (tty->driver == ptm_driver)
+                        devpts_pty_kill(tty->index);
+#endif
+
+But devpts_pty_kill() will call get_node() that may sleep while waiting for
+&devpts_root->d_inode->i_sem.  When this happens and the slave is being
+opened, tty_open() just found the driver and index:
+
+        driver = get_tty_driver(device, &index);
+        if (!driver) {
+                mutex_unlock(&tty_mutex);
+                return -ENODEV;
+        }
+
+This part of the code is already protected under tty_mute.  The problem is
+that the slave close already got an index.  Then init_dev() is called and
+blocks waiting for the same &devpts_root->d_inode->i_sem.
+
+When the master close resumes, it removes the devpts entry, and the
+relation between idr index and the tty is gone.  The master then sleeps
+waiting for the tty_mutex on release_dev().
+
+Slave open resumes and found no tty for that index.  As result, a NULL tty
+is returned and init_dev() doesn't flow to fast_track:
+
+        /* check whether we're reopening an existing tty */
+        if (driver->flags & TTY_DRIVER_DEVPTS_MEM) {
+                tty = devpts_get_tty(idx);
+                if (tty && driver->subtype == PTY_TYPE_MASTER)
+                        tty = tty->link;
+        } else {
+                tty = driver->ttys[idx];
+        }
+        if (tty) goto fast_track;
+
+The result of this, is that a new tty will be created and init_dev() returns
+sucessfull. After returning, tty_mutex is dropped and master close may resume.
+
+Master close finds it's the only use and both sides are closing, then releases
+the tty and the index. At this point, the idr index is free, but slave still
+has it.
+
+Slave open then calls pty_open() and finds that tty->link->count is 0,
+because there's no master and returns error.  Then tty_open() calls
+release_dev() which executes without any warning, as it was a case of last
+slave close when the master is already closed (master->count == 0,
+slave->count == 1).  The tty is then released with the already released idr
+index.
+
+This normally would only issue a warning on idr_remove() but in case of a
+customer's critical application, it's never too simple:
+
+thread1: opens master, gets index X
+thread1: begin closing master
+thread2: begin opening slave with index X
+thread1: finishes closing master, index X released
+thread3: opens master, gets index X, just released
+thread2: fails opening slave, releases index X         <----
+thread4: opens master, gets index X, init_dev() then find an already in use
+	 and healthy tty and fails
+
+If no more indexes are released, ptmx_open() will keep failing, as the
+first free index available is X, and it will make init_dev() fail because
+you're trying to "reopen a master" which isn't valid.
+
+The patch notices when this race happens and make init_dev() fail
+imediately.  The init_dev() function is called with tty_mutex held, so it's
+safe to continue with tty till the end of function because release_dev()
+won't make any further changes without grabbing the tty_mutex.
+
+Without the patch, on some machines it's possible get easily idr warnings
+like this one:
+
+idr_remove called for id=15 which is not allocated.
+ [<c02555b9>] idr_remove+0x139/0x170
+ [<c02a1b62>] release_mem+0x182/0x230
+ [<c02a28e7>] release_dev+0x4b7/0x700
+ [<c02a0ea7>] tty_ldisc_enable+0x27/0x30
+ [<c02a1e64>] init_dev+0x254/0x580
+ [<c02a0d64>] check_tty_count+0x14/0xb0
+ [<c02a4f05>] tty_open+0x1c5/0x340
+ [<c02a4d40>] tty_open+0x0/0x340
+ [<c017388f>] chrdev_open+0xaf/0x180
+ [<c017c2ac>] open_namei+0x8c/0x760
+ [<c01737e0>] chrdev_open+0x0/0x180
+ [<c0167bc9>] __dentry_open+0xc9/0x210
+ [<c0167e2c>] do_filp_open+0x5c/0x70
+ [<c0167a91>] get_unused_fd+0x61/0xd0
+ [<c0167e93>] do_sys_open+0x53/0x100
+ [<c0167f97>] sys_open+0x27/0x30
+ [<c010303b>] syscall_call+0x7/0xb
+
+using this test application available on:
+ http://www.ruivo.org/~aris/pty_sodomizer.c
+
+Signed-off-by: Aristeu Sergio Rozanski Filho <aris@ruivo.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/tty_io.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN kernel/lockdep.c~fix-section-mismatch-warning-in-lockdep kernel/lockdep.c
---- a/kernel/lockdep.c~fix-section-mismatch-warning-in-lockdep
-+++ a/kernel/lockdep.c
-@@ -2602,7 +2602,7 @@ out_restore:
- 	raw_local_irq_restore(flags);
- }
- 
--void __init lockdep_init(void)
-+void lockdep_init(void)
- {
- 	int i;
- 
+diff -puN drivers/char/tty_io.c~tty_io-fix-race-in-master-pty-close-slave-pty-close-path drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty_io-fix-race-in-master-pty-close-slave-pty-close-path
++++ a/drivers/char/tty_io.c
+@@ -1901,6 +1901,20 @@ static int init_dev(struct tty_driver *d
+ 	/* check whether we're reopening an existing tty */
+ 	if (driver->flags & TTY_DRIVER_DEVPTS_MEM) {
+ 		tty = devpts_get_tty(idx);
++		/*
++		 * If we don't have a tty here on a slave open, it's because
++		 * the master already started the close process and there's
++		 * no relation between devpts file and tty anymore.
++		 */
++		if (!tty && driver->subtype == PTY_TYPE_SLAVE) {
++			retval = -EIO;
++			goto end_init;
++		}
++		/*
++		 * It's safe from now on because init_dev() is called with
++		 * tty_mutex held and release_dev() won't change tty->count
++		 * or tty->flags without having to grab tty_mutex
++		 */
+ 		if (tty && driver->subtype == PTY_TYPE_MASTER)
+ 			tty = tty->link;
+ 	} else {
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from aristeu.sergio@gmail.com are
 
 origin.patch
-kbuild-override-build-timestamp.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-allow-kernel-to-build-on-cygwin.patch
-pcie-fix-section-mismatch-warning.patch
-aer-fix-section-mismatch-warning.patch
-pci-do-not-mark-exported-functions-as-__devinit.patch
-x86_64-fix-section-mismatch-warnings.patch
-fix-section-mismatch-warning-in-lib-swiotlbc.patch
-extend-print_symbol-capability.patch
