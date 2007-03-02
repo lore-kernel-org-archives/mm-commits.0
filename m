@@ -1,355 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 20:57:10 -0800
-Message-ID: <200703020457.l224vAPQ000508@shell0.pdx.osdl.net>
+Subject: - xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 20:57:29 -0800
+Message-ID: <200703020457.l224vTMj000532@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41944 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41994 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422911AbXCBE5T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 23:57:19 -0500
+	id S932572AbXCBE5t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 23:57:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, anthony@codemonkey.ws, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, jeremy@xensource.com, kraxel@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen-paravirt_ops: consistently wrap paravirt ops callsites to make them patchable
+     xen-paravirt_ops: use the hvc console infrastructure for Xen console
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
+     xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch
 
 This patch was dropped because Zach's patches destroyed it all
 
 ------------------------------------------------------
-Subject: xen-paravirt_ops: consistently wrap paravirt ops callsites to make them patchable
+Subject: xen-paravirt_ops: use the hvc console infrastructure for Xen console
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Wrap a set of interesting paravirt_ops calls in a wrapper which makes the
-callsites available for patching.  Unfortunately this is pretty ugly because
-there's no way to get gcc to generate a function call, but also wrap just the
-callsite itself with the necessary labels.
-
-This patch supports functions with 0-4 arguments, and either void or returning
-a value.  64-bit arguments must be split into a pair of 32-bit arguments
-(lower word first).  Small structures are returned in registers.
+Implement a Xen back-end for hvc console.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Zachary Amsden <zach@vmware.com>
-Cc: Anthony Liguori <anthony@codemonkey.ws>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/paravirt.h |  246 +++++++++++++++++++++++++++++++---
- 1 file changed, 229 insertions(+), 17 deletions(-)
+ arch/i386/xen/Kconfig     |    1 
+ arch/i386/xen/events.c    |    3 
+ drivers/Makefile          |    3 
+ drivers/xen/Makefile      |    1 
+ drivers/xen/hvc-console.c |  134 ++++++++++++++++++++++++++++++++++++
+ include/xen/events.h      |    1 
+ 6 files changed, 142 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable
-+++ a/include/asm-i386/paravirt.h
-@@ -33,6 +33,222 @@
- #define paravirt_alt(insn_string)				\
- 	_paravirt_alt(insn_string, "%c[paravirt_typenum]", "%c[paravirt_clobber]")
- 
-+#define PVOP_CALL0(__rettype, __op)					\
-+	({								\
-+		__rettype __ret;					\
-+		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
-+			unsigned long long __tmp;			\
-+			unsigned long __ecx;				\
-+			asm volatile(paravirt_alt("call *%[op]")	\
-+				     : "=A" (__tmp), "=c" (__ecx)	\
-+				     : [op] "m" (paravirt_ops.__op),	\
-+				       paravirt_type(PARAVIRT_PATCH(__op)), \
-+				       paravirt_clobber(CLBR_ANY)	\
-+				     : "memory", "cc");			\
-+			__ret = (__rettype)__tmp;			\
-+		} else {						\
-+			unsigned long __tmp, __edx, __ecx;	\
-+			asm volatile(paravirt_alt("call *%[op]")	\
-+				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
-+				     : [op] "m" (paravirt_ops.__op),	\
-+				       paravirt_type(PARAVIRT_PATCH(__op)), \
-+				       paravirt_clobber(CLBR_ANY)	\
-+				     : "memory", "cc");			\
-+			__ret = (__rettype)__tmp;			\
-+		}							\
-+		__ret;							\
-+	})
-+#define PVOP_VCALL0(__op)						\
-+	({								\
-+		unsigned long __eax, __edx, __ecx;			\
-+		asm volatile(paravirt_alt("call *%[op]")		\
-+			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
-+			     : [op] "m" (paravirt_ops.__op),		\
-+			       paravirt_type(PARAVIRT_PATCH(__op)),	\
-+			       paravirt_clobber(CLBR_ANY)		\
-+			     : "memory", "cc");				\
-+	})
-+
-+#define PVOP_CALL1(__rettype, __op, arg1)				\
-+	({								\
-+		__rettype __ret;					\
-+		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
-+			unsigned long long __tmp;			\
-+			unsigned long __ecx;				\
-+			asm volatile(paravirt_alt("call *%[op]")	\
-+				     : "=A" (__tmp), "=c" (__ecx)	\
-+				     : [op] "m" (paravirt_ops.__op),	\
-+				       "a" ((u32)(arg1)),		\
-+				       paravirt_type(PARAVIRT_PATCH(__op)), \
-+				       paravirt_clobber(CLBR_ANY)	\
-+				     : "memory", "cc");			\
-+			__ret = (__rettype)__tmp;			\
-+		} else {						\
-+			unsigned long __tmp, __edx, __ecx;	\
-+			asm volatile(paravirt_alt("call *%[op]")	\
-+				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
-+				     : [op] "m" (paravirt_ops.__op),	\
-+				       "0" ((u32)(arg1)),		\
-+				       paravirt_type(PARAVIRT_PATCH(__op)), \
-+				       paravirt_clobber(CLBR_ANY)	\
-+				     : "memory", "cc");			\
-+			__ret = (__rettype)__tmp;			\
-+		}							\
-+		__ret;							\
-+	})
-+#define PVOP_VCALL1(__op, arg1)						\
-+	({								\
-+		unsigned long __eax, __edx, __ecx;			\
-+		asm volatile(paravirt_alt("call *%[op]")		\
-+			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
-+			     : [op] "m" (paravirt_ops.__op),		\
-+			       "0" ((u32)(arg1)),			\
-+			       paravirt_type(PARAVIRT_PATCH(__op)),	\
-+			       paravirt_clobber(CLBR_ANY)		\
-+			     : "memory", "cc");				\
-+	})
-+
-+#define PVOP_CALL2(__rettype, __op, arg1, arg2)				\
-+	({								\
-+		__rettype __ret;					\
-+		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
-+			unsigned long long __tmp;			\
-+			unsigned long __ecx;				\
-+			asm volatile(paravirt_alt("call *%[op]")	\
-+				     : "=A" (__tmp), "=c" (__ecx)	\
-+				     : [op] "m" (paravirt_ops.__op),	\
-+				       "a" ((u32)(arg1)),		\
-+				       "d" ((u32)(arg2)),		\
-+				       paravirt_type(PARAVIRT_PATCH(__op)), \
-+				       paravirt_clobber(CLBR_ANY)	\
-+				     : "memory", "cc");			\
-+			__ret = (__rettype)__tmp;			\
-+		} else {						\
-+			unsigned long __tmp, __edx, __ecx;	\
-+			asm volatile(paravirt_alt("call *%[op]")	\
-+				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
-+				     : [op] "m" (paravirt_ops.__op),	\
-+				       "0" ((u32)(arg1)),		\
-+				       "1" ((u32)(arg2)),		\
-+				       paravirt_type(PARAVIRT_PATCH(__op)), \
-+				       paravirt_clobber(CLBR_ANY)	\
-+				     : "memory", "cc");			\
-+			__ret = (__rettype)__tmp;			\
-+		}							\
-+		__ret;							\
-+	})
-+#define PVOP_VCALL2(__op, arg1, arg2)					\
-+	({								\
-+		unsigned long __eax, __edx, __ecx;			\
-+		asm volatile(paravirt_alt("call *%[op]")		\
-+			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
-+			     : [op] "m" (paravirt_ops.__op),		\
-+			       "0" ((u32)(arg1)),			\
-+			       "1" ((u32)(arg2)),			\
-+			       paravirt_type(PARAVIRT_PATCH(__op)),	\
-+			       paravirt_clobber(CLBR_ANY)		\
-+			     : "memory", "cc");				\
-+	})
-+
-+#define PVOP_CALL3(__rettype, __op, arg1, arg2, arg3)			\
-+	({								\
-+		__rettype __ret;					\
-+		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
-+			unsigned long long __tmp;			\
-+			unsigned long __ecx;				\
-+			asm volatile(paravirt_alt("call *%[op]")	\
-+				     : "=A" (__tmp), "=c" (__ecx)	\
-+				     : [op] "m" (paravirt_ops.__op),	\
-+				       "a" ((u32)(arg1)),		\
-+				       "d" ((u32)(arg2)),		\
-+				       "1" ((u32)(arg3)),		\
-+				       paravirt_type(PARAVIRT_PATCH(__op)), \
-+				       paravirt_clobber(CLBR_ANY)	\
-+				     : "memory", "cc");			\
-+			__ret = (__rettype)__tmp;			\
-+		} else {						\
-+			unsigned long __tmp, __edx, __ecx;	\
-+			asm volatile(paravirt_alt("call *%[op]")	\
-+				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
-+				     : [op] "m" (paravirt_ops.__op),	\
-+				       "0" ((u32)(arg1)),		\
-+				       "1" ((u32)(arg2)),		\
-+				       "2" ((u32)(arg3)),		\
-+				       paravirt_type(PARAVIRT_PATCH(__op)), \
-+				       paravirt_clobber(CLBR_ANY)	\
-+				     : "memory", "cc");			\
-+			__ret = (__rettype)__tmp;			\
-+		}							\
-+		__ret;							\
-+	})
-+#define PVOP_VCALL3(__op, arg1, arg2, arg3)				\
-+	({								\
-+		unsigned long __eax, __edx, __ecx;			\
-+		asm volatile(paravirt_alt("call *%[op]")		\
-+			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
-+			     : [op] "m" (paravirt_ops.__op),		\
-+			       "0" ((u32)(arg1)),			\
-+			       "1" ((u32)(arg2)),			\
-+			       "2" ((u32)(arg3)),			\
-+			       paravirt_type(PARAVIRT_PATCH(__op)),	\
-+			       paravirt_clobber(CLBR_ANY)		\
-+			     : "memory", "cc");				\
-+	})
-+
-+#define PVOP_CALL4(__rettype, __op, arg1, arg2, arg3, arg4)		\
-+	({								\
-+		__rettype __ret;					\
-+		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
-+			unsigned long long __tmp;			\
-+			unsigned long __ecx;				\
-+			asm volatile("push %[_arg4]; "			\
-+				     paravirt_alt("call *%[op]")	\
-+				     "lea 4(%%esp),%%esp"		\
-+				     : "=A" (__tmp), "=c" (__ecx)	\
-+				     : [op] "m" (paravirt_ops.__op),	\
-+				       "a" ((u32)(arg1)),		\
-+				       "d" ((u32)(arg2)),		\
-+				       "1" ((u32)(arg3)),		\
-+				       [_arg4] "mr" ((u32)(arg4)),	\
-+				       paravirt_type(PARAVIRT_PATCH(__op)), \
-+				       paravirt_clobber(CLBR_ANY)	\
-+				     : "memory", "cc",);		\
-+			__ret = (__rettype)__tmp;			\
-+		} else {						\
-+			unsigned long __tmp, __edx, __ecx;		\
-+			asm volatile("push %[_arg4]; "			\
-+				     paravirt_alt("call *%[op]")	\
-+				     "lea 4(%%esp),%%esp"		\
-+				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
-+				     : [op] "m" (paravirt_ops.__op),	\
-+				       "0" ((u32)(arg1)),		\
-+				       "1" ((u32)(arg2)),		\
-+				       "2" ((u32)(arg3)),		\
-+				       [_arg4]"mr" ((u32)(arg4)),	\
-+				       paravirt_type(PARAVIRT_PATCH(__op)), \
-+				       paravirt_clobber(CLBR_ANY)	\
-+				     : "memory", "cc");			\
-+			__ret = (__rettype)__tmp;			\
-+		}							\
-+		__ret;							\
-+	})
-+#define PVOP_VCALL4(__op, arg1, arg2, arg3, arg4)			\
-+	({								\
-+		unsigned long __eax, __edx, __ecx;			\
-+		asm volatile("push %[_arg4]; "				\
-+			     paravirt_alt("call *%[op]")		\
-+			     "lea 4(%%esp),%%esp"			\
-+			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
-+			     : [op] "m" (paravirt_ops.__op),		\
-+			       "0" ((u32)(arg1)),			\
-+			       "1" ((u32)(arg2)),			\
-+			       "2" ((u32)(arg3)),			\
-+			       [_arg4]"mr" ((u32)(arg4)),		\
-+			       paravirt_type(PARAVIRT_PATCH(__op)),	\
-+			       paravirt_clobber(CLBR_ANY)		\
-+			     : "memory", "cc");				\
-+	})
-+
- struct thread_struct;
- struct Xgt_desc_struct;
- struct tss_struct;
-@@ -112,14 +328,10 @@ struct paravirt_ops
- 	void (*set_ldt)(const void *desc, unsigned entries);
- 	unsigned long (*store_tr)(void);
- 	void (*load_tls)(struct thread_struct *t, unsigned int cpu);
--	void (*write_ldt_entry)(void *dt, int entrynum,
--					 u32 low, u32 high);
--	void (*write_gdt_entry)(void *dt, int entrynum,
--					 u32 low, u32 high);
--	void (*write_idt_entry)(void *dt, int entrynum,
--					 u32 low, u32 high);
--	void (*load_esp0)(struct tss_struct *tss,
--				   struct thread_struct *thread);
-+	void (*write_ldt_entry)(void *dt, int entrynum, u32 low, u32 high);
-+	void (*write_gdt_entry)(void *dt, int entrynum, u32 low, u32 high);
-+	void (*write_idt_entry)(void *dt, int entrynum, u32 low, u32 high);
-+	void (*load_esp0)(struct tss_struct *tss, struct thread_struct *thread);
- 
- 	void (*set_iopl_mask)(unsigned mask);
- 
-@@ -362,27 +574,27 @@ static inline void slow_down_io(void) {
-  */
- static inline void apic_write(unsigned long reg, unsigned long v)
- {
--	paravirt_ops.apic_write(reg,v);
-+	PVOP_VCALL2(apic_write, reg, v);
+diff -puN arch/i386/xen/Kconfig~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console arch/i386/xen/Kconfig
+--- a/arch/i386/xen/Kconfig~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
++++ a/arch/i386/xen/Kconfig
+@@ -5,6 +5,7 @@
+ config XEN
+ 	bool "Enable support for Xen hypervisor"
+ 	depends on PARAVIRT && HZ_100 && !PREEMPT && !NO_HZ
++	select HVC_DRIVER
+ 	default y
+ 	help
+ 	  This is the Linux Xen port.
+diff -puN arch/i386/xen/events.c~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console arch/i386/xen/events.c
+--- a/arch/i386/xen/events.c~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
++++ a/arch/i386/xen/events.c
+@@ -210,7 +210,7 @@ static int find_unbound_irq(void)
+ 	return irq;
  }
  
- static inline void apic_write_atomic(unsigned long reg, unsigned long v)
+-static int bind_evtchn_to_irq(unsigned int evtchn)
++int bind_evtchn_to_irq(unsigned int evtchn)
  {
--	paravirt_ops.apic_write_atomic(reg,v);
-+	PVOP_VCALL2(apic_write_atomic, reg, v);
- }
+ 	int irq;
  
- static inline unsigned long apic_read(unsigned long reg)
+@@ -234,6 +234,7 @@ static int bind_evtchn_to_irq(unsigned i
+ 
+ 	return irq;
+ }
++EXPORT_SYMBOL_GPL(bind_evtchn_to_irq);
+ 
+ static int bind_virq_to_irq(unsigned int virq, unsigned int cpu)
  {
--	return paravirt_ops.apic_read(reg);
-+	return PVOP_CALL1(unsigned long, apic_read, reg);
- }
+diff -puN drivers/Makefile~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console drivers/Makefile
+--- a/drivers/Makefile~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
++++ a/drivers/Makefile
+@@ -15,6 +15,9 @@ obj-$(CONFIG_ACPI)		+= acpi/
+ obj-$(CONFIG_PNP)		+= pnp/
+ obj-$(CONFIG_ARM_AMBA)		+= amba/
  
- static inline void setup_boot_clock(void)
- {
--	paravirt_ops.setup_boot_clock();
-+	PVOP_VCALL0(setup_boot_clock);
- }
++# Xen is the default console when running as a guest
++obj-$(CONFIG_XEN)		+= xen/
++
+ # char/ comes before serial/ etc so that the VT console is the boot-time
+ # default.
+ obj-y				+= char/
+diff -puN /dev/null drivers/xen/Makefile
+--- /dev/null
++++ a/drivers/xen/Makefile
+@@ -0,0 +1 @@
++obj-y	+= hvc-console.o
+diff -puN /dev/null drivers/xen/hvc-console.c
+--- /dev/null
++++ a/drivers/xen/hvc-console.c
+@@ -0,0 +1,134 @@
++/*
++ * xen console driver interface to hvc_console.c
++ *
++ * (c) 2007 Gerd Hoffmann <kraxel@suse.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ */
++
++#include <linux/console.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/types.h>
++
++#include <asm/xen/hypervisor.h>
++#include <xen/page.h>
++#include <xen/events.h>
++#include <xen/interface/io/console.h>
++
++#include "../char/hvc_console.h"
++
++#define HVC_COOKIE   0x58656e /* "Xen" in hex */
++
++static struct hvc_struct *hvc;
++static int xencons_irq;
++
++/* ------------------------------------------------------------------ */
++
++static inline struct xencons_interface *xencons_interface(void)
++{
++	return mfn_to_virt(xen_start_info->console.domU.mfn);
++}
++
++static inline void notify_daemon(void)
++{
++	/* Use evtchn: this is called early, before irq is set up. */
++	notify_remote_via_evtchn(xen_start_info->console.domU.evtchn);
++}
++
++static int write_console(uint32_t vtermno, const char *data, int len)
++{
++	struct xencons_interface *intf = xencons_interface();
++	XENCONS_RING_IDX cons, prod;
++	int sent = 0;
++
++	cons = intf->out_cons;
++	prod = intf->out_prod;
++	mb();
++	BUG_ON((prod - cons) > sizeof(intf->out));
++
++	while ((sent < len) && ((prod - cons) < sizeof(intf->out)))
++		intf->out[MASK_XENCONS_IDX(prod++, intf->out)] = data[sent++];
++
++	wmb();
++	intf->out_prod = prod;
++
++	notify_daemon();
++	return sent;
++}
++
++static int read_console(uint32_t vtermno, char *buf, int len)
++{
++	struct xencons_interface *intf = xencons_interface();
++	XENCONS_RING_IDX cons, prod;
++	int recv = 0;
++
++	cons = intf->in_cons;
++	prod = intf->in_prod;
++	mb();
++	BUG_ON((prod - cons) > sizeof(intf->in));
++
++	while (cons != prod && recv < len)
++		buf[recv++] = intf->in[MASK_XENCONS_IDX(cons++,intf->in)];
++
++	mb();
++	intf->in_cons = cons;
++
++	notify_daemon();
++	return recv;
++}
++
++static struct hv_ops hvc_ops = {
++	.get_chars = read_console,
++	.put_chars = write_console,
++};
++
++static int __init xen_init(void)
++{
++	struct hvc_struct *hp;
++
++	if (!is_running_on_xen())
++		return 0;
++
++	xencons_irq = bind_evtchn_to_irq(xen_start_info->console.domU.evtchn);
++	if (xencons_irq < 0)
++		xencons_irq = 0 /* NO_IRQ */;
++	hp = hvc_alloc(HVC_COOKIE, xencons_irq, &hvc_ops, 256);
++	if (IS_ERR(hp))
++		return PTR_ERR(hp);
++
++	hvc = hp;
++	return 0;
++}
++
++static void __exit xen_fini(void)
++{
++	if (hvc)
++		hvc_remove(hvc);
++}
++
++static int xen_cons_init(void)
++{
++	if (!is_running_on_xen())
++		return 0;
++
++	hvc_instantiate(HVC_COOKIE, 0, &hvc_ops);
++	return 0;
++}
++
++module_init(xen_init);
++module_exit(xen_fini);
++console_initcall(xen_cons_init);
+diff -puN include/xen/events.h~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console include/xen/events.h
+--- a/include/xen/events.h~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
++++ a/include/xen/events.h
+@@ -3,6 +3,7 @@
  
- static inline void setup_secondary_clock(void)
- {
--	paravirt_ops.setup_secondary_clock();
-+	PVOP_VCALL0(setup_secondary_clock);
- }
- #endif
+ #include <linux/irq.h>
  
-@@ -496,12 +708,12 @@ static inline void pmd_clear(pmd_t *pmdp
- #define PARAVIRT_LAZY_CPU  2
- 
- #define  __HAVE_ARCH_ENTER_LAZY_CPU_MODE
--#define arch_enter_lazy_cpu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_CPU)
--#define arch_leave_lazy_cpu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_NONE)
-+#define arch_enter_lazy_cpu_mode() PVOP_VCALL1(set_lazy_mode, PARAVIRT_LAZY_CPU)
-+#define arch_leave_lazy_cpu_mode() PVOP_VCALL1(set_lazy_mode, PARAVIRT_LAZY_NONE)
- 
- #define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
--#define arch_enter_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_MMU)
--#define arch_leave_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_NONE)
-+#define arch_enter_lazy_mmu_mode() PVOP_VCALL1(set_lazy_mode, PARAVIRT_LAZY_MMU)
-+#define arch_leave_lazy_mmu_mode() PVOP_VCALL1(set_lazy_mode, PARAVIRT_LAZY_NONE)
- 
- void _paravirt_nop(void);
- #define paravirt_nop	((void *)_paravirt_nop)
++int bind_evtchn_to_irq(unsigned int evtchn);
+ int bind_evtchn_to_irqhandler(unsigned int evtchn,
+ 			      irqreturn_t (*handler)(int, void *),
+ 			      unsigned long irqflags, const char *devname,
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
 
-xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
-xen-paravirt_ops-add-common-patching-machinery.patch
-xen-paravirt_ops-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-xen-paravirt_ops-allocate-and-free-vmalloc-areas.patch
-xen-paravirt_ops-add-nosegneg-capability-to-the-vsyscall-page-notes.patch
-xen-paravirt_ops-add-xen-config-options.patch
-xen-paravirt_ops-add-xen-interface-header-files.patch
-xen-paravirt_ops-core-xen-implementation.patch
 xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch
 xen-paravirt_ops-add-early-printk-support-via-hvc-console.patch
 xen-paravirt_ops-add-xen-grant-table-support.patch
