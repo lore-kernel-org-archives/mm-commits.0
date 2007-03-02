@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + allow-huge-page-allocations-to-use-gfp_high_movable.patch added to -mm tree
-Date: Fri, 02 Mar 2007 13:41:51 -0800
-Message-ID: <200703022141.l22Lfpo5019792@shell0.pdx.osdl.net>
+Subject: + add-documentation-for-additional-boot-parameter-and-sysctl.patch added to -mm tree
+Date: Fri, 02 Mar 2007 13:42:01 -0800
+Message-ID: <200703022142.l22Lg1HG019810@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42083 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42101 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030469AbXCBVl4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 16:41:56 -0500
+	id S1030473AbXCBVmG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 16:42:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mel@csn.ul.ie
 
 
 The patch titled
-     Allow huge page allocations to use GFP_HIGH_MOVABLE
+     Add documentation for additional boot parameter and sysctl
 has been added to the -mm tree.  Its filename is
-     allow-huge-page-allocations-to-use-gfp_high_movable.patch
+     add-documentation-for-additional-boot-parameter-and-sysctl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,186 +25,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Allow huge page allocations to use GFP_HIGH_MOVABLE
+Subject: Add documentation for additional boot parameter and sysctl
 From: Mel Gorman <mel@csn.ul.ie>
 
-Huge pages are not movable so are not allocated from ZONE_MOVABLE.  However,
-as ZONE_MOVABLE will always have pages that can be migrated or reclaimed, it
-can be used to satisfy hugepage allocations even when the system has been
-running a long time.  This allows an administrator to resize the hugepage pool
-at runtime depending on the size of ZONE_MOVABLE.
-
-This patch adds a new sysctl called hugepages_treat_as_movable.  When a
-non-zero value is written to it, future allocations for the huge page pool
-will use ZONE_MOVABLE.  Despite huge pages being non-movable, we do not
-introduce additional external fragmentation of note as huge pages are always
-the largest contiguous block we care about.
+Once all patches are applied, a new command-line parameter exist and a new
+sysctl.  This patch adds the necessary documentation.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h   |    3 +++
- include/linux/mempolicy.h |    6 +++---
- include/linux/sysctl.h    |    1 +
- kernel/sysctl.c           |    8 ++++++++
- mm/hugetlb.c              |   23 ++++++++++++++++++++---
- mm/mempolicy.c            |    5 +++--
- 6 files changed, 38 insertions(+), 8 deletions(-)
+ Documentation/filesystems/proc.txt  |   15 +++++++++++++++
+ Documentation/kernel-parameters.txt |   16 ++++++++++++++++
+ Documentation/sysctl/vm.txt         |    3 ++-
+ 3 files changed, 33 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~allow-huge-page-allocations-to-use-gfp_high_movable include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~allow-huge-page-allocations-to-use-gfp_high_movable
-+++ a/include/linux/hugetlb.h
-@@ -15,6 +15,7 @@ static inline int is_vm_hugetlb_page(str
- }
+diff -puN Documentation/filesystems/proc.txt~add-documentation-for-additional-boot-parameter-and-sysctl Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~add-documentation-for-additional-boot-parameter-and-sysctl
++++ a/Documentation/filesystems/proc.txt
+@@ -1288,6 +1288,21 @@ nr_hugepages configures number of hugetl
+ hugetlb_shm_group contains group id that is allowed to create SysV shared
+ memory segment using hugetlb page.
  
- int hugetlb_sysctl_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
-+int hugetlb_treat_movable_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
- int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
- int follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *, struct page **, struct vm_area_struct **, unsigned long *, int *, int);
- void unmap_hugepage_range(struct vm_area_struct *, unsigned long, unsigned long);
-@@ -29,6 +30,8 @@ int hugetlb_reserve_pages(struct inode *
- void hugetlb_unreserve_pages(struct inode *inode, long offset, long freed);
- 
- extern unsigned long max_huge_pages;
-+extern unsigned long hugepages_treat_as_movable;
-+extern gfp_t htlb_alloc_mask;
- extern const unsigned long hugetlb_zero, hugetlb_infinity;
- extern int sysctl_hugetlb_shm_group;
- 
-diff -puN include/linux/mempolicy.h~allow-huge-page-allocations-to-use-gfp_high_movable include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~allow-huge-page-allocations-to-use-gfp_high_movable
-+++ a/include/linux/mempolicy.h
-@@ -159,7 +159,7 @@ extern void mpol_fix_fork_child_flag(str
- 
- extern struct mempolicy default_policy;
- extern struct zonelist *huge_zonelist(struct vm_area_struct *vma,
--		unsigned long addr);
-+		unsigned long addr, gfp_t gfp_flags);
- extern unsigned slab_node(struct mempolicy *policy);
- 
- extern enum zone_type policy_zone;
-@@ -256,9 +256,9 @@ static inline void mpol_fix_fork_child_f
- #define set_cpuset_being_rebound(x) do {} while (0)
- 
- static inline struct zonelist *huge_zonelist(struct vm_area_struct *vma,
--		unsigned long addr)
-+		unsigned long addr, gfp_t gfp_flags)
- {
--	return NODE_DATA(0)->node_zonelists + gfp_zone(GFP_HIGHUSER);
-+	return NODE_DATA(0)->node_zonelists + gfp_zone(gfp_flags);
- }
- 
- static inline int do_migrate_pages(struct mm_struct *mm,
-diff -puN include/linux/sysctl.h~allow-huge-page-allocations-to-use-gfp_high_movable include/linux/sysctl.h
---- a/include/linux/sysctl.h~allow-huge-page-allocations-to-use-gfp_high_movable
-+++ a/include/linux/sysctl.h
-@@ -207,6 +207,7 @@ enum
- 	VM_PANIC_ON_OOM=33,	/* panic at out-of-memory */
- 	VM_VDSO_ENABLED=34,	/* map VDSO into new processes? */
- 	VM_MIN_SLAB=35,		 /* Percent pages ignored by zone reclaim */
-+	VM_HUGETLB_TREAT_MOVABLE=36, /* Allocate hugepages from ZONE_MOVABLE */
- 
- 	/* s390 vm cmm sysctls */
- 	VM_CMM_PAGES=1111,
-diff -puN kernel/sysctl.c~allow-huge-page-allocations-to-use-gfp_high_movable kernel/sysctl.c
---- a/kernel/sysctl.c~allow-huge-page-allocations-to-use-gfp_high_movable
-+++ a/kernel/sysctl.c
-@@ -722,6 +722,14 @@ static ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	 },
-+	 {
-+		.ctl_name	= VM_HUGETLB_TREAT_MOVABLE,
-+		.procname	= "hugepages_treat_as_movable",
-+		.data		= &hugepages_treat_as_movable,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &hugetlb_treat_movable_handler,
-+	},
- #endif
- 	{
- 		.ctl_name	= VM_LOWMEM_RESERVE_RATIO,
-diff -puN mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable mm/hugetlb.c
---- a/mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable
-+++ a/mm/hugetlb.c
-@@ -27,6 +27,9 @@ unsigned long max_huge_pages;
- static struct list_head hugepage_freelists[MAX_NUMNODES];
- static unsigned int nr_huge_pages_node[MAX_NUMNODES];
- static unsigned int free_huge_pages_node[MAX_NUMNODES];
-+gfp_t htlb_alloc_mask = GFP_HIGHUSER;
-+unsigned long hugepages_treat_as_movable;
++hugepages_treat_as_movable
++--------------------------
 +
- /*
-  * Protects updates to hugepage_freelists, nr_huge_pages, and free_huge_pages
-  */
-@@ -68,12 +71,13 @@ static struct page *dequeue_huge_page(st
- {
- 	int nid = numa_node_id();
- 	struct page *page = NULL;
--	struct zonelist *zonelist = huge_zonelist(vma, address);
-+	struct zonelist *zonelist = huge_zonelist(vma, address,
-+						htlb_alloc_mask);
- 	struct zone **z;
- 
- 	for (z = zonelist->zones; *z; z++) {
- 		nid = zone_to_nid(*z);
--		if (cpuset_zone_allowed_softwall(*z, GFP_HIGHUSER) &&
-+		if (cpuset_zone_allowed_softwall(*z, htlb_alloc_mask) &&
- 		    !list_empty(&hugepage_freelists[nid]))
- 			break;
- 	}
-@@ -103,7 +107,7 @@ static int alloc_fresh_huge_page(void)
- {
- 	static int nid = 0;
- 	struct page *page;
--	page = alloc_pages_node(nid, GFP_HIGHUSER|__GFP_COMP|__GFP_NOWARN,
-+	page = alloc_pages_node(nid, htlb_alloc_mask|__GFP_COMP|__GFP_NOWARN,
- 					HUGETLB_PAGE_ORDER);
- 	nid = next_node(nid, node_online_map);
- 	if (nid == MAX_NUMNODES)
-@@ -243,6 +247,19 @@ int hugetlb_sysctl_handler(struct ctl_ta
- 	max_huge_pages = set_max_huge_pages(max_huge_pages);
- 	return 0;
- }
++This parameter is only useful when kernelcore= is specified at boot time to
++create ZONE_MOVABLE for pages that may be reclaimed or migrated. Huge pages
++are not movable so are not normally allocated from ZONE_MOVABLE. A non-zero
++value written to hugepages_treat_as_movable allows huge pages to be allocated
++from ZONE_MOVABLE.
 +
-+int hugetlb_treat_movable_handler(struct ctl_table *table, int write,
-+			struct file *file, void __user *buffer,
-+			size_t *length, loff_t *ppos)
-+{
-+	proc_dointvec(table, write, file, buffer, length, ppos);
-+	if (hugepages_treat_as_movable)
-+		htlb_alloc_mask = GFP_HIGH_MOVABLE;
-+	else
-+		htlb_alloc_mask = GFP_HIGHUSER;
-+	return 0;
-+}
++Once enabled, the ZONE_MOVABLE is treated as an area of memory the huge
++pages pool can easily grow or shrink within. Assuming that applications are
++not running that mlock() a lot of memory, it is likely the huge pages pool
++can grow to the size of ZONE_MOVABLE by repeatedly entering the desired value
++into nr_hugepages and triggering page reclaim.
 +
- #endif /* CONFIG_SYSCTL */
+ laptop_mode
+ -----------
  
- int hugetlb_report_meminfo(char *buf)
-diff -puN mm/mempolicy.c~allow-huge-page-allocations-to-use-gfp_high_movable mm/mempolicy.c
---- a/mm/mempolicy.c~allow-huge-page-allocations-to-use-gfp_high_movable
-+++ a/mm/mempolicy.c
-@@ -1202,7 +1202,8 @@ static inline unsigned interleave_nid(st
+diff -puN Documentation/kernel-parameters.txt~add-documentation-for-additional-boot-parameter-and-sysctl Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~add-documentation-for-additional-boot-parameter-and-sysctl
++++ a/Documentation/kernel-parameters.txt
+@@ -763,6 +763,22 @@ and is between 256 and 4096 characters. 
+ 	js=		[HW,JOY] Analog joystick
+ 			See Documentation/input/joystick.txt.
  
- #ifdef CONFIG_HUGETLBFS
- /* Return a zonelist suitable for a huge page allocation. */
--struct zonelist *huge_zonelist(struct vm_area_struct *vma, unsigned long addr)
-+struct zonelist *huge_zonelist(struct vm_area_struct *vma, unsigned long addr,
-+							gfp_t gfp_flags)
- {
- 	struct mempolicy *pol = get_vma_policy(current, vma, addr);
++	kernelcore=nn[KMG]	[KNL,IA-32,IA-64,PPC,X86-64] This parameter
++			specifies the amount of memory usable by the kernel
++			for non-movable allocations.  The requested amount is
++			spread evenly throughout all nodes in the system. The
++			remaining memory in each node is used for Movable
++			pages. In the event, a node is too small to have both
++			kernelcore and Movable pages, kernelcore pages will
++			take priority and other nodes will have a larger number
++			of kernelcore pages.  The Movable zone is used for the
++			allocation of pages that may be reclaimed or moved
++			by the page migration subsystem.  This means that
++			HugeTLB pages may not be allocated from this zone.
++			Note that allocations like PTEs-from-HighMem still
++			use the HighMem zone if it exists, and the Normal
++			zone if it does not.
++
+ 	keepinitrd	[HW,ARM]
  
-@@ -1210,7 +1211,7 @@ struct zonelist *huge_zonelist(struct vm
- 		unsigned nid;
+ 	kstack=N	[IA-32,X86-64] Print N words from the kernel stack
+diff -puN Documentation/sysctl/vm.txt~add-documentation-for-additional-boot-parameter-and-sysctl Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~add-documentation-for-additional-boot-parameter-and-sysctl
++++ a/Documentation/sysctl/vm.txt
+@@ -36,7 +36,8 @@ Currently, these files are in /proc/sys/
  
- 		nid = interleave_nid(pol, vma, addr, HPAGE_SHIFT);
--		return NODE_DATA(nid)->node_zonelists + gfp_zone(GFP_HIGHUSER);
-+		return NODE_DATA(nid)->node_zonelists + gfp_zone(gfp_flags);
- 	}
- 	return zonelist_policy(GFP_HIGHUSER, pol);
- }
+ dirty_ratio, dirty_background_ratio, dirty_expire_centisecs,
+ dirty_writeback_centisecs, vfs_cache_pressure, laptop_mode,
+-block_dump, swap_token_timeout, drop-caches:
++block_dump, swap_token_timeout, drop-caches,
++hugepages_treat_as_movable:
+ 
+ See Documentation/filesystems/proc.txt
+ 
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
