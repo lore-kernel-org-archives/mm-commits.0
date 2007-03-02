@@ -1,276 +1,348 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt_ops-add-common-patching-machinery.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 20:57:13 -0800
-Message-ID: <200703020457.l224vDeY000511@shell0.pdx.osdl.net>
+Subject: - xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 20:57:10 -0800
+Message-ID: <200703020457.l224vAPQ000508@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41948 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41944 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422910AbXCBE5V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 23:57:21 -0500
+	id S1422911AbXCBE5T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 23:57:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, anthony@codemonkey.ws, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen-paravirt_ops: add common patching machinery
+     xen-paravirt_ops: consistently wrap paravirt ops callsites to make them patchable
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt_ops-add-common-patching-machinery.patch
+     xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
 
 This patch was dropped because Zach's patches destroyed it all
 
 ------------------------------------------------------
-Subject: xen-paravirt_ops: add common patching machinery
+Subject: xen-paravirt_ops: consistently wrap paravirt ops callsites to make them patchable
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Implement the actual patching machinery.  paravirt_patch_default() contains
-the logic to automatically patch a callsite based on a few simple rules:
+Wrap a set of interesting paravirt_ops calls in a wrapper which makes the
+callsites available for patching.  Unfortunately this is pretty ugly because
+there's no way to get gcc to generate a function call, but also wrap just the
+callsite itself with the necessary labels.
 
- - if the paravirt_op function is paravirt_nop, then patch nops
- - if the paravirt_op function is a jmp target, then jmp to it
- - if the paravirt_op function is callable and doesn't clobber too much
-    for the callsite, call it directly
-
-paravirt_patch_default is suitable as a default implementation of
-paravirt_ops.patch, will remove most of the expensive indirect calls in favour
-of either a direct call or a pile of nops.
-
-Backends may implement their own patcher, however.  There are several helper
-functions to help with this:
-
-paravirt_patch_nop	nop out a callsite
-paravirt_patch_ignore	leave the callsite as-is
-paravirt_patch_call	patch a call if the caller and callee
-			have compatible clobbers
-paravirt_patch_jmp	patch in a jmp
-paravirt_patch_insns	patch some literal instructions over
-			the callsite, if they fit
-
-This patch also implements more direct patches for the native case, so that
-when running on native hardware many common operations are implemented inline.
+This patch supports functions with 0-4 arguments, and either void or returning
+a value.  64-bit arguments must be split into a pair of 32-bit arguments
+(lower word first).  Small structures are returned in registers.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Zachary Amsden <zach@vmware.com>
+Cc: Anthony Liguori <anthony@codemonkey.ws>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |    3 
- arch/i386/kernel/paravirt.c    |  153 +++++++++++++++++++++++++------
- include/asm-i386/paravirt.h    |   11 ++
- 3 files changed, 142 insertions(+), 25 deletions(-)
+ include/asm-i386/paravirt.h |  246 +++++++++++++++++++++++++++++++---
+ 1 file changed, 229 insertions(+), 17 deletions(-)
 
-diff -puN arch/i386/kernel/alternative.c~xen-paravirt_ops-add-common-patching-machinery arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~xen-paravirt_ops-add-common-patching-machinery
-+++ a/arch/i386/kernel/alternative.c
-@@ -359,6 +359,9 @@ void apply_paravirt(struct paravirt_patc
+diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable
++++ a/include/asm-i386/paravirt.h
+@@ -33,6 +33,222 @@
+ #define paravirt_alt(insn_string)				\
+ 	_paravirt_alt(insn_string, "%c[paravirt_typenum]", "%c[paravirt_clobber]")
  
- 		used = paravirt_ops.patch(p->instrtype, p->clobbers, p->instr,
- 					  p->len);
++#define PVOP_CALL0(__rettype, __op)					\
++	({								\
++		__rettype __ret;					\
++		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
++			unsigned long long __tmp;			\
++			unsigned long __ecx;				\
++			asm volatile(paravirt_alt("call *%[op]")	\
++				     : "=A" (__tmp), "=c" (__ecx)	\
++				     : [op] "m" (paravirt_ops.__op),	\
++				       paravirt_type(PARAVIRT_PATCH(__op)), \
++				       paravirt_clobber(CLBR_ANY)	\
++				     : "memory", "cc");			\
++			__ret = (__rettype)__tmp;			\
++		} else {						\
++			unsigned long __tmp, __edx, __ecx;	\
++			asm volatile(paravirt_alt("call *%[op]")	\
++				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
++				     : [op] "m" (paravirt_ops.__op),	\
++				       paravirt_type(PARAVIRT_PATCH(__op)), \
++				       paravirt_clobber(CLBR_ANY)	\
++				     : "memory", "cc");			\
++			__ret = (__rettype)__tmp;			\
++		}							\
++		__ret;							\
++	})
++#define PVOP_VCALL0(__op)						\
++	({								\
++		unsigned long __eax, __edx, __ecx;			\
++		asm volatile(paravirt_alt("call *%[op]")		\
++			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
++			     : [op] "m" (paravirt_ops.__op),		\
++			       paravirt_type(PARAVIRT_PATCH(__op)),	\
++			       paravirt_clobber(CLBR_ANY)		\
++			     : "memory", "cc");				\
++	})
 +
-+		BUG_ON(used > p->len);
++#define PVOP_CALL1(__rettype, __op, arg1)				\
++	({								\
++		__rettype __ret;					\
++		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
++			unsigned long long __tmp;			\
++			unsigned long __ecx;				\
++			asm volatile(paravirt_alt("call *%[op]")	\
++				     : "=A" (__tmp), "=c" (__ecx)	\
++				     : [op] "m" (paravirt_ops.__op),	\
++				       "a" ((u32)(arg1)),		\
++				       paravirt_type(PARAVIRT_PATCH(__op)), \
++				       paravirt_clobber(CLBR_ANY)	\
++				     : "memory", "cc");			\
++			__ret = (__rettype)__tmp;			\
++		} else {						\
++			unsigned long __tmp, __edx, __ecx;	\
++			asm volatile(paravirt_alt("call *%[op]")	\
++				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
++				     : [op] "m" (paravirt_ops.__op),	\
++				       "0" ((u32)(arg1)),		\
++				       paravirt_type(PARAVIRT_PATCH(__op)), \
++				       paravirt_clobber(CLBR_ANY)	\
++				     : "memory", "cc");			\
++			__ret = (__rettype)__tmp;			\
++		}							\
++		__ret;							\
++	})
++#define PVOP_VCALL1(__op, arg1)						\
++	({								\
++		unsigned long __eax, __edx, __ecx;			\
++		asm volatile(paravirt_alt("call *%[op]")		\
++			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
++			     : [op] "m" (paravirt_ops.__op),		\
++			       "0" ((u32)(arg1)),			\
++			       paravirt_type(PARAVIRT_PATCH(__op)),	\
++			       paravirt_clobber(CLBR_ANY)		\
++			     : "memory", "cc");				\
++	})
 +
- #ifdef CONFIG_DEBUG_PARAVIRT
- 		{
- 		int i;
-diff -puN arch/i386/kernel/paravirt.c~xen-paravirt_ops-add-common-patching-machinery arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~xen-paravirt_ops-add-common-patching-machinery
-+++ a/arch/i386/kernel/paravirt.c
-@@ -53,40 +53,143 @@ char *memory_setup(void)
- #define DEF_NATIVE(name, code)					\
- 	extern const char start_##name[], end_##name[];		\
- 	asm("start_" #name ": " code "; end_" #name ":")
--DEF_NATIVE(cli, "cli");
--DEF_NATIVE(sti, "sti");
--DEF_NATIVE(popf, "push %eax; popf");
--DEF_NATIVE(pushf, "pushf; pop %eax");
++#define PVOP_CALL2(__rettype, __op, arg1, arg2)				\
++	({								\
++		__rettype __ret;					\
++		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
++			unsigned long long __tmp;			\
++			unsigned long __ecx;				\
++			asm volatile(paravirt_alt("call *%[op]")	\
++				     : "=A" (__tmp), "=c" (__ecx)	\
++				     : [op] "m" (paravirt_ops.__op),	\
++				       "a" ((u32)(arg1)),		\
++				       "d" ((u32)(arg2)),		\
++				       paravirt_type(PARAVIRT_PATCH(__op)), \
++				       paravirt_clobber(CLBR_ANY)	\
++				     : "memory", "cc");			\
++			__ret = (__rettype)__tmp;			\
++		} else {						\
++			unsigned long __tmp, __edx, __ecx;	\
++			asm volatile(paravirt_alt("call *%[op]")	\
++				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
++				     : [op] "m" (paravirt_ops.__op),	\
++				       "0" ((u32)(arg1)),		\
++				       "1" ((u32)(arg2)),		\
++				       paravirt_type(PARAVIRT_PATCH(__op)), \
++				       paravirt_clobber(CLBR_ANY)	\
++				     : "memory", "cc");			\
++			__ret = (__rettype)__tmp;			\
++		}							\
++		__ret;							\
++	})
++#define PVOP_VCALL2(__op, arg1, arg2)					\
++	({								\
++		unsigned long __eax, __edx, __ecx;			\
++		asm volatile(paravirt_alt("call *%[op]")		\
++			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
++			     : [op] "m" (paravirt_ops.__op),		\
++			       "0" ((u32)(arg1)),			\
++			       "1" ((u32)(arg2)),			\
++			       paravirt_type(PARAVIRT_PATCH(__op)),	\
++			       paravirt_clobber(CLBR_ANY)		\
++			     : "memory", "cc");				\
++	})
 +
-+DEF_NATIVE(irq_disable, "cli");
-+DEF_NATIVE(irq_enable, "sti");
-+DEF_NATIVE(restore_fl, "push %eax; popf");
-+DEF_NATIVE(save_fl, "pushf; pop %eax");
- DEF_NATIVE(iret, "iret");
--DEF_NATIVE(sti_sysexit, "sti; sysexit");
-+DEF_NATIVE(irq_enable_sysexit, "sti; sysexit");
-+DEF_NATIVE(read_cr2, "mov %cr2, %eax");
-+DEF_NATIVE(write_cr3, "mov %eax, %cr3");
-+DEF_NATIVE(read_cr3, "mov %cr3, %eax");
-+DEF_NATIVE(clts, "clts");
-+DEF_NATIVE(read_tsc, "rdtsc");
++#define PVOP_CALL3(__rettype, __op, arg1, arg2, arg3)			\
++	({								\
++		__rettype __ret;					\
++		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
++			unsigned long long __tmp;			\
++			unsigned long __ecx;				\
++			asm volatile(paravirt_alt("call *%[op]")	\
++				     : "=A" (__tmp), "=c" (__ecx)	\
++				     : [op] "m" (paravirt_ops.__op),	\
++				       "a" ((u32)(arg1)),		\
++				       "d" ((u32)(arg2)),		\
++				       "1" ((u32)(arg3)),		\
++				       paravirt_type(PARAVIRT_PATCH(__op)), \
++				       paravirt_clobber(CLBR_ANY)	\
++				     : "memory", "cc");			\
++			__ret = (__rettype)__tmp;			\
++		} else {						\
++			unsigned long __tmp, __edx, __ecx;	\
++			asm volatile(paravirt_alt("call *%[op]")	\
++				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
++				     : [op] "m" (paravirt_ops.__op),	\
++				       "0" ((u32)(arg1)),		\
++				       "1" ((u32)(arg2)),		\
++				       "2" ((u32)(arg3)),		\
++				       paravirt_type(PARAVIRT_PATCH(__op)), \
++				       paravirt_clobber(CLBR_ANY)	\
++				     : "memory", "cc");			\
++			__ret = (__rettype)__tmp;			\
++		}							\
++		__ret;							\
++	})
++#define PVOP_VCALL3(__op, arg1, arg2, arg3)				\
++	({								\
++		unsigned long __eax, __edx, __ecx;			\
++		asm volatile(paravirt_alt("call *%[op]")		\
++			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
++			     : [op] "m" (paravirt_ops.__op),		\
++			       "0" ((u32)(arg1)),			\
++			       "1" ((u32)(arg2)),			\
++			       "2" ((u32)(arg3)),			\
++			       paravirt_type(PARAVIRT_PATCH(__op)),	\
++			       paravirt_clobber(CLBR_ANY)		\
++			     : "memory", "cc");				\
++	})
++
++#define PVOP_CALL4(__rettype, __op, arg1, arg2, arg3, arg4)		\
++	({								\
++		__rettype __ret;					\
++		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
++			unsigned long long __tmp;			\
++			unsigned long __ecx;				\
++			asm volatile("push %[_arg4]; "			\
++				     paravirt_alt("call *%[op]")	\
++				     "lea 4(%%esp),%%esp"		\
++				     : "=A" (__tmp), "=c" (__ecx)	\
++				     : [op] "m" (paravirt_ops.__op),	\
++				       "a" ((u32)(arg1)),		\
++				       "d" ((u32)(arg2)),		\
++				       "1" ((u32)(arg3)),		\
++				       [_arg4] "mr" ((u32)(arg4)),	\
++				       paravirt_type(PARAVIRT_PATCH(__op)), \
++				       paravirt_clobber(CLBR_ANY)	\
++				     : "memory", "cc",);		\
++			__ret = (__rettype)__tmp;			\
++		} else {						\
++			unsigned long __tmp, __edx, __ecx;		\
++			asm volatile("push %[_arg4]; "			\
++				     paravirt_alt("call *%[op]")	\
++				     "lea 4(%%esp),%%esp"		\
++				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
++				     : [op] "m" (paravirt_ops.__op),	\
++				       "0" ((u32)(arg1)),		\
++				       "1" ((u32)(arg2)),		\
++				       "2" ((u32)(arg3)),		\
++				       [_arg4]"mr" ((u32)(arg4)),	\
++				       paravirt_type(PARAVIRT_PATCH(__op)), \
++				       paravirt_clobber(CLBR_ANY)	\
++				     : "memory", "cc");			\
++			__ret = (__rettype)__tmp;			\
++		}							\
++		__ret;							\
++	})
++#define PVOP_VCALL4(__op, arg1, arg2, arg3, arg4)			\
++	({								\
++		unsigned long __eax, __edx, __ecx;			\
++		asm volatile("push %[_arg4]; "				\
++			     paravirt_alt("call *%[op]")		\
++			     "lea 4(%%esp),%%esp"			\
++			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
++			     : [op] "m" (paravirt_ops.__op),		\
++			       "0" ((u32)(arg1)),			\
++			       "1" ((u32)(arg2)),			\
++			       "2" ((u32)(arg3)),			\
++			       [_arg4]"mr" ((u32)(arg4)),		\
++			       paravirt_type(PARAVIRT_PATCH(__op)),	\
++			       paravirt_clobber(CLBR_ANY)		\
++			     : "memory", "cc");				\
++	})
++
+ struct thread_struct;
+ struct Xgt_desc_struct;
+ struct tss_struct;
+@@ -112,14 +328,10 @@ struct paravirt_ops
+ 	void (*set_ldt)(const void *desc, unsigned entries);
+ 	unsigned long (*store_tr)(void);
+ 	void (*load_tls)(struct thread_struct *t, unsigned int cpu);
+-	void (*write_ldt_entry)(void *dt, int entrynum,
+-					 u32 low, u32 high);
+-	void (*write_gdt_entry)(void *dt, int entrynum,
+-					 u32 low, u32 high);
+-	void (*write_idt_entry)(void *dt, int entrynum,
+-					 u32 low, u32 high);
+-	void (*load_esp0)(struct tss_struct *tss,
+-				   struct thread_struct *thread);
++	void (*write_ldt_entry)(void *dt, int entrynum, u32 low, u32 high);
++	void (*write_gdt_entry)(void *dt, int entrynum, u32 low, u32 high);
++	void (*write_idt_entry)(void *dt, int entrynum, u32 low, u32 high);
++	void (*load_esp0)(struct tss_struct *tss, struct thread_struct *thread);
  
--static const struct native_insns
--{
--	const char *start, *end;
--} native_insns[] = {
--	[PARAVIRT_PATCH(irq_disable)] = { start_cli, end_cli },
--	[PARAVIRT_PATCH(irq_enable)] = { start_sti, end_sti },
--	[PARAVIRT_PATCH(restore_fl)] = { start_popf, end_popf },
--	[PARAVIRT_PATCH(save_fl)] = { start_pushf, end_pushf },
--	[PARAVIRT_PATCH(iret)] = { start_iret, end_iret },
--	[PARAVIRT_PATCH(irq_enable_sysexit)] = { start_sti_sysexit, end_sti_sysexit },
--};
-+DEF_NATIVE(pushf_cli, "pushf; pop %eax; cli");
-+DEF_NATIVE(ud2a, "ud2a");
+ 	void (*set_iopl_mask)(unsigned mask);
  
- static unsigned native_patch(u8 type, u16 clobbers, void *insns, unsigned len)
+@@ -362,27 +574,27 @@ static inline void slow_down_io(void) {
+  */
+ static inline void apic_write(unsigned long reg, unsigned long v)
  {
--	unsigned int insn_len;
-+	const unsigned char *start, *end;
-+	unsigned ret;
-+
-+	switch(type) {
-+#define SITE(x)	case PARAVIRT_PATCH(x):	start = start_##x; end = end_##x; goto patch_site
-+		SITE(irq_disable);
-+		SITE(irq_enable);
-+		SITE(restore_fl);
-+		SITE(save_fl);
-+		SITE(iret);
-+		SITE(irq_enable_sysexit);
-+		SITE(read_cr2);
-+		SITE(read_cr3);
-+		SITE(write_cr3);
-+		SITE(clts);
-+		SITE(read_tsc);
-+#undef SITE
-+
-+	patch_site:
-+		ret = paravirt_patch_insns(insns, len, start, end);
-+		break;
-+
-+	case PARAVIRT_PATCH(make_pgd):
-+	case PARAVIRT_PATCH(make_pte):
-+	case PARAVIRT_PATCH(pgd_val):
-+	case PARAVIRT_PATCH(pte_val):
-+#ifdef CONFIG_X86_PAE
-+	case PARAVIRT_PATCH(make_pmd):
-+	case PARAVIRT_PATCH(pmd_val):
-+#endif
-+		/* These functions end up returning exactly what
-+		   they're passed, in the same registers. */
-+		ret = paravirt_patch_nop();
-+		break;
-+
-+	default:
-+		ret = paravirt_patch_default(type, clobbers, insns, len);
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+unsigned paravirt_patch_nop(void)
-+{
-+	return 0;
-+}
-+
-+unsigned paravirt_patch_ignore(unsigned len)
-+{
-+	return len;
-+}
-+
-+unsigned paravirt_patch_call(void *target, u16 tgt_clobbers,
-+			     void *site, u16 site_clobbers,
-+			     unsigned len)
-+{
-+	unsigned char *call = site;
-+	unsigned long delta = (unsigned long)target - (unsigned long)(call+5);
-+
-+	if (tgt_clobbers & ~site_clobbers)
-+		return len;	/* target would clobber too much for this site */
-+	if (len < 5)
-+		return len;	/* call too long for patch site */
-+
-+	*call++ = 0xe8;		/* call */
-+	*(unsigned long *)call = delta;
-+
-+	return 5;
-+}
-+
-+unsigned paravirt_patch_jmp(void *target, void *site, unsigned len)
-+{
-+	unsigned char *jmp = site;
-+	unsigned long delta = (unsigned long)target - (unsigned long)(jmp+5);
-+
-+	if (len < 5)
-+		return len;	/* call too long for patch site */
-+
-+	*jmp++ = 0xe9;		/* jmp */
-+	*(unsigned long *)jmp = delta;
-+
-+	return 5;
-+}
-+
-+unsigned paravirt_patch_default(u8 type, u16 clobbers, void *site, unsigned len)
-+{
-+	void *opfunc = *((void **)&paravirt_ops + type);
-+	unsigned ret;
- 
--	/* Don't touch it if we don't have a replacement */
--	if (type >= ARRAY_SIZE(native_insns) || !native_insns[type].start)
--		return len;
-+	if (opfunc == NULL)
-+		/* If there's no function, patch it with a ud2a (BUG) */
-+		ret = paravirt_patch_insns(site, len, start_ud2a, end_ud2a);
-+	else if (opfunc == paravirt_nop)
-+		/* If the operation is a nop, then nop the callsite */
-+		ret = paravirt_patch_nop();
-+	else if (type == PARAVIRT_PATCH(iret) ||
-+		 type == PARAVIRT_PATCH(irq_enable_sysexit))
-+		/* If operation requires a jmp, then jmp */
-+		ret = paravirt_patch_jmp(opfunc, site, len);
-+	else
-+		/* Otherwise call the function; assume target could
-+		   clobber any caller-save reg */
-+		ret = paravirt_patch_call(opfunc, CLBR_ANY,
-+					  site, clobbers, len);
- 
--	insn_len = native_insns[type].end - native_insns[type].start;
-+	return ret;
-+}
-+
-+unsigned paravirt_patch_insns(void *site, unsigned len,
-+			      const char *start, const char *end)
-+{
-+	unsigned insn_len = end - start;
- 
--	/* Similarly if we can't fit replacement. */
--	if (len < insn_len)
--		return len;
-+	if (insn_len > len || start == NULL)
-+		insn_len = len;
-+	else
-+		memcpy(site, start, insn_len);
- 
--	memcpy(insns, native_insns[type].start, insn_len);
- 	return insn_len;
+-	paravirt_ops.apic_write(reg,v);
++	PVOP_VCALL2(apic_write, reg, v);
  }
  
-diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-add-common-patching-machinery include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~xen-paravirt_ops-add-common-patching-machinery
-+++ a/include/asm-i386/paravirt.h
-@@ -813,6 +813,17 @@ struct paravirt_patch_site {
- 	u16 clobbers;		/* what registers you may clobber */
- };
+ static inline void apic_write_atomic(unsigned long reg, unsigned long v)
+ {
+-	paravirt_ops.apic_write_atomic(reg,v);
++	PVOP_VCALL2(apic_write_atomic, reg, v);
+ }
  
-+unsigned paravirt_patch_nop(void);
-+unsigned paravirt_patch_ignore(unsigned len);
-+unsigned paravirt_patch_call(void *target, u16 tgt_clobbers,
-+			     void *site, u16 site_clobbers,
-+			     unsigned len);
-+unsigned paravirt_patch_jmp(void *target, void *site, unsigned len);
-+unsigned paravirt_patch_default(u8 type, u16 clobbers, void *site, unsigned len);
-+
-+unsigned paravirt_patch_insns(void *site, unsigned len,
-+			      const char *start, const char *end);
-+
- extern struct paravirt_patch_site __start_parainstructions[],
- 	__stop_parainstructions[];
+ static inline unsigned long apic_read(unsigned long reg)
+ {
+-	return paravirt_ops.apic_read(reg);
++	return PVOP_CALL1(unsigned long, apic_read, reg);
+ }
  
+ static inline void setup_boot_clock(void)
+ {
+-	paravirt_ops.setup_boot_clock();
++	PVOP_VCALL0(setup_boot_clock);
+ }
+ 
+ static inline void setup_secondary_clock(void)
+ {
+-	paravirt_ops.setup_secondary_clock();
++	PVOP_VCALL0(setup_secondary_clock);
+ }
+ #endif
+ 
+@@ -496,12 +708,12 @@ static inline void pmd_clear(pmd_t *pmdp
+ #define PARAVIRT_LAZY_CPU  2
+ 
+ #define  __HAVE_ARCH_ENTER_LAZY_CPU_MODE
+-#define arch_enter_lazy_cpu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_CPU)
+-#define arch_leave_lazy_cpu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_NONE)
++#define arch_enter_lazy_cpu_mode() PVOP_VCALL1(set_lazy_mode, PARAVIRT_LAZY_CPU)
++#define arch_leave_lazy_cpu_mode() PVOP_VCALL1(set_lazy_mode, PARAVIRT_LAZY_NONE)
+ 
+ #define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+-#define arch_enter_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_MMU)
+-#define arch_leave_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_NONE)
++#define arch_enter_lazy_mmu_mode() PVOP_VCALL1(set_lazy_mode, PARAVIRT_LAZY_MMU)
++#define arch_leave_lazy_mmu_mode() PVOP_VCALL1(set_lazy_mode, PARAVIRT_LAZY_NONE)
+ 
+ void _paravirt_nop(void);
+ #define paravirt_nop	((void *)_paravirt_nop)
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
 
+xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
 xen-paravirt_ops-add-common-patching-machinery.patch
 xen-paravirt_ops-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
 xen-paravirt_ops-allocate-and-free-vmalloc-areas.patch
