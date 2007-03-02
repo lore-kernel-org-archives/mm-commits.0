@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-hecuba-framebuffer-driver-fix.patch added to -mm tree
-Date: Thu, 01 Mar 2007 23:58:28 -0800
-Message-ID: <200703020800.l22802Fg003739@shell0.pdx.osdl.net>
+Subject: + linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch added to -mm tree
+Date: Fri, 02 Mar 2007 00:13:47 -0800
+Message-ID: <200703020815.l228FLuh004006@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47603 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48555 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161319AbXCBIAN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 03:00:13 -0500
+	id S932859AbXCBISm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 03:18:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@gmail.com, jayakumar.lkml@gmail.com
+Cc: akpm@linux-foundation.org, ak@suse.de, ralf@linux-mips.org
 
 
 The patch titled
-     fbdev-hecuba-framebuffer-driver-fix
+     linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2
 has been added to the -mm tree.  Its filename is
-     fbdev-hecuba-framebuffer-driver-fix.patch
+     linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev-hecuba-framebuffer-driver-fix
+Subject: linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: drivers/video/hecubafb.o - Section mismatch: reference to .init.data:hecubafb_var from .text between 'hecubafb_probe' (at offset 0x19e) and 'hecubafb_dpy_update'
-WARNING: drivers/video/hecubafb.o - Section mismatch: reference to .init.data: from .text between 'hecubafb_probe' (at offset 0x1c8) and 'hecubafb_dpy_update'
-
-I assume these things were supposed to be copied by value?  If not, the rhs of
-those assignemnts will need to be moved into .data.
-
-Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/hecubafb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/s390/kernel/time.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/hecubafb.c~fbdev-hecuba-framebuffer-driver-fix drivers/video/hecubafb.c
---- a/drivers/video/hecubafb.c~fbdev-hecuba-framebuffer-driver-fix
-+++ a/drivers/video/hecubafb.c
-@@ -75,7 +75,7 @@ struct hecubafb_par {
- 	unsigned int irq;
- };
- 
--static struct fb_fix_screeninfo hecubafb_fix __initdata = {
-+static struct fb_fix_screeninfo hecubafb_fix __devinitdata = {
- 	.id =		"hecubafb",
- 	.type =		FB_TYPE_PACKED_PIXELS,
- 	.visual =	FB_VISUAL_MONO01,
-@@ -85,7 +85,7 @@ static struct fb_fix_screeninfo hecubafb
- 	.accel =	FB_ACCEL_NONE,
- };
- 
--static struct fb_var_screeninfo hecubafb_var __initdata = {
-+static struct fb_var_screeninfo hecubafb_var __devinitdata = {
- 	.xres		= DPY_W,
- 	.yres		= DPY_H,
- 	.xres_virtual	= DPY_W,
+diff -puN arch/s390/kernel/time.c~linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2 arch/s390/kernel/time.c
+--- a/arch/s390/kernel/time.c~linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2
++++ a/arch/s390/kernel/time.c
+@@ -21,6 +21,7 @@
+ #include <linux/mm.h>
+ #include <linux/interrupt.h>
+ #include <linux/time.h>
++#include <linux/sysdev.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/smp.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +87,7 @@ usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 after-before-x86_64-mm-mmconfig-share.patch
 linux-sysdevh-needs-to-include-linux-moduleh-up-fix.patch
+linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
 safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix.patch
 safer-nr_node_ids-and-nr_node_ids-determination-and-initial-tweak.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
