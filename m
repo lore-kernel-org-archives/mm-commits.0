@@ -1,246 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 20:57:29 -0800
-Message-ID: <200703020457.l224vTMj000532@shell0.pdx.osdl.net>
+Subject: - xen-paravirt_ops-add-early-printk-support-via-hvc-console.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 20:57:30 -0800
+Message-ID: <200703020457.l224vUEk000535@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41994 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41993 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932572AbXCBE5t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 23:57:49 -0500
+	id S932569AbXCBE5s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 23:57:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jeremy@goop.org, jeremy@xensource.com, kraxel@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen-paravirt_ops: use the hvc console infrastructure for Xen console
+     xen-paravirt_ops: add early printk support via hvc console
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch
+     xen-paravirt_ops-add-early-printk-support-via-hvc-console.patch
 
 This patch was dropped because Zach's patches destroyed it all
 
 ------------------------------------------------------
-Subject: xen-paravirt_ops: use the hvc console infrastructure for Xen console
+Subject: xen-paravirt_ops: add early printk support via hvc console
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Implement a Xen back-end for hvc console.
+Add early printk support via hvc console, enable using "earlyprintk=xen" on
+the kernel command line.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/Kconfig     |    1 
- arch/i386/xen/events.c    |    3 
- drivers/Makefile          |    3 
- drivers/xen/Makefile      |    1 
- drivers/xen/hvc-console.c |  134 ++++++++++++++++++++++++++++++++++++
- include/xen/events.h      |    1 
- 6 files changed, 142 insertions(+), 1 deletion(-)
+ arch/x86_64/kernel/early_printk.c |    5 +++++
+ drivers/xen/hvc-console.c         |   25 +++++++++++++++++++++++++
+ include/xen/hvc-console.h         |    6 ++++++
+ 3 files changed, 36 insertions(+)
 
-diff -puN arch/i386/xen/Kconfig~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console arch/i386/xen/Kconfig
---- a/arch/i386/xen/Kconfig~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
-+++ a/arch/i386/xen/Kconfig
-@@ -5,6 +5,7 @@
- config XEN
- 	bool "Enable support for Xen hypervisor"
- 	depends on PARAVIRT && HZ_100 && !PREEMPT && !NO_HZ
-+	select HVC_DRIVER
- 	default y
- 	help
- 	  This is the Linux Xen port.
-diff -puN arch/i386/xen/events.c~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console arch/i386/xen/events.c
---- a/arch/i386/xen/events.c~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
-+++ a/arch/i386/xen/events.c
-@@ -210,7 +210,7 @@ static int find_unbound_irq(void)
- 	return irq;
- }
+diff -puN arch/x86_64/kernel/early_printk.c~xen-paravirt_ops-add-early-printk-support-via-hvc-console arch/x86_64/kernel/early_printk.c
+--- a/arch/x86_64/kernel/early_printk.c~xen-paravirt_ops-add-early-printk-support-via-hvc-console
++++ a/arch/x86_64/kernel/early_printk.c
+@@ -6,6 +6,7 @@
+ #include <asm/io.h>
+ #include <asm/processor.h>
+ #include <asm/fcntl.h>
++#include <xen/hvc-console.h>
  
--static int bind_evtchn_to_irq(unsigned int evtchn)
-+int bind_evtchn_to_irq(unsigned int evtchn)
- {
- 	int irq;
+ /* Simple VGA output */
  
-@@ -234,6 +234,7 @@ static int bind_evtchn_to_irq(unsigned i
- 
- 	return irq;
- }
-+EXPORT_SYMBOL_GPL(bind_evtchn_to_irq);
- 
- static int bind_virq_to_irq(unsigned int virq, unsigned int cpu)
- {
-diff -puN drivers/Makefile~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console drivers/Makefile
---- a/drivers/Makefile~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
-+++ a/drivers/Makefile
-@@ -15,6 +15,9 @@ obj-$(CONFIG_ACPI)		+= acpi/
- obj-$(CONFIG_PNP)		+= pnp/
- obj-$(CONFIG_ARM_AMBA)		+= amba/
- 
-+# Xen is the default console when running as a guest
-+obj-$(CONFIG_XEN)		+= xen/
-+
- # char/ comes before serial/ etc so that the VT console is the boot-time
- # default.
- obj-y				+= char/
-diff -puN /dev/null drivers/xen/Makefile
---- /dev/null
-+++ a/drivers/xen/Makefile
-@@ -0,0 +1 @@
-+obj-y	+= hvc-console.o
-diff -puN /dev/null drivers/xen/hvc-console.c
---- /dev/null
+@@ -243,6 +244,10 @@ static int __init setup_early_printk(cha
+  		simnow_init(buf + 6);
+  		early_console = &simnow_console;
+  		keep_early = 1;
++#ifdef CONFIG_XEN
++	} else if (!strncmp(buf, "xen", 3)) {
++ 		early_console = &xenboot_console;
++#endif
+ 	}
+ 	register_console(early_console);
+ 	return 0;
+diff -puN drivers/xen/hvc-console.c~xen-paravirt_ops-add-early-printk-support-via-hvc-console drivers/xen/hvc-console.c
+--- a/drivers/xen/hvc-console.c~xen-paravirt_ops-add-early-printk-support-via-hvc-console
 +++ a/drivers/xen/hvc-console.c
-@@ -0,0 +1,134 @@
-+/*
-+ * xen console driver interface to hvc_console.c
-+ *
-+ * (c) 2007 Gerd Hoffmann <kraxel@suse.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+ */
+@@ -28,6 +28,7 @@
+ #include <xen/page.h>
+ #include <xen/events.h>
+ #include <xen/interface/io/console.h>
++#include <xen/hvc-console.h>
+ 
+ #include "../char/hvc_console.h"
+ 
+@@ -132,3 +133,27 @@ static int xen_cons_init(void)
+ module_init(xen_init);
+ module_exit(xen_fini);
+ console_initcall(xen_cons_init);
 +
-+#include <linux/console.h>
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+
-+#include <asm/xen/hypervisor.h>
-+#include <xen/page.h>
-+#include <xen/events.h>
-+#include <xen/interface/io/console.h>
-+
-+#include "../char/hvc_console.h"
-+
-+#define HVC_COOKIE   0x58656e /* "Xen" in hex */
-+
-+static struct hvc_struct *hvc;
-+static int xencons_irq;
-+
-+/* ------------------------------------------------------------------ */
-+
-+static inline struct xencons_interface *xencons_interface(void)
++static void xenboot_write_console(struct console *console, const char *string,
++				  unsigned len)
 +{
-+	return mfn_to_virt(xen_start_info->console.domU.mfn);
++	unsigned int linelen, off = 0;
++	const char *pos;
++
++	while (off < len && NULL != (pos = strchr(string+off, '\n'))) {
++		linelen = pos-string+off;
++		if (off + linelen > len)
++			break;
++		write_console(0, string+off, linelen);
++		write_console(0, "\r\n", 2);
++		off += linelen + 1;
++	}
++	if (off < len)
++		write_console(0, string+off, len-off);
 +}
 +
-+static inline void notify_daemon(void)
-+{
-+	/* Use evtchn: this is called early, before irq is set up. */
-+	notify_remote_via_evtchn(xen_start_info->console.domU.evtchn);
-+}
-+
-+static int write_console(uint32_t vtermno, const char *data, int len)
-+{
-+	struct xencons_interface *intf = xencons_interface();
-+	XENCONS_RING_IDX cons, prod;
-+	int sent = 0;
-+
-+	cons = intf->out_cons;
-+	prod = intf->out_prod;
-+	mb();
-+	BUG_ON((prod - cons) > sizeof(intf->out));
-+
-+	while ((sent < len) && ((prod - cons) < sizeof(intf->out)))
-+		intf->out[MASK_XENCONS_IDX(prod++, intf->out)] = data[sent++];
-+
-+	wmb();
-+	intf->out_prod = prod;
-+
-+	notify_daemon();
-+	return sent;
-+}
-+
-+static int read_console(uint32_t vtermno, char *buf, int len)
-+{
-+	struct xencons_interface *intf = xencons_interface();
-+	XENCONS_RING_IDX cons, prod;
-+	int recv = 0;
-+
-+	cons = intf->in_cons;
-+	prod = intf->in_prod;
-+	mb();
-+	BUG_ON((prod - cons) > sizeof(intf->in));
-+
-+	while (cons != prod && recv < len)
-+		buf[recv++] = intf->in[MASK_XENCONS_IDX(cons++,intf->in)];
-+
-+	mb();
-+	intf->in_cons = cons;
-+
-+	notify_daemon();
-+	return recv;
-+}
-+
-+static struct hv_ops hvc_ops = {
-+	.get_chars = read_console,
-+	.put_chars = write_console,
++struct console xenboot_console = {
++	.name		= "xenboot",
++	.write		= xenboot_write_console,
++	.flags		= CON_PRINTBUFFER | CON_BOOT,
 +};
+diff -puN /dev/null include/xen/hvc-console.h
+--- /dev/null
++++ a/include/xen/hvc-console.h
+@@ -0,0 +1,6 @@
++#ifndef XEN_HVC_CONSOLE_H
++#define XEN_HVC_CONSOLE_H
 +
-+static int __init xen_init(void)
-+{
-+	struct hvc_struct *hp;
++extern struct console xenboot_console;
 +
-+	if (!is_running_on_xen())
-+		return 0;
-+
-+	xencons_irq = bind_evtchn_to_irq(xen_start_info->console.domU.evtchn);
-+	if (xencons_irq < 0)
-+		xencons_irq = 0 /* NO_IRQ */;
-+	hp = hvc_alloc(HVC_COOKIE, xencons_irq, &hvc_ops, 256);
-+	if (IS_ERR(hp))
-+		return PTR_ERR(hp);
-+
-+	hvc = hp;
-+	return 0;
-+}
-+
-+static void __exit xen_fini(void)
-+{
-+	if (hvc)
-+		hvc_remove(hvc);
-+}
-+
-+static int xen_cons_init(void)
-+{
-+	if (!is_running_on_xen())
-+		return 0;
-+
-+	hvc_instantiate(HVC_COOKIE, 0, &hvc_ops);
-+	return 0;
-+}
-+
-+module_init(xen_init);
-+module_exit(xen_fini);
-+console_initcall(xen_cons_init);
-diff -puN include/xen/events.h~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console include/xen/events.h
---- a/include/xen/events.h~xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console
-+++ a/include/xen/events.h
-@@ -3,6 +3,7 @@
- 
- #include <linux/irq.h>
- 
-+int bind_evtchn_to_irq(unsigned int evtchn);
- int bind_evtchn_to_irqhandler(unsigned int evtchn,
- 			      irqreturn_t (*handler)(int, void *),
- 			      unsigned long irqflags, const char *devname,
++#endif	/* XEN_HVC_CONSOLE_H */
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
 
-xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch
 xen-paravirt_ops-add-early-printk-support-via-hvc-console.patch
 xen-paravirt_ops-add-xen-grant-table-support.patch
 xen-paravirt_ops-add-the-xenbus-sysfs-and-virtual-device-hotplug-driver.patch
