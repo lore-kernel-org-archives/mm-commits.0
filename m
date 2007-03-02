@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fan-after-suspend-to-mem-fix.patch added to -mm tree
-Date: Thu, 01 Mar 2007 18:49:08 -0800
-Message-ID: <200703020249.l222n8ob030437@shell0.pdx.osdl.net>
+Subject: + page-migration-fix-vma-flag-checking.patch added to -mm tree
+Date: Thu, 01 Mar 2007 19:31:34 -0800
+Message-ID: <200703020331.l223VYnv031243@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36530 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39379 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422716AbXCBCu2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 21:50:28 -0500
+	id S1422742AbXCBDbl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 22:31:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tommi.kyntola@ray.fi, lenb@kernel.org
+Cc: clameter@engr.sgi.com, clameter@sgi.com, lee.schermerhorn@hp.com
 
 
 The patch titled
-     acpi: fan after suspend-to-mem fix
+     Page migration: Fix vma flag checking
 has been added to the -mm tree.  Its filename is
-     acpi-fan-after-suspend-to-mem-fix.patch
+     page-migration-fix-vma-flag-checking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: acpi: fan after suspend-to-mem fix
-From: Tommi Kyntola <tommi.kyntola@ray.fi>
+Subject: Page migration: Fix vma flag checking
+From: Christoph Lameter <clameter@engr.sgi.com>
 
-acpi_fan_suspend should probably set state to ACPI_D3, rather than ACPI_D0.
- With this change the fan works after S3 suspend atleast on HP nw8000
-laptop, for which the suspended fan has been broken since sword-and-stone.
+Currently we do not check for vma flags if sys_move_pages is called to move
+individual pages.  If sys_migrate_pages is called to move pages then we
+check for vm_flags that indicate a non migratable vma but that still
+includes VM_LOCKED and we can migrate mlocked pages.
 
-Why this was ACPI_D0 beats me, but it's been that way since the
-_suspend/_resume functios got added in the commit
-0feabb01d93e5801d1127416a66cfc3963280bca (2.6.18-rc1, I think).
+Extract the vma_migratable check from mm/mempolicy.c, fix it and put it
+into migrate.h so that is can be used from both locations.
 
-The fan hasn't worked on my HP nw8000 laptop after an S3 suspend ever, but
-fixing that to ACPI_D3 there finally makes it work as expected.
+Problem was spotted by Lee Schermerhorn
 
-If there was some hidden reason why that was set to ACPI_D0, then perhaps a
-config option for some ICH4 or HP laptops is called for.
-
-Signed-off-by: Tommi Kyntola <tommi.kyntola@ray.fi>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/fan.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/migrate.h |    8 ++++++++
+ mm/mempolicy.c          |    9 ---------
+ mm/migrate.c            |    2 +-
+ 3 files changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN drivers/acpi/fan.c~acpi-fan-after-suspend-to-mem-fix drivers/acpi/fan.c
---- a/drivers/acpi/fan.c~acpi-fan-after-suspend-to-mem-fix
-+++ a/drivers/acpi/fan.c
-@@ -241,7 +241,7 @@ static int acpi_fan_suspend(struct acpi_
- 	if (!device)
- 		return -EINVAL;
+diff -puN include/linux/migrate.h~page-migration-fix-vma-flag-checking include/linux/migrate.h
+--- a/include/linux/migrate.h~page-migration-fix-vma-flag-checking
++++ a/include/linux/migrate.h
+@@ -5,6 +5,14 @@
  
--	acpi_bus_set_power(device->handle, ACPI_STATE_D0);
-+	acpi_bus_set_power(device->handle, ACPI_STATE_D3);
+ typedef struct page *new_page_t(struct page *, unsigned long private, int **);
  
- 	return AE_OK;
++/* Check if a vma is migratable */
++static inline int vma_migratable(struct vm_area_struct *vma)
++{
++	if (vma->vm_flags & (VM_IO|VM_HUGETLB|VM_PFNMAP|VM_RESERVED))
++		return 0;
++	return 1;
++}
++
+ #ifdef CONFIG_MIGRATION
+ extern int isolate_lru_page(struct page *p, struct list_head *pagelist);
+ extern int putback_lru_pages(struct list_head *l);
+diff -puN mm/mempolicy.c~page-migration-fix-vma-flag-checking mm/mempolicy.c
+--- a/mm/mempolicy.c~page-migration-fix-vma-flag-checking
++++ a/mm/mempolicy.c
+@@ -321,15 +321,6 @@ static inline int check_pgd_range(struct
+ 	return 0;
  }
+ 
+-/* Check if a vma is migratable */
+-static inline int vma_migratable(struct vm_area_struct *vma)
+-{
+-	if (vma->vm_flags & (
+-		VM_LOCKED|VM_IO|VM_HUGETLB|VM_PFNMAP|VM_RESERVED))
+-		return 0;
+-	return 1;
+-}
+-
+ /*
+  * Check if all pages in a range are on a set of nodes.
+  * If pagelist != NULL then isolate pages from the LRU and
+diff -puN mm/migrate.c~page-migration-fix-vma-flag-checking mm/migrate.c
+--- a/mm/migrate.c~page-migration-fix-vma-flag-checking
++++ a/mm/migrate.c
+@@ -781,7 +781,7 @@ static int do_move_pages(struct mm_struc
+ 
+ 		err = -EFAULT;
+ 		vma = find_vma(mm, pp->addr);
+-		if (!vma)
++		if (!vma || !vma_migratable(vma))
+ 			goto set_status;
+ 
+ 		page = follow_page(vma, pp->addr, FOLL_GET);
 _
 
-Patches currently in -mm which might be from tommi.kyntola@ray.fi are
+Patches currently in -mm which might be from clameter@engr.sgi.com are
 
-acpi-fan-after-suspend-to-mem-fix.patch
+adapt-page_lock_anon_vma-to-preempt_rcu.patch
+page-migration-fix-vma-flag-checking.patch
+page-migration-fix-vma-flag-checking-fix.patch
+nfs-fix-congestion-control-v4.patch
+git-block-xfs-barriers-broke.patch
+mm-set-hashdist_default-to-1-for-x86_64-numa.patch
+x86_64-configurable-fake-numa-node-sizes.patch
+x86_64-split-remaining-fake-nodes-equally.patch
+x86_64-fixed-size-remaining-fake-nodes.patch
+x86_64-map-fake-nodes-to-real-nodes.patch
+x86_64-disable-alien-cache-for-fake-numa.patch
+x86_64-export-physnode-mapping-to-userspace.patch
+x86_64-fake-numa-for-cpusets-document.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial-tweak.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+swap_prefetch-vs-zoned-counters.patch
+reiser4-vs-zoned-allocator.patch
+slab-leaks3-default-y.patch
