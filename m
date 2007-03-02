@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-use-recv_msg-to-get-peer-address-for-nfsd-instead-of-code-copying.patch added to -mm tree
-Date: Thu, 01 Mar 2007 20:36:15 -0800
-Message-ID: <200703020436.l224aFEW032574@shell0.pdx.osdl.net>
+Subject: + git-dvb-fixup.patch added to -mm tree
+Date: Thu, 01 Mar 2007 20:42:35 -0800
+Message-ID: <200703020442.l224gZ3L032654@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41463 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41584 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422864AbXCBEgU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 23:36:20 -0500
+	id S1422882AbXCBEmh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 23:42:37 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l224gZAb004083
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 1 Mar 2007 20:42:35 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     knfsd: use recv_msg to get peer address for NFSD instead of code-copying
+     git-dvb-fixup
 has been added to the -mm tree.  Its filename is
-     knfsd-use-recv_msg-to-get-peer-address-for-nfsd-instead-of-code-copying.patch
+     git-dvb-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,172 +29,197 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: use recv_msg to get peer address for NFSD instead of code-copying
-From: NeilBrown <neilb@suse.de>
+Subject: git-dvb-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The sunrpc server code needs to know the source and destination address for
-UDP packets so it can reply properly.  It currently copies code out of the
-network stack to pick the pieces out of the skb.  This is ugly and causes
-compile problems with the IPv6 stuff.
 
-So, rip that out and use recv_msg instead.  This is a much cleaner interface,
-but has a slight cost in that the checksum is now checked before the copy, so
-we don't benefit from doing both at the same time.  This can probably be
-fixed.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |   63 ++++++++++++++++++++---------------------
- 1 file changed, 31 insertions(+), 32 deletions(-)
+ drivers/media/video/v4l2-common.c |   45 ----------------------------
+ include/linux/videodev2.h         |   14 --------
+ 2 files changed, 59 deletions(-)
 
-diff -puN net/sunrpc/svcsock.c~knfsd-use-recv_msg-to-get-peer-address-for-nfsd-instead-of-code-copying net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-use-recv_msg-to-get-peer-address-for-nfsd-instead-of-code-copying
-+++ a/net/sunrpc/svcsock.c
-@@ -721,45 +721,23 @@ svc_write_space(struct sock *sk)
- 	}
- }
+diff -puN drivers/media/video/v4l2-common.c~git-dvb-fixup drivers/media/video/v4l2-common.c
+--- a/drivers/media/video/v4l2-common.c~git-dvb-fixup
++++ a/drivers/media/video/v4l2-common.c
+@@ -374,19 +374,6 @@ static const char *v4l2_ioctls[] = {
+ 	[_IOC_NR(VIDIOC_LOG_STATUS)]       = "VIDIOC_LOG_STATUS",
+ 	[_IOC_NR(VIDIOC_G_EXT_CTRLS)]      = "VIDIOC_G_EXT_CTRLS",
+ 	[_IOC_NR(VIDIOC_S_EXT_CTRLS)]      = "VIDIOC_S_EXT_CTRLS",
+-<<<<<<< HEAD/drivers/media/video/v4l2-common.c
+-	[_IOC_NR(VIDIOC_TRY_EXT_CTRLS)]    = "VIDIOC_TRY_EXT_CTRLS",
+-#if 1
+-	[_IOC_NR(VIDIOC_ENUM_FRAMESIZES)]  = "VIDIOC_ENUM_FRAMESIZES",
+-	[_IOC_NR(VIDIOC_ENUM_FRAMEINTERVALS)] = "VIDIOC_ENUM_FRAMEINTERVALS",
+-	[_IOC_NR(VIDIOC_G_ENC_INDEX)] 	   = "VIDIOC_G_ENC_INDEX",
+-	[_IOC_NR(VIDIOC_ENCODER_CMD)] 	   = "VIDIOC_ENCODER_CMD",
+-	[_IOC_NR(VIDIOC_TRY_ENCODER_CMD)]  = "VIDIOC_TRY_ENCODER_CMD",
+-
+-	[_IOC_NR(VIDIOC_DBG_S_REGISTER)]   = "VIDIOC_DBG_S_REGISTER",
+-	[_IOC_NR(VIDIOC_DBG_G_REGISTER)]   = "VIDIOC_DBG_G_REGISTER",
+-#endif
+-=======
+ 	[_IOC_NR(VIDIOC_TRY_EXT_CTRLS)]    = "VIDIOC_TRY_EXT_CTRLS",
+ #if 1
+ 	[_IOC_NR(VIDIOC_ENUM_FRAMESIZES)]  = "VIDIOC_ENUM_FRAMESIZES",
+@@ -400,7 +387,6 @@ static const char *v4l2_ioctls[] = {
  
--static void svc_udp_get_sender_address(struct svc_rqst *rqstp,
--					struct sk_buff *skb)
-+static inline void svc_udp_get_dest_address(struct svc_rqst *rqstp,
-+					    struct cmsghdr *cmh)
- {
- 	switch (rqstp->rq_sock->sk_sk->sk_family) {
- 	case AF_INET: {
--		/* this seems to come from net/ipv4/udp.c:udp_recvmsg */
--			struct sockaddr_in *sin = svc_addr_in(rqstp);
--
--			sin->sin_family = AF_INET;
--			sin->sin_port = skb->h.uh->source;
--			sin->sin_addr.s_addr = skb->nh.iph->saddr;
--			rqstp->rq_addrlen = sizeof(struct sockaddr_in);
--			/* Remember which interface received this request */
--			rqstp->rq_daddr.addr.s_addr = skb->nh.iph->daddr;
--		}
-+		struct in_pktinfo *pki = CMSG_DATA(cmh);
-+		rqstp->rq_daddr.addr.s_addr = pki->ipi_spec_dst.s_addr;
- 		break;
-+		}
- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
- 	case AF_INET6: {
--		/* this is derived from net/ipv6/udp.c:udpv6_recvmesg */
--			struct sockaddr_in6 *sin6 = svc_addr_in6(rqstp);
--
--			sin6->sin6_family = AF_INET6;
--			sin6->sin6_port = skb->h.uh->source;
--			sin6->sin6_flowinfo = 0;
--			sin6->sin6_scope_id = 0;
--			if (ipv6_addr_type(&sin6->sin6_addr) &
--							IPV6_ADDR_LINKLOCAL)
--				sin6->sin6_scope_id = IP6CB(skb)->iif;
--			ipv6_addr_copy(&sin6->sin6_addr,
--							&skb->nh.ipv6h->saddr);
--			rqstp->rq_addrlen = sizeof(struct sockaddr_in);
--			/* Remember which interface received this request */
--			ipv6_addr_copy(&rqstp->rq_daddr.addr6,
--							&skb->nh.ipv6h->saddr);
--		}
-+		struct in6_pktinfo *pki = CMSG_DATA(cmh);
-+		ipv6_addr_copy(&rqstp->rq_daddr.addr6, &pki->ipi6_addr);
- 		break;
-+		}
+ 	[_IOC_NR(VIDIOC_G_CHIP_IDENT)]     = "VIDIOC_G_CHIP_IDENT",
  #endif
- 	}
--	return;
+->>>>>>> /drivers/media/video/v4l2-common.c
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ 
+@@ -985,30 +971,6 @@ u32 v4l2_ctrl_next(const u32 * const * c
+ 	return **ctrl_classes;
  }
  
- /*
-@@ -771,7 +749,15 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 	struct svc_sock	*svsk = rqstp->rq_sock;
- 	struct svc_serv	*serv = svsk->sk_server;
- 	struct sk_buff	*skb;
-+	char		buffer[CMSG_SPACE(sizeof(union svc_pktinfo_u))];
-+	struct cmsghdr *cmh = (struct cmsghdr *)buffer;
- 	int		err, len;
-+	struct msghdr msg = {
-+		.msg_name = svc_addr(rqstp),
-+		.msg_control = cmh,
-+		.msg_controllen = sizeof(buffer),
-+		.msg_flags = MSG_DONTWAIT,
-+	};
- 
- 	if (test_and_clear_bit(SK_CHNGBUF, &svsk->sk_flags))
- 	    /* udp sockets need large rcvbuf as all pending
-@@ -797,7 +783,9 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 	}
- 
- 	clear_bit(SK_DATA, &svsk->sk_flags);
--	while ((skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err)) == NULL) {
-+	while ((err == kernel_recvmsg(svsk->sk_sock, &msg, NULL,
-+				      0, 0, MSG_PEEK)) < 0 ||
-+	       (skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err)) == NULL) {
- 		if (err == -EAGAIN) {
- 			svc_sock_received(svsk);
- 			return err;
-@@ -805,6 +793,7 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 		/* possibly an icmp error */
- 		dprintk("svc: recvfrom returned error %d\n", -err);
- 	}
-+	rqstp->rq_addrlen = sizeof(rqstp->rq_addr);
- 	if (skb->tstamp.off_sec == 0) {
- 		struct timeval tv;
- 
-@@ -827,7 +816,7 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 
- 	rqstp->rq_prot = IPPROTO_UDP;
- 
--	svc_udp_get_sender_address(rqstp, skb);
-+	svc_udp_get_dest_address(rqstp, cmh);
- 
- 	if (skb_is_nonlinear(skb)) {
- 		/* we have to copy */
-@@ -884,6 +873,9 @@ svc_udp_sendto(struct svc_rqst *rqstp)
- static void
- svc_udp_init(struct svc_sock *svsk)
+-<<<<<<< HEAD/drivers/media/video/v4l2-common.c
+-int v4l2_chip_match_i2c_client(struct i2c_client *c, u32 match_type, u32 match_chip)
+-{
+-	switch (match_type) {
+-	case V4L2_CHIP_MATCH_I2C_DRIVER:
+-		return (c != NULL && c->driver != NULL && c->driver->id == match_chip);
+-	case V4L2_CHIP_MATCH_I2C_ADDR:
+-		return (c != NULL && c->addr == match_chip);
+-	default:
+-		return 0;
+-	}
+-}
+-
+-int v4l2_chip_match_host(u32 match_type, u32 match_chip)
+-{
+-	switch (match_type) {
+-	case V4L2_CHIP_MATCH_HOST:
+-		return match_chip == 0;
+-	default:
+-		return 0;
+-	}
+-}
+-
+-=======
+ int v4l2_chip_match_i2c_client(struct i2c_client *c, u32 match_type, u32 match_chip)
  {
-+	int one = 1;
-+	mm_segment_t oldfs;
-+
- 	svsk->sk_sk->sk_data_ready = svc_udp_data_ready;
- 	svsk->sk_sk->sk_write_space = svc_write_space;
- 	svsk->sk_recvfrom = svc_udp_recvfrom;
-@@ -899,6 +891,13 @@ svc_udp_init(struct svc_sock *svsk)
- 
- 	set_bit(SK_DATA, &svsk->sk_flags); /* might have come in before data_ready set up */
- 	set_bit(SK_CHNGBUF, &svsk->sk_flags);
-+
-+	oldfs = get_fs();
-+	set_fs(KERNEL_DS);
-+	/* make sure we get destination address info */
-+	svsk->sk_sock->ops->setsockopt(svsk->sk_sock, IPPROTO_IP, IP_PKTINFO,
-+				       (char __user *)&one, sizeof(one));
-+	set_fs(oldfs);
+ 	switch (match_type) {
+@@ -1047,7 +1009,6 @@ int v4l2_chip_match_host(u32 match_type,
+ 	}
  }
  
+->>>>>>> /drivers/media/video/v4l2-common.c
+ /* ----------------------------------------------------------------- */
+ 
+ EXPORT_SYMBOL(v4l2_norm_to_name);
+@@ -1071,16 +1032,10 @@ EXPORT_SYMBOL(v4l2_ctrl_query_menu);
+ EXPORT_SYMBOL(v4l2_ctrl_query_fill);
+ EXPORT_SYMBOL(v4l2_ctrl_query_fill_std);
+ 
+-<<<<<<< HEAD/drivers/media/video/v4l2-common.c
+-EXPORT_SYMBOL(v4l2_chip_match_i2c_client);
+-EXPORT_SYMBOL(v4l2_chip_match_host);
+-
+-=======
+ EXPORT_SYMBOL(v4l2_chip_match_i2c_client);
+ EXPORT_SYMBOL(v4l2_chip_ident_i2c_client);
+ EXPORT_SYMBOL(v4l2_chip_match_host);
+ 
+->>>>>>> /drivers/media/video/v4l2-common.c
  /*
+  * Local variables:
+  * c-basic-offset: 8
+diff -puN include/linux/videodev2.h~git-dvb-fixup include/linux/videodev2.h
+--- a/include/linux/videodev2.h~git-dvb-fixup
++++ a/include/linux/videodev2.h
+@@ -1395,9 +1395,6 @@ struct v4l2_register {
+ 	__u32 match_type; /* Match type */
+ 	__u32 match_chip; /* Match this chip, meaning determined by match_type */
+ 	__u64 reg;
+-<<<<<<< HEAD/include/linux/videodev2.h
+-	__u64 val;
+-=======
+ 	__u64 val;
+ };
+ 
+@@ -1407,7 +1404,6 @@ struct v4l2_chip_ident {
+ 	__u32 match_chip;  /* Match this chip, meaning determined by match_type */
+ 	__u32 ident;       /* chip identifier as specified in <media/v4l2-chip-ident.h> */
+ 	__u32 revision;    /* chip revision, chip specific */
+->>>>>>> /include/linux/videodev2.h
+ };
+ 
+ /*
+@@ -1476,15 +1472,6 @@ struct v4l2_chip_ident {
+ #if 1
+ #define VIDIOC_ENUM_FRAMESIZES	_IOWR ('V', 74, struct v4l2_frmsizeenum)
+ #define VIDIOC_ENUM_FRAMEINTERVALS	_IOWR ('V', 75, struct v4l2_frmivalenum)
+-<<<<<<< HEAD/include/linux/videodev2.h
+-#define VIDIOC_G_ENC_INDEX      _IOR  ('V', 76, struct v4l2_enc_idx)
+-#define VIDIOC_ENCODER_CMD      _IOWR ('V', 77, struct v4l2_encoder_cmd)
+-#define VIDIOC_TRY_ENCODER_CMD  _IOWR ('V', 78, struct v4l2_encoder_cmd)
+-
+-/* Experimental, only implemented if CONFIG_VIDEO_ADV_DEBUG is defined */
+-#define	VIDIOC_DBG_S_REGISTER 	_IOW  ('V', 79, struct v4l2_register)
+-#define	VIDIOC_DBG_G_REGISTER 	_IOWR ('V', 80, struct v4l2_register)
+-=======
+ #define VIDIOC_G_ENC_INDEX      _IOR  ('V', 76, struct v4l2_enc_idx)
+ #define VIDIOC_ENCODER_CMD      _IOWR ('V', 77, struct v4l2_encoder_cmd)
+ #define VIDIOC_TRY_ENCODER_CMD  _IOWR ('V', 78, struct v4l2_encoder_cmd)
+@@ -1494,7 +1481,6 @@ struct v4l2_chip_ident {
+ #define	VIDIOC_DBG_G_REGISTER 	_IOWR ('V', 80, struct v4l2_register)
+ 
+ #define VIDIOC_G_CHIP_IDENT     _IOWR ('V', 81, struct v4l2_chip_ident)
+->>>>>>> /include/linux/videodev2.h
+ #endif
+ 
+ #ifdef __OLD_VIDIOC_
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fix-failure-paths-in-modules-init-in-umemc.patch
-md-fix-raid10-recovery-problem.patch
-md-raid6-clean-up-cpuid-and-fpu-enter-exit-code.patch
-md-move-warning-about-creating-a-raid-array-on-partitions-of-the-one-device.patch
-md-clean-out-unplug-and-other-queue-function-on-md-shutdown.patch
-md-restart-a-raid5-reshape-that-has-been-aborted-due-to-a-read-write-error.patch
-md-add-support-for-reshape-of-a-raid6.patch
-knfsd-use-recv_msg-to-get-peer-address-for-nfsd-instead-of-code-copying.patch
-knfsd-avoid-checksum-checks-when-collecting-metadata-for-a-udp-packet.patch
-knfsd-remove-config_ipv6-ifdefs-from-sunrpc-server-code.patch
+cyclades-return-closing_wait.patch
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+pvrusb-warning-fix.patch
+git-hid-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+git-kvm.patch
+git-leds-fixup.patch
+git-leds-make-it-compile.patch
+git-md-accel-vs-md.patch
+nommu-present-backing-device-capabilities-for-mtd-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+cisco_ioctl-initialise-header_cache_update.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
 revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
-the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+git-block-fixup.patch
+git-block-another-md-fix.patch
+git-unionfs.patch
+usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+after-before-x86_64-mm-mmconfig-share.patch
+log-reason-why-tsc-was-marked-unstable-fix.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial-tweak.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+kvm-add-internal-filesystem-for-generating-inodes-tweak.patch
+driver_bfin_serial_core-update.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
+utrace-prep.patch
+utrace-prep-2.patch
+revert-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
