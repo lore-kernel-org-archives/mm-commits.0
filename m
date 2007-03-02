@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mv643xx-ethernet-driver-irq-registration-fix.patch added to -mm tree
-Date: Fri, 02 Mar 2007 14:07:37 -0800
-Message-ID: <200703022207.l22M7bHD020412@shell0.pdx.osdl.net>
+Subject: + use-the-apic-to-determine-the-hardware-processor-id-i386-fix.patch added to -mm tree
+Date: Fri, 02 Mar 2007 14:10:58 -0800
+Message-ID: <200703022210.l22MAw9J020518@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43129 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43128 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030583AbXCBWLF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 17:11:05 -0500
+	id S1030573AbXCBWLC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 17:11:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: giri@lmc.cs.sunysb.edu, dale@farnsworth.org, jeff@garzik.org, pgiri@yahoo.com
+Cc: fernando@oss.ntt.co.jp
 
 
 The patch titled
-     mv643xx ethernet driver IRQ registration fix
+     hard_smp_processor_id definition for UP systems without APIC (i386)
 has been added to the -mm tree.  Its filename is
-     mv643xx-ethernet-driver-irq-registration-fix.patch
+     use-the-apic-to-determine-the-hardware-processor-id-i386-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,110 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mv643xx ethernet driver IRQ registration fix
-From: Giridhar Pemmasani <giri@lmc.cs.sunysb.edu>
+Subject: hard_smp_processor_id definition for UP systems without APIC (i386)
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
-During initialization, mv643xx driver registers IRQ before setting up tx/rx
-rings.  This causes kernel oops because mv643xx_poll, which gets called
-right after registering IRQ, calls netif_rx_complete, which accesses the rx
-ring (I don't have the oops message anymore; I just remember this sequence
-of calls).  Attached (tested) patch first initializes the rx/tx rings and
-then registers the IRQ.
+Provide hard_smp_processor_id definition also for non apic case.
 
-Signed-off-by: Giridhar Pemmasani <pgiri@yahoo.com>
-Cc: Dale Farnsworth <dale@farnsworth.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/mv643xx_eth.c |   40 +++++++++++++++++++-----------------
- 1 files changed, 22 insertions(+), 18 deletions(-)
+ include/asm-i386/smp.h |    8 ++++++++
+ 1 files changed, 8 insertions(+)
 
-diff -puN drivers/net/mv643xx_eth.c~mv643xx-ethernet-driver-irq-registration-fix drivers/net/mv643xx_eth.c
---- a/drivers/net/mv643xx_eth.c~mv643xx-ethernet-driver-irq-registration-fix
-+++ a/drivers/net/mv643xx_eth.c
-@@ -787,14 +787,6 @@ static int mv643xx_eth_open(struct net_d
- 	unsigned int size;
- 	int err;
+diff -puN include/asm-i386/smp.h~use-the-apic-to-determine-the-hardware-processor-id-i386-fix include/asm-i386/smp.h
+--- a/include/asm-i386/smp.h~use-the-apic-to-determine-the-hardware-processor-id-i386-fix
++++ a/include/asm-i386/smp.h
+@@ -90,6 +90,7 @@ extern unsigned int num_processors;
+ #ifndef __ASSEMBLY__
  
--	err = request_irq(dev->irq, mv643xx_eth_int_handler,
--			IRQF_SHARED | IRQF_SAMPLE_RANDOM, dev->name, dev);
--	if (err) {
--		printk(KERN_ERR "Can not assign IRQ number to MV643XX_eth%d\n",
--								port_num);
--		return -EAGAIN;
--	}
--
- 	eth_port_init(mp);
- 
- 	memset(&mp->timeout, 0, sizeof(struct timer_list));
-@@ -806,8 +798,7 @@ static int mv643xx_eth_open(struct net_d
- 								GFP_KERNEL);
- 	if (!mp->rx_skb) {
- 		printk(KERN_ERR "%s: Cannot allocate Rx skb ring\n", dev->name);
--		err = -ENOMEM;
--		goto out_free_irq;
-+		return -ENOMEM;
- 	}
- 	mp->tx_skb = kmalloc(sizeof(*mp->tx_skb) * mp->tx_ring_size,
- 								GFP_KERNEL);
-@@ -861,13 +852,8 @@ static int mv643xx_eth_open(struct net_d
- 							dev->name, size);
- 		printk(KERN_ERR "%s: Freeing previously allocated TX queues...",
- 							dev->name);
--		if (mp->rx_sram_size)
--			iounmap(mp->p_tx_desc_area);
--		else
--			dma_free_coherent(NULL, mp->tx_desc_area_size,
--					mp->p_tx_desc_area, mp->tx_desc_dma);
- 		err = -ENOMEM;
--		goto out_free_tx_skb;
-+		goto out_free_tx_ring;
- 	}
- 	memset((void *)mp->p_rx_desc_area, 0, size);
- 
-@@ -875,6 +861,14 @@ static int mv643xx_eth_open(struct net_d
- 
- 	mv643xx_eth_rx_refill_descs(dev);	/* Fill RX ring with skb's */
- 
-+	err = request_irq(dev->irq, mv643xx_eth_int_handler,
-+			IRQF_SHARED | IRQF_SAMPLE_RANDOM, dev->name, dev);
-+	if (err) {
-+		printk(KERN_ERR "Can not assign IRQ number to MV643XX_eth%d\n",
-+			port_num);
-+		goto out_free_rx_ring;
-+	}
+ #ifdef CONFIG_X86_LOCAL_APIC
 +
- 	/* Clear any pending ethernet port interrupts */
- 	mv_write(MV643XX_ETH_INTERRUPT_CAUSE_REG(port_num), 0);
- 	mv_write(MV643XX_ETH_INTERRUPT_CAUSE_EXTEND_REG(port_num), 0);
-@@ -900,12 +894,22 @@ static int mv643xx_eth_open(struct net_d
- 
- 	return 0;
- 
-+out_free_rx_ring:
-+	if (mp->rx_sram_size)
-+		iounmap(mp->p_rx_desc_area);
-+	else
-+		dma_free_coherent(NULL, mp->rx_desc_area_size,
-+			mp->p_rx_desc_area, mp->rx_desc_dma);
-+out_free_tx_ring:
-+	if (mp->tx_sram_size)
-+		iounmap(mp->p_tx_desc_area);
-+	else
-+		dma_free_coherent(NULL, mp->tx_desc_area_size,
-+				mp->p_tx_desc_area, mp->tx_desc_dma);
- out_free_tx_skb:
- 	kfree(mp->tx_skb);
- out_free_rx_skb:
- 	kfree(mp->rx_skb);
--out_free_irq:
--	free_irq(dev->irq, dev);
- 
- 	return err;
+ #ifdef APIC_DEFINITION
+ extern int hard_smp_processor_id(void);
+ #else
+@@ -100,6 +101,13 @@ static inline int hard_smp_processor_id(
+ 	return GET_APIC_ID(*(unsigned long *)(APIC_BASE+APIC_ID));
  }
+ #endif /* APIC_DEFINITION */
++
++#else /* CONFIG_X86_LOCAL_APIC */
++
++#ifndef CONFIG_SMP
++#define hard_smp_processor_id()		0
++#endif
++
+ #endif /* CONFIG_X86_LOCAL_APIC */
+ 
+ extern u8 apicid_2_node[];
 _
 
-Patches currently in -mm which might be from giri@lmc.cs.sunysb.edu are
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
-mv643xx-ethernet-driver-irq-registration-fix.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386-fix.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor.patch
