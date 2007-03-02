@@ -1,112 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - sched-fix-smt-scheduler-bug.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:07:14 -0800
-Message-ID: <200703020507.l2257EXS000862@shell0.pdx.osdl.net>
+Subject: - libata-clear-drvdata-in-ata_host_release-take2.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:07:48 -0800
+Message-ID: <200703020507.l2257mjO000896@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42389 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42420 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422760AbXCBFH3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:07:29 -0500
+	id S1422774AbXCBFHu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:07:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, michal.k.k.piotrowski@gmail.com, nickpiggin@yahoo.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: fix SMT scheduler bug
+     libata: clear drvdata in ata_host_release()
 has been removed from the -mm tree.  Its filename was
-     sched-fix-smt-scheduler-bug.patch
+     libata-clear-drvdata-in-ata_host_release-take2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: fix SMT scheduler bug
-From: Ingo Molnar <mingo@elte.hu>
+Subject: libata: clear drvdata in ata_host_release()
+From: Tejun Heo <htejun@gmail.com>
 
-The SMT scheduler incorrectly skips kernel threads even if they are
-runnable (but they are preempted by a higher-prio user-space task which got
-SMT-delayed by an even higher-priority task running on a sibling CPU).
+Clearing drvdata in ->remove_one causes NULL pointer deference.  Clear
+drvdata only in ata_host_release() after all resources are freed.
 
-Fix this for now by only doing the SMT-nice optimization if the
-to-be-delayed task is the only runnable task.  (This should cover most of
-the real-life cases anyway.)
-
-This bug has been in the SMT scheduler since 2.6.17 or so, but has only
-been noticed now by the active check in the dynticks code.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/libata-core.c   |    3 ++-
+ drivers/ata/pata_cs5520.c   |    1 -
+ drivers/ata/pata_isapnp.c   |    1 -
+ drivers/ata/pata_platform.c |    1 -
+ 4 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sched.c~sched-fix-smt-scheduler-bug kernel/sched.c
---- a/kernel/sched.c~sched-fix-smt-scheduler-bug
-+++ a/kernel/sched.c
-@@ -3547,7 +3547,7 @@ need_resched_nonpreemptible:
- 		}
- 	}
- 	next->sleep_type = SLEEP_NORMAL;
--	if (dependent_sleeper(cpu, rq, next))
-+	if (rq->nr_running == 1 && dependent_sleeper(cpu, rq, next))
- 		next = rq->idle;
- switch_tasks:
- 	if (next == rq->idle)
+diff -puN drivers/ata/libata-core.c~libata-clear-drvdata-in-ata_host_release-take2 drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-clear-drvdata-in-ata_host_release-take2
++++ a/drivers/ata/libata-core.c
+@@ -5731,6 +5731,8 @@ static void ata_host_release(struct devi
+ 
+ 	if (host->ops->host_stop)
+ 		host->ops->host_stop(host);
++
++	dev_set_drvdata(gendev, NULL);
+ }
+ 
+ /**
+@@ -5953,7 +5955,6 @@ int ata_device_add(const struct ata_prob
+ 
+  err_out:
+ 	devres_release_group(dev, ata_device_add);
+-	dev_set_drvdata(dev, NULL);
+ 	VPRINTK("EXIT, returning %d\n", rc);
+ 	return 0;
+ }
+diff -puN drivers/ata/pata_cs5520.c~libata-clear-drvdata-in-ata_host_release-take2 drivers/ata/pata_cs5520.c
+--- a/drivers/ata/pata_cs5520.c~libata-clear-drvdata-in-ata_host_release-take2
++++ a/drivers/ata/pata_cs5520.c
+@@ -306,7 +306,6 @@ static void __devexit cs5520_remove_one(
+ 	struct ata_host *host = dev_get_drvdata(dev);
+ 
+ 	ata_host_detach(host);
+-	dev_set_drvdata(dev, NULL);
+ }
+ 
+ /**
+diff -puN drivers/ata/pata_isapnp.c~libata-clear-drvdata-in-ata_host_release-take2 drivers/ata/pata_isapnp.c
+--- a/drivers/ata/pata_isapnp.c~libata-clear-drvdata-in-ata_host_release-take2
++++ a/drivers/ata/pata_isapnp.c
+@@ -128,7 +128,6 @@ static void isapnp_remove_one(struct pnp
+ 	struct ata_host *host = dev_get_drvdata(dev);
+ 
+ 	ata_host_detach(host);
+-	dev_set_drvdata(dev, NULL);
+ }
+ 
+ static struct pnp_device_id isapnp_devices[] = {
+diff -puN drivers/ata/pata_platform.c~libata-clear-drvdata-in-ata_host_release-take2 drivers/ata/pata_platform.c
+--- a/drivers/ata/pata_platform.c~libata-clear-drvdata-in-ata_host_release-take2
++++ a/drivers/ata/pata_platform.c
+@@ -228,7 +228,6 @@ static int __devexit pata_platform_remov
+ 	struct ata_host *host = dev_get_drvdata(dev);
+ 
+ 	ata_host_detach(host);
+-	dev_set_drvdata(dev, NULL);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from htejun@gmail.com are
 
 origin.patch
-sched-remove-smt-nice.patch
-git-kvm.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-log-reason-why-tsc-was-marked-unstable.patch
-clocksource-init-adjustments-fix-bug-7426.patch
-fully-honor-vdso_enabled.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-simplify-the-stacktrace-code.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-timer-run-calc_load-halfway-through-each-round_jiffies.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
-fsaio-rename-__lock_page-to-lock_page_blocking.patch
-fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
-fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
-fsaio-filesystem-aio-read.patch
-fsaio-aio-o_sync-filesystem-write.patch
-aio-is-unlikely.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
-kmap_atomic-debugging.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+expose-set_mode-method-so-it-can-be-wrapped.patch
+acpi-driver-support-for-pata.patch
+introduce-config_has_dma.patch
