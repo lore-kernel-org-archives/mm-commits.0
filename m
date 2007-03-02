@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-check-if-default-ports-are-accessible-on-ppc.patch added to -mm tree
-Date: Fri, 02 Mar 2007 14:35:14 -0800
-Message-ID: <200703022235.l22MZEfb021109@shell0.pdx.osdl.net>
+Subject: + pata_qdi-fix-initialisation.patch added to -mm tree
+Date: Fri, 02 Mar 2007 14:36:48 -0800
+Message-ID: <200703022236.l22Mam3r021123@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44826 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44927 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030654AbXCBWff (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 17:35:35 -0500
+	id S1030657AbXCBWhL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 17:37:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krafft@de.ibm.com, benh@kernel.crashing.org, michael@ellerman.id.au, minyard@acm.org, paulus@samba.org
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     ipmi: check, if default ports are accessible on PPC
+     pata_qdi: fix initialisation
 has been added to the -mm tree.  Its filename is
-     ipmi-check-if-default-ports-are-accessible-on-ppc.patch
+     pata_qdi-fix-initialisation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,94 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ipmi: check, if default ports are accessible on PPC
-From: Christian Krafft <krafft@de.ibm.com>
+Subject: pata_qdi: fix initialisation
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-ipmi_si_intf tries to access default ports, if no device could be found
-elsewhere.  On PPC we have a function to check, if these legacy IO ports
-are accessible.  This patch adds a check for these ports on PPC.  This
-patch fixes a breakage of IPMI module on PPC machines without a BMC.
+The QDI init code contains some bugs which mean it only works if you have
+a test setup that causes both a successful and failed probe. Fix this
 
-Signed-off-by: Christian Krafft <krafft@de.ibm.com>
-Acked-by: Michael Ellerman <michael@ellerman.id.au>
-Signed-off-by: Corey Minyard <minyard@acm.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Found by Philip Guo
+
+(Who found it working on code analysis tools not running VLB IDE
+controllers)
+
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    5 +++++
- 1 files changed, 5 insertions(+)
+ drivers/ata/pata_qdi.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-check-if-default-ports-are-accessible-on-ppc drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-check-if-default-ports-are-accessible-on-ppc
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2478,6 +2478,11 @@ static __devinit void default_find_bmc(v
- 		if (!info)
- 			return;
- 
-+#ifdef CONFIG_PPC_MERGE
-+		if (check_legacy_ioport(ipmi_defaults[i].port))
-+			continue;
-+#endif
-+
- 		info->addr_source = NULL;
- 
- 		info->si_type = ipmi_defaults[i].type;
+diff -puN drivers/ata/pata_qdi.c~pata_qdi-fix-initialisation drivers/ata/pata_qdi.c
+--- a/drivers/ata/pata_qdi.c~pata_qdi-fix-initialisation
++++ a/drivers/ata/pata_qdi.c
+@@ -365,7 +365,8 @@ static __init int qdi_init(void)
+ 					release_region(port, 2);
+ 					continue;
+ 				}
+-				ct += qdi_init_one(port, 6500, ide_port[r & 0x01], ide_irq[r & 0x01], r & 0x04);
++				if (qdi_init_one(port, 6500, ide_port[r & 0x01], ide_irq[r & 0x01], r & 0x04) == 0)
++					ct++;
+ 			}
+ 			if (((r & 0xF0) == 0xA0) || (r & 0xF0) == 0x50) {
+ 				/* QD6580: dual channel */
+@@ -377,11 +378,14 @@ static __init int qdi_init(void)
+ 				res = inb(port + 3);
+ 				if (res & 1) {
+ 					/* Single channel mode */
+-					ct += qdi_init_one(port, 6580, ide_port[r & 0x01], ide_irq[r & 0x01], r & 0x04);
++					if (qdi_init_one(port, 6580, ide_port[r & 0x01], ide_irq[r & 0x01], r & 0x04))
++						ct++;
+ 				} else {
+ 					/* Dual channel mode */
+-					ct += qdi_init_one(port, 6580, 0x1F0, 14, r & 0x04);
+-					ct += qdi_init_one(port + 2, 6580, 0x170, 15, r & 0x04);
++					if (qdi_init_one(port, 6580, 0x1F0, 14, r & 0x04) == 0)
++						ct++;
++					if (qdi_init_one(port + 2, 6580, 0x170, 15, r & 0x04) == 0)
++						ct++;
+ 				}
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from krafft@de.ibm.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-ipmi-check-if-default-ports-are-accessible-on-ppc.patch
-ipmi-add-powerpc-openfirmware-sensing.patch
+cyclades-return-closing_wait.patch
+libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
+expose-set_mode-method-so-it-can-be-wrapped.patch
+acpi-driver-support-for-pata.patch
+pcmcia-spot-slave-decode-flaws-for-testing.patch
+libata-cable-detection-fixes.patch
+libata-dev_config-does-not-need-ap-and-adev-passing.patch
+pata_platform-set-a-cable-type-which-to-set.patch
+pata_qdi-set-cable-type.patch
+pata_sl82c105-missing-methods-cable.patch
+ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
+pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
+pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
+pata_cypress-clean-up-by-using-cable_detect-method.patch
+pata_isapnp-set-cable-type.patch
+pata_ixp4xx_cf-set-cable-type.patch
+pata_legacy-fix-missing-methods-and-add-cable-types.patch
+pata_netcell-remove-lots-of-crud-by-using-the-cable-method.patch
+pata_radisys-switch-to-cable-method-to-cleanup-code.patch
+pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
+pata_rz1000-remove-lots-of-crap-by-using-cable-method.patch
+pata_winbond-set-cable-type.patch
+pata_cmd64x-various-fixes.patch
+pata_hpt3x3-clean-up-by-using-cable-method.patch
+pata_qdi-fix-initialisation.patch
+pata_cmd640-cmd640-pci-support.patch
+libata-kconfig-update-the-various-experimentality-levels.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+resend-iphase-64bit-cleanup.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+tty-clarify-documentation-of-write.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
