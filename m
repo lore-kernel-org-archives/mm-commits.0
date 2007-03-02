@@ -1,81 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:06:44 -0800
-Message-ID: <200703020506.l2256iRk000824@shell0.pdx.osdl.net>
+Subject: - fix-sysfs-build-breakage-if-config_sysfs.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:07:39 -0800
+Message-ID: <200703020507.l2257d70000887@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42554 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42603 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422787AbXCBFKB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:10:01 -0500
+	id S1422801AbXCBFK5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:10:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tilman@imap.cc, bunk@stusta.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/isdn/gigaset: build asyncdata.o into the gigaset module (fix)
+     Fix sysfs build breakage if !CONFIG_SYSFS
 has been removed from the -mm tree.  Its filename was
-     drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix.patch
+     fix-sysfs-build-breakage-if-config_sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/isdn/gigaset: build asyncdata.o into the gigaset module (fix)
-From: Tilman Schmidt <tilman@imap.cc>
+Subject: Fix sysfs build breakage if !CONFIG_SYSFS
+From: Ralf Baechle <ralf@linux-mips.org>
 
-a) Remove #define acrobatics that have become unnecessary by the move of
-   asyncdata.o into the common part.
+B0rkage introduced by dfa87c824a9a5430008acd1ed2e8111ed164fcbe.
 
-b) Correct the rule for building the common part into the kernel when
-   some or all hardware specific parts are built as modules.
-
-Signed-off-by: Tilman Schmidt <tilman@imap.cc>
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/gigaset/Makefile    |    9 +++++----
- drivers/isdn/gigaset/asyncdata.c |    5 -----
- 2 files changed, 5 insertions(+), 9 deletions(-)
+ include/linux/sysfs.h |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/isdn/gigaset/Makefile~drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix drivers/isdn/gigaset/Makefile
---- a/drivers/isdn/gigaset/Makefile~drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix
-+++ a/drivers/isdn/gigaset/Makefile
-@@ -1,8 +1,9 @@
- gigaset-y := common.o interface.o proc.o ev-layer.o i4l.o asyncdata.o
- usb_gigaset-y := usb-gigaset.o
--bas_gigaset-y := bas-gigaset.o isocdata.o
- ser_gigaset-y := ser-gigaset.o
-+bas_gigaset-y := bas-gigaset.o isocdata.o
+diff -puN include/linux/sysfs.h~fix-sysfs-build-breakage-if-config_sysfs include/linux/sysfs.h
+--- a/include/linux/sysfs.h~fix-sysfs-build-breakage-if-config_sysfs
++++ a/include/linux/sysfs.h
+@@ -212,9 +212,8 @@ static inline int sysfs_add_file_to_grou
+ }
  
--obj-$(CONFIG_GIGASET_M105) += usb_gigaset.o gigaset.o
--obj-$(CONFIG_GIGASET_BASE) += bas_gigaset.o gigaset.o
--obj-$(CONFIG_GIGASET_M101) += ser_gigaset.o gigaset.o
-+obj-$(CONFIG_ISDN_DRV_GIGASET) += gigaset.o
-+obj-$(CONFIG_GIGASET_M105) += usb_gigaset.o
-+obj-$(CONFIG_GIGASET_BASE) += bas_gigaset.o
-+obj-$(CONFIG_GIGASET_M101) += ser_gigaset.o
-diff -puN drivers/isdn/gigaset/asyncdata.c~drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix drivers/isdn/gigaset/asyncdata.c
---- a/drivers/isdn/gigaset/asyncdata.c~drivers-isdn-gigaset-build-asyncdatao-into-the-gigaset-module-fix
-+++ a/drivers/isdn/gigaset/asyncdata.c
-@@ -13,11 +13,6 @@
-  * =====================================================================
-  */
+ static inline void sysfs_remove_file_from_group(struct kobject *kobj,
+-		const struct attribute *attr, const char *group);
++		const struct attribute *attr, const char *group)
+ {
+-	;
+ }
  
--/* not set by Kbuild when building both ser_gigaset and usb_gigaset */
--#ifndef KBUILD_MODNAME
--#define KBUILD_MODNAME "asy_gigaset"
--#endif
--
- #include "gigaset.h"
- #include <linux/crc-ccitt.h>
- #include <linux/bitrev.h>
+ static inline void sysfs_notify(struct kobject * k, char *dir, char *attr)
 _
 
-Patches currently in -mm which might be from tilman@imap.cc are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-drivers-isdn-gigaset-mark-some-static-data-as-const-v2.patch
-fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix-sparse-fix.patch
+serial-driver-pmc-msp71xx.patch
+rm9000-serial-driver.patch
+rm9000-serial-driver-tidy.patch
+x86_64-fix-ia32_binfmtc-build-error.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+simplify-the-stacktrace-code.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+local_t-mips-extension.patch
+local_t-mips-extension-fix.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+tgafb-turbochannel-support.patch
