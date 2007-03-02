@@ -1,99 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-fix-cpuidle-borkage-2.patch added to -mm tree
-Date: Fri, 02 Mar 2007 14:42:31 -0800
-Message-ID: <200703022242.l22MgVmm021212@shell0.pdx.osdl.net>
+Subject: - git-acpi-fix-cpuidle-borkage.patch removed from -mm tree
+Date: Fri, 02 Mar 2007 14:42:37 -0800
+Message-ID: <200703022242.l22MgcoU021216@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45209 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45215 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992645AbXCBWnI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 17:43:08 -0500
+	id S2992664AbXCBWnO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 17:43:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com, abelay@novell.com, len.brown@intel.com, shaohua.li@intel.com
+To: akpm@linux-foundation.org, abelay@novell.com, len.brown@intel.com, shaohua.li@intel.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi-fix-cpuidle-borkage 2
-has been added to the -mm tree.  Its filename is
-     git-acpi-fix-cpuidle-borkage-2.patch
+     git-acpi-fix-cpuidle-borkage
+has been removed from the -mm tree.  Its filename was
+     git-acpi-fix-cpuidle-borkage.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: git-acpi-fix-cpuidle-borkage 2
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: git-acpi-fix-cpuidle-borkage
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix the compile issues when CPU_IDLE is not configured.
+This is pretty pathetic.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Don't apply this patch - please fix it properly.
+
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Adam Belay <abelay@novell.com>
 Cc: Shaohua Li <shaohua.li@intel.com>
 Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuidle.h |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+)
+ drivers/acpi/processor_core.c |    5 ++++-
+ drivers/acpi/processor_idle.c |    4 ++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/cpuidle.h~git-acpi-fix-cpuidle-borkage-2 include/linux/cpuidle.h
---- a/include/linux/cpuidle.h~git-acpi-fix-cpuidle-borkage-2
-+++ a/include/linux/cpuidle.h
-@@ -130,10 +130,21 @@ struct cpuidle_driver {
- 	struct module 		*owner;
- };
+diff -puN include/linux/cpuidle.h~git-acpi-fix-cpuidle-borkage include/linux/cpuidle.h
+diff -puN drivers/acpi/processor_idle.c~git-acpi-fix-cpuidle-borkage drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~git-acpi-fix-cpuidle-borkage
++++ a/drivers/acpi/processor_idle.c
+@@ -623,7 +623,11 @@ int acpi_processor_cst_has_changed(struc
+ 		return -ENODEV;
+ 
+ 	acpi_processor_get_power_info(pr);
++#ifdef CONFIG_CPU_IDLE
+ 	return cpuidle_force_redetect(&per_cpu(cpuidle_devices, pr->id));
++#else
++	return 0;
++#endif
+ }
+ 
+ /* proc interface */
+diff -puN drivers/acpi/processor_core.c~git-acpi-fix-cpuidle-borkage drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~git-acpi-fix-cpuidle-borkage
++++ a/drivers/acpi/processor_core.c
+@@ -1029,14 +1029,17 @@ static int __init acpi_processor_init(vo
+ 
+ 	acpi_processor_ppc_init();
  
 +#ifdef CONFIG_CPU_IDLE
-+
- extern int cpuidle_register_driver(struct cpuidle_driver *drv);
- extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
- extern int cpuidle_force_redetect(struct cpuidle_device *dev);
- 
-+#else
-+
-+static inline int cpuidle_register_driver(struct cpuidle_driver *drv)
-+{return 0;}
-+static inline void cpuidle_unregister_driver(struct cpuidle_driver *drv) { }
-+static inline int cpuidle_force_redetect(struct cpuidle_device *dev)
-+{return 0;}
-+
+ 	cpuidle_register_driver(&acpi_idle_driver);
 +#endif
+ 	return 0;
+ }
  
- /******************************
-  * CPUIDLE GOVERNOR INTERFACE *
-@@ -153,8 +164,20 @@ struct cpuidle_governor {
- 	struct module 		*owner;
- };
- 
+ static void __exit acpi_processor_exit(void)
+ {
 +#ifdef CONFIG_CPU_IDLE
-+
- extern int cpuidle_register_governor(struct cpuidle_governor *gov);
- extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
- extern int cpuidle_get_bm_activity(void);
- 
-+#else
-+
-+static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
-+{return 0;}
-+static inline void cpuidle_unregister_governor(struct cpuidle_governor *gov) { }
-+static inline int cpuidle_get_bm_activity(void)
-+{return 0;}
-+
+ 	cpuidle_unregister_driver(&acpi_idle_driver);
+-
 +#endif
-+
- #endif /* _LINUX_CPUIDLE_H */
+ 	acpi_processor_ppc_exit();
+ 
+ 	acpi_thermal_cpufreq_exit();
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-acpi.patch
-git-acpi-fix-cpuidle-borkage-2.patch
+origin.patch
+cyclades-return-closing_wait.patch
+md-fix-for-raid6-reshape-fix.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
 git-acpi-fix-cpuidle-borkage.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-alsa-oops-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+pvrusb-warning-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+git-kvm.patch
+git-kvm-fixup.patch
+git-leds-fixup.patch
+git-leds-make-it-compile.patch
+ide-ide-fix-pmac-breakage-fix.patch
+git-md-accel-fixup.patch
+nommu-present-backing-device-capabilities-for-mtd-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+cisco_ioctl-initialise-header_cache_update.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-block-another-md-fix.patch
+git-unionfs.patch
+usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+after-before-x86_64-mm-mmconfig-share.patch
+linux-sysdevh-needs-to-include-linux-moduleh-up-fix.patch
+linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial-tweak.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+driver_bfin_serial_core-update.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-2.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler-up-fix.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
+utrace-prep.patch
+utrace-prep-2.patch
+revert-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
