@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix.patch added to -mm tree
-Date: Thu, 01 Mar 2007 21:51:39 -0800
-Message-ID: <200703020553.l225rDjU001660@shell0.pdx.osdl.net>
+Subject: + speedup-divides-by-cpu_power-in-scheduler-up-fix.patch added to -mm tree
+Date: Thu, 01 Mar 2007 21:59:28 -0800
+Message-ID: <200703020601.l2261381001792@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43984 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44247 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422922AbXCBFxS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:53:18 -0500
+	id S1422930AbXCBGCV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 01:02:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com
+Cc: akpm@linux-foundation.org, dada1@cosmosbay.com, mingo@elte.hu, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix
+     speedup-divides-by-cpu_power-in-scheduler-up-fix
 has been added to the -mm tree.  Its filename is
-     safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix.patch
+     speedup-divides-by-cpu_power-in-scheduler-up-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix
+Subject: speedup-divides-by-cpu_power-in-scheduler-up-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+kernel/sched.c:189: warning: 'struct sched_group' declared inside parameter list
+kernel/sched.c:189: warning: its scope is only this definition or declaration, which is probably not what you want
+kernel/sched.c: In function 'sg_div_cpu_power':
+kernel/sched.c:191: error: dereferencing pointer to incomplete type
+kernel/sched.c: At top level:
+kernel/sched.c:198: warning: 'struct sched_group' declared inside parameter list
+kernel/sched.c: In function 'sg_inc_cpu_power':
+kernel/sched.c:200: error: dereferencing pointer to incomplete type
+kernel/sched.c:201: error: dereferencing pointer to incomplete type
+kernel/sched.c:201: error: dereferencing pointer to incomplete type
+
+Please see Documentation/SubmitChecklist?
+
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ kernel/sched.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/sched.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix kernel/sched.c
---- a/kernel/sched.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix
+diff -puN kernel/sched.c~speedup-divides-by-cpu_power-in-scheduler-up-fix kernel/sched.c
+--- a/kernel/sched.c~speedup-divides-by-cpu_power-in-scheduler-up-fix
 +++ a/kernel/sched.c
-@@ -5279,6 +5279,11 @@ int __init migration_init(void)
- #endif
- 
- #ifdef CONFIG_SMP
-+
-+/* Number of possible processor ids */
-+int nr_cpu_ids = NR_CPUS;
-+EXPORT_SYMBOL(nr_cpu_ids);
-+
- #undef SCHED_DOMAIN_DEBUG
- #ifdef SCHED_DOMAIN_DEBUG
- static void sched_domain_debug(struct sched_domain *sd, int cpu)
-@@ -6758,10 +6763,6 @@ int in_sched_functions(unsigned long add
- 		&& addr < (unsigned long)__sched_text_end);
+@@ -182,6 +182,7 @@ static unsigned int static_prio_timeslic
+ 		return SCALE_PRIO(DEF_TIMESLICE, static_prio);
  }
  
--/* Number of possible processor ids */
--int nr_cpu_ids = NR_CPUS;
--EXPORT_SYMBOL(nr_cpu_ids);
--
- void __init sched_init(void)
- {
- 	int i, j, k;
-@@ -6802,11 +6803,11 @@ void __init sched_init(void)
- 		}
- 		highest_cpu = i;
- 	}
--	nr_cpu_ids = highest_cpu + 1;
++#ifdef CONFIG_SMP
+ /*
+  * Divide a load by a sched group cpu_power : (load / sg->__cpu_power)
+  * Since cpu_power is a 'constant', we can use a reciprocal divide.
+@@ -200,6 +201,7 @@ static inline void sg_inc_cpu_power(stru
+ 	sg->__cpu_power += val;
+ 	sg->reciprocal_cpu_power = reciprocal_value(sg->__cpu_power);
+ }
++#endif
  
- 	set_load_weight(&init_task);
- 
- #ifdef CONFIG_SMP
-+	nr_cpu_ids = highest_cpu + 1;
- 	open_softirq(SCHED_SOFTIRQ, run_rebalance_domains, NULL);
- #endif
- 
+ /*
+  * task_timeslice() scales user-nice values [ -20 ... 0 ... 19 ]
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +112,7 @@ reduce-size-of-task_struct-on-64-bit-machines.patch
 mm-shrink-parent-dentries-when-shrinking-slab.patch
 merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler-up-fix.patch
 lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
 utrace-prep.patch
 utrace-prep-2.patch
