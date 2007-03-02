@@ -1,70 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - bug-in-mm_rb-debugging.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:06:52 -0800
-Message-ID: <200703020506.l2256qS0000835@shell0.pdx.osdl.net>
+Subject: - uml-enable-raw.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:07:02 -0800
+Message-ID: <200703020507.l22572OO000847@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42344 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42352 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422753AbXCBFHA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:07:00 -0500
+	id S1422752AbXCBFHF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:07:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, andrea@novell.com, mm-commits@vger.kernel.org
+To: allan.graves@gmail.com, blaisorblade@yahoo.it, jdike@addtoit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Bug in MM_RB debugging
+     uml: enable RAW
 has been removed from the -mm tree.  Its filename was
-     bug-in-mm_rb-debugging.patch
+     uml-enable-raw.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Bug in MM_RB debugging
-From: David Miller <davem@davemloft.net>
+Subject: uml: enable RAW
+From: Allan Graves <allan.graves@gmail.com>
 
-The code is seemingly trying to make sure that rb_next() brings us to
-successive increasing vma entries.
+Add the RAW device driver options to the UML Kconfig.char file so that you may
+use them in UML.
 
-But the two variables, prev and pend, used to perform these checks, are
-never advanced.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: Andrea Arcangeli <andrea@novell.com>
+Signed-off-by: Allan Graves<allan.graves@gmail.com>
+Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/um/Kconfig.char |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff -puN mm/mmap.c~bug-in-mm_rb-debugging mm/mmap.c
---- a/mm/mmap.c~bug-in-mm_rb-debugging
-+++ a/mm/mmap.c
-@@ -299,6 +299,8 @@ static int browse_rb(struct rb_root *roo
- 			printk("vm_end %lx < vm_start %lx\n", vma->vm_end, vma->vm_start);
- 		i++;
- 		pn = nd;
-+		prev = vma->vm_start;
-+		pend = vma->vm_end;
- 	}
- 	j = 0;
- 	for (nd = pn; nd; nd = rb_prev(nd)) {
+diff -puN arch/um/Kconfig.char~uml-enable-raw arch/um/Kconfig.char
+--- a/arch/um/Kconfig.char~uml-enable-raw
++++ a/arch/um/Kconfig.char
+@@ -146,6 +146,25 @@ config LEGACY_PTYS
+ 	  security.  This option enables these legacy devices; on most
+ 	  systems, it is safe to say N.
+ 
++config RAW_DRIVER
++        tristate "RAW driver (/dev/raw/rawN) (OBSOLETE)"
++        help
++          The raw driver permits block devices to be bound to /dev/raw/rawN.
++          Once bound, I/O against /dev/raw/rawN uses efficient zero-copy I/O.
++          See the raw(8) manpage for more details.
++
++          The raw driver is deprecated and will be removed soon.
++          Applications should simply open the device (eg /dev/hda1)
++          with the O_DIRECT flag.
++
++config MAX_RAW_DEVS
++        int "Maximum number of RAW devices to support (1-8192)"
++        depends on RAW_DRIVER
++        default "256"
++        help
++          The maximum number of RAW devices that are supported.
++          Default is 256. Increase this number in case you need lots of
++          raw devices.
+ 
+ config LEGACY_PTY_COUNT
+ 	int "Maximum number of legacy PTY in use"
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from allan.graves@gmail.com are
 
 origin.patch
-fix-radeon-blanking-return-value.patch
-8139too-fix-irq-problem-with-napi-netpoll.patch
-cisco_ioctl-initialise-header_cache_update.patch
-resend-iphase-64bit-cleanup.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch
-simplify-the-stacktrace-code.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-ipvs-flush-defense_work-before-module-unload.patch
-unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
-local_t-sparc64-cleanup.patch
