@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vmi-smp-fixes.patch added to -mm tree
-Date: Thu, 01 Mar 2007 19:37:30 -0800
-Message-ID: <200703020337.l223bUQi031365@shell0.pdx.osdl.net>
+Subject: + vmi-pit-override.patch added to -mm tree
+Date: Thu, 01 Mar 2007 19:37:24 -0800
+Message-ID: <200703020337.l223bOUN031356@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39704 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39695 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422805AbXCBDhb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 22:37:31 -0500
+	id S1422806AbXCBDh0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 22:37:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: zach@vmware.com
 
 
 The patch titled
-     vmi: smp fixes
+     vmi: pit override
 has been added to the -mm tree.  Its filename is
-     vmi-smp-fixes.patch
+     vmi-pit-override.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,63 +25,125 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vmi: smp fixes
+Subject: vmi: pit override
 From: Zachary Amsden <zach@vmware.com>
 
-Critical fixes for SMP.
+The time_init_hook in paravirt-ops no longer functions in the correct manner
+after the integration of the hrtimers code.  The problem is that now the call
+path for time initialization is:
 
-Fix a couple functions which needed to be __devinit and fix a bogus parameter
-to AP startup that just so happened to work because the low virtual mapping of
-memory was still established.
+  time_init :
+       late_time_init = hpet_time_init;
+
+  late_time_init -> hpet_time_init:
+       setup_pit_timer (BAD)
+       do_time_init --> (via paravirt.h)
+          time_init_hook --> (via arch_hooks.h)
+              time_init_hook (in SUBARCH/setup.c)
+
+If this isn't confusing enough, the paravirt case goes through an indirect
+function pointer in the paravirt-ops table.  The problem is, by the time the
+paravirt hook is called, the pit timer is already enabled.
+
+But paravirt guests have their own timer, and don't want to use the PIT. 
+Rather than intensify the struggle for power going on here, just make it all
+nice and simple and just unconditionally do all timer setup in the
+late_time_init hook.  This also has the advantage of enabling timers in the
+same place in all code paths, so everyone has the same bugs and we don't have
+outliers who break other code because they turn on timer too early or too
+late.
+
+So the paravirt-ops time init function is now by default hpet_time_init, which
+is the time init function used for native hardware.  Paravirt guests have the
+chance to override this when they setup the paravirt-ops table, and should
+need no change.
 
 Signed-off-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmi.c     |    7 ++++---
- arch/i386/kernel/vmitime.c |    2 +-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ arch/i386/kernel/paravirt.c |    2 +-
+ arch/i386/kernel/time.c     |   14 +++++++++++---
+ include/asm-i386/paravirt.h |    4 ++--
+ include/asm-i386/time.h     |    5 ++++-
+ 4 files changed, 18 insertions(+), 7 deletions(-)
 
-diff -puN arch/i386/kernel/vmi.c~vmi-smp-fixes arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~vmi-smp-fixes
-+++ a/arch/i386/kernel/vmi.c
-@@ -525,13 +525,14 @@ void vmi_pmd_clear(pmd_t *pmd)
- #endif
+diff -puN arch/i386/kernel/paravirt.c~vmi-pit-override arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~vmi-pit-override
++++ a/arch/i386/kernel/paravirt.c
+@@ -494,7 +494,7 @@ struct paravirt_ops paravirt_ops = {
+ 	.memory_setup = machine_specific_memory_setup,
+ 	.get_wallclock = native_get_wallclock,
+ 	.set_wallclock = native_set_wallclock,
+-	.time_init = time_init_hook,
++	.time_init = hpet_time_init,
+ 	.init_IRQ = native_init_IRQ,
  
- #ifdef CONFIG_SMP
--struct vmi_ap_state ap;
- extern void setup_pda(void);
+ 	.cpuid = native_cpuid,
+diff -puN arch/i386/kernel/time.c~vmi-pit-override arch/i386/kernel/time.c
+--- a/arch/i386/kernel/time.c~vmi-pit-override
++++ a/arch/i386/kernel/time.c
+@@ -262,14 +262,22 @@ void notify_arch_cmos_timer(void)
  
--static void __init /* XXX cpu hotplug */
-+static void __devinit
- vmi_startup_ipi_hook(int phys_apicid, unsigned long start_eip,
- 		     unsigned long start_esp)
+ extern void (*late_time_init)(void);
+ /* Duplicate of time_init() below, with hpet_enable part added */
+-static void __init hpet_time_init(void)
++void __init hpet_time_init(void)
  {
-+	struct vmi_ap_state ap;
-+
- 	/* Default everything to zero.  This is fine for most GPRs. */
- 	memset(&ap, 0, sizeof(struct vmi_ap_state));
- 
-@@ -570,7 +571,7 @@ vmi_startup_ipi_hook(int phys_apicid, un
- 	/* Protected mode, paging, AM, WP, NE, MP. */
- 	ap.cr0 = 0x80050023;
- 	ap.cr4 = mmu_cr4_features;
--	vmi_ops.set_initial_ap_state(__pa(&ap), phys_apicid);
-+	vmi_ops.set_initial_ap_state((u32)&ap, phys_apicid);
+ 	if (!hpet_enable())
+ 		setup_pit_timer();
+-	do_time_init();
++	time_init_hook();
  }
- #endif
  
-diff -puN arch/i386/kernel/vmitime.c~vmi-smp-fixes arch/i386/kernel/vmitime.c
---- a/arch/i386/kernel/vmitime.c~vmi-smp-fixes
-+++ a/arch/i386/kernel/vmitime.c
-@@ -243,7 +243,7 @@ void __init vmi_timer_setup_boot_alarm(v
- 
- /* Initialize the time accounting variables for an AP on an SMP system.
-  * Also, set the local alarm for the AP. */
--void __init vmi_timer_setup_secondary_alarm(void)
-+void __devinit vmi_timer_setup_secondary_alarm(void)
++/*
++ * This is called directly from init code; we must delay timer setup in the
++ * HPET case as we can't make the decision to turn on HPET this early in the
++ * boot process.
++ *
++ * The chosen time_init function will usually be hpet_time_init, above, but
++ * in the case of virtual hardware, an alternative function may be substituted.
++ */
+ void __init time_init(void)
  {
- 	int cpu = smp_processor_id();
+-	late_time_init = hpet_time_init;
++	late_time_init = choose_time_init();
+ }
+diff -puN include/asm-i386/paravirt.h~vmi-pit-override include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~vmi-pit-override
++++ a/include/asm-i386/paravirt.h
+@@ -186,9 +186,9 @@ static inline int set_wallclock(unsigned
+ 	return paravirt_ops.set_wallclock(nowtime);
+ }
+ 
+-static inline void do_time_init(void)
++static inline void (*choose_time_init(void))(void)
+ {
+-	return paravirt_ops.time_init();
++	return paravirt_ops.time_init;
+ }
+ 
+ /* The paravirtualized CPUID instruction. */
+diff -puN include/asm-i386/time.h~vmi-pit-override include/asm-i386/time.h
+--- a/include/asm-i386/time.h~vmi-pit-override
++++ a/include/asm-i386/time.h
+@@ -28,13 +28,16 @@ static inline int native_set_wallclock(u
+ 	return retval;
+ }
+ 
++extern void (*late_time_init)(void);
++extern void hpet_time_init(void);
++
+ #ifdef CONFIG_PARAVIRT
+ #include <asm/paravirt.h>
+ #else /* !CONFIG_PARAVIRT */
+ 
+ #define get_wallclock() native_get_wallclock()
+ #define set_wallclock(x) native_set_wallclock(x)
+-#define do_time_init() time_init_hook()
++#define choose_time_init() hpet_time_init
+ 
+ #endif /* CONFIG_PARAVIRT */
  
 _
 
