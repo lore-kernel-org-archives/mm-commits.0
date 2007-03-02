@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch added to -mm tree
-Date: Thu, 01 Mar 2007 18:25:23 -0800
-Message-ID: <200703020225.l222PNNf029968@shell0.pdx.osdl.net>
+Subject: + pata_ixp4xx_cf-set-cable-type.patch added to -mm tree
+Date: Thu, 01 Mar 2007 18:25:29 -0800
+Message-ID: <200703020225.l222PT4b029980@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35756 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35776 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422777AbXCBCZp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 21:25:45 -0500
+	id S1422775AbXCBCZu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 21:25:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_cs55x0: clean up by using the cable_detect method
+     pata_ixp4xx_cf - set cable type
 has been added to the -mm tree.  Its filename is
-     pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
+     pata_ixp4xx_cf-set-cable-type.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,83 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_cs55x0: clean up by using the cable_detect method
+Subject: pata_ixp4xx_cf - set cable type
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cs5520.c |   15 ++-------------
- drivers/ata/pata_cs5530.c |   15 ++-------------
- 2 files changed, 4 insertions(+), 26 deletions(-)
+ drivers/ata/pata_ixp4xx_cf.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_cs5520.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method drivers/ata/pata_cs5520.c
---- a/drivers/ata/pata_cs5520.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method
-+++ a/drivers/ata/pata_cs5520.c
-@@ -139,18 +139,6 @@ static void cs5520_set_piomode(struct at
- 	cs5520_set_timings(ap, adev, adev->pio_mode);
- }
- 
--
--static int cs5520_pre_reset(struct ata_port *ap)
--{
--	ap->cbl = ATA_CBL_PATA40;
--	return ata_std_prereset(ap);
--}
--
--static void cs5520_error_handler(struct ata_port *ap)
--{
--	return ata_bmdma_drive_eh(ap, cs5520_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
--}
--
- static struct scsi_host_template cs5520_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -184,8 +172,9 @@ static struct ata_port_operations cs5520
- 
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= cs5520_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_40wire,
- 
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
-diff -puN drivers/ata/pata_cs5530.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method drivers/ata/pata_cs5530.c
---- a/drivers/ata/pata_cs5530.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method
-+++ a/drivers/ata/pata_cs5530.c
-@@ -160,18 +160,6 @@ static unsigned int cs5530_qc_issue_prot
- 	return ata_qc_issue_prot(qc);
- }
- 
--static int cs5530_pre_reset(struct ata_port *ap)
--{
--	ap->cbl = ATA_CBL_PATA40;
--	return ata_std_prereset(ap);
--}
--
--static void cs5530_error_handler(struct ata_port *ap)
--{
--	return ata_bmdma_drive_eh(ap, cs5530_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
--}
--
--
- static struct scsi_host_template cs5530_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -211,8 +199,9 @@ static struct ata_port_operations cs5530
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= cs5530_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
+diff -puN drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-set-cable-type drivers/ata/pata_ixp4xx_cf.c
+--- a/drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-set-cable-type
++++ a/drivers/ata/pata_ixp4xx_cf.c
+@@ -129,6 +129,7 @@ static struct ata_port_operations ixp4xx
+ 	.qc_issue	= ata_qc_issue_prot,
+ 	.eng_timeout	= ata_eng_timeout,
+ 	.data_xfer	= ixp4xx_mmio_data_xfer,
 +	.cable_detect	= ata_cable_40wire,
  
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= cs5530_qc_issue_prot,
+ 	.irq_handler	= ata_interrupt,
+ 	.irq_clear	= ixp4xx_irq_clear,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
