@@ -1,51 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - git-md-accel-vs-md.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 20:45:12 -0800
-Message-ID: <200703020445.l224jCwS032732@shell0.pdx.osdl.net>
+Subject: - log-reason-why-tsc-was-marked-unstable-fix.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 20:52:05 -0800
+Message-ID: <200703020452.l224q5Rj000402@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41641 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41850 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422884AbXCBEpO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 23:45:14 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l224jDAb004172
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 1 Mar 2007 20:45:13 -0800
+	id S1422897AbXCBEza (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 23:55:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-md-accel-vs-md
+     log-reason-why-tsc-was-marked-unstable-fix
 has been removed from the -mm tree.  Its filename was
-     git-md-accel-vs-md.patch
+     log-reason-why-tsc-was-marked-unstable-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-md-accel-vs-md
+Subject: log-reason-why-tsc-was-marked-unstable-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/cpu/cyrix.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/raid5.c~git-md-accel-vs-md drivers/md/raid5.c
---- a/drivers/md/raid5.c~git-md-accel-vs-md
-+++ a/drivers/md/raid5.c
-@@ -1567,7 +1567,7 @@ static void compute_parity6(struct strip
- static void compute_block_1(struct stripe_head *sh, int dd_idx, int nozero)
- {
- 	int i, count, disks = sh->disks;
--	void *ptr[MAX_XOR_BLOCKS], *p;
-+	void *ptr[MAX_XOR_BLOCKS], *dest, *p;
- 	int pd_idx = sh->pd_idx;
- 	int qd_idx = raid6_next_disk(pd_idx, disks);
- 
+diff -puN arch/i386/kernel/cpu/cyrix.c~log-reason-why-tsc-was-marked-unstable-fix arch/i386/kernel/cpu/cyrix.c
+--- a/arch/i386/kernel/cpu/cyrix.c~log-reason-why-tsc-was-marked-unstable-fix
++++ a/arch/i386/kernel/cpu/cyrix.c
+@@ -279,7 +279,7 @@ static void __cpuinit init_cyrix(struct 
+ 		 */  
+ 		if (vendor == PCI_VENDOR_ID_CYRIX &&
+ 	 (device == PCI_DEVICE_ID_CYRIX_5510 || device == PCI_DEVICE_ID_CYRIX_5520))
+-			mark_tsc_unstable();
++			mark_tsc_unstable("Cyrix 5510/5520 detected");
+ 	}
+ #endif
+ 		c->x86_cache_size=16;	/* Yep 16K integrated cache thats it */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +64,6 @@ git-kvm.patch
 git-leds-fixup.patch
 git-leds-make-it-compile.patch
 git-md-accel-fixup.patch
-git-md-accel-vs-md.patch
 nommu-present-backing-device-capabilities-for-mtd-fix.patch
 git-ubi.patch
 git-netdev-all.patch
