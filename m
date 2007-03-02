@@ -1,73 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - frv-missing-error-defs.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:07:00 -0800
-Message-ID: <200703020507.l22570Jv000844@shell0.pdx.osdl.net>
+Subject: - fix-memory-leak-dma_declare_coherent_memory.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:07:25 -0800
+Message-ID: <200703020507.l2257P0X000874@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42369 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42390 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422757AbXCBFHO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:07:14 -0500
+	id S1422764AbXCBFHa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:07:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: yoichi_yuasa@tripeaks.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     FRV: Missing error defs
+     fix memory leak in dma_declare_coherent_memory()
 has been removed from the -mm tree.  Its filename was
-     frv-missing-error-defs.patch
+     fix-memory-leak-dma_declare_coherent_memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: FRV: Missing error defs
-From: David Howells <dhowells@redhat.com>
+Subject: fix memory leak in dma_declare_coherent_memory()
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-linux/irq.h uses EINVAL but does not #include linux/errno.h.  This results in
-the compiler spitting out errors on some files.
+When it goes to free1_out, dev->dma_mem has not been freed.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irq.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/cris/arch-v32/drivers/pci/dma.c |    2 +-
+ arch/i386/kernel/pci-dma.c           |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/irq.h~frv-missing-error-defs include/linux/irq.h
---- a/include/linux/irq.h~frv-missing-error-defs
-+++ a/include/linux/irq.h
-@@ -18,6 +18,7 @@
- #include <linux/spinlock.h>
- #include <linux/cpumask.h>
- #include <linux/irqreturn.h>
-+#include <linux/errno.h>
+diff -puN arch/cris/arch-v32/drivers/pci/dma.c~fix-memory-leak-dma_declare_coherent_memory arch/cris/arch-v32/drivers/pci/dma.c
+--- a/arch/cris/arch-v32/drivers/pci/dma.c~fix-memory-leak-dma_declare_coherent_memory
++++ a/arch/cris/arch-v32/drivers/pci/dma.c
+@@ -111,7 +111,7 @@ int dma_declare_coherent_memory(struct d
+ 	return DMA_MEMORY_IO;
  
- #include <asm/irq.h>
- #include <asm/ptrace.h>
+  free1_out:
+-	kfree(dev->dma_mem->bitmap);
++	kfree(dev->dma_mem);
+  out:
+ 	return 0;
+ }
+diff -puN arch/i386/kernel/pci-dma.c~fix-memory-leak-dma_declare_coherent_memory arch/i386/kernel/pci-dma.c
+--- a/arch/i386/kernel/pci-dma.c~fix-memory-leak-dma_declare_coherent_memory
++++ a/arch/i386/kernel/pci-dma.c
+@@ -110,7 +110,7 @@ int dma_declare_coherent_memory(struct d
+ 	return DMA_MEMORY_IO;
+ 
+  free1_out:
+-	kfree(dev->dma_mem->bitmap);
++	kfree(dev->dma_mem);
+  out:
+ 	if (mem_base)
+ 		iounmap(mem_base);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
 origin.patch
-drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-present-backing-device-capabilities-for-mtd-fix.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-use-symbolic-constants-in-generic-lseek-code.patch
-use-use-seek_max-to-validate-user-lseek-arguments.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-workqueue-kill-noautorel-works.patch
-reiser4-get_sb_dev-fix.patch
-mutex-subsystem-synchro-test-module.patch
+git-input.patch
