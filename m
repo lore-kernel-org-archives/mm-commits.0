@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pata_netcell-remove-lots-of-crud-by-using-the-cable-method.patch added to -mm tree
-Date: Thu, 01 Mar 2007 18:25:33 -0800
-Message-ID: <200703020225.l222PX5m029986@shell0.pdx.osdl.net>
+Subject: + pata_cmd64x-various-fixes.patch added to -mm tree
+Date: Thu, 01 Mar 2007 18:25:43 -0800
+Message-ID: <200703020225.l222PhSb030003@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35786 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35777 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422778AbXCBCZw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 21:25:52 -0500
+	id S1422779AbXCBCZx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 21:25:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     pata_netcell: remove lots of crud by using the cable method
+     pata_cmd64x - various fixes
 has been added to the -mm tree.  Its filename is
-     pata_netcell-remove-lots-of-crud-by-using-the-cable-method.patch
+     pata_cmd64x-various-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_netcell: remove lots of crud by using the cable method
+Subject: pata_cmd64x - various fixes
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+This driver still needs more work but for the moment
+
+- It's a CMD not ATI driver
+- Clean up code by using cable method
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_netcell.c |   31 +++----------------------------
- 1 files changed, 3 insertions(+), 28 deletions(-)
+ drivers/ata/pata_cmd64x.c |   36 ++++++++++--------------------------
+ 1 files changed, 10 insertions(+), 26 deletions(-)
 
-diff -puN drivers/ata/pata_netcell.c~pata_netcell-remove-lots-of-crud-by-using-the-cable-method drivers/ata/pata_netcell.c
---- a/drivers/ata/pata_netcell.c~pata_netcell-remove-lots-of-crud-by-using-the-cable-method
-+++ a/drivers/ata/pata_netcell.c
-@@ -16,33 +16,7 @@
- #include <linux/ata.h>
+diff -puN drivers/ata/pata_cmd64x.c~pata_cmd64x-various-fixes drivers/ata/pata_cmd64x.c
+--- a/drivers/ata/pata_cmd64x.c~pata_cmd64x-various-fixes
++++ a/drivers/ata/pata_cmd64x.c
+@@ -1,5 +1,5 @@
+ /*
+- * pata_cmd64x.c 	- ATI PATA for new ATA layer
++ * pata_cmd64x.c 	- CMD64x PATA for new ATA layer
+  *			  (C) 2005 Red Hat Inc
+  *			  Alan Cox <alan@redhat.com>
+  *
+@@ -75,13 +75,7 @@ enum {
+ 	DTPR1		= 0x7C
+ };
  
- #define DRV_NAME	"pata_netcell"
--#define DRV_VERSION	"0.1.6"
--
--/**
-- *	netcell_probe_init	-	check for 40/80 pin
-- *	@ap: Port
-- *
-- *	Cables are handled by the RAID controller. Report 80 pin.
-- */
--
--static int netcell_pre_reset(struct ata_port *ap)
+-static int cmd64x_pre_reset(struct ata_port *ap)
 -{
--	ap->cbl = ATA_CBL_PATA80;
+-	ap->cbl = ATA_CBL_PATA40;
 -	return ata_std_prereset(ap);
 -}
 -
--/**
-- *	netcell_probe_reset - Probe specified port on PATA host controller
-- *	@ap: Port to probe
-- *
-- *	LOCKING:
-- *	None (inherited from caller).
-- */
+-static int cmd648_pre_reset(struct ata_port *ap)
++static int cmd648_cable_detect(struct ata_port *ap)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	u8 r;
+@@ -89,21 +83,8 @@ static int cmd648_pre_reset(struct ata_p
+ 	/* Check cable detect bits */
+ 	pci_read_config_byte(pdev, BMIDECSR, &r);
+ 	if (r & (1 << ap->port_no))
+-		ap->cbl = ATA_CBL_PATA80;
+-	else
+-		ap->cbl = ATA_CBL_PATA40;
 -
--static void netcell_error_handler(struct ata_port *ap)
--{
--	return ata_bmdma_drive_eh(ap, netcell_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-	return ata_std_prereset(ap);
 -}
-+#define DRV_VERSION	"0.1.7"
+-
+-static void cmd64x_error_handler(struct ata_port *ap)
+-{
+-	return ata_bmdma_drive_eh(ap, cmd64x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+-static void cmd648_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, cmd648_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
++		return ATA_CBL_PATA80;
++	return ATA_CBL_PATA40;
+ }
  
- /* No PIO or DMA methods needed for this device */
+ /**
+@@ -302,8 +283,9 @@ static struct ata_port_operations cmd64x
  
-@@ -79,8 +53,9 @@ static const struct ata_port_operations 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= cmd64x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
  
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= netcell_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_80wire,
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -336,8 +318,9 @@ static struct ata_port_operations cmd646
  
- 	/* BMDMA handling is PCI ATA format, use helpers */
- 	.bmdma_setup		= ata_bmdma_setup,
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= cmd64x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -370,8 +353,9 @@ static struct ata_port_operations cmd648
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= cmd648_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= cmd648_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
