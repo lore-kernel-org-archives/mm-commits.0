@@ -1,136 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-fixes-for-2620-git15-non-drivers.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:06:18 -0800
-Message-ID: <200703020506.l2256IGP000783@shell0.pdx.osdl.net>
+Subject: - ecryptfs-resolve-lower-page-unlocking-problem.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 21:06:20 -0800
+Message-ID: <200703020506.l2256KPb000787@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42262 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42268 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422678AbXCBFGW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:06:22 -0500
+	id S1422681AbXCBFGZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:06:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc fixes for 2.6.20-git15 (non-drivers)
+     eCryptfs: resolve lower page unlocking problem
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-fixes-for-2620-git15-non-drivers.patch
+     ecryptfs-resolve-lower-page-unlocking-problem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel-doc fixes for 2.6.20-git15 (non-drivers)
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: eCryptfs: resolve lower page unlocking problem
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Fix kernel-doc warnings in 2.6.20-git15 (lib/, mm/, kernel/, include/).
+eCryptfs lower file handling code has several issues:
+  - Retval from prepare_write()/commit_write() wasn't checked to equality
+    to AOP_TRUNCATED_PAGE.
+  - In some places page wasn't unmapped and unlocked after error.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hrtimer.h |    1 +
- kernel/relay.c          |    3 +--
- kernel/timer.c          |    1 +
- lib/bitmap.c            |   16 ++++++++--------
- mm/slab.c               |    2 +-
- 5 files changed, 12 insertions(+), 11 deletions(-)
+ fs/ecryptfs/mmap.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/hrtimer.h~kernel-doc-fixes-for-2620-git15-non-drivers include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~kernel-doc-fixes-for-2620-git15-non-drivers
-+++ a/include/linux/hrtimer.h
-@@ -140,6 +140,7 @@ struct hrtimer_sleeper {
- 
- /**
-  * struct hrtimer_base - the timer base for a specific clock
-+ * @cpu_base:		per cpu clock base
-  * @index:		clock type index for per_cpu support when moving a
-  *			timer to a base on another cpu.
-  * @active:		red black tree root node for the active timers
-diff -puN kernel/relay.c~kernel-doc-fixes-for-2620-git15-non-drivers kernel/relay.c
---- a/kernel/relay.c~kernel-doc-fixes-for-2620-git15-non-drivers
-+++ a/kernel/relay.c
-@@ -474,13 +474,12 @@ static void setup_callbacks(struct rchan
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-resolve-lower-page-unlocking-problem fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-resolve-lower-page-unlocking-problem
++++ a/fs/ecryptfs/mmap.c
+@@ -422,9 +422,11 @@ out:
+ 	return rc;
  }
  
- /**
-- *
-  * 	relay_hotcpu_callback - CPU hotplug callback
-  * 	@nb: notifier block
-  * 	@action: hotplug action to take
-  * 	@hcpu: CPU number
-  *
-- * 	Returns the success/failure of the operation. (NOTIFY_OK, NOTIFY_BAD)
-+ * 	Returns the success/failure of the operation. (%NOTIFY_OK, %NOTIFY_BAD)
-  */
- static int __cpuinit relay_hotcpu_callback(struct notifier_block *nb,
- 				unsigned long action,
-diff -puN kernel/timer.c~kernel-doc-fixes-for-2620-git15-non-drivers kernel/timer.c
---- a/kernel/timer.c~kernel-doc-fixes-for-2620-git15-non-drivers
-+++ a/kernel/timer.c
-@@ -711,6 +711,7 @@ static unsigned long cmp_next_hrtimer_ev
- 
- /**
-  * next_timer_interrupt - return the jiffy of the next pending timer
-+ * @now: current time (in jiffies)
-  */
- unsigned long get_next_timer_interrupt(unsigned long now)
+-static void ecryptfs_release_lower_page(struct page *lower_page)
++static
++void ecryptfs_release_lower_page(struct page *lower_page, int page_locked)
  {
-diff -puN lib/bitmap.c~kernel-doc-fixes-for-2620-git15-non-drivers lib/bitmap.c
---- a/lib/bitmap.c~kernel-doc-fixes-for-2620-git15-non-drivers
-+++ a/lib/bitmap.c
-@@ -97,10 +97,10 @@ EXPORT_SYMBOL(__bitmap_complement);
+-	unlock_page(lower_page);
++	if (page_locked)
++		unlock_page(lower_page);
+ 	page_cache_release(lower_page);
+ }
  
- /**
-  * __bitmap_shift_right - logical right shift of the bits in a bitmap
-- *   @dst - destination bitmap
-- *   @src - source bitmap
-- *   @nbits - shift by this many bits
-- *   @bits - bitmap size, in bits
-+ *   @dst : destination bitmap
-+ *   @src : source bitmap
-+ *   @shift : shift by this many bits
-+ *   @bits : bitmap size, in bits
-  *
-  * Shifting right (dividing) means moving bits in the MS -> LS bit
-  * direction.  Zeros are fed into the vacated MS positions and the
-@@ -141,10 +141,10 @@ EXPORT_SYMBOL(__bitmap_shift_right);
+@@ -454,6 +456,13 @@ static int ecryptfs_write_inode_size_to_
+ 	}
+ 	lower_a_ops = lower_inode->i_mapping->a_ops;
+ 	rc = lower_a_ops->prepare_write(lower_file, header_page, 0, 8);
++	if (rc) {
++		if (rc == AOP_TRUNCATED_PAGE)
++			ecryptfs_release_lower_page(header_page, 0);
++		else
++			ecryptfs_release_lower_page(header_page, 1);
++		goto out;
++	}
+ 	file_size = (u64)i_size_read(inode);
+ 	ecryptfs_printk(KERN_DEBUG, "Writing size: [0x%.16x]\n", file_size);
+ 	file_size = cpu_to_be64(file_size);
+@@ -465,7 +474,10 @@ static int ecryptfs_write_inode_size_to_
+ 	if (rc < 0)
+ 		ecryptfs_printk(KERN_ERR, "Error commiting header page "
+ 				"write\n");
+-	ecryptfs_release_lower_page(header_page);
++	if (rc == AOP_TRUNCATED_PAGE)
++		ecryptfs_release_lower_page(header_page, 0);
++	else
++		ecryptfs_release_lower_page(header_page, 1);
+ 	lower_inode->i_mtime = lower_inode->i_ctime = CURRENT_TIME;
+ 	mark_inode_dirty_sync(inode);
+ out:
+@@ -572,7 +584,10 @@ int ecryptfs_get_lower_page(struct page 
+ 	}
+ out:
+ 	if (rc && (*lower_page)) {
+-		ecryptfs_release_lower_page(*lower_page);
++		if (rc == AOP_TRUNCATED_PAGE)
++			ecryptfs_release_lower_page(*lower_page, 0);
++		else
++			ecryptfs_release_lower_page(*lower_page, 1);
+ 		(*lower_page) = NULL;
+ 	}
+ 	return rc;
+@@ -588,16 +603,19 @@ ecryptfs_commit_lower_page(struct page *
+ 			   struct file *lower_file, int byte_offset,
+ 			   int region_size)
+ {
++	int page_locked = 1;
+ 	int rc = 0;
  
- /**
-  * __bitmap_shift_left - logical left shift of the bits in a bitmap
-- *   @dst - destination bitmap
-- *   @src - source bitmap
-- *   @nbits - shift by this many bits
-- *   @bits - bitmap size, in bits
-+ *   @dst : destination bitmap
-+ *   @src : source bitmap
-+ *   @shift : shift by this many bits
-+ *   @bits : bitmap size, in bits
-  *
-  * Shifting left (multiplying) means moving bits in the LS -> MS
-  * direction.  Zeros are fed into the vacated LS bit positions
-diff -puN mm/slab.c~kernel-doc-fixes-for-2620-git15-non-drivers mm/slab.c
---- a/mm/slab.c~kernel-doc-fixes-for-2620-git15-non-drivers
-+++ a/mm/slab.c
-@@ -4026,7 +4026,7 @@ void drain_array(struct kmem_cache *cach
+ 	rc = lower_inode->i_mapping->a_ops->commit_write(
+ 		lower_file, lower_page, byte_offset, region_size);
++	if (rc == AOP_TRUNCATED_PAGE)
++		page_locked = 0;
+ 	if (rc < 0) {
+ 		ecryptfs_printk(KERN_ERR,
+ 				"Error committing write; rc = [%d]\n", rc);
+ 	} else
+ 		rc = 0;
+-	ecryptfs_release_lower_page(lower_page);
++	ecryptfs_release_lower_page(lower_page, page_locked);
+ 	return rc;
+ }
  
- /**
-  * cache_reap - Reclaim memory from caches.
-- * @unused: unused parameter
-+ * @w: work descriptor
-  *
-  * Called from workqueue/eventd every few seconds.
-  * Purpose:
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-git-drm.patch
-phy-layer-add-kernel-doc-docbook.patch
-fusion-kernel-doc-warning-fixes.patch
-scripts-kernel-doc-whitespace-cleanup.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes.patch
-reiser4-use-null-for-pointers.patch
-profile_likely-export-do_check_likely.patch
+ecryptfs-check-xattr-operation-support-fix.patch
+git-unionfs.patch
+ecryptfs-handles-aop_truncated_page-better.patch
