@@ -1,439 +1,337 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 20:57:01 -0800
-Message-ID: <200703020457.l224v1Fp000493@shell0.pdx.osdl.net>
+Subject: - xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 20:57:06 -0800
+Message-ID: <200703020457.l224v6Qs000499@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41909 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41932 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422905AbXCBE5H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 23:57:07 -0500
+	id S1422908AbXCBE5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 23:57:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, James.Bottomley@SteelEye.com, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen-paravirt_ops: remove HAVE_ARCH_MM_LIFETIME, define no-op architecture implementations
+     xen-paravirt_ops: use patch site IDs computed from offset in paravirt_ops structure
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations.patch
+     xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
 
 This patch was dropped because Zach's patches destroyed it all
 
 ------------------------------------------------------
-Subject: xen-paravirt_ops: remove HAVE_ARCH_MM_LIFETIME, define no-op architecture implementations
+Subject: xen-paravirt_ops: use patch site IDs computed from offset in paravirt_ops structure
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-akpm:
-> Can we lose __HAVE_ARCH_MM_LIFETIME?  Just define these (preferably in C,
-> not in cpp) in the appropriate include/asm-foo/ files?
+Use patch type identifiers derived from the offset of the operation in the
+paravirt_ops structure.  This avoids having to maintain a separate enum for
+patch site types.
+
+This patch also drops the fused save_fl+cli operation, which doesn't really
+add much and makes things more complex.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: linux-arch@vger.kernel.org
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/mmu_context.h     |    1 +
- include/asm-arm/mmu_context.h       |    1 +
- include/asm-arm26/mmu_context.h     |    2 ++
- include/asm-avr32/mmu_context.h     |    1 +
- include/asm-cris/mmu_context.h      |    2 ++
- include/asm-frv/mmu_context.h       |    1 +
- include/asm-generic/mm_hooks.h      |   18 ++++++++++++++++++
- include/asm-h8300/mmu_context.h     |    1 +
- include/asm-i386/mmu_context.h      |   11 ++++++++++-
- include/asm-i386/paravirt.h         |    5 ++---
- include/asm-ia64/mmu_context.h      |    1 +
- include/asm-m32r/mmu_context.h      |    1 +
- include/asm-m68k/mmu_context.h      |    1 +
- include/asm-m68knommu/mmu_context.h |    1 +
- include/asm-mips/mmu_context.h      |    1 +
- include/asm-parisc/mmu_context.h    |    1 +
- include/asm-powerpc/mmu_context.h   |    1 +
- include/asm-ppc/mmu_context.h       |    1 +
- include/asm-s390/mmu_context.h      |    2 ++
- include/asm-sh/mmu_context.h        |    1 +
- include/asm-sh64/mmu_context.h      |    2 +-
- include/asm-sparc/mmu_context.h     |    2 ++
- include/asm-sparc64/mmu_context.h   |    1 +
- include/asm-um/mmu_context.h        |    2 ++
- include/asm-v850/mmu_context.h      |    2 ++
- include/asm-x86_64/mmu_context.h    |    1 +
- include/asm-xtensa/mmu_context.h    |    1 +
- include/linux/sched.h               |    6 ------
- mm/mmap.c                           |    1 +
- 29 files changed, 61 insertions(+), 11 deletions(-)
+ arch/i386/kernel/asm-offsets.c |    5 +
+ arch/i386/kernel/paravirt.c    |   14 +---
+ arch/i386/kernel/vmi.c         |   39 +----------
+ include/asm-i386/paravirt.h    |  106 +++++++++++++++----------------
+ 4 files changed, 70 insertions(+), 94 deletions(-)
 
-diff -puN include/asm-alpha/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-alpha/mmu_context.h
---- a/include/asm-alpha/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-alpha/mmu_context.h
-@@ -10,6 +10,7 @@
- #include <asm/system.h>
- #include <asm/machvec.h>
- #include <asm/compiler.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * Force a context reload. This is needed when we change the page
-diff -puN include/asm-arm/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-arm/mmu_context.h
---- a/include/asm-arm/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-arm/mmu_context.h
-@@ -16,6 +16,7 @@
- #include <linux/compiler.h>
- #include <asm/cacheflush.h>
- #include <asm/proc-fns.h>
-+#include <asm-generic/mm_hooks.h>
- 
- void __check_kvm_seq(struct mm_struct *mm);
- 
-diff -puN include/asm-arm26/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-arm26/mmu_context.h
---- a/include/asm-arm26/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-arm26/mmu_context.h
-@@ -13,6 +13,8 @@
- #ifndef __ASM_ARM_MMU_CONTEXT_H
- #define __ASM_ARM_MMU_CONTEXT_H
- 
-+#include <asm-generic/mm_hooks.h>
+diff -puN arch/i386/kernel/asm-offsets.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure arch/i386/kernel/asm-offsets.c
+--- a/arch/i386/kernel/asm-offsets.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
++++ a/arch/i386/kernel/asm-offsets.c
+@@ -117,6 +117,11 @@ void foo(void)
+ 	OFFSET(PARAVIRT_irq_enable_sysexit, paravirt_ops, irq_enable_sysexit);
+ 	OFFSET(PARAVIRT_iret, paravirt_ops, iret);
+ 	OFFSET(PARAVIRT_read_cr0, paravirt_ops, read_cr0);
 +
- #define init_new_context(tsk,mm)	0
- #define destroy_context(mm)		do { } while(0)
- 
-diff -puN include/asm-avr32/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-avr32/mmu_context.h
---- a/include/asm-avr32/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-avr32/mmu_context.h
-@@ -15,6 +15,7 @@
- #include <asm/tlbflush.h>
- #include <asm/pgalloc.h>
- #include <asm/sysreg.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * The MMU "context" consists of two things:
-diff -puN include/asm-cris/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-cris/mmu_context.h
---- a/include/asm-cris/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-cris/mmu_context.h
-@@ -1,6 +1,8 @@
- #ifndef __CRIS_MMU_CONTEXT_H
- #define __CRIS_MMU_CONTEXT_H
- 
-+#include <asm-generic/mm_hooks.h>
-+
- extern int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
- extern void get_mmu_context(struct mm_struct *mm);
- extern void destroy_context(struct mm_struct *mm);
-diff -puN include/asm-frv/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-frv/mmu_context.h
---- a/include/asm-frv/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-frv/mmu_context.h
-@@ -15,6 +15,7 @@
- #include <asm/setup.h>
- #include <asm/page.h>
- #include <asm/pgalloc.h>
-+#include <asm-generic/mm_hooks.h>
- 
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN /dev/null include/asm-generic/mm_hooks.h
---- /dev/null
-+++ a/include/asm-generic/mm_hooks.h
-@@ -0,0 +1,18 @@
-+/*
-+ * Define generic no-op hooks for arch_dup_mmap and arch_exit_mmap, to
-+ * be included in asm-FOO/mmu_context.h for any arch FOO which doesn't
-+ * need to hook these.
-+ */
-+#ifndef _ASM_GENERIC_MM_HOOKS_H
-+#define _ASM_GENERIC_MM_HOOKS_H
-+
-+static inline void arch_dup_mmap(struct mm_struct *oldmm,
-+				 struct mm_struct *mm)
-+{
-+}
-+
-+static inline void arch_exit_mmap(struct mm_struct *mm)
-+{
-+}
-+
-+#endif	/* _ASM_GENERIC_MM_HOOKS_H */
-diff -puN include/asm-h8300/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-h8300/mmu_context.h
---- a/include/asm-h8300/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-h8300/mmu_context.h
-@@ -4,6 +4,7 @@
- #include <asm/setup.h>
- #include <asm/page.h>
- #include <asm/pgalloc.h>
-+#include <asm-generic/mm_hooks.h>
- 
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN include/asm-i386/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-i386/mmu_context.h
---- a/include/asm-i386/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-i386/mmu_context.h
-@@ -6,6 +6,15 @@
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
- #include <asm/paravirt.h>
-+#ifndef CONFIG_PARAVIRT
-+#include <asm-generic/mm_hooks.h>
-+
-+static inline void paravirt_activate_mm(struct mm_struct *prev,
-+					struct mm_struct *next)
-+{
-+}
-+#endif	/* !CONFIG_PARAVIRT */
-+
- 
- /*
-  * Used for LDT copy/destruction.
-@@ -68,7 +77,7 @@ static inline void switch_mm(struct mm_s
- 
- #define activate_mm(prev, next)				\
- 	do {						\
--		arch_activate_mm(prev, next);		\
-+		paravirt_activate_mm(prev, next);	\
- 		switch_mm((prev),(next),NULL);		\
- 	} while(0);
- 
-diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-i386/paravirt.h
-@@ -394,9 +394,8 @@ static inline void startup_ipi_hook(int 
- }
++	DEFINE(PARAVIRT_IRQ_DISABLE, PARAVIRT_PATCH(irq_disable));
++	DEFINE(PARAVIRT_IRQ_ENABLE, PARAVIRT_PATCH(irq_enable));
++	DEFINE(PARAVIRT_STI_SYSEXIT, PARAVIRT_PATCH(irq_enable_sysexit));
++	DEFINE(PARAVIRT_INTERRUPT_RETURN, PARAVIRT_PATCH(iret));
  #endif
  
--#define __HAVE_ARCH_MM_LIFETIME
--static inline void arch_activate_mm(struct mm_struct *prev,
--				    struct mm_struct *next)
-+static inline void paravirt_activate_mm(struct mm_struct *prev,
-+					struct mm_struct *next)
+ #ifdef CONFIG_LGUEST_GUEST
+diff -puN arch/i386/kernel/paravirt.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
++++ a/arch/i386/kernel/paravirt.c
+@@ -58,7 +58,6 @@ DEF_NATIVE(cli, "cli");
+ DEF_NATIVE(sti, "sti");
+ DEF_NATIVE(popf, "push %eax; popf");
+ DEF_NATIVE(pushf, "pushf; pop %eax");
+-DEF_NATIVE(pushf_cli, "pushf; pop %eax; cli");
+ DEF_NATIVE(iret, "iret");
+ DEF_NATIVE(sti_sysexit, "sti; sysexit");
+ 
+@@ -66,13 +65,12 @@ static const struct native_insns
  {
- 	paravirt_ops.activate_mm(prev, next);
- }
-diff -puN include/asm-ia64/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-ia64/mmu_context.h
---- a/include/asm-ia64/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-ia64/mmu_context.h
-@@ -29,6 +29,7 @@
- #include <linux/spinlock.h>
- 
- #include <asm/processor.h>
-+#include <asm-generic/mm_hooks.h>
- 
- struct ia64_ctx {
- 	spinlock_t lock;
-diff -puN include/asm-m32r/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-m32r/mmu_context.h
---- a/include/asm-m32r/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-m32r/mmu_context.h
-@@ -15,6 +15,7 @@
- #include <asm/pgalloc.h>
- #include <asm/mmu.h>
- #include <asm/tlbflush.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * Cache of MMU context last used.
-diff -puN include/asm-m68k/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-m68k/mmu_context.h
---- a/include/asm-m68k/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-m68k/mmu_context.h
-@@ -1,6 +1,7 @@
- #ifndef __M68K_MMU_CONTEXT_H
- #define __M68K_MMU_CONTEXT_H
- 
-+#include <asm-generic/mm_hooks.h>
- 
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN include/asm-m68knommu/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-m68knommu/mmu_context.h
---- a/include/asm-m68knommu/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-m68knommu/mmu_context.h
-@@ -4,6 +4,7 @@
- #include <asm/setup.h>
- #include <asm/page.h>
- #include <asm/pgalloc.h>
-+#include <asm-generic/mm_hooks.h>
- 
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN include/asm-mips/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-mips/mmu_context.h
---- a/include/asm-mips/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-mips/mmu_context.h
-@@ -20,6 +20,7 @@
- #include <asm/mipsmtregs.h>
- #include <asm/smtc.h>
- #endif /* SMTC */
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * For the fast tlb miss handlers, we keep a per cpu array of pointers
-diff -puN include/asm-parisc/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-parisc/mmu_context.h
---- a/include/asm-parisc/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-parisc/mmu_context.h
-@@ -5,6 +5,7 @@
- #include <asm/atomic.h>
- #include <asm/pgalloc.h>
- #include <asm/pgtable.h>
-+#include <asm-generic/mm_hooks.h>
- 
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN include/asm-powerpc/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-powerpc/mmu_context.h
---- a/include/asm-powerpc/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-powerpc/mmu_context.h
-@@ -10,6 +10,7 @@
- #include <linux/mm.h>	
- #include <asm/mmu.h>	
- #include <asm/cputable.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * Copyright (C) 2001 PPC 64 Team, IBM Corp
-diff -puN include/asm-ppc/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-ppc/mmu_context.h
---- a/include/asm-ppc/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-ppc/mmu_context.h
-@@ -6,6 +6,7 @@
- #include <asm/bitops.h>
- #include <asm/mmu.h>
- #include <asm/cputable.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * On 32-bit PowerPC 6xx/7xx/7xxx CPUs, we use a set of 16 VSIDs
-diff -puN include/asm-s390/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-s390/mmu_context.h
---- a/include/asm-s390/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-s390/mmu_context.h
-@@ -10,6 +10,8 @@
- #define __S390_MMU_CONTEXT_H
- 
- #include <asm/pgalloc.h>
-+#include <asm-generic/mm_hooks.h>
-+
- /*
-  * get a new mmu context.. S390 don't know about contexts.
-  */
-diff -puN include/asm-sh/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-sh/mmu_context.h
---- a/include/asm-sh/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-sh/mmu_context.h
-@@ -12,6 +12,7 @@
- #include <asm/tlbflush.h>
- #include <asm/uaccess.h>
- #include <asm/io.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * The MMU "context" consists of two things:
-diff -puN include/asm-sh64/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-sh64/mmu_context.h
---- a/include/asm-sh64/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-sh64/mmu_context.h
-@@ -27,7 +27,7 @@
- extern unsigned long mmu_context_cache;
- 
- #include <asm/page.h>
--
-+#include <asm-generic/mm_hooks.h>
- 
- /* Current mm's pgd */
- extern pgd_t *mmu_pdtp_cache;
-diff -puN include/asm-sparc/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-sparc/mmu_context.h
---- a/include/asm-sparc/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-sparc/mmu_context.h
-@@ -5,6 +5,8 @@
- 
- #ifndef __ASSEMBLY__
- 
-+#include <asm-generic/mm_hooks.h>
-+
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
- }
-diff -puN include/asm-sparc64/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-sparc64/mmu_context.h
---- a/include/asm-sparc64/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-sparc64/mmu_context.h
-@@ -9,6 +9,7 @@
- #include <linux/spinlock.h>
- #include <asm/system.h>
- #include <asm/spitfire.h>
-+#include <asm-generic/mm_hooks.h>
- 
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN include/asm-um/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-um/mmu_context.h
---- a/include/asm-um/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-um/mmu_context.h
-@@ -6,6 +6,8 @@
- #ifndef __UM_MMU_CONTEXT_H
- #define __UM_MMU_CONTEXT_H
- 
-+#include <asm-generic/mm_hooks.h>
-+
- #include "linux/sched.h"
- #include "choose-mode.h"
- #include "um_mmu.h"
-diff -puN include/asm-v850/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-v850/mmu_context.h
---- a/include/asm-v850/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-v850/mmu_context.h
-@@ -1,6 +1,8 @@
- #ifndef __V850_MMU_CONTEXT_H__
- #define __V850_MMU_CONTEXT_H__
- 
-+#include <asm-generic/mm_hooks.h>
-+
- #define destroy_context(mm)		((void)0)
- #define init_new_context(tsk,mm)	0
- #define switch_mm(prev,next,tsk)	((void)0)
-diff -puN include/asm-x86_64/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-x86_64/mmu_context.h
---- a/include/asm-x86_64/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-x86_64/mmu_context.h
-@@ -7,6 +7,7 @@
- #include <asm/pda.h>
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * possibly do the LDT unload here?
-diff -puN include/asm-xtensa/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/asm-xtensa/mmu_context.h
---- a/include/asm-xtensa/mmu_context.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/asm-xtensa/mmu_context.h
-@@ -18,6 +18,7 @@
- #include <asm/pgtable.h>
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
-+#include <asm-generic/mm_hooks.h>
- 
- #define XCHAL_MMU_ASID_BITS	8
- 
-diff -puN include/linux/sched.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations include/linux/sched.h
---- a/include/linux/sched.h~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/include/linux/sched.h
-@@ -375,12 +375,6 @@ struct mm_struct {
- 	struct kioctx		*ioctx_list;
+ 	const char *start, *end;
+ } native_insns[] = {
+-	[PARAVIRT_IRQ_DISABLE] = { start_cli, end_cli },
+-	[PARAVIRT_IRQ_ENABLE] = { start_sti, end_sti },
+-	[PARAVIRT_RESTORE_FLAGS] = { start_popf, end_popf },
+-	[PARAVIRT_SAVE_FLAGS] = { start_pushf, end_pushf },
+-	[PARAVIRT_SAVE_FLAGS_IRQ_DISABLE] = { start_pushf_cli, end_pushf_cli },
+-	[PARAVIRT_INTERRUPT_RETURN] = { start_iret, end_iret },
+-	[PARAVIRT_STI_SYSEXIT] = { start_sti_sysexit, end_sti_sysexit },
++	[PARAVIRT_PATCH(irq_disable)] = { start_cli, end_cli },
++	[PARAVIRT_PATCH(irq_enable)] = { start_sti, end_sti },
++	[PARAVIRT_PATCH(restore_fl)] = { start_popf, end_popf },
++	[PARAVIRT_PATCH(save_fl)] = { start_pushf, end_pushf },
++	[PARAVIRT_PATCH(iret)] = { start_iret, end_iret },
++	[PARAVIRT_PATCH(irq_enable_sysexit)] = { start_sti_sysexit, end_sti_sysexit },
  };
  
--#ifndef __HAVE_ARCH_MM_LIFETIME
--#define arch_activate_mm(prev, next)	do {} while(0)
--#define arch_dup_mmap(oldmm, mm)	do {} while(0)
--#define arch_exit_mmap(mm)		do {} while(0)
--#endif
--
- struct sighand_struct {
- 	atomic_t		count;
- 	struct k_sigaction	action[_NSIG];
-diff -puN mm/mmap.c~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations mm/mmap.c
---- a/mm/mmap.c~xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations
-+++ a/mm/mmap.c
-@@ -29,6 +29,7 @@
- #include <asm/uaccess.h>
- #include <asm/cacheflush.h>
- #include <asm/tlb.h>
-+#include <asm/mmu_context.h>
+ static unsigned native_patch(u8 type, u16 clobbers, void *insns, unsigned len)
+diff -puN arch/i386/kernel/vmi.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
++++ a/arch/i386/kernel/vmi.c
+@@ -79,11 +79,6 @@ static struct {
+ #define MNEM_JMP  0xe9
+ #define MNEM_RET  0xc3
  
- #ifndef arch_mmap_check
- #define arch_mmap_check(addr, len, flags)	(0)
+-static char irq_save_disable_callout[] = {
+-	MNEM_CALL, 0, 0, 0, 0,
+-	MNEM_CALL, 0, 0, 0, 0,
+-	MNEM_RET
+-};
+ #define IRQ_PATCH_INT_MASK 0
+ #define IRQ_PATCH_DISABLE  5
+ 
+@@ -131,33 +126,17 @@ static unsigned patch_internal(int call,
+ static unsigned vmi_patch(u8 type, u16 clobbers, void *insns, unsigned len)
+ {
+ 	switch (type) {
+-		case PARAVIRT_IRQ_DISABLE:
++		case PARAVIRT_PATCH(irq_disable):
+ 			return patch_internal(VMI_CALL_DisableInterrupts, len, insns);
+-		case PARAVIRT_IRQ_ENABLE:
++		case PARAVIRT_PATCH(irq_enable):
+ 			return patch_internal(VMI_CALL_EnableInterrupts, len, insns);
+-		case PARAVIRT_RESTORE_FLAGS:
++		case PARAVIRT_PATCH(restore_fl):
+ 			return patch_internal(VMI_CALL_SetInterruptMask, len, insns);
+-		case PARAVIRT_SAVE_FLAGS:
++		case PARAVIRT_PATCH(save_fl):
+ 			return patch_internal(VMI_CALL_GetInterruptMask, len, insns);
+-        	case PARAVIRT_SAVE_FLAGS_IRQ_DISABLE:
+-			if (len >= 10) {
+-				patch_internal(VMI_CALL_GetInterruptMask, len, insns);
+-				patch_internal(VMI_CALL_DisableInterrupts, len-5, insns+5);
+-				return 10;
+-			} else {
+-				/*
+-				 * You bastards didn't leave enough room to
+-				 * patch save_flags_irq_disable inline.  Patch
+-				 * to a helper
+-				 */
+-				BUG_ON(len < 5);
+-				*(char *)insns = MNEM_CALL;
+-				patch_offset(insns, irq_save_disable_callout);
+-				return 5;
+-			}
+-		case PARAVIRT_INTERRUPT_RETURN:
++		case PARAVIRT_PATCH(iret):
+ 			return patch_internal(VMI_CALL_IRET, len, insns);
+-		case PARAVIRT_STI_SYSEXIT:
++		case PARAVIRT_PATCH(irq_enable_sysexit):
+ 			return patch_internal(VMI_CALL_SYSEXIT, len, insns);
+ 		default:
+ 			break;
+@@ -768,12 +747,6 @@ static inline int __init activate_vmi(vo
+ 	para_fill(irq_disable, DisableInterrupts);
+ 	para_fill(irq_enable, EnableInterrupts);
+ 
+-	/* irq_save_disable !!! sheer pain */
+-	patch_offset(&irq_save_disable_callout[IRQ_PATCH_INT_MASK],
+-		     (char *)paravirt_ops.save_fl);
+-	patch_offset(&irq_save_disable_callout[IRQ_PATCH_DISABLE],
+-		     (char *)paravirt_ops.irq_disable);
+-
+ 	para_fill(wbinvd, WBINVD);
+ 	para_fill(read_tsc, RDTSC);
+ 
+diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
++++ a/include/asm-i386/paravirt.h
+@@ -4,19 +4,8 @@
+  * para-virtualization: those hooks are defined here. */
+ 
+ #ifdef CONFIG_PARAVIRT
+-#include <linux/stringify.h>
+ #include <asm/page.h>
+ 
+-/* These are the most performance critical ops, so we want to be able to patch
+- * callers */
+-#define PARAVIRT_IRQ_DISABLE 0
+-#define PARAVIRT_IRQ_ENABLE 1
+-#define PARAVIRT_RESTORE_FLAGS 2
+-#define PARAVIRT_SAVE_FLAGS 3
+-#define PARAVIRT_SAVE_FLAGS_IRQ_DISABLE 4
+-#define PARAVIRT_INTERRUPT_RETURN 5
+-#define PARAVIRT_STI_SYSEXIT 6
+-
+ /* Bitmask of what can be clobbered: usually at least eax. */
+ #define CLBR_NONE 0x0
+ #define CLBR_EAX 0x1
+@@ -27,6 +16,23 @@
+ #ifndef __ASSEMBLY__
+ #include <linux/types.h>
+ 
++#define paravirt_type(type)		[paravirt_typenum] "i" (type)
++#define paravirt_clobber(clobber)	[paravirt_clobber] "i" (clobber)
++
++#define PARAVIRT_PATCH(x)		(offsetof(struct paravirt_ops, x) / sizeof(void *))
++
++#define _paravirt_alt(insn_string, type, clobber)	\
++	"771:\n\t" insn_string "\n" "772:\n"		\
++	".pushsection .parainstructions,\"a\"\n"	\
++	"  .long 771b\n"				\
++	"  .byte " type "\n"				\
++	"  .byte 772b-771b\n"				\
++	"  .short " clobber "\n"			\
++	".popsection\n"
++
++#define paravirt_alt(insn_string)				\
++	_paravirt_alt(insn_string, "%c[paravirt_typenum]", "%c[paravirt_clobber]")
++
+ struct thread_struct;
+ struct Xgt_desc_struct;
+ struct tss_struct;
+@@ -511,24 +517,16 @@ struct paravirt_patch_site {
+ extern struct paravirt_patch_site __start_parainstructions[],
+ 	__stop_parainstructions[];
+ 
+-#define paravirt_alt(insn_string, typenum, clobber)	\
+-	"771:\n\t" insn_string "\n" "772:\n"		\
+-	".pushsection .parainstructions,\"a\"\n"	\
+-	"  .long 771b\n"				\
+-	"  .byte " __stringify(typenum) "\n"		\
+-	"  .byte 772b-771b\n"				\
+-	"  .short " __stringify(clobber) "\n"		\
+-	".popsection"
+-
+ static inline unsigned long __raw_local_save_flags(void)
+ {
+ 	unsigned long f;
+ 
+ 	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
+ 					   "call *%1;"
+-					   "popl %%edx; popl %%ecx",
+-					  PARAVIRT_SAVE_FLAGS, CLBR_NONE)
+-			     : "=a"(f): "m"(paravirt_ops.save_fl)
++					   "popl %%edx; popl %%ecx")
++			     : "=a"(f): "m"(paravirt_ops.save_fl),
++			       paravirt_type(PARAVIRT_PATCH(save_fl)),
++			       paravirt_clobber(CLBR_NONE)
+ 			     : "memory", "cc");
+ 	return f;
+ }
+@@ -537,9 +535,10 @@ static inline void raw_local_irq_restore
+ {
+ 	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
+ 					   "call *%1;"
+-					   "popl %%edx; popl %%ecx",
+-					  PARAVIRT_RESTORE_FLAGS, CLBR_EAX)
+-			     : "=a"(f) : "m" (paravirt_ops.restore_fl), "0"(f)
++					   "popl %%edx; popl %%ecx")
++			     : "=a"(f) : "m" (paravirt_ops.restore_fl), "0"(f),
++			       paravirt_type(PARAVIRT_PATCH(restore_fl)),
++			       paravirt_clobber(CLBR_EAX)
+ 			     : "memory", "cc");
+ }
+ 
+@@ -547,9 +546,10 @@ static inline void raw_local_irq_disable
+ {
+ 	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
+ 					   "call *%0;"
+-					   "popl %%edx; popl %%ecx",
+-					  PARAVIRT_IRQ_DISABLE, CLBR_EAX)
+-			     : : "m" (paravirt_ops.irq_disable)
++					   "popl %%edx; popl %%ecx")
++			     : : "m" (paravirt_ops.irq_disable),
++			       paravirt_type(PARAVIRT_PATCH(irq_disable)),
++			       paravirt_clobber(CLBR_EAX)
+ 			     : "memory", "eax", "cc");
+ }
+ 
+@@ -557,9 +557,10 @@ static inline void raw_local_irq_enable(
+ {
+ 	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
+ 					   "call *%0;"
+-					   "popl %%edx; popl %%ecx",
+-					  PARAVIRT_IRQ_ENABLE, CLBR_EAX)
+-			     : : "m" (paravirt_ops.irq_enable)
++					   "popl %%edx; popl %%ecx")
++			     : : "m" (paravirt_ops.irq_enable),
++			       paravirt_type(PARAVIRT_PATCH(irq_enable)),
++			       paravirt_clobber(CLBR_EAX)
+ 			     : "memory", "eax", "cc");
+ }
+ 
+@@ -567,32 +568,31 @@ static inline unsigned long __raw_local_
+ {
+ 	unsigned long f;
+ 
+-	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
+-					   "call *%1; pushl %%eax;"
+-					   "call *%2; popl %%eax;"
+-					   "popl %%edx; popl %%ecx",
+-					  PARAVIRT_SAVE_FLAGS_IRQ_DISABLE,
+-					  CLBR_NONE)
+-			     : "=a"(f)
+-			     : "m" (paravirt_ops.save_fl),
+-			       "m" (paravirt_ops.irq_disable)
+-			     : "memory", "cc");
++	f = __raw_local_save_flags();
++	raw_local_irq_disable();
++
+ 	return f;
+ }
+ 
+-#define CLI_STRING paravirt_alt("pushl %%ecx; pushl %%edx;"		\
+-		     "call *paravirt_ops+%c[irq_disable];"		\
+-		     "popl %%edx; popl %%ecx",				\
+-		     PARAVIRT_IRQ_DISABLE, CLBR_EAX)
+-
+-#define STI_STRING paravirt_alt("pushl %%ecx; pushl %%edx;"		\
+-		     "call *paravirt_ops+%c[irq_enable];"		\
+-		     "popl %%edx; popl %%ecx",				\
+-		     PARAVIRT_IRQ_ENABLE, CLBR_EAX)
++#define CLI_STRING _paravirt_alt("pushl %%ecx; pushl %%edx;"		\
++				 "call *paravirt_ops+%c[irq_disable];"	\
++				 "popl %%edx; popl %%ecx",		\
++				 "%c[paravirt_cli_type]", "%c[paravirt_clobber]")
++
++#define STI_STRING _paravirt_alt("pushl %%ecx; pushl %%edx;"		\
++				"call *paravirt_ops+%c[irq_enable];"	\
++				 "popl %%edx; popl %%ecx",		\
++				 "%c[paravirt_cli_type]", "%c[paravirt_clobber]")
++
++
+ #define CLI_STI_CLOBBERS , "%eax"
+ #define __CLI_STI_INPUT_ARGS						\
+-	[irq_disable] "i" (offsetof(struct paravirt_ops, irq_disable)),	\
+-	[irq_enable] "i" (offsetof(struct paravirt_ops, irq_enable))
++	,								\
++		[irq_disable] "i" (offsetof(struct paravirt_ops, irq_disable)),\
++		[irq_enable] "i" (offsetof(struct paravirt_ops, irq_enable)), \
++		[paravirt_cli_type] "i" (PARAVIRT_PATCH(irq_disable)),	\
++		[paravirt_sti_type] "i" (PARAVIRT_PATCH(irq_disable)),	\
++		paravirt_clobber(CLBR_NONE)
+ #define CLI_STI_INPUT_ARGS , __CLI_STI_INPUT_ARGS
+ 
+ #else  /* __ASSEMBLY__ */
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
 
-xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations.patch
-xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
 xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
 xen-paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
 xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
