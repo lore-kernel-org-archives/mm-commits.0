@@ -1,68 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - fix-sysfs-build-breakage-if-config_sysfs.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 21:07:39 -0800
-Message-ID: <200703020507.l2257d70000887@shell0.pdx.osdl.net>
+Subject: + merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch added to -mm tree
+Date: Thu, 01 Mar 2007 21:38:36 -0800
+Message-ID: <200703020540.l225eC1B001466@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42603 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43810 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422801AbXCBFK5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 00:10:57 -0500
+	id S1422924AbXCBFpq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 00:45:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmission.com, pbadari@us.ibm.com, serue@us.ibm.com
 
 
 The patch titled
-     Fix sysfs build breakage if !CONFIG_SYSFS
-has been removed from the -mm tree.  Its filename was
-     fix-sysfs-build-breakage-if-config_sysfs.patch
+     merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix
+has been added to the -mm tree.  Its filename is
+     merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Fix sysfs build breakage if !CONFIG_SYSFS
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-B0rkage introduced by dfa87c824a9a5430008acd1ed2e8111ed164fcbe.
+There's just less and less excuse for this sort of thing.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: <containers@lists.osdl.org>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysfs.h |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/utsname.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sysfs.h~fix-sysfs-build-breakage-if-config_sysfs include/linux/sysfs.h
---- a/include/linux/sysfs.h~fix-sysfs-build-breakage-if-config_sysfs
-+++ a/include/linux/sysfs.h
-@@ -212,9 +212,8 @@ static inline int sysfs_add_file_to_grou
+diff -puN include/linux/utsname.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix include/linux/utsname.h
+--- a/include/linux/utsname.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix
++++ a/include/linux/utsname.h
+@@ -57,7 +57,8 @@ static inline void put_uts_ns(struct uts
+ 	kref_put(&ns->kref, free_uts_ns);
  }
- 
- static inline void sysfs_remove_file_from_group(struct kobject *kobj,
--		const struct attribute *attr, const char *group);
-+		const struct attribute *attr, const char *group)
+ #else
+-static inline int copy_utsname(int flags, struct uts_namespace *ns)
++static inline struct uts_namespace *
++copy_utsname(int flags, struct uts_namespace *ns)
  {
--	;
+ 	return ns;
  }
- 
- static inline void sysfs_notify(struct kobject * k, char *dir, char *attr)
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-serial-driver-pmc-msp71xx.patch
-rm9000-serial-driver.patch
+cyclades-return-closing_wait.patch
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+pvrusb-warning-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+git-kvm.patch
+git-leds-fixup.patch
+git-leds-make-it-compile.patch
+git-md-accel-fixup.patch
+nommu-present-backing-device-capabilities-for-mtd-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+cisco_ioctl-initialise-header_cache_update.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
 rm9000-serial-driver-tidy.patch
-x86_64-fix-ia32_binfmtc-build-error.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-simplify-the-stacktrace-code.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-local_t-mips-extension.patch
-local_t-mips-extension-fix.patch
-local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh.patch
+git-pciseg.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-block-another-md-fix.patch
+git-unionfs.patch
+usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+after-before-x86_64-mm-mmconfig-share.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial-tweak.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+driver_bfin_serial_core-update.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
+utrace-prep.patch
+utrace-prep-2.patch
+revert-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
-tgafb-turbochannel-support.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
