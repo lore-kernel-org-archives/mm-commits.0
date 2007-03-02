@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch added to -mm tree
-Date: Thu, 01 Mar 2007 18:03:18 -0800
-Message-ID: <200703020203.l2223IpR029566@shell0.pdx.osdl.net>
+Subject: + xen-paravirt_ops-add-common-patching-machinery.patch added to -mm tree
+Date: Thu, 01 Mar 2007 18:03:26 -0800
+Message-ID: <200703020203.l2223QW3029578@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34981 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35005 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422764AbXCBCD1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 21:03:27 -0500
+	id S1422772AbXCBCDf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 21:03:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.co
 
 
 The patch titled
-     xen-paravirt_ops: rename struct paravirt_patch to paravirt_patch_site for clarity
+     xen-paravirt_ops: add common patching machinery
 has been added to the -mm tree.  Its filename is
-     xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
+     xen-paravirt_ops-add-common-patching-machinery.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xen-paravirt_ops: rename struct paravirt_patch to paravirt_patch_site for clarity
+Subject: xen-paravirt_ops: add common patching machinery
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Rename struct paravirt_patch to paravirt_patch_site, so that it clearly refers
-to a callsite, and not the patch which may be applied to that callsite.
+Implement the actual patching machinery.  paravirt_patch_default() contains
+the logic to automatically patch a callsite based on a few simple rules:
+
+ - if the paravirt_op function is paravirt_nop, then patch nops
+ - if the paravirt_op function is a jmp target, then jmp to it
+ - if the paravirt_op function is callable and doesn't clobber too much
+    for the callsite, call it directly
+
+paravirt_patch_default is suitable as a default implementation of
+paravirt_ops.patch, will remove most of the expensive indirect calls in favour
+of either a direct call or a pile of nops.
+
+Backends may implement their own patcher, however.  There are several helper
+functions to help with this:
+
+paravirt_patch_nop	nop out a callsite
+paravirt_patch_ignore	leave the callsite as-is
+paravirt_patch_call	patch a call if the caller and callee
+			have compatible clobbers
+paravirt_patch_jmp	patch in a jmp
+paravirt_patch_insns	patch some literal instructions over
+			the callsite, if they fit
+
+This patch also implements more direct patches for the native case, so that
+when running on native hardware many common operations are implemented inline.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
@@ -37,90 +60,217 @@ Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |    6 ++----
- arch/i386/kernel/vmi.c         |    4 ----
- include/asm-i386/alternative.h |    6 +++---
- include/asm-i386/paravirt.h    |    5 ++++-
- 4 files changed, 9 insertions(+), 12 deletions(-)
+ arch/i386/kernel/alternative.c |    3 
+ arch/i386/kernel/paravirt.c    |  153 +++++++++++++++++++++++++------
+ include/asm-i386/paravirt.h    |   11 ++
+ 3 files changed, 142 insertions(+), 25 deletions(-)
 
-diff -puN arch/i386/kernel/alternative.c~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity
+diff -puN arch/i386/kernel/alternative.c~xen-paravirt_ops-add-common-patching-machinery arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~xen-paravirt_ops-add-common-patching-machinery
 +++ a/arch/i386/kernel/alternative.c
-@@ -350,9 +350,9 @@ void alternatives_smp_switch(int smp)
- #endif
+@@ -359,6 +359,9 @@ void apply_paravirt(struct paravirt_patc
  
- #ifdef CONFIG_PARAVIRT
--void apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end)
-+void apply_paravirt(struct paravirt_patch_site *start, struct paravirt_patch_site *end)
+ 		used = paravirt_ops.patch(p->instrtype, p->clobbers, p->instr,
+ 					  p->len);
++
++		BUG_ON(used > p->len);
++
+ #ifdef CONFIG_DEBUG_PARAVIRT
+ 		{
+ 		int i;
+diff -puN arch/i386/kernel/paravirt.c~xen-paravirt_ops-add-common-patching-machinery arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~xen-paravirt_ops-add-common-patching-machinery
++++ a/arch/i386/kernel/paravirt.c
+@@ -53,40 +53,143 @@ char *memory_setup(void)
+ #define DEF_NATIVE(name, code)					\
+ 	extern const char start_##name[], end_##name[];		\
+ 	asm("start_" #name ": " code "; end_" #name ":")
+-DEF_NATIVE(cli, "cli");
+-DEF_NATIVE(sti, "sti");
+-DEF_NATIVE(popf, "push %eax; popf");
+-DEF_NATIVE(pushf, "pushf; pop %eax");
++
++DEF_NATIVE(irq_disable, "cli");
++DEF_NATIVE(irq_enable, "sti");
++DEF_NATIVE(restore_fl, "push %eax; popf");
++DEF_NATIVE(save_fl, "pushf; pop %eax");
+ DEF_NATIVE(iret, "iret");
+-DEF_NATIVE(sti_sysexit, "sti; sysexit");
++DEF_NATIVE(irq_enable_sysexit, "sti; sysexit");
++DEF_NATIVE(read_cr2, "mov %cr2, %eax");
++DEF_NATIVE(write_cr3, "mov %eax, %cr3");
++DEF_NATIVE(read_cr3, "mov %cr3, %eax");
++DEF_NATIVE(clts, "clts");
++DEF_NATIVE(read_tsc, "rdtsc");
+ 
+-static const struct native_insns
+-{
+-	const char *start, *end;
+-} native_insns[] = {
+-	[PARAVIRT_PATCH(irq_disable)] = { start_cli, end_cli },
+-	[PARAVIRT_PATCH(irq_enable)] = { start_sti, end_sti },
+-	[PARAVIRT_PATCH(restore_fl)] = { start_popf, end_popf },
+-	[PARAVIRT_PATCH(save_fl)] = { start_pushf, end_pushf },
+-	[PARAVIRT_PATCH(iret)] = { start_iret, end_iret },
+-	[PARAVIRT_PATCH(irq_enable_sysexit)] = { start_sti_sysexit, end_sti_sysexit },
+-};
++DEF_NATIVE(pushf_cli, "pushf; pop %eax; cli");
++DEF_NATIVE(ud2a, "ud2a");
+ 
+ static unsigned native_patch(u8 type, u16 clobbers, void *insns, unsigned len)
  {
--	struct paravirt_patch *p;
-+	struct paravirt_patch_site *p;
+-	unsigned int insn_len;
++	const unsigned char *start, *end;
++	unsigned ret;
++
++	switch(type) {
++#define SITE(x)	case PARAVIRT_PATCH(x):	start = start_##x; end = end_##x; goto patch_site
++		SITE(irq_disable);
++		SITE(irq_enable);
++		SITE(restore_fl);
++		SITE(save_fl);
++		SITE(iret);
++		SITE(irq_enable_sysexit);
++		SITE(read_cr2);
++		SITE(read_cr3);
++		SITE(write_cr3);
++		SITE(clts);
++		SITE(read_tsc);
++#undef SITE
++
++	patch_site:
++		ret = paravirt_patch_insns(insns, len, start, end);
++		break;
++
++	case PARAVIRT_PATCH(make_pgd):
++	case PARAVIRT_PATCH(make_pte):
++	case PARAVIRT_PATCH(pgd_val):
++	case PARAVIRT_PATCH(pte_val):
++#ifdef CONFIG_X86_PAE
++	case PARAVIRT_PATCH(make_pmd):
++	case PARAVIRT_PATCH(pmd_val):
++#endif
++		/* These functions end up returning exactly what
++		   they're passed, in the same registers. */
++		ret = paravirt_patch_nop();
++		break;
++
++	default:
++		ret = paravirt_patch_default(type, clobbers, insns, len);
++		break;
++	}
++
++	return ret;
++}
++
++unsigned paravirt_patch_nop(void)
++{
++	return 0;
++}
++
++unsigned paravirt_patch_ignore(unsigned len)
++{
++	return len;
++}
++
++unsigned paravirt_patch_call(void *target, u16 tgt_clobbers,
++			     void *site, u16 site_clobbers,
++			     unsigned len)
++{
++	unsigned char *call = site;
++	unsigned long delta = (unsigned long)target - (unsigned long)(call+5);
++
++	if (tgt_clobbers & ~site_clobbers)
++		return len;	/* target would clobber too much for this site */
++	if (len < 5)
++		return len;	/* call too long for patch site */
++
++	*call++ = 0xe8;		/* call */
++	*(unsigned long *)call = delta;
++
++	return 5;
++}
++
++unsigned paravirt_patch_jmp(void *target, void *site, unsigned len)
++{
++	unsigned char *jmp = site;
++	unsigned long delta = (unsigned long)target - (unsigned long)(jmp+5);
++
++	if (len < 5)
++		return len;	/* call too long for patch site */
++
++	*jmp++ = 0xe9;		/* jmp */
++	*(unsigned long *)jmp = delta;
++
++	return 5;
++}
++
++unsigned paravirt_patch_default(u8 type, u16 clobbers, void *site, unsigned len)
++{
++	void *opfunc = *((void **)&paravirt_ops + type);
++	unsigned ret;
  
- 	for (p = start; p < end; p++) {
- 		unsigned int used;
-@@ -379,8 +379,6 @@ void apply_paravirt(struct paravirt_patc
- 	/* Sync to be conservative, in case we patched following instructions */
- 	sync_core();
+-	/* Don't touch it if we don't have a replacement */
+-	if (type >= ARRAY_SIZE(native_insns) || !native_insns[type].start)
+-		return len;
++	if (opfunc == NULL)
++		/* If there's no function, patch it with a ud2a (BUG) */
++		ret = paravirt_patch_insns(site, len, start_ud2a, end_ud2a);
++	else if (opfunc == paravirt_nop)
++		/* If the operation is a nop, then nop the callsite */
++		ret = paravirt_patch_nop();
++	else if (type == PARAVIRT_PATCH(iret) ||
++		 type == PARAVIRT_PATCH(irq_enable_sysexit))
++		/* If operation requires a jmp, then jmp */
++		ret = paravirt_patch_jmp(opfunc, site, len);
++	else
++		/* Otherwise call the function; assume target could
++		   clobber any caller-save reg */
++		ret = paravirt_patch_call(opfunc, CLBR_ANY,
++					  site, clobbers, len);
+ 
+-	insn_len = native_insns[type].end - native_insns[type].start;
++	return ret;
++}
++
++unsigned paravirt_patch_insns(void *site, unsigned len,
++			      const char *start, const char *end)
++{
++	unsigned insn_len = end - start;
+ 
+-	/* Similarly if we can't fit replacement. */
+-	if (len < insn_len)
+-		return len;
++	if (insn_len > len || start == NULL)
++		insn_len = len;
++	else
++		memcpy(site, start, insn_len);
+ 
+-	memcpy(insns, native_insns[type].start, insn_len);
+ 	return insn_len;
  }
--extern struct paravirt_patch __start_parainstructions[],
--	__stop_parainstructions[];
- #endif	/* CONFIG_PARAVIRT */
  
- void __init alternative_instructions(void)
-diff -puN arch/i386/kernel/vmi.c~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity
-+++ a/arch/i386/kernel/vmi.c
-@@ -71,10 +71,6 @@ static struct {
- 	void (*halt)(void);
- } vmi_ops;
- 
--/* XXX move this to alternative.h */
--extern struct paravirt_patch __start_parainstructions[],
--	__stop_parainstructions[];
--
- /*
-  * VMI patching routines.
-  */
-diff -puN include/asm-i386/alternative.h~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity include/asm-i386/alternative.h
---- a/include/asm-i386/alternative.h~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity
-+++ a/include/asm-i386/alternative.h
-@@ -118,12 +118,12 @@ static inline void alternatives_smp_swit
- #define LOCK_PREFIX ""
- #endif
- 
--struct paravirt_patch;
-+struct paravirt_patch_site;
- #ifdef CONFIG_PARAVIRT
--void apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end);
-+void apply_paravirt(struct paravirt_patch_site *start, struct paravirt_patch_site *end);
- #else
- static inline void
--apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end)
-+apply_paravirt(struct paravirt_patch_site *start, struct paravirt_patch_site *end)
- {}
- #define __start_parainstructions NULL
- #define __stop_parainstructions NULL
-diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity
+diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-add-common-patching-machinery include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt_ops-add-common-patching-machinery
 +++ a/include/asm-i386/paravirt.h
-@@ -493,13 +493,16 @@ void _paravirt_nop(void);
- #define paravirt_nop	((void *)_paravirt_nop)
- 
- /* These all sit in the .parainstructions section to tell us what to patch. */
--struct paravirt_patch {
-+struct paravirt_patch_site {
- 	u8 *instr; 		/* original instructions */
- 	u8 instrtype;		/* type of this instruction */
- 	u8 len;			/* length of original instruction */
+@@ -813,6 +813,17 @@ struct paravirt_patch_site {
  	u16 clobbers;		/* what registers you may clobber */
  };
  
-+extern struct paravirt_patch_site __start_parainstructions[],
-+	__stop_parainstructions[];
++unsigned paravirt_patch_nop(void);
++unsigned paravirt_patch_ignore(unsigned len);
++unsigned paravirt_patch_call(void *target, u16 tgt_clobbers,
++			     void *site, u16 site_clobbers,
++			     unsigned len);
++unsigned paravirt_patch_jmp(void *target, void *site, unsigned len);
++unsigned paravirt_patch_default(u8 type, u16 clobbers, void *site, unsigned len);
 +
- #define paravirt_alt(insn_string, typenum, clobber)	\
- 	"771:\n\t" insn_string "\n" "772:\n"		\
- 	".pushsection .parainstructions,\"a\"\n"	\
++unsigned paravirt_patch_insns(void *site, unsigned len,
++			      const char *start, const char *end);
++
+ extern struct paravirt_patch_site __start_parainstructions[],
+ 	__stop_parainstructions[];
+ 
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
