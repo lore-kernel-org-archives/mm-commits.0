@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xen-paravirt_ops-use-paravirt_nop-to-consistently-mark-no-op-operations.patch added to -mm tree
-Date: Thu, 01 Mar 2007 18:03:03 -0800
-Message-ID: <200703020203.l22233wS029545@shell0.pdx.osdl.net>
+Subject: + xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot.patch added to -mm tree
+Date: Thu, 01 Mar 2007 18:03:10 -0800
+Message-ID: <200703020203.l2223Aol029554@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34939 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34947 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422747AbXCBCDH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 21:03:07 -0500
+	id S1422753AbXCBCDO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 21:03:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jeremy@goop.org, jeremy@xensource.com
 
 
 The patch titled
-     xen-paravirt_ops: use paravirt_nop to consistently mark no-op operations
+     xen-paravirt_ops: paravirt_ops: allocate a fixmap slot
 has been added to the -mm tree.  Its filename is
-     xen-paravirt_ops-use-paravirt_nop-to-consistently-mark-no-op-operations.patch
+     xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,99 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xen-paravirt_ops: use paravirt_nop to consistently mark no-op operations
+Subject: xen-paravirt_ops: paravirt_ops: allocate a fixmap slot
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Add a _paravirt_nop function for use as a stub for no-op operations,
-and paravirt_nop #defined void * version to make using it easier
-(since all its uses are as a void *).
+Allocate a fixmap slot for use by a paravirt_ops implementation.  This is
+intended for early-boot bootstrap mappings.  Once the zones and allocator have
+been set up, it would be better to use get_vm_area() to allocate some virtual
+space.
 
-This is useful to allow the patcher to automatically identify noop
-operations so it can simply nop out the callsite.
+Xen uses this to map the hypervisor's shared info page, which doesn't have a
+pseudo-physical page number, and therefore can't be mapped ordinarily.  It is
+needed early because it contains the vcpu state, including the interrupt mask.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |   22 +++++++++++-----------
- include/asm-i386/paravirt.h |    3 +++
- 2 files changed, 14 insertions(+), 11 deletions(-)
+ include/asm-i386/fixmap.h |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN arch/i386/kernel/paravirt.c~xen-paravirt_ops-use-paravirt_nop-to-consistently-mark-no-op-operations arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~xen-paravirt_ops-use-paravirt_nop-to-consistently-mark-no-op-operations
-+++ a/arch/i386/kernel/paravirt.c
-@@ -34,7 +34,7 @@
- #include <asm/tlbflush.h>
- 
- /* nop stub */
--static void native_nop(void)
-+void _paravirt_nop(void)
- {
- }
- 
-@@ -489,7 +489,7 @@ struct paravirt_ops paravirt_ops = {
- 
-  	.patch = native_patch,
- 	.banner = default_banner,
--	.arch_setup = native_nop,
-+	.arch_setup = paravirt_nop,
- 	.memory_setup = machine_specific_memory_setup,
- 	.get_wallclock = native_get_wallclock,
- 	.set_wallclock = native_set_wallclock,
-@@ -544,23 +544,23 @@ struct paravirt_ops paravirt_ops = {
- 	.setup_boot_clock = setup_boot_APIC_clock,
- 	.setup_secondary_clock = setup_secondary_APIC_clock,
+diff -puN include/asm-i386/fixmap.h~xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot include/asm-i386/fixmap.h
+--- a/include/asm-i386/fixmap.h~xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot
++++ a/include/asm-i386/fixmap.h
+@@ -88,6 +88,9 @@ enum fixed_addresses {
+ #ifdef CONFIG_PCI_MMCONFIG
+ 	FIX_PCIE_MCFG,
  #endif
--	.set_lazy_mode = (void *)native_nop,
-+	.set_lazy_mode = paravirt_nop,
- 
- 	.flush_tlb_user = native_flush_tlb,
- 	.flush_tlb_kernel = native_flush_tlb_global,
- 	.flush_tlb_single = native_flush_tlb_single,
- 
--	.alloc_pt = (void *)native_nop,
--	.alloc_pd = (void *)native_nop,
--	.alloc_pd_clone = (void *)native_nop,
--	.release_pt = (void *)native_nop,
--	.release_pd = (void *)native_nop,
-+	.alloc_pt = paravirt_nop,
-+	.alloc_pd = paravirt_nop,
-+	.alloc_pd_clone = paravirt_nop,
-+	.release_pt = paravirt_nop,
-+	.release_pd = paravirt_nop,
- 
- 	.set_pte = native_set_pte,
- 	.set_pte_at = native_set_pte_at,
- 	.set_pmd = native_set_pmd,
--	.pte_update = (void *)native_nop,
--	.pte_update_defer = (void *)native_nop,
-+	.pte_update = paravirt_nop,
-+	.pte_update_defer = paravirt_nop,
- #ifdef CONFIG_X86_PAE
- 	.set_pte_atomic = native_set_pte_atomic,
- 	.set_pte_present = native_set_pte_present,
-@@ -572,7 +572,7 @@ struct paravirt_ops paravirt_ops = {
- 	.irq_enable_sysexit = native_irq_enable_sysexit,
- 	.iret = native_iret,
- 
--	.startup_ipi_hook = (void *)native_nop,
-+	.startup_ipi_hook = paravirt_nop,
- };
- 
- /*
-diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-use-paravirt_nop-to-consistently-mark-no-op-operations include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~xen-paravirt_ops-use-paravirt_nop-to-consistently-mark-no-op-operations
-+++ a/include/asm-i386/paravirt.h
-@@ -422,6 +422,9 @@ static inline void pmd_clear(pmd_t *pmdp
- #define arch_enter_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_MMU)
- #define arch_leave_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_NONE)
- 
-+void _paravirt_nop(void);
-+#define paravirt_nop	((void *)_paravirt_nop)
-+
- /* These all sit in the .parainstructions section to tell us what to patch. */
- struct paravirt_patch {
- 	u8 *instr; 		/* original instructions */
++#ifdef CONFIG_PARAVIRT
++	FIX_PARAVIRT_BOOTMAP,
++#endif
+ 	__end_of_permanent_fixed_addresses,
+ 	/* temporary boot-time mappings, used before ioremap() is functional */
+ #define NR_FIX_BTMAPS	16
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
