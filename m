@@ -1,324 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-megaraid_sas-throttle-io-if-cmds-are-in-risk-of.patch added to -mm tree
-Date: Fri, 02 Mar 2007 13:46:02 -0800
-Message-ID: <200703022146.l22Lk48O019937@shell0.pdx.osdl.net>
+Subject: - scsi-megaraid_sas-throttle-io-if-fw-is-busy.patch removed from -mm tree
+Date: Fri, 02 Mar 2007 13:46:11 -0800
+Message-ID: <200703022146.l22LkBN6019940@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42212 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42216 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932321AbXCBVqK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 16:46:10 -0500
+	id S932321AbXCBVqQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 16:46:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sumant.patro@lsi.com
+To: sumantp@lsil.com, sumant.patro@lsi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: megaraid_sas - throttle io if cmds are in risk of being timed-out
-has been added to the -mm tree.  Its filename is
-     scsi-megaraid_sas-throttle-io-if-cmds-are-in-risk-of.patch
+     scsi: megaraid_sas - throttle io if FW is busy
+has been removed from the -mm tree.  Its filename was
+     scsi-megaraid_sas-throttle-io-if-fw-is-busy.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: scsi: megaraid_sas - throttle io if cmds are in risk of being timed-out
-From: Sumant Patro <sumant.patro@lsi.com>
+Subject: scsi: megaraid_sas - throttle io if FW is busy
+From: Sumant Patro <sumantp@lsil.com>
 
-Driver to throttle IO to reduce risk of OS timing out cmds.
-
-Implemented a circular queue to keep track of pending OS cmds in FW.
-This queue is periodically (every 10 sec) checked by a timer routine.
-If there is any cmd that is in risk of getting timed-out by the OS,
-the host->can_queue is reduced to 16 and MEGASAS_FW_BUSY flag is set.
-The host->can_queue will be restored to default value when the following
-two conditions are met : 5 secs has elapsed and the # of outstanding cmds
-in FW is less than 17.
-Also increased the per cmd timeout to 120*HZ from 90*HZ.
+Checks added in megasas_queue_command to know if FW is able to process
+commands within the timeout period.  If number of retries is 2 or more, the
+driver stops sending cmd to FW.  IO is resumed when pending cmd count reduces
+to 16 or 10 seconds has elapsed from the time cmds were last sent to FW.
 
 Signed-off-by: Sumant Patro <sumant.patro@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_sas.c |  118 ++++++++++++++++++++++++-
- drivers/scsi/megaraid/megaraid_sas.h |   25 ++++-
- 2 files changed, 136 insertions(+), 7 deletions(-)
+ drivers/scsi/megaraid/megaraid_sas.c |   27 +++++++++++++++++++++++++
+ drivers/scsi/megaraid/megaraid_sas.h |    3 ++
+ 2 files changed, 30 insertions(+)
 
-diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-throttle-io-if-cmds-are-in-risk-of drivers/scsi/megaraid/megaraid_sas.c
---- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-throttle-io-if-cmds-are-in-risk-of
+diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-throttle-io-if-fw-is-busy drivers/scsi/megaraid/megaraid_sas.c
+--- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-throttle-io-if-fw-is-busy
 +++ a/drivers/scsi/megaraid/megaraid_sas.c
-@@ -10,7 +10,7 @@
-  *	   2 of the License, or (at your option) any later version.
-  *
-  * FILE		: megaraid_sas.c
-- * Version	: v00.00.03.10-rc1
-+ * Version	: v00.00.03.10-rc2
-  *
-  * Authors:
-  *	(email-id : megaraidlinux@lsi.com)
-@@ -112,6 +112,15 @@ megasas_return_cmd(struct megasas_instan
- {
- 	unsigned long flags;
- 
-+	if (cmd->watchdog_slot != 0xff) {
-+		spin_lock_irqsave(&instance->watchdog_lock, flags);
-+
-+		instance->watchdog_arr[cmd->watchdog_slot]--;
-+		cmd->watchdog_slot = 0xff;
-+
-+		spin_unlock_irqrestore(&instance->watchdog_lock, flags);
-+	}
-+
- 	spin_lock_irqsave(&instance->cmd_pool_lock, flags);
- 
- 	cmd->scmd = NULL;
-@@ -841,6 +850,7 @@ megasas_queue_command(struct scsi_cmnd *
+@@ -841,6 +841,7 @@ megasas_queue_command(struct scsi_cmnd *
  	u32 frame_count;
  	struct megasas_cmd *cmd;
  	struct megasas_instance *instance;
-+	unsigned long flags;
++	unsigned long sec;
  
  	instance = (struct megasas_instance *)
  	    scmd->device->host->hostdata;
-@@ -888,6 +898,16 @@ megasas_queue_command(struct scsi_cmnd *
- 	cmd->scmd = scmd;
- 
- 	/*
-+	 * Update watchdog array before sending cmd to FW
-+	 */
-+	spin_lock_irqsave(&instance->watchdog_lock, flags);
-+
-+	cmd->watchdog_slot = instance->watchdog_head;
-+	instance->watchdog_arr[cmd->watchdog_slot]++;
-+
-+	spin_unlock_irqrestore(&instance->watchdog_lock, flags);
-+
-+	/*
- 	 * Issue the command to the FW
- 	 */
- 	atomic_inc(&instance->fw_outstanding);
-@@ -919,7 +939,7 @@ static int megasas_slave_configure(struc
- 	 * The RAID firmware may require extended timeouts.
- 	 */
- 	if (sdev->channel >= MEGASAS_MAX_PD_CHANNELS)
--		sdev->timeout = 90 * HZ;
-+		sdev->timeout = 120 * HZ;
- 	return 0;
- }
- 
-@@ -981,8 +1001,8 @@ static int megasas_generic_reset(struct 
- 
- 	instance = (struct megasas_instance *)scmd->device->host->hostdata;
- 
--	scmd_printk(KERN_NOTICE, scmd, "megasas: RESET -%ld cmd=%x\n",
--	       scmd->serial_number, scmd->cmnd[0]);
-+	scmd_printk(KERN_NOTICE, scmd, "megasas: RESET -%ld cmd=%x, retries=%x\n",
-+		 scmd->serial_number, scmd->cmnd[0], scmd->retries);
- 
- 	if (instance->hw_crit_error) {
- 		printk(KERN_ERR "megasas: cannot recover from previous reset "
-@@ -1714,6 +1734,7 @@ static int megasas_alloc_cmds(struct meg
- 		memset(cmd, 0, sizeof(struct megasas_cmd));
- 		cmd->index = i;
- 		cmd->instance = instance;
-+		cmd->watchdog_slot = 0xff;
- 
- 		list_add_tail(&cmd->list, &instance->cmd_pool);
- 	}
-@@ -1828,6 +1849,77 @@ static void megasas_complete_cmd_dpc(uns
+@@ -870,6 +871,23 @@ megasas_queue_command(struct scsi_cmnd *
+ 		break;
  	}
  
- 	*instance->consumer = producer;
-+
-+	/*
-+	 * Check if we can restore can_queue
-+	 */
-+	if (instance->flag & MEGASAS_FW_BUSY
-+		&& time_after(jiffies, instance->last_time + 5 * HZ)
-+		&& atomic_read(&instance->fw_outstanding) < 17) {
-+
-+		instance->flag &= ~MEGASAS_FW_BUSY;
-+		instance->host->can_queue =
-+				instance->max_fw_cmds - MEGASAS_INT_CMDS;
-+	}
-+}
-+
-+/**
-+ * megasas_start_timer - Initializes a timer object
-+ * @instance:		Adapter soft state
-+ * @timer: 		timer object to be initialized
-+ * @fn:			timer function
-+ * @interval:		time interval between timer function call
-+ *
-+ */
-+static inline void
-+megasas_start_timer(struct megasas_instance *instance,
-+			struct timer_list *timer,
-+			void *fn, unsigned long interval)
-+{
-+	init_timer(timer);
-+	timer->expires = jiffies + interval;
-+	timer->data = (unsigned long)instance;
-+	timer->function = fn;
-+	add_timer(timer);
-+}
-+
-+/**
-+ * megasas_throttle_timer - Timer fn
-+ * @instance_addr:	Address of adapter soft state
-+ *
-+ * Verifies and sets the FW busy flag if there is any pending cmd
-+ * with the FW that is in risk of being timed-out by the OS
-+ */
-+static void
-+megasas_throttle_timer(unsigned long instance_addr)
-+{
-+	unsigned long flags;
-+	u32 pending;
-+	struct megasas_instance *instance = (struct megasas_instance *)instance_addr;
-+
-+	spin_lock_irqsave(&instance->watchdog_lock, flags);
-+
-+	instance->watchdog_head++;
-+	if (instance->watchdog_head == MEGASAS_MAX_WATCHDOG_SLOTS)
-+		instance->watchdog_head = 0;
-+
-+	if (instance->watchdog_head == instance->watchdog_tail) {
-+		pending = instance->watchdog_arr[instance->watchdog_tail];
-+		if (pending) {
-+			/* FW is busy, throttle IO */
-+			instance->host->can_queue = 16;
-+			instance->last_time = jiffies;
-+			instance->flag |= MEGASAS_FW_BUSY;
++	/* Check if we can accept cmds */
++	if (instance->is_busy) {
++		sec = (jiffies - instance->last_time) / HZ;
++		if (sec < 10)
++			return SCSI_MLQUEUE_HOST_BUSY;
++		else {
++			instance->is_busy = 0;
++			instance->last_time = 0;
 +		}
-+		instance->watchdog_tail++;
-+		if (instance->watchdog_tail == MEGASAS_MAX_WATCHDOG_SLOTS)
-+			instance->watchdog_tail = 0;
 +	}
-+	spin_unlock_irqrestore(&instance->watchdog_lock, flags);
 +
-+	/* Restart timer */
-+	mod_timer(&instance->throttle_timer,
-+			jiffies + MEGASAS_WATCHDOG_TIMER_INTERVAL);
++	if (scmd->retries > 1) {
++		/* FW is busy */
++		instance->is_busy = 1;
++		instance->last_time = jiffies;
++	}
++
+ 	cmd = megasas_get_cmd(instance);
+ 	if (!cmd)
+ 		return SCSI_MLQUEUE_HOST_BUSY;
+@@ -1214,6 +1232,7 @@ megasas_complete_cmd(struct megasas_inst
+ {
+ 	int exception = 0;
+ 	struct megasas_header *hdr = &cmd->frame->hdr;
++	int outstanding;
+ 
+ 	if (cmd->scmd) {
+ 		cmd->scmd->SCp.ptr = (char *)0;
+@@ -1327,6 +1346,12 @@ megasas_complete_cmd(struct megasas_inst
+ 		       hdr->cmd);
+ 		break;
+ 	}
++
++	if (instance->is_busy) {
++		outstanding = atomic_read(&instance->fw_outstanding);
++		if (outstanding < 17)
++			instance->is_busy = 0;
++	}
  }
  
  /**
-@@ -1851,6 +1943,7 @@ static int megasas_init_mfi(struct megas
- 	struct megasas_init_queue_info *initq_info;
- 	dma_addr_t init_frame_h;
- 	dma_addr_t initq_info_h;
-+	int i;
- 
- 	/*
- 	 * Map the message registers
-@@ -2006,6 +2099,19 @@ static int megasas_init_mfi(struct megas
- 
-         tasklet_init(&instance->isr_tasklet, megasas_complete_cmd_dpc,
-                         (unsigned long)instance);
-+
-+	/* Initialize watchdog data structs */
-+	for (i = 0; i < MEGASAS_MAX_WATCHDOG_SLOTS; i++)
-+		instance->watchdog_arr[i] = 0;
-+
-+	instance->watchdog_head = 0;
-+	instance->watchdog_tail = MEGASAS_MAX_WATCHDOG_SLOTS - 1;
-+
-+	/* Initialize the throttle IO timer */
-+	megasas_start_timer(instance, &instance->throttle_timer,
-+				megasas_throttle_timer,
-+				MEGASAS_WATCHDOG_TIMER_INTERVAL);
-+
- 	return 0;
- 
-       fail_fw_init:
-@@ -2385,6 +2491,7 @@ megasas_probe_one(struct pci_dev *pdev, 
- 	init_waitqueue_head(&instance->abort_cmd_wait_q);
- 
- 	spin_lock_init(&instance->cmd_pool_lock);
-+	spin_lock_init(&instance->watchdog_lock);
- 
- 	sema_init(&instance->aen_mutex, 1);
- 	sema_init(&instance->ioctl_sem, MEGASAS_INT_CMDS);
-@@ -2398,6 +2505,8 @@ megasas_probe_one(struct pci_dev *pdev, 
+@@ -2398,6 +2423,8 @@ megasas_probe_one(struct pci_dev *pdev, 
  	instance->init_id = MEGASAS_DEFAULT_INIT_ID;
  
  	megasas_dbg_lvl = 0;
-+	instance->flag = 0;
++	instance->is_busy = 0;
 +	instance->last_time = 0;
  
  	/*
  	 * Initialize MFI Firmware
-@@ -2566,6 +2675,7 @@ static void megasas_detach_one(struct pc
- 	megasas_flush_cache(instance);
- 	megasas_shutdown_controller(instance);
- 	tasklet_kill(&instance->isr_tasklet);
-+	del_timer_sync(&instance->throttle_timer);
- 
- 	/*
- 	 * Take the instance off the instance array. Note that we will not
-diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-throttle-io-if-cmds-are-in-risk-of drivers/scsi/megaraid/megaraid_sas.h
---- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-throttle-io-if-cmds-are-in-risk-of
+diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-throttle-io-if-fw-is-busy drivers/scsi/megaraid/megaraid_sas.h
+--- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-throttle-io-if-fw-is-busy
 +++ a/drivers/scsi/megaraid/megaraid_sas.h
-@@ -18,9 +18,9 @@
- /*
-  * MegaRAID SAS Driver meta data
-  */
--#define MEGASAS_VERSION				"00.00.03.10-rc1"
--#define MEGASAS_RELDATE				"Feb 14, 2007"
--#define MEGASAS_EXT_VERSION			"Wed Feb 14 10:14:25 PST 2007"
-+#define MEGASAS_VERSION				"00.00.03.10-rc2"
-+#define MEGASAS_RELDATE				"Mar 01, 2007"
-+#define MEGASAS_EXT_VERSION			"Thu Mar 01 10:07:34 PST 2007"
+@@ -1102,6 +1102,9 @@ struct megasas_instance {
+ 	atomic_t fw_outstanding;
+ 	u32 hw_crit_error;
  
- /*
-  * Device IDs
-@@ -539,6 +539,10 @@ struct megasas_ctrl_info {
- 
- #define MEGASAS_DBG_LVL				1
- 
-+#define MEGASAS_WATCHDOG_TIMER_INTERVAL		10*HZ
-+#define MEGASAS_MAX_WATCHDOG_SLOTS		8
-+#define MEGASAS_FW_BUSY				1
++	u8 is_busy;
++	unsigned long last_time;
 +
- /*
-  * When SCSI mid-layer calls driver's reset routine, driver waits for
-  * MEGASAS_RESET_WAIT_TIME seconds for all outstanding IO to complete. Note
-@@ -1104,6 +1108,18 @@ struct megasas_instance {
- 
  	struct megasas_instance_template *instancet;
  	struct tasklet_struct isr_tasklet;
-+
-+	/*
-+	 * watchdog data structs used to throttle IO if required
-+	 */
-+	u8 flag;
-+	u8 watchdog_head;
-+	u8 watchdog_tail;
-+	u8 resvd;
-+	unsigned long last_time;
-+	u32 watchdog_arr[MEGASAS_MAX_WATCHDOG_SLOTS];
-+	spinlock_t watchdog_lock;
-+	struct timer_list throttle_timer;
  };
- 
- #define MEGASAS_IS_LOGICAL(scp)						\
-@@ -1129,6 +1145,9 @@ struct megasas_cmd {
- 	struct scsi_cmnd *scmd;
- 	struct megasas_instance *instance;
- 	u32 frame_count;
-+
-+	u8 watchdog_slot;
-+	u8 resvd[3];
- };
- 
- #define MAX_MGMT_ADAPTERS		1024
 _
 
-Patches currently in -mm which might be from sumant.patro@lsi.com are
+Patches currently in -mm which might be from sumantp@lsil.com are
 
-scsi-megaraid_sas-throttle-io-if-cmds-are-in-risk-of.patch
 scsi-megaraid_sas-throttle-io-if-fw-is-busy.patch
 scsi-megaraid_sas-return-sync-cache-call-with-success.patch
