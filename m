@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + fix-nmi-appears-to-be-stuck.patch added to -mm tree
-Date: Fri, 02 Mar 2007 14:15:40 -0800
-Message-ID: <200703022215.l22MFhrK020633@shell0.pdx.osdl.net>
+Date: Fri, 02 Mar 2007 14:16:16 -0800
+Message-ID: <200703022216.l22MGGRc020648@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43392 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43456 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030599AbXCBWPy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 17:15:54 -0500
+	id S1030603AbXCBWQY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 17:16:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -55,7 +55,7 @@ diff -puN arch/i386/kernel/apic.c~fix-nmi-appears-to-be-stuck arch/i386/kernel/a
 +	} else {
 +		/*
 +		 * If nmi_watchdog is set to IO_APIC, we need the
-+		 * PIT/HPET going. So we register lapic as a dummy
++		 * PIT/HPET going.  Otherwise register lapic as a dummy
 +		 * device.
 +		 */
 +		if (nmi_watchdog != NMI_IO_APIC)
