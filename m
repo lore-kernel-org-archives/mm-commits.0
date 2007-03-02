@@ -1,366 +1,276 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 20:56:55 -0800
-Message-ID: <200703020456.l224utdq000481@shell0.pdx.osdl.net>
+Subject: - xen-paravirt_ops-add-common-patching-machinery.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 20:57:13 -0800
+Message-ID: <200703020457.l224vDeY000511@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41927 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41948 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422906AbXCBE5N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 23:57:13 -0500
+	id S1422910AbXCBE5V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 23:57:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, jeremy@xensource.com, mingo@elte.hu, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen-paravirt_ops: paravirt_ops: hooks to set up initial pagetable
+     xen-paravirt_ops: add common patching machinery
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable.patch
+     xen-paravirt_ops-add-common-patching-machinery.patch
 
 This patch was dropped because Zach's patches destroyed it all
 
 ------------------------------------------------------
-Subject: xen-paravirt_ops: paravirt_ops: hooks to set up initial pagetable
+Subject: xen-paravirt_ops: add common patching machinery
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-This patch introduces paravirt_ops hooks to control how the kernel's initial
-pagetable is set up.
+Implement the actual patching machinery.  paravirt_patch_default() contains
+the logic to automatically patch a callsite based on a few simple rules:
 
-In the case of a native boot, the very early bootstrap code creates a simple
-non-PAE pagetable to map the kernel and physical memory.  When the VM
-subsystem is initialized, it creates a proper pagetable which respects the PAE
-mode, large pages, etc.
+ - if the paravirt_op function is paravirt_nop, then patch nops
+ - if the paravirt_op function is a jmp target, then jmp to it
+ - if the paravirt_op function is callable and doesn't clobber too much
+    for the callsite, call it directly
 
-When booting under a hypervisor, there are many possibilities for what paging
-environment the hypervisor establishes for the guest kernel, so the
-constructon of the kernel's pagetable depends on the hypervisor.
+paravirt_patch_default is suitable as a default implementation of
+paravirt_ops.patch, will remove most of the expensive indirect calls in favour
+of either a direct call or a pile of nops.
 
-In the case of Xen, the hypervisor boots the kernel with a fully constructed
-pagetable, which is already using PAE if necessary.  Also, Xen requires
-particular care when constructing pagetables to make sure all pagetables are
-always mapped read-only.
+Backends may implement their own patcher, however.  There are several helper
+functions to help with this:
 
-In order to make this easier, kernel's initial pagetable construction has been
-changed to only allocate and initialize a pagetable page if there's no page
-already present in the pagetable.  This allows the Xen paravirt backend to
-make a copy of the hypervisor-provided pagetable, allowing the kernel to
-establish any more mappings it needs while keeping the existing ones.
+paravirt_patch_nop	nop out a callsite
+paravirt_patch_ignore	leave the callsite as-is
+paravirt_patch_call	patch a call if the caller and callee
+			have compatible clobbers
+paravirt_patch_jmp	patch in a jmp
+paravirt_patch_insns	patch some literal instructions over
+			the callsite, if they fit
 
-A slightly subtle point which is worth highlighting here is that Xen requires
-all kernel mappings to share the same pte_t pages between all pagetables, so
-that updating a kernel page's mapping in one pagetable is reflected in all
-other pagetables.  This makes it possible to allocate a page and attach it to
-a pagetable without having to explicitly enumerate that page's mapping in all
-pagetables.
+This patch also implements more direct patches for the native case, so that
+when running on native hardware many common operations are implemented inline.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |    3 
- arch/i386/mm/init.c         |  125 ++++++++++++++++++++++++----------
- include/asm-i386/paravirt.h |   17 ++++
- include/asm-i386/pgtable.h  |   16 ++++
- 4 files changed, 126 insertions(+), 35 deletions(-)
+ arch/i386/kernel/alternative.c |    3 
+ arch/i386/kernel/paravirt.c    |  153 +++++++++++++++++++++++++------
+ include/asm-i386/paravirt.h    |   11 ++
+ 3 files changed, 142 insertions(+), 25 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable
+diff -puN arch/i386/kernel/alternative.c~xen-paravirt_ops-add-common-patching-machinery arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~xen-paravirt_ops-add-common-patching-machinery
++++ a/arch/i386/kernel/alternative.c
+@@ -359,6 +359,9 @@ void apply_paravirt(struct paravirt_patc
+ 
+ 		used = paravirt_ops.patch(p->instrtype, p->clobbers, p->instr,
+ 					  p->len);
++
++		BUG_ON(used > p->len);
++
+ #ifdef CONFIG_DEBUG_PARAVIRT
+ 		{
+ 		int i;
+diff -puN arch/i386/kernel/paravirt.c~xen-paravirt_ops-add-common-patching-machinery arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~xen-paravirt_ops-add-common-patching-machinery
 +++ a/arch/i386/kernel/paravirt.c
-@@ -474,6 +474,9 @@ struct paravirt_ops paravirt_ops = {
- #endif
- 	.set_lazy_mode = paravirt_nop,
- 
-+	.pagetable_setup_start = native_pagetable_setup_start,
-+	.pagetable_setup_done = native_pagetable_setup_done,
+@@ -53,40 +53,143 @@ char *memory_setup(void)
+ #define DEF_NATIVE(name, code)					\
+ 	extern const char start_##name[], end_##name[];		\
+ 	asm("start_" #name ": " code "; end_" #name ":")
+-DEF_NATIVE(cli, "cli");
+-DEF_NATIVE(sti, "sti");
+-DEF_NATIVE(popf, "push %eax; popf");
+-DEF_NATIVE(pushf, "pushf; pop %eax");
 +
- 	.flush_tlb_user = native_flush_tlb,
- 	.flush_tlb_kernel = native_flush_tlb_global,
- 	.flush_tlb_single = native_flush_tlb_single,
-diff -puN arch/i386/mm/init.c~xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable
-+++ a/arch/i386/mm/init.c
-@@ -42,6 +42,7 @@
- #include <asm/tlb.h>
- #include <asm/tlbflush.h>
- #include <asm/sections.h>
-+#include <asm/paravirt.h>
++DEF_NATIVE(irq_disable, "cli");
++DEF_NATIVE(irq_enable, "sti");
++DEF_NATIVE(restore_fl, "push %eax; popf");
++DEF_NATIVE(save_fl, "pushf; pop %eax");
+ DEF_NATIVE(iret, "iret");
+-DEF_NATIVE(sti_sysexit, "sti; sysexit");
++DEF_NATIVE(irq_enable_sysexit, "sti; sysexit");
++DEF_NATIVE(read_cr2, "mov %cr2, %eax");
++DEF_NATIVE(write_cr3, "mov %eax, %cr3");
++DEF_NATIVE(read_cr3, "mov %cr3, %eax");
++DEF_NATIVE(clts, "clts");
++DEF_NATIVE(read_tsc, "rdtsc");
  
- unsigned int __VMALLOC_RESERVE = 128 << 20;
+-static const struct native_insns
+-{
+-	const char *start, *end;
+-} native_insns[] = {
+-	[PARAVIRT_PATCH(irq_disable)] = { start_cli, end_cli },
+-	[PARAVIRT_PATCH(irq_enable)] = { start_sti, end_sti },
+-	[PARAVIRT_PATCH(restore_fl)] = { start_popf, end_popf },
+-	[PARAVIRT_PATCH(save_fl)] = { start_pushf, end_pushf },
+-	[PARAVIRT_PATCH(iret)] = { start_iret, end_iret },
+-	[PARAVIRT_PATCH(irq_enable_sysexit)] = { start_sti_sysexit, end_sti_sysexit },
+-};
++DEF_NATIVE(pushf_cli, "pushf; pop %eax; cli");
++DEF_NATIVE(ud2a, "ud2a");
  
-@@ -62,6 +63,7 @@ static pmd_t * __init one_md_table_init(
- 		
- #ifdef CONFIG_X86_PAE
- 	pmd_table = (pmd_t *) alloc_bootmem_low_pages(PAGE_SIZE);
-+
- 	paravirt_alloc_pd(__pa(pmd_table) >> PAGE_SHIFT);
- 	set_pgd(pgd, __pgd(__pa(pmd_table) | _PAGE_PRESENT));
- 	pud = pud_offset(pgd, 0);
-@@ -83,12 +85,10 @@ static pte_t * __init one_page_table_ini
+ static unsigned native_patch(u8 type, u16 clobbers, void *insns, unsigned len)
  {
- 	if (pmd_none(*pmd)) {
- 		pte_t *page_table = (pte_t *) alloc_bootmem_low_pages(PAGE_SIZE);
+-	unsigned int insn_len;
++	const unsigned char *start, *end;
++	unsigned ret;
 +
- 		paravirt_alloc_pt(__pa(page_table) >> PAGE_SHIFT);
- 		set_pmd(pmd, __pmd(__pa(page_table) | _PAGE_TABLE));
--		if (page_table != pte_offset_kernel(pmd, 0))
--			BUG();	
--
--		return page_table;
-+		BUG_ON(page_table != pte_offset_kernel(pmd, 0));
- 	}
- 	
- 	return pte_offset_kernel(pmd, 0);
-@@ -119,7 +119,7 @@ static void __init page_table_range_init
- 	pgd = pgd_base + pgd_idx;
- 
- 	for ( ; (pgd_idx < PTRS_PER_PGD) && (vaddr != end); pgd++, pgd_idx++) {
--		if (pgd_none(*pgd)) 
-+		if (!(pgd_val(*pgd) & _PAGE_PRESENT))
- 			one_md_table_init(pgd);
- 		pud = pud_offset(pgd, vaddr);
- 		pmd = pmd_offset(pud, vaddr);
-@@ -158,7 +158,11 @@ static void __init kernel_physical_mappi
- 	pfn = 0;
- 
- 	for (; pgd_idx < PTRS_PER_PGD; pgd++, pgd_idx++) {
--		pmd = one_md_table_init(pgd);
-+		if (!(pgd_val(*pgd) & _PAGE_PRESENT))
-+			pmd = one_md_table_init(pgd);
-+		else
-+			pmd = pmd_offset(pud_offset(pgd, PAGE_OFFSET), PAGE_OFFSET);
++	switch(type) {
++#define SITE(x)	case PARAVIRT_PATCH(x):	start = start_##x; end = end_##x; goto patch_site
++		SITE(irq_disable);
++		SITE(irq_enable);
++		SITE(restore_fl);
++		SITE(save_fl);
++		SITE(iret);
++		SITE(irq_enable_sysexit);
++		SITE(read_cr2);
++		SITE(read_cr3);
++		SITE(write_cr3);
++		SITE(clts);
++		SITE(read_tsc);
++#undef SITE
 +
- 		if (pfn >= max_low_pfn)
- 			continue;
- 		for (pmd_idx = 0; pmd_idx < PTRS_PER_PMD && pfn < max_low_pfn; pmd++, pmd_idx++) {
-@@ -167,20 +171,26 @@ static void __init kernel_physical_mappi
- 			/* Map with big pages if possible, otherwise create normal page tables. */
- 			if (cpu_has_pse) {
- 				unsigned int address2 = (pfn + PTRS_PER_PTE - 1) * PAGE_SIZE + PAGE_OFFSET + PAGE_SIZE-1;
--
--				if (is_kernel_text(address) || is_kernel_text(address2))
--					set_pmd(pmd, pfn_pmd(pfn, PAGE_KERNEL_LARGE_EXEC));
--				else
--					set_pmd(pmd, pfn_pmd(pfn, PAGE_KERNEL_LARGE));
-+				if (!pmd_present(*pmd)) {
-+					if (is_kernel_text(address) || is_kernel_text(address2))
-+						set_pmd(pmd, pfn_pmd(pfn, PAGE_KERNEL_LARGE_EXEC));
-+					else
-+						set_pmd(pmd, pfn_pmd(pfn, PAGE_KERNEL_LARGE));
-+				}
- 				pfn += PTRS_PER_PTE;
- 			} else {
- 				pte = one_page_table_init(pmd);
- 
--				for (pte_ofs = 0; pte_ofs < PTRS_PER_PTE && pfn < max_low_pfn; pte++, pfn++, pte_ofs++) {
--						if (is_kernel_text(address))
--							set_pte(pte, pfn_pte(pfn, PAGE_KERNEL_EXEC));
--						else
--							set_pte(pte, pfn_pte(pfn, PAGE_KERNEL));
-+				for (pte_ofs = 0;
-+				     pte_ofs < PTRS_PER_PTE && pfn < max_low_pfn;
-+				     pte++, pfn++, pte_ofs++, address += PAGE_SIZE) {
-+					if (pte_present(*pte))
-+						continue;
++	patch_site:
++		ret = paravirt_patch_insns(insns, len, start, end);
++		break;
 +
-+					if (is_kernel_text(address))
-+						set_pte(pte, pfn_pte(pfn, PAGE_KERNEL_EXEC));
-+					else
-+						set_pte(pte, pfn_pte(pfn, PAGE_KERNEL));
- 				}
- 			}
- 		}
-@@ -337,19 +347,74 @@ extern void __init remap_numa_kva(void);
- #define remap_numa_kva() do {} while (0)
- #endif
- 
--static void __init pagetable_init (void)
-+void __init native_pagetable_setup_start(pgd_t *base)
- {
--	unsigned long vaddr;
--	pgd_t *pgd_base = swapper_pg_dir;
--
- #ifdef CONFIG_X86_PAE
- 	int i;
--	/* Init entries of the first-level page table to the zero page */
--	for (i = 0; i < PTRS_PER_PGD; i++)
--		set_pgd(pgd_base + i, __pgd(__pa(empty_zero_page) | _PAGE_PRESENT));
-+
-+	/*
-+	 * Init entries of the first-level page table to the
-+	 * zero page, if they haven't already been set up.
-+	 *
-+	 * In a normal native boot, we'll be running on a
-+	 * pagetable rooted in swapper_pg_dir, but not in PAE
-+	 * mode, so this will end up clobbering the mappings
-+	 * for the lower 24Mbytes of the address space,
-+	 * without affecting the kernel address space.
-+	 */
-+	for (i = 0; i < USER_PTRS_PER_PGD; i++)
-+		set_pgd(&base[i],
-+			__pgd(__pa(empty_zero_page) | _PAGE_PRESENT));
-+
-+	/* Make sure kernel address space is empty so that a pagetable
-+	   will be allocated for it. */
-+	memset(&base[USER_PTRS_PER_PGD], 0,
-+	       KERNEL_PGD_PTRS * sizeof(pgd_t));
- #else
- 	paravirt_alloc_pd(__pa(swapper_pg_dir) >> PAGE_SHIFT);
- #endif
-+}
-+
-+void __init native_pagetable_setup_done(pgd_t *base)
-+{
++	case PARAVIRT_PATCH(make_pgd):
++	case PARAVIRT_PATCH(make_pte):
++	case PARAVIRT_PATCH(pgd_val):
++	case PARAVIRT_PATCH(pte_val):
 +#ifdef CONFIG_X86_PAE
-+	/*
-+	 * Add low memory identity-mappings - SMP needs it when
-+	 * starting up on an AP from real-mode. In the non-PAE
-+	 * case we already have these mappings through head.S.
-+	 * All user-space mappings are explicitly cleared after
-+	 * SMP startup.
-+	 */
-+	set_pgd(&base[0], base[USER_PTRS_PER_PGD]);
++	case PARAVIRT_PATCH(make_pmd):
++	case PARAVIRT_PATCH(pmd_val):
 +#endif
++		/* These functions end up returning exactly what
++		   they're passed, in the same registers. */
++		ret = paravirt_patch_nop();
++		break;
++
++	default:
++		ret = paravirt_patch_default(type, clobbers, insns, len);
++		break;
++	}
++
++	return ret;
 +}
 +
-+/*
-+ * Build a proper pagetable for the kernel mappings.  Up until this
-+ * point, we've been running on some set of pagetables constructed by
-+ * the boot process.
-+ *
-+ * If we're booting on native hardware, this will be a pagetable
-+ * constructed in arch/i386/kernel/head.S, and not running in PAE mode
-+ * (even if we'll end up running in PAE).  The root of the pagetable
-+ * will be swapper_pg_dir.
-+ *
-+ * If we're booting paravirtualized under a hypervisor, then there are
-+ * more options: we may already be running PAE, and the pagetable may
-+ * or may not be based in swapper_pg_dir.  In any case,
-+ * paravirt_pagetable_setup_start() will set up swapper_pg_dir
-+ * appropriately for the rest of the initialization to work.
-+ *
-+ * In general, pagetable_init() assumes that the pagetable may already
-+ * be partially populated, and so it avoids stomping on any existing
-+ * mappings.
-+ */
-+static void __init pagetable_init (void)
++unsigned paravirt_patch_nop(void)
 +{
-+	unsigned long vaddr, end;
-+	pgd_t *pgd_base = swapper_pg_dir;
++	return 0;
++}
 +
-+	paravirt_pagetable_setup_start(pgd_base);
++unsigned paravirt_patch_ignore(unsigned len)
++{
++	return len;
++}
++
++unsigned paravirt_patch_call(void *target, u16 tgt_clobbers,
++			     void *site, u16 site_clobbers,
++			     unsigned len)
++{
++	unsigned char *call = site;
++	unsigned long delta = (unsigned long)target - (unsigned long)(call+5);
++
++	if (tgt_clobbers & ~site_clobbers)
++		return len;	/* target would clobber too much for this site */
++	if (len < 5)
++		return len;	/* call too long for patch site */
++
++	*call++ = 0xe8;		/* call */
++	*(unsigned long *)call = delta;
++
++	return 5;
++}
++
++unsigned paravirt_patch_jmp(void *target, void *site, unsigned len)
++{
++	unsigned char *jmp = site;
++	unsigned long delta = (unsigned long)target - (unsigned long)(jmp+5);
++
++	if (len < 5)
++		return len;	/* call too long for patch site */
++
++	*jmp++ = 0xe9;		/* jmp */
++	*(unsigned long *)jmp = delta;
++
++	return 5;
++}
++
++unsigned paravirt_patch_default(u8 type, u16 clobbers, void *site, unsigned len)
++{
++	void *opfunc = *((void **)&paravirt_ops + type);
++	unsigned ret;
  
- 	/* Enable PSE if available */
- 	if (cpu_has_pse) {
-@@ -371,20 +436,12 @@ static void __init pagetable_init (void)
- 	 * created - mappings will be set by set_fixmap():
- 	 */
- 	vaddr = __fix_to_virt(__end_of_fixed_addresses - 1) & PMD_MASK;
--	page_table_range_init(vaddr, 0, pgd_base);
-+	end = (FIXADDR_TOP + PMD_SIZE - 1) & PMD_MASK;
-+	page_table_range_init(vaddr, end, pgd_base);
+-	/* Don't touch it if we don't have a replacement */
+-	if (type >= ARRAY_SIZE(native_insns) || !native_insns[type].start)
+-		return len;
++	if (opfunc == NULL)
++		/* If there's no function, patch it with a ud2a (BUG) */
++		ret = paravirt_patch_insns(site, len, start_ud2a, end_ud2a);
++	else if (opfunc == paravirt_nop)
++		/* If the operation is a nop, then nop the callsite */
++		ret = paravirt_patch_nop();
++	else if (type == PARAVIRT_PATCH(iret) ||
++		 type == PARAVIRT_PATCH(irq_enable_sysexit))
++		/* If operation requires a jmp, then jmp */
++		ret = paravirt_patch_jmp(opfunc, site, len);
++	else
++		/* Otherwise call the function; assume target could
++		   clobber any caller-save reg */
++		ret = paravirt_patch_call(opfunc, CLBR_ANY,
++					  site, clobbers, len);
  
- 	permanent_kmaps_init(pgd_base);
+-	insn_len = native_insns[type].end - native_insns[type].start;
++	return ret;
++}
++
++unsigned paravirt_patch_insns(void *site, unsigned len,
++			      const char *start, const char *end)
++{
++	unsigned insn_len = end - start;
  
--#ifdef CONFIG_X86_PAE
--	/*
--	 * Add low memory identity-mappings - SMP needs it when
--	 * starting up on an AP from real-mode. In the non-PAE
--	 * case we already have these mappings through head.S.
--	 * All user-space mappings are explicitly cleared after
--	 * SMP startup.
--	 */
--	set_pgd(&pgd_base[0], pgd_base[USER_PTRS_PER_PGD]);
--#endif
-+	paravirt_pagetable_setup_done(pgd_base);
+-	/* Similarly if we can't fit replacement. */
+-	if (len < insn_len)
+-		return len;
++	if (insn_len > len || start == NULL)
++		insn_len = len;
++	else
++		memcpy(site, start, insn_len);
+ 
+-	memcpy(insns, native_insns[type].start, insn_len);
+ 	return insn_len;
  }
  
- #if defined(CONFIG_SOFTWARE_SUSPEND) || defined(CONFIG_ACPI_SLEEP)
-diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable
+diff -puN include/asm-i386/paravirt.h~xen-paravirt_ops-add-common-patching-machinery include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~xen-paravirt_ops-add-common-patching-machinery
 +++ a/include/asm-i386/paravirt.h
-@@ -2,10 +2,11 @@
- #define __ASM_PARAVIRT_H
- /* Various instructions on x86 need to be replaced for
-  * para-virtualization: those hooks are defined here. */
-+
-+#ifdef CONFIG_PARAVIRT
- #include <linux/stringify.h>
- #include <asm/page.h>
+@@ -813,6 +813,17 @@ struct paravirt_patch_site {
+ 	u16 clobbers;		/* what registers you may clobber */
+ };
  
--#ifdef CONFIG_PARAVIRT
- /* These are the most performance critical ops, so we want to be able to patch
-  * callers */
- #define PARAVIRT_IRQ_DISABLE 0
-@@ -49,6 +50,9 @@ struct paravirt_ops
- 	char *(*memory_setup)(void);
- 	void (*init_IRQ)(void);
++unsigned paravirt_patch_nop(void);
++unsigned paravirt_patch_ignore(unsigned len);
++unsigned paravirt_patch_call(void *target, u16 tgt_clobbers,
++			     void *site, u16 site_clobbers,
++			     unsigned len);
++unsigned paravirt_patch_jmp(void *target, void *site, unsigned len);
++unsigned paravirt_patch_default(u8 type, u16 clobbers, void *site, unsigned len);
++
++unsigned paravirt_patch_insns(void *site, unsigned len,
++			      const char *start, const char *end);
++
+ extern struct paravirt_patch_site __start_parainstructions[],
+ 	__stop_parainstructions[];
  
-+	void (*pagetable_setup_start)(pgd_t *pgd_base);
-+	void (*pagetable_setup_done)(pgd_t *pgd_base);
-+
- 	void (*banner)(void);
- 
- 	unsigned long (*get_wallclock)(void);
-@@ -363,6 +367,17 @@ static inline void setup_secondary_clock
- }
- #endif
- 
-+static inline void paravirt_pagetable_setup_start(pgd_t *base)
-+{
-+	if (paravirt_ops.pagetable_setup_start)
-+		(*paravirt_ops.pagetable_setup_start)(base);
-+}
-+
-+static inline void paravirt_pagetable_setup_done(pgd_t *base)
-+{
-+	if (paravirt_ops.pagetable_setup_done)
-+		(*paravirt_ops.pagetable_setup_done)(base);
-+}
- 
- #ifdef CONFIG_SMP
- static inline void startup_ipi_hook(int phys_apicid, unsigned long start_eip,
-diff -puN include/asm-i386/pgtable.h~xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable
-+++ a/include/asm-i386/pgtable.h
-@@ -497,6 +497,22 @@ do {									\
-  * tables contain all the necessary information.
-  */
- #define update_mmu_cache(vma,address,pte) do { } while (0)
-+
-+void native_pagetable_setup_start(pgd_t *base);
-+void native_pagetable_setup_done(pgd_t *base);
-+
-+#ifndef CONFIG_PARAVIRT
-+static inline void paravirt_pagetable_setup_start(pgd_t *base)
-+{
-+	native_pagetable_setup_start(base);
-+}
-+
-+static inline void paravirt_pagetable_setup_done(pgd_t *base)
-+{
-+	native_pagetable_setup_done(base);
-+}
-+#endif	/* !CONFIG_PARAVIRT */
-+
- #endif /* !__ASSEMBLY__ */
- 
- #ifdef CONFIG_FLATMEM
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
 
-xen-paravirt_ops-paravirt_ops-hooks-to-set-up-initial-pagetable.patch
-xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot.patch
-xen-paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
-xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch
-xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations.patch
-xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
-xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
-xen-paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
-xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
 xen-paravirt_ops-add-common-patching-machinery.patch
 xen-paravirt_ops-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
 xen-paravirt_ops-allocate-and-free-vmalloc-areas.patch
