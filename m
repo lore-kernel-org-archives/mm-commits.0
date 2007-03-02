@@ -1,56 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - xen-paravirt_ops-ignore-vgacon-if-hardware-not-present.patch removed from -mm tree
-Date: Thu, 01 Mar 2007 20:56:50 -0800
-Message-ID: <200703020456.l224uofA000472@shell0.pdx.osdl.net>
+Subject: - xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot.patch removed from -mm tree
+Date: Thu, 01 Mar 2007 20:56:57 -0800
+Message-ID: <200703020456.l224uvBD000484@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41881 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41892 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422899AbXCBE4x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 1 Mar 2007 23:56:53 -0500
+	id S1422901AbXCBE5A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 1 Mar 2007 23:57:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kraxel@suse.de, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen-paravirt_ops: ignore vgacon if hardware not present
+     xen-paravirt_ops: paravirt_ops: allocate a fixmap slot
 has been removed from the -mm tree.  Its filename was
-     xen-paravirt_ops-ignore-vgacon-if-hardware-not-present.patch
+     xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot.patch
 
 This patch was dropped because Zach's patches destroyed it all
 
 ------------------------------------------------------
-Subject: xen-paravirt_ops: ignore vgacon if hardware not present
-From: Gerd Hoffmann <kraxel@suse.de>
+Subject: xen-paravirt_ops: paravirt_ops: allocate a fixmap slot
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Avoid trying to set up vgacon if there's no vga hardware present.
+Allocate a fixmap slot for use by a paravirt_ops implementation.  This is
+intended for early-boot bootstrap mappings.  Once the zones and allocator have
+been set up, it would be better to use get_vm_area() to allocate some virtual
+space.
+
+Xen uses this to map the hypervisor's shared info page, which doesn't have a
+pseudo-physical page number, and therefore can't be mapped ordinarily.  It is
+needed early because it contains the vcpu state, including the interrupt mask.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/vgacon.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ include/asm-i386/fixmap.h |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/video/console/vgacon.c~xen-paravirt_ops-ignore-vgacon-if-hardware-not-present drivers/video/console/vgacon.c
---- a/drivers/video/console/vgacon.c~xen-paravirt_ops-ignore-vgacon-if-hardware-not-present
-+++ a/drivers/video/console/vgacon.c
-@@ -371,7 +371,8 @@ static const char *vgacon_startup(void)
- 	}
- 
- 	/* VGA16 modes are not handled by VGACON */
--	if ((ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
-+	if ((ORIG_VIDEO_MODE == 0x00) ||	/* SCREEN_INFO not initialized */
-+	    (ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
- 	    (ORIG_VIDEO_MODE == 0x0E) ||	/* 640x200/4 */
- 	    (ORIG_VIDEO_MODE == 0x10) ||	/* 640x350/4 */
- 	    (ORIG_VIDEO_MODE == 0x12) ||	/* 640x480/4 */
+diff -puN include/asm-i386/fixmap.h~xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot include/asm-i386/fixmap.h
+--- a/include/asm-i386/fixmap.h~xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot
++++ a/include/asm-i386/fixmap.h
+@@ -88,6 +88,9 @@ enum fixed_addresses {
+ #ifdef CONFIG_PCI_MMCONFIG
+ 	FIX_PCIE_MCFG,
+ #endif
++#ifdef CONFIG_PARAVIRT
++	FIX_PARAVIRT_BOOTMAP,
++#endif
+ 	__end_of_permanent_fixed_addresses,
+ 	/* temporary boot-time mappings, used before ioremap() is functional */
+ #define NR_FIX_BTMAPS	16
 _
 
-Patches currently in -mm which might be from kraxel@suse.de are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-xen-paravirt_ops-ignore-vgacon-if-hardware-not-present.patch
+xen-paravirt_ops-paravirt_ops-allocate-a-fixmap-slot.patch
+xen-paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+xen-paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch
+xen-paravirt_ops-remove-have_arch_mm_lifetime-define-no-op-architecture-implementations.patch
+xen-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
+xen-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
+xen-paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
+xen-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
+xen-paravirt_ops-add-common-patching-machinery.patch
+xen-paravirt_ops-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+xen-paravirt_ops-allocate-and-free-vmalloc-areas.patch
+xen-paravirt_ops-add-nosegneg-capability-to-the-vsyscall-page-notes.patch
+xen-paravirt_ops-add-xen-config-options.patch
+xen-paravirt_ops-add-xen-interface-header-files.patch
+xen-paravirt_ops-core-xen-implementation.patch
 xen-paravirt_ops-use-the-hvc-console-infrastructure-for-xen-console.patch
 xen-paravirt_ops-add-early-printk-support-via-hvc-console.patch
+xen-paravirt_ops-add-xen-grant-table-support.patch
+xen-paravirt_ops-add-the-xenbus-sysfs-and-virtual-device-hotplug-driver.patch
+xen-paravirt_ops-add-xen-virtual-block-device-driver.patch
+xen-paravirt_ops-add-the-xen-virtual-network-device-driver.patch
 fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
