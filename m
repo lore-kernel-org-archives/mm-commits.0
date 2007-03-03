@@ -1,153 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - allow-kernel-to-build-on-cygwin.patch removed from -mm tree
-Date: Fri, 02 Mar 2007 16:47:06 -0800
-Message-ID: <200703030047.l230l6jd024143@shell0.pdx.osdl.net>
+Subject: + optimize-timespec_trunc.patch added to -mm tree
+Date: Fri, 02 Mar 2007 16:59:39 -0800
+Message-ID: <200703030059.l230xdjI024386@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50212 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50391 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992812AbXCCArV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 19:47:21 -0500
+	id S2992825AbXCCBAq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 20:00:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dsaxena@plexity.net, dsaxena@mvista.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dada1@cosmosbay.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     Allow kernel to build on Cygwin
-has been removed from the -mm tree.  Its filename was
-     allow-kernel-to-build-on-cygwin.patch
+     Optimize timespec_trunc()
+has been added to the -mm tree.  Its filename is
+     optimize-timespec_trunc.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Allow kernel to build on Cygwin
-From: Deepak Saxena <dsaxena@plexity.net>
+Subject: Optimize timespec_trunc()
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-This patch contains a set of small fixes to allow the kernel to build under
-the Cygwin environment, which is unfortunately used by more people than
-one would think in the embedded world. :(
+The first thing done by timespec_trunc() is :
 
-Signed-off-by: Deepak Saxena <dsaxena@mvista.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+  if (gran <= jiffies_to_usecs(1) * 1000)
+
+This should really be a test against a constant known at compile time.
+
+Alas, it isnt. jiffies_to_usec() was unilined so C compiler emits a function
+call and a multiply to compute : a CONSTANT.
+
+mov    $0x1,%edi
+mov    %rbx,0xffffffffffffffe8(%rbp)
+mov    %r12,0xfffffffffffffff0(%rbp)
+mov    %edx,%ebx
+mov    %rsi,0xffffffffffffffc8(%rbp)
+mov    %rsi,%r12
+callq  ffffffff80232010 <jiffies_to_usecs>
+imul   $0x3e8,%eax,%eax
+cmp    %ebx,%eax
+
+This patch reorders kernel/time.c a bit so that jiffies_to_usecs() is defined
+before timespec_trunc() so that compiler now generates :
+
+cmp    $0x3d0900,%edx  (HZ=250 on my machine)
+
+This gives a better code (timespec_trunc() becoming a leaf function), and
+shorter kernel size as well.
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/gen_crc32table.c                       |    2 ++
- scripts/kconfig/Makefile                   |    6 ++++++
- scripts/kconfig/lxdialog/check-lxdialog.sh |    4 ++++
- scripts/mod/file2alias.c                   |    4 ++++
- scripts/mod/mk_elfconfig.c                 |    4 ++++
- scripts/mod/modpost.h                      |    4 ++++
- scripts/mod/sumversion.c                   |    6 +++++-
- 7 files changed, 29 insertions(+), 1 deletion(-)
+ kernel/time.c |   60 ++++++++++++++++++++++++------------------------
+ 1 files changed, 30 insertions(+), 30 deletions(-)
 
-diff -puN lib/gen_crc32table.c~allow-kernel-to-build-on-cygwin lib/gen_crc32table.c
---- a/lib/gen_crc32table.c~allow-kernel-to-build-on-cygwin
-+++ a/lib/gen_crc32table.c
-@@ -1,6 +1,8 @@
- #include <stdio.h>
- #include "crc32defs.h"
-+#ifndef __CYGWIN__
- #include <inttypes.h>
+diff -puN kernel/time.c~optimize-timespec_trunc kernel/time.c
+--- a/kernel/time.c~optimize-timespec_trunc
++++ a/kernel/time.c
+@@ -247,6 +247,36 @@ struct timespec current_fs_time(struct s
+ }
+ EXPORT_SYMBOL(current_fs_time);
+ 
++/*
++ * Convert jiffies to milliseconds and back.
++ *
++ * Avoid unnecessary multiplications/divisions in the
++ * two most common HZ cases:
++ */
++unsigned int inline jiffies_to_msecs(const unsigned long j)
++{
++#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
++	return (MSEC_PER_SEC / HZ) * j;
++#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
++	return (j + (HZ / MSEC_PER_SEC) - 1)/(HZ / MSEC_PER_SEC);
++#else
++	return (j * MSEC_PER_SEC) / HZ;
 +#endif
- 
- #define ENTRIES_PER_LINE 4
- 
-diff -puN scripts/kconfig/Makefile~allow-kernel-to-build-on-cygwin scripts/kconfig/Makefile
---- a/scripts/kconfig/Makefile~allow-kernel-to-build-on-cygwin
-+++ a/scripts/kconfig/Makefile
-@@ -161,6 +161,12 @@ HOSTLOADLIBES_gconf	= `pkg-config --libs
- HOSTCFLAGS_gconf.o	= `pkg-config --cflags gtk+-2.0 gmodule-2.0 libglade-2.0` \
-                           -D LKC_DIRECT_LINK
- 
-+HOST_OS := $(shell uname -o)
-+ifeq ($(HOST_OS),Cygwin)
-+HOSTLOADLIBES_mconf	= -lintl
-+HOSTLOADLIBES_conf	= -lintl
-+endif
++}
++EXPORT_SYMBOL(jiffies_to_msecs);
 +
- $(obj)/qconf.o: $(obj)/.tmp_qtcheck
- 
- ifeq ($(qconf-target),1)
-diff -puN scripts/kconfig/lxdialog/check-lxdialog.sh~allow-kernel-to-build-on-cygwin scripts/kconfig/lxdialog/check-lxdialog.sh
---- a/scripts/kconfig/lxdialog/check-lxdialog.sh~allow-kernel-to-build-on-cygwin
-+++ a/scripts/kconfig/lxdialog/check-lxdialog.sh
-@@ -4,6 +4,10 @@
- # What library to link
- ldflags()
- {
-+	if [ "`uname -o`" == "Cygwin" ]; then
-+		echo '-lintl -lncurses'
-+		exit
-+	fi
- 	$cc -print-file-name=libncursesw.so | grep -q /
- 	if [ $? -eq 0 ]; then
- 		echo '-lncursesw'
-diff -puN scripts/mod/file2alias.c~allow-kernel-to-build-on-cygwin scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~allow-kernel-to-build-on-cygwin
-+++ a/scripts/mod/file2alias.c
-@@ -29,7 +29,11 @@ typedef Elf64_Addr	kernel_ulong_t;
- 
- #include <ctype.h>
- 
-+#if defined(__CYGWIN__)
-+typedef __uint32_t	__u32;
++unsigned int inline jiffies_to_usecs(const unsigned long j)
++{
++#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
++	return (USEC_PER_SEC / HZ) * j;
++#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
++	return (j + (HZ / USEC_PER_SEC) - 1)/(HZ / USEC_PER_SEC);
 +#else
- typedef uint32_t	__u32;
++	return (j * USEC_PER_SEC) / HZ;
 +#endif
- typedef uint16_t	__u16;
- typedef unsigned char	__u8;
++}
++EXPORT_SYMBOL(jiffies_to_usecs);
++
+ /**
+  * timespec_trunc - Truncate timespec to a granularity
+  * @t: Timespec
+@@ -471,36 +501,6 @@ struct timeval ns_to_timeval(const s64 n
+ }
  
-diff -puN scripts/mod/mk_elfconfig.c~allow-kernel-to-build-on-cygwin scripts/mod/mk_elfconfig.c
---- a/scripts/mod/mk_elfconfig.c~allow-kernel-to-build-on-cygwin
-+++ a/scripts/mod/mk_elfconfig.c
-@@ -1,7 +1,11 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-+#ifdef __CYGWIN__
-+#include <libelf.h>
-+#else
- #include <elf.h>
-+#endif
- 
- int
- main(int argc, char **argv)
-diff -puN scripts/mod/modpost.h~allow-kernel-to-build-on-cygwin scripts/mod/modpost.h
---- a/scripts/mod/modpost.h~allow-kernel-to-build-on-cygwin
-+++ a/scripts/mod/modpost.h
-@@ -7,7 +7,11 @@
- #include <sys/mman.h>
- #include <fcntl.h>
- #include <unistd.h>
-+#ifdef __CYGWIN__
-+#include <libelf.h>
-+#else
- #include <elf.h>
-+#endif
- 
- #include "elfconfig.h"
- 
-diff -puN scripts/mod/sumversion.c~allow-kernel-to-build-on-cygwin scripts/mod/sumversion.c
---- a/scripts/mod/sumversion.c~allow-kernel-to-build-on-cygwin
-+++ a/scripts/mod/sumversion.c
-@@ -1,7 +1,11 @@
-+#if defined(__sun__)
- #include <netinet/in.h>
--#ifdef __sun__
- #include <inttypes.h>
-+#elif defined(__CYGWIN__)
-+#include <asm/byteorder.h>	/* For ntohl/htonl */
-+#include <limits.h>
- #else
-+#include <netinet/in.h>
- #include <stdint.h>
- #endif
- #include <ctype.h>
+ /*
+- * Convert jiffies to milliseconds and back.
+- *
+- * Avoid unnecessary multiplications/divisions in the
+- * two most common HZ cases:
+- */
+-unsigned int jiffies_to_msecs(const unsigned long j)
+-{
+-#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
+-	return (MSEC_PER_SEC / HZ) * j;
+-#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
+-	return (j + (HZ / MSEC_PER_SEC) - 1)/(HZ / MSEC_PER_SEC);
+-#else
+-	return (j * MSEC_PER_SEC) / HZ;
+-#endif
+-}
+-EXPORT_SYMBOL(jiffies_to_msecs);
+-
+-unsigned int jiffies_to_usecs(const unsigned long j)
+-{
+-#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
+-	return (USEC_PER_SEC / HZ) * j;
+-#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
+-	return (j + (HZ / USEC_PER_SEC) - 1)/(HZ / USEC_PER_SEC);
+-#else
+-	return (j * USEC_PER_SEC) / HZ;
+-#endif
+-}
+-EXPORT_SYMBOL(jiffies_to_usecs);
+-
+-/*
+  * When we convert to jiffies then we interpret incoming values
+  * the following way:
+  *
 _
 
-Patches currently in -mm which might be from dsaxena@plexity.net are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-allow-kernel-to-build-on-cygwin.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
+optimize-timespec_trunc.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+speedup-divides-by-cpu_power-in-scheduler-up-fix.patch
