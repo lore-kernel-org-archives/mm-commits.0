@@ -1,103 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - dynticks-dont-unlock-spinlock-twice.patch removed from -mm tree
-Date: Sat, 03 Mar 2007 03:58:23 -0800
-Message-ID: <200703031158.l23BwN7j004846@shell0.pdx.osdl.net>
+Subject: - kvm-t60-resume-fix.patch removed from -mm tree
+Date: Sat, 03 Mar 2007 03:58:46 -0800
+Message-ID: <200703031158.l23Bwlm5004849@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34826 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34845 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752133AbXCCL6o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 3 Mar 2007 06:58:44 -0500
+	id S1752141AbXCCL6y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 3 Mar 2007 06:58:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@debian.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mingo@elte.hu, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dynticks: don't unlock spinlock twice
+     KVM: T60 resume fix
 has been removed from the -mm tree.  Its filename was
-     dynticks-dont-unlock-spinlock-twice.patch
+     kvm-t60-resume-fix.patch
 
 This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: dynticks: don't unlock spinlock twice
-From: Andres Salomon <dilinger@debian.org>
+Subject: KVM: T60 resume fix
+From: Ingo Molnar <mingo@elte.hu>
 
-During boot with dynticks enabled, we would sometimes get:
+My T60 laptop does not resume correctly due to KVM attempting to send an
+IPI to a CPU that might be down (or not up yet).  (Doing so also triggers
+the send_IPI_mask_bitmask() warning in arch/i386/kernel/smp.c, line 732.)
 
-[   35.271900] Switched to high resolution mode on CPU 0
-[   35.304468] BUG: spinlock already unlocked on CPU#0, swapper/1
-[   35.338099]  lock: c06428a0, .magic: dead4ead, .owner: <none>/-1,
-.owner_cpu:
- -1
-[   35.373597]  [<c04d7cf0>] _raw_spin_unlock+0x28/0x67
-[   35.406647]  [<c05ba279>] _spin_unlock+0x5/0x23
-[   35.439369]  [<c04255f7>] tick_sched_timer+0x4e/0xa7
-[   35.472388]  [<c04255a9>] tick_sched_timer+0x0/0xa7
-[   35.504833]  [<c0422528>] hrtimer_run_queues+0x199/0x1ec
-[   35.537617]  [<c0416b72>] run_timer_softirq+0x12/0x166
-[   35.570019]  [<c04144d9>] __do_softirq+0x40/0x85
+with this fix applied my laptop does not hang during resume.
 
-[   35.601542]  [<c0405494>] do_softirq+0x53/0xa9
-...
+[ KVM will have to disable/enable virtualization on the CPU itself that
+  goes down / comes up, not via an IPI sent from the requesting CPU. ]
 
-This appears to be caused by run_hrtimer_queue() (called by
-hrtimer_run_queues) calling spin_unlock_irq(&cpu_base->lock) before calling
-timer->function(timer).  The callback function (tick_sched_timer) expects
-cpu_base->lock to be held when it is called, and attempts to unlock it. 
-Since it doesn't seem like anything within tick_sched_timer really needs to
-hold the lock (afaict), the attached patch simply removes the lock handling
-from tick_sched_timer.  Things called by tick_sched_timer may grab the
-base->lock, but that's fine (and their responsibility).  Let me know if
-there's some reason why the lock should be held, and I can rework this.
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-sched.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/kvm/kvm_main.c |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN kernel/time/tick-sched.c~dynticks-dont-unlock-spinlock-twice kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~dynticks-dont-unlock-spinlock-twice
-+++ a/kernel/time/tick-sched.c
-@@ -422,13 +422,12 @@ static inline void tick_nohz_switch_to_n
- #ifdef CONFIG_HIGH_RES_TIMERS
- /*
-  * We rearm the timer until we get disabled by the idle code
-- * Called with interrupts disabled and timer->base->cpu_base->lock held.
-+ * Called with interrupts disabled and timer->base->cpu_base->lock *not* held.
-  */
- static enum hrtimer_restart tick_sched_timer(struct hrtimer *timer)
- {
- 	struct tick_sched *ts =
- 		container_of(timer, struct tick_sched, sched_timer);
--	struct hrtimer_cpu_base *base = timer->base->cpu_base;
- 	struct pt_regs *regs = get_irq_regs();
- 	ktime_t now = ktime_get();
- 
-@@ -454,13 +453,12 @@ static enum hrtimer_restart tick_sched_t
- 		}
- 		/*
- 		 * update_process_times() might take tasklist_lock, hence
--		 * drop the base lock. sched-tick hrtimers are per-CPU and
--		 * never accessible by userspace APIs, so this is safe to do.
-+		 * we don't attempt to grab the base lock here.
-+		 * sched-tick hrtimers are per-CPU and never accessible by
-+		 * userspace APIs, so this is safe to do.
- 		 */
--		spin_unlock(&base->lock);
- 		update_process_times(user_mode(regs));
- 		profile_tick(CPU_PROFILING);
--		spin_lock(&base->lock);
+diff -puN drivers/kvm/kvm_main.c~kvm-t60-resume-fix drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~kvm-t60-resume-fix
++++ a/drivers/kvm/kvm_main.c
+@@ -2083,12 +2083,6 @@ static int kvm_cpu_hotplug(struct notifi
+ 	case CPU_DEAD:
+ 	case CPU_UP_CANCELED:
+ 		decache_vcpus_on_cpu(cpu);
+-		smp_call_function_single(cpu, kvm_arch_ops->hardware_disable,
+-					 NULL, 0, 1);
+-		break;
+-	case CPU_UP_PREPARE:
+-		smp_call_function_single(cpu, kvm_arch_ops->hardware_enable,
+-					 NULL, 0, 1);
+ 		break;
  	}
- 
- 	/* Do not restart, when we are in the idle loop */
+ 	return NOTIFY_OK;
 _
 
-Patches currently in -mm which might be from dilinger@debian.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-dynticks-dont-unlock-spinlock-twice.patch
+origin.patch
+sched-remove-smt-nice.patch
+fix-nmi-appears-to-be-stuck.patch
+kvm-t60-resume-fix.patch
+clocksource-init-adjustments-fix-bug-7426.patch
+timer-hrtimer-take-per-cpu-locks-in-sane-order.patch
+git-kvm.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+log-reason-why-tsc-was-marked-unstable.patch
+fully-honor-vdso_enabled.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+optimize-timespec_trunc.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine.patch
+fsaio-rename-__lock_page-to-lock_page_blocking.patch
+fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
+fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
+fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+fsaio-filesystem-aio-read.patch
+fsaio-aio-o_sync-filesystem-write.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+speedup-divides-by-cpu_power-in-scheduler-up-fix.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+sched-cleanup-remove-task_t-convert-to-struct-task_struct-prefetch.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+kmap_atomic-debugging.patch
