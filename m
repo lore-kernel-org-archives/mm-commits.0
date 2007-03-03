@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-acpi-documentation-in-kernel-parameterstxt.patch added to -mm tree
-Date: Fri, 02 Mar 2007 17:02:31 -0800
-Message-ID: <200703030102.l2312V7R024461@shell0.pdx.osdl.net>
+Subject: + network-add-the-missing-phy_device-speed-information-to-phy_mii_ioctl.patch added to -mm tree
+Date: Fri, 02 Mar 2007 17:05:21 -0800
+Message-ID: <200703030105.l2315LtM024518@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50415 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50472 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992839AbXCCBCf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 20:02:35 -0500
+	id S2992841AbXCCBFe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 20:05:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bwalle@suse.de
+Cc: shanlu@cs.uiuc.edu, jeff@garzik.org
 
 
 The patch titled
-     Fix ACPI documentation in kernel-parameters.txt
+     network: add the missing phy_device speed information to phy_mii_ioctl
 has been added to the -mm tree.  Its filename is
-     fix-acpi-documentation-in-kernel-parameterstxt.patch
+     network-add-the-missing-phy_device-speed-information-to-phy_mii_ioctl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix ACPI documentation in kernel-parameters.txt
-From: Bernhard Walle <bwalle@suse.de>
+Subject: network: add the missing phy_device speed information to phy_mii_ioctl
+From: "Shan Lu" <shanlu@cs.uiuc.edu>
 
-Add hint that acpi=off doesn't work on IA64.
+Function `phy_mii_ioctl' returns physical device's information based on
+user requests.  When requested to return the basic mode control register
+information (BMCR), the original implementation only returns the physical
+device's duplex information and forgets to return speed information, which
+should not be because BMCR register is used to hold both duplex and speed
+information.
 
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
+The patch checks the BMCR value against speed-related flags and fills the
+return structure's speed field accordingly.
+
+Signed-off-by: Shan <shanlu@cs.uiuc.edu>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/phy/phy.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~fix-acpi-documentation-in-kernel-parameterstxt Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~fix-acpi-documentation-in-kernel-parameterstxt
-+++ a/Documentation/kernel-parameters.txt
-@@ -126,7 +126,8 @@ and is between 256 and 4096 characters. 
- 			See header of drivers/scsi/53c7xx.c.
- 			See also Documentation/scsi/ncr53c7xx.txt.
- 
--	acpi=		[HW,ACPI] Advanced Configuration and Power Interface
-+	acpi=		[HW,ACPI,X86-64,i386]
-+			Advanced Configuration and Power Interface
- 			Format: { force | off | ht | strict | noirq }
- 			force -- enable ACPI if default was off
- 			off -- disable ACPI if default was on
+diff -puN drivers/net/phy/phy.c~network-add-the-missing-phy_device-speed-information-to-phy_mii_ioctl drivers/net/phy/phy.c
+--- a/drivers/net/phy/phy.c~network-add-the-missing-phy_device-speed-information-to-phy_mii_ioctl
++++ a/drivers/net/phy/phy.c
+@@ -382,6 +382,12 @@ int phy_mii_ioctl(struct phy_device *phy
+ 					phydev->duplex = DUPLEX_FULL;
+ 				else
+ 					phydev->duplex = DUPLEX_HALF;
++				if ((!phydev->autoneg) &&
++						(val & BMCR_SPEED1000))
++					phydev->speed = SPEED_1000;
++				else if ((!phydev->autoneg) &&
++						(val & BMCR_SPEED100))
++					phydev->speed = SPEED_100;
+ 				break;
+ 			case MII_ADVERTISE:
+ 				phydev->advertising = val;
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from shanlu@cs.uiuc.edu are
 
-fix-acpi-documentation-in-kernel-parameterstxt.patch
-git-r8169.patch
+cyclades-return-closing_wait.patch
+network-add-the-missing-phy_device-speed-information-to-phy_mii_ioctl.patch
