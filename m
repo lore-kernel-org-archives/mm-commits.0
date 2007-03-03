@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-map-fake-nodes-to-real-nodes-fix.patch added to -mm tree
-Date: Fri, 02 Mar 2007 17:02:04 -0800
-Message-ID: <200703030102.l23124vj024453@shell0.pdx.osdl.net>
+Subject: + fix-acpi-documentation-in-kernel-parameterstxt.patch added to -mm tree
+Date: Fri, 02 Mar 2007 17:02:31 -0800
+Message-ID: <200703030102.l2312V7R024461@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50409 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50415 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992837AbXCCBCJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 20:02:09 -0500
+	id S2992839AbXCCBCf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 20:02:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com
+Cc: bwalle@suse.de
 
 
 The patch titled
-     x86_64: fake numa cmdline flag fix
+     Fix ACPI documentation in kernel-parameters.txt
 has been added to the -mm tree.  Its filename is
-     x86_64-map-fake-nodes-to-real-nodes-fix.patch
+     fix-acpi-documentation-in-kernel-parameterstxt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,71 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: fake numa cmdline flag fix
-From: David Rientjes <rientjes@google.com>
+Subject: Fix ACPI documentation in kernel-parameters.txt
+From: Bernhard Walle <bwalle@suse.de>
 
-Make sure we only reference 'cmdline' on CONFIG_NUMA_EMU.
+Add hint that acpi=off doesn't work on IA64.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/numa.c |   16 +++++++++++-----
- 1 files changed, 11 insertions(+), 5 deletions(-)
+ Documentation/kernel-parameters.txt |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/mm/numa.c~x86_64-map-fake-nodes-to-real-nodes-fix arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-map-fake-nodes-to-real-nodes-fix
-+++ a/arch/x86_64/mm/numa.c
-@@ -519,22 +519,28 @@ void __init numa_initmem_init(unsigned l
- { 
- 	unsigned long start_addr = start_pfn << PAGE_SHIFT;
- 	unsigned long end_addr = end_pfn << PAGE_SHIFT;
-+	int numa_fake = 0;
- 	int i;
+diff -puN Documentation/kernel-parameters.txt~fix-acpi-documentation-in-kernel-parameterstxt Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~fix-acpi-documentation-in-kernel-parameterstxt
++++ a/Documentation/kernel-parameters.txt
+@@ -126,7 +126,8 @@ and is between 256 and 4096 characters. 
+ 			See header of drivers/scsi/53c7xx.c.
+ 			See also Documentation/scsi/ncr53c7xx.txt.
  
-+#ifdef CONFIG_NUMA_EMU
-+	/* Determine if we have a numa=fake command line */
-+	if (cmdline != 0)
-+		numa_fake = 1;
-+#endif
-+
- #ifdef CONFIG_ACPI_NUMA
--	if (!numa_off && !cmdline && !acpi_scan_nodes(start_addr, end_addr))
-+	if (!numa_off && !numa_fake && !acpi_scan_nodes(start_addr, end_addr))
-  		return;
- #endif
- 
- #ifdef CONFIG_K8_NUMA
--	if (!numa_off && !k8_scan_nodes(start_addr, end_addr, cmdline != 0))
--		if (cmdline == 0)
-+	if (!numa_off && !k8_scan_nodes(start_addr, end_addr, numa_fake))
-+		if (!numa_fake)
- 			return;
- #endif
- 
- #ifdef CONFIG_NUMA_EMU
--	if (cmdline)
--	{
-+	if (numa_fake) {
- 		numa_emu = !numa_emulation(start_pfn, end_pfn);
- 		if (numa_emu)
- 			return;
+-	acpi=		[HW,ACPI] Advanced Configuration and Power Interface
++	acpi=		[HW,ACPI,X86-64,i386]
++			Advanced Configuration and Power Interface
+ 			Format: { force | off | ht | strict | noirq }
+ 			force -- enable ACPI if default was off
+ 			off -- disable ACPI if default was on
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-x86_64-remove-unusued-flags-variable.patch
-x86_64-configurable-fake-numa-node-sizes.patch
-x86_64-split-remaining-fake-nodes-equally.patch
-x86_64-fixed-size-remaining-fake-nodes.patch
-x86_64-map-fake-nodes-to-real-nodes.patch
-x86_64-map-fake-nodes-to-real-nodes-fix.patch
-x86_64-disable-alien-cache-for-fake-numa.patch
-x86_64-export-physnode-mapping-to-userspace.patch
-x86_64-fake-numa-for-cpusets-document.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-docs.patch
+fix-acpi-documentation-in-kernel-parameterstxt.patch
+git-r8169.patch
