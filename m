@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dynticks-dont-unlock-spinlock-twice.patch added to -mm tree
-Date: Fri, 02 Mar 2007 19:05:59 -0800
-Message-ID: <200703030305.l2335xnI026717@shell0.pdx.osdl.net>
+Subject: - dynticks-dont-unlock-spinlock-twice.patch removed from -mm tree
+Date: Sat, 03 Mar 2007 03:58:23 -0800
+Message-ID: <200703031158.l23BwN7j004846@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52171 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34826 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992954AbXCCDGQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 22:06:16 -0500
+	id S1752133AbXCCL6o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 3 Mar 2007 06:58:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dilinger@debian.org, mingo@elte.hu, tglx@linutronix.de
+To: dilinger@debian.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      dynticks: don't unlock spinlock twice
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      dynticks-dont-unlock-spinlock-twice.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
 Subject: dynticks: don't unlock spinlock twice
