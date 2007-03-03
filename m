@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tgafb-accelerated-code.patch added to -mm tree
-Date: Fri, 02 Mar 2007 17:07:41 -0800
-Message-ID: <200703030107.l2317f3j024558@shell0.pdx.osdl.net>
+Subject: + free-swap-space-of-reactivated-pages.patch added to -mm tree
+Date: Fri, 02 Mar 2007 17:17:18 -0800
+Message-ID: <200703030117.l231HIR8024740@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50652 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50718 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992847AbXCCBLK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 20:11:10 -0500
+	id S2992863AbXCCBRd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 20:17:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jsimmons@infradead.org, adaplas@pol.net, macro@linux-mips.org
+Cc: riel@redhat.com, hugh@veritas.com
 
 
 The patch titled
-     tgafb accelerated code
+     free swap space of (re)activated pages
 has been added to the -mm tree.  Its filename is
-     tgafb-accelerated-code.patch
+     free-swap-space-of-reactivated-pages.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,261 +25,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tgafb accelerated code
-From: James Simmons <jsimmons@infradead.org>
+Subject: free swap space of (re)activated pages
+From: Rik van Riel <riel@redhat.com>
 
-Add accelerated panning and accelerated color and mono image drawing. 
-Please apply.
+Free the swap space of already resident pages when swap space starts
+getting tight, instead of only freeing up the swap space taken up by newly
+swapped in pages.
 
-Signed-off-by: James Simmons <jsimmons@infradead.org>
-Acked-by: Maciej W. Rozycki <macro@linux-mips.org>  (tested, too!)
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+This should result in the swap space of pages that remain resident in
+memory being freed, allowing kswapd more chances to actually swap a page
+out (instead of rotating it back onto the active list).
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tgafb.c |  157 ++++++++++++++++++++++++++++------------
- 1 files changed, 113 insertions(+), 44 deletions(-)
+ include/linux/pagevec.h |    1 +
+ mm/swap.c               |   18 ++++++++++++++++++
+ mm/vmscan.c             |    7 +++++++
+ 3 files changed, 26 insertions(+)
 
-diff -puN drivers/video/tgafb.c~tgafb-accelerated-code drivers/video/tgafb.c
---- a/drivers/video/tgafb.c~tgafb-accelerated-code
-+++ a/drivers/video/tgafb.c
-@@ -59,6 +59,7 @@ static void tgafb_init_fix(struct fb_inf
- static void tgafb_imageblit(struct fb_info *, const struct fb_image *);
- static void tgafb_fillrect(struct fb_info *, const struct fb_fillrect *);
- static void tgafb_copyarea(struct fb_info *, const struct fb_copyarea *);
-+static int tgafb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info);
- 
- static int __devinit tgafb_register(struct device *dev);
- static void __devexit tgafb_unregister(struct device *dev);
-@@ -81,6 +82,7 @@ static struct fb_ops tgafb_ops = {
- 	.fb_set_par		= tgafb_set_par,
- 	.fb_setcolreg		= tgafb_setcolreg,
- 	.fb_blank		= tgafb_blank,
-+	.fb_pan_display		= tgafb_pan_display,
- 	.fb_fillrect		= tgafb_fillrect,
- 	.fb_copyarea		= tgafb_copyarea,
- 	.fb_imageblit		= tgafb_imageblit,
-@@ -319,21 +321,7 @@ tgafb_set_par(struct fb_info *info)
- 		BT485_WRITE(par, 0x00, BT485_ADDR_PAL_WRITE);
- 		TGA_WRITE_REG(par, BT485_DATA_PAL, TGA_RAMDAC_SETUP_REG);
- 
--#ifdef CONFIG_HW_CONSOLE
--		for (i = 0; i < 16; i++) {
--			int j = color_table[i];
--
--			TGA_WRITE_REG(par, default_red[j]|(BT485_DATA_PAL<<8),
--				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, default_grn[j]|(BT485_DATA_PAL<<8),
--				      TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, default_blu[j]|(BT485_DATA_PAL<<8),
--				      TGA_RAMDAC_REG);
--		}
--		for (i = 0; i < 240 * 3; i += 4) {
--#else
- 		for (i = 0; i < 256 * 3; i += 4) {
--#endif
- 			TGA_WRITE_REG(par, 0x55 | (BT485_DATA_PAL << 8),
- 				      TGA_RAMDAC_REG);
- 			TGA_WRITE_REG(par, 0x00 | (BT485_DATA_PAL << 8),
-@@ -358,18 +346,7 @@ tgafb_set_par(struct fb_info *info)
- 		BT459_LOAD_ADDR(par, 0x0000);
- 		TGA_WRITE_REG(par, BT459_PALETTE << 2, TGA_RAMDAC_SETUP_REG);
- 
--#ifdef CONFIG_HW_CONSOLE
--		for (i = 0; i < 16; i++) {
--			int j = color_table[i];
--
--			TGA_WRITE_REG(par, default_red[j], TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, default_grn[j], TGA_RAMDAC_REG);
--			TGA_WRITE_REG(par, default_blu[j], TGA_RAMDAC_REG);
--		}
--		for (i = 0; i < 240 * 3; i += 4) {
--#else
- 		for (i = 0; i < 256 * 3; i += 4) {
--#endif
- 			TGA_WRITE_REG(par, 0x55, TGA_RAMDAC_REG);
- 			TGA_WRITE_REG(par, 0x00, TGA_RAMDAC_REG);
- 			TGA_WRITE_REG(par, 0x00, TGA_RAMDAC_REG);
-@@ -646,16 +623,8 @@ tgafb_blank(int blank, struct fb_info *i
-  *  Acceleration.
-  */
- 
--/**
-- *      tgafb_imageblit - REQUIRED function. Can use generic routines if
-- *                        non acclerated hardware and packed pixel based.
-- *                        Copies a image from system memory to the screen. 
-- *
-- *      @info: frame buffer structure that represents a single frame buffer
-- *      @image: structure defining the image.
-- */
- static void
--tgafb_imageblit(struct fb_info *info, const struct fb_image *image)
-+tgafb_mono_imageblit(struct fb_info *info, const struct fb_image *image)
- {
- 	struct tga_par *par = (struct tga_par *) info->par;
- 	u32 fgcolor, bgcolor, dx, dy, width, height, vxres, vyres, pixelmask;
-@@ -665,6 +634,17 @@ tgafb_imageblit(struct fb_info *info, co
- 	void __iomem *regs_base;
- 	void __iomem *fb_base;
- 
-+	is8bpp = info->var.bits_per_pixel == 8;
-+
-+	/* For copies that aren't pixel expansion, there's little we
-+	   can do better than the generic code.  */
-+	/* ??? There is a DMA write mode; I wonder if that could be
-+	   made to pull the data from the image buffer...  */
-+	if (image->depth > 1) {
-+		cfb_imageblit(info, image);
-+		return;
-+	}
-+
- 	dx = image->dx;
- 	dy = image->dy;
- 	width = image->width;
-@@ -682,18 +662,8 @@ tgafb_imageblit(struct fb_info *info, co
- 	if (dy + height > vyres)
- 		height = vyres - dy;
- 
--	/* For copies that aren't pixel expansion, there's little we
--	   can do better than the generic code.  */
--	/* ??? There is a DMA write mode; I wonder if that could be
--	   made to pull the data from the image buffer...  */
--	if (image->depth > 1) {
--		cfb_imageblit(info, image);
--		return;
--	}
--
- 	regs_base = par->tga_regs_base;
- 	fb_base = par->tga_fb_base;
--	is8bpp = info->var.bits_per_pixel == 8;
- 
- 	/* Expand the color values to fill 32-bits.  */
- 	/* ??? Would be nice to notice colour changes elsewhere, so
-@@ -871,6 +841,85 @@ tgafb_imageblit(struct fb_info *info, co
- 		     regs_base + TGA_MODE_REG);
+diff -puN include/linux/pagevec.h~free-swap-space-of-reactivated-pages include/linux/pagevec.h
+--- a/include/linux/pagevec.h~free-swap-space-of-reactivated-pages
++++ a/include/linux/pagevec.h
+@@ -27,6 +27,7 @@ void __pagevec_lru_add(struct pagevec *p
+ void __pagevec_lru_add_active(struct pagevec *pvec);
+ void __pagevec_lru_add_mlock(struct pagevec *pvec);
+ void pagevec_strip(struct pagevec *pvec);
++void pagevec_swap_free(struct pagevec *pvec);
+ unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+ 		pgoff_t start, unsigned nr_pages);
+ unsigned pagevec_lookup_tag(struct pagevec *pvec,
+diff -puN mm/swap.c~free-swap-space-of-reactivated-pages mm/swap.c
+--- a/mm/swap.c~free-swap-space-of-reactivated-pages
++++ a/mm/swap.c
+@@ -467,6 +467,24 @@ void pagevec_strip(struct pagevec *pvec)
+ 	}
  }
  
-+static void
-+tgafb_clut_imageblit(struct fb_info *info, const struct fb_image *image)
-+{
-+	struct tga_par *par = (struct tga_par *) info->par;
-+	u32 color, dx, dy, width, height, vxres, vyres;
-+	u32 *palette = ((u32 *)info->pseudo_palette);
-+	unsigned long pos, line_length, i, j;
-+	const unsigned char *data;
-+	void *regs_base, *fb_base;
-+
-+	dx = image->dx;
-+	dy = image->dy;
-+	width = image->width;
-+	height = image->height;
-+	vxres = info->var.xres_virtual;
-+	vyres = info->var.yres_virtual;
-+	line_length = info->fix.line_length;
-+
-+	/* Crop the image to the screen.  */
-+	if (dx > vxres || dy > vyres)
-+		return;
-+	if (dx + width > vxres)
-+		width = vxres - dx;
-+	if (dy + height > vyres)
-+		height = vyres - dy;
-+
-+	regs_base = par->tga_regs_base;
-+	fb_base = par->tga_fb_base;
-+
-+	pos = dy * line_length + (dx * 4);
-+	data = image->data;
-+
-+	/* Now copy the image, color_expanding via the palette. */
-+	for (i = 0; i < height; i++) {
-+		for (j = 0; j < width; j++) {
-+			color = palette[*data++];
-+			__raw_writel(color, fb_base + pos + j*4);
-+		}
-+		pos += line_length;
-+	}
-+}
-+
-+/**
-+ *      tgafb_imageblit - REQUIRED function. Can use generic routines if
-+ *                        non acclerated hardware and packed pixel based.
-+ *                        Copies a image from system memory to the screen.
-+ *
-+ *      @info: frame buffer structure that represents a single frame buffer
-+ *      @image: structure defining the image.
++/*
++ * Try to free swap space from the pages in a pagevec
 + */
-+static void
-+tgafb_imageblit(struct fb_info *info, const struct fb_image *image)
++void pagevec_swap_free(struct pagevec *pvec)
 +{
-+	unsigned int is8bpp = info->var.bits_per_pixel == 8;
++	int i;
 +
-+	/* If a mono image, regardless of FB depth, go do it. */
-+	if (image->depth == 1) {
-+		tgafb_mono_imageblit(info, image);
-+		return;
++	for (i = 0; i < pagevec_count(pvec); i++) {
++		struct page *page = pvec->pages[i];
++
++		if (PageSwapCache(page) && !TestSetPageLocked(page)) {
++			if (PageSwapCache(page))
++				remove_exclusive_swap_page(page);
++			unlock_page(page);
++		}
 +	}
-+
-+	/* For copies that aren't pixel expansion, there's little we
-+	   can do better than the generic code.  */
-+	/* ??? There is a DMA write mode; I wonder if that could be
-+	   made to pull the data from the image buffer...  */
-+	if (image->depth == info->var.bits_per_pixel) {
-+		cfb_imageblit(info, image);
-+		return;
-+	}
-+
-+	/* If 24-plane FB and the image is 8-plane with CLUT, we can do it. */
-+	if (!is8bpp && image->depth == 8) {
-+		tgafb_clut_imageblit(info, image);
-+		return;
-+	}
-+
-+	/* Silently return... */
 +}
 +
  /**
-  *      tgafb_fillrect - REQUIRED function. Can use generic routines if 
-  *                       non acclerated hardware and packed pixel based.
-@@ -1480,6 +1529,26 @@ tgafb_init_fix(struct fb_info *info)
- 	info->fix.ywrapstep = 0;
+  * pagevec_lookup - gang pagecache lookup
+  * @pvec:	Where the resulting pages are placed
+diff -puN mm/vmscan.c~free-swap-space-of-reactivated-pages mm/vmscan.c
+--- a/mm/vmscan.c~free-swap-space-of-reactivated-pages
++++ a/mm/vmscan.c
+@@ -598,6 +598,9 @@ mlocked:
+ 		continue;
  
- 	info->fix.accel = FB_ACCEL_DEC_TGA;
-+
-+	/*
-+	 * These are needed by fb_set_logo_truepalette(), so we
-+	 * set them here for 24-plane cards.
-+	 */
-+	if (tga_type != TGA_TYPE_8PLANE) {
-+		info->var.red.length = 8;
-+		info->var.green.length = 8;
-+		info->var.blue.length = 8;
-+		info->var.red.offset = 16;
-+		info->var.green.offset = 8;
-+		info->var.blue.offset = 0;
-+	}
-+}
-+
-+static int tgafb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
-+{
-+	/* We just use this to catch switches out of graphics mode. */
-+	tgafb_set_par(info); /* A bit of overkill for BASE_ADDR reset. */
-+	return 0;
+ activate_locked:
++		/* Not a candidate for swapping, so reclaim swap space. */
++		if (PageSwapCache(page) && vm_swap_full())
++			remove_exclusive_swap_page(page);
+ 		SetPageActive(page);
+ 		pgactivate++;
+ keep_locked:
+@@ -900,6 +903,8 @@ force_reclaim_mapped:
+ 			__mod_zone_page_state(zone, NR_ACTIVE, pgmoved);
+ 			pgmoved = 0;
+ 			spin_unlock_irq(&zone->lru_lock);
++			if (vm_swap_full())
++				pagevec_swap_free(&pvec);
+ 			__pagevec_release(&pvec);
+ 			spin_lock_irq(&zone->lru_lock);
+ 		}
+@@ -910,6 +915,8 @@ force_reclaim_mapped:
+ 	__count_vm_events(PGDEACTIVATE, pgdeactivate);
+ 	spin_unlock_irq(&zone->lru_lock);
+ 
++	if (vm_swap_full())
++		pagevec_swap_free(&pvec);
+ 	pagevec_release(&pvec);
  }
  
- static int __devinit
 _
 
-Patches currently in -mm which might be from jsimmons@infradead.org are
+Patches currently in -mm which might be from riel@redhat.com are
 
-ps3fb-thread-updates.patch
-ps3av-thread-updates.patch
-ps3fb-kill-superfluous-zero-initializations.patch
-ps3av-misc-updates.patch
-aty128fb-fix-blanking.patch
-change-rivafb_remove-to-__devexit.patch
-atyfb-replace-busy-loop-with-mdelay.patch
-fbdev-display-class.patch
-fbdev-display-class-update.patch
-tgafb-turbochannel-support.patch
-tgafb-accelerated-code.patch
+free-swap-space-of-reactivated-pages.patch
