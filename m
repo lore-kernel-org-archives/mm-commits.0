@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-only-free-swap-space-of-reactivated-pages-debug.patch added to -mm tree
-Date: Fri, 02 Mar 2007 17:17:55 -0800
-Message-ID: <200703030117.l231HtEU024755@shell0.pdx.osdl.net>
+Subject: + mtd-esb2-check-for-closed-rom-window.patch added to -mm tree
+Date: Fri, 02 Mar 2007 17:19:07 -0800
+Message-ID: <200703030119.l231J7gv024792@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50722 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50748 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992864AbXCCBSH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 20:18:07 -0500
+	id S2992857AbXCCBTS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 20:19:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hugh@veritas.com, riel@redhat.com
+Cc: gorcunov@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     mm-only free-swap-space-of-reactivated-pages debug
+     MTD: ESB2 check for closed ROM window
 has been added to the -mm tree.  Its filename is
-     mm-only-free-swap-space-of-reactivated-pages-debug.patch
+     mtd-esb2-check-for-closed-rom-window.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,87 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm-only free-swap-space-of-reactivated-pages debug
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: MTD: ESB2 check for closed ROM window
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Add checking for closed ROM window on Intel ESB2 Southbridge.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/mtd/maps/esb2rom.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/swap.c~mm-only-free-swap-space-of-reactivated-pages-debug mm/swap.c
---- a/mm/swap.c~mm-only-free-swap-space-of-reactivated-pages-debug
-+++ a/mm/swap.c
-@@ -481,6 +481,8 @@ void pagevec_swap_free(struct pagevec *p
- 			if (PageSwapCache(page))
- 				remove_exclusive_swap_page(page);
- 			unlock_page(page);
-+			if (printk_ratelimit())
-+				printk("kswapd freed a swap space\n");
- 		}
- 	}
+diff -puN drivers/mtd/maps/esb2rom.c~mtd-esb2-check-for-closed-rom-window drivers/mtd/maps/esb2rom.c
+--- a/drivers/mtd/maps/esb2rom.c~mtd-esb2-check-for-closed-rom-window
++++ a/drivers/mtd/maps/esb2rom.c
+@@ -30,7 +30,7 @@
+ 
+ #define ROM_PROBE_STEP_SIZE (64*1024) /* 64KiB */
+ 
+-#define BIOS_CNTL	0xDC
++#define BIOS_CNTL		0xDC
+ #define BIOS_LOCK_ENABLE	0x02
+ #define BIOS_WRITE_ENABLE	0x01
+ 
+@@ -145,7 +145,7 @@ static void esb2rom_cleanup(struct esb2r
  }
+ 
+ static int __devinit esb2rom_init_one(struct pci_dev *pdev,
+-				const struct pci_device_id *ent)
++				      const struct pci_device_id *ent)
+ {
+ 	static char *rom_probe_types[] = { "cfi_probe", "jedec_probe", NULL };
+ 	struct esb2rom_window *window = &esb2rom_window;
+@@ -185,7 +185,7 @@ static int __devinit esb2rom_init_one(st
+ 	/* Find a region continuous to the end of the ROM window  */
+ 	window->phys = 0;
+ 	pci_read_config_word(pdev, FWH_DEC_EN1, &word);
+-	printk(KERN_DEBUG "pci_read_config_byte : %x\n", word);
++	printk(KERN_DEBUG "pci_read_config_word : %x\n", word);
+ 
+ 	if ((word & FWH_8MiB) == FWH_8MiB)
+ 		window->phys = 0xff400000;
+@@ -212,6 +212,11 @@ static int __devinit esb2rom_init_one(st
+ 	else if ((word & FWH_0_5MiB) == FWH_0_5MiB)
+ 		window->phys = 0xfff80000;
+ 
++	if (window->phys == 0) {
++		printk(KERN_ERR MOD_NAME ": Rom window is closed\n");
++		goto out;
++	}
++
+ 	/* reserved  0x0020 and 0x0010 */
+ 	window->phys -= 0x400000UL;
+ 	window->size = (0xffffffffUL - window->phys) + 1UL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-origin.patch
-cyclades-return-closing_wait.patch
-md-fix-for-raid6-reshape-fix.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-sony-laptop-fix-uninitialised-variable.patch
-git-alsa-oops-fix.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-fixup.patch
-pvrusb-warning-fix.patch
-git-input.patch
-setstream-param-for-psmouse-tweak.patch
-git-kvm.patch
-git-kvm-fixup.patch
-git-leds-fixup.patch
-git-leds-make-it-compile.patch
-ide-ide-fix-pmac-breakage-fix.patch
-git-md-accel-fixup.patch
-nommu-present-backing-device-capabilities-for-mtd-fix.patch
-git-ubi.patch
-git-netdev-all.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-dmfe-add-support-for-suspend-resume-fix.patch
-sis900-warning-fixes.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
-git-block-fixup.patch
-git-block-another-md-fix.patch
-git-unionfs.patch
-usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-after-before-x86_64-mm-mmconfig-share.patch
-linux-sysdevh-needs-to-include-linux-moduleh-up-fix.patch
-linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial-tweak.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-driver_bfin_serial_core-update.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-2.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler-up-fix.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
-utrace-prep.patch
-utrace-prep-2.patch
-revert-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
-linux-kernel-markers-kconfig-menus-fix-4.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+ds1374-check-for-workqueue-creation.patch
+mtd-esb2-check-for-closed-rom-window.patch
+usb-elan-ftdi-check-for-workqueue-creation-v2.patch
