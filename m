@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + free-swap-space-of-reactivated-pages.patch added to -mm tree
-Date: Fri, 02 Mar 2007 17:17:18 -0800
-Message-ID: <200703030117.l231HIR8024740@shell0.pdx.osdl.net>
+Subject: + mm-only-free-swap-space-of-reactivated-pages-debug.patch added to -mm tree
+Date: Fri, 02 Mar 2007 17:17:55 -0800
+Message-ID: <200703030117.l231HtEU024755@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50718 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50722 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992863AbXCCBRd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 20:17:33 -0500
+	id S2992864AbXCCBSH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 20:18:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, hugh@veritas.com
+Cc: akpm@linux-foundation.org, hugh@veritas.com, riel@redhat.com
 
 
 The patch titled
-     free swap space of (re)activated pages
+     mm-only free-swap-space-of-reactivated-pages debug
 has been added to the -mm tree.  Its filename is
-     free-swap-space-of-reactivated-pages.patch
+     mm-only-free-swap-space-of-reactivated-pages-debug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,99 +25,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: free swap space of (re)activated pages
-From: Rik van Riel <riel@redhat.com>
+Subject: mm-only free-swap-space-of-reactivated-pages debug
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Free the swap space of already resident pages when swap space starts
-getting tight, instead of only freeing up the swap space taken up by newly
-swapped in pages.
-
-This should result in the swap space of pages that remain resident in
-memory being freed, allowing kswapd more chances to actually swap a page
-out (instead of rotating it back onto the active list).
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |    1 +
- mm/swap.c               |   18 ++++++++++++++++++
- mm/vmscan.c             |    7 +++++++
- 3 files changed, 26 insertions(+)
+ mm/swap.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN include/linux/pagevec.h~free-swap-space-of-reactivated-pages include/linux/pagevec.h
---- a/include/linux/pagevec.h~free-swap-space-of-reactivated-pages
-+++ a/include/linux/pagevec.h
-@@ -27,6 +27,7 @@ void __pagevec_lru_add(struct pagevec *p
- void __pagevec_lru_add_active(struct pagevec *pvec);
- void __pagevec_lru_add_mlock(struct pagevec *pvec);
- void pagevec_strip(struct pagevec *pvec);
-+void pagevec_swap_free(struct pagevec *pvec);
- unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
- 		pgoff_t start, unsigned nr_pages);
- unsigned pagevec_lookup_tag(struct pagevec *pvec,
-diff -puN mm/swap.c~free-swap-space-of-reactivated-pages mm/swap.c
---- a/mm/swap.c~free-swap-space-of-reactivated-pages
+diff -puN mm/swap.c~mm-only-free-swap-space-of-reactivated-pages-debug mm/swap.c
+--- a/mm/swap.c~mm-only-free-swap-space-of-reactivated-pages-debug
 +++ a/mm/swap.c
-@@ -467,6 +467,24 @@ void pagevec_strip(struct pagevec *pvec)
+@@ -481,6 +481,8 @@ void pagevec_swap_free(struct pagevec *p
+ 			if (PageSwapCache(page))
+ 				remove_exclusive_swap_page(page);
+ 			unlock_page(page);
++			if (printk_ratelimit())
++				printk("kswapd freed a swap space\n");
+ 		}
  	}
  }
- 
-+/*
-+ * Try to free swap space from the pages in a pagevec
-+ */
-+void pagevec_swap_free(struct pagevec *pvec)
-+{
-+	int i;
-+
-+	for (i = 0; i < pagevec_count(pvec); i++) {
-+		struct page *page = pvec->pages[i];
-+
-+		if (PageSwapCache(page) && !TestSetPageLocked(page)) {
-+			if (PageSwapCache(page))
-+				remove_exclusive_swap_page(page);
-+			unlock_page(page);
-+		}
-+	}
-+}
-+
- /**
-  * pagevec_lookup - gang pagecache lookup
-  * @pvec:	Where the resulting pages are placed
-diff -puN mm/vmscan.c~free-swap-space-of-reactivated-pages mm/vmscan.c
---- a/mm/vmscan.c~free-swap-space-of-reactivated-pages
-+++ a/mm/vmscan.c
-@@ -598,6 +598,9 @@ mlocked:
- 		continue;
- 
- activate_locked:
-+		/* Not a candidate for swapping, so reclaim swap space. */
-+		if (PageSwapCache(page) && vm_swap_full())
-+			remove_exclusive_swap_page(page);
- 		SetPageActive(page);
- 		pgactivate++;
- keep_locked:
-@@ -900,6 +903,8 @@ force_reclaim_mapped:
- 			__mod_zone_page_state(zone, NR_ACTIVE, pgmoved);
- 			pgmoved = 0;
- 			spin_unlock_irq(&zone->lru_lock);
-+			if (vm_swap_full())
-+				pagevec_swap_free(&pvec);
- 			__pagevec_release(&pvec);
- 			spin_lock_irq(&zone->lru_lock);
- 		}
-@@ -910,6 +915,8 @@ force_reclaim_mapped:
- 	__count_vm_events(PGDEACTIVATE, pgdeactivate);
- 	spin_unlock_irq(&zone->lru_lock);
- 
-+	if (vm_swap_full())
-+		pagevec_swap_free(&pvec);
- 	pagevec_release(&pvec);
- }
- 
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-free-swap-space-of-reactivated-pages.patch
+origin.patch
+cyclades-return-closing_wait.patch
+md-fix-for-raid6-reshape-fix.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-alsa-oops-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-fixup.patch
+pvrusb-warning-fix.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+git-kvm.patch
+git-kvm-fixup.patch
+git-leds-fixup.patch
+git-leds-make-it-compile.patch
+ide-ide-fix-pmac-breakage-fix.patch
+git-md-accel-fixup.patch
+nommu-present-backing-device-capabilities-for-mtd-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+git-block-fixup.patch
+git-block-another-md-fix.patch
+git-unionfs.patch
+usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+after-before-x86_64-mm-mmconfig-share.patch
+linux-sysdevh-needs-to-include-linux-moduleh-up-fix.patch
+linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial-up-fix.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial-tweak.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+driver_bfin_serial_core-update.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-2.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler-up-fix.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
+utrace-prep.patch
+utrace-prep-2.patch
+revert-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+local_t-mips-extension-shrink-duplicated-mips-32-64-bits-functions-from-localh-fix.patch
+linux-kernel-markers-kconfig-menus-fix-4.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
