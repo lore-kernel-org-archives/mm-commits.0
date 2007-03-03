@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + char-epcac-remove-unused-function.patch added to -mm tree
-Date: Fri, 02 Mar 2007 17:24:03 -0800
-Message-ID: <200703030124.l231O3hH024902@shell0.pdx.osdl.net>
+Subject: + timer-hrtimer-take-per-cpu-locks-in-sane-order.patch added to -mm tree
+Date: Fri, 02 Mar 2007 17:22:59 -0800
+Message-ID: <200703030123.l231N0cw024858@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50796 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50917 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992867AbXCCBYR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 2 Mar 2007 20:24:17 -0500
+	id S2992882AbXCCBb5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 2 Mar 2007 20:31:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michal.k.k.piotrowski@gmail.com, alan@redhat.com
+Cc: heiko.carstens@de.ibm.com, cborntra@de.ibm.com, johnstul@us.ibm.com, mingo@elte.hu, schwidefsky@de.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     char/epca.c: remove unused function
+     timer/hrtimer: take per cpu locks in sane order
 has been added to the -mm tree.  Its filename is
-     char-epcac-remove-unused-function.patch
+     timer-hrtimer-take-per-cpu-locks-in-sane-order.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,70 +25,174 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: char/epca.c: remove unused function
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: timer/hrtimer: take per cpu locks in sane order
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-"drivers/char/epca.c:2741: warning: 'get_termio' defined but not used"
+Doing something like this on a two cpu system
 
-Signed-off-by: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Acked-by: Alan Cox <alan@redhat.com>
+# echo 0 > /sys/devices/system/cpu/cpu0/online
+# echo 1 > /sys/devices/system/cpu/cpu0/online
+# echo 0 > /sys/devices/system/cpu/cpu1/online
+
+will give me this:
+
+=======================================================
+[ INFO: possible circular locking dependency detected ]
+2.6.21-rc2-g562aa1d4-dirty #7
+-------------------------------------------------------
+bash/1282 is trying to acquire lock:
+ (&cpu_base->lock_key){.+..}, at: [<000000000005f17e>] hrtimer_cpu_notify+0xc6/0x240
+
+but task is already holding lock:
+ (&cpu_base->lock_key#2){.+..}, at: [<000000000005f174>] hrtimer_cpu_notify+0xbc/0x240
+
+which lock already depends on the new lock.
+
+This happens because we have the following code in kernel/hrtimer.c:
+
+migrate_hrtimers(int cpu)
+[...]
+old_base = &per_cpu(hrtimer_bases, cpu);
+new_base = &get_cpu_var(hrtimer_bases);
+[...]
+spin_lock(&new_base->lock);
+spin_lock(&old_base->lock);
+
+Which means the spinlocks are taken in an order which depends on which cpu
+gets shut down from which other cpu. Therefore lockdep complains that there
+might be an ABBA deadlock. Since migrate_hrtimers() gets only called on
+cpu hotplug it's safe to assume that it isn't executed concurrently on a
+
+The same problem exists in kernel/timer.c: migrate_timers().
+
+As pointed out by Christian Borntraeger one possible solution to avoid
+the locking order complaints would be to make sure that the locks are
+always taken in the same order. E.g. by taking the lock of the cpu with
+the lower number first.
+
+To achieve this we introduce two new spinlock functions double_spin_lock
+and double_spin_unlock which lock or unlock two locks in a given order.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Christian Borntraeger <cborntra@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/epca.c |   17 -----------------
- 1 files changed, 17 deletions(-)
+ include/linux/spinlock.h |   37 +++++++++++++++++++++++++++++++++++++
+ kernel/hrtimer.c         |    9 ++++-----
+ kernel/timer.c           |    8 ++++----
+ 3 files changed, 45 insertions(+), 9 deletions(-)
 
-diff -puN drivers/char/epca.c~char-epcac-remove-unused-function drivers/char/epca.c
---- a/drivers/char/epca.c~char-epcac-remove-unused-function
-+++ a/drivers/char/epca.c
-@@ -209,7 +209,6 @@ static void digi_send_break(struct chann
- static void setup_empty_event(struct tty_struct *tty, struct channel *ch);
- void epca_setup(char *, int *);
+diff -puN include/linux/spinlock.h~timer-hrtimer-take-per-cpu-locks-in-sane-order include/linux/spinlock.h
+--- a/include/linux/spinlock.h~timer-hrtimer-take-per-cpu-locks-in-sane-order
++++ a/include/linux/spinlock.h
+@@ -283,6 +283,43 @@ do {						\
+ })
  
--static int get_termio(struct tty_struct *, struct termio __user *);
- static int pc_write(struct tty_struct *, const unsigned char *, int);
- static int pc_init(void);
- static int init_PCI(void);
-@@ -2362,15 +2361,6 @@ static int pc_ioctl(struct tty_struct *t
+ /*
++ * Locks two spinlocks l1 and l2.
++ * l1_first indicates if spinlock l1 should be taken first.
++ */
++static inline void double_spin_lock(spinlock_t *l1, spinlock_t *l2,
++				    bool l1_first)
++	__acquires(l1)
++	__acquires(l2)
++{
++	if (l1_first) {
++		spin_lock(l1);
++		spin_lock(l2);
++	} else {
++		spin_lock(l2);
++		spin_lock(l1);
++	}
++}
++
++/*
++ * Unlocks two spinlocks l1 and l2.
++ * l1_taken_first indicates if spinlock l1 was taken first and therefore
++ * should be released after spinlock l2.
++ */
++static inline void double_spin_unlock(spinlock_t *l1, spinlock_t *l2,
++				      bool l1_taken_first)
++	__releases(l1)
++	__releases(l2)
++{
++	if (l1_taken_first) {
++		spin_unlock(l2);
++		spin_unlock(l1);
++	} else {
++		spin_unlock(l1);
++		spin_unlock(l2);
++	}
++}
++
++/*
+  * Pull the atomic_t declaration:
+  * (asm-mips/atomic.h needs above definitions)
+  */
+diff -puN kernel/hrtimer.c~timer-hrtimer-take-per-cpu-locks-in-sane-order kernel/hrtimer.c
+--- a/kernel/hrtimer.c~timer-hrtimer-take-per-cpu-locks-in-sane-order
++++ a/kernel/hrtimer.c
+@@ -1355,17 +1355,16 @@ static void migrate_hrtimers(int cpu)
+ 	tick_cancel_sched_timer(cpu);
  
- 	switch (cmd) 
- 	{ /* Begin switch cmd */
+ 	local_irq_disable();
 -
--#if 0	/* Handled by calling layer properly */
--		case TCGETS:
--			if (copy_to_user(argp, tty->termios, sizeof(struct ktermios)))
--				return -EFAULT;
--			return 0;
--		case TCGETA:
--			return get_termio(tty, argp);
--#endif
- 		case TCSBRK:	/* SVID version: non-zero arg --> no break */
- 			retval = tty_check_change(tty);
- 			if (retval)
-@@ -2735,13 +2725,6 @@ static void setup_empty_event(struct tty
- 	memoff(ch);
- } /* End setup_empty_event */
+-	spin_lock(&new_base->lock);
+-	spin_lock(&old_base->lock);
++	double_spin_lock(&new_base->lock, &old_base->lock,
++			 smp_processor_id() < cpu);
  
--/* --------------------- Begin get_termio ----------------------- */
--
--static int get_termio(struct tty_struct * tty, struct termio __user * termio)
--{ /* Begin get_termio */
--	return kernel_termios_to_user_termio(termio, tty->termios);
--} /* End get_termio */
--
- /* ---------------------- Begin epca_setup  -------------------------- */
- void epca_setup(char *str, int *ints)
- { /* Begin epca_setup */
+ 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
+ 		migrate_hrtimer_list(&old_base->clock_base[i],
+ 				     &new_base->clock_base[i]);
+ 	}
+-	spin_unlock(&old_base->lock);
+-	spin_unlock(&new_base->lock);
+ 
++	double_spin_unlock(&new_base->lock, &old_base->lock,
++			   smp_processor_id() < cpu);
+ 	local_irq_enable();
+ 	put_cpu_var(hrtimer_bases);
+ }
+diff -puN kernel/timer.c~timer-hrtimer-take-per-cpu-locks-in-sane-order kernel/timer.c
+--- a/kernel/timer.c~timer-hrtimer-take-per-cpu-locks-in-sane-order
++++ a/kernel/timer.c
+@@ -1651,8 +1651,8 @@ static void __devinit migrate_timers(int
+ 	new_base = get_cpu_var(tvec_bases);
+ 
+ 	local_irq_disable();
+-	spin_lock(&new_base->lock);
+-	spin_lock(&old_base->lock);
++	double_spin_lock(&new_base->lock, &old_base->lock,
++			 smp_processor_id() < cpu);
+ 
+ 	BUG_ON(old_base->running_timer);
+ 
+@@ -1665,8 +1665,8 @@ static void __devinit migrate_timers(int
+ 		migrate_timer_list(new_base, old_base->tv5.vec + i);
+ 	}
+ 
+-	spin_unlock(&old_base->lock);
+-	spin_unlock(&new_base->lock);
++	double_spin_unlock(&new_base->lock, &old_base->lock,
++			   smp_processor_id() < cpu);
+ 	local_irq_enable();
+ 	put_cpu_var(tvec_bases);
+ }
 _
 
-Patches currently in -mm which might be from michal.k.k.piotrowski@gmail.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-origin.patch
-char-epcac-remove-unused-function.patch
-git-ia64.patch
-git-input.patch
-i386-irq-kill-irq-compression-fix.patch
-extend-notifier_call_chain-to-count-nr_calls-made-fixes-3.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-reiser4-configh.patch
-nvidiafb-bring-back-generic-ddc-reading-fix.patch
+timer-hrtimer-take-per-cpu-locks-in-sane-order.patch
+git-s390.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch
+introduce-config_has_dma.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
