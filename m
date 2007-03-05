@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch added to -mm tree
-Date: Sun, 04 Mar 2007 23:40:26 -0800
-Message-ID: <200703050740.l257eQe2012918@shell0.pdx.osdl.net>
+Subject: + pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch added to -mm tree
+Date: Sun, 04 Mar 2007 23:40:32 -0800
+Message-ID: <200703050740.l257eW6O012925@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34586 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34589 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932127AbXCEHki (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 02:40:38 -0500
+	id S932119AbXCEHkt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 02:40:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_ali: remove lots of code by using the cable_detect method
+     pata_cs55x0: clean up by using the cable_detect method
 has been added to the -mm tree.  Its filename is
-     pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
+     pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,123 +25,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_ali: remove lots of code by using the cable_detect method
+Subject: pata_cs55x0: clean up by using the cable_detect method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ali.c |   65 ++++-----------------------------------
- 1 file changed, 8 insertions(+), 57 deletions(-)
+ drivers/ata/pata_cs5520.c |   15 ++-------------
+ drivers/ata/pata_cs5530.c |   15 ++-------------
+ 2 files changed, 4 insertions(+), 26 deletions(-)
 
-diff -puN drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect drivers/ata/pata_ali.c
---- a/drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect
-+++ a/drivers/ata/pata_ali.c
-@@ -90,59 +90,6 @@ static int ali_c2_cable_detect(struct at
+diff -puN drivers/ata/pata_cs5520.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method drivers/ata/pata_cs5520.c
+--- a/drivers/ata/pata_cs5520.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method
++++ a/drivers/ata/pata_cs5520.c
+@@ -139,18 +139,6 @@ static void cs5520_set_piomode(struct at
+ 	cs5520_set_timings(ap, adev, adev->pio_mode);
  }
  
- /**
-- *	ali_early_error_handler	-	reset for eary chip
-- *	@ap: ATA port
-- *
-- *	Handle the reset callback for the later chips with cable detect
-- */
 -
--static int ali_c2_pre_reset(struct ata_port *ap)
+-static int cs5520_pre_reset(struct ata_port *ap)
 -{
--	ap->cbl = ali_c2_cable_detect(ap);
+-	ap->cbl = ATA_CBL_PATA40;
 -	return ata_std_prereset(ap);
 -}
 -
--static void ali_c2_error_handler(struct ata_port *ap)
+-static void cs5520_error_handler(struct ata_port *ap)
 -{
--	ata_bmdma_drive_eh(ap, ali_c2_pre_reset,
--			       ata_std_softreset, NULL,
--			       ata_std_postreset);
+-	return ata_bmdma_drive_eh(ap, cs5520_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
 -}
 -
--/**
-- *	ali_early_cable_detect	-	cable detection
-- *	@ap: ATA port
-- *
-- *	Perform cable detection for older chipsets. This turns out to be
-- *	rather easy to implement
-- */
--
--static int ali_early_cable_detect(struct ata_port *ap)
+ static struct scsi_host_template cs5520_sht = {
+ 	.module			= THIS_MODULE,
+ 	.name			= DRV_NAME,
+@@ -186,8 +174,9 @@ static struct ata_port_operations cs5520
+ 
+ 	.freeze			= ata_bmdma_freeze,
+ 	.thaw			= ata_bmdma_thaw,
+-	.error_handler		= cs5520_error_handler,
++	.error_handler		= ata_bmdma_error_handler,
+ 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= ata_cable_40wire,
+ 
+ 	.bmdma_setup		= ata_bmdma_setup,
+ 	.bmdma_start		= ata_bmdma_start,
+diff -puN drivers/ata/pata_cs5530.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method drivers/ata/pata_cs5530.c
+--- a/drivers/ata/pata_cs5530.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method
++++ a/drivers/ata/pata_cs5530.c
+@@ -160,18 +160,6 @@ static unsigned int cs5530_qc_issue_prot
+ 	return ata_qc_issue_prot(qc);
+ }
+ 
+-static int cs5530_pre_reset(struct ata_port *ap)
 -{
--	return ATA_CBL_PATA40;
--}
--
--/**
-- *	ali_early_probe_init	-	reset for early chip
-- *	@ap: ATA port
-- *
-- *	Handle the reset callback for the early (pre cable detect) chips.
-- */
--
--static int ali_early_pre_reset(struct ata_port *ap)
--{
--	ap->cbl = ali_early_cable_detect(ap);
+-	ap->cbl = ATA_CBL_PATA40;
 -	return ata_std_prereset(ap);
 -}
 -
--static void ali_early_error_handler(struct ata_port *ap)
+-static void cs5530_error_handler(struct ata_port *ap)
 -{
--	return ata_bmdma_drive_eh(ap, ali_early_pre_reset,
--				     ata_std_softreset, NULL,
--				     ata_std_postreset);
+-	return ata_bmdma_drive_eh(ap, cs5530_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
 -}
 -
--/**
-  *	ali_20_filter		-	filter for earlier ALI DMA
-  *	@ap: ALi ATA port
-  *	@adev: attached device
-@@ -366,8 +313,9 @@ static struct ata_port_operations ali_ea
+-
+ static struct scsi_host_template cs5530_sht = {
+ 	.module			= THIS_MODULE,
+ 	.name			= DRV_NAME,
+@@ -213,8 +201,9 @@ static struct ata_port_operations cs5530
  
  	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= ali_early_error_handler,
+-	.error_handler	= cs5530_error_handler,
 +	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
 +	.cable_detect	= ata_cable_40wire,
  
  	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-@@ -402,8 +350,9 @@ static struct ata_port_operations ali_20
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= ali_early_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
-@@ -440,8 +389,9 @@ static struct ata_port_operations ali_c2
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= ali_c2_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ali_c2_cable_detect,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
-@@ -477,8 +427,9 @@ static struct ata_port_operations ali_c5
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= ali_c2_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ali_c2_cable_detect,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.qc_issue	= cs5530_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
