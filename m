@@ -1,76 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - fix-nmi-appears-to-be-stuck.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:55:37 -0800
-Message-ID: <200703052355.l25NtbIY005198@shell0.pdx.osdl.net>
+Subject: - x86_64-remove-unusued-flags-variable.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:55:56 -0800
+Message-ID: <200703052355.l25NtuqO005215@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41989 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41995 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932945AbXCEXz6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:55:58 -0500
+	id S932949AbXCEX4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:56:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "NMI appears to be stuck"
+     x86_64: remove unusued 'flags' variable
 has been removed from the -mm tree.  Its filename was
-     fix-nmi-appears-to-be-stuck.patch
+     x86_64-remove-unusued-flags-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix "NMI appears to be stuck"
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: x86_64: remove unusued 'flags' variable
+From: David Rientjes <rientjes@google.com>
 
-  Testing NMI watchdog ... CPU#0: NMI appears to be stuck (54->54)!
-  CPU#1: NMI appears to be stuck (0->0)!
+Removes unused 'flags' variable from setup_IO_APIC_irq().
 
-Keep the PIT/HPET alive when nmi_watchdog = 1 is given on the command
-line.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/apic.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/io_apic.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/i386/kernel/apic.c~fix-nmi-appears-to-be-stuck arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~fix-nmi-appears-to-be-stuck
-+++ a/arch/i386/kernel/apic.c
-@@ -493,8 +493,15 @@ void __init setup_boot_APIC_clock(void)
- 		/* No broadcast on UP ! */
- 		if (num_possible_cpus() == 1)
- 			return;
--	} else
--		lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
-+	} else {
-+		/*
-+		 * If nmi_watchdog is set to IO_APIC, we need the
-+		 * PIT/HPET going.  Otherwise register lapic as a dummy
-+		 * device.
-+		 */
-+		if (nmi_watchdog != NMI_IO_APIC)
-+			lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
-+	}
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-remove-unusued-flags-variable arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-remove-unusued-flags-variable
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -789,7 +789,6 @@ static void setup_IO_APIC_irq(int apic, 
+ 	struct irq_cfg *cfg = irq_cfg + irq;
+ 	struct IO_APIC_route_entry entry;
+ 	cpumask_t mask;
+-	unsigned long flags;
  
- 	/* Setup the lapic or request the broadcast */
- 	setup_APIC_timer();
+ 	if (!IO_APIC_IRQ(irq))
+ 		return;
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-bugfix-dont-use-the-tsc-in-sched_clock-if-unstable.patch
-cleanup-unify-tsc_unstable-and-tsc_disable.patch
-possible-bugfix-make-dmi_mark_tsc_unstable-call-mark_tsc_unstable.patch
-git-block.patch
-log-reason-why-tsc-was-marked-unstable.patch
-optimize-timespec_trunc.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
+x86_64-configurable-fake-numa-node-sizes.patch
+x86_64-split-remaining-fake-nodes-equally.patch
+x86_64-fixed-size-remaining-fake-nodes.patch
+x86_64-map-fake-nodes-to-real-nodes.patch
+x86_64-map-fake-nodes-to-real-nodes-fix.patch
+x86_64-disable-alien-cache-for-fake-numa.patch
+x86_64-export-physnode-mapping-to-userspace.patch
+x86_64-fake-numa-for-cpusets-document.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-docs.patch
