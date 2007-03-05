@@ -1,47 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - pata_platform-set-a-cable-type-which-to-set.patch removed from -mm tree
-Date: Sun, 04 Mar 2007 23:30:57 -0800
-Message-ID: <200703050730.l257UvbO012707@shell0.pdx.osdl.net>
+Subject: - pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch removed from -mm tree
+Date: Sun, 04 Mar 2007 23:31:12 -0800
+Message-ID: <200703050731.l257VCI9012715@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34434 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34446 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751890AbXCEHbN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 02:31:13 -0500
+	id S1752710AbXCEHb3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 02:31:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_platform: set a cable type (which to set ?)
+     pata_ali: remove lots of code by using the cable_detect method
 has been removed from the -mm tree.  Its filename was
-     pata_platform-set-a-cable-type-which-to-set.patch
+     pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
 
 This patch was dropped because it needs libata-cable-detection-fixes.patch
 
 ------------------------------------------------------
-Subject: pata_platform: set a cable type (which to set ?)
+Subject: pata_ali: remove lots of code by using the cable_detect method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_platform.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/ata/pata_ali.c |   65 ++++-----------------------------------
+ 1 files changed, 8 insertions(+), 57 deletions(-)
 
-diff -puN drivers/ata/pata_platform.c~pata_platform-set-a-cable-type-which-to-set drivers/ata/pata_platform.c
---- a/drivers/ata/pata_platform.c~pata_platform-set-a-cable-type-which-to-set
-+++ a/drivers/ata/pata_platform.c
-@@ -80,6 +80,7 @@ static struct ata_port_operations pata_p
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_unknown,
+diff -puN drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect drivers/ata/pata_ali.c
+--- a/drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect
++++ a/drivers/ata/pata_ali.c
+@@ -90,59 +90,6 @@ static int ali_c2_cable_detect(struct at
+ }
  
- 	.qc_prep		= ata_qc_prep,
- 	.qc_issue		= ata_qc_issue_prot,
+ /**
+- *	ali_early_error_handler	-	reset for eary chip
+- *	@ap: ATA port
+- *
+- *	Handle the reset callback for the later chips with cable detect
+- */
+-
+-static int ali_c2_pre_reset(struct ata_port *ap)
+-{
+-	ap->cbl = ali_c2_cable_detect(ap);
+-	return ata_std_prereset(ap);
+-}
+-
+-static void ali_c2_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, ali_c2_pre_reset,
+-			       ata_std_softreset, NULL,
+-			       ata_std_postreset);
+-}
+-
+-/**
+- *	ali_early_cable_detect	-	cable detection
+- *	@ap: ATA port
+- *
+- *	Perform cable detection for older chipsets. This turns out to be
+- *	rather easy to implement
+- */
+-
+-static int ali_early_cable_detect(struct ata_port *ap)
+-{
+-	return ATA_CBL_PATA40;
+-}
+-
+-/**
+- *	ali_early_probe_init	-	reset for early chip
+- *	@ap: ATA port
+- *
+- *	Handle the reset callback for the early (pre cable detect) chips.
+- */
+-
+-static int ali_early_pre_reset(struct ata_port *ap)
+-{
+-	ap->cbl = ali_early_cable_detect(ap);
+-	return ata_std_prereset(ap);
+-}
+-
+-static void ali_early_error_handler(struct ata_port *ap)
+-{
+-	return ata_bmdma_drive_eh(ap, ali_early_pre_reset,
+-				     ata_std_softreset, NULL,
+-				     ata_std_postreset);
+-}
+-
+-/**
+  *	ali_20_filter		-	filter for earlier ALI DMA
+  *	@ap: ALi ATA port
+  *	@adev: attached device
+@@ -364,8 +311,9 @@ static struct ata_port_operations ali_ea
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_early_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -400,8 +348,9 @@ static struct ata_port_operations ali_20
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_early_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -438,8 +387,9 @@ static struct ata_port_operations ali_c2
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_c2_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ali_c2_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -475,8 +425,9 @@ static struct ata_port_operations ali_c5
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_c2_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ali_c2_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -53,7 +149,6 @@ libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
 expose-set_mode-method-so-it-can-be-wrapped.patch
 acpi-driver-support-for-pata.patch
 pcmcia-spot-slave-decode-flaws-for-testing.patch
-pata_platform-set-a-cable-type-which-to-set.patch
 pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
 pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
 pata_cypress-clean-up-by-using-cable_detect-method.patch
