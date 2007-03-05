@@ -1,63 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - ipmi-check-if-default-ports-are-accessible-on-ppc.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:55:49 -0800
-Message-ID: <200703052355.l25NtnDA005212@shell0.pdx.osdl.net>
+Subject: - usb-storage-do-not-rebuild-when-kernel-version-changes.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:56:29 -0800
+Message-ID: <200703052356.l25NuTBX005244@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42004 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42033 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933036AbXCEX4T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:56:19 -0500
+	id S932910AbXCEX4i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:56:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krafft@de.ibm.com, benh@kernel.crashing.org, michael@ellerman.id.au, minyard@acm.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipmi: check, if default ports are accessible on PPC
+     usb-storage: do not rebuild when kernel version changes
 has been removed from the -mm tree.  Its filename was
-     ipmi-check-if-default-ports-are-accessible-on-ppc.patch
+     usb-storage-do-not-rebuild-when-kernel-version-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipmi: check, if default ports are accessible on PPC
-From: Christian Krafft <krafft@de.ibm.com>
+Subject: usb-storage: do not rebuild when kernel version changes
+From: Sam Ravnborg <sam@ravnborg.org>
 
-ipmi_si_intf tries to access default ports, if no device could be found
-elsewhere.  On PPC we have a function to check, if these legacy IO ports
-are accessible.  This patch adds a check for these ports on PPC.  This
-patch fixes a breakage of IPMI module on PPC machines without a BMC.
+Replacing use of UTS_RELEASE with utsname()->release avoids that the
+usb-storage driver is recompiled each time the kernel version changes.
 
-Signed-off-by: Christian Krafft <krafft@de.ibm.com>
-Acked-by: Michael Ellerman <michael@ellerman.id.au>
-Signed-off-by: Corey Minyard <minyard@acm.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/usb/storage/usb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-check-if-default-ports-are-accessible-on-ppc drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-check-if-default-ports-are-accessible-on-ppc
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2478,6 +2478,11 @@ static __devinit void default_find_bmc(v
- 		if (!info)
- 			return;
+diff -puN drivers/usb/storage/usb.c~usb-storage-do-not-rebuild-when-kernel-version-changes drivers/usb/storage/usb.c
+--- a/drivers/usb/storage/usb.c~usb-storage-do-not-rebuild-when-kernel-version-changes
++++ a/drivers/usb/storage/usb.c
+@@ -55,7 +55,7 @@
+ #include <linux/slab.h>
+ #include <linux/kthread.h>
+ #include <linux/mutex.h>
+-#include <linux/utsrelease.h>
++#include <linux/utsname.h>
  
-+#ifdef CONFIG_PPC_MERGE
-+		if (check_legacy_ioport(ipmi_defaults[i].port))
-+			continue;
-+#endif
-+
- 		info->addr_source = NULL;
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_cmnd.h>
+@@ -547,7 +547,7 @@ static int get_device_info(struct us_dat
+ 				idesc->bInterfaceSubClass,
+ 				idesc->bInterfaceProtocol,
+ 				msgs[msg],
+-				UTS_RELEASE);
++				utsname()->release);
+ 	}
  
- 		info->si_type = ipmi_defaults[i].type;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from krafft@de.ibm.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-ipmi-add-powerpc-openfirmware-sensing.patch
+kbuild-override-build-timestamp.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+pci-do-not-mark-exported-functions-as-__devinit.patch
+x86_64-fix-section-mismatch-warnings.patch
+fix-section-mismatch-warning-in-lib-swiotlbc.patch
+extend-print_symbol-capability.patch
