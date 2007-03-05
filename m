@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-unify-tsc_unstable-and-tsc_disable.patch added to -mm tree
-Date: Sun, 04 Mar 2007 22:56:21 -0800
-Message-ID: <200703050656.l256uLVJ012072@shell0.pdx.osdl.net>
+Subject: + arch-i386-kernel-vmic-must-include-asm-kmap_typesh.patch added to -mm tree
+Date: Sun, 04 Mar 2007 22:57:46 -0800
+Message-ID: <200703050657.l256vkZZ012099@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33663 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33758 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752697AbXCEG5L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 01:57:11 -0500
+	id S1752701AbXCEHBA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 02:01:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: guichaz@gmail.com, guichaz@yahoo.fr, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: bunk@stusta.de, zach@vmware.com
 
 
 The patch titled
-     Cleanup: Unify tsc_unstable and tsc_disable
+     arch/i386/kernel/vmi.c must #include <asm/kmap_types.h>
 has been added to the -mm tree.  Its filename is
-     cleanup-unify-tsc_unstable-and-tsc_disable.patch
+     arch-i386-kernel-vmic-must-include-asm-kmap_typesh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,104 +25,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Cleanup: Unify tsc_unstable and tsc_disable
-From: "Guillaume Chazarain" <guichaz@gmail.com>
+Subject: arch/i386/kernel/vmi.c must #include <asm/kmap_types.h>
+From: Adrian Bunk <bunk@stusta.de>
 
-tsc_unstable and tsc_disable serve the same purpose.
+  CC      arch/i386/kernel/vmi.o
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/arch/i386/kernel/vmi.c: In function 'vmi_map_pt_hook':
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/arch/i386/kernel/vmi.c:387: error: 'KM_PTE0' undeclared (first use in this function)
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/arch/i386/kernel/vmi.c:387: error: (Each undeclared identifier is reported only once
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/arch/i386/kernel/vmi.c:387: error: for each function it appears in.)
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/arch/i386/kernel/vmi.c:387: error: 'KM_PTE1' undeclared (first use in this function)
+make[2]: *** [arch/i386/kernel/vmi.o] Error 1
 
-Signed-off-by: Guillaume Chazarain <guichaz@yahoo.fr>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/tsc.c |   26 ++++++++------------------
- 1 file changed, 8 insertions(+), 18 deletions(-)
+ arch/i386/kernel/vmi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/tsc.c~cleanup-unify-tsc_unstable-and-tsc_disable arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~cleanup-unify-tsc_unstable-and-tsc_disable
-+++ a/arch/i386/kernel/tsc.c
-@@ -50,16 +50,6 @@ static int __init tsc_setup(char *str)
+diff -puN arch/i386/kernel/vmi.c~arch-i386-kernel-vmic-must-include-asm-kmap_typesh arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~arch-i386-kernel-vmic-must-include-asm-kmap_typesh
++++ a/arch/i386/kernel/vmi.c
+@@ -35,6 +35,7 @@
+ #include <asm/processor.h>
+ #include <asm/timer.h>
+ #include <asm/vmi_time.h>
++#include <asm/kmap_types.h>
  
- __setup("notsc", tsc_setup);
- 
--/*
-- * code to mark and check if the TSC is unstable
-- * due to cpufreq or due to unsynced TSCs
-- */
--static int tsc_unstable;
--
--static inline int check_tsc_unstable(void)
--{
--	return tsc_unstable;
--}
- 
- /* Accellerators for sched_clock()
-  * convert from cycles(64bits) => nanoseconds (64bits)
-@@ -106,7 +96,7 @@ unsigned long long sched_clock(void)
- 	/*
- 	 * Fall back to jiffies if there's no TSC available:
- 	 */
--	if (tsc_unstable || unlikely(tsc_disable))
-+	if (unlikely(tsc_disable))
- 		/* No locking but a rare wrong value is not a big deal: */
- 		return (jiffies_64 - INITIAL_JIFFIES) * (1000000000 / HZ);
- 
-@@ -282,8 +272,8 @@ static struct clocksource clocksource_ts
- 
- void mark_tsc_unstable(void)
- {
--	if (!tsc_unstable) {
--		tsc_unstable = 1;
-+	if (!tsc_disable) {
-+		tsc_disable = 1;
- 		/* Can be called before registration */
- 		if (clocksource_tsc.mult)
- 			clocksource_change_rating(&clocksource_tsc, 0);
-@@ -297,7 +287,7 @@ static int __init dmi_mark_tsc_unstable(
- {
- 	printk(KERN_NOTICE "%s detected: marking TSC unstable.\n",
- 		       d->ident);
--	tsc_unstable = 1;
-+	tsc_disable = 1;
- 	return 0;
- }
- 
-@@ -320,7 +310,7 @@ static struct dmi_system_id __initdata b
-  */
- __cpuinit int unsynchronized_tsc(void)
- {
--	if (!cpu_has_tsc || tsc_unstable)
-+	if (!cpu_has_tsc || tsc_disable)
- 		return 1;
- 	/*
- 	 * Intel systems are normally all synchronized.
-@@ -329,9 +319,9 @@ __cpuinit int unsynchronized_tsc(void)
- 	if (boot_cpu_data.x86_vendor != X86_VENDOR_INTEL) {
- 		/* assume multi socket systems are not synchronized: */
- 		if (num_possible_cpus() > 1)
--			tsc_unstable = 1;
-+			tsc_disable = 1;
- 	}
--	return tsc_unstable;
-+	return tsc_disable;
- }
- 
- /*
-@@ -381,7 +371,7 @@ void __init tsc_init(void)
- 	clocksource_tsc.mult = clocksource_khz2mult(current_tsc_khz,
- 							clocksource_tsc.shift);
- 	/* lower the rating if we already know its unstable: */
--	if (check_tsc_unstable()) {
-+	if (tsc_disable) {
- 		clocksource_tsc.rating = 0;
- 		clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
- 	}
+ /* Convenient for calling VMI functions indirectly in the ROM */
+ typedef u32 __attribute__((regparm(1))) (VROMFUNC)(void);
 _
 
-Patches currently in -mm which might be from guichaz@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-bugfix-dont-use-the-tsc-in-sched_clock-if-unstable.patch
-cleanup-unify-tsc_unstable-and-tsc_disable.patch
-possible-bugfix-make-dmi_mark_tsc_unstable-call-mark_tsc_unstable.patch
+origin.patch
+arch-i386-kernel-vmic-must-include-asm-kmap_typesh.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-fs-jffs2-ioctlc.patch
+git-ubi.patch
+drivers-net-vioc-possible-cleanups.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-cleanup.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-architecture-independant-code-license-fix.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
