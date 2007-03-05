@@ -1,158 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - vmi-cpu-cycles-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:55:15 -0800
-Message-ID: <200703052355.l25NtFib005173@shell0.pdx.osdl.net>
+Subject: - vmi-fix-highpte.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:55:17 -0800
+Message-ID: <200703052355.l25NtH9V005176@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41930 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41933 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932562AbXCEXzR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:55:17 -0500
+	id S932564AbXCEXzT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:55:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmi: cpu cycles fix
+     vmi: fix highpte
 has been removed from the -mm tree.  Its filename was
-     vmi-cpu-cycles-fix.patch
+     vmi-fix-highpte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vmi: cpu cycles fix
+Subject: vmi: fix highpte
 From: Zachary Amsden <zach@vmware.com>
 
-In order to share the common code in tsc.c which does CPU Khz calibration, we
-need to make an accurate value of CPU speed available to the tsc.c code.  This
-value loses a lot of precision in a VM because of the timing differences with
-real hardware, but we need it to be as precise as possible so the guest can
-make accurate time calculations with the cycle counters.
+Provide a PT map hook for HIGHPTE kernels to designate where they are mapping
+page tables.  This information is required so the physical address of PTE
+updates can be determined; otherwise, the mm layer would have to carry the
+physical address all the way to each PTE modification callsite, which is even
+more hideous that the macros required to provide the proper hooks.
+
+So lets not mess up arch neutral code to achieve this, but keep the horror in
+an #ifdef HIGHPTE in include/asm-i386/pgtable.h.  I had to use macros here
+because some types are not yet defined in all the include paths for this
+header.
+
+This patch is absolutely required for HIGHPTE kernels to operate properly with
+VMI.
 
 Signed-off-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |    1 +
- arch/i386/kernel/tsc.c      |    2 +-
- arch/i386/kernel/vmi.c      |    1 +
- arch/i386/kernel/vmitime.c  |   10 +++++++++-
- include/asm-i386/paravirt.h |    2 ++
- include/asm-i386/timer.h    |    2 ++
- include/asm-i386/vmi_time.h |    1 +
- 7 files changed, 17 insertions(+), 2 deletions(-)
+ arch/i386/kernel/paravirt.c |    2 ++
+ arch/i386/kernel/vmi.c      |   19 +++++++++++++++++++
+ include/asm-i386/paravirt.h |    4 ++++
+ include/asm-i386/pgtable.h  |   23 +++++++++++++++++++----
+ 4 files changed, 44 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~vmi-cpu-cycles-fix arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~vmi-cpu-cycles-fix
+diff -puN arch/i386/kernel/paravirt.c~vmi-fix-highpte arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~vmi-fix-highpte
 +++ a/arch/i386/kernel/paravirt.c
-@@ -522,6 +522,7 @@ struct paravirt_ops paravirt_ops = {
- 	.read_tsc = native_read_tsc,
- 	.read_pmc = native_read_pmc,
- 	.get_scheduled_cycles = native_read_tsc,
-+	.get_cpu_khz = native_calculate_cpu_khz,
- 	.load_tr_desc = native_load_tr_desc,
- 	.set_ldt = native_set_ldt,
- 	.load_gdt = native_load_gdt,
-diff -puN arch/i386/kernel/tsc.c~vmi-cpu-cycles-fix arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~vmi-cpu-cycles-fix
-+++ a/arch/i386/kernel/tsc.c
-@@ -117,7 +117,7 @@ unsigned long long sched_clock(void)
- 	return cycles_2_ns(this_offset);
- }
+@@ -553,6 +553,8 @@ struct paravirt_ops paravirt_ops = {
+ 	.flush_tlb_kernel = native_flush_tlb_global,
+ 	.flush_tlb_single = native_flush_tlb_single,
  
--static unsigned long calculate_cpu_khz(void)
-+unsigned long native_calculate_cpu_khz(void)
- {
- 	unsigned long long start, end;
- 	unsigned long count;
-diff -puN arch/i386/kernel/vmi.c~vmi-cpu-cycles-fix arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~vmi-cpu-cycles-fix
-+++ a/arch/i386/kernel/vmi.c
-@@ -874,6 +874,7 @@ static inline int __init activate_vmi(vo
- 		paravirt_ops.setup_secondary_clock = vmi_timer_setup_secondary_alarm;
- #endif
- 		paravirt_ops.get_scheduled_cycles = vmi_get_sched_cycles;
-+ 		paravirt_ops.get_cpu_khz = vmi_cpu_khz;
- 	}
- 	if (!disable_noidle)
- 		para_fill(safe_halt, Halt);
-diff -puN arch/i386/kernel/vmitime.c~vmi-cpu-cycles-fix arch/i386/kernel/vmitime.c
---- a/arch/i386/kernel/vmitime.c~vmi-cpu-cycles-fix
-+++ a/arch/i386/kernel/vmitime.c
-@@ -177,6 +177,15 @@ unsigned long long vmi_get_sched_cycles(
- 	return read_available_cycles();
- }
- 
-+unsigned long vmi_cpu_khz(void)
-+{
-+	unsigned long long khz;
++	.map_pt_hook = (void *)native_nop,
 +
-+	khz = vmi_timer_ops.get_cycle_frequency();
-+	(void)do_div(khz, 1000);
-+	return khz;
+ 	.alloc_pt = (void *)native_nop,
+ 	.alloc_pd = (void *)native_nop,
+ 	.alloc_pd_clone = (void *)native_nop,
+diff -puN arch/i386/kernel/vmi.c~vmi-fix-highpte arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~vmi-fix-highpte
++++ a/arch/i386/kernel/vmi.c
+@@ -370,6 +370,24 @@ static void vmi_check_page_type(u32 pfn,
+ #define vmi_check_page_type(p,t) do { } while (0)
+ #endif
+ 
++static void vmi_map_pt_hook(int type, pte_t *va, u32 pfn)
++{
++	/*
++	 * Internally, the VMI ROM must map virtual addresses to physical
++	 * addresses for processing MMU updates.  By the time MMU updates
++	 * are issued, this information is typically already lost.
++	 * Fortunately, the VMI provides a cache of mapping slots for active
++	 * page tables.
++	 *
++	 * We use slot zero for the linear mapping of physical memory, and
++	 * in HIGHPTE kernels, slot 1 and 2 for KM_PTE0 and KM_PTE1.
++	 *
++	 *  args:                 SLOT                 VA    COUNT PFN
++	 */
++	BUG_ON(type != KM_PTE0 && type != KM_PTE1);
++	vmi_ops.set_linear_mapping((type - KM_PTE0)+1, (u32)va, 1, pfn);
 +}
 +
- void __init vmi_time_init(void)
+ static void vmi_allocate_pt(u32 pfn)
  {
- 	unsigned long long cycles_per_sec, cycles_per_msec;
-@@ -206,7 +215,6 @@ void __init vmi_time_init(void)
- 	(void)do_div(cycles_per_alarm, alarm_hz);
- 	cycles_per_msec = cycles_per_sec;
- 	(void)do_div(cycles_per_msec, 1000);
--	cpu_khz = cycles_per_msec;
+ 	vmi_set_page_type(pfn, VMI_PAGE_L1);
+@@ -813,6 +831,7 @@ static inline int __init activate_vmi(vo
+ 	vmi_ops.allocate_page = vmi_get_function(VMI_CALL_AllocatePage);
+ 	vmi_ops.release_page = vmi_get_function(VMI_CALL_ReleasePage);
  
- 	printk(KERN_WARNING "VMI timer cycles/sec = %llu ; cycles/jiffy = %llu ;"
- 	       "cycles/alarm = %llu\n", cycles_per_sec, cycles_per_jiffy,
-diff -puN include/asm-i386/paravirt.h~vmi-cpu-cycles-fix include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~vmi-cpu-cycles-fix
++	paravirt_ops.map_pt_hook = vmi_map_pt_hook;
+ 	paravirt_ops.alloc_pt = vmi_allocate_pt;
+ 	paravirt_ops.alloc_pd = vmi_allocate_pd;
+ 	paravirt_ops.alloc_pd_clone = vmi_allocate_pd_clone;
+diff -puN include/asm-i386/paravirt.h~vmi-fix-highpte include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~vmi-fix-highpte
 +++ a/include/asm-i386/paravirt.h
-@@ -95,6 +95,7 @@ struct paravirt_ops
- 	u64 (*read_tsc)(void);
- 	u64 (*read_pmc)(void);
-  	u64 (*get_scheduled_cycles)(void);
-+	unsigned long (*get_cpu_khz)(void);
+@@ -131,6 +131,8 @@ struct paravirt_ops
+ 	void (*flush_tlb_kernel)(void);
+ 	void (*flush_tlb_single)(u32 addr);
  
- 	void (*load_tr_desc)(void);
- 	void (*load_gdt)(const struct Xgt_desc_struct *);
-@@ -275,6 +276,7 @@ static inline void halt(void)
- #define rdtscll(val) (val = paravirt_ops.read_tsc())
++	void (fastcall *map_pt_hook)(int type, pte_t *va, u32 pfn);
++
+ 	void (*alloc_pt)(u32 pfn);
+ 	void (*alloc_pd)(u32 pfn);
+ 	void (*alloc_pd_clone)(u32 pfn, u32 clonepfn, u32 start, u32 count);
+@@ -354,6 +356,8 @@ static inline void startup_ipi_hook(int 
+ #define __flush_tlb_global() paravirt_ops.flush_tlb_kernel()
+ #define __flush_tlb_single(addr) paravirt_ops.flush_tlb_single(addr)
  
- #define get_scheduled_cycles(val) (val = paravirt_ops.get_scheduled_cycles())
-+#define calculate_cpu_khz() (paravirt_ops.get_cpu_khz())
++#define paravirt_map_pt_hook(type, va, pfn) paravirt_ops.map_pt_hook(type, va, pfn)
++
+ #define paravirt_alloc_pt(pfn) paravirt_ops.alloc_pt(pfn)
+ #define paravirt_release_pt(pfn) paravirt_ops.release_pt(pfn)
  
- #define write_tsc(val1,val2) wrmsr(0x10, val1, val2)
- 
-diff -puN include/asm-i386/timer.h~vmi-cpu-cycles-fix include/asm-i386/timer.h
---- a/include/asm-i386/timer.h~vmi-cpu-cycles-fix
-+++ a/include/asm-i386/timer.h
-@@ -7,6 +7,7 @@
- 
- void setup_pit_timer(void);
- unsigned long long native_sched_clock(void);
-+unsigned long native_calculate_cpu_khz(void);
- 
- /* Modifiers for buggy PIT handling */
- extern int pit_latch_buggy;
-@@ -17,6 +18,7 @@ extern int recalibrate_cpu_khz(void);
- 
- #ifndef CONFIG_PARAVIRT
- #define get_scheduled_cycles(val) rdtscll(val)
-+#define calculate_cpu_khz() native_calculate_cpu_khz()
+diff -puN include/asm-i386/pgtable.h~vmi-fix-highpte include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~vmi-fix-highpte
++++ a/include/asm-i386/pgtable.h
+@@ -263,6 +263,7 @@ static inline pte_t pte_mkhuge(pte_t pte
+  */
+ #define pte_update(mm, addr, ptep)		do { } while (0)
+ #define pte_update_defer(mm, addr, ptep)	do { } while (0)
++#define paravirt_map_pt_hook(slot, va, pfn)	do { } while (0)
  #endif
  
+ /*
+@@ -469,10 +470,24 @@ extern pte_t *lookup_address(unsigned lo
  #endif
-diff -puN include/asm-i386/vmi_time.h~vmi-cpu-cycles-fix include/asm-i386/vmi_time.h
---- a/include/asm-i386/vmi_time.h~vmi-cpu-cycles-fix
-+++ a/include/asm-i386/vmi_time.h
-@@ -50,6 +50,7 @@ extern void __init vmi_time_init(void);
- extern unsigned long vmi_get_wallclock(void);
- extern int vmi_set_wallclock(unsigned long now);
- extern unsigned long long vmi_get_sched_cycles(void);
-+extern unsigned long vmi_cpu_khz(void);
  
- #ifdef CONFIG_X86_LOCAL_APIC
- extern void __init vmi_timer_setup_boot_alarm(void);
+ #if defined(CONFIG_HIGHPTE)
+-#define pte_offset_map(dir, address) \
+-	((pte_t *)kmap_atomic(pmd_page(*(dir)),KM_PTE0) + pte_index(address))
+-#define pte_offset_map_nested(dir, address) \
+-	((pte_t *)kmap_atomic(pmd_page(*(dir)),KM_PTE1) + pte_index(address))
++#define pte_offset_map(dir, address)				\
++({								\
++	pte_t *__ptep;						\
++	unsigned pfn = pmd_val(*(dir)) >> PAGE_SHIFT;	   	\
++	__ptep = (pte_t *)kmap_atomic(pfn_to_page(pfn),KM_PTE0);\
++	paravirt_map_pt_hook(KM_PTE0,__ptep, pfn);		\
++	__ptep = __ptep + pte_index(address);			\
++	__ptep;							\
++})
++#define pte_offset_map_nested(dir, address)			\
++({								\
++	pte_t *__ptep;						\
++	unsigned pfn = pmd_val(*(dir)) >> PAGE_SHIFT;	   	\
++	__ptep = (pte_t *)kmap_atomic(pfn_to_page(pfn),KM_PTE1);\
++	paravirt_map_pt_hook(KM_PTE1,__ptep, pfn);		\
++	__ptep = __ptep + pte_index(address);			\
++	__ptep;							\
++})
+ #define pte_unmap(pte) kunmap_atomic(pte, KM_PTE0)
+ #define pte_unmap_nested(pte) kunmap_atomic(pte, KM_PTE1)
+ #else
 _
 
 Patches currently in -mm which might be from zach@vmware.com are
