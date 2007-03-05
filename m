@@ -1,89 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - msi-support-masking-msi-irqs-without-a-mask-bit.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:54:31 -0800
-Message-ID: <200703052354.l25NsVL3005100@shell0.pdx.osdl.net>
+Subject: - fix-soft-lockup-with-iseries-viocd-driver.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:54:42 -0800
+Message-ID: <200703052354.l25Nsgh1005113@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41867 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41886 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932495AbXCEXym (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:54:42 -0500
+	id S932487AbXCEXy5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:54:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, benh@kernel.crashing.org, greg@kroah.com, michael@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: tony@bakeyournoodle.com, jens.axboe@oracle.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     msi: support masking msi irqs without a mask bit
+     Fix soft lockup with iSeries viocd driver
 has been removed from the -mm tree.  Its filename was
-     msi-support-masking-msi-irqs-without-a-mask-bit.patch
+     fix-soft-lockup-with-iseries-viocd-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: msi: support masking msi irqs without a mask bit
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: Fix soft lockup with iSeries viocd driver
+From: Tony Breeds <tony@bakeyournoodle.com>
 
-For devices that do not support msi-x we only support 1 interrupt.  Therefore
-we can disable that one interrupt by disabling the msi capability itself.  If
-we leave the intx interrupts disabled while we have the msi capability
-disabled no interrupts should be delivered from that device.
+Fix soft lockup with iSeries viocd driver, caused by eventually calling
+end_that_request_first() with nr_bytes 0.
 
-Devices with just the minimal msi support (and thus hitting this code path)
-include things like the intel e1000 nic, so it looks like is going to be a
-fairly common case and thus important to get right.
+Some versions of hald do an SG_IO ioctl on the viocd device which becomes a
+request with hard_nr_sectors and hard_cur_sectors set to zero.  Passing zero
+as the number of sectors to end_request() (which calls
+end_that_request_first()) causes an infinite loop when the bio is being freed.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Michael Ellerman <michael@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Greg KH <greg@kroah.com>
+This patch makes sure that the zero is never passed.  It only requires some
+number larger the the request size the terminate the loop.
+
+The lockup is triggered by hald, interrogating the device.
+
+Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
+Signed-off-by: Jens Axboe <jens.axboe@oracle.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/msi.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/cdrom/viocd.c |   27 +++++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pci/msi.c~msi-support-masking-msi-irqs-without-a-mask-bit drivers/pci/msi.c
---- a/drivers/pci/msi.c~msi-support-masking-msi-irqs-without-a-mask-bit
-+++ a/drivers/pci/msi.c
-@@ -85,6 +85,8 @@ static void msi_set_mask_bit(unsigned in
- 			mask_bits &= ~(1);
- 			mask_bits |= flag;
- 			pci_write_config_dword(entry->dev, pos, mask_bits);
-+		} else {
-+			msi_set_enable(entry->dev, !flag);
- 		}
- 		break;
- 	case PCI_CAP_ID_MSIX:
+diff -puN drivers/cdrom/viocd.c~fix-soft-lockup-with-iseries-viocd-driver drivers/cdrom/viocd.c
+--- a/drivers/cdrom/viocd.c~fix-soft-lockup-with-iseries-viocd-driver
++++ a/drivers/cdrom/viocd.c
+@@ -376,6 +376,25 @@ static int send_request(struct request *
+ 	return 0;
+ }
+ 
++static void viocd_end_request(struct request *req, int uptodate)
++{
++	int nsectors = req->hard_nr_sectors;
++
++	/*
++	 * Make sure it's fully ended, and ensure that we process
++	 * at least one sector.
++	 */
++	if (blk_pc_request(req))
++		nsectors = (req->data_len + 511) >> 9;
++	if (!nsectors)
++		nsectors = 1;
++
++	if (end_that_request_first(req, uptodate, nsectors))
++		BUG();
++	add_disk_randomness(req->rq_disk);
++	blkdev_dequeue_request(req);
++	end_that_request_last(req, uptodate);
++}
+ 
+ static int rwreq;
+ 
+@@ -385,11 +404,11 @@ static void do_viocd_request(request_que
+ 
+ 	while ((rwreq == 0) && ((req = elv_next_request(q)) != NULL)) {
+ 		if (!blk_fs_request(req))
+-			end_request(req, 0);
++			viocd_end_request(req, 0);
+ 		else if (send_request(req) < 0) {
+ 			printk(VIOCD_KERN_WARNING
+ 					"unable to send message to OS/400!");
+-			end_request(req, 0);
++			viocd_end_request(req, 0);
+ 		} else
+ 			rwreq++;
+ 	}
+@@ -601,9 +620,9 @@ return_complete:
+ 					"with rc %d:0x%04X: %s\n",
+ 					req, event->xRc,
+ 					bevent->sub_result, err->msg);
+-			end_request(req, 0);
++			viocd_end_request(req, 0);
+ 		} else
+-			end_request(req, 1);
++			viocd_end_request(req, 1);
+ 
+ 		/* restart handling of incoming requests */
+ 		spin_unlock_irqrestore(&viocd_reqlock, flags);
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from tony@bakeyournoodle.com are
 
 origin.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-i386-irq-kill-irq-compression.patch
-i386-irq-kill-irq-compression-fix.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
-allow-access-to-proc-pid-fd-after-setuid-update.patch
-allow-access-to-proc-pid-fd-after-setuid-update-2.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-2.patch
-edac-k8-driver-coding-tidy.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
