@@ -1,162 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - vmi-fix-highpte.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:55:17 -0800
-Message-ID: <200703052355.l25NtH9V005176@shell0.pdx.osdl.net>
+Subject: - vmi-paravirt-drop-udelay-op.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:55:20 -0800
+Message-ID: <200703052355.l25NtK7X005179@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41933 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41937 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932564AbXCEXzT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:55:19 -0500
+	id S932562AbXCEXzW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:55:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmi: fix highpte
+     vmi: paravirt drop udelay op
 has been removed from the -mm tree.  Its filename was
-     vmi-fix-highpte.patch
+     vmi-paravirt-drop-udelay-op.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vmi: fix highpte
+Subject: vmi: paravirt drop udelay op
 From: Zachary Amsden <zach@vmware.com>
 
-Provide a PT map hook for HIGHPTE kernels to designate where they are mapping
-page tables.  This information is required so the physical address of PTE
-updates can be determined; otherwise, the mm layer would have to carry the
-physical address all the way to each PTE modification callsite, which is even
-more hideous that the macros required to provide the proper hooks.
+Not respecting udelay causes problems with any virtual hardware that is passed
+through to real hardware.  This can be noticed by any device that interacts
+with the real world in real time - like AP startup, which takes real time.  Or
+keyboard LEDs, which should blink in real-time.  Or floppy drives, but only
+when passed through to a real floppy controller on OSes which can't
+sufficiently buffer the floppy commands to emulate a zero latency floppy.  Or
+IDE drives, when connecting to a physical CDROM.
 
-So lets not mess up arch neutral code to achieve this, but keep the horror in
-an #ifdef HIGHPTE in include/asm-i386/pgtable.h.  I had to use macros here
-because some types are not yet defined in all the include paths for this
-header.
-
-This patch is absolutely required for HIGHPTE kernels to operate properly with
-VMI.
+This was mostly a hack to get the kernel to boot faster, but it introduced a
+number of misvirtualization bugs, and Alan and Pavel argued pretty strongly
+against it.  We were the only client, and now want to clean up this cruft.
 
 Signed-off-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |    2 ++
- arch/i386/kernel/vmi.c      |   19 +++++++++++++++++++
- include/asm-i386/paravirt.h |    4 ++++
- include/asm-i386/pgtable.h  |   23 +++++++++++++++++++----
- 4 files changed, 44 insertions(+), 4 deletions(-)
+ arch/i386/kernel/paravirt.c |    1 -
+ arch/i386/kernel/smpboot.c  |    5 -----
+ arch/i386/kernel/vmi.c      |    8 +-------
+ include/asm-i386/delay.h    |    8 --------
+ include/asm-i386/paravirt.h |    1 -
+ 5 files changed, 1 insertion(+), 22 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~vmi-fix-highpte arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~vmi-fix-highpte
+diff -puN arch/i386/kernel/paravirt.c~vmi-paravirt-drop-udelay-op arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~vmi-paravirt-drop-udelay-op
 +++ a/arch/i386/kernel/paravirt.c
-@@ -553,6 +553,8 @@ struct paravirt_ops paravirt_ops = {
- 	.flush_tlb_kernel = native_flush_tlb_global,
- 	.flush_tlb_single = native_flush_tlb_single,
+@@ -538,7 +538,6 @@ struct paravirt_ops paravirt_ops = {
  
-+	.map_pt_hook = (void *)native_nop,
-+
- 	.alloc_pt = (void *)native_nop,
- 	.alloc_pd = (void *)native_nop,
- 	.alloc_pd_clone = (void *)native_nop,
-diff -puN arch/i386/kernel/vmi.c~vmi-fix-highpte arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~vmi-fix-highpte
+ 	.set_iopl_mask = native_set_iopl_mask,
+ 	.io_delay = native_io_delay,
+-	.const_udelay = __const_udelay,
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+ 	.apic_write = native_apic_write,
+diff -puN arch/i386/kernel/smpboot.c~vmi-paravirt-drop-udelay-op arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~vmi-paravirt-drop-udelay-op
++++ a/arch/i386/kernel/smpboot.c
+@@ -33,11 +33,6 @@
+  *		Dave Jones	:	Report invalid combinations of Athlon CPUs.
+ *		Rusty Russell	:	Hacked into shape for new "hotplug" boot process. */
+ 
+-
+-/* SMP boot always wants to use real time delay to allow sufficient time for
+- * the APs to come online */
+-#define USE_REAL_TIME_DELAY
+-
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+diff -puN arch/i386/kernel/vmi.c~vmi-paravirt-drop-udelay-op arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~vmi-paravirt-drop-udelay-op
 +++ a/arch/i386/kernel/vmi.c
-@@ -370,6 +370,24 @@ static void vmi_check_page_type(u32 pfn,
- #define vmi_check_page_type(p,t) do { } while (0)
- #endif
+@@ -48,7 +48,6 @@ typedef u64 __attribute__((regparm(2))) 
  
-+static void vmi_map_pt_hook(int type, pte_t *va, u32 pfn)
-+{
-+	/*
-+	 * Internally, the VMI ROM must map virtual addresses to physical
-+	 * addresses for processing MMU updates.  By the time MMU updates
-+	 * are issued, this information is typically already lost.
-+	 * Fortunately, the VMI provides a cache of mapping slots for active
-+	 * page tables.
-+	 *
-+	 * We use slot zero for the linear mapping of physical memory, and
-+	 * in HIGHPTE kernels, slot 1 and 2 for KM_PTE0 and KM_PTE1.
-+	 *
-+	 *  args:                 SLOT                 VA    COUNT PFN
-+	 */
-+	BUG_ON(type != KM_PTE0 && type != KM_PTE1);
-+	vmi_ops.set_linear_mapping((type - KM_PTE0)+1, (u32)va, 1, pfn);
-+}
-+
- static void vmi_allocate_pt(u32 pfn)
- {
- 	vmi_set_page_type(pfn, VMI_PAGE_L1);
-@@ -813,6 +831,7 @@ static inline int __init activate_vmi(vo
- 	vmi_ops.allocate_page = vmi_get_function(VMI_CALL_AllocatePage);
- 	vmi_ops.release_page = vmi_get_function(VMI_CALL_ReleasePage);
+ static struct vrom_header *vmi_rom;
+ static int license_gplok;
+-static int disable_nodelay;
+ static int disable_pge;
+ static int disable_pse;
+ static int disable_sep;
+@@ -801,9 +800,6 @@ static inline int __init activate_vmi(vo
  
-+	paravirt_ops.map_pt_hook = vmi_map_pt_hook;
- 	paravirt_ops.alloc_pt = vmi_allocate_pt;
- 	paravirt_ops.alloc_pd = vmi_allocate_pd;
- 	paravirt_ops.alloc_pd_clone = vmi_allocate_pd_clone;
-diff -puN include/asm-i386/paravirt.h~vmi-fix-highpte include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~vmi-fix-highpte
+ 	para_fill(set_iopl_mask, SetIOPLMask);
+ 	paravirt_ops.io_delay = (void *)vmi_nop;
+-	if (!disable_nodelay) {
+-		paravirt_ops.const_udelay = (void *)vmi_nop;
+-	}
+ 
+ 	para_fill(set_lazy_mode, SetLazyMode);
+ 
+@@ -947,9 +943,7 @@ static int __init parse_vmi(char *arg)
+ 	if (!arg)
+ 		return -EINVAL;
+ 
+-	if (!strcmp(arg, "disable_nodelay"))
+-		disable_nodelay = 1;
+-	else if (!strcmp(arg, "disable_pge")) {
++	if (!strcmp(arg, "disable_pge")) {
+ 		clear_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
+ 		disable_pge = 1;
+ 	} else if (!strcmp(arg, "disable_pse")) {
+diff -puN include/asm-i386/delay.h~vmi-paravirt-drop-udelay-op include/asm-i386/delay.h
+--- a/include/asm-i386/delay.h~vmi-paravirt-drop-udelay-op
++++ a/include/asm-i386/delay.h
+@@ -16,13 +16,6 @@ extern void __ndelay(unsigned long nsecs
+ extern void __const_udelay(unsigned long usecs);
+ extern void __delay(unsigned long loops);
+ 
+-#if defined(CONFIG_PARAVIRT) && !defined(USE_REAL_TIME_DELAY)
+-#define udelay(n) paravirt_ops.const_udelay((n) * 0x10c7ul)
+-
+-#define ndelay(n) paravirt_ops.const_udelay((n) * 5ul)
+-
+-#else /* !PARAVIRT || USE_REAL_TIME_DELAY */
+-
+ /* 0x10c7 is 2**32 / 1000000 (rounded up) */
+ #define udelay(n) (__builtin_constant_p(n) ? \
+ 	((n) > 20000 ? __bad_udelay() : __const_udelay((n) * 0x10c7ul)) : \
+@@ -32,7 +25,6 @@ extern void __delay(unsigned long loops)
+ #define ndelay(n) (__builtin_constant_p(n) ? \
+ 	((n) > 20000 ? __bad_ndelay() : __const_udelay((n) * 5ul)) : \
+ 	__ndelay(n))
+-#endif
+ 
+ void use_tsc_delay(void);
+ 
+diff -puN include/asm-i386/paravirt.h~vmi-paravirt-drop-udelay-op include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~vmi-paravirt-drop-udelay-op
 +++ a/include/asm-i386/paravirt.h
-@@ -131,6 +131,8 @@ struct paravirt_ops
- 	void (*flush_tlb_kernel)(void);
- 	void (*flush_tlb_single)(u32 addr);
+@@ -117,7 +117,6 @@ struct paravirt_ops
+ 	void (*set_iopl_mask)(unsigned mask);
  
-+	void (fastcall *map_pt_hook)(int type, pte_t *va, u32 pfn);
-+
- 	void (*alloc_pt)(u32 pfn);
- 	void (*alloc_pd)(u32 pfn);
- 	void (*alloc_pd_clone)(u32 pfn, u32 clonepfn, u32 start, u32 count);
-@@ -354,6 +356,8 @@ static inline void startup_ipi_hook(int 
- #define __flush_tlb_global() paravirt_ops.flush_tlb_kernel()
- #define __flush_tlb_single(addr) paravirt_ops.flush_tlb_single(addr)
+ 	void (*io_delay)(void);
+-	void (*const_udelay)(unsigned long loops);
  
-+#define paravirt_map_pt_hook(type, va, pfn) paravirt_ops.map_pt_hook(type, va, pfn)
-+
- #define paravirt_alloc_pt(pfn) paravirt_ops.alloc_pt(pfn)
- #define paravirt_release_pt(pfn) paravirt_ops.release_pt(pfn)
- 
-diff -puN include/asm-i386/pgtable.h~vmi-fix-highpte include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~vmi-fix-highpte
-+++ a/include/asm-i386/pgtable.h
-@@ -263,6 +263,7 @@ static inline pte_t pte_mkhuge(pte_t pte
-  */
- #define pte_update(mm, addr, ptep)		do { } while (0)
- #define pte_update_defer(mm, addr, ptep)	do { } while (0)
-+#define paravirt_map_pt_hook(slot, va, pfn)	do { } while (0)
- #endif
- 
- /*
-@@ -469,10 +470,24 @@ extern pte_t *lookup_address(unsigned lo
- #endif
- 
- #if defined(CONFIG_HIGHPTE)
--#define pte_offset_map(dir, address) \
--	((pte_t *)kmap_atomic(pmd_page(*(dir)),KM_PTE0) + pte_index(address))
--#define pte_offset_map_nested(dir, address) \
--	((pte_t *)kmap_atomic(pmd_page(*(dir)),KM_PTE1) + pte_index(address))
-+#define pte_offset_map(dir, address)				\
-+({								\
-+	pte_t *__ptep;						\
-+	unsigned pfn = pmd_val(*(dir)) >> PAGE_SHIFT;	   	\
-+	__ptep = (pte_t *)kmap_atomic(pfn_to_page(pfn),KM_PTE0);\
-+	paravirt_map_pt_hook(KM_PTE0,__ptep, pfn);		\
-+	__ptep = __ptep + pte_index(address);			\
-+	__ptep;							\
-+})
-+#define pte_offset_map_nested(dir, address)			\
-+({								\
-+	pte_t *__ptep;						\
-+	unsigned pfn = pmd_val(*(dir)) >> PAGE_SHIFT;	   	\
-+	__ptep = (pte_t *)kmap_atomic(pfn_to_page(pfn),KM_PTE1);\
-+	paravirt_map_pt_hook(KM_PTE1,__ptep, pfn);		\
-+	__ptep = __ptep + pte_index(address);			\
-+	__ptep;							\
-+})
- #define pte_unmap(pte) kunmap_atomic(pte, KM_PTE0)
- #define pte_unmap_nested(pte) kunmap_atomic(pte, KM_PTE1)
- #else
+ #ifdef CONFIG_X86_LOCAL_APIC
+ 	void (*apic_write)(unsigned long reg, unsigned long v);
 _
 
 Patches currently in -mm which might be from zach@vmware.com are
