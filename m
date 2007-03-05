@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_platform-set-a-cable-type-which-to-set.patch added to -mm tree
-Date: Sun, 04 Mar 2007 23:39:14 -0800
-Message-ID: <200703050739.l257dECH012867@shell0.pdx.osdl.net>
+Subject: + pata_qdi-set-cable-type.patch added to -mm tree
+Date: Sun, 04 Mar 2007 23:39:23 -0800
+Message-ID: <200703050739.l257dN28012875@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34551 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34555 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932112AbXCEHja (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 02:39:30 -0500
+	id S932112AbXCEHji (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 02:39:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_platform: set a cable type (which to set ?)
+     pata_qdi: set cable type
 has been added to the -mm tree.  Its filename is
-     pata_platform-set-a-cable-type-which-to-set.patch
+     pata_qdi-set-cable-type.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,27 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_platform: set a cable type (which to set ?)
+Subject: pata_qdi: set cable type
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_platform.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/pata_qdi.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/ata/pata_platform.c~pata_platform-set-a-cable-type-which-to-set drivers/ata/pata_platform.c
---- a/drivers/ata/pata_platform.c~pata_platform-set-a-cable-type-which-to-set
-+++ a/drivers/ata/pata_platform.c
-@@ -80,6 +80,7 @@ static struct ata_port_operations pata_p
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_unknown,
+diff -puN drivers/ata/pata_qdi.c~pata_qdi-set-cable-type drivers/ata/pata_qdi.c
+--- a/drivers/ata/pata_qdi.c~pata_qdi-set-cable-type
++++ a/drivers/ata/pata_qdi.c
+@@ -183,6 +183,7 @@ static struct ata_port_operations qdi650
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
  
- 	.qc_prep		= ata_qc_prep,
- 	.qc_issue		= ata_qc_issue_prot,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= qdi_qc_issue_prot,
+@@ -211,6 +212,7 @@ static struct ata_port_operations qdi658
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= qdi_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
