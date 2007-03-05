@@ -1,63 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-fixup.patch added to -mm tree
-Date: Sun, 04 Mar 2007 23:49:38 -0800
-Message-ID: <200703050749.l257ncIc013048@shell0.pdx.osdl.net>
+Subject: - md-fix-for-raid6-reshape-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 00:01:21 -0800
+Message-ID: <200703050801.l2581LAa013252@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34746 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35217 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750961AbXCEHtm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 02:49:42 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l257ncq8013362
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 4 Mar 2007 23:49:39 -0800
+	id S932201AbXCEIB0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 03:01:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-wireless-fixup
-has been added to the -mm tree.  Its filename is
-     git-wireless-fixup.patch
+     md-fix-for-raid6-reshape-fix
+has been removed from the -mm tree.  Its filename was
+     md-fix-for-raid6-reshape-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into md-fix-for-raid6-reshape.patch
 
 ------------------------------------------------------
-Subject: git-wireless-fixup
+Subject: md-fix-for-raid6-reshape-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Makefile |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/md/raid5.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/Makefile~git-wireless-fixup drivers/net/wireless/Makefile
---- a/drivers/net/wireless/Makefile~git-wireless-fixup
-+++ a/drivers/net/wireless/Makefile
-@@ -43,10 +43,7 @@ obj-$(CONFIG_PCMCIA_RAYCS)	+= ray_cs.o
- obj-$(CONFIG_PCMCIA_WL3501)	+= wl3501_cs.o
- 
- obj-$(CONFIG_USB_ZD1201)	+= zd1201.o
--<<<<<<< HEAD/drivers/net/wireless/Makefile
- obj-$(CONFIG_LIBERTAS_USB)     += libertas/
--=======
- 
- # Drivers using Devicescape IEEE 802.11 stack (net/mac80211)
- obj-y				+= mac80211/
-->>>>>>> /drivers/net/wireless/Makefile
+diff -puN drivers/md/raid5.c~md-fix-for-raid6-reshape-fix drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-fix-for-raid6-reshape-fix
++++ a/drivers/md/raid5.c
+@@ -3071,7 +3071,7 @@ static sector_t reshape_request(mddev_t 
+ 		release_stripe(sh);
+ 	}
+ 	spin_lock_irq(&conf->device_lock);
+-	conf->expand_progress = (sector_nr + i) * new_data_disks);
++	conf->expand_progress = (sector_nr + i) * new_data_disks;
+ 	spin_unlock_irq(&conf->device_lock);
+ 	/* Ok, those stripe are ready. We can start scheduling
+ 	 * reads on the source stripes.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 cyclades-return-closing_wait.patch
+md-fix-for-raid6-reshape.patch
 md-fix-for-raid6-reshape-fix.patch
 slab-introduce-krealloc-fix.patch
 make-aout-executables-work-again-fix.patch
