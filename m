@@ -1,205 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - vmi-timer-fixes-round-two.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:55:09 -0800
-Message-ID: <200703052355.l25Nt9Cr005167@shell0.pdx.osdl.net>
+Subject: - vmi-sched-clock-paravirt-op-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:55:12 -0800
+Message-ID: <200703052355.l25NtC5P005170@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41911 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41920 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932515AbXCEXzL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:55:11 -0500
+	id S932517AbXCEXzO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:55:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach@vmware.com, dhecht@vmware.com, mm-commits@vger.kernel.org
+To: zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmi: timer fixes round two
+     vmi: sched clock paravirt op fix
 has been removed from the -mm tree.  Its filename was
-     vmi-timer-fixes-round-two.patch
+     vmi-sched-clock-paravirt-op-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vmi: timer fixes round two
+Subject: vmi: sched clock paravirt op fix
 From: Zachary Amsden <zach@vmware.com>
 
-Critical bugfixes for the VMI-Timer code.
+The custom_sched_clock hook is broken.  The result from sched_clock needs to
+be in nanoseconds, not in CPU cycles.  The TSC is insufficient for this
+purpose, because TSC is poorly defined in a virtual environment, and mostly
+represents real world time instead of scheduled process time (which can be
+interrupted without notice when a virtual machine is descheduled).
 
-1) Do not setup a one shot alarm if we are keeping the periodic alarm
-   armed.  Additionally, since the periodic alarm can be run at a lower rate
-   than HZ, let's fixup the guard to the no-idle-hz mode appropriately.  This
-   fixes the bug where the no-idle-hz mode might have a higher interrupt rate
-   than the non-idle case.
+To make the scheduler consistent, we must expose a different nature of time,
+that is scheduled time.  So deprecate this custom_sched_clock hack and turn it
+into a paravirt-op, as it should have been all along.  This allows the tsc.c
+code which converts cycles to nanoseconds to be shared by all paravirt-ops
+backends.
 
-2) The interrupt handler can no longer adjust xtime due to nested lock
-   acquisition.  Drop this.  We don't need to check for wallclock time at
-   every tick, it can be done in userspace instead.
+It is unfortunate to add a new paravirt-op, but this is a very distinct
+abstraction which is clearly different for all virtual machine
+implementations, and it gets rid of an ugly indirect function which I
+ashamedly admit I hacked in to try to get this to work earlier, and then even
+got in the wrong units.
 
-3) Add a bypass to disable noidle operation.  This is useful as a last
-   minute workaround, or testing measure.
-
-4) The code to skip the IO_APIC timer testing (no_timer_check) should be
-   conditional on IO_APIC, not SMP, since UP kernels can have this configured
-   in as well.
-
-Signed-off-by: Dan Hecht <dhecht@vmware.com>
 Signed-off-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmi.c     |   23 +++++++++++++----------
- arch/i386/kernel/vmitime.c |   30 +++++++++++-------------------
- 2 files changed, 24 insertions(+), 29 deletions(-)
+ arch/i386/kernel/paravirt.c |    2 ++
+ arch/i386/kernel/tsc.c      |    6 ++----
+ arch/i386/kernel/vmi.c      |    2 +-
+ arch/i386/kernel/vmitime.c  |    2 +-
+ include/asm-i386/paravirt.h |    3 +++
+ include/asm-i386/time.h     |    1 -
+ include/asm-i386/timer.h    |    8 +++++++-
+ include/asm-i386/vmi_time.h |    2 +-
+ 8 files changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN arch/i386/kernel/vmi.c~vmi-timer-fixes-round-two arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~vmi-timer-fixes-round-two
-+++ a/arch/i386/kernel/vmi.c
-@@ -54,6 +54,7 @@ static int disable_pse;
- static int disable_sep;
- static int disable_tsc;
- static int disable_mtrr;
-+static int disable_noidle;
+diff -puN arch/i386/kernel/paravirt.c~vmi-sched-clock-paravirt-op-fix arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~vmi-sched-clock-paravirt-op-fix
++++ a/arch/i386/kernel/paravirt.c
+@@ -32,6 +32,7 @@
+ #include <asm/fixmap.h>
+ #include <asm/apic.h>
+ #include <asm/tlbflush.h>
++#include <asm/timer.h>
  
- /* Cached VMI operations */
- struct {
-@@ -255,7 +256,6 @@ static void vmi_nop(void)
- }
+ /* nop stub */
+ static void native_nop(void)
+@@ -520,6 +521,7 @@ struct paravirt_ops paravirt_ops = {
+ 	.write_msr = native_write_msr,
+ 	.read_tsc = native_read_tsc,
+ 	.read_pmc = native_read_pmc,
++	.get_scheduled_cycles = native_read_tsc,
+ 	.load_tr_desc = native_load_tr_desc,
+ 	.set_ldt = native_set_ldt,
+ 	.load_gdt = native_load_gdt,
+diff -puN arch/i386/kernel/tsc.c~vmi-sched-clock-paravirt-op-fix arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~vmi-sched-clock-paravirt-op-fix
++++ a/arch/i386/kernel/tsc.c
+@@ -14,6 +14,7 @@
+ #include <asm/delay.h>
+ #include <asm/tsc.h>
+ #include <asm/io.h>
++#include <asm/timer.h>
  
- /* For NO_IDLE_HZ, we stop the clock when halting the kernel */
--#ifdef CONFIG_NO_IDLE_HZ
- static fastcall void vmi_safe_halt(void)
+ #include "mach_timer.h"
+ 
+@@ -102,9 +103,6 @@ unsigned long long sched_clock(void)
  {
- 	int idle = vmi_stop_hz_timer();
-@@ -266,7 +266,6 @@ static fastcall void vmi_safe_halt(void)
- 		local_irq_enable();
- 	}
- }
--#endif
+ 	unsigned long long this_offset;
  
- #ifdef CONFIG_DEBUG_PAGE_TYPE
- 
-@@ -742,12 +741,7 @@ static inline int __init activate_vmi(vo
- 		     (char *)paravirt_ops.save_fl);
- 	patch_offset(&irq_save_disable_callout[IRQ_PATCH_DISABLE],
- 		     (char *)paravirt_ops.irq_disable);
--#ifndef CONFIG_NO_IDLE_HZ
--	para_fill(safe_halt, Halt);
--#else
--	vmi_ops.halt = vmi_get_function(VMI_CALL_Halt);
--	paravirt_ops.safe_halt = vmi_safe_halt;
--#endif
-+
- 	para_fill(wbinvd, WBINVD);
- 	/* paravirt_ops.read_msr = vmi_rdmsr */
- 	/* paravirt_ops.write_msr = vmi_wrmsr */
-@@ -881,6 +875,12 @@ static inline int __init activate_vmi(vo
- #endif
- 		custom_sched_clock = vmi_sched_clock;
- 	}
-+	if (!disable_noidle)
-+		para_fill(safe_halt, Halt);
-+	else {
-+		vmi_ops.halt = vmi_get_function(VMI_CALL_Halt);
-+		paravirt_ops.safe_halt = vmi_safe_halt;
-+	}
- 
+-	if (unlikely(custom_sched_clock))
+-		return (*custom_sched_clock)();
+-
  	/*
- 	 * Alternative instruction rewriting doesn't happen soon enough
-@@ -914,9 +914,11 @@ void __init vmi_init(void)
+ 	 * Fall back to jiffies if there's no TSC available:
+ 	 */
+@@ -113,7 +111,7 @@ unsigned long long sched_clock(void)
+ 		return (jiffies_64 - INITIAL_JIFFIES) * (1000000000 / HZ);
  
- 	local_irq_save(flags);
- 	activate_vmi();
--#ifdef CONFIG_SMP
-+
-+#ifdef CONFIG_X86_IO_APIC
- 	no_timer_check = 1;
+ 	/* read the Time Stamp Counter: */
+-	rdtscll(this_offset);
++	get_scheduled_cycles(this_offset);
+ 
+ 	/* return the value in ns */
+ 	return cycles_2_ns(this_offset);
+diff -puN arch/i386/kernel/vmi.c~vmi-sched-clock-paravirt-op-fix arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~vmi-sched-clock-paravirt-op-fix
++++ a/arch/i386/kernel/vmi.c
+@@ -873,7 +873,7 @@ static inline int __init activate_vmi(vo
+ 		paravirt_ops.setup_boot_clock = vmi_timer_setup_boot_alarm;
+ 		paravirt_ops.setup_secondary_clock = vmi_timer_setup_secondary_alarm;
  #endif
-+
- 	local_irq_restore(flags & X86_EFLAGS_IF);
- }
- 
-@@ -942,7 +944,8 @@ static int __init parse_vmi(char *arg)
- 	} else if (!strcmp(arg, "disable_mtrr")) {
- 		clear_bit(X86_FEATURE_MTRR, boot_cpu_data.x86_capability);
- 		disable_mtrr = 1;
--	}
-+	} else if (!strcmp(arg, "disable_noidle"))
-+		disable_noidle = 1;
- 	return 0;
- }
- 
-diff -puN arch/i386/kernel/vmitime.c~vmi-timer-fixes-round-two arch/i386/kernel/vmitime.c
---- a/arch/i386/kernel/vmitime.c~vmi-timer-fixes-round-two
-+++ a/arch/i386/kernel/vmitime.c
-@@ -276,16 +276,13 @@ static void vmi_account_real_cycles(unsi
- 
- 	cycles_not_accounted = cur_real_cycles - real_cycles_accounted_system;
- 	while (cycles_not_accounted >= cycles_per_jiffy) {
--		/* systems wide jiffies and wallclock. */
-+		/* systems wide jiffies. */
- 		do_timer(1);
- 
- 		cycles_not_accounted -= cycles_per_jiffy;
- 		real_cycles_accounted_system += cycles_per_jiffy;
+-		custom_sched_clock = vmi_sched_clock;
++		paravirt_ops.get_scheduled_cycles = vmi_get_sched_cycles;
  	}
- 
--	if (vmi_timer_ops.wallclock_updated())
--		update_xtime_from_wallclock();
--
- 	write_sequnlock(&xtime_lock);
+ 	if (!disable_noidle)
+ 		para_fill(safe_halt, Halt);
+diff -puN arch/i386/kernel/vmitime.c~vmi-sched-clock-paravirt-op-fix arch/i386/kernel/vmitime.c
+--- a/arch/i386/kernel/vmitime.c~vmi-sched-clock-paravirt-op-fix
++++ a/arch/i386/kernel/vmitime.c
+@@ -172,7 +172,7 @@ int vmi_set_wallclock(unsigned long now)
+ 	return -1;
  }
  
-@@ -380,7 +377,6 @@ int vmi_stop_hz_timer(void)
- 	unsigned long seq, next;
- 	unsigned long long real_cycles_expiry;
- 	int cpu = smp_processor_id();
--	int idle;
+-unsigned long long vmi_sched_clock(void)
++unsigned long long vmi_get_sched_cycles(void)
+ {
+ 	return read_available_cycles();
+ }
+diff -puN include/asm-i386/paravirt.h~vmi-sched-clock-paravirt-op-fix include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~vmi-sched-clock-paravirt-op-fix
++++ a/include/asm-i386/paravirt.h
+@@ -94,6 +94,7 @@ struct paravirt_ops
  
- 	BUG_ON(!irqs_disabled());
- 	if (sysctl_hz_timer != 0)
-@@ -388,13 +384,13 @@ int vmi_stop_hz_timer(void)
+ 	u64 (*read_tsc)(void);
+ 	u64 (*read_pmc)(void);
++ 	u64 (*get_scheduled_cycles)(void);
  
- 	cpu_set(cpu, nohz_cpu_mask);
- 	smp_mb();
+ 	void (*load_tr_desc)(void);
+ 	void (*load_gdt)(const struct Xgt_desc_struct *);
+@@ -273,6 +274,8 @@ static inline void halt(void)
+ 
+ #define rdtscll(val) (val = paravirt_ops.read_tsc())
+ 
++#define get_scheduled_cycles(val) (val = paravirt_ops.get_scheduled_cycles())
 +
- 	if (rcu_needs_cpu(cpu) || local_softirq_pending() ||
--	    (next = next_timer_interrupt(), time_before_eq(next, jiffies))) {
-+	    (next = next_timer_interrupt(),
-+	     time_before_eq(next, jiffies + HZ/CONFIG_VMI_ALARM_HZ))) {
- 		cpu_clear(cpu, nohz_cpu_mask);
--		next = jiffies;
--		idle = 0;
--	} else
--		idle = 1;
-+		return 0;
-+	}
+ #define write_tsc(val1,val2) wrmsr(0x10, val1, val2)
  
- 	/* Convert jiffies to the real cycle counter. */
- 	do {
-@@ -404,17 +400,13 @@ int vmi_stop_hz_timer(void)
- 	} while (read_seqretry(&xtime_lock, seq));
+ #define rdpmc(counter,low,high) do {				\
+diff -puN include/asm-i386/time.h~vmi-sched-clock-paravirt-op-fix include/asm-i386/time.h
+--- a/include/asm-i386/time.h~vmi-sched-clock-paravirt-op-fix
++++ a/include/asm-i386/time.h
+@@ -30,7 +30,6 @@ static inline int native_set_wallclock(u
  
- 	/* This cpu is going idle. Disable the periodic alarm. */
--	if (idle) {
--		vmi_timer_ops.cancel_alarm(VMI_CYCLES_AVAILABLE);
--		per_cpu(idle_start_jiffies, cpu) = jiffies;
--	}
--
-+	vmi_timer_ops.cancel_alarm(VMI_CYCLES_AVAILABLE);
-+	per_cpu(idle_start_jiffies, cpu) = jiffies;
- 	/* Set the real time alarm to expire at the next event. */
- 	vmi_timer_ops.set_alarm(
--		      VMI_ALARM_WIRING | VMI_ALARM_IS_ONESHOT | VMI_CYCLES_REAL,
--		      real_cycles_expiry, 0);
--
--	return idle;
-+		VMI_ALARM_WIRING | VMI_ALARM_IS_ONESHOT | VMI_CYCLES_REAL,
-+		real_cycles_expiry, 0);
-+	return 1;
- }
+ #ifdef CONFIG_PARAVIRT
+ #include <asm/paravirt.h>
+-extern unsigned long long native_sched_clock(void);
+ #else /* !CONFIG_PARAVIRT */
  
- static void vmi_reenable_hz_timer(int cpu)
+ #define get_wallclock() native_get_wallclock()
+diff -puN include/asm-i386/timer.h~vmi-sched-clock-paravirt-op-fix include/asm-i386/timer.h
+--- a/include/asm-i386/timer.h~vmi-sched-clock-paravirt-op-fix
++++ a/include/asm-i386/timer.h
+@@ -4,13 +4,19 @@
+ #include <linux/pm.h>
+ 
+ #define TICK_SIZE (tick_nsec / 1000)
++
+ void setup_pit_timer(void);
++unsigned long long native_sched_clock(void);
++
+ /* Modifiers for buggy PIT handling */
+ extern int pit_latch_buggy;
+ extern int timer_ack;
+ extern int no_timer_check;
+-extern unsigned long long (*custom_sched_clock)(void);
+ extern int no_sync_cmos_clock;
+ extern int recalibrate_cpu_khz(void);
+ 
++#ifndef CONFIG_PARAVIRT
++#define get_scheduled_cycles(val) rdtscll(val)
++#endif
++
+ #endif
+diff -puN include/asm-i386/vmi_time.h~vmi-sched-clock-paravirt-op-fix include/asm-i386/vmi_time.h
+--- a/include/asm-i386/vmi_time.h~vmi-sched-clock-paravirt-op-fix
++++ a/include/asm-i386/vmi_time.h
+@@ -49,7 +49,7 @@ extern struct vmi_timer_ops {
+ extern void __init vmi_time_init(void);
+ extern unsigned long vmi_get_wallclock(void);
+ extern int vmi_set_wallclock(unsigned long now);
+-extern unsigned long long vmi_sched_clock(void);
++extern unsigned long long vmi_get_sched_cycles(void);
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+ extern void __init vmi_timer_setup_boot_alarm(void);
 _
 
 Patches currently in -mm which might be from zach@vmware.com are
