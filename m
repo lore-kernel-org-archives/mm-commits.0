@@ -1,45 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: - msi-fixup-the-msi-enable-disable-logic.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:54:27 -0800
-Message-ID: <200703052354.l25NsR5R005094@shell0.pdx.osdl.net>
+Subject: - msi-sanely-support-hardware-level-msi-disabling.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:54:21 -0800
+Message-ID: <200703052354.l25NsLhk005088@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41861 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41857 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932487AbXCEXyk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:54:40 -0500
+	id S932470AbXCEXyj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:54:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, benh@kernel.crashing.org, greg@kroah.com, michael@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     msi: fix up the msi enable/disable logic
+     msi: sanely support hardware level msi disabling
 has been removed from the -mm tree.  Its filename was
-     msi-fixup-the-msi-enable-disable-logic.patch
+     msi-sanely-support-hardware-level-msi-disabling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: msi: fix up the msi enable/disable logic
+Subject: msi: sanely support hardware level msi disabling
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-enable/disable_msi_mode have several side effects which keeps them from being
-generally useful.  So this patch replaces them with with two much more
-targeted functions: msi_set_enable and msix_set_enable.
+In some cases when we are not using msi we need a way to ensure that the
+hardware does not have an msi capability enabled.  Currently the code has been
+calling disable_msi_mode to try and achieve that.  However disable_msi_mode
+has several other side effects and is only available when msi support is
+compiled in so it isn't really appropriate.
 
-This patch makes pci_dev->msi_enabled and pci_dev->msix_enabled the definitive
-way to test if linux has enabled the msi capability, and has the appropriate
-msi data structures set up.
+Instead this patch implements pci_msi_off which disables all msi and msix
+capabilities unconditionally with no additional side effects.
 
-This patch ensures that while writing the msi messages in save/restore and
-during device initialization we have the msi capability disabled so we don't
-get into races.  The pci spec requires that we do not have the msi capability
-enabled and the msi messages unmasked while we write the messages.  Completely
-disabling the capability is overkill but it is easy :)
+pci_disable_device was redundantly clearing the bus master enable flag and
+clearing the msi enable bit.  A device that is not allowed to perform bus
+mastering operations cannot generate intx or msi interrupt messages as those
+are essentially a special case of dma, and require bus mastering.  So the call
+in pci_disable_device to disable msi capabilities was redundant.
 
-Care has been taken so we never have both a msi capability and intx enabled
-simultaneously.  We haven't run into a problem yet but better safe then sorry.
+quirk_pcie_pxh also called disable_msi_mode and is updated to use pci_msi_off.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Michael Ellerman <michael@ellerman.id.au>
@@ -49,17 +49,68 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/msi.c |  144 +++++++++++++++++++-------------------------
- 1 file changed, 64 insertions(+), 80 deletions(-)
+ arch/powerpc/kernel/irq.c |    1 -
+ drivers/pci/msi.c         |    2 +-
+ drivers/pci/pci.c         |   34 +++++++++++++++++++++++++++-------
+ drivers/pci/pci.h         |    2 --
+ drivers/pci/quirks.c      |    4 ++--
+ include/linux/pci.h       |    1 +
+ include/linux/pci_regs.h  |    7 ++++---
+ 7 files changed, 35 insertions(+), 16 deletions(-)
 
-diff -puN drivers/pci/msi.c~msi-fixup-the-msi-enable-disable-logic drivers/pci/msi.c
---- a/drivers/pci/msi.c~msi-fixup-the-msi-enable-disable-logic
+diff -puN arch/powerpc/kernel/irq.c~msi-sanely-support-hardware-level-msi-disabling arch/powerpc/kernel/irq.c
+--- a/arch/powerpc/kernel/irq.c~msi-sanely-support-hardware-level-msi-disabling
++++ a/arch/powerpc/kernel/irq.c
+@@ -968,7 +968,6 @@ void pci_scan_msi_device(struct pci_dev 
+ int pci_enable_msix(struct pci_dev* dev, struct msix_entry *entries, int nvec) {return -1;}
+ void pci_disable_msix(struct pci_dev *dev) {}
+ void msi_remove_pci_irq_vectors(struct pci_dev *dev) {}
+-void disable_msi_mode(struct pci_dev *dev, int pos, int type) {}
+ void pci_no_msi(void) {}
+ EXPORT_SYMBOL(pci_enable_msix);
+ EXPORT_SYMBOL(pci_disable_msix);
+diff -puN drivers/pci/msi.c~msi-sanely-support-hardware-level-msi-disabling drivers/pci/msi.c
+--- a/drivers/pci/msi.c~msi-sanely-support-hardware-level-msi-disabling
 +++ a/drivers/pci/msi.c
-@@ -38,6 +38,36 @@ static int msi_cache_init(void)
- 	return 0;
+@@ -211,7 +211,7 @@ static void enable_msi_mode(struct pci_d
+ 	pci_intx(dev, 0);  /* disable intx */
  }
  
-+static void msi_set_enable(struct pci_dev *dev, int enable)
+-void disable_msi_mode(struct pci_dev *dev, int pos, int type)
++static void disable_msi_mode(struct pci_dev *dev, int pos, int type)
+ {
+ 	u16 control;
+ 
+diff -puN drivers/pci/pci.c~msi-sanely-support-hardware-level-msi-disabling drivers/pci/pci.c
+--- a/drivers/pci/pci.c~msi-sanely-support-hardware-level-msi-disabling
++++ a/drivers/pci/pci.c
+@@ -881,13 +881,6 @@ pci_disable_device(struct pci_dev *dev)
+ 	if (atomic_sub_return(1, &dev->enable_cnt) != 0)
+ 		return;
+ 
+-	if (dev->msi_enabled)
+-		disable_msi_mode(dev, pci_find_capability(dev, PCI_CAP_ID_MSI),
+-			PCI_CAP_ID_MSI);
+-	if (dev->msix_enabled)
+-		disable_msi_mode(dev, pci_find_capability(dev, PCI_CAP_ID_MSI),
+-			PCI_CAP_ID_MSIX);
+-
+ 	pci_read_config_word(dev, PCI_COMMAND, &pci_command);
+ 	if (pci_command & PCI_COMMAND_MASTER) {
+ 		pci_command &= ~PCI_COMMAND_MASTER;
+@@ -1277,6 +1270,33 @@ pci_intx(struct pci_dev *pdev, int enabl
+ 	}
+ }
+ 
++/**
++ * pci_msi_off - disables any msi or msix capabilities
++ * @pdev: the PCI device to operate on
++ *
++ * If you want to use msi see pci_enable_msi and friends.
++ * This is a lower level primitive that allows us to disable
++ * msi operation at the device level.
++ */
++void pci_msi_off(struct pci_dev *dev)
 +{
 +	int pos;
 +	u16 control;
@@ -68,276 +119,75 @@ diff -puN drivers/pci/msi.c~msi-fixup-the-msi-enable-disable-logic drivers/pci/m
 +	if (pos) {
 +		pci_read_config_word(dev, pos + PCI_MSI_FLAGS, &control);
 +		control &= ~PCI_MSI_FLAGS_ENABLE;
-+		if (enable)
-+			control |= PCI_MSI_FLAGS_ENABLE;
 +		pci_write_config_word(dev, pos + PCI_MSI_FLAGS, control);
 +	}
-+}
-+
-+static void msix_set_enable(struct pci_dev *dev, int enable)
-+{
-+	int pos;
-+	u16 control;
-+
 +	pos = pci_find_capability(dev, PCI_CAP_ID_MSIX);
 +	if (pos) {
 +		pci_read_config_word(dev, pos + PCI_MSIX_FLAGS, &control);
 +		control &= ~PCI_MSIX_FLAGS_ENABLE;
-+		if (enable)
-+			control |= PCI_MSIX_FLAGS_ENABLE;
 +		pci_write_config_word(dev, pos + PCI_MSIX_FLAGS, control);
 +	}
 +}
 +
- static void msi_set_mask_bit(unsigned int irq, int flag)
+ #ifndef HAVE_ARCH_PCI_SET_DMA_MASK
+ /*
+  * These can be overridden by arch-specific implementations
+diff -puN drivers/pci/pci.h~msi-sanely-support-hardware-level-msi-disabling drivers/pci/pci.h
+--- a/drivers/pci/pci.h~msi-sanely-support-hardware-level-msi-disabling
++++ a/drivers/pci/pci.h
+@@ -46,10 +46,8 @@ extern struct rw_semaphore pci_bus_sem;
+ extern unsigned int pci_pm_d3_delay;
+ 
+ #ifdef CONFIG_PCI_MSI
+-void disable_msi_mode(struct pci_dev *dev, int pos, int type);
+ void pci_no_msi(void);
+ #else
+-static inline void disable_msi_mode(struct pci_dev *dev, int pos, int type) { }
+ static inline void pci_no_msi(void) { }
+ #endif
+ 
+diff -puN drivers/pci/quirks.c~msi-sanely-support-hardware-level-msi-disabling drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~msi-sanely-support-hardware-level-msi-disabling
++++ a/drivers/pci/quirks.c
+@@ -1438,8 +1438,8 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
+  */
+ static void __devinit quirk_pcie_pxh(struct pci_dev *dev)
  {
- 	struct msi_desc *entry;
-@@ -192,44 +222,6 @@ static struct msi_desc* alloc_msi_entry(
- 	return entry;
- }
- 
--static void enable_msi_mode(struct pci_dev *dev, int pos, int type)
--{
--	u16 control;
--
--	pci_read_config_word(dev, msi_control_reg(pos), &control);
--	if (type == PCI_CAP_ID_MSI) {
--		/* Set enabled bits to single MSI & enable MSI_enable bit */
--		msi_enable(control, 1);
--		pci_write_config_word(dev, msi_control_reg(pos), control);
--		dev->msi_enabled = 1;
--	} else {
--		msix_enable(control);
--		pci_write_config_word(dev, msi_control_reg(pos), control);
--		dev->msix_enabled = 1;
--	}
--
--	pci_intx(dev, 0);  /* disable intx */
--}
--
--static void disable_msi_mode(struct pci_dev *dev, int pos, int type)
--{
--	u16 control;
--
--	pci_read_config_word(dev, msi_control_reg(pos), &control);
--	if (type == PCI_CAP_ID_MSI) {
--		/* Set enabled bits to single MSI & enable MSI_enable bit */
--		msi_disable(control);
--		pci_write_config_word(dev, msi_control_reg(pos), control);
--		dev->msi_enabled = 0;
--	} else {
--		msix_disable(control);
--		pci_write_config_word(dev, msi_control_reg(pos), control);
--		dev->msix_enabled = 0;
--	}
--
--	pci_intx(dev, 1);  /* enable intx */
--}
--
- #ifdef CONFIG_PM
- static int __pci_save_msi_state(struct pci_dev *dev)
- {
-@@ -238,12 +230,11 @@ static int __pci_save_msi_state(struct p
- 	struct pci_cap_saved_state *save_state;
- 	u32 *cap;
- 
--	pos = pci_find_capability(dev, PCI_CAP_ID_MSI);
--	if (pos <= 0 || dev->no_msi)
-+	if (!dev->msi_enabled)
- 		return 0;
- 
--	pci_read_config_word(dev, msi_control_reg(pos), &control);
--	if (!(control & PCI_MSI_FLAGS_ENABLE))
-+	pos = pci_find_capability(dev, PCI_CAP_ID_MSI);
-+	if (pos <= 0)
- 		return 0;
- 
- 	save_state = kzalloc(sizeof(struct pci_cap_saved_state) + sizeof(u32) * 5,
-@@ -276,13 +267,18 @@ static void __pci_restore_msi_state(stru
- 	struct pci_cap_saved_state *save_state;
- 	u32 *cap;
- 
-+	if (!dev->msi_enabled)
-+		return;
+-	disable_msi_mode(dev, pci_find_capability(dev, PCI_CAP_ID_MSI),
+-					PCI_CAP_ID_MSI);
++	pci_msi_off(dev);
 +
- 	save_state = pci_find_saved_cap(dev, PCI_CAP_ID_MSI);
- 	pos = pci_find_capability(dev, PCI_CAP_ID_MSI);
- 	if (!save_state || pos <= 0)
- 		return;
- 	cap = &save_state->data[0];
+ 	dev->no_msi = 1;
  
-+	pci_intx(dev, 0);		/* disable intx */
- 	control = cap[i++] >> 16;
-+	msi_set_enable(dev, 0);
- 	pci_write_config_dword(dev, pos + PCI_MSI_ADDRESS_LO, cap[i++]);
- 	if (control & PCI_MSI_FLAGS_64BIT) {
- 		pci_write_config_dword(dev, pos + PCI_MSI_ADDRESS_HI, cap[i++]);
-@@ -292,7 +288,6 @@ static void __pci_restore_msi_state(stru
- 	if (control & PCI_MSI_FLAGS_MASKBIT)
- 		pci_write_config_dword(dev, pos + PCI_MSI_MASK_BIT, cap[i++]);
- 	pci_write_config_word(dev, pos + PCI_MSI_FLAGS, control);
--	enable_msi_mode(dev, pos, PCI_CAP_ID_MSI);
- 	pci_remove_saved_cap(save_state);
- 	kfree(save_state);
- }
-@@ -308,13 +303,11 @@ static int __pci_save_msix_state(struct 
- 		return 0;
+ 	printk(KERN_WARNING "PCI: PXH quirk detected, "
+diff -puN include/linux/pci.h~msi-sanely-support-hardware-level-msi-disabling include/linux/pci.h
+--- a/include/linux/pci.h~msi-sanely-support-hardware-level-msi-disabling
++++ a/include/linux/pci.h
+@@ -543,6 +543,7 @@ void pci_set_master(struct pci_dev *dev)
+ int __must_check pci_set_mwi(struct pci_dev *dev);
+ void pci_clear_mwi(struct pci_dev *dev);
+ void pci_intx(struct pci_dev *dev, int enable);
++void pci_msi_off(struct pci_dev *dev);
+ int pci_set_dma_mask(struct pci_dev *dev, u64 mask);
+ int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask);
+ void pci_update_resource(struct pci_dev *dev, struct resource *res, int resno);
+diff -puN include/linux/pci_regs.h~msi-sanely-support-hardware-level-msi-disabling include/linux/pci_regs.h
+--- a/include/linux/pci_regs.h~msi-sanely-support-hardware-level-msi-disabling
++++ a/include/linux/pci_regs.h
+@@ -292,9 +292,10 @@
+ #define PCI_MSI_DATA_64		12	/* 16 bits of data for 64-bit devices */
+ #define PCI_MSI_MASK_BIT	16	/* Mask bits register */
  
- 	pos = pci_find_capability(dev, PCI_CAP_ID_MSIX);
--	if (pos <= 0 || dev->no_msi)
-+	if (pos <= 0)
- 		return 0;
+-/* MSI-X registers (these are at offset PCI_MSI_FLAGS) */
+-#define PCI_MSIX_FLAGS_QSIZE	0x7FF
+-#define PCI_MSIX_FLAGS_ENABLE	(1 << 15)
++/* MSI-X registers (these are at offset PCI_MSIX_FLAGS) */
++#define PCI_MSIX_FLAGS		2
++#define  PCI_MSIX_FLAGS_QSIZE	0x7FF
++#define  PCI_MSIX_FLAGS_ENABLE	(1 << 15)
+ #define PCI_MSIX_FLAGS_BIRMASK	(7 << 0)
+ #define PCI_MSIX_FLAGS_BITMASK	(1 << 0)
  
- 	/* save the capability */
- 	pci_read_config_word(dev, msi_control_reg(pos), &control);
--	if (!(control & PCI_MSIX_FLAGS_ENABLE))
--		return 0;
- 	save_state = kzalloc(sizeof(struct pci_cap_saved_state) + sizeof(u16),
- 		GFP_KERNEL);
- 	if (!save_state) {
-@@ -376,6 +369,8 @@ static void __pci_restore_msix_state(str
- 		return;
- 
- 	/* route the table */
-+	pci_intx(dev, 0);		/* disable intx */
-+	msix_set_enable(dev, 0);
- 	irq = head = dev->first_msi_irq;
- 	while (head != tail) {
- 		entry = get_irq_msi(irq);
-@@ -386,7 +381,6 @@ static void __pci_restore_msix_state(str
- 	}
- 
- 	pci_write_config_word(dev, msi_control_reg(pos), save);
--	enable_msi_mode(dev, pos, PCI_CAP_ID_MSIX);
- }
- 
- void pci_restore_msi_state(struct pci_dev *dev)
-@@ -411,6 +405,8 @@ static int msi_capability_init(struct pc
- 	int pos, irq;
- 	u16 control;
- 
-+	msi_set_enable(dev, 0);	/* Ensure msi is disabled as I set it up */
-+
-    	pos = pci_find_capability(dev, PCI_CAP_ID_MSI);
- 	pci_read_config_word(dev, msi_control_reg(pos), &control);
- 	/* MSI Entry Initialization */
-@@ -454,7 +450,9 @@ static int msi_capability_init(struct pc
- 	set_irq_msi(irq, entry);
- 
- 	/* Set MSI enabled bits	 */
--	enable_msi_mode(dev, pos, PCI_CAP_ID_MSI);
-+	pci_intx(dev, 0);		/* disable intx */
-+	msi_set_enable(dev, 1);
-+	dev->msi_enabled = 1;
- 
- 	dev->irq = irq;
- 	return 0;
-@@ -481,6 +479,8 @@ static int msix_capability_init(struct p
- 	u8 bir;
- 	void __iomem *base;
- 
-+	msix_set_enable(dev, 0);/* Ensure msix is disabled as I set it up */
-+
-    	pos = pci_find_capability(dev, PCI_CAP_ID_MSIX);
- 	/* Request & Map MSI-X table region */
-  	pci_read_config_word(dev, msi_control_reg(pos), &control);
-@@ -549,7 +549,9 @@ static int msix_capability_init(struct p
- 	}
- 	dev->first_msi_irq = entries[0].vector;
- 	/* Set MSI-X enabled bits */
--	enable_msi_mode(dev, pos, PCI_CAP_ID_MSIX);
-+	pci_intx(dev, 0);		/* disable intx */
-+	msix_set_enable(dev, 1);
-+	dev->msix_enabled = 1;
- 
- 	return 0;
- }
-@@ -611,12 +613,11 @@ int pci_enable_msi(struct pci_dev* dev)
- 	WARN_ON(!!dev->msi_enabled);
- 
- 	/* Check whether driver already requested for MSI-X irqs */
--	pos = pci_find_capability(dev, PCI_CAP_ID_MSIX);
--	if (pos > 0 && dev->msix_enabled) {
--			printk(KERN_INFO "PCI: %s: Can't enable MSI.  "
--			       "Device already has MSI-X enabled\n",
--			       pci_name(dev));
--			return -EINVAL;
-+	if (dev->msix_enabled) {
-+		printk(KERN_INFO "PCI: %s: Can't enable MSI.  "
-+			"Device already has MSI-X enabled\n",
-+			pci_name(dev));
-+		return -EINVAL;
- 	}
- 	status = msi_capability_init(dev);
- 	return status;
-@@ -625,8 +626,7 @@ int pci_enable_msi(struct pci_dev* dev)
- void pci_disable_msi(struct pci_dev* dev)
- {
- 	struct msi_desc *entry;
--	int pos, default_irq;
--	u16 control;
-+	int default_irq;
- 
- 	if (!pci_msi_enable)
- 		return;
-@@ -636,16 +636,9 @@ void pci_disable_msi(struct pci_dev* dev
- 	if (!dev->msi_enabled)
- 		return;
- 
--	pos = pci_find_capability(dev, PCI_CAP_ID_MSI);
--	if (!pos)
--		return;
--
--	pci_read_config_word(dev, msi_control_reg(pos), &control);
--	if (!(control & PCI_MSI_FLAGS_ENABLE))
--		return;
--
--
--	disable_msi_mode(dev, pos, PCI_CAP_ID_MSI);
-+	msi_set_enable(dev, 0);
-+	pci_intx(dev, 1);		/* enable intx */
-+	dev->msi_enabled = 0;
- 
- 	entry = get_irq_msi(dev->first_msi_irq);
- 	if (!entry || !entry->dev || entry->msi_attrib.type != PCI_CAP_ID_MSI) {
-@@ -746,8 +739,7 @@ int pci_enable_msix(struct pci_dev* dev,
- 	WARN_ON(!!dev->msix_enabled);
- 
- 	/* Check whether driver already requested for MSI irq */
--   	if (pci_find_capability(dev, PCI_CAP_ID_MSI) > 0 &&
--		dev->msi_enabled) {
-+   	if (dev->msi_enabled) {
- 		printk(KERN_INFO "PCI: %s: Can't enable MSI-X.  "
- 		       "Device already has an MSI irq assigned\n",
- 		       pci_name(dev));
-@@ -760,8 +752,6 @@ int pci_enable_msix(struct pci_dev* dev,
- void pci_disable_msix(struct pci_dev* dev)
- {
- 	int irq, head, tail = 0, warning = 0;
--	int pos;
--	u16 control;
- 
- 	if (!pci_msi_enable)
- 		return;
-@@ -771,15 +761,9 @@ void pci_disable_msix(struct pci_dev* de
- 	if (!dev->msix_enabled)
- 		return;
- 
--	pos = pci_find_capability(dev, PCI_CAP_ID_MSIX);
--	if (!pos)
--		return;
--
--	pci_read_config_word(dev, msi_control_reg(pos), &control);
--	if (!(control & PCI_MSIX_FLAGS_ENABLE))
--		return;
--
--	disable_msi_mode(dev, pos, PCI_CAP_ID_MSIX);
-+	msix_set_enable(dev, 0);
-+	pci_intx(dev, 1);		/* enable intx */
-+	dev->msix_enabled = 0;
- 
- 	irq = head = dev->first_msi_irq;
- 	while (head != tail) {
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
