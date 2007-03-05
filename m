@@ -1,62 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - md-fix-for-raid6-reshape-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 00:01:21 -0800
-Message-ID: <200703050801.l2581LAa013252@shell0.pdx.osdl.net>
+Subject: + ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy.patch added to -mm tree
+Date: Mon, 05 Mar 2007 01:14:45 -0800
+Message-ID: <200703050914.l259Ej9V014709@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35217 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37831 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932201AbXCEIB0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 03:01:26 -0500
+	id S1752761AbXCEJQG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 04:16:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, neilb@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, horms@verge.net.au, magnus@valinux.co.jp, tony.luck@intel.com, vgoyal@in.ibm.com
 
 
 The patch titled
-     md-fix-for-raid6-reshape-fix
-has been removed from the -mm tree.  Its filename was
-     md-fix-for-raid6-reshape-fix.patch
+     ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy
+has been added to the -mm tree.  Its filename is
+     ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy.patch
 
-This patch was dropped because it was folded into md-fix-for-raid6-reshape.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: md-fix-for-raid6-reshape-fix
+Subject: ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Neil Brown <neilb@suse.de>
+no need for ifdefs around declarations.
+
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Magnus Damm <magnus@valinux.co.jp>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-ia64/meminit.h |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/md/raid5.c~md-fix-for-raid6-reshape-fix drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-fix-for-raid6-reshape-fix
-+++ a/drivers/md/raid5.c
-@@ -3071,7 +3071,7 @@ static sector_t reshape_request(mddev_t 
- 		release_stripe(sh);
- 	}
- 	spin_lock_irq(&conf->device_lock);
--	conf->expand_progress = (sector_nr + i) * new_data_disks);
-+	conf->expand_progress = (sector_nr + i) * new_data_disks;
- 	spin_unlock_irq(&conf->device_lock);
- 	/* Ok, those stripe are ready. We can start scheduling
- 	 * reads on the source stripes.
+diff -puN include/asm-ia64/meminit.h~ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy include/asm-ia64/meminit.h
+--- a/include/asm-ia64/meminit.h~ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy
++++ a/include/asm-ia64/meminit.h
+@@ -37,10 +37,8 @@ extern void find_initrd (void);
+ extern int filter_rsvd_memory (unsigned long start, unsigned long end, void *arg);
+ extern void efi_memmap_init(unsigned long *, unsigned long *);
+ 
+-#ifdef CONFIG_PROC_VMCORE
+-extern unsigned long vmcore_find_descriptor_size (unsigned long address);
++extern unsigned long vmcore_find_descriptor_size(unsigned long address);
+ extern int reserve_elfcorehdr(unsigned long *start, unsigned long *end);
+-#endif
+ 
+ /*
+  * For rounding an address to the next IA64_GRANULE_SIZE or order
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 cyclades-return-closing_wait.patch
-md-fix-for-raid6-reshape.patch
-md-fix-for-raid6-reshape-fix.patch
 slab-introduce-krealloc-fix.patch
 make-aout-executables-work-again-fix.patch
 sony-laptop-fix-uninitialised-variable.patch
 git-alsa-oops-fix.patch
 git-drm.patch
 git-dvb.patch
+ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy.patch
 git-input.patch
 setstream-param-for-psmouse-tweak.patch
 git-md-accel-fixup.patch
