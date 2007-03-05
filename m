@@ -1,204 +1,371 @@
 From: akpm@linux-foundation.org
-Subject: - vmi-sched-clock-paravirt-op-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:55:12 -0800
-Message-ID: <200703052355.l25NtC5P005170@shell0.pdx.osdl.net>
+Subject: - sched-remove-smt-nice.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:55:00 -0800
+Message-ID: <200703052355.l25Nt0p7005150@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41920 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41923 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932517AbXCEXzO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:55:14 -0500
+	id S932561AbXCEXzP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:55:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach@vmware.com, mm-commits@vger.kernel.org
+To: kernel@kolivas.org, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmi: sched clock paravirt op fix
+     sched: remove SMT nice
 has been removed from the -mm tree.  Its filename was
-     vmi-sched-clock-paravirt-op-fix.patch
+     sched-remove-smt-nice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vmi: sched clock paravirt op fix
-From: Zachary Amsden <zach@vmware.com>
+Subject: sched: remove SMT nice
+From: Con Kolivas <kernel@kolivas.org>
 
-The custom_sched_clock hook is broken.  The result from sched_clock needs to
-be in nanoseconds, not in CPU cycles.  The TSC is insufficient for this
-purpose, because TSC is poorly defined in a virtual environment, and mostly
-represents real world time instead of scheduled process time (which can be
-interrupted without notice when a virtual machine is descheduled).
+Remove the SMT-nice feature which idles sibling cpus on SMT cpus to
+facilitiate nice working properly where cpu power is shared.  The idling of
+cpus in the presence of runnable tasks is considered too fragile, easy to
+break with outside code, and the complexity of managing this system if an
+architecture comes along with many logical cores sharing cpu power will be
+unworkable.
 
-To make the scheduler consistent, we must expose a different nature of time,
-that is scheduled time.  So deprecate this custom_sched_clock hack and turn it
-into a paravirt-op, as it should have been all along.  This allows the tsc.c
-code which converts cycles to nanoseconds to be shared by all paravirt-ops
-backends.
+Remove the associated per_cpu_gain variable in sched_domains used only by
+this code.
 
-It is unfortunate to add a new paravirt-op, but this is a very distinct
-abstraction which is clearly different for all virtual machine
-implementations, and it gets rid of an ugly indirect function which I
-ashamedly admit I hacked in to try to get this to work earlier, and then even
-got in the wrong units.
+Also:
 
-Signed-off-by: Zachary Amsden <zach@vmware.com>
+  The reason is that with dynticks enabled, this code breaks without yet
+  further tweaks so dynticks brought on the rapid demise of this code.  So
+  either we tweak this code or kill it off entirely.  It was Ingo's preference
+  to kill it off.  Either way this needs to happen for 2.6.21 since dynticks
+  has gone in.
+
+Signed-off-by: Con Kolivas <kernel@kolivas.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |    2 ++
- arch/i386/kernel/tsc.c      |    6 ++----
- arch/i386/kernel/vmi.c      |    2 +-
- arch/i386/kernel/vmitime.c  |    2 +-
- include/asm-i386/paravirt.h |    3 +++
- include/asm-i386/time.h     |    1 -
- include/asm-i386/timer.h    |    8 +++++++-
- include/asm-i386/vmi_time.h |    2 +-
- 8 files changed, 17 insertions(+), 9 deletions(-)
+ include/asm-i386/topology.h           |    1 
+ include/asm-ia64/topology.h           |    2 
+ include/asm-mips/mach-ip27/topology.h |    1 
+ include/asm-powerpc/topology.h        |    1 
+ include/asm-x86_64/topology.h         |    1 
+ include/linux/sched.h                 |    1 
+ include/linux/topology.h              |    4 
+ kernel/sched.c                        |  155 ------------------------
+ 8 files changed, 1 insertion(+), 165 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~vmi-sched-clock-paravirt-op-fix arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~vmi-sched-clock-paravirt-op-fix
-+++ a/arch/i386/kernel/paravirt.c
-@@ -32,6 +32,7 @@
- #include <asm/fixmap.h>
- #include <asm/apic.h>
- #include <asm/tlbflush.h>
-+#include <asm/timer.h>
+diff -puN include/asm-i386/topology.h~sched-remove-smt-nice include/asm-i386/topology.h
+--- a/include/asm-i386/topology.h~sched-remove-smt-nice
++++ a/include/asm-i386/topology.h
+@@ -85,7 +85,6 @@ static inline int node_to_first_cpu(int 
+ 	.idle_idx		= 1,			\
+ 	.newidle_idx		= 2,			\
+ 	.wake_idx		= 1,			\
+-	.per_cpu_gain		= 100,			\
+ 	.flags			= SD_LOAD_BALANCE	\
+ 				| SD_BALANCE_EXEC	\
+ 				| SD_BALANCE_FORK	\
+diff -puN include/asm-ia64/topology.h~sched-remove-smt-nice include/asm-ia64/topology.h
+--- a/include/asm-ia64/topology.h~sched-remove-smt-nice
++++ a/include/asm-ia64/topology.h
+@@ -65,7 +65,6 @@ void build_cpu_to_node_map(void);
+ 	.max_interval		= 4,			\
+ 	.busy_factor		= 64,			\
+ 	.imbalance_pct		= 125,			\
+-	.per_cpu_gain		= 100,			\
+ 	.cache_nice_tries	= 2,			\
+ 	.busy_idx		= 2,			\
+ 	.idle_idx		= 1,			\
+@@ -97,7 +96,6 @@ void build_cpu_to_node_map(void);
+ 	.newidle_idx		= 0, /* unused */	\
+ 	.wake_idx		= 1,			\
+ 	.forkexec_idx		= 1,			\
+-	.per_cpu_gain		= 100,			\
+ 	.flags			= SD_LOAD_BALANCE	\
+ 				| SD_BALANCE_EXEC	\
+ 				| SD_BALANCE_FORK	\
+diff -puN include/asm-mips/mach-ip27/topology.h~sched-remove-smt-nice include/asm-mips/mach-ip27/topology.h
+--- a/include/asm-mips/mach-ip27/topology.h~sched-remove-smt-nice
++++ a/include/asm-mips/mach-ip27/topology.h
+@@ -28,7 +28,6 @@ extern unsigned char __node_distances[MA
+ 	.busy_factor		= 32,			\
+ 	.imbalance_pct		= 125,			\
+ 	.cache_nice_tries	= 1,			\
+-	.per_cpu_gain		= 100,			\
+ 	.flags			= SD_LOAD_BALANCE	\
+ 				| SD_BALANCE_EXEC	\
+ 				| SD_WAKE_BALANCE,	\
+diff -puN include/asm-powerpc/topology.h~sched-remove-smt-nice include/asm-powerpc/topology.h
+--- a/include/asm-powerpc/topology.h~sched-remove-smt-nice
++++ a/include/asm-powerpc/topology.h
+@@ -57,7 +57,6 @@ static inline int pcibus_to_node(struct 
+ 	.busy_factor		= 32,			\
+ 	.imbalance_pct		= 125,			\
+ 	.cache_nice_tries	= 1,			\
+-	.per_cpu_gain		= 100,			\
+ 	.busy_idx		= 3,			\
+ 	.idle_idx		= 1,			\
+ 	.newidle_idx		= 2,			\
+diff -puN include/asm-x86_64/topology.h~sched-remove-smt-nice include/asm-x86_64/topology.h
+--- a/include/asm-x86_64/topology.h~sched-remove-smt-nice
++++ a/include/asm-x86_64/topology.h
+@@ -43,7 +43,6 @@ extern int __node_distance(int, int);
+ 	.newidle_idx		= 0, 			\
+ 	.wake_idx		= 1,			\
+ 	.forkexec_idx		= 1,			\
+-	.per_cpu_gain		= 100,			\
+ 	.flags			= SD_LOAD_BALANCE	\
+ 				| SD_BALANCE_FORK	\
+ 				| SD_BALANCE_EXEC	\
+diff -puN include/linux/sched.h~sched-remove-smt-nice include/linux/sched.h
+--- a/include/linux/sched.h~sched-remove-smt-nice
++++ a/include/linux/sched.h
+@@ -684,7 +684,6 @@ struct sched_domain {
+ 	unsigned int imbalance_pct;	/* No balance until over watermark */
+ 	unsigned long long cache_hot_time; /* Task considered cache hot (ns) */
+ 	unsigned int cache_nice_tries;	/* Leave cache hot tasks for # tries */
+-	unsigned int per_cpu_gain;	/* CPU % gained by adding domain cpus */
+ 	unsigned int busy_idx;
+ 	unsigned int idle_idx;
+ 	unsigned int newidle_idx;
+diff -puN include/linux/topology.h~sched-remove-smt-nice include/linux/topology.h
+--- a/include/linux/topology.h~sched-remove-smt-nice
++++ a/include/linux/topology.h
+@@ -96,7 +96,6 @@
+ 	.busy_factor		= 64,			\
+ 	.imbalance_pct		= 110,			\
+ 	.cache_nice_tries	= 0,			\
+-	.per_cpu_gain		= 25,			\
+ 	.busy_idx		= 0,			\
+ 	.idle_idx		= 0,			\
+ 	.newidle_idx		= 1,			\
+@@ -128,7 +127,6 @@
+ 	.busy_factor		= 64,			\
+ 	.imbalance_pct		= 125,			\
+ 	.cache_nice_tries	= 1,			\
+-	.per_cpu_gain		= 100,			\
+ 	.busy_idx		= 2,			\
+ 	.idle_idx		= 1,			\
+ 	.newidle_idx		= 2,			\
+@@ -159,7 +157,6 @@
+ 	.busy_factor		= 64,			\
+ 	.imbalance_pct		= 125,			\
+ 	.cache_nice_tries	= 1,			\
+-	.per_cpu_gain		= 100,			\
+ 	.busy_idx		= 2,			\
+ 	.idle_idx		= 1,			\
+ 	.newidle_idx		= 2,			\
+@@ -193,7 +190,6 @@
+ 	.newidle_idx		= 0, /* unused */	\
+ 	.wake_idx		= 0, /* unused */	\
+ 	.forkexec_idx		= 0, /* unused */	\
+-	.per_cpu_gain		= 100,			\
+ 	.flags			= SD_LOAD_BALANCE	\
+ 				| SD_SERIALIZE,	\
+ 	.last_balance		= jiffies,		\
+diff -puN kernel/sched.c~sched-remove-smt-nice kernel/sched.c
+--- a/kernel/sched.c~sched-remove-smt-nice
++++ a/kernel/sched.c
+@@ -3006,23 +3006,6 @@ static inline void idle_balance(int cpu,
+ }
+ #endif
  
- /* nop stub */
- static void native_nop(void)
-@@ -520,6 +521,7 @@ struct paravirt_ops paravirt_ops = {
- 	.write_msr = native_write_msr,
- 	.read_tsc = native_read_tsc,
- 	.read_pmc = native_read_pmc,
-+	.get_scheduled_cycles = native_read_tsc,
- 	.load_tr_desc = native_load_tr_desc,
- 	.set_ldt = native_set_ldt,
- 	.load_gdt = native_load_gdt,
-diff -puN arch/i386/kernel/tsc.c~vmi-sched-clock-paravirt-op-fix arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~vmi-sched-clock-paravirt-op-fix
-+++ a/arch/i386/kernel/tsc.c
-@@ -14,6 +14,7 @@
- #include <asm/delay.h>
- #include <asm/tsc.h>
- #include <asm/io.h>
-+#include <asm/timer.h>
- 
- #include "mach_timer.h"
- 
-@@ -102,9 +103,6 @@ unsigned long long sched_clock(void)
- {
- 	unsigned long long this_offset;
- 
--	if (unlikely(custom_sched_clock))
--		return (*custom_sched_clock)();
+-static inline void wake_priority_sleeper(struct rq *rq)
+-{
+-#ifdef CONFIG_SCHED_SMT
+-	if (!rq->nr_running)
+-		return;
 -
- 	/*
- 	 * Fall back to jiffies if there's no TSC available:
- 	 */
-@@ -113,7 +111,7 @@ unsigned long long sched_clock(void)
- 		return (jiffies_64 - INITIAL_JIFFIES) * (1000000000 / HZ);
+-	spin_lock(&rq->lock);
+-	/*
+-	 * If an SMT sibling task has been put to sleep for priority
+-	 * reasons reschedule the idle task to see if it can now run.
+-	 */
+-	if (rq->nr_running)
+-		resched_task(rq->idle);
+-	spin_unlock(&rq->lock);
+-#endif
+-}
+-
+ DEFINE_PER_CPU(struct kernel_stat, kstat);
  
- 	/* read the Time Stamp Counter: */
--	rdtscll(this_offset);
-+	get_scheduled_cycles(this_offset);
+ EXPORT_PER_CPU_SYMBOL(kstat);
+@@ -3239,10 +3222,7 @@ void scheduler_tick(void)
  
- 	/* return the value in ns */
- 	return cycles_2_ns(this_offset);
-diff -puN arch/i386/kernel/vmi.c~vmi-sched-clock-paravirt-op-fix arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~vmi-sched-clock-paravirt-op-fix
-+++ a/arch/i386/kernel/vmi.c
-@@ -873,7 +873,7 @@ static inline int __init activate_vmi(vo
- 		paravirt_ops.setup_boot_clock = vmi_timer_setup_boot_alarm;
- 		paravirt_ops.setup_secondary_clock = vmi_timer_setup_secondary_alarm;
+ 	update_cpu_clock(p, rq, now);
+ 
+-	if (p == rq->idle)
+-		/* Task on the idle queue */
+-		wake_priority_sleeper(rq);
+-	else
++	if (p != rq->idle)
+ 		task_running_tick(rq, p);
+ #ifdef CONFIG_SMP
+ 	update_load(rq);
+@@ -3251,136 +3231,6 @@ void scheduler_tick(void)
  #endif
--		custom_sched_clock = vmi_sched_clock;
-+		paravirt_ops.get_scheduled_cycles = vmi_get_sched_cycles;
+ }
+ 
+-#ifdef CONFIG_SCHED_SMT
+-static inline void wakeup_busy_runqueue(struct rq *rq)
+-{
+-	/* If an SMT runqueue is sleeping due to priority reasons wake it up */
+-	if (rq->curr == rq->idle && rq->nr_running)
+-		resched_task(rq->idle);
+-}
+-
+-/*
+- * Called with interrupt disabled and this_rq's runqueue locked.
+- */
+-static void wake_sleeping_dependent(int this_cpu)
+-{
+-	struct sched_domain *tmp, *sd = NULL;
+-	int i;
+-
+-	for_each_domain(this_cpu, tmp) {
+-		if (tmp->flags & SD_SHARE_CPUPOWER) {
+-			sd = tmp;
+-			break;
+-		}
+-	}
+-
+-	if (!sd)
+-		return;
+-
+-	for_each_cpu_mask(i, sd->span) {
+-		struct rq *smt_rq = cpu_rq(i);
+-
+-		if (i == this_cpu)
+-			continue;
+-		if (unlikely(!spin_trylock(&smt_rq->lock)))
+-			continue;
+-
+-		wakeup_busy_runqueue(smt_rq);
+-		spin_unlock(&smt_rq->lock);
+-	}
+-}
+-
+-/*
+- * number of 'lost' timeslices this task wont be able to fully
+- * utilize, if another task runs on a sibling. This models the
+- * slowdown effect of other tasks running on siblings:
+- */
+-static inline unsigned long
+-smt_slice(struct task_struct *p, struct sched_domain *sd)
+-{
+-	return p->time_slice * (100 - sd->per_cpu_gain) / 100;
+-}
+-
+-/*
+- * To minimise lock contention and not have to drop this_rq's runlock we only
+- * trylock the sibling runqueues and bypass those runqueues if we fail to
+- * acquire their lock. As we only trylock the normal locking order does not
+- * need to be obeyed.
+- */
+-static int
+-dependent_sleeper(int this_cpu, struct rq *this_rq, struct task_struct *p)
+-{
+-	struct sched_domain *tmp, *sd = NULL;
+-	int ret = 0, i;
+-
+-	/* kernel/rt threads do not participate in dependent sleeping */
+-	if (!p->mm || rt_task(p))
+-		return 0;
+-
+-	for_each_domain(this_cpu, tmp) {
+-		if (tmp->flags & SD_SHARE_CPUPOWER) {
+-			sd = tmp;
+-			break;
+-		}
+-	}
+-
+-	if (!sd)
+-		return 0;
+-
+-	for_each_cpu_mask(i, sd->span) {
+-		struct task_struct *smt_curr;
+-		struct rq *smt_rq;
+-
+-		if (i == this_cpu)
+-			continue;
+-
+-		smt_rq = cpu_rq(i);
+-		if (unlikely(!spin_trylock(&smt_rq->lock)))
+-			continue;
+-
+-		smt_curr = smt_rq->curr;
+-
+-		if (!smt_curr->mm)
+-			goto unlock;
+-
+-		/*
+-		 * If a user task with lower static priority than the
+-		 * running task on the SMT sibling is trying to schedule,
+-		 * delay it till there is proportionately less timeslice
+-		 * left of the sibling task to prevent a lower priority
+-		 * task from using an unfair proportion of the
+-		 * physical cpu's resources. -ck
+-		 */
+-		if (rt_task(smt_curr)) {
+-			/*
+-			 * With real time tasks we run non-rt tasks only
+-			 * per_cpu_gain% of the time.
+-			 */
+-			if ((jiffies % DEF_TIMESLICE) >
+-				(sd->per_cpu_gain * DEF_TIMESLICE / 100))
+-					ret = 1;
+-		} else {
+-			if (smt_curr->static_prio < p->static_prio &&
+-				!TASK_PREEMPTS_CURR(p, smt_rq) &&
+-				smt_slice(smt_curr, sd) > task_timeslice(p))
+-					ret = 1;
+-		}
+-unlock:
+-		spin_unlock(&smt_rq->lock);
+-	}
+-	return ret;
+-}
+-#else
+-static inline void wake_sleeping_dependent(int this_cpu)
+-{
+-}
+-static inline int
+-dependent_sleeper(int this_cpu, struct rq *this_rq, struct task_struct *p)
+-{
+-	return 0;
+-}
+-#endif
+-
+ #if defined(CONFIG_PREEMPT) && defined(CONFIG_DEBUG_PREEMPT)
+ 
+ void fastcall add_preempt_count(int val)
+@@ -3507,7 +3357,6 @@ need_resched_nonpreemptible:
+ 		if (!rq->nr_running) {
+ 			next = rq->idle;
+ 			rq->expired_timestamp = 0;
+-			wake_sleeping_dependent(cpu);
+ 			goto switch_tasks;
+ 		}
  	}
- 	if (!disable_noidle)
- 		para_fill(safe_halt, Halt);
-diff -puN arch/i386/kernel/vmitime.c~vmi-sched-clock-paravirt-op-fix arch/i386/kernel/vmitime.c
---- a/arch/i386/kernel/vmitime.c~vmi-sched-clock-paravirt-op-fix
-+++ a/arch/i386/kernel/vmitime.c
-@@ -172,7 +172,7 @@ int vmi_set_wallclock(unsigned long now)
- 	return -1;
- }
- 
--unsigned long long vmi_sched_clock(void)
-+unsigned long long vmi_get_sched_cycles(void)
- {
- 	return read_available_cycles();
- }
-diff -puN include/asm-i386/paravirt.h~vmi-sched-clock-paravirt-op-fix include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~vmi-sched-clock-paravirt-op-fix
-+++ a/include/asm-i386/paravirt.h
-@@ -94,6 +94,7 @@ struct paravirt_ops
- 
- 	u64 (*read_tsc)(void);
- 	u64 (*read_pmc)(void);
-+ 	u64 (*get_scheduled_cycles)(void);
- 
- 	void (*load_tr_desc)(void);
- 	void (*load_gdt)(const struct Xgt_desc_struct *);
-@@ -273,6 +274,8 @@ static inline void halt(void)
- 
- #define rdtscll(val) (val = paravirt_ops.read_tsc())
- 
-+#define get_scheduled_cycles(val) (val = paravirt_ops.get_scheduled_cycles())
-+
- #define write_tsc(val1,val2) wrmsr(0x10, val1, val2)
- 
- #define rdpmc(counter,low,high) do {				\
-diff -puN include/asm-i386/time.h~vmi-sched-clock-paravirt-op-fix include/asm-i386/time.h
---- a/include/asm-i386/time.h~vmi-sched-clock-paravirt-op-fix
-+++ a/include/asm-i386/time.h
-@@ -30,7 +30,6 @@ static inline int native_set_wallclock(u
- 
- #ifdef CONFIG_PARAVIRT
- #include <asm/paravirt.h>
--extern unsigned long long native_sched_clock(void);
- #else /* !CONFIG_PARAVIRT */
- 
- #define get_wallclock() native_get_wallclock()
-diff -puN include/asm-i386/timer.h~vmi-sched-clock-paravirt-op-fix include/asm-i386/timer.h
---- a/include/asm-i386/timer.h~vmi-sched-clock-paravirt-op-fix
-+++ a/include/asm-i386/timer.h
-@@ -4,13 +4,19 @@
- #include <linux/pm.h>
- 
- #define TICK_SIZE (tick_nsec / 1000)
-+
- void setup_pit_timer(void);
-+unsigned long long native_sched_clock(void);
-+
- /* Modifiers for buggy PIT handling */
- extern int pit_latch_buggy;
- extern int timer_ack;
- extern int no_timer_check;
--extern unsigned long long (*custom_sched_clock)(void);
- extern int no_sync_cmos_clock;
- extern int recalibrate_cpu_khz(void);
- 
-+#ifndef CONFIG_PARAVIRT
-+#define get_scheduled_cycles(val) rdtscll(val)
-+#endif
-+
- #endif
-diff -puN include/asm-i386/vmi_time.h~vmi-sched-clock-paravirt-op-fix include/asm-i386/vmi_time.h
---- a/include/asm-i386/vmi_time.h~vmi-sched-clock-paravirt-op-fix
-+++ a/include/asm-i386/vmi_time.h
-@@ -49,7 +49,7 @@ extern struct vmi_timer_ops {
- extern void __init vmi_time_init(void);
- extern unsigned long vmi_get_wallclock(void);
- extern int vmi_set_wallclock(unsigned long now);
--extern unsigned long long vmi_sched_clock(void);
-+extern unsigned long long vmi_get_sched_cycles(void);
- 
- #ifdef CONFIG_X86_LOCAL_APIC
- extern void __init vmi_timer_setup_boot_alarm(void);
+@@ -3547,8 +3396,6 @@ need_resched_nonpreemptible:
+ 		}
+ 	}
+ 	next->sleep_type = SLEEP_NORMAL;
+-	if (rq->nr_running == 1 && dependent_sleeper(cpu, rq, next))
+-		next = rq->idle;
+ switch_tasks:
+ 	if (next == rq->idle)
+ 		schedstat_inc(rq, sched_goidle);
 _
 
-Patches currently in -mm which might be from zach@vmware.com are
+Patches currently in -mm which might be from kernel@kolivas.org are
 
 origin.patch
-make-struct-vmi_ops-static.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
