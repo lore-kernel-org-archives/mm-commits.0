@@ -1,173 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-fixup.patch removed from -mm tree
-Date: Sun, 04 Mar 2007 23:24:23 -0800
-Message-ID: <200703050724.l257OND1012548@shell0.pdx.osdl.net>
+Subject: - git-leds-make-it-compile.patch removed from -mm tree
+Date: Sun, 04 Mar 2007 23:26:21 -0800
+Message-ID: <200703050726.l257QL9b012598@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34300 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34333 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752052AbXCEHYZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 02:24:25 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l257OOq8012729
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 4 Mar 2007 23:24:24 -0800
+	id S1752069AbXCEH0a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 02:26:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, raph@8d.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-fixup
+     git-leds: make it compile
 has been removed from the -mm tree.  Its filename was
-     git-dvb-fixup.patch
+     git-leds-make-it-compile.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
+Subject: git-leds: make it compile
 From: Andrew Morton <akpm@linux-foundation.org>
 
+x86_64 allmodconfig:
 
+drivers/leds/leds-gpio.c:16:22: error: asm/gpio.h: No such file or directory
+drivers/leds/leds-gpio.c: In function 'gpio_led_set':
+drivers/leds/leds-gpio.c:40: warning: implicit declaration of function 'gpio_set_value'
+drivers/leds/leds-gpio.c: In function 'gpio_led_probe':
+drivers/leds/leds-gpio.c:68: warning: implicit declaration of function 'gpio_request'
+drivers/leds/leds-gpio.c:72: warning: implicit declaration of function 'gpio_direction_output'
+drivers/leds/leds-gpio.c:74: warning: implicit declaration of function 'gpio_get_value'
+drivers/leds/leds-gpio.c:82: warning: implicit declaration of function 'gpio_free'
+
+Cc: Raphael Assenat <raph@8d.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/v4l2-common.c |   45 ----------------------------
- include/linux/videodev2.h         |   14 --------
- 2 files changed, 59 deletions(-)
+ drivers/leds/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/v4l2-common.c~git-dvb-fixup drivers/media/video/v4l2-common.c
---- a/drivers/media/video/v4l2-common.c~git-dvb-fixup
-+++ a/drivers/media/video/v4l2-common.c
-@@ -374,19 +374,6 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_LOG_STATUS)]       = "VIDIOC_LOG_STATUS",
- 	[_IOC_NR(VIDIOC_G_EXT_CTRLS)]      = "VIDIOC_G_EXT_CTRLS",
- 	[_IOC_NR(VIDIOC_S_EXT_CTRLS)]      = "VIDIOC_S_EXT_CTRLS",
--<<<<<<< HEAD/drivers/media/video/v4l2-common.c
--	[_IOC_NR(VIDIOC_TRY_EXT_CTRLS)]    = "VIDIOC_TRY_EXT_CTRLS",
--#if 1
--	[_IOC_NR(VIDIOC_ENUM_FRAMESIZES)]  = "VIDIOC_ENUM_FRAMESIZES",
--	[_IOC_NR(VIDIOC_ENUM_FRAMEINTERVALS)] = "VIDIOC_ENUM_FRAMEINTERVALS",
--	[_IOC_NR(VIDIOC_G_ENC_INDEX)] 	   = "VIDIOC_G_ENC_INDEX",
--	[_IOC_NR(VIDIOC_ENCODER_CMD)] 	   = "VIDIOC_ENCODER_CMD",
--	[_IOC_NR(VIDIOC_TRY_ENCODER_CMD)]  = "VIDIOC_TRY_ENCODER_CMD",
--
--	[_IOC_NR(VIDIOC_DBG_S_REGISTER)]   = "VIDIOC_DBG_S_REGISTER",
--	[_IOC_NR(VIDIOC_DBG_G_REGISTER)]   = "VIDIOC_DBG_G_REGISTER",
--#endif
--=======
- 	[_IOC_NR(VIDIOC_TRY_EXT_CTRLS)]    = "VIDIOC_TRY_EXT_CTRLS",
- #if 1
- 	[_IOC_NR(VIDIOC_ENUM_FRAMESIZES)]  = "VIDIOC_ENUM_FRAMESIZES",
-@@ -400,7 +387,6 @@ static const char *v4l2_ioctls[] = {
+diff -puN drivers/leds/Kconfig~git-leds-make-it-compile drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~git-leds-make-it-compile
++++ a/drivers/leds/Kconfig
+@@ -96,7 +96,7 @@ config LEDS_COBALT
  
- 	[_IOC_NR(VIDIOC_G_CHIP_IDENT)]     = "VIDIOC_G_CHIP_IDENT",
- #endif
-->>>>>>> /drivers/media/video/v4l2-common.c
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
- 
-@@ -985,30 +971,6 @@ u32 v4l2_ctrl_next(const u32 * const * c
- 	return **ctrl_classes;
- }
- 
--<<<<<<< HEAD/drivers/media/video/v4l2-common.c
--int v4l2_chip_match_i2c_client(struct i2c_client *c, u32 match_type, u32 match_chip)
--{
--	switch (match_type) {
--	case V4L2_CHIP_MATCH_I2C_DRIVER:
--		return (c != NULL && c->driver != NULL && c->driver->id == match_chip);
--	case V4L2_CHIP_MATCH_I2C_ADDR:
--		return (c != NULL && c->addr == match_chip);
--	default:
--		return 0;
--	}
--}
--
--int v4l2_chip_match_host(u32 match_type, u32 match_chip)
--{
--	switch (match_type) {
--	case V4L2_CHIP_MATCH_HOST:
--		return match_chip == 0;
--	default:
--		return 0;
--	}
--}
--
--=======
- int v4l2_chip_match_i2c_client(struct i2c_client *c, u32 match_type, u32 match_chip)
- {
- 	switch (match_type) {
-@@ -1047,7 +1009,6 @@ int v4l2_chip_match_host(u32 match_type,
- 	}
- }
- 
-->>>>>>> /drivers/media/video/v4l2-common.c
- /* ----------------------------------------------------------------- */
- 
- EXPORT_SYMBOL(v4l2_norm_to_name);
-@@ -1071,16 +1032,10 @@ EXPORT_SYMBOL(v4l2_ctrl_query_menu);
- EXPORT_SYMBOL(v4l2_ctrl_query_fill);
- EXPORT_SYMBOL(v4l2_ctrl_query_fill_std);
- 
--<<<<<<< HEAD/drivers/media/video/v4l2-common.c
--EXPORT_SYMBOL(v4l2_chip_match_i2c_client);
--EXPORT_SYMBOL(v4l2_chip_match_host);
--
--=======
- EXPORT_SYMBOL(v4l2_chip_match_i2c_client);
- EXPORT_SYMBOL(v4l2_chip_ident_i2c_client);
- EXPORT_SYMBOL(v4l2_chip_match_host);
- 
-->>>>>>> /drivers/media/video/v4l2-common.c
- /*
-  * Local variables:
-  * c-basic-offset: 8
-diff -puN include/linux/videodev2.h~git-dvb-fixup include/linux/videodev2.h
---- a/include/linux/videodev2.h~git-dvb-fixup
-+++ a/include/linux/videodev2.h
-@@ -1395,9 +1395,6 @@ struct v4l2_register {
- 	__u32 match_type; /* Match type */
- 	__u32 match_chip; /* Match this chip, meaning determined by match_type */
- 	__u64 reg;
--<<<<<<< HEAD/include/linux/videodev2.h
--	__u64 val;
--=======
- 	__u64 val;
- };
- 
-@@ -1407,7 +1404,6 @@ struct v4l2_chip_ident {
- 	__u32 match_chip;  /* Match this chip, meaning determined by match_type */
- 	__u32 ident;       /* chip identifier as specified in <media/v4l2-chip-ident.h> */
- 	__u32 revision;    /* chip revision, chip specific */
-->>>>>>> /include/linux/videodev2.h
- };
- 
- /*
-@@ -1476,15 +1472,6 @@ struct v4l2_chip_ident {
- #if 1
- #define VIDIOC_ENUM_FRAMESIZES	_IOWR ('V', 74, struct v4l2_frmsizeenum)
- #define VIDIOC_ENUM_FRAMEINTERVALS	_IOWR ('V', 75, struct v4l2_frmivalenum)
--<<<<<<< HEAD/include/linux/videodev2.h
--#define VIDIOC_G_ENC_INDEX      _IOR  ('V', 76, struct v4l2_enc_idx)
--#define VIDIOC_ENCODER_CMD      _IOWR ('V', 77, struct v4l2_encoder_cmd)
--#define VIDIOC_TRY_ENCODER_CMD  _IOWR ('V', 78, struct v4l2_encoder_cmd)
--
--/* Experimental, only implemented if CONFIG_VIDEO_ADV_DEBUG is defined */
--#define	VIDIOC_DBG_S_REGISTER 	_IOW  ('V', 79, struct v4l2_register)
--#define	VIDIOC_DBG_G_REGISTER 	_IOWR ('V', 80, struct v4l2_register)
--=======
- #define VIDIOC_G_ENC_INDEX      _IOR  ('V', 76, struct v4l2_enc_idx)
- #define VIDIOC_ENCODER_CMD      _IOWR ('V', 77, struct v4l2_encoder_cmd)
- #define VIDIOC_TRY_ENCODER_CMD  _IOWR ('V', 78, struct v4l2_encoder_cmd)
-@@ -1494,7 +1481,6 @@ struct v4l2_chip_ident {
- #define	VIDIOC_DBG_G_REGISTER 	_IOWR ('V', 80, struct v4l2_register)
- 
- #define VIDIOC_G_CHIP_IDENT     _IOWR ('V', 81, struct v4l2_chip_ident)
-->>>>>>> /include/linux/videodev2.h
- #endif
- 
- #ifdef __OLD_VIDIOC_
+ config LEDS_GPIO
+ 	tristate "LED Support for GPIO connected LEDs"
+-	depends on LEDS_CLASS 
++	depends on LEDS_CLASS && BROKEN
+ 	help
+ 	  This option enables support for the LEDs connected to GPIO
+ 	  outputs. To be useful the particular board must have LEDs 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -181,11 +68,8 @@ sony-laptop-fix-uninitialised-variable.patch
 git-alsa-oops-fix.patch
 git-drm.patch
 git-dvb.patch
-git-dvb-fixup.patch
-pvrusb-warning-fix.patch
 git-input.patch
 setstream-param-for-psmouse-tweak.patch
-git-leds-fixup.patch
 git-leds-make-it-compile.patch
 ide-ide-fix-pmac-breakage-fix.patch
 git-md-accel-fixup.patch
