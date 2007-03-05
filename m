@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-the-includes-of-linux-pcih-fix.patch added to -mm tree
-Date: Mon, 05 Mar 2007 01:30:42 -0800
-Message-ID: <200703050932.l259WLQ7014985@shell0.pdx.osdl.net>
+Subject: + git-netdev-all-ipw2200-fix.patch added to -mm tree
+Date: Mon, 05 Mar 2007 01:39:27 -0800
+Message-ID: <200703050941.l259f5DW015093@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38384 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38580 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932128AbXCEJcj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 04:32:39 -0500
+	id S932579AbXCEJlH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 04:41:07 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l259f5q8017071
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 5 Mar 2007 01:41:06 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, khali@linux-fr.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     cleanup-the-includes-of-linux-pcih-fix
+     git-netdev-all: ipw2200 fix
 has been added to the -mm tree.  Its filename is
-     cleanup-the-includes-of-linux-pcih-fix.patch
+     git-netdev-all-ipw2200-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +29,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cleanup-the-includes-of-linux-pcih-fix
+Subject: git-netdev-all: ipw2200 fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/scatterlist.h:4,
-                 from drivers/scsi/libsas/sas_expander.c:25:
-include/asm/scatterlist.h:7: error: expected specifier-qualifier-list before 'dma_addr_t'
-In file included from drivers/scsi/libsas/sas_expander.c:25:
-include/linux/scatterlist.h: In function 'sg_set_buf':
-include/linux/scatterlist.h:13: error: 'struct scatterlist' has no member named 'length'
-In file included from include/linux/dma-mapping.h:34,
-                 from include/asm-generic/pci-dma-compat.h:7,
-                 from include/asm/pci.h:114,
-                 from include/linux/pci.h:766,
-                 from include/scsi/libsas.h:31,
-                 from drivers/scsi/libsas/sas_internal.h:32,
-                 from drivers/scsi/libsas/sas_expander.c:27:
-include/asm/dma-mapping.h: In function 'dma_map_sg':
-include/asm/dma-mapping.h:44: error: 'struct scatterlist' has no member named 'length'
-include/asm/dma-mapping.h:44: warning: type defaults to 'int' in declaration of '__ret_warn_on'
-include/asm/dma-mapping.h:44: error: 'struct scatterlist' has no member named 'length'
-include/asm/dma-mapping.h:49: error: 'struct scatterlist' has no member named 'dma_address'
-make[1]: *** [drivers/scsi/libsas/sas_expander.o] Error 1
-make: *** [drivers/scsi/libsas/sas_expander.o] Error 2
+drivers/net/wireless/ipw2200.c: In function 'show_channels':
+drivers/net/wireless/ipw2200.c:1855: warning: implicit declaration of function 'ipw_get_geo'
+drivers/net/wireless/ipw2200.c:1855: warning: initialization makes pointer from integer without a cast
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Greg KH <greg@kroah.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/scatterlist.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/wireless/ipw2200.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-i386/scatterlist.h~cleanup-the-includes-of-linux-pcih-fix include/asm-i386/scatterlist.h
---- a/include/asm-i386/scatterlist.h~cleanup-the-includes-of-linux-pcih-fix
-+++ a/include/asm-i386/scatterlist.h
-@@ -1,6 +1,8 @@
- #ifndef _I386_SCATTERLIST_H
- #define _I386_SCATTERLIST_H
+diff -puN drivers/net/wireless/ipw2200.c~git-netdev-all-ipw2200-fix drivers/net/wireless/ipw2200.c
+--- a/drivers/net/wireless/ipw2200.c~git-netdev-all-ipw2200-fix
++++ a/drivers/net/wireless/ipw2200.c
+@@ -1852,7 +1852,7 @@ static ssize_t show_channels(struct devi
+ 			     char *buf)
+ {
+ 	struct ipw_priv *priv = dev_get_drvdata(d);
+-	const struct ieee80211_geo *geo = ipw_get_geo(priv->ieee);
++	const struct ieee80211_geo *geo = ieee80211_get_geo(priv->ieee);
+ 	int len = 0, i;
  
-+#include <linux/types.h>
-+
- struct scatterlist {
-     struct page		*page;
-     unsigned int	offset;
+ 	len = sprintf(&buf[len],
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +74,7 @@ git-md-accel-fixup.patch
 nommu-present-backing-device-capabilities-for-mtd-fix.patch
 git-ubi.patch
 git-netdev-all.patch
+git-netdev-all-ipw2200-fix.patch
 revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
 dmfe-add-support-for-suspend-resume-fix.patch
 sis900-warning-fixes.patch
