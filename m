@@ -1,76 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-check-xattr-operation-support-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:54:35 -0800
-Message-ID: <200703052354.l25NsZsZ005104@shell0.pdx.osdl.net>
+Subject: - fb-sm501fb-off-by-1-sysfs-store.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:55:03 -0800
+Message-ID: <200703052355.l25Nt35l005153@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41938 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41944 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932636AbXCEXzW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:55:22 -0500
+	id S932690AbXCEXzY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:55:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@sw.ru, dmonakhov@openvz.org, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, adaplas@pol.net, ben-linux@fluff.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: check xattr operation support fix
+     fb: sm501fb off-by-1 sysfs store
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-check-xattr-operation-support-fix.patch
+     fb-sm501fb-off-by-1-sysfs-store.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ecryptfs: check xattr operation support fix
-From: Dmitriy Monakhov <dmonakhov@sw.ru>
+Subject: fb: sm501fb off-by-1 sysfs store
+From: Paul Mundt <lethal@linux-sh.org>
 
-  - ecryptfs_write_inode_size_to_metadata() error code was ignored.
-  - i_op->setxattr() must be supported by lower fs because used below.
+Currently sm501fb_crtsrc_store() won't allow the routing to be changed via
+echos from userspace in to the sysfs file.  The reason for this is that the
+strnicmp() for both heads uses a sizeof() for the string length, which ends
+up being strlen() + 1 (\0 in the normal case, but the echo gives a newline,
+which is where the issue occurs), this then causes a mismatch and
+subsequently bails with the -EINVAL.
 
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
-Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
+In addition to this, the hardcoded lengths were then used for the store
+length that was returned, which ended up being erroneous and resulting in a
+write error.  There's also no point in returning anything but the full
+length since it will -EINVAL out on a mismatch well before then anyways.
+
+sizeof("string") is great for making sure you have space in your buffer,
+but rather less so for string comparisons :-)
+
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Ben Dooks <ben-linux@fluff.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |    6 +++---
- fs/ecryptfs/mmap.c  |    3 ++-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/video/sm501fb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-check-xattr-operation-support-fix fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-check-xattr-operation-support-fix
-+++ a/fs/ecryptfs/inode.c
-@@ -168,9 +168,9 @@ static int grow_file(struct dentry *ecry
- 		goto out;
- 	}
- 	i_size_write(inode, 0);
--	ecryptfs_write_inode_size_to_metadata(lower_file, lower_inode, inode,
--					      ecryptfs_dentry,
--					      ECRYPTFS_LOWER_I_MUTEX_NOT_HELD);
-+	rc = ecryptfs_write_inode_size_to_metadata(lower_file, lower_inode,
-+			inode, ecryptfs_dentry,
-+			ECRYPTFS_LOWER_I_MUTEX_NOT_HELD);
- 	ecryptfs_inode_to_private(inode)->crypt_stat.flags |= ECRYPTFS_NEW_FILE;
- out:
- 	return rc;
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-check-xattr-operation-support-fix fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-check-xattr-operation-support-fix
-+++ a/fs/ecryptfs/mmap.c
-@@ -502,7 +502,8 @@ static int ecryptfs_write_inode_size_to_
- 		goto out;
- 	}
- 	lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
--	if (!lower_dentry->d_inode->i_op->getxattr) {
-+	if (!lower_dentry->d_inode->i_op->getxattr ||
-+			!lower_dentry->d_inode->i_op->setxattr) {
- 		printk(KERN_WARNING
- 		       "No support for setting xattr in lower filesystem\n");
- 		rc = -ENOSYS;
+diff -puN drivers/video/sm501fb.c~fb-sm501fb-off-by-1-sysfs-store drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~fb-sm501fb-off-by-1-sysfs-store
++++ a/drivers/video/sm501fb.c
+@@ -1074,9 +1074,9 @@ static ssize_t sm501fb_crtsrc_store(stru
+ 	if (len < 1)
+ 		return -EINVAL;
+ 
+-	if (strnicmp(buf, "crt", sizeof("crt")) == 0)
++	if (strnicmp(buf, "crt", 3) == 0)
+ 		head = HEAD_CRT;
+-	else if (strnicmp(buf, "panel", sizeof("panel")) == 0)
++	else if (strnicmp(buf, "panel", 5) == 0)
+ 		head = HEAD_PANEL;
+ 	else
+ 		return -EINVAL;
+@@ -1098,7 +1098,7 @@ static ssize_t sm501fb_crtsrc_store(stru
+ 	writel(ctrl, info->regs + SM501_DC_CRT_CONTROL);
+ 	sm501fb_sync_regs(info);
+ 
+-	return (head == HEAD_CRT) ? 3 : 5;
++	return len;
+ }
+ 
+ /* Prepare the device_attr for registration with sysfs later */
 _
 
-Patches currently in -mm which might be from dmonakhov@sw.ru are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
-libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
-3c59x-handle-pci_enable_device-failure-while-resuming.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
+make-aout-executables-work-again.patch
+git-sh.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+simplify-the-stacktrace-code.patch
