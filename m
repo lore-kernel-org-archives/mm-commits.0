@@ -1,45 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - msi-sanely-support-hardware-level-msi-disabling.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:54:21 -0800
-Message-ID: <200703052354.l25NsLhk005088@shell0.pdx.osdl.net>
+Subject: - msi-support-masking-msi-irqs-without-a-mask-bit.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:54:31 -0800
+Message-ID: <200703052354.l25NsVL3005100@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41857 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41867 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932470AbXCEXyj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:54:39 -0500
+	id S932495AbXCEXym (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:54:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, benh@kernel.crashing.org, greg@kroah.com, michael@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     msi: sanely support hardware level msi disabling
+     msi: support masking msi irqs without a mask bit
 has been removed from the -mm tree.  Its filename was
-     msi-sanely-support-hardware-level-msi-disabling.patch
+     msi-support-masking-msi-irqs-without-a-mask-bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: msi: sanely support hardware level msi disabling
+Subject: msi: support masking msi irqs without a mask bit
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-In some cases when we are not using msi we need a way to ensure that the
-hardware does not have an msi capability enabled.  Currently the code has been
-calling disable_msi_mode to try and achieve that.  However disable_msi_mode
-has several other side effects and is only available when msi support is
-compiled in so it isn't really appropriate.
+For devices that do not support msi-x we only support 1 interrupt.  Therefore
+we can disable that one interrupt by disabling the msi capability itself.  If
+we leave the intx interrupts disabled while we have the msi capability
+disabled no interrupts should be delivered from that device.
 
-Instead this patch implements pci_msi_off which disables all msi and msix
-capabilities unconditionally with no additional side effects.
-
-pci_disable_device was redundantly clearing the bus master enable flag and
-clearing the msi enable bit.  A device that is not allowed to perform bus
-mastering operations cannot generate intx or msi interrupt messages as those
-are essentially a special case of dma, and require bus mastering.  So the call
-in pci_disable_device to disable msi capabilities was redundant.
-
-quirk_pcie_pxh also called disable_msi_mode and is updated to use pci_msi_off.
+Devices with just the minimal msi support (and thus hitting this code path)
+include things like the intel e1000 nic, so it looks like is going to be a
+fairly common case and thus important to get right.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Michael Ellerman <michael@ellerman.id.au>
@@ -49,145 +41,21 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/irq.c |    1 -
- drivers/pci/msi.c         |    2 +-
- drivers/pci/pci.c         |   34 +++++++++++++++++++++++++++-------
- drivers/pci/pci.h         |    2 --
- drivers/pci/quirks.c      |    4 ++--
- include/linux/pci.h       |    1 +
- include/linux/pci_regs.h  |    7 ++++---
- 7 files changed, 35 insertions(+), 16 deletions(-)
+ drivers/pci/msi.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/powerpc/kernel/irq.c~msi-sanely-support-hardware-level-msi-disabling arch/powerpc/kernel/irq.c
---- a/arch/powerpc/kernel/irq.c~msi-sanely-support-hardware-level-msi-disabling
-+++ a/arch/powerpc/kernel/irq.c
-@@ -968,7 +968,6 @@ void pci_scan_msi_device(struct pci_dev 
- int pci_enable_msix(struct pci_dev* dev, struct msix_entry *entries, int nvec) {return -1;}
- void pci_disable_msix(struct pci_dev *dev) {}
- void msi_remove_pci_irq_vectors(struct pci_dev *dev) {}
--void disable_msi_mode(struct pci_dev *dev, int pos, int type) {}
- void pci_no_msi(void) {}
- EXPORT_SYMBOL(pci_enable_msix);
- EXPORT_SYMBOL(pci_disable_msix);
-diff -puN drivers/pci/msi.c~msi-sanely-support-hardware-level-msi-disabling drivers/pci/msi.c
---- a/drivers/pci/msi.c~msi-sanely-support-hardware-level-msi-disabling
+diff -puN drivers/pci/msi.c~msi-support-masking-msi-irqs-without-a-mask-bit drivers/pci/msi.c
+--- a/drivers/pci/msi.c~msi-support-masking-msi-irqs-without-a-mask-bit
 +++ a/drivers/pci/msi.c
-@@ -211,7 +211,7 @@ static void enable_msi_mode(struct pci_d
- 	pci_intx(dev, 0);  /* disable intx */
- }
- 
--void disable_msi_mode(struct pci_dev *dev, int pos, int type)
-+static void disable_msi_mode(struct pci_dev *dev, int pos, int type)
- {
- 	u16 control;
- 
-diff -puN drivers/pci/pci.c~msi-sanely-support-hardware-level-msi-disabling drivers/pci/pci.c
---- a/drivers/pci/pci.c~msi-sanely-support-hardware-level-msi-disabling
-+++ a/drivers/pci/pci.c
-@@ -881,13 +881,6 @@ pci_disable_device(struct pci_dev *dev)
- 	if (atomic_sub_return(1, &dev->enable_cnt) != 0)
- 		return;
- 
--	if (dev->msi_enabled)
--		disable_msi_mode(dev, pci_find_capability(dev, PCI_CAP_ID_MSI),
--			PCI_CAP_ID_MSI);
--	if (dev->msix_enabled)
--		disable_msi_mode(dev, pci_find_capability(dev, PCI_CAP_ID_MSI),
--			PCI_CAP_ID_MSIX);
--
- 	pci_read_config_word(dev, PCI_COMMAND, &pci_command);
- 	if (pci_command & PCI_COMMAND_MASTER) {
- 		pci_command &= ~PCI_COMMAND_MASTER;
-@@ -1277,6 +1270,33 @@ pci_intx(struct pci_dev *pdev, int enabl
- 	}
- }
- 
-+/**
-+ * pci_msi_off - disables any msi or msix capabilities
-+ * @pdev: the PCI device to operate on
-+ *
-+ * If you want to use msi see pci_enable_msi and friends.
-+ * This is a lower level primitive that allows us to disable
-+ * msi operation at the device level.
-+ */
-+void pci_msi_off(struct pci_dev *dev)
-+{
-+	int pos;
-+	u16 control;
-+
-+	pos = pci_find_capability(dev, PCI_CAP_ID_MSI);
-+	if (pos) {
-+		pci_read_config_word(dev, pos + PCI_MSI_FLAGS, &control);
-+		control &= ~PCI_MSI_FLAGS_ENABLE;
-+		pci_write_config_word(dev, pos + PCI_MSI_FLAGS, control);
-+	}
-+	pos = pci_find_capability(dev, PCI_CAP_ID_MSIX);
-+	if (pos) {
-+		pci_read_config_word(dev, pos + PCI_MSIX_FLAGS, &control);
-+		control &= ~PCI_MSIX_FLAGS_ENABLE;
-+		pci_write_config_word(dev, pos + PCI_MSIX_FLAGS, control);
-+	}
-+}
-+
- #ifndef HAVE_ARCH_PCI_SET_DMA_MASK
- /*
-  * These can be overridden by arch-specific implementations
-diff -puN drivers/pci/pci.h~msi-sanely-support-hardware-level-msi-disabling drivers/pci/pci.h
---- a/drivers/pci/pci.h~msi-sanely-support-hardware-level-msi-disabling
-+++ a/drivers/pci/pci.h
-@@ -46,10 +46,8 @@ extern struct rw_semaphore pci_bus_sem;
- extern unsigned int pci_pm_d3_delay;
- 
- #ifdef CONFIG_PCI_MSI
--void disable_msi_mode(struct pci_dev *dev, int pos, int type);
- void pci_no_msi(void);
- #else
--static inline void disable_msi_mode(struct pci_dev *dev, int pos, int type) { }
- static inline void pci_no_msi(void) { }
- #endif
- 
-diff -puN drivers/pci/quirks.c~msi-sanely-support-hardware-level-msi-disabling drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~msi-sanely-support-hardware-level-msi-disabling
-+++ a/drivers/pci/quirks.c
-@@ -1438,8 +1438,8 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
-  */
- static void __devinit quirk_pcie_pxh(struct pci_dev *dev)
- {
--	disable_msi_mode(dev, pci_find_capability(dev, PCI_CAP_ID_MSI),
--					PCI_CAP_ID_MSI);
-+	pci_msi_off(dev);
-+
- 	dev->no_msi = 1;
- 
- 	printk(KERN_WARNING "PCI: PXH quirk detected, "
-diff -puN include/linux/pci.h~msi-sanely-support-hardware-level-msi-disabling include/linux/pci.h
---- a/include/linux/pci.h~msi-sanely-support-hardware-level-msi-disabling
-+++ a/include/linux/pci.h
-@@ -543,6 +543,7 @@ void pci_set_master(struct pci_dev *dev)
- int __must_check pci_set_mwi(struct pci_dev *dev);
- void pci_clear_mwi(struct pci_dev *dev);
- void pci_intx(struct pci_dev *dev, int enable);
-+void pci_msi_off(struct pci_dev *dev);
- int pci_set_dma_mask(struct pci_dev *dev, u64 mask);
- int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask);
- void pci_update_resource(struct pci_dev *dev, struct resource *res, int resno);
-diff -puN include/linux/pci_regs.h~msi-sanely-support-hardware-level-msi-disabling include/linux/pci_regs.h
---- a/include/linux/pci_regs.h~msi-sanely-support-hardware-level-msi-disabling
-+++ a/include/linux/pci_regs.h
-@@ -292,9 +292,10 @@
- #define PCI_MSI_DATA_64		12	/* 16 bits of data for 64-bit devices */
- #define PCI_MSI_MASK_BIT	16	/* Mask bits register */
- 
--/* MSI-X registers (these are at offset PCI_MSI_FLAGS) */
--#define PCI_MSIX_FLAGS_QSIZE	0x7FF
--#define PCI_MSIX_FLAGS_ENABLE	(1 << 15)
-+/* MSI-X registers (these are at offset PCI_MSIX_FLAGS) */
-+#define PCI_MSIX_FLAGS		2
-+#define  PCI_MSIX_FLAGS_QSIZE	0x7FF
-+#define  PCI_MSIX_FLAGS_ENABLE	(1 << 15)
- #define PCI_MSIX_FLAGS_BIRMASK	(7 << 0)
- #define PCI_MSIX_FLAGS_BITMASK	(1 << 0)
- 
+@@ -85,6 +85,8 @@ static void msi_set_mask_bit(unsigned in
+ 			mask_bits &= ~(1);
+ 			mask_bits |= flag;
+ 			pci_write_config_dword(entry->dev, pos, mask_bits);
++		} else {
++			msi_set_enable(entry->dev, !flag);
+ 		}
+ 		break;
+ 	case PCI_CAP_ID_MSIX:
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
