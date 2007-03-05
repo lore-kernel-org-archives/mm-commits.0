@@ -1,51 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - git-kvm-fixup.patch removed from -mm tree
-Date: Sun, 04 Mar 2007 16:31:20 -0800
-Message-ID: <200703050031.l250VK3K005033@shell0.pdx.osdl.net>
+Subject: + div64_64-common-code-fix.patch added to -mm tree
+Date: Sun, 04 Mar 2007 16:41:18 -0800
+Message-ID: <200703050041.l250fI9u005204@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53963 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54078 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750699AbXCEAbW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 4 Mar 2007 19:31:22 -0500
+	id S1750844AbXCEAlU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 4 Mar 2007 19:41:20 -0500
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l250VLq8001152
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l250fIq8001354
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 4 Mar 2007 16:31:21 -0800
+	for <mm-commits@vger.kernel.org>; Sun, 4 Mar 2007 16:41:19 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, shemminger@linux-foundation.org
 
 
 The patch titled
-     git-kvm-fixup
-has been removed from the -mm tree.  Its filename was
-     git-kvm-fixup.patch
+     div64_64-common-code-fix
+has been added to the -mm tree.  Its filename is
+     div64_64-common-code-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-kvm-fixup
+Subject: div64_64-common-code-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+In file included from lib/reciprocal_div.c:2:
+include/asm/div64.h:49: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'div64_64'
+
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm_main.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/asm-arm/div64.h    |    1 +
+ include/asm-i386/div64.h   |    2 ++
+ include/asm-m68k/div64.h   |    2 ++
+ include/asm-mips/div64.h   |    2 ++
+ include/asm-xtensa/div64.h |    2 ++
+ 5 files changed, 9 insertions(+)
 
-diff -puN drivers/kvm/kvm_main.c~git-kvm-fixup drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~git-kvm-fixup
-+++ a/drivers/kvm/kvm_main.c
-@@ -2362,7 +2362,7 @@ static int kvm_cpu_hotplug(struct notifi
- 	int cpu = (long)v;
+diff -puN include/asm-arm/div64.h~div64_64-common-code-fix include/asm-arm/div64.h
+--- a/include/asm-arm/div64.h~div64_64-common-code-fix
++++ a/include/asm-arm/div64.h
+@@ -2,6 +2,7 @@
+ #define __ASM_ARM_DIV64
  
- 	switch (val) {
--	case CPU_DEAD:
-+	case CPU_DOWN_PREPARE:
- 	case CPU_UP_CANCELED:
- 		decache_vcpus_on_cpu(cpu);
- 		break;
+ #include <asm/system.h>
++#include <linux/types.h>
+ 
+ /*
+  * The semantics of do_div() are:
+diff -puN include/asm-i386/div64.h~div64_64-common-code-fix include/asm-i386/div64.h
+--- a/include/asm-i386/div64.h~div64_64-common-code-fix
++++ a/include/asm-i386/div64.h
+@@ -1,6 +1,8 @@
+ #ifndef __I386_DIV64
+ #define __I386_DIV64
+ 
++#include <linux/types.h>
++
+ /*
+  * do_div() is NOT a C function. It wants to return
+  * two values (the quotient and the remainder), but
+diff -puN include/asm-m68k/div64.h~div64_64-common-code-fix include/asm-m68k/div64.h
+--- a/include/asm-m68k/div64.h~div64_64-common-code-fix
++++ a/include/asm-m68k/div64.h
+@@ -1,6 +1,8 @@
+ #ifndef _M68K_DIV64_H
+ #define _M68K_DIV64_H
+ 
++#include <linux/types.h>
++
+ /* n = n / base; return rem; */
+ 
+ #define do_div(n, base) ({					\
+diff -puN include/asm-mips/div64.h~div64_64-common-code-fix include/asm-mips/div64.h
+--- a/include/asm-mips/div64.h~div64_64-common-code-fix
++++ a/include/asm-mips/div64.h
+@@ -9,6 +9,8 @@
+ #ifndef _ASM_DIV64_H
+ #define _ASM_DIV64_H
+ 
++#include <linux/types.h>
++
+ #if (_MIPS_SZLONG == 32)
+ 
+ #include <asm/compiler.h>
+diff -puN include/asm-xtensa/div64.h~div64_64-common-code-fix include/asm-xtensa/div64.h
+--- a/include/asm-xtensa/div64.h~div64_64-common-code-fix
++++ a/include/asm-xtensa/div64.h
+@@ -11,6 +11,8 @@
+ #ifndef _XTENSA_DIV64_H
+ #define _XTENSA_DIV64_H
+ 
++#include <linux/types.h>
++
+ #define do_div(n,base) ({ \
+ 	int __res = n % ((unsigned int) base); \
+ 	n /= (unsigned int) base; \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +123,6 @@ pvrusb-warning-fix.patch
 git-input.patch
 setstream-param-for-psmouse-tweak.patch
 git-kvm.patch
-git-kvm-fixup.patch
 git-leds-fixup.patch
 git-leds-make-it-compile.patch
 ide-ide-fix-pmac-breakage-fix.patch
@@ -75,6 +133,7 @@ git-netdev-all.patch
 revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
 dmfe-add-support-for-suspend-resume-fix.patch
 sis900-warning-fixes.patch
+div64_64-common-code-fix.patch
 bonding-replace-system-timer-with-work-queue-tidy.patch
 rm9000-serial-driver-tidy.patch
 git-pciseg.patch
