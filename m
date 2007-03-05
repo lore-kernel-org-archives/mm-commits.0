@@ -1,84 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + fix-2621-rfcomm-lockups.patch added to -mm tree
-Date: Mon, 05 Mar 2007 13:58:20 -0800
-Message-ID: <200703052158.l25LwLkr002082@shell0.pdx.osdl.net>
+Subject: - atyfb-replace-busy-loop-with-mdelay.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:53:59 -0800
+Message-ID: <200703052353.l25NrxNA005079@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38252 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41831 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751950AbXCEV7R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 16:59:17 -0500
+	id S932330AbXCEXyV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:54:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: lkml@rtr.ca, cornelia.huck@de.ibm.com, davem@sunset.davemloft.net, greg@kroah.com, marcel@holtmann.org, mlord@pobox.com
+To: syrjala@sci.fi, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix 2.6.21 rfcomm lockups
-has been added to the -mm tree.  Its filename is
-     fix-2621-rfcomm-lockups.patch
+     atyfb: replace busy loop with mdelay()
+has been removed from the -mm tree.  Its filename was
+     atyfb-replace-busy-loop-with-mdelay.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Fix 2.6.21 rfcomm lockups
-From: Mark Lord <lkml@rtr.ca>
+Subject: atyfb: replace busy loop with mdelay()
+From: Ville Syrjala <syrjala@sci.fi>
 
-Any attempt to open/use a bluetooth rfcomm device locks up
-scheduling completely on my machine.
+Replace a busy loop with mdelay() in atyfb clock setup code. This fixes
+boot hangs several people have experienced.
 
-Interrupts (ping, alt-sysrq) seem to be alive, but nothing else.
-
-This was working fine in 2.6.20, broken now in 2.6.21-rc2-git*
-
-Reverting this change (below) fixes it:
-
-| author    Marcel Holtmann <marcel@holtmann.org>
-|      Sat, 17 Feb 2007 22:58:57 +0000 (23:58 +0100)
-| committer    David S. Miller <davem@sunset.davemloft.net>
-|      Mon, 26 Feb 2007 19:42:41 +0000 (11:42 -0800)
-| commit    c1a3313698895d8ad4760f98642007bf236af2e8
-| tree    337a876f727061362b6a169f8759849c105b8f7a    tree | snapshot
-| parent    f5ffd4620aba9e55656483ae1ef5c79ba81f5403    commit | diff
-| | [Bluetooth] Make use of device_move() for RFCOMM TTY devices
-| | In the case of bound RFCOMM TTY devices the parent is not available
-| before its usage. So when opening a RFCOMM TTY device, move it to
-| the corresponding ACL device as a child. When closing the device,
-| move it back to the virtual device tree.
-| Signed-off-by: Marcel Holtmann <marcel@holtmann.org>
-
-The simplest fix for this bug is to prevent sysfs_move_dir()
-from self-deadlocking when (old_parent == new_parent).
-
-This patch prevents total system lockup when using rfcomm devices.
-
-Signed-off-by:  Mark Lord <mlord@pobox.com>
-Acked-by: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Ville Syrjala <syrjala@sci.fi>
+Acked-by: James Simmons <jsimmons@infradead.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/dir.c |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/video/aty/mach64_ct.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN fs/sysfs/dir.c~fix-2621-rfcomm-lockups fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~fix-2621-rfcomm-lockups
-+++ a/fs/sysfs/dir.c
-@@ -431,6 +431,8 @@ int sysfs_move_dir(struct kobject *kobj,
- 	new_parent_dentry = new_parent ?
- 		new_parent->dentry : sysfs_mount->mnt_sb->s_root;
+diff -puN drivers/video/aty/mach64_ct.c~atyfb-replace-busy-loop-with-mdelay drivers/video/aty/mach64_ct.c
+--- a/drivers/video/aty/mach64_ct.c~atyfb-replace-busy-loop-with-mdelay
++++ a/drivers/video/aty/mach64_ct.c
+@@ -598,7 +598,6 @@ static void aty_resume_pll_ct(const stru
+ 	struct atyfb_par *par = info->par;
  
-+	if (old_parent_dentry->d_inode == new_parent_dentry->d_inode)
-+		return 0;	/* nothing to move */
- again:
- 	mutex_lock(&old_parent_dentry->d_inode->i_mutex);
- 	if (!mutex_trylock(&new_parent_dentry->d_inode->i_mutex)) {
+ 	if (par->mclk_per != par->xclk_per) {
+-		int i;
+ 		/*
+ 		* This disables the sclk, crashes the computer as reported:
+ 		* aty_st_pll_ct(SPLL_CNTL2, 3, info);
+@@ -609,12 +608,10 @@ static void aty_resume_pll_ct(const stru
+ 		aty_st_pll_ct(SCLK_FB_DIV, pll->ct.sclk_fb_div, par);
+ 		aty_st_pll_ct(SPLL_CNTL2, pll->ct.spll_cntl2, par);
+ 		/*
+-		 * The sclk has been started. However, I believe the first clock
+-		 * ticks it generates are not very stable. Hope this primitive loop
+-		 * helps for Rage Mobilities that sometimes crash when
+-		 * we switch to sclk. (Daniel Mantione, 13-05-2003)
++		 * SCLK has been started. Wait for the PLL to lock. 5 ms
++		 * should be enough according to mach64 programmer's guide.
+ 		 */
+-		for (i=0;i<=0x1ffff;i++);
++		mdelay(5);
+ 	}
+ 
+ 	aty_st_pll_ct(PLL_REF_DIV, pll->ct.pll_ref_div, par);
 _
 
-Patches currently in -mm which might be from lkml@rtr.ca are
+Patches currently in -mm which might be from syrjala@sci.fi are
 
-fix-2621-rfcomm-lockups.patch
+atyfb-replace-busy-loop-with-mdelay.patch
