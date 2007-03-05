@@ -1,116 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: - page-migration-fix-vma-flag-checking.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:55:06 -0800
-Message-ID: <200703052355.l25Nt6P3005159@shell0.pdx.osdl.net>
+Subject: - vmi-timer-fixes-round-two.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:55:09 -0800
+Message-ID: <200703052355.l25Nt9Cr005167@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41914 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41911 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932511AbXCEXzM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:55:12 -0500
+	id S932515AbXCEXzL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:55:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@engr.sgi.com, clameter@sgi.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
+To: zach@vmware.com, dhecht@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Page migration: Fix vma flag checking
+     vmi: timer fixes round two
 has been removed from the -mm tree.  Its filename was
-     page-migration-fix-vma-flag-checking.patch
+     vmi-timer-fixes-round-two.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Page migration: Fix vma flag checking
-From: Christoph Lameter <clameter@engr.sgi.com>
+Subject: vmi: timer fixes round two
+From: Zachary Amsden <zach@vmware.com>
 
-Currently we do not check for vma flags if sys_move_pages is called to move
-individual pages.  If sys_migrate_pages is called to move pages then we
-check for vm_flags that indicate a non migratable vma but that still
-includes VM_LOCKED and we can migrate mlocked pages.
+Critical bugfixes for the VMI-Timer code.
 
-Extract the vma_migratable check from mm/mempolicy.c, fix it and put it
-into migrate.h so that is can be used from both locations.
+1) Do not setup a one shot alarm if we are keeping the periodic alarm
+   armed.  Additionally, since the periodic alarm can be run at a lower rate
+   than HZ, let's fixup the guard to the no-idle-hz mode appropriately.  This
+   fixes the bug where the no-idle-hz mode might have a higher interrupt rate
+   than the non-idle case.
 
-Problem was spotted by Lee Schermerhorn
+2) The interrupt handler can no longer adjust xtime due to nested lock
+   acquisition.  Drop this.  We don't need to check for wallclock time at
+   every tick, it can be done in userspace instead.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+3) Add a bypass to disable noidle operation.  This is useful as a last
+   minute workaround, or testing measure.
+
+4) The code to skip the IO_APIC timer testing (no_timer_check) should be
+   conditional on IO_APIC, not SMP, since UP kernels can have this configured
+   in as well.
+
+Signed-off-by: Dan Hecht <dhecht@vmware.com>
+Signed-off-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    8 ++++++++
- mm/mempolicy.c          |    9 ---------
- mm/migrate.c            |    2 +-
- 3 files changed, 9 insertions(+), 10 deletions(-)
+ arch/i386/kernel/vmi.c     |   23 +++++++++++++----------
+ arch/i386/kernel/vmitime.c |   30 +++++++++++-------------------
+ 2 files changed, 24 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/migrate.h~page-migration-fix-vma-flag-checking include/linux/migrate.h
---- a/include/linux/migrate.h~page-migration-fix-vma-flag-checking
-+++ a/include/linux/migrate.h
-@@ -5,6 +5,14 @@
+diff -puN arch/i386/kernel/vmi.c~vmi-timer-fixes-round-two arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~vmi-timer-fixes-round-two
++++ a/arch/i386/kernel/vmi.c
+@@ -54,6 +54,7 @@ static int disable_pse;
+ static int disable_sep;
+ static int disable_tsc;
+ static int disable_mtrr;
++static int disable_noidle;
  
- typedef struct page *new_page_t(struct page *, unsigned long private, int **);
+ /* Cached VMI operations */
+ struct {
+@@ -255,7 +256,6 @@ static void vmi_nop(void)
+ }
  
-+/* Check if a vma is migratable */
-+static inline int vma_migratable(struct vm_area_struct *vma)
-+{
-+	if (vma->vm_flags & (VM_IO|VM_HUGETLB|VM_PFNMAP|VM_RESERVED))
-+		return 0;
-+	return 1;
-+}
+ /* For NO_IDLE_HZ, we stop the clock when halting the kernel */
+-#ifdef CONFIG_NO_IDLE_HZ
+ static fastcall void vmi_safe_halt(void)
+ {
+ 	int idle = vmi_stop_hz_timer();
+@@ -266,7 +266,6 @@ static fastcall void vmi_safe_halt(void)
+ 		local_irq_enable();
+ 	}
+ }
+-#endif
+ 
+ #ifdef CONFIG_DEBUG_PAGE_TYPE
+ 
+@@ -742,12 +741,7 @@ static inline int __init activate_vmi(vo
+ 		     (char *)paravirt_ops.save_fl);
+ 	patch_offset(&irq_save_disable_callout[IRQ_PATCH_DISABLE],
+ 		     (char *)paravirt_ops.irq_disable);
+-#ifndef CONFIG_NO_IDLE_HZ
+-	para_fill(safe_halt, Halt);
+-#else
+-	vmi_ops.halt = vmi_get_function(VMI_CALL_Halt);
+-	paravirt_ops.safe_halt = vmi_safe_halt;
+-#endif
 +
- #ifdef CONFIG_MIGRATION
- extern int isolate_lru_page(struct page *p, struct list_head *pagelist);
- extern int putback_lru_pages(struct list_head *l);
-diff -puN mm/mempolicy.c~page-migration-fix-vma-flag-checking mm/mempolicy.c
---- a/mm/mempolicy.c~page-migration-fix-vma-flag-checking
-+++ a/mm/mempolicy.c
-@@ -321,15 +321,6 @@ static inline int check_pgd_range(struct
+ 	para_fill(wbinvd, WBINVD);
+ 	/* paravirt_ops.read_msr = vmi_rdmsr */
+ 	/* paravirt_ops.write_msr = vmi_wrmsr */
+@@ -881,6 +875,12 @@ static inline int __init activate_vmi(vo
+ #endif
+ 		custom_sched_clock = vmi_sched_clock;
+ 	}
++	if (!disable_noidle)
++		para_fill(safe_halt, Halt);
++	else {
++		vmi_ops.halt = vmi_get_function(VMI_CALL_Halt);
++		paravirt_ops.safe_halt = vmi_safe_halt;
++	}
+ 
+ 	/*
+ 	 * Alternative instruction rewriting doesn't happen soon enough
+@@ -914,9 +914,11 @@ void __init vmi_init(void)
+ 
+ 	local_irq_save(flags);
+ 	activate_vmi();
+-#ifdef CONFIG_SMP
++
++#ifdef CONFIG_X86_IO_APIC
+ 	no_timer_check = 1;
+ #endif
++
+ 	local_irq_restore(flags & X86_EFLAGS_IF);
+ }
+ 
+@@ -942,7 +944,8 @@ static int __init parse_vmi(char *arg)
+ 	} else if (!strcmp(arg, "disable_mtrr")) {
+ 		clear_bit(X86_FEATURE_MTRR, boot_cpu_data.x86_capability);
+ 		disable_mtrr = 1;
+-	}
++	} else if (!strcmp(arg, "disable_noidle"))
++		disable_noidle = 1;
  	return 0;
  }
  
--/* Check if a vma is migratable */
--static inline int vma_migratable(struct vm_area_struct *vma)
--{
--	if (vma->vm_flags & (
--		VM_LOCKED|VM_IO|VM_HUGETLB|VM_PFNMAP|VM_RESERVED))
--		return 0;
--	return 1;
--}
+diff -puN arch/i386/kernel/vmitime.c~vmi-timer-fixes-round-two arch/i386/kernel/vmitime.c
+--- a/arch/i386/kernel/vmitime.c~vmi-timer-fixes-round-two
++++ a/arch/i386/kernel/vmitime.c
+@@ -276,16 +276,13 @@ static void vmi_account_real_cycles(unsi
+ 
+ 	cycles_not_accounted = cur_real_cycles - real_cycles_accounted_system;
+ 	while (cycles_not_accounted >= cycles_per_jiffy) {
+-		/* systems wide jiffies and wallclock. */
++		/* systems wide jiffies. */
+ 		do_timer(1);
+ 
+ 		cycles_not_accounted -= cycles_per_jiffy;
+ 		real_cycles_accounted_system += cycles_per_jiffy;
+ 	}
+ 
+-	if (vmi_timer_ops.wallclock_updated())
+-		update_xtime_from_wallclock();
 -
- /*
-  * Check if all pages in a range are on a set of nodes.
-  * If pagelist != NULL then isolate pages from the LRU and
-diff -puN mm/migrate.c~page-migration-fix-vma-flag-checking mm/migrate.c
---- a/mm/migrate.c~page-migration-fix-vma-flag-checking
-+++ a/mm/migrate.c
-@@ -781,7 +781,7 @@ static int do_move_pages(struct mm_struc
+ 	write_sequnlock(&xtime_lock);
+ }
  
- 		err = -EFAULT;
- 		vma = find_vma(mm, pp->addr);
--		if (!vma)
-+		if (!vma || !vma_migratable(vma))
- 			goto set_status;
+@@ -380,7 +377,6 @@ int vmi_stop_hz_timer(void)
+ 	unsigned long seq, next;
+ 	unsigned long long real_cycles_expiry;
+ 	int cpu = smp_processor_id();
+-	int idle;
  
- 		page = follow_page(vma, pp->addr, FOLL_GET);
+ 	BUG_ON(!irqs_disabled());
+ 	if (sysctl_hz_timer != 0)
+@@ -388,13 +384,13 @@ int vmi_stop_hz_timer(void)
+ 
+ 	cpu_set(cpu, nohz_cpu_mask);
+ 	smp_mb();
++
+ 	if (rcu_needs_cpu(cpu) || local_softirq_pending() ||
+-	    (next = next_timer_interrupt(), time_before_eq(next, jiffies))) {
++	    (next = next_timer_interrupt(),
++	     time_before_eq(next, jiffies + HZ/CONFIG_VMI_ALARM_HZ))) {
+ 		cpu_clear(cpu, nohz_cpu_mask);
+-		next = jiffies;
+-		idle = 0;
+-	} else
+-		idle = 1;
++		return 0;
++	}
+ 
+ 	/* Convert jiffies to the real cycle counter. */
+ 	do {
+@@ -404,17 +400,13 @@ int vmi_stop_hz_timer(void)
+ 	} while (read_seqretry(&xtime_lock, seq));
+ 
+ 	/* This cpu is going idle. Disable the periodic alarm. */
+-	if (idle) {
+-		vmi_timer_ops.cancel_alarm(VMI_CYCLES_AVAILABLE);
+-		per_cpu(idle_start_jiffies, cpu) = jiffies;
+-	}
+-
++	vmi_timer_ops.cancel_alarm(VMI_CYCLES_AVAILABLE);
++	per_cpu(idle_start_jiffies, cpu) = jiffies;
+ 	/* Set the real time alarm to expire at the next event. */
+ 	vmi_timer_ops.set_alarm(
+-		      VMI_ALARM_WIRING | VMI_ALARM_IS_ONESHOT | VMI_CYCLES_REAL,
+-		      real_cycles_expiry, 0);
+-
+-	return idle;
++		VMI_ALARM_WIRING | VMI_ALARM_IS_ONESHOT | VMI_CYCLES_REAL,
++		real_cycles_expiry, 0);
++	return 1;
+ }
+ 
+ static void vmi_reenable_hz_timer(int cpu)
 _
 
-Patches currently in -mm which might be from clameter@engr.sgi.com are
+Patches currently in -mm which might be from zach@vmware.com are
 
 origin.patch
-nfs-fix-congestion-control-v4.patch
-git-block-xfs-barriers-broke.patch
-mm-set-hashdist_default-to-1-for-x86_64-numa.patch
-x86_64-configurable-fake-numa-node-sizes.patch
-x86_64-split-remaining-fake-nodes-equally.patch
-x86_64-fixed-size-remaining-fake-nodes.patch
-x86_64-map-fake-nodes-to-real-nodes.patch
-x86_64-disable-alien-cache-for-fake-numa.patch
-x86_64-export-physnode-mapping-to-userspace.patch
-x86_64-fake-numa-for-cpusets-document.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial-tweak.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-swap_prefetch-vs-zoned-counters.patch
-reiser4-vs-zoned-allocator.patch
-slab-leaks3-default-y.patch
+make-struct-vmi_ops-static.patch
