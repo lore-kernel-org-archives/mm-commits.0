@@ -1,88 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch removed from -mm tree
-Date: Sun, 04 Mar 2007 23:30:31 -0800
-Message-ID: <200703050730.l257UVPM012701@shell0.pdx.osdl.net>
+Subject: - pata_platform-set-a-cable-type-which-to-set.patch removed from -mm tree
+Date: Sun, 04 Mar 2007 23:30:57 -0800
+Message-ID: <200703050730.l257UvbO012707@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34419 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34434 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752707AbXCEHar (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 02:30:47 -0500
+	id S1751890AbXCEHbN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 02:31:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ata_generic: Remove lots of code using the new cable_detect method
+     pata_platform: set a cable type (which to set ?)
 has been removed from the -mm tree.  Its filename was
-     ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
+     pata_platform-set-a-cable-type-which-to-set.patch
 
 This patch was dropped because it needs libata-cable-detection-fixes.patch
 
 ------------------------------------------------------
-Subject: ata_generic: Remove lots of code using the new cable_detect method
+Subject: pata_platform: set a cable type (which to set ?)
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-(And correct the cable type to unknown while we are at it)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_generic.c |   32 ++------------------------------
- 1 files changed, 2 insertions(+), 30 deletions(-)
+ drivers/ata/pata_platform.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/ata/ata_generic.c~ata_generic-remove-lots-of-code-using-the-new-cable_detect drivers/ata/ata_generic.c
---- a/drivers/ata/ata_generic.c~ata_generic-remove-lots-of-code-using-the-new-cable_detect
-+++ a/drivers/ata/ata_generic.c
-@@ -33,35 +33,6 @@
-  */
+diff -puN drivers/ata/pata_platform.c~pata_platform-set-a-cable-type-which-to-set drivers/ata/pata_platform.c
+--- a/drivers/ata/pata_platform.c~pata_platform-set-a-cable-type-which-to-set
++++ a/drivers/ata/pata_platform.c
+@@ -80,6 +80,7 @@ static struct ata_port_operations pata_p
+ 	.thaw			= ata_bmdma_thaw,
+ 	.error_handler		= ata_bmdma_error_handler,
+ 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= ata_cable_unknown,
  
- /**
-- *	generic_pre_reset		-	probe begin
-- *	@ap: ATA port
-- *
-- *	Set up cable type and use generic probe init
-- */
--
--static int generic_pre_reset(struct ata_port *ap)
--{
--	ap->cbl = ATA_CBL_PATA80;
--	return ata_std_prereset(ap);
--}
--
--
--/**
-- *	generic_error_handler - Probe specified port on PATA host controller
-- *	@ap: Port to probe
-- *	@classes:
-- *
-- *	LOCKING:
-- *	None (inherited from caller).
-- */
--
--
--static void generic_error_handler(struct ata_port *ap)
--{
--	ata_bmdma_drive_eh(ap, generic_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
--}
--
--/**
-  *	generic_set_mode	-	mode setting
-  *	@ap: interface to set up
-  *	@unused: returned device on error
-@@ -142,8 +113,9 @@ static struct ata_port_operations generi
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= generic_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_unknown,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
+ 	.qc_prep		= ata_qc_prep,
+ 	.qc_issue		= ata_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -95,7 +54,6 @@ expose-set_mode-method-so-it-can-be-wrapped.patch
 acpi-driver-support-for-pata.patch
 pcmcia-spot-slave-decode-flaws-for-testing.patch
 pata_platform-set-a-cable-type-which-to-set.patch
-ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
 pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
 pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
 pata_cypress-clean-up-by-using-cable_detect-method.patch
