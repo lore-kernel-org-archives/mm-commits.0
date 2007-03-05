@@ -1,124 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-handles-aop_truncated_page-better.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 15:55:45 -0800
-Message-ID: <200703052355.l25NtjQp005206@shell0.pdx.osdl.net>
+Subject: - arch-i386-kernel-vmic-must-include-asm-kmap_typesh.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 15:56:33 -0800
+Message-ID: <200703052356.l25NuXTL005247@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42092 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42103 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933306AbXCEX7B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 18:59:01 -0500
+	id S933344AbXCEX7t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 18:59:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@openvz.org, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: handle AOP_TRUNCATED_PAGE better
+     arch/i386/kernel/vmi.c must #include <asm/kmap_types.h>
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-handles-aop_truncated_page-better.patch
+     arch-i386-kernel-vmic-must-include-asm-kmap_typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ecryptfs: handle AOP_TRUNCATED_PAGE better
-From: Dmitriy Monakhov <dmonakhov@openvz.org>
+Subject: arch/i386/kernel/vmi.c must #include <asm/kmap_types.h>
+From: Adrian Bunk <bunk@stusta.de>
 
-- In fact we don't have to fail if AOP_TRUNCATED_PAGE was returned from
-  prepare_write or commit_write. It is beter to retry attempt where it
-  is possible.
+  CC      arch/i386/kernel/vmi.o
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/arch/i386/kernel/vmi.c: In function 'vmi_map_pt_hook':
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/arch/i386/kernel/vmi.c:387: error: 'KM_PTE0' undeclared (first use in this function)
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/arch/i386/kernel/vmi.c:387: error: (Each undeclared identifier is reported only once
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/arch/i386/kernel/vmi.c:387: error: for each function it appears in.)
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/arch/i386/kernel/vmi.c:387: error: 'KM_PTE1' undeclared (first use in this function)
+make[2]: *** [arch/i386/kernel/vmi.o] Error 1
 
-- Rearange ecryptfs_get_lower_page() error handling logic, make it more clean.
-
-Signed-off-by: Dmitriy Monakhov <dmonakhov@openvz.org>
-Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/mmap.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ arch/i386/kernel/vmi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-handles-aop_truncated_page-better fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-handles-aop_truncated_page-better
-+++ a/fs/ecryptfs/mmap.c
-@@ -446,6 +446,7 @@ static int ecryptfs_write_inode_size_to_
- 	const struct address_space_operations *lower_a_ops;
- 	u64 file_size;
+diff -puN arch/i386/kernel/vmi.c~arch-i386-kernel-vmic-must-include-asm-kmap_typesh arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~arch-i386-kernel-vmic-must-include-asm-kmap_typesh
++++ a/arch/i386/kernel/vmi.c
+@@ -35,6 +35,7 @@
+ #include <asm/processor.h>
+ #include <asm/timer.h>
+ #include <asm/vmi_time.h>
++#include <asm/kmap_types.h>
  
-+retry:
- 	header_page = grab_cache_page(lower_inode->i_mapping, 0);
- 	if (!header_page) {
- 		ecryptfs_printk(KERN_ERR, "grab_cache_page for "
-@@ -456,9 +457,10 @@ static int ecryptfs_write_inode_size_to_
- 	lower_a_ops = lower_inode->i_mapping->a_ops;
- 	rc = lower_a_ops->prepare_write(lower_file, header_page, 0, 8);
- 	if (rc) {
--		if (rc == AOP_TRUNCATED_PAGE)
-+		if (rc == AOP_TRUNCATED_PAGE) {
- 			ecryptfs_release_lower_page(header_page, 0);
--		else
-+			goto retry;
-+		} else
- 			ecryptfs_release_lower_page(header_page, 1);
- 		goto out;
- 	}
-@@ -473,9 +475,10 @@ static int ecryptfs_write_inode_size_to_
- 	if (rc < 0)
- 		ecryptfs_printk(KERN_ERR, "Error commiting header page "
- 				"write\n");
--	if (rc == AOP_TRUNCATED_PAGE)
-+	if (rc == AOP_TRUNCATED_PAGE) {
- 		ecryptfs_release_lower_page(header_page, 0);
--	else
-+		goto retry;
-+	} else
- 		ecryptfs_release_lower_page(header_page, 1);
- 	lower_inode->i_mtime = lower_inode->i_ctime = CURRENT_TIME;
- 	mark_inode_dirty_sync(inode);
-@@ -565,6 +568,7 @@ int ecryptfs_get_lower_page(struct page 
- {
- 	int rc = 0;
- 
-+retry:
- 	*lower_page = grab_cache_page(lower_inode->i_mapping, lower_page_index);
- 	if (!(*lower_page)) {
- 		rc = -EINVAL;
-@@ -578,18 +582,18 @@ int ecryptfs_get_lower_page(struct page 
- 							  byte_offset,
- 							  region_bytes);
- 	if (rc) {
--		ecryptfs_printk(KERN_ERR, "prepare_write for "
-+		if (rc == AOP_TRUNCATED_PAGE) {
-+			ecryptfs_release_lower_page(*lower_page, 0);
-+			goto retry;
-+		} else {
-+			ecryptfs_printk(KERN_ERR, "prepare_write for "
- 				"lower_page_index = [0x%.16x] failed; rc = "
- 				"[%d]\n", lower_page_index, rc);
--	}
--out:
--	if (rc && (*lower_page)) {
--		if (rc == AOP_TRUNCATED_PAGE)
--			ecryptfs_release_lower_page(*lower_page, 0);
--		else
- 			ecryptfs_release_lower_page(*lower_page, 1);
--		(*lower_page) = NULL;
-+			(*lower_page) = NULL;
-+		}
- 	}
-+out:
- 	return rc;
- }
- 
+ /* Convenient for calling VMI functions indirectly in the ROM */
+ typedef u32 __attribute__((regparm(1))) (VROMFUNC)(void);
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
-3c59x-handle-pci_enable_device-failure-while-resuming.patch
-sk98lin-handle-pci_enable_device-return-value-in-skge_resume.patch
-mpt-fusion-handle-mpt_resume-failure-while-resuming.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
-irq-add-__must_check-to-request_irq.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-fs-jffs2-ioctlc.patch
+git-ubi.patch
+drivers-net-vioc-possible-cleanups.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-cleanup.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe-fix.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+make-ext2_get_blocks-static.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus-fix.patch
+linux-kernel-markers-architecture-independant-code-license-fix.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
