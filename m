@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_sl82c105-missing-methods-cable.patch added to -mm tree
-Date: Sun, 04 Mar 2007 23:40:12 -0800
-Message-ID: <200703050740.l257eCeN012911@shell0.pdx.osdl.net>
+Subject: + ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch added to -mm tree
+Date: Sun, 04 Mar 2007 23:40:19 -0800
+Message-ID: <200703050740.l257eJDx012914@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34571 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34584 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932102AbXCEHkW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 02:40:22 -0500
+	id S932117AbXCEHkf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 02:40:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_sl82c105: Missing methods, cable
+     ata_generic: Remove lots of code using the new cable_detect method
 has been added to the -mm tree.  Its filename is
-     pata_sl82c105-missing-methods-cable.patch
+     ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_sl82c105: Missing methods, cable
+Subject: ata_generic: Remove lots of code using the new cable_detect method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Missing freeze, thaw, post_internal methods, also switch to new cable method
-in passing.
+(And correct the cable type to unknown while we are at it)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sl82c105.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/ata_generic.c |   32 ++------------------------------
+ 1 file changed, 2 insertions(+), 30 deletions(-)
 
-diff -puN drivers/ata/pata_sl82c105.c~pata_sl82c105-missing-methods-cable drivers/ata/pata_sl82c105.c
---- a/drivers/ata/pata_sl82c105.c~pata_sl82c105-missing-methods-cable
-+++ a/drivers/ata/pata_sl82c105.c
-@@ -58,7 +58,6 @@ static int sl82c105_pre_reset(struct ata
+diff -puN drivers/ata/ata_generic.c~ata_generic-remove-lots-of-code-using-the-new-cable_detect drivers/ata/ata_generic.c
+--- a/drivers/ata/ata_generic.c~ata_generic-remove-lots-of-code-using-the-new-cable_detect
++++ a/drivers/ata/ata_generic.c
+@@ -33,35 +33,6 @@
+  */
  
- 	if (ap->port_no && !pci_test_config_bits(pdev, &sl82c105_enable_bits[ap->port_no]))
- 		return -ENOENT;
--	ap->cbl = ATA_CBL_PATA40;
- 	return ata_std_prereset(ap);
- }
+ /**
+- *	generic_pre_reset		-	probe begin
+- *	@ap: ATA port
+- *
+- *	Set up cable type and use generic probe init
+- */
+-
+-static int generic_pre_reset(struct ata_port *ap)
+-{
+-	ap->cbl = ATA_CBL_PATA80;
+-	return ata_std_prereset(ap);
+-}
+-
+-
+-/**
+- *	generic_error_handler - Probe specified port on PATA host controller
+- *	@ap: Port to probe
+- *	@classes:
+- *
+- *	LOCKING:
+- *	None (inherited from caller).
+- */
+-
+-
+-static void generic_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, generic_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+-/**
+  *	generic_set_mode	-	mode setting
+  *	@ap: interface to set up
+  *	@unused: returned device on error
+@@ -144,8 +115,9 @@ static struct ata_port_operations generi
  
-@@ -238,6 +237,7 @@ static struct ata_port_operations sl82c1
+ 	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= sl82c105_error_handler,
+-	.error_handler	= generic_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
++	.cable_detect	= ata_cable_unknown,
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= sl82c105_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
