@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:30:42 -0800
-Message-ID: <200703060130.l261UhpR007757@shell0.pdx.osdl.net>
+Subject: - atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:30:48 -0800
+Message-ID: <200703060130.l261UmGx007760@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45405 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45407 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932900AbXCFBa6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S932926AbXCFBa6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Mon, 5 Mar 2007 20:30:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,64 +14,34 @@ To: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, mm-commits@vger.ker
 
 
 The patch titled
-     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2
 has been removed from the -mm tree.  Its filename was
-     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
 
 This patch was dropped because it was folded into atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
 
 ------------------------------------------------------
-Subject: atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix
+Subject: atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2
 From: Andrew Morton <akpm@osdl.org>
 
 Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-powerpc/atomic.h |   31 -------------------------------
- 1 files changed, 31 deletions(-)
+ include/asm-powerpc/atomic.h |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix include/asm-powerpc/atomic.h
---- a/include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix
+diff -puN include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2 include/asm-powerpc/atomic.h
+--- a/include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2
 +++ a/include/asm-powerpc/atomic.h
-@@ -418,37 +418,6 @@ static __inline__ long atomic64_dec_if_p
- 	((__typeof__((v)->counter))cmpxchg(&((v)->counter), (o), (n)))
- #define atomic64_xchg(v, new) (xchg(&((v)->counter), new))
+@@ -420,7 +420,6 @@ static __inline__ long atomic64_dec_if_p
  
--/**
-- * atomic64_add_unless - add unless the number is a given value
-- * @v: pointer of type atomic64_t
-- * @a: the amount to add to v...
-- * @u: ...unless v is equal to u.
-- *
-- * Atomically adds @a to @v, so long as it was not @u.
-- * Returns non-zero if @v was not @u, and zero otherwise.
-- */
--static __inline__ int atomic64_add_unless(atomic64_t *v, long a, long u)
--{
--	long t;
--
--	__asm__ __volatile__ (
--	LWSYNC_ON_SMP
--"1:	ldarx	%0,0,%1		# atomic_add_unless\n\
--	cmpd	0,%0,%3 \n\
--	beq-	2f \n\
--	add	%0,%2,%0 \n"
--"	stdcx.	%0,0,%1 \n\
--	bne-	1b \n"
--	ISYNC_ON_SMP
--"	subf	%0,%2,%0 \n\
--2:"
--	: "=&r" (t)
--	: "r" (&v->counter), "r" (a), "r" (u)
--	: "cc", "memory");
--
--	return t != u;
--}
--
  #define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
  
- #define atomic64_cmpxchg(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
+-#define atomic64_cmpxchg(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
+ #define atomic64_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -118,7 +88,6 @@ aio-is-unlikely.patch
 mm-implement-swap-prefetching.patch
 rcu-preemptible-rcu.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
 local_t-powerpc-extension-fix.patch
 local_t-powerpc-extension-fix-build-fix.patch
