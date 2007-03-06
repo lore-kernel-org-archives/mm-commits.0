@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-display-class-fix.patch added to -mm tree
-Date: Mon, 05 Mar 2007 19:49:29 -0800
-Message-ID: <200703060349.l263nT9m011024@shell0.pdx.osdl.net>
+Subject: + fbdev-hecuba-framebuffer-driver-fix.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:51:29 -0800
+Message-ID: <200703060351.l263pTEQ011084@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49377 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49413 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933917AbXCFDwu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:52:50 -0500
+	id S933922AbXCFDyo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:54:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, adaplas@pol.net, greg@kroah.com, jsimmons@infradead.org
+Cc: bunk@stusta.de, adaplas@gmail.com, jayakumar.lkml@gmail.com
 
 
 The patch titled
-     make drivers/video/display/display-sysfs.c:display_class static
+     drivers/video/hecubafb.c: make 4 functions static
 has been added to the -mm tree.  Its filename is
-     fbdev-display-class-fix.patch
+     fbdev-hecuba-framebuffer-driver-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make drivers/video/display/display-sysfs.c:display_class static
+Subject: drivers/video/hecubafb.c: make 4 functions static
 From: Adrian Bunk <bunk@stusta.de>
 
+This patch makes the following needlessly global functions static:
+- hcb_wait_for_ack()
+- hcb_wait_for_ack_clear()
+- apollo_send_data()
+- apollo_send_command()
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: James Simmons <jsimmons@infradead.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/display/display-sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/hecubafb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/display/display-sysfs.c~fbdev-display-class-fix drivers/video/display/display-sysfs.c
---- a/drivers/video/display/display-sysfs.c~fbdev-display-class-fix
-+++ a/drivers/video/display/display-sysfs.c
-@@ -127,7 +127,7 @@ static int display_resume(struct device 
+diff -puN drivers/video/hecubafb.c~fbdev-hecuba-framebuffer-driver-fix drivers/video/hecubafb.c
+--- a/drivers/video/hecubafb.c~fbdev-hecuba-framebuffer-driver-fix
++++ a/drivers/video/hecubafb.c
+@@ -145,7 +145,7 @@ static int __devinit apollo_init_control
+ 	return 0;
+ }
  
- static struct mutex allocated_dsp_lock;
- static DEFINE_IDR(allocated_dsp);
--struct class *display_class;
-+static struct class *display_class;
+-void hcb_wait_for_ack(struct hecubafb_par *par)
++static void hcb_wait_for_ack(struct hecubafb_par *par)
+ {
  
- struct display_device *display_device_register(struct display_driver *driver,
- 						struct device *parent, void *devdata)
+ 	int timeout;
+@@ -161,7 +161,7 @@ void hcb_wait_for_ack(struct hecubafb_pa
+ 	printk(KERN_ERR "timed out waiting for ack\n");
+ }
+ 
+-void hcb_wait_for_ack_clear(struct hecubafb_par *par)
++static void hcb_wait_for_ack_clear(struct hecubafb_par *par)
+ {
+ 
+ 	int timeout;
+@@ -177,7 +177,7 @@ void hcb_wait_for_ack_clear(struct hecub
+ 	printk(KERN_ERR "timed out waiting for clear\n");
+ }
+ 
+-void apollo_send_data(struct hecubafb_par *par, unsigned char data)
++static void apollo_send_data(struct hecubafb_par *par, unsigned char data)
+ {
+ 	/* set data */
+ 	hcb_set_data(par, data);
+@@ -195,7 +195,7 @@ void apollo_send_data(struct hecubafb_pa
+ 	hcb_wait_for_ack_clear(par);
+ }
+ 
+-void apollo_send_command(struct hecubafb_par *par, unsigned char data)
++static void apollo_send_command(struct hecubafb_par *par, unsigned char data)
+ {
+ 	/* command so set CD to high */
+ 	par->ctl &= ~(HCB_NCD_BIT);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -101,6 +133,8 @@ readahead-events-accounting.patch
 reiser4-export-remove_from_page_cache.patch
 reiser4.patch
 fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
 slim-main-patch.patch
 slim-debug-output.patch
 i386-enable-4k-stacks-by-default.patch
