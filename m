@@ -1,107 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-min-max-sizes-increase-vm_min_readahead-to-32kb.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:45:22 -0800
-Message-ID: <200703060145.l261jMJJ008241@shell0.pdx.osdl.net>
+Subject: - readahead-state-based-method-aging-accounting-vs-zvc-changes.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:46:06 -0800
+Message-ID: <200703060146.l261k6YR008265@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45953 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45965 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932933AbXCFBp3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:45:29 -0500
+	id S933816AbXCFBqJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:46:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: min/max sizes: increase VM_MIN_READAHEAD to 32KB
+     ZVC writeback: Fix mm and other issues
 has been removed from the -mm tree.  Its filename was
-     readahead-min-max-sizes-increase-vm_min_readahead-to-32kb.patch
+     readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
 
-This patch was dropped because it was folded into readahead-min-max-sizes.patch
+This patch was dropped because it was folded into readahead-state-based-method-aging-accounting.patch
 
 ------------------------------------------------------
-Subject: readahead: min/max sizes: increase VM_MIN_READAHEAD to 32KB
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: ZVC writeback: Fix mm and other issues
+From: Christoph Lameter <clameter@sgi.com>
 
-Use a minimal readahead size of 32KB instead of 16KB for the adaptive readahead.
+This deals with swap prefetch and various things changed in mm.
 
-The potential benefit(disk utilization in worst case doubles) is large, while
-the potential panelty is small(wastes up to 32MB when thrashed/missed 1000
-times).
-
-This minimal value is only applied for sequential streams.
-
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~readahead-min-max-sizes-increase-vm_min_readahead-to-32kb include/linux/mm.h
---- a/include/linux/mm.h~readahead-min-max-sizes-increase-vm_min_readahead-to-32kb
-+++ a/include/linux/mm.h
-@@ -1088,10 +1088,11 @@ int write_one_page(struct page *page, in
- /* readahead.c */
- #ifdef CONFIG_ADAPTIVE_READAHEAD
- #define VM_MAX_READAHEAD	1024	/* kbytes */
-+#define VM_MIN_READAHEAD	32	/* kbytes (includes current page) */
- #else
- #define VM_MAX_READAHEAD	128	/* kbytes */
--#endif
- #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
-+#endif
- #define VM_MAX_CACHE_HIT    	256	/* max pages in a row in cache before
- 					 * turning readahead off */
+diff -puN mm/page_alloc.c~readahead-state-based-method-aging-accounting-vs-zvc-changes mm/page_alloc.c
+--- a/mm/page_alloc.c~readahead-state-based-method-aging-accounting-vs-zvc-changes
++++ a/mm/page_alloc.c
+@@ -1513,12 +1513,12 @@ unsigned int nr_free_pagecache_pages(voi
+ unsigned long nr_free_inactive_pages_node(int nid)
+ {
+ 	enum zone_type i;
+-	unsigned long sum = 0;
++	unsigned long sum = node_page_state(nid, NR_FREE_PAGES)
++				+ node_page_state(nid, NR_INACTIVE);
+ 	struct zone *zones = NODE_DATA(nid)->node_zones;
  
+ 	for (i = 0; i < MAX_NR_ZONES; i++)
+-		sum += zones[i].nr_inactive +
+-			zones[i].free_pages - zones[i].pages_low;
++		sum -= zones[i].pages_low;
+ 
+ 	return sum;
+ }
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-readahead-kconfig-options.patch
-radixtree-introduce-scan-hole-data-functions.patch
-mm-introduce-probe_page.patch
-mm-introduce-pg_readahead.patch
-readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
-readahead-insert-cond_resched-calls.patch
-readahead-minmax_ra_pages.patch
-readahead-events-accounting.patch
-readahead-rescue_pages.patch
-readahead-sysctl-parameters.patch
-readahead-min-max-sizes.patch
-readahead-min-max-sizes-increase-vm_min_readahead-to-32kb.patch
+origin.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+make-try_to_unmap-return-a-special-exit-code.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
 readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-routines.patch
-readahead-state-based-method.patch
-readahead-state-based-method-prevent-tiny-size.patch
-readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch
-readahead-context-based-method.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-context-based-method-update-ra_min.patch
-readahead-context-based-method-remove-readahead_ratio.patch
-readahead-initial-method-guiding-sizes.patch
-readahead-initial-method-thrashing-guard-size.patch
-readahead-initial-method-user-recommended-size.patch
-readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch
-readahead-initial-method.patch
-readahead-backward-prefetching-method.patch
-readahead-thrashing-recovery-method.patch
-readahead-thrashing-recovery-method-fix.patch
-readahead-call-scheme.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-call-scheme-remove-get_readahead_bounds.patch
-readahead-call-scheme-fix-thrashed-unaligned-read.patch
-readahead-laptop-mode.patch
-readahead-laptop-mode-fix.patch
-readahead-loop-case.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-readahead-nfsd-case-fix-uninitialized-ra_min-ra_max.patch
-readahead-nfsd-case-remove-ra_min.patch
-readahead-turn-on-by-default.patch
-readahead-remove-size-limit-on-read_ahead_kb.patch
-readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
-readahead-partial-sendfile-fix.patch
+readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
