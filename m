@@ -1,148 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 02:38:46 -0800
-Message-ID: <200703061038.l26AckLd019625@shell0.pdx.osdl.net>
+Subject: - div64_64-common-code-fix.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 02:42:09 -0800
+Message-ID: <200703061042.l26Ag9lZ019795@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34697 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34713 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934062AbXCFKmg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:42:36 -0500
+	id S934067AbXCFKmq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:42:46 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l26AgAq8001888
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 6 Mar 2007 02:42:20 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix the ROMFS_* dependencies
+     div64_64-common-code-fix
 has been removed from the -mm tree.  Its filename was
-     nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
+     div64_64-common-code-fix.patch
 
-This patch was dropped because it was folded into nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+This patch was dropped because it was folded into div64_64-common-code.patch
 
 ------------------------------------------------------
-Subject: fix the ROMFS_* dependencies
-From: Adrian Bunk <bunk@stusta.de>
+Subject: div64_64-common-code-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- adds the missing dependency of ROMFS_FS on BLOCK || MTD
-- disallows the illegal ROMFS_FS=y, MTD=m, ROMFS_ON_MTD=y
-- ensures that at least one of ROMFS_ON_BLOCK and ROMFS_ON_MTD is always
-  enabled:
-  - automatically enable ROMFS_ON_MTD if BLOCK=n
-  - automatically enable ROMFS_ON_BLOCK if ROMFS_ON_MTD=n
-- if EMBEDDED=n, ROMFS_ON_BLOCK is always enabled
-  - the "(which may have been disabled)" that could now confuse
-    users has therefore been removed from the help text
+In file included from lib/reciprocal_div.c:2:
+include/asm/div64.h:49: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'div64_64'
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ include/asm-arm/div64.h    |    1 +
+ include/asm-i386/div64.h   |    2 ++
+ include/asm-m68k/div64.h   |    2 ++
+ include/asm-mips/div64.h   |    2 ++
+ include/asm-xtensa/div64.h |    2 ++
+ 5 files changed, 9 insertions(+)
 
-diff -puN fs/Kconfig~nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix fs/Kconfig
---- a/fs/Kconfig~nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix
-+++ a/fs/Kconfig
-@@ -482,6 +482,7 @@ endif
+diff -puN include/asm-arm/div64.h~div64_64-common-code-fix include/asm-arm/div64.h
+--- a/include/asm-arm/div64.h~div64_64-common-code-fix
++++ a/include/asm-arm/div64.h
+@@ -2,6 +2,7 @@
+ #define __ASM_ARM_DIV64
  
- config ROMFS_FS
- 	tristate "ROM file system support"
-+	depends on BLOCK || MTD
- 	---help---
- 	  This is a very small read-only file system mainly intended for
- 	  initial ram disks of installation disks, but it could be used for
-@@ -497,8 +498,9 @@ config ROMFS_FS
- 	  answer N.
+ #include <asm/system.h>
++#include <linux/types.h>
  
- config ROMFS_ON_BLOCK
--	bool "Block device-backed ROM file system support"
-+	bool "Block device-backed ROM file system support" if (ROMFS_ON_MTD && EMBEDDED)
- 	depends on ROMFS_FS && BLOCK
-+	default y
- 	help
- 	  This permits ROMFS to use block devices buffered through the page
- 	  cache as the medium from which to retrieve data.  It does not allow
-@@ -507,14 +509,15 @@ config ROMFS_ON_BLOCK
- 	  If unsure, answer Y.
+ /*
+  * The semantics of do_div() are:
+diff -puN include/asm-i386/div64.h~div64_64-common-code-fix include/asm-i386/div64.h
+--- a/include/asm-i386/div64.h~div64_64-common-code-fix
++++ a/include/asm-i386/div64.h
+@@ -1,6 +1,8 @@
+ #ifndef __I386_DIV64
+ #define __I386_DIV64
  
- config ROMFS_ON_MTD
--	bool "MTD-backed ROM file system support"
--	depends on ROMFS_FS && MTD
-+	bool "MTD-backed ROM file system support" if BLOCK
-+	depends on ROMFS_FS
-+	depends on MTD=y || (ROMFS_FS=m && MTD)
-+	default y
- 	help
- 	  This permits ROMFS to use MTD based devices directly, without the
--	  intercession of the block layer (which may have been disabled).  It
--	  also allows direct mapping of MTD devices through romfs files under
--	  NOMMU conditions if the underlying device is directly addressable by
--	  the CPU.
-+	  intercession of the block layer.  It also allows direct mapping of
-+	  MTD devices through romfs files under NOMMU conditions if the
-+	  underlying device is directly addressable by the CPU.
++#include <linux/types.h>
++
+ /*
+  * do_div() is NOT a C function. It wants to return
+  * two values (the quotient and the remainder), but
+diff -puN include/asm-m68k/div64.h~div64_64-common-code-fix include/asm-m68k/div64.h
+--- a/include/asm-m68k/div64.h~div64_64-common-code-fix
++++ a/include/asm-m68k/div64.h
+@@ -1,6 +1,8 @@
+ #ifndef _M68K_DIV64_H
+ #define _M68K_DIV64_H
  
- 	  If unsure, answer Y.
++#include <linux/types.h>
++
+ /* n = n / base; return rem; */
  
+ #define do_div(n, base) ({					\
+diff -puN include/asm-mips/div64.h~div64_64-common-code-fix include/asm-mips/div64.h
+--- a/include/asm-mips/div64.h~div64_64-common-code-fix
++++ a/include/asm-mips/div64.h
+@@ -9,6 +9,8 @@
+ #ifndef _ASM_DIV64_H
+ #define _ASM_DIV64_H
+ 
++#include <linux/types.h>
++
+ #if (_MIPS_SZLONG == 32)
+ 
+ #include <asm/compiler.h>
+diff -puN include/asm-xtensa/div64.h~div64_64-common-code-fix include/asm-xtensa/div64.h
+--- a/include/asm-xtensa/div64.h~div64_64-common-code-fix
++++ a/include/asm-xtensa/div64.h
+@@ -11,6 +11,8 @@
+ #ifndef _XTENSA_DIV64_H
+ #define _XTENSA_DIV64_H
+ 
++#include <linux/types.h>
++
+ #define do_div(n,base) ({ \
+ 	int __res = n % ((unsigned int) base); \
+ 	n /= (unsigned int) base; \
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-remove-arch-i386-kernel-tscccustom_sched_clock.patch
-drivers-cpuidle-make-code-static.patch
+fix-build-with-config_no_idle_hz=n.patch
+highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-alsa-oops-fix.patch
 git-drm.patch
-make-drivers-char-drm-drm_vmcdrm_io_prot-static.patch
 git-dvb.patch
-saa7134-fix-modules=n-compilation.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-fs-jffs2-ioctlc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
+gfs2-build-fix.patch
+git-input.patch
+git-md-accel-fixup.patch
+git-mmc-fix-99.patch
 git-ubi.patch
-drivers-net-vioc-possible-cleanups.patch
-drivers-net-bonding-bond_maincmake-3-functions-static.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
+git-netdev-all.patch
+git-netdev-all-ipw2200-fix.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume.patch
+sis900-warning-fixes.patch
+div64_64-common-code.patch
+div64_64-common-code-fix.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
 git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-lguest-kconfig-and-headers-fix.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+after-before-x86_64-mm-mmconfig-share.patch
+linux-sysdevh-needs-to-include-linux-moduleh-up-fix.patch
+linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
+x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy.patch
+i386-vdso_prelink-warning-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+driver_bfin_serial_core-update.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+utrace-prep.patch
+utrace-prep-2.patch
+revert-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
