@@ -1,151 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-sysctl-parameters-use-ctl_unnumbered.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:44:41 -0800
-Message-ID: <200703060144.l261ih7W008174@shell0.pdx.osdl.net>
+Subject: - readahead-min-max-sizes-remove-get_readahead_bounds.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:45:19 -0800
+Message-ID: <200703060145.l261jKse008238@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45939 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45959 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932901AbXCFBoy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:44:54 -0500
+	id S932953AbXCFBpg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:45:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead-sysctl-parameters-use-ctl_unnumbered
+     readahead: min/max sizes: remove get_readahead_bounds()
 has been removed from the -mm tree.  Its filename was
-     readahead-sysctl-parameters-use-ctl_unnumbered.patch
+     readahead-min-max-sizes-remove-get_readahead_bounds.patch
 
-This patch was dropped because it was folded into readahead-sysctl-parameters.patch
+This patch was dropped because it was folded into readahead-min-max-sizes.patch
 
 ------------------------------------------------------
-Subject: readahead-sysctl-parameters-use-ctl_unnumbered
-From: Andrew Morton <akpm@osdl.org>
+Subject: readahead: min/max sizes: remove get_readahead_bounds()
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Don't add new sysctl numbers.
+Remove get_readahead_bounds():
+- ra_max: we already have get_max_readahead() for it
+- ra_min: is only used by context based readahead, and will be moved there
+          and set to a more reasonable value
 
-Cc: Wu Fengguang <wfg@mail.ustc.edu.cn>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sysctl.h |    2 --
- kernel/sysctl.c        |    4 ++--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ mm/readahead.c |   24 ------------------------
+ 1 files changed, 24 deletions(-)
 
-diff -puN include/linux/sysctl.h~readahead-sysctl-parameters-use-ctl_unnumbered include/linux/sysctl.h
---- a/include/linux/sysctl.h~readahead-sysctl-parameters-use-ctl_unnumbered
-+++ a/include/linux/sysctl.h
-@@ -208,8 +208,6 @@ enum
- 	VM_VDSO_ENABLED=34,	/* map VDSO into new processes? */
- 	VM_MIN_SLAB=35,		 /* Percent pages ignored by zone reclaim */
- 	VM_HUGETLB_TREAT_MOVABLE=36, /* Allocate hugepages from ZONE_MOVABLE */
--	VM_READAHEAD_RATIO=37,	/* percent of read-ahead size to thrashing-threshold */
--	VM_READAHEAD_HIT_RATE=38, /* one accessed page legitimizes so many read-ahead pages */
+diff -puN mm/readahead.c~readahead-min-max-sizes-remove-get_readahead_bounds mm/readahead.c
+--- a/mm/readahead.c~readahead-min-max-sizes-remove-get_readahead_bounds
++++ a/mm/readahead.c
+@@ -776,30 +776,6 @@ out:
+ 	return nr_pages;
+ }
  
- 	/* s390 vm cmm sysctls */
- 	VM_CMM_PAGES=1111,
-diff -puN kernel/sysctl.c~readahead-sysctl-parameters-use-ctl_unnumbered kernel/sysctl.c
---- a/kernel/sysctl.c~readahead-sysctl-parameters-use-ctl_unnumbered
-+++ a/kernel/sysctl.c
-@@ -885,7 +885,7 @@ static ctl_table vm_table[] = {
- #endif
- #ifdef CONFIG_ADAPTIVE_READAHEAD
- 	{
--		.ctl_name	= VM_READAHEAD_RATIO,
-+		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "readahead_ratio",
- 		.data		= &readahead_ratio,
- 		.maxlen		= sizeof(readahead_ratio),
-@@ -895,7 +895,7 @@ static ctl_table vm_table[] = {
- 		.extra1		= &zero,
- 	},
- 	{
--		.ctl_name	= VM_READAHEAD_HIT_RATE,
-+		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "readahead_hit_rate",
- 		.data		= &readahead_hit_rate,
- 		.maxlen		= sizeof(readahead_hit_rate),
+-/*
+- * ra_min is mainly determined by the size of cache memory. Reasonable?
+- *
+- * Table of concrete numbers for 4KB page size:
+- *   inactive + free (MB):    4   8   16   32   64  128  256  512 1024
+- *            ra_min (KB):   16  16   16   16   20   24   32   48   64
+- */
+-static inline void get_readahead_bounds(struct file_ra_state *ra,
+-					unsigned long *ra_min,
+-					unsigned long *ra_max)
+-{
+-	unsigned long active;
+-	unsigned long inactive;
+-	unsigned long free;
+-
+-	__get_zone_counts(&active, &inactive, &free, NODE_DATA(numa_node_id()));
+-
+-	free += inactive;
+-	*ra_max = min(min(ra->ra_pages, 0xFFFFUL), free / 2);
+-	*ra_min = min(min(MIN_RA_PAGES + (free >> 14),
+-			  DIV_ROUND_UP(64*1024, PAGE_CACHE_SIZE)),
+-			  *ra_max / 8);
+-}
+-
+ #endif /* CONFIG_ADAPTIVE_READAHEAD */
+ 
+ /*
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-ia64.patch
-git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-mm-implement-swap-prefetching.patch
-rcu-preemptible-rcu.patch
 readahead-kconfig-options.patch
+radixtree-introduce-scan-hole-data-functions.patch
+mm-introduce-probe_page.patch
+mm-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-insert-cond_resched-calls.patch
 readahead-minmax_ra_pages.patch
+readahead-events-accounting.patch
+readahead-rescue_pages.patch
 readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-min-max-sizes.patch
+readahead-min-max-sizes-remove-get_readahead_bounds.patch
+readahead-min-max-sizes-increase-vm_min_readahead-to-32kb.patch
+readahead-state-based-method-aging-accounting.patch
+readahead-state-based-method-routines.patch
+readahead-state-based-method.patch
+readahead-state-based-method-prevent-tiny-size.patch
+readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch
+readahead-context-based-method.patch
 readahead-context-based-method-locking-fix.patch
 readahead-context-based-method-locking-fix-2.patch
+readahead-context-based-method-update-ra_min.patch
+readahead-context-based-method-remove-readahead_ratio.patch
+readahead-initial-method-guiding-sizes.patch
+readahead-initial-method-thrashing-guard-size.patch
+readahead-initial-method-user-recommended-size.patch
+readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch
+readahead-initial-method.patch
+readahead-backward-prefetching-method.patch
+readahead-thrashing-recovery-method.patch
+readahead-thrashing-recovery-method-fix.patch
+readahead-call-scheme.patch
 readahead-call-scheme-ifdef-fix.patch
 readahead-call-scheme-build-fix.patch
+readahead-call-scheme-remove-get_readahead_bounds.patch
+readahead-call-scheme-fix-thrashed-unaligned-read.patch
+readahead-laptop-mode.patch
+readahead-laptop-mode-fix.patch
+readahead-loop-case.patch
+readahead-nfsd-case.patch
 readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+readahead-nfsd-case-fix-uninitialized-ra_min-ra_max.patch
+readahead-nfsd-case-remove-ra_min.patch
+readahead-turn-on-by-default.patch
+readahead-remove-size-limit-on-read_ahead_kb.patch
+readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
+readahead-partial-sendfile-fix.patch
