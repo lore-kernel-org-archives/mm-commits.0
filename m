@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-provide-sunrpc-pool_mode-module-option.patch added to -mm tree
-Date: Mon, 05 Mar 2007 20:58:14 -0800
-Message-ID: <200703060458.l264wE3w012405@shell0.pdx.osdl.net>
+Subject: + sata_nv-dont-read-shadow-registers-when-in-adma-mode.patch added to -mm tree
+Date: Mon, 05 Mar 2007 20:58:55 -0800
+Message-ID: <200703060458.l264wt72012408@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51013 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51017 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752868AbXCFE6U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 23:58:20 -0500
+	id S1752872AbXCFE65 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 23:58:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gnb@sgi.com, gnb@melbourne.sgi.com, neilb@suse.de
+Cc: hancockr@shaw.ca
 
 
 The patch titled
-     knfsd: provide sunrpc pool_mode module option
+     sata_nv: don't read shadow registers when in ADMA mode
 has been added to the -mm tree.  Its filename is
-     knfsd-provide-sunrpc-pool_mode-module-option.patch
+     sata_nv-dont-read-shadow-registers-when-in-adma-mode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,285 +25,105 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: provide sunrpc pool_mode module option
-From: Greg Banks <gnb@sgi.com>
+Subject: sata_nv: don't read shadow registers when in ADMA mode
+From: Robert Hancock <hancockr@shaw.ca>
 
-Provide a module param "pool_mode" for sunrpc.ko which allows a sysadmin to
-choose the mode for mapping NFS thread service pools to CPUs.  Values are:
+Reading from the ATA shadow registers while we are in ADMA mode may cause
+undefined behavior.  Don't read the ATA status register when completing
+commands for this reason, it shouldn't be needed as the controller will
+notify us if the command failed.  Also, don't allow commands with result
+taskfile requested to execute in ADMA mode, since that requires accessing
+the shadow registers.  We also still need to override tf_read since libata
+will read the result taskfile on a command failure, and we need to go into
+port register mode before allowing this.
 
-auto	    choose a mapping mode heuristically
-global	    (default, same as the pre-2.6.19 code) a single global pool
-percpu	    one pool per CPU
-pernode	    one pool per NUMA node
-
-Note that since 2.6.19 the hardcoded behaviour has been "auto", this patch
-makes the default "global".
-
-The pool mode can be changed after boot/modprobe using /sys, if the NFS and
-lockd services have been shut down.  A useful side effect of this change is to
-fix a small memory leak when unloading the module.
-
-Signed-off-by: Greg Banks <gnb@melbourne.sgi.com>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   16 +++
- net/sunrpc/svc.c                    |  133 ++++++++++++++++++++++----
- 2 files changed, 130 insertions(+), 19 deletions(-)
+ drivers/ata/sata_nv.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~knfsd-provide-sunrpc-pool_mode-module-option Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~knfsd-provide-sunrpc-pool_mode-module-option
-+++ a/Documentation/kernel-parameters.txt
-@@ -1685,6 +1685,22 @@ and is between 256 and 4096 characters. 
- 	stifb=		[HW]
- 			Format: bpp:<bpp1>[:<bpp2>[:<bpp3>...]]
+diff -puN drivers/ata/sata_nv.c~sata_nv-dont-read-shadow-registers-when-in-adma-mode drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-dont-read-shadow-registers-when-in-adma-mode
++++ a/drivers/ata/sata_nv.c
+@@ -260,6 +260,7 @@ static int nv_adma_port_resume(struct at
+ static void nv_adma_error_handler(struct ata_port *ap);
+ static void nv_adma_host_stop(struct ata_host *host);
+ static void nv_adma_post_internal_cmd(struct ata_queued_cmd *qc);
++static void nv_adma_tf_read(struct ata_port *ap, struct ata_taskfile *tf);
  
-+	sunrpc.pool_mode=
-+			[NFS]
-+			Control how the NFS server code allocates CPUs to
-+			service thread pools.  Depending on how many NICs
-+			you have and where their interrupts are bound, this
-+			option will affect which CPUs will do NFS serving.
-+			Note: this parameter cannot be changed while the
-+			NFS server is running.
-+
-+			auto	    the server chooses an appropriate mode
-+				    automatically using heuristics
-+			global	    a single global pool contains all CPUs
-+			percpu	    one pool for each CPU
-+			pernode	    one pool for each NUMA node (equivalent
-+				    to global on non-NUMA machines)
-+
- 	swiotlb=	[IA-64] Number of I/O TLB slabs
- 
- 	switches=	[HW,M68k]
-diff -puN net/sunrpc/svc.c~knfsd-provide-sunrpc-pool_mode-module-option net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~knfsd-provide-sunrpc-pool_mode-module-option
-+++ a/net/sunrpc/svc.c
-@@ -27,22 +27,26 @@
- 
- #define RPCDBG_FACILITY	RPCDBG_SVCDSP
- 
-+#define svc_serv_is_pooled(serv)    ((serv)->sv_function)
-+
- /*
-  * Mode for mapping cpus to pools.
-  */
- enum {
--	SVC_POOL_NONE = -1,	/* uninitialised, choose one of the others */
-+	SVC_POOL_AUTO = -1,	/* choose one of the others */
- 	SVC_POOL_GLOBAL,	/* no mapping, just a single global pool
- 				 * (legacy & UP mode) */
- 	SVC_POOL_PERCPU,	/* one pool per cpu */
- 	SVC_POOL_PERNODE	/* one pool per numa node */
- };
-+#define SVC_POOL_DEFAULT	SVC_POOL_GLOBAL
- 
- /*
-  * Structure for mapping cpus to pools and vice versa.
-  * Setup once during sunrpc initialisation.
-  */
- static struct svc_pool_map {
-+	int count;			/* How many svc_servs use us */
- 	int mode;			/* Note: int not enum to avoid
- 					 * warnings about "enumeration value
- 					 * not handled in switch" */
-@@ -50,9 +54,63 @@ static struct svc_pool_map {
- 	unsigned int *pool_to;		/* maps pool id to cpu or node */
- 	unsigned int *to_pool;		/* maps cpu or node to pool id */
- } svc_pool_map = {
--	.mode = SVC_POOL_NONE
-+	.count = 0,
-+	.mode = SVC_POOL_DEFAULT
- };
-+static DEFINE_MUTEX(svc_pool_map_mutex);/* protects svc_pool_map.count only */
-+
-+static int
-+param_set_pool_mode(const char *val, struct kernel_param *kp)
-+{
-+	int *ip = (int *)kp->arg;
-+	struct svc_pool_map *m = &svc_pool_map;
-+	int err;
-+
-+	mutex_lock(&svc_pool_map_mutex);
-+
-+	err = -EBUSY;
-+	if (m->count)
-+		goto out;
-+
-+	err = 0;
-+	if (!strncmp(val, "auto", 4))
-+		*ip = SVC_POOL_AUTO;
-+	else if (!strncmp(val, "global", 6))
-+		*ip = SVC_POOL_GLOBAL;
-+	else if (!strncmp(val, "percpu", 6))
-+		*ip = SVC_POOL_PERCPU;
-+	else if (!strncmp(val, "pernode", 7))
-+		*ip = SVC_POOL_PERNODE;
-+	else
-+		err = -EINVAL;
-+
-+out:
-+	mutex_unlock(&svc_pool_map_mutex);
-+	return err;
-+}
-+
-+static int
-+param_get_pool_mode(char *buf, struct kernel_param *kp)
-+{
-+	int *ip = (int *)kp->arg;
-+
-+	switch (*ip)
-+	{
-+	case SVC_POOL_AUTO:
-+		return strlcpy(buf, "auto", 20);
-+	case SVC_POOL_GLOBAL:
-+		return strlcpy(buf, "global", 20);
-+	case SVC_POOL_PERCPU:
-+		return strlcpy(buf, "percpu", 20);
-+	case SVC_POOL_PERNODE:
-+		return strlcpy(buf, "pernode", 20);
-+	default:
-+		return sprintf(buf, "%d", *ip);
-+	}
-+}
- 
-+module_param_call(pool_mode, param_set_pool_mode, param_get_pool_mode,
-+		 &svc_pool_map.mode, 0644);
- 
- /*
-  * Detect best pool mapping mode heuristically,
-@@ -166,18 +224,25 @@ svc_pool_map_init_pernode(struct svc_poo
- 
- 
- /*
-- * Build the global map of cpus to pools and vice versa.
-+ * Add a reference to the global map of cpus to pools (and
-+ * vice versa).  Initialise the map if we're the first user.
-+ * Returns the number of pools.
-  */
- static unsigned int
--svc_pool_map_init(void)
-+svc_pool_map_get(void)
+ enum nv_host_type
  {
- 	struct svc_pool_map *m = &svc_pool_map;
- 	int npools = -1;
- 
--	if (m->mode != SVC_POOL_NONE)
-+	mutex_lock(&svc_pool_map_mutex);
-+
-+	if (m->count++) {
-+		mutex_unlock(&svc_pool_map_mutex);
- 		return m->npools;
-+	}
- 
--	m->mode = svc_pool_map_choose_mode();
-+	if (m->mode == SVC_POOL_AUTO)
-+		m->mode = svc_pool_map_choose_mode();
- 
- 	switch (m->mode) {
- 	case SVC_POOL_PERCPU:
-@@ -195,9 +260,36 @@ svc_pool_map_init(void)
- 	}
- 	m->npools = npools;
- 
-+	mutex_unlock(&svc_pool_map_mutex);
- 	return m->npools;
+@@ -435,7 +436,7 @@ static const struct ata_port_operations 
+ static const struct ata_port_operations nv_adma_ops = {
+ 	.port_disable		= ata_port_disable,
+ 	.tf_load		= ata_tf_load,
+-	.tf_read		= ata_tf_read,
++	.tf_read		= nv_adma_tf_read,
+ 	.check_atapi_dma	= nv_adma_check_atapi_dma,
+ 	.exec_command		= ata_exec_command,
+ 	.check_status		= ata_check_status,
+@@ -667,6 +668,18 @@ static int nv_adma_check_atapi_dma(struc
+ 	return !(pp->flags & NV_ADMA_ATAPI_SETUP_COMPLETE);
  }
  
-+
-+/*
-+ * Drop a reference to the global map of cpus to pools.
-+ * When the last reference is dropped, the map data is
-+ * freed; this allows the sysadmin to change the pool
-+ * mode using the pool_mode module option without
-+ * rebooting or re-loading sunrpc.ko.
-+ */
-+static void
-+svc_pool_map_put(void)
++static void nv_adma_tf_read(struct ata_port *ap, struct ata_taskfile *tf)
 +{
-+	struct svc_pool_map *m = &svc_pool_map;
++	/* Since commands where a result TF is requested are not
++	   executed in ADMA mode, the only time this function will be called
++	   in ADMA mode will be if a command fails. In this case we
++	   don't care about going into register mode with ADMA commands
++	   pending, as the commands will all shortly be aborted anyway. */
++	nv_adma_register_mode(ap);
 +
-+	mutex_lock(&svc_pool_map_mutex);
-+
-+	if (!--m->count) {
-+		m->mode = SVC_POOL_DEFAULT;
-+		kfree(m->to_pool);
-+		kfree(m->pool_to);
-+		m->npools = 0;
-+	}
-+
-+	mutex_unlock(&svc_pool_map_mutex);
++	ata_tf_read(ap, tf);
 +}
 +
-+
- /*
-  * Set the current thread's cpus_allowed mask so that it
-  * will only run on cpus in the given pool.
-@@ -212,10 +304,9 @@ svc_pool_map_set_cpumask(unsigned int pi
- 
- 	/*
- 	 * The caller checks for sv_nrpools > 1, which
--	 * implies that we've been initialized and the
--	 * map mode is not NONE.
-+	 * implies that we've been initialized.
- 	 */
--	BUG_ON(m->mode == SVC_POOL_NONE);
-+	BUG_ON(m->count == 0);
- 
- 	switch (m->mode)
- 	{
-@@ -246,18 +337,19 @@ svc_pool_for_cpu(struct svc_serv *serv, 
- 	unsigned int pidx = 0;
- 
- 	/*
--	 * SVC_POOL_NONE happens in a pure client when
-+	 * An uninitialised map happens in a pure client when
- 	 * lockd is brought up, so silently treat it the
- 	 * same as SVC_POOL_GLOBAL.
- 	 */
--
--	switch (m->mode) {
--	case SVC_POOL_PERCPU:
--		pidx = m->to_pool[cpu];
--		break;
--	case SVC_POOL_PERNODE:
--		pidx = m->to_pool[cpu_to_node(cpu)];
--		break;
-+	if (svc_serv_is_pooled(serv)) {
-+		switch (m->mode) {
-+		case SVC_POOL_PERCPU:
-+			pidx = m->to_pool[cpu];
-+			break;
-+		case SVC_POOL_PERNODE:
-+			pidx = m->to_pool[cpu_to_node(cpu)];
-+			break;
-+		}
- 	}
- 	return &serv->sv_pools[pidx % serv->sv_nrpools];
- }
-@@ -347,7 +439,7 @@ svc_create_pooled(struct svc_program *pr
- 		  svc_thread_fn func, int sig, struct module *mod)
+ static unsigned int nv_adma_tf_to_cpb(struct ata_taskfile *tf, __le16 *cpb)
  {
- 	struct svc_serv *serv;
--	unsigned int npools = svc_pool_map_init();
-+	unsigned int npools = svc_pool_map_get();
+ 	unsigned int idx = 0;
+@@ -738,19 +751,11 @@ static int nv_adma_check_cpb(struct ata_
+ 		return 1;
+ 	}
  
- 	serv = __svc_create(prog, bufsize, npools, shutdown);
+-	if (flags & NV_CPB_RESP_DONE) {
++	if (likely(flags & NV_CPB_RESP_DONE)) {
+ 		struct ata_queued_cmd *qc = ata_qc_from_tag(ap, cpb_num);
+ 		VPRINTK("CPB flags done, flags=0x%x\n", flags);
+ 		if (likely(qc)) {
+-			/* Grab the ATA port status for non-NCQ commands.
+-			   For NCQ commands the current status may have nothing to do with
+-			   the command just completed. */
+-			if (qc->tf.protocol != ATA_PROT_NCQ) {
+-				u8 ata_status = readb(pp->ctl_block + (ATA_REG_STATUS * 4));
+-				qc->err_mask |= ac_err_mask(ata_status);
+-			}
+-			DPRINTK("Completing qc from tag %d with err_mask %u\n",cpb_num,
+-				qc->err_mask);
++			DPRINTK("Completing qc from tag %d\n",cpb_num);
+ 			ata_qc_complete(qc);
+ 		} else {
+ 			struct ata_eh_info *ehi = &ap->eh_info;
+@@ -1161,9 +1166,11 @@ static int nv_adma_use_reg_mode(struct a
+ 	struct nv_adma_port_priv *pp = qc->ap->private_data;
  
-@@ -397,6 +489,9 @@ svc_destroy(struct svc_serv *serv)
+ 	/* ADMA engine can only be used for non-ATAPI DMA commands,
+-	   or interrupt-driven no-data commands. */
++	   or interrupt-driven no-data commands, where a result taskfile
++	   is not required. */
+ 	if((pp->flags & NV_ADMA_ATAPI_SETUP_COMPLETE) ||
+-	   (qc->tf.flags & ATA_TFLAG_POLLING))
++	   (qc->tf.flags & ATA_TFLAG_POLLING) ||
++	   (qc->flags & ATA_QCFLAG_RESULT_TF))
+ 		return 1;
  
- 	cache_clean_deferred(serv);
- 
-+	if (svc_serv_is_pooled(serv))
-+		svc_pool_map_put();
-+
- 	/* Unregister service with the portmapper */
- 	svc_register(serv, 0, 0);
- 	kfree(serv->sv_pools);
+ 	if((qc->flags & ATA_QCFLAG_DMAMAP) ||
 _
 
-Patches currently in -mm which might be from gnb@sgi.com are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
-knfsd-provide-sunrpc-pool_mode-module-option.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
+libata-add-ncq-blacklist-entries-from-silicon-image-windows.patch
+sata_nv-dont-read-shadow-registers-when-in-adma-mode.patch
