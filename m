@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-blackfin-utrace-patch.patch added to -mm tree
-Date: Mon, 05 Mar 2007 19:55:34 -0800
-Message-ID: <200703060355.l263tYYG011162@shell0.pdx.osdl.net>
+Subject: + fix-the-romfs_-dependencies.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:52:56 -0800
+Message-ID: <200703060352.l263quoL011094@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49434 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49442 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933923AbXCFDzs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:55:48 -0500
+	id S933924AbXCFD4R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:56:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com, roland@redhat.com
+Cc: bunk@stusta.de, dhowells@redhat.com
 
 
 The patch titled
-     Blackfin: blackfin utrace patch
+     fix the ROMFS_* dependencies
 has been added to the -mm tree.  Its filename is
-     blackfin-blackfin-utrace-patch.patch
+     fix-the-romfs_-dependencies.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,203 +25,126 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Blackfin: blackfin utrace patch
-From: "Wu, Bryan" <bryan.wu@analog.com>
+Subject: fix the ROMFS_* dependencies
+From: Adrian Bunk <bunk@stusta.de>
 
-As utrace is very promising in the -mm tree, a simple support is added to
-blackfin architecture.  I send this patch out just for review and it is
-only a start point, we will make it fully work in the future.
+- adds the missing dependency of ROMFS_FS on BLOCK || MTD
+- disallows the illegal ROMFS_FS=y, MTD=m, ROMFS_ON_MTD=y
+- ensures that at least one of ROMFS_ON_BLOCK and ROMFS_ON_MTD is always
+  enabled:
+  - automatically enable ROMFS_ON_MTD if BLOCK=n
+  - automatically enable ROMFS_ON_BLOCK if ROMFS_ON_MTD=n
+- if EMBEDDED=n, ROMFS_ON_BLOCK is always enabled
+  - the "(which may have been disabled)" that could now confuse
+    users has therefore been removed from the help text
 
-Now after applying this patch, the blackfin-arch can be compile in the
-2.6.21-rc2-mm1 with utrace enabled and ptrace disabled.
-
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/asm-offsets.c |    2 
- arch/blackfin/kernel/ptrace.c      |    8 ++
- include/asm-blackfin/thread_info.h |    2 
- include/asm-blackfin/tracehook.h   |   79 +++++++++++++++++++++++++++
- 4 files changed, 91 insertions(+)
+ fs/Kconfig |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN arch/blackfin/kernel/asm-offsets.c~blackfin-blackfin-utrace-patch arch/blackfin/kernel/asm-offsets.c
---- a/arch/blackfin/kernel/asm-offsets.c~blackfin-blackfin-utrace-patch
-+++ a/arch/blackfin/kernel/asm-offsets.c
-@@ -45,7 +45,9 @@ int main(void)
- 	/* offsets into the task struct */
- 	DEFINE(TASK_STATE, offsetof(struct task_struct, state));
- 	DEFINE(TASK_FLAGS, offsetof(struct task_struct, flags));
-+#if 0
- 	DEFINE(TASK_PTRACE, offsetof(struct task_struct, ptrace));
-+#endif
- 	DEFINE(TASK_BLOCKED, offsetof(struct task_struct, blocked));
- 	DEFINE(TASK_THREAD, offsetof(struct task_struct, thread));
- 	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, thread_info));
-diff -puN arch/blackfin/kernel/ptrace.c~blackfin-blackfin-utrace-patch arch/blackfin/kernel/ptrace.c
---- a/arch/blackfin/kernel/ptrace.c~blackfin-blackfin-utrace-patch
-+++ a/arch/blackfin/kernel/ptrace.c
-@@ -34,12 +34,14 @@
- #include <linux/mm.h>
- #include <linux/smp.h>
- #include <linux/smp_lock.h>
-+#include <linux/tracehook.h>
- #include <linux/errno.h>
- #include <linux/ptrace.h>
- #include <linux/user.h>
- #include <linux/signal.h>
+diff -puN fs/Kconfig~fix-the-romfs_-dependencies fs/Kconfig
+--- a/fs/Kconfig~fix-the-romfs_-dependencies
++++ a/fs/Kconfig
+@@ -482,6 +482,7 @@ endif
  
- #include <asm/uaccess.h>
-+#include <asm/tracehook.h>
- #include <asm/page.h>
- #include <asm/pgtable.h>
- #include <asm/system.h>
-@@ -173,6 +175,8 @@ static inline int is_user_addr_valid(str
- 	return -EIO;
- }
+ config ROMFS_FS
+ 	tristate "ROM file system support"
++	depends on BLOCK || MTD
+ 	---help---
+ 	  This is a very small read-only file system mainly intended for
+ 	  initial ram disks of installation disks, but it could be used for
+@@ -497,8 +498,9 @@ config ROMFS_FS
+ 	  answer N.
  
-+#ifdef CONFIG_PTRACE
-+
- /*
-  * Called by kernel/ptrace.c when detaching..
-  *
-@@ -386,12 +390,15 @@ long arch_ptrace(struct task_struct *chi
- 	return ret;
- }
+ config ROMFS_ON_BLOCK
+-	bool "Block device-backed ROM file system support"
++	bool "Block device-backed ROM file system support" if (ROMFS_ON_MTD && EMBEDDED)
+ 	depends on ROMFS_FS && BLOCK
++	default y
+ 	help
+ 	  This permits ROMFS to use block devices buffered through the page
+ 	  cache as the medium from which to retrieve data.  It does not allow
+@@ -507,14 +509,15 @@ config ROMFS_ON_BLOCK
+ 	  If unsure, answer Y.
  
-+#endif /* CONFIG_PTRACE */
-+
- asmlinkage void syscall_trace(void)
- {
+ config ROMFS_ON_MTD
+-	bool "MTD-backed ROM file system support"
+-	depends on ROMFS_FS && MTD
++	bool "MTD-backed ROM file system support" if BLOCK
++	depends on ROMFS_FS
++	depends on MTD=y || (ROMFS_FS=m && MTD)
++	default y
+ 	help
+ 	  This permits ROMFS to use MTD based devices directly, without the
+-	  intercession of the block layer (which may have been disabled).  It
+-	  also allows direct mapping of MTD devices through romfs files under
+-	  NOMMU conditions if the underlying device is directly addressable by
+-	  the CPU.
++	  intercession of the block layer.  It also allows direct mapping of
++	  MTD devices through romfs files under NOMMU conditions if the
++	  underlying device is directly addressable by the CPU.
  
- 	if (!test_thread_flag(TIF_SYSCALL_TRACE))
- 		return;
+ 	  If unsure, answer Y.
  
-+#if 0
- 	if (!(current->ptrace & PT_PTRACED))
- 		return;
- 
-@@ -400,6 +407,7 @@ asmlinkage void syscall_trace(void)
- 	 */
- 	ptrace_notify(SIGTRAP | ((current->ptrace & PT_TRACESYSGOOD)
- 				 ? 0x80 : 0));
-+#endif
- 
- 	/*
- 	 * this isn't the same as continuing with a signal, but it will do
-diff -puN include/asm-blackfin/thread_info.h~blackfin-blackfin-utrace-patch include/asm-blackfin/thread_info.h
---- a/include/asm-blackfin/thread_info.h~blackfin-blackfin-utrace-patch
-+++ a/include/asm-blackfin/thread_info.h
-@@ -127,6 +127,7 @@ static inline struct thread_info *curren
- #define TIF_MEMDIE              5
- #define TIF_RESTORE_SIGMASK	6	/* restore signal mask in do_signal() */
- #define TIF_FREEZE              7       /* is freezing for suspend */
-+#define TIF_SINGLESTEP		8       /* restore singlestep on return to user mode */
- 
- /* as above, but as bit values */
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
-@@ -136,6 +137,7 @@ static inline struct thread_info *curren
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
- #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
- #define _TIF_FREEZE             (1<<TIF_FREEZE)
-+#define _TIF_SINGLESTEP		(1<<TIF_SINGLESTEP)
- 
- #define _TIF_WORK_MASK		0x0000FFFE	/* work to do on interrupt/exception return */
- 
-diff -puN /dev/null include/asm-blackfin/tracehook.h
---- /dev/null
-+++ a/include/asm-blackfin/tracehook.h
-@@ -0,0 +1,79 @@
-+/*
-+ * Tracing hooks, Blackfin Architecture support
-+ *
-+ * Copyright (C) 2006, 2007 Analog Devices, Inc.  All rights reserved.
-+ * Copyright (C) 2006, 2007 Red Hat, Inc.  All rights reserved.
-+ *
-+ * This copyrighted material is made available to anyone wishing to use,
-+ * modify, copy, or redistribute it subject to the terms and conditions
-+ * of the GNU General Public License v.2.
-+ *
-+ * ADI Author: Bryan Wu
-+ * Red Hat Author: Roland McGrath.
-+ */
-+
-+#ifndef _ASM_TRACEHOOK_H
-+#define _ASM_TRACEHOOK_H	1
-+
-+#include <linux/sched.h>
-+#include <asm/ptrace.h>
-+
-+/*
-+ * See linux/tracehook.h for the descriptions of what these need to do.
-+ */
-+
-+#define ARCH_HAS_SINGLE_STEP	(1)
-+
-+static inline void tracehook_enable_single_step(struct task_struct *task)
-+{
-+	/* TODO */
-+#if 0
-+	struct pt_regs *regs = task->thread.regs;
-+
-+	if (regs != NULL) {
-+	}
-+#endif
-+	set_tsk_thread_flag(task, TIF_SINGLESTEP);
-+}
-+
-+static inline void tracehook_disable_single_step(struct task_struct *task)
-+{
-+	/* TODO */
-+#if 0
-+	struct pt_regs *regs = task->thread.regs;
-+
-+	if (regs != NULL) {
-+	}
-+#endif
-+	clear_tsk_thread_flag(task, TIF_SINGLESTEP);
-+}
-+
-+
-+static inline int tracehook_single_step_enabled(struct task_struct *tsk)
-+{
-+	return test_tsk_thread_flag(tsk, TIF_SINGLESTEP);
-+}
-+
-+static inline void tracehook_enable_syscall_trace(struct task_struct *tsk)
-+{
-+	set_tsk_thread_flag(tsk, TIF_SYSCALL_TRACE);
-+}
-+
-+static inline void tracehook_disable_syscall_trace(struct task_struct *tsk)
-+{
-+	clear_tsk_thread_flag(tsk, TIF_SYSCALL_TRACE);
-+}
-+
-+static inline void tracehook_abort_syscall(struct pt_regs *regs)
-+{
-+	regs->orig_r0 = -1;
-+}
-+
-+extern const struct utrace_regset_view utrace_bfin_native;
-+static inline const struct utrace_regset_view *
-+utrace_native_view(struct task_struct *tsk)
-+{
-+	return &utrace_bfin_native;
-+}
-+
-+#endif
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-blackfin-Documentation.patch
-blackfin-arch.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-blackfin-on-chip-ethernet-mac-controller-driver.patch
-blackfin-on-chip-ethernet-mac-controller-driver-update.patch
-blackfin-patch-add-blackfin-support-in-smc91x.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-utrace-patch.patch
+origin.patch
+remove-arch-i386-kernel-tscccustom_sched_clock.patch
+drivers-cpuidle-make-code-static.patch
+git-drm.patch
+make-drivers-char-drm-drm_vmcdrm_io_prot-static.patch
+git-dvb.patch
+saa7134-fix-modules=n-compilation.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-fs-jffs2-ioctlc.patch
+fix-the-romfs_-dependencies.patch
+git-ubi.patch
+drivers-net-vioc-possible-cleanups.patch
+drivers-net-bonding-bond_maincmake-3-functions-static.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
