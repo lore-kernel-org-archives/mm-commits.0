@@ -1,80 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-sysctl-parameters-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:44:45 -0800
-Message-ID: <200703060144.l261ijXs008181@shell0.pdx.osdl.net>
+Subject: - readahead-sysctl-parameters-set-readahead_hit_rate=1.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:44:48 -0800
+Message-ID: <200703060144.l261imoq008189@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45938 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45942 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932431AbXCFBow (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:44:52 -0500
+	id S933824AbXCFBpE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:45:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead sysctl parameters fix
+     readahead: sysctl parameters: set readahead_hit_rate=1
 has been removed from the -mm tree.  Its filename was
-     readahead-sysctl-parameters-fix.patch
+     readahead-sysctl-parameters-set-readahead_hit_rate=1.patch
 
 This patch was dropped because it was folded into readahead-sysctl-parameters.patch
 
 ------------------------------------------------------
-Subject: readahead sysctl parameters fix
+Subject: readahead: sysctl parameters: set readahead_hit_rate=1
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-- do no extra readahead when (readahead_ratio == 1)
-- define readahead_hit_rate inside CONFIG_ADAPTIVE_READAHEAD ifdefs
+Set default readahead_hit_rate to 1 for the majority users.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
  Documentation/sysctl/vm.txt |    2 +-
- include/linux/mm.h          |    2 +-
  mm/readahead.c              |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~readahead-sysctl-parameters-fix Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~readahead-sysctl-parameters-fix
+diff -puN Documentation/sysctl/vm.txt~readahead-sysctl-parameters-set-readahead_hit_rate=1 Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~readahead-sysctl-parameters-set-readahead_hit_rate=1
 +++ a/Documentation/sysctl/vm.txt
-@@ -234,7 +234,7 @@ plenty of memory(>>2MB per reader), a bi
- readahead_ratio also selects the readahead logic:
- 	VALUE	CODE PATH
- 	-------------------------------------------
--	    0	disable readahead totally
-+	    0	read as is, no extra readahead
- 	    1	select the stock readahead logic
- 	2-100	select the adaptive readahead logic
+@@ -261,4 +261,4 @@ Possible values can be:
  
-diff -puN include/linux/mm.h~readahead-sysctl-parameters-fix include/linux/mm.h
---- a/include/linux/mm.h~readahead-sysctl-parameters-fix
-+++ a/include/linux/mm.h
-@@ -1112,7 +1112,7 @@ extern int readahead_ratio;
+ The larger value, the more capabilities, with more possible overheads.
  
- static inline int prefer_adaptive_readahead(void)
- {
--	return readahead_ratio > 1;
-+	return readahead_ratio != 1;
- }
- 
- /* Do stack extension */
-diff -puN mm/readahead.c~readahead-sysctl-parameters-fix mm/readahead.c
---- a/mm/readahead.c~readahead-sysctl-parameters-fix
+-The default value is 0.
++The default value is 1.
+diff -puN mm/readahead.c~readahead-sysctl-parameters-set-readahead_hit_rate=1 mm/readahead.c
+--- a/mm/readahead.c~readahead-sysctl-parameters-set-readahead_hit_rate=1
 +++ a/mm/readahead.c
-@@ -40,10 +40,10 @@
- /* Set read-ahead size to ##% of the thrashing-threshold. */
- int readahead_ratio = 50;
+@@ -42,7 +42,7 @@ int readahead_ratio = 50;
  EXPORT_SYMBOL_GPL(readahead_ratio);
--#endif
  
  /* Readahead as long as cache hit ratio keeps above 1/##. */
- int readahead_hit_rate = 0;
-+#endif /* CONFIG_ADAPTIVE_READAHEAD */
+-int readahead_hit_rate = 0;
++int readahead_hit_rate = 1;
+ #endif /* CONFIG_ADAPTIVE_READAHEAD */
  
  /*
-  * Detailed classification of read-ahead behaviors.
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
@@ -89,7 +69,6 @@ readahead-minmax_ra_pages.patch
 readahead-events-accounting.patch
 readahead-rescue_pages.patch
 readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-fix.patch
 readahead-sysctl-parameters-set-readahead_hit_rate=1.patch
 readahead-min-max-sizes.patch
 readahead-min-max-sizes-remove-get_readahead_bounds.patch
