@@ -1,115 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-documentation-update-adds-context.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:41:51 -0800
-Message-ID: <200703060141.l261fpH8008103@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-architecture-independant-code-license-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:39:09 -0800
+Message-ID: <200703060139.l261dANn007987@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45882 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45894 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933807AbXCFBmB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:42:01 -0500
+	id S933811AbXCFBmd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:42:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Linux Kernel Markers: Documentation update (adds context)
+     marker exports must be EXPORT_SYMBOL_GPL
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-documentation-update-adds-context.patch
+     linux-kernel-markers-architecture-independant-code-license-fix.patch
 
-This patch was dropped because it was folded into linux-kernel-markers-documentation.patch
+This patch was dropped because it was folded into linux-kernel-markers-architecture-independant-code.patch
 
 ------------------------------------------------------
-Subject: Linux Kernel Markers: Documentation update (adds context)
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: marker exports must be EXPORT_SYMBOL_GPL
+From: Adrian Bunk <bunk@stusta.de>
 
-Following a comment from David Wilder, who read the documentation from a
-non-expert-yet point of view, I decided to add some paragraphs explaining
-"what is a marker" a little better.
+This is definitely functionality illegal modules have no business to
+use.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/marker.txt |   25 +++++++++++++++++++++----
- 1 files changed, 21 insertions(+), 4 deletions(-)
+ kernel/module.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/marker.txt~linux-kernel-markers-documentation-update-adds-context Documentation/marker.txt
---- a/Documentation/marker.txt~linux-kernel-markers-documentation-update-adds-context
-+++ a/Documentation/marker.txt
-@@ -3,14 +3,21 @@
- 			    Mathieu Desnoyers
+diff -puN kernel/module.c~linux-kernel-markers-architecture-independant-code-license-fix kernel/module.c
+--- a/kernel/module.c~linux-kernel-markers-architecture-independant-code-license-fix
++++ a/kernel/module.c
+@@ -305,7 +305,7 @@ static struct module *find_module(const 
+ void __mark_empty_function(const char *fmt, ...)
+ {
+ }
+-EXPORT_SYMBOL(__mark_empty_function);
++EXPORT_SYMBOL_GPL(__mark_empty_function);
  
+ #ifdef MARK_POLYMORPHIC
+ static int marker_set_ins_enable(void *address, char enable)
+@@ -462,7 +462,7 @@ int marker_set_probe(const char *name, c
+ 	mutex_unlock(&module_mutex);
+ 	return found;
+ }
+-EXPORT_SYMBOL(marker_set_probe);
++EXPORT_SYMBOL_GPL(marker_set_probe);
  
--	This document discusses the purpose of markers. It shows some usage
--examples of the Linux Kernel Markers : how to insert markers within the kernel
--and how to connect probes to a marker. Finally, it has some probe module
--examples. This is what connects to a marker.
-+	This document introduces to markers and discusses its purpose. It
-+shows some usage examples of the Linux Kernel Markers : how to insert markers
-+within the kernel and how to connect probes to a marker. Finally, it has some
-+probe module examples. This is what connects to a marker.
+ int marker_remove_probe(marker_probe_func *probe)
+ {
+@@ -482,7 +482,7 @@ int marker_remove_probe(marker_probe_fun
+ 	mutex_unlock(&module_mutex);
+ 	return found;
+ }
+-EXPORT_SYMBOL(marker_remove_probe);
++EXPORT_SYMBOL_GPL(marker_remove_probe);
  
+ int marker_list_probe(marker_probe_func *probe)
+ {
+@@ -506,7 +506,7 @@ int marker_list_probe(marker_probe_func 
+ 	mutex_unlock(&module_mutex);
+ 	return found;
+ }
+-EXPORT_SYMBOL(marker_list_probe);
++EXPORT_SYMBOL_GPL(marker_list_probe);
+ #endif
  
- * Purpose of markers
+ #ifdef CONFIG_SMP
+@@ -2505,7 +2505,7 @@ void list_modules(void)
+ 	}
+ 	mutex_unlock(&module_mutex);
+ }
+-EXPORT_SYMBOL(list_modules);
++EXPORT_SYMBOL_GPL(list_modules);
  
-+A marker placed in your code provides a hook to a function (probe) that
-+you can provide at runtime. A marker can be on (a probe is connected to it)
-+or off (no probe is attached). An "off" marker has no effect. When turned on,
-+the function you provide is called each time the marker is executed in the
-+execution context of the caller. When the function provided ends its execution,
-+it returns to the caller (probe site).
-+
- You can put markers at important locations in the code. They act as
- lightweight hooks that can pass an arbitrary number of parameters,
- described in a printk-like format string, to a function whenever the marker
-@@ -42,6 +49,16 @@ The expression %p[struct task_struct] is
- standard that could eventually be used for pointer type checking in
- sparse. The brackets contain the type to which the pointer refers.
- 
-+In order to use the macro MARK, you should include linux/marker.h or
-+linux/kernel.h (which also includes linux/marker.h).
-+
-+Connecting a function (probe) to a marker is done by providing a probe
-+(function to call) for the specific marker through marker_set_probe(). It will
-+automatically connect the function and enable the marker site. Removing a probe
-+is done through marker_remove_probe(). Probe removal is preempt safe because
-+preemption is disabled around the probe call. See the "Probe example" section
-+below for a sample probe module.
-+
- The marker mechanism supports multiple instances of the same marker.
- Markers can be put in inline functions, inlined static functions and
- unrolled loops.
+ /* Given an address, look for it in the module exception tables. */
+ const struct exception_table_entry *search_module_extables(unsigned long addr)
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
-atomich-complete-atomic_long-operations-in-asm-generic.patch
-atomich-i386-type-safety-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
-atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
-local_t-architecture-independant-extension.patch
-local_t-alpha-extension.patch
-local_t-i386-extension.patch
-local_t-ia64-extension.patch
-local_t-mips-extension.patch
-local_t-parisc-cleanup.patch
-local_t-powerpc-extension.patch
-local_t-sparc64-cleanup.patch
-local_t-x86_64-extension.patch
+origin.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-fs-jffs2-ioctlc.patch
+git-ubi.patch
+drivers-net-vioc-possible-cleanups.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
 linux-kernel-markers-kconfig-menus.patch
 linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-powerpc-optimization.patch
-linux-kernel-markers-i386-optimization.patch
-linux-kernel-markers-non-optimized-architectures.patch
-linux-kernel-markers-documentation.patch
-linux-kernel-markers-documentation-update-adds-context.patch
-linux-kernel-markers-documentation-update-markerh.patch
-linux-kernel-markers-documentation-update-flags.patch
+linux-kernel-markers-architecture-independant-code-license-fix.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
