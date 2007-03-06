@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch added to -mm tree
-Date: Mon, 05 Mar 2007 23:35:44 -0800
-Message-ID: <200703060737.l267bN53015664@shell0.pdx.osdl.net>
+Subject: + fix-suspend-resume-with-periodic-tick-devices.patch added to -mm tree
+Date: Mon, 05 Mar 2007 23:41:14 -0800
+Message-ID: <200703060741.l267fEAs015756@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54298 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54451 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933974AbXCFHhc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 02:37:32 -0500
+	id S933980AbXCFHl3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 02:41:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mel@csn.ul.ie
+Cc: tglx@linutronix.de, mingo@elte.hu
 
 
 The patch titled
-     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix
+     fix suspend/resume with periodic tick devices
 has been added to the -mm tree.  Its filename is
-     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+     fix-suspend-resume-with-periodic-tick-devices.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,185 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix suspend/resume with periodic tick devices
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Missing \
+The programming of periodic tick devices needs to be saved/restored across
+suspend/resume - otherwise we might end up with a system coming up that
+relies on getting a PIT (or HPET) interrupt, while those devices default to
+'no interrupts' after powerup.  (To confuse things it worked to a certain
+degree on some systems because the lapic gets initialized as a side-effect
+of SMP bootup.)
 
-Cc: Mel Gorman <mel@csn.ul.ie>
+This suspend / resume thing was dropped unintentionally during the
+last-minute -mm code reshuffling.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/page.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ kernel/time/tick-broadcast.c |   36 +++++++++++++++++++++++++++++++++
+ kernel/time/tick-common.c    |   32 +++++++++++++++++++++++++++++
+ kernel/time/tick-internal.h  |    4 +++
+ kernel/timer.c               |    6 +++++
+ 4 files changed, 78 insertions(+)
 
-diff -puN include/asm-ia64/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix include/asm-ia64/page.h
---- a/include/asm-ia64/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix
-+++ a/include/asm-ia64/page.h
-@@ -87,13 +87,13 @@ do {						\
- } while (0)
+diff -puN kernel/timer.c~fix-suspend-resume-with-periodic-tick-devices kernel/timer.c
+--- a/kernel/timer.c~fix-suspend-resume-with-periodic-tick-devices
++++ a/kernel/timer.c
+@@ -997,6 +997,9 @@ static int timekeeping_resume(struct sys
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
  
+ 	touch_softlockup_watchdog();
++
++	clockevents_notify(CLOCK_EVT_NOTIFY_RESUME, NULL);
++
+ 	/* Resume hrtimers */
+ 	clock_was_set();
  
--#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
--({						\
--	struct page *page = alloc_page_vma(
--		GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr); \
--	if (page)				\
-- 		flush_dcache_page(page);	\
--	page;					\
-+#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr)		\
-+({									\
-+	struct page *page = alloc_page_vma(				\
-+		GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr);	\
-+	if (page)							\
-+ 		flush_dcache_page(page);				\
-+	page;								\
- })
+@@ -1011,6 +1014,9 @@ static int timekeeping_suspend(struct sy
+ 	timekeeping_suspended = 1;
+ 	timekeeping_suspend_time = read_persistent_clock();
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
++
++	clockevents_notify(CLOCK_EVT_NOTIFY_SUSPEND, NULL);
++
+ 	return 0;
+ }
  
- #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+diff -puN kernel/time/tick-broadcast.c~fix-suspend-resume-with-periodic-tick-devices kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~fix-suspend-resume-with-periodic-tick-devices
++++ a/kernel/time/tick-broadcast.c
+@@ -284,6 +284,42 @@ void tick_shutdown_broadcast(unsigned in
+ 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
+ }
+ 
++void tick_suspend_broadcast(void)
++{
++	struct clock_event_device *bc;
++	unsigned long flags;
++
++	spin_lock_irqsave(&tick_broadcast_lock, flags);
++
++	bc = tick_broadcast_device.evtdev;
++	if (bc && tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC)
++		clockevents_set_mode(bc, CLOCK_EVT_MODE_SHUTDOWN);
++
++	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
++}
++
++int tick_resume_broadcast(void)
++{
++	struct clock_event_device *bc;
++	unsigned long flags;
++	int broadcast = 0;
++
++	spin_lock_irqsave(&tick_broadcast_lock, flags);
++
++	bc = tick_broadcast_device.evtdev;
++	if (bc) {
++		if (tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC &&
++		    !cpus_empty(tick_broadcast_mask))
++			tick_broadcast_start_periodic(bc);
++
++		broadcast = cpu_isset(smp_processor_id(), tick_broadcast_mask);
++	}
++	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
++
++	return broadcast;
++}
++
++
+ #ifdef CONFIG_TICK_ONESHOT
+ 
+ static cpumask_t tick_broadcast_oneshot_mask;
+diff -puN kernel/time/tick-common.c~fix-suspend-resume-with-periodic-tick-devices kernel/time/tick-common.c
+--- a/kernel/time/tick-common.c~fix-suspend-resume-with-periodic-tick-devices
++++ a/kernel/time/tick-common.c
+@@ -298,6 +298,28 @@ static void tick_shutdown(unsigned int *
+ 	spin_unlock_irqrestore(&tick_device_lock, flags);
+ }
+ 
++static void tick_suspend_periodic(void)
++{
++	struct tick_device *td = &__get_cpu_var(tick_cpu_device);
++	unsigned long flags;
++
++	spin_lock_irqsave(&tick_device_lock, flags);
++	if (td->mode == TICKDEV_MODE_PERIODIC)
++		clockevents_set_mode(td->evtdev, CLOCK_EVT_MODE_SHUTDOWN);
++	spin_unlock_irqrestore(&tick_device_lock, flags);
++}
++
++static void tick_resume_periodic(void)
++{
++	struct tick_device *td = &__get_cpu_var(tick_cpu_device);
++	unsigned long flags;
++
++	spin_lock_irqsave(&tick_device_lock, flags);
++	if (td->mode == TICKDEV_MODE_PERIODIC)
++		tick_setup_periodic(td->evtdev, 0);
++	spin_unlock_irqrestore(&tick_device_lock, flags);
++}
++
+ /*
+  * Notification about clock event devices
+  */
+@@ -325,6 +347,16 @@ static int tick_notify(struct notifier_b
+ 		tick_shutdown(dev);
+ 		break;
+ 
++	case CLOCK_EVT_NOTIFY_SUSPEND:
++		tick_suspend_periodic();
++		tick_suspend_broadcast();
++		break;
++
++	case CLOCK_EVT_NOTIFY_RESUME:
++		if (!tick_resume_broadcast())
++			tick_resume_periodic();
++		break;
++
+ 	default:
+ 		break;
+ 	}
+diff -puN kernel/time/tick-internal.h~fix-suspend-resume-with-periodic-tick-devices kernel/time/tick-internal.h
+--- a/kernel/time/tick-internal.h~fix-suspend-resume-with-periodic-tick-devices
++++ a/kernel/time/tick-internal.h
+@@ -67,6 +67,8 @@ extern int tick_check_broadcast_device(s
+ extern int tick_is_broadcast_device(struct clock_event_device *dev);
+ extern void tick_broadcast_on_off(unsigned long reason, int *oncpu);
+ extern void tick_shutdown_broadcast(unsigned int *cpup);
++extern void tick_suspend_broadcast(void);
++extern int tick_resume_broadcast(void);
+ 
+ extern void
+ tick_set_periodic_handler(struct clock_event_device *dev, int broadcast);
+@@ -90,6 +92,8 @@ static inline int tick_device_uses_broad
+ static inline void tick_do_periodic_broadcast(struct clock_event_device *d) { }
+ static inline void tick_broadcast_on_off(unsigned long reason, int *oncpu) { }
+ static inline void tick_shutdown_broadcast(unsigned int *cpup) { }
++static inline void tick_suspend_broadcast(void) { }
++static inline int tick_resume_broadcast(void) { return 0; }
+ 
+ /*
+  * Set the periodic handler in non broadcast mode
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-stupid-hack-to-make-mainline-build.patch
+paravirt-build-fixes.patch
+fix-suspend-resume-with-periodic-tick-devices.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
+hrtimers-fix-hrtimer_cb_irqsafe_no_softirq-description.patch
+hrtimers-hrtimer_clock_base-description-typo.patch
+highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode.patch
+highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode-tweak.patch
 highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode-tweak-fix.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-sony-laptop-fix-uninitialised-variable.patch
-git-alsa-oops-fix.patch
-git-drm.patch
-git-dvb.patch
-gfs2-build-fix.patch
-ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy.patch
-git-input.patch
-setstream-param-for-psmouse-tweak.patch
-git-md-accel-fixup.patch
-git-mmc-fix-99.patch
-nommu-present-backing-device-capabilities-for-mtd-fix.patch
-git-ubi.patch
-git-netdev-all.patch
-git-netdev-all-ipw2200-fix.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-dmfe-add-support-for-suspend-resume-fix.patch
-sis900-warning-fixes.patch
-div64_64-common-code-fix.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-unionfs.patch
-usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-after-before-x86_64-mm-mmconfig-share.patch
-linux-sysdevh-needs-to-include-linux-moduleh-up-fix.patch
-linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
-x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy.patch
-i386-vdso_prelink-warning-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-driver_bfin_serial_core-update.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-utrace-prep.patch
-utrace-prep-2.patch
-revert-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+fix-vsyscall-settimeofday.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-4.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-5.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
