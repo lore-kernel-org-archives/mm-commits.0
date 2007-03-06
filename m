@@ -1,79 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - profile_likely-export-do_check_likely.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:20:52 -0800
-Message-ID: <200703060220.l262Kq2Q009283@shell0.pdx.osdl.net>
+Subject: - profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:20:55 -0800
+Message-ID: <200703060220.l262KtFj009286@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47408 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47407 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965751AbXCFCVE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:21:04 -0500
+	id S965629AbXCFCVC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:21:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, dwalker@mvista.com, hzhong@gmail.com, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     profile_likely: export do_check_likely
+     remove likely profiling int cast
 has been removed from the -mm tree.  Its filename was
-     profile_likely-export-do_check_likely.patch
+     profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch
 
 This patch was dropped because it was folded into profile-likely-unlikely-macros.patch
 
 ------------------------------------------------------
-Subject: profile_likely: export do_check_likely
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: remove likely profiling int cast
+From: Daniel Walker <dwalker@mvista.com>
 
-I see MODPOST warnings for all modules in some (random) configs; e.g.:
-(This is a short list; I see >100 of these.)
+Fix some wrong casting from unsigned int to int. Reported by Andreas Mohr.
 
-WARNING: "do_check_likely" [net/sched/cls_basic.ko] undefined!
-WARNING: "do_check_likely" [net/netfilter/x_tables.ko] undefined!
-WARNING: "do_check_likely" [net/key/af_key.ko] undefined!
-WARNING: "do_check_likely" [kernel/rcutorture.ko] undefined!
-WARNING: "do_check_likely" [fs/xfs/xfs.ko] undefined!
-WARNING: "do_check_likely" [fs/sysv/sysv.ko] undefined!
-WARNING: "do_check_likely" [fs/reiserfs/reiserfs.ko] undefined!
-WARNING: "do_check_likely" [fs/ntfs/ntfs.ko] undefined!
-WARNING: "do_check_likely" [fs/minix/minix.ko] undefined!
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Daniel Walker <dwalker@mvista.com>
-Cc: Hua Zhong <hzhong@gmail.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- lib/likely_prof.c |    2 ++
- 1 files changed, 2 insertions(+)
+ lib/likely_prof.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/likely_prof.c~profile_likely-export-do_check_likely lib/likely_prof.c
---- a/lib/likely_prof.c~profile_likely-export-do_check_likely
+diff -puN lib/likely_prof.c~profile-likely-unlikely-macros_remove-likely-profiling-int-cast lib/likely_prof.c
+--- a/lib/likely_prof.c~profile-likely-unlikely-macros_remove-likely-profiling-int-cast
 +++ a/lib/likely_prof.c
-@@ -10,6 +10,7 @@
-  */
- 
- #include <linux/init.h>
-+#include <linux/module.h>
- #include <linux/types.h>
- #include <linux/fs.h>
- #include <linux/seq_file.h>
-@@ -50,6 +51,7 @@ int do_check_likely(struct likeliness *l
- 
- 	return ret;
- }
-+EXPORT_SYMBOL(do_check_likely);
- 
- static void * lp_seq_start(struct seq_file *out, loff_t *pos)
+@@ -86,8 +86,8 @@ static void *lp_seq_next(struct seq_file
+ static int lp_seq_show(struct seq_file *out, void *p)
  {
+ 	struct likeliness *entry = p;
+-	int true = entry->count[1];
+-	int false = entry->count[0];
++	unsigned int true = entry->count[1];
++	unsigned int false = entry->count[0];
+ 
+ 	if (!entry->type) {
+ 		if (true > false)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
-atyfb-fix-kconfig-error-part-2.patch
-git-drm.patch
-phy-layer-add-kernel-doc-docbook.patch
-fusion-kernel-doc-warning-fixes.patch
-scripts-kernel-doc-whitespace-cleanup.patch
+slim-make-and-config-stuff.patch
 profile-likely-unlikely-macros.patch
-profile_likely-export-do_check_likely.patch
+profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch
+profile-likely-unlikely-macros-x86_64-fix.patch
