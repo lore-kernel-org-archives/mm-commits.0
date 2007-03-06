@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + paravirt-build-fixes.patch added to -mm tree
-Date: Mon, 05 Mar 2007 23:33:02 -0800
-Message-ID: <200703060733.l267X25d015593@shell0.pdx.osdl.net>
+Subject: + add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch added to -mm tree
+Date: Mon, 05 Mar 2007 23:35:44 -0800
+Message-ID: <200703060737.l267bN53015664@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54139 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54298 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933967AbXCFHdU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 02:33:20 -0500
+	id S933974AbXCFHhc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 02:37:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zach@vmware.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, mel@csn.ul.ie
 
 
 The patch titled
-     paravirt build fixes
+     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix
 has been added to the -mm tree.  Its filename is
-     paravirt-build-fixes.patch
+     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,130 +25,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: paravirt build fixes
-From: Zachary Amsden <zach@vmware.com>
+Subject: add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Ingo Molnar dropped support for NO_IDLE_HZ, which both VMI and the unmerged
-Xen code depended on under config option PARAVIRT.  This broke the VMI
-compile.  Since NO_IDLE_HZ is obsolete, and all paravirt guests will need
-idle HZ timer support, make PARAVIRT select NO_HZ and drop NO_IDLE_HZ
-specifics from the VMI backend that caused it to fail to compile.
+Missing \
 
-Also, export next_timer_interrupt() in both NO_IDLE_HZ and NO_HZ builds,
-as it is needed in both.
-
-Signed-off-by: Zachary Amsden <zach@vmware.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig           |    1 +
- arch/i386/kernel/vmitime.c  |   10 ----------
- include/asm-i386/vmi_time.h |    2 --
- kernel/timer.c              |    2 +-
- 4 files changed, 2 insertions(+), 13 deletions(-)
+ include/asm-ia64/page.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/i386/Kconfig~paravirt-build-fixes arch/i386/Kconfig
---- a/arch/i386/Kconfig~paravirt-build-fixes
-+++ a/arch/i386/Kconfig
-@@ -210,6 +210,7 @@ config PARAVIRT
- 	bool "Paravirtualization support (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
- 	depends on !(X86_VISWS || X86_VOYAGER)
-+	select NO_HZ
- 	help
- 	  Paravirtualization is a way of running multiple instances of
- 	  Linux on the same machine, under a hypervisor.  This option
-diff -puN arch/i386/kernel/vmitime.c~paravirt-build-fixes arch/i386/kernel/vmitime.c
---- a/arch/i386/kernel/vmitime.c~paravirt-build-fixes
-+++ a/arch/i386/kernel/vmitime.c
-@@ -59,8 +59,6 @@
- /* Cached VMI operations */
- struct vmi_timer_ops vmi_timer_ops;
+diff -puN include/asm-ia64/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix include/asm-ia64/page.h
+--- a/include/asm-ia64/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix
++++ a/include/asm-ia64/page.h
+@@ -87,13 +87,13 @@ do {						\
+ } while (0)
  
--#ifdef CONFIG_NO_IDLE_HZ
--
- /* /proc/sys/kernel/hz_timer state. */
- int sysctl_hz_timer;
  
-@@ -69,8 +67,6 @@ static DEFINE_PER_CPU(unsigned long, vmi
- static DEFINE_PER_CPU(unsigned long, vmi_idle_no_hz_jiffies);
- static DEFINE_PER_CPU(unsigned long, idle_start_jiffies);
+-#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
+-({						\
+-	struct page *page = alloc_page_vma(
+-		GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr); \
+-	if (page)				\
+- 		flush_dcache_page(page);	\
+-	page;					\
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr)		\
++({									\
++	struct page *page = alloc_page_vma(				\
++		GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr);	\
++	if (page)							\
++ 		flush_dcache_page(page);				\
++	page;								\
+ })
  
--#endif /* CONFIG_NO_IDLE_HZ */
--
- /* Number of alarms per second. By default this is CONFIG_VMI_ALARM_HZ. */
- static int alarm_hz = CONFIG_VMI_ALARM_HZ;
- 
-@@ -300,7 +296,6 @@ static void vmi_account_process_times_cy
- 	}
- }
- 
--#ifdef CONFIG_NO_IDLE_HZ
- /* Update per-cpu idle times.  Used when a no-hz halt is ended. */
- static void vmi_account_no_hz_idle_cycles(int cpu,
- 					  unsigned long long cur_process_times_cycles)
-@@ -319,7 +314,6 @@ static void vmi_account_no_hz_idle_cycle
- 	/* Account time to the idle process. */
- 	account_steal_time(idle_task(cpu), jiffies_to_cputime(no_idle_hz_jiffies));
- }
--#endif
- 
- /* Update per-cpu stolen time. */
- static void vmi_account_stolen_cycles(int cpu,
-@@ -360,8 +354,6 @@ static void vmi_local_timer_interrupt(in
- 	vmi_account_stolen_cycles(cpu, cur_real_cycles, cur_process_times_cycles);
- }
- 
--#ifdef CONFIG_NO_IDLE_HZ
--
- /* Must be called only from idle loop, with interrupts disabled. */
- int vmi_stop_hz_timer(void)
- {
-@@ -438,8 +430,6 @@ void vmi_account_time_restart_hz_timer(v
- 	vmi_reenable_hz_timer(cpu);
- }
- 
--#endif /* CONFIG_NO_IDLE_HZ */
--
- /* UP (and no local-APIC) VMI-timer alarm interrupt handler.
-  * Handler for IRQ0. Not used when SMP or X86_LOCAL_APIC after
-  * APIC setup and setup_boot_vmi_alarm() is called.  */
-diff -puN include/asm-i386/vmi_time.h~paravirt-build-fixes include/asm-i386/vmi_time.h
---- a/include/asm-i386/vmi_time.h~paravirt-build-fixes
-+++ a/include/asm-i386/vmi_time.h
-@@ -58,10 +58,8 @@ extern void __init vmi_timer_setup_secon
- extern void apic_vmi_timer_interrupt(void);
- #endif
- 
--#ifdef CONFIG_NO_IDLE_HZ
- extern int vmi_stop_hz_timer(void);
- extern void vmi_account_time_restart_hz_timer(void);
--#endif
- 
- /*
-  * When run under a hypervisor, a vcpu is always in one of three states:
-diff -puN kernel/timer.c~paravirt-build-fixes kernel/timer.c
---- a/kernel/timer.c~paravirt-build-fixes
-+++ a/kernel/timer.c
-@@ -728,7 +728,7 @@ unsigned long get_next_timer_interrupt(u
- 	return cmp_next_hrtimer_event(now, expires);
- }
- 
--#ifdef CONFIG_NO_IDLE_HZ
-+#if defined(CONFIG_NO_IDLE_HZ) || defined(CONFIG_NO_HZ)
- unsigned long next_timer_interrupt(void)
- {
- 	return get_next_timer_interrupt(jiffies);
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
 _
 
-Patches currently in -mm which might be from zach@vmware.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-paravirt-build-fixes.patch
 stupid-hack-to-make-mainline-build.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
-remove-arch-i386-kernel-tscccustom_sched_clock.patch
-make-struct-vmi_ops-static.patch
+highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode-tweak-fix.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-alsa-oops-fix.patch
+git-drm.patch
+git-dvb.patch
+gfs2-build-fix.patch
+ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy.patch
+git-input.patch
+setstream-param-for-psmouse-tweak.patch
+git-md-accel-fixup.patch
+git-mmc-fix-99.patch
+nommu-present-backing-device-capabilities-for-mtd-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+git-netdev-all-ipw2200-fix.patch
+revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume-fix.patch
+sis900-warning-fixes.patch
+div64_64-common-code-fix.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-unionfs.patch
+usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+after-before-x86_64-mm-mmconfig-share.patch
+linux-sysdevh-needs-to-include-linux-moduleh-up-fix.patch
+linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
+x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy.patch
+i386-vdso_prelink-warning-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+driver_bfin_serial_core-update.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+utrace-prep.patch
+utrace-prep-2.patch
+revert-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
