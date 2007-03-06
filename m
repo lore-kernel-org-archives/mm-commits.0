@@ -1,52 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-kconfig-menus-fix-2.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:33:31 -0800
-Message-ID: <200703060133.l261XWlP007830@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-kconfig-menus-fix-3.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:33:37 -0800
+Message-ID: <200703060133.l261XcMb007833@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45558 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45560 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933785AbXCFBdt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:33:49 -0500
+	id S933789AbXCFBdu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:33:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparse chokes on arch/i386/kernel/i8253.c
+     remove include of linux/marker.h from Makefile
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-kconfig-menus-fix-2.patch
+     linux-kernel-markers-kconfig-menus-fix-3.patch
 
 This patch was dropped because it was folded into linux-kernel-markers-kconfig-menus.patch
 
 ------------------------------------------------------
-Subject: sparse chokes on arch/i386/kernel/i8253.c
+Subject: remove include of linux/marker.h from Makefile
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Here is a marker fix that puts the correct -i include/linux/marker.h in
-the top level Makefile so sparse works correctly. The tricky part is to
-keep the kernel compiling correctly with a kernel build directory
-
-The fix applies on top the the Linux Kernel Markers for 2.6.20.
+It is conventional and reasonable to require that any code which uses this
+mechanism must include its header file.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ Makefile |    4 +---
+ 1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN Makefile~linux-kernel-markers-kconfig-menus-fix-2 Makefile
---- a/Makefile~linux-kernel-markers-kconfig-menus-fix-2
+diff -puN Makefile~linux-kernel-markers-kconfig-menus-fix-3 Makefile
+--- a/Makefile~linux-kernel-markers-kconfig-menus-fix-3
 +++ a/Makefile
-@@ -309,7 +309,8 @@ AFLAGS_KERNEL	=
+@@ -308,9 +308,7 @@ AFLAGS_KERNEL	=
+ # Needed to be compatible with the O= option
  LINUXINCLUDE    := -Iinclude \
                     $(if $(KBUILD_SRC),-Iinclude2 -I$(srctree)/include) \
- 		   -include include/linux/autoconf.h \
--		   -include linux/marker.h
-+		   -include \
-+		   	$(if $(KBUILD_SRC),$(srctree)/)include/linux/marker.h
+-		   -include include/linux/autoconf.h \
+-		   -include \
+-		   	$(if $(KBUILD_SRC),$(srctree)/)include/linux/marker.h
++		   -include include/linux/autoconf.h
  
  CPPFLAGS        := -D__KERNEL__ $(LINUXINCLUDE)
  
@@ -74,7 +72,6 @@ local_t-powerpc-extension.patch
 local_t-sparc64-cleanup.patch
 local_t-x86_64-extension.patch
 linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-kconfig-menus-fix-2.patch
 linux-kernel-markers-kconfig-menus-fix-3.patch
 linux-kernel-markers-kconfig-menus-fix-4.patch
 linux-kernel-markers-kconfig-menus-fix-5.patch
