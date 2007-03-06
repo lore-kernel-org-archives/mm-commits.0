@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-use-list_head-instead-of-struct-blocknr.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:00:45 -0800
-Message-ID: <200703060200.l2620jM7008750@shell0.pdx.osdl.net>
+Subject: - reiser4-get-rid-of-deprecated-crypto-api.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:00:37 -0800
+Message-ID: <200703060200.l2620bvc008741@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46662 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46661 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965693AbXCFCBD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S965685AbXCFCBD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Mon, 5 Mar 2007 21:01:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,652 +14,718 @@ To: edward@namesys.com, hans_thomas_reiser@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: use list_head instead of struct blocknr
+     reiser4: get rid of deprecated crypto api
 has been removed from the -mm tree.  Its filename was
-     reiser4-use-list_head-instead-of-struct-blocknr.patch
+     reiser4-get-rid-of-deprecated-crypto-api.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: reiser4: use list_head instead of struct blocknr
+Subject: reiser4: get rid of deprecated crypto api
 From: Edward Shishkin <edward@namesys.com>
 
-. remove `struct blocknr_set' and just use list_head
-. remove empty lines
+Getting rid of crypto-api methods marked as deprecated
 
 Signed-off-by: Edward Shishkin <edward@namesys.com>
 Cc: Hans Reiser <hans_thomas_reiser@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/blocknrset.c                   |   51 +++++++++-----------
- fs/reiser4/carry.c                        |    1 
- fs/reiser4/debug.h                        |    1 
- fs/reiser4/dformat.h                      |    1 
- fs/reiser4/export_ops.c                   |    1 
- fs/reiser4/flush.c                        |    1 
- fs/reiser4/flush_queue.c                  |    1 
- fs/reiser4/forward.h                      |    1 
- fs/reiser4/fsdata.c                       |    1 
- fs/reiser4/fsdata.h                       |    3 -
- fs/reiser4/lock.c                         |    2 
- fs/reiser4/lock.h                         |    2 
- fs/reiser4/plugin/crypto/cipher.h         |    1 
- fs/reiser4/plugin/item/extent.c           |    1 
- fs/reiser4/plugin/item/extent_file_ops.c  |    1 
- fs/reiser4/plugin/item/extent_flush_ops.c |    1 
- fs/reiser4/plugin/item/internal.c         |    1 
- fs/reiser4/plugin/node/node40.c           |    1 
- fs/reiser4/pool.c                         |    1 
- fs/reiser4/super.c                        |    1 
- fs/reiser4/tree.h                         |    3 -
- fs/reiser4/txnmgr.c                       |    2 
- fs/reiser4/txnmgr.h                       |   21 +++-----
- fs/reiser4/vfs_ops.c                      |    8 ---
- fs/reiser4/vfs_ops.h                      |    3 -
- fs/reiser4/wander.c                       |    2 
- fs/reiser4/znode.h                        |    1 
- 27 files changed, 32 insertions(+), 82 deletions(-)
+ fs/reiser4/Kconfig                       |    1 
+ fs/reiser4/plugin/cluster.h              |    4 
+ fs/reiser4/plugin/compress/compress.c    |   16 +-
+ fs/reiser4/plugin/compress/compress.h    |    8 -
+ fs/reiser4/plugin/crypto/cipher.c        |    8 -
+ fs/reiser4/plugin/crypto/cipher.h        |   23 ---
+ fs/reiser4/plugin/crypto/digest.c        |    8 -
+ fs/reiser4/plugin/file/cryptcompress.c   |  140 ++++++++++-----------
+ fs/reiser4/plugin/file/cryptcompress.h   |   60 +--------
+ fs/reiser4/plugin/file/file_conversion.c |    4 
+ fs/reiser4/plugin/plugin.h               |    8 -
+ 11 files changed, 119 insertions(+), 161 deletions(-)
 
-diff -puN fs/reiser4/blocknrset.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/blocknrset.c
---- a/fs/reiser4/blocknrset.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/blocknrset.c
-@@ -143,7 +143,7 @@ bse_put_pair(blocknr_set_entry * bse, co
-    returned with the atom unlocked for the operation to be tried again.  If
-    the operation succeeds, 0 is returned.  If new_bsep is non-NULL and not
-    used during the call, it will be freed automatically. */
--static int blocknr_set_add(txn_atom *atom, blocknr_set *bset,
-+static int blocknr_set_add(txn_atom *atom, struct list_head *bset,
- 			   blocknr_set_entry **new_bsep, const reiser4_block_nr *a,
- 			   const reiser4_block_nr *b)
+diff -puN fs/reiser4/Kconfig~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/Kconfig
+--- a/fs/reiser4/Kconfig~reiser4-get-rid-of-deprecated-crypto-api
++++ a/fs/reiser4/Kconfig
+@@ -3,6 +3,7 @@ config REISER4_FS
+ 	depends on EXPERIMENTAL
+ 	select ZLIB_INFLATE
+ 	select ZLIB_DEFLATE
++	select CRYPTO
+ 	help
+ 	  Reiser4 is a filesystem that performs all filesystem operations
+ 	  as atomic transactions, which means that it either performs a
+diff -puN fs/reiser4/plugin/cluster.h~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/plugin/cluster.h
+--- a/fs/reiser4/plugin/cluster.h~reiser4-get-rid-of-deprecated-crypto-api
++++ a/fs/reiser4/plugin/cluster.h
+@@ -202,13 +202,13 @@ cluster_init_act (reiser4_cluster_t * cl
+ static inline void
+ cluster_init_read(reiser4_cluster_t * clust, reiser4_slide_t * window)
  {
-@@ -153,8 +153,8 @@ static int blocknr_set_add(txn_atom *ato
- 	assert("jmacd-5101", a != NULL);
+-	cluster_init_act (clust, TFM_READ_ACT, window);
++	cluster_init_act (clust, TFMA_READ, window);
+ }
  
- 	entries_needed = (b == NULL) ? 1 : 2;
--	if (list_empty(&bset->entries) ||
--	    bse_avail(list_entry(bset->entries.next, blocknr_set_entry, link)) < entries_needed) {
-+	if (list_empty(bset) ||
-+	    bse_avail(list_entry(bset->next, blocknr_set_entry, link)) < entries_needed) {
- 		/* See if a bse was previously allocated. */
- 		if (*new_bsep == NULL) {
- 			spin_unlock_atom(atom);
-@@ -164,13 +164,13 @@ static int blocknr_set_add(txn_atom *ato
+ static inline void
+ cluster_init_write(reiser4_cluster_t * clust, reiser4_slide_t * window)
+ {
+-	cluster_init_act (clust, TFM_WRITE_ACT, window);
++	cluster_init_act (clust, TFMA_WRITE, window);
+ }
+ 
+ static inline int dclust_get_extension_dsize(hint_t * hint)
+diff -puN fs/reiser4/plugin/compress/compress.c~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/plugin/compress/compress.c
+--- a/fs/reiser4/plugin/compress/compress.c~reiser4-get-rid-of-deprecated-crypto-api
++++ a/fs/reiser4/plugin/compress/compress.c
+@@ -71,7 +71,7 @@ static coa_t gzip1_alloc(tfm_action act)
+ #if REISER4_ZLIB
+ 	int ret = 0;
+ 	switch (act) {
+-	case TFM_WRITE_ACT:	/* compress */
++	case TFMA_WRITE:	/* compress */
+ 		coa = reiser4_vmalloc(zlib_deflate_workspacesize());
+ 		if (!coa) {
+ 			ret = -ENOMEM;
+@@ -79,7 +79,7 @@ static coa_t gzip1_alloc(tfm_action act)
  		}
+ 		memset(coa, 0, zlib_deflate_workspacesize());
+ 		break;
+-	case TFM_READ_ACT:	/* decompress */
++	case TFMA_READ:	/* decompress */
+ 		coa = reiser4_vmalloc(zlib_inflate_workspacesize());
+ 		if (!coa) {
+ 			ret = -ENOMEM;
+@@ -106,10 +106,10 @@ static void gzip1_free(coa_t coa, tfm_ac
+ 	assert("edward-769", coa != NULL);
  
- 		/* Put it on the head of the list. */
--		list_add(&((*new_bsep)->link), &bset->entries);
-+		list_add(&((*new_bsep)->link), bset);
+ 	switch (act) {
+-	case TFM_WRITE_ACT:	/* compress */
++	case TFMA_WRITE:	/* compress */
+ 		vfree(coa);
+ 		break;
+-	case TFM_READ_ACT:		/* decompress */
++	case TFMA_READ:		/* decompress */
+ 		vfree(coa);
+ 		break;
+ 	default:
+@@ -247,14 +247,14 @@ static coa_t lzo1_alloc(tfm_action act)
+ 	coa_t coa = NULL;
  
- 		*new_bsep = NULL;
- 	}
- 
- 	/* Add the single or pair. */
--	bse = list_entry(bset->entries.next, blocknr_set_entry, link);
-+	bse = list_entry(bset->next, blocknr_set_entry, link);
- 	if (b == NULL) {
- 		bse_put_single(bse, a);
- 	} else {
-@@ -194,7 +194,7 @@ static int blocknr_set_add(txn_atom *ato
-    properly freed. */
- int
- blocknr_set_add_extent(txn_atom * atom,
--		       blocknr_set * bset,
-+		       struct list_head * bset,
- 		       blocknr_set_entry ** new_bsep,
- 		       const reiser4_block_nr * start,
- 		       const reiser4_block_nr * len)
-@@ -212,7 +212,7 @@ blocknr_set_add_extent(txn_atom * atom,
-    properly freed. */
- int
- blocknr_set_add_pair(txn_atom * atom,
--		     blocknr_set * bset,
-+		     struct list_head * bset,
- 		     blocknr_set_entry ** new_bsep, const reiser4_block_nr * a,
- 		     const reiser4_block_nr * b)
- {
-@@ -221,18 +221,18 @@ blocknr_set_add_pair(txn_atom * atom,
- }
- 
- /* Initialize a blocknr_set. */
--void blocknr_set_init(blocknr_set *bset)
-+void blocknr_set_init(struct list_head *bset)
- {
--	INIT_LIST_HEAD(&bset->entries);
-+	INIT_LIST_HEAD(bset);
- }
- 
- /* Release the entries of a blocknr_set. */
--void blocknr_set_destroy(blocknr_set *bset)
-+void blocknr_set_destroy(struct list_head *bset)
- {
- 	blocknr_set_entry *bse;
- 
--	while (!list_empty_careful(&bset->entries)) {
--		bse = list_entry(bset->entries.next, blocknr_set_entry, link);
-+	while (!list_empty_careful(bset)) {
-+		bse = list_entry(bset->next, blocknr_set_entry, link);
- 		list_del_init(&bse->link);
- 		bse_free(bse);
- 	}
-@@ -248,25 +248,23 @@ void blocknr_set_destroy(blocknr_set *bs
-    actual processing of this set. Testing this kind of stuff right here is
-    also complicated by the fact that these sets are not sorted and going
-    through whole set on each element addition is going to be CPU-heavy task */
--void blocknr_set_merge(blocknr_set * from, blocknr_set * into)
-+void blocknr_set_merge(struct list_head * from, struct list_head * into)
- {
- 	blocknr_set_entry *bse_into = NULL;
- 
- 	/* If @from is empty, no work to perform. */
--	if (list_empty_careful(&from->entries)) {
-+	if (list_empty_careful(from))
- 		return;
--	}
--
- 	/* If @into is not empty, try merging partial-entries. */
--	if (!list_empty_careful(&into->entries)) {
-+	if (!list_empty_careful(into)) {
- 
- 		/* Neither set is empty, pop the front to members and try to combine them. */
- 		blocknr_set_entry *bse_from;
- 		unsigned into_avail;
- 
--		bse_into = list_entry(into->entries.next, blocknr_set_entry, link);
-+		bse_into = list_entry(into->next, blocknr_set_entry, link);
- 		list_del_init(&bse_into->link);
--		bse_from = list_entry(from->entries.next, blocknr_set_entry, link);
-+		bse_from = list_entry(from->next, blocknr_set_entry, link);
- 		list_del_init(&bse_from->link);
- 
- 		/* Combine singles. */
-@@ -294,22 +292,21 @@ void blocknr_set_merge(blocknr_set * fro
- 			   it could have one slot avail and bse_from has one
- 			   pair left).  Push it back onto the list.  bse_from
- 			   becomes bse_into, which will be the new partial. */
--			list_add(&bse_into->link, &into->entries);
-+			list_add(&bse_into->link, into);
- 			bse_into = bse_from;
+ 	switch (act) {
+-	case TFM_WRITE_ACT:	/* compress */
++	case TFMA_WRITE:	/* compress */
+ 		coa = reiser4_vmalloc(LZO_HEAP_SIZE(LZO1X_1_MEM_COMPRESS));
+ 		if (!coa) {
+ 			ret = -ENOMEM;
+ 			break;
  		}
- 	}
+ 		memset(coa, 0, LZO_HEAP_SIZE(LZO1X_1_MEM_COMPRESS));
+-	case TFM_READ_ACT:		/* decompress */
++	case TFMA_READ:		/* decompress */
+ 		break;
+ 	default:
+ 		impossible("edward-877",
+@@ -274,10 +274,10 @@ static void lzo1_free(coa_t coa, tfm_act
+ 	assert("edward-879", coa != NULL);
  
- 	/* Splice lists together. */
--	list_splice_init(&from->entries, into->entries.prev);
-+	list_splice_init(from, into->prev);
+ 	switch (act) {
+-	case TFM_WRITE_ACT:	/* compress */
++	case TFMA_WRITE:	/* compress */
+ 		vfree(coa);
+ 		break;
+-	case TFM_READ_ACT:		/* decompress */
++	case TFMA_READ:		/* decompress */
+ 		impossible("edward-1304",
+ 			   "trying to free non-allocated workspace");
+ 	default:
+diff -puN fs/reiser4/plugin/compress/compress.h~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/plugin/compress/compress.h
+--- a/fs/reiser4/plugin/compress/compress.h~reiser4-get-rid-of-deprecated-crypto-api
++++ a/fs/reiser4/plugin/compress/compress.h
+@@ -5,9 +5,9 @@
+ #include <linux/string.h>
  
- 	/* Add the partial entry back to the head of the list. */
--	if (bse_into != NULL) {
--		list_add(&bse_into->link, &into->entries);
--	}
-+	if (bse_into != NULL)
-+		list_add(&bse_into->link, into);
+ typedef enum {
+-	TFM_READ_ACT,
+-	TFM_WRITE_ACT,
+-	TFM_LAST_ACT
++	TFMA_READ,
++	TFMA_WRITE,
++	TFMA_LAST
+ } tfm_action;
+ 
+ /* builtin compression plugins */
+@@ -20,7 +20,7 @@ typedef enum {
+ 
+ typedef unsigned long cloff_t;
+ typedef void *coa_t;
+-typedef coa_t coa_set[LAST_COMPRESSION_ID][TFM_LAST_ACT];
++typedef coa_t coa_set[LAST_COMPRESSION_ID][TFMA_LAST];
+ 
+ __u32 reiser4_adler32(char *data, __u32 len);
+ 
+diff -puN fs/reiser4/plugin/crypto/cipher.c~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/plugin/crypto/cipher.c
+--- a/fs/reiser4/plugin/crypto/cipher.c~reiser4-get-rid-of-deprecated-crypto-api
++++ a/fs/reiser4/plugin/crypto/cipher.c
+@@ -49,18 +49,18 @@ static loff_t scale_common(struct inode 
+ 	return src_off;
  }
  
- /* Iterate over all blocknr set elements. */
--int blocknr_set_iterator(txn_atom *atom, blocknr_set *bset,
-+int blocknr_set_iterator(txn_atom *atom, struct list_head *bset,
- 			 blocknr_set_actor_f actor, void *data, int delete)
+-static void free_aes (struct crypto_tfm * tfm)
++static void free_aes (struct crypto_blkcipher * tfm)
  {
- 
-@@ -320,8 +317,8 @@ int blocknr_set_iterator(txn_atom *atom,
- 	assert("zam-431", bset != 0);
- 	assert("zam-432", actor != NULL);
- 
--	entry = list_entry(bset->entries.next, blocknr_set_entry, link);
--	while (&bset->entries != &entry->link) {
-+	entry = list_entry(bset->next, blocknr_set_entry, link);
-+	while (bset != &entry->link) {
- 		blocknr_set_entry *tmp = list_entry(entry->link.next, blocknr_set_entry, link);
- 		unsigned int i;
- 		int ret;
-diff -puN fs/reiser4/carry.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/carry.c
---- a/fs/reiser4/carry.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/carry.c
-@@ -168,7 +168,6 @@ static carry_op *add_op(carry_level * le
- static void fatal_carry_error(carry_level * doing, int ecode);
- static int add_new_root(carry_level * level, carry_node * node, znode * fake);
- 
--
- static void print_level(const char *prefix, carry_level * level);
- 
- #if REISER4_DEBUG
-diff -puN fs/reiser4/debug.h~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/debug.h
---- a/fs/reiser4/debug.h~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/debug.h
-@@ -230,7 +230,6 @@ extern void reiser4_print_prefix(const c
- extern int reiser4_preempt_point(void);
- extern void reiser4_print_stats(void);
- 
--
- #if REISER4_DEBUG
- extern int reiser4_no_counters_are_held(void);
- extern int reiser4_commit_check_locks(void);
-diff -puN fs/reiser4/dformat.h~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/dformat.h
---- a/fs/reiser4/dformat.h~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/dformat.h
-@@ -17,7 +17,6 @@
- #include <asm/unaligned.h>
- #include <linux/types.h>
- 
--
- typedef __u8 d8;
- typedef __le16 d16;
- typedef __le32 d32;
-diff -puN fs/reiser4/export_ops.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/export_ops.c
---- a/fs/reiser4/export_ops.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/export_ops.c
-@@ -4,7 +4,6 @@
- #include "inode.h"
- #include "plugin/plugin.h"
- 
--
- /*
-  * Supported file-handle types
-  */
-diff -puN fs/reiser4/flush.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/flush.c
---- a/fs/reiser4/flush.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/flush.c
-@@ -965,7 +965,6 @@ static jnode *find_flush_start_jnode(jno
- 	return node;
- }
- 
--
- /* Flush some nodes of current atom, usually slum, return -E_REPEAT if there are more nodes
-  * to flush, return 0 if atom's dirty lists empty and keep current atom locked, return
-  * other errors as they are. */
-diff -puN fs/reiser4/flush_queue.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/flush_queue.c
---- a/fs/reiser4/flush_queue.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/flush_queue.c
-@@ -109,7 +109,6 @@ static void init_fq(flush_queue_t * fq)
- /* slab for flush queues */
- static kmem_cache_t *fq_slab;
- 
--
- /**
-  * reiser4_init_fqs - create flush queue cache
-  *
-diff -puN fs/reiser4/forward.h~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/forward.h
---- a/fs/reiser4/forward.h~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/forward.h
-@@ -38,7 +38,6 @@ typedef struct txn_mgr txn_mgr;
- typedef struct reiser4_dir_entry_desc reiser4_dir_entry_desc;
- typedef struct reiser4_context reiser4_context;
- typedef struct carry_level carry_level;
--typedef struct blocknr_set blocknr_set;
- typedef struct blocknr_set_entry blocknr_set_entry;
- /* super_block->s_fs_info points to this */
- typedef struct reiser4_super_info_data reiser4_super_info_data;
-diff -puN fs/reiser4/fsdata.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/fsdata.c
---- a/fs/reiser4/fsdata.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/fsdata.c
-@@ -661,7 +661,6 @@ void reiser4_free_dentry_fsdata(struct d
- 	}
- }
- 
--
- /* slab for reiser4_file_fsdata */
- static kmem_cache_t *file_fsdata_cache;
- 
-diff -puN fs/reiser4/fsdata.h~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/fsdata.h
---- a/fs/reiser4/fsdata.h~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/fsdata.h
-@@ -87,7 +87,6 @@ extern void reiser4_done_dentry_fsdata(v
- extern reiser4_dentry_fsdata *reiser4_get_dentry_fsdata(struct dentry *);
- extern void reiser4_free_dentry_fsdata(struct dentry *dentry);
- 
--
- /**
-  * reiser4_file_fsdata - reiser4-specific data attached to file->private_data
-  *
-@@ -127,7 +126,6 @@ extern void reiser4_done_file_fsdata(voi
- extern reiser4_file_fsdata *reiser4_get_file_fsdata(struct file *);
- extern void reiser4_free_file_fsdata(struct file *);
- 
--
- /*
-  * d_cursor is reiser4_file_fsdata not attached to struct file. d_cursors are
-  * used to address problem reiser4 has with readdir accesses via NFS. See
-@@ -175,7 +173,6 @@ extern loff_t reiser4_get_dir_fpos(struc
- extern int reiser4_attach_fsdata(struct file *, struct inode *);
- extern void reiser4_detach_fsdata(struct file *);
- 
--
- /* these are needed for "stateless" readdir. See plugin/file_ops_readdir.c for
-    more details */
- void reiser4_dispose_cursors(struct inode *inode);
-diff -puN fs/reiser4/lock.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/lock.c
---- a/fs/reiser4/lock.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/lock.c
-@@ -350,7 +350,6 @@ static int recursive(lock_stack * owner)
- 	assert("nikita-1841", owner == get_current_lock_stack());
- 	assert_spin_locked(&(node->lock.guard));
- 
--
- 	lh = list_entry(node->lock.owners.next, lock_handle, owners_link);
- 	ret = (lh->owner == owner);
- 
-@@ -552,7 +551,6 @@ static void remove_lock_request(lock_sta
- 	list_del(&requestor->requestors_link);
- }
- 
--
- static void invalidate_all_lock_requests(znode * node)
- {
- 	lock_stack *requestor, *tmp;
-diff -puN fs/reiser4/lock.h~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/lock.h
---- a/fs/reiser4/lock.h~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/lock.h
-@@ -142,7 +142,6 @@ struct lock_stack {
+ #if REISER4_AES
+-	crypto_free_tfm(tfm);
++	crypto_free_blkcipher(tfm);
  #endif
- };
- 
--
- /*
-   User-visible znode locking functions
- */
-@@ -219,7 +218,6 @@ static inline void spin_unlock_stack(loc
- 	spin_unlock(&(stack->sguard));
+ 	return;
  }
  
--
- static inline void reiser4_wake_up(lock_stack * owner)
+-static struct crypto_tfm * alloc_aes (void)
++static struct crypto_blkcipher * alloc_aes (void)
  {
- 	spin_lock_stack(owner);
-diff -puN fs/reiser4/plugin/crypto/cipher.h~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/plugin/crypto/cipher.h
---- a/fs/reiser4/plugin/crypto/cipher.h~reiser4-use-list_head-instead-of-struct-blocknr
+ #if REISER4_AES
+-	return crypto_alloc_tfm ("aes", 0);
++	return crypto_alloc_blkcipher("ecb(aes)", 0, CRYPTO_ALG_ASYNC);
+ #else
+ 	warning("edward-1417", "aes unsupported");
+ 	return ERR_PTR(-EINVAL);
+diff -puN fs/reiser4/plugin/crypto/cipher.h~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/plugin/crypto/cipher.h
+--- a/fs/reiser4/plugin/crypto/cipher.h~reiser4-get-rid-of-deprecated-crypto-api
 +++ a/fs/reiser4/plugin/crypto/cipher.h
-@@ -8,7 +8,6 @@
- 
+@@ -9,21 +9,6 @@
  #include <linux/crypto.h>
  
+ 
+-/* Transform actions involved in ciphering process and
+-   supported by reiser4 via appropriate transform plugins */
+-typedef enum {
+-	CIPHER_TFM,       /* cipher transform */
+-	DIGEST_TFM,       /* digest transform */
+-	LAST_TFM
+-} reiser4_tfm;
+-
+-/* This represents a transform action in reiser4 */
+-typedef struct reiser4_tfma {
+-	reiser4_plugin * plug;     /* transform plugin */
+-	struct crypto_tfm * tfm;   /* low-level info, operated by
+-				      linux crypto-api (see linux/crypto) */
+-} reiser4_tfma_t;
 -
  /* key info imported from user space */
  typedef struct crypto_data {
  	int keysize;    /* uninstantiated key size */
-diff -puN fs/reiser4/plugin/item/extent.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/plugin/item/extent.c
---- a/fs/reiser4/plugin/item/extent.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/plugin/item/extent.c
-@@ -69,7 +69,6 @@ void reiser4_set_extent(reiser4_extent *
- 	extent_set_width(ext, width);
+@@ -40,8 +25,12 @@ typedef struct crypto_data {
+    1. importing a key from user space.
+    2. reading inode from disk */
+ typedef struct crypto_stat {
+-	reiser4_tfma_t tfma[LAST_TFM];
+-//      cipher_key_plugin * kplug; /* key manager */
++	struct inode * host;
++	struct crypto_hash      * digest;
++	struct crypto_blkcipher * cipher;
++#if 0
++	cipher_key_plugin * kplug; /* key manager */
++#endif
+ 	__u8 * keyid;              /* key fingerprint, created by digest plugin,
+ 				      using uninstantiated key and passphrase.
+ 				      supposed to be stored in disk stat-data */
+diff -puN fs/reiser4/plugin/crypto/digest.c~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/plugin/crypto/digest.c
+--- a/fs/reiser4/plugin/crypto/digest.c~reiser4-get-rid-of-deprecated-crypto-api
++++ a/fs/reiser4/plugin/crypto/digest.c
+@@ -11,20 +11,20 @@
+ 
+ extern digest_plugin digest_plugins[LAST_DIGEST_ID];
+ 
+-static struct crypto_tfm * alloc_sha256 (void)
++static struct crypto_hash * alloc_sha256 (void)
+ {
+ #if REISER4_SHA256
+-	return crypto_alloc_tfm ("sha256", 0);
++	return crypto_alloc_hash ("sha256", 0);
+ #else
+ 	warning("edward-1418", "sha256 unsupported");
+ 	return ERR_PTR(-EINVAL);
+ #endif
  }
  
--
- /**
-  * reiser4_replace_extent - replace extent and paste 1 or 2 after it
-  * @un_extent: coordinate of extent to be overwritten
-diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/plugin/item/extent_file_ops.c
---- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/plugin/item/extent_file_ops.c
-@@ -9,7 +9,6 @@
- #include <linux/swap.h>
- #include "../../../../mm/filemap.h"
- 
--
- static inline reiser4_extent *ext_by_offset(const znode *node, int offset)
+-static void free_sha256 (struct crypto_tfm * tfm)
++static void free_sha256 (struct crypto_hash * tfm)
  {
- 	reiser4_extent *ext;
-diff -puN fs/reiser4/plugin/item/extent_flush_ops.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/plugin/item/extent_flush_ops.c
---- a/fs/reiser4/plugin/item/extent_flush_ops.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/plugin/item/extent_flush_ops.c
-@@ -806,7 +806,6 @@ int reiser4_alloc_extent(flush_pos_t *fl
- 		/* assign new block numbers to protected nodes */
- 		assign_real_blocknrs(flush_pos, oid, index, allocated, first_allocated);
- 
--
- 		/* prepare extent which will replace current one */
- 		reiser4_set_extent(&replace_ext, first_allocated, allocated);
- 
-diff -puN fs/reiser4/plugin/item/internal.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/plugin/item/internal.c
---- a/fs/reiser4/plugin/item/internal.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/plugin/item/internal.c
-@@ -297,7 +297,6 @@ int create_hook_internal(const coord_t *
-     . when last reference to this node will be dropped, bitmap will be updated
-     and node will be actually removed from the memory.
- 
--
- */
- int kill_hook_internal(const coord_t * item /* coord of item */ ,
- 		       pos_in_node_t from UNUSED_ARG /* start unit */ ,
-diff -puN fs/reiser4/plugin/node/node40.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/plugin/node/node40.c
---- a/fs/reiser4/plugin/node/node40.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/plugin/node/node40.c
-@@ -64,7 +64,6 @@ static inline node40_header *node40_node
- #define nh40_set_num_items(nh, value) put_unaligned(cpu_to_le16(value), &(nh)->nr_items)
- #define nh40_set_mkfs_id(nh, value) put_unaligned(cpu_to_le32(value), &(nh)->mkfs_id)
- 
--
- /* plugin field of node header should be read/set by
-    plugin_by_disk_id/save_disk_plugin */
- 
-diff -puN fs/reiser4/pool.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/pool.c
---- a/fs/reiser4/pool.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/pool.c
-@@ -41,7 +41,6 @@
-    functions in the style of tslist/tshash, i.e., make them unreadable, but
-    type-safe.
- 
--
- */
- 
- #include "debug.h"
-diff -puN fs/reiser4/super.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/super.c
---- a/fs/reiser4/super.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/super.c
-@@ -17,7 +17,6 @@
- #include <linux/types.h>	/* for __u??  */
- #include <linux/fs.h>		/* for struct super_block  */
- 
--
- static __u64 reserved_for_gid(const struct super_block *super, gid_t gid);
- static __u64 reserved_for_uid(const struct super_block *super, uid_t uid);
- static __u64 reserved_for_root(const struct super_block *super);
-diff -puN fs/reiser4/tree.h~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/tree.h
---- a/fs/reiser4/tree.h~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/tree.h
-@@ -66,7 +66,6 @@ typedef struct cbk_cache {
- 	cbk_cache_slot *slot;
- } cbk_cache;
- 
--
- /* level_lookup_result - possible outcome of looking up key at some level.
-    This is used by coord_by_key when traversing tree downward. */
- typedef enum {
-@@ -433,7 +432,6 @@ int lookup_couple(reiser4_tree * tree,
- 		  tree_level lock_level, tree_level stop_level, __u32 flags,
- 		  int *result1, int *result2);
- 
--
- static inline void read_lock_tree(reiser4_tree *tree)
- {
- 	/* check that tree is not locked */
-@@ -564,7 +562,6 @@ reiser4_block_nr estimate_dirty_cluster(
- reiser4_block_nr estimate_insert_cluster(struct inode *);
- reiser4_block_nr estimate_update_cluster(struct inode *);
- 
--
- /* __REISER4_TREE_H__ */
+ #if REISER4_SHA256
+-	crypto_free_tfm(tfm);
++	crypto_free_hash(tfm);
  #endif
- 
-diff -puN fs/reiser4/txnmgr.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/txnmgr.c
---- a/fs/reiser4/txnmgr.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/txnmgr.c
-@@ -2802,7 +2802,6 @@ static void lock_two_atoms(txn_atom * on
+ 	return;
+ }
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-get-rid-of-deprecated-crypto-api
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -105,50 +105,47 @@ crypto_stat_t * reiser4_alloc_crypto_sta
+ 		kfree(info);
+ 		return ERR_PTR(-ENOMEM);
  	}
++	info->host = inode;
+ 	return info;
  }
  
+ #if 0
+ /* allocate/free low-level info for cipher and digest
+    transforms */
+-static int
+-alloc_crypto_tfms(plugin_set * pset, crypto_stat_t * info)
++static int alloc_crypto_tfms(crypto_stat_t * info)
+ {
+-	struct crypto_tfm * ret = NULL;
+-	cipher_plugin * cplug = pset->cipher;
+-	digest_plugin * dplug = pset->digest;
 -
- /* Perform the necessary work to prepare for fusing two atoms, which involves
-  * acquiring two atom locks in the proper order.  If one of the node's atom is
-  * blocking fusion (i.e., it is in the CAPTURE_WAIT stage) and the handle's
-@@ -3095,7 +3094,6 @@ void insert_into_atom_ovrwr_list(txn_ato
- 	ON_DEBUG(count_jnode(atom, node, NODE_LIST(node), OVRWR_LIST, 1));
+-	assert("edward-1363", info != NULL);
+-	assert("edward-414", cplug != NULL);
+-	assert("edward-415", dplug != NULL);
++	struct crypto_blkcipher * ctfm = NULL;
++	struct crypto_hash      * dtfm = NULL;
++	cipher_plugin * cplug = inode_cipher_plugin(info->host);
++	digest_plugin * dplug = inode_digest_plugin(info->host);
+ 
+ 	if (cplug->alloc) {
+-		ret = cplug->alloc();
+-		if (ret == NULL) {
++		ctfm = cplug->alloc();
++		if (IS_ERR(ctfm)) {
+ 			warning("edward-1364",
+ 				"Can not allocate info for %s\n",
+ 				cplug->h.desc);
+-			return RETERR(-EINVAL);
++			return RETERR(PTR_ERR(ctfm));
+ 		}
+ 	}
+-	info_set_tfm(info, CIPHER_TFM, ret);
++	info_set_cipher(info, ctfm);
+ 	if (dplug->alloc) {
+-		ret = dplug->alloc();
+-		if (ret == NULL) {
++		dtfm = dplug->alloc();
++		if (IS_ERR(dtfm)) {
+ 			warning("edward-1365",
+ 				"Can not allocate info for %s\n",
+ 				dplug->h.desc);
+-			goto err;
++			goto unhappy_with_digest;
+ 		}
+ 	}
+-	info_set_tfm(info, DIGEST_TFM, ret);
++	info_set_digest(info, dtfm);
+ 	return 0;
+- err:
++ unhappy_with_digest:
+ 	if (cplug->free) {
+-		cplug->free(info->tfma[CIPHER_TFM].tfm);
+-		info_set_tfm(info, CIPHER_TFM, NULL);
++		cplug->free(ctfm);
++		info_set_cipher(info, NULL);
+ 	}
+-	return RETERR(-EINVAL);
++	return RETERR(PTR_ERR(dtfm));
  }
- 
--
- #if REISER4_DEBUG
- 
- void reiser4_info_atom(const char *prefix, const txn_atom * atom)
-diff -puN fs/reiser4/txnmgr.h~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/txnmgr.h
---- a/fs/reiser4/txnmgr.h~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/txnmgr.h
-@@ -192,11 +192,6 @@ typedef enum {
-    code above and proceed without restarting if they are still satisfied.
- */
- 
--/* A block number set consists of only the list head. */
--struct blocknr_set {
--	struct list_head entries;
--};
--
- /* An atomic transaction: this is the underlying system representation
-    of a transaction, not the one seen by clients.
- 
-@@ -252,10 +247,10 @@ struct txn_atom {
- 
- 	/* The atom's delete set. It collects block numbers of the nodes
- 	   which were deleted during the transaction. */
--	blocknr_set delete_set;
-+	struct list_head delete_set;
- 
- 	/* The atom's wandered_block mapping. */
--	blocknr_set wandered_map;
-+	struct list_head wandered_map;
- 
- 	/* The transaction's list of dirty captured nodes--per level.  Index
- 	   by (level). dirty_nodes[0] is for znode-above-root */
-@@ -475,15 +470,15 @@ int capture_bulk(jnode **, int count);
- 
- /* See the comment on the function blocknrset.c:blocknr_set_add for the
-    calling convention of these three routines. */
--extern void blocknr_set_init(blocknr_set * bset);
--extern void blocknr_set_destroy(blocknr_set * bset);
--extern void blocknr_set_merge(blocknr_set * from, blocknr_set * into);
-+extern void blocknr_set_init(struct list_head * bset);
-+extern void blocknr_set_destroy(struct list_head * bset);
-+extern void blocknr_set_merge(struct list_head * from, struct list_head * into);
- extern int blocknr_set_add_extent(txn_atom * atom,
--				  blocknr_set * bset,
-+				  struct list_head * bset,
- 				  blocknr_set_entry ** new_bsep,
- 				  const reiser4_block_nr * start,
- 				  const reiser4_block_nr * len);
--extern int blocknr_set_add_pair(txn_atom * atom, blocknr_set * bset,
-+extern int blocknr_set_add_pair(txn_atom * atom, struct list_head * bset,
- 				blocknr_set_entry ** new_bsep,
- 				const reiser4_block_nr * a,
- 				const reiser4_block_nr * b);
-@@ -491,7 +486,7 @@ extern int blocknr_set_add_pair(txn_atom
- typedef int (*blocknr_set_actor_f) (txn_atom *, const reiser4_block_nr *,
- 				    const reiser4_block_nr *, void *);
- 
--extern int blocknr_set_iterator(txn_atom * atom, blocknr_set * bset,
-+extern int blocknr_set_iterator(txn_atom * atom, struct list_head * bset,
- 				blocknr_set_actor_f actor, void *data,
- 				int delete);
- 
-diff -puN fs/reiser4/vfs_ops.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/vfs_ops.c
---- a/fs/reiser4/vfs_ops.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/vfs_ops.c
-@@ -51,7 +51,6 @@
- #include <linux/reboot.h>
- #include <linux/rcupdate.h>
- 
--
- /* update inode stat-data by calling plugin */
- int reiser4_update_sd(struct inode *object)
- {
-@@ -131,9 +130,6 @@ int reiser4_del_nlink(struct inode *obje
- 	return result;
- }
- 
--
--
--
- /* Release reiser4 dentry. This is d_op->d_release() method. */
- static void reiser4_d_release(struct dentry *dentry /* dentry released */ )
- {
-@@ -205,7 +201,6 @@ void reiser4_writeout(struct super_block
- 	} while (wbc->nr_to_write > 0);
- }
- 
--
- void reiser4_throttle_write(struct inode *inode)
- {
- 	reiser4_txn_restart_current();
-@@ -216,8 +211,6 @@ const char *REISER4_SUPER_MAGIC_STRING =
- const int REISER4_MAGIC_OFFSET = 16 * 4096;	/* offset to magic string from the
- 						 * beginning of device */
- 
--
--
- /*
-  * Reiser4 initialization/shutdown.
-  *
-@@ -226,7 +219,6 @@ const int REISER4_MAGIC_OFFSET = 16 * 40
-  * during reiser4 module load (when compiled as module).
-  */
- 
--
- void reiser4_handle_error(void)
- {
- 	struct super_block *sb = reiser4_get_current_sb();
-diff -puN fs/reiser4/vfs_ops.h~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/vfs_ops.h
---- a/fs/reiser4/vfs_ops.h~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/vfs_ops.h
-@@ -29,7 +29,6 @@ extern int reiser4_update_sd(struct inod
- extern int reiser4_add_nlink(struct inode *, struct inode *, int);
- extern int reiser4_del_nlink(struct inode *, struct inode *, int);
- 
--
- extern int reiser4_start_up_io(struct page *page);
- extern void reiser4_throttle_write(struct inode *);
- extern int jnode_is_releasable(jnode *);
-@@ -37,10 +36,8 @@ extern int jnode_is_releasable(jnode *);
- #define CAPTURE_APAGE_BURST (1024l)
- void reiser4_writeout(struct super_block *, struct writeback_control *);
- 
--
- extern void reiser4_handle_error(void);
- 
--
- /* __FS_REISER4_VFS_OPS_H__ */
  #endif
  
-diff -puN fs/reiser4/wander.c~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/wander.c
---- a/fs/reiser4/wander.c~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/wander.c
-@@ -235,7 +235,6 @@ static void disable_write_barrier(struct
- 	set_bit((int)REISER4_NO_WRITE_BARRIER, &get_super_private(s)->fs_flags);
+@@ -156,12 +153,14 @@ static void
+ free_crypto_tfms(crypto_stat_t * info)
+ {
+ 	assert("edward-1366", info != NULL);
+-	if (!info_cipher_tfm(info))
++	if (!info_get_cipher(info)) {
++		assert("edward-1601", !info_get_digest(info));
+ 		return;
+-	info_cipher_plugin(info)->free(info_cipher_tfm(info));
+-	info_set_tfm(info, CIPHER_TFM, NULL);
+-	info_digest_plugin(info)->free(info_digest_tfm(info));
+-	info_set_tfm(info, DIGEST_TFM, NULL);
++	}
++	inode_cipher_plugin(info->host)->free(info_get_cipher(info));
++	info_set_cipher(info, NULL);
++	inode_digest_plugin(info->host)->free(info_get_digest(info));
++	info_set_digest(info, NULL);
+ 	return;
  }
  
--
- /* fill journal header block data  */
- static void format_journal_header(struct commit_handle *ch)
- {
-@@ -1150,7 +1149,6 @@ static int commit_tx(struct commit_handl
- 	return ret;
+@@ -173,23 +172,25 @@ static int create_keyid (crypto_stat_t *
+ 	size_t blk, pad;
+ 	__u8 * dmem;
+ 	__u8 * cmem;
+-	struct crypto_tfm * dtfm;
+-	struct crypto_tfm * ctfm;
++	struct hash_desc      ddesc;
++	struct blkcipher_desc cdesc;
+ 	struct scatterlist sg;
+ 
+ 	assert("edward-1422", 0);
+ 	assert("edward-1367", info != NULL);
+ 	assert("edward-1368", info->keyid != NULL);
+ 
+-	dtfm = info_digest_tfm(info);
+-	ctfm = info_cipher_tfm(info);
++	ddesc.tfm = info_get_digest(info);
++	ddesc.flags = 0;
++	cdesc.tfm = info_get_cipher(info);
++	cdesc.flags = 0;
+ 
+-	dmem = kmalloc((size_t)crypto_tfm_alg_digestsize(dtfm),
++	dmem = kmalloc((size_t)crypto_hash_digestsize(ddesc.tfm),
+ 		       reiser4_ctx_gfp_mask_get());
+ 	if (!dmem)
+ 		goto exit1;
+ 
+-	blk = crypto_tfm_alg_blocksize(ctfm);
++	blk = crypto_blkcipher_blocksize(cdesc.tfm);
+ 
+ 	pad = data->keyid_size % blk;
+ 	pad = (pad ? blk - pad : 0);
+@@ -205,16 +206,20 @@ static int create_keyid (crypto_stat_t *
+ 	sg.offset = offset_in_page(cmem);
+ 	sg.length = data->keyid_size + pad;
+ 
+-	ret = crypto_cipher_encrypt(ctfm, &sg, &sg, data->keyid_size + pad);
++	ret = crypto_blkcipher_encrypt(&cdesc, &sg, &sg,
++				       data->keyid_size + pad);
+ 	if (ret) {
+ 		warning("edward-1369",
+-			"encryption failed flags=%x\n", ctfm->crt_flags);
++			"encryption failed flags=%x\n", cdesc.flags);
+ 		goto exit3;
+ 	}
+-	crypto_digest_init (dtfm);
+-	crypto_digest_update (dtfm, &sg, 1);
+-	crypto_digest_final (dtfm, dmem);
+-	memcpy(info->keyid, dmem, info_digest_plugin(info)->fipsize);
++	ret = crypto_hash_digest(&ddesc, &sg, sg.length, dmem);
++	if (ret) {
++		warning("edward-1602",
++			"digest failed flags=%x\n", ddesc.flags);
++		goto exit3;
++	}
++	memcpy(info->keyid, dmem, inode_digest_plugin(info->host)->fipsize);
+  exit3:
+ 	kfree(cmem);
+  exit2:
+@@ -232,8 +237,9 @@ static void destroy_keyid(crypto_stat_t 
+ 	return;
  }
  
--
- static int write_tx_back(struct commit_handle * ch)
+-static void free_crypto_stat (crypto_stat_t * info)
++static void __free_crypto_stat (struct inode * inode)
  {
- 	flush_queue_t *fq;
-diff -puN fs/reiser4/znode.h~reiser4-use-list_head-instead-of-struct-blocknr fs/reiser4/znode.h
---- a/fs/reiser4/znode.h~reiser4-use-list_head-instead-of-struct-blocknr
-+++ a/fs/reiser4/znode.h
-@@ -230,7 +230,6 @@ extern znode *zalloc(gfp_t gfp_flag);
- extern void zinit(znode *, const znode * parent, reiser4_tree *);
- extern int zparse(znode * node);
++	crypto_stat_t * info = inode_crypto_stat(inode);
+ 	assert("edward-1372", info != NULL);
  
+ 	free_crypto_tfms(info);
+@@ -268,10 +274,10 @@ static int inode_has_cipher_key(struct i
+ 		crypto_stat_instantiated(inode_crypto_stat(inode));
+ }
+ 
+-static void inode_free_crypto_stat (struct inode * inode)
++static void free_crypto_stat (struct inode * inode)
+ {
+ 	uninstantiate_crypto_stat(inode_crypto_stat(inode));
+-	free_crypto_stat(inode_crypto_stat(inode));
++	__free_crypto_stat(inode);
+ }
+ 
+ static int need_cipher(struct inode * inode)
+@@ -303,22 +309,17 @@ create_crypto_stat(struct inode * object
+ 	info = reiser4_alloc_crypto_stat(object);
+ 	if (IS_ERR(info))
+ 		return info;
+-	ret = alloc_crypto_tfms(reiser4_inode_data(object)->pset, info);
++	ret = alloc_crypto_tfms(info);
+ 	if (ret)
+ 		goto err;
+-	/* Someone can change plugins of the host (for example if
+-	   the host is a directory), so we keep the original ones
+-	   in the crypto-stat. */
+-	info_set_cipher_plugin(info, inode_cipher_plugin(object));
+-	info_set_digest_plugin(info, inode_digest_plugin(object));
+ 	/* instantiating a key */
+-	ret = crypto_cipher_setkey(info_cipher_tfm(info),
+-				   data->key,
+-				   data->keysize);
++	ret = crypto_blkcipher_setkey(info_get_cipher(info),
++				      data->key,
++				      data->keysize);
+ 	if (ret) {
+ 		warning("edward-1379",
+ 			"setkey failed flags=%x\n",
+-			info_cipher_tfm(info)->crt_flags);
++			crypto_blkcipher_get_flags(info_get_cipher(info)));
+ 		goto err;
+ 	}
+ 	info->keysize = data->keysize;
+@@ -328,7 +329,7 @@ create_crypto_stat(struct inode * object
+ 	instantiate_crypto_stat(info);
+ 	return info;
+  err:
+-	free_crypto_stat(info);
++	__free_crypto_stat(object);
+  	return ERR_PTR(ret);
+ }
+ #endif
+@@ -349,7 +350,7 @@ static void unload_crypto_stat(struct in
+ 	dec_keyload_count(inode_crypto_stat(inode));
+ 	if (info->keyload_count == 0)
+ 		/* final release */
+-		inode_free_crypto_stat(inode);
++		free_crypto_stat(inode);
+ }
+ 
+ /* attach/detach an existing crypto-stat */
+@@ -551,8 +552,8 @@ cipher_blocksize(struct inode * inode)
+ {
+ 	assert("edward-758", need_cipher(inode));
+ 	assert("edward-1400", inode_crypto_stat(inode) != NULL);
+-	return crypto_tfm_alg_blocksize
+-		(info_cipher_tfm(inode_crypto_stat(inode)));
++	return crypto_blkcipher_blocksize
++		(info_get_cipher(inode_crypto_stat(inode)));
+ }
+ 
+ /* returns offset translated by scale factor of the crypto-algorithm */
+@@ -1010,7 +1011,7 @@ int grab_tfm_stream(struct inode * inode
+ 	assert("edward-901", tc != NULL);
+ 	assert("edward-1027", inode_compression_plugin(inode) != NULL);
+ 
+-	if (cluster_get_tfm_act(tc) == TFM_WRITE_ACT)
++	if (cluster_get_tfm_act(tc) == TFMA_WRITE)
+ 		size += deflate_overrun(inode, inode_cluster_size(inode));
+ 
+ 	if (!tfm_stream(tc, id) && id == INPUT_STREAM)
+@@ -1036,7 +1037,7 @@ int reiser4_deflate_cluster(reiser4_clus
+ 
+ 	assert("edward-401", inode != NULL);
+ 	assert("edward-903", tfm_stream_is_set(tc, INPUT_STREAM));
+-	assert("edward-1348", cluster_get_tfm_act(tc) == TFM_WRITE_ACT);
++	assert("edward-1348", cluster_get_tfm_act(tc) == TFMA_WRITE);
+ 	assert("edward-498", !tfm_cluster_is_uptodate(tc));
+ 
+ 	coplug = inode_compression_plugin(inode);
+@@ -1106,12 +1107,13 @@ int reiser4_deflate_cluster(reiser4_clus
+  cipher:
+ 	if (need_cipher(inode)) {
+ 		cipher_plugin * ciplug;
+-		struct crypto_tfm * tfm;
++		struct blkcipher_desc desc;
+ 		struct scatterlist src;
+ 		struct scatterlist dst;
+ 
+ 		ciplug = inode_cipher_plugin(inode);
+-		tfm = info_cipher_tfm(inode_crypto_stat(inode));
++		desc.tfm = info_get_cipher(inode_crypto_stat(inode));
++		desc.flags = 0;
+ 		if (compressed)
+ 			alternate_streams(tc);
+ 		result = grab_tfm_stream(inode, tc, OUTPUT_STREAM);
+@@ -1127,10 +1129,10 @@ int reiser4_deflate_cluster(reiser4_clus
+ 		dst.offset = offset_in_page(tfm_output_data(clust));
+ 		dst.length = tc->len;
+ 
+-		result = crypto_cipher_encrypt(tfm, &dst, &src, tc->len);
++		result = crypto_blkcipher_encrypt(&desc, &dst, &src, tc->len);
+ 		if (result) {
+ 			warning("edward-1405",
+-				"encryption failed flags=%x\n", tfm->crt_flags);
++				"encryption failed flags=%x\n", desc.flags);
+ 			return result;
+ 		}
+ 		encrypted = 1;
+@@ -1153,7 +1155,7 @@ int reiser4_inflate_cluster(reiser4_clus
+ 	assert("edward-905", inode != NULL);
+ 	assert("edward-1178", clust->dstat == PREP_DISK_CLUSTER);
+ 	assert("edward-906", tfm_stream_is_set(&clust->tc, INPUT_STREAM));
+-	assert("edward-1349", tc->act == TFM_READ_ACT);
++	assert("edward-1349", tc->act == TFMA_READ);
+ 	assert("edward-907", !tfm_cluster_is_uptodate(tc));
+ 
+ 	/* Handle a checksum (if any) */
+@@ -1166,12 +1168,13 @@ int reiser4_inflate_cluster(reiser4_clus
+ 	}
+ 	if (need_cipher(inode)) {
+ 		cipher_plugin * ciplug;
+-		struct crypto_tfm * tfm;
++		struct blkcipher_desc desc;
+ 		struct scatterlist src;
+ 		struct scatterlist dst;
+ 
+ 		ciplug = inode_cipher_plugin(inode);
+-		tfm = info_cipher_tfm(inode_crypto_stat(inode));
++		desc.tfm = info_get_cipher(inode_crypto_stat(inode));
++		desc.flags = 0;
+ 		result = grab_tfm_stream(inode, tc, OUTPUT_STREAM);
+ 		if (result)
+ 			return result;
+@@ -1185,9 +1188,12 @@ int reiser4_inflate_cluster(reiser4_clus
+ 		dst.offset = offset_in_page(tfm_output_data(clust));
+ 		dst.length = tc->len;
+ 
+-		result = crypto_cipher_decrypt(tfm, &dst, &src, tc->len);
+-		if (result)
++		result = crypto_blkcipher_decrypt(&desc, &dst, &src, tc->len);
++		if (result) {
++			warning("edward-1600", "decrypt failed flags=%x\n",
++				desc.flags);
+ 			return result;
++		}
+ 		align_or_cut_overhead(inode, clust, READ_OP);
+ 		transformed = 1;
+ 	}
+@@ -2471,7 +2477,7 @@ prepare_cluster(struct inode *inode,
+ 	reiser4_slide_t *win = clust->win;
+ 
+ 	reset_cluster_params(clust);
+-	cluster_set_tfm_act(&clust->tc, TFM_READ_ACT);
++	cluster_set_tfm_act(&clust->tc, TFMA_READ);
+ #if REISER4_DEBUG
+ 	clust->ctx = get_current_context();
+ #endif
+diff -puN fs/reiser4/plugin/file/cryptcompress.h~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/plugin/file/cryptcompress.h
+--- a/fs/reiser4/plugin/file/cryptcompress.h~reiser4-get-rid-of-deprecated-crypto-api
++++ a/fs/reiser4/plugin/file/cryptcompress.h
+@@ -184,7 +184,7 @@ static inline void free_coa_set(tfm_clus
+ 
+ 	assert("edward-810", tc != NULL);
+ 
+-	for (j = 0; j < LAST_TFM; j++)
++	for (j = 0; j < TFMA_LAST; j++)
+ 		for (i = 0; i < LAST_COMPRESSION_ID; i++) {
+ 			if (!get_coa(tc, i, j))
+ 				continue;
+@@ -490,64 +490,26 @@ void reiser4_attach_crypto_stat(struct i
+ void change_crypto_stat(struct inode * inode, crypto_stat_t * new);
+ crypto_stat_t * reiser4_alloc_crypto_stat (struct inode * inode);
+ 
+-static inline reiser4_tfma_t *
+-info_get_tfma (crypto_stat_t * info, reiser4_tfm id)
++static inline struct crypto_blkcipher * info_get_cipher(crypto_stat_t * info)
+ {
+-	return &info->tfma[id];
++	return info->cipher;
+ }
+ 
+-static inline struct crypto_tfm *
+-info_get_tfm (crypto_stat_t * info, reiser4_tfm id)
++static inline void info_set_cipher(crypto_stat_t * info,
++				   struct crypto_blkcipher * tfm)
+ {
+-	return info_get_tfma(info, id)->tfm;
++	info->cipher = tfm;
+ }
+ 
+-static inline void
+-info_set_tfm (crypto_stat_t * info, reiser4_tfm id, struct crypto_tfm * tfm)
+-{
+-	info_get_tfma(info, id)->tfm = tfm;
+-}
 -
- extern int znode_just_created(const znode * node);
+-static inline struct crypto_tfm *
+-info_cipher_tfm (crypto_stat_t * info)
+-{
+-	return info_get_tfm(info, CIPHER_TFM);
+-}
+-
+-static inline struct crypto_tfm *
+-info_digest_tfm (crypto_stat_t * info)
+-{
+-	return info_get_tfm(info, DIGEST_TFM);
+-}
+-
+-static inline cipher_plugin *
+-info_cipher_plugin (crypto_stat_t * info)
+-{
+-	return &info_get_tfma(info, CIPHER_TFM)->plug->cipher;
+-}
+-
+-static inline digest_plugin *
+-info_digest_plugin (crypto_stat_t * info)
+-{
+-	return &info_get_tfma(info, DIGEST_TFM)->plug->digest;
+-}
+-
+-static inline void
+-info_set_plugin(crypto_stat_t * info, reiser4_tfm id, reiser4_plugin * plugin)
++static inline struct crypto_hash * info_get_digest(crypto_stat_t * info)
+ {
+-	info_get_tfma(info, id)->plug = plugin;
++	return info->digest;
+ }
  
- extern void zfree(znode * node);
+-static inline void
+-info_set_cipher_plugin(crypto_stat_t * info, cipher_plugin * cplug)
+-{
+-	info_set_plugin(info, CIPHER_TFM, cipher_plugin_to_plugin(cplug));
+-}
+-
+-static inline void
+-info_set_digest_plugin(crypto_stat_t * info, digest_plugin * plug)
++static inline void info_set_digest(crypto_stat_t * info,
++				   struct crypto_hash * tfm)
+ {
+-	info_set_plugin(info, DIGEST_TFM, digest_plugin_to_plugin(plug));
++	info->digest = tfm;
+ }
+ 
+ #endif				/* __FS_REISER4_CRYPTCOMPRESS_H__ */
+diff -puN fs/reiser4/plugin/file/file_conversion.c~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/plugin/file/file_conversion.c
+--- a/fs/reiser4/plugin/file/file_conversion.c~reiser4-get-rid-of-deprecated-crypto-api
++++ a/fs/reiser4/plugin/file/file_conversion.c
+@@ -225,7 +225,7 @@ static void start_check_compressibility(
+ {
+ 	assert("edward-1507", clust->index == 1);
+ 	assert("edward-1508", !tfm_cluster_is_uptodate(&clust->tc));
+-	assert("edward-1509", cluster_get_tfm_act(&clust->tc) == TFM_READ_ACT);
++	assert("edward-1509", cluster_get_tfm_act(&clust->tc) == TFMA_READ);
+ 
+ 	hint_init_zero(hint);
+ 	clust->hint = hint;
+@@ -295,7 +295,7 @@ static int read_check_compressibility(st
+ 	}
+ 	tfm_cluster_clr_uptodate(&clust->tc);
+ 
+-	cluster_set_tfm_act(&clust->tc, TFM_WRITE_ACT);
++	cluster_set_tfm_act(&clust->tc, TFMA_WRITE);
+ 
+ 	if (hint_is_valid(&tmp_hint) && !hint_is_unprepped_dclust(&tmp_hint)) {
+ 		/* lenght of compressed data is known, no need to compress */
+diff -puN fs/reiser4/plugin/plugin.h~reiser4-get-rid-of-deprecated-crypto-api fs/reiser4/plugin/plugin.h
+--- a/fs/reiser4/plugin/plugin.h~reiser4-get-rid-of-deprecated-crypto-api
++++ a/fs/reiser4/plugin/plugin.h
+@@ -475,8 +475,8 @@ typedef struct hash_plugin {
+ typedef struct cipher_plugin {
+ 	/* generic fields */
+ 	plugin_header h;
+-	struct crypto_tfm * (*alloc) (void);
+-	void (*free) (struct crypto_tfm * tfm);
++	struct crypto_blkcipher * (*alloc) (void);
++	void (*free) (struct crypto_blkcipher * tfm);
+ 	/* Offset translator. For each offset this returns (k * offset), where
+ 	   k (k >= 1) is an expansion factor of the cipher algorithm.
+ 	   For all symmetric algorithms k == 1. For asymmetric algorithms (which
+@@ -502,8 +502,8 @@ typedef struct digest_plugin {
+ 	plugin_header h;
+ 	/* fingerprint size in bytes */
+ 	int fipsize;
+-	struct crypto_tfm * (*alloc) (void);
+-	void (*free) (struct crypto_tfm * tfm);
++	struct crypto_hash * (*alloc) (void);
++	void (*free) (struct crypto_hash * tfm);
+ } digest_plugin;
+ 
+ typedef struct compression_plugin {
 _
 
 Patches currently in -mm which might be from edward@namesys.com are
 
 reiser4.patch
+reiser4-get-rid-of-deprecated-crypto-api.patch
+reiser4-get-rid-of-deprecated-crypto-api-build-fix.patch
+reiser4-fix-missed-unlock-and-exit_context.patch
 reiser4-use-list_head-instead-of-struct-blocknr.patch
 reiser4-use-list_empty-instead-of-list_empty_careful-for.patch
 reiser4-update-comments-fix-write-and-truncate-cryptcompress.patch
