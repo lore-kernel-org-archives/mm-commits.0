@@ -1,420 +1,365 @@
 From: akpm@linux-foundation.org
-Subject: - fs-reiser4-possible-cleanups.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:59:31 -0800
-Message-ID: <200703060159.l261xVw0008609@shell0.pdx.osdl.net>
+Subject: - reiser4-update-comments-fix-write-and-truncate-cryptcompress.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:03:13 -0800
+Message-ID: <200703060203.l2623E7e008774@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46734 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46743 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965693AbXCFCCv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:02:51 -0500
+	id S965694AbXCFCDT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:03:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, reiser@namesys.com, vs@namesys.com, mm-commits@vger.kernel.org
+To: edward@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/reiser4/: possible cleanups
+     reiser4: update comments, fix write and truncate cryptcompress
 has been removed from the -mm tree.  Its filename was
-     fs-reiser4-possible-cleanups.patch
+     reiser4-update-comments-fix-write-and-truncate-cryptcompress.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: fs/reiser4/: possible cleanups
-From: Adrian Bunk <bunk@stusta.de>
+Subject: reiser4: update comments, fix write and truncate cryptcompress
+From: Edward Shishkin <edward@namesys.com>
 
-This patch contains the following possible cleanups:
-- make needlessly global code static
-- proper prototype for the following function:
-  - plugin/file/file.c: init_uf_coord()
-- "extern inline" -> "static inline"
-- #if 0/comment out the following unused functions:
-  - plugin/file/cryptcompress.c: jnode_of_cluster()
-  - plugin/plugin.c: force_plugin()
-  - plugin/plugin_set.c: plugin_set_compression()
-- remove the following unused variable:
-  - plugin/file/file.c: xversion
+. Addressing the following todo items:
+  1) akpm wrote: <wonders what formatted and unformatted nodes
+     are> A brief glossary might help.
+  2) akpm wrote:  reiser4_invalidate_pages() is a mix of reiser4
+     things and of things-which-the-vfs-is-supposed-to-do. It is
+     uncommented and I am unable to work out why it was necessary
+     to do this, and hence what we can do about it.
+. Update comments in page_cache.c
+. Fix missed modifications performed by generic_write_checks()
+. Fix missed unmap_mapping_range() when truncating a cryptcompress
+  file
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: Hans Reiser <reiser@namesys.com>
+Signed-off-by: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/block_alloc.c                 |   10 +++++-----
- fs/reiser4/flush_queue.c                 |    2 +-
- fs/reiser4/jnode.c                       |    7 ++++---
- fs/reiser4/jnode.h                       |    4 ----
- fs/reiser4/plugin/cluster.h              |    1 -
- fs/reiser4/plugin/file/cryptcompress.c   |    6 ++++--
- fs/reiser4/plugin/file/cryptcompress.h   |    2 --
- fs/reiser4/plugin/file/file.c            |    4 +---
- fs/reiser4/plugin/file/file.h            |    4 ++--
- fs/reiser4/plugin/item/extent_file_ops.c |    2 --
- fs/reiser4/plugin/plugin.c               |    2 ++
- fs/reiser4/plugin/plugin.h               |    1 -
- fs/reiser4/plugin/plugin_set.c           |    2 +-
- fs/reiser4/plugin/plugin_set.h           |    1 -
- fs/reiser4/super.h                       |    1 -
- fs/reiser4/super_ops.c                   |    4 ++--
- fs/reiser4/txnmgr.h                      |    1 -
- 17 files changed, 22 insertions(+), 32 deletions(-)
+ fs/reiser4/page_cache.c                |   99 ++++++++++++++---------
+ fs/reiser4/plugin/cluster.h            |    3 
+ fs/reiser4/plugin/file/cryptcompress.c |   69 ++++------------
+ fs/reiser4/plugin/item/ctail.c         |    3 
+ 4 files changed, 89 insertions(+), 85 deletions(-)
 
-diff -puN fs/reiser4/block_alloc.c~fs-reiser4-possible-cleanups fs/reiser4/block_alloc.c
---- a/fs/reiser4/block_alloc.c~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/block_alloc.c
-@@ -554,8 +554,8 @@ reiser4_block_nr fake_blocknr_unformatte
+diff -puN fs/reiser4/page_cache.c~reiser4-update-comments-fix-write-and-truncate-cryptcompress fs/reiser4/page_cache.c
+--- a/fs/reiser4/page_cache.c~reiser4-update-comments-fix-write-and-truncate-cryptcompress
++++ a/fs/reiser4/page_cache.c
+@@ -2,6 +2,26 @@
+  * reiser4/README */
  
- /* adjust sb block counters, if real (on-disk) block allocation immediately
-    follows grabbing of free disk space. */
--void grabbed2used(reiser4_context *ctx, reiser4_super_info_data *sbinfo,
--		  __u64 count)
-+static void grabbed2used(reiser4_context *ctx, reiser4_super_info_data *sbinfo,
-+			 __u64 count)
- {
- 	sub_from_ctx_grabbed(ctx, count);
+ /* Memory pressure hooks. Fake inodes handling. */
++
++/*   GLOSSARY
++
++   . Formatted and unformatted nodes.
++     Elements of reiser4 balanced tree to store data and metadata.
++     Unformatted nodes are pointed to by extent pointers. Such nodes
++     are used to store data of large objects. Unlike unformatted nodes,
++     formatted ones have associated format described by node4X plugin.
++
++   . Jnode (or journal node)
++     The in-memory header which is used to track formatted and unformatted
++     nodes, bitmap nodes, etc. In particular, jnodes are used to track
++     transactional information associated with each block(see reiser4/jnode.c
++     for details).
++
++   . Znode
++     The in-memory header which is used to track formatted nodes. Contains
++     embedded jnode (see reiser4/znode.c for details).
++*/
++
+ /* We store all file system meta data (and data, of course) in the page cache.
  
-@@ -570,8 +570,8 @@ void grabbed2used(reiser4_context *ctx, 
+    What does this mean? In stead of using bread/brelse we create special
+@@ -32,8 +52,8 @@
+    1. when jnode-to-page mapping is established (by jnode_attach_page()), page
+    reference counter is increased.
+ 
+-   2. when jnode-to-page mapping is destroyed (by jnode_detach_page() and
+-   page_detach_jnode()), page reference counter is decreased.
++   2. when jnode-to-page mapping is destroyed (by page_clear_jnode(), page
++   reference counter is decreased.
+ 
+    3. on jload() reference counter on jnode page is increased, page is
+    kmapped and `referenced'.
+@@ -592,37 +612,9 @@ void reiser4_drop_page(struct page *page
+ 	unlock_page(page);
  }
  
- /* adjust sb block counters when @count unallocated blocks get mapped to disk */
--void fake_allocated2used(reiser4_super_info_data *sbinfo, __u64 count,
--			 reiser4_ba_flags_t flags)
-+static void fake_allocated2used(reiser4_super_info_data *sbinfo, __u64 count,
-+				reiser4_ba_flags_t flags)
- {
- 	spin_lock_reiser4_super(sbinfo);
+-/* this is called by truncate_jnodes_range which in its turn is always called
+-   after truncate_mapping_pages_range. Therefore, here jnode can not have
+-   page. New pages can not be created because truncate_jnodes_range goes under
+-   exclusive access on file obtained, where as new page creation requires
+-   non-exclusive access obtained */
+-static void invalidate_unformatted(jnode * node)
+-{
+-	struct page *page;
+-
+-	spin_lock_jnode(node);
+-	page = node->pg;
+-	if (page) {
+-		loff_t from, to;
+-
+-		page_cache_get(page);
+-		spin_unlock_jnode(node);
+-		/* FIXME: use truncate_complete_page instead */
+-		from = page_offset(page);
+-		to = from + PAGE_CACHE_SIZE - 1;
+-		truncate_inode_pages_range(page->mapping, from, to);
+-		page_cache_release(page);
+-	} else {
+-		JF_SET(node, JNODE_HEARD_BANSHEE);
+-		reiser4_uncapture_jnode(node);
+-		unhash_unformatted_jnode(node);
+-	}
+-}
+-
+ #define JNODE_GANG_SIZE (16)
  
-@@ -583,7 +583,7 @@ void fake_allocated2used(reiser4_super_i
- 	spin_unlock_reiser4_super(sbinfo);
+-/* find all eflushed jnodes from range specified and invalidate them */
++/* find all jnodes from range specified and invalidate them */
+ static int
+ truncate_jnodes_range(struct inode *inode, pgoff_t from, pgoff_t count)
+ {
+@@ -632,6 +624,14 @@ truncate_jnodes_range(struct inode *inod
+ 	unsigned long index;
+ 	unsigned long end;
+ 
++	if (inode_file_plugin(inode) ==
++	    file_plugin_by_id(CRYPTCOMPRESS_FILE_PLUGIN_ID))
++		/* No need to get rid of jnodes here: if the single jnode of
++		   page cluster did not have page, then it was found and killed
++		   before in
++		   truncate_page_cluster_cryptcompress()->jput()->jput_final(),
++		   otherwise it will be dropped by reiser4_invalidatepage() */
++		return 0;
+ 	truncated_jnodes = 0;
+ 
+ 	info = reiser4_inode_data(inode);
+@@ -666,7 +666,18 @@ truncate_jnodes_range(struct inode *inod
+ 			node = gang[i];
+ 			if (node != NULL) {
+ 				index = max(index, index_jnode(node));
+-				invalidate_unformatted(node);
++				spin_lock_jnode(node);
++				assert("edward-1457", node->pg == NULL);
++				/* this is always called after
++				   truncate_inode_pages_range(). Therefore, here
++				   jnode can not have page. New pages can not be
++				   created because truncate_jnodes_range goes
++				   under exclusive access on file obtained,
++				   where as new page creation requires
++				   non-exclusive access obtained */
++				JF_SET(node, JNODE_HEARD_BANSHEE);
++				reiser4_uncapture_jnode(node);
++				unhash_unformatted_jnode(node);
+ 				truncated_jnodes++;
+ 				jput(node);
+ 			} else
+@@ -678,9 +689,27 @@ truncate_jnodes_range(struct inode *inod
+ 	return truncated_jnodes;
  }
  
--void flush_reserved2used(txn_atom * atom, __u64 count)
-+static void flush_reserved2used(txn_atom * atom, __u64 count)
+-void
+-reiser4_invalidate_pages(struct address_space *mapping, pgoff_t from,
+-			 unsigned long count, int even_cows)
++/* Truncating files in reiser4: problems and solutions.
++
++   VFS calls fs's truncate after it has called truncate_inode_pages()
++   to get rid of pages corresponding to part of file being truncated.
++   In reiser4 it may cause existence of unallocated extents which do
++   not have jnodes. Flush code does not expect that. Solution of this
++   problem is straightforward. As vfs's truncate is implemented using
++   setattr operation, it seems reasonable to have ->setattr() that
++   will cut file body. However, flush code also does not expect dirty
++   pages without parent items, so it is impossible to cut all items,
++   then truncate all pages in two steps. We resolve this problem by
++   cutting items one-by-one. Each such fine-grained step performed
++   under longterm znode lock calls at the end ->kill_hook() method of
++   a killed item to remove its binded pages and jnodes.
++
++   The following function is a common part of mentioned kill hooks.
++   Also, this is called before tail-to-extent conversion (to not manage
++   few copies of the data).
++*/
++void reiser4_invalidate_pages(struct address_space *mapping, pgoff_t from,
++			      unsigned long count, int even_cows)
  {
- 	reiser4_super_info_data *sbinfo;
+ 	loff_t from_bytes, count_bytes;
  
-diff -puN fs/reiser4/flush_queue.c~fs-reiser4-possible-cleanups fs/reiser4/flush_queue.c
---- a/fs/reiser4/flush_queue.c~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/flush_queue.c
-@@ -191,7 +191,7 @@ static void done_fq(flush_queue_t * fq)
- }
- 
- /* */
--void mark_jnode_queued(flush_queue_t * fq, jnode * node)
-+static void mark_jnode_queued(flush_queue_t * fq, jnode * node)
- {
- 	JF_SET(node, JNODE_FLUSH_QUEUED);
- 	count_enqueued_node(fq);
-diff -puN fs/reiser4/jnode.c~fs-reiser4-possible-cleanups fs/reiser4/jnode.c
---- a/fs/reiser4/jnode.c~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/jnode.c
-@@ -537,8 +537,9 @@ void unhash_unformatted_jnode(jnode * no
-  * allocate new jnode, insert it, and also insert into radix tree for the
-  * given inode/mapping.
-  */
--jnode *find_get_jnode(reiser4_tree * tree, struct address_space *mapping,
--		      oid_t oid, unsigned long index)
-+static jnode *find_get_jnode(reiser4_tree * tree,
-+			     struct address_space *mapping,
-+			     oid_t oid, unsigned long index)
- {
- 	jnode *result;
- 	jnode *shadow;
-@@ -786,7 +787,7 @@ static inline int jparse(jnode * node)
- 
- /* Lock a page attached to jnode, create and attach page to jnode if it had no
-  * one. */
--struct page *jnode_get_page_locked(jnode * node, gfp_t gfp_flags)
-+static struct page *jnode_get_page_locked(jnode * node, gfp_t gfp_flags)
- {
- 	struct page *page;
- 
-diff -puN fs/reiser4/jnode.h~fs-reiser4-possible-cleanups fs/reiser4/jnode.h
---- a/fs/reiser4/jnode.h~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/jnode.h
-@@ -349,12 +349,8 @@ extern jnode *jfind(struct address_space
- extern jnode *jnode_by_page(struct page *pg) NONNULL;
- extern jnode *jnode_of_page(struct page *pg) NONNULL;
- void jnode_attach_page(jnode * node, struct page *pg);
--jnode *find_get_jnode(reiser4_tree * tree,
--		      struct address_space *mapping, oid_t oid,
--		      unsigned long index);
- 
- void unhash_unformatted_jnode(jnode *);
--struct page *jnode_get_page_locked(jnode *, gfp_t gfp_flags);
- extern jnode *page_next_jnode(jnode * node) NONNULL;
- extern void jnode_init(jnode * node, reiser4_tree * tree, jnode_type) NONNULL;
- extern void jnode_make_dirty(jnode * node) NONNULL;
-diff -puN fs/reiser4/plugin/cluster.h~fs-reiser4-possible-cleanups fs/reiser4/plugin/cluster.h
---- a/fs/reiser4/plugin/cluster.h~fs-reiser4-possible-cleanups
+diff -puN fs/reiser4/plugin/cluster.h~reiser4-update-comments-fix-write-and-truncate-cryptcompress fs/reiser4/plugin/cluster.h
+--- a/fs/reiser4/plugin/cluster.h~reiser4-update-comments-fix-write-and-truncate-cryptcompress
 +++ a/fs/reiser4/plugin/cluster.h
-@@ -240,7 +240,6 @@ static inline void coord_set_between_clu
- 
- int inflate_cluster(reiser4_cluster_t *, struct inode *);
- int find_cluster(reiser4_cluster_t *, struct inode *, int read, int write);
--void forget_cluster_pages(struct page **page, int nrpages);
+@@ -261,7 +261,8 @@ int find_disk_cluster(reiser4_cluster_t 
+ 		      znode_lock_mode mode);
  int flush_cluster_pages(reiser4_cluster_t *, jnode *, struct inode *);
- int deflate_cluster(reiser4_cluster_t *, struct inode *);
- void truncate_page_cluster(struct inode *inode, cloff_t start);
-diff -puN fs/reiser4/plugin/file/cryptcompress.c~fs-reiser4-possible-cleanups fs/reiser4/plugin/file/cryptcompress.c
---- a/fs/reiser4/plugin/file/cryptcompress.c~fs-reiser4-possible-cleanups
+ int reiser4_deflate_cluster(reiser4_cluster_t *, struct inode *);
+-void truncate_page_cluster(struct inode *inode, cloff_t start);
++void truncate_page_cluster_cryptcompress(struct inode *inode, cloff_t start,
++					 int even_cows);
+ void invalidate_hint_cluster(reiser4_cluster_t * clust);
+ void put_hint_cluster(reiser4_cluster_t * clust, struct inode *inode,
+ 		      znode_lock_mode mode);
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-update-comments-fix-write-and-truncate-cryptcompress fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-update-comments-fix-write-and-truncate-cryptcompress
 +++ a/fs/reiser4/plugin/file/cryptcompress.c
-@@ -380,7 +380,7 @@ static int host_allows_crypto_stat(struc
- }
- #endif  /*  REISER4_DEBUG  */
- 
--void detach_crypto_stat(struct inode * inode)
-+static void detach_crypto_stat(struct inode * inode)
- {
- 	assert("edward-1385", inode != NULL);
- 	assert("edward-1386", host_allows_crypto_stat(inode));
-@@ -1574,6 +1574,7 @@ static int grab_cluster_pages(struct ino
-    understand that pages of cryptcompress files are not
-    flushable.
- */
-+#if 0
- int jnode_of_cluster(const jnode * node, struct page * page)
- {
- 	assert("edward-1339", node != NULL);
-@@ -1597,6 +1598,7 @@ int jnode_of_cluster(const jnode * node,
- 	}
- 	return 0;
- }
-+#endif  /*  0  */
- 
- /* put cluster pages */
- void release_cluster_pages(reiser4_cluster_t * clust)
-@@ -1751,7 +1753,7 @@ static void uncapture_cluster_jnode(jnod
- 	jput(node);
+@@ -2365,25 +2365,10 @@ prepare_page_cluster(struct inode *inode
+ 		grab_cluster_pages(inode, clust));
  }
  
--void forget_cluster_pages(struct page **pages, int nr)
-+static void forget_cluster_pages(struct page **pages, int nr)
+-static void __truncate_page_cluster(struct inode * inode, cloff_t index)
+-{
+-	if (reiser4_inode_get_flag(inode, REISER4_FILE_CONV_IN_PROGRESS) &&
+-	    index == 0)
+-		return;
+-	truncate_inode_pages_range(inode->i_mapping,
+-				   clust_to_off(index, inode),
+-				   clust_to_off(index,
+-						inode) +
+-				   inode_cluster_size(inode) - 1);
+-	assert("edward-1201",
+-	       ergo(!reiser4_inode_get_flag(inode,
+-					    REISER4_FILE_CONV_IN_PROGRESS),
+-		    jnode_truncate_ok(inode, index)));
+-}
+-
+ /* Truncate all pages of the cluster of index @index.
+    This is called by ->kill_hook() method of item plugin */
+-void truncate_page_cluster(struct inode *inode, cloff_t index)
++void truncate_page_cluster_cryptcompress(struct inode *inode, cloff_t index,
++					 int even_cows)
  {
  	int i;
- 	for (i = 0; i < nr; i++) {
-diff -puN fs/reiser4/plugin/file/cryptcompress.h~fs-reiser4-possible-cleanups fs/reiser4/plugin/file/cryptcompress.h
---- a/fs/reiser4/plugin/file/cryptcompress.h~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/plugin/file/cryptcompress.h
-@@ -459,7 +459,6 @@ int load_file_hint(struct file *, hint_t
- void save_file_hint(struct file *, const hint_t *);
- void hint_init_zero(hint_t *);
- int crc_inode_ok(struct inode *inode);
--int jnode_of_cluster(const jnode * node, struct page * page);
- extern int ctail_read_disk_cluster (reiser4_cluster_t *, struct inode *, int);
- extern int do_readpage_ctail(struct inode *, reiser4_cluster_t *,
- 			     struct page * page);
-@@ -472,7 +471,6 @@ void inherit_crypto_stat_common(struct i
- 				int (*can_inherit)(struct inode * child,
- 						   struct inode * parent));
- void attach_crypto_stat(struct inode * inode, crypto_stat_t * info);
--void detach_crypto_stat(struct inode * inode);
- void change_crypto_stat(struct inode * inode, crypto_stat_t * new);
- crypto_stat_t * alloc_crypto_stat (struct inode * inode);
- 
-diff -puN fs/reiser4/plugin/file/file.c~fs-reiser4-possible-cleanups fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -103,7 +103,7 @@ void init_uf_coord(uf_coord_t *uf_coord,
- 	uf_coord->valid = 0;
+ 	int found = 0;
+@@ -2443,7 +2428,17 @@ void truncate_page_cluster(struct inode 
+ 	/* put pages found here */
+ 	forget_cluster_pages(pages, found);
+  truncate:
+-	__truncate_page_cluster(inode, index);
++	if (reiser4_inode_get_flag(inode, REISER4_FILE_CONV_IN_PROGRESS) &&
++	    index == 0)
++		return;
++	reiser4_invalidate_pages(inode->i_mapping,
++				 clust_to_pg(index, inode),
++				 cluster_nrpages(inode),
++				 even_cows);
++	assert("edward-1201",
++	       ergo(!reiser4_inode_get_flag(inode,
++					    REISER4_FILE_CONV_IN_PROGRESS),
++		    jnode_truncate_ok(inode, index)));
+ 	return;
  }
  
--void validate_extended_coord(uf_coord_t *uf_coord, loff_t offset)
-+static void validate_extended_coord(uf_coord_t *uf_coord, loff_t offset)
+@@ -2777,7 +2772,7 @@ write_cryptcompress_flow(struct file *fi
+ ssize_t write_cryptcompress(struct file *file, const char __user *buf,
+ 			    size_t count, loff_t *off, int *conv)
  {
- 	assert("vs-1333", uf_coord->valid == 0);
+-	ssize_t result = 0;
++	ssize_t result;
+ 	struct inode *inode;
+ 	reiser4_context *ctx;
+   	loff_t pos = *off;
+@@ -2796,23 +2791,22 @@ ssize_t write_cryptcompress(struct file 
  
-@@ -760,8 +760,6 @@ hint_validate(hint_t * hint, const reise
- 			     hint->ext_coord.lh, lock_mode, ZNODE_LOCK_LOPRI);
- }
+   	down(&reiser4_inode_data(inode)->mutex_write);
  
--int xversion;
+-	result = generic_write_checks(file, off, &count, 0);
++	result = generic_write_checks(file, &pos, &count, 0);
+   	if (unlikely(result != 0))
+-		goto unlock;
++		goto out;
+   	if (unlikely(count == 0))
+-		goto unlock;
 -
- /**
-  * find_or_create_extent -
-  * @page:
-diff -puN fs/reiser4/plugin/file/file.h~fs-reiser4-possible-cleanups fs/reiser4/plugin/file/file.h
---- a/fs/reiser4/plugin/file/file.h~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/plugin/file/file.h
-@@ -114,7 +114,6 @@ int find_file_item_nohint(coord_t *, loc
- 			  const reiser4_key *, znode_lock_mode,
- 			  struct inode *);
- 
--void validate_extended_coord(uf_coord_t *, loff_t offset);
- int load_file_hint(struct file *, hint_t *);
- void save_file_hint(struct file *, const hint_t *);
- 
-@@ -235,8 +234,9 @@ int goto_right_neighbor(coord_t *, lock_
- int find_or_create_extent(struct page *);
- int equal_to_ldk(znode *, const reiser4_key *);
- 
-+void init_uf_coord(uf_coord_t *uf_coord, lock_handle *lh);
- 
--extern inline int cbk_errored(int cbk_result)
-+static inline int cbk_errored(int cbk_result)
- {
- 	return (cbk_result != CBK_COORD_NOTFOUND
- 		&& cbk_result != CBK_COORD_FOUND);
-diff -puN fs/reiser4/plugin/item/extent_file_ops.c~fs-reiser4-possible-cleanups fs/reiser4/plugin/item/extent_file_ops.c
---- a/fs/reiser4/plugin/item/extent_file_ops.c~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/plugin/item/extent_file_ops.c
-@@ -734,8 +734,6 @@ static int overwrite_extent(uf_coord_t *
- 	return count;
- }
- 
--void init_uf_coord(uf_coord_t *uf_coord, lock_handle *lh);
--
- /**
-  * update_extent
-  * @file:
-diff -puN fs/reiser4/plugin/plugin.c~fs-reiser4-possible-cleanups fs/reiser4/plugin/plugin.c
---- a/fs/reiser4/plugin/plugin.c~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/plugin/plugin.c
-@@ -348,6 +348,7 @@ grab_plugin_from(struct inode *self, pse
- 	return result;
- }
- 
-+#if 0
- int force_plugin(struct inode *self, pset_member memb, reiser4_plugin * plug)
- {
- 	reiser4_inode *info;
-@@ -362,6 +363,7 @@ int force_plugin(struct inode *self, pse
- 		update_plugin_mask(info, memb);
- 	return result;
- }
-+#endif  /*  0  */
- 
- reiser4_plugin_type_data plugins[REISER4_PLUGIN_TYPES] = {
- 	/* C90 initializers */
-diff -puN fs/reiser4/plugin/plugin.h~fs-reiser4-possible-cleanups fs/reiser4/plugin/plugin.h
---- a/fs/reiser4/plugin/plugin.h~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/plugin/plugin.h
-@@ -886,7 +886,6 @@ typedef enum {
- int grab_plugin(struct inode *self, struct inode *ancestor, pset_member memb);
- int grab_plugin_from(struct inode *self, pset_member memb,
- 		     reiser4_plugin * plug);
--int force_plugin(struct inode *self, pset_member memb, reiser4_plugin * plug);
- 
- /* defined in fs/reiser4/plugin/object.c */
- extern file_plugin file_plugins[LAST_FILE_PLUGIN_ID];
-diff -puN fs/reiser4/plugin/plugin_set.c~fs-reiser4-possible-cleanups fs/reiser4/plugin/plugin_set.c
---- a/fs/reiser4/plugin/plugin_set.c~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/plugin/plugin_set.c
-@@ -322,7 +322,7 @@ DEFINE_PLUGIN_SET(file_plugin, file)
-     DEFINE_PLUGIN_SET(item_plugin, sd)
-     /* DEFINE_PLUGIN_SET(cipher_plugin, cipher) */
-     /* DEFINE_PLUGIN_SET(digest_plugin, digest) */
--    DEFINE_PLUGIN_SET(compression_plugin, compression)
-+    /* DEFINE_PLUGIN_SET(compression_plugin, compression) */
-     /* DEFINE_PLUGIN_SET(compression_mode_plugin, compression_mode) */
-     DEFINE_PLUGIN_SET(cluster_plugin, cluster)
-     /* DEFINE_PLUGIN_SET(regular_plugin, regular_entry) */
-diff -puN fs/reiser4/plugin/plugin_set.h~fs-reiser4-possible-cleanups fs/reiser4/plugin/plugin_set.h
---- a/fs/reiser4/plugin/plugin_set.h~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/plugin/plugin_set.h
-@@ -57,7 +57,6 @@ extern int plugin_set_formatting(plugin_
- extern int plugin_set_hash(plugin_set ** set, hash_plugin * plug);
- extern int plugin_set_fibration(plugin_set ** set, fibration_plugin * plug);
- extern int plugin_set_sd(plugin_set ** set, item_plugin * plug);
--extern int plugin_set_compression(plugin_set ** set, compression_plugin * plug);
- extern int plugin_set_cluster(plugin_set ** set, cluster_plugin * plug);
- 
- extern int init_plugin_set(void);
-diff -puN fs/reiser4/super.h~fs-reiser4-possible-cleanups fs/reiser4/super.h
---- a/fs/reiser4/super.h~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/super.h
-@@ -452,7 +452,6 @@ extern void destroy_reiser4_cache(kmem_c
- extern struct super_operations reiser4_super_operations;
- extern struct export_operations reiser4_export_operations;
- extern struct dentry_operations reiser4_dentry_operations;
--extern struct dentry *reiser4_debugfs_root;
- 
- /* __REISER4_SUPER_H__ */
- #endif
-diff -puN fs/reiser4/super_ops.c~fs-reiser4-possible-cleanups fs/reiser4/super_ops.c
---- a/fs/reiser4/super_ops.c~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/super_ops.c
-@@ -16,6 +16,8 @@
- /* slab cache for inodes */
- static kmem_cache_t *inode_cache;
- 
-+static struct dentry *reiser4_debugfs_root = NULL;
++		goto out;
+ 	down_write(&info->lock);
+ 	result = write_cryptcompress_flow(file, inode, buf, count, pos, conv);
+   	if (*conv == 0)
+   		up_write(&info->lock);
+- unlock:
+-  	up(&reiser4_inode_data(inode)->mutex_write);
 +
- /**
-  * init_once - constructor for reiser4 inodes
-  * @obj: inode to be initialized
-@@ -590,8 +592,6 @@ void destroy_reiser4_cache(kmem_cache_t 
- 	*cachep = NULL;
+   	if (result < 0)
+ 		goto out;
+   	/* update position in a file */
+   	*off = pos + result;
+  out:
++	up(&reiser4_inode_data(inode)->mutex_write);
+ 	context_set_commit_async(ctx);
+ 	reiser4_exit_context(ctx);
+ 	return result;
+@@ -3678,9 +3672,8 @@ int delete_object_cryptcompress(struct i
  }
  
--struct dentry *reiser4_debugfs_root = NULL;
+ /* plugin->u.file.setattr method
+-   see plugin.h for description */
+-int setattr_cryptcompress(struct dentry *dentry,	/* Object to change attributes */
+-			  struct iattr *attr /* change description */ )
++   This implements actual truncate (see comments in reiser4/page_cache.c) */
++int setattr_cryptcompress(struct dentry *dentry, struct iattr *attr)
+ {
+ 	int result;
+ 	struct inode *inode;
+@@ -3690,26 +3683,6 @@ int setattr_cryptcompress(struct dentry 
+ 	if (result)
+ 		return result;
+ 	if (attr->ia_valid & ATTR_SIZE) {
+-		/* EDWARD-FIXME-HANS: VS-FIXME-HANS:
+-		   Q: this case occurs when? truncate?
+-		   A: yes
 -
- /**
-  * init_reiser4 - reiser4 initialization entry point
-  *
-diff -puN fs/reiser4/txnmgr.h~fs-reiser4-possible-cleanups fs/reiser4/txnmgr.h
---- a/fs/reiser4/txnmgr.h~fs-reiser4-possible-cleanups
-+++ a/fs/reiser4/txnmgr.h
-@@ -661,7 +661,6 @@ extern void fq_put_nolock(flush_queue_t 
- extern void fq_put(flush_queue_t *);
- extern void fuse_fq(txn_atom * to, txn_atom * from);
- extern void queue_jnode(flush_queue_t *, jnode *);
--extern void mark_jnode_queued(flush_queue_t *, jnode *);
- 
- extern int write_fq(flush_queue_t *, long *, int);
- extern int current_atom_finish_all_fq(void);
+-		   Q: If so, why isn't this code in truncate itself instead of here?
+-
+-		   A: because vfs calls fs's truncate after it has called truncate_inode_pages to get rid of pages
+-		   corresponding to part of file being truncated. In reiser4 it may cause existence of unallocated
+-		   extents which do not have jnodes. Flush code does not expect that. Solution of this problem is
+-		   straightforward. As vfs's truncate is implemented using setattr operation (common implementaion of
+-		   which calls truncate_inode_pages and fs's truncate in case when size of file changes) - it seems
+-		   reasonable to have reiser4_setattr which will take care of removing pages, jnodes and extents
+-		   simultaneously in case of truncate.
+-		   Q: do you think implementing truncate using setattr is ugly,
+-		   and vfs needs improving, or is there some sense in which this is a good design?
+-
+-		   A: VS-FIXME-HANS:
+-		 */
+-
+-		/* truncate does reservation itself and requires exclusive access obtained */
+ 		if (inode->i_size != attr->ia_size) {
+ 			reiser4_context *ctx;
+ 			loff_t old_size;
+diff -puN fs/reiser4/plugin/item/ctail.c~reiser4-update-comments-fix-write-and-truncate-cryptcompress fs/reiser4/plugin/item/ctail.c
+--- a/fs/reiser4/plugin/item/ctail.c~reiser4-update-comments-fix-write-and-truncate-cryptcompress
++++ a/fs/reiser4/plugin/item/ctail.c
+@@ -372,7 +372,8 @@ kill_hook_ctail(const coord_t * coord, p
+ 			/* disk cluster is killed */
+ 			cloff_t start =
+ 			    off_to_clust(get_key_offset(&key), inode);
+-			truncate_page_cluster(inode, start);
++			truncate_page_cluster_cryptcompress(inode, start,
++							kdata->params.truncate);
+ 			inode_sub_bytes(inode, inode_cluster_size(inode));
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from edward@namesys.com are
 
-origin.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-fs-jffs2-ioctlc.patch
-git-ubi.patch
-drivers-net-vioc-possible-cleanups.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-lguest-kconfig-and-headers-fix.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
 reiser4.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
+reiser4-update-comments-fix-write-and-truncate-cryptcompress.patch
+reiser4-temp-fix.patch
+reiser4-fix-write_extent-1.patch
 fs-reiser4-possible-cleanups-2.patch
 fs-reiser4-more-possible-cleanups.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+reiser4-use-null-for-pointers.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-fix-readpage_cryptcompress.patch
+reiser4-improve-estimation-for-number-of-nodes-occupied.patch
+reiser4-drop-check_cryptcompress.patch
+reiser4-drop-unused-semaphores.patch
+reiser4-use-dynamic-lattice-for-adaptive-compression.patch
+reiser4-fix-freeze-and-corruption.patch
