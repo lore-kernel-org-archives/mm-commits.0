@@ -1,58 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - allow-access-to-proc-pid-fd-after-setuid-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 16:57:43 -0800
-Message-ID: <200703060057.l260vhPR006898@shell0.pdx.osdl.net>
+Subject: - fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 16:59:06 -0800
+Message-ID: <200703060059.l260x7eI006925@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43665 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43678 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933723AbXCFA7H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 19:59:07 -0500
+	id S933725AbXCFA7Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 19:59:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@openvz.org, chrisw@sous-sol.org, dev@openvz.org, drepper@redhat.com, ebiederm@xmission.com, hch@lst.de, jmorris@namei.org, oleg@tv-sign.ru, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agruen@suse.de, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     allow-access-to-proc-pid-fd-after-setuid-fix
+     fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
 has been removed from the -mm tree.  Its filename was
-     allow-access-to-proc-pid-fd-after-setuid-fix.patch
+     fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
 
-This patch was dropped because it was folded into allow-access-to-proc-pid-fd-after-setuid.patch
+This patch was dropped because it was folded into fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
 
 ------------------------------------------------------
-Subject: allow-access-to-proc-pid-fd-after-setuid-fix
+Subject: fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Kirill Korotaev <dev@openvz.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+It looks like c99-style definition-after-statement, but it isn't, but it
+could easily become so.
+
+Cc: Andreas Gruenbacher <agruen@suse.de>
+Cc: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/namespace.c |    6 ++++--
+ fs/proc/base.c |    1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~allow-access-to-proc-pid-fd-after-setuid-fix fs/proc/base.c
---- a/fs/proc/base.c~allow-access-to-proc-pid-fd-after-setuid-fix
-+++ a/fs/proc/base.c
-@@ -1447,6 +1447,10 @@ static const struct file_operations proc
- 	.readdir	= proc_readfd,
- };
+diff -puN fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy fs/namespace.c
+--- a/fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
++++ a/fs/namespace.c
+@@ -379,8 +379,9 @@ static int show_vfsmnt(struct seq_file *
+ 		{ 0, NULL }
+ 	};
+ 	struct proc_fs_info *fs_infop;
++	char *path;
  
-+/*
-+ * /proc/pid/fd needs a special permission handler so that a process can still
-+ * access /proc/self/fd after it has executed a setuid().
-+ */
- static int proc_fd_permission(struct inode *inode, int mask,
- 				struct nameidata *nd)
- {
+-	char *path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
++	path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
+ 	if (IS_ERR(path) || *path != '/')
+ 		return err;
+ 
+@@ -416,8 +417,9 @@ static int show_vfsstat(struct seq_file 
+ 	void *page = container_of(m, struct proc_mounts, m)->page;
+ 	struct vfsmount *mnt = v;
+ 	int err = 0;
++	char *path;
+ 
+-	char *path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
++	path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
+ 	if (IS_ERR(path) || *path != '/')
+ 		return err; /* error or path unreachable from chroot */
+ 
+diff -puN fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy fs/proc/base.c
+--- a/fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
++++ a/fs/proc/base.c
+@@ -415,6 +415,7 @@ static int mounts_release(struct inode *
+ 	struct proc_mounts *p =
+ 		container_of(file->private_data, struct proc_mounts, m);
+ 	struct mnt_namespace *ns = p->m.private;
++
+ 	free_page((unsigned long)p->page);
+ 	put_mnt_ns(ns);
+ 	return seq_release(inode, file);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -75,8 +94,7 @@ arch-i386-kernel-alternativec-dont-include-bugsh.patch
 deprecate-smbfs-in-favour-of-cifs.patch
 block_write_full_page-handle-enospc.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-allow-access-to-proc-pid-fd-after-setuid-fix.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
 fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
 consolidate-generic_writepages-and-mpage_writepages-tidy.patch
 sync_sb_inodes-propagate-errors.patch
