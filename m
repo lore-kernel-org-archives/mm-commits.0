@@ -1,172 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-context-based-method-update-ra_min.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:47:17 -0800
-Message-ID: <200703060147.l261lHgG008304@shell0.pdx.osdl.net>
+Subject: - readahead-events-accounting-make-readahead_debug_level-static.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:44:06 -0800
+Message-ID: <200703060144.l261i6hW008159@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46008 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46005 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933826AbXCFBr2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:47:28 -0500
+	id S933825AbXCFBr0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:47:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: bunk@stusta.de, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: context based method: update ra_min
+     make readahead_debug_level static
 has been removed from the -mm tree.  Its filename was
-     readahead-context-based-method-update-ra_min.patch
+     readahead-events-accounting-make-readahead_debug_level-static.patch
 
-This patch was dropped because it was folded into readahead-context-based-method.patch
+This patch was dropped because it was folded into readahead-events-accounting.patch
 
 ------------------------------------------------------
-Subject: readahead: context based method: update ra_min
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: make readahead_debug_level static
+From: Adrian Bunk <bunk@stusta.de>
 
-Classify the 4 cases into 2 classes, and assign proper ra_min for them.
-Also update comments correspondly.
-
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Wu Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |   49 +++++++++++++++++++++++++++++++----------------
- 1 files changed, 33 insertions(+), 16 deletions(-)
+ mm/readahead.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/readahead.c~readahead-context-based-method-update-ra_min mm/readahead.c
---- a/mm/readahead.c~readahead-context-based-method-update-ra_min
+diff -puN mm/readahead.c~readahead-events-accounting-make-readahead_debug_level-static mm/readahead.c
+--- a/mm/readahead.c~readahead-events-accounting-make-readahead_debug_level-static
 +++ a/mm/readahead.c
-@@ -1293,17 +1293,26 @@ static int
- try_context_based_readahead(struct address_space *mapping,
- 			struct file_ra_state *ra,
- 			struct page *page, pgoff_t offset,
--			unsigned long ra_min, unsigned long ra_max)
-+			unsigned long req_size, unsigned long ra_max)
- {
- 	pgoff_t start;
-+	unsigned long ra_min;
- 	unsigned long ra_size;
- 	unsigned long la_size;
+@@ -68,7 +68,7 @@ enum ra_event {
+ };
  
--	/* Check if there is a segment of history pages, and its end index.
-+	/*
-+	 * Check if there is a segment of history pages, and its end index.
- 	 * Based on which we decide whether and where to start read-ahead.
--	 *
--	 * Case 1: we have a current page.
--	 * 	   Search forward for a nearby hole.
-+	 */
-+
-+	/*
-+	 * Select a reasonable large initial size for sequential reads.
-+	 */
-+	ra_min = min(req_size * 4, mapping->backing_dev_info->ra_pages0);
-+
-+	/*
-+	 * Case s1: we have a current page.
-+	 * =======> Search forward for a nearby hole.
- 	 */
- 	read_lock_irq(&mapping->tree_lock);
- 	if (page) {
-@@ -1316,8 +1325,9 @@ try_context_based_readahead(struct addre
- 		return -1;
- 	}
- 
--	/* Case 2: current page is missing; previous page is present.
--	 *         Just do read-ahead from the current index on.
-+	/*
-+	 * Case s2: current page is missing; previous page is present.
-+	 * =======> Just do read-ahead from the current index on.
- 	 * There's clear sign of sequential reading. It can be
- 	 * 	a) seek => read => this read
- 	 * 	b) cache hit read(s) => this read
-@@ -1329,26 +1339,33 @@ try_context_based_readahead(struct addre
- 		goto has_history_pages;
- 	}
- 
--	/* Case 2x: the same context info as 2.
--	 * It can be the early stage of semi-sequential reads(interleaved/nfsd),
--	 * or an ugly random one.  So be conservative.
-+	/*
-+	 * Not an obvious sequential read:
-+	 * select a conservative initial size, plus user prefered agressiveness.
-+	 */
-+	ra_min = min(req_size, MIN_RA_PAGES) +
-+		 readahead_hit_rate * 8192 / PAGE_CACHE_SIZE;
-+
-+	/*
-+	 * Case r1: the same context info as s2, but not that obvious.
-+	 * =======> The same action as s2, but be conservative.
-+	 * It can be the early stage of intermixed sequential reads,
-+	 * or an ugly random one.
- 	 */
- 	if (readahead_hit_rate && __probe_page(mapping, offset - 1)) {
- 		start = offset;
--		if (ra_min > 2 * readahead_hit_rate)
--		    ra_min = 2 * readahead_hit_rate;
- 		goto has_history_pages;
- 	}
- 
--	/* Case 3: no current/previous pages;
--	 *         sparse read-ahead is enabled: ok, be aggressive.
--	 *         Check if there's any adjecent history pages.
-+	/*
-+	 * Case r2: no current/previous pages; sparse read-ahead is enabled.
-+	 * =======> Do sparse read-ahead if there are adjecent history pages.
- 	 */
- 	if (readahead_hit_rate > 1) {
- 		start = radix_tree_scan_data_backward(&mapping->page_tree,
- 							       offset, ra_min);
- 		if (start != ULONG_MAX && offset - start < ra_min) {
--			ra_min += offset - start;
-+			ra_min *= 2;
- 			offset = ++start; /* pretend the request starts here */
- 			goto has_history_pages;
- 		}
+ #ifdef CONFIG_DEBUG_READAHEAD
+-u32 readahead_debug_level = 1;
++static u32 readahead_debug_level = 1;
+ static u32 disable_stateful_method;
+ static const char * const ra_class_name[];
+ static void ra_account(struct file_ra_state *ra, enum ra_event e, int pages);
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-readahead-kconfig-options.patch
-radixtree-introduce-scan-hole-data-functions.patch
-mm-introduce-probe_page.patch
-mm-introduce-pg_readahead.patch
-readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
-readahead-insert-cond_resched-calls.patch
-readahead-minmax_ra_pages.patch
+origin.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-fs-jffs2-ioctlc.patch
+git-ubi.patch
+drivers-net-vioc-possible-cleanups.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
 readahead-events-accounting.patch
-readahead-rescue_pages.patch
-readahead-sysctl-parameters.patch
-readahead-min-max-sizes.patch
-readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-routines.patch
-readahead-state-based-method.patch
-readahead-context-based-method.patch
-readahead-context-based-method-update-ra_min.patch
-readahead-context-based-method-remove-readahead_ratio.patch
-readahead-initial-method-guiding-sizes.patch
-readahead-initial-method-thrashing-guard-size.patch
-readahead-initial-method-user-recommended-size.patch
-readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch
-readahead-initial-method.patch
-readahead-backward-prefetching-method.patch
-readahead-thrashing-recovery-method.patch
-readahead-thrashing-recovery-method-fix.patch
-readahead-call-scheme.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-call-scheme-remove-get_readahead_bounds.patch
-readahead-call-scheme-fix-thrashed-unaligned-read.patch
-readahead-laptop-mode.patch
-readahead-laptop-mode-fix.patch
-readahead-loop-case.patch
-readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-readahead-nfsd-case-fix-uninitialized-ra_min-ra_max.patch
-readahead-nfsd-case-remove-ra_min.patch
-readahead-turn-on-by-default.patch
-readahead-remove-size-limit-on-read_ahead_kb.patch
-readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
-readahead-partial-sendfile-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
