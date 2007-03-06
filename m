@@ -1,147 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-get_sb_dev-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:59:34 -0800
-Message-ID: <200703060159.l261xYi3008613@shell0.pdx.osdl.net>
+Subject: - reiser4-decribe-new-atom-locking-and-nested-atom-locks-to-lock-validator.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:59:59 -0800
+Message-ID: <200703060159.l261xx9w008662@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46560 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46588 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965677AbXCFB7r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:59:47 -0500
+	id S965660AbXCFCAH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:00:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, vs@namesys.com, mm-commits@vger.kernel.org
+To: zam@namesys.com, reiser@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: get_sb_dev() fix
+     reiser4: decribe new atom locking and nested atom locks to lock validator
 has been removed from the -mm tree.  Its filename was
-     reiser4-get_sb_dev-fix.patch
+     reiser4-decribe-new-atom-locking-and-nested-atom-locks-to-lock-validator.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: reiser4: get_sb_dev() fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: reiser4: decribe new atom locking and nested atom locks to lock validator
+From: Alexaner Zarochentsev <zam@namesys.com>
 
-Update reiser4 for dhowells API changes
+lock validator friendly locking of new atom in atom_begin_and_assign_to_txnh
+and locking of two atoms.
 
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Alexander Zarochentsev <zam@namesys.com>
+Cc: Hans Reiser <reiser@namesys.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/super_ops.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ fs/reiser4/txnmgr.c |   20 +++++++++++---------
+ fs/reiser4/txnmgr.h |   15 +++++++++++++++
+ 2 files changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN fs/reiser4/super_ops.c~reiser4-get_sb_dev-fix fs/reiser4/super_ops.c
---- a/fs/reiser4/super_ops.c~reiser4-get_sb_dev-fix
-+++ a/fs/reiser4/super_ops.c
-@@ -287,7 +287,7 @@ static void reiser4_write_super(struct s
-  *
-  * Returns information about filesystem.
-  */
--static int reiser4_statfs(struct super_block *super, struct kstatfs *statfs)
-+static int reiser4_statfs(struct dentry *dentry, struct kstatfs *statfs)
- {
- 	sector_t total;
- 	sector_t reserved;
-@@ -295,6 +295,7 @@ static int reiser4_statfs(struct super_b
- 	sector_t forroot;
- 	sector_t deleted;
- 	reiser4_context *ctx;
-+	struct super_block *super = dentry->d_sb;
+diff -puN fs/reiser4/txnmgr.c~reiser4-decribe-new-atom-locking-and-nested-atom-locks-to-lock-validator fs/reiser4/txnmgr.c
+--- a/fs/reiser4/txnmgr.c~reiser4-decribe-new-atom-locking-and-nested-atom-locks-to-lock-validator
++++ a/fs/reiser4/txnmgr.c
+@@ -397,7 +397,7 @@ static void atom_init(txn_atom * atom)
+ 	INIT_LIST_HEAD(ATOM_OVRWR_LIST(atom));
+ 	INIT_LIST_HEAD(ATOM_WB_LIST(atom));
+ 	INIT_LIST_HEAD(&atom->inodes);
+-	spin_lock_init(&atom->alock);
++	spin_lock_init(&(atom->alock));
+ 	/* list of transaction handles */
+ 	INIT_LIST_HEAD(&atom->txnh_list);
+ 	/* link to transaction manager's list of atoms */
+@@ -732,10 +732,12 @@ static int atom_begin_and_assign_to_txnh
+ 	assert("jmacd-17", atom_isclean(atom));
  
- 	assert("nikita-408", super != NULL);
- 	assert("nikita-409", statfs != NULL);
-@@ -567,12 +568,10 @@ static int fill_super(struct super_block
-  *
-  * Reiser4 mount entry.
-  */
--static struct super_block *reiser4_get_sb(struct file_system_type *fs_type,
--					  int flags,
--					  const char *dev_name,
--					  void *data)
-+static int reiser4_get_sb(struct file_system_type *fs_type, int flags,
-+			const char *dev_name, void *data, struct vfsmount *mnt)
- {
--	return get_sb_bdev(fs_type, flags, dev_name, data, fill_super);
-+	return get_sb_bdev(fs_type, flags, dev_name, data, fill_super, mnt);
+         /*
+-	 * do not use spin_lock_atom because we have broken lock ordering here
+-	 * which is ok, as long as @atom is new and inaccessible for others.
++	 * lock ordering is broken here. It is ok, as long as @atom is new
++	 * and inaccessible for others. We can't use spin_lock_atom or
++	 * spin_lock(&atom->alock) because they care about locking
++	 * dependencies. spin_trylock_lock doesn't.
+ 	 */
+-	spin_lock(&(atom->alock));
++	check_me("", spin_trylock_atom(atom));
+ 
+ 	/* add atom to the end of transaction manager's list of atoms */
+ 	list_add_tail(&atom->atom_link, &mgr->atoms_list);
+@@ -751,7 +753,7 @@ static int atom_begin_and_assign_to_txnh
+ 	atom->super = reiser4_get_current_sb();
+ 	capture_assign_txnh_nolock(atom, txnh);
+ 
+-	spin_unlock(&(atom->alock));
++	spin_unlock_atom(atom);
+ 	spin_unlock_txnh(txnh);
+ 
+ 	return -E_REPEAT;
+@@ -2111,11 +2113,11 @@ static void fuse_not_fused_lock_owners(t
+ 		atomic_inc(&atomf->refcount);
+ 		spin_unlock_txnh(ctx->trans);
+ 		if (atomf > atomh) {
+-			spin_lock_atom(atomf);
++			spin_lock_atom_nested(atomf);
+ 		} else {
+ 			spin_unlock_atom(atomh);
+ 			spin_lock_atom(atomf);
+-			spin_lock_atom(atomh);
++			spin_lock_atom_nested(atomh);
+ 		}
+ 		if (atomh == atomf || !atom_isopen(atomh) || !atom_isopen(atomf)) {
+ 			release_two_atoms(atomf, atomh);
+@@ -2793,10 +2795,10 @@ static void lock_two_atoms(txn_atom * on
+ 	/* lock the atom with lesser address first */
+ 	if (one < two) {
+ 		spin_lock_atom(one);
+-		spin_lock_atom(two);
++		spin_lock_atom_nested(two);
+ 	} else {
+ 		spin_lock_atom(two);
+-		spin_lock_atom(one);
++		spin_lock_atom_nested(one);
+ 	}
  }
  
- /* structure describing the reiser4 filesystem implementation */
+diff -puN fs/reiser4/txnmgr.h~reiser4-decribe-new-atom-locking-and-nested-atom-locks-to-lock-validator fs/reiser4/txnmgr.h
+--- a/fs/reiser4/txnmgr.h~reiser4-decribe-new-atom-locking-and-nested-atom-locks-to-lock-validator
++++ a/fs/reiser4/txnmgr.h
+@@ -503,6 +503,7 @@ static inline void spin_lock_atom(txn_at
+ {
+ 	/* check that spinlocks of lower priorities are not held */
+ 	assert("", (LOCK_CNT_NIL(spin_locked_txnh) &&
++		    LOCK_CNT_NIL(spin_locked_atom) &&
+ 		    LOCK_CNT_NIL(spin_locked_jnode) &&
+ 		    LOCK_CNT_NIL(spin_locked_zlock) &&
+ 		    LOCK_CNT_NIL(rw_locked_dk) &&
+@@ -514,6 +515,20 @@ static inline void spin_lock_atom(txn_at
+ 	LOCK_CNT_INC(spin_locked);
+ }
+ 
++static inline void spin_lock_atom_nested(txn_atom *atom)
++{
++	assert("", (LOCK_CNT_NIL(spin_locked_txnh) &&
++		    LOCK_CNT_NIL(spin_locked_jnode) &&
++		    LOCK_CNT_NIL(spin_locked_zlock) &&
++		    LOCK_CNT_NIL(rw_locked_dk) &&
++		    LOCK_CNT_NIL(rw_locked_tree)));
++
++	spin_lock_nested(&(atom->alock), SINGLE_DEPTH_NESTING);
++
++	LOCK_CNT_INC(spin_locked_atom);
++	LOCK_CNT_INC(spin_locked);
++}
++
+ static inline int spin_trylock_atom(txn_atom *atom)
+ {
+ 	if (spin_trylock(&(atom->alock))) {
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from zam@namesys.com are
 
-origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-ia64.patch
-git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-mm-implement-swap-prefetching.patch
-rcu-preemptible-rcu.patch
-readahead-kconfig-options.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-context-based-method.patch
-readahead-call-scheme.patch
-readahead-nfsd-case.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+reiser4-decribe-new-atom-locking-and-nested-atom-locks-to-lock-validator.patch
+reiser4-use-generic-file-read.patch
+reiser4-use-generic-file-read-fix-readpages-unix-file.patch
+reiser4-simplify-reading-of-partially-converted-files.patch
+reiser4-use-page_offset.patch
+reiser4-use-reiser4_gfp_mask_get-in-reiser4-inode-allocation.patch
+reiser4-re-add-page_count-check-to-reiser4_releasepage.patch
+reiser4-restore-fibmap-ioctl-support-for-packed-files.patch
+reiser4-format-subversion-numbers-heir-set-and-file-conversion-fix-readpages-cryptcompress.patch
