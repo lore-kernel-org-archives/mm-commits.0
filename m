@@ -1,32 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - local_t-powerpc-extension-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:32:27 -0800
-Message-ID: <200703060132.l261WS3N007791@shell0.pdx.osdl.net>
+Subject: - local_t-powerpc-extension-fix-build-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:32:37 -0800
+Message-ID: <200703060132.l261WbUM007800@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45493 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45505 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932934AbXCFBcq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:32:46 -0500
+	id S933770AbXCFBc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:32:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     local_t-powerpc-extension-fix
+     local_t-powerpc-extension-fix-build-fix
 has been removed from the -mm tree.  Its filename was
-     local_t-powerpc-extension-fix.patch
+     local_t-powerpc-extension-fix-build-fix.patch
 
 This patch was dropped because it was folded into local_t-powerpc-extension.patch
 
 ------------------------------------------------------
-Subject: local_t-powerpc-extension-fix
+Subject: local_t-powerpc-extension-fix-build-fix
 From: Andrew Morton <akpm@osdl.org>
 
-include/asm/local.h:272:23: "(" may not appear in macro parameter list
+In file included from include/asm/pci.h:20,
+                 from include/linux/pci.h:751,
+                 from arch/powerpc/sysdev/dart_iommu.c:36:
+include/asm/prom.h: In function `of_irq_to_resource':
+include/asm/prom.h:341: warning: implicit declaration of function `irq_of_parse_and_map'
+include/asm/prom.h:345: error: `NO_IRQ' undeclared (first use in this function)
+include/asm/prom.h:345: error: (Each undeclared identifier is reported only once
+include/asm/prom.h:345: error: for each function it appears in.)
 
-Please review all other patches for more occurrences of this.
+Seems that prom.h has always wanted irq.h.
 
 Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Paul Mackerras <paulus@samba.org>
@@ -34,21 +41,20 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-powerpc/local.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/asm-powerpc/prom.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN include/asm-powerpc/local.h~local_t-powerpc-extension-fix include/asm-powerpc/local.h
---- a/include/asm-powerpc/local.h~local_t-powerpc-extension-fix
-+++ a/include/asm-powerpc/local.h
-@@ -269,7 +269,7 @@ static __inline__ long local_dec_if_posi
+diff -puN include/asm-powerpc/prom.h~local_t-powerpc-extension-fix-build-fix include/asm-powerpc/prom.h
+--- a/include/asm-powerpc/prom.h~local_t-powerpc-extension-fix-build-fix
++++ a/include/asm-powerpc/prom.h
+@@ -18,6 +18,7 @@
+ #include <linux/types.h>
+ #include <linux/proc_fs.h>
+ #include <linux/platform_device.h>
++#include <asm/irq.h>
+ #include <asm/atomic.h>
  
- #define local_cmpxchg(l, o, n) \
- 	((long)cmpxchg_local(&((l)->a.counter), (o), (n)))
--#define local_xchg(l, (n)) (xchg_local(&((l)->a.counter), (n)))
-+#define local_xchg(l, n) (xchg_local(&((l)->a.counter), (n)))
- 
- /**
-  * local_add_unless - add unless the number is a given value
+ /* Definitions used by the flattened device tree */
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -95,7 +101,6 @@ aio-is-unlikely.patch
 mm-implement-swap-prefetching.patch
 rcu-preemptible-rcu.patch
 local_t-powerpc-extension.patch
-local_t-powerpc-extension-fix.patch
 local_t-powerpc-extension-fix-build-fix.patch
 readahead-kconfig-options-fix.patch
 readahead-minmax_ra_pages.patch
