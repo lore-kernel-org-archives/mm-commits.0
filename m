@@ -1,58 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:12:33 -0800
-Message-ID: <200703060112.l261CY8X007283@shell0.pdx.osdl.net>
+Subject: - per-backing_dev-dirty-and-writeback-page-accounting-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:13:33 -0800
+Message-ID: <200703060113.l261DY7v007307@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44335 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44394 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933742AbXCFBMz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:12:55 -0500
+	id S933748AbXCFBNv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:13:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: tomoki.sekiyama.qu@hitachi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unify queue_delayed_work and queue_delayed_work_on fix
+     mm: Fix dirty page accounting per backing_dev
 has been removed from the -mm tree.  Its filename was
-     unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch
+     per-backing_dev-dirty-and-writeback-page-accounting-fix.patch
 
-This patch was dropped because it was folded into unify-queue_delayed_work-and-queue_delayed_work_on.patch
+This patch was dropped because it was folded into per-backing_dev-dirty-and-writeback-page-accounting.patch
 
 ------------------------------------------------------
-Subject: unify queue_delayed_work and queue_delayed_work_on fix
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: mm: Fix dirty page accounting per backing_dev
+From: Tomoki Sekiyama <tomoki.sekiyama.qu@hitachi.com>
 
-Since cwq->wq is unset for other than singlethread_cpu when singlethread
-workqueue was created, an oops occurs during bootup. Fix it by setting
-correct private value for workqueue.
+I found a suspicious bug of I/O accounting in 2.6.20-rc6-mm3.  The number
+of dirty pages per backing_dev available from
+/sys/block/<dev>/queue/nr_dirty keeps growing when a file is rapidly
+overwritten several times.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+For example:
+% cat /sys/block/sda/queue/nr_dirty
+104
+% for i in 1 2; do dd if=/dev/zero of=dummy bs=4096 count=1; done; sync
+% cat /sys/block/sda/queue/nr_dirty
+105
+% for i in 1 2 3; do dd if=/dev/zero of=dummy bs=4096 count=1; done; sync
+% cat /sys/block/sda/queue/nr_dirty
+107
+
+This patch fixes it.
+
+Signed-off-by: Tomoki Sekiyama <tomoki.sekiyama.qu@hitachi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ mm/truncate.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN kernel/workqueue.c~unify-queue_delayed_work-and-queue_delayed_work_on-fix kernel/workqueue.c
---- a/kernel/workqueue.c~unify-queue_delayed_work-and-queue_delayed_work_on-fix
-+++ a/kernel/workqueue.c
-@@ -210,7 +210,8 @@ int queue_delayed_work_on(int cpu, struc
- 
- 		/* This stores cwq for the moment, for the timer_fn */
- 		set_wq_data(work,
--			per_cpu_ptr(wq->cpu_wq, raw_smp_processor_id()));
-+			per_cpu_ptr(wq->cpu_wq, wq->singlethread ?
-+				singlethread_cpu : raw_smp_processor_id()));
- 		timer->expires = jiffies + delay;
- 		timer->data = (unsigned long)dwork;
- 		timer->function = delayed_work_timer_fn;
+diff -puN mm/truncate.c~per-backing_dev-dirty-and-writeback-page-accounting-fix mm/truncate.c
+--- a/mm/truncate.c~per-backing_dev-dirty-and-writeback-page-accounting-fix
++++ a/mm/truncate.c
+@@ -70,6 +70,7 @@ void cancel_dirty_page(struct page *page
+ 	if (TestClearPageDirty(page)) {
+ 		struct address_space *mapping = page->mapping;
+ 		if (mapping && mapping_cap_account_dirty(mapping)) {
++			atomic_long_dec(&mapping->backing_dev_info->nr_dirty);
+ 			dec_zone_page_state(page, NR_FILE_DIRTY);
+ 			if (account_size)
+ 				task_io_account_cancelled_write(account_size);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from tomoki.sekiyama.qu@hitachi.com are
 
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch
-shrink_slab-handle-bad-shrinkers.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+per-backing_dev-dirty-and-writeback-page-accounting-fix.patch
