@@ -1,96 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-show-held-locks-when-showing-a-stackdump-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:21:46 -0800
-Message-ID: <200703060221.l262LkHZ009312@shell0.pdx.osdl.net>
+Subject: - add-debugging-aid-for-memory-initialisation-problems-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:22:04 -0800
+Message-ID: <200703060222.l262M580009325@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47436 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47448 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965629AbXCFCV7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:21:59 -0500
+	id S965741AbXCFCWO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:22:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep-show-held-locks-when-showing-a-stackdump fix
+     add-debugging-aid-for-memory-initialisation-problems-fix
 has been removed from the -mm tree.  Its filename was
-     lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
+     add-debugging-aid-for-memory-initialisation-problems-fix.patch
 
-This patch was dropped because it was folded into lockdep-show-held-locks-when-showing-a-stackdump.patch
+This patch was dropped because it was folded into add-debugging-aid-for-memory-initialisation-problems.patch
 
 ------------------------------------------------------
-Subject: lockdep-show-held-locks-when-showing-a-stackdump fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: add-debugging-aid-for-memory-initialisation-problems-fix
+From: Andrew Morton <akpm@osdl.org>
 
-on x86_64 this also needs the patch below - NULL means 'current'.
-
-
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/lockdep.c~lockdep-show-held-locks-when-showing-a-stackdump-fix kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-show-held-locks-when-showing-a-stackdump-fix
-+++ a/kernel/lockdep.c
-@@ -422,7 +422,11 @@ static void print_lock(struct held_lock 
+diff -puN mm/page_alloc.c~add-debugging-aid-for-memory-initialisation-problems-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~add-debugging-aid-for-memory-initialisation-problems-fix
++++ a/mm/page_alloc.c
+@@ -3067,7 +3067,7 @@ void __init free_area_init_nodes(unsigne
+ 	}
  
- static void lockdep_print_held_locks(struct task_struct *curr)
- {
--	int i, depth = curr->lockdep_depth;
-+	int i, depth;
-+
-+	if (!curr)
-+		curr = current;
-+	depth = curr->lockdep_depth;
+ 	/* Print out the page size for debugging meminit problems */
+-	printk(KERN_DEBUG "sizeof(struct page) = %d\n", sizeof(struct page));
++	printk(KERN_DEBUG "sizeof(struct page) = %zd\n", sizeof(struct page));
  
- 	if (!depth) {
- 		printk("no locks held by %s/%d.\n", curr->comm, curr->pid);
+ 	/* Print out the zone ranges */
+ 	printk("Zone PFN ranges:\n");
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
-bugfix-dont-use-the-tsc-in-sched_clock-if-unstable.patch
-cleanup-unify-tsc_unstable-and-tsc_disable.patch
-possible-bugfix-make-dmi_mark_tsc_unstable-call-mark_tsc_unstable.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-4.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-5.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-log-reason-why-tsc-was-marked-unstable.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-simplify-the-stacktrace-code.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-optimize-timespec_trunc.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-ia64.patch
+git-ieee1394.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
 schedule_on_each_cpu-use-preempt_disable.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
 aio-is-unlikely.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-sched-add-above-background-load-function.patch
 mm-implement-swap-prefetching.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+rcu-preemptible-rcu.patch
+readahead-kconfig-options.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-context-based-method.patch
+readahead-call-scheme.patch
+readahead-nfsd-case.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+slab-leaks3-default-y.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
-lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
 kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
