@@ -1,112 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - dont-run-userspace-until-initcalls-have-completed.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:01:29 -0800
-Message-ID: <200703060101.l2611TBS007063@shell0.pdx.osdl.net>
+Subject: - modpost-remove-fixed-size-buffer.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:01:05 -0800
+Message-ID: <200703060101.l26115ZO007043@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43869 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43877 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752852AbXCFBBd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:01:33 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l2611Uq8016575
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 5 Mar 2007 17:01:31 -0800
+	id S1752854AbXCFBBg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:01:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, john.voltz@gmail.com, rusty@rustcorp.com.au, samuel@sortiz.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dont-run-userspace-until-initcalls-have-completed
+     modpost: remove fixed size buffer
 has been removed from the -mm tree.  Its filename was
-     dont-run-userspace-until-initcalls-have-completed.patch
+     modpost-remove-fixed-size-buffer.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: dont-run-userspace-until-initcalls-have-completed
+Subject: modpost: remove fixed size buffer
 From: Andrew Morton <akpm@osdl.org>
 
+modpost has a couple of fixed-sized buffers.  As reported in
+http://bugzilla.kernel.org/show_bug.cgi?id=7878, it broke.
+
+Fix by dynamically allocating these things.  Unpleasingly: we really want
+vasprintf(), but that's gnu-only.
+
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Samuel Ortiz <samuel@sortiz.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: John Voltz <john.voltz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |    6 +++++-
- include/linux/init.h              |    5 +++++
- init/initramfs.c                  |    3 ++-
- init/main.c                       |    7 -------
- 4 files changed, 12 insertions(+), 9 deletions(-)
+ scripts/mod/modpost.c |   28 ++++++++++++++++++++--------
+ 1 files changed, 20 insertions(+), 8 deletions(-)
 
-diff -puN init/main.c~dont-run-userspace-until-initcalls-have-completed init/main.c
---- a/init/main.c~dont-run-userspace-until-initcalls-have-completed
-+++ a/init/main.c
-@@ -94,7 +94,6 @@ extern void pidmap_init(void);
- extern void prio_tree_init(void);
- extern void radix_tree_init(void);
- extern void free_initmem(void);
--extern void populate_rootfs(void);
- extern void driver_init(void);
- extern void prepare_namespace(void);
- #ifdef	CONFIG_ACPI
-@@ -739,12 +738,6 @@ static int init(void * unused)
- 
- 	cpuset_init_smp();
- 
--	/*
--	 * Do this before initcalls, because some drivers want to access
--	 * firmware files.
--	 */
--	populate_rootfs();
--
- 	do_basic_setup();
- 
- 	/*
-diff -puN include/linux/init.h~dont-run-userspace-until-initcalls-have-completed include/linux/init.h
---- a/include/linux/init.h~dont-run-userspace-until-initcalls-have-completed
-+++ a/include/linux/init.h
-@@ -115,6 +115,11 @@ extern void setup_arch(char **);
- #define device_initcall_sync(fn)	__define_initcall("6s",fn,6s)
- #define late_initcall(fn)		__define_initcall("7",fn,7)
- #define late_initcall_sync(fn)		__define_initcall("7s",fn,7s)
-+#define populate_rootfs_initcall(fn)	__define_initcall("8",fn,8)
-+#define populate_rootfs_initcall_sync(fn) __define_initcall("8s",fn,8s)
-+#define rootfs_neeeded_initcall(fn)	__define_initcall("9",fn,9)
-+#define rootfs_neeeded_initcall_sync(fn) __define_initcall("9s",fn,9s)
-+
- 
- #define __initcall(fn) device_initcall(fn)
- 
-diff -puN include/asm-generic/vmlinux.lds.h~dont-run-userspace-until-initcalls-have-completed include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~dont-run-userspace-until-initcalls-have-completed
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -245,5 +245,9 @@
-   	*(.initcall6.init)						\
-   	*(.initcall6s.init)						\
-   	*(.initcall7.init)						\
--  	*(.initcall7s.init)
-+  	*(.initcall7s.init)						\
-+  	*(.initcall8.init)						\
-+  	*(.initcall8s.init)						\
-+  	*(.initcall9.init)						\
-+  	*(.initcall9s.init)
- 
-diff -puN init/initramfs.c~dont-run-userspace-until-initcalls-have-completed init/initramfs.c
---- a/init/initramfs.c~dont-run-userspace-until-initcalls-have-completed
-+++ a/init/initramfs.c
-@@ -526,7 +526,7 @@ static void __init free_initrd(void)
- 
- #endif
- 
--void __init populate_rootfs(void)
-+static int __init populate_rootfs(void)
- {
- 	char *err = unpack_to_rootfs(__initramfs_start,
- 			 __initramfs_end - __initramfs_start, 0);
-@@ -566,3 +566,4 @@ void __init populate_rootfs(void)
- 	}
- #endif
+diff -puN scripts/mod/modpost.c~modpost-remove-fixed-size-buffer scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~modpost-remove-fixed-size-buffer
++++ a/scripts/mod/modpost.c
+@@ -1110,8 +1110,6 @@ static void read_symbols(char *modname)
+ 		mod->unres = alloc_symbol("struct_module", 0, mod->unres);
  }
-+populate_rootfs_initcall(populate_rootfs);
+ 
+-#define SZ 500
+-
+ /* We first write the generated file into memory using the
+  * following helper, then compare to the file on disk and
+  * only update the later if anything changed */
+@@ -1119,20 +1117,28 @@ static void read_symbols(char *modname)
+ void __attribute__((format(printf, 2, 3))) buf_printf(struct buffer *buf,
+ 						      const char *fmt, ...)
+ {
+-	char tmp[SZ];
+-	int len;
++	char *tmp;
++	size_t len;
+ 	va_list ap;
+ 
+ 	va_start(ap, fmt);
+-	len = vsnprintf(tmp, SZ, fmt, ap);
++	len = snprintf(NULL, 0, fmt, ap);
++	va_end(ap);
++	tmp = malloc(len + 1);
++	if (tmp == NULL)
++		fatal("modpost: out of memory in %s\n", __FUNCTION__);
++
++	va_start(ap, fmt);
++	len = snprintf(tmp, len, fmt, ap);
+ 	buf_write(buf, tmp, len);
+ 	va_end(ap);
++	free(tmp);
+ }
+ 
+ void buf_write(struct buffer *buf, const char *s, int len)
+ {
+ 	if (buf->size - buf->pos < len) {
+-		buf->size += len + SZ;
++		buf->size += len + 500;
+ 		buf->p = realloc(buf->p, buf->size);
+ 	}
+ 	strncpy(buf->p + buf->pos, s, len);
+@@ -1442,7 +1448,6 @@ int main(int argc, char **argv)
+ {
+ 	struct module *mod;
+ 	struct buffer buf = { };
+-	char fname[SZ];
+ 	char *kernel_read = NULL, *module_read = NULL;
+ 	char *dump_write = NULL;
+ 	int opt;
+@@ -1492,6 +1497,9 @@ int main(int argc, char **argv)
+ 	err = 0;
+ 
+ 	for (mod = modules; mod; mod = mod->next) {
++		char *fname;
++		static const char fmt[] = "%s.mod.c";
++
+ 		if (mod->skip)
+ 			continue;
+ 
+@@ -1503,8 +1511,12 @@ int main(int argc, char **argv)
+ 		add_moddevtable(&buf, mod);
+ 		add_srcversion(&buf, mod);
+ 
+-		sprintf(fname, "%s.mod.c", mod->name);
++		fname = malloc(strlen(mod->name) + sizeof(fmt));
++		if (fname == NULL)
++			fatal("modpost: out of memory in %s\n", __FUNCTION__);
++		sprintf(fname, fmt, mod->name);
+ 		write_if_changed(&buf, fname);
++		free(fname);
+ 	}
+ 
+ 	if (dump_write)
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
