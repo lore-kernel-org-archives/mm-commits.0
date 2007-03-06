@@ -1,97 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 16:22:48 -0800
-Message-ID: <200703060022.l260Mm6s005936@shell0.pdx.osdl.net>
+Subject: - add-pagemlocked-page-state-bit-and-lru-infrastructure-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 16:26:43 -0800
+Message-ID: <200703060026.l260Qh3H006037@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42678 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42771 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752685AbXCFAWz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 19:22:55 -0500
+	id S933594AbXCFA0v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 19:26:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use ZVC counters to establish exact size of dirtyable pages (fix)
+     
 has been removed from the -mm tree.  Its filename was
-     use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix.patch
+     add-pagemlocked-page-state-bit-and-lru-infrastructure-fix.patch
 
-This patch was dropped because it was folded into use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+This patch was dropped because it was folded into add-pagemlocked-page-state-bit-and-lru-infrastructure.patch
 
 ------------------------------------------------------
-Subject: Use ZVC counters to establish exact size of dirtyable pages (fix)
+Subject: 
 From: Christoph Lameter <clameter@sgi.com>
 
-Insure that dirtyable memory calculation always returns positive number
+The problem is that in some circumstances a page may be freed that is
+mlocked (if one is marking a page as mlocked early). The page allocator
+will not touch the PG_mlocked bit and thus a newly allocated page may have
+PG_mlocked set. If we then try to put it on the lru then the VM_BUG_ONs
+are triggered.
 
-In order to avoid division by zero and strange results we insure that
-the memory calculation of dirtyable memory always returns at least 1.
-
-We need to make sure that highmem_dirtyable_memory() never returns a number
-larger than the total dirtyable memory. Counter deferrals and strange VM
-situations with unimagiably small lowmem may make the count go negative.
-
-Also base the calculation of the mapped_ratio on the amount of dirtyable
-memory.
+The following patch detects these conditions in the page allocator and
+does the proper checks and cleanup.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ include/linux/page-flags.h |    1 +
+ mm/page_alloc.c            |    7 +++++++
+ 2 files changed, 8 insertions(+)
 
-diff -puN mm/page-writeback.c~use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix mm/page-writeback.c
---- a/mm/page-writeback.c~use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix
-+++ a/mm/page-writeback.c
-@@ -120,7 +120,7 @@ static void background_writeout(unsigned
-  * clamping level.
-  */
+diff -puN include/linux/page-flags.h~add-pagemlocked-page-state-bit-and-lru-infrastructure-fix include/linux/page-flags.h
+--- a/include/linux/page-flags.h~add-pagemlocked-page-state-bit-and-lru-infrastructure-fix
++++ a/include/linux/page-flags.h
+@@ -264,6 +264,7 @@ static inline void SetPageUptodate(struc
+ #define PageMlocked(page)	test_bit(PG_mlocked, &(page)->flags)
+ #define SetPageMlocked(page)	set_bit(PG_mlocked, &(page)->flags)
+ #define ClearPageMlocked(page)	clear_bit(PG_mlocked, &(page)->flags)
++#define __ClearPageMlocked(page) __clear_bit(PG_mlocked, &(page)->flags)
  
--static unsigned long highmem_dirtyable_memory(void)
-+static unsigned long highmem_dirtyable_memory(unsigned long total)
- {
- #ifdef CONFIG_HIGHMEM
- 	int node;
-@@ -134,7 +134,13 @@ static unsigned long highmem_dirtyable_m
- 			+ zone_page_state(z, NR_INACTIVE)
- 			+ zone_page_state(z, NR_ACTIVE);
- 	}
--	return x;
-+	/*
-+	 * Make sure that the number of highmem pages is never larger
-+	 * than the number of the total dirtyable memory. This can only
-+	 * occur in very strange VM situations but we want to make sure
-+	 * that this does not occur.
-+	 */
-+	return min(x, total);
- #else
- 	return 0;
- #endif
-@@ -146,9 +152,9 @@ static unsigned long determine_dirtyable
+ struct page;	/* forward declaration */
  
- 	x = global_page_state(NR_FREE_PAGES)
- 		+ global_page_state(NR_INACTIVE)
--		+ global_page_state(NR_ACTIVE)
--		- highmem_dirtyable_memory();
--	return x;
-+		+ global_page_state(NR_ACTIVE);
-+	x -= highmem_dirtyable_memory(x);
-+	return x + 1;	/* Ensure that we never return 0 */
- }
+diff -puN mm/page_alloc.c~add-pagemlocked-page-state-bit-and-lru-infrastructure-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~add-pagemlocked-page-state-bit-and-lru-infrastructure-fix
++++ a/mm/page_alloc.c
+@@ -203,6 +203,7 @@ static void bad_page(struct page *page)
+ 			1 << PG_slab    |
+ 			1 << PG_swapcache |
+ 			1 << PG_writeback |
++			1 << PG_mlocked |
+ 			1 << PG_buddy );
+ 	set_page_count(page, 0);
+ 	reset_page_mapcount(page);
+@@ -442,6 +443,11 @@ static inline int free_pages_check(struc
+ 		bad_page(page);
+ 	if (PageDirty(page))
+ 		__ClearPageDirty(page);
++	if (PageMlocked(page)) {
++		/* Page is unused so no need to take the lru lock */
++		__ClearPageMlocked(page);
++		dec_zone_page_state(page, NR_MLOCK);
++	}
+ 	/*
+ 	 * For now, we report if PG_reserved was found set, but do not
+ 	 * clear it, and do not free the page.  But we shall soon need
+@@ -588,6 +594,7 @@ static int prep_new_page(struct page *pa
+ 			1 << PG_swapcache |
+ 			1 << PG_writeback |
+ 			1 << PG_reserved |
++			1 << PG_mlocked |
+ 			1 << PG_buddy ))))
+ 		bad_page(page);
  
- static void
-@@ -165,7 +171,7 @@ get_dirty_limits(long *pbackground, long
- 
- 	unmapped_ratio = 100 - ((global_page_state(NR_FILE_MAPPED) +
- 				global_page_state(NR_ANON_PAGES)) * 100) /
--					vm_total_pages;
-+					available_memory;
- 
- 	dirty_ratio = vm_dirty_ratio;
- 	if (dirty_ratio > unmapped_ratio / 2)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -101,7 +92,6 @@ slab-introduce-krealloc.patch
 slab-introduce-krealloc-fix.patch
 safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
 use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages-fix.patch
 make-try_to_unmap-return-a-special-exit-code.patch
 slab-ensure-cache_alloc_refill-terminates.patch
 add-nr_mlock-zvc.patch
