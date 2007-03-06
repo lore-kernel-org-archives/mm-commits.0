@@ -1,69 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - nommu-present-backing-device-capabilities-for-mtd-fix.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 02:38:29 -0800
-Message-ID: <200703061038.l26AcTFL019582@shell0.pdx.osdl.net>
+Subject: - dmfe-add-support-for-suspend-resume-fix.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 02:40:01 -0800
+Message-ID: <200703061040.l26Ae15n019708@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34505 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34578 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934058AbXCFKio (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:38:44 -0500
+	id S1752201AbXCFKk0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:40:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, maximlevitsky@gmail.com, val_henson@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nommu-present-backing-device-capabilities-for-mtd-fix
+     dmfe-add-support-for-suspend-resume-fix
 has been removed from the -mm tree.  Its filename was
-     nommu-present-backing-device-capabilities-for-mtd-fix.patch
+     dmfe-add-support-for-suspend-resume-fix.patch
 
-This patch was dropped because it was folded into nommu-present-backing-device-capabilities-for-mtd.patch
+This patch was dropped because it was folded into dmfe-add-support-for-suspend-resume.patch
 
 ------------------------------------------------------
-Subject: nommu-present-backing-device-capabilities-for-mtd-fix
+Subject: dmfe-add-support-for-suspend-resume-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Howells <dhowells@redhat.com>
+- Fix CONFIG_PM=n
+
+- Fix coding style
+
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Valerie Henson <val_henson@linux.intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdbdi.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/net/tulip/dmfe.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-diff -puN drivers/mtd/mtdbdi.c~nommu-present-backing-device-capabilities-for-mtd-fix drivers/mtd/mtdbdi.c
---- a/drivers/mtd/mtdbdi.c~nommu-present-backing-device-capabilities-for-mtd-fix
-+++ a/drivers/mtd/mtdbdi.c
-@@ -11,6 +11,8 @@
+diff -puN drivers/net/tulip/dmfe.c~dmfe-add-support-for-suspend-resume-fix drivers/net/tulip/dmfe.c
+--- a/drivers/net/tulip/dmfe.c~dmfe-add-support-for-suspend-resume-fix
++++ a/drivers/net/tulip/dmfe.c
+@@ -2047,39 +2047,39 @@ static struct pci_device_id dmfe_pci_tbl
+ MODULE_DEVICE_TABLE(pci, dmfe_pci_tbl);
  
- #include <linux/backing-dev.h>
- #include <linux/mtd/mtd.h>
-+#include <linux/module.h>
-+
- #include "internal.h"
  
- /*
-@@ -20,6 +22,7 @@
- struct backing_dev_info mtd_bdi_unmappable = {
- 	.capabilities	= BDI_CAP_MAP_COPY,
- };
-+EXPORT_SYMBOL_GPL(mtd_bdi_unmappable);
+-
++#ifdef CONFIG_PM
+ static int dmfe_suspend(struct pci_dev *pci_dev, pm_message_t state)
+ {
+ 	struct net_device *dev = pci_get_drvdata(pci_dev);
+ 	struct dmfe_board_info *db = netdev_priv(dev);
  
- /*
-  * backing device capabilities for R/O mappable devices (such as ROM)
-@@ -30,6 +33,7 @@ struct backing_dev_info mtd_bdi_ro_mappa
- 	.capabilities	= (BDI_CAP_MAP_COPY | BDI_CAP_MAP_DIRECT |
- 			   BDI_CAP_EXEC_MAP | BDI_CAP_READ_MAP),
- };
-+EXPORT_SYMBOL_GPL(mtd_bdi_ro_mappable);
+ 	/* Disable upper layer interface */
+-	netif_device_detach (dev);
++	netif_device_detach(dev);
  
- /*
-  * backing device capabilities for writable mappable devices (such as RAM)
-@@ -41,3 +45,4 @@ struct backing_dev_info mtd_bdi_rw_mappa
- 			   BDI_CAP_EXEC_MAP | BDI_CAP_READ_MAP |
- 			   BDI_CAP_WRITE_MAP),
- };
-+EXPORT_SYMBOL_GPL(mtd_bdi_rw_mappable);
+ 	/* Disable Tx/Rx */
+ 	db->cr6_data &= ~(CR6_RXSC | CR6_TXSC);
+ 	update_cr6(db->cr6_data, dev->base_addr);
+ 
+ 	/* Disable Interrupt */
+-	outl (0, dev->base_addr + DCR7);
+-	outl (inl (dev->base_addr + DCR5), dev->base_addr + DCR5);
++	outl(0, dev->base_addr + DCR7);
++	outl(inl (dev->base_addr + DCR5), dev->base_addr + DCR5);
+ 
+ 	/* Fre RX buffers */
+-	dmfe_free_rxbuffer (db);
++	dmfe_free_rxbuffer(db);
+ 
+ 	/* Power down device*/
+-	pci_set_power_state (pci_dev, pci_choose_state (pci_dev,state));
+-	pci_save_state (pci_dev);
++	pci_set_power_state(pci_dev, pci_choose_state (pci_dev,state));
++	pci_save_state(pci_dev);
+ 
+ 	return 0;
+ }
+ 
+-static int dmfe_resume (struct pci_dev *pci_dev)
++static int dmfe_resume(struct pci_dev *pci_dev)
+ {
+-	struct net_device *dev = pci_get_drvdata (pci_dev);
++	struct net_device *dev = pci_get_drvdata(pci_dev);
+ 
+ 	pci_restore_state(pci_dev);
+-	pci_set_power_state(pci_dev ,PCI_D0);
++	pci_set_power_state(pci_dev, PCI_D0);
+ 
+ 	/* Re-initilize DM910X board */
+ 	dmfe_init_dm910x(dev);
+@@ -2089,6 +2089,10 @@ static int dmfe_resume (struct pci_dev *
+ 
+ 	return 0;
+ }
++#else
++#define dmfe_suspend NULL
++#define dmfe_resume NULL
++#endif
+ 
+ static struct pci_driver dmfe_driver = {
+ 	.name		= "dmfe",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,12 +118,11 @@ gfs2-build-fix.patch
 git-input.patch
 git-md-accel-fixup.patch
 git-mmc-fix-99.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-present-backing-device-capabilities-for-mtd-fix.patch
 git-ubi.patch
 git-netdev-all.patch
 git-netdev-all-ipw2200-fix.patch
 revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
+dmfe-add-support-for-suspend-resume.patch
 dmfe-add-support-for-suspend-resume-fix.patch
 sis900-warning-fixes.patch
 div64_64-common-code-fix.patch
