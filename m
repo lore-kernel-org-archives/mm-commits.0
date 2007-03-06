@@ -1,106 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - div64_64-common-code-fix.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 02:42:09 -0800
-Message-ID: <200703061042.l26Ag9lZ019795@shell0.pdx.osdl.net>
+Subject: - usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 02:46:59 -0800
+Message-ID: <200703061047.l26Akxid020105@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34713 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35021 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934067AbXCFKmq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:42:46 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l26AgAq8001888
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 6 Mar 2007 02:42:20 -0800
+	id S964828AbXCFKrc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:47:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, duncan.sands@math.u-psud.fr, greg@kroah.com, simon@arlott.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     div64_64-common-code-fix
+     usbatm-create-sysfs-link-device-from-atm-class-device-tidy
 has been removed from the -mm tree.  Its filename was
-     div64_64-common-code-fix.patch
+     usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
 
-This patch was dropped because it was folded into div64_64-common-code.patch
+This patch was dropped because it was folded into usbatm-create-sysfs-link-device-from-atm-class-device.patch
 
 ------------------------------------------------------
-Subject: div64_64-common-code-fix
+Subject: usbatm-create-sysfs-link-device-from-atm-class-device-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from lib/reciprocal_div.c:2:
-include/asm/div64.h:49: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'div64_64'
+Avoid going blind.
 
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Duncan Sands <duncan.sands@math.u-psud.fr>
+Cc: Greg KH <greg@kroah.com>
+Cc: Simon Arlott <simon@arlott.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/div64.h    |    1 +
- include/asm-i386/div64.h   |    2 ++
- include/asm-m68k/div64.h   |    2 ++
- include/asm-mips/div64.h   |    2 ++
- include/asm-xtensa/div64.h |    2 ++
- 5 files changed, 9 insertions(+)
+ drivers/usb/atm/usbatm.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-arm/div64.h~div64_64-common-code-fix include/asm-arm/div64.h
---- a/include/asm-arm/div64.h~div64_64-common-code-fix
-+++ a/include/asm-arm/div64.h
-@@ -2,6 +2,7 @@
- #define __ASM_ARM_DIV64
+diff -puN drivers/usb/atm/usbatm.c~usbatm-create-sysfs-link-device-from-atm-class-device-tidy drivers/usb/atm/usbatm.c
+--- a/drivers/usb/atm/usbatm.c~usbatm-create-sysfs-link-device-from-atm-class-device-tidy
++++ a/drivers/usb/atm/usbatm.c
+@@ -966,9 +966,11 @@ static int usbatm_atm_init(struct usbatm
+ 	/* temp init ATM device, set to 128kbit */
+ 	atm_dev->link_rate = 128 * 1000 / 424;
  
- #include <asm/system.h>
-+#include <linux/types.h>
+-	ret = sysfs_create_link(&atm_dev->class_dev.kobj, &instance->usb_intf->dev.kobj, "device");
++	ret = sysfs_create_link(&atm_dev->class_dev.kobj,
++				&instance->usb_intf->dev.kobj, "device");
+ 	if (ret) {
+-		atm_err(instance, "%s: sysfs_create_link failed: %d\n", __func__, ret);
++		atm_err(instance, "%s: sysfs_create_link failed: %d\n",
++					__func__, ret);
+ 		goto fail_sysfs;
+ 	}
  
- /*
-  * The semantics of do_div() are:
-diff -puN include/asm-i386/div64.h~div64_64-common-code-fix include/asm-i386/div64.h
---- a/include/asm-i386/div64.h~div64_64-common-code-fix
-+++ a/include/asm-i386/div64.h
-@@ -1,6 +1,8 @@
- #ifndef __I386_DIV64
- #define __I386_DIV64
- 
-+#include <linux/types.h>
-+
- /*
-  * do_div() is NOT a C function. It wants to return
-  * two values (the quotient and the remainder), but
-diff -puN include/asm-m68k/div64.h~div64_64-common-code-fix include/asm-m68k/div64.h
---- a/include/asm-m68k/div64.h~div64_64-common-code-fix
-+++ a/include/asm-m68k/div64.h
-@@ -1,6 +1,8 @@
- #ifndef _M68K_DIV64_H
- #define _M68K_DIV64_H
- 
-+#include <linux/types.h>
-+
- /* n = n / base; return rem; */
- 
- #define do_div(n, base) ({					\
-diff -puN include/asm-mips/div64.h~div64_64-common-code-fix include/asm-mips/div64.h
---- a/include/asm-mips/div64.h~div64_64-common-code-fix
-+++ a/include/asm-mips/div64.h
-@@ -9,6 +9,8 @@
- #ifndef _ASM_DIV64_H
- #define _ASM_DIV64_H
- 
-+#include <linux/types.h>
-+
- #if (_MIPS_SZLONG == 32)
- 
- #include <asm/compiler.h>
-diff -puN include/asm-xtensa/div64.h~div64_64-common-code-fix include/asm-xtensa/div64.h
---- a/include/asm-xtensa/div64.h~div64_64-common-code-fix
-+++ a/include/asm-xtensa/div64.h
-@@ -11,6 +11,8 @@
- #ifndef _XTENSA_DIV64_H
- #define _XTENSA_DIV64_H
- 
-+#include <linux/types.h>
-+
- #define do_div(n,base) ({ \
- 	int __res = n % ((unsigned int) base); \
- 	n /= (unsigned int) base; \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,13 +75,12 @@ git-netdev-all-ipw2200-fix.patch
 revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
 dmfe-add-support-for-suspend-resume.patch
 sis900-warning-fixes.patch
-div64_64-common-code.patch
-div64_64-common-code-fix.patch
 bonding-replace-system-timer-with-work-queue-tidy.patch
 git-parisc.patch
 rm9000-serial-driver-tidy.patch
 git-pciseg.patch
 git-unionfs.patch
+usbatm-create-sysfs-link-device-from-atm-class-device.patch
 usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
 git-wireless-fixup.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
