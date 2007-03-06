@@ -1,72 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - mm-implement-swap-prefetching-vs-zvc-stuff-2.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:21:04 -0800
-Message-ID: <200703060121.l261L4LQ007519@shell0.pdx.osdl.net>
+Subject: - mm-implement-swap-prefetching-use-ctl_unnumbered.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:21:08 -0800
+Message-ID: <200703060121.l261LETN007527@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44959 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44995 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933769AbXCFBVJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:21:09 -0500
+	id S933767AbXCFBVj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:21:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, kernel@kolivas.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ZVC writeback: Fix mm and other issues
+     mm-implement-swap-prefetching-use-ctl_unnumbered
 has been removed from the -mm tree.  Its filename was
-     mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
+     mm-implement-swap-prefetching-use-ctl_unnumbered.patch
 
 This patch was dropped because it was folded into mm-implement-swap-prefetching.patch
 
 ------------------------------------------------------
-Subject: ZVC writeback: Fix mm and other issues
-From: Christoph Lameter <clameter@sgi.com>
+Subject: mm-implement-swap-prefetching-use-ctl_unnumbered
+From: Andrew Morton <akpm@osdl.org>
 
-This deals with swap prefetch and various things changed in mm.
+Don't add new sysctl numbers.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Cc: Con Kolivas <kernel@kolivas.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sysctl.h |    1 -
+ kernel/sysctl.c        |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/mm_inline.h~mm-implement-swap-prefetching-vs-zvc-stuff-2 include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-implement-swap-prefetching-vs-zvc-stuff-2
-+++ a/include/linux/mm_inline.h
-@@ -16,7 +16,7 @@ static inline void
- add_page_to_inactive_list_tail(struct zone *zone, struct page *page)
- {
- 	list_add_tail(&page->lru, &zone->inactive_list);
--	zone->nr_inactive++;
-+	__inc_zone_state(zone, NR_INACTIVE);
- }
+diff -puN include/linux/sysctl.h~mm-implement-swap-prefetching-use-ctl_unnumbered include/linux/sysctl.h
+--- a/include/linux/sysctl.h~mm-implement-swap-prefetching-use-ctl_unnumbered
++++ a/include/linux/sysctl.h
+@@ -208,7 +208,6 @@ enum
+ 	VM_VDSO_ENABLED=34,	/* map VDSO into new processes? */
+ 	VM_MIN_SLAB=35,		 /* Percent pages ignored by zone reclaim */
+ 	VM_HUGETLB_TREAT_MOVABLE=36, /* Allocate hugepages from ZONE_MOVABLE */
+-	VM_SWAP_PREFETCH=37,	/* swap prefetch */
  
- static inline void
+ 	/* s390 vm cmm sysctls */
+ 	VM_CMM_PAGES=1111,
+diff -puN kernel/sysctl.c~mm-implement-swap-prefetching-use-ctl_unnumbered kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-implement-swap-prefetching-use-ctl_unnumbered
++++ a/kernel/sysctl.c
+@@ -870,7 +870,7 @@ static ctl_table vm_table[] = {
+ #endif
+ #ifdef CONFIG_SWAP_PREFETCH
+ 	{
+-		.ctl_name	= VM_SWAP_PREFETCH,
++		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "swap_prefetch",
+ 		.data		= &swap_prefetch,
+ 		.maxlen		= sizeof(swap_prefetch),
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-make-try_to_unmap-return-a-special-exit-code.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-ia64.patch
+git-ieee1394.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+aio-is-unlikely.patch
 mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-vs-zvc-stuff-2.patch
-zvc-support-nr_slab_reclaimable--nr_slab_unreclaimable-swap_prefetch.patch
-reduce-max_nr_zones-swap_prefetch-remove-incorrect-use-of-zone_highmem.patch
-numa-add-zone_to_nid-function-swap_prefetch.patch
-remove-uses-of-kmem_cache_t-from-mm-and-include-linux-slabh-prefetch.patch
-readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+rcu-preemptible-rcu.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
+local_t-powerpc-extension-fix.patch
+local_t-powerpc-extension-fix-build-fix.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
