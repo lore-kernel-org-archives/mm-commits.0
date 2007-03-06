@@ -1,74 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-state-based-method-aging-accounting-vs-zvc-changes.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:46:06 -0800
-Message-ID: <200703060146.l261k6YR008265@shell0.pdx.osdl.net>
+Subject: - readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:46:48 -0800
+Message-ID: <200703060146.l261knM8008287@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45965 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45988 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933816AbXCFBqJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:46:09 -0500
+	id S933819AbXCFBq6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:46:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ZVC writeback: Fix mm and other issues
+     readahead: state based method: move readahead_ratio out of compute_thrashing_threshold()
 has been removed from the -mm tree.  Its filename was
-     readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
+     readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch
 
-This patch was dropped because it was folded into readahead-state-based-method-aging-accounting.patch
+This patch was dropped because it was folded into readahead-state-based-method.patch
 
 ------------------------------------------------------
-Subject: ZVC writeback: Fix mm and other issues
-From: Christoph Lameter <clameter@sgi.com>
+Subject: readahead: state based method: move readahead_ratio out of compute_thrashing_threshold()
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-This deals with swap prefetch and various things changed in mm.
+Make compute_thrashing_threshold() a pure computing routine, by moving the
+readahead_ratio policy out of it.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/readahead.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~readahead-state-based-method-aging-accounting-vs-zvc-changes mm/page_alloc.c
---- a/mm/page_alloc.c~readahead-state-based-method-aging-accounting-vs-zvc-changes
-+++ a/mm/page_alloc.c
-@@ -1513,12 +1513,12 @@ unsigned int nr_free_pagecache_pages(voi
- unsigned long nr_free_inactive_pages_node(int nid)
- {
- 	enum zone_type i;
--	unsigned long sum = 0;
-+	unsigned long sum = node_page_state(nid, NR_FREE_PAGES)
-+				+ node_page_state(nid, NR_INACTIVE);
- 	struct zone *zones = NODE_DATA(nid)->node_zones;
+diff -puN mm/readahead.c~readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold mm/readahead.c
+--- a/mm/readahead.c~readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold
++++ a/mm/readahead.c
+@@ -1031,7 +1031,7 @@ static unsigned long compute_thrashing_t
+ 	stream_shift = ra_invoke_interval(ra);
  
- 	for (i = 0; i < MAX_NR_ZONES; i++)
--		sum += zones[i].nr_inactive +
--			zones[i].free_pages - zones[i].pages_low;
-+		sum -= zones[i].pages_low;
+ 	/* future safe space */
+-	ll = (uint64_t) stream_shift * (global_size >> 9) * readahead_ratio * 5;
++	ll = (uint64_t) stream_shift * global_size;
+ 	do_div(ll, global_shift);
+ 	ra_size = ll;
  
- 	return sum;
- }
+@@ -1069,6 +1069,7 @@ state_based_readahead(struct address_spa
+ 	la_old = la_size = ra->readahead_index - offset;
+ 	ra_old = ra_readahead_size(ra);
+ 	ra_size = compute_thrashing_threshold(ra, &remain_space);
++	ra_size = ra_size * readahead_ratio / 100;
+ 
+ 	if (page && remain_space <= la_size) {
+ 		rescue_pages(page, la_size);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-origin.patch
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-make-try_to_unmap-return-a-special-exit-code.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
+readahead-kconfig-options.patch
+radixtree-introduce-scan-hole-data-functions.patch
+mm-introduce-probe_page.patch
+mm-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-insert-cond_resched-calls.patch
+readahead-minmax_ra_pages.patch
+readahead-events-accounting.patch
+readahead-rescue_pages.patch
+readahead-sysctl-parameters.patch
+readahead-min-max-sizes.patch
 readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-aging-accounting-vs-zvc-changes.patch
+readahead-state-based-method-routines.patch
+readahead-state-based-method.patch
+readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch
+readahead-context-based-method.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-context-based-method-update-ra_min.patch
+readahead-context-based-method-remove-readahead_ratio.patch
+readahead-initial-method-guiding-sizes.patch
+readahead-initial-method-thrashing-guard-size.patch
+readahead-initial-method-user-recommended-size.patch
+readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch
+readahead-initial-method.patch
+readahead-backward-prefetching-method.patch
+readahead-thrashing-recovery-method.patch
+readahead-thrashing-recovery-method-fix.patch
+readahead-call-scheme.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-call-scheme-remove-get_readahead_bounds.patch
+readahead-call-scheme-fix-thrashed-unaligned-read.patch
+readahead-laptop-mode.patch
+readahead-laptop-mode-fix.patch
+readahead-loop-case.patch
+readahead-nfsd-case.patch
+readahead-nfsd-case-fix.patch
+readahead-nfsd-case-fix-uninitialized-ra_min-ra_max.patch
+readahead-nfsd-case-remove-ra_min.patch
+readahead-turn-on-by-default.patch
+readahead-remove-size-limit-on-read_ahead_kb.patch
+readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
+readahead-partial-sendfile-fix.patch
