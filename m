@@ -1,50 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - add-include-linux-freezerh-and-move-definitions-from-prefetch.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:21:40 -0800
-Message-ID: <200703060121.l261Legc007536@shell0.pdx.osdl.net>
+Subject: - swap_prefetch-vs-zoned-counters.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:21:27 -0800
+Message-ID: <200703060121.l261LSnD007531@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45004 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45005 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933771AbXCFBVq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:21:46 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l261Lhq8017413
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 5 Mar 2007 17:21:43 -0800
+	id S933773AbXCFBVs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:21:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@engr.sgi.com, kernel@kolivas.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-include-linux-freezerh-and-move-definitions-from-prefetch
+     swap_prefetch-vs-zoned-counters
 has been removed from the -mm tree.  Its filename was
-     add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+     swap_prefetch-vs-zoned-counters.patch
 
 This patch was dropped because it was folded into mm-implement-swap-prefetching.patch
 
 ------------------------------------------------------
-Subject: add-include-linux-freezerh-and-move-definitions-from-prefetch
+Subject: swap_prefetch-vs-zoned-counters
 From: Andrew Morton <akpm@osdl.org>
 
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Con Kolivas <kernel@kolivas.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/swap_prefetch.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/swap_prefetch.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN mm/swap_prefetch.c~add-include-linux-freezerh-and-move-definitions-from-prefetch mm/swap_prefetch.c
---- a/mm/swap_prefetch.c~add-include-linux-freezerh-and-move-definitions-from-prefetch
+diff -puN mm/swap_prefetch.c~swap_prefetch-vs-zoned-counters mm/swap_prefetch.c
+--- a/mm/swap_prefetch.c~swap_prefetch-vs-zoned-counters
 +++ a/mm/swap_prefetch.c
-@@ -20,6 +20,7 @@
+@@ -19,6 +19,7 @@
+ #include <linux/pagemap.h>
  #include <linux/syscalls.h>
  #include <linux/writeback.h>
- #include <linux/vmstat.h>
-+#include <linux/freezer.h>
++#include <linux/vmstat.h>
  
  /*
   * Time to delay prefetching if vm is busy or prefetching unsuccessful. There
+@@ -357,7 +358,6 @@ static int prefetch_suitable(void)
+ 	 */
+ 	for_each_node_mask(node, sp_stat.prefetch_nodes) {
+ 		struct node_stats *ns = &sp_stat.node[node];
+-		struct page_state ps;
+ 
+ 		/*
+ 		 * We check to see that pages are not being allocated
+@@ -378,10 +378,8 @@ static int prefetch_suitable(void)
+ 		if (!test_pagestate)
+ 			continue;
+ 
+-		get_page_state_node(&ps, node);
+-
+ 		/* We shouldn't prefetch when we are doing writeback */
+-		if (ps.nr_writeback) {
++		if (node_page_state(node, NR_WRITEBACK)) {
+ 			node_clear(node, sp_stat.prefetch_nodes);
+ 			continue;
+ 		}
+@@ -394,8 +392,11 @@ static int prefetch_suitable(void)
+ 		 * even if the slab is being allocated on a remote node. This
+ 		 * would be expensive to fix and not of great significance.
+ 		 */
+-		limit = ps.nr_mapped + ps.nr_slab + ps.nr_dirty +
+-			ps.nr_unstable + total_swapcache_pages;
++		limit = node_page_state(node, NR_FILE_PAGES);
++		limit += node_page_state(node, NR_SLAB);
++		limit += node_page_state(node, NR_FILE_DIRTY);
++		limit += node_page_state(node, NR_UNSTABLE_NFS);
++		limit += total_swapcache_pages;
+ 		if (limit > ns->prefetch_watermark) {
+ 			node_clear(node, sp_stat.prefetch_nodes);
+ 			continue;
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -89,6 +121,7 @@ ext2-reservations.patch
 edac-new-opteron-athlon64-memory-controller-driver.patch
 aio-is-unlikely.patch
 mm-implement-swap-prefetching.patch
+swap_prefetch-vs-zoned-counters.patch
 add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
 rcu-preemptible-rcu.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
