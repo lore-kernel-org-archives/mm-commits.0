@@ -1,56 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 02:33:21 -0800
-Message-ID: <200703061033.l26AXMRB019297@shell0.pdx.osdl.net>
+Subject: - setstream-param-for-psmouse-tweak.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 02:35:11 -0800
+Message-ID: <200703061035.l26AZBLm019396@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34147 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34261 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934024AbXCFKdq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:33:46 -0500
+	id S934017AbXCFKfd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:35:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, horms@verge.net.au, magnus@valinux.co.jp, tony.luck@intel.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andrea@suse.de, dtor@mail.ru, vojtech@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy
+     setstream-param-for-psmouse-tweak
 has been removed from the -mm tree.  Its filename was
-     ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy.patch
+     setstream-param-for-psmouse-tweak.patch
 
-This patch was dropped because it was folded into ia64-kexec-use-efi_loader_data-for-elf-core-header.patch
+This patch was dropped because it was folded into setstream-param-for-psmouse.patch
 
 ------------------------------------------------------
-Subject: ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy
+Subject: setstream-param-for-psmouse-tweak
 From: Andrew Morton <akpm@linux-foundation.org>
 
-no need for ifdefs around declarations.
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Magnus Damm <magnus@valinux.co.jp>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Andrea Arcangeli <andrea@suse.de>
+Cc: Vojtech Pavlik <vojtech@suse.cz>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/meminit.h |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/input/mouse/psmouse-base.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-ia64/meminit.h~ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy include/asm-ia64/meminit.h
---- a/include/asm-ia64/meminit.h~ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy
-+++ a/include/asm-ia64/meminit.h
-@@ -37,10 +37,8 @@ extern void find_initrd (void);
- extern int filter_rsvd_memory (unsigned long start, unsigned long end, void *arg);
- extern void efi_memmap_init(unsigned long *, unsigned long *);
+diff -puN drivers/input/mouse/psmouse-base.c~setstream-param-for-psmouse-tweak drivers/input/mouse/psmouse-base.c
+--- a/drivers/input/mouse/psmouse-base.c~setstream-param-for-psmouse-tweak
++++ a/drivers/input/mouse/psmouse-base.c
+@@ -69,9 +69,9 @@ MODULE_PARM_DESC(resync_time, "How long 
+  * The setstream parameter is needed if you have an ACK 580 that stops
+  * streaming if you ever enable the streaming mode explicitly.
+  */
+-static unsigned int psmouse_setstream = 1;
++static unsigned int psmouse_setstream;
+ module_param_named(setstream, psmouse_setstream, uint, 0644);
+-MODULE_PARM_DESC(setstream, "Turn on streaming mode explicitly, 1 = enabled (default), 0 = disabled.");
++MODULE_PARM_DESC(setstream, "Turn on streaming mode explicitly, 1 = enabled, 0 = disabled (default).");
  
--#ifdef CONFIG_PROC_VMCORE
--extern unsigned long vmcore_find_descriptor_size (unsigned long address);
-+extern unsigned long vmcore_find_descriptor_size(unsigned long address);
- extern int reserve_elfcorehdr(unsigned long *start, unsigned long *end);
--#endif
- 
- /*
-  * For rounding an address to the next IA64_GRANULE_SIZE or order
+ PSMOUSE_DEFINE_ATTR(protocol, S_IWUSR | S_IRUGO,
+ 			NULL,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,9 +62,8 @@ git-alsa-oops-fix.patch
 git-drm.patch
 git-dvb.patch
 gfs2-build-fix.patch
-ia64-kexec-use-efi_loader_data-for-elf-core-header.patch
-ia64-kexec-use-efi_loader_data-for-elf-core-header-tidy.patch
 git-input.patch
+setstream-param-for-psmouse.patch
 setstream-param-for-psmouse-tweak.patch
 git-md-accel-fixup.patch
 git-mmc-fix-99.patch
