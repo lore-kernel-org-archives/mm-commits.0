@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-nobh_truncate_page-fix.patch added to -mm tree
-Date: Mon, 05 Mar 2007 20:28:47 -0800
-Message-ID: <200703060428.l264SlT4011797@shell0.pdx.osdl.net>
+Subject: + publish-rcutorture-module-parameters-via-sysfs-read-only.patch added to -mm tree
+Date: Mon, 05 Mar 2007 20:31:24 -0800
+Message-ID: <200703060431.l264VOg1011880@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50314 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50394 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752160AbXCFEcD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 23:32:03 -0500
+	id S1752166AbXCFEfA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 23:35:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaggy@linux.vnet.ibm.com, nickpiggin@yahoo.com.au
+Cc: josh@freedesktop.org, paulmck@us.ibm.com
 
 
 The patch titled
-     fs: nobh_truncate_page() fix
+     Publish rcutorture module parameters via sysfs, read-only
 has been added to the -mm tree.  Its filename is
-     fs-nobh_truncate_page-fix.patch
+     publish-rcutorture-module-parameters-via-sysfs-read-only.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs: nobh_truncate_page() fix
-From: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Subject: Publish rcutorture module parameters via sysfs, read-only
+From: Josh Triplett <josh@freedesktop.org>
 
-This fixes a regression caused by 22c8ca78f20724676b6006232bf06cc3e9299539.
+rcutorture's module parameters currently use permissions of 0, so they
+don't show up in /sys/module/rcutorture/parameters.  Change the permissions
+on all module parameters to world-readable (0444).
 
-nobh_prepare_write() no longer marks the page uptodate, so
-nobh_truncate_page() needs to do it.
+rcutorture does all of its initialization and thread startup when loaded
+and relies on the parameters not changing during execution, so they should
+not permit writing.  However, reading seems fine.
 
-Signed-off-by: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Josh Triplett <josh@freedesktop.org>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ kernel/rcutorture.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/buffer.c~fs-nobh_truncate_page-fix fs/buffer.c
---- a/fs/buffer.c~fs-nobh_truncate_page-fix
-+++ a/fs/buffer.c
-@@ -2365,6 +2365,10 @@ failed:
- }
- EXPORT_SYMBOL(nobh_prepare_write);
+diff -puN kernel/rcutorture.c~publish-rcutorture-module-parameters-via-sysfs-read-only kernel/rcutorture.c
+--- a/kernel/rcutorture.c~publish-rcutorture-module-parameters-via-sysfs-read-only
++++ a/kernel/rcutorture.c
+@@ -60,19 +60,19 @@ static int test_no_idle_hz;	/* Test RCU'
+ static int shuffle_interval = 5; /* Interval between shuffles (in sec)*/
+ static char *torture_type = "rcu"; /* What RCU implementation to torture. */
  
-+/*
-+ * Make sure any changes to nobh_commit_write() are reflected in
-+ * nobh_truncate_page(), since it doesn't call commit_write().
-+ */
- int nobh_commit_write(struct file *file, struct page *page,
- 		unsigned from, unsigned to)
- {
-@@ -2466,6 +2470,11 @@ int nobh_truncate_page(struct address_sp
- 		memset(kaddr + offset, 0, PAGE_CACHE_SIZE - offset);
- 		flush_dcache_page(page);
- 		kunmap_atomic(kaddr, KM_USER0);
-+		/*
-+		 * It would be more correct to call aops->commit_write()
-+		 * here, but this is more efficient.
-+		 */
-+		SetPageUptodate(page);
- 		set_page_dirty(page);
- 	}
- 	unlock_page(page);
+-module_param(nreaders, int, 0);
++module_param(nreaders, int, 0444);
+ MODULE_PARM_DESC(nreaders, "Number of RCU reader threads");
+-module_param(nfakewriters, int, 0);
++module_param(nfakewriters, int, 0444);
+ MODULE_PARM_DESC(nfakewriters, "Number of RCU fake writer threads");
+-module_param(stat_interval, int, 0);
++module_param(stat_interval, int, 0444);
+ MODULE_PARM_DESC(stat_interval, "Number of seconds between stats printk()s");
+-module_param(verbose, bool, 0);
++module_param(verbose, bool, 0444);
+ MODULE_PARM_DESC(verbose, "Enable verbose debugging printk()s");
+-module_param(test_no_idle_hz, bool, 0);
++module_param(test_no_idle_hz, bool, 0444);
+ MODULE_PARM_DESC(test_no_idle_hz, "Test support for tickless idle CPUs");
+-module_param(shuffle_interval, int, 0);
++module_param(shuffle_interval, int, 0444);
+ MODULE_PARM_DESC(shuffle_interval, "Number of seconds between shuffles");
+-module_param(torture_type, charp, 0);
++module_param(torture_type, charp, 0444);
+ MODULE_PARM_DESC(torture_type, "Type of RCU to torture (rcu, rcu_bh, srcu)");
+ 
+ #define TORTURE_FLAG "-torture:"
 _
 
-Patches currently in -mm which might be from shaggy@linux.vnet.ibm.com are
+Patches currently in -mm which might be from josh@freedesktop.org are
 
-fs-nobh_truncate_page-fix.patch
+publish-rcutorture-module-parameters-via-sysfs-read-only.patch
+rcutorture-mark-rcu_torture_init-as-__init.patch
