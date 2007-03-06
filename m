@@ -1,259 +1,404 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-kmem_cache_t-removal.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:04:37 -0800
-Message-ID: <200703060204.l2624bsf008820@shell0.pdx.osdl.net>
+Subject: - fs-reiser4-more-possible-cleanups.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:04:31 -0800
+Message-ID: <200703060204.l2624Vvd008813@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46790 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46807 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965713AbXCFCEj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:04:39 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l2624bq8018955
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 5 Mar 2007 18:04:38 -0800
+	id S965724AbXCFCEv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:04:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, edward@namesys.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4-kmem_cache_t-removal
+     fs/reiser4/: more possible cleanups
 has been removed from the -mm tree.  Its filename was
-     reiser4-kmem_cache_t-removal.patch
+     fs-reiser4-more-possible-cleanups.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: reiser4-kmem_cache_t-removal
-From: Andrew Morton <akpm@osdl.org>
+Subject: fs/reiser4/: more possible cleanups
+From: Adrian Bunk <bunk@stusta.de>
 
+- make needlessly global functions static
+- #if 0 unused functions
+- #if REISER4_DEBUG functions that are only used with debugging enabled
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Vladimir Saveliev <vs@namesys.com>
+Cc: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/flush_queue.c       |    2 +-
- fs/reiser4/fsdata.c            |    6 +++---
- fs/reiser4/jnode.c             |    2 +-
- fs/reiser4/plugin/plugin_set.c |    2 +-
- fs/reiser4/super.h             |    2 +-
- fs/reiser4/super_ops.c         |    6 +++---
- fs/reiser4/txnmgr.c            |    6 +++---
- fs/reiser4/znode.c             |    2 +-
- 8 files changed, 14 insertions(+), 14 deletions(-)
+ fs/reiser4/coord.c                |    8 ++---
+ fs/reiser4/debug.c                |    6 ++++
+ fs/reiser4/debug.h                |    4 --
+ fs/reiser4/plugin/cluster.h       |    8 -----
+ fs/reiser4/plugin/item/ctail.c    |   10 ++++++-
+ fs/reiser4/plugin/item/ctail.h    |    1 
+ fs/reiser4/plugin/item/internal.c |    4 ++
+ fs/reiser4/plugin/item/item.c     |    4 ++
+ fs/reiser4/super.c                |    4 ++
+ fs/reiser4/txnmgr.c               |   40 +++++++++++++++-------------
+ fs/reiser4/txnmgr.h               |    6 ----
+ 11 files changed, 52 insertions(+), 43 deletions(-)
 
-diff -puN fs/reiser4/jnode.c~reiser4-kmem_cache_t-removal fs/reiser4/jnode.c
---- a/fs/reiser4/jnode.c~reiser4-kmem_cache_t-removal
-+++ a/fs/reiser4/jnode.c
-@@ -123,7 +123,7 @@
- #include <linux/fs.h>		/* for struct address_space  */
- #include <linux/writeback.h>	/* for inode_lock */
- 
--static kmem_cache_t *_jnode_slab = NULL;
-+static struct kmem_cache *_jnode_slab = NULL;
- 
- static void jnode_set_type(jnode * node, jnode_type type);
- static int jdelete(jnode * node);
-diff -puN fs/reiser4/flush_queue.c~reiser4-kmem_cache_t-removal fs/reiser4/flush_queue.c
---- a/fs/reiser4/flush_queue.c~reiser4-kmem_cache_t-removal
-+++ a/fs/reiser4/flush_queue.c
-@@ -107,7 +107,7 @@ static void init_fq(flush_queue_t * fq)
+diff -puN fs/reiser4/coord.c~fs-reiser4-more-possible-cleanups fs/reiser4/coord.c
+--- a/fs/reiser4/coord.c~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/coord.c
+@@ -568,11 +568,6 @@ int coord_sideof_unit(coord_t * coord, s
  }
  
- /* slab for flush queues */
--static kmem_cache_t *fq_slab;
-+static struct kmem_cache *fq_slab;
+ #if REISER4_DEBUG
+-#define DEBUG_COORD_FIELDS (sizeof(c1->plug_v) + sizeof(c1->body_v))
+-#else
+-#define DEBUG_COORD_FIELDS (0)
+-#endif
+-
+ int coords_equal(const coord_t * c1, const coord_t * c2)
+ {
+ 	assert("nikita-2840", c1 != NULL);
+@@ -583,6 +578,7 @@ int coords_equal(const coord_t * c1, con
+ 	    c1->item_pos == c2->item_pos &&
+ 	    c1->unit_pos == c2->unit_pos && c1->between == c2->between;
+ }
++#endif  /*  REISER4_DEBUG  */
  
- /**
-  * reiser4_init_fqs - create flush queue cache
-diff -puN fs/reiser4/super.h~reiser4-kmem_cache_t-removal fs/reiser4/super.h
---- a/fs/reiser4/super.h~reiser4-kmem_cache_t-removal
-+++ a/fs/reiser4/super.h
-@@ -444,7 +444,7 @@ long oids_used(const struct super_block 
- void print_fs_info(const char *prefix, const struct super_block *);
+ /* If coord_is_after_rightmost return NCOORD_ON_THE_RIGHT, if coord_is_after_leftmost
+    return NCOORD_ON_THE_LEFT, otherwise return NCOORD_INSIDE. */
+@@ -683,6 +679,7 @@ int coord_is_between_items(const coord_t
+ 	return 0;
+ }
+ 
++#if REISER4_DEBUG
+ /* Returns true if the coordinates are positioned at adjacent units, regardless of
+    before-after or item boundaries. */
+ int coord_are_neighbors(coord_t * c1, coord_t * c2)
+@@ -721,6 +718,7 @@ int coord_are_neighbors(coord_t * c1, co
+ 		return 0;
+ 	}
+ }
++#endif  /*  REISER4_DEBUG  */
+ 
+ /* Assuming two coordinates are positioned in the same node, return COORD_CMP_ON_RIGHT,
+    COORD_CMP_ON_LEFT, or COORD_CMP_SAME depending on c1's position relative to c2.  */
+diff -puN fs/reiser4/debug.c~fs-reiser4-more-possible-cleanups fs/reiser4/debug.c
+--- a/fs/reiser4/debug.c~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/debug.c
+@@ -40,11 +40,13 @@
+ #include <linux/sysctl.h>
+ #include <linux/hardirq.h>
+ 
++#if 0
+ #if REISER4_DEBUG
+ static void reiser4_report_err(void);
+ #else
+ #define reiser4_report_err() noop
  #endif
++#endif  /*  0  */
  
--extern void destroy_reiser4_cache(kmem_cache_t **);
-+extern void destroy_reiser4_cache(struct kmem_cache **);
+ /*
+  * global buffer where message given to reiser4_panic is formatted.
+@@ -95,6 +97,7 @@ void reiser4_do_panic(const char *format
+ 	panic("%s", panic_buf);
+ }
  
- extern struct super_operations reiser4_super_operations;
- extern struct export_operations reiser4_export_operations;
-diff -puN fs/reiser4/txnmgr.c~reiser4-kmem_cache_t-removal fs/reiser4/txnmgr.c
---- a/fs/reiser4/txnmgr.c~reiser4-kmem_cache_t-removal
-+++ a/fs/reiser4/txnmgr.c
-@@ -90,7 +90,7 @@ year old --- define all technical terms 
-    For actually implementing these out-of-system-call-scopped transcrashes, the
-    reiser4_context has a "txn_handle *trans" pointer that may be set to an open
-    transcrash.  Currently there are no dynamically-allocated transcrashes, but there is a
--   "kmem_cache_t *_txnh_slab" created for that purpose in this file.
-+   "struct kmem_cache *_txnh_slab" created for that purpose in this file.
- */
++#if 0
+ void
+ reiser4_print_prefix(const char *level, int reperr, const char *mid,
+ 		     const char *function, const char *file, int lineno)
+@@ -114,6 +117,7 @@ reiser4_print_prefix(const char *level, 
+ 	if (reperr)
+ 		reiser4_report_err();
+ }
++#endif  /*  0  */
  
- /* Extending the other system call interfaces for future transaction features:
-@@ -279,9 +279,9 @@ struct _txn_wait_links {
+ /* Preemption point: this should be called periodically during long running
+    operations (carry, allocate, and squeeze are best examples) */
+@@ -258,6 +262,7 @@ void reiser4_return_err(int code, const 
+ 	}
+ }
  
- /* FIXME: In theory, we should be using the slab cache init & destructor
-    methods instead of, e.g., jnode_init, etc. */
--static kmem_cache_t *_atom_slab = NULL;
-+static struct kmem_cache *_atom_slab = NULL;
- /* this is for user-visible, cross system-call transactions. */
--static kmem_cache_t *_txnh_slab = NULL;
-+static struct kmem_cache *_txnh_slab = NULL;
- 
- /**
-  * init_txnmgr_static - create transaction manager slab caches
-diff -puN fs/reiser4/super_ops.c~reiser4-kmem_cache_t-removal fs/reiser4/super_ops.c
---- a/fs/reiser4/super_ops.c~reiser4-kmem_cache_t-removal
-+++ a/fs/reiser4/super_ops.c
-@@ -14,7 +14,7 @@
- #include <linux/debugfs.h>
- 
- /* slab cache for inodes */
--static kmem_cache_t *inode_cache;
-+static struct kmem_cache *inode_cache;
- 
- static struct dentry *reiser4_debugfs_root = NULL;
- 
-@@ -27,7 +27,7 @@ static struct dentry *reiser4_debugfs_ro
-  * Initialization function to be called when new page is allocated by reiser4
-  * inode cache. It is set on inode cache creation.
++#if 0
+ /*
+  * report error information recorder by reiser4_return_err().
   */
--static void init_once(void *obj, kmem_cache_t *cache, unsigned long flags)
-+static void init_once(void *obj, struct kmem_cache *cache, unsigned long flags)
- {
- 	reiser4_inode_object *info;
+@@ -272,6 +277,7 @@ static void reiser4_report_err(void)
+ 		}
+ 	}
+ }
++#endif  /*  0  */
  
-@@ -595,7 +595,7 @@ static struct file_system_type reiser4_f
- 	.next = NULL
- };
+ #endif				/* REISER4_DEBUG */
  
--void destroy_reiser4_cache(kmem_cache_t **cachep)
-+void destroy_reiser4_cache(struct kmem_cache **cachep)
- {
- 	BUG_ON(*cachep == NULL);
- 	kmem_cache_destroy(*cachep);
-diff -puN fs/reiser4/znode.c~reiser4-kmem_cache_t-removal fs/reiser4/znode.c
---- a/fs/reiser4/znode.c~reiser4-kmem_cache_t-removal
-+++ a/fs/reiser4/znode.c
-@@ -196,7 +196,7 @@ TYPE_SAFE_HASH_DEFINE(z, znode, reiser4_
- #undef KMALLOC
+diff -puN fs/reiser4/debug.h~fs-reiser4-more-possible-cleanups fs/reiser4/debug.h
+--- a/fs/reiser4/debug.h~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/debug.h
+@@ -223,10 +223,6 @@ extern int is_in_reiser4_context(void);
+ extern void reiser4_do_panic(const char *format, ...)
+     __attribute__ ((noreturn, format(printf, 1, 2)));
  
- /* slab for znodes */
--static kmem_cache_t *znode_cache;
-+static struct kmem_cache *znode_cache;
+-extern void reiser4_print_prefix(const char *level, int reperr, const char *mid,
+-				 const char *function,
+-				 const char *file, int lineno);
+-
+ extern int reiser4_preempt_point(void);
+ extern void reiser4_print_stats(void);
  
- int znode_shift_order;
- 
-diff -puN fs/reiser4/plugin/plugin_set.c~reiser4-kmem_cache_t-removal fs/reiser4/plugin/plugin_set.c
---- a/fs/reiser4/plugin/plugin_set.c~reiser4-kmem_cache_t-removal
-+++ a/fs/reiser4/plugin/plugin_set.c
-@@ -31,7 +31,7 @@
- #include <linux/stddef.h>
- 
- /* slab for plugin sets */
--static kmem_cache_t *plugin_set_slab;
-+static struct kmem_cache *plugin_set_slab;
- 
- static spinlock_t plugin_set_lock[8] __cacheline_aligned_in_smp = {
- 	[0 ... 7] = SPIN_LOCK_UNLOCKED
-diff -puN fs/reiser4/fsdata.c~reiser4-kmem_cache_t-removal fs/reiser4/fsdata.c
---- a/fs/reiser4/fsdata.c~reiser4-kmem_cache_t-removal
-+++ a/fs/reiser4/fsdata.c
-@@ -6,7 +6,7 @@
- 
- 
- /* cache or dir_cursors */
--static kmem_cache_t *d_cursor_cache;
-+static struct kmem_cache *d_cursor_cache;
- static struct shrinker *d_cursor_shrinker;
- 
- /* list of unused cursors */
-@@ -595,7 +595,7 @@ void reiser4_detach_fsdata(struct file *
+diff -puN fs/reiser4/plugin/cluster.h~fs-reiser4-more-possible-cleanups fs/reiser4/plugin/cluster.h
+--- a/fs/reiser4/plugin/cluster.h~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/plugin/cluster.h
+@@ -226,14 +226,6 @@ static inline int dclust_get_extension_s
+ 	return hint->ext_coord.extension.ctail.shift;
  }
  
- /* slab for reiser4_dentry_fsdata */
--static kmem_cache_t *dentry_fsdata_cache;
-+static struct kmem_cache *dentry_fsdata_cache;
- 
- /**
-  * reiser4_init_dentry_fsdata - create cache of dentry_fsdata
-@@ -662,7 +662,7 @@ void reiser4_free_dentry_fsdata(struct d
+-static inline void dclust_set_extension_shift(hint_t * hint)
+-{
+-	assert("edward-1270",
+-	       item_id_by_coord(&hint->ext_coord.coord) == CTAIL_ID);
+-	hint->ext_coord.extension.ctail.shift =
+-	    cluster_shift_by_coord(&hint->ext_coord.coord);
+-}
+-
+ static inline int hint_is_unprepped_dclust(hint_t * hint)
+ {
+ 	assert("edward-1451", hint_is_valid(hint));
+diff -puN fs/reiser4/plugin/item/ctail.c~fs-reiser4-more-possible-cleanups fs/reiser4/plugin/item/ctail.c
+--- a/fs/reiser4/plugin/item/ctail.c~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/plugin/item/ctail.c
+@@ -45,11 +45,19 @@ static ctail_item_format *ctail_formatte
+ 	return item_body_by_coord(coord);
  }
  
- /* slab for reiser4_file_fsdata */
--static kmem_cache_t *file_fsdata_cache;
-+static struct kmem_cache *file_fsdata_cache;
+-int cluster_shift_by_coord(const coord_t * coord)
++static int cluster_shift_by_coord(const coord_t * coord)
+ {
+ 	return get_unaligned(&ctail_formatted_at(coord)->cluster_shift);
+ }
  
- /**
-  * reiser4_init_file_fsdata - create cache of reiser4_file_fsdata
++static inline void dclust_set_extension_shift(hint_t * hint)
++{
++	assert("edward-1270",
++	       item_id_by_coord(&hint->ext_coord.coord) == CTAIL_ID);
++	hint->ext_coord.extension.ctail.shift =
++	    cluster_shift_by_coord(&hint->ext_coord.coord);
++}
++
+ static loff_t off_by_coord(const coord_t * coord)
+ {
+ 	reiser4_key key;
+diff -puN fs/reiser4/plugin/item/ctail.h~fs-reiser4-more-possible-cleanups fs/reiser4/plugin/item/ctail.h
+--- a/fs/reiser4/plugin/item/ctail.h~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/plugin/item/ctail.h
+@@ -78,7 +78,6 @@ int utmost_child_ctail(const coord_t *, 
+ int scan_ctail(flush_scan *);
+ int convert_ctail(flush_pos_t *);
+ size_t inode_scaled_cluster_size(struct inode *);
+-int cluster_shift_by_coord(const coord_t * coord);
+ 
+ #endif				/* __FS_REISER4_CTAIL_H__ */
+ 
+diff -puN fs/reiser4/plugin/item/internal.c~fs-reiser4-more-possible-cleanups fs/reiser4/plugin/item/internal.c
+--- a/fs/reiser4/plugin/item/internal.c~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/plugin/item/internal.c
+@@ -144,6 +144,8 @@ utmost_child_internal(const coord_t * co
+ 	return 0;
+ }
+ 
++#if REISER4_DEBUG
++
+ static void check_link(znode * left, znode * right)
+ {
+ 	znode *scan;
+@@ -209,6 +211,8 @@ int check__internal(const coord_t * coor
+ 	return 0;
+ }
+ 
++#endif  /*  REISER4_DEBUG  */
++
+ /* return true only if this item really points to "block" */
+ /* Audited by: green(2002.06.14) */
+ int has_pointer_to_internal(const coord_t * coord /* coord of item */ ,
+diff -puN fs/reiser4/plugin/item/item.c~fs-reiser4-more-possible-cleanups fs/reiser4/plugin/item/item.c
+--- a/fs/reiser4/plugin/item/item.c~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/plugin/item/item.c
+@@ -271,6 +271,8 @@ int item_is_tail(const coord_t * item)
+ 	return item_id_by_coord(item) == FORMATTING_ID;
+ }
+ 
++#if REISER4_DEBUG
++
+ int item_is_statdata(const coord_t * item)
+ {
+ 	assert("vs-516", coord_is_existing_item(item));
+@@ -283,6 +285,8 @@ int item_is_ctail(const coord_t * item)
+ 	return item_id_by_coord(item) == CTAIL_ID;
+ }
+ 
++#endif  /*  REISER4_DEBUG  */
++
+ static int change_item(struct inode *inode,
+ 		       reiser4_plugin * plugin,
+ 		       pset_member memb)
+diff -puN fs/reiser4/super.c~fs-reiser4-more-possible-cleanups fs/reiser4/super.c
+--- a/fs/reiser4/super.c~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/super.c
+@@ -47,6 +47,7 @@ __u64 reiser4_block_count(const struct s
+ 	return get_super_private(super)->block_count;
+ }
+ 
++#if REISER4_DEBUG
+ /*
+  * number of blocks in the current file system
+  */
+@@ -54,6 +55,7 @@ __u64 reiser4_current_block_count(void)
+ {
+ 	return get_current_super_private()->block_count;
+ }
++#endif  /*  REISER4_DEBUG  */
+ 
+ /* set number of block in filesystem */
+ void reiser4_set_block_count(const struct super_block *super, __u64 nr)
+@@ -293,6 +295,7 @@ reiser4_blocknr_is_sane_for(const struct
+ 	return *blk < sbinfo->block_count;
+ }
+ 
++#if REISER4_DEBUG
+ /*
+  * true, if block number @blk makes sense for the current file system
+  */
+@@ -300,6 +303,7 @@ int reiser4_blocknr_is_sane(const reiser
+ {
+ 	return reiser4_blocknr_is_sane_for(reiser4_get_current_sb(), blk);
+ }
++#endif  /*  REISER4_DEBUG  */
+ 
+ /* Make Linus happy.
+    Local variables:
+diff -puN fs/reiser4/txnmgr.c~fs-reiser4-more-possible-cleanups fs/reiser4/txnmgr.c
+--- a/fs/reiser4/txnmgr.c~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/txnmgr.c
+@@ -977,6 +977,28 @@ static int current_atom_complete_writes(
+ 	return current_atom_finish_all_fq();
+ }
+ 
++#if REISER4_DEBUG
++
++static void reiser4_info_atom(const char *prefix, const txn_atom * atom)
++{
++	if (atom == NULL) {
++		printk("%s: no atom\n", prefix);
++		return;
++	}
++
++	printk("%s: refcount: %i id: %i flags: %x txnh_count: %i"
++	       " capture_count: %i stage: %x start: %lu, flushed: %i\n", prefix,
++	       atomic_read(&atom->refcount), atom->atom_id, atom->flags,
++	       atom->txnh_count, atom->capture_count, atom->stage,
++	       atom->start_time, atom->flushed);
++}
++
++#else  /*  REISER4_DEBUG  */
++
++static inline void reiser4_info_atom(const char *prefix, const txn_atom * atom) {}
++
++#endif  /*  REISER4_DEBUG  */
++
+ #define TOOMANYFLUSHES (1 << 13)
+ 
+ /* Called with the atom locked and no open "active" transaction handlers except
+@@ -3094,24 +3116,6 @@ void insert_into_atom_ovrwr_list(txn_ato
+ 	ON_DEBUG(count_jnode(atom, node, NODE_LIST(node), OVRWR_LIST, 1));
+ }
+ 
+-#if REISER4_DEBUG
+-
+-void reiser4_info_atom(const char *prefix, const txn_atom * atom)
+-{
+-	if (atom == NULL) {
+-		printk("%s: no atom\n", prefix);
+-		return;
+-	}
+-
+-	printk("%s: refcount: %i id: %i flags: %x txnh_count: %i"
+-	       " capture_count: %i stage: %x start: %lu, flushed: %i\n", prefix,
+-	       atomic_read(&atom->refcount), atom->atom_id, atom->flags,
+-	       atom->txnh_count, atom->capture_count, atom->stage,
+-	       atom->start_time, atom->flushed);
+-}
+-
+-#endif
+-
+ static int count_deleted_blocks_actor(txn_atom * atom,
+ 				      const reiser4_block_nr * a,
+ 				      const reiser4_block_nr * b, void *data)
+diff -puN fs/reiser4/txnmgr.h~fs-reiser4-more-possible-cleanups fs/reiser4/txnmgr.h
+--- a/fs/reiser4/txnmgr.h~fs-reiser4-more-possible-cleanups
++++ a/fs/reiser4/txnmgr.h
+@@ -695,12 +695,6 @@ void protected_jnodes_init(protected_jno
+ void protected_jnodes_done(protected_jnodes * list);
+ void reiser4_invalidate_list(struct list_head * head);
+ 
+-#if REISER4_DEBUG
+-void reiser4_info_atom(const char *prefix, const txn_atom * atom);
+-#else
+-#define reiser4_info_atom(p,a) noop
+-#endif
+-
+ # endif				/* __REISER4_TXNMGR_H__ */
+ 
+ /* Make Linus happy.
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-ia64.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
 git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-fs-jffs2-ioctlc.patch
 git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+drivers-net-vioc-possible-cleanups.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
 git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
 ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-mm-implement-swap-prefetching.patch
-rcu-preemptible-rcu.patch
-readahead-kconfig-options.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-context-based-method.patch
-readahead-call-scheme.patch
-readahead-nfsd-case.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
 reiser4.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
