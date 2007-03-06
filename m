@@ -1,104 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-documentation-update-flags.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:42:00 -0800
-Message-ID: <200703060142.l261g0oL008112@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-documentation-update-adds-context.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:41:51 -0800
+Message-ID: <200703060141.l261fpH8008103@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45888 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45882 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933811AbXCFBmI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:42:08 -0500
+	id S933807AbXCFBmB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:42:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-kernel-markers-documentation-update-flags
+     Linux Kernel Markers: Documentation update (adds context)
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-documentation-update-flags.patch
+     linux-kernel-markers-documentation-update-adds-context.patch
 
 This patch was dropped because it was folded into linux-kernel-markers-documentation.patch
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-documentation-update-flags
+Subject: Linux Kernel Markers: Documentation update (adds context)
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-linux-kernel-markers-documentation-update-flags
-
-Documents the flag usage.
+Following a comment from David Wilder, who read the documentation from a
+non-expert-yet point of view, I decided to add some paragraphs explaining
+"what is a marker" a little better.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/marker.txt |   30 ++++++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+)
+ Documentation/marker.txt |   25 +++++++++++++++++++++----
+ 1 files changed, 21 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/marker.txt~linux-kernel-markers-documentation-update-flags Documentation/marker.txt
---- a/Documentation/marker.txt~linux-kernel-markers-documentation-update-flags
+diff -puN Documentation/marker.txt~linux-kernel-markers-documentation-update-adds-context Documentation/marker.txt
+--- a/Documentation/marker.txt~linux-kernel-markers-documentation-update-adds-context
 +++ a/Documentation/marker.txt
-@@ -78,6 +78,21 @@ which saves a data cache hit, but also r
- order to support embedded systems which use read-only memory for their code, the
- optimization can be disabled through menu options.
+@@ -3,14 +3,21 @@
+ 			    Mathieu Desnoyers
  
-+The MF_* flags can be used to control the type of marker. See the
-+include/marker.h header for the list of flags. They can be specified as the
-+first parameter of the _MARK() macro, such as the following example which is
-+safe wrt lockdep.c (useful for marking lockdep.c functions).
+ 
+-	This document discusses the purpose of markers. It shows some usage
+-examples of the Linux Kernel Markers : how to insert markers within the kernel
+-and how to connect probes to a marker. Finally, it has some probe module
+-examples. This is what connects to a marker.
++	This document introduces to markers and discusses its purpose. It
++shows some usage examples of the Linux Kernel Markers : how to insert markers
++within the kernel and how to connect probes to a marker. Finally, it has some
++probe module examples. This is what connects to a marker.
+ 
+ 
+ * Purpose of markers
+ 
++A marker placed in your code provides a hook to a function (probe) that
++you can provide at runtime. A marker can be on (a probe is connected to it)
++or off (no probe is attached). An "off" marker has no effect. When turned on,
++the function you provide is called each time the marker is executed in the
++execution context of the caller. When the function provided ends its execution,
++it returns to the caller (probe site).
 +
-+_MARK(_MF_DEFAULT | ~_MF_LOCKDEP, subsystem_eventb,
-+  MARK_NOARGS);
+ You can put markers at important locations in the code. They act as
+ lightweight hooks that can pass an arbitrary number of parameters,
+ described in a printk-like format string, to a function whenever the marker
+@@ -42,6 +49,16 @@ The expression %p[struct task_struct] is
+ standard that could eventually be used for pointer type checking in
+ sparse. The brackets contain the type to which the pointer refers.
+ 
++In order to use the macro MARK, you should include linux/marker.h or
++linux/kernel.h (which also includes linux/marker.h).
 +
-+Another example is to specify that a specific marker must never call printk :
-+_MARK(_MF_DEFAULT | ~_MF_PRINTK, subsystem_eventc,
-+  "%d %s %p[struct task_struct]",
-+  someint, somestring, current);
++Connecting a function (probe) to a marker is done by providing a probe
++(function to call) for the specific marker through marker_set_probe(). It will
++automatically connect the function and enable the marker site. Removing a probe
++is done through marker_remove_probe(). Probe removal is preempt safe because
++preemption is disabled around the probe call. See the "Probe example" section
++below for a sample probe module.
 +
-+Flag compatibility is checked before connecting the probe to the marker.
-+
- 
- * Probe example
- 
-@@ -122,6 +137,13 @@ void probe_subsystem_event(const char *f
- 	va_end(ap);
- }
- 
-+#define SUBSYSTEM_EVENTB_FORMAT MARK_NOARGS
-+void probe_subsystem_eventb(const char *format, ...)
-+{
-+	/* Increment counters, trace, ... but _never_ generate a call to
-+	 * lockdep.c ! */
-+}
-+
- static int __init probe_init(void)
- {
- 	int result;
-@@ -130,16 +152,24 @@ static int __init probe_init(void)
- 			probe_subsystem_event);
- 	if (!result)
- 		goto cleanup;
-+	result = _marker_set_probe(_MF_DEFAULT & ~_MF_LOCKDEP,
-+			"subsystem_eventb",
-+			SUBSYSTEM_EVENTB_FORMAT,
-+			probe_subsystem_eventb);
-+	if (!result)
-+		goto cleanup;
- 	return 0;
- 
- cleanup:
- 	marker_remove_probe(probe_subsystem_event);
-+	marker_remove_probe(probe_subsystem_eventb);
- 	return -EPERM;
- }
- 
- static void __exit probe_fini(void)
- {
- 	marker_remove_probe(probe_subsystem_event);
-+	marker_remove_probe(probe_subsystem_eventb);
- }
- 
- module_init(probe_init);
+ The marker mechanism supports multiple instances of the same marker.
+ Markers can be put in inline functions, inlined static functions and
+ unrolled loops.
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
@@ -128,4 +110,6 @@ linux-kernel-markers-powerpc-optimization.patch
 linux-kernel-markers-i386-optimization.patch
 linux-kernel-markers-non-optimized-architectures.patch
 linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-update-adds-context.patch
+linux-kernel-markers-documentation-update-markerh.patch
 linux-kernel-markers-documentation-update-flags.patch
