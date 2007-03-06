@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server.patch added to -mm tree
-Date: Mon, 05 Mar 2007 20:58:12 -0800
-Message-ID: <200703060458.l264wCtm012402@shell0.pdx.osdl.net>
+Subject: + knfsd-remove-config_ipv6-ifdefs-from-sunrpc-server-code.patch added to -mm tree
+Date: Mon, 05 Mar 2007 20:58:11 -0800
+Message-ID: <200703060458.l264wBsn012399@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51010 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51008 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752867AbXCFE6Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 23:58:16 -0500
+	id S1752865AbXCFE6P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 23:58:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     knfsd: fix recently introduced problem with shutting down a busy NFS server
+     knfsd: remove CONFIG_IPV6 ifdefs from sunrpc server code
 has been added to the -mm tree.  Its filename is
-     knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server.patch
+     knfsd-remove-config_ipv6-ifdefs-from-sunrpc-server-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,124 +25,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: fix recently introduced problem with shutting down a busy NFS server
+Subject: knfsd: remove CONFIG_IPV6 ifdefs from sunrpc server code
 From: NeilBrown <neilb@suse.de>
 
-When the last thread of nfsd exits, it shuts down all related sockets.  It
-currently uses svc_close_socket to do this, but that only is immediately
-effective if the socket is not SK_BUSY.
-
-If the socket is busy - i.e.  if a request has arrived that has not yet been
-processes - svc_close_socket is not effective and the shutdown process spins.
-
-So create a new svc_force_close_socket which removes the SK_BUSY flag is set
-and then calls svc_close_socket.
-
-Also change some open-codes loops in svc_destroy to use
-list_for_each_entry_safe.
+They don't really save that much, and aren't worth the hassle.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/svcsock.h |    2 +-
- net/sunrpc/svc.c               |   21 +++++++++------------
- net/sunrpc/svcsock.c           |   16 +++++++++++++++-
- 3 files changed, 25 insertions(+), 14 deletions(-)
+ include/linux/sunrpc/svc.h |    2 --
+ net/sunrpc/svcsock.c       |   13 +++----------
+ 2 files changed, 3 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/sunrpc/svcsock.h~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server include/linux/sunrpc/svcsock.h
---- a/include/linux/sunrpc/svcsock.h~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server
-+++ a/include/linux/sunrpc/svcsock.h
-@@ -66,7 +66,7 @@ struct svc_sock {
-  * Function prototypes.
-  */
- int		svc_makesock(struct svc_serv *, int, unsigned short, int flags);
--void		svc_close_socket(struct svc_sock *);
-+void		svc_force_close_socket(struct svc_sock *);
- int		svc_recv(struct svc_rqst *, long);
- int		svc_send(struct svc_rqst *);
- void		svc_drop(struct svc_rqst *);
-diff -puN net/sunrpc/svc.c~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server
-+++ a/net/sunrpc/svc.c
-@@ -367,6 +367,7 @@ void
- svc_destroy(struct svc_serv *serv)
- {
- 	struct svc_sock	*svsk;
-+	struct svc_sock *tmp;
+diff -puN include/linux/sunrpc/svc.h~knfsd-remove-config_ipv6-ifdefs-from-sunrpc-server-code include/linux/sunrpc/svc.h
+--- a/include/linux/sunrpc/svc.h~knfsd-remove-config_ipv6-ifdefs-from-sunrpc-server-code
++++ a/include/linux/sunrpc/svc.h
+@@ -194,9 +194,7 @@ static inline void svc_putu32(struct kve
  
- 	dprintk("svc: svc_destroy(%s, %d)\n",
- 				serv->sv_program->pg_name,
-@@ -382,21 +383,17 @@ svc_destroy(struct svc_serv *serv)
+ union svc_addr_u {
+     struct in_addr	addr;
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+     struct in6_addr	addr6;
+-#endif
+ };
  
- 	del_timer_sync(&serv->sv_temptimer);
- 
--	while (!list_empty(&serv->sv_tempsocks)) {
--		svsk = list_entry(serv->sv_tempsocks.next,
--				  struct svc_sock,
--				  sk_list);
--		svc_close_socket(svsk);
--	}
-+	list_for_each_entry_safe(svsk, tmp, &serv->sv_tempsocks, sk_list)
-+		svc_force_close_socket(svsk);
-+
- 	if (serv->sv_shutdown)
- 		serv->sv_shutdown(serv);
- 
--	while (!list_empty(&serv->sv_permsocks)) {
--		svsk = list_entry(serv->sv_permsocks.next,
--				  struct svc_sock,
--				  sk_list);
--		svc_close_socket(svsk);
--	}
-+	list_for_each_entry_safe(svsk, tmp, &serv->sv_permsocks, sk_list)
-+		svc_force_close_socket(svsk);
-+
-+	BUG_ON(!list_empty(&serv->sv_permsocks));
-+	BUG_ON(!list_empty(&serv->sv_tempsocks));
- 
- 	cache_clean_deferred(serv);
- 
-diff -puN net/sunrpc/svcsock.c~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server
+ /*
+diff -puN net/sunrpc/svcsock.c~knfsd-remove-config_ipv6-ifdefs-from-sunrpc-server-code net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-remove-config_ipv6-ifdefs-from-sunrpc-server-code
 +++ a/net/sunrpc/svcsock.c
-@@ -82,6 +82,7 @@ static void		svc_delete_socket(struct sv
- static void		svc_udp_data_ready(struct sock *, int);
- static int		svc_udp_recvfrom(struct svc_rqst *);
- static int		svc_udp_sendto(struct svc_rqst *);
-+static void		svc_close_socket(struct svc_sock *svsk);
- 
- static struct svc_deferred_req *svc_deferred_dequeue(struct svc_sock *svsk);
- static int svc_deferred_recv(struct svc_rqst *rqstp);
-@@ -1787,7 +1788,7 @@ svc_delete_socket(struct svc_sock *svsk)
- 	spin_unlock_bh(&serv->sv_lock);
- }
- 
--void svc_close_socket(struct svc_sock *svsk)
-+static void svc_close_socket(struct svc_sock *svsk)
- {
- 	set_bit(SK_CLOSE, &svsk->sk_flags);
- 	if (test_and_set_bit(SK_BUSY, &svsk->sk_flags))
-@@ -1800,6 +1801,19 @@ void svc_close_socket(struct svc_sock *s
- 	svc_sock_put(svsk);
- }
- 
-+void svc_force_close_socket(struct svc_sock *svsk)
-+{
-+	set_bit(SK_CLOSE, &svsk->sk_flags);
-+	if (test_bit(SK_BUSY, &svsk->sk_flags)) {
-+		/* Waiting to be processed, but no threads left,
-+		 * So just remove it from the waiting list
-+		 */
-+		list_del_init(&svsk->sk_ready);
-+		clear_bit(SK_BUSY, &svsk->sk_flags);
-+	}
-+	svc_close_socket(svsk);
-+}
+@@ -131,13 +131,13 @@ static char *__svc_print_addr(struct soc
+ 			NIPQUAD(((struct sockaddr_in *) addr)->sin_addr),
+ 			htons(((struct sockaddr_in *) addr)->sin_port));
+ 		break;
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
 +
- /**
-  * svc_makesock - Make a socket for nfsd and lockd
-  * @serv: RPC server structure
+ 	case AF_INET6:
+ 		snprintf(buf, len, "%x:%x:%x:%x:%x:%x:%x:%x, port=%u",
+ 			NIP6(((struct sockaddr_in6 *) addr)->sin6_addr),
+ 			htons(((struct sockaddr_in6 *) addr)->sin6_port));
+ 		break;
+-#endif
++
+ 	default:
+ 		snprintf(buf, len, "unknown address type: %d", addr->sa_family);
+ 		break;
+@@ -449,9 +449,7 @@ svc_wake_up(struct svc_serv *serv)
+ 
+ union svc_pktinfo_u {
+ 	struct in_pktinfo pkti;
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+ 	struct in6_pktinfo pkti6;
+-#endif
+ };
+ 
+ static void svc_set_cmsg_data(struct svc_rqst *rqstp, struct cmsghdr *cmh)
+@@ -467,7 +465,7 @@ static void svc_set_cmsg_data(struct svc
+ 			cmh->cmsg_len = CMSG_LEN(sizeof(*pki));
+ 		}
+ 		break;
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++
+ 	case AF_INET6: {
+ 			struct in6_pktinfo *pki = CMSG_DATA(cmh);
+ 
+@@ -479,7 +477,6 @@ static void svc_set_cmsg_data(struct svc
+ 			cmh->cmsg_len = CMSG_LEN(sizeof(*pki));
+ 		}
+ 		break;
+-#endif
+ 	}
+ 	return;
+ }
+@@ -730,13 +727,11 @@ static inline void svc_udp_get_dest_addr
+ 		rqstp->rq_daddr.addr.s_addr = pki->ipi_spec_dst.s_addr;
+ 		break;
+ 		}
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+ 	case AF_INET6: {
+ 		struct in6_pktinfo *pki = CMSG_DATA(cmh);
+ 		ipv6_addr_copy(&rqstp->rq_daddr.addr6, &pki->ipi6_addr);
+ 		break;
+ 		}
+-#endif
+ 	}
+ }
+ 
+@@ -985,11 +980,9 @@ static inline int svc_port_is_privileged
+ 	case AF_INET:
+ 		return ntohs(((struct sockaddr_in *)sin)->sin_port)
+ 			< PROT_SOCK;
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+ 	case AF_INET6:
+ 		return ntohs(((struct sockaddr_in6 *)sin)->sin6_port)
+ 			< PROT_SOCK;
+-#endif
+ 	default:
+ 		return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
