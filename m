@@ -1,183 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - sched-dynticks-idle-load-balancing-v3-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:18:05 -0800
-Message-ID: <200703060118.l261I7vw007421@shell0.pdx.osdl.net>
+Subject: - ext2-balloc-fix-off-by-one-against-grp_goal.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:14:53 -0800
+Message-ID: <200703060114.l261Er2i007363@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44711 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44735 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932876AbXCFBSN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:18:13 -0500
+	id S933757AbXCFBS0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:18:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, cmm@us.ibm.com, mbligh@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched-dynticks-idle-load-balancing-v3 fix
+     ext2 balloc: fix off-by-one against grp_goal
 has been removed from the -mm tree.  Its filename was
-     sched-dynticks-idle-load-balancing-v3-fix.patch
+     ext2-balloc-fix-off-by-one-against-grp_goal.patch
 
-This patch was dropped because it was folded into sched-dynticks-idle-load-balancing-v3.patch
+This patch was dropped because it was folded into ext2-reservations.patch
 
 ------------------------------------------------------
-Subject: sched-dynticks-idle-load-balancing-v3 fix
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: ext2 balloc: fix off-by-one against grp_goal
+From: Hugh Dickins <hugh@veritas.com>
 
-Move trigger_load_balance() under ifdef CONFIG_SMP.
+grp_goal 0 is a genuine goal (unlike -1), so ext2_try_to_allocate_with_rsv
+should treat it as such.
 
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Martin Bligh <mbligh@google.com>
+Acked-by: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/sched.c |  124 +++++++++++++++++++++++------------------------
- 1 files changed, 62 insertions(+), 62 deletions(-)
+ fs/ext2/balloc.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sched.c~sched-dynticks-idle-load-balancing-v3-fix kernel/sched.c
---- a/kernel/sched.c~sched-dynticks-idle-load-balancing-v3-fix
-+++ a/kernel/sched.c
-@@ -3130,6 +3130,68 @@ static void run_rebalance_domains(struct
+diff -puN fs/ext2/balloc.c~ext2-balloc-fix-off-by-one-against-grp_goal fs/ext2/balloc.c
+--- a/fs/ext2/balloc.c~ext2-balloc-fix-off-by-one-against-grp_goal
++++ a/fs/ext2/balloc.c
+@@ -1053,7 +1053,7 @@ ext2_try_to_allocate_with_rsv(struct sup
  	}
- #endif
- }
-+
-+/*
-+ * Trigger the SCHED_SOFTIRQ if it is time to do periodic load balancing.
-+ *
-+ * In case of CONFIG_NO_HZ, this is the place where we nominate a new
-+ * idle load balancing owner or decide to stop the periodic load balancing,
-+ * if the whole system is idle.
-+ */
-+static inline void trigger_load_balance(int cpu)
-+{
-+	struct rq *rq = cpu_rq(cpu);
-+#ifdef CONFIG_NO_HZ
-+	/*
-+	 * If we were in the nohz mode recently and busy at the current
-+	 * scheduler tick, then check if we need to nominate new idle
-+	 * load balancer.
-+	 */
-+	if (rq->in_nohz_recently && !rq->idle_at_tick) {
-+		rq->in_nohz_recently = 0;
-+
-+		if (atomic_read(&nohz.load_balancer) == cpu) {
-+			cpu_clear(cpu, nohz.cpu_mask);
-+			atomic_set(&nohz.load_balancer, -1);
-+		}
-+
-+		if (atomic_read(&nohz.load_balancer) == -1) {
-+			/*
-+			 * simple selection for now: Nominate the
-+			 * first cpu in the nohz list to be the next
-+			 * ilb owner.
-+			 *
-+			 * TBD: Traverse the sched domains and nominate
-+			 * the nearest cpu in the nohz.cpu_mask.
-+			 */
-+			int ilb = first_cpu(nohz.cpu_mask);
-+
-+			if (ilb != NR_CPUS)
-+				resched_cpu(ilb);
-+		}
-+	}
-+
-+	/*
-+	 * If this cpu is idle and doing idle load balancing for all the
-+	 * cpus with ticks stopped, is it time for that to stop?
-+	 */
-+	if (rq->idle_at_tick && atomic_read(&nohz.load_balancer) == cpu &&
-+	    cpus_weight(nohz.cpu_mask) == num_online_cpus()) {
-+		resched_cpu(cpu);
-+		return;
-+	}
-+
-+	/*
-+	 * If this cpu is idle and the idle load balancing is done by
-+	 * someone else, then no need raise the SCHED_SOFTIRQ
-+	 */
-+	if (rq->idle_at_tick && atomic_read(&nohz.load_balancer) != cpu &&
-+	    cpu_isset(cpu, nohz.cpu_mask))
-+		return;
-+#endif
-+	if (time_after_eq(jiffies, rq->next_balance))
-+		raise_softirq(SCHED_SOFTIRQ);
-+}
- #else
- /*
-  * on UP we do not need to balance between CPUs:
-@@ -3340,68 +3402,6 @@ out_unlock:
- }
+ 	/*
+ 	 * grp_goal is a group relative block number (if there is a goal)
+-	 * 0 < grp_goal < EXT2_BLOCKS_PER_GROUP(sb)
++	 * 0 <= grp_goal < EXT2_BLOCKS_PER_GROUP(sb)
+ 	 * first block is a filesystem wide block number
+ 	 * first block is the block number of the first block in this group
+ 	 */
+@@ -1089,7 +1089,7 @@ ext2_try_to_allocate_with_rsv(struct sup
+ 			if (!goal_in_my_reservation(&my_rsv->rsv_window,
+ 							grp_goal, group, sb))
+ 				grp_goal = -1;
+-		} else if (grp_goal > 0) {
++		} else if (grp_goal >= 0) {
+ 			int curr = my_rsv->rsv_end -
+ 					(grp_goal + group_first_block) + 1;
  
- /*
-- * Trigger the SCHED_SOFTIRQ if it is time to do periodic load balancing.
-- *
-- * In case of CONFIG_NO_HZ, this is the place where we nominate a new
-- * idle load balancing owner or decide to stop the periodic load balancing,
-- * if the whole system is idle.
-- */
--static inline void trigger_load_balance(int cpu)
--{
--	struct rq *rq = cpu_rq(cpu);
--#ifdef CONFIG_NO_HZ
--	/*
--	 * If we were in the nohz mode recently and busy at the current
--	 * scheduler tick, then check if we need to nominate new idle
--	 * load balancer.
--	 */
--	if (rq->in_nohz_recently && !rq->idle_at_tick) {
--		rq->in_nohz_recently = 0;
--
--		if (atomic_read(&nohz.load_balancer) == cpu) {
--			cpu_clear(cpu, nohz.cpu_mask);
--			atomic_set(&nohz.load_balancer, -1);
--		}
--
--		if (atomic_read(&nohz.load_balancer) == -1) {
--			/*
--			 * simple selection for now: Nominate the
--			 * first cpu in the nohz list to be the next
--			 * ilb owner.
--			 *
--			 * TBD: Traverse the sched domains and nominate
--			 * the nearest cpu in the nohz.cpu_mask.
--			 */
--			int ilb = first_cpu(nohz.cpu_mask);
--
--			if (ilb != NR_CPUS)
--				resched_cpu(ilb);
--		}
--	}
--
--	/*
--	 * If this cpu is idle and doing idle load balancing for all the
--	 * cpus with ticks stopped, is it time for that to stop?
--	 */
--	if (rq->idle_at_tick && atomic_read(&nohz.load_balancer) == cpu &&
--	    cpus_weight(nohz.cpu_mask) == num_online_cpus()) {
--		resched_cpu(cpu);
--		return;
--	}
--
--	/*
--	 * If this cpu is idle and the idle load balancing is done by
--	 * someone else, then no need raise the SCHED_SOFTIRQ
--	 */
--	if (rq->idle_at_tick && atomic_read(&nohz.load_balancer) != cpu &&
--	    cpu_isset(cpu, nohz.cpu_mask))
--		return;
--#endif
--	if (time_after_eq(jiffies, rq->next_balance))
--		raise_softirq(SCHED_SOFTIRQ);
--}
--
--/*
-  * This function gets called by the timer code, with HZ frequency.
-  * We call it with interrupts disabled.
-  *
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-sched-dynticks-idle-load-balancing-v3-fix.patch
+origin.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+free-swap-space-of-reactivated-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+ext2-reservations.patch
+ext2-balloc-fix-off-by-one-against-grp_goal.patch
+ext2-balloc-say-rb_entry-not-list_entry.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rcu-preemptible-rcu-fix.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
