@@ -1,401 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: + resurrect-sdev.patch added to -mm tree
-Date: Tue, 06 Mar 2007 14:58:15 -0800
-Message-ID: <200703062258.l26MwFbX011946@shell0.pdx.osdl.net>
+Subject: - fix-the-reproducible-oops-in-scsi.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 14:58:27 -0800
+Message-ID: <200703062258.l26MwR3e011949@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34974 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34982 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030589AbXCFW6X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 17:58:23 -0500
+	id S1030592AbXCFW6b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 17:58:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hare@suse.de, James.Bottomley@steeleye.com
+To: hirofumi@mail.parknet.co.jp, James.Smart@Emulex.Com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Resurrect sdev
-has been added to the -mm tree.  Its filename is
-     resurrect-sdev.patch
+     Fix the reproducible oops in scsi
+has been removed from the -mm tree.  Its filename was
+     fix-the-reproducible-oops-in-scsi.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Resurrect sdev
-From: Hannes Reinecke <hare@suse.de>
+Subject: Fix the reproducible oops in scsi
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-as discussed in San Jose here is a patch to resurrect sdevs which are
-in state SDEV_CANCEL / SDEV_DEL.
+I got the oops after some hotplug events. And the similar oops can
+reproduce by the following step.
 
-I've updated sdev handling functions to be better aligned with the state
-machine; we now have:
+   plug usb-storage (e.g. scsi_host of usb is "host5", and device is sde)
+   # mount /dev/sde1 /mnt
+   # echo 1 > /sys/block/sde/device/delete
+   # echo - - - > /sys/class/scsi_host/host5/scan
+   # echo - - - > /sys/class/scsi_host/host5/scan
+   # echo - - - > /sys/class/scsi_host/host5/scan
+   unplug usb-storage
+   # umount /mnt
 
-scsi_remove_device(): Same as before; transitioning into SDEV_CANCEL.
-    Initiate the device removal.
-scsi_destroy_device(): Transition into SDEV_DEL; just initiate
-    the final device_put(). Device will be deleted properly once
-    the refcount drops to zero.
-scsi_configure_device(): Transistion into SDEV_RUNNING.
-    If scsi_configure_device() succeeds it has to be added to
-    sysfs with scsi_sysfs_add_sdev(). If it fails the sdev
-    should be deleted with scsi_destroy_device().
-scsi_resurrect_device(): Wrapper around scsi_configure_device.
-    Transition a deleted device into SDEV_RUNNING.
-    If it fails the device is in SDEV_DEL.
+general protection fault: 0000 [1] SMP
+CPU 1
+Modules linked in: nls_iso8859_1 nls_cp437 vfat fat nls_base nfsd exportfs p4_clockmod speedstep_lib cpufreq_ondemand freq_table thermal fan button processor ac battery autofs4 ipv6 nfs lockd nfs_acl sunrpc deflate zlib_deflate zlib_inflate twofish twofish_common serpent blowfish des cbc ecb blkcipher aes xcbc sha256 sha1 crypto_null hmac crypto_hash cryptomgr af_key binfmt_misc dm_snapshot dm_mirror dm_mod eth1394 usb_storage snd_hda_intel snd_hda_codec snd_pcm_oss snd_mixer_oss snd_pcm snd_timer r8169 snd i2c_i801 bitrev crc32 ehci_hcd uhci_hcd intel_agp ohci1394 ieee1394 rng_core usbcore soundcore snd_page_alloc i2c_core parport_pc parport evdev sg sr_mod cdrom floppy
+Pid: 3780, comm: umount Not tainted 2.6.20-rc4 #1
+RIP: 0010:[<ffffffff801af74b>]  [<ffffffff801af74b>] sysfs_remove_file+0x8/0x12
+RSP: 0018:ffff810059703b58  EFLAGS: 00010286
+RAX: ffff8100596bba50 RBX: ffff8100596bba50 RCX: ffff810059703b68
+RDX: ffff810059703b48 RSI: 6b6b6b6b6b6b6b6b RDI: 6b6b6b6b6b6b6b6b
+RBP: ffff810059703b58 R08: ffff8100596bbac8 R09: 0000000000000000
+R10: ffff8100596bba28 R11: 0000000000000400 R12: 6b6b6b6b6b6b6b6b
+R13: ffff81005e303650 R14: ffff81005e9cf1b8 R15: ffff8100596bba50
+FS:  00002af1e22111d0(0000) GS:ffff81005f7a9898(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 00007fff3c0145e8 CR3: 0000000059600000 CR4: 00000000000006e0
+Process umount (pid: 3780, threadinfo ffff810059702000, task ffff81005f3997f0)
+Stack:  ffff810059703b78 ffffffff8023a07a ffff8100596bba50 ffff8100596bba50
+ ffff810059703ba8 ffffffff8023a110 ffff81005e303478 ffff8100596bba50
+ ffff8100596bba28 ffff81005e303478 ffff810059703bd8 ffffffff80249049
+Call Trace:
+ [<ffffffff8023a07a>] device_remove_file+0x26/0x33
+ [<ffffffff8023a110>] device_del+0x3a/0x1d1
+ [<ffffffff80249049>] scsi_target_reap_usercontext+0x54/0xbb
+ [<ffffffff80137f4e>] execute_in_process_context+0x27/0x56
+ [<ffffffff80247fdc>] scsi_target_reap+0x98/0xac
+ [<ffffffff80249290>] scsi_device_dev_release_usercontext+0xab/0xd8
+ [<ffffffff80137f4e>] execute_in_process_context+0x27/0x56
+ [<ffffffff802491e3>] scsi_device_dev_release+0x17/0x19
+ [<ffffffff80239d9f>] device_release+0x31/0x70
+ [<ffffffff801e411d>] kobject_cleanup+0x53/0x77
+ [<ffffffff801e4141>] kobject_release+0x0/0xf
+ [<ffffffff801e414e>] kobject_release+0xd/0xf
+ [<ffffffff801e4f3f>] kref_put+0x63/0x6d
+ [<ffffffff801e40c8>] kobject_put+0x19/0x1b
+ [<ffffffff80239ec2>] put_device+0x15/0x17
+ [<ffffffff80240610>] scsi_device_put+0x3d/0x42
+ [<ffffffff8024b821>] scsi_disk_put+0x2e/0x3f
+ [<ffffffff8024c21e>] sd_release+0x7b/0x82
+ [<ffffffff8019243a>] __blkdev_put+0x7c/0x15e
+ [<ffffffff801924e9>] __blkdev_put+0x12b/0x15e
+ [<ffffffff80192527>] blkdev_put+0xb/0xd
+ [<ffffffff80192542>] close_bdev_excl+0x19/0x1e
+ [<ffffffff80170e3b>] kill_block_super+0x36/0x3b
+ [<ffffffff80170f16>] deactivate_super+0x6f/0x84
+ [<ffffffff801838f8>] mntput_no_expire+0x56/0x87
+ [<ffffffff80175c02>] path_release_on_umount+0x1d/0x21
+ [<ffffffff8018412c>] sys_umount+0x21f/0x254
+ [<ffffffff80172361>] sys_newstat+0x22/0x3c
+ [<ffffffff80109c2e>] system_call+0x7e/0x83
 
-I've gone through the scanning mechanism and hopefully got it done properly.
-I tried to ensure that after the scanning the sdevs are either in
-SDEV_RUNNING or SDEV_DEL.
+By "echo 1 > /sys/block/sde/device/delete", sdev->sdev_state became SDEV_DEL.
 
-Patch apprears to work properly, but I haven't been running any stress tests
-on it. Ie those cases which the patch is trying to solve :-)
+The problem is in,
+    scsi_probe_and_add_lun()
+        -> scsi_device_lookup_by_target()
+	    -> __scsi_device_lookup_by_target()
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+by "echo - - - > /sys/class/scsi_host/host5/scan".
+
+The first scan is still not problem.  Since founded existence device is
+already SDEV_DEL, it just adds a new device.
+
+The problem is second re-scan, it is looking a existence device up.  In
+this case it is SDEV_DEL device, not newly added device by first scan.
+
+This patch fixes the oops by excluding the SDEV_DEL devices in
+__scsi_device_lookup_by_target().
+
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: James Smart <James.Smart@Emulex.Com>
+
+
+
+On Wed, 10 Jan 2007 08:31:54 -0500
+James Smart <James.Smart@Emulex.Com> wrote:
+
+> I don't believe this is a valid fix. This is yet another case
+> of the reuse-after-free issues on sdevs. The real issue is the
+> deleted sdev isn't truly getting deleted due to references, and
+> we're deadlocked trying to allocate a new one while the old one
+> is outstanding. This fix just jumps over things. You're actually
+> using a partially torn down sdev that, if the refcounts ever
+> decremented, would be zapped - and you would be in a bunch of trouble.
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_scan.c   |   65 ++++++++++++--------------
- drivers/scsi/scsi_sysfs.c  |   86 ++++++++++++++++++++++++++++-------
- include/scsi/scsi_device.h |    8 +++
- 3 files changed, 109 insertions(+), 50 deletions(-)
+ drivers/scsi/scsi.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/scsi/scsi_scan.c~resurrect-sdev drivers/scsi/scsi_scan.c
---- a/drivers/scsi/scsi_scan.c~resurrect-sdev
-+++ a/drivers/scsi/scsi_scan.c
-@@ -300,8 +300,7 @@ static struct scsi_device *scsi_alloc_sd
- 	return sdev;
- 
- out_device_destroy:
--	transport_destroy_device(&sdev->sdev_gendev);
--	put_device(&sdev->sdev_gendev);
-+	scsi_destroy_device(sdev);
- out:
- 	if (display_failure_msg)
- 		printk(ALLOC_FAILURE_MSG, __FUNCTION__);
-@@ -714,6 +713,8 @@ static int scsi_probe_lun(struct scsi_de
- static int scsi_add_lun(struct scsi_device *sdev, unsigned char *inq_result,
- 		int *bflags, int async)
- {
-+	int ret;
-+
- 	/*
- 	 * XXX do not save the inquiry, since it can change underneath us,
- 	 * save just vendor/model/rev.
-@@ -877,10 +878,6 @@ static int scsi_add_lun(struct scsi_devi
- 	if (*bflags & BLIST_USE_10_BYTE_MS)
- 		sdev->use_10_for_ms = 1;
- 
--	/* set the device running here so that slave configure
--	 * may do I/O */
--	scsi_device_set_state(sdev, SDEV_RUNNING);
--
- 	if (*bflags & BLIST_MS_192_BYTES_FOR_3F)
- 		sdev->use_192_bytes_for_3f = 1;
- 
-@@ -890,21 +887,18 @@ static int scsi_add_lun(struct scsi_devi
- 	if (*bflags & BLIST_RETRY_HWERROR)
- 		sdev->retry_hwerror = 1;
- 
--	transport_configure_device(&sdev->sdev_gendev);
--
--	if (sdev->host->hostt->slave_configure) {
--		int ret = sdev->host->hostt->slave_configure(sdev);
--		if (ret) {
--			/*
--			 * if LLDD reports slave not present, don't clutter
--			 * console with alloc failure messages
--			 */
--			if (ret != -ENXIO) {
--				sdev_printk(KERN_ERR, sdev,
--					"failed to configure device\n");
--			}
--			return SCSI_SCAN_NO_RESPONSE;
-+	ret = scsi_configure_device(sdev);
-+	if (ret) {
-+		/*
-+		 * if LLDD reports slave not present, don't clutter
-+		 * console with alloc failure messages
-+		 */
-+		if (ret != -ENXIO) {
-+			sdev_printk(KERN_ERR, sdev,
-+				    "failed to configure device\n");
- 		}
-+		scsi_destroy_device(sdev);
-+		return SCSI_SCAN_NO_RESPONSE;
- 	}
- 
- 	/*
-@@ -918,15 +912,6 @@ static int scsi_add_lun(struct scsi_devi
- 	return SCSI_SCAN_LUN_PRESENT;
- }
- 
--static inline void scsi_destroy_sdev(struct scsi_device *sdev)
--{
--	scsi_device_set_state(sdev, SDEV_DEL);
--	if (sdev->host->hostt->slave_destroy)
--		sdev->host->hostt->slave_destroy(sdev);
--	transport_destroy_device(&sdev->sdev_gendev);
--	put_device(&sdev->sdev_gendev);
--}
--
- #ifdef CONFIG_SCSI_LOGGING
- /** 
-  * scsi_inq_str - print INQUIRY data from min to max index,
-@@ -988,6 +973,10 @@ static int scsi_probe_and_add_lun(struct
- 	 */
- 	sdev = scsi_device_lookup_by_target(starget, lun);
- 	if (sdev) {
-+		if (scsi_resurrect_device(sdev)) {
-+			scsi_device_put(sdev);
-+			return SCSI_SCAN_NO_RESPONSE;
-+		}
- 		if (rescan || sdev->sdev_state != SDEV_CREATED) {
- 			SCSI_LOG_SCAN_BUS(3, printk(KERN_INFO
- 				"scsi scan: device exists on %s\n",
-@@ -1098,11 +1087,12 @@ static int scsi_probe_and_add_lun(struct
- 				*sdevp = sdev;
- 			} else {
- 				__scsi_remove_device(sdev);
-+				scsi_destroy_device(sdev);
- 				res = SCSI_SCAN_NO_RESPONSE;
- 			}
- 		}
- 	} else
--		scsi_destroy_sdev(sdev);
-+		scsi_destroy_device(sdev);
-  out:
- 	return res;
- }
-@@ -1304,6 +1294,9 @@ static int scsi_report_lun_scan(struct s
- 			return 0;
- 		if (scsi_device_get(sdev))
- 			return 0;
-+	} else if (scsi_resurrect_device(sdev)) {
-+		scsi_device_put(sdev);
-+		return 0;
- 	}
- 
- 	sprintf(devname, "host %d channel %d id %d",
-@@ -1456,7 +1449,7 @@ static int scsi_report_lun_scan(struct s
- 		/*
- 		 * the sdev we used didn't appear in the report luns scan
- 		 */
--		scsi_destroy_sdev(sdev);
-+		scsi_destroy_device(sdev);
- 	return ret;
- }
- 
-@@ -1665,8 +1658,11 @@ static void scsi_sysfs_add_devices(struc
- {
+diff -puN drivers/scsi/scsi.c~fix-the-reproducible-oops-in-scsi drivers/scsi/scsi.c
+--- a/drivers/scsi/scsi.c~fix-the-reproducible-oops-in-scsi
++++ a/drivers/scsi/scsi.c
+@@ -937,6 +937,8 @@ struct scsi_device *__scsi_device_lookup
  	struct scsi_device *sdev;
- 	shost_for_each_device(sdev, shost) {
--		if (scsi_sysfs_add_sdev(sdev) != 0)
--			scsi_destroy_sdev(sdev);
-+		/*
-+		 * scsi_sysfs_add_sdev will clean up on failure,
-+		 * no need to do it here.
-+		 */
-+		scsi_sysfs_add_sdev(sdev);
+ 
+ 	list_for_each_entry(sdev, &starget->devices, same_target_siblings) {
++		if (sdev->sdev_state == SDEV_DEL)
++			continue;
+ 		if (sdev->lun ==lun)
+ 			return sdev;
  	}
- }
- 
-@@ -1813,6 +1809,7 @@ void scsi_forget_host(struct Scsi_Host *
- 			continue;
- 		spin_unlock_irqrestore(shost->host_lock, flags);
- 		__scsi_remove_device(sdev);
-+		scsi_destroy_device(sdev);
- 		goto restart;
- 	}
- 	spin_unlock_irqrestore(shost->host_lock, flags);
-@@ -1880,7 +1877,7 @@ void scsi_free_host_dev(struct scsi_devi
- {
- 	BUG_ON(sdev->id != sdev->host->this_id);
- 
--	scsi_destroy_sdev(sdev);
-+	scsi_destroy_device(sdev);
- }
- EXPORT_SYMBOL(scsi_free_host_dev);
- 
-diff -puN drivers/scsi/scsi_sysfs.c~resurrect-sdev drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~resurrect-sdev
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -230,6 +230,10 @@ static void scsi_device_dev_release_user
- 	parent = sdev->sdev_gendev.parent;
- 	starget = to_scsi_target(parent);
- 
-+	if (sdev->host->hostt->slave_destroy)
-+		sdev->host->hostt->slave_destroy(sdev);
-+	transport_destroy_device(&sdev->sdev_gendev);
-+
- 	spin_lock_irqsave(sdev->host->host_lock, flags);
- 	starget->reap_ref++;
- 	list_del(&sdev->siblings);
-@@ -681,14 +685,17 @@ int scsi_sysfs_add_sdev(struct scsi_devi
- 
- 	error = device_add(&sdev->sdev_gendev);
- 	if (error) {
--		put_device(sdev->sdev_gendev.parent);
- 		printk(KERN_INFO "error 1\n");
-+		scsi_device_set_state(sdev, SDEV_CANCEL);
-+		put_device(sdev->sdev_gendev.parent);
- 		return error;
- 	}
- 	error = class_device_add(&sdev->sdev_classdev);
- 	if (error) {
- 		printk(KERN_INFO "error 2\n");
--		goto clean_device;
-+		scsi_device_set_state(sdev, SDEV_CANCEL);
-+		device_del(&sdev->sdev_gendev);
-+		goto out_error;
- 	}
- 
- 	/* take a reference for the sdev_classdev; this is
-@@ -700,7 +707,7 @@ int scsi_sysfs_add_sdev(struct scsi_devi
- 					sdev->host->hostt->sdev_attrs[i]);
- 			if (error) {
- 				__scsi_remove_device(sdev);
--				goto out;
-+				goto out_error;
- 			}
- 		}
- 	}
-@@ -714,25 +721,76 @@ int scsi_sysfs_add_sdev(struct scsi_devi
- 			error = device_create_file(&sdev->sdev_gendev, attr);
- 			if (error) {
- 				__scsi_remove_device(sdev);
--				goto out;
-+				goto out_error;
- 			}
- 		}
- 	}
- 
- 	transport_add_device(&sdev->sdev_gendev);
-- out:
--	return error;
- 
-- clean_device:
--	scsi_device_set_state(sdev, SDEV_CANCEL);
-+	return error;
- 
--	device_del(&sdev->sdev_gendev);
--	transport_destroy_device(&sdev->sdev_gendev);
--	put_device(&sdev->sdev_gendev);
-+ out_error:
-+	scsi_destroy_device(sdev);
- 
- 	return error;
- }
- 
-+int scsi_resurrect_device(struct scsi_device *sdev)
-+{
-+	int ret = 0;
-+
-+	/* Device is active, return */
-+	if (sdev->sdev_state == SDEV_RUNNING || sdev->sdev_state == SDEV_CREATED)
-+		return 0;
-+
-+	/*
-+	 * Set the device to SDEV_CANCEL to start resurrection
-+	 */
-+	if (scsi_device_set_state(sdev, SDEV_CANCEL) != 0)
-+		return -ENXIO;
-+
-+	ret = scsi_configure_device(sdev);
-+	if (ret) {
-+		scsi_destroy_device(sdev);
-+		return ret;
-+	}
-+
-+	/*
-+	 * Ok, the device is now all set up, we can
-+	 * register it and tell the rest of the kernel
-+	 * about it.
-+	 */
-+	return scsi_sysfs_add_sdev(sdev);
-+}
-+
-+int scsi_configure_device(struct scsi_device *sdev)
-+{
-+	/* set the device running here so that slave configure
-+	 * may do I/O */
-+	if (scsi_device_set_state(sdev, SDEV_RUNNING) != 0)
-+		return -ENXIO;
-+
-+	transport_configure_device(&sdev->sdev_gendev);
-+
-+	if (sdev->host->hostt->slave_configure) {
-+		int ret = sdev->host->hostt->slave_configure(sdev);
-+		if (ret) {
-+			/*
-+			 * if LLDD reports slave not present, don't clutter
-+			 * console with alloc failure messages
-+			 */
-+			if (ret != -ENXIO) {
-+				sdev_printk(KERN_ERR, sdev,
-+					"failed to configure device\n");
-+			}
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- void __scsi_remove_device(struct scsi_device *sdev)
- {
- 	struct device *dev = &sdev->sdev_gendev;
-@@ -743,11 +801,6 @@ void __scsi_remove_device(struct scsi_de
- 	class_device_unregister(&sdev->sdev_classdev);
- 	transport_remove_device(dev);
- 	device_del(dev);
--	scsi_device_set_state(sdev, SDEV_DEL);
--	if (sdev->host->hostt->slave_destroy)
--		sdev->host->hostt->slave_destroy(sdev);
--	transport_destroy_device(dev);
--	put_device(dev);
- }
- 
- /**
-@@ -760,6 +813,7 @@ void scsi_remove_device(struct scsi_devi
- 
- 	mutex_lock(&shost->scan_mutex);
- 	__scsi_remove_device(sdev);
-+	scsi_destroy_device(sdev);
- 	mutex_unlock(&shost->scan_mutex);
- }
- EXPORT_SYMBOL(scsi_remove_device);
-diff -puN include/scsi/scsi_device.h~resurrect-sdev include/scsi/scsi_device.h
---- a/include/scsi/scsi_device.h~resurrect-sdev
-+++ a/include/scsi/scsi_device.h
-@@ -203,6 +203,8 @@ extern struct scsi_device *__scsi_add_de
- 		uint, uint, uint, void *hostdata);
- extern int scsi_add_device(struct Scsi_Host *host, uint channel,
- 			   uint target, uint lun);
-+extern int scsi_configure_device(struct scsi_device *);
-+extern int scsi_resurrect_device(struct scsi_device *);
- extern void scsi_remove_device(struct scsi_device *);
- extern int scsi_device_cancel(struct scsi_device *, int);
- 
-@@ -317,6 +319,12 @@ static inline unsigned int sdev_id(struc
- #define scmd_id(scmd) sdev_id((scmd)->device)
- #define scmd_channel(scmd) sdev_channel((scmd)->device)
- 
-+static inline void scsi_destroy_device(struct scsi_device *sdev)
-+{
-+	scsi_device_set_state(sdev, SDEV_DEL);
-+	put_device(&sdev->sdev_gendev);
-+}
-+
- static inline int scsi_device_online(struct scsi_device *sdev)
- {
- 	return sdev->sdev_state != SDEV_OFFLINE;
 _
 
-Patches currently in -mm which might be from hare@suse.de are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-resurrect-sdev.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
+origin.patch
+fix-the-reproducible-oops-in-scsi.patch
+is_power_of_2-in-fat.patch
