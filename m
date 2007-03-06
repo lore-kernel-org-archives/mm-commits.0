@@ -1,199 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - unbreak-msi-on-ati-devices-tidy.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:01:16 -0800
-Message-ID: <200703060101.l2611GVZ007051@shell0.pdx.osdl.net>
+Subject: - bridge-avoid-using-noautorel-workqueues.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:01:33 -0800
+Message-ID: <200703060101.l2611X61007066@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43883 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43893 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932844AbXCFBBk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:01:40 -0500
+	id S932840AbXCFBBs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:01:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, greg@kroah.com, perex@suse.cz, petr@vandrovec.name, tiwai@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unbreak-msi-on-ati-devices-tidy
+     bridge: avoid using noautorel workqueues
 has been removed from the -mm tree.  Its filename was
-     unbreak-msi-on-ati-devices-tidy.patch
+     bridge-avoid-using-noautorel-workqueues.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: unbreak-msi-on-ati-devices-tidy
+Subject: bridge: avoid using noautorel workqueues
 From: Andrew Morton <akpm@osdl.org>
 
-Cc: Petr Vandrovec <petr@vandrovec.name>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jaroslav Kysela <perex@suse.cz>
+?
+
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/usb/core/hcd-pci.c |    4 ++--
- sound/pci/atiixp.c         |   22 +++++++++-------------
- sound/pci/atiixp_modem.c   |   22 +++++++++-------------
- 3 files changed, 20 insertions(+), 28 deletions(-)
+ net/bridge/br_if.c      |   14 ++++++--------
+ net/bridge/br_private.h |    1 +
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/core/hcd-pci.c~unbreak-msi-on-ati-devices-tidy drivers/usb/core/hcd-pci.c
---- a/drivers/usb/core/hcd-pci.c~unbreak-msi-on-ati-devices-tidy
-+++ a/drivers/usb/core/hcd-pci.c
-@@ -140,7 +140,7 @@ int usb_hcd_pci_probe (struct pci_dev *d
- 		release_region (hcd->rsrc_start, hcd->rsrc_len);
-  err2:
- 	usb_put_hcd (hcd);
--	pci_disable_msi (dev);
-+	pci_disable_msi(dev);
-  err1:
- 	pci_disable_device (dev);
- 	dev_err (&dev->dev, "init %s fail, %d\n", pci_name(dev), retval);
-@@ -394,7 +394,7 @@ int usb_hcd_pci_resume (struct pci_dev *
- 			"can't re-enable after resume, %d!\n", retval);
- 		return retval;
- 	}
--	pci_enable_msi (dev);
-+	pci_enable_msi(dev);
- 	pci_set_master (dev);
- 	pci_restore_state (dev);
+diff -puN net/bridge/br_private.h~bridge-avoid-using-noautorel-workqueues net/bridge/br_private.h
+--- a/net/bridge/br_private.h~bridge-avoid-using-noautorel-workqueues
++++ a/net/bridge/br_private.h
+@@ -83,6 +83,7 @@ struct net_bridge_port
+ 	struct timer_list		message_age_timer;
+ 	struct kobject			kobj;
+ 	struct delayed_work		carrier_check;
++	struct net_device		*carrier_check_dev;
+ 	struct rcu_head			rcu;
+ };
  
-diff -puN sound/pci/atiixp.c~unbreak-msi-on-ati-devices-tidy sound/pci/atiixp.c
---- a/sound/pci/atiixp.c~unbreak-msi-on-ati-devices-tidy
-+++ a/sound/pci/atiixp.c
-@@ -1475,11 +1475,10 @@ static int snd_atiixp_suspend(struct pci
- 	snd_atiixp_aclink_down(chip);
- 	snd_atiixp_chip_stop(chip);
+diff -puN net/bridge/br_if.c~bridge-avoid-using-noautorel-workqueues net/bridge/br_if.c
+--- a/net/bridge/br_if.c~bridge-avoid-using-noautorel-workqueues
++++ a/net/bridge/br_if.c
+@@ -83,14 +83,11 @@ static void port_carrier_check(struct wo
+ 	struct net_device *dev;
+ 	struct net_bridge *br;
  
--	if (chip->have_msi) {
-+	if (chip->have_msi)
- 		pci_disable_msi(pci);
--	} else {
-+	else
- 		pci_intx(pci, 0);
--	}
- 	pci_disable_device(pci);
- 	pci_save_state(pci);
- 	pci_set_power_state(pci, pci_choose_state(pci, state));
-@@ -1501,11 +1500,10 @@ static int snd_atiixp_resume(struct pci_
- 		return -EIO;
- 	}
- 	pci_set_master(pci);
--	if (chip->have_msi) {
-+	if (chip->have_msi)
- 		pci_enable_msi(pci);
--	} else {
-+	else
- 		pci_intx(pci, 1);
--	}
+-	dev = container_of(work, struct net_bridge_port,
+-			   carrier_check.work)->dev;
+-	work_release(work);
+-
++	p = container_of(work, struct net_bridge_port, carrier_check.work);
++	dev = p->carrier_check_dev;
+ 	rtnl_lock();
+-	p = dev->br_port;
+-	if (!p)
+-		goto done;
++	if (!dev->br_port)
++		goto done;	/* Can this happen? */
+ 	br = p->br;
  
- 	snd_atiixp_aclink_reset(chip);
- 	snd_atiixp_chip_start(chip);
-@@ -1575,11 +1573,10 @@ static int snd_atiixp_free(struct atiixp
- 	if (chip->remap_addr)
- 		iounmap(chip->remap_addr);
- 	pci_release_regions(chip->pci);
--	if (chip->have_msi) {
-+	if (chip->have_msi)
- 		pci_disable_msi(chip->pci);
--	} else {
-+	else
- 		pci_intx(chip->pci, 0);
--	}
- 	pci_disable_device(chip->pci);
- 	kfree(chip);
- 	return 0;
-@@ -1631,9 +1628,9 @@ static int __devinit snd_atiixp_create(s
- 		return -EIO;
- 	}
+ 	if (netif_carrier_ok(dev))
+@@ -280,7 +277,8 @@ static struct net_bridge_port *new_nbp(s
+ 	p->port_no = index;
+ 	br_init_port(p);
+ 	p->state = BR_STATE_DISABLED;
+-	INIT_DELAYED_WORK_NAR(&p->carrier_check, port_carrier_check);
++	p->carrier_check_dev = dev;
++	INIT_DELAYED_WORK(&p->carrier_check, port_carrier_check);
+ 	br_stp_port_timer_init(p);
  
--	if (msi && pci_enable_msi(pci) == 0) {
-+	if (msi && pci_enable_msi(pci) == 0)
- 		chip->have_msi = 1;
--	}
-+
- 	if (request_irq(pci->irq, snd_atiixp_interrupt, IRQF_SHARED,
- 			card->shortname, chip)) {
- 		snd_printk(KERN_ERR "unable to grab IRQ %d\n", pci->irq);
-@@ -1642,9 +1639,8 @@ static int __devinit snd_atiixp_create(s
- 	}
- 	chip->irq = pci->irq;
- 	pci_set_master(pci);
--	if (!chip->have_msi) {
-+	if (!chip->have_msi)
- 		pci_intx(pci, 1);
--	}
- 	synchronize_irq(chip->irq);
- 
- 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
-diff -puN sound/pci/atiixp_modem.c~unbreak-msi-on-ati-devices-tidy sound/pci/atiixp_modem.c
---- a/sound/pci/atiixp_modem.c~unbreak-msi-on-ati-devices-tidy
-+++ a/sound/pci/atiixp_modem.c
-@@ -1132,11 +1132,10 @@ static int snd_atiixp_suspend(struct pci
- 	snd_atiixp_aclink_down(chip);
- 	snd_atiixp_chip_stop(chip);
- 
--	if (chip->have_msi) {
-+	if (chip->have_msi)
- 		pci_disable_msi(pci);
--	} else {
-+	else
- 		pci_intx(pci, 0);
--	}
- 	pci_disable_device(pci);
- 	pci_save_state(pci);
- 	pci_set_power_state(pci, pci_choose_state(pci, state));
-@@ -1158,11 +1157,10 @@ static int snd_atiixp_resume(struct pci_
- 		return -EIO;
- 	}
- 	pci_set_master(pci);
--	if (chip->have_msi) {
-+	if (chip->have_msi)
- 		pci_enable_msi(pci);
--	} else {
-+	else
- 		pci_intx(pci, 1);
--	}
- 
- 	snd_atiixp_aclink_reset(chip);
- 	snd_atiixp_chip_start(chip);
-@@ -1218,11 +1216,10 @@ static int snd_atiixp_free(struct atiixp
- 		free_irq(chip->irq, chip);
- 	if (chip->remap_addr)
- 		iounmap(chip->remap_addr);
--	if (chip->have_msi) {
-+	if (chip->have_msi)
- 		pci_disable_msi(chip->pci);
--	} else {
-+	else
- 		pci_intx(chip->pci, 0);
--	}
- 	pci_release_regions(chip->pci);
- 	pci_disable_device(chip->pci);
- 	kfree(chip);
-@@ -1275,9 +1272,9 @@ static int __devinit snd_atiixp_create(s
- 		return -EIO;
- 	}
- 
--	if (msi && pci_enable_msi(pci) == 0) {
-+	if (msi && pci_enable_msi(pci) == 0)
- 		chip->have_msi = 1;
--	}
-+
- 	if (request_irq(pci->irq, snd_atiixp_interrupt, IRQF_SHARED,
- 			card->shortname, chip)) {
- 		snd_printk(KERN_ERR "unable to grab IRQ %d\n", pci->irq);
-@@ -1286,9 +1283,8 @@ static int __devinit snd_atiixp_create(s
- 	}
- 	chip->irq = pci->irq;
- 	pci_set_master(pci);
--	if (!chip->have_msi) {
-+	if (!chip->have_msi)
- 		pci_intx(pci, 1);
--	}
- 	synchronize_irq(chip->irq);
- 
- 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+ 	kobject_init(&p->kobj);
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
