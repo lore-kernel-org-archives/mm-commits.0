@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-arch-i386-kernel-tscccustom_sched_clock.patch added to -mm tree
-Date: Mon, 05 Mar 2007 19:44:34 -0800
-Message-ID: <200703060344.l263iYJm010918@shell0.pdx.osdl.net>
+Subject: + drivers-net-bonding-bond_maincmake-3-functions-static.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:48:16 -0800
+Message-ID: <200703060348.l263mGv9011017@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49292 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49299 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933911AbXCFDrv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:47:51 -0500
+	id S933913AbXCFDsV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:48:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, ak@suse.de, zach@vmware.com
+Cc: bunk@stusta.de
 
 
 The patch titled
-     remove arch/i386/kernel/tsc.c:custom_sched_clock
+     drivers/net/bonding/bond_main.c:make 3 functions static
 has been added to the -mm tree.  Its filename is
-     remove-arch-i386-kernel-tscccustom_sched_clock.patch
+     drivers-net-bonding-bond_maincmake-3-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove arch/i386/kernel/tsc.c:custom_sched_clock
+Subject: drivers/net/bonding/bond_main.c:make 3 functions static
 From: Adrian Bunk <bunk@stusta.de>
 
-Remove the no longer used custom_sched_clock.
+This patch makes the following needlessly global functions static:
+- bond_mode_name()
+- bond_sethwaddr()
+- bond_mii_monitor()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Zachary Amsden <zach@vmware.com>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/tsc.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/net/bonding/bond_main.c |    7 ++++---
+ drivers/net/bonding/bonding.h   |    3 ---
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN arch/i386/kernel/tsc.c~remove-arch-i386-kernel-tscccustom_sched_clock arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~remove-arch-i386-kernel-tscccustom_sched_clock
-+++ a/arch/i386/kernel/tsc.c
-@@ -24,7 +24,6 @@
-  * an extra value to store the TSC freq
-  */
- unsigned int tsc_khz;
--unsigned long long (*custom_sched_clock)(void);
+diff -puN drivers/net/bonding/bonding.h~drivers-net-bonding-bond_maincmake-3-functions-static drivers/net/bonding/bonding.h
+--- a/drivers/net/bonding/bonding.h~drivers-net-bonding-bond_maincmake-3-functions-static
++++ a/drivers/net/bonding/bonding.h
+@@ -301,13 +301,10 @@ int bond_create_slave_symlinks(struct ne
+ void bond_destroy_slave_symlinks(struct net_device *master, struct net_device *slave);
+ int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev);
+ int bond_release(struct net_device *bond_dev, struct net_device *slave_dev);
+-int bond_sethwaddr(struct net_device *bond_dev, struct net_device *slave_dev);
+-void bond_mii_monitor(struct work_struct *work);
+ void bond_loadbalance_arp_mon(struct work_struct *work);
+ void bond_activebackup_arp_mon(struct work_struct *work);
+ void bond_set_mode_ops(struct bonding *bond, int mode);
+ int bond_parse_parm(char *mode_arg, struct bond_parm_tbl *tbl);
+-const char *bond_mode_name(int mode);
+ void bond_select_active_slave(struct bonding *bond);
+ void bond_change_active_slave(struct bonding *bond, struct slave *new_active);
+ void bond_register_arp(struct bonding *);
+diff -puN drivers/net/bonding/bond_main.c~drivers-net-bonding-bond_maincmake-3-functions-static drivers/net/bonding/bond_main.c
+--- a/drivers/net/bonding/bond_main.c~drivers-net-bonding-bond_maincmake-3-functions-static
++++ a/drivers/net/bonding/bond_main.c
+@@ -187,7 +187,7 @@ static void bond_send_gratuitous_arp(str
  
- int tsc_disable;
+ /*---------------------------- General routines -----------------------------*/
  
+-const char *bond_mode_name(int mode)
++static const char *bond_mode_name(int mode)
+ {
+ 	switch (mode) {
+ 	case BOND_MODE_ROUNDROBIN :
+@@ -1200,7 +1200,8 @@ static void bond_detach_slave(struct bon
+ 
+ /*---------------------------------- IOCTL ----------------------------------*/
+ 
+-int bond_sethwaddr(struct net_device *bond_dev, struct net_device *slave_dev)
++static int bond_sethwaddr(struct net_device *bond_dev,
++			  struct net_device *slave_dev)
+ {
+ 	dprintk("bond_dev=%p\n", bond_dev);
+ 	dprintk("slave_dev=%p\n", slave_dev);
+@@ -2014,7 +2015,7 @@ static int bond_slave_info_query(struct 
+ /*-------------------------------- Monitoring -------------------------------*/
+ 
+ /* this function is called regularly to monitor each slave's link. */
+-void bond_mii_monitor(struct work_struct *work)
++static void bond_mii_monitor(struct work_struct *work)
+ {
+ 	struct bonding *bond = container_of(work, struct bonding, mii_work.work);
+ 	struct net_device *bond_dev = bond->dev;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
 remove-arch-i386-kernel-tscccustom_sched_clock.patch
+drivers-cpuidle-make-code-static.patch
 git-drm.patch
+make-drivers-char-drm-drm_vmcdrm_io_prot-static.patch
 git-dvb.patch
 saa7134-fix-modules=n-compilation.patch
 git-gfs2-nmw.patch
@@ -65,6 +106,7 @@ kconfig-abort-configuration-with-recursive-dependencies.patch
 remove-fs-jffs2-ioctlc.patch
 git-ubi.patch
 drivers-net-vioc-possible-cleanups.patch
+drivers-net-bonding-bond_maincmake-3-functions-static.patch
 net-uninline-skb_put-fix.patch
 drivers-scsi-small-cleanups.patch
 drivers-scsi-advansysc-cleanups.patch
