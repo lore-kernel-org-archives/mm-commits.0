@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + utrace-nommu-fixup-support-utrace.patch added to -mm tree
-Date: Mon, 05 Mar 2007 23:42:28 -0800
-Message-ID: <200703060742.l267gSSb015775@shell0.pdx.osdl.net>
+Date: Mon, 05 Mar 2007 23:42:36 -0800
+Message-ID: <200703060742.l267gakb015779@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54543 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54555 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933981AbXCFHmj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 02:42:39 -0500
+	id S933983AbXCFHmr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 02:42:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -48,7 +48,7 @@ diff -puN mm/nommu.c~utrace-nommu-fixup-support-utrace mm/nommu.c
  	 * with another untraced process
  	 */
 +#ifdef CONFIG_UTRACE
-+	if (flags & MAP_PRIVATE) 
++	if (flags & MAP_PRIVATE)
 +#else
  	if ((flags & MAP_PRIVATE) && (current->ptrace & PT_PTRACED))
 +#endif
