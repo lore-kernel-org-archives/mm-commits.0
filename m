@@ -1,97 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 02:52:03 -0800
-Message-ID: <200703061052.l26Aq324020315@shell0.pdx.osdl.net>
+Subject: - remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 02:54:42 -0800
+Message-ID: <200703061054.l26Asg1O020373@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35390 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35445 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965830AbXCFKze (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:55:34 -0500
+	id S965836AbXCFK4X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:56:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: fernando@oss.ntt.co.jp, ak@suse.de, benh@kernel.crashing.org, davem@davemloft.net, ebiederm@xmission.com, heiko.carstens@de.ibm.com, horms@verge.net.au, ink@jurassic.park.msu.ru, jdike@addtoit.com, paulus@samba.org, rth@twiddle.net, schwidefsky@de.ibm.com, takata@linux-m32r.org, tony.luck@intel.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2
+     Move definition of hard_smp_processor_id to asm/smp.h - alpha, m32r, powerpc, s390, sparc, sparc64, um
 has been removed from the -mm tree.  Its filename was
-     linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
+     remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch
 
-This patch was dropped because it was folded into linux-sysdevh-needs-to-include-linux-moduleh.patch
+This patch was dropped because it was folded into remove-hardcoding-of-hard_smp_processor_id-on-up.patch
 
 ------------------------------------------------------
-Subject: linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Move definition of hard_smp_processor_id to asm/smp.h - alpha, m32r, powerpc, s390, sparc, sparc64, um
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
+Move definition of hard_smp_processor_id to asm/smp.h on alpha, m32r, powerpc,
+s390, sparc, sparc64, and um architectures.
+
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/time.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-alpha/smp.h   |    1 +
+ include/asm-m32r/smp.h    |    6 +++++-
+ include/asm-powerpc/smp.h |    1 +
+ include/asm-s390/smp.h    |    1 +
+ include/asm-sparc/smp.h   |    1 +
+ include/asm-sparc64/smp.h |    1 +
+ include/asm-um/smp.h      |    4 ++++
+ 7 files changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN arch/s390/kernel/time.c~linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2 arch/s390/kernel/time.c
---- a/arch/s390/kernel/time.c~linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2
-+++ a/arch/s390/kernel/time.c
-@@ -21,6 +21,7 @@
- #include <linux/mm.h>
- #include <linux/interrupt.h>
- #include <linux/time.h>
-+#include <linux/sysdev.h>
- #include <linux/delay.h>
- #include <linux/init.h>
- #include <linux/smp.h>
+diff -puN include/asm-alpha/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-alpha/smp.h
+--- a/include/asm-alpha/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
++++ a/include/asm-alpha/smp.h
+@@ -51,6 +51,7 @@ int smp_call_function_on_cpu(void (*func
+ 
+ #else /* CONFIG_SMP */
+ 
++#define hard_smp_processor_id()		0
+ #define smp_call_function_on_cpu(func,info,retry,wait,cpu)    ({ 0; })
+ 
+ #endif /* CONFIG_SMP */
+diff -puN include/asm-m32r/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-m32r/smp.h
+--- a/include/asm-m32r/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
++++ a/include/asm-m32r/smp.h
+@@ -108,6 +108,10 @@ extern unsigned long send_IPI_mask_phys(
+ #define IPI_SHIFT	(0)
+ #define NR_IPIS		(8)
+ 
+-#endif	/* CONFIG_SMP */
++#else	/* CONFIG_SMP */
++
++#define hard_smp_processor_id()		0
++
++#endif /* CONFIG_SMP */
+ 
+ #endif	/* _ASM_M32R_SMP_H */
+diff -puN include/asm-powerpc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-powerpc/smp.h
+--- a/include/asm-powerpc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
++++ a/include/asm-powerpc/smp.h
+@@ -83,6 +83,7 @@ extern void __cpu_die(unsigned int cpu);
+ 
+ #else
+ /* for UP */
++#define hard_smp_processor_id()		0
+ #define smp_setup_cpu_maps()
+ 
+ #endif /* CONFIG_SMP */
+diff -puN include/asm-s390/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-s390/smp.h
+--- a/include/asm-s390/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
++++ a/include/asm-s390/smp.h
+@@ -113,6 +113,7 @@ static inline void smp_send_stop(void)
+ 	__load_psw_mask(psw_kernel_bits & ~PSW_MASK_MCHECK);
+ }
+ 
++#define hard_smp_processor_id()		0
+ #define smp_cpu_not_running(cpu)	1
+ #define smp_get_cpu(cpu) ({ 0; })
+ #define smp_put_cpu(cpu) ({ 0; })
+diff -puN include/asm-sparc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-sparc/smp.h
+--- a/include/asm-sparc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
++++ a/include/asm-sparc/smp.h
+@@ -165,6 +165,7 @@ void smp_setup_cpu_possible_map(void);
+ 
+ #else /* SMP */
+ 
++#define hard_smp_processor_id()		0
+ #define smp_setup_cpu_possible_map() do { } while (0)
+ 
+ #endif /* !(SMP) */
+diff -puN include/asm-sparc64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-sparc64/smp.h
+--- a/include/asm-sparc64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
++++ a/include/asm-sparc64/smp.h
+@@ -47,6 +47,7 @@ extern void smp_setup_cpu_possible_map(v
+ 
+ #else
+ 
++#define hard_smp_processor_id()		0
+ #define smp_setup_cpu_possible_map() do { } while (0)
+ 
+ #endif /* !(CONFIG_SMP) */
+diff -puN include/asm-um/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph include/asm-um/smp.h
+--- a/include/asm-um/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph
++++ a/include/asm-um/smp.h
+@@ -24,6 +24,10 @@ extern inline void smp_cpus_done(unsigne
+ 
+ extern struct task_struct *idle_threads[NR_CPUS];
+ 
++#else
++
++#define hard_smp_processor_id()		0
++
+ #endif
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
-origin.patch
-fix-build-with-config_no_idle_hz=n.patch
-highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-sony-laptop-fix-uninitialised-variable.patch
-git-alsa-oops-fix.patch
-git-drm.patch
-git-dvb.patch
-gfs2-build-fix.patch
-git-input.patch
-git-md-accel-fixup.patch
-git-mmc-fix-99.patch
-git-ubi.patch
-git-netdev-all.patch
-git-netdev-all-ipw2200-fix.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-dmfe-add-support-for-suspend-resume.patch
-sis900-warning-fixes.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-unionfs.patch
-usbatm-create-sysfs-link-device-from-atm-class-device.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
-x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy.patch
-i386-vdso_prelink-warning-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-driver_bfin_serial_core-update.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-utrace-prep.patch
-utrace-prep-2.patch
-revert-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up-move-definition-of-hard_smp_processor_id-to-asm-smph.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386-fix.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor.patch
