@@ -1,124 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: - slim-main-include-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:11:32 -0800
-Message-ID: <200703060211.l262BWrr009039@shell0.pdx.osdl.net>
+Subject: - slim-main-patch-misc-cleanups-requested-at-inclusion-time.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:10:39 -0800
+Message-ID: <200703060210.l262Ada1009022@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47190 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47205 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933849AbXCFCNk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:13:40 -0500
+	id S933852AbXCFCOS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:14:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chrisw@sous-sol.org, jmorris@namei.org, kjhall@us.ibm.com, safford@us.ibm.com, sds@tycho.nsa.gov, sergeh@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: kjhall@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slim-main-include-fix
+     slim: misc cleanups requested at inclusion time.
 has been removed from the -mm tree.  Its filename was
-     slim-main-include-fix.patch
+     slim-main-patch-misc-cleanups-requested-at-inclusion-time.patch
 
 This patch was dropped because it was folded into slim-main-patch.patch
 
 ------------------------------------------------------
-Subject: slim-main-include-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: slim: misc cleanups requested at inclusion time.
+From: Kylene Jo Hall <kjhall@us.ibm.com>
 
-security/slim/slm_main.c: In function 'revoke_mmap_wperm':
-security/slim/slm_main.c:201: warning: implicit declaration of function 'flush_cache_mm'
+Miscellaneous fixes requested when the intial patches were pulled in
+last week.  This patch addresses the following comments.
 
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: Kylene Hall <kjhall@us.ibm.com>
-Cc: Dave Safford <safford@us.ibm.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: Serge Hallyn <sergeh@us.ibm.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
+On Thu, 2006-09-14 at 16:52 -0700, Andrew Morton wrote:
+> trivial things:
+> > +char *slm_iac_str[] = {
+> > +	ZERO_STR,
+> > +	UNTRUSTED_STR,
+> > +	USER_STR,
+> > +	SYSTEM_STR
+> > +};
+>
+> Could this be made static?
+>
+No because it is used in slm_secfs.c.
+
+> > +		case '#':
+> > +			while ((*bufp != '\n') && (bufp++ < buf_end)) ;
+>
+> newline needed here.
+Added in the patch.
+
+> > +static int has_file_wperm(struct slm_file_xattr *cur_level)
+> > +{
+> > +	int i, j = 0;
+> > +	struct files_struct *files = current->files;
+> > +	unsigned long fd = 0;
+> > +	struct fdtable *fdt;
+> > +	struct file *file;
+> > +	int rc = 0;
+> > +
+> > +	if (is_kernel_thread(current))
+> > +		return 0;
+> > +
+> > +	if (!files || !cur_level)
+> > +		return 0;
+> > +
+> > +	spin_lock(&files->file_lock);
+> > +	fdt = files_fdtable(files);
+> > +
+> > +	for (;;) {
+> > +		i = j * __NFDBITS;
+> > +		if (i >= fdt->max_fdset || i >= fdt->max_fds)
+> > +			break;
+> > +		fd = fdt->open_fds->fds_bits[j++];
+> > +		while (fd) {
+> > +			if (fd & 1) {
+> > +				file = fdt->fd[i++];
+> > +				if (file)
+> > +					rc = mark_has_file_wperm(file,
+> > +						cur_level);
+> > +			}
+> > +			fd >>= 1;
+> > +		}
+> > +	}
+> > +	spin_unlock(&files->file_lock);
+> > +	return rc;
+> > +}
+>
+> Could we use a more meaningful identifier than `j' here?  Perhaps `i' too?
+This function has been cleaned up with the use of find_next_bit and i
+and j are no longer used in the patch below.
+
+> > +	for (iac = 0; iac < sizeof(slm_iac_str) / sizeof(char *); iac++) {
+>
+> ARRAY_SIZE()
+Fixed below.
+
+> > +		if (strncmp(token, slm_iac_str[iac], strlen(slm_iac_str[iac]))
+> > +		    == 0)
+> > +			return iac;
+> > +	}
+> > +	return SLM_IAC_ERROR;
+> > +}
+> > +
+> >
+> > ...
+> >
+> > +
+> > +static inline int slm_getprocattr(struct task_struct *tsk,
+> > +				  char *name, void *value, size_t size)
+> It's rather pointless to declare a function inline and to then only refer to
+> it via a pointer-to-function.  Please review all inlinings.
+All inlines have been reviewed and fixed if necessary in the patch
+below.  3 hooks were affected.
+
+Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
+Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- security/slim/slm_main.c |    1 +
- 1 file changed, 1 insertion(+)
+ security/slim/slm_main.c |   29 ++++++++++-------------------
+ 1 files changed, 10 insertions(+), 19 deletions(-)
 
-diff -puN security/slim/slm_main.c~slim-main-include-fix security/slim/slm_main.c
---- a/security/slim/slm_main.c~slim-main-include-fix
+diff -puN security/slim/slm_main.c~slim-main-patch-misc-cleanups-requested-at-inclusion-time security/slim/slm_main.c
+--- a/security/slim/slm_main.c~slim-main-patch-misc-cleanups-requested-at-inclusion-time
 +++ a/security/slim/slm_main.c
-@@ -26,6 +26,7 @@
- #include <linux/errno.h>
- #include <linux/xattr.h>
- #include <net/sock.h>
-+#include <asm/cacheflush.h>
+@@ -58,6 +58,7 @@ static char *get_token(char *buf_start, 
+ 			break;
+ 		case '#':
+ 			while ((*bufp != '\n') && (bufp++ < buf_end)) ;
++
+ 			bufp++;
+ 			break;
+ 		default:
+@@ -133,7 +134,6 @@ static inline int mark_has_file_wperm(st
+  */
+ static int has_file_wperm(struct slm_file_xattr *cur_level)
+ {
+-	int i, j = 0;
+ 	struct files_struct *files = current->files;
+ 	unsigned long fd = 0;
+ 	struct fdtable *fdt;
+@@ -149,21 +149,12 @@ static int has_file_wperm(struct slm_fil
+ 	spin_lock(&files->file_lock);
+ 	fdt = files_fdtable(files);
  
- #include "slim.h"
+-	for (;;) {
+-		i = j * __NFDBITS;
+-		if (i >= fdt->max_fdset || i >= fdt->max_fds)
+-			break;
+-		fd = fdt->open_fds->fds_bits[j++];
+-		while (fd) {
+-			if (fd & 1) {
+-				file = fdt->fd[i++];
+-				if (file)
+-					rc = mark_has_file_wperm(file,
+-						cur_level);
+-			}
+-			fd >>= 1;
+-		}
++	while((fd=find_next_bit(fdt->open_fds->fds_bits, fdt->max_fdset, fd)) < fdt->max_fdset) {
++		file = fdt->fd[fd++];
++		if (file)
++			rc = mark_has_file_wperm(file, cur_level);
+ 	}
++
+ 	spin_unlock(&files->file_lock);
+ 	return rc;
+ }
+@@ -226,7 +217,7 @@ static enum slm_iac_level parse_iac(char
  
+ 	if (strncmp(token, EXEMPT_STR, strlen(EXEMPT_STR)) == 0)
+ 		return SLM_IAC_EXEMPT;
+-	for (iac = 0; iac < sizeof(slm_iac_str) / sizeof(char *); iac++) {
++	for (iac = 0; iac < ARRAY_SIZE(slm_iac_str); iac++) {
+ 		if (strncmp(token, slm_iac_str[iac], strlen(slm_iac_str[iac]))
+ 		    == 0)
+ 			return iac;
+@@ -1056,14 +1047,14 @@ static int slm_task_post_setuid(uid_t ol
+ 	return 0;
+ }
+ 
+-static inline int slm_setprocattr(struct task_struct *tsk,
++static int slm_setprocattr(struct task_struct *tsk,
+ 				  char *name, void *value, size_t size)
+ {
+ 	return -EACCES;
+ 
+ }
+ 
+-static inline int slm_getprocattr(struct task_struct *tsk,
++static int slm_getprocattr(struct task_struct *tsk,
+ 				  char *name, void *value, size_t size)
+ {
+ 	struct slm_tsec_data *tsec = tsk->security;
+@@ -1209,7 +1200,7 @@ static int slm_inode_setattr(struct dent
+ 	return rc;
+ }
+ 
+-static inline int slm_capable(struct task_struct *tsk, int cap)
++static int slm_capable(struct task_struct *tsk, int cap)
+ {
+ 	struct slm_tsec_data *tsec = tsk->security;
+ 	int rc = 0;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from kjhall@us.ibm.com are
 
-origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-ia64.patch
-git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-mm-implement-swap-prefetching.patch
-rcu-preemptible-rcu.patch
-readahead-kconfig-options.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-context-based-method.patch
-readahead-call-scheme.patch
-readahead-nfsd-case.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
+mprotect-patch-for-use-by-slim.patch
+integrity-service-api-and-dummy-provider.patch
 slim-main-patch.patch
+slim-main-patch-misc-cleanups-requested-at-inclusion-time.patch
+slim-main-patch-handle-failure-to-register.patch
+slim-main-patch-fix-bug-with-mm_users-usage.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
 slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+slim-secfs-patch.patch
+slim-secfs-patch-slim-correct-use-of-snprintf.patch
+slim-secfs-patch-cleanup-use-of-configh.patch
+slim-make-and-config-stuff.patch
+slim-make-and-config-stuff-makefile-fix.patch
+slim-debug-output.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+slim-fix-security-issue-with-the-task_post_setuid-hook.patch
+slim-secfs-inode-i_private-build-fix.patch
+slim-documentation.patch
+panic-on-slim-selinux.patch
