@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-update-swsusp-description.patch added to -mm tree
-Date: Mon, 05 Mar 2007 19:34:24 -0800
-Message-ID: <200703060334.l263YOhN010749@shell0.pdx.osdl.net>
+Subject: + ext3-dirindex-error-pointer-issues.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:37:26 -0800
+Message-ID: <200703060337.l263bQ32010808@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49051 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49122 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751762AbXCFDeq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:34:46 -0500
+	id S1752810AbXCFDii (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:38:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl
+Cc: dmonakhov@sw.ru, adilger@clusterfs.com, dmonakhov@openvz.org, tytso@mit.edu
 
 
 The patch titled
-     Kconfig: Update swsusp description
+     ext3: dirindex error pointer issues
 has been added to the -mm tree.  Its filename is
-     kconfig-update-swsusp-description.patch
+     ext3-dirindex-error-pointer-issues.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,89 +25,158 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Kconfig: Update swsusp description
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ext3: dirindex error pointer issues
+From: Dmitriy Monakhov <dmonakhov@sw.ru>
 
-Update the outdated and inaccurate description of the software suspend in
-Kconfig.
+- ext3_dx_find_entry() exit with out setting proper error pointer
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+- do_split() exit with out setting proper error pointer
+  it is realy painful because many callers contain folowing code:
+
+          de = do_split(handle,dir, &bh, frame, &hinfo, &retval);
+          if (!(de))
+                       return retval;
+          <<< WOW retval wasn't changed by do_split(), so caller failed
+          <<< but return SUCCESS :)
+
+- Rearrange do_split() error path. Current error path is realy ugly, all
+  this up and down jump stuff doesn't make code easy to understand.
+
+Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
+Cc: Andreas Dilger <adilger@clusterfs.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/Kconfig |   39 ++++++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 17 deletions(-)
+ fs/ext3/namei.c |   26 +++++++++++++++-----------
+ fs/ext4/namei.c |   26 +++++++++++++++-----------
+ 2 files changed, 30 insertions(+), 22 deletions(-)
 
-diff -puN kernel/power/Kconfig~kconfig-update-swsusp-description kernel/power/Kconfig
---- a/kernel/power/Kconfig~kconfig-update-swsusp-description
-+++ a/kernel/power/Kconfig
-@@ -81,30 +81,35 @@ config SOFTWARE_SUSPEND
- 	bool "Software Suspend"
- 	depends on PM && SWAP && ((X86 && (!SMP || SUSPEND_SMP)) || ((FRV || PPC32) && !SMP))
- 	---help---
--	  Enable the possibility of suspending the machine.
--	  It doesn't need ACPI or APM.
--	  You may suspend your machine by 'swsusp' or 'shutdown -z <time>' 
--	  (patch for sysvinit needed). 
-+	  Enable the suspend to disk (STD) functionality.
+diff -puN fs/ext3/namei.c~ext3-dirindex-error-pointer-issues fs/ext3/namei.c
+--- a/fs/ext3/namei.c~ext3-dirindex-error-pointer-issues
++++ a/fs/ext3/namei.c
+@@ -969,6 +969,7 @@ static struct buffer_head * ext3_dx_find
+ 				  (block<<EXT3_BLOCK_SIZE_BITS(sb))
+ 					  +((char *)de - bh->b_data))) {
+ 				brelse (bh);
++				*err = ERR_BAD_DX_DIR;
+ 				goto errout;
+ 			}
+ 			*res_dir = de;
+@@ -1134,9 +1135,9 @@ static struct ext3_dir_entry_2 *do_split
+ 	char *data1 = (*bh)->b_data, *data2;
+ 	unsigned split;
+ 	struct ext3_dir_entry_2 *de = NULL, *de2;
+-	int	err;
++	int	err = 0;
  
--	  It creates an image which is saved in your active swap. Upon next
-+	  You can suspend your machine with 'echo disk > /sys/power/state'.
-+	  Alternatively, you can use the additional userland tools available
-+	  from <http://suspend.sf.net>.
-+
-+	  In principle it does not require ACPI or APM, although for example
-+	  ACPI will be used if available.
-+
-+	  It creates an image which is saved in your active swap. Upon the next
- 	  boot, pass the 'resume=/dev/swappartition' argument to the kernel to
- 	  have it detect the saved image, restore memory state from it, and
- 	  continue to run as before. If you do not want the previous state to
--	  be reloaded, then use the 'noresume' kernel argument. However, note
--	  that your partitions will be fsck'd and you must re-mkswap your swap
--	  partitions. It does not work with swap files.
--
--	  Right now you may boot without resuming and then later resume but
--	  in meantime you cannot use those swap partitions/files which were
--	  involved in suspending. Also in this case there is a risk that buffers
--	  on disk won't match with saved ones.
-+	  be reloaded, then use the 'noresume' kernel command line argument.
-+	  Note, however, that fsck will be run on your filesystems and you will
-+	  need to run mkswap against the swap partition used for the suspend.
-+
-+	  It also works with swap files to a limited extent (for details see
-+	  <file:Documentation/power/swsusp-and-swap-files.txt>).
-+
-+	  Right now you may boot without resuming and resume later but in the
-+	  meantime you cannot use the swap partition(s)/file(s) involved in
-+	  suspending.  Also in this case you must not use the filesystems
-+	  that were mounted before the suspend.  In particular, you MUST NOT
-+	  MOUNT any journaled filesystems mounted before the suspend or they
-+	  will get corrupted in a nasty way.
+-	bh2 = ext3_append (handle, dir, &newblock, error);
++	bh2 = ext3_append (handle, dir, &newblock, &err);
+ 	if (!(bh2)) {
+ 		brelse(*bh);
+ 		*bh = NULL;
+@@ -1145,14 +1146,9 @@ static struct ext3_dir_entry_2 *do_split
  
- 	  For more information take a look at <file:Documentation/power/swsusp.txt>.
+ 	BUFFER_TRACE(*bh, "get_write_access");
+ 	err = ext3_journal_get_write_access(handle, *bh);
+-	if (err) {
+-	journal_error:
+-		brelse(*bh);
+-		brelse(bh2);
+-		*bh = NULL;
+-		ext3_std_error(dir->i_sb, err);
+-		goto errout;
+-	}
++	if (err)
++		goto journal_error;
++
+ 	BUFFER_TRACE(frame->bh, "get_write_access");
+ 	err = ext3_journal_get_write_access(handle, frame->bh);
+ 	if (err)
+@@ -1195,8 +1191,16 @@ static struct ext3_dir_entry_2 *do_split
+ 		goto journal_error;
+ 	brelse (bh2);
+ 	dxtrace(dx_show_index ("frame", frame->entries));
+-errout:
+ 	return de;
++
++journal_error:
++	brelse(*bh);
++	brelse(bh2);
++	*bh = NULL;
++errout:
++	ext3_std_error(dir->i_sb, err);
++	*error = err;
++	return NULL;
+ }
+ #endif
  
--	  (For now, swsusp is incompatible with PAE aka HIGHMEM_64G on i386.
--	  we need identity mapping for resume to work, and that is trivial
--	  to get with 4MB pages, but less than trivial on PAE).
--
- config PM_STD_PARTITION
- 	string "Default resume partition"
- 	depends on SOFTWARE_SUSPEND
+diff -puN fs/ext4/namei.c~ext3-dirindex-error-pointer-issues fs/ext4/namei.c
+--- a/fs/ext4/namei.c~ext3-dirindex-error-pointer-issues
++++ a/fs/ext4/namei.c
+@@ -967,6 +967,7 @@ static struct buffer_head * ext4_dx_find
+ 				  (block<<EXT4_BLOCK_SIZE_BITS(sb))
+ 					  +((char *)de - bh->b_data))) {
+ 				brelse (bh);
++				*err = ERR_BAD_DX_DIR;
+ 				goto errout;
+ 			}
+ 			*res_dir = de;
+@@ -1132,9 +1133,9 @@ static struct ext4_dir_entry_2 *do_split
+ 	char *data1 = (*bh)->b_data, *data2;
+ 	unsigned split;
+ 	struct ext4_dir_entry_2 *de = NULL, *de2;
+-	int	err;
++	int	err = 0;
+ 
+-	bh2 = ext4_append (handle, dir, &newblock, error);
++	bh2 = ext4_append (handle, dir, &newblock, &err);
+ 	if (!(bh2)) {
+ 		brelse(*bh);
+ 		*bh = NULL;
+@@ -1143,14 +1144,9 @@ static struct ext4_dir_entry_2 *do_split
+ 
+ 	BUFFER_TRACE(*bh, "get_write_access");
+ 	err = ext4_journal_get_write_access(handle, *bh);
+-	if (err) {
+-	journal_error:
+-		brelse(*bh);
+-		brelse(bh2);
+-		*bh = NULL;
+-		ext4_std_error(dir->i_sb, err);
+-		goto errout;
+-	}
++	if (err)
++		goto journal_error;
++
+ 	BUFFER_TRACE(frame->bh, "get_write_access");
+ 	err = ext4_journal_get_write_access(handle, frame->bh);
+ 	if (err)
+@@ -1193,8 +1189,16 @@ static struct ext4_dir_entry_2 *do_split
+ 		goto journal_error;
+ 	brelse (bh2);
+ 	dxtrace(dx_show_index ("frame", frame->entries));
+-errout:
+ 	return de;
++
++journal_error:
++	brelse(*bh);
++	brelse(bh2);
++	*bh = NULL;
++errout:
++	ext4_std_error(dir->i_sb, err);
++	*error = err;
++	return NULL;
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from dmonakhov@sw.ru are
 
-kconfig-update-swsusp-description.patch
-make-xfs-workqueues-nonfreezable.patch
-fix-refrigerator-vs-thaw_process-race.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-shrink_slab-handle-bad-shrinkers.patch
+origin.patch
+libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
+3c59x-handle-pci_enable_device-failure-while-resuming.patch
+freevxfs-possible-null-pointer-dereference-fix.patch
+reiserfs-possible-null-pointer-dereference-during-resize.patch
+ext3-dirindex-error-pointer-issues.patch
