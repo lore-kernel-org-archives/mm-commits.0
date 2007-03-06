@@ -1,104 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - make-ext2_get_blocks-static.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:14:27 -0800
-Message-ID: <200703060114.l261ESsH007322@shell0.pdx.osdl.net>
+Subject: - ext2-balloc-fix-off-by-one-against-rsv_end.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:14:47 -0800
+Message-ID: <200703060114.l261Elbn007352@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44481 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44522 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933764AbXCFBOq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:14:46 -0500
+	id S932868AbXCFBPJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:15:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: hugh@veritas.com, cmm@us.ibm.com, mbligh@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make ext2_get_blocks() static
+     ext2 balloc: fix off-by-one against rsv_end
 has been removed from the -mm tree.  Its filename was
-     make-ext2_get_blocks-static.patch
+     ext2-balloc-fix-off-by-one-against-rsv_end.patch
 
 This patch was dropped because it was folded into ext2-reservations.patch
 
 ------------------------------------------------------
-Subject: make ext2_get_blocks() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: ext2 balloc: fix off-by-one against rsv_end
+From: Hugh Dickins <hugh@veritas.com>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+rsv_end is the last block within the reservation, so alloc_new_reservation
+should accept start_block == rsv_end as success.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Martin Bligh <mbligh@google.com>
+Acked-by: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/ext2/inode.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ fs/ext2/balloc.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext2/inode.c~make-ext2_get_blocks-static fs/ext2/inode.c
---- a/fs/ext2/inode.c~make-ext2_get_blocks-static
-+++ a/fs/ext2/inode.c
-@@ -574,10 +574,10 @@ static void ext2_splice_branch(struct in
-  * return = 0, if plain lookup failed.
-  * return < 0, error case.
-  */
--int ext2_get_blocks(struct inode *inode,
--		sector_t iblock, unsigned long maxblocks,
--		struct buffer_head *bh_result,
--		int create)
-+static int ext2_get_blocks(struct inode *inode,
-+			   sector_t iblock, unsigned long maxblocks,
-+			   struct buffer_head *bh_result,
-+			   int create)
- {
- 	int err = -EIO;
- 	int offsets[4];
+diff -puN fs/ext2/balloc.c~ext2-balloc-fix-off-by-one-against-rsv_end fs/ext2/balloc.c
+--- a/fs/ext2/balloc.c~ext2-balloc-fix-off-by-one-against-rsv_end
++++ a/fs/ext2/balloc.c
+@@ -950,7 +950,7 @@ retry:
+ 	 * check if the first free block is within the
+ 	 * free space we just reserved
+ 	 */
+-	if (start_block >= my_rsv->rsv_start && start_block < my_rsv->rsv_end)
++	if (start_block >= my_rsv->rsv_start && start_block <= my_rsv->rsv_end)
+ 		return 0;		/* success */
+ 	/*
+ 	 * if the first free bit we found is out of the reservable space
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-fs-jffs2-ioctlc.patch
-git-ubi.patch
-drivers-net-vioc-possible-cleanups.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-lguest-kconfig-and-headers-fix.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+free-swap-space-of-reactivated-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
 ext2-reservations.patch
-make-ext2_get_blocks-static.patch
-drivers-edac-make-code-static.patch
-linux-kernel-markers-kconfig-menus-fix.patch
-linux-kernel-markers-architecture-independant-code-license-fix.patch
-linux-kernel-markers-i386-optimization-export-fix.patch
-readahead-events-accounting-make-readahead_debug_level-static.patch
-reiser4-export-remove_from_page_cache-fix.patch
-fs-reiser4-possible-cleanups.patch
-reiser4-possible-cleanups-2.patch
-fs-reiser4-possible-cleanups-2.patch
-fs-reiser4-more-possible-cleanups.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+ext2-balloc-fix-off-by-one-against-rsv_end.patch
+ext2-balloc-fix-off-by-one-against-grp_goal.patch
+ext2-balloc-say-rb_entry-not-list_entry.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rcu-preemptible-rcu-fix.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
