@@ -1,87 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - slim-secfs-patch-cleanup-use-of-configh.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:11:55 -0800
-Message-ID: <200703060211.l262BtaL009049@shell0.pdx.osdl.net>
+Subject: - slim-main-include-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:11:32 -0800
+Message-ID: <200703060211.l262BWrr009039@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47111 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47190 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933848AbXCFCMZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:12:25 -0500
+	id S933849AbXCFCNk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:13:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kjhall@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chrisw@sous-sol.org, jmorris@namei.org, kjhall@us.ibm.com, safford@us.ibm.com, sds@tycho.nsa.gov, sergeh@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slim: cleanup use of config.h
+     slim-main-include-fix
 has been removed from the -mm tree.  Its filename was
-     slim-secfs-patch-cleanup-use-of-configh.patch
+     slim-main-include-fix.patch
 
-This patch was dropped because it was folded into slim-secfs-patch.patch
+This patch was dropped because it was folded into slim-main-patch.patch
 
 ------------------------------------------------------
-Subject: slim: cleanup use of config.h
-From: Kylene Jo Hall <kjhall@us.ibm.com>
+Subject: slim-main-include-fix
+From: Andrew Morton <akpm@osdl.org>
 
-The following patch addresses this comment to clean up the use of
-config.h in the slim .c files.
+security/slim/slm_main.c: In function 'revoke_mmap_wperm':
+security/slim/slm_main.c:201: warning: implicit declaration of function 'flush_cache_mm'
 
-On Mon, 2006-09-18 at 16:54 -0400, Dave Jones wrote:
->  > > > +
->  > > > +#include <asm/uaccess.h>
->  > > > +#include <linux/config.h>
->
-> You don't need to include config.h any more, kbuild does it for you.
-> (Might want to check the other files for the same thing).
->
-> 	Dave
-
-Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
-Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
+Cc: Mimi Zohar <zohar@us.ibm.com>
+Cc: Kylene Hall <kjhall@us.ibm.com>
+Cc: Dave Safford <safford@us.ibm.com>
+Cc: Mimi Zohar <zohar@us.ibm.com>
+Cc: Serge Hallyn <sergeh@us.ibm.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- security/slim/slm_main.c  |    1 -
- security/slim/slm_secfs.c |    1 -
- 2 files changed, 2 deletions(-)
+ security/slim/slm_main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN security/slim/slm_main.c~slim-secfs-patch-cleanup-use-of-configh security/slim/slm_main.c
---- a/security/slim/slm_main.c~slim-secfs-patch-cleanup-use-of-configh
+diff -puN security/slim/slm_main.c~slim-main-include-fix security/slim/slm_main.c
+--- a/security/slim/slm_main.c~slim-main-include-fix
 +++ a/security/slim/slm_main.c
-@@ -11,7 +11,6 @@
-  */
+@@ -26,6 +26,7 @@
+ #include <linux/errno.h>
+ #include <linux/xattr.h>
+ #include <net/sock.h>
++#include <asm/cacheflush.h>
  
- #include <linux/mman.h>
--#include <linux/config.h>
- #include <linux/kernel.h>
- #include <linux/security.h>
- #include <linux/integrity.h>
-diff -puN security/slim/slm_secfs.c~slim-secfs-patch-cleanup-use-of-configh security/slim/slm_secfs.c
---- a/security/slim/slm_secfs.c~slim-secfs-patch-cleanup-use-of-configh
-+++ a/security/slim/slm_secfs.c
-@@ -11,7 +11,6 @@
-  */
+ #include "slim.h"
  
- #include <asm/uaccess.h>
--#include <linux/config.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/security.h>
 _
 
-Patches currently in -mm which might be from kjhall@us.ibm.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-mprotect-patch-for-use-by-slim.patch
-integrity-service-api-and-dummy-provider.patch
+origin.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-ia64.patch
+git-ieee1394.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+aio-is-unlikely.patch
+mm-implement-swap-prefetching.patch
+rcu-preemptible-rcu.patch
+readahead-kconfig-options.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-context-based-method.patch
+readahead-call-scheme.patch
+readahead-nfsd-case.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
 slim-main-patch.patch
-slim-secfs-patch.patch
-slim-secfs-patch-cleanup-use-of-configh.patch
-slim-make-and-config-stuff.patch
-slim-make-and-config-stuff-makefile-fix.patch
-slim-debug-output.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-slim-fix-security-issue-with-the-task_post_setuid-hook.patch
-slim-secfs-inode-i_private-build-fix.patch
-slim-documentation.patch
-panic-on-slim-selinux.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
