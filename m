@@ -1,124 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 02:52:37 -0800
-Message-ID: <200703061052.l26Aqb6s020323@shell0.pdx.osdl.net>
+Subject: - x86_64-map-fake-nodes-to-real-nodes-fix.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 02:53:07 -0800
+Message-ID: <200703061053.l26Ar7WU020326@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35254 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35268 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964875AbXCFKwy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:52:54 -0500
+	id S964893AbXCFKxa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:53:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, mingo@elte.hu, yinghai.lu@amd.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy
+     x86_64: fake numa cmdline flag fix
 has been removed from the -mm tree.  Its filename was
-     x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy.patch
+     x86_64-map-fake-nodes-to-real-nodes-fix.patch
 
-This patch was dropped because it was folded into x86_64-irq-make-affinity-works-for-genapic_flat-mode.patch
+This patch was dropped because it was folded into x86_64-map-fake-nodes-to-real-nodes.patch
 
 ------------------------------------------------------
-Subject: x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86_64: fake numa cmdline flag fix
+From: David Rientjes <rientjes@google.com>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Yinghai Lu <yinghai.lu@amd.com> 
+Make sure we only reference 'cmdline' on CONFIG_NUMA_EMU.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ arch/x86_64/mm/numa.c |   16 +++++++++++-----
+ 1 files changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -681,17 +681,14 @@ static int __assign_irq_vector(int irq, 
- 			domain = vector_allocation_domain(cpu);
- 			if (cpus_equal(domain, cfg->domain)) {
- #ifdef CONFIG_SMP
--				/* we don't need lock for desc here
--				   for apic_flat can not be used with CONFIG_HOTPLUG_CPU
--				   others only have one cpu set in domain or affinity
-+				/*
-+				 * We don't need lock for desc here for
-+				 * apic_flat can not be used with
-+				 * CONFIG_HOTPLUG_CPU others only have one cpu
-+				 * set in domain or affinity
- 				 */
--				int equal;
--				struct irq_desc *desc;
--				desc = irq_desc + irq;
--				equal = cpus_equal(tmp, desc->affinity);
--				if (equal) {
-+				if (cpus_equal(tmp, irq_desc[irq].affinity))
- 					return 0;
--				}
- #else
- 				return 0;
- #endif
-@@ -745,8 +742,6 @@ next:
- 		return 0;
- 	}
- 	return -ENOSPC;
--
--
- }
+diff -puN arch/x86_64/mm/numa.c~x86_64-map-fake-nodes-to-real-nodes-fix arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~x86_64-map-fake-nodes-to-real-nodes-fix
++++ a/arch/x86_64/mm/numa.c
+@@ -519,22 +519,28 @@ void __init numa_initmem_init(unsigned l
+ { 
+ 	unsigned long start_addr = start_pfn << PAGE_SHIFT;
+ 	unsigned long end_addr = end_pfn << PAGE_SHIFT;
++	int numa_fake = 0;
+ 	int i;
  
- static int assign_irq_vector(int irq, cpumask_t mask)
++#ifdef CONFIG_NUMA_EMU
++	/* Determine if we have a numa=fake command line */
++	if (cmdline != 0)
++		numa_fake = 1;
++#endif
++
+ #ifdef CONFIG_ACPI_NUMA
+-	if (!numa_off && !cmdline && !acpi_scan_nodes(start_addr, end_addr))
++	if (!numa_off && !numa_fake && !acpi_scan_nodes(start_addr, end_addr))
+  		return;
+ #endif
+ 
+ #ifdef CONFIG_K8_NUMA
+-	if (!numa_off && !k8_scan_nodes(start_addr, end_addr, cmdline != 0))
+-		if (cmdline == 0)
++	if (!numa_off && !k8_scan_nodes(start_addr, end_addr, numa_fake))
++		if (!numa_fake)
+ 			return;
+ #endif
+ 
+ #ifdef CONFIG_NUMA_EMU
+-	if (cmdline)
+-	{
++	if (numa_fake) {
+ 		numa_emu = !numa_emulation(start_pfn, end_pfn);
+ 		if (numa_emu)
+ 			return;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-fix-build-with-config_no_idle_hz=n.patch
-highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-sony-laptop-fix-uninitialised-variable.patch
-git-alsa-oops-fix.patch
-git-drm.patch
-git-dvb.patch
-gfs2-build-fix.patch
-git-input.patch
-git-md-accel-fixup.patch
-git-mmc-fix-99.patch
-git-ubi.patch
-git-netdev-all.patch
-git-netdev-all-ipw2200-fix.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-dmfe-add-support-for-suspend-resume.patch
-sis900-warning-fixes.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-unionfs.patch
-usbatm-create-sysfs-link-device-from-atm-class-device.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-x86_64-irq-make-affinity-works-for-genapic_flat-mode.patch
-x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy.patch
-i386-vdso_prelink-warning-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+x86_64-configurable-fake-numa-node-sizes.patch
+x86_64-split-remaining-fake-nodes-equally.patch
+x86_64-fixed-size-remaining-fake-nodes.patch
+x86_64-map-fake-nodes-to-real-nodes.patch
+x86_64-map-fake-nodes-to-real-nodes-fix.patch
+x86_64-disable-alien-cache-for-fake-numa.patch
+x86_64-export-physnode-mapping-to-userspace.patch
+x86_64-fake-numa-for-cpusets-document.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
-driver_bfin_serial_core-update.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-utrace-prep.patch
-utrace-prep-2.patch
-revert-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-docs.patch
