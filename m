@@ -1,152 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-temp-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:04:23 -0800
-Message-ID: <200703060204.l2624N1C008804@shell0.pdx.osdl.net>
+Subject: - reiser4-fix-write_extent-1.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:04:25 -0800
+Message-ID: <200703060204.l2624PjE008807@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46774 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46776 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965707AbXCFCE2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:04:28 -0500
+	id S965712AbXCFCE3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:04:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, edward@namesys.com, vs@namesys.com, mm-commits@vger.kernel.org
+To: edward@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4-temp-fix
+     reiser4: fix write_extent
 has been removed from the -mm tree.  Its filename was
-     reiser4-temp-fix.patch
+     reiser4-fix-write_extent-1.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: reiser4-temp-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: reiser4: fix write_extent
+From: Edward Shishkin <edward@namesys.com>
 
-Fix reiser4 for the temporary droppage of 
+. Use set_page_writeback() instead of SetPageWriteback().
+. Use end_page_writeback() instead of ClearPageWriteback().
 
-revert-generic_file_buffered_write-handle-zero-length-iovec-segments.patch
-revert-generic_file_buffered_write-deadlock-on-vectored-write.patch
-generic_file_buffered_write-cleanup.patch
-mm-only-mm-debug-write-deadlocks.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-fix-pagecache-write-deadlocks-comment.patch
-mm-fix-pagecache-write-deadlocks-xip.patch
-mm-fix-pagecache-write-deadlocks-mm-pagecache-write-deadlocks-efault-fix.patch
-fs-prepare_write-fixes.patch
-fs-prepare_write-fixes-fuse-fix.patch
-fs-prepare_write-fixes-jffs-fix.patch
-fs-prepare_write-fixes-fat-fix.patch
 
-Hopefully this works...
-
-Cc: Vladimir Saveliev <vs@namesys.com>
-Cc: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/plugin/item/extent_file_ops.c |   18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
+ fs/reiser4/page_cache.c |    2 +-
+ fs/reiser4/wander.c     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-temp-fix fs/reiser4/plugin/item/extent_file_ops.c
---- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-temp-fix
-+++ a/fs/reiser4/plugin/item/extent_file_ops.c
-@@ -1051,23 +1051,7 @@ ssize_t reiser4_write_extent(struct file
- 			kunmap_atomic(kaddr, KM_USER0);
+diff -puN fs/reiser4/page_cache.c~reiser4-fix-write_extent-1 fs/reiser4/page_cache.c
+--- a/fs/reiser4/page_cache.c~reiser4-fix-write_extent-1
++++ a/fs/reiser4/page_cache.c
+@@ -409,7 +409,7 @@ int reiser4_page_io(struct page *page, j
+ 	bio = page_bio(page, node, rw, gfp);
+ 	if (!IS_ERR(bio)) {
+ 		if (rw == WRITE) {
+-			SetPageWriteback(page);
++			set_page_writeback(page);
+ 			unlock_page(page);
  		}
+ 		reiser4_submit_bio(rw, bio);
+diff -puN fs/reiser4/wander.c~reiser4-fix-write_extent-1 fs/reiser4/wander.c
+--- a/fs/reiser4/wander.c~reiser4-fix-write_extent-1
++++ a/fs/reiser4/wander.c
+@@ -557,7 +557,7 @@ static void undo_bio(struct bio *bio)
+ 		jnode *node;
  
--		written = filemap_copy_from_user_atomic(page, page_off,
--							buf, to_page);
--		if (written != to_page) {
--			/* Do it the slow way */
--			written = filemap_copy_from_user_nonatomic(page,
--								   page_off,
--								   buf,
--								   to_page);
--			if (written != to_page) {
--				unlock_page(page);
--				page_cache_release(page);
--				nr_pages = i;
--				jput(jnodes[i]);
--				result = RETERR(-EFAULT);
--				break;
--			}
--		}
-+		written = filemap_copy_from_user(page, page_off, buf, to_page);
- 		flush_dcache_page(page);
- 		reiser4_set_page_dirty_internal(page);
- 		unlock_page(page);
+ 		pg = bio->bi_io_vec[i].bv_page;
+-		ClearPageWriteback(pg);
++		end_page_writeback(pg);
+ 		node = jprivate(pg);
+ 		spin_lock_jnode(node);
+ 		JF_CLR(node, JNODE_WRITEBACK);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from edward@namesys.com are
 
-origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-ia64.patch
-git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-mm-implement-swap-prefetching.patch
-rcu-preemptible-rcu.patch
-readahead-kconfig-options.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-context-based-method.patch
-readahead-call-scheme.patch
-readahead-nfsd-case.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
+reiser4-fix-write_extent-1.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+reiser4-use-null-for-pointers.patch
 reiser4-test_clear_page_dirty.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+reiser4-fix-readpage_cryptcompress.patch
+reiser4-improve-estimation-for-number-of-nodes-occupied.patch
+reiser4-drop-check_cryptcompress.patch
+reiser4-drop-unused-semaphores.patch
+reiser4-use-dynamic-lattice-for-adaptive-compression.patch
+reiser4-fix-freeze-and-corruption.patch
