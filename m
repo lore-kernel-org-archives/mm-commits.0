@@ -1,180 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:59:40 -0800
-Message-ID: <200703060159.l261xeYs008619@shell0.pdx.osdl.net>
+Subject: - reiser4-vs-zoned-allocator.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:59:37 -0800
+Message-ID: <200703060159.l261xb1f008616@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46553 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46552 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965638AbXCFB7o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:59:44 -0500
+	id S965607AbXCFB7n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:59:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tytso@mit.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@engr.sgi.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     inode_diet: Replace inode.u.generic_ip with inode.i_private
+     reiser4 vs zoned-allocator
 has been removed from the -mm tree.  Its filename was
-     inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4.patch
+     reiser4-vs-zoned-allocator.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: inode_diet: Replace inode.u.generic_ip with inode.i_private
-From: "Theodore Ts'o" <tytso@mit.edu>
+Subject: reiser4 vs zoned-allocator
+From: Andrew Morton <akpm@osdl.org>
 
-The filesystem or device-specific pointer in the inode is inside a union,
-which is pretty pointless given that all 30+ users of this field have been
-using the void pointer.  Get rid of the union and rename it to i_private, with
-a comment to explain who is allowed to use the void pointer.  This is just a
-cleanup, but it allows us to reuse the union 'u' for something something where
-the union will actually be used.
+Update reiser4 for zoned-vm-counters-*.patch
 
-Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/inode.h                   |    2 +-
- fs/reiser4/plugin/file/symlink.c     |   14 +++++++-------
- fs/reiser4/plugin/inode_ops.c        |    6 +++---
- fs/reiser4/plugin/item/static_stat.c |   18 +++++++++---------
- 4 files changed, 20 insertions(+), 20 deletions(-)
+ fs/reiser4/as_ops.c     |    3 ++-
+ fs/reiser4/page_cache.c |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiser4/inode.h~inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4 fs/reiser4/inode.h
---- a/fs/reiser4/inode.h~inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4
-+++ a/fs/reiser4/inode.h
-@@ -41,7 +41,7 @@ typedef enum {
- 	REISER4_IMMUTABLE = 2,
- 	/* inode was read from storage */
- 	REISER4_LOADED = 3,
--	/* this bit is set for symlinks. inode->u.generic_ip points to target
-+	/* this bit is set for symlinks. inode->i_private points to target
- 	   name of symlink. */
- 	REISER4_GENERIC_PTR_USED = 4,
- 	/* set if size of stat-data item for this inode is known. If this is
-diff -puN fs/reiser4/plugin/file/symlink.c~inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4 fs/reiser4/plugin/file/symlink.c
---- a/fs/reiser4/plugin/file/symlink.c~inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4
-+++ a/fs/reiser4/plugin/file/symlink.c
-@@ -42,8 +42,8 @@ int create_symlink(struct inode *symlink
- 	 */
- 	reiser4_inode_data(symlink)->extmask |= (1 << SYMLINK_STAT);
+diff -puN fs/reiser4/as_ops.c~reiser4-vs-zoned-allocator fs/reiser4/as_ops.c
+--- a/fs/reiser4/as_ops.c~reiser4-vs-zoned-allocator
++++ a/fs/reiser4/as_ops.c
+@@ -83,7 +83,8 @@ int reiser4_set_page_dirty(struct page *
+ 			if (page->mapping) {
+ 				assert("vs-1652", page->mapping == mapping);
+ 				if (mapping_cap_account_dirty(mapping))
+-					inc_page_state(nr_dirty);
++					inc_zone_page_state(page,
++							NR_FILE_DIRTY);
+ 				radix_tree_tag_set(&mapping->page_tree,
+ 						   page->index,
+ 						   PAGECACHE_TAG_REISER4_MOVED);
+diff -puN fs/reiser4/page_cache.c~reiser4-vs-zoned-allocator fs/reiser4/page_cache.c
+--- a/fs/reiser4/page_cache.c~reiser4-vs-zoned-allocator
++++ a/fs/reiser4/page_cache.c
+@@ -463,7 +463,7 @@ int set_page_dirty_internal(struct page 
  
--	assert("vs-838", symlink->u.generic_ip == NULL);
--	symlink->u.generic_ip = (void *)data->name;
-+	assert("vs-838", symlink->i_private == NULL);
-+	symlink->i_private = (void *)data->name;
+ 	if (!TestSetPageDirty(page)) {
+ 		if (mapping_cap_account_dirty(mapping))
+-			inc_page_state(nr_dirty);
++			inc_zone_page_state(page, NR_FILE_DIRTY);
  
- 	assert("vs-843", symlink->i_size == 0);
- 	INODE_SET_FIELD(symlink, i_size, strlen(data->name));
-@@ -51,14 +51,14 @@ int create_symlink(struct inode *symlink
- 	/* insert stat data appended with data->name */
- 	result = inode_file_plugin(symlink)->write_sd_by_inode(symlink);
- 	if (result) {
--		/* FIXME-VS: Make sure that symlink->u.generic_ip is not attached
-+		/* FIXME-VS: Make sure that symlink->i_private is not attached
- 		   to kmalloced data */
- 		INODE_SET_FIELD(symlink, i_size, 0);
- 	} else {
--		assert("vs-849", symlink->u.generic_ip
-+		assert("vs-849", symlink->i_private
- 		       && inode_get_flag(symlink, REISER4_GENERIC_PTR_USED));
- 		assert("vs-850",
--		       !memcmp((char *)symlink->u.generic_ip, data->name,
-+		       !memcmp((char *)symlink->i_private, data->name,
- 			       (size_t) symlink->i_size + 1));
+ 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
  	}
- 	return result;
-@@ -76,8 +76,8 @@ void destroy_inode_symlink(struct inode 
- 	assert("edward-801", inode_get_flag(inode, REISER4_GENERIC_PTR_USED));
- 	assert("vs-839", S_ISLNK(inode->i_mode));
- 
--	kfree(inode->u.generic_ip);
--	inode->u.generic_ip = NULL;
-+	kfree(inode->i_private);
-+	inode->i_private = NULL;
- 	inode_clr_flag(inode, REISER4_GENERIC_PTR_USED);
- }
- 
-diff -puN fs/reiser4/plugin/inode_ops.c~inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4 fs/reiser4/plugin/inode_ops.c
---- a/fs/reiser4/plugin/inode_ops.c~inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4
-+++ a/fs/reiser4/plugin/inode_ops.c
-@@ -389,16 +389,16 @@ int mknod_common(struct inode *parent, s
-  *
-  * This is common implementation of vfs's followlink method of struct
-  * inode_operations.
-- * Assumes that inode's generic_ip points to the content of symbolic link.
-+ * Assumes that inode's i_private points to the content of symbolic link.
-  */
- void *follow_link_common(struct dentry *dentry, struct nameidata *nd)
- {
- 	assert("vs-851", S_ISLNK(dentry->d_inode->i_mode));
- 
--	if (!dentry->d_inode->u.generic_ip
-+	if (!dentry->d_inode->i_private
- 	    || !inode_get_flag(dentry->d_inode, REISER4_GENERIC_PTR_USED))
- 		return ERR_PTR(RETERR(-EINVAL));
--	nd_set_link(nd, dentry->d_inode->u.generic_ip);
-+	nd_set_link(nd, dentry->d_inode->i_private);
- 	return NULL;
- }
- 
-diff -puN fs/reiser4/plugin/item/static_stat.c~inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4 fs/reiser4/plugin/item/static_stat.c
---- a/fs/reiser4/plugin/item/static_stat.c~inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4
-+++ a/fs/reiser4/plugin/item/static_stat.c
-@@ -430,21 +430,21 @@ save_large_times_sd(struct inode *inode 
- 
- /* symlink stat data extension */
- 
--/* allocate memory for symlink target and attach it to inode->u.generic_ip */
-+/* allocate memory for symlink target and attach it to inode->i_private */
- static int
- symlink_target_to_inode(struct inode *inode, const char *target, int len)
- {
--	assert("vs-845", inode->u.generic_ip == NULL);
-+	assert("vs-845", inode->i_private == NULL);
- 	assert("vs-846", !inode_get_flag(inode, REISER4_GENERIC_PTR_USED));
- 
- 	/* FIXME-VS: this is prone to deadlock. Not more than other similar
- 	   places, though */
--	inode->u.generic_ip = kmalloc((size_t) len + 1, get_gfp_mask());
--	if (!inode->u.generic_ip)
-+	inode->i_private = kmalloc((size_t) len + 1, get_gfp_mask());
-+	if (!inode->i_private)
- 		return RETERR(-ENOMEM);
- 
--	memcpy((char *)(inode->u.generic_ip), target, (size_t) len);
--	((char *)(inode->u.generic_ip))[len] = 0;
-+	memcpy((char *)(inode->i_private), target, (size_t) len);
-+	((char *)(inode->i_private))[len] = 0;
- 	inode_set_flag(inode, REISER4_GENERIC_PTR_USED);
- 	return 0;
- }
-@@ -499,8 +499,8 @@ static int save_symlink_sd(struct inode 
- 	if (!inode_get_flag(inode, REISER4_GENERIC_PTR_USED)) {
- 		const char *target;
- 
--		target = (const char *)(inode->u.generic_ip);
--		inode->u.generic_ip = NULL;
-+		target = (const char *)(inode->i_private);
-+		inode->i_private = NULL;
- 
- 		result = symlink_target_to_inode(inode, target, length);
- 
-@@ -510,7 +510,7 @@ static int save_symlink_sd(struct inode 
- 	} else {
- 		/* there is nothing to do in update but move area */
- 		assert("vs-844",
--		       !memcmp(inode->u.generic_ip, sd->body,
-+		       !memcmp(inode->i_private, sd->body,
- 			       (size_t) length + 1));
- 	}
- 
 _
 
-Patches currently in -mm which might be from tytso@mit.edu are
+Patches currently in -mm which might be from akpm@osdl.org are
 
+origin.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-ia64.patch
+git-ieee1394.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+aio-is-unlikely.patch
+mm-implement-swap-prefetching.patch
+rcu-preemptible-rcu.patch
+readahead-kconfig-options.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-context-based-method.patch
+readahead-call-scheme.patch
+readahead-nfsd-case.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
-inode_diet-replace-inodeugeneric_ip-with-inodei_private-reiser4.patch
-inode-diet-eliminate-i_blksize-and-use-a-per-superblock-default-reiser4.patch
-statistics-replace-inode-ugeneric_ip-with-i_private.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
