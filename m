@@ -1,64 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - mm-implement-swap-prefetching-use-ctl_unnumbered.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:21:08 -0800
-Message-ID: <200703060121.l261LETN007527@shell0.pdx.osdl.net>
+Subject: - add-include-linux-freezerh-and-move-definitions-from-prefetch.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:21:40 -0800
+Message-ID: <200703060121.l261Legc007536@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44995 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45004 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933767AbXCFBVj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:21:39 -0500
+	id S933771AbXCFBVq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:21:46 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l261Lhq8017413
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 5 Mar 2007 17:21:43 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, kernel@kolivas.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-implement-swap-prefetching-use-ctl_unnumbered
+     add-include-linux-freezerh-and-move-definitions-from-prefetch
 has been removed from the -mm tree.  Its filename was
-     mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+     add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
 
 This patch was dropped because it was folded into mm-implement-swap-prefetching.patch
 
 ------------------------------------------------------
-Subject: mm-implement-swap-prefetching-use-ctl_unnumbered
+Subject: add-include-linux-freezerh-and-move-definitions-from-prefetch
 From: Andrew Morton <akpm@osdl.org>
 
-Don't add new sysctl numbers.
-
-Cc: Con Kolivas <kernel@kolivas.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sysctl.h |    1 -
- kernel/sysctl.c        |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ mm/swap_prefetch.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/sysctl.h~mm-implement-swap-prefetching-use-ctl_unnumbered include/linux/sysctl.h
---- a/include/linux/sysctl.h~mm-implement-swap-prefetching-use-ctl_unnumbered
-+++ a/include/linux/sysctl.h
-@@ -208,7 +208,6 @@ enum
- 	VM_VDSO_ENABLED=34,	/* map VDSO into new processes? */
- 	VM_MIN_SLAB=35,		 /* Percent pages ignored by zone reclaim */
- 	VM_HUGETLB_TREAT_MOVABLE=36, /* Allocate hugepages from ZONE_MOVABLE */
--	VM_SWAP_PREFETCH=37,	/* swap prefetch */
+diff -puN mm/swap_prefetch.c~add-include-linux-freezerh-and-move-definitions-from-prefetch mm/swap_prefetch.c
+--- a/mm/swap_prefetch.c~add-include-linux-freezerh-and-move-definitions-from-prefetch
++++ a/mm/swap_prefetch.c
+@@ -20,6 +20,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/writeback.h>
+ #include <linux/vmstat.h>
++#include <linux/freezer.h>
  
- 	/* s390 vm cmm sysctls */
- 	VM_CMM_PAGES=1111,
-diff -puN kernel/sysctl.c~mm-implement-swap-prefetching-use-ctl_unnumbered kernel/sysctl.c
---- a/kernel/sysctl.c~mm-implement-swap-prefetching-use-ctl_unnumbered
-+++ a/kernel/sysctl.c
-@@ -870,7 +870,7 @@ static ctl_table vm_table[] = {
- #endif
- #ifdef CONFIG_SWAP_PREFETCH
- 	{
--		.ctl_name	= VM_SWAP_PREFETCH,
-+		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "swap_prefetch",
- 		.data		= &swap_prefetch,
- 		.maxlen		= sizeof(swap_prefetch),
+ /*
+  * Time to delay prefetching if vm is busy or prefetching unsuccessful. There
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -103,8 +89,6 @@ ext2-reservations.patch
 edac-new-opteron-athlon64-memory-controller-driver.patch
 aio-is-unlikely.patch
 mm-implement-swap-prefetching.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
 add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
 rcu-preemptible-rcu.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
