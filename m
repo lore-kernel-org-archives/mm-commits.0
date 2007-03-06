@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + the-scheduled-removal-of-obsolete_oss-options.patch added to -mm tree
-Date: Mon, 05 Mar 2007 19:54:39 -0800
-Message-ID: <200703060354.l263sdG8011129@shell0.pdx.osdl.net>
+Subject: + fbdev-mm-deferred-io-support-fix-2.patch added to -mm tree
+Date: Mon, 05 Mar 2007 20:01:52 -0800
+Message-ID: <200703060401.l2641qYA011282@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49464 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49526 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933926AbXCFD54 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:57:56 -0500
+	id S1751932AbXCFEB4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 23:01:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, benh@kernel.crashing.org, paulus@samba.org
+Cc: lethal@linux-sh.org, adaplas@gmail.com, jayakumar.lkml@gmail.com
 
 
 The patch titled
-     the scheduled removal of OBSOLETE_OSS options
+     fb: fsync() method for deferred I/O flush.
 has been added to the -mm tree.  Its filename is
-     the-scheduled-removal-of-obsolete_oss-options.patch
+     fbdev-mm-deferred-io-support-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,143 +25,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: the scheduled removal of OBSOLETE_OSS options
-From: Adrian Bunk <bunk@stusta.de>
+Subject: fb: fsync() method for deferred I/O flush.
+From: Paul Mundt <lethal@linux-sh.org>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+There are cases when we do not want to wait on the delay for automatically
+updating the "real" framebuffer, this implements a simple ->fsync() hook
+for explicitly flushing the deferred I/O work.  The ->page_mkwrite()
+handler will rearm the work queue normally.
+
+(akpm: nuke unneeded ifdefs, forward-delcare struct dentry)
+
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/Kconfig          |   27 ---------------------------
- sound/oss/dmasound/Kconfig |   14 --------------
- 2 files changed, 41 deletions(-)
+ drivers/video/fb_defio.c |   12 ++++++++++++
+ drivers/video/fbmem.c    |    3 +++
+ include/linux/fb.h       |    6 ++++--
+ 3 files changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN sound/oss/dmasound/Kconfig~the-scheduled-removal-of-obsolete_oss-options sound/oss/dmasound/Kconfig
---- a/sound/oss/dmasound/Kconfig~the-scheduled-removal-of-obsolete_oss-options
-+++ a/sound/oss/dmasound/Kconfig
-@@ -12,20 +12,6 @@ config DMASOUND_ATARI
- 	  want). If you want to compile it as a module, say M here and read
- 	  <file:Documentation/kbuild/modules.txt>.
+diff -puN drivers/video/fb_defio.c~fbdev-mm-deferred-io-support-fix-2 drivers/video/fb_defio.c
+--- a/drivers/video/fb_defio.c~fbdev-mm-deferred-io-support-fix-2
++++ a/drivers/video/fb_defio.c
+@@ -47,6 +47,18 @@ static struct page* fb_deferred_io_nopag
+ 	return page;
+ }
  
--config DMASOUND_PMAC
--	tristate "PowerMac DMA sound support"
--	depends on PPC32 && PPC_PMAC && SOUND && I2C && OBSOLETE_OSS
-- 	select DMASOUND
--	help
--	  If you want to use the internal audio of your PowerMac in Linux,
--	  answer Y to this question. This will provide a Sun-like /dev/audio,
--	  compatible with the Linux/i386 sound system. Otherwise, say N.
--
--	  This driver is also available as a module ( = code which can be
--	  inserted in and removed from the running kernel whenever you
--	  want). If you want to compile it as a module, say M here and read
--	  <file:Documentation/kbuild/modules.txt>.
--
- config DMASOUND_PAULA
- 	tristate "Amiga DMA sound support"
- 	depends on (AMIGA || APUS) && SOUND
-diff -puN sound/oss/Kconfig~the-scheduled-removal-of-obsolete_oss-options sound/oss/Kconfig
---- a/sound/oss/Kconfig~the-scheduled-removal-of-obsolete_oss-options
-+++ a/sound/oss/Kconfig
-@@ -5,20 +5,6 @@
- #
- # Prompt user for primary drivers.
++int fb_deferred_io_fsync(struct file *file, struct dentry *dentry, int datasync)
++{
++	struct fb_info *info = file->private_data;
++
++	/* Kill off the delayed work */
++	cancel_rearming_delayed_work(&info->deferred_work);
++
++	/* Run it immediately */
++	return schedule_delayed_work(&info->deferred_work, 0);
++}
++EXPORT_SYMBOL_GPL(fb_deferred_io_fsync);
++
+ /* vm_ops->page_mkwrite handler */
+ static int fb_deferred_io_mkwrite(struct vm_area_struct *vma,
+ 				  struct page *page)
+diff -puN drivers/video/fbmem.c~fbdev-mm-deferred-io-support-fix-2 drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-mm-deferred-io-support-fix-2
++++ a/drivers/video/fbmem.c
+@@ -1266,6 +1266,9 @@ static const struct file_operations fb_f
+ #ifdef HAVE_ARCH_FB_UNMAPPED_AREA
+ 	.get_unmapped_area = get_fb_unmapped_area,
+ #endif
++#ifdef CONFIG_FB_DEFERRED_IO
++	.fsync =	fb_deferred_io_fsync,
++#endif
+ };
  
--config OBSOLETE_OSS
--	bool "Obsolete OSS drivers"
--	depends on SOUND_PRIME
--	help
--	  This option enables support for obsolete OSS drivers that
--	  are scheduled for removal in the near future since there
--	  are ALSA drivers for the same hardware.
--
--	  Please contact Adrian Bunk <bunk@stusta.de> if you had to
--	  say Y here because your soundcard is not properly supported
--	  by ALSA.
--
--	  If unsure, say N.
--
- config SOUND_BT878
- 	tristate "BT878 audio dma"
- 	depends on SOUND_PRIME && PCI
-@@ -45,19 +31,6 @@ config SOUND_BCM_CS4297A
- 	  note that CONFIG_KGDB should not be enabled at the same
- 	  time, since it also attempts to use this UART port.
+ struct class *fb_class;
+diff -puN include/linux/fb.h~fbdev-mm-deferred-io-support-fix-2 include/linux/fb.h
+--- a/include/linux/fb.h~fbdev-mm-deferred-io-support-fix-2
++++ a/include/linux/fb.h
+@@ -4,6 +4,8 @@
+ #include <asm/types.h>
+ #include <linux/i2c.h>
  
--config SOUND_ES1371
--	tristate "Creative Ensoniq AudioPCI 97 (ES1371)"
--	depends on SOUND_PRIME && PCI && OBSOLETE_OSS
--	help
--	  Say Y or M if you have a PCI sound card utilizing the Ensoniq
--	  ES1371 chipset, such as Ensoniq's AudioPCI97. To find out if
--	  your sound card uses an ES1371 without removing your computer's
--	  cover, use lspci -n and look for the PCI ID 1274:1371. Since
--	  Ensoniq was bought by Creative Labs, Sound Blaster 64/PCI
--	  models are either ES1370 or ES1371 based. This driver differs
--	  slightly from OSS/Free, so PLEASE READ
--	  <file:Documentation/sound/oss/es1371>.
--
- config SOUND_ICH
- 	tristate "Intel ICH (i8xx) audio support"
- 	depends on SOUND_PRIME && PCI
++struct dentry;
++
+ /* Definitions of frame buffers						*/
+ 
+ #define FB_MAJOR		29
+@@ -927,11 +929,11 @@ static inline void __fb_pad_aligned_buff
+ 	}
+ }
+ 
+-#ifdef CONFIG_FB_DEFERRED_IO
+ /* drivers/video/fb_defio.c */
+ extern void fb_deferred_io_init(struct fb_info *info);
+ extern void fb_deferred_io_cleanup(struct fb_info *info);
+-#endif
++extern int fb_deferred_io_fsync(struct file *file, struct dentry *dentry,
++				int datasync);
+ 
+ /* drivers/video/fbsysfs.c */
+ extern struct fb_info *framebuffer_alloc(size_t size, struct device *dev);
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
-remove-arch-i386-kernel-tscccustom_sched_clock.patch
-drivers-cpuidle-make-code-static.patch
-git-drm.patch
-make-drivers-char-drm-drm_vmcdrm_io_prot-static.patch
-git-dvb.patch
-saa7134-fix-modules=n-compilation.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-fs-jffs2-ioctlc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
-git-ubi.patch
-drivers-net-vioc-possible-cleanups.patch
-drivers-net-bonding-bond_maincmake-3-functions-static.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-lguest-kconfig-and-headers-fix.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+make-aout-executables-work-again.patch
+git-sh.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+simplify-the-stacktrace-code.patch
+fbdev-mm-deferred-io-support-fix-2.patch
