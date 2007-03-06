@@ -1,77 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 16:59:06 -0800
-Message-ID: <200703060059.l260x7eI006925@shell0.pdx.osdl.net>
+Subject: - procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 16:55:36 -0800
+Message-ID: <200703060055.l260tbDu006858@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43678 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43718 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933725AbXCFA7Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 19:59:16 -0500
+	id S1752760AbXCFA75 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 19:59:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agruen@suse.de, neilb@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, djwong@us.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
+     procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix
 has been removed from the -mm tree.  Its filename was
-     fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
+     procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
 
-This patch was dropped because it was folded into fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
+This patch was dropped because it was folded into procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
 
 ------------------------------------------------------
-Subject: fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
+Subject: procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix
 From: Andrew Morton <akpm@osdl.org>
 
-It looks like c99-style definition-after-statement, but it isn't, but it
-could easily become so.
+nfi what went wrong there.
 
-Cc: Andreas Gruenbacher <agruen@suse.de>
-Cc: NeilBrown <neilb@suse.de>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    6 ++++--
- fs/proc/base.c |    1 +
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ fs/proc/inode.c         |    9 +--------
+ include/linux/proc_fs.h |    9 +++++++++
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy fs/namespace.c
---- a/fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
-+++ a/fs/namespace.c
-@@ -379,8 +379,9 @@ static int show_vfsmnt(struct seq_file *
- 		{ 0, NULL }
- 	};
- 	struct proc_fs_info *fs_infop;
-+	char *path;
+diff -puN fs/proc/inode.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix fs/proc/inode.c
+--- a/fs/proc/inode.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix
++++ a/fs/proc/inode.c
+@@ -21,17 +21,10 @@
  
--	char *path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
-+	path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
- 	if (IS_ERR(path) || *path != '/')
- 		return err;
+ #include "internal.h"
  
-@@ -416,8 +417,9 @@ static int show_vfsstat(struct seq_file 
- 	void *page = container_of(m, struct proc_mounts, m)->page;
- 	struct vfsmount *mnt = v;
- 	int err = 0;
-+	char *path;
+-static inline struct proc_dir_entry * de_get(struct proc_dir_entry *de)
+-{
+-	if (de)
+-		atomic_inc(&de->count);
+-	return de;
+-}
+-
+ /*
+  * Decrements the use count and checks for deferred deletion.
+  */
+-static void de_put(struct proc_dir_entry *de)
++void de_put(struct proc_dir_entry *de)
+ {
+ 	if (de) {	
+ 		lock_kernel();		
+diff -puN include/linux/proc_fs.h~procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix
++++ a/include/linux/proc_fs.h
+@@ -274,4 +274,13 @@ struct proc_maps_private {
+ #endif
+ };
  
--	char *path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
-+	path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
- 	if (IS_ERR(path) || *path != '/')
- 		return err; /* error or path unreachable from chroot */
- 
-diff -puN fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy fs/proc/base.c
---- a/fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy
-+++ a/fs/proc/base.c
-@@ -415,6 +415,7 @@ static int mounts_release(struct inode *
- 	struct proc_mounts *p =
- 		container_of(file->private_data, struct proc_mounts, m);
- 	struct mnt_namespace *ns = p->m.private;
++static inline struct proc_dir_entry * de_get(struct proc_dir_entry *de)
++{
++	if (de)
++		atomic_inc(&de->count);
++	return de;
++}
 +
- 	free_page((unsigned long)p->page);
- 	put_mnt_ns(ns);
- 	return seq_release(inode, file);
++void de_put(struct proc_dir_entry *de);
++
+ #endif /* _LINUX_PROC_FS_H */
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -92,9 +95,12 @@ scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-ipwireless_cs.patch
 arch-i386-kernel-alternativec-dont-include-bugsh.patch
 deprecate-smbfs-in-favour-of-cifs.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
+factor-outstanding-i-o-error-handling-tidy.patch
 block_write_full_page-handle-enospc.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
 fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
 consolidate-generic_writepages-and-mpage_writepages-tidy.patch
 sync_sb_inodes-propagate-errors.patch
