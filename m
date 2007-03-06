@@ -1,88 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - add-pagemlocked-page-state-bit-and-lru-infrastructure-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 16:26:43 -0800
-Message-ID: <200703060026.l260Qh3H006037@shell0.pdx.osdl.net>
+Subject: - add-nr_mlock-zvc.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 16:42:07 -0800
+Message-ID: <200703060042.l260g7dK006509@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42771 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43098 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933594AbXCFA0v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 19:26:51 -0500
+	id S933672AbXCFAmN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 19:42:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     
+     Add NR_MLOCK ZVC
 has been removed from the -mm tree.  Its filename was
-     add-pagemlocked-page-state-bit-and-lru-infrastructure-fix.patch
+     add-nr_mlock-zvc.patch
 
-This patch was dropped because it was folded into add-pagemlocked-page-state-bit-and-lru-infrastructure.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: 
+Subject: Add NR_MLOCK ZVC
 From: Christoph Lameter <clameter@sgi.com>
 
-The problem is that in some circumstances a page may be freed that is
-mlocked (if one is marking a page as mlocked early). The page allocator
-will not touch the PG_mlocked bit and thus a newly allocated page may have
-PG_mlocked set. If we then try to put it on the lru then the VM_BUG_ONs
-are triggered.
+Basic infrastructure to support NR_MLOCK
 
-The following patch detects these conditions in the page allocator and
-does the proper checks and cleanup.
+Add a new ZVC to support NR_MLOCK.  NR_MLOCK counts the number of mlocked
+pages taken off the LRU.  Get rid of wrong calculation of cache line size in
+the comments in mmzone.h.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    1 +
- mm/page_alloc.c            |    7 +++++++
- 2 files changed, 8 insertions(+)
+ drivers/base/node.c    |    2 ++
+ fs/proc/proc_misc.c    |    2 ++
+ include/linux/mmzone.h |    3 +--
+ mm/vmstat.c            |    1 +
+ 4 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/page-flags.h~add-pagemlocked-page-state-bit-and-lru-infrastructure-fix include/linux/page-flags.h
---- a/include/linux/page-flags.h~add-pagemlocked-page-state-bit-and-lru-infrastructure-fix
-+++ a/include/linux/page-flags.h
-@@ -264,6 +264,7 @@ static inline void SetPageUptodate(struc
- #define PageMlocked(page)	test_bit(PG_mlocked, &(page)->flags)
- #define SetPageMlocked(page)	set_bit(PG_mlocked, &(page)->flags)
- #define ClearPageMlocked(page)	clear_bit(PG_mlocked, &(page)->flags)
-+#define __ClearPageMlocked(page) __clear_bit(PG_mlocked, &(page)->flags)
+diff -puN drivers/base/node.c~add-nr_mlock-zvc drivers/base/node.c
+--- a/drivers/base/node.c~add-nr_mlock-zvc
++++ a/drivers/base/node.c
+@@ -60,6 +60,7 @@ static ssize_t node_read_meminfo(struct 
+ 		       "Node %d FilePages:    %8lu kB\n"
+ 		       "Node %d Mapped:       %8lu kB\n"
+ 		       "Node %d AnonPages:    %8lu kB\n"
++		       "Node %d Mlock:        %8lu KB\n"
+ 		       "Node %d PageTables:   %8lu kB\n"
+ 		       "Node %d NFS_Unstable: %8lu kB\n"
+ 		       "Node %d Bounce:       %8lu kB\n"
+@@ -82,6 +83,7 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(node_page_state(nid, NR_FILE_PAGES)),
+ 		       nid, K(node_page_state(nid, NR_FILE_MAPPED)),
+ 		       nid, K(node_page_state(nid, NR_ANON_PAGES)),
++		       nid, K(node_page_state(nid, NR_MLOCK)),
+ 		       nid, K(node_page_state(nid, NR_PAGETABLE)),
+ 		       nid, K(node_page_state(nid, NR_UNSTABLE_NFS)),
+ 		       nid, K(node_page_state(nid, NR_BOUNCE)),
+diff -puN fs/proc/proc_misc.c~add-nr_mlock-zvc fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~add-nr_mlock-zvc
++++ a/fs/proc/proc_misc.c
+@@ -166,6 +166,7 @@ static int meminfo_read_proc(char *page,
+ 		"Writeback:    %8lu kB\n"
+ 		"AnonPages:    %8lu kB\n"
+ 		"Mapped:       %8lu kB\n"
++		"Mlock:        %8lu KB\n"
+ 		"Slab:         %8lu kB\n"
+ 		"SReclaimable: %8lu kB\n"
+ 		"SUnreclaim:   %8lu kB\n"
+@@ -196,6 +197,7 @@ static int meminfo_read_proc(char *page,
+ 		K(global_page_state(NR_WRITEBACK)),
+ 		K(global_page_state(NR_ANON_PAGES)),
+ 		K(global_page_state(NR_FILE_MAPPED)),
++		K(global_page_state(NR_MLOCK)),
+ 		K(global_page_state(NR_SLAB_RECLAIMABLE) +
+ 				global_page_state(NR_SLAB_UNRECLAIMABLE)),
+ 		K(global_page_state(NR_SLAB_RECLAIMABLE)),
+diff -puN include/linux/mmzone.h~add-nr_mlock-zvc include/linux/mmzone.h
+--- a/include/linux/mmzone.h~add-nr_mlock-zvc
++++ a/include/linux/mmzone.h
+@@ -47,17 +47,16 @@ struct zone_padding {
+ #endif
  
- struct page;	/* forward declaration */
- 
-diff -puN mm/page_alloc.c~add-pagemlocked-page-state-bit-and-lru-infrastructure-fix mm/page_alloc.c
---- a/mm/page_alloc.c~add-pagemlocked-page-state-bit-and-lru-infrastructure-fix
-+++ a/mm/page_alloc.c
-@@ -203,6 +203,7 @@ static void bad_page(struct page *page)
- 			1 << PG_slab    |
- 			1 << PG_swapcache |
- 			1 << PG_writeback |
-+			1 << PG_mlocked |
- 			1 << PG_buddy );
- 	set_page_count(page, 0);
- 	reset_page_mapcount(page);
-@@ -442,6 +443,11 @@ static inline int free_pages_check(struc
- 		bad_page(page);
- 	if (PageDirty(page))
- 		__ClearPageDirty(page);
-+	if (PageMlocked(page)) {
-+		/* Page is unused so no need to take the lru lock */
-+		__ClearPageMlocked(page);
-+		dec_zone_page_state(page, NR_MLOCK);
-+	}
- 	/*
- 	 * For now, we report if PG_reserved was found set, but do not
- 	 * clear it, and do not free the page.  But we shall soon need
-@@ -588,6 +594,7 @@ static int prep_new_page(struct page *pa
- 			1 << PG_swapcache |
- 			1 << PG_writeback |
- 			1 << PG_reserved |
-+			1 << PG_mlocked |
- 			1 << PG_buddy ))))
- 		bad_page(page);
- 
+ enum zone_stat_item {
+-	/* First 128 byte cacheline (assuming 64 bit words) */
+ 	NR_FREE_PAGES,
+ 	NR_INACTIVE,
+ 	NR_ACTIVE,
++	NR_MLOCK,	/* Mlocked pages */
+ 	NR_ANON_PAGES,	/* Mapped anonymous pages */
+ 	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
+ 			   only modified from process context */
+ 	NR_FILE_PAGES,
+ 	NR_FILE_DIRTY,
+ 	NR_WRITEBACK,
+-	/* Second 128 byte cacheline */
+ 	NR_SLAB_RECLAIMABLE,
+ 	NR_SLAB_UNRECLAIMABLE,
+ 	NR_PAGETABLE,		/* used for pagetables */
+diff -puN mm/vmstat.c~add-nr_mlock-zvc mm/vmstat.c
+--- a/mm/vmstat.c~add-nr_mlock-zvc
++++ a/mm/vmstat.c
+@@ -434,6 +434,7 @@ static const char * const vmstat_text[] 
+ 	"nr_free_pages",
+ 	"nr_active",
+ 	"nr_inactive",
++	"nr_mlock",
+ 	"nr_anon_pages",
+ 	"nr_mapped",
+ 	"nr_file_pages",
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -96,7 +124,6 @@ make-try_to_unmap-return-a-special-exit-code.patch
 slab-ensure-cache_alloc_refill-terminates.patch
 add-nr_mlock-zvc.patch
 add-pagemlocked-page-state-bit-and-lru-infrastructure.patch
-add-pagemlocked-page-state-bit-and-lru-infrastructure-fix.patch
 logic-to-move-mlocked-pages.patch
 consolidate-new-anonymous-page-code-paths.patch
 avoid-putting-new-mlocked-anonymous-pages-on-lru.patch
