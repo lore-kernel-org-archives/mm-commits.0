@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - lumpy-reclaim-v2-tidy.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 16:43:15 -0800
-Message-ID: <200703060043.l260hG4e006564@shell0.pdx.osdl.net>
+Subject: - lumpy-reclaim-v2-page_to_pfn-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 16:43:05 -0800
+Message-ID: <200703060043.l260h6QU006551@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43167 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43166 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933691AbXCFAnb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 19:43:31 -0500
+	id S933687AbXCFAna (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 19:43:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lumpy-reclaim-v2-tidy
+     lumpy-reclaim-v2-page_to_pfn-fix
 has been removed from the -mm tree.  Its filename was
-     lumpy-reclaim-v2-tidy.patch
+     lumpy-reclaim-v2-page_to_pfn-fix.patch
 
 This patch was dropped because it was folded into lumpy-reclaim-v2.patch
 
 ------------------------------------------------------
-Subject: lumpy-reclaim-v2-tidy
+Subject: lumpy-reclaim-v2-page_to_pfn-fix
 From: Andrew Morton <akpm@osdl.org>
 
 Cc: Andy Whitcroft <apw@shadowen.org>
@@ -29,105 +29,30 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    3 ++-
- mm/vmscan.c          |   35 +++++++++++++++++++++--------------
- 2 files changed, 23 insertions(+), 15 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/swap.h~lumpy-reclaim-v2-tidy include/linux/swap.h
---- a/include/linux/swap.h~lumpy-reclaim-v2-tidy
-+++ a/include/linux/swap.h
-@@ -189,7 +189,8 @@ extern int rotate_reclaimable_page(struc
- extern void swap_setup(void);
- 
- /* linux/mm/vmscan.c */
--extern unsigned long try_to_free_pages(struct zone **, int, gfp_t);
-+extern unsigned long try_to_free_pages(struct zone **zones, int order,
-+					gfp_t gfp_mask);
- extern unsigned long shrink_all_memory(unsigned long nr_pages);
- extern int vm_swappiness;
- extern int remove_mapping(struct address_space *mapping, struct page *page);
-diff -puN mm/vmscan.c~lumpy-reclaim-v2-tidy mm/vmscan.c
---- a/mm/vmscan.c~lumpy-reclaim-v2-tidy
+diff -puN mm/vmscan.c~lumpy-reclaim-v2-page_to_pfn-fix mm/vmscan.c
+--- a/mm/vmscan.c~lumpy-reclaim-v2-page_to_pfn-fix
 +++ a/mm/vmscan.c
-@@ -616,12 +616,12 @@ keep:
- }
- 
- /*
-- * Attempt to remove the specified page from its LRU.  Only take this
-- * page if it is of the appropriate PageActive status.  Pages which
-- * are being freed elsewhere are also ignored.
-+ * Attempt to remove the specified page from its LRU.  Only take this page if it
-+ * is of the appropriate PageActive status.  Pages which are being freed
-+ * elsewhere are also ignored.
-  *
-- * @page:	page to consider
-- * @active:	active/inactive flag only take pages of this type
-+ * page:	page to consider
-+ * active:	active/inactive flag only take pages of this type
-  *
-  * returns 0 on success, -ve errno on failure.
-  */
-@@ -659,6 +659,7 @@ int __isolate_lru_page(struct page *page
-  * @src:	The LRU list to pull pages off.
-  * @dst:	The temp list to put pages on to.
-  * @scanned:	The number of pages that were scanned.
-+ * @order:	The caller's attempted allocation order
-  *
-  * returns how many pages were moved onto *@dst.
-  */
-@@ -667,12 +668,16 @@ static unsigned long isolate_lru_pages(u
- 		unsigned long *scanned, int order)
- {
- 	unsigned long nr_taken = 0;
--	struct page *page, *tmp;
--	unsigned long scan, pfn, end_pfn, page_pfn;
--	int active;
--	int zone_id;
-+	unsigned long scan;
- 
- 	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
-+		struct page *page;
-+		unsigned long pfn;
-+		unsigned long end_pfn;
-+		unsigned long page_pfn;
-+		int active;
-+		int zone_id;
-+
- 		page = lru_to_page(src);
- 		prefetchw_prev_lru_page(page, src, flags);
- 
-@@ -707,24 +712,26 @@ static unsigned long isolate_lru_pages(u
+@@ -703,7 +703,7 @@ static unsigned long isolate_lru_pages(u
+ 		 * the same active state as that tag page.
+ 		 */
+ 		zone_id = page_zone_id(page);
+-		page_pfn = __page_to_pfn(page);
++		page_pfn = page_to_pfn(page);
  		pfn = page_pfn & ~((1 << order) - 1);
  		end_pfn = pfn + (1 << order);
  		for (; pfn < end_pfn; pfn++) {
-+			struct page *cursor_page;
-+
- 			if (unlikely(pfn == page_pfn))
- 				continue;
+@@ -712,7 +712,7 @@ static unsigned long isolate_lru_pages(u
  			if (unlikely(!pfn_valid(pfn)))
  				break;
  
--			tmp = pfn_to_page(pfn);
--			if (unlikely(page_zone_id(tmp) != zone_id))
-+			cursor_page = pfn_to_page(pfn);
-+			if (unlikely(page_zone_id(cursor_page) != zone_id))
+-			tmp = __pfn_to_page(pfn);
++			tmp = pfn_to_page(pfn);
+ 			if (unlikely(page_zone_id(tmp) != zone_id))
  				continue;
  			scan++;
--			switch (__isolate_lru_page(tmp, active)) {
-+			switch (__isolate_lru_page(cursor_page, active)) {
- 			case 0:
--				list_move(&tmp->lru, dst);
-+				list_move(&cursor_page->lru, dst);
- 				nr_taken++;
- 				break;
- 
- 			case -EBUSY:
- 				/* else it is being freed elsewhere */
--				list_move(&tmp->lru, src);
-+				list_move(&cursor_page->lru, src);
- 			default:
- 				break;
- 			}
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -148,6 +73,7 @@ scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
 git-ipwireless_cs.patch
 arch-i386-kernel-alternativec-dont-include-bugsh.patch
 lumpy-reclaim-v2.patch
+lumpy-reclaim-v2-page_to_pfn-fix.patch
 lumpy-reclaim-v2-tidy.patch
 deprecate-smbfs-in-favour-of-cifs.patch
 procfs-fix-race-between-proc_readdir-and-remove_proc_entry-fix.patch
