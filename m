@@ -1,51 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:49:01 -0800
-Message-ID: <200703060149.l261n3Ab008332@shell0.pdx.osdl.net>
+Subject: - readahead-thrashing-recovery-method-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:49:21 -0800
+Message-ID: <200703060149.l261nMJf008345@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46032 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46041 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933829AbXCFBtK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:49:10 -0500
+	id S932960AbXCFBtb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:49:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: initial method: user recommended size: rename to read_ahead_initial_kb
+     readahead: thrashing recovery method fix
 has been removed from the -mm tree.  Its filename was
-     readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch
+     readahead-thrashing-recovery-method-fix.patch
 
-This patch was dropped because it was folded into readahead-initial-method-user-recommended-size.patch
+This patch was dropped because it was folded into readahead-thrashing-recovery-method.patch
 
 ------------------------------------------------------
-Subject: readahead: initial method: user recommended size: rename to read_ahead_initial_kb
+Subject: readahead: thrashing recovery method fix
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Rename the sysfs parameter initial_ra_kb to read_ahead_initial_kb, which
-hopefully is a more consistent and user friendly name.
+- keep lookahead_index if the current chunk is lost, so that when we
+  revisted this stream, the state based method see a consistent state.
+- correct the thrashing-threshold computation
+- discount read-ahead size more, to free more memory to the system on pressure
+- disable look-ahead when thrashed, just to be safe
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- block/ll_rw_blk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/readahead.c |   28 +++++++++++++---------------
+ 1 files changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN block/ll_rw_blk.c~readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb
-+++ a/block/ll_rw_blk.c
-@@ -4013,7 +4013,7 @@ static struct queue_sysfs_entry queue_ra
- };
+diff -puN mm/readahead.c~readahead-thrashing-recovery-method-fix mm/readahead.c
+--- a/mm/readahead.c~readahead-thrashing-recovery-method-fix
++++ a/mm/readahead.c
+@@ -1530,28 +1530,26 @@ thrashing_recovery_readahead(struct addr
+ 						ra->readahead_index - offset);
+ #endif
  
- static struct queue_sysfs_entry queue_initial_ra_entry = {
--	.attr = {.name = "initial_ra_kb", .mode = S_IRUGO | S_IWUSR },
-+	.attr = {.name = "read_ahead_initial_kb", .mode = S_IRUGO | S_IWUSR },
- 	.show = queue_initial_ra_show,
- 	.store = queue_initial_ra_store,
- };
+-	/*
+-	 * Some thrashing occur in (ra_index, la_index], in which case the
+-	 * old read-ahead chunk is lost soon after the new one is allocated.
+-	 * Ensure that we recover all needed pages in the old chunk.
+-	 */
+-	if (offset < ra->ra_index)
+-		ra_size = ra->ra_index - offset;
+-	else {
++	if (offset < ra->ra_index) {
++		/*
++		 * Thrashed when we are in [la_index, ra_index), i.e.
++		 * the old chunk is lost soon after the new one is allocated.
++		 * Ensure that we recover all needed pages in the old chunk.
++		 * And futher keep the lookahead_index untouched.
++		 */
++		ra_size = ra->lookahead_index - offset;
++	} else {
+ 		/* After thrashing, we know the exact thrashing-threshold. */
+-		ra_size = offset - ra->ra_index;
++		ra_size = offset - ra->la_index;
+ 		update_ra_thrash_bytes(mapping->backing_dev_info, ra_size);
+ 
+-		/* And we'd better be a bit conservative. */
+-		ra_size = ra_size * 3 / 4;
++		/* And be cooperative: the system may be hunting for memory. */
++		ra_size = MIN_RA_PAGES + ra_size / 2;
+ 	}
+ 
+-	if (ra_size > ra_max)
+-		ra_size = ra_max;
+-
+ 	ra_set_class(ra, RA_CLASS_THRASHING);
+ 	ra_set_index(ra, offset, offset);
+-	ra_set_size(ra, ra_size, ra_size / LOOKAHEAD_RATIO);
++	ra_set_size(ra, ra_size, 0);
+ 
+ 	return ra_submit(ra, mapping, filp);
+ }
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
@@ -68,7 +104,6 @@ readahead-context-based-method.patch
 readahead-initial-method-guiding-sizes.patch
 readahead-initial-method-thrashing-guard-size.patch
 readahead-initial-method-user-recommended-size.patch
-readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch
 readahead-initial-method.patch
 readahead-backward-prefetching-method.patch
 readahead-thrashing-recovery-method.patch
