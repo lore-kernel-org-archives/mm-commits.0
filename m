@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch added to -mm tree
-Date: Mon, 05 Mar 2007 19:10:25 -0800
-Message-ID: <200703060310.l263APV3010288@shell0.pdx.osdl.net>
+Subject: + sched-optimize-siblings-status-check-logic-in-wake_idle.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:15:44 -0800
+Message-ID: <200703060315.l263FiVA010415@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48553 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48626 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933887AbXCFDKc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:10:32 -0500
+	id S933896AbXCFDPx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:15:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@debian.org, ak@suse.de, mingo@elte.hu
+Cc: suresh.b.siddha@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     i386: make x86_64 tsc header require i386 rather than vice-versa
+     sched: optimize siblings status check logic in wake_idle()
 has been added to the -mm tree.  Its filename is
-     i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch
+     sched-optimize-siblings-status-check-logic-in-wake_idle.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,177 +25,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: make x86_64 tsc header require i386 rather than vice-versa
-From: Andres Salomon <dilinger@debian.org>
+Subject: sched: optimize siblings status check logic in wake_idle()
+From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 
-Prior to commit 95492e4646e5de8b43d9a7908d6177fb737b61f0 ([PATCH] x86:
-rewrite SMP TSC sync code), the headers in asm-i386 did not really require
-anything in include/asm-x86_64.  This means that distributions such as
-fedora did not include asm-x86_64 in kernel-devel headers for i386.  Ingo's
-commit changed that, and broke things.  This is easy enough to hack around
-in package builds by just including asm-x86_64 on i386, but that's kind of
-annoying.  If anything, x86_64 should depend upon i386, not the other way
-around.
+When a logical cpu 'x' already has more than one process running, then most
+likely the siblings of that cpu 'x' must be busy.  Otherwise the idle
+siblings would have likely(in most of the scenarios) picked up the extra
+load making the load on 'x' atmost one.
 
-This patch changes it so that asm-x86_64/tsc.h includes asm-i386/tsc.h,
-rather than vice-versa.
+Use this logic to eliminate the siblings status check and minimize the cache
+misses encountered on a heavily loaded system.
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/tsc.h   |   68 ++++++++++++++++++++++++++++++++++++-
- include/asm-x86_64/tsc.h |   68 -------------------------------------
- 2 files changed, 68 insertions(+), 68 deletions(-)
+ kernel/sched.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-i386/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa include/asm-i386/tsc.h
---- a/include/asm-i386/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa
-+++ a/include/asm-i386/tsc.h
-@@ -1 +1,67 @@
--#include <asm-x86_64/tsc.h>
-+/*
-+ * linux/include/asm-i386/tsc.h
-+ *
-+ * i386 TSC related functions
-+ */
-+#ifndef _ASM_i386_TSC_H
-+#define _ASM_i386_TSC_H
-+
-+#include <asm/processor.h>
-+
-+/*
-+ * Standard way to access the cycle counter.
-+ */
-+typedef unsigned long long cycles_t;
-+
-+extern unsigned int cpu_khz;
-+extern unsigned int tsc_khz;
-+
-+static inline cycles_t get_cycles(void)
-+{
-+	unsigned long long ret = 0;
-+
-+#ifndef CONFIG_X86_TSC
-+	if (!cpu_has_tsc)
-+		return 0;
-+#endif
-+
-+#if defined(CONFIG_X86_GENERIC) || defined(CONFIG_X86_TSC)
-+	rdtscll(ret);
-+#endif
-+	return ret;
-+}
-+
-+/* Like get_cycles, but make sure the CPU is synchronized. */
-+static __always_inline cycles_t get_cycles_sync(void)
-+{
-+	unsigned long long ret;
-+#ifdef X86_FEATURE_SYNC_RDTSC
-+	unsigned eax;
-+
+diff -puN kernel/sched.c~sched-optimize-siblings-status-check-logic-in-wake_idle kernel/sched.c
+--- a/kernel/sched.c~sched-optimize-siblings-status-check-logic-in-wake_idle
++++ a/kernel/sched.c
+@@ -1407,7 +1407,16 @@ static int wake_idle(int cpu, struct tas
+ 	struct sched_domain *sd;
+ 	int i;
+ 
+-	if (idle_cpu(cpu))
 +	/*
-+	 * Don't do an additional sync on CPUs where we know
-+	 * RDTSC is already synchronous:
++	 * If it is idle, then it is the best cpu to run this task.
++	 *
++	 * This cpu is also the best, if it has more than one task already.
++	 * Siblings must be also busy(in most cases) as they didn't already
++	 * pickup the extra load from this cpu and hence we need not check
++	 * sibling runqueue info. This will avoid the checks and cache miss
++	 * penalities associated with that.
 +	 */
-+	alternative_io("cpuid", ASM_NOP2, X86_FEATURE_SYNC_RDTSC,
-+			  "=a" (eax), "0" (1) : "ebx","ecx","edx","memory");
-+#else
-+	sync_core();
-+#endif
-+	rdtscll(ret);
-+
-+	return ret;
-+}
-+
-+extern void tsc_init(void);
-+extern void mark_tsc_unstable(void);
-+extern int unsynchronized_tsc(void);
-+extern void init_tsc_clocksource(void);
-+
-+/*
-+ * Boot-time check whether the TSCs are synchronized across
-+ * all CPUs/cores:
-+ */
-+extern void check_tsc_sync_source(int cpu);
-+extern void check_tsc_sync_target(void);
-+
-+#endif
-diff -puN include/asm-x86_64/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa include/asm-x86_64/tsc.h
---- a/include/asm-x86_64/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa
-+++ a/include/asm-x86_64/tsc.h
-@@ -1,67 +1 @@
--/*
-- * linux/include/asm-x86_64/tsc.h
-- *
-- * x86_64 TSC related functions
-- */
--#ifndef _ASM_x86_64_TSC_H
--#define _ASM_x86_64_TSC_H
--
--#include <asm/processor.h>
--
--/*
-- * Standard way to access the cycle counter.
-- */
--typedef unsigned long long cycles_t;
--
--extern unsigned int cpu_khz;
--extern unsigned int tsc_khz;
--
--static inline cycles_t get_cycles(void)
--{
--	unsigned long long ret = 0;
--
--#ifndef CONFIG_X86_TSC
--	if (!cpu_has_tsc)
--		return 0;
--#endif
--
--#if defined(CONFIG_X86_GENERIC) || defined(CONFIG_X86_TSC)
--	rdtscll(ret);
--#endif
--	return ret;
--}
--
--/* Like get_cycles, but make sure the CPU is synchronized. */
--static __always_inline cycles_t get_cycles_sync(void)
--{
--	unsigned long long ret;
--#ifdef X86_FEATURE_SYNC_RDTSC
--	unsigned eax;
--
--	/*
--	 * Don't do an additional sync on CPUs where we know
--	 * RDTSC is already synchronous:
--	 */
--	alternative_io("cpuid", ASM_NOP2, X86_FEATURE_SYNC_RDTSC,
--			  "=a" (eax), "0" (1) : "ebx","ecx","edx","memory");
--#else
--	sync_core();
--#endif
--	rdtscll(ret);
--
--	return ret;
--}
--
--extern void tsc_init(void);
--extern void mark_tsc_unstable(void);
--extern int unsynchronized_tsc(void);
--extern void init_tsc_clocksource(void);
--
--/*
-- * Boot-time check whether the TSCs are synchronized across
-- * all CPUs/cores:
-- */
--extern void check_tsc_sync_source(int cpu);
--extern void check_tsc_sync_target(void);
--
--#endif
-+#include <asm-i386/tsc.h>
++	if (idle_cpu(cpu) || cpu_rq(cpu)->nr_running > 1)
+ 		return cpu;
+ 
+ 	for_each_domain(cpu, sd) {
 _
 
-Patches currently in -mm which might be from dilinger@debian.org are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
-i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
