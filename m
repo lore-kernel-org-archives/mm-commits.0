@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-mm-deferred-io-support-fix.patch added to -mm tree
-Date: Mon, 05 Mar 2007 19:50:25 -0800
-Message-ID: <200703060350.l263oPS6011061@shell0.pdx.osdl.net>
+Subject: + fbdev-display-class-fix.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:49:29 -0800
+Message-ID: <200703060349.l263nT9m011024@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49352 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49377 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933916AbXCFDuv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:50:51 -0500
+	id S933917AbXCFDwu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:52:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, adaplas@gmail.com, jayakumar.lkml@gmail.com
+Cc: bunk@stusta.de, adaplas@pol.net, greg@kroah.com, jsimmons@infradead.org
 
 
 The patch titled
-     make fb_deferred_io_mkwrite() static
+     make drivers/video/display/display-sysfs.c:display_class static
 has been added to the -mm tree.  Its filename is
-     fbdev-mm-deferred-io-support-fix.patch
+     fbdev-display-class-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make fb_deferred_io_mkwrite() static
+Subject: make drivers/video/display/display-sysfs.c:display_class static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: James Simmons <jsimmons@infradead.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fb_defio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/display/display-sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/fb_defio.c~fbdev-mm-deferred-io-support-fix drivers/video/fb_defio.c
---- a/drivers/video/fb_defio.c~fbdev-mm-deferred-io-support-fix
-+++ a/drivers/video/fb_defio.c
-@@ -48,8 +48,8 @@ static struct page* fb_deferred_io_nopag
- }
+diff -puN drivers/video/display/display-sysfs.c~fbdev-display-class-fix drivers/video/display/display-sysfs.c
+--- a/drivers/video/display/display-sysfs.c~fbdev-display-class-fix
++++ a/drivers/video/display/display-sysfs.c
+@@ -127,7 +127,7 @@ static int display_resume(struct device 
  
- /* vm_ops->page_mkwrite handler */
--int fb_deferred_io_mkwrite(struct vm_area_struct *vma,
--					struct page *page)
-+static int fb_deferred_io_mkwrite(struct vm_area_struct *vma,
-+				  struct page *page)
- {
- 	struct fb_info *info = vma->vm_private_data;
- 	struct fb_deferred_io *fbdefio = info->fbdefio;
+ static struct mutex allocated_dsp_lock;
+ static DEFINE_IDR(allocated_dsp);
+-struct class *display_class;
++static struct class *display_class;
+ 
+ struct display_device *display_device_register(struct display_driver *driver,
+ 						struct device *parent, void *devdata)
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -102,7 +101,6 @@ readahead-events-accounting.patch
 reiser4-export-remove_from_page_cache.patch
 reiser4.patch
 fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
 slim-main-patch.patch
 slim-debug-output.patch
 i386-enable-4k-stacks-by-default.patch
