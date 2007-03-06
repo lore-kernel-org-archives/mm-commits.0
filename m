@@ -1,84 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:11:31 -0800
-Message-ID: <200703060111.l261BWtf007261@shell0.pdx.osdl.net>
+Subject: - workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:12:13 -0800
+Message-ID: <200703060112.l261CDr1007274@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44293 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44303 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933749AbXCFBLt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:11:49 -0500
+	id S933738AbXCFBM3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:12:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ego@in.ibm.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eliminate-lock_cpu_hotplug-in-kernel-schedc-fix
+     workqueue-dont-save-interrupts-in-run_workqueue-update 2
 has been removed from the -mm tree.  Its filename was
-     eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+     workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
 
-This patch was dropped because it was folded into eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+This patch was dropped because it was folded into workqueue-dont-save-interrupts-in-run_workqueue.patch
 
 ------------------------------------------------------
-Subject: eliminate-lock_cpu_hotplug-in-kernel-schedc-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: workqueue-dont-save-interrupts-in-run_workqueue-update 2
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-migration_call() is called during CPU bringup even if CONFIG_HOTPLUG_CPU=n. 
-So we need to release that lock, else it deadlocks.
+Add might_sleep() checks to flush_xxx() functions.
 
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/workqueue.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN kernel/sched.c~eliminate-lock_cpu_hotplug-in-kernel-schedc-fix kernel/sched.c
---- a/kernel/sched.c~eliminate-lock_cpu_hotplug-in-kernel-schedc-fix
-+++ a/kernel/sched.c
-@@ -5255,11 +5255,10 @@ migration_call(struct notifier_block *nf
- 		}
- 		spin_unlock_irq(&rq->lock);
- 		break;
--
-+#endif
- 	case CPU_LOCK_RELEASE:
- 		mutex_unlock(&sched_hotcpu_mutex);
- 		break;
--#endif
- 	}
- 	return NOTIFY_OK;
- }
+diff -puN kernel/workqueue.c~workqueue-dont-save-interrupts-in-run_workqueue-update-2 kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-dont-save-interrupts-in-run_workqueue-update-2
++++ a/kernel/workqueue.c
+@@ -393,6 +393,8 @@ static void flush_cpu_workqueue(struct c
+  */
+ void fastcall flush_workqueue(struct workqueue_struct *wq)
+ {
++	might_sleep();
++
+ 	if (is_single_threaded(wq))
+ 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
+ 	else {
+@@ -439,6 +441,8 @@ void flush_work(struct workqueue_struct 
+ {
+ 	struct cpu_workqueue_struct *cwq;
+ 
++	might_sleep();
++
+ 	cwq = get_wq_data(work);
+ 	/* Was it ever queued ? */
+ 	if (!cwq)
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-ia64.patch
-git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
+drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
+bonding-replace-system-timer-with-work-queue.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-refrigerator-vs-thaw_process-race.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
 implement-flush_work-sanity.patch
 implement-flush_work_keventd.patch
 flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
 aio-use-flush_work.patch
 kblockd-use-flush_work.patch
 relayfs-use-flush_keventd_work.patch
@@ -86,56 +83,34 @@ tg3-use-flush_keventd_work.patch
 e1000-use-flush_keventd_work.patch
 libata-use-flush_work.patch
 phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
-mm-implement-swap-prefetching-use-ctl_unnumbered.patch
-swap_prefetch-vs-zoned-counters.patch
-add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
-rcu-preemptible-rcu.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
-local_t-powerpc-extension-fix.patch
-local_t-powerpc-extension-fix-build-fix.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-dont-save-interrupts-in-run_workqueue-update-2.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+unify-queue_delayed_work-and-queue_delayed_work_on-fix.patch
+workqueue-introduce-wq_per_cpu-helper.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+workqueue-kill-noautorel-works.patch
+worker_thread-dont-play-with-signals.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+____call_usermodehelper-dont-flush_signals.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
