@@ -1,161 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-possible-cleanups-2.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:00:24 -0800
-Message-ID: <200703060200.l2620OqX008726@shell0.pdx.osdl.net>
+Subject: - reiser4-fix-write_extent.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:03:57 -0800
+Message-ID: <200703060203.l2623wZG008790@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46753 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46767 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965700AbXCFCDl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:03:41 -0500
+	id S965706AbXCFCEC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:04:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, reiser@namesys.com, vs@namesys.com, mm-commits@vger.kernel.org
+To: edward@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/reiser4/: possible cleanups
+     reiser4: fix write_extent
 has been removed from the -mm tree.  Its filename was
-     reiser4-possible-cleanups-2.patch
+     reiser4-fix-write_extent.patch
 
-This patch was dropped because it was folded into reiser4.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fs/reiser4/: possible cleanups
-From: Adrian Bunk <bunk@stusta.de>
+Subject: reiser4: fix write_extent
+From: Edward Shishkin <edward@namesys.com>
 
-- make the following needlessly global function static:
-  - plugin/file/file.c: hint_validate()
+. Fix reiser4_write_extent():
+   1) handling incomplete writes missed in reiser4-temp-fix.patch
+   2) bugs in the case of returned errors
 
-- #if 0 the following unused global function:
-  - jnode.c: page_detach_jnode()
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: Hans Reiser <reiser@namesys.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/reiser4/jnode.c            |    2 ++
- fs/reiser4/jnode.h            |    3 ---
- fs/reiser4/plugin/file/file.c |    4 +++-
- fs/reiser4/plugin/file/file.h |    2 --
- 4 files changed, 5 insertions(+), 6 deletions(-)
+ fs/reiser4/plugin/item/extent_file_ops.c |   64 ++++++++++++---------
+ 1 file changed, 37 insertions(+), 27 deletions(-)
 
-diff -puN fs/reiser4/jnode.c~reiser4-possible-cleanups-2 fs/reiser4/jnode.c
---- a/fs/reiser4/jnode.c~reiser4-possible-cleanups-2
-+++ a/fs/reiser4/jnode.c
-@@ -697,6 +697,7 @@ void page_clear_jnode(struct page *page,
- 	page_cache_release(page);
- }
- 
-+#if 0
- /* it is only used in one place to handle error */
- void
- page_detach_jnode(struct page *page, struct address_space *mapping,
-@@ -716,6 +717,7 @@ page_detach_jnode(struct page *page, str
- 	}
- 	unlock_page(page);
- }
-+#endif  /*  0  */
- 
- /* return @node page locked.
- 
-diff -puN fs/reiser4/jnode.h~reiser4-possible-cleanups-2 fs/reiser4/jnode.h
---- a/fs/reiser4/jnode.h~reiser4-possible-cleanups-2
-+++ a/fs/reiser4/jnode.h
-@@ -486,9 +486,6 @@ static inline int jnode_is_loaded(const 
- 	return atomic_read(&node->d_count) > 0;
- }
- 
--extern void page_detach_jnode(struct page *page,
--			      struct address_space *mapping,
--			      unsigned long index) NONNULL;
- extern void page_clear_jnode(struct page *page, jnode * node) NONNULL;
- 
- static inline void jnode_set_reloc(jnode * node)
-diff -puN fs/reiser4/plugin/file/file.c~reiser4-possible-cleanups-2 fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~reiser4-possible-cleanups-2
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -25,6 +25,8 @@
- 
- static int unpack(struct file *file, struct inode *inode, int forever);
- static void drop_access(unix_file_info_t *);
-+static int hint_validate(hint_t * hint, const reiser4_key * key, int check_key,
-+			 znode_lock_mode lock_mode);
- 
- /* get unix file plugin specific portion of inode */
- unix_file_info_t *unix_file_inode_data(const struct inode *inode)
-@@ -746,7 +748,7 @@ static int all_but_offset_key_eq(const r
- }
- #endif
- 
--int
-+static int
- hint_validate(hint_t * hint, const reiser4_key * key, int check_key,
- 	      znode_lock_mode lock_mode)
+diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-fix-write_extent fs/reiser4/plugin/item/extent_file_ops.c
+--- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-fix-write_extent
++++ a/fs/reiser4/plugin/item/extent_file_ops.c
+@@ -941,15 +941,15 @@ static int write_extent_reserve_space(st
+  * reiser4_write_extent - write method of extent item plugin
+  * @file: file to write to
+  * @buf: address of user-space buffer
+- * @write_amount: number of bytes to write
+- * @off: position in file to write to
++ * @count: number of bytes to write
++ * @pos: position in file to write to
+  *
+  */
+ ssize_t reiser4_write_extent(struct file *file, const char __user *buf,
+ 			     size_t count, loff_t *pos)
  {
-diff -puN fs/reiser4/plugin/file/file.h~reiser4-possible-cleanups-2 fs/reiser4/plugin/file/file.h
---- a/fs/reiser4/plugin/file/file.h~reiser4-possible-cleanups-2
-+++ a/fs/reiser4/plugin/file/file.h
-@@ -155,8 +155,6 @@ struct hint {
- void reiser4_set_hint(hint_t *, const reiser4_key *, znode_lock_mode);
- int hint_is_set(const hint_t *);
- void reiser4_unset_hint(hint_t *);
--int hint_validate(hint_t *, const reiser4_key *, int check_key,
--		  znode_lock_mode);
- void hint_init_zero(hint_t *);
+ 	int have_to_update_extent;
+-	int nr_pages;
++	int nr_pages, nr_dirty;
+ 	struct page *page;
+ 	jnode *jnodes[WRITE_GRANULARITY + 1];
+ 	struct inode *inode;
+@@ -958,7 +958,7 @@ ssize_t reiser4_write_extent(struct file
+ 	int i;
+ 	int to_page, page_off;
+ 	size_t left, written;
+-	int result;
++	int result = 0;
  
- int reiser4_update_file_size(struct inode *, reiser4_key *, int update_sd);
+ 	inode = file->f_dentry->d_inode;
+ 	if (write_extent_reserve_space(inode))
+@@ -972,10 +972,12 @@ ssize_t reiser4_write_extent(struct file
+ 
+ 	BUG_ON(get_current_context()->trans->atom != NULL);
+ 
++	left = count;
+ 	index = *pos >> PAGE_CACHE_SHIFT;
+ 	/* calculate number of pages which are to be written */
+       	end = ((*pos + count - 1) >> PAGE_CACHE_SHIFT);
+ 	nr_pages = end - index + 1;
++	nr_dirty = 0;
+ 	assert("", nr_pages <= WRITE_GRANULARITY + 1);
+ 
+ 	/* get pages and jnodes */
+@@ -983,22 +985,17 @@ ssize_t reiser4_write_extent(struct file
+ 		page = find_or_create_page(inode->i_mapping, index + i,
+ 					   reiser4_ctx_gfp_mask_get());
+ 		if (page == NULL) {
+-			while(i --) {
+-				unlock_page(jnode_page(jnodes[i]));
+-				page_cache_release(jnode_page(jnodes[i]));
+-			}
+-			return RETERR(-ENOMEM);
++			nr_pages = i;
++			result = RETERR(-ENOMEM);
++			goto out;
+ 		}
+-
+ 		jnodes[i] = jnode_of_page(page);
+ 		if (IS_ERR(jnodes[i])) {
+ 			unlock_page(page);
+ 			page_cache_release(page);
+-			while (i --) {
+-				jput(jnodes[i]);
+-				page_cache_release(jnode_page(jnodes[i]));
+-			}
+-			return RETERR(-ENOMEM);
++			nr_pages = i;
++			result = RETERR(-ENOMEM);
++			goto out;
+ 		}
+ 		/* prevent jnode and page from disconnecting */
+ 		JF_SET(jnodes[i], JNODE_WRITE_PREPARED);
+@@ -1009,7 +1006,6 @@ ssize_t reiser4_write_extent(struct file
+ 
+ 	have_to_update_extent = 0;
+ 
+-	left = count;
+ 	page_off = (*pos & (PAGE_CACHE_SIZE - 1));
+ 	for (i = 0; i < nr_pages; i ++) {
+ 		to_page = PAGE_CACHE_SIZE - page_off;
+@@ -1050,14 +1046,26 @@ ssize_t reiser4_write_extent(struct file
+ 			flush_dcache_page(page);
+ 			kunmap_atomic(kaddr, KM_USER0);
+ 		}
+-
+-		written = filemap_copy_from_user(page, page_off, buf, to_page);
++		written = filemap_copy_from_user_atomic(page, page_off, buf,
++							to_page);
++		if (written != to_page)
++			/* Do it the slow way */
++			written = filemap_copy_from_user_nonatomic(page,
++								   page_off,
++								   buf,
++								   to_page);
++		if (unlikely(written != to_page)) {
++			unlock_page(page);
++			result = RETERR(-EFAULT);
++			break;
++		}
+ 		flush_dcache_page(page);
+ 		reiser4_set_page_dirty_internal(page);
+ 		unlock_page(page);
++		nr_dirty ++;
++
+ 		mark_page_accessed(page);
+ 		SetPageUptodate(page);
+-		page_cache_release(page);
+ 
+ 		if (jnodes[i]->blocknr == 0)
+ 			have_to_update_extent ++;
+@@ -1067,27 +1075,29 @@ ssize_t reiser4_write_extent(struct file
+ 		left -= to_page;
+ 		BUG_ON(get_current_context()->trans->atom != NULL);
+ 	}
+-
+ 	if (have_to_update_extent) {
+-		update_extents(file, jnodes, nr_pages, *pos);
++		update_extents(file, jnodes, nr_dirty, *pos);
+ 	} else {
+-		for (i = 0; i < nr_pages; i ++) {
++		for (i = 0; i < nr_dirty; i ++) {
++			int ret;
+ 			spin_lock_jnode(jnodes[i]);
+-			result = reiser4_try_capture(jnodes[i],
++			ret = reiser4_try_capture(jnodes[i],
+ 						     ZNODE_WRITE_LOCK, 0);
+-			BUG_ON(result != 0);
++			BUG_ON(ret != 0);
+ 			jnode_make_dirty_locked(jnodes[i]);
+ 			spin_unlock_jnode(jnodes[i]);
+ 		}
+ 	}
+-
++ out:
+ 	for (i = 0; i < nr_pages; i ++) {
++		page_cache_release(jnode_page(jnodes[i]));
+ 		JF_CLR(jnodes[i], JNODE_WRITE_PREPARED);
+ 		jput(jnodes[i]);
+ 	}
++	/* the only errors handled so far is ENOMEM and
++	   EFAULT on copy_from_user  */
+ 
+-	/* the only error handled so far is EFAULT on copy_from_user  */
+-	return (count - left) ? (count - left) : -EFAULT;
++	return (count - left) ? (count - left) : result;
+ }
+ 
+ static inline void zero_page(struct page *page)
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from edward@namesys.com are
 
-origin.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-fs-jffs2-ioctlc.patch
-git-ubi.patch
-drivers-net-vioc-possible-cleanups.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-lguest-kconfig-and-headers-fix.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
 reiser4.patch
-reiser4-possible-cleanups-2.patch
+reiser4-temp-fix.patch
+reiser4-fix-write_extent-1.patch
 fs-reiser4-possible-cleanups-2.patch
 fs-reiser4-more-possible-cleanups.patch
-slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
-slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+reiser4-use-null-for-pointers.patch
+reiser4-test_clear_page_dirty.patch
+reiser4-fix-readpage_cryptcompress.patch
+reiser4-improve-estimation-for-number-of-nodes-occupied.patch
+reiser4-drop-check_cryptcompress.patch
+reiser4-drop-unused-semaphores.patch
+reiser4-use-dynamic-lattice-for-adaptive-compression.patch
+reiser4-fix-freeze-and-corruption.patch
