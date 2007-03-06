@@ -1,91 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-map-fake-nodes-to-real-nodes-fix.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 02:53:07 -0800
-Message-ID: <200703061053.l26Ar7WU020326@shell0.pdx.osdl.net>
+Subject: - lguest-trivial-guest-network-driver-fix.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 02:54:15 -0800
+Message-ID: <200703061054.l26AsF3w020357@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35268 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35366 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964893AbXCFKxa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:53:30 -0500
+	id S965819AbXCFKzQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:55:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, ak@suse.de, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: fake numa cmdline flag fix
+     lguest: trivial guest network driver (fix)
 has been removed from the -mm tree.  Its filename was
-     x86_64-map-fake-nodes-to-real-nodes-fix.patch
+     lguest-trivial-guest-network-driver-fix.patch
 
-This patch was dropped because it was folded into x86_64-map-fake-nodes-to-real-nodes.patch
+This patch was dropped because it was folded into lguest-trivial-guest-network-driver.patch
 
 ------------------------------------------------------
-Subject: x86_64: fake numa cmdline flag fix
-From: David Rientjes <rientjes@google.com>
+Subject: lguest: trivial guest network driver (fix)
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Make sure we only reference 'cmdline' on CONFIG_NUMA_EMU.
+Thanks to Herbert Xu for noticing the bug: "len" here is skb_headlen(),
+not skb->len.  Renamed the function to clarify, too.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/numa.c |   16 +++++++++++-----
- 1 files changed, 11 insertions(+), 5 deletions(-)
+ drivers/net/lguest_net.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86_64/mm/numa.c~x86_64-map-fake-nodes-to-real-nodes-fix arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-map-fake-nodes-to-real-nodes-fix
-+++ a/arch/x86_64/mm/numa.c
-@@ -519,22 +519,28 @@ void __init numa_initmem_init(unsigned l
- { 
- 	unsigned long start_addr = start_pfn << PAGE_SHIFT;
- 	unsigned long end_addr = end_pfn << PAGE_SHIFT;
-+	int numa_fake = 0;
- 	int i;
+diff -puN drivers/net/lguest_net.c~lguest-trivial-guest-network-driver-fix drivers/net/lguest_net.c
+--- a/drivers/net/lguest_net.c~lguest-trivial-guest-network-driver-fix
++++ a/drivers/net/lguest_net.c
+@@ -59,14 +59,14 @@ static unsigned long peer_addr(struct lg
+ 	return info->peer_phys + 4 * peernum;
+ }
  
-+#ifdef CONFIG_NUMA_EMU
-+	/* Determine if we have a numa=fake command line */
-+	if (cmdline != 0)
-+		numa_fake = 1;
-+#endif
-+
- #ifdef CONFIG_ACPI_NUMA
--	if (!numa_off && !cmdline && !acpi_scan_nodes(start_addr, end_addr))
-+	if (!numa_off && !numa_fake && !acpi_scan_nodes(start_addr, end_addr))
-  		return;
- #endif
+-static void skb_to_dma(const struct sk_buff *skb, unsigned int len,
++static void skb_to_dma(const struct sk_buff *skb, unsigned int headlen,
+ 		       struct lguest_dma *dma)
+ {
+ 	unsigned int i, seg;
  
- #ifdef CONFIG_K8_NUMA
--	if (!numa_off && !k8_scan_nodes(start_addr, end_addr, cmdline != 0))
--		if (cmdline == 0)
-+	if (!numa_off && !k8_scan_nodes(start_addr, end_addr, numa_fake))
-+		if (!numa_fake)
- 			return;
- #endif
+-	for (i = seg = 0; i < len; seg++, i += rest_of_page(skb->data + i)) {
++	for (i = seg = 0; i < headlen; seg++, i += rest_of_page(skb->data+i)) {
+ 		dma->addr[seg] = virt_to_phys(skb->data + i);
+-		dma->len[seg] = min((unsigned)(len - i),
++		dma->len[seg] = min((unsigned)(headlen - i),
+ 				    rest_of_page(skb->data + i));
+ 	}
+ 	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++, seg++) {
+@@ -90,7 +90,7 @@ static void transfer_packet(struct net_d
+ 	struct lguestnet_info *info = dev->priv;
+ 	struct lguest_dma dma;
  
- #ifdef CONFIG_NUMA_EMU
--	if (cmdline)
--	{
-+	if (numa_fake) {
- 		numa_emu = !numa_emulation(start_pfn, end_pfn);
- 		if (numa_emu)
- 			return;
+-	skb_to_dma(skb, skb->len, &dma);
++	skb_to_dma(skb, skb_headlen(skb), &dma);
+ 	pr_debug("xfer length %04x (%u)\n", htons(skb->len), skb->len);
+ 
+ 	hcall(LHCALL_SEND_DMA, peer_addr(info,peernum), __pa(&dma),0);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-origin.patch
-x86_64-configurable-fake-numa-node-sizes.patch
-x86_64-split-remaining-fake-nodes-equally.patch
-x86_64-fixed-size-remaining-fake-nodes.patch
-x86_64-map-fake-nodes-to-real-nodes.patch
-x86_64-map-fake-nodes-to-real-nodes-fix.patch
-x86_64-disable-alien-cache-for-fake-numa.patch
-x86_64-export-physnode-mapping-to-userspace.patch
-x86_64-fake-numa-for-cpusets-document.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-docs.patch
+i386-vdso_prelink-warning-fix.patch
+cleanup-initialize-esp0-properly-all-the-time.patch
+lguest-preparation-export_symbol_gpl-5-functions.patch
+lguest-preparation-expose-futex-infrastructure.patch
+lguest-kconfig-and-headers.patch
+lguest-the-host-code-lgko.patch
+lguest-guest-code.patch
+lguest-makefile.patch
+lguest-trivial-guest-network-driver.patch
+lguest-trivial-guest-network-driver-fix.patch
+lguest-trivial-guest-console-driver.patch
+lguest-trivial-guest-block-driver.patch
+lguest-documentatation-and-example-launcher.patch
+module-use-krealloc.patch
+extend-print_symbol-capability.patch
+____call_usermodehelper-dont-flush_signals.patch
