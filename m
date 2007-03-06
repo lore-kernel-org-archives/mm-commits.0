@@ -1,66 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - rcu-preemptible-rcu-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:24:13 -0800
-Message-ID: <200703060124.l261OEpg007584@shell0.pdx.osdl.net>
+Subject: - atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:30:42 -0800
+Message-ID: <200703060130.l261UhpR007757@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45392 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45405 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932894AbXCFBaq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:30:46 -0500
+	id S932900AbXCFBa6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:30:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PREEMPT_RCU has stricter needs: updated comment on SLAB_DESTROY_BY_RCU
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix
 has been removed from the -mm tree.  Its filename was
-     rcu-preemptible-rcu-fix.patch
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
 
-This patch was dropped because it was folded into rcu-preemptible-rcu.patch
+This patch was dropped because it was folded into atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
 
 ------------------------------------------------------
-Subject: PREEMPT_RCU has stricter needs: updated comment on SLAB_DESTROY_BY_RCU
-From: Hugh Dickins <hugh@veritas.com>
+Subject: atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix
+From: Andrew Morton <akpm@osdl.org>
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Acked-by: Hugh Dickins <hugh@veritas.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/slab.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/asm-powerpc/atomic.h |   31 -------------------------------
+ 1 files changed, 31 deletions(-)
 
-diff -puN mm/slab.c~rcu-preemptible-rcu-fix mm/slab.c
---- a/mm/slab.c~rcu-preemptible-rcu-fix
-+++ a/mm/slab.c
-@@ -238,7 +238,7 @@ struct slab {
-  * other kind of object (which our subsystem's lock might corrupt).
-  *
-  * rcu_read_lock before reading the address, then rcu_read_unlock after
-- * taking the spinlock within the structure expected at that address.
-+ * releasing the spinlock within the structure expected at that address.
-  *
-  * We assume struct slab_rcu can overlay struct slab when destroying.
-  */
+diff -puN include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix include/asm-powerpc/atomic.h
+--- a/include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix
++++ a/include/asm-powerpc/atomic.h
+@@ -418,37 +418,6 @@ static __inline__ long atomic64_dec_if_p
+ 	((__typeof__((v)->counter))cmpxchg(&((v)->counter), (o), (n)))
+ #define atomic64_xchg(v, new) (xchg(&((v)->counter), new))
+ 
+-/**
+- * atomic64_add_unless - add unless the number is a given value
+- * @v: pointer of type atomic64_t
+- * @a: the amount to add to v...
+- * @u: ...unless v is equal to u.
+- *
+- * Atomically adds @a to @v, so long as it was not @u.
+- * Returns non-zero if @v was not @u, and zero otherwise.
+- */
+-static __inline__ int atomic64_add_unless(atomic64_t *v, long a, long u)
+-{
+-	long t;
+-
+-	__asm__ __volatile__ (
+-	LWSYNC_ON_SMP
+-"1:	ldarx	%0,0,%1		# atomic_add_unless\n\
+-	cmpd	0,%0,%3 \n\
+-	beq-	2f \n\
+-	add	%0,%2,%0 \n"
+-"	stdcx.	%0,0,%1 \n\
+-	bne-	1b \n"
+-	ISYNC_ON_SMP
+-"	subf	%0,%2,%0 \n\
+-2:"
+-	: "=&r" (t)
+-	: "r" (&v->counter), "r" (a), "r" (u)
+-	: "cc", "memory");
+-
+-	return t != u;
+-}
+-
+ #define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
+ 
+ #define atomic64_cmpxchg(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-free-swap-space-of-reactivated-pages.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-ia64.patch
+git-ieee1394.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
 ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+aio-is-unlikely.patch
+mm-implement-swap-prefetching.patch
 rcu-preemptible-rcu.patch
-rcu-preemptible-rcu-fix.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
+local_t-powerpc-extension-fix.patch
+local_t-powerpc-extension-fix-build-fix.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
