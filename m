@@ -1,91 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - fix-the-romfs_-dependencies.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 19:53:42 -0800
-Message-ID: <200703060353.l263rgBV011110@shell0.pdx.osdl.net>
+Subject: + the-scheduled-removal-of-obsolete_oss-options.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:54:39 -0800
+Message-ID: <200703060354.l263sdG8011129@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49453 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49464 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933925AbXCFD5C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:57:02 -0500
+	id S933926AbXCFD54 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:57:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bunk@stusta.de, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     fix the ROMFS_* dependencies
-has been removed from the -mm tree.  Its filename was
-     fix-the-romfs_-dependencies.patch
+     the scheduled removal of OBSOLETE_OSS options
+has been added to the -mm tree.  Its filename is
+     the-scheduled-removal-of-obsolete_oss-options.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix the ROMFS_* dependencies
+Subject: the scheduled removal of OBSOLETE_OSS options
 From: Adrian Bunk <bunk@stusta.de>
 
-- adds the missing dependency of ROMFS_FS on BLOCK || MTD
-- disallows the illegal ROMFS_FS=y, MTD=m, ROMFS_ON_MTD=y
-- ensures that at least one of ROMFS_ON_BLOCK and ROMFS_ON_MTD is always
-  enabled:
-  - automatically enable ROMFS_ON_MTD if BLOCK=n
-  - automatically enable ROMFS_ON_BLOCK if ROMFS_ON_MTD=n
-- if EMBEDDED=n, ROMFS_ON_BLOCK is always enabled
-  - the "(which may have been disabled)" that could now confuse
-    users has therefore been removed from the help text
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ sound/oss/Kconfig          |   27 ---------------------------
+ sound/oss/dmasound/Kconfig |   14 --------------
+ 2 files changed, 41 deletions(-)
 
-diff -puN fs/Kconfig~fix-the-romfs_-dependencies fs/Kconfig
---- a/fs/Kconfig~fix-the-romfs_-dependencies
-+++ a/fs/Kconfig
-@@ -482,6 +482,7 @@ endif
+diff -puN sound/oss/dmasound/Kconfig~the-scheduled-removal-of-obsolete_oss-options sound/oss/dmasound/Kconfig
+--- a/sound/oss/dmasound/Kconfig~the-scheduled-removal-of-obsolete_oss-options
++++ a/sound/oss/dmasound/Kconfig
+@@ -12,20 +12,6 @@ config DMASOUND_ATARI
+ 	  want). If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.txt>.
  
- config ROMFS_FS
- 	tristate "ROM file system support"
-+	depends on BLOCK || MTD
- 	---help---
- 	  This is a very small read-only file system mainly intended for
- 	  initial ram disks of installation disks, but it could be used for
-@@ -497,8 +498,9 @@ config ROMFS_FS
- 	  answer N.
+-config DMASOUND_PMAC
+-	tristate "PowerMac DMA sound support"
+-	depends on PPC32 && PPC_PMAC && SOUND && I2C && OBSOLETE_OSS
+- 	select DMASOUND
+-	help
+-	  If you want to use the internal audio of your PowerMac in Linux,
+-	  answer Y to this question. This will provide a Sun-like /dev/audio,
+-	  compatible with the Linux/i386 sound system. Otherwise, say N.
+-
+-	  This driver is also available as a module ( = code which can be
+-	  inserted in and removed from the running kernel whenever you
+-	  want). If you want to compile it as a module, say M here and read
+-	  <file:Documentation/kbuild/modules.txt>.
+-
+ config DMASOUND_PAULA
+ 	tristate "Amiga DMA sound support"
+ 	depends on (AMIGA || APUS) && SOUND
+diff -puN sound/oss/Kconfig~the-scheduled-removal-of-obsolete_oss-options sound/oss/Kconfig
+--- a/sound/oss/Kconfig~the-scheduled-removal-of-obsolete_oss-options
++++ a/sound/oss/Kconfig
+@@ -5,20 +5,6 @@
+ #
+ # Prompt user for primary drivers.
  
- config ROMFS_ON_BLOCK
--	bool "Block device-backed ROM file system support"
-+	bool "Block device-backed ROM file system support" if (ROMFS_ON_MTD && EMBEDDED)
- 	depends on ROMFS_FS && BLOCK
-+	default y
- 	help
- 	  This permits ROMFS to use block devices buffered through the page
- 	  cache as the medium from which to retrieve data.  It does not allow
-@@ -507,14 +509,15 @@ config ROMFS_ON_BLOCK
- 	  If unsure, answer Y.
+-config OBSOLETE_OSS
+-	bool "Obsolete OSS drivers"
+-	depends on SOUND_PRIME
+-	help
+-	  This option enables support for obsolete OSS drivers that
+-	  are scheduled for removal in the near future since there
+-	  are ALSA drivers for the same hardware.
+-
+-	  Please contact Adrian Bunk <bunk@stusta.de> if you had to
+-	  say Y here because your soundcard is not properly supported
+-	  by ALSA.
+-
+-	  If unsure, say N.
+-
+ config SOUND_BT878
+ 	tristate "BT878 audio dma"
+ 	depends on SOUND_PRIME && PCI
+@@ -45,19 +31,6 @@ config SOUND_BCM_CS4297A
+ 	  note that CONFIG_KGDB should not be enabled at the same
+ 	  time, since it also attempts to use this UART port.
  
- config ROMFS_ON_MTD
--	bool "MTD-backed ROM file system support"
--	depends on ROMFS_FS && MTD
-+	bool "MTD-backed ROM file system support" if BLOCK
-+	depends on ROMFS_FS
-+	depends on MTD=y || (ROMFS_FS=m && MTD)
-+	default y
- 	help
- 	  This permits ROMFS to use MTD based devices directly, without the
--	  intercession of the block layer (which may have been disabled).  It
--	  also allows direct mapping of MTD devices through romfs files under
--	  NOMMU conditions if the underlying device is directly addressable by
--	  the CPU.
-+	  intercession of the block layer.  It also allows direct mapping of
-+	  MTD devices through romfs files under NOMMU conditions if the
-+	  underlying device is directly addressable by the CPU.
- 
- 	  If unsure, answer Y.
- 
+-config SOUND_ES1371
+-	tristate "Creative Ensoniq AudioPCI 97 (ES1371)"
+-	depends on SOUND_PRIME && PCI && OBSOLETE_OSS
+-	help
+-	  Say Y or M if you have a PCI sound card utilizing the Ensoniq
+-	  ES1371 chipset, such as Ensoniq's AudioPCI97. To find out if
+-	  your sound card uses an ES1371 without removing your computer's
+-	  cover, use lspci -n and look for the PCI ID 1274:1371. Since
+-	  Ensoniq was bought by Creative Labs, Sound Blaster 64/PCI
+-	  models are either ES1370 or ES1371 based. This driver differs
+-	  slightly from OSS/Free, so PLEASE READ
+-	  <file:Documentation/sound/oss/es1371>.
+-
+ config SOUND_ICH
+ 	tristate "Intel ICH (i8xx) audio support"
+ 	depends on SOUND_PRIME && PCI
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -129,6 +149,7 @@ filesystem-disk-errors-at-boot-time-caused-by-probe.patch
 kill-net-rxrpc-rxrpc_symsc.patch
 drivers-char-hvc_consolec-cleanups.patch
 init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
 ext2-reservations.patch
 drivers-edac-make-code-static.patch
 linux-kernel-markers-kconfig-menus.patch
