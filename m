@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fix-the-romfs_-dependencies.patch added to -mm tree
-Date: Mon, 05 Mar 2007 19:52:56 -0800
-Message-ID: <200703060352.l263quoL011094@shell0.pdx.osdl.net>
+Subject: + nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:53:23 -0800
+Message-ID: <200703060353.l263rNFj011100@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49442 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49450 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933924AbXCFD4R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:56:17 -0500
+	id S933918AbXCFD4n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:56:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: bunk@stusta.de, dhowells@redhat.com
 The patch titled
      fix the ROMFS_* dependencies
 has been added to the -mm tree.  Its filename is
-     fix-the-romfs_-dependencies.patch
+     nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -46,8 +46,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  fs/Kconfig |   17 ++++++++++-------
  1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN fs/Kconfig~fix-the-romfs_-dependencies fs/Kconfig
---- a/fs/Kconfig~fix-the-romfs_-dependencies
+diff -puN fs/Kconfig~nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix fs/Kconfig
+--- a/fs/Kconfig~nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix
 +++ a/fs/Kconfig
 @@ -482,6 +482,7 @@ endif
  
@@ -105,7 +105,7 @@ git-gfs2-nmw.patch
 git-ieee1394.patch
 kconfig-abort-configuration-with-recursive-dependencies.patch
 remove-fs-jffs2-ioctlc.patch
-fix-the-romfs_-dependencies.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
 git-ubi.patch
 drivers-net-vioc-possible-cleanups.patch
 drivers-net-bonding-bond_maincmake-3-functions-static.patch
