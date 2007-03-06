@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-use-recv_msg-to-get-peer-address-for-nfsd-instead-of-code-copying.patch added to -mm tree
-Date: Mon, 05 Mar 2007 20:58:09 -0800
-Message-ID: <200703060458.l264w9SM012396@shell0.pdx.osdl.net>
+Subject: + knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server.patch added to -mm tree
+Date: Mon, 05 Mar 2007 20:58:12 -0800
+Message-ID: <200703060458.l264wCtm012402@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51005 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51010 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752860AbXCFE6N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 23:58:13 -0500
+	id S1752867AbXCFE6Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 23:58:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     knfsd: use recv_msg to get peer address for NFSD instead of code-copying
+     knfsd: fix recently introduced problem with shutting down a busy NFS server
 has been added to the -mm tree.  Its filename is
-     knfsd-use-recv_msg-to-get-peer-address-for-nfsd-instead-of-code-copying.patch
+     knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,160 +25,124 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: use recv_msg to get peer address for NFSD instead of code-copying
+Subject: knfsd: fix recently introduced problem with shutting down a busy NFS server
 From: NeilBrown <neilb@suse.de>
 
-The sunrpc server code needs to know the source and destination address for
-UDP packets so it can reply properly.  It currently copies code out of the
-network stack to pick the pieces out of the skb.  This is ugly and causes
-compile problems with the IPv6 stuff.
+When the last thread of nfsd exits, it shuts down all related sockets.  It
+currently uses svc_close_socket to do this, but that only is immediately
+effective if the socket is not SK_BUSY.
 
-So, rip that out and use recv_msg instead.  This is a much cleaner interface,
-but has a slight cost in that the checksum is now checked before the copy, so
-we don't benefit from doing both at the same time.  This can probably be
-fixed.
+If the socket is busy - i.e.  if a request has arrived that has not yet been
+processes - svc_close_socket is not effective and the shutdown process spins.
+
+So create a new svc_force_close_socket which removes the SK_BUSY flag is set
+and then calls svc_close_socket.
+
+Also change some open-codes loops in svc_destroy to use
+list_for_each_entry_safe.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |   72 ++++++++++++++++++++++-------------------
- 1 file changed, 40 insertions(+), 32 deletions(-)
+ include/linux/sunrpc/svcsock.h |    2 +-
+ net/sunrpc/svc.c               |   21 +++++++++------------
+ net/sunrpc/svcsock.c           |   16 +++++++++++++++-
+ 3 files changed, 25 insertions(+), 14 deletions(-)
 
-diff -puN net/sunrpc/svcsock.c~knfsd-use-recv_msg-to-get-peer-address-for-nfsd-instead-of-code-copying net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-use-recv_msg-to-get-peer-address-for-nfsd-instead-of-code-copying
+diff -puN include/linux/sunrpc/svcsock.h~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server include/linux/sunrpc/svcsock.h
+--- a/include/linux/sunrpc/svcsock.h~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server
++++ a/include/linux/sunrpc/svcsock.h
+@@ -66,7 +66,7 @@ struct svc_sock {
+  * Function prototypes.
+  */
+ int		svc_makesock(struct svc_serv *, int, unsigned short, int flags);
+-void		svc_close_socket(struct svc_sock *);
++void		svc_force_close_socket(struct svc_sock *);
+ int		svc_recv(struct svc_rqst *, long);
+ int		svc_send(struct svc_rqst *);
+ void		svc_drop(struct svc_rqst *);
+diff -puN net/sunrpc/svc.c~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server
++++ a/net/sunrpc/svc.c
+@@ -367,6 +367,7 @@ void
+ svc_destroy(struct svc_serv *serv)
+ {
+ 	struct svc_sock	*svsk;
++	struct svc_sock *tmp;
+ 
+ 	dprintk("svc: svc_destroy(%s, %d)\n",
+ 				serv->sv_program->pg_name,
+@@ -382,21 +383,17 @@ svc_destroy(struct svc_serv *serv)
+ 
+ 	del_timer_sync(&serv->sv_temptimer);
+ 
+-	while (!list_empty(&serv->sv_tempsocks)) {
+-		svsk = list_entry(serv->sv_tempsocks.next,
+-				  struct svc_sock,
+-				  sk_list);
+-		svc_close_socket(svsk);
+-	}
++	list_for_each_entry_safe(svsk, tmp, &serv->sv_tempsocks, sk_list)
++		svc_force_close_socket(svsk);
++
+ 	if (serv->sv_shutdown)
+ 		serv->sv_shutdown(serv);
+ 
+-	while (!list_empty(&serv->sv_permsocks)) {
+-		svsk = list_entry(serv->sv_permsocks.next,
+-				  struct svc_sock,
+-				  sk_list);
+-		svc_close_socket(svsk);
+-	}
++	list_for_each_entry_safe(svsk, tmp, &serv->sv_permsocks, sk_list)
++		svc_force_close_socket(svsk);
++
++	BUG_ON(!list_empty(&serv->sv_permsocks));
++	BUG_ON(!list_empty(&serv->sv_tempsocks));
+ 
+ 	cache_clean_deferred(serv);
+ 
+diff -puN net/sunrpc/svcsock.c~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-fix-recently-introduced-problem-with-shutting-down-a-busy-nfs-server
 +++ a/net/sunrpc/svcsock.c
-@@ -721,45 +721,23 @@ svc_write_space(struct sock *sk)
- 	}
+@@ -82,6 +82,7 @@ static void		svc_delete_socket(struct sv
+ static void		svc_udp_data_ready(struct sock *, int);
+ static int		svc_udp_recvfrom(struct svc_rqst *);
+ static int		svc_udp_sendto(struct svc_rqst *);
++static void		svc_close_socket(struct svc_sock *svsk);
+ 
+ static struct svc_deferred_req *svc_deferred_dequeue(struct svc_sock *svsk);
+ static int svc_deferred_recv(struct svc_rqst *rqstp);
+@@ -1787,7 +1788,7 @@ svc_delete_socket(struct svc_sock *svsk)
+ 	spin_unlock_bh(&serv->sv_lock);
  }
  
--static void svc_udp_get_sender_address(struct svc_rqst *rqstp,
--					struct sk_buff *skb)
-+static inline void svc_udp_get_dest_address(struct svc_rqst *rqstp,
-+					    struct cmsghdr *cmh)
+-void svc_close_socket(struct svc_sock *svsk)
++static void svc_close_socket(struct svc_sock *svsk)
  {
- 	switch (rqstp->rq_sock->sk_sk->sk_family) {
- 	case AF_INET: {
--		/* this seems to come from net/ipv4/udp.c:udp_recvmsg */
--			struct sockaddr_in *sin = svc_addr_in(rqstp);
--
--			sin->sin_family = AF_INET;
--			sin->sin_port = skb->h.uh->source;
--			sin->sin_addr.s_addr = skb->nh.iph->saddr;
--			rqstp->rq_addrlen = sizeof(struct sockaddr_in);
--			/* Remember which interface received this request */
--			rqstp->rq_daddr.addr.s_addr = skb->nh.iph->daddr;
--		}
-+		struct in_pktinfo *pki = CMSG_DATA(cmh);
-+		rqstp->rq_daddr.addr.s_addr = pki->ipi_spec_dst.s_addr;
- 		break;
-+		}
- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
- 	case AF_INET6: {
--		/* this is derived from net/ipv6/udp.c:udpv6_recvmesg */
--			struct sockaddr_in6 *sin6 = svc_addr_in6(rqstp);
--
--			sin6->sin6_family = AF_INET6;
--			sin6->sin6_port = skb->h.uh->source;
--			sin6->sin6_flowinfo = 0;
--			sin6->sin6_scope_id = 0;
--			if (ipv6_addr_type(&sin6->sin6_addr) &
--							IPV6_ADDR_LINKLOCAL)
--				sin6->sin6_scope_id = IP6CB(skb)->iif;
--			ipv6_addr_copy(&sin6->sin6_addr,
--							&skb->nh.ipv6h->saddr);
--			rqstp->rq_addrlen = sizeof(struct sockaddr_in);
--			/* Remember which interface received this request */
--			ipv6_addr_copy(&rqstp->rq_daddr.addr6,
--							&skb->nh.ipv6h->saddr);
--		}
-+		struct in6_pktinfo *pki = CMSG_DATA(cmh);
-+		ipv6_addr_copy(&rqstp->rq_daddr.addr6, &pki->ipi6_addr);
- 		break;
-+		}
- #endif
- 	}
--	return;
+ 	set_bit(SK_CLOSE, &svsk->sk_flags);
+ 	if (test_and_set_bit(SK_BUSY, &svsk->sk_flags))
+@@ -1800,6 +1801,19 @@ void svc_close_socket(struct svc_sock *s
+ 	svc_sock_put(svsk);
  }
  
- /*
-@@ -771,7 +749,15 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 	struct svc_sock	*svsk = rqstp->rq_sock;
- 	struct svc_serv	*serv = svsk->sk_server;
- 	struct sk_buff	*skb;
-+	char		buffer[CMSG_SPACE(sizeof(union svc_pktinfo_u))];
-+	struct cmsghdr *cmh = (struct cmsghdr *)buffer;
- 	int		err, len;
-+	struct msghdr msg = {
-+		.msg_name = svc_addr(rqstp),
-+		.msg_control = cmh,
-+		.msg_controllen = sizeof(buffer),
-+		.msg_flags = MSG_DONTWAIT,
-+	};
- 
- 	if (test_and_clear_bit(SK_CHNGBUF, &svsk->sk_flags))
- 	    /* udp sockets need large rcvbuf as all pending
-@@ -797,7 +783,9 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 	}
- 
- 	clear_bit(SK_DATA, &svsk->sk_flags);
--	while ((skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err)) == NULL) {
-+	while ((err == kernel_recvmsg(svsk->sk_sock, &msg, NULL,
-+				      0, 0, MSG_PEEK | MSG_DONTWAIT)) < 0 ||
-+	       (skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err)) == NULL) {
- 		if (err == -EAGAIN) {
- 			svc_sock_received(svsk);
- 			return err;
-@@ -805,6 +793,7 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 		/* possibly an icmp error */
- 		dprintk("svc: recvfrom returned error %d\n", -err);
- 	}
-+	rqstp->rq_addrlen = sizeof(rqstp->rq_addr);
- 	if (skb->tstamp.off_sec == 0) {
- 		struct timeval tv;
- 
-@@ -827,7 +816,16 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 
- 	rqstp->rq_prot = IPPROTO_UDP;
- 
--	svc_udp_get_sender_address(rqstp, skb);
-+	if (cmh->cmsg_level != IPPROTO_IP ||
-+	    cmh->cmsg_type != IP_PKTINFO) {
-+		if (net_ratelimit())
-+			printk("rpcsvc: received unknown control message:"
-+			       "%d/%d\n",
-+			       cmh->cmsg_level, cmh->cmsg_type);
-+		skb_free_datagram(svsk->sk_sk, skb);
-+		return 0;
++void svc_force_close_socket(struct svc_sock *svsk)
++{
++	set_bit(SK_CLOSE, &svsk->sk_flags);
++	if (test_bit(SK_BUSY, &svsk->sk_flags)) {
++		/* Waiting to be processed, but no threads left,
++		 * So just remove it from the waiting list
++		 */
++		list_del_init(&svsk->sk_ready);
++		clear_bit(SK_BUSY, &svsk->sk_flags);
 +	}
-+	svc_udp_get_dest_address(rqstp, cmh);
- 
- 	if (skb_is_nonlinear(skb)) {
- 		/* we have to copy */
-@@ -884,6 +882,9 @@ svc_udp_sendto(struct svc_rqst *rqstp)
- static void
- svc_udp_init(struct svc_sock *svsk)
- {
-+	int one = 1;
-+	mm_segment_t oldfs;
++	svc_close_socket(svsk);
++}
 +
- 	svsk->sk_sk->sk_data_ready = svc_udp_data_ready;
- 	svsk->sk_sk->sk_write_space = svc_write_space;
- 	svsk->sk_recvfrom = svc_udp_recvfrom;
-@@ -899,6 +900,13 @@ svc_udp_init(struct svc_sock *svsk)
- 
- 	set_bit(SK_DATA, &svsk->sk_flags); /* might have come in before data_ready set up */
- 	set_bit(SK_CHNGBUF, &svsk->sk_flags);
-+
-+	oldfs = get_fs();
-+	set_fs(KERNEL_DS);
-+	/* make sure we get destination address info */
-+	svsk->sk_sock->ops->setsockopt(svsk->sk_sock, IPPROTO_IP, IP_PKTINFO,
-+				       (char __user *)&one, sizeof(one));
-+	set_fs(oldfs);
- }
- 
- /*
+ /**
+  * svc_makesock - Make a socket for nfsd and lockd
+  * @serv: RPC server structure
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
