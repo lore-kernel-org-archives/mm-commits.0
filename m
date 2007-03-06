@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scheduled-removal-of-sa_xxx-interrupt-flags-fixups-5.patch added to -mm tree
-Date: Mon, 05 Mar 2007 18:19:51 -0800
-Message-ID: <200703060219.l262JpT1009249@shell0.pdx.osdl.net>
+Subject: + i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:10:25 -0800
+Message-ID: <200703060310.l263APV3010288@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47476 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48553 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965773AbXCFCXT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:23:19 -0500
+	id S933887AbXCFDKc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:10:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@elte.hu, stefanr@s5r6.in-berlin.de
+Cc: dilinger@debian.org, ak@suse.de, mingo@elte.hu
 
 
 The patch titled
-     Scheduled removal of SA_xxx interrupt flags fixups 3
+     i386: make x86_64 tsc header require i386 rather than vice-versa
 has been added to the -mm tree.  Its filename is
-     scheduled-removal-of-sa_xxx-interrupt-flags-fixups-5.patch
+     i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,177 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Scheduled removal of SA_xxx interrupt flags fixups 3
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: i386: make x86_64 tsc header require i386 rather than vice-versa
+From: Andres Salomon <dilinger@debian.org>
 
-The obsolete SA_xxx interrupt flags have been used despite the scheduled
-removal.  Fixup the remaining users in -mm.
+Prior to commit 95492e4646e5de8b43d9a7908d6177fb737b61f0 ([PATCH] x86:
+rewrite SMP TSC sync code), the headers in asm-i386 did not really require
+anything in include/asm-x86_64.  This means that distributions such as
+fedora did not include asm-x86_64 in kernel-devel headers for i386.  Ingo's
+commit changed that, and broke things.  This is easy enough to hack around
+in package builds by just including asm-x86_64 on i386, but that's kind of
+annoying.  If anything, x86_64 should depend upon i386, not the other way
+around.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+This patch changes it so that asm-x86_64/tsc.h includes asm-i386/tsc.h,
+rather than vice-versa.
+
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/fw-ohci.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/asm-i386/tsc.h   |   68 ++++++++++++++++++++++++++++++++++++-
+ include/asm-x86_64/tsc.h |   68 -------------------------------------
+ 2 files changed, 68 insertions(+), 68 deletions(-)
 
-diff -puN drivers/firewire/fw-ohci.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-5 drivers/firewire/fw-ohci.c
---- a/drivers/firewire/fw-ohci.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-5
-+++ a/drivers/firewire/fw-ohci.c
-@@ -1101,7 +1101,7 @@ static int ohci_enable(struct fw_card *c
- 	reg_write(ohci, OHCI1394_AsReqFilterHiSet, 0x80000000);
- 
- 	if (request_irq(dev->irq, irq_handler,
--			SA_SHIRQ, ohci_driver_name, ohci)) {
-+			IRQF_SHARED, ohci_driver_name, ohci)) {
- 		fw_error("Failed to allocate shared interrupt %d.\n",
- 			 dev->irq);
- 		dma_free_coherent(ohci->card.device, CONFIG_ROM_SIZE,
+diff -puN include/asm-i386/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa include/asm-i386/tsc.h
+--- a/include/asm-i386/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa
++++ a/include/asm-i386/tsc.h
+@@ -1 +1,67 @@
+-#include <asm-x86_64/tsc.h>
++/*
++ * linux/include/asm-i386/tsc.h
++ *
++ * i386 TSC related functions
++ */
++#ifndef _ASM_i386_TSC_H
++#define _ASM_i386_TSC_H
++
++#include <asm/processor.h>
++
++/*
++ * Standard way to access the cycle counter.
++ */
++typedef unsigned long long cycles_t;
++
++extern unsigned int cpu_khz;
++extern unsigned int tsc_khz;
++
++static inline cycles_t get_cycles(void)
++{
++	unsigned long long ret = 0;
++
++#ifndef CONFIG_X86_TSC
++	if (!cpu_has_tsc)
++		return 0;
++#endif
++
++#if defined(CONFIG_X86_GENERIC) || defined(CONFIG_X86_TSC)
++	rdtscll(ret);
++#endif
++	return ret;
++}
++
++/* Like get_cycles, but make sure the CPU is synchronized. */
++static __always_inline cycles_t get_cycles_sync(void)
++{
++	unsigned long long ret;
++#ifdef X86_FEATURE_SYNC_RDTSC
++	unsigned eax;
++
++	/*
++	 * Don't do an additional sync on CPUs where we know
++	 * RDTSC is already synchronous:
++	 */
++	alternative_io("cpuid", ASM_NOP2, X86_FEATURE_SYNC_RDTSC,
++			  "=a" (eax), "0" (1) : "ebx","ecx","edx","memory");
++#else
++	sync_core();
++#endif
++	rdtscll(ret);
++
++	return ret;
++}
++
++extern void tsc_init(void);
++extern void mark_tsc_unstable(void);
++extern int unsynchronized_tsc(void);
++extern void init_tsc_clocksource(void);
++
++/*
++ * Boot-time check whether the TSCs are synchronized across
++ * all CPUs/cores:
++ */
++extern void check_tsc_sync_source(int cpu);
++extern void check_tsc_sync_target(void);
++
++#endif
+diff -puN include/asm-x86_64/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa include/asm-x86_64/tsc.h
+--- a/include/asm-x86_64/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa
++++ a/include/asm-x86_64/tsc.h
+@@ -1,67 +1 @@
+-/*
+- * linux/include/asm-x86_64/tsc.h
+- *
+- * x86_64 TSC related functions
+- */
+-#ifndef _ASM_x86_64_TSC_H
+-#define _ASM_x86_64_TSC_H
+-
+-#include <asm/processor.h>
+-
+-/*
+- * Standard way to access the cycle counter.
+- */
+-typedef unsigned long long cycles_t;
+-
+-extern unsigned int cpu_khz;
+-extern unsigned int tsc_khz;
+-
+-static inline cycles_t get_cycles(void)
+-{
+-	unsigned long long ret = 0;
+-
+-#ifndef CONFIG_X86_TSC
+-	if (!cpu_has_tsc)
+-		return 0;
+-#endif
+-
+-#if defined(CONFIG_X86_GENERIC) || defined(CONFIG_X86_TSC)
+-	rdtscll(ret);
+-#endif
+-	return ret;
+-}
+-
+-/* Like get_cycles, but make sure the CPU is synchronized. */
+-static __always_inline cycles_t get_cycles_sync(void)
+-{
+-	unsigned long long ret;
+-#ifdef X86_FEATURE_SYNC_RDTSC
+-	unsigned eax;
+-
+-	/*
+-	 * Don't do an additional sync on CPUs where we know
+-	 * RDTSC is already synchronous:
+-	 */
+-	alternative_io("cpuid", ASM_NOP2, X86_FEATURE_SYNC_RDTSC,
+-			  "=a" (eax), "0" (1) : "ebx","ecx","edx","memory");
+-#else
+-	sync_core();
+-#endif
+-	rdtscll(ret);
+-
+-	return ret;
+-}
+-
+-extern void tsc_init(void);
+-extern void mark_tsc_unstable(void);
+-extern int unsynchronized_tsc(void);
+-extern void init_tsc_clocksource(void);
+-
+-/*
+- * Boot-time check whether the TSCs are synchronized across
+- * all CPUs/cores:
+- */
+-extern void check_tsc_sync_source(int cpu);
+-extern void check_tsc_sync_target(void);
+-
+-#endif
++#include <asm-i386/tsc.h>
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from dilinger@debian.org are
 
-origin.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
-bugfix-dont-use-the-tsc-in-sched_clock-if-unstable.patch
-cleanup-unify-tsc_unstable-and-tsc_disable.patch
-possible-bugfix-make-dmi_mark_tsc_unstable-call-mark_tsc_unstable.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-4.patch
-log-reason-why-tsc-was-marked-unstable.patch
-optimize-timespec_trunc.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-5.patch
+i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch
