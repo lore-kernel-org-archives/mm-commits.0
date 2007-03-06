@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode-tweak.patch added to -mm tree
-Date: Mon, 05 Mar 2007 19:22:16 -0800
-Message-ID: <200703060322.l263MGjs010550@shell0.pdx.osdl.net>
+Subject: + kconfig-update-swsusp-description.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:34:24 -0800
+Message-ID: <200703060334.l263YOhN010749@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48742 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49051 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933902AbXCFDWd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:22:33 -0500
+	id S1751762AbXCFDeq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:34:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@debian.org, mingo@elte.hu, tglx@linutronix.de
+Cc: rjw@sisk.pl
 
 
 The patch titled
-     highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode tweak
+     Kconfig: Update swsusp description
 has been added to the -mm tree.  Its filename is
-     highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode-tweak.patch
+     kconfig-update-swsusp-description.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode tweak
-From: Andres Salomon <dilinger@debian.org>
+Subject: Kconfig: Update swsusp description
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-And an additional request, just to make it explicit that we should not have
-any NO_SOFTIRQ callbacks in the tree; warn if we encounter such a thing.
+Update the outdated and inaccurate description of the software suspend in
+Kconfig.
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/power/Kconfig |   39 ++++++++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
 
-diff -puN kernel/hrtimer.c~highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode-tweak kernel/hrtimer.c
---- a/kernel/hrtimer.c~highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode-tweak
-+++ a/kernel/hrtimer.c
-@@ -1131,6 +1131,7 @@ static inline void run_hrtimer_queue(str
- 		if (base->softirq_time.tv64 <= timer->expires.tv64)
- 			break;
+diff -puN kernel/power/Kconfig~kconfig-update-swsusp-description kernel/power/Kconfig
+--- a/kernel/power/Kconfig~kconfig-update-swsusp-description
++++ a/kernel/power/Kconfig
+@@ -81,30 +81,35 @@ config SOFTWARE_SUSPEND
+ 	bool "Software Suspend"
+ 	depends on PM && SWAP && ((X86 && (!SMP || SUSPEND_SMP)) || ((FRV || PPC32) && !SMP))
+ 	---help---
+-	  Enable the possibility of suspending the machine.
+-	  It doesn't need ACPI or APM.
+-	  You may suspend your machine by 'swsusp' or 'shutdown -z <time>' 
+-	  (patch for sysvinit needed). 
++	  Enable the suspend to disk (STD) functionality.
  
-+		WARN_ON_ONCE(timer->cb_mode == HRTIMER_CB_IRQSAFE_NO_SOFTIRQ);
- 		timer_stats_account_hrtimer(timer);
+-	  It creates an image which is saved in your active swap. Upon next
++	  You can suspend your machine with 'echo disk > /sys/power/state'.
++	  Alternatively, you can use the additional userland tools available
++	  from <http://suspend.sf.net>.
++
++	  In principle it does not require ACPI or APM, although for example
++	  ACPI will be used if available.
++
++	  It creates an image which is saved in your active swap. Upon the next
+ 	  boot, pass the 'resume=/dev/swappartition' argument to the kernel to
+ 	  have it detect the saved image, restore memory state from it, and
+ 	  continue to run as before. If you do not want the previous state to
+-	  be reloaded, then use the 'noresume' kernel argument. However, note
+-	  that your partitions will be fsck'd and you must re-mkswap your swap
+-	  partitions. It does not work with swap files.
+-
+-	  Right now you may boot without resuming and then later resume but
+-	  in meantime you cannot use those swap partitions/files which were
+-	  involved in suspending. Also in this case there is a risk that buffers
+-	  on disk won't match with saved ones.
++	  be reloaded, then use the 'noresume' kernel command line argument.
++	  Note, however, that fsck will be run on your filesystems and you will
++	  need to run mkswap against the swap partition used for the suspend.
++
++	  It also works with swap files to a limited extent (for details see
++	  <file:Documentation/power/swsusp-and-swap-files.txt>).
++
++	  Right now you may boot without resuming and resume later but in the
++	  meantime you cannot use the swap partition(s)/file(s) involved in
++	  suspending.  Also in this case you must not use the filesystems
++	  that were mounted before the suspend.  In particular, you MUST NOT
++	  MOUNT any journaled filesystems mounted before the suspend or they
++	  will get corrupted in a nasty way.
  
- 		fn = timer->function;
+ 	  For more information take a look at <file:Documentation/power/swsusp.txt>.
+ 
+-	  (For now, swsusp is incompatible with PAE aka HIGHMEM_64G on i386.
+-	  we need identity mapping for resume to work, and that is trivial
+-	  to get with 4MB pages, but less than trivial on PAE).
+-
+ config PM_STD_PARTITION
+ 	string "Default resume partition"
+ 	depends on SOFTWARE_SUSPEND
 _
 
-Patches currently in -mm which might be from dilinger@debian.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch
-hrtimers-fix-hrtimer_cb_irqsafe_no_softirq-description.patch
-hrtimers-hrtimer_clock_base-description-typo.patch
-highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode.patch
-highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode-tweak.patch
+kconfig-update-swsusp-description.patch
+make-xfs-workqueues-nonfreezable.patch
+fix-refrigerator-vs-thaw_process-race.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+shrink_slab-handle-bad-shrinkers.patch
