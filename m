@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-vdso_prelink-warning-fix.patch added to -mm tree
-Date: Mon, 05 Mar 2007 22:36:06 -0800
-Message-ID: <200703060637.l266bkL5014573@shell0.pdx.osdl.net>
+Subject: + stupid-hack-to-make-mainline-build.patch added to -mm tree
+Date: Mon, 05 Mar 2007 22:52:52 -0800
+Message-ID: <200703060654.l266sVxr014860@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52790 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53159 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933962AbXCFGh5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 01:37:57 -0500
+	id S965812AbXCFGyz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 01:54:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, zach@vmware.com
 
 
 The patch titled
-     i386: VDSO_PRELINK warning fix
+     stupid hack to make mainline build
 has been added to the -mm tree.  Its filename is
-     i386-vdso_prelink-warning-fix.patch
+     stupid-hack-to-make-mainline-build.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,69 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: VDSO_PRELINK warning fix
+Subject: stupid hack to make mainline build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-The lguest patche ssomehow managed to trigger this:
+All I did was type `make allmodconfig' :(
 
-In file included from arch/i386/lguest/lguest.c:38:
-include/asm/asm-offsets.h:67:1: warning: "VDSO_PRELINK" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:15,
-                 from include/linux/device.h:21,
-                 from include/linux/interrupt.h:15,
-                 from arch/i386/lguest/lguest.c:27:
-include/asm/elf.h:140:1: warning: this is the location of the previous definition
+This might break VMI, but that seems desirable from a consistency POV.
 
-I assume that using the same identifier twice was a bad idea..
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Zachary Amsden <zach@vmware.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/asm-offsets.c  |    2 +-
- arch/i386/kernel/vsyscall.lds.S |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/asm-i386/vmi_time.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN arch/i386/kernel/asm-offsets.c~i386-vdso_prelink-warning-fix arch/i386/kernel/asm-offsets.c
---- a/arch/i386/kernel/asm-offsets.c~i386-vdso_prelink-warning-fix
-+++ a/arch/i386/kernel/asm-offsets.c
-@@ -101,7 +101,7 @@ void foo(void)
- 		 sizeof(struct tss_struct));
+diff -puN include/asm-i386/vmi_time.h~stupid-hack-to-make-mainline-build include/asm-i386/vmi_time.h
+--- a/include/asm-i386/vmi_time.h~stupid-hack-to-make-mainline-build
++++ a/include/asm-i386/vmi_time.h
+@@ -61,6 +61,14 @@ extern void apic_vmi_timer_interrupt(voi
+ #ifdef CONFIG_NO_IDLE_HZ
+ extern int vmi_stop_hz_timer(void);
+ extern void vmi_account_time_restart_hz_timer(void);
++#else
++static inline int vmi_stop_hz_timer(void)
++{
++	return 0;
++}
++static inline void vmi_account_time_restart_hz_timer(void)
++{
++}
+ #endif
  
- 	DEFINE(PAGE_SIZE_asm, PAGE_SIZE);
--	DEFINE(VDSO_PRELINK, VDSO_PRELINK);
-+	DEFINE(VDSO_PRELINK_asm, VDSO_PRELINK);
- 
- 	OFFSET(crypto_tfm_ctx_offset, crypto_tfm, __crt_ctx);
- 
-diff -puN arch/i386/kernel/vsyscall.lds.S~i386-vdso_prelink-warning-fix arch/i386/kernel/vsyscall.lds.S
---- a/arch/i386/kernel/vsyscall.lds.S~i386-vdso_prelink-warning-fix
-+++ a/arch/i386/kernel/vsyscall.lds.S
-@@ -7,7 +7,7 @@
- 
- SECTIONS
- {
--  . = VDSO_PRELINK + SIZEOF_HEADERS;
-+  . = VDSO_PRELINK_asm + SIZEOF_HEADERS;
- 
-   .hash           : { *(.hash) }		:text
-   .gnu.hash       : { *(.gnu.hash) }
-@@ -21,7 +21,7 @@ SECTIONS
-      For the layouts to match, we need to skip more than enough
-      space for the dynamic symbol table et al.  If this amount
-      is insufficient, ld -shared will barf.  Just increase it here.  */
--  . = VDSO_PRELINK + 0x400;
-+  . = VDSO_PRELINK_asm + 0x400;
- 
-   .text           : { *(.text) }		:text =0x90909090
-   .note		  : { *(.note.*) }		:text :note
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+stupid-hack-to-make-mainline-build.patch
 highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode-tweak-fix.patch
 slab-introduce-krealloc-fix.patch
 make-aout-executables-work-again-fix.patch
@@ -120,6 +98,7 @@ after-before-x86_64-mm-mmconfig-share.patch
 linux-sysdevh-needs-to-include-linux-moduleh-up-fix.patch
 linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
 x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy.patch
+i386-vdso_prelink-warning-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
 driver_bfin_serial_core-update.patch
 reduce-size-of-task_struct-on-64-bit-machines.patch
@@ -136,4 +115,3 @@ atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
 local_t-powerpc-extension.patch
 fbdev-hecuba-framebuffer-driver.patch
 mm-only-free-swap-space-of-reactivated-pages-debug.patch
-i386-vdso_prelink-warning-fix.patch
