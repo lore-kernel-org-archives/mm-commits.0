@@ -1,158 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - dmfe-add-support-for-suspend-resume-fix.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 02:40:01 -0800
-Message-ID: <200703061040.l26Ae15n019708@shell0.pdx.osdl.net>
+Subject: - nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 02:38:46 -0800
+Message-ID: <200703061038.l26AckLd019625@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34578 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34697 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752201AbXCFKk0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:40:26 -0500
+	id S934062AbXCFKmg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:42:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, maximlevitsky@gmail.com, val_henson@linux.intel.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dmfe-add-support-for-suspend-resume-fix
+     fix the ROMFS_* dependencies
 has been removed from the -mm tree.  Its filename was
-     dmfe-add-support-for-suspend-resume-fix.patch
+     nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
 
-This patch was dropped because it was folded into dmfe-add-support-for-suspend-resume.patch
+This patch was dropped because it was folded into nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
 
 ------------------------------------------------------
-Subject: dmfe-add-support-for-suspend-resume-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix the ROMFS_* dependencies
+From: Adrian Bunk <bunk@stusta.de>
 
-- Fix CONFIG_PM=n
+- adds the missing dependency of ROMFS_FS on BLOCK || MTD
+- disallows the illegal ROMFS_FS=y, MTD=m, ROMFS_ON_MTD=y
+- ensures that at least one of ROMFS_ON_BLOCK and ROMFS_ON_MTD is always
+  enabled:
+  - automatically enable ROMFS_ON_MTD if BLOCK=n
+  - automatically enable ROMFS_ON_BLOCK if ROMFS_ON_MTD=n
+- if EMBEDDED=n, ROMFS_ON_BLOCK is always enabled
+  - the "(which may have been disabled)" that could now confuse
+    users has therefore been removed from the help text
 
-- Fix coding style
-
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Valerie Henson <val_henson@linux.intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/dmfe.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ fs/Kconfig |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/tulip/dmfe.c~dmfe-add-support-for-suspend-resume-fix drivers/net/tulip/dmfe.c
---- a/drivers/net/tulip/dmfe.c~dmfe-add-support-for-suspend-resume-fix
-+++ a/drivers/net/tulip/dmfe.c
-@@ -2047,39 +2047,39 @@ static struct pci_device_id dmfe_pci_tbl
- MODULE_DEVICE_TABLE(pci, dmfe_pci_tbl);
+diff -puN fs/Kconfig~nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix fs/Kconfig
+--- a/fs/Kconfig~nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix
++++ a/fs/Kconfig
+@@ -482,6 +482,7 @@ endif
  
+ config ROMFS_FS
+ 	tristate "ROM file system support"
++	depends on BLOCK || MTD
+ 	---help---
+ 	  This is a very small read-only file system mainly intended for
+ 	  initial ram disks of installation disks, but it could be used for
+@@ -497,8 +498,9 @@ config ROMFS_FS
+ 	  answer N.
  
--
-+#ifdef CONFIG_PM
- static int dmfe_suspend(struct pci_dev *pci_dev, pm_message_t state)
- {
- 	struct net_device *dev = pci_get_drvdata(pci_dev);
- 	struct dmfe_board_info *db = netdev_priv(dev);
+ config ROMFS_ON_BLOCK
+-	bool "Block device-backed ROM file system support"
++	bool "Block device-backed ROM file system support" if (ROMFS_ON_MTD && EMBEDDED)
+ 	depends on ROMFS_FS && BLOCK
++	default y
+ 	help
+ 	  This permits ROMFS to use block devices buffered through the page
+ 	  cache as the medium from which to retrieve data.  It does not allow
+@@ -507,14 +509,15 @@ config ROMFS_ON_BLOCK
+ 	  If unsure, answer Y.
  
- 	/* Disable upper layer interface */
--	netif_device_detach (dev);
-+	netif_device_detach(dev);
+ config ROMFS_ON_MTD
+-	bool "MTD-backed ROM file system support"
+-	depends on ROMFS_FS && MTD
++	bool "MTD-backed ROM file system support" if BLOCK
++	depends on ROMFS_FS
++	depends on MTD=y || (ROMFS_FS=m && MTD)
++	default y
+ 	help
+ 	  This permits ROMFS to use MTD based devices directly, without the
+-	  intercession of the block layer (which may have been disabled).  It
+-	  also allows direct mapping of MTD devices through romfs files under
+-	  NOMMU conditions if the underlying device is directly addressable by
+-	  the CPU.
++	  intercession of the block layer.  It also allows direct mapping of
++	  MTD devices through romfs files under NOMMU conditions if the
++	  underlying device is directly addressable by the CPU.
  
- 	/* Disable Tx/Rx */
- 	db->cr6_data &= ~(CR6_RXSC | CR6_TXSC);
- 	update_cr6(db->cr6_data, dev->base_addr);
+ 	  If unsure, answer Y.
  
- 	/* Disable Interrupt */
--	outl (0, dev->base_addr + DCR7);
--	outl (inl (dev->base_addr + DCR5), dev->base_addr + DCR5);
-+	outl(0, dev->base_addr + DCR7);
-+	outl(inl (dev->base_addr + DCR5), dev->base_addr + DCR5);
- 
- 	/* Fre RX buffers */
--	dmfe_free_rxbuffer (db);
-+	dmfe_free_rxbuffer(db);
- 
- 	/* Power down device*/
--	pci_set_power_state (pci_dev, pci_choose_state (pci_dev,state));
--	pci_save_state (pci_dev);
-+	pci_set_power_state(pci_dev, pci_choose_state (pci_dev,state));
-+	pci_save_state(pci_dev);
- 
- 	return 0;
- }
- 
--static int dmfe_resume (struct pci_dev *pci_dev)
-+static int dmfe_resume(struct pci_dev *pci_dev)
- {
--	struct net_device *dev = pci_get_drvdata (pci_dev);
-+	struct net_device *dev = pci_get_drvdata(pci_dev);
- 
- 	pci_restore_state(pci_dev);
--	pci_set_power_state(pci_dev ,PCI_D0);
-+	pci_set_power_state(pci_dev, PCI_D0);
- 
- 	/* Re-initilize DM910X board */
- 	dmfe_init_dm910x(dev);
-@@ -2089,6 +2089,10 @@ static int dmfe_resume (struct pci_dev *
- 
- 	return 0;
- }
-+#else
-+#define dmfe_suspend NULL
-+#define dmfe_resume NULL
-+#endif
- 
- static struct pci_driver dmfe_driver = {
- 	.name		= "dmfe",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-fix-build-with-config_no_idle_hz=n.patch
-highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-sony-laptop-fix-uninitialised-variable.patch
-git-alsa-oops-fix.patch
+remove-arch-i386-kernel-tscccustom_sched_clock.patch
+drivers-cpuidle-make-code-static.patch
 git-drm.patch
+make-drivers-char-drm-drm_vmcdrm_io_prot-static.patch
 git-dvb.patch
-gfs2-build-fix.patch
-git-input.patch
-git-md-accel-fixup.patch
-git-mmc-fix-99.patch
+saa7134-fix-modules=n-compilation.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-fs-jffs2-ioctlc.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
 git-ubi.patch
-git-netdev-all.patch
-git-netdev-all-ipw2200-fix.patch
-revert-drivers-net-tulip-dmfe-support-basic-carrier-detection.patch
-dmfe-add-support-for-suspend-resume.patch
-dmfe-add-support-for-suspend-resume-fix.patch
-sis900-warning-fixes.patch
-div64_64-common-code-fix.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
+drivers-net-vioc-possible-cleanups.patch
+drivers-net-bonding-bond_maincmake-3-functions-static.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
 git-unionfs.patch
-usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-after-before-x86_64-mm-mmconfig-share.patch
-linux-sysdevh-needs-to-include-linux-moduleh-up-fix.patch
-linux-sysdevh-needs-to-include-linux-moduleh-up-fix-2.patch
-x86_64-irq-make-affinity-works-for-genapic_flat-mode-tidy.patch
-i386-vdso_prelink-warning-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-driver_bfin_serial_core-update.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-utrace-prep.patch
-utrace-prep-2.patch
-revert-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
