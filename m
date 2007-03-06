@@ -1,147 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-context-based-method-locking-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:47:11 -0800
-Message-ID: <200703060147.l261lBon008298@shell0.pdx.osdl.net>
+Subject: - readahead-context-based-method-update-ra_min.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:47:17 -0800
+Message-ID: <200703060147.l261lHgG008304@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45999 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46008 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933820AbXCFBrT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:47:19 -0500
+	id S933826AbXCFBr2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:47:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead-context-based-method-locking-fix
+     readahead: context based method: update ra_min
 has been removed from the -mm tree.  Its filename was
-     readahead-context-based-method-locking-fix.patch
+     readahead-context-based-method-update-ra_min.patch
 
 This patch was dropped because it was folded into readahead-context-based-method.patch
 
 ------------------------------------------------------
-Subject: readahead-context-based-method-locking-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: readahead: context based method: update ra_min
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-It is a bug to nest read_lock_irq() inside read_lock_irq().
+Classify the 4 cases into 2 classes, and assign proper ra_min for them.
+Also update comments correspondly.
 
-Cc: Wu Fengguang <wfg@mail.ustc.edu.cn>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ mm/readahead.c |   49 +++++++++++++++++++++++++++++++----------------
+ 1 files changed, 33 insertions(+), 16 deletions(-)
 
-diff -puN mm/readahead.c~readahead-context-based-method-locking-fix mm/readahead.c
---- a/mm/readahead.c~readahead-context-based-method-locking-fix
+diff -puN mm/readahead.c~readahead-context-based-method-update-ra_min mm/readahead.c
+--- a/mm/readahead.c~readahead-context-based-method-update-ra_min
 +++ a/mm/readahead.c
-@@ -1178,10 +1178,10 @@ static inline unsigned long inactive_pag
- 
- /*
-  * Count/estimate cache hits in range [begin, end).
-- * The estimation is simple and optimistic.
-+ * The estimation is simple and optimistic.  The caller must hold tree_lock.
-  */
- #define CACHE_HIT_HASH_KEY	29	/* some prime number */
--static int count_cache_hit(struct address_space *mapping,
-+static int __count_cache_hit(struct address_space *mapping,
- 						pgoff_t begin, pgoff_t end)
+@@ -1293,17 +1293,26 @@ static int
+ try_context_based_readahead(struct address_space *mapping,
+ 			struct file_ra_state *ra,
+ 			struct page *page, pgoff_t offset,
+-			unsigned long ra_min, unsigned long ra_max)
++			unsigned long req_size, unsigned long ra_max)
  {
- 	int size = end - begin;
-@@ -1194,14 +1194,12 @@ static int count_cache_hit(struct addres
- 	 * behavior guarantees a readahead when (size < ra_max) and
- 	 * (readahead_hit_rate >= 8).
- 	 */
--	read_lock_irq(&mapping->tree_lock);
- 	for (i = 0; i < 8;) {
- 		struct page *page = radix_tree_lookup(&mapping->page_tree,
- 			begin + size * ((i++ * CACHE_HIT_HASH_KEY) & 7) / 8);
- 		if (inactive_page_refcnt(page) >= PAGE_REFCNT_1 && ++count >= 2)
- 			break;
- 	}
--	read_unlock_irq(&mapping->tree_lock);
+ 	pgoff_t start;
++	unsigned long ra_min;
+ 	unsigned long ra_size;
+ 	unsigned long la_size;
  
- 	return size * count / i;
- }
+-	/* Check if there is a segment of history pages, and its end index.
++	/*
++	 * Check if there is a segment of history pages, and its end index.
+ 	 * Based on which we decide whether and where to start read-ahead.
+-	 *
+-	 * Case 1: we have a current page.
+-	 * 	   Search forward for a nearby hole.
++	 */
++
++	/*
++	 * Select a reasonable large initial size for sequential reads.
++	 */
++	ra_min = min(req_size * 4, mapping->backing_dev_info->ra_pages0);
++
++	/*
++	 * Case s1: we have a current page.
++	 * =======> Search forward for a nearby hole.
+ 	 */
+ 	read_lock_irq(&mapping->tree_lock);
+ 	if (page) {
+@@ -1316,8 +1325,9 @@ try_context_based_readahead(struct addre
+ 		return -1;
+ 	}
+ 
+-	/* Case 2: current page is missing; previous page is present.
+-	 *         Just do read-ahead from the current index on.
++	/*
++	 * Case s2: current page is missing; previous page is present.
++	 * =======> Just do read-ahead from the current index on.
+ 	 * There's clear sign of sequential reading. It can be
+ 	 * 	a) seek => read => this read
+ 	 * 	b) cache hit read(s) => this read
+@@ -1329,26 +1339,33 @@ try_context_based_readahead(struct addre
+ 		goto has_history_pages;
+ 	}
+ 
+-	/* Case 2x: the same context info as 2.
+-	 * It can be the early stage of semi-sequential reads(interleaved/nfsd),
+-	 * or an ugly random one.  So be conservative.
++	/*
++	 * Not an obvious sequential read:
++	 * select a conservative initial size, plus user prefered agressiveness.
++	 */
++	ra_min = min(req_size, MIN_RA_PAGES) +
++		 readahead_hit_rate * 8192 / PAGE_CACHE_SIZE;
++
++	/*
++	 * Case r1: the same context info as s2, but not that obvious.
++	 * =======> The same action as s2, but be conservative.
++	 * It can be the early stage of intermixed sequential reads,
++	 * or an ugly random one.
+ 	 */
+ 	if (readahead_hit_rate && __probe_page(mapping, offset - 1)) {
+ 		start = offset;
+-		if (ra_min > 2 * readahead_hit_rate)
+-		    ra_min = 2 * readahead_hit_rate;
+ 		goto has_history_pages;
+ 	}
+ 
+-	/* Case 3: no current/previous pages;
+-	 *         sparse read-ahead is enabled: ok, be aggressive.
+-	 *         Check if there's any adjecent history pages.
++	/*
++	 * Case r2: no current/previous pages; sparse read-ahead is enabled.
++	 * =======> Do sparse read-ahead if there are adjecent history pages.
+ 	 */
+ 	if (readahead_hit_rate > 1) {
+ 		start = radix_tree_scan_data_backward(&mapping->page_tree,
+ 							       offset, ra_min);
+ 		if (start != ULONG_MAX && offset - start < ra_min) {
+-			ra_min += offset - start;
++			ra_min *= 2;
+ 			offset = ++start; /* pretend the request starts here */
+ 			goto has_history_pages;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-ia64.patch
-git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-mm-implement-swap-prefetching.patch
-rcu-preemptible-rcu.patch
 readahead-kconfig-options.patch
+radixtree-introduce-scan-hole-data-functions.patch
+mm-introduce-probe_page.patch
+mm-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-insert-cond_resched-calls.patch
 readahead-minmax_ra_pages.patch
+readahead-events-accounting.patch
+readahead-rescue_pages.patch
 readahead-sysctl-parameters.patch
+readahead-min-max-sizes.patch
+readahead-state-based-method-aging-accounting.patch
+readahead-state-based-method-routines.patch
+readahead-state-based-method.patch
 readahead-context-based-method.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
+readahead-context-based-method-update-ra_min.patch
+readahead-context-based-method-remove-readahead_ratio.patch
+readahead-initial-method-guiding-sizes.patch
+readahead-initial-method-thrashing-guard-size.patch
+readahead-initial-method-user-recommended-size.patch
+readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch
+readahead-initial-method.patch
+readahead-backward-prefetching-method.patch
+readahead-thrashing-recovery-method.patch
+readahead-thrashing-recovery-method-fix.patch
+readahead-call-scheme.patch
 readahead-call-scheme-ifdef-fix.patch
 readahead-call-scheme-build-fix.patch
+readahead-call-scheme-remove-get_readahead_bounds.patch
+readahead-call-scheme-fix-thrashed-unaligned-read.patch
+readahead-laptop-mode.patch
+readahead-laptop-mode-fix.patch
+readahead-loop-case.patch
+readahead-nfsd-case.patch
 readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+readahead-nfsd-case-fix-uninitialized-ra_min-ra_max.patch
+readahead-nfsd-case-remove-ra_min.patch
+readahead-turn-on-by-default.patch
+readahead-remove-size-limit-on-read_ahead_kb.patch
+readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
+readahead-partial-sendfile-fix.patch
