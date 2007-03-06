@@ -1,72 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 16:54:38 -0800
-Message-ID: <200703060054.l260shM8006827@shell0.pdx.osdl.net>
+Subject: - allow-access-to-proc-pid-fd-after-setuid-update-2.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 16:57:54 -0800
+Message-ID: <200703060057.l260vtlW006904@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43595 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43626 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752707AbXCFA4h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 19:56:37 -0500
+	id S1752712AbXCFA6A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 19:58:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serue@us.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: adobriyan@openvz.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     file capabilities: don't do file caps if MNT_NOSUID
+     Allow access to /proc/$PID/fd after setuid()
 has been removed from the -mm tree.  Its filename was
-     file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
+     allow-access-to-proc-pid-fd-after-setuid-update-2.patch
 
-This patch was dropped because it was folded into implement-file-posix-capabilities.patch
+This patch was dropped because it was folded into allow-access-to-proc-pid-fd-after-setuid.patch
 
 ------------------------------------------------------
-Subject: file capabilities: don't do file caps if MNT_NOSUID
-From: Serge E. Hallyn <serue@us.ibm.com>
+Subject: Allow access to /proc/$PID/fd after setuid()
+From: Alexey Dobriyan <adobriyan@openvz.org>
 
-A file system mounted NOSUID is likely a removable filesystem.  Allowing
-file capabilities from such an fs is an easy attack vector, so don't honor
-file capabilities for a NOSUID filesystem.
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Cc: Alexey Dobriyan <adobriyan@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/commoncap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/proc/base.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN security/commoncap.c~file-capabilities-dont-do-file-caps-if-mnt_nosuid security/commoncap.c
---- a/security/commoncap.c~file-capabilities-dont-do-file-caps-if-mnt_nosuid
-+++ a/security/commoncap.c
-@@ -23,6 +23,7 @@
- #include <linux/ptrace.h>
- #include <linux/xattr.h>
- #include <linux/hugetlb.h>
-+#include <linux/mount.h>
- 
- int cap_netlink_send(struct sock *sk, struct sk_buff *skb)
+diff -puN fs/proc/base.c~allow-access-to-proc-pid-fd-after-setuid-update-2 fs/proc/base.c
+--- a/fs/proc/base.c~allow-access-to-proc-pid-fd-after-setuid-update-2
++++ a/fs/proc/base.c
+@@ -1454,18 +1454,13 @@ static struct file_operations proc_fd_op
+ static int proc_fd_permission(struct inode *inode, int mask,
+ 				struct nameidata *nd)
  {
-@@ -152,6 +153,9 @@ static int set_file_caps(struct linux_bi
- 	struct inode *inode;
- 	int err;
+-	struct task_struct *tsk;
+ 	int rv;
  
-+	if (bprm->file->f_vfsmnt->mnt_flags & MNT_NOSUID)
-+		return 0;
-+
- 	dentry = dget(bprm->file->f_dentry);
- 	inode = dentry->d_inode;
- 	if (!inode->i_op || !inode->i_op->getxattr) {
+ 	rv = generic_permission(inode, mask, NULL);
+ 	if (rv == 0)
+ 		return 0;
+-	tsk = get_proc_task(inode);
+-	if (tsk) {
+-		if (tsk == current)
+-			rv = 0;
+-		put_task_struct(tsk);
+-	}
++	if (task_pid(current) == proc_pid(inode))
++		rv = 0;
+ 	return rv;
+ }
+ 
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from adobriyan@openvz.org are
 
-implement-file-posix-capabilities.patch
-file-capabilities-dont-do-file-caps-if-mnt_nosuid.patch
-file-capabilities-honor-secure_noroot.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-2.patch
-integrity-service-api-and-dummy-provider-fix.patch
+ia64-sync-compat-getdents-on-ia64-and-parisc.patch
+parisc-sync-compat-getdents-on-ia64-and-parisc.patch
+x86_64-wire-up-compat-sched_rr_get_interval2.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+allow-access-to-proc-pid-fd-after-setuid-update-2.patch
+lutimesat-simplify-utime2.patch
+lutimesat-extend-do_utimes-with-flags.patch
+lutimesat-actual-syscall-and-wire-up-on-i386.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64-tidy.patch
