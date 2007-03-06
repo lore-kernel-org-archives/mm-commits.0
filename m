@@ -1,145 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-kconfig-options-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:43:19 -0800
-Message-ID: <200703060143.l261hKiQ008138@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-i386-optimization-export-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:40:16 -0800
+Message-ID: <200703060140.l261eGAY008058@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45903 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45909 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933812AbXCFBne (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:43:34 -0500
+	id S933813AbXCFBni (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:43:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rdunlap@xenotime.net, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead-kconfig-options-fix
+     marker exports must be EXPORT_SYMBOL_GPL
 has been removed from the -mm tree.  Its filename was
-     readahead-kconfig-options-fix.patch
+     linux-kernel-markers-i386-optimization-export-fix.patch
 
-This patch was dropped because it was folded into readahead-kconfig-options.patch
+This patch was dropped because it was folded into linux-kernel-markers-i386-optimization.patch
 
 ------------------------------------------------------
-Subject: readahead-kconfig-options-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: marker exports must be EXPORT_SYMBOL_GPL
+From: Adrian Bunk <bunk@stusta.de>
 
-Randy points out:
+This is definitely functionality illegal modules have no business to
+use.
 
-> I have a (randconfig) build of 2.6.19-rc5-mm2 with:
-> 
-> CONFIG_DEBUG_READAHEAD=y
-> 
-> which selects DEBUG_FS, so DEBUG_FS=y, but DEBUG_FS depends on
-> SYSFS, and SYSFS is not set in the randconfig.
-> 
-> This randconfig causes this build error:
-> 
-> fs/built-in.o: In function `debugfs_init':
-> inode.c:(.init.text+0xdb2): undefined reference to `kernel_subsys'
-> 
-
-`select' is evil.  Kill.
-
-Cc: Wu Fengguang <wfg@mail.ustc.edu.cn>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
+ arch/i386/kernel/marker.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/Kconfig~readahead-kconfig-options-fix mm/Kconfig
---- a/mm/Kconfig~readahead-kconfig-options-fix
-+++ a/mm/Kconfig
-@@ -196,7 +196,7 @@ config DEBUG_READAHEAD
- 	bool "Readahead debug and accounting"
- 	default n
- 	depends on ADAPTIVE_READAHEAD
--	select DEBUG_FS
-+	depends on DEBUG_FS
- 	help
- 	  This option injects extra code to dump detailed debug traces and do
- 	  readahead events accounting.
+diff -puN arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-export-fix arch/i386/kernel/marker.c
+--- a/arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-export-fix
++++ a/arch/i386/kernel/marker.c
+@@ -91,4 +91,4 @@ int arch_marker_set_ins_enable(void *add
+ 	flush_icache_range(address, size);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(arch_marker_set_ins_enable);
++EXPORT_SYMBOL_GPL(arch_marker_set_ins_enable);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-ia64.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
 git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-fs-jffs2-ioctlc.patch
 git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+drivers-net-vioc-possible-cleanups.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
 git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers-fix.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
 ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-mm-implement-swap-prefetching.patch
-rcu-preemptible-rcu.patch
-readahead-kconfig-options.patch
-readahead-kconfig-options-fix.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-sysctl-parameters-use-ctl_unnumbered.patch
-readahead-context-based-method-locking-fix.patch
-readahead-context-based-method-locking-fix-2.patch
-readahead-call-scheme-ifdef-fix.patch
-readahead-call-scheme-build-fix.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-i386-optimization-export-fix.patch
+readahead-events-accounting-make-readahead_debug_level-static.patch
+reiser4-export-remove_from_page_cache-fix.patch
+fs-reiser4-possible-cleanups.patch
+reiser4-possible-cleanups-2.patch
+fs-reiser4-possible-cleanups-2.patch
+fs-reiser4-more-possible-cleanups.patch
+slim-main-patch-security-slim-slm_mainc-make-2-functions-static.patch
+slim-debug-output-slm_set_taskperm-remove-horrible-error-handling-code.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
