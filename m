@@ -1,130 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-nfsd-case-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:52:40 -0800
-Message-ID: <200703060152.l261qe4B008419@shell0.pdx.osdl.net>
+Subject: - readahead-nfsd-case-fix-uninitialized-ra_min-ra_max.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:52:43 -0800
+Message-ID: <200703060152.l261qhha008422@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46155 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46165 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933836AbXCFBwx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:52:53 -0500
+	id S933839AbXCFBw4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:52:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, neilb@suse.de, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead-nfsd-case-fix
+     readahead nfsd case: fix uninitialized ra_min/ra_max
 has been removed from the -mm tree.  Its filename was
-     readahead-nfsd-case-fix.patch
+     readahead-nfsd-case-fix-uninitialized-ra_min-ra_max.patch
 
 This patch was dropped because it was folded into readahead-nfsd-case.patch
 
 ------------------------------------------------------
-Subject: readahead-nfsd-case-fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: readahead nfsd case: fix uninitialized ra_min/ra_max
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-fs/nfs/client.c: In function 'nfs_server_set_fsinfo':
-fs/nfs/client.c:660: warning: comparison of distinct pointer types lacks a cast
+ra_min/ra_max are not initialized, fix it.
 
-Cc: Wu Fengguang <wfg@mail.ustc.edu.cn>
-Cc: Neil Brown <neilb@suse.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+New benchmark numbers on
+
+	hda: ST3250820A, ATA DISK drive
+	hda: max request size: 512KiB
+	hda: 488397168 sectors (250059 MB) w/8192KiB Cache, CHS=30401/255/63, UDMA(100)
+
+with nfs mount
+	mount -o tcp,rsize=$((rsize<<10)) localhost:$EXPORT $MNT
+
+   rsize      stock  adaptive
+   ==================================
+f
+      8k       3.07    2.51    -18.2%
+     32k       2.40    2.17     -9.6%
+    128k       2.40    2.35     -2.1%
+ff
+      8k      12.44    6.40    -48.6%
+     32k      14.62    5.46    -62.7%
+    128k      15.79    5.19    -67.1%
+d
+      8k       2.84    2.48    -12.7%
+     32k       2.53    1.99    -21.3%
+    128k       2.18    2.00     -8.3%
+dd
+      8k       8.16    7.99     -2.1%
+     32k       8.27    6.88    -16.8%
+    128k       7.75    6.97    -10.1%
+
+The 4 patterns tested are:
+	 f: single file read
+	ff: double file parallel read
+	 d: single dir read
+	dd: double dir parallel read
+
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/nfs/client.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/readahead.c |   19 +++++++++++--------
+ 1 files changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN fs/nfs/client.c~readahead-nfsd-case-fix fs/nfs/client.c
---- a/fs/nfs/client.c~readahead-nfsd-case-fix
-+++ a/fs/nfs/client.c
-@@ -659,8 +659,8 @@ static void nfs_server_set_fsinfo(struct
- 		server->rsize = NFS_MAX_FILE_IO_SIZE;
- 	server->rpages = (server->rsize + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
- 	server->backing_dev_info.ra_pages = server->rpages * NFS_MAX_READAHEAD;
--	server->backing_dev_info.ra_pages0 = min(server->rpages, VM_MIN_READAHEAD
--							>> (PAGE_CACHE_SHIFT - 10));
-+	server->backing_dev_info.ra_pages0 = min_t(unsigned, server->rpages,
-+				VM_MIN_READAHEAD >> (PAGE_CACHE_SHIFT - 10));
- 	server->backing_dev_info.ra_thrash_bytes = server->rsize * NFS_MAX_READAHEAD;
+diff -puN mm/readahead.c~readahead-nfsd-case-fix-uninitialized-ra_min-ra_max mm/readahead.c
+--- a/mm/readahead.c~readahead-nfsd-case-fix-uninitialized-ra_min-ra_max
++++ a/mm/readahead.c
+@@ -1607,6 +1607,10 @@ page_cache_readahead_adaptive(struct add
+ 	unsigned long ra_max;
+ 	int ret;
  
- 	if (server->wsize > max_rpc_payload)
++	/* no read-ahead */
++	if (!ra->ra_pages)
++		return 0;
++
+ 	if (page) {
+ 		ClearPageReadahead(page);
+ 
+@@ -1626,9 +1630,6 @@ page_cache_readahead_adaptive(struct add
+ 						offset + LAPTOP_POLL_INTERVAL);
+ 			return 0;
+ 		}
+-	} else if (ra->flags & RA_FLAG_NFSD) { /* nfsd read */
+-		ra_size = max_sane_readahead(req_size);
+-		goto readit;
+ 	}
+ 
+ 	if (page)
+@@ -1638,11 +1639,13 @@ page_cache_readahead_adaptive(struct add
+ 
+ 	ra_max = get_max_readahead(ra);
+ 
+-	/* read-ahead disabled? */
+-	if (unlikely(!ra_max || !readahead_ratio)) {
+-		ra_size = max_sane_readahead(req_size);
++	/* read as is */
++	if (!readahead_ratio)
++		goto readit;
++
++	/* nfsd read */
++	if (!page && (ra->flags & RA_FLAG_NFSD))
+ 		goto readit;
+-	}
+ 
+ 	/*
+ 	 * Start of file.
+@@ -1689,11 +1692,11 @@ page_cache_readahead_adaptive(struct add
+ 		return 0;
+ 	}
+ 
++readit:
+ 	/*
+ 	 * Random read.
+ 	 */
+ 	ra_size = min(req_size, ra_max);
+-readit:
+ 	ra_size = __do_page_cache_readahead(mapping, filp, offset, ra_size, 0);
+ 
+ 	ra_account(ra, RA_EVENT_RANDOM_READ, ra_size);
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-origin.patch
-macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
-git-ia64.patch
-git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-mm-implement-swap-prefetching.patch
-rcu-preemptible-rcu.patch
 readahead-kconfig-options.patch
+radixtree-introduce-scan-hole-data-functions.patch
+mm-introduce-probe_page.patch
+mm-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-insert-cond_resched-calls.patch
 readahead-minmax_ra_pages.patch
+readahead-events-accounting.patch
+readahead-rescue_pages.patch
 readahead-sysctl-parameters.patch
+readahead-min-max-sizes.patch
+readahead-state-based-method-aging-accounting.patch
+readahead-state-based-method-routines.patch
+readahead-state-based-method.patch
 readahead-context-based-method.patch
+readahead-initial-method-guiding-sizes.patch
+readahead-initial-method-thrashing-guard-size.patch
+readahead-initial-method-user-recommended-size.patch
+readahead-initial-method.patch
+readahead-backward-prefetching-method.patch
+readahead-thrashing-recovery-method.patch
 readahead-call-scheme.patch
+readahead-laptop-mode.patch
+readahead-loop-case.patch
 readahead-nfsd-case.patch
-readahead-nfsd-case-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-resier4-add-include-linux-freezerh-and-move-definitions-from.patch
-make-kmem_cache_destroy-return-void-reiser4.patch
-reiser4-hardirq-include-fix.patch
-reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
-reiser4-get_sb_dev-fix.patch
-reiser4-vs-zoned-allocator.patch
-reiser4-temp-fix.patch
-reiser4-kmem_cache_t-removal.patch
-reiser4-test_clear_page_dirty.patch
-statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
-slim-main-include-fix.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-add-debugging-aid-for-memory-initialisation-problems-fix.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
-squash-udf-warnings.patch
+readahead-nfsd-case-fix-uninitialized-ra_min-ra_max.patch
+readahead-nfsd-case-remove-ra_min.patch
+readahead-turn-on-by-default.patch
+readahead-remove-size-limit-on-read_ahead_kb.patch
+readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
+readahead-partial-sendfile-fix.patch
