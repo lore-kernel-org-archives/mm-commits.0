@@ -1,55 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 02:46:59 -0800
-Message-ID: <200703061047.l26Akxid020105@shell0.pdx.osdl.net>
+Subject: - after-before-x86_64-mm-mmconfig-share.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 02:51:13 -0800
+Message-ID: <200703061051.l26ApDdG020298@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35021 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35163 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964828AbXCFKrc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:47:32 -0500
+	id S964873AbXCFKvV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:51:21 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l26ApDq8002451
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 6 Mar 2007 02:51:13 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, duncan.sands@math.u-psud.fr, greg@kroah.com, simon@arlott.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usbatm-create-sysfs-link-device-from-atm-class-device-tidy
+     revert-before-x86_64-mm-mmconfig-share
 has been removed from the -mm tree.  Its filename was
-     usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
+     after-before-x86_64-mm-mmconfig-share.patch
 
-This patch was dropped because it was folded into usbatm-create-sysfs-link-device-from-atm-class-device.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: usbatm-create-sysfs-link-device-from-atm-class-device-tidy
+Subject: revert-before-x86_64-mm-mmconfig-share
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Avoid going blind.
-
-Cc: Duncan Sands <duncan.sands@math.u-psud.fr>
-Cc: Greg KH <greg@kroah.com>
-Cc: Simon Arlott <simon@arlott.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/usbatm.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/i386/pci/mmconfig-shared.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/atm/usbatm.c~usbatm-create-sysfs-link-device-from-atm-class-device-tidy drivers/usb/atm/usbatm.c
---- a/drivers/usb/atm/usbatm.c~usbatm-create-sysfs-link-device-from-atm-class-device-tidy
-+++ a/drivers/usb/atm/usbatm.c
-@@ -966,9 +966,11 @@ static int usbatm_atm_init(struct usbatm
- 	/* temp init ATM device, set to 128kbit */
- 	atm_dev->link_rate = 128 * 1000 / 424;
+diff -puN arch/x86_64/pci/mmconfig.c~after-before-x86_64-mm-mmconfig-share arch/x86_64/pci/mmconfig.c
+diff -puN arch/i386/pci/mmconfig-shared.c~after-before-x86_64-mm-mmconfig-share arch/i386/pci/mmconfig-shared.c
+--- a/arch/i386/pci/mmconfig-shared.c~after-before-x86_64-mm-mmconfig-share
++++ a/arch/i386/pci/mmconfig-shared.c
+@@ -245,7 +245,8 @@ void __init pci_mmcfg_init(int type)
+ 		known_bridge = 1;
  
--	ret = sysfs_create_link(&atm_dev->class_dev.kobj, &instance->usb_intf->dev.kobj, "device");
-+	ret = sysfs_create_link(&atm_dev->class_dev.kobj,
-+				&instance->usb_intf->dev.kobj, "device");
- 	if (ret) {
--		atm_err(instance, "%s: sysfs_create_link failed: %d\n", __func__, ret);
-+		atm_err(instance, "%s: sysfs_create_link failed: %d\n",
-+					__func__, ret);
- 		goto fail_sysfs;
+ 	if (!known_bridge) {
+-		acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
++		if (acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg))
++			return;
+ 		pci_mmcfg_reject_broken(type);
  	}
  
 _
@@ -81,7 +77,6 @@ rm9000-serial-driver-tidy.patch
 git-pciseg.patch
 git-unionfs.patch
 usbatm-create-sysfs-link-device-from-atm-class-device.patch
-usbatm-create-sysfs-link-device-from-atm-class-device-tidy.patch
 git-wireless-fixup.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 after-before-x86_64-mm-mmconfig-share.patch
