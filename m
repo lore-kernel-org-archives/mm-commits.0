@@ -1,59 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:46:48 -0800
-Message-ID: <200703060146.l261knM8008287@shell0.pdx.osdl.net>
+Subject: - readahead-state-based-method-prevent-tiny-size.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:46:45 -0800
+Message-ID: <200703060146.l261kkBl008283@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45988 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45992 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933819AbXCFBq6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:46:58 -0500
+	id S933819AbXCFBrN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:47:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: state based method: move readahead_ratio out of compute_thrashing_threshold()
+     readahead: state based method: prevent tiny size
 has been removed from the -mm tree.  Its filename was
-     readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch
+     readahead-state-based-method-prevent-tiny-size.patch
 
 This patch was dropped because it was folded into readahead-state-based-method.patch
 
 ------------------------------------------------------
-Subject: readahead: state based method: move readahead_ratio out of compute_thrashing_threshold()
+Subject: readahead: state based method: prevent tiny size
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Make compute_thrashing_threshold() a pure computing routine, by moving the
-readahead_ratio policy out of it.
+- cancel look-ahead if readahead size is small compared to the look-ahead size,
+  to avoid too small I/O size, and not to add more memory/io pressure on the
+  possibly loaded system.
+- prevent issuing tiny readahead size, by applying a minimal limit
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ mm/readahead.c |   21 ++++++++++++++++-----
+ 1 files changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN mm/readahead.c~readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold mm/readahead.c
---- a/mm/readahead.c~readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold
+diff -puN mm/readahead.c~readahead-state-based-method-prevent-tiny-size mm/readahead.c
+--- a/mm/readahead.c~readahead-state-based-method-prevent-tiny-size
 +++ a/mm/readahead.c
-@@ -1031,7 +1031,7 @@ static unsigned long compute_thrashing_t
- 	stream_shift = ra_invoke_interval(ra);
+@@ -938,17 +938,21 @@ static int adjust_rala(unsigned long ra_
+ 			unsigned long *ra_size, unsigned long *la_size)
+ {
+ 	/*
+-	 * Substract the old look-ahead to get real safe size for the next
+-	 * read-ahead request.
++	 * Cancel asynchrous read-ahead,
++	 * if there is a major upsurge of load, or fall of this stream's speed.
+ 	 */
+-	if (*ra_size > *la_size)
+-		*ra_size -= *la_size;
+-	else {
++	if (*ra_size <= *la_size * 2) {
+ 		ra_account(NULL, RA_EVENT_READAHEAD_SHRINK, *ra_size);
+ 		return 0;
+ 	}
  
- 	/* future safe space */
--	ll = (uint64_t) stream_shift * (global_size >> 9) * readahead_ratio * 5;
-+	ll = (uint64_t) stream_shift * global_size;
- 	do_div(ll, global_shift);
- 	ra_size = ll;
+ 	/*
++	 * Substract the old look-ahead to get real safe size for the next
++	 * read-ahead request.
++	 */
++	*ra_size -= *la_size;
++
++	/*
+ 	 * Set new la_size according to the (still large) ra_size.
+ 	 */
+ 	*la_size = *ra_size / LOOKAHEAD_RATIO;
+@@ -962,6 +966,13 @@ static void limit_rala(unsigned long ra_
+ 	unsigned long stream_shift;
  
-@@ -1069,6 +1069,7 @@ state_based_readahead(struct address_spa
- 	la_old = la_size = ra->readahead_index - offset;
- 	ra_old = ra_readahead_size(ra);
- 	ra_size = compute_thrashing_threshold(ra, &remain_space);
-+	ra_size = ra_size * readahead_ratio / 100;
- 
- 	if (page && remain_space <= la_size) {
- 		rescue_pages(page, la_size);
+ 	/*
++	 * Protect against too small I/O sizes,
++	 * by mapping [0, 4*min] to [min, 4*min].
++	 */
++	if (*ra_size < 4 * MIN_RA_PAGES)
++		*ra_size = MIN_RA_PAGES + *ra_size * 3 / 4;
++
++	/*
+ 	 * Apply basic upper limits.
+ 	 */
+ 	if (*ra_size > ra_max)
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
@@ -72,6 +98,7 @@ readahead-min-max-sizes.patch
 readahead-state-based-method-aging-accounting.patch
 readahead-state-based-method-routines.patch
 readahead-state-based-method.patch
+readahead-state-based-method-prevent-tiny-size.patch
 readahead-state-based-method-move-readahead_ratio-out-of-compute_thrashing_threshold.patch
 readahead-context-based-method.patch
 readahead-context-based-method-locking-fix.patch
