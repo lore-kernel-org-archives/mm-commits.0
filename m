@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-dirindex-error-pointer-issues.patch added to -mm tree
-Date: Mon, 05 Mar 2007 19:37:26 -0800
-Message-ID: <200703060337.l263bQ32010808@shell0.pdx.osdl.net>
+Subject: + dvb-core-fix-several-locking-related-problems.patch added to -mm tree
+Date: Mon, 05 Mar 2007 19:38:27 -0800
+Message-ID: <200703060338.l263cR0S010826@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49122 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49151 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752810AbXCFDii (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 22:38:38 -0500
+	id S932619AbXCFDi7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 22:38:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@sw.ru, adilger@clusterfs.com, dmonakhov@openvz.org, tytso@mit.edu
+Cc: simon@fire.lp0.eu, mchehab@infradead.org, obi@linuxtv.org
 
 
 The patch titled
-     ext3: dirindex error pointer issues
+     dvb-core: fix several locking related problems
 has been added to the -mm tree.  Its filename is
-     ext3-dirindex-error-pointer-issues.patch
+     dvb-core-fix-several-locking-related-problems.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,158 +25,170 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3: dirindex error pointer issues
-From: Dmitriy Monakhov <dmonakhov@sw.ru>
+Subject: dvb-core: fix several locking related problems
+From: Simon Arlott <simon@fire.lp0.eu>
 
-- ext3_dx_find_entry() exit with out setting proper error pointer
+Fix several instances of dvb-core functions using mutex_lock_interruptible
+and returning -ERESTARTSYS where the calling function will either never
+retry or never check the return value.
 
-- do_split() exit with out setting proper error pointer
-  it is realy painful because many callers contain folowing code:
+These cause a race condition with dvb_dmxdev_filter_free and
+dvb_dvr_release, both of which are filesystem release functions whose
+return value is ignored and will never be retried.  When this happens it
+becomes impossible to open dvr0 again (-EBUSY) since it has not been
+released properly.
 
-          de = do_split(handle,dir, &bh, frame, &hinfo, &retval);
-          if (!(de))
-                       return retval;
-          <<< WOW retval wasn't changed by do_split(), so caller failed
-          <<< but return SUCCESS :)
-
-- Rearrange do_split() error path. Current error path is realy ugly, all
-  this up and down jump stuff doesn't make code easy to understand.
-
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
-Cc: Andreas Dilger <adilger@clusterfs.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+Cc: Andreas Oberritter <obi@linuxtv.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |   26 +++++++++++++++-----------
- fs/ext4/namei.c |   26 +++++++++++++++-----------
- 2 files changed, 30 insertions(+), 22 deletions(-)
+ drivers/media/dvb/dvb-core/dmxdev.c    |   12 +++---------
+ drivers/media/dvb/dvb-core/dvb_demux.c |   21 +++++++--------------
+ drivers/media/dvb/dvb-core/dvbdev.c    |    9 +++------
+ 3 files changed, 13 insertions(+), 29 deletions(-)
 
-diff -puN fs/ext3/namei.c~ext3-dirindex-error-pointer-issues fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-dirindex-error-pointer-issues
-+++ a/fs/ext3/namei.c
-@@ -969,6 +969,7 @@ static struct buffer_head * ext3_dx_find
- 				  (block<<EXT3_BLOCK_SIZE_BITS(sb))
- 					  +((char *)de - bh->b_data))) {
- 				brelse (bh);
-+				*err = ERR_BAD_DX_DIR;
- 				goto errout;
- 			}
- 			*res_dir = de;
-@@ -1134,9 +1135,9 @@ static struct ext3_dir_entry_2 *do_split
- 	char *data1 = (*bh)->b_data, *data2;
- 	unsigned split;
- 	struct ext3_dir_entry_2 *de = NULL, *de2;
--	int	err;
-+	int	err = 0;
+diff -puN drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-several-locking-related-problems drivers/media/dvb/dvb-core/dmxdev.c
+--- a/drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-several-locking-related-problems
++++ a/drivers/media/dvb/dvb-core/dmxdev.c
+@@ -180,8 +180,7 @@ static int dvb_dvr_release(struct inode 
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct dmxdev *dmxdev = dvbdev->priv;
  
--	bh2 = ext3_append (handle, dir, &newblock, error);
-+	bh2 = ext3_append (handle, dir, &newblock, &err);
- 	if (!(bh2)) {
- 		brelse(*bh);
- 		*bh = NULL;
-@@ -1145,14 +1146,9 @@ static struct ext3_dir_entry_2 *do_split
+-	if (mutex_lock_interruptible(&dmxdev->mutex))
+-		return -ERESTARTSYS;
++	mutex_lock(&dmxdev->mutex);
  
- 	BUFFER_TRACE(*bh, "get_write_access");
- 	err = ext3_journal_get_write_access(handle, *bh);
--	if (err) {
--	journal_error:
--		brelse(*bh);
--		brelse(bh2);
--		*bh = NULL;
--		ext3_std_error(dir->i_sb, err);
--		goto errout;
+ 	if ((file->f_flags & O_ACCMODE) == O_WRONLY) {
+ 		dmxdev->demux->disconnect_frontend(dmxdev->demux);
+@@ -673,13 +672,8 @@ static int dvb_demux_open(struct inode *
+ static int dvb_dmxdev_filter_free(struct dmxdev *dmxdev,
+ 				  struct dmxdev_filter *dmxdevfilter)
+ {
+-	if (mutex_lock_interruptible(&dmxdev->mutex))
+-		return -ERESTARTSYS;
+-
+-	if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
+-		mutex_unlock(&dmxdev->mutex);
+-		return -ERESTARTSYS;
 -	}
-+	if (err)
-+		goto journal_error;
-+
- 	BUFFER_TRACE(frame->bh, "get_write_access");
- 	err = ext3_journal_get_write_access(handle, frame->bh);
- 	if (err)
-@@ -1195,8 +1191,16 @@ static struct ext3_dir_entry_2 *do_split
- 		goto journal_error;
- 	brelse (bh2);
- 	dxtrace(dx_show_index ("frame", frame->entries));
--errout:
- 	return de;
-+
-+journal_error:
-+	brelse(*bh);
-+	brelse(bh2);
-+	*bh = NULL;
-+errout:
-+	ext3_std_error(dir->i_sb, err);
-+	*error = err;
-+	return NULL;
- }
- #endif
++	mutex_lock(&dmxdev->mutex);
++	mutex_lock(&dmxdevfilter->mutex);
  
-diff -puN fs/ext4/namei.c~ext3-dirindex-error-pointer-issues fs/ext4/namei.c
---- a/fs/ext4/namei.c~ext3-dirindex-error-pointer-issues
-+++ a/fs/ext4/namei.c
-@@ -967,6 +967,7 @@ static struct buffer_head * ext4_dx_find
- 				  (block<<EXT4_BLOCK_SIZE_BITS(sb))
- 					  +((char *)de - bh->b_data))) {
- 				brelse (bh);
-+				*err = ERR_BAD_DX_DIR;
- 				goto errout;
- 			}
- 			*res_dir = de;
-@@ -1132,9 +1133,9 @@ static struct ext4_dir_entry_2 *do_split
- 	char *data1 = (*bh)->b_data, *data2;
- 	unsigned split;
- 	struct ext4_dir_entry_2 *de = NULL, *de2;
--	int	err;
-+	int	err = 0;
+ 	dvb_dmxdev_filter_stop(dmxdevfilter);
+ 	dvb_dmxdev_filter_reset(dmxdevfilter);
+diff -puN drivers/media/dvb/dvb-core/dvb_demux.c~dvb-core-fix-several-locking-related-problems drivers/media/dvb/dvb-core/dvb_demux.c
+--- a/drivers/media/dvb/dvb-core/dvb_demux.c~dvb-core-fix-several-locking-related-problems
++++ a/drivers/media/dvb/dvb-core/dvb_demux.c
+@@ -673,8 +673,7 @@ static int dmx_ts_feed_stop_filtering(st
+ 	struct dvb_demux *demux = feed->demux;
+ 	int ret;
  
--	bh2 = ext4_append (handle, dir, &newblock, error);
-+	bh2 = ext4_append (handle, dir, &newblock, &err);
- 	if (!(bh2)) {
- 		brelse(*bh);
- 		*bh = NULL;
-@@ -1143,14 +1144,9 @@ static struct ext4_dir_entry_2 *do_split
+-	if (mutex_lock_interruptible(&demux->mutex))
+-		return -ERESTARTSYS;
++	mutex_lock(&demux->mutex);
  
- 	BUFFER_TRACE(*bh, "get_write_access");
- 	err = ext4_journal_get_write_access(handle, *bh);
--	if (err) {
--	journal_error:
--		brelse(*bh);
--		brelse(bh2);
--		*bh = NULL;
--		ext4_std_error(dir->i_sb, err);
--		goto errout;
--	}
-+	if (err)
-+		goto journal_error;
-+
- 	BUFFER_TRACE(frame->bh, "get_write_access");
- 	err = ext4_journal_get_write_access(handle, frame->bh);
- 	if (err)
-@@ -1193,8 +1189,16 @@ static struct ext4_dir_entry_2 *do_split
- 		goto journal_error;
- 	brelse (bh2);
- 	dxtrace(dx_show_index ("frame", frame->entries));
--errout:
- 	return de;
-+
-+journal_error:
-+	brelse(*bh);
-+	brelse(bh2);
-+	*bh = NULL;
-+errout:
-+	ext4_std_error(dir->i_sb, err);
-+	*error = err;
-+	return NULL;
- }
- #endif
+ 	if (feed->state < DMX_STATE_GO) {
+ 		mutex_unlock(&demux->mutex);
+@@ -748,8 +747,7 @@ static int dvbdmx_release_ts_feed(struct
+ 	struct dvb_demux *demux = (struct dvb_demux *)dmx;
+ 	struct dvb_demux_feed *feed = (struct dvb_demux_feed *)ts_feed;
  
+-	if (mutex_lock_interruptible(&demux->mutex))
+-		return -ERESTARTSYS;
++	mutex_lock(&demux->mutex);
+ 
+ 	if (feed->state == DMX_STATE_FREE) {
+ 		mutex_unlock(&demux->mutex);
+@@ -916,8 +914,7 @@ static int dmx_section_feed_stop_filteri
+ 	struct dvb_demux *dvbdmx = dvbdmxfeed->demux;
+ 	int ret;
+ 
+-	if (mutex_lock_interruptible(&dvbdmx->mutex))
+-		return -ERESTARTSYS;
++	mutex_lock(&dvbdmx->mutex);
+ 
+ 	if (!dvbdmx->stop_feed) {
+ 		mutex_unlock(&dvbdmx->mutex);
+@@ -942,8 +939,7 @@ static int dmx_section_feed_release_filt
+ 	struct dvb_demux_feed *dvbdmxfeed = (struct dvb_demux_feed *)feed;
+ 	struct dvb_demux *dvbdmx = dvbdmxfeed->demux;
+ 
+-	if (mutex_lock_interruptible(&dvbdmx->mutex))
+-		return -ERESTARTSYS;
++	mutex_lock(&dvbdmx->mutex);
+ 
+ 	if (dvbdmxfilter->feed != dvbdmxfeed) {
+ 		mutex_unlock(&dvbdmx->mutex);
+@@ -1016,8 +1012,7 @@ static int dvbdmx_release_section_feed(s
+ 	struct dvb_demux_feed *dvbdmxfeed = (struct dvb_demux_feed *)feed;
+ 	struct dvb_demux *dvbdmx = (struct dvb_demux *)demux;
+ 
+-	if (mutex_lock_interruptible(&dvbdmx->mutex))
+-		return -ERESTARTSYS;
++	mutex_lock(&dvbdmx->mutex);
+ 
+ 	if (dvbdmxfeed->state == DMX_STATE_FREE) {
+ 		mutex_unlock(&dvbdmx->mutex);
+@@ -1126,8 +1121,7 @@ static int dvbdmx_connect_frontend(struc
+ 	if (demux->frontend)
+ 		return -EINVAL;
+ 
+-	if (mutex_lock_interruptible(&dvbdemux->mutex))
+-		return -ERESTARTSYS;
++	mutex_lock(&dvbdemux->mutex);
+ 
+ 	demux->frontend = frontend;
+ 	mutex_unlock(&dvbdemux->mutex);
+@@ -1138,8 +1132,7 @@ static int dvbdmx_disconnect_frontend(st
+ {
+ 	struct dvb_demux *dvbdemux = (struct dvb_demux *)demux;
+ 
+-	if (mutex_lock_interruptible(&dvbdemux->mutex))
+-		return -ERESTARTSYS;
++	mutex_lock(&dvbdemux->mutex);
+ 
+ 	demux->frontend = NULL;
+ 	mutex_unlock(&dvbdemux->mutex);
+diff -puN drivers/media/dvb/dvb-core/dvbdev.c~dvb-core-fix-several-locking-related-problems drivers/media/dvb/dvb-core/dvbdev.c
+--- a/drivers/media/dvb/dvb-core/dvbdev.c~dvb-core-fix-several-locking-related-problems
++++ a/drivers/media/dvb/dvb-core/dvbdev.c
+@@ -203,8 +203,7 @@ int dvb_register_device(struct dvb_adapt
+ 
+ 	int id;
+ 
+-	if (mutex_lock_interruptible(&dvbdev_register_lock))
+-		return -ERESTARTSYS;
++	mutex_lock(&dvbdev_register_lock);
+ 
+ 	if ((id = dvbdev_get_free_id (adap, type)) < 0){
+ 		mutex_unlock(&dvbdev_register_lock);
+@@ -294,8 +293,7 @@ int dvb_register_adapter(struct dvb_adap
+ {
+ 	int num;
+ 
+-	if (mutex_lock_interruptible(&dvbdev_register_lock))
+-		return -ERESTARTSYS;
++	mutex_lock(&dvbdev_register_lock);
+ 
+ 	if ((num = dvbdev_get_free_adapter_num ()) < 0) {
+ 		mutex_unlock(&dvbdev_register_lock);
+@@ -323,8 +321,7 @@ EXPORT_SYMBOL(dvb_register_adapter);
+ 
+ int dvb_unregister_adapter(struct dvb_adapter *adap)
+ {
+-	if (mutex_lock_interruptible(&dvbdev_register_lock))
+-		return -ERESTARTSYS;
++	mutex_lock(&dvbdev_register_lock);
+ 	list_del (&adap->list_head);
+ 	mutex_unlock(&dvbdev_register_lock);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from dmonakhov@sw.ru are
+Patches currently in -mm which might be from simon@fire.lp0.eu are
 
-origin.patch
-libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
-3c59x-handle-pci_enable_device-failure-while-resuming.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
-ext3-dirindex-error-pointer-issues.patch
+dvb-core-fix-several-locking-related-problems.patch
+usbatm-create-sysfs-link-device-from-atm-class-device.patch
+cxacru-export-detailed-device-info-through-sysfs-updated.patch
+maintainers-add-myself-for-cxacru-in-drivers-usb-atm.patch
