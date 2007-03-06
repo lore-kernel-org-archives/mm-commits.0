@@ -1,78 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - integrity-service-api-and-dummy-provider-cleanup-use-of-configh.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:10:02 -0800
-Message-ID: <200703060210.l262A4mx008998@shell0.pdx.osdl.net>
+Subject: - slim-main-patch-socket_post_create-hook-return-code.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:10:35 -0800
+Message-ID: <200703060210.l262AZt6009019@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46999 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47011 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965749AbXCFCKV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:10:21 -0500
+	id S932317AbXCFCKk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:10:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kjhall@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     integrity: cleanup use of config.h
+     slim: socket_post_create hook return code
 has been removed from the -mm tree.  Its filename was
-     integrity-service-api-and-dummy-provider-cleanup-use-of-configh.patch
+     slim-main-patch-socket_post_create-hook-return-code.patch
 
-This patch was dropped because it was folded into integrity-service-api-and-dummy-provider.patch
+This patch was dropped because it was folded into slim-main-patch.patch
 
 ------------------------------------------------------
-Subject: integrity: cleanup use of config.h
+Subject: slim: socket_post_create hook return code
 From: Kylene Jo Hall <kjhall@us.ibm.com>
 
-This patch addresses this comment about the use of config.h in the
-integrity .c files.
+The socket_post_create LSM hook has gone from a void return to an int. 
+This patch properly updates the SLIM hook definition and return to reflect
+this change.
 
-On Mon, 2006-09-18 at 16:54 -0400, Dave Jones wrote:
-> You don't need to include config.h any more, kbuild does it for you.
-> (Might want to check the other files for the same thing).
->
-> 	Dave
-
-Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
 Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
+Signed-of-by: Kylene Hall <kjhall@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- security/integrity.c       |    1 -
- security/integrity_dummy.c |    1 -
- 2 files changed, 2 deletions(-)
+ security/slim/slm_main.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN security/integrity.c~integrity-service-api-and-dummy-provider-cleanup-use-of-configh security/integrity.c
---- a/security/integrity.c~integrity-service-api-and-dummy-provider-cleanup-use-of-configh
-+++ a/security/integrity.c
-@@ -11,7 +11,6 @@
-  *      the Free Software Foundation, version 2 of the License.
+diff -puN security/slim/slm_main.c~slim-main-patch-socket_post_create-hook-return-code security/slim/slm_main.c
+--- a/security/slim/slm_main.c~slim-main-patch-socket_post_create-hook-return-code
++++ a/security/slim/slm_main.c
+@@ -970,7 +970,7 @@ int slm_socket_create(int family, int ty
+ /*
+  * Didn't have the family type previously, so update the inode security now.
   */
+-static void slm_socket_post_create(struct socket *sock, int family,
++static int slm_socket_post_create(struct socket *sock, int family,
+ 				   int type, int protocol, int kern)
+ {
+ 	struct slm_tsec_data *cur_tsec = current->security;
+@@ -986,6 +986,7 @@ static void slm_socket_post_create(struc
+ 	} else
+ 		set_level_untrusted(&slm_isec->level);
+ 	spin_unlock(&slm_isec->lock);
++	return 0;
+ }
  
--#include <linux/config.h>
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-diff -puN security/integrity_dummy.c~integrity-service-api-and-dummy-provider-cleanup-use-of-configh security/integrity_dummy.c
---- a/security/integrity_dummy.c~integrity-service-api-and-dummy-provider-cleanup-use-of-configh
-+++ a/security/integrity_dummy.c
-@@ -11,7 +11,6 @@
-  *      the Free Software Foundation, version 2 of the License.
-  */
- 
--#include <linux/config.h>
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
+ /*
 _
 
 Patches currently in -mm which might be from kjhall@us.ibm.com are
 
 mprotect-patch-for-use-by-slim.patch
 integrity-service-api-and-dummy-provider.patch
-integrity-service-api-and-dummy-provider-cleanup-use-of-configh.patch
-integrity-service-api-and-dummy-provider-compilation-warning-fix.patch
-integrity-service-api-and-dummy-provider-fix.patch
 slim-main-patch.patch
 slim-main-patch-socket_post_create-hook-return-code.patch
 slim-main-patch-misc-cleanups-requested-at-inclusion-time.patch
