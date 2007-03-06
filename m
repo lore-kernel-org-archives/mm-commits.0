@@ -1,218 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: - add-pagemlocked-page-state-bit-and-lru-infrastructure.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 16:42:11 -0800
-Message-ID: <200703060042.l260gBwx006512@shell0.pdx.osdl.net>
+Subject: - logic-to-move-mlocked-pages.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 16:42:17 -0800
+Message-ID: <200703060042.l260gICF006517@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43106 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43109 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933674AbXCFAmT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 19:42:19 -0500
+	id S933620AbXCFAmY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 19:42:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add PageMlocked() page state bit and lru infrastructure
+     Logic to move mlocked pages
 has been removed from the -mm tree.  Its filename was
-     add-pagemlocked-page-state-bit-and-lru-infrastructure.patch
+     logic-to-move-mlocked-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Add PageMlocked() page state bit and lru infrastructure
+Subject: Logic to move mlocked pages
 From: Christoph Lameter <clameter@sgi.com>
 
-Add PageMlocked() infrastructure
+Add logic to lazily remove/add mlocked pages from LRU
 
-This adds a new PG_mlocked to mark pages that were taken off the LRU because
-they have a reference from a VM_LOCKED vma.
+This is the core of the patchset.  It adds the necessary logic to remove
+mlocked pages from the LRU and put them back later.  The basic idea by Andrew
+Morton and others has been around for awhile.
 
-(Yes, we still have 4 free page flag bits....  BITS_PER_LONG-FLAGS_RESERVED =
-32 - 9 = 23 page flags).
+During reclaim we attempt to unmap pages.  In order to do so we have to scan
+all vmas that a page belongs to to check for VM_LOCKED.
 
-Also add pagevec handling for returning mlocked pages to the LRU.
+If we find that VM_LOCKED is set for a page then we remove the page from the
+LRU and mark it with SetMlocked.  We must mark the page with a special flag
+bit.  Without PageMLocked we have later no way to distinguish pages that are
+off the LRU because of mlock from pages that are off the LRU for other
+reasons.  We should only feed back mlocked pages to the LRU and not the pages
+that were removed for other reasons.
+
+We feed pages back to the LRU in two places:
+
+zap_pte_range: 	Here pages are removed from a vma. If a page is mlocked then
+	we add it back to the LRU. If other vmas with VM_LOCKED set have
+	mapped the page then we will discover that later during reclaim and
+	move the page off the LRU again.
+
+munlock/munlockall: We scan all pages in the vma and do the
+	same as in zap_pte_range.
+
+We also have to modify the page migration logic to handle PageMlocked pages. 
+We simply clear the PageMlocked bit and then we can treat the page as a
+regular page from the LRU.  Page migration feeds all pages back the LRU and
+relies on reclaim to move them off again.
+
+Note that this is lazy accounting for mlocked pages.  NR_MLOCK may increase as
+the system discovers more mlocked pages.  If a machine has a large amount of
+memory then it may take awhile until reclaim gets through with all pages.  We
+may only discover the extend of mlocked pages when memory gets tight.
+
+Some of the later patches opportunistically move pages off the LRU to avoid
+delays in accounting.  Usually these opportunistic moves do a pretty good job
+but there are special situations (such as page migration and munlocking a
+memory area mlocked by multiple processes) where NR_MLOCK may become low until
+reclaim detects the mlocked pages again.
+
+So, the scheme is fundamentally lazy and one cannot count on NR_MLOCK to
+reflect the actual number of mlocked pages.  NR_MLOCK represents the number
+*discovered* mlocked pages so far which may be less than the actual number of
+mlocked pages.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   13 +++++++++
- include/linux/pagevec.h    |    1 
- include/linux/swap.h       |    1 
- mm/page_alloc.c            |    7 +++++
- mm/swap.c                  |   47 +++++++++++++++++++++++++++++++++++
- 5 files changed, 69 insertions(+)
+ mm/memory.c  |    2 ++
+ mm/migrate.c |    7 +++++++
+ mm/mlock.c   |   19 ++++++++++++++++++-
+ mm/vmscan.c  |   10 +++++++++-
+ 4 files changed, 36 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/page-flags.h~add-pagemlocked-page-state-bit-and-lru-infrastructure include/linux/page-flags.h
---- a/include/linux/page-flags.h~add-pagemlocked-page-state-bit-and-lru-infrastructure
-+++ a/include/linux/page-flags.h
-@@ -91,6 +91,8 @@
- #define PG_nosave_free		18	/* Used for system suspend/resume */
- #define PG_buddy		19	/* Page is free, on buddy lists */
- 
-+#define PG_mlocked		20	/* Page is mlocked */
-+
- /* PG_owner_priv_1 users should have descriptive aliases */
- #define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
- 
-@@ -253,6 +255,17 @@ static inline void SetPageUptodate(struc
- #define SetPageUncached(page)	set_bit(PG_uncached, &(page)->flags)
- #define ClearPageUncached(page)	clear_bit(PG_uncached, &(page)->flags)
- 
-+/*
-+ * PageMlocked set means that the page was taken off the LRU because
-+ * a VM_LOCKED vma does exist. PageMlocked must be cleared before a
-+ * page is put back onto the LRU. PageMlocked is only modified
-+ * under the zone->lru_lock like PageLRU.
-+ */
-+#define PageMlocked(page)	test_bit(PG_mlocked, &(page)->flags)
-+#define SetPageMlocked(page)	set_bit(PG_mlocked, &(page)->flags)
-+#define ClearPageMlocked(page)	clear_bit(PG_mlocked, &(page)->flags)
-+#define __ClearPageMlocked(page) __clear_bit(PG_mlocked, &(page)->flags)
-+
- struct page;	/* forward declaration */
- 
- extern void cancel_dirty_page(struct page *page, unsigned int account_size);
-diff -puN include/linux/pagevec.h~add-pagemlocked-page-state-bit-and-lru-infrastructure include/linux/pagevec.h
---- a/include/linux/pagevec.h~add-pagemlocked-page-state-bit-and-lru-infrastructure
-+++ a/include/linux/pagevec.h
-@@ -25,6 +25,7 @@ void __pagevec_release_nonlru(struct pag
- void __pagevec_free(struct pagevec *pvec);
- void __pagevec_lru_add(struct pagevec *pvec);
- void __pagevec_lru_add_active(struct pagevec *pvec);
-+void __pagevec_lru_add_mlock(struct pagevec *pvec);
- void pagevec_strip(struct pagevec *pvec);
- unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
- 		pgoff_t start, unsigned nr_pages);
-diff -puN include/linux/swap.h~add-pagemlocked-page-state-bit-and-lru-infrastructure include/linux/swap.h
---- a/include/linux/swap.h~add-pagemlocked-page-state-bit-and-lru-infrastructure
-+++ a/include/linux/swap.h
-@@ -182,6 +182,7 @@ extern void FASTCALL(lru_cache_add(struc
- extern void FASTCALL(lru_cache_add_active(struct page *));
- extern void FASTCALL(activate_page(struct page *));
- extern void FASTCALL(mark_page_accessed(struct page *));
-+extern void FASTCALL(lru_cache_add_mlock(struct page *));
- extern void lru_add_drain(void);
- extern int lru_add_drain_all(void);
- extern int rotate_reclaimable_page(struct page *page);
-diff -puN mm/swap.c~add-pagemlocked-page-state-bit-and-lru-infrastructure mm/swap.c
---- a/mm/swap.c~add-pagemlocked-page-state-bit-and-lru-infrastructure
-+++ a/mm/swap.c
-@@ -176,6 +176,7 @@ EXPORT_SYMBOL(mark_page_accessed);
-  */
- static DEFINE_PER_CPU(struct pagevec, lru_add_pvecs) = { 0, };
- static DEFINE_PER_CPU(struct pagevec, lru_add_active_pvecs) = { 0, };
-+static DEFINE_PER_CPU(struct pagevec, lru_add_mlock_pvecs) = { 0, };
- 
- void fastcall lru_cache_add(struct page *page)
- {
-@@ -197,6 +198,16 @@ void fastcall lru_cache_add_active(struc
- 	put_cpu_var(lru_add_active_pvecs);
- }
- 
-+void fastcall lru_cache_add_mlock(struct page *page)
-+{
-+	struct pagevec *pvec = &get_cpu_var(lru_add_mlock_pvecs);
-+
-+	page_cache_get(page);
-+	if (!pagevec_add(pvec, page))
-+		__pagevec_lru_add_mlock(pvec);
-+	put_cpu_var(lru_add_mlock_pvecs);
-+}
-+
- static void __lru_add_drain(int cpu)
- {
- 	struct pagevec *pvec = &per_cpu(lru_add_pvecs, cpu);
-@@ -207,6 +218,9 @@ static void __lru_add_drain(int cpu)
- 	pvec = &per_cpu(lru_add_active_pvecs, cpu);
- 	if (pagevec_count(pvec))
- 		__pagevec_lru_add_active(pvec);
-+	pvec = &per_cpu(lru_add_mlock_pvecs, cpu);
-+	if (pagevec_count(pvec))
-+		__pagevec_lru_add_mlock(pvec);
- }
- 
- void lru_add_drain(void)
-@@ -364,6 +378,7 @@ void __pagevec_lru_add(struct pagevec *p
- 			spin_lock_irq(&zone->lru_lock);
+diff -puN mm/memory.c~logic-to-move-mlocked-pages mm/memory.c
+--- a/mm/memory.c~logic-to-move-mlocked-pages
++++ a/mm/memory.c
+@@ -682,6 +682,8 @@ static unsigned long zap_pte_range(struc
+ 				file_rss--;
+ 			}
+ 			page_remove_rmap(page, vma);
++			if (PageMlocked(page) && vma->vm_flags & VM_LOCKED)
++				lru_cache_add_mlock(page);
+ 			tlb_remove_page(tlb, page);
+ 			continue;
  		}
- 		VM_BUG_ON(PageLRU(page));
-+		VM_BUG_ON(PageMlocked(page));
- 		SetPageLRU(page);
- 		add_page_to_inactive_list(zone, page);
+diff -puN mm/migrate.c~logic-to-move-mlocked-pages mm/migrate.c
+--- a/mm/migrate.c~logic-to-move-mlocked-pages
++++ a/mm/migrate.c
+@@ -58,6 +58,13 @@ int isolate_lru_page(struct page *page, 
+ 			else
+ 				del_page_from_inactive_list(zone, page);
+ 			list_add_tail(&page->lru, pagelist);
++		} else
++		if (PageMlocked(page)) {
++			ret = 0;
++			get_page(page);
++			ClearPageMlocked(page);
++			list_add_tail(&page->lru, pagelist);
++			__dec_zone_state(zone, NR_MLOCK);
+ 		}
+ 		spin_unlock_irq(&zone->lru_lock);
  	}
-@@ -394,6 +409,38 @@ void __pagevec_lru_add_active(struct pag
- 		SetPageLRU(page);
- 		VM_BUG_ON(PageActive(page));
- 		SetPageActive(page);
-+		VM_BUG_ON(PageMlocked(page));
-+		add_page_to_active_list(zone, page);
-+	}
-+	if (zone)
-+		spin_unlock_irq(&zone->lru_lock);
-+	release_pages(pvec->pages, pvec->nr, pvec->cold);
-+	pagevec_reinit(pvec);
-+}
-+
-+void __pagevec_lru_add_mlock(struct pagevec *pvec)
-+{
-+	int i;
-+	struct zone *zone = NULL;
-+
-+	for (i = 0; i < pagevec_count(pvec); i++) {
-+		struct page *page = pvec->pages[i];
-+		struct zone *pagezone = page_zone(page);
-+
-+		if (pagezone != zone) {
-+			if (zone)
-+				spin_unlock_irq(&zone->lru_lock);
-+			zone = pagezone;
-+			spin_lock_irq(&zone->lru_lock);
-+		}
-+		if (!PageMlocked(page))
-+			/* Another process already moved page to LRU */
-+			continue;
-+		BUG_ON(PageLRU(page));
-+		SetPageLRU(page);
-+		ClearPageMlocked(page);
-+		SetPageActive(page);
-+		__dec_zone_state(zone, NR_MLOCK);
- 		add_page_to_active_list(zone, page);
- 	}
- 	if (zone)
-diff -puN mm/page_alloc.c~add-pagemlocked-page-state-bit-and-lru-infrastructure mm/page_alloc.c
---- a/mm/page_alloc.c~add-pagemlocked-page-state-bit-and-lru-infrastructure
-+++ a/mm/page_alloc.c
-@@ -203,6 +203,7 @@ static void bad_page(struct page *page)
- 			1 << PG_slab    |
- 			1 << PG_swapcache |
- 			1 << PG_writeback |
-+			1 << PG_mlocked |
- 			1 << PG_buddy );
- 	set_page_count(page, 0);
- 	reset_page_mapcount(page);
-@@ -442,6 +443,11 @@ static inline int free_pages_check(struc
- 		bad_page(page);
- 	if (PageDirty(page))
- 		__ClearPageDirty(page);
-+	if (PageMlocked(page)) {
-+		/* Page is unused so no need to take the lru lock */
-+		__ClearPageMlocked(page);
-+		dec_zone_page_state(page, NR_MLOCK);
-+	}
- 	/*
- 	 * For now, we report if PG_reserved was found set, but do not
- 	 * clear it, and do not free the page.  But we shall soon need
-@@ -588,6 +594,7 @@ static int prep_new_page(struct page *pa
- 			1 << PG_swapcache |
- 			1 << PG_writeback |
- 			1 << PG_reserved |
-+			1 << PG_mlocked |
- 			1 << PG_buddy ))))
- 		bad_page(page);
+diff -puN mm/mlock.c~logic-to-move-mlocked-pages mm/mlock.c
+--- a/mm/mlock.c~logic-to-move-mlocked-pages
++++ a/mm/mlock.c
+@@ -10,7 +10,7 @@
+ #include <linux/mm.h>
+ #include <linux/mempolicy.h>
+ #include <linux/syscalls.h>
+-
++#include <linux/swap.h>
  
+ static int mlock_fixup(struct vm_area_struct *vma, struct vm_area_struct **prev,
+ 	unsigned long start, unsigned long end, unsigned int newflags)
+@@ -63,6 +63,23 @@ success:
+ 		pages = -pages;
+ 		if (!(newflags & VM_IO))
+ 			ret = make_pages_present(start, end);
++	} else {
++		unsigned long addr;
++
++		/*
++		 * We are clearing VM_LOCKED. Feed all pages back
++		 * to the LRU via lru_cache_add_mlock()
++		 */
++		for (addr = start; addr < end; addr += PAGE_SIZE) {
++			struct page *page;
++
++			page = follow_page(vma, start, FOLL_GET);
++			if (page && PageMlocked(page)) {
++				lru_cache_add_mlock(page);
++				put_page(page);
++			}
++			cond_resched();
++		}
+ 	}
+ 
+ 	mm->locked_vm -= pages;
+diff -puN mm/vmscan.c~logic-to-move-mlocked-pages mm/vmscan.c
+--- a/mm/vmscan.c~logic-to-move-mlocked-pages
++++ a/mm/vmscan.c
+@@ -509,10 +509,11 @@ static unsigned long shrink_page_list(st
+ 		if (page_mapped(page) && mapping) {
+ 			switch (try_to_unmap(page, 0)) {
+ 			case SWAP_FAIL:
+-			case SWAP_MLOCK:
+ 				goto activate_locked;
+ 			case SWAP_AGAIN:
+ 				goto keep_locked;
++			case SWAP_MLOCK:
++				goto mlocked;
+ 			case SWAP_SUCCESS:
+ 				; /* try to free the page below */
+ 			}
+@@ -587,6 +588,13 @@ free_it:
+ 			__pagevec_release_nonlru(&freed_pvec);
+ 		continue;
+ 
++mlocked:
++		ClearPageActive(page);
++		unlock_page(page);
++		__inc_zone_page_state(page, NR_MLOCK);
++		SetPageMlocked(page);
++		continue;
++
+ activate_locked:
+ 		SetPageActive(page);
+ 		pgactivate++;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -224,7 +187,6 @@ safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
 use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
 make-try_to_unmap-return-a-special-exit-code.patch
 slab-ensure-cache_alloc_refill-terminates.patch
-add-pagemlocked-page-state-bit-and-lru-infrastructure.patch
 logic-to-move-mlocked-pages.patch
 consolidate-new-anonymous-page-code-paths.patch
 avoid-putting-new-mlocked-anonymous-pages-on-lru.patch
