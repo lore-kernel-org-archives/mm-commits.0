@@ -1,52 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:21:50 -0800
-Message-ID: <200703060221.l262LoaB009317@shell0.pdx.osdl.net>
+Subject: - lockdep-show-held-locks-when-showing-a-stackdump-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:21:46 -0800
+Message-ID: <200703060221.l262LkHZ009312@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47434 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47436 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965763AbXCFCVx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:21:53 -0500
+	id S965629AbXCFCV7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:21:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: show held locks when showing a stackdump, fix #2
+     lockdep-show-held-locks-when-showing-a-stackdump fix
 has been removed from the -mm tree.  Its filename was
-     lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
+     lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
 
 This patch was dropped because it was folded into lockdep-show-held-locks-when-showing-a-stackdump.patch
 
 ------------------------------------------------------
-Subject: lockdep: show held locks when showing a stackdump, fix #2
+Subject: lockdep-show-held-locks-when-showing-a-stackdump fix
 From: Ingo Molnar <mingo@elte.hu>
 
-It's not safe to dump another task's held-locks array - restrict this to
-the current task only.
+on x86_64 this also needs the patch below - NULL means 'current'.
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/lockdep.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/lockdep.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN kernel/lockdep.c~lockdep-show-held-locks-when-showing-a-stackdump-fix-2 kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-show-held-locks-when-showing-a-stackdump-fix-2
+diff -puN kernel/lockdep.c~lockdep-show-held-locks-when-showing-a-stackdump-fix kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-show-held-locks-when-showing-a-stackdump-fix
 +++ a/kernel/lockdep.c
-@@ -2788,7 +2788,8 @@ EXPORT_SYMBOL_GPL(debug_show_all_locks);
+@@ -422,7 +422,11 @@ static void print_lock(struct held_lock 
  
- void debug_show_held_locks(struct task_struct *task)
+ static void lockdep_print_held_locks(struct task_struct *curr)
  {
--	lockdep_print_held_locks(task);
-+	if (task == current)
-+		lockdep_print_held_locks(task);
- }
+-	int i, depth = curr->lockdep_depth;
++	int i, depth;
++
++	if (!curr)
++		curr = current;
++	depth = curr->lockdep_depth;
  
- EXPORT_SYMBOL_GPL(debug_show_held_locks);
+ 	if (!depth) {
+ 		printk("no locks held by %s/%d.\n", curr->comm, curr->pid);
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
@@ -89,5 +91,6 @@ vdso-print-fatal-signals.patch
 vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
 lockdep-show-held-locks-when-showing-a-stackdump.patch
+lockdep-show-held-locks-when-showing-a-stackdump-fix.patch
 lockdep-show-held-locks-when-showing-a-stackdump-fix-2.patch
 kmap_atomic-debugging.patch
