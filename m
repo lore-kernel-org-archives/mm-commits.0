@@ -1,81 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-context-based-method-locking-fix-2.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:47:14 -0800
-Message-ID: <200703060147.l261lEYX008301@shell0.pdx.osdl.net>
+Subject: - readahead-context-based-method-locking-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:47:11 -0800
+Message-ID: <200703060147.l261lBon008298@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46003 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45999 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933823AbXCFBrV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:47:21 -0500
+	id S933820AbXCFBrT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:47:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead-context-based-method-locking-fix-2
+     readahead-context-based-method-locking-fix
 has been removed from the -mm tree.  Its filename was
-     readahead-context-based-method-locking-fix-2.patch
+     readahead-context-based-method-locking-fix.patch
 
 This patch was dropped because it was folded into readahead-context-based-method.patch
 
 ------------------------------------------------------
-Subject: readahead-context-based-method-locking-fix-2
+Subject: readahead-context-based-method-locking-fix
 From: Andrew Morton <akpm@osdl.org>
 
-Some locking was missing around radix-tree lookups.
+It is a bug to nest read_lock_irq() inside read_lock_irq().
 
 Cc: Wu Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/readahead.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ mm/readahead.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/readahead.c~readahead-context-based-method-locking-fix-2 mm/readahead.c
---- a/mm/readahead.c~readahead-context-based-method-locking-fix-2
+diff -puN mm/readahead.c~readahead-context-based-method-locking-fix mm/readahead.c
+--- a/mm/readahead.c~readahead-context-based-method-locking-fix
 +++ a/mm/readahead.c
-@@ -1305,14 +1305,15 @@ try_context_based_readahead(struct addre
- 	 * Case 1: we have a current page.
- 	 * 	   Search forward for a nearby hole.
+@@ -1178,10 +1178,10 @@ static inline unsigned long inactive_pag
+ 
+ /*
+  * Count/estimate cache hits in range [begin, end).
+- * The estimation is simple and optimistic.
++ * The estimation is simple and optimistic.  The caller must hold tree_lock.
+  */
+ #define CACHE_HIT_HASH_KEY	29	/* some prime number */
+-static int count_cache_hit(struct address_space *mapping,
++static int __count_cache_hit(struct address_space *mapping,
+ 						pgoff_t begin, pgoff_t end)
+ {
+ 	int size = end - begin;
+@@ -1194,14 +1194,12 @@ static int count_cache_hit(struct addres
+ 	 * behavior guarantees a readahead when (size < ra_max) and
+ 	 * (readahead_hit_rate >= 8).
  	 */
-+	read_lock_irq(&mapping->tree_lock);
- 	if (page) {
- 		unsigned long max_scan = ra_max + ra_min;
- 		start = radix_tree_scan_hole(&mapping->page_tree,
- 							offset, max_scan);
- 		if (start != 0 && start - offset < max_scan)
- 			goto has_history_pages;
--		else
--			return -1;
-+		read_unlock_irq(&mapping->tree_lock);
-+		return -1;
+-	read_lock_irq(&mapping->tree_lock);
+ 	for (i = 0; i < 8;) {
+ 		struct page *page = radix_tree_lookup(&mapping->page_tree,
+ 			begin + size * ((i++ * CACHE_HIT_HASH_KEY) & 7) / 8);
+ 		if (inactive_page_refcnt(page) >= PAGE_REFCNT_1 && ++count >= 2)
+ 			break;
  	}
+-	read_unlock_irq(&mapping->tree_lock);
  
- 	/* Case 2: current page is missing; previous page is present.
-@@ -1332,7 +1333,7 @@ try_context_based_readahead(struct addre
- 	 * It can be the early stage of semi-sequential reads(interleaved/nfsd),
- 	 * or an ugly random one.  So be conservative.
- 	 */
--	if (readahead_hit_rate && probe_page(mapping, offset - 1)) {
-+	if (readahead_hit_rate && __probe_page(mapping, offset - 1)) {
- 		start = offset;
- 		if (ra_min > 2 * readahead_hit_rate)
- 		    ra_min = 2 * readahead_hit_rate;
-@@ -1352,10 +1353,12 @@ try_context_based_readahead(struct addre
- 			goto has_history_pages;
- 		}
- 	}
-+	read_unlock_irq(&mapping->tree_lock);
- 
- 	return 0;
- 
- has_history_pages:
-+	read_unlock_irq(&mapping->tree_lock);
- 	ra_size = count_history_pages(mapping, ra, offset, ra_max);
- 	if (!ra_size)
- 		return 0;
+ 	return size * count / i;
+ }
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -125,6 +113,7 @@ readahead-kconfig-options.patch
 readahead-minmax_ra_pages.patch
 readahead-sysctl-parameters.patch
 readahead-context-based-method.patch
+readahead-context-based-method-locking-fix.patch
 readahead-context-based-method-locking-fix-2.patch
 readahead-call-scheme-ifdef-fix.patch
 readahead-call-scheme-build-fix.patch
