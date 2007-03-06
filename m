@@ -1,293 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - lumpy-reclaim-v2.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 16:44:14 -0800
-Message-ID: <200703060044.l260iFrA006584@shell0.pdx.osdl.net>
+Subject: - factor-outstanding-i-o-error-handling-tidy.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 16:56:00 -0800
+Message-ID: <200703060056.l260u1KO006861@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43338 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43583 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752301AbXCFArx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 19:47:53 -0500
+	id S1752687AbXCFA4N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 19:56:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, a.p.zijlstra@chello.nl, bunk@stusta.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, guichaz@yahoo.fr, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lumpy reclaim v2
+     factor-outstanding-i-o-error-handling-tidy
 has been removed from the -mm tree.  Its filename was
-     lumpy-reclaim-v2.patch
+     factor-outstanding-i-o-error-handling-tidy.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into factor-outstanding-i-o-error-handling.patch
 
 ------------------------------------------------------
-Subject: lumpy reclaim v2
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: factor-outstanding-i-o-error-handling-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-When we are out of memory of a suitable size we enter reclaim.  The current
-reclaim algorithm targets pages in LRU order, which is great for fairness but
-highly unsuitable if you desire pages at higher orders.  To get pages of
-higher order we must shoot down a very high proportion of memory; >95% in a
-lot of cases.
-
-This patch set adds a lumpy reclaim algorithm to the allocator.  It targets
-groups of pages at the specified order anchored at the end of the active and
-inactive lists.  This encourages groups of pages at the requested orders to
-move from active to inactive, and active to free lists.  This behaviour is
-only triggered out of direct reclaim when higher order pages have been
-requested.
-
-This patch set is particularly effective when utilised with an
-anti-fragmentation scheme which groups pages of similar reclaimability
-together.
-
-This patch set is based on Peter Zijlstra's lumpy reclaim V2 patch which forms
-the foundation.
-
-Testing of this patch set under high fragmentation high allocation load
-conditions shows significantly improved high order reclaim rates than a
-standard kernel.  The stack here is now within 5% of the best case
-linear-reclaim figures.
-
-It would be interesting to see if this setup is also successful in reducing
-order-2 allocation failures that people have been seeing with jumbo frames.
-
-[bunk@stusta.de: mm/vmscan.c: make a function static]
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Guillaume Chazarain <guichaz@yahoo.fr>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/buffer.c          |    2 
- include/linux/swap.h |    3 -
- mm/page_alloc.c      |    2 
- mm/vmscan.c          |  114 ++++++++++++++++++++++++++++++++++-------
- 4 files changed, 100 insertions(+), 21 deletions(-)
+ include/linux/pagemap.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~lumpy-reclaim-v2 fs/buffer.c
---- a/fs/buffer.c~lumpy-reclaim-v2
-+++ a/fs/buffer.c
-@@ -363,7 +363,7 @@ static void free_more_memory(void)
- 	for_each_online_pgdat(pgdat) {
- 		zones = pgdat->node_zonelists[gfp_zone(GFP_NOFS)].zones;
- 		if (*zones)
--			try_to_free_pages(zones, GFP_NOFS);
-+			try_to_free_pages(zones, 0, GFP_NOFS);
- 	}
- }
- 
-diff -puN include/linux/swap.h~lumpy-reclaim-v2 include/linux/swap.h
---- a/include/linux/swap.h~lumpy-reclaim-v2
-+++ a/include/linux/swap.h
-@@ -188,7 +188,8 @@ extern int rotate_reclaimable_page(struc
- extern void swap_setup(void);
- 
- /* linux/mm/vmscan.c */
--extern unsigned long try_to_free_pages(struct zone **, gfp_t);
-+extern unsigned long try_to_free_pages(struct zone **zones, int order,
-+					gfp_t gfp_mask);
- extern unsigned long shrink_all_memory(unsigned long nr_pages);
- extern int vm_swappiness;
- extern int remove_mapping(struct address_space *mapping, struct page *page);
-diff -puN mm/page_alloc.c~lumpy-reclaim-v2 mm/page_alloc.c
---- a/mm/page_alloc.c~lumpy-reclaim-v2
-+++ a/mm/page_alloc.c
-@@ -1341,7 +1341,7 @@ nofail_alloc:
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
- 
--	did_some_progress = try_to_free_pages(zonelist->zones, gfp_mask);
-+	did_some_progress = try_to_free_pages(zonelist->zones, order, gfp_mask);
- 
- 	p->reclaim_state = NULL;
- 	p->flags &= ~PF_MEMALLOC;
-diff -puN mm/vmscan.c~lumpy-reclaim-v2 mm/vmscan.c
---- a/mm/vmscan.c~lumpy-reclaim-v2
-+++ a/mm/vmscan.c
-@@ -66,6 +66,8 @@ struct scan_control {
- 	int swappiness;
- 
- 	int all_unreclaimable;
-+
-+	int order;
- };
+diff -puN include/linux/pagemap.h~factor-outstanding-i-o-error-handling-tidy include/linux/pagemap.h
+--- a/include/linux/pagemap.h~factor-outstanding-i-o-error-handling-tidy
++++ a/include/linux/pagemap.h
+@@ -11,6 +11,7 @@
+ #include <linux/compiler.h>
+ #include <asm/uaccess.h>
+ #include <linux/gfp.h>
++#include <linux/bitops.h>
  
  /*
-@@ -607,6 +609,36 @@ keep:
- }
+  * Bits in mapping->flags.  The lower __GFP_BITS_SHIFT bits are the page
+@@ -19,7 +20,7 @@
+ #define	AS_EIO		(__GFP_BITS_SHIFT + 0)	/* IO error on async write */
+ #define AS_ENOSPC	(__GFP_BITS_SHIFT + 1)	/* ENOSPC on async write */
  
- /*
-+ * Attempt to remove the specified page from its LRU.  Only take this page if it
-+ * is of the appropriate PageActive status.  Pages which are being freed
-+ * elsewhere are also ignored.
-+ *
-+ * page:	page to consider
-+ * active:	active/inactive flag only take pages of this type
-+ *
-+ * returns 0 on success, -ve errno on failure.
-+ */
-+static int __isolate_lru_page(struct page *page, int active)
-+{
-+	int ret = -EINVAL;
-+
-+	if (PageLRU(page) && (PageActive(page) == active)) {
-+		ret = -EBUSY;
-+		if (likely(get_page_unless_zero(page))) {
-+			/*
-+			 * Be careful not to clear PageLRU until after we're
-+			 * sure the page is not being freed elsewhere -- the
-+			 * page release code relies on it.
-+			 */
-+			ClearPageLRU(page);
-+			ret = 0;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-  * zone->lru_lock is heavily contended.  Some of the functions that
-  * shrink the lists perform better by taking out a batch of pages
-  * and working on them outside the LRU lock.
-@@ -620,38 +652,83 @@ keep:
-  * @src:	The LRU list to pull pages off.
-  * @dst:	The temp list to put pages on to.
-  * @scanned:	The number of pages that were scanned.
-+ * @order:	The caller's attempted allocation order
-  *
-  * returns how many pages were moved onto *@dst.
-  */
- static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
- 		struct list_head *src, struct list_head *dst,
--		unsigned long *scanned)
-+		unsigned long *scanned, int order)
+-static inline void mapping_set_error(struct address_space * mapping, int error)
++static inline void mapping_set_error(struct address_space *mapping, int error)
  {
- 	unsigned long nr_taken = 0;
--	struct page *page;
- 	unsigned long scan;
- 
- 	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
--		struct list_head *target;
-+		struct page *page;
-+		unsigned long pfn;
-+		unsigned long end_pfn;
-+		unsigned long page_pfn;
-+		int active;
-+		int zone_id;
-+
- 		page = lru_to_page(src);
- 		prefetchw_prev_lru_page(page, src, flags);
- 
- 		VM_BUG_ON(!PageLRU(page));
- 
--		list_del(&page->lru);
--		target = src;
--		if (likely(get_page_unless_zero(page))) {
--			/*
--			 * Be careful not to clear PageLRU until after we're
--			 * sure the page is not being freed elsewhere -- the
--			 * page release code relies on it.
--			 */
--			ClearPageLRU(page);
--			target = dst;
-+		active = PageActive(page);
-+		switch (__isolate_lru_page(page, active)) {
-+		case 0:
-+			list_move(&page->lru, dst);
- 			nr_taken++;
--		} /* else it is being freed elsewhere */
-+			break;
-+
-+		case -EBUSY:
-+			/* else it is being freed elsewhere */
-+			list_move(&page->lru, src);
-+			continue;
-+
-+		default:
-+			BUG();
-+		}
-+
-+		if (!order)
-+			continue;
- 
--		list_add(&page->lru, target);
-+		/*
-+		 * Attempt to take all pages in the order aligned region
-+		 * surrounding the tag page.  Only take those pages of
-+		 * the same active state as that tag page.
-+		 */
-+		zone_id = page_zone_id(page);
-+		page_pfn = page_to_pfn(page);
-+		pfn = page_pfn & ~((1 << order) - 1);
-+		end_pfn = pfn + (1 << order);
-+		for (; pfn < end_pfn; pfn++) {
-+			struct page *cursor_page;
-+
-+			if (unlikely(pfn == page_pfn))
-+				continue;
-+			if (unlikely(!pfn_valid(pfn)))
-+				break;
-+
-+			cursor_page = pfn_to_page(pfn);
-+			if (unlikely(page_zone_id(cursor_page) != zone_id))
-+				continue;
-+			scan++;
-+			switch (__isolate_lru_page(cursor_page, active)) {
-+			case 0:
-+				list_move(&cursor_page->lru, dst);
-+				nr_taken++;
-+				break;
-+
-+			case -EBUSY:
-+				/* else it is being freed elsewhere */
-+				list_move(&cursor_page->lru, src);
-+			default:
-+				break;
-+			}
-+		}
- 	}
- 
- 	*scanned = scan;
-@@ -682,7 +759,7 @@ static unsigned long shrink_inactive_lis
- 
- 		nr_taken = isolate_lru_pages(sc->swap_cluster_max,
- 					     &zone->inactive_list,
--					     &page_list, &nr_scan);
-+					     &page_list, &nr_scan, sc->order);
- 		__mod_zone_page_state(zone, NR_INACTIVE, -nr_taken);
- 		zone->pages_scanned += nr_scan;
- 		spin_unlock_irq(&zone->lru_lock);
-@@ -828,7 +905,7 @@ force_reclaim_mapped:
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
- 	pgmoved = isolate_lru_pages(nr_pages, &zone->active_list,
--				    &l_hold, &pgscanned);
-+				    &l_hold, &pgscanned, sc->order);
- 	zone->pages_scanned += pgscanned;
- 	__mod_zone_page_state(zone, NR_ACTIVE, -pgmoved);
- 	spin_unlock_irq(&zone->lru_lock);
-@@ -1023,7 +1100,7 @@ static unsigned long shrink_zones(int pr
-  * holds filesystem locks which prevent writeout this might not work, and the
-  * allocation attempt will fail.
-  */
--unsigned long try_to_free_pages(struct zone **zones, gfp_t gfp_mask)
-+unsigned long try_to_free_pages(struct zone **zones, int order, gfp_t gfp_mask)
- {
- 	int priority;
- 	int ret = 0;
-@@ -1038,6 +1115,7 @@ unsigned long try_to_free_pages(struct z
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
- 		.may_swap = 1,
- 		.swappiness = vm_swappiness,
-+		.order = order,
- 	};
- 
- 	count_vm_event(ALLOCSTALL);
+ 	if (error) {
+ 		if (error == -ENOSPC)
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-pci-device-ensure-sysdata-initialised-v2.patch
-lumpy-reclaim-v2.patch
+origin.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-ia64.patch
+git-ieee1394.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+factor-outstanding-i-o-error-handling.patch
+factor-outstanding-i-o-error-handling-tidy.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+allow-access-to-proc-pid-fd-after-setuid-fix.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous-tidy.patch
+consolidate-generic_writepages-and-mpage_writepages-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+extend-notifier_call_chain-to-count-nr_calls-made-fixes-2.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release-fix.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc-fix.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+aio-is-unlikely.patch
+sched2-sched-domain-sysctl-use-ctl_unnumbered.patch
+mm-implement-swap-prefetching-use-ctl_unnumbered.patch
+swap_prefetch-vs-zoned-counters.patch
+add-include-linux-freezerh-and-move-definitions-from-prefetch.patch
+rcu-preemptible-rcu.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix-2.patch
+local_t-powerpc-extension-fix.patch
+local_t-powerpc-extension-fix-build-fix.patch
+readahead-kconfig-options-fix.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-sysctl-parameters-use-ctl_unnumbered.patch
+readahead-context-based-method-locking-fix.patch
+readahead-context-based-method-locking-fix-2.patch
+readahead-call-scheme-ifdef-fix.patch
+readahead-call-scheme-build-fix.patch
+readahead-nfsd-case-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+resier4-add-include-linux-freezerh-and-move-definitions-from.patch
+make-kmem_cache_destroy-return-void-reiser4.patch
+reiser4-hardirq-include-fix.patch
+reiser4-run-truncate_inode_pages-in-reiser4_delete_inode.patch
+reiser4-get_sb_dev-fix.patch
+reiser4-vs-zoned-allocator.patch
+reiser4-temp-fix.patch
+reiser4-kmem_cache_t-removal.patch
+reiser4-test_clear_page_dirty.patch
+statistics-infrastructure-fix-buffer-overflow-in-histogram-with-linear-tidy.patch
+slim-main-include-fix.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+add-debugging-aid-for-memory-initialisation-problems-fix.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
