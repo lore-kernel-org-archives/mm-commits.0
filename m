@@ -1,74 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - panic-on-slim-selinux.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 18:15:56 -0800
-Message-ID: <200703060215.l262Fu3m009166@shell0.pdx.osdl.net>
+Subject: - statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution-ia64-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 18:07:39 -0800
+Message-ID: <200703060207.l2627edD008919@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47270 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47286 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965749AbXCFCQv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 21:16:51 -0500
+	id S965763AbXCFCRx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 21:17:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, chrisw@sous-sol.org, jmorris@namei.org, kjhall@us.ibm.com, safford@us.ibm.com, sds@tycho.nsa.gov, sergeh@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: jikos@jikos.cz, mp3@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     panic on SLIM + selinux
+     statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution ia64 fix
 has been removed from the -mm tree.  Its filename was
-     panic-on-slim-selinux.patch
+     statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution-ia64-fix.patch
 
-This patch was dropped because it was folded into slim-make-and-config-stuff.patch
+This patch was dropped because it was folded into statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution.patch
 
 ------------------------------------------------------
-Subject: panic on SLIM + selinux
-From: Daniel Walker <dwalker@mvista.com>
+Subject: statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution ia64 fix
+From: Jiri Kosina <jikos@jikos.cz>
 
-If you have both SLIM and selinux compiled into your kernel selinux will
-panic if it can't register itself.  The code below,
+Rename forgotten occurence of ia64_printk_clock to ia64_timestamp_clock
 
-if (register_security (&selinux_ops))
-	panic("SELinux: Unable to register with kernel.\n");
-
-"security/selinux/hooks.c" 5014 lines --95%--                                                                           4811,35       96%
-
-This could be a bug report cause I bet there's a better way to make these
-mutually exclusive.
-
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: Kylene Hall <kjhall@us.ibm.com>
-Cc: Dave Safford <safford@us.ibm.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: Serge Hallyn <sergeh@us.ibm.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Jiri Kosina <jikos@jikos.cz>
+Cc: Martin Peschke <mp3@de.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/slim/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/sn/kernel/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/slim/Kconfig~panic-on-slim-selinux security/slim/Kconfig
---- a/security/slim/Kconfig~panic-on-slim-selinux
-+++ a/security/slim/Kconfig
-@@ -1,6 +1,6 @@
- config SECURITY_SLIM
- 	boolean "SLIM support"
--	depends on SECURITY && SECURITY_NETWORK && INTEGRITY
-+	depends on SECURITY && SECURITY_NETWORK && INTEGRITY && !SECURITY_SELINUX
- 	help
- 	  The Simple Linux Integrity Module implements a modified low water-mark
- 	  mandatory access control integrity model.
+diff -puN arch/ia64/sn/kernel/setup.c~statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution-ia64-fix arch/ia64/sn/kernel/setup.c
+--- a/arch/ia64/sn/kernel/setup.c~statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution-ia64-fix
++++ a/arch/ia64/sn/kernel/setup.c
+@@ -67,7 +67,7 @@ extern void bte_init_node(nodepda_t *, c
+ extern void sn_timer_init(void);
+ extern unsigned long last_time_offset;
+ extern int snidle(struct notifier_block *nb, unsigned long state, void *data);
+-extern unsigned long long (*ia64_printk_clock)(void);
++extern unsigned long long (*ia64_timestamp_clock)(void);
+ 
+ unsigned long sn_rtc_cycles_per_second;
+ EXPORT_SYMBOL(sn_rtc_cycles_per_second);
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from jikos@jikos.cz are
 
-origin.patch
-slim-make-and-config-stuff.patch
-panic-on-slim-selinux.patch
-profile-likely-unlikely-macros.patch
-profile_likely-export-do_check_likely.patch
-profile-likely-unlikely-macros_remove-likely-profiling-int-cast.patch
-profile-likely-unlikely-macros-x86_64-fix.patch
+bluetooth-hid-quirks-mightymouse-quirk.patch
+statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution.patch
+statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution-ia64-fix.patch
