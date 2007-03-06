@@ -1,116 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-i386-optimization-flags.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:40:22 -0800
-Message-ID: <200703060140.l261eMuZ008061@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-non-optimized-architures-fallback-flags.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:41:06 -0800
+Message-ID: <200703060141.l261f765008080@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45831 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45855 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933799AbXCFBka (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:40:30 -0500
+	id S933804AbXCFBlX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:41:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-kernel-markers-i386-optimization-flags
+     linux-kernel-markers-non-optimized-architures-fallback-flags
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-i386-optimization-flags.patch
+     linux-kernel-markers-non-optimized-architures-fallback-flags.patch
 
-This patch was dropped because it was folded into linux-kernel-markers-i386-optimization.patch
+This patch was dropped because it was folded into linux-kernel-markers-non-optimized-architectures.patch
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-i386-optimization-flags
+Subject: linux-kernel-markers-non-optimized-architures-fallback-flags
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-linux-kernel-markers-i386-optimization-flags
+linux-kernel-markers-non-optimized-architures-fallback-flags
 
-i386 marker optimization flags support.
-Also fixes the @progbits assembly section declaration.
+- asm-generic/marker.h is now only used as a fallback defining _MARK as
+  MARK_GENERIC.
+- flags support
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/marker.c |    4 ++--
- include/asm-i386/marker.h |   30 +++++++++++++++++++++++-------
- 2 files changed, 25 insertions(+), 9 deletions(-)
+ include/asm-generic/marker.h |   38 ++++++++++++---------------------
+ 1 files changed, 14 insertions(+), 24 deletions(-)
 
-diff -puN arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-flags arch/i386/kernel/marker.c
---- a/arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-flags
-+++ a/arch/i386/kernel/marker.c
-@@ -56,7 +56,7 @@ static struct notifier_block mark_notify
- 	.priority = 0x7fffffff,	/* we need to be notified first */
- };
- 
--int arch_marker_set_ins_enable(void *address, char enable)
-+int marker_optimized_set_enable(void *address, char enable)
- {
- 	char saved_byte;
- 	int ret;
-@@ -91,4 +91,4 @@ int arch_marker_set_ins_enable(void *add
- 	flush_icache_range(address, size);
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(arch_marker_set_ins_enable);
-+EXPORT_SYMBOL_GPL(marker_optimized_set_enable);
-diff -puN include/asm-i386/marker.h~linux-kernel-markers-i386-optimization-flags include/asm-i386/marker.h
---- a/include/asm-i386/marker.h~linux-kernel-markers-i386-optimization-flags
-+++ a/include/asm-i386/marker.h
-@@ -11,16 +11,19 @@
- 
- 
- #ifdef CONFIG_MARKERS
--#define MARK(name, format, args...) \
+diff -puN include/asm-generic/marker.h~linux-kernel-markers-non-optimized-architures-fallback-flags include/asm-generic/marker.h
+--- a/include/asm-generic/marker.h~linux-kernel-markers-non-optimized-architures-fallback-flags
++++ a/include/asm-generic/marker.h
+@@ -1,3 +1,6 @@
++#ifndef _ASM_GENERIC_MARKER_H
++#define _ASM_GENERIC_MARKER_H
 +
-+#define _MF_DEFAULT (_MF_OPTIMIZED | _MF_LOCKDEP | _MF_PRINTK)
-+
-+#define MARK_OPTIMIZED(flags, name, format, args...) \
- 	do { \
- 		static marker_probe_func *__mark_call_##name = \
- 					__mark_empty_function; \
- 		static const struct __mark_marker_c __mark_c_##name \
- 			__attribute__((section(".markers.c"))) = \
- 			{ #name, &__mark_call_##name, format, \
--			MARKER_OPTIMIZED } ; \
-+			(flags) | _MF_OPTIMIZED } ; \
- 		char condition; \
--		asm volatile(	".section .markers, \"a\";\n\t" \
-+		asm volatile(	".section .markers, \"a\", @progbits;\n\t" \
- 					".long %1, 0f;\n\t" \
- 					".previous;\n\t" \
- 					".align 2\n\t" \
-@@ -36,12 +39,25 @@
- 		} \
- 	} while (0)
+ /*
+  * marker.h
+  *
+@@ -10,31 +13,18 @@
+  * "used" attribute to fix a gcc 4.1.x bug.
+  */
  
-+#define _MARK(flags, format, args...) \
-+do { \
-+	if (((flags) & _MF_LOCKDEP) && ((flags) & _MF_OPTIMIZED)) \
-+		MARK_OPTIMIZED(flags, format, ## args); \
-+	else \
-+		MARK_GENERIC(flags, format, ## args); \
-+} while (0)
-+
-+#define MARK(format, args...) _MARK(_MF_DEFAULT, format, ## args)
-+
- /* Offset of the immediate value from the start of the movb instruction, in
-  * bytes. */
--#define MARK_ENABLE_IMMEDIATE_OFFSET 1
--#define MARK_ENABLE_TYPE char
--#define MARK_POLYMORPHIC
-+#define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET 1
-+#define MARK_OPTIMIZED_ENABLE_TYPE char
+-#ifdef CONFIG_MARKERS
++#define _MF_DEFAULT			(_MF_LOCKDEP | _MF_PRINTK)
+ 
+-#define GEN_MARK(name, format, args...) \
+-	do { \
+-		static marker_probe_func *__mark_call_##name = \
+-					__mark_empty_function; \
+-		static char __marker_enable_##name = 0; \
+-		static const struct __mark_marker_c __mark_c_##name \
+-			__attribute__((section(".markers.c"))) = \
+-			{ #name, &__mark_call_##name, format, \
+-			MARKER_GENERIC } ; \
+-		static const struct __mark_marker __mark_##name \
+-			__attribute__((section(".markers"))) = \
+-			{ &__mark_c_##name, &__marker_enable_##name } ; \
+-		asm volatile ( "" : : "i" (&__mark_##name)); \
+-		__mark_check_format(format, ## args); \
+-		if (unlikely(__marker_enable_##name)) { \
+-			preempt_disable(); \
+-			(*__mark_call_##name)(format, ## args); \
+-			preempt_enable(); \
+-		} \
+-	} while (0)
++#define MARK_OPTIMIZED			MARK_GENERIC
++#define _MARK				MARK_GENERIC
++#define MARK(format, args...)		_MARK(_MF_DEFAULT, format, ## args)
+ 
++#define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET \
++		MARK_GENERIC_ENABLE_IMMEDIATE_OFFSET
++#define MARK_OPTIMIZED_ENABLE_TYPE	MARK_GENERIC_ENABLE_TYPE
 +/* Dereference enable as lvalue from a pointer to its instruction */
-+#define MARK_OPTIMIZED_ENABLE(a) \
-+	*(MARK_OPTIMIZED_ENABLE_TYPE*) \
-+		((char*)a+MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET)
++#define MARK_OPTIMIZED_ENABLE		MARK_GENERIC_ENABLE
  
--extern int arch_marker_set_ins_enable(void *address, char enable);
-+extern int marker_optimized_set_enable(void *address, char enable);
+-#define GEN_MARK_ENABLE_IMMEDIATE_OFFSET 0
+-#define GEN_MARK_ENABLE_TYPE char
++#define marker_optimized_set_enable marker_generic_set_enable
  
- #endif
+-#endif
++#endif /* _ASM_GENERIC_MARKER_H */
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
@@ -138,7 +117,6 @@ linux-kernel-markers-kconfig-menus.patch
 linux-kernel-markers-architecture-independant-code.patch
 linux-kernel-markers-powerpc-optimization.patch
 linux-kernel-markers-i386-optimization.patch
-linux-kernel-markers-i386-optimization-flags.patch
 linux-kernel-markers-non-optimized-architectures.patch
 linux-kernel-markers-non-optimized-architures-fallback-flags.patch
 linux-kernel-markers-documentation.patch
