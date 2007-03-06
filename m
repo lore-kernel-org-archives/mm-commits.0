@@ -1,64 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-context-based-method-remove-readahead_ratio.patch removed from -mm tree
-Date: Mon, 05 Mar 2007 17:47:26 -0800
-Message-ID: <200703060147.l261lRYL008307@shell0.pdx.osdl.net>
+Subject: - readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch removed from -mm tree
+Date: Mon, 05 Mar 2007 17:49:01 -0800
+Message-ID: <200703060149.l261n3Ab008332@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46009 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46032 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933827AbXCFBrf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:47:35 -0500
+	id S933829AbXCFBtK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:49:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: context based method: remove readahead_ratio
+     readahead: initial method: user recommended size: rename to read_ahead_initial_kb
 has been removed from the -mm tree.  Its filename was
-     readahead-context-based-method-remove-readahead_ratio.patch
+     readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb.patch
 
-This patch was dropped because it was folded into readahead-context-based-method.patch
+This patch was dropped because it was folded into readahead-initial-method-user-recommended-size.patch
 
 ------------------------------------------------------
-Subject: readahead: context based method: remove readahead_ratio
+Subject: readahead: initial method: user recommended size: rename to read_ahead_initial_kb
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-The context based readahead is pretty conservative by nature,
-so do not apply readahead_ratio here.
+Rename the sysfs parameter initial_ra_kb to read_ahead_initial_kb, which
+hopefully is a more consistent and user friendly name.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ block/ll_rw_blk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/readahead.c~readahead-context-based-method-remove-readahead_ratio mm/readahead.c
---- a/mm/readahead.c~readahead-context-based-method-remove-readahead_ratio
-+++ a/mm/readahead.c
-@@ -1244,9 +1244,7 @@ static unsigned long count_history_pages
- 	 * Check the far pages coarsely.
- 	 * The enlarged count will contribute to the look-ahead size.
- 	 */
--	lookback = ra_max * (LOOKAHEAD_RATIO + 1) *
--						100 / (readahead_ratio | 1);
--
-+	lookback = ra_max * LOOKAHEAD_RATIO;
- 	for (count += ra_max; count < lookback; count += ra_max)
- 		if (!__probe_page(mapping, offset - count))
- 			break;
-@@ -1392,7 +1390,8 @@ has_history_pages:
- 		adjust_rala_aggressive(ra_max, &ra_size, &la_size);
- 		ra_set_class(ra, RA_CLASS_CONTEXT_AGGRESSIVE);
- 	} else {
--		ra_size = max(ra_min, ra_size * readahead_ratio / 100);
-+		if (ra_size < ra_min)
-+		    ra_size = ra_min;
- 		if (!adjust_rala(ra_max, &ra_size, &la_size))
- 			return -1;
- 		ra_set_class(ra, RA_CLASS_CONTEXT);
+diff -puN block/ll_rw_blk.c~readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~readahead-initial-method-user-recommended-size-rename-to-read_ahead_initial_kb
++++ a/block/ll_rw_blk.c
+@@ -4013,7 +4013,7 @@ static struct queue_sysfs_entry queue_ra
+ };
+ 
+ static struct queue_sysfs_entry queue_initial_ra_entry = {
+-	.attr = {.name = "initial_ra_kb", .mode = S_IRUGO | S_IWUSR },
++	.attr = {.name = "read_ahead_initial_kb", .mode = S_IRUGO | S_IWUSR },
+ 	.show = queue_initial_ra_show,
+ 	.store = queue_initial_ra_store,
+ };
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
@@ -78,7 +65,6 @@ readahead-state-based-method-aging-accounting.patch
 readahead-state-based-method-routines.patch
 readahead-state-based-method.patch
 readahead-context-based-method.patch
-readahead-context-based-method-remove-readahead_ratio.patch
 readahead-initial-method-guiding-sizes.patch
 readahead-initial-method-thrashing-guard-size.patch
 readahead-initial-method-user-recommended-size.patch
