@@ -1,197 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:21:09 -0800
-Message-ID: <200703070421.l274L9qu018874@shell0.pdx.osdl.net>
+Subject: - scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:07 -0800
+Message-ID: <200703070421.l274L7GD018871@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47015 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47007 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161297AbXCGEVX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:21:23 -0500
+	id S1161290AbXCGEVU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:21:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@debian.org, ak@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, mingo@elte.hu, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: make x86_64 tsc header require i386 rather than vice-versa
+     Scheduled removal of SA_xxx interrupt flags fixups 3
 has been removed from the -mm tree.  Its filename was
-     i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch
+     scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: make x86_64 tsc header require i386 rather than vice-versa
-From: Andres Salomon <dilinger@debian.org>
+Subject: Scheduled removal of SA_xxx interrupt flags fixups 3
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Prior to commit 95492e4646e5de8b43d9a7908d6177fb737b61f0 ([PATCH] x86:
-rewrite SMP TSC sync code), the headers in asm-i386 did not really require
-anything in include/asm-x86_64.  This means that distributions such as
-fedora did not include asm-x86_64 in kernel-devel headers for i386.  Ingo's
-commit changed that, and broke things.  This is easy enough to hack around
-in package builds by just including asm-x86_64 on i386, but that's kind of
-annoying.  If anything, x86_64 should depend upon i386, not the other way
-around.
+The obsolete SA_xxx interrupt flags have been used despite the scheduled
+removal.  Fixup the remaining users in -mm.
 
-This patch changes it so that asm-x86_64/tsc.h includes asm-i386/tsc.h,
-rather than vice-versa.
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/tsc.h   |   68 ++++++++++++++++++++++++++++++++++++-
- include/asm-x86_64/tsc.h |   68 -------------------------------------
- 2 files changed, 68 insertions(+), 68 deletions(-)
+ arch/i386/kernel/vmitime.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN include/asm-i386/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa include/asm-i386/tsc.h
---- a/include/asm-i386/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa
-+++ a/include/asm-i386/tsc.h
-@@ -1 +1,67 @@
--#include <asm-x86_64/tsc.h>
-+/*
-+ * linux/include/asm-i386/tsc.h
-+ *
-+ * i386 TSC related functions
-+ */
-+#ifndef _ASM_i386_TSC_H
-+#define _ASM_i386_TSC_H
-+
-+#include <asm/processor.h>
-+
-+/*
-+ * Standard way to access the cycle counter.
-+ */
-+typedef unsigned long long cycles_t;
-+
-+extern unsigned int cpu_khz;
-+extern unsigned int tsc_khz;
-+
-+static inline cycles_t get_cycles(void)
-+{
-+	unsigned long long ret = 0;
-+
-+#ifndef CONFIG_X86_TSC
-+	if (!cpu_has_tsc)
-+		return 0;
-+#endif
-+
-+#if defined(CONFIG_X86_GENERIC) || defined(CONFIG_X86_TSC)
-+	rdtscll(ret);
-+#endif
-+	return ret;
-+}
-+
-+/* Like get_cycles, but make sure the CPU is synchronized. */
-+static __always_inline cycles_t get_cycles_sync(void)
-+{
-+	unsigned long long ret;
-+#ifdef X86_FEATURE_SYNC_RDTSC
-+	unsigned eax;
-+
-+	/*
-+	 * Don't do an additional sync on CPUs where we know
-+	 * RDTSC is already synchronous:
-+	 */
-+	alternative_io("cpuid", ASM_NOP2, X86_FEATURE_SYNC_RDTSC,
-+			  "=a" (eax), "0" (1) : "ebx","ecx","edx","memory");
-+#else
-+	sync_core();
-+#endif
-+	rdtscll(ret);
-+
-+	return ret;
-+}
-+
-+extern void tsc_init(void);
-+extern void mark_tsc_unstable(void);
-+extern int unsynchronized_tsc(void);
-+extern void init_tsc_clocksource(void);
-+
-+/*
-+ * Boot-time check whether the TSCs are synchronized across
-+ * all CPUs/cores:
-+ */
-+extern void check_tsc_sync_source(int cpu);
-+extern void check_tsc_sync_target(void);
-+
-+#endif
-diff -puN include/asm-x86_64/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa include/asm-x86_64/tsc.h
---- a/include/asm-x86_64/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa
-+++ a/include/asm-x86_64/tsc.h
-@@ -1,67 +1 @@
--/*
-- * linux/include/asm-x86_64/tsc.h
-- *
-- * x86_64 TSC related functions
-- */
--#ifndef _ASM_x86_64_TSC_H
--#define _ASM_x86_64_TSC_H
--
--#include <asm/processor.h>
--
--/*
-- * Standard way to access the cycle counter.
-- */
--typedef unsigned long long cycles_t;
--
--extern unsigned int cpu_khz;
--extern unsigned int tsc_khz;
--
--static inline cycles_t get_cycles(void)
--{
--	unsigned long long ret = 0;
--
--#ifndef CONFIG_X86_TSC
--	if (!cpu_has_tsc)
--		return 0;
--#endif
--
--#if defined(CONFIG_X86_GENERIC) || defined(CONFIG_X86_TSC)
--	rdtscll(ret);
--#endif
--	return ret;
--}
--
--/* Like get_cycles, but make sure the CPU is synchronized. */
--static __always_inline cycles_t get_cycles_sync(void)
--{
--	unsigned long long ret;
--#ifdef X86_FEATURE_SYNC_RDTSC
--	unsigned eax;
--
--	/*
--	 * Don't do an additional sync on CPUs where we know
--	 * RDTSC is already synchronous:
--	 */
--	alternative_io("cpuid", ASM_NOP2, X86_FEATURE_SYNC_RDTSC,
--			  "=a" (eax), "0" (1) : "ebx","ecx","edx","memory");
--#else
--	sync_core();
--#endif
--	rdtscll(ret);
--
--	return ret;
--}
--
--extern void tsc_init(void);
--extern void mark_tsc_unstable(void);
--extern int unsynchronized_tsc(void);
--extern void init_tsc_clocksource(void);
--
--/*
-- * Boot-time check whether the TSCs are synchronized across
-- * all CPUs/cores:
-- */
--extern void check_tsc_sync_source(int cpu);
--extern void check_tsc_sync_target(void);
--
--#endif
-+#include <asm-i386/tsc.h>
+diff -puN arch/i386/kernel/vmitime.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3 arch/i386/kernel/vmitime.c
+--- a/arch/i386/kernel/vmitime.c~scheduled-removal-of-sa_xxx-interrupt-flags-fixups-3
++++ a/arch/i386/kernel/vmitime.c
+@@ -123,12 +123,10 @@ static struct clocksource clocksource_vm
+ static irqreturn_t vmi_timer_interrupt(int irq, void *dev_id);
+ 
+ static struct irqaction vmi_timer_irq  = {
+-	vmi_timer_interrupt,
+-	SA_INTERRUPT,
+-	CPU_MASK_NONE,
+-	"VMI-alarm",
+-	NULL,
+-	NULL
++	.handler = vmi_timer_interrupt,
++	.flags = IRQF_DISABLED,
++	.mask = CPU_MASK_NONE,
++	.name = "VMI-alarm",
+ };
+ 
+ /* Alarm rate */
 _
 
-Patches currently in -mm which might be from dilinger@debian.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
+paravirt-build-fixes.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-4.patch
+git-ieee1394.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
