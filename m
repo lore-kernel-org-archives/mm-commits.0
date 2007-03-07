@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_sil680-cable-detect.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:38 -0800
-Message-ID: <200703072108.l27L8cMr009074@shell0.pdx.osdl.net>
+Subject: + pata_pdc202xx_old-cable-detect-clean-up.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:36 -0800
+Message-ID: <200703072108.l27L8akY009071@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57588 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57613 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992593AbXCGVI7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:08:59 -0500
+	id S2992603AbXCGVJH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:09:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     pata_sil680: cable detect
+     pata_pdc202xx_old: cable detect clean up
 has been added to the -mm tree.  Its filename is
-     pata_sil680-cable-detect.patch
+     pata_pdc202xx_old-cable-detect-clean-up.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,62 +25,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_sil680: cable detect
+Subject: pata_pdc202xx_old: cable detect clean up
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Much the same as the others except we have to keep our own error_handler
-methods as the chip has bus reset registers that we need to poke.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sil680.c |   11 +++--------
- 1 files changed, 3 insertions(+), 8 deletions(-)
+ drivers/ata/pata_pdc202xx_old.c |   42 +++++-------------------------
+ 1 files changed, 8 insertions(+), 34 deletions(-)
 
-diff -puN drivers/ata/pata_sil680.c~pata_sil680-cable-detect drivers/ata/pata_sil680.c
---- a/drivers/ata/pata_sil680.c~pata_sil680-cable-detect
-+++ a/drivers/ata/pata_sil680.c
-@@ -33,7 +33,7 @@
+diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-cable-detect-clean-up drivers/ata/pata_pdc202xx_old.c
+--- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-cable-detect-clean-up
++++ a/drivers/ata/pata_pdc202xx_old.c
+@@ -22,45 +22,17 @@
  #include <linux/libata.h>
  
- #define DRV_NAME "pata_sil680"
--#define DRV_VERSION "0.4.5"
-+#define DRV_VERSION "0.4.6"
+ #define DRV_NAME "pata_pdc202xx_old"
+-#define DRV_VERSION "0.4.0"
++#define DRV_VERSION "0.4.2"
  
- /**
-  *	sil680_selreg		-	return register base
-@@ -91,12 +91,6 @@ static int sil680_cable_detect(struct at
- 		return ATA_CBL_PATA40;
- }
- 
--static int sil680_pre_reset(struct ata_port *ap)
+-/**
+- *	pdc2024x_pre_reset		-	probe begin
+- *	@ap: ATA port
+- *
+- *	Set up cable type and use generic probe init
+- */
+-
+-static int pdc2024x_pre_reset(struct ata_port *ap)
 -{
--	ap->cbl = sil680_cable_detect(ap);
+-	ap->cbl = ATA_CBL_PATA40;
 -	return ata_std_prereset(ap);
 -}
 -
- /**
-  *	sil680_bus_reset	-	reset the SIL680 bus
-  *	@ap: ATA port to reset
-@@ -119,7 +113,7 @@ static int sil680_bus_reset(struct ata_p
- 
- static void sil680_error_handler(struct ata_port *ap)
+-
+-static void pdc2024x_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, pdc2024x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+-
+-static int pdc2026x_pre_reset(struct ata_port *ap)
++static int pdc2026x_cable_detect(struct ata_port *ap)
  {
--	ata_bmdma_drive_eh(ap, sil680_pre_reset, sil680_bus_reset, NULL, ata_std_postreset);
-+	ata_bmdma_drive_eh(ap, ata_std_prereset, sil680_bus_reset, NULL, ata_std_postreset);
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	u16 cis;
+ 
+ 	pci_read_config_word(pdev, 0x50, &cis);
+ 	if (cis & (1 << (10 + ap->port_no)))
+-		ap->cbl = ATA_CBL_PATA80;
+-	else
+-		ap->cbl = ATA_CBL_PATA40;
+-
+-	return ata_std_prereset(ap);
+-}
+-
+-static void pdc2026x_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, pdc2026x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
++		return ATA_CBL_PATA80;
++	return ATA_CBL_PATA40;
  }
  
  /**
-@@ -257,6 +251,7 @@ static struct ata_port_operations sil680
+@@ -291,8 +263,9 @@ static struct ata_port_operations pdc202
+ 
+ 	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= sil680_error_handler,
+-	.error_handler	= pdc2024x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= sil680_cable_detect,
++	.cable_detect	= ata_cable_40wire,
  
  	.bmdma_setup 	= ata_bmdma_setup,
  	.bmdma_start 	= ata_bmdma_start,
+@@ -325,8 +298,9 @@ static struct ata_port_operations pdc202
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= pdc2026x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= pdc2026x_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= pdc2026x_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -141,4 +171,3 @@ documentation-ask-driver-writers-to-provide-pm-support.patch
 tty-clarify-documentation-of-write.patch
 edac-new-opteron-athlon64-memory-controller-driver.patch
 edac-k8-driver-coding-tidy.patch
-dilnetpc-fix-warning.patch
