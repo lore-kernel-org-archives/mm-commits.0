@@ -1,116 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - b44-warning-fixes.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:58:49 -0800
-Message-ID: <200703072358.l27Nwn4k013661@shell0.pdx.osdl.net>
+Subject: - sony-laptop-fix-uninitialised-variable.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:58:42 -0800
+Message-ID: <200703072358.l27Nwg1B013646@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39747 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39780 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992773AbXCGX71 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:59:27 -0500
+	id S2992774AbXCHAAF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 19:00:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org, malattia@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     b44 warning fixes
+     sony-laptop fix uninitialised variable
 has been removed from the -mm tree.  Its filename was
-     b44-warning-fixes.patch
+     sony-laptop-fix-uninitialised-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: b44 warning fixes
+Subject: sony-laptop fix uninitialised variable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/b44.c: In function 'b44_tx':
-drivers/net/b44.c:622: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
-drivers/net/b44.c: In function 'b44_alloc_rx_skb':
-drivers/net/b44.c:669: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
-drivers/net/b44.c: In function 'b44_start_xmit':
-drivers/net/b44.c:991: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
-drivers/net/b44.c:1003: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
-drivers/net/b44.c: In function 'b44_free_rings':
-drivers/net/b44.c:1104: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
-drivers/net/b44.c:1118: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
+drivers/misc/sony-laptop.c: In function 'sony_acpi_add':
+drivers/misc/sony-laptop.c:456: warning: 'result' may be used uninitialized in this function
 
-That's going to crash hard if anyone uses that first arg.
+The compiler seems to actually be telling the truth this time.
 
-Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Mattia Dongili <malattia@linux.it>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/b44.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ drivers/misc/sony-laptop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/b44.c~b44-warning-fixes drivers/net/b44.c
---- a/drivers/net/b44.c~b44-warning-fixes
-+++ a/drivers/net/b44.c
-@@ -616,7 +616,7 @@ static void b44_tx(struct b44 *bp)
+diff -puN drivers/misc/sony-laptop.c~sony-laptop-fix-uninitialised-variable drivers/misc/sony-laptop.c
+--- a/drivers/misc/sony-laptop.c~sony-laptop-fix-uninitialised-variable
++++ a/drivers/misc/sony-laptop.c
+@@ -453,7 +453,7 @@ static int sony_acpi_resume(struct acpi_
+ static int sony_acpi_add(struct acpi_device *device)
+ {
+ 	acpi_status status;
+-	int result;
++	int result = 0;
+ 	acpi_handle handle;
  
- 		BUG_ON(skb == NULL);
- 
--		dma_unmap_single(&bp->sdev->dev,
-+		dma_unmap_single(bp->sdev->dev,
- 				 rp->mapping,
- 				 skb->len,
- 				 DMA_TO_DEVICE);
-@@ -666,7 +666,8 @@ static int b44_alloc_rx_skb(struct b44 *
- 		mapping + RX_PKT_BUF_SZ > DMA_30BIT_MASK) {
- 		/* Sigh... */
- 		if (!dma_mapping_error(mapping))
--			dma_unmap_single(&bp->sdev->dev, mapping, RX_PKT_BUF_SZ,DMA_FROM_DEVICE);
-+			dma_unmap_single(bp->sdev->dev, mapping,
-+					RX_PKT_BUF_SZ, DMA_FROM_DEVICE);
- 		dev_kfree_skb_any(skb);
- 		skb = __dev_alloc_skb(RX_PKT_BUF_SZ,GFP_DMA);
- 		if (skb == NULL)
-@@ -988,7 +989,8 @@ static int b44_start_xmit(struct sk_buff
- 	if (dma_mapping_error(mapping) || mapping + len > DMA_30BIT_MASK) {
- 		/* Chip can't handle DMA to/from >1GB, use bounce buffer */
- 		if (!dma_mapping_error(mapping))
--			dma_unmap_single(&bp->sdev->dev, mapping, len, DMA_TO_DEVICE);
-+			dma_unmap_single(bp->sdev->dev, mapping, len,
-+					DMA_TO_DEVICE);
- 
- 		bounce_skb = __dev_alloc_skb(TX_PKT_BUF_SZ,
- 					     GFP_ATOMIC|GFP_DMA);
-@@ -999,7 +1001,7 @@ static int b44_start_xmit(struct sk_buff
- 					 len, DMA_TO_DEVICE);
- 		if (dma_mapping_error(mapping) || mapping + len > DMA_30BIT_MASK) {
- 			if (!dma_mapping_error(mapping))
--				dma_unmap_single(&bp->sdev->dev, mapping,
-+				dma_unmap_single(bp->sdev->dev, mapping,
- 					 len, DMA_TO_DEVICE);
- 			dev_kfree_skb_any(bounce_skb);
- 			goto err_out;
-@@ -1098,10 +1100,8 @@ static void b44_free_rings(struct b44 *b
- 
- 		if (rp->skb == NULL)
- 			continue;
--		dma_unmap_single(&bp->sdev->dev,
--				 rp->mapping,
--				 RX_PKT_BUF_SZ,
--				 DMA_FROM_DEVICE);
-+		dma_unmap_single(bp->sdev->dev, rp->mapping, RX_PKT_BUF_SZ,
-+					DMA_FROM_DEVICE);
- 		dev_kfree_skb_any(rp->skb);
- 		rp->skb = NULL;
- 	}
-@@ -1112,10 +1112,8 @@ static void b44_free_rings(struct b44 *b
- 
- 		if (rp->skb == NULL)
- 			continue;
--		dma_unmap_single(&bp->sdev->dev,
--				 rp->mapping,
--				 rp->skb->len,
--				 DMA_TO_DEVICE);
-+		dma_unmap_single(bp->sdev->dev, rp->mapping, rp->skb->len,
-+					DMA_TO_DEVICE);
- 		dev_kfree_skb_any(rp->skb);
- 		rp->skb = NULL;
- 	}
+ 	sony_acpi_acpi_device = device;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
