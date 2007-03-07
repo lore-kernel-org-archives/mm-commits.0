@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_hpt3x2n-cable-detect-handling-needs-work.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:20 -0800
-Message-ID: <200703072108.l27L8KGE009041@shell0.pdx.osdl.net>
+Subject: + pata_pcmcia-cable-detect.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:34 -0800
+Message-ID: <200703072108.l27L8YZ9009068@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57518 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57571 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423015AbXCGVIo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:08:44 -0500
+	id S2992589AbXCGVI5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:08:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     pata_hpt3x2n: cable detect handling (needs work)
+     pata_pcmcia: cable detect
 has been added to the -mm tree.  Its filename is
-     pata_hpt3x2n-cable-detect-handling-needs-work.patch
+     pata_pcmcia-cable-detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,86 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_hpt3x2n: cable detect handling (needs work)
+Subject: pata_pcmcia: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+This one is a bit odd.  Most PCMCIA adapters don't really have a "cable" but
+have the controller embedded in the CF adapter or similar.  Some real IDE
+adapters do exist although they are rare.
+
+As PCMCIA is ISA timing it can only support PIO0 so reporting 40 wire seems
+closest to the truth and I don't see the need for a 'ATA_CBL_HARDWIRED' type
+although we could add one if Jeff wanted.
+
+(As a PS Jeff - if you don't want to merge the code for spotting missing slave
+detect for 2.6.21 it would be best to remove the SLAVE flag from that driver
+for 2.6.21 and just probe master only - safer and will break only
+ultra-obscure setups)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt3x2n.c |   29 ++++++++++++++++++++---------
- 1 files changed, 20 insertions(+), 9 deletions(-)
+ drivers/ata/pata_pcmcia.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-cable-detect-handling-needs-work drivers/ata/pata_hpt3x2n.c
---- a/drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-cable-detect-handling-needs-work
-+++ a/drivers/ata/pata_hpt3x2n.c
-@@ -25,7 +25,7 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/pata_pcmcia.c~pata_pcmcia-cable-detect drivers/ata/pata_pcmcia.c
+--- a/drivers/ata/pata_pcmcia.c~pata_pcmcia-cable-detect
++++ a/drivers/ata/pata_pcmcia.c
+@@ -42,7 +42,7 @@
  
- #define DRV_NAME	"pata_hpt3x2n"
--#define DRV_VERSION	"0.3.2"
-+#define DRV_VERSION	"0.3.3"
  
- enum {
- 	HPT_PCI_FAST	=	(1 << 31),
-@@ -115,14 +115,13 @@ static u32 hpt3x2n_find_mode(struct ata_
- }
+ #define DRV_NAME "pata_pcmcia"
+-#define DRV_VERSION "0.3.0"
++#define DRV_VERSION "0.3.1"
  
- /**
-- *	hpt3x2n_pre_reset	-	reset the hpt3x2n bus
-- *	@ap: ATA port to reset
-+ *	hpt3x2n_cable_detect	-	Detect the cable type
-+ *	@ap: ATA port to detect on
-  *
-- *	Perform the initial reset handling for the 3x2n series controllers.
-- *	Reset the hardware and state machine, obtain the cable type.
-+ *	Return the cable type attached to this port
-  */
- 
--static int hpt3xn_pre_reset(struct ata_port *ap)
-+static int hpt3x2n_cable_detect(struct ata_port *ap)
- {
- 	u8 scr2, ata66;
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-@@ -135,15 +134,26 @@ static int hpt3xn_pre_reset(struct ata_p
- 	pci_write_config_byte(pdev, 0x5B, scr2);
- 
- 	if (ata66 & (1 << ap->port_no))
--		ap->cbl = ATA_CBL_PATA40;
-+		return ATA_CBL_PATA40;
- 	else
--		ap->cbl = ATA_CBL_PATA80;
-+		return ATA_CBL_PATA80;
-+}
-+
-+/**
-+ *	hpt3x2n_pre_reset	-	reset the hpt3x2n bus
-+ *	@ap: ATA port to reset
-+ *
-+ *	Perform the initial reset handling for the 3x2n series controllers.
-+ *	Reset the hardware and state machine,
-+ */
- 
-+static int hpt3xn_pre_reset(struct ata_port *ap)
-+{
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 	/* Reset the state machine */
- 	pci_write_config_byte(pdev, 0x50, 0x37);
- 	pci_write_config_byte(pdev, 0x54, 0x37);
- 	udelay(100);
--
- 	return ata_std_prereset(ap);
- }
- 
-@@ -364,6 +374,7 @@ static struct ata_port_operations hpt3x2
+ /*
+  *	Private data structure to glue stuff together
+@@ -118,6 +118,7 @@ static struct ata_port_operations pcmcia
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= hpt3x2n_error_handler,
+ 	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= hpt3x2n_cable_detect,
++	.cable_detect	= ata_cable_40wire,
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
