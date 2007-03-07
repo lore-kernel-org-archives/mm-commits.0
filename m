@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-remove-superflous-sb-==-null-checks.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:04:07 -0800
-Message-ID: <200703072104.l27L47H4008783@shell0.pdx.osdl.net>
+Subject: + pata_artop-cable-detect-methods.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:16 -0800
+Message-ID: <200703072108.l27L8G41009030@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57132 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57502 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423001AbXCGVEM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:04:12 -0500
+	id S1423011AbXCGVIm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:08:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     vfs: remove superflous sb == NULL checks
+     pata_artop: cable detect methods
 has been added to the -mm tree.  Its filename is
-     vfs-remove-superflous-sb-==-null-checks.patch
+     pata_artop-cable-detect-methods.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vfs: remove superflous sb == NULL checks
-From: Christoph Hellwig <hch@lst.de>
+Subject: pata_artop: cable detect methods
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-inode->i_sb is always set, not need to check for it.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    4 ++--
- fs/ioctl.c |    2 --
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/ata/pata_artop.c |   26 ++++++++++++++++++--------
+ 1 files changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN fs/inode.c~vfs-remove-superflous-sb-==-null-checks fs/inode.c
---- a/fs/inode.c~vfs-remove-superflous-sb-==-null-checks
-+++ a/fs/inode.c
-@@ -251,7 +251,7 @@ void clear_inode(struct inode *inode)
- 	BUG_ON(inode->i_state & I_CLEAR);
- 	wait_on_inode(inode);
- 	DQUOT_DROP(inode);
--	if (inode->i_sb && inode->i_sb->s_op->clear_inode)
-+	if (inode->i_sb->s_op->clear_inode)
- 		inode->i_sb->s_op->clear_inode(inode);
- 	if (S_ISBLK(inode->i_mode) && inode->i_bdev)
- 		bd_forget(inode);
-@@ -1047,7 +1047,7 @@ static void generic_forget_inode(struct 
- 		if (!(inode->i_state & (I_DIRTY|I_LOCK)))
- 			list_move(&inode->i_list, &inode_unused);
- 		inodes_stat.nr_unused++;
--		if (!sb || (sb->s_flags & MS_ACTIVE)) {
-+		if (sb->s_flags & MS_ACTIVE) {
- 			spin_unlock(&inode_lock);
- 			return;
- 		}
-diff -puN fs/ioctl.c~vfs-remove-superflous-sb-==-null-checks fs/ioctl.c
---- a/fs/ioctl.c~vfs-remove-superflous-sb-==-null-checks
-+++ a/fs/ioctl.c
-@@ -67,8 +67,6 @@ static int file_ioctl(struct file *filp,
- 			return put_user(res, p);
- 		}
- 		case FIGETBSZ:
--			if (inode->i_sb == NULL)
--				return -EBADF;
- 			return put_user(inode->i_sb->s_blocksize, p);
- 		case FIONREAD:
- 			return put_user(i_size_read(inode) - filp->f_pos, p);
+diff -puN drivers/ata/pata_artop.c~pata_artop-cable-detect-methods drivers/ata/pata_artop.c
+--- a/drivers/ata/pata_artop.c~pata_artop-cable-detect-methods
++++ a/drivers/ata/pata_artop.c
+@@ -49,8 +49,6 @@ static int artop6210_pre_reset(struct at
+ 
+ 	if (!pci_test_config_bits(pdev, &artop_enable_bits[ap->port_no]))
+ 		return -ENOENT;
+-
+-	ap->cbl = ATA_CBL_PATA40;
+ 	return ata_std_prereset(ap);
+ }
+ 
+@@ -85,18 +83,28 @@ static int artop6260_pre_reset(struct at
+ 	};
+ 
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+-	u8 tmp;
+ 
+ 	/* Odd numbered device ids are the units with enable bits (the -R cards) */
+ 	if (pdev->device % 1 && !pci_test_config_bits(pdev, &artop_enable_bits[ap->port_no]))
+ 		return -ENOENT;
++	return ata_std_prereset(ap);
++}
++
++/**
++ *	artop6260_cable_detect	-	identify cable type
++ *	@ap: Port
++ *
++ *	Identify the cable type for the ARTOp interface in question
++ */
+ 
++static int artop6260_cable_detect(struct ata_port *ap)
++{
++	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
++	u8 tmp;
+ 	pci_read_config_byte(pdev, 0x49, &tmp);
+ 	if (tmp & (1 << ap->port_no))
+-		ap->cbl = ATA_CBL_PATA40;
+-	else
+-		ap->cbl = ATA_CBL_PATA80;
+-	return ata_std_prereset(ap);
++		return ATA_CBL_PATA40;
++	return ATA_CBL_PATA80;
+ }
+ 
+ /**
+@@ -225,7 +233,7 @@ static void artop6260_set_piomode(struct
+ /**
+  *	artop6210_set_dmamode - Initialize host controller PATA PIO timings
+  *	@ap: Port whose timings we are configuring
+- *	@adev: um
++ *	@adev: Device whose timings we are configuring
+  *
+  *	Set DMA mode for device, in host controller PCI config space.
+  *
+@@ -333,6 +341,7 @@ static const struct ata_port_operations 
+ 	.thaw			= ata_bmdma_thaw,
+ 	.error_handler		= artop6210_error_handler,
+ 	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= ata_cable_40wire,
+ 
+ 	.bmdma_setup		= ata_bmdma_setup,
+ 	.bmdma_start		= ata_bmdma_start,
+@@ -366,6 +375,7 @@ static const struct ata_port_operations 
+ 	.thaw			= ata_bmdma_thaw,
+ 	.error_handler		= artop6260_error_handler,
+ 	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= artop6260_cable_detect,
+ 
+ 	.bmdma_setup		= ata_bmdma_setup,
+ 	.bmdma_start		= ata_bmdma_start,
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-xfs-use-xfs_get_buf_noaddr-for-iclogs.patch
-xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr.patch
-simplify-the-stacktrace-code.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-vfs-remove-superflous-sb-==-null-checks.patch
-nameic-remove-utterly-outdated-comment.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
-aio-is-unlikely.patch
-ps3fb-thread-updates.patch
-ps3av-thread-updates.patch
-ps3fb-kill-superfluous-zero-initializations.patch
-ps3av-misc-updates.patch
+git-libata-all.patch
+expose-set_mode-method-so-it-can-be-wrapped.patch
+acpi-driver-support-for-pata.patch
+pcmcia-spot-slave-decode-flaws-for-testing.patch
+pata_platform-set-a-cable-type-which-to-set.patch
+pata_qdi-set-cable-type.patch
+pata_sl82c105-missing-methods-cable.patch
+ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
+pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
+pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
+pata_cypress-clean-up-by-using-cable_detect-method.patch
+pata_isapnp-set-cable-type.patch
+pata_ixp4xx_cf-set-cable-type.patch
+pata_legacy-fix-missing-methods-and-add-cable-types.patch
+pata_netcell-remove-lots-of-crud-by-using-the-cable-method.patch
+pata_radisys-switch-to-cable-method-to-cleanup-code.patch
+pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
+pata_rz1000-remove-lots-of-crap-by-using-cable-method.patch
+pata_winbond-set-cable-type.patch
+pata_cmd64x-various-fixes.patch
+pata_hpt3x3-clean-up-by-using-cable-method.patch
+ata_piix-remove-ugly-layering-violation.patch
+pata_artop-cable-detect-methods.patch
+pata_cs5535-cable-detect.patch
+pata_hpt3x2n-cable-detect-handling-needs-work.patch
+pata_it821x-clean-up-by-using-cable-methods.patch
+pata_mpc52xx-cable-detect.patch
+pata_mpiix-cable-detect-method.patch
+pata_ns87410-cable-detect-method.patch
+pata_oldpiix-cable-detect.patch
+pata_opti-cable-detect.patch
+pata_pcmcia-cable-detect.patch
+pata_pdc202xx_old-cable-detect-clean-up.patch
+pata_sil680-cable-detect.patch
+pata_triflex-cable-detect.patch
+sata_via-cable-detection.patch
+pata_cmd640-multiple-updates.patch
+pata_efar-switch-to-cable_detect-method.patch
+pata_it8213-cable-detect.patch
+pata_marvell-cable-and-reset-fixes.patch
+pata_serverworks-cable-detect-and-comment-fix.patch
+pata_sis-clean-up-using-cable_detect-methods.patch
+pata_via-use-cable_detect-method.patch
+pata_hpt366-cable-detect-methods.patch
+pata_atiixp-switch-to-cable_detect-method-with-correct.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+resend-iphase-64bit-cleanup.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+tty-clarify-documentation-of-write.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
