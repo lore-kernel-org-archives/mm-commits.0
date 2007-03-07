@@ -1,77 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - sata_via-cable-detection.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:44:28 -0800
-Message-ID: <200703072344.l27NiSwQ013240@shell0.pdx.osdl.net>
+Subject: - pata_marvell-cable-and-reset-fixes.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:46:40 -0800
+Message-ID: <200703072346.l27NkevG013356@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39040 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39167 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992763AbXCGXop (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:44:45 -0500
+	id S1945916AbXCGXrC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:47:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sata_via: cable detection
+     pata_marvell: cable and reset fixes
 has been removed from the -mm tree.  Its filename was
-     sata_via-cable-detection.patch
+     pata_marvell-cable-and-reset-fixes.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: sata_via: cable detection
+Subject: pata_marvell: cable and reset fixes
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Because the sata_via driver handles PATA and SATA ports on the 6421 it also
-ends up with duplicated chunks of code that can be eliminated using the
-cable_detect method.  Generally SATA drivers don't need/want this as they are
-set correctly by libata simply because they declare themselves as SATA.
+There are two changes here.  Firstly we switch to a cable detect method,
+secondly the old code forgot to call ata_std_prereset() but somehow managed to
+work anyway.  Fix the missing call.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_via.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/ata/pata_marvell.c |   20 +++++++++++---------
+ 1 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN drivers/ata/sata_via.c~sata_via-cable-detection drivers/ata/sata_via.c
---- a/drivers/ata/sata_via.c~sata_via-cable-detection
-+++ a/drivers/ata/sata_via.c
-@@ -78,8 +78,7 @@ static u32 svia_scr_read (struct ata_por
- static void svia_scr_write (struct ata_port *ap, unsigned int sc_reg, u32 val);
- static void svia_noop_freeze(struct ata_port *ap);
- static void vt6420_error_handler(struct ata_port *ap);
--static void vt6421_sata_error_handler(struct ata_port *ap);
--static void vt6421_pata_error_handler(struct ata_port *ap);
-+static int vt6421_pata_cable_detect(struct ata_port *ap);
- static void vt6421_set_pio_mode(struct ata_port *ap, struct ata_device *adev);
- static void vt6421_set_dma_mode(struct ata_port *ap, struct ata_device *adev);
- static int vt6421_port_start(struct ata_port *ap);
-@@ -172,8 +171,9 @@ static const struct ata_port_operations 
+diff -puN drivers/ata/pata_marvell.c~pata_marvell-cable-and-reset-fixes drivers/ata/pata_marvell.c
+--- a/drivers/ata/pata_marvell.c~pata_marvell-cable-and-reset-fixes
++++ a/drivers/ata/pata_marvell.c
+@@ -20,7 +20,7 @@
+ #include <linux/ata.h>
  
- 	.freeze			= ata_bmdma_freeze,
+ #define DRV_NAME	"pata_marvell"
+-#define DRV_VERSION	"0.1.1"
++#define DRV_VERSION	"0.1.4"
+ 
+ /**
+  *	marvell_pre_reset	-	check for 40/80 pin
+@@ -52,22 +52,23 @@ static int marvell_pre_reset(struct ata_
+ 	if ((pdev->device == 0x6145) && (ap->port_no == 0) &&
+ 	    (!(devices & 0x10)))	/* PATA enable ? */
+ 		return -ENOENT;
++	return ata_std_prereset(ap);
++}
+ 
++static int marvell_cable_detect(struct ata_port *ap)
++{
+ 	/* Cable type */
+ 	switch(ap->port_no)
+ 	{
+ 	case 0:
+ 		if (ioread8(ap->ioaddr.bmdma_addr + 1) & 1)
+-			ap->cbl = ATA_CBL_PATA40;
+-		else
+-			ap->cbl = ATA_CBL_PATA80;
+-		break;
+-
++			return ATA_CBL_PATA40;
++		return ATA_CBL_PATA80;
+ 	case 1: /* Legacy SATA port */
+-		ap->cbl = ATA_CBL_SATA;
+-		break;
++		return ATA_CBL_SATA;
+ 	}
+-	return ata_std_prereset(ap);
++	BUG();
++	return 0;	/* Our BUG macro needs the right markup */
+ }
+ 
+ /**
+@@ -123,6 +124,7 @@ static const struct ata_port_operations 
  	.thaw			= ata_bmdma_thaw,
--	.error_handler		= vt6421_pata_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
+ 	.error_handler		= marvell_error_handler,
  	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= vt6421_pata_cable_detect,
++	.cable_detect		= marvell_cable_detect,
  
- 	.irq_handler		= ata_interrupt,
- 	.irq_clear		= ata_bmdma_irq_clear,
-@@ -203,8 +203,9 @@ static const struct ata_port_operations 
- 
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= vt6421_sata_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_sata,
- 
- 	.irq_handler		= ata_interrupt,
- 	.irq_clear		= ata_bmdma_irq_clear,
+ 	/* BMDMA handling is PCI ATA format, use helpers */
+ 	.bmdma_setup		= ata_bmdma_setup,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -94,10 +110,7 @@ pata_oldpiix-cable-detect.patch
 pata_opti-cable-detect.patch
 pata_pcmcia-cable-detect.patch
 pata_triflex-cable-detect.patch
-sata_via-cable-detection.patch
 pata_cmd640-multiple-updates.patch
-pata_efar-switch-to-cable_detect-method.patch
-pata_it8213-cable-detect.patch
 pata_marvell-cable-and-reset-fixes.patch
 pata_serverworks-cable-detect-and-comment-fix.patch
 pata_sis-clean-up-using-cable_detect-methods.patch
