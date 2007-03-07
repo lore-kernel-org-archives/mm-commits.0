@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_it8213-cable-detect.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:48 -0800
-Message-ID: <200703072108.l27L8mKS009090@shell0.pdx.osdl.net>
+Subject: + pata_triflex-cable-detect.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:40 -0800
+Message-ID: <200703072108.l27L8eQL009077@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57633 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57645 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992593AbXCGVJO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:09:14 -0500
+	id S2992572AbXCGVJS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:09:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     pata_it8213: cable detect
+     pata_triflex: cable detect
 has been added to the -mm tree.  Its filename is
-     pata_it8213-cable-detect.patch
+     pata_triflex-cable-detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,95 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_it8213: cable detect
+Subject: pata_triflex: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Another not-quite PIIX, another cable type conversion
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_it8213.c |   36 +++++++++++++++++++++++-------------
- 1 files changed, 23 insertions(+), 13 deletions(-)
+ drivers/ata/pata_triflex.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_it8213.c~pata_it8213-cable-detect drivers/ata/pata_it8213.c
---- a/drivers/ata/pata_it8213.c~pata_it8213-cable-detect
-+++ a/drivers/ata/pata_it8213.c
-@@ -25,8 +25,8 @@
-  *	it8213_pre_reset	-	check for 40/80 pin
-  *	@ap: Port
-  *
-- *	Perform cable detection for the 8213 ATA interface. This is
-- *	different to the PIIX arrangement
-+ *	Filter out ports by the enable bits before doing the normal reset
-+ *	and probe.
-  */
+diff -puN drivers/ata/pata_triflex.c~pata_triflex-cable-detect drivers/ata/pata_triflex.c
+--- a/drivers/ata/pata_triflex.c~pata_triflex-cable-detect
++++ a/drivers/ata/pata_triflex.c
+@@ -43,7 +43,7 @@
+ #include <linux/libata.h>
  
- static int it8213_pre_reset(struct ata_port *ap)
-@@ -34,23 +34,14 @@ static int it8213_pre_reset(struct ata_p
- 	static const struct pci_bits it8213_enable_bits[] = {
- 		{ 0x41U, 1U, 0x80UL, 0x80UL },	/* port 0 */
- 	};
--
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--	u8 tmp;
--
- 	if (!pci_test_config_bits(pdev, &it8213_enable_bits[ap->port_no]))
+ #define DRV_NAME "pata_triflex"
+-#define DRV_VERSION "0.2.7"
++#define DRV_VERSION "0.2.8"
+ 
+ /**
+  *	triflex_prereset		-	probe begin
+@@ -63,7 +63,6 @@ static int triflex_prereset(struct ata_p
+ 
+ 	if (!pci_test_config_bits(pdev, &triflex_enable_bits[ap->port_no]))
  		return -ENOENT;
--
--	pci_read_config_byte(pdev, 0x42, &tmp);
--	if (tmp & 2)	/* The initial docs are incorrect */
--		ap->cbl = ATA_CBL_PATA40;
--	else
--		ap->cbl = ATA_CBL_PATA80;
+-	ap->cbl = ATA_CBL_PATA40;
  	return ata_std_prereset(ap);
  }
  
- /**
-- *	it8213_probe_reset - Probe specified port on PATA host controller
-+ *	it8213_error_handler - Probe specified port on PATA host controller
-  *	@ap: Port to probe
-  *
-  *	LOCKING:
-@@ -63,9 +54,27 @@ static void it8213_error_handler(struct 
- }
+@@ -214,6 +213,7 @@ static struct ata_port_operations trifle
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= triflex_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
  
- /**
-+ *	it8213_cable_detect	-	check for 40/80 pin
-+ *	@ap: Port
-+ *
-+ *	Perform cable detection for the 8213 ATA interface. This is
-+ *	different to the PIIX arrangement
-+ */
-+
-+static int it8213_cable_detect(struct ata_port *ap)
-+{
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+	u8 tmp;
-+	pci_read_config_byte(pdev, 0x42, &tmp);
-+	if (tmp & 2)	/* The initial docs are incorrect */
-+		return ATA_CBL_PATA40;
-+	return ATA_CBL_PATA80;
-+}
-+
-+/**
-  *	it8213_set_piomode - Initialize host controller PATA PIO timings
-  *	@ap: Port whose timings we are configuring
-- *	@adev: um
-+ *	@adev: Device whose timings we are configuring
-  *
-  *	Set PIO mode for device, in host controller PCI config space.
-  *
-@@ -268,6 +277,7 @@ static const struct ata_port_operations 
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= it8213_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= it8213_cable_detect,
- 
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= triflex_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
