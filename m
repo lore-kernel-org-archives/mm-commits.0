@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpu_idle-fix-build-break.patch added to -mm tree
-Date: Tue, 06 Mar 2007 16:39:40 -0800
-Message-ID: <200703070039.l270deA6014391@shell0.pdx.osdl.net>
+Subject: + epoll-optimizations-and-cleanups-tidy.patch added to -mm tree
+Date: Tue, 06 Mar 2007 16:57:58 -0800
+Message-ID: <200703070058.l270vxR1014825@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39783 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40669 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161048AbXCGAoJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 19:44:09 -0500
+	id S1161078AbXCGA6F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 19:58:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com, bunk@stusta.de, lenb@kernel.org
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org
 
 
 The patch titled
-     cpu_idle: fix build break
+     epoll-optimizations-and-cleanups-tidy
 has been added to the -mm tree.  Its filename is
-     cpu_idle-fix-build-break.patch
+     epoll-optimizations-and-cleanups-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,157 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpu_idle: fix build break
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: epoll-optimizations-and-cleanups-tidy
+From: Andrew Morton <akpm@osdl.org>
 
-This patch fixes a build breakage with !CONFIG_HOTPLUG_CPU and
-CONFIG_CPU_IDLE.
+80 cols.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c |    6 +-----
- 1 files changed, 1 insertion(+), 5 deletions(-)
+ fs/eventpoll.c |   33 ++++++++++++++++-----------------
+ 1 files changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpu_idle-fix-build-break drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpu_idle-fix-build-break
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -189,10 +189,6 @@ static struct sysdev_driver cpuidle_sysd
- 	.remove		= cpuidle_remove_device,
- };
+diff -puN fs/eventpoll.c~epoll-optimizations-and-cleanups-tidy fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-optimizations-and-cleanups-tidy
++++ a/fs/eventpoll.c
+@@ -1356,7 +1356,8 @@ static int ep_send_events(struct eventpo
+ 	/*
+ 	 * We can loop without lock because this is a task private list.
+ 	 * We just splice'd out the ep->rdllist in ep_collect_ready_items().
+-	 * Items cannot vanish during the loop because we are holding "sem" in read.
++	 * Items cannot vanish during the loop because we are holding "sem" in
++	 * read.
+ 	 */
+ 	for (eventcnt = 0; !list_empty(txlist) && eventcnt < maxevents;) {
+ 		epi = list_entry(txlist->next, struct epitem, rdllink);
+@@ -1390,24 +1391,25 @@ static int ep_send_events(struct eventpo
+ 		/*
+ 		 * This is tricky. We are holding the "sem" in read, and this
+ 		 * means that the operations that can change the "linked" status
+-		 * of the epoll item (epi->rbn and epi->rdllink), cannot touch them.
+-		 * Also, since we are "linked" from a epi->rdllink POV (the item
+-		 * is linked to our transmission list, we just splice'd), the
+-		 * ep_poll_callback() cannot touch us either, because of the check
+-		 * present in there. Another parallel epoll_wait() will not
+-		 * get the same result set, since we spliced the ready list before.
+-		 * Note that list_del() still shows the item as linked to the test
+-		 * in ep_poll_callback().
++		 * of the epoll item (epi->rbn and epi->rdllink), cannot touch
++		 * them.  Also, since we are "linked" from a epi->rdllink POV
++		 * (the item is linked to our transmission list we just
++		 * spliced), the ep_poll_callback() cannot touch us either,
++		 * because of the check present in there. Another parallel
++		 * epoll_wait() will not get the same result set, since we
++		 * spliced the ready list before.  Note that list_del() still
++		 * shows the item as linked to the test in ep_poll_callback().
+ 		 */
+ 		list_del(&epi->rdllink);
+-		if (!(epi->event.events & EPOLLET) && (revents & epi->event.events))
++		if (!(epi->event.events & EPOLLET) &&
++				(revents & epi->event.events))
+ 			list_add_tail(&epi->rdllink, &injlist);
+ 		else {
+ 			/*
+-			 * Be sure the item is totally detached before re-init the
+-			 * list_head. After INIT_LIST_HEAD() is committed, the
+-			 * ep_poll_callback() can requeue the item again, but we
+-			 * don't care since we are already past it.
++			 * Be sure the item is totally detached before re-init
++			 * the list_head. After INIT_LIST_HEAD() is committed,
++			 * the ep_poll_callback() can requeue the item again,
++			 * but we don't care since we are already past it.
+ 			 */
+ 			smp_mb();
+ 			INIT_LIST_HEAD(&epi->rdllink);
+@@ -1552,14 +1554,12 @@ retry:
+ 	return res;
+ }
  
--#ifdef CONFIG_SMP
 -
--#ifdef CONFIG_HOTPLUG_CPU
+ static int eventpollfs_delete_dentry(struct dentry *dentry)
+ {
+ 
+ 	return 1;
+ }
+ 
 -
- static int cpuidle_cpu_callback(struct notifier_block *nfb,
- 					unsigned long action, void *hcpu)
+ static struct inode *ep_eventpoll_inode(void)
  {
-@@ -224,7 +220,7 @@ static struct notifier_block __cpuinitda
-     .notifier_call = cpuidle_cpu_callback,
- };
+ 	int error = -ENOMEM;
+@@ -1587,7 +1587,6 @@ eexit_1:
+ 	return ERR_PTR(error);
+ }
  
--#endif /* CONFIG_HOTPLUG_CPU */
-+#ifdef CONFIG_SMP
- 
- static void smp_callback(void *v)
- {
+-
+ static int
+ eventpollfs_get_sb(struct file_system_type *fs_type, int flags,
+ 		   const char *dev_name, void *data, struct vfsmount *mnt)
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-git-acpi.patch
-git-acpi-fix-cpuidle-borkage-2.patch
-cpu_idle-fix-build-break.patch
-drivers-cpuidle-make-code-static.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+origin.patch
+macintosh-mangle-caps-lock-events-on-adb-keyboards.patch
+git-ia64.patch
+git-ieee1394.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+net-uninline-skb_put.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+epoll-optimizations-and-cleanups-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+aio-is-unlikely.patch
+mm-implement-swap-prefetching.patch
+rcu-preemptible-rcu.patch
+readahead-kconfig-options.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-context-based-method.patch
+readahead-call-scheme.patch
+readahead-nfsd-case.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+ia64-enable-config_debug_spinlock_sleep.patch
+squash-ipc-warnings.patch
+squash-udf-warnings.patch
