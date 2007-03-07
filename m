@@ -1,125 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:21:16 -0800
-Message-ID: <200703070421.l274LGZQ018888@shell0.pdx.osdl.net>
+Subject: - i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:09 -0800
+Message-ID: <200703070421.l274L9qu018874@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47012 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47015 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161294AbXCGEVW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:21:22 -0500
+	id S1161297AbXCGEVX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:21:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, dilinger@debian.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: dilinger@debian.org, ak@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     highres: do not run the TIMER_SOFTIRQ after switching to highres mode
+     i386: make x86_64 tsc header require i386 rather than vice-versa
 has been removed from the -mm tree.  Its filename was
-     highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode.patch
+     i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: highres: do not run the TIMER_SOFTIRQ after switching to highres mode
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: i386: make x86_64 tsc header require i386 rather than vice-versa
+From: Andres Salomon <dilinger@debian.org>
 
-The TIMER_SOFTIRQ runs the hrtimers during bootup until a usable
-clocksource and clock event sources are registered.  The switch to high
-resolution mode happens inside of the TIMER_SOFTIRQ, but runs the softirq
-afterwards.  That way the tick emulation timer, which was set up in the
-switch to highres might be executed in the softirq context, which is a BUG.
- The rbtree has not to be touched by the softirq after the highres switch.
+Prior to commit 95492e4646e5de8b43d9a7908d6177fb737b61f0 ([PATCH] x86:
+rewrite SMP TSC sync code), the headers in asm-i386 did not really require
+anything in include/asm-x86_64.  This means that distributions such as
+fedora did not include asm-x86_64 in kernel-devel headers for i386.  Ingo's
+commit changed that, and broke things.  This is easy enough to hack around
+in package builds by just including asm-x86_64 on i386, but that's kind of
+annoying.  If anything, x86_64 should depend upon i386, not the other way
+around.
 
-This BUG was observed by Andres Salomon, who provided the information to
-debug it.
+This patch changes it so that asm-x86_64/tsc.h includes asm-i386/tsc.h,
+rather than vice-versa.
 
-Return early from the softirq, when the switch was sucessful.
-
-[dilinger@debian.org: add debug warning]
-[akpm@linux-foundation.org: make debug warning compile]
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ include/asm-i386/tsc.h   |   68 ++++++++++++++++++++++++++++++++++++-
+ include/asm-x86_64/tsc.h |   68 -------------------------------------
+ 2 files changed, 68 insertions(+), 68 deletions(-)
 
-diff -puN kernel/hrtimer.c~highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode kernel/hrtimer.c
---- a/kernel/hrtimer.c~highres-do-not-run-the-timer_softirq-after-switching-to-highres-mode
-+++ a/kernel/hrtimer.c
-@@ -540,19 +540,19 @@ static inline int hrtimer_enqueue_reprog
- /*
-  * Switch to high resolution mode
-  */
--static void hrtimer_switch_to_hres(void)
-+static int hrtimer_switch_to_hres(void)
- {
- 	struct hrtimer_cpu_base *base = &__get_cpu_var(hrtimer_bases);
- 	unsigned long flags;
- 
- 	if (base->hres_active)
--		return;
-+		return 1;
- 
- 	local_irq_save(flags);
- 
- 	if (tick_init_highres()) {
- 		local_irq_restore(flags);
--		return;
+diff -puN include/asm-i386/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa include/asm-i386/tsc.h
+--- a/include/asm-i386/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa
++++ a/include/asm-i386/tsc.h
+@@ -1 +1,67 @@
+-#include <asm-x86_64/tsc.h>
++/*
++ * linux/include/asm-i386/tsc.h
++ *
++ * i386 TSC related functions
++ */
++#ifndef _ASM_i386_TSC_H
++#define _ASM_i386_TSC_H
++
++#include <asm/processor.h>
++
++/*
++ * Standard way to access the cycle counter.
++ */
++typedef unsigned long long cycles_t;
++
++extern unsigned int cpu_khz;
++extern unsigned int tsc_khz;
++
++static inline cycles_t get_cycles(void)
++{
++	unsigned long long ret = 0;
++
++#ifndef CONFIG_X86_TSC
++	if (!cpu_has_tsc)
 +		return 0;
- 	}
- 	base->hres_active = 1;
- 	base->clock_base[CLOCK_REALTIME].resolution = KTIME_HIGH_RES;
-@@ -565,13 +565,14 @@ static void hrtimer_switch_to_hres(void)
- 	local_irq_restore(flags);
- 	printk(KERN_INFO "Switched to high resolution mode on CPU %d\n",
- 	       smp_processor_id());
-+	return 1;
- }
- 
- #else
- 
- static inline int hrtimer_hres_active(void) { return 0; }
- static inline int hrtimer_is_hres_enabled(void) { return 0; }
--static inline void hrtimer_switch_to_hres(void) { }
-+static inline int hrtimer_switch_to_hres(void) { return 0; }
- static inline void hrtimer_force_reprogram(struct hrtimer_cpu_base *base) { }
- static inline int hrtimer_enqueue_reprogram(struct hrtimer *timer,
- 					    struct hrtimer_clock_base *base)
-@@ -1130,6 +1131,9 @@ static inline void run_hrtimer_queue(str
- 		if (base->softirq_time.tv64 <= timer->expires.tv64)
- 			break;
- 
-+#ifdef CONFIG_HIGH_RES_TIMERS
-+		WARN_ON_ONCE(timer->cb_mode == HRTIMER_CB_IRQSAFE_NO_SOFTIRQ);
 +#endif
- 		timer_stats_account_hrtimer(timer);
- 
- 		fn = timer->function;
-@@ -1173,7 +1177,8 @@ void hrtimer_run_queues(void)
- 	 * deadlock vs. xtime_lock.
- 	 */
- 	if (tick_check_oneshot_change(!hrtimer_is_hres_enabled()))
--		hrtimer_switch_to_hres();
-+		if (hrtimer_switch_to_hres())
-+			return;
- 
- 	hrtimer_get_softirq_time(cpu_base);
- 
++
++#if defined(CONFIG_X86_GENERIC) || defined(CONFIG_X86_TSC)
++	rdtscll(ret);
++#endif
++	return ret;
++}
++
++/* Like get_cycles, but make sure the CPU is synchronized. */
++static __always_inline cycles_t get_cycles_sync(void)
++{
++	unsigned long long ret;
++#ifdef X86_FEATURE_SYNC_RDTSC
++	unsigned eax;
++
++	/*
++	 * Don't do an additional sync on CPUs where we know
++	 * RDTSC is already synchronous:
++	 */
++	alternative_io("cpuid", ASM_NOP2, X86_FEATURE_SYNC_RDTSC,
++			  "=a" (eax), "0" (1) : "ebx","ecx","edx","memory");
++#else
++	sync_core();
++#endif
++	rdtscll(ret);
++
++	return ret;
++}
++
++extern void tsc_init(void);
++extern void mark_tsc_unstable(void);
++extern int unsynchronized_tsc(void);
++extern void init_tsc_clocksource(void);
++
++/*
++ * Boot-time check whether the TSCs are synchronized across
++ * all CPUs/cores:
++ */
++extern void check_tsc_sync_source(int cpu);
++extern void check_tsc_sync_target(void);
++
++#endif
+diff -puN include/asm-x86_64/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa include/asm-x86_64/tsc.h
+--- a/include/asm-x86_64/tsc.h~i386-make-x86_64-tsc-header-require-i386-rather-than-vice-versa
++++ a/include/asm-x86_64/tsc.h
+@@ -1,67 +1 @@
+-/*
+- * linux/include/asm-x86_64/tsc.h
+- *
+- * x86_64 TSC related functions
+- */
+-#ifndef _ASM_x86_64_TSC_H
+-#define _ASM_x86_64_TSC_H
+-
+-#include <asm/processor.h>
+-
+-/*
+- * Standard way to access the cycle counter.
+- */
+-typedef unsigned long long cycles_t;
+-
+-extern unsigned int cpu_khz;
+-extern unsigned int tsc_khz;
+-
+-static inline cycles_t get_cycles(void)
+-{
+-	unsigned long long ret = 0;
+-
+-#ifndef CONFIG_X86_TSC
+-	if (!cpu_has_tsc)
+-		return 0;
+-#endif
+-
+-#if defined(CONFIG_X86_GENERIC) || defined(CONFIG_X86_TSC)
+-	rdtscll(ret);
+-#endif
+-	return ret;
+-}
+-
+-/* Like get_cycles, but make sure the CPU is synchronized. */
+-static __always_inline cycles_t get_cycles_sync(void)
+-{
+-	unsigned long long ret;
+-#ifdef X86_FEATURE_SYNC_RDTSC
+-	unsigned eax;
+-
+-	/*
+-	 * Don't do an additional sync on CPUs where we know
+-	 * RDTSC is already synchronous:
+-	 */
+-	alternative_io("cpuid", ASM_NOP2, X86_FEATURE_SYNC_RDTSC,
+-			  "=a" (eax), "0" (1) : "ebx","ecx","edx","memory");
+-#else
+-	sync_core();
+-#endif
+-	rdtscll(ret);
+-
+-	return ret;
+-}
+-
+-extern void tsc_init(void);
+-extern void mark_tsc_unstable(void);
+-extern int unsynchronized_tsc(void);
+-extern void init_tsc_clocksource(void);
+-
+-/*
+- * Boot-time check whether the TSCs are synchronized across
+- * all CPUs/cores:
+- */
+-extern void check_tsc_sync_source(int cpu);
+-extern void check_tsc_sync_target(void);
+-
+-#endif
++#include <asm-i386/tsc.h>
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from dilinger@debian.org are
 
 origin.patch
-paravirt-build-fixes.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-4.patch
-git-ieee1394.patch
-log-reason-why-tsc-was-marked-unstable.patch
-optimize-timespec_trunc.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
