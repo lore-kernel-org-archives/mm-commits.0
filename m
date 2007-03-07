@@ -1,47 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:48:19 -0800
-Message-ID: <200703072348.l27NmJ2H013400@shell0.pdx.osdl.net>
+Subject: - pata_pcmcia-cable-detect.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:48:33 -0800
+Message-ID: <200703072348.l27NmX4A013430@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39278 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39328 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751334AbXCGXs3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:48:29 -0500
+	id S1751292AbXCGXsw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:48:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_sc1200: set cable type, add freeze/thaw methods
+     pata_pcmcia: cable detect
 has been removed from the -mm tree.  Its filename was
-     pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
+     pata_pcmcia-cable-detect.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_sc1200: set cable type, add freeze/thaw methods
+Subject: pata_pcmcia: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+This one is a bit odd.  Most PCMCIA adapters don't really have a "cable" but
+have the controller embedded in the CF adapter or similar.  Some real IDE
+adapters do exist although they are rare.
+
+As PCMCIA is ISA timing it can only support PIO0 so reporting 40 wire seems
+closest to the truth and I don't see the need for a 'ATA_CBL_HARDWIRED' type
+although we could add one if Jeff wanted.
+
+(As a PS Jeff - if you don't want to merge the code for spotting missing slave
+detect for 2.6.21 it would be best to remove the SLAVE flag from that driver
+for 2.6.21 and just probe master only - safer and will break only
+ultra-obscure setups)
+
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sc1200.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/pata_pcmcia.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_sc1200.c~pata_sc1200-set-cable-type-add-freeze-thaw-methods drivers/ata/pata_sc1200.c
---- a/drivers/ata/pata_sc1200.c~pata_sc1200-set-cable-type-add-freeze-thaw-methods
-+++ a/drivers/ata/pata_sc1200.c
-@@ -216,6 +216,7 @@ static struct ata_port_operations sc1200
+diff -puN drivers/ata/pata_pcmcia.c~pata_pcmcia-cable-detect drivers/ata/pata_pcmcia.c
+--- a/drivers/ata/pata_pcmcia.c~pata_pcmcia-cable-detect
++++ a/drivers/ata/pata_pcmcia.c
+@@ -42,7 +42,7 @@
+ 
+ 
+ #define DRV_NAME "pata_pcmcia"
+-#define DRV_VERSION "0.3.0"
++#define DRV_VERSION "0.3.1"
+ 
+ /*
+  *	Private data structure to glue stuff together
+@@ -118,6 +118,7 @@ static struct ata_port_operations pcmcia
  	.thaw		= ata_bmdma_thaw,
  	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
 +	.cable_detect	= ata_cable_40wire,
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -50,14 +73,7 @@ git-libata-all.patch
 expose-set_mode-method-so-it-can-be-wrapped.patch
 pcmcia-spot-slave-decode-flaws-for-testing.patch
 pata_sl82c105-missing-methods-cable.patch
-pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
-pata_winbond-set-cable-type.patch
 ata_piix-remove-ugly-layering-violation.patch
-pata_mpc52xx-cable-detect.patch
-pata_mpiix-cable-detect-method.patch
-pata_ns87410-cable-detect-method.patch
-pata_oldpiix-cable-detect.patch
-pata_opti-cable-detect.patch
 pata_pcmcia-cable-detect.patch
 pata_triflex-cable-detect.patch
 pata_cmd640-multiple-updates.patch
