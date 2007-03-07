@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + z85230-fix-fifo-handling.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:10:30 -0800
-Message-ID: <200703072110.l27LAUFL009182@shell0.pdx.osdl.net>
+Subject: + msi-debug-code.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:14:59 -0800
+Message-ID: <200703072114.l27LExE0009251@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58073 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58324 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992585AbXCGVLw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:11:52 -0500
+	id S965667AbXCGVPA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:15:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, khc@pm.waw.pl
+Cc: ebiederm@xmission.com
 
 
 The patch titled
-     z85230: Fix FIFO handling
+     MSI debug code
 has been added to the -mm tree.  Its filename is
-     z85230-fix-fifo-handling.patch
+     msi-debug-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,93 +25,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: z85230: Fix FIFO handling
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: MSI debug code
+From: "Eric W. Biederman" <ebiederm@xmission.com>
 
-We must exit immediately on a FIFO fill not take the end of packet path
-otherwise each underrun in PIO transmit mode causes a runt packet and the
-data is lost.
+Below is an additional set of warnings that should help debug this.
+The old code just got lucky that it triggered a warning when this happens.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/z85230.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/msi.c |    6 ++++++
+ drivers/pci/pci.c |    1 +
+ 2 files changed, 7 insertions(+)
 
-diff -puN drivers/net/wan/z85230.c~z85230-fix-fifo-handling drivers/net/wan/z85230.c
---- a/drivers/net/wan/z85230.c~z85230-fix-fifo-handling
-+++ a/drivers/net/wan/z85230.c
-@@ -407,7 +407,7 @@ static void z8530_tx(struct z8530_channe
- 	while(c->txcount) {
- 		/* FIFO full ? */
- 		if(!(read_zsreg(c, R0)&4))
--			break;
-+			return;
- 		c->txcount--;
- 		/*
- 		 *	Shovel out the byte
+diff -puN drivers/pci/msi.c~msi-debug-code drivers/pci/msi.c
+--- a/drivers/pci/msi.c~msi-debug-code
++++ a/drivers/pci/msi.c
+@@ -613,6 +613,7 @@ int pci_enable_msi(struct pci_dev* dev)
+ 		return -EINVAL;
+ 
+ 	WARN_ON(!!dev->msi_enabled);
++	WARN_ON(!hlist_empty(&dev->saved_cap_space));
+ 
+ 	/* Check whether driver already requested for MSI-X irqs */
+ 	if (dev->msix_enabled) {
+@@ -638,6 +639,8 @@ void pci_disable_msi(struct pci_dev* dev
+ 	if (!dev->msi_enabled)
+ 		return;
+ 
++	WARN_ON(!hlist_empty(&dev->saved_cap_space));
++
+ 	msi_set_enable(dev, 0);
+ 	pci_intx(dev, 1);		/* enable intx */
+ 	dev->msi_enabled = 0;
+@@ -739,6 +742,7 @@ int pci_enable_msix(struct pci_dev* dev,
+ 		}
+ 	}
+ 	WARN_ON(!!dev->msix_enabled);
++	WARN_ON(!hlist_empty(&dev->saved_cap_space));
+ 
+ 	/* Check whether driver already requested for MSI irq */
+    	if (dev->msi_enabled) {
+@@ -763,6 +767,8 @@ void pci_disable_msix(struct pci_dev* de
+ 	if (!dev->msix_enabled)
+ 		return;
+ 
++	WARN_ON(!hlist_empty(&dev->saved_cap_space));
++
+ 	msix_set_enable(dev, 0);
+ 	pci_intx(dev, 1);		/* enable intx */
+ 	dev->msix_enabled = 0;
+diff -puN drivers/pci/pci.c~msi-debug-code drivers/pci/pci.c
+--- a/drivers/pci/pci.c~msi-debug-code
++++ a/drivers/pci/pci.c
+@@ -676,6 +676,7 @@ pci_restore_state(struct pci_dev *dev)
+ 	}
+ 	pci_restore_pcix_state(dev);
+ 	pci_restore_msi_state(dev);
++	WARN_ON(!hlist_empty(&dev->saved_cap_space));
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-z85230-fix-fifo-handling.patch
-git-libata-all.patch
-expose-set_mode-method-so-it-can-be-wrapped.patch
-acpi-driver-support-for-pata.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-pata_platform-set-a-cable-type-which-to-set.patch
-pata_qdi-set-cable-type.patch
-pata_sl82c105-missing-methods-cable.patch
-ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
-pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
-pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
-pata_cypress-clean-up-by-using-cable_detect-method.patch
-pata_isapnp-set-cable-type.patch
-pata_ixp4xx_cf-set-cable-type.patch
-pata_legacy-fix-missing-methods-and-add-cable-types.patch
-pata_netcell-remove-lots-of-crud-by-using-the-cable-method.patch
-pata_radisys-switch-to-cable-method-to-cleanup-code.patch
-pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
-pata_rz1000-remove-lots-of-crap-by-using-cable-method.patch
-pata_winbond-set-cable-type.patch
-pata_cmd64x-various-fixes.patch
-pata_hpt3x3-clean-up-by-using-cable-method.patch
-ata_piix-remove-ugly-layering-violation.patch
-pata_artop-cable-detect-methods.patch
-pata_cs5535-cable-detect.patch
-pata_hpt3x2n-cable-detect-handling-needs-work.patch
-pata_it821x-clean-up-by-using-cable-methods.patch
-pata_mpc52xx-cable-detect.patch
-pata_mpiix-cable-detect-method.patch
-pata_ns87410-cable-detect-method.patch
-pata_oldpiix-cable-detect.patch
-pata_opti-cable-detect.patch
-pata_pcmcia-cable-detect.patch
-pata_pdc202xx_old-cable-detect-clean-up.patch
-pata_sil680-cable-detect.patch
-pata_triflex-cable-detect.patch
-sata_via-cable-detection.patch
-pata_cmd640-multiple-updates.patch
-pata_efar-switch-to-cable_detect-method.patch
-pata_it8213-cable-detect.patch
-pata_marvell-cable-and-reset-fixes.patch
-pata_serverworks-cable-detect-and-comment-fix.patch
-pata_sis-clean-up-using-cable_detect-methods.patch
-pata_via-use-cable_detect-method.patch
-pata_hpt366-cable-detect-methods.patch
-pata_atiixp-switch-to-cable_detect-method-with-correct.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-dilnetpc-fix-warning.patch
-resend-iphase-64bit-cleanup.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
+fix-null-pointer-in-ia64-irq_chip-mask-unmask.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+i386-irq-kill-irq-compression.patch
+x86_64-irq-remove-extra-smp_processor_id-calling.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
 edac-k8-driver-coding-tidy.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+msi-debug-code.patch
