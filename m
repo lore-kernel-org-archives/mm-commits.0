@@ -1,108 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - remove-arch-i386-kernel-tscccustom_sched_clock.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:21:18 -0800
-Message-ID: <200703070421.l274LIm4018891@shell0.pdx.osdl.net>
+Subject: - cciss-fix-for-2tb-support.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:34 -0800
+Message-ID: <200703070421.l274LY7x018909@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47241 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47259 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932511AbXCGEYe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:24:34 -0500
+	id S932767AbXCGEYw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:24:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, ak@suse.de, zach@vmware.com, mm-commits@vger.kernel.org
+To: mikem@beardog.cca.cpqcorp.net, mike.miller@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove arch/i386/kernel/tsc.c:custom_sched_clock
+     cciss: fix for 2TB support
 has been removed from the -mm tree.  Its filename was
-     remove-arch-i386-kernel-tscccustom_sched_clock.patch
+     cciss-fix-for-2tb-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove arch/i386/kernel/tsc.c:custom_sched_clock
-From: Adrian Bunk <bunk@stusta.de>
+Subject: cciss: fix for 2TB support
+From: "Mike Miller (OS Dev)" <mikem@beardog.cca.cpqcorp.net>
 
-Remove the no longer used custom_sched_clock.
+This patch changes the way we determine if a logical volume is larger than
+2TB. 
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Zachary Amsden <zach@vmware.com>
-Cc: Andi Kleen <ak@suse.de>
+The original test looked for a total_size of 0.  Originally we added 1 to the
+total_size.  That would make our read_capacity return size 0 for >2TB lv's. 
+We assumed that we could not have a lv size of 0 so it seemed OK until we were
+in a clustered system.  The backup node would see a size of 0 due to the
+reservation on the drive.  That caused the driver to switch to 16-byte CDB's
+which are not supported on older controllers.  After that everything was
+broken.
+
+It may seem petty but I don't see the value in trying to determine if the LBA
+is beyond the 2TB boundary.  That's why when we switch we use 16-byte CDB's
+for all read/write operations.  Please consider this for inclusion.
+
+Signed-off-by: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/tsc.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/block/cciss.c |   39 ++++++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 15 deletions(-)
 
-diff -puN arch/i386/kernel/tsc.c~remove-arch-i386-kernel-tscccustom_sched_clock arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~remove-arch-i386-kernel-tscccustom_sched_clock
-+++ a/arch/i386/kernel/tsc.c
-@@ -24,7 +24,6 @@
-  * an extra value to store the TSC freq
-  */
- unsigned int tsc_khz;
--unsigned long long (*custom_sched_clock)(void);
+diff -puN drivers/block/cciss.c~cciss-fix-for-2tb-support drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-for-2tb-support
++++ a/drivers/block/cciss.c
+@@ -1291,13 +1291,19 @@ static void cciss_update_drive_info(int 
+ 	if (inq_buff == NULL)
+ 		goto mem_msg;
  
- int tsc_disable;
++ 	/* testing to see if 16-byte CDBs are already being used */
++ 	if (h->cciss_read == CCISS_READ_16) {
++ 		cciss_read_capacity_16(h->ctlr, drv_index, 1,
++ 			&total_size, &block_size);
++ 		goto geo_inq;
++ 	}
++
+ 	cciss_read_capacity(ctlr, drv_index, 1,
+ 			    &total_size, &block_size);
  
+-	/* total size = last LBA + 1 */
+-	/* FFFFFFFF + 1 = 0, cannot have a logical volume of size 0 */
+-	/* so we assume this volume this must be >2TB in size */
+-	if (total_size == (__u32) 0) {
++  	/* if read_capacity returns all F's this volume is >2TB in size */
++  	/* so we switch to 16-byte CDB's for all read/write ops */
++  	if (total_size == 0xFFFFFFFFULL) {
+ 		cciss_read_capacity_16(ctlr, drv_index, 1,
+ 		&total_size, &block_size);
+ 		h->cciss_read = CCISS_READ_16;
+@@ -1306,6 +1312,7 @@ static void cciss_update_drive_info(int 
+ 		h->cciss_read = CCISS_READ_10;
+ 		h->cciss_write = CCISS_WRITE_10;
+ 	}
++geo_inq:
+ 	cciss_geometry_inquiry(ctlr, drv_index, 1, total_size, block_size,
+ 			       inq_buff, &h->drv[drv_index]);
+ 
+@@ -1917,13 +1924,14 @@ static void cciss_geometry_inquiry(int c
+ 			drv->raid_level = inq_buff->data_byte[8];
+ 		}
+ 		drv->block_size = block_size;
+-		drv->nr_blocks = total_size;
++		drv->nr_blocks = total_size + 1;
+ 		t = drv->heads * drv->sectors;
+ 		if (t > 1) {
+-			unsigned rem = sector_div(total_size, t);
++			sector_t real_size = total_size + 1;
++			unsigned long rem = sector_div(real_size, t);
+ 			if (rem)
+-				total_size++;
+-			drv->cylinders = total_size;
++				real_size++;
++			drv->cylinders = real_size;
+ 		}
+ 	} else {		/* Get geometry failed */
+ 		printk(KERN_WARNING "cciss: reading geometry failed\n");
+@@ -1953,16 +1961,16 @@ cciss_read_capacity(int ctlr, int logvol
+ 				ctlr, buf, sizeof(ReadCapdata_struct),
+ 					1, logvol, 0, NULL, TYPE_CMD);
+ 	if (return_code == IO_OK) {
+-		*total_size = be32_to_cpu(*(__u32 *) buf->total_size)+1;
++		*total_size = be32_to_cpu(*(__u32 *) buf->total_size);
+ 		*block_size = be32_to_cpu(*(__u32 *) buf->block_size);
+ 	} else {		/* read capacity command failed */
+ 		printk(KERN_WARNING "cciss: read capacity failed\n");
+ 		*total_size = 0;
+ 		*block_size = BLOCK_SIZE;
+ 	}
+-	if (*total_size != (__u32) 0)
++	if (*total_size != 0)
+ 		printk(KERN_INFO "      blocks= %llu block_size= %d\n",
+-		(unsigned long long)*total_size, *block_size);
++		(unsigned long long)*total_size+1, *block_size);
+ 	kfree(buf);
+ 	return;
+ }
+@@ -1989,7 +1997,7 @@ cciss_read_capacity_16(int ctlr, int log
+ 				1, logvol, 0, NULL, TYPE_CMD);
+ 	}
+ 	if (return_code == IO_OK) {
+-		*total_size = be64_to_cpu(*(__u64 *) buf->total_size)+1;
++		*total_size = be64_to_cpu(*(__u64 *) buf->total_size);
+ 		*block_size = be32_to_cpu(*(__u32 *) buf->block_size);
+ 	} else {		/* read capacity command failed */
+ 		printk(KERN_WARNING "cciss: read capacity failed\n");
+@@ -1997,7 +2005,7 @@ cciss_read_capacity_16(int ctlr, int log
+ 		*block_size = BLOCK_SIZE;
+ 	}
+ 	printk(KERN_INFO "      blocks= %llu block_size= %d\n",
+-	       (unsigned long long)*total_size, *block_size);
++	       (unsigned long long)*total_size+1, *block_size);
+ 	kfree(buf);
+ 	return;
+ }
+@@ -3119,8 +3127,9 @@ static void cciss_getgeometry(int cntl_n
+ 		}
+ 		cciss_read_capacity(cntl_num, i, 0, &total_size, &block_size);
+ 
+-		/* total_size = last LBA + 1 */
+-		if(total_size == (__u32) 0) {
++		/* If read_capacity returns all F's the logical is >2TB */
++		/* so we switch to 16-byte CDBs for all read/write ops */
++		if(total_size == 0xFFFFFFFFULL) {
+ 			cciss_read_capacity_16(cntl_num, i, 0,
+ 			&total_size, &block_size);
+ 			hba[cntl_num]->cciss_read = CCISS_READ_16;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from mikem@beardog.cca.cpqcorp.net are
 
 origin.patch
-cpu_idle-fix-build-break.patch
-drivers-cpuidle-make-code-static.patch
-git-drm.patch
-make-drivers-char-drm-drm_vmcdrm_io_prot-static.patch
-git-dvb.patch
-saa7134-fix-modules=n-compilation.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-fs-jffs2-ioctlc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-git-ubi.patch
-git-netdev-all.patch
-drivers-net-vioc-possible-cleanups.patch
-drivers-net-bonding-bond_maincmake-3-functions-static.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-lguest-kconfig-and-headers.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
