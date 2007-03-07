@@ -1,79 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - __devinit-__devexit-cleanups-for-de2104x-driver.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:23:20 -0800
-Message-ID: <200703070423.l274NKlx019051@shell0.pdx.osdl.net>
+Subject: - remove-arch-i386-kernel-tscccustom_sched_clock.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:18 -0800
+Message-ID: <200703070421.l274LIm4018891@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47237 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47241 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932487AbXCGEYZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:24:25 -0500
+	id S932511AbXCGEYe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:24:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: prarit@redhat.com, val_henson@linux.intel.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, ak@suse.de, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     __devinit & __devexit cleanups for de2104x driver
+     remove arch/i386/kernel/tsc.c:custom_sched_clock
 has been removed from the -mm tree.  Its filename was
-     __devinit-__devexit-cleanups-for-de2104x-driver.patch
+     remove-arch-i386-kernel-tscccustom_sched_clock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: __devinit & __devexit cleanups for de2104x driver
-From: Prarit Bhargava <prarit@redhat.com>
+Subject: remove arch/i386/kernel/tsc.c:custom_sched_clock
+From: Adrian Bunk <bunk@stusta.de>
 
-Fixes MODPOST warnings similar to:
+Remove the no longer used custom_sched_clock.
 
-WARNING: drivers/net/tulip/de2104x.o - Section mismatch: reference to
-.init.text:de_init_one from .data.rel.local after 'de_driver' (at offset 0x20)
-WARNING: drivers/net/tulip/de2104x.o - Section mismatch: reference to
-.exit.text:de_remove_one from .data.rel.local after 'de_driver' (at offset 0x28)
-
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Valerie Henson <val_henson@linux.intel.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Zachary Amsden <zach@vmware.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/de2104x.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/i386/kernel/tsc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/net/tulip/de2104x.c~__devinit-__devexit-cleanups-for-de2104x-driver drivers/net/tulip/de2104x.c
---- a/drivers/net/tulip/de2104x.c~__devinit-__devexit-cleanups-for-de2104x-driver
-+++ a/drivers/net/tulip/de2104x.c
-@@ -1685,7 +1685,7 @@ static const struct ethtool_ops de_ethto
- 	.get_regs		= de_get_regs,
- };
+diff -puN arch/i386/kernel/tsc.c~remove-arch-i386-kernel-tscccustom_sched_clock arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~remove-arch-i386-kernel-tscccustom_sched_clock
++++ a/arch/i386/kernel/tsc.c
+@@ -24,7 +24,6 @@
+  * an extra value to store the TSC freq
+  */
+ unsigned int tsc_khz;
+-unsigned long long (*custom_sched_clock)(void);
  
--static void __init de21040_get_mac_address (struct de_private *de)
-+static void __devinit de21040_get_mac_address (struct de_private *de)
- {
- 	unsigned i;
+ int tsc_disable;
  
-@@ -1703,7 +1703,7 @@ static void __init de21040_get_mac_addre
- 	}
- }
- 
--static void __init de21040_get_media_info(struct de_private *de)
-+static void __devinit de21040_get_media_info(struct de_private *de)
- {
- 	unsigned int i;
- 
-@@ -1765,7 +1765,7 @@ static unsigned __devinit tulip_read_eep
- 	return retval;
- }
- 
--static void __init de21041_get_srom_info (struct de_private *de)
-+static void __devinit de21041_get_srom_info (struct de_private *de)
- {
- 	unsigned i, sa_offset = 0, ofs;
- 	u8 ee_data[DE_EEPROM_SIZE + 6] = {};
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-use-stop_machine_run-in-the-intel-rng-driver.patch
-change-rivafb_remove-to-__devexit.patch
+cpu_idle-fix-build-break.patch
+drivers-cpuidle-make-code-static.patch
+git-drm.patch
+make-drivers-char-drm-drm_vmcdrm_io_prot-static.patch
+git-dvb.patch
+saa7134-fix-modules=n-compilation.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-fs-jffs2-ioctlc.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-ubi.patch
+git-netdev-all.patch
+drivers-net-vioc-possible-cleanups.patch
+drivers-net-bonding-bond_maincmake-3-functions-static.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+lguest-kconfig-and-headers.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
