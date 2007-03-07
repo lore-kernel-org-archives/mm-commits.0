@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-disabled-due-to-dmi-failure-or-blacklisted-year-should-be-noted-as-is-done-with-other-acpi-blacklisting.patch added to -mm tree
-Date: Wed, 07 Mar 2007 14:00:01 -0800
-Message-ID: <200703072200.l27M036f010344@shell0.pdx.osdl.net>
+Subject: + reduce-rtc-syslog-spam.patch added to -mm tree
+Date: Wed, 07 Mar 2007 14:01:51 -0800
+Message-ID: <200703072201.l27M1pkC010391@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:32986 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33049 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423003AbXCGWBV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 17:01:21 -0500
+	id S2992453AbXCGWB6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 17:01:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: agodshall@ampro.com, lenb@kernel.org
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     ACPI disabled due to DMI failure or blacklisted year should be noted, as is done with other ACPI blacklisting
+     reduce rtc syslog spam
 has been added to the -mm tree.  Its filename is
-     acpi-disabled-due-to-dmi-failure-or-blacklisted-year-should-be-noted-as-is-done-with-other-acpi-blacklisting.patch
+     reduce-rtc-syslog-spam.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI disabled due to DMI failure or blacklisted year should be noted, as is done with other ACPI blacklisting
-From: "Anthony Godshall, Ampro Computers, Inc." <agodshall@ampro.com>
+Subject: reduce rtc syslog spam
+From: David Brownell <david-b@pacbell.net>
 
-IMHO, ACPI disabled due to DMI failure or blacklisted year should be noted,
-as is done with other ACPI blacklisting.
+Make the RTC core less noisy.  On fault paths this message is confusing;
+and on success, a message from the driver itself should be much more
+informative (displaying chip type, options, etc).
 
-This will help people troubleshoot when ACPI isn't working.  Status quo is
-a mysterious "ACPI Disabled" message without explanation on BIOS that
-implements ACPI but not DMI.  This is actually fairly common on embedded
-x86 boards.
-
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/blacklist.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/rtc/class.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/blacklist.c~acpi-disabled-due-to-dmi-failure-or-blacklisted-year-should-be-noted-as-is-done-with-other-acpi-blacklisting drivers/acpi/blacklist.c
---- a/drivers/acpi/blacklist.c~acpi-disabled-due-to-dmi-failure-or-blacklisted-year-should-be-noted-as-is-done-with-other-acpi-blacklisting
-+++ a/drivers/acpi/blacklist.c
-@@ -79,11 +79,17 @@ static int __init blacklist_by_year(void
- {
- 	int year = dmi_get_year(DMI_BIOS_DATE);
- 	/* Doesn't exist? Likely an old system */
--	if (year == -1)
-+	if (year == -1) {
-+		printk(KERN_ERR PREFIX "no DMI BIOS year, "
-+			"acpi=force is required to enable ACPI\n" );
- 		return 1;
-+	}
- 	/* 0? Likely a buggy new BIOS */
--	if (year == 0)
-+	if (year == 0) {
-+		printk(KERN_ERR PREFIX "DMI BIOS year==0, "
-+			"assuming ACPI-capable machine\n" );
- 		return 0;
-+	}
- 	if (year < CONFIG_ACPI_BLACKLIST_YEAR) {
- 		printk(KERN_ERR PREFIX "BIOS age (%d) fails cutoff (%d), "
- 		       "acpi=force is required to enable ACPI\n",
+diff -puN drivers/rtc/class.c~reduce-rtc-syslog-spam drivers/rtc/class.c
+--- a/drivers/rtc/class.c~reduce-rtc-syslog-spam
++++ a/drivers/rtc/class.c
+@@ -85,7 +85,7 @@ struct rtc_device *rtc_device_register(c
+ 	if (err)
+ 		goto exit_kfree;
+ 
+-	dev_info(dev, "rtc core: registered %s as %s\n",
++	dev_dbg(dev, "rtc core: registered %s as %s\n",
+ 			rtc->name, rtc->class_dev.class_id);
+ 
+ 	return rtc;
 _
 
-Patches currently in -mm which might be from agodshall@ampro.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-acpi-disabled-due-to-dmi-failure-or-blacklisted-year-should-be-noted-as-is-done-with-other-acpi-blacklisting.patch
+reduce-rtc-syslog-spam.patch
+git-avr32.patch
+git-md-accel.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+init-dma-masks-in-pnp_dev.patch
+rtc-remove-sys-class-rtc-dev.patch
+rtc-rtc-interfaces-dont-use-class_device.patch
+rtc-simplified-rtc-sysfs-attribute-handling.patch
+rtc-simplified-proc-driver-rtc-handling.patch
+rtc-remove-rest-of-class_device.patch
+rtc-suspend-resume-restores-system-clock.patch
+rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
