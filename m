@@ -1,64 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - fix-vsyscall-settimeofday.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:21:23 -0800
-Message-ID: <200703070421.l274LNGD018897@shell0.pdx.osdl.net>
+Subject: - publish-rcutorture-module-parameters-via-sysfs-read-only.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:32 -0800
+Message-ID: <200703070421.l274LW1q018906@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47046 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47036 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161318AbXCGEVn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:21:43 -0500
+	id S1161313AbXCGEVf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:21:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: josh@freedesktop.org, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix vsyscall settimeofday
+     Publish rcutorture module parameters via sysfs, read-only
 has been removed from the -mm tree.  Its filename was
-     fix-vsyscall-settimeofday.patch
+     publish-rcutorture-module-parameters-via-sysfs-read-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix vsyscall settimeofday
-From: Daniel Walker <dwalker@mvista.com>
+Subject: Publish rcutorture module parameters via sysfs, read-only
+From: Josh Triplett <josh@freedesktop.org>
 
-I've only seen this on x86_64.
+rcutorture's module parameters currently use permissions of 0, so they
+don't show up in /sys/module/rcutorture/parameters.  Change the permissions
+on all module parameters to world-readable (0444).
 
-The vsyscall state only gets updated when a timer interrupts comes in.  So
-if the time is set long before the next timer, there will be a period when
-a gettimeofday() won't reflect the correct time.
+rcutorture does all of its initialization and thread startup when loaded
+and relies on the parameters not changing during execution, so they should
+not permit writing.  However, reading seems fine.
 
-I added an explicit update_vsyscall() during the settimeofday(), that way
-the vsyscall state doesn't get stale.
-
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Acked-by: John Stultz <johnstul@us.ibm.com>
+Signed-off-by: Josh Triplett <josh@freedesktop.org>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/rcutorture.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/timer.c~fix-vsyscall-settimeofday kernel/timer.c
---- a/kernel/timer.c~fix-vsyscall-settimeofday
-+++ a/kernel/timer.c
-@@ -862,6 +862,8 @@ int do_settimeofday(struct timespec *tv)
- 	clock->error = 0;
- 	ntp_clear();
+diff -puN kernel/rcutorture.c~publish-rcutorture-module-parameters-via-sysfs-read-only kernel/rcutorture.c
+--- a/kernel/rcutorture.c~publish-rcutorture-module-parameters-via-sysfs-read-only
++++ a/kernel/rcutorture.c
+@@ -60,19 +60,19 @@ static int test_no_idle_hz;	/* Test RCU'
+ static int shuffle_interval = 5; /* Interval between shuffles (in sec)*/
+ static char *torture_type = "rcu"; /* What RCU implementation to torture. */
  
-+	update_vsyscall(&xtime, clock);
-+
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
+-module_param(nreaders, int, 0);
++module_param(nreaders, int, 0444);
+ MODULE_PARM_DESC(nreaders, "Number of RCU reader threads");
+-module_param(nfakewriters, int, 0);
++module_param(nfakewriters, int, 0444);
+ MODULE_PARM_DESC(nfakewriters, "Number of RCU fake writer threads");
+-module_param(stat_interval, int, 0);
++module_param(stat_interval, int, 0444);
+ MODULE_PARM_DESC(stat_interval, "Number of seconds between stats printk()s");
+-module_param(verbose, bool, 0);
++module_param(verbose, bool, 0444);
+ MODULE_PARM_DESC(verbose, "Enable verbose debugging printk()s");
+-module_param(test_no_idle_hz, bool, 0);
++module_param(test_no_idle_hz, bool, 0444);
+ MODULE_PARM_DESC(test_no_idle_hz, "Test support for tickless idle CPUs");
+-module_param(shuffle_interval, int, 0);
++module_param(shuffle_interval, int, 0444);
+ MODULE_PARM_DESC(shuffle_interval, "Number of seconds between shuffles");
+-module_param(torture_type, charp, 0);
++module_param(torture_type, charp, 0444);
+ MODULE_PARM_DESC(torture_type, "Type of RCU to torture (rcu, rcu_bh, srcu)");
  
- 	/* signal hrtimers about time change */
+ #define TORTURE_FLAG "-torture:"
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from josh@freedesktop.org are
 
 origin.patch
-slim-make-and-config-stuff.patch
-profile-likely-unlikely-macros.patch
+rcutorture-mark-rcu_torture_init-as-__init.patch
