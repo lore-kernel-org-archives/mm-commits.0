@@ -1,246 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: + add-filesystem-subtype-support.patch added to -mm tree
-Date: Wed, 07 Mar 2007 12:47:05 -0800
-Message-ID: <200703072047.l27Kl80s008213@shell0.pdx.osdl.net>
+Subject: - procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 12:48:33 -0800
+Message-ID: <200703072048.l27KmX3J008234@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56180 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56238 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992551AbXCGUrO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 15:47:14 -0500
+	id S965639AbXCGUtE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 15:49:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz
+To: djwong@us.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add filesystem subtype support
-has been added to the -mm tree.  Its filename is
-     add-filesystem-subtype-support.patch
+     procfs: fix race between proc_readdir and remove_proc_entry
+has been removed from the -mm tree.  Its filename was
+     procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: add filesystem subtype support
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: procfs: fix race between proc_readdir and remove_proc_entry
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-There's a slight problem with filesystem type representation in fuse
-based filesystems.
+While running a insmod/rmmod loop with the mptsas driver (vanilla 2.6.19,
+IBM Intellistation Z30, SAS1064E controller if it matters), I encountered
+the following messages from the kernel:
 
-From the kernel's view, there are just two filesystem types: fuse and
-fuseblk.  From the user's view there are lots of different filesystem
-types.  The user is not even much concerned if the filesystem is fuse based
-or not.  So there's a conflict of interest in how this should be
-represented in fstab, mtab and /proc/mounts.
+[53092.441412] general protection fault: 0000 [1] PREEMPT SMP
+[53092.447058] CPU 4
+[53092.449108] Modules linked in: mptbase scsi_transport_sas ext2 ext3 jbd mbcache nbd acpi_cpufreq processor cpufreq_userspace cpufreq_stats
+ cpufreq_powersave cpufreq_ondemand freq_table cpufreq_conservative dm_mod md_mod ipv6 fuse ata_generic sg sd_mod ata_piix libata mousedev ts
+dev serio_raw evdev floppy rtc snd_hda_intel snd_hda_codec snd_pcm_oss snd_mixer_oss snd_pcm ohci1394 generic ieee1394 piix scsi_mod snd_time
+r ide_core ehci_hcd uhci_hcd snd usbcore soundcore snd_page_alloc shpchp pci_hotplug unix
+[53092.495003] Pid: 570, comm: udevd Not tainted 2.6.19-dic64 #6
+[53092.500753] RIP: 0010:[<ffffffff801fafc5>]  [<ffffffff801fafc5>] proc_readdir+0x110/0x186
+[53092.508968] RSP: 0018:ffff8100be829e78  EFLAGS: 00010246
+[53092.514289] RAX: 0000000000000000 RBX: 6b6b6b6b6b6b6b6b RCX: 000000002218b2b5
+[53092.521429] RDX: ffffffff801fafc5 RSI: 0000000000000001 RDI: ffff810092cf7e48
+[53092.528564] RBP: ffff8100be829eb8 R08: 0000000000000002 R09: 0000000000000000
+[53092.535700] R10: ffff810092cf7e48 R11: 0000000000000028 R12: ffff810005934a08
+[53092.542836] R13: 0000000000000002 R14: ffff810092cf7e48 R15: ffffffff8013b9e6
+[53092.549972] FS:  00002b19f2a14d70(0000) GS:ffff8100059b3898(0000) knlGS:0000000000000000
+[53092.558067] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[53092.563817] CR2: 000000000051108c CR3: 00000000bedb9000 CR4: 00000000000006e0
+[53092.570954] Process udevd (pid: 570, threadinfo ffff8100be828000, task ffff8100befc0080)
+[53092.579048] Stack:  0000000000000246 ffff8100be829f38 ffffffff80474ea0 0000000000000000
+[53092.587179]  ffff810092cf7e48 ffffffff8013b9e6 ffff8100be829f38 ffffffff8013b9e6
+[53092.594679]  ffff8100be829ee8 ffffffff8014e93e ffff810092cf7e48 ffff81000593a8a8
+[53092.601971] Call Trace:
+[53092.604644]  [<ffffffff8014e93e>] proc_root_readdir+0x32/0x68
+[53092.610397]  [<ffffffff80135abb>] vfs_readdir+0x65/0x9a
+[53092.615628]  [<ffffffff801d966b>] sys_getdents64+0x7a/0xc1
+[53092.621123]  [<ffffffff8015e11e>] system_call+0x7e/0x83
+[53092.627195] DWARF2 unwinder stuck at system_call+0x7e/0x83
+[53092.632681]
+[53092.634189] Leftover inexact backtrace:
+[53092.634191]
+[53092.643162]
+[53092.644663]
+[53092.644665] Code: 44 8b 4b 10 0f b7 53 04 44 8b 03 49 8b 4e 38 48 8b 73 08 48
+[53092.653935] RIP  [<ffffffff801fafc5>] proc_readdir+0x110/0x186
+[53092.659798]  RSP <ffff8100be829e78>
 
-The current scheme is to encode the real filesystem type in the mount
-source.  So an sshfs mount looks like this:
+The slab poison value in %rbx is suspicious, so I dug into the
+relevant code:
 
-  sshfs#user@server:/   /mnt/server    fuse   rw,nosuid,nodev,...
+0xffffffff801fafc5 <proc_readdir+272>:  mov    0x10(%rbx),%r9d
+0xffffffff801fafc9 <proc_readdir+276>:  movzwl 0x4(%rbx),%edx
+0xffffffff801fafcd <proc_readdir+280>:  mov    (%rbx),%r8d
+0xffffffff801fafd0 <proc_readdir+283>:  mov    0x38(%r14),%rcx
+0xffffffff801fafd4 <proc_readdir+287>:  mov    0x8(%rbx),%rsi
+0xffffffff801fafd8 <proc_readdir+291>:  mov    0xffffffffffffffc8(%rbp),%rdi
+0xffffffff801fafdc <proc_readdir+295>:  shr    $0xc,%r9d
+0xffffffff801fafe0 <proc_readdir+299>:  callq  *%r15
 
-This url-ish syntax works OK for sshfs and similar filesystems.  However
-for block device based filesystems (ntfs-3g, zfs) it doesn't work, since
-the kernel expects the mount source to be a real device name.
+This corresponds to this code in proc_readdir near
+fs/proc/generic.c:480.  It looks like %rbx corresponds to the
+"de" pointer:
 
-A possibly better scheme would be to encode the real type in the type
-field as "type.subtype".  So fuse mounts would look like this:
+spin_unlock(&proc_subdir_lock);
+if (filldir(dirent, de->name, de->namelen, filp->f_pos,
+            de->low_ino, de->mode >> 12) < 0)
+	goto out;
+spin_lock(&proc_subdir_lock);
+filp->f_pos++;
+de = de->next;
 
-  /dev/hda1       /mnt/windows   fuseblk.ntfs-3g   rw,...
-  user@server:/   /mnt/server    fuse.sshfs        rw,nosuid,nodev,...
+I believe what's happening here is that proc_readdir drops proc_subdir_lock
+to call filldir() on the /proc/mpt directory at the same time mptbase is
+being unloaded.  The unload causes the removal of /proc/mpt, which means
+that de is overwritten with the slab poison value as it is being freed.  We
+reacquire the lock and try to grab the next value of de, but by then the
+next pointer has been lost, and we crash.
 
-This patch adds the necessary code to the kernel so that this can be
-correctly displayed in /proc/mounts.
+I think an acceptable fix is to de_get() the proc_dir_entry count before
+the unlock and de_put() it after the unlock.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/filesystems.c   |   21 +++++++++++++++------
- fs/fuse/inode.c    |    2 ++
- fs/namespace.c     |    4 ++++
- fs/super.c         |   27 +++++++++++++++++++++++++++
- include/linux/fs.h |    7 +++++++
- 5 files changed, 55 insertions(+), 6 deletions(-)
+ fs/proc/generic.c       |    7 +++++--
+ fs/proc/inode.c         |    9 +--------
+ include/linux/proc_fs.h |    9 +++++++++
+ 3 files changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN fs/filesystems.c~add-filesystem-subtype-support fs/filesystems.c
---- a/fs/filesystems.c~add-filesystem-subtype-support
-+++ a/fs/filesystems.c
-@@ -41,11 +41,12 @@ void put_filesystem(struct file_system_t
- 	module_put(fs->owner);
- }
- 
--static struct file_system_type **find_filesystem(const char *name)
-+static struct file_system_type **find_filesystem(const char *name, unsigned len)
+diff -puN fs/proc/generic.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry fs/proc/generic.c
+--- a/fs/proc/generic.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry
++++ a/fs/proc/generic.c
+@@ -429,7 +429,7 @@ struct dentry *proc_lookup(struct inode 
+ int proc_readdir(struct file * filp,
+ 	void * dirent, filldir_t filldir)
  {
- 	struct file_system_type **p;
- 	for (p=&file_systems; *p; p=&(*p)->next)
--		if (strcmp((*p)->name,name) == 0)
-+		if (strlen((*p)->name) == len &&
-+		    strncmp((*p)->name, name, len) == 0)
- 			break;
- 	return p;
- }
-@@ -68,11 +69,12 @@ int register_filesystem(struct file_syst
- 	int res = 0;
- 	struct file_system_type ** p;
+-	struct proc_dir_entry * de;
++	struct proc_dir_entry *de, *next;
+ 	unsigned int ino;
+ 	int i;
+ 	struct inode *inode = filp->f_path.dentry->d_inode;
+@@ -477,13 +477,16 @@ int proc_readdir(struct file * filp,
  
-+	BUG_ON(strchr(fs->name, '.'));
- 	if (fs->next)
- 		return -EBUSY;
- 	INIT_LIST_HEAD(&fs->fs_supers);
- 	write_lock(&file_systems_lock);
--	p = find_filesystem(fs->name);
-+	p = find_filesystem(fs->name, strlen(fs->name));
- 	if (*p)
- 		res = -EBUSY;
- 	else
-@@ -215,19 +217,26 @@ int get_filesystem_list(char * buf)
- struct file_system_type *get_fs_type(const char *name)
- {
- 	struct file_system_type *fs;
-+	const char *dot = strchr(name, '.');
-+	unsigned len = dot ? dot - name : strlen(name);
- 
- 	read_lock(&file_systems_lock);
--	fs = *(find_filesystem(name));
-+	fs = *(find_filesystem(name, len));
- 	if (fs && !try_module_get(fs->owner))
- 		fs = NULL;
- 	read_unlock(&file_systems_lock);
--	if (!fs && (request_module("%s", name) == 0)) {
-+	if (!fs && (request_module("%.*s", len, name) == 0)) {
- 		read_lock(&file_systems_lock);
--		fs = *(find_filesystem(name));
-+		fs = *(find_filesystem(name, len));
- 		if (fs && !try_module_get(fs->owner))
- 			fs = NULL;
- 		read_unlock(&file_systems_lock);
+ 			do {
+ 				/* filldir passes info to user space */
++				de_get(de);
+ 				spin_unlock(&proc_subdir_lock);
+ 				if (filldir(dirent, de->name, de->namelen, filp->f_pos,
+ 					    de->low_ino, de->mode >> 12) < 0)
+ 					goto out;
+ 				spin_lock(&proc_subdir_lock);
+ 				filp->f_pos++;
+-				de = de->next;
++				next = de->next;
++				de_put(de);
++				de = next;
+ 			} while (de);
+ 			spin_unlock(&proc_subdir_lock);
  	}
-+
-+	if (dot && fs && !(fs->fs_flags & FS_HAS_SUBTYPE)) {
-+		put_filesystem(fs);
-+		fs = NULL;
-+	}
- 	return fs;
- }
+diff -puN fs/proc/inode.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry fs/proc/inode.c
+--- a/fs/proc/inode.c~procfs-fix-race-between-proc_readdir-and-remove_proc_entry
++++ a/fs/proc/inode.c
+@@ -21,17 +21,10 @@
  
-diff -puN fs/fuse/inode.c~add-filesystem-subtype-support fs/fuse/inode.c
---- a/fs/fuse/inode.c~add-filesystem-subtype-support
-+++ a/fs/fuse/inode.c
-@@ -634,6 +634,7 @@ static int fuse_get_sb(struct file_syste
- static struct file_system_type fuse_fs_type = {
- 	.owner		= THIS_MODULE,
- 	.name		= "fuse",
-+	.fs_flags	= FS_HAS_SUBTYPE,
- 	.get_sb		= fuse_get_sb,
- 	.kill_sb	= kill_anon_super,
- };
-@@ -650,6 +651,7 @@ static int fuse_get_sb_blk(struct file_s
- static struct file_system_type fuseblk_fs_type = {
- 	.owner		= THIS_MODULE,
- 	.name		= "fuseblk",
-+	.fs_flags	= FS_HAS_SUBTYPE,
- 	.get_sb		= fuse_get_sb_blk,
- 	.kill_sb	= kill_block_super,
- 	.fs_flags	= FS_REQUIRES_DEV,
-diff -puN fs/namespace.c~add-filesystem-subtype-support fs/namespace.c
---- a/fs/namespace.c~add-filesystem-subtype-support
-+++ a/fs/namespace.c
-@@ -390,6 +390,10 @@ static int show_vfsmnt(struct seq_file *
- 	mangle(m, path);
- 	seq_putc(m, ' ');
- 	mangle(m, mnt->mnt_sb->s_type->name);
-+	if (mnt->mnt_sb->s_subtype && mnt->mnt_sb->s_subtype[0]) {
-+		seq_putc(m, '.');
-+		mangle(m, mnt->mnt_sb->s_subtype);
-+	}
- 	seq_puts(m, mnt->mnt_sb->s_flags & MS_RDONLY ? " ro" : " rw");
- 	for (fs_infop = fs_info; fs_infop->flag; fs_infop++) {
- 		if (mnt->mnt_sb->s_flags & fs_infop->flag)
-diff -puN fs/super.c~add-filesystem-subtype-support fs/super.c
---- a/fs/super.c~add-filesystem-subtype-support
-+++ a/fs/super.c
-@@ -107,6 +107,7 @@ out:
- static inline void destroy_super(struct super_block *s)
+ #include "internal.h"
+ 
+-static inline struct proc_dir_entry * de_get(struct proc_dir_entry *de)
+-{
+-	if (de)
+-		atomic_inc(&de->count);
+-	return de;
+-}
+-
+ /*
+  * Decrements the use count and checks for deferred deletion.
+  */
+-static void de_put(struct proc_dir_entry *de)
++void de_put(struct proc_dir_entry *de)
  {
- 	security_sb_free(s);
-+	kfree(s->s_subtype);
- 	kfree(s);
- }
+ 	if (de) {	
+ 		lock_kernel();		
+diff -puN include/linux/proc_fs.h~procfs-fix-race-between-proc_readdir-and-remove_proc_entry include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~procfs-fix-race-between-proc_readdir-and-remove_proc_entry
++++ a/include/linux/proc_fs.h
+@@ -274,4 +274,13 @@ struct proc_maps_private {
+ #endif
+ };
  
-@@ -919,6 +920,29 @@ out:
- 
- EXPORT_SYMBOL_GPL(vfs_kern_mount);
- 
-+static struct vfsmount *fs_set_subtype(struct vfsmount *mnt, const char *fstype)
++static inline struct proc_dir_entry * de_get(struct proc_dir_entry *de)
 +{
-+	int err;
-+	const char *subtype = strchr(fstype, '.');
-+	if (subtype) {
-+		subtype++;
-+		err = -EINVAL;
-+		if (!subtype[0])
-+			goto err;
-+	} else
-+		subtype = "";
-+
-+	mnt->mnt_sb->s_subtype = kstrdup(subtype, GFP_KERNEL);
-+	err = -ENOMEM;
-+	if (!mnt->mnt_sb->s_subtype)
-+		goto err;
-+	return mnt;
-+
-+ err:
-+	mntput(mnt);
-+	return ERR_PTR(err);
++	if (de)
++		atomic_inc(&de->count);
++	return de;
 +}
 +
- struct vfsmount *
- do_kern_mount(const char *fstype, int flags, const char *name, void *data)
- {
-@@ -927,6 +951,9 @@ do_kern_mount(const char *fstype, int fl
- 	if (!type)
- 		return ERR_PTR(-ENODEV);
- 	mnt = vfs_kern_mount(type, flags, name, data);
-+	if (!IS_ERR(mnt) && (type->fs_flags & FS_HAS_SUBTYPE) &&
-+	    !mnt->mnt_sb->s_subtype)
-+		mnt = fs_set_subtype(mnt, fstype);
- 	put_filesystem(type);
- 	return mnt;
- }
-diff -puN include/linux/fs.h~add-filesystem-subtype-support include/linux/fs.h
---- a/include/linux/fs.h~add-filesystem-subtype-support
-+++ a/include/linux/fs.h
-@@ -92,6 +92,7 @@ extern int dir_notify_enable;
- /* public flags for file_system_type */
- #define FS_REQUIRES_DEV 1 
- #define FS_BINARY_MOUNTDATA 2
-+#define FS_HAS_SUBTYPE 4
- #define FS_REVAL_DOT	16384	/* Check the paths ".", ".." for staleness */
- #define FS_RENAME_DOES_D_MOVE	32768	/* FS will handle d_move()
- 					 * during rename() internally.
-@@ -953,6 +954,12 @@ struct super_block {
- 	/* Granularity of c/m/atime in ns.
- 	   Cannot be worse than a second */
- 	u32		   s_time_gran;
++void de_put(struct proc_dir_entry *de);
 +
-+	/*
-+	 * Filesystem subtype.  If non-empty the filesystem type field
-+	 * in /proc/mounts will be "type.subtype"
-+	 */
-+	char *s_subtype;
- };
- 
- extern struct timespec current_fs_time(struct super_block *sb);
+ #endif /* _LINUX_PROC_FS_H */
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-filesystem-subtype-support.patch
-consolidate-generic_writepages-and-mpage_writepages.patch
+procfs-fix-race-between-proc_readdir-and-remove_proc_entry.patch
