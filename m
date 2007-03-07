@@ -1,50 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - pata_cypress-clean-up-by-using-cable_detect-method.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:39:11 -0800
-Message-ID: <200703072339.l27NdBxg013083@shell0.pdx.osdl.net>
+Subject: - ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:38:45 -0800
+Message-ID: <200703072338.l27Ncjf2013053@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38940 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38942 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964793AbXCGXni (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:43:38 -0500
+	id S965751AbXCGXnj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:43:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_cypress: clean up by using cable_detect method
+     ata_generic: correct the cable type to unknown
 has been removed from the -mm tree.  Its filename was
-     pata_cypress-clean-up-by-using-cable_detect-method.patch
+     ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_cypress: clean up by using cable_detect method
+Subject: ata_generic: correct the cable type to unknown
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cypress.c |    3 ++-
+ drivers/ata/ata_generic.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_cypress.c~pata_cypress-clean-up-by-using-cable_detect-method drivers/ata/pata_cypress.c
---- a/drivers/ata/pata_cypress.c~pata_cypress-clean-up-by-using-cable_detect-method
-+++ a/drivers/ata/pata_cypress.c
-@@ -156,8 +156,9 @@ static struct ata_port_operations cy82c6
+diff -puN drivers/ata/ata_generic.c~ata_generic-remove-lots-of-code-using-the-new-cable_detect drivers/ata/ata_generic.c
+--- a/drivers/ata/ata_generic.c~ata_generic-remove-lots-of-code-using-the-new-cable_detect
++++ a/drivers/ata/ata_generic.c
+@@ -145,8 +145,9 @@ static struct ata_port_operations generi
  
  	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= cy82c693_error_handler,
+-	.error_handler	= generic_error_handler,
 +	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
++	.cable_detect	= ata_cable_unknown,
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -55,6 +55,8 @@ pcmcia-spot-slave-decode-flaws-for-testing.patch
 pata_platform-set-a-cable-type-which-to-set.patch
 pata_qdi-set-cable-type.patch
 pata_sl82c105-missing-methods-cable.patch
+ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
+pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
 pata_cypress-clean-up-by-using-cable_detect-method.patch
 pata_isapnp-set-cable-type.patch
 pata_ixp4xx_cf-set-cable-type.patch
