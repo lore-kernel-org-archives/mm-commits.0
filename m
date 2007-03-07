@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - pata_oldpiix-cable-detect.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:48:29 -0800
-Message-ID: <200703072348.l27NmTqX013420@shell0.pdx.osdl.net>
+Subject: - pata_ns87410-cable-detect-method.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:48:27 -0800
+Message-ID: <200703072348.l27NmR5i013415@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39333 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39330 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751404AbXCGXs6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:48:58 -0500
+	id S1751404AbXCGXsx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:48:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_oldpiix: cable detect
+     pata_ns87410: cable detect method
 has been removed from the -mm tree.  Its filename was
-     pata_oldpiix-cable-detect.patch
+     pata_ns87410-cable-detect-method.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_oldpiix: cable detect
+Subject: pata_ns87410: cable detect method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -29,38 +29,20 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_oldpiix.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/ata/pata_ns87410.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_oldpiix.c~pata_oldpiix-cable-detect drivers/ata/pata_oldpiix.c
---- a/drivers/ata/pata_oldpiix.c~pata_oldpiix-cable-detect
-+++ a/drivers/ata/pata_oldpiix.c
-@@ -25,7 +25,7 @@
- #include <linux/ata.h>
+diff -puN drivers/ata/pata_ns87410.c~pata_ns87410-cable-detect-method drivers/ata/pata_ns87410.c
+--- a/drivers/ata/pata_ns87410.c~pata_ns87410-cable-detect-method
++++ a/drivers/ata/pata_ns87410.c
+@@ -178,6 +178,7 @@ static struct ata_port_operations ns8741
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ns87410_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
  
- #define DRV_NAME	"pata_oldpiix"
--#define DRV_VERSION	"0.5.4"
-+#define DRV_VERSION	"0.5.5"
- 
- /**
-  *	oldpiix_pre_reset		-	probe begin
-@@ -66,7 +66,7 @@ static void oldpiix_pata_error_handler(s
- /**
-  *	oldpiix_set_piomode - Initialize host controller PATA PIO timings
-  *	@ap: Port whose timings we are configuring
-- *	@adev: um
-+ *	@adev: Device whose timings we are configuring
-  *
-  *	Set PIO mode for device, in host controller PCI config space.
-  *
-@@ -256,6 +256,7 @@ static const struct ata_port_operations 
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= oldpiix_pata_error_handler,
- 	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_40wire,
- 
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ns87410_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -70,6 +52,7 @@ expose-set_mode-method-so-it-can-be-wrapped.patch
 pcmcia-spot-slave-decode-flaws-for-testing.patch
 pata_sl82c105-missing-methods-cable.patch
 ata_piix-remove-ugly-layering-violation.patch
+pata_ns87410-cable-detect-method.patch
 pata_oldpiix-cable-detect.patch
 pata_opti-cable-detect.patch
 pata_pcmcia-cable-detect.patch
