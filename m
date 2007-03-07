@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - pata_artop-cable-detect-methods.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:41:42 -0800
-Message-ID: <200703072341.l27NfgsS013171@shell0.pdx.osdl.net>
+Subject: - pata_cs5535-cable-detect.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:41:56 -0800
+Message-ID: <200703072341.l27NfvEw013182@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38759 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38805 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965039AbXCGXmC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:42:02 -0500
+	id S932310AbXCGXmS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:42:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_artop: cable detect methods
+     pata_cs5535: cable detect
 has been removed from the -mm tree.  Its filename was
-     pata_artop-cable-detect-methods.patch
+     pata_cs5535-cable-detect.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_artop: cable detect methods
+Subject: pata_cs5535: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -29,37 +29,32 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_artop.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/ata/pata_cs5535.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_artop.c~pata_artop-cable-detect-methods drivers/ata/pata_artop.c
---- a/drivers/ata/pata_artop.c~pata_artop-cable-detect-methods
-+++ a/drivers/ata/pata_artop.c
-@@ -226,7 +226,7 @@ static void artop6260_set_piomode(struct
- /**
-  *	artop6210_set_dmamode - Initialize host controller PATA PIO timings
-  *	@ap: Port whose timings we are configuring
-- *	@adev: um
-+ *	@adev: Device whose timings we are configuring
-  *
-  *	Set DMA mode for device, in host controller PCI config space.
-  *
-@@ -334,6 +334,7 @@ static const struct ata_port_operations 
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= artop6210_error_handler,
- 	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_40wire,
+diff -puN drivers/ata/pata_cs5535.c~pata_cs5535-cable-detect drivers/ata/pata_cs5535.c
+--- a/drivers/ata/pata_cs5535.c~pata_cs5535-cable-detect
++++ a/drivers/ata/pata_cs5535.c
+@@ -39,7 +39,7 @@
+ #include <asm/msr.h>
  
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
-@@ -367,6 +368,7 @@ static const struct ata_port_operations 
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= artop6260_error_handler,
- 	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= artop6260_cable_detect,
+ #define DRV_NAME	"cs5535"
+-#define DRV_VERSION	"0.2.11"
++#define DRV_VERSION	"0.2.12"
  
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
+ /*
+  *	The Geode (Aka Athlon GX now) uses an internal MSR based
+@@ -206,8 +206,9 @@ static struct ata_port_operations cs5535
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= cs5535_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= cs5535_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -75,7 +70,6 @@ pata_legacy-fix-missing-methods-and-add-cable-types.patch
 pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
 pata_winbond-set-cable-type.patch
 ata_piix-remove-ugly-layering-violation.patch
-pata_artop-cable-detect-methods.patch
 pata_cs5535-cable-detect.patch
 pata_hpt3x2n-cable-detect-handling-needs-work.patch
 pata_it821x-clean-up-by-using-cable-methods.patch
