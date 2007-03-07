@@ -1,87 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - wistron-button-support-for-travelmate-610.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 00:40:39 -0800
-Message-ID: <200703070842.l278gMWm024341@shell0.pdx.osdl.net>
+Subject: + b44-warning-fixes.patch added to -mm tree
+Date: Wed, 07 Mar 2007 01:21:17 -0800
+Message-ID: <200703070922.l279MwKK025138@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57077 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58282 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161326AbXCGImy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 03:42:54 -0500
+	id S1422651AbXCGJXg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 04:23:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.piel@tremplin-utc.net, dtor@mail.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com
 
 
 The patch titled
-     Wistron button support for TravelMate 610
-has been removed from the -mm tree.  Its filename was
-     wistron-button-support-for-travelmate-610.patch
+     b44 warning fixes
+has been added to the -mm tree.  Its filename is
+     b44-warning-fixes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Wistron button support for TravelMate 610
-From: Eric Piel <eric.piel@tremplin-utc.net>
+Subject: b44 warning fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-TM610 support for wistron_btns.
+drivers/net/b44.c: In function 'b44_tx':
+drivers/net/b44.c:622: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
+drivers/net/b44.c: In function 'b44_alloc_rx_skb':
+drivers/net/b44.c:669: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
+drivers/net/b44.c: In function 'b44_start_xmit':
+drivers/net/b44.c:991: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
+drivers/net/b44.c:1003: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
+drivers/net/b44.c: In function 'b44_free_rings':
+drivers/net/b44.c:1104: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
+drivers/net/b44.c:1118: warning: passing argument 1 of 'dma_unmap_single' from incompatible pointer type
 
-Adds support for Acer TravelMate 610 to wistron_btns, coming from info of
-acer_hk.  All special keys are detected, but the 2 leds are not handled
-(yet).
+That's going to crash hard if anyone uses that first arg.
 
-Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/wistron_btns.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ drivers/net/b44.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN drivers/input/misc/wistron_btns.c~wistron-button-support-for-travelmate-610 drivers/input/misc/wistron_btns.c
---- a/drivers/input/misc/wistron_btns.c~wistron-button-support-for-travelmate-610
-+++ a/drivers/input/misc/wistron_btns.c
-@@ -324,6 +324,21 @@ static struct key_entry keymap_acer_trav
- 	{ KE_END, 0 }
- };
+diff -puN drivers/net/b44.c~b44-warning-fixes drivers/net/b44.c
+--- a/drivers/net/b44.c~b44-warning-fixes
++++ a/drivers/net/b44.c
+@@ -616,7 +616,7 @@ static void b44_tx(struct b44 *bp)
  
-+/* Wifi subsystem only activate the led. Therefore we need to pass
-+ * wifi event as a normal key, then userspace can really change the wifi state.
-+ * TODO we need to export led state to userspace (wifi and mail) */
-+static struct key_entry keymap_acer_travelmate_610[] = {
-+	{ KE_KEY, 0x01, KEY_HELP },
-+	{ KE_KEY, 0x02, KEY_CONFIG },
-+	{ KE_KEY, 0x11, KEY_PROG1 },
-+	{ KE_KEY, 0x12, KEY_PROG2 },
-+	{ KE_KEY, 0x13, KEY_PROG3 },
-+	{ KE_KEY, 0x14, KEY_MAIL },
-+	{ KE_KEY, 0x15, KEY_WWW },
-+	{ KE_KEY, 0x40, KEY_XFER }, /* Wifi */
-+	{ KE_END, 0 }
-+};
-+
- static struct key_entry keymap_aopen_1559as[] = {
- 	{ KE_KEY,  0x01, KEY_HELP },
- 	{ KE_KEY,  0x06, KEY_PROG3 },
-@@ -408,6 +423,15 @@ static struct dmi_system_id dmi_ids[] __
- 	},
- 	{
- 		.callback = dmi_matched,
-+		.ident = "Acer TravelMate 610",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ACER"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 610"),
-+		},
-+		.driver_data = keymap_acer_travelmate_610
-+	},
-+	{
-+		.callback = dmi_matched,
- 		.ident = "AOpen 1559AS",
- 		.matches = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "E2U"),
+ 		BUG_ON(skb == NULL);
+ 
+-		dma_unmap_single(&bp->sdev->dev,
++		dma_unmap_single(bp->sdev->dev,
+ 				 rp->mapping,
+ 				 skb->len,
+ 				 DMA_TO_DEVICE);
+@@ -666,7 +666,8 @@ static int b44_alloc_rx_skb(struct b44 *
+ 		mapping + RX_PKT_BUF_SZ > DMA_30BIT_MASK) {
+ 		/* Sigh... */
+ 		if (!dma_mapping_error(mapping))
+-			dma_unmap_single(&bp->sdev->dev, mapping, RX_PKT_BUF_SZ,DMA_FROM_DEVICE);
++			dma_unmap_single(bp->sdev->dev, mapping,
++					RX_PKT_BUF_SZ, DMA_FROM_DEVICE);
+ 		dev_kfree_skb_any(skb);
+ 		skb = __dev_alloc_skb(RX_PKT_BUF_SZ,GFP_DMA);
+ 		if (skb == NULL)
+@@ -988,7 +989,8 @@ static int b44_start_xmit(struct sk_buff
+ 	if (dma_mapping_error(mapping) || mapping + len > DMA_30BIT_MASK) {
+ 		/* Chip can't handle DMA to/from >1GB, use bounce buffer */
+ 		if (!dma_mapping_error(mapping))
+-			dma_unmap_single(&bp->sdev->dev, mapping, len, DMA_TO_DEVICE);
++			dma_unmap_single(bp->sdev->dev, mapping, len,
++					DMA_TO_DEVICE);
+ 
+ 		bounce_skb = __dev_alloc_skb(TX_PKT_BUF_SZ,
+ 					     GFP_ATOMIC|GFP_DMA);
+@@ -999,7 +1001,7 @@ static int b44_start_xmit(struct sk_buff
+ 					 len, DMA_TO_DEVICE);
+ 		if (dma_mapping_error(mapping) || mapping + len > DMA_30BIT_MASK) {
+ 			if (!dma_mapping_error(mapping))
+-				dma_unmap_single(&bp->sdev->dev, mapping,
++				dma_unmap_single(bp->sdev->dev, mapping,
+ 					 len, DMA_TO_DEVICE);
+ 			dev_kfree_skb_any(bounce_skb);
+ 			goto err_out;
+@@ -1098,10 +1100,8 @@ static void b44_free_rings(struct b44 *b
+ 
+ 		if (rp->skb == NULL)
+ 			continue;
+-		dma_unmap_single(&bp->sdev->dev,
+-				 rp->mapping,
+-				 RX_PKT_BUF_SZ,
+-				 DMA_FROM_DEVICE);
++		dma_unmap_single(bp->sdev->dev, rp->mapping, RX_PKT_BUF_SZ,
++					DMA_FROM_DEVICE);
+ 		dev_kfree_skb_any(rp->skb);
+ 		rp->skb = NULL;
+ 	}
+@@ -1112,10 +1112,8 @@ static void b44_free_rings(struct b44 *b
+ 
+ 		if (rp->skb == NULL)
+ 			continue;
+-		dma_unmap_single(&bp->sdev->dev,
+-				 rp->mapping,
+-				 rp->skb->len,
+-				 DMA_TO_DEVICE);
++		dma_unmap_single(bp->sdev->dev, rp->mapping, rp->skb->len,
++					DMA_TO_DEVICE);
+ 		dev_kfree_skb_any(rp->skb);
+ 		rp->skb = NULL;
+ 	}
 _
 
-Patches currently in -mm which might be from eric.piel@tremplin-utc.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+sony-laptop-fix-uninitialised-variable.patch
+git-alsa-oops-fix.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
 git-input.patch
-wistron-button-support-for-travelmate-610.patch
+git-kvm.patch
+git-libata-all.patch
+git-md-accel-fixup.patch
+git-ubi.patch
+git-netdev-all.patch
+git-netdev-all-ipw2200-fix.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-unionfs.patch
+usbatm-create-sysfs-link-device-from-atm-class-device.patch
+git-wireless-fixup.patch
+b44-warning-fixes.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+driver_bfin_serial_core-update.patch
+blackfin-blackfin-i2c-driver-fix.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+utrace-prep.patch
+utrace-prep-2.patch
+revert-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
