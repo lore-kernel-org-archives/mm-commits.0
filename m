@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + e1000-fix-stop-raw-interrupts-disabled-nag-from-rt.patch added to -mm tree
-Date: Wed, 07 Mar 2007 14:04:33 -0800
-Message-ID: <200703072204.l27M4X70010452@shell0.pdx.osdl.net>
+Subject: + serial-suppress-rts-assertion-with-disabled-crtscts.patch added to -mm tree
+Date: Wed, 07 Mar 2007 14:07:45 -0800
+Message-ID: <200703072207.l27M7j9T010550@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33270 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33528 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992452AbXCGWEv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 17:04:51 -0500
+	id S2992465AbXCGWIH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 17:08:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhuth@mvista.com, auke-jan.h.kok@intel.com
+Cc: kebkal@gmail.com, alan@lxorguk.ukuu.org.uk, lesha@evologics.de, rmk@arm.linux.org.uk
 
 
 The patch titled
-     e1000: FIX: Stop raw interrupts disabled nag from RT
+     serial: suppress RTS assertion with disabled CRTSCTS
 has been added to the -mm tree.  Its filename is
-     e1000-fix-stop-raw-interrupts-disabled-nag-from-rt.patch
+     serial-suppress-rts-assertion-with-disabled-crtscts.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,110 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: e1000: FIX: Stop raw interrupts disabled nag from RT
-From: Mark Huth <mhuth@mvista.com>
+Subject: serial: suppress RTS assertion with disabled CRTSCTS
+From: "Oleksiy Kebkal" <kebkal@gmail.com>
 
-Current e1000_xmit_frame spews raw interrupt disabled nag messages when used
-with RT kernel patches.  This patch uses spin_trylock_irqsave, which allows RT
-patches to properly manage the irq semantics.
+This patch leaves RTS alone when CRTSCTS is not set.
 
-Signed-off-by: Mark Huth <mhuth@mvista.com>
-Signed-off-by: Auke Kok <auke-jan.h.kok@intel.com>
+Current behaviour doesn't give any possibility to
+
+1.  preconfigure port setting, because open operation implies RTS
+   assertion and initial serial port setting may be wrong.
+
+2.  realize peculiar serial flow control required by some hardware
+   especially in embedded devices.
+
+Signed-off-by: Oleksiy Kebkal <lesha@evologics.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000_main.c |    5 +----
- 1 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/serial/serial_core.c |   42 ++++++++++++++++++++++-----------
+ 1 files changed, 28 insertions(+), 14 deletions(-)
 
-diff -puN drivers/net/e1000/e1000_main.c~e1000-fix-stop-raw-interrupts-disabled-nag-from-rt drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~e1000-fix-stop-raw-interrupts-disabled-nag-from-rt
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -3378,12 +3378,9 @@ e1000_xmit_frame(struct sk_buff *skb, st
- 	    (adapter->hw.mac_type == e1000_82573))
- 		e1000_transfer_dhcp_info(adapter, skb);
+diff -puN drivers/serial/serial_core.c~serial-suppress-rts-assertion-with-disabled-crtscts drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-suppress-rts-assertion-with-disabled-crtscts
++++ a/drivers/serial/serial_core.c
+@@ -185,11 +185,15 @@ static int uart_startup(struct uart_stat
+ 			uart_change_speed(state, NULL);
  
--	local_irq_save(flags);
--	if (!spin_trylock(&tx_ring->tx_lock)) {
-+	if (!spin_trylock_irqsave(&tx_ring->tx_lock, flags))
- 		/* Collision - tell upper layer to requeue */
--		local_irq_restore(flags);
- 		return NETDEV_TX_LOCKED;
--	}
+ 			/*
+-			 * Setup the RTS and DTR signals once the
+-			 * port is open and ready to respond.
++			 * Setup the RTS (in the case of hardware flow control)
++			 * and DTR signals once the port is open and ready to
++			 * respond.
+ 			 */
+-			if (info->tty->termios->c_cflag & CBAUD)
+-				uart_set_mctrl(port, TIOCM_RTS | TIOCM_DTR);
++			if (info->tty->termios->c_cflag & CBAUD) {
++				uart_set_mctrl(port, TIOCM_DTR);
++				if (info->flags & UIF_CTS_FLOW)
++					uart_set_mctrl(port, TIOCM_RTS);
++			}
+ 		}
  
- 	/* need: count + 2 desc gap to keep tail from touching
- 	 * head, otherwise try next time */
+ 		if (info->flags & UIF_CTS_FLOW) {
+@@ -230,10 +234,14 @@ static void uart_shutdown(struct uart_st
+ 		info->flags &= ~UIF_INITIALIZED;
+ 
+ 		/*
+-		 * Turn off DTR and RTS early.
++		 * Turn off DTR and RTS (in the case of hardware flow control)
++		 * early.
+ 		 */
+-		if (!info->tty || (info->tty->termios->c_cflag & HUPCL))
+-			uart_clear_mctrl(port, TIOCM_DTR | TIOCM_RTS);
++		if (!info->tty || (info->tty->termios->c_cflag & HUPCL)) {
++			uart_clear_mctrl(port, TIOCM_DTR);
++			if (info->flags & UIF_CTS_FLOW)
++				uart_clear_mctrl(port, TIOCM_RTS);
++               }
+ 
+ 		/*
+ 		 * clear delta_msr_wait queue to avoid mem leaks: we may free
+@@ -1164,14 +1172,16 @@ static void uart_set_termios(struct tty_
+ 	uart_change_speed(state, old_termios);
+ 
+ 	/* Handle transition to B0 status */
+-	if ((old_termios->c_cflag & CBAUD) && !(cflag & CBAUD))
+-		uart_clear_mctrl(state->port, TIOCM_RTS | TIOCM_DTR);
++	if ((old_termios->c_cflag & CBAUD) && !(cflag & CBAUD)) {
++		uart_clear_mctrl(state->port, TIOCM_DTR);
++		if (state->info->flags & UIF_CTS_FLOW)
++			uart_clear_mctrl(state->port, TIOCM_RTS);
++       }
+ 
+ 	/* Handle transition away from B0 status */
+ 	if (!(old_termios->c_cflag & CBAUD) && (cflag & CBAUD)) {
+ 		unsigned int mask = TIOCM_DTR;
+-		if (!(cflag & CRTSCTS) ||
+-		    !test_bit(TTY_THROTTLED, &tty->flags))
++		if (!test_bit(TTY_THROTTLED, &tty->flags))
+ 			mask |= TIOCM_RTS;
+ 		uart_set_mctrl(state->port, mask);
+ 	}
+@@ -1415,10 +1425,14 @@ static void uart_update_termios(struct u
+ 		uart_change_speed(state, NULL);
+ 
+ 		/*
+-		 * And finally enable the RTS and DTR signals.
++		 * And finally enable the RTS (in the of case hardware flow
++		 * control) and DTR signals.
+ 		 */
+-		if (tty->termios->c_cflag & CBAUD)
+-			uart_set_mctrl(port, TIOCM_DTR | TIOCM_RTS);
++		if (tty->termios->c_cflag & CBAUD) {
++			uart_set_mctrl(port, TIOCM_DTR);
++			if (state->info->flags & UIF_CTS_FLOW)
++				uart_set_mctrl(port, TIOCM_RTS);
++		}
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from mhuth@mvista.com are
+Patches currently in -mm which might be from kebkal@gmail.com are
 
-e1000-fix-stop-raw-interrupts-disabled-nag-from-rt.patch
+serial-suppress-rts-assertion-with-disabled-crtscts.patch
