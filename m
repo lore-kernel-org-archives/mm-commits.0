@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + connector-bugfix-for-cn_call_callback.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:39:32 -0800
-Message-ID: <200703072139.l27LdWh3009851@shell0.pdx.osdl.net>
+Subject: + sched-remove-noninteractive-flag.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:52:22 -0800
+Message-ID: <200703072152.l27LqMd2010158@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60160 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60716 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965676AbXCGVmp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:42:45 -0500
+	id S2992645AbXCGVwl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:52:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: philipp.reisner@linbit.com, johnpol@2ka.mipt.ru, lars.ellenberg@linbit.com, stable@kernel.org
+Cc: kernel@kolivas.org, mingo@elte.hu, nickpiggin@yahoo.com.au, suresh.b.siddha@intel.com
 
 
 The patch titled
-     connector: bugfix for cn_call_callback()
+     sched: remove noninteractive flag
 has been added to the -mm tree.  Its filename is
-     connector-bugfix-for-cn_call_callback.patch
+     sched-remove-noninteractive-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,75 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: connector: bugfix for cn_call_callback()
-From: Philipp Reisner <philipp.reisner@linbit.com>
+Subject: sched: remove noninteractive flag
+From: Con Kolivas <kernel@kolivas.org>
 
-When one stresses the connector code, with sending many messages from
-userspace to kernel, one could get in the "unlikely()" part in
-cn_call_callback().
+Remove the TASK_NONINTERACTIVE flag as it will no longer be used.
 
-There a new __cbq gets allocated, and a NULL pointer got assigned to the
-callback by dereferencing __cbq.  This is the bug.  The right thing is the
-dereference the original __cbq.  Therefore the bugfix is to use a new
-variable for the newly allocated __cbq.
-
-This is tested, and it fixes the issue.
-
-Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
-Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
-Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: <stable@kernel.org>
+Signed-off-by: Con Kolivas <kernel@kolivas.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/connector/connector.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ fs/pipe.c             |    7 +------
+ include/linux/sched.h |    3 +--
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN drivers/connector/connector.c~connector-bugfix-for-cn_call_callback drivers/connector/connector.c
---- a/drivers/connector/connector.c~connector-bugfix-for-cn_call_callback
-+++ a/drivers/connector/connector.c
-@@ -128,7 +128,7 @@ EXPORT_SYMBOL_GPL(cn_netlink_send);
-  */
- static int cn_call_callback(struct cn_msg *msg, void (*destruct_data)(void *), void *data)
+diff -puN fs/pipe.c~sched-remove-noninteractive-flag fs/pipe.c
+--- a/fs/pipe.c~sched-remove-noninteractive-flag
++++ a/fs/pipe.c
+@@ -41,12 +41,7 @@ void pipe_wait(struct pipe_inode_info *p
  {
--	struct cn_callback_entry *__cbq;
-+	struct cn_callback_entry *__cbq, *__new_cbq;
- 	struct cn_dev *dev = &cdev;
- 	int err = -ENODEV;
+ 	DEFINE_WAIT(wait);
  
-@@ -148,23 +148,23 @@ static int cn_call_callback(struct cn_ms
- 			} else {
- 				struct cn_callback_data *d;
- 				
--				__cbq = kzalloc(sizeof(*__cbq), GFP_ATOMIC);
--				if (__cbq) {
--					d = &__cbq->data;
-+				__new_cbq = kzalloc(sizeof(*__new_cbq), GFP_ATOMIC);
-+				if (__new_cbq) {
-+					d = &__new_cbq->data;
- 					d->callback_priv = msg;
- 					d->callback = __cbq->data.callback;
- 					d->ddata = data;
- 					d->destruct_data = destruct_data;
--					d->free = __cbq;
-+					d->free = __new_cbq;
+-	/*
+-	 * Pipes are system-local resources, so sleeping on them
+-	 * is considered a noninteractive wait:
+-	 */
+-	prepare_to_wait(&pipe->wait, &wait,
+-			TASK_INTERRUPTIBLE | TASK_NONINTERACTIVE);
++	prepare_to_wait(&pipe->wait, &wait, TASK_INTERRUPTIBLE);
+ 	if (pipe->inode)
+ 		mutex_unlock(&pipe->inode->i_mutex);
+ 	schedule();
+diff -puN include/linux/sched.h~sched-remove-noninteractive-flag include/linux/sched.h
+--- a/include/linux/sched.h~sched-remove-noninteractive-flag
++++ a/include/linux/sched.h
+@@ -149,8 +149,7 @@ extern unsigned long weighted_cpuload(co
+ #define EXIT_ZOMBIE		16
+ #define EXIT_DEAD		32
+ /* in tsk->state again */
+-#define TASK_NONINTERACTIVE	64
+-#define TASK_DEAD		128
++#define TASK_DEAD		64
  
--					INIT_WORK(&__cbq->work,
-+					INIT_WORK(&__new_cbq->work,
- 							&cn_queue_wrapper);
- 					
- 					if (queue_work(dev->cbdev->cn_queue,
--						    &__cbq->work))
-+							&__new_cbq->work))
- 						err = 0;
- 					else {
--						kfree(__cbq);
-+						kfree(__new_cbq);
- 						err = -EINVAL;
- 					}
- 				} else
+ #define __set_task_state(tsk, state_value)		\
+ 	do { (tsk)->state = (state_value); } while (0)
 _
 
-Patches currently in -mm which might be from philipp.reisner@linbit.com are
+Patches currently in -mm which might be from kernel@kolivas.org are
 
-connector-bugfix-for-cn_call_callback.patch
+sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
+lists-add-list-splice-tail.patch
+sched-remove-sleepavg-from-proc.patch
+sched-remove-noninteractive-flag.patch
+sched-implement-180-bit-sched-bitmap.patch
+sched-implement-rsdl-cpu-scheduler.patch
+sched-document-rsdl-cpu-scheduler.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+swap-prefetch-avoid-repeating-entry.patch
