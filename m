@@ -1,64 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + rocket-remove-modversions-include.patch added to -mm tree
-Date: Wed, 07 Mar 2007 15:55:15 -0800
-Message-ID: <200703072355.l27NtF4b013583@shell0.pdx.osdl.net>
+Subject: - fix-acpi-documentation-in-kernel-parameterstxt.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:58:44 -0800
+Message-ID: <200703072358.l27Nwi00013652@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39537 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39699 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751004AbXCGXzS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:55:18 -0500
+	id S2992733AbXCGX6s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:58:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+To: bwalle@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rocket: remove modversions include
-has been added to the -mm tree.  Its filename is
-     rocket-remove-modversions-include.patch
+     Fix ACPI documentation in kernel-parameters.txt
+has been removed from the -mm tree.  Its filename was
+     fix-acpi-documentation-in-kernel-parameterstxt.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rocket: remove modversions include
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: Fix ACPI documentation in kernel-parameters.txt
+From: Bernhard Walle <bwalle@suse.de>
 
-It misspelled "MODVERSIONS" preprocessor variable with "CONFIG_MODVERSIONS". 
-Just kill it all.
+Add hint that acpi=off doesn't work on IA64.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |    4 ----
- 1 files changed, 4 deletions(-)
+ Documentation/kernel-parameters.txt |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/rocket.c~rocket-remove-modversions-include drivers/char/rocket.c
---- a/drivers/char/rocket.c~rocket-remove-modversions-include
-+++ a/drivers/char/rocket.c
-@@ -65,10 +65,6 @@
+diff -puN Documentation/kernel-parameters.txt~fix-acpi-documentation-in-kernel-parameterstxt Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~fix-acpi-documentation-in-kernel-parameterstxt
++++ a/Documentation/kernel-parameters.txt
+@@ -125,7 +125,8 @@ and is between 256 and 4096 characters. 
+ 			See header of drivers/scsi/53c7xx.c.
+ 			See also Documentation/scsi/ncr53c7xx.txt.
  
- /****** Kernel includes ******/
- 
--#ifdef MODVERSIONS
--#include <config/modversions.h>
--#endif				
--
- #include <linux/module.h>
- #include <linux/errno.h>
- #include <linux/major.h>
+-	acpi=		[HW,ACPI] Advanced Configuration and Power Interface
++	acpi=		[HW,ACPI,X86-64,i386]
++			Advanced Configuration and Power Interface
+ 			Format: { force | off | ht | strict | noirq }
+ 			force -- enable ACPI if default was off
+ 			off -- disable ACPI if default was on
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-git-avr32.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
+git-acpi.patch
+git-r8169.patch
