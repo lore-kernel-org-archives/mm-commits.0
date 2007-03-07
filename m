@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch added to -mm tree
-Date: Wed, 07 Mar 2007 14:32:29 -0800
-Message-ID: <200703072232.l27MWT56011285@shell0.pdx.osdl.net>
+Subject: + add-an-anonymous-inode-source-tidy.patch added to -mm tree
+Date: Wed, 07 Mar 2007 14:33:32 -0800
+Message-ID: <200703072233.l27MXWPr011308@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34907 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34988 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992476AbXCGWcj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 17:32:39 -0500
+	id S2992476AbXCGWde (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 17:33:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drzeus@drzeus.cx, eric.rannaud@gmail.com
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org
 
 
 The patch titled
-     git-mmc versus uevent-use-add_uevent_var-instead-of-open-coding-it
+     add-an-anonymous-inode-source-tidy
 has been added to the -mm tree.  Its filename is
-     git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+     add-an-anonymous-inode-source-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,119 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mmc versus uevent-use-add_uevent_var-instead-of-open-coding-it
+Subject: add-an-anonymous-inode-source-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Chase the mmc code around the tree.
+- use magic.h
 
-Cc: Pierre Ossman <drzeus@drzeus.cx>
-Cc: Eric Rannaud <eric.rannaud@gmail.com>
+- 80 cols
+
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sysfs.c |   25 ++++++++++---------------
- 1 files changed, 10 insertions(+), 15 deletions(-)
+ fs/anon_inodes.c      |   20 +++-----------------
+ include/linux/magic.h |    1 +
+ 2 files changed, 4 insertions(+), 17 deletions(-)
 
-diff -puN drivers/mmc/core/sysfs.c~git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it drivers/mmc/core/sysfs.c
---- a/drivers/mmc/core/sysfs.c~git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it
-+++ a/drivers/mmc/core/sysfs.c
-@@ -86,31 +86,26 @@ mmc_bus_uevent(struct device *dev, char 
+diff -puN fs/anon_inodes.c~add-an-anonymous-inode-source-tidy fs/anon_inodes.c
+--- a/fs/anon_inodes.c~add-an-anonymous-inode-source-tidy
++++ a/fs/anon_inodes.c
+@@ -9,6 +9,7 @@
+ #include <linux/poll.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
++#include <linux/magic.h>
+ #include <linux/fs.h>
+ #include <linux/mount.h>
+ #include <linux/module.h>
+@@ -17,18 +18,11 @@
+ 
+ #include <asm/uaccess.h>
+ 
+-
+-
+-#define AINOFS_MAGIC 0x09041934
+-
+-
+ static int ainofs_delete_dentry(struct dentry *dentry);
+ static struct inode *aino_getinode(void);
+ static struct inode *aino_mkinode(void);
+ static int ainofs_get_sb(struct file_system_type *fs_type, int flags,
+-			     const char *dev_name, void *data, struct vfsmount *mnt);
+-
+-
++			const char *dev_name, void *data, struct vfsmount *mnt);
+ 
+ static struct vfsmount *aino_mnt __read_mostly;
+ static struct inode *aino_inode;
+@@ -43,7 +37,6 @@ static struct dentry_operations ainofs_d
+ };
+ 
+ 
+-
+ int aino_getfd(int *pfd, struct inode **pinode, struct file **pfile,
+ 	       char const *name, const struct file_operations *fops, void *priv)
  {
- 	struct mmc_card *card = dev_to_mmc_card(dev);
- 	char ccc[13];
--	int i = 0;
-+	int retval = 0, i = 0, length = 0;
- 
--#define add_env(fmt,val)						\
--	({								\
--		int len, ret = -ENOMEM;					\
--		if (i < num_envp) {					\
--			envp[i++] = buf;				\
--			len = snprintf(buf, buf_size, fmt, val) + 1;	\
--			buf_size -= len;				\
--			buf += len;					\
--			if (buf_size >= 0)				\
--				ret = 0;				\
--		}							\
--		ret;							\
--	})
-+#define add_env(fmt,val) do {					\
-+	retval = add_uevent_var(envp, num_envp, &i,		\
-+				buf, buf_size, &length,		\
-+				fmt, val);			\
-+	if (retval)						\
-+		return retval;					\
-+} while (0);
- 
- 	for (i = 0; i < 12; i++)
- 		ccc[i] = card->csd.cmdclass & (1 << i) ? '1' : '0';
- 	ccc[12] = '\0';
- 
--	i = 0;
- 	add_env("MMC_CCC=%s", ccc);
- 	add_env("MMC_MANFID=%06x", card->cid.manfid);
- 	add_env("MMC_NAME=%s", mmc_card_name(card));
- 	add_env("MMC_OEMID=%04x", card->cid.oemid);
-+#undef add_env
-+	envp[i] = NULL;
- 
- 	return 0;
+@@ -113,7 +106,6 @@ eexit_1:
+ 	return error;
  }
+ 
+-
+ static int ainofs_delete_dentry(struct dentry *dentry)
+ {
+ 	/*
+@@ -124,13 +116,11 @@ static int ainofs_delete_dentry(struct d
+ 	return 1;
+ }
+ 
+-
+ static struct inode *aino_getinode(void)
+ {
+ 	return igrab(aino_inode);
+ }
+ 
+-
+ /*
+  * A single inode exist for all aino files. On the contrary of pipes,
+  * aino inodes has no per-instance data associated, so we can avoid
+@@ -163,17 +153,14 @@ eexit_1:
+ 	return ERR_PTR(error);
+ }
+ 
+-
+ static int ainofs_get_sb(struct file_system_type *fs_type, int flags,
+-			     const char *dev_name, void *data, struct vfsmount *mnt)
++			const char *dev_name, void *data, struct vfsmount *mnt)
+ {
+ 	return get_sb_pseudo(fs_type, "aino:", NULL, AINOFS_MAGIC, mnt);
+ }
+ 
+-
+ static int __init aino_init(void)
+ {
+-
+ 	if (register_filesystem(&aino_fs_type))
+ 		goto epanic;
+ 
+@@ -191,7 +178,6 @@ epanic:
+ 	panic("aino_init() failed\n");
+ }
+ 
+-
+ static void __exit aino_exit(void)
+ {
+ 	iput(aino_inode);
+diff -puN include/linux/magic.h~add-an-anonymous-inode-source-tidy include/linux/magic.h
+--- a/include/linux/magic.h~add-an-anonymous-inode-source-tidy
++++ a/include/linux/magic.h
+@@ -39,5 +39,6 @@
+ 
+ #define SMB_SUPER_MAGIC		0x517B
+ #define USBDEVICE_SUPER_MAGIC	0x9fa2
++#define AINOFS_MAGIC		0x09041934
+ 
+ #endif /* __LINUX_MAGIC_H__ */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
