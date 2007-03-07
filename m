@@ -1,56 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - ds1374-check-for-workqueue-creation.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:22:04 -0800
-Message-ID: <200703070422.l274M4eG018961@shell0.pdx.osdl.net>
+Subject: - sdhci-handle-resumed-devices.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:56 -0800
+Message-ID: <200703070421.l274Luuw018951@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47094 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47095 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932372AbXCGEWH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:22:07 -0500
+	id S932767AbXCGEWI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:22:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, mm-commits@vger.kernel.org
+To: lkml@rtr.ca, drzeus@drzeus.cx, mlord@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     DS1374: check for workqueue creation
+     sdhci: handle resumed devices
 has been removed from the -mm tree.  Its filename was
-     ds1374-check-for-workqueue-creation.patch
+     sdhci-handle-resumed-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: DS1374: check for workqueue creation
-From: "Cyrill V. Gorcunov" <gorcunov@gmail.com>
+Subject: sdhci: handle resumed devices
+From: Mark Lord <lkml@rtr.ca>
 
-Check if workqueue creation failed.  Further usage of NULL pointed
-workqueue is not good I guess ;)
+The interrupt is shared with another device, which resumes earlier than the
+sdhci controller, and generates an interrupt.
 
-Signed-off-by: Cyrill V. Gorcunov <gorcunov@gmail.com>
+The sdhci interrupt handler runs, sees 0xffffffff in its own device's
+interrupt status, and tries to handle it..  The reason for the 0xffffffff
+is that the device is still suspended, and *all* regs are reading back
+0xffffffff.
+
+Signed-off-by: Mark Lord <mlord@pobox.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/chips/ds1374.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/mmc/sdhci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/i2c/chips/ds1374.c~ds1374-check-for-workqueue-creation drivers/i2c/chips/ds1374.c
---- a/drivers/i2c/chips/ds1374.c~ds1374-check-for-workqueue-creation
-+++ a/drivers/i2c/chips/ds1374.c
-@@ -207,6 +207,10 @@ static int ds1374_probe(struct i2c_adapt
- 	client->driver = &ds1374_driver;
+diff -puN drivers/mmc/sdhci.c~sdhci-handle-resumed-devices drivers/mmc/sdhci.c
+--- a/drivers/mmc/sdhci.c~sdhci-handle-resumed-devices
++++ a/drivers/mmc/sdhci.c
+@@ -994,7 +994,7 @@ static irqreturn_t sdhci_irq(int irq, vo
  
- 	ds1374_workqueue = create_singlethread_workqueue("ds1374");
-+	if (!ds1374_workqueue) {
-+		kfree(client);
-+		return -ENOMEM;	/* most expected reason */
-+	}
+ 	intmask = readl(host->ioaddr + SDHCI_INT_STATUS);
  
- 	if ((rc = i2c_attach_client(client)) != 0) {
- 		kfree(client);
+-	if (!intmask) {
++	if (!intmask || intmask == 0xffffffff) {
+ 		result = IRQ_NONE;
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from lkml@rtr.ca are
 
-mtd-esb2-check-for-closed-rom-window.patch
-usb-elan-ftdi-check-for-workqueue-creation-v2.patch
+origin.patch
