@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-use-xfs_get_buf_noaddr-for-iclogs.patch added to -mm tree
-Date: Wed, 07 Mar 2007 12:54:14 -0800
-Message-ID: <200703072054.l27KsFDM008389@shell0.pdx.osdl.net>
+Subject: + xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr.patch added to -mm tree
+Date: Wed, 07 Mar 2007 12:54:16 -0800
+Message-ID: <200703072054.l27KsGS0008392@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56632 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56640 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992564AbXCGUyU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 15:54:20 -0500
+	id S2992570AbXCGUyW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 15:54:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hch@lst.de
 
 
 The patch titled
-     xfs: use xfs_get_buf_noaddr for iclogs
+     xfs: stop using kmalloc in xfs_buf_get_noaddr
 has been added to the -mm tree.  Its filename is
-     xfs-use-xfs_get_buf_noaddr-for-iclogs.patch
+     xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,83 +25,138 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xfs: use xfs_get_buf_noaddr for iclogs
+Subject: xfs: stop using kmalloc in xfs_buf_get_noaddr
 From: Christoph Hellwig <hch@lst.de>
 
-Many block drivers (aoe, iscsi) really want refcountable pages in bios, which
-is what almost everyone send down.  XFS unfortunately has a few places where
-it sends down buffers that may come from kmalloc, which breaks them.  The
-patches in this series fix this issue up.
+Currently xfs_buf_get_noaddr allocates memory using kmem_alloc which can end
+up either in kmalloc or vmalloc and assigns it to the buffer.  This patch
+changes it to allocate individual pages and if there is more then one maps it
+into kernel virtual space using vmap.
 
-This patch:
-
-Currently xlog_alloc allocates memory for the iclogs first, then allocates a
-buffer using xfs_buf_get_empty and finally assigns the memory to the buffer. 
-We don't really want to do this, but rather allocate a buffer with memory
-attached to it using xfs_buf_get_noaddr.  There's a subtile change because
-xfs_buf_get_empty returns the buffer locked, but xfs_buf_get_noaddr returns it
-unlocked.  From my auditing and testing nothing in the log I/O code cares
-about this distincition, but I'd be happy if someone could try to prove this
-independently.
+This means the minimum buffer allocation is PAGE_SIZE now.  For two of the
+three caller (log buffers, log recovery) that is perfectly fine, because they
+always allocate buffers that are a power of two of the page size anyway.  For
+xfs_zero_remaining_bytes the minimum allocation goes up from blocksize to
+pagesize and thus there is a potential waste of memory for blocksize <
+pagesize allocations, which is unfortunate but not directly solveable when
+block drivers expect reference countable pages.  To fix this waste
+xfs_zero_remaining_bytes could be rewritten to zero more than a single block
+at a time, which sounds like a good idea in general.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_log.c |   18 ++++++++----------
- 1 files changed, 8 insertions(+), 10 deletions(-)
+ fs/xfs/linux-2.6/xfs_buf.c |   51 +++++++++++++++--------------------
+ fs/xfs/linux-2.6/xfs_buf.h |    2 -
+ 2 files changed, 23 insertions(+), 30 deletions(-)
 
-diff -puN fs/xfs/xfs_log.c~xfs-use-xfs_get_buf_noaddr-for-iclogs fs/xfs/xfs_log.c
---- a/fs/xfs/xfs_log.c~xfs-use-xfs_get_buf_noaddr-for-iclogs
-+++ a/fs/xfs/xfs_log.c
-@@ -1199,11 +1199,16 @@ xlog_alloc_log(xfs_mount_t	*mp,
- 		*iclogp = (xlog_in_core_t *)
- 			  kmem_zalloc(sizeof(xlog_in_core_t), KM_SLEEP);
- 		iclog = *iclogp;
--		iclog->hic_data = (xlog_in_core_2_t *)
--			  kmem_zalloc(iclogsize, KM_SLEEP | KM_LARGE);
--
- 		iclog->ic_prev = prev_iclog;
- 		prev_iclog = iclog;
-+
-+		bp = xfs_buf_get_noaddr(log->l_iclog_size, mp->m_logdev_targp);
-+		XFS_BUF_SET_IODONE_FUNC(bp, xlog_iodone);
-+		XFS_BUF_SET_BDSTRAT_FUNC(bp, xlog_bdstrat_cb);
-+		XFS_BUF_SET_FSPRIVATE2(bp, (unsigned long)1);
-+		iclog->ic_bp = bp;
-+		iclog->hic_data = bp->b_addr;
-+
- 		log->l_iclog_bak[i] = (xfs_caddr_t)&(iclog->ic_header);
+diff -puN fs/xfs/linux-2.6/xfs_buf.c~xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr fs/xfs/linux-2.6/xfs_buf.c
+--- a/fs/xfs/linux-2.6/xfs_buf.c~xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr
++++ a/fs/xfs/linux-2.6/xfs_buf.c
+@@ -314,7 +314,7 @@ xfs_buf_free(
  
- 		head = &iclog->ic_header;
-@@ -1216,11 +1221,6 @@ xlog_alloc_log(xfs_mount_t	*mp,
- 		INT_SET(head->h_fmt, ARCH_CONVERT, XLOG_FMT);
- 		memcpy(&head->h_fs_uuid, &mp->m_sb.sb_uuid, sizeof(uuid_t));
+ 	ASSERT(list_empty(&bp->b_hash_list));
  
--		bp = xfs_buf_get_empty(log->l_iclog_size, mp->m_logdev_targp);
--		XFS_BUF_SET_IODONE_FUNC(bp, xlog_iodone);
--		XFS_BUF_SET_BDSTRAT_FUNC(bp, xlog_bdstrat_cb);
--		XFS_BUF_SET_FSPRIVATE2(bp, (unsigned long)1);
--		iclog->ic_bp = bp;
+-	if (bp->b_flags & _XBF_PAGE_CACHE) {
++	if (bp->b_flags & (_XBF_PAGE_CACHE|_XBF_PAGES)) {
+ 		uint		i;
  
- 		iclog->ic_size = XFS_BUF_SIZE(bp) - log->l_iclog_hsize;
- 		iclog->ic_state = XLOG_STATE_ACTIVE;
-@@ -1229,7 +1229,6 @@ xlog_alloc_log(xfs_mount_t	*mp,
- 		iclog->ic_datap = (char *)iclog->hic_data + log->l_iclog_hsize;
+ 		if ((bp->b_flags & XBF_MAPPED) && (bp->b_page_count > 1))
+@@ -323,18 +323,11 @@ xfs_buf_free(
+ 		for (i = 0; i < bp->b_page_count; i++) {
+ 			struct page	*page = bp->b_pages[i];
  
- 		ASSERT(XFS_BUF_ISBUSY(iclog->ic_bp));
--		ASSERT(XFS_BUF_VALUSEMA(iclog->ic_bp) <= 0);
- 		sv_init(&iclog->ic_forcesema, SV_DEFAULT, "iclog-force");
- 		sv_init(&iclog->ic_writesema, SV_DEFAULT, "iclog-write");
- 
-@@ -1528,7 +1527,6 @@ xlog_dealloc_log(xlog_t *log)
+-			ASSERT(!PagePrivate(page));
++			if (bp->b_flags & _XBF_PAGE_CACHE)
++				ASSERT(!PagePrivate(page));
+ 			page_cache_release(page);
  		}
- #endif
- 		next_iclog = iclog->ic_next;
--		kmem_free(iclog->hic_data, log->l_iclog_size);
- 		kmem_free(iclog, sizeof(xlog_in_core_t));
- 		iclog = next_iclog;
+ 		_xfs_buf_free_pages(bp);
+-	} else if (bp->b_flags & _XBF_KMEM_ALLOC) {
+-		 /*
+-		  * XXX(hch): bp->b_count_desired might be incorrect (see
+-		  * xfs_buf_associate_memory for details), but fortunately
+-		  * the Linux version of kmem_free ignores the len argument..
+-		  */
+-		kmem_free(bp->b_addr, bp->b_count_desired);
+-		_xfs_buf_free_pages(bp);
  	}
+ 
+ 	xfs_buf_deallocate(bp);
+@@ -764,41 +757,41 @@ xfs_buf_get_noaddr(
+ 	size_t			len,
+ 	xfs_buftarg_t		*target)
+ {
+-	size_t			malloc_len = len;
++	unsigned long		page_count = PAGE_ALIGN(len) >> PAGE_SHIFT;
++	int			error, i;
+ 	xfs_buf_t		*bp;
+-	void			*data;
+-	int			error;
+ 
+ 	bp = xfs_buf_allocate(0);
+ 	if (unlikely(bp == NULL))
+ 		goto fail;
+ 	_xfs_buf_initialize(bp, target, 0, len, 0);
+ 
+- try_again:
+-	data = kmem_alloc(malloc_len, KM_SLEEP | KM_MAYFAIL | KM_LARGE);
+-	if (unlikely(data == NULL))
++	error = _xfs_buf_get_pages(bp, page_count, 0);
++	if (error)
+ 		goto fail_free_buf;
+ 
+-	/* check whether alignment matches.. */
+-	if ((__psunsigned_t)data !=
+-	    ((__psunsigned_t)data & ~target->bt_smask)) {
+-		/* .. else double the size and try again */
+-		kmem_free(data, malloc_len);
+-		malloc_len <<= 1;
+-		goto try_again;
+-	}
+-
+-	error = xfs_buf_associate_memory(bp, data, len);
+-	if (error)
++	for (i = 0; i < page_count; i++) {
++		bp->b_pages[i] = alloc_page(GFP_KERNEL);
++		if (!bp->b_pages[i])
++			goto fail_free_mem;
++	}
++	bp->b_flags |= _XBF_PAGES;
++
++	error = _xfs_buf_map_pages(bp, XBF_MAPPED);
++	if (unlikely(error)) {
++		printk(KERN_WARNING "%s: failed to map pages\n",
++				__FUNCTION__);
+ 		goto fail_free_mem;
+-	bp->b_flags |= _XBF_KMEM_ALLOC;
++	}
+ 
+ 	xfs_buf_unlock(bp);
+ 
+ 	XB_TRACE(bp, "no_daddr", data);
+ 	return bp;
++
+  fail_free_mem:
+-	kmem_free(data, malloc_len);
++ 	for ( ; i >= 0; i++)
++		__free_page(bp->b_pages[i]);
+  fail_free_buf:
+ 	xfs_buf_free(bp);
+  fail:
+diff -puN fs/xfs/linux-2.6/xfs_buf.h~xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr fs/xfs/linux-2.6/xfs_buf.h
+--- a/fs/xfs/linux-2.6/xfs_buf.h~xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr
++++ a/fs/xfs/linux-2.6/xfs_buf.h
+@@ -63,7 +63,7 @@ typedef enum {
+ 
+ 	/* flags used only internally */
+ 	_XBF_PAGE_CACHE = (1 << 17),/* backed by pagecache		   */
+-	_XBF_KMEM_ALLOC = (1 << 18),/* backed by kmem_alloc()		   */
++	_XBF_PAGES = (1 << 18),	    /* backed by refcounted pages	   */
+ 	_XBF_RUN_QUEUES = (1 << 19),/* run block device task queue	   */
+ 	_XBF_DELWRI_Q = (1 << 21),   /* buffer on delwri queue		   */
+ } xfs_buf_flags_t;
 _
 
 Patches currently in -mm which might be from hch@lst.de are
