@@ -1,107 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - pata_efar-switch-to-cable_detect-method.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:46:26 -0800
-Message-ID: <200703072346.l27NkQZc013339@shell0.pdx.osdl.net>
+Subject: - pata_serverworks-cable-detect-and-comment-fix.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:46:45 -0800
+Message-ID: <200703072346.l27NkjDJ013363@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39143 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39174 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945912AbXCGXqw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:46:52 -0500
+	id S1945920AbXCGXrH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:47:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_efar: switch to cable_detect method
+     pata_serverworks: cable detect and comment fix
 has been removed from the -mm tree.  Its filename was
-     pata_efar-switch-to-cable_detect-method.patch
+     pata_serverworks-cable-detect-and-comment-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_efar: switch to cable_detect method
+Subject: pata_serverworks: cable detect and comment fix
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Unfortunately the device differs also in the higher speeds mode setup so we
-can't merge it into ata_piix even though its a sort of clone.
+- Switch to cable_detect method
+- Correct name of driver in initial comments
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_efar.c |   32 ++++++++++++++++++++++----------
- 1 files changed, 22 insertions(+), 10 deletions(-)
+ drivers/ata/pata_serverworks.c |   20 ++++++++------------
+ 1 files changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN drivers/ata/pata_efar.c~pata_efar-switch-to-cable_detect-method drivers/ata/pata_efar.c
---- a/drivers/ata/pata_efar.c~pata_efar-switch-to-cable_detect-method
-+++ a/drivers/ata/pata_efar.c
-@@ -22,10 +22,10 @@
- #include <linux/ata.h>
- 
- #define DRV_NAME	"pata_efar"
--#define DRV_VERSION	"0.4.3"
-+#define DRV_VERSION	"0.4.4"
- 
- /**
-- *	efar_pre_reset	-	check for 40/80 pin
-+ *	efar_pre_reset	-	Enable bits
-  *	@ap: Port
+diff -puN drivers/ata/pata_serverworks.c~pata_serverworks-cable-detect-and-comment-fix drivers/ata/pata_serverworks.c
+--- a/drivers/ata/pata_serverworks.c~pata_serverworks-cable-detect-and-comment-fix
++++ a/drivers/ata/pata_serverworks.c
+@@ -1,5 +1,5 @@
+ /*
+- * ata-serverworks.c 	- Serverworks PATA for new ATA layer
++ * pata_serverworks.c 	- Serverworks PATA for new ATA layer
+  *			  (C) 2005 Red Hat Inc
+  *			  Alan Cox <alan@redhat.com>
   *
-  *	Perform cable detection for the EFAR ATA interface. This is
-@@ -40,16 +40,8 @@ static int efar_pre_reset(struct ata_por
- 	};
- 
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--	u8 tmp;
--
- 	if (!pci_test_config_bits(pdev, &efar_enable_bits[ap->port_no]))
- 		return -ENOENT;
--
--	pci_read_config_byte(pdev, 0x47, &tmp);
--	if (tmp & (2 >> ap->port_no))
--		ap->cbl = ATA_CBL_PATA40;
--	else
--		ap->cbl = ATA_CBL_PATA80;
- 	return ata_std_prereset(ap);
- }
- 
-@@ -67,6 +59,25 @@ static void efar_error_handler(struct at
- }
+@@ -137,14 +137,14 @@ static struct sv_cable_table cable_detec
+ };
  
  /**
-+ *	efar_cable_detect	-	check for 40/80 pin
-+ *	@ap: Port
-+ *
-+ *	Perform cable detection for the EFAR ATA interface. This is
-+ *	different to the PIIX arrangement
-+ */
-+
-+static int efar_cable_detect(struct ata_port *ap)
-+{
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+	u8 tmp;
-+
-+	pci_read_config_byte(pdev, 0x47, &tmp);
-+	if (tmp & (2 >> ap->port_no))
-+		return ATA_CBL_PATA40;
-+	return ATA_CBL_PATA80;
-+}
-+
-+/**
-  *	efar_set_piomode - Initialize host controller PATA PIO timings
-  *	@ap: Port whose timings we are configuring
-  *	@adev: um
-@@ -256,6 +267,7 @@ static const struct ata_port_operations 
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= efar_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= efar_cable_detect,
+- *	serverworks_pre_reset		-	cable detection
++ *	serverworks_cable_detect	-	cable detection
+  *	@ap: ATA port
+  *
+  *	Perform cable detection according to the device and subvendor
+  *	identifications
+  */
  
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
+-static int serverworks_pre_reset(struct ata_port *ap) {
++static int serverworks_cable_detect(struct ata_port *ap) {
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	struct sv_cable_table *cb = cable_detect;
+ 
+@@ -152,8 +152,7 @@ static int serverworks_pre_reset(struct 
+ 		if (cb->device == pdev->device &&
+ 		    (cb->subvendor == pdev->subsystem_vendor ||
+ 		      cb->subvendor == PCI_ANY_ID)) {
+-			ap->cbl = cb->cable_detect(ap);
+-			return ata_std_prereset(ap);
++			return cb->cable_detect(ap);
+ 		}
+ 		cb++;
+ 	}
+@@ -162,11 +161,6 @@ static int serverworks_pre_reset(struct 
+ 	return -1;	/* kill compiler warning */
+ }
+ 
+-static void serverworks_error_handler(struct ata_port *ap)
+-{
+-	return ata_bmdma_drive_eh(ap, serverworks_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+ /**
+  *	serverworks_is_csb	-	Check for CSB or OSB
+  *	@pdev: PCI device to check
+@@ -339,8 +333,9 @@ static struct ata_port_operations server
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= serverworks_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= serverworks_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -374,8 +369,9 @@ static struct ata_port_operations server
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= serverworks_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= serverworks_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -125,9 +129,6 @@ pata_opti-cable-detect.patch
 pata_pcmcia-cable-detect.patch
 pata_triflex-cable-detect.patch
 pata_cmd640-multiple-updates.patch
-pata_efar-switch-to-cable_detect-method.patch
-pata_it8213-cable-detect.patch
-pata_marvell-cable-and-reset-fixes.patch
 pata_serverworks-cable-detect-and-comment-fix.patch
 pata_sis-clean-up-using-cable_detect-methods.patch
 pata_via-use-cable_detect-method.patch
