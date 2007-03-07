@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_it821x-clean-up-by-using-cable-methods.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:22 -0800
-Message-ID: <200703072108.l27L8MTf009044@shell0.pdx.osdl.net>
+Subject: + pata_cs5535-cable-detect.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:18 -0800
+Message-ID: <200703072108.l27L8I9M009037@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57511 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57507 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423013AbXCGVIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:08:43 -0500
+	id S1423014AbXCGVIm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:08:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     pata_it821x: clean up by using cable methods
+     pata_cs5535: cable detect
 has been added to the -mm tree.  Its filename is
-     pata_it821x-clean-up-by-using-cable-methods.patch
+     pata_cs5535-cable-detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_it821x: clean up by using cable methods
+Subject: pata_cs5535: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -33,75 +33,73 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_it821x.c |   33 +++++----------------------------
- 1 files changed, 5 insertions(+), 28 deletions(-)
+ drivers/ata/pata_cs5535.c |   27 +++++++--------------------
+ 1 files changed, 7 insertions(+), 20 deletions(-)
 
-diff -puN drivers/ata/pata_it821x.c~pata_it821x-clean-up-by-using-cable-methods drivers/ata/pata_it821x.c
---- a/drivers/ata/pata_it821x.c~pata_it821x-clean-up-by-using-cable-methods
-+++ a/drivers/ata/pata_it821x.c
-@@ -80,7 +80,7 @@
+diff -puN drivers/ata/pata_cs5535.c~pata_cs5535-cable-detect drivers/ata/pata_cs5535.c
+--- a/drivers/ata/pata_cs5535.c~pata_cs5535-cable-detect
++++ a/drivers/ata/pata_cs5535.c
+@@ -39,7 +39,7 @@
+ #include <asm/msr.h>
  
+ #define DRV_NAME	"cs5535"
+-#define DRV_VERSION	"0.2.11"
++#define DRV_VERSION	"0.2.12"
  
- #define DRV_NAME "pata_it821x"
--#define DRV_VERSION "0.3.4"
-+#define DRV_VERSION "0.3.6"
- 
- struct it821x_dev
- {
-@@ -113,31 +113,6 @@ struct it821x_dev
- static int it8212_noraid;
+ /*
+  *	The Geode (Aka Athlon GX now) uses an internal MSR based
+@@ -70,36 +70,22 @@
+ #define CS5535_BAD_PIO(timings) ( (timings&~0x80000000UL)==0x00009172 )
  
  /**
-- *	it821x_pre_reset	-	probe
-- *	@ap: ATA port
-- *
-- *	Set the cable type
-- */
--
--static int it821x_pre_reset(struct ata_port *ap)
--{
--	ap->cbl = ATA_CBL_PATA80;
+- *	cs5535_pre_reset	-	detect cable type
++ *	cs5535_cable_detect	-	detect cable type
+  *	@ap: Port to detect on
+  *
+  *	Perform cable detection for ATA66 capable cable. Return a libata
+  *	cable type.
+  */
+ 
+-static int cs5535_pre_reset(struct ata_port *ap)
++static int cs5535_cable_detect(struct ata_port *ap)
+ {
+ 	u8 cable;
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 
+ 	pci_read_config_byte(pdev, CS5535_CABLE_DETECT, &cable);
+ 	if (cable & 1)
+-		ap->cbl = ATA_CBL_PATA80;
+-	else
+-		ap->cbl = ATA_CBL_PATA40;
 -	return ata_std_prereset(ap);
 -}
 -
 -/**
-- *	it821x_error_handler	-	probe/reset
-- *	@ap: ATA port
+- *	cs5535_error_handler		-	reset/probe
+- *	@ap: Port to reset
 - *
-- *	Set the cable type and trigger a probe
+- *	Reset and configure a port
 - */
 -
--static void it821x_error_handler(struct ata_port *ap)
+-static void cs5535_error_handler(struct ata_port *ap)
 -{
--	return ata_bmdma_drive_eh(ap, it821x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
--}
--
--/**
-  *	it821x_program	-	program the PIO/MWDMA registers
-  *	@ap: ATA port
-  *	@adev: Device to program
-@@ -666,8 +641,9 @@ static struct ata_port_operations it821x
+-	ata_bmdma_drive_eh(ap, cs5535_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
++		return ATA_CBL_PATA80;
++	return ATA_CBL_PATA40;
+ }
+ 
+ /**
+@@ -205,8 +191,9 @@ static struct ata_port_operations cs5535
  
  	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= it821x_error_handler,
+-	.error_handler	= cs5535_error_handler,
 +	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_unknown,
++	.cable_detect	= cs5535_cable_detect,
  
  	.bmdma_setup 	= ata_bmdma_setup,
  	.bmdma_start 	= ata_bmdma_start,
-@@ -702,8 +678,9 @@ static struct ata_port_operations it821x
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= it821x_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_unknown,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= it821x_passthru_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
