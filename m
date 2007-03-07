@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - pata_cs5535-cable-detect.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:41:56 -0800
-Message-ID: <200703072341.l27NfvEw013182@shell0.pdx.osdl.net>
+Subject: - pata_hpt3x2n-cable-detect-handling-needs-work.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:42:14 -0800
+Message-ID: <200703072342.l27NgFca013194@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38805 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38824 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932310AbXCGXmS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:42:18 -0500
+	id S965039AbXCGXma (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:42:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_cs5535: cable detect
+     pata_hpt3x2n: cable detect handling (needs work)
 has been removed from the -mm tree.  Its filename was
-     pata_cs5535-cable-detect.patch
+     pata_hpt3x2n-cable-detect-handling-needs-work.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_cs5535: cable detect
+Subject: pata_hpt3x2n: cable detect handling (needs work)
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -29,29 +29,26 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cs5535.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/ata/pata_hpt3x2n.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_cs5535.c~pata_cs5535-cable-detect drivers/ata/pata_cs5535.c
---- a/drivers/ata/pata_cs5535.c~pata_cs5535-cable-detect
-+++ a/drivers/ata/pata_cs5535.c
-@@ -39,7 +39,7 @@
- #include <asm/msr.h>
+diff -puN drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-cable-detect-handling-needs-work drivers/ata/pata_hpt3x2n.c
+--- a/drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-cable-detect-handling-needs-work
++++ a/drivers/ata/pata_hpt3x2n.c
+@@ -25,7 +25,7 @@
+ #include <linux/libata.h>
  
- #define DRV_NAME	"cs5535"
--#define DRV_VERSION	"0.2.11"
-+#define DRV_VERSION	"0.2.12"
+ #define DRV_NAME	"pata_hpt3x2n"
+-#define DRV_VERSION	"0.3.2"
++#define DRV_VERSION	"0.3.3"
  
- /*
-  *	The Geode (Aka Athlon GX now) uses an internal MSR based
-@@ -206,8 +206,9 @@ static struct ata_port_operations cs5535
- 
- 	.freeze		= ata_bmdma_freeze,
+ enum {
+ 	HPT_PCI_FAST	=	(1 << 31),
+@@ -365,6 +365,7 @@ static struct ata_port_operations hpt3x2
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= cs5535_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
+ 	.error_handler	= hpt3x2n_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= cs5535_cable_detect,
++	.cable_detect	= hpt3x2n_cable_detect,
  
  	.bmdma_setup 	= ata_bmdma_setup,
  	.bmdma_start 	= ata_bmdma_start,
@@ -70,7 +67,6 @@ pata_legacy-fix-missing-methods-and-add-cable-types.patch
 pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
 pata_winbond-set-cable-type.patch
 ata_piix-remove-ugly-layering-violation.patch
-pata_cs5535-cable-detect.patch
 pata_hpt3x2n-cable-detect-handling-needs-work.patch
 pata_it821x-clean-up-by-using-cable-methods.patch
 pata_mpc52xx-cable-detect.patch
