@@ -1,93 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-fix-cpuidle-borkage-2.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:58:33 -0800
-Message-ID: <200703072358.l27NwXGp013637@shell0.pdx.osdl.net>
+Subject: + mtd-correct-misspelled-preprocessor-variable.patch added to -mm tree
+Date: Wed, 07 Mar 2007 15:59:14 -0800
+Message-ID: <200703072359.l27NxEMR013667@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39722 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39741 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992747AbXCGX7G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:59:06 -0500
+	id S2992770AbXCGX7X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:59:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, abelay@novell.com, len.brown@intel.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rpjday@mindspring.com, dwmw2@infradead.org
 
 
 The patch titled
-     git-acpi-fix-cpuidle-borkage 2
-has been removed from the -mm tree.  Its filename was
-     git-acpi-fix-cpuidle-borkage-2.patch
+     MTD: Correct misspelled preprocessor variable  "MTD_NAND_DISKONCHIP_BBTWRITE".
+has been added to the -mm tree.  Its filename is
+     mtd-correct-misspelled-preprocessor-variable.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi-fix-cpuidle-borkage 2
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: MTD: Correct misspelled preprocessor variable  "MTD_NAND_DISKONCHIP_BBTWRITE".
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Fix the compile issues when CPU_IDLE is not configured.
+  Replace the apparently misspelled preprocessor variable
+"MTD_NAND_DISKONCHIP_BBTWRITE" with the correct form
+"CONFIG_MTD_NAND_DISKONCHIP_BBTWRITE".
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Adam Belay <abelay@novell.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuidle.h |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ drivers/mtd/nand/diskonchip.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cpuidle.h~git-acpi-fix-cpuidle-borkage-2 include/linux/cpuidle.h
---- a/include/linux/cpuidle.h~git-acpi-fix-cpuidle-borkage-2
-+++ a/include/linux/cpuidle.h
-@@ -130,10 +130,21 @@ struct cpuidle_driver {
- 	struct module 		*owner;
- };
+diff -puN drivers/mtd/nand/diskonchip.c~mtd-correct-misspelled-preprocessor-variable drivers/mtd/nand/diskonchip.c
+--- a/drivers/mtd/nand/diskonchip.c~mtd-correct-misspelled-preprocessor-variable
++++ a/drivers/mtd/nand/diskonchip.c
+@@ -114,7 +114,7 @@ module_param(no_autopart, int, 0);
+ static int show_firmware_partition = 0;
+ module_param(show_firmware_partition, int, 0);
  
-+#ifdef CONFIG_CPU_IDLE
-+
- extern int cpuidle_register_driver(struct cpuidle_driver *drv);
- extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
- extern int cpuidle_force_redetect(struct cpuidle_device *dev);
- 
-+#else
-+
-+static inline int cpuidle_register_driver(struct cpuidle_driver *drv)
-+{return 0;}
-+static inline void cpuidle_unregister_driver(struct cpuidle_driver *drv) { }
-+static inline int cpuidle_force_redetect(struct cpuidle_device *dev)
-+{return 0;}
-+
-+#endif
- 
- /******************************
-  * CPUIDLE GOVERNOR INTERFACE *
-@@ -153,8 +164,20 @@ struct cpuidle_governor {
- 	struct module 		*owner;
- };
- 
-+#ifdef CONFIG_CPU_IDLE
-+
- extern int cpuidle_register_governor(struct cpuidle_governor *gov);
- extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
- extern int cpuidle_get_bm_activity(void);
- 
-+#else
-+
-+static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
-+{return 0;}
-+static inline void cpuidle_unregister_governor(struct cpuidle_governor *gov) { }
-+static inline int cpuidle_get_bm_activity(void)
-+{return 0;}
-+
-+#endif
-+
- #endif /* _LINUX_CPUIDLE_H */
+-#ifdef MTD_NAND_DISKONCHIP_BBTWRITE
++#ifdef CONFIG_MTD_NAND_DISKONCHIP_BBTWRITE
+ static int inftl_bbt_write = 1;
+ #else
+ static int inftl_bbt_write = 0;
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-git-acpi.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+git-avr32.patch
+mtd-correct-misspelled-preprocessor-variable.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
