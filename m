@@ -1,93 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - pata_marvell-cable-and-reset-fixes.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:46:40 -0800
-Message-ID: <200703072346.l27NkevG013356@shell0.pdx.osdl.net>
+Subject: - pata_it8213-cable-detect.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:46:35 -0800
+Message-ID: <200703072346.l27NkZIe013345@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39167 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39145 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945916AbXCGXrC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:47:02 -0500
+	id S1945913AbXCGXqw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:46:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_marvell: cable and reset fixes
+     pata_it8213: cable detect
 has been removed from the -mm tree.  Its filename was
-     pata_marvell-cable-and-reset-fixes.patch
+     pata_it8213-cable-detect.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_marvell: cable and reset fixes
+Subject: pata_it8213: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-There are two changes here.  Firstly we switch to a cable detect method,
-secondly the old code forgot to call ata_std_prereset() but somehow managed to
-work anyway.  Fix the missing call.
+Another not-quite PIIX, another cable type conversion
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_marvell.c |   20 +++++++++++---------
- 1 files changed, 11 insertions(+), 9 deletions(-)
+ drivers/ata/pata_it8213.c |   36 +++++++++++++++++++++++-------------
+ 1 files changed, 23 insertions(+), 13 deletions(-)
 
-diff -puN drivers/ata/pata_marvell.c~pata_marvell-cable-and-reset-fixes drivers/ata/pata_marvell.c
---- a/drivers/ata/pata_marvell.c~pata_marvell-cable-and-reset-fixes
-+++ a/drivers/ata/pata_marvell.c
-@@ -20,7 +20,7 @@
- #include <linux/ata.h>
+diff -puN drivers/ata/pata_it8213.c~pata_it8213-cable-detect drivers/ata/pata_it8213.c
+--- a/drivers/ata/pata_it8213.c~pata_it8213-cable-detect
++++ a/drivers/ata/pata_it8213.c
+@@ -25,8 +25,8 @@
+  *	it8213_pre_reset	-	check for 40/80 pin
+  *	@ap: Port
+  *
+- *	Perform cable detection for the 8213 ATA interface. This is
+- *	different to the PIIX arrangement
++ *	Filter out ports by the enable bits before doing the normal reset
++ *	and probe.
+  */
  
- #define DRV_NAME	"pata_marvell"
--#define DRV_VERSION	"0.1.1"
-+#define DRV_VERSION	"0.1.4"
- 
- /**
-  *	marvell_pre_reset	-	check for 40/80 pin
-@@ -52,22 +52,23 @@ static int marvell_pre_reset(struct ata_
- 	if ((pdev->device == 0x6145) && (ap->port_no == 0) &&
- 	    (!(devices & 0x10)))	/* PATA enable ? */
- 		return -ENOENT;
-+	return ata_std_prereset(ap);
-+}
- 
-+static int marvell_cable_detect(struct ata_port *ap)
-+{
- 	/* Cable type */
- 	switch(ap->port_no)
- 	{
- 	case 0:
- 		if (ioread8(ap->ioaddr.bmdma_addr + 1) & 1)
--			ap->cbl = ATA_CBL_PATA40;
--		else
--			ap->cbl = ATA_CBL_PATA80;
--		break;
+ static int it8213_pre_reset(struct ata_port *ap)
+@@ -34,23 +34,14 @@ static int it8213_pre_reset(struct ata_p
+ 	static const struct pci_bits it8213_enable_bits[] = {
+ 		{ 0x41U, 1U, 0x80UL, 0x80UL },	/* port 0 */
+ 	};
 -
-+			return ATA_CBL_PATA40;
-+		return ATA_CBL_PATA80;
- 	case 1: /* Legacy SATA port */
--		ap->cbl = ATA_CBL_SATA;
--		break;
-+		return ATA_CBL_SATA;
- 	}
--	return ata_std_prereset(ap);
-+	BUG();
-+	return 0;	/* Our BUG macro needs the right markup */
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+-	u8 tmp;
+-
+ 	if (!pci_test_config_bits(pdev, &it8213_enable_bits[ap->port_no]))
+ 		return -ENOENT;
+-
+-	pci_read_config_byte(pdev, 0x42, &tmp);
+-	if (tmp & 2)	/* The initial docs are incorrect */
+-		ap->cbl = ATA_CBL_PATA40;
+-	else
+-		ap->cbl = ATA_CBL_PATA80;
+ 	return ata_std_prereset(ap);
  }
  
  /**
-@@ -123,6 +124,7 @@ static const struct ata_port_operations 
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= marvell_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= marvell_cable_detect,
+- *	it8213_probe_reset - Probe specified port on PATA host controller
++ *	it8213_error_handler - Probe specified port on PATA host controller
+  *	@ap: Port to probe
+  *
+  *	LOCKING:
+@@ -63,9 +54,27 @@ static void it8213_error_handler(struct 
+ }
  
- 	/* BMDMA handling is PCI ATA format, use helpers */
+ /**
++ *	it8213_cable_detect	-	check for 40/80 pin
++ *	@ap: Port
++ *
++ *	Perform cable detection for the 8213 ATA interface. This is
++ *	different to the PIIX arrangement
++ */
++
++static int it8213_cable_detect(struct ata_port *ap)
++{
++	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
++	u8 tmp;
++	pci_read_config_byte(pdev, 0x42, &tmp);
++	if (tmp & 2)	/* The initial docs are incorrect */
++		return ATA_CBL_PATA40;
++	return ATA_CBL_PATA80;
++}
++
++/**
+  *	it8213_set_piomode - Initialize host controller PATA PIO timings
+  *	@ap: Port whose timings we are configuring
+- *	@adev: um
++ *	@adev: Device whose timings we are configuring
+  *
+  *	Set PIO mode for device, in host controller PCI config space.
+  *
+@@ -268,6 +277,7 @@ static const struct ata_port_operations 
+ 	.thaw			= ata_bmdma_thaw,
+ 	.error_handler		= it8213_error_handler,
+ 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= it8213_cable_detect,
+ 
  	.bmdma_setup		= ata_bmdma_setup,
+ 	.bmdma_start		= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -111,6 +133,7 @@ pata_opti-cable-detect.patch
 pata_pcmcia-cable-detect.patch
 pata_triflex-cable-detect.patch
 pata_cmd640-multiple-updates.patch
+pata_it8213-cable-detect.patch
 pata_marvell-cable-and-reset-fixes.patch
 pata_serverworks-cable-detect-and-comment-fix.patch
 pata_sis-clean-up-using-cable_detect-methods.patch
