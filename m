@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch added to -mm tree
-Date: Tue, 06 Mar 2007 22:53:35 -0800
-Message-ID: <200703070653.l276rZ6q021984@shell0.pdx.osdl.net>
+Subject: + mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch added to -mm tree
+Date: Tue, 06 Mar 2007 22:53:37 -0800
+Message-ID: <200703070653.l276rb4O021987@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51688 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51689 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932739AbXCGGxj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 01:53:39 -0500
+	id S932810AbXCGGxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 01:53:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, npiggin@suse.de
 
 
 The patch titled
-     mm-debug-check-for-the-fault-vs-invalidate-race-tidy
+     mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy
 has been added to the -mm tree.  Its filename is
-     mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
+     mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,26 +25,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm-debug-check-for-the-fault-vs-invalidate-race-tidy
+Subject: mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/mm.h |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN mm/filemap.c~mm-debug-check-for-the-fault-vs-invalidate-race-tidy mm/filemap.c
---- a/mm/filemap.c~mm-debug-check-for-the-fault-vs-invalidate-race-tidy
-+++ a/mm/filemap.c
-@@ -120,7 +120,6 @@ void __remove_from_page_cache(struct pag
- 	page->mapping = NULL;
- 	mapping->nrpages--;
- 	__dec_zone_page_state(page, NR_FILE_PAGES);
+diff -puN include/linux/mm.h~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy include/linux/mm.h
+--- a/include/linux/mm.h~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy
++++ a/include/linux/mm.h
+@@ -216,7 +216,6 @@ struct fault_data {
+ 	unsigned long address;
+ 	pgoff_t pgoff;
+ 	unsigned int flags;
 -
- 	BUG_ON(page_mapped(page));
- }
+ 	int type;
+ };
+ 
+@@ -228,10 +227,15 @@ struct fault_data {
+ struct vm_operations_struct {
+ 	void (*open)(struct vm_area_struct * area);
+ 	void (*close)(struct vm_area_struct * area);
+-	struct page * (*fault)(struct vm_area_struct *vma, struct fault_data * fdata);
+-	struct page * (*nopage)(struct vm_area_struct * area, unsigned long address, int *type);
+-	unsigned long (*nopfn)(struct vm_area_struct * area, unsigned long address);
+-	int (*populate)(struct vm_area_struct * area, unsigned long address, unsigned long len, pgprot_t prot, unsigned long pgoff, int nonblock);
++	struct page *(*fault)(struct vm_area_struct *vma,
++			struct fault_data *fdata);
++	struct page *(*nopage)(struct vm_area_struct *area,
++			unsigned long address, int *type);
++	unsigned long (*nopfn)(struct vm_area_struct *area,
++			unsigned long address);
++	int (*populate)(struct vm_area_struct *area, unsigned long address,
++			unsigned long len, pgprot_t prot, unsigned long pgoff,
++			int nonblock);
+ 
+ 	/* notification that a previously read-only page is about to become
+ 	 * writable, if an error is returned it will cause a SIGBUS */
+@@ -1107,8 +1111,8 @@ extern void truncate_inode_pages_range(s
+ 
+ /* generic vm_area_ops exported for stackable file systems */
+ extern struct page *filemap_fault(struct vm_area_struct *, struct fault_data *);
+-extern struct page * __deprecated_for_modules filemap_nopage(
+-			struct vm_area_struct *, unsigned long, int *);
++extern struct page * __deprecated_for_modules
++filemap_nopage(struct vm_area_struct *, unsigned long, int *);
+ extern int __deprecated_for_modules filemap_populate(struct vm_area_struct *,
+ 		unsigned long, unsigned long, pgprot_t, unsigned long, int);
  
 _
 
