@@ -1,63 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + swap-prefetch-avoid-repeating-entry.patch added to -mm tree
-Date: Tue, 06 Mar 2007 23:25:37 -0800
-Message-ID: <200703070725.l277Pb7v022644@shell0.pdx.osdl.net>
+Subject: - altix-reinitialize-acpi-tables.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 23:46:06 -0800
+Message-ID: <200703070746.l277k6te023343@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52432 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54825 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161130AbXCGHZm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 02:25:42 -0500
+	id S1161309AbXCGHqI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 02:46:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kernel@kolivas.org
+To: jpk@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swap prefetch: avoid repeating entry
-has been added to the -mm tree.  Its filename is
-     swap-prefetch-avoid-repeating-entry.patch
+     Altix: reinitialize acpi tables
+has been removed from the -mm tree.  Its filename was
+     altix-reinitialize-acpi-tables.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: swap prefetch: avoid repeating entry
-From: Con Kolivas <kernel@kolivas.org>
+Subject: Altix: reinitialize acpi tables
+From: John Keller <jpk@sgi.com>
 
-Avoid entering trickle_swap() when first initialising kprefetchd to prevent
-endless loops.
+To provide compatibilty with SN kernels that do and do not have ACPI IO
+support, the SN PROM must build different versions of some ACPI tables
+based on which kernel is booting.  As such, the tables may have to change
+at kernel boot time.  By default, prior to kernel boot, the PROM builds an
+empty DSDT (header only) and no SSDTs.  If an ACPI capable kernel boots,
+the kernel will notify the PROM, at platform setup time, and the PROM will
+build full DSDT and SSDT tables.
 
-Signed-off-by: Con Kolivas <kernel@kolivas.org>
+With the latest changes to acpi_table_init(), the table lengths are saved,
+and when our PROM changes them, the changes are not seen, and the kernel
+will crash on boot.  Because of issues with kexec support, we are not able
+to create the tables prior to acpi_table_init().  As a result, we are
+making a second call to acpi_table_init() to process the rebuilt DSDT and
+SSDTs.
+
+Signed-off-by: John Keller <jpk@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_prefetch.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/ia64/sn/kernel/setup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/swap_prefetch.c~swap-prefetch-avoid-repeating-entry mm/swap_prefetch.c
---- a/mm/swap_prefetch.c~swap-prefetch-avoid-repeating-entry
-+++ a/mm/swap_prefetch.c
-@@ -515,6 +515,10 @@ static int kprefetchd(void *__unused)
- 	/* Set ioprio to lowest if supported by i/o scheduler */
- 	sys_ioprio_set(IOPRIO_WHO_PROCESS, 0, IOPRIO_CLASS_IDLE);
+diff -puN arch/ia64/sn/kernel/setup.c~altix-reinitialize-acpi-tables arch/ia64/sn/kernel/setup.c
+--- a/arch/ia64/sn/kernel/setup.c~altix-reinitialize-acpi-tables
++++ a/arch/ia64/sn/kernel/setup.c
+@@ -54,6 +54,8 @@
+ #include "xtalk/hubdev.h"
+ #include <asm/sn/klconfig.h>
  
-+	/* kprefetchd has nothing to do until it is woken up the first time */
-+	set_current_state(TASK_INTERRUPTIBLE);
-+	schedule();
-+
- 	do {
- 		try_to_freeze();
++	/* Load the new DSDT and SSDT tables into the global table list. */
++ 	acpi_table_init();
+ 
+ DEFINE_PER_CPU(struct pda_s, pda_percpu);
  
 _
 
-Patches currently in -mm which might be from kernel@kolivas.org are
+Patches currently in -mm which might be from jpk@sgi.com are
 
-origin.patch
-sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-swap-prefetch-avoid-repeating-entry.patch
+git-acpi.patch
+altix-reinitialize-acpi-tables.patch
