@@ -1,79 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - pata_sl82c105-missing-methods-cable.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:50:23 -0800
-Message-ID: <200703072350.l27NoO3Z013496@shell0.pdx.osdl.net>
+Subject: + rocket-remove-modversions-include.patch added to -mm tree
+Date: Wed, 07 Mar 2007 15:55:15 -0800
+Message-ID: <200703072355.l27NtF4b013583@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39419 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39537 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751731AbXCGXu1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:50:27 -0500
+	id S1751004AbXCGXzS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:55:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rpjday@mindspring.com
 
 
 The patch titled
-     pata_sl82c105: Missing methods, cable
-has been removed from the -mm tree.  Its filename was
-     pata_sl82c105-missing-methods-cable.patch
+     rocket: remove modversions include
+has been added to the -mm tree.  Its filename is
+     rocket-remove-modversions-include.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pata_sl82c105: Missing methods, cable
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: rocket: remove modversions include
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Missing freeze, thaw, post_internal methods, also switch to new cable method
-in passing.
+It misspelled "MODVERSIONS" preprocessor variable with "CONFIG_MODVERSIONS". 
+Just kill it all.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sl82c105.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/rocket.c |    4 ----
+ 1 files changed, 4 deletions(-)
 
-diff -puN drivers/ata/pata_sl82c105.c~pata_sl82c105-missing-methods-cable drivers/ata/pata_sl82c105.c
---- a/drivers/ata/pata_sl82c105.c~pata_sl82c105-missing-methods-cable
-+++ a/drivers/ata/pata_sl82c105.c
-@@ -59,7 +59,6 @@ static int sl82c105_pre_reset(struct ata
+diff -puN drivers/char/rocket.c~rocket-remove-modversions-include drivers/char/rocket.c
+--- a/drivers/char/rocket.c~rocket-remove-modversions-include
++++ a/drivers/char/rocket.c
+@@ -65,10 +65,6 @@
  
- 	if (ap->port_no && !pci_test_config_bits(pdev, &sl82c105_enable_bits[ap->port_no]))
- 		return -ENOENT;
--	ap->cbl = ATA_CBL_PATA40;
- 	return ata_std_prereset(ap, deadline);
- }
+ /****** Kernel includes ******/
  
-@@ -239,6 +238,7 @@ static struct ata_port_operations sl82c1
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= sl82c105_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= sl82c105_bmdma_start,
+-#ifdef MODVERSIONS
+-#include <config/modversions.h>
+-#endif				
+-
+ #include <linux/module.h>
+ #include <linux/errno.h>
+ #include <linux/major.h>
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-git-libata-all.patch
-expose-set_mode-method-so-it-can-be-wrapped.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-pata_sl82c105-missing-methods-cable.patch
-ata_piix-remove-ugly-layering-violation.patch
-pata_cmd640-multiple-updates.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-dilnetpc-fix-warning.patch
-resend-iphase-64bit-cleanup.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-z85230-fix-fifo-handling.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
+git-avr32.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
