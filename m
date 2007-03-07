@@ -1,68 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - always-build-arch-ia64-lib-xoro.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:22:17 -0800
-Message-ID: <200703070422.l274MH5H018979@shell0.pdx.osdl.net>
+Subject: - libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:22:30 -0800
+Message-ID: <200703070422.l274MUtA018994@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47122 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47142 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750874AbXCGEWX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:22:23 -0500
+	id S1751530AbXCGEWh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:22:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, bob.picco@hp.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: hancockr@shaw.ca, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     always build arch/ia64/lib/xor.o
+     libata: warn if speed limited due to 40-wire cable
 has been removed from the -mm tree.  Its filename was
-     always-build-arch-ia64-lib-xoro.patch
+     libata-warn-if-speed-limited-due-to-40-wire-cable-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: always build arch/ia64/lib/xor.o
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: libata: warn if speed limited due to 40-wire cable
+From: Robert Hancock <hancockr@shaw.ca>
 
-Always build ia64 xor.o because multiple config options now depend on it.
+Warn the user if a drive's transfer rate is limited because of a 40-wire
+cable detection.
 
-Necessary to build .20-mm* on ia64 when, e.g., CONFIG_ASYNC_TX_DMA is
-defined.  Don't know if '_ASYNC_TX_DMA makes sense on ia64.  If not, maybe
-Kconfig should preclude it.
-
-Could have defined a Kconfig option that defaults to true if MD_RAID456 ||
-ASYNC_TX_DMA to control building of xor.o, but xor.o is only 848 bytes and
-this IS ia64...
-
-Signed-off-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Bob Picco <bob.picco@hp.com>
-Cc: Eric Whitney <eric.whitney@hp.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/lib/Makefile |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/ata/libata-core.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-diff -puN arch/ia64/lib/Makefile~always-build-arch-ia64-lib-xoro arch/ia64/lib/Makefile
---- a/arch/ia64/lib/Makefile~always-build-arch-ia64-lib-xoro
-+++ a/arch/ia64/lib/Makefile
-@@ -9,12 +9,11 @@ lib-y := __divsi3.o __udivsi3.o __modsi3
- 	checksum.o clear_page.o csum_partial_copy.o			\
- 	clear_user.o strncpy_from_user.o strlen_user.o strnlen_user.o	\
- 	flush.o ip_fast_csum.o do_csum.o				\
--	memset.o strlen.o
-+	memset.o strlen.o xor.o
+diff -puN drivers/ata/libata-core.c~libata-warn-if-speed-limited-due-to-40-wire-cable-v2 drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-warn-if-speed-limited-due-to-40-wire-cable-v2
++++ a/drivers/ata/libata-core.c
+@@ -3405,19 +3405,7 @@ static void ata_dev_xfermask(struct ata_
+ 	xfer_mask = ata_pack_xfermask(ap->pio_mask,
+ 				      ap->mwdma_mask, ap->udma_mask);
  
- lib-$(CONFIG_ITANIUM)	+= copy_page.o copy_user.o memcpy.o
- lib-$(CONFIG_MCKINLEY)	+= copy_page_mck.o memcpy_mck.o
- lib-$(CONFIG_PERFMON)	+= carta_random.o
--lib-$(CONFIG_MD_RAID456)	+= xor.o
+-	/* Apply cable rule here.  Don't apply it early because when
+-	 * we handle hot plug the cable type can itself change.
+-	 */
+-	if (ap->cbl == ATA_CBL_PATA40)
+-		xfer_mask &= ~(0xF8 << ATA_SHIFT_UDMA);
+-	/* Apply drive side cable rule. Unknown or 80 pin cables reported
+-	 * host side are checked drive side as well. Cases where we know a
+-	 * 40wire cable is used safely for 80 are not checked here.
+-	 */
+-        if (ata_drive_40wire(dev->id) && (ap->cbl == ATA_CBL_PATA_UNK || ap->cbl == ATA_CBL_PATA80))
+-		xfer_mask &= ~(0xF8 << ATA_SHIFT_UDMA);
+-
+-
++	/* drive modes available */
+ 	xfer_mask &= ata_pack_xfermask(dev->pio_mask,
+ 				       dev->mwdma_mask, dev->udma_mask);
+ 	xfer_mask &= ata_id_xfermask(dev->id);
+@@ -3448,6 +3436,25 @@ static void ata_dev_xfermask(struct ata_
+ 	if (ap->ops->mode_filter)
+ 		xfer_mask = ap->ops->mode_filter(ap, dev, xfer_mask);
  
- AFLAGS___divdi3.o	=
- AFLAGS___udivdi3.o	= -DUNSIGNED
++	/* Apply cable rule here.  Don't apply it early because when
++	 * we handle hot plug the cable type can itself change.
++	 * Check this last so that we know if the transfer rate was
++	 * solely limited by the cable.
++	 * Unknown or 80 wire cables reported host side are checked
++	 * drive side as well. Cases where we know a 40wire cable
++	 * is used safely for 80 are not checked here.
++	 */
++	if (xfer_mask & (0xF8 << ATA_SHIFT_UDMA))
++		/* UDMA/44 or higher would be available */
++		if((ap->cbl == ATA_CBL_PATA40) ||
++   		    (ata_drive_40wire(dev->id) &&
++		     (ap->cbl == ATA_CBL_PATA_UNK ||
++                     ap->cbl == ATA_CBL_PATA80))) {
++		      	ata_dev_printk(dev, KERN_WARNING,
++				 "limited to UDMA/33 due to 40-wire cable\n");
++			xfer_mask &= ~(0xF8 << ATA_SHIFT_UDMA);
++		}
++
+ 	ata_unpack_xfermask(xfer_mask, &dev->pio_mask,
+ 			    &dev->mwdma_mask, &dev->udma_mask);
+ }
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
-origin.patch
+git-libata-all.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+sata_nv-dont-read-shadow-registers-when-in-adma-mode.patch
