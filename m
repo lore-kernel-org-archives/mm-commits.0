@@ -1,131 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - sis900-warning-fixes.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:23:12 -0800
-Message-ID: <200703070423.l274NCvV019042@shell0.pdx.osdl.net>
+Subject: - dmfe-add-support-for-wake-on-lan.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:23:09 -0800
+Message-ID: <200703070423.l274N9f7019039@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47201 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47203 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932431AbXCGEXN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:23:13 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l274NCq8002367
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 6 Mar 2007 20:23:12 -0800
+	id S932317AbXCGEXO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:23:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: maximlevitsky@gmail.com, jeff@garzik.org, val_henson@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sis900 warning fixes
+     dmfe: add support for Wake on lan
 has been removed from the -mm tree.  Its filename was
-     sis900-warning-fixes.patch
+     dmfe-add-support-for-wake-on-lan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sis900 warning fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dmfe: add support for Wake on lan
+From: Maxim Levitsky <maximlevitsky@gmail.com>
 
-drivers/net/sis900.c: In function 'sis900_reset_phy':
-drivers/net/sis900.c:972: warning: 'status' may be used uninitialized in this function
-drivers/net/sis900.c: In function 'sis900_check_mode':
-drivers/net/sis900.c:1431: warning: 'status' may be used uninitialized in this function
-drivers/net/sis900.c: In function 'sis900_timer':
-drivers/net/sis900.c:1467: warning: 'status' may be used uninitialized in this function
+Add support for WOL on Magic Packet and on link change
 
-
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Valerie Henson <val_henson@linux.intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sis900.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/net/tulip/dmfe.c |   66 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 64 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/sis900.c~sis900-warning-fixes drivers/net/sis900.c
---- a/drivers/net/sis900.c~sis900-warning-fixes
-+++ a/drivers/net/sis900.c
-@@ -968,10 +968,10 @@ static void mdio_write(struct net_device
+diff -puN drivers/net/tulip/dmfe.c~dmfe-add-support-for-wake-on-lan drivers/net/tulip/dmfe.c
+--- a/drivers/net/tulip/dmfe.c~dmfe-add-support-for-wake-on-lan
++++ a/drivers/net/tulip/dmfe.c
+@@ -122,6 +122,11 @@
+ #define DM9801_NOISE_FLOOR 8
+ #define DM9802_NOISE_FLOOR 5
  
- static u16 sis900_reset_phy(struct net_device *net_dev, int phy_addr)
++#define DMFE_WOL_LINKCHANGE	0x20000000
++#define DMFE_WOL_SAMPLEPACKET	0x10000000
++#define DMFE_WOL_MAGICPACKET	0x08000000
++
++
+ #define DMFE_10MHF      0
+ #define DMFE_100MHF     1
+ #define DMFE_10MFD      4
+@@ -248,6 +253,7 @@ struct dmfe_board_info {
+ 	u8 wait_reset;			/* Hardware failed, need to reset */
+ 	u8 dm910x_chk_mode;		/* Operating mode check */
+ 	u8 first_in_callback;		/* Flag to record state */
++	u8 wol_mode;			/* user WOL settings */
+ 	struct timer_list timer;
+ 
+ 	/* System defined statistic counter */
+@@ -428,6 +434,7 @@ static int __devinit dmfe_init_one (stru
+ 	db->chip_id = ent->driver_data;
+ 	db->ioaddr = pci_resource_start(pdev, 0);
+ 	db->chip_revision = dev_rev;
++	db->wol_mode = 0;
+ 
+ 	db->pdev = pdev;
+ 
+@@ -1062,7 +1069,11 @@ static void dmfe_set_filter_mode(struct 
+ 	spin_unlock_irqrestore(&db->lock, flags);
+ }
+ 
+-static void netdev_get_drvinfo(struct net_device *dev,
++/*
++ * 	Ethtool interace
++ */
++
++static void dmfe_ethtool_get_drvinfo(struct net_device *dev,
+ 			       struct ethtool_drvinfo *info)
  {
--	int i = 0;
-+	int i;
- 	u16 status;
+ 	struct dmfe_board_info *np = netdev_priv(dev);
+@@ -1076,9 +1087,35 @@ static void netdev_get_drvinfo(struct ne
+ 			dev->base_addr, dev->irq);
+ }
  
--	while (i++ < 2)
-+	for (i = 0; i < 2; i++)
- 		status = mdio_read(net_dev, phy_addr, MII_STATUS);
++static int dmfe_ethtool_set_wol(struct net_device *dev,
++				struct ethtool_wolinfo *wolinfo)
++{
++	struct dmfe_board_info *db = netdev_priv(dev);
++
++	if (wolinfo->wolopts & (WAKE_UCAST | WAKE_MCAST | WAKE_BCAST |
++		   		WAKE_ARP | WAKE_MAGICSECURE))
++		   return -EOPNOTSUPP;
++
++	db->wol_mode = wolinfo->wolopts;
++	return 0;
++}
++
++static void dmfe_ethtool_get_wol(struct net_device *dev,
++				 struct ethtool_wolinfo *wolinfo)
++{
++	struct dmfe_board_info *db = netdev_priv(dev);
++
++	wolinfo->supported = WAKE_PHY | WAKE_MAGIC;
++	wolinfo->wolopts = db->wol_mode;
++	return;
++}
++
++
+ static const struct ethtool_ops netdev_ethtool_ops = {
+-	.get_drvinfo		= netdev_get_drvinfo,
++	.get_drvinfo		= dmfe_ethtool_get_drvinfo,
+ 	.get_link               = ethtool_op_get_link,
++	.set_wol		= dmfe_ethtool_set_wol,
++	.get_wol		= dmfe_ethtool_get_wol,
+ };
  
- 	mdio_write( net_dev, phy_addr, MII_CONTROL, MII_CNTL_RESET );
-@@ -1430,7 +1430,7 @@ static void sis900_auto_negotiate(struct
- 	int i = 0;
- 	u32 status;
+ /*
+@@ -2052,6 +2089,7 @@ static int dmfe_suspend(struct pci_dev *
+ {
+ 	struct net_device *dev = pci_get_drvdata(pci_dev);
+ 	struct dmfe_board_info *db = netdev_priv(dev);
++	u32 tmp;
  
--	while (i++ < 2)
-+	for (i = 0; i < 2; i++)
- 		status = mdio_read(net_dev, phy_addr, MII_STATUS);
+ 	/* Disable upper layer interface */
+ 	netif_device_detach(dev);
+@@ -2067,6 +2105,20 @@ static int dmfe_suspend(struct pci_dev *
+ 	/* Fre RX buffers */
+ 	dmfe_free_rxbuffer(db);
  
- 	if (!(status & MII_STAT_LINK)){
-@@ -1466,9 +1466,9 @@ static void sis900_read_mode(struct net_
- 	int phy_addr = sis_priv->cur_phy;
- 	u32 status;
- 	u16 autoadv, autorec;
--	int i = 0;
-+	int i;
++	/* Enable WOL */
++	pci_read_config_dword(pci_dev, 0x40, &tmp);
++	tmp &= ~(DMFE_WOL_LINKCHANGE|DMFE_WOL_MAGICPACKET);
++
++	if (db->wol_mode & WAKE_PHY)
++		tmp |= DMFE_WOL_LINKCHANGE;
++	if (db->wol_mode & WAKE_MAGIC)
++		tmp |= DMFE_WOL_MAGICPACKET;
++
++	pci_write_config_dword(pci_dev, 0x40, tmp);
++
++	pci_enable_wake(pci_dev, PCI_D3hot, 1);
++	pci_enable_wake(pci_dev, PCI_D3cold, 1);
++
+ 	/* Power down device*/
+ 	pci_set_power_state(pci_dev, pci_choose_state (pci_dev,state));
+ 	pci_save_state(pci_dev);
+@@ -2077,6 +2129,7 @@ static int dmfe_suspend(struct pci_dev *
+ static int dmfe_resume(struct pci_dev *pci_dev)
+ {
+ 	struct net_device *dev = pci_get_drvdata(pci_dev);
++	u32 tmp;
  
--	while (i++ < 2)
-+	for (i = 0; i < 2; i++)
- 		status = mdio_read(net_dev, phy_addr, MII_STATUS);
+ 	pci_restore_state(pci_dev);
+ 	pci_set_power_state(pci_dev, PCI_D0);
+@@ -2084,6 +2137,15 @@ static int dmfe_resume(struct pci_dev *p
+ 	/* Re-initilize DM910X board */
+ 	dmfe_init_dm910x(dev);
  
- 	if (!(status & MII_STAT_LINK))
++	/* Disable WOL */
++	pci_read_config_dword(pci_dev, 0x40, &tmp);
++
++	tmp &= ~(DMFE_WOL_LINKCHANGE | DMFE_WOL_MAGICPACKET);
++	pci_write_config_dword(pci_dev, 0x40, tmp);
++
++	pci_enable_wake(pci_dev, PCI_D3hot, 0);
++	pci_enable_wake(pci_dev, PCI_D3cold, 0);
++
+ 	/* Restart upper layer interface */
+ 	netif_device_attach(dev);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from maximlevitsky@gmail.com are
 
 origin.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-sony-laptop-fix-uninitialised-variable.patch
-git-alsa-oops-fix.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-git-md-accel-fixup.patch
-git-ubi.patch
 git-netdev-all.patch
-git-netdev-all-ipw2200-fix.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-unionfs.patch
-usbatm-create-sysfs-link-device-from-atm-class-device.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-x86_64-irq-make-affinity-works-for-genapic_flat-mode.patch
-i386-vdso_prelink-warning-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-utrace-prep.patch
-utrace-prep-2.patch
-revert-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
