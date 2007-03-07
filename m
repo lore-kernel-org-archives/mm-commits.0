@@ -1,309 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-use-anonymous.patch added to -mm tree
-Date: Wed, 07 Mar 2007 14:33:34 -0800
-Message-ID: <200703072233.l27MXYuw011312@shell0.pdx.osdl.net>
+Subject: - fix-null-pointer-in-ia64-irq_chip-mask-unmask.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 14:34:55 -0800
+Message-ID: <200703072234.l27MYtP5011363@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34993 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35075 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992674AbXCGWdg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 17:33:36 -0500
+	id S2992476AbXCGWe7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 17:34:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org
+To: kamezawa.hiroyu@jp.fujitsu.com, ebiederm@xmission.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll: use anonymous inode source
-has been added to the -mm tree.  Its filename is
-     epoll-use-anonymous.patch
+     ia64: fix NULL pointer in ia64/irq_chip-mask/unmask function
+has been removed from the -mm tree.  Its filename was
+     fix-null-pointer-in-ia64-irq_chip-mask-unmask.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: epoll: use anonymous inode source
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: ia64: fix NULL pointer in ia64/irq_chip-mask/unmask function
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This patch cuts out lots of code from epoll, by reusing the anonymous
-inode source.
+This patch fixes boot failure because irq_desc->mask() is NULL.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+- Added mask/unmask functions to ia64's irq desc function table.
+  But I'm not sure this fix is correct or not. please review.
+
+- rename hw_interrupt_type to irq_chip. hw_interrupt_type is old name.
+
+
+Original BUG I met (following) was caused at irq 57:uhci_hcd:usb3.
+ xxBUG DESCRIPTIONxx
+ Unable to handle kernel NULL pointer dereference (address 0000000000000000)
+yum-updatesd[3461]: Oops 11012296146944 [1]
+Modules linked in: autofs4 hidp rfcomm l2cap bluetooth sunrpc ipv6 vfat fat dm_mirror dm_mod button parport_pc lp parport sg tg3 e100 shpchp mii usb_storage lpfc scsi_transport_fc mptspi mptscsih mptbase scsi_transport_spi sd_mod scsi_mod ext3 jbd ehci_hcd ohci_hcd uhci_hcd
+
+Pid: 3461, CPU 5, comm:         yum-updatesd
+psr : 0000121008022018 ifs : 8000000000000286 ip  : [<a0000001000e02b1>]    Not tainted
+ip is at move_native_irq+0x91/0x140
+unat: 0000000000000000 pfs : 0000000000000205 rsc : 0000000000000003
+rnat: 0000000000000000 bsps: 0000000000000000 pr  : 00000000005a56a9
+ldrs: 0000000000000000 ccv : 0000000000000000 fpsr: 0009804c0270033f
+csd : 0000000000000000 ssd : 0000000000000000
+b0  : a000000100050430 b6  : a00000021b49d0c0 b7  : a000000100050400
+f6  : 1003e0000000000000de0 f7  : 1003e0000000000000060
+f8  : 1003e0000000000000025 f9  : 1003e00000000000022e0
+f10 : 1003e0000000000000060 f11 : 1003e000000000000005d
+r1  : a000000100d8d230 r2  : a0000001009f8c30 r3  : 0000000000005580
+r8  : a000000100b8e178 r9  : 00000000000000ab r10 : 0000000000000039
+r11 : 0000000000200000 r12 : e00001404b6f7e30 r13 : e00001404b6f0000
+r14 : 0000000000200000 r15 : a0000001009f8c00 r16 : a000000100b5b160
+r17 : 00000000dead4ead r18 : a0000001009f8c4c r19 : 0000000000000000
+r20 : a000000100b5b110 r21 : a000000100b5b140 r22 : a000000100b5b110
+r23 : 0050200500000874 r24 : a000000100ba98c0 r25 : a00000021b53d768
+r26 : e00000018007e030 r27 : a000000100786238 r28 : e000000040004ae0
+r29 : a0000001009f8c50 r30 : 0000000000000005 r31 : a0000001009f8c58
+
+Call Trace:
+ [<a000000100013e20>] show_stack+0x40/0xa0
+                                sp=e00001404b6f79c0 bsp=e00001404b6f1030
+ [<a0000001000147e0>] show_regs+0x840/0x880
+                                sp=e00001404b6f7b90 bsp=e00001404b6f0fd0
+ [<a000000100037de0>] die+0x1c0/0x2a0
+                                sp=e00001404b6f7b90 bsp=e00001404b6f0f88
+ [<a000000100647630>] ia64_do_page_fault+0x8d0/0xa00
+                                sp=e00001404b6f7bb0 bsp=e00001404b6f0f38
+ [<a00000010000bf80>] ia64_leave_kernel+0x0/0x270
+                                sp=e00001404b6f7c60 bsp=e00001404b6f0f38
+ [<a0000001000e02b0>] move_native_irq+0x90/0x140
+                                sp=e00001404b6f7e30 bsp=e00001404b6f0f08
+ [<a000000100050430>] iosapic_end_level_irq+0x30/0xe0
+                                sp=e00001404b6f7e30 bsp=e00001404b6f0ee8
+ [<a0000001000dac30>] __do_IRQ+0x390/0x3c0
+                                sp=e00001404b6f7e30 bsp=e00001404b6f0ea8
+ [<a000000100011620>] ia64_handle_irq+0x1e0/0x2e0
+                                sp=e00001404b6f7e30 bsp=e00001404b6f0e78
+ [<a00000010000bf80>] ia64_leave_kernel+0x0/0x270
+                                sp=e00001404b6f7e30 bsp=e00001404b6f0e78
+Kernel panic - not syncing: Aiee, killing interrupt handler!
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |  177 +----------------------------------------------
- 1 files changed, 6 insertions(+), 171 deletions(-)
+ arch/ia64/kernel/iosapic.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-use-anonymous fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-use-anonymous
-+++ a/fs/eventpoll.c
-@@ -35,6 +35,7 @@
- #include <linux/mount.h>
- #include <linux/bitops.h>
- #include <linux/mutex.h>
-+#include <linux/anon_inodes.h>
- #include <asm/uaccess.h>
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -76,8 +77,6 @@
-  */
+diff -puN arch/ia64/kernel/iosapic.c~fix-null-pointer-in-ia64-irq_chip-mask-unmask arch/ia64/kernel/iosapic.c
+--- a/arch/ia64/kernel/iosapic.c~fix-null-pointer-in-ia64-irq_chip-mask-unmask
++++ a/arch/ia64/kernel/iosapic.c
+@@ -446,7 +446,7 @@ iosapic_end_level_irq (unsigned int irq)
+ #define iosapic_disable_level_irq	mask_irq
+ #define iosapic_ack_level_irq		nop
  
- 
--#define EVENTPOLLFS_MAGIC 0x03111965 /* My birthday should work for this :) */
--
- #define DEBUG_EPOLL 0
- 
- #if DEBUG_EPOLL > 0
-@@ -229,8 +228,6 @@ struct ep_pqueue {
- 
- static void ep_poll_safewake_init(struct poll_safewake *psw);
- static void ep_poll_safewake(struct poll_safewake *psw, wait_queue_head_t *wq);
--static int ep_getfd(int *efd, struct inode **einode, struct file **efile,
--		    struct eventpoll *ep);
- static int ep_alloc(struct eventpoll **pep);
- static void ep_free(struct eventpoll *ep);
- static struct epitem *ep_find(struct eventpoll *ep, struct file *file, int fd);
-@@ -256,11 +253,6 @@ static int ep_events_transfer(struct eve
- 			      int maxevents);
- static int ep_poll(struct eventpoll *ep, struct epoll_event __user *events,
- 		   int maxevents, long timeout);
--static int eventpollfs_delete_dentry(struct dentry *dentry);
--static struct inode *ep_eventpoll_inode(void);
--static int eventpollfs_get_sb(struct file_system_type *fs_type,
--			      int flags, const char *dev_name,
--			      void *data, struct vfsmount *mnt);
- 
- /*
-  * This semaphore is used to serialize ep_free() and eventpoll_release_file().
-@@ -276,30 +268,12 @@ static struct kmem_cache *epi_cache __re
- /* Slab cache used to allocate "struct eppoll_entry" */
- static struct kmem_cache *pwq_cache __read_mostly;
- 
--/* Virtual fs used to allocate inodes for eventpoll files */
--static struct vfsmount *eventpoll_mnt __read_mostly;
--
- /* File callbacks that implement the eventpoll file behaviour */
- static const struct file_operations eventpoll_fops = {
- 	.release	= ep_eventpoll_close,
- 	.poll		= ep_eventpoll_poll
+-struct hw_interrupt_type irq_type_iosapic_level = {
++struct irq_chip irq_type_iosapic_level = {
+ 	.name =		"IO-SAPIC-level",
+ 	.startup =	iosapic_startup_level_irq,
+ 	.shutdown =	iosapic_shutdown_level_irq,
+@@ -454,6 +454,8 @@ struct hw_interrupt_type irq_type_iosapi
+ 	.disable =	iosapic_disable_level_irq,
+ 	.ack =		iosapic_ack_level_irq,
+ 	.end =		iosapic_end_level_irq,
++	.mask =		mask_irq,
++	.unmask =	unmask_irq,
+ 	.set_affinity =	iosapic_set_affinity
  };
  
--/*
-- * This is used to register the virtual file system from where
-- * eventpoll inodes are allocated.
-- */
--static struct file_system_type eventpoll_fs_type = {
--	.name		= "eventpollfs",
--	.get_sb		= eventpollfs_get_sb,
--	.kill_sb	= kill_anon_super,
--};
--
--/* Very basic directory entry operations for the eventpoll virtual file system */
--static struct dentry_operations eventpollfs_dentry_operations = {
--	.d_delete	= eventpollfs_delete_dentry,
--};
--
+@@ -493,7 +495,7 @@ iosapic_ack_edge_irq (unsigned int irq)
+ #define iosapic_disable_edge_irq	nop
+ #define iosapic_end_edge_irq		nop
  
+-struct hw_interrupt_type irq_type_iosapic_edge = {
++struct irq_chip irq_type_iosapic_edge = {
+ 	.name =		"IO-SAPIC-edge",
+ 	.startup =	iosapic_startup_edge_irq,
+ 	.shutdown =	iosapic_disable_edge_irq,
+@@ -501,6 +503,8 @@ struct hw_interrupt_type irq_type_iosapi
+ 	.disable =	iosapic_disable_edge_irq,
+ 	.ack =		iosapic_ack_edge_irq,
+ 	.end =		iosapic_end_edge_irq,
++	.mask =		mask_irq,
++	.unmask =	unmask_irq,
+ 	.set_affinity =	iosapic_set_affinity
+ };
  
- /* Fast test to see if the file is an evenpoll file */
-@@ -496,7 +470,8 @@ asmlinkage long sys_epoll_create(int siz
- 	 * Creates all the items needed to setup an eventpoll file. That is,
- 	 * a file structure, and inode and a free file descriptor.
- 	 */
--	error = ep_getfd(&fd, &inode, &file, ep);
-+	error = aino_getfd(&fd, &inode, &file, "[eventpoll]",
-+			   &eventpoll_fops, ep);
- 	if (error)
- 		goto eexit_2;
- 
-@@ -726,82 +701,6 @@ asmlinkage long sys_epoll_pwait(int epfd
- #endif /* #ifdef TIF_RESTORE_SIGMASK */
- 
- 
--/*
-- * Creates the file descriptor to be used by the epoll interface.
-- */
--static int ep_getfd(int *efd, struct inode **einode, struct file **efile,
--		    struct eventpoll *ep)
--{
--	struct qstr this;
--	char name[32];
--	struct dentry *dentry;
--	struct inode *inode;
--	struct file *file;
--	int error, fd;
--
--	/* Get an ready to use file */
--	error = -ENFILE;
--	file = get_empty_filp();
--	if (!file)
--		goto eexit_1;
--
--	/* Allocates an inode from the eventpoll file system */
--	inode = ep_eventpoll_inode();
--	if (IS_ERR(inode)) {
--		error = PTR_ERR(inode);
--		goto eexit_2;
--	}
--
--	/* Allocates a free descriptor to plug the file onto */
--	error = get_unused_fd();
--	if (error < 0)
--		goto eexit_3;
--	fd = error;
--
--	/*
--	 * Link the inode to a directory entry by creating a unique name
--	 * using the inode number.
--	 */
--	error = -ENOMEM;
--	sprintf(name, "[%lu]", inode->i_ino);
--	this.name = name;
--	this.len = strlen(name);
--	this.hash = inode->i_ino;
--	dentry = d_alloc(eventpoll_mnt->mnt_sb->s_root, &this);
--	if (!dentry)
--		goto eexit_4;
--	dentry->d_op = &eventpollfs_dentry_operations;
--	d_add(dentry, inode);
--	file->f_path.mnt = mntget(eventpoll_mnt);
--	file->f_path.dentry = dentry;
--	file->f_mapping = inode->i_mapping;
--
--	file->f_pos = 0;
--	file->f_flags = O_RDONLY;
--	file->f_op = &eventpoll_fops;
--	file->f_mode = FMODE_READ;
--	file->f_version = 0;
--	file->private_data = ep;
--
--	/* Install the new setup file into the allocated fd. */
--	fd_install(fd, file);
--
--	*efd = fd;
--	*einode = inode;
--	*efile = file;
--	return 0;
--
--eexit_4:
--	put_unused_fd(fd);
--eexit_3:
--	iput(inode);
--eexit_2:
--	put_filp(file);
--eexit_1:
--	return error;
--}
--
--
- static int ep_alloc(struct eventpoll **pep)
- {
- 	struct eventpoll *ep = kzalloc(sizeof(*ep), GFP_KERNEL);
-@@ -1554,55 +1453,13 @@ retry:
- 	return res;
- }
- 
--static int eventpollfs_delete_dentry(struct dentry *dentry)
--{
--
--	return 1;
--}
--
--static struct inode *ep_eventpoll_inode(void)
--{
--	int error = -ENOMEM;
--	struct inode *inode = new_inode(eventpoll_mnt->mnt_sb);
--
--	if (!inode)
--		goto eexit_1;
--
--	inode->i_fop = &eventpoll_fops;
--
--	/*
--	 * Mark the inode dirty from the very beginning,
--	 * that way it will never be moved to the dirty
--	 * list because mark_inode_dirty() will think
--	 * that it already _is_ on the dirty list.
--	 */
--	inode->i_state = I_DIRTY;
--	inode->i_mode = S_IRUSR | S_IWUSR;
--	inode->i_uid = current->fsuid;
--	inode->i_gid = current->fsgid;
--	inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
--	return inode;
--
--eexit_1:
--	return ERR_PTR(error);
--}
--
--static int
--eventpollfs_get_sb(struct file_system_type *fs_type, int flags,
--		   const char *dev_name, void *data, struct vfsmount *mnt)
--{
--	return get_sb_pseudo(fs_type, "eventpoll:", NULL, EVENTPOLLFS_MAGIC,
--			     mnt);
--}
--
--
- static int __init eventpoll_init(void)
- {
--	int error;
--
- 	mutex_init(&epmutex);
- 
--	/* Initialize the structure used to perform safe poll wait head wake ups */
-+	/*
-+	 * Initialize the structure used to perform safe poll wait head wakeups
-+	 */
- 	ep_poll_safewake_init(&psw);
- 
- 	/* Allocates slab cache used to allocate "struct epitem" items */
-@@ -1615,34 +1472,12 @@ static int __init eventpoll_init(void)
- 			sizeof(struct eppoll_entry), 0,
- 			EPI_SLAB_DEBUG|SLAB_PANIC, NULL, NULL);
- 
--	/*
--	 * Register the virtual file system that will be the source of inodes
--	 * for the eventpoll files
--	 */
--	error = register_filesystem(&eventpoll_fs_type);
--	if (error)
--		goto epanic;
--
--	/* Mount the above commented virtual file system */
--	eventpoll_mnt = kern_mount(&eventpoll_fs_type);
--	error = PTR_ERR(eventpoll_mnt);
--	if (IS_ERR(eventpoll_mnt))
--		goto epanic;
--
--	DNPRINTK(3, (KERN_INFO "[%p] eventpoll: successfully initialized.\n",
--			current));
- 	return 0;
--
--epanic:
--	panic("eventpoll_init() failed\n");
- }
- 
--
- static void __exit eventpoll_exit(void)
- {
- 	/* Undo all operations done inside eventpoll_init() */
--	unregister_filesystem(&eventpoll_fs_type);
--	mntput(eventpoll_mnt);
- 	kmem_cache_destroy(pwq_cache);
- 	kmem_cache_destroy(epi_cache);
- }
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-add-epoll-compat_-code-to-fs-compatc.patch
-epoll-optimizations-and-cleanups.patch
-epoll-optimizations-and-cleanups-tidy.patch
-add-an-anonymous-inode-source.patch
-add-an-anonymous-inode-source-tidy.patch
-epoll-use-anonymous.patch
+fix-null-pointer-in-ia64-irq_chip-mask-unmask.patch
+null-pointer-in-ia64-irq_chip-mask-unmask-function-v2.patch
