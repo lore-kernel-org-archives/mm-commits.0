@@ -1,198 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - fix-suspend-resume-with-periodic-tick-devices.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:20:53 -0800
-Message-ID: <200703070420.l274KrQj018844@shell0.pdx.osdl.net>
+Subject: - fbdev-fix-kconfig-error-if-fb_ddc=n.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:01 -0800
+Message-ID: <200703070421.l274L1Pm018857@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46965 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46975 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161285AbXCGEVB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:21:01 -0500
+	id S1161287AbXCGEVH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:21:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: jsimmons@infradead.org, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix suspend/resume with periodic tick devices
+     fbdev: fix kconfig error if FB_DDC=n
 has been removed from the -mm tree.  Its filename was
-     fix-suspend-resume-with-periodic-tick-devices.patch
+     fbdev-fix-kconfig-error-if-fb_ddc=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix suspend/resume with periodic tick devices
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: fbdev: fix kconfig error if FB_DDC=n
+From: James Simmons <jsimmons@infradead.org>
 
-The programming of periodic tick devices needs to be saved/restored across
-suspend/resume - otherwise we might end up with a system coming up that
-relies on getting a PIT (or HPET) interrupt, while those devices default to
-'no interrupts' after powerup.  (To confuse things it worked to a certain
-degree on some systems because the lapic gets initialized as a side-effect
-of SMP bootup.)
+Fix the following error if FB_DDC=n
 
-This suspend / resume thing was dropped unintentionally during the
-last-minute -mm code reshuffling.
+Kernel: arch/x86_64/boot/bzImage is ready  (#1)
+  Building modules, stage 2.
+  MODPOST 229 modules
+WARNING: "fb_ddc_read" [drivers/video/nvidia/nvidiafb.ko] undefined!
+make[1]: *** [__modpost] Error 1
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-broadcast.c |   36 +++++++++++++++++++++++++++++++++
- kernel/time/tick-common.c    |   32 +++++++++++++++++++++++++++++
- kernel/time/tick-internal.h  |    4 +++
- kernel/timer.c               |    6 +++++
- 4 files changed, 78 insertions(+)
+ drivers/video/Kconfig |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN kernel/time/tick-broadcast.c~fix-suspend-resume-with-periodic-tick-devices kernel/time/tick-broadcast.c
---- a/kernel/time/tick-broadcast.c~fix-suspend-resume-with-periodic-tick-devices
-+++ a/kernel/time/tick-broadcast.c
-@@ -284,6 +284,42 @@ void tick_shutdown_broadcast(unsigned in
- 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
- }
+diff -puN drivers/video/Kconfig~fbdev-fix-kconfig-error-if-fb_ddc=n drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-fix-kconfig-error-if-fb_ddc=n
++++ a/drivers/video/Kconfig
+@@ -677,8 +677,6 @@ config FB_S1D13XXX
+ config FB_NVIDIA
+ 	tristate "nVidia Framebuffer Support"
+ 	depends on FB && PCI
+-	select I2C_ALGOBIT if FB_NVIDIA_I2C
+-	select I2C if FB_NVIDIA_I2C
+ 	select FB_BACKLIGHT if FB_NVIDIA_BACKLIGHT
+ 	select FB_MODE_HELPERS
+ 	select FB_CFB_FILLRECT
+@@ -697,6 +695,7 @@ config FB_NVIDIA
+ config FB_NVIDIA_I2C
+        bool "Enable DDC Support"
+        depends on FB_NVIDIA
++       select FB_DDC
+        help
+ 	  This enables I2C support for nVidia Chipsets.  This is used
+ 	  only for getting EDID information from the attached display
+@@ -716,7 +715,6 @@ config FB_NVIDIA_BACKLIGHT
+ config FB_RIVA
+ 	tristate "nVidia Riva support"
+ 	depends on FB && PCI
+-	select FB_DDC if FB_RIVA_I2C
+ 	select FB_BACKLIGHT if FB_RIVA_BACKLIGHT
+ 	select FB_MODE_HELPERS
+ 	select FB_CFB_FILLRECT
+@@ -734,6 +732,7 @@ config FB_RIVA
+ config FB_RIVA_I2C
+        bool "Enable DDC Support"
+        depends on FB_RIVA
++       select FB_DDC
+        help
+ 	  This enables I2C support for nVidia Chipsets.  This is used
+ 	  only for getting EDID information from the attached display
+@@ -812,8 +811,6 @@ config FB_INTEL
+ 	depends on FB && EXPERIMENTAL && PCI && X86
+ 	select AGP
+ 	select AGP_INTEL
+-	select I2C_ALGOBIT if FB_INTEL_I2C
+-	select I2C if FB_INTEL_I2C
+ 	select FB_MODE_HELPERS
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+@@ -846,6 +843,7 @@ config FB_INTEL_DEBUG
+ config FB_INTEL_I2C
+ 	bool "DDC/I2C for Intel framebuffer support"
+ 	depends on FB_INTEL
++	select FB_DDC
+ 	default y
+ 	help
+ 	  Say Y here if you want DDC/I2C support for your on-board Intel graphics.
+@@ -924,8 +922,8 @@ config FB_MATROX_G
  
-+void tick_suspend_broadcast(void)
-+{
-+	struct clock_event_device *bc;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&tick_broadcast_lock, flags);
-+
-+	bc = tick_broadcast_device.evtdev;
-+	if (bc && tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC)
-+		clockevents_set_mode(bc, CLOCK_EVT_MODE_SHUTDOWN);
-+
-+	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
-+}
-+
-+int tick_resume_broadcast(void)
-+{
-+	struct clock_event_device *bc;
-+	unsigned long flags;
-+	int broadcast = 0;
-+
-+	spin_lock_irqsave(&tick_broadcast_lock, flags);
-+
-+	bc = tick_broadcast_device.evtdev;
-+	if (bc) {
-+		if (tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC &&
-+		    !cpus_empty(tick_broadcast_mask))
-+			tick_broadcast_start_periodic(bc);
-+
-+		broadcast = cpu_isset(smp_processor_id(), tick_broadcast_mask);
-+	}
-+	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
-+
-+	return broadcast;
-+}
-+
-+
- #ifdef CONFIG_TICK_ONESHOT
- 
- static cpumask_t tick_broadcast_oneshot_mask;
-diff -puN kernel/time/tick-common.c~fix-suspend-resume-with-periodic-tick-devices kernel/time/tick-common.c
---- a/kernel/time/tick-common.c~fix-suspend-resume-with-periodic-tick-devices
-+++ a/kernel/time/tick-common.c
-@@ -298,6 +298,28 @@ static void tick_shutdown(unsigned int *
- 	spin_unlock_irqrestore(&tick_device_lock, flags);
- }
- 
-+static void tick_suspend_periodic(void)
-+{
-+	struct tick_device *td = &__get_cpu_var(tick_cpu_device);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&tick_device_lock, flags);
-+	if (td->mode == TICKDEV_MODE_PERIODIC)
-+		clockevents_set_mode(td->evtdev, CLOCK_EVT_MODE_SHUTDOWN);
-+	spin_unlock_irqrestore(&tick_device_lock, flags);
-+}
-+
-+static void tick_resume_periodic(void)
-+{
-+	struct tick_device *td = &__get_cpu_var(tick_cpu_device);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&tick_device_lock, flags);
-+	if (td->mode == TICKDEV_MODE_PERIODIC)
-+		tick_setup_periodic(td->evtdev, 0);
-+	spin_unlock_irqrestore(&tick_device_lock, flags);
-+}
-+
- /*
-  * Notification about clock event devices
-  */
-@@ -325,6 +347,16 @@ static int tick_notify(struct notifier_b
- 		tick_shutdown(dev);
- 		break;
- 
-+	case CLOCK_EVT_NOTIFY_SUSPEND:
-+		tick_suspend_periodic();
-+		tick_suspend_broadcast();
-+		break;
-+
-+	case CLOCK_EVT_NOTIFY_RESUME:
-+		if (!tick_resume_broadcast())
-+			tick_resume_periodic();
-+		break;
-+
- 	default:
- 		break;
- 	}
-diff -puN kernel/time/tick-internal.h~fix-suspend-resume-with-periodic-tick-devices kernel/time/tick-internal.h
---- a/kernel/time/tick-internal.h~fix-suspend-resume-with-periodic-tick-devices
-+++ a/kernel/time/tick-internal.h
-@@ -67,6 +67,8 @@ extern int tick_check_broadcast_device(s
- extern int tick_is_broadcast_device(struct clock_event_device *dev);
- extern void tick_broadcast_on_off(unsigned long reason, int *oncpu);
- extern void tick_shutdown_broadcast(unsigned int *cpup);
-+extern void tick_suspend_broadcast(void);
-+extern int tick_resume_broadcast(void);
- 
- extern void
- tick_set_periodic_handler(struct clock_event_device *dev, int broadcast);
-@@ -90,6 +92,8 @@ static inline int tick_device_uses_broad
- static inline void tick_do_periodic_broadcast(struct clock_event_device *d) { }
- static inline void tick_broadcast_on_off(unsigned long reason, int *oncpu) { }
- static inline void tick_shutdown_broadcast(unsigned int *cpup) { }
-+static inline void tick_suspend_broadcast(void) { }
-+static inline int tick_resume_broadcast(void) { return 0; }
- 
- /*
-  * Set the periodic handler in non broadcast mode
-diff -puN kernel/timer.c~fix-suspend-resume-with-periodic-tick-devices kernel/timer.c
---- a/kernel/timer.c~fix-suspend-resume-with-periodic-tick-devices
-+++ a/kernel/timer.c
-@@ -997,6 +997,9 @@ static int timekeeping_resume(struct sys
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
- 
- 	touch_softlockup_watchdog();
-+
-+	clockevents_notify(CLOCK_EVT_NOTIFY_RESUME, NULL);
-+
- 	/* Resume hrtimers */
- 	clock_was_set();
- 
-@@ -1011,6 +1014,9 @@ static int timekeeping_suspend(struct sy
- 	timekeeping_suspended = 1;
- 	timekeeping_suspend_time = read_persistent_clock();
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
-+
-+	clockevents_notify(CLOCK_EVT_NOTIFY_SUSPEND, NULL);
-+
- 	return 0;
- }
- 
+ config FB_MATROX_I2C
+ 	tristate "Matrox I2C support"
+-	depends on FB_MATROX && I2C
+-	select I2C_ALGOBIT
++	depends on FB_MATROX
++	select FB_DDC
+ 	---help---
+ 	  This drivers creates I2C buses which are needed for accessing the
+ 	  DDC (I2C) bus present on all Matroxes, an I2C bus which
+@@ -993,7 +991,6 @@ config FB_MATROX_MULTIHEAD
+ config FB_RADEON
+ 	tristate "ATI Radeon display support"
+ 	depends on FB && PCI
+-	select FB_DDC if FB_RADEON_I2C
+ 	select FB_BACKLIGHT if FB_RADEON_BACKLIGHT
+ 	select FB_MODE_HELPERS
+ 	select FB_CFB_FILLRECT
+@@ -1018,6 +1015,7 @@ config FB_RADEON
+ config FB_RADEON_I2C
+ 	bool "DDC/I2C for ATI Radeon support"
+ 	depends on FB_RADEON
++	select FB_DDC
+ 	default y
+ 	help
+ 	  Say Y here if you want DDC/I2C support for your Radeon board. 
+@@ -1125,7 +1123,6 @@ config FB_S3
+ config FB_SAVAGE
+ 	tristate "S3 Savage support"
+ 	depends on FB && PCI && EXPERIMENTAL
+-	select FB_DDC if FB_SAVAGE_I2C
+ 	select FB_MODE_HELPERS
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+@@ -1142,6 +1139,7 @@ config FB_SAVAGE
+ config FB_SAVAGE_I2C
+        bool "Enable DDC2 Support"
+        depends on FB_SAVAGE
++       select FB_DDC
+        help
+ 	  This enables I2C support for S3 Savage Chipsets.  This is used
+ 	  only for getting EDID information from the attached display
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from jsimmons@infradead.org are
 
 origin.patch
-paravirt-build-fixes.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-4.patch
-git-ieee1394.patch
-log-reason-why-tsc-was-marked-unstable.patch
-optimize-timespec_trunc.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
+ps3fb-thread-updates.patch
+ps3av-thread-updates.patch
+ps3fb-kill-superfluous-zero-initializations.patch
+ps3av-misc-updates.patch
+aty128fb-fix-blanking.patch
+change-rivafb_remove-to-__devexit.patch
+fbdev-display-class.patch
+fbdev-display-class-fix.patch
+tgafb-turbochannel-support.patch
+tgafb-accelerated-code.patch
