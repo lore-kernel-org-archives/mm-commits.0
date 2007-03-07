@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-mark-tt-mode-code-for-future-removal.patch added to -mm tree
-Date: Tue, 06 Mar 2007 17:23:43 -0800
-Message-ID: <200703070123.l271Nhw6015405@shell0.pdx.osdl.net>
+Subject: + uml-handle-block-device-hotplug-errors.patch added to -mm tree
+Date: Tue, 06 Mar 2007 17:23:47 -0800
+Message-ID: <200703070123.l271NmBB015413@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41986 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41995 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161126AbXCGBXs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 20:23:48 -0500
+	id S1161130AbXCGBXv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 20:23:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     uml: mark tt-mode code for future removal
+     uml: handle block device hotplug errors
 has been added to the -mm tree.  Its filename is
-     uml-mark-tt-mode-code-for-future-removal.patch
+     uml-handle-block-device-hotplug-errors.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: mark tt-mode code for future removal
+Subject: uml: handle block device hotplug errors
 From: Jeff Dike <jdike@addtoit.com>
 
-Mark some tt-mode-only code as such.
+If a disk fails to open, i.e.  its host file doesn't exist, it won't be
+removable because the hot-unplug code checks the existence of its gendisk. 
+This won't exist because it is only allocated for successfully opened disks. 
+Thus, a typo on the command line can result in a unusable and unfixable disk.
 
-Also cleaned up some formatting.
+This is fixed by freeing the gendisk if it's there, but not letting that
+affect the removal.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/ptrace_user.c |   16 ++++------------
- 1 files changed, 4 insertions(+), 12 deletions(-)
+ arch/um/drivers/ubd_kern.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN arch/um/sys-i386/ptrace_user.c~uml-mark-tt-mode-code-for-future-removal arch/um/sys-i386/ptrace_user.c
---- a/arch/um/sys-i386/ptrace_user.c~uml-mark-tt-mode-code-for-future-removal
-+++ a/arch/um/sys-i386/ptrace_user.c
-@@ -1,4 +1,4 @@
--/* 
-+/*
-  * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-  * Licensed under the GPL
-  */
-@@ -45,7 +45,8 @@ int ptrace_setfpregs(long pid, unsigned 
- 	return 0;
- }
+diff -puN arch/um/drivers/ubd_kern.c~uml-handle-block-device-hotplug-errors arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~uml-handle-block-device-hotplug-errors
++++ a/arch/um/drivers/ubd_kern.c
+@@ -790,14 +790,12 @@ static int ubd_id(char **str, int *start
  
--/* All the below stuff is of interest for TT mode only */
-+#ifdef UML_CONFIG_MODE_TT
-+
- static void write_debugregs(int pid, unsigned long *regs)
+ static int ubd_remove(int n, char **error_out)
  {
- 	struct user *dummy;
-@@ -128,13 +129,4 @@ void update_debugregs(int seq)
- }
- #endif
++	struct gendisk *disk;
+ 	struct ubd *ubd_dev;
+ 	int err = -ENODEV;
  
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-+#endif
+ 	mutex_lock(&ubd_lock);
+ 
+-	if(ubd_gendisk[n] == NULL)
+-		goto out;
+-
+ 	ubd_dev = &ubd_devs[n];
+ 
+ 	if(ubd_dev->file == NULL)
+@@ -808,9 +806,12 @@ static int ubd_remove(int n, char **erro
+ 	if(ubd_dev->count > 0)
+ 		goto out;
+ 
+-	del_gendisk(ubd_gendisk[n]);
+-	put_disk(ubd_gendisk[n]);
+-	ubd_gendisk[n] = NULL;
++ 	disk = ubd_gendisk[n];
++ 	ubd_gendisk[n] = NULL;
++	if(disk != NULL){
++		del_gendisk(disk);
++		put_disk(disk);
++	}
+ 
+ 	if(fake_gendisk[n] != NULL){
+ 		del_gendisk(fake_gendisk[n]);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
