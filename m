@@ -1,60 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:22:33 -0800
-Message-ID: <200703070422.l274MX2j019000@shell0.pdx.osdl.net>
+Subject: - dmfe-add-support-for-suspend-resume.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:23:06 -0800
+Message-ID: <200703070423.l274N6ev019036@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47196 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47198 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932317AbXCGEXL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S932319AbXCGEXL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Tue, 6 Mar 2007 23:23:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@sw.ru, dmonakhov@openvz.org, mm-commits@vger.kernel.org
+To: maximlevitsky@gmail.com, jeff@garzik.org, val_henson@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: handle ata_pci_device_do_resume() failure while resuming
+     dmfe: add support for suspend/resume
 has been removed from the -mm tree.  Its filename was
-     libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2.patch
+     dmfe-add-support-for-suspend-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: handle ata_pci_device_do_resume() failure while resuming
-From: Dmitriy Monakhov <dmonakhov@sw.ru>
+Subject: dmfe: add support for suspend/resume
+From: Maxim Levitsky <maximlevitsky@gmail.com>
 
-Since commit:553c4aa630af7bc885e056d0436e4eb7f238579b
-ata_pci_device_do_resume() can return error code, all callers was updated
-except this one.
+This adds support for suspend resume
 
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
+[akpm@linux-foundation.org: fix CONFIG_PM=n, coding style]
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Valerie Henson <val_henson@linux.intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_inic162x.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/net/tulip/dmfe.c |   52 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 49 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/sata_inic162x.c~libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2 drivers/ata/sata_inic162x.c
---- a/drivers/ata/sata_inic162x.c~libata-handle-ata_pci_device_do_resume-failure-while-resuming-v2
-+++ a/drivers/ata/sata_inic162x.c
-@@ -642,7 +642,9 @@ static int inic_pci_device_resume(struct
- 	void __iomem *mmio_base = host->iomap[MMIO_BAR];
- 	int rc;
+diff -puN drivers/net/tulip/dmfe.c~dmfe-add-support-for-suspend-resume drivers/net/tulip/dmfe.c
+--- a/drivers/net/tulip/dmfe.c~dmfe-add-support-for-suspend-resume
++++ a/drivers/net/tulip/dmfe.c
+@@ -55,9 +55,6 @@
  
--	ata_pci_device_do_resume(pdev);
-+	rc = ata_pci_device_do_resume(pdev);
-+	if (rc)
-+		return rc;
+     TODO
  
- 	if (pdev->dev.power.power_state.event == PM_EVENT_SUSPEND) {
- 		rc = init_controller(mmio_base, hpriv->cached_hctl);
+-    Implement pci_driver::suspend() and pci_driver::resume()
+-    power management methods.
+-
+     Check on 64 bit boxes.
+     Check and fix on big endian boxes.
+ 
+@@ -2050,11 +2047,60 @@ static struct pci_device_id dmfe_pci_tbl
+ MODULE_DEVICE_TABLE(pci, dmfe_pci_tbl);
+ 
+ 
++#ifdef CONFIG_PM
++static int dmfe_suspend(struct pci_dev *pci_dev, pm_message_t state)
++{
++	struct net_device *dev = pci_get_drvdata(pci_dev);
++	struct dmfe_board_info *db = netdev_priv(dev);
++
++	/* Disable upper layer interface */
++	netif_device_detach(dev);
++
++	/* Disable Tx/Rx */
++	db->cr6_data &= ~(CR6_RXSC | CR6_TXSC);
++	update_cr6(db->cr6_data, dev->base_addr);
++
++	/* Disable Interrupt */
++	outl(0, dev->base_addr + DCR7);
++	outl(inl (dev->base_addr + DCR5), dev->base_addr + DCR5);
++
++	/* Fre RX buffers */
++	dmfe_free_rxbuffer(db);
++
++	/* Power down device*/
++	pci_set_power_state(pci_dev, pci_choose_state (pci_dev,state));
++	pci_save_state(pci_dev);
++
++	return 0;
++}
++
++static int dmfe_resume(struct pci_dev *pci_dev)
++{
++	struct net_device *dev = pci_get_drvdata(pci_dev);
++
++	pci_restore_state(pci_dev);
++	pci_set_power_state(pci_dev, PCI_D0);
++
++	/* Re-initilize DM910X board */
++	dmfe_init_dm910x(dev);
++
++	/* Restart upper layer interface */
++	netif_device_attach(dev);
++
++	return 0;
++}
++#else
++#define dmfe_suspend NULL
++#define dmfe_resume NULL
++#endif
++
+ static struct pci_driver dmfe_driver = {
+ 	.name		= "dmfe",
+ 	.id_table	= dmfe_pci_tbl,
+ 	.probe		= dmfe_init_one,
+ 	.remove		= __devexit_p(dmfe_remove_one),
++	.suspend        = dmfe_suspend,
++	.resume         = dmfe_resume
+ };
+ 
+ MODULE_AUTHOR("Sten Wang, sten_wang@davicom.com.tw");
 _
 
-Patches currently in -mm which might be from dmonakhov@sw.ru are
+Patches currently in -mm which might be from maximlevitsky@gmail.com are
 
 origin.patch
-git-libata-all.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
-ext3-dirindex-error-pointer-issues.patch
+git-netdev-all.patch
