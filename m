@@ -1,47 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - pata_ixp4xx_cf-set-cable-type.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:40:01 -0800
-Message-ID: <200703072340.l27Ne1wS013108@shell0.pdx.osdl.net>
+Subject: - pata_rz1000-remove-lots-of-crap-by-using-cable-method.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:40:28 -0800
+Message-ID: <200703072340.l27NeSrV013141@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38521 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38593 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945907AbXCGXkN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:40:13 -0500
+	id S964932AbXCGXkj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:40:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_ixp4xx_cf - set cable type
+     pata_rz1000: remove lots of crap by using cable method
 has been removed from the -mm tree.  Its filename was
-     pata_ixp4xx_cf-set-cable-type.patch
+     pata_rz1000-remove-lots-of-crap-by-using-cable-method.patch
 
-This patch was dropped because I can't test it and I don't know if it broke
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_ixp4xx_cf - set cable type
+Subject: pata_rz1000: remove lots of crap by using cable method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ixp4xx_cf.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/pata_rz1000.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-set-cable-type drivers/ata/pata_ixp4xx_cf.c
---- a/drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-set-cable-type
-+++ a/drivers/ata/pata_ixp4xx_cf.c
-@@ -129,6 +129,7 @@ static struct ata_port_operations ixp4xx
- 	.qc_issue	= ata_qc_issue_prot,
- 	.eng_timeout	= ata_eng_timeout,
- 	.data_xfer	= ixp4xx_mmio_data_xfer,
+diff -puN drivers/ata/pata_rz1000.c~pata_rz1000-remove-lots-of-crap-by-using-cable-method drivers/ata/pata_rz1000.c
+--- a/drivers/ata/pata_rz1000.c~pata_rz1000-remove-lots-of-crap-by-using-cable-method
++++ a/drivers/ata/pata_rz1000.c
+@@ -123,8 +123,9 @@ static struct ata_port_operations rz1000
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= rz1000_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
 +	.cable_detect	= ata_cable_40wire,
  
  	.irq_handler	= ata_interrupt,
- 	.irq_clear	= ixp4xx_irq_clear,
+ 	.irq_clear	= ata_bmdma_irq_clear,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -53,7 +56,6 @@ pata_platform-set-a-cable-type-which-to-set.patch
 pata_qdi-set-cable-type.patch
 pata_sl82c105-missing-methods-cable.patch
 pata_isapnp-set-cable-type.patch
-pata_ixp4xx_cf-set-cable-type.patch
 pata_legacy-fix-missing-methods-and-add-cable-types.patch
 pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
 pata_rz1000-remove-lots-of-crap-by-using-cable-method.patch
