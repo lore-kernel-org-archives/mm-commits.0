@@ -1,109 +1,305 @@
 From: akpm@linux-foundation.org
-Subject: - kconfig-update-swsusp-description.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:22:01 -0800
-Message-ID: <200703070422.l274M15L018957@shell0.pdx.osdl.net>
+Subject: - knfsd-provide-sunrpc-pool_mode-module-option.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:58 -0800
+Message-ID: <200703070421.l274Lw4a018954@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47096 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47089 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932211AbXCGEWI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:22:08 -0500
+	id S932211AbXCGEWE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:22:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, mm-commits@vger.kernel.org
+To: gnb@sgi.com, gnb@melbourne.sgi.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kconfig: Update swsusp description
+     knfsd: provide sunrpc pool_mode module option
 has been removed from the -mm tree.  Its filename was
-     kconfig-update-swsusp-description.patch
+     knfsd-provide-sunrpc-pool_mode-module-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kconfig: Update swsusp description
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: knfsd: provide sunrpc pool_mode module option
+From: Greg Banks <gnb@sgi.com>
 
-Update the outdated and inaccurate description of the software suspend in
-Kconfig.
+Provide a module param "pool_mode" for sunrpc.ko which allows a sysadmin to
+choose the mode for mapping NFS thread service pools to CPUs.  Values are:
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+auto	    choose a mapping mode heuristically
+global	    (default, same as the pre-2.6.19 code) a single global pool
+percpu	    one pool per CPU
+pernode	    one pool per NUMA node
+
+Note that since 2.6.19 the hardcoded behaviour has been "auto", this patch
+makes the default "global".
+
+The pool mode can be changed after boot/modprobe using /sys, if the NFS and
+lockd services have been shut down.  A useful side effect of this change is to
+fix a small memory leak when unloading the module.
+
+Signed-off-by: Greg Banks <gnb@melbourne.sgi.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/Kconfig |   39 ++++++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 17 deletions(-)
+ Documentation/kernel-parameters.txt |   16 +++
+ net/sunrpc/svc.c                    |  133 ++++++++++++++++++++++----
+ 2 files changed, 130 insertions(+), 19 deletions(-)
 
-diff -puN kernel/power/Kconfig~kconfig-update-swsusp-description kernel/power/Kconfig
---- a/kernel/power/Kconfig~kconfig-update-swsusp-description
-+++ a/kernel/power/Kconfig
-@@ -81,30 +81,35 @@ config SOFTWARE_SUSPEND
- 	bool "Software Suspend"
- 	depends on PM && SWAP && ((X86 && (!SMP || SUSPEND_SMP)) || ((FRV || PPC32) && !SMP))
- 	---help---
--	  Enable the possibility of suspending the machine.
--	  It doesn't need ACPI or APM.
--	  You may suspend your machine by 'swsusp' or 'shutdown -z <time>' 
--	  (patch for sysvinit needed). 
-+	  Enable the suspend to disk (STD) functionality.
+diff -puN Documentation/kernel-parameters.txt~knfsd-provide-sunrpc-pool_mode-module-option Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~knfsd-provide-sunrpc-pool_mode-module-option
++++ a/Documentation/kernel-parameters.txt
+@@ -1685,6 +1685,22 @@ and is between 256 and 4096 characters. 
+ 	stifb=		[HW]
+ 			Format: bpp:<bpp1>[:<bpp2>[:<bpp3>...]]
  
--	  It creates an image which is saved in your active swap. Upon next
-+	  You can suspend your machine with 'echo disk > /sys/power/state'.
-+	  Alternatively, you can use the additional userland tools available
-+	  from <http://suspend.sf.net>.
++	sunrpc.pool_mode=
++			[NFS]
++			Control how the NFS server code allocates CPUs to
++			service thread pools.  Depending on how many NICs
++			you have and where their interrupts are bound, this
++			option will affect which CPUs will do NFS serving.
++			Note: this parameter cannot be changed while the
++			NFS server is running.
 +
-+	  In principle it does not require ACPI or APM, although for example
-+	  ACPI will be used if available.
++			auto	    the server chooses an appropriate mode
++				    automatically using heuristics
++			global	    a single global pool contains all CPUs
++			percpu	    one pool for each CPU
++			pernode	    one pool for each NUMA node (equivalent
++				    to global on non-NUMA machines)
 +
-+	  It creates an image which is saved in your active swap. Upon the next
- 	  boot, pass the 'resume=/dev/swappartition' argument to the kernel to
- 	  have it detect the saved image, restore memory state from it, and
- 	  continue to run as before. If you do not want the previous state to
--	  be reloaded, then use the 'noresume' kernel argument. However, note
--	  that your partitions will be fsck'd and you must re-mkswap your swap
--	  partitions. It does not work with swap files.
+ 	swiotlb=	[IA-64] Number of I/O TLB slabs
+ 
+ 	switches=	[HW,M68k]
+diff -puN net/sunrpc/svc.c~knfsd-provide-sunrpc-pool_mode-module-option net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~knfsd-provide-sunrpc-pool_mode-module-option
++++ a/net/sunrpc/svc.c
+@@ -27,22 +27,26 @@
+ 
+ #define RPCDBG_FACILITY	RPCDBG_SVCDSP
+ 
++#define svc_serv_is_pooled(serv)    ((serv)->sv_function)
++
+ /*
+  * Mode for mapping cpus to pools.
+  */
+ enum {
+-	SVC_POOL_NONE = -1,	/* uninitialised, choose one of the others */
++	SVC_POOL_AUTO = -1,	/* choose one of the others */
+ 	SVC_POOL_GLOBAL,	/* no mapping, just a single global pool
+ 				 * (legacy & UP mode) */
+ 	SVC_POOL_PERCPU,	/* one pool per cpu */
+ 	SVC_POOL_PERNODE	/* one pool per numa node */
+ };
++#define SVC_POOL_DEFAULT	SVC_POOL_GLOBAL
+ 
+ /*
+  * Structure for mapping cpus to pools and vice versa.
+  * Setup once during sunrpc initialisation.
+  */
+ static struct svc_pool_map {
++	int count;			/* How many svc_servs use us */
+ 	int mode;			/* Note: int not enum to avoid
+ 					 * warnings about "enumeration value
+ 					 * not handled in switch" */
+@@ -50,9 +54,63 @@ static struct svc_pool_map {
+ 	unsigned int *pool_to;		/* maps pool id to cpu or node */
+ 	unsigned int *to_pool;		/* maps cpu or node to pool id */
+ } svc_pool_map = {
+-	.mode = SVC_POOL_NONE
++	.count = 0,
++	.mode = SVC_POOL_DEFAULT
+ };
++static DEFINE_MUTEX(svc_pool_map_mutex);/* protects svc_pool_map.count only */
++
++static int
++param_set_pool_mode(const char *val, struct kernel_param *kp)
++{
++	int *ip = (int *)kp->arg;
++	struct svc_pool_map *m = &svc_pool_map;
++	int err;
++
++	mutex_lock(&svc_pool_map_mutex);
++
++	err = -EBUSY;
++	if (m->count)
++		goto out;
++
++	err = 0;
++	if (!strncmp(val, "auto", 4))
++		*ip = SVC_POOL_AUTO;
++	else if (!strncmp(val, "global", 6))
++		*ip = SVC_POOL_GLOBAL;
++	else if (!strncmp(val, "percpu", 6))
++		*ip = SVC_POOL_PERCPU;
++	else if (!strncmp(val, "pernode", 7))
++		*ip = SVC_POOL_PERNODE;
++	else
++		err = -EINVAL;
++
++out:
++	mutex_unlock(&svc_pool_map_mutex);
++	return err;
++}
++
++static int
++param_get_pool_mode(char *buf, struct kernel_param *kp)
++{
++	int *ip = (int *)kp->arg;
++
++	switch (*ip)
++	{
++	case SVC_POOL_AUTO:
++		return strlcpy(buf, "auto", 20);
++	case SVC_POOL_GLOBAL:
++		return strlcpy(buf, "global", 20);
++	case SVC_POOL_PERCPU:
++		return strlcpy(buf, "percpu", 20);
++	case SVC_POOL_PERNODE:
++		return strlcpy(buf, "pernode", 20);
++	default:
++		return sprintf(buf, "%d", *ip);
++	}
++}
+ 
++module_param_call(pool_mode, param_set_pool_mode, param_get_pool_mode,
++		 &svc_pool_map.mode, 0644);
+ 
+ /*
+  * Detect best pool mapping mode heuristically,
+@@ -166,18 +224,25 @@ svc_pool_map_init_pernode(struct svc_poo
+ 
+ 
+ /*
+- * Build the global map of cpus to pools and vice versa.
++ * Add a reference to the global map of cpus to pools (and
++ * vice versa).  Initialise the map if we're the first user.
++ * Returns the number of pools.
+  */
+ static unsigned int
+-svc_pool_map_init(void)
++svc_pool_map_get(void)
+ {
+ 	struct svc_pool_map *m = &svc_pool_map;
+ 	int npools = -1;
+ 
+-	if (m->mode != SVC_POOL_NONE)
++	mutex_lock(&svc_pool_map_mutex);
++
++	if (m->count++) {
++		mutex_unlock(&svc_pool_map_mutex);
+ 		return m->npools;
++	}
+ 
+-	m->mode = svc_pool_map_choose_mode();
++	if (m->mode == SVC_POOL_AUTO)
++		m->mode = svc_pool_map_choose_mode();
+ 
+ 	switch (m->mode) {
+ 	case SVC_POOL_PERCPU:
+@@ -195,9 +260,36 @@ svc_pool_map_init(void)
+ 	}
+ 	m->npools = npools;
+ 
++	mutex_unlock(&svc_pool_map_mutex);
+ 	return m->npools;
+ }
+ 
++
++/*
++ * Drop a reference to the global map of cpus to pools.
++ * When the last reference is dropped, the map data is
++ * freed; this allows the sysadmin to change the pool
++ * mode using the pool_mode module option without
++ * rebooting or re-loading sunrpc.ko.
++ */
++static void
++svc_pool_map_put(void)
++{
++	struct svc_pool_map *m = &svc_pool_map;
++
++	mutex_lock(&svc_pool_map_mutex);
++
++	if (!--m->count) {
++		m->mode = SVC_POOL_DEFAULT;
++		kfree(m->to_pool);
++		kfree(m->pool_to);
++		m->npools = 0;
++	}
++
++	mutex_unlock(&svc_pool_map_mutex);
++}
++
++
+ /*
+  * Set the current thread's cpus_allowed mask so that it
+  * will only run on cpus in the given pool.
+@@ -212,10 +304,9 @@ svc_pool_map_set_cpumask(unsigned int pi
+ 
+ 	/*
+ 	 * The caller checks for sv_nrpools > 1, which
+-	 * implies that we've been initialized and the
+-	 * map mode is not NONE.
++	 * implies that we've been initialized.
+ 	 */
+-	BUG_ON(m->mode == SVC_POOL_NONE);
++	BUG_ON(m->count == 0);
+ 
+ 	switch (m->mode)
+ 	{
+@@ -246,18 +337,19 @@ svc_pool_for_cpu(struct svc_serv *serv, 
+ 	unsigned int pidx = 0;
+ 
+ 	/*
+-	 * SVC_POOL_NONE happens in a pure client when
++	 * An uninitialised map happens in a pure client when
+ 	 * lockd is brought up, so silently treat it the
+ 	 * same as SVC_POOL_GLOBAL.
+ 	 */
 -
--	  Right now you may boot without resuming and then later resume but
--	  in meantime you cannot use those swap partitions/files which were
--	  involved in suspending. Also in this case there is a risk that buffers
--	  on disk won't match with saved ones.
-+	  be reloaded, then use the 'noresume' kernel command line argument.
-+	  Note, however, that fsck will be run on your filesystems and you will
-+	  need to run mkswap against the swap partition used for the suspend.
-+
-+	  It also works with swap files to a limited extent (for details see
-+	  <file:Documentation/power/swsusp-and-swap-files.txt>).
-+
-+	  Right now you may boot without resuming and resume later but in the
-+	  meantime you cannot use the swap partition(s)/file(s) involved in
-+	  suspending.  Also in this case you must not use the filesystems
-+	  that were mounted before the suspend.  In particular, you MUST NOT
-+	  MOUNT any journaled filesystems mounted before the suspend or they
-+	  will get corrupted in a nasty way.
+-	switch (m->mode) {
+-	case SVC_POOL_PERCPU:
+-		pidx = m->to_pool[cpu];
+-		break;
+-	case SVC_POOL_PERNODE:
+-		pidx = m->to_pool[cpu_to_node(cpu)];
+-		break;
++	if (svc_serv_is_pooled(serv)) {
++		switch (m->mode) {
++		case SVC_POOL_PERCPU:
++			pidx = m->to_pool[cpu];
++			break;
++		case SVC_POOL_PERNODE:
++			pidx = m->to_pool[cpu_to_node(cpu)];
++			break;
++		}
+ 	}
+ 	return &serv->sv_pools[pidx % serv->sv_nrpools];
+ }
+@@ -347,7 +439,7 @@ svc_create_pooled(struct svc_program *pr
+ 		  svc_thread_fn func, int sig, struct module *mod)
+ {
+ 	struct svc_serv *serv;
+-	unsigned int npools = svc_pool_map_init();
++	unsigned int npools = svc_pool_map_get();
  
- 	  For more information take a look at <file:Documentation/power/swsusp.txt>.
+ 	serv = __svc_create(prog, bufsize, npools, shutdown);
  
--	  (For now, swsusp is incompatible with PAE aka HIGHMEM_64G on i386.
--	  we need identity mapping for resume to work, and that is trivial
--	  to get with 4MB pages, but less than trivial on PAE).
--
- config PM_STD_PARTITION
- 	string "Default resume partition"
- 	depends on SOFTWARE_SUSPEND
+@@ -397,6 +489,9 @@ svc_destroy(struct svc_serv *serv)
+ 
+ 	cache_clean_deferred(serv);
+ 
++	if (svc_serv_is_pooled(serv))
++		svc_pool_map_put();
++
+ 	/* Unregister service with the portmapper */
+ 	svc_register(serv, 0, 0);
+ 	kfree(serv->sv_pools);
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from gnb@sgi.com are
 
 origin.patch
-make-xfs-workqueues-nonfreezable.patch
-fix-refrigerator-vs-thaw_process-race.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-shrink_slab-handle-bad-shrinkers.patch
