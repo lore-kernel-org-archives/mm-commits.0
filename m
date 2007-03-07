@@ -1,50 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - pata_netcell-remove-lots-of-crud-by-using-the-cable-method.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:32:46 -0800
-Message-ID: <200703072332.l27NWkQc012916@shell0.pdx.osdl.net>
+Subject: - pata_radisys-switch-to-cable-method-to-cleanup-code.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:32:34 -0800
+Message-ID: <200703072332.l27NWY04012908@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37936 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37948 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992734AbXCGXc5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:32:57 -0500
+	id S2992738AbXCGXdI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:33:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_netcell: remove lots of crud by using the cable method
+     pata_radisys - switch to cable method to cleanup code, correct cable type
 has been removed from the -mm tree.  Its filename was
-     pata_netcell-remove-lots-of-crud-by-using-the-cable-method.patch
+     pata_radisys-switch-to-cable-method-to-cleanup-code.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: pata_netcell: remove lots of crud by using the cable method
+Subject: pata_radisys - switch to cable method to cleanup code, correct cable type
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_netcell.c |    3 ++-
+ drivers/ata/pata_radisys.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_netcell.c~pata_netcell-remove-lots-of-crud-by-using-the-cable-method drivers/ata/pata_netcell.c
---- a/drivers/ata/pata_netcell.c~pata_netcell-remove-lots-of-crud-by-using-the-cable-method
-+++ a/drivers/ata/pata_netcell.c
-@@ -82,8 +82,9 @@ static const struct ata_port_operations 
+diff -puN drivers/ata/pata_radisys.c~pata_radisys-switch-to-cable-method-to-cleanup-code drivers/ata/pata_radisys.c
+--- a/drivers/ata/pata_radisys.c~pata_radisys-switch-to-cable-method-to-cleanup-code
++++ a/drivers/ata/pata_radisys.c
+@@ -249,8 +249,9 @@ static const struct ata_port_operations 
  
  	.freeze			= ata_bmdma_freeze,
  	.thaw			= ata_bmdma_thaw,
--	.error_handler		= netcell_error_handler,
+-	.error_handler		= radisys_pata_error_handler,
 +	.error_handler		= ata_bmdma_error_handler,
  	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_80wire,
++	.cable_detect		= ata_cable_unknown,
  
- 	/* BMDMA handling is PCI ATA format, use helpers */
  	.bmdma_setup		= ata_bmdma_setup,
+ 	.bmdma_start		= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -64,6 +64,7 @@ pata_isapnp-set-cable-type.patch
 pata_ixp4xx_cf-set-cable-type.patch
 pata_legacy-fix-missing-methods-and-add-cable-types.patch
 pata_netcell-remove-lots-of-crud-by-using-the-cable-method.patch
+pata_radisys-switch-to-cable-method-to-cleanup-code.patch
 pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
 pata_rz1000-remove-lots-of-crap-by-using-cable-method.patch
 pata_winbond-set-cable-type.patch
