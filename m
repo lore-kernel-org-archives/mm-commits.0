@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_ns87410-cable-detect-method.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:28 -0800
-Message-ID: <200703072108.l27L8SlM009057@shell0.pdx.osdl.net>
+Subject: + pata_mpc52xx-cable-detect.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:24 -0800
+Message-ID: <200703072108.l27L8Own009047@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57558 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57533 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992584AbXCGVIw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:08:52 -0500
+	id S2992578AbXCGVIr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:08:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     pata_ns87410: cable detect method
+     pata_mpc52xx: cable detect
 has been added to the -mm tree.  Its filename is
-     pata_ns87410-cable-detect-method.patch
+     pata_mpc52xx-cable-detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_ns87410: cable detect method
+Subject: pata_mpc52xx: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -33,44 +33,29 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ns87410.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/ata/pata_mpc52xx.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_ns87410.c~pata_ns87410-cable-detect-method drivers/ata/pata_ns87410.c
---- a/drivers/ata/pata_ns87410.c~pata_ns87410-cable-detect-method
-+++ a/drivers/ata/pata_ns87410.c
-@@ -28,13 +28,13 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/pata_mpc52xx.c~pata_mpc52xx-cable-detect drivers/ata/pata_mpc52xx.c
+--- a/drivers/ata/pata_mpc52xx.c~pata_mpc52xx-cable-detect
++++ a/drivers/ata/pata_mpc52xx.c
+@@ -24,7 +24,7 @@
  
- #define DRV_NAME "pata_ns87410"
--#define DRV_VERSION "0.4.3"
-+#define DRV_VERSION "0.4.6"
  
- /**
-  *	ns87410_pre_reset		-	probe begin
-  *	@ap: ATA port
-  *
-- *	Set up cable type and use generic probe init
-+ *	Check enabled ports
-  */
+ #define DRV_NAME	"mpc52xx_ata"
+-#define DRV_VERSION	"0.1.0"
++#define DRV_VERSION	"0.1.0ac2"
  
- static int ns87410_pre_reset(struct ata_port *ap)
-@@ -47,7 +47,6 @@ static int ns87410_pre_reset(struct ata_
  
- 	if (!pci_test_config_bits(pdev, &ns87410_enable_bits[ap->port_no]))
- 		return -ENOENT;
--	ap->cbl = ATA_CBL_PATA40;
- 	return ata_std_prereset(ap);
- }
- 
-@@ -177,6 +176,7 @@ static struct ata_port_operations ns8741
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ns87410_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ns87410_qc_issue_prot,
+ /* Private structures used by the driver */
+@@ -297,6 +297,7 @@ static struct ata_port_operations mpc52x
+ 	.freeze			= ata_bmdma_freeze,
+ 	.thaw			= ata_bmdma_thaw,
+ 	.error_handler		= mpc52xx_ata_error_handler,
++	.cable_detect		= ata_cable_40wire,
+ 	.qc_prep		= ata_qc_prep,
+ 	.qc_issue		= ata_qc_issue_prot,
+ 	.data_xfer		= ata_data_xfer,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
