@@ -1,89 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - sk98lin-handle-pci_enable_device-return-value-in-skge_resume.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:23:22 -0800
-Message-ID: <200703070423.l274NM4c019054@shell0.pdx.osdl.net>
+Subject: - network-add-the-missing-phy_device-speed-information-to-phy_mii_ioctl.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:23:24 -0800
+Message-ID: <200703070423.l274NOo5019057@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47217 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47226 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932330AbXCGEXZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:23:25 -0500
+	id S932456AbXCGEXg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:23:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@openvz.org, mm-commits@vger.kernel.org
+To: shanlu@cs.uiuc.edu, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sk98lin: handle pci_enable_device() return value in skge_resume()
+     network: add the missing phy_device speed information to phy_mii_ioctl
 has been removed from the -mm tree.  Its filename was
-     sk98lin-handle-pci_enable_device-return-value-in-skge_resume.patch
+     network-add-the-missing-phy_device-speed-information-to-phy_mii_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sk98lin: handle pci_enable_device() return value in skge_resume()
-From: Dmitriy Monakhov <dmonakhov@openvz.org>
+Subject: network: add the missing phy_device speed information to phy_mii_ioctl
+From: "Shan Lu" <shanlu@cs.uiuc.edu>
 
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
+Function `phy_mii_ioctl' returns physical device's information based on
+user requests.  When requested to return the basic mode control register
+information (BMCR), the original implementation only returns the physical
+device's duplex information and forgets to return speed information, which
+should not be because BMCR register is used to hold both duplex and speed
+information.
+
+The patch checks the BMCR value against speed-related flags and fills the
+return structure's speed field accordingly.
+
+Signed-off-by: Shan <shanlu@cs.uiuc.edu>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sk98lin/skge.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ drivers/net/phy/phy.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/net/sk98lin/skge.c~sk98lin-handle-pci_enable_device-return-value-in-skge_resume drivers/net/sk98lin/skge.c
---- a/drivers/net/sk98lin/skge.c~sk98lin-handle-pci_enable_device-return-value-in-skge_resume
-+++ a/drivers/net/sk98lin/skge.c
-@@ -5125,7 +5125,12 @@ static int skge_resume(struct pci_dev *p
- 
- 	pci_set_power_state(pdev, PCI_D0);
- 	pci_restore_state(pdev);
--	pci_enable_device(pdev);
-+	ret = pci_enable_device(pdev);
-+	if (ret) {
-+		printk(KERN_WARNING "sk98lin: unable to enable device %s "
-+				"in resume\n", dev->name);
-+		goto err_out;
-+	}
- 	pci_set_master(pdev);
- 	if (pAC->GIni.GIMacsFound == 2)
- 		ret = request_irq(dev->irq, SkGeIsr, IRQF_SHARED, "sk98lin", dev);
-@@ -5133,10 +5138,8 @@ static int skge_resume(struct pci_dev *p
- 		ret = request_irq(dev->irq, SkGeIsrOnePort, IRQF_SHARED, "sk98lin", dev);
- 	if (ret) {
- 		printk(KERN_WARNING "sk98lin: unable to acquire IRQ %d\n", dev->irq);
--		pAC->AllocFlag &= ~SK_ALLOC_IRQ;
--		dev->irq = 0;
--		pci_disable_device(pdev);
--		return -EBUSY;
-+		ret = -EBUSY;
-+		goto err_out_disable_pdev;
- 	}
- 
- 	netif_device_attach(dev);
-@@ -5153,6 +5156,13 @@ static int skge_resume(struct pci_dev *p
- 	}
- 
- 	return 0;
-+
-+err_out_disable_pdev:
-+	pci_disable_device(pdev);
-+err_out:
-+	pAC->AllocFlag &= ~SK_ALLOC_IRQ;
-+	dev->irq = 0;
-+	return ret;
- }
- #else
- #define skge_suspend NULL
+diff -puN drivers/net/phy/phy.c~network-add-the-missing-phy_device-speed-information-to-phy_mii_ioctl drivers/net/phy/phy.c
+--- a/drivers/net/phy/phy.c~network-add-the-missing-phy_device-speed-information-to-phy_mii_ioctl
++++ a/drivers/net/phy/phy.c
+@@ -382,6 +382,12 @@ int phy_mii_ioctl(struct phy_device *phy
+ 					phydev->duplex = DUPLEX_FULL;
+ 				else
+ 					phydev->duplex = DUPLEX_HALF;
++				if ((!phydev->autoneg) &&
++						(val & BMCR_SPEED1000))
++					phydev->speed = SPEED_1000;
++				else if ((!phydev->autoneg) &&
++						(val & BMCR_SPEED100))
++					phydev->speed = SPEED_100;
+ 				break;
+ 			case MII_ADVERTISE:
+ 				phydev->advertising = val;
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from shanlu@cs.uiuc.edu are
 
 origin.patch
-git-libata-all.patch
 git-netdev-all.patch
-mpt-fusion-handle-mpt_resume-failure-while-resuming.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
-irq-add-__must_check-to-request_irq.patch
-ext3-dirindex-error-pointer-issues.patch
