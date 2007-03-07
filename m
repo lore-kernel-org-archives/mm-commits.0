@@ -1,69 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - pata_sil680-cable-detect.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:44:06 -0800
-Message-ID: <200703072344.l27Ni635013236@shell0.pdx.osdl.net>
+Subject: - sata_via-cable-detection.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:44:28 -0800
+Message-ID: <200703072344.l27NiSwQ013240@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39033 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39040 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992756AbXCGXoi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:44:38 -0500
+	id S2992763AbXCGXop (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:44:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_sil680: cable detect
+     sata_via: cable detection
 has been removed from the -mm tree.  Its filename was
-     pata_sil680-cable-detect.patch
+     sata_via-cable-detection.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_sil680: cable detect
+Subject: sata_via: cable detection
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Much the same as the others except we have to keep our own error_handler
-methods as the chip has bus reset registers that we need to poke.
+Because the sata_via driver handles PATA and SATA ports on the 6421 it also
+ends up with duplicated chunks of code that can be eliminated using the
+cable_detect method.  Generally SATA drivers don't need/want this as they are
+set correctly by libata simply because they declare themselves as SATA.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sil680.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/ata/sata_via.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/pata_sil680.c~pata_sil680-cable-detect drivers/ata/pata_sil680.c
---- a/drivers/ata/pata_sil680.c~pata_sil680-cable-detect
-+++ a/drivers/ata/pata_sil680.c
-@@ -33,7 +33,7 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/sata_via.c~sata_via-cable-detection drivers/ata/sata_via.c
+--- a/drivers/ata/sata_via.c~sata_via-cable-detection
++++ a/drivers/ata/sata_via.c
+@@ -78,8 +78,7 @@ static u32 svia_scr_read (struct ata_por
+ static void svia_scr_write (struct ata_port *ap, unsigned int sc_reg, u32 val);
+ static void svia_noop_freeze(struct ata_port *ap);
+ static void vt6420_error_handler(struct ata_port *ap);
+-static void vt6421_sata_error_handler(struct ata_port *ap);
+-static void vt6421_pata_error_handler(struct ata_port *ap);
++static int vt6421_pata_cable_detect(struct ata_port *ap);
+ static void vt6421_set_pio_mode(struct ata_port *ap, struct ata_device *adev);
+ static void vt6421_set_dma_mode(struct ata_port *ap, struct ata_device *adev);
+ static int vt6421_port_start(struct ata_port *ap);
+@@ -172,8 +171,9 @@ static const struct ata_port_operations 
  
- #define DRV_NAME "pata_sil680"
--#define DRV_VERSION "0.4.5"
-+#define DRV_VERSION "0.4.6"
+ 	.freeze			= ata_bmdma_freeze,
+ 	.thaw			= ata_bmdma_thaw,
+-	.error_handler		= vt6421_pata_error_handler,
++	.error_handler		= ata_bmdma_error_handler,
+ 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= vt6421_pata_cable_detect,
  
- /**
-  *	sil680_selreg		-	return register base
-@@ -121,7 +121,7 @@ static int sil680_bus_reset(struct ata_p
+ 	.irq_handler		= ata_interrupt,
+ 	.irq_clear		= ata_bmdma_irq_clear,
+@@ -203,8 +203,9 @@ static const struct ata_port_operations 
  
- static void sil680_error_handler(struct ata_port *ap)
- {
--	ata_bmdma_drive_eh(ap, sil680_pre_reset, sil680_bus_reset, NULL, ata_std_postreset);
-+	ata_bmdma_drive_eh(ap, ata_std_prereset, sil680_bus_reset, NULL, ata_std_postreset);
- }
+ 	.freeze			= ata_bmdma_freeze,
+ 	.thaw			= ata_bmdma_thaw,
+-	.error_handler		= vt6421_sata_error_handler,
++	.error_handler		= ata_bmdma_error_handler,
+ 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= ata_cable_sata,
  
- /**
-@@ -259,6 +259,7 @@ static struct ata_port_operations sil680
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= sil680_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= sil680_cable_detect,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.irq_handler		= ata_interrupt,
+ 	.irq_clear		= ata_bmdma_irq_clear,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -85,7 +93,6 @@ pata_ns87410-cable-detect-method.patch
 pata_oldpiix-cable-detect.patch
 pata_opti-cable-detect.patch
 pata_pcmcia-cable-detect.patch
-pata_sil680-cable-detect.patch
 pata_triflex-cable-detect.patch
 sata_via-cable-detection.patch
 pata_cmd640-multiple-updates.patch
