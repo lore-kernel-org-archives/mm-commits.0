@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + pata_artop-cable-detect-methods.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:16 -0800
-Message-ID: <200703072108.l27L8G41009030@shell0.pdx.osdl.net>
+Subject: + ata_piix-remove-ugly-layering-violation.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:14 -0800
+Message-ID: <200703072108.l27L8Eai009023@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57502 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57500 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423011AbXCGVIm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1423009AbXCGVIm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Wed, 7 Mar 2007 16:08:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     pata_artop: cable detect methods
+     ata_piix: remove ugly layering violation
 has been added to the -mm tree.  Its filename is
-     pata_artop-cable-detect-methods.patch
+     ata_piix-remove-ugly-layering-violation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,88 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_artop: cable detect methods
+Subject: ata_piix: remove ugly layering violation
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+A while ago I modified the libata code so that drivers can return -ENOENT for
+unknown ports not fiddle with the EH flags and print stuff directly. 
+Somewhere along the line ata_piix didn't get fully converted.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_artop.c |   26 ++++++++++++++++++--------
- 1 files changed, 18 insertions(+), 8 deletions(-)
+ drivers/ata/ata_piix.c |   11 +++--------
+ 1 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/ata/pata_artop.c~pata_artop-cable-detect-methods drivers/ata/pata_artop.c
---- a/drivers/ata/pata_artop.c~pata_artop-cable-detect-methods
-+++ a/drivers/ata/pata_artop.c
-@@ -49,8 +49,6 @@ static int artop6210_pre_reset(struct at
+diff -puN drivers/ata/ata_piix.c~ata_piix-remove-ugly-layering-violation drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~ata_piix-remove-ugly-layering-violation
++++ a/drivers/ata/ata_piix.c
+@@ -93,7 +93,7 @@
+ #include <linux/libata.h>
  
- 	if (!pci_test_config_bits(pdev, &artop_enable_bits[ap->port_no]))
- 		return -ENOENT;
+ #define DRV_NAME	"ata_piix"
+-#define DRV_VERSION	"2.10"
++#define DRV_VERSION	"2.10ac1"
+ 
+ enum {
+ 	PIIX_IOCFG		= 0x54, /* IDE I/O configuration register */
+@@ -667,14 +667,9 @@ static int ich_pata_prereset(struct ata_
+ {
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 
+-	if (!pci_test_config_bits(pdev, &piix_enable_bits[ap->port_no])) {
+-		ata_port_printk(ap, KERN_INFO, "port disabled. ignoring.\n");
+-		ap->eh_context.i.action &= ~ATA_EH_RESET_MASK;
+-		return 0;
+-	}
 -
--	ap->cbl = ATA_CBL_PATA40;
++	if (!pci_test_config_bits(pdev, &piix_enable_bits[ap->port_no]))
++		return -ENOENT;
+ 	ich_pata_cbl_detect(ap);
+-
  	return ata_std_prereset(ap);
  }
  
-@@ -85,18 +83,28 @@ static int artop6260_pre_reset(struct at
- 	};
- 
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--	u8 tmp;
- 
- 	/* Odd numbered device ids are the units with enable bits (the -R cards) */
- 	if (pdev->device % 1 && !pci_test_config_bits(pdev, &artop_enable_bits[ap->port_no]))
- 		return -ENOENT;
-+	return ata_std_prereset(ap);
-+}
-+
-+/**
-+ *	artop6260_cable_detect	-	identify cable type
-+ *	@ap: Port
-+ *
-+ *	Identify the cable type for the ARTOp interface in question
-+ */
- 
-+static int artop6260_cable_detect(struct ata_port *ap)
-+{
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+	u8 tmp;
- 	pci_read_config_byte(pdev, 0x49, &tmp);
- 	if (tmp & (1 << ap->port_no))
--		ap->cbl = ATA_CBL_PATA40;
--	else
--		ap->cbl = ATA_CBL_PATA80;
--	return ata_std_prereset(ap);
-+		return ATA_CBL_PATA40;
-+	return ATA_CBL_PATA80;
- }
- 
- /**
-@@ -225,7 +233,7 @@ static void artop6260_set_piomode(struct
- /**
-  *	artop6210_set_dmamode - Initialize host controller PATA PIO timings
-  *	@ap: Port whose timings we are configuring
-- *	@adev: um
-+ *	@adev: Device whose timings we are configuring
-  *
-  *	Set DMA mode for device, in host controller PCI config space.
-  *
-@@ -333,6 +341,7 @@ static const struct ata_port_operations 
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= artop6210_error_handler,
- 	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_40wire,
- 
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
-@@ -366,6 +375,7 @@ static const struct ata_port_operations 
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= artop6260_error_handler,
- 	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= artop6260_cable_detect,
- 
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
