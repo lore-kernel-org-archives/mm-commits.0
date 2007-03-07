@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch added to -mm tree
-Date: Wed, 07 Mar 2007 15:29:36 -0800
-Message-ID: <200703072329.l27NTapv012788@shell0.pdx.osdl.net>
+Subject: + pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch added to -mm tree
+Date: Wed, 07 Mar 2007 15:30:13 -0800
+Message-ID: <200703072330.l27NUD3M012851@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37695 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37749 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992741AbXCGXaD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:30:03 -0500
+	id S965726AbXCGXaZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:30:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     ata_generic: correct the cable type to unknown
+     pata_ali: use the cable_detect method
 has been added to the -mm tree.  Its filename is
-     ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
+     pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata_generic: correct the cable type to unknown
+Subject: pata_ali: use the cable_detect method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_generic.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ata/pata_ali.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/ata_generic.c~ata_generic-remove-lots-of-code-using-the-new-cable_detect drivers/ata/ata_generic.c
---- a/drivers/ata/ata_generic.c~ata_generic-remove-lots-of-code-using-the-new-cable_detect
-+++ a/drivers/ata/ata_generic.c
-@@ -145,8 +145,9 @@ static struct ata_port_operations generi
+diff -puN drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect drivers/ata/pata_ali.c
+--- a/drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect
++++ a/drivers/ata/pata_ali.c
+@@ -368,8 +368,9 @@ static struct ata_port_operations ali_ea
  
  	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= generic_error_handler,
+-	.error_handler	= ali_early_error_handler,
 +	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_unknown,
++	.cable_detect	= ata_cable_40wire,
  
  	.qc_prep 	= ata_qc_prep,
  	.qc_issue	= ata_qc_issue_prot,
+@@ -404,8 +405,9 @@ static struct ata_port_operations ali_20
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_early_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -479,8 +481,9 @@ static struct ata_port_operations ali_c5
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_c2_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ali_c2_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
