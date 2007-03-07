@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 26-altix-console-fix-for-config_debug_shirq-usage.patch added to -mm tree
-Date: Wed, 07 Mar 2007 14:37:25 -0800
-Message-ID: <200703072237.l27MbPNm011429@shell0.pdx.osdl.net>
+Subject: + exec-fix-remove_arg_zero-add-comment.patch added to -mm tree
+Date: Wed, 07 Mar 2007 14:42:08 -0800
+Message-ID: <200703072242.l27Mg8Su011538@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35156 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35491 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992680AbXCGWh1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 17:37:27 -0500
+	id S2992689AbXCGWmR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 17:42:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pfg@sgi.com
+Cc: a.p.zijlstra@chello.nl, npiggin@suse.de, ptesarik@suse.cz
 
 
 The patch titled
-     2.6 Altix: console fix for CONFIG_DEBUG_SHIRQ usage
+     exec-fix-remove_arg_zero-add-comment
 has been added to the -mm tree.  Its filename is
-     26-altix-console-fix-for-config_debug_shirq-usage.patch
+     exec-fix-remove_arg_zero-add-comment.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,102 +25,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 2.6 Altix: console fix for CONFIG_DEBUG_SHIRQ usage
-From: Pat Gefre <pfg@sgi.com>
+Subject: exec-fix-remove_arg_zero-add-comment
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-The sn console driver was snagged by the use of CONFIG_DEBUG_SHIRQ!
+Add Peter's comment to Nick's patch.
 
-The request_irq() immediate call to the interrupt handler caused
-another attempt to lock the port lock - deadlock.
-
-This is a patch to fix that.
-
-Signed-off-by: Patrick Gefre <pfg@sgi.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Petr Tesarik <ptesarik@suse.cz>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/sn_console.c |   52 +++++++++++-----------------------
- 1 files changed, 17 insertions(+), 35 deletions(-)
+ fs/exec.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/sn_console.c~26-altix-console-fix-for-config_debug_shirq-usage drivers/serial/sn_console.c
---- a/drivers/serial/sn_console.c~26-altix-console-fix-for-config_debug_shirq-usage
-+++ a/drivers/serial/sn_console.c
-@@ -636,25 +636,6 @@ static irqreturn_t sn_sal_interrupt(int 
+diff -puN fs/exec.c~exec-fix-remove_arg_zero-add-comment fs/exec.c
+--- a/fs/exec.c~exec-fix-remove_arg_zero-add-comment
++++ a/fs/exec.c
+@@ -982,9 +982,13 @@ void compute_creds(struct linux_binprm *
+ 	task_unlock(current);
+ 	security_bprm_post_apply_creds(bprm);
  }
+-
+ EXPORT_SYMBOL(compute_creds);
  
- /**
-- * sn_sal_connect_interrupt - Request interrupt, handled by sn_sal_interrupt
-- * @port: Our sn_cons_port (which contains the uart port)
-- *
-- * returns the console irq if interrupt is successfully registered, else 0
-- *
-- */
--static int sn_sal_connect_interrupt(struct sn_cons_port *port)
--{
--	if (request_irq(SGI_UART_VECTOR, sn_sal_interrupt,
--			IRQF_DISABLED | IRQF_SHARED,
--			"SAL console driver", port) >= 0) {
--		return SGI_UART_VECTOR;
--	}
--
--	printk(KERN_INFO "sn_console: console proceeding in polled mode\n");
--	return 0;
--}
--
--/**
-  * sn_sal_timer_poll - this function handles polled console mode
-  * @data: A pointer to our sn_cons_port (which contains the uart port)
-  *
-@@ -746,30 +727,31 @@ static void __init sn_sal_switch_to_asyn
-  * mode.  We were previously in asynch/polling mode (using init_timer).
-  *
-  * We attempt to switch to interrupt mode here by calling
-- * sn_sal_connect_interrupt.  If that works out, we enable receive interrupts.
-+ * request_irq.  If that works out, we enable receive interrupts.
-  */
- static void __init sn_sal_switch_to_interrupts(struct sn_cons_port *port)
++/*
++ * Arguments are '\0' separated strings found at the location bprm->p
++ * points to; chop off the first by relocating brpm->p to right after
++ * the first '\0' encountered.
++ */
+ void remove_arg_zero(struct linux_binprm *bprm)
  {
--	int irq;
- 	unsigned long flags;
- 
--	if (!port)
--		return;
--
--	DPRINTF("sn_console: switching to interrupt driven console\n");
--
--	spin_lock_irqsave(&port->sc_port.lock, flags);
-+	if (port) {
-+		DPRINTF("sn_console: switching to interrupt driven console\n");
- 
--	irq = sn_sal_connect_interrupt(port);
-+		if (request_irq(SGI_UART_VECTOR, sn_sal_interrupt,
-+				IRQF_DISABLED | IRQF_SHARED,
-+				"SAL console driver", port) >= 0) {
-+			spin_lock_irqsave(&port->sc_port.lock, flags);
-+			port->sc_port.irq = SGI_UART_VECTOR;
-+			port->sc_ops = &intr_ops;
- 
--	if (irq) {
--		port->sc_port.irq = irq;
--		port->sc_ops = &intr_ops;
--
--		/* turn on receive interrupts */
--		ia64_sn_console_intr_enable(SAL_CONSOLE_INTR_RECV);
-+			/* turn on receive interrupts */
-+			ia64_sn_console_intr_enable(SAL_CONSOLE_INTR_RECV);
-+			spin_unlock_irqrestore(&port->sc_port.lock, flags);
-+		}
-+		else {
-+			printk(KERN_INFO
-+			    "sn_console: console proceeding in polled mode\n");
-+		}
+ 	if (bprm->argc) {
+@@ -1023,7 +1027,6 @@ void remove_arg_zero(struct linux_binprm
+ 		bprm->argc--;
  	}
--	spin_unlock_irqrestore(&port->sc_port.lock, flags);
  }
+-
+ EXPORT_SYMBOL(remove_arg_zero);
  
  /*
 _
 
-Patches currently in -mm which might be from pfg@sgi.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-26-altix-console-fix-for-config_debug_shirq-usage.patch
+ecryptfs-nested-locking-annotation.patch
+nfs-fix-congestion-control-v4.patch
+lists-add-list-splice-tail.patch
+nfs-fix-congestion-control-use-atomic_longs.patch
+exec-fix-remove_arg_zero-add-comment.patch
