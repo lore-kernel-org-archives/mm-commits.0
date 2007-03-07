@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_mpc52xx-cable-detect.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:24 -0800
-Message-ID: <200703072108.l27L8Own009047@shell0.pdx.osdl.net>
+Subject: + pata_mpiix-cable-detect-method.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:26 -0800
+Message-ID: <200703072108.l27L8QeP009053@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57533 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57539 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992578AbXCGVIr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:08:47 -0500
+	id S2992579AbXCGVIs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:08:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     pata_mpc52xx: cable detect
+     pata_mpiix: cable detect method
 has been added to the -mm tree.  Its filename is
-     pata_mpc52xx-cable-detect.patch
+     pata_mpiix-cable-detect-method.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_mpc52xx: cable detect
+Subject: pata_mpiix: cable detect method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -33,29 +33,37 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_mpc52xx.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/ata/pata_mpiix.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_mpc52xx.c~pata_mpc52xx-cable-detect drivers/ata/pata_mpc52xx.c
---- a/drivers/ata/pata_mpc52xx.c~pata_mpc52xx-cable-detect
-+++ a/drivers/ata/pata_mpc52xx.c
-@@ -24,7 +24,7 @@
+diff -puN drivers/ata/pata_mpiix.c~pata_mpiix-cable-detect-method drivers/ata/pata_mpiix.c
+--- a/drivers/ata/pata_mpiix.c~pata_mpiix-cable-detect-method
++++ a/drivers/ata/pata_mpiix.c
+@@ -35,7 +35,7 @@
+ #include <linux/libata.h>
  
+ #define DRV_NAME "pata_mpiix"
+-#define DRV_VERSION "0.7.5"
++#define DRV_VERSION "0.7.6"
  
- #define DRV_NAME	"mpc52xx_ata"
--#define DRV_VERSION	"0.1.0"
-+#define DRV_VERSION	"0.1.0ac2"
+ enum {
+ 	IDETIM = 0x6C,		/* IDE control register */
+@@ -53,7 +53,6 @@ static int mpiix_pre_reset(struct ata_po
  
+ 	if (!pci_test_config_bits(pdev, &mpiix_enable_bits))
+ 		return -ENOENT;
+-	ap->cbl = ATA_CBL_PATA40;
+ 	return ata_std_prereset(ap);
+ }
  
- /* Private structures used by the driver */
-@@ -297,6 +297,7 @@ static struct ata_port_operations mpc52x
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= mpc52xx_ata_error_handler,
-+	.cable_detect		= ata_cable_40wire,
- 	.qc_prep		= ata_qc_prep,
- 	.qc_issue		= ata_qc_issue_prot,
- 	.data_xfer		= ata_data_xfer,
+@@ -185,6 +184,7 @@ static struct ata_port_operations mpiix_
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= mpiix_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= mpiix_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
