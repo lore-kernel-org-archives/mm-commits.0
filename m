@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_opti-cable-detect.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:32 -0800
-Message-ID: <200703072108.l27L8WRa009063@shell0.pdx.osdl.net>
+Subject: + pata_sil680-cable-detect.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:38 -0800
+Message-ID: <200703072108.l27L8cMr009074@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57565 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57588 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992590AbXCGVIy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:08:54 -0500
+	id S2992593AbXCGVI7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:08:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     pata_opti: cable detect
+     pata_sil680: cable detect
 has been added to the -mm tree.  Its filename is
-     pata_opti-cable-detect.patch
+     pata_sil680-cable-detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_opti: cable detect
+Subject: pata_sil680: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+Much the same as the others except we have to keep our own error_handler
+methods as the chip has bus reset registers that we need to poke.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_opti.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/ata/pata_sil680.c |   11 +++--------
+ 1 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/ata/pata_opti.c~pata_opti-cable-detect drivers/ata/pata_opti.c
---- a/drivers/ata/pata_opti.c~pata_opti-cable-detect
-+++ a/drivers/ata/pata_opti.c
-@@ -34,7 +34,7 @@
+diff -puN drivers/ata/pata_sil680.c~pata_sil680-cable-detect drivers/ata/pata_sil680.c
+--- a/drivers/ata/pata_sil680.c~pata_sil680-cable-detect
++++ a/drivers/ata/pata_sil680.c
+@@ -33,7 +33,7 @@
  #include <linux/libata.h>
  
- #define DRV_NAME "pata_opti"
--#define DRV_VERSION "0.2.8"
-+#define DRV_VERSION "0.2.9"
+ #define DRV_NAME "pata_sil680"
+-#define DRV_VERSION "0.4.5"
++#define DRV_VERSION "0.4.6"
  
- enum {
- 	READ_REG	= 0,	/* index of Read cycle timing register */
-@@ -61,8 +61,6 @@ static int opti_pre_reset(struct ata_por
- 
- 	if (!pci_test_config_bits(pdev, &opti_enable_bits[ap->port_no]))
- 		return -ENOENT;
--
--	ap->cbl = ATA_CBL_PATA40;
- 	return ata_std_prereset(ap);
+ /**
+  *	sil680_selreg		-	return register base
+@@ -91,12 +91,6 @@ static int sil680_cable_detect(struct at
+ 		return ATA_CBL_PATA40;
  }
  
-@@ -198,6 +196,7 @@ static struct ata_port_operations opti_p
+-static int sil680_pre_reset(struct ata_port *ap)
+-{
+-	ap->cbl = sil680_cable_detect(ap);
+-	return ata_std_prereset(ap);
+-}
+-
+ /**
+  *	sil680_bus_reset	-	reset the SIL680 bus
+  *	@ap: ATA port to reset
+@@ -119,7 +113,7 @@ static int sil680_bus_reset(struct ata_p
+ 
+ static void sil680_error_handler(struct ata_port *ap)
+ {
+-	ata_bmdma_drive_eh(ap, sil680_pre_reset, sil680_bus_reset, NULL, ata_std_postreset);
++	ata_bmdma_drive_eh(ap, ata_std_prereset, sil680_bus_reset, NULL, ata_std_postreset);
+ }
+ 
+ /**
+@@ -257,6 +251,7 @@ static struct ata_port_operations sil680
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= opti_error_handler,
+ 	.error_handler	= sil680_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
++	.cable_detect	= sil680_cable_detect,
  
  	.bmdma_setup 	= ata_bmdma_setup,
  	.bmdma_start 	= ata_bmdma_start,
@@ -125,3 +141,4 @@ documentation-ask-driver-writers-to-provide-pm-support.patch
 tty-clarify-documentation-of-write.patch
 edac-new-opteron-athlon64-memory-controller-driver.patch
 edac-k8-driver-coding-tidy.patch
+dilnetpc-fix-warning.patch
