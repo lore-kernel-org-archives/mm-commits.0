@@ -1,72 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:38:28 -0800
-Message-ID: <200703072338.l27NcSAN013044@shell0.pdx.osdl.net>
+Subject: - pata_ixp4xx_cf-set-cable-type.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:40:01 -0800
+Message-ID: <200703072340.l27Ne1wS013108@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38355 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38521 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964793AbXCGXik (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:38:40 -0500
+	id S1945907AbXCGXkN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:40:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_ali: use the cable_detect method
+     pata_ixp4xx_cf - set cable type
 has been removed from the -mm tree.  Its filename was
-     pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
+     pata_ixp4xx_cf-set-cable-type.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because I can't test it and I don't know if it broke
 
 ------------------------------------------------------
-Subject: pata_ali: use the cable_detect method
+Subject: pata_ixp4xx_cf - set cable type
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ali.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/ata/pata_ixp4xx_cf.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect drivers/ata/pata_ali.c
---- a/drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect
-+++ a/drivers/ata/pata_ali.c
-@@ -368,8 +368,9 @@ static struct ata_port_operations ali_ea
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= ali_early_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
+diff -puN drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-set-cable-type drivers/ata/pata_ixp4xx_cf.c
+--- a/drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-set-cable-type
++++ a/drivers/ata/pata_ixp4xx_cf.c
+@@ -129,6 +129,7 @@ static struct ata_port_operations ixp4xx
  	.qc_issue	= ata_qc_issue_prot,
-@@ -404,8 +405,9 @@ static struct ata_port_operations ali_20
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= ali_early_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
+ 	.eng_timeout	= ata_eng_timeout,
+ 	.data_xfer	= ixp4xx_mmio_data_xfer,
 +	.cable_detect	= ata_cable_40wire,
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
-@@ -479,8 +481,9 @@ static struct ata_port_operations ali_c5
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= ali_c2_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ali_c2_cable_detect,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.irq_handler	= ata_interrupt,
+ 	.irq_clear	= ixp4xx_irq_clear,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -77,10 +52,6 @@ pcmcia-spot-slave-decode-flaws-for-testing.patch
 pata_platform-set-a-cable-type-which-to-set.patch
 pata_qdi-set-cable-type.patch
 pata_sl82c105-missing-methods-cable.patch
-ata_generic-remove-lots-of-code-using-the-new-cable_detect.patch
-pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
-pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
-pata_cypress-clean-up-by-using-cable_detect-method.patch
 pata_isapnp-set-cable-type.patch
 pata_ixp4xx_cf-set-cable-type.patch
 pata_legacy-fix-missing-methods-and-add-cable-types.patch
