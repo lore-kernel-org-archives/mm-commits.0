@@ -1,57 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - pata_opti-cable-detect.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:48:31 -0800
-Message-ID: <200703072348.l27NmVQE013424@shell0.pdx.osdl.net>
+Subject: - pata_legacy-fix-missing-methods-and-add-cable-types.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:48:17 -0800
+Message-ID: <200703072348.l27NmHaS013397@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39326 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39272 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751130AbXCGXss (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:48:48 -0500
+	id S1751314AbXCGXs2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:48:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_opti: cable detect
+     pata_legacy: Fix missing methods and add cable types
 has been removed from the -mm tree.  Its filename was
-     pata_opti-cable-detect.patch
+     pata_legacy-fix-missing-methods-and-add-cable-types.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_opti: cable detect
+Subject: pata_legacy: Fix missing methods and add cable types
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+Several method sets lacked freeze/resume methods. Fix this and while we
+are at it force the cable to 40wire
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_opti.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ata/pata_legacy.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/ata/pata_opti.c~pata_opti-cable-detect drivers/ata/pata_opti.c
---- a/drivers/ata/pata_opti.c~pata_opti-cable-detect
-+++ a/drivers/ata/pata_opti.c
-@@ -34,7 +34,7 @@
- #include <linux/libata.h>
- 
- #define DRV_NAME "pata_opti"
--#define DRV_VERSION "0.2.8"
-+#define DRV_VERSION "0.2.9"
- 
- enum {
- 	READ_REG	= 0,	/* index of Read cycle timing register */
-@@ -199,6 +199,7 @@ static struct ata_port_operations opti_p
+diff -puN drivers/ata/pata_legacy.c~pata_legacy-fix-missing-methods-and-add-cable-types drivers/ata/pata_legacy.c
+--- a/drivers/ata/pata_legacy.c~pata_legacy-fix-missing-methods-and-add-cable-types
++++ a/drivers/ata/pata_legacy.c
+@@ -162,6 +162,7 @@ static struct ata_port_operations simple
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= opti_error_handler,
+ 	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
 +	.cable_detect	= ata_cable_40wire,
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -185,6 +186,7 @@ static struct ata_port_operations legacy
+ 	.check_status 	= ata_check_status,
+ 	.exec_command	= ata_exec_command,
+ 	.dev_select 	= ata_std_dev_select,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+@@ -305,6 +307,7 @@ static struct ata_port_operations pdc202
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -360,6 +363,7 @@ static struct ata_port_operations ht6560
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -426,6 +430,7 @@ static struct ata_port_operations ht6560
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -547,6 +552,7 @@ static struct ata_port_operations opti82
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -680,6 +686,7 @@ static struct ata_port_operations opti82
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= opti82c46x_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -60,7 +101,14 @@ git-libata-all.patch
 expose-set_mode-method-so-it-can-be-wrapped.patch
 pcmcia-spot-slave-decode-flaws-for-testing.patch
 pata_sl82c105-missing-methods-cable.patch
+pata_legacy-fix-missing-methods-and-add-cable-types.patch
+pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
+pata_winbond-set-cable-type.patch
 ata_piix-remove-ugly-layering-violation.patch
+pata_mpc52xx-cable-detect.patch
+pata_mpiix-cable-detect-method.patch
+pata_ns87410-cable-detect-method.patch
+pata_oldpiix-cable-detect.patch
 pata_opti-cable-detect.patch
 pata_pcmcia-cable-detect.patch
 pata_triflex-cable-detect.patch
