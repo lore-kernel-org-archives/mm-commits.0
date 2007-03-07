@@ -1,59 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - sdhci-handle-resumed-devices.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:21:56 -0800
-Message-ID: <200703070421.l274Luuw018951@shell0.pdx.osdl.net>
+Subject: - fs-nobh_truncate_page-fix.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:26 -0800
+Message-ID: <200703070421.l274LQNi018900@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47095 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47108 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932767AbXCGEWI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:22:08 -0500
+	id S1751000AbXCGEWS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:22:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkml@rtr.ca, drzeus@drzeus.cx, mlord@pobox.com, mm-commits@vger.kernel.org
+To: shaggy@linux.vnet.ibm.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdhci: handle resumed devices
+     fs: nobh_truncate_page() fix
 has been removed from the -mm tree.  Its filename was
-     sdhci-handle-resumed-devices.patch
+     fs-nobh_truncate_page-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sdhci: handle resumed devices
-From: Mark Lord <lkml@rtr.ca>
+Subject: fs: nobh_truncate_page() fix
+From: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
 
-The interrupt is shared with another device, which resumes earlier than the
-sdhci controller, and generates an interrupt.
+This fixes a regression caused by 22c8ca78f20724676b6006232bf06cc3e9299539.
 
-The sdhci interrupt handler runs, sees 0xffffffff in its own device's
-interrupt status, and tries to handle it..  The reason for the 0xffffffff
-is that the device is still suspended, and *all* regs are reading back
-0xffffffff.
+nobh_prepare_write() no longer marks the page uptodate, so
+nobh_truncate_page() needs to do it.
 
-Signed-off-by: Mark Lord <mlord@pobox.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/sdhci.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/buffer.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/mmc/sdhci.c~sdhci-handle-resumed-devices drivers/mmc/sdhci.c
---- a/drivers/mmc/sdhci.c~sdhci-handle-resumed-devices
-+++ a/drivers/mmc/sdhci.c
-@@ -994,7 +994,7 @@ static irqreturn_t sdhci_irq(int irq, vo
+diff -puN fs/buffer.c~fs-nobh_truncate_page-fix fs/buffer.c
+--- a/fs/buffer.c~fs-nobh_truncate_page-fix
++++ a/fs/buffer.c
+@@ -2365,6 +2365,10 @@ failed:
+ }
+ EXPORT_SYMBOL(nobh_prepare_write);
  
- 	intmask = readl(host->ioaddr + SDHCI_INT_STATUS);
- 
--	if (!intmask) {
-+	if (!intmask || intmask == 0xffffffff) {
- 		result = IRQ_NONE;
- 		goto out;
++/*
++ * Make sure any changes to nobh_commit_write() are reflected in
++ * nobh_truncate_page(), since it doesn't call commit_write().
++ */
+ int nobh_commit_write(struct file *file, struct page *page,
+ 		unsigned from, unsigned to)
+ {
+@@ -2466,6 +2470,11 @@ int nobh_truncate_page(struct address_sp
+ 		memset(kaddr + offset, 0, PAGE_CACHE_SIZE - offset);
+ 		flush_dcache_page(page);
+ 		kunmap_atomic(kaddr, KM_USER0);
++		/*
++		 * It would be more correct to call aops->commit_write()
++		 * here, but this is more efficient.
++		 */
++		SetPageUptodate(page);
+ 		set_page_dirty(page);
  	}
+ 	unlock_page(page);
 _
 
-Patches currently in -mm which might be from lkml@rtr.ca are
+Patches currently in -mm which might be from shaggy@linux.vnet.ibm.com are
 
 origin.patch
