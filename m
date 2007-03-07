@@ -1,78 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - publish-rcutorture-module-parameters-via-sysfs-read-only.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:21:32 -0800
-Message-ID: <200703070421.l274LW1q018906@shell0.pdx.osdl.net>
+Subject: - uml-add-a-debugging-message.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:46 -0800
+Message-ID: <200703070421.l274Lkir018930@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47036 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47059 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161313AbXCGEVf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:21:35 -0500
+	id S1161327AbXCGEVt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:21:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josh@freedesktop.org, paulmck@us.ibm.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Publish rcutorture module parameters via sysfs, read-only
+     uml: add a debugging message
 has been removed from the -mm tree.  Its filename was
-     publish-rcutorture-module-parameters-via-sysfs-read-only.patch
+     uml-add-a-debugging-message.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Publish rcutorture module parameters via sysfs, read-only
-From: Josh Triplett <josh@freedesktop.org>
+Subject: uml: add a debugging message
+From: Jeff Dike <jdike@addtoit.com>
 
-rcutorture's module parameters currently use permissions of 0, so they
-don't show up in /sys/module/rcutorture/parameters.  Change the permissions
-on all module parameters to world-readable (0444).
+Add a debugging message in the case that mapping a stub fails.
 
-rcutorture does all of its initialization and thread startup when loaded
-and relies on the parameters not changing during execution, so they should
-not permit writing.  However, reading seems fine.
-
-Signed-off-by: Josh Triplett <josh@freedesktop.org>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcutorture.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/um/os-Linux/skas/process.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/rcutorture.c~publish-rcutorture-module-parameters-via-sysfs-read-only kernel/rcutorture.c
---- a/kernel/rcutorture.c~publish-rcutorture-module-parameters-via-sysfs-read-only
-+++ a/kernel/rcutorture.c
-@@ -60,19 +60,19 @@ static int test_no_idle_hz;	/* Test RCU'
- static int shuffle_interval = 5; /* Interval between shuffles (in sec)*/
- static char *torture_type = "rcu"; /* What RCU implementation to torture. */
+diff -puN arch/um/os-Linux/skas/process.c~uml-add-a-debugging-message arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-add-a-debugging-message
++++ a/arch/um/os-Linux/skas/process.c
+@@ -419,9 +419,12 @@ void map_stub_pages(int fd, unsigned lon
+ 					  .offset  = code_offset
+ 	} } });
+ 	n = os_write_file(fd, &mmop, sizeof(mmop));
+-	if(n != sizeof(mmop))
++	if(n != sizeof(mmop)){
++		printk("mmap args - addr = 0x%lx, fd = %d, offset = %llx\n",
++		       code, code_fd, (unsigned long long) code_offset);
+ 		panic("map_stub_pages : /proc/mm map for code failed, "
+ 		      "err = %d\n", -n);
++	}
  
--module_param(nreaders, int, 0);
-+module_param(nreaders, int, 0444);
- MODULE_PARM_DESC(nreaders, "Number of RCU reader threads");
--module_param(nfakewriters, int, 0);
-+module_param(nfakewriters, int, 0444);
- MODULE_PARM_DESC(nfakewriters, "Number of RCU fake writer threads");
--module_param(stat_interval, int, 0);
-+module_param(stat_interval, int, 0444);
- MODULE_PARM_DESC(stat_interval, "Number of seconds between stats printk()s");
--module_param(verbose, bool, 0);
-+module_param(verbose, bool, 0444);
- MODULE_PARM_DESC(verbose, "Enable verbose debugging printk()s");
--module_param(test_no_idle_hz, bool, 0);
-+module_param(test_no_idle_hz, bool, 0444);
- MODULE_PARM_DESC(test_no_idle_hz, "Test support for tickless idle CPUs");
--module_param(shuffle_interval, int, 0);
-+module_param(shuffle_interval, int, 0444);
- MODULE_PARM_DESC(shuffle_interval, "Number of seconds between shuffles");
--module_param(torture_type, charp, 0);
-+module_param(torture_type, charp, 0444);
- MODULE_PARM_DESC(torture_type, "Type of RCU to torture (rcu, rcu_bh, srcu)");
- 
- #define TORTURE_FLAG "-torture:"
+ 	if ( stack ) {
+ 		__u64 map_offset;
 _
 
-Patches currently in -mm which might be from josh@freedesktop.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-rcutorture-mark-rcu_torture_init-as-__init.patch
+uml-hostfs-fix-double-free.patch
+uml-hostfs-make-hostfs=-option-work-as-a-jail-as-intended.patch
+uml-fix-a-memory-leak-in-the-multicast-driver.patch
+uml-remove-dead-code-about-os_usr1_signal-and-os_usr1_process.patch
+uml-mark-both-consoles-as-con_anytime.patch
+uml-fix-confusion-irq-early-reenabling.patch
+uml-activate_fd-return-enomem-only-when-appropriate.patch
+uml-fix-errno-usage.patch
+div64_64-common-code.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+uml-fix-prototypes.patch
