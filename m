@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_hpt366-cable-detect-methods.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:58 -0800
-Message-ID: <200703072108.l27L8wfB009107@shell0.pdx.osdl.net>
+Subject: + pata_oldpiix-cable-detect.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:30 -0800
+Message-ID: <200703072108.l27L8UTU009060@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57690 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57555 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992593AbXCGVJ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:09:29 -0500
+	id S2992583AbXCGVIw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:08:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     pata_hpt366: cable detect methods
+     pata_oldpiix: cable detect
 has been added to the -mm tree.  Its filename is
-     pata_hpt366-cable-detect-methods.patch
+     pata_oldpiix-cable-detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_hpt366: cable detect methods
+Subject: pata_oldpiix: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -33,65 +33,46 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt366.c |   23 +++++++++++++----------
- 1 files changed, 13 insertions(+), 10 deletions(-)
+ drivers/ata/pata_oldpiix.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_hpt366.c~pata_hpt366-cable-detect-methods drivers/ata/pata_hpt366.c
---- a/drivers/ata/pata_hpt366.c~pata_hpt366-cable-detect-methods
-+++ a/drivers/ata/pata_hpt366.c
-@@ -27,7 +27,7 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/pata_oldpiix.c~pata_oldpiix-cable-detect drivers/ata/pata_oldpiix.c
+--- a/drivers/ata/pata_oldpiix.c~pata_oldpiix-cable-detect
++++ a/drivers/ata/pata_oldpiix.c
+@@ -25,7 +25,7 @@
+ #include <linux/ata.h>
  
- #define DRV_NAME	"pata_hpt366"
--#define DRV_VERSION	"0.6.0"
-+#define DRV_VERSION	"0.6.1"
+ #define DRV_NAME	"pata_oldpiix"
+-#define DRV_VERSION	"0.5.4"
++#define DRV_VERSION	"0.5.5"
  
- struct hpt_clock {
- 	u8	xfer_speed;
-@@ -210,24 +210,26 @@ static u32 hpt36x_find_mode(struct ata_p
- 	return 0xffffffffU;	/* silence compiler warning */
- }
+ /**
+  *	oldpiix_pre_reset		-	probe begin
+@@ -44,7 +44,6 @@ static int oldpiix_pre_reset(struct ata_
  
-+static int hpt36x_cable_detect(struct ata_port *ap)
-+{
-+	u8 ata66;
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+
-+	pci_read_config_byte(pdev, 0x5A, &ata66);
-+	if (ata66 & (1 << ap->port_no))
-+		return ATA_CBL_PATA40;
-+	return ATA_CBL_PATA80;
-+}
-+
- static int hpt36x_pre_reset(struct ata_port *ap)
- {
- 	static const struct pci_bits hpt36x_enable_bits[] = {
- 		{ 0x50, 1, 0x04, 0x04 },
- 		{ 0x54, 1, 0x04, 0x04 }
- 	};
--
--	u8 ata66;
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--
- 	if (!pci_test_config_bits(pdev, &hpt36x_enable_bits[ap->port_no]))
+ 	if (!pci_test_config_bits(pdev, &oldpiix_enable_bits[ap->port_no]))
  		return -ENOENT;
--
--	pci_read_config_byte(pdev, 0x5A, &ata66);
--	if (ata66 & (1 << ap->port_no))
--		ap->cbl = ATA_CBL_PATA40;
--	else
--		ap->cbl = ATA_CBL_PATA80;
+-	ap->cbl = ATA_CBL_PATA40;
  	return ata_std_prereset(ap);
  }
  
-@@ -354,6 +356,7 @@ static struct ata_port_operations hpt366
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= hpt36x_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= hpt36x_cable_detect,
+@@ -65,7 +64,7 @@ static void oldpiix_pata_error_handler(s
+ /**
+  *	oldpiix_set_piomode - Initialize host controller PATA PIO timings
+  *	@ap: Port whose timings we are configuring
+- *	@adev: um
++ *	@adev: Device whose timings we are configuring
+  *
+  *	Set PIO mode for device, in host controller PCI config space.
+  *
+@@ -255,6 +254,7 @@ static const struct ata_port_operations 
+ 	.thaw			= ata_bmdma_thaw,
+ 	.error_handler		= oldpiix_pata_error_handler,
+ 	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= ata_cable_40wire,
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.bmdma_setup		= ata_bmdma_setup,
+ 	.bmdma_start		= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -142,7 +123,6 @@ pata_via-use-cable_detect-method.patch
 pata_hpt366-cable-detect-methods.patch
 pata_atiixp-switch-to-cable_detect-method-with-correct.patch
 libata-fix-hopefully-all-the-remaining-problems-with.patch
-dilnetpc-fix-warning.patch
 resend-iphase-64bit-cleanup.patch
 drivers-scsi-ncr5380c-replacing-yield-with-a.patch
 drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
