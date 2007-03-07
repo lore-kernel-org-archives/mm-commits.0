@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ata_piix-remove-ugly-layering-violation.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:14 -0800
-Message-ID: <200703072108.l27L8Eai009023@shell0.pdx.osdl.net>
+Subject: + pata_it821x-clean-up-by-using-cable-methods.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:22 -0800
+Message-ID: <200703072108.l27L8MTf009044@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57500 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57511 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423009AbXCGVIm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:08:42 -0500
+	id S1423013AbXCGVIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:08:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     ata_piix: remove ugly layering violation
+     pata_it821x: clean up by using cable methods
 has been added to the -mm tree.  Its filename is
-     ata_piix-remove-ugly-layering-violation.patch
+     pata_it821x-clean-up-by-using-cable-methods.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata_piix: remove ugly layering violation
+Subject: pata_it821x: clean up by using cable methods
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-A while ago I modified the libata code so that drivers can return -ENOENT for
-unknown ports not fiddle with the EH flags and print stuff directly. 
-Somewhere along the line ata_piix didn't get fully converted.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_piix.c |   11 +++--------
- 1 files changed, 3 insertions(+), 8 deletions(-)
+ drivers/ata/pata_it821x.c |   33 +++++----------------------------
+ 1 files changed, 5 insertions(+), 28 deletions(-)
 
-diff -puN drivers/ata/ata_piix.c~ata_piix-remove-ugly-layering-violation drivers/ata/ata_piix.c
---- a/drivers/ata/ata_piix.c~ata_piix-remove-ugly-layering-violation
-+++ a/drivers/ata/ata_piix.c
-@@ -93,7 +93,7 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/pata_it821x.c~pata_it821x-clean-up-by-using-cable-methods drivers/ata/pata_it821x.c
+--- a/drivers/ata/pata_it821x.c~pata_it821x-clean-up-by-using-cable-methods
++++ a/drivers/ata/pata_it821x.c
+@@ -80,7 +80,7 @@
  
- #define DRV_NAME	"ata_piix"
--#define DRV_VERSION	"2.10"
-+#define DRV_VERSION	"2.10ac1"
  
- enum {
- 	PIIX_IOCFG		= 0x54, /* IDE I/O configuration register */
-@@ -667,14 +667,9 @@ static int ich_pata_prereset(struct ata_
+ #define DRV_NAME "pata_it821x"
+-#define DRV_VERSION "0.3.4"
++#define DRV_VERSION "0.3.6"
+ 
+ struct it821x_dev
  {
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+@@ -113,31 +113,6 @@ struct it821x_dev
+ static int it8212_noraid;
  
--	if (!pci_test_config_bits(pdev, &piix_enable_bits[ap->port_no])) {
--		ata_port_printk(ap, KERN_INFO, "port disabled. ignoring.\n");
--		ap->eh_context.i.action &= ~ATA_EH_RESET_MASK;
--		return 0;
--	}
+ /**
+- *	it821x_pre_reset	-	probe
+- *	@ap: ATA port
+- *
+- *	Set the cable type
+- */
 -
-+	if (!pci_test_config_bits(pdev, &piix_enable_bits[ap->port_no]))
-+		return -ENOENT;
- 	ich_pata_cbl_detect(ap);
+-static int it821x_pre_reset(struct ata_port *ap)
+-{
+-	ap->cbl = ATA_CBL_PATA80;
+-	return ata_std_prereset(ap);
+-}
 -
- 	return ata_std_prereset(ap);
- }
+-/**
+- *	it821x_error_handler	-	probe/reset
+- *	@ap: ATA port
+- *
+- *	Set the cable type and trigger a probe
+- */
+-
+-static void it821x_error_handler(struct ata_port *ap)
+-{
+-	return ata_bmdma_drive_eh(ap, it821x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+-/**
+  *	it821x_program	-	program the PIO/MWDMA registers
+  *	@ap: ATA port
+  *	@adev: Device to program
+@@ -666,8 +641,9 @@ static struct ata_port_operations it821x
  
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= it821x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_unknown,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -702,8 +678,9 @@ static struct ata_port_operations it821x
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= it821x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_unknown,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= it821x_passthru_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
