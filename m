@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - pata_hpt3x2n-cable-detect-handling-needs-work.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:42:14 -0800
-Message-ID: <200703072342.l27NgFca013194@shell0.pdx.osdl.net>
+Subject: - pata_it821x-clean-up-by-using-cable-methods.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:42:29 -0800
+Message-ID: <200703072342.l27NgT8D013197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38824 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38898 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965039AbXCGXma (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:42:30 -0500
+	id S965746AbXCGXnD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:43:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_hpt3x2n: cable detect handling (needs work)
+     pata_it821x: clean up by using cable methods
 has been removed from the -mm tree.  Its filename was
-     pata_hpt3x2n-cable-detect-handling-needs-work.patch
+     pata_it821x-clean-up-by-using-cable-methods.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_hpt3x2n: cable detect handling (needs work)
+Subject: pata_it821x: clean up by using cable methods
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -29,29 +29,43 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt3x2n.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ata/pata_it821x.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-cable-detect-handling-needs-work drivers/ata/pata_hpt3x2n.c
---- a/drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-cable-detect-handling-needs-work
-+++ a/drivers/ata/pata_hpt3x2n.c
-@@ -25,7 +25,7 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/pata_it821x.c~pata_it821x-clean-up-by-using-cable-methods drivers/ata/pata_it821x.c
+--- a/drivers/ata/pata_it821x.c~pata_it821x-clean-up-by-using-cable-methods
++++ a/drivers/ata/pata_it821x.c
+@@ -80,7 +80,7 @@
  
- #define DRV_NAME	"pata_hpt3x2n"
--#define DRV_VERSION	"0.3.2"
-+#define DRV_VERSION	"0.3.3"
  
- enum {
- 	HPT_PCI_FAST	=	(1 << 31),
-@@ -365,6 +365,7 @@ static struct ata_port_operations hpt3x2
+ #define DRV_NAME "pata_it821x"
+-#define DRV_VERSION "0.3.4"
++#define DRV_VERSION "0.3.6"
+ 
+ struct it821x_dev
+ {
+@@ -667,8 +667,9 @@ static struct ata_port_operations it821x
+ 
+ 	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= hpt3x2n_error_handler,
+-	.error_handler	= it821x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= hpt3x2n_cable_detect,
++	.cable_detect	= ata_cable_unknown,
  
  	.bmdma_setup 	= ata_bmdma_setup,
  	.bmdma_start 	= ata_bmdma_start,
+@@ -703,8 +704,9 @@ static struct ata_port_operations it821x
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= it821x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_unknown,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= it821x_passthru_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -67,7 +81,6 @@ pata_legacy-fix-missing-methods-and-add-cable-types.patch
 pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
 pata_winbond-set-cable-type.patch
 ata_piix-remove-ugly-layering-violation.patch
-pata_hpt3x2n-cable-detect-handling-needs-work.patch
 pata_it821x-clean-up-by-using-cable-methods.patch
 pata_mpc52xx-cable-detect.patch
 pata_mpiix-cable-detect-method.patch
