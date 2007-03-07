@@ -1,193 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: + revert-ac97-fix-microphone-and-line_in-selection-logic.patch added to -mm tree
-Date: Wed, 07 Mar 2007 11:50:48 -0800
-Message-ID: <200703071950.l27JomiF007084@shell0.pdx.osdl.net>
+Subject: - add-an-anonymous-inode-source-tidy.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 12:31:35 -0800
+Message-ID: <200703072031.l27KVZSX007891@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53285 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55380 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992517AbXCGTyK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 14:54:10 -0500
+	id S965634AbXCGUbh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 15:31:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bunk@stusta.de, michal.k.k.piotrowski@gmail.com, perex@suse.cz, rcushman_linux@earthlink.net, tiwai@suse.de
+To: akpm@linux-foundation.org, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "ac97 - fix microphone and line_in selection logic"
-has been added to the -mm tree.  Its filename is
-     revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+     add-an-anonymous-inode-source-tidy
+has been removed from the -mm tree.  Its filename was
+     add-an-anonymous-inode-source-tidy.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: revert "ac97 - fix microphone and line_in selection logic"
+Subject: add-an-anonymous-inode-source-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert 831466f4ad2b5fe23dff77edbe6a7c244435e973: "Michal Piotrowski"
-<michal.k.k.piotrowski@gmail.com> reports that it broke his 3d surround.
+- use magic.h
 
-Cc:"Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
-Cc: Randy Cushman <rcushman_linux@earthlink.net>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Adrian Bunk <bunk@stusta.de>
+- 80 cols
+
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/ac97/ac97_patch.c |   66 +++++++++++++---------------------
- 1 file changed, 26 insertions(+), 40 deletions(-)
+ fs/anon_inodes.c      |   20 +++-----------------
+ include/linux/magic.h |    1 +
+ 2 files changed, 4 insertions(+), 17 deletions(-)
 
-diff -puN sound/pci/ac97/ac97_patch.c~revert-ac97-fix-microphone-and-line_in-selection-logic sound/pci/ac97/ac97_patch.c
---- a/sound/pci/ac97/ac97_patch.c~revert-ac97-fix-microphone-and-line_in-selection-logic
-+++ a/sound/pci/ac97/ac97_patch.c
-@@ -190,28 +190,14 @@ static inline int is_clfe_on(struct snd_
- 	return ac97->channel_mode >= 2;
- }
+diff -puN fs/anon_inodes.c~add-an-anonymous-inode-source-tidy fs/anon_inodes.c
+--- a/fs/anon_inodes.c~add-an-anonymous-inode-source-tidy
++++ a/fs/anon_inodes.c
+@@ -9,6 +9,7 @@
+ #include <linux/poll.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
++#include <linux/magic.h>
+ #include <linux/fs.h>
+ #include <linux/mount.h>
+ #include <linux/module.h>
+@@ -17,18 +18,11 @@
  
--/* system has shared jacks with surround out enabled */
--static inline int is_shared_surrout(struct snd_ac97 *ac97)
--{
--	return !ac97->indep_surround && is_surround_on(ac97);
--}
+ #include <asm/uaccess.h>
+ 
 -
--/* system has shared jacks with center/lfe out enabled */
--static inline int is_shared_clfeout(struct snd_ac97 *ac97)
--{
--	return !ac97->indep_surround && is_clfe_on(ac97);
--}
 -
--/* system has shared jacks with line in enabled */
- static inline int is_shared_linein(struct snd_ac97 *ac97)
+-#define AINOFS_MAGIC 0x09041934
+-
+-
+ static int ainofs_delete_dentry(struct dentry *dentry);
+ static struct inode *aino_getinode(void);
+ static struct inode *aino_mkinode(void);
+ static int ainofs_get_sb(struct file_system_type *fs_type, int flags,
+-			     const char *dev_name, void *data, struct vfsmount *mnt);
+-
+-
++			const char *dev_name, void *data, struct vfsmount *mnt);
+ 
+ static struct vfsmount *aino_mnt __read_mostly;
+ static struct inode *aino_inode;
+@@ -43,7 +37,6 @@ static struct dentry_operations ainofs_d
+ };
+ 
+ 
+-
+ int aino_getfd(int *pfd, struct inode **pinode, struct file **pfile,
+ 	       char const *name, const struct file_operations *fops, void *priv)
  {
--	return !ac97->indep_surround && !is_surround_on(ac97);
-+	return ! ac97->indep_surround && is_surround_on(ac97);
+@@ -113,7 +106,6 @@ eexit_1:
+ 	return error;
  }
  
--/* system has shared jacks with mic in enabled */
- static inline int is_shared_micin(struct snd_ac97 *ac97)
+-
+ static int ainofs_delete_dentry(struct dentry *dentry)
  {
--	return !ac97->indep_surround && !is_clfe_on(ac97);
-+	return ! ac97->indep_surround && is_clfe_on(ac97);
+ 	/*
+@@ -124,13 +116,11 @@ static int ainofs_delete_dentry(struct d
+ 	return 1;
  }
  
- 
-@@ -2485,12 +2471,12 @@ static void alc650_update_jacks(struct s
+-
+ static struct inode *aino_getinode(void)
  {
- 	int shared;
- 	
--	/* shared Line-In / Surround Out */
--	shared = is_shared_surrout(ac97);
-+	/* shared Line-In */
-+	shared = is_shared_linein(ac97);
- 	snd_ac97_update_bits(ac97, AC97_ALC650_MULTICH, 1 << 9,
- 			     shared ? (1 << 9) : 0);
--	/* update shared Mic In / Center/LFE Out */
--	shared = is_shared_clfeout(ac97);
-+	/* update shared Mic */
-+	shared = is_shared_micin(ac97);
- 	/* disable/enable vref */
- 	snd_ac97_update_bits(ac97, AC97_ALC650_CLOCK, 1 << 12,
- 			     shared ? (1 << 12) : 0);
-@@ -2620,12 +2606,12 @@ static void alc655_update_jacks(struct s
- {
- 	int shared;
- 	
--	/* shared Line-In / Surround Out */
--	shared = is_shared_surrout(ac97);
-+	/* shared Line-In */
-+	shared = is_shared_linein(ac97);
- 	ac97_update_bits_page(ac97, AC97_ALC650_MULTICH, 1 << 9,
- 			      shared ? (1 << 9) : 0, 0);
--	/* update shared Mic In / Center/LFE Out */
--	shared = is_shared_clfeout(ac97);
-+	/* update shared mic */
-+	shared = is_shared_micin(ac97);
- 	/* misc control; vrefout disable */
- 	snd_ac97_update_bits(ac97, AC97_ALC650_CLOCK, 1 << 12,
- 			     shared ? (1 << 12) : 0);
-@@ -2769,16 +2755,16 @@ static void alc850_update_jacks(struct s
- {
- 	int shared;
- 	
--	/* shared Line-In / Surround Out */
--	shared = is_shared_surrout(ac97);
-+	/* shared Line-In */
-+	shared = is_shared_linein(ac97);
- 	/* SURR 1kOhm (bit4), Amp (bit5) */
- 	snd_ac97_update_bits(ac97, AC97_ALC850_MISC1, (1<<4)|(1<<5),
- 			     shared ? (1<<5) : (1<<4));
- 	/* LINE-IN = 0, SURROUND = 2 */
- 	snd_ac97_update_bits(ac97, AC97_ALC850_JACK_SELECT, 7 << 12,
- 			     shared ? (2<<12) : (0<<12));
--	/* update shared Mic In / Center/LFE Out */
--	shared = is_shared_clfeout(ac97);
-+	/* update shared mic */
-+	shared = is_shared_micin(ac97);
- 	/* Vref disable (bit12), 1kOhm (bit13) */
- 	snd_ac97_update_bits(ac97, AC97_ALC850_MISC1, (1<<12)|(1<<13),
- 			     shared ? (1<<12) : (1<<13));
-@@ -2851,9 +2837,9 @@ int patch_alc850(struct snd_ac97 *ac97)
-  */
- static void cm9738_update_jacks(struct snd_ac97 *ac97)
- {
--	/* shared Line-In / Surround Out */
-+	/* shared Line-In */
- 	snd_ac97_update_bits(ac97, AC97_CM9738_VENDOR_CTRL, 1 << 10,
--			     is_shared_surrout(ac97) ? (1 << 10) : 0);
-+			     is_shared_linein(ac97) ? (1 << 10) : 0);
+ 	return igrab(aino_inode);
  }
  
- static const struct snd_kcontrol_new snd_ac97_cm9738_controls[] = {
-@@ -2935,12 +2921,12 @@ static const struct snd_kcontrol_new snd
+-
+ /*
+  * A single inode exist for all aino files. On the contrary of pipes,
+  * aino inodes has no per-instance data associated, so we can avoid
+@@ -163,17 +153,14 @@ eexit_1:
+ 	return ERR_PTR(error);
+ }
  
- static void cm9739_update_jacks(struct snd_ac97 *ac97)
+-
+ static int ainofs_get_sb(struct file_system_type *fs_type, int flags,
+-			     const char *dev_name, void *data, struct vfsmount *mnt)
++			const char *dev_name, void *data, struct vfsmount *mnt)
  {
--	/* shared Line-In / Surround Out */
-+	/* shared Line-In */
- 	snd_ac97_update_bits(ac97, AC97_CM9739_MULTI_CHAN, 1 << 10,
--			     is_shared_surrout(ac97) ? (1 << 10) : 0);
--	/* shared Mic In / Center/LFE Out **/
-+			     is_shared_linein(ac97) ? (1 << 10) : 0);
-+	/* shared Mic */
- 	snd_ac97_update_bits(ac97, AC97_CM9739_MULTI_CHAN, 0x3000,
--			     is_shared_clfeout(ac97) ? 0x1000 : 0x2000);
-+			     is_shared_micin(ac97) ? 0x1000 : 0x2000);
+ 	return get_sb_pseudo(fs_type, "aino:", NULL, AINOFS_MAGIC, mnt);
  }
  
- static const struct snd_kcontrol_new snd_ac97_cm9739_controls[] = {
-@@ -3052,8 +3038,8 @@ static void cm9761_update_jacks(struct s
- 
- 	val |= surr_on[ac97->spec.dev_flags][is_surround_on(ac97)];
- 	val |= clfe_on[ac97->spec.dev_flags][is_clfe_on(ac97)];
--	val |= surr_shared[ac97->spec.dev_flags][is_shared_surrout(ac97)];
--	val |= clfe_shared[ac97->spec.dev_flags][is_shared_clfeout(ac97)];
-+	val |= surr_shared[ac97->spec.dev_flags][is_shared_linein(ac97)];
-+	val |= clfe_shared[ac97->spec.dev_flags][is_shared_micin(ac97)];
- 
- 	snd_ac97_update_bits(ac97, AC97_CM9761_MULTI_CHAN, 0x3c88, val);
- }
-@@ -3301,12 +3287,12 @@ int patch_vt1617a(struct snd_ac97 * ac97
-  */
- static void it2646_update_jacks(struct snd_ac97 *ac97)
+-
+ static int __init aino_init(void)
  {
--	/* shared Line-In / Surround Out */
-+	/* shared Line-In */
- 	snd_ac97_update_bits(ac97, 0x76, 1 << 9,
--			     is_shared_surrout(ac97) ? (1<<9) : 0);
--	/* shared Mic / Center/LFE Out */
-+			     is_shared_linein(ac97) ? (1<<9) : 0);
-+	/* shared Mic */
- 	snd_ac97_update_bits(ac97, 0x76, 1 << 10,
--			     is_shared_clfeout(ac97) ? (1<<10) : 0);
-+			     is_shared_micin(ac97) ? (1<<10) : 0);
+-
+ 	if (register_filesystem(&aino_fs_type))
+ 		goto epanic;
+ 
+@@ -191,7 +178,6 @@ epanic:
+ 	panic("aino_init() failed\n");
  }
  
- static const struct snd_kcontrol_new snd_ac97_controls_it2646[] = {
+-
+ static void __exit aino_exit(void)
+ {
+ 	iput(aino_inode);
+diff -puN include/linux/magic.h~add-an-anonymous-inode-source-tidy include/linux/magic.h
+--- a/include/linux/magic.h~add-an-anonymous-inode-source-tidy
++++ a/include/linux/magic.h
+@@ -39,5 +39,6 @@
+ 
+ #define SMB_SUPER_MAGIC		0x517B
+ #define USBDEVICE_SUPER_MAGIC	0x9fa2
++#define AINOFS_MAGIC		0x09041934
+ 
+ #endif /* __LINUX_MAGIC_H__ */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -200,6 +146,7 @@ sony-laptop-fix-uninitialised-variable.patch
 git-alsa-oops-fix.patch
 git-drm.patch
 git-dvb.patch
+ivtv-warning-fix.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
 git-input.patch
@@ -216,6 +163,7 @@ git-pciseg.patch
 git-unionfs.patch
 usbatm-create-sysfs-link-device-from-atm-class-device.patch
 git-wireless-fixup.patch
+b44-warning-fixes.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 linux-sysdevh-needs-to-include-linux-moduleh.patch
 i386-vdso_prelink-warning-fix.patch
