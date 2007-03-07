@@ -1,65 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:38:59 -0800
-Message-ID: <200703072338.l27NcxgL013061@shell0.pdx.osdl.net>
+Subject: - pata_sil680-cable-detect.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:44:06 -0800
+Message-ID: <200703072344.l27Ni635013236@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39012 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39033 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965758AbXCGXo2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:44:28 -0500
+	id S2992756AbXCGXoi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:44:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_cs55x0: clean up by using the cable_detect method
+     pata_sil680: cable detect
 has been removed from the -mm tree.  Its filename was
-     pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
+     pata_sil680-cable-detect.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_cs55x0: clean up by using the cable_detect method
+Subject: pata_sil680: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+Much the same as the others except we have to keep our own error_handler
+methods as the chip has bus reset registers that we need to poke.
+
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cs5520.c |    3 ++-
- drivers/ata/pata_cs5530.c |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/ata/pata_sil680.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_cs5520.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method drivers/ata/pata_cs5520.c
---- a/drivers/ata/pata_cs5520.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method
-+++ a/drivers/ata/pata_cs5520.c
-@@ -186,8 +186,9 @@ static struct ata_port_operations cs5520
+diff -puN drivers/ata/pata_sil680.c~pata_sil680-cable-detect drivers/ata/pata_sil680.c
+--- a/drivers/ata/pata_sil680.c~pata_sil680-cable-detect
++++ a/drivers/ata/pata_sil680.c
+@@ -33,7 +33,7 @@
+ #include <linux/libata.h>
  
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= cs5520_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_40wire,
+ #define DRV_NAME "pata_sil680"
+-#define DRV_VERSION "0.4.5"
++#define DRV_VERSION "0.4.6"
  
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
-diff -puN drivers/ata/pata_cs5530.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method drivers/ata/pata_cs5530.c
---- a/drivers/ata/pata_cs5530.c~pata_cs55x0-clean-up-by-using-the-cable_detect-method
-+++ a/drivers/ata/pata_cs5530.c
-@@ -213,8 +213,9 @@ static struct ata_port_operations cs5530
+ /**
+  *	sil680_selreg		-	return register base
+@@ -121,7 +121,7 @@ static int sil680_bus_reset(struct ata_p
  
- 	.freeze		= ata_bmdma_freeze,
+ static void sil680_error_handler(struct ata_port *ap)
+ {
+-	ata_bmdma_drive_eh(ap, sil680_pre_reset, sil680_bus_reset, NULL, ata_std_postreset);
++	ata_bmdma_drive_eh(ap, ata_std_prereset, sil680_bus_reset, NULL, ata_std_postreset);
+ }
+ 
+ /**
+@@ -259,6 +259,7 @@ static struct ata_port_operations sil680
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= cs5530_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
+ 	.error_handler	= sil680_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
++	.cable_detect	= sil680_cable_detect,
  
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= cs5530_qc_issue_prot,
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -70,28 +74,17 @@ pcmcia-spot-slave-decode-flaws-for-testing.patch
 pata_platform-set-a-cable-type-which-to-set.patch
 pata_qdi-set-cable-type.patch
 pata_sl82c105-missing-methods-cable.patch
-pata_cs55x0-clean-up-by-using-the-cable_detect-method.patch
-pata_cypress-clean-up-by-using-cable_detect-method.patch
 pata_isapnp-set-cable-type.patch
-pata_ixp4xx_cf-set-cable-type.patch
 pata_legacy-fix-missing-methods-and-add-cable-types.patch
 pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
-pata_rz1000-remove-lots-of-crap-by-using-cable-method.patch
 pata_winbond-set-cable-type.patch
-pata_cmd64x-various-fixes.patch
-pata_hpt3x3-clean-up-by-using-cable-method.patch
 ata_piix-remove-ugly-layering-violation.patch
-pata_artop-cable-detect-methods.patch
-pata_cs5535-cable-detect.patch
-pata_hpt3x2n-cable-detect-handling-needs-work.patch
-pata_it821x-clean-up-by-using-cable-methods.patch
 pata_mpc52xx-cable-detect.patch
 pata_mpiix-cable-detect-method.patch
 pata_ns87410-cable-detect-method.patch
 pata_oldpiix-cable-detect.patch
 pata_opti-cable-detect.patch
 pata_pcmcia-cable-detect.patch
-pata_pdc202xx_old-cable-detect-clean-up.patch
 pata_sil680-cable-detect.patch
 pata_triflex-cable-detect.patch
 sata_via-cable-detection.patch
