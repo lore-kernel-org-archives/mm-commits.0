@@ -1,145 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: + mpsc-serial-driver-tx-locking.patch added to -mm tree
-Date: Tue, 06 Mar 2007 17:50:44 -0800
-Message-ID: <200703070150.l271oiO3016172@shell0.pdx.osdl.net>
+Subject: - driver-core-cleanup-device-links-code.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:08:50 -0800
+Message-ID: <200703070408.l2748pFi018607@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42710 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46626 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161204AbXCGBuy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 20:50:54 -0500
+	id S1161263AbXCGEJH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:09:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: djiang@mvista.com, mgreer@mvista.com
+To: akinobu.mita@gmail.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MPSC serial driver tx locking
-has been added to the -mm tree.  Its filename is
-     mpsc-serial-driver-tx-locking.patch
+     driver core: cleanup device links code
+has been removed from the -mm tree.  Its filename was
+     driver-core-cleanup-device-links-code.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because changes in Greg's tree killed it
 
 ------------------------------------------------------
-Subject: MPSC serial driver tx locking
-From: Dave Jiang <djiang@mvista.com>
+Subject: driver core: cleanup device links code
+From: "Akinobu Mita" <akinobu.mita@gmail.com>
 
-The MPSC serial driver assumes that interrupt is always on to pick up the
-DMA transmit ops that aren't submitted while the DMA engine is active. 
-However when irqs are off for a period of time such as operations under
-kernel crash dump console messages do not show up due to additional DMA ops
-are being dropped.  This makes console writes to process through all the tx
-DMAs queued up before submitting a new request.
+Cleanup by introducing device_add_links() and device_remove_links().
 
-Also, the current locking mechanism does not protect the hardware registers
-and ring buffer when a printk is done during the serial write operations. 
-The additional per port transmit lock provides a finer granular locking and
-protects registers being clobbered while printks are nested within UART
-writes.
+This patch should not change any current behavior except the scope of
+class_name moved to the inside of device_add_links().
 
-Signed-off-by: Dave Jiang <djiang@mvista.com>
-Signed-off-by: Mark A. Greer <mgreer@mvista.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/mpsc.c |   25 ++++++++++++++++++++++++-
- 1 files changed, 24 insertions(+), 1 deletion(-)
+ drivers/base/core.c |   92 +++++++++++++++++++++++-------------------
+ 1 file changed, 52 insertions(+), 40 deletions(-)
 
-diff -puN drivers/serial/mpsc.c~mpsc-serial-driver-tx-locking drivers/serial/mpsc.c
---- a/drivers/serial/mpsc.c~mpsc-serial-driver-tx-locking
-+++ a/drivers/serial/mpsc.c
-@@ -183,6 +183,7 @@ struct mpsc_port_info {
- 	u8 *txb_p;		/* Phys addr of txb */
- 	int txr_head;		/* Where new data goes */
- 	int txr_tail;		/* Where sent data comes off */
-+	spinlock_t tx_lock;	/* transmit lock */
- 
- 	/* Mirrored values of regs we can't read (if 'mirror_regs' set) */
- 	u32 MPSC_MPCR_m;
-@@ -1212,6 +1213,9 @@ mpsc_tx_intr(struct mpsc_port_info *pi)
- {
- 	struct mpsc_tx_desc *txre;
- 	int rc = 0;
-+	unsigned long iflags;
-+
-+	spin_lock_irqsave(&pi->tx_lock, iflags);
- 
- 	if (!mpsc_sdma_tx_active(pi)) {
- 		txre = (struct mpsc_tx_desc *)(pi->txr +
-@@ -1248,6 +1252,7 @@ mpsc_tx_intr(struct mpsc_port_info *pi)
- 		mpsc_sdma_start_tx(pi);	/* start next desc if ready */
- 	}
- 
-+	spin_unlock_irqrestore(&pi->tx_lock, iflags);
- 	return rc;
+diff -puN drivers/base/core.c~driver-core-cleanup-device-links-code drivers/base/core.c
+--- a/drivers/base/core.c~driver-core-cleanup-device-links-code
++++ a/drivers/base/core.c
+@@ -501,6 +501,56 @@ static int setup_parent(struct device *d
+ 	return 0;
  }
  
-@@ -1338,11 +1343,16 @@ static void
- mpsc_start_tx(struct uart_port *port)
- {
- 	struct mpsc_port_info *pi = (struct mpsc_port_info *)port;
-+	unsigned long iflags;
++static void device_add_links(struct device *dev, struct device *parent)
++{
++	if (dev->class) {
++		sysfs_create_link(&dev->kobj, &dev->class->subsys.kset.kobj,
++				  "subsystem");
++		/* If this is not a "fake" compatible device, then create the
++		 * symlink from the class to the device. */
++		if (dev->kobj.parent != &dev->class->subsys.kset.kobj)
++			sysfs_create_link(&dev->class->subsys.kset.kobj,
++					  &dev->kobj, dev->bus_id);
++#ifdef CONFIG_SYSFS_DEPRECATED
++		if (parent) {
++			char *class_name = NULL;
 +
-+	spin_lock_irqsave(&pi->tx_lock, iflags);
- 
- 	mpsc_unfreeze(pi);
- 	mpsc_copy_tx_data(pi);
- 	mpsc_sdma_start_tx(pi);
- 
-+	spin_unlock_irqrestore(&pi->tx_lock, iflags);
-+
- 	pr_debug("mpsc_start_tx[%d]\n", port->line);
- 	return;
- }
-@@ -1625,6 +1635,16 @@ mpsc_console_write(struct console *co, c
- 	struct mpsc_port_info *pi = &mpsc_ports[co->index];
- 	u8 *bp, *dp, add_cr = 0;
- 	int i;
-+	unsigned long iflags;
-+
-+	spin_lock_irqsave(&pi->tx_lock, iflags);
-+
-+	while (pi->txr_head != pi->txr_tail) {
-+		while (mpsc_sdma_tx_active(pi))
-+			udelay(100);
-+		mpsc_sdma_intr_ack(pi);
-+		mpsc_tx_intr(pi);
++			sysfs_create_link(&dev->kobj, &dev->parent->kobj,
++							"device");
++			class_name = make_class_name(dev->class->name,
++							&dev->kobj);
++			if (class_name)
++				sysfs_create_link(&dev->parent->kobj,
++						  &dev->kobj, class_name);
++			kfree(class_name);
++		}
++#endif
 +	}
++}
++
++static void device_remove_links(struct device *dev, struct device *parent)
++{
++	if (dev->class) {
++		sysfs_remove_link(&dev->kobj, "subsystem");
++		/* If this is not a "fake" compatible device, remove the
++		 * symlink from the class to the device. */
++		if (dev->kobj.parent != &dev->class->subsys.kset.kobj)
++			sysfs_remove_link(&dev->class->subsys.kset.kobj,
++					  dev->bus_id);
++#ifdef CONFIG_SYSFS_DEPRECATED
++		if (parent) {
++			char *class_name = make_class_name(dev->class->name,
++							   &dev->kobj);
++			if (class_name)
++				sysfs_remove_link(&dev->parent->kobj,
++						  class_name);
++			kfree(class_name);
++			sysfs_remove_link(&dev->kobj, "device");
++		}
++#endif
++	}
++}
++
+ /**
+  *	device_add - add device to device hierarchy.
+  *	@dev:	device.
+@@ -515,7 +565,6 @@ static int setup_parent(struct device *d
+ int device_add(struct device *dev)
+ {
+ 	struct device *parent = NULL;
+-	char *class_name = NULL;
+ 	struct class_interface *class_intf;
+ 	int error = -EINVAL;
  
- 	while (mpsc_sdma_tx_active(pi))
- 		udelay(100);
-@@ -1668,6 +1688,7 @@ mpsc_console_write(struct console *co, c
- 		pi->txr_tail = (pi->txr_tail + 1) & (MPSC_TXR_ENTRIES - 1);
+@@ -576,26 +625,7 @@ int device_add(struct device *dev)
+ 		dev->devt_attr = attr;
  	}
  
-+	spin_unlock_irqrestore(&pi->tx_lock, iflags);
- 	return;
- }
+-	if (dev->class) {
+-		sysfs_create_link(&dev->kobj, &dev->class->subsys.kset.kobj,
+-				  "subsystem");
+-		/* If this is not a "fake" compatible device, then create the
+-		 * symlink from the class to the device. */
+-		if (dev->kobj.parent != &dev->class->subsys.kset.kobj)
+-			sysfs_create_link(&dev->class->subsys.kset.kobj,
+-					  &dev->kobj, dev->bus_id);
+-#ifdef CONFIG_SYSFS_DEPRECATED
+-		if (parent) {
+-			sysfs_create_link(&dev->kobj, &dev->parent->kobj,
+-							"device");
+-			class_name = make_class_name(dev->class->name,
+-							&dev->kobj);
+-			if (class_name)
+-				sysfs_create_link(&dev->parent->kobj,
+-						  &dev->kobj, class_name);
+-		}
+-#endif
+-	}
++	device_add_links(dev, parent);
  
-@@ -2005,7 +2026,8 @@ mpsc_drv_probe(struct platform_device *d
- 		if (!(rc = mpsc_drv_map_regs(pi, dev))) {
- 			mpsc_drv_get_platform_data(pi, dev, dev->id);
- 
--			if (!(rc = mpsc_make_ready(pi)))
-+			if (!(rc = mpsc_make_ready(pi))) {
-+				spin_lock_init(&pi->tx_lock);
- 				if (!(rc = uart_add_one_port(&mpsc_reg,
- 					&pi->port)))
- 					rc = 0;
-@@ -2014,6 +2036,7 @@ mpsc_drv_probe(struct platform_device *d
- 						(struct uart_port *)pi);
- 					mpsc_drv_unmap_regs(pi);
- 				}
-+			}
- 			else
- 				mpsc_drv_unmap_regs(pi);
- 		}
+ 	if ((error = device_add_attrs(dev)))
+ 		goto AttrsError;
+@@ -623,7 +653,6 @@ int device_add(struct device *dev)
+ 		up(&dev->class->sem);
+ 	}
+  Done:
+- 	kfree(class_name);
+ 	put_device(dev);
+ 	return error;
+  BusError:
+@@ -752,25 +781,8 @@ void device_del(struct device * dev)
+ 		device_remove_file(dev, dev->devt_attr);
+ 		kfree(dev->devt_attr);
+ 	}
++	device_remove_links(dev, parent);
+ 	if (dev->class) {
+-		sysfs_remove_link(&dev->kobj, "subsystem");
+-		/* If this is not a "fake" compatible device, remove the
+-		 * symlink from the class to the device. */
+-		if (dev->kobj.parent != &dev->class->subsys.kset.kobj)
+-			sysfs_remove_link(&dev->class->subsys.kset.kobj,
+-					  dev->bus_id);
+-#ifdef CONFIG_SYSFS_DEPRECATED
+-		if (parent) {
+-			char *class_name = make_class_name(dev->class->name,
+-							   &dev->kobj);
+-			if (class_name)
+-				sysfs_remove_link(&dev->parent->kobj,
+-						  class_name);
+-			kfree(class_name);
+-			sysfs_remove_link(&dev->kobj, "device");
+-		}
+-#endif
+-
+ 		down(&dev->class->sem);
+ 		/* notify any interfaces that the device is now gone */
+ 		list_for_each_entry(class_intf, &dev->class->interfaces, node)
 _
 
-Patches currently in -mm which might be from djiang@mvista.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-mpsc-serial-driver-tx-locking.patch
+driver-core-cleanup-device-links-code.patch
+driver-core-add-missing-symlinks-error-handling.patch
+driver-core-check-sysfs_create_link-errors.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-ocfs2.patch
+git-qla3xxx.patch
+simplify-the-stacktrace-code.patch
