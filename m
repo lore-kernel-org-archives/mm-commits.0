@@ -1,73 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - pata_cmd64x-various-fixes.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:40:58 -0800
-Message-ID: <200703072340.l27NewIg013149@shell0.pdx.osdl.net>
+Subject: - pata_hpt3x3-clean-up-by-using-cable-method.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:41:12 -0800
+Message-ID: <200703072341.l27NfCqL013160@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38631 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38662 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965751AbXCGXlC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:41:02 -0500
+	id S965039AbXCGXlY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:41:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_cmd64x - various fixes
+     pata_hpt3x3: clean up by using cable method
 has been removed from the -mm tree.  Its filename was
-     pata_cmd64x-various-fixes.patch
+     pata_hpt3x3-clean-up-by-using-cable-method.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_cmd64x - various fixes
+Subject: pata_hpt3x3: clean up by using cable method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This driver still needs more work but for the moment
-
-- It's a CMD not ATI driver
-- Clean up code by using cable method
-
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cmd64x.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/ata/pata_hpt3x3.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_cmd64x.c~pata_cmd64x-various-fixes drivers/ata/pata_cmd64x.c
---- a/drivers/ata/pata_cmd64x.c~pata_cmd64x-various-fixes
-+++ a/drivers/ata/pata_cmd64x.c
-@@ -304,8 +304,9 @@ static struct ata_port_operations cmd64x
+diff -puN drivers/ata/pata_hpt3x3.c~pata_hpt3x3-clean-up-by-using-cable-method drivers/ata/pata_hpt3x3.c
+--- a/drivers/ata/pata_hpt3x3.c~pata_hpt3x3-clean-up-by-using-cable-method
++++ a/drivers/ata/pata_hpt3x3.c
+@@ -139,8 +139,9 @@ static struct ata_port_operations hpt3x3
  
  	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= cmd64x_error_handler,
+-	.error_handler	= hpt3x3_error_handler,
 +	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
 +	.cable_detect	= ata_cable_40wire,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
-@@ -338,8 +339,9 @@ static struct ata_port_operations cmd646
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= cmd64x_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
-@@ -372,8 +374,9 @@ static struct ata_port_operations cmd648
- 
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= cmd648_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= cmd648_cable_detect,
  
  	.bmdma_setup 	= ata_bmdma_setup,
  	.bmdma_start 	= ata_bmdma_start,
@@ -85,7 +59,6 @@ pata_isapnp-set-cable-type.patch
 pata_legacy-fix-missing-methods-and-add-cable-types.patch
 pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
 pata_winbond-set-cable-type.patch
-pata_cmd64x-various-fixes.patch
 pata_hpt3x3-clean-up-by-using-cable-method.patch
 ata_piix-remove-ugly-layering-violation.patch
 pata_artop-cable-detect-methods.patch
