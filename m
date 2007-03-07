@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + serial-suppress-rts-assertion-with-disabled-crtscts.patch added to -mm tree
-Date: Wed, 07 Mar 2007 14:07:45 -0800
-Message-ID: <200703072207.l27M7j9T010550@shell0.pdx.osdl.net>
+Subject: + uevent-improve-error-checking-and-handling.patch added to -mm tree
+Date: Wed, 07 Mar 2007 14:18:02 -0800
+Message-ID: <200703072218.l27MI2B2010877@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33528 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34265 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992465AbXCGWIH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 17:08:07 -0500
+	id S965698AbXCGWSH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 17:18:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kebkal@gmail.com, alan@lxorguk.ukuu.org.uk, lesha@evologics.de, rmk@arm.linux.org.uk
+Cc: eric.rannaud@gmail.com, greg@kroah.com
 
 
 The patch titled
-     serial: suppress RTS assertion with disabled CRTSCTS
+     uevent: improve error checking and handling
 has been added to the -mm tree.  Its filename is
-     serial-suppress-rts-assertion-with-disabled-crtscts.patch
+     uevent-improve-error-checking-and-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,110 +25,160 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: suppress RTS assertion with disabled CRTSCTS
-From: "Oleksiy Kebkal" <kebkal@gmail.com>
+Subject: uevent: improve error checking and handling
+From: Eric Rannaud <eric.rannaud@gmail.com>
 
-This patch leaves RTS alone when CRTSCTS is not set.
+add_uevent_var() is used w/o checking for its return value, even though it
+is possible for those calls to return -ENOMEM.
 
-Current behaviour doesn't give any possibility to
-
-1.  preconfigure port setting, because open operation implies RTS
-   assertion and initial serial port setting may be wrong.
-
-2.  realize peculiar serial flow control required by some hardware
-   especially in embedded devices.
-
-Signed-off-by: Oleksiy Kebkal <lesha@evologics.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Eric Rannaud <eric.rannaud@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |   42 ++++++++++++++++++++++-----------
- 1 files changed, 28 insertions(+), 14 deletions(-)
+ drivers/base/core.c |   89 ++++++++++++++++++++++++++----------------
+ 1 files changed, 57 insertions(+), 32 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~serial-suppress-rts-assertion-with-disabled-crtscts drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-suppress-rts-assertion-with-disabled-crtscts
-+++ a/drivers/serial/serial_core.c
-@@ -185,11 +185,15 @@ static int uart_startup(struct uart_stat
- 			uart_change_speed(state, NULL);
+diff -puN drivers/base/core.c~uevent-improve-error-checking-and-handling drivers/base/core.c
+--- a/drivers/base/core.c~uevent-improve-error-checking-and-handling
++++ a/drivers/base/core.c
+@@ -162,18 +162,25 @@ static int dev_uevent(struct kset *kset,
  
- 			/*
--			 * Setup the RTS and DTR signals once the
--			 * port is open and ready to respond.
-+			 * Setup the RTS (in the case of hardware flow control)
-+			 * and DTR signals once the port is open and ready to
-+			 * respond.
- 			 */
--			if (info->tty->termios->c_cflag & CBAUD)
--				uart_set_mctrl(port, TIOCM_RTS | TIOCM_DTR);
-+			if (info->tty->termios->c_cflag & CBAUD) {
-+				uart_set_mctrl(port, TIOCM_DTR);
-+				if (info->flags & UIF_CTS_FLOW)
-+					uart_set_mctrl(port, TIOCM_RTS);
+ 	/* add the major/minor if present */
+ 	if (MAJOR(dev->devt)) {
+-		add_uevent_var(envp, num_envp, &i,
+-			       buffer, buffer_size, &length,
+-			       "MAJOR=%u", MAJOR(dev->devt));
+-		add_uevent_var(envp, num_envp, &i,
+-			       buffer, buffer_size, &length,
+-			       "MINOR=%u", MINOR(dev->devt));
++		retval = add_uevent_var(envp, num_envp, &i,
++					buffer, buffer_size, &length,
++					"MAJOR=%u", MAJOR(dev->devt));
++		if (retval)
++			return retval;
++		retval = add_uevent_var(envp, num_envp, &i,
++					buffer, buffer_size, &length,
++					"MINOR=%u", MINOR(dev->devt));
++		if (retval)
++			return retval;
+ 	}
+ 
+-	if (dev->driver)
+-		add_uevent_var(envp, num_envp, &i,
+-			       buffer, buffer_size, &length,
+-			       "DRIVER=%s", dev->driver->name);
++	if (dev->driver) {
++		retval = add_uevent_var(envp, num_envp, &i,
++					buffer, buffer_size, &length,
++					"DRIVER=%s", dev->driver->name);
++		if (retval)
++			return retval;
++	}
+ 
+ #ifdef CONFIG_SYSFS_DEPRECATED
+ 	if (dev->class) {
+@@ -186,29 +193,41 @@ static int dev_uevent(struct kset *kset,
+ 			const char *path;
+ 
+ 			path = kobject_get_path(&parent->kobj, GFP_KERNEL);
+-			add_uevent_var(envp, num_envp, &i,
+-				       buffer, buffer_size, &length,
+-				       "PHYSDEVPATH=%s", path);
++			retval = add_uevent_var(envp, num_envp, &i,
++						buffer, buffer_size, &length,
++						"PHYSDEVPATH=%s", path);
+ 			kfree(path);
++			if (retval)
++				return retval;
+ 
+-			add_uevent_var(envp, num_envp, &i,
+-				       buffer, buffer_size, &length,
+-				       "PHYSDEVBUS=%s", parent->bus->name);
+-
+-			if (parent->driver)
+-				add_uevent_var(envp, num_envp, &i,
+-					       buffer, buffer_size, &length,
+-					       "PHYSDEVDRIVER=%s", parent->driver->name);
++			retval = add_uevent_var(envp, num_envp, &i,
++						buffer, buffer_size, &length,
++						"PHYSDEVBUS=%s", parent->bus->name);
++			if (retval)
++				return retval;
++
++			if (parent->driver) {
++				retval = add_uevent_var(envp, num_envp, &i,
++							buffer, buffer_size, &length,
++							"PHYSDEVDRIVER=%s", parent->driver->name);
++				if (retval)
++					return retval;
 +			}
  		}
+ 	} else if (dev->bus) {
+-		add_uevent_var(envp, num_envp, &i,
+-			       buffer, buffer_size, &length,
+-			       "PHYSDEVBUS=%s", dev->bus->name);
++		retval = add_uevent_var(envp, num_envp, &i,
++					buffer, buffer_size, &length,
++					"PHYSDEVBUS=%s", dev->bus->name);
++		if (retval)
++			return retval;
  
- 		if (info->flags & UIF_CTS_FLOW) {
-@@ -230,10 +234,14 @@ static void uart_shutdown(struct uart_st
- 		info->flags &= ~UIF_INITIALIZED;
- 
- 		/*
--		 * Turn off DTR and RTS early.
-+		 * Turn off DTR and RTS (in the case of hardware flow control)
-+		 * early.
- 		 */
--		if (!info->tty || (info->tty->termios->c_cflag & HUPCL))
--			uart_clear_mctrl(port, TIOCM_DTR | TIOCM_RTS);
-+		if (!info->tty || (info->tty->termios->c_cflag & HUPCL)) {
-+			uart_clear_mctrl(port, TIOCM_DTR);
-+			if (info->flags & UIF_CTS_FLOW)
-+				uart_clear_mctrl(port, TIOCM_RTS);
-+               }
- 
- 		/*
- 		 * clear delta_msr_wait queue to avoid mem leaks: we may free
-@@ -1164,14 +1172,16 @@ static void uart_set_termios(struct tty_
- 	uart_change_speed(state, old_termios);
- 
- 	/* Handle transition to B0 status */
--	if ((old_termios->c_cflag & CBAUD) && !(cflag & CBAUD))
--		uart_clear_mctrl(state->port, TIOCM_RTS | TIOCM_DTR);
-+	if ((old_termios->c_cflag & CBAUD) && !(cflag & CBAUD)) {
-+		uart_clear_mctrl(state->port, TIOCM_DTR);
-+		if (state->info->flags & UIF_CTS_FLOW)
-+			uart_clear_mctrl(state->port, TIOCM_RTS);
-+       }
- 
- 	/* Handle transition away from B0 status */
- 	if (!(old_termios->c_cflag & CBAUD) && (cflag & CBAUD)) {
- 		unsigned int mask = TIOCM_DTR;
--		if (!(cflag & CRTSCTS) ||
--		    !test_bit(TTY_THROTTLED, &tty->flags))
-+		if (!test_bit(TTY_THROTTLED, &tty->flags))
- 			mask |= TIOCM_RTS;
- 		uart_set_mctrl(state->port, mask);
- 	}
-@@ -1415,10 +1425,14 @@ static void uart_update_termios(struct u
- 		uart_change_speed(state, NULL);
- 
- 		/*
--		 * And finally enable the RTS and DTR signals.
-+		 * And finally enable the RTS (in the of case hardware flow
-+		 * control) and DTR signals.
- 		 */
--		if (tty->termios->c_cflag & CBAUD)
--			uart_set_mctrl(port, TIOCM_DTR | TIOCM_RTS);
-+		if (tty->termios->c_cflag & CBAUD) {
-+			uart_set_mctrl(port, TIOCM_DTR);
-+			if (state->info->flags & UIF_CTS_FLOW)
-+				uart_set_mctrl(port, TIOCM_RTS);
+-		if (dev->driver)
+-			add_uevent_var(envp, num_envp, &i,
+-				       buffer, buffer_size, &length,
+-				       "PHYSDEVDRIVER=%s", dev->driver->name);
++		if (dev->driver) {
++			retval = add_uevent_var(envp, num_envp, &i,
++						buffer, buffer_size, &length,
++						"PHYSDEVDRIVER=%s", dev->driver->name);
++			if (retval)
++				return retval;
 +		}
  	}
+ #endif
+ 
+@@ -222,27 +241,33 @@ static int dev_uevent(struct kset *kset,
+ 	if (dev->bus && dev->bus->uevent) {
+ 		/* have the bus specific function add its stuff */
+ 		retval = dev->bus->uevent(dev, envp, num_envp, buffer, buffer_size);
+-		if (retval)
++		if (retval) {
+ 			pr_debug ("%s: bus uevent() returned %d\n",
+ 				  __FUNCTION__, retval);
++			goto out;
++		}
+ 	}
+ 
+ 	if (dev->class && dev->class->dev_uevent) {
+ 		/* have the class specific function add its stuff */
+ 		retval = dev->class->dev_uevent(dev, envp, num_envp, buffer, buffer_size);
+-		if (retval)
++		if (retval) {
+ 			pr_debug("%s: class uevent() returned %d\n",
+ 				 __FUNCTION__, retval);
++			goto out;
++		}
+ 	}
+ 
+ 	if (dev->type && dev->type->uevent) {
+ 		/* have the device type specific fuction add its stuff */
+ 		retval = dev->type->uevent(dev, envp, num_envp, buffer, buffer_size);
+-		if (retval)
++		if (retval) {
+ 			pr_debug("%s: dev_type uevent() returned %d\n",
+ 				 __FUNCTION__, retval);
++			goto out;
++		}
+ 	}
+-
++out:
+ 	return retval;
  }
  
 _
 
-Patches currently in -mm which might be from kebkal@gmail.com are
+Patches currently in -mm which might be from eric.rannaud@gmail.com are
 
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
+uevent-improve-error-checking-and-handling.patch
+uevent-use-add_uevent_var-instead-of-open-coding-it.patch
