@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_cmd640-multiple-updates.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:08:44 -0800
-Message-ID: <200703072108.l27L8imF009084@shell0.pdx.osdl.net>
+Subject: + pata_opti-cable-detect.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:08:32 -0800
+Message-ID: <200703072108.l27L8WRa009063@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57602 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57565 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992585AbXCGVJE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:09:04 -0500
+	id S2992590AbXCGVIy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:08:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     pata_cmd640: multiple updates
+     pata_opti: cable detect
 has been added to the -mm tree.  Its filename is
-     pata_cmd640-multiple-updates.patch
+     pata_opti-cable-detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,94 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_cmd640: multiple updates
+Subject: pata_opti: cable detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Add suspend/resume support
-Write 0x5B to 0 not 0x5C
-
-The former is important as we must kill the FIFO on a resume
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cmd640.c |   30 ++++++++++++++++++------------
- 1 files changed, 18 insertions(+), 12 deletions(-)
+ drivers/ata/pata_opti.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_cmd640.c~pata_cmd640-multiple-updates drivers/ata/pata_cmd640.c
---- a/drivers/ata/pata_cmd640.c~pata_cmd640-multiple-updates
-+++ a/drivers/ata/pata_cmd640.c
-@@ -23,7 +23,7 @@
+diff -puN drivers/ata/pata_opti.c~pata_opti-cable-detect drivers/ata/pata_opti.c
+--- a/drivers/ata/pata_opti.c~pata_opti-cable-detect
++++ a/drivers/ata/pata_opti.c
+@@ -34,7 +34,7 @@
  #include <linux/libata.h>
  
- #define DRV_NAME "pata_cmd640"
--#define DRV_VERSION "0.0.3"
-+#define DRV_VERSION "0.0.5"
+ #define DRV_NAME "pata_opti"
+-#define DRV_VERSION "0.2.8"
++#define DRV_VERSION "0.2.9"
  
- struct cmd640_reg {
- 	int last;
-@@ -43,6 +43,7 @@ enum {
+ enum {
+ 	READ_REG	= 0,	/* index of Read cycle timing register */
+@@ -61,8 +61,6 @@ static int opti_pre_reset(struct ata_por
  
- /**
-  *	cmd640_set_piomode	-	set initial PIO mode data
-+ *	@ap: ATA port
-  *	@adev: ATA device
-  *
-  *	Called to do the PIO mode setup.
-@@ -219,22 +220,13 @@ static struct ata_port_operations cmd640
- 	.port_start	= cmd640_port_start,
- };
- 
--static int cmd640_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
-+static void cmd640_hardware_init(struct pci_dev *pdev)
- {
- 	u8 r;
- 	u8 ctrl;
- 
--	static struct ata_port_info info = {
--		.sht = &cmd640_sht,
--		.flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
--		.pio_mask = 0x1f,
--		.port_ops = &cmd640_port_ops
--	};
+ 	if (!pci_test_config_bits(pdev, &opti_enable_bits[ap->port_no]))
+ 		return -ENOENT;
 -
--	static struct ata_port_info *port_info[2] = { &info, &info };
--
- 	/* CMD640 detected, commiserations */
--	pci_write_config_byte(pdev, 0x5C, 0x00);
-+	pci_write_config_byte(pdev, 0x5B, 0x00);
- 	/* Get version info */
- 	pci_read_config_byte(pdev, CFR, &r);
- 	/* PIO0 command cycles */
-@@ -255,12 +247,26 @@ static int cmd640_init_one(struct pci_de
- 	pci_read_config_byte(pdev, ARTIM23, &ctrl);
- 	ctrl |= 0x0C;
- 	pci_write_config_byte(pdev, ARTIM23, ctrl);
-+}
-+
-+static int cmd640_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
-+{
-+	static struct ata_port_info info = {
-+		.sht = &cmd640_sht,
-+		.flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
-+		.pio_mask = 0x1f,
-+		.port_ops = &cmd640_port_ops
-+	};
-+
-+	static struct ata_port_info *port_info[2] = { &info, &info };
- 
-+	cmd640_hardware_init(pdev);
- 	return ata_pci_init_one(pdev, port_info, 2);
+-	ap->cbl = ATA_CBL_PATA40;
+ 	return ata_std_prereset(ap);
  }
  
- static int cmd640_reinit_one(struct pci_dev *pdev)
- {
-+	cmd640_hardware_init(pdev);
- 	return ata_pci_device_resume(pdev);
- }
+@@ -198,6 +196,7 @@ static struct ata_port_operations opti_p
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= opti_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
  
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -173,4 +125,3 @@ documentation-ask-driver-writers-to-provide-pm-support.patch
 tty-clarify-documentation-of-write.patch
 edac-new-opteron-athlon64-memory-controller-driver.patch
 edac-k8-driver-coding-tidy.patch
-dilnetpc-fix-warning.patch
