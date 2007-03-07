@@ -1,57 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - pata_radisys-switch-to-cable-method-to-cleanup-code.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:32:34 -0800
-Message-ID: <200703072332.l27NWY04012908@shell0.pdx.osdl.net>
+Subject: - pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:38:28 -0800
+Message-ID: <200703072338.l27NcSAN013044@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37948 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38355 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992738AbXCGXdI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:33:08 -0500
+	id S964793AbXCGXik (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:38:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_radisys - switch to cable method to cleanup code, correct cable type
+     pata_ali: use the cable_detect method
 has been removed from the -mm tree.  Its filename was
-     pata_radisys-switch-to-cable-method-to-cleanup-code.patch
+     pata_ali-remove-lots-of-code-by-using-the-cable_detect.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_radisys - switch to cable method to cleanup code, correct cable type
+Subject: pata_ali: use the cable_detect method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_radisys.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ata/pata_ali.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_radisys.c~pata_radisys-switch-to-cable-method-to-cleanup-code drivers/ata/pata_radisys.c
---- a/drivers/ata/pata_radisys.c~pata_radisys-switch-to-cable-method-to-cleanup-code
-+++ a/drivers/ata/pata_radisys.c
-@@ -249,8 +249,9 @@ static const struct ata_port_operations 
+diff -puN drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect drivers/ata/pata_ali.c
+--- a/drivers/ata/pata_ali.c~pata_ali-remove-lots-of-code-by-using-the-cable_detect
++++ a/drivers/ata/pata_ali.c
+@@ -368,8 +368,9 @@ static struct ata_port_operations ali_ea
  
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= radisys_pata_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_unknown,
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_early_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
  
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -404,8 +405,9 @@ static struct ata_port_operations ali_20
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_early_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -479,8 +481,9 @@ static struct ata_port_operations ali_c5
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_c2_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ali_c2_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 git-libata-all.patch
 expose-set_mode-method-so-it-can-be-wrapped.patch
-acpi-driver-support-for-pata.patch
 pcmcia-spot-slave-decode-flaws-for-testing.patch
 pata_platform-set-a-cable-type-which-to-set.patch
 pata_qdi-set-cable-type.patch
@@ -63,8 +84,6 @@ pata_cypress-clean-up-by-using-cable_detect-method.patch
 pata_isapnp-set-cable-type.patch
 pata_ixp4xx_cf-set-cable-type.patch
 pata_legacy-fix-missing-methods-and-add-cable-types.patch
-pata_netcell-remove-lots-of-crud-by-using-the-cable-method.patch
-pata_radisys-switch-to-cable-method-to-cleanup-code.patch
 pata_sc1200-set-cable-type-add-freeze-thaw-methods.patch
 pata_rz1000-remove-lots-of-crap-by-using-cable-method.patch
 pata_winbond-set-cable-type.patch
