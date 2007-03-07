@@ -1,48 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - pata_ns87410-cable-detect-method.patch removed from -mm tree
-Date: Wed, 07 Mar 2007 15:48:27 -0800
-Message-ID: <200703072348.l27NmR5i013415@shell0.pdx.osdl.net>
+Subject: - pata_sl82c105-missing-methods-cable.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 15:50:23 -0800
+Message-ID: <200703072350.l27NoO3Z013496@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39330 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39419 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751404AbXCGXsx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 18:48:53 -0500
+	id S1751731AbXCGXu1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 18:50:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_ns87410: cable detect method
+     pata_sl82c105: Missing methods, cable
 has been removed from the -mm tree.  Its filename was
-     pata_ns87410-cable-detect-method.patch
+     pata_sl82c105-missing-methods-cable.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_ns87410: cable detect method
+Subject: pata_sl82c105: Missing methods, cable
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+Missing freeze, thaw, post_internal methods, also switch to new cable method
+in passing.
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ns87410.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/pata_sl82c105.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_ns87410.c~pata_ns87410-cable-detect-method drivers/ata/pata_ns87410.c
---- a/drivers/ata/pata_ns87410.c~pata_ns87410-cable-detect-method
-+++ a/drivers/ata/pata_ns87410.c
-@@ -178,6 +178,7 @@ static struct ata_port_operations ns8741
+diff -puN drivers/ata/pata_sl82c105.c~pata_sl82c105-missing-methods-cable drivers/ata/pata_sl82c105.c
+--- a/drivers/ata/pata_sl82c105.c~pata_sl82c105-missing-methods-cable
++++ a/drivers/ata/pata_sl82c105.c
+@@ -59,7 +59,6 @@ static int sl82c105_pre_reset(struct ata
+ 
+ 	if (ap->port_no && !pci_test_config_bits(pdev, &sl82c105_enable_bits[ap->port_no]))
+ 		return -ENOENT;
+-	ap->cbl = ATA_CBL_PATA40;
+ 	return ata_std_prereset(ap, deadline);
+ }
+ 
+@@ -239,6 +238,7 @@ static struct ata_port_operations sl82c1
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ns87410_error_handler,
+ 	.error_handler	= sl82c105_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
 +	.cable_detect	= ata_cable_40wire,
  
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ns87410_qc_issue_prot,
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= sl82c105_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -52,11 +62,6 @@ expose-set_mode-method-so-it-can-be-wrapped.patch
 pcmcia-spot-slave-decode-flaws-for-testing.patch
 pata_sl82c105-missing-methods-cable.patch
 ata_piix-remove-ugly-layering-violation.patch
-pata_ns87410-cable-detect-method.patch
-pata_oldpiix-cable-detect.patch
-pata_opti-cable-detect.patch
-pata_pcmcia-cable-detect.patch
-pata_triflex-cable-detect.patch
 pata_cmd640-multiple-updates.patch
 libata-fix-hopefully-all-the-remaining-problems-with.patch
 dilnetpc-fix-warning.patch
