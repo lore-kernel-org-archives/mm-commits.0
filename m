@@ -1,123 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-blackfin-i2c-driver-update-2.patch added to -mm tree
-Date: Wed, 07 Mar 2007 12:51:52 -0800
-Message-ID: <200703072051.l27KpqP8008328@shell0.pdx.osdl.net>
+Subject: - blackfin-blackfin-i2c-driver.patch removed from -mm tree
+Date: Wed, 07 Mar 2007 12:51:58 -0800
+Message-ID: <200703072051.l27Kpx1r008331@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56488 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56491 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992553AbXCGUwR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 15:52:17 -0500
+	id S2992564AbXCGUwS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 15:52:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com, adobriyan@gmail.com, akpm@linux-foundation.org, david-b@pacbell.net, khali@linux-fr.org
+To: bryan.wu@analog.com, david-b@pacbell.net, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      Blackfin: blackfin i2c driver
-has been added to the -mm tree.  Its filename is
-     blackfin-blackfin-i2c-driver-update-2.patch
+has been removed from the -mm tree.  Its filename was
+     blackfin-blackfin-i2c-driver.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: Blackfin: blackfin i2c driver
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
-The i2c linux driver for blackfin architecture which supports both GPIO i2c
-operation and blackfin on-chip TWI controller i2c operation.
+The i2c linux driver for blackfin architecture which supports both GPIO
+i2c operation and blackfin on-chip TWI controller i2c operation.
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Alexey Dobriyan <adobriyan@gmail.com>
-Reviewed-by: Jean Delvare <khali@linux-fr.org>
+Cc: Jean Delvare <khali@linux-fr.org>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/i2c/busses/Kconfig         |   47 ++
- drivers/i2c/busses/Makefile        |    2 
- drivers/i2c/busses/i2c-bfin-gpio.c |  100 ++++
+ drivers/i2c/busses/i2c-bfin-gpio.c |   98 ++++
  drivers/i2c/busses/i2c-bfin-twi.c  |  589 +++++++++++++++++++++++++++
- 4 files changed, 738 insertions(+)
+ 3 files changed, 734 insertions(+)
 
-diff -puN drivers/i2c/busses/Kconfig~blackfin-blackfin-i2c-driver-update-2 drivers/i2c/busses/Kconfig
---- a/drivers/i2c/busses/Kconfig~blackfin-blackfin-i2c-driver-update-2
-+++ a/drivers/i2c/busses/Kconfig
-@@ -91,6 +91,53 @@ config I2C_AU1550
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called i2c-au1550.
- 
-+config I2C_BLACKFIN_GPIO
-+	tristate "Blackfin GPIO based I2C interface"
-+	depends on I2C && BLACKFIN && EXPERIMENTAL
-+	select I2C_ALGOBIT
-+	help
-+	  Say Y here if you have an Blackfin BF5xx based
-+	  system and are using GPIO lines for an I2C bus.
-+
-+menu "Blackfin I2C SDA/SCL Selection"
-+	depends on I2C_BLACKFIN_GPIO
-+config I2C_BLACKFIN_GPIO_SDA
-+	int "SDA GPIO pin number"
-+	range 0 15 if (BF533 || BF532 || BF531)
-+	range 0 47 if (BF534 || BF536 || BF537)
-+	range 0 47 if BF561
-+	default 2
-+
-+config I2C_BLACKFIN_GPIO_SCL
-+	int "SCL GPIO pin number"
-+	range 0 15 if (BF533 || BF532 || BF531)
-+	range 0 47 if (BF534 || BF536 || BF537)
-+	range 0 47 if BF561
-+	default 3
-+endmenu
-+
-+config I2C_BLACKFIN_GPIO_CYCLE_DELAY
-+	int "Cycle Delay in uSec"
-+	depends on I2C_BLACKFIN_GPIO
-+	range 5 100
-+	default 40
-+
-+config I2C_BLACKFIN_TWI
-+	tristate "Blackfin TWI I2C support"
-+	depends on I2C && (BF534 || BF536 || BF537)
-+	help
-+	  This is the TWI I2C device driver for Blackfin 534/536/537.
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called i2c-bfin-twi.
-+
-+config I2C_BLACKFIN_TWI_CLK_KHZ
-+	int "Blackfin TWI I2C clock (kHz)"
-+	depends on I2C_BLACKFIN_TWI
-+	range 10 400
-+	default 50
-+	help
-+	  The unit of the TWI clock is kilo HZ.
-+
- config I2C_ELEKTOR
- 	tristate "Elektor ISA card"
- 	depends on I2C && ISA && BROKEN_ON_SMP
-diff -puN drivers/i2c/busses/Makefile~blackfin-blackfin-i2c-driver-update-2 drivers/i2c/busses/Makefile
---- a/drivers/i2c/busses/Makefile~blackfin-blackfin-i2c-driver-update-2
-+++ a/drivers/i2c/busses/Makefile
-@@ -10,6 +10,8 @@ obj-$(CONFIG_I2C_AMD756_S4882)	+= i2c-am
- obj-$(CONFIG_I2C_AMD8111)	+= i2c-amd8111.o
- obj-$(CONFIG_I2C_AT91)		+= i2c-at91.o
- obj-$(CONFIG_I2C_AU1550)	+= i2c-au1550.o
-+obj-$(CONFIG_I2C_BLACKFIN_GPIO) += i2c-bfin-gpio.o
-+obj-$(CONFIG_I2C_BLACKFIN_TWI)  += i2c-bfin-twi.o
- obj-$(CONFIG_I2C_ELEKTOR)	+= i2c-elektor.o
- obj-$(CONFIG_I2C_HYDRA)		+= i2c-hydra.o
- obj-$(CONFIG_I2C_I801)		+= i2c-i801.o
 diff -puN /dev/null drivers/i2c/busses/i2c-bfin-gpio.c
 --- /dev/null
 +++ a/drivers/i2c/busses/i2c-bfin-gpio.c
-@@ -0,0 +1,100 @@
+@@ -0,0 +1,98 @@
 +/****************************************************************
 + * Description:                                                 *
 + *                                                              *
@@ -148,22 +72,22 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-gpio.c
 +static void hhbf_setsda(void *data, int state)
 +{
 +	if (state) {
-+		gpio_direction_input(CONFIG_I2C_BLACKFIN_GPIO_SDA);
++		gpio_direction_input(CONFIG_BFIN_SDA);
 +
 +	} else {
-+		gpio_direction_output(CONFIG_I2C_BLACKFIN_GPIO_SDA);
-+		gpio_set_value(CONFIG_I2C_BLACKFIN_GPIO_SDA, 0);
++		gpio_direction_output(CONFIG_BFIN_SDA);
++		gpio_set_value(CONFIG_BFIN_SDA, 0);
 +	}
 +}
 +
 +static void hhbf_setscl(void *data, int state)
 +{
-+	gpio_set_value(CONFIG_I2C_BLACKFIN_GPIO_SCL, state);
++	gpio_set_value(CONFIG_BFIN_SCL, state);
 +}
 +
 +static int hhbf_getsda(void *data)
 +{
-+	return (gpio_get_value(CONFIG_I2C_BLACKFIN_GPIO_SDA) != 0);
++	return (gpio_get_value(CONFIG_BFIN_SDA) != 0);
 +}
 +
 +
@@ -171,7 +95,7 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-gpio.c
 +	.setsda  = hhbf_setsda,
 +	.setscl  = hhbf_setscl,
 +	.getsda  = hhbf_getsda,
-+	.udelay  = CONFIG_I2C_BLACKFIN_GPIO_CYCLE_DELAY,
++	.udelay  = CONFIG_I2C_BFIN_GPIO_CYCLE_DELAY,
 +	.timeout = HZ
 +};
 +
@@ -179,36 +103,34 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-gpio.c
 +	.owner 	= THIS_MODULE,
 +	.id 	= I2C_HW_B_HHBF,
 +	.algo_data 	= &bit_hhbf_data,
-+	.name	= "Blackfin GPIO based I2C driver",
++	.name	= "HHBF I2C driver",
 +};
 +
 +static int __init i2c_hhbf_init(void)
 +{
 +
-+	if (gpio_request(CONFIG_I2C_BLACKFIN_GPIO_SCL, NULL)) {
-+		printk(KERN_ERR "%s: gpio_request GPIO %d failed \n", __func__,
-+				CONFIG_I2C_BLACKFIN_GPIO_SCL);
++	if (gpio_request(CONFIG_BFIN_SCL, NULL)) {
++		printk(KERN_ERR "%s: gpio_request GPIO %d failed \n",__func__, CONFIG_BFIN_SCL);
 +		return -1;
 +	}
 +
-+	if (gpio_request(CONFIG_I2C_BLACKFIN_GPIO_SDA, NULL)) {
-+		printk(KERN_ERR "%s: gpio_request GPIO %d failed \n", __func__,
-+				CONFIG_I2C_BLACKFIN_GPIO_SDA);
++	if (gpio_request(CONFIG_BFIN_SDA, NULL)) {
++		printk(KERN_ERR "%s: gpio_request GPIO %d failed \n",__func__, CONFIG_BFIN_SDA);
 +		return -1;
 +	}
 +
 +
-+	gpio_direction_output(CONFIG_I2C_BLACKFIN_GPIO_SCL);
-+	gpio_direction_input(CONFIG_I2C_BLACKFIN_GPIO_SDA);
-+	gpio_set_value(CONFIG_I2C_BLACKFIN_GPIO_SCL, 1);
++	gpio_direction_output(CONFIG_BFIN_SCL);
++	gpio_direction_input(CONFIG_BFIN_SDA);
++	gpio_set_value(CONFIG_BFIN_SCL, 1);
 +
 +	return i2c_bit_add_bus(&hhbf_ops);
 +}
 +
 +static void __exit i2c_hhbf_exit(void)
 +{
-+	gpio_free(CONFIG_I2C_BLACKFIN_GPIO_SCL);
-+	gpio_free(CONFIG_I2C_BLACKFIN_GPIO_SDA);
++	gpio_free(CONFIG_BFIN_SCL);
++	gpio_free(CONFIG_BFIN_SDA);
 +	i2c_bit_del_bus(&hhbf_ops);
 +}
 +
@@ -246,10 +168,10 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-twi.c
 +#include <asm/blackfin.h>
 +#include <asm/irq.h>
 +
-+#define I2C_BLACKFIN_TWI       0x00
++#define I2C_BFIN_TWI       0x00
 +#define POLL_TIMEOUT       (2 * HZ)
-+#ifndef CONFIG_I2C_BLACKFIN_TWI_CLK_KHZ
-+#define CONFIG_I2C_BLACKFIN_TWI_CLK_KHZ  400
++#ifndef CONFIG_TWICLK_KHZ
++#define CONFIG_TWICLK_KHZ  400
 +#endif
 +
 +/* SMBus mode*/
@@ -447,7 +369,7 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-twi.c
 +
 +	while (bfin_read_TWI_MASTER_STAT() & BUSBUSY) {
 +		mutex_unlock(&iface->twi_lock);
-+		cond_resched();
++		yield();
 +		mutex_lock(&iface->twi_lock);
 +	}
 +
@@ -513,7 +435,7 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-twi.c
 +		/* Master enable */
 +		bfin_write_TWI_MASTER_CTL(bfin_read_TWI_MASTER_CTL() | MEN |
 +			((iface->read_write == I2C_SMBUS_READ) ? MDIR : 0) |
-+			((CONFIG_I2C_BLACKFIN_TWI_CLK_KHZ>100) ? FAST : 0));
++			((CONFIG_TWICLK_KHZ>100) ? FAST : 0));
 +		SSYNC();
 +
 +		wait_for_completion(&iface->complete);
@@ -549,7 +471,7 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-twi.c
 +
 +	while(bfin_read_TWI_MASTER_STAT() & BUSBUSY) {
 +		mutex_unlock(&iface->twi_lock);
-+		cond_resched();
++		yield();
 +		mutex_lock(&iface->twi_lock);
 +	}
 +
@@ -653,7 +575,7 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-twi.c
 +		}
 +		/* Master enable */
 +		bfin_write_TWI_MASTER_CTL(bfin_read_TWI_MASTER_CTL() | MEN |
-+			((CONFIG_I2C_BLACKFIN_TWI_CLK_KHZ>100) ? FAST : 0));
++			((CONFIG_TWICLK_KHZ>100) ? FAST : 0));
 +		break;
 +	case TWI_I2C_MODE_COMBINED:
 +		bfin_write_TWI_XMT_DATA8(iface->command);
@@ -666,7 +588,7 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-twi.c
 +			bfin_write_TWI_MASTER_CTL(0x1 << 6);
 +		/* Master enable */
 +		bfin_write_TWI_MASTER_CTL(bfin_read_TWI_MASTER_CTL() | MEN |
-+			((CONFIG_I2C_BLACKFIN_TWI_CLK_KHZ>100) ? FAST : 0));
++			((CONFIG_TWICLK_KHZ>100) ? FAST : 0));
 +		break;
 +	default:
 +		bfin_write_TWI_MASTER_CTL(0);
@@ -714,7 +636,7 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-twi.c
 +		/* Master enable */
 +		bfin_write_TWI_MASTER_CTL(bfin_read_TWI_MASTER_CTL() | MEN |
 +			((iface->read_write == I2C_SMBUS_READ) ? MDIR : 0) |
-+			((CONFIG_I2C_BLACKFIN_TWI_CLK_KHZ > 100) ? FAST : 0));
++			((CONFIG_TWICLK_KHZ > 100) ? FAST : 0));
 +		break;
 +	}
 +	SSYNC();
@@ -762,7 +684,7 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-twi.c
 +	twi_iface.timeout_timer.data = (unsigned long)&twi_iface;
 +
 +	p_adap = &twi_iface.adap;
-+	p_adap->id = I2C_BLACKFIN_TWI;
++	p_adap->id = I2C_BFIN_TWI;
 +	strcpy(p_adap->name, "i2c-bfin-twi");
 +	p_adap->algo = &bfin_twi_algorithm;
 +	p_adap->algo_data = &twi_iface;
@@ -782,12 +704,12 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-twi.c
 +	bfin_write_TWI_CONTROL(((get_sclk() / 1024 / 1024 + 5) / 10) & 0x7F);
 +
 +	/* Set Twi interface clock as specified */
-+	if (CONFIG_I2C_BLACKFIN_TWI_CLK_KHZ > 400)
++	if (CONFIG_TWICLK_KHZ > 400)
 +		bfin_write_TWI_CLKDIV((( 5*1024 / 400 ) << 8) |
 +			(( 5*1024 / 400 ) & 0xFF));
 +	else
-+		bfin_write_TWI_CLKDIV((( 5*1024 / CONFIG_I2C_BLACKFIN_TWI_CLK_KHZ ) << 8) |
-+			(( 5*1024 / CONFIG_I2C_BLACKFIN_TWI_CLK_KHZ ) & 0xFF));
++		bfin_write_TWI_CLKDIV((( 5*1024 / CONFIG_TWICLK_KHZ ) << 8) |
++			(( 5*1024 / CONFIG_TWICLK_KHZ ) & 0xFF));
 +
 +	/* Enable TWI */
 +	bfin_write_TWI_CONTROL(bfin_read_TWI_CONTROL() | TWI_ENA);
@@ -811,6 +733,63 @@ diff -puN /dev/null drivers/i2c/busses/i2c-bfin-twi.c
 +
 +module_init(i2c_bfin_twi_init);
 +module_exit(i2c_bfin_twi_exit);
+diff -puN drivers/i2c/busses/Kconfig~blackfin-blackfin-i2c-driver drivers/i2c/busses/Kconfig
+--- a/drivers/i2c/busses/Kconfig~blackfin-blackfin-i2c-driver
++++ a/drivers/i2c/busses/Kconfig
+@@ -5,6 +5,53 @@
+ menu "I2C Hardware Bus support"
+ 	depends on I2C
+ 
++config I2C_BFIN_GPIO
++	tristate "Generic Blackfin and HHBF533/561 development board I2C support"
++	depends on I2C && EXPERIMENTAL
++	select I2C_ALGOBIT
++	help
++	--
++
++menu "BFIN I2C SDA/SCL Selection"
++	depends on I2C_BFIN_GPIO
++config BFIN_SDA
++	int "SDA is GPIO Number"
++	range 0 15 if (BF533 || BF532 || BF531)
++	range 0 47 if (BF534 || BF536 || BF537)
++	range 0 47 if BF561
++	default 2 if (BF533 || BF532 || BF531)
++
++config BFIN_SCL
++	int "SCL is GPIO Number"
++	range 0 15 if (BF533 || BF532 || BF531)
++	range 0 47 if (BF534 || BF536 || BF537)
++	range 0 47 if BF561
++	default 3
++endmenu
++
++config I2C_BFIN_GPIO_CYCLE_DELAY
++	int "Cycle Delay in usec"
++	depends on I2C_BFIN_GPIO
++	range 1 100
++	default 40
++
++config I2C_BFIN_TWI
++	tristate "Blackfin TWI I2C support"
++	depends on I2C && (BF534 || BF536 || BF537)
++	help
++	  This the TWI I2C device driver for Blackfin 534/536/537.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called i2c-bfin-twi.
++
++config TWICLK_KHZ
++	int "TWI clock (kHZ)"
++	depends on I2C_BFIN_TWI
++	default 50
++	help
++	  The unit of the TWI clock is kilo HZ. Please divide the clock
++	  by 1024 if you count it in HZ. The value should be less than 400.
++
+ config I2C_ALI1535
+ 	tristate "ALI 1535"
+ 	depends on I2C && PCI
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
