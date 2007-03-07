@@ -1,64 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-formatting-violations-in-signal-delivery-code.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:21:44 -0800
-Message-ID: <200703070421.l274LiR0018923@shell0.pdx.osdl.net>
+Subject: - uml-comment-the-initialization-of-a-global.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:21:48 -0800
+Message-ID: <200703070421.l274LmFw018933@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47055 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47064 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161322AbXCGEVr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:21:47 -0500
+	id S1161291AbXCGEVv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:21:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix formatting violations in signal delivery code
+     uml: comment the initialization of a global
 has been removed from the -mm tree.  Its filename was
-     uml-fix-formatting-violations-in-signal-delivery-code.patch
+     uml-comment-the-initialization-of-a-global.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fix formatting violations in signal delivery code
+Subject: uml: comment the initialization of a global
 From: Jeff Dike <jdike@addtoit.com>
 
-Fix a few formatting bugs in the signal code.
+Comment the fact that sig_info is initialized early in boot, and thus doesn't
+need any locking.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/signal.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/um/os-Linux/trap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/um/kernel/signal.c~uml-fix-formatting-violations-in-signal-delivery-code arch/um/kernel/signal.c
---- a/arch/um/kernel/signal.c~uml-fix-formatting-violations-in-signal-delivery-code
-+++ a/arch/um/kernel/signal.c
-@@ -158,12 +158,12 @@ static int kern_do_signal(struct pt_regs
- 		clear_thread_flag(TIF_RESTORE_SIGMASK);
- 		sigprocmask(SIG_SETMASK, &current->saved_sigmask, NULL);
- 	}
--	return(handled_sig);
-+	return handled_sig;
+diff -puN arch/um/os-Linux/trap.c~uml-comment-the-initialization-of-a-global arch/um/os-Linux/trap.c
+--- a/arch/um/os-Linux/trap.c~uml-comment-the-initialization-of-a-global
++++ a/arch/um/os-Linux/trap.c
+@@ -16,6 +16,7 @@ void usr2_handler(int sig, union uml_pt_
+ 	CHOOSE_MODE(syscall_handler_tt(sig, regs), (void) 0);
  }
  
- int do_signal(void)
- {
--	return(kern_do_signal(&current->thread.regs));
-+	return kern_do_signal(&current->thread.regs);
- }
++/* Initialized from linux_main() */
+ void (*sig_info[NSIG])(int, union uml_pt_regs *);
  
- /*
-@@ -186,5 +186,5 @@ long sys_sigsuspend(int history0, int hi
- 
- long sys_sigaltstack(const stack_t __user *uss, stack_t __user *uoss)
- {
--	return(do_sigaltstack(uss, uoss, PT_REGS_SP(&current->thread.regs)));
-+	return do_sigaltstack(uss, uoss, PT_REGS_SP(&current->thread.regs));
- }
+ void os_fill_handlinfo(struct kern_handlers h)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
