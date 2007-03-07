@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr.patch added to -mm tree
-Date: Wed, 07 Mar 2007 12:54:16 -0800
-Message-ID: <200703072054.l27KsGS0008392@shell0.pdx.osdl.net>
+Subject: + mm-fix-clear_page_dirty_for_io-vs-fault-race.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:02:39 -0800
+Message-ID: <200703072102.l27L2d4V008666@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56640 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57080 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992570AbXCGUyW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 15:54:22 -0500
+	id S1423001AbXCGVC4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:02:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de
+Cc: npiggin@suse.de, miklos@szeredi.hu, torvalds@linux-foundation.org
 
 
 The patch titled
-     xfs: stop using kmalloc in xfs_buf_get_noaddr
+     mm: fix clear_page_dirty_for_io vs fault race
 has been added to the -mm tree.  Its filename is
-     xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr.patch
+     mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,152 +25,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xfs: stop using kmalloc in xfs_buf_get_noaddr
-From: Christoph Hellwig <hch@lst.de>
+Subject: mm: fix clear_page_dirty_for_io vs fault race
+From: Nick Piggin <npiggin@suse.de>
 
-Currently xfs_buf_get_noaddr allocates memory using kmem_alloc which can end
-up either in kmalloc or vmalloc and assigns it to the buffer.  This patch
-changes it to allocate individual pages and if there is more then one maps it
-into kernel virtual space using vmap.
+Fix msync data loss and (less importantly) dirty page accounting
+inaccuracies due to the race remaining in clear_page_dirty_for_io().
 
-This means the minimum buffer allocation is PAGE_SIZE now.  For two of the
-three caller (log buffers, log recovery) that is perfectly fine, because they
-always allocate buffers that are a power of two of the page size anyway.  For
-xfs_zero_remaining_bytes the minimum allocation goes up from blocksize to
-pagesize and thus there is a potential waste of memory for blocksize <
-pagesize allocations, which is unfortunate but not directly solveable when
-block drivers expect reference countable pages.  To fix this waste
-xfs_zero_remaining_bytes could be rewritten to zero more than a single block
-at a time, which sounds like a good idea in general.
+The deleted comment explains what the race was, and the added comments
+explain how it is fixed.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_buf.c |   51 +++++++++++++++--------------------
- fs/xfs/linux-2.6/xfs_buf.h |    2 -
- 2 files changed, 23 insertions(+), 30 deletions(-)
+ mm/memory.c         |    9 +++++++++
+ mm/page-writeback.c |   17 ++++++++++++-----
+ 2 files changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_buf.c~xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr fs/xfs/linux-2.6/xfs_buf.c
---- a/fs/xfs/linux-2.6/xfs_buf.c~xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr
-+++ a/fs/xfs/linux-2.6/xfs_buf.c
-@@ -314,7 +314,7 @@ xfs_buf_free(
- 
- 	ASSERT(list_empty(&bp->b_hash_list));
- 
--	if (bp->b_flags & _XBF_PAGE_CACHE) {
-+	if (bp->b_flags & (_XBF_PAGE_CACHE|_XBF_PAGES)) {
- 		uint		i;
- 
- 		if ((bp->b_flags & XBF_MAPPED) && (bp->b_page_count > 1))
-@@ -323,18 +323,11 @@ xfs_buf_free(
- 		for (i = 0; i < bp->b_page_count; i++) {
- 			struct page	*page = bp->b_pages[i];
- 
--			ASSERT(!PagePrivate(page));
-+			if (bp->b_flags & _XBF_PAGE_CACHE)
-+				ASSERT(!PagePrivate(page));
- 			page_cache_release(page);
- 		}
- 		_xfs_buf_free_pages(bp);
--	} else if (bp->b_flags & _XBF_KMEM_ALLOC) {
--		 /*
--		  * XXX(hch): bp->b_count_desired might be incorrect (see
--		  * xfs_buf_associate_memory for details), but fortunately
--		  * the Linux version of kmem_free ignores the len argument..
--		  */
--		kmem_free(bp->b_addr, bp->b_count_desired);
--		_xfs_buf_free_pages(bp);
+diff -puN mm/memory.c~mm-fix-clear_page_dirty_for_io-vs-fault-race mm/memory.c
+--- a/mm/memory.c~mm-fix-clear_page_dirty_for_io-vs-fault-race
++++ a/mm/memory.c
+@@ -1669,6 +1669,15 @@ gotten:
+ unlock:
+ 	pte_unmap_unlock(page_table, ptl);
+ 	if (dirty_page) {
++		/*
++		 * Yes, Virginia, this is actually required to prevent a race
++		 * with clear_page_dirty_for_io() from clearing the page dirty
++		 * bit after it clear all dirty ptes, but before a racing
++		 * do_wp_page installs a dirty pte.
++		 *
++		 * do_no_page is protected similarly.
++		 */
++		wait_on_page_locked(dirty_page);
+ 		set_page_dirty_balance(dirty_page);
+ 		put_page(dirty_page);
  	}
- 
- 	xfs_buf_deallocate(bp);
-@@ -764,41 +757,41 @@ xfs_buf_get_noaddr(
- 	size_t			len,
- 	xfs_buftarg_t		*target)
+diff -puN mm/page-writeback.c~mm-fix-clear_page_dirty_for_io-vs-fault-race mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-fix-clear_page_dirty_for_io-vs-fault-race
++++ a/mm/page-writeback.c
+@@ -903,6 +903,8 @@ int clear_page_dirty_for_io(struct page 
  {
--	size_t			malloc_len = len;
-+	unsigned long		page_count = PAGE_ALIGN(len) >> PAGE_SHIFT;
-+	int			error, i;
- 	xfs_buf_t		*bp;
--	void			*data;
--	int			error;
+ 	struct address_space *mapping = page_mapping(page);
  
- 	bp = xfs_buf_allocate(0);
- 	if (unlikely(bp == NULL))
- 		goto fail;
- 	_xfs_buf_initialize(bp, target, 0, len, 0);
- 
-- try_again:
--	data = kmem_alloc(malloc_len, KM_SLEEP | KM_MAYFAIL | KM_LARGE);
--	if (unlikely(data == NULL))
-+	error = _xfs_buf_get_pages(bp, page_count, 0);
-+	if (error)
- 		goto fail_free_buf;
- 
--	/* check whether alignment matches.. */
--	if ((__psunsigned_t)data !=
--	    ((__psunsigned_t)data & ~target->bt_smask)) {
--		/* .. else double the size and try again */
--		kmem_free(data, malloc_len);
--		malloc_len <<= 1;
--		goto try_again;
--	}
--
--	error = xfs_buf_associate_memory(bp, data, len);
--	if (error)
-+	for (i = 0; i < page_count; i++) {
-+		bp->b_pages[i] = alloc_page(GFP_KERNEL);
-+		if (!bp->b_pages[i])
-+			goto fail_free_mem;
-+	}
-+	bp->b_flags |= _XBF_PAGES;
++	BUG_ON(!PageLocked(page));
 +
-+	error = _xfs_buf_map_pages(bp, XBF_MAPPED);
-+	if (unlikely(error)) {
-+		printk(KERN_WARNING "%s: failed to map pages\n",
-+				__FUNCTION__);
- 		goto fail_free_mem;
--	bp->b_flags |= _XBF_KMEM_ALLOC;
-+	}
- 
- 	xfs_buf_unlock(bp);
- 
- 	XB_TRACE(bp, "no_daddr", data);
- 	return bp;
-+
-  fail_free_mem:
--	kmem_free(data, malloc_len);
-+ 	for ( ; i >= 0; i++)
-+		__free_page(bp->b_pages[i]);
-  fail_free_buf:
- 	xfs_buf_free(bp);
-  fail:
-diff -puN fs/xfs/linux-2.6/xfs_buf.h~xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr fs/xfs/linux-2.6/xfs_buf.h
---- a/fs/xfs/linux-2.6/xfs_buf.h~xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr
-+++ a/fs/xfs/linux-2.6/xfs_buf.h
-@@ -63,7 +63,7 @@ typedef enum {
- 
- 	/* flags used only internally */
- 	_XBF_PAGE_CACHE = (1 << 17),/* backed by pagecache		   */
--	_XBF_KMEM_ALLOC = (1 << 18),/* backed by kmem_alloc()		   */
-+	_XBF_PAGES = (1 << 18),	    /* backed by refcounted pages	   */
- 	_XBF_RUN_QUEUES = (1 << 19),/* run block device task queue	   */
- 	_XBF_DELWRI_Q = (1 << 21),   /* buffer on delwri queue		   */
- } xfs_buf_flags_t;
+ 	if (mapping && mapping_cap_account_dirty(mapping)) {
+ 		/*
+ 		 * Yes, Virginia, this is indeed insane.
+@@ -928,14 +930,19 @@ int clear_page_dirty_for_io(struct page 
+ 		 * We basically use the page "master dirty bit"
+ 		 * as a serialization point for all the different
+ 		 * threads doing their things.
+-		 *
+-		 * FIXME! We still have a race here: if somebody
+-		 * adds the page back to the page tables in
+-		 * between the "page_mkclean()" and the "TestClearPageDirty()",
+-		 * we might have it mapped without the dirty bit set.
+ 		 */
+ 		if (page_mkclean(page))
+ 			set_page_dirty(page);
++		/*
++		 * We carefully synchronise fault handlers against
++		 * installing a dirty pte and marking the page dirty
++		 * at this point. We do this by having them hold the
++		 * page lock at some point after installing their
++		 * pte, but before marking the page dirty.
++		 * Pages are always locked coming in here, so we get
++		 * the desired exclusion. See mm/memory.c:do_wp_page()
++		 * for more comments.
++		 */
+ 		if (TestClearPageDirty(page)) {
+ 			dec_zone_page_state(page, NR_FILE_DIRTY);
+ 			return 1;
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-xfs-use-xfs_get_buf_noaddr-for-iclogs.patch
-xfs-stop-using-kmalloc-in-xfs_buf_get_noaddr.patch
-simplify-the-stacktrace-code.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
-aio-is-unlikely.patch
-ps3fb-thread-updates.patch
-ps3av-thread-updates.patch
-ps3fb-kill-superfluous-zero-initializations.patch
-ps3av-misc-updates.patch
+mm-remove-gcc-workaround.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
+mm-simplify-filemap_nopage.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault.patch
+mm-remove-legacy-cruft.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+exec-fix-remove_arg_zero.patch
