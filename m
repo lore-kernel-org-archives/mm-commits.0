@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + msi-debug-code.patch added to -mm tree
-Date: Wed, 07 Mar 2007 13:14:59 -0800
-Message-ID: <200703072114.l27LExE0009251@shell0.pdx.osdl.net>
+Subject: + swsusp-disable-nonboot-cpus-before-entering-platform-suspend.patch added to -mm tree
+Date: Wed, 07 Mar 2007 13:15:58 -0800
+Message-ID: <200703072115.l27LFw8a009311@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58324 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58464 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965667AbXCGVPA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:15:00 -0500
+	id S2992640AbXCGVQW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 7 Mar 2007 16:16:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com
+Cc: rjw@sisk.pl, pavel@ucw.cz
 
 
 The patch titled
-     MSI debug code
+     swsusp: disable nonboot CPUs before entering platform suspend
 has been added to the -mm tree.  Its filename is
-     msi-debug-code.patch
+     swsusp-disable-nonboot-cpus-before-entering-platform-suspend.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,85 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MSI debug code
-From: "Eric W. Biederman" <ebiederm@xmission.com>
+Subject: swsusp: disable nonboot CPUs before entering platform suspend
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Below is an additional set of warnings that should help debug this.
-The old code just got lucky that it triggered a warning when this happens.
+Prevent the WARN_ON() in arch/x86_64/kernel/acpi/sleep.c:init_low_mapping()
+from triggering by disabling nonboot CPUs before we finally enter the
+platform suspend.
 
-
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/msi.c |    6 ++++++
- drivers/pci/pci.c |    1 +
- 2 files changed, 7 insertions(+)
+ kernel/power/disk.c |    1 +
+ kernel/power/user.c |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/msi.c~msi-debug-code drivers/pci/msi.c
---- a/drivers/pci/msi.c~msi-debug-code
-+++ a/drivers/pci/msi.c
-@@ -613,6 +613,7 @@ int pci_enable_msi(struct pci_dev* dev)
- 		return -EINVAL;
+diff -puN kernel/power/disk.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend kernel/power/disk.c
+--- a/kernel/power/disk.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend
++++ a/kernel/power/disk.c
+@@ -61,6 +61,7 @@ static void power_down(suspend_disk_meth
+ 	switch(mode) {
+ 	case PM_DISK_PLATFORM:
+ 		if (pm_ops && pm_ops->enter) {
++			disable_nonboot_cpus();
+ 			kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+ 			pm_ops->enter(PM_SUSPEND_DISK);
+ 			break;
+diff -puN kernel/power/user.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend kernel/power/user.c
+--- a/kernel/power/user.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend
++++ a/kernel/power/user.c
+@@ -398,9 +398,9 @@ static int snapshot_ioctl(struct inode *
  
- 	WARN_ON(!!dev->msi_enabled);
-+	WARN_ON(!hlist_empty(&dev->saved_cap_space));
+ 		case PMOPS_ENTER:
+ 			if (data->platform_suspend) {
++				disable_nonboot_cpus();
+ 				kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+ 				error = pm_ops->enter(PM_SUSPEND_DISK);
+-				error = 0;
+ 			}
+ 			break;
  
- 	/* Check whether driver already requested for MSI-X irqs */
- 	if (dev->msix_enabled) {
-@@ -638,6 +639,8 @@ void pci_disable_msi(struct pci_dev* dev
- 	if (!dev->msi_enabled)
- 		return;
- 
-+	WARN_ON(!hlist_empty(&dev->saved_cap_space));
-+
- 	msi_set_enable(dev, 0);
- 	pci_intx(dev, 1);		/* enable intx */
- 	dev->msi_enabled = 0;
-@@ -739,6 +742,7 @@ int pci_enable_msix(struct pci_dev* dev,
- 		}
- 	}
- 	WARN_ON(!!dev->msix_enabled);
-+	WARN_ON(!hlist_empty(&dev->saved_cap_space));
- 
- 	/* Check whether driver already requested for MSI irq */
-    	if (dev->msi_enabled) {
-@@ -763,6 +767,8 @@ void pci_disable_msix(struct pci_dev* de
- 	if (!dev->msix_enabled)
- 		return;
- 
-+	WARN_ON(!hlist_empty(&dev->saved_cap_space));
-+
- 	msix_set_enable(dev, 0);
- 	pci_intx(dev, 1);		/* enable intx */
- 	dev->msix_enabled = 0;
-diff -puN drivers/pci/pci.c~msi-debug-code drivers/pci/pci.c
---- a/drivers/pci/pci.c~msi-debug-code
-+++ a/drivers/pci/pci.c
-@@ -676,6 +676,7 @@ pci_restore_state(struct pci_dev *dev)
- 	}
- 	pci_restore_pcix_state(dev);
- 	pci_restore_msi_state(dev);
-+	WARN_ON(!hlist_empty(&dev->saved_cap_space));
- 
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-fix-null-pointer-in-ia64-irq_chip-mask-unmask.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-i386-irq-kill-irq-compression.patch
-x86_64-irq-remove-extra-smp_processor_id-calling.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-edac-k8-driver-coding-tidy.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-msi-debug-code.patch
+swsusp-disable-nonboot-cpus-before-entering-platform-suspend.patch
+make-xfs-workqueues-nonfreezable.patch
+fix-refrigerator-vs-thaw_process-race.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+shrink_slab-handle-bad-shrinkers.patch
