@@ -1,305 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-provide-sunrpc-pool_mode-module-option.patch removed from -mm tree
-Date: Tue, 06 Mar 2007 20:21:58 -0800
-Message-ID: <200703070421.l274Lw4a018954@shell0.pdx.osdl.net>
+Subject: - ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch removed from -mm tree
+Date: Tue, 06 Mar 2007 20:22:10 -0800
+Message-ID: <200703070422.l274MAp6018967@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47089 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47111 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932211AbXCGEWE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 6 Mar 2007 23:22:04 -0500
+	id S1751243AbXCGEWT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 6 Mar 2007 23:22:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gnb@sgi.com, gnb@melbourne.sgi.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: horms@verge.net.au, jlan@sgi.com, nanhai.zou@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: provide sunrpc pool_mode module option
+     ia64: point saved_max_pfn to the max_pfn of the entire system
 has been removed from the -mm tree.  Its filename was
-     knfsd-provide-sunrpc-pool_mode-module-option.patch
+     ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: provide sunrpc pool_mode module option
-From: Greg Banks <gnb@sgi.com>
+Subject: ia64: point saved_max_pfn to the max_pfn of the entire system
+From: Horms <horms@verge.net.au>
 
-Provide a module param "pool_mode" for sunrpc.ko which allows a sysadmin to
-choose the mode for mapping NFS thread service pools to CPUs.  Values are:
+Make saved_max_pfn point to max_pfn of entire system.
 
-auto	    choose a mapping mode heuristically
-global	    (default, same as the pre-2.6.19 code) a single global pool
-percpu	    one pool per CPU
-pernode	    one pool per NUMA node
+Without this patch is so that vmcore is zero length on ia64.  This is
+because saved_max_pfn was wrongly being set to the max_pfn of the crash
+kernel's address space, rather than the max_pfg on the physical memory of
+the machine - the whole purpose of vmcore is to access physical memory that
+is not part of the crash kernel's addresss space.
 
-Note that since 2.6.19 the hardcoded behaviour has been "auto", this patch
-makes the default "global".
+Updated for recent changes in Linus' tree.
 
-The pool mode can be changed after boot/modprobe using /sys, if the NFS and
-lockd services have been shut down.  A useful side effect of this change is to
-fix a small memory leak when unloading the module.
-
-Signed-off-by: Greg Banks <gnb@melbourne.sgi.com>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Zou Nan hai <nanhai.zou@intel.com>
+Sort-Of-Acked-By: Jay Lan <jlan@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   16 +++
- net/sunrpc/svc.c                    |  133 ++++++++++++++++++++++----
- 2 files changed, 130 insertions(+), 19 deletions(-)
+ arch/ia64/kernel/efi.c   |    6 ++++++
+ arch/ia64/mm/contig.c    |    5 -----
+ arch/ia64/mm/discontig.c |    6 ------
+ 3 files changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~knfsd-provide-sunrpc-pool_mode-module-option Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~knfsd-provide-sunrpc-pool_mode-module-option
-+++ a/Documentation/kernel-parameters.txt
-@@ -1685,6 +1685,22 @@ and is between 256 and 4096 characters. 
- 	stifb=		[HW]
- 			Format: bpp:<bpp1>[:<bpp2>[:<bpp3>...]]
- 
-+	sunrpc.pool_mode=
-+			[NFS]
-+			Control how the NFS server code allocates CPUs to
-+			service thread pools.  Depending on how many NICs
-+			you have and where their interrupts are bound, this
-+			option will affect which CPUs will do NFS serving.
-+			Note: this parameter cannot be changed while the
-+			NFS server is running.
-+
-+			auto	    the server chooses an appropriate mode
-+				    automatically using heuristics
-+			global	    a single global pool contains all CPUs
-+			percpu	    one pool for each CPU
-+			pernode	    one pool for each NUMA node (equivalent
-+				    to global on non-NUMA machines)
-+
- 	swiotlb=	[IA-64] Number of I/O TLB slabs
- 
- 	switches=	[HW,M68k]
-diff -puN net/sunrpc/svc.c~knfsd-provide-sunrpc-pool_mode-module-option net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~knfsd-provide-sunrpc-pool_mode-module-option
-+++ a/net/sunrpc/svc.c
-@@ -27,22 +27,26 @@
- 
- #define RPCDBG_FACILITY	RPCDBG_SVCDSP
- 
-+#define svc_serv_is_pooled(serv)    ((serv)->sv_function)
-+
- /*
-  * Mode for mapping cpus to pools.
+diff -puN arch/ia64/kernel/efi.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system
++++ a/arch/ia64/kernel/efi.c
+@@ -21,6 +21,7 @@
+  *	Skip non-WB memory and ignore empty memory ranges.
   */
- enum {
--	SVC_POOL_NONE = -1,	/* uninitialised, choose one of the others */
-+	SVC_POOL_AUTO = -1,	/* choose one of the others */
- 	SVC_POOL_GLOBAL,	/* no mapping, just a single global pool
- 				 * (legacy & UP mode) */
- 	SVC_POOL_PERCPU,	/* one pool per cpu */
- 	SVC_POOL_PERNODE	/* one pool per numa node */
- };
-+#define SVC_POOL_DEFAULT	SVC_POOL_GLOBAL
+ #include <linux/module.h>
++#include <linux/bootmem.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+@@ -1009,6 +1010,11 @@ efi_memmap_init(unsigned long *s, unsign
+ 		} else
+ 			ae = efi_md_end(md);
  
- /*
-  * Structure for mapping cpus to pools and vice versa.
-  * Setup once during sunrpc initialisation.
-  */
- static struct svc_pool_map {
-+	int count;			/* How many svc_servs use us */
- 	int mode;			/* Note: int not enum to avoid
- 					 * warnings about "enumeration value
- 					 * not handled in switch" */
-@@ -50,9 +54,63 @@ static struct svc_pool_map {
- 	unsigned int *pool_to;		/* maps pool id to cpu or node */
- 	unsigned int *to_pool;		/* maps cpu or node to pool id */
- } svc_pool_map = {
--	.mode = SVC_POOL_NONE
-+	.count = 0,
-+	.mode = SVC_POOL_DEFAULT
- };
-+static DEFINE_MUTEX(svc_pool_map_mutex);/* protects svc_pool_map.count only */
-+
-+static int
-+param_set_pool_mode(const char *val, struct kernel_param *kp)
-+{
-+	int *ip = (int *)kp->arg;
-+	struct svc_pool_map *m = &svc_pool_map;
-+	int err;
-+
-+	mutex_lock(&svc_pool_map_mutex);
-+
-+	err = -EBUSY;
-+	if (m->count)
-+		goto out;
-+
-+	err = 0;
-+	if (!strncmp(val, "auto", 4))
-+		*ip = SVC_POOL_AUTO;
-+	else if (!strncmp(val, "global", 6))
-+		*ip = SVC_POOL_GLOBAL;
-+	else if (!strncmp(val, "percpu", 6))
-+		*ip = SVC_POOL_PERCPU;
-+	else if (!strncmp(val, "pernode", 7))
-+		*ip = SVC_POOL_PERNODE;
-+	else
-+		err = -EINVAL;
-+
-+out:
-+	mutex_unlock(&svc_pool_map_mutex);
-+	return err;
-+}
-+
-+static int
-+param_get_pool_mode(char *buf, struct kernel_param *kp)
-+{
-+	int *ip = (int *)kp->arg;
-+
-+	switch (*ip)
-+	{
-+	case SVC_POOL_AUTO:
-+		return strlcpy(buf, "auto", 20);
-+	case SVC_POOL_GLOBAL:
-+		return strlcpy(buf, "global", 20);
-+	case SVC_POOL_PERCPU:
-+		return strlcpy(buf, "percpu", 20);
-+	case SVC_POOL_PERNODE:
-+		return strlcpy(buf, "pernode", 20);
-+	default:
-+		return sprintf(buf, "%d", *ip);
-+	}
-+}
++#ifdef CONFIG_CRASH_DUMP
++		/* saved_max_pfn should ignore max_addr= command line arg */
++		if (saved_max_pfn < (ae >> PAGE_SHIFT))
++			saved_max_pfn = (ae >> PAGE_SHIFT);
++#endif
+ 		/* keep within max_addr= and min_addr= command line arg */
+ 		as = max(as, min_addr);
+ 		ae = min(ae, max_addr);
+diff -puN arch/ia64/mm/contig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system arch/ia64/mm/contig.c
+--- a/arch/ia64/mm/contig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system
++++ a/arch/ia64/mm/contig.c
+@@ -197,11 +197,6 @@ find_memory (void)
  
-+module_param_call(pool_mode, param_set_pool_mode, param_get_pool_mode,
-+		 &svc_pool_map.mode, 0644);
+ 	find_initrd();
  
- /*
-  * Detect best pool mapping mode heuristically,
-@@ -166,18 +224,25 @@ svc_pool_map_init_pernode(struct svc_poo
- 
- 
- /*
-- * Build the global map of cpus to pools and vice versa.
-+ * Add a reference to the global map of cpus to pools (and
-+ * vice versa).  Initialise the map if we're the first user.
-+ * Returns the number of pools.
-  */
- static unsigned int
--svc_pool_map_init(void)
-+svc_pool_map_get(void)
- {
- 	struct svc_pool_map *m = &svc_pool_map;
- 	int npools = -1;
- 
--	if (m->mode != SVC_POOL_NONE)
-+	mutex_lock(&svc_pool_map_mutex);
-+
-+	if (m->count++) {
-+		mutex_unlock(&svc_pool_map_mutex);
- 		return m->npools;
-+	}
- 
--	m->mode = svc_pool_map_choose_mode();
-+	if (m->mode == SVC_POOL_AUTO)
-+		m->mode = svc_pool_map_choose_mode();
- 
- 	switch (m->mode) {
- 	case SVC_POOL_PERCPU:
-@@ -195,9 +260,36 @@ svc_pool_map_init(void)
- 	}
- 	m->npools = npools;
- 
-+	mutex_unlock(&svc_pool_map_mutex);
- 	return m->npools;
+-#ifdef CONFIG_CRASH_DUMP
+-	/* If we are doing a crash dump, we still need to know the real mem
+-	 * size before original memory map is reset. */
+-	saved_max_pfn = max_pfn;
+-#endif
  }
  
-+
-+/*
-+ * Drop a reference to the global map of cpus to pools.
-+ * When the last reference is dropped, the map data is
-+ * freed; this allows the sysadmin to change the pool
-+ * mode using the pool_mode module option without
-+ * rebooting or re-loading sunrpc.ko.
-+ */
-+static void
-+svc_pool_map_put(void)
-+{
-+	struct svc_pool_map *m = &svc_pool_map;
-+
-+	mutex_lock(&svc_pool_map_mutex);
-+
-+	if (!--m->count) {
-+		m->mode = SVC_POOL_DEFAULT;
-+		kfree(m->to_pool);
-+		kfree(m->pool_to);
-+		m->npools = 0;
-+	}
-+
-+	mutex_unlock(&svc_pool_map_mutex);
-+}
-+
-+
- /*
-  * Set the current thread's cpus_allowed mask so that it
-  * will only run on cpus in the given pool.
-@@ -212,10 +304,9 @@ svc_pool_map_set_cpumask(unsigned int pi
+ #ifdef CONFIG_SMP
+diff -puN arch/ia64/mm/discontig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system arch/ia64/mm/discontig.c
+--- a/arch/ia64/mm/discontig.c~ia64-point-saved_max_pfn-to-the-max_pfn-of-the-entire-system
++++ a/arch/ia64/mm/discontig.c
+@@ -480,12 +480,6 @@ void __init find_memory(void)
+ 	max_pfn = max_low_pfn;
  
- 	/*
- 	 * The caller checks for sv_nrpools > 1, which
--	 * implies that we've been initialized and the
--	 * map mode is not NONE.
-+	 * implies that we've been initialized.
- 	 */
--	BUG_ON(m->mode == SVC_POOL_NONE);
-+	BUG_ON(m->count == 0);
- 
- 	switch (m->mode)
- 	{
-@@ -246,18 +337,19 @@ svc_pool_for_cpu(struct svc_serv *serv, 
- 	unsigned int pidx = 0;
- 
- 	/*
--	 * SVC_POOL_NONE happens in a pure client when
-+	 * An uninitialised map happens in a pure client when
- 	 * lockd is brought up, so silently treat it the
- 	 * same as SVC_POOL_GLOBAL.
- 	 */
+ 	find_initrd();
 -
--	switch (m->mode) {
--	case SVC_POOL_PERCPU:
--		pidx = m->to_pool[cpu];
--		break;
--	case SVC_POOL_PERNODE:
--		pidx = m->to_pool[cpu_to_node(cpu)];
--		break;
-+	if (svc_serv_is_pooled(serv)) {
-+		switch (m->mode) {
-+		case SVC_POOL_PERCPU:
-+			pidx = m->to_pool[cpu];
-+			break;
-+		case SVC_POOL_PERNODE:
-+			pidx = m->to_pool[cpu_to_node(cpu)];
-+			break;
-+		}
- 	}
- 	return &serv->sv_pools[pidx % serv->sv_nrpools];
+-#ifdef CONFIG_CRASH_DUMP
+-	/* If we are doing a crash dump, we still need to know the real mem
+-	 * size before original memory map is reset. */
+-        saved_max_pfn = max_pfn;
+-#endif
  }
-@@ -347,7 +439,7 @@ svc_create_pooled(struct svc_program *pr
- 		  svc_thread_fn func, int sig, struct module *mod)
- {
- 	struct svc_serv *serv;
--	unsigned int npools = svc_pool_map_init();
-+	unsigned int npools = svc_pool_map_get();
  
- 	serv = __svc_create(prog, bufsize, npools, shutdown);
- 
-@@ -397,6 +489,9 @@ svc_destroy(struct svc_serv *serv)
- 
- 	cache_clean_deferred(serv);
- 
-+	if (svc_serv_is_pooled(serv))
-+		svc_pool_map_put();
-+
- 	/* Unregister service with the portmapper */
- 	svc_register(serv, 0, 0);
- 	kfree(serv->sv_pools);
+ #ifdef CONFIG_SMP
 _
 
-Patches currently in -mm which might be from gnb@sgi.com are
+Patches currently in -mm which might be from horms@verge.net.au are
 
 origin.patch
+git-ia64.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor.patch
