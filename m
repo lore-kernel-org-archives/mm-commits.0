@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + move-free-pages-between-lists-on-steal-fix-2.patch added to -mm tree
-Date: Thu, 08 Mar 2007 00:15:31 -0800
-Message-ID: <200703080815.l288FVGg022927@shell0.pdx.osdl.net>
+Subject: + sctp-ipv6-inconsistent-lock-state-ipv6_add_addr-sctp_v6_copy_addrlist.patch added to -mm tree
+Date: Thu, 08 Mar 2007 00:21:26 -0800
+Message-ID: <200703080821.l288LQNP023021@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57032 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57231 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030218AbXCHIPs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Mar 2007 03:15:48 -0500
+	id S1030230AbXCHIVr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Mar 2007 03:21:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com, mel@csn.ul.ie
+Cc: jarkao2@o2.pl, simon@arlott.org
 
 
 The patch titled
-     fix BUG_ON check at move_freepages()
+     SCTP: ipv6: inconsistent lock state ipv6_add_addr/sctp_v6_copy_addrlist
 has been added to the -mm tree.  Its filename is
-     move-free-pages-between-lists-on-steal-fix-2.patch
+     sctp-ipv6-inconsistent-lock-state-ipv6_add_addr-sctp_v6_copy_addrlist.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix BUG_ON check at move_freepages()
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: SCTP: ipv6: inconsistent lock state ipv6_add_addr/sctp_v6_copy_addrlist
+From: Jarek Poplawski <jarkao2@o2.pl>
 
-The BUG_ON() check at move_freepages() is wrong.  Its end_page is
-start_page + MAX_ORDER_NR_PAGES.  So, it can be next zone.  BUG_ON() should
-check "end_page - 1".
+lockdep found that dev->lock taken from softirq in ipv6_add_addr is also
+taken in sctp_v6_copy_addrlist with softirqs enabled, so lockup is
+possible.
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Noticed-by: Simon Arlott <simon@arlott.org>
+Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sctp/ipv6.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~move-free-pages-between-lists-on-steal-fix-2 mm/page_alloc.c
---- a/mm/page_alloc.c~move-free-pages-between-lists-on-steal-fix-2
-+++ a/mm/page_alloc.c
-@@ -673,7 +673,7 @@ int move_freepages(struct zone *zone,
- 	unsigned long order;
- 	int blocks_moved = 0;
+diff -puN net/sctp/ipv6.c~sctp-ipv6-inconsistent-lock-state-ipv6_add_addr-sctp_v6_copy_addrlist net/sctp/ipv6.c
+--- a/net/sctp/ipv6.c~sctp-ipv6-inconsistent-lock-state-ipv6_add_addr-sctp_v6_copy_addrlist
++++ a/net/sctp/ipv6.c
+@@ -360,7 +360,7 @@ static void sctp_v6_copy_addrlist(struct
+ 		return;
+ 	}
  
--	BUG_ON(page_zone(start_page) != page_zone(end_page));
-+	BUG_ON(page_zone(start_page) != page_zone(end_page - 1));
+-	read_lock(&in6_dev->lock);
++	read_lock_bh(&in6_dev->lock);
+ 	for (ifp = in6_dev->addr_list; ifp; ifp = ifp->if_next) {
+ 		/* Add the address to the local list.  */
+ 		addr = t_new(struct sctp_sockaddr_entry, GFP_ATOMIC);
+@@ -374,7 +374,7 @@ static void sctp_v6_copy_addrlist(struct
+ 		}
+ 	}
  
- 	for (page = start_page; page < end_page;) {
- 		if (!PageBuddy(page)) {
+-	read_unlock(&in6_dev->lock);
++	read_unlock_bh(&in6_dev->lock);
+ 	rcu_read_unlock();
+ }
+ 
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from jarkao2@o2.pl are
 
-move-free-pages-between-lists-on-steal-fix-2.patch
+sctp-ipv6-inconsistent-lock-state-ipv6_add_addr-sctp_v6_copy_addrlist.patch
