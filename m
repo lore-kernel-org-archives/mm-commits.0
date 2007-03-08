@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch added to -mm tree
-Date: Thu, 08 Mar 2007 00:42:41 -0800
-Message-ID: <200703080842.l288gf0R023357@shell0.pdx.osdl.net>
+Subject: + make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch added to -mm tree
+Date: Thu, 08 Mar 2007 00:43:37 -0800
+Message-ID: <200703080843.l288hbvR023369@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58367 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58414 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030303AbXCHIp6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Mar 2007 03:45:58 -0500
+	id S1030304AbXCHIrB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Mar 2007 03:47:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, zach@vmware.com
+Cc: bunk@stusta.de, kkeil@suse.de
 
 
 The patch titled
-     make arch/i386/kernel/vmi.c:vmi_pmd_clear() static
+     make drivers/isdn/capi/capiutil.c:cdebbuf_alloc() static
 has been added to the -mm tree.  Its filename is
-     make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
+     make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make arch/i386/kernel/vmi.c:vmi_pmd_clear() static
+Subject: make drivers/isdn/capi/capiutil.c:cdebbuf_alloc() static
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes the needlessly global vmi_pmd_clear() static.
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Zachary Amsden <zach@vmware.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/isdn/capi/capiutil.c  |    8 +-------
+ include/linux/isdn/capiutil.h |    1 -
+ 2 files changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN arch/i386/kernel/vmi.c~make-arch-i386-kernel-vmicvmi_pmd_clear-static arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~make-arch-i386-kernel-vmicvmi_pmd_clear-static
-+++ a/arch/i386/kernel/vmi.c
-@@ -517,7 +517,7 @@ static void vmi_pte_clear(struct mm_stru
- 	vmi_ops.set_pte(pte, ptep, vmi_flags_addr(mm, addr, VMI_PAGE_PT, 0));
+diff -puN drivers/isdn/capi/capiutil.c~make-drivers-isdn-capi-capiutilccdebbuf_alloc-static drivers/isdn/capi/capiutil.c
+--- a/drivers/isdn/capi/capiutil.c~make-drivers-isdn-capi-capiutilccdebbuf_alloc-static
++++ a/drivers/isdn/capi/capiutil.c
+@@ -855,7 +855,7 @@ static _cdebbuf *g_debbuf;
+ static u_long g_debbuf_lock;
+ static _cmsg *g_cmsg;
+ 
+-_cdebbuf *cdebbuf_alloc(void)
++static _cdebbuf *cdebbuf_alloc(void)
+ {
+ 	_cdebbuf *cdb;
+ 
+@@ -989,11 +989,6 @@ _cdebbuf *capi_cmsg2str(_cmsg * cmsg)
+ 	return &g_debbuf;
  }
  
--void vmi_pmd_clear(pmd_t *pmd)
-+static void vmi_pmd_clear(pmd_t *pmd)
+-_cdebbuf *cdebbuf_alloc(void)
+-{
+-	return &g_debbuf;
+-}
+-
+ void cdebbuf_free(_cdebbuf *cdb)
  {
- 	const pte_t pte = { 0 };
- 	vmi_check_page_type(__pa(pmd) >> PAGE_SHIFT, VMI_PAGE_PMD);
+ }
+@@ -1009,7 +1004,6 @@ void __exit cdebug_exit(void)
+ 
+ #endif
+ 
+-EXPORT_SYMBOL(cdebbuf_alloc);
+ EXPORT_SYMBOL(cdebbuf_free);
+ EXPORT_SYMBOL(capi_cmsg2message);
+ EXPORT_SYMBOL(capi_message2cmsg);
+diff -puN include/linux/isdn/capiutil.h~make-drivers-isdn-capi-capiutilccdebbuf_alloc-static include/linux/isdn/capiutil.h
+--- a/include/linux/isdn/capiutil.h~make-drivers-isdn-capi-capiutilccdebbuf_alloc-static
++++ a/include/linux/isdn/capiutil.h
+@@ -187,7 +187,6 @@ typedef struct {
+ #define	CDEBUG_SIZE	1024
+ #define	CDEBUG_GSIZE	4096
+ 
+-_cdebbuf *cdebbuf_alloc(void);
+ void cdebbuf_free(_cdebbuf *cdb);
+ int cdebug_init(void);
+ void cdebug_exit(void);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -100,6 +130,7 @@ the-scheduled-removal-of-obsolete_oss-options.patch
 drivers-macintosh-mac_hidc-make-code-static.patch
 ext2-reservations.patch
 drivers-edac-make-code-static.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
 linux-kernel-markers-kconfig-menus.patch
 linux-kernel-markers-architecture-independant-code.patch
 linux-kernel-markers-i386-optimization.patch
