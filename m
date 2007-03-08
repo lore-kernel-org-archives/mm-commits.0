@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-x86_64-early_printkc-make-simnow_init-static.patch added to -mm tree
-Date: Thu, 08 Mar 2007 00:41:54 -0800
-Message-ID: <200703080841.l288fs7s023339@shell0.pdx.osdl.net>
+Subject: + make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch added to -mm tree
+Date: Thu, 08 Mar 2007 00:42:41 -0800
+Message-ID: <200703080842.l288gf0R023357@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58333 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58367 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030299AbXCHIpN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Mar 2007 03:45:13 -0500
+	id S1030303AbXCHIp6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 8 Mar 2007 03:45:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: bunk@stusta.de, zach@vmware.com
 
 
 The patch titled
-     i386/x86_64 early_printk.c: make simnow_init() static
+     make arch/i386/kernel/vmi.c:vmi_pmd_clear() static
 has been added to the -mm tree.  Its filename is
-     i386-x86_64-early_printkc-make-simnow_init-static.patch
+     make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386/x86_64 early_printk.c: make simnow_init() static
+Subject: make arch/i386/kernel/vmi.c:vmi_pmd_clear() static
 From: Adrian Bunk <bunk@stusta.de>
 
+This patch makes the needlessly global vmi_pmd_clear() static.
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/early_printk.c |    2 +-
+ arch/i386/kernel/vmi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/early_printk.c~i386-x86_64-early_printkc-make-simnow_init-static arch/x86_64/kernel/early_printk.c
---- a/arch/x86_64/kernel/early_printk.c~i386-x86_64-early_printkc-make-simnow_init-static
-+++ a/arch/x86_64/kernel/early_printk.c
-@@ -176,7 +176,7 @@ static noinline long simnow(long cmd, lo
- 	return ret;
+diff -puN arch/i386/kernel/vmi.c~make-arch-i386-kernel-vmicvmi_pmd_clear-static arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~make-arch-i386-kernel-vmicvmi_pmd_clear-static
++++ a/arch/i386/kernel/vmi.c
+@@ -517,7 +517,7 @@ static void vmi_pte_clear(struct mm_stru
+ 	vmi_ops.set_pte(pte, ptep, vmi_flags_addr(mm, addr, VMI_PAGE_PT, 0));
  }
  
--void __init simnow_init(char *str)
-+static void __init simnow_init(char *str)
+-void vmi_pmd_clear(pmd_t *pmd)
++static void vmi_pmd_clear(pmd_t *pmd)
  {
- 	char *fn = "klog";
- 	if (*str == '=')
+ 	const pte_t pte = { 0 };
+ 	vmi_check_page_type(__pa(pmd) >> PAGE_SHIFT, VMI_PAGE_PMD);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -84,6 +87,7 @@ arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
 make-struct-vmi_ops-static.patch
 i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
 i386-x86_64-early_printkc-make-simnow_init-static.patch
+make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
 lguest-kconfig-and-headers.patch
 revert-ac97-fix-microphone-and-line_in-selection-logic.patch
 proper-prototype-for-hugetlb_get_unmapped_area.patch
