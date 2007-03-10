@@ -1,182 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - remove-fs-jffs2-ioctlc.patch removed from -mm tree
-Date: Thu, 08 Mar 2007 01:54:35 -0800
-Message-ID: <200703080954.l289sZQ3024622@shell0.pdx.osdl.net>
+Subject: + fix-read-past-end-of-array-in-md-linearc.patch added to -mm tree
+Date: Fri, 09 Mar 2007 18:23:28 -0800
+Message-ID: <200703100223.l2A2NSDl009198@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34817 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57509 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030565AbXCHJ6H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 8 Mar 2007 04:58:07 -0500
+	id S2992704AbXCJC2M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 9 Mar 2007 21:28:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: adi@hexapodia.org, ego@in.ibm.com, neilb@cse.unsw.edu.au, stable@kernel.org
 
 
 The patch titled
-     remove fs/jffs2/ioctl.c
-has been removed from the -mm tree.  Its filename was
-     remove-fs-jffs2-ioctlc.patch
+     fix read past end of array in md/linear.c
+has been added to the -mm tree.  Its filename is
+     fix-read-past-end-of-array-in-md-linearc.patch
 
-This patch was dropped because it was nacked by the maintainer
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: remove fs/jffs2/ioctl.c
-From: Adrian Bunk <bunk@stusta.de>
+Subject: fix read past end of array in md/linear.c
+From: Andy Isaacson <adi@hexapodia.org>
 
-fs/jffs2/ioctl.c is already for so long in the "might be used later"
-state that I doubt it will ever be actually used...
+When iterating through an array, one must be careful to test one's index
+variable rather than another similarly-named variable.
 
-And if it will ever be used, reverting this patch will be trivial.
+The loop will read off the end of conf->disks[] in the following
+(pathological) case:
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
+% dd bs=1 seek=840716287 if=/dev/zero of=d1 count=1
+% for i in 2 3 4; do dd if=/dev/zero of=d$i bs=1k count=$(($i+150)); done
+% ./vmlinux ubd0=root ubd1=d1 ubd2=d2 ubd3=d3 ubd4=d4
+# mdadm -C /dev/md0 --level=linear --raid-devices=4 /dev/ubd[1234]
+
+adding some printks, I saw this:
+[42949374.960000] hash_spacing = 821120
+[42949374.960000] cnt          = 4
+[42949374.960000] min_spacing  = 801
+[42949374.960000] j=0 size=820928 sz=820928
+[42949374.960000] i=0 sz=820928 hash_spacing=820928
+[42949374.960000] j=1 size=64 sz=64
+[42949374.960000] j=2 size=64 sz=128
+[42949374.960000] j=3 size=64 sz=192
+[42949374.960000] j=4 size=1515870810 sz=1515871002
+
+Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Neil Brown <neilb@cse.unsw.edu.au>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/Makefile   |    2 +-
- fs/jffs2/dir.c      |    1 -
- fs/jffs2/file.c     |    1 -
- fs/jffs2/ioctl.c    |   23 -----------------------
- fs/jffs2/os-linux.h |    3 ---
- 5 files changed, 1 insertion(+), 29 deletions(-)
+ drivers/md/linear.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jffs2/Makefile~remove-fs-jffs2-ioctlc fs/jffs2/Makefile
---- a/fs/jffs2/Makefile~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/Makefile
-@@ -6,7 +6,7 @@
- 
- obj-$(CONFIG_JFFS2_FS) += jffs2.o
- 
--jffs2-y	:= compr.o dir.o file.o ioctl.o nodelist.o malloc.o
-+jffs2-y	:= compr.o dir.o file.o nodelist.o malloc.o
- jffs2-y	+= read.o nodemgmt.o readinode.o write.o scan.o gc.o
- jffs2-y	+= symlink.o build.o erase.o background.o fs.o writev.o
- jffs2-y	+= super.o debug.o
-diff -puN fs/jffs2/dir.c~remove-fs-jffs2-ioctlc fs/jffs2/dir.c
---- a/fs/jffs2/dir.c~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/dir.c
-@@ -40,7 +40,6 @@ const struct file_operations jffs2_dir_o
- {
- 	.read =		generic_read_dir,
- 	.readdir =	jffs2_readdir,
--	.ioctl =	jffs2_ioctl,
- 	.fsync =	jffs2_fsync
- };
- 
-diff -puN fs/jffs2/file.c~remove-fs-jffs2-ioctlc fs/jffs2/file.c
---- a/fs/jffs2/file.c~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/file.c
-@@ -46,7 +46,6 @@ const struct file_operations jffs2_file_
-  	.aio_read =	generic_file_aio_read,
-  	.write =	do_sync_write,
-  	.aio_write =	generic_file_aio_write,
--	.ioctl =	jffs2_ioctl,
- 	.mmap =		generic_file_readonly_mmap,
- 	.fsync =	jffs2_fsync,
- 	.sendfile =	generic_file_sendfile
-diff -puN fs/jffs2/ioctl.c~remove-fs-jffs2-ioctlc /dev/null
---- a/fs/jffs2/ioctl.c
-+++ /dev/null
-@@ -1,23 +0,0 @@
--/*
-- * JFFS2 -- Journalling Flash File System, Version 2.
-- *
-- * Copyright (C) 2001-2003 Red Hat, Inc.
-- *
-- * Created by David Woodhouse <dwmw2@infradead.org>
-- *
-- * For licensing information, see the file 'LICENCE' in this directory.
-- *
-- * $Id: ioctl.c,v 1.10 2005/11/07 11:14:40 gleixner Exp $
-- *
-- */
--
--#include <linux/fs.h>
--
--int jffs2_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
--		unsigned long arg)
--{
--	/* Later, this will provide for lsattr.jffs2 and chattr.jffs2, which
--	   will include compression support etc. */
--	return -ENOTTY;
--}
--
-diff -puN fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc fs/jffs2/os-linux.h
---- a/fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/os-linux.h
-@@ -162,9 +162,6 @@ extern const struct address_space_operat
- int jffs2_fsync(struct file *, struct dentry *, int);
- int jffs2_do_readpage_unlock (struct inode *inode, struct page *pg);
- 
--/* ioctl.c */
--int jffs2_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
--
- /* symlink.c */
- extern const struct inode_operations jffs2_symlink_inode_operations;
- 
+diff -puN drivers/md/linear.c~fix-read-past-end-of-array-in-md-linearc drivers/md/linear.c
+--- a/drivers/md/linear.c~fix-read-past-end-of-array-in-md-linearc
++++ a/drivers/md/linear.c
+@@ -188,7 +188,7 @@ static linear_conf_t *linear_conf(mddev_
+ 	for (i=0; i < cnt-1 ; i++) {
+ 		sector_t sz = 0;
+ 		int j;
+-		for (j=i; i<cnt-1 && sz < min_spacing ; j++)
++		for (j=i; j<cnt-1 && sz < min_spacing ; j++)
+ 			sz += conf->disks[j].size;
+ 		if (sz >= min_spacing && sz < conf->hash_spacing)
+ 			conf->hash_spacing = sz;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from adi@hexapodia.org are
 
-origin.patch
-git-acpi.patch
-git-drm.patch
-make-drivers-char-drm-drm_vmcdrm_io_prot-static.patch
-git-dvb.patch
-saa7134-fix-modules=n-compilation.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-fs-jffs2-ioctlc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-git-ubi.patch
-git-netdev-all.patch
-drivers-net-vioc-possible-cleanups.patch
-drivers-net-bonding-bond_maincmake-3-functions-static.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-i386-x86_64-early_printkc-make-simnow_init-static.patch
-make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
-lguest-kconfig-and-headers.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-x86_p4_clockmod-must-select-cpu_freq_table.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+fix-read-past-end-of-array-in-md-linearc.patch
