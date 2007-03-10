@@ -1,163 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + complain-about-missing-system-calls.patch added to -mm tree
-Date: Fri, 09 Mar 2007 18:50:37 -0800
-Message-ID: <200703100250.l2A2obP4009691@shell0.pdx.osdl.net>
+Subject: - msi-debug-code.patch removed from -mm tree
+Date: Sat, 10 Mar 2007 15:49:32 -0800
+Message-ID: <200703102349.l2ANnW8C000444@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57817 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59523 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993168AbXCJCvR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 9 Mar 2007 21:51:17 -0500
+	id S1751452AbXCJXtj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Mar 2007 18:49:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dwmw2@infradead.org, ak@suse.de, anton@samba.org, davem@davemloft.net, rmk@arm.linux.org.uk
+To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Complain about missing system calls.
-has been added to the -mm tree.  Its filename is
-     complain-about-missing-system-calls.patch
+     MSI debug code
+has been removed from the -mm tree.  Its filename was
+     msi-debug-code.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Complain about missing system calls.
-From: David Woodhouse <dwmw2@infradead.org>
+Subject: MSI debug code
+From: "Eric W. Biederman" <ebiederm@xmission.com>
 
-Most system calls seem to get added to i386 first.  This patch
-automatically generates a warning for any new system call which is
-implemented on i386 but not the architecture currently being compiled.  On
-PowerPC at the moment, for example, it results in these warnings:
+Below is an additional set of warnings that should help debug this.
+The old code just got lucky that it triggered a warning when this happens.
 
-init/missing_syscalls.h:935:3: warning: #warning syscall sync_file_range not implemented
-init/missing_syscalls.h:947:3: warning: #warning syscall getcpu not implemented
-init/missing_syscalls.h:950:3: warning: #warning syscall epoll_pwait not implemented
 
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Anton Blanchard <anton@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Makefile           |   15 ++++++++--
- init/missing_syscalls.c |   57 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 70 insertions(+), 2 deletions(-)
+ drivers/pci/msi.c |    6 ++++++
+ drivers/pci/pci.c |    1 +
+ 2 files changed, 7 insertions(+)
 
-diff -puN init/Makefile~complain-about-missing-system-calls init/Makefile
---- a/init/Makefile~complain-about-missing-system-calls
-+++ a/init/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for the linux kernel.
- #
+diff -puN drivers/pci/msi.c~msi-debug-code drivers/pci/msi.c
+--- a/drivers/pci/msi.c~msi-debug-code
++++ a/drivers/pci/msi.c
+@@ -613,6 +613,7 @@ int pci_enable_msi(struct pci_dev* dev)
+ 		return -EINVAL;
  
--obj-y                          := main.o version.o mounts.o
-+obj-y                          := main.o version.o mounts.o missing_syscalls.o
- ifneq ($(CONFIG_BLK_DEV_INITRD),y)
- obj-y                          += noinitramfs.o
- else
-@@ -16,11 +16,12 @@ mounts-$(CONFIG_BLK_DEV_INITRD)	+= do_mo
- mounts-$(CONFIG_BLK_DEV_MD)	+= do_mounts_md.o
+ 	WARN_ON(!!dev->msi_enabled);
++	WARN_ON(!hlist_empty(&dev->saved_cap_space));
  
- # files to be removed upon make clean
--clean-files := ../include/linux/compile.h
-+clean-files := ../include/linux/compile.h $(obj)/missing_syscalls.h
+ 	/* Check whether driver already requested for MSI-X irqs */
+ 	if (dev->msix_enabled) {
+@@ -638,6 +639,8 @@ void pci_disable_msi(struct pci_dev* dev
+ 	if (!dev->msi_enabled)
+ 		return;
  
- # dependencies on generated files need to be listed explicitly
++	WARN_ON(!hlist_empty(&dev->saved_cap_space));
++
+ 	msi_set_enable(dev, 0);
+ 	pci_intx(dev, 1);		/* enable intx */
+ 	dev->msi_enabled = 0;
+@@ -739,6 +742,7 @@ int pci_enable_msix(struct pci_dev* dev,
+ 		}
+ 	}
+ 	WARN_ON(!!dev->msix_enabled);
++	WARN_ON(!hlist_empty(&dev->saved_cap_space));
  
- $(obj)/version.o: include/linux/compile.h
-+$(obj)/missing_syscalls.o: $(obj)/missing_syscalls.h include/linux/compile.h FORCE
+ 	/* Check whether driver already requested for MSI irq */
+    	if (dev->msi_enabled) {
+@@ -763,6 +767,8 @@ void pci_disable_msix(struct pci_dev* de
+ 	if (!dev->msix_enabled)
+ 		return;
  
- # compile.h changes depending on hostname, generation number, etc,
- # so we regenerate it always.
-@@ -31,3 +32,13 @@ include/linux/compile.h: FORCE
- 	@echo '  CHK     $@'
- 	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/mkcompile_h $@ \
- 	"$(UTS_MACHINE)" "$(CONFIG_SMP)" "$(CONFIG_PREEMPT)" "$(CC) $(CFLAGS)"
++	WARN_ON(!hlist_empty(&dev->saved_cap_space));
 +
-+
-+quiet_cmd_missing_syscalls = GEN     $@
-+      cmd_missing_syscalls = sed -n '/^\#define/s/[^_]*__NR_\([^[:space:]]*\).*/\
-+	\#if !defined (__NR_\1) \&\& !defined (__IGNORE_\1)\n\
-+	\#warning syscall \1 not implemented\n\
-+	\#endif/p' $(srctree)/include/asm-i386/unistd.h >$@
-+targets += missing_syscalls.h
-+$(obj)/missing_syscalls.h: include/asm-i386/unistd.h
-+	$(call if_changed,missing_syscalls)
-diff -puN /dev/null init/missing_syscalls.c
---- /dev/null
-+++ a/init/missing_syscalls.c
-@@ -0,0 +1,57 @@
-+#include <asm/types.h>
-+#include <asm/unistd.h>
-+
-+/* Force recompilation (and thus warnings) every time we rebuild the kernel */
-+#include <linux/compile.h>
-+
-+/* System calls for 32-bit kernels only */
-+#if BITS_PER_LONG == 64
-+#define __IGNORE_sendfile64
-+#define __IGNORE_ftruncate64
-+#define __IGNORE_truncate64
-+#define __IGNORE_stat64
-+#define __IGNORE_lstat64
-+#define __IGNORE_fstat64
-+#define __IGNORE_fcntl64
-+#define __IGNORE_fadvise64_64
-+#define __IGNORE_fstatat64
-+#endif
-+
-+/* i386-specific or historical system calls */
-+#define __IGNORE_mmap2
-+#define __IGNORE_vm86
-+#define __IGNORE_vm86old
-+#define __IGNORE_set_thread_area
-+#define __IGNORE_get_thread_area
-+#define __IGNORE_madvise1
-+#define __IGNORE_oldstat
-+#define __IGNORE_oldfstat
-+#define __IGNORE_oldlstat
-+#define __IGNORE_oldolduname
-+#define __IGNORE_olduname
-+#define __IGNORE_umount2
-+/* ... including the "new" 32-bit uid syscalls */
-+#define __IGNORE_lchown32
-+#define __IGNORE_getuid32
-+#define __IGNORE_getgid32
-+#define __IGNORE_geteuid32
-+#define __IGNORE_getegid32
-+#define __IGNORE_setreuid32
-+#define __IGNORE_setregid32
-+#define __IGNORE_getgroups32
-+#define __IGNORE_setgroups32
-+#define __IGNORE_fchown32
-+#define __IGNORE_setresuid32
-+#define __IGNORE_getresuid32
-+#define __IGNORE_setresgid32
-+#define __IGNORE_getresgid32
-+#define __IGNORE_chown32
-+#define __IGNORE_setuid32
-+#define __IGNORE_setgid32
-+#define __IGNORE_setfsuid32
-+#define __IGNORE_setfsgid32
-+
-+/* Not yet upstream */
-+#define __IGNORE_vserver
-+
-+#include "missing_syscalls.h"
+ 	msix_set_enable(dev, 0);
+ 	pci_intx(dev, 1);		/* enable intx */
+ 	dev->msix_enabled = 0;
+diff -puN drivers/pci/pci.c~msi-debug-code drivers/pci/pci.c
+--- a/drivers/pci/pci.c~msi-debug-code
++++ a/drivers/pci/pci.c
+@@ -676,6 +676,7 @@ pci_restore_state(struct pci_dev *dev)
+ 	}
+ 	pci_restore_pcix_state(dev);
+ 	pci_restore_msi_state(dev);
++	WARN_ON(!hlist_empty(&dev->saved_cap_space));
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-add-epoll-compat_-code-to-fs-compatc.patch
-mtd-chips-oops-in-cfi_amdstd_sync.patch
-mtd-esb2-check-for-closed-rom-window.patch
-dilnetpc-fix-warning.patch
-mtd-correct-misspelled-preprocessor-variable.patch
-complain-about-missing-system-calls.patch
-complain-about-missing-system-calls-update.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+i386-irq-kill-irq-compression.patch
+x86_64-irq-remove-extra-smp_processor_id-calling.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+edac-k8-driver-coding-tidy.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+msi-debug-code.patch
