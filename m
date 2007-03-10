@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + complain-about-missing-system-calls-update.patch added to -mm tree
-Date: Fri, 09 Mar 2007 18:50:45 -0800
-Message-ID: <200703100250.l2A2ojsA009699@shell0.pdx.osdl.net>
+Subject: + complain-about-missing-system-calls.patch added to -mm tree
+Date: Fri, 09 Mar 2007 18:50:37 -0800
+Message-ID: <200703100250.l2A2obP4009691@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57816 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57817 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993167AbXCJCvR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S2993168AbXCJCvR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 9 Mar 2007 21:51:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, ak@suse.de, anton@samba.org, dwmw2@infradead.org, rmk@arm.linux.org.uk
+Cc: dwmw2@infradead.org, ak@suse.de, anton@samba.org, davem@davemloft.net, rmk@arm.linux.org.uk
 
 
 The patch titled
-     Complain about missing system calls (update)
+     Complain about missing system calls.
 has been added to the -mm tree.  Its filename is
-     complain-about-missing-system-calls-update.patch
+     complain-about-missing-system-calls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,72 +25,139 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Complain about missing system calls (update)
-From: David Miller <davem@davemloft.net>
+Subject: Complain about missing system calls.
+From: David Woodhouse <dwmw2@infradead.org>
 
-David, thanks for this __incredibly__ __useful__ patch.  I kicked it
-around on sparc64 and found some more ignores to add, see below.
+Most system calls seem to get added to i386 first.  This patch
+automatically generates a warning for any new system call which is
+implemented on i386 but not the architecture currently being compiled.  On
+PowerPC at the moment, for example, it results in these warnings:
 
-The vast majority of them vector to sys_ni_syscall in the i386 syscall
-table.
+init/missing_syscalls.h:935:3: warning: #warning syscall sync_file_range not implemented
+init/missing_syscalls.h:947:3: warning: #warning syscall getcpu not implemented
+init/missing_syscalls.h:950:3: warning: #warning syscall epoll_pwait not implemented
 
-sys_ugetrlimit is only necessary if the platform started out
-using the non-SuS compliant sys_old_getrlimit()
-
-The rest, like ioperm, iopl, modify_ldt, et al. are i386
-specific.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Anton Blanchard <anton@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/missing_syscalls.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ init/Makefile           |   15 ++++++++--
+ init/missing_syscalls.c |   57 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 70 insertions(+), 2 deletions(-)
 
-diff -puN init/missing_syscalls.c~complain-about-missing-system-calls-update init/missing_syscalls.c
---- a/init/missing_syscalls.c~complain-about-missing-system-calls-update
-+++ a/init/missing_syscalls.c
-@@ -18,6 +18,22 @@
- #endif
+diff -puN init/Makefile~complain-about-missing-system-calls init/Makefile
+--- a/init/Makefile~complain-about-missing-system-calls
++++ a/init/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for the linux kernel.
+ #
  
- /* i386-specific or historical system calls */
-+#define __IGNORE_break
-+#define __IGNORE_stty
-+#define __IGNORE_gtty
-+#define __IGNORE_ftime
-+#define __IGNORE_prof
-+#define __IGNORE_lock
-+#define __IGNORE_mpx
-+#define __IGNORE_ulimit
-+#define __IGNORE_profil
-+#define __IGNORE_ioperm
-+#define __IGNORE_iopl
-+#define __IGNORE_idle
-+#define __IGNORE_modify_ldt
-+#define __IGNORE_getpmsg
-+#define __IGNORE_putpmsg
-+#define __IGNORE_ugetrlimit
- #define __IGNORE_mmap2
- #define __IGNORE_vm86
- #define __IGNORE_vm86old
+-obj-y                          := main.o version.o mounts.o
++obj-y                          := main.o version.o mounts.o missing_syscalls.o
+ ifneq ($(CONFIG_BLK_DEV_INITRD),y)
+ obj-y                          += noinitramfs.o
+ else
+@@ -16,11 +16,12 @@ mounts-$(CONFIG_BLK_DEV_INITRD)	+= do_mo
+ mounts-$(CONFIG_BLK_DEV_MD)	+= do_mounts_md.o
+ 
+ # files to be removed upon make clean
+-clean-files := ../include/linux/compile.h
++clean-files := ../include/linux/compile.h $(obj)/missing_syscalls.h
+ 
+ # dependencies on generated files need to be listed explicitly
+ 
+ $(obj)/version.o: include/linux/compile.h
++$(obj)/missing_syscalls.o: $(obj)/missing_syscalls.h include/linux/compile.h FORCE
+ 
+ # compile.h changes depending on hostname, generation number, etc,
+ # so we regenerate it always.
+@@ -31,3 +32,13 @@ include/linux/compile.h: FORCE
+ 	@echo '  CHK     $@'
+ 	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/mkcompile_h $@ \
+ 	"$(UTS_MACHINE)" "$(CONFIG_SMP)" "$(CONFIG_PREEMPT)" "$(CC) $(CFLAGS)"
++
++
++quiet_cmd_missing_syscalls = GEN     $@
++      cmd_missing_syscalls = sed -n '/^\#define/s/[^_]*__NR_\([^[:space:]]*\).*/\
++	\#if !defined (__NR_\1) \&\& !defined (__IGNORE_\1)\n\
++	\#warning syscall \1 not implemented\n\
++	\#endif/p' $(srctree)/include/asm-i386/unistd.h >$@
++targets += missing_syscalls.h
++$(obj)/missing_syscalls.h: include/asm-i386/unistd.h
++	$(call if_changed,missing_syscalls)
+diff -puN /dev/null init/missing_syscalls.c
+--- /dev/null
++++ a/init/missing_syscalls.c
+@@ -0,0 +1,57 @@
++#include <asm/types.h>
++#include <asm/unistd.h>
++
++/* Force recompilation (and thus warnings) every time we rebuild the kernel */
++#include <linux/compile.h>
++
++/* System calls for 32-bit kernels only */
++#if BITS_PER_LONG == 64
++#define __IGNORE_sendfile64
++#define __IGNORE_ftruncate64
++#define __IGNORE_truncate64
++#define __IGNORE_stat64
++#define __IGNORE_lstat64
++#define __IGNORE_fstat64
++#define __IGNORE_fcntl64
++#define __IGNORE_fadvise64_64
++#define __IGNORE_fstatat64
++#endif
++
++/* i386-specific or historical system calls */
++#define __IGNORE_mmap2
++#define __IGNORE_vm86
++#define __IGNORE_vm86old
++#define __IGNORE_set_thread_area
++#define __IGNORE_get_thread_area
++#define __IGNORE_madvise1
++#define __IGNORE_oldstat
++#define __IGNORE_oldfstat
++#define __IGNORE_oldlstat
++#define __IGNORE_oldolduname
++#define __IGNORE_olduname
++#define __IGNORE_umount2
++/* ... including the "new" 32-bit uid syscalls */
++#define __IGNORE_lchown32
++#define __IGNORE_getuid32
++#define __IGNORE_getgid32
++#define __IGNORE_geteuid32
++#define __IGNORE_getegid32
++#define __IGNORE_setreuid32
++#define __IGNORE_setregid32
++#define __IGNORE_getgroups32
++#define __IGNORE_setgroups32
++#define __IGNORE_fchown32
++#define __IGNORE_setresuid32
++#define __IGNORE_getresuid32
++#define __IGNORE_setresgid32
++#define __IGNORE_getresgid32
++#define __IGNORE_chown32
++#define __IGNORE_setuid32
++#define __IGNORE_setgid32
++#define __IGNORE_setfsuid32
++#define __IGNORE_setfsgid32
++
++/* Not yet upstream */
++#define __IGNORE_vserver
++
++#include "missing_syscalls.h"
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
 add-epoll-compat_-code-to-fs-compatc.patch
-8139too-fix-irq-problem-with-napi-netpoll.patch
-resend-iphase-64bit-cleanup.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-simplify-the-stacktrace-code.patch
+mtd-chips-oops-in-cfi_amdstd_sync.patch
+mtd-esb2-check-for-closed-rom-window.patch
+dilnetpc-fix-warning.patch
+mtd-correct-misspelled-preprocessor-variable.patch
 complain-about-missing-system-calls.patch
 complain-about-missing-system-calls-update.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-ipvs-flush-defense_work-before-module-unload.patch
-unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
-local_t-sparc64-cleanup.patch
