@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - sched-implement-180-bit-sched-bitmap.patch removed from -mm tree
-Date: Sat, 10 Mar 2007 22:18:22 -0800
-Message-ID: <200703110618.l2B6IMoi005778@shell0.pdx.osdl.net>
+Subject: - lists-add-list-splice-tail.patch removed from -mm tree
+Date: Sat, 10 Mar 2007 22:17:58 -0800
+Message-ID: <200703110617.l2B6Hwfx005765@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37609 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37600 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933208AbXCKGS1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 01:18:27 -0500
+	id S933180AbXCKGSX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 01:18:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kernel@kolivas.org, mingo@elte.hu, nickpiggin@yahoo.com.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: kernel@kolivas.org, a.p.zijlstra@chello.nl, mingo@elte.hu, nickpiggin@yahoo.com.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: implement 180 bit sched bitmap
+     lists: add list splice tail
 has been removed from the -mm tree.  Its filename was
-     sched-implement-180-bit-sched-bitmap.patch
+     lists-add-list-splice-tail.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: sched: implement 180 bit sched bitmap
+Subject: lists: add list splice tail
 From: Con Kolivas <kernel@kolivas.org>
 
-Modify the sched_find_first_bit function to work on a 180bit long bitmap.
+Add a list_splice_tail variant of list_splice.
 
+Patch-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Con Kolivas <kernel@kolivas.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -33,71 +34,83 @@ Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/sched.h |   10 ++++++----
- include/asm-s390/bitops.h          |   12 +-----------
- 2 files changed, 7 insertions(+), 15 deletions(-)
+ include/linux/list.h |   42 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 42 insertions(+)
 
-diff -puN include/asm-generic/bitops/sched.h~sched-implement-180-bit-sched-bitmap include/asm-generic/bitops/sched.h
---- a/include/asm-generic/bitops/sched.h~sched-implement-180-bit-sched-bitmap
-+++ a/include/asm-generic/bitops/sched.h
-@@ -6,8 +6,8 @@
- 
- /*
-  * Every architecture must define this function. It's the fastest
-- * way of searching a 140-bit bitmap where the first 100 bits are
-- * unlikely to be set. It's guaranteed that at least one of the 140
-+ * way of searching a 180-bit bitmap where the first 100 bits are
-+ * unlikely to be set. It's guaranteed that at least one of the 180
-  * bits is cleared.
-  */
- static inline int sched_find_first_bit(const unsigned long *b)
-@@ -15,7 +15,7 @@ static inline int sched_find_first_bit(c
- #if BITS_PER_LONG == 64
- 	if (unlikely(b[0]))
- 		return __ffs(b[0]);
--	if (likely(b[1]))
-+	if (b[1])
- 		return __ffs(b[1]) + 64;
- 	return __ffs(b[2]) + 128;
- #elif BITS_PER_LONG == 32
-@@ -27,7 +27,9 @@ static inline int sched_find_first_bit(c
- 		return __ffs(b[2]) + 64;
- 	if (b[3])
- 		return __ffs(b[3]) + 96;
--	return __ffs(b[4]) + 128;
-+	if (b[4])
-+		return __ffs(b[4]) + 128;
-+	return __ffs(b[5]) + 160;
- #else
- #error BITS_PER_LONG not defined
- #endif
-diff -puN include/asm-s390/bitops.h~sched-implement-180-bit-sched-bitmap include/asm-s390/bitops.h
---- a/include/asm-s390/bitops.h~sched-implement-180-bit-sched-bitmap
-+++ a/include/asm-s390/bitops.h
-@@ -729,17 +729,7 @@ find_next_bit (const unsigned long * add
- 	return offset + find_first_bit(p, size);
+diff -puN include/linux/list.h~lists-add-list-splice-tail include/linux/list.h
+--- a/include/linux/list.h~lists-add-list-splice-tail
++++ a/include/linux/list.h
+@@ -333,6 +333,20 @@ static inline void __list_splice(struct 
+ 	at->prev = last;
  }
  
--/*
-- * Every architecture must define this function. It's the fastest
-- * way of searching a 140-bit bitmap where the first 100 bits are
-- * unlikely to be set. It's guaranteed that at least one of the 140
-- * bits is cleared.
-- */
--static inline int sched_find_first_bit(unsigned long *b)
--{
--	return find_first_bit(b, 140);
--}
--
-+#include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/ffs.h>
++static inline void __list_splice_tail(struct list_head *list,
++				      struct list_head *head)
++{
++	struct list_head *first = list->next;
++	struct list_head *last = list->prev;
++	struct list_head *at = head->prev;
++
++	first->prev = at;
++	at->next = first;
++
++	last->next = head;
++	head->prev = last;
++}
++
+ /**
+  * list_splice - join two lists
+  * @list: the new list to add.
+@@ -345,6 +359,18 @@ static inline void list_splice(struct li
+ }
  
- #include <asm-generic/bitops/fls.h>
+ /**
++ * list_splice_tail - join two lists at one's tail
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ */
++static inline void list_splice_tail(struct list_head *list,
++				    struct list_head *head)
++{
++	if (!list_empty(list))
++		__list_splice_tail(list, head);
++}
++
++/**
+  * list_splice_init - join two lists and reinitialise the emptied list.
+  * @list: the new list to add.
+  * @head: the place to add it in the first list.
+@@ -417,6 +443,22 @@ static inline void list_splice_init_rcu(
+ }
+ 
+ /**
++ * list_splice_tail_init - join 2 lists at one's tail & reinitialise emptied
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ *
++ * The list at @list is reinitialised
++ */
++static inline void list_splice_tail_init(struct list_head *list,
++					 struct list_head *head)
++{
++	if (!list_empty(list)) {
++		__list_splice_tail(list, head);
++		INIT_LIST_HEAD(list);
++	}
++}
++
++/**
+  * list_entry - get the struct for this entry
+  * @ptr:	the &struct list_head pointer.
+  * @type:	the type of the struct this is embedded in.
 _
 
 Patches currently in -mm which might be from kernel@kolivas.org are
 
 sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
+lists-add-list-splice-tail.patch
+sched-remove-sleepavg-from-proc.patch
+sched-remove-noninteractive-flag.patch
 sched-implement-180-bit-sched-bitmap.patch
 sched-implement-rsdl-cpu-scheduler.patch
 sched-document-rsdl-cpu-scheduler.patch
