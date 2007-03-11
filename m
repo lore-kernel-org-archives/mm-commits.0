@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_it8213-switch-to-cable-method-again.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:29:06 -0800
-Message-ID: <200703110929.l2B9T65q008778@shell0.pdx.osdl.net>
+Subject: + pata_it821x-switch-back-to-cable-detect-and-re-remove-all.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:29:10 -0800
+Message-ID: <200703110929.l2B9TAF5008781@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41197 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41198 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751969AbXCKJ3Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:29:16 -0400
+	id S1751973AbXCKJ3T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:29:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_it8213: switch to cable method again
+     pata_it821x: switch back to cable detect and re-remove all the crap
 has been added to the -mm tree.  Its filename is
-     pata_it8213-switch-to-cable-method-again.patch
+     pata_it821x-switch-back-to-cable-detect-and-re-remove-all.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,92 +25,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_it8213: switch to cable method again
+Subject: pata_it821x: switch back to cable detect and re-remove all the crap
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_it8213.c |   36 +++++++++++++++++++++++-------------
- 1 file changed, 23 insertions(+), 13 deletions(-)
+ drivers/ata/pata_it821x.c |   34 +++++-----------------------------
+ 1 file changed, 5 insertions(+), 29 deletions(-)
 
-diff -puN drivers/ata/pata_it8213.c~pata_it8213-switch-to-cable-method-again drivers/ata/pata_it8213.c
---- a/drivers/ata/pata_it8213.c~pata_it8213-switch-to-cable-method-again
-+++ a/drivers/ata/pata_it8213.c
-@@ -26,8 +26,8 @@
-  *	@ap: Port
-  *	@deadline: deadline jiffies for the operation
-  *
-- *	Perform cable detection for the 8213 ATA interface. This is
-- *	different to the PIIX arrangement
-+ *	Filter out ports by the enable bits before doing the normal reset
-+ *	and probe.
-  */
+diff -puN drivers/ata/pata_it821x.c~pata_it821x-switch-back-to-cable-detect-and-re-remove-all drivers/ata/pata_it821x.c
+--- a/drivers/ata/pata_it821x.c~pata_it821x-switch-back-to-cable-detect-and-re-remove-all
++++ a/drivers/ata/pata_it821x.c
+@@ -80,7 +80,7 @@
  
- static int it8213_pre_reset(struct ata_port *ap, unsigned long deadline)
-@@ -35,23 +35,14 @@ static int it8213_pre_reset(struct ata_p
- 	static const struct pci_bits it8213_enable_bits[] = {
- 		{ 0x41U, 1U, 0x80UL, 0x80UL },	/* port 0 */
- 	};
--
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--	u8 tmp;
--
- 	if (!pci_test_config_bits(pdev, &it8213_enable_bits[ap->port_no]))
- 		return -ENOENT;
--
--	pci_read_config_byte(pdev, 0x42, &tmp);
--	if (tmp & 2)	/* The initial docs are incorrect */
--		ap->cbl = ATA_CBL_PATA40;
--	else
--		ap->cbl = ATA_CBL_PATA80;
- 	return ata_std_prereset(ap, deadline);
- }
+ 
+ #define DRV_NAME "pata_it821x"
+-#define DRV_VERSION "0.3.4"
++#define DRV_VERSION "0.3.6"
+ 
+ struct it821x_dev
+ {
+@@ -113,32 +113,6 @@ struct it821x_dev
+ static int it8212_noraid;
  
  /**
-- *	it8213_probe_reset - Probe specified port on PATA host controller
-+ *	it8213_error_handler - Probe specified port on PATA host controller
-  *	@ap: Port to probe
-  *
-  *	LOCKING:
-@@ -64,9 +55,27 @@ static void it8213_error_handler(struct 
- }
+- *	it821x_pre_reset	-	probe
+- *	@ap: ATA port
+- *	@deadline: deadline jiffies for the operation
+- *
+- *	Set the cable type
+- */
+-
+-static int it821x_pre_reset(struct ata_port *ap, unsigned long deadline)
+-{
+-	ap->cbl = ATA_CBL_PATA80;
+-	return ata_std_prereset(ap, deadline);
+-}
+-
+-/**
+- *	it821x_error_handler	-	probe/reset
+- *	@ap: ATA port
+- *
+- *	Set the cable type and trigger a probe
+- */
+-
+-static void it821x_error_handler(struct ata_port *ap)
+-{
+-	return ata_bmdma_drive_eh(ap, it821x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+-/**
+  *	it821x_program	-	program the PIO/MWDMA registers
+  *	@ap: ATA port
+  *	@adev: Device to program
+@@ -667,8 +641,9 @@ static struct ata_port_operations it821x
  
- /**
-+ *	it8213_cable_detect	-	check for 40/80 pin
-+ *	@ap: Port
-+ *
-+ *	Perform cable detection for the 8213 ATA interface. This is
-+ *	different to the PIIX arrangement
-+ */
-+
-+static int it8213_cable_detect(struct ata_port *ap)
-+{
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+	u8 tmp;
-+	pci_read_config_byte(pdev, 0x42, &tmp);
-+	if (tmp & 2)	/* The initial docs are incorrect */
-+		return ATA_CBL_PATA40;
-+	return ATA_CBL_PATA80;
-+}
-+
-+/**
-  *	it8213_set_piomode - Initialize host controller PATA PIO timings
-  *	@ap: Port whose timings we are configuring
-- *	@adev: um
-+ *	@adev: Device whose timings we are configuring
-  *
-  *	Set PIO mode for device, in host controller PCI config space.
-  *
-@@ -269,6 +278,7 @@ static const struct ata_port_operations 
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= it8213_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= it8213_cable_detect,
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= it821x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_unknown,
  
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -703,8 +678,9 @@ static struct ata_port_operations it821x
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= it821x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_unknown,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= it821x_passthru_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
