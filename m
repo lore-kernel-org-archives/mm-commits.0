@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + libata-acpi-add-infrastructure-for-drivers-to-use.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:31:01 -0800
-Message-ID: <200703110931.l2B9V1Oq008905@shell0.pdx.osdl.net>
+Subject: + pata_optidma-rework-for-cable-detect-and-to-remove.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:31:04 -0800
+Message-ID: <200703110931.l2B9V4RV008908@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41292 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41294 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752032AbXCKJbK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:31:10 -0400
+	id S1752042AbXCKJbN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:31:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     libata-acpi: add infrastructure for drivers to use _GTM/_STM methods
+     pata_optidma: rework for cable detect and to remove post_set_mode()
 has been added to the -mm tree.  Its filename is
-     libata-acpi-add-infrastructure-for-drivers-to-use.patch
+     pata_optidma-rework-for-cable-detect-and-to-remove.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,169 +25,184 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata-acpi: add infrastructure for drivers to use _GTM/_STM methods
+Subject: pata_optidma: rework for cable detect and to remove post_set_mode()
 From: Alan Cox <alan@redhat.com>
+
+A lot of noise because I had to rename the optidma_set_mode() method to
+avoid confusion with the new ->set_mode() method that was added. Cable
+detect side is pretty trivial.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |   87 +++++++++++++++++++++++++++++++++++-
- drivers/ata/libata-acpi.h |   47 +++++++++++++++++++
- 2 files changed, 133 insertions(+), 1 deletion(-)
+ drivers/ata/pata_optidma.c |   55 ++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 26 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~libata-acpi-add-infrastructure-for-drivers-to-use drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-acpi-add-infrastructure-for-drivers-to-use
-+++ a/drivers/ata/libata-acpi.c
-@@ -15,7 +15,7 @@
+diff -puN drivers/ata/pata_optidma.c~pata_optidma-rework-for-cable-detect-and-to-remove drivers/ata/pata_optidma.c
+--- a/drivers/ata/pata_optidma.c~pata_optidma-rework-for-cable-detect-and-to-remove
++++ a/drivers/ata/pata_optidma.c
+@@ -33,7 +33,7 @@
  #include <linux/libata.h>
- #include <linux/pci.h>
- #include "libata.h"
+ 
+ #define DRV_NAME "pata_optidma"
+-#define DRV_VERSION "0.2.4"
++#define DRV_VERSION "0.3.2"
+ 
+ enum {
+ 	READ_REG	= 0,	/* index of Read cycle timing register */
+@@ -62,8 +62,6 @@ static int optidma_pre_reset(struct ata_
+ 
+ 	if (ap->port_no && !pci_test_config_bits(pdev, &optidma_enable_bits))
+ 		return -ENOENT;
 -
-+#include "libata-acpi.h"
- #include <acpi/acpi_bus.h>
- #include <acpi/acnames.h>
- #include <acpi/acnamesp.h>
-@@ -703,3 +703,88 @@ out:
+-	ap->cbl = ATA_CBL_PATA40;
+ 	return ata_std_prereset(ap, deadline);
  }
  
+@@ -116,7 +114,7 @@ static void optidma_lock(struct ata_port
+ }
  
-+int ata_acpi_gtm(const struct ata_port *ap, void *handle, struct acpi_gtm *gtm)
-+{
-+	acpi_status status;
-+	struct acpi_buffer output;
+ /**
+- *	optidma_set_mode	-	set mode data
++ *	optidma_mode_setup	-	set mode data
+  *	@ap: ATA interface
+  *	@adev: ATA device
+  *	@mode: Mode to set
+@@ -129,7 +127,7 @@ static void optidma_lock(struct ata_port
+  *	IRQ here we depend on the host set locking to avoid catastrophe.
+  */
+ 
+-static void optidma_set_mode(struct ata_port *ap, struct ata_device *adev, u8 mode)
++static void optidma_mode_setup(struct ata_port *ap, struct ata_device *adev, u8 mode)
+ {
+ 	struct ata_device *pair = ata_dev_pair(adev);
+ 	int pio = adev->pio_mode - XFER_PIO_0;
+@@ -203,7 +201,7 @@ static void optidma_set_mode(struct ata_
+ }
+ 
+ /**
+- *	optiplus_set_mode	-	DMA setup for Firestar Plus
++ *	optiplus_mode_setup	-	DMA setup for Firestar Plus
+  *	@ap: ATA port
+  *	@adev: device
+  *	@mode: desired mode
+@@ -214,7 +212,7 @@ static void optidma_set_mode(struct ata_
+  *	one
+  */
+ 
+-static void optiplus_set_mode(struct ata_port *ap, struct ata_device *adev, u8 mode)
++static void optiplus_mode_setup(struct ata_port *ap, struct ata_device *adev, u8 mode)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	u8 udcfg;
+@@ -226,7 +224,7 @@ static void optiplus_set_mode(struct ata
+ 	pci_read_config_byte(pdev, 0x44, &udcfg);
+ 	if (mode <= XFER_UDMA_0) {
+ 		udcfg &= ~(1 << unit);
+-		optidma_set_mode(ap, adev, adev->dma_mode);
++		optidma_mode_setup(ap, adev, adev->dma_mode);
+ 	} else {
+ 		udcfg |=  (1 << unit);
+ 		if (ap->port_no) {
+@@ -254,7 +252,7 @@ static void optiplus_set_mode(struct ata
+ 
+ static void optidma_set_pio_mode(struct ata_port *ap, struct ata_device *adev)
+ {
+-	optidma_set_mode(ap, adev, adev->pio_mode);
++	optidma_mode_setup(ap, adev, adev->pio_mode);
+ }
+ 
+ /**
+@@ -269,7 +267,7 @@ static void optidma_set_pio_mode(struct 
+ 
+ static void optidma_set_dma_mode(struct ata_port *ap, struct ata_device *adev)
+ {
+-	optidma_set_mode(ap, adev, adev->dma_mode);
++	optidma_mode_setup(ap, adev, adev->dma_mode);
+ }
+ 
+ /**
+@@ -284,7 +282,7 @@ static void optidma_set_dma_mode(struct 
+ 
+ static void optiplus_set_pio_mode(struct ata_port *ap, struct ata_device *adev)
+ {
+-	optiplus_set_mode(ap, adev, adev->pio_mode);
++	optiplus_mode_setup(ap, adev, adev->pio_mode);
+ }
+ 
+ /**
+@@ -299,7 +297,7 @@ static void optiplus_set_pio_mode(struct
+ 
+ static void optiplus_set_dma_mode(struct ata_port *ap, struct ata_device *adev)
+ {
+-	optiplus_set_mode(ap, adev, adev->dma_mode);
++	optiplus_mode_setup(ap, adev, adev->dma_mode);
+ }
+ 
+ /**
+@@ -323,26 +321,29 @@ static u8 optidma_make_bits43(struct ata
+ }
+ 
+ /**
+- *	optidma_post_set_mode	-	finalize PCI setup
++ *	optidma_set_mode	-	mode setup
+  *	@ap: port to set up
+  *
+- *	Finalise the configuration by writing the nibble of extra bits
+- *	of data into the chip.
++ *	Use the standard setup to tune the chipset and then finalise the
++ *	configuration by writing the nibble of extra bits of data into
++ *	the chip.
+  */
+ 
+-static void optidma_post_set_mode(struct ata_port *ap)
++static int optidma_set_mode(struct ata_port *ap, struct ata_device **r_failed)
+ {
+ 	u8 r;
+ 	int nybble = 4 * ap->port_no;
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+-
+-	pci_read_config_byte(pdev, 0x43, &r);
+-
+-	r &= (0x0F << nybble);
+-	r |= (optidma_make_bits43(&ap->device[0]) +
+-	     (optidma_make_bits43(&ap->device[0]) << 2)) << nybble;
+-
+-	pci_write_config_byte(pdev, 0x43, r);
++	int rc  = ata_do_set_mode(ap, r_failed);
++	if (rc == 0) {
++		pci_read_config_byte(pdev, 0x43, &r);
 +
-+	output.length = ACPI_ALLOCATE_BUFFER;
-+	output.pointer = NULL;
-+
-+	status = acpi_evaluate_object(handle, "_GTM", NULL, &output);
-+
-+	if (ACPI_FAILURE(status)) {
-+		ata_port_printk(ap, KERN_ERR, "ACPI get timing mode failed.\n");
-+		return -EINVAL;
++		r &= (0x0F << nybble);
++		r |= (optidma_make_bits43(&ap->device[0]) +
++		     (optidma_make_bits43(&ap->device[0]) << 2)) << nybble;
++		pci_write_config_byte(pdev, 0x43, r);
 +	}
-+	if (output.length < sizeof(struct acpi_gtm) || output.pointer == NULL) {
-+		ata_port_printk(ap, KERN_ERR, "ACPI get timing provided invalid data.\n");
-+		return -EINVAL;
-+	}
-+	memcpy(gtm, output.pointer, sizeof(struct acpi_gtm));
-+	kfree(output.pointer);
-+	return 0;
-+}
-+
-+int ata_acpi_stm(const struct ata_port *ap, void *handle, struct acpi_gtm *stm)
-+{
-+	acpi_status status;
-+	struct acpi_object_list         input;
-+	union acpi_object               in_params[3];
-+
-+	in_params[0].type = ACPI_TYPE_BUFFER;
-+	in_params[0].buffer.length = sizeof(struct acpi_gtm);
-+	in_params[0].buffer.pointer = (u8 *)stm;
-+	/* Buffers for id may need byteswapping ? */
-+	in_params[1].type = ACPI_TYPE_BUFFER;
-+	in_params[1].buffer.length = 512;
-+	in_params[1].buffer.pointer = (u8 *)ap->device[0].id;
-+	in_params[2].type = ACPI_TYPE_BUFFER;
-+	in_params[2].buffer.length = 512;
-+	in_params[2].buffer.pointer = (u8 *)ap->device[1].id;
-+
-+	input.count = 3;
-+	input.pointer = in_params;
-+
-+	status = acpi_evaluate_object(handle, "_STM", &input, NULL);
-+
-+	if (ACPI_FAILURE(status)) {
-+		ata_port_printk(ap, KERN_ERR, "ACPI set timing mode failed.\n");
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static void *ata_pata_find_handle(struct device *dev, int port)
-+{
-+	acpi_handle handle;
-+	acpi_integer devfn;
-+
-+	if (noacpi)
-+		return NULL;
-+	if (pata_get_dev_handle(dev, &handle, &devfn) < 0)
-+		return NULL;
-+	return acpi_get_child(handle, port);
-+}
-+
-+void *ata_pata_acpi_handle(const struct ata_port *ap)
-+{
-+	return ata_pata_find_handle(ap->host->dev, ap->port_no);
-+}
-+
-+int ata_pata_acpi_present(struct pci_dev *pdev)
-+{
-+	int present = 0;
-+
-+	if(ata_pata_find_handle(&pdev->dev, 0))
-+		present |= 1;
-+	if(ata_pata_find_handle(&pdev->dev, 1))
-+		present |= 2;
-+	return present;
-+}
-+
-+
-+EXPORT_SYMBOL_GPL(ata_acpi_gtm);
-+EXPORT_SYMBOL_GPL(ata_acpi_stm);
-+EXPORT_SYMBOL_GPL(ata_pata_acpi_handle);
-+EXPORT_SYMBOL_GPL(ata_pata_acpi_present);
-diff -puN /dev/null drivers/ata/libata-acpi.h
---- /dev/null
-+++ a/drivers/ata/libata-acpi.h
-@@ -0,0 +1,47 @@
-+/*
-+ *  libata-acpi.h - helper library for ATA ACPI drivers
-+ *
-+ *  Copyright 2007 Red Hat, Inc.  All rights reserved.
-+ *  Copyright 2007 Alan Cox
-+ *
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2, or (at your option)
-+ *  any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; see the file COPYING.  If not, write to
-+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-+ *
-+ *
-+ *  libata documentation is available via 'make {ps|pdf}docs',
-+ *  as Documentation/DocBook/libata.*
-+ *
-+ */
-+
-+#ifndef __LIBATA_ACPI_H__
-+#define __LIBATA_ACPI_H__
-+
-+struct acpi_drive
-+{
-+	u32 pio;
-+	u32 dma;
-+};
-+
-+struct acpi_gtm {
-+	struct acpi_drive drive[2];
-+	u32 flags;
-+};
-+
-+extern int ata_acpi_gtm(const struct ata_port *p, void *handle, struct acpi_gtm *gtm);
-+extern int ata_acpi_stm(const struct ata_port *ap, void *handle, struct acpi_gtm *stm);
-+extern void *ata_pata_acpi_handle(const struct ata_port *ap);
-+extern int ata_pata_acpi_present(struct pci_dev *pdev);
-+
-+#endif
++	return rc;
+ }
+ 
+ static struct scsi_host_template optidma_sht = {
+@@ -382,7 +383,8 @@ static struct ata_port_operations optidm
+ 	.thaw		= ata_bmdma_thaw,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
+ 	.error_handler	= optidma_error_handler,
+-	.post_set_mode	= optidma_post_set_mode,
++	.set_mode	= optidma_set_mode,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -417,7 +419,8 @@ static struct ata_port_operations optipl
+ 	.thaw		= ata_bmdma_thaw,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
+ 	.error_handler	= optidma_error_handler,
+-	.post_set_mode	= optidma_post_set_mode,
++	.set_mode	= optidma_set_mode,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
