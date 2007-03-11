@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-i386-x86_64-arbitary-speed-support.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:46:47 -0800
-Message-ID: <200703110946.l2B9klKg009145@shell0.pdx.osdl.net>
+Subject: + 3c59x-fix-several-modpost-warnings.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:46:12 -0800
+Message-ID: <200703110946.l2B9kCtY009142@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41711 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41826 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752063AbXCKJrA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:47:00 -0400
+	id S1752068AbXCKJta (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:49:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: ralf@linux-mips.org
 
 
 The patch titled
-     tty: i386/x86_64 arbitary speed support
+     3c59x: fix several modpost warnings
 has been added to the -mm tree.  Its filename is
-     tty-i386-x86_64-arbitary-speed-support.patch
+     3c59x-fix-several-modpost-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,125 +25,100 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: i386/x86_64 arbitary speed support
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: 3c59x: fix several modpost warnings
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Adds the needed TCGETS2/TCSETS2 ioctl calls, structures, defines and the like.
-Tested against the test suite and passes.  Other platforms should need
-roughly the same change.
+WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x4580) and 'vortex_eisa_remove'
+WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x4584) and 'vortex_eisa_remove'
+WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x4588) and 'vortex_eisa_remove'
+WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x458c) and 'vortex_eisa_remove'
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Fixed by:
+
+ o move definition of vortex_eisa_driver below the functions it references.
+ o remove now unnecessary prototypes for vortex_eisa_probe and
+   vortex_eisa_remove.
+ o Make vortex_eisa_probe an __init function.
+ o Make vortex_eisa_remove a __devexit function.
+ o Wrap vortex_eisa_driver reference to vortex_eisa_remove with
+   __devexit_p().
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/ioctls.h     |    4 ++++
- include/asm-i386/termbits.h   |   14 ++++++++++++++
- include/asm-i386/termios.h    |    6 ++++--
- include/asm-x86_64/termbits.h |    2 +-
- 4 files changed, 23 insertions(+), 3 deletions(-)
+ drivers/net/3c59x.c |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN include/asm-i386/ioctls.h~tty-i386-x86_64-arbitary-speed-support include/asm-i386/ioctls.h
---- a/include/asm-i386/ioctls.h~tty-i386-x86_64-arbitary-speed-support
-+++ a/include/asm-i386/ioctls.h
-@@ -47,6 +47,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x5429  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
- 
-diff -puN include/asm-i386/termbits.h~tty-i386-x86_64-arbitary-speed-support include/asm-i386/termbits.h
---- a/include/asm-i386/termbits.h~tty-i386-x86_64-arbitary-speed-support
-+++ a/include/asm-i386/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
+diff -puN drivers/net/3c59x.c~3c59x-fix-several-modpost-warnings drivers/net/3c59x.c
+--- a/drivers/net/3c59x.c~3c59x-fix-several-modpost-warnings
++++ a/drivers/net/3c59x.c
+@@ -857,19 +857,7 @@ static struct eisa_device_id vortex_eisa
  };
+ MODULE_DEVICE_TABLE(eisa, vortex_eisa_ids);
  
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
+-static int vortex_eisa_probe(struct device *device);
+-static int vortex_eisa_remove(struct device *device);
+-
+-static struct eisa_driver vortex_eisa_driver = {
+-	.id_table = vortex_eisa_ids,
+-	.driver   = {
+-		.name    = "3c59x",
+-		.probe   = vortex_eisa_probe,
+-		.remove  = vortex_eisa_remove
+-	}
+-};
+-
+-static int vortex_eisa_probe(struct device *device)
++static int __init vortex_eisa_probe(struct device *device)
+ {
+ 	void __iomem *ioaddr;
+ 	struct eisa_device *edev;
+@@ -892,7 +880,7 @@ static int vortex_eisa_probe(struct devi
+ 	return 0;
+ }
+ 
+-static int vortex_eisa_remove(struct device *device)
++static int __devexit vortex_eisa_remove(struct device *device)
+ {
+ 	struct eisa_device *edev;
+ 	struct net_device *dev;
+@@ -917,7 +905,17 @@ static int vortex_eisa_remove(struct dev
+ 	free_netdev(dev);
+ 	return 0;
+ }
+-#endif
++
++static struct eisa_driver vortex_eisa_driver = {
++	.id_table = vortex_eisa_ids,
++	.driver   = {
++		.name    = "3c59x",
++		.probe   = vortex_eisa_probe,
++		.remove  = __devexit_p(vortex_eisa_remove)
++	}
 +};
 +
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-@@ -129,6 +140,7 @@ struct ktermios {
- #define HUPCL	0002000
- #define CLOCAL	0004000
- #define CBAUDEX 0010000
-+#define   BOTHER  0010000
- #define    B57600 0010001
- #define   B115200 0010002
- #define   B230400 0010003
-@@ -148,6 +160,8 @@ struct ktermios {
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
++#endif /* CONFIG_EISA */
  
-+#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
-+
- /* c_lflag bits */
- #define ISIG	0000001
- #define ICANON	0000002
-diff -puN include/asm-i386/termios.h~tty-i386-x86_64-arbitary-speed-support include/asm-i386/termios.h
---- a/include/asm-i386/termios.h~tty-i386-x86_64-arbitary-speed-support
-+++ a/include/asm-i386/termios.h
-@@ -81,8 +81,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- })
- 
--#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
--#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
-+#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
-+#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
-+#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
-+#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
- 
- #endif	/* __KERNEL__ */
- 
-diff -puN include/asm-x86_64/termbits.h~tty-i386-x86_64-arbitary-speed-support include/asm-x86_64/termbits.h
---- a/include/asm-x86_64/termbits.h~tty-i386-x86_64-arbitary-speed-support
-+++ a/include/asm-x86_64/termbits.h
-@@ -160,7 +160,7 @@ struct ktermios {
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
- 
--#define IBSHIFT	  8		/* Shift from CBAUD to CIBAUD */
-+#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
- 
- /* c_lflag bits */
- #define ISIG	0000001
+ /* returns count found (>= 0), or negative on error */
+ static int __init vortex_eisa_init(void)
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-git-libata-all.patch
-expose-set_mode-method-so-it-can-be-wrapped.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-ata_piix-remove-ugly-layering-violation.patch
-pata_cmd640-multiple-updates.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-dilnetpc-fix-warning.patch
-baycom_ser_fdx-also-allow-i-o-ports-=-0x1000-and-enhanced.patch
-resend-iphase-64bit-cleanup.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-z85230-fix-fifo-handling.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
+git-netdev-all.patch
+netxen-fix-warnings.patch
+3c59x-fix-several-modpost-warnings.patch
+div64_64-common-code.patch
+serial-driver-pmc-msp71xx.patch
+rm9000-serial-driver.patch
+rm9000-serial-driver-tidy.patch
+x86_64-fix-ia32_binfmtc-build-error.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+hda_intel-build-fix.patch
+ice1712-build-fixes.patch
+simplify-the-stacktrace-code.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+local_t-mips-extension.patch
+tgafb-turbochannel-support.patch
