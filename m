@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:28:40 -0800
-Message-ID: <200703110928.l2B9SeZb008754@shell0.pdx.osdl.net>
+Subject: + pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:28:44 -0800
+Message-ID: <200703110928.l2B9Sis9008760@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41171 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41174 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751947AbXCKJ2t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:28:49 -0400
+	id S1751955AbXCKJ2x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:28:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_cs5535: re-remove all the crap and switch to the cable detect method
+     pata_cypress: re-remove all the crap and switch back to cable method
 has been added to the -mm tree.  Its filename is
-     pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable.patch
+     pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_cs5535: re-remove all the crap and switch to the cable detect method
+Subject: pata_cypress: re-remove all the crap and switch back to cable method
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cs5535.c |   28 +++++++---------------------
- 1 file changed, 7 insertions(+), 21 deletions(-)
+ drivers/ata/pata_cypress.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff -puN drivers/ata/pata_cs5535.c~pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable drivers/ata/pata_cs5535.c
---- a/drivers/ata/pata_cs5535.c~pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable
-+++ a/drivers/ata/pata_cs5535.c
-@@ -39,7 +39,7 @@
- #include <asm/msr.h>
+diff -puN drivers/ata/pata_cypress.c~pata_cypress-re-remove-all-the-crap-and-switch-back-to drivers/ata/pata_cypress.c
+--- a/drivers/ata/pata_cypress.c~pata_cypress-re-remove-all-the-crap-and-switch-back-to
++++ a/drivers/ata/pata_cypress.c
+@@ -41,17 +41,6 @@ enum {
+ 	CY82_INDEX_TIMEOUT	= 0x32
+ };
  
- #define DRV_NAME	"cs5535"
--#define DRV_VERSION	"0.2.11"
-+#define DRV_VERSION	"0.2.12"
- 
- /*
-  *	The Geode (Aka Athlon GX now) uses an internal MSR based
-@@ -70,37 +70,22 @@
- #define CS5535_BAD_PIO(timings) ( (timings&~0x80000000UL)==0x00009172 )
- 
- /**
-- *	cs5535_pre_reset	-	detect cable type
-+ *	cs5535_cable_detect	-	detect cable type
-  *	@ap: Port to detect on
-- *	@deadline: deadline jiffies for the operation
-  *
-  *	Perform cable detection for ATA66 capable cable. Return a libata
-  *	cable type.
-  */
- 
--static int cs5535_pre_reset(struct ata_port *ap, unsigned long deadline)
-+static int cs5535_cable_detect(struct ata_port *ap)
- {
- 	u8 cable;
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 
- 	pci_read_config_byte(pdev, CS5535_CABLE_DETECT, &cable);
- 	if (cable & 1)
--		ap->cbl = ATA_CBL_PATA80;
--	else
--		ap->cbl = ATA_CBL_PATA40;
+-static int cy82c693_pre_reset(struct ata_port *ap, unsigned long deadline)
+-{
+-	ap->cbl = ATA_CBL_PATA40;
 -	return ata_std_prereset(ap, deadline);
 -}
 -
--/**
-- *	cs5535_error_handler		-	reset/probe
-- *	@ap: Port to reset
-- *
-- *	Reset and configure a port
-- */
--
--static void cs5535_error_handler(struct ata_port *ap)
+-static void cy82c693_error_handler(struct ata_port *ap)
 -{
--	ata_bmdma_drive_eh(ap, cs5535_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
-+		return ATA_CBL_PATA80;
-+	return ATA_CBL_PATA40;
- }
- 
+-	ata_bmdma_drive_eh(ap, cy82c693_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
  /**
-@@ -206,8 +191,9 @@ static struct ata_port_operations cs5535
+  *	cy82c693_set_piomode	-	set initial PIO mode data
+  *	@ap: ATA interface
+@@ -156,8 +145,9 @@ static struct ata_port_operations cy82c6
  
  	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= cs5535_error_handler,
+-	.error_handler	= cy82c693_error_handler,
 +	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= cs5535_cable_detect,
++	.cable_detect	= ata_cable_40wire,
  
  	.bmdma_setup 	= ata_bmdma_setup,
  	.bmdma_start 	= ata_bmdma_start,
