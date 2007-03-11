@@ -1,210 +1,360 @@
 From: akpm@linux-foundation.org
-Subject: + remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch added to -mm tree
-Date: Sat, 10 Mar 2007 23:22:32 -0800
-Message-ID: <200703110722.l2B7MWQP006895@shell0.pdx.osdl.net>
+Subject: + remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drivers-message-fusion-lsi-mpi_log_fch.patch added to -mm tree
+Date: Sat, 10 Mar 2007 23:22:36 -0800
+Message-ID: <200703110722.l2B7MadC006898@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38593 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38594 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751014AbXCKHWn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 03:22:43 -0400
+	id S1751019AbXCKHWo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 03:22:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, Markus.Lidel@shadowconnect.com
+Cc: rpjday@mindspring.com, Eric.Moore@lsil.com
 
 
 The patch titled
-     remove unused header file: drivers/message/i2o/i2o_lan.h
+     remove unused header file: drivers/message/fusion/lsi/mpi_inb.h and drivers/message/fusion/lsi/mpi_log_fc.h
 has been added to the -mm tree.  Its filename is
-     remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+     remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drivers-message-fusion-lsi-mpi_log_fch.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove unused header file: drivers/message/i2o/i2o_lan.h
-=46rom: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: remove unused header file: drivers/message/fusion/lsi/mpi_inb.h and drivers/message/fusion/lsi/mpi_log_fc.h
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/i2o_lan.h |  159 --------------------------------
- 1 file changed, 159 deletions(-)
+ drivers/message/fusion/lsi/mpi_inb.h    |  221 ----------------------
+ drivers/message/fusion/lsi/mpi_log_fc.h |   89 --------
+ 2 files changed, 310 deletions(-)
 
-diff -puN drivers/message/i2o/i2o_lan.h~remove-unused-header-file-drive=
-rs-message-i2o-i2o_lanh /dev/null
---- a/drivers/message/i2o/i2o_lan.h
+diff -puN drivers/message/fusion/lsi/mpi_inb.h~remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drivers-message-fusion-lsi-mpi_log_fch /dev/null
+--- a/drivers/message/fusion/lsi/mpi_inb.h
 +++ /dev/null
-@@ -1,159 +0,0 @@
+@@ -1,221 +0,0 @@
 -/*
-- *   	i2o_lan.h			I2O LAN Class definitions
+- *  Copyright (c) 2003-2004 LSI Logic Corporation.
 - *
-- *      I2O LAN CLASS OSM       	May 26th 2000
 - *
-- *      (C) Copyright 1999, 2000	University of Helsinki,
-- *					Department of Computer Science
+- *           Name:  mpi_inb.h
+- *          Title:  MPI Inband structures and definitions
+- *  Creation Date:  September 30, 2003
 - *
-- *      This code is still under development / test.
+- *    mpi_inb.h Version:  01.05.01
 - *
-- *	Author:		Auvo H=E4kkinen <Auvo.Hakkinen@cs.Helsinki.FI>
-- *			Juha Siev=E4nen <Juha.Sievanen@cs.Helsinki.FI>
-- *			Taneli V=E4h=E4kangas <Taneli.Vahakangas@cs.Helsinki.FI>
+- *  Version History
+- *  ---------------
+- *
+- *  Date      Version   Description
+- *  --------  --------  ------------------------------------------------------
+- *  05-11-04  01.03.01  Original release.
+- *  08-19-04  01.05.01  Original release for MPI v1.5.
+- *  --------------------------------------------------------------------------
 - */
 -
--#ifndef _I2O_LAN_H
--#define _I2O_LAN_H
+-#ifndef MPI_INB_H
+-#define MPI_INB_H
 -
--/* Default values for tunable parameters first */
+-/******************************************************************************
+-*
+-*        I n b a n d    M e s s a g e s
+-*
+-*******************************************************************************/
 -
--#define I2O_LAN_MAX_BUCKETS_OUT 96
--#define I2O_LAN_BUCKET_THRESH	18	/* 9 buckets in one message */
--#define I2O_LAN_RX_COPYBREAK	200
--#define I2O_LAN_TX_TIMEOUT 	(1*HZ)
--#define I2O_LAN_TX_BATCH_MODE	2	/* 2=3Dautomatic, 1=3Don, 0=3Doff */
--#define I2O_LAN_EVENT_MASK	0	/* 0=3DNone, 0xFFC00002=3DAll */
 -
--/* LAN types */
--#define I2O_LAN_ETHERNET	0x0030
--#define I2O_LAN_100VG		0x0040
--#define I2O_LAN_TR		0x0050
--#define I2O_LAN_FDDI		0x0060
--#define I2O_LAN_FIBRE_CHANNEL	0x0070
--#define I2O_LAN_UNKNOWN		0x00000000
+-/****************************************************************************/
+-/* Inband Buffer Post Request                                               */
+-/****************************************************************************/
 -
--/* Connector types */
+-typedef struct _MSG_INBAND_BUFFER_POST_REQUEST
+-{
+-    U8                      Reserved1;          /* 00h */
+-    U8                      BufferCount;        /* 01h */
+-    U8                      ChainOffset;        /* 02h */
+-    U8                      Function;           /* 03h */
+-    U16                     Reserved2;          /* 04h */
+-    U8                      Reserved3;          /* 06h */
+-    U8                      MsgFlags;           /* 07h */
+-    U32                     MsgContext;         /* 08h */
+-    U32                     Reserved4;          /* 0Ch */
+-    SGE_TRANS_SIMPLE_UNION  SGL;                /* 10h */
+-} MSG_INBAND_BUFFER_POST_REQUEST, MPI_POINTER PTR_MSG_INBAND_BUFFER_POST_REQUEST,
+-  MpiInbandBufferPostRequest_t , MPI_POINTER pMpiInbandBufferPostRequest_t;
 -
--/* Ethernet */
--#define I2O_LAN_AUI		(I2O_LAN_ETHERNET << 4) + 0x00000001
--#define I2O_LAN_10BASE5		(I2O_LAN_ETHERNET << 4) + 0x00000002
--#define I2O_LAN_FIORL		(I2O_LAN_ETHERNET << 4) + 0x00000003
--#define I2O_LAN_10BASE2		(I2O_LAN_ETHERNET << 4) + 0x00000004
--#define I2O_LAN_10BROAD36	(I2O_LAN_ETHERNET << 4) + 0x00000005
--#define I2O_LAN_10BASE_T	(I2O_LAN_ETHERNET << 4) + 0x00000006
--#define I2O_LAN_10BASE_FP	(I2O_LAN_ETHERNET << 4) + 0x00000007
--#define I2O_LAN_10BASE_FB	(I2O_LAN_ETHERNET << 4) + 0x00000008
--#define I2O_LAN_10BASE_FL	(I2O_LAN_ETHERNET << 4) + 0x00000009
--#define I2O_LAN_100BASE_TX	(I2O_LAN_ETHERNET << 4) + 0x0000000A
--#define I2O_LAN_100BASE_FX	(I2O_LAN_ETHERNET << 4) + 0x0000000B
--#define I2O_LAN_100BASE_T4	(I2O_LAN_ETHERNET << 4) + 0x0000000C
--#define I2O_LAN_1000BASE_SX	(I2O_LAN_ETHERNET << 4) + 0x0000000D
--#define I2O_LAN_1000BASE_LX	(I2O_LAN_ETHERNET << 4) + 0x0000000E
--#define I2O_LAN_1000BASE_CX	(I2O_LAN_ETHERNET << 4) + 0x0000000F
--#define I2O_LAN_1000BASE_T	(I2O_LAN_ETHERNET << 4) + 0x00000010
 -
--/* AnyLAN */
--#define I2O_LAN_100VG_ETHERNET	(I2O_LAN_100VG << 4) + 0x00000001
--#define I2O_LAN_100VG_TR	(I2O_LAN_100VG << 4) + 0x00000002
+-typedef struct _WWN_FC_FORMAT
+-{
+-    U64                     NodeName;           /* 00h */
+-    U64                     PortName;           /* 08h */
+-} WWN_FC_FORMAT, MPI_POINTER PTR_WWN_FC_FORMAT,
+-  WwnFcFormat_t, MPI_POINTER pWwnFcFormat_t;
 -
--/* Token Ring */
--#define I2O_LAN_4MBIT		(I2O_LAN_TR << 4) + 0x00000001
--#define I2O_LAN_16MBIT		(I2O_LAN_TR << 4) + 0x00000002
+-typedef struct _WWN_SAS_FORMAT
+-{
+-    U64                     WorldWideID;        /* 00h */
+-    U32                     Reserved1;          /* 08h */
+-    U32                     Reserved2;          /* 0Ch */
+-} WWN_SAS_FORMAT, MPI_POINTER PTR_WWN_SAS_FORMAT,
+-  WwnSasFormat_t, MPI_POINTER pWwnSasFormat_t;
 -
--/* FDDI */
--#define I2O_LAN_125MBAUD	(I2O_LAN_FDDI << 4) + 0x00000001
+-typedef union _WWN_INBAND_FORMAT
+-{
+-    WWN_FC_FORMAT           Fc;
+-    WWN_SAS_FORMAT          Sas;
+-} WWN_INBAND_FORMAT, MPI_POINTER PTR_WWN_INBAND_FORMAT,
+-  WwnInbandFormat, MPI_POINTER pWwnInbandFormat;
 -
--/* Fibre Channel */
--#define I2O_LAN_POINT_POINT	(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000001
--#define I2O_LAN_ARB_LOOP	(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000002
--#define I2O_LAN_PUBLIC_LOOP	(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000003
--#define I2O_LAN_FABRIC		(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000004
 -
--#define I2O_LAN_EMULATION	0x00000F00
--#define I2O_LAN_OTHER		0x00000F01
--#define I2O_LAN_DEFAULT		0xFFFFFFFF
+-/* Inband Buffer Post reply message */
 -
--/* LAN class functions */
+-typedef struct _MSG_INBAND_BUFFER_POST_REPLY
+-{
+-    U16                     Reserved1;          /* 00h */
+-    U8                      MsgLength;          /* 02h */
+-    U8                      Function;           /* 03h */
+-    U16                     Reserved2;          /* 04h */
+-    U8                      Reserved3;          /* 06h */
+-    U8                      MsgFlags;           /* 07h */
+-    U32                     MsgContext;         /* 08h */
+-    U16                     Reserved4;          /* 0Ch */
+-    U16                     IOCStatus;          /* 0Eh */
+-    U32                     IOCLogInfo;         /* 10h */
+-    U32                     TransferLength;     /* 14h */
+-    U32                     TransactionContext; /* 18h */
+-    WWN_INBAND_FORMAT       Wwn;                /* 1Ch */
+-    U32                     IOCIdentifier[4];   /* 2Ch */
+-} MSG_INBAND_BUFFER_POST_REPLY, MPI_POINTER PTR_MSG_INBAND_BUFFER_POST_REPLY,
+-  MpiInbandBufferPostReply_t, MPI_POINTER pMpiInbandBufferPostReply_t;
 -
--#define LAN_PACKET_SEND		0x3B
--#define LAN_SDU_SEND		0x3D
--#define LAN_RECEIVE_POST	0x3E
--#define LAN_RESET		0x35
--#define LAN_SUSPEND		0x37
 -
--/* LAN DetailedStatusCode defines */
--#define I2O_LAN_DSC_SUCCESS			0x00
--#define I2O_LAN_DSC_DEVICE_FAILURE		0x01
--#define I2O_LAN_DSC_DESTINATION_NOT_FOUND	0x02
--#define	I2O_LAN_DSC_TRANSMIT_ERROR		0x03
--#define I2O_LAN_DSC_TRANSMIT_ABORTED		0x04
--#define I2O_LAN_DSC_RECEIVE_ERROR		0x05
--#define I2O_LAN_DSC_RECEIVE_ABORTED		0x06
--#define I2O_LAN_DSC_DMA_ERROR			0x07
--#define I2O_LAN_DSC_BAD_PACKET_DETECTED		0x08
--#define I2O_LAN_DSC_OUT_OF_MEMORY		0x09
--#define I2O_LAN_DSC_BUCKET_OVERRUN		0x0A
--#define I2O_LAN_DSC_IOP_INTERNAL_ERROR		0x0B
--#define I2O_LAN_DSC_CANCELED			0x0C
--#define I2O_LAN_DSC_INVALID_TRANSACTION_CONTEXT	0x0D
--#define I2O_LAN_DSC_DEST_ADDRESS_DETECTED	0x0E
--#define I2O_LAN_DSC_DEST_ADDRESS_OMITTED	0x0F
--#define I2O_LAN_DSC_PARTIAL_PACKET_RETURNED	0x10
--#define I2O_LAN_DSC_SUSPENDED			0x11
+-/****************************************************************************/
+-/* Inband Send Request                                                      */
+-/****************************************************************************/
 -
--struct i2o_packet_info {
--	u32 offset:24;
--	u32 flags:8;
--	u32 len:24;
--	u32 status:8;
--};
+-typedef struct _MSG_INBAND_SEND_REQUEST
+-{
+-    U16                     Reserved1;          /* 00h */
+-    U8                      ChainOffset;        /* 02h */
+-    U8                      Function;           /* 03h */
+-    U16                     Reserved2;          /* 04h */
+-    U8                      Reserved3;          /* 06h */
+-    U8                      MsgFlags;           /* 07h */
+-    U32                     MsgContext;         /* 08h */
+-    U32                     Reserved4;          /* 0Ch */
+-    WWN_INBAND_FORMAT       Wwn;                /* 10h */
+-    U32                     Reserved5;          /* 20h */
+-    SGE_IO_UNION            SGL;                /* 24h */
+-} MSG_INBAND_SEND_REQUEST, MPI_POINTER PTR_MSG_INBAND_SEND_REQUEST,
+-  MpiInbandSendRequest_t , MPI_POINTER pMpiInbandSendRequest_t;
 -
--struct i2o_bucket_descriptor {
--	u32 context;		/* FIXME: 64bit support */
--	struct i2o_packet_info packet_info[1];
--};
 -
--/* Event Indicator Mask Flags for LAN OSM */
+-/* Inband Send reply message */
 -
--#define I2O_LAN_EVT_LINK_DOWN		0x01
--#define I2O_LAN_EVT_LINK_UP		0x02
--#define I2O_LAN_EVT_MEDIA_CHANGE 	0x04
+-typedef struct _MSG_INBAND_SEND_REPLY
+-{
+-    U16                     Reserved1;          /* 00h */
+-    U8                      MsgLength;          /* 02h */
+-    U8                      Function;           /* 03h */
+-    U16                     Reserved2;          /* 04h */
+-    U8                      Reserved3;          /* 06h */
+-    U8                      MsgFlags;           /* 07h */
+-    U32                     MsgContext;         /* 08h */
+-    U16                     Reserved4;          /* 0Ch */
+-    U16                     IOCStatus;          /* 0Eh */
+-    U32                     IOCLogInfo;         /* 10h */
+-    U32                     ResponseLength;     /* 14h */
+-} MSG_INBAND_SEND_REPLY, MPI_POINTER PTR_MSG_INBAND_SEND_REPLY,
+-  MpiInbandSendReply_t, MPI_POINTER pMpiInbandSendReply_t;
 -
--#include <linux/netdevice.h>
--#include <linux/fddidevice.h>
 -
--struct i2o_lan_local {
--	u8 unit;
--	struct i2o_device *i2o_dev;
+-/****************************************************************************/
+-/* Inband Response Request                                                  */
+-/****************************************************************************/
 -
--	struct fddi_statistics stats;	/* see also struct net_device_stats */
--	unsigned short (*type_trans) (struct sk_buff *, struct net_device *);
--	atomic_t buckets_out;	/* nbr of unused buckets on DDM */
--	atomic_t tx_out;	/* outstanding TXes */
--	u8 tx_count;		/* packets in one TX message frame */
--	u16 tx_max_out;		/* DDM's Tx queue len */
--	u8 sgl_max;		/* max SGLs in one message frame */
--	u32 m;			/* IOP address of the batch msg frame */
+-typedef struct _MSG_INBAND_RSP_REQUEST
+-{
+-    U16                     Reserved1;          /* 00h */
+-    U8                      ChainOffset;        /* 02h */
+-    U8                      Function;           /* 03h */
+-    U16                     Reserved2;          /* 04h */
+-    U8                      Reserved3;          /* 06h */
+-    U8                      MsgFlags;           /* 07h */
+-    U32                     MsgContext;         /* 08h */
+-    U32                     Reserved4;          /* 0Ch */
+-    WWN_INBAND_FORMAT       Wwn;                /* 10h */
+-    U32                     IOCIdentifier[4];   /* 20h */
+-    U32                     ResponseLength;     /* 30h */
+-    SGE_IO_UNION            SGL;                /* 34h */
+-} MSG_INBAND_RSP_REQUEST, MPI_POINTER PTR_MSG_INBAND_RSP_REQUEST,
+-  MpiInbandRspRequest_t , MPI_POINTER pMpiInbandRspRequest_t;
 -
--	struct work_struct i2o_batch_send_task;
--	int send_active;
--	struct sk_buff **i2o_fbl;	/* Free bucket list (to reuse skbs) */
--	int i2o_fbl_tail;
--	spinlock_t fbl_lock;
 -
--	spinlock_t tx_lock;
+-/* Inband Response reply message */
 -
--	u32 max_size_mc_table;	/* max number of multicast addresses */
+-typedef struct _MSG_INBAND_RSP_REPLY
+-{
+-    U16                     Reserved1;          /* 00h */
+-    U8                      MsgLength;          /* 02h */
+-    U8                      Function;           /* 03h */
+-    U16                     Reserved2;          /* 04h */
+-    U8                      Reserved3;          /* 06h */
+-    U8                      MsgFlags;           /* 07h */
+-    U32                     MsgContext;         /* 08h */
+-    U16                     Reserved4;          /* 0Ch */
+-    U16                     IOCStatus;          /* 0Eh */
+-    U32                     IOCLogInfo;         /* 10h */
+-} MSG_INBAND_RSP_REPLY, MPI_POINTER PTR_MSG_INBAND_RSP_REPLY,
+-  MpiInbandRspReply_t, MPI_POINTER pMpiInbandRspReply_t;
 -
--	/* LAN OSM configurable parameters are here: */
 -
--	u16 max_buckets_out;	/* max nbr of buckets to send to DDM */
--	u16 bucket_thresh;	/* send more when this many used */
--	u16 rx_copybreak;
+-/****************************************************************************/
+-/* Inband Abort Request                                                     */
+-/****************************************************************************/
 -
--	u8 tx_batch_mode;	/* Set when using batch mode sends */
--	u32 i2o_event_mask;	/* To turn on interesting event flags */
--};
+-typedef struct _MSG_INBAND_ABORT_REQUEST
+-{
+-    U8                      Reserved1;          /* 00h */
+-    U8                      AbortType;          /* 01h */
+-    U8                      ChainOffset;        /* 02h */
+-    U8                      Function;           /* 03h */
+-    U16                     Reserved2;          /* 04h */
+-    U8                      Reserved3;          /* 06h */
+-    U8                      MsgFlags;           /* 07h */
+-    U32                     MsgContext;         /* 08h */
+-    U32                     Reserved4;          /* 0Ch */
+-    U32                     ContextToAbort;     /* 10h */
+-} MSG_INBAND_ABORT_REQUEST, MPI_POINTER PTR_MSG_INBAND_ABORT_REQUEST,
+-  MpiInbandAbortRequest_t , MPI_POINTER pMpiInbandAbortRequest_t;
 -
--#endif				/* _I2O_LAN_H */
+-#define MPI_INBAND_ABORT_TYPE_ALL_BUFFERS       (0x00)
+-#define MPI_INBAND_ABORT_TYPE_EXACT_BUFFER      (0x01)
+-#define MPI_INBAND_ABORT_TYPE_SEND_REQUEST      (0x02)
+-#define MPI_INBAND_ABORT_TYPE_RESPONSE_REQUEST  (0x03)
+-
+-
+-/* Inband Abort reply message */
+-
+-typedef struct _MSG_INBAND_ABORT_REPLY
+-{
+-    U8                      Reserved1;          /* 00h */
+-    U8                      AbortType;          /* 01h */
+-    U8                      MsgLength;          /* 02h */
+-    U8                      Function;           /* 03h */
+-    U16                     Reserved2;          /* 04h */
+-    U8                      Reserved3;          /* 06h */
+-    U8                      MsgFlags;           /* 07h */
+-    U32                     MsgContext;         /* 08h */
+-    U16                     Reserved4;          /* 0Ch */
+-    U16                     IOCStatus;          /* 0Eh */
+-    U32                     IOCLogInfo;         /* 10h */
+-} MSG_INBAND_ABORT_REPLY, MPI_POINTER PTR_MSG_INBAND_ABORT_REPLY,
+-  MpiInbandAbortReply_t, MPI_POINTER pMpiInbandAbortReply_t;
+-
+-
+-#endif
+-
+diff -puN drivers/message/fusion/lsi/mpi_log_fc.h~remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drivers-message-fusion-lsi-mpi_log_fch /dev/null
+--- a/drivers/message/fusion/lsi/mpi_log_fc.h
++++ /dev/null
+@@ -1,89 +0,0 @@
+-/*
+- *  Copyright (c) 2000-2001 LSI Logic Corporation. All rights reserved.
+- *
+- *  NAME:           fc_log.h
+- *  SUMMARY:        MPI IocLogInfo definitions for the SYMFC9xx chips
+- *  DESCRIPTION:    Contains the enumerated list of values that may be returned
+- *                  in the IOCLogInfo field of a MPI Default Reply Message.
+- *
+- *  CREATION DATE:  6/02/2000
+- *  ID:             $Id: fc_log.h,v 4.6 2001/07/26 14:41:33 sschremm Exp $
+- */
+-
+-
+-/*
+- * MpiIocLogInfo_t enum
+- *
+- * These 32 bit values are used in the IOCLogInfo field of the MPI reply
+- * messages.
+- * The value is 0xabcccccc where
+- *          a = The type of log info as per the MPI spec. Since these codes are
+- *              all for Fibre Channel this value will always be 2.
+- *          b = Specifies a subclass of the firmware where
+- *                  0 = FCP Initiator
+- *                  1 = FCP Target
+- *                  2 = LAN
+- *                  3 = MPI Message Layer
+- *                  4 = FC Link
+- *                  5 = Context Manager
+- *                  6 = Invalid Field Offset
+- *                  7 = State Change Info
+- *                  all others are reserved for future use
+- *          c = A specific value within the subclass.
+- *
+- * NOTE: Any new values should be added to the end of each subclass so that the
+- *       codes remain consistent across firmware releases.
+- */
+-typedef enum _MpiIocLogInfoFc
+-{
+-    MPI_IOCLOGINFO_FC_INIT_BASE                     = 0x20000000,
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_OUT_OF_ORDER_FRAME = 0x20000001, /* received an out of order frame - unsupported */
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_BAD_START_OF_FRAME = 0x20000002, /* Bad Rx Frame, bad start of frame primative */
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_BAD_END_OF_FRAME   = 0x20000003, /* Bad Rx Frame, bad end of frame primative */
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_OVER_RUN           = 0x20000004, /* Bad Rx Frame, overrun */
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_RX_OTHER           = 0x20000005, /* Other errors caught by IOC which require retries */
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_SUBPROC_DEAD       = 0x20000006, /* Main processor could not initialize sub-processor */
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_RX_OVERRUN         = 0x20000007, /* Scatter Gather overrun  */
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_RX_BAD_STATUS      = 0x20000008, /* Receiver detected context mismatch via invalid header */
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_RX_UNEXPECTED_FRAME= 0x20000009, /* CtxMgr detected unsupported frame type  */
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_LINK_FAILURE       = 0x2000000A, /* Link failure occurred  */
+-    MPI_IOCLOGINFO_FC_INIT_ERROR_TX_TIMEOUT         = 0x2000000B, /* Transmitter timeout error */
+-
+-    MPI_IOCLOGINFO_FC_TARGET_BASE                   = 0x21000000,
+-    MPI_IOCLOGINFO_FC_TARGET_NO_PDISC               = 0x21000001, /* not sent because we are waiting for a PDISC from the initiator */
+-    MPI_IOCLOGINFO_FC_TARGET_NO_LOGIN               = 0x21000002, /* not sent because we are not logged in to the remote node */
+-    MPI_IOCLOGINFO_FC_TARGET_DOAR_KILLED_BY_LIP     = 0x21000003, /* Data Out, Auto Response, not sent due to a LIP */
+-    MPI_IOCLOGINFO_FC_TARGET_DIAR_KILLED_BY_LIP     = 0x21000004, /* Data In, Auto Response, not sent due to a LIP */
+-    MPI_IOCLOGINFO_FC_TARGET_DIAR_MISSING_DATA      = 0x21000005, /* Data In, Auto Response, missing data frames */
+-    MPI_IOCLOGINFO_FC_TARGET_DONR_KILLED_BY_LIP     = 0x21000006, /* Data Out, No Response, not sent due to a LIP */
+-    MPI_IOCLOGINFO_FC_TARGET_WRSP_KILLED_BY_LIP     = 0x21000007, /* Auto-response after a write not sent due to a LIP */
+-    MPI_IOCLOGINFO_FC_TARGET_DINR_KILLED_BY_LIP     = 0x21000008, /* Data In, No Response, not completed due to a LIP */
+-    MPI_IOCLOGINFO_FC_TARGET_DINR_MISSING_DATA      = 0x21000009, /* Data In, No Response, missing data frames */
+-    MPI_IOCLOGINFO_FC_TARGET_MRSP_KILLED_BY_LIP     = 0x2100000a, /* Manual Response not sent due to a LIP */
+-    MPI_IOCLOGINFO_FC_TARGET_NO_CLASS_3             = 0x2100000b, /* not sent because remote node does not support Class 3 */
+-    MPI_IOCLOGINFO_FC_TARGET_LOGIN_NOT_VALID        = 0x2100000c, /* not sent because login to remote node not validated */
+-    MPI_IOCLOGINFO_FC_TARGET_FROM_OUTBOUND          = 0x2100000e, /* cleared from the outbound queue after a logout */
+-    MPI_IOCLOGINFO_FC_TARGET_WAITING_FOR_DATA_IN    = 0x2100000f, /* cleared waiting for data after a logout */
+-
+-    MPI_IOCLOGINFO_FC_LAN_BASE                      = 0x22000000,
+-    MPI_IOCLOGINFO_FC_LAN_TRANS_SGL_MISSING         = 0x22000001, /* Transaction Context Sgl Missing */
+-    MPI_IOCLOGINFO_FC_LAN_TRANS_WRONG_PLACE         = 0x22000002, /* Transaction Context found before an EOB */
+-    MPI_IOCLOGINFO_FC_LAN_TRANS_RES_BITS_SET        = 0x22000003, /* Transaction Context value has reserved bits set */
+-    MPI_IOCLOGINFO_FC_LAN_WRONG_SGL_FLAG            = 0x22000004, /* Invalid SGL Flags */
+-
+-    MPI_IOCLOGINFO_FC_MSG_BASE                      = 0x23000000,
+-
+-    MPI_IOCLOGINFO_FC_LINK_BASE                     = 0x24000000,
+-    MPI_IOCLOGINFO_FC_LINK_LOOP_INIT_TIMEOUT        = 0x24000001, /* Loop initialization timed out */
+-    MPI_IOCLOGINFO_FC_LINK_ALREADY_INITIALIZED      = 0x24000002, /* Another system controller already initialized the loop */
+-    MPI_IOCLOGINFO_FC_LINK_LINK_NOT_ESTABLISHED     = 0x24000003, /* Not synchronized to signal or still negotiating (possible cable problem) */
+-    MPI_IOCLOGINFO_FC_LINK_CRC_ERROR                = 0x24000004, /* CRC check detected error on received frame */
+-
+-    MPI_IOCLOGINFO_FC_CTX_BASE                      = 0x25000000,
+-
+-    MPI_IOCLOGINFO_FC_INVALID_FIELD_BYTE_OFFSET     = 0x26000000, /* The lower 24 bits give the byte offset of the field in the request message that is invalid */
+-    MPI_IOCLOGINFO_FC_INVALID_FIELD_MAX_OFFSET      = 0x26ffffff,
+-
+-    MPI_IOCLOGINFO_FC_STATE_CHANGE                  = 0x27000000  /* The lower 24 bits give additional information concerning state change */
+-
+-} MpiIocLogInfoFc_t;
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
@@ -223,13 +373,11 @@ remove-unused-header-file-drivers-serial-crisv10h.patch
 remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
 remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
 remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drive=
-rs-message-fusion-lsi-mpi_log_fch.patch
+remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drivers-message-fusion-lsi-mpi_log_fch.patch
 remove-unused-header-file-drivers-char-drm-via_mmh.patch
 remove-unused-header-file-drivers-char-digih.patch
 remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
 remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patc=
-h
+remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
 remove-unused-header-file-arch-m68k-atari-atasoundh.patch
 remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
