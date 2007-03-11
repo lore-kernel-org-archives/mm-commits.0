@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-atomicity-of-tif-update-in-flush_thread-for-x86_64.patch added to -mm tree
-Date: Sat, 10 Mar 2007 23:52:39 -0800
-Message-ID: <200703110752.l2B7qdBH007326@shell0.pdx.osdl.net>
+Subject: + fix-vmi-and-compat_vdso.patch added to -mm tree
+Date: Sat, 10 Mar 2007 23:54:50 -0800
+Message-ID: <200703110754.l2B7soFS007336@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39182 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39213 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751678AbXCKHw4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 03:52:56 -0400
+	id S1751707AbXCKHzG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 03:55:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, ak@suse.de, rschultz@google.com
+Cc: zach@vmware.com, ak@suse.de, mingo@elte.hu
 
 
 The patch titled
-     Fix atomicity of TIF update in flush_thread() for x86_64
+     Fix VMI and COMPAT_VDSO
 has been added to the -mm tree.  Its filename is
-     fix-atomicity-of-tif-update-in-flush_thread-for-x86_64.patch
+     fix-vmi-and-compat_vdso.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,99 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix atomicity of TIF update in flush_thread() for x86_64
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: Fix VMI and COMPAT_VDSO
+From: Zachary Amsden <zach@vmware.com>
 
-Fix atomicity of TIF update in flush_thread() for x86_64
+VMI is broken under COMPAT_VDSO, as Xen and other non hardware assisted
+hypervisors will be.  I have been working on a fix for this which works for
+older glibcs that panic when the new relocatable VDSO is used.  However, I
+believe at this time that the fix is going to be too radical to consider at
+this stage in the release of 2.6.21.  We don't expect this config option to
+be turned on by vendors for new distributions, so at this point we are
+willing to drop support for it when VMI is compiled in, and work on a patch
+for 2.6.22 which more fully addresses the problem.
 
-Race :
-
-parent process executing :
-sys_ptrace()
- (lock_kernel())
- (ptrace_get_task_struct(pid))
- arch_ptrace()
-   ptrace_detach()
-     ptrace_disable(child);
-       clear_singlestep(child);
-         clear_tsk_thread_flag(child, TIF_SINGLESTEP);
-         (which clears the TIF_SINGLESTEP flag atomically from a different
-	  process)
- (put_task_struct(child))
- (unlock_kernel())
-
-And at the same time, in the child process :
-sys_execve()
- do_execve()
-   search_binary_handler()
-     load_elf_binary()
-       flush_old_exec()
-         flush_thread()
-           doing a non-atomic thread flag update
-
-Signed-off-by: Rebecca Schultz <rschultz@google.com>
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Andi Kleen <ak@suse.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/process.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ arch/i386/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/process.c~fix-atomicity-of-tif-update-in-flush_thread-for-x86_64 arch/x86_64/kernel/process.c
---- a/arch/x86_64/kernel/process.c~fix-atomicity-of-tif-update-in-flush_thread-for-x86_64
-+++ a/arch/x86_64/kernel/process.c
-@@ -382,14 +382,17 @@ void exit_thread(void)
- void flush_thread(void)
- {
- 	struct task_struct *tsk = current;
--	struct thread_info *t = current_thread_info();
+diff -puN arch/i386/Kconfig~fix-vmi-and-compat_vdso arch/i386/Kconfig
+--- a/arch/i386/Kconfig~fix-vmi-and-compat_vdso
++++ a/arch/i386/Kconfig
+@@ -221,7 +221,7 @@ config PARAVIRT
  
--	if (t->flags & _TIF_ABI_PENDING) {
--		t->flags ^= (_TIF_ABI_PENDING | _TIF_IA32);
--		if (t->flags & _TIF_IA32)
-+	if (test_tsk_thread_flag(tsk, TIF_ABI_PENDING)) {
-+		clear_tsk_thread_flag(tsk, TIF_ABI_PENDING);
-+		if (test_tsk_thread_flag(tsk, TIF_IA32)) {
-+			clear_tsk_thread_flag(tsk, TIF_IA32);
-+		} else {
-+			set_tsk_thread_flag(tsk, TIF_IA32);
- 			current_thread_info()->status |= TS_COMPAT;
-+		}
- 	}
--	t->flags &= ~_TIF_DEBUG;
-+	clear_tsk_thread_flag(tsk, TIF_DEBUG);
- 
- 	tsk->thread.debugreg0 = 0;
- 	tsk->thread.debugreg1 = 0;
+ config VMI
+ 	bool "VMI Paravirt-ops support"
+-	depends on PARAVIRT
++	depends on PARAVIRT && !COMPAT_VDSO
+ 	help
+ 	  VMI provides a paravirtualized interface to the VMware ESX server
+ 	  (it could be used by other hypervisors in theory too, but is not
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from zach@vmware.com are
 
-fix-atomicity-of-tif-update-in-flush_thread-for-powerpc.patch
-fix-atomicity-of-tif-update-in-flush_thread-for-x86_64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
-atomich-complete-atomic_long-operations-in-asm-generic.patch
-atomich-i386-type-safety-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
-atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
-local_t-architecture-independant-extension.patch
-local_t-alpha-extension.patch
-local_t-i386-extension.patch
-local_t-ia64-extension.patch
-local_t-mips-extension.patch
-local_t-parisc-cleanup.patch
-local_t-powerpc-extension.patch
-local_t-sparc64-cleanup.patch
-local_t-x86_64-extension.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-powerpc-optimization.patch
-linux-kernel-markers-i386-optimization.patch
-linux-kernel-markers-non-optimized-architectures.patch
-linux-kernel-markers-documentation.patch
+paravirt-build-fixes.patch
+make-struct-vmi_ops-static.patch
+make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
+fix-vmi-and-compat_vdso.patch
