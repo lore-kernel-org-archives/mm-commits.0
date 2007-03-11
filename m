@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-atomicity-of-tif-update-in-flush_thread-for-powerpc.patch added to -mm tree
-Date: Sat, 10 Mar 2007 23:51:43 -0800
-Message-ID: <200703110751.l2B7phET007321@shell0.pdx.osdl.net>
+Subject: + fix-atomicity-of-tif-update-in-flush_thread-for-x86_64.patch added to -mm tree
+Date: Sat, 10 Mar 2007 23:52:39 -0800
+Message-ID: <200703110752.l2B7qdBH007326@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39162 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39182 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751673AbXCKHv4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 03:51:56 -0400
+	id S1751678AbXCKHw4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 03:52:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, benh@kernel.crashing.org, paulus@samba.org
+Cc: mathieu.desnoyers@polymtl.ca, ak@suse.de, rschultz@google.com
 
 
 The patch titled
-     Fix atomicity of TIF update in flush_thread() for powerpc
+     Fix atomicity of TIF update in flush_thread() for x86_64
 has been added to the -mm tree.  Its filename is
-     fix-atomicity-of-tif-update-in-flush_thread-for-powerpc.patch
+     fix-atomicity-of-tif-update-in-flush_thread-for-x86_64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,12 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix atomicity of TIF update in flush_thread() for powerpc
+Subject: Fix atomicity of TIF update in flush_thread() for x86_64
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Fix atomicity of TIF update in flush_thread() for powerpc
-
-Fixes it correctly with *_ti_thread_flag.
+Fix atomicity of TIF update in flush_thread() for x86_64
 
 Race :
 
@@ -44,7 +42,7 @@ sys_ptrace()
        clear_singlestep(child);
          clear_tsk_thread_flag(child, TIF_SINGLESTEP);
          (which clears the TIF_SINGLESTEP flag atomically from a different
-          process)
+	  process)
  (put_task_struct(child))
  (unlock_kernel())
 
@@ -57,39 +55,47 @@ sys_execve()
          flush_thread()
            doing a non-atomic thread flag update
 
+Signed-off-by: Rebecca Schultz <rschultz@google.com>
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/process.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/process.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/kernel/process.c~fix-atomicity-of-tif-update-in-flush_thread-for-powerpc arch/powerpc/kernel/process.c
---- a/arch/powerpc/kernel/process.c~fix-atomicity-of-tif-update-in-flush_thread-for-powerpc
-+++ a/arch/powerpc/kernel/process.c
-@@ -465,8 +465,13 @@ void flush_thread(void)
- #ifdef CONFIG_PPC64
- 	struct thread_info *t = current_thread_info();
+diff -puN arch/x86_64/kernel/process.c~fix-atomicity-of-tif-update-in-flush_thread-for-x86_64 arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~fix-atomicity-of-tif-update-in-flush_thread-for-x86_64
++++ a/arch/x86_64/kernel/process.c
+@@ -382,14 +382,17 @@ void exit_thread(void)
+ void flush_thread(void)
+ {
+ 	struct task_struct *tsk = current;
+-	struct thread_info *t = current_thread_info();
  
--	if (t->flags & _TIF_ABI_PENDING)
--		t->flags ^= (_TIF_ABI_PENDING | _TIF_32BIT);
-+	if (test_ti_thread_flag(t, TIF_ABI_PENDING)) {
-+		clear_ti_thread_flag(t, TIF_ABI_PENDING);
-+		if (test_ti_thread_flag(t, TIF_32BIT))
-+			clear_ti_thread_flag(t, TIF_32BIT);
-+		else
-+			set_ti_thread_flag(t, TIF_32BIT);
-+	}
- #endif
+-	if (t->flags & _TIF_ABI_PENDING) {
+-		t->flags ^= (_TIF_ABI_PENDING | _TIF_IA32);
+-		if (t->flags & _TIF_IA32)
++	if (test_tsk_thread_flag(tsk, TIF_ABI_PENDING)) {
++		clear_tsk_thread_flag(tsk, TIF_ABI_PENDING);
++		if (test_tsk_thread_flag(tsk, TIF_IA32)) {
++			clear_tsk_thread_flag(tsk, TIF_IA32);
++		} else {
++			set_tsk_thread_flag(tsk, TIF_IA32);
+ 			current_thread_info()->status |= TS_COMPAT;
++		}
+ 	}
+-	t->flags &= ~_TIF_DEBUG;
++	clear_tsk_thread_flag(tsk, TIF_DEBUG);
  
- 	discard_lazy_cpu_state();
+ 	tsk->thread.debugreg0 = 0;
+ 	tsk->thread.debugreg1 = 0;
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 fix-atomicity-of-tif-update-in-flush_thread-for-powerpc.patch
+fix-atomicity-of-tif-update-in-flush_thread-for-x86_64.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
 atomich-complete-atomic_long-operations-in-asm-generic.patch
 atomich-i386-type-safety-fix.patch
