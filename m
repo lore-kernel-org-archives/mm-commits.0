@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:10:32 -0800
-Message-ID: <200703110910.l2B9AWBb008418@shell0.pdx.osdl.net>
+Subject: + lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:11:28 -0800
+Message-ID: <200703110911.l2B9BTNx008448@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40753 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40759 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751878AbXCKJKp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:10:45 -0400
+	id S1751887AbXCKJLh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:11:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@suse.de, jmorris@namei.org
+Cc: rusty@rustcorp.com.au, ak@suse.de
 
 
 The patch titled
-     lguest: bridging support in example code
+     lguest: cleanup: allocate separate pages for switcher code
 has been added to the -mm tree.  Its filename is
-     lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch
+     lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,178 +25,215 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: bridging support in example code
+Subject: lguest: cleanup: allocate separate pages for switcher code
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Expand the --tunnet option to take a bridge name as an argument, so that the
-tap interface is added to the specified bridge.  This makes it convenient to
-use bridging for connecting the guest to external networks.
+We don't need physically-contiguous pages for the hypervisor, since we use
+map_vm_area anyway.
 
-Signed-off-by: James Morris <jmorris@namei.org>
+Two other related cleanups: pass the number of pages to init_pagetables() so
+we can remove the constant from the header, and call
+populate_hypervisor_pte_page() on each page as we allocate it, rather than as
+a separate loop.
+
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/lguest/lguest.c   |   57 +++++++++++++++++++++++-------
- Documentation/lguest/lguest.txt |   18 ++++++++-
- 2 files changed, 62 insertions(+), 13 deletions(-)
+ arch/i386/lguest/core.c        |   43 +++++++++++++++++++------------
+ arch/i386/lguest/lg.h          |    6 ----
+ arch/i386/lguest/page_tables.c |   39 ++++++++++------------------
+ 3 files changed, 42 insertions(+), 46 deletions(-)
 
-diff -puN Documentation/lguest/lguest.c~lguest-documentatation-and-example-launcher-bridging-support-in-example-code Documentation/lguest/lguest.c
---- a/Documentation/lguest/lguest.c~lguest-documentatation-and-example-launcher-bridging-support-in-example-code
-+++ a/Documentation/lguest/lguest.c
-@@ -23,7 +23,8 @@
- #include <sys/time.h>
- #include <time.h>
- #include <netinet/in.h>
--#include <linux/if.h>
-+#include <net/if.h>
-+#include <linux/sockios.h>
- #include <linux/if_tun.h>
- #include <sys/uio.h>
- #include <termios.h>
-@@ -36,6 +37,7 @@ typedef uint8_t u8;
+diff -puN arch/i386/lguest/core.c~lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code arch/i386/lguest/core.c
+--- a/arch/i386/lguest/core.c~lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code
++++ a/arch/i386/lguest/core.c
+@@ -24,17 +24,21 @@ static char __initdata hypervisor_blob[]
+ #include "hypervisor-blob.c"
+ };
  
- #define PAGE_PRESENT 0x7 	/* Present, RW, Execute */
- #define NET_PEERNUM 1
-+#define BRIDGE_PFX "bridge:"
+-#define MAX_LGUEST_GUESTS						  \
+-	(((PAGE_SIZE << HYPERVISOR_PAGE_ORDER) - sizeof(hypervisor_blob)) \
++/* 64k ought to be enough for anybody! */
++#define HYPERVISOR_PAGES (65536 / PAGE_SIZE)
++
++#define MAX_LGUEST_GUESTS						\
++	(((HYPERVISOR_PAGES * PAGE_SIZE) - sizeof(hypervisor_blob))	\
+ 	 / sizeof(struct lguest_state))
  
- static bool verbose;
- #define verbose(args...) \
-@@ -582,20 +584,16 @@ static u32 handle_block_output(int fd, c
- 	((u8)(ip >> 8)),			\
- 	((u8)(ip))
+ static struct vm_struct *hypervisor_vma;
++/* Pages for hypervisor itself */
++static struct page *hype_page[HYPERVISOR_PAGES];
+ static int cpu_had_pge;
+ static struct {
+ 	unsigned long offset;
+ 	unsigned short segment;
+ } lguest_entry __attribute_used__;
+-struct page *hype_pages; /* Contiguous pages. */
+ struct lguest lguests[MAX_LGUEST_GUESTS];
+ DEFINE_MUTEX(lguest_lock);
  
--static void configure_device(const char *devname, u32 ipaddr,
-+static void configure_device(int fd, const char *devname, u32 ipaddr,
- 			     unsigned char hwaddr[6])
+@@ -58,15 +62,19 @@ struct lguest_state *__lguest_states(voi
+ 
+ static __init int map_hypervisor(void)
  {
- 	struct ifreq ifr;
--	int fd;
- 	struct sockaddr_in *sin = (struct sockaddr_in *)&ifr.ifr_addr;
+-	unsigned int i;
+-	int err;
+-	struct page *pages[HYPERVISOR_PAGES], **pagep = pages;
++	int i, err;
++	struct page **pagep = hype_page;
  
- 	memset(&ifr, 0, sizeof(ifr));
- 	strcpy(ifr.ifr_name, devname);
- 	sin->sin_family = AF_INET;
- 	sin->sin_addr.s_addr = htonl(ipaddr);
--	fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
--	if (fd < 0)
--		err(1, "opening IP socket");
- 	if (ioctl(fd, SIOCSIFADDR, &ifr) != 0)
- 		err(1, "Setting %s interface address", devname);
- 	ifr.ifr_flags = IFF_UP;
-@@ -724,13 +722,34 @@ static u32 str2ip(const char *ipaddr)
- 	return (byte[0] << 24) | (byte[1] << 16) | (byte[2] << 8) | byte[3];
- }
+-	hype_pages = alloc_pages(GFP_KERNEL|__GFP_ZERO, HYPERVISOR_PAGE_ORDER);
+-	if (!hype_pages)
+-		return -ENOMEM;
++	for (i = 0; i < ARRAY_SIZE(hype_page); i++) {
++		unsigned long addr = get_zeroed_page(GFP_KERNEL);
++		if (!addr) {
++			err = -ENOMEM;
++			goto free_some_pages;
++		}
++		hype_page[i] = virt_to_page(addr);
++	}
  
--static void setup_tun_net(const char *ipaddr,
-+/* adapted from libbridge */
-+static void add_to_bridge(int fd, const char *if_name, const char *br_name)
-+{
-+	int ifidx;
-+	struct ifreq ifr;
-+
-+	if (!*br_name)
-+		errx(1, "must specify bridge name");
-+
-+	ifidx = if_nametoindex(if_name);
-+	if (!ifidx)
-+		errx(1, "interface %s does not exist!", if_name);
-+
-+	strncpy(ifr.ifr_name, br_name, IFNAMSIZ);
-+	ifr.ifr_ifindex = ifidx;
-+	if (ioctl(fd, SIOCBRADDIF, &ifr) < 0)
-+		err(1, "can't add %s to bridge %s", if_name, br_name);
-+}
-+
-+static void setup_tun_net(const char *arg,
- 			  struct lguest_device_desc *descs,
- 			  struct devices *devices)
- {
- 	struct device *dev;
- 	struct ifreq ifr;
--	int netfd;
-+	int netfd, ipfd;
-+	u32 ipaddr;
-+	const char *br_name = NULL;
+-	hypervisor_vma = __get_vm_area(PAGE_SIZE << HYPERVISOR_PAGE_ORDER,
++	hypervisor_vma = __get_vm_area(ARRAY_SIZE(hype_page) * PAGE_SIZE,
+ 				       VM_ALLOC, HYPE_ADDR, VMALLOC_END);
+ 	if (!hypervisor_vma) {
+ 		err = -ENOMEM;
+@@ -74,9 +82,6 @@ static __init int map_hypervisor(void)
+ 		goto free_pages;
+ 	}
  
- 	netfd = open("/dev/net/tun", O_RDWR);
- 	if (netfd < 0)
-@@ -748,15 +767,29 @@ static void setup_tun_net(const char *ip
- 	dev->priv = malloc(sizeof(bool));
- 	*(bool *)dev->priv = false;
- 
-+	ipfd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
-+	if (ipfd < 0)
-+		err(1, "opening IP socket");
-+
-+	if (!strncmp(BRIDGE_PFX, arg, strlen(BRIDGE_PFX))) {
-+		ipaddr = INADDR_ANY;
-+		br_name = arg + strlen(BRIDGE_PFX);
-+		add_to_bridge(ipfd, ifr.ifr_name, br_name);
-+	} else
-+		ipaddr = str2ip(arg);
-+
- 	/* We are peer 0, rest is all NO_GUEST */
- 	memset(dev->mem, 0xFF, getpagesize());
--	configure_device(ifr.ifr_name, str2ip(ipaddr), dev->mem);
-+	configure_device(ipfd, ifr.ifr_name, ipaddr, dev->mem);
-+	close(ipfd);
- 
- 	/* You will be peer 1: we should create enough jitter to randomize */
- 	dev->desc->features = NET_PEERNUM|LGUEST_DEVICE_F_RANDOMNESS;
- 	verbose("device %p@%p: tun net %u.%u.%u.%u\n", dev->desc,
- 		(void *)(dev->desc->pfn * getpagesize()),
--		HIPQUAD(str2ip(ipaddr)));
-+		HIPQUAD(ipaddr));
-+	if (br_name)
-+		verbose("attched to bridge: %s\n", br_name);
- }
- 
- static void setup_block_file(const char *filename,
-@@ -887,8 +920,8 @@ int main(int argc, char *argv[])
- 
- 	if (argc < 4)
- 		errx(1, "Usage: lguest [--verbose] <mem> vmlinux "
--			"[--sharenet=<filename>|--tunnet=<ipaddr>|--block=<filename>"
--			"|--initrd=<filename>]... [args...]");
-+			"[--sharenet=<filename>|--tunnet=(<ipaddr>|bridge:<bridgename>)"
-+			"|--block=<filename>|--initrd=<filename>]... [args...]");
- 
- 	zero_fd = open("/dev/zero", O_RDONLY, 0);
- 	if (zero_fd < 0)
-diff -puN Documentation/lguest/lguest.txt~lguest-documentatation-and-example-launcher-bridging-support-in-example-code Documentation/lguest/lguest.txt
---- a/Documentation/lguest/lguest.txt~lguest-documentatation-and-example-launcher-bridging-support-in-example-code
-+++ a/Documentation/lguest/lguest.txt
-@@ -77,11 +77,27 @@ Running Lguest:
-   /proc/sys/net/ipv4/ip_forward".  In this example, I would configure
-   eth0 inside the guest at 192.168.19.2.
- 
-+  Another method is to bridge the tap device to an external interface
-+  using --tunnet=bridge:<bridgename>, and perhaps run dhcp on the guest
-+  to obtain an IP address.  The bridge needs to be configured first:
-+  this option simply adds the tap interface to it.
-+
-+  A simple example on my system:
-+
-+    ifconfig eth0 0.0.0.0
-+    brctl addbr lg0
-+    ifconfig lg0 up
-+    dhclient lg0
-+
-+  Then use --tunnet=bridge:lg0 when launching the guest.
-+
-+  See http://linux-net.osdl.org/index.php/Bridge for general information
-+  on how to get bridging working.
-+
- - You can also create an inter-guest network using
-   "--sharenet=<filename>": any two guests using the same file are on
-   the same network.  This file is created if it does not exist.
- 
+-	for (i = 0; i < HYPERVISOR_PAGES; i++)
+-		pages[i] = hype_pages + i;
 -
- Lguest I/O model:
+ 	err = map_vm_area(hypervisor_vma, PAGE_KERNEL, &pagep);
+ 	if (err) {
+ 		printk("lguest: map_vm_area failed: %i\n", err);
+@@ -100,14 +105,20 @@ static __init int map_hypervisor(void)
+ free_vma:
+ 	vunmap(hypervisor_vma->addr);
+ free_pages:
+-	__free_pages(hype_pages, HYPERVISOR_PAGE_ORDER);
++	i = ARRAY_SIZE(hype_page);
++free_some_pages:
++	for (--i; i >= 0; i--)
++		__free_pages(hype_page[i], 0);
+ 	return err;
+ }
  
- Lguest uses a simplified DMA model plus shared memory for I/O.  Guests
+ static __exit void unmap_hypervisor(void)
+ {
++	unsigned int i;
++
+ 	vunmap(hypervisor_vma->addr);
+-	__free_pages(hype_pages, HYPERVISOR_PAGE_ORDER);
++	for (i = 0; i < ARRAY_SIZE(hype_page); i++)
++		__free_pages(hype_page[i], 0);
+ }
+ 
+ /* IN/OUT insns: enough to get us past boot-time probing. */
+@@ -390,7 +401,7 @@ static int __init init(void)
+ 	if (err)
+ 		return err;
+ 
+-	err = init_pagetables(hype_pages);
++	err = init_pagetables(hype_page, HYPERVISOR_PAGES);
+ 	if (err) {
+ 		unmap_hypervisor();
+ 		return err;
+diff -puN arch/i386/lguest/lg.h~lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code arch/i386/lguest/lg.h
+--- a/arch/i386/lguest/lg.h~lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code
++++ a/arch/i386/lguest/lg.h
+@@ -2,9 +2,6 @@
+ #define _LGUEST_H
+ 
+ #include <asm/desc.h>
+-/* 64k ought to be enough for anybody! */
+-#define HYPERVISOR_PAGE_ORDER (16 - PAGE_SHIFT)
+-#define HYPERVISOR_PAGES (1 << HYPERVISOR_PAGE_ORDER)
+ 
+ #define GDT_ENTRY_LGUEST_CS	10
+ #define GDT_ENTRY_LGUEST_DS	11
+@@ -43,7 +40,7 @@ struct lguest_regs
+ };
+ 
+ __exit void free_pagetables(void);
+-__init int init_pagetables(struct page *hype_pages);
++__init int init_pagetables(struct page **hype_page, int pages);
+ 
+ /* Full 4G segment descriptors, suitable for CS and DS. */
+ #define FULL_EXEC_SEGMENT ((struct desc_struct){0x0000ffff, 0x00cf9b00})
+@@ -122,7 +119,6 @@ struct lguest
+ 	struct host_trap interrupt[LGUEST_IRQS];
+ };
+ 
+-extern struct page *hype_pages; /* Contiguous pages. */
+ extern struct lguest lguests[];
+ extern struct mutex lguest_lock;
+ 
+diff -puN arch/i386/lguest/page_tables.c~lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code arch/i386/lguest/page_tables.c
+--- a/arch/i386/lguest/page_tables.c~lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code
++++ a/arch/i386/lguest/page_tables.c
+@@ -328,43 +328,32 @@ static void free_hypervisor_pte_pages(vo
+ 		free_page((long)hypervisor_pte_page(i));
+ }
+ 
+-static __init int alloc_hypervisor_pte_pages(void)
+-{
+-	int i;
+-
+-	for_each_possible_cpu(i) {
+-		hypervisor_pte_page(i) = (u32 *)get_zeroed_page(GFP_KERNEL);
+-		if (!hypervisor_pte_page(i)) {
+-			free_hypervisor_pte_pages();
+-			return -ENOMEM;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static __init void populate_hypervisor_pte_page(int cpu)
++static __init void populate_hypervisor_pte_page(int cpu,
++						struct page *hype_page[],
++						int pages)
+ {
+ 	int i;
+ 	u32 *pte = hypervisor_pte_page(cpu);
+ 
+-	for (i = 0; i < HYPERVISOR_PAGES; i++) {
++	for (i = 0; i < pages; i++) {
+ 		/* First entry set dynamically in map_trap_page */
+-		pte[i+1] = ((page_to_pfn(&hype_pages[i]) << PAGE_SHIFT)
++		pte[i+1] = ((page_to_pfn(hype_page[i]) << PAGE_SHIFT)
+ 			    | _PAGE_KERNEL_EXEC);
+ 	}
+ }
+ 
+-__init int init_pagetables(struct page hype_pages[])
++__init int init_pagetables(struct page **hype_page, int pages)
+ {
+-	int ret;
+ 	unsigned int i;
+ 
+-	ret = alloc_hypervisor_pte_pages();
+-	if (ret)
+-		return ret;
+-
+-	for_each_possible_cpu(i)
+-		populate_hypervisor_pte_page(i);
++	for_each_possible_cpu(i) {
++		hypervisor_pte_page(i) = (u32 *)get_zeroed_page(GFP_KERNEL);
++		if (!hypervisor_pte_page(i)) {
++			free_hypervisor_pte_pages();
++			return -ENOMEM;
++		}
++		populate_hypervisor_pte_page(i, hype_page, pages);
++	}
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -208,6 +245,7 @@ lguest-preparation-export_symbol_gpl-5-functions.patch
 lguest-preparation-expose-futex-infrastructure.patch
 lguest-kconfig-and-headers.patch
 lguest-the-host-code-lgko.patch
+lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patch
 lguest-guest-code.patch
 lguest-makefile.patch
 lguest-trivial-guest-network-driver.patch
@@ -216,7 +254,6 @@ lguest-trivial-guest-block-driver.patch
 lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch
 lguest-documentatation-and-example-launcher.patch
 lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch
-lguest-cleanup-allocate-separate-pages-for-switcher-code.patch
 lguest-cleanup-clean-up-regs-save-restore.patch
 lguest-documentation-fixes.patch
 lguest-pin-stack-page-optimization.patch
