@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + 3c59x-fix-several-modpost-warnings.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:46:12 -0800
-Message-ID: <200703110946.l2B9kCtY009142@shell0.pdx.osdl.net>
+Subject: + ibmtr-drain-rich-supply-of-modpost-warnings.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:48:22 -0800
+Message-ID: <200703110948.l2B9mMIO009157@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41826 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41924 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752068AbXCKJta (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:49:30 -0400
+	id S1752077AbXCKJvl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:51:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ralf@linux-mips.org
 
 
 The patch titled
-     3c59x: fix several modpost warnings
+     ibmtr: drain rich supply of modpost warnings
 has been added to the -mm tree.  Its filename is
-     3c59x-fix-several-modpost-warnings.patch
+     ibmtr-drain-rich-supply-of-modpost-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,83 +25,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 3c59x: fix several modpost warnings
+Subject: ibmtr: drain rich supply of modpost warnings
 From: Ralf Baechle <ralf@linux-mips.org>
 
-WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x4580) and 'vortex_eisa_remove'
-WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x4584) and 'vortex_eisa_remove'
-WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x4588) and 'vortex_eisa_remove'
-WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x458c) and 'vortex_eisa_remove'
+Building ibmtr as a module produces a spectacular pile of modpost warnings:
 
-Fixed by:
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x450) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x454) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x458) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x45c) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4e8) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4ec) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4f0) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4f4) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x500) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x504) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x508) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x50c) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x520) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x524) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x528) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x534) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x540) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x544) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x548) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x54c) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x558) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x55c) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x560) and 'ibmtr_reset_timer'
+WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x564) and 'ibmtr_reset_timer'
 
- o move definition of vortex_eisa_driver below the functions it references.
- o remove now unnecessary prototypes for vortex_eisa_probe and
-   vortex_eisa_remove.
- o Make vortex_eisa_probe an __init function.
- o Make vortex_eisa_remove a __devexit function.
- o Wrap vortex_eisa_driver reference to vortex_eisa_remove with
-   __devexit_p().
+Fix by making ibmtr_probe an __init function.
+
+While at it, move move ibmtr_probe_card below ibmtr_probe so the protoype
+for ibmtr_probe can be deleted.
 
 Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/3c59x.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ drivers/net/tokenring/ibmtr.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN drivers/net/3c59x.c~3c59x-fix-several-modpost-warnings drivers/net/3c59x.c
---- a/drivers/net/3c59x.c~3c59x-fix-several-modpost-warnings
-+++ a/drivers/net/3c59x.c
-@@ -857,19 +857,7 @@ static struct eisa_device_id vortex_eisa
- };
- MODULE_DEVICE_TABLE(eisa, vortex_eisa_ids);
+diff -puN drivers/net/tokenring/ibmtr.c~ibmtr-drain-rich-supply-of-modpost-warnings drivers/net/tokenring/ibmtr.c
+--- a/drivers/net/tokenring/ibmtr.c~ibmtr-drain-rich-supply-of-modpost-warnings
++++ a/drivers/net/tokenring/ibmtr.c
+@@ -186,7 +186,6 @@ static char __devinit *adapter_def(char 
+ #define TRC_INITV 0x02		/*  verbose init trace points     */
+ static unsigned char ibmtr_debug_trace = 0;
  
--static int vortex_eisa_probe(struct device *device);
--static int vortex_eisa_remove(struct device *device);
--
--static struct eisa_driver vortex_eisa_driver = {
--	.id_table = vortex_eisa_ids,
--	.driver   = {
--		.name    = "3c59x",
--		.probe   = vortex_eisa_probe,
--		.remove  = vortex_eisa_remove
+-static int 	ibmtr_probe(struct net_device *dev);
+ static int	ibmtr_probe1(struct net_device *dev, int ioaddr);
+ static unsigned char get_sram_size(struct tok_info *adapt_info);
+ static int 	trdev_init(struct net_device *dev);
+@@ -335,17 +334,6 @@ static void ibmtr_cleanup_card(struct ne
+ #endif		
+ }
+ 
+-int ibmtr_probe_card(struct net_device *dev)
+-{
+-	int err = ibmtr_probe(dev);
+-	if (!err) {
+-		err = register_netdev(dev);
+-		if (err)
+-			ibmtr_cleanup_card(dev);
 -	}
--};
+-	return err;
+-}
 -
--static int vortex_eisa_probe(struct device *device)
-+static int __init vortex_eisa_probe(struct device *device)
+ /****************************************************************************
+  *	ibmtr_probe():  Routine specified in the network device structure
+  *	to probe for an IBM Token Ring Adapter.  Routine outline:
+@@ -358,7 +346,7 @@ int ibmtr_probe_card(struct net_device *
+  *	which references it.
+  ****************************************************************************/
+ 
+-static int ibmtr_probe(struct net_device *dev)
++static int __init ibmtr_probe(struct net_device *dev)
  {
- 	void __iomem *ioaddr;
- 	struct eisa_device *edev;
-@@ -892,7 +880,7 @@ static int vortex_eisa_probe(struct devi
- 	return 0;
+ 	int i;
+ 	int base_addr = dev->base_addr;
+@@ -378,6 +366,17 @@ static int ibmtr_probe(struct net_device
+ 	return -ENODEV;
  }
  
--static int vortex_eisa_remove(struct device *device)
-+static int __devexit vortex_eisa_remove(struct device *device)
- {
- 	struct eisa_device *edev;
- 	struct net_device *dev;
-@@ -917,7 +905,17 @@ static int vortex_eisa_remove(struct dev
- 	free_netdev(dev);
- 	return 0;
- }
--#endif
-+
-+static struct eisa_driver vortex_eisa_driver = {
-+	.id_table = vortex_eisa_ids,
-+	.driver   = {
-+		.name    = "3c59x",
-+		.probe   = vortex_eisa_probe,
-+		.remove  = __devexit_p(vortex_eisa_remove)
++int __init ibmtr_probe_card(struct net_device *dev)
++{
++	int err = ibmtr_probe(dev);
++	if (!err) {
++		err = register_netdev(dev);
++		if (err)
++			ibmtr_cleanup_card(dev);
 +	}
-+};
++	return err;
++}
 +
-+#endif /* CONFIG_EISA */
+ /*****************************************************************************/
  
- /* returns count found (>= 0), or negative on error */
- static int __init vortex_eisa_init(void)
+ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 _
 
 Patches currently in -mm which might be from ralf@linux-mips.org are
@@ -109,6 +130,7 @@ Patches currently in -mm which might be from ralf@linux-mips.org are
 git-netdev-all.patch
 netxen-fix-warnings.patch
 3c59x-fix-several-modpost-warnings.patch
+ibmtr-drain-rich-supply-of-modpost-warnings.patch
 div64_64-common-code.patch
 serial-driver-pmc-msp71xx.patch
 rm9000-serial-driver.patch
