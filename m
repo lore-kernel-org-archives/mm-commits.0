@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ibmtr-drain-rich-supply-of-modpost-warnings.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:48:22 -0800
-Message-ID: <200703110948.l2B9mMIO009157@shell0.pdx.osdl.net>
+Subject: + make-elv_register-output-atomic.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:47:44 -0800
+Message-ID: <200703110947.l2B9liin009153@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41924 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41925 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752077AbXCKJvl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1752079AbXCKJvl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Sun, 11 Mar 2007 05:51:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org
+Cc: T-Bone@parisc-linux.org, varenet@parisc-linux.org
 
 
 The patch titled
-     ibmtr: drain rich supply of modpost warnings
+     make elv_register() output atomic
 has been added to the -mm tree.  Its filename is
-     ibmtr-drain-rich-supply-of-modpost-warnings.patch
+     make-elv_register-output-atomic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,122 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ibmtr: drain rich supply of modpost warnings
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: make elv_register() output atomic
+From: Thibaut VARENE <T-Bone@parisc-linux.org>
 
-Building ibmtr as a module produces a spectacular pile of modpost warnings:
+Booting 2.6.21-rc3-g45592145 I noticed the following on one of my
+machines in the bootlog:
 
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x450) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x454) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x458) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x45c) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4e8) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4ec) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4f0) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4f4) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x500) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x504) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x508) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x50c) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x520) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x524) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x528) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x534) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x540) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x544) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x548) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x54c) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x558) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x55c) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x560) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x564) and 'ibmtr_reset_timer'
+io scheduler noop registered<6>Time: jiffies clocksource has been installed.
 
-Fix by making ibmtr_probe an __init function.
+io scheduler deadline registered (default)
 
-While at it, move move ibmtr_probe_card below ibmtr_probe so the protoype
-for ibmtr_probe can be deleted.
+Looking at block/elevator.c, it appears that elv_register() uses two
+consecutive printks in a non-atomic way, leading to the above glitch.  The
+attached trivial patch fixes this issue, by using a single printk.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Thibaut VARENE <varenet@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tokenring/ibmtr.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ block/elevator.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/tokenring/ibmtr.c~ibmtr-drain-rich-supply-of-modpost-warnings drivers/net/tokenring/ibmtr.c
---- a/drivers/net/tokenring/ibmtr.c~ibmtr-drain-rich-supply-of-modpost-warnings
-+++ a/drivers/net/tokenring/ibmtr.c
-@@ -186,7 +186,6 @@ static char __devinit *adapter_def(char 
- #define TRC_INITV 0x02		/*  verbose init trace points     */
- static unsigned char ibmtr_debug_trace = 0;
+diff -puN block/elevator.c~make-elv_register-output-atomic block/elevator.c
+--- a/block/elevator.c~make-elv_register-output-atomic
++++ a/block/elevator.c
+@@ -964,17 +964,18 @@ void elv_unregister_queue(struct request
  
--static int 	ibmtr_probe(struct net_device *dev);
- static int	ibmtr_probe1(struct net_device *dev, int ioaddr);
- static unsigned char get_sram_size(struct tok_info *adapt_info);
- static int 	trdev_init(struct net_device *dev);
-@@ -335,17 +334,6 @@ static void ibmtr_cleanup_card(struct ne
- #endif		
- }
- 
--int ibmtr_probe_card(struct net_device *dev)
--{
--	int err = ibmtr_probe(dev);
--	if (!err) {
--		err = register_netdev(dev);
--		if (err)
--			ibmtr_cleanup_card(dev);
--	}
--	return err;
--}
--
- /****************************************************************************
-  *	ibmtr_probe():  Routine specified in the network device structure
-  *	to probe for an IBM Token Ring Adapter.  Routine outline:
-@@ -358,7 +346,7 @@ int ibmtr_probe_card(struct net_device *
-  *	which references it.
-  ****************************************************************************/
- 
--static int ibmtr_probe(struct net_device *dev)
-+static int __init ibmtr_probe(struct net_device *dev)
+ int elv_register(struct elevator_type *e)
  {
- 	int i;
- 	int base_addr = dev->base_addr;
-@@ -378,6 +366,17 @@ static int ibmtr_probe(struct net_device
- 	return -ENODEV;
- }
++	char *def = "";
+ 	spin_lock_irq(&elv_list_lock);
+ 	BUG_ON(elevator_find(e->elevator_name));
+ 	list_add_tail(&e->list, &elv_list);
+ 	spin_unlock_irq(&elv_list_lock);
  
-+int __init ibmtr_probe_card(struct net_device *dev)
-+{
-+	int err = ibmtr_probe(dev);
-+	if (!err) {
-+		err = register_netdev(dev);
-+		if (err)
-+			ibmtr_cleanup_card(dev);
-+	}
-+	return err;
-+}
+-	printk(KERN_INFO "io scheduler %s registered", e->elevator_name);
+ 	if (!strcmp(e->elevator_name, chosen_elevator) ||
+ 			(!*chosen_elevator &&
+ 			 !strcmp(e->elevator_name, CONFIG_DEFAULT_IOSCHED)))
+-				printk(" (default)");
+-	printk("\n");
++				def = " (default)";
 +
- /*****************************************************************************/
- 
- static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
++	printk(KERN_INFO "io scheduler %s registered%s\n", e->elevator_name, def);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(elv_register);
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from T-Bone@parisc-linux.org are
 
-git-netdev-all.patch
-netxen-fix-warnings.patch
-3c59x-fix-several-modpost-warnings.patch
-ibmtr-drain-rich-supply-of-modpost-warnings.patch
-div64_64-common-code.patch
-serial-driver-pmc-msp71xx.patch
-rm9000-serial-driver.patch
-rm9000-serial-driver-tidy.patch
-x86_64-fix-ia32_binfmtc-build-error.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-hda_intel-build-fix.patch
-ice1712-build-fixes.patch
-simplify-the-stacktrace-code.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-local_t-mips-extension.patch
-tgafb-turbochannel-support.patch
+tulip-natsemi-dp83840a-phy-fix.patch
+make-elv_register-output-atomic.patch
