@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_pcmcia-restore-cable-reporting.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:30:07 -0800
-Message-ID: <200703110930.l2B9U75g008840@shell0.pdx.osdl.net>
+Subject: + pata_pdc202xx_old-re-remove-crap-restore-cable-methods.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:30:11 -0800
+Message-ID: <200703110930.l2B9UBgO008843@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41245 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41248 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752008AbXCKJaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:30:15 -0400
+	id S1752009AbXCKJaU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:30:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_pcmcia: restore cable reporting
+     pata_pdc202xx_old: re-remove crap, restore cable methods
 has been added to the -mm tree.  Its filename is
-     pata_pcmcia-restore-cable-reporting.patch
+     pata_pdc202xx_old-re-remove-crap-restore-cable-methods.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_pcmcia: restore cable reporting
+Subject: pata_pdc202xx_old: re-remove crap, restore cable methods
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pcmcia.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ata/pata_pdc202xx_old.c |   43 +++++-------------------------
+ 1 file changed, 8 insertions(+), 35 deletions(-)
 
-diff -puN drivers/ata/pata_pcmcia.c~pata_pcmcia-restore-cable-reporting drivers/ata/pata_pcmcia.c
---- a/drivers/ata/pata_pcmcia.c~pata_pcmcia-restore-cable-reporting
-+++ a/drivers/ata/pata_pcmcia.c
-@@ -42,7 +42,7 @@
+diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-re-remove-crap-restore-cable-methods drivers/ata/pata_pdc202xx_old.c
+--- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-re-remove-crap-restore-cable-methods
++++ a/drivers/ata/pata_pdc202xx_old.c
+@@ -22,46 +22,17 @@
+ #include <linux/libata.h>
  
+ #define DRV_NAME "pata_pdc202xx_old"
+-#define DRV_VERSION "0.4.0"
++#define DRV_VERSION "0.4.2"
  
- #define DRV_NAME "pata_pcmcia"
--#define DRV_VERSION "0.3.0"
-+#define DRV_VERSION "0.3.1"
+-/**
+- *	pdc2024x_pre_reset		-	probe begin
+- *	@ap: ATA port
+- *	@deadline: deadline jiffies for the operation
+- *
+- *	Set up cable type and use generic probe init
+- */
+-
+-static int pdc2024x_pre_reset(struct ata_port *ap, unsigned long deadline)
+-{
+-	ap->cbl = ATA_CBL_PATA40;
+-	return ata_std_prereset(ap, deadline);
+-}
+-
+-
+-static void pdc2024x_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, pdc2024x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+-
+-static int pdc2026x_pre_reset(struct ata_port *ap, unsigned long deadline)
++static int pdc2026x_cable_detect(struct ata_port *ap)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	u16 cis;
  
- /*
-  *	Private data structure to glue stuff together
-@@ -118,6 +118,7 @@ static struct ata_port_operations pcmcia
+ 	pci_read_config_word(pdev, 0x50, &cis);
+ 	if (cis & (1 << (10 + ap->port_no)))
+-		ap->cbl = ATA_CBL_PATA80;
+-	else
+-		ap->cbl = ATA_CBL_PATA40;
+-
+-	return ata_std_prereset(ap, deadline);
+-}
+-
+-static void pdc2026x_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, pdc2026x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
++		return ATA_CBL_PATA80;
++	return ATA_CBL_PATA40;
+ }
+ 
+ /**
+@@ -292,8 +263,9 @@ static struct ata_port_operations pdc202
+ 
+ 	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
+-	.error_handler	= pdc2024x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
 +	.cable_detect	= ata_cable_40wire,
  
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -326,8 +298,9 @@ static struct ata_port_operations pdc202
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= pdc2026x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= pdc2026x_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= pdc2026x_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
