@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_optidma-rework-for-cable-detect-and-to-remove.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:31:04 -0800
-Message-ID: <200703110931.l2B9V4RV008908@shell0.pdx.osdl.net>
+Subject: + pata_pdc2027x-restore-various-updates-done-on-the-driver.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:31:08 -0800
+Message-ID: <200703110931.l2B9V8bM008911@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41294 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41299 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752042AbXCKJbN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:31:13 -0400
+	id S1752040AbXCKJbS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:31:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_optidma: rework for cable detect and to remove post_set_mode()
+     pata_pdc2027x: restore various updates done on the driver
 has been added to the -mm tree.  Its filename is
-     pata_optidma-rework-for-cable-detect-and-to-remove.patch
+     pata_pdc2027x-restore-various-updates-done-on-the-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,184 +25,136 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_optidma: rework for cable detect and to remove post_set_mode()
+Subject: pata_pdc2027x: restore various updates done on the driver
 From: Alan Cox <alan@redhat.com>
 
-A lot of noise because I had to rename the optidma_set_mode() method to
-avoid confusion with the new ->set_mode() method that was added. Cable
-detect side is pretty trivial.
+- Use of cable_detect method
+- ata_pci_default_filter needed on PATA100 ops
+- Filter for UDMA 133 errata from vendor (not enabled in this diff but
+added ready)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_optidma.c |   55 ++++++++++++++++++-----------------
- 1 file changed, 29 insertions(+), 26 deletions(-)
+ drivers/ata/pata_pdc2027x.c |   46 ++++++++++++++++++++++++++--------
+ 1 file changed, 36 insertions(+), 10 deletions(-)
 
-diff -puN drivers/ata/pata_optidma.c~pata_optidma-rework-for-cable-detect-and-to-remove drivers/ata/pata_optidma.c
---- a/drivers/ata/pata_optidma.c~pata_optidma-rework-for-cable-detect-and-to-remove
-+++ a/drivers/ata/pata_optidma.c
-@@ -33,7 +33,7 @@
+diff -puN drivers/ata/pata_pdc2027x.c~pata_pdc2027x-restore-various-updates-done-on-the-driver drivers/ata/pata_pdc2027x.c
+--- a/drivers/ata/pata_pdc2027x.c~pata_pdc2027x-restore-various-updates-done-on-the-driver
++++ a/drivers/ata/pata_pdc2027x.c
+@@ -35,7 +35,7 @@
  #include <linux/libata.h>
  
- #define DRV_NAME "pata_optidma"
--#define DRV_VERSION "0.2.4"
-+#define DRV_VERSION "0.3.2"
+ #define DRV_NAME	"pata_pdc2027x"
+-#define DRV_VERSION	"0.8"
++#define DRV_VERSION	"0.8ac1"
+ #undef PDC_DEBUG
  
- enum {
- 	READ_REG	= 0,	/* index of Read cycle timing register */
-@@ -62,8 +62,6 @@ static int optidma_pre_reset(struct ata_
+ #ifdef PDC_DEBUG
+@@ -66,8 +66,10 @@ static int pdc2027x_init_one(struct pci_
+ static void pdc2027x_error_handler(struct ata_port *ap);
+ static void pdc2027x_set_piomode(struct ata_port *ap, struct ata_device *adev);
+ static void pdc2027x_set_dmamode(struct ata_port *ap, struct ata_device *adev);
+-static void pdc2027x_post_set_mode(struct ata_port *ap);
+ static int pdc2027x_check_atapi_dma(struct ata_queued_cmd *qc);
++static unsigned long pdc2027x_mode_filter(struct ata_device *adev, unsigned long mask);
++static int pdc2027x_cable_detect(struct ata_port *ap);
++static int pdc2027x_set_mode(struct ata_port *ap, struct ata_device **r_failed);
  
- 	if (ap->port_no && !pci_test_config_bits(pdev, &optidma_enable_bits))
- 		return -ENOENT;
+ /*
+  * ATA Timing Tables based on 133MHz controller clock.
+@@ -146,6 +148,7 @@ static struct scsi_host_template pdc2027
+ 
+ static struct ata_port_operations pdc2027x_pata100_ops = {
+ 	.port_disable		= ata_port_disable,
++	.mode_filter		= ata_pci_default_filter,
+ 
+ 	.tf_load		= ata_tf_load,
+ 	.tf_read		= ata_tf_read,
+@@ -166,6 +169,7 @@ static struct ata_port_operations pdc202
+ 	.thaw			= ata_bmdma_thaw,
+ 	.error_handler		= pdc2027x_error_handler,
+ 	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= pdc2027x_cable_detect,
+ 
+ 	.irq_handler		= ata_interrupt,
+ 	.irq_clear		= ata_bmdma_irq_clear,
+@@ -261,7 +265,7 @@ static inline void __iomem *dev_mmio(str
+ }
+ 
+ /**
+- *	pdc2027x_pata_cbl_detect - Probe host controller cable detect info
++ *	pdc2027x_pata_cable_detect - Probe host controller cable detect info
+  *	@ap: Port for which cable detect info is desired
+  *
+  *	Read 80c cable indicator from Promise extended register.
+@@ -270,7 +274,7 @@ static inline void __iomem *dev_mmio(str
+  *	LOCKING:
+  *	None (inherited from caller).
+  */
+-static void pdc2027x_cbl_detect(struct ata_port *ap)
++static int pdc2027x_cable_detect(struct ata_port *ap)
+ {
+ 	u32 cgcr;
+ 
+@@ -281,13 +285,10 @@ static void pdc2027x_cbl_detect(struct a
+ 
+ 	PDPRINTK("No cable or 80-conductor cable on port %d\n", ap->port_no);
+ 
+-	ap->cbl = ATA_CBL_PATA80;
+-	return;
 -
++	return ATA_CBL_PATA80;
+ cbl40:
+ 	printk(KERN_INFO DRV_NAME ": 40-conductor cable detected on port %d\n", ap->port_no);
 -	ap->cbl = ATA_CBL_PATA40;
+-	ap->udma_mask &= ATA_UDMA_MASK_40C;
++	return ATA_CBL_PATA40;
+ }
+ 
+ /**
+@@ -315,7 +316,6 @@ static int pdc2027x_prereset(struct ata_
+ 	/* Check whether port enabled */
+ 	if (!pdc2027x_port_enabled(ap))
+ 		return -ENOENT;
+-	pdc2027x_cbl_detect(ap);
  	return ata_std_prereset(ap, deadline);
  }
  
-@@ -116,7 +114,7 @@ static void optidma_lock(struct ata_port
+@@ -335,6 +335,32 @@ static void pdc2027x_error_handler(struc
  }
  
  /**
-- *	optidma_set_mode	-	set mode data
-+ *	optidma_mode_setup	-	set mode data
-  *	@ap: ATA interface
-  *	@adev: ATA device
-  *	@mode: Mode to set
-@@ -129,7 +127,7 @@ static void optidma_lock(struct ata_port
-  *	IRQ here we depend on the host set locking to avoid catastrophe.
-  */
- 
--static void optidma_set_mode(struct ata_port *ap, struct ata_device *adev, u8 mode)
-+static void optidma_mode_setup(struct ata_port *ap, struct ata_device *adev, u8 mode)
- {
- 	struct ata_device *pair = ata_dev_pair(adev);
- 	int pio = adev->pio_mode - XFER_PIO_0;
-@@ -203,7 +201,7 @@ static void optidma_set_mode(struct ata_
- }
- 
- /**
-- *	optiplus_set_mode	-	DMA setup for Firestar Plus
-+ *	optiplus_mode_setup	-	DMA setup for Firestar Plus
-  *	@ap: ATA port
-  *	@adev: device
-  *	@mode: desired mode
-@@ -214,7 +212,7 @@ static void optidma_set_mode(struct ata_
-  *	one
-  */
- 
--static void optiplus_set_mode(struct ata_port *ap, struct ata_device *adev, u8 mode)
-+static void optiplus_mode_setup(struct ata_port *ap, struct ata_device *adev, u8 mode)
- {
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 	u8 udcfg;
-@@ -226,7 +224,7 @@ static void optiplus_set_mode(struct ata
- 	pci_read_config_byte(pdev, 0x44, &udcfg);
- 	if (mode <= XFER_UDMA_0) {
- 		udcfg &= ~(1 << unit);
--		optidma_set_mode(ap, adev, adev->dma_mode);
-+		optidma_mode_setup(ap, adev, adev->dma_mode);
- 	} else {
- 		udcfg |=  (1 << unit);
- 		if (ap->port_no) {
-@@ -254,7 +252,7 @@ static void optiplus_set_mode(struct ata
- 
- static void optidma_set_pio_mode(struct ata_port *ap, struct ata_device *adev)
- {
--	optidma_set_mode(ap, adev, adev->pio_mode);
-+	optidma_mode_setup(ap, adev, adev->pio_mode);
- }
- 
- /**
-@@ -269,7 +267,7 @@ static void optidma_set_pio_mode(struct 
- 
- static void optidma_set_dma_mode(struct ata_port *ap, struct ata_device *adev)
- {
--	optidma_set_mode(ap, adev, adev->dma_mode);
-+	optidma_mode_setup(ap, adev, adev->dma_mode);
- }
- 
- /**
-@@ -284,7 +282,7 @@ static void optidma_set_dma_mode(struct 
- 
- static void optiplus_set_pio_mode(struct ata_port *ap, struct ata_device *adev)
- {
--	optiplus_set_mode(ap, adev, adev->pio_mode);
-+	optiplus_mode_setup(ap, adev, adev->pio_mode);
- }
- 
- /**
-@@ -299,7 +297,7 @@ static void optiplus_set_pio_mode(struct
- 
- static void optiplus_set_dma_mode(struct ata_port *ap, struct ata_device *adev)
- {
--	optiplus_set_mode(ap, adev, adev->dma_mode);
-+	optiplus_mode_setup(ap, adev, adev->dma_mode);
- }
- 
- /**
-@@ -323,26 +321,29 @@ static u8 optidma_make_bits43(struct ata
- }
- 
- /**
-- *	optidma_post_set_mode	-	finalize PCI setup
-+ *	optidma_set_mode	-	mode setup
-  *	@ap: port to set up
-  *
-- *	Finalise the configuration by writing the nibble of extra bits
-- *	of data into the chip.
-+ *	Use the standard setup to tune the chipset and then finalise the
-+ *	configuration by writing the nibble of extra bits of data into
-+ *	the chip.
-  */
- 
--static void optidma_post_set_mode(struct ata_port *ap)
-+static int optidma_set_mode(struct ata_port *ap, struct ata_device **r_failed)
- {
- 	u8 r;
- 	int nybble = 4 * ap->port_no;
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--
--	pci_read_config_byte(pdev, 0x43, &r);
--
--	r &= (0x0F << nybble);
--	r |= (optidma_make_bits43(&ap->device[0]) +
--	     (optidma_make_bits43(&ap->device[0]) << 2)) << nybble;
--
--	pci_write_config_byte(pdev, 0x43, r);
-+	int rc  = ata_do_set_mode(ap, r_failed);
-+	if (rc == 0) {
-+		pci_read_config_byte(pdev, 0x43, &r);
++ *	pdc2720x_mode_filter	-	mode selection filter
++ *	@adev: ATA device
++ *	@mask: list of modes proposed
++ *
++ *	Block UDMA on devices that cause trouble with this controller.
++ */
 +
-+		r &= (0x0F << nybble);
-+		r |= (optidma_make_bits43(&ap->device[0]) +
-+		     (optidma_make_bits43(&ap->device[0]) << 2)) << nybble;
-+		pci_write_config_byte(pdev, 0x43, r);
-+	}
-+	return rc;
- }
- 
- static struct scsi_host_template optidma_sht = {
-@@ -382,7 +383,8 @@ static struct ata_port_operations optidm
- 	.thaw		= ata_bmdma_thaw,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
- 	.error_handler	= optidma_error_handler,
--	.post_set_mode	= optidma_post_set_mode,
-+	.set_mode	= optidma_set_mode,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
-@@ -417,7 +419,8 @@ static struct ata_port_operations optipl
- 	.thaw		= ata_bmdma_thaw,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
- 	.error_handler	= optidma_error_handler,
--	.post_set_mode	= optidma_post_set_mode,
-+	.set_mode	= optidma_set_mode,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
++static unsigned long pdc2027x_mode_filter(struct ata_device *adev, unsigned long mask)
++{
++	unsigned char model_num[ATA_ID_PROD_LEN + 1];
++	struct ata_device *pair = ata_dev_pair(adev);
++
++	if (adev->class != ATA_DEV_ATA || adev->devno == 0 || pair == NULL)
++		return ata_pci_default_filter(adev, mask);
++
++	/* Check for slave of a Maxtor at UDMA6 */
++	ata_id_c_string(pair->id, model_num, ATA_ID_PROD,
++			  ATA_ID_PROD_LEN + 1);
++	/* If the master is a maxtor in UDMA6 then the slave should not use UDMA 6 */
++	if(strstr(model_num, "Maxtor") == 0 && pair->dma_mode == XFER_UDMA_6)
++		mask &= ~ (1 << (6 + ATA_SHIFT_UDMA));
++
++	return ata_pci_default_filter(adev, mask);
++}
++
++/**
+  *	pdc2027x_set_piomode - Initialize host controller PATA PIO timings
+  *	@ap: Port to configure
+  *	@adev: um
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
