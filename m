@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drivers-message-fusion-lsi-mpi_log_fch.patch added to -mm tree
-Date: Sat, 10 Mar 2007 23:22:36 -0800
-Message-ID: <200703110722.l2B7MadC006898@shell0.pdx.osdl.net>
+Subject: + remove-unused-header-file-drivers-char-drm-via_mmh.patch added to -mm tree
+Date: Sat, 10 Mar 2007 23:22:40 -0800
+Message-ID: <200703110722.l2B7Me9k006901@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38594 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38603 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751019AbXCKHWo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 03:22:44 -0400
+	id S1751052AbXCKHWs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 03:22:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, Eric.Moore@lsil.com
+Cc: rpjday@mindspring.com, airlied@linux.ie
 
 
 The patch titled
-     remove unused header file: drivers/message/fusion/lsi/mpi_inb.h and drivers/message/fusion/lsi/mpi_log_fc.h
+     remove unused header file: drivers/char/drm/via_mm.h
 has been added to the -mm tree.  Its filename is
-     remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drivers-message-fusion-lsi-mpi_log_fch.patch
+     remove-unused-header-file-drivers-char-drm-via_mmh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,336 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove unused header file: drivers/message/fusion/lsi/mpi_inb.h and drivers/message/fusion/lsi/mpi_log_fc.h
+Subject: remove unused header file: drivers/char/drm/via_mm.h
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/lsi/mpi_inb.h    |  221 ----------------------
- drivers/message/fusion/lsi/mpi_log_fc.h |   89 --------
- 2 files changed, 310 deletions(-)
+ drivers/char/drm/via_mm.h |   40 ------------------------------------
+ 1 file changed, 40 deletions(-)
 
-diff -puN drivers/message/fusion/lsi/mpi_inb.h~remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drivers-message-fusion-lsi-mpi_log_fch /dev/null
---- a/drivers/message/fusion/lsi/mpi_inb.h
+diff -puN drivers/char/drm/via_mm.h~remove-unused-header-file-drivers-char-drm-via_mmh /dev/null
+--- a/drivers/char/drm/via_mm.h
 +++ /dev/null
-@@ -1,221 +0,0 @@
+@@ -1,40 +0,0 @@
 -/*
-- *  Copyright (c) 2003-2004 LSI Logic Corporation.
+- * Copyright 1998-2003 VIA Technologies, Inc. All Rights Reserved.
+- * Copyright 2001-2003 S3 Graphics, Inc. All Rights Reserved.
 - *
+- * Permission is hereby granted, free of charge, to any person obtaining a
+- * copy of this software and associated documentation files (the "Software"),
+- * to deal in the Software without restriction, including without limitation
+- * the rights to use, copy, modify, merge, publish, distribute, sub license,
+- * and/or sell copies of the Software, and to permit persons to whom the
+- * Software is furnished to do so, subject to the following conditions:
 - *
-- *           Name:  mpi_inb.h
-- *          Title:  MPI Inband structures and definitions
-- *  Creation Date:  September 30, 2003
+- * The above copyright notice and this permission notice (including the
+- * next paragraph) shall be included in all copies or substantial portions
+- * of the Software.
 - *
-- *    mpi_inb.h Version:  01.05.01
-- *
-- *  Version History
-- *  ---------------
-- *
-- *  Date      Version   Description
-- *  --------  --------  ------------------------------------------------------
-- *  05-11-04  01.03.01  Original release.
-- *  08-19-04  01.05.01  Original release for MPI v1.5.
-- *  --------------------------------------------------------------------------
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
+- * VIA, S3 GRAPHICS, AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+- * DEALINGS IN THE SOFTWARE.
 - */
+-#ifndef _via_drm_mm_h_
+-#define _via_drm_mm_h_
 -
--#ifndef MPI_INB_H
--#define MPI_INB_H
+-typedef struct {
+-	unsigned int context;
+-	unsigned int size;
+-	unsigned long offset;
+-	unsigned long free;
+-} drm_via_mm_t;
 -
--/******************************************************************************
--*
--*        I n b a n d    M e s s a g e s
--*
--*******************************************************************************/
--
--
--/****************************************************************************/
--/* Inband Buffer Post Request                                               */
--/****************************************************************************/
--
--typedef struct _MSG_INBAND_BUFFER_POST_REQUEST
--{
--    U8                      Reserved1;          /* 00h */
--    U8                      BufferCount;        /* 01h */
--    U8                      ChainOffset;        /* 02h */
--    U8                      Function;           /* 03h */
--    U16                     Reserved2;          /* 04h */
--    U8                      Reserved3;          /* 06h */
--    U8                      MsgFlags;           /* 07h */
--    U32                     MsgContext;         /* 08h */
--    U32                     Reserved4;          /* 0Ch */
--    SGE_TRANS_SIMPLE_UNION  SGL;                /* 10h */
--} MSG_INBAND_BUFFER_POST_REQUEST, MPI_POINTER PTR_MSG_INBAND_BUFFER_POST_REQUEST,
--  MpiInbandBufferPostRequest_t , MPI_POINTER pMpiInbandBufferPostRequest_t;
--
--
--typedef struct _WWN_FC_FORMAT
--{
--    U64                     NodeName;           /* 00h */
--    U64                     PortName;           /* 08h */
--} WWN_FC_FORMAT, MPI_POINTER PTR_WWN_FC_FORMAT,
--  WwnFcFormat_t, MPI_POINTER pWwnFcFormat_t;
--
--typedef struct _WWN_SAS_FORMAT
--{
--    U64                     WorldWideID;        /* 00h */
--    U32                     Reserved1;          /* 08h */
--    U32                     Reserved2;          /* 0Ch */
--} WWN_SAS_FORMAT, MPI_POINTER PTR_WWN_SAS_FORMAT,
--  WwnSasFormat_t, MPI_POINTER pWwnSasFormat_t;
--
--typedef union _WWN_INBAND_FORMAT
--{
--    WWN_FC_FORMAT           Fc;
--    WWN_SAS_FORMAT          Sas;
--} WWN_INBAND_FORMAT, MPI_POINTER PTR_WWN_INBAND_FORMAT,
--  WwnInbandFormat, MPI_POINTER pWwnInbandFormat;
--
--
--/* Inband Buffer Post reply message */
--
--typedef struct _MSG_INBAND_BUFFER_POST_REPLY
--{
--    U16                     Reserved1;          /* 00h */
--    U8                      MsgLength;          /* 02h */
--    U8                      Function;           /* 03h */
--    U16                     Reserved2;          /* 04h */
--    U8                      Reserved3;          /* 06h */
--    U8                      MsgFlags;           /* 07h */
--    U32                     MsgContext;         /* 08h */
--    U16                     Reserved4;          /* 0Ch */
--    U16                     IOCStatus;          /* 0Eh */
--    U32                     IOCLogInfo;         /* 10h */
--    U32                     TransferLength;     /* 14h */
--    U32                     TransactionContext; /* 18h */
--    WWN_INBAND_FORMAT       Wwn;                /* 1Ch */
--    U32                     IOCIdentifier[4];   /* 2Ch */
--} MSG_INBAND_BUFFER_POST_REPLY, MPI_POINTER PTR_MSG_INBAND_BUFFER_POST_REPLY,
--  MpiInbandBufferPostReply_t, MPI_POINTER pMpiInbandBufferPostReply_t;
--
--
--/****************************************************************************/
--/* Inband Send Request                                                      */
--/****************************************************************************/
--
--typedef struct _MSG_INBAND_SEND_REQUEST
--{
--    U16                     Reserved1;          /* 00h */
--    U8                      ChainOffset;        /* 02h */
--    U8                      Function;           /* 03h */
--    U16                     Reserved2;          /* 04h */
--    U8                      Reserved3;          /* 06h */
--    U8                      MsgFlags;           /* 07h */
--    U32                     MsgContext;         /* 08h */
--    U32                     Reserved4;          /* 0Ch */
--    WWN_INBAND_FORMAT       Wwn;                /* 10h */
--    U32                     Reserved5;          /* 20h */
--    SGE_IO_UNION            SGL;                /* 24h */
--} MSG_INBAND_SEND_REQUEST, MPI_POINTER PTR_MSG_INBAND_SEND_REQUEST,
--  MpiInbandSendRequest_t , MPI_POINTER pMpiInbandSendRequest_t;
--
--
--/* Inband Send reply message */
--
--typedef struct _MSG_INBAND_SEND_REPLY
--{
--    U16                     Reserved1;          /* 00h */
--    U8                      MsgLength;          /* 02h */
--    U8                      Function;           /* 03h */
--    U16                     Reserved2;          /* 04h */
--    U8                      Reserved3;          /* 06h */
--    U8                      MsgFlags;           /* 07h */
--    U32                     MsgContext;         /* 08h */
--    U16                     Reserved4;          /* 0Ch */
--    U16                     IOCStatus;          /* 0Eh */
--    U32                     IOCLogInfo;         /* 10h */
--    U32                     ResponseLength;     /* 14h */
--} MSG_INBAND_SEND_REPLY, MPI_POINTER PTR_MSG_INBAND_SEND_REPLY,
--  MpiInbandSendReply_t, MPI_POINTER pMpiInbandSendReply_t;
--
--
--/****************************************************************************/
--/* Inband Response Request                                                  */
--/****************************************************************************/
--
--typedef struct _MSG_INBAND_RSP_REQUEST
--{
--    U16                     Reserved1;          /* 00h */
--    U8                      ChainOffset;        /* 02h */
--    U8                      Function;           /* 03h */
--    U16                     Reserved2;          /* 04h */
--    U8                      Reserved3;          /* 06h */
--    U8                      MsgFlags;           /* 07h */
--    U32                     MsgContext;         /* 08h */
--    U32                     Reserved4;          /* 0Ch */
--    WWN_INBAND_FORMAT       Wwn;                /* 10h */
--    U32                     IOCIdentifier[4];   /* 20h */
--    U32                     ResponseLength;     /* 30h */
--    SGE_IO_UNION            SGL;                /* 34h */
--} MSG_INBAND_RSP_REQUEST, MPI_POINTER PTR_MSG_INBAND_RSP_REQUEST,
--  MpiInbandRspRequest_t , MPI_POINTER pMpiInbandRspRequest_t;
--
--
--/* Inband Response reply message */
--
--typedef struct _MSG_INBAND_RSP_REPLY
--{
--    U16                     Reserved1;          /* 00h */
--    U8                      MsgLength;          /* 02h */
--    U8                      Function;           /* 03h */
--    U16                     Reserved2;          /* 04h */
--    U8                      Reserved3;          /* 06h */
--    U8                      MsgFlags;           /* 07h */
--    U32                     MsgContext;         /* 08h */
--    U16                     Reserved4;          /* 0Ch */
--    U16                     IOCStatus;          /* 0Eh */
--    U32                     IOCLogInfo;         /* 10h */
--} MSG_INBAND_RSP_REPLY, MPI_POINTER PTR_MSG_INBAND_RSP_REPLY,
--  MpiInbandRspReply_t, MPI_POINTER pMpiInbandRspReply_t;
--
--
--/****************************************************************************/
--/* Inband Abort Request                                                     */
--/****************************************************************************/
--
--typedef struct _MSG_INBAND_ABORT_REQUEST
--{
--    U8                      Reserved1;          /* 00h */
--    U8                      AbortType;          /* 01h */
--    U8                      ChainOffset;        /* 02h */
--    U8                      Function;           /* 03h */
--    U16                     Reserved2;          /* 04h */
--    U8                      Reserved3;          /* 06h */
--    U8                      MsgFlags;           /* 07h */
--    U32                     MsgContext;         /* 08h */
--    U32                     Reserved4;          /* 0Ch */
--    U32                     ContextToAbort;     /* 10h */
--} MSG_INBAND_ABORT_REQUEST, MPI_POINTER PTR_MSG_INBAND_ABORT_REQUEST,
--  MpiInbandAbortRequest_t , MPI_POINTER pMpiInbandAbortRequest_t;
--
--#define MPI_INBAND_ABORT_TYPE_ALL_BUFFERS       (0x00)
--#define MPI_INBAND_ABORT_TYPE_EXACT_BUFFER      (0x01)
--#define MPI_INBAND_ABORT_TYPE_SEND_REQUEST      (0x02)
--#define MPI_INBAND_ABORT_TYPE_RESPONSE_REQUEST  (0x03)
--
--
--/* Inband Abort reply message */
--
--typedef struct _MSG_INBAND_ABORT_REPLY
--{
--    U8                      Reserved1;          /* 00h */
--    U8                      AbortType;          /* 01h */
--    U8                      MsgLength;          /* 02h */
--    U8                      Function;           /* 03h */
--    U16                     Reserved2;          /* 04h */
--    U8                      Reserved3;          /* 06h */
--    U8                      MsgFlags;           /* 07h */
--    U32                     MsgContext;         /* 08h */
--    U16                     Reserved4;          /* 0Ch */
--    U16                     IOCStatus;          /* 0Eh */
--    U32                     IOCLogInfo;         /* 10h */
--} MSG_INBAND_ABORT_REPLY, MPI_POINTER PTR_MSG_INBAND_ABORT_REPLY,
--  MpiInbandAbortReply_t, MPI_POINTER pMpiInbandAbortReply_t;
--
+-typedef struct {
+-	unsigned int size;
+-	unsigned long handle;
+-	void *virtual;
+-} drm_via_dma_t;
 -
 -#endif
--
-diff -puN drivers/message/fusion/lsi/mpi_log_fc.h~remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drivers-message-fusion-lsi-mpi_log_fch /dev/null
---- a/drivers/message/fusion/lsi/mpi_log_fc.h
-+++ /dev/null
-@@ -1,89 +0,0 @@
--/*
-- *  Copyright (c) 2000-2001 LSI Logic Corporation. All rights reserved.
-- *
-- *  NAME:           fc_log.h
-- *  SUMMARY:        MPI IocLogInfo definitions for the SYMFC9xx chips
-- *  DESCRIPTION:    Contains the enumerated list of values that may be returned
-- *                  in the IOCLogInfo field of a MPI Default Reply Message.
-- *
-- *  CREATION DATE:  6/02/2000
-- *  ID:             $Id: fc_log.h,v 4.6 2001/07/26 14:41:33 sschremm Exp $
-- */
--
--
--/*
-- * MpiIocLogInfo_t enum
-- *
-- * These 32 bit values are used in the IOCLogInfo field of the MPI reply
-- * messages.
-- * The value is 0xabcccccc where
-- *          a = The type of log info as per the MPI spec. Since these codes are
-- *              all for Fibre Channel this value will always be 2.
-- *          b = Specifies a subclass of the firmware where
-- *                  0 = FCP Initiator
-- *                  1 = FCP Target
-- *                  2 = LAN
-- *                  3 = MPI Message Layer
-- *                  4 = FC Link
-- *                  5 = Context Manager
-- *                  6 = Invalid Field Offset
-- *                  7 = State Change Info
-- *                  all others are reserved for future use
-- *          c = A specific value within the subclass.
-- *
-- * NOTE: Any new values should be added to the end of each subclass so that the
-- *       codes remain consistent across firmware releases.
-- */
--typedef enum _MpiIocLogInfoFc
--{
--    MPI_IOCLOGINFO_FC_INIT_BASE                     = 0x20000000,
--    MPI_IOCLOGINFO_FC_INIT_ERROR_OUT_OF_ORDER_FRAME = 0x20000001, /* received an out of order frame - unsupported */
--    MPI_IOCLOGINFO_FC_INIT_ERROR_BAD_START_OF_FRAME = 0x20000002, /* Bad Rx Frame, bad start of frame primative */
--    MPI_IOCLOGINFO_FC_INIT_ERROR_BAD_END_OF_FRAME   = 0x20000003, /* Bad Rx Frame, bad end of frame primative */
--    MPI_IOCLOGINFO_FC_INIT_ERROR_OVER_RUN           = 0x20000004, /* Bad Rx Frame, overrun */
--    MPI_IOCLOGINFO_FC_INIT_ERROR_RX_OTHER           = 0x20000005, /* Other errors caught by IOC which require retries */
--    MPI_IOCLOGINFO_FC_INIT_ERROR_SUBPROC_DEAD       = 0x20000006, /* Main processor could not initialize sub-processor */
--    MPI_IOCLOGINFO_FC_INIT_ERROR_RX_OVERRUN         = 0x20000007, /* Scatter Gather overrun  */
--    MPI_IOCLOGINFO_FC_INIT_ERROR_RX_BAD_STATUS      = 0x20000008, /* Receiver detected context mismatch via invalid header */
--    MPI_IOCLOGINFO_FC_INIT_ERROR_RX_UNEXPECTED_FRAME= 0x20000009, /* CtxMgr detected unsupported frame type  */
--    MPI_IOCLOGINFO_FC_INIT_ERROR_LINK_FAILURE       = 0x2000000A, /* Link failure occurred  */
--    MPI_IOCLOGINFO_FC_INIT_ERROR_TX_TIMEOUT         = 0x2000000B, /* Transmitter timeout error */
--
--    MPI_IOCLOGINFO_FC_TARGET_BASE                   = 0x21000000,
--    MPI_IOCLOGINFO_FC_TARGET_NO_PDISC               = 0x21000001, /* not sent because we are waiting for a PDISC from the initiator */
--    MPI_IOCLOGINFO_FC_TARGET_NO_LOGIN               = 0x21000002, /* not sent because we are not logged in to the remote node */
--    MPI_IOCLOGINFO_FC_TARGET_DOAR_KILLED_BY_LIP     = 0x21000003, /* Data Out, Auto Response, not sent due to a LIP */
--    MPI_IOCLOGINFO_FC_TARGET_DIAR_KILLED_BY_LIP     = 0x21000004, /* Data In, Auto Response, not sent due to a LIP */
--    MPI_IOCLOGINFO_FC_TARGET_DIAR_MISSING_DATA      = 0x21000005, /* Data In, Auto Response, missing data frames */
--    MPI_IOCLOGINFO_FC_TARGET_DONR_KILLED_BY_LIP     = 0x21000006, /* Data Out, No Response, not sent due to a LIP */
--    MPI_IOCLOGINFO_FC_TARGET_WRSP_KILLED_BY_LIP     = 0x21000007, /* Auto-response after a write not sent due to a LIP */
--    MPI_IOCLOGINFO_FC_TARGET_DINR_KILLED_BY_LIP     = 0x21000008, /* Data In, No Response, not completed due to a LIP */
--    MPI_IOCLOGINFO_FC_TARGET_DINR_MISSING_DATA      = 0x21000009, /* Data In, No Response, missing data frames */
--    MPI_IOCLOGINFO_FC_TARGET_MRSP_KILLED_BY_LIP     = 0x2100000a, /* Manual Response not sent due to a LIP */
--    MPI_IOCLOGINFO_FC_TARGET_NO_CLASS_3             = 0x2100000b, /* not sent because remote node does not support Class 3 */
--    MPI_IOCLOGINFO_FC_TARGET_LOGIN_NOT_VALID        = 0x2100000c, /* not sent because login to remote node not validated */
--    MPI_IOCLOGINFO_FC_TARGET_FROM_OUTBOUND          = 0x2100000e, /* cleared from the outbound queue after a logout */
--    MPI_IOCLOGINFO_FC_TARGET_WAITING_FOR_DATA_IN    = 0x2100000f, /* cleared waiting for data after a logout */
--
--    MPI_IOCLOGINFO_FC_LAN_BASE                      = 0x22000000,
--    MPI_IOCLOGINFO_FC_LAN_TRANS_SGL_MISSING         = 0x22000001, /* Transaction Context Sgl Missing */
--    MPI_IOCLOGINFO_FC_LAN_TRANS_WRONG_PLACE         = 0x22000002, /* Transaction Context found before an EOB */
--    MPI_IOCLOGINFO_FC_LAN_TRANS_RES_BITS_SET        = 0x22000003, /* Transaction Context value has reserved bits set */
--    MPI_IOCLOGINFO_FC_LAN_WRONG_SGL_FLAG            = 0x22000004, /* Invalid SGL Flags */
--
--    MPI_IOCLOGINFO_FC_MSG_BASE                      = 0x23000000,
--
--    MPI_IOCLOGINFO_FC_LINK_BASE                     = 0x24000000,
--    MPI_IOCLOGINFO_FC_LINK_LOOP_INIT_TIMEOUT        = 0x24000001, /* Loop initialization timed out */
--    MPI_IOCLOGINFO_FC_LINK_ALREADY_INITIALIZED      = 0x24000002, /* Another system controller already initialized the loop */
--    MPI_IOCLOGINFO_FC_LINK_LINK_NOT_ESTABLISHED     = 0x24000003, /* Not synchronized to signal or still negotiating (possible cable problem) */
--    MPI_IOCLOGINFO_FC_LINK_CRC_ERROR                = 0x24000004, /* CRC check detected error on received frame */
--
--    MPI_IOCLOGINFO_FC_CTX_BASE                      = 0x25000000,
--
--    MPI_IOCLOGINFO_FC_INVALID_FIELD_BYTE_OFFSET     = 0x26000000, /* The lower 24 bits give the byte offset of the field in the request message that is invalid */
--    MPI_IOCLOGINFO_FC_INVALID_FIELD_MAX_OFFSET      = 0x26ffffff,
--
--    MPI_IOCLOGINFO_FC_STATE_CHANGE                  = 0x27000000  /* The lower 24 bits give additional information concerning state change */
--
--} MpiIocLogInfoFc_t;
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
