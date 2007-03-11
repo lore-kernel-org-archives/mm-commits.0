@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sata_via-use-cable-detect-methods.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:30:43 -0800
-Message-ID: <200703110930.l2B9UhBo008889@shell0.pdx.osdl.net>
+Subject: + libata-acpi-try-and-stop-all-the-non-pci-devices-crashing.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:30:47 -0800
+Message-ID: <200703110930.l2B9UlvK008897@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41280 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41281 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752030AbXCKJaw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:30:52 -0400
+	id S1752031AbXCKJa5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:30:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     sata_via: use cable detect methods
+     libata-acpi: try and stop all the non PCI devices crashing
 has been added to the -mm tree.  Its filename is
-     sata_via-use-cable-detect-methods.patch
+     libata-acpi-try-and-stop-all-the-non-pci-devices-crashing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sata_via: use cable detect methods
+Subject: libata-acpi: try and stop all the non PCI devices crashing
 From: Alan Cox <alan@redhat.com>
+
+For 2.6.20 it mostly used to just not work, for 2.6.21-rc it crashes, this
+seems to be down to luck (bad or good). The libata-acpi code needs to
+avoid doing PCI work on non-PCI devices. This is one hack although it's
+not pretty and perhaps there is a "right" way to check if a struct device
+* is PCI ?
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_via.c |   35 ++++++++---------------------------
- 1 file changed, 8 insertions(+), 27 deletions(-)
+ drivers/ata/libata-acpi.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_via.c~sata_via-use-cable-detect-methods drivers/ata/sata_via.c
---- a/drivers/ata/sata_via.c~sata_via-use-cable-detect-methods
-+++ a/drivers/ata/sata_via.c
-@@ -78,8 +78,7 @@ static u32 svia_scr_read (struct ata_por
- static void svia_scr_write (struct ata_port *ap, unsigned int sc_reg, u32 val);
- static void svia_noop_freeze(struct ata_port *ap);
- static void vt6420_error_handler(struct ata_port *ap);
--static void vt6421_sata_error_handler(struct ata_port *ap);
--static void vt6421_pata_error_handler(struct ata_port *ap);
-+static int vt6421_pata_cable_detect(struct ata_port *ap);
- static void vt6421_set_pio_mode(struct ata_port *ap, struct ata_device *adev);
- static void vt6421_set_dma_mode(struct ata_port *ap, struct ata_device *adev);
- static int vt6421_port_start(struct ata_port *ap);
-@@ -172,8 +171,9 @@ static const struct ata_port_operations 
+diff -puN drivers/ata/libata-acpi.c~libata-acpi-try-and-stop-all-the-non-pci-devices-crashing drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~libata-acpi-try-and-stop-all-the-non-pci-devices-crashing
++++ a/drivers/ata/libata-acpi.c
+@@ -34,6 +34,16 @@ struct taskfile_array {
+ 	u8	tfa[REGS_PER_GTF];	/* regs. 0x1f1 - 0x1f7 */
+ };
  
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= vt6421_pata_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= vt6421_pata_cable_detect,
++/*
++ *	Helper - belongs in the PCI layer somewhere eventually
++ */
++
++static int is_pci_dev(struct device *dev)
++{
++	if (dev->bus == &pci_bus_type)
++		return 1;
++	return 0;
++}
  
- 	.irq_handler		= ata_interrupt,
- 	.irq_clear		= ata_bmdma_irq_clear,
-@@ -203,8 +203,9 @@ static const struct ata_port_operations 
+ /**
+  * sata_get_dev_handle - finds acpi_handle and PCI device.function
+@@ -53,6 +63,9 @@ static int sata_get_dev_handle(struct de
+ 	struct pci_dev	*pci_dev;
+ 	acpi_integer	addr;
  
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= vt6421_sata_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_sata,
++	if (!is_pci_dev(dev))
++		return -ENODEV;
++
+ 	pci_dev = to_pci_dev(dev);	/* NOTE: PCI-specific */
+ 	/* Please refer to the ACPI spec for the syntax of _ADR. */
+ 	addr = (PCI_SLOT(pci_dev->devfn) << 16) | PCI_FUNC(pci_dev->devfn);
+@@ -84,7 +97,12 @@ static int pata_get_dev_handle(struct de
+ 	acpi_status status;
+ 	struct acpi_device_info	*dinfo = NULL;
+ 	int ret = -ENODEV;
+-	struct pci_dev *pdev = to_pci_dev(dev);
++	struct pci_dev *pdev;
++
++	if (!is_pci_dev(dev))
++		return -ENODEV;
++
++	pdev = to_pci_dev(dev);
  
- 	.irq_handler		= ata_interrupt,
- 	.irq_clear		= ata_bmdma_irq_clear,
-@@ -331,35 +332,15 @@ static void vt6420_error_handler(struct 
- 				  NULL, ata_std_postreset);
- }
- 
--static int vt6421_pata_prereset(struct ata_port *ap, unsigned long deadline)
-+static int vt6421_pata_cable_detect(struct ata_port *ap)
- {
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 	u8 tmp;
- 
- 	pci_read_config_byte(pdev, PATA_UDMA_TIMING, &tmp);
- 	if (tmp & 0x10)
--		ap->cbl = ATA_CBL_PATA40;
--	else
--		ap->cbl = ATA_CBL_PATA80;
--	return 0;
--}
--
--static void vt6421_pata_error_handler(struct ata_port *ap)
--{
--	return ata_bmdma_drive_eh(ap, vt6421_pata_prereset, ata_std_softreset,
--				  NULL, ata_std_postreset);
--}
--
--static int vt6421_sata_prereset(struct ata_port *ap, unsigned long deadline)
--{
--	ap->cbl = ATA_CBL_SATA;
--	return 0;
--}
--
--static void vt6421_sata_error_handler(struct ata_port *ap)
--{
--	return ata_bmdma_drive_eh(ap, vt6421_sata_prereset, ata_std_softreset,
--				  NULL, ata_std_postreset);
-+		return ATA_CBL_PATA40;
-+	return ATA_CBL_PATA80;
- }
- 
- static void vt6421_set_pio_mode(struct ata_port *ap, struct ata_device *adev)
+ 	bus = pdev->bus->number;
+ 	devnum = PCI_SLOT(pdev->devfn);
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
