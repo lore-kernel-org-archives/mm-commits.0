@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_netcell-re-remove-all-the-crud.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:29:51 -0800
-Message-ID: <200703110929.l2B9TpXt008799@shell0.pdx.osdl.net>
+Subject: + pata_ns87410-restore-cable-detect-method.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:29:55 -0800
+Message-ID: <200703110929.l2B9Tt0b008802@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41227 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41234 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751983AbXCKJaA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:30:00 -0400
+	id S1752004AbXCKJaF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:30:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_netcell: re-remove all the crud
+     pata_ns87410: restore cable detect method
 has been added to the -mm tree.  Its filename is
-     pata_netcell-re-remove-all-the-crud.patch
+     pata_ns87410-restore-cable-detect-method.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,66 +25,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_netcell: re-remove all the crud
+Subject: pata_ns87410: restore cable detect method
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_netcell.c |   32 +++-----------------------------
- 1 file changed, 3 insertions(+), 29 deletions(-)
+ drivers/ata/pata_ns87410.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_netcell.c~pata_netcell-re-remove-all-the-crud drivers/ata/pata_netcell.c
---- a/drivers/ata/pata_netcell.c~pata_netcell-re-remove-all-the-crud
-+++ a/drivers/ata/pata_netcell.c
-@@ -16,34 +16,7 @@
- #include <linux/ata.h>
+diff -puN drivers/ata/pata_ns87410.c~pata_ns87410-restore-cable-detect-method drivers/ata/pata_ns87410.c
+--- a/drivers/ata/pata_ns87410.c~pata_ns87410-restore-cable-detect-method
++++ a/drivers/ata/pata_ns87410.c
+@@ -28,14 +28,14 @@
+ #include <linux/libata.h>
  
- #define DRV_NAME	"pata_netcell"
--#define DRV_VERSION	"0.1.6"
--
--/**
-- *	netcell_probe_init	-	check for 40/80 pin
-- *	@ap: Port
-- *	@deadline: deadline jiffies for the operation
-- *
-- *	Cables are handled by the RAID controller. Report 80 pin.
-- */
--
--static int netcell_pre_reset(struct ata_port *ap, unsigned long deadline)
--{
--	ap->cbl = ATA_CBL_PATA80;
--	return ata_std_prereset(ap, deadline);
--}
--
--/**
-- *	netcell_probe_reset - Probe specified port on PATA host controller
-- *	@ap: Port to probe
-- *
-- *	LOCKING:
-- *	None (inherited from caller).
-- */
--
--static void netcell_error_handler(struct ata_port *ap)
--{
--	return ata_bmdma_drive_eh(ap, netcell_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
--}
-+#define DRV_VERSION	"0.1.7"
+ #define DRV_NAME "pata_ns87410"
+-#define DRV_VERSION "0.4.3"
++#define DRV_VERSION "0.4.6"
  
- /* No PIO or DMA methods needed for this device */
+ /**
+  *	ns87410_pre_reset		-	probe begin
+  *	@ap: ATA port
+  *	@deadline: deadline jiffies for the operation
+  *
+- *	Set up cable type and use generic probe init
++ *	Check enabled ports
+  */
  
-@@ -82,8 +55,9 @@ static const struct ata_port_operations 
+ static int ns87410_pre_reset(struct ata_port *ap, unsigned long deadline)
+@@ -48,7 +48,6 @@ static int ns87410_pre_reset(struct ata_
  
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= netcell_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_80wire,
+ 	if (!pci_test_config_bits(pdev, &ns87410_enable_bits[ap->port_no]))
+ 		return -ENOENT;
+-	ap->cbl = ATA_CBL_PATA40;
+ 	return ata_std_prereset(ap, deadline);
+ }
  
- 	/* BMDMA handling is PCI ATA format, use helpers */
- 	.bmdma_setup		= ata_bmdma_setup,
+@@ -178,6 +177,7 @@ static struct ata_port_operations ns8741
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ns87410_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ns87410_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
