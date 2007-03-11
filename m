@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:17:41 -0800
-Message-ID: <200703110917.l2B9HgN6008581@shell0.pdx.osdl.net>
+Subject: + acpi-repair-nvidia-early-quirk-breakage-on-x86_64.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:19:33 -0800
+Message-ID: <200703110919.l2B9JXGX008601@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40981 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41053 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751909AbXCKJRz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:17:55 -0400
+	id S1751821AbXCKJU6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:20:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@suse.de
+Cc: lenb@kernel.org, ak@muc.de, len.brown@intel.com
 
 
 The patch titled
-     lguest: cleanup: clean up regs save/restore
+     ACPI: repair nvidia early quirk breakage on x86_64
 has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
+     acpi-repair-nvidia-early-quirk-breakage-on-x86_64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,268 +25,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: cleanup: clean up regs save/restore
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: ACPI: repair nvidia early quirk breakage on x86_64
+From: Len Brown <lenb@kernel.org>
 
-We previously put "cr3" in the guest regs restored and saved: the guest cannot
-change cr3, so saving it it silly.  Hand it across to the host<->guest
-switcher in ebx.
+x86_64 nvidia_bugs() broke when we bailed out on not finding the HPET. 
+However, the quirk works by checking for _not_ finding the HPET...
 
-While we're there, only save the host registers we need to; tell GCC we
-clobber everything we can.
+Delete the nvidia_hpet_detected flag and simply test for not finding the
+HPET, which is simple to do now that acpi_table_parse returns 1 on failure.
 
-Finally, and trap 2 (NMI) doesn't supply a error code (we don't handle NMI
-yet, but the test is wrong, so fix it before I get confused).
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/lguest/core.c        |    8 +--
- arch/i386/lguest/hypervisor.S  |   68 +++++++++++++------------------
- arch/i386/lguest/lg.h          |    2 
- arch/i386/lguest/lguest_user.c |    5 --
- arch/i386/lguest/page_tables.c |    3 -
- 5 files changed, 39 insertions(+), 47 deletions(-)
+ arch/i386/kernel/acpi/earlyquirk.c |    7 +------
+ arch/x86_64/kernel/early-quirks.c  |    9 +--------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
-diff -puN arch/i386/lguest/core.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore arch/i386/lguest/core.c
---- a/arch/i386/lguest/core.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore
-+++ a/arch/i386/lguest/core.c
-@@ -260,11 +260,11 @@ static void run_guest_once(struct lguest
- {
- 	unsigned int clobber;
+diff -puN arch/i386/kernel/acpi/earlyquirk.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64 arch/i386/kernel/acpi/earlyquirk.c
+--- a/arch/i386/kernel/acpi/earlyquirk.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64
++++ a/arch/i386/kernel/acpi/earlyquirk.c
+@@ -13,11 +13,8 @@
  
--	/* Put eflags on stack, lcall does rest. */
-+	/* Put eflags on stack, lcall does rest: suitable for iret return. */
- 	asm volatile("pushf; lcall *lguest_entry"
--		     : "=a"(clobber), "=d"(clobber)
--		     : "0"(lg->state), "1"(get_idt_table())
--		     : "memory");
-+		     : "=a"(clobber), "=d"(clobber), "=b"(clobber)
-+		     : "0"(lg->state), "1"(get_idt_table()), "2"(lg->cr3)
-+		     : "memory", "%ecx", "%edi", "%esi");
- }
+ #ifdef CONFIG_ACPI
  
- int run_guest(struct lguest *lg, char *__user user)
-diff -puN arch/i386/lguest/hypervisor.S~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore arch/i386/lguest/hypervisor.S
---- a/arch/i386/lguest/hypervisor.S~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore
-+++ a/arch/i386/lguest/hypervisor.S
-@@ -4,26 +4,17 @@
- #include <asm/asm-offsets.h>
- #include "lg.h"
- 
--#define SAVE_REGS				\
--	/* Save old guest/host state */		\
--	pushl	%es;				\
--	pushl	%ds;				\
--	pushl	%fs;				\
--	pushl	%eax;				\
--	pushl	%gs;				\
--	pushl	%ebp;				\
--	pushl	%edi;				\
--	pushl	%esi;				\
--	pushl	%edx;				\
--	pushl	%ecx;				\
--	pushl	%ebx;				\
+-static int nvidia_hpet_detected __initdata;
 -
- .text
- ENTRY(_start) /* ld complains unless _start is defined. */
--/* %eax contains ptr to target guest state, %edx contains host idt. */
-+/* %eax contains ptr to target guest state, %edx contains host idt.
-+   %ebx contains cr3 value.  All normal registers can be clobbered! */
- switch_to_guest:
--	pushl	%ss
--	SAVE_REGS
-+	pushl	%es
-+	pushl	%ds
-+	pushl	%fs
-+	pushl	%gs
-+	pushl	%edx
-+	pushl	%ebp
- 	/* Save old stack, switch to guest's stack. */
- 	movl	%esp, LGUEST_STATE_host_stackptr(%eax)
- 	movl	%eax, %esp
-@@ -33,17 +24,16 @@ switch_to_guest:
- 	lgdt	LGUEST_STATE_gdt(%eax)
- 	lidt	LGUEST_STATE_idt(%eax)
- 	/* Save page table top. */
--	movl	%cr3, %ebx
--	movl	%ebx, LGUEST_STATE_host_pgdir(%eax)
-+	movl	%cr3, %ecx
-+	movl	%ecx, LGUEST_STATE_host_pgdir(%eax)
- 	/* Set host's TSS to available (clear byte 5 bit 2). */
--	movl	(LGUEST_STATE_host_gdt+2)(%eax), %ebx
--	andb	$0xFD, (GDT_ENTRY_TSS*8 + 5)(%ebx)
-+	movl	(LGUEST_STATE_host_gdt+2)(%eax), %ecx
-+	andb	$0xFD, (GDT_ENTRY_TSS*8 + 5)(%ecx)
- 	/* Switch to guest page tables */
--	popl	%ebx
- 	movl	%ebx, %cr3
- 	/* Switch to guest's TSS. */
--	movl	$(GDT_ENTRY_TSS*8), %ebx
--	ltr	%bx
-+	movl	$(GDT_ENTRY_TSS*8), %edx
-+	ltr	%dx
- 	/* Restore guest regs */
- 	popl	%ebx
- 	popl	%ecx
-@@ -66,10 +56,18 @@ switch_to_guest:
- 	iret
- 
- #define SWITCH_TO_HOST							\
--	SAVE_REGS;							\
--	/* Save old pgdir */						\
--	movl	%cr3, %eax;						\
-+	/* Save guest state */						\
-+	pushl	%es;							\
-+	pushl	%ds;							\
-+	pushl	%fs;							\
- 	pushl	%eax;							\
-+	pushl	%gs;							\
-+	pushl	%ebp;							\
-+	pushl	%edi;							\
-+	pushl	%esi;							\
-+	pushl	%edx;							\
-+	pushl	%ecx;							\
-+	pushl	%ebx;							\
- 	/* Load lguest ds segment for convenience. */			\
- 	movl	$(LGUEST_DS), %eax;					\
- 	movl	%eax, %ds;						\
-@@ -88,21 +86,15 @@ switch_to_guest:
- 	/* Switch to host's stack. */					\
- 	movl	LGUEST_STATE_host_stackptr(%eax), %esp;			\
- 	/* Switch to host's TSS */					\
--	movl	$(GDT_ENTRY_TSS*8), %eax;				\
--	ltr	%ax;							\
-+	movl	$(GDT_ENTRY_TSS*8), %ebx;				\
-+	ltr	%bx;							\
- 	/* Restore host regs */						\
--	popl	%ebx;							\
--	popl	%ecx;							\
--	popl	%edx;							\
--	popl	%esi;							\
--	popl	%edi;							\
- 	popl	%ebp;							\
-+	popl	%edx;							\
- 	popl	%gs;							\
--	popl	%eax;							\
- 	popl	%fs;							\
- 	popl	%ds;							\
--	popl	%es;							\
--	popl	%ss
-+	popl	%es
- 
- /* Return to run_guest_once. */
- return_to_host:
-@@ -135,7 +127,7 @@ deliver_to_host_with_errcode:
- .macro IRQ_STUB N TARGET
- 	.data; .long 1f; .text; 1:
-  /* Make an error number for most traps, which don't have one. */
-- .if (\N <> 2) && (\N <> 8) && (\N < 10 || \N > 14) && (\N <> 17)
-+ .if (\N <> 8) && (\N < 10 || \N > 14) && (\N <> 17)
- 	pushl	$0
-  .endif
- 	pushl	$\N
-diff -puN arch/i386/lguest/lg.h~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore arch/i386/lguest/lg.h
---- a/arch/i386/lguest/lg.h~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore
-+++ a/arch/i386/lguest/lg.h
-@@ -24,7 +24,6 @@
- struct lguest_regs
+ static int __init nvidia_hpet_check(struct acpi_table_header *header)
  {
- 	/* Manually saved part. */
--	u32 cr3;
- 	u32 ebx, ecx, edx;
- 	u32 esi, edi, ebp;
- 	u32 gs;
-@@ -81,6 +80,7 @@ struct lguest
- 	u32 pfn_limit;
- 	u32 page_offset;
- 	u32 cr2;
-+	u32 cr3;
- 	int timer_on;
- 	int halted;
- 	int ts;
-diff -puN arch/i386/lguest/lguest_user.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore arch/i386/lguest/lguest_user.c
---- a/arch/i386/lguest/lguest_user.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore
-+++ a/arch/i386/lguest/lguest_user.c
-@@ -4,7 +4,7 @@
- #include <linux/fs.h>
- #include "lg.h"
- 
--static struct lguest_state *setup_guest_state(unsigned int num, void *pgdir,
-+static struct lguest_state *setup_guest_state(unsigned int num,
- 					      unsigned long start)
- {
- 	struct lguest_state *guest = &__lguest_states()[num];
-@@ -38,7 +38,6 @@ static struct lguest_state *setup_guest_
- 
- 	/* Write out stack in format lguest expects, so we can switch to it. */
- 	regs = &guest->regs;
--	regs->cr3 = __pa(pgdir);
- 	regs->eax = regs->ebx = regs->ecx = regs->edx = regs->esp = 0;
- 	regs->edi = LGUEST_MAGIC_EDI;
- 	regs->ebp = LGUEST_MAGIC_EBP;
-@@ -149,7 +148,7 @@ static int initialize(struct file *file,
- 	if (err)
- 		goto free_trap_page;
- 
--	lg->state = setup_guest_state(i, lg->pgdirs[lg->pgdidx].pgdir,args[2]);
-+	lg->state = setup_guest_state(i, args[2]);
- 	if (!lg->state) {
- 		err = -ENOEXEC;
- 		goto release_pgtable;
-diff -puN arch/i386/lguest/page_tables.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore arch/i386/lguest/page_tables.c
---- a/arch/i386/lguest/page_tables.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore
-+++ a/arch/i386/lguest/page_tables.c
-@@ -223,7 +223,7 @@ void guest_new_pagetable(struct lguest *
- 	if (newpgdir == ARRAY_SIZE(lg->pgdirs))
- 		newpgdir = new_pgdir(lg, pgtable);
- 	lg->pgdidx = newpgdir;
--	lg->state->regs.cr3 = __pa(lg->pgdirs[lg->pgdidx].pgdir);
-+	lg->cr3 = __pa(lg->pgdirs[lg->pgdidx].pgdir);
- 	pin_stack_pages(lg);
- }
- 
-@@ -296,6 +296,7 @@ int init_guest_pagetable(struct lguest *
- 	lg->pgdirs[lg->pgdidx].pgdir = (u32*)get_zeroed_page(GFP_KERNEL);
- 	if (!lg->pgdirs[lg->pgdidx].pgdir)
- 		return -ENOMEM;
-+	lg->cr3 = __pa(lg->pgdirs[lg->pgdidx].pgdir);
+-	nvidia_hpet_detected = 1;
  	return 0;
  }
+ #endif
+@@ -28,9 +25,7 @@ static int __init check_bridge(int vendo
+ 	/* According to Nvidia all timer overrides are bogus unless HPET
+ 	   is enabled. */
+ 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
+-		nvidia_hpet_detected = 0;
+-		acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check);
+-		if (nvidia_hpet_detected == 0) {
++		if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check) {
+ 			acpi_skip_timer_override = 1;
+ 			  printk(KERN_INFO "Nvidia board "
+                        "detected. Ignoring ACPI "
+diff -puN arch/x86_64/kernel/early-quirks.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64 arch/x86_64/kernel/early-quirks.c
+--- a/arch/x86_64/kernel/early-quirks.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64
++++ a/arch/x86_64/kernel/early-quirks.c
+@@ -30,11 +30,8 @@ static void __init via_bugs(void)
  
+ #ifdef CONFIG_ACPI
+ 
+-static int nvidia_hpet_detected __initdata;
+-
+ static int __init nvidia_hpet_check(struct acpi_table_header *header)
+ {
+-	nvidia_hpet_detected = 1;
+ 	return 0;
+ }
+ #endif
+@@ -52,11 +49,7 @@ static void __init nvidia_bugs(void)
+ 	if (acpi_use_timer_override)
+ 		return;
+ 
+-	nvidia_hpet_detected = 0;
+-	if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check))
+-		return;
+-
+-	if (nvidia_hpet_detected == 0) {
++	if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
+ 		acpi_skip_timer_override = 1;
+ 		printk(KERN_INFO "Nvidia board "
+ 		       "detected. Ignoring ACPI "
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from lenb@kernel.org are
 
-futex-restartable-futex_wait.patch
-i386-vdso_prelink-warning-fix.patch
-cleanup-initialize-esp0-properly-all-the-time.patch
-lguest-preparation-export_symbol_gpl-5-functions.patch
-lguest-preparation-expose-futex-infrastructure.patch
-lguest-kconfig-and-headers.patch
-lguest-the-host-code-lgko.patch
-lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patch
-lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
-lguest-the-host-code-lgko-pin-stack-page-optimization.patch
-lguest-guest-code.patch
-lguest-makefile.patch
-lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
-lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
-lguest-dont-crash-host-on-nmi.patch
-lguest-trivial-guest-network-driver.patch
-lguest-trivial-guest-console-driver.patch
-lguest-trivial-guest-block-driver.patch
-lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch
-lguest-documentatation-and-example-launcher.patch
-lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch
-lguest-documentatation-and-example-launcher-bridging-support-in-example-codelguest-documentation-fixes.patch
-module-use-krealloc.patch
-extend-print_symbol-capability.patch
-array_size-check-for-type.patch
-____call_usermodehelper-dont-flush_signals.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-tidy.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled.patch
+acpi-disabled-due-to-dmi-failure-or-blacklisted-year-should-be-noted-as-is-done-with-other-acpi-blacklisting.patch
+i386-irq-kill-irq-compression.patch
+i386-modpost-apic-related-warning-fixes.patch
+acpi-repair-nvidia-early-quirk-breakage-on-x86_64.patch
