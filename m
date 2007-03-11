@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + pata_legacy-restore-cable-methods.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:29:36 -0800
-Message-ID: <200703110929.l2B9TaY6008787@shell0.pdx.osdl.net>
+Subject: + pata_ixp4xx_cf-restore-cable-type-method.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:29:30 -0800
+Message-ID: <200703110929.l2B9TV2f008784@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41208 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41209 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751972AbXCKJ3p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1751979AbXCKJ3p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Sun, 11 Mar 2007 05:29:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_legacy: restore cable methods
+     pata_ixp4xx_cf: restore cable type method
 has been added to the -mm tree.  Its filename is
-     pata_legacy-restore-cable-methods.patch
+     pata_ixp4xx_cf-restore-cable-type-method.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,75 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_legacy: restore cable methods
+Subject: pata_ixp4xx_cf: restore cable type method
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_legacy.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/ata/pata_ixp4xx_cf.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_legacy.c~pata_legacy-restore-cable-methods drivers/ata/pata_legacy.c
---- a/drivers/ata/pata_legacy.c~pata_legacy-restore-cable-methods
-+++ a/drivers/ata/pata_legacy.c
-@@ -162,6 +162,7 @@ static struct ata_port_operations simple
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
+diff -puN drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-restore-cable-type-method drivers/ata/pata_ixp4xx_cf.c
+--- a/drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-restore-cable-type-method
++++ a/drivers/ata/pata_ixp4xx_cf.c
+@@ -129,6 +129,7 @@ static struct ata_port_operations ixp4xx
  	.qc_issue	= ata_qc_issue_prot,
-@@ -185,6 +186,7 @@ static struct ata_port_operations legacy
- 	.check_status 	= ata_check_status,
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
+ 	.eng_timeout	= ata_eng_timeout,
+ 	.data_xfer	= ixp4xx_mmio_data_xfer,
 +	.cable_detect	= ata_cable_40wire,
  
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
-@@ -305,6 +307,7 @@ static struct ata_port_operations pdc202
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-@@ -360,6 +363,7 @@ static struct ata_port_operations ht6560
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-@@ -426,6 +430,7 @@ static struct ata_port_operations ht6560
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-@@ -547,6 +552,7 @@ static struct ata_port_operations opti82
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-@@ -680,6 +686,7 @@ static struct ata_port_operations opti82
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= opti82c46x_qc_issue_prot,
+ 	.irq_handler	= ata_interrupt,
+ 	.irq_clear	= ixp4xx_irq_clear,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
