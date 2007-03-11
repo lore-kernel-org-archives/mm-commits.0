@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-repair-nvidia-early-quirk-breakage-on-x86_64.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:19:33 -0800
-Message-ID: <200703110919.l2B9JXGX008601@shell0.pdx.osdl.net>
+Subject: + ata_generic-remove-all-the-crud-again-and-use-cable.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:28:08 -0800
+Message-ID: <200703110928.l2B9S8KF008723@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41053 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41141 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751821AbXCKJU6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:20:58 -0400
+	id S1751932AbXCKJ2S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:28:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lenb@kernel.org, ak@muc.de, len.brown@intel.com
+Cc: alan@redhat.com
 
 
 The patch titled
-     ACPI: repair nvidia early quirk breakage on x86_64
+     ata_generic: remove all the crud again and use cable methods
 has been added to the -mm tree.  Its filename is
-     acpi-repair-nvidia-early-quirk-breakage-on-x86_64.patch
+     ata_generic-remove-all-the-crud-again-and-use-cable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,84 +25,118 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: repair nvidia early quirk breakage on x86_64
-From: Len Brown <lenb@kernel.org>
+Subject: ata_generic: remove all the crud again and use cable methods
+From: Alan Cox <alan@redhat.com>
 
-x86_64 nvidia_bugs() broke when we bailed out on not finding the HPET. 
-However, the quirk works by checking for _not_ finding the HPET...
-
-Delete the nvidia_hpet_detected flag and simply test for not finding the
-HPET, which is simple to do now that acpi_table_parse returns 1 on failure.
-
-Signed-off-by: Len Brown <len.brown@intel.com>
-Cc: Andi Kleen <ak@muc.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/earlyquirk.c |    7 +------
- arch/x86_64/kernel/early-quirks.c  |    9 +--------
- 2 files changed, 2 insertions(+), 14 deletions(-)
+ drivers/ata/ata_generic.c |   33 ++-------------------------------
+ 1 file changed, 2 insertions(+), 31 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/earlyquirk.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64 arch/i386/kernel/acpi/earlyquirk.c
---- a/arch/i386/kernel/acpi/earlyquirk.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64
-+++ a/arch/i386/kernel/acpi/earlyquirk.c
-@@ -13,11 +13,8 @@
+diff -puN drivers/ata/ata_generic.c~ata_generic-remove-all-the-crud-again-and-use-cable drivers/ata/ata_generic.c
+--- a/drivers/ata/ata_generic.c~ata_generic-remove-all-the-crud-again-and-use-cable
++++ a/drivers/ata/ata_generic.c
+@@ -33,36 +33,6 @@
+  */
  
- #ifdef CONFIG_ACPI
- 
--static int nvidia_hpet_detected __initdata;
+ /**
+- *	generic_pre_reset		-	probe begin
+- *	@ap: ATA port
+- *	@deadline: deadline jiffies for the operation
+- *
+- *	Set up cable type and use generic probe init
+- */
 -
- static int __init nvidia_hpet_check(struct acpi_table_header *header)
- {
--	nvidia_hpet_detected = 1;
- 	return 0;
- }
- #endif
-@@ -28,9 +25,7 @@ static int __init check_bridge(int vendo
- 	/* According to Nvidia all timer overrides are bogus unless HPET
- 	   is enabled. */
- 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
--		nvidia_hpet_detected = 0;
--		acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check);
--		if (nvidia_hpet_detected == 0) {
-+		if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check) {
- 			acpi_skip_timer_override = 1;
- 			  printk(KERN_INFO "Nvidia board "
-                        "detected. Ignoring ACPI "
-diff -puN arch/x86_64/kernel/early-quirks.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64 arch/x86_64/kernel/early-quirks.c
---- a/arch/x86_64/kernel/early-quirks.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64
-+++ a/arch/x86_64/kernel/early-quirks.c
-@@ -30,11 +30,8 @@ static void __init via_bugs(void)
- 
- #ifdef CONFIG_ACPI
- 
--static int nvidia_hpet_detected __initdata;
+-static int generic_pre_reset(struct ata_port *ap, unsigned long deadline)
+-{
+-	ap->cbl = ATA_CBL_PATA80;
+-	return ata_std_prereset(ap, deadline);
+-}
 -
- static int __init nvidia_hpet_check(struct acpi_table_header *header)
- {
--	nvidia_hpet_detected = 1;
- 	return 0;
- }
- #endif
-@@ -52,11 +49,7 @@ static void __init nvidia_bugs(void)
- 	if (acpi_use_timer_override)
- 		return;
- 
--	nvidia_hpet_detected = 0;
--	if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check))
--		return;
 -
--	if (nvidia_hpet_detected == 0) {
-+	if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
- 		acpi_skip_timer_override = 1;
- 		printk(KERN_INFO "Nvidia board "
- 		       "detected. Ignoring ACPI "
+-/**
+- *	generic_error_handler - Probe specified port on PATA host controller
+- *	@ap: Port to probe
+- *	@classes:
+- *
+- *	LOCKING:
+- *	None (inherited from caller).
+- */
+-
+-
+-static void generic_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, generic_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+-/**
+  *	generic_set_mode	-	mode setting
+  *	@ap: interface to set up
+  *	@unused: returned device on error
+@@ -145,8 +115,9 @@ static struct ata_port_operations generi
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= generic_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_unknown,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
 _
 
-Patches currently in -mm which might be from lenb@kernel.org are
+Patches currently in -mm which might be from alan@redhat.com are
 
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled.patch
-acpi-disabled-due-to-dmi-failure-or-blacklisted-year-should-be-noted-as-is-done-with-other-acpi-blacklisting.patch
-i386-irq-kill-irq-compression.patch
-i386-modpost-apic-related-warning-fixes.patch
-acpi-repair-nvidia-early-quirk-breakage-on-x86_64.patch
+git-libata-all.patch
+expose-set_mode-method-so-it-can-be-wrapped.patch
+pcmcia-spot-slave-decode-flaws-for-testing.patch
+ata_generic-remove-all-the-crud-again-and-use-cable.patch
+pata_ali-remove-all-the-crap-again-and-switch-to.patch
+pata_amd-remove-all-the-crud-and-restore-the-cable-detect.patch
+pata_artop-remove-all-the-crud-again-and-restore-the-cable.patch
+pata_atiixp-restore-the-cable-method.patch
+pata_cmd64x-restore-cable-method.patch
+pata_cs5520-re-remove-crap-and-switch-to-cable-detect.patch
+pata_cs5530-re-remove-all-the-crap-and-switch-back-to-the.patch
+pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable.patch
+pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch
+pata_efar-switch-back-to-cable-methods.patch
+pata_hpt366-switch-back-to-cable-method-again.patch
+pata_hpt3x3-switch-back-to-cable-method-and-re-remove-all.patch
+pata_isapnp-put-cable-type-back.patch
+pata_it8213-switch-to-cable-method-again.patch
+pata_it821x-switch-back-to-cable-detect-and-re-remove-all.patch
+pata_ixp4xx_cf-restore-cable-type-method.patch
+pata_legacy-restore-cable-methods.patch
+pata_marvell-restore-cable-methods-and-reapply-lost-bug.patch
+pata_mpc52xx-restore-cable-method.patch
+pata_mpiix-restore-cable-type-method.patch
+pata_netcell-re-remove-all-the-crud.patch
+pata_ns87410-restore-cable-detect-method.patch
+pata_oldpiix-restore-cable-method-re-correct-comments.patch
+pata_opti-restore-cable-method.patch
+pata_pcmcia-restore-cable-reporting.patch
+pata_pdc202xx_old-re-remove-crap-restore-cable-methods.patch
+pata_qdi-restore-cable-detect.patch
+pata_serverworks-re-remove-crap-restore-cable-detect.patch
+pata_sil680-restore-cable-detect-methods.patch
+pata_sis-restore-cable-method-re-perform-crapectory.patch
+pata_sl82c105-restore-cable-detect-method.patch
+pata_via-restore-cable-detect.patch
+pata_winbond-restore-cable-method.patch
+sata_via-use-cable-detect-methods.patch
+libata-acpi-try-and-stop-all-the-non-pci-devices-crashing.patch
+libata-acpi-add-infrastructure-for-drivers-to-use.patch
+pata_optidma-rework-for-cable-detect-and-to-remove.patch
+pata_pdc2027x-restore-various-updates-done-on-the-driver.patch
+pata_acpi-restore-driver.patch
+ata_piix-remove-ugly-layering-violation.patch
+pata_cmd640-multiple-updates.patch
+dilnetpc-fix-warning.patch
+resend-iphase-64bit-cleanup.patch
+pci_module_init-convertion-in-tmscsimc.patch
+z85230-fix-fifo-handling.patch
+tty-clarify-documentation-of-write.patch
