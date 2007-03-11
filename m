@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_opti-restore-cable-method.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:30:03 -0800
-Message-ID: <200703110930.l2B9U3s1008837@shell0.pdx.osdl.net>
+Subject: + pata_pcmcia-restore-cable-reporting.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:30:07 -0800
+Message-ID: <200703110930.l2B9U75g008840@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41243 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41245 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752006AbXCKJaN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:30:13 -0400
+	id S1752008AbXCKJaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:30:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_opti: restore cable method
+     pata_pcmcia: restore cable reporting
 has been added to the -mm tree.  Its filename is
-     pata_opti-restore-cable-method.patch
+     pata_pcmcia-restore-cable-reporting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_opti: restore cable method
+Subject: pata_pcmcia: restore cable reporting
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_opti.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/ata/pata_pcmcia.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_opti.c~pata_opti-restore-cable-method drivers/ata/pata_opti.c
---- a/drivers/ata/pata_opti.c~pata_opti-restore-cable-method
-+++ a/drivers/ata/pata_opti.c
-@@ -34,7 +34,7 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/pata_pcmcia.c~pata_pcmcia-restore-cable-reporting drivers/ata/pata_pcmcia.c
+--- a/drivers/ata/pata_pcmcia.c~pata_pcmcia-restore-cable-reporting
++++ a/drivers/ata/pata_pcmcia.c
+@@ -42,7 +42,7 @@
  
- #define DRV_NAME "pata_opti"
--#define DRV_VERSION "0.2.8"
-+#define DRV_VERSION "0.2.9"
  
- enum {
- 	READ_REG	= 0,	/* index of Read cycle timing register */
-@@ -62,8 +62,6 @@ static int opti_pre_reset(struct ata_por
+ #define DRV_NAME "pata_pcmcia"
+-#define DRV_VERSION "0.3.0"
++#define DRV_VERSION "0.3.1"
  
- 	if (!pci_test_config_bits(pdev, &opti_enable_bits[ap->port_no]))
- 		return -ENOENT;
--
--	ap->cbl = ATA_CBL_PATA40;
- 	return ata_std_prereset(ap, deadline);
- }
- 
-@@ -199,6 +197,7 @@ static struct ata_port_operations opti_p
+ /*
+  *	Private data structure to glue stuff together
+@@ -118,6 +118,7 @@ static struct ata_port_operations pcmcia
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= opti_error_handler,
+ 	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
 +	.cable_detect	= ata_cable_40wire,
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
