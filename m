@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_hpt366-switch-back-to-cable-method-again.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:28:52 -0800
-Message-ID: <200703110928.l2B9Sqcm008769@shell0.pdx.osdl.net>
+Subject: + pata_isapnp-put-cable-type-back.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:29:01 -0800
+Message-ID: <200703110929.l2B9T1YC008775@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41180 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41189 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751959AbXCKJ3B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:29:01 -0400
+	id S1751965AbXCKJ3K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:29:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_hpt366: switch back to cable method again
+     pata_isapnp: put cable type back
 has been added to the -mm tree.  Its filename is
-     pata_hpt366-switch-back-to-cable-method-again.patch
+     pata_isapnp-put-cable-type-back.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,72 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_hpt366: switch back to cable method again
+Subject: pata_isapnp: put cable type back
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt366.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ drivers/ata/pata_isapnp.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_hpt366.c~pata_hpt366-switch-back-to-cable-method-again drivers/ata/pata_hpt366.c
---- a/drivers/ata/pata_hpt366.c~pata_hpt366-switch-back-to-cable-method-again
-+++ a/drivers/ata/pata_hpt366.c
-@@ -27,7 +27,7 @@
- #include <linux/libata.h>
- 
- #define DRV_NAME	"pata_hpt366"
--#define DRV_VERSION	"0.6.0"
-+#define DRV_VERSION	"0.6.1"
- 
- struct hpt_clock {
- 	u8	xfer_speed;
-@@ -210,24 +210,26 @@ static u32 hpt36x_find_mode(struct ata_p
- 	return 0xffffffffU;	/* silence compiler warning */
- }
- 
-+static int hpt36x_cable_detect(struct ata_port *ap)
-+{
-+	u8 ata66;
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+
-+	pci_read_config_byte(pdev, 0x5A, &ata66);
-+	if (ata66 & (1 << ap->port_no))
-+		return ATA_CBL_PATA40;
-+	return ATA_CBL_PATA80;
-+}
-+
- static int hpt36x_pre_reset(struct ata_port *ap, unsigned long deadline)
- {
- 	static const struct pci_bits hpt36x_enable_bits[] = {
- 		{ 0x50, 1, 0x04, 0x04 },
- 		{ 0x54, 1, 0x04, 0x04 }
- 	};
--
--	u8 ata66;
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--
- 	if (!pci_test_config_bits(pdev, &hpt36x_enable_bits[ap->port_no]))
- 		return -ENOENT;
--
--	pci_read_config_byte(pdev, 0x5A, &ata66);
--	if (ata66 & (1 << ap->port_no))
--		ap->cbl = ATA_CBL_PATA40;
--	else
--		ap->cbl = ATA_CBL_PATA80;
- 	return ata_std_prereset(ap, deadline);
- }
- 
-@@ -354,6 +356,7 @@ static struct ata_port_operations hpt366
+diff -puN drivers/ata/pata_isapnp.c~pata_isapnp-put-cable-type-back drivers/ata/pata_isapnp.c
+--- a/drivers/ata/pata_isapnp.c~pata_isapnp-put-cable-type-back
++++ a/drivers/ata/pata_isapnp.c
+@@ -49,6 +49,7 @@ static struct ata_port_operations isapnp
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= hpt36x_error_handler,
+ 	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= hpt36x_cable_detect,
++	.cable_detect	= ata_cable_40wire,
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
