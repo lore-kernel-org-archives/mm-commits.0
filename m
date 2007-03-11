@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-unused-header-file-drivers-char-digih.patch added to -mm tree
-Date: Sat, 10 Mar 2007 23:22:44 -0800
-Message-ID: <200703110722.l2B7MiJ5006904@shell0.pdx.osdl.net>
+Subject: + remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch added to -mm tree
+Date: Sat, 10 Mar 2007 23:22:48 -0800
+Message-ID: <200703110722.l2B7Mm3a006910@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38602 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38608 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751023AbXCKHWs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 03:22:48 -0400
+	id S1751157AbXCKHWz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 03:22:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: rpjday@mindspring.com, blaisorblade@yahoo.it, jdike@addtoit.com
 
 
 The patch titled
-     remove unused header file: drivers/char/digi.h
+     remove unused header file: arch/um/kernel/tt/include/mode_kern-tt.h
 has been added to the -mm tree.  Its filename is
-     remove-unused-header-file-drivers-char-digih.patch
+     remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,91 +25,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove unused header file: drivers/char/digi.h
+Subject: remove unused header file: arch/um/kernel/tt/include/mode_kern-tt.h
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/digi.h |   71 ------------------------------------------
- 1 file changed, 71 deletions(-)
+ arch/um/kernel/tt/include/mode_kern-tt.h |   52 ---------------------
+ 1 file changed, 52 deletions(-)
 
-diff -puN drivers/char/digi.h~remove-unused-header-file-drivers-char-digih /dev/null
---- a/drivers/char/digi.h
+diff -puN arch/um/kernel/tt/include/mode_kern-tt.h~remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth /dev/null
+--- a/arch/um/kernel/tt/include/mode_kern-tt.h
 +++ /dev/null
-@@ -1,71 +0,0 @@
--/*          Definitions for DigiBoard ditty(1) command.                 */
+@@ -1,52 +0,0 @@
+-/*
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
 -
--#if !defined(TIOCMODG)
--#define	TIOCMODG	(('d'<<8) | 250)		/* get modem ctrl state	*/
--#define	TIOCMODS	(('d'<<8) | 251)		/* set modem ctrl state	*/
+-#ifndef __TT_MODE_KERN_H__
+-#define __TT_MODE_KERN_H__
+-
+-#include "linux/sched.h"
+-#include "asm/page.h"
+-#include "asm/ptrace.h"
+-#include "asm/uaccess.h"
+-
+-extern void switch_to_tt(void *prev, void *next);
+-extern void flush_thread_tt(void);
+-extern void start_thread_tt(struct pt_regs *regs, unsigned long eip,
+-			   unsigned long esp);
+-extern int copy_thread_tt(int nr, unsigned long clone_flags, unsigned long sp,
+-			  unsigned long stack_top, struct task_struct *p,
+-			  struct pt_regs *regs);
+-extern void release_thread_tt(struct task_struct *task);
+-extern void initial_thread_cb_tt(void (*proc)(void *), void *arg);
+-extern void init_idle_tt(void);
+-extern void flush_tlb_kernel_range_tt(unsigned long start, unsigned long end);
+-extern void flush_tlb_kernel_vm_tt(void);
+-extern void __flush_tlb_one_tt(unsigned long addr);
+-extern void flush_tlb_range_tt(struct vm_area_struct *vma,
+-			       unsigned long start, unsigned long end);
+-extern void flush_tlb_mm_tt(struct mm_struct *mm);
+-extern void force_flush_all_tt(void);
+-extern long execute_syscall_tt(void *r);
+-extern void before_mem_tt(unsigned long brk_start);
+-extern unsigned long set_task_sizes_tt(int arg, unsigned long *host_size_out,
+-				       unsigned long *task_size_out);
+-extern int start_uml_tt(void);
+-extern int external_pid_tt(struct task_struct *task);
+-extern int thread_pid_tt(struct task_struct *task);
+-
+-#define kmem_end_tt (host_task_size - ABOVE_KMEM)
+-
 -#endif
 -
--#if !defined(TIOCMSET)
--#define	TIOCMSET	(('d'<<8) | 252)		/* set modem ctrl state	*/
--#define	TIOCMGET	(('d'<<8) | 253)		/* set modem ctrl state	*/
--#endif
--
--#if !defined(TIOCMBIC)
--#define	TIOCMBIC	(('d'<<8) | 254)		/* set modem ctrl state */
--#define	TIOCMBIS	(('d'<<8) | 255)		/* set modem ctrl state */
--#endif
--
--#if !defined(TIOCSDTR)
--#define	TIOCSDTR	(('e'<<8) | 0)		/* set DTR		*/
--#define	TIOCCDTR	(('e'<<8) | 1)		/* clear DTR		*/
--#endif
--
--/************************************************************************
-- * Ioctl command arguments for DIGI parameters.
-- ************************************************************************/
--#define DIGI_GETA	(('e'<<8) | 94)		/* Read params		*/
--
--#define DIGI_SETA	(('e'<<8) | 95)		/* Set params		*/
--#define DIGI_SETAW	(('e'<<8) | 96)		/* Drain & set params	*/
--#define DIGI_SETAF	(('e'<<8) | 97)		/* Drain, flush & set params */
--
--#define	DIGI_GETFLOW	(('e'<<8) | 99)		/* Get startc/stopc flow */
--						/* control characters 	 */
--#define	DIGI_SETFLOW	(('e'<<8) | 100)		/* Set startc/stopc flow */
--						/* control characters	 */
--#define	DIGI_GETAFLOW	(('e'<<8) | 101)		/* Get Aux. startc/stopc */
--						/* flow control chars 	 */
--#define	DIGI_SETAFLOW	(('e'<<8) | 102)		/* Set Aux. startc/stopc */
--						/* flow control chars	 */
--
--struct	digiflow_struct {
--	unsigned char	startc;				/* flow cntl start char	*/
--	unsigned char	stopc;				/* flow cntl stop char	*/
--};
--
--typedef struct digiflow_struct digiflow_t;
--
--
--/************************************************************************
-- * Values for digi_flags 
-- ************************************************************************/
--#define DIGI_IXON	0x0001		/* Handle IXON in the FEP	*/
--#define DIGI_FAST	0x0002		/* Fast baud rates		*/
--#define RTSPACE		0x0004		/* RTS input flow control	*/
--#define CTSPACE		0x0008		/* CTS output flow control	*/
--#define DSRPACE		0x0010		/* DSR output flow control	*/
--#define DCDPACE		0x0020		/* DCD output flow control	*/
--#define DTRPACE		0x0040		/* DTR input flow control	*/
--#define DIGI_FORCEDCD	0x0100		/* Force carrier		*/
--#define	DIGI_ALTPIN	0x0200		/* Alternate RJ-45 pin config	*/
--#define	DIGI_AIXON	0x0400		/* Aux flow control in fep	*/
--
--
--/************************************************************************
-- * Structure used with ioctl commands for DIGI parameters.
-- ************************************************************************/
--struct digi_struct {
--	unsigned short	digi_flags;		/* Flags (see above)	*/
--};
--
--typedef struct digi_struct digi_t;
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
