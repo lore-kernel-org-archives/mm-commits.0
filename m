@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_marvell-restore-cable-methods-and-reapply-lost-bug.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:29:39 -0800
-Message-ID: <200703110929.l2B9TdIg008790@shell0.pdx.osdl.net>
+Subject: + pata_mpc52xx-restore-cable-method.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:29:43 -0800
+Message-ID: <200703110929.l2B9ThQh008793@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41211 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41216 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751985AbXCKJ3s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:29:48 -0400
+	id S1751981AbXCKJ3w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:29:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_marvell: restore cable methods and reapply lost bug fix
+     pata_mpc52xx: restore cable method
 has been added to the -mm tree.  Its filename is
-     pata_marvell-restore-cable-methods-and-reapply-lost-bug.patch
+     pata_mpc52xx-restore-cable-method.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_marvell: restore cable methods and reapply lost bug fix
+Subject: pata_mpc52xx: restore cable method
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_marvell.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ drivers/ata/pata_mpc52xx.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_marvell.c~pata_marvell-restore-cable-methods-and-reapply-lost-bug drivers/ata/pata_marvell.c
---- a/drivers/ata/pata_marvell.c~pata_marvell-restore-cable-methods-and-reapply-lost-bug
-+++ a/drivers/ata/pata_marvell.c
-@@ -20,7 +20,7 @@
- #include <linux/ata.h>
+diff -puN drivers/ata/pata_mpc52xx.c~pata_mpc52xx-restore-cable-method drivers/ata/pata_mpc52xx.c
+--- a/drivers/ata/pata_mpc52xx.c~pata_mpc52xx-restore-cable-method
++++ a/drivers/ata/pata_mpc52xx.c
+@@ -24,7 +24,7 @@
  
- #define DRV_NAME	"pata_marvell"
--#define DRV_VERSION	"0.1.1"
-+#define DRV_VERSION	"0.1.4"
  
- /**
-  *	marvell_pre_reset	-	check for 40/80 pin
-@@ -53,22 +53,23 @@ static int marvell_pre_reset(struct ata_
- 	if ((pdev->device == 0x6145) && (ap->port_no == 0) &&
- 	    (!(devices & 0x10)))	/* PATA enable ? */
- 		return -ENOENT;
-+	return ata_std_prereset(ap, deadline);
-+}
+ #define DRV_NAME	"mpc52xx_ata"
+-#define DRV_VERSION	"0.1.0"
++#define DRV_VERSION	"0.1.0ac2"
  
-+static int marvell_cable_detect(struct ata_port *ap)
-+{
- 	/* Cable type */
- 	switch(ap->port_no)
- 	{
- 	case 0:
- 		if (ioread8(ap->ioaddr.bmdma_addr + 1) & 1)
--			ap->cbl = ATA_CBL_PATA40;
--		else
--			ap->cbl = ATA_CBL_PATA80;
--		break;
--
-+			return ATA_CBL_PATA40;
-+		return ATA_CBL_PATA80;
- 	case 1: /* Legacy SATA port */
--		ap->cbl = ATA_CBL_SATA;
--		break;
-+		return ATA_CBL_SATA;
- 	}
--	return ata_std_prereset(ap, deadline);
-+	BUG();
-+	return 0;	/* Our BUG macro needs the right markup */
- }
  
- /**
-@@ -124,6 +125,7 @@ static const struct ata_port_operations 
+ /* Private structures used by the driver */
+@@ -297,6 +297,7 @@ static struct ata_port_operations mpc52x
+ 	.freeze			= ata_bmdma_freeze,
  	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= marvell_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= marvell_cable_detect,
- 
- 	/* BMDMA handling is PCI ATA format, use helpers */
- 	.bmdma_setup		= ata_bmdma_setup,
+ 	.error_handler		= mpc52xx_ata_error_handler,
++	.cable_detect		= ata_cable_40wire,
+ 	.qc_prep		= ata_qc_prep,
+ 	.qc_issue		= ata_qc_issue_prot,
+ 	.data_xfer		= ata_data_xfer,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
