@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + futex-restartable-futex_wait.patch added to -mm tree
-Date: Sun, 11 Mar 2007 00:14:36 -0800
-Message-ID: <200703110814.l2B8EaI1007615@shell0.pdx.osdl.net>
+Subject: + array_size-check-for-type.patch added to -mm tree
+Date: Sun, 11 Mar 2007 00:16:29 -0800
+Message-ID: <200703110816.l2B8GTxB007711@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39563 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39587 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751743AbXCKIPP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 04:15:15 -0400
+	id S1751717AbXCKIQf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 04:16:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, drepper@redhat.com, mingo@elte.hu, oleg@tv-sign.ru, roland@redhat.com, rusty@rustcorp.com.au
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     futex: restartable futex_wait
+     ARRAY_SIZE: check for type
 has been added to the -mm tree.  Its filename is
-     futex-restartable-futex_wait.patch
+     array_size-check-for-type.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,100 +25,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: futex: restartable futex_wait
-From: Nick Piggin <npiggin@suse.de>
+Subject: ARRAY_SIZE: check for type
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-LTP test sigaction_16_24 fails, because it expects sem_wait to be restarted
-if SA_RESTART is set.  sem_wait is implemented with futex_wait, that
-currently doesn't support being restarted.  Ulrich confirms that the call
-should be restartable.
+We can use a gcc extension to ensure that ARRAY_SIZE() is handed an array,
+not a pointer.  This is especially important when code is changed from a
+fixed array to a pointer.  I assume the Intel compiler doesn't support
+__builtin_types_compatible_p.
 
-Implement a restart_block method to handle the relative timeout, and allow
-restarts.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |   25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+ include/linux/compiler-gcc.h   |    3 +++
+ include/linux/compiler-intel.h |    3 +++
+ include/linux/kernel.h         |    3 ++-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN kernel/futex.c~futex-restartable-futex_wait kernel/futex.c
---- a/kernel/futex.c~futex-restartable-futex_wait
-+++ a/kernel/futex.c
-@@ -978,6 +978,7 @@ static void unqueue_me_pi(struct futex_q
- 	drop_futex_key_refs(&q->key);
- }
+diff -puN include/linux/compiler-gcc.h~array_size-check-for-type include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~array_size-check-for-type
++++ a/include/linux/compiler-gcc.h
+@@ -22,6 +22,9 @@
+     __asm__ ("" : "=r"(__ptr) : "0"(ptr));		\
+     (typeof(ptr)) (__ptr + (off)); })
  
-+static long futex_wait_restart(struct restart_block *restart);
- static int futex_wait(u32 __user *uaddr, u32 val, unsigned long time)
- {
- 	struct task_struct *curr = current;
-@@ -1077,11 +1078,22 @@ static int futex_wait(u32 __user *uaddr,
- 		return 0;
- 	if (time == 0)
- 		return -ETIMEDOUT;
-+
- 	/*
- 	 * We expect signal_pending(current), but another thread may
- 	 * have handled it for us already.
- 	 */
--	return -EINTR;
-+	if (time == MAX_SCHEDULE_TIMEOUT)
-+		return -ERESTARTSYS;
-+	else {
-+		struct restart_block *restart;
-+		restart = &current_thread_info()->restart_block;
-+		restart->fn = futex_wait_restart;
-+		restart->arg0 = (unsigned long)uaddr;
-+		restart->arg1 = (unsigned long)val;
-+		restart->arg2 = time;
-+		return -ERESTART_RESTARTBLOCK;
-+	}
++/* &a[0] degrades to a pointer: a different type from an array */
++#define __must_be_array(a) \
++  BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0])))
  
-  out_unlock_release_sem:
- 	queue_unlock(&q, hb);
-@@ -1091,6 +1103,17 @@ static int futex_wait(u32 __user *uaddr,
- 	return ret;
- }
+ #define inline		inline		__attribute__((always_inline))
+ #define __inline__	__inline__	__attribute__((always_inline))
+diff -puN include/linux/compiler-intel.h~array_size-check-for-type include/linux/compiler-intel.h
+--- a/include/linux/compiler-intel.h~array_size-check-for-type
++++ a/include/linux/compiler-intel.h
+@@ -21,4 +21,7 @@
+      __ptr = (unsigned long) (ptr);				\
+     (typeof(ptr)) (__ptr + (off)); })
  
-+static long futex_wait_restart(struct restart_block *restart)
-+{
-+	u32 __user *uaddr = (u32 __user *)restart->arg0;
-+	u32 val = (u32)restart->arg1;
-+	unsigned long time = restart->arg2;
++/* Intel ECC compiler doesn't support __builtin_types_compatible_p() */
++#define __must_be_array(a) 0
 +
-+	restart->fn = do_no_restart_syscall;
-+	return (long)futex_wait(uaddr, val, time);
-+}
+ #endif
+diff -puN include/linux/kernel.h~array_size-check-for-type include/linux/kernel.h
+--- a/include/linux/kernel.h~array_size-check-for-type
++++ a/include/linux/kernel.h
+@@ -35,7 +35,8 @@ extern const char linux_proc_banner[];
+ #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
+ #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
+ 
+-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
++#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
 +
-+
- /*
-  * Userspace tried a 0 -> TID atomic transition of the futex value
-  * and failed. The kernel side here does the whole locking operation:
+ #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
+ #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+ #define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-mm-fix-madvise-infinine-loop.patch
 futex-restartable-futex_wait.patch
-mm-remove-gcc-workaround.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-mm-debug-check-for-the-fault-vs-invalidate-race.patch
-mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
-mm-simplify-filemap_nopage.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault.patch
-mm-remove-legacy-cruft.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-exec-fix-remove_arg_zero.patch
-exec-fix-remove_arg_zero-add-comment.patch
+i386-vdso_prelink-warning-fix.patch
+cleanup-initialize-esp0-properly-all-the-time.patch
+lguest-preparation-export_symbol_gpl-5-functions.patch
+lguest-preparation-expose-futex-infrastructure.patch
+lguest-kconfig-and-headers.patch
+lguest-the-host-code-lgko.patch
+lguest-guest-code.patch
+lguest-makefile.patch
+lguest-trivial-guest-network-driver.patch
+lguest-trivial-guest-console-driver.patch
+lguest-trivial-guest-block-driver.patch
+lguest-documentatation-and-example-launcher.patch
+module-use-krealloc.patch
+extend-print_symbol-capability.patch
+array_size-check-for-type.patch
+____call_usermodehelper-dont-flush_signals.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput-tidy.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
