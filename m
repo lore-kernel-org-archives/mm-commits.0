@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-prepare-write-change-blocks-on-the-fly.patch added to -mm tree
-Date: Sat, 10 Mar 2007 23:47:47 -0800
-Message-ID: <200703110747.l2B7ll6v007249@shell0.pdx.osdl.net>
+Subject: + ufs-zeroize-the-rest-of-block-in-truncate.patch added to -mm tree
+Date: Sat, 10 Mar 2007 23:47:51 -0800
+Message-ID: <200703110747.l2B7lp4d007252@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39083 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39088 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751349AbXCKHrx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 03:47:53 -0400
+	id S1751630AbXCKHr5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 03:47:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dushistov@mail.ru
 
 
 The patch titled
-     ufs: prepare write + change blocks on the fly
+     ufs: zeroize the rest of block in truncate
 has been added to the -mm tree.  Its filename is
-     ufs-prepare-write-change-blocks-on-the-fly.patch
+     ufs-zeroize-the-rest-of-block-in-truncate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,145 +25,209 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ufs: prepare write + change blocks on the fly
+Subject: ufs: zeroize the rest of block in truncate
 From: Evgeniy Dushistov <dushistov@mail.ru>
 
-This patch fixes "change blocks numbers on the fly" in case when "prepare
-   write page" is in the call chain, in this case some buffers may be not
-   uptodate and not mapped, we should care to map them and load from disk.
+This patch fix behaviour in such test scenario:
 
-This patch was tested with:
-ufs regressions simple tests
-fsx-linux
-ltp(20060306)
-untar and build kernel
+lseek(fd, BIG_OFFSET)
+write(fd, buf, sizeof(buf))
+truncate(BIG_OFFSET)
+truncate(BIG_OFFSET + sizeof(buf))
+read(fd, buf...)
+
+Because of if file big enough(BIG_OFFSET) we start allocate space by block,
+ordinary block size > page size, so we should zeroize the rest of block in
+truncate(except last framgnet, about which VFS should care), to not get
+garbage, when we extend file.
+
+Also patch corrects conversion from pointer to block to physical block number,
+this helps in case of not common used UFS types.
+
+And add to debug output inode number.
 
 Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/balloc.c |   81 ++++++++++++++++++++++++++++++----------------
- 1 file changed, 53 insertions(+), 28 deletions(-)
+ fs/ufs/balloc.c   |    5 +++--
+ fs/ufs/inode.c    |   12 ++++++------
+ fs/ufs/truncate.c |   36 ++++++++++++++++++++++++++----------
+ 3 files changed, 35 insertions(+), 18 deletions(-)
 
-diff -puN fs/ufs/balloc.c~ufs-prepare-write-change-blocks-on-the-fly fs/ufs/balloc.c
---- a/fs/ufs/balloc.c~ufs-prepare-write-change-blocks-on-the-fly
+diff -puN fs/ufs/balloc.c~ufs-zeroize-the-rest-of-block-in-truncate fs/ufs/balloc.c
+--- a/fs/ufs/balloc.c~ufs-zeroize-the-rest-of-block-in-truncate
 +++ a/fs/ufs/balloc.c
-@@ -244,62 +244,87 @@ failed:
-  * We can come here from ufs_writepage or ufs_prepare_write,
-  * locked_page is argument of these functions, so we already lock it.
-  */
--static void ufs_change_blocknr(struct inode *inode, unsigned int beg,
--			       unsigned int count, unsigned int oldb,
--			       unsigned int newb, struct page *locked_page)
-+static void ufs_change_blocknr(struct inode *inode, sector_t beg,
-+			       unsigned int count, sector_t oldb,
-+			       sector_t newb, struct page *locked_page)
+@@ -482,8 +482,9 @@ u64 ufs_new_fragments(struct inode *inod
+ 	if (result) {
+ 		ufs_clear_frags(inode, result + oldcount, newcount - oldcount,
+ 				locked_page != NULL);
+-		ufs_change_blocknr(inode, fragment - oldcount, oldcount, tmp,
+-				   result, locked_page);
++		ufs_change_blocknr(inode, fragment - oldcount, oldcount,
++				   uspi->s_sbbase + tmp,
++				   uspi->s_sbbase + result, locked_page);
+ 		ufs_cpu_to_data_ptr(sb, p, result);
+ 		*err = 0;
+ 		UFS_I(inode)->i_lastfrag = max_t(u32, UFS_I(inode)->i_lastfrag, fragment + count);
+diff -puN fs/ufs/inode.c~ufs-zeroize-the-rest-of-block-in-truncate fs/ufs/inode.c
+--- a/fs/ufs/inode.c~ufs-zeroize-the-rest-of-block-in-truncate
++++ a/fs/ufs/inode.c
+@@ -212,7 +212,7 @@ repeat:
+ 			brelse (result);
+ 			goto repeat;
+ 		} else {
+-			*phys = tmp + blockoff;
++			*phys = uspi->s_sbbase + tmp + blockoff;
+ 			return NULL;
+ 		}
+ 	}
+@@ -282,9 +282,9 @@ repeat:
+ 	}
+ 
+ 	if (!phys) {
+-		result = sb_getblk(sb, tmp + blockoff);
++		result = sb_getblk(sb, uspi->s_sbbase + tmp + blockoff);
+ 	} else {
+-		*phys = tmp + blockoff;
++		*phys = uspi->s_sbbase + tmp + blockoff;
+ 		result = NULL;
+ 		*err = 0;
+ 		*new = 1;
+@@ -368,7 +368,7 @@ repeat:
+ 			brelse (result);
+ 			goto repeat;
+ 		} else {
+-			*phys = tmp + blockoff;
++			*phys = uspi->s_sbbase + tmp + blockoff;
+ 			goto out;
+ 		}
+ 	}
+@@ -389,9 +389,9 @@ repeat:
+ 
+ 
+ 	if (!phys) {
+-		result = sb_getblk(sb, tmp + blockoff);
++		result = sb_getblk(sb, uspi->s_sbbase + tmp + blockoff);
+ 	} else {
+-		*phys = tmp + blockoff;
++		*phys = uspi->s_sbbase + tmp + blockoff;
+ 		*new = 1;
+ 	}
+ 
+diff -puN fs/ufs/truncate.c~ufs-zeroize-the-rest-of-block-in-truncate fs/ufs/truncate.c
+--- a/fs/ufs/truncate.c~ufs-zeroize-the-rest-of-block-in-truncate
++++ a/fs/ufs/truncate.c
+@@ -74,7 +74,7 @@ static int ufs_trunc_direct(struct inode
+ 	unsigned i, tmp;
+ 	int retry;
+ 	
+-	UFSD("ENTER\n");
++	UFSD("ENTER: ino %lu\n", inode->i_ino);
+ 
+ 	sb = inode->i_sb;
+ 	uspi = UFS_SB(sb)->s_uspi;
+@@ -96,8 +96,8 @@ static int ufs_trunc_direct(struct inode
+ 		block2 = ufs_fragstoblks (frag3);
+ 	}
+ 
+-	UFSD("frag1 %llu, frag2 %llu, block1 %llu, block2 %llu, frag3 %llu,"
+-	     " frag4 %llu\n",
++	UFSD("ino %lu, frag1 %llu, frag2 %llu, block1 %llu, block2 %llu,"
++	     " frag3 %llu, frag4 %llu\n", inode->i_ino,
+ 	     (unsigned long long)frag1, (unsigned long long)frag2,
+ 	     (unsigned long long)block1, (unsigned long long)block2,
+ 	     (unsigned long long)frag3, (unsigned long long)frag4);
+@@ -163,7 +163,7 @@ next1:
+ 	mark_inode_dirty(inode);
+  next3:
+ 
+-	UFSD("EXIT\n");
++	UFSD("EXIT: ino %lu\n", inode->i_ino);
+ 	return retry;
+ }
+ 
+@@ -248,7 +248,7 @@ static int ufs_trunc_indirect(struct ino
+ 	}
+ 	ubh_brelse (ind_ubh);
+ 	
+-	UFSD("EXIT\n");
++	UFSD("EXIT: ino %lu\n", inode->i_ino);
+ 	
+ 	return retry;
+ }
+@@ -262,7 +262,7 @@ static int ufs_trunc_dindirect(struct in
+ 	void *dind;
+ 	int retry = 0;
+ 	
+-	UFSD("ENTER\n");
++	UFSD("ENTER: ino %lu\n", inode->i_ino);
+ 	
+ 	sb = inode->i_sb;
+ 	uspi = UFS_SB(sb)->s_uspi;
+@@ -312,7 +312,7 @@ static int ufs_trunc_dindirect(struct in
+ 	}
+ 	ubh_brelse (dind_bh);
+ 	
+-	UFSD("EXIT\n");
++	UFSD("EXIT: ino %lu\n", inode->i_ino);
+ 	
+ 	return retry;
+ }
+@@ -327,7 +327,7 @@ static int ufs_trunc_tindirect(struct in
+ 	void *tind, *p;
+ 	int retry;
+ 	
+-	UFSD("ENTER\n");
++	UFSD("ENTER: ino %lu\n", inode->i_ino);
+ 
+ 	retry = 0;
+ 	
+@@ -372,19 +372,21 @@ static int ufs_trunc_tindirect(struct in
+ 	}
+ 	ubh_brelse (tind_bh);
+ 	
+-	UFSD("EXIT\n");
++	UFSD("EXIT: ino %lu\n", inode->i_ino);
+ 	return retry;
+ }
+ 
+ static int ufs_alloc_lastblock(struct inode *inode)
  {
--	const unsigned mask = (1 << (PAGE_CACHE_SHIFT - inode->i_blkbits)) - 1;
-+	const unsigned blks_per_page =
-+		1 << (PAGE_CACHE_SHIFT - inode->i_blkbits);
-+	const unsigned mask = blks_per_page - 1;
- 	struct address_space * const mapping = inode->i_mapping;
--	pgoff_t index, cur_index;
--	unsigned end, pos, j;
-+	pgoff_t index, cur_index, last_index;
-+	unsigned pos, j, lblock;
-+	sector_t end, i;
- 	struct page *page;
- 	struct buffer_head *head, *bh;
+ 	int err = 0;
++	struct super_block *sb = inode->i_sb;
+ 	struct address_space *mapping = inode->i_mapping;
+-	struct ufs_sb_private_info *uspi = UFS_SB(inode->i_sb)->s_uspi;
++	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
+ 	unsigned i, end;
+ 	sector_t lastfrag;
+ 	struct page *lastpage;
+ 	struct buffer_head *bh;
++	u64 phys64;
  
--	UFSD("ENTER, ino %lu, count %u, oldb %u, newb %u\n",
--	      inode->i_ino, count, oldb, newb);
-+	UFSD("ENTER, ino %lu, count %u, oldb %llu, newb %llu\n",
-+	      inode->i_ino, count,
-+	     (unsigned long long)oldb, (unsigned long long)newb);
+ 	lastfrag = (i_size_read(inode) + uspi->s_fsize - 1) >> uspi->s_fshift;
  
- 	BUG_ON(!locked_page);
- 	BUG_ON(!PageLocked(locked_page));
+@@ -424,6 +426,20 @@ static int ufs_alloc_lastblock(struct in
+ 	       set_page_dirty(lastpage);
+        }
  
- 	cur_index = locked_page->index;
--
--	for (end = count + beg; beg < end; beg = (beg | mask) + 1) {
--		index = beg >> (PAGE_CACHE_SHIFT - inode->i_blkbits);
-+	end = count + beg;
-+	last_index = end >> (PAGE_CACHE_SHIFT - inode->i_blkbits);
-+	for (i = beg; i < end; i = (i | mask) + 1) {
-+		index = i >> (PAGE_CACHE_SHIFT - inode->i_blkbits);
- 
- 		if (likely(cur_index != index)) {
- 			page = ufs_get_locked_page(mapping, index);
--			if (!page || IS_ERR(page)) /* it was truncated or EIO */
-+			if (!page)/* it was truncated */
-+				continue;
-+			if (IS_ERR(page)) {/* or EIO */
-+				ufs_error(inode->i_sb, __FUNCTION__,
-+					  "read of page %llu failed\n",
-+					  (unsigned long long)index);
- 				continue;
-+			}
- 		} else
- 			page = locked_page;
- 
- 		head = page_buffers(page);
- 		bh = head;
--		pos = beg & mask;
-+		pos = i & mask;
- 		for (j = 0; j < pos; ++j)
- 			bh = bh->b_this_page;
--		j = 0;
-+
-+
-+		if (unlikely(index == last_index))
-+			lblock = end & mask;
-+		else
-+			lblock = blks_per_page;
-+
- 		do {
--			if (buffer_mapped(bh)) {
--				pos = bh->b_blocknr - oldb;
--				if (pos < count) {
--					UFSD(" change from %llu to %llu\n",
--					     (unsigned long long)pos + oldb,
--					     (unsigned long long)pos + newb);
--					bh->b_blocknr = newb + pos;
--					unmap_underlying_metadata(bh->b_bdev,
--								  bh->b_blocknr);
--					mark_buffer_dirty(bh);
--					++j;
-+			if (j >= lblock)
-+				break;
-+			pos = (i - beg) + j;
-+
-+			if (!buffer_mapped(bh))
-+					map_bh(bh, inode->i_sb, oldb + pos);
-+			if (!buffer_uptodate(bh)) {
-+				ll_rw_block(READ, 1, &bh);
-+				wait_on_buffer(bh);
-+				if (!buffer_uptodate(bh)) {
-+					ufs_error(inode->i_sb, __FUNCTION__,
-+						  "read of block failed\n");
-+					break;
- 				}
- 			}
- 
-+			UFSD(" change from %llu to %llu, pos %u\n",
-+			     (unsigned long long)pos + oldb,
-+			     (unsigned long long)pos + newb, pos);
-+
-+			bh->b_blocknr = newb + pos;
-+			unmap_underlying_metadata(bh->b_bdev,
-+						  bh->b_blocknr);
-+			mark_buffer_dirty(bh);
-+			++j;
- 			bh = bh->b_this_page;
- 		} while (bh != head);
- 
--		if (j)
--			set_page_dirty(page);
--
- 		if (likely(cur_index != index))
- 			ufs_put_locked_page(page);
-  	}
++       if (lastfrag >= UFS_IND_FRAGMENT) {
++	       end = uspi->s_fpb - ufs_fragnum(lastfrag) - 1;
++	       phys64 = bh->b_blocknr + 1;
++	       for (i = 0; i < end; ++i) {
++		       bh = sb_getblk(sb, i + phys64);
++		       lock_buffer(bh);
++		       memset(bh->b_data, 0, sb->s_blocksize);
++		       set_buffer_uptodate(bh);
++		       mark_buffer_dirty(bh);
++		       unlock_buffer(bh);
++		       sync_dirty_buffer(bh);
++		       brelse(bh);
++	       }
++       }
+ out_unlock:
+        ufs_put_locked_page(lastpage);
+ out:
 _
 
 Patches currently in -mm which might be from dushistov@mail.ru are
