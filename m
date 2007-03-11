@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - lists-add-list-splice-tail.patch removed from -mm tree
-Date: Sat, 10 Mar 2007 22:17:58 -0800
-Message-ID: <200703110617.l2B6Hwfx005765@shell0.pdx.osdl.net>
+Subject: - sched-remove-noninteractive-flag.patch removed from -mm tree
+Date: Sat, 10 Mar 2007 22:18:16 -0800
+Message-ID: <200703110618.l2B6IG0x005775@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37600 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37605 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933180AbXCKGSX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 01:18:23 -0500
+	id S933204AbXCKGSZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 01:18:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kernel@kolivas.org, a.p.zijlstra@chello.nl, mingo@elte.hu, nickpiggin@yahoo.com.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: kernel@kolivas.org, mingo@elte.hu, nickpiggin@yahoo.com.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lists: add list splice tail
+     sched: remove noninteractive flag
 has been removed from the -mm tree.  Its filename was
-     lists-add-list-splice-tail.patch
+     sched-remove-noninteractive-flag.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: lists: add list splice tail
+Subject: sched: remove noninteractive flag
 From: Con Kolivas <kernel@kolivas.org>
 
-Add a list_splice_tail variant of list_splice.
+Remove the TASK_NONINTERACTIVE flag as it will no longer be used.
 
-Patch-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Con Kolivas <kernel@kolivas.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -34,82 +33,45 @@ Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |   42 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 42 insertions(+)
+ fs/pipe.c             |    7 +------
+ include/linux/sched.h |    3 +--
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/list.h~lists-add-list-splice-tail include/linux/list.h
---- a/include/linux/list.h~lists-add-list-splice-tail
-+++ a/include/linux/list.h
-@@ -333,6 +333,20 @@ static inline void __list_splice(struct 
- 	at->prev = last;
- }
+diff -puN fs/pipe.c~sched-remove-noninteractive-flag fs/pipe.c
+--- a/fs/pipe.c~sched-remove-noninteractive-flag
++++ a/fs/pipe.c
+@@ -41,12 +41,7 @@ void pipe_wait(struct pipe_inode_info *p
+ {
+ 	DEFINE_WAIT(wait);
  
-+static inline void __list_splice_tail(struct list_head *list,
-+				      struct list_head *head)
-+{
-+	struct list_head *first = list->next;
-+	struct list_head *last = list->prev;
-+	struct list_head *at = head->prev;
-+
-+	first->prev = at;
-+	at->next = first;
-+
-+	last->next = head;
-+	head->prev = last;
-+}
-+
- /**
-  * list_splice - join two lists
-  * @list: the new list to add.
-@@ -345,6 +359,18 @@ static inline void list_splice(struct li
- }
+-	/*
+-	 * Pipes are system-local resources, so sleeping on them
+-	 * is considered a noninteractive wait:
+-	 */
+-	prepare_to_wait(&pipe->wait, &wait,
+-			TASK_INTERRUPTIBLE | TASK_NONINTERACTIVE);
++	prepare_to_wait(&pipe->wait, &wait, TASK_INTERRUPTIBLE);
+ 	if (pipe->inode)
+ 		mutex_unlock(&pipe->inode->i_mutex);
+ 	schedule();
+diff -puN include/linux/sched.h~sched-remove-noninteractive-flag include/linux/sched.h
+--- a/include/linux/sched.h~sched-remove-noninteractive-flag
++++ a/include/linux/sched.h
+@@ -149,8 +149,7 @@ extern unsigned long weighted_cpuload(co
+ #define EXIT_ZOMBIE		16
+ #define EXIT_DEAD		32
+ /* in tsk->state again */
+-#define TASK_NONINTERACTIVE	64
+-#define TASK_DEAD		128
++#define TASK_DEAD		64
  
- /**
-+ * list_splice_tail - join two lists at one's tail
-+ * @list: the new list to add.
-+ * @head: the place to add it in the first list.
-+ */
-+static inline void list_splice_tail(struct list_head *list,
-+				    struct list_head *head)
-+{
-+	if (!list_empty(list))
-+		__list_splice_tail(list, head);
-+}
-+
-+/**
-  * list_splice_init - join two lists and reinitialise the emptied list.
-  * @list: the new list to add.
-  * @head: the place to add it in the first list.
-@@ -417,6 +443,22 @@ static inline void list_splice_init_rcu(
- }
- 
- /**
-+ * list_splice_tail_init - join 2 lists at one's tail & reinitialise emptied
-+ * @list: the new list to add.
-+ * @head: the place to add it in the first list.
-+ *
-+ * The list at @list is reinitialised
-+ */
-+static inline void list_splice_tail_init(struct list_head *list,
-+					 struct list_head *head)
-+{
-+	if (!list_empty(list)) {
-+		__list_splice_tail(list, head);
-+		INIT_LIST_HEAD(list);
-+	}
-+}
-+
-+/**
-  * list_entry - get the struct for this entry
-  * @ptr:	the &struct list_head pointer.
-  * @type:	the type of the struct this is embedded in.
+ #define __set_task_state(tsk, state_value)		\
+ 	do { (tsk)->state = (state_value); } while (0)
 _
 
 Patches currently in -mm which might be from kernel@kolivas.org are
 
 sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
-lists-add-list-splice-tail.patch
-sched-remove-sleepavg-from-proc.patch
 sched-remove-noninteractive-flag.patch
 sched-implement-180-bit-sched-bitmap.patch
 sched-implement-rsdl-cpu-scheduler.patch
