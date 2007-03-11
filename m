@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-unused-header-file-include-linux-elfnoteh.patch added to -mm tree
-Date: Sat, 10 Mar 2007 23:22:09 -0800
-Message-ID: <200703110722.l2B7M97u006880@shell0.pdx.osdl.net>
+Subject: + remove-unused-header-file-drivers-serial-crisv10h.patch added to -mm tree
+Date: Sat, 10 Mar 2007 23:22:19 -0800
+Message-ID: <200703110722.l2B7MJHj006886@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38553 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38566 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750797AbXCKHWN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 03:22:13 -0400
+	id S1750878AbXCKHW0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 03:22:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: rpjday@mindspring.com, starvik@axis.com
 
 
 The patch titled
-     remove unused header file: include/linux/elfnote.h
+     remove unused header file: drivers/serial/crisv10.h
 has been added to the -mm tree.  Its filename is
-     remove-unused-header-file-include-linux-elfnoteh.patch
+     remove-unused-header-file-drivers-serial-crisv10h.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,110 +25,157 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove unused header file: include/linux/elfnote.h
+Subject: remove unused header file: drivers/serial/crisv10.h
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/elfnote.h |   90 --------------------------------------
- 1 file changed, 90 deletions(-)
+ drivers/serial/crisv10.h |  136 -------------------------------------
+ 1 file changed, 136 deletions(-)
 
-diff -puN include/linux/elfnote.h~remove-unused-header-file-include-linux-elfnoteh /dev/null
---- a/include/linux/elfnote.h
+diff -puN drivers/serial/crisv10.h~remove-unused-header-file-drivers-serial-crisv10h /dev/null
+--- a/drivers/serial/crisv10.h
 +++ /dev/null
-@@ -1,90 +0,0 @@
--#ifndef _LINUX_ELFNOTE_H
--#define _LINUX_ELFNOTE_H
+@@ -1,136 +0,0 @@
 -/*
-- * Helper macros to generate ELF Note structures, which are put into a
-- * PT_NOTE segment of the final vmlinux image.  These are useful for
-- * including name-value pairs of metadata into the kernel binary (or
-- * modules?) for use by external programs.
+- * serial.h: Arch-dep definitions for the Etrax100 serial driver.
 - *
-- * Each note has three parts: a name, a type and a desc.  The name is
-- * intended to distinguish the note's originator, so it would be a
-- * company, project, subsystem, etc; it must be in a suitable form for
-- * use in a section name.  The type is an integer which is used to tag
-- * the data, and is considered to be within the "name" namespace (so
-- * "FooCo"'s type 42 is distinct from "BarProj"'s type 42).  The
-- * "desc" field is the actual data.  There are no constraints on the
-- * desc field's contents, though typically they're fairly small.
-- *
-- * All notes from a given NAME are put into a section named
-- * .note.NAME.  When the kernel image is finally linked, all the notes
-- * are packed into a single .notes section, which is mapped into the
-- * PT_NOTE segment.  Because notes for a given name are grouped into
-- * the same section, they'll all be adjacent the output file.
-- *
-- * This file defines macros for both C and assembler use.  Their
-- * syntax is slightly different, but they're semantically similar.
-- *
-- * See the ELF specification for more detail about ELF notes.
+- * Copyright (C) 1998, 1999, 2000 Axis Communications AB
 - */
 -
--#ifdef __ASSEMBLER__
+-#ifndef _ETRAX_SERIAL_H
+-#define _ETRAX_SERIAL_H
+-
+-#include <linux/circ_buf.h>
+-#include <asm/termios.h>
+-
+-/* Software state per channel */
+-
+-#ifdef __KERNEL__
 -/*
-- * Generate a structure with the same shape as Elf{32,64}_Nhdr (which
-- * turn out to be the same size and shape), followed by the name and
-- * desc data with appropriate padding.  The 'desctype' argument is the
-- * assembler pseudo op defining the type of the data e.g. .asciz while
-- * 'descdata' is the data itself e.g.  "hello, world".
+- * This is our internal structure for each serial port's state.
 - *
-- * e.g. ELFNOTE(XYZCo, 42, .asciz, "forty-two")
-- *      ELFNOTE(XYZCo, 12, .long, 0xdeadbeef)
+- * Many fields are paralleled by the structure used by the serial_struct
+- * structure.
+- *
+- * For definitions of the flags field, see tty.h
 - */
--#define ELFNOTE(name, type, desctype, descdata)	\
--.pushsection .note.name			;	\
--  .align 4				;	\
--  .long 2f - 1f		/* namesz */	;	\
--  .long 4f - 3f		/* descsz */	;	\
--  .long type				;	\
--1:.asciz "name"				;	\
--2:.align 4				;	\
--3:desctype descdata			;	\
--4:.align 4				;	\
--.popsection				;
--#else	/* !__ASSEMBLER__ */
--#include <linux/elf.h>
+-
+-#define SERIAL_RECV_DESCRIPTORS 8
+-
+-struct etrax_recv_buffer {
+-	struct etrax_recv_buffer *next;
+-	unsigned short length;
+-	unsigned char error;
+-	unsigned char pad;
+-
+-	unsigned char buffer[0];
+-};
+-
+-struct e100_serial {
+-	int			baud;
+-	volatile u8		*port; /* R_SERIALx_CTRL */
+-	u32			irq;  /* bitnr in R_IRQ_MASK2 for dmaX_descr */
+-
+-	/* Output registers */
+-	volatile u8		*oclrintradr; /* adr to R_DMA_CHx_CLR_INTR */
+-	volatile u32		*ofirstadr;   /* adr to R_DMA_CHx_FIRST */
+-	volatile u8		*ocmdadr;     /* adr to R_DMA_CHx_CMD */
+-	const volatile u8	*ostatusadr;  /* adr to R_DMA_CHx_STATUS */
+-
+-	/* Input registers */
+-	volatile u8		*iclrintradr; /* adr to R_DMA_CHx_CLR_INTR */
+-	volatile u32		*ifirstadr;   /* adr to R_DMA_CHx_FIRST */
+-	volatile u8		*icmdadr;     /* adr to R_DMA_CHx_CMD */
+-	volatile u32		*idescradr;   /* adr to R_DMA_CHx_DESCR */
+-
+-	int			flags;	/* defined in tty.h */
+-
+-	u8			rx_ctrl; /* shadow for R_SERIALx_REC_CTRL */
+-	u8			tx_ctrl; /* shadow for R_SERIALx_TR_CTRL */
+-	u8			iseteop; /* bit number for R_SET_EOP for the input dma */
+-	int			enabled; /* Set to 1 if the port is enabled in HW config */
+-
+-	u8		dma_out_enabled:1; /* Set to 1 if DMA should be used */
+-	u8		dma_in_enabled:1;  /* Set to 1 if DMA should be used */
+-
+-	/* end of fields defined in rs_table[] in .c-file */
+-	u8		uses_dma_in;  /* Set to 1 if DMA is used */
+-	u8		uses_dma_out; /* Set to 1 if DMA is used */
+-	u8		forced_eop;   /* a fifo eop has been forced */
+-	int			baud_base;     /* For special baudrates */
+-	int			custom_divisor; /* For special baudrates */
+-	struct etrax_dma_descr	tr_descr;
+-	struct etrax_dma_descr	rec_descr[SERIAL_RECV_DESCRIPTORS];
+-	int			cur_rec_descr;
+-
+-	volatile int		tr_running; /* 1 if output is running */
+-
+-	struct tty_struct	*tty;
+-	int			read_status_mask;
+-	int			ignore_status_mask;
+-	int			x_char;	/* xon/xoff character */
+-	int			close_delay;
+-	unsigned short		closing_wait;
+-	unsigned short		closing_wait2;
+-	unsigned long		event;
+-	unsigned long		last_active;
+-	int			line;
+-	int			type;  /* PORT_ETRAX */
+-	int			count;	    /* # of fd on device */
+-	int			blocked_open; /* # of blocked opens */
+-	struct circ_buf		xmit;
+-	struct etrax_recv_buffer *first_recv_buffer;
+-	struct etrax_recv_buffer *last_recv_buffer;
+-	unsigned int		recv_cnt;
+-	unsigned int		max_recv_cnt;
+-
+-	struct work_struct	work;
+-	struct async_icount	icount;   /* error-statistics etc.*/
+-	struct ktermios		normal_termios;
+-	struct ktermios		callout_termios;
+-#ifdef DECLARE_WAITQUEUE
+-	wait_queue_head_t	open_wait;
+-	wait_queue_head_t	close_wait;
+-#else
+-	struct wait_queue	*open_wait;
+-	struct wait_queue	*close_wait;
+-#endif
+-
+-	unsigned long		char_time_usec;       /* The time for 1 char, in usecs */
+-	unsigned long		flush_time_usec;      /* How often we should flush */
+-	unsigned long		last_tx_active_usec;  /* Last tx usec in the jiffies */
+-	unsigned long		last_tx_active;       /* Last tx time in jiffies */
+-	unsigned long		last_rx_active_usec;  /* Last rx usec in the jiffies */
+-	unsigned long		last_rx_active;       /* Last rx time in jiffies */
+-
+-	int			break_detected_cnt;
+-	int			errorcode;
+-
+-#ifdef CONFIG_ETRAX_RS485
+-	struct rs485_control	rs485;  /* RS-485 support */
+-#endif
+-};
+-
+-/* this PORT is not in the standard serial.h. it's not actually used for
+- * anything since we only have one type of async serial-port anyway in this
+- * system.
+- */
+-
+-#define PORT_ETRAX 1
+-
 -/*
-- * Use an anonymous structure which matches the shape of
-- * Elf{32,64}_Nhdr, but includes the name and desc data.  The size and
-- * type of name and desc depend on the macro arguments.  "name" must
-- * be a literal string, and "desc" must be passed by value.  You may
-- * only define one note per line, since __LINE__ is used to generate
-- * unique symbols.
+- * Events are used to schedule things to happen at timer-interrupt
+- * time, instead of at rs interrupt time.
 - */
--#define _ELFNOTE_PASTE(a,b)	a##b
--#define _ELFNOTE(size, name, unique, type, desc)			\
--	static const struct {						\
--		struct elf##size##_note _nhdr;				\
--		unsigned char _name[sizeof(name)]			\
--		__attribute__((aligned(sizeof(Elf##size##_Word))));	\
--		typeof(desc) _desc					\
--			     __attribute__((aligned(sizeof(Elf##size##_Word)))); \
--	} _ELFNOTE_PASTE(_note_, unique)				\
--		__attribute_used__					\
--		__attribute__((section(".note." name),			\
--			       aligned(sizeof(Elf##size##_Word)),	\
--			       unused)) = {				\
--		{							\
--			sizeof(name),					\
--			sizeof(desc),					\
--			type,						\
--		},							\
--		name,							\
--		desc							\
--	}
--#define ELFNOTE(size, name, type, desc)		\
--	_ELFNOTE(size, name, __LINE__, type, desc)
+-#define RS_EVENT_WRITE_WAKEUP	0
 -
--#define ELFNOTE32(name, type, desc) ELFNOTE(32, name, type, desc)
--#define ELFNOTE64(name, type, desc) ELFNOTE(64, name, type, desc)
--#endif	/* __ASSEMBLER__ */
+-#endif /* __KERNEL__ */
 -
--#endif /* _LINUX_ELFNOTE_H */
+-#endif /* !_ETRAX_SERIAL_H */
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
