@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_cs5520-re-remove-crap-and-switch-to-cable-detect.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:28:32 -0800
-Message-ID: <200703110928.l2B9SW2Z008748@shell0.pdx.osdl.net>
+Subject: + pata_cs5530-re-remove-all-the-crap-and-switch-back-to-the.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:28:36 -0800
+Message-ID: <200703110928.l2B9Sae5008751@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41164 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41168 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751947AbXCKJ2m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:28:42 -0400
+	id S1751950AbXCKJ2p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:28:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_cs5520: re-remove crap and switch to cable detect method again
+     pata_cs5530: re-remove all the crap and switch back to the cable method
 has been added to the -mm tree.  Its filename is
-     pata_cs5520-re-remove-crap-and-switch-to-cable-detect.patch
+     pata_cs5530-re-remove-all-the-crap-and-switch-back-to-the.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_cs5520: re-remove crap and switch to cable detect method again
+Subject: pata_cs5530: re-remove all the crap and switch back to the cable method
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cs5520.c |   15 ++-------------
+ drivers/ata/pata_cs5530.c |   15 ++-------------
  1 file changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN drivers/ata/pata_cs5520.c~pata_cs5520-re-remove-crap-and-switch-to-cable-detect drivers/ata/pata_cs5520.c
---- a/drivers/ata/pata_cs5520.c~pata_cs5520-re-remove-crap-and-switch-to-cable-detect
-+++ a/drivers/ata/pata_cs5520.c
-@@ -139,18 +139,6 @@ static void cs5520_set_piomode(struct at
- 	cs5520_set_timings(ap, adev, adev->pio_mode);
+diff -puN drivers/ata/pata_cs5530.c~pata_cs5530-re-remove-all-the-crap-and-switch-back-to-the drivers/ata/pata_cs5530.c
+--- a/drivers/ata/pata_cs5530.c~pata_cs5530-re-remove-all-the-crap-and-switch-back-to-the
++++ a/drivers/ata/pata_cs5530.c
+@@ -160,18 +160,6 @@ static unsigned int cs5530_qc_issue_prot
+ 	return ata_qc_issue_prot(qc);
  }
  
--
--static int cs5520_pre_reset(struct ata_port *ap, unsigned long deadline)
+-static int cs5530_pre_reset(struct ata_port *ap, unsigned long deadline)
 -{
 -	ap->cbl = ATA_CBL_PATA40;
 -	return ata_std_prereset(ap, deadline);
 -}
 -
--static void cs5520_error_handler(struct ata_port *ap)
+-static void cs5530_error_handler(struct ata_port *ap)
 -{
--	return ata_bmdma_drive_eh(ap, cs5520_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-	return ata_bmdma_drive_eh(ap, cs5530_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
 -}
 -
- static struct scsi_host_template cs5520_sht = {
+-
+ static struct scsi_host_template cs5530_sht = {
  	.module			= THIS_MODULE,
  	.name			= DRV_NAME,
-@@ -186,8 +174,9 @@ static struct ata_port_operations cs5520
+@@ -213,8 +201,9 @@ static struct ata_port_operations cs5530
  
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= cs5520_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_40wire,
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= cs5530_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
  
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= cs5530_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
