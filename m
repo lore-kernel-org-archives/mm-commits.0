@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_mpiix-restore-cable-type-method.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:29:47 -0800
-Message-ID: <200703110929.l2B9TlEx008796@shell0.pdx.osdl.net>
+Subject: + pata_netcell-re-remove-all-the-crud.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:29:51 -0800
+Message-ID: <200703110929.l2B9TpXt008799@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41221 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41227 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751985AbXCKJ35 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:29:57 -0400
+	id S1751983AbXCKJaA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:30:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     pata_mpiix: restore cable type method
+     pata_netcell: re-remove all the crud
 has been added to the -mm tree.  Its filename is
-     pata_mpiix-restore-cable-type-method.patch
+     pata_netcell-re-remove-all-the-crud.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_mpiix: restore cable type method
+Subject: pata_netcell: re-remove all the crud
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_mpiix.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/pata_netcell.c |   32 +++-----------------------------
+ 1 file changed, 3 insertions(+), 29 deletions(-)
 
-diff -puN drivers/ata/pata_mpiix.c~pata_mpiix-restore-cable-type-method drivers/ata/pata_mpiix.c
---- a/drivers/ata/pata_mpiix.c~pata_mpiix-restore-cable-type-method
-+++ a/drivers/ata/pata_mpiix.c
-@@ -35,7 +35,7 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/pata_netcell.c~pata_netcell-re-remove-all-the-crud drivers/ata/pata_netcell.c
+--- a/drivers/ata/pata_netcell.c~pata_netcell-re-remove-all-the-crud
++++ a/drivers/ata/pata_netcell.c
+@@ -16,34 +16,7 @@
+ #include <linux/ata.h>
  
- #define DRV_NAME "pata_mpiix"
--#define DRV_VERSION "0.7.5"
-+#define DRV_VERSION "0.7.6"
+ #define DRV_NAME	"pata_netcell"
+-#define DRV_VERSION	"0.1.6"
+-
+-/**
+- *	netcell_probe_init	-	check for 40/80 pin
+- *	@ap: Port
+- *	@deadline: deadline jiffies for the operation
+- *
+- *	Cables are handled by the RAID controller. Report 80 pin.
+- */
+-
+-static int netcell_pre_reset(struct ata_port *ap, unsigned long deadline)
+-{
+-	ap->cbl = ATA_CBL_PATA80;
+-	return ata_std_prereset(ap, deadline);
+-}
+-
+-/**
+- *	netcell_probe_reset - Probe specified port on PATA host controller
+- *	@ap: Port to probe
+- *
+- *	LOCKING:
+- *	None (inherited from caller).
+- */
+-
+-static void netcell_error_handler(struct ata_port *ap)
+-{
+-	return ata_bmdma_drive_eh(ap, netcell_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
++#define DRV_VERSION	"0.1.7"
  
- enum {
- 	IDETIM = 0x6C,		/* IDE control register */
-@@ -53,7 +53,6 @@ static int mpiix_pre_reset(struct ata_po
+ /* No PIO or DMA methods needed for this device */
  
- 	if (!pci_test_config_bits(pdev, &mpiix_enable_bits))
- 		return -ENOENT;
--	ap->cbl = ATA_CBL_PATA40;
- 	return ata_std_prereset(ap, deadline);
- }
+@@ -82,8 +55,9 @@ static const struct ata_port_operations 
  
-@@ -185,6 +184,7 @@ static struct ata_port_operations mpiix_
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= mpiix_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
+ 	.freeze			= ata_bmdma_freeze,
+ 	.thaw			= ata_bmdma_thaw,
+-	.error_handler		= netcell_error_handler,
++	.error_handler		= ata_bmdma_error_handler,
+ 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= ata_cable_80wire,
  
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= mpiix_qc_issue_prot,
+ 	/* BMDMA handling is PCI ATA format, use helpers */
+ 	.bmdma_setup		= ata_bmdma_setup,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
