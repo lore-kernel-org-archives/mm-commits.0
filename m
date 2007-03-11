@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-fix-gdts-number-of-quadwords-in.patch added to -mm tree
-Date: Sun, 11 Mar 2007 02:02:15 -0800
-Message-ID: <200703111002.l2BA2Flj009376@shell0.pdx.osdl.net>
+Subject: + mv643xx-clear-pending-interrupts-before-calling-request_irq.patch added to -mm tree
+Date: Sun, 11 Mar 2007 02:00:47 -0800
+Message-ID: <200703111000.l2BA0l23009356@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42092 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42109 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752093AbXCKKCW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 06:02:22 -0400
+	id S1752113AbXCKKEL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 06:04:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, randy.dunlap@oracle.com
+Cc: dale@farnsworth.org, pgiri@yahoo.com
 
 
 The patch titled
-     i386: fix GDT's number of quadwords in comment
+     mv643xx: clear pending interrupts before calling request_irq
 has been added to the -mm tree.  Its filename is
-     i386-fix-gdts-number-of-quadwords-in.patch
+     mv643xx-clear-pending-interrupts-before-calling-request_irq.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: fix GDT's number of quadwords in comment
-From: Ahmed S. Darwish <darwish.07@gmail.com>
+Subject: mv643xx: clear pending interrupts before calling request_irq
+From: Dale Farnsworth <dale@farnsworth.org>
 
-Fix comments to represent the true number of quadwords in GDT.
-
-Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Dale Farnsworth <dale@farnsworth.org>
+Acked-by: Giridhar Pemmasani <pgiri@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/head.S |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/mv643xx_eth.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/head.S~i386-fix-gdts-number-of-quadwords-in arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~i386-fix-gdts-number-of-quadwords-in
-+++ a/arch/i386/kernel/head.S
-@@ -612,7 +612,7 @@ ENTRY(boot_gdt_table)
- 	.quad 0x00cf92000000ffff	/* kernel 4GB data at 0x00000000 */
+diff -puN drivers/net/mv643xx_eth.c~mv643xx-clear-pending-interrupts-before-calling-request_irq drivers/net/mv643xx_eth.c
+--- a/drivers/net/mv643xx_eth.c~mv643xx-clear-pending-interrupts-before-calling-request_irq
++++ a/drivers/net/mv643xx_eth.c
+@@ -787,6 +787,12 @@ static int mv643xx_eth_open(struct net_d
+ 	unsigned int size;
+ 	int err;
  
- /*
-- * The Global Descriptor Table contains 28 quadwords, per-CPU.
-+ * The Global Descriptor Table contains 32 quadwords, per-CPU.
-  */
- 	.align L1_CACHE_BYTES
- ENTRY(cpu_gdt_table)
-@@ -639,7 +639,7 @@ ENTRY(cpu_gdt_table)
++	/* Clear any pending ethernet port interrupts */
++	mv_write(MV643XX_ETH_INTERRUPT_CAUSE_REG(port_num), 0);
++	mv_write(MV643XX_ETH_INTERRUPT_CAUSE_EXTEND_REG(port_num), 0);
++	/* wait for previous write to complete */
++	mv_read (MV643XX_ETH_INTERRUPT_CAUSE_EXTEND_REG(port_num));
++
+ 	err = request_irq(dev->irq, mv643xx_eth_int_handler,
+ 			IRQF_SHARED | IRQF_SAMPLE_RANDOM, dev->name, dev);
+ 	if (err) {
+@@ -875,10 +881,6 @@ static int mv643xx_eth_open(struct net_d
  
- 	/*
- 	 * Segments used for calling PnP BIOS have byte granularity.
--	 * They code segments and data segments have fixed 64k limits,
-+	 * The code segments and data segments have fixed 64k limits,
- 	 * the transfer segment sizes are set at run time.
- 	 */
- 	.quad 0x00409a000000ffff	/* 0x90 32-bit code */
+ 	mv643xx_eth_rx_refill_descs(dev);	/* Fill RX ring with skb's */
+ 
+-	/* Clear any pending ethernet port interrupts */
+-	mv_write(MV643XX_ETH_INTERRUPT_CAUSE_REG(port_num), 0);
+-	mv_write(MV643XX_ETH_INTERRUPT_CAUSE_EXTEND_REG(port_num), 0);
+-
+ 	eth_port_start(dev);
+ 
+ 	/* Interrupt Coalescing */
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from dale@farnsworth.org are
 
-git-avr32.patch
-git-drm.patch
-git-kvm.patch
-s390-kmalloc-kzalloc-casting-cleanups.patch
-i386-fix-gdts-number-of-quadwords-in.patch
-rcutorture-use-array_size-macro-when-appropriate.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
+mv643xx-clear-pending-interrupts-before-calling-request_irq.patch
+mv643xx-ethernet-driver-irq-registration-fix.patch
