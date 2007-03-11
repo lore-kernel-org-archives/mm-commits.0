@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-i386-x86_64-arbitary-speed-support.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:44:44 -0800
-Message-ID: <200703110944.l2B9iitv009076@shell0.pdx.osdl.net>
+Subject: + ppc-correct-apparently-misspelled-xmon-preprocessor.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:45:33 -0800
+Message-ID: <200703110945.l2B9jX41009103@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41640 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41665 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752060AbXCKJoz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:44:55 -0400
+	id S1752062AbXCKJpk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:45:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: rpjday@mindspring.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     tty: i386/x86_64 arbitary speed support
+     PPC: correct apparently misspelled "XMON" preprocessor directive
 has been added to the -mm tree.  Its filename is
-     tty-i386-x86_64-arbitary-speed-support.patch
+     ppc-correct-apparently-misspelled-xmon-preprocessor.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,121 +25,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: i386/x86_64 arbitary speed support
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: PPC: correct apparently misspelled "XMON" preprocessor directive
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/ioctls.h     |    4 ++++
- include/asm-i386/termbits.h   |   14 ++++++++++++++
- include/asm-i386/termios.h    |    6 ++++--
- include/asm-x86_64/termbits.h |    2 +-
- 4 files changed, 23 insertions(+), 3 deletions(-)
+ arch/powerpc/platforms/chrp/setup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-i386/ioctls.h~tty-i386-x86_64-arbitary-speed-support include/asm-i386/ioctls.h
---- a/include/asm-i386/ioctls.h~tty-i386-x86_64-arbitary-speed-support
-+++ a/include/asm-i386/ioctls.h
-@@ -47,6 +47,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x5429  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
+diff -puN arch/powerpc/platforms/chrp/setup.c~ppc-correct-apparently-misspelled-xmon-preprocessor arch/powerpc/platforms/chrp/setup.c
+--- a/arch/powerpc/platforms/chrp/setup.c~ppc-correct-apparently-misspelled-xmon-preprocessor
++++ a/arch/powerpc/platforms/chrp/setup.c
+@@ -427,7 +427,7 @@ static void __init chrp_find_openpic(voi
+ 	of_node_put(np);
+ }
  
-diff -puN include/asm-i386/termbits.h~tty-i386-x86_64-arbitary-speed-support include/asm-i386/termbits.h
---- a/include/asm-i386/termbits.h~tty-i386-x86_64-arbitary-speed-support
-+++ a/include/asm-i386/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
+-#if defined(CONFIG_VT) && defined(CONFIG_INPUT_ADBHID) && defined(XMON)
++#if defined(CONFIG_VT) && defined(CONFIG_INPUT_ADBHID) && defined(CONFIG_XMON)
+ static struct irqaction xmon_irqaction = {
+ 	.handler = xmon_irq,
+ 	.mask = CPU_MASK_NONE,
+@@ -493,7 +493,7 @@ static void __init chrp_find_8259(void)
  
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-@@ -129,6 +140,7 @@ struct ktermios {
- #define HUPCL	0002000
- #define CLOCAL	0004000
- #define CBAUDEX 0010000
-+#define   BOTHER  0010000
- #define    B57600 0010001
- #define   B115200 0010002
- #define   B230400 0010003
-@@ -148,6 +160,8 @@ struct ktermios {
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
+ void __init chrp_init_IRQ(void)
+ {
+-#if defined(CONFIG_VT) && defined(CONFIG_INPUT_ADBHID) && defined(XMON)
++#if defined(CONFIG_VT) && defined(CONFIG_INPUT_ADBHID) && defined(CONFIG_XMON)
+ 	struct device_node *kbd;
+ #endif
+ 	chrp_find_openpic();
+@@ -510,7 +510,7 @@ void __init chrp_init_IRQ(void)
+ 	if (_chrp_type == _CHRP_Pegasos)
+ 		ppc_md.get_irq        = i8259_irq;
  
-+#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
-+
- /* c_lflag bits */
- #define ISIG	0000001
- #define ICANON	0000002
-diff -puN include/asm-i386/termios.h~tty-i386-x86_64-arbitary-speed-support include/asm-i386/termios.h
---- a/include/asm-i386/termios.h~tty-i386-x86_64-arbitary-speed-support
-+++ a/include/asm-i386/termios.h
-@@ -81,8 +81,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- })
- 
--#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
--#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
-+#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
-+#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
-+#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
-+#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
- 
- #endif	/* __KERNEL__ */
- 
-diff -puN include/asm-x86_64/termbits.h~tty-i386-x86_64-arbitary-speed-support include/asm-x86_64/termbits.h
---- a/include/asm-x86_64/termbits.h~tty-i386-x86_64-arbitary-speed-support
-+++ a/include/asm-x86_64/termbits.h
-@@ -160,7 +160,7 @@ struct ktermios {
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
- 
--#define IBSHIFT	  8		/* Shift from CBAUD to CIBAUD */
-+#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
- 
- /* c_lflag bits */
- #define ISIG	0000001
+-#if defined(CONFIG_VT) && defined(CONFIG_INPUT_ADBHID) && defined(XMON)
++#if defined(CONFIG_VT) && defined(CONFIG_INPUT_ADBHID) && defined(CONFIG_XMON)
+ 	/* see if there is a keyboard in the device tree
+ 	   with a parent of type "adb" */
+ 	for (kbd = find_devices("keyboard"); kbd; kbd = kbd->next)
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-git-libata-all.patch
-expose-set_mode-method-so-it-can-be-wrapped.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-ata_piix-remove-ugly-layering-violation.patch
-pata_cmd640-multiple-updates.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-dilnetpc-fix-warning.patch
-baycom_ser_fdx-also-allow-i-o-ports-=-0x1000-and-enhanced.patch
-resend-iphase-64bit-cleanup.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-z85230-fix-fifo-handling.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
+remove-unused-header-file-sound-pci-cs46xx-imgs-cwcemb80h.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+git-avr32.patch
+remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
+remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
+ppc-correct-apparently-misspelled-xmon-preprocessor.patch
+remove-unused-header-file-drivers-char-drm-via_mmh.patch
+mtd-correct-misspelled-preprocessor-variable.patch
+jffs2-remove-superfluous-source-file-fs-jffs2-comprtestc.patch
+remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
+remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
+delete-superfluous-source-file-net-wanrouter-af_wanpipec.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+remove-unused-header-file-drivers-message-fusion-lsi-mpi_inbh-and-drivers-message-fusion-lsi-mpi_log_fch.patch
+remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+remove-unused-header-file-drivers-serial-crisv10h.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
+remove-unused-header-file-include-linux-elfnoteh.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
