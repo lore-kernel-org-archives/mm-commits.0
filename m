@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ata_generic-remove-all-the-crud-again-and-use-cable.patch added to -mm tree
-Date: Sun, 11 Mar 2007 01:28:08 -0800
-Message-ID: <200703110928.l2B9S8KF008723@shell0.pdx.osdl.net>
+Subject: + pata_ali-remove-all-the-crap-again-and-switch-to.patch added to -mm tree
+Date: Sun, 11 Mar 2007 01:28:12 -0800
+Message-ID: <200703110928.l2B9SCWH008726@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41141 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41145 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751932AbXCKJ2S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:28:18 -0400
+	id S1751939AbXCKJ2W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:28:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     ata_generic: remove all the crud again and use cable methods
+     pata_ali: remove all the crap again and switch to cable_detect method
 has been added to the -mm tree.  Its filename is
-     ata_generic-remove-all-the-crud-again-and-use-cable.patch
+     pata_ali-remove-all-the-crap-again-and-switch-to.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +25,160 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata_generic: remove all the crud again and use cable methods
+Subject: pata_ali: remove all the crap again and switch to cable_detect method
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_generic.c |   33 ++-------------------------------
- 1 file changed, 2 insertions(+), 31 deletions(-)
+ drivers/ata/pata_ali.c |   74 +++++----------------------------------
+ 1 file changed, 11 insertions(+), 63 deletions(-)
 
-diff -puN drivers/ata/ata_generic.c~ata_generic-remove-all-the-crud-again-and-use-cable drivers/ata/ata_generic.c
---- a/drivers/ata/ata_generic.c~ata_generic-remove-all-the-crud-again-and-use-cable
-+++ a/drivers/ata/ata_generic.c
-@@ -33,36 +33,6 @@
-  */
+diff -puN drivers/ata/pata_ali.c~pata_ali-remove-all-the-crap-again-and-switch-to drivers/ata/pata_ali.c
+--- a/drivers/ata/pata_ali.c~pata_ali-remove-all-the-crap-again-and-switch-to
++++ a/drivers/ata/pata_ali.c
+@@ -34,7 +34,7 @@
+ #include <linux/dmi.h>
+ 
+ #define DRV_NAME "pata_ali"
+-#define DRV_VERSION "0.7.3"
++#define DRV_VERSION "0.7.4"
+ 
+ /*
+  *	Cable special cases
+@@ -90,61 +90,6 @@ static int ali_c2_cable_detect(struct at
+ }
  
  /**
-- *	generic_pre_reset		-	probe begin
+- *	ali_early_error_handler	-	reset for eary chip
 - *	@ap: ATA port
 - *	@deadline: deadline jiffies for the operation
 - *
-- *	Set up cable type and use generic probe init
+- *	Handle the reset callback for the later chips with cable detect
 - */
 -
--static int generic_pre_reset(struct ata_port *ap, unsigned long deadline)
+-static int ali_c2_pre_reset(struct ata_port *ap, unsigned long deadline)
 -{
--	ap->cbl = ATA_CBL_PATA80;
+-	ap->cbl = ali_c2_cable_detect(ap);
 -	return ata_std_prereset(ap, deadline);
 -}
 -
--
--/**
-- *	generic_error_handler - Probe specified port on PATA host controller
-- *	@ap: Port to probe
-- *	@classes:
-- *
-- *	LOCKING:
-- *	None (inherited from caller).
-- */
--
--
--static void generic_error_handler(struct ata_port *ap)
+-static void ali_c2_error_handler(struct ata_port *ap)
 -{
--	ata_bmdma_drive_eh(ap, generic_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-	ata_bmdma_drive_eh(ap, ali_c2_pre_reset,
+-			       ata_std_softreset, NULL,
+-			       ata_std_postreset);
 -}
 -
 -/**
-  *	generic_set_mode	-	mode setting
-  *	@ap: interface to set up
-  *	@unused: returned device on error
-@@ -145,8 +115,9 @@ static struct ata_port_operations generi
+- *	ali_early_cable_detect	-	cable detection
+- *	@ap: ATA port
+- *
+- *	Perform cable detection for older chipsets. This turns out to be
+- *	rather easy to implement
+- */
+-
+-static int ali_early_cable_detect(struct ata_port *ap)
+-{
+-	return ATA_CBL_PATA40;
+-}
+-
+-/**
+- *	ali_early_probe_init	-	reset for early chip
+- *	@ap: ATA port
+- *	@deadline: deadline jiffies for the operation
+- *
+- *	Handle the reset callback for the early (pre cable detect) chips.
+- */
+-
+-static int ali_early_pre_reset(struct ata_port *ap, unsigned long deadline)
+-{
+-	ap->cbl = ali_early_cable_detect(ap);
+-	return ata_std_prereset(ap, deadline);
+-}
+-
+-static void ali_early_error_handler(struct ata_port *ap)
+-{
+-	return ata_bmdma_drive_eh(ap, ali_early_pre_reset,
+-				     ata_std_softreset, NULL,
+-				     ata_std_postreset);
+-}
+-
+-/**
+  *	ali_20_filter		-	filter for earlier ALI DMA
+  *	@ap: ALi ATA port
+  *	@adev: attached device
+@@ -153,7 +98,7 @@ static void ali_early_error_handler(stru
+  *	fix that later on. Also ensure we do not do UDMA on WDC drives
+  */
+ 
+-static unsigned long ali_20_filter(const struct ata_port *ap, struct ata_device *adev, unsigned long mask)
++static unsigned long ali_20_filter(struct ata_device *adev, unsigned long mask)
+ {
+ 	char model_num[ATA_ID_PROD_LEN + 1];
+ 	/* No DMA on anything but a disk for now */
+@@ -162,7 +107,7 @@ static unsigned long ali_20_filter(const
+ 	ata_id_c_string(adev->id, model_num, ATA_ID_PROD, sizeof(model_num));
+ 	if (strstr(model_num, "WDC"))
+ 		return mask &= ~ATA_MASK_UDMA;
+-	return ata_pci_default_filter(ap, adev, mask);
++	return ata_pci_default_filter(adev, mask);
+ }
+ 
+ /**
+@@ -316,7 +261,6 @@ static void ali_set_dmamode(struct ata_p
+ 
+ /**
+  *	ali_lock_sectors	-	Keep older devices to 255 sector mode
+- *	@ap: ATA port
+  *	@adev: Device
+  *
+  *	Called during the bus probe for each device that is found. We use
+@@ -368,8 +312,9 @@ static struct ata_port_operations ali_ea
  
  	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= generic_error_handler,
+-	.error_handler	= ali_early_error_handler,
 +	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_unknown,
++	.cable_detect	= ata_cable_40wire,
  
  	.qc_prep 	= ata_qc_prep,
  	.qc_issue	= ata_qc_issue_prot,
+@@ -404,8 +349,9 @@ static struct ata_port_operations ali_20
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_early_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -442,8 +388,9 @@ static struct ata_port_operations ali_c2
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_c2_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ali_c2_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -479,8 +426,9 @@ static struct ata_port_operations ali_c5
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= ali_c2_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ali_c2_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
