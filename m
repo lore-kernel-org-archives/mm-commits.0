@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + replace-get_scheduled_cycles-with-sched_clock-paravirt_op.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:51:52 -0800
-Message-ID: <200703151851.l2FIpsFE023359@shell0.pdx.osdl.net>
+Subject: + mm-inconsistent-use-of-node-ids.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:52:03 -0800
+Message-ID: <200703151852.l2FIq56q023374@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35663 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35658 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753339AbXCOSwP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:52:15 -0400
+	id S1753335AbXCOSwN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:52:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, ak@suse.de, dhecht@vmware.com, jeremy@xensource.com, johnstul@us.ibm.com, zach@vmware.com
+Cc: solo@google.com, ak@suse.de
 
 
 The patch titled
-     replace get_scheduled_cycles with sched_clock paravirt_op
+     x86 mm: Inconsistent use of node IDs
 has been added to the -mm tree.  Its filename is
-     replace-get_scheduled_cycles-with-sched_clock-paravirt_op.patch
+     mm-inconsistent-use-of-node-ids.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,217 +25,261 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: replace get_scheduled_cycles with sched_clock paravirt_op
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: x86 mm: Inconsistent use of node IDs
+From: Ethan Solomita <solo@google.com>
 
-The tsc-based get_scheduled_cycles interface is not a good match for Xen's
-runstate accounting, which reports everything in nanoseconds.
+Correct inconsistent use of node numbers (variously "nid" or "node") in the
+presence of fake NUMA.
 
-This patch replaces this interface with a sched_clock interface, which
-matches both Xen and VMI's requirements.
+Both AMD and Intel x86_64 discovery code will determine a CPU's physical
+node and use that node when calling numa_add_cpu() to associate that CPU
+with the node, but numa_add_cpu() treats the node argument as a fake node. 
+This physical node may not exist within the fake nodespace, and even if it
+does, it will likely incorrectly associate a CPU with a fake memory node
+that may not share the same underlying physical NUMA node.
 
-In order to do this, we:
-   1. replace get_scheduled_cycles with sched_clock
-   2. hoist cycles_2_ns into a common header
-   3. update vmi accordingly
+Similarly, the PCI code which determines the node of the PCI bus saves it
+in the pci_sysdata structure.  This node then propagates down to other
+buses and devices which hang off the PCI bus, and is used to specify a node
+when allocating memory.  The purpose is to provide NUMA locality, but the
+node is a physical node, and the memory allocation code expects a fake node
+argument.
 
-One thing to note: because sched_clock is implemented as a weak function in
-kernel/sched.c, we must define a real function in order to override this
-weak binding.  This means the usual paravirt_ops technique of using an
-inline function won't work in this case.
+Provide a routine (get_fake_node()) to map a physical node ID to a fake
+node ID, where the fake node ID contains memory on the specified physical
+node ID.  This fake node's zonelist is tied to other close fake nodes,
+maintaining NUMA locality.  Also provide numa_online_phys() which is the
+same as numa_online() but takes a physical node ID.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Acked-by: Zachary Amsden <zach@vmware.com>
-Cc: Dan Hecht <dhecht@vmware.com>
-Cc: john stultz <johnstul@us.ibm.com>
+Change init_cpu_to_node(), x86_64 and PCI code use get_fake_node() and
+numa_online_phys() in order to convert to an appropriate fake ID.
+
+Signed-off-by: Ethan Solomita <solo@google.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |    2 +-
- arch/i386/kernel/tsc.c      |   23 +++++++++++++++--------
- arch/i386/kernel/vmi.c      |    2 +-
- arch/i386/kernel/vmitime.c  |    4 ++--
- include/asm-i386/paravirt.h |    7 +++++--
- include/asm-i386/timer.h    |   32 +++++++++++++++++++++++++++++++-
- include/asm-i386/vmi_time.h |    2 +-
- 7 files changed, 56 insertions(+), 16 deletions(-)
+ arch/i386/pci/acpi.c          |    7 ++
+ arch/x86_64/kernel/setup.c    |   16 +++---
+ arch/x86_64/mm/numa.c         |   75 ++++++++++++++++++++++++++++----
+ arch/x86_64/pci/k8-bus.c      |    1 
+ include/asm-x86_64/topology.h |    8 +++
+ 5 files changed, 91 insertions(+), 16 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~replace-get_scheduled_cycles-with-sched_clock-paravirt_op arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~replace-get_scheduled_cycles-with-sched_clock-paravirt_op
-+++ a/arch/i386/kernel/paravirt.c
-@@ -521,7 +521,7 @@ struct paravirt_ops paravirt_ops = {
- 	.write_msr = native_write_msr,
- 	.read_tsc = native_read_tsc,
- 	.read_pmc = native_read_pmc,
--	.get_scheduled_cycles = native_read_tsc,
-+	.sched_clock = native_sched_clock,
- 	.get_cpu_khz = native_calculate_cpu_khz,
- 	.load_tr_desc = native_load_tr_desc,
- 	.set_ldt = native_set_ldt,
-diff -puN arch/i386/kernel/tsc.c~replace-get_scheduled_cycles-with-sched_clock-paravirt_op arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~replace-get_scheduled_cycles-with-sched_clock-paravirt_op
-+++ a/arch/i386/kernel/tsc.c
-@@ -81,7 +81,7 @@ static inline int check_tsc_unstable(voi
-  *
-  *			-johnstul@us.ibm.com "math is hard, lets go shopping!"
-  */
--static unsigned long cyc2ns_scale __read_mostly;
-+unsigned long cyc2ns_scale __read_mostly;
+diff -puN arch/i386/pci/acpi.c~mm-inconsistent-use-of-node-ids arch/i386/pci/acpi.c
+--- a/arch/i386/pci/acpi.c~mm-inconsistent-use-of-node-ids
++++ a/arch/i386/pci/acpi.c
+@@ -35,8 +35,13 @@ struct pci_bus * __devinit pci_acpi_scan
  
- #define CYC2NS_SCALE_FACTOR 10 /* 2^10, carefully chosen */
+ 	pxm = acpi_get_pxm(device->handle);
+ #ifdef CONFIG_ACPI_NUMA
+-	if (pxm >= 0)
++	if (pxm >= 0) {
+ 		sd->node = pxm_to_node(pxm);
++#ifdef CONFIG_NUMA_EMU
++		if (sd->node != -1)
++			sd->node = get_fake_node(sd->node);
++#endif
++	}
+ #endif
  
-@@ -90,15 +90,10 @@ static inline void set_cyc2ns_scale(unsi
- 	cyc2ns_scale = (1000000 << CYC2NS_SCALE_FACTOR)/cpu_khz;
+ 	bus = pci_scan_bus_parented(NULL, busnum, &pci_root_ops, sd);
+diff -puN arch/x86_64/kernel/setup.c~mm-inconsistent-use-of-node-ids arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~mm-inconsistent-use-of-node-ids
++++ a/arch/x86_64/kernel/setup.c
+@@ -476,20 +476,20 @@ static void __cpuinit display_cacheinfo(
  }
  
--static inline unsigned long long cycles_2_ns(unsigned long long cyc)
--{
--	return (cyc * cyc2ns_scale) >> CYC2NS_SCALE_FACTOR;
--}
--
- /*
-  * Scheduler clock - returns current time in nanosec units.
-  */
--unsigned long long sched_clock(void)
-+unsigned long long native_sched_clock(void)
+ #ifdef CONFIG_NUMA
+-static int nearby_node(int apicid)
++static int __init nearby_node(int apicid)
  {
- 	unsigned long long this_offset;
+ 	int i;
+ 	for (i = apicid - 1; i >= 0; i--) {
+ 		int node = apicid_to_node[i];
+-		if (node != NUMA_NO_NODE && node_online(node))
++		if (node != NUMA_NO_NODE && node_online_phys(node))
+ 			return node;
+ 	}
+ 	for (i = apicid + 1; i < MAX_LOCAL_APIC; i++) {
+ 		int node = apicid_to_node[i];
+-		if (node != NUMA_NO_NODE && node_online(node))
++		if (node != NUMA_NO_NODE && node_online_phys(node))
+ 			return node;
+ 	}
+-	return first_node(node_online_map); /* Shouldn't happen */
++	return NUMA_NO_NODE; /* Shouldn't happen */
+ }
+ #endif
  
-@@ -110,12 +105,24 @@ unsigned long long sched_clock(void)
- 		return (jiffies_64 - INITIAL_JIFFIES) * (1000000000 / HZ);
+@@ -528,7 +528,7 @@ static void __init amd_detect_cmp(struct
+   	node = c->phys_proc_id;
+  	if (apicid_to_node[apicid] != NUMA_NO_NODE)
+  		node = apicid_to_node[apicid];
+- 	if (!node_online(node)) {
++ 	if (!node_online_phys(node)) {
+  		/* Two possibilities here:
+  		   - The CPU is missing memory and no node was created.
+  		   In that case try picking one from a nearby CPU
+@@ -543,9 +543,10 @@ static void __init amd_detect_cmp(struct
+  		    apicid_to_node[ht_nodeid] != NUMA_NO_NODE)
+  			node = apicid_to_node[ht_nodeid];
+  		/* Pick a nearby node */
+- 		if (!node_online(node))
++ 		if (!node_online_phys(node))
+  			node = nearby_node(apicid);
+  	}
++	node = get_fake_node(node);
+ 	numa_set_node(cpu, node);
  
- 	/* read the Time Stamp Counter: */
--	get_scheduled_cycles(this_offset);
-+	rdtscll(this_offset);
- 
- 	/* return the value in ns */
- 	return cycles_2_ns(this_offset);
+ 	printk(KERN_INFO "CPU %d/%x -> Node %d\n", cpu, apicid, node);
+@@ -679,7 +680,7 @@ static int __cpuinit intel_num_cpu_cores
+ 		return 1;
  }
  
-+/* We need to define a real function for sched_clock, to override the
-+   weak default version */
-+#ifdef CONFIG_PARAVIRT
-+unsigned long long sched_clock(void)
+-static void srat_detect_node(void)
++static void __cpuinit srat_detect_node(void)
+ {
+ #ifdef CONFIG_NUMA
+ 	unsigned node;
+@@ -689,6 +690,7 @@ static void srat_detect_node(void)
+ 	/* Don't do the funky fallback heuristics the AMD version employs
+ 	   for now. */
+ 	node = apicid_to_node[apicid];
++	node = get_fake_node(node);
+ 	if (node == NUMA_NO_NODE)
+ 		node = first_node(node_online_map);
+ 	numa_set_node(cpu, node);
+diff -puN arch/x86_64/mm/numa.c~mm-inconsistent-use-of-node-ids arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~mm-inconsistent-use-of-node-ids
++++ a/arch/x86_64/mm/numa.c
+@@ -282,6 +282,61 @@ char *cmdline __initdata;
+ int numa_emu;
+ 
+ /*
++ * Some arch routines want to call node_online() with a physical node after
++ * numa_emulation has already initialized fake nodes. They need to call this
++ * routine instead, which assumes that a physical node should be considered
++ * online iff it has associated memory.
++ */
++
++int __init node_online_phys(int nid)
 +{
-+	return paravirt_sched_clock();
++	if (!numa_emu)
++		return node_online(nid);
++
++	if (nid < 0 || nid >= MAX_NUMNODES || nid == NUMA_NO_NODE)
++		return 0;
++
++	return (physical_node_map[nid].start != physical_node_map[nid].end);
 +}
++
++
++/*
++ * Returns the first fake NUMA node that starts with phys node nid's memory
++ * if fake numa is in use, otherwise returns its argument.
++ */
++int __devinit get_fake_node(int nid)
++{
++	int fake;
++	u64 start, end;
++
++	if (!numa_emu)
++		return nid;
++
++	if (nid < 0 || nid >= MAX_NUMNODES || nid == NUMA_NO_NODE)
++		return first_online_node;
++
++	start = physical_node_map[nid].start;
++	end = physical_node_map[nid].end;
++
++	/* pick first online memory node for cpu nodes without memory */
++
++	if (start == end)
++		return first_online_node;
++
++	for (fake = 0; fake < MAX_NUMNODES; fake++) {
++		/* Return a fake node if it begins within the physical node */
++		if (nodes[fake].start >= start && nodes[fake].start < end)
++			return fake;
++
++		/* But don't skip past the last eligible fake node (e.g. numa=fake=1) */
++		if (nodes[fake].end >= end)
++			return fake;
++	}
++
++	return first_online_node;	/* Shouldn't happen */
++}
++
++/*
+  * Returns the physical NUMA node that fake node nid resides on.  If NUMA
+  * emulation is disabled, then this is the same as nid.
+  */
+@@ -639,23 +694,27 @@ early_param("numa", numa_setup);
+  *
+  * Populate cpu_to_node[] only if x86_cpu_to_apicid[],
+  * and apicid_to_node[] tables have valid entries for a CPU.
+- * This means we skip cpu_to_node[] initialisation for NUMA
+- * emulation and faking node case (when running a kernel compiled
+- * for NUMA on a non NUMA box), which is OK as cpu_to_node[]
+- * is already initialized in a round robin manner at numa_init_array,
+- * prior to this call, and this initialization is good enough
+- * for the fake NUMA cases.
++ * If fake numa is in use, convert the physical node to the
++ * most appropriate fake node.
+  */
+ void __init init_cpu_to_node(void)
+ {
+ 	int i;
++	unsigned char node;
++
+  	for (i = 0; i < NR_CPUS; i++) {
+ 		u8 apicid = x86_cpu_to_apicid[i];
+ 		if (apicid == BAD_APICID)
+ 			continue;
+-		if (apicid_to_node[apicid] == NUMA_NO_NODE)
++		node = apicid_to_node[apicid];
++		if (node == NUMA_NO_NODE)
+ 			continue;
+-		numa_set_node(i,apicid_to_node[apicid]);
++#ifdef CONFIG_NUMA_EMU
++		node = get_fake_node(node);
++		if (numa_emu)
++			printk(KERN_INFO "CPU %d --> fake node %d\n", i, node);
++#endif
++		numa_set_node(i, node);
+ 	}
+ }
+ 
+diff -puN arch/x86_64/pci/k8-bus.c~mm-inconsistent-use-of-node-ids arch/x86_64/pci/k8-bus.c
+--- a/arch/x86_64/pci/k8-bus.c~mm-inconsistent-use-of-node-ids
++++ a/arch/x86_64/pci/k8-bus.c
+@@ -67,6 +67,7 @@ fill_mp_bus_to_cpumask(void)
+ 					bus = pci_find_bus(0, j);
+ 					if (!bus)
+ 						continue;
++					node = get_fake_node(node);
+ 					if (!node_online(node))
+ 						node = 0;
+ 
+diff -puN include/asm-x86_64/topology.h~mm-inconsistent-use-of-node-ids include/asm-x86_64/topology.h
+--- a/include/asm-x86_64/topology.h~mm-inconsistent-use-of-node-ids
++++ a/include/asm-x86_64/topology.h
+@@ -69,4 +69,12 @@ extern int __node_distance(int, int);
+ extern cpumask_t cpu_coregroup_map(int cpu);
+ extern int get_phys_node(int nid);
+ 
++#ifdef CONFIG_NUMA_EMU
++extern int __init node_online_phys(int nid);
++extern int __devinit get_fake_node(int nid);
 +#else
-+unsigned long long sched_clock(void)
-+	__attribute__((alias("native_sched_clock")));
++#define node_online_phys(nid) node_online(nid)
++#define get_fake_node(nid) (nid)
 +#endif
 +
- unsigned long native_calculate_cpu_khz(void)
- {
- 	unsigned long long start, end;
-diff -puN arch/i386/kernel/vmi.c~replace-get_scheduled_cycles-with-sched_clock-paravirt_op arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~replace-get_scheduled_cycles-with-sched_clock-paravirt_op
-+++ a/arch/i386/kernel/vmi.c
-@@ -900,7 +900,7 @@ static inline int __init activate_vmi(vo
- 		paravirt_ops.setup_boot_clock = vmi_timer_setup_boot_alarm;
- 		paravirt_ops.setup_secondary_clock = vmi_timer_setup_secondary_alarm;
  #endif
--		paravirt_ops.get_scheduled_cycles = vmi_get_sched_cycles;
-+		paravirt_ops.sched_clock = vmi_sched_clock;
-  		paravirt_ops.get_cpu_khz = vmi_cpu_khz;
- 
- 		/* We have true wallclock functions; disable CMOS clock sync */
-diff -puN arch/i386/kernel/vmitime.c~replace-get_scheduled_cycles-with-sched_clock-paravirt_op arch/i386/kernel/vmitime.c
---- a/arch/i386/kernel/vmitime.c~replace-get_scheduled_cycles-with-sched_clock-paravirt_op
-+++ a/arch/i386/kernel/vmitime.c
-@@ -159,9 +159,9 @@ int vmi_set_wallclock(unsigned long now)
- 	return -1;
- }
- 
--unsigned long long vmi_get_sched_cycles(void)
-+unsigned long long vmi_sched_clock(void)
- {
--	return read_available_cycles();
-+	return cycles_2_ns(read_available_cycles());
- }
- 
- unsigned long vmi_cpu_khz(void)
-diff -puN include/asm-i386/paravirt.h~replace-get_scheduled_cycles-with-sched_clock-paravirt_op include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~replace-get_scheduled_cycles-with-sched_clock-paravirt_op
-+++ a/include/asm-i386/paravirt.h
-@@ -94,7 +94,7 @@ struct paravirt_ops
- 
- 	u64 (*read_tsc)(void);
- 	u64 (*read_pmc)(void);
-- 	u64 (*get_scheduled_cycles)(void);
-+ 	unsigned long long (*sched_clock)(void);
- 	unsigned long (*get_cpu_khz)(void);
- 
- 	void (*load_tr_desc)(void);
-@@ -276,7 +276,10 @@ static inline void halt(void)
- 
- #define rdtscll(val) (val = paravirt_ops.read_tsc())
- 
--#define get_scheduled_cycles(val) (val = paravirt_ops.get_scheduled_cycles())
-+static inline unsigned long long paravirt_sched_clock(void)
-+{
-+	return PVOP_CALL0(unsigned long long, sched_clock);
-+}
- #define calculate_cpu_khz() (paravirt_ops.get_cpu_khz())
- 
- #define write_tsc(val1,val2) wrmsr(0x10, val1, val2)
-diff -puN include/asm-i386/timer.h~replace-get_scheduled_cycles-with-sched_clock-paravirt_op include/asm-i386/timer.h
---- a/include/asm-i386/timer.h~replace-get_scheduled_cycles-with-sched_clock-paravirt_op
-+++ a/include/asm-i386/timer.h
-@@ -15,8 +15,38 @@ extern int no_sync_cmos_clock;
- extern int recalibrate_cpu_khz(void);
- 
- #ifndef CONFIG_PARAVIRT
--#define get_scheduled_cycles(val) rdtscll(val)
- #define calculate_cpu_khz() native_calculate_cpu_khz()
- #endif
- 
-+/* Accellerators for sched_clock()
-+ * convert from cycles(64bits) => nanoseconds (64bits)
-+ *  basic equation:
-+ *		ns = cycles / (freq / ns_per_sec)
-+ *		ns = cycles * (ns_per_sec / freq)
-+ *		ns = cycles * (10^9 / (cpu_khz * 10^3))
-+ *		ns = cycles * (10^6 / cpu_khz)
-+ *
-+ *	Then we use scaling math (suggested by george@mvista.com) to get:
-+ *		ns = cycles * (10^6 * SC / cpu_khz) / SC
-+ *		ns = cycles * cyc2ns_scale / SC
-+ *
-+ *	And since SC is a constant power of two, we can convert the div
-+ *  into a shift.
-+ *
-+ *  We can use khz divisor instead of mhz to keep a better percision, since
-+ *  cyc2ns_scale is limited to 10^6 * 2^10, which fits in 32 bits.
-+ *  (mathieu.desnoyers@polymtl.ca)
-+ *
-+ *			-johnstul@us.ibm.com "math is hard, lets go shopping!"
-+ */
-+extern unsigned long cyc2ns_scale __read_mostly;
-+
-+#define CYC2NS_SCALE_FACTOR 10 /* 2^10, carefully chosen */
-+
-+static inline unsigned long long cycles_2_ns(unsigned long long cyc)
-+{
-+	return (cyc * cyc2ns_scale) >> CYC2NS_SCALE_FACTOR;
-+}
-+
-+
- #endif
-diff -puN include/asm-i386/vmi_time.h~replace-get_scheduled_cycles-with-sched_clock-paravirt_op include/asm-i386/vmi_time.h
---- a/include/asm-i386/vmi_time.h~replace-get_scheduled_cycles-with-sched_clock-paravirt_op
-+++ a/include/asm-i386/vmi_time.h
-@@ -49,7 +49,7 @@ extern struct vmi_timer_ops {
- extern void __init vmi_time_init(void);
- extern unsigned long vmi_get_wallclock(void);
- extern int vmi_set_wallclock(unsigned long now);
--extern unsigned long long vmi_get_sched_cycles(void);
-+extern unsigned long long vmi_sched_clock(void);
- extern unsigned long vmi_cpu_khz(void);
- 
- #ifdef CONFIG_X86_LOCAL_APIC
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from solo@google.com are
 
-replace-get_scheduled_cycles-with-sched_clock-paravirt_op.patch
+mm-inconsistent-use-of-node-ids.patch
