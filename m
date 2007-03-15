@@ -1,90 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - pata_sil680-restore-cable-detect-methods.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:58:07 -0800
-Message-ID: <200703152158.l2FLw7kM027700@shell0.pdx.osdl.net>
+Subject: - pata_legacy-restore-cable-methods.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:47 -0800
+Message-ID: <200703152157.l2FLvl1c027668@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42450 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42412 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752042AbXCOV6V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:58:21 -0400
+	id S1751979AbXCOV57 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_sil680: restore cable detect methods
+     pata_legacy: restore cable methods
 has been removed from the -mm tree.  Its filename was
-     pata_sil680-restore-cable-detect-methods.patch
+     pata_legacy-restore-cable-methods.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_sil680: restore cable detect methods
+Subject: pata_legacy: restore cable methods
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sil680.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/ata/pata_legacy.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/ata/pata_sil680.c~pata_sil680-restore-cable-detect-methods drivers/ata/pata_sil680.c
---- a/drivers/ata/pata_sil680.c~pata_sil680-restore-cable-detect-methods
-+++ a/drivers/ata/pata_sil680.c
-@@ -33,7 +33,7 @@
- #include <linux/libata.h>
- 
- #define DRV_NAME "pata_sil680"
--#define DRV_VERSION "0.4.5"
-+#define DRV_VERSION "0.4.6"
- 
- /**
-  *	sil680_selreg		-	return register base
-@@ -91,22 +91,16 @@ static int sil680_cable_detect(struct at
- 		return ATA_CBL_PATA40;
- }
- 
--static int sil680_pre_reset(struct ata_port *ap, unsigned long deadline)
--{
--	ap->cbl = sil680_cable_detect(ap);
--	return ata_std_prereset(ap, deadline);
--}
--
- /**
-  *	sil680_bus_reset	-	reset the SIL680 bus
-  *	@ap: ATA port to reset
-+*	@classes:
-  *	@deadline: deadline jiffies for the operation
-  *
-  *	Perform the SIL680 housekeeping when doing an ATA bus reset
-  */
- 
--static int sil680_bus_reset(struct ata_port *ap,unsigned int *classes,
--			    unsigned long deadline)
-+static int sil680_bus_reset(struct ata_port *ap, unsigned int *classes, unsigned long deadline)
- {
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 	unsigned long addr = sil680_selreg(ap, 0);
-@@ -121,7 +115,7 @@ static int sil680_bus_reset(struct ata_p
- 
- static void sil680_error_handler(struct ata_port *ap)
- {
--	ata_bmdma_drive_eh(ap, sil680_pre_reset, sil680_bus_reset, NULL, ata_std_postreset);
-+	ata_bmdma_drive_eh(ap, ata_std_prereset, sil680_bus_reset, NULL, ata_std_postreset);
- }
- 
- /**
-@@ -259,6 +253,7 @@ static struct ata_port_operations sil680
+diff -puN drivers/ata/pata_legacy.c~pata_legacy-restore-cable-methods drivers/ata/pata_legacy.c
+--- a/drivers/ata/pata_legacy.c~pata_legacy-restore-cable-methods
++++ a/drivers/ata/pata_legacy.c
+@@ -162,6 +162,7 @@ static struct ata_port_operations simple
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= sil680_error_handler,
+ 	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= sil680_cable_detect,
++	.cable_detect	= ata_cable_40wire,
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -185,6 +186,7 @@ static struct ata_port_operations legacy
+ 	.check_status 	= ata_check_status,
+ 	.exec_command	= ata_exec_command,
+ 	.dev_select 	= ata_std_dev_select,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+@@ -305,6 +307,7 @@ static struct ata_port_operations pdc202
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -360,6 +363,7 @@ static struct ata_port_operations ht6560
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -426,6 +430,7 @@ static struct ata_port_operations ht6560
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -547,6 +552,7 @@ static struct ata_port_operations opti82
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+@@ -680,6 +686,7 @@ static struct ata_port_operations opti82
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= opti82c46x_qc_issue_prot,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
