@@ -1,79 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-correct-misspelled-preprocessor-variable.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:58:34 -0800
-Message-ID: <200703152158.l2FLwYTY027739@shell0.pdx.osdl.net>
+Subject: - tc35815-fix-an-usage-of-streaming-dma-api-tidy.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:59:15 -0800
+Message-ID: <200703152159.l2FLxF7Y027807@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42489 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42540 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752141AbXCOV6n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:58:43 -0400
+	id S1752016AbXCOV7S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:59:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, anemo@mba.ocn.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MTD: Correct misspelled preprocessor variable  "MTD_NAND_DISKONCHIP_BBTWRITE".
+     tc35815-fix-an-usage-of-streaming-dma-api-tidy
 has been removed from the -mm tree.  Its filename was
-     mtd-correct-misspelled-preprocessor-variable.patch
+     tc35815-fix-an-usage-of-streaming-dma-api-tidy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MTD: Correct misspelled preprocessor variable  "MTD_NAND_DISKONCHIP_BBTWRITE".
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: tc35815-fix-an-usage-of-streaming-dma-api-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-  Replace the apparently misspelled preprocessor variable
-"MTD_NAND_DISKONCHIP_BBTWRITE" with the correct form
-"CONFIG_MTD_NAND_DISKONCHIP_BBTWRITE".
-
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/diskonchip.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/tc35815.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/mtd/nand/diskonchip.c~mtd-correct-misspelled-preprocessor-variable drivers/mtd/nand/diskonchip.c
---- a/drivers/mtd/nand/diskonchip.c~mtd-correct-misspelled-preprocessor-variable
-+++ a/drivers/mtd/nand/diskonchip.c
-@@ -114,7 +114,7 @@ module_param(no_autopart, int, 0);
- static int show_firmware_partition = 0;
- module_param(show_firmware_partition, int, 0);
+diff -puN drivers/net/tc35815.c~tc35815-fix-an-usage-of-streaming-dma-api-tidy drivers/net/tc35815.c
+--- a/drivers/net/tc35815.c~tc35815-fix-an-usage-of-streaming-dma-api-tidy
++++ a/drivers/net/tc35815.c
+@@ -58,7 +58,6 @@
+  *	1.34	Fix netpoll locking.  "BH rule" for NAPI is not enough with
+  *		netpoll, hard_start_xmit might be called from irq context.
+  *		PM support.
+- *	1.35	Fix an usage of streaming DMA API.
+  */
  
--#ifdef MTD_NAND_DISKONCHIP_BBTWRITE
-+#ifdef CONFIG_MTD_NAND_DISKONCHIP_BBTWRITE
- static int inftl_bbt_write = 1;
- #else
- static int inftl_bbt_write = 0;
+ #ifdef TC35815_NAPI
+@@ -1554,8 +1553,7 @@ tc35815_rx(struct net_device *dev)
+ 				memcpy(data + offset, rxbuf, len);
+ #ifdef TC35815_DMA_SYNC_ONDEMAND
+ 				pci_dma_sync_single_for_device(lp->pci_dev,
+-							       dma, len,
+-							       PCI_DMA_FROMDEVICE);
++						dma, len, PCI_DMA_FROMDEVICE);
+ #endif
+ 				offset += len;
+ 				cur_bd++;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+software-suspend-fix-suspend-when-console-is-in-tidy.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
 git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-avr32.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
-ppc-correct-apparently-misspelled-xmon-preprocessor.patch
 git-drm.patch
-git-mtd.patch
-remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
-remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
-git-scsi-misc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-include-linux-elfnoteh.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
+git-dvb.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+driver_bfin_serial_core-update.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-tidy.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+sched-document-rsdl-cpu-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput-tidy.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
