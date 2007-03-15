@@ -1,2667 +1,1551 @@
 From: akpm@linux-foundation.org
-Subject: - delete-superfluous-source-file-net-wanrouter-af_wanpipec.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:59:20 -0800
-Message-ID: <200703152159.l2FLxKIc027815@shell0.pdx.osdl.net>
+Subject: - cleanup-the-includes-of-linux-pcih.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:59:25 -0800
+Message-ID: <200703152159.l2FLxPFC027821@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42569 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42579 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752055AbXCOV7j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:59:39 -0400
+	id S1752069AbXCOV7p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:59:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, khc@pm.waw.pl, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Delete superfluous source file "net/wanrouter/af_wanpipe.c"
+     Cleanup the includes of <linux/pci.h>
 has been removed from the -mm tree.  Its filename was
-     delete-superfluous-source-file-net-wanrouter-af_wanpipec.patch
+     cleanup-the-includes-of-linux-pcih.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Delete superfluous source file "net/wanrouter/af_wanpipe.c"
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: Cleanup the includes of <linux/pci.h>
+From: Jean Delvare <khali@linux-fr.org>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>
+I noticed that many source files include <linux/pci.h> while they do not
+appear to need it.  Here is an attempt to clean it all up.
+
+In order to find all possibly affected files, I searched for all files
+including <linux/pci.h> but without any other occurence of "pci" or "PCI". 
+I removed the include statement from all of these, then I compiled an
+allmodconfig kernel on both i386 and x86_64 and fixed the false positives
+manually.
+
+My tests covered 66% of the affected files, so there could be false
+positives remaining.  Untested files are:
+
+arch/alpha/kernel/err_common.c
+arch/alpha/kernel/err_ev6.c
+arch/alpha/kernel/err_ev7.c
+arch/ia64/sn/kernel/huberror.c
+arch/ia64/sn/kernel/xpnet.c
+arch/m68knommu/kernel/dma.c
+arch/mips/lib/iomap.c
+arch/powerpc/platforms/pseries/ras.c
+arch/ppc/8260_io/enet.c
+arch/ppc/8260_io/fcc_enet.c
+arch/ppc/8xx_io/enet.c
+arch/ppc/syslib/ppc4xx_sgdma.c
+arch/sh64/mach-cayman/iomap.c
+arch/xtensa/kernel/xtensa_ksyms.c
+arch/xtensa/platform-iss/setup.c
+drivers/i2c/busses/i2c-at91.c
+drivers/i2c/busses/i2c-mpc.c
+drivers/media/video/saa711x.c
+drivers/misc/hdpuftrs/hdpu_cpustate.c
+drivers/misc/hdpuftrs/hdpu_nexus.c
+drivers/net/au1000_eth.c
+drivers/net/fec_8xx/fec_main.c
+drivers/net/fec_8xx/fec_mii.c
+drivers/net/fs_enet/fs_enet-main.c
+drivers/net/fs_enet/mac-fcc.c
+drivers/net/fs_enet/mac-fec.c
+drivers/net/fs_enet/mac-scc.c
+drivers/net/fs_enet/mii-bitbang.c
+drivers/net/fs_enet/mii-fec.c
+drivers/net/ibm_emac/ibm_emac_core.c
+drivers/net/lasi_82596.c
+drivers/parisc/hppb.c
+drivers/sbus/sbus.c
+drivers/video/g364fb.c
+drivers/video/platinumfb.c
+drivers/video/stifb.c
+drivers/video/valkyriefb.c
+include/asm-arm/arch-ixp4xx/dma.h
+sound/oss/au1550_ac97.c
+sound/ppc/beep.c
+
+I would welcome test reports for these files.  I am fine with removing the
+untested files from the patch if the general opinion is that these changes
+aren't safe.  The tested part would still be nice to have.
+
+Note that this patch depends on another header fixup patch I submitted
+to LKML yesterday:
+  [PATCH] scatterlist.h needs types.h
+  http://lkml.org/lkml/2007/3/01/141
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/wanrouter/af_wanpipe.c | 2600 -----------------------------------
- 1 file changed, 2600 deletions(-)
+ arch/alpha/kernel/err_common.c               |    1 -
+ arch/alpha/kernel/err_ev6.c                  |    1 -
+ arch/alpha/kernel/err_ev7.c                  |    1 -
+ arch/i386/kernel/cpu/cpufreq/speedstep-lib.c |    1 -
+ arch/i386/kernel/cpu/cpufreq/speedstep-smi.c |    2 +-
+ arch/ia64/sn/kernel/huberror.c               |    1 -
+ arch/ia64/sn/kernel/xpnet.c                  |    1 -
+ arch/m68knommu/kernel/dma.c                  |    1 -
+ arch/mips/lib/iomap.c                        |    1 -
+ arch/powerpc/platforms/pseries/ras.c         |    1 -
+ arch/ppc/8260_io/enet.c                      |    1 -
+ arch/ppc/8260_io/fcc_enet.c                  |    1 -
+ arch/ppc/8xx_io/enet.c                       |    1 -
+ arch/ppc/syslib/ppc4xx_sgdma.c               |    1 -
+ arch/sh64/mach-cayman/iomap.c                |    1 -
+ arch/xtensa/kernel/xtensa_ksyms.c            |    1 -
+ arch/xtensa/platform-iss/setup.c             |    1 -
+ drivers/ata/pata_winbond.c                   |    1 -
+ drivers/atm/adummy.c                         |    1 -
+ drivers/char/hw_random/via-rng.c             |    1 -
+ drivers/char/pcmcia/synclink_cs.c            |    1 -
+ drivers/char/tpm/tpm.h                       |    1 -
+ drivers/char/watchdog/sc1200wdt.c            |    1 -
+ drivers/char/watchdog/scx200_wdt.c           |    2 +-
+ drivers/i2c/busses/i2c-at91.c                |    1 -
+ drivers/i2c/busses/i2c-mpc.c                 |    1 -
+ drivers/i2c/busses/i2c-pca-isa.c             |    1 -
+ drivers/ieee1394/hosts.c                     |    1 -
+ drivers/infiniband/core/cm.c                 |    1 -
+ drivers/infiniband/core/iwcm.c               |    1 -
+ drivers/infiniband/core/mad_priv.h           |    1 -
+ drivers/infiniband/core/multicast.c          |    1 -
+ drivers/infiniband/core/sa_query.c           |    1 -
+ drivers/infiniband/core/user_mad.c           |    1 -
+ drivers/infiniband/hw/ipath/ipath_fs.c       |    1 -
+ drivers/infiniband/hw/ipath/ipath_layer.c    |    1 -
+ drivers/infiniband/hw/ipath/ipath_stats.c    |    2 --
+ drivers/infiniband/hw/ipath/ipath_sysfs.c    |    1 -
+ drivers/infiniband/hw/mthca/mthca_memfree.h  |    1 -
+ drivers/infiniband/ulp/ipoib/ipoib.h         |    1 -
+ drivers/isdn/hisax/netjet.c                  |    1 -
+ drivers/isdn/hysdn/hysdn_proclog.c           |    1 -
+ drivers/media/dvb/cinergyT2/cinergyT2.c      |    2 +-
+ drivers/media/video/adv7170.c                |    1 -
+ drivers/media/video/adv7175.c                |    1 -
+ drivers/media/video/bt819.c                  |    1 -
+ drivers/media/video/bt856.c                  |    1 -
+ drivers/media/video/bt866.c                  |    1 -
+ drivers/media/video/cx88/cx88-tvaudio.c      |    1 -
+ drivers/media/video/em28xx/em28xx-cards.c    |    1 -
+ drivers/media/video/saa7111.c                |    1 -
+ drivers/media/video/saa7114.c                |    1 -
+ drivers/media/video/saa711x.c                |    1 -
+ drivers/media/video/saa7185.c                |    1 -
+ drivers/misc/hdpuftrs/hdpu_cpustate.c        |    1 -
+ drivers/misc/hdpuftrs/hdpu_nexus.c           |    1 -
+ drivers/mtd/devices/doc2000.c                |    1 -
+ drivers/mtd/devices/doc2001.c                |    1 -
+ drivers/mtd/devices/doc2001plus.c            |    1 -
+ drivers/mtd/devices/docecc.c                 |    1 -
+ drivers/mtd/inftlmount.c                     |    1 -
+ drivers/mtd/nand/cs553x_nand.c               |    1 -
+ drivers/mtd/nftlcore.c                       |    1 -
+ drivers/net/atl1/atl1_param.c                |    1 -
+ drivers/net/au1000_eth.c                     |    1 -
+ drivers/net/fec_8xx/fec_main.c               |    1 -
+ drivers/net/fec_8xx/fec_mii.c                |    1 -
+ drivers/net/fs_enet/fs_enet-main.c           |    1 -
+ drivers/net/fs_enet/mac-fcc.c                |    1 -
+ drivers/net/fs_enet/mac-fec.c                |    1 -
+ drivers/net/fs_enet/mac-scc.c                |    1 -
+ drivers/net/fs_enet/mii-bitbang.c            |    1 -
+ drivers/net/fs_enet/mii-fec.c                |    1 -
+ drivers/net/ibm_emac/ibm_emac_core.c         |    1 -
+ drivers/net/ixgb/ixgb_osdep.h                |    1 -
+ drivers/net/lasi_82596.c                     |    1 -
+ drivers/net/tokenring/madgemc.c              |    1 -
+ drivers/net/tokenring/smctr.c                |    1 -
+ drivers/net/tulip/21142.c                    |    1 -
+ drivers/net/tulip/pnic.c                     |    1 -
+ drivers/net/tulip/pnic2.c                    |    1 -
+ drivers/net/tulip/timer.c                    |    1 -
+ drivers/net/tulip/tulip.h                    |    1 +
+ drivers/net/wan/lmc/lmc_media.c              |    1 -
+ drivers/net/wan/lmc/lmc_proto.c              |    1 -
+ drivers/net/wan/pc300_tty.c                  |    1 -
+ drivers/parisc/hppb.c                        |    2 --
+ drivers/pcmcia/cs.c                          |    1 -
+ drivers/pcmcia/socket_sysfs.c                |    1 -
+ drivers/sbus/sbus.c                          |    1 -
+ drivers/scsi/aacraid/dpcsup.c                |    1 -
+ drivers/scsi/aacraid/sa.c                    |    1 -
+ drivers/scsi/aha1542.c                       |    1 -
+ drivers/scsi/aic94xx/aic94xx_scb.c           |    1 -
+ drivers/scsi/arcmsr/arcmsr_attr.c            |    1 -
+ drivers/scsi/libsas/sas_expander.c           |    1 -
+ drivers/scsi/libsrp.c                        |    1 -
+ drivers/usb/net/kaweth.c                     |    1 -
+ drivers/video/aty/radeon_i2c.c               |    1 -
+ drivers/video/g364fb.c                       |    1 -
+ drivers/video/platinumfb.c                   |    1 -
+ drivers/video/stifb.c                        |    1 -
+ drivers/video/valkyriefb.c                   |    1 -
+ include/asm-arm/arch-ixp4xx/dma.h            |    1 -
+ include/rdma/ib_mad.h                        |    2 --
+ sound/core/init.c                            |    1 -
+ sound/oss/au1550_ac97.c                      |    1 -
+ sound/oss/soundcard.c                        |    1 +
+ sound/pci/ca0106/ca0106_mixer.c              |    2 +-
+ sound/pci/ca0106/ca0106_proc.c               |    2 +-
+ sound/pci/cs46xx/dsp_spos.c                  |    1 -
+ sound/pci/cs46xx/dsp_spos_scb_lib.c          |    1 -
+ sound/pci/hda/hda_generic.c                  |    1 -
+ sound/pci/hda/hda_proc.c                     |    1 -
+ sound/pci/hda/patch_atihdmi.c                |    1 -
+ sound/pci/hda/patch_si3054.c                 |    1 -
+ sound/pci/hda/patch_via.c                    |    1 -
+ sound/ppc/beep.c                             |    1 -
+ 118 files changed, 7 insertions(+), 119 deletions(-)
 
-diff -puN net/wanrouter/af_wanpipe.c~delete-superfluous-source-file-net-wanrouter-af_wanpipec /dev/null
---- a/net/wanrouter/af_wanpipe.c
-+++ /dev/null
-@@ -1,2600 +0,0 @@
--/*****************************************************************************
--* af_wanpipe.c	WANPIPE(tm) Secure Socket Layer.
--*
--* Author:	Nenad Corbic	<ncorbic@sangoma.com>
--*
--* Copyright:	(c) 2000 Sangoma Technologies Inc.
--*
--*		This program is free software; you can redistribute it and/or
--*		modify it under the terms of the GNU General Public License
--*		as published by the Free Software Foundation; either version
--*		2 of the License, or (at your option) any later version.
--* ============================================================================
--* Due Credit:
--*               Wanpipe socket layer is based on Packet and
--*               the X25 socket layers. The above sockets were
--*               used for the specific use of Sangoma Technologies
--*               API programs.
--*               Packet socket Authors: Ross Biro, Fred N. van Kempen and
--*                                      Alan Cox.
--*               X25 socket Author: Jonathan Naylor.
--* ============================================================================
--* Mar 15, 2002  Arnaldo C. Melo  o Use wp_sk()->num, as it isnt anymore in sock
--* Apr 25, 2000  Nenad Corbic     o Added the ability to send zero length packets.
--* Mar 13, 2000  Nenad Corbic	 o Added a tx buffer check via ioctl call.
--* Mar 06, 2000  Nenad Corbic     o Fixed the corrupt sock lcn problem.
--*                                  Server and client application can run
--*                                  simultaneously without conflicts.
--* Feb 29, 2000  Nenad Corbic     o Added support for PVC protocols, such as
--*                                  CHDLC, Frame Relay and HDLC API.
--* Jan 17, 2000 	Nenad Corbic	 o Initial version, based on AF_PACKET socket.
--*			           X25API support only.
--*
--******************************************************************************/
--
--#include <linux/types.h>
--#include <linux/sched.h>
--#include <linux/mm.h>
--#include <linux/capability.h>
--#include <linux/fcntl.h>
--#include <linux/socket.h>
--#include <linux/in.h>
--#include <linux/inet.h>
--#include <linux/netdevice.h>
--#include <linux/poll.h>
--#include <linux/wireless.h>
--#include <linux/kmod.h>
--#include <net/ip.h>
--#include <net/protocol.h>
--#include <linux/skbuff.h>
--#include <net/sock.h>
--#include <linux/errno.h>
--#include <linux/timer.h>
--#include <asm/system.h>
--#include <asm/uaccess.h>
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/if_wanpipe.h>
--#include <linux/pkt_sched.h>
--#include <linux/tcp_states.h>
--#include <linux/if_wanpipe_common.h>
--
--#ifdef CONFIG_INET
--#include <net/inet_common.h>
--#endif
--
--#define SLOW_BACKOFF 0.1*HZ
--#define FAST_BACKOFF 0.01*HZ
--
--//#define PRINT_DEBUG
--#ifdef PRINT_DEBUG
--	#define DBG_PRINTK(format, a...) printk(format, ## a)
--#else
--	#define DBG_PRINTK(format, a...)
--#endif
--
--
--/* SECURE SOCKET IMPLEMENTATION
-- *
-- *   TRANSMIT:
-- *
-- *      When the user sends a packet via send() system call
-- *      the wanpipe_sendmsg() function is executed.
-- *
-- *      Each packet is enqueud into sk->sk_write_queue transmit
-- *      queue. When the packet is enqueued, a delayed transmit
-- *      timer is triggerd which acts as a Bottom Half hander.
-- *
-- *      wanpipe_delay_transmit() function (BH), dequeues packets
-- *      from the sk->sk_write_queue transmit queue and sends it
-- *      to the deriver via dev->hard_start_xmit(skb, dev) function.
-- *      Note, this function is actual a function pointer of if_send()
-- *      routine in the wanpipe driver.
-- *
-- *      X25API GUARANTEED DELIVERY:
-- *
-- *         In order to provide 100% guaranteed packet delivery,
-- *         an atomic 'packet_sent' counter is implemented.  Counter
-- *         is incremented for each packet enqueued
-- *         into sk->sk_write_queue.  Counter is decremented each
-- *         time wanpipe_delayed_transmit() function successfuly
-- *         passes the packet to the driver. Before each send(), a poll
-- *         routine checks the sock resources The maximum value of
-- *         packet sent counter is 1, thus if one packet is queued, the
-- *         application will block until that packet is passed to the
-- *         driver.
-- *
-- *   RECEIVE:
-- *
-- *      Wanpipe device drivers call the socket bottom half
-- *      function, wanpipe_rcv() to queue the incoming packets
-- *      into an AF_WANPIPE socket queue.  Based on wanpipe_rcv()
-- *      return code, the driver knows whether the packet was
-- *      successfully queued.  If the socket queue is full,
-- *      protocol flow control is used by the driver, if any,
-- *      to slow down the traffic until the sock queue is free.
-- *
-- *      Every time a packet arrives into a socket queue the
-- *      socket wakes up processes which are waiting to receive
-- *      data.
-- *
-- *      If the socket queue is full, the driver sets a block
-- *      bit which signals the socket to kick the wanpipe driver
-- *      bottom half hander when the socket queue is partialy
-- *      empty. wanpipe_recvmsg() function performs this action.
-- *
-- *      In case of x25api, packets will never be dropped, since
-- *      flow control is available.
-- *
-- *      In case of streaming protocols like CHDLC, packets will
-- *      be dropped but the statistics will be generated.
-- */
--
--
--/* The code below is used to test memory leaks. It prints out
-- * a message every time kmalloc and kfree system calls get executed.
-- * If the calls match there is no leak :)
-- */
--
--/***********FOR DEBUGGING PURPOSES*********************************************
--#define KMEM_SAFETYZONE 8
--
--static void * dbg_kmalloc(unsigned int size, int prio, int line) {
--	void * v = kmalloc(size,prio);
--	printk(KERN_INFO "line %d  kmalloc(%d,%d) = %p\n",line,size,prio,v);
--	return v;
--}
--static void dbg_kfree(void * v, int line) {
--	printk(KERN_INFO "line %d  kfree(%p)\n",line,v);
--	kfree(v);
--}
--
--#define kmalloc(x,y) dbg_kmalloc(x,y,__LINE__)
--#define kfree(x) dbg_kfree(x,__LINE__)
--******************************************************************************/
--
--
--/* List of all wanpipe sockets. */
--HLIST_HEAD(wanpipe_sklist);
--static DEFINE_RWLOCK(wanpipe_sklist_lock);
--
--atomic_t wanpipe_socks_nr;
--static unsigned long wanpipe_tx_critical;
--
--#if 0
--/* Private wanpipe socket structures. */
--struct wanpipe_opt
--{
--	void   *mbox;		/* Mail box  */
--	void   *card; 		/* Card bouded to */
--	struct net_device *dev;	/* Bounded device */
--	unsigned short lcn;	/* Binded LCN */
--	unsigned char  svc;	/* 0=pvc, 1=svc */
--	unsigned char  timer;   /* flag for delayed transmit*/
--	struct timer_list tx_timer;
--	unsigned poll_cnt;
--	unsigned char force;	/* Used to force sock release */
--	atomic_t packet_sent;
--};
--#endif
--
--static int sk_count;
--extern const struct proto_ops wanpipe_ops;
--static unsigned long find_free_critical;
--
--static void wanpipe_unlink_driver(struct sock *sk);
--static void wanpipe_link_driver(struct net_device *dev, struct sock *sk);
--static void wanpipe_wakeup_driver(struct sock *sk);
--static int execute_command(struct sock *, unsigned char, unsigned int);
--static int check_dev(struct net_device *dev, sdla_t *card);
--struct net_device *wanpipe_find_free_dev(sdla_t *card);
--static void wanpipe_unlink_card (struct sock *);
--static int wanpipe_link_card (struct sock *);
--static struct sock *wanpipe_make_new(struct sock *);
--static struct sock *wanpipe_alloc_socket(void);
--static inline int get_atomic_device(struct net_device *dev);
--static int wanpipe_exec_cmd(struct sock *, int, unsigned int);
--static int get_ioctl_cmd (struct sock *, void *);
--static int set_ioctl_cmd (struct sock *, void *);
--static void release_device(struct net_device *dev);
--static void wanpipe_kill_sock_timer (unsigned long data);
--static void wanpipe_kill_sock_irq (struct sock *);
--static void wanpipe_kill_sock_accept (struct sock *);
--static int wanpipe_do_bind(struct sock *sk, struct net_device *dev,
--			   int protocol);
--struct sock * get_newsk_from_skb (struct sk_buff *);
--static int wanpipe_debug (struct sock *, void *);
--static void wanpipe_delayed_transmit (unsigned long data);
--static void release_driver(struct sock *);
--static void start_cleanup_timer (struct sock *);
--static void check_write_queue(struct sock *);
--static int check_driver_busy (struct sock *);
--
--/*============================================================
-- * wanpipe_rcv
-- *
-- *	Wanpipe socket bottom half handler.  This function
-- *      is called by the WANPIPE device drivers to queue a
-- *      incoming packet into the socket receive queue.
-- *      Once the packet is queued, all processes waiting to
-- *      read are woken up.
-- *
-- *      During socket bind, this function is bounded into
-- *      WANPIPE driver private.
-- *===========================================================*/
--
--static int wanpipe_rcv(struct sk_buff *skb, struct net_device *dev,
--		       struct sock *sk)
--{
--	struct wan_sockaddr_ll *sll = (struct wan_sockaddr_ll*)skb->cb;
--	wanpipe_common_t *chan = dev->priv;
--	/*
--	 *	When we registered the protocol we saved the socket in the data
--	 *	field for just this event.
--	 */
--
--	skb->dev = dev;
--
--	sll->sll_family = AF_WANPIPE;
--	sll->sll_hatype = dev->type;
--	sll->sll_protocol = skb->protocol;
--	sll->sll_pkttype = skb->pkt_type;
--	sll->sll_ifindex = dev->ifindex;
--	sll->sll_halen = 0;
--
--	if (dev->hard_header_parse)
--		sll->sll_halen = dev->hard_header_parse(skb, sll->sll_addr);
--
--	/*
--	 * WAN_PACKET_DATA : Data which should be passed up the receive queue.
--	 * WAN_PACKET_ASYC : Asynchronous data like place call, which should
--	 *                   be passed up the listening sock.
--	 * WAN_PACKET_ERR  : Asynchronous data like clear call or restart
--	 *                   which should go into an error queue.
--	 */
--	switch (skb->pkt_type){
--
--		case WAN_PACKET_DATA:
--			if (sock_queue_rcv_skb(sk,skb)<0){
--				return -ENOMEM;
--			}
--			break;
--		case WAN_PACKET_CMD:
--			sk->sk_state = chan->state;
--			/* Bug fix: update Mar6.
--			 * Do not set the sock lcn number here, since
--			 * cmd is not guaranteed to be executed on the
--			 * board, thus Lcn could be wrong */
--			sk->sk_data_ready(sk, skb->len);
--			kfree_skb(skb);
--			break;
--		case WAN_PACKET_ERR:
--			sk->sk_state = chan->state;
--			if (sock_queue_err_skb(sk,skb)<0){
--				return -ENOMEM;
--			}
--			break;
--		default:
--			printk(KERN_INFO "wansock: BH Illegal Packet Type Dropping\n");
--			kfree_skb(skb);
--			break;
--	}
--
--//??????????????????????
--//	if (sk->sk_state == WANSOCK_DISCONNECTED){
--//		if (sk->sk_zapped) {
--//			//printk(KERN_INFO "wansock: Disconnected, killing early\n");
--//			wanpipe_unlink_driver(sk);
--//			sk->sk_bound_dev_if = 0;
--//		}
--//	}
--
--	return 0;
--}
--
--/*============================================================
-- * wanpipe_listen_rcv
-- *
-- *	Wanpipe LISTEN socket bottom half handler.  This function
-- *      is called by the WANPIPE device drivers to queue an
-- *      incoming call into the socket listening queue.
-- *      Once the packet is queued, the waiting accept() process
-- *      is woken up.
-- *
-- *      During socket bind, this function is bounded into
-- *      WANPIPE driver private.
-- *
-- *      IMPORTANT NOTE:
-- *          The accept call() is waiting for an skb packet
-- *          which contains a pointer to a device structure.
-- *
-- *          When we do a bind to a device structre, we
-- *          bind a newly created socket into "chan->sk".  Thus,
-- *          when accept receives the skb packet, it will know
-- *          from which dev it came form, and in turn it will know
-- *          the address of the new sock.
-- *
-- *  	NOTE: This function gets called from driver ISR.
-- *===========================================================*/
--
--static int wanpipe_listen_rcv (struct sk_buff *skb,  struct sock *sk)
--{
--	wanpipe_opt *wp = wp_sk(sk), *newwp;
--	struct wan_sockaddr_ll *sll = (struct wan_sockaddr_ll*)skb->cb;
--	struct sock *newsk;
--	struct net_device *dev;
--	sdla_t *card;
--	mbox_cmd_t *mbox_ptr;
--	wanpipe_common_t *chan;
--
--	/* Find a free device, if none found, all svc's are busy
--	 */
--
--	card = (sdla_t*)wp->card;
--	if (!card){
--		printk(KERN_INFO "wansock: LISTEN ERROR, No Card\n");
--		return -ENODEV;
--	}
--
--	dev = wanpipe_find_free_dev(card);
--	if (!dev){
--		printk(KERN_INFO "wansock: LISTEN ERROR, No Free Device\n");
--		return -ENODEV;
--	}
--
--	chan=dev->priv;
--	chan->state = WANSOCK_CONNECTING;
--
--	/* Allocate a new sock, which accept will bind
--	 * and pass up to the user
--	 */
--	if ((newsk = wanpipe_make_new(sk)) == NULL){
--		release_device(dev);
--		return -ENOMEM;
--	}
--
--
--	/* Initialize the new sock structure
--	 */
--	newsk->sk_bound_dev_if = dev->ifindex;
--	newwp = wp_sk(newsk);
--	newwp->card = wp->card;
--
--	/* Insert the sock into the main wanpipe
--	 * sock list.
--	 */
--	atomic_inc(&wanpipe_socks_nr);
--
--	/* Allocate and fill in the new Mail Box. Then
--	 * bind the mail box to the sock. It will be
--	 * used by the ioctl call to read call information
--	 * and to execute commands.
--	 */
--	if ((mbox_ptr = kzalloc(sizeof(mbox_cmd_t), GFP_ATOMIC)) == NULL) {
--		wanpipe_kill_sock_irq (newsk);
--		release_device(dev);
--		return -ENOMEM;
--	}
--	memcpy(mbox_ptr,skb->data,skb->len);
--
--	/* Register the lcn on which incoming call came
--	 * from. Thus, if we have to clear it, we know
--	 * which lcn to clear
--	 */
--
--	newwp->lcn = mbox_ptr->cmd.lcn;
--	newwp->mbox = (void *)mbox_ptr;
--
--	DBG_PRINTK(KERN_INFO "NEWSOCK : Device %s, bind to lcn %i\n",
--			dev->name,mbox_ptr->cmd.lcn);
--
--	chan->lcn = mbox_ptr->cmd.lcn;
--	card->u.x.svc_to_dev_map[(chan->lcn%MAX_X25_LCN)] = dev;
--
--	sock_reset_flag(newsk, SOCK_ZAPPED);
--	newwp->num = htons(X25_PROT);
--
--	if (wanpipe_do_bind(newsk, dev, newwp->num)) {
--		wanpipe_kill_sock_irq (newsk);
--		release_device(dev);
--		return -EINVAL;
--	}
--	newsk->sk_state = WANSOCK_CONNECTING;
--
--
--	/* Fill in the standard sock address info */
--
--	sll->sll_family = AF_WANPIPE;
--	sll->sll_hatype = dev->type;
--	sll->sll_protocol = skb->protocol;
--	sll->sll_pkttype = skb->pkt_type;
--	sll->sll_ifindex = dev->ifindex;
--	sll->sll_halen = 0;
--
--	skb->dev = dev;
--	sk->sk_ack_backlog++;
--
--	/* We must do this manually, since the sock_queue_rcv_skb()
--	 * function sets the skb->dev to NULL.  However, we use
--	 * the dev field in the accept function.*/
--	if (atomic_read(&sk->sk_rmem_alloc) + skb->truesize >=
--	    (unsigned)sk->sk_rcvbuf) {
--
--		wanpipe_unlink_driver(newsk);
--		wanpipe_kill_sock_irq (newsk);
--		--sk->sk_ack_backlog;
--		return -ENOMEM;
--	}
--
--	skb_set_owner_r(skb, sk);
--	skb_queue_tail(&sk->sk_receive_queue, skb);
--	sk->sk_data_ready(sk, skb->len);
--
--	return 0;
--}
--
--
--
--/*============================================================
-- * wanpipe_make_new
-- *
-- *	Create a new sock, and allocate a wanpipe private
-- *      structure to it. Also, copy the important data
-- *      from the original sock to the new sock.
-- *
-- *      This function is used by wanpipe_listen_rcv() listen
-- *      bottom half handler.  A copy of the listening sock
-- *      is created using this function.
-- *
-- *===========================================================*/
--
--static struct sock *wanpipe_make_new(struct sock *osk)
--{
--	struct sock *sk;
--
--	if (osk->sk_type != SOCK_RAW)
--		return NULL;
--
--	if ((sk = wanpipe_alloc_socket()) == NULL)
--		return NULL;
--
--	sk->sk_type	= osk->sk_type;
--	sk->sk_socket	= osk->sk_socket;
--	sk->sk_priority	= osk->sk_priority;
--	sk->sk_protocol	= osk->sk_protocol;
--	wp_sk(sk)->num	= wp_sk(osk)->num;
--	sk->sk_rcvbuf	= osk->sk_rcvbuf;
--	sk->sk_sndbuf	= osk->sk_sndbuf;
--	sk->sk_state	= WANSOCK_CONNECTING;
--	sk->sk_sleep	= osk->sk_sleep;
--
--	if (sock_flag(osk, SOCK_DBG))
--		sock_set_flag(sk, SOCK_DBG);
--
--	return sk;
--}
--
--/*
-- * FIXME: wanpipe_opt has to include a sock in its definition and stop using
-- * sk_protinfo, but this code is not even compilable now, so lets leave it for
-- * later.
-- */
--static struct proto wanpipe_proto = {
--	.name	  = "WANPIPE",
--	.owner	  = THIS_MODULE,
--	.obj_size = sizeof(struct sock),
--};
--
--/*============================================================
-- * wanpipe_make_new
-- *
-- *	Allocate memory for the a new sock, and sock
-- *      private data.
-- *
-- *	Increment the module use count.
-- *
-- *      This function is used by wanpipe_create() and
-- *      wanpipe_make_new() functions.
-- *
-- *===========================================================*/
--
--static struct sock *wanpipe_alloc_socket(void)
--{
--	struct sock *sk;
--	struct wanpipe_opt *wan_opt;
--
--	if ((sk = sk_alloc(PF_WANPIPE, GFP_ATOMIC, &wanpipe_proto, 1)) == NULL)
--		return NULL;
--
--	if ((wan_opt = kzalloc(sizeof(struct wanpipe_opt), GFP_ATOMIC)) == NULL) {
--		sk_free(sk);
--		return NULL;
--	}
--
--	wp_sk(sk) = wan_opt;
--
--	/* Use timer to send data to the driver. This will act
--	 * as a BH handler for sendmsg functions */
--	init_timer(&wan_opt->tx_timer);
--	wan_opt->tx_timer.data	   = (unsigned long)sk;
--	wan_opt->tx_timer.function = wanpipe_delayed_transmit;
--
--	sock_init_data(NULL, sk);
--	return sk;
--}
--
--
--/*============================================================
-- * wanpipe_sendmsg
-- *
-- *	This function implements a sendto() system call,
-- *      for AF_WANPIPE socket family.
-- *      During socket bind() sk->sk_bound_dev_if is initialized
-- *      to a correct network device. This number is used
-- *      to find a network device to which the packet should
-- *      be passed to.
-- *
-- *      Each packet is queued into sk->sk_write_queue and
-- *      delayed transmit bottom half handler is marked for
-- *      execution.
-- *
-- *      A socket must be in WANSOCK_CONNECTED state before
-- *      a packet is queued into sk->sk_write_queue.
-- *===========================================================*/
--
--static int wanpipe_sendmsg(struct kiocb *iocb, struct socket *sock,
--			   struct msghdr *msg, int len)
--{
--	wanpipe_opt *wp;
--	struct sock *sk = sock->sk;
--	struct wan_sockaddr_ll *saddr=(struct wan_sockaddr_ll *)msg->msg_name;
--	struct sk_buff *skb;
--	struct net_device *dev;
--	unsigned short proto;
--	unsigned char *addr;
--	int ifindex, err, reserve = 0;
--
--
--	if (!sock_flag(sk, SOCK_ZAPPED))
--		return -ENETDOWN;
--
--	if (sk->sk_state != WANSOCK_CONNECTED)
--		return -ENOTCONN;
--
--	if (msg->msg_flags & ~(MSG_DONTWAIT|MSG_CMSG_COMPAT))
--		return(-EINVAL);
--
--	/* it was <=, now one can send
--	 * zero length packets */
--	if (len < sizeof(x25api_hdr_t))
--		return -EINVAL;
--
--	wp = wp_sk(sk);
--
--	if (saddr == NULL) {
--		ifindex	= sk->sk_bound_dev_if;
--		proto	= wp->num;
--		addr	= NULL;
--
--	}else{
--		if (msg->msg_namelen < sizeof(struct wan_sockaddr_ll)){
--			return -EINVAL;
--		}
--
--		ifindex = sk->sk_bound_dev_if;
--		proto	= saddr->sll_protocol;
--		addr	= saddr->sll_addr;
--	}
--
--	dev = dev_get_by_index(ifindex);
--	if (dev == NULL){
--		printk(KERN_INFO "wansock: Send failed, dev index: %i\n",ifindex);
--		return -ENXIO;
--	}
--	dev_put(dev);
--
--	if (sock->type == SOCK_RAW)
--		reserve = dev->hard_header_len;
--
--	if (len > dev->mtu+reserve){
--		return -EMSGSIZE;
--	}
--
--	skb = sock_alloc_send_skb(sk, len + LL_RESERVED_SPACE(dev),
--				msg->msg_flags & MSG_DONTWAIT, &err);
--
--	if (skb==NULL){
--		goto out_unlock;
--	}
--
--	skb_reserve(skb, LL_RESERVED_SPACE(dev));
--	skb->nh.raw = skb->data;
--
--	/* Returns -EFAULT on error */
--	err = memcpy_fromiovec(skb_put(skb,len), msg->msg_iov, len);
--	if (err){
--		goto out_free;
--	}
--
--	if (dev->hard_header) {
--		int res;
--		err = -EINVAL;
--		res = dev->hard_header(skb, dev, ntohs(proto), addr, NULL, len);
--		if (res<0){
--			goto out_free;
--		}
--	}
--
--	skb->protocol = proto;
--	skb->dev = dev;
--	skb->priority = sk->sk_priority;
--	skb->pkt_type = WAN_PACKET_DATA;
--
--	err = -ENETDOWN;
--	if (!(dev->flags & IFF_UP))
--		goto out_free;
--
--	if (atomic_read(&sk->sk_wmem_alloc) + skb->truesize >
--	    (unsigned int)sk->sk_sndbuf){
--		kfree_skb(skb);
--		return -ENOBUFS;
--	}
--
--	skb_queue_tail(&sk->sk_write_queue,skb);
--	atomic_inc(&wp->packet_sent);
--
--	if (!(test_and_set_bit(0, &wp->timer)))
--		mod_timer(&wp->tx_timer, jiffies + 1);
--
--	return(len);
--
--out_free:
--	kfree_skb(skb);
--out_unlock:
--	return err;
--}
--
--/*============================================================
-- * wanpipe_delayed_tarnsmit
-- *
-- *	Transmit bottom half handler. It dequeues packets
-- *      from sk->sk_write_queue and passes them to the
-- *      driver.  If the driver is busy, the packet is
-- *      re-enqueued.
-- *
-- *      Packet Sent counter is decremented on successful
-- *      transmission.
-- *===========================================================*/
--
--
--static void wanpipe_delayed_transmit (unsigned long data)
--{
--	struct sock *sk=(struct sock *)data;
--	struct sk_buff *skb;
--	wanpipe_opt *wp = wp_sk(sk);
--	struct net_device *dev = wp->dev;
--	sdla_t *card = (sdla_t*)wp->card;
--
--	if (!card || !dev){
--		clear_bit(0, &wp->timer);
--		DBG_PRINTK(KERN_INFO "wansock: Transmit delay, no dev or card\n");
--		return;
--	}
--
--	if (sk->sk_state != WANSOCK_CONNECTED || !sock_flag(sk, SOCK_ZAPPED)) {
--		clear_bit(0, &wp->timer);
--		DBG_PRINTK(KERN_INFO "wansock: Tx Timer, State not CONNECTED\n");
--		return;
--	}
--
--	/* If driver is executing command, we must offload
--	 * the board by not sending data. Otherwise a
--	 * pending command will never get a free buffer
--	 * to execute */
--	if (atomic_read(&card->u.x.command_busy)){
--		wp->tx_timer.expires = jiffies + SLOW_BACKOFF;
--		add_timer(&wp->tx_timer);
--		DBG_PRINTK(KERN_INFO "wansock: Tx Timer, command bys BACKOFF\n");
--		return;
--	}
--
--
--	if (test_and_set_bit(0,&wanpipe_tx_critical)){
--		printk(KERN_INFO "WanSock: Tx timer critical %s\n",dev->name);
--		wp->tx_timer.expires = jiffies + SLOW_BACKOFF;
--		add_timer(&wp->tx_timer);
--		return;
--	}
--
--	/* Check for a packet in the fifo and send */
--	if ((skb = skb_dequeue(&sk->sk_write_queue)) != NULL){
--
--		if (dev->hard_start_xmit(skb, dev) != 0){
--
--			/* Driver failed to transmit, re-enqueue
--			 * the packet and retry again later */
--			skb_queue_head(&sk->sk_write_queue,skb);
--			clear_bit(0,&wanpipe_tx_critical);
--			return;
--		}else{
--
--			/* Packet Sent successful. Check for more packets
--			 * if more packets, re-trigger the transmit routine
--			 * other wise exit
--			 */
--			atomic_dec(&wp->packet_sent);
--
--			if (skb_peek(&sk->sk_write_queue) == NULL) {
--				/* If there is nothing to send, kick
--				 * the poll routine, which will trigger
--				 * the application to send more data */
--				sk->sk_data_ready(sk, 0);
--				clear_bit(0, &wp->timer);
--			}else{
--				/* Reschedule as fast as possible */
--				wp->tx_timer.expires = jiffies + 1;
--				add_timer(&wp->tx_timer);
--			}
--		}
--	}
--	clear_bit(0,&wanpipe_tx_critical);
--}
--
--/*============================================================
-- * execute_command
-- *
-- *	Execute x25api commands.  The atomic variable
-- *      chan->command is used to indicate to the driver that
-- *      command is pending for execution.  The acutal command
-- *      structure is placed into a sock mbox structure
-- *      (wp_sk(sk)->mbox).
-- *
-- *      The sock private structure, mbox is
-- *      used as shared memory between sock and the driver.
-- *      Driver uses the sock mbox to execute the command
-- *      and return the result.
-- *
-- *      For all command except PLACE CALL, the function
-- *      waits for the result.  PLACE CALL can be ether
-- *      blocking or nonblocking. The user sets this option
-- *      via ioctl call.
-- *===========================================================*/
--
--
--static int execute_command(struct sock *sk,  unsigned char cmd, unsigned int flags)
--{
--	wanpipe_opt *wp = wp_sk(sk);
--	struct net_device *dev;
--	wanpipe_common_t *chan=NULL;
--	int err=0;
--	DECLARE_WAITQUEUE(wait, current);
--
--	dev = dev_get_by_index(sk->sk_bound_dev_if);
--	if (dev == NULL){
--		printk(KERN_INFO "wansock: Exec failed no dev %i\n",
--			sk->sk_bound_dev_if);
--		return -ENODEV;
--	}
--	dev_put(dev);
--
--	if ((chan=dev->priv) == NULL){
--		printk(KERN_INFO "wansock: Exec cmd failed no priv area\n");
--		return -ENODEV;
--	}
--
--	if (atomic_read(&chan->command)){
--		printk(KERN_INFO "wansock: ERROR: Command already running %x, %s\n",
--			atomic_read(&chan->command),dev->name);
--		return -EINVAL;
--	}
--
--	if (!wp->mbox) {
--		printk(KERN_INFO "wansock: In execute without MBOX\n");
--		return -EINVAL;
--	}
--
--	((mbox_cmd_t*)wp->mbox)->cmd.command = cmd;
--	((mbox_cmd_t*)wp->mbox)->cmd.lcn     = wp->lcn;
--	((mbox_cmd_t*)wp->mbox)->cmd.result  = 0x7F;
--
--
--	if (flags & O_NONBLOCK){
--		cmd |= 0x80;
--		atomic_set(&chan->command, cmd);
--	}else{
--		atomic_set(&chan->command, cmd);
--	}
--
--	add_wait_queue(sk->sk_sleep,&wait);
--	current->state = TASK_INTERRUPTIBLE;
--	for (;;){
--		if (((mbox_cmd_t*)wp->mbox)->cmd.result != 0x7F) {
--			err = 0;
--			break;
--		}
--		if (signal_pending(current)) {
--			err = -ERESTARTSYS;
--			break;
--		}
--		schedule();
--	}
--	current->state = TASK_RUNNING;
--	remove_wait_queue(sk->sk_sleep,&wait);
--
--	return err;
--}
--
--/*============================================================
-- * wanpipe_destroy_timer
-- *
-- *	Used by wanpipe_release, to delay release of
-- *      the socket.
-- *===========================================================*/
--
--static void wanpipe_destroy_timer(unsigned long data)
--{
--	struct sock *sk=(struct sock *)data;
--	wanpipe_opt *wp = wp_sk(sk);
--
--	if ((!atomic_read(&sk->sk_wmem_alloc) &&
--	     !atomic_read(&sk->sk_rmem_alloc)) ||
--	    (++wp->force == 5)) {
--
--		if (atomic_read(&sk->sk_wmem_alloc) ||
--		    atomic_read(&sk->sk_rmem_alloc))
--			printk(KERN_INFO "wansock: Warning, Packet Discarded due to sock shutdown!\n");
--
--		kfree(wp);
--		wp_sk(sk) = NULL;
--
--		if (atomic_read(&sk->sk_refcnt) != 1) {
--			atomic_set(&sk->sk_refcnt, 1);
--			DBG_PRINTK(KERN_INFO "wansock: Error, wrong reference count: %i ! :delay.\n",
--					atomic_read(&sk->sk_refcnt));
--		}
--		sock_put(sk);
--		atomic_dec(&wanpipe_socks_nr);
--		return;
--	}
--
--	sk->sk_timer.expires = jiffies + 5 * HZ;
--	add_timer(&sk->sk_timer);
--	printk(KERN_INFO "wansock: packet sk destroy delayed\n");
--}
--
--/*============================================================
-- * wanpipe_unlink_driver
-- *
-- * 	When the socket is released, this function is
-- *      used to remove links that bind the sock and the
-- *      driver together.
-- *===========================================================*/
--static void wanpipe_unlink_driver (struct sock *sk)
--{
--	struct net_device *dev;
--	wanpipe_common_t *chan=NULL;
--
--	sock_reset_flag(sk, SOCK_ZAPPED);
--	sk->sk_state = WANSOCK_DISCONNECTED;
--	wp_sk(sk)->dev = NULL;
--
--	dev = dev_get_by_index(sk->sk_bound_dev_if);
--	if (!dev){
--		printk(KERN_INFO "wansock: No dev on release\n");
--		return;
--	}
--	dev_put(dev);
--
--	if ((chan = dev->priv) == NULL){
--		printk(KERN_INFO "wansock: No Priv Area on release\n");
--		return;
--	}
--
--	set_bit(0,&chan->common_critical);
--	chan->sk=NULL;
--	chan->func=NULL;
--	chan->mbox=NULL;
--	chan->tx_timer=NULL;
--	clear_bit(0,&chan->common_critical);
--	release_device(dev);
--
--	return;
--}
--
--/*============================================================
-- * wanpipe_link_driver
-- *
-- * 	Upon successful bind(), sock is linked to a driver
-- *      by binding in the wanpipe_rcv() bottom half handler
-- *      to the driver function pointer, as well as sock and
-- *      sock mailbox addresses.  This way driver can pass
-- *      data up the socket.
-- *===========================================================*/
--
--static void wanpipe_link_driver(struct net_device *dev, struct sock *sk)
--{
--	wanpipe_opt *wp = wp_sk(sk);
--	wanpipe_common_t *chan = dev->priv;
--	if (!chan)
--		return;
--	set_bit(0,&chan->common_critical);
--	chan->sk=sk;
--	chan->func=wanpipe_rcv;
--	chan->mbox = wp->mbox;
--	chan->tx_timer = &wp->tx_timer;
--	wp->dev = dev;
--	sock_set_flag(sk, SOCK_ZAPPED);
--	clear_bit(0,&chan->common_critical);
--}
--
--
--/*============================================================
-- * release_device
-- *
-- *   	During sock release, clear a critical bit, which
-- *      marks the device a being taken.
-- *===========================================================*/
--
--
--static void release_device(struct net_device *dev)
--{
--	wanpipe_common_t *chan=dev->priv;
--	clear_bit(0,(void*)&chan->rw_bind);
--}
--
--/*============================================================
-- * wanpipe_release
-- *
-- *	Close a PACKET socket. This is fairly simple. We
-- *      immediately go to 'closed' state and remove our
-- *      protocol entry in the device list.
-- *===========================================================*/
--
--static int wanpipe_release(struct socket *sock)
--{
--	wanpipe_opt *wp;
--	struct sock *sk = sock->sk;
--
--	if (!sk)
--		return 0;
--
--	wp = wp_sk(sk);
--	check_write_queue(sk);
--
--	/* Kill the tx timer, if we don't kill it now, the timer
--	 * will run after we kill the sock.  Timer code will
--	 * try to access the sock which has been killed and cause
--	 * kernel panic */
--
--	del_timer(&wp->tx_timer);
--
--	/*
--	 *	Unhook packet receive handler.
--	 */
--
--	if (wp->num == htons(X25_PROT) &&
--	    sk->sk_state != WANSOCK_DISCONNECTED && sock_flag(sk, SOCK_ZAPPED)) {
--		struct net_device *dev = dev_get_by_index(sk->sk_bound_dev_if);
--		wanpipe_common_t *chan;
--		if (dev){
--			chan=dev->priv;
--			atomic_set(&chan->disconnect,1);
--			DBG_PRINTK(KERN_INFO "wansock: Sending Clear Indication %i\n",
--					sk->sk_state);
--			dev_put(dev);
--		}
--	}
--
--	set_bit(1,&wanpipe_tx_critical);
--	write_lock(&wanpipe_sklist_lock);
--	sk_del_node_init(sk);
--	write_unlock(&wanpipe_sklist_lock);
--	clear_bit(1,&wanpipe_tx_critical);
--
--
--
--	release_driver(sk);
--
--
--	/*
--	 *	Now the socket is dead. No more input will appear.
--	 */
--
--	sk->sk_state_change(sk);	/* It is useless. Just for sanity. */
--
--	sock->sk = NULL;
--	sk->sk_socket = NULL;
--	sock_set_flag(sk, SOCK_DEAD);
--
--	/* Purge queues */
--	skb_queue_purge(&sk->sk_receive_queue);
--	skb_queue_purge(&sk->sk_write_queue);
--	skb_queue_purge(&sk->sk_error_queue);
--
--	if (atomic_read(&sk->sk_rmem_alloc) ||
--	    atomic_read(&sk->sk_wmem_alloc)) {
--		del_timer(&sk->sk_timer);
--		printk(KERN_INFO "wansock: Killing in Timer R %i , W %i\n",
--			atomic_read(&sk->sk_rmem_alloc),
--			atomic_read(&sk->sk_wmem_alloc));
--		sk->sk_timer.data	= (unsigned long)sk;
--		sk->sk_timer.expires	= jiffies + HZ;
--		sk->sk_timer.function	= wanpipe_destroy_timer;
--		add_timer(&sk->sk_timer);
--		return 0;
--	}
--
--	kfree(wp);
--	wp_sk(sk) = NULL;
--
--	if (atomic_read(&sk->sk_refcnt) != 1) {
--		DBG_PRINTK(KERN_INFO "wansock: Error, wrong reference count: %i !:release.\n",
--					atomic_read(&sk->sk_refcnt));
--		atomic_set(&sk->sk_refcnt, 1);
--	}
--	sock_put(sk);
--	atomic_dec(&wanpipe_socks_nr);
--	return 0;
--}
--
--/*============================================================
-- * check_write_queue
-- *
-- *  	During sock shutdown, if the sock state is
-- *      WANSOCK_CONNECTED and there is transmit data
-- *      pending. Wait until data is released
-- *      before proceeding.
-- *===========================================================*/
--
--static void check_write_queue(struct sock *sk)
--{
--
--	if (sk->sk_state != WANSOCK_CONNECTED)
--		return;
--
--	if (!atomic_read(&sk->sk_wmem_alloc))
--		return;
--
--	printk(KERN_INFO "wansock: MAJOR ERROR, Data lost on sock release !!!\n");
--
--}
--
--/*============================================================
-- * release_driver
-- *
-- *	This function is called during sock shutdown, to
-- *      release any resources and links that bind the sock
-- *      to the driver.  It also changes the state of the
-- *      sock to WANSOCK_DISCONNECTED
-- *===========================================================*/
--
--static void release_driver(struct sock *sk)
--{
--	wanpipe_opt *wp;
--	struct sk_buff *skb=NULL;
--	struct sock *deadsk=NULL;
--
--	if (sk->sk_state == WANSOCK_LISTEN ||
--	    sk->sk_state == WANSOCK_BIND_LISTEN) {
--		while ((skb = skb_dequeue(&sk->sk_receive_queue)) != NULL) {
--			if ((deadsk = get_newsk_from_skb(skb))){
--				DBG_PRINTK (KERN_INFO "wansock: RELEASE: FOUND DEAD SOCK\n");
--				sock_set_flag(deadsk, SOCK_DEAD);
--				start_cleanup_timer(deadsk);
--			}
--			kfree_skb(skb);
--		}
--		if (sock_flag(sk, SOCK_ZAPPED))
--			wanpipe_unlink_card(sk);
--	}else{
--		if (sock_flag(sk, SOCK_ZAPPED))
--			wanpipe_unlink_driver(sk);
--	}
--	sk->sk_state	    = WANSOCK_DISCONNECTED;
--	sk->sk_bound_dev_if = 0;
--	sock_reset_flag(sk, SOCK_ZAPPED);
--	wp = wp_sk(sk);
--
--	if (wp) {
--		kfree(wp->mbox);
--		wp->mbox = NULL;
--	}
--}
--
--/*============================================================
-- *  start_cleanup_timer
-- *
-- *  	If new incoming call's are pending but the socket
-- *      is being released, start the timer which will
-- *      envoke the kill routines for pending socks.
-- *===========================================================*/
--
--
--static void start_cleanup_timer (struct sock *sk)
--{
--	del_timer(&sk->sk_timer);
--	sk->sk_timer.data	= (unsigned long)sk;
--	sk->sk_timer.expires	= jiffies + HZ;
--	sk->sk_timer.function	= wanpipe_kill_sock_timer;
--	add_timer(&sk->sk_timer);
--}
--
--
--/*============================================================
-- *  wanpipe_kill_sock
-- *
-- *	This is a function which performs actual killing
-- *      of the sock.  It releases socket resources,
-- *      and unlinks the sock from the driver.
-- *===========================================================*/
--
--static void wanpipe_kill_sock_timer (unsigned long data)
--{
--
--	struct sock *sk = (struct sock *)data;
--	struct sock **skp;
--
--	if (!sk)
--		return;
--
--	/* This function can be called from interrupt. We must use
--	 * appropriate locks */
--
--	if (test_bit(1,&wanpipe_tx_critical)){
--		sk->sk_timer.expires = jiffies + 10;
--		add_timer(&sk->sk_timer);
--		return;
--	}
--
--	write_lock(&wanpipe_sklist_lock);
--	sk_del_node_init(sk);
--	write_unlock(&wanpipe_sklist_lock);
--
--
--	if (wp_sk(sk)->num == htons(X25_PROT) &&
--	    sk->sk_state != WANSOCK_DISCONNECTED) {
--		struct net_device *dev = dev_get_by_index(sk->sk_bound_dev_if);
--		wanpipe_common_t *chan;
--		if (dev){
--			chan=dev->priv;
--			atomic_set(&chan->disconnect,1);
--			dev_put(dev);
--		}
--	}
--
--	release_driver(sk);
--
--	sk->sk_socket = NULL;
--
--	/* Purge queues */
--	skb_queue_purge(&sk->sk_receive_queue);
--	skb_queue_purge(&sk->sk_write_queue);
--	skb_queue_purge(&sk->sk_error_queue);
--
--	if (atomic_read(&sk->sk_rmem_alloc) ||
--	    atomic_read(&sk->sk_wmem_alloc)) {
--		del_timer(&sk->sk_timer);
--		printk(KERN_INFO "wansock: Killing SOCK in Timer\n");
--		sk->sk_timer.data	= (unsigned long)sk;
--		sk->sk_timer.expires	= jiffies + HZ;
--		sk->sk_timer.function	= wanpipe_destroy_timer;
--		add_timer(&sk->sk_timer);
--		return;
--	}
--
--	kfree(wp_sk(sk));
--	wp_sk(sk) = NULL;
--
--	if (atomic_read(&sk->sk_refcnt) != 1) {
--		atomic_set(&sk->sk_refcnt, 1);
--		DBG_PRINTK(KERN_INFO "wansock: Error, wrong reference count: %i ! :timer.\n",
--					atomic_read(&sk->sk_refcnt));
--	}
--	sock_put(sk);
--	atomic_dec(&wanpipe_socks_nr);
--	return;
--}
--
--static void wanpipe_kill_sock_accept (struct sock *sk)
--{
--
--	struct sock **skp;
--
--	if (!sk)
--		return;
--
--	/* This function can be called from interrupt. We must use
--	 * appropriate locks */
--
--	write_lock(&wanpipe_sklist_lock);
--	sk_del_node_init(sk);
--	write_unlock(&wanpipe_sklist_lock);
--
--	sk->sk_socket = NULL;
--
--
--	kfree(wp_sk(sk));
--	wp_sk(sk) = NULL;
--
--	if (atomic_read(&sk->sk_refcnt) != 1) {
--		atomic_set(&sk->sk_refcnt, 1);
--		DBG_PRINTK(KERN_INFO "wansock: Error, wrong reference count: %i ! :timer.\n",
--					atomic_read(&sk->sk_refcnt));
--	}
--	sock_put(sk);
--	atomic_dec(&wanpipe_socks_nr);
--	return;
--}
--
--
--static void wanpipe_kill_sock_irq (struct sock *sk)
--{
--
--	if (!sk)
--		return;
--
--	sk->sk_socket = NULL;
--
--	kfree(wp_sk(sk));
--	wp_sk(sk) = NULL;
--
--	if (atomic_read(&sk->sk_refcnt) != 1) {
--		atomic_set(&sk->sk_refcnt, 1);
--		DBG_PRINTK(KERN_INFO "wansock: Error, wrong reference count: %i !:listen.\n",
--					atomic_read(&sk->sk_refcnt));
--	}
--	sock_put(sk);
--	atomic_dec(&wanpipe_socks_nr);
--}
--
--
--/*============================================================
-- *  wanpipe_do_bind
-- *
-- * 	Bottom half of the binding system call.
-- *      Once the wanpipe_bind() function checks  the
-- *      legality of the call, this function binds the
-- *      sock to the driver.
-- *===========================================================*/
--
--static int wanpipe_do_bind(struct sock *sk, struct net_device *dev,
--			   int protocol)
--{
--	wanpipe_opt *wp = wp_sk(sk);
--	wanpipe_common_t *chan=NULL;
--	int err=0;
--
--	if (sock_flag(sk, SOCK_ZAPPED)) {
--		err = -EALREADY;
--		goto bind_unlock_exit;
--	}
--
--	wp->num = protocol;
--
--	if (protocol == 0){
--		release_device(dev);
--		err = -EINVAL;
--		goto bind_unlock_exit;
--	}
--
--	if (dev) {
--		if (dev->flags&IFF_UP) {
--			chan=dev->priv;
--			sk->sk_state = chan->state;
--
--			if (wp->num == htons(X25_PROT) &&
--			    sk->sk_state != WANSOCK_DISCONNECTED &&
--			    sk->sk_state != WANSOCK_CONNECTING) {
--				DBG_PRINTK(KERN_INFO
--					"wansock: Binding to Device not DISCONNECTED %i\n",
--						sk->sk_state);
--				release_device(dev);
--				err = -EAGAIN;
--				goto bind_unlock_exit;
--			}
--
--			wanpipe_link_driver(dev,sk);
--			sk->sk_bound_dev_if = dev->ifindex;
--
--			/* X25 Specific option */
--			if (wp->num == htons(X25_PROT))
--				wp_sk(sk)->svc = chan->svc;
--
--		} else {
--			sk->sk_err = ENETDOWN;
--			sk->sk_error_report(sk);
--			release_device(dev);
--			err = -EINVAL;
--		}
--	} else {
--		err = -ENODEV;
--	}
--bind_unlock_exit:
--	/* FIXME where is this lock */
--
--	return err;
--}
--
--/*============================================================
-- *  wanpipe_bind
-- *
-- *      BIND() System call, which is bound to the AF_WANPIPE
-- *      operations structure.  It checks for correct wanpipe
-- *      card name, and cross references interface names with
-- *      the card names.  Thus, interface name must belong to
-- *      the actual card.
-- *===========================================================*/
--
--
--static int wanpipe_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
--{
--	struct wan_sockaddr_ll *sll = (struct wan_sockaddr_ll*)uaddr;
--	struct sock *sk=sock->sk;
--	wanpipe_opt *wp = wp_sk(sk);
--	struct net_device *dev = NULL;
--	sdla_t *card=NULL;
--	char name[15];
--
--	/*
--	 *	Check legality
--	 */
--
--	if (addr_len < sizeof(struct wan_sockaddr_ll)){
--		printk(KERN_INFO "wansock: Address length error\n");
--		return -EINVAL;
--	}
--	if (sll->sll_family != AF_WANPIPE){
--		printk(KERN_INFO "wansock: Illegal family name specified.\n");
--		return -EINVAL;
--	}
--
--	card = wanpipe_find_card (sll->sll_card);
--	if (!card){
--		printk(KERN_INFO "wansock: Wanpipe card not found: %s\n",sll->sll_card);
--		return -ENODEV;
--	}else{
--		wp_sk(sk)->card = (void *)card;
--	}
--
--	if (!strcmp(sll->sll_device,"svc_listen")){
--
--		/* Bind a sock to a card structure for listening
--		 */
--		int err=0;
--
--		/* This is x25 specific area if protocol doesn't
--		 * match, return error */
--		if (sll->sll_protocol != htons(X25_PROT))
--			return -EINVAL;
--
--		err= wanpipe_link_card (sk);
--		if (err < 0)
--			return err;
--
--		if (sll->sll_protocol)
--			wp->num = sll->sll_protocol;
--		sk->sk_state = WANSOCK_BIND_LISTEN;
--		return 0;
--
--	}else if (!strcmp(sll->sll_device,"svc_connect")){
--
--		/* This is x25 specific area if protocol doesn't
--		 * match, return error */
--		if (sll->sll_protocol != htons(X25_PROT))
--			return -EINVAL;
--
--		/* Find a free device
--		 */
--		dev = wanpipe_find_free_dev(card);
--		if (dev == NULL){
--			DBG_PRINTK(KERN_INFO "wansock: No free network devices for card %s\n",
--				card->devname);
--			return -EINVAL;
--		}
--	}else{
--		/* Bind a socket to a interface name
--		 * This is used by PVC mostly
--		 */
--		strlcpy(name,sll->sll_device,sizeof(name));
--		dev = dev_get_by_name(name);
--		if (dev == NULL){
--			printk(KERN_INFO "wansock: Failed to get Dev from name: %s,\n",
--					name);
--			return -ENODEV;
--		}
--
--		dev_put(dev);
--
--		if (check_dev(dev, card)){
--			printk(KERN_INFO "wansock: Device %s, doesn't belong to card %s\n",
--				dev->name, card->devname);
--			return -EINVAL;
--		}
--		if (get_atomic_device (dev))
--			return -EINVAL;
--	}
--
--	return wanpipe_do_bind(sk, dev, sll->sll_protocol ? : wp->num);
--}
--
--/*============================================================
-- * get_atomic_device
-- *
-- *	Sets a bit atomically which indicates that
-- *      the interface is taken. This avoids race conditions.
-- *===========================================================*/
--
--
--static inline int get_atomic_device(struct net_device *dev)
--{
--	wanpipe_common_t *chan = dev->priv;
--	if (!test_and_set_bit(0,(void *)&chan->rw_bind)){
--		return 0;
--	}
--	return 1;
--}
--
--/*============================================================
-- * check_dev
-- *
-- *  	Check that device name belongs to a particular card.
-- *===========================================================*/
--
--static int check_dev(struct net_device *dev, sdla_t *card)
--{
--	struct net_device* tmp_dev;
--
--	for (tmp_dev = card->wandev.dev; tmp_dev;
--	     tmp_dev = *((struct net_device **)tmp_dev->priv)) {
--		if (tmp_dev->ifindex == dev->ifindex){
--			return 0;
--		}
--	}
--	return 1;
--}
--
--/*============================================================
-- *  wanpipe_find_free_dev
-- *
-- *	Find a free network interface. If found set atomic
-- *      bit indicating that the interface is taken.
-- *      X25API Specific.
-- *===========================================================*/
--
--struct net_device *wanpipe_find_free_dev(sdla_t *card)
--{
--	struct net_device* dev;
--	volatile wanpipe_common_t *chan;
--
--	if (test_and_set_bit(0,&find_free_critical)){
--		printk(KERN_INFO "CRITICAL in Find Free\n");
--	}
--
--	for (dev = card->wandev.dev; dev;
--	     dev = *((struct net_device **)dev->priv)) {
--		chan = dev->priv;
--		if (!chan)
--			continue;
--		if (chan->usedby == API && chan->svc){
--			if (!get_atomic_device (dev)){
--				if (chan->state != WANSOCK_DISCONNECTED){
--					release_device(dev);
--				}else{
--					clear_bit(0,&find_free_critical);
--					return dev;
--				}
--			}
--		}
--	}
--	clear_bit(0,&find_free_critical);
--	return NULL;
--}
--
--/*============================================================
-- *  wanpipe_create
-- *
-- * 	SOCKET() System call.  It allocates a sock structure
-- *      and adds the socket to the wanpipe_sk_list.
-- *      Crates AF_WANPIPE socket.
-- *===========================================================*/
--
--static int wanpipe_create(struct socket *sock, int protocol)
--{
--	struct sock *sk;
--
--	//FIXME: This checks for root user, SECURITY ?
--	//if (!capable(CAP_NET_RAW))
--	//	return -EPERM;
--
--	if (sock->type != SOCK_DGRAM && sock->type != SOCK_RAW)
--		return -ESOCKTNOSUPPORT;
--
--	sock->state = SS_UNCONNECTED;
--
--	if ((sk = wanpipe_alloc_socket()) == NULL)
--		return -ENOBUFS;
--
--	sk->sk_reuse = 1;
--	sock->ops = &wanpipe_ops;
--	sock_init_data(sock,sk);
--
--	sock_reset_flag(sk, SOCK_ZAPPED);
--	sk->sk_family	    = PF_WANPIPE;
--	wp_sk(sk)->num	    = protocol;
--	sk->sk_state	    = WANSOCK_DISCONNECTED;
--	sk->sk_ack_backlog  = 0;
--	sk->sk_bound_dev_if = 0;
--
--	atomic_inc(&wanpipe_socks_nr);
--
--	/* We must disable interrupts because the ISR
--	 * can also change the list */
--	set_bit(1,&wanpipe_tx_critical);
--	write_lock(&wanpipe_sklist_lock);
--	sk_add_node(sk, &wanpipe_sklist);
--	write_unlock(&wanpipe_sklist_lock);
--	clear_bit(1,&wanpipe_tx_critical);
--
--	return(0);
--}
--
--
--/*============================================================
-- *  wanpipe_recvmsg
-- *
-- *	Pull a packet from our receive queue and hand it
-- *      to the user. If necessary we block.
-- *===========================================================*/
--
--static int wanpipe_recvmsg(struct kiocb *iocb, struct socket *sock,
--			   struct msghdr *msg, int len, int flags)
--{
--	struct sock *sk = sock->sk;
--	struct sk_buff *skb;
--	int copied, err=-ENOBUFS;
--
--
--	/*
--	 *	If the address length field is there to be filled in, we fill
--	 *	it in now.
--	 */
--
--	msg->msg_namelen = sizeof(struct wan_sockaddr_ll);
--
--	/*
--	 *	Call the generic datagram receiver. This handles all sorts
--	 *	of horrible races and re-entrancy so we can forget about it
--	 *	in the protocol layers.
--	 *
--	 *	Now it will return ENETDOWN, if device have just gone down,
--	 *	but then it will block.
--	 */
--
--	if (flags & MSG_OOB){
--		skb = skb_dequeue(&sk->sk_error_queue);
--	}else{
--		skb=skb_recv_datagram(sk,flags,1,&err);
--	}
--	/*
--	 *	An error occurred so return it. Because skb_recv_datagram()
--	 *	handles the blocking we don't see and worry about blocking
--	 *	retries.
--	 */
--
--	if(skb==NULL)
--		goto out;
--
--	/*
--	 *	You lose any data beyond the buffer you gave. If it worries a
--	 *	user program they can ask the device for its MTU anyway.
--	 */
--
--	copied = skb->len;
--	if (copied > len)
--	{
--		copied=len;
--		msg->msg_flags|=MSG_TRUNC;
--	}
--
--	wanpipe_wakeup_driver(sk);
--
--	/* We can't use skb_copy_datagram here */
--	err = memcpy_toiovec(msg->msg_iov, skb->data, copied);
--	if (err)
--		goto out_free;
--
--	sock_recv_timestamp(msg, sk, skb);
--
--	if (msg->msg_name)
--		memcpy(msg->msg_name, skb->cb, msg->msg_namelen);
--
--	/*
--	 *	Free or return the buffer as appropriate. Again this
--	 *	hides all the races and re-entrancy issues from us.
--	 */
--	err = (flags&MSG_TRUNC) ? skb->len : copied;
--
--out_free:
--	skb_free_datagram(sk, skb);
--out:
--	return err;
--}
--
--
--/*============================================================
-- *  wanpipe_wakeup_driver
-- *
-- * 	If socket receive buffer is full and driver cannot
-- *      pass data up the sock, it sets a packet_block flag.
-- *      This function check that flag and if sock receive
-- *      queue has room it kicks the driver BH handler.
-- *
-- * 	This way, driver doesn't have to poll the sock
-- *      receive queue.
-- *===========================================================*/
--
--static void wanpipe_wakeup_driver(struct sock *sk)
--{
--	struct net_device *dev = NULL;
--	wanpipe_common_t *chan=NULL;
--
--	dev = dev_get_by_index(sk->sk_bound_dev_if);
--	if (!dev)
--		return;
--
--	dev_put(dev);
--
--	if ((chan = dev->priv) == NULL)
--		return;
--
--	if (atomic_read(&chan->receive_block)){
--		if (atomic_read(&sk->sk_rmem_alloc) <
--		    ((unsigned)sk->sk_rcvbuf * 0.9)) {
--			printk(KERN_INFO "wansock: Queuing task for wanpipe\n");
--			atomic_set(&chan->receive_block,0);
--			wanpipe_queue_tq(&chan->wanpipe_task);
--			wanpipe_mark_bh();
--		}
--	}
--}
--
--/*============================================================
-- *  wanpipe_getname
-- *
-- * 	I don't know what to do with this yet.
-- *      User can use this function to get sock address
-- *      information. Not very useful for Sangoma's purposes.
-- *===========================================================*/
--
--
--static int wanpipe_getname(struct socket *sock, struct sockaddr *uaddr,
--			  int *uaddr_len, int peer)
--{
--	struct net_device *dev;
--	struct sock *sk = sock->sk;
--	struct wan_sockaddr_ll *sll = (struct wan_sockaddr_ll*)uaddr;
--
--	sll->sll_family = AF_WANPIPE;
--	sll->sll_ifindex = sk->sk_bound_dev_if;
--	sll->sll_protocol = wp_sk(sk)->num;
--	dev = dev_get_by_index(sk->sk_bound_dev_if);
--	if (dev) {
--		sll->sll_hatype = dev->type;
--		sll->sll_halen = dev->addr_len;
--		memcpy(sll->sll_addr, dev->dev_addr, dev->addr_len);
--	} else {
--		sll->sll_hatype = 0;	/* Bad: we have no ARPHRD_UNSPEC */
--		sll->sll_halen = 0;
--	}
--	*uaddr_len = sizeof(*sll);
--
--	dev_put(dev);
--
--	return 0;
--}
--
--/*============================================================
-- *  wanpipe_notifier
-- *
-- *	If driver turns off network interface, this function
-- *      will be envoked. Currently I treate it as a
-- *      call disconnect. More thought should go into this
-- *      function.
-- *
-- * FIXME: More thought should go into this function.
-- *
-- *===========================================================*/
--
--static int wanpipe_notifier(struct notifier_block *this, unsigned long msg, void *data)
--{
--	struct sock *sk;
--	hlist_node *node;
--	struct net_device *dev = (struct net_device *)data;
--
--	sk_for_each(sk, node, &wanpipe_sklist) {
--		struct wanpipe_opt *po = wp_sk(sk);
--
--		if (!po)
--			continue;
--		if (dev == NULL)
--			continue;
--
--		switch (msg) {
--		case NETDEV_DOWN:
--		case NETDEV_UNREGISTER:
--			if (dev->ifindex == sk->sk_bound_dev_if) {
--				printk(KERN_INFO "wansock: Device down %s\n",dev->name);
--				if (sock_flag(sk, SOCK_ZAPPED)) {
--					wanpipe_unlink_driver(sk);
--					sk->sk_err = ENETDOWN;
--					sk->sk_error_report(sk);
--				}
--
--				if (msg == NETDEV_UNREGISTER) {
--					printk(KERN_INFO "wansock: Unregistering Device: %s\n",
--							  dev->name);
--					wanpipe_unlink_driver(sk);
--					sk->sk_bound_dev_if = 0;
--				}
--			}
--			break;
--		case NETDEV_UP:
--			if (dev->ifindex == sk->sk_bound_dev_if &&
--			    po->num && !sock_flag(sk, SOCK_ZAPPED)) {
--				printk(KERN_INFO "wansock: Registering Device: %s\n",
--						dev->name);
--				wanpipe_link_driver(dev,sk);
--			}
--			break;
--		}
--	}
--	return NOTIFY_DONE;
--}
--
--/*============================================================
-- *  wanpipe_ioctl
-- *
-- * 	Execute a user commands, and set socket options.
-- *
-- * FIXME: More thought should go into this function.
-- *
-- *===========================================================*/
--
--static int wanpipe_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
--{
--	struct sock *sk = sock->sk;
--	int err;
--
--	switch(cmd)
--	{
--		case SIOCGSTAMP:
--			return sock_get_timestamp(sk, (struct timeval __user *)arg);
--
--		case SIOC_WANPIPE_CHECK_TX:
--
--			return atomic_read(&sk->sk_wmem_alloc);
--
--		case SIOC_WANPIPE_SOCK_STATE:
--
--			if (sk->sk_state == WANSOCK_CONNECTED)
--				return 0;
--
--			return 1;
--
--
--		case SIOC_WANPIPE_GET_CALL_DATA:
--
--			return get_ioctl_cmd (sk,(void*)arg);
--
--		case SIOC_WANPIPE_SET_CALL_DATA:
--
--			return set_ioctl_cmd (sk,(void*)arg);
--
--		case SIOC_WANPIPE_ACCEPT_CALL:
--		case SIOC_WANPIPE_CLEAR_CALL:
--		case SIOC_WANPIPE_RESET_CALL:
--
--			if ((err=set_ioctl_cmd(sk,(void*)arg)) < 0)
--				return err;
--
--			err=wanpipe_exec_cmd(sk,cmd,0);
--			get_ioctl_cmd(sk,(void*)arg);
--			return err;
--
--		case SIOC_WANPIPE_DEBUG:
--
--			return wanpipe_debug(sk,(void*)arg);
--
--		case SIOC_WANPIPE_SET_NONBLOCK:
--
--			if (sk->sk_state != WANSOCK_DISCONNECTED)
--				return -EINVAL;
--
--			sock->file->f_flags |= O_NONBLOCK;
--			return 0;
--
--#ifdef CONFIG_INET
--		case SIOCADDRT:
--		case SIOCDELRT:
--		case SIOCDARP:
--		case SIOCGARP:
--		case SIOCSARP:
--		case SIOCDRARP:
--		case SIOCGRARP:
--		case SIOCSRARP:
--		case SIOCGIFADDR:
--		case SIOCSIFADDR:
--		case SIOCGIFBRDADDR:
--		case SIOCSIFBRDADDR:
--		case SIOCGIFNETMASK:
--		case SIOCSIFNETMASK:
--		case SIOCGIFDSTADDR:
--		case SIOCSIFDSTADDR:
--		case SIOCSIFFLAGS:
--			return inet_dgram_ops.ioctl(sock, cmd, arg);
--#endif
--
--		default:
--			return -ENOIOCTLCMD;
--	}
--	/*NOTREACHED*/
--}
--
--/*============================================================
-- *  wanpipe_debug
-- *
-- *	This function will pass up information about all
-- *      active sockets.
-- *
-- * FIXME: More thought should go into this function.
-- *
-- *===========================================================*/
--
--static int wanpipe_debug (struct sock *origsk, void *arg)
--{
--	struct sock *sk;
--	struct hlist_node *node;
--	struct net_device *dev = NULL;
--	wanpipe_common_t *chan=NULL;
--	int cnt=0, err=0;
--	wan_debug_t *dbg_data = (wan_debug_t *)arg;
--
--	sk_for_each(sk, node, &wanpipe_sklist) {
--		wanpipe_opt *wp = wp_sk(sk);
--
--		if (sk == origsk){
--			continue;
--		}
--
--		if ((err=put_user(1, &dbg_data->debug[cnt].free)))
--			return err;
--		if ((err = put_user(sk->sk_state,
--				    &dbg_data->debug[cnt].state_sk)))
--			return err;
--		if ((err = put_user(sk->sk_rcvbuf,
--				    &dbg_data->debug[cnt].rcvbuf)))
--			return err;
--		if ((err = put_user(atomic_read(&sk->sk_rmem_alloc),
--				    &dbg_data->debug[cnt].rmem)))
--			return err;
--		if ((err = put_user(atomic_read(&sk->sk_wmem_alloc),
--				    &dbg_data->debug[cnt].wmem)))
--			return err;
--		if ((err = put_user(sk->sk_sndbuf,
--				    &dbg_data->debug[cnt].sndbuf)))
--			return err;
--		if ((err=put_user(sk_count, &dbg_data->debug[cnt].sk_count)))
--			return err;
--		if ((err=put_user(wp->poll_cnt, &dbg_data->debug[cnt].poll_cnt)))
--			return err;
--		if ((err = put_user(sk->sk_bound_dev_if,
--				    &dbg_data->debug[cnt].bound)))
--			return err;
--
--		if (sk->sk_bound_dev_if) {
--			dev = dev_get_by_index(sk->sk_bound_dev_if);
--			if (!dev)
--				continue;
--
--			chan=dev->priv;
--			dev_put(dev);
--
--			if ((err=put_user(chan->state, &dbg_data->debug[cnt].d_state)))
--				return err;
--			if ((err=put_user(chan->svc, &dbg_data->debug[cnt].svc)))
--				return err;
--
--			if ((err=put_user(atomic_read(&chan->command),
--						&dbg_data->debug[cnt].command)))
--				return err;
--
--
--			if (wp){
--				sdla_t *card = (sdla_t*)wp->card;
--
--				if (card){
--					if ((err=put_user(atomic_read(&card->u.x.command_busy),
--								&dbg_data->debug[cnt].cmd_busy)))
--						return err;
--				}
--
--				if ((err=put_user(wp->lcn,
--						  &dbg_data->debug[cnt].lcn)))
--					return err;
--
--				if (wp->mbox) {
--					if ((err=put_user(1, &dbg_data->debug[cnt].mbox)))
--						return err;
--				}
--			}
--
--			if ((err=put_user(atomic_read(&chan->receive_block),
--								&dbg_data->debug[cnt].rblock)))
--				return err;
--
--			if (copy_to_user(dbg_data->debug[cnt].name, dev->name, strlen(dev->name)))
--				return -EFAULT;
--		}
--
--		if (++cnt == MAX_NUM_DEBUG)
--			break;
--	}
--	return 0;
--}
--
--/*============================================================
-- *  get_ioctl_cmd
-- *
-- *	Pass up the contents of socket MBOX to the user.
-- *===========================================================*/
--
--static int get_ioctl_cmd (struct sock *sk, void *arg)
--{
--	x25api_t *usr_data = (x25api_t *)arg;
--	mbox_cmd_t *mbox_ptr;
--	int err;
--
--	if (usr_data == NULL)
--		return -EINVAL;
--
--	if (!wp_sk(sk)->mbox) {
--		return -EINVAL;
--	}
--
--	mbox_ptr = (mbox_cmd_t *)wp_sk(sk)->mbox;
--
--	if ((err=put_user(mbox_ptr->cmd.qdm, &usr_data->hdr.qdm)))
--		return err;
--	if ((err=put_user(mbox_ptr->cmd.cause, &usr_data->hdr.cause)))
--		return err;
--	if ((err=put_user(mbox_ptr->cmd.diagn, &usr_data->hdr.diagn)))
--		return err;
--	if ((err=put_user(mbox_ptr->cmd.length, &usr_data->hdr.length)))
--		return err;
--	if ((err=put_user(mbox_ptr->cmd.result, &usr_data->hdr.result)))
--		return err;
--	if ((err=put_user(mbox_ptr->cmd.lcn, &usr_data->hdr.lcn)))
--		return err;
--
--	if (mbox_ptr->cmd.length > 0){
--		if (mbox_ptr->cmd.length > X25_MAX_DATA)
--			return -EINVAL;
--
--		if (copy_to_user(usr_data->data, mbox_ptr->data, mbox_ptr->cmd.length)){
--			printk(KERN_INFO "wansock: Copy failed !!!\n");
--			return -EFAULT;
--		}
--	}
--	return 0;
--}
--
--/*============================================================
-- *  set_ioctl_cmd
-- *
-- *	Before command can be execute, socket MBOX must
-- *      be created, and initialized with user data.
-- *===========================================================*/
--
--static int set_ioctl_cmd (struct sock *sk, void *arg)
--{
--	x25api_t *usr_data = (x25api_t *)arg;
--	mbox_cmd_t *mbox_ptr;
--	int err;
--
--	if (!wp_sk(sk)->mbox) {
--		void *mbox_ptr;
--		struct net_device *dev = dev_get_by_index(sk->sk_bound_dev_if);
--		if (!dev)
--			return -ENODEV;
--
--		dev_put(dev);
--
--		if ((mbox_ptr = kzalloc(sizeof(mbox_cmd_t), GFP_ATOMIC)) == NULL)
--			return -ENOMEM;
--
--		wp_sk(sk)->mbox = mbox_ptr;
--
--		wanpipe_link_driver(dev,sk);
--	}
--
--	mbox_ptr = (mbox_cmd_t*)wp_sk(sk)->mbox;
--	memset(mbox_ptr, 0, sizeof(mbox_cmd_t));
--
--	if (usr_data == NULL){
--		return 0;
--	}
--	if ((err=get_user(mbox_ptr->cmd.qdm, &usr_data->hdr.qdm)))
--		return err;
--	if ((err=get_user(mbox_ptr->cmd.cause, &usr_data->hdr.cause)))
--		return err;
--	if ((err=get_user(mbox_ptr->cmd.diagn, &usr_data->hdr.diagn)))
--		return err;
--	if ((err=get_user(mbox_ptr->cmd.length, &usr_data->hdr.length)))
--		return err;
--	if ((err=get_user(mbox_ptr->cmd.result, &usr_data->hdr.result)))
--		return err;
--
--	if (mbox_ptr->cmd.length > 0){
--		if (mbox_ptr->cmd.length > X25_MAX_DATA)
--			return -EINVAL;
--
--		if (copy_from_user(mbox_ptr->data, usr_data->data, mbox_ptr->cmd.length)){
--			printk(KERN_INFO "Copy failed\n");
--			return -EFAULT;
--		}
--	}
--	return 0;
--}
--
--
--/*======================================================================
-- * wanpipe_poll
-- *
-- *	Datagram poll: Again totally generic. This also handles
-- *	sequenced packet sockets providing the socket receive queue
-- *	is only ever holding data ready to receive.
-- *
-- *	Note: when you _don't_ use this routine for this protocol,
-- *	and you use a different write policy from sock_writeable()
-- *	then please supply your own write_space callback.
-- *=====================================================================*/
--
--unsigned int wanpipe_poll(struct file * file, struct socket *sock, poll_table *wait)
--{
--	struct sock *sk = sock->sk;
--	unsigned int mask;
--
--	++wp_sk(sk)->poll_cnt;
--
--	poll_wait(file, sk->sk_sleep, wait);
--	mask = 0;
--
--	/* exceptional events? */
--	if (sk->sk_err || !skb_queue_empty(&sk->sk_error_queue)) {
--		mask |= POLLPRI;
--		return mask;
--	}
--	if (sk->sk_shutdown & RCV_SHUTDOWN)
--		mask |= POLLHUP;
--
--	/* readable? */
--	if (!skb_queue_empty(&sk->sk_receive_queue)) {
--		mask |= POLLIN | POLLRDNORM;
--	}
--
--	/* connection hasn't started yet */
--	if (sk->sk_state == WANSOCK_CONNECTING) {
--		return mask;
--	}
--
--	if (sk->sk_state == WANSOCK_DISCONNECTED) {
--		mask = POLLPRI;
--		return mask;
--	}
--
--	/* This check blocks the user process if there is
--	 * a packet already queued in the socket write queue.
--	 * This option is only for X25API protocol, for other
--	 * protocol like chdlc enable streaming mode,
--	 * where multiple packets can be pending in the socket
--	 * transmit queue */
--
--	if (wp_sk(sk)->num == htons(X25_PROT)) {
--		if (atomic_read(&wp_sk(sk)->packet_sent))
--			return mask;
--	}
--
--	/* writable? */
--	if (sock_writeable(sk)){
--		mask |= POLLOUT | POLLWRNORM | POLLWRBAND;
--	}else{
--		set_bit(SOCK_ASYNC_NOSPACE, &sk->sk_socket->flags);
--	}
--
--	return mask;
--}
--
--/*======================================================================
-- * wanpipe_listen
-- *
-- *	X25API Specific function. Set a socket into LISTENING  MODE.
-- *=====================================================================*/
--
--
--static int wanpipe_listen(struct socket *sock, int backlog)
--{
--	struct sock *sk = sock->sk;
--
--	/* This is x25 specific area if protocol doesn't
--	 * match, return error */
--	if (wp_sk(sk)->num != htons(X25_PROT))
--		return -EINVAL;
--
--	if (sk->sk_state == WANSOCK_BIND_LISTEN) {
--
--		sk->sk_max_ack_backlog = backlog;
--		sk->sk_state           = WANSOCK_LISTEN;
--		return 0;
--	}else{
--		printk(KERN_INFO "wansock: Listening sock was not binded\n");
--	}
--
--	return -EINVAL;
--}
--
--/*======================================================================
-- * wanpipe_link_card
-- *
-- *	Connects the listening socket to the driver
-- *=====================================================================*/
--
--static int wanpipe_link_card (struct sock *sk)
--{
--	sdla_t *card = (sdla_t*)wp_sk(sk)->card;
--
--	if (!card)
--		return -ENOMEM;
--
--	if ((card->sk != NULL) || (card->func != NULL)){
--		printk(KERN_INFO "wansock: Listening queue is already established\n");
--		return -EINVAL;
--	}
--
--	card->sk=sk;
--	card->func=wanpipe_listen_rcv;
--	sock_set_flag(sk, SOCK_ZAPPED);
--
--	return 0;
--}
--
--/*======================================================================
-- * wanpipe_listen
-- *
-- *	X25API Specific function. Disconnect listening socket from
-- *      the driver.
-- *=====================================================================*/
--
--static void wanpipe_unlink_card (struct sock *sk)
--{
--	sdla_t *card = (sdla_t*)wp_sk(sk)->card;
--
--	if (card){
--		card->sk=NULL;
--		card->func=NULL;
--	}
--}
--
--/*======================================================================
-- * wanpipe_exec_cmd
-- *
-- *	Ioctl function calls this function to execute user command.
-- *      Connect() sytem call also calls this function to execute
-- *      place call.  This function blocks until command is executed.
-- *=====================================================================*/
--
--static int wanpipe_exec_cmd(struct sock *sk, int cmd, unsigned int flags)
--{
--	int err = -EINVAL;
--	wanpipe_opt *wp = wp_sk(sk);
--	mbox_cmd_t *mbox_ptr = (mbox_cmd_t*)wp->mbox;
--
--	if (!mbox_ptr){
--		printk(KERN_INFO "NO MBOX PTR !!!!!\n");
--		return -EINVAL;
--	}
--
--	/* This is x25 specific area if protocol doesn't
--	 * match, return error */
--	if (wp->num != htons(X25_PROT))
--		return -EINVAL;
--
--
--	switch (cmd){
--
--		case SIOC_WANPIPE_ACCEPT_CALL:
--
--			if (sk->sk_state != WANSOCK_CONNECTING) {
--				err = -EHOSTDOWN;
--				break;
--			}
--
--			err = execute_command(sk,X25_ACCEPT_CALL,0);
--			if (err < 0)
--				break;
--
--			/* Update. Mar6 2000.
--			 * Do not set the sock lcn number here, since
--			 * it is done in wanpipe_listen_rcv().
--			 */
--			if (sk->sk_state == WANSOCK_CONNECTED) {
--				wp->lcn = ((mbox_cmd_t*)wp->mbox)->cmd.lcn;
--				DBG_PRINTK(KERN_INFO "\nwansock: Accept OK %i\n",
--					wp->lcn);
--				err = 0;
--
--			}else{
--				DBG_PRINTK (KERN_INFO "\nwansock: Accept Failed %i\n",
--					wp->lcn);
--				wp->lcn = 0;
--				err = -ECONNREFUSED;
--			}
--			break;
--
--		case SIOC_WANPIPE_CLEAR_CALL:
--
--			if (sk->sk_state == WANSOCK_DISCONNECTED) {
--				err = -EINVAL;
--				break;
--			}
--
--
--			/* Check if data buffers are pending for transmission,
--			 * if so, check whether user wants to wait until data
--			 * is transmitted, or clear a call and drop packets */
--
--			if (atomic_read(&sk->sk_wmem_alloc) ||
--			    check_driver_busy(sk)) {
--				mbox_cmd_t *mbox = wp->mbox;
--				if (mbox->cmd.qdm & 0x80){
--					mbox->cmd.result = 0x35;
--					err = -EAGAIN;
--					break;
--				}
--			}
--
--			sk->sk_state = WANSOCK_DISCONNECTING;
--
--			err = execute_command(sk,X25_CLEAR_CALL,0);
--			if (err < 0)
--				break;
--
--			err = -ECONNREFUSED;
--			if (sk->sk_state == WANSOCK_DISCONNECTED) {
--				DBG_PRINTK(KERN_INFO "\nwansock: CLEAR OK %i\n",
--					   wp->lcn);
--				wp->lcn = 0;
--				err = 0;
--			}
--			break;
--
--		case SIOC_WANPIPE_RESET_CALL:
--
--			if (sk->sk_state != WANSOCK_CONNECTED) {
--				err = -EINVAL;
--				break;
--			}
--
--
--			/* Check if data buffers are pending for transmission,
--			 * if so, check whether user wants to wait until data
--			 * is transmitted, or reset a call and drop packets */
--
--			if (atomic_read(&sk->sk_wmem_alloc) ||
--			    check_driver_busy(sk)) {
--				mbox_cmd_t *mbox = wp->mbox;
--				if (mbox->cmd.qdm & 0x80){
--					mbox->cmd.result = 0x35;
--					err = -EAGAIN;
--					break;
--				}
--			}
--
--
--			err = execute_command(sk, X25_RESET,0);
--			if (err < 0)
--				break;
--
--			err = mbox_ptr->cmd.result;
--			break;
--
--
--		case X25_PLACE_CALL:
--
--			err=execute_command(sk,X25_PLACE_CALL,flags);
--			if (err < 0)
--				break;
--
--			if (sk->sk_state == WANSOCK_CONNECTED) {
--
--				wp->lcn = ((mbox_cmd_t*)wp->mbox)->cmd.lcn;
--
--				DBG_PRINTK(KERN_INFO "\nwansock: PLACE CALL OK %i\n",
--					wp->lcn);
--				err = 0;
--
--			} else if (sk->sk_state == WANSOCK_CONNECTING &&
--				   (flags & O_NONBLOCK)) {
--				wp->lcn = ((mbox_cmd_t*)wp->mbox)->cmd.lcn;
--				DBG_PRINTK(KERN_INFO "\nwansock: Place Call OK: Waiting %i\n",
--					wp->lcn);
--
--				err = 0;
--
--			}else{
--				DBG_PRINTK(KERN_INFO "\nwansock: Place call Failed\n");
--				err = -ECONNREFUSED;
--			}
--
--			break;
--
--		default:
--			return -EINVAL;
--	}
--
--	return err;
--}
--
--static int check_driver_busy (struct sock *sk)
--{
--	struct net_device *dev = dev_get_by_index(sk->sk_bound_dev_if);
--	wanpipe_common_t *chan;
--
--	if (!dev)
--		return 0;
--
--	dev_put(dev);
--
--	if ((chan=dev->priv) == NULL)
--		return 0;
--
--	return atomic_read(&chan->driver_busy);
--}
--
--
--/*======================================================================
-- * wanpipe_accept
-- *
-- *	ACCEPT() System call.	X25API Specific function.
-- *	For each incoming call, create a new socket and
-- *      return it to the user.
-- *=====================================================================*/
--
--static int wanpipe_accept(struct socket *sock, struct socket *newsock, int flags)
--{
--	struct sock *sk;
--	struct sock *newsk;
--	struct sk_buff *skb;
--	DECLARE_WAITQUEUE(wait, current);
--	int err=0;
--
--	if (newsock->sk != NULL){
--		wanpipe_kill_sock_accept(newsock->sk);
--		newsock->sk=NULL;
--	}
--
--	if ((sk = sock->sk) == NULL)
--		return -EINVAL;
--
--	if (sk->sk_type != SOCK_RAW)
--		return -EOPNOTSUPP;
--
--	if (sk->sk_state != WANSOCK_LISTEN)
--		return -EINVAL;
--
--	if (wp_sk(sk)->num != htons(X25_PROT))
--		return -EINVAL;
--
--	add_wait_queue(sk->sk_sleep,&wait);
--	current->state = TASK_INTERRUPTIBLE;
--	for (;;){
--		skb = skb_dequeue(&sk->sk_receive_queue);
--		if (skb){
--			err=0;
--			break;
--		}
--		if (signal_pending(current)) {
--			err = -ERESTARTSYS;
--			break;
--		}
--		schedule();
--	}
--	current->state = TASK_RUNNING;
--	remove_wait_queue(sk->sk_sleep,&wait);
--
--	if (err != 0)
--		return err;
--
--	newsk = get_newsk_from_skb(skb);
--	if (!newsk){
--		return -EINVAL;
--	}
--
--	set_bit(1,&wanpipe_tx_critical);
--	write_lock(&wanpipe_sklist_lock);
--	sk_add_node(newsk, &wanpipe_sklist);
--	write_unlock(&wanpipe_sklist_lock);
--	clear_bit(1,&wanpipe_tx_critical);
--
--	newsk->sk_socket = newsock;
--	newsk->sk_sleep = &newsock->wait;
--
--	/* Now attach up the new socket */
--	sk->sk_ack_backlog--;
--	newsock->sk = newsk;
--
--	kfree_skb(skb);
--
--	DBG_PRINTK(KERN_INFO "\nwansock: ACCEPT Got LCN %i\n",
--		   wp_sk(newsk)->lcn);
--	return 0;
--}
--
--/*======================================================================
-- *  get_newsk_from_skb
-- *
-- *	Accept() uses this function to get the address of the new
-- *      socket structure.
-- *=====================================================================*/
--
--struct sock * get_newsk_from_skb (struct sk_buff *skb)
--{
--	struct net_device *dev = skb->dev;
--	wanpipe_common_t *chan;
--
--	if (!dev){
--		return NULL;
--	}
--
--	if ((chan = dev->priv) == NULL){
--		return NULL;
--	}
--
--	if (!chan->sk){
--		return NULL;
--	}
--	return (struct sock *)chan->sk;
--}
--
--/*======================================================================
-- *  wanpipe_connect
-- *
-- *  	CONNECT() System Call. X25API specific function
-- * 	Check the state of the sock, and execute PLACE_CALL command.
-- *      Connect can ether block or return without waiting for connection,
-- *      if specified by user.
-- *=====================================================================*/
--
--static int wanpipe_connect(struct socket *sock, struct sockaddr *uaddr, int addr_len, int flags)
--{
--	struct sock *sk = sock->sk;
--	struct wan_sockaddr_ll *addr = (struct wan_sockaddr_ll*)uaddr;
--	struct net_device *dev;
--	int err;
--
--	if (wp_sk(sk)->num != htons(X25_PROT))
--		return -EINVAL;
--
--	if (sk->sk_state == WANSOCK_CONNECTED)
--		return -EISCONN;	/* No reconnect on a seqpacket socket */
--
--	if (sk->sk_state != WAN_DISCONNECTED) {
--		printk(KERN_INFO "wansock: Trying to connect on channel NON DISCONNECT\n");
--		return -ECONNREFUSED;
--	}
--
--	sk->sk_state = WANSOCK_DISCONNECTED;
--	sock->state  = SS_UNCONNECTED;
--
--	if (addr_len != sizeof(struct wan_sockaddr_ll))
--		return -EINVAL;
--
--	if (addr->sll_family != AF_WANPIPE)
--		return -EINVAL;
--
--	if ((dev = dev_get_by_index(sk->sk_bound_dev_if)) == NULL)
--		return -ENETUNREACH;
--
--	dev_put(dev);
--
--	if (!sock_flag(sk, SOCK_ZAPPED)) /* Must bind first - autobinding does not work */
--		return -EINVAL;
--
--	sock->state   = SS_CONNECTING;
--	sk->sk_state  = WANSOCK_CONNECTING;
--
--	if (!wp_sk(sk)->mbox) {
--		if (wp_sk (sk)->svc)
--			return -EINVAL;
--		else {
--			int err;
--			if ((err=set_ioctl_cmd(sk,NULL)) < 0)
--				return err;
--		}
--	}
--
--	if ((err=wanpipe_exec_cmd(sk, X25_PLACE_CALL,flags)) != 0){
--		sock->state = SS_UNCONNECTED;
--		sk->sk_state = WANSOCK_CONNECTED;
--		return err;
--	}
--
--	if (sk->sk_state != WANSOCK_CONNECTED && (flags & O_NONBLOCK)) {
--		return 0;
--	}
--
--	if (sk->sk_state != WANSOCK_CONNECTED) {
--		sock->state = SS_UNCONNECTED;
--		return -ECONNREFUSED;
--	}
--
--	sock->state = SS_CONNECTED;
--	return 0;
--}
--
--const struct proto_ops wanpipe_ops = {
--	.family = 	PF_WANPIPE,
--	.owner =	THIS_MODULE,
--	.release = 	wanpipe_release,
--	.bind = 	wanpipe_bind,
--	.connect = 	wanpipe_connect,
--	.socketpair = 	sock_no_socketpair,
--	.accept = 	wanpipe_accept,
--	.getname = 	wanpipe_getname,
--	.poll = 	wanpipe_poll,
--	.ioctl = 	wanpipe_ioctl,
--	.listen = 	wanpipe_listen,
--	.shutdown = 	sock_no_shutdown,
--	.setsockopt = 	sock_no_setsockopt,
--	.getsockopt = 	sock_no_getsockopt,
--	.sendmsg = 	wanpipe_sendmsg,
--	.recvmsg = 	wanpipe_recvmsg
--};
--
--static struct net_proto_family wanpipe_family_ops = {
--	.family = PF_WANPIPE,
--	.create = wanpipe_create,
--	.owner	= THIS_MODULE,
--};
--
--struct notifier_block wanpipe_netdev_notifier = {
--	.notifier_call = wanpipe_notifier,
--};
--
--
--#ifdef MODULE
--void cleanup_module(void)
--{
--	printk(KERN_INFO "wansock: Cleaning up \n");
--	unregister_netdevice_notifier(&wanpipe_netdev_notifier);
--	sock_unregister(PF_WANPIPE);
--	proto_unregister(&wanpipe_proto);
--}
--
--int init_module(void)
--{
--	int rc;
--
--	printk(KERN_INFO "wansock: Registering Socket \n");
--
--	rc = proto_register(&wanpipe_proto, 0);
--	if (rc != 0)
--		goto out;
--
--	sock_register(&wanpipe_family_ops);
--	register_netdevice_notifier(&wanpipe_netdev_notifier);
--out:
--	return rc;
--}
--#endif
--MODULE_LICENSE("GPL");
--MODULE_ALIAS_NETPROTO(PF_WANPIPE);
+diff -puN arch/alpha/kernel/err_common.c~cleanup-the-includes-of-linux-pcih arch/alpha/kernel/err_common.c
+--- a/arch/alpha/kernel/err_common.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/alpha/kernel/err_common.c
+@@ -7,7 +7,6 @@
+  */
+ 
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <linux/sched.h>
+ 
+ #include <asm/io.h>
+diff -puN arch/alpha/kernel/err_ev6.c~cleanup-the-includes-of-linux-pcih arch/alpha/kernel/err_ev6.c
+--- a/arch/alpha/kernel/err_ev6.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/alpha/kernel/err_ev6.c
+@@ -7,7 +7,6 @@
+  */
+ 
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <linux/sched.h>
+ 
+ #include <asm/io.h>
+diff -puN arch/alpha/kernel/err_ev7.c~cleanup-the-includes-of-linux-pcih arch/alpha/kernel/err_ev7.c
+--- a/arch/alpha/kernel/err_ev7.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/alpha/kernel/err_ev7.c
+@@ -7,7 +7,6 @@
+  */
+ 
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <linux/sched.h>
+ 
+ #include <asm/io.h>
+diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-lib.c~cleanup-the-includes-of-linux-pcih arch/i386/kernel/cpu/cpufreq/speedstep-lib.c
+--- a/arch/i386/kernel/cpu/cpufreq/speedstep-lib.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/i386/kernel/cpu/cpufreq/speedstep-lib.c
+@@ -13,7 +13,6 @@
+ #include <linux/moduleparam.h>
+ #include <linux/init.h>
+ #include <linux/cpufreq.h>
+-#include <linux/pci.h>
+ #include <linux/slab.h>
+ 
+ #include <asm/msr.h>
+diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-smi.c~cleanup-the-includes-of-linux-pcih arch/i386/kernel/cpu/cpufreq/speedstep-smi.c
+--- a/arch/i386/kernel/cpu/cpufreq/speedstep-smi.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/i386/kernel/cpu/cpufreq/speedstep-smi.c
+@@ -17,10 +17,10 @@
+ #include <linux/moduleparam.h>
+ #include <linux/init.h>
+ #include <linux/cpufreq.h>
+-#include <linux/pci.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <asm/ist.h>
++#include <asm/io.h>
+ 
+ #include "speedstep-lib.h"
+ 
+diff -puN arch/ia64/sn/kernel/huberror.c~cleanup-the-includes-of-linux-pcih arch/ia64/sn/kernel/huberror.c
+--- a/arch/ia64/sn/kernel/huberror.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/ia64/sn/kernel/huberror.c
+@@ -8,7 +8,6 @@
+ 
+ #include <linux/types.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <asm/delay.h>
+ #include <asm/sn/sn_sal.h>
+ #include "ioerror.h"
+diff -puN arch/ia64/sn/kernel/xpnet.c~cleanup-the-includes-of-linux-pcih arch/ia64/sn/kernel/xpnet.c
+--- a/arch/ia64/sn/kernel/xpnet.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/ia64/sn/kernel/xpnet.c
+@@ -24,7 +24,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
+ #include <linux/netdevice.h>
+diff -puN arch/m68knommu/kernel/dma.c~cleanup-the-includes-of-linux-pcih arch/m68knommu/kernel/dma.c
+--- a/arch/m68knommu/kernel/dma.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/m68knommu/kernel/dma.c
+@@ -8,7 +8,6 @@
+ #include <linux/types.h>
+ #include <linux/mm.h>
+ #include <linux/string.h>
+-#include <linux/pci.h>
+ #include <asm/io.h>
+ 
+ void *dma_alloc_coherent(struct device *dev, size_t size,
+diff -puN arch/mips/lib/iomap.c~cleanup-the-includes-of-linux-pcih arch/mips/lib/iomap.c
+--- a/arch/mips/lib/iomap.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/mips/lib/iomap.c
+@@ -6,7 +6,6 @@
+  * (C) Copyright 2007 MIPS Technologies, Inc.
+  *     written by Ralf Baechle <ralf@linux-mips.org>
+  */
+-#include <linux/pci.h>
+ #include <linux/module.h>
+ #include <asm/io.h>
+ 
+diff -puN arch/powerpc/platforms/pseries/ras.c~cleanup-the-includes-of-linux-pcih arch/powerpc/platforms/pseries/ras.c
+--- a/arch/powerpc/platforms/pseries/ras.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/powerpc/platforms/pseries/ras.c
+@@ -31,7 +31,6 @@
+ #include <linux/timex.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/irq.h>
+ #include <linux/random.h>
+diff -puN arch/ppc/8260_io/enet.c~cleanup-the-includes-of-linux-pcih arch/ppc/8260_io/enet.c
+--- a/arch/ppc/8260_io/enet.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/ppc/8260_io/enet.c
+@@ -32,7 +32,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN arch/ppc/8260_io/fcc_enet.c~cleanup-the-includes-of-linux-pcih arch/ppc/8260_io/fcc_enet.c
+--- a/arch/ppc/8260_io/fcc_enet.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/ppc/8260_io/fcc_enet.c
+@@ -29,7 +29,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN arch/ppc/8xx_io/enet.c~cleanup-the-includes-of-linux-pcih arch/ppc/8xx_io/enet.c
+--- a/arch/ppc/8xx_io/enet.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/ppc/8xx_io/enet.c
+@@ -30,7 +30,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN arch/ppc/syslib/ppc4xx_sgdma.c~cleanup-the-includes-of-linux-pcih arch/ppc/syslib/ppc4xx_sgdma.c
+--- a/arch/ppc/syslib/ppc4xx_sgdma.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/ppc/syslib/ppc4xx_sgdma.c
+@@ -23,7 +23,6 @@
+ #include <linux/mm.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+-#include <linux/pci.h>
+ 
+ #include <asm/system.h>
+ #include <asm/io.h>
+diff -puN arch/sh64/mach-cayman/iomap.c~cleanup-the-includes-of-linux-pcih arch/sh64/mach-cayman/iomap.c
+--- a/arch/sh64/mach-cayman/iomap.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/sh64/mach-cayman/iomap.c
+@@ -9,7 +9,6 @@
+  * License.  See the file "COPYING" in the main directory of this archive
+  * for more details.
+  */
+-#include <linux/pci.h>
+ #include <asm/io.h>
+ #include <asm/cayman.h>
+ 
+diff -puN arch/xtensa/kernel/xtensa_ksyms.c~cleanup-the-includes-of-linux-pcih arch/xtensa/kernel/xtensa_ksyms.c
+--- a/arch/xtensa/kernel/xtensa_ksyms.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/xtensa/kernel/xtensa_ksyms.c
+@@ -18,7 +18,6 @@
+ #include <linux/interrupt.h>
+ #include <asm/irq.h>
+ #include <linux/in6.h>
+-#include <linux/pci.h>
+ #include <linux/ide.h>
+ 
+ #include <asm/uaccess.h>
+diff -puN arch/xtensa/platform-iss/setup.c~cleanup-the-includes-of-linux-pcih arch/xtensa/platform-iss/setup.c
+--- a/arch/xtensa/platform-iss/setup.c~cleanup-the-includes-of-linux-pcih
++++ a/arch/xtensa/platform-iss/setup.c
+@@ -20,7 +20,6 @@
+ #include <linux/init.h>
+ #include <linux/errno.h>
+ #include <linux/reboot.h>
+-#include <linux/pci.h>
+ #include <linux/kdev_t.h>
+ #include <linux/types.h>
+ #include <linux/major.h>
+diff -puN drivers/ata/pata_winbond.c~cleanup-the-includes-of-linux-pcih drivers/ata/pata_winbond.c
+--- a/drivers/ata/pata_winbond.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/ata/pata_winbond.c
+@@ -8,7 +8,6 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/blkdev.h>
+ #include <linux/delay.h>
+diff -puN drivers/atm/adummy.c~cleanup-the-includes-of-linux-pcih drivers/atm/adummy.c
+--- a/drivers/atm/adummy.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/atm/adummy.c
+@@ -6,7 +6,6 @@
+ #include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/skbuff.h>
+-#include <linux/pci.h>
+ #include <linux/errno.h>
+ #include <linux/types.h>
+ #include <linux/string.h>
+diff -puN drivers/char/hw_random/via-rng.c~cleanup-the-includes-of-linux-pcih drivers/char/hw_random/via-rng.c
+--- a/drivers/char/hw_random/via-rng.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/char/hw_random/via-rng.c
+@@ -26,7 +26,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+-#include <linux/pci.h>
+ #include <linux/hw_random.h>
+ #include <asm/io.h>
+ #include <asm/msr.h>
+diff -puN drivers/char/pcmcia/synclink_cs.c~cleanup-the-includes-of-linux-pcih drivers/char/pcmcia/synclink_cs.c
+--- a/drivers/char/pcmcia/synclink_cs.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/char/pcmcia/synclink_cs.c
+@@ -42,7 +42,6 @@
+ #include <linux/timer.h>
+ #include <linux/time.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+ #include <linux/serial.h>
+diff -puN drivers/char/tpm/tpm.h~cleanup-the-includes-of-linux-pcih drivers/char/tpm/tpm.h
+--- a/drivers/char/tpm/tpm.h~cleanup-the-includes-of-linux-pcih
++++ a/drivers/char/tpm/tpm.h
+@@ -19,7 +19,6 @@
+  * 
+  */
+ #include <linux/module.h>
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/fs.h>
+ #include <linux/sched.h>
+diff -puN drivers/char/watchdog/sc1200wdt.c~cleanup-the-includes-of-linux-pcih drivers/char/watchdog/sc1200wdt.c
+--- a/drivers/char/watchdog/sc1200wdt.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/char/watchdog/sc1200wdt.c
+@@ -38,7 +38,6 @@
+ #include <linux/init.h>
+ #include <linux/pnp.h>
+ #include <linux/fs.h>
+-#include <linux/pci.h>
+ 
+ #include <asm/semaphore.h>
+ #include <asm/io.h>
+diff -puN drivers/char/watchdog/scx200_wdt.c~cleanup-the-includes-of-linux-pcih drivers/char/watchdog/scx200_wdt.c
+--- a/drivers/char/watchdog/scx200_wdt.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/char/watchdog/scx200_wdt.c
+@@ -25,7 +25,7 @@
+ #include <linux/notifier.h>
+ #include <linux/reboot.h>
+ #include <linux/fs.h>
+-#include <linux/pci.h>
++#include <linux/ioport.h>
+ #include <linux/scx200.h>
+ 
+ #include <asm/uaccess.h>
+diff -puN drivers/i2c/busses/i2c-at91.c~cleanup-the-includes-of-linux-pcih drivers/i2c/busses/i2c-at91.c
+--- a/drivers/i2c/busses/i2c-at91.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/i2c/busses/i2c-at91.c
+@@ -17,7 +17,6 @@
+ #include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+-#include <linux/pci.h>
+ #include <linux/types.h>
+ #include <linux/delay.h>
+ #include <linux/i2c.h>
+diff -puN drivers/i2c/busses/i2c-mpc.c~cleanup-the-includes-of-linux-pcih drivers/i2c/busses/i2c-mpc.c
+--- a/drivers/i2c/busses/i2c-mpc.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/i2c/busses/i2c-mpc.c
+@@ -17,7 +17,6 @@
+ #include <linux/module.h>
+ #include <linux/sched.h>
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <linux/platform_device.h>
+ 
+ #include <asm/io.h>
+diff -puN drivers/i2c/busses/i2c-pca-isa.c~cleanup-the-includes-of-linux-pcih drivers/i2c/busses/i2c-pca-isa.c
+--- a/drivers/i2c/busses/i2c-pca-isa.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/i2c/busses/i2c-pca-isa.c
+@@ -25,7 +25,6 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/wait.h>
+ 
+ #include <linux/i2c.h>
+diff -puN drivers/ieee1394/hosts.c~cleanup-the-includes-of-linux-pcih drivers/ieee1394/hosts.c
+--- a/drivers/ieee1394/hosts.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/ieee1394/hosts.c
+@@ -15,7 +15,6 @@
+ #include <linux/list.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+-#include <linux/pci.h>
+ #include <linux/timer.h>
+ #include <linux/jiffies.h>
+ #include <linux/mutex.h>
+diff -puN drivers/infiniband/core/cm.c~cleanup-the-includes-of-linux-pcih drivers/infiniband/core/cm.c
+--- a/drivers/infiniband/core/cm.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/core/cm.c
+@@ -40,7 +40,6 @@
+ #include <linux/err.h>
+ #include <linux/idr.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/random.h>
+ #include <linux/rbtree.h>
+ #include <linux/spinlock.h>
+diff -puN drivers/infiniband/core/iwcm.c~cleanup-the-includes-of-linux-pcih drivers/infiniband/core/iwcm.c
+--- a/drivers/infiniband/core/iwcm.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/core/iwcm.c
+@@ -39,7 +39,6 @@
+ #include <linux/err.h>
+ #include <linux/idr.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/rbtree.h>
+ #include <linux/spinlock.h>
+ #include <linux/workqueue.h>
+diff -puN drivers/infiniband/core/mad_priv.h~cleanup-the-includes-of-linux-pcih drivers/infiniband/core/mad_priv.h
+--- a/drivers/infiniband/core/mad_priv.h~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/core/mad_priv.h
+@@ -39,7 +39,6 @@
+ 
+ #include <linux/completion.h>
+ #include <linux/err.h>
+-#include <linux/pci.h>
+ #include <linux/workqueue.h>
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_smi.h>
+diff -puN drivers/infiniband/core/multicast.c~cleanup-the-includes-of-linux-pcih drivers/infiniband/core/multicast.c
+--- a/drivers/infiniband/core/multicast.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/core/multicast.c
+@@ -34,7 +34,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/err.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/bitops.h>
+ #include <linux/random.h>
+ 
+diff -puN drivers/infiniband/core/sa_query.c~cleanup-the-includes-of-linux-pcih drivers/infiniband/core/sa_query.c
+--- a/drivers/infiniband/core/sa_query.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/core/sa_query.c
+@@ -40,7 +40,6 @@
+ #include <linux/random.h>
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+-#include <linux/pci.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/kref.h>
+ #include <linux/idr.h>
+diff -puN drivers/infiniband/core/user_mad.c~cleanup-the-includes-of-linux-pcih drivers/infiniband/core/user_mad.c
+--- a/drivers/infiniband/core/user_mad.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/core/user_mad.c
+@@ -40,7 +40,6 @@
+ #include <linux/err.h>
+ #include <linux/fs.h>
+ #include <linux/cdev.h>
+-#include <linux/pci.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/poll.h>
+ #include <linux/rwsem.h>
+diff -puN drivers/infiniband/hw/ipath/ipath_fs.c~cleanup-the-includes-of-linux-pcih drivers/infiniband/hw/ipath/ipath_fs.c
+--- a/drivers/infiniband/hw/ipath/ipath_fs.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/hw/ipath/ipath_fs.c
+@@ -38,7 +38,6 @@
+ #include <linux/pagemap.h>
+ #include <linux/init.h>
+ #include <linux/namei.h>
+-#include <linux/pci.h>
+ 
+ #include "ipath_kernel.h"
+ 
+diff -puN drivers/infiniband/hw/ipath/ipath_layer.c~cleanup-the-includes-of-linux-pcih drivers/infiniband/hw/ipath/ipath_layer.c
+--- a/drivers/infiniband/hw/ipath/ipath_layer.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/hw/ipath/ipath_layer.c
+@@ -37,7 +37,6 @@
+  */
+ 
+ #include <linux/io.h>
+-#include <linux/pci.h>
+ #include <asm/byteorder.h>
+ 
+ #include "ipath_kernel.h"
+diff -puN drivers/infiniband/hw/ipath/ipath_stats.c~cleanup-the-includes-of-linux-pcih drivers/infiniband/hw/ipath/ipath_stats.c
+--- a/drivers/infiniband/hw/ipath/ipath_stats.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/hw/ipath/ipath_stats.c
+@@ -31,8 +31,6 @@
+  * SOFTWARE.
+  */
+ 
+-#include <linux/pci.h>
+-
+ #include "ipath_kernel.h"
+ 
+ struct infinipath_stats ipath_stats;
+diff -puN drivers/infiniband/hw/ipath/ipath_sysfs.c~cleanup-the-includes-of-linux-pcih drivers/infiniband/hw/ipath/ipath_sysfs.c
+--- a/drivers/infiniband/hw/ipath/ipath_sysfs.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/hw/ipath/ipath_sysfs.c
+@@ -32,7 +32,6 @@
+  */
+ 
+ #include <linux/ctype.h>
+-#include <linux/pci.h>
+ 
+ #include "ipath_kernel.h"
+ #include "ipath_common.h"
+diff -puN drivers/infiniband/hw/mthca/mthca_memfree.h~cleanup-the-includes-of-linux-pcih drivers/infiniband/hw/mthca/mthca_memfree.h
+--- a/drivers/infiniband/hw/mthca/mthca_memfree.h~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/hw/mthca/mthca_memfree.h
+@@ -38,7 +38,6 @@
+ #define MTHCA_MEMFREE_H
+ 
+ #include <linux/list.h>
+-#include <linux/pci.h>
+ #include <linux/mutex.h>
+ 
+ #define MTHCA_ICM_CHUNK_LEN \
+diff -puN drivers/infiniband/ulp/ipoib/ipoib.h~cleanup-the-includes-of-linux-pcih drivers/infiniband/ulp/ipoib/ipoib.h
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h~cleanup-the-includes-of-linux-pcih
++++ a/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -41,7 +41,6 @@
+ #include <linux/skbuff.h>
+ #include <linux/netdevice.h>
+ #include <linux/workqueue.h>
+-#include <linux/pci.h>
+ #include <linux/kref.h>
+ #include <linux/if_infiniband.h>
+ #include <linux/mutex.h>
+diff -puN drivers/isdn/hisax/netjet.c~cleanup-the-includes-of-linux-pcih drivers/isdn/hisax/netjet.c
+--- a/drivers/isdn/hisax/netjet.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/isdn/hisax/netjet.c
+@@ -19,7 +19,6 @@
+ #include "isac.h"
+ #include "hscx.h"
+ #include "isdnl1.h"
+-#include <linux/pci.h>
+ #include <linux/interrupt.h>
+ #include <linux/ppp_defs.h>
+ #include <asm/io.h>
+diff -puN drivers/isdn/hysdn/hysdn_proclog.c~cleanup-the-includes-of-linux-pcih drivers/isdn/hysdn/hysdn_proclog.c
+--- a/drivers/isdn/hysdn/hysdn_proclog.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/isdn/hysdn/hysdn_proclog.c
+@@ -13,7 +13,6 @@
+ #include <linux/module.h>
+ #include <linux/poll.h>
+ #include <linux/proc_fs.h>
+-#include <linux/pci.h>
+ #include <linux/smp_lock.h>
+ 
+ #include "hysdn_defs.h"
+diff -puN drivers/media/dvb/cinergyT2/cinergyT2.c~cleanup-the-includes-of-linux-pcih drivers/media/dvb/cinergyT2/cinergyT2.c
+--- a/drivers/media/dvb/cinergyT2/cinergyT2.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/dvb/cinergyT2/cinergyT2.c
+@@ -26,11 +26,11 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/usb.h>
+-#include <linux/pci.h>
+ #include <linux/input.h>
+ #include <linux/dvb/frontend.h>
+ #include <linux/mutex.h>
+ #include <linux/mm.h>
++#include <asm/io.h>
+ 
+ #include "dmxdev.h"
+ #include "dvb_demux.h"
+diff -puN drivers/media/video/adv7170.c~cleanup-the-includes-of-linux-pcih drivers/media/video/adv7170.c
+--- a/drivers/media/video/adv7170.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/adv7170.c
+@@ -37,7 +37,6 @@
+ #include <linux/major.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+-#include <linux/pci.h>
+ #include <linux/signal.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+diff -puN drivers/media/video/adv7175.c~cleanup-the-includes-of-linux-pcih drivers/media/video/adv7175.c
+--- a/drivers/media/video/adv7175.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/adv7175.c
+@@ -33,7 +33,6 @@
+ #include <linux/major.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+-#include <linux/pci.h>
+ #include <linux/signal.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+diff -puN drivers/media/video/bt819.c~cleanup-the-includes-of-linux-pcih drivers/media/video/bt819.c
+--- a/drivers/media/video/bt819.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/bt819.c
+@@ -37,7 +37,6 @@
+ #include <linux/major.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+-#include <linux/pci.h>
+ #include <linux/signal.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+diff -puN drivers/media/video/bt856.c~cleanup-the-includes-of-linux-pcih drivers/media/video/bt856.c
+--- a/drivers/media/video/bt856.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/bt856.c
+@@ -37,7 +37,6 @@
+ #include <linux/major.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+-#include <linux/pci.h>
+ #include <linux/signal.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+diff -puN drivers/media/video/bt866.c~cleanup-the-includes-of-linux-pcih drivers/media/video/bt866.c
+--- a/drivers/media/video/bt866.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/bt866.c
+@@ -37,7 +37,6 @@
+ #include <linux/major.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+-#include <linux/pci.h>
+ #include <linux/signal.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+diff -puN drivers/media/video/cx88/cx88-tvaudio.c~cleanup-the-includes-of-linux-pcih drivers/media/video/cx88/cx88-tvaudio.c
+--- a/drivers/media/video/cx88/cx88-tvaudio.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/cx88/cx88-tvaudio.c
+@@ -43,7 +43,6 @@
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include <linux/poll.h>
+-#include <linux/pci.h>
+ #include <linux/signal.h>
+ #include <linux/ioport.h>
+ #include <linux/types.h>
+diff -puN drivers/media/video/em28xx/em28xx-cards.c~cleanup-the-includes-of-linux-pcih drivers/media/video/em28xx/em28xx-cards.c
+--- a/drivers/media/video/em28xx/em28xx-cards.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/em28xx/em28xx-cards.c
+@@ -23,7 +23,6 @@
+ 
+ #include <linux/init.h>
+ #include <linux/module.h>
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/i2c.h>
+ #include <linux/usb.h>
+diff -puN drivers/media/video/saa7111.c~cleanup-the-includes-of-linux-pcih drivers/media/video/saa7111.c
+--- a/drivers/media/video/saa7111.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/saa7111.c
+@@ -36,7 +36,6 @@
+ #include <linux/major.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+-#include <linux/pci.h>
+ #include <linux/signal.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+diff -puN drivers/media/video/saa7114.c~cleanup-the-includes-of-linux-pcih drivers/media/video/saa7114.c
+--- a/drivers/media/video/saa7114.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/saa7114.c
+@@ -39,7 +39,6 @@
+ #include <linux/slab.h>
+ 
+ #include <linux/mm.h>
+-#include <linux/pci.h>
+ #include <linux/signal.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+diff -puN drivers/media/video/saa711x.c~cleanup-the-includes-of-linux-pcih drivers/media/video/saa711x.c
+--- a/drivers/media/video/saa711x.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/saa711x.c
+@@ -30,7 +30,6 @@
+ #include <linux/major.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+-#include <linux/pci.h>
+ #include <linux/signal.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+diff -puN drivers/media/video/saa7185.c~cleanup-the-includes-of-linux-pcih drivers/media/video/saa7185.c
+--- a/drivers/media/video/saa7185.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/media/video/saa7185.c
+@@ -33,7 +33,6 @@
+ #include <linux/major.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+-#include <linux/pci.h>
+ #include <linux/signal.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+diff -puN drivers/misc/hdpuftrs/hdpu_cpustate.c~cleanup-the-includes-of-linux-pcih drivers/misc/hdpuftrs/hdpu_cpustate.c
+--- a/drivers/misc/hdpuftrs/hdpu_cpustate.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/misc/hdpuftrs/hdpu_cpustate.c
+@@ -18,7 +18,6 @@
+ #include <linux/kernel.h>
+ #include <linux/spinlock.h>
+ #include <linux/miscdevice.h>
+-#include <linux/pci.h>
+ #include <linux/proc_fs.h>
+ #include <linux/platform_device.h>
+ #include <asm/uaccess.h>
+diff -puN drivers/misc/hdpuftrs/hdpu_nexus.c~cleanup-the-includes-of-linux-pcih drivers/misc/hdpuftrs/hdpu_nexus.c
+--- a/drivers/misc/hdpuftrs/hdpu_nexus.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/misc/hdpuftrs/hdpu_nexus.c
+@@ -18,7 +18,6 @@
+ #include <linux/kernel.h>
+ #include <linux/proc_fs.h>
+ #include <linux/hdpu_features.h>
+-#include <linux/pci.h>
+ 
+ #include <linux/platform_device.h>
+ 
+diff -puN drivers/mtd/devices/doc2000.c~cleanup-the-includes-of-linux-pcih drivers/mtd/devices/doc2000.c
+--- a/drivers/mtd/devices/doc2000.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/mtd/devices/doc2000.c
+@@ -13,7 +13,6 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ #include <linux/miscdevice.h>
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
+diff -puN drivers/mtd/devices/doc2001.c~cleanup-the-includes-of-linux-pcih drivers/mtd/devices/doc2001.c
+--- a/drivers/mtd/devices/doc2001.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/mtd/devices/doc2001.c
+@@ -13,7 +13,6 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ #include <linux/miscdevice.h>
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+diff -puN drivers/mtd/devices/doc2001plus.c~cleanup-the-includes-of-linux-pcih drivers/mtd/devices/doc2001plus.c
+--- a/drivers/mtd/devices/doc2001plus.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/mtd/devices/doc2001plus.c
+@@ -17,7 +17,6 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ #include <linux/miscdevice.h>
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+diff -puN drivers/mtd/devices/docecc.c~cleanup-the-includes-of-linux-pcih drivers/mtd/devices/docecc.c
+--- a/drivers/mtd/devices/docecc.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/mtd/devices/docecc.c
+@@ -29,7 +29,6 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ #include <linux/miscdevice.h>
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+diff -puN drivers/mtd/inftlmount.c~cleanup-the-includes-of-linux-pcih drivers/mtd/inftlmount.c
+--- a/drivers/mtd/inftlmount.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/mtd/inftlmount.c
+@@ -31,7 +31,6 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ #include <linux/miscdevice.h>
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+diff -puN drivers/mtd/nand/cs553x_nand.c~cleanup-the-includes-of-linux-pcih drivers/mtd/nand/cs553x_nand.c
+--- a/drivers/mtd/nand/cs553x_nand.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/mtd/nand/cs553x_nand.c
+@@ -20,7 +20,6 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/delay.h>
+-#include <linux/pci.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/nand_ecc.h>
+diff -puN drivers/mtd/nftlcore.c~cleanup-the-includes-of-linux-pcih drivers/mtd/nftlcore.c
+--- a/drivers/mtd/nftlcore.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/mtd/nftlcore.c
+@@ -17,7 +17,6 @@
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ #include <linux/miscdevice.h>
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+diff -puN drivers/net/atl1/atl1_param.c~cleanup-the-includes-of-linux-pcih drivers/net/atl1/atl1_param.c
+--- a/drivers/net/atl1/atl1_param.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/atl1/atl1_param.c
+@@ -22,7 +22,6 @@
+  */
+ 
+ #include <linux/types.h>
+-#include <linux/pci.h>
+ #include <linux/moduleparam.h>
+ #include "atl1.h"
+ 
+diff -puN drivers/net/au1000_eth.c~cleanup-the-includes-of-linux-pcih drivers/net/au1000_eth.c
+--- a/drivers/net/au1000_eth.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/au1000_eth.c
+@@ -45,7 +45,6 @@
+ #include <linux/bitops.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
+diff -puN drivers/net/fec_8xx/fec_main.c~cleanup-the-includes-of-linux-pcih drivers/net/fec_8xx/fec_main.c
+--- a/drivers/net/fec_8xx/fec_main.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/fec_8xx/fec_main.c
+@@ -19,7 +19,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/fec_8xx/fec_mii.c~cleanup-the-includes-of-linux-pcih drivers/net/fec_8xx/fec_mii.c
+--- a/drivers/net/fec_8xx/fec_mii.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/fec_8xx/fec_mii.c
+@@ -19,7 +19,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/fs_enet/fs_enet-main.c~cleanup-the-includes-of-linux-pcih drivers/net/fs_enet/fs_enet-main.c
+--- a/drivers/net/fs_enet/fs_enet-main.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/fs_enet/fs_enet-main.c
+@@ -24,7 +24,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/fs_enet/mac-fcc.c~cleanup-the-includes-of-linux-pcih drivers/net/fs_enet/mac-fcc.c
+--- a/drivers/net/fs_enet/mac-fcc.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/fs_enet/mac-fcc.c
+@@ -21,7 +21,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/fs_enet/mac-fec.c~cleanup-the-includes-of-linux-pcih drivers/net/fs_enet/mac-fec.c
+--- a/drivers/net/fs_enet/mac-fec.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/fs_enet/mac-fec.c
+@@ -21,7 +21,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/fs_enet/mac-scc.c~cleanup-the-includes-of-linux-pcih drivers/net/fs_enet/mac-scc.c
+--- a/drivers/net/fs_enet/mac-scc.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/fs_enet/mac-scc.c
+@@ -21,7 +21,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/fs_enet/mii-bitbang.c~cleanup-the-includes-of-linux-pcih drivers/net/fs_enet/mii-bitbang.c
+--- a/drivers/net/fs_enet/mii-bitbang.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/fs_enet/mii-bitbang.c
+@@ -22,7 +22,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/fs_enet/mii-fec.c~cleanup-the-includes-of-linux-pcih drivers/net/fs_enet/mii-fec.c
+--- a/drivers/net/fs_enet/mii-fec.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/fs_enet/mii-fec.c
+@@ -21,7 +21,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/ibm_emac/ibm_emac_core.c~cleanup-the-includes-of-linux-pcih drivers/net/ibm_emac/ibm_emac_core.c
+--- a/drivers/net/ibm_emac/ibm_emac_core.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/ibm_emac/ibm_emac_core.c
+@@ -27,7 +27,6 @@
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+-#include <linux/pci.h>
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
+ #include <linux/skbuff.h>
+diff -puN drivers/net/ixgb/ixgb_osdep.h~cleanup-the-includes-of-linux-pcih drivers/net/ixgb/ixgb_osdep.h
+--- a/drivers/net/ixgb/ixgb_osdep.h~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/ixgb/ixgb_osdep.h
+@@ -34,7 +34,6 @@
+ #define _IXGB_OSDEP_H_
+ 
+ #include <linux/types.h>
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <asm/io.h>
+ #include <linux/interrupt.h>
+diff -puN drivers/net/lasi_82596.c~cleanup-the-includes-of-linux-pcih drivers/net/lasi_82596.c
+--- a/drivers/net/lasi_82596.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/lasi_82596.c
+@@ -81,7 +81,6 @@
+ #include <linux/etherdevice.h>
+ #include <linux/skbuff.h>
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <linux/types.h>
+ #include <linux/bitops.h>
+ 
+diff -puN drivers/net/tokenring/madgemc.c~cleanup-the-includes-of-linux-pcih drivers/net/tokenring/madgemc.c
+--- a/drivers/net/tokenring/madgemc.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/tokenring/madgemc.c
+@@ -23,7 +23,6 @@ static const char version[] = "madgemc.c
+ #include <linux/mca.h>
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+-#include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/netdevice.h>
+ #include <linux/trdevice.h>
+diff -puN drivers/net/tokenring/smctr.c~cleanup-the-includes-of-linux-pcih drivers/net/tokenring/smctr.c
+--- a/drivers/net/tokenring/smctr.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/tokenring/smctr.c
+@@ -41,7 +41,6 @@
+ #include <linux/time.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <linux/mca-legacy.h>
+ #include <linux/delay.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/tulip/21142.c~cleanup-the-includes-of-linux-pcih drivers/net/tulip/21142.c
+--- a/drivers/net/tulip/21142.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/tulip/21142.c
+@@ -14,7 +14,6 @@
+ 
+ */
+ 
+-#include <linux/pci.h>
+ #include <linux/delay.h>
+ #include "tulip.h"
+ 
+diff -puN drivers/net/tulip/pnic.c~cleanup-the-includes-of-linux-pcih drivers/net/tulip/pnic.c
+--- a/drivers/net/tulip/pnic.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/tulip/pnic.c
+@@ -15,7 +15,6 @@
+ */
+ 
+ #include <linux/kernel.h>
+-#include <linux/pci.h>
+ #include <linux/jiffies.h>
+ #include "tulip.h"
+ 
+diff -puN drivers/net/tulip/pnic2.c~cleanup-the-includes-of-linux-pcih drivers/net/tulip/pnic2.c
+--- a/drivers/net/tulip/pnic2.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/tulip/pnic2.c
+@@ -76,7 +76,6 @@
+ 
+ 
+ 
+-#include <linux/pci.h>
+ #include "tulip.h"
+ #include <linux/delay.h>
+ 
+diff -puN drivers/net/tulip/timer.c~cleanup-the-includes-of-linux-pcih drivers/net/tulip/timer.c
+--- a/drivers/net/tulip/timer.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/tulip/timer.c
+@@ -14,7 +14,6 @@
+ 
+ */
+ 
+-#include <linux/pci.h>
+ #include "tulip.h"
+ 
+ 
+diff -puN drivers/net/tulip/tulip.h~cleanup-the-includes-of-linux-pcih drivers/net/tulip/tulip.h
+--- a/drivers/net/tulip/tulip.h~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/tulip/tulip.h
+@@ -22,6 +22,7 @@
+ #include <linux/netdevice.h>
+ #include <linux/timer.h>
+ #include <linux/delay.h>
++#include <linux/pci.h>
+ #include <asm/io.h>
+ #include <asm/irq.h>
+ 
+diff -puN drivers/net/wan/lmc/lmc_media.c~cleanup-the-includes-of-linux-pcih drivers/net/wan/lmc/lmc_media.c
+--- a/drivers/net/wan/lmc/lmc_media.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/wan/lmc/lmc_media.c
+@@ -8,7 +8,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/in.h>
+ #include <linux/if_arp.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/wan/lmc/lmc_proto.c~cleanup-the-includes-of-linux-pcih drivers/net/wan/lmc/lmc_proto.c
+--- a/drivers/net/wan/lmc/lmc_proto.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/wan/lmc/lmc_proto.c
+@@ -27,7 +27,6 @@
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/in.h>
+ #include <linux/if_arp.h>
+ #include <linux/netdevice.h>
+diff -puN drivers/net/wan/pc300_tty.c~cleanup-the-includes-of-linux-pcih drivers/net/wan/pc300_tty.c
+--- a/drivers/net/wan/pc300_tty.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/net/wan/pc300_tty.c
+@@ -38,7 +38,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+-#include <linux/pci.h>
+ #include <linux/errno.h>
+ #include <linux/string.h>
+ #include <linux/init.h>
+diff -puN drivers/parisc/hppb.c~cleanup-the-includes-of-linux-pcih drivers/parisc/hppb.c
+--- a/drivers/parisc/hppb.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/parisc/hppb.c
+@@ -22,8 +22,6 @@
+ #include <asm/hardware.h>
+ #include <asm/parisc-device.h>
+ 
+-#include <linux/pci.h>
+-
+ struct hppb_card {
+ 	unsigned long hpa;
+ 	struct resource mmio_region;
+diff -puN drivers/pcmcia/cs.c~cleanup-the-includes-of-linux-pcih drivers/pcmcia/cs.c
+--- a/drivers/pcmcia/cs.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/pcmcia/cs.c
+@@ -26,7 +26,6 @@
+ #include <linux/ioport.h>
+ #include <linux/delay.h>
+ #include <linux/pm.h>
+-#include <linux/pci.h>
+ #include <linux/device.h>
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
+diff -puN drivers/pcmcia/socket_sysfs.c~cleanup-the-includes-of-linux-pcih drivers/pcmcia/socket_sysfs.c
+--- a/drivers/pcmcia/socket_sysfs.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/pcmcia/socket_sysfs.c
+@@ -22,7 +22,6 @@
+ #include <linux/ioport.h>
+ #include <linux/delay.h>
+ #include <linux/pm.h>
+-#include <linux/pci.h>
+ #include <linux/device.h>
+ #include <linux/mutex.h>
+ #include <asm/system.h>
+diff -puN drivers/sbus/sbus.c~cleanup-the-includes-of-linux-pcih drivers/sbus/sbus.c
+--- a/drivers/sbus/sbus.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/sbus/sbus.c
+@@ -6,7 +6,6 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <linux/device.h>
+ 
+ #include <asm/system.h>
+diff -puN drivers/scsi/aacraid/dpcsup.c~cleanup-the-includes-of-linux-pcih drivers/scsi/aacraid/dpcsup.c
+--- a/drivers/scsi/aacraid/dpcsup.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/scsi/aacraid/dpcsup.c
+@@ -32,7 +32,6 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+-#include <linux/pci.h>
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+ #include <linux/completion.h>
+diff -puN drivers/scsi/aacraid/sa.c~cleanup-the-includes-of-linux-pcih drivers/scsi/aacraid/sa.c
+--- a/drivers/scsi/aacraid/sa.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/scsi/aacraid/sa.c
+@@ -31,7 +31,6 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+-#include <linux/pci.h>
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+ #include <linux/blkdev.h>
+diff -puN drivers/scsi/aha1542.c~cleanup-the-includes-of-linux-pcih drivers/scsi/aha1542.c
+--- a/drivers/scsi/aha1542.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/scsi/aha1542.c
+@@ -35,7 +35,6 @@
+ #include <linux/proc_fs.h>
+ #include <linux/init.h>
+ #include <linux/spinlock.h>
+-#include <linux/pci.h>
+ #include <linux/isapnp.h>
+ #include <linux/blkdev.h>
+ #include <linux/mca.h>
+diff -puN drivers/scsi/aic94xx/aic94xx_scb.c~cleanup-the-includes-of-linux-pcih drivers/scsi/aic94xx/aic94xx_scb.c
+--- a/drivers/scsi/aic94xx/aic94xx_scb.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/scsi/aic94xx/aic94xx_scb.c
+@@ -24,7 +24,6 @@
+  *
+  */
+ 
+-#include <linux/pci.h>
+ #include <scsi/scsi_host.h>
+ 
+ #include "aic94xx.h"
+diff -puN drivers/scsi/arcmsr/arcmsr_attr.c~cleanup-the-includes-of-linux-pcih drivers/scsi/arcmsr/arcmsr_attr.c
+--- a/drivers/scsi/arcmsr/arcmsr_attr.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/scsi/arcmsr/arcmsr_attr.c
+@@ -49,7 +49,6 @@
+ #include <linux/init.h>
+ #include <linux/errno.h>
+ #include <linux/delay.h>
+-#include <linux/pci.h>
+ 
+ #include <scsi/scsi_cmnd.h>
+ #include <scsi/scsi_device.h>
+diff -puN drivers/scsi/libsas/sas_expander.c~cleanup-the-includes-of-linux-pcih drivers/scsi/libsas/sas_expander.c
+--- a/drivers/scsi/libsas/sas_expander.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/scsi/libsas/sas_expander.c
+@@ -22,7 +22,6 @@
+  *
+  */
+ 
+-#include <linux/pci.h>
+ #include <linux/scatterlist.h>
+ 
+ #include "sas_internal.h"
+diff -puN drivers/scsi/libsrp.c~cleanup-the-includes-of-linux-pcih drivers/scsi/libsrp.c
+--- a/drivers/scsi/libsrp.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/scsi/libsrp.c
+@@ -22,7 +22,6 @@
+ #include <linux/kfifo.h>
+ #include <linux/scatterlist.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/pci.h>
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_cmnd.h>
+ #include <scsi/scsi_tcq.h>
+diff -puN drivers/usb/net/kaweth.c~cleanup-the-includes-of-linux-pcih drivers/usb/net/kaweth.c
+--- a/drivers/usb/net/kaweth.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/usb/net/kaweth.c
+@@ -55,7 +55,6 @@
+ #include <linux/usb.h>
+ #include <linux/types.h>
+ #include <linux/ethtool.h>
+-#include <linux/pci.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/wait.h>
+ #include <asm/uaccess.h>
+diff -puN drivers/video/aty/radeon_i2c.c~cleanup-the-includes-of-linux-pcih drivers/video/aty/radeon_i2c.c
+--- a/drivers/video/aty/radeon_i2c.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/video/aty/radeon_i2c.c
+@@ -1,7 +1,6 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/delay.h>
+-#include <linux/pci.h>
+ #include <linux/fb.h>
+ 
+ 
+diff -puN drivers/video/g364fb.c~cleanup-the-includes-of-linux-pcih drivers/video/g364fb.c
+--- a/drivers/video/g364fb.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/video/g364fb.c
+@@ -26,7 +26,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <asm/io.h>
+ #include <asm/jazz.h>
+ 
+diff -puN drivers/video/platinumfb.c~cleanup-the-includes-of-linux-pcih drivers/video/platinumfb.c
+--- a/drivers/video/platinumfb.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/video/platinumfb.c
+@@ -28,7 +28,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <linux/nvram.h>
+ #include <asm/io.h>
+ #include <asm/prom.h>
+diff -puN drivers/video/stifb.c~cleanup-the-includes-of-linux-pcih drivers/video/stifb.c
+--- a/drivers/video/stifb.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/video/stifb.c
+@@ -64,7 +64,6 @@
+ #include <linux/fb.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
+-#include <linux/pci.h>
+ 
+ #include <asm/grfioctl.h>	/* for HP-UX compatibility */
+ #include <asm/uaccess.h>
+diff -puN drivers/video/valkyriefb.c~cleanup-the-includes-of-linux-pcih drivers/video/valkyriefb.c
+--- a/drivers/video/valkyriefb.c~cleanup-the-includes-of-linux-pcih
++++ a/drivers/video/valkyriefb.c
+@@ -51,7 +51,6 @@
+ #include <linux/fb.h>
+ #include <linux/selection.h>
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <linux/nvram.h>
+ #include <linux/adb.h>
+ #include <linux/cuda.h>
+diff -puN include/asm-arm/arch-ixp4xx/dma.h~cleanup-the-includes-of-linux-pcih include/asm-arm/arch-ixp4xx/dma.h
+--- a/include/asm-arm/arch-ixp4xx/dma.h~cleanup-the-includes-of-linux-pcih
++++ a/include/asm-arm/arch-ixp4xx/dma.h
+@@ -12,7 +12,6 @@
+ #define __ASM_ARCH_DMA_H
+ 
+ #include <linux/device.h>
+-#include <linux/pci.h>
+ #include <asm/page.h>
+ #include <asm/sizes.h>
+ #include <asm/hardware.h>
+diff -puN include/rdma/ib_mad.h~cleanup-the-includes-of-linux-pcih include/rdma/ib_mad.h
+--- a/include/rdma/ib_mad.h~cleanup-the-includes-of-linux-pcih
++++ a/include/rdma/ib_mad.h
+@@ -39,8 +39,6 @@
+ #if !defined( IB_MAD_H )
+ #define IB_MAD_H
+ 
+-#include <linux/pci.h>
+-
+ #include <rdma/ib_verbs.h>
+ 
+ /* Management base version */
+diff -puN sound/core/init.c~cleanup-the-includes-of-linux-pcih sound/core/init.c
+--- a/sound/core/init.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/core/init.c
+@@ -26,7 +26,6 @@
+ #include <linux/slab.h>
+ #include <linux/time.h>
+ #include <linux/ctype.h>
+-#include <linux/pci.h>
+ #include <linux/pm.h>
+ 
+ #include <sound/core.h>
+diff -puN sound/oss/au1550_ac97.c~cleanup-the-includes-of-linux-pcih sound/oss/au1550_ac97.c
+--- a/sound/oss/au1550_ac97.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/oss/au1550_ac97.c
+@@ -47,7 +47,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/poll.h>
+-#include <linux/pci.h>
+ #include <linux/bitops.h>
+ #include <linux/spinlock.h>
+ #include <linux/smp_lock.h>
+diff -puN sound/oss/soundcard.c~cleanup-the-includes-of-linux-pcih sound/oss/soundcard.c
+--- a/sound/oss/soundcard.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/oss/soundcard.c
+@@ -44,6 +44,7 @@
+ #include <linux/smp_lock.h>
+ #include <linux/module.h>
+ #include <linux/mm.h>
++#include <linux/device.h>
+ 
+ /*
+  * This ought to be moved into include/asm/dma.h
+diff -puN sound/pci/ca0106/ca0106_mixer.c~cleanup-the-includes-of-linux-pcih sound/pci/ca0106/ca0106_mixer.c
+--- a/sound/pci/ca0106/ca0106_mixer.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/pci/ca0106/ca0106_mixer.c
+@@ -62,7 +62,6 @@
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/slab.h>
+ #include <linux/moduleparam.h>
+ #include <sound/core.h>
+@@ -71,6 +70,7 @@
+ #include <sound/ac97_codec.h>
+ #include <sound/info.h>
+ #include <sound/tlv.h>
++#include <asm/io.h>
+ 
+ #include "ca0106.h"
+ 
+diff -puN sound/pci/ca0106/ca0106_proc.c~cleanup-the-includes-of-linux-pcih sound/pci/ca0106/ca0106_proc.c
+--- a/sound/pci/ca0106/ca0106_proc.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/pci/ca0106/ca0106_proc.c
+@@ -64,7 +64,6 @@
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>
+ #include <linux/slab.h>
+ #include <linux/moduleparam.h>
+ #include <sound/core.h>
+@@ -73,6 +72,7 @@
+ #include <sound/ac97_codec.h>
+ #include <sound/info.h>
+ #include <sound/asoundef.h>
++#include <asm/io.h>
+ 
+ #include "ca0106.h"
+ 
+diff -puN sound/pci/cs46xx/dsp_spos.c~cleanup-the-includes-of-linux-pcih sound/pci/cs46xx/dsp_spos.c
+--- a/sound/pci/cs46xx/dsp_spos.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/pci/cs46xx/dsp_spos.c
+@@ -23,7 +23,6 @@
+ #include <sound/driver.h>
+ #include <asm/io.h>
+ #include <linux/delay.h>
+-#include <linux/pci.h>
+ #include <linux/pm.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+diff -puN sound/pci/cs46xx/dsp_spos_scb_lib.c~cleanup-the-includes-of-linux-pcih sound/pci/cs46xx/dsp_spos_scb_lib.c
+--- a/sound/pci/cs46xx/dsp_spos_scb_lib.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/pci/cs46xx/dsp_spos_scb_lib.c
+@@ -24,7 +24,6 @@
+ #include <sound/driver.h>
+ #include <asm/io.h>
+ #include <linux/delay.h>
+-#include <linux/pci.h>
+ #include <linux/pm.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+diff -puN sound/pci/hda/hda_generic.c~cleanup-the-includes-of-linux-pcih sound/pci/hda/hda_generic.c
+--- a/sound/pci/hda/hda_generic.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/pci/hda/hda_generic.c
+@@ -23,7 +23,6 @@
+ #include <sound/driver.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+-#include <linux/pci.h>
+ #include <sound/core.h>
+ #include "hda_codec.h"
+ #include "hda_local.h"
+diff -puN sound/pci/hda/hda_proc.c~cleanup-the-includes-of-linux-pcih sound/pci/hda/hda_proc.c
+--- a/sound/pci/hda/hda_proc.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/pci/hda/hda_proc.c
+@@ -23,7 +23,6 @@
+ 
+ #include <sound/driver.h>
+ #include <linux/init.h>
+-#include <linux/pci.h>
+ #include <sound/core.h>
+ #include "hda_codec.h"
+ #include "hda_local.h"
+diff -puN sound/pci/hda/patch_atihdmi.c~cleanup-the-includes-of-linux-pcih sound/pci/hda/patch_atihdmi.c
+--- a/sound/pci/hda/patch_atihdmi.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/pci/hda/patch_atihdmi.c
+@@ -25,7 +25,6 @@
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+-#include <linux/pci.h>
+ #include <sound/core.h>
+ #include "hda_codec.h"
+ #include "hda_local.h"
+diff -puN sound/pci/hda/patch_si3054.c~cleanup-the-includes-of-linux-pcih sound/pci/hda/patch_si3054.c
+--- a/sound/pci/hda/patch_si3054.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/pci/hda/patch_si3054.c
+@@ -26,7 +26,6 @@
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+-#include <linux/pci.h>
+ #include <sound/core.h>
+ #include "hda_codec.h"
+ #include "hda_local.h"
+diff -puN sound/pci/hda/patch_via.c~cleanup-the-includes-of-linux-pcih sound/pci/hda/patch_via.c
+--- a/sound/pci/hda/patch_via.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/pci/hda/patch_via.c
+@@ -35,7 +35,6 @@
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+-#include <linux/pci.h>
+ #include <sound/core.h>
+ #include "hda_codec.h"
+ #include "hda_local.h"
+diff -puN sound/ppc/beep.c~cleanup-the-includes-of-linux-pcih sound/ppc/beep.c
+--- a/sound/ppc/beep.c~cleanup-the-includes-of-linux-pcih
++++ a/sound/ppc/beep.c
+@@ -24,7 +24,6 @@
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/input.h>
+-#include <linux/pci.h>
+ #include <linux/dma-mapping.h>
+ #include <sound/core.h>
+ #include <sound/control.h>
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-origin.patch
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-avr32.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
-ppc-correct-apparently-misspelled-xmon-preprocessor.patch
-git-drm.patch
-git-mtd.patch
-remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
-remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
-git-scsi-misc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-include-linux-elfnoteh.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
+sound-strlcpy-is-smart-enough.patch
+git-dvb.patch
+ehea-strlcpy-is-smart-enough.patch
+git-s390.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+xtensa-strlcpy-is-smart-enough.patch
+oss-strlcpy-is-smart-enough.patch
