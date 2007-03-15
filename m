@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-rtc-rs5c313-driver.patch added to -mm tree
-Date: Thu, 15 Mar 2007 13:47:28 -0700
-Message-ID: <200703152047.l2FKle6v026119@shell0.pdx.osdl.net>
+Subject: + rtc-add-rtc-rs5c313-driver-tidy.patch added to -mm tree
+Date: Thu, 15 Mar 2007 13:53:35 -0700
+Message-ID: <200703152053.l2FKrZO5026228@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40317 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40414 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751357AbXCOUsI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 16:48:08 -0400
+	id S1753366AbXCOUxs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 16:53:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: iwamatsu@nigauri.org, a.zummo@towertech.it
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, iwamatsu@nigauri.org
 
 
 The patch titled
-     RTC: add rtc-rs5c313 driver
+     rtc-add-rtc-rs5c313-driver-tidy
 has been added to the -mm tree.  Its filename is
-     rtc-add-rtc-rs5c313-driver.patch
+     rtc-add-rtc-rs5c313-driver-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,460 +25,305 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RTC: add rtc-rs5c313 driver
-From: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
+Subject: rtc-add-rtc-rs5c313-driver-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add an RTC driver for Ricoh RS5C313 RTC chip.
+Zillions of coding-style fixes.  Please retest it.
 
-Signed-off-by: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig       |    6 
- drivers/rtc/Makefile      |    1 
- drivers/rtc/rtc-rs5c313.c |  408 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 415 insertions(+)
+ drivers/rtc/rtc-rs5c313.c |   95 +++++++++++++++++-------------------
+ 1 files changed, 46 insertions(+), 49 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-rtc-rs5c313-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-rtc-rs5c313-driver
-+++ a/drivers/rtc/Kconfig
-@@ -364,4 +364,10 @@ config RTC_DRV_BFIN
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-bfin.
- 
-+config RTC_DRV_RS5C313
-+	tristate "Ricoh RS5C313"
-+	depends on RTC_CLASS
-+	help
-+	  If you say yes here you get support for the Ricoh RS5C313 RTC chips.
-+
- endmenu
-diff -puN drivers/rtc/Makefile~rtc-add-rtc-rs5c313-driver drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-rtc-rs5c313-driver
-+++ a/drivers/rtc/Makefile
-@@ -30,6 +30,7 @@ obj-$(CONFIG_RTC_DRV_S3C)	+= rtc-s3c.o
- obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
- obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
- obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
-+obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
- obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
- obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
- obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
-diff -puN /dev/null drivers/rtc/rtc-rs5c313.c
---- /dev/null
+diff -puN drivers/rtc/Kconfig~rtc-add-rtc-rs5c313-driver-tidy drivers/rtc/Kconfig
+diff -puN drivers/rtc/Makefile~rtc-add-rtc-rs5c313-driver-tidy drivers/rtc/Makefile
+diff -puN drivers/rtc/rtc-rs5c313.c~rtc-add-rtc-rs5c313-driver-tidy drivers/rtc/rtc-rs5c313.c
+--- a/drivers/rtc/rtc-rs5c313.c~rtc-add-rtc-rs5c313-driver-tidy
 +++ a/drivers/rtc/rtc-rs5c313.c
-@@ -0,0 +1,408 @@
-+/*
-+ * Ricoh RS5C313 RTC device/driver
-+ *  Copyright (C) 2007 Nobuhiro Iwamatsu
-+ *
-+ *  2005-09-19 modifed by kogiidena
-+ *
-+ * Based on the old drivers/char/rs5c313_rtc.c  by:
-+ *  Copyright (C) 2000 Philipp Rumpf <prumpf@tux.org>
-+ *  Copyright (C) 1999 Tetsuya Okada & Niibe Yutaka
-+ *
-+ * Based on code written by Paul Gortmaker.
-+ *  Copyright (C) 1996 Paul Gortmaker
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-+ *
-+ * Based on other minimal char device drivers, like Alan's
-+ * watchdog, Ted's random, etc. etc.
-+ *
-+ *	1.07	Paul Gortmaker.
-+ *	1.08	Miquel van Smoorenburg: disallow certain things on the
-+ *		DEC Alpha as the CMOS clock is also used for other things.
-+ *	1.09	Nikita Schmidt: epoch support and some Alpha cleanup.
-+ *	1.09a	Pete Zaitcev: Sun SPARC
-+ *	1.09b	Jeff Garzik: Modularize, init cleanup
-+ *	1.09c	Jeff Garzik: SMP cleanup
-+ *	1.10    Paul Barton-Davis: add support for async I/O
-+ *	1.10a	Andrea Arcangeli: Alpha updates
-+ *	1.10b	Andrew Morton: SMP lock fix
-+ *	1.10c	Cesar Barros: SMP locking fixes and cleanup
-+ *	1.10d	Paul Gortmaker: delete paranoia check in rtc_exit
-+ *	1.10e	Maciej W. Rozycki: Handle DECstation's year weirdness.
-+ *      1.11    Takashi Iwai: Kernel access functions
-+ *			      rtc_register/rtc_unregister/rtc_control
-+ *      1.11a   Daniele Bellucci: Audit create_proc_read_entry in rtc_init
-+ *	1.12	Venkatesh Pallipadi: Hooks for emulating rtc on HPET base-timer
-+ *		CONFIG_HPET_EMULATE_RTC
-+ *	1.13	Nobuhiro Iwamatsu: Updata driver.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/err.h>
-+#include <linux/rtc.h>
-+#include <linux/platform_device.h>
-+#include <linux/bcd.h>
-+#include <linux/delay.h>
-+#include <asm/io.h>
-+
-+#define DRV_NAME	"rs5c313"
-+#define DRV_VERSION 	"1.13"
-+
-+#ifdef CONFIG_SH_LANDISK
-+/*****************************************************/
-+/* LANDISK dependence part of RS5C313                */
-+/*****************************************************/
-+
-+#define SCSMR1		0xFFE00000
-+#define SCSCR1		0xFFE00008
-+#define SCSMR1_CA	0x80
-+#define SCSCR1_CKE	0x03
-+#define SCSPTR1		0xFFE0001C
-+#define SCSPTR1_EIO	0x80
-+#define SCSPTR1_SPB1IO	0x08
-+#define SCSPTR1_SPB1DT	0x04
-+#define SCSPTR1_SPB0IO	0x02
-+#define SCSPTR1_SPB0DT	0x01
-+
-+#define SDA_OEN		SCSPTR1_SPB1IO
-+#define SDA		SCSPTR1_SPB1DT
-+#define SCL_OEN		SCSPTR1_SPB0IO
-+#define SCL		SCSPTR1_SPB0DT
-+
-+/* RICOH RS5C313 CE port */
-+#define RS5C313_CE	0xB0000003
-+
-+/* RICOH RS5C313 CE port bit */
-+#define RS5C313_CE_RTCCE	0x02
-+
-+/* SCSPTR1 data */
-+unsigned char scsptr1_data;
-+
-+#define RS5C313_CEENABLE    ctrl_outb(RS5C313_CE_RTCCE, RS5C313_CE);
-+#define RS5C313_CEDISABLE   ctrl_outb(0x00, RS5C313_CE)
-+#define RS5C313_MISCOP      ctrl_outb(0x02, 0xB0000008)
-+
-+static void rs5c313_init_port(void)
-+{
-+	/* Set SCK as I/O port and Initialize SCSPTR1 data & I/O port. */
-+	ctrl_outb(ctrl_inb(SCSMR1) & ~SCSMR1_CA, SCSMR1);
-+	ctrl_outb(ctrl_inb(SCSCR1) & ~SCSCR1_CKE, SCSCR1);
-+
-+	/* And Initialize SCL for RS5C313 clock */
-+	scsptr1_data = ctrl_inb(SCSPTR1) | SCL;	/* SCL:H */
-+	ctrl_outb(scsptr1_data, SCSPTR1);
-+	scsptr1_data = ctrl_inb(SCSPTR1) | SCL_OEN;	/* SCL output enable */
-+	ctrl_outb(scsptr1_data, SCSPTR1);
-+	RS5C313_CEDISABLE;	/* CE:L */
-+}
-+
-+static void rs5c313_write_data(unsigned char data)
-+{
-+	int i = 0;
-+
-+	for(i = 0; i < 8; i++){
-+		/* SDA:Write Data */
-+		scsptr1_data = (scsptr1_data & ~SDA)
-+		    | ((((0x80 >> i) & data) >> (7 - i)) << 2);
-+		ctrl_outb(scsptr1_data, SCSPTR1);
-+		if(i == 0){
-+			scsptr1_data |= SDA_OEN;	/* SDA:output enable */
-+			ctrl_outb(scsptr1_data, SCSPTR1);
-+		}
-+		ndelay(700);
-+		scsptr1_data &= ~SCL;	/* SCL:L */
-+		ctrl_outb(scsptr1_data, SCSPTR1);
-+		ndelay(700);
-+		scsptr1_data |= SCL;	/* SCL:H */
-+		ctrl_outb(scsptr1_data, SCSPTR1);
-+	}
-+
-+	scsptr1_data &= ~SDA_OEN;	/* SDA:output disable */
-+	ctrl_outb(scsptr1_data, SCSPTR1);
-+
-+}
-+
-+static unsigned char rs5c313_read_data(void)
-+{
+@@ -100,14 +100,14 @@ static void rs5c313_init_port(void)
+ 
+ static void rs5c313_write_data(unsigned char data)
+ {
+-	int i = 0;
 +	int i;
-+	unsigned char data = 0;
-+
-+	for(i = 0; i < 8; i++){
-+		ndelay(700);
-+		/* SDA:Read Data */
-+		data |= ((ctrl_inb(SCSPTR1) & SDA) >> 2) << (7 - i);
-+		scsptr1_data &= ~SCL;	/* SCL:L */
-+		ctrl_outb(scsptr1_data, SCSPTR1);
-+		ndelay(700);
-+		scsptr1_data |= SCL;	/* SCL:H */
-+		ctrl_outb(scsptr1_data, SCSPTR1);
-+	}
-+	return data & 0x0F;
+ 
+-	for(i = 0; i < 8; i++){
++	for (i = 0; i < 8; i++) {
+ 		/* SDA:Write Data */
+-		scsptr1_data = (scsptr1_data & ~SDA)
+-		    | ((((0x80 >> i) & data) >> (7 - i)) << 2);
++		scsptr1_data = (scsptr1_data & ~SDA) |
++				((((0x80 >> i) & data) >> (7 - i)) << 2);
+ 		ctrl_outb(scsptr1_data, SCSPTR1);
+-		if(i == 0){
++		if (i == 0) {
+ 			scsptr1_data |= SDA_OEN;	/* SDA:output enable */
+ 			ctrl_outb(scsptr1_data, SCSPTR1);
+ 		}
+@@ -121,15 +121,14 @@ static void rs5c313_write_data(unsigned 
+ 
+ 	scsptr1_data &= ~SDA_OEN;	/* SDA:output disable */
+ 	ctrl_outb(scsptr1_data, SCSPTR1);
+-
+ }
+ 
+ static unsigned char rs5c313_read_data(void)
+ {
+ 	int i;
+-	unsigned char data = 0;
++	unsigned char data;
+ 
+-	for(i = 0; i < 8; i++){
++	for (i = 0; i < 8; i++) {
+ 		ndelay(700);
+ 		/* SDA:Read Data */
+ 		data |= ((ctrl_inb(SCSPTR1) & SDA) >> 2) << (7 - i);
+@@ -185,7 +184,6 @@ static unsigned char rs5c313_read_reg(un
+ 
+ 	rs5c313_write_data(addr | RS5C313_CNTBIT_READ | RS5C313_CNTBIT_AD);
+ 	return rs5c313_read_data();
+-
+ }
+ 
+ static void rs5c313_write_reg(unsigned char addr, unsigned char data)
+@@ -196,23 +194,33 @@ static void rs5c313_write_reg(unsigned c
+ 	return;
+ }
+ 
+-#define rs5c313_read_cntreg()		rs5c313_read_reg(RS5C313_ADDR_CNTREG)
+-#define rs5c313_write_cntreg(data)	rs5c313_write_reg(RS5C313_ADDR_CNTREG,data)
+-#define rs5c313_write_intintvreg(data)	rs5c313_write_reg(RS5C313_ADDR_INTINTVREG,data)
++static inline unsigned char rs5c313_read_cntreg(unsigned char addr)
++{
++	return rs5c313_read_reg(RS5C313_ADDR_CNTREG);
 +}
 +
-+#endif /* CONFIG_SH_LANDISK */
-+
-+/*****************************************************/
-+/* machine independence part of RS5C313              */
-+/*****************************************************/
-+
-+/* RICOH RS5C313 address */
-+#define RS5C313_ADDR_SEC	0x00
-+#define RS5C313_ADDR_SEC10	0x01
-+#define RS5C313_ADDR_MIN	0x02
-+#define RS5C313_ADDR_MIN10	0x03
-+#define RS5C313_ADDR_HOUR	0x04
-+#define RS5C313_ADDR_HOUR10	0x05
-+#define RS5C313_ADDR_WEEK	0x06
-+#define RS5C313_ADDR_INTINTVREG	0x07
-+#define RS5C313_ADDR_DAY	0x08
-+#define RS5C313_ADDR_DAY10	0x09
-+#define RS5C313_ADDR_MON	0x0A
-+#define RS5C313_ADDR_MON10	0x0B
-+#define RS5C313_ADDR_YEAR	0x0C
-+#define RS5C313_ADDR_YEAR10	0x0D
-+#define RS5C313_ADDR_CNTREG	0x0E
-+#define RS5C313_ADDR_TESTREG	0x0F
-+
-+/* RICOH RS5C313 control register */
-+#define RS5C313_CNTREG_ADJ_BSY	0x01
-+#define RS5C313_CNTREG_WTEN_XSTP	0x02
-+#define RS5C313_CNTREG_12_24	0x04
-+#define RS5C313_CNTREG_CTFG	0x08
-+
-+/* RICOH RS5C313 test register */
-+#define RS5C313_TESTREG_TEST	0x01
-+
-+/* RICOH RS5C313 control bit */
-+#define RS5C313_CNTBIT_READ	0x40
-+#define RS5C313_CNTBIT_AD	0x20
-+#define RS5C313_CNTBIT_DT	0x10
-+
-+static unsigned char rs5c313_read_reg(unsigned char addr)
++static inline void rs5c313_write_cntreg(unsigned char data)
 +{
-+
-+	rs5c313_write_data(addr | RS5C313_CNTBIT_READ | RS5C313_CNTBIT_AD);
-+	return rs5c313_read_data();
-+
++	rs5c313_write_reg(RS5C313_ADDR_CNTREG, data);
 +}
 +
-+static void rs5c313_write_reg(unsigned char addr, unsigned char data)
++static inline void rs5c313_write_intintvreg(unsigned char data)
 +{
-+	data &= 0x0f;
-+	rs5c313_write_data(addr | RS5C313_CNTBIT_AD);
-+	rs5c313_write_data(data | RS5C313_CNTBIT_DT);
-+	return;
++	rs5c313_write_reg(RS5C313_ADDR_INTINTVREG, data);
 +}
+ 
+ static int rs5c313_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ {
+-	int data = 0;
++	int data;
+ 
+-	while( 1 ){
++	while (1) {
+ 		RS5C313_CEENABLE;	/* CE:H */
+ 
+ 		/* Initialize control reg. 24 hour */
+ 		rs5c313_write_cntreg(0x04);
+ 
+-		if(!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY)){
++		if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY))
+ 			break;
+-		}
+ 
+ 		RS5C313_CEDISABLE;
+ 		ndelay(700);	/* CE:L */
+@@ -242,9 +250,9 @@ static int rs5c313_rtc_read_time(struct 
+ 	data = rs5c313_read_reg(RS5C313_ADDR_YEAR);
+ 	data |= (rs5c313_read_reg(RS5C313_ADDR_YEAR10) << 4);
+ 	tm->tm_year = BCD2BIN(data);
+-	if(tm->tm_year < 70){
 +
-+#define rs5c313_read_cntreg()		rs5c313_read_reg(RS5C313_ADDR_CNTREG)
-+#define rs5c313_write_cntreg(data)	rs5c313_write_reg(RS5C313_ADDR_CNTREG,data)
-+#define rs5c313_write_intintvreg(data)	rs5c313_write_reg(RS5C313_ADDR_INTINTVREG,data)
-+
-+static int rs5c313_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	int data = 0;
-+
-+	while( 1 ){
-+		RS5C313_CEENABLE;	/* CE:H */
-+
-+		/* Initialize control reg. 24 hour */
-+		rs5c313_write_cntreg(0x04);
-+
-+		if(!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY)){
-+			break;
-+		}
-+
-+		RS5C313_CEDISABLE;
-+		ndelay(700);	/* CE:L */
-+
-+	}
-+
-+	data = rs5c313_read_reg(RS5C313_ADDR_SEC);
-+	data |= (rs5c313_read_reg(RS5C313_ADDR_SEC10) << 4);
-+	tm->tm_sec = BCD2BIN(data);
-+
-+	data = rs5c313_read_reg(RS5C313_ADDR_MIN);
-+	data |= (rs5c313_read_reg(RS5C313_ADDR_MIN10) << 4);
-+	tm->tm_min = BCD2BIN(data);
-+
-+	data = rs5c313_read_reg(RS5C313_ADDR_HOUR);
-+	data |= (rs5c313_read_reg(RS5C313_ADDR_HOUR10) << 4);
-+	tm->tm_hour = BCD2BIN(data);
-+
-+	data = rs5c313_read_reg(RS5C313_ADDR_DAY);
-+	data |= (rs5c313_read_reg(RS5C313_ADDR_DAY10) << 4);
-+	tm->tm_mday = BCD2BIN(data);
-+
-+	data = rs5c313_read_reg(RS5C313_ADDR_MON);
-+	data |= (rs5c313_read_reg(RS5C313_ADDR_MON10) << 4);
-+	tm->tm_mon = BCD2BIN(data) - 1;
-+
-+	data = rs5c313_read_reg(RS5C313_ADDR_YEAR);
-+	data |= (rs5c313_read_reg(RS5C313_ADDR_YEAR10) << 4);
-+	tm->tm_year = BCD2BIN(data);
-+	if(tm->tm_year < 70){
-+		tm->tm_year += 100;
-+	}
-+
-+	data = rs5c313_read_reg(RS5C313_ADDR_WEEK);
-+	tm->tm_wday = BCD2BIN(data);
-+
-+	RS5C313_CEDISABLE;
-+	ndelay(700);		/* CE:L */
-+
-+	return 0;
-+}
-+
-+static int rs5c313_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+
-+	int data = 0;
-+
-+	/* busy check. */
-+	while( 1 ){
-+		RS5C313_CEENABLE;	/* CE:H */
-+
-+		/* Initiatlize control reg. 24 hour */
-+		rs5c313_write_cntreg(0x04);
-+
-+		if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY)){
-+			break;
-+		}
-+		RS5C313_MISCOP;
-+		RS5C313_CEDISABLE;
-+		ndelay(700);	/* CE:L */
-+	}
-+
-+	data = BIN2BCD(tm->tm_sec);
-+	rs5c313_write_reg(RS5C313_ADDR_SEC, data);
-+	rs5c313_write_reg(RS5C313_ADDR_SEC10, (data >> 4));
-+
-+	data = BIN2BCD(tm->tm_min);
-+	rs5c313_write_reg(RS5C313_ADDR_MIN, data );
-+	rs5c313_write_reg(RS5C313_ADDR_MIN10, (data >> 4));
-+
-+	data = BIN2BCD(tm->tm_hour);
-+	rs5c313_write_reg(RS5C313_ADDR_HOUR, data);
-+	rs5c313_write_reg(RS5C313_ADDR_HOUR10, (data >> 4));
-+
-+	data = BIN2BCD(tm->tm_mday);
-+	rs5c313_write_reg(RS5C313_ADDR_DAY, data);
-+	rs5c313_write_reg(RS5C313_ADDR_DAY10, (data>> 4));
-+
-+	data = BIN2BCD(tm->tm_mon + 1);
-+	rs5c313_write_reg(RS5C313_ADDR_MON, data);
-+	rs5c313_write_reg(RS5C313_ADDR_MON10, (data >> 4));
-+
-+	data = BIN2BCD(tm->tm_year % 100);
-+	rs5c313_write_reg(RS5C313_ADDR_YEAR, data);
-+	rs5c313_write_reg(RS5C313_ADDR_YEAR10, (data >> 4));
-+
-+	data = BIN2BCD(tm->tm_wday);
-+	rs5c313_write_reg(RS5C313_ADDR_WEEK, data);
-+
-+	RS5C313_CEDISABLE;	/* CE:H */
-+	ndelay(700);
-+
-+	return 0;
-+}
-+
-+static void rs5c313_check_xstp_bit(void)
-+{
-+	struct rtc_time tm;
-+
-+	RS5C313_CEENABLE;	/* CE:H */
-+	if(rs5c313_read_cntreg() & RS5C313_CNTREG_WTEN_XSTP){
-+		/* INT interval reg. OFF */
-+		rs5c313_write_intintvreg(0x00);
-+		/* Initialize control reg. 24 hour & adjust */
-+		rs5c313_write_cntreg(0x07);
-+
-+		/* busy check. */
-+		while(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY){
-+			RS5C313_MISCOP;
-+		}
-+
-+		memset( &tm , 0 , sizeof( struct rtc_time ));
-+		tm.tm_mday 	= 1;
-+		tm.tm_mon 	= 1;
-+
-+		rs5c313_rtc_set_time(NULL, &tm);
-+		printk(KERN_ERR
-+		       "RICHO RS5C313: invalid value, resetting to 1 Jan 2000\n");
-+
-+	}
-+	RS5C313_CEDISABLE;
-+	ndelay(700);		/* CE:L */
-+
-+}
-+
-+static const struct rtc_class_ops rs5c313_rtc_ops = {
-+	.read_time = rs5c313_rtc_read_time,
-+	.set_time = rs5c313_rtc_set_time,
-+};
-+
-+static int rs5c313_rtc_probe(struct platform_device *pdev)
-+{
-+	int err = 0 ;
-+	struct rtc_device *rtc
-+		= rtc_device_register("rs5c313",
-+				&pdev->dev,
-+				&rs5c313_rtc_ops,
-+				THIS_MODULE);
-+	if(IS_ERR( rtc )){
-+		err = PTR_ERR( rtc );
-+		return err;
-+	}
-+
-+	platform_set_drvdata( pdev, rtc );
-+
-+	return err ;
-+}
-+
-+static int __devexit rs5c313_rtc_remove(struct platform_device *pdev)
-+{
-+	struct rtc_device *rtc = platform_get_drvdata( pdev );
-+
-+	rtc_device_unregister( rtc );
-+
-+	return 0;
-+}
-+
-+static struct platform_driver rs5c313_rtc_platform_driver = {
-+	.driver         = {
-+		.name   = DRV_NAME,
-+		.owner  = THIS_MODULE,
-+	},
-+	.probe 	= rs5c313_rtc_probe,
-+	.remove = __devexit_p( rs5c313_rtc_remove ),
-+};
-+
-+static int __init rs5c313_rtc_init(void)
-+{
-+	int err = 0;
-+
-+	if((err = platform_driver_register( &rs5c313_rtc_platform_driver ))){
-+		return err;
-+	}
-+
-+	rs5c313_init_port();
-+	rs5c313_check_xstp_bit();
++	if (tm->tm_year < 70)
+ 		tm->tm_year += 100;
+-	}
+ 
+ 	data = rs5c313_read_reg(RS5C313_ADDR_WEEK);
+ 	tm->tm_wday = BCD2BIN(data);
+@@ -257,19 +265,17 @@ static int rs5c313_rtc_read_time(struct 
+ 
+ static int rs5c313_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ {
+-
+-	int data = 0;
++	int data;
+ 
+ 	/* busy check. */
+-	while( 1 ){
++	while (1) {
+ 		RS5C313_CEENABLE;	/* CE:H */
+ 
+ 		/* Initiatlize control reg. 24 hour */
+ 		rs5c313_write_cntreg(0x04);
+ 
+-		if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY)){
++		if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY))
+ 			break;
+-		}
+ 		RS5C313_MISCOP;
+ 		RS5C313_CEDISABLE;
+ 		ndelay(700);	/* CE:L */
+@@ -313,29 +319,26 @@ static void rs5c313_check_xstp_bit(void)
+ 	struct rtc_time tm;
+ 
+ 	RS5C313_CEENABLE;	/* CE:H */
+-	if(rs5c313_read_cntreg() & RS5C313_CNTREG_WTEN_XSTP){
++	if (rs5c313_read_cntreg() & RS5C313_CNTREG_WTEN_XSTP) {
+ 		/* INT interval reg. OFF */
+ 		rs5c313_write_intintvreg(0x00);
+ 		/* Initialize control reg. 24 hour & adjust */
+ 		rs5c313_write_cntreg(0x07);
+ 
+ 		/* busy check. */
+-		while(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY){
++		while (rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY)
+ 			RS5C313_MISCOP;
+-		}
+ 
+-		memset( &tm , 0 , sizeof( struct rtc_time ));
++		memset(&tm, 0, sizeof(struct rtc_time));
+ 		tm.tm_mday 	= 1;
+ 		tm.tm_mon 	= 1;
+ 
+ 		rs5c313_rtc_set_time(NULL, &tm);
+-		printk(KERN_ERR
+-		       "RICHO RS5C313: invalid value, resetting to 1 Jan 2000\n");
+-
++		printk(KERN_ERR "RICHO RS5C313: invalid value, resetting to "
++				"1 Jan 2000\n");
+ 	}
+ 	RS5C313_CEDISABLE;
+ 	ndelay(700);		/* CE:L */
+-
+ }
+ 
+ static const struct rtc_class_ops rs5c313_rtc_ops = {
+@@ -345,27 +348,22 @@ static const struct rtc_class_ops rs5c31
+ 
+ static int rs5c313_rtc_probe(struct platform_device *pdev)
+ {
+-	int err = 0 ;
+-	struct rtc_device *rtc
+-		= rtc_device_register("rs5c313",
+-				&pdev->dev,
+-				&rs5c313_rtc_ops,
+-				THIS_MODULE);
+-	if(IS_ERR( rtc )){
+-		err = PTR_ERR( rtc );
+-		return err;
+-	}
++	struct rtc_device *rtc = rtc_device_register("rs5c313", &pdev->dev,
++				&rs5c313_rtc_ops, THIS_MODULE);
+ 
+-	platform_set_drvdata( pdev, rtc );
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
+ 
+-	return err ;
++	platform_set_drvdata(pdev, rtc);
 +
 +	return err;
-+}
-+
-+static void __exit rs5c313_rtc_exit(void)
-+{
-+	platform_driver_unregister( &rs5c313_rtc_platform_driver );
-+}
-+
-+module_init(rs5c313_rtc_init);
-+module_exit(rs5c313_rtc_exit);
-+
-+MODULE_VERSION(DRV_VERSION);
-+MODULE_AUTHOR("kogiidena , Nobuhiro Iwamatsu <iwamatsu@nigauri.org>");
-+MODULE_DESCRIPTION("Ricoh RS5C313 RTC device driver");
-+MODULE_LICENSE("GPL");
-+
+ }
+ 
+ static int __devexit rs5c313_rtc_remove(struct platform_device *pdev)
+ {
+ 	struct rtc_device *rtc = platform_get_drvdata( pdev );
+ 
+-	rtc_device_unregister( rtc );
++	rtc_device_unregister(rtc);
+ 
+ 	return 0;
+ }
+@@ -381,16 +379,16 @@ static struct platform_driver rs5c313_rt
+ 
+ static int __init rs5c313_rtc_init(void)
+ {
+-	int err = 0;
++	int err;
+ 
+-	if((err = platform_driver_register( &rs5c313_rtc_platform_driver ))){
++	err = platform_driver_register(&rs5c313_rtc_platform_driver);
++	if (err)
+ 		return err;
+-	}
+ 
+ 	rs5c313_init_port();
+ 	rs5c313_check_xstp_bit();
+ 
+-	return err;
++	return 0;
+ }
+ 
+ static void __exit rs5c313_rtc_exit(void)
+@@ -405,4 +403,3 @@ MODULE_VERSION(DRV_VERSION);
+ MODULE_AUTHOR("kogiidena , Nobuhiro Iwamatsu <iwamatsu@nigauri.org>");
+ MODULE_DESCRIPTION("Ricoh RS5C313 RTC device driver");
+ MODULE_LICENSE("GPL");
+-
 _
 
-Patches currently in -mm which might be from iwamatsu@nigauri.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-add-rtc-rs5c313-driver.patch
+origin.patch
+software-suspend-fix-suspend-when-console-is-in-tidy.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+git-alsa-oops-fix.patch
+git-drm.patch
+git-dvb.patch
+ivtv-warning-fix.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fixup.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+git-netdev-all-ipw2200-fix.patch
+tc35815-fix-an-usage-of-streaming-dma-api-tidy.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-s390.patch
+git-unionfs.patch
+usbatm-create-sysfs-link-device-from-atm-class-device.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+driver_bfin_serial_core-update.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-tidy.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+sched-document-rsdl-cpu-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+utrace-prep.patch
+utrace-prep-2.patch
+revert-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput-tidy.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
