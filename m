@@ -1,95 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - connector-bugfix-for-cn_call_callback.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:56:28 -0800
-Message-ID: <200703152156.l2FLuSOv027564@shell0.pdx.osdl.net>
+Subject: - pata_serverworks-re-remove-crap-restore-cable-detect.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:58:05 -0800
+Message-ID: <200703152158.l2FLw50f027697@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42466 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42456 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752063AbXCOV63 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:58:29 -0400
+	id S1752051AbXCOV6Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:58:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philipp.reisner@linbit.com, johnpol@2ka.mipt.ru, lars.ellenberg@linbit.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     connector: bugfix for cn_call_callback()
+     pata_serverworks: re-remove crap, restore cable detect
 has been removed from the -mm tree.  Its filename was
-     connector-bugfix-for-cn_call_callback.patch
+     pata_serverworks-re-remove-crap-restore-cable-detect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: connector: bugfix for cn_call_callback()
-From: Philipp Reisner <philipp.reisner@linbit.com>
+Subject: pata_serverworks: re-remove crap, restore cable detect
+From: Alan Cox <alan@redhat.com>
 
-When one stresses the connector code, with sending many messages from
-userspace to kernel, one could get in the "unlikely()" part in
-cn_call_callback().
-
-There a new __cbq gets allocated, and a NULL pointer got assigned to the
-callback by dereferencing __cbq.  This is the bug.  The right thing is the
-dereference the original __cbq.  Therefore the bugfix is to use a new
-variable for the newly allocated __cbq.
-
-This is tested, and it fixes the issue.
-
-Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
-Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
-Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: <stable@kernel.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/connector/connector.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/ata/pata_serverworks.c |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN drivers/connector/connector.c~connector-bugfix-for-cn_call_callback drivers/connector/connector.c
---- a/drivers/connector/connector.c~connector-bugfix-for-cn_call_callback
-+++ a/drivers/connector/connector.c
-@@ -128,7 +128,7 @@ EXPORT_SYMBOL_GPL(cn_netlink_send);
+diff -puN drivers/ata/pata_serverworks.c~pata_serverworks-re-remove-crap-restore-cable-detect drivers/ata/pata_serverworks.c
+--- a/drivers/ata/pata_serverworks.c~pata_serverworks-re-remove-crap-restore-cable-detect
++++ a/drivers/ata/pata_serverworks.c
+@@ -1,5 +1,5 @@
+ /*
+- * ata-serverworks.c 	- Serverworks PATA for new ATA layer
++ * pata_serverworks.c 	- Serverworks PATA for new ATA layer
+  *			  (C) 2005 Red Hat Inc
+  *			  Alan Cox <alan@redhat.com>
+  *
+@@ -137,16 +137,14 @@ static struct sv_cable_table cable_detec
+ };
+ 
+ /**
+- *	serverworks_pre_reset		-	cable detection
++ *	serverworks_cable_detect	-	cable detection
+  *	@ap: ATA port
+- *	@deadline: deadline jiffies for the operation
+  *
+  *	Perform cable detection according to the device and subvendor
+  *	identifications
   */
- static int cn_call_callback(struct cn_msg *msg, void (*destruct_data)(void *), void *data)
- {
--	struct cn_callback_entry *__cbq;
-+	struct cn_callback_entry *__cbq, *__new_cbq;
- 	struct cn_dev *dev = &cdev;
- 	int err = -ENODEV;
  
-@@ -148,23 +148,23 @@ static int cn_call_callback(struct cn_ms
- 			} else {
- 				struct cn_callback_data *d;
- 				
--				__cbq = kzalloc(sizeof(*__cbq), GFP_ATOMIC);
--				if (__cbq) {
--					d = &__cbq->data;
-+				__new_cbq = kzalloc(sizeof(*__new_cbq), GFP_ATOMIC);
-+				if (__new_cbq) {
-+					d = &__new_cbq->data;
- 					d->callback_priv = msg;
- 					d->callback = __cbq->data.callback;
- 					d->ddata = data;
- 					d->destruct_data = destruct_data;
--					d->free = __cbq;
-+					d->free = __new_cbq;
+-static int serverworks_pre_reset(struct ata_port *ap, unsigned long deadline)
+-{
++static int serverworks_cable_detect(struct ata_port *ap) {
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	struct sv_cable_table *cb = cable_detect;
  
--					INIT_WORK(&__cbq->work,
-+					INIT_WORK(&__new_cbq->work,
- 							&cn_queue_wrapper);
- 					
- 					if (queue_work(dev->cbdev->cn_queue,
--						    &__cbq->work))
-+							&__new_cbq->work))
- 						err = 0;
- 					else {
--						kfree(__cbq);
-+						kfree(__new_cbq);
- 						err = -EINVAL;
- 					}
- 				} else
+@@ -154,8 +152,7 @@ static int serverworks_pre_reset(struct 
+ 		if (cb->device == pdev->device &&
+ 		    (cb->subvendor == pdev->subsystem_vendor ||
+ 		      cb->subvendor == PCI_ANY_ID)) {
+-			ap->cbl = cb->cable_detect(ap);
+-			return ata_std_prereset(ap, deadline);
++			return cb->cable_detect(ap);
+ 		}
+ 		cb++;
+ 	}
+@@ -164,11 +161,6 @@ static int serverworks_pre_reset(struct 
+ 	return -1;	/* kill compiler warning */
+ }
+ 
+-static void serverworks_error_handler(struct ata_port *ap)
+-{
+-	return ata_bmdma_drive_eh(ap, serverworks_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+ /**
+  *	serverworks_is_csb	-	Check for CSB or OSB
+  *	@pdev: PCI device to check
+@@ -341,8 +333,9 @@ static struct ata_port_operations server
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= serverworks_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= serverworks_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -376,8 +369,9 @@ static struct ata_port_operations server
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= serverworks_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= serverworks_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
-Patches currently in -mm which might be from philipp.reisner@linbit.com are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
+git-libata-all.patch
+pcmcia-spot-slave-decode-flaws-for-testing.patch
+ata_generic-remove-all-the-crud-again-and-use-cable.patch
+pata_ali-remove-all-the-crap-again-and-switch-to.patch
+pata_amd-remove-all-the-crud-and-restore-the-cable-detect.patch
+pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable.patch
+pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch
+pata_netcell-re-remove-all-the-crud.patch
+pata_qdi-restore-cable-detect.patch
+pata_sl82c105-restore-cable-detect-method.patch
+pata_winbond-restore-cable-method.patch
+libata-acpi-add-infrastructure-for-drivers-to-use.patch
+pata_optidma-rework-for-cable-detect-and-to-remove.patch
+pata_pdc2027x-restore-various-updates-done-on-the-driver.patch
+pata_acpi-restore-driver.patch
+resend-iphase-64bit-cleanup.patch
+pci_module_init-convertion-in-tmscsimc.patch
+tty-clarify-documentation-of-write.patch
+tty-i386-x86_64-arbitary-speed-support.patch
