@@ -1,125 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + dma_ops-as-const.patch added to -mm tree
-Date: Thu, 15 Mar 2007 14:10:15 -0700
-Message-ID: <200703152110.l2FLAF18026500@shell0.pdx.osdl.net>
+Subject: - blk_dev_ide_celleb-dependency-fix.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:38:09 -0800
+Message-ID: <200703152138.l2FLc9ts026975@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40873 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41431 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753377AbXCOVK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:10:28 -0400
+	id S1751771AbXCOViQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:38:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, muli@il.ibm.com
+To: akira2.iguchi@toshiba.co.jp, bzolnier@gmail.com, kou.ishizaki@toshiba.co.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     calgary: dma_ops as const
-has been added to the -mm tree.  Its filename is
-     dma_ops-as-const.patch
+     BLK_DEV_IDE_CELLEB dependency fix
+has been removed from the -mm tree.  Its filename was
+     blk_dev_ide_celleb-dependency-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it got rejects
 
 ------------------------------------------------------
-Subject: calgary: dma_ops as const
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: BLK_DEV_IDE_CELLEB dependency fix
+From: Akira Iguchi <akira2.iguchi@toshiba.co.jp>
 
-The dma_ops structure can be const since it never changes after boot.
+It's bool and it depends on BLK_DEV_IDE
+ => should depend on BLK_DEV_IDE=y
 
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
-Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
+And move it to "if BLK_DEV_IDEDMA_PCI" block because it depends on
+BLK_DEV_IDEDMA_PCI.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Kou Ishizaki <kou.ishizaki@toshiba.co.jp>
+Signed-off-by: Akira Iguchi <akira2.iguchi@toshiba.co.jp>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |    2 +-
- arch/x86_64/kernel/pci-gart.c    |    2 +-
- arch/x86_64/kernel/pci-nommu.c   |    2 +-
- arch/x86_64/kernel/pci-swiotlb.c |    2 +-
- arch/x86_64/mm/init.c            |    2 +-
- include/asm-x86_64/dma-mapping.h |    2 +-
- 6 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/ide/Kconfig |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~dma_ops-as-const arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~dma_ops-as-const
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -507,7 +507,7 @@ error:
- 	return ret;
- }
+diff -puN drivers/ide/Kconfig~blk_dev_ide_celleb-dependency-fix drivers/ide/Kconfig
+--- a/drivers/ide/Kconfig~blk_dev_ide_celleb-dependency-fix
++++ a/drivers/ide/Kconfig
+@@ -783,6 +783,14 @@ config BLK_DEV_TC86C001
+ 	help
+ 	This driver adds support for Toshiba TC86C001 GOKU-S chip.
  
--static struct dma_mapping_ops calgary_dma_ops = {
-+static const struct dma_mapping_ops calgary_dma_ops = {
- 	.alloc_coherent = calgary_alloc_coherent,
- 	.map_single = calgary_map_single,
- 	.unmap_single = calgary_unmap_single,
-diff -puN arch/x86_64/kernel/pci-gart.c~dma_ops-as-const arch/x86_64/kernel/pci-gart.c
---- a/arch/x86_64/kernel/pci-gart.c~dma_ops-as-const
-+++ a/arch/x86_64/kernel/pci-gart.c
-@@ -552,7 +552,7 @@ static __init int init_k8_gatt(struct ag
++config BLK_DEV_IDE_CELLEB
++	bool "Toshiba's Cell Reference Set IDE support"
++	depends on PPC_CELLEB && BLK_DEV_IDE=y
++	help
++	  This driver provides support for the built-in IDE controller on
++	  Toshiba Cell Reference Board.
++	  If unsure, say Y.
++
+ endif
  
- extern int agp_amd64_init(void);
+ config BLK_DEV_IDE_PMAC
+@@ -814,14 +822,6 @@ config BLK_DEV_IDEDMA_PMAC
+ 	  to transfer data to and from memory.  Saying Y is safe and improves
+ 	  performance.
  
--static struct dma_mapping_ops gart_dma_ops = {
-+static const struct dma_mapping_ops gart_dma_ops = {
- 	.mapping_error = NULL,
- 	.map_single = gart_map_single,
- 	.map_simple = gart_map_simple,
-diff -puN arch/x86_64/kernel/pci-nommu.c~dma_ops-as-const arch/x86_64/kernel/pci-nommu.c
---- a/arch/x86_64/kernel/pci-nommu.c~dma_ops-as-const
-+++ a/arch/x86_64/kernel/pci-nommu.c
-@@ -79,7 +79,7 @@ void nommu_unmap_sg(struct device *dev, 
- {
- }
- 
--struct dma_mapping_ops nommu_dma_ops = {
-+const struct dma_mapping_ops nommu_dma_ops = {
- 	.map_single = nommu_map_single,
- 	.unmap_single = nommu_unmap_single,
- 	.map_sg = nommu_map_sg,
-diff -puN arch/x86_64/kernel/pci-swiotlb.c~dma_ops-as-const arch/x86_64/kernel/pci-swiotlb.c
---- a/arch/x86_64/kernel/pci-swiotlb.c~dma_ops-as-const
-+++ a/arch/x86_64/kernel/pci-swiotlb.c
-@@ -12,7 +12,7 @@
- int swiotlb __read_mostly;
- EXPORT_SYMBOL(swiotlb);
- 
--struct dma_mapping_ops swiotlb_dma_ops = {
-+const struct dma_mapping_ops swiotlb_dma_ops = {
- 	.mapping_error = swiotlb_dma_mapping_error,
- 	.alloc_coherent = swiotlb_alloc_coherent,
- 	.free_coherent = swiotlb_free_coherent,
-diff -puN arch/x86_64/mm/init.c~dma_ops-as-const arch/x86_64/mm/init.c
---- a/arch/x86_64/mm/init.c~dma_ops-as-const
-+++ a/arch/x86_64/mm/init.c
-@@ -46,7 +46,7 @@
- #define Dprintk(x...)
- #endif
- 
--struct dma_mapping_ops* dma_ops;
-+const struct dma_mapping_ops* dma_ops;
- EXPORT_SYMBOL(dma_ops);
- 
- static unsigned long dma_reserve __initdata;
-diff -puN include/asm-x86_64/dma-mapping.h~dma_ops-as-const include/asm-x86_64/dma-mapping.h
---- a/include/asm-x86_64/dma-mapping.h~dma_ops-as-const
-+++ a/include/asm-x86_64/dma-mapping.h
-@@ -52,7 +52,7 @@ struct dma_mapping_ops {
- };
- 
- extern dma_addr_t bad_dma_address;
--extern struct dma_mapping_ops* dma_ops;
-+extern const struct dma_mapping_ops* dma_ops;
- extern int iommu_merge;
- 
- static inline int dma_mapping_error(dma_addr_t dma_addr)
+-config BLK_DEV_IDE_CELLEB
+-	bool "Toshiba's Cell Reference Set IDE support"
+-	depends on PPC_CELLEB
+-	help
+-	  This driver provides support for the built-in IDE controller on
+-	  Toshiba Cell Reference Board.
+-	  If unsure, say Y.
+-
+ config BLK_DEV_IDE_SWARM
+ 	tristate "IDE for Sibyte evaluation boards"
+ 	depends on SIBYTE_SB1xxx_SOC
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from akira2.iguchi@toshiba.co.jp are
 
-git-netdev-all.patch
-div64_64-common-code.patch
-git-wireless.patch
-dma_ops-as-const.patch
+blk_dev_ide_celleb-dependency-fix.patch
