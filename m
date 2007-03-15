@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ice1712-build-fixes-update.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:52:09 -0800
-Message-ID: <200703151852.l2FIqBX7023377@shell0.pdx.osdl.net>
+Subject: + fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:55:48 -0800
+Message-ID: <200703151855.l2FItoan023524@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36081 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36167 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932454AbXCOSze (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:55:34 -0400
+	id S932502AbXCOS41 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:56:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, perex@suse.cz, tiwai@suse.de
+Cc: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, geoffrey.levand@am.sony.com, jsimmons@infradead.org
 
 
 The patch titled
-     ice1712: build fixes (update)
+     fbdev: avoid vertical overflow when making space for the logo
 has been added to the -mm tree.  Its filename is
-     ice1712-build-fixes-update.patch
+     fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,80 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ice1712: build fixes (update)
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: fbdev: avoid vertical overflow when making space for the logo
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-  CC [M]  sound/pci/ice1712/ice1712.o
-sound/pci/ice1712/ice1712.c:290: error: snd_ice1712_mixer_digmix_route_ac97 causes a section type conflict
-sound/pci/ice1712/ice1712.c:1630: error: snd_ice1712_eeprom causes a section type conflict
-sound/pci/ice1712/ice1712.c:1894: error: snd_ice1712_pro_internal_clock causes a section type conflict
-sound/pci/ice1712/ice1712.c:1965: error: snd_ice1712_pro_internal_clock_default causes a section type conflict
-sound/pci/ice1712/ice1712.c:2004: error: snd_ice1712_pro_rate_locking causes a section type conflict
-sound/pci/ice1712/ice1712.c:2043: error: snd_ice1712_pro_rate_reset causes a section type conflict
-sound/pci/ice1712/ice1712.c:2210: error: snd_ice1712_mixer_pro_analog_route causes a section type conflict
-sound/pci/ice1712/ice1712.c:2218: error: snd_ice1712_mixer_pro_spdif_route causes a section type conflict
-sound/pci/ice1712/ice1712.c:2260: error: snd_ice1712_mixer_pro_volume_rate causes a section type conflict
-sound/pci/ice1712/ice1712.c:2293: error: snd_ice1712_mixer_pro_peak causes a section type conflict
-sound/pci/ice1712/ice1712.c:1666: error: snd_ice1712_spdif_default causes a section type conflict
-sound/pci/ice1712/ice1712.c:1717: error: snd_ice1712_spdif_maskc causes a section type conflict
-sound/pci/ice1712/ice1712.c:1726: error: snd_ice1712_spdif_maskp causes a section type conflict
-sound/pci/ice1712/ice1712.c:1753: error: snd_ice1712_spdif_stream causes a section type conflict
+fbcon_prepare_logo(): Avoid vertical overflow when making space for the logo
 
-Gcc like its __devinitdata readable not const, it seems.  An alternative
-fix would be to remove the __devinitdata attribute but that would result
-in slight runtime bloat.
-
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Acked-By: James Simmons <jsimmons@infradead.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/ice1712/ice1712.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/console/fbcon.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN sound/pci/ice1712/ice1712.c~ice1712-build-fixes-update sound/pci/ice1712/ice1712.c
---- a/sound/pci/ice1712/ice1712.c~ice1712-build-fixes-update
-+++ a/sound/pci/ice1712/ice1712.c
-@@ -2327,7 +2327,7 @@ static int __devinit snd_ice1712_read_ee
- {
- 	int dev = 0xa0;		/* EEPROM device address */
- 	unsigned int i, size;
--	struct snd_ice1712_card_info **tbl, *c;
-+	struct snd_ice1712_card_info * const *tbl, *c;
- 
- 	if (! modelname || ! *modelname) {
- 		ice->eeprom.subvendor = 0;
-@@ -2665,7 +2665,7 @@ static int __devinit snd_ice1712_probe(s
- 	struct snd_card *card;
- 	struct snd_ice1712 *ice;
- 	int pcm_dev = 0, err;
--	struct snd_ice1712_card_info **tbl, *c;
-+	struct snd_ice1712_card_info * const *tbl, *c;
- 
- 	if (dev >= SNDRV_CARDS)
- 		return -ENODEV;
+diff -puN drivers/video/console/fbcon.c~fbdev-avoid-vertical-overflow-when-making-space-for-the-logo drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbdev-avoid-vertical-overflow-when-making-space-for-the-logo
++++ a/drivers/video/console/fbcon.c
+@@ -618,8 +618,13 @@ static void fbcon_prepare_logo(struct vc
+ 			r -= cols;
+ 		}
+ 		if (!save) {
+-			vc->vc_y += logo_lines;
+-			vc->vc_pos += logo_lines * vc->vc_size_row;
++			int lines;
++			if (vc->vc_y + logo_lines >= rows)
++				lines = rows - vc->vc_y - 1;
++			else
++				lines = logo_lines;
++			vc->vc_y += lines;
++			vc->vc_pos += lines * vc->vc_size_row;
+ 		}
+ 	}
+ 	scr_memsetw((unsigned short *) vc->vc_origin,
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
-ide-au1xxx-fix-use-of-mixed-declarations-and-code.patch
-git-netdev-all.patch
-netxen-fix-warnings.patch
-3c59x-fix-several-modpost-warnings.patch
-ibmtr-drain-rich-supply-of-modpost-warnings.patch
-div64_64-common-code.patch
-serial-driver-pmc-msp71xx.patch
-rm9000-serial-driver.patch
-rm9000-serial-driver-tidy.patch
-x86_64-fix-ia32_binfmtc-build-error.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-hda_intel-build-fix.patch
-ice1712-build-fixes.patch
-ice1712-build-fixes-update.patch
-simplify-the-stacktrace-code.patch
-serial-allocate-minor-device-numbers-for.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-local_t-mips-extension.patch
-tgafb-turbochannel-support.patch
+bool-fbdevs-must-depend-on-fb-=-y.patch
+ps3fb-thread-updates.patch
+ps3av-thread-updates.patch
+ps3fb-kill-superfluous-zero-initializations.patch
+ps3fb-atomic-fixes.patch
+ps3av-misc-updates.patch
+fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
+fbdev-fb_do_show_logo-updates.patch
+fbdev-correct-image-offsets-when-rotating-logo.patch
