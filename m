@@ -1,93 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - usbatm-create-sysfs-link-device-from-atm-class-device.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:59:42 -0800
-Message-ID: <200703152159.l2FLxgrV027836@shell0.pdx.osdl.net>
+Subject: - usb-serial-regression-fix.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:59:53 -0800
+Message-ID: <200703152159.l2FLxrF3027848@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42606 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42621 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752079AbXCOWAA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:00:00 -0400
+	id S1752031AbXCOWAE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:00:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: simon@arlott.org, duncan.sands@math.u-psud.fr, greg@kroah.com, simon@fire.lp0.eu, mm-commits@vger.kernel.org
+To: radford@blackbean.org, greg@kroah.com, mlord@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usbatm: create sysfs link "device" from atm class device to usb interface
+     usb-serial regression fix
 has been removed from the -mm tree.  Its filename was
-     usbatm-create-sysfs-link-device-from-atm-class-device.patch
+     usb-serial-regression-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usbatm: create sysfs link "device" from atm class device to usb interface
-From: Simon Arlott <simon@arlott.org>
+Subject: usb-serial regression fix
+From: Jim Radford <radford@blackbean.org>
 
-There is currently no path from the ATM device in /sys to the USB device's
-interface that the driver is using; this patch creates a "device" symlink.  It
-is then possible to get to the cxacru ADSL statistics
-(http://lkml.org/lkml/2007/2/23/328):
+Revert d9a7ecacac5f8274d2afce09aadcf37bdb42b93a since it breaks drivers
+that need to access the ->port[] array in shutdown (most of them).
 
-/sys/class/atm/cxacru0/device $ ls *_rate *_margin *_attenuation
-downstream_attenuation  downstream_snr_margin  upstream_rate
-downstream_rate         upstream_attenuation   upstream_snr_margin
-
-If this link is not appropriate I'd have to create device files in
-/sys/class/atm/cxacru0 instead - which seems less appropriate since the ADSL
-statistics are for the USB device not ATM (which is running over the ADSL).
-
-[akpm@linux-foundation.org: cleanups]
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
-Cc: Duncan Sands <duncan.sands@math.u-psud.fr>
+Signed-off-by: Jim Radford <radford@blackbean.org>
+Acked-by: Mark Lord <mlord@pobox.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/usbatm.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/usb/serial/usb-serial.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/usb/atm/usbatm.c~usbatm-create-sysfs-link-device-from-atm-class-device drivers/usb/atm/usbatm.c
---- a/drivers/usb/atm/usbatm.c~usbatm-create-sysfs-link-device-from-atm-class-device
-+++ a/drivers/usb/atm/usbatm.c
-@@ -966,6 +966,14 @@ static int usbatm_atm_init(struct usbatm
- 	/* temp init ATM device, set to 128kbit */
- 	atm_dev->link_rate = 128 * 1000 / 424;
+diff -puN drivers/usb/serial/usb-serial.c~usb-serial-regression-fix drivers/usb/serial/usb-serial.c
+--- a/drivers/usb/serial/usb-serial.c~usb-serial-regression-fix
++++ a/drivers/usb/serial/usb-serial.c
+@@ -138,6 +138,11 @@ static void destroy_serial(struct kref *
  
-+	ret = sysfs_create_link(&atm_dev->class_dev.kobj,
-+				&instance->usb_intf->dev.kobj, "device");
-+	if (ret) {
-+		atm_err(instance, "%s: sysfs_create_link failed: %d\n",
-+					__func__, ret);
-+		goto fail_sysfs;
-+	}
+ 	dbg("%s - %s", __FUNCTION__, serial->type->description);
+ 
++	serial->type->shutdown(serial);
 +
- 	if (instance->driver->atm_start && ((ret = instance->driver->atm_start(instance, atm_dev)) < 0)) {
- 		atm_err(instance, "%s: atm_start failed: %d!\n", __func__, ret);
- 		goto fail;
-@@ -984,6 +992,8 @@ static int usbatm_atm_init(struct usbatm
- 	return 0;
++	/* return the minor range that this device had */
++	return_serial(serial);
++
+ 	for (i = 0; i < serial->num_ports; ++i)
+ 		serial->port[i]->open_count = 0;
  
-  fail:
-+	sysfs_remove_link(&atm_dev->class_dev.kobj, "device");
-+ fail_sysfs:
- 	instance->atm_dev = NULL;
- 	atm_dev_deregister(atm_dev); /* usbatm_atm_dev_close will eventually be called */
- 	return ret;
-@@ -1316,8 +1326,10 @@ void usbatm_usb_disconnect(struct usb_in
- 	kfree(instance->cell_buf);
+@@ -148,12 +153,6 @@ static void destroy_serial(struct kref *
+ 			serial->port[i] = NULL;
+ 		}
  
- 	/* ATM finalize */
--	if (instance->atm_dev)
-+	if (instance->atm_dev) {
-+		sysfs_remove_link(&instance->atm_dev->class_dev.kobj, "device");
- 		atm_dev_deregister(instance->atm_dev);
-+	}
- 
- 	usbatm_put_instance(instance);	/* taken in usbatm_usb_probe */
- }
+-	if (serial->type->shutdown)
+-		serial->type->shutdown(serial);
+-
+-	/* return the minor range that this device had */
+-	return_serial(serial);
+-
+ 	/* If this is a "fake" port, we have to clean it up here, as it will
+ 	 * not get cleaned up in port_release() as it was never registered with
+ 	 * the driver core */
 _
 
-Patches currently in -mm which might be from simon@arlott.org are
+Patches currently in -mm which might be from radford@blackbean.org are
 
 origin.patch
