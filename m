@@ -1,132 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - pata_cmd640-multiple-updates.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:58:20 -0800
-Message-ID: <200703152158.l2FLwKwB027724@shell0.pdx.osdl.net>
+Subject: - e1000-fix-firmware-handover-bits.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:58:51 -0800
+Message-ID: <200703152158.l2FLwpGI027764@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42474 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42509 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752077AbXCOV6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:58:34 -0400
+	id S1751985AbXCOV6x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:58:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: bruce.w.allan@intel.com, auke-jan.h.kok@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_cmd640: multiple updates
+     e1000: FIX: firmware handover bits
 has been removed from the -mm tree.  Its filename was
-     pata_cmd640-multiple-updates.patch
+     e1000-fix-firmware-handover-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_cmd640: multiple updates
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: e1000: FIX: firmware handover bits
+From: Bruce Allan <bruce.w.allan@intel.com>
 
-Add suspend/resume support
-Write 0x5B to 0 not 0x5C
+Upon code inspection it was spotted that the firmware handover bit get/set
+mismatched, which may have resulted in management issues on PCI-E adapters. 
+Setting them correctly may fix some management issues such as arp routing etc.
 
-The former is important as we must kill the FIFO on a resume
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Auke Kok <auke-jan.h.kok@intel.com>
+Signed-off-by: Bruce Allan <bruce.w.allan@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cmd640.c |   30 ++++++++++++++++++------------
- 1 files changed, 18 insertions(+), 12 deletions(-)
+ drivers/net/e1000/e1000_main.c |   33 +++++++++++--------------------
+ 1 files changed, 12 insertions(+), 21 deletions(-)
 
-diff -puN drivers/ata/pata_cmd640.c~pata_cmd640-multiple-updates drivers/ata/pata_cmd640.c
---- a/drivers/ata/pata_cmd640.c~pata_cmd640-multiple-updates
-+++ a/drivers/ata/pata_cmd640.c
-@@ -23,7 +23,7 @@
- #include <linux/libata.h>
- 
- #define DRV_NAME "pata_cmd640"
--#define DRV_VERSION "0.0.3"
-+#define DRV_VERSION "0.0.5"
- 
- struct cmd640_reg {
- 	int last;
-@@ -43,6 +43,7 @@ enum {
- 
- /**
-  *	cmd640_set_piomode	-	set initial PIO mode data
-+ *	@ap: ATA port
-  *	@adev: ATA device
-  *
-  *	Called to do the PIO mode setup.
-@@ -219,22 +220,13 @@ static struct ata_port_operations cmd640
- 	.port_start	= cmd640_port_start,
- };
- 
--static int cmd640_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
-+static void cmd640_hardware_init(struct pci_dev *pdev)
+diff -puN drivers/net/e1000/e1000_main.c~e1000-fix-firmware-handover-bits drivers/net/e1000/e1000_main.c
+--- a/drivers/net/e1000/e1000_main.c~e1000-fix-firmware-handover-bits
++++ a/drivers/net/e1000/e1000_main.c
+@@ -409,25 +409,21 @@ e1000_release_hw_control(struct e1000_ad
  {
- 	u8 r;
- 	u8 ctrl;
+ 	uint32_t ctrl_ext;
+ 	uint32_t swsm;
+-	uint32_t extcnf;
  
--	static struct ata_port_info info = {
--		.sht = &cmd640_sht,
--		.flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
--		.pio_mask = 0x1f,
--		.port_ops = &cmd640_port_ops
--	};
--
--	static struct ata_port_info *port_info[2] = { &info, &info };
--
- 	/* CMD640 detected, commiserations */
--	pci_write_config_byte(pdev, 0x5C, 0x00);
-+	pci_write_config_byte(pdev, 0x5B, 0x00);
- 	/* Get version info */
- 	pci_read_config_byte(pdev, CFR, &r);
- 	/* PIO0 command cycles */
-@@ -255,12 +247,26 @@ static int cmd640_init_one(struct pci_de
- 	pci_read_config_byte(pdev, ARTIM23, &ctrl);
- 	ctrl |= 0x0C;
- 	pci_write_config_byte(pdev, ARTIM23, ctrl);
-+}
-+
-+static int cmd640_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
-+{
-+	static struct ata_port_info info = {
-+		.sht = &cmd640_sht,
-+		.flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
-+		.pio_mask = 0x1f,
-+		.port_ops = &cmd640_port_ops
-+	};
-+
-+	static struct ata_port_info *port_info[2] = { &info, &info };
- 
-+	cmd640_hardware_init(pdev);
- 	return ata_pci_init_one(pdev, port_info, 2);
- }
- 
- static int cmd640_reinit_one(struct pci_dev *pdev)
+ 	/* Let firmware taken over control of h/w */
+ 	switch (adapter->hw.mac_type) {
+-	case e1000_82571:
+-	case e1000_82572:
+-	case e1000_80003es2lan:
+-		ctrl_ext = E1000_READ_REG(&adapter->hw, CTRL_EXT);
+-		E1000_WRITE_REG(&adapter->hw, CTRL_EXT,
+-				ctrl_ext & ~E1000_CTRL_EXT_DRV_LOAD);
+-		break;
+ 	case e1000_82573:
+ 		swsm = E1000_READ_REG(&adapter->hw, SWSM);
+ 		E1000_WRITE_REG(&adapter->hw, SWSM,
+ 				swsm & ~E1000_SWSM_DRV_LOAD);
++		break;
++	case e1000_82571:
++	case e1000_82572:
++	case e1000_80003es2lan:
+ 	case e1000_ich8lan:
+-		extcnf = E1000_READ_REG(&adapter->hw, CTRL_EXT);
++		ctrl_ext = E1000_READ_REG(&adapter->hw, CTRL_EXT);
+ 		E1000_WRITE_REG(&adapter->hw, CTRL_EXT,
+-				extcnf & ~E1000_CTRL_EXT_DRV_LOAD);
++				ctrl_ext & ~E1000_CTRL_EXT_DRV_LOAD);
+ 		break;
+ 	default:
+ 		break;
+@@ -450,26 +446,21 @@ e1000_get_hw_control(struct e1000_adapte
  {
-+	cmd640_hardware_init(pdev);
- 	return ata_pci_device_resume(pdev);
- }
+ 	uint32_t ctrl_ext;
+ 	uint32_t swsm;
+-	uint32_t extcnf;
  
+ 	/* Let firmware know the driver has taken over */
+ 	switch (adapter->hw.mac_type) {
+-	case e1000_82571:
+-	case e1000_82572:
+-	case e1000_80003es2lan:
+-		ctrl_ext = E1000_READ_REG(&adapter->hw, CTRL_EXT);
+-		E1000_WRITE_REG(&adapter->hw, CTRL_EXT,
+-				ctrl_ext | E1000_CTRL_EXT_DRV_LOAD);
+-		break;
+ 	case e1000_82573:
+ 		swsm = E1000_READ_REG(&adapter->hw, SWSM);
+ 		E1000_WRITE_REG(&adapter->hw, SWSM,
+ 				swsm | E1000_SWSM_DRV_LOAD);
+ 		break;
++	case e1000_82571:
++	case e1000_82572:
++	case e1000_80003es2lan:
+ 	case e1000_ich8lan:
+-		extcnf = E1000_READ_REG(&adapter->hw, EXTCNF_CTRL);
+-		E1000_WRITE_REG(&adapter->hw, EXTCNF_CTRL,
+-				extcnf | E1000_EXTCNF_CTRL_SWFLAG);
++		ctrl_ext = E1000_READ_REG(&adapter->hw, CTRL_EXT);
++		E1000_WRITE_REG(&adapter->hw, CTRL_EXT,
++				ctrl_ext | E1000_CTRL_EXT_DRV_LOAD);
+ 		break;
+ 	default:
+ 		break;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from bruce.w.allan@intel.com are
 
-origin.patch
-git-libata-all.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-baycom_ser_fdx-also-allow-i-o-ports-=-0x1000-and-enhanced.patch
-resend-iphase-64bit-cleanup.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
+git-netdev-all.patch
