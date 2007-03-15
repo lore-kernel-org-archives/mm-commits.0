@@ -1,306 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - cxacru-export-detailed-device-info-through-sysfs-updated.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:59:48 -0800
-Message-ID: <200703152159.l2FLxmek027842@shell0.pdx.osdl.net>
+Subject: - natsemi-fix-napi-for-interrupt-sharing.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:59:08 -0800
+Message-ID: <200703152159.l2FLx8Ye027791@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42630 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42637 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752150AbXCOWAJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:00:09 -0400
+	id S1752158AbXCOWAM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:00:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: simon@arlott.org, duncan.sands@free.fr, greg@kroah.com, simon@fire.lp0.eu, mm-commits@vger.kernel.org
+To: broonie@sirena.org.uk, mhuth@mvista.com, simon@citylink.co.nz, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cxacru: export detailed device info through sysfs
+     natsemi: fix NAPI for interrupt sharing
 has been removed from the -mm tree.  Its filename was
-     cxacru-export-detailed-device-info-through-sysfs-updated.patch
+     natsemi-fix-napi-for-interrupt-sharing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cxacru: export detailed device info through sysfs
-From: Simon Arlott <simon@arlott.org>
+Subject: natsemi: fix NAPI for interrupt sharing
+From: Mark Brown <broonie@sirena.org.uk>
 
-When the device is polled for status there is a lot of useful status
-information available that is ignored.  This patch stores the device info
-array when the status is polled and adds sysfs files to the usb device to
-allow userspace to query it.  Since the device updates its status
-internally once a second the poll time is changed to this, and
-round_jiffies_relative is used to avoid waking the cpu unnecessarily.
+The interrupt status register for the natsemi chips is clear on read and was
+read unconditionally from both the interrupt and from the NAPI poll routine,
+meaning that if the interrupt service routine was called (for example, due to
+a shared interrupt) while a NAPI poll was scheduled interrupts could be
+missed.  This patch fixes that by ensuring that the interrupt status register
+is only read by the interrupt handler when interrupts are enabled from the
+chip.
 
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
-Cc: Duncan Sands <duncan.sands@free.fr>
-Cc: Greg KH <greg@kroah.com>
+It also reverts a workaround for this problem from the netpoll hook and
+improves the trace for interrupt events.
+
+Thanks to Sergei Shtylyov <sshtylyov@ru.mvista.com> for spotting the issue,
+Mark Huth <mhuth@mvista.com> for a simpler method and Simon Blake
+<simon@citylink.co.nz> for testing resources.
+
+Signed-off-by: Mark Brown <broonie@sirena.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/cxacru.c |  181 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 176 insertions(+), 5 deletions(-)
+ drivers/net/natsemi.c |   38 ++++++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
-diff -puN drivers/usb/atm/cxacru.c~cxacru-export-detailed-device-info-through-sysfs-updated drivers/usb/atm/cxacru.c
---- a/drivers/usb/atm/cxacru.c~cxacru-export-detailed-device-info-through-sysfs-updated
-+++ a/drivers/usb/atm/cxacru.c
-@@ -34,14 +34,14 @@
- #include <linux/errno.h>
- #include <linux/slab.h>
- #include <linux/init.h>
--#include <linux/device.h>	/* FIXME: linux/firmware.h should include it itself */
-+#include <linux/device.h>
- #include <linux/firmware.h>
- #include <linux/mutex.h>
+diff -puN drivers/net/natsemi.c~natsemi-fix-napi-for-interrupt-sharing drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-fix-napi-for-interrupt-sharing
++++ a/drivers/net/natsemi.c
+@@ -2119,28 +2119,35 @@ static irqreturn_t intr_handler(int irq,
+ 	struct netdev_private *np = netdev_priv(dev);
+ 	void __iomem * ioaddr = ns_ioaddr(dev);
  
- #include "usbatm.h"
+-	if (np->hands_off)
++	/* Reading IntrStatus automatically acknowledges so don't do
++	 * that while interrupts are disabled, (for example, while a
++	 * poll is scheduled).  */
++	if (np->hands_off || !readl(ioaddr + IntrEnable))
+ 		return IRQ_NONE;
  
--#define DRIVER_AUTHOR	"Roman Kagan, David Woodhouse, Duncan Sands"
--#define DRIVER_VERSION	"0.2"
-+#define DRIVER_AUTHOR	"Roman Kagan, David Woodhouse, Duncan Sands, Simon Arlott"
-+#define DRIVER_VERSION	"0.3"
- #define DRIVER_DESC	"Conexant AccessRunner ADSL USB modem driver"
+-	/* Reading automatically acknowledges. */
+ 	np->intr_status = readl(ioaddr + IntrStatus);
  
- static const char cxacru_driver_name[] = "cxacru";
-@@ -64,7 +64,7 @@ static const char cxacru_driver_name[] =
- #define SDRAM_ENA	0x1
++	if (!np->intr_status)
++		return IRQ_NONE;
++
+ 	if (netif_msg_intr(np))
+ 		printk(KERN_DEBUG
+ 		       "%s: Interrupt, status %#08x, mask %#08x.\n",
+ 		       dev->name, np->intr_status,
+ 		       readl(ioaddr + IntrMask));
  
- #define CMD_TIMEOUT	2000	/* msecs */
--#define POLL_INTERVAL	5000	/* msecs */
-+#define POLL_INTERVAL	1	/* secs */
+-	if (!np->intr_status)
+-		return IRQ_NONE;
+-
+ 	prefetch(&np->rx_skbuff[np->cur_rx % RX_RING_SIZE]);
  
- /* commands for interaction with the modem through the control channel before
-  * firmware is loaded  */
-@@ -159,6 +159,7 @@ struct cxacru_data {
- 
- 	int line_status;
- 	struct delayed_work poll_work;
-+	u32 card_info[CXINF_MAX];
- 
- 	/* contol handles */
- 	struct mutex cm_serialize;
-@@ -170,6 +171,151 @@ struct cxacru_data {
- 	struct completion snd_done;
- };
- 
-+/* Card info exported through sysfs */
-+#define CXACRU__ATTR_INIT(_name) \
-+static DEVICE_ATTR(_name, S_IRUGO, cxacru_sysfs_show_##_name, NULL)
+ 	if (netif_rx_schedule_prep(dev)) {
+ 		/* Disable interrupts and register for poll */
+ 		natsemi_irq_disable(dev);
+ 		__netif_rx_schedule(dev);
+-	}
++	} else
++		printk(KERN_WARNING
++	       	       "%s: Ignoring interrupt, status %#08x, mask %#08x.\n",
++		       dev->name, np->intr_status,
++		       readl(ioaddr + IntrMask));
 +
-+#define CXACRU_ATTR_INIT(_value, _type, _name) \
-+static ssize_t cxacru_sysfs_show_##_name(struct device *dev, \
-+	struct device_attribute *attr, char *buf) \
-+{ \
-+	struct usb_interface *intf = to_usb_interface(dev); \
-+	struct usbatm_data *usbatm_instance = usb_get_intfdata(intf); \
-+	struct cxacru_data *instance = usbatm_instance->driver_data; \
-+	return cxacru_sysfs_showattr_##_type(instance->card_info[_value], buf); \
-+} \
-+CXACRU__ATTR_INIT(_name)
-+
-+#define CXACRU_ATTR_CREATE(_v, _t, _name) CXACRU_DEVICE_CREATE_FILE(_name)
-+#define CXACRU__ATTR_CREATE(_name)        CXACRU_DEVICE_CREATE_FILE(_name)
-+
-+#define CXACRU_ATTR_REMOVE(_v, _t, _name) CXACRU_DEVICE_REMOVE_FILE(_name)
-+#define CXACRU__ATTR_REMOVE(_name)        CXACRU_DEVICE_REMOVE_FILE(_name)
-+
-+static ssize_t cxacru_sysfs_showattr_u32(u32 value, char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%u\n", value);
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_s8(s8 value, char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", value);
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_dB(s16 value, char *buf)
-+{
-+	if (unlikely(value < 0)) {
-+		return snprintf(buf, PAGE_SIZE, "%d.%02u\n",
-+						value / 100, -value % 100);
-+	} else {
-+		return snprintf(buf, PAGE_SIZE, "%d.%02u\n",
-+						value / 100, value % 100);
-+	}
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_bool(u32 value, char *buf)
-+{
-+	switch (value) {
-+	case 0: return snprintf(buf, PAGE_SIZE, "no\n");
-+	case 1: return snprintf(buf, PAGE_SIZE, "yes\n");
-+	default: return 0;
-+	}
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_LINK(u32 value, char *buf)
-+{
-+	switch (value) {
-+	case 1: return snprintf(buf, PAGE_SIZE, "not connected\n");
-+	case 2: return snprintf(buf, PAGE_SIZE, "connected\n");
-+	case 3: return snprintf(buf, PAGE_SIZE, "lost\n");
-+	default: return snprintf(buf, PAGE_SIZE, "unknown (%u)\n", value);
-+	}
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_LINE(u32 value, char *buf)
-+{
-+	switch (value) {
-+	case 0: return snprintf(buf, PAGE_SIZE, "down\n");
-+	case 1: return snprintf(buf, PAGE_SIZE, "attempting to activate\n");
-+	case 2: return snprintf(buf, PAGE_SIZE, "training\n");
-+	case 3: return snprintf(buf, PAGE_SIZE, "channel analysis\n");
-+	case 4: return snprintf(buf, PAGE_SIZE, "exchange\n");
-+	case 5: return snprintf(buf, PAGE_SIZE, "up\n");
-+	case 6: return snprintf(buf, PAGE_SIZE, "waiting\n");
-+	case 7: return snprintf(buf, PAGE_SIZE, "initialising\n");
-+	default: return snprintf(buf, PAGE_SIZE, "unknown (%u)\n", value);
-+	}
-+}
-+
-+static ssize_t cxacru_sysfs_showattr_MODU(u32 value, char *buf)
-+{
-+	switch (value) {
-+	case 0: return 0;
-+	case 1: return snprintf(buf, PAGE_SIZE, "ANSI T1.413\n");
-+	case 2: return snprintf(buf, PAGE_SIZE, "ITU-T G.992.1 (G.DMT)\n");
-+	case 3: return snprintf(buf, PAGE_SIZE, "ITU-T G.992.2 (G.LITE)\n");
-+	default: return snprintf(buf, PAGE_SIZE, "unknown (%u)\n", value);
-+	}
-+}
-+
-+/*
-+ * This could use MAC_ADDRESS_HIGH and MAC_ADDRESS_LOW, but since
-+ * this data is already in atm_dev there's no point.
-+ *
-+ * MAC_ADDRESS_HIGH = 0x????5544
-+ * MAC_ADDRESS_LOW  = 0x33221100
-+ * Where 00-55 are bytes 0-5 of the MAC.
-+ */
-+static ssize_t cxacru_sysfs_show_mac_address(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	struct usb_interface *intf = to_usb_interface(dev);
-+	struct usbatm_data *usbatm_instance = usb_get_intfdata(intf);
-+	struct atm_dev *atm_dev = usbatm_instance->atm_dev;
-+
-+	return snprintf(buf, PAGE_SIZE, "%02x:%02x:%02x:%02x:%02x:%02x\n",
-+			atm_dev->esi[0], atm_dev->esi[1], atm_dev->esi[2],
-+			atm_dev->esi[3], atm_dev->esi[4], atm_dev->esi[5]);
-+}
-+
-+/*
-+ * All device attributes are included in CXACRU_ALL_FILES
-+ * so that the same list can be used multiple times:
-+ *     INIT   (define the device attributes)
-+ *     CREATE (create all the device files)
-+ *     REMOVE (remove all the device files)
-+ *
-+ * With the last two being defined as needed in the functions
-+ * they are used in before calling CXACRU_ALL_FILES()
-+ */
-+#define CXACRU_ALL_FILES(_action) \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_RATE,           u32,  downstream_rate); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_RATE,             u32,  upstream_rate); \
-+CXACRU_ATTR_##_action(CXINF_LINK_STATUS,               LINK, link_status); \
-+CXACRU_ATTR_##_action(CXINF_LINE_STATUS,               LINE, line_status); \
-+CXACRU__ATTR_##_action(                                      mac_address); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_SNR_MARGIN,       dB,   upstream_snr_margin); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_SNR_MARGIN,     dB,   downstream_snr_margin); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_ATTENUATION,      dB,   upstream_attenuation); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_ATTENUATION,    dB,   downstream_attenuation); \
-+CXACRU_ATTR_##_action(CXINF_TRANSMITTER_POWER,         s8,   transmitter_power); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_BITS_PER_FRAME,   u32,  upstream_bits_per_frame); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_BITS_PER_FRAME, u32,  downstream_bits_per_frame); \
-+CXACRU_ATTR_##_action(CXINF_STARTUP_ATTEMPTS,          u32,  startup_attempts); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_CRC_ERRORS,       u32,  upstream_crc_errors); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_CRC_ERRORS,     u32,  downstream_crc_errors); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_FEC_ERRORS,       u32,  upstream_fec_errors); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_FEC_ERRORS,     u32,  downstream_fec_errors); \
-+CXACRU_ATTR_##_action(CXINF_UPSTREAM_HEC_ERRORS,       u32,  upstream_hec_errors); \
-+CXACRU_ATTR_##_action(CXINF_DOWNSTREAM_HEC_ERRORS,     u32,  downstream_hec_errors); \
-+CXACRU_ATTR_##_action(CXINF_LINE_STARTABLE,            bool, line_startable); \
-+CXACRU_ATTR_##_action(CXINF_MODULATION,                MODU, modulation); \
-+CXACRU_ATTR_##_action(CXINF_ADSL_HEADEND,              u32,  adsl_headend); \
-+CXACRU_ATTR_##_action(CXINF_ADSL_HEADEND_ENVIRONMENT,  u32,  adsl_headend_environment); \
-+CXACRU_ATTR_##_action(CXINF_CONTROLLER_VERSION,        u32,  adsl_controller_version);
-+
-+CXACRU_ALL_FILES(INIT);
-+
- /* the following three functions are stolen from drivers/usb/core/message.c */
- static void cxacru_blocking_completion(struct urb *urb)
- {
-@@ -395,6 +541,8 @@ static void cxacru_poll_status(struct wo
- 		goto reschedule;
- 	}
- 
-+	memcpy(instance->card_info, buf, sizeof(instance->card_info));
-+
- 	if (instance->line_status == buf[CXINF_LINE_STATUS])
- 		goto reschedule;
- 
-@@ -449,7 +597,8 @@ static void cxacru_poll_status(struct wo
- 		break;
- 	}
- reschedule:
--	schedule_delayed_work(&instance->poll_work, msecs_to_jiffies(POLL_INTERVAL));
-+	schedule_delayed_work(&instance->poll_work,
-+			round_jiffies_relative(msecs_to_jiffies(POLL_INTERVAL*1000)));
+ 	return IRQ_HANDLED;
  }
  
- static int cxacru_fw(struct usb_device *usb_dev, enum cxacru_fw_request fw,
-@@ -684,6 +833,7 @@ static int cxacru_bind(struct usbatm_dat
+@@ -2156,6 +2163,12 @@ static int natsemi_poll(struct net_devic
+ 	int work_done = 0;
  
- 	instance->usbatm = usbatm_instance;
- 	instance->modem_type = (struct cxacru_modem_type *) id->driver_info;
-+	memset(instance->card_info, 0, sizeof(instance->card_info));
- 
- 	instance->rcv_buf = (u8 *) __get_free_page(GFP_KERNEL);
- 	if (!instance->rcv_buf) {
-@@ -710,6 +860,13 @@ static int cxacru_bind(struct usbatm_dat
- 		goto fail;
- 	}
- 
-+	#define CXACRU_DEVICE_CREATE_FILE(_name) \
-+		ret = device_create_file(&intf->dev, &dev_attr_##_name); \
-+		if (unlikely(ret)) \
-+			goto fail_sysfs;
-+	CXACRU_ALL_FILES(CREATE);
-+	#undef CXACRU_DEVICE_CREATE_FILE
+ 	do {
++		if (netif_msg_intr(np))
++			printk(KERN_DEBUG
++			       "%s: Poll, status %#08x, mask %#08x.\n",
++			       dev->name, np->intr_status,
++			       readl(ioaddr + IntrMask));
 +
- 	usb_fill_int_urb(instance->rcv_urb,
- 			usb_dev, usb_rcvintpipe(usb_dev, CXACRU_EP_CMD),
- 			instance->rcv_buf, PAGE_SIZE,
-@@ -730,6 +887,14 @@ static int cxacru_bind(struct usbatm_dat
- 
- 	return 0;
- 
-+ fail_sysfs:
-+	dbg("cxacru_bind: device_create_file failed (%d)\n", ret);
-+
-+	#define CXACRU_DEVICE_REMOVE_FILE(_name) \
-+		device_remove_file(&intf->dev, &dev_attr_##_name);
-+	CXACRU_ALL_FILES(REMOVE);
-+	#undef CXACRU_DEVICE_REVOVE_FILE
-+
-  fail:
- 	free_page((unsigned long) instance->snd_buf);
- 	free_page((unsigned long) instance->rcv_buf);
-@@ -762,6 +927,12 @@ static void cxacru_unbind(struct usbatm_
- 
- 	free_page((unsigned long) instance->snd_buf);
- 	free_page((unsigned long) instance->rcv_buf);
-+
-+	#define CXACRU_DEVICE_REMOVE_FILE(_name) \
-+		device_remove_file(&intf->dev, &dev_attr_##_name);
-+	CXACRU_ALL_FILES(REMOVE);
-+	#undef CXACRU_DEVICE_REVOVE_FILE
-+
- 	kfree(instance);
- 
- 	usbatm_instance->driver_data = NULL;
+ 		if (np->intr_status &
+ 		    (IntrTxDone | IntrTxIntr | IntrTxIdle | IntrTxErr)) {
+ 			spin_lock(&np->lock);
+@@ -2399,19 +2412,8 @@ static struct net_device_stats *get_stat
+ #ifdef CONFIG_NET_POLL_CONTROLLER
+ static void natsemi_poll_controller(struct net_device *dev)
+ {
+-	struct netdev_private *np = netdev_priv(dev);
+-
+ 	disable_irq(dev->irq);
+-
+-	/*
+-	 * A real interrupt might have already reached us at this point
+-	 * but NAPI might still haven't called us back.  As the interrupt
+-	 * status register is cleared by reading, we should prevent an
+-	 * interrupt loss in this case...
+-	 */
+-	if (!np->intr_status)
+-		intr_handler(dev->irq, dev);
+-
++	intr_handler(dev->irq, dev);
+ 	enable_irq(dev->irq);
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from simon@arlott.org are
+Patches currently in -mm which might be from broonie@sirena.org.uk are
 
-origin.patch
+git-netdev-all.patch
