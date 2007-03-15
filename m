@@ -1,71 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - ata_piix-remove-ugly-layering-violation.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:58:18 -0800
-Message-ID: <200703152158.l2FLwII5027721@shell0.pdx.osdl.net>
+Subject: - mtd-esb2-check-for-closed-rom-window.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:58:29 -0800
+Message-ID: <200703152158.l2FLwTDH027733@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42480 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42479 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752133AbXCOV6h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1752126AbXCOV6h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 15 Mar 2007 17:58:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ata_piix: remove ugly layering violation
+     MTD: ESB2 check for closed ROM window
 has been removed from the -mm tree.  Its filename was
-     ata_piix-remove-ugly-layering-violation.patch
+     mtd-esb2-check-for-closed-rom-window.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ata_piix: remove ugly layering violation
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: MTD: ESB2 check for closed ROM window
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-A while ago I modified the libata code so that drivers can return -ENOENT for
-unknown ports not fiddle with the EH flags and print stuff directly. 
-Somewhere along the line ata_piix didn't get fully converted.
+Add checking for closed ROM window on Intel ESB2 Southbridge.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_piix.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/maps/esb2rom.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/ata_piix.c~ata_piix-remove-ugly-layering-violation drivers/ata/ata_piix.c
---- a/drivers/ata/ata_piix.c~ata_piix-remove-ugly-layering-violation
-+++ a/drivers/ata/ata_piix.c
-@@ -93,7 +93,7 @@
- #include <linux/libata.h>
+diff -puN drivers/mtd/maps/esb2rom.c~mtd-esb2-check-for-closed-rom-window drivers/mtd/maps/esb2rom.c
+--- a/drivers/mtd/maps/esb2rom.c~mtd-esb2-check-for-closed-rom-window
++++ a/drivers/mtd/maps/esb2rom.c
+@@ -30,7 +30,7 @@
  
- #define DRV_NAME	"ata_piix"
--#define DRV_VERSION	"2.10"
-+#define DRV_VERSION	"2.10ac1"
+ #define ROM_PROBE_STEP_SIZE (64*1024) /* 64KiB */
  
- enum {
- 	PIIX_IOCFG		= 0x54, /* IDE I/O configuration register */
+-#define BIOS_CNTL	0xDC
++#define BIOS_CNTL		0xDC
+ #define BIOS_LOCK_ENABLE	0x02
+ #define BIOS_WRITE_ENABLE	0x01
+ 
+@@ -145,7 +145,7 @@ static void esb2rom_cleanup(struct esb2r
+ }
+ 
+ static int __devinit esb2rom_init_one(struct pci_dev *pdev,
+-				const struct pci_device_id *ent)
++				      const struct pci_device_id *ent)
+ {
+ 	static char *rom_probe_types[] = { "cfi_probe", "jedec_probe", NULL };
+ 	struct esb2rom_window *window = &esb2rom_window;
+@@ -185,7 +185,7 @@ static int __devinit esb2rom_init_one(st
+ 	/* Find a region continuous to the end of the ROM window  */
+ 	window->phys = 0;
+ 	pci_read_config_word(pdev, FWH_DEC_EN1, &word);
+-	printk(KERN_DEBUG "pci_read_config_byte : %x\n", word);
++	printk(KERN_DEBUG "pci_read_config_word : %x\n", word);
+ 
+ 	if ((word & FWH_8MiB) == FWH_8MiB)
+ 		window->phys = 0xff400000;
+@@ -212,6 +212,11 @@ static int __devinit esb2rom_init_one(st
+ 	else if ((word & FWH_0_5MiB) == FWH_0_5MiB)
+ 		window->phys = 0xfff80000;
+ 
++	if (window->phys == 0) {
++		printk(KERN_ERR MOD_NAME ": Rom window is closed\n");
++		goto out;
++	}
++
+ 	/* reserved  0x0020 and 0x0010 */
+ 	window->phys -= 0x400000UL;
+ 	window->size = (0xffffffffUL - window->phys) + 1UL;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-git-libata-all.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-baycom_ser_fdx-also-allow-i-o-ports-=-0x1000-and-enhanced.patch
-resend-iphase-64bit-cleanup.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
