@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi_ibm_bay-can-not-coexist-with-acpi_bay.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:48:39 -0800
-Message-ID: <200703151848.l2FImfSq023259@shell0.pdx.osdl.net>
+Subject: + natsemi-consistently-use-interrupt-enable-disable-functions.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:50:15 -0800
+Message-ID: <200703151850.l2FIoH01023295@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35487 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35518 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753325AbXCOSuH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:50:07 -0400
+	id S1753324AbXCOSua (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:50:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cw@f00f.org, kristen.c.accardi@intel.com, lenb@kernel.org
+Cc: broonie@sirena.org.uk
 
 
 The patch titled
-     ACPI_IBM_BAY can not coexist with ACPI_BAY
+     natsemi: consistently use interrupt enable/disable functions
 has been added to the -mm tree.  Its filename is
-     acpi_ibm_bay-can-not-coexist-with-acpi_bay.patch
+     natsemi-consistently-use-interrupt-enable-disable-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI_IBM_BAY can not coexist with ACPI_BAY
-From: Chris Wedgwood <cw@f00f.org>
+Subject: natsemi: consistently use interrupt enable/disable functions
+From: Mark Brown <broonie@sirena.org.uk>
 
-ACPI_IBM_BAY cannot coexist with ACPI_BAY --- it causes the IBM ACPI code
-to fail to initialize so all the IBM ACPI functionality is missing.  The
-simplest fix is to just make sure the Kconfig magic disallows ACPI_IBM_BAY
-when ACPI_BAY is enabled.
+The natsemi drivers include functions for enabling and disabling interrupts
+from the chip but these are not used in all code paths.  This patch changes
+the code paths that touch the interrupt enable register to use the functions. 
+In all cases this adds an extra PCI read to post the operation but since none
+of these are in fast paths this shouldn't be too much of a problem.
 
-Signed-off-by: Chris Wedgwood <cw@f00f.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Mark Brown <broonie@sirena.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/natsemi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~acpi_ibm_bay-can-not-coexist-with-acpi_bay drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~acpi_ibm_bay-can-not-coexist-with-acpi_bay
-+++ a/drivers/acpi/Kconfig
-@@ -245,7 +245,7 @@ config ACPI_IBM_DOCK
+diff -puN drivers/net/natsemi.c~natsemi-consistently-use-interrupt-enable-disable-functions drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-consistently-use-interrupt-enable-disable-functions
++++ a/drivers/net/natsemi.c
+@@ -1712,7 +1712,7 @@ static void init_registers(struct net_de
  
- config ACPI_IBM_BAY
- 	bool "Legacy Removable Bay Support"
--	depends on ACPI_IBM
-+	depends on ACPI_IBM && !ACPI_BAY
- 	default y
- 	---help---
- 	  Allows the ibm_acpi driver to handle removable bays.  It will allow
+ 	/* Enable interrupts by setting the interrupt mask. */
+ 	writel(DEFAULT_INTR, ioaddr + IntrMask);
+-	writel(1, ioaddr + IntrEnable);
++	natsemi_irq_enable(dev);
+ 
+ 	writel(RxOn | TxOn, ioaddr + ChipCmd);
+ 	writel(StatsClear, ioaddr + StatsCtrl); /* Clear Stats */
+@@ -3071,7 +3071,7 @@ static void enable_wol_mode(struct net_d
+ 		 * Could be used to send a netlink message.
+ 		 */
+ 		writel(WOLPkt | LinkChange, ioaddr + IntrMask);
+-		writel(1, ioaddr + IntrEnable);
++		natsemi_irq_enable(dev);
+ 	}
+ }
+ 
+@@ -3202,7 +3202,7 @@ static int natsemi_suspend (struct pci_d
+ 		disable_irq(dev->irq);
+ 		spin_lock_irq(&np->lock);
+ 
+-		writel(0, ioaddr + IntrEnable);
++		natsemi_irq_disable(dev);
+ 		np->hands_off = 1;
+ 		natsemi_stop_rxtx(dev);
+ 		netif_stop_queue(dev);
 _
 
-Patches currently in -mm which might be from cw@f00f.org are
+Patches currently in -mm which might be from broonie@sirena.org.uk are
 
-acpi_ibm_bay-can-not-coexist-with-acpi_bay.patch
+natsemi-consistently-use-interrupt-enable-disable-functions.patch
+natsemi-fix-napi-for-interrupt-sharing.patch
+natsemi-avoid-intrstatus-lossage-if-rx-state-machine-resets.patch
