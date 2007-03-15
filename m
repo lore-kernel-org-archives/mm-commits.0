@@ -1,107 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-header-file-drivers-char-drm-via_mmh.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:57:08 -0800
-Message-ID: <200703152157.l2FLv8tA027612@shell0.pdx.osdl.net>
+Subject: - x86_64-fix-2618-regression-ptrace_oldsetoptions-should-be-accepted.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:56:13 -0800
+Message-ID: <200703152156.l2FLuDCq027531@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42327 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42354 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751122AbXCOV5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:57:14 -0400
+	id S1751892AbXCOV5a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: blaisorblade@yahoo.it, ak@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove unused header file: drivers/char/drm/via_mm.h
+     x86_64: fix 2.6.18 regression - PTRACE_OLDSETOPTIONS should be accepted
 has been removed from the -mm tree.  Its filename was
-     remove-unused-header-file-drivers-char-drm-via_mmh.patch
+     x86_64-fix-2618-regression-ptrace_oldsetoptions-should-be-accepted.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove unused header file: drivers/char/drm/via_mm.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: x86_64: fix 2.6.18 regression - PTRACE_OLDSETOPTIONS should be accepted
+From: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Also PTRACE_OLDSETOPTIONS should be accepted, as done by kernel/ptrace.c
+and forced by binary compatibility.  UML/32bit breaks because of this -
+since it is wise enough to use PTRACE_OLDSETOPTIONS to be binary compatible
+with 2.4 host kernels.
+
+Until 2.6.17 (commit f0f2d6536e3515b5b1b7ae97dc8f176860c8c2ce) we had:
+
+       default:
+                return sys_ptrace(request, pid, addr, data);
+
+Instead here we have:
+        case PTRACE_GET_THREAD_AREA:
+	case ...:
+                return sys_ptrace(request, pid, addr, data);
+
+        default:
+                return -EINVAL;
+
+This change was a style change - when a case is added, it must be
+explicitly tested this way.  In this case, not enough testing was done.
+
+Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/via_mm.h |   40 ------------------------------------
- 1 file changed, 40 deletions(-)
+ arch/x86_64/ia32/ptrace32.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/drm/via_mm.h~remove-unused-header-file-drivers-char-drm-via_mmh /dev/null
---- a/drivers/char/drm/via_mm.h
-+++ /dev/null
-@@ -1,40 +0,0 @@
--/*
-- * Copyright 1998-2003 VIA Technologies, Inc. All Rights Reserved.
-- * Copyright 2001-2003 S3 Graphics, Inc. All Rights Reserved.
-- *
-- * Permission is hereby granted, free of charge, to any person obtaining a
-- * copy of this software and associated documentation files (the "Software"),
-- * to deal in the Software without restriction, including without limitation
-- * the rights to use, copy, modify, merge, publish, distribute, sub license,
-- * and/or sell copies of the Software, and to permit persons to whom the
-- * Software is furnished to do so, subject to the following conditions:
-- *
-- * The above copyright notice and this permission notice (including the
-- * next paragraph) shall be included in all copies or substantial portions
-- * of the Software.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
-- * VIA, S3 GRAPHICS, AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-- * DEALINGS IN THE SOFTWARE.
-- */
--#ifndef _via_drm_mm_h_
--#define _via_drm_mm_h_
--
--typedef struct {
--	unsigned int context;
--	unsigned int size;
--	unsigned long offset;
--	unsigned long free;
--} drm_via_mm_t;
--
--typedef struct {
--	unsigned int size;
--	unsigned long handle;
--	void *virtual;
--} drm_via_dma_t;
--
--#endif
+diff -puN arch/x86_64/ia32/ptrace32.c~x86_64-fix-2618-regression-ptrace_oldsetoptions-should-be-accepted arch/x86_64/ia32/ptrace32.c
+--- a/arch/x86_64/ia32/ptrace32.c~x86_64-fix-2618-regression-ptrace_oldsetoptions-should-be-accepted
++++ a/arch/x86_64/ia32/ptrace32.c
+@@ -243,6 +243,7 @@ asmlinkage long sys32_ptrace(long reques
+ 	case PTRACE_SINGLESTEP:
+ 	case PTRACE_DETACH:
+ 	case PTRACE_SYSCALL:
++	case PTRACE_OLDSETOPTIONS:
+ 	case PTRACE_SETOPTIONS:
+ 	case PTRACE_SET_THREAD_AREA:
+ 	case PTRACE_GET_THREAD_AREA:
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from blaisorblade@yahoo.it are
 
 origin.patch
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-avr32.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
-ppc-correct-apparently-misspelled-xmon-preprocessor.patch
-git-drm.patch
-git-mtd.patch
-remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
-remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
-git-scsi-misc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
 remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-include-linux-elfnoteh.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
+uml-fix-prototypes.patch
+git-gccbug.patch
