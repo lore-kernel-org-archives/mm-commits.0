@@ -1,58 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-nested-locking-annotation.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:56:36 -0800
-Message-ID: <200703152156.l2FLuaQv027578@shell0.pdx.osdl.net>
+Subject: - lpfc-avoid-double-free-during-pci-error-failure.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:59:37 -0800
+Message-ID: <200703152159.l2FLxbPK027833@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42590 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42578 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752069AbXCOV7v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:59:51 -0400
+	id S1752060AbXCOV7p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:59:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: linas@austin.ibm.com, James.Smart@Emulex.Com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: nested locking annotation
+     lpfc: avoid double-free during PCI error failure
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-nested-locking-annotation.patch
+     lpfc-avoid-double-free-during-pci-error-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ecryptfs: nested locking annotation
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: lpfc: avoid double-free during PCI error failure
+From: linas@austin.ibm.com (Linas Vepstas)
 
-ecryptfs uses a lock_parent() function, which I hope really locks the parents
-and is not abused
+If a PCI error is detected that cannot be recovered from, there will be a
+double call of lpfc_pci_remove_one(), with the second call resulting in a
+null-pointer dereference.  The first call occurs in
+lpfc_io_error_detected(), and the second call during pci device remove. 
+This patch eliminates the first call; its un-needed.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
+Acked-by: James Smart <James.Smart@Emulex.Com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/lpfc/lpfc_init.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-nested-locking-annotation fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-nested-locking-annotation
-+++ a/fs/ecryptfs/inode.c
-@@ -38,7 +38,7 @@ static struct dentry *lock_parent(struct
- 	struct dentry *dir;
+diff -puN drivers/scsi/lpfc/lpfc_init.c~lpfc-avoid-double-free-during-pci-error-failure drivers/scsi/lpfc/lpfc_init.c
+--- a/drivers/scsi/lpfc/lpfc_init.c~lpfc-avoid-double-free-during-pci-error-failure
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -1817,10 +1817,9 @@ static pci_ers_result_t lpfc_io_error_de
+ 	struct lpfc_sli *psli = &phba->sli;
+ 	struct lpfc_sli_ring  *pring;
  
- 	dir = dget(dentry->d_parent);
--	mutex_lock(&(dir->d_inode->i_mutex));
-+	mutex_lock_nested(&(dir->d_inode->i_mutex), I_MUTEX_PARENT);
- 	return dir;
- }
- 
+-	if (state == pci_channel_io_perm_failure) {
+-		lpfc_pci_remove_one(pdev);
++	if (state == pci_channel_io_perm_failure)
+ 		return PCI_ERS_RESULT_DISCONNECT;
+-	}
++
+ 	pci_disable_device(pdev);
+ 	/*
+ 	 * There may be I/Os dropped by the firmware.
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from linas@austin.ibm.com are
 
-origin.patch
-nfs-fix-congestion-control-v4.patch
-exec-fix-remove_arg_zero-add-comment.patch
-lists-add-list-splice-tail.patch
-nfs-fix-congestion-control-use-atomic_longs.patch
+s2io-add-pci-error-recovery-support.patch
+git-scsi-rc-fixes.patch
