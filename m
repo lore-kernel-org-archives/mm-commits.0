@@ -1,64 +1,251 @@
 From: akpm@linux-foundation.org
-Subject: - sctp-ipv6-inconsistent-lock-state-ipv6_add_addr-sctp_v6_copy_addrlist.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:59:17 -0800
-Message-ID: <200703152159.l2FLxHtc027812@shell0.pdx.osdl.net>
+Subject: - scatterlisth-needs-typesh.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:59:23 -0800
+Message-ID: <200703152159.l2FLxNuB027818@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42564 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42568 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752051AbXCOV7f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:59:35 -0400
+	id S1752068AbXCOV7h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:59:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jarkao2@o2.pl, simon@arlott.org, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCTP: ipv6: inconsistent lock state ipv6_add_addr/sctp_v6_copy_addrlist
+     scatterlist.h needs types.h
 has been removed from the -mm tree.  Its filename was
-     sctp-ipv6-inconsistent-lock-state-ipv6_add_addr-sctp_v6_copy_addrlist.patch
+     scatterlisth-needs-typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SCTP: ipv6: inconsistent lock state ipv6_add_addr/sctp_v6_copy_addrlist
-From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: scatterlist.h needs types.h
+From: Jean Delvare <khali@linux-fr.org>
 
-lockdep found that dev->lock taken from softirq in ipv6_add_addr is also
-taken in sctp_v6_copy_addrlist with softirqs enabled, so lockup is
-possible.
+Most architectures' scatterlist.h use the type dma_addr_t, but omit to
+include <asm/types.h> which defines it.  This could lead to build failures,
+so let's add the missing includes.
 
-Noticed-by: Simon Arlott <simon@arlott.org>
-Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/ipv6.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-alpha/scatterlist.h     |    1 +
+ include/asm-avr32/scatterlist.h     |    2 ++
+ include/asm-frv/scatterlist.h       |    2 ++
+ include/asm-h8300/scatterlist.h     |    2 ++
+ include/asm-i386/scatterlist.h      |    2 ++
+ include/asm-ia64/scatterlist.h      |    2 ++
+ include/asm-m32r/scatterlist.h      |    2 ++
+ include/asm-m68knommu/scatterlist.h |    1 +
+ include/asm-mips/scatterlist.h      |    2 ++
+ include/asm-parisc/scatterlist.h    |    1 +
+ include/asm-sh/scatterlist.h        |    2 ++
+ include/asm-sh64/scatterlist.h      |    2 ++
+ include/asm-sparc64/scatterlist.h   |    1 +
+ include/asm-v850/scatterlist.h      |    2 ++
+ include/asm-x86_64/scatterlist.h    |    2 ++
+ include/asm-xtensa/scatterlist.h    |    2 ++
+ 16 files changed, 28 insertions(+)
 
-diff -puN net/sctp/ipv6.c~sctp-ipv6-inconsistent-lock-state-ipv6_add_addr-sctp_v6_copy_addrlist net/sctp/ipv6.c
---- a/net/sctp/ipv6.c~sctp-ipv6-inconsistent-lock-state-ipv6_add_addr-sctp_v6_copy_addrlist
-+++ a/net/sctp/ipv6.c
-@@ -360,7 +360,7 @@ static void sctp_v6_copy_addrlist(struct
- 		return;
- 	}
+diff -puN include/asm-alpha/scatterlist.h~scatterlisth-needs-typesh include/asm-alpha/scatterlist.h
+--- a/include/asm-alpha/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-alpha/scatterlist.h
+@@ -2,6 +2,7 @@
+ #define _ALPHA_SCATTERLIST_H
  
--	read_lock(&in6_dev->lock);
-+	read_lock_bh(&in6_dev->lock);
- 	for (ifp = in6_dev->addr_list; ifp; ifp = ifp->if_next) {
- 		/* Add the address to the local list.  */
- 		addr = t_new(struct sctp_sockaddr_entry, GFP_ATOMIC);
-@@ -374,7 +374,7 @@ static void sctp_v6_copy_addrlist(struct
- 		}
- 	}
+ #include <asm/page.h>
++#include <asm/types.h>
+   
+ struct scatterlist {
+ 	struct page *page;
+diff -puN include/asm-avr32/scatterlist.h~scatterlisth-needs-typesh include/asm-avr32/scatterlist.h
+--- a/include/asm-avr32/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-avr32/scatterlist.h
+@@ -1,6 +1,8 @@
+ #ifndef __ASM_AVR32_SCATTERLIST_H
+ #define __ASM_AVR32_SCATTERLIST_H
  
--	read_unlock(&in6_dev->lock);
-+	read_unlock_bh(&in6_dev->lock);
- 	rcu_read_unlock();
- }
++#include <asm/types.h>
++
+ struct scatterlist {
+     struct page		*page;
+     unsigned int	offset;
+diff -puN include/asm-frv/scatterlist.h~scatterlisth-needs-typesh include/asm-frv/scatterlist.h
+--- a/include/asm-frv/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-frv/scatterlist.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_SCATTERLIST_H
+ #define _ASM_SCATTERLIST_H
  
++#include <asm/types.h>
++
+ /*
+  * Drivers must set either ->address or (preferred) ->page and ->offset
+  * to indicate where data must be transferred to/from.
+diff -puN include/asm-h8300/scatterlist.h~scatterlisth-needs-typesh include/asm-h8300/scatterlist.h
+--- a/include/asm-h8300/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-h8300/scatterlist.h
+@@ -1,6 +1,8 @@
+ #ifndef _H8300_SCATTERLIST_H
+ #define _H8300_SCATTERLIST_H
+ 
++#include <asm/types.h>
++
+ struct scatterlist {
+ 	struct page	*page;
+ 	unsigned int	offset;
+diff -puN include/asm-i386/scatterlist.h~scatterlisth-needs-typesh include/asm-i386/scatterlist.h
+--- a/include/asm-i386/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-i386/scatterlist.h
+@@ -1,6 +1,8 @@
+ #ifndef _I386_SCATTERLIST_H
+ #define _I386_SCATTERLIST_H
+ 
++#include <asm/types.h>
++
+ struct scatterlist {
+     struct page		*page;
+     unsigned int	offset;
+diff -puN include/asm-ia64/scatterlist.h~scatterlisth-needs-typesh include/asm-ia64/scatterlist.h
+--- a/include/asm-ia64/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-ia64/scatterlist.h
+@@ -6,6 +6,8 @@
+  *	David Mosberger-Tang <davidm@hpl.hp.com>, Hewlett-Packard Co
+  */
+ 
++#include <asm/types.h>
++
+ struct scatterlist {
+ 	struct page *page;
+ 	unsigned int offset;
+diff -puN include/asm-m32r/scatterlist.h~scatterlisth-needs-typesh include/asm-m32r/scatterlist.h
+--- a/include/asm-m32r/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-m32r/scatterlist.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_M32R_SCATTERLIST_H
+ #define _ASM_M32R_SCATTERLIST_H
+ 
++#include <asm/types.h>
++
+ struct scatterlist {
+     char *  address;    /* Location data is to be transferred to, NULL for
+                          * highmem page */
+diff -puN include/asm-m68knommu/scatterlist.h~scatterlisth-needs-typesh include/asm-m68knommu/scatterlist.h
+--- a/include/asm-m68knommu/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-m68knommu/scatterlist.h
+@@ -2,6 +2,7 @@
+ #define _M68KNOMMU_SCATTERLIST_H
+ 
+ #include <linux/mm.h>
++#include <asm/types.h>
+ 
+ struct scatterlist {
+ 	struct page	*page;
+diff -puN include/asm-mips/scatterlist.h~scatterlisth-needs-typesh include/asm-mips/scatterlist.h
+--- a/include/asm-mips/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-mips/scatterlist.h
+@@ -1,6 +1,8 @@
+ #ifndef __ASM_SCATTERLIST_H
+ #define __ASM_SCATTERLIST_H
+ 
++#include <asm/types.h>
++
+ struct scatterlist {
+ 	struct page *	page;
+ 	unsigned int	offset;
+diff -puN include/asm-parisc/scatterlist.h~scatterlisth-needs-typesh include/asm-parisc/scatterlist.h
+--- a/include/asm-parisc/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-parisc/scatterlist.h
+@@ -2,6 +2,7 @@
+ #define _ASM_PARISC_SCATTERLIST_H
+ 
+ #include <asm/page.h>
++#include <asm/types.h>
+ 
+ struct scatterlist {
+ 	struct page *page;
+diff -puN include/asm-sh/scatterlist.h~scatterlisth-needs-typesh include/asm-sh/scatterlist.h
+--- a/include/asm-sh/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-sh/scatterlist.h
+@@ -1,6 +1,8 @@
+ #ifndef __ASM_SH_SCATTERLIST_H
+ #define __ASM_SH_SCATTERLIST_H
+ 
++#include <asm/types.h>
++
+ struct scatterlist {
+     struct page * page; /* Location for highmem page, if any */
+     unsigned int offset;/* for highmem, page offset */
+diff -puN include/asm-sh64/scatterlist.h~scatterlisth-needs-typesh include/asm-sh64/scatterlist.h
+--- a/include/asm-sh64/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-sh64/scatterlist.h
+@@ -11,6 +11,8 @@
+ #ifndef __ASM_SH64_SCATTERLIST_H
+ #define __ASM_SH64_SCATTERLIST_H
+ 
++#include <asm/types.h>
++
+ struct scatterlist {
+     struct page * page; /* Location for highmem page, if any */
+     unsigned int offset;/* for highmem, page offset */
+diff -puN include/asm-sparc64/scatterlist.h~scatterlisth-needs-typesh include/asm-sparc64/scatterlist.h
+--- a/include/asm-sparc64/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-sparc64/scatterlist.h
+@@ -3,6 +3,7 @@
+ #define _SPARC64_SCATTERLIST_H
+ 
+ #include <asm/page.h>
++#include <asm/types.h>
+ 
+ struct scatterlist {
+ 	struct page	*page;
+diff -puN include/asm-v850/scatterlist.h~scatterlisth-needs-typesh include/asm-v850/scatterlist.h
+--- a/include/asm-v850/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-v850/scatterlist.h
+@@ -14,6 +14,8 @@
+ #ifndef __V850_SCATTERLIST_H__
+ #define __V850_SCATTERLIST_H__
+ 
++#include <asm/types.h>
++
+ struct scatterlist {
+ 	struct page	*page;
+ 	unsigned	offset;
+diff -puN include/asm-x86_64/scatterlist.h~scatterlisth-needs-typesh include/asm-x86_64/scatterlist.h
+--- a/include/asm-x86_64/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-x86_64/scatterlist.h
+@@ -1,6 +1,8 @@
+ #ifndef _X8664_SCATTERLIST_H
+ #define _X8664_SCATTERLIST_H
+ 
++#include <asm/types.h>
++
+ struct scatterlist {
+     struct page		*page;
+     unsigned int	offset;
+diff -puN include/asm-xtensa/scatterlist.h~scatterlisth-needs-typesh include/asm-xtensa/scatterlist.h
+--- a/include/asm-xtensa/scatterlist.h~scatterlisth-needs-typesh
++++ a/include/asm-xtensa/scatterlist.h
+@@ -11,6 +11,8 @@
+ #ifndef _XTENSA_SCATTERLIST_H
+ #define _XTENSA_SCATTERLIST_H
+ 
++#include <asm/types.h>
++
+ struct scatterlist {
+ 	struct page 	*page;
+ 	unsigned int	offset;
 _
 
-Patches currently in -mm which might be from jarkao2@o2.pl are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-origin.patch
+sound-strlcpy-is-smart-enough.patch
+git-dvb.patch
+ehea-strlcpy-is-smart-enough.patch
+git-s390.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+xtensa-strlcpy-is-smart-enough.patch
+oss-strlcpy-is-smart-enough.patch
