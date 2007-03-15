@@ -1,71 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - usb-serial-regression-fix.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:59:53 -0800
-Message-ID: <200703152159.l2FLxrF3027848@shell0.pdx.osdl.net>
+Subject: - usb-elan-ftdi-check-for-workqueue-creation-v2.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:59:45 -0800
+Message-ID: <200703152159.l2FLxj9F027839@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42621 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42622 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752031AbXCOWAE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:00:04 -0400
+	id S1752093AbXCOWAF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:00:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: radford@blackbean.org, greg@kroah.com, mlord@pobox.com, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, greg@kroah.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-serial regression fix
+     USB Elan FTDI: check for workqueue creation
 has been removed from the -mm tree.  Its filename was
-     usb-serial-regression-fix.patch
+     usb-elan-ftdi-check-for-workqueue-creation-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb-serial regression fix
-From: Jim Radford <radford@blackbean.org>
+Subject: USB Elan FTDI: check for workqueue creation
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Revert d9a7ecacac5f8274d2afce09aadcf37bdb42b93a since it breaks drivers
-that need to access the ->port[] array in shutdown (most of them).
+Avoid NULL pointer usage if workqueue creation failed.
 
-Signed-off-by: Jim Radford <radford@blackbean.org>
-Acked-by: Mark Lord <mlord@pobox.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/usb-serial.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/usb/misc/ftdi-elan.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/serial/usb-serial.c~usb-serial-regression-fix drivers/usb/serial/usb-serial.c
---- a/drivers/usb/serial/usb-serial.c~usb-serial-regression-fix
-+++ a/drivers/usb/serial/usb-serial.c
-@@ -138,6 +138,11 @@ static void destroy_serial(struct kref *
- 
- 	dbg("%s - %s", __FUNCTION__, serial->type->description);
- 
-+	serial->type->shutdown(serial);
+diff -puN drivers/usb/misc/ftdi-elan.c~usb-elan-ftdi-check-for-workqueue-creation-v2 drivers/usb/misc/ftdi-elan.c
+--- a/drivers/usb/misc/ftdi-elan.c~usb-elan-ftdi-check-for-workqueue-creation-v2
++++ a/drivers/usb/misc/ftdi-elan.c
+@@ -2905,17 +2905,31 @@ static int __init ftdi_elan_init(void)
+ {
+         int result;
+         printk(KERN_INFO "driver %s built at %s on %s\n", ftdi_elan_driver.name,
+-                 __TIME__, __DATE__);
++	       __TIME__, __DATE__);
+         init_MUTEX(&ftdi_module_lock);
+         INIT_LIST_HEAD(&ftdi_static_list);
+         status_queue = create_singlethread_workqueue("ftdi-status-control");
++	if (!status_queue)
++		goto err1;
+         command_queue = create_singlethread_workqueue("ftdi-command-engine");
++	if (!command_queue)
++		goto err2;
+         respond_queue = create_singlethread_workqueue("ftdi-respond-engine");
++	if (!respond_queue)
++		goto err3;
+         result = usb_register(&ftdi_elan_driver);
+         if (result)
+                 printk(KERN_ERR "usb_register failed. Error number %d\n",
+-                        result);
++		       result);
+         return result;
 +
-+	/* return the minor range that this device had */
-+	return_serial(serial);
-+
- 	for (i = 0; i < serial->num_ports; ++i)
- 		serial->port[i]->open_count = 0;
++ err3:
++	destroy_workqueue(command_queue);
++ err2:
++	destroy_workqueue(status_queue);
++ err1:
++	printk(KERN_ERR "%s couldn't create workqueue\n", ftdi_elan_driver.name);
++	return -ENOMEM;
+ }
  
-@@ -148,12 +153,6 @@ static void destroy_serial(struct kref *
- 			serial->port[i] = NULL;
- 		}
- 
--	if (serial->type->shutdown)
--		serial->type->shutdown(serial);
--
--	/* return the minor range that this device had */
--	return_serial(serial);
--
- 	/* If this is a "fake" port, we have to clean it up here, as it will
- 	 * not get cleaned up in port_release() as it was never registered with
- 	 * the driver core */
+ static void __exit ftdi_elan_exit(void)
 _
 
-Patches currently in -mm which might be from radford@blackbean.org are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
