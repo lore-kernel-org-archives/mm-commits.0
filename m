@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-unused-set_seg_base.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:51:59 -0800
-Message-ID: <200703151852.l2FIq1Eh023368@shell0.pdx.osdl.net>
+Subject: + fix-wrong-proc-iomem-on-sgi-altix.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:52:13 -0800
+Message-ID: <200703151852.l2FIqFUc023382@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35651 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35677 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753334AbXCOSwJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:52:09 -0400
+	id S1753338AbXCOSwV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:52:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@suse.de
+Cc: bwalle@suse.de, jlan@engr.sgi.com, jpk@sgi.com, tony.luck@intel.com
 
 
 The patch titled
-     Remove unused set_seg_base
+     Fix wrong /proc/iomem on SGI Altix
 has been added to the -mm tree.  Its filename is
-     remove-unused-set_seg_base.patch
+     fix-wrong-proc-iomem-on-sgi-altix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,74 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove unused set_seg_base
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Fix wrong /proc/iomem on SGI Altix
+From: Bernhard Walle <bwalle@suse.de>
 
-The set_seg_base function isn't used anywhere (2.6.21-rc3-git1)
+In sn_io_slot_fixup(), the parent is re-set from the bus to
+io(port|mem)_resource because the address is changed in a way that it's not
+child of the bus any more.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+However, only the root is set but not the parent/child/sibling relationship
+in the resource tree which causes 'cat /proc/iomem' to stop after this
+memory area.  Depding on the poition in the tree the iomem may be nearly
+completely empty.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: John Keller <jpk@sgi.com>
+Cc: Jay Lan <jlan@engr.sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/desc.h |   10 ----------
- 1 file changed, 10 deletions(-)
+ arch/ia64/sn/kernel/io_init.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-x86_64/desc.h~remove-unused-set_seg_base include/asm-x86_64/desc.h
---- a/include/asm-x86_64/desc.h~remove-unused-set_seg_base
-+++ a/include/asm-x86_64/desc.h
-@@ -107,16 +107,6 @@ static inline void set_ldt_desc(unsigned
- 			      DESC_LDT, size * 8 - 1);
- }
- 
--static inline void set_seg_base(unsigned cpu, int entry, void *base)
--{ 
--	struct desc_struct *d = &cpu_gdt(cpu)[entry];
--	u32 addr = (u32)(u64)base;
--	BUG_ON((u64)base >> 32); 
--	d->base0 = addr & 0xffff;
--	d->base1 = (addr >> 16) & 0xff;
--	d->base2 = (addr >> 24) & 0xff;
--} 
--
- #define LDT_entry_a(info) \
- 	((((info)->base_addr & 0x0000ffff) << 16) | ((info)->limit & 0x0ffff))
- /* Don't allow setting of the lm bit. It is useless anyways because 
+diff -puN arch/ia64/sn/kernel/io_init.c~fix-wrong-proc-iomem-on-sgi-altix arch/ia64/sn/kernel/io_init.c
+--- a/arch/ia64/sn/kernel/io_init.c~fix-wrong-proc-iomem-on-sgi-altix
++++ a/arch/ia64/sn/kernel/io_init.c
+@@ -247,10 +247,18 @@ sn_io_slot_fixup(struct pci_dev *dev)
+ 		addr = ((addr << 4) >> 4) | __IA64_UNCACHED_OFFSET;
+ 		dev->resource[idx].start = addr;
+ 		dev->resource[idx].end = addr + size;
++
++		/*
++		 * if it's already in the device structure, remove it before
++		 * inserting
++		 */
++		if (dev->resource[idx].parent && dev->resource[idx].parent->child)
++			release_resource(&dev->resource[idx]);
++
+ 		if (dev->resource[idx].flags & IORESOURCE_IO)
+-			dev->resource[idx].parent = &ioport_resource;
++			insert_resource(&ioport_resource, &dev->resource[idx]);
+ 		else
+-			dev->resource[idx].parent = &iomem_resource;
++			insert_resource(&iomem_resource, &dev->resource[idx]);
+ 		/* If ROM, mark as shadowed in PROM */
+ 		if (idx == PCI_ROM_RESOURCE)
+ 			dev->resource[idx].flags |= IORESOURCE_ROM_BIOS_COPY;
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-i386-vdso_prelink-warning-fix.patch
-cleanup-initialize-esp0-properly-all-the-time.patch
-lguest-preparation-export_symbol_gpl-5-functions.patch
-lguest-preparation-expose-futex-infrastructure.patch
-lguest-kconfig-and-headers.patch
-lguest-the-host-code-lgko.patch
-lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patch
-lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
-lguest-the-host-code-lgko-pin-stack-page-optimization.patch
-lguest-guest-code.patch
-lguest-makefile.patch
-lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
-lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
-lguest-dont-crash-host-on-nmi.patch
-lguest-trivial-guest-network-driver.patch
-lguest-trivial-guest-console-driver.patch
-lguest-trivial-guest-block-driver.patch
-lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch
-lguest-documentatation-and-example-launcher.patch
-lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch
-lguest-documentatation-and-example-launcher-bridging-support-in-example-codelguest-documentation-fixes.patch
-introduce-load_tls-to-the-for-loop.patch
-remove-unused-set_seg_base.patch
-clarify-config_reorder-explanation.patch
-module-use-krealloc.patch
-extend-print_symbol-capability.patch
-array_size-check-for-type.patch
-____call_usermodehelper-dont-flush_signals.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-tidy.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
+git-acpi.patch
+git-r8169.patch
+fix-wrong-proc-iomem-on-sgi-altix.patch
