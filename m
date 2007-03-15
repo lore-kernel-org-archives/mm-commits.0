@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ibmebus-uevent-support.patch added to -mm tree
-Date: Thu, 15 Mar 2007 14:09:18 -0700
-Message-ID: <200703152109.l2FL9Ica026485@shell0.pdx.osdl.net>
+Subject: + dma_ops-as-const.patch added to -mm tree
+Date: Thu, 15 Mar 2007 14:10:15 -0700
+Message-ID: <200703152110.l2FLAF18026500@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40859 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40873 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751652AbXCOVJq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:09:46 -0400
+	id S1753377AbXCOVK2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:10:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fenkes@de.ibm.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: shemminger@linux-foundation.org, muli@il.ibm.com
 
 
 The patch titled
-     ibmebus: uevent support
+     calgary: dma_ops as const
 has been added to the -mm tree.  Its filename is
-     ibmebus-uevent-support.patch
+     dma_ops-as-const.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,101 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ibmebus: uevent support
-From: Joachim Fenkes <fenkes@de.ibm.com>
+Subject: calgary: dma_ops as const
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-This adds uevent support to ibmebus using the generic of_device_uevent()
-function.
+The dma_ops structure can be const since it never changes after boot.
 
-Signed-off-by: Joachim Fenkes <fenkes@de.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/ibmebus.c |    1 +
- 1 files changed, 1 insertion(+)
+ arch/x86_64/kernel/pci-calgary.c |    2 +-
+ arch/x86_64/kernel/pci-gart.c    |    2 +-
+ arch/x86_64/kernel/pci-nommu.c   |    2 +-
+ arch/x86_64/kernel/pci-swiotlb.c |    2 +-
+ arch/x86_64/mm/init.c            |    2 +-
+ include/asm-x86_64/dma-mapping.h |    2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/powerpc/kernel/ibmebus.c~ibmebus-uevent-support arch/powerpc/kernel/ibmebus.c
---- a/arch/powerpc/kernel/ibmebus.c~ibmebus-uevent-support
-+++ a/arch/powerpc/kernel/ibmebus.c
-@@ -460,6 +460,7 @@ static struct bus_attribute ibmebus_bus_
+diff -puN arch/x86_64/kernel/pci-calgary.c~dma_ops-as-const arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~dma_ops-as-const
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -507,7 +507,7 @@ error:
+ 	return ret;
+ }
  
- struct bus_type ibmebus_bus_type = {
- 	.name      = "ibmebus",
-+	.uevent    = of_device_uevent,
- 	.match     = ibmebus_bus_match,
- 	.dev_attrs = ibmebus_dev_attrs,
- 	.bus_attrs = ibmebus_bus_attrs
+-static struct dma_mapping_ops calgary_dma_ops = {
++static const struct dma_mapping_ops calgary_dma_ops = {
+ 	.alloc_coherent = calgary_alloc_coherent,
+ 	.map_single = calgary_map_single,
+ 	.unmap_single = calgary_unmap_single,
+diff -puN arch/x86_64/kernel/pci-gart.c~dma_ops-as-const arch/x86_64/kernel/pci-gart.c
+--- a/arch/x86_64/kernel/pci-gart.c~dma_ops-as-const
++++ a/arch/x86_64/kernel/pci-gart.c
+@@ -552,7 +552,7 @@ static __init int init_k8_gatt(struct ag
+ 
+ extern int agp_amd64_init(void);
+ 
+-static struct dma_mapping_ops gart_dma_ops = {
++static const struct dma_mapping_ops gart_dma_ops = {
+ 	.mapping_error = NULL,
+ 	.map_single = gart_map_single,
+ 	.map_simple = gart_map_simple,
+diff -puN arch/x86_64/kernel/pci-nommu.c~dma_ops-as-const arch/x86_64/kernel/pci-nommu.c
+--- a/arch/x86_64/kernel/pci-nommu.c~dma_ops-as-const
++++ a/arch/x86_64/kernel/pci-nommu.c
+@@ -79,7 +79,7 @@ void nommu_unmap_sg(struct device *dev, 
+ {
+ }
+ 
+-struct dma_mapping_ops nommu_dma_ops = {
++const struct dma_mapping_ops nommu_dma_ops = {
+ 	.map_single = nommu_map_single,
+ 	.unmap_single = nommu_unmap_single,
+ 	.map_sg = nommu_map_sg,
+diff -puN arch/x86_64/kernel/pci-swiotlb.c~dma_ops-as-const arch/x86_64/kernel/pci-swiotlb.c
+--- a/arch/x86_64/kernel/pci-swiotlb.c~dma_ops-as-const
++++ a/arch/x86_64/kernel/pci-swiotlb.c
+@@ -12,7 +12,7 @@
+ int swiotlb __read_mostly;
+ EXPORT_SYMBOL(swiotlb);
+ 
+-struct dma_mapping_ops swiotlb_dma_ops = {
++const struct dma_mapping_ops swiotlb_dma_ops = {
+ 	.mapping_error = swiotlb_dma_mapping_error,
+ 	.alloc_coherent = swiotlb_alloc_coherent,
+ 	.free_coherent = swiotlb_free_coherent,
+diff -puN arch/x86_64/mm/init.c~dma_ops-as-const arch/x86_64/mm/init.c
+--- a/arch/x86_64/mm/init.c~dma_ops-as-const
++++ a/arch/x86_64/mm/init.c
+@@ -46,7 +46,7 @@
+ #define Dprintk(x...)
+ #endif
+ 
+-struct dma_mapping_ops* dma_ops;
++const struct dma_mapping_ops* dma_ops;
+ EXPORT_SYMBOL(dma_ops);
+ 
+ static unsigned long dma_reserve __initdata;
+diff -puN include/asm-x86_64/dma-mapping.h~dma_ops-as-const include/asm-x86_64/dma-mapping.h
+--- a/include/asm-x86_64/dma-mapping.h~dma_ops-as-const
++++ a/include/asm-x86_64/dma-mapping.h
+@@ -52,7 +52,7 @@ struct dma_mapping_ops {
+ };
+ 
+ extern dma_addr_t bad_dma_address;
+-extern struct dma_mapping_ops* dma_ops;
++extern const struct dma_mapping_ops* dma_ops;
+ extern int iommu_merge;
+ 
+ static inline int dma_mapping_error(dma_addr_t dma_addr)
 _
 
-Patches currently in -mm which might be from fenkes@de.ibm.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-ibmebus-whitespace-fixes.patch
-ibmebus-dynamic-addition-removal-of-adapters-some-code-cleanup.patch
-ibmebus-uevent-support.patch
+git-netdev-all.patch
+div64_64-common-code.patch
+git-wireless.patch
+dma_ops-as-const.patch
