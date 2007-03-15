@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-dont-release-lock-for-hole-punching.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:48:13 -0800
-Message-ID: <200703151848.l2FImF7i023231@shell0.pdx.osdl.net>
+Subject: + hrtimer-fixup-unlocked-access-to-wall_to_monotonic.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:48:09 -0800
+Message-ID: <200703151848.l2FImBuN023225@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35265 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35278 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751483AbXCOSsX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:48:23 -0400
+	id S1751495AbXCOSsa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:48:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, hugh@veritas.com, pbadari@us.ibm.com
+Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     shmem: don't release lock for hole punching
+     hrtimer: fix up unlocked access to wall_to_monotonic
 has been added to the -mm tree.  Its filename is
-     shmem-dont-release-lock-for-hole-punching.patch
+     hrtimer-fixup-unlocked-access-to-wall_to_monotonic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: shmem: don't release lock for hole punching
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: hrtimer: fix up unlocked access to wall_to_monotonic
+From: Thomas Gleixner <tglx@linutronix.de>
 
-During truncation of shmem page directories, info->lock is released to
-improve latency.  But this is wrong for hole punching, because the memory
-areas being operated on are still in use by shmem_unuse, shmem_getpage and
-shmem_writepage.
+commit f4304ab21513b834c8fe3403927c60c2b81a72d7 (HZ free NTP) moved the
+access to wall_to_monotonic in hrtimer_get_softirq_time() out of the
+xtime_lock protection.
 
-So for hole punching don't release the lock.  Users of MADV_REMOVE likely
-don't care about latency anyway.  But this function really wants a cleanup,
-and with that latency could also be taken care of.
+Move it back into the seq_lock section.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: John Stultz <johnstul@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ kernel/hrtimer.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~shmem-dont-release-lock-for-hole-punching mm/shmem.c
---- a/mm/shmem.c~shmem-dont-release-lock-for-hole-punching
-+++ a/mm/shmem.c
-@@ -421,7 +421,7 @@ static int shmem_free_swp(swp_entry_t *d
- }
- 
- static int shmem_map_and_free_swp(struct page *subdir,
--		int offset, int limit, struct page ***dir)
-+		int offset, int limit, struct page ***dir, int punch_hole)
+diff -puN kernel/hrtimer.c~hrtimer-fixup-unlocked-access-to-wall_to_monotonic kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimer-fixup-unlocked-access-to-wall_to_monotonic
++++ a/kernel/hrtimer.c
+@@ -135,7 +135,7 @@ EXPORT_SYMBOL_GPL(ktime_get_ts);
+ static void hrtimer_get_softirq_time(struct hrtimer_cpu_base *base)
  {
- 	swp_entry_t *ptr;
- 	int freed = 0;
-@@ -429,10 +429,10 @@ static int shmem_map_and_free_swp(struct
- 	ptr = shmem_swp_map(subdir);
- 	for (; offset < limit; offset += LATENCY_LIMIT) {
- 		int size = limit - offset;
--		if (size > LATENCY_LIMIT)
-+		if (!punch_hole && size > LATENCY_LIMIT)
- 			size = LATENCY_LIMIT;
- 		freed += shmem_free_swp(ptr+offset, ptr+offset+size);
--		if (need_resched()) {
-+		if (!punch_hole && need_resched()) {
- 			shmem_swp_unmap(ptr);
- 			if (*dir) {
- 				shmem_dir_unmap(*dir);
-@@ -506,7 +506,8 @@ static void shmem_truncate_range(struct 
- 		nr_pages_to_free++;
- 		list_add(&topdir->lru, &pages_to_free);
- 	}
--	spin_unlock(&info->lock);
-+	if (!punch_hole)
-+		spin_unlock(&info->lock);
+ 	ktime_t xtim, tomono;
+-	struct timespec xts;
++	struct timespec xts, tom;
+ 	unsigned long seq;
  
- 	if (info->swapped && idx < SHMEM_NR_DIRECT) {
- 		ptr = info->i_direct;
-@@ -589,14 +590,14 @@ static void shmem_truncate_range(struct 
- 			if (size > ENTRIES_PER_PAGE)
- 				size = ENTRIES_PER_PAGE;
- 			freed = shmem_map_and_free_swp(subdir,
--						offset, size, &dir);
-+					offset, size, &dir, punch_hole);
- 			if (!dir)
- 				dir = shmem_dir_map(middir);
- 			nr_swaps_freed += freed;
--			if (offset)
-+			if (offset && !punch_hole)
- 				spin_lock(&info->lock);
- 			set_page_private(subdir, page_private(subdir) - freed);
--			if (offset)
-+			if (offset && !punch_hole)
- 				spin_unlock(&info->lock);
- 			if (!punch_hole)
- 				BUG_ON(page_private(subdir) > offset);
-@@ -613,6 +614,8 @@ static void shmem_truncate_range(struct 
- done1:
- 	shmem_dir_unmap(dir);
- done2:
-+	if (punch_hole)
-+		spin_unlock(&info->lock);
- 	if (inode->i_mapping->nrpages && (info->flags & SHMEM_PAGEIN)) {
- 		/*
- 		 * Call truncate_inode_pages again: racing shmem_unuse_inode
+ 	do {
+@@ -145,10 +145,11 @@ static void hrtimer_get_softirq_time(str
+ #else
+ 		xts = xtime;
+ #endif
++		tom = wall_to_monotonic;
+ 	} while (read_seqretry(&xtime_lock, seq));
+ 
+ 	xtim = timespec_to_ktime(xts);
+-	tomono = timespec_to_ktime(wall_to_monotonic);
++	tomono = timespec_to_ktime(tom);
+ 	base->clock_base[CLOCK_REALTIME].softirq_time = xtim;
+ 	base->clock_base[CLOCK_MONOTONIC].softirq_time =
+ 		ktime_add(xtim, tomono);
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-shmem-fix-bug-in-shmem_writepage.patch
-shmem-dont-release-lock-for-hole-punching.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-filesystem-subtype-support.patch
-consolidate-generic_writepages-and-mpage_writepages.patch
+hrtimer-prevent-overrun-dos-in-hrtimer_forward.patch
+hrtimer-fixup-unlocked-access-to-wall_to_monotonic.patch
+paravirt-build-fixes.patch
+scheduled-removal-of-sa_xxx-interrupt-flags-fixups-4.patch
+git-ieee1394.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
