@@ -1,66 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - netxen-fix-warnings.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:58:47 -0800
-Message-ID: <200703152158.l2FLwltx027758@shell0.pdx.osdl.net>
+Subject: - 3c59x-fix-several-modpost-warnings.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:58:55 -0800
+Message-ID: <200703152158.l2FLwtne027770@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42711 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42714 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753386AbXCOWCE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:02:04 -0400
+	id S1753384AbXCOWCM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:02:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netxen: fix warnings
+     3c59x: fix several modpost warnings
 has been removed from the -mm tree.  Its filename was
-     netxen-fix-warnings.patch
+     3c59x-fix-several-modpost-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: netxen: fix warnings
+Subject: 3c59x: fix several modpost warnings
 From: Ralf Baechle <ralf@linux-mips.org>
 
-  CC [M]  drivers/net/netxen/netxen_nic_hw.o
-drivers/net/netxen/netxen_nic_hw.c: In function 'netxen_nic_hw_resources':
-drivers/net/netxen/netxen_nic_hw.c:231: warning: format '%llx' expects type 'long long unsigned int', but argument 2 has type 'dma_addr_t'
-drivers/net/netxen/netxen_nic_hw.c:250: warning: format '%llx' expects type 'long long unsigned int', but argument 2 has type 'dma_addr_t'
+WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x4580) and 'vortex_eisa_remove'
+WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x4584) and 'vortex_eisa_remove'
+WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x4588) and 'vortex_eisa_remove'
+WARNING: drivers/net/3c59x.o - Section mismatch: reference to .init.text: from .text between 'vortex_eisa_probe' (at offset 0x458c) and 'vortex_eisa_remove'
 
-u64 is unsigned long so the cast to u64 will result in a warning on the
-printf arguments for 64-bit builds.  So cast to unsigned long long instead.
+Fixed by:
+
+ o move definition of vortex_eisa_driver below the functions it references.
+ o remove now unnecessary prototypes for vortex_eisa_probe and
+   vortex_eisa_remove.
+ o Make vortex_eisa_probe an __init function.
+ o Make vortex_eisa_remove a __devexit function.
+ o Wrap vortex_eisa_driver reference to vortex_eisa_remove with
+   __devexit_p().
 
 Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/netxen/netxen_nic_hw.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/net/3c59x.c |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN drivers/net/netxen/netxen_nic_hw.c~netxen-fix-warnings drivers/net/netxen/netxen_nic_hw.c
---- a/drivers/net/netxen/netxen_nic_hw.c~netxen-fix-warnings
-+++ a/drivers/net/netxen/netxen_nic_hw.c
-@@ -228,7 +228,7 @@ int netxen_nic_hw_resources(struct netxe
- 			    &adapter->ctx_desc_pdev);
+diff -puN drivers/net/3c59x.c~3c59x-fix-several-modpost-warnings drivers/net/3c59x.c
+--- a/drivers/net/3c59x.c~3c59x-fix-several-modpost-warnings
++++ a/drivers/net/3c59x.c
+@@ -857,19 +857,7 @@ static struct eisa_device_id vortex_eisa
+ };
+ MODULE_DEVICE_TABLE(eisa, vortex_eisa_ids);
  
- 	printk("ctx_desc_phys_addr: 0x%llx\n",
--	       (u64) adapter->ctx_desc_phys_addr);
-+	       (unsigned long long) adapter->ctx_desc_phys_addr);
- 	if (addr == NULL) {
- 		DPRINTK(ERR, "bad return from pci_alloc_consistent\n");
- 		err = -ENOMEM;
-@@ -247,7 +247,8 @@ int netxen_nic_hw_resources(struct netxe
- 			    adapter->max_tx_desc_count,
- 			    (dma_addr_t *) & hw->cmd_desc_phys_addr,
- 			    &adapter->ahw.cmd_desc_pdev);
--	printk("cmd_desc_phys_addr: 0x%llx\n", (u64) hw->cmd_desc_phys_addr);
-+	printk("cmd_desc_phys_addr: 0x%llx\n",
-+	       (unsigned long long) hw->cmd_desc_phys_addr);
+-static int vortex_eisa_probe(struct device *device);
+-static int vortex_eisa_remove(struct device *device);
+-
+-static struct eisa_driver vortex_eisa_driver = {
+-	.id_table = vortex_eisa_ids,
+-	.driver   = {
+-		.name    = "3c59x",
+-		.probe   = vortex_eisa_probe,
+-		.remove  = vortex_eisa_remove
+-	}
+-};
+-
+-static int vortex_eisa_probe(struct device *device)
++static int __init vortex_eisa_probe(struct device *device)
+ {
+ 	void __iomem *ioaddr;
+ 	struct eisa_device *edev;
+@@ -892,7 +880,7 @@ static int vortex_eisa_probe(struct devi
+ 	return 0;
+ }
  
- 	if (addr == NULL) {
- 		DPRINTK(ERR, "bad return from pci_alloc_consistent\n");
+-static int vortex_eisa_remove(struct device *device)
++static int __devexit vortex_eisa_remove(struct device *device)
+ {
+ 	struct eisa_device *edev;
+ 	struct net_device *dev;
+@@ -917,7 +905,17 @@ static int vortex_eisa_remove(struct dev
+ 	free_netdev(dev);
+ 	return 0;
+ }
+-#endif
++
++static struct eisa_driver vortex_eisa_driver = {
++	.id_table = vortex_eisa_ids,
++	.driver   = {
++		.name    = "3c59x",
++		.probe   = vortex_eisa_probe,
++		.remove  = __devexit_p(vortex_eisa_remove)
++	}
++};
++
++#endif /* CONFIG_EISA */
+ 
+ /* returns count found (>= 0), or negative on error */
+ static int __init vortex_eisa_init(void)
 _
 
 Patches currently in -mm which might be from ralf@linux-mips.org are
