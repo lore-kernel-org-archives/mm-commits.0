@@ -1,107 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - libata-acpi-try-and-stop-all-the-non-pci-devices-crashing.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:58:15 -0800
-Message-ID: <200703152158.l2FLwFJY027716@shell0.pdx.osdl.net>
+Subject: - pata_cmd640-multiple-updates.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:58:20 -0800
+Message-ID: <200703152158.l2FLwKwB027724@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42468 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42474 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752077AbXCOV63 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:58:29 -0400
+	id S1752077AbXCOV6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:58:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-acpi: try and stop all the non PCI devices crashing
+     pata_cmd640: multiple updates
 has been removed from the -mm tree.  Its filename was
-     libata-acpi-try-and-stop-all-the-non-pci-devices-crashing.patch
+     pata_cmd640-multiple-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata-acpi: try and stop all the non PCI devices crashing
-From: Alan Cox <alan@redhat.com>
+Subject: pata_cmd640: multiple updates
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-For 2.6.20 it mostly used to just not work, for 2.6.21-rc it crashes, this
-seems to be down to luck (bad or good). The libata-acpi code needs to
-avoid doing PCI work on non-PCI devices. This is one hack although it's
-not pretty and perhaps there is a "right" way to check if a struct device
-* is PCI ?
+Add suspend/resume support
+Write 0x5B to 0 not 0x5C
+
+The former is important as we must kill the FIFO on a resume
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ drivers/ata/pata_cmd640.c |   30 ++++++++++++++++++------------
+ 1 files changed, 18 insertions(+), 12 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~libata-acpi-try-and-stop-all-the-non-pci-devices-crashing drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-acpi-try-and-stop-all-the-non-pci-devices-crashing
-+++ a/drivers/ata/libata-acpi.c
-@@ -34,6 +34,16 @@ struct taskfile_array {
- 	u8	tfa[REGS_PER_GTF];	/* regs. 0x1f1 - 0x1f7 */
- };
+diff -puN drivers/ata/pata_cmd640.c~pata_cmd640-multiple-updates drivers/ata/pata_cmd640.c
+--- a/drivers/ata/pata_cmd640.c~pata_cmd640-multiple-updates
++++ a/drivers/ata/pata_cmd640.c
+@@ -23,7 +23,7 @@
+ #include <linux/libata.h>
  
-+/*
-+ *	Helper - belongs in the PCI layer somewhere eventually
-+ */
-+
-+static int is_pci_dev(struct device *dev)
-+{
-+	if (dev->bus == &pci_bus_type)
-+		return 1;
-+	return 0;
-+}
+ #define DRV_NAME "pata_cmd640"
+-#define DRV_VERSION "0.0.3"
++#define DRV_VERSION "0.0.5"
+ 
+ struct cmd640_reg {
+ 	int last;
+@@ -43,6 +43,7 @@ enum {
  
  /**
-  * sata_get_dev_handle - finds acpi_handle and PCI device.function
-@@ -53,6 +63,9 @@ static int sata_get_dev_handle(struct de
- 	struct pci_dev	*pci_dev;
- 	acpi_integer	addr;
+  *	cmd640_set_piomode	-	set initial PIO mode data
++ *	@ap: ATA port
+  *	@adev: ATA device
+  *
+  *	Called to do the PIO mode setup.
+@@ -219,22 +220,13 @@ static struct ata_port_operations cmd640
+ 	.port_start	= cmd640_port_start,
+ };
  
-+	if (!is_pci_dev(dev))
-+		return -ENODEV;
-+
- 	pci_dev = to_pci_dev(dev);	/* NOTE: PCI-specific */
- 	/* Please refer to the ACPI spec for the syntax of _ADR. */
- 	addr = (PCI_SLOT(pci_dev->devfn) << 16) | PCI_FUNC(pci_dev->devfn);
-@@ -84,7 +97,12 @@ static int pata_get_dev_handle(struct de
- 	acpi_status status;
- 	struct acpi_device_info	*dinfo = NULL;
- 	int ret = -ENODEV;
--	struct pci_dev *pdev = to_pci_dev(dev);
-+	struct pci_dev *pdev;
-+
-+	if (!is_pci_dev(dev))
-+		return -ENODEV;
-+
-+	pdev = to_pci_dev(dev);
+-static int cmd640_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
++static void cmd640_hardware_init(struct pci_dev *pdev)
+ {
+ 	u8 r;
+ 	u8 ctrl;
  
- 	bus = pdev->bus->number;
- 	devnum = PCI_SLOT(pdev->devfn);
+-	static struct ata_port_info info = {
+-		.sht = &cmd640_sht,
+-		.flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
+-		.pio_mask = 0x1f,
+-		.port_ops = &cmd640_port_ops
+-	};
+-
+-	static struct ata_port_info *port_info[2] = { &info, &info };
+-
+ 	/* CMD640 detected, commiserations */
+-	pci_write_config_byte(pdev, 0x5C, 0x00);
++	pci_write_config_byte(pdev, 0x5B, 0x00);
+ 	/* Get version info */
+ 	pci_read_config_byte(pdev, CFR, &r);
+ 	/* PIO0 command cycles */
+@@ -255,12 +247,26 @@ static int cmd640_init_one(struct pci_de
+ 	pci_read_config_byte(pdev, ARTIM23, &ctrl);
+ 	ctrl |= 0x0C;
+ 	pci_write_config_byte(pdev, ARTIM23, ctrl);
++}
++
++static int cmd640_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
++{
++	static struct ata_port_info info = {
++		.sht = &cmd640_sht,
++		.flags = ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
++		.pio_mask = 0x1f,
++		.port_ops = &cmd640_port_ops
++	};
++
++	static struct ata_port_info *port_info[2] = { &info, &info };
+ 
++	cmd640_hardware_init(pdev);
+ 	return ata_pci_init_one(pdev, port_info, 2);
+ }
+ 
+ static int cmd640_reinit_one(struct pci_dev *pdev)
+ {
++	cmd640_hardware_init(pdev);
+ 	return ata_pci_device_resume(pdev);
+ }
+ 
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
 git-libata-all.patch
 pcmcia-spot-slave-decode-flaws-for-testing.patch
-ata_generic-remove-all-the-crud-again-and-use-cable.patch
-pata_ali-remove-all-the-crap-again-and-switch-to.patch
-pata_amd-remove-all-the-crud-and-restore-the-cable-detect.patch
-pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable.patch
-pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch
-pata_netcell-re-remove-all-the-crud.patch
-pata_qdi-restore-cable-detect.patch
-pata_sl82c105-restore-cable-detect-method.patch
-pata_winbond-restore-cable-method.patch
-libata-acpi-add-infrastructure-for-drivers-to-use.patch
-pata_optidma-rework-for-cable-detect-and-to-remove.patch
-pata_pdc2027x-restore-various-updates-done-on-the-driver.patch
-pata_acpi-restore-driver.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+baycom_ser_fdx-also-allow-i-o-ports-=-0x1000-and-enhanced.patch
 resend-iphase-64bit-cleanup.patch
-pci_module_init-convertion-in-tmscsimc.patch
+serial-suppress-rts-assertion-with-disabled-crtscts.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
 tty-clarify-documentation-of-write.patch
 tty-i386-x86_64-arbitary-speed-support.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
