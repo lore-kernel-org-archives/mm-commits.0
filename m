@@ -1,109 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-fix-socket-locking-in-hci_sock_dev_event.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:56:16 -0800
-Message-ID: <200703152156.l2FLuGst027534@shell0.pdx.osdl.net>
+Subject: - fix-vmi-time-header-bug.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:56:33 -0800
+Message-ID: <200703152156.l2FLuXHA027570@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42276 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42281 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751830AbXCOV4e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:56:34 -0400
+	id S1751867AbXCOV4h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:56:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: zach@vmware.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: fix socket locking in hci_sock_dev_event()
+     Fix vmi time header bug
 has been removed from the -mm tree.  Its filename was
-     bluetooth-fix-socket-locking-in-hci_sock_dev_event.patch
+     fix-vmi-time-header-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: bluetooth: fix socket locking in hci_sock_dev_event()
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: Fix vmi time header bug
+From: Zachary Amsden <zach@vmware.com>
 
-[Bluetooth] Fix socket locking in hci_sock_dev_event()
+Some gcc apparently put this function in .init.text because the header didn't
+match.
 
-hci_sock_dev_event() uses bh_lock_sock() to lock the socket lock.
-This is not deadlock-safe against locking of the same socket lock in
-l2cap_connect_cfm() from softirq context. In addition to that,
-hci_sock_dev_event() doesn't seem to be called from softirq context,
-so it is safe to use lock_sock()/release_sock() instead.
-
-The lockdep warning can be triggered on my T42p simply by switching
-the Bluetooth off by the keyboard button.
-
-=================================
-[ INFO: inconsistent lock state ]
-2.6.21-rc2 #4
----------------------------------
-inconsistent {in-softirq-W} -> {softirq-on-W} usage.
-khubd/156 [HC0[0]:SC0[0]:HE1:SE1] takes:
- (slock-AF_BLUETOOTH){-+..}, at: [<e0ca5520>] hci_sock_dev_event+0xa8/0xc5 [bluetooth]
-{in-softirq-W} state was registered at:
-  [<c012d1db>] mark_lock+0x59/0x414
-  [<e0cef688>] l2cap_connect_cfm+0x4e/0x11f [l2cap]
-  [<c012dfd7>] __lock_acquire+0x3e5/0xb99
-  [<e0cef688>] l2cap_connect_cfm+0x4e/0x11f [l2cap]
-  [<c012e7f2>] lock_acquire+0x67/0x81
-  [<e0cef688>] l2cap_connect_cfm+0x4e/0x11f [l2cap]
-  [<c036ee72>] _spin_lock+0x29/0x34
-  [<e0cef688>] l2cap_connect_cfm+0x4e/0x11f [l2cap]
-  [<e0cef688>] l2cap_connect_cfm+0x4e/0x11f [l2cap]
-  [<e0ca17c3>] hci_send_cmd+0x126/0x14f [bluetooth]
-  [<e0ca4ce4>] hci_event_packet+0x729/0xebd [bluetooth]
-  [<e0ca205b>] hci_rx_task+0x2a/0x20f [bluetooth]
-  [<e0ca209d>] hci_rx_task+0x6c/0x20f [bluetooth]
-  [<c012d7be>] trace_hardirqs_on+0x10d/0x14e
-  [<c011ac85>] tasklet_action+0x3d/0x68
-  [<c011abba>] __do_softirq+0x41/0x92
-  [<c011ac32>] do_softirq+0x27/0x3d
-  [<c0105134>] do_IRQ+0x7b/0x8f
-  [<c0103dec>] common_interrupt+0x24/0x34
-  [<c0103df6>] common_interrupt+0x2e/0x34
-  [<c0248e65>] acpi_processor_idle+0x1b3/0x34a
-  [<c0248e68>] acpi_processor_idle+0x1b6/0x34a
-  [<c010232b>] cpu_idle+0x39/0x4e
-  [<c04bab0c>] start_kernel+0x372/0x37a
-  [<c04ba42b>] unknown_bootoption+0x0/0x202
-  [<ffffffff>] 0xffffffff
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hci_sock.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-i386/vmi_time.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/bluetooth/hci_sock.c~bluetooth-fix-socket-locking-in-hci_sock_dev_event net/bluetooth/hci_sock.c
---- a/net/bluetooth/hci_sock.c~bluetooth-fix-socket-locking-in-hci_sock_dev_event
-+++ a/net/bluetooth/hci_sock.c
-@@ -656,7 +656,7 @@ static int hci_sock_dev_event(struct not
- 		/* Detach sockets from device */
- 		read_lock(&hci_sk_list.lock);
- 		sk_for_each(sk, node, &hci_sk_list.head) {
--			bh_lock_sock(sk);
-+			lock_sock(sk);
- 			if (hci_pi(sk)->hdev == hdev) {
- 				hci_pi(sk)->hdev = NULL;
- 				sk->sk_err = EPIPE;
-@@ -665,7 +665,7 @@ static int hci_sock_dev_event(struct not
+diff -puN include/asm-i386/vmi_time.h~fix-vmi-time-header-bug include/asm-i386/vmi_time.h
+--- a/include/asm-i386/vmi_time.h~fix-vmi-time-header-bug
++++ a/include/asm-i386/vmi_time.h
+@@ -54,7 +54,7 @@ extern unsigned long vmi_cpu_khz(void);
  
- 				hci_dev_put(hdev);
- 			}
--			bh_unlock_sock(sk);
-+			release_sock(sk);
- 		}
- 		read_unlock(&hci_sk_list.lock);
- 	}
+ #ifdef CONFIG_X86_LOCAL_APIC
+ extern void __init vmi_timer_setup_boot_alarm(void);
+-extern void __init vmi_timer_setup_secondary_alarm(void);
++extern void __devinit vmi_timer_setup_secondary_alarm(void);
+ extern void apic_vmi_timer_interrupt(void);
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from zach@vmware.com are
 
 origin.patch
-git-hid.patch
-bluetooth-hid-quirks-mightymouse-quirk.patch
-git-ipwireless_cs.patch
+paravirt-build-fixes.patch
+make-struct-vmi_ops-static.patch
+make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
+replace-get_scheduled_cycles-with-sched_clock-paravirt_op.patch
