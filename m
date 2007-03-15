@@ -1,100 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - pata_efar-switch-back-to-cable-methods.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:57:33 -0800
-Message-ID: <200703152157.l2FLvXhU027647@shell0.pdx.osdl.net>
+Subject: - pata_it8213-switch-to-cable-method-again.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:41 -0800
+Message-ID: <200703152157.l2FLvfN0027659@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42385 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42395 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751943AbXCOV5q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:57:46 -0400
+	id S1751969AbXCOV5w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_efar: switch back to cable methods
+     pata_it8213: switch to cable method again
 has been removed from the -mm tree.  Its filename was
-     pata_efar-switch-back-to-cable-methods.patch
+     pata_it8213-switch-to-cable-method-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_efar: switch back to cable methods
+Subject: pata_it8213: switch to cable method again
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_efar.c |   32 ++++++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 10 deletions(-)
+ drivers/ata/pata_it8213.c |   36 +++++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
 
-diff -puN drivers/ata/pata_efar.c~pata_efar-switch-back-to-cable-methods drivers/ata/pata_efar.c
---- a/drivers/ata/pata_efar.c~pata_efar-switch-back-to-cable-methods
-+++ a/drivers/ata/pata_efar.c
-@@ -22,10 +22,10 @@
- #include <linux/ata.h>
- 
- #define DRV_NAME	"pata_efar"
--#define DRV_VERSION	"0.4.3"
-+#define DRV_VERSION	"0.4.4"
- 
- /**
-- *	efar_pre_reset	-	check for 40/80 pin
-+ *	efar_pre_reset	-	Enable bits
+diff -puN drivers/ata/pata_it8213.c~pata_it8213-switch-to-cable-method-again drivers/ata/pata_it8213.c
+--- a/drivers/ata/pata_it8213.c~pata_it8213-switch-to-cable-method-again
++++ a/drivers/ata/pata_it8213.c
+@@ -26,8 +26,8 @@
   *	@ap: Port
   *	@deadline: deadline jiffies for the operation
   *
-@@ -41,16 +41,8 @@ static int efar_pre_reset(struct ata_por
- 	};
+- *	Perform cable detection for the 8213 ATA interface. This is
+- *	different to the PIIX arrangement
++ *	Filter out ports by the enable bits before doing the normal reset
++ *	and probe.
+  */
  
+ static int it8213_pre_reset(struct ata_port *ap, unsigned long deadline)
+@@ -35,23 +35,14 @@ static int it8213_pre_reset(struct ata_p
+ 	static const struct pci_bits it8213_enable_bits[] = {
+ 		{ 0x41U, 1U, 0x80UL, 0x80UL },	/* port 0 */
+ 	};
+-
  	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
 -	u8 tmp;
 -
- 	if (!pci_test_config_bits(pdev, &efar_enable_bits[ap->port_no]))
+ 	if (!pci_test_config_bits(pdev, &it8213_enable_bits[ap->port_no]))
  		return -ENOENT;
 -
--	pci_read_config_byte(pdev, 0x47, &tmp);
--	if (tmp & (2 >> ap->port_no))
+-	pci_read_config_byte(pdev, 0x42, &tmp);
+-	if (tmp & 2)	/* The initial docs are incorrect */
 -		ap->cbl = ATA_CBL_PATA40;
 -	else
 -		ap->cbl = ATA_CBL_PATA80;
  	return ata_std_prereset(ap, deadline);
  }
  
-@@ -68,6 +60,25 @@ static void efar_error_handler(struct at
+ /**
+- *	it8213_probe_reset - Probe specified port on PATA host controller
++ *	it8213_error_handler - Probe specified port on PATA host controller
+  *	@ap: Port to probe
+  *
+  *	LOCKING:
+@@ -64,9 +55,27 @@ static void it8213_error_handler(struct 
  }
  
  /**
-+ *	efar_cable_detect	-	check for 40/80 pin
++ *	it8213_cable_detect	-	check for 40/80 pin
 + *	@ap: Port
 + *
-+ *	Perform cable detection for the EFAR ATA interface. This is
++ *	Perform cable detection for the 8213 ATA interface. This is
 + *	different to the PIIX arrangement
 + */
 +
-+static int efar_cable_detect(struct ata_port *ap)
++static int it8213_cable_detect(struct ata_port *ap)
 +{
 +	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
 +	u8 tmp;
-+
-+	pci_read_config_byte(pdev, 0x47, &tmp);
-+	if (tmp & (2 >> ap->port_no))
++	pci_read_config_byte(pdev, 0x42, &tmp);
++	if (tmp & 2)	/* The initial docs are incorrect */
 +		return ATA_CBL_PATA40;
 +	return ATA_CBL_PATA80;
 +}
 +
 +/**
-  *	efar_set_piomode - Initialize host controller PATA PIO timings
+  *	it8213_set_piomode - Initialize host controller PATA PIO timings
   *	@ap: Port whose timings we are configuring
-  *	@adev: um
-@@ -257,6 +268,7 @@ static const struct ata_port_operations 
+- *	@adev: um
++ *	@adev: Device whose timings we are configuring
+  *
+  *	Set PIO mode for device, in host controller PCI config space.
+  *
+@@ -269,6 +278,7 @@ static const struct ata_port_operations 
  	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= efar_error_handler,
+ 	.error_handler		= it8213_error_handler,
  	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= efar_cable_detect,
++	.cable_detect		= it8213_cable_detect,
  
  	.bmdma_setup		= ata_bmdma_setup,
  	.bmdma_start		= ata_bmdma_start,
