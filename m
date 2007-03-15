@@ -1,79 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - usb-elan-ftdi-check-for-workqueue-creation-v2.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:59:45 -0800
-Message-ID: <200703152159.l2FLxj9F027839@shell0.pdx.osdl.net>
+Subject: - natsemi-consistently-use-interrupt-enable-disable-functions.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:59:06 -0800
+Message-ID: <200703152159.l2FLx6DD027788@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42622 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42627 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752093AbXCOWAF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:00:05 -0400
+	id S1752141AbXCOWAJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:00:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, greg@kroah.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
+To: broonie@sirena.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB Elan FTDI: check for workqueue creation
+     natsemi: consistently use interrupt enable/disable functions
 has been removed from the -mm tree.  Its filename was
-     usb-elan-ftdi-check-for-workqueue-creation-v2.patch
+     natsemi-consistently-use-interrupt-enable-disable-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB Elan FTDI: check for workqueue creation
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: natsemi: consistently use interrupt enable/disable functions
+From: Mark Brown <broonie@sirena.org.uk>
 
-Avoid NULL pointer usage if workqueue creation failed.
+The natsemi drivers include functions for enabling and disabling interrupts
+from the chip but these are not used in all code paths.  This patch changes
+the code paths that touch the interrupt enable register to use the functions. 
+In all cases this adds an extra PCI read to post the operation but since none
+of these are in fast paths this shouldn't be too much of a problem.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Mark Brown <broonie@sirena.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/ftdi-elan.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ drivers/net/natsemi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/misc/ftdi-elan.c~usb-elan-ftdi-check-for-workqueue-creation-v2 drivers/usb/misc/ftdi-elan.c
---- a/drivers/usb/misc/ftdi-elan.c~usb-elan-ftdi-check-for-workqueue-creation-v2
-+++ a/drivers/usb/misc/ftdi-elan.c
-@@ -2905,17 +2905,31 @@ static int __init ftdi_elan_init(void)
- {
-         int result;
-         printk(KERN_INFO "driver %s built at %s on %s\n", ftdi_elan_driver.name,
--                 __TIME__, __DATE__);
-+	       __TIME__, __DATE__);
-         init_MUTEX(&ftdi_module_lock);
-         INIT_LIST_HEAD(&ftdi_static_list);
-         status_queue = create_singlethread_workqueue("ftdi-status-control");
-+	if (!status_queue)
-+		goto err1;
-         command_queue = create_singlethread_workqueue("ftdi-command-engine");
-+	if (!command_queue)
-+		goto err2;
-         respond_queue = create_singlethread_workqueue("ftdi-respond-engine");
-+	if (!respond_queue)
-+		goto err3;
-         result = usb_register(&ftdi_elan_driver);
-         if (result)
-                 printk(KERN_ERR "usb_register failed. Error number %d\n",
--                        result);
-+		       result);
-         return result;
-+
-+ err3:
-+	destroy_workqueue(command_queue);
-+ err2:
-+	destroy_workqueue(status_queue);
-+ err1:
-+	printk(KERN_ERR "%s couldn't create workqueue\n", ftdi_elan_driver.name);
-+	return -ENOMEM;
+diff -puN drivers/net/natsemi.c~natsemi-consistently-use-interrupt-enable-disable-functions drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-consistently-use-interrupt-enable-disable-functions
++++ a/drivers/net/natsemi.c
+@@ -1712,7 +1712,7 @@ static void init_registers(struct net_de
+ 
+ 	/* Enable interrupts by setting the interrupt mask. */
+ 	writel(DEFAULT_INTR, ioaddr + IntrMask);
+-	writel(1, ioaddr + IntrEnable);
++	natsemi_irq_enable(dev);
+ 
+ 	writel(RxOn | TxOn, ioaddr + ChipCmd);
+ 	writel(StatsClear, ioaddr + StatsCtrl); /* Clear Stats */
+@@ -3071,7 +3071,7 @@ static void enable_wol_mode(struct net_d
+ 		 * Could be used to send a netlink message.
+ 		 */
+ 		writel(WOLPkt | LinkChange, ioaddr + IntrMask);
+-		writel(1, ioaddr + IntrEnable);
++		natsemi_irq_enable(dev);
+ 	}
  }
  
- static void __exit ftdi_elan_exit(void)
+@@ -3202,7 +3202,7 @@ static int natsemi_suspend (struct pci_d
+ 		disable_irq(dev->irq);
+ 		spin_lock_irq(&np->lock);
+ 
+-		writel(0, ioaddr + IntrEnable);
++		natsemi_irq_disable(dev);
+ 		np->hands_off = 1;
+ 		natsemi_stop_rxtx(dev);
+ 		netif_stop_queue(dev);
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from broonie@sirena.org.uk are
 
-origin.patch
+git-netdev-all.patch
