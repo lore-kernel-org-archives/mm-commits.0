@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + serial-allocate-minor-device-numbers-for.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:53:37 -0800
-Message-ID: <200703151853.l2FIrdgZ023435@shell0.pdx.osdl.net>
+Subject: + remove-the-likelypid-check-in-copy_process.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:54:42 -0800
+Message-ID: <200703151854.l2FIsi9o023464@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36188 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36232 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932515AbXCOS47 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:56:59 -0400
+	id S932563AbXCOS6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:58:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, ralf@linux-mips.org
+Cc: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmission.com, haveblue@us.ibm.com, serue@us.ibm.com
 
 
 The patch titled
-     serial: allocate minor device numbers for serial_txx9 driver
+     Remove the likely(pid) check in copy_process
 has been added to the -mm tree.  Its filename is
-     serial-allocate-minor-device-numbers-for.patch
+     remove-the-likelypid-check-in-copy_process.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,82 +25,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: allocate minor device numbers for serial_txx9 driver
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: Remove the likely(pid) check in copy_process
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-The serial_txx9 driver have abused device numbers (major 4, minor 128) if
-CONFIG_SERIAL_TXX9_STDSERIAL was not set.  This patch makes the driver
-allocate minor numbers from major 204 (Low-density serial ports).  I
-suppose a typical user of this driver set CONFIG_SERIAL_TXX9_STDSERIAL to Y
-(i.e.  use "ttyS0"), so this patch would not cause big compatibility issue.
+Now that we pass in a struct pid parameter to copy_process() and even the
+swapper (pid_t == 0) has a valid struct pid, we no longer need this check.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Changelog:
+	Per Eric Biederman's comments, moved this out to a separate
+	patch for easier review.
+
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: <containers@lists.osdl.org>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devices.txt    |    3 +++
- drivers/serial/serial_txx9.c |    8 +++++---
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ kernel/fork.c |   34 ++++++++++++++++------------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/devices.txt~serial-allocate-minor-device-numbers-for Documentation/devices.txt
---- a/Documentation/devices.txt~serial-allocate-minor-device-numbers-for
-+++ a/Documentation/devices.txt
-@@ -2808,6 +2808,9 @@ Your cooperation is appreciated.
- 		    ...
- 		 190 = /dev/ttyUL3		Xilinx uartlite - port 3
- 		 191 = /dev/xvc0		Xen virtual console - port 0
-+		 192 = /dev/ttyTX0		TX39/49 serial port 0
-+		    ...
-+		 199 = /dev/ttyTX7		TX39/49 serial port 7
+diff -puN kernel/fork.c~remove-the-likelypid-check-in-copy_process kernel/fork.c
+--- a/kernel/fork.c~remove-the-likelypid-check-in-copy_process
++++ a/kernel/fork.c
+@@ -1237,26 +1237,24 @@ static struct task_struct *copy_process(
+ 		}
+ 	}
  
- 205 char	Low-density serial ports (alternate device)
- 		  0 = /dev/culu0		Callout device for ttyLU0
-diff -puN drivers/serial/serial_txx9.c~serial-allocate-minor-device-numbers-for drivers/serial/serial_txx9.c
---- a/drivers/serial/serial_txx9.c~serial-allocate-minor-device-numbers-for
-+++ a/drivers/serial/serial_txx9.c
-@@ -40,6 +40,7 @@
-  *	1.07	Use CONFIG_SERIAL_TXX9_NR_UARTS.  Cleanup.
-  *	1.08	Use platform_device.
-  *		Fix and cleanup suspend/resume/initialization codes.
-+ *	1.09	Use major 204 if CONFIG_SERIAL_TXX9_STDSERIAL was not set.
-  */
+-	if (likely(p->pid)) {
+-		add_parent(p);
+-		tracehook_init_task(p);
+-
+-		if (thread_group_leader(p)) {
+-			pid_t pgid = process_group(current);
+-			pid_t sid = process_session(current);
+-
+-			p->signal->tty = current->signal->tty;
+-			p->signal->pgrp = pgid;
+-			set_signal_session(p->signal, process_session(current));
+-			attach_pid(p, PIDTYPE_PGID, find_pid(pgid));
+-			attach_pid(p, PIDTYPE_SID, find_pid(sid));
++	add_parent(p);
++	tracehook_init_task(p);
  
- #if defined(CONFIG_SERIAL_TXX9_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
-@@ -62,7 +63,7 @@
+-			list_add_tail_rcu(&p->tasks, &init_task.tasks);
+-			__get_cpu_var(process_counts)++;
+-		}
+-		attach_pid(p, PIDTYPE_PID, pid);
+-		nr_threads++;
++	if (thread_group_leader(p)) {
++		pid_t pgid = process_group(current);
++		pid_t sid = process_session(current);
++
++		p->signal->tty = current->signal->tty;
++		p->signal->pgrp = pgid;
++		set_signal_session(p->signal, process_session(current));
++		attach_pid(p, PIDTYPE_PGID, find_pid(pgid));
++		attach_pid(p, PIDTYPE_SID, find_pid(sid));
++
++		list_add_tail_rcu(&p->tasks, &init_task.tasks);
++		__get_cpu_var(process_counts)++;
+ 	}
++	attach_pid(p, PIDTYPE_PID, pid);
++	nr_threads++;
  
- #include <asm/io.h>
- 
--static char *serial_version = "1.08";
-+static char *serial_version = "1.09";
- static char *serial_name = "TX39/49 Serial driver";
- 
- #define PASS_LIMIT	256
-@@ -70,13 +71,14 @@ static char *serial_name = "TX39/49 Seri
- #if !defined(CONFIG_SERIAL_TXX9_STDSERIAL)
- /* "ttyS" is used for standard serial driver */
- #define TXX9_TTY_NAME "ttyTX"
--#define TXX9_TTY_MINOR_START	(64 + 64)	/* ttyTX0(128), ttyTX1(129) */
-+#define TXX9_TTY_MINOR_START	192
-+#define TXX9_TTY_MAJOR	204
- #else
- /* acts like standard serial driver */
- #define TXX9_TTY_NAME "ttyS"
- #define TXX9_TTY_MINOR_START	64
--#endif
- #define TXX9_TTY_MAJOR	TTY_MAJOR
-+#endif
- 
- /* flag aliases */
- #define UPF_TXX9_HAVE_CTS_LINE	UPF_BUGGY_UART
+ 	total_forks++;
+ 	spin_unlock(&current->sighand->siglock);
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
-spi-at25-do-not-use-pointer-before-assignment.patch
-git-netdev-all.patch
-tc35815-fix-an-usage-of-streaming-dma-api.patch
-tc35815-fix-an-usage-of-streaming-dma-api-tidy.patch
-8139too-fix-irq-problem-with-napi-netpoll.patch
-x86_64-fix-section-mismatch-warnings.patch
-serial-allocate-minor-device-numbers-for.patch
+attach_pid-with-struct-pid-parameter.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+remove-the-likelypid-check-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
