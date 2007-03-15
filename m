@@ -1,67 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - bug-in-gdthc-crashing-machine.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:59:34 -0800
-Message-ID: <200703152159.l2FLxYVX027830@shell0.pdx.osdl.net>
+Subject: - acpi-repair-nvidia-early-quirk-breakage-on-x86_64.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 14:00:12 -0800
+Message-ID: <200703152200.l2FM0C3c027898@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42689 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42695 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753381AbXCOWBG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:01:06 -0400
+	id S1753383AbXCOWBf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:01:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joerg@dorchain.net, Achim_Leubner@adaptec.com, James.Bottomley@steeleye.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: lenb@kernel.org, ak@muc.de, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bug in gdth.c crashing machine
+     ACPI: repair nvidia early quirk breakage on x86_64
 has been removed from the -mm tree.  Its filename was
-     bug-in-gdthc-crashing-machine.patch
+     acpi-repair-nvidia-early-quirk-breakage-on-x86_64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: bug in gdth.c crashing machine
-From: Joerg Dorchain <joerg@dorchain.net>
+Subject: ACPI: repair nvidia early quirk breakage on x86_64
+From: Len Brown <lenb@kernel.org>
 
-The current gdth driver crashes the machine with a panic() when
-accessing certain tape drives, really not a good thing for stable.
+x86_64 nvidia_bugs() broke when we bailed out on not finding the HPET. 
+However, the quirk works by checking for _not_ finding the HPET...
 
-This patch fixes it, tested by me and acknowledged by Achim.
-See http://lkml.org/lkml/2006/10/13/60 and
-http://lkml.org/lkml/2006/10/12/35 for further reference.
+Delete the nvidia_hpet_detected flag and simply test for not finding the
+HPET, which is simple to do now that acpi_table_parse returns 1 on failure.
 
-Signed-off-by: Joerg Dorchain <joerg@dorchain.net>
-Acked-by: "Leubner, Achim" <Achim_Leubner@adaptec.com>
-Cc: <stable@kernel.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |    2 ++
- 1 files changed, 2 insertions(+)
+ arch/i386/kernel/acpi/earlyquirk.c |    7 +------
+ arch/x86_64/kernel/early-quirks.c  |    9 +--------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~bug-in-gdthc-crashing-machine drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~bug-in-gdthc-crashing-machine
-+++ a/drivers/scsi/gdth.c
-@@ -3091,6 +3091,7 @@ static int gdth_fill_raw_cmd(int hanum,S
-             cmdp->u.raw64.direction  = 
-                 gdth_direction_tab[scp->cmnd[0]]==DOU ? GDTH_DATA_OUT:GDTH_DATA_IN;
-             memcpy(cmdp->u.raw64.cmd,scp->cmnd,16);
-+            cmdp->u.raw64.sg_ranz    = 0;
-         } else {
-             cmdp->u.raw.reserved   = 0;
-             cmdp->u.raw.mdisc_time = 0;
-@@ -3107,6 +3108,7 @@ static int gdth_fill_raw_cmd(int hanum,S
-             cmdp->u.raw.direction  = 
-                 gdth_direction_tab[scp->cmnd[0]]==DOU ? GDTH_DATA_OUT:GDTH_DATA_IN;
-             memcpy(cmdp->u.raw.cmd,scp->cmnd,12);
-+            cmdp->u.raw.sg_ranz    = 0;
-         }
+diff -puN arch/i386/kernel/acpi/earlyquirk.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64 arch/i386/kernel/acpi/earlyquirk.c
+--- a/arch/i386/kernel/acpi/earlyquirk.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64
++++ a/arch/i386/kernel/acpi/earlyquirk.c
+@@ -13,11 +13,8 @@
  
-         if (scp->use_sg) {
+ #ifdef CONFIG_ACPI
+ 
+-static int nvidia_hpet_detected __initdata;
+-
+ static int __init nvidia_hpet_check(struct acpi_table_header *header)
+ {
+-	nvidia_hpet_detected = 1;
+ 	return 0;
+ }
+ #endif
+@@ -28,9 +25,7 @@ static int __init check_bridge(int vendo
+ 	/* According to Nvidia all timer overrides are bogus unless HPET
+ 	   is enabled. */
+ 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
+-		nvidia_hpet_detected = 0;
+-		acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check);
+-		if (nvidia_hpet_detected == 0) {
++		if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check) {
+ 			acpi_skip_timer_override = 1;
+ 			  printk(KERN_INFO "Nvidia board "
+                        "detected. Ignoring ACPI "
+diff -puN arch/x86_64/kernel/early-quirks.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64 arch/x86_64/kernel/early-quirks.c
+--- a/arch/x86_64/kernel/early-quirks.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64
++++ a/arch/x86_64/kernel/early-quirks.c
+@@ -30,11 +30,8 @@ static void __init via_bugs(void)
+ 
+ #ifdef CONFIG_ACPI
+ 
+-static int nvidia_hpet_detected __initdata;
+-
+ static int __init nvidia_hpet_check(struct acpi_table_header *header)
+ {
+-	nvidia_hpet_detected = 1;
+ 	return 0;
+ }
+ #endif
+@@ -52,11 +49,7 @@ static void __init nvidia_bugs(void)
+ 	if (acpi_use_timer_override)
+ 		return;
+ 
+-	nvidia_hpet_detected = 0;
+-	if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check))
+-		return;
+-
+-	if (nvidia_hpet_detected == 0) {
++	if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
+ 		acpi_skip_timer_override = 1;
+ 		printk(KERN_INFO "Nvidia board "
+ 		       "detected. Ignoring ACPI "
 _
 
-Patches currently in -mm which might be from joerg@dorchain.net are
+Patches currently in -mm which might be from lenb@kernel.org are
 
-git-scsi-rc-fixes.patch
+origin.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled.patch
+i386-irq-kill-irq-compression.patch
+i386-modpost-apic-related-warning-fixes.patch
