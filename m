@@ -1,76 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - pata_hpt3x3-switch-back-to-cable-method-and-re-remove-all.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:57:37 -0800
-Message-ID: <200703152157.l2FLvbd2027653@shell0.pdx.osdl.net>
+Subject: - pata_it821x-switch-back-to-cable-detect-and-re-remove-all.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:43 -0800
+Message-ID: <200703152157.l2FLvhFd027662@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42393 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42405 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751965AbXCOV5v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:57:51 -0400
+	id S1751959AbXCOV5z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_hpt3x3: switch back to cable method and re-remove all the crap
+     pata_it821x: switch back to cable detect and re-remove all the crap
 has been removed from the -mm tree.  Its filename was
-     pata_hpt3x3-switch-back-to-cable-method-and-re-remove-all.patch
+     pata_it821x-switch-back-to-cable-detect-and-re-remove-all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_hpt3x3: switch back to cable method and re-remove all the crap
+Subject: pata_it821x: switch back to cable detect and re-remove all the crap
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt3x3.c |   22 ++--------------------
- 1 file changed, 2 insertions(+), 20 deletions(-)
+ drivers/ata/pata_it821x.c |   34 +++++-----------------------------
+ 1 file changed, 5 insertions(+), 29 deletions(-)
 
-diff -puN drivers/ata/pata_hpt3x3.c~pata_hpt3x3-switch-back-to-cable-method-and-re-remove-all drivers/ata/pata_hpt3x3.c
---- a/drivers/ata/pata_hpt3x3.c~pata_hpt3x3-switch-back-to-cable-method-and-re-remove-all
-+++ a/drivers/ata/pata_hpt3x3.c
-@@ -25,25 +25,6 @@
- #define DRV_NAME	"pata_hpt3x3"
- #define DRV_VERSION	"0.4.2"
+diff -puN drivers/ata/pata_it821x.c~pata_it821x-switch-back-to-cable-detect-and-re-remove-all drivers/ata/pata_it821x.c
+--- a/drivers/ata/pata_it821x.c~pata_it821x-switch-back-to-cable-detect-and-re-remove-all
++++ a/drivers/ata/pata_it821x.c
+@@ -80,7 +80,7 @@
  
--static int hpt3x3_probe_init(struct ata_port *ap, unsigned long deadline)
+ 
+ #define DRV_NAME "pata_it821x"
+-#define DRV_VERSION "0.3.4"
++#define DRV_VERSION "0.3.6"
+ 
+ struct it821x_dev
+ {
+@@ -113,32 +113,6 @@ struct it821x_dev
+ static int it8212_noraid;
+ 
+ /**
+- *	it821x_pre_reset	-	probe
+- *	@ap: ATA port
+- *	@deadline: deadline jiffies for the operation
+- *
+- *	Set the cable type
+- */
+-
+-static int it821x_pre_reset(struct ata_port *ap, unsigned long deadline)
 -{
--	ap->cbl = ATA_CBL_PATA40;
+-	ap->cbl = ATA_CBL_PATA80;
 -	return ata_std_prereset(ap, deadline);
 -}
 -
 -/**
-- *	hpt3x3_probe_reset	-	reset the hpt3x3 bus
-- *	@ap: ATA port to reset
+- *	it821x_error_handler	-	probe/reset
+- *	@ap: ATA port
 - *
-- *	Perform the housekeeping when doing an ATA bus reeset. We just
-- *	need to force the cable type.
+- *	Set the cable type and trigger a probe
 - */
 -
--static void hpt3x3_error_handler(struct ata_port *ap)
+-static void it821x_error_handler(struct ata_port *ap)
 -{
--	return ata_bmdma_drive_eh(ap, hpt3x3_probe_init, ata_std_softreset, NULL, ata_std_postreset);
+-	return ata_bmdma_drive_eh(ap, it821x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
 -}
 -
- /**
-  *	hpt3x3_set_piomode		-	PIO setup
-  *	@ap: ATA interface
-@@ -139,8 +120,9 @@ static struct ata_port_operations hpt3x3
+-/**
+  *	it821x_program	-	program the PIO/MWDMA registers
+  *	@ap: ATA port
+  *	@adev: Device to program
+@@ -667,8 +641,9 @@ static struct ata_port_operations it821x
  
  	.freeze		= ata_bmdma_freeze,
  	.thaw		= ata_bmdma_thaw,
--	.error_handler	= hpt3x3_error_handler,
+-	.error_handler	= it821x_error_handler,
 +	.error_handler	= ata_bmdma_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
++	.cable_detect	= ata_cable_unknown,
  
  	.bmdma_setup 	= ata_bmdma_setup,
  	.bmdma_start 	= ata_bmdma_start,
+@@ -703,8 +678,9 @@ static struct ata_port_operations it821x
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= it821x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_unknown,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= it821x_passthru_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
