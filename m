@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hrtimer-fixup-unlocked-access-to-wall_to_monotonic.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:48:09 -0800
-Message-ID: <200703151848.l2FImBuN023225@shell0.pdx.osdl.net>
+Subject: + spi-at25-do-not-use-pointer-before-assignment.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:48:07 -0800
+Message-ID: <200703151848.l2FIm9rm023222@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35278 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35272 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751495AbXCOSsa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:48:30 -0400
+	id S1751452AbXCOSs1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:48:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu
+Cc: anemo@mba.ocn.ne.jp, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     hrtimer: fix up unlocked access to wall_to_monotonic
+     SPI: at25: do not use pointer before assignment
 has been added to the -mm tree.  Its filename is
-     hrtimer-fixup-unlocked-access-to-wall_to_monotonic.patch
+     spi-at25-do-not-use-pointer-before-assignment.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hrtimer: fix up unlocked access to wall_to_monotonic
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: SPI: at25: do not use pointer before assignment
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-commit f4304ab21513b834c8fe3403927c60c2b81a72d7 (HZ free NTP) moved the
-access to wall_to_monotonic in hrtimer_get_softirq_time() out of the
-xtime_lock protection.
+Prevents a potential oops with CONFIG_SPI_DEBUG given flakey hardware or
+incorrect configuration.
 
-Move it back into the seq_lock section.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: John Stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/spi/at25.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/hrtimer.c~hrtimer-fixup-unlocked-access-to-wall_to_monotonic kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimer-fixup-unlocked-access-to-wall_to_monotonic
-+++ a/kernel/hrtimer.c
-@@ -135,7 +135,7 @@ EXPORT_SYMBOL_GPL(ktime_get_ts);
- static void hrtimer_get_softirq_time(struct hrtimer_cpu_base *base)
- {
- 	ktime_t xtim, tomono;
--	struct timespec xts;
-+	struct timespec xts, tom;
- 	unsigned long seq;
- 
- 	do {
-@@ -145,10 +145,11 @@ static void hrtimer_get_softirq_time(str
- #else
- 		xts = xtime;
- #endif
-+		tom = wall_to_monotonic;
- 	} while (read_seqretry(&xtime_lock, seq));
- 
- 	xtim = timespec_to_ktime(xts);
--	tomono = timespec_to_ktime(wall_to_monotonic);
-+	tomono = timespec_to_ktime(tom);
- 	base->clock_base[CLOCK_REALTIME].softirq_time = xtim;
- 	base->clock_base[CLOCK_MONOTONIC].softirq_time =
- 		ktime_add(xtim, tomono);
+diff -puN drivers/spi/at25.c~spi-at25-do-not-use-pointer-before-assignment drivers/spi/at25.c
+--- a/drivers/spi/at25.c~spi-at25-do-not-use-pointer-before-assignment
++++ a/drivers/spi/at25.c
+@@ -291,7 +291,7 @@ static int at25_probe(struct spi_device 
+ 	 */
+ 	sr = spi_w8r8(spi, AT25_RDSR);
+ 	if (sr < 0 || sr & AT25_SR_nRDY) {
+-		dev_dbg(&at25->spi->dev, "rdsr --> %d (%02x)\n", sr, sr);
++		dev_dbg(&spi->dev, "rdsr --> %d (%02x)\n", sr, sr);
+ 		err = -ENXIO;
+ 		goto fail;
+ 	}
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-hrtimer-prevent-overrun-dos-in-hrtimer_forward.patch
-hrtimer-fixup-unlocked-access-to-wall_to_monotonic.patch
-paravirt-build-fixes.patch
-scheduled-removal-of-sa_xxx-interrupt-flags-fixups-4.patch
-git-ieee1394.patch
-log-reason-why-tsc-was-marked-unstable.patch
-optimize-timespec_trunc.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
+spi-at25-do-not-use-pointer-before-assignment.patch
+git-netdev-all.patch
+tc35815-fix-an-usage-of-streaming-dma-api.patch
+tc35815-fix-an-usage-of-streaming-dma-api-tidy.patch
+8139too-fix-irq-problem-with-napi-netpoll.patch
+x86_64-fix-section-mismatch-warnings.patch
+serial-allocate-minor-device-numbers-for.patch
