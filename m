@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + replace-pid_t-in-autofs-with-struct-pid-reference.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:54:53 -0800
-Message-ID: <200703151854.l2FIstwb023476@shell0.pdx.osdl.net>
+Subject: + ice1712-build-fixes-update.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:52:09 -0800
+Message-ID: <200703151852.l2FIqBX7023377@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36016 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36081 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932440AbXCOSzV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:55:21 -0400
+	id S932454AbXCOSze (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@us.ibm.com, clg@fr.ibm.com, ebiederm@xmission.com, haveblue@us.ibm.com, raven@themaw.net, serue@us.ibm.com
+Cc: ralf@linux-mips.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     Replace pid_t in autofs with struct pid reference
+     ice1712: build fixes (update)
 has been added to the -mm tree.  Its filename is
-     replace-pid_t-in-autofs-with-struct-pid-reference.patch
+     ice1712-build-fixes-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,152 +25,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Replace pid_t in autofs with struct pid reference
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: ice1712: build fixes (update)
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Make autofs container-friendly by caching struct pid reference rather than
-pid_t and using pid_nr() to retreive a task's pid_t.
+  CC [M]  sound/pci/ice1712/ice1712.o
+sound/pci/ice1712/ice1712.c:290: error: snd_ice1712_mixer_digmix_route_ac97 causes a section type conflict
+sound/pci/ice1712/ice1712.c:1630: error: snd_ice1712_eeprom causes a section type conflict
+sound/pci/ice1712/ice1712.c:1894: error: snd_ice1712_pro_internal_clock causes a section type conflict
+sound/pci/ice1712/ice1712.c:1965: error: snd_ice1712_pro_internal_clock_default causes a section type conflict
+sound/pci/ice1712/ice1712.c:2004: error: snd_ice1712_pro_rate_locking causes a section type conflict
+sound/pci/ice1712/ice1712.c:2043: error: snd_ice1712_pro_rate_reset causes a section type conflict
+sound/pci/ice1712/ice1712.c:2210: error: snd_ice1712_mixer_pro_analog_route causes a section type conflict
+sound/pci/ice1712/ice1712.c:2218: error: snd_ice1712_mixer_pro_spdif_route causes a section type conflict
+sound/pci/ice1712/ice1712.c:2260: error: snd_ice1712_mixer_pro_volume_rate causes a section type conflict
+sound/pci/ice1712/ice1712.c:2293: error: snd_ice1712_mixer_pro_peak causes a section type conflict
+sound/pci/ice1712/ice1712.c:1666: error: snd_ice1712_spdif_default causes a section type conflict
+sound/pci/ice1712/ice1712.c:1717: error: snd_ice1712_spdif_maskc causes a section type conflict
+sound/pci/ice1712/ice1712.c:1726: error: snd_ice1712_spdif_maskp causes a section type conflict
+sound/pci/ice1712/ice1712.c:1753: error: snd_ice1712_spdif_stream causes a section type conflict
 
-ChangeLog:
-	- Fix Eric Biederman's comments - Use find_get_pid() to hold a
-	  reference to oz_pgrp and release while unmounting; separate out
-	  changes to autofs and autofs4.
-	- Fix Cedric's comments: retain old prototype of parse_options()
-	  and move necessary change to its caller.
+Gcc like its __devinitdata readable not const, it seems.  An alternative
+fix would be to remove the __devinitdata attribute but that would result
+in slight runtime bloat.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: containers@lists.osdl.org
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Ian Kent <raven@themaw.net>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs/autofs_i.h |    4 ++--
- fs/autofs/inode.c    |   20 ++++++++++++++++----
- fs/autofs/root.c     |    6 ++++--
- 3 files changed, 22 insertions(+), 8 deletions(-)
+ sound/pci/ice1712/ice1712.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/autofs/autofs_i.h~replace-pid_t-in-autofs-with-struct-pid-reference fs/autofs/autofs_i.h
---- a/fs/autofs/autofs_i.h~replace-pid_t-in-autofs-with-struct-pid-reference
-+++ a/fs/autofs/autofs_i.h
-@@ -101,7 +101,7 @@ struct autofs_symlink {
- struct autofs_sb_info {
- 	u32 magic;
- 	struct file *pipe;
--	pid_t oz_pgrp;
-+	struct pid *oz_pgrp;
- 	int catatonic;
- 	struct super_block *sb;
- 	unsigned long exp_timeout;
-@@ -122,7 +122,7 @@ static inline struct autofs_sb_info *aut
-    filesystem without "magic".) */
+diff -puN sound/pci/ice1712/ice1712.c~ice1712-build-fixes-update sound/pci/ice1712/ice1712.c
+--- a/sound/pci/ice1712/ice1712.c~ice1712-build-fixes-update
++++ a/sound/pci/ice1712/ice1712.c
+@@ -2327,7 +2327,7 @@ static int __devinit snd_ice1712_read_ee
+ {
+ 	int dev = 0xa0;		/* EEPROM device address */
+ 	unsigned int i, size;
+-	struct snd_ice1712_card_info **tbl, *c;
++	struct snd_ice1712_card_info * const *tbl, *c;
  
- static inline int autofs_oz_mode(struct autofs_sb_info *sbi) {
--	return sbi->catatonic || process_group(current) == sbi->oz_pgrp;
-+	return sbi->catatonic || task_pgrp(current) == sbi->oz_pgrp;
- }
+ 	if (! modelname || ! *modelname) {
+ 		ice->eeprom.subvendor = 0;
+@@ -2665,7 +2665,7 @@ static int __devinit snd_ice1712_probe(s
+ 	struct snd_card *card;
+ 	struct snd_ice1712 *ice;
+ 	int pcm_dev = 0, err;
+-	struct snd_ice1712_card_info **tbl, *c;
++	struct snd_ice1712_card_info * const *tbl, *c;
  
- /* Hash operations */
-diff -puN fs/autofs/inode.c~replace-pid_t-in-autofs-with-struct-pid-reference fs/autofs/inode.c
---- a/fs/autofs/inode.c~replace-pid_t-in-autofs-with-struct-pid-reference
-+++ a/fs/autofs/inode.c
-@@ -37,6 +37,8 @@ void autofs_kill_sb(struct super_block *
- 	if (!sbi->catatonic)
- 		autofs_catatonic_mode(sbi); /* Free wait queues, close pipe */
- 
-+	put_pid(sbi->oz_pgrp);
-+
- 	autofs_hash_nuke(sbi);
- 	for (n = 0; n < AUTOFS_MAX_SYMLINKS; n++) {
- 		if (test_bit(n, sbi->symlink_bitmap))
-@@ -139,6 +141,7 @@ int autofs_fill_super(struct super_block
- 	int pipefd;
- 	struct autofs_sb_info *sbi;
- 	int minproto, maxproto;
-+	pid_t pgid;
- 
- 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
- 	if (!sbi)
-@@ -150,7 +153,6 @@ int autofs_fill_super(struct super_block
- 	sbi->pipe = NULL;
- 	sbi->catatonic = 1;
- 	sbi->exp_timeout = 0;
--	sbi->oz_pgrp = process_group(current);
- 	autofs_initialize_hash(&sbi->dirhash);
- 	sbi->queues = NULL;
- 	memset(sbi->symlink_bitmap, 0, sizeof(long)*AUTOFS_SYMLINK_BITMAP_LEN);
-@@ -171,7 +173,7 @@ int autofs_fill_super(struct super_block
- 
- 	/* Can this call block?  - WTF cares? s is locked. */
- 	if (parse_options(data, &pipefd, &root_inode->i_uid,
--				&root_inode->i_gid, &sbi->oz_pgrp, &minproto,
-+				&root_inode->i_gid, &pgid, &minproto,
- 				&maxproto)) {
- 		printk("autofs: called with bogus options\n");
- 		goto fail_dput;
-@@ -184,13 +186,21 @@ int autofs_fill_super(struct super_block
- 		goto fail_dput;
- 	}
- 
--	DPRINTK(("autofs: pipe fd = %d, pgrp = %u\n", pipefd, sbi->oz_pgrp));
-+	DPRINTK(("autofs: pipe fd = %d, pgrp = %u\n", pipefd, pgid));
-+	sbi->oz_pgrp = find_get_pid(pgid);
-+
-+	if (!sbi->oz_pgrp) {
-+		printk("autofs: could not find process group %d\n", pgid);
-+		goto fail_dput;
-+	}
-+
- 	pipe = fget(pipefd);
- 	
- 	if (!pipe) {
- 		printk("autofs: could not open pipe file descriptor\n");
--		goto fail_dput;
-+		goto fail_put_pid;
- 	}
-+
- 	if (!pipe->f_op || !pipe->f_op->write)
- 		goto fail_fput;
- 	sbi->pipe = pipe;
-@@ -205,6 +215,8 @@ int autofs_fill_super(struct super_block
- fail_fput:
- 	printk("autofs: pipe file descriptor does not contain proper ops\n");
- 	fput(pipe);
-+fail_put_pid:
-+	put_pid(sbi->oz_pgrp);
- fail_dput:
- 	dput(root);
- 	goto fail_free;
-diff -puN fs/autofs/root.c~replace-pid_t-in-autofs-with-struct-pid-reference fs/autofs/root.c
---- a/fs/autofs/root.c~replace-pid_t-in-autofs-with-struct-pid-reference
-+++ a/fs/autofs/root.c
-@@ -213,8 +213,10 @@ static struct dentry *autofs_root_lookup
- 	sbi = autofs_sbi(dir->i_sb);
- 
- 	oz_mode = autofs_oz_mode(sbi);
--	DPRINTK(("autofs_lookup: pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d\n",
--		 current->pid, process_group(current), sbi->catatonic, oz_mode));
-+	DPRINTK(("autofs_lookup: pid = %u, pgrp = %u, catatonic = %d, "
-+				"oz_mode = %d\n", pid_nr(task_pid(current)),
-+				process_group(current), sbi->catatonic,
-+				oz_mode));
- 
- 	/*
- 	 * Mark the dentry incomplete, but add it. This is needed so
+ 	if (dev >= SNDRV_CARDS)
+ 		return -ENODEV;
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-attach_pid-with-struct-pid-parameter.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-remove-the-likelypid-check-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
+ide-au1xxx-fix-use-of-mixed-declarations-and-code.patch
+git-netdev-all.patch
+netxen-fix-warnings.patch
+3c59x-fix-several-modpost-warnings.patch
+ibmtr-drain-rich-supply-of-modpost-warnings.patch
+div64_64-common-code.patch
+serial-driver-pmc-msp71xx.patch
+rm9000-serial-driver.patch
+rm9000-serial-driver-tidy.patch
+x86_64-fix-ia32_binfmtc-build-error.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+hda_intel-build-fix.patch
+ice1712-build-fixes.patch
+ice1712-build-fixes-update.patch
+simplify-the-stacktrace-code.patch
+serial-allocate-minor-device-numbers-for.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+local_t-mips-extension.patch
+tgafb-turbochannel-support.patch
