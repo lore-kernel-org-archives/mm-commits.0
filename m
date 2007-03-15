@@ -1,196 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-enable-config_debug_spinlock_sleep.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:55:39 -0800
-Message-ID: <200703152155.l2FLtdum027500@shell0.pdx.osdl.net>
+Subject: - uml-remove-dead-code-about-os_usr1_signal-and-os_usr1_process.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:56:03 -0800
+Message-ID: <200703152156.l2FLu3AR027516@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42214 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42229 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751388AbXCOV4C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:56:02 -0400
+	id S1751450AbXCOV4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:56:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: blaisorblade@yahoo.it, jdike@addtoit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: enable CONFIG_DEBUG_SPINLOCK_SLEEP
+     um: remove dead code about os_usr1_signal() and os_usr1_process()
 has been removed from the -mm tree.  Its filename was
-     ia64-enable-config_debug_spinlock_sleep.patch
+     uml-remove-dead-code-about-os_usr1_signal-and-os_usr1_process.patch
 
-This patch was dropped because it got lots of rejects
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ia64: enable CONFIG_DEBUG_SPINLOCK_SLEEP
-From: Andrew Morton <akpm@osdl.org>
+Subject: um: remove dead code about os_usr1_signal() and os_usr1_process()
+From: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 
-Some trivial bugs are coming from ia64 developers.  Try to help them.
+os_usr1_signal() is totally unused, os_usr1_process() is used only by TT mode.
 
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Acked-by: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/configs/bigsur_defconfig    |    2 +-
- arch/ia64/configs/gensparse_defconfig |    2 +-
- arch/ia64/configs/sim_defconfig       |    2 +-
- arch/ia64/configs/sn2_defconfig       |    2 +-
- arch/ia64/configs/tiger_defconfig     |    4 ++--
- arch/ia64/configs/zx1_defconfig       |    2 +-
- arch/ia64/defconfig                   |    2 +-
- 7 files changed, 8 insertions(+), 8 deletions(-)
+ arch/um/include/os.h       |    3 ++-
+ arch/um/os-Linux/process.c |    3 +++
+ arch/um/os-Linux/signal.c  |    5 -----
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN arch/ia64/configs/bigsur_defconfig~ia64-enable-config_debug_spinlock_sleep arch/ia64/configs/bigsur_defconfig
---- a/arch/ia64/configs/bigsur_defconfig~ia64-enable-config_debug_spinlock_sleep
-+++ a/arch/ia64/configs/bigsur_defconfig
-@@ -1305,7 +1305,7 @@ CONFIG_DETECT_SOFTLOCKUP=y
- CONFIG_DEBUG_PREEMPT=y
- CONFIG_DEBUG_MUTEXES=y
- # CONFIG_DEBUG_SPINLOCK is not set
--# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-+CONFIG_DEBUG_SPINLOCK_SLEEP=y
- # CONFIG_DEBUG_KOBJECT is not set
- # CONFIG_DEBUG_INFO is not set
- # CONFIG_DEBUG_FS is not set
-diff -puN arch/ia64/configs/gensparse_defconfig~ia64-enable-config_debug_spinlock_sleep arch/ia64/configs/gensparse_defconfig
---- a/arch/ia64/configs/gensparse_defconfig~ia64-enable-config_debug_spinlock_sleep
-+++ a/arch/ia64/configs/gensparse_defconfig
-@@ -1339,7 +1339,7 @@ CONFIG_DETECT_SOFTLOCKUP=y
- # CONFIG_DEBUG_SLAB is not set
- CONFIG_DEBUG_MUTEXES=y
- # CONFIG_DEBUG_SPINLOCK is not set
--# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-+CONFIG_DEBUG_SPINLOCK_SLEEP=y
- # CONFIG_DEBUG_KOBJECT is not set
- # CONFIG_DEBUG_INFO is not set
- # CONFIG_DEBUG_FS is not set
-diff -puN arch/ia64/configs/sim_defconfig~ia64-enable-config_debug_spinlock_sleep arch/ia64/configs/sim_defconfig
---- a/arch/ia64/configs/sim_defconfig~ia64-enable-config_debug_spinlock_sleep
-+++ a/arch/ia64/configs/sim_defconfig
-@@ -694,7 +694,7 @@ CONFIG_DETECT_SOFTLOCKUP=y
- CONFIG_DEBUG_PREEMPT=y
- CONFIG_DEBUG_MUTEXES=y
- # CONFIG_DEBUG_SPINLOCK is not set
--# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-+CONFIG_DEBUG_SPINLOCK_SLEEP=y
- # CONFIG_DEBUG_KOBJECT is not set
- CONFIG_DEBUG_INFO=y
- # CONFIG_DEBUG_FS is not set
-diff -puN arch/ia64/configs/sn2_defconfig~ia64-enable-config_debug_spinlock_sleep arch/ia64/configs/sn2_defconfig
---- a/arch/ia64/configs/sn2_defconfig~ia64-enable-config_debug_spinlock_sleep
-+++ a/arch/ia64/configs/sn2_defconfig
-@@ -1284,7 +1284,7 @@ CONFIG_DETECT_SOFTLOCKUP=y
- # CONFIG_DEBUG_SPINLOCK is not set
- # CONFIG_DEBUG_MUTEXES is not set
- # CONFIG_DEBUG_RWSEMS is not set
--# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-+CONFIG_DEBUG_SPINLOCK_SLEEP=y
- # CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
- # CONFIG_DEBUG_KOBJECT is not set
- CONFIG_DEBUG_INFO=y
-diff -puN arch/ia64/configs/tiger_defconfig~ia64-enable-config_debug_spinlock_sleep arch/ia64/configs/tiger_defconfig
---- a/arch/ia64/configs/tiger_defconfig~ia64-enable-config_debug_spinlock_sleep
-+++ a/arch/ia64/configs/tiger_defconfig
-@@ -1,4 +1,4 @@
--#
-+;#
- # Automatically generated make config: don't edit
- # Linux kernel version: 2.6.16-rc5
- # Mon Feb 27 15:49:18 2006
-@@ -1190,7 +1190,7 @@ CONFIG_DETECT_SOFTLOCKUP=y
- # CONFIG_DEBUG_SLAB is not set
- CONFIG_DEBUG_MUTEXES=y
- # CONFIG_DEBUG_SPINLOCK is not set
--# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-+CONFIG_DEBUG_SPINLOCK_SLEEP=y
- # CONFIG_DEBUG_KOBJECT is not set
- # CONFIG_DEBUG_INFO is not set
- # CONFIG_DEBUG_FS is not set
-diff -puN arch/ia64/configs/zx1_defconfig~ia64-enable-config_debug_spinlock_sleep arch/ia64/configs/zx1_defconfig
---- a/arch/ia64/configs/zx1_defconfig~ia64-enable-config_debug_spinlock_sleep
-+++ a/arch/ia64/configs/zx1_defconfig
-@@ -1359,7 +1359,7 @@ CONFIG_DETECT_SOFTLOCKUP=y
- # CONFIG_DEBUG_SLAB is not set
- CONFIG_DEBUG_MUTEXES=y
- # CONFIG_DEBUG_SPINLOCK is not set
--# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-+CONFIG_DEBUG_SPINLOCK_SLEEP=y
- # CONFIG_DEBUG_KOBJECT is not set
- # CONFIG_DEBUG_INFO is not set
- # CONFIG_DEBUG_FS is not set
-diff -puN arch/ia64/defconfig~ia64-enable-config_debug_spinlock_sleep arch/ia64/defconfig
---- a/arch/ia64/defconfig~ia64-enable-config_debug_spinlock_sleep
-+++ a/arch/ia64/defconfig
-@@ -1340,7 +1340,7 @@ CONFIG_DETECT_SOFTLOCKUP=y
- # CONFIG_DEBUG_SLAB is not set
- CONFIG_DEBUG_MUTEXES=y
- # CONFIG_DEBUG_SPINLOCK is not set
--# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-+CONFIG_DEBUG_SPINLOCK_SLEEP=y
- # CONFIG_DEBUG_KOBJECT is not set
- # CONFIG_DEBUG_INFO is not set
- # CONFIG_DEBUG_FS is not set
+diff -puN arch/um/include/os.h~uml-remove-dead-code-about-os_usr1_signal-and-os_usr1_process arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-remove-dead-code-about-os_usr1_signal-and-os_usr1_process
++++ a/arch/um/include/os.h
+@@ -192,7 +192,9 @@ extern int os_process_parent(int pid);
+ extern void os_stop_process(int pid);
+ extern void os_kill_process(int pid, int reap_child);
+ extern void os_kill_ptraced_process(int pid, int reap_child);
++#ifdef UML_CONFIG_MODE_TT
+ extern void os_usr1_process(int pid);
++#endif
+ extern long os_ptrace_ldt(long pid, long addr, long data);
+ 
+ extern int os_getpid(void);
+@@ -261,7 +263,6 @@ extern void block_signals(void);
+ extern void unblock_signals(void);
+ extern int get_signals(void);
+ extern int set_signals(int enable);
+-extern void os_usr1_signal(int on);
+ 
+ /* trap.c */
+ extern void os_fill_handlinfo(struct kern_handlers h);
+diff -puN arch/um/os-Linux/process.c~uml-remove-dead-code-about-os_usr1_signal-and-os_usr1_process arch/um/os-Linux/process.c
+--- a/arch/um/os-Linux/process.c~uml-remove-dead-code-about-os_usr1_signal-and-os_usr1_process
++++ a/arch/um/os-Linux/process.c
+@@ -21,6 +21,7 @@
+ #include "longjmp.h"
+ #include "skas_ptrace.h"
+ #include "kern_constants.h"
++#include "uml-config.h"
+ 
+ #define ARBITRARY_ADDR -1
+ #define FAILURE_PID    -1
+@@ -131,10 +132,12 @@ void os_kill_ptraced_process(int pid, in
+ 		CATCH_EINTR(waitpid(pid, NULL, 0));
+ }
+ 
++#ifdef UML_CONFIG_MODE_TT
+ void os_usr1_process(int pid)
+ {
+ 	kill(pid, SIGUSR1);
+ }
++#endif
+ 
+ /* Don't use the glibc version, which caches the result in TLS. It misses some
+  * syscalls, and also breaks with clone(), which does not unshare the TLS.
+diff -puN arch/um/os-Linux/signal.c~uml-remove-dead-code-about-os_usr1_signal-and-os_usr1_process arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-remove-dead-code-about-os_usr1_signal-and-os_usr1_process
++++ a/arch/um/os-Linux/signal.c
+@@ -243,8 +243,3 @@ int set_signals(int enable)
+ 
+ 	return ret;
+ }
+-
+-void os_usr1_signal(int on)
+-{
+-	change_sig(SIGUSR1, on);
+-}
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from blaisorblade@yahoo.it are
 
-git-powerpc.patch
-git-ia64.patch
-git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-git-ubi.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-net-uninline-skb_put.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-epoll-optimizations-and-cleanups-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
-ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-mm-implement-swap-prefetching.patch
-readahead-kconfig-options.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-context-based-method.patch
-readahead-call-scheme.patch
-readahead-nfsd-case.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-ia64-enable-config_debug_spinlock_sleep.patch
-squash-ipc-warnings.patch
+origin.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+uml-fix-prototypes.patch
+git-gccbug.patch
