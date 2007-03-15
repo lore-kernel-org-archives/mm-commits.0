@@ -1,85 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - tulip-natsemi-dp83840a-phy-fix.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:59:03 -0800
-Message-ID: <200703152159.l2FLx31P027783@shell0.pdx.osdl.net>
+Subject: - hda_intel-build-fix.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 14:00:01 -0800
+Message-ID: <200703152200.l2FM01Tg027857@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42723 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42740 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753388AbXCOWCn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:02:43 -0400
+	id S1751411AbXCOWDZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:03:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: T-Bone@parisc-linux.org, grundler@parisc-linux.org, jgarzik@pobox.com, val_henson@linux.intel.com, varenet@parisc-linux.org, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tulip: NatSemi DP83840A PHY fix
+     hda_intel: build fix
 has been removed from the -mm tree.  Its filename was
-     tulip-natsemi-dp83840a-phy-fix.patch
+     hda_intel-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tulip: NatSemi DP83840A PHY fix
-From: Thibaut VARENE <T-Bone@parisc-linux.org>
+Subject: hda_intel: build fix
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Fix a problem with Tulip 21142 HP branded PCI cards (PN#: B5509-66001),
-which feature a NatSemi DP83840A PHY.
+  CC [M]  sound/pci/hda/hda_intel.o
+sound/pci/hda/hda_intel.c:1508: error: position_fix_list causes a section type conflict
 
-Without that patch, it is impossible to properly initialize the card's PHY,
-and it's thus impossible to monitor/configure it.
+Gcc like its __devinitdata readable not const, it seems.  An alternative fix
+would be to remove the __devinitdata attribute but that would result in slight
+runtime bloat.
 
-It's a timing/posting problem, and it is solved exactly the same way Grant
-fixed it elsewhere already.
-
-Signed-off-by: Thibaut VARENE <varenet@parisc-linux.org>
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Acked-by: Grant Grundler <grundler@parisc-linux.org>
-Cc: Valerie Henson <val_henson@linux.intel.com>
-
-[akpm: this is a previously-nacked patch, but the problem is real]
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/media.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ sound/pci/hda/hda_intel.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/tulip/media.c~tulip-natsemi-dp83840a-phy-fix drivers/net/tulip/media.c
---- a/drivers/net/tulip/media.c~tulip-natsemi-dp83840a-phy-fix
-+++ a/drivers/net/tulip/media.c
-@@ -263,11 +263,27 @@ void tulip_select_media(struct net_devic
- 				u16 *reset_sequence = &((u16*)(p+3))[init_length];
- 				int reset_length = p[2 + init_length*2];
- 				misc_info = reset_sequence + reset_length;
--				if (startup)
-+				if (startup) {
-+					int timeout = 10;	/* max 1 ms */
- 					for (i = 0; i < reset_length; i++)
- 						iowrite32(get_u16(&reset_sequence[i]) << 16, ioaddr + CSR15);
-+
-+					/* flush posted writes */
-+					ioread32(ioaddr + CSR15);
-+
-+					/* Sect 3.10.3 in DP83840A.pdf (p39) */
-+					udelay(500);
-+
-+					/* Section 4.2 in DP83840A.pdf (p43) */
-+					/* and IEEE 802.3 "22.2.4.1.1 Reset" */
-+					while (timeout-- &&
-+						(tulip_mdio_read (dev, phy_num, MII_BMCR) & BMCR_RESET))
-+						udelay(100);
-+				}
- 				for (i = 0; i < init_length; i++)
- 					iowrite32(get_u16(&init_sequence[i]) << 16, ioaddr + CSR15);
-+
-+				ioread32(ioaddr + CSR15);	/* flush posted writes */
- 			} else {
- 				u8 *init_sequence = p + 2;
- 				u8 *reset_sequence = p + 3 + init_length;
+diff -puN sound/pci/hda/hda_intel.c~hda_intel-build-fix sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~hda_intel-build-fix
++++ a/sound/pci/hda/hda_intel.c
+@@ -1505,7 +1505,7 @@ static int azx_dev_free(struct snd_devic
+ /*
+  * white/black-listing for position_fix
+  */
+-static const struct snd_pci_quirk position_fix_list[] __devinitdata = {
++static struct snd_pci_quirk position_fix_list[] __devinitdata = {
+ 	SND_PCI_QUIRK(0x1028, 0x01cc, "Dell D820", POS_FIX_NONE),
+ 	{}
+ };
 _
 
-Patches currently in -mm which might be from T-Bone@parisc-linux.org are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
+origin.patch
+git-alsa.patch
 git-netdev-all.patch
-make-elv_register-output-atomic.patch
+div64_64-common-code.patch
+serial-driver-pmc-msp71xx.patch
+rm9000-serial-driver.patch
+rm9000-serial-driver-tidy.patch
+x86_64-fix-ia32_binfmtc-build-error.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+simplify-the-stacktrace-code.patch
+serial-allocate-minor-device-numbers-for.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+local_t-mips-extension.patch
+tgafb-turbochannel-support.patch
