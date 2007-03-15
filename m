@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-remove-pathetic-deleted-warn_on.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:53:16 -0800
-Message-ID: <200703151853.l2FIrIXX023409@shell0.pdx.osdl.net>
+Subject: + race-between-cat-proc-kallsyms-and-rmmod.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:53:31 -0800
+Message-ID: <200703151853.l2FIrXne023422@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35798 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35803 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932310AbXCOSyC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:54:02 -0400
+	id S932319AbXCOSyO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:54:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru
+Cc: adobriyan@sw.ru, pmarques@grupopie.com
 
 
 The patch titled
-     proc: remove pathetic ->deleted WARN_ON
+     Race between cat /proc/kallsyms and rmmod
 has been added to the -mm tree.  Its filename is
-     proc-remove-pathetic-deleted-warn_on.patch
+     race-between-cat-proc-kallsyms-and-rmmod.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,125 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proc: remove pathetic ->deleted WARN_ON
+Subject: Race between cat /proc/kallsyms and rmmod
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
-WARN_ON(de && de->deleted); is sooo unreliable. Why?
+Iterating code of /proc/kallsyms calls module_get_kallsym() which grabs and
+drops module_mutex internally and returns "struct module *", module is
+removed, aforementioned "struct module *" is used in non-trivial way.
 
-proc_lookup				remove_proc_entry
-===========				=================
-lock_kernel();
-spin_lock(&proc_subdir_lock);
-[find proc entry]
-spin_unlock(&proc_subdir_lock);
-					spin_lock(&proc_subdir_lock);
-					[find proc entry]
+So, grab module_mutex for entire operation like /proc/modules does.
 
-proc_get_inode
-==============
-WARN_ON(de && de->deleted);			...
+Steps to reproduce:
+	while true; do modprobe xfs; rmmod xfs; done
+		vs
+	while true; do cat /proc/kallsyms >/dev/null; done
 
-					if (!atomic_read(&de->count))
-						free_proc_entry(de);
-					else
-						de->deleted = 1;
+[where xfs could be any module, I haven't tried]
 
-So, if you have some strange oops [1], and doesn't see this WARN_ON it means
-nothing.
-
-[1] try_module_get() of module which doesn't exist, two lines below
-    should suffice, or not?
+BUG: unable to handle kernel paging request at virtual address e19f808c
+ printing eip:
+c01dc361
+*pde = 1ff5f067
+*pte = 00000000
+Oops: 0000 [#1]
+PREEMPT
+Modules linked in:
+CPU:    0
+EIP:    0060:[<c01dc361>]    Not tainted VLI
+EFLAGS: 00010297   (2.6.21-rc3-8b9909ded6922c33c221b105b26917780cfa497d #2)
+EIP is at vsnprintf+0x2af/0x48c
+eax: e19f808c   ebx: ffffffff   ecx: e19f808c   edx: fffffffe
+esi: dbe7aa84   edi: dbe2bf3c   ebp: ffffffff   esp: dbe2bec4
+ds: 007b   es: 007b   fs: 00d8  gs: 0033  ss: 0068
+Process cat (pid: 7242, ti=dbe2b000 task=df5790b0 task.ti=dbe2b000)
+Stack: e19d6fde 00000000 00000010 00000008 ffffffff 00000001 00000598 dbe7aa68
+       0002f362 00000010 dbe7b000 00000000 ffffffff c034bbe0 dbe7aa68 dfd31880
+       dfa31e80 00001000 c01586b0 dbe2bf2c dbe2bf2c dfd31880 dfd31880 c01289f6
+Call Trace:
+ [<c01586b0>] seq_printf+0x2e/0x4b
+ [<c01289f6>] s_show+0x4b/0x7f
+ [<c0158c6e>] seq_read+0x196/0x278
+ [<c0158ad8>] seq_read+0x0/0x278
+ [<c0143c35>] vfs_read+0x72/0x93
+ [<c0143f1c>] sys_read+0x41/0x67
+ [<c0102486>] sysenter_past_esp+0x5f/0x85
+=======================
+Code: 74 24 28 73 03 c6 06 20 46 4d 85 ed 7f f1 e9 b9 00 00 00 8b 0f 81 f9 ff 0f 00 00 b8 ea 45 36 c0 0f 46 c8 8b 54 24 30 89 c8 eb 06 <80> 38 00 74 07 40 4a 83 fa ff 75 f4 29 c8 89 c3 89 e8 f6 44 24
+EIP: [<c01dc361>] vsnprintf+0x2af/0x48c SS:ESP 0068:dbe2bec4
 
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Paulo Marques <pmarques@grupopie.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/module.h |    2 ++
+ kernel/kallsyms.c      |    2 ++
+ kernel/module.c        |    5 +----
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/inode.c~proc-remove-pathetic-deleted-warn_on fs/proc/inode.c
---- a/fs/proc/inode.c~proc-remove-pathetic-deleted-warn_on
-+++ a/fs/proc/inode.c
-@@ -147,8 +147,6 @@ struct inode *proc_get_inode(struct supe
- {
- 	struct inode * inode;
+diff -puN include/linux/module.h~race-between-cat-proc-kallsyms-and-rmmod include/linux/module.h
+--- a/include/linux/module.h~race-between-cat-proc-kallsyms-and-rmmod
++++ a/include/linux/module.h
+@@ -20,6 +20,8 @@
  
--	WARN_ON(de && de->deleted);
--
- 	if (de != NULL && !try_module_get(de->owner))
- 		goto out_mod;
+ #include <asm/module.h>
+ 
++extern struct mutex module_mutex;
++
+ /* Not Yet Implemented */
+ #define MODULE_SUPPORTED_DEVICE(name)
+ 
+diff -puN kernel/kallsyms.c~race-between-cat-proc-kallsyms-and-rmmod kernel/kallsyms.c
+--- a/kernel/kallsyms.c~race-between-cat-proc-kallsyms-and-rmmod
++++ a/kernel/kallsyms.c
+@@ -375,6 +375,7 @@ static void *s_next(struct seq_file *m, 
+ 
+ static void *s_start(struct seq_file *m, loff_t *pos)
+ {
++	mutex_lock(&module_mutex);
+ 	if (!update_iter(m->private, *pos))
+ 		return NULL;
+ 	return m->private;
+@@ -382,6 +383,7 @@ static void *s_start(struct seq_file *m,
+ 
+ static void s_stop(struct seq_file *m, void *p)
+ {
++	mutex_unlock(&module_mutex);
+ }
+ 
+ static int s_show(struct seq_file *m, void *p)
+diff -puN kernel/module.c~race-between-cat-proc-kallsyms-and-rmmod kernel/module.c
+--- a/kernel/module.c~race-between-cat-proc-kallsyms-and-rmmod
++++ a/kernel/module.c
+@@ -62,7 +62,7 @@
+ static DEFINE_SPINLOCK(modlist_lock);
+ 
+ /* List of modules, protected by module_mutex AND modlist_lock */
+-static DEFINE_MUTEX(module_mutex);
++DEFINE_MUTEX(module_mutex);
+ static LIST_HEAD(modules);
+ 
+ static BLOCKING_NOTIFIER_HEAD(module_notify_list);
+@@ -2124,19 +2124,16 @@ struct module *module_get_kallsym(unsign
+ {
+ 	struct module *mod;
+ 
+-	mutex_lock(&module_mutex);
+ 	list_for_each_entry(mod, &modules, list) {
+ 		if (symnum < mod->num_symtab) {
+ 			*value = mod->symtab[symnum].st_value;
+ 			*type = mod->symtab[symnum].st_info;
+ 			strlcpy(name, mod->strtab + mod->symtab[symnum].st_name,
+ 				namelen);
+-			mutex_unlock(&module_mutex);
+ 			return mod;
+ 		}
+ 		symnum -= mod->num_symtab;
+ 	}
+-	mutex_unlock(&module_mutex);
+ 	return NULL;
+ }
  
 _
 
