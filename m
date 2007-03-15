@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + remove-the-likelypid-check-in-copy_process.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:54:42 -0800
-Message-ID: <200703151854.l2FIsi9o023464@shell0.pdx.osdl.net>
+Subject: + kill-unused-sesssion-and-group-values-in-rocket-driver.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:54:46 -0800
+Message-ID: <200703151854.l2FIsmC4023470@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36232 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36231 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932563AbXCOS6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:58:09 -0400
+	id S932562AbXCOS6I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:58:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmis
 
 
 The patch titled
-     Remove the likely(pid) check in copy_process
+     Kill unused sesssion and group values in rocket driver
 has been added to the -mm tree.  Its filename is
-     remove-the-likelypid-check-in-copy_process.patch
+     kill-unused-sesssion-and-group-values-in-rocket-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,75 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove the likely(pid) check in copy_process
+Subject: Kill unused sesssion and group values in rocket driver
 From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-Now that we pass in a struct pid parameter to copy_process() and even the
-swapper (pid_t == 0) has a valid struct pid, we no longer need this check.
-
-Changelog:
-	Per Eric Biederman's comments, moved this out to a separate
-	patch for easier review.
+The process_session() and process_group() values are not really used by the
+driver.
 
 Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Cc: Cedric Le Goater <clg@fr.ibm.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Serge Hallyn <serue@us.ibm.com>
 Cc: <containers@lists.osdl.org>
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
-
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   34 ++++++++++++++++------------------
- 1 file changed, 16 insertions(+), 18 deletions(-)
+ drivers/char/rocket.c     |    3 ---
+ drivers/char/rocket_int.h |    2 --
+ 2 files changed, 5 deletions(-)
 
-diff -puN kernel/fork.c~remove-the-likelypid-check-in-copy_process kernel/fork.c
---- a/kernel/fork.c~remove-the-likelypid-check-in-copy_process
-+++ a/kernel/fork.c
-@@ -1237,26 +1237,24 @@ static struct task_struct *copy_process(
- 		}
- 	}
- 
--	if (likely(p->pid)) {
--		add_parent(p);
--		tracehook_init_task(p);
+diff -puN drivers/char/rocket.c~kill-unused-sesssion-and-group-values-in-rocket-driver drivers/char/rocket.c
+--- a/drivers/char/rocket.c~kill-unused-sesssion-and-group-values-in-rocket-driver
++++ a/drivers/char/rocket.c
+@@ -1014,9 +1014,6 @@ static int rp_open(struct tty_struct *tt
+ 	/*
+ 	 * Info->count is now 1; so it's safe to sleep now.
+ 	 */
+-	info->session = process_session(current);
+-	info->pgrp = process_group(current);
 -
--		if (thread_group_leader(p)) {
--			pid_t pgid = process_group(current);
--			pid_t sid = process_session(current);
--
--			p->signal->tty = current->signal->tty;
--			p->signal->pgrp = pgid;
--			set_signal_session(p->signal, process_session(current));
--			attach_pid(p, PIDTYPE_PGID, find_pid(pgid));
--			attach_pid(p, PIDTYPE_SID, find_pid(sid));
-+	add_parent(p);
-+	tracehook_init_task(p);
- 
--			list_add_tail_rcu(&p->tasks, &init_task.tasks);
--			__get_cpu_var(process_counts)++;
--		}
--		attach_pid(p, PIDTYPE_PID, pid);
--		nr_threads++;
-+	if (thread_group_leader(p)) {
-+		pid_t pgid = process_group(current);
-+		pid_t sid = process_session(current);
-+
-+		p->signal->tty = current->signal->tty;
-+		p->signal->pgrp = pgid;
-+		set_signal_session(p->signal, process_session(current));
-+		attach_pid(p, PIDTYPE_PGID, find_pid(pgid));
-+		attach_pid(p, PIDTYPE_SID, find_pid(sid));
-+
-+		list_add_tail_rcu(&p->tasks, &init_task.tasks);
-+		__get_cpu_var(process_counts)++;
- 	}
-+	attach_pid(p, PIDTYPE_PID, pid);
-+	nr_threads++;
- 
- 	total_forks++;
- 	spin_unlock(&current->sighand->siglock);
+ 	if ((info->flags & ROCKET_INITIALIZED) == 0) {
+ 		cp = &info->channel;
+ 		sSetRxTrigger(cp, TRIG_1);
+diff -puN drivers/char/rocket_int.h~kill-unused-sesssion-and-group-values-in-rocket-driver drivers/char/rocket_int.h
+--- a/drivers/char/rocket_int.h~kill-unused-sesssion-and-group-values-in-rocket-driver
++++ a/drivers/char/rocket_int.h
+@@ -1156,8 +1156,6 @@ struct r_port {
+ 	int xmit_head;
+ 	int xmit_tail;
+ 	int xmit_cnt;
+-	int session;
+-	int pgrp;
+ 	int cd_status;
+ 	int ignore_status_mask;
+ 	int read_status_mask;
 _
 
 Patches currently in -mm which might be from sukadev@us.ibm.com are
