@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + splice-dont-steal.patch added to -mm tree
-Date: Thu, 15 Mar 2007 11:48:31 -0800
-Message-ID: <200703151848.l2FImXp0023252@shell0.pdx.osdl.net>
+Subject: + bool-fbdevs-must-depend-on-fb-=-y.patch added to -mm tree
+Date: Thu, 15 Mar 2007 11:48:18 -0800
+Message-ID: <200703151848.l2FImKfd023237@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35295 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35341 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751564AbXCOSsk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 14:48:40 -0400
+	id S1752812AbXCOSsy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 14:48:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, jens.axboe@oracle.com
+Cc: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     splice: dont steal
+     bool fbdevs must depend on FB = y
 has been added to the -mm tree.  Its filename is
-     splice-dont-steal.patch
+     bool-fbdevs-must-depend-on-fb-=-y.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,171 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: splice: dont steal
-From: Nick Piggin <npiggin@suse.de>
+Subject: bool fbdevs must depend on FB = y
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Stealing pages with splice is problematic because we cannot just insert an
-uptodate page into the pagecache and hope the filesystem can take care of
-it later.
+Frame buffer device drivers that cannot be built as modules must depend on
+`FB = y'.  Correct the 3 remaining offenders.
 
-We also cannot just ClearPageUptodate, then hope prepare_write does not
-write anything into the page, because I don't think prepare_write gives
-that guarantee.
-
-Remove support for SPLICE_F_MOVE for now.  If we really want to bring it
-back, we might be able to do so with a the new filesystem buffered write
-aops APIs I'm working on.  If we really don't want to bring it back, then
-we should decide that sooner rather than later, and remove the flag and all
-the stealing infrastructure before anybody starts using it.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |  101 ++++++++++++++++++--------------------------------
- 1 file changed, 38 insertions(+), 63 deletions(-)
+ drivers/video/Kconfig |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/splice.c~splice-dont-steal fs/splice.c
---- a/fs/splice.c~splice-dont-steal
-+++ a/fs/splice.c
-@@ -576,76 +576,51 @@ static int pipe_to_file(struct pipe_inod
- 	if (this_len + offset > PAGE_CACHE_SIZE)
- 		this_len = PAGE_CACHE_SIZE - offset;
+diff -puN drivers/video/Kconfig~bool-fbdevs-must-depend-on-fb-=-y drivers/video/Kconfig
+--- a/drivers/video/Kconfig~bool-fbdevs-must-depend-on-fb-=-y
++++ a/drivers/video/Kconfig
+@@ -1320,7 +1320,7 @@ config FB_AU1100
  
--	/*
--	 * Reuse buf page, if SPLICE_F_MOVE is set and we are doing a full
--	 * page.
--	 */
--	if ((sd->flags & SPLICE_F_MOVE) && this_len == PAGE_CACHE_SIZE) {
-+find_page:
-+	page = find_lock_page(mapping, index);
-+	if (!page) {
-+		ret = -ENOMEM;
-+		page = page_cache_alloc_cold(mapping);
-+		if (unlikely(!page))
-+			goto out_ret;
-+
- 		/*
--		 * If steal succeeds, buf->page is now pruned from the
--		 * pagecache and we can reuse it. The page will also be
--		 * locked on successful return.
-+		 * This will also lock the page
- 		 */
--		if (buf->ops->steal(pipe, buf))
--			goto find_page;
--
--		page = buf->page;
--		if (add_to_page_cache(page, mapping, index, GFP_KERNEL)) {
--			unlock_page(page);
--			goto find_page;
--		}
--
--		page_cache_get(page);
-+		ret = add_to_page_cache_lru(page, mapping, index,
-+					    GFP_KERNEL);
-+		if (unlikely(ret))
-+			goto out;
-+	}
+ config FB_AU1200
+ 	bool "Au1200 LCD Driver"
+-	depends on FB && MIPS && SOC_AU1200
++	depends on (FB = y) && MIPS && SOC_AU1200
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+@@ -1470,7 +1470,7 @@ config FB_G364
  
--		if (!(buf->flags & PIPE_BUF_FLAG_LRU))
--			lru_cache_add(page);
--	} else {
--find_page:
--		page = find_lock_page(mapping, index);
--		if (!page) {
--			ret = -ENOMEM;
--			page = page_cache_alloc_cold(mapping);
--			if (unlikely(!page))
--				goto out_ret;
--
--			/*
--			 * This will also lock the page
--			 */
--			ret = add_to_page_cache_lru(page, mapping, index,
--						    GFP_KERNEL);
-+	/*
-+	 * We get here with the page locked. If the page is also
-+	 * uptodate, we don't need to do more. If it isn't, we
-+	 * may need to bring it in if we are not going to overwrite
-+	 * the full page.
-+	 */
-+	if (!PageUptodate(page)) {
-+		if (this_len < PAGE_CACHE_SIZE) {
-+			ret = mapping->a_ops->readpage(file, page);
- 			if (unlikely(ret))
- 				goto out;
--		}
+ config FB_68328
+ 	bool "Motorola 68328 native frame buffer support"
+-	depends on FB && (M68328 || M68EZ328 || M68VZ328)
++	depends on (FB = y) && (M68328 || M68EZ328 || M68VZ328)
+  	select FB_CFB_FILLRECT
+  	select FB_CFB_COPYAREA
+  	select FB_CFB_IMAGEBLIT
+@@ -1616,7 +1616,7 @@ config FB_IBM_GXT4500
  
--		/*
--		 * We get here with the page locked. If the page is also
--		 * uptodate, we don't need to do more. If it isn't, we
--		 * may need to bring it in if we are not going to overwrite
--		 * the full page.
--		 */
--		if (!PageUptodate(page)) {
--			if (this_len < PAGE_CACHE_SIZE) {
--				ret = mapping->a_ops->readpage(file, page);
--				if (unlikely(ret))
--					goto out;
--
--				lock_page(page);
--
--				if (!PageUptodate(page)) {
--					/*
--					 * Page got invalidated, repeat.
--					 */
--					if (!page->mapping) {
--						unlock_page(page);
--						page_cache_release(page);
--						goto find_page;
--					}
--					ret = -EIO;
--					goto out;
-+			lock_page(page);
-+
-+			if (!PageUptodate(page)) {
-+				/*
-+				 * Page got invalidated, repeat.
-+				 */
-+				if (!page->mapping) {
-+					unlock_page(page);
-+					page_cache_release(page);
-+					goto find_page;
- 				}
--			} else
--				SetPageUptodate(page);
--		}
-+				ret = -EIO;
-+				goto out;
-+			}
-+		} else
-+			SetPageUptodate(page);
- 	}
- 
- 	ret = mapping->a_ops->prepare_write(file, page, offset, offset+this_len);
+ config FB_PS3
+ 	bool "PS3 GPU framebuffer driver"
+-	depends on FB && PS3_PS3AV
++	depends on (FB = y) && PS3_PS3AV
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
-mm-fix-madvise-infinine-loop.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-splice-dont-steal.patch
-splice-dont-readpage.patch
-mm-remove-gcc-workaround.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-mm-debug-check-for-the-fault-vs-invalidate-race.patch
-mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
-mm-simplify-filemap_nopage.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault.patch
-mm-remove-legacy-cruft.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-exec-fix-remove_arg_zero.patch
-exec-fix-remove_arg_zero-add-comment.patch
-as-fix-antic_expire-check.patch
+bool-fbdevs-must-depend-on-fb-=-y.patch
+ps3fb-thread-updates.patch
+ps3av-thread-updates.patch
+ps3fb-kill-superfluous-zero-initializations.patch
+ps3fb-atomic-fixes.patch
+ps3av-misc-updates.patch
+fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
+fbdev-fb_do_show_logo-updates.patch
+fbdev-correct-image-offsets-when-rotating-logo.patch
