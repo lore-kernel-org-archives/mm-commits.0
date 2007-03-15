@@ -1,49 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - make-drivers-char-drm-drm_vmcdrm_io_prot-static.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:57:05 -0800
-Message-ID: <200703152157.l2FLv57D027609@shell0.pdx.osdl.net>
+Subject: - saa7134-fix-modules=n-compilation.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:16 -0800
+Message-ID: <200703152157.l2FLvGbo027623@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42663 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42671 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753370AbXCOWA0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:00:26 -0400
+	id S1753378AbXCOWAg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:00:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, airlied@linux.ie, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make drivers/char/drm/drm_vm.c:drm_io_prot() static
+     saa7134: fix MODULES=n compilation
 has been removed from the -mm tree.  Its filename was
-     make-drivers-char-drm-drm_vmcdrm_io_prot-static.patch
+     saa7134-fix-modules=n-compilation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make drivers/char/drm/drm_vm.c:drm_io_prot() static
+Subject: saa7134: fix MODULES=n compilation
 From: Adrian Bunk <bunk@stusta.de>
 
+This patch fixes the following compile error with CONFIG_MODULES=n:
+
+  CC      drivers/media/video/saa7134/saa7134-core.o
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/drivers/media/video/saa7134/saa7134-core.c:979:24: error: macro "request_submodules" passed 1 arguments, but takes just 0
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/drivers/media/video/saa7134/saa7134-core.c: In function 'saa7134_initdev':
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/drivers/media/video/saa7134/saa7134-core.c:979: error: 'request_submodules' undeclared (first use in this function)
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/drivers/media/video/saa7134/saa7134-core.c:979: error: (Each undeclared identifier is reported only once
+/home/bunk/linux/kernel-2.6/linux-2.6.21-rc2-mm1/drivers/media/video/saa7134/saa7134-core.c:979: error: for each function it appears in.)
+make[5]: *** [drivers/media/video/saa7134/saa7134-core.o] Error 1
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_vm.c |    2 +-
+ drivers/media/video/saa7134/saa7134-core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/drm_vm.c~make-drivers-char-drm-drm_vmcdrm_io_prot-static drivers/char/drm/drm_vm.c
---- a/drivers/char/drm/drm_vm.c~make-drivers-char-drm-drm_vmcdrm_io_prot-static
-+++ a/drivers/char/drm/drm_vm.c
-@@ -41,7 +41,7 @@
- static void drm_vm_open(struct vm_area_struct *vma);
- static void drm_vm_close(struct vm_area_struct *vma);
+diff -puN drivers/media/video/saa7134/saa7134-core.c~saa7134-fix-modules=n-compilation drivers/media/video/saa7134/saa7134-core.c
+--- a/drivers/media/video/saa7134/saa7134-core.c~saa7134-fix-modules=n-compilation
++++ a/drivers/media/video/saa7134/saa7134-core.c
+@@ -203,7 +203,7 @@ static void request_submodules(struct sa
+ }
  
--pgprot_t drm_io_prot(uint32_t map_type, struct vm_area_struct *vma)
-+static pgprot_t drm_io_prot(uint32_t map_type, struct vm_area_struct *vma)
- {
- 	pgprot_t tmp = vm_get_page_prot(vma->vm_flags);
+ #else
+-#define request_submodules()
++#define request_submodules(dev)
+ #endif /* CONFIG_MODULES */
  
+ /* ------------------------------------------------------------------ */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
