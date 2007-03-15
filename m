@@ -1,92 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - pata_hpt366-switch-back-to-cable-method-again.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:57:35 -0800
-Message-ID: <200703152157.l2FLvZS5027650@shell0.pdx.osdl.net>
+Subject: - pata_efar-switch-back-to-cable-methods.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:33 -0800
+Message-ID: <200703152157.l2FLvXhU027647@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42388 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42385 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751950AbXCOV5r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:57:47 -0400
+	id S1751943AbXCOV5q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_hpt366: switch back to cable method again
+     pata_efar: switch back to cable methods
 has been removed from the -mm tree.  Its filename was
-     pata_hpt366-switch-back-to-cable-method-again.patch
+     pata_efar-switch-back-to-cable-methods.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_hpt366: switch back to cable method again
+Subject: pata_efar: switch back to cable methods
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt366.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ drivers/ata/pata_efar.c |   32 ++++++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
 
-diff -puN drivers/ata/pata_hpt366.c~pata_hpt366-switch-back-to-cable-method-again drivers/ata/pata_hpt366.c
---- a/drivers/ata/pata_hpt366.c~pata_hpt366-switch-back-to-cable-method-again
-+++ a/drivers/ata/pata_hpt366.c
-@@ -27,7 +27,7 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/pata_efar.c~pata_efar-switch-back-to-cable-methods drivers/ata/pata_efar.c
+--- a/drivers/ata/pata_efar.c~pata_efar-switch-back-to-cable-methods
++++ a/drivers/ata/pata_efar.c
+@@ -22,10 +22,10 @@
+ #include <linux/ata.h>
  
- #define DRV_NAME	"pata_hpt366"
--#define DRV_VERSION	"0.6.0"
-+#define DRV_VERSION	"0.6.1"
+ #define DRV_NAME	"pata_efar"
+-#define DRV_VERSION	"0.4.3"
++#define DRV_VERSION	"0.4.4"
  
- struct hpt_clock {
- 	u8	xfer_speed;
-@@ -210,24 +210,26 @@ static u32 hpt36x_find_mode(struct ata_p
- 	return 0xffffffffU;	/* silence compiler warning */
- }
- 
-+static int hpt36x_cable_detect(struct ata_port *ap)
-+{
-+	u8 ata66;
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+
-+	pci_read_config_byte(pdev, 0x5A, &ata66);
-+	if (ata66 & (1 << ap->port_no))
-+		return ATA_CBL_PATA40;
-+	return ATA_CBL_PATA80;
-+}
-+
- static int hpt36x_pre_reset(struct ata_port *ap, unsigned long deadline)
- {
- 	static const struct pci_bits hpt36x_enable_bits[] = {
- 		{ 0x50, 1, 0x04, 0x04 },
- 		{ 0x54, 1, 0x04, 0x04 }
+ /**
+- *	efar_pre_reset	-	check for 40/80 pin
++ *	efar_pre_reset	-	Enable bits
+  *	@ap: Port
+  *	@deadline: deadline jiffies for the operation
+  *
+@@ -41,16 +41,8 @@ static int efar_pre_reset(struct ata_por
  	};
--
--	u8 ata66;
+ 
  	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+-	u8 tmp;
 -
- 	if (!pci_test_config_bits(pdev, &hpt36x_enable_bits[ap->port_no]))
+ 	if (!pci_test_config_bits(pdev, &efar_enable_bits[ap->port_no]))
  		return -ENOENT;
 -
--	pci_read_config_byte(pdev, 0x5A, &ata66);
--	if (ata66 & (1 << ap->port_no))
+-	pci_read_config_byte(pdev, 0x47, &tmp);
+-	if (tmp & (2 >> ap->port_no))
 -		ap->cbl = ATA_CBL_PATA40;
 -	else
 -		ap->cbl = ATA_CBL_PATA80;
  	return ata_std_prereset(ap, deadline);
  }
  
-@@ -354,6 +356,7 @@ static struct ata_port_operations hpt366
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= hpt36x_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= hpt36x_cable_detect,
+@@ -68,6 +60,25 @@ static void efar_error_handler(struct at
+ }
  
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
+ /**
++ *	efar_cable_detect	-	check for 40/80 pin
++ *	@ap: Port
++ *
++ *	Perform cable detection for the EFAR ATA interface. This is
++ *	different to the PIIX arrangement
++ */
++
++static int efar_cable_detect(struct ata_port *ap)
++{
++	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
++	u8 tmp;
++
++	pci_read_config_byte(pdev, 0x47, &tmp);
++	if (tmp & (2 >> ap->port_no))
++		return ATA_CBL_PATA40;
++	return ATA_CBL_PATA80;
++}
++
++/**
+  *	efar_set_piomode - Initialize host controller PATA PIO timings
+  *	@ap: Port whose timings we are configuring
+  *	@adev: um
+@@ -257,6 +268,7 @@ static const struct ata_port_operations 
+ 	.thaw			= ata_bmdma_thaw,
+ 	.error_handler		= efar_error_handler,
+ 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= efar_cable_detect,
+ 
+ 	.bmdma_setup		= ata_bmdma_setup,
+ 	.bmdma_start		= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
