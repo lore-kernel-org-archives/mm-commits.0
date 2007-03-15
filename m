@@ -1,149 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - expose-set_mode-method-so-it-can-be-wrapped.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:57:20 -0800
-Message-ID: <200703152157.l2FLvK9Y027629@shell0.pdx.osdl.net>
+Subject: - pata_cmd64x-restore-cable-method.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:27 -0800
+Message-ID: <200703152157.l2FLvRF6027638@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42378 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42373 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751948AbXCOV5n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:57:43 -0400
+	id S1751942AbXCOV5l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata: expose set_mode method so it can be wrapped
+     pata_cmd64x: restore cable method
 has been removed from the -mm tree.  Its filename was
-     expose-set_mode-method-so-it-can-be-wrapped.patch
+     pata_cmd64x-restore-cable-method.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata: expose set_mode method so it can be wrapped
-From: Alan <alan@lxorguk.ukuu.org.uk>
-
-This splits set_mode into do_set_mode and the wrapper so that a driver can
-call the standard method inside its own.  This in theory also obsoletes
-->post_set_mode().
-
-Needed for ACPI driver.
+Subject: pata_cmd64x: restore cable method
+From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   37 +++++++++++++++++++++++++++++-------
- include/linux/libata.h    |    1 
- 2 files changed, 31 insertions(+), 7 deletions(-)
+ drivers/ata/pata_cmd64x.c |   34 +++++++++-------------------------
+ 1 file changed, 9 insertions(+), 25 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~expose-set_mode-method-so-it-can-be-wrapped drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~expose-set_mode-method-so-it-can-be-wrapped
-+++ a/drivers/ata/libata-core.c
-@@ -2512,12 +2512,13 @@ static int ata_dev_set_mode(struct ata_d
- }
+diff -puN drivers/ata/pata_cmd64x.c~pata_cmd64x-restore-cable-method drivers/ata/pata_cmd64x.c
+--- a/drivers/ata/pata_cmd64x.c~pata_cmd64x-restore-cable-method
++++ a/drivers/ata/pata_cmd64x.c
+@@ -75,13 +75,7 @@ enum {
+ 	DTPR1		= 0x7C
+ };
  
- /**
-- *	ata_set_mode - Program timings and issue SET FEATURES - XFER
-+ *	ata_do_set_mode - Program timings and issue SET FEATURES - XFER
-  *	@ap: port on which timings will be programmed
-  *	@r_failed_dev: out paramter for failed device
-  *
-- *	Set ATA device disk transfer mode (PIO3, UDMA6, etc.).  If
-- *	ata_set_mode() fails, pointer to the failing device is
-+ *	Standard implementation of the function used to tune and set
-+ *	ATA device disk transfer mode (PIO3, UDMA6, etc.).  If
-+ *	ata_dev_set_mode() fails, pointer to the failing device is
-  *	returned in @r_failed_dev.
-  *
-  *	LOCKING:
-@@ -2526,14 +2527,12 @@ static int ata_dev_set_mode(struct ata_d
-  *	RETURNS:
-  *	0 on success, negative errno otherwise
-  */
--int ata_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev)
-+
-+int ata_do_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev)
+-static int cmd64x_pre_reset(struct ata_port *ap, unsigned long deadline)
+-{
+-	ap->cbl = ATA_CBL_PATA40;
+-	return ata_std_prereset(ap, deadline);
+-}
+-
+-static int cmd648_pre_reset(struct ata_port *ap, unsigned long deadline)
++static int cmd648_cable_detect(struct ata_port *ap)
  {
- 	struct ata_device *dev;
- 	int i, rc = 0, used_dma = 0, found = 0;
- 
--	/* has private set_mode? */
--	if (ap->ops->set_mode)
--		return ap->ops->set_mode(ap, r_failed_dev);
- 
- 	/* step 1: calculate xfer_mask */
- 	for (i = 0; i < ATA_MAX_DEVICES; i++) {
-@@ -2618,6 +2617,29 @@ int ata_set_mode(struct ata_port *ap, st
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	u8 r;
+@@ -89,21 +83,8 @@ static int cmd648_pre_reset(struct ata_p
+ 	/* Check cable detect bits */
+ 	pci_read_config_byte(pdev, BMIDECSR, &r);
+ 	if (r & (1 << ap->port_no))
+-		ap->cbl = ATA_CBL_PATA80;
+-	else
+-		ap->cbl = ATA_CBL_PATA40;
+-
+-	return ata_std_prereset(ap, deadline);
+-}
+-
+-static void cmd64x_error_handler(struct ata_port *ap)
+-{
+-	return ata_bmdma_drive_eh(ap, cmd64x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+-static void cmd648_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, cmd648_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
++		return ATA_CBL_PATA80;
++	return ATA_CBL_PATA40;
  }
  
  /**
-+ *	ata_set_mode - Program timings and issue SET FEATURES - XFER
-+ *	@ap: port on which timings will be programmed
-+ *	@r_failed_dev: out paramter for failed device
-+ *
-+ *	Set ATA device disk transfer mode (PIO3, UDMA6, etc.).  If
-+ *	ata_set_mode() fails, pointer to the failing device is
-+ *	returned in @r_failed_dev.
-+ *
-+ *	LOCKING:
-+ *	PCI/etc. bus probe sem.
-+ *
-+ *	RETURNS:
-+ *	0 on success, negative errno otherwise
-+ */
-+int ata_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev)
-+{
-+	/* has private set_mode? */
-+	if (ap->ops->set_mode)
-+		return ap->ops->set_mode(ap, r_failed_dev);
-+	return ata_do_set_mode(ap, r_failed_dev);
-+}
-+
-+/**
-  *	ata_tf_to_host - issue ATA taskfile to host controller
-  *	@ap: port to which command is being issued
-  *	@tf: ATA taskfile register set
-@@ -6418,6 +6440,7 @@ EXPORT_SYMBOL_GPL(ata_altstatus);
- EXPORT_SYMBOL_GPL(ata_exec_command);
- EXPORT_SYMBOL_GPL(ata_port_start);
- EXPORT_SYMBOL_GPL(ata_interrupt);
-+EXPORT_SYMBOL_GPL(ata_do_set_mode);
- EXPORT_SYMBOL_GPL(ata_data_xfer);
- EXPORT_SYMBOL_GPL(ata_data_xfer_noirq);
- EXPORT_SYMBOL_GPL(ata_qc_prep);
-diff -puN include/linux/libata.h~expose-set_mode-method-so-it-can-be-wrapped include/linux/libata.h
---- a/include/linux/libata.h~expose-set_mode-method-so-it-can-be-wrapped
-+++ a/include/linux/libata.h
-@@ -824,6 +824,7 @@ extern void ata_scsi_slave_destroy(struc
- extern int ata_scsi_change_queue_depth(struct scsi_device *sdev,
- 				       int queue_depth);
- extern struct ata_device *ata_dev_pair(struct ata_device *adev);
-+extern int ata_do_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev);
- extern u8 ata_irq_on(struct ata_port *ap);
- extern u8 ata_dummy_irq_on(struct ata_port *ap);
- extern u8 ata_irq_ack(struct ata_port *ap, unsigned int chk_drq);
+@@ -304,8 +285,9 @@ static struct ata_port_operations cmd64x
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= cmd64x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -338,8 +320,9 @@ static struct ata_port_operations cmd646
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= cmd64x_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
+@@ -372,8 +355,9 @@ static struct ata_port_operations cmd648
+ 
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= cmd648_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= cmd648_cable_detect,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
 git-libata-all.patch
 pcmcia-spot-slave-decode-flaws-for-testing.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-baycom_ser_fdx-also-allow-i-o-ports-=-0x1000-and-enhanced.patch
+ata_generic-remove-all-the-crud-again-and-use-cable.patch
+pata_ali-remove-all-the-crap-again-and-switch-to.patch
+pata_amd-remove-all-the-crud-and-restore-the-cable-detect.patch
+pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable.patch
+pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch
+pata_netcell-re-remove-all-the-crud.patch
+pata_qdi-restore-cable-detect.patch
+pata_sl82c105-restore-cable-detect-method.patch
+pata_winbond-restore-cable-method.patch
+libata-acpi-add-infrastructure-for-drivers-to-use.patch
+pata_optidma-rework-for-cable-detect-and-to-remove.patch
+pata_pdc2027x-restore-various-updates-done-on-the-driver.patch
+pata_acpi-restore-driver.patch
 resend-iphase-64bit-cleanup.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
+pci_module_init-convertion-in-tmscsimc.patch
 tty-clarify-documentation-of-write.patch
 tty-i386-x86_64-arbitary-speed-support.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
