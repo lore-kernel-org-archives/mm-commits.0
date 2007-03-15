@@ -1,90 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - pata_cs5520-re-remove-crap-and-switch-to-cable-detect.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:57:29 -0800
-Message-ID: <200703152157.l2FLvTLM027641@shell0.pdx.osdl.net>
+Subject: - drivers-media-video-cpia_ppc-dont-use-_work_nar.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:10 -0800
+Message-ID: <200703152157.l2FLvAPL027615@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42374 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42371 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751934AbXCOV5l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:57:41 -0400
+	id S1751909AbXCOV5j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@redhat.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, dhowells@redhat.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_cs5520: re-remove crap and switch to cable detect method again
+     drivers/media/video/cpia_pp.c: don't use _WORK_NAR
 has been removed from the -mm tree.  Its filename was
-     pata_cs5520-re-remove-crap-and-switch-to-cable-detect.patch
+     drivers-media-video-cpia_ppc-dont-use-_work_nar.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_cs5520: re-remove crap and switch to cable detect method again
-From: Alan Cox <alan@redhat.com>
+Subject: drivers/media/video/cpia_pp.c: don't use _WORK_NAR
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+pp_cam_entry->cb_task need not to be _NOAUTOREL ... because in fact it is
+never used ???
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-By: David Howells <dhowells@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cs5520.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ drivers/media/video/cpia_pp.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_cs5520.c~pata_cs5520-re-remove-crap-and-switch-to-cable-detect drivers/ata/pata_cs5520.c
---- a/drivers/ata/pata_cs5520.c~pata_cs5520-re-remove-crap-and-switch-to-cable-detect
-+++ a/drivers/ata/pata_cs5520.c
-@@ -139,18 +139,6 @@ static void cs5520_set_piomode(struct at
- 	cs5520_set_timings(ap, adev, adev->pio_mode);
+diff -puN drivers/media/video/cpia_pp.c~drivers-media-video-cpia_ppc-dont-use-_work_nar drivers/media/video/cpia_pp.c
+--- a/drivers/media/video/cpia_pp.c~drivers-media-video-cpia_ppc-dont-use-_work_nar
++++ a/drivers/media/video/cpia_pp.c
+@@ -141,7 +141,6 @@ static void cpia_pp_run_callback(struct 
+ 	cam = container_of(work, struct pp_cam_entry, cb_task);
+ 	cb_func = cam->cb_func;
+ 	cb_data = cam->cb_data;
+-	work_release(work);
+ 
+ 	cb_func(cb_data);
  }
- 
--
--static int cs5520_pre_reset(struct ata_port *ap, unsigned long deadline)
--{
--	ap->cbl = ATA_CBL_PATA40;
--	return ata_std_prereset(ap, deadline);
--}
--
--static void cs5520_error_handler(struct ata_port *ap)
--{
--	return ata_bmdma_drive_eh(ap, cs5520_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
--}
--
- static struct scsi_host_template cs5520_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -186,8 +174,9 @@ static struct ata_port_operations cs5520
- 
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= cs5520_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_40wire,
- 
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
+@@ -682,7 +681,7 @@ static int cpia_pp_registerCallback(void
+ 	if(cam->port->irq != PARPORT_IRQ_NONE) {
+ 		cam->cb_func = cb;
+ 		cam->cb_data = cbdata;
+-		INIT_WORK_NAR(&cam->cb_task, cpia_pp_run_callback);
++		INIT_WORK(&cam->cb_task, cpia_pp_run_callback);
+ 	} else {
+ 		retval = -1;
+ 	}
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-origin.patch
-git-libata-all.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-ata_generic-remove-all-the-crud-again-and-use-cable.patch
-pata_ali-remove-all-the-crap-again-and-switch-to.patch
-pata_amd-remove-all-the-crud-and-restore-the-cable-detect.patch
-pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable.patch
-pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch
-pata_netcell-re-remove-all-the-crud.patch
-pata_qdi-restore-cable-detect.patch
-pata_sl82c105-restore-cable-detect-method.patch
-pata_winbond-restore-cable-method.patch
-libata-acpi-add-infrastructure-for-drivers-to-use.patch
-pata_optidma-rework-for-cable-detect-and-to-remove.patch
-pata_pdc2027x-restore-various-updates-done-on-the-driver.patch
-pata_acpi-restore-driver.patch
-resend-iphase-64bit-cleanup.patch
-pci_module_init-convertion-in-tmscsimc.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+git-dvb.patch
+bonding-replace-system-timer-with-work-queue.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-refrigerator-vs-thaw_process-race.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+workqueue-introduce-wq_per_cpu-helper.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+workqueue-kill-noautorel-works.patch
+worker_thread-dont-play-with-signals.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+____call_usermodehelper-dont-flush_signals.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
