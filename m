@@ -1,122 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - 26-altix-console-fix-for-config_debug_shirq-usage.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:56:31 -0800
-Message-ID: <200703152156.l2FLuVKB027567@shell0.pdx.osdl.net>
+Subject: - pata_ixp4xx_cf-restore-cable-type-method.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:45 -0800
+Message-ID: <200703152157.l2FLvj6x027665@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42404 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42409 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751973AbXCOV5z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:57:55 -0400
+	id S1751969AbXCOV55 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pfg@sgi.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     2.6 Altix: console fix for CONFIG_DEBUG_SHIRQ usage
+     pata_ixp4xx_cf: restore cable type method
 has been removed from the -mm tree.  Its filename was
-     26-altix-console-fix-for-config_debug_shirq-usage.patch
+     pata_ixp4xx_cf-restore-cable-type-method.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: 2.6 Altix: console fix for CONFIG_DEBUG_SHIRQ usage
-From: Pat Gefre <pfg@sgi.com>
+Subject: pata_ixp4xx_cf: restore cable type method
+From: Alan Cox <alan@redhat.com>
 
-The sn console driver was snagged by the use of CONFIG_DEBUG_SHIRQ!
-
-The request_irq() immediate call to the interrupt handler caused
-another attempt to lock the port lock - deadlock.
-
-This is a patch to fix that.
-
-Signed-off-by: Patrick Gefre <pfg@sgi.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/sn_console.c |   52 +++++++++++-----------------------
- 1 file changed, 17 insertions(+), 35 deletions(-)
+ drivers/ata/pata_ixp4xx_cf.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/serial/sn_console.c~26-altix-console-fix-for-config_debug_shirq-usage drivers/serial/sn_console.c
---- a/drivers/serial/sn_console.c~26-altix-console-fix-for-config_debug_shirq-usage
-+++ a/drivers/serial/sn_console.c
-@@ -636,25 +636,6 @@ static irqreturn_t sn_sal_interrupt(int 
- }
+diff -puN drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-restore-cable-type-method drivers/ata/pata_ixp4xx_cf.c
+--- a/drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-restore-cable-type-method
++++ a/drivers/ata/pata_ixp4xx_cf.c
+@@ -129,6 +129,7 @@ static struct ata_port_operations ixp4xx
+ 	.qc_issue	= ata_qc_issue_prot,
+ 	.eng_timeout	= ata_eng_timeout,
+ 	.data_xfer	= ixp4xx_mmio_data_xfer,
++	.cable_detect	= ata_cable_40wire,
  
- /**
-- * sn_sal_connect_interrupt - Request interrupt, handled by sn_sal_interrupt
-- * @port: Our sn_cons_port (which contains the uart port)
-- *
-- * returns the console irq if interrupt is successfully registered, else 0
-- *
-- */
--static int sn_sal_connect_interrupt(struct sn_cons_port *port)
--{
--	if (request_irq(SGI_UART_VECTOR, sn_sal_interrupt,
--			IRQF_DISABLED | IRQF_SHARED,
--			"SAL console driver", port) >= 0) {
--		return SGI_UART_VECTOR;
--	}
--
--	printk(KERN_INFO "sn_console: console proceeding in polled mode\n");
--	return 0;
--}
--
--/**
-  * sn_sal_timer_poll - this function handles polled console mode
-  * @data: A pointer to our sn_cons_port (which contains the uart port)
-  *
-@@ -746,30 +727,31 @@ static void __init sn_sal_switch_to_asyn
-  * mode.  We were previously in asynch/polling mode (using init_timer).
-  *
-  * We attempt to switch to interrupt mode here by calling
-- * sn_sal_connect_interrupt.  If that works out, we enable receive interrupts.
-+ * request_irq.  If that works out, we enable receive interrupts.
-  */
- static void __init sn_sal_switch_to_interrupts(struct sn_cons_port *port)
- {
--	int irq;
- 	unsigned long flags;
- 
--	if (!port)
--		return;
--
--	DPRINTF("sn_console: switching to interrupt driven console\n");
--
--	spin_lock_irqsave(&port->sc_port.lock, flags);
-+	if (port) {
-+		DPRINTF("sn_console: switching to interrupt driven console\n");
- 
--	irq = sn_sal_connect_interrupt(port);
-+		if (request_irq(SGI_UART_VECTOR, sn_sal_interrupt,
-+				IRQF_DISABLED | IRQF_SHARED,
-+				"SAL console driver", port) >= 0) {
-+			spin_lock_irqsave(&port->sc_port.lock, flags);
-+			port->sc_port.irq = SGI_UART_VECTOR;
-+			port->sc_ops = &intr_ops;
- 
--	if (irq) {
--		port->sc_port.irq = irq;
--		port->sc_ops = &intr_ops;
--
--		/* turn on receive interrupts */
--		ia64_sn_console_intr_enable(SAL_CONSOLE_INTR_RECV);
-+			/* turn on receive interrupts */
-+			ia64_sn_console_intr_enable(SAL_CONSOLE_INTR_RECV);
-+			spin_unlock_irqrestore(&port->sc_port.lock, flags);
-+		}
-+		else {
-+			printk(KERN_INFO
-+			    "sn_console: console proceeding in polled mode\n");
-+		}
- 	}
--	spin_unlock_irqrestore(&port->sc_port.lock, flags);
- }
- 
- /*
+ 	.irq_handler	= ata_interrupt,
+ 	.irq_clear	= ixp4xx_irq_clear,
 _
 
-Patches currently in -mm which might be from pfg@sgi.com are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
+git-libata-all.patch
+pcmcia-spot-slave-decode-flaws-for-testing.patch
+ata_generic-remove-all-the-crud-again-and-use-cable.patch
+pata_ali-remove-all-the-crap-again-and-switch-to.patch
+pata_amd-remove-all-the-crud-and-restore-the-cable-detect.patch
+pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable.patch
+pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch
+pata_netcell-re-remove-all-the-crud.patch
+pata_qdi-restore-cable-detect.patch
+pata_sl82c105-restore-cable-detect-method.patch
+pata_winbond-restore-cable-method.patch
+libata-acpi-add-infrastructure-for-drivers-to-use.patch
+pata_optidma-rework-for-cable-detect-and-to-remove.patch
+pata_pdc2027x-restore-various-updates-done-on-the-driver.patch
+pata_acpi-restore-driver.patch
+resend-iphase-64bit-cleanup.patch
+pci_module_init-convertion-in-tmscsimc.patch
+tty-clarify-documentation-of-write.patch
+tty-i386-x86_64-arbitary-speed-support.patch
