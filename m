@@ -1,122 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - pata_atiixp-restore-the-cable-method.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:57:25 -0800
-Message-ID: <200703152157.l2FLvPie027635@shell0.pdx.osdl.net>
+Subject: - expose-set_mode-method-so-it-can-be-wrapped.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:20 -0800
+Message-ID: <200703152157.l2FLvK9Y027629@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42367 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42378 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751932AbXCOV5i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:57:38 -0400
+	id S1751948AbXCOV5n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_atiixp: restore the cable method
+     pata: expose set_mode method so it can be wrapped
 has been removed from the -mm tree.  Its filename was
-     pata_atiixp-restore-the-cable-method.patch
+     expose-set_mode-method-so-it-can-be-wrapped.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_atiixp: restore the cable method
-From: Alan Cox <alan@redhat.com>
+Subject: pata: expose set_mode method so it can be wrapped
+From: Alan <alan@lxorguk.ukuu.org.uk>
+
+This splits set_mode into do_set_mode and the wrapper so that a driver can
+call the standard method inside its own.  This in theory also obsoletes
+->post_set_mode().
+
+Needed for ACPI driver.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_atiixp.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ drivers/ata/libata-core.c |   37 +++++++++++++++++++++++++++++-------
+ include/linux/libata.h    |    1 
+ 2 files changed, 31 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-restore-the-cable-method drivers/ata/pata_atiixp.c
---- a/drivers/ata/pata_atiixp.c~pata_atiixp-restore-the-cable-method
-+++ a/drivers/ata/pata_atiixp.c
-@@ -22,7 +22,7 @@
- #include <linux/libata.h>
- 
- #define DRV_NAME "pata_atiixp"
--#define DRV_VERSION "0.4.4"
-+#define DRV_VERSION "0.4.5"
- 
- enum {
- 	ATIIXP_IDE_PIO_TIMING	= 0x40,
-@@ -35,23 +35,13 @@ enum {
- 
- static int atiixp_pre_reset(struct ata_port *ap, unsigned long deadline)
- {
--	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 	static const struct pci_bits atiixp_enable_bits[] = {
- 		{ 0x48, 1, 0x01, 0x00 },
- 		{ 0x48, 1, 0x08, 0x00 }
- 	};
--	u8 udma;
--
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 	if (!pci_test_config_bits(pdev, &atiixp_enable_bits[ap->port_no]))
- 		return -ENOENT;
--
--	/* Hack from drivers/ide/pci. Really we want to know how to do the
--	   raw detection not play follow the bios mode guess */
--	pci_read_config_byte(pdev, ATIIXP_IDE_UDMA_MODE + ap->port_no, &udma);
--	if ((udma & 0x07) >= 0x04 || (udma & 0x70) >= 0x40)
--		ap->cbl = ATA_CBL_PATA80;
--	else
--		ap->cbl = ATA_CBL_PATA40;
- 	return ata_std_prereset(ap, deadline);
+diff -puN drivers/ata/libata-core.c~expose-set_mode-method-so-it-can-be-wrapped drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~expose-set_mode-method-so-it-can-be-wrapped
++++ a/drivers/ata/libata-core.c
+@@ -2512,12 +2512,13 @@ static int ata_dev_set_mode(struct ata_d
  }
  
-@@ -60,6 +50,19 @@ static void atiixp_error_handler(struct 
- 	ata_bmdma_drive_eh(ap, atiixp_pre_reset, ata_std_softreset, NULL,   ata_std_postreset);
- }
- 
-+static int atiixp_cable_detect(struct ata_port *ap)
-+{
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+	u8 udma;
+ /**
+- *	ata_set_mode - Program timings and issue SET FEATURES - XFER
++ *	ata_do_set_mode - Program timings and issue SET FEATURES - XFER
+  *	@ap: port on which timings will be programmed
+  *	@r_failed_dev: out paramter for failed device
+  *
+- *	Set ATA device disk transfer mode (PIO3, UDMA6, etc.).  If
+- *	ata_set_mode() fails, pointer to the failing device is
++ *	Standard implementation of the function used to tune and set
++ *	ATA device disk transfer mode (PIO3, UDMA6, etc.).  If
++ *	ata_dev_set_mode() fails, pointer to the failing device is
+  *	returned in @r_failed_dev.
+  *
+  *	LOCKING:
+@@ -2526,14 +2527,12 @@ static int ata_dev_set_mode(struct ata_d
+  *	RETURNS:
+  *	0 on success, negative errno otherwise
+  */
+-int ata_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev)
 +
-+	/* Hack from drivers/ide/pci. Really we want to know how to do the
-+	   raw detection not play follow the bios mode guess */
-+	pci_read_config_byte(pdev, ATIIXP_IDE_UDMA_MODE + ap->port_no, &udma);
-+	if ((udma & 0x07) >= 0x04 || (udma & 0x70) >= 0x40)
-+		return  ATA_CBL_PATA80;
-+	return ATA_CBL_PATA40;
++int ata_do_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev)
+ {
+ 	struct ata_device *dev;
+ 	int i, rc = 0, used_dma = 0, found = 0;
+ 
+-	/* has private set_mode? */
+-	if (ap->ops->set_mode)
+-		return ap->ops->set_mode(ap, r_failed_dev);
+ 
+ 	/* step 1: calculate xfer_mask */
+ 	for (i = 0; i < ATA_MAX_DEVICES; i++) {
+@@ -2618,6 +2617,29 @@ int ata_set_mode(struct ata_port *ap, st
+ }
+ 
+ /**
++ *	ata_set_mode - Program timings and issue SET FEATURES - XFER
++ *	@ap: port on which timings will be programmed
++ *	@r_failed_dev: out paramter for failed device
++ *
++ *	Set ATA device disk transfer mode (PIO3, UDMA6, etc.).  If
++ *	ata_set_mode() fails, pointer to the failing device is
++ *	returned in @r_failed_dev.
++ *
++ *	LOCKING:
++ *	PCI/etc. bus probe sem.
++ *
++ *	RETURNS:
++ *	0 on success, negative errno otherwise
++ */
++int ata_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev)
++{
++	/* has private set_mode? */
++	if (ap->ops->set_mode)
++		return ap->ops->set_mode(ap, r_failed_dev);
++	return ata_do_set_mode(ap, r_failed_dev);
 +}
 +
- /**
-  *	atiixp_set_pio_timing	-	set initial PIO mode data
-  *	@ap: ATA interface
-@@ -245,6 +248,7 @@ static struct ata_port_operations atiixp
- 	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= atiixp_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= atiixp_cable_detect,
- 
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= atiixp_bmdma_start,
++/**
+  *	ata_tf_to_host - issue ATA taskfile to host controller
+  *	@ap: port to which command is being issued
+  *	@tf: ATA taskfile register set
+@@ -6418,6 +6440,7 @@ EXPORT_SYMBOL_GPL(ata_altstatus);
+ EXPORT_SYMBOL_GPL(ata_exec_command);
+ EXPORT_SYMBOL_GPL(ata_port_start);
+ EXPORT_SYMBOL_GPL(ata_interrupt);
++EXPORT_SYMBOL_GPL(ata_do_set_mode);
+ EXPORT_SYMBOL_GPL(ata_data_xfer);
+ EXPORT_SYMBOL_GPL(ata_data_xfer_noirq);
+ EXPORT_SYMBOL_GPL(ata_qc_prep);
+diff -puN include/linux/libata.h~expose-set_mode-method-so-it-can-be-wrapped include/linux/libata.h
+--- a/include/linux/libata.h~expose-set_mode-method-so-it-can-be-wrapped
++++ a/include/linux/libata.h
+@@ -824,6 +824,7 @@ extern void ata_scsi_slave_destroy(struc
+ extern int ata_scsi_change_queue_depth(struct scsi_device *sdev,
+ 				       int queue_depth);
+ extern struct ata_device *ata_dev_pair(struct ata_device *adev);
++extern int ata_do_set_mode(struct ata_port *ap, struct ata_device **r_failed_dev);
+ extern u8 ata_irq_on(struct ata_port *ap);
+ extern u8 ata_dummy_irq_on(struct ata_port *ap);
+ extern u8 ata_irq_ack(struct ata_port *ap, unsigned int chk_drq);
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
 git-libata-all.patch
 pcmcia-spot-slave-decode-flaws-for-testing.patch
-ata_generic-remove-all-the-crud-again-and-use-cable.patch
-pata_ali-remove-all-the-crap-again-and-switch-to.patch
-pata_amd-remove-all-the-crud-and-restore-the-cable-detect.patch
-pata_cs5535-re-remove-all-the-crap-and-switch-to-the-cable.patch
-pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch
-pata_netcell-re-remove-all-the-crud.patch
-pata_qdi-restore-cable-detect.patch
-pata_sl82c105-restore-cable-detect-method.patch
-pata_winbond-restore-cable-method.patch
-libata-acpi-add-infrastructure-for-drivers-to-use.patch
-pata_optidma-rework-for-cable-detect-and-to-remove.patch
-pata_pdc2027x-restore-various-updates-done-on-the-driver.patch
-pata_acpi-restore-driver.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+baycom_ser_fdx-also-allow-i-o-ports-=-0x1000-and-enhanced.patch
 resend-iphase-64bit-cleanup.patch
-pci_module_init-convertion-in-tmscsimc.patch
+serial-suppress-rts-assertion-with-disabled-crtscts.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
 tty-clarify-documentation-of-write.patch
 tty-i386-x86_64-arbitary-speed-support.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
