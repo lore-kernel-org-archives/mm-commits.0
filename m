@@ -1,140 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - ibmtr-drain-rich-supply-of-modpost-warnings.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:58:57 -0800
-Message-ID: <200703152158.l2FLwvO0027773@shell0.pdx.osdl.net>
+Subject: - tulip-natsemi-dp83840a-phy-fix.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:59:03 -0800
+Message-ID: <200703152159.l2FLx31P027783@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42715 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42723 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753387AbXCOWCP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:02:15 -0400
+	id S1753388AbXCOWCn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:02:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: T-Bone@parisc-linux.org, grundler@parisc-linux.org, jgarzik@pobox.com, val_henson@linux.intel.com, varenet@parisc-linux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ibmtr: drain rich supply of modpost warnings
+     tulip: NatSemi DP83840A PHY fix
 has been removed from the -mm tree.  Its filename was
-     ibmtr-drain-rich-supply-of-modpost-warnings.patch
+     tulip-natsemi-dp83840a-phy-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ibmtr: drain rich supply of modpost warnings
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: tulip: NatSemi DP83840A PHY fix
+From: Thibaut VARENE <T-Bone@parisc-linux.org>
 
-Building ibmtr as a module produces a spectacular pile of modpost warnings:
+Fix a problem with Tulip 21142 HP branded PCI cards (PN#: B5509-66001),
+which feature a NatSemi DP83840A PHY.
 
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x450) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x454) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x458) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x45c) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4e8) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4ec) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4f0) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x4f4) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x500) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x504) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x508) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:find_turbo_adapters from .text between 'ibmtr_probe_card' (at offset 0x50c) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x520) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x524) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x528) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data:ibmtr_portlist from .text between 'ibmtr_probe_card' (at offset 0x534) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x540) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x544) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x548) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.data: from .text between 'ibmtr_probe_card' (at offset 0x54c) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x558) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x55c) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x560) and 'ibmtr_reset_timer'
-WARNING: drivers/net/tokenring/ibmtr.o - Section mismatch: reference to .init.text:ibmtr_probe1 from .text between 'ibmtr_probe_card' (at offset 0x564) and 'ibmtr_reset_timer'
+Without that patch, it is impossible to properly initialize the card's PHY,
+and it's thus impossible to monitor/configure it.
 
-Fix by making ibmtr_probe an __init function.
+It's a timing/posting problem, and it is solved exactly the same way Grant
+fixed it elsewhere already.
 
-While at it, move move ibmtr_probe_card below ibmtr_probe so the protoype
-for ibmtr_probe can be deleted.
+Signed-off-by: Thibaut VARENE <varenet@parisc-linux.org>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Acked-by: Grant Grundler <grundler@parisc-linux.org>
+Cc: Valerie Henson <val_henson@linux.intel.com>
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+[akpm: this is a previously-nacked patch, but the problem is real]
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/tokenring/ibmtr.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ drivers/net/tulip/media.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/tokenring/ibmtr.c~ibmtr-drain-rich-supply-of-modpost-warnings drivers/net/tokenring/ibmtr.c
---- a/drivers/net/tokenring/ibmtr.c~ibmtr-drain-rich-supply-of-modpost-warnings
-+++ a/drivers/net/tokenring/ibmtr.c
-@@ -186,7 +186,6 @@ static char __devinit *adapter_def(char 
- #define TRC_INITV 0x02		/*  verbose init trace points     */
- static unsigned char ibmtr_debug_trace = 0;
- 
--static int 	ibmtr_probe(struct net_device *dev);
- static int	ibmtr_probe1(struct net_device *dev, int ioaddr);
- static unsigned char get_sram_size(struct tok_info *adapt_info);
- static int 	trdev_init(struct net_device *dev);
-@@ -335,17 +334,6 @@ static void ibmtr_cleanup_card(struct ne
- #endif		
- }
- 
--int ibmtr_probe_card(struct net_device *dev)
--{
--	int err = ibmtr_probe(dev);
--	if (!err) {
--		err = register_netdev(dev);
--		if (err)
--			ibmtr_cleanup_card(dev);
--	}
--	return err;
--}
--
- /****************************************************************************
-  *	ibmtr_probe():  Routine specified in the network device structure
-  *	to probe for an IBM Token Ring Adapter.  Routine outline:
-@@ -358,7 +346,7 @@ int ibmtr_probe_card(struct net_device *
-  *	which references it.
-  ****************************************************************************/
- 
--static int ibmtr_probe(struct net_device *dev)
-+static int __init ibmtr_probe(struct net_device *dev)
- {
- 	int i;
- 	int base_addr = dev->base_addr;
-@@ -378,6 +366,17 @@ static int ibmtr_probe(struct net_device
- 	return -ENODEV;
- }
- 
-+int __init ibmtr_probe_card(struct net_device *dev)
-+{
-+	int err = ibmtr_probe(dev);
-+	if (!err) {
-+		err = register_netdev(dev);
-+		if (err)
-+			ibmtr_cleanup_card(dev);
-+	}
-+	return err;
-+}
+diff -puN drivers/net/tulip/media.c~tulip-natsemi-dp83840a-phy-fix drivers/net/tulip/media.c
+--- a/drivers/net/tulip/media.c~tulip-natsemi-dp83840a-phy-fix
++++ a/drivers/net/tulip/media.c
+@@ -263,11 +263,27 @@ void tulip_select_media(struct net_devic
+ 				u16 *reset_sequence = &((u16*)(p+3))[init_length];
+ 				int reset_length = p[2 + init_length*2];
+ 				misc_info = reset_sequence + reset_length;
+-				if (startup)
++				if (startup) {
++					int timeout = 10;	/* max 1 ms */
+ 					for (i = 0; i < reset_length; i++)
+ 						iowrite32(get_u16(&reset_sequence[i]) << 16, ioaddr + CSR15);
 +
- /*****************************************************************************/
- 
- static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
++					/* flush posted writes */
++					ioread32(ioaddr + CSR15);
++
++					/* Sect 3.10.3 in DP83840A.pdf (p39) */
++					udelay(500);
++
++					/* Section 4.2 in DP83840A.pdf (p43) */
++					/* and IEEE 802.3 "22.2.4.1.1 Reset" */
++					while (timeout-- &&
++						(tulip_mdio_read (dev, phy_num, MII_BMCR) & BMCR_RESET))
++						udelay(100);
++				}
+ 				for (i = 0; i < init_length; i++)
+ 					iowrite32(get_u16(&init_sequence[i]) << 16, ioaddr + CSR15);
++
++				ioread32(ioaddr + CSR15);	/* flush posted writes */
+ 			} else {
+ 				u8 *init_sequence = p + 2;
+ 				u8 *reset_sequence = p + 3 + init_length;
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from T-Bone@parisc-linux.org are
 
-origin.patch
-git-alsa.patch
 git-netdev-all.patch
-div64_64-common-code.patch
-serial-driver-pmc-msp71xx.patch
-rm9000-serial-driver.patch
-rm9000-serial-driver-tidy.patch
-x86_64-fix-ia32_binfmtc-build-error.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-simplify-the-stacktrace-code.patch
-serial-allocate-minor-device-numbers-for.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-local_t-mips-extension.patch
-tgafb-turbochannel-support.patch
+make-elv_register-output-atomic.patch
