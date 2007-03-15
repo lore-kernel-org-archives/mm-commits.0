@@ -1,95 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - ice1712-build-fixes-update.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 14:00:06 -0800
-Message-ID: <200703152200.l2FM06Im027892@shell0.pdx.osdl.net>
+Subject: - tulip-fix-for-64-bit-mips.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:59:00 -0800
+Message-ID: <200703152159.l2FLx0sH027776@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42744 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42755 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753389AbXCOWD3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:03:29 -0400
+	id S1753391AbXCOWDo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:03:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: maillist@jg555.com, grundler@parisc-linux.org, pdh@colonel-panic.org, val_henson@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ice1712: build fixes (update)
+     tulip: fix for 64-bit mips
 has been removed from the -mm tree.  Its filename was
-     ice1712-build-fixes-update.patch
+     tulip-fix-for-64-bit-mips.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ice1712: build fixes (update)
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: tulip: fix for 64-bit mips
+From: Jim Gifford <maillist@jg555.com>,
+      Grant Grundler <grundler@parisc-linux.org>,
+      Peter Horton <pdh@colonel-panic.org>
 
-  CC [M]  sound/pci/ice1712/ice1712.o
-sound/pci/ice1712/ice1712.c:290: error: snd_ice1712_mixer_digmix_route_ac97 causes a section type conflict
-sound/pci/ice1712/ice1712.c:1630: error: snd_ice1712_eeprom causes a section type conflict
-sound/pci/ice1712/ice1712.c:1894: error: snd_ice1712_pro_internal_clock causes a section type conflict
-sound/pci/ice1712/ice1712.c:1965: error: snd_ice1712_pro_internal_clock_default causes a section type conflict
-sound/pci/ice1712/ice1712.c:2004: error: snd_ice1712_pro_rate_locking causes a section type conflict
-sound/pci/ice1712/ice1712.c:2043: error: snd_ice1712_pro_rate_reset causes a section type conflict
-sound/pci/ice1712/ice1712.c:2210: error: snd_ice1712_mixer_pro_analog_route causes a section type conflict
-sound/pci/ice1712/ice1712.c:2218: error: snd_ice1712_mixer_pro_spdif_route causes a section type conflict
-sound/pci/ice1712/ice1712.c:2260: error: snd_ice1712_mixer_pro_volume_rate causes a section type conflict
-sound/pci/ice1712/ice1712.c:2293: error: snd_ice1712_mixer_pro_peak causes a section type conflict
-sound/pci/ice1712/ice1712.c:1666: error: snd_ice1712_spdif_default causes a section type conflict
-sound/pci/ice1712/ice1712.c:1717: error: snd_ice1712_spdif_maskc causes a section type conflict
-sound/pci/ice1712/ice1712.c:1726: error: snd_ice1712_spdif_maskp causes a section type conflict
-sound/pci/ice1712/ice1712.c:1753: error: snd_ice1712_spdif_stream causes a section type conflict
+With Grant's help I was able to get the tulip driver to work with 64 bit 
+MIPS.
 
-Gcc like its __devinitdata readable not const, it seems.  An alternative
-fix would be to remove the __devinitdata attribute but that would result
-in slight runtime bloat.
+Cc: Valerie Henson <val_henson@linux.intel.com>
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+[akpm: this is a previously-nacked patch, but the problem is real]
+
+Jeff sez:
+
+| Answer hasn't changed since this was last discussed:  sleep, rather than
+| delay for an extra-long time.  That's the only hurdle for the tulip
+| patches you keep resending.
+
+| Francois Romieu even had an untested patch that attempted this,
+| somewhere.
+
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- sound/pci/ice1712/ice1712.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/tulip/media.c |   22 ++++++++++++++++++++--
+ drivers/net/tulip/tulip.h |    7 +++++--
+ 2 files changed, 25 insertions(+), 4 deletions(-)
 
-diff -puN sound/pci/ice1712/ice1712.c~ice1712-build-fixes-update sound/pci/ice1712/ice1712.c
---- a/sound/pci/ice1712/ice1712.c~ice1712-build-fixes-update
-+++ a/sound/pci/ice1712/ice1712.c
-@@ -2327,7 +2327,7 @@ static int __devinit snd_ice1712_read_ee
+diff -puN drivers/net/tulip/media.c~tulip-fix-for-64-bit-mips drivers/net/tulip/media.c
+--- a/drivers/net/tulip/media.c~tulip-fix-for-64-bit-mips
++++ a/drivers/net/tulip/media.c
+@@ -44,8 +44,10 @@ static const unsigned char comet_miireg2
+ 
+ /* MII transceiver control section.
+    Read and write the MII registers using software-generated serial
+-   MDIO protocol.  See the MII specifications or DP83840A data sheet
+-   for details. */
++   MDIO protocol.
++   See IEEE 802.3-2002.pdf (Section 2, Chapter "22.2.4 Management functions")
++   or DP83840A data sheet for more details.
++   */
+ 
+ int tulip_mdio_read(struct net_device *dev, int phy_id, int location)
  {
- 	int dev = 0xa0;		/* EEPROM device address */
- 	unsigned int i, size;
--	struct snd_ice1712_card_info **tbl, *c;
-+	struct snd_ice1712_card_info * const *tbl, *c;
+@@ -272,13 +274,29 @@ void tulip_select_media(struct net_devic
+ 				int reset_length = p[2 + init_length];
+ 				misc_info = (u16*)(reset_sequence + reset_length);
+ 				if (startup) {
++					int timeout = 10;	/* max 1 ms */
+ 					iowrite32(mtable->csr12dir | 0x100, ioaddr + CSR12);
+ 					for (i = 0; i < reset_length; i++)
+ 						iowrite32(reset_sequence[i], ioaddr + CSR12);
++
++					/* flush posted writes */
++					ioread32(ioaddr + CSR12);
++
++					/* Sect 3.10.3 in DP83840A.pdf (p39) */
++					udelay(500);
++
++					/* Section 4.2 in DP83840A.pdf (p43) */
++					/* and IEEE 802.3 "22.2.4.1.1 Reset" */
++					while (timeout-- &&
++						(tulip_mdio_read (dev, phy_num, MII_BMCR) & BMCR_RESET))
++						udelay(100);
+ 				}
+ 				for (i = 0; i < init_length; i++)
+ 					iowrite32(init_sequence[i], ioaddr + CSR12);
++
++				ioread32(ioaddr + CSR12);	/* flush posted writes */
+ 			}
++
+ 			tmp_info = get_u16(&misc_info[1]);
+ 			if (tmp_info)
+ 				tp->advertising[phy_num] = tmp_info | 1;
+diff -puN drivers/net/tulip/tulip.h~tulip-fix-for-64-bit-mips drivers/net/tulip/tulip.h
+--- a/drivers/net/tulip/tulip.h~tulip-fix-for-64-bit-mips
++++ a/drivers/net/tulip/tulip.h
+@@ -482,8 +482,11 @@ static inline void tulip_stop_rxtx(struc
+ 			udelay(10);
  
- 	if (! modelname || ! *modelname) {
- 		ice->eeprom.subvendor = 0;
-@@ -2665,7 +2665,7 @@ static int __devinit snd_ice1712_probe(s
- 	struct snd_card *card;
- 	struct snd_ice1712 *ice;
- 	int pcm_dev = 0, err;
--	struct snd_ice1712_card_info **tbl, *c;
-+	struct snd_ice1712_card_info * const *tbl, *c;
+ 		if (!i)
+-			printk(KERN_DEBUG "%s: tulip_stop_rxtx() failed\n",
+-					pci_name(tp->pdev));
++			printk(KERN_DEBUG "%s: tulip_stop_rxtx() failed"
++					" (CSR5 0x%x CSR6 0x%x)\n",
++					pci_name(tp->pdev),
++					ioread32(ioaddr + CSR5),
++					ioread32(ioaddr + CSR6));
+ 	}
+ }
  
- 	if (dev >= SNDRV_CARDS)
- 		return -ENODEV;
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from maillist@jg555.com are
 
-origin.patch
-git-alsa.patch
 git-netdev-all.patch
-div64_64-common-code.patch
-serial-driver-pmc-msp71xx.patch
-rm9000-serial-driver.patch
-rm9000-serial-driver-tidy.patch
-x86_64-fix-ia32_binfmtc-build-error.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-simplify-the-stacktrace-code.patch
-serial-allocate-minor-device-numbers-for.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-local_t-mips-extension.patch
-tgafb-turbochannel-support.patch
