@@ -1,103 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-repair-nvidia-early-quirk-breakage-on-x86_64.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 14:00:12 -0800
-Message-ID: <200703152200.l2FM0C3c027898@shell0.pdx.osdl.net>
+Subject: - ide-au1xxx-fix-use-of-mixed-declarations-and-code.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:58:22 -0800
+Message-ID: <200703152158.l2FLwMUS027727@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42695 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42699 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753383AbXCOWBf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:01:35 -0400
+	id S1753382AbXCOWBm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 18:01:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lenb@kernel.org, ak@muc.de, len.brown@intel.com, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: repair nvidia early quirk breakage on x86_64
+     ide: au1xxx: fix use of mixed declarations and code
 has been removed from the -mm tree.  Its filename was
-     acpi-repair-nvidia-early-quirk-breakage-on-x86_64.patch
+     ide-au1xxx-fix-use-of-mixed-declarations-and-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: repair nvidia early quirk breakage on x86_64
-From: Len Brown <lenb@kernel.org>
+Subject: ide: au1xxx: fix use of mixed declarations and code
+From: Ralf Baechle <ralf@linux-mips.org>
 
-x86_64 nvidia_bugs() broke when we bailed out on not finding the HPET. 
-However, the quirk works by checking for _not_ finding the HPET...
+drivers/ide/mips/au1xxx-ide.c:684: warning: ISO C90 forbids mixed declarations and code
 
-Delete the nvidia_hpet_detected flag and simply test for not finding the
-HPET, which is simple to do now that acpi_table_parse returns 1 on failure.
-
-Signed-off-by: Len Brown <len.brown@intel.com>
-Cc: Andi Kleen <ak@muc.de>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/earlyquirk.c |    7 +------
- arch/x86_64/kernel/early-quirks.c  |    9 +--------
- 2 files changed, 2 insertions(+), 14 deletions(-)
+ drivers/ide/mips/au1xxx-ide.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/acpi/earlyquirk.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64 arch/i386/kernel/acpi/earlyquirk.c
---- a/arch/i386/kernel/acpi/earlyquirk.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64
-+++ a/arch/i386/kernel/acpi/earlyquirk.c
-@@ -13,11 +13,8 @@
+diff -puN drivers/ide/mips/au1xxx-ide.c~ide-au1xxx-fix-use-of-mixed-declarations-and-code drivers/ide/mips/au1xxx-ide.c
+--- a/drivers/ide/mips/au1xxx-ide.c~ide-au1xxx-fix-use-of-mixed-declarations-and-code
++++ a/drivers/ide/mips/au1xxx-ide.c
+@@ -639,6 +639,7 @@ static int au_ide_probe(struct device *d
+ 	_auide_hwif *ahwif = &auide_hwif;
+ 	ide_hwif_t *hwif;
+ 	struct resource *res;
++	hw_regs_t *hw;
+ 	int ret = 0;
  
- #ifdef CONFIG_ACPI
+ #if defined(CONFIG_BLK_DEV_IDE_AU1XXX_MDMA2_DBDMA)
+@@ -681,7 +682,7 @@ static int au_ide_probe(struct device *d
+ 	/* FIXME:  This might possibly break PCMCIA IDE devices */
  
--static int nvidia_hpet_detected __initdata;
--
- static int __init nvidia_hpet_check(struct acpi_table_header *header)
- {
--	nvidia_hpet_detected = 1;
- 	return 0;
- }
- #endif
-@@ -28,9 +25,7 @@ static int __init check_bridge(int vendo
- 	/* According to Nvidia all timer overrides are bogus unless HPET
- 	   is enabled. */
- 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
--		nvidia_hpet_detected = 0;
--		acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check);
--		if (nvidia_hpet_detected == 0) {
-+		if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check) {
- 			acpi_skip_timer_override = 1;
- 			  printk(KERN_INFO "Nvidia board "
-                        "detected. Ignoring ACPI "
-diff -puN arch/x86_64/kernel/early-quirks.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64 arch/x86_64/kernel/early-quirks.c
---- a/arch/x86_64/kernel/early-quirks.c~acpi-repair-nvidia-early-quirk-breakage-on-x86_64
-+++ a/arch/x86_64/kernel/early-quirks.c
-@@ -30,11 +30,8 @@ static void __init via_bugs(void)
+ 	hwif                            = &ide_hwifs[pdev->id];
+-	hw_regs_t *hw 			= &hwif->hw;
++	hw 				= &hwif->hw;
+ 	hwif->irq = hw->irq             = ahwif->irq;
+ 	hwif->chipset                   = ide_au1xxx;
  
- #ifdef CONFIG_ACPI
- 
--static int nvidia_hpet_detected __initdata;
--
- static int __init nvidia_hpet_check(struct acpi_table_header *header)
- {
--	nvidia_hpet_detected = 1;
- 	return 0;
- }
- #endif
-@@ -52,11 +49,7 @@ static void __init nvidia_bugs(void)
- 	if (acpi_use_timer_override)
- 		return;
- 
--	nvidia_hpet_detected = 0;
--	if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check))
--		return;
--
--	if (nvidia_hpet_detected == 0) {
-+	if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
- 		acpi_skip_timer_override = 1;
- 		printk(KERN_INFO "Nvidia board "
- 		       "detected. Ignoring ACPI "
 _
 
-Patches currently in -mm which might be from lenb@kernel.org are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled.patch
-i386-irq-kill-irq-compression.patch
-i386-modpost-apic-related-warning-fixes.patch
+git-alsa.patch
+git-netdev-all.patch
+div64_64-common-code.patch
+serial-driver-pmc-msp71xx.patch
+rm9000-serial-driver.patch
+rm9000-serial-driver-tidy.patch
+x86_64-fix-ia32_binfmtc-build-error.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+simplify-the-stacktrace-code.patch
+serial-allocate-minor-device-numbers-for.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+local_t-mips-extension.patch
+tgafb-turbochannel-support.patch
