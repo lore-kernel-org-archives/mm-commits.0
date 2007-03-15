@@ -1,47 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - pata_ixp4xx_cf-restore-cable-type-method.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:57:45 -0800
-Message-ID: <200703152157.l2FLvj6x027665@shell0.pdx.osdl.net>
+Subject: - pata_mpc52xx-restore-cable-method.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:51 -0800
+Message-ID: <200703152157.l2FLvpHm027674@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42409 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42415 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751969AbXCOV55 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:57:57 -0400
+	id S1751982AbXCOV6A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:58:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_ixp4xx_cf: restore cable type method
+     pata_mpc52xx: restore cable method
 has been removed from the -mm tree.  Its filename was
-     pata_ixp4xx_cf-restore-cable-type-method.patch
+     pata_mpc52xx-restore-cable-method.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_ixp4xx_cf: restore cable type method
+Subject: pata_mpc52xx: restore cable method
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ixp4xx_cf.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/pata_mpc52xx.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-restore-cable-type-method drivers/ata/pata_ixp4xx_cf.c
---- a/drivers/ata/pata_ixp4xx_cf.c~pata_ixp4xx_cf-restore-cable-type-method
-+++ a/drivers/ata/pata_ixp4xx_cf.c
-@@ -129,6 +129,7 @@ static struct ata_port_operations ixp4xx
- 	.qc_issue	= ata_qc_issue_prot,
- 	.eng_timeout	= ata_eng_timeout,
- 	.data_xfer	= ixp4xx_mmio_data_xfer,
-+	.cable_detect	= ata_cable_40wire,
+diff -puN drivers/ata/pata_mpc52xx.c~pata_mpc52xx-restore-cable-method drivers/ata/pata_mpc52xx.c
+--- a/drivers/ata/pata_mpc52xx.c~pata_mpc52xx-restore-cable-method
++++ a/drivers/ata/pata_mpc52xx.c
+@@ -24,7 +24,7 @@
  
- 	.irq_handler	= ata_interrupt,
- 	.irq_clear	= ixp4xx_irq_clear,
+ 
+ #define DRV_NAME	"mpc52xx_ata"
+-#define DRV_VERSION	"0.1.0"
++#define DRV_VERSION	"0.1.0ac2"
+ 
+ 
+ /* Private structures used by the driver */
+@@ -297,6 +297,7 @@ static struct ata_port_operations mpc52x
+ 	.freeze			= ata_bmdma_freeze,
+ 	.thaw			= ata_bmdma_thaw,
+ 	.error_handler		= mpc52xx_ata_error_handler,
++	.cable_detect		= ata_cable_40wire,
+ 	.qc_prep		= ata_qc_prep,
+ 	.qc_issue		= ata_qc_issue_prot,
+ 	.data_xfer		= ata_data_xfer,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
