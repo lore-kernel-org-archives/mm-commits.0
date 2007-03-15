@@ -1,64 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - pata_mpiix-restore-cable-type-method.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:57:53 -0800
-Message-ID: <200703152157.l2FLvrLo027677@shell0.pdx.osdl.net>
+Subject: - pata_opti-restore-cable-method.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:57:59 -0800
+Message-ID: <200703152157.l2FLvxX4027687@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42428 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42446 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752006AbXCOV6H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:58:07 -0400
+	id S1752032AbXCOV6S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:58:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_mpiix: restore cable type method
+     pata_opti: restore cable method
 has been removed from the -mm tree.  Its filename was
-     pata_mpiix-restore-cable-type-method.patch
+     pata_opti-restore-cable-method.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_mpiix: restore cable type method
+Subject: pata_opti: restore cable method
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_mpiix.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/pata_opti.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_mpiix.c~pata_mpiix-restore-cable-type-method drivers/ata/pata_mpiix.c
---- a/drivers/ata/pata_mpiix.c~pata_mpiix-restore-cable-type-method
-+++ a/drivers/ata/pata_mpiix.c
-@@ -35,7 +35,7 @@
+diff -puN drivers/ata/pata_opti.c~pata_opti-restore-cable-method drivers/ata/pata_opti.c
+--- a/drivers/ata/pata_opti.c~pata_opti-restore-cable-method
++++ a/drivers/ata/pata_opti.c
+@@ -34,7 +34,7 @@
  #include <linux/libata.h>
  
- #define DRV_NAME "pata_mpiix"
--#define DRV_VERSION "0.7.5"
-+#define DRV_VERSION "0.7.6"
+ #define DRV_NAME "pata_opti"
+-#define DRV_VERSION "0.2.8"
++#define DRV_VERSION "0.2.9"
  
  enum {
- 	IDETIM = 0x6C,		/* IDE control register */
-@@ -53,7 +53,6 @@ static int mpiix_pre_reset(struct ata_po
+ 	READ_REG	= 0,	/* index of Read cycle timing register */
+@@ -62,8 +62,6 @@ static int opti_pre_reset(struct ata_por
  
- 	if (!pci_test_config_bits(pdev, &mpiix_enable_bits))
+ 	if (!pci_test_config_bits(pdev, &opti_enable_bits[ap->port_no]))
  		return -ENOENT;
+-
 -	ap->cbl = ATA_CBL_PATA40;
  	return ata_std_prereset(ap, deadline);
  }
  
-@@ -185,6 +184,7 @@ static struct ata_port_operations mpiix_
+@@ -199,6 +197,7 @@ static struct ata_port_operations opti_p
  	.thaw		= ata_bmdma_thaw,
- 	.error_handler	= mpiix_error_handler,
+ 	.error_handler	= opti_error_handler,
  	.post_internal_cmd = ata_bmdma_post_internal_cmd,
 +	.cable_detect	= ata_cable_40wire,
  
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= mpiix_qc_issue_prot,
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
