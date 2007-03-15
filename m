@@ -1,258 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - add-epoll-compat_-code-to-fs-compatc.patch removed from -mm tree
-Date: Thu, 15 Mar 2007 13:56:19 -0800
-Message-ID: <200703152156.l2FLuJab027540@shell0.pdx.osdl.net>
+Subject: - delete-unused-header-file-sound-pci-au88x0-au88x0_sbh.patch removed from -mm tree
+Date: Thu, 15 Mar 2007 13:56:57 -0800
+Message-ID: <200703152156.l2FLuvaA027600@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42294 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42309 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751872AbXCOV4u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 17:56:50 -0400
+	id S1751877AbXCOV5E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, davem@davemloft.net, dwmw2@infradead.org, rmk@arm.linux.org.uk, sfr@canb.auug.org.au, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add epoll compat_ code to fs/compat.c
+     Delete unused header file sound/pci/au88x0/au88x0_sb.h
 has been removed from the -mm tree.  Its filename was
-     add-epoll-compat_-code-to-fs-compatc.patch
+     delete-unused-header-file-sound-pci-au88x0-au88x0_sbh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add epoll compat_ code to fs/compat.c
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: Delete unused header file sound/pci/au88x0/au88x0_sb.h
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-IA64 and ARM-OABI are currently using their own version of epoll compat_
-code.
-
-An architecture needs epoll_event translation if alignof(u64) in 32 bit
-mode is different from alignof(u64) in 64 bit mode.  If an architecture
-needs epoll_event translation, it must define struct compat_epoll_event in
-asm/compat.h and set CONFIG_HAVE_COMPAT_EPOLL_EVENT and use
-compat_sys_epoll_ctl and compat_sys_epoll_wait.
-
-All 64 bit architecture should use compat_sys_epoll_pwait.
-
-[sfr: restructure and move to fs/compat.c, remove MIPS version
-of compat_sys_epoll_pwait, use __put_user_unaligned]
-
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/linux32.c |   46 ----------------
- fs/compat.c                |  100 +++++++++++++++++++++++++++++++++++
- include/linux/compat.h     |   19 ++++++
- 3 files changed, 119 insertions(+), 46 deletions(-)
+ sound/pci/au88x0/au88x0_sb.h |   40 ---------------------------------
+ 1 file changed, 40 deletions(-)
 
-diff -puN arch/mips/kernel/linux32.c~add-epoll-compat_-code-to-fs-compatc arch/mips/kernel/linux32.c
---- a/arch/mips/kernel/linux32.c~add-epoll-compat_-code-to-fs-compatc
-+++ a/arch/mips/kernel/linux32.c
-@@ -564,49 +564,3 @@ _sys32_clone(nabi_no_regargs struct pt_r
- 	return do_fork(clone_flags, newsp, &regs, 0,
- 	               parent_tidptr, child_tidptr);
- }
+diff -puN sound/pci/au88x0/au88x0_sb.h~delete-unused-header-file-sound-pci-au88x0-au88x0_sbh /dev/null
+--- a/sound/pci/au88x0/au88x0_sb.h
++++ /dev/null
+@@ -1,40 +0,0 @@
+-/***************************************************************************
+- *            au88x0_sb.h
+- *
+- *  Wed Oct 29 22:10:42 2003
+- *  
+- ****************************************************************************/
 -
--/*
-- * Implement the event wait interface for the eventpoll file. It is the kernel
-- * part of the user space epoll_pwait(2).
-- */
--asmlinkage long compat_sys_epoll_pwait(int epfd,
--	struct epoll_event __user *events, int maxevents, int timeout,
--	const compat_sigset_t __user *sigmask, size_t sigsetsize)
--{
--	int error;
--	sigset_t ksigmask, sigsaved;
+-#ifdef CHIP_AU8820
+-/* AU8820 starting @ 64KiB offset */
+-#define SBEMU_BASE 0x10000
+-#else
+-/* AU8810? and AU8830 starting @ 164KiB offset */
+-#define SBEMU_BASE 0x29000
+-#endif
 -
--	/*
--	 * If the caller wants a certain signal mask to be set during the wait,
--	 * we apply it here.
--	 */
--	if (sigmask) {
--		if (sigsetsize != sizeof(sigset_t))
--			return -EINVAL;
--		if (!access_ok(VERIFY_READ, sigmask, sizeof(ksigmask)))
--			return -EFAULT;
--		if (__copy_conv_sigset_from_user(&ksigmask, sigmask))
--			return -EFAULT;
--		sigdelsetmask(&ksigmask, sigmask(SIGKILL) | sigmask(SIGSTOP));
--		sigprocmask(SIG_SETMASK, &ksigmask, &sigsaved);
--	}
--
--	error = sys_epoll_wait(epfd, events, maxevents, timeout);
--
--	/*
--	 * If we changed the signal mask, we need to restore the original one.
--	 * In case we've got a signal while waiting, we do not restore the
--	 * signal mask yet, and we allow do_signal() to deliver the signal on
--	 * the way back to userspace, before the signal mask is restored.
--	 */
--	if (sigmask) {
--		if (error == -EINTR) {
--			memcpy(&current->saved_sigmask, &sigsaved,
--				sizeof(sigsaved));
--			set_thread_flag(TIF_RESTORE_SIGMASK);
--		} else
--			sigprocmask(SIG_SETMASK, &sigsaved, NULL);
--	}
--
--	return error;
--}
-diff -puN fs/compat.c~add-epoll-compat_-code-to-fs-compatc fs/compat.c
---- a/fs/compat.c~add-epoll-compat_-code-to-fs-compatc
-+++ a/fs/compat.c
-@@ -48,6 +48,7 @@
- #include <linux/highmem.h>
- #include <linux/poll.h>
- #include <linux/mm.h>
-+#include <linux/eventpoll.h>
- 
- #include <net/sock.h>		/* siocdevprivate_ioctl */
- 
-@@ -2235,3 +2236,102 @@ long asmlinkage compat_sys_nfsservctl(in
- 	return sys_ni_syscall();
- }
- #endif
-+
-+#ifdef CONFIG_EPOLL
-+
-+#ifdef CONFIG_HAS_COMPAT_EPOLL_EVENT
-+asmlinkage long compat_sys_epoll_ctl(int epfd, int op, int fd,
-+			struct compat_epoll_event __user *event)
-+{
-+	long err = 0;
-+	struct compat_epoll_event user;
-+	struct epoll_event __user *kernel = NULL;
-+
-+	if (event) {
-+		if (copy_from_user(&user, event, sizeof(user)))
-+			return -EFAULT;
-+		kernel = compat_alloc_user_space(sizeof(struct epoll_event));
-+		err |= __put_user(user.events, &kernel->events);
-+		err |= __put_user(user.data, &kernel->data);
-+	}
-+
-+	return err ? err : sys_epoll_ctl(epfd, op, fd, kernel);
-+}
-+
-+
-+asmlinkage long compat_sys_epoll_wait(int epfd,
-+			struct compat_epoll_event __user *events,
-+			int maxevents, int timeout)
-+{
-+	long i, ret, err = 0;
-+	struct epoll_event __user *kbuf;
-+	struct epoll_event ev;
-+
-+	if ((maxevents <= 0) ||
-+			(maxevents > (INT_MAX / sizeof(struct epoll_event))))
-+		return -EINVAL;
-+	kbuf = compat_alloc_user_space(sizeof(struct epoll_event) * maxevents);
-+	ret = sys_epoll_wait(epfd, kbuf, maxevents, timeout);
-+	for (i = 0; i < ret; i++) {
-+		err |= __get_user(ev.events, &kbuf[i].events);
-+		err |= __get_user(ev.data, &kbuf[i].data);
-+		err |= __put_user(ev.events, &events->events);
-+		err |= __put_user_unaligned(ev.data, &events->data);
-+		events++;
-+	}
-+
-+	return err ? -EFAULT: ret;
-+}
-+#endif	/* CONFIG_HAS_COMPAT_EPOLL_EVENT */
-+
-+#ifdef TIF_RESTORE_SIGMASK
-+asmlinkage long compat_sys_epoll_pwait(int epfd,
-+			struct compat_epoll_event __user *events,
-+			int maxevents, int timeout,
-+			const compat_sigset_t __user *sigmask,
-+			compat_size_t sigsetsize)
-+{
-+	long err;
-+	compat_sigset_t csigmask;
-+	sigset_t ksigmask, sigsaved;
-+
-+	/*
-+	 * If the caller wants a certain signal mask to be set during the wait,
-+	 * we apply it here.
-+	 */
-+	if (sigmask) {
-+		if (sigsetsize != sizeof(compat_sigset_t))
-+			return -EINVAL;
-+		if (copy_from_user(&csigmask, sigmask, sizeof(csigmask)))
-+			return -EFAULT;
-+		sigset_from_compat(&ksigmask, &csigmask);
-+		sigdelsetmask(&ksigmask, sigmask(SIGKILL) | sigmask(SIGSTOP));
-+		sigprocmask(SIG_SETMASK, &ksigmask, &sigsaved);
-+	}
-+
-+#ifdef CONFIG_HAS_COMPAT_EPOLL_EVENT
-+	err = compat_sys_epoll_wait(epfd, events, maxevents, timeout);
-+#else
-+	err = sys_epoll_wait(epfd, events, maxevents, timeout);
-+#endif
-+
-+	/*
-+	 * If we changed the signal mask, we need to restore the original one.
-+	 * In case we've got a signal while waiting, we do not restore the
-+	 * signal mask yet, and we allow do_signal() to deliver the signal on
-+	 * the way back to userspace, before the signal mask is restored.
-+	 */
-+	if (sigmask) {
-+		if (err == -EINTR) {
-+			memcpy(&current->saved_sigmask, &sigsaved,
-+			       sizeof(sigsaved));
-+			set_thread_flag(TIF_RESTORE_SIGMASK);
-+		} else
-+			sigprocmask(SIG_SETMASK, &sigsaved, NULL);
-+	}
-+
-+	return err;
-+}
-+#endif /* TIF_RESTORE_SIGMASK */
-+
-+#endif /* CONFIG_EPOLL */
-diff -puN include/linux/compat.h~add-epoll-compat_-code-to-fs-compatc include/linux/compat.h
---- a/include/linux/compat.h~add-epoll-compat_-code-to-fs-compatc
-+++ a/include/linux/compat.h
-@@ -234,5 +234,24 @@ asmlinkage long compat_sys_migrate_pages
- 		compat_ulong_t maxnode, const compat_ulong_t __user *old_nodes,
- 		const compat_ulong_t __user *new_nodes);
- 
-+/*
-+ * epoll (fs/eventpoll.c) compat bits follow ...
-+ */
-+#ifndef CONFIG_HAS_COMPAT_EPOLL_EVENT
-+struct epoll_event;
-+#define compat_epoll_event	epoll_event
-+#else
-+asmlinkage long compat_sys_epoll_ctl(int epfd, int op, int fd,
-+			struct compat_epoll_event __user *event);
-+asmlinkage long compat_sys_epoll_wait(int epfd,
-+			struct compat_epoll_event __user *events,
-+			int maxevents, int timeout);
-+#endif
-+asmlinkage long compat_sys_epoll_pwait(int epfd,
-+			struct compat_epoll_event __user *events,
-+			int maxevents, int timeout,
-+			const compat_sigset_t __user *sigmask,
-+			compat_size_t sigsetsize);
-+
- #endif /* CONFIG_COMPAT */
- #endif /* _LINUX_COMPAT_H */
+-#define FM_A_STATUS			(SBEMU_BASE + 0x00)	/* read */
+-#define FM_A_ADDRESS		(SBEMU_BASE + 0x00)	/* write */
+-#define FM_A_DATA			(SBEMU_BASE + 0x04)
+-#define FM_B_STATUS			(SBEMU_BASE + 0x08)
+-#define FM_B_ADDRESS		(SBEMU_BASE + 0x08)
+-#define FM_B_DATA			(SBEMU_BASE + 0x0C)
+-#define SB_MIXER_ADDR		(SBEMU_BASE + 0x10)
+-#define SB_MIXER_DATA		(SBEMU_BASE + 0x14)
+-#define SB_RESET			(SBEMU_BASE + 0x18)
+-#define SB_RESET_ALIAS		(SBEMU_BASE + 0x1C)
+-#define FM_STATUS2			(SBEMU_BASE + 0x20)
+-#define FM_ADDR2			(SBEMU_BASE + 0x20)
+-#define FM_DATA2			(SBEMU_BASE + 0x24)
+-#define SB_DSP_READ			(SBEMU_BASE + 0x28)
+-#define SB_DSP_WRITE		(SBEMU_BASE + 0x30)
+-#define SB_DSP_WRITE_STATUS	(SBEMU_BASE + 0x30)	/* bit 7 */
+-#define SB_DSP_READ_STATUS	(SBEMU_BASE + 0x38)	/* bit 7 */
+-#define SB_LACR				(SBEMU_BASE + 0x40)	/* ? */
+-#define SB_LADCR			(SBEMU_BASE + 0x44)	/* ? */
+-#define SB_LAMR				(SBEMU_BASE + 0x48)	/* ? */
+-#define SB_LARR				(SBEMU_BASE + 0x4C)	/* ? */
+-#define SB_VERSION			(SBEMU_BASE + 0x50)
+-#define SB_CTRLSTAT			(SBEMU_BASE + 0x54)
+-#define SB_TIMERSTAT		(SBEMU_BASE + 0x58)
+-#define FM_RAM				(SBEMU_BASE + 0x100)	/* 0x40 ULONG */
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-epoll-optimizations-and-cleanups.patch
-epoll-optimizations-and-cleanups-tidy.patch
-add-an-anonymous-inode-source.patch
-add-an-anonymous-inode-source-tidy.patch
-epoll-use-anonymous.patch
+git-alsa.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+git-avr32.patch
+remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
+remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
+ppc-correct-apparently-misspelled-xmon-preprocessor.patch
+git-drm.patch
+git-mtd.patch
+remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
+remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
+git-scsi-misc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+remove-unused-header-file-drivers-serial-crisv10h.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
+remove-unused-header-file-include-linux-elfnoteh.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
