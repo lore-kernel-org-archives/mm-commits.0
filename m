@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revoke-core-code-misc-fixes.patch added to -mm tree
-Date: Fri, 16 Mar 2007 03:28:30 -0800
-Message-ID: <200703161128.l2GBSU5t009954@shell0.pdx.osdl.net>
+Subject: + revoke-core-code-fix-shared-mapping-revoke.patch added to -mm tree
+Date: Fri, 16 Mar 2007 03:28:32 -0800
+Message-ID: <200703161128.l2GBSWTX009957@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41789 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41790 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753192AbXCPL2i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1753489AbXCPL2i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 16 Mar 2007 07:28:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penberg@cs.helsinki.fi
+Cc: penberg@cs.helsinki.fi, akpm@linux-foundation.org
 
 
 The patch titled
-     revoke: misc fixes
+     revoke: fix shared mapping revoke
 has been added to the -mm tree.  Its filename is
-     revoke-core-code-misc-fixes.patch
+     revoke-core-code-fix-shared-mapping-revoke.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revoke: misc fixes
+Subject: revoke: fix shared mapping revoke
 From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-This is a rollup patch of the following fixes to address some of Andrew's
-review comments:
+On 3/16/07, Andrew Morton <akpm@linux-foundation.org> wrote:
+> This all looks very strange.  If the calling process expires its timeslice,
+> the entire system call fails?
 
-  - Fix return value type of system calls to long
-  - Add comment for vma->vm_flag barrier
-  - No need for GFP_NOFS for inode allocation, use GFP_KERNEL instead
-  - Remove unnecessary line break before EXPORT_SYMBOL
+This changes revoke_mapping() to restart after cond_resched() to fix an
+obvious goof made by me.
 
 Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/revoke.c              |    9 +++++----
- include/linux/syscalls.h |    4 ++--
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ fs/revoke.c |   49 ++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 30 insertions(+), 19 deletions(-)
 
-diff -puN fs/revoke.c~revoke-core-code-misc-fixes fs/revoke.c
---- a/fs/revoke.c~revoke-core-code-misc-fixes
+diff -puN fs/revoke.c~revoke-core-code-fix-shared-mapping-revoke fs/revoke.c
+--- a/fs/revoke.c~revoke-core-code-fix-shared-mapping-revoke
 +++ a/fs/revoke.c
-@@ -167,7 +167,9 @@ static int revoke_vma(struct vm_area_str
- 	end_addr = vma->vm_end;
+@@ -194,34 +194,49 @@ static int revoke_vma(struct vm_area_str
+ 	return -EINTR;
+ }
+ 
+-static int revoke_mapping(struct address_space *mapping, struct file *to_exclude)
++static void revoke_mapping_tree(struct address_space *mapping,
++				struct file *to_exclude,
++				struct zap_details *details)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct prio_tree_iter iter;
+-	struct zap_details details;
+-	int err = 0;
+-
+-	details.i_mmap_lock = &mapping->i_mmap_lock;
+ 
+-	spin_lock(&mapping->i_mmap_lock);
++  restart:
+ 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, 0, ULONG_MAX) {
+ 		if ((vma->vm_flags & VM_SHARED) && vma->vm_file != to_exclude) {
+-			err = revoke_vma(vma, &details);
+-			if (err)
+-				goto out;
++			if (revoke_vma(vma, details))
++				goto restart;
+ 		}
+ 	}
++}
+ 
++static void revoke_mapping_list(struct address_space *mapping,
++				struct file *to_exclude,
++				struct zap_details *details)
++{
++	struct vm_area_struct *vma;
++
++  restart:
+ 	list_for_each_entry(vma, &mapping->i_mmap_nonlinear, shared.vm_set.list) {
+ 		if ((vma->vm_flags & VM_SHARED) && vma->vm_file != to_exclude) {
+-			err = revoke_vma(vma, &details);
+-			if (err)
+-				goto out;
++			if (revoke_vma(vma, details))
++				goto restart;
+ 		}
+ 	}
+-  out:
++}
++
++static void revoke_mapping(struct address_space *mapping, struct file *to_exclude)
++{
++	struct zap_details details;
++
++	details.i_mmap_lock = &mapping->i_mmap_lock;
++
++	spin_lock(&mapping->i_mmap_lock);
++	if (unlikely(!prio_tree_empty(&mapping->i_mmap)))
++		revoke_mapping_tree(mapping, to_exclude, &details);
++	if (unlikely(!list_empty(&mapping->i_mmap_nonlinear)))
++		revoke_mapping_list(mapping, to_exclude, &details);
+ 	spin_unlock(&mapping->i_mmap_lock);
+-	return err;
+ }
+ 
+ static void restore_file(struct revokefs_inode_info *info)
+@@ -441,11 +456,7 @@ static int do_revoke(struct inode *inode
+ 	/*
+ 	 * Take down shared memory mappings.
+ 	 */
+-	err = revoke_mapping(inode->i_mapping, to_exclude);
+-	if (err) {
+-		restore_files(table);
+-		goto out_free_table;
+-	}
++	revoke_mapping(inode->i_mapping, to_exclude);
  
  	/*
-- 	 * Not holding ->mmap_sem here.
-+ 	 * Not holding ->mmap_sem here but we must watch out for page
-+ 	 * faults and after the shared mappings have been taken down
-+ 	 * and sys_mmap() trying to remap the revoked range.
- 	 */
- 	vma->vm_flags |= VM_REVOKED;
- 	smp_mb();
-@@ -455,7 +457,7 @@ static int do_revoke(struct inode *inode
- 	return err;
- }
- 
--asmlinkage int sys_revokeat(int dfd, const char __user * filename)
-+asmlinkage long sys_revokeat(int dfd, const char __user * filename)
- {
- 	struct nameidata nd;
- 	int err;
-@@ -499,7 +501,6 @@ int generic_file_revoke(struct file *fil
-   out:
- 	return err;
- }
--
- EXPORT_SYMBOL(generic_file_revoke);
- 
- /*
-@@ -510,7 +511,7 @@ static struct inode *revokefs_alloc_inod
- {
- 	struct revokefs_inode_info *info;
- 
--	info = kmem_cache_alloc(revokefs_inode_cache, GFP_NOFS);
-+	info = kmem_cache_alloc(revokefs_inode_cache, GFP_KERNEL);
- 	if (!info)
- 		return NULL;
- 
-diff -puN include/linux/syscalls.h~revoke-core-code-misc-fixes include/linux/syscalls.h
---- a/include/linux/syscalls.h~revoke-core-code-misc-fixes
-+++ a/include/linux/syscalls.h
-@@ -605,7 +605,7 @@ asmlinkage long sys_getcpu(unsigned __us
- 
- int kernel_execve(const char *filename, char *const argv[], char *const envp[]);
- 
--asmlinkage int sys_revokeat(int dfd, const char __user *filename);
--asmlinkage int sys_frevoke(unsigned int fd);
-+asmlinkage long sys_revokeat(int dfd, const char __user *filename);
-+asmlinkage long sys_frevoke(unsigned int fd);
- 
- #endif
+ 	 * Now, revoke the files for good.
 _
 
 Patches currently in -mm which might be from penberg@cs.helsinki.fi are
