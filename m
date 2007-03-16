@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kobject-kobject_shadow_add-cleanup.patch added to -mm tree
-Date: Thu, 15 Mar 2007 17:07:04 -0800
-Message-ID: <200703160107.l2G174Cn031615@shell0.pdx.osdl.net>
+Subject: + drivers-isdn-hardware-eicon-remove-unused-header-files.patch added to -mm tree
+Date: Thu, 15 Mar 2007 17:10:40 -0800
+Message-ID: <200703160110.l2G1AeIa031639@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47534 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47634 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752254AbXCPBHI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 21:07:08 -0400
+	id S1752839AbXCPBKv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 21:10:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org, greg@kroah.com
+Cc: armin@melware.de, kkeil@suse.de
 
 
 The patch titled
-     kobject: kobject_shadow_add cleanup
+     drivers/isdn/hardware/eicon/: remove unused header files
 has been added to the -mm tree.  Its filename is
-     kobject-kobject_shadow_add-cleanup.patch
+     drivers-isdn-hardware-eicon-remove-unused-header-files.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,279 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kobject: kobject_shadow_add cleanup
-From: Dmitriy Monakhov <dmonakhov@openvz.org>
+Subject: drivers/isdn/hardware/eicon/: remove unused header files
+From: Armin Schindler <armin@melware.de>
 
-- correct function name in comments
+As pointed out by Robert P.  J.  Day, here is a patch to remove unused
+header files from Eicon/Dialogic ISDN driver.
 
-- parent assignment does matter only inside "if" block, so move it inside
-  this block.
-
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Armin Schindler <armin@melware.de>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/isdn/hardware/eicon/dbgioctl.h |  198 -----------------------
+ drivers/isdn/hardware/eicon/main_if.h  |   50 -----
+ 2 files changed, 248 deletions(-)
 
-diff -puN lib/kobject.c~kobject-kobject_shadow_add-cleanup lib/kobject.c
---- a/lib/kobject.c~kobject-kobject_shadow_add-cleanup
-+++ a/lib/kobject.c
-@@ -201,7 +201,7 @@ static void unlink(struct kobject * kobj
- }
- 
- /**
-- *	kobject_add - add an object to the hierarchy.
-+ *	kobject_shadow_add - add an object to the hierarchy.
-  *	@kobj:	object.
-  *	@shadow_parent: sysfs directory to add to.
-  */
-@@ -234,8 +234,8 @@ int kobject_shadow_add(struct kobject * 
- 
- 		list_add_tail(&kobj->entry,&kobj->kset->list);
- 		spin_unlock(&kobj->kset->list_lock);
-+		kobj->parent = parent;
- 	}
--	kobj->parent = parent;
- 
- 	error = create_dir(kobj, shadow_parent);
- 	if (error) {
+diff -puN drivers/isdn/hardware/eicon/dbgioctl.h~drivers-isdn-hardware-eicon-remove-unused-header-files /dev/null
+--- a/drivers/isdn/hardware/eicon/dbgioctl.h
++++ /dev/null
+@@ -1,198 +0,0 @@
+-
+-/*
+- *
+-  Copyright (c) Eicon Technology Corporation, 2000.
+- *
+-  This source file is supplied for the use with Eicon
+-  Technology Corporation's range of DIVA Server Adapters.
+- *
+-  This program is free software; you can redistribute it and/or modify
+-  it under the terms of the GNU General Public License as published by
+-  the Free Software Foundation; either version 2, or (at your option)
+-  any later version.
+- *
+-  This program is distributed in the hope that it will be useful,
+-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
+-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+-  See the GNU General Public License for more details.
+- *
+-  You should have received a copy of the GNU General Public License
+-  along with this program; if not, write to the Free Software
+-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+- */
+-/*------------------------------------------------------------------*/
+-/* file: dbgioctl.h                                                 */
+-/*------------------------------------------------------------------*/
+-
+-#if !defined(__DBGIOCTL_H__)
+-
+-#define __DBGIOCTL_H__
+-
+-#ifdef NOT_YET_NEEDED
+-/*
+- * The requested operation is passed in arg0 of DbgIoctlArgs,
+- * additional arguments (if any) in arg1, arg2 and arg3.
+- */
+-
+-typedef struct
+-{	ULONG	arg0 ;
+-	ULONG	arg1 ;
+-	ULONG	arg2 ;
+-	ULONG	arg3 ;
+-} DbgIoctlArgs ;
+-
+-#define	DBG_COPY_LOGS	0	/* copy debugs to user until buffer full	*/
+-							/* arg1: size threshold						*/
+-							/* arg2: timeout in milliseconds			*/
+-
+-#define DBG_FLUSH_LOGS	1	/* flush pending debugs to user buffer		*/
+-							/* arg1: internal driver id					*/
+-
+-#define DBG_LIST_DRVS	2	/* return the list of registered drivers	*/
+-
+-#define	DBG_GET_MASK	3	/* get current debug mask of driver			*/
+-							/* arg1: internal driver id					*/
+-
+-#define	DBG_SET_MASK	4	/* set/change debug mask of driver			*/
+-							/* arg1: internal driver id					*/
+-							/* arg2: new debug mask						*/
+-
+-#define	DBG_GET_BUFSIZE	5	/* get current buffer size of driver		*/
+-							/* arg1: internal driver id					*/
+-							/* arg2: new debug mask						*/
+-
+-#define	DBG_SET_BUFSIZE	6	/* set new buffer size of driver			*/
+-							/* arg1: new buffer size					*/
+-
+-/*
+- *	common internal debug message structure
+- */
+-
+-typedef struct
+-{	unsigned short id ;		/* virtual driver id                  */
+-	unsigned short type ;	/* special message type               */
+-	unsigned long  seq ;	/* sequence number of message         */
+-	unsigned long  size ;	/* size of message in bytes           */
+-	unsigned long  next ;	/* offset to next buffered message    */
+-	LARGE_INTEGER  NTtime ;	/* 100 ns  since 1.1.1601             */
+-	unsigned char  data[4] ;/* message data                       */
+-} OldDbgMessage ;
+-
+-typedef struct
+-{	LARGE_INTEGER  NTtime ;	/* 100 ns  since 1.1.1601             */
+-	unsigned short size ;	/* size of message in bytes           */
+-	unsigned short ffff ;	/* always 0xffff to indicate new msg  */
+-	unsigned short id ;		/* virtual driver id                  */
+-	unsigned short type ;	/* special message type               */
+-	unsigned long  seq ;	/* sequence number of message         */
+-	unsigned char  data[4] ;/* message data                       */
+-} DbgMessage ;
+-
+-#endif
+-
+-#define DRV_ID_UNKNOWN		0x0C	/* for messages via prtComp() */
+-
+-#define	MSG_PROC_FLAG		0x80
+-#define	MSG_PROC_NO_GET(x)	(((x) & MSG_PROC_FLAG) ? (((x) >> 4) & 7) : -1)
+-#define	MSG_PROC_NO_SET(x)	(MSG_PROC_FLAG | (((x) & 7) << 4))
+-
+-#define MSG_TYPE_DRV_ID		0x0001
+-#define MSG_TYPE_FLAGS		0x0002
+-#define MSG_TYPE_STRING		0x0003
+-#define MSG_TYPE_BINARY		0x0004
+-
+-#define MSG_HEAD_SIZE	((unsigned long)&(((DbgMessage *)0)->data[0]))
+-#define MSG_ALIGN(len)	(((unsigned long)(len) + MSG_HEAD_SIZE + 3) & ~3)
+-#define MSG_SIZE(pMsg)	MSG_ALIGN((pMsg)->size)
+-#define MSG_NEXT(pMsg)	((DbgMessage *)( ((char *)(pMsg)) + MSG_SIZE(pMsg) ))
+-
+-#define OLD_MSG_HEAD_SIZE	((unsigned long)&(((OldDbgMessage *)0)->data[0]))
+-#define OLD_MSG_ALIGN(len)	(((unsigned long)(len)+OLD_MSG_HEAD_SIZE+3) & ~3)
+-
+-/*
+- * manifest constants
+- */
+-
+-#define MSG_FRAME_MAX_SIZE	2150		/* maximum size of B1 frame	 */
+-#define MSG_TEXT_MAX_SIZE	1024		/* maximum size of msg text	 */
+-#define MSG_MAX_SIZE		MSG_ALIGN(MSG_FRAME_MAX_SIZE)
+-#define DBG_MIN_BUFFER_SIZE	0x00008000	/* minimal total buffer size  32 KB */
+-#define DBG_DEF_BUFFER_SIZE	0x00020000	/* default total buffer size 128 KB */
+-#define DBG_MAX_BUFFER_SIZE	0x00400000	/* maximal total buffer size   4 MB */
+-
+-#define DBGDRV_NAME		"Diehl_DIMAINT"
+-#define UNIDBG_DRIVER	L"\\Device\\Diehl_DIMAINT" /* UNICODE name for kernel */
+-#define DEBUG_DRIVER	"\\\\.\\" DBGDRV_NAME  /* traditional string for apps */
+-#define DBGVXD_NAME		"DIMAINT"
+-#define DEBUG_VXD		"\\\\.\\" DBGVXD_NAME  /* traditional string for apps */
+-
+-/*
+- *	Special IDI interface debug construction
+- */
+-
+-#define	DBG_IDI_SIG_REQ		(unsigned long)0xF479C402
+-#define	DBG_IDI_SIG_IND		(unsigned long)0xF479C403
+-#define	DBG_IDI_NL_REQ		(unsigned long)0xF479C404
+-#define	DBG_IDI_NL_IND		(unsigned long)0xF479C405
+-
+-typedef struct
+-{	unsigned long  magic_type ;
+-	unsigned short data_len ;
+-	unsigned char  layer_ID ;
+-	unsigned char  entity_ID ;
+-	unsigned char  request ;
+-	unsigned char  ret_code ;
+-	unsigned char  indication ;
+-	unsigned char  complete ;
+-	unsigned char  data[4] ;
+-} DbgIdiAct, *DbgIdiAction ;
+-
+-/*
+- * We want to use the same IOCTL codes in Win95 and WinNT.
+- * The official constructor for IOCTL codes is the CTL_CODE macro
+- * from <winoctl.h> (<devioctl.h> in WinNT DDK environment).
+- * The problem here is that we don't know how to get <winioctl.h>
+- * working in a Win95 DDK environment!
+- */
+-
+-# ifdef CTL_CODE	/*{*/
+-
+-/* Assert that we have the same idea of the CTL_CODE macro.	*/
+-
+-#define CTL_CODE( DeviceType, Function, Method, Access ) (                 \
+-    ((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method) \
+-)
+-
+-# else	/* !CTL_CODE */ /*}{*/
+-
+-/* Use the definitions stolen from <winioctl.h>.  */
+-
+-#define CTL_CODE( DeviceType, Function, Method, Access ) (                 \
+-    ((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method) \
+-)
+-
+-#define METHOD_BUFFERED                 0
+-#define METHOD_IN_DIRECT                1
+-#define METHOD_OUT_DIRECT               2
+-#define METHOD_NEITHER                  3
+-
+-#define FILE_ANY_ACCESS                 0
+-#define FILE_READ_ACCESS          ( 0x0001 )    // file & pipe
+-#define FILE_WRITE_ACCESS         ( 0x0002 )    // file & pipe
+-
+-# endif	/* CTL_CODE */ /*}*/
+-
+-/*
+- * Now we can define WinNT/Win95 DeviceIoControl codes.
+- *
+- * These codes are defined in di_defs.h too, a possible mismatch will be
+- * detected when the dbgtool is compiled.
+- */
+-
+-#define IOCTL_DRIVER_LNK \
+-	CTL_CODE(0x8001U,0x701,METHOD_OUT_DIRECT,FILE_ANY_ACCESS)
+-#define IOCTL_DRIVER_DBG \
+-	CTL_CODE(0x8001U,0x702,METHOD_OUT_DIRECT,FILE_ANY_ACCESS)
+-
+-#endif /* __DBGIOCTL_H__ */
+diff -puN drivers/isdn/hardware/eicon/main_if.h~drivers-isdn-hardware-eicon-remove-unused-header-files /dev/null
+--- a/drivers/isdn/hardware/eicon/main_if.h
++++ /dev/null
+@@ -1,50 +0,0 @@
+-/*
+- *
+-  Copyright (c) Eicon Technology Corporation, 2000.
+- *
+-  This source file is supplied for the use with Eicon
+-  Technology Corporation's range of DIVA Server Adapters.
+- *
+-  This program is free software; you can redistribute it and/or modify
+-  it under the terms of the GNU General Public License as published by
+-  the Free Software Foundation; either version 2, or (at your option)
+-  any later version.
+- *
+-  This program is distributed in the hope that it will be useful,
+-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
+-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+-  See the GNU General Public License for more details.
+- *
+-  You should have received a copy of the GNU General Public License
+-  along with this program; if not, write to the Free Software
+-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+- */
+-/*------------------------------------------------------------------*/
+-/* file: main_if.h                                                  */
+-/*------------------------------------------------------------------*/
+-# ifndef MAIN_IF___H
+-# define MAIN_IF___H
+-
+-# include "debug_if.h"
+-
+-void  DI_lock (void) ;
+-void  DI_unlock (void) ;
+-
+-#ifdef NOT_YET_NEEDED
+-void  DI_nttime (LARGE_INTEGER *NTtime) ;
+-void  DI_ntlcltime(LARGE_INTEGER *NTtime, LARGE_INTEGER *lclNTtime) ;
+-void  DI_nttimefields(LARGE_INTEGER *NTtime, TIME_FIELDS *TimeFields);
+-unsigned long  DI_wintime(LARGE_INTEGER *NTtime) ;
+-
+-unsigned short  DiInsertProcessorNumber (int type) ;
+-void DiProcessEventLog (unsigned short id, unsigned long msgID, va_list ap);
+-
+-void  StartIoctlTimer (void (*Handler)(void), unsigned long msec) ;
+-void  StopIoctlTimer (void) ;
+-void  UnpendIoctl (DbgRequest *pDbgReq) ;
+-#endif
+-
+-void add_to_q(int, char* , unsigned int);
+-# endif /* MAIN_IF___H */
+-
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from armin@melware.de are
 
-origin.patch
-kobject-kobject_shadow_add-cleanup.patch
-git-libata-all.patch
-git-netdev-all.patch
-mpt-fusion-handle-mpt_resume-failure-while-resuming.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
-irq-add-__must_check-to-request_irq.patch
-ext3-dirindex-error-pointer-issues.patch
-floppy-handle-device_create_file-failure-while-init.patch
-splice-partial-write-handling-fix.patch
-udf-possible-null-pointer-dereference-while-load_partition.patch
+drivers-isdn-hardware-eicon-remove-unused-header-files.patch
