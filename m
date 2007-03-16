@@ -1,186 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch added to -mm tree
-Date: Thu, 15 Mar 2007 19:08:26 -0800
-Message-ID: <200703160308.l2G38QUh001196@shell0.pdx.osdl.net>
+Subject: + lumpy-only-count-taken-pages-as-scanned.patch added to -mm tree
+Date: Thu, 15 Mar 2007 19:18:56 -0800
+Message-ID: <200703160318.l2G3IuKR001382@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51134 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51420 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752854AbXCPDJh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 23:09:37 -0400
+	id S1752581AbXCPDTE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 23:19:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com
+Cc: apw@shadowen.org, mel@csn.ul.ie
 
 
 The patch titled
-     getrusage(): fill ru_inblock and ru_oublock fields if possible
+     lumpy: only count taken pages as scanned
 has been added to the -mm tree.  Its filename is
-     getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+     lumpy-only-count-taken-pages-as-scanned.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: getrusage(): fill ru_inblock and ru_oublock fields if possible
-=46rom: Eric Dumazet <dada1@cosmosbay.com>
+Subject: lumpy: only count taken pages as scanned
+From: Andy Whitcroft <apw@shadowen.org>
 
-If CONFIG_TASK_IO_ACCOUNTING is defined, we update io accounting counte=
-rs for
-each task.
+When scanning the order sized area around the tag page we pull all pages of
+the matching active state; the non-matching pages are not otherwise affected. 
+We currently count these as scanned increasing the apparent scan rates. 
+Previously we would only count a page scanned if it was actually removed from
+the LRU, either then being reclaimed or rotated back onto the head of the LRU.
 
-This patch permits reporting of values using the well known getrusage()=
-=20
-syscall, filling ru_inblock and ru_oublock instead of null values.
+The effect of this is to cause reclaim to terminate artificially early when
+the scan count is reached, reducing effectivness.  Move to counting only those
+pages we actually remove from the LRU as scanned.
 
-As TASK_IO_ACCOUNTING currently counts bytes counts, we approximate blo=
-cks
-count doing : nr_blocks =3D nr_bytes / 512
-
-Example of use :
-----------------------
-After patch is applied, /usr/bin/time command can now give a good=20
-approximation of IO that the process had to do.
-
-$ /usr/bin/time grep tototo /usr/include/*
-Command exited with non-zero status 1
-0.00user 0.02system 0:02.11elapsed 1%CPU (0avgtext+0avgdata 0maxresiden=
-t)k
-24288inputs+0outputs (0major+259minor)pagefaults 0swaps
-
-$ /usr/bin/time dd if=3D/dev/zero of=3D/tmp/testfile count=3D1000
-1000+0 enregistrements lus
-1000+0 enregistrements =E9crits
-512000 octets (512 kB) copi=E9s, 0,00326601 seconde, 157 MB/s
-0.00user 0.00system 0:00.00elapsed 80%CPU (0avgtext+0avgdata 0maxreside=
-nt)k
-0inputs+3000outputs (0major+299minor)pagefaults 0swaps
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/task_io_accounting_ops.h |   28 +++++++++++++++++++++++
- kernel/sys.c                           |    7 +++++
- 2 files changed, 35 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/task_io_accounting_ops.h~getrusage-fill-ru_inbl=
-ock-and-ru_oublock-fields-if-possible include/linux/task_io_accounting_=
-ops.h
---- a/include/linux/task_io_accounting_ops.h~getrusage-fill-ru_inblock-=
-and-ru_oublock-fields-if-possible
-+++ a/include/linux/task_io_accounting_ops.h
-@@ -10,11 +10,29 @@ static inline void task_io_account_read(
- 	current->ioac.read_bytes +=3D bytes;
- }
-=20
-+/*
-+ * We approximate number of blocks, because we account bytes only.
-+ * A 'block' is 512 bytes
-+ */
-+static inline unsigned long task_io_get_inblock(const struct task_stru=
-ct *p)
-+{
-+	return p->ioac.read_bytes >> 9;
-+}
-+
- static inline void task_io_account_write(size_t bytes)
- {
- 	current->ioac.write_bytes +=3D bytes;
- }
-=20
-+/*
-+ * We approximate number of blocks, because we account bytes only.
-+ * A 'block' is 512 bytes
-+ */
-+static inline unsigned long task_io_get_oublock(const struct task_stru=
-ct *p)
-+{
-+	return p->ioac.write_bytes >> 9;
-+}
-+
- static inline void task_io_account_cancelled_write(size_t bytes)
- {
- 	current->ioac.cancelled_write_bytes +=3D bytes;
-@@ -31,10 +49,20 @@ static inline void task_io_account_read(
- {
- }
-=20
-+static inline unsigned long task_io_get_inblock(const struct task_stru=
-ct *p)
-+{
-+	return 0;
-+}
-+
- static inline void task_io_account_write(size_t bytes)
- {
- }
-=20
-+static inline unsigned long task_io_get_oublock(const struct task_stru=
-ct *p)
-+{
-+	return 0;
-+}
-+
- static inline void task_io_account_cancelled_write(size_t bytes)
- {
- }
-diff -puN kernel/sys.c~getrusage-fill-ru_inblock-and-ru_oublock-fields-=
-if-possible kernel/sys.c
---- a/kernel/sys.c~getrusage-fill-ru_inblock-and-ru_oublock-fields-if-p=
-ossible
-+++ a/kernel/sys.c
-@@ -29,6 +29,7 @@
- #include <linux/signal.h>
- #include <linux/cn_proc.h>
- #include <linux/getcpu.h>
-+#include <linux/task_io_accounting_ops.h>
-=20
- #include <linux/compat.h>
- #include <linux/syscalls.h>
-@@ -2021,6 +2022,8 @@ static void k_getrusage(struct task_stru
- 			r->ru_nivcsw =3D p->signal->cnivcsw;
- 			r->ru_minflt =3D p->signal->cmin_flt;
- 			r->ru_majflt =3D p->signal->cmaj_flt;
-+			r->ru_inblock =3D task_io_get_inblock(p);
-+			r->ru_oublock =3D task_io_get_oublock(p);
-=20
- 			if (who =3D=3D RUSAGE_CHILDREN)
+diff -puN mm/vmscan.c~lumpy-only-count-taken-pages-as-scanned mm/vmscan.c
+--- a/mm/vmscan.c~lumpy-only-count-taken-pages-as-scanned
++++ a/mm/vmscan.c
+@@ -727,11 +727,11 @@ static unsigned long isolate_lru_pages(u
+ 			/* Check that we have not crossed a zone boundary. */
+ 			if (unlikely(page_zone_id(cursor_page) != zone_id))
+ 				continue;
+-			scan++;
+ 			switch (__isolate_lru_page(cursor_page, active)) {
+ 			case 0:
+ 				list_move(&cursor_page->lru, dst);
+ 				nr_taken++;
++				scan++;
  				break;
-@@ -2032,6 +2035,8 @@ static void k_getrusage(struct task_stru
- 			r->ru_nivcsw +=3D p->signal->nivcsw;
- 			r->ru_minflt +=3D p->signal->min_flt;
- 			r->ru_majflt +=3D p->signal->maj_flt;
-+			r->ru_inblock +=3D task_io_get_inblock(p);
-+			r->ru_oublock +=3D task_io_get_oublock(p);
- 			t =3D p;
- 			do {
- 				utime =3D cputime_add(utime, t->utime);
-@@ -2040,6 +2045,8 @@ static void k_getrusage(struct task_stru
- 				r->ru_nivcsw +=3D t->nivcsw;
- 				r->ru_minflt +=3D t->min_flt;
- 				r->ru_majflt +=3D t->maj_flt;
-+				r->ru_inblock +=3D task_io_get_inblock(t);
-+				r->ru_oublock +=3D task_io_get_oublock(t);
- 				t =3D next_thread(t);
- 			} while (t !=3D p);
- 			break;
+ 
+ 			case -EBUSY:
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-optimize-timespec_trunc.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-const=
-ify-them.patch
-vfs-delay-the-dentry-name-generation-on-sockets-and.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+move-free-pages-between-lists-on-steal-fix.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+lumpy-reclaim-v4.patch
+lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
+lumpy-only-count-taken-pages-as-scanned.patch
