@@ -1,71 +1,238 @@
 From: akpm@linux-foundation.org
-Subject: - crash-on-evdev-disconnect.patch removed from -mm tree
-Date: Fri, 16 Mar 2007 11:36:37 -0800
-Message-ID: <200703161936.l2GJabTm019938@shell0.pdx.osdl.net>
+Subject: - fix-locking-in-mousedev.patch removed from -mm tree
+Date: Fri, 16 Mar 2007 11:38:17 -0800
+Message-ID: <200703161938.l2GJcH2J019976@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:32804 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:32908 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753605AbXCPTgq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 15:36:46 -0400
+	id S1753614AbXCPTil (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 15:38:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: warp@aehallh.com, dtor@mail.ru, mm-commits@vger.kernel.org
+To: zaitcev@redhat.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Crash on evdev disconnect
+     Fix locking in mousedev
 has been removed from the -mm tree.  Its filename was
-     crash-on-evdev-disconnect.patch
+     fix-locking-in-mousedev.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it got lots of rejects against the latest git-input tree
 
 ------------------------------------------------------
-Subject: Crash on evdev disconnect
-From: "Zephaniah E. Hull" <warp@aehallh.com>
+Subject: Fix locking in mousedev
+From: Pete Zaitcev <zaitcev@redhat.com>
 
-While trying to figure out the best way to handle an odd mouse, I found
-that we oopsed when doing a rmmod on usbhid while someone had a USB device
-open through evdev.
+If a process is closing /dev/input/mice and an mouse disconnects simulta-
+neously, the system is likely to oops.  This usually happens when someone
+hits <Alt><Ctrl>F1 or logs out from X, and flips a KVM while the system is
+reacting.
 
-We try to loop through evdev->list, calling kill_fasync on each member,
-however by the time we try to get the next pointer, we have already freed
-the member and poisoned the next/last.
+I reproduced the issue by running this:
+  while true; do cat </dev/null >/dev/input/mice; done
+This way, it oopses on 2nd or 3rd disconnect reliably. With the patch,
+I can disconnect the mouse 20 times.
 
-akpm: doesn't really fix the bug (lack of locking).  But I'm queueing it up so
-I can nag Dmitry with it ;)
 
-Signed-off-by: "Zephaniah E. Hull" <warp@aehallh.com>
+Discussion
+
+One of the race scenarios is related to the list of handles. The cat
+calls mousedev_close -> mixdev_release, does list_for_each to walk for
+all handles for a given handler. Iterations are longish while it does
+input_close_device -> hidinput_close -> usbhid_close -> usb_kill_urb,
+which sleeps briefly. Into this gap goes khubd and does hid_disconnect ->
+hidinput_disconnect -> input_unregister_device. This corrupts the list
+of handles which cat process is walking.
+
+I was unable to devise a scheme to protect the stock h_list adequately,
+so I implemented a private list of mousedev instances, which can be
+protected correctly.
+
+Dmitry, please consider getting rid of the list of handles entirely.
+The other major user is drivers/char/keyboard.c.
+
+Other than that, the patch is straightforward. It adds a static mutex
+to guard common data structures. It has to be static because instances
+of mousedev share common structures, such as the mousedev_table[].
+
+Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/evdev.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/input/mousedev.c |   44 ++++++++++++++++++++++++++-----------
+ 1 file changed, 32 insertions(+), 12 deletions(-)
 
-diff -puN drivers/input/evdev.c~crash-on-evdev-disconnect drivers/input/evdev.c
---- a/drivers/input/evdev.c~crash-on-evdev-disconnect
-+++ a/drivers/input/evdev.c
-@@ -659,7 +659,7 @@ static struct input_handle *evdev_connec
- static void evdev_disconnect(struct input_handle *handle)
- {
- 	struct evdev *evdev = handle->private;
--	struct evdev_list *list;
-+	struct evdev_list *list, *next;
+diff -puN drivers/input/mousedev.c~fix-locking-in-mousedev drivers/input/mousedev.c
+--- a/drivers/input/mousedev.c~fix-locking-in-mousedev
++++ a/drivers/input/mousedev.c
+@@ -20,6 +20,7 @@
+ #include <linux/init.h>
+ #include <linux/input.h>
+ #include <linux/smp_lock.h>
++#include <linux/mutex.h>
+ #include <linux/random.h>
+ #include <linux/major.h>
+ #include <linux/device.h>
+@@ -64,6 +65,7 @@ struct mousedev {
+ 	char name[16];
+ 	wait_queue_head_t wait;
+ 	struct list_head list;
++	struct list_head h_node;
+ 	struct input_handle handle;
  
- 	sysfs_remove_link(&input_class.subsys.kset.kobj, evdev->name);
+ 	struct mousedev_hw_data packet;
+@@ -108,10 +110,13 @@ static unsigned char mousedev_imps_seq[]
+ static unsigned char mousedev_imex_seq[] = { 0xf3, 200, 0xf3, 200, 0xf3, 80 };
+ 
+ static struct input_handler mousedev_handler;
++static LIST_HEAD(mousedev_h_list);
+ 
+ static struct mousedev *mousedev_table[MOUSEDEV_MINORS];
+ static struct mousedev mousedev_mix;
+ 
++static DEFINE_MUTEX(mousedev_lock);
++
+ #define fx(i)  (mousedev->old_x[(mousedev->pkt_count - (i)) & 03])
+ #define fy(i)  (mousedev->old_y[(mousedev->pkt_count - (i)) & 03])
+ 
+@@ -366,11 +371,9 @@ static void mousedev_free(struct mousede
+ 
+ static void mixdev_release(void)
+ {
+-	struct input_handle *handle;
+-
+-	list_for_each_entry(handle, &mousedev_handler.h_list, h_node) {
+-		struct mousedev *mousedev = handle->private;
++	struct mousedev *mousedev;
+ 
++	list_for_each_entry(mousedev, &mousedev_h_list, h_node) {
+ 		if (!mousedev->open) {
+ 			if (mousedev->exist)
+ 				input_close_device(&mousedev->handle);
+@@ -386,6 +389,7 @@ static int mousedev_release(struct inode
+ 
+ 	mousedev_fasync(-1, file, 0);
+ 
++	mutex_lock(&mousedev_lock);
+ 	list_del(&list->node);
+ 
+ 	if (!--list->mousedev->open) {
+@@ -398,6 +402,7 @@ static int mousedev_release(struct inode
+ 				mousedev_free(list->mousedev);
+ 		}
+ 	}
++	mutex_unlock(&mousedev_lock);
+ 
+ 	kfree(list);
+ 	return 0;
+@@ -406,7 +411,6 @@ static int mousedev_release(struct inode
+ static int mousedev_open(struct inode * inode, struct file * file)
+ {
+ 	struct mousedev_list *list;
+-	struct input_handle *handle;
+ 	struct mousedev *mousedev;
+ 	int i;
+ 
+@@ -417,11 +421,16 @@ static int mousedev_open(struct inode * 
+ #endif
+ 		i = iminor(inode) - MOUSEDEV_MINOR_BASE;
+ 
+-	if (i >= MOUSEDEV_MINORS || !mousedev_table[i])
++	mutex_lock(&mousedev_lock);
++	if (i >= MOUSEDEV_MINORS || !mousedev_table[i]) {
++		mutex_unlock(&mousedev_lock);
+ 		return -ENODEV;
++	}
+ 
+-	if (!(list = kzalloc(sizeof(struct mousedev_list), GFP_KERNEL)))
++	if (!(list = kzalloc(sizeof(struct mousedev_list), GFP_KERNEL))) {
++		mutex_unlock(&mousedev_lock);
+ 		return -ENOMEM;
++	}
+ 
+ 	spin_lock_init(&list->packet_lock);
+ 	list->pos_x = xres / 2;
+@@ -432,16 +441,16 @@ static int mousedev_open(struct inode * 
+ 
+ 	if (!list->mousedev->open++) {
+ 		if (list->mousedev->minor == MOUSEDEV_MIX) {
+-			list_for_each_entry(handle, &mousedev_handler.h_list, h_node) {
+-				mousedev = handle->private;
++			list_for_each_entry(mousedev, &mousedev_h_list, h_node) {
+ 				if (!mousedev->open && mousedev->exist)
+-					input_open_device(handle);
++					input_open_device(&mousedev->handle);
+ 			}
+ 		} else
+ 			if (!mousedev_mix.open && list->mousedev->exist)
+ 				input_open_device(&list->mousedev->handle);
+ 	}
+ 
++	mutex_unlock(&mousedev_lock);
+ 	return 0;
+ }
+ 
+@@ -604,7 +613,6 @@ static ssize_t mousedev_read(struct file
+ 	return count;
+ }
+ 
+-/* No kernel lock - fine */
+ static unsigned int mousedev_poll(struct file *file, poll_table *wait)
+ {
+ 	struct mousedev_list *list = file->private_data;
+@@ -631,14 +639,19 @@ static struct input_handle *mousedev_con
+ 	struct class_device *cdev;
+ 	int minor = 0;
+ 
++	mutex_lock(&mousedev_lock);
++
+ 	for (minor = 0; minor < MOUSEDEV_MINORS && mousedev_table[minor]; minor++);
+ 	if (minor == MOUSEDEV_MINORS) {
++		mutex_unlock(&mousedev_lock);
+ 		printk(KERN_ERR "mousedev: no more free mousedev devices\n");
+ 		return NULL;
+ 	}
+ 
+-	if (!(mousedev = kzalloc(sizeof(struct mousedev), GFP_KERNEL)))
++	if (!(mousedev = kzalloc(sizeof(struct mousedev), GFP_KERNEL))) {
++		mutex_unlock(&mousedev_lock);
+ 		return NULL;
++	}
+ 
+ 	INIT_LIST_HEAD(&mousedev->list);
+ 	init_waitqueue_head(&mousedev->wait);
+@@ -664,6 +677,9 @@ static struct input_handle *mousedev_con
+ 	sysfs_create_link(&input_class.subsys.kset.kobj, &cdev->kobj,
+ 			  mousedev->name);
+ 
++	list_add_tail(&mousedev->h_node, &mousedev_h_list);
++
++	mutex_unlock(&mousedev_lock);
+ 	return &mousedev->handle;
+ }
+ 
+@@ -672,6 +688,9 @@ static void mousedev_disconnect(struct i
+ 	struct mousedev *mousedev = handle->private;
+ 	struct mousedev_list *list;
+ 
++	mutex_lock(&mousedev_lock);
++	list_del(&mousedev->h_node);
++
+ 	sysfs_remove_link(&input_class.subsys.kset.kobj, mousedev->name);
  	class_device_destroy(&input_class,
-@@ -670,7 +670,7 @@ static void evdev_disconnect(struct inpu
- 		input_flush_device(handle, NULL);
- 		input_close_device(handle);
- 		wake_up_interruptible(&evdev->wait);
--		list_for_each_entry(list, &evdev->list, node)
-+		list_for_each_entry_safe(list, next, &evdev->list, node)
- 			kill_fasync(&list->fasync, SIGIO, POLL_HUP);
- 	} else
- 		evdev_free(evdev);
+ 			MKDEV(INPUT_MAJOR, MOUSEDEV_MINOR_BASE + mousedev->minor));
+@@ -687,6 +706,7 @@ static void mousedev_disconnect(struct i
+ 			input_close_device(handle);
+ 		mousedev_free(mousedev);
+ 	}
++	mutex_unlock(&mousedev_lock);
+ }
+ 
+ static const struct input_device_id mousedev_ids[] = {
 _
 
-Patches currently in -mm which might be from warp@aehallh.com are
+Patches currently in -mm which might be from zaitcev@redhat.com are
 
-crash-on-evdev-disconnect.patch
+fix-locking-in-mousedev.patch
