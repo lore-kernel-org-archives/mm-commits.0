@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revoke-wire-up-i386-system-calls.patch added to -mm tree
-Date: Thu, 15 Mar 2007 17:16:01 -0800
-Message-ID: <200703160116.l2G1G1A7031764@shell0.pdx.osdl.net>
+Subject: + revoke-add-documentation.patch added to -mm tree
+Date: Thu, 15 Mar 2007 17:15:59 -0800
+Message-ID: <200703160115.l2G1Fxdv031761@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47952 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47948 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753503AbXCPBQZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 21:16:25 -0400
+	id S1753506AbXCPBQY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 21:16:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penberg@cs.helsinki.fi, ak@suse.de, alan@redhat.com, hch@lst.de, linux-arch@vger.kernel.org, mtk-manpages@gmx.net
+Cc: penberg@cs.helsinki.fi, ak@suse.de, alan@redhat.com, hch@lst.de, mtk-manpages@gmx.net
 
 
 The patch titled
-     revoke: wire up i386 system calls
+     revoke: add documentation
 has been added to the -mm tree.  Its filename is
-     revoke-wire-up-i386-system-calls.patch
+     revoke-add-documentation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revoke: wire up i386 system calls
+Subject: revoke: add documentation
 From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Make revokeat and frevoke system calls available to user-space on i386.
+This documents revoke file operation in Documentation/filesystems/vfs.txt.
 
 Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Michael Kerrisk <mtk-manpages@gmx.net>
 Cc: Andi Kleen <ak@suse.de>
-Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/syscall_table.S |    2 ++
- include/asm-i386/unistd.h        |    4 +++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ Documentation/filesystems/vfs.txt |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN arch/i386/kernel/syscall_table.S~revoke-wire-up-i386-system-calls arch/i386/kernel/syscall_table.S
---- a/arch/i386/kernel/syscall_table.S~revoke-wire-up-i386-system-calls
-+++ a/arch/i386/kernel/syscall_table.S
-@@ -320,3 +320,5 @@ ENTRY(sys_call_table)
- 	.long sys_getcpu
- 	.long sys_epoll_pwait
- 	.long sys_lutimesat		/* 320 */
-+ 	.long sys_revokeat
-+ 	.long sys_frevoke
-diff -puN include/asm-i386/unistd.h~revoke-wire-up-i386-system-calls include/asm-i386/unistd.h
---- a/include/asm-i386/unistd.h~revoke-wire-up-i386-system-calls
-+++ a/include/asm-i386/unistd.h
-@@ -326,10 +326,12 @@
- #define __NR_getcpu		318
- #define __NR_epoll_pwait	319
- #define __NR_lutimesat		320
-+#define __NR_revokeat		321
-+#define __NR_frevoke		322
+diff -puN Documentation/filesystems/vfs.txt~revoke-add-documentation Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~revoke-add-documentation
++++ a/Documentation/filesystems/vfs.txt
+@@ -732,6 +732,7 @@ struct file_operations {
+ int);
+ 	ssize_t (*splice_read)(struct file *, struct pipe_inode_info *, size_t, unsigned  
+ int);
++	int (*revoke)(struct file *);
+ };
  
- #ifdef __KERNEL__
+ Again, all methods are called without any locks being held, unless
+@@ -805,6 +806,10 @@ otherwise noted.
+   splice_read: called by the VFS to splice data from file to a pipe. This
+ 	       method is used by the splice(2) system call
  
--#define NR_syscalls 321
-+#define NR_syscalls 323
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- #define __ARCH_WANT_OLD_READDIR
++  revoke: called by revokeat(2) and frevoke(2) system calls to revoke access
++	  to an open file. This method must ensure that all currently blocked
++	  writes are flushed and reads will fail.
++
+ Note that the file operations are implemented by the specific
+ filesystem in which the inode resides. When opening a device node
+ (character or block special) most filesystems will call special
 _
 
 Patches currently in -mm which might be from penberg@cs.helsinki.fi are
