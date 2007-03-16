@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revoke-support-for-ext2-and-ext3.patch added to -mm tree
-Date: Thu, 15 Mar 2007 17:15:57 -0800
-Message-ID: <200703160115.l2G1FvEx031758@shell0.pdx.osdl.net>
+Subject: + revoke-wire-up-i386-system-calls.patch added to -mm tree
+Date: Thu, 15 Mar 2007 17:16:01 -0800
+Message-ID: <200703160116.l2G1G1A7031764@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47897 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47952 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753499AbXCPBQI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 21:16:08 -0400
+	id S1753503AbXCPBQZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 21:16:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penberg@cs.helsinki.fi, hch@lst.de
+Cc: penberg@cs.helsinki.fi, ak@suse.de, alan@redhat.com, hch@lst.de, linux-arch@vger.kernel.org, mtk-manpages@gmx.net
 
 
 The patch titled
-     revoke: support for ext2 and ext3
+     revoke: wire up i386 system calls
 has been added to the -mm tree.  Its filename is
-     revoke-support-for-ext2-and-ext3.patch
+     revoke-wire-up-i386-system-calls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revoke: support for ext2 and ext3
+Subject: revoke: wire up i386 system calls
 From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Add revoke support to ext2 and ext3 by wiring f_ops->revoke with
-generic_file_revoke.
+Make revokeat and frevoke system calls available to user-space on i386.
 
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Cc: Andi Kleen <ak@suse.de>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/file.c |    1 +
- fs/ext3/file.c |    1 +
- 2 files changed, 2 insertions(+)
+ arch/i386/kernel/syscall_table.S |    2 ++
+ include/asm-i386/unistd.h        |    4 +++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext2/file.c~revoke-support-for-ext2-and-ext3 fs/ext2/file.c
---- a/fs/ext2/file.c~revoke-support-for-ext2-and-ext3
-+++ a/fs/ext2/file.c
-@@ -59,6 +59,7 @@ const struct file_operations ext2_file_o
- 	.sendfile	= generic_file_sendfile,
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= generic_file_splice_write,
-+	.revoke		= generic_file_revoke,
- };
+diff -puN arch/i386/kernel/syscall_table.S~revoke-wire-up-i386-system-calls arch/i386/kernel/syscall_table.S
+--- a/arch/i386/kernel/syscall_table.S~revoke-wire-up-i386-system-calls
++++ a/arch/i386/kernel/syscall_table.S
+@@ -320,3 +320,5 @@ ENTRY(sys_call_table)
+ 	.long sys_getcpu
+ 	.long sys_epoll_pwait
+ 	.long sys_lutimesat		/* 320 */
++ 	.long sys_revokeat
++ 	.long sys_frevoke
+diff -puN include/asm-i386/unistd.h~revoke-wire-up-i386-system-calls include/asm-i386/unistd.h
+--- a/include/asm-i386/unistd.h~revoke-wire-up-i386-system-calls
++++ a/include/asm-i386/unistd.h
+@@ -326,10 +326,12 @@
+ #define __NR_getcpu		318
+ #define __NR_epoll_pwait	319
+ #define __NR_lutimesat		320
++#define __NR_revokeat		321
++#define __NR_frevoke		322
  
- #ifdef CONFIG_EXT2_FS_XIP
-diff -puN fs/ext3/file.c~revoke-support-for-ext2-and-ext3 fs/ext3/file.c
---- a/fs/ext3/file.c~revoke-support-for-ext2-and-ext3
-+++ a/fs/ext3/file.c
-@@ -123,6 +123,7 @@ const struct file_operations ext3_file_o
- 	.sendfile	= generic_file_sendfile,
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= generic_file_splice_write,
-+	.revoke         = generic_file_revoke,
- };
+ #ifdef __KERNEL__
  
- const struct inode_operations ext3_file_inode_operations = {
+-#define NR_syscalls 321
++#define NR_syscalls 323
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
 _
 
 Patches currently in -mm which might be from penberg@cs.helsinki.fi are
