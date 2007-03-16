@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + smc-superio-chip-lpc47n227-not-identified-properly.patch added to -mm tree
-Date: Thu, 15 Mar 2007 20:11:02 -0800
-Message-ID: <200703160411.l2G4B21h002171@shell0.pdx.osdl.net>
+Subject: + proc-oom_score-oops-re-badness.patch added to -mm tree
+Date: Thu, 15 Mar 2007 20:12:25 -0800
+Message-ID: <200703160412.l2G4CP8W002223@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53356 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53424 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751699AbXCPELX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 00:11:23 -0400
+	id S1752257AbXCPENE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 00:13:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter.kovar@gmail.com, khali@linux-fr.org, samuel@sortiz.org
+Cc: adobriyan@sw.ru
 
 
 The patch titled
-     SMC SuperIO Chip LPC47N227 not identified properly
+     /proc/*/oom_score oops re badness
 has been added to the -mm tree.  Its filename is
-     smc-superio-chip-lpc47n227-not-identified-properly.patch
+     proc-oom_score-oops-re-badness.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SMC SuperIO Chip LPC47N227 not identified properly
-From: Peter Kovar <peter.kovar@gmail.com>
+Subject: /proc/*/oom_score oops re badness
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-SMC SuperIO Chip LPC47N227 used for IrDA is not detected because its device
-identification byte is 0x7A instead of 0x5A.
+Eternal quest to make
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+	while true; do cat /proc/fs/xfs/stat >/dev/null 2>/dev/null; done
+	while true; do find /proc -type f 2>/dev/null | xargs cat >/dev/null 2>/dev/null; done
+	while true; do modprobe xfs; rmmod xfs; done
+
+work reliably continues and now kernel oopses in the following way:
+
+BUG: unable to handle ... at virtual address 6b6b6b6b
+EIP is at badness
+process: cat
+	proc_oom_score
+	proc_info_read
+	sys_fstat64
+	vfs_read
+	proc_info_read
+	sys_read
+
+Failing code is prefetch hidden in list_for_each_entry() in badness().
+badness() is reachable from two points. One is proc_oom_score, another
+is out_of_memory() => select_bad_process() => badness().
+
+Second path grabs tasklist_lock, while first doesn't.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/smsc-ircc2.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/base.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/net/irda/smsc-ircc2.c~smc-superio-chip-lpc47n227-not-identified-properly drivers/net/irda/smsc-ircc2.c
---- a/drivers/net/irda/smsc-ircc2.c~smc-superio-chip-lpc47n227-not-identified-properly
-+++ a/drivers/net/irda/smsc-ircc2.c
-@@ -315,6 +315,7 @@ static struct smsc_chip __initdata lpc_c
- {
- 	/* Base address 0x2E or 0x4E */
- 	{ "47N227",	KEY55_1|FIR|SERx4,	0x5a, 0x00 },
-+	{ "47N227",	KEY55_1|FIR|SERx4,	0x7a, 0x00 },
- 	{ "47N267",	KEY55_1|FIR|SERx4,	0x5e, 0x00 },
- 	{ NULL }
- };
+diff -puN fs/proc/base.c~proc-oom_score-oops-re-badness fs/proc/base.c
+--- a/fs/proc/base.c~proc-oom_score-oops-re-badness
++++ a/fs/proc/base.c
+@@ -310,7 +310,9 @@ static int proc_oom_score(struct task_st
+ 	struct timespec uptime;
+ 
+ 	do_posix_clock_monotonic_gettime(&uptime);
++	read_lock(&tasklist_lock);
+ 	points = badness(task, uptime.tv_sec);
++	read_unlock(&tasklist_lock);
+ 	return sprintf(buffer, "%lu\n", points);
+ }
+ 
 _
 
-Patches currently in -mm which might be from peter.kovar@gmail.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-smc-superio-chip-lpc47n227-not-identified-properly.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+proc-remove-pathetic-deleted-warn_on.patch
+race-between-cat-proc-kallsyms-and-rmmod.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+proc-oom_score-oops-re-badness.patch
