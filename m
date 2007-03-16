@@ -1,79 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + fix-process-crash-caused-by-randomisation-and-64k-pages.patch added to -mm tree
-Date: Fri, 16 Mar 2007 10:41:06 -0800
-Message-ID: <200703161841.l2GIf690018947@shell0.pdx.osdl.net>
+Subject: - crash-on-evdev-disconnect.patch removed from -mm tree
+Date: Fri, 16 Mar 2007 11:36:37 -0800
+Message-ID: <200703161936.l2GJabTm019938@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58729 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:32804 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753597AbXCPSlY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 14:41:24 -0400
+	id S1753605AbXCPTgq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 15:36:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: James.Bottomley@SteelEye.com, ak@suse.de, arjan@infradead.org, mingo@elte.hu
+To: warp@aehallh.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix process crash caused by randomisation and 64k pages
-has been added to the -mm tree.  Its filename is
-     fix-process-crash-caused-by-randomisation-and-64k-pages.patch
+     Crash on evdev disconnect
+has been removed from the -mm tree.  Its filename was
+     crash-on-evdev-disconnect.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fix process crash caused by randomisation and 64k pages
-From: James Bottomley <James.Bottomley@SteelEye.com>
+Subject: Crash on evdev disconnect
+From: "Zephaniah E. Hull" <warp@aehallh.com>
 
-This bug was seen on ppc64, but it could have occurred on any architecture
-with a page size of 64k or above.  The problem is that
-fs/binfmt_elf.c:randomize_stack_top() randomizes the stack to within 0x7ff
-pages.  On 4k page machines, this is 8MB; on 64k page boxes, this is 128MB.
- The problem is that the new binary layout (selected in
-arch_pick_mmap_layout) places the mapping segment 128MB or the stack rlimit
-away from the top of the process memory, whichever is larger.  If you chose
-an rlimit of less than 128MB (most defaults are in the 8Mb range) then you
-can end up having your entire stack randomized away.
+While trying to figure out the best way to handle an odd mouse, I found
+that we oopsed when doing a rmmod on usbhid while someone had a USB device
+open through evdev.
 
-The fix is to make randomize_stack_top() only steal at most 8MB, which this
-patch does.  However, I have to point out that even with this, your stack
-rlimit might not be exactly what you get if it's > 128MB, because you're
-still losing the random offset of up to 8MB.
+We try to loop through evdev->list, calling kill_fasync on each member,
+however by the time we try to get the next pointer, we have already freed
+the member and poisoned the next/last.
 
-The true fix should be to leave an explicit gap for the randomization plus
-a buffer when determining mmap_base, but that would involve fixing all the
-architectures.
+akpm: doesn't really fix the bug (lack of locking).  But I'm queueing it up so
+I can nag Dmitry with it ;)
 
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: "Zephaniah E. Hull" <warp@aehallh.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/evdev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_elf.c~fix-process-crash-caused-by-randomisation-and-64k-pages fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fix-process-crash-caused-by-randomisation-and-64k-pages
-+++ a/fs/binfmt_elf.c
-@@ -507,7 +507,7 @@ out:
- #define INTERPRETER_ELF 2
+diff -puN drivers/input/evdev.c~crash-on-evdev-disconnect drivers/input/evdev.c
+--- a/drivers/input/evdev.c~crash-on-evdev-disconnect
++++ a/drivers/input/evdev.c
+@@ -659,7 +659,7 @@ static struct input_handle *evdev_connec
+ static void evdev_disconnect(struct input_handle *handle)
+ {
+ 	struct evdev *evdev = handle->private;
+-	struct evdev_list *list;
++	struct evdev_list *list, *next;
  
- #ifndef STACK_RND_MASK
--#define STACK_RND_MASK 0x7ff		/* with 4K pages 8MB of VA */
-+#define STACK_RND_MASK (0x7ff >> (PAGE_SHIFT - 12))	/* 8MB of VA */
- #endif
- 
- static unsigned long randomize_stack_top(unsigned long stack_top)
+ 	sysfs_remove_link(&input_class.subsys.kset.kobj, evdev->name);
+ 	class_device_destroy(&input_class,
+@@ -670,7 +670,7 @@ static void evdev_disconnect(struct inpu
+ 		input_flush_device(handle, NULL);
+ 		input_close_device(handle);
+ 		wake_up_interruptible(&evdev->wait);
+-		list_for_each_entry(list, &evdev->list, node)
++		list_for_each_entry_safe(list, next, &evdev->list, node)
+ 			kill_fasync(&list->fasync, SIGIO, POLL_HUP);
+ 	} else
+ 		evdev_free(evdev);
 _
 
-Patches currently in -mm which might be from James.Bottomley@SteelEye.com are
+Patches currently in -mm which might be from warp@aehallh.com are
 
-fix-process-crash-caused-by-randomisation-and-64k-pages.patch
-git-scsi-misc.patch
-git-scsi-rc-fixes.patch
-fix--confusion-in-fusion-driver.patch
-introduce-config_has_dma.patch
+crash-on-evdev-disconnect.patch
