@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lumpy-reclaim-v4.patch added to -mm tree
-Date: Thu, 15 Mar 2007 19:18:49 -0800
-Message-ID: <200703160318.l2G3InTv001376@shell0.pdx.osdl.net>
+Subject: + avr32-implement-utrace-support.patch added to -mm tree
+Date: Thu, 15 Mar 2007 19:21:50 -0800
+Message-ID: <200703160321.l2G3Lo3J001439@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51421 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51539 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752585AbXCPDTE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 23:19:04 -0400
+	id S1752885AbXCPDWK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 23:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, a.p.zijlstra@chello.nl, mel@csn.ul.ie
+Cc: hskinnemoen@atmel.com, roland@redhat.com
 
 
 The patch titled
-     Lumpy Reclaim V4
+     AVR32: implement utrace support
 has been added to the -mm tree.  Its filename is
-     lumpy-reclaim-v4.patch
+     avr32-implement-utrace-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,283 +25,529 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Lumpy Reclaim V4
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: AVR32: implement utrace support
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-When we are out of memory of a suitable size we enter reclaim.  The current
-reclaim algorithm targets pages in LRU order, which is great for fairness at
-order-0 but highly unsuitable if you desire pages at higher orders.  To get
-pages of higher order we must shoot down a very high proportion of memory;
->95% in a lot of cases.
+Rip out most of the ptrace code for AVR32 and replace it with the much
+nicer utrace stuff.  It builds in all possible combinations of
+CONFIG_UTRACE and CONFIG_PTRACE, and it seems to work as far as I've tested
+it with strace and some simple debugging with gdb.
 
-This patch set adds a lumpy reclaim algorithm to the allocator.  It targets
-groups of pages at the specified order anchored at the end of the active and
-inactive lists.  This encourages groups of pages at the requested orders to
-move from active to inactive, and active to free lists.  This behaviour is
-only triggered out of direct reclaim when higher order pages have been
-requested.
-
-This patch set is particularly effective when utilised with an
-anti-fragmentation scheme which groups pages of similar reclaimability
-together.
-
-This patch set is based on Peter Zijlstra's lumpy reclaim V2 patch which forms
-the foundation.  Credit to Mel Gorman for sanitity checking.
-
-[akpm@osdl.org: ia64 pfn_to_nid fixes and loop cleanup]
-[bunk@stusta.de: static declarations for internal functions]
-[a.p.zijlstra@chello.nl: initial lumpy V2 implementation]
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c          |    2 
- include/linux/swap.h |    3 
- mm/page_alloc.c      |    2 
- mm/vmscan.c          |  126 ++++++++++++++++++++++++++++++++++-------
- 4 files changed, 111 insertions(+), 22 deletions(-)
+ arch/avr32/kernel/entry-avr32b.S |   10 
+ arch/avr32/kernel/process.c      |    2 
+ arch/avr32/kernel/ptrace.c       |  322 +++++++----------------------
+ include/asm-avr32/tracehook.h    |   69 ++++++
+ 4 files changed, 164 insertions(+), 239 deletions(-)
 
-diff -puN fs/buffer.c~lumpy-reclaim-v4 fs/buffer.c
---- a/fs/buffer.c~lumpy-reclaim-v4
-+++ a/fs/buffer.c
-@@ -363,7 +363,7 @@ static void free_more_memory(void)
- 	for_each_online_pgdat(pgdat) {
- 		zones = pgdat->node_zonelists[gfp_zone(GFP_NOFS)].zones;
- 		if (*zones)
--			try_to_free_pages(zones, GFP_NOFS);
-+			try_to_free_pages(zones, 0, GFP_NOFS);
+diff -puN arch/avr32/kernel/entry-avr32b.S~avr32-implement-utrace-support arch/avr32/kernel/entry-avr32b.S
+--- a/arch/avr32/kernel/entry-avr32b.S~avr32-implement-utrace-support
++++ a/arch/avr32/kernel/entry-avr32b.S
+@@ -229,15 +229,21 @@ ret_from_fork:
+ 	rjmp    syscall_exit_cont
+ 
+ syscall_trace_enter:
+-	pushm	r8-r12
++	mov	r12, sp		/* regs		*/
++	mov	r11, 0		/* is_exit	*/
+ 	rcall	syscall_trace
+-	popm	r8-r12
++
++	/* syscall_trace may update r8, so reload r8-r12 from regs. */
++	sub	lr, sp, -REG_R12
++	ldm	lr, r8-r12
+ 	rjmp	syscall_trace_cont
+ 
+ syscall_exit_work:
+ 	bld	r1, TIF_SYSCALL_TRACE
+ 	brcc	1f
+ 	unmask_interrupts
++	mov	r12, sp
++	mov	r11, 1
+ 	rcall	syscall_trace
+ 	mask_interrupts
+ 	ld.w	r1, r0[TI_flags]
+diff -puN arch/avr32/kernel/process.c~avr32-implement-utrace-support arch/avr32/kernel/process.c
+--- a/arch/avr32/kernel/process.c~avr32-implement-utrace-support
++++ a/arch/avr32/kernel/process.c
+@@ -229,8 +229,6 @@ asmlinkage int sys_execve(char __user *u
+ 		goto out;
+ 
+ 	error = do_execve(filename, uargv, uenvp, regs);
+-	if (error == 0)
+-		current->ptrace &= ~PT_DTRACE;
+ 	putname(filename);
+ 
+ out:
+diff -puN arch/avr32/kernel/ptrace.c~avr32-implement-utrace-support arch/avr32/kernel/ptrace.c
+--- a/arch/avr32/kernel/ptrace.c~avr32-implement-utrace-support
++++ a/arch/avr32/kernel/ptrace.c
+@@ -5,23 +5,23 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
+-#undef DEBUG
++
++#include <linux/compile.h>
++#include <linux/elf.h>
++#include <linux/errno.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
+-#include <linux/mm.h>
+-#include <linux/smp_lock.h>
++#include <linux/module.h>
++#include <linux/notifier.h>
+ #include <linux/ptrace.h>
+-#include <linux/errno.h>
++#include <linux/sched.h>
++#include <linux/tracehook.h>
+ #include <linux/user.h>
+-#include <linux/security.h>
+-#include <linux/unistd.h>
+-#include <linux/notifier.h>
+ 
+-#include <asm/traps.h>
+-#include <asm/uaccess.h>
+-#include <asm/ocd.h>
+-#include <asm/mmu_context.h>
+ #include <asm/kdebug.h>
++#include <asm/mmu_context.h>
++#include <asm/ocd.h>
++
++#ifdef CONFIG_UTRACE
+ 
+ static struct pt_regs *get_user_regs(struct task_struct *tsk)
+ {
+@@ -29,261 +29,113 @@ static struct pt_regs *get_user_regs(str
+ 				  THREAD_SIZE - sizeof(struct pt_regs));
+ }
+ 
+-static void ptrace_single_step(struct task_struct *tsk)
+-{
+-	pr_debug("ptrace_single_step: pid=%u, SR=0x%08lx\n",
+-		 tsk->pid, tsk->thread.cpu_context.sr);
+-	if (!(tsk->thread.cpu_context.sr & SR_D)) {
+-		/*
+-		 * Set a breakpoint at the current pc to force the
+-		 * process into debug mode.  The syscall/exception
+-		 * exit code will set a breakpoint at the return
+-		 * address when this flag is set.
+-		 */
+-		pr_debug("ptrace_single_step: Setting TIF_BREAKPOINT\n");
+-		set_tsk_thread_flag(tsk, TIF_BREAKPOINT);
+-	}
+-
+-	/* The monitor code will do the actual step for us */
+-	set_tsk_thread_flag(tsk, TIF_SINGLE_STEP);
+-}
+-
+-/*
+- * Called by kernel/ptrace.c when detaching
+- *
+- * Make sure any single step bits, etc. are not set
+- */
+-void ptrace_disable(struct task_struct *child)
+-{
+-	clear_tsk_thread_flag(child, TIF_SINGLE_STEP);
+-}
+-
+-/*
+- * Handle hitting a breakpoint
+- */
+-static void ptrace_break(struct task_struct *tsk, struct pt_regs *regs)
+-{
+-	siginfo_t info;
+-
+-	info.si_signo = SIGTRAP;
+-	info.si_errno = 0;
+-	info.si_code  = TRAP_BRKPT;
+-	info.si_addr  = (void __user *)instruction_pointer(regs);
+-
+-	pr_debug("ptrace_break: Sending SIGTRAP to PID %u (pc = 0x%p)\n",
+-		 tsk->pid, info.si_addr);
+-	force_sig_info(SIGTRAP, &info, tsk);
+-}
+-
+-/*
+- * Read the word at offset "offset" into the task's "struct user". We
+- * actually access the pt_regs struct stored on the kernel stack.
+- */
+-static int ptrace_read_user(struct task_struct *tsk, unsigned long offset,
+-			    unsigned long __user *data)
+-{
+-	unsigned long *regs;
+-	unsigned long value;
+-
+-	pr_debug("ptrace_read_user(%p, %#lx, %p)\n",
+-		 tsk, offset, data);
+-
+-	if (offset & 3 || offset >= sizeof(struct user)) {
+-		printk("ptrace_read_user: invalid offset 0x%08lx\n", offset);
+-		return -EIO;
+-	}
+-
+-	regs = (unsigned long *)get_user_regs(tsk);
+-
+-	value = 0;
+-	if (offset < sizeof(struct pt_regs))
+-		value = regs[offset / sizeof(regs[0])];
+-
+-	return put_user(value, data);
+-}
+-
+-/*
+- * Write the word "value" to offset "offset" into the task's "struct
+- * user". We actually access the pt_regs struct stored on the kernel
+- * stack.
+- */
+-static int ptrace_write_user(struct task_struct *tsk, unsigned long offset,
+-			     unsigned long value)
++static int genregs_get(struct task_struct *target,
++		       const struct utrace_regset *regset,
++		       unsigned int pos, unsigned int count,
++		       void *kbuf, void __user *ubuf)
+ {
+-	unsigned long *regs;
+-
+-	if (offset & 3 || offset >= sizeof(struct user)) {
+-		printk("ptrace_write_user: invalid offset 0x%08lx\n", offset);
+-		return -EIO;
+-	}
+-
+-	if (offset >= sizeof(struct pt_regs))
+-		return 0;
++	struct pt_regs *regs = get_user_regs(target);
+ 
+-	regs = (unsigned long *)get_user_regs(tsk);
+-	regs[offset / sizeof(regs[0])] = value;
+-
+-	return 0;
++	return utrace_regset_copyout(&pos, &count, &kbuf, &ubuf,
++				     regs, 0, -1);
+ }
+ 
+-static int ptrace_getregs(struct task_struct *tsk, void __user *uregs)
++static int genregs_set(struct task_struct *target,
++		       const struct utrace_regset *regset,
++		       unsigned int pos, unsigned int count,
++		       const void *kbuf, const void __user *ubuf)
+ {
+-	struct pt_regs *regs = get_user_regs(tsk);
++	struct pt_regs *regs = get_user_regs(target);
+ 
+-	return copy_to_user(uregs, regs, sizeof(*regs)) ? -EFAULT : 0;
++	return utrace_regset_copyin(&pos, &count, &kbuf, &ubuf,
++				    regs, 0, -1);
+ }
+ 
+-static int ptrace_setregs(struct task_struct *tsk, const void __user *uregs)
+-{
+-	struct pt_regs newregs;
+-	int ret;
+-
+-	ret = -EFAULT;
+-	if (copy_from_user(&newregs, uregs, sizeof(newregs)) == 0) {
+-		struct pt_regs *regs = get_user_regs(tsk);
+-
+-		ret = -EINVAL;
+-		if (valid_user_regs(&newregs)) {
+-			*regs = newregs;
+-			ret = 0;
+-		}
+-	}
+-
+-	return ret;
+-}
++static const struct utrace_regset native_regsets[] = {
++	{
++		.n	= ELF_NGREG,
++		.size	= sizeof(long),
++		.align	= sizeof(long),
++		.get	= genregs_get,
++		.set	= genregs_set,
++	},
++	/*
++	 * Other register sets that probably would make sense:
++	 *   - Coprocessor registers (8 coprocs with 16 registers each)
++	 *   - TLS stuff
++	 */
++};
+ 
+-long arch_ptrace(struct task_struct *child, long request, long addr, long data)
++const struct utrace_regset_view utrace_avr32_native_view = {
++	.name		= UTS_MACHINE,
++	.e_machine	= ELF_ARCH,
++	.regsets	= native_regsets,
++	.n		= ARRAY_SIZE(native_regsets),
++};
++EXPORT_SYMBOL_GPL(utrace_avr32_native_view);
++
++#ifdef CONFIG_PTRACE
++
++static const struct ptrace_layout_segment avr32_uarea[] = {
++	{ 0, ELF_NGREG * sizeof(long), 0, 0 },
++	{ 0, 0, -1, 0 },
++};
++
++int arch_ptrace(long *request, struct task_struct *child,
++		struct utrace_attached_engine *engine,
++		unsigned long addr, unsigned long data, long *val)
+ {
+-	unsigned long tmp;
+-	int ret;
+-
+ 	pr_debug("arch_ptrace(%ld, %d, %#lx, %#lx)\n",
+-		 request, child->pid, addr, data);
++		 *request, child->pid, addr, data);
+ 
+ 	pr_debug("ptrace: Enabling monitor mode...\n");
+ 	__mtdr(DBGREG_DC, __mfdr(DBGREG_DC) | DC_MM | DC_DBE);
+ 
+-	switch (request) {
+-	/* Read the word at location addr in the child process */
+-	case PTRACE_PEEKTEXT:
+-	case PTRACE_PEEKDATA:
+-		ret = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
+-		if (ret == sizeof(tmp))
+-			ret = put_user(tmp, (unsigned long __user *)data);
+-		else
+-			ret = -EIO;
+-		break;
+-
++	switch (*request) {
+ 	case PTRACE_PEEKUSR:
+-		ret = ptrace_read_user(child, addr,
+-				       (unsigned long __user *)data);
+-		break;
+-
+-	/* Write the word in data at location addr */
+-	case PTRACE_POKETEXT:
+-	case PTRACE_POKEDATA:
+-		ret = access_process_vm(child, addr, &data, sizeof(data), 1);
+-		if (ret == sizeof(data))
+-			ret = 0;
+-		else
+-			ret = -EIO;
+-		break;
++		return ptrace_peekusr(child, engine, avr32_uarea, addr, data);
+ 
+ 	case PTRACE_POKEUSR:
+-		ret = ptrace_write_user(child, addr, data);
+-		break;
+-
+-	/* continue and stop at next (return from) syscall */
+-	case PTRACE_SYSCALL:
+-	/* restart after signal */
+-	case PTRACE_CONT:
+-		ret = -EIO;
+-		if (!valid_signal(data))
+-			break;
+-		if (request == PTRACE_SYSCALL)
+-			set_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-		else
+-			clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-		child->exit_code = data;
+-		/* XXX: Are we sure no breakpoints are active here? */
+-		wake_up_process(child);
+-		ret = 0;
+-		break;
+-
+-	/*
+-	 * Make the child exit. Best I can do is send it a
+-	 * SIGKILL. Perhaps it should be put in the status that it
+-	 * wants to exit.
+-	 */
+-	case PTRACE_KILL:
+-		ret = 0;
+-		if (child->exit_state == EXIT_ZOMBIE)
+-			break;
+-		child->exit_code = SIGKILL;
+-		wake_up_process(child);
+-		break;
+-
+-	/*
+-	 * execute single instruction.
+-	 */
+-	case PTRACE_SINGLESTEP:
+-		ret = -EIO;
+-		if (!valid_signal(data))
+-			break;
+-		clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-		ptrace_single_step(child);
+-		child->exit_code = data;
+-		wake_up_process(child);
+-		ret = 0;
+-		break;
+-
+-	/* Detach a process that was attached */
+-	case PTRACE_DETACH:
+-		ret = ptrace_detach(child, data);
++		return ptrace_pokeusr(child, engine, avr32_uarea, addr, data);
+ 		break;
+ 
+ 	case PTRACE_GETREGS:
+-		ret = ptrace_getregs(child, (void __user *)data);
++		return ptrace_whole_regset(child, engine, data, 0, 0);
+ 		break;
+ 
+ 	case PTRACE_SETREGS:
+-		ret = ptrace_setregs(child, (const void __user *)data);
+-		break;
+-
+-	default:
+-		ret = ptrace_request(child, request, addr, data);
++		return ptrace_whole_regset(child, engine, data, 0, 1);
+ 		break;
+ 	}
+ 
+-	pr_debug("sys_ptrace returning %d (DC = 0x%08lx)\n", ret, __mfdr(DBGREG_DC));
+-	return ret;
++	return -ENOSYS;
+ }
++#endif /* CONFIG_PTRACE */
++#endif /* CONFIG_UTRACE */
+ 
+-asmlinkage void syscall_trace(void)
++asmlinkage void syscall_trace(struct pt_regs *regs, int is_exit)
+ {
+-	pr_debug("syscall_trace called\n");
+ 	if (!test_thread_flag(TIF_SYSCALL_TRACE))
+ 		return;
+-	if (!(current->ptrace & PT_PTRACED))
+-		return;
+ 
+-	pr_debug("syscall_trace: notifying parent\n");
+-	/* The 0x80 provides a way for the tracing parent to
+-	 * distinguish between a syscall stop and SIGTRAP delivery */
+-	ptrace_notify(SIGTRAP | ((current->ptrace & PT_TRACESYSGOOD)
+-				 ? 0x80 : 0));
++	tracehook_report_syscall(regs, is_exit);
++}
+ 
+-	/*
+-	 * this isn't the same as continuing with a signal, but it
+-	 * will do for normal use.  strace only continues with a
+-	 * signal if the stopping signal is not SIGTRAP.  -brl
+-	 */
+-	if (current->exit_code) {
+-		pr_debug("syscall_trace: sending signal %d to PID %u\n",
+-			 current->exit_code, current->pid);
+-		send_sig(current->exit_code, current, 1);
+-		current->exit_code = 0;
+-	}
++/*
++ * Handle hitting a breakpoint
++ */
++static void do_breakpoint(struct task_struct *tsk, struct pt_regs *regs)
++{
++	siginfo_t info;
++
++	info.si_signo = SIGTRAP;
++	info.si_errno = 0;
++	info.si_code  = TRAP_BRKPT;
++	info.si_addr  = (void __user *)instruction_pointer(regs);
++
++	pr_debug("ptrace_break: Sending SIGTRAP to PID %u (pc = 0x%p)\n",
++		 tsk->pid, info.si_addr);
++	force_sig_info(SIGTRAP, &info, tsk);
+ }
+ 
+ asmlinkage void do_debug_priv(struct pt_regs *regs)
+@@ -362,10 +214,10 @@ asmlinkage void do_debug(struct pt_regs 
+ 			__mtdr(DBGREG_DC, dc);
+ 
+ 			clear_thread_flag(TIF_SINGLE_STEP);
+-			ptrace_break(current, regs);
++			do_breakpoint(current, regs);
+ 		}
+ 	} else {
+ 		/* regular breakpoint */
+-		ptrace_break(current, regs);
++		do_breakpoint(current, regs);
  	}
  }
- 
-diff -puN include/linux/swap.h~lumpy-reclaim-v4 include/linux/swap.h
---- a/include/linux/swap.h~lumpy-reclaim-v4
-+++ a/include/linux/swap.h
-@@ -188,7 +188,8 @@ extern int rotate_reclaimable_page(struc
- extern void swap_setup(void);
- 
- /* linux/mm/vmscan.c */
--extern unsigned long try_to_free_pages(struct zone **, gfp_t);
-+extern unsigned long try_to_free_pages(struct zone **zones, int order,
-+					gfp_t gfp_mask);
- extern unsigned long shrink_all_memory(unsigned long nr_pages);
- extern int vm_swappiness;
- extern int remove_mapping(struct address_space *mapping, struct page *page);
-diff -puN mm/page_alloc.c~lumpy-reclaim-v4 mm/page_alloc.c
---- a/mm/page_alloc.c~lumpy-reclaim-v4
-+++ a/mm/page_alloc.c
-@@ -1637,7 +1637,7 @@ nofail_alloc:
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
- 
--	did_some_progress = try_to_free_pages(zonelist->zones, gfp_mask);
-+	did_some_progress = try_to_free_pages(zonelist->zones, order, gfp_mask);
- 
- 	p->reclaim_state = NULL;
- 	p->flags &= ~PF_MEMALLOC;
-diff -puN mm/vmscan.c~lumpy-reclaim-v4 mm/vmscan.c
---- a/mm/vmscan.c~lumpy-reclaim-v4
-+++ a/mm/vmscan.c
-@@ -66,6 +66,8 @@ struct scan_control {
- 	int swappiness;
- 
- 	int all_unreclaimable;
-+
-+	int order;
- };
- 
- /*
-@@ -606,6 +608,41 @@ keep:
- }
- 
- /*
-+ * Attempt to remove the specified page from its LRU.  Only take this page
-+ * if it is of the appropriate PageActive status.  Pages which are being
-+ * freed elsewhere are also ignored.
+diff -puN /dev/null include/asm-avr32/tracehook.h
+--- /dev/null
++++ a/include/asm-avr32/tracehook.h
+@@ -0,0 +1,69 @@
++/*
++ * Tracing hooks for AVR32
 + *
-+ * page:	page to consider
-+ * active:	active/inactive flag only take pages of this type
++ * Copyright (C) 2007 Atmel Corporation
 + *
-+ * returns 0 on success, -ve errno on failure.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+static int __isolate_lru_page(struct page *page, int active)
++#ifndef _ASM_AVR32_TRACEHOOK_H
++#define _ASM_AVR32_TRACEHOOK_H
++
++#include <linux/sched.h>
++
++#define ARCH_HAS_SINGLE_STEP	1
++
++static inline void tracehook_enable_single_step(struct task_struct *tsk)
 +{
-+	int ret = -EINVAL;
-+
 +	/*
-+	 * When checking the active state, we need to be sure we are
-+	 * dealing with comparible boolean values.  Take the logical not
-+	 * of each.
++	 * If the process is stopped in debug mode, simply set
++	 * TIF_SINGLE_STEP to tell the monitor code to set the single
++	 * step bit in DC before returning.
++	 *
++	 * Otherwise, we need to set a breakpoint at the return
++	 * address before returning to userspace. TIF_BREAKPOINT will
++	 * tell the syscall/exception exit code to do this.
 +	 */
-+	if (PageLRU(page) && (!PageActive(page) == !active)) {
-+		ret = -EBUSY;
-+		if (likely(get_page_unless_zero(page))) {
-+			/*
-+			 * Be careful not to clear PageLRU until after we're
-+			 * sure the page is not being freed elsewhere -- the
-+			 * page release code relies on it.
-+			 */
-+			ClearPageLRU(page);
-+			ret = 0;
-+		}
-+	}
++	if (!(tsk->thread.cpu_context.sr & SR_D))
++		set_tsk_thread_flag(tsk, TIF_BREAKPOINT);
 +
-+	return ret;
++	set_tsk_thread_flag(tsk, TIF_SINGLE_STEP);
 +}
 +
-+/*
-  * zone->lru_lock is heavily contended.  Some of the functions that
-  * shrink the lists perform better by taking out a batch of pages
-  * and working on them outside the LRU lock.
-@@ -619,38 +656,88 @@ keep:
-  * @src:	The LRU list to pull pages off.
-  * @dst:	The temp list to put pages on to.
-  * @scanned:	The number of pages that were scanned.
-+ * @order:	The caller's attempted allocation order
-+ * @active:	The caller's trying to obtain active or inactive pages
-  *
-  * returns how many pages were moved onto *@dst.
-  */
- static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
- 		struct list_head *src, struct list_head *dst,
--		unsigned long *scanned)
-+		unsigned long *scanned, int order, int active)
- {
- 	unsigned long nr_taken = 0;
--	struct page *page;
- 	unsigned long scan;
- 
- 	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
--		struct list_head *target;
-+		struct page *page;
-+		unsigned long pfn;
-+		unsigned long end_pfn;
-+		unsigned long page_pfn;
-+		int zone_id;
++static inline void tracehook_disable_single_step(struct task_struct *tsk)
++{
++	clear_tsk_thread_flag(tsk, TIF_BREAKPOINT);
++	clear_tsk_thread_flag(tsk, TIF_SINGLE_STEP);
++}
 +
- 		page = lru_to_page(src);
- 		prefetchw_prev_lru_page(page, src, flags);
- 
- 		VM_BUG_ON(!PageLRU(page));
- 
--		list_del(&page->lru);
--		target = src;
--		if (likely(get_page_unless_zero(page))) {
--			/*
--			 * Be careful not to clear PageLRU until after we're
--			 * sure the page is not being freed elsewhere -- the
--			 * page release code relies on it.
--			 */
--			ClearPageLRU(page);
--			target = dst;
-+		switch (__isolate_lru_page(page, active)) {
-+		case 0:
-+			list_move(&page->lru, dst);
- 			nr_taken++;
--		} /* else it is being freed elsewhere */
-+			break;
++static inline int tracehook_single_step_enabled(struct task_struct *tsk)
++{
++	return test_tsk_thread_flag(tsk, TIF_SINGLE_STEP);
++}
 +
-+		default:
-+			/* page is being freed, or is a missmatch */
-+			list_move(&page->lru, src);
-+			continue;
-+		}
++static inline void tracehook_enable_syscall_trace(struct task_struct *tsk)
++{
++	set_tsk_thread_flag(tsk, TIF_SYSCALL_TRACE);
++}
 +
-+		if (!order)
-+			continue;
- 
--		list_add(&page->lru, target);
-+		/*
-+		 * Attempt to take all pages in the order aligned region
-+		 * surrounding the tag page.  Only take those pages of
-+		 * the same active state as that tag page.  We may safely
-+		 * round the target page pfn down to the requested order
-+		 * as the mem_map is guarenteed valid out to MAX_ORDER,
-+		 * where that page is in a different zone we will detect
-+		 * it from its zone id and abort this block scan.
-+		 */
-+		zone_id = page_zone_id(page);
-+		page_pfn = page_to_pfn(page);
-+		pfn = page_pfn & ~((1 << order) - 1);
-+		end_pfn = pfn + (1 << order);
-+		for (; pfn < end_pfn; pfn++) {
-+			struct page *cursor_page;
++static inline void tracehook_disable_syscall_trace(struct task_struct *tsk)
++{
++	clear_tsk_thread_flag(tsk, TIF_SYSCALL_TRACE);
++}
 +
-+			/* The target page is in the block, ignore it. */
-+			if (unlikely(pfn == page_pfn))
-+				continue;
-+#ifdef CONFIG_HOLES_IN_ZONE
-+			/* Avoid holes within the zone. */
-+			if (unlikely(!pfn_valid(pfn)))
-+				break;
-+#endif
++static inline void tracehook_abort_syscall(struct pt_regs *regs)
++{
++	/* Invalid system call number => return -ENOSYS */
++	regs->r8 = -1;
++}
 +
-+			cursor_page = pfn_to_page(pfn);
-+			/* Check that we have not crossed a zone boundary. */
-+			if (unlikely(page_zone_id(cursor_page) != zone_id))
-+				continue;
-+			scan++;
-+			switch (__isolate_lru_page(cursor_page, active)) {
-+			case 0:
-+				list_move(&cursor_page->lru, dst);
-+				nr_taken++;
-+				break;
++extern const struct utrace_regset_view utrace_avr32_native_view;
 +
-+			case -EBUSY:
-+				/* else it is being freed elsewhere */
-+				list_move(&cursor_page->lru, src);
-+			default:
-+				break;
-+			}
-+		}
- 	}
- 
- 	*scanned = scan;
-@@ -680,8 +767,8 @@ static unsigned long shrink_inactive_lis
- 		unsigned long nr_freed;
- 
- 		nr_taken = isolate_lru_pages(sc->swap_cluster_max,
--					     &zone->inactive_list,
--					     &page_list, &nr_scan);
-+				     &zone->inactive_list,
-+				     &page_list, &nr_scan, sc->order, 0);
- 		__mod_zone_page_state(zone, NR_INACTIVE, -nr_taken);
- 		zone->pages_scanned += nr_scan;
- 		spin_unlock_irq(&zone->lru_lock);
-@@ -827,7 +914,7 @@ force_reclaim_mapped:
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
- 	pgmoved = isolate_lru_pages(nr_pages, &zone->active_list,
--				    &l_hold, &pgscanned);
-+				    &l_hold, &pgscanned, sc->order, 1);
- 	zone->pages_scanned += pgscanned;
- 	__mod_zone_page_state(zone, NR_ACTIVE, -pgmoved);
- 	spin_unlock_irq(&zone->lru_lock);
-@@ -1022,7 +1109,7 @@ static unsigned long shrink_zones(int pr
-  * holds filesystem locks which prevent writeout this might not work, and the
-  * allocation attempt will fail.
-  */
--unsigned long try_to_free_pages(struct zone **zones, gfp_t gfp_mask)
-+unsigned long try_to_free_pages(struct zone **zones, int order, gfp_t gfp_mask)
- {
- 	int priority;
- 	int ret = 0;
-@@ -1037,6 +1124,7 @@ unsigned long try_to_free_pages(struct z
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
- 		.may_swap = 1,
- 		.swappiness = vm_swappiness,
-+		.order = order,
- 	};
- 
- 	count_vm_event(ALLOCSTALL);
++static inline const struct utrace_regset_view *
++utrace_native_view(struct task_struct *tsk)
++{
++	return &utrace_avr32_native_view;
++}
++
++#endif /* _ASM_AVR32_TRACEHOOK_H */
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
-pci-device-ensure-sysdata-initialised-v2.patch
-move-free-pages-between-lists-on-steal-fix.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-lumpy-reclaim-v4.patch
-lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
-lumpy-only-count-taken-pages-as-scanned.patch
+origin.patch
+gpio_direction_output-needs-an-initial-value.patch
+git-avr32.patch
+avr32-implement-utrace-support.patch
