@@ -1,59 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + i386-fix-typo-in-sync_constant_test_bits-name.patch added to -mm tree
-Date: Fri, 16 Mar 2007 12:50:57 -0800
-Message-ID: <200703162050.l2GKovPe021281@shell0.pdx.osdl.net>
+Subject: - swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update.patch removed from -mm tree
+Date: Fri, 16 Mar 2007 13:34:31 -0800
+Message-ID: <200703162134.l2GLYWOB022208@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35450 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36898 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753673AbXCPUvv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 16:51:51 -0400
+	id S1753294AbXCPVet (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 17:34:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, chrisw@sous-sol.org, jeremy@xensource.com, mingo@elte.hu
+To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: fix typo in sync_constant_test_bit()'s name
-has been added to the -mm tree.  Its filename is
-     i386-fix-typo-in-sync_constant_test_bits-name.patch
+     swsusp-disable-nonboot-cpus-before-entering-platform-suspend update
+has been removed from the -mm tree.  Its filename was
+     swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into swsusp-disable-nonboot-cpus-before-entering-platform-suspend.patch
 
 ------------------------------------------------------
-Subject: i386: fix typo in sync_constant_test_bit()'s name
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: swsusp-disable-nonboot-cpus-before-entering-platform-suspend update
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Fix typo in sync_constant_test_bit()'s name, so sync_bitops.h is consistent
-with bitops.h
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/sync_bitops.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/power/disk.c |    2 +-
+ kernel/power/user.c |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-i386/sync_bitops.h~i386-fix-typo-in-sync_constant_test_bits-name include/asm-i386/sync_bitops.h
---- a/include/asm-i386/sync_bitops.h~i386-fix-typo-in-sync_constant_test_bits-name
-+++ a/include/asm-i386/sync_bitops.h
-@@ -130,7 +130,7 @@ static inline int sync_test_and_change_b
- 	return oldbit;
- }
+diff -puN kernel/power/disk.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update kernel/power/disk.c
+--- a/kernel/power/disk.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update
++++ a/kernel/power/disk.c
+@@ -58,10 +58,10 @@ static inline int platform_prepare(void)
  
--static __always_inline int sync_const_test_bit(int nr, const volatile unsigned long *addr)
-+static __always_inline int sync_constant_test_bit(int nr, const volatile unsigned long *addr)
+ static void power_down(suspend_disk_method_t mode)
  {
- 	return ((1UL << (nr & 31)) &
- 		(((const volatile unsigned int *)addr)[nr >> 5])) != 0;
++	disable_nonboot_cpus();
+ 	switch(mode) {
+ 	case PM_DISK_PLATFORM:
+ 		if (pm_ops && pm_ops->enter) {
+-			disable_nonboot_cpus();
+ 			kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+ 			pm_ops->enter(PM_SUSPEND_DISK);
+ 			break;
+diff -puN kernel/power/user.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update kernel/power/user.c
+--- a/kernel/power/user.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update
++++ a/kernel/power/user.c
+@@ -401,6 +401,7 @@ static int snapshot_ioctl(struct inode *
+ 				disable_nonboot_cpus();
+ 				kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+ 				error = pm_ops->enter(PM_SUSPEND_DISK);
++				enable_nonboot_cpus();
+ 			}
+ 			break;
+ 
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-i386-fix-typo-in-sync_constant_test_bits-name.patch
+swsusp-fix-resume-error-path-in-platform-mode.patch
+swsusp-disable-nonboot-cpus-before-entering-platform-suspend.patch
+swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update.patch
+software-suspend-fix-suspend-when-console-is-in.patch
+software-suspend-fix-suspend-when-console-is-in-tidy.patch
