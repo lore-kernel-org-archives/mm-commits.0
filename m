@@ -1,70 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update.patch removed from -mm tree
-Date: Fri, 16 Mar 2007 13:34:31 -0800
-Message-ID: <200703162134.l2GLYWOB022208@shell0.pdx.osdl.net>
+Subject: - software-suspend-fix-suspend-when-console-is-in-tidy.patch removed from -mm tree
+Date: Fri, 16 Mar 2007 13:35:11 -0800
+Message-ID: <200703162135.l2GLZBVs022216@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36898 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36921 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753294AbXCPVet (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 17:34:49 -0400
+	id S1753294AbXCPVf2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 17:35:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@pol.net, ajohnson@intrinsyc.com, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swsusp-disable-nonboot-cpus-before-entering-platform-suspend update
+     software-suspend-fix-suspend-when-console-is-in-tidy
 has been removed from the -mm tree.  Its filename was
-     swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update.patch
+     software-suspend-fix-suspend-when-console-is-in-tidy.patch
 
-This patch was dropped because it was folded into swsusp-disable-nonboot-cpus-before-entering-platform-suspend.patch
+This patch was dropped because it was folded into software-suspend-fix-suspend-when-console-is-in.patch
 
 ------------------------------------------------------
-Subject: swsusp-disable-nonboot-cpus-before-entering-platform-suspend update
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: software-suspend-fix-suspend-when-console-is-in-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+tsk.
+
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andrew Johnson <ajohnson@intrinsyc.com>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/disk.c |    2 +-
- kernel/power/user.c |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/char/vt.c       |    2 --
+ include/linux/vt_kern.h |    1 +
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/power/disk.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update kernel/power/disk.c
---- a/kernel/power/disk.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update
-+++ a/kernel/power/disk.c
-@@ -58,10 +58,10 @@ static inline int platform_prepare(void)
+diff -puN drivers/char/vt.c~software-suspend-fix-suspend-when-console-is-in-tidy drivers/char/vt.c
+--- a/drivers/char/vt.c~software-suspend-fix-suspend-when-console-is-in-tidy
++++ a/drivers/char/vt.c
+@@ -2185,8 +2185,6 @@ static void console_callback(struct work
+ 	release_console_sem();
+ }
  
- static void power_down(suspend_disk_method_t mode)
+-extern char vt_dont_switch;
+-
+ int set_console(int nr)
  {
-+	disable_nonboot_cpus();
- 	switch(mode) {
- 	case PM_DISK_PLATFORM:
- 		if (pm_ops && pm_ops->enter) {
--			disable_nonboot_cpus();
- 			kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
- 			pm_ops->enter(PM_SUSPEND_DISK);
- 			break;
-diff -puN kernel/power/user.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update kernel/power/user.c
---- a/kernel/power/user.c~swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update
-+++ a/kernel/power/user.c
-@@ -401,6 +401,7 @@ static int snapshot_ioctl(struct inode *
- 				disable_nonboot_cpus();
- 				kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
- 				error = pm_ops->enter(PM_SUSPEND_DISK);
-+				enable_nonboot_cpus();
- 			}
- 			break;
+ 	struct vc_data *vc = vc_cons[fg_console].d;
+diff -puN include/linux/vt_kern.h~software-suspend-fix-suspend-when-console-is-in-tidy include/linux/vt_kern.h
+--- a/include/linux/vt_kern.h~software-suspend-fix-suspend-when-console-is-in-tidy
++++ a/include/linux/vt_kern.h
+@@ -83,6 +83,7 @@ void reset_vc(struct vc_data *vc);
+ #define CON_BUF_SIZE (CONFIG_BASE_SMALL ? 256 : PAGE_SIZE)
+ extern char con_buf[CON_BUF_SIZE];
+ extern struct semaphore con_buf_sem;
++extern char vt_dont_switch;
  
+ struct vt_spawn_console {
+ 	spinlock_t lock;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-swsusp-fix-resume-error-path-in-platform-mode.patch
-swsusp-disable-nonboot-cpus-before-entering-platform-suspend.patch
-swsusp-disable-nonboot-cpus-before-entering-platform-suspend-update.patch
+ktime_set-fix-arg-type.patch
 software-suspend-fix-suspend-when-console-is-in.patch
 software-suspend-fix-suspend-when-console-is-in-tidy.patch
