@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + libata-dont-whine-if-prereset-returns-enoent.patch added to -mm tree
-Date: Thu, 15 Mar 2007 18:49:54 -0800
-Message-ID: <200703160249.l2G2nsbM000844@shell0.pdx.osdl.net>
+Subject: + futex-pi-state-locking-fix.patch added to -mm tree
+Date: Thu, 15 Mar 2007 18:52:00 -0800
+Message-ID: <200703160252.l2G2q0N6000896@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50561 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50654 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752430AbXCPCt4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2007 22:49:56 -0400
+	id S1752571AbXCPCxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 15 Mar 2007 22:53:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com
+Cc: mingo@elte.hu, cebbert@redhat.com, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     libata: don't whine if ->prereset() returns -ENOENT
+     futex: PI state locking fix
 has been added to the -mm tree.  Its filename is
-     libata-dont-whine-if-prereset-returns-enoent.patch
+     futex-pi-state-locking-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: don't whine if ->prereset() returns -ENOENT
-From: Tejun Heo <htejun@gmail.com>
+Subject: futex: PI state locking fix
+From: Ingo Molnar <mingo@elte.hu>
 
-->prereset() returns -ENOENT to tell libata that the port is empty and
-reset sequencing should be stopped.  This is not an error condition.
-Update ata_eh_reset() such that it sets device classes to ATA_DEV_NONE
-and return success in on -ENOENT.  This makes spurious error message
-go away.
+Testing of -rt by IBM uncovered a locking bug in wake_futex_pi(): the PI
+state needs to be locked before we access it.
 
-1.  I think these ports should be made dummy instead of returning
-   -ENOENT on prereset().  -ENOENT from prereset() was a hack to keep
-   ata_piix's behavior unchanged while converting it to new EH.  If no one
-   objcts, I'll convert similar usages to use dummy ports after new init
-   model and drop -ENOENT hack in #upstream.
-
-2.  -ENODEV sounds more appropriate.  Why have I used -ENOENT.  :-)
-
-Signed-off-by: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chuck Ebbert <cebbert@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-eh.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ kernel/futex.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/ata/libata-eh.c~libata-dont-whine-if-prereset-returns-enoent drivers/ata/libata-eh.c
---- a/drivers/ata/libata-eh.c~libata-dont-whine-if-prereset-returns-enoent
-+++ a/drivers/ata/libata-eh.c
-@@ -1648,8 +1648,14 @@ static int ata_eh_reset(struct ata_port 
- 		rc = prereset(ap, jiffies + ATA_EH_PRERESET_TIMEOUT);
- 		if (rc) {
- 			if (rc == -ENOENT) {
--				ata_port_printk(ap, KERN_DEBUG, "port disabled. ignoring.\n");
-+				ata_port_printk(ap, KERN_DEBUG,
-+						"port disabled. ignoring.\n");
- 				ap->eh_context.i.action &= ~ATA_EH_RESET_MASK;
-+
-+				for (i = 0; i < ATA_MAX_DEVICES; i++)
-+					classes[i] = ATA_DEV_NONE;
-+
-+				rc = 0;
- 			} else
- 				ata_port_printk(ap, KERN_ERR,
- 					"prereset failed (errno=%d)\n", rc);
+diff -puN kernel/futex.c~futex-pi-state-locking-fix kernel/futex.c
+--- a/kernel/futex.c~futex-pi-state-locking-fix
++++ a/kernel/futex.c
+@@ -565,6 +565,7 @@ static int wake_futex_pi(u32 __user *uad
+ 	if (!pi_state)
+ 		return -EINVAL;
+ 
++	spin_lock(&pi_state->pi_mutex.wait_lock);
+ 	new_owner = rt_mutex_next_owner(&pi_state->pi_mutex);
+ 
+ 	/*
+@@ -604,6 +605,7 @@ static int wake_futex_pi(u32 __user *uad
+ 	pi_state->owner = new_owner;
+ 	spin_unlock_irq(&new_owner->pi_lock);
+ 
++	spin_unlock(&pi_state->pi_mutex.wait_lock);
+ 	rt_mutex_unlock(&pi_state->pi_mutex);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-git-libata-all.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-libata-dont-whine-if-prereset-returns-enoent.patch
-introduce-config_has_dma.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+hrtimer-prevent-overrun-dos-in-hrtimer_forward.patch
+hrtimer-fixup-unlocked-access-to-wall_to_monotonic.patch
+futex-pi-state-locking-fix.patch
+paravirt-build-fixes.patch
+git-ieee1394.patch
+git-kvm.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+log-reason-why-tsc-was-marked-unstable.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+optimize-timespec_trunc.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+lists-add-list-splice-tail.patch
+sched-remove-sleepavg-from-proc.patch
+sched-remove-noninteractive-flag.patch
+sched-implement-180-bit-sched-bitmap.patch
+sched-dont-renice-kernel-threads.patch
+sched-implement-rsdl-cpu-scheduler.patch
+sched-implement-rsdl-cpu-scheduler-accounting-fixes.patch
+sched-document-rsdl-cpu-scheduler.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
