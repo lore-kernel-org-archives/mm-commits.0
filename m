@@ -1,69 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - software-suspend-fix-suspend-when-console-is-in-tidy.patch removed from -mm tree
-Date: Fri, 16 Mar 2007 13:35:11 -0800
-Message-ID: <200703162135.l2GLZBVs022216@shell0.pdx.osdl.net>
+Subject: + fix-ktime_sec_max-on-32-bit.patch added to -mm tree
+Date: Fri, 16 Mar 2007 13:57:32 -0800
+Message-ID: <200703162157.l2GLvWji022787@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36921 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37868 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753294AbXCPVf2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 17:35:28 -0400
+	id S965981AbXCPV5j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 17:57:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, ajohnson@intrinsyc.com, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tglx@linutronix.de, mingo@elte.hu
 
 
 The patch titled
-     software-suspend-fix-suspend-when-console-is-in-tidy
-has been removed from the -mm tree.  Its filename was
-     software-suspend-fix-suspend-when-console-is-in-tidy.patch
+     fix MTIME_SEC_MAX on 32-bit
+has been added to the -mm tree.  Its filename is
+     fix-ktime_sec_max-on-32-bit.patch
 
-This patch was dropped because it was folded into software-suspend-fix-suspend-when-console-is-in.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: software-suspend-fix-suspend-when-console-is-in-tidy
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix MTIME_SEC_MAX on 32-bit
+From: Thomas Gleixner <tglx@linutronix.de>
 
-tsk.
+The maximum seconds value we can handle on 32bit is LONG_MAX.
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Johnson <ajohnson@intrinsyc.com>
-Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c       |    2 --
- include/linux/vt_kern.h |    1 +
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/ktime.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/vt.c~software-suspend-fix-suspend-when-console-is-in-tidy drivers/char/vt.c
---- a/drivers/char/vt.c~software-suspend-fix-suspend-when-console-is-in-tidy
-+++ a/drivers/char/vt.c
-@@ -2185,8 +2185,6 @@ static void console_callback(struct work
- 	release_console_sem();
- }
+diff -puN include/linux/ktime.h~fix-ktime_sec_max-on-32-bit include/linux/ktime.h
+--- a/include/linux/ktime.h~fix-ktime_sec_max-on-32-bit
++++ a/include/linux/ktime.h
+@@ -57,7 +57,11 @@ typedef union {
+ } ktime_t;
  
--extern char vt_dont_switch;
--
- int set_console(int nr)
- {
- 	struct vc_data *vc = vc_cons[fg_console].d;
-diff -puN include/linux/vt_kern.h~software-suspend-fix-suspend-when-console-is-in-tidy include/linux/vt_kern.h
---- a/include/linux/vt_kern.h~software-suspend-fix-suspend-when-console-is-in-tidy
-+++ a/include/linux/vt_kern.h
-@@ -83,6 +83,7 @@ void reset_vc(struct vc_data *vc);
- #define CON_BUF_SIZE (CONFIG_BASE_SMALL ? 256 : PAGE_SIZE)
- extern char con_buf[CON_BUF_SIZE];
- extern struct semaphore con_buf_sem;
-+extern char vt_dont_switch;
+ #define KTIME_MAX			((s64)~((u64)1 << 63))
+-#define KTIME_SEC_MAX			(KTIME_MAX / NSEC_PER_SEC)
++#if (BITS_PER_LONG == 64)
++# define KTIME_SEC_MAX			(KTIME_MAX / NSEC_PER_SEC)
++#else
++# define KTIME_SEC_MAX			LONG_MAX
++#endif
  
- struct vt_spawn_console {
- 	spinlock_t lock;
+ /*
+  * ktime_t definitions when using the 64-bit scalar representation:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-ktime_set-fix-arg-type.patch
-software-suspend-fix-suspend-when-console-is-in.patch
-software-suspend-fix-suspend-when-console-is-in-tidy.patch
+hrtimer-prevent-overrun-dos-in-hrtimer_forward.patch
+hrtimer-fixup-unlocked-access-to-wall_to_monotonic.patch
+futex-pi-state-locking-fix.patch
+fix-ktime_sec_max-on-32-bit.patch
+make-config_paravirt-require-no_hz.patch
+paravirt-build-fixes.patch
+git-ieee1394.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
