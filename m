@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-cycladesh-for-x86_64-and-probably-others-fix.patch added to -mm tree
-Date: Fri, 16 Mar 2007 18:14:50 -0700
-Message-ID: <200703170116.l2H1GhVk026075@shell0.pdx.osdl.net>
+Subject: + proc-maps-protection-vs-utrace.patch added to -mm tree
+Date: Fri, 16 Mar 2007 18:20:31 -0700
+Message-ID: <200703170122.l2H1MOpk026162@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45979 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46133 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966012AbXCQBQq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 21:16:46 -0400
+	id S966012AbXCQBWs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 21:22:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, klaus.kudielka@gmx.net
+Cc: akpm@linux-foundation.org, arjan@infradead.org, kees@outflux.net, roland@redhat.com
 
 
 The patch titled
-     fix-cycladesh-for-x86_64-and-probably-others-fix
+     proc-maps-protection-vs-utrace
 has been added to the -mm tree.  Its filename is
-     fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+     proc-maps-protection-vs-utrace.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-cycladesh-for-x86_64-and-probably-others-fix
+Subject: proc-maps-protection-vs-utrace
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/char/cyclades.c: In function 'cyz_issue_cmd':
-drivers/char/cyclades.c:1549: warning: assignment from incompatible pointer type
+fs/proc/task_mmu.c: In function 'show_map_internal':
+fs/proc/task_mmu.c:145: warning: implicit declaration of function 'ptrace_may_attach'
 
-Cc: Klaus Kudielka <klaus.kudielka@gmx.net>
+Cc: Kees Cook <kees@outflux.net>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/cyclades.h~fix-cycladesh-for-x86_64-and-probably-others-fix include/linux/cyclades.h
-diff -puN drivers/char/cyclades.c~fix-cycladesh-for-x86_64-and-probably-others-fix drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~fix-cycladesh-for-x86_64-and-probably-others-fix
-+++ a/drivers/char/cyclades.c
-@@ -1533,7 +1533,7 @@ cyz_issue_cmd(struct cyclades_card *cinf
- 	struct FIRM_ID __iomem *firm_id;
- 	struct ZFW_CTRL __iomem *zfw_ctrl;
- 	struct BOARD_CTRL __iomem *board_ctrl;
--	unsigned long __iomem *pci_doorbell;
-+	uclong __iomem *pci_doorbell;
- 	int index;
- 
- 	firm_id = cinfo->base_addr + ID_ADDRESS;
+diff -puN fs/proc/task_mmu.c~proc-maps-protection-vs-utrace fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-maps-protection-vs-utrace
++++ a/fs/proc/task_mmu.c
+@@ -2,6 +2,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/mount.h>
+ #include <linux/seq_file.h>
++#include <linux/ptrace.h>
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
+ #include <linux/mempolicy.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,3 +113,4 @@ local_t-powerpc-extension.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 fbdev-hecuba-framebuffer-driver.patch
 mm-only-free-swap-space-of-reactivated-pages-debug.patch
+proc-maps-protection-vs-utrace.patch
