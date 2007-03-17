@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_pdc2027x-restore-various-updates-done-on-the-driver.patch added to -mm tree
-Date: Fri, 16 Mar 2007 17:45:14 -0700
-Message-ID: <200703170047.l2H0l725025683@shell0.pdx.osdl.net>
+Subject: - pata_pdc2027x-restore-various-updates-done-on-the-driver.patch removed from -mm tree
+Date: Fri, 16 Mar 2007 17:47:53 -0700
+Message-ID: <200703170049.l2H0nkGL025720@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45041 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45148 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992477AbXCQArQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 20:47:16 -0400
+	id S2992472AbXCQAtz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 20:49:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: alan@redhat.com
+To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      pata_pdc2027x: restore various updates done on the driver
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      pata_pdc2027x-restore-various-updates-done-on-the-driver.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: pata_pdc2027x: restore various updates done on the driver
