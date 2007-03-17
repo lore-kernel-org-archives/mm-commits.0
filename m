@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-maps-protection-fix-2.patch added to -mm tree
-Date: Fri, 16 Mar 2007 18:26:20 -0700
-Message-ID: <200703170128.l2H1SDe8026228@shell0.pdx.osdl.net>
+Subject: + git-hid-fix.patch added to -mm tree
+Date: Fri, 16 Mar 2007 18:36:00 -0700
+Message-ID: <200703170137.l2H1brBK026366@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46234 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46412 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966011AbXCQB21 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 21:28:27 -0400
+	id S933059AbXCQBiA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 21:38:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@infradead.org, kees@outflux.net
+Cc: akpm@linux-foundation.org, jkosina@suse.cz
 
 
 The patch titled
-     proc-maps-protection-fix-2
+     git-hid-fix
 has been added to the -mm tree.  Its filename is
-     proc-maps-protection-fix-2.patch
+     git-hid-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proc-maps-protection-fix-2
+Subject: git-hid-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/base.c:127: warning: data definition has no type or storage class
-fs/proc/base.c:127: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL'
-fs/proc/base.c:127: warning: parameter names (without types) in function declaration
+drivers/hid/usbhid/hid-core.c:906: error: redefinition of 'hid_set_idle'
+drivers/hid/usbhid/hid-core.c:597: error: previous definition of 'hid_set_idle' was here
 
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Kees Cook <kees@outflux.net>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/hid/usbhid/hid-core.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN fs/proc/base.c~proc-maps-protection-fix-2 fs/proc/base.c
---- a/fs/proc/base.c~proc-maps-protection-fix-2
-+++ a/fs/proc/base.c
-@@ -64,6 +64,7 @@
- #include <linux/smp_lock.h>
- #include <linux/rcupdate.h>
- #include <linux/kallsyms.h>
-+#include <linux/module.h>
- #include <linux/mount.h>
- #include <linux/security.h>
- #include <linux/ptrace.h>
+diff -puN drivers/hid/usbhid/hid-core.c~git-hid-fix drivers/hid/usbhid/hid-core.c
+--- a/drivers/hid/usbhid/hid-core.c~git-hid-fix
++++ a/drivers/hid/usbhid/hid-core.c
+@@ -593,13 +593,6 @@ static int usbhid_output_raw_report(stru
+ 	return ret;
+ }
+ 
+-static int hid_set_idle(struct usb_device *dev, int ifnum, int report, int idle)
+-{
+-	return usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
+-		HID_REQ_SET_IDLE, USB_TYPE_CLASS | USB_RECIP_INTERFACE, (idle << 8) | report,
+-		ifnum, NULL, 0, USB_CTRL_SET_TIMEOUT);
+-}
+-
+ /*
+  * Input interrupt completion handler.
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,6 +67,7 @@ git-acpi.patch
 git-alsa.patch
 git-drm.patch
 git-dvb.patch
+git-hid-fix.patch
 git-ieee1394.patch
 git-input.patch
 git-kvm.patch
