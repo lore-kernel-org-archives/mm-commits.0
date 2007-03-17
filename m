@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-md-accel-fix.patch added to -mm tree
-Date: Fri, 16 Mar 2007 18:01:58 -0700
-Message-ID: <200703170103.l2H13pY5025907@shell0.pdx.osdl.net>
+Subject: + machzwd-warning-fix.patch added to -mm tree
+Date: Fri, 16 Mar 2007 18:04:14 -0700
+Message-ID: <200703170106.l2H167GV025917@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45498 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45610 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753309AbXCQBDx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 21:03:53 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l2H13pcD012873
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 16 Mar 2007 18:03:51 -0700
+	id S1753314AbXCQBGN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 21:06:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, wim@iguana.be
 
 
 The patch titled
-     git-md-accel-fix
+     machzwd warning fix
 has been added to the -mm tree.  Its filename is
-     git-md-accel-fix.patch
+     machzwd-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,30 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-md-accel-fix
+Subject: machzwd warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/char/watchdog/machzwd.c: In function 'zf_ioctl':
+drivers/char/watchdog/machzwd.c:327: warning: passing argument 1 of 'zf_ping' makes integer from pointer without a cast
+
+Also some coding-style repairs.
+
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmaengine.c |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/char/watchdog/machzwd.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/dma/dmaengine.c~git-md-accel-fix drivers/dma/dmaengine.c
---- a/drivers/dma/dmaengine.c~git-md-accel-fix
-+++ a/drivers/dma/dmaengine.c
-@@ -583,11 +583,6 @@ subsys_initcall(dma_bus_init);
- EXPORT_SYMBOL(dma_async_client_register);
- EXPORT_SYMBOL(dma_async_client_unregister);
- EXPORT_SYMBOL(dma_async_client_chan_request);
--EXPORT_SYMBOL(dma_async_memcpy_buf_to_buf);
--EXPORT_SYMBOL(dma_async_memcpy_buf_to_pg);
--EXPORT_SYMBOL(dma_async_memcpy_pg_to_pg);
--EXPORT_SYMBOL(dma_async_memcpy_complete);
--EXPORT_SYMBOL(dma_async_memcpy_issue_pending);
- EXPORT_SYMBOL(dma_async_device_register);
- EXPORT_SYMBOL(dma_async_device_unregister);
- EXPORT_SYMBOL(dma_chan_cleanup);
+diff -puN drivers/char/watchdog/machzwd.c~machzwd-warning-fix drivers/char/watchdog/machzwd.c
+--- a/drivers/char/watchdog/machzwd.c~machzwd-warning-fix
++++ a/drivers/char/watchdog/machzwd.c
+@@ -314,21 +314,21 @@ static int zf_ioctl(struct inode *inode,
+ {
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+-	switch(cmd){
+-		case WDIOC_GETSUPPORT:
+-			if (copy_to_user(argp, &zf_info, sizeof(zf_info)))
+-				return -EFAULT;
+-			break;
+-
+-		case WDIOC_GETSTATUS:
+-			return put_user(0, p);
+-
+-		case WDIOC_KEEPALIVE:
+-			zf_ping(NULL);
+-			break;
++	switch (cmd) {
++	case WDIOC_GETSUPPORT:
++		if (copy_to_user(argp, &zf_info, sizeof(zf_info)))
++			return -EFAULT;
++		break;
++
++	case WDIOC_GETSTATUS:
++		return put_user(0, p);
++
++	case WDIOC_KEEPALIVE:
++		zf_ping(0);
++		break;
+ 
+-		default:
+-			return -ENOTTY;
++	default:
++		return -ENOTTY;
+ 	}
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,3 +139,4 @@ local_t-powerpc-extension.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 fbdev-hecuba-framebuffer-driver.patch
 mm-only-free-swap-space-of-reactivated-pages-debug.patch
+machzwd-warning-fix.patch
