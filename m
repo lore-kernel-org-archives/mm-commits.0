@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + machzwd-warning-fix.patch added to -mm tree
-Date: Fri, 16 Mar 2007 18:04:14 -0700
-Message-ID: <200703170106.l2H167GV025917@shell0.pdx.osdl.net>
+Subject: + fix-cycladesh-for-x86_64-and-probably-others-fix.patch added to -mm tree
+Date: Fri, 16 Mar 2007 18:14:50 -0700
+Message-ID: <200703170116.l2H1GhVk026075@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45610 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45979 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753314AbXCQBGN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 21:06:13 -0400
+	id S966012AbXCQBQq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 21:16:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, wim@iguana.be
+Cc: akpm@linux-foundation.org, klaus.kudielka@gmx.net
 
 
 The patch titled
-     machzwd warning fix
+     fix-cycladesh-for-x86_64-and-probably-others-fix
 has been added to the -mm tree.  Its filename is
-     machzwd-warning-fix.patch
+     fix-cycladesh-for-x86_64-and-probably-others-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: machzwd warning fix
+Subject: fix-cycladesh-for-x86_64-and-probably-others-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/char/watchdog/machzwd.c: In function 'zf_ioctl':
-drivers/char/watchdog/machzwd.c:327: warning: passing argument 1 of 'zf_ping' makes integer from pointer without a cast
+drivers/char/cyclades.c: In function 'cyz_issue_cmd':
+drivers/char/cyclades.c:1549: warning: assignment from incompatible pointer type
 
-Also some coding-style repairs.
-
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Klaus Kudielka <klaus.kudielka@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/watchdog/machzwd.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ drivers/char/cyclades.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/watchdog/machzwd.c~machzwd-warning-fix drivers/char/watchdog/machzwd.c
---- a/drivers/char/watchdog/machzwd.c~machzwd-warning-fix
-+++ a/drivers/char/watchdog/machzwd.c
-@@ -314,21 +314,21 @@ static int zf_ioctl(struct inode *inode,
- {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
--	switch(cmd){
--		case WDIOC_GETSUPPORT:
--			if (copy_to_user(argp, &zf_info, sizeof(zf_info)))
--				return -EFAULT;
--			break;
--
--		case WDIOC_GETSTATUS:
--			return put_user(0, p);
--
--		case WDIOC_KEEPALIVE:
--			zf_ping(NULL);
--			break;
-+	switch (cmd) {
-+	case WDIOC_GETSUPPORT:
-+		if (copy_to_user(argp, &zf_info, sizeof(zf_info)))
-+			return -EFAULT;
-+		break;
-+
-+	case WDIOC_GETSTATUS:
-+		return put_user(0, p);
-+
-+	case WDIOC_KEEPALIVE:
-+		zf_ping(0);
-+		break;
+diff -puN include/linux/cyclades.h~fix-cycladesh-for-x86_64-and-probably-others-fix include/linux/cyclades.h
+diff -puN drivers/char/cyclades.c~fix-cycladesh-for-x86_64-and-probably-others-fix drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~fix-cycladesh-for-x86_64-and-probably-others-fix
++++ a/drivers/char/cyclades.c
+@@ -1533,7 +1533,7 @@ cyz_issue_cmd(struct cyclades_card *cinf
+ 	struct FIRM_ID __iomem *firm_id;
+ 	struct ZFW_CTRL __iomem *zfw_ctrl;
+ 	struct BOARD_CTRL __iomem *board_ctrl;
+-	unsigned long __iomem *pci_doorbell;
++	uclong __iomem *pci_doorbell;
+ 	int index;
  
--		default:
--			return -ENOTTY;
-+	default:
-+		return -ENOTTY;
- 	}
- 
- 	return 0;
+ 	firm_id = cinfo->base_addr + ID_ADDRESS;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 software-suspend-fix-suspend-when-console-is-in.patch
+machzwd-warning-fix.patch
 slab-introduce-krealloc-fix.patch
 make-aout-executables-work-again-fix.patch
 git-acpi.patch
@@ -126,6 +99,7 @@ add-an-anonymous-inode-source-tidy.patch
 virtual_eisa_root_init-should-be-__init.patch
 proc-maps-protection-fix.patch
 proc-maps-protection-tidy.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
 rtc-add-rtc-rs5c313-driver-tidy.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
@@ -139,4 +113,3 @@ local_t-powerpc-extension.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 fbdev-hecuba-framebuffer-driver.patch
 mm-only-free-swap-space-of-reactivated-pages-debug.patch
-machzwd-warning-fix.patch
