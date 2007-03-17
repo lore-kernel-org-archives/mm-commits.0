@@ -1,267 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: + cleanpatch-a-script-to-clean-up-stealth-whitespace-added-by-a-patch.patch added to -mm tree
-Date: Fri, 16 Mar 2007 13:58:23 -0800
-Message-ID: <200703162158.l2GLwN8R022793@shell0.pdx.osdl.net>
+Subject: - paravirt-build-fixes.patch removed from -mm tree
+Date: Fri, 16 Mar 2007 17:17:26 -0700
+Message-ID: <200703170019.l2H0JLGN025163@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37907 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43786 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965976AbXCPV6Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 17:58:25 -0400
+	id S932069AbXCQATe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 20:19:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hpa@zytor.com
+To: zach@vmware.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cleanpatch: a script to clean up stealth whitespace added by a patch
-has been added to the -mm tree.  Its filename is
-     cleanpatch-a-script-to-clean-up-stealth-whitespace-added-by-a-patch.patch
+     paravirt build fixes
+has been removed from the -mm tree.  Its filename was
+     paravirt-build-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: cleanpatch: a script to clean up stealth whitespace added by a patch
-From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: paravirt build fixes
+From: Zachary Amsden <zach@vmware.com>
 
-This script is a companion to the "cleanfile" script.  This cleans up a
-patch in unified diff format *before* it is applied.  Note that the empty
-lines at the end of file detection *requires* that the diff was taken with
-at least one line of context around each hunk, or bad things will happen.
+Ingo Molnar dropped support for NO_IDLE_HZ, which both VMI and the unmerged
+Xen code depended on under config option PARAVIRT.  This broke the VMI
+compile.  Since NO_IDLE_HZ is obsolete, and all paravirt guests will need
+idle HZ timer support, make PARAVIRT select NO_HZ and drop NO_IDLE_HZ
+specifics from the VMI backend that caused it to fail to compile.
 
-This script cleans up various classes of stealth whitespace.  In
-particular, it cleans up:
+Also, export next_timer_interrupt() in both NO_IDLE_HZ and NO_HZ builds,
+as it is needed in both.
 
-- Whitespace (spaces or tabs)before newline;
-- DOS line endings (CR before LF);
-- Space before tab (spaces are deleted or converted to tabs);
-- Empty lines at end of file.
-
-Signed-off-by: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Zachary Amsden <zach@vmware.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/cleanpatch |  206 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 206 insertions(+)
+ arch/i386/Kconfig           |    1 +
+ arch/i386/kernel/vmitime.c  |   10 ----------
+ include/asm-i386/vmi_time.h |   10 ----------
+ kernel/timer.c              |    2 +-
+ 4 files changed, 2 insertions(+), 21 deletions(-)
 
-diff -puN /dev/null scripts/cleanpatch
---- /dev/null
-+++ a/scripts/cleanpatch
-@@ -0,0 +1,206 @@
-+#!/usr/bin/perl -w
-+#
-+# Clean a patch file -- or directory of patch files -- of stealth whitespace.
-+# WARNING: this can be a highly destructive operation.  Use with caution.
-+#
-+
-+use bytes;
-+use File::Basename;
-+
-+#
-+# Clean up space-tab sequences, either by removing spaces or
-+# replacing them with tabs.
-+sub clean_space_tabs($)
-+{
-+    no bytes;			# Tab alignment depends on characters
-+
-+    my($li) = @_;
-+    my($lo) = '';
-+    my $pos = 0;
-+    my $nsp = 0;
-+    my($i, $c);
-+
-+    for ($i = 0; $i < length($li); $i++) {
-+	$c = substr($li, $i, 1);
-+	if ($c eq "\t") {
-+	    my $npos = ($pos+$nsp+8) & ~7;
-+	    my $ntab = ($npos >> 3) - ($pos >> 3);
-+	    $lo .= "\t" x $ntab;
-+	    $pos = $npos;
-+	    $nsp = 0;
-+	} elsif ($c eq "\n" || $c eq "\r") {
-+	    $lo .= " " x $nsp;
-+	    $pos += $nsp;
-+	    $nsp = 0;
-+	    $lo .= $c;
-+	    $pos = 0;
-+	} elsif ($c eq " ") {
-+	    $nsp++;
-+	} else {
-+	    $lo .= " " x $nsp;
-+	    $pos += $nsp;
-+	    $nsp = 0;
-+	    $lo .= $c;
-+	    $pos++;
-+	}
-+    }
-+    $lo .= " " x $nsp;
-+    return $lo;
-+}
-+
-+$name = basename($0);
-+
-+foreach $f ( @ARGV ) {
-+    print STDERR "$name: $f\n";
-+
-+    if (! -f $f) {
-+	print STDERR "$f: not a file\n";
-+	next;
-+    }
-+
-+    if (!open(FILE, '+<', $f)) {
-+	print STDERR "$name: Cannot open file: $f: $!\n";
-+	next;
-+    }
-+
-+    binmode FILE;
-+
-+    # First, verify that it is not a binary file; consider any file
-+    # with a zero byte to be a binary file.  Is there any better, or
-+    # additional, heuristic that should be applied?
-+    $is_binary = 0;
-+
-+    while (read(FILE, $data, 65536) > 0) {
-+	if ($data =~ /\0/) {
-+	    $is_binary = 1;
-+	    last;
-+	}
-+    }
-+
-+    if ($is_binary) {
-+	print STDERR "$name: $f: binary file\n";
-+	next;
-+    }
-+
-+    seek(FILE, 0, 0);
-+
-+    $in_bytes = 0;
-+    $out_bytes = 0;
-+
-+    @lines  = ();
-+
-+    $in_hunk = 0;
-+    $err = 0;
-+
-+    while ( defined($line = <FILE>) ) {
-+	$in_bytes += length($line);
-+
-+	if (!$in_hunk) {
-+	    if ($line =~ /^\@\@\s+\-([0-9]+),([0-9]+)\s+\+([0-9]+),([0-9]+)\s\@\@/) {
-+		$minus_lines = $2;
-+		$plus_lines = $4;
-+		if ($minus_lines || $plus_lines) {
-+		    $in_hunk = 1;
-+		    @hunk_lines = ($line);
-+		}
-+	    } else {
-+		push(@lines, $line);
-+		$out_bytes += length($line);
-+	    }
-+	} else {
-+	    # We're in a hunk
-+
-+	    if ($line =~ /^\+/) {
-+		$plus_lines--;
-+
-+		$text = substr($line, 1);
-+		$text =~ s/[ \t\r]*$//;		# Remove trailing spaces
-+		$text = clean_space_tabs($text);
-+
-+		push(@hunk_lines, '+'.$text);
-+	    } elsif ($line =~ /^\-/) {
-+		$minus_lines--;
-+		push(@hunk_lines, $line);
-+	    } elsif ($line =~ /^ /) {
-+		$plus_lines--;
-+		$minus_lines--;
-+		push(@hunk_lines, $line);
-+	    } else {
-+		print STDERR "$name: $f: malformed patch\n";
-+		$err = 1;
-+		last;
-+	    }
-+
-+	    if ($plus_lines < 0 || $minus_lines < 0) {
-+		print STDERR "$name: $f: malformed patch\n";
-+		$err = 1;
-+		last;
-+	    } elsif ($plus_lines == 0 && $minus_lines == 0) {
-+		# End of a hunk.  Process this hunk.
-+		my $i;
-+		my $l;
-+		my @h = ();
-+		my $adj = 0;
-+		my $done = 0;
-+
-+		for ($i = scalar(@hunk_lines)-1; $i > 0; $i--) {
-+		    $l = $hunk_lines[$i];
-+		    if (!$done && $l eq "+\n") {
-+			$adj++; # Skip this line
-+		    } elsif ($l =~ /^[ +]/) {
-+			$done = 1;
-+			unshift(@h, $l);
-+		    } else {
-+			unshift(@h, $l);
-+		    }
-+		}
-+
-+		$l = $hunk_lines[0];  # Hunk header
-+		undef @hunk_lines;    # Free memory
-+
-+		if ($adj) {
-+		    die unless
-+			($l =~ /^\@\@\s+\-([0-9]+),([0-9]+)\s+\+([0-9]+),([0-9]+)\s\@\@(.*)$/);
-+		    my $mstart = $1;
-+		    my $mlin = $2;
-+		    my $pstart = $3;
-+		    my $plin = $4;
-+		    my $tail = $5; # doesn't include the final newline
-+
-+		    $l = sprintf("@@ -%d,%d +%d,%d @@%s\n",
-+				 $mstart, $mlin, $pstart, $plin-$adj,
-+				 $tail);
-+		}
-+		unshift(@h, $l);
-+
-+		# Transfer to the output array
-+		foreach $l (@h) {
-+		    $out_bytes += length($l);
-+		    push(@lines, $l);
-+		}
-+
-+		$in_hunk = 0;
-+	    }
-+	}
-+    }
-+
-+    if ($in_hunk) {
-+	print STDERR "$name: $f: malformed patch\n";
-+	$err = 1;
-+    }
-+
-+    if (!$err) {
-+	if ($in_bytes != $out_bytes) {
-+	    # Only write to the file if changed
-+	    seek(FILE, 0, 0);
-+	    print FILE @lines;
-+
-+	    if ( !defined($where = tell(FILE)) ||
-+		 !truncate(FILE, $where) ) {
-+		die "$name: Failed to truncate modified file: $f: $!\n";
-+	    }
-+	}
-+    }
-+
-+    close(FILE);
-+}
+diff -puN arch/i386/Kconfig~paravirt-build-fixes arch/i386/Kconfig
+--- a/arch/i386/Kconfig~paravirt-build-fixes
++++ a/arch/i386/Kconfig
+@@ -210,6 +210,7 @@ config PARAVIRT
+ 	bool "Paravirtualization support (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+ 	depends on !(X86_VISWS || X86_VOYAGER)
++	select NO_HZ
+ 	help
+ 	  Paravirtualization is a way of running multiple instances of
+ 	  Linux on the same machine, under a hypervisor.  This option
+diff -puN arch/i386/kernel/vmitime.c~paravirt-build-fixes arch/i386/kernel/vmitime.c
+--- a/arch/i386/kernel/vmitime.c~paravirt-build-fixes
++++ a/arch/i386/kernel/vmitime.c
+@@ -59,8 +59,6 @@
+ /* Cached VMI operations */
+ struct vmi_timer_ops vmi_timer_ops;
+ 
+-#ifdef CONFIG_NO_IDLE_HZ
+-
+ /* /proc/sys/kernel/hz_timer state. */
+ int sysctl_hz_timer;
+ 
+@@ -69,8 +67,6 @@ static DEFINE_PER_CPU(unsigned long, vmi
+ static DEFINE_PER_CPU(unsigned long, vmi_idle_no_hz_jiffies);
+ static DEFINE_PER_CPU(unsigned long, idle_start_jiffies);
+ 
+-#endif /* CONFIG_NO_IDLE_HZ */
+-
+ /* Number of alarms per second. By default this is CONFIG_VMI_ALARM_HZ. */
+ static int alarm_hz = CONFIG_VMI_ALARM_HZ;
+ 
+@@ -298,7 +294,6 @@ static void vmi_account_process_times_cy
+ 	}
+ }
+ 
+-#ifdef CONFIG_NO_IDLE_HZ
+ /* Update per-cpu idle times.  Used when a no-hz halt is ended. */
+ static void vmi_account_no_hz_idle_cycles(int cpu,
+ 					  unsigned long long cur_process_times_cycles)
+@@ -317,7 +312,6 @@ static void vmi_account_no_hz_idle_cycle
+ 	/* Account time to the idle process. */
+ 	account_steal_time(idle_task(cpu), jiffies_to_cputime(no_idle_hz_jiffies));
+ }
+-#endif
+ 
+ /* Update per-cpu stolen time. */
+ static void vmi_account_stolen_cycles(int cpu,
+@@ -358,8 +352,6 @@ static void vmi_local_timer_interrupt(in
+ 	vmi_account_stolen_cycles(cpu, cur_real_cycles, cur_process_times_cycles);
+ }
+ 
+-#ifdef CONFIG_NO_IDLE_HZ
+-
+ /* Must be called only from idle loop, with interrupts disabled. */
+ int vmi_stop_hz_timer(void)
+ {
+@@ -436,8 +428,6 @@ void vmi_account_time_restart_hz_timer(v
+ 	vmi_reenable_hz_timer(cpu);
+ }
+ 
+-#endif /* CONFIG_NO_IDLE_HZ */
+-
+ /* UP (and no local-APIC) VMI-timer alarm interrupt handler.
+  * Handler for IRQ0. Not used when SMP or X86_LOCAL_APIC after
+  * APIC setup and setup_boot_vmi_alarm() is called.  */
+diff -puN include/asm-i386/vmi_time.h~paravirt-build-fixes include/asm-i386/vmi_time.h
+--- a/include/asm-i386/vmi_time.h~paravirt-build-fixes
++++ a/include/asm-i386/vmi_time.h
+@@ -58,18 +58,8 @@ extern void __init vmi_timer_setup_secon
+ extern void apic_vmi_timer_interrupt(void);
+ #endif
+ 
+-#ifdef CONFIG_NO_IDLE_HZ
+ extern int vmi_stop_hz_timer(void);
+ extern void vmi_account_time_restart_hz_timer(void);
+-#else
+-static inline int vmi_stop_hz_timer(void)
+-{
+-	return 0;
+-}
+-static inline void vmi_account_time_restart_hz_timer(void)
+-{
+-}
+-#endif
+ 
+ /*
+  * When run under a hypervisor, a vcpu is always in one of three states:
+diff -puN kernel/timer.c~paravirt-build-fixes kernel/timer.c
+--- a/kernel/timer.c~paravirt-build-fixes
++++ a/kernel/timer.c
+@@ -728,7 +728,7 @@ unsigned long get_next_timer_interrupt(u
+ 	return cmp_next_hrtimer_event(now, expires);
+ }
+ 
+-#ifdef CONFIG_NO_IDLE_HZ
++#if defined(CONFIG_NO_IDLE_HZ) || defined(CONFIG_NO_HZ)
+ unsigned long next_timer_interrupt(void)
+ {
+ 	return get_next_timer_interrupt(jiffies);
 _
 
-Patches currently in -mm which might be from hpa@zytor.com are
+Patches currently in -mm which might be from zach@vmware.com are
 
-cleanfile-a-script-to-clean-up-stealth-whitespace.patch
-cleanpatch-a-script-to-clean-up-stealth-whitespace-added-by-a-patch.patch
-devpts-add-fsnotify-create-event.patch
+paravirt-build-fixes.patch
+make-config_paravirt-require-no_hz.patch
+make-struct-vmi_ops-static.patch
+make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
+replace-get_scheduled_cycles-with-sched_clock-paravirt_op.patch
