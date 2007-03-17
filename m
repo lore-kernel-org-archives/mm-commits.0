@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + utrace-printk-borkage.patch added to -mm tree
-Date: Fri, 16 Mar 2007 18:48:23 -0700
-Message-ID: <200703170150.l2H1oGwV026527@shell0.pdx.osdl.net>
+Subject: + git-drm-warning-fix.patch added to -mm tree
+Date: Fri, 16 Mar 2007 18:50:19 -0700
+Message-ID: <200703170152.l2H1qC5G026561@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46748 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46786 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753557AbXCQBuY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 21:50:24 -0400
+	id S933622AbXCQBwT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 21:52:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, roland@redhat.com
+Cc: akpm@linux-foundation.org, airlied@linux.ie
 
 
 The patch titled
-     utrace-printk-borkage
+     git-drm-warning-fix
 has been added to the -mm tree.  Its filename is
-     utrace-printk-borkage.patch
+     git-drm-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: utrace-printk-borkage
+Subject: git-drm-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/ptrace.c: In function 'ptrace_do_wait':
-kernel/ptrace.c:1134: warning: format '%d' expects type 'int', but argument 4 has type 'long int'
-kernel/ptrace.c:1134: warning: too few arguments for format
-kernel/ptrace.c:1148: warning: format '%lu' expects type 'long unsigned int', but argument 6 has type 'int'
+drivers/char/drm/drm_fops.c: In function 'drm_setup':
+drivers/char/drm/drm_fops.c:60: warning: comparison of distinct pointer types lacks a cast
 
-Cc: Roland McGrath <roland@redhat.com>
+Unfortunately PAGE_SIZE has different types on different architectures.
+
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/drm/drm_fops.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/ptrace.c~utrace-printk-borkage kernel/ptrace.c
---- a/kernel/ptrace.c~utrace-printk-borkage
-+++ a/kernel/ptrace.c
-@@ -1130,7 +1130,7 @@ ptrace_do_wait(struct task_struct *tsk,
+diff -puN drivers/char/drm/drm_fops.c~git-drm-warning-fix drivers/char/drm/drm_fops.c
+--- a/drivers/char/drm/drm_fops.c~git-drm-warning-fix
++++ a/drivers/char/drm/drm_fops.c
+@@ -57,7 +57,7 @@ static int drm_setup(drm_device_t * dev)
+ 	dev->magicfree.next = NULL;
  
- 		// XXX should handle WCONTINUED
- 
--		pr_debug("%d ptrace_do_wait (%d) found %d code %x (%u)\n",
-+		pr_debug("%d ptrace_do_wait (%d) found %ld code %x\n",
- 			 current->pid, p->pid, p->state, p->exit_code);
- 	}
- 	rcu_read_unlock();
-@@ -1143,7 +1143,7 @@ found:
- 	BUG_ON(state->parent != tsk);
- 	rcu_read_unlock();
- 
--	pr_debug("%d ptrace_do_wait (%d) found %d code %x (%lu/%d)\n",
-+	pr_debug("%d ptrace_do_wait (%d) found %d code %x (%u/%d)\n",
- 		 current->pid, tsk->pid, p->pid, exit_code,
- 		 p->exit_state, p->exit_signal);
- 
+ 	/* prebuild the SAREA */
+-	sareapage = max(SAREA_MAX, PAGE_SIZE);
++	sareapage = max_t(unsigned, SAREA_MAX, PAGE_SIZE);
+ 	i = drm_addmap(dev, 0, sareapage, _DRM_SHM, _DRM_CONTAINS_LOCK, &map);
+ 	if (i != 0)
+ 		return i;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,3 +118,4 @@ local_t-powerpc-extension.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 fbdev-hecuba-framebuffer-driver.patch
 mm-only-free-swap-space-of-reactivated-pages-debug.patch
+git-drm-warning-fix.patch
