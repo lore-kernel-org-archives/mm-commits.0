@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch added to -mm tree
-Date: Fri, 16 Mar 2007 17:37:32 -0700
-Message-ID: <200703170039.l2H0dPxs025549@shell0.pdx.osdl.net>
+Subject: + proc-maps-protection-fix.patch added to -mm tree
+Date: Fri, 16 Mar 2007 17:40:57 -0700
+Message-ID: <200703170042.l2H0goCK025601@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44608 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44766 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933318AbXCQAjo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 20:39:44 -0400
+	id S966004AbXCQAnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 20:43:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, horms@verge.net.au, ian.campbell@xensource.com, magnus.damm@gmail.com, vgoyal@in.ibm.com
+Cc: akpm@linux-foundation.org, arjan@infradead.org, kees@outflux.net
 
 
 The patch titled
-     allow-i386-crash-kernels-to-handle-x86_64-dumps-fix
+     proc-maps-protection-fix
 has been added to the -mm tree.  Its filename is
-     allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+     proc-maps-protection-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: allow-i386-crash-kernels-to-handle-x86_64-dumps-fix
+Subject: proc-maps-protection-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from arch/i386/kernel/setup.c:46:
-include/linux/crash_dump.h:19:36: warning: extra tokens at end of #ifndef directive
+kernel/sysctl.c:607: error: expected expression before ',' token
+kernel/sysctl.c:616: warning: braces around scalar initializer
+kernel/sysctl.c:616: warning: (near initialization for 'kern_table[31].data')
+kernel/sysctl.c:616: error: field name not in record or union initializer
+kernel/sysctl.c:616: error: (near initialization for 'kern_table[31].data')
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Horms <horms@verge.net.au>
-Cc: Ian Campbell <ian.campbell@xensource.com>
-Cc: Magnus Damm <magnus.damm@gmail.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Kees Cook <kees@outflux.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_dump.h |    2 +-
+ kernel/sysctl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/crash_dump.h~allow-i386-crash-kernels-to-handle-x86_64-dumps-fix include/linux/crash_dump.h
---- a/include/linux/crash_dump.h~allow-i386-crash-kernels-to-handle-x86_64-dumps-fix
-+++ a/include/linux/crash_dump.h
-@@ -16,7 +16,7 @@ extern struct proc_dir_entry *proc_vmcor
- 
- /* Architecture code defines this if there are other possible ELF
-  * machine types, e.g. on bi-arch capable hardware. */
--#ifndef vmcore_elf_check_arch_cross(x)
-+#ifndef vmcore_elf_check_arch_cross
- #define vmcore_elf_check_arch_cross(x) 0
+diff -puN kernel/sysctl.c~proc-maps-protection-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~proc-maps-protection-fix
++++ a/kernel/sysctl.c
+@@ -604,7 +604,7 @@ static ctl_table kern_table[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
  #endif
- 
+-	{,
++	{
+ 		.ctl_name       = KERN_MAPS_PROTECT,
+ 		.procname       = "maps_protect",
+ 		.data           = &maps_protect,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +98,7 @@ reduce-size-of-task_struct-on-64-bit-machines.patch
 mm-shrink-parent-dentries-when-shrinking-slab.patch
 add-an-anonymous-inode-source-tidy.patch
 virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
 proc-maps-protection-tidy.patch
 rtc-add-rtc-rs5c313-driver-tidy.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
