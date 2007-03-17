@@ -1,157 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - paravirt-build-fixes.patch removed from -mm tree
-Date: Fri, 16 Mar 2007 17:17:26 -0700
-Message-ID: <200703170019.l2H0JLGN025163@shell0.pdx.osdl.net>
+Subject: - make-config_paravirt-require-no_hz.patch removed from -mm tree
+Date: Fri, 16 Mar 2007 17:17:31 -0700
+Message-ID: <200703170019.l2H0JOax025169@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43786 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43850 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932069AbXCQATe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Mar 2007 20:19:34 -0400
+	id S932162AbXCQAU0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Mar 2007 20:20:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach@vmware.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: chrisw@sous-sol.org, ak@suse.de, jeremy@goop.org, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     paravirt build fixes
+     make CONFIG_PARAVIRT require NO_HZ
 has been removed from the -mm tree.  Its filename was
-     paravirt-build-fixes.patch
+     make-config_paravirt-require-no_hz.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: paravirt build fixes
-From: Zachary Amsden <zach@vmware.com>
+Subject: make CONFIG_PARAVIRT require NO_HZ
+From: Chris Wright <chrisw@sous-sol.org>
 
-Ingo Molnar dropped support for NO_IDLE_HZ, which both VMI and the unmerged
-Xen code depended on under config option PARAVIRT.  This broke the VMI
-compile.  Since NO_IDLE_HZ is obsolete, and all paravirt guests will need
-idle HZ timer support, make PARAVIRT select NO_HZ and drop NO_IDLE_HZ
-specifics from the VMI backend that caused it to fail to compile.
+Require NO_HZ when CONFIG_PARAVIRT.
 
-Also, export next_timer_interrupt() in both NO_IDLE_HZ and NO_HZ builds,
-as it is needed in both.
-
-Signed-off-by: Zachary Amsden <zach@vmware.com>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Zachary Amsden <zach@vmware.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig           |    1 +
- arch/i386/kernel/vmitime.c  |   10 ----------
- include/asm-i386/vmi_time.h |   10 ----------
- kernel/timer.c              |    2 +-
- 4 files changed, 2 insertions(+), 21 deletions(-)
+ arch/i386/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/Kconfig~paravirt-build-fixes arch/i386/Kconfig
---- a/arch/i386/Kconfig~paravirt-build-fixes
+diff -puN arch/i386/Kconfig~make-config_paravirt-require-no_hz arch/i386/Kconfig
+--- a/arch/i386/Kconfig~make-config_paravirt-require-no_hz
 +++ a/arch/i386/Kconfig
-@@ -210,6 +210,7 @@ config PARAVIRT
+@@ -208,7 +208,7 @@ endchoice
+ 
+ config PARAVIRT
  	bool "Paravirtualization support (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
+-	depends on EXPERIMENTAL
++	depends on EXPERIMENTAL && NO_HZ
  	depends on !(X86_VISWS || X86_VOYAGER)
-+	select NO_HZ
+ 	select NO_HZ
  	help
- 	  Paravirtualization is a way of running multiple instances of
- 	  Linux on the same machine, under a hypervisor.  This option
-diff -puN arch/i386/kernel/vmitime.c~paravirt-build-fixes arch/i386/kernel/vmitime.c
---- a/arch/i386/kernel/vmitime.c~paravirt-build-fixes
-+++ a/arch/i386/kernel/vmitime.c
-@@ -59,8 +59,6 @@
- /* Cached VMI operations */
- struct vmi_timer_ops vmi_timer_ops;
- 
--#ifdef CONFIG_NO_IDLE_HZ
--
- /* /proc/sys/kernel/hz_timer state. */
- int sysctl_hz_timer;
- 
-@@ -69,8 +67,6 @@ static DEFINE_PER_CPU(unsigned long, vmi
- static DEFINE_PER_CPU(unsigned long, vmi_idle_no_hz_jiffies);
- static DEFINE_PER_CPU(unsigned long, idle_start_jiffies);
- 
--#endif /* CONFIG_NO_IDLE_HZ */
--
- /* Number of alarms per second. By default this is CONFIG_VMI_ALARM_HZ. */
- static int alarm_hz = CONFIG_VMI_ALARM_HZ;
- 
-@@ -298,7 +294,6 @@ static void vmi_account_process_times_cy
- 	}
- }
- 
--#ifdef CONFIG_NO_IDLE_HZ
- /* Update per-cpu idle times.  Used when a no-hz halt is ended. */
- static void vmi_account_no_hz_idle_cycles(int cpu,
- 					  unsigned long long cur_process_times_cycles)
-@@ -317,7 +312,6 @@ static void vmi_account_no_hz_idle_cycle
- 	/* Account time to the idle process. */
- 	account_steal_time(idle_task(cpu), jiffies_to_cputime(no_idle_hz_jiffies));
- }
--#endif
- 
- /* Update per-cpu stolen time. */
- static void vmi_account_stolen_cycles(int cpu,
-@@ -358,8 +352,6 @@ static void vmi_local_timer_interrupt(in
- 	vmi_account_stolen_cycles(cpu, cur_real_cycles, cur_process_times_cycles);
- }
- 
--#ifdef CONFIG_NO_IDLE_HZ
--
- /* Must be called only from idle loop, with interrupts disabled. */
- int vmi_stop_hz_timer(void)
- {
-@@ -436,8 +428,6 @@ void vmi_account_time_restart_hz_timer(v
- 	vmi_reenable_hz_timer(cpu);
- }
- 
--#endif /* CONFIG_NO_IDLE_HZ */
--
- /* UP (and no local-APIC) VMI-timer alarm interrupt handler.
-  * Handler for IRQ0. Not used when SMP or X86_LOCAL_APIC after
-  * APIC setup and setup_boot_vmi_alarm() is called.  */
-diff -puN include/asm-i386/vmi_time.h~paravirt-build-fixes include/asm-i386/vmi_time.h
---- a/include/asm-i386/vmi_time.h~paravirt-build-fixes
-+++ a/include/asm-i386/vmi_time.h
-@@ -58,18 +58,8 @@ extern void __init vmi_timer_setup_secon
- extern void apic_vmi_timer_interrupt(void);
- #endif
- 
--#ifdef CONFIG_NO_IDLE_HZ
- extern int vmi_stop_hz_timer(void);
- extern void vmi_account_time_restart_hz_timer(void);
--#else
--static inline int vmi_stop_hz_timer(void)
--{
--	return 0;
--}
--static inline void vmi_account_time_restart_hz_timer(void)
--{
--}
--#endif
- 
- /*
-  * When run under a hypervisor, a vcpu is always in one of three states:
-diff -puN kernel/timer.c~paravirt-build-fixes kernel/timer.c
---- a/kernel/timer.c~paravirt-build-fixes
-+++ a/kernel/timer.c
-@@ -728,7 +728,7 @@ unsigned long get_next_timer_interrupt(u
- 	return cmp_next_hrtimer_event(now, expires);
- }
- 
--#ifdef CONFIG_NO_IDLE_HZ
-+#if defined(CONFIG_NO_IDLE_HZ) || defined(CONFIG_NO_HZ)
- unsigned long next_timer_interrupt(void)
- {
- 	return get_next_timer_interrupt(jiffies);
 _
 
-Patches currently in -mm which might be from zach@vmware.com are
+Patches currently in -mm which might be from chrisw@sous-sol.org are
 
-paravirt-build-fixes.patch
 make-config_paravirt-require-no_hz.patch
-make-struct-vmi_ops-static.patch
-make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
-replace-get_scheduled_cycles-with-sched_clock-paravirt_op.patch
+implement-file-posix-capabilities.patch
+file-capabilities-accomodate-future-64-bit-caps.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+mprotect-patch-for-use-by-slim.patch
+integrity-service-api-and-dummy-provider.patch
+slim-main-patch.patch
+slim-secfs-patch.patch
+slim-make-and-config-stuff.patch
+slim-debug-output.patch
+slim-documentation.patch
