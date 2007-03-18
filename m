@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch added to -mm tree
-Date: Sun, 18 Mar 2007 00:20:56 -0800
-Message-ID: <200703180820.l2I8KuX5019216@shell0.pdx.osdl.net>
+Subject: + bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch added to -mm tree
+Date: Sun, 18 Mar 2007 00:20:53 -0800
+Message-ID: <200703180820.l2I8KsJE019213@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59520 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59522 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753182AbXCRIVH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 04:21:07 -0400
+	id S1753195AbXCRIVO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 04:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, apw@shadowen.org, mel@csn.ul.ie
+Cc: mel@csn.ul.ie, apw@shadowen.org
 
 
 The patch titled
-     bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy
+     Bias the location of pages freed for min_free_kbytes in the same MAX_ORDER_NR_PAGES blocks
 has been added to the -mm tree.  Its filename is
-     bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+     bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,103 +25,349 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Bias the location of pages freed for min_free_kbytes in the same MAX_ORDER_NR_PAGES blocks
+From: Mel Gorman <mel@csn.ul.ie>
 
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+The standard buddy allocator always favours the smallest block of pages. 
+The effect of this is that the pages free to satisfy min_free_kbytes tends
+to be preserved since boot time at the same location of memory ffor a very
+long time and as a contiguous block.  When an administrator sets the
+reserve at 16384 at boot time, it tends to be the same MAX_ORDER blocks
+that remain free.  This allows the occasional high atomic allocation to
+succeed up until the point the blocks are split.  In practice, it is
+difficult to split these blocks but when they do split, the benefit of
+having min_free_kbytes for contiguous blocks disappears.  Additionally,
+increasing min_free_kbytes once the system has been running for some time
+has no guarantee of creating contiguous blocks.
+
+On the other hand, CONFIG_PAGE_GROUP_BY_MOBILITY favours splitting large
+blocks when there are no free pages of the appropriate type available.  A
+side-effect of this is that all blocks in memory tends to be used up and
+the contiguous free blocks from boot time are not preserved like in the
+vanilla allocator.  This can cause a problem if a new caller is unwilling
+to reclaim or does not reclaim for long enough.
+
+A failure scenario was found for a wireless network device allocating
+order-1 atomic allocations but the allocations were not intense or frequent
+enough for a whole block of pages to be preserved for MIGRATE_HIGHALLOC. 
+This was reproduced on a desktop by booting with mem=256mb, forcing the
+driver to allocate at order-1, running a bittorrent client (downloading a
+debian ISO) and building a kernel with -j2.
+
+This patch addresses the problem on the desktop machine booted with
+mem=256mb.  It works by setting aside a reserve of MAX_ORDER_NR_PAGES
+blocks, the number of which depends on the value of min_free_kbytes.  These
+blocks are only fallen back to when there is no other free pages.  Then the
+smallest possible page is used just like the normal buddy allocator instead
+of the largest possible page to preserve contiguous pages The pages in free
+lists in the reserve blocks are never taken for another migrate type.  The
+results is that even if min_free_kbytes is set to a low value, contiguous
+blocks will be preserved in the MIGRATE_RESERVE blocks.
+
+This works better than the vanilla allocator because if min_free_kbytes is
+increased, a new reserve block will be chosen based on the location of
+reclaimable pages and the block will free up as contiguous pages.  In the
+vanilla allocator, no effort is made to target a block of pages to free as
+contiguous pages and min_free_kbytes pages are scattered randomly.
+
+This effect has been observed on the test machine.  min_free_kbytes was set
+initially low but it was kept as a contiguous free block within
+MIGRATE_RESERVE.  min_free_kbytes was then set to a higher value and over a
+period of time, the free blocks were within the reserve and coalescing. 
+How long it takes to free up depends on how quickly LRU is rotating. 
+Amusingly, this means that more activity will free the blocks faster.
+
+This mechanism potentially replaces MIGRATE_HIGHALLOC as it may be more
+effective than grouping contiguous free pages together.  It all depends on
+whether the number of active atomic high allocations exceeds
+min_free_kbytes or not.  If the number of active allocations exceeds
+min_free_kbytes, it's worth it but maybe in that situation, min_free_kbytes
+should be set higher.  Once there are no more reports of allocation
+failures, a patch will be submitted that backs out MIGRATE_HIGHALLOC and
+see if the reports stay missing.
+
+Credit to Mariusz Kozlowski for discovering the problem, describing the
+failure scenario and testing patches and scenarios.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h          |    4 
+ include/linux/pageblock-flags.h |    2 
+ mm/page_alloc.c                 |  137 +++++++++++++++++++++++-------
+ 3 files changed, 113 insertions(+), 30 deletions(-)
 
-diff -puN mm/page_alloc.c~bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy mm/page_alloc.c
---- a/mm/page_alloc.c~bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy
+diff -puN include/linux/mmzone.h~bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks include/linux/mmzone.h
+--- a/include/linux/mmzone.h~bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks
++++ a/include/linux/mmzone.h
+@@ -30,12 +30,14 @@
+ #define MIGRATE_RECLAIMABLE   1
+ #define MIGRATE_MOVABLE       2
+ #define MIGRATE_HIGHATOMIC    3
+-#define MIGRATE_TYPES         4
++#define MIGRATE_RESERVE       4
++#define MIGRATE_TYPES         5
+ #else
+ #define MIGRATE_UNMOVABLE     0
+ #define MIGRATE_UNRECLAIMABLE 0
+ #define MIGRATE_MOVABLE       0
+ #define MIGRATE_HIGHATOMIC    0
++#define MIGRATE_RESERVE       0
+ #define MIGRATE_TYPES         1
+ #endif
+ 
+diff -puN include/linux/pageblock-flags.h~bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks include/linux/pageblock-flags.h
+--- a/include/linux/pageblock-flags.h~bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks
++++ a/include/linux/pageblock-flags.h
+@@ -31,7 +31,7 @@
+ 
+ /* Bit indices that affect a whole block of pages */
+ enum pageblock_bits {
+-	PB_range(PB_migrate, 2), /* 2 bits required for migrate types */
++	PB_range(PB_migrate, 3), /* 3 bits required for migrate types */
+ 	NR_PAGEBLOCK_BITS
+ };
+ 
+diff -puN mm/page_alloc.c~bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks mm/page_alloc.c
+--- a/mm/page_alloc.c~bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks
 +++ a/mm/page_alloc.c
-@@ -2268,7 +2268,7 @@ static inline unsigned long wait_table_b
-  * higher will lead to a bigger reserve which will get freed as contiguous
-  * blocks as reclaim kicks in
+@@ -667,16 +667,48 @@ static int prep_new_page(struct page *pa
+ 	return 0;
+ }
+ 
++/*
++ * Go through the free lists for the given migratetype and remove
++ * the smallest available page from the freelists
++ */
++static struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
++						int migratetype)
++{
++	unsigned int current_order;
++	struct free_area * area;
++	struct page *page;
++
++	/* Find a page of the appropriate size in the preferred list */
++	for (current_order = order; current_order < MAX_ORDER; ++current_order) {
++		area = &(zone->free_area[current_order]);
++		if (list_empty(&area->free_list[migratetype]))
++			continue;
++
++		page = list_entry(area->free_list[migratetype].next,
++							struct page, lru);
++		list_del(&page->lru);
++		rmv_page_order(page);
++		area->nr_free--;
++		__mod_zone_page_state(zone, NR_FREE_PAGES, - (1UL << order));
++		expand(zone, page, order, current_order, area, migratetype);
++		return page;
++	}
++
++	return NULL;
++}
++
++
+ #ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ /*
+  * This array describes the order lists are fallen back to when
+  * the free lists for the desirable migrate type are depleted
   */
--void setup_zone_migrate_reserve(struct zone *zone)
-+static void setup_zone_migrate_reserve(struct zone *zone)
- {
- 	unsigned long start_pfn, pfn, end_pfn;
- 	struct page *page;
-@@ -2315,7 +2315,9 @@ void setup_zone_migrate_reserve(struct z
+ static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
+-	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,  MIGRATE_HIGHATOMIC },
+-	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,  MIGRATE_HIGHATOMIC },
+-	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE,MIGRATE_HIGHATOMIC },
+-	[MIGRATE_HIGHATOMIC]  = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE,MIGRATE_MOVABLE},
++	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_HIGHATOMIC, MIGRATE_RESERVE },
++	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_HIGHATOMIC, MIGRATE_RESERVE },
++	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_HIGHATOMIC, MIGRATE_RESERVE },
++	[MIGRATE_HIGHATOMIC]  = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_MOVABLE,    MIGRATE_RESERVE },
++	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE,    MIGRATE_RESERVE }, /* Never used */
+ };
+ 
+ /*
+@@ -781,6 +813,9 @@ retry:
+ 		for (i = 0; i < MIGRATE_TYPES - 1; i++) {
+ 			migratetype = fallbacks[start_migratetype][i];
+ 
++			/* MIGRATE_RESERVE handled later if necessary */
++			if (migratetype == MIGRATE_RESERVE)
++				continue;
+ 			/*
+ 			 * Make it hard to fallback to blocks used for
+ 			 * high-order atomic allocations
+@@ -843,7 +878,8 @@ retry:
+ 		goto retry;
  	}
+ 
+-	return NULL;
++	/* Use MIGRATE_RESERVE rather than fail an allocation */
++	return __rmqueue_smallest(zone, order, MIGRATE_RESERVE);
  }
  #else
--void setup_zone_migrate_reserve(struct zone *zone) {}
-+static inline void setup_zone_migrate_reserve(struct zone *zone)
-+{
-+}
+ static struct page *__rmqueue_fallback(struct zone *zone, int order,
+@@ -853,36 +889,19 @@ static struct page *__rmqueue_fallback(s
+ }
  #endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
+ 
+-/* 
++/*
+  * Do the hard work of removing an element from the buddy allocator.
+  * Call me with the zone->lock already held.
+  */
+ static struct page *__rmqueue(struct zone *zone, unsigned int order,
+ 						int migratetype)
+ {
+-	struct free_area * area;
+-	unsigned int current_order;
+ 	struct page *page;
+ 
+-	/* Find a page of the appropriate size in the preferred list */
+-	for (current_order = order; current_order < MAX_ORDER; ++current_order) {
+-		area = &(zone->free_area[current_order]);
+-		if (list_empty(&area->free_list[migratetype]))
+-			continue;
+-
+-		page = list_entry(area->free_list[migratetype].next,
+-							struct page, lru);
+-		list_del(&page->lru);
+-		rmv_page_order(page);
+-		area->nr_free--;
+-		__mod_zone_page_state(zone, NR_FREE_PAGES, - (1UL << order));
+-		expand(zone, page, order, current_order, area, migratetype);
+-		goto got_page;
+-	}
++	page = __rmqueue_smallest(zone, order, migratetype);
+ 
+-	page = __rmqueue_fallback(zone, order, migratetype);
+-
+-got_page:
++	if (unlikely(!page))
++		page = __rmqueue_fallback(zone, order, migratetype);
+ 
+ 	return page;
+ }
+@@ -2241,6 +2260,63 @@ static inline unsigned long wait_table_b
+ 
+ #define LONG_ALIGN(x) (((x)+(sizeof(long))-1)&~((sizeof(long))-1))
+ 
++#ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
++/*
++ * Mark a number of MAX_ORDER_NR_PAGES blocks as MIGRATE_RESERVE. The number
++ * of blocks reserved is based on zone->pages_min. The memory within the
++ * reserve will tend to store contiguous free pages. Setting min_free_kbytes
++ * higher will lead to a bigger reserve which will get freed as contiguous
++ * blocks as reclaim kicks in
++ */
++void setup_zone_migrate_reserve(struct zone *zone)
++{
++	unsigned long start_pfn, pfn, end_pfn;
++	struct page *page;
++	unsigned long reserve, block_migratetype;
++
++	/* Get the start pfn, end pfn and the number of blocks to reserve */
++	start_pfn = zone->zone_start_pfn;
++	end_pfn = start_pfn + zone->spanned_pages;
++	reserve = roundup(zone->pages_min, MAX_ORDER_NR_PAGES) >> (MAX_ORDER-1);
++
++	for (pfn = start_pfn; pfn < end_pfn; pfn += MAX_ORDER_NR_PAGES) {
++		if (!pfn_valid(pfn))
++			continue;
++		page = pfn_to_page(pfn);
++
++		/* Blocks with reserved pages will never free, skip them. */
++		if (PageReserved(page))
++			continue;
++
++		block_migratetype = get_pageblock_migratetype(page);
++
++		/* If this block is reserved, account for it */
++		if (reserve > 0 && block_migratetype == MIGRATE_RESERVE) {
++			reserve--;
++			continue;
++		}
++
++		/* Suitable for reserving if this block is movable */
++		if (reserve > 0 && block_migratetype == MIGRATE_MOVABLE) {
++			set_pageblock_migratetype(page, MIGRATE_RESERVE);
++			move_freepages_block(zone, page, MIGRATE_RESERVE);
++			reserve--;
++			continue;
++		}
++
++		/*
++		 * If the reserve is met and this is a previous reserved block,
++		 * take it back
++		 */
++		if (block_migratetype == MIGRATE_RESERVE) {
++			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
++			move_freepages_block(zone, page, MIGRATE_MOVABLE);
++		}
++	}
++}
++#else
++void setup_zone_migrate_reserve(struct zone *zone) {}
++#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
  /*
   * Initially all pages are reserved - free ones are freed
+  * up by free_all_bootmem() once the early boot process is
+@@ -2276,9 +2352,13 @@ void __meminit memmap_init_zone(unsigned
+ 		 * movable at startup. This will force kernel allocations
+ 		 * to reserve their blocks rather than leaking throughout
+ 		 * the address space during boot when many long-lived
+-		 * kernel allocations are made
++		 * kernel allocations are made. Later some blocks near
++		 * the start are marked MIGRATE_RESERVE by
++		 * setup_zone_migrate_reserve()
+ 		 */
+-		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
++		if ((pfn & (MAX_ORDER_NR_PAGES-1)) == 0 &&
++				get_pageblock_migratetype(page) != MIGRATE_RESERVE)
++			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+ 
+ 		INIT_LIST_HEAD(&page->lru);
+ #ifdef WANT_PAGE_VIRTUAL
+@@ -3702,6 +3782,7 @@ void setup_per_zone_pages_min(void)
+ 
+ 		zone->pages_low   = zone->pages_min + (tmp >> 2);
+ 		zone->pages_high  = zone->pages_min + (tmp >> 1);
++		setup_zone_migrate_reserve(zone);
+ 		spin_unlock_irqrestore(&zone->lru_lock, flags);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-software-suspend-fix-suspend-when-console-is-in.patch
-machzwd-warning-fix.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-drm.patch
-git-dvb.patch
-git-hid-fix.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+move-free-pages-between-lists-on-steal-fix.patch
+move-free-pages-between-lists-on-steal-fix-2.patch
+move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+x86-specify-amount-of-kernel-memory-at-boot-time.patch
+ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
+x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
+ia64-specify-amount-of-kernel-memory-at-boot-time.patch
+add-documentation-for-additional-boot-parameter-and-sysctl.patch
+lumpy-reclaim-v4.patch
+lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
+lumpy-only-count-taken-pages-as-scanned.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-driver_bfin_serial_core-update.patch
-blackfin-blackfin-i2c-driver-update-2.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
