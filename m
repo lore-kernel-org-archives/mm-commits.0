@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-thrashing-recovery-method-refill-holes.patch added to -mm tree
-Date: Sat, 17 Mar 2007 23:49:49 -0800
-Message-ID: <200703180749.l2I7nn5G018342@shell0.pdx.osdl.net>
+Subject: + readahead-state-based-method-check-node-id.patch added to -mm tree
+Date: Sat, 17 Mar 2007 23:49:34 -0800
+Message-ID: <200703180749.l2I7nYRY018328@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58679 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58672 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753141AbXCRHt7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 03:49:59 -0400
+	id S1753137AbXCRHt5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 03:49:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: thrashing recovery method: refill holes
+     readahead: state based method: check node id
 has been added to the -mm tree.  Its filename is
-     readahead-thrashing-recovery-method-refill-holes.patch
+     readahead-state-based-method-check-node-id.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,66 +25,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: thrashing recovery method: refill holes
+Subject: readahead: state based method: check node id
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-When thrashing happened in the following abnormal cases:
-	1) the old chunk is lost;
-	2) random pages are lost due to unbalanced aging.
-There will be hole(s) in the otherwise continuous readahead pages.
+The file_ra_state.age is node specific, comparing ages between two nodes is a
+bug.
 
-We recover from it by simply refilling all possible holes and
-turning off lookahead.
-
-These kind of abnormal situations are not expected to repeatable for the same
-stream.  They happen in a random fashion and do not tell much about the system
-load.  So the best thing we can do is to do nothing more than refilling the
-holes.  If thrashing persists, it will quickly fail into the 3) case where we
-get the exact thrashing threshold:
-
-	3) the new chunk is thrashed.
+So add code to
+- take down the node id in file_ra_state.flags;
+- ensure that we are comparing the ages from the same node.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ include/linux/fs.h |    2 +-
+ mm/readahead.c     |   30 +++++++++++++++++++++++++-----
+ 2 files changed, 26 insertions(+), 6 deletions(-)
 
-diff -puN mm/readahead.c~readahead-thrashing-recovery-method-refill-holes mm/readahead.c
---- a/mm/readahead.c~readahead-thrashing-recovery-method-refill-holes
+diff -puN include/linux/fs.h~readahead-state-based-method-check-node-id include/linux/fs.h
+--- a/include/linux/fs.h~readahead-state-based-method-check-node-id
++++ a/include/linux/fs.h
+@@ -738,7 +738,7 @@ struct file_ra_state {
+ 	unsigned long mmap_hit;		/* Cache hit stat for mmap accesses */
+ 	unsigned long mmap_miss;	/* Cache miss stat for mmap accesses */
+ 
+-	unsigned long flags;	/* RA_FLAG_xxx | ra_class_old | ra_class_new */
++	unsigned long flags;	/* RA_FLAG_xxx | node_id | class_old | class_new */
+ 	unsigned long prev_page;	/* Cache last read() position */
+ 	unsigned long ra_pages;		/* Maximum readahead window */
+ };
+diff -puN mm/readahead.c~readahead-state-based-method-check-node-id mm/readahead.c
+--- a/mm/readahead.c~readahead-state-based-method-check-node-id
 +++ a/mm/readahead.c
-@@ -1552,20 +1552,23 @@ thrashing_recovery_readahead(struct addr
- 					  RA_EVENT_READAHEAD_THRASHING,
- 					  ra->readahead_index - offset);
+@@ -52,11 +52,13 @@ EXPORT_SYMBOL_GPL(readahead_ratio);
+ int readahead_hit_rate = 1;
+ #endif /* CONFIG_ADAPTIVE_READAHEAD */
  
--	if (offset < ra->ra_index) {
-+	if (offset < ra->ra_index || unbalanced_aging) {
- 		/*
--		 * Thrashed when we are in [la_index, ra_index), i.e.
--		 * the old chunk is lost soon after the new one is allocated.
--		 * Ensure that we recover all needed pages in the old chunk.
--		 * And futher keep the lookahead_index untouched.
-+		 * 1) The old chunk is lost.
-+		 * 2) Some random pages are lost due to unbalanced zone/node aging.
-+		 * Refill the hole(s).
-+		 * Further thrashings will bring us back to case (3) below.
- 		 */
--		ra_size = ra->lookahead_index - offset;
-+		ra_size = ra->readahead_index - offset;
- 	} else {
--		/* After thrashing, we know the exact thrashing-threshold. */
-+		/*
-+		 * 3) The new chunk is lost.
-+		 * It tells us about the thrashing-threshold.
-+		 */
- 		ra_size = offset - ra->la_index;
- 		update_ra_thrash_bytes(mapping->backing_dev_info, ra_size);
++#define RA_CLASS_SHIFT 4
++#define RA_CLASS_MASK  ((1 << RA_CLASS_SHIFT) - 1)
++#define RA_NODE_SHIFT  (2 * RA_CLASS_SHIFT)
++#define RA_NODE_MASK   ((MAX_NUMNODES-1) << RA_NODE_SHIFT)
+ /*
+  * Detailed classification of read-ahead behaviors.
+  */
+-#define RA_CLASS_SHIFT 4
+-#define RA_CLASS_MASK  ((1 << RA_CLASS_SHIFT) - 1)
+ enum ra_class {
+ 	RA_CLASS_ALL,
+ 	RA_CLASS_INITIAL,
+@@ -802,6 +804,11 @@ static inline enum ra_class ra_class_old
+ 	return (ra->flags >> RA_CLASS_SHIFT) & RA_CLASS_MASK;
+ }
  
--		/* And be cooperative: the system may be hunting for memory. */
-+		/* Be cooperative: the system may be hunting for memory. */
- 		ra_size = MIN_RA_PAGES + ra_size / 2;
++static inline int ra_node_id(struct file_ra_state *ra)
++{
++	return (ra->flags >> RA_NODE_SHIFT) & RA_NODE_MASK;
++}
++
+ static unsigned long ra_readahead_size(struct file_ra_state *ra)
+ {
+ 	return ra->readahead_index - ra->ra_index;
+@@ -864,6 +871,18 @@ static void ra_set_size(struct file_ra_s
+ }
+ 
+ /*
++ * Save the current node id and age.
++ */
++static void ra_save_node_age(struct file_ra_state *ra)
++{
++	int nid = numa_node_id();
++
++	ra->flags &= ~RA_NODE_MASK;
++	ra->flags |= nid << RA_NODE_SHIFT;
++	ra->age = nr_scanned_pages_node(nid);
++}
++
++/*
+  * Submit IO for the read-ahead request in file_ra_state.
+  */
+ static unsigned long ra_submit(struct file_ra_state *ra,
+@@ -901,7 +920,7 @@ static unsigned long ra_submit(struct fi
  	}
+ 
+ 	/* Take down the current read-ahead aging value. */
+-	ra->age = nr_scanned_pages_node(numa_node_id());
++	ra_save_node_age(ra);
+ 
+ 	ra_size = ra_readahead_size(ra);
+ 	la_size = ra_lookahead_size(ra);
+@@ -1025,9 +1044,10 @@ static unsigned long compute_thrashing_t
+ 	unsigned long stream_shift;
+ 	unsigned long ra_size;
+ 	uint64_t ll;
++	int nid = ra_node_id(ra);
+ 
+-	global_size = nr_free_inactive_pages_node(numa_node_id());
+-	global_shift = nr_scanned_pages_node(numa_node_id()) - ra->age;
++	global_size = nr_free_inactive_pages_node(nid);
++	global_shift = nr_scanned_pages_node(nid) - ra->age;
+ 	global_shift |= 1UL;
+ 	stream_shift = ra_invoke_interval(ra);
  
 _
 
