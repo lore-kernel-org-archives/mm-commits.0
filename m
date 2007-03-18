@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - sched-remove-sleepavg-from-proc.patch removed from -mm tree
-Date: Sat, 17 Mar 2007 23:52:48 -0800
-Message-ID: <200703180752.l2I7qmnT018428@shell0.pdx.osdl.net>
+Subject: - sched-dont-renice-kernel-threads.patch removed from -mm tree
+Date: Sat, 17 Mar 2007 23:52:52 -0800
+Message-ID: <200703180752.l2I7qqCt018437@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58768 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58773 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753124AbXCRHw6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 03:52:58 -0400
+	id S1753119AbXCRHw7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 03:52:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kernel@kolivas.org, mingo@elte.hu, nickpiggin@yahoo.com.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: remove sleepavg from proc
+     sched: don't renice kernel threads
 has been removed from the -mm tree.  Its filename was
-     sched-remove-sleepavg-from-proc.patch
+     sched-dont-renice-kernel-threads.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: sched: remove sleepavg from proc
+Subject: sched: don't renice kernel threads
 From: Con Kolivas <kernel@kolivas.org>
 
-Remove the sleep_avg field from proc output as it will be removed from the
-task_struct.
+The practice of renicing kernel threads to negative nice values is of
+questionable benefit at best, and at worst leads to larger latencies when
+kernel threads are busy on behalf of other tasks.
 
 Signed-off-by: Con Kolivas <kernel@kolivas.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -34,36 +35,25 @@ Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/workqueue.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/proc/array.c~sched-remove-sleepavg-from-proc fs/proc/array.c
---- a/fs/proc/array.c~sched-remove-sleepavg-from-proc
-+++ a/fs/proc/array.c
-@@ -165,7 +165,6 @@ static inline char * task_state(struct t
- 	rcu_read_lock();
- 	buffer += sprintf(buffer,
- 		"State:\t%s\n"
--		"SleepAVG:\t%lu%%\n"
- 		"Tgid:\t%d\n"
- 		"Pid:\t%d\n"
- 		"PPid:\t%d\n"
-@@ -173,7 +172,6 @@ static inline char * task_state(struct t
- 		"Uid:\t%d\t%d\t%d\t%d\n"
- 		"Gid:\t%d\t%d\t%d\t%d\n",
- 		get_task_state(p),
--		(p->sleep_avg/1024)*100/(1020000000/1024),
- 	       	p->tgid, p->pid,
- 	       	pid_alive(p) ? rcu_dereference(p->real_parent)->tgid : 0,
- 		pid_alive(p) && p->ptrace ? rcu_dereference(p->parent)->pid : 0,
+diff -puN kernel/workqueue.c~sched-dont-renice-kernel-threads kernel/workqueue.c
+--- a/kernel/workqueue.c~sched-dont-renice-kernel-threads
++++ a/kernel/workqueue.c
+@@ -294,7 +294,6 @@ static int worker_thread(void *__cwq)
+ 	if (!cwq->wq->freezeable)
+ 		current->flags |= PF_NOFREEZE;
+ 
+-	set_user_nice(current, -5);
+ 	/*
+ 	 * We inherited MPOL_INTERLEAVE from the booting kernel.
+ 	 * Set MPOL_DEFAULT to insure node local allocations.
 _
 
 Patches currently in -mm which might be from kernel@kolivas.org are
 
 sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
-sched-remove-sleepavg-from-proc.patch
-sched-remove-noninteractive-flag.patch
-sched-implement-180-bit-sched-bitmap.patch
 sched-dont-renice-kernel-threads.patch
 sched-implement-rsdl-cpu-scheduler.patch
 sched-implement-rsdl-cpu-scheduler-accounting-fixes.patch
