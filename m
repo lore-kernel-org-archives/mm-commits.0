@@ -1,115 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - spi-destroy-workqueue-after-spi_unregister_master.patch removed from -mm tree
-Date: Sun, 18 Mar 2007 01:09:08 -0800
-Message-ID: <200703180909.l2I9984J019994@shell0.pdx.osdl.net>
+Subject: - dio-invalidate-clean-pages-before-dio-write.patch removed from -mm tree
+Date: Sun, 18 Mar 2007 01:09:04 -0800
+Message-ID: <200703180909.l2I994fD019991@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60398 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60396 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753044AbXCRJJS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 05:09:18 -0400
+	id S1753004AbXCRJJQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 05:09:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris.lesiak@licor.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: zach.brown@oracle.com, bcrl@kvack.org, leonid.i.ananiev@linux.intel.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: destroy workqueue after spi_unregister_master
+     dio: invalidate clean pages before dio write
 has been removed from the -mm tree.  Its filename was
-     spi-destroy-workqueue-after-spi_unregister_master.patch
+     dio-invalidate-clean-pages-before-dio-write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: destroy workqueue after spi_unregister_master
-From: Chris Lesiak <chris.lesiak@licor.com>
+Subject: dio: invalidate clean pages before dio write
+From: Zach Brown <zach.brown@oracle.com>
 
-Fix a bug in the cleanup of an spi_bitbang bus.
+This patch fixes a user-triggerable oops that was reported by Leonid
+Ananiev as archived at http://lkml.org/lkml/2007/2/8/337.
 
-The workqueue associated with the bus was destroyed before the call to
-spi_unregister_master.  That meant that spi devices on that bus would be
-unable to do IO in their remove method.  The shutdown flag should have been
-able to prevent a segfault, but was never getting set.  By waiting to
-destroy the workqueue until after the master is unregistered, devices are
-able to do IO in their remove methods.  An added benefit is that neither
-the shutdown flag nor a wait for the queue of messages to empty is needed.
+dio writes invalidate clean pages that intersect the written region so that
+subsequent buffered reads go to disk to read the new data.  If this fails
+the interface tries to tell the caller that the cache is inconsistent by
+returning EIO.
 
-Signed-off-by: Chris Lesiak <chris.lesiak@licor.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Before this patch we had the problem where this invalidation failure would
+clobber -EIOCBQUEUED as it made its way from fs/direct-io.c to fs/aio.c. 
+Both fs/aio.c and bio completion call aio_complete() and we reference freed
+memory, usually oopsing.
+
+This patch addresses this problem by invalidating before the write so that
+we can cleanly return -EIO before ->direct_IO() has had a chance to return
+-EIOCBQUEUED.
+
+There is a compromise here.  During the dio write we can fault in mmap()ed
+pages which intersect the written range with get_user_pages() if the user
+provided them for the source buffer.  This is a crazy thing to do, but we
+can make it mostly work in most cases by trying the invalidation again. 
+The compromise is that we won't return an error if this second invalidation
+fails if it's an AIO write and we have -EIOCBQUEUED.
+
+This was tested by having two processes race performing large O_DIRECT and
+buffered ordered writes.  Within minutes ext3 would see a race between
+ext3_releasepage() and jbd holding a reference on ordered data buffers and
+would cause invalidation to fail, panicing the box.  The test can be found
+in the 'aio_dio_bugs' test group in test.kernel.org/autotest.  After this
+patch the test passes.
+
+Signed-off-by: Zach Brown <zach.brown@oracle.com>
+Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Leonid Ananiev <leonid.i.ananiev@linux.intel.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bitbang.c       |   26 ++------------------------
- include/linux/spi/spi_bitbang.h |    1 -
- 2 files changed, 2 insertions(+), 25 deletions(-)
+ mm/filemap.c |   46 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 35 insertions(+), 11 deletions(-)
 
-diff -puN drivers/spi/spi_bitbang.c~spi-destroy-workqueue-after-spi_unregister_master drivers/spi/spi_bitbang.c
---- a/drivers/spi/spi_bitbang.c~spi-destroy-workqueue-after-spi_unregister_master
-+++ a/drivers/spi/spi_bitbang.c
-@@ -302,10 +302,6 @@ static void bitbang_work(struct work_str
- 		setup_transfer = NULL;
+diff -puN mm/filemap.c~dio-invalidate-clean-pages-before-dio-write mm/filemap.c
+--- a/mm/filemap.c~dio-invalidate-clean-pages-before-dio-write
++++ a/mm/filemap.c
+@@ -2379,7 +2379,8 @@ generic_file_direct_IO(int rw, struct ki
+ 	struct file *file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+ 	ssize_t retval;
+-	size_t write_len = 0;
++	size_t write_len;
++	pgoff_t end = 0; /* silence gcc */
  
- 		list_for_each_entry (t, &m->transfers, transfer_list) {
--			if (bitbang->shutdown) {
--				status = -ESHUTDOWN;
--				break;
--			}
+ 	/*
+ 	 * If it's a write, unmap all mmappings of the file up-front.  This
+@@ -2388,23 +2389,46 @@ generic_file_direct_IO(int rw, struct ki
+ 	 */
+ 	if (rw == WRITE) {
+ 		write_len = iov_length(iov, nr_segs);
++		end = (offset + write_len - 1) >> PAGE_CACHE_SHIFT;
+ 	       	if (mapping_mapped(mapping))
+ 			unmap_mapping_range(mapping, offset, write_len, 0);
+ 	}
  
- 			/* override or restore speed and wordsize */
- 			if (t->speed_hz || t->bits_per_word) {
-@@ -410,8 +406,6 @@ int spi_bitbang_transfer(struct spi_devi
- 	m->status = -EINPROGRESS;
- 
- 	bitbang = spi_master_get_devdata(spi->master);
--	if (bitbang->shutdown)
--		return -ESHUTDOWN;
- 
- 	spin_lock_irqsave(&bitbang->lock, flags);
- 	if (!spi->max_speed_hz)
-@@ -507,28 +501,12 @@ EXPORT_SYMBOL_GPL(spi_bitbang_start);
-  */
- int spi_bitbang_stop(struct spi_bitbang *bitbang)
- {
--	unsigned	limit = 500;
--
--	spin_lock_irq(&bitbang->lock);
--	bitbang->shutdown = 0;
--	while (!list_empty(&bitbang->queue) && limit--) {
--		spin_unlock_irq(&bitbang->lock);
-+	spi_unregister_master(bitbang->master);
- 
--		dev_dbg(bitbang->master->cdev.dev, "wait for queue\n");
--		msleep(10);
--
--		spin_lock_irq(&bitbang->lock);
--	}
--	spin_unlock_irq(&bitbang->lock);
--	if (!list_empty(&bitbang->queue)) {
--		dev_err(bitbang->master->cdev.dev, "queue didn't empty\n");
--		return -EBUSY;
--	}
-+	WARN_ON(!list_empty(&bitbang->queue));
- 
- 	destroy_workqueue(bitbang->workqueue);
- 
--	spi_unregister_master(bitbang->master);
--
- 	return 0;
+ 	retval = filemap_write_and_wait(mapping);
+-	if (retval == 0) {
+-		retval = mapping->a_ops->direct_IO(rw, iocb, iov,
+-						offset, nr_segs);
+-		if (rw == WRITE && mapping->nrpages) {
+-			pgoff_t end = (offset + write_len - 1)
+-						>> PAGE_CACHE_SHIFT;
+-			int err = invalidate_inode_pages2_range(mapping,
++	if (retval)
++		goto out;
++
++	/*
++	 * After a write we want buffered reads to be sure to go to disk to get
++	 * the new data.  We invalidate clean cached page from the region we're
++	 * about to write.  We do this *before* the write so that we can return
++	 * -EIO without clobbering -EIOCBQUEUED from ->direct_IO().
++	 */
++	if (rw == WRITE && mapping->nrpages) {
++		retval = invalidate_inode_pages2_range(mapping,
+ 					offset >> PAGE_CACHE_SHIFT, end);
+-			if (err)
+-				retval = err;
+-		}
++		if (retval)
++			goto out;
++	}
++
++	retval = mapping->a_ops->direct_IO(rw, iocb, iov, offset, nr_segs);
++	if (retval)
++		goto out;
++
++	/*
++	 * Finally, try again to invalidate clean pages which might have been
++	 * faulted in by get_user_pages() if the source of the write was an
++	 * mmap()ed region of the file we're writing.  That's a pretty crazy
++	 * thing to do, so we don't support it 100%.  If this invalidation
++	 * fails and we have -EIOCBQUEUED we ignore the failure.
++	 */
++	if (rw == WRITE && mapping->nrpages) {
++		int err = invalidate_inode_pages2_range(mapping,
++					      offset >> PAGE_CACHE_SHIFT, end);
++		if (err && retval >= 0)
++			retval = err;
+ 	}
++out:
+ 	return retval;
  }
- EXPORT_SYMBOL_GPL(spi_bitbang_stop);
-diff -puN include/linux/spi/spi_bitbang.h~spi-destroy-workqueue-after-spi_unregister_master include/linux/spi/spi_bitbang.h
---- a/include/linux/spi/spi_bitbang.h~spi-destroy-workqueue-after-spi_unregister_master
-+++ a/include/linux/spi/spi_bitbang.h
-@@ -25,7 +25,6 @@ struct spi_bitbang {
- 	spinlock_t		lock;
- 	struct list_head	queue;
- 	u8			busy;
--	u8			shutdown;
- 	u8			use_dma;
  
- 	struct spi_master	*master;
 _
 
-Patches currently in -mm which might be from chris.lesiak@licor.com are
+Patches currently in -mm which might be from zach.brown@oracle.com are
 
 origin.patch
+aio-use-flush_work.patch
+aio-is-unlikely.patch
