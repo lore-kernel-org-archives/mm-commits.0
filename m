@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-serial-whiteheat-convert-to-generic-boolean.patch added to -mm tree
-Date: Sun, 18 Mar 2007 00:13:52 -0800
-Message-ID: <200703180813.l2I8Dq7f019083@shell0.pdx.osdl.net>
+Subject: + bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch added to -mm tree
+Date: Sun, 18 Mar 2007 00:20:56 -0800
+Message-ID: <200703180820.l2I8KuX5019216@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59368 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59520 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753169AbXCRIN5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 04:13:57 -0400
+	id S1753182AbXCRIVH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 04:21:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ricknu-0@student.ltu.se, greg@kroah.com
+Cc: akpm@linux-foundation.org, apw@shadowen.org, mel@csn.ul.ie
 
 
 The patch titled
-     usb/serial/whiteheat: Convert to generic boolean
+     bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy
 has been added to the -mm tree.  Its filename is
-     usb-serial-whiteheat-convert-to-generic-boolean.patch
+     bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb/serial/whiteheat: Convert to generic boolean
-From: Richard Knutsson <ricknu-0@student.ltu.se>
+Subject: bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
-Cc: Greg KH <greg@kroah.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/whiteheat.c |    8 ++++----
- drivers/usb/serial/whiteheat.h |    4 ----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/serial/whiteheat.c~usb-serial-whiteheat-convert-to-generic-boolean drivers/usb/serial/whiteheat.c
---- a/drivers/usb/serial/whiteheat.c~usb-serial-whiteheat-convert-to-generic-boolean
-+++ a/drivers/usb/serial/whiteheat.c
-@@ -1109,7 +1109,7 @@ static int firm_send_command (struct usb
- 	command_port = port->serial->port[COMMAND_PORT];
- 	command_info = usb_get_serial_port_data(command_port);
- 	spin_lock_irqsave(&command_info->lock, flags);
--	command_info->command_finished = FALSE;
-+	command_info->command_finished = false;
- 	
- 	transfer_buffer = (__u8 *)command_port->write_urb->transfer_buffer;
- 	transfer_buffer[0] = command;
-@@ -1124,12 +1124,12 @@ static int firm_send_command (struct usb
- 	spin_unlock_irqrestore(&command_info->lock, flags);
- 
- 	/* wait for the command to complete */
--	wait_event_interruptible_timeout(command_info->wait_command, 
--		(command_info->command_finished != FALSE), COMMAND_TIMEOUT);
-+	wait_event_interruptible_timeout(command_info->wait_command,
-+		(bool)command_info->command_finished, COMMAND_TIMEOUT);
- 
- 	spin_lock_irqsave(&command_info->lock, flags);
- 
--	if (command_info->command_finished == FALSE) {
-+	if (command_info->command_finished == false) {
- 		dbg("%s - command timed out.", __FUNCTION__);
- 		retval = -ETIMEDOUT;
- 		goto exit;
-diff -puN drivers/usb/serial/whiteheat.h~usb-serial-whiteheat-convert-to-generic-boolean drivers/usb/serial/whiteheat.h
---- a/drivers/usb/serial/whiteheat.h~usb-serial-whiteheat-convert-to-generic-boolean
-+++ a/drivers/usb/serial/whiteheat.h
-@@ -20,10 +20,6 @@
- #define __LINUX_USB_SERIAL_WHITEHEAT_H
- 
- 
--#define FALSE	0
--#define TRUE	1
--
--
- /* WhiteHEAT commands */
- #define WHITEHEAT_OPEN			1	/* open the port */
- #define WHITEHEAT_CLOSE			2	/* close the port */
+diff -puN mm/page_alloc.c~bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy mm/page_alloc.c
+--- a/mm/page_alloc.c~bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy
++++ a/mm/page_alloc.c
+@@ -2268,7 +2268,7 @@ static inline unsigned long wait_table_b
+  * higher will lead to a bigger reserve which will get freed as contiguous
+  * blocks as reclaim kicks in
+  */
+-void setup_zone_migrate_reserve(struct zone *zone)
++static void setup_zone_migrate_reserve(struct zone *zone)
+ {
+ 	unsigned long start_pfn, pfn, end_pfn;
+ 	struct page *page;
+@@ -2315,7 +2315,9 @@ void setup_zone_migrate_reserve(struct z
+ 	}
+ }
+ #else
+-void setup_zone_migrate_reserve(struct zone *zone) {}
++static inline void setup_zone_migrate_reserve(struct zone *zone)
++{
++}
+ #endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
+ /*
+  * Initially all pages are reserved - free ones are freed
 _
 
-Patches currently in -mm which might be from ricknu-0@student.ltu.se are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+software-suspend-fix-suspend-when-console-is-in.patch
+machzwd-warning-fix.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-drm.patch
+git-dvb.patch
+git-hid-fix.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
 git-netdev-all.patch
-drivers-scsi-aic7xxx_old-convert-to-generic-boolean-values.patch
-usb-serial-io_edgeport-convert-to-generic-boolean.patch
-usb-serial-whiteheat-convert-to-generic-boolean.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+driver_bfin_serial_core-update.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lists-add-list-splice-tail.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
