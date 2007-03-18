@@ -1,132 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - rm-pointless-dmaengine-exports.patch removed from -mm tree
-Date: Sun, 18 Mar 2007 01:08:35 -0800
-Message-ID: <200703180908.l2I98ZBA019949@shell0.pdx.osdl.net>
+Subject: - swsusp-fix-resume-error-path-in-platform-mode.patch removed from -mm tree
+Date: Sun, 18 Mar 2007 01:08:39 -0800
+Message-ID: <200703180908.l2I98dwa019953@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60351 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60376 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753211AbXCRJIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 05:08:43 -0400
+	id S1752203AbXCRJJD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 05:09:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, christopher.leech@intel.com, dan.j.williams@intel.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rm pointless dmaengine exports
+     swsusp: Fix resume error path in platform mode
 has been removed from the -mm tree.  Its filename was
-     rm-pointless-dmaengine-exports.patch
+     swsusp-fix-resume-error-path-in-platform-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rm pointless dmaengine exports
-From: David Brownell <david-b@pacbell.net>
+Subject: swsusp: Fix resume error path in platform mode
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This removes several pointless exports from drivers/dma/dmaengine.c; the
-dma_async_memcpy_*() functions are inlined by <linux/dmaengine.h> so those
-exports are inappropriate.
+If swsusp is using the platform mode during the resume and the image cannot
+be read, the platform mode should be switched off before software_resume()
+returns.  Make it happen.
 
-It also moves the existing EXPORT_SYMBOL declarations next to their functions,
-so it's now trivial to confirm one-to-one correspondence between exports and
-nonstatic symbols.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Chris Leech <christopher.leech@intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmaengine.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ kernel/power/disk.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/dma/dmaengine.c~rm-pointless-dmaengine-exports drivers/dma/dmaengine.c
---- a/drivers/dma/dmaengine.c~rm-pointless-dmaengine-exports
-+++ a/drivers/dma/dmaengine.c
-@@ -176,6 +176,7 @@ void dma_chan_cleanup(struct kref *kref)
- 	chan->client = NULL;
- 	kref_put(&chan->device->refcount, dma_async_device_cleanup);
- }
-+EXPORT_SYMBOL(dma_chan_cleanup);
+diff -puN kernel/power/disk.c~swsusp-fix-resume-error-path-in-platform-mode kernel/power/disk.c
+--- a/kernel/power/disk.c~swsusp-fix-resume-error-path-in-platform-mode
++++ a/kernel/power/disk.c
+@@ -251,6 +251,7 @@ static int software_resume(void)
+ 	error = swsusp_read();
+ 	if (error) {
+ 		swsusp_free();
++		platform_finish();
+ 		goto Thaw;
+ 	}
  
- static void dma_chan_free_rcu(struct rcu_head *rcu)
- {
-@@ -261,6 +262,7 @@ struct dma_client *dma_async_client_regi
- 
- 	return client;
- }
-+EXPORT_SYMBOL(dma_async_client_register);
- 
- /**
-  * dma_async_client_unregister - unregister a client and free the &dma_client
-@@ -287,6 +289,7 @@ void dma_async_client_unregister(struct 
- 	kfree(client);
- 	dma_chans_rebalance();
- }
-+EXPORT_SYMBOL(dma_async_client_unregister);
- 
- /**
-  * dma_async_client_chan_request - request DMA channels
-@@ -304,6 +307,7 @@ void dma_async_client_chan_request(struc
- 	client->chans_desired = number;
- 	dma_chans_rebalance();
- }
-+EXPORT_SYMBOL(dma_async_client_chan_request);
- 
- /**
-  * dma_async_device_register - registers DMA devices found
-@@ -346,6 +350,7 @@ int dma_async_device_register(struct dma
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(dma_async_device_register);
- 
- /**
-  * dma_async_device_cleanup - function called when all references are released
-@@ -390,23 +395,12 @@ void dma_async_device_unregister(struct 
- 	kref_put(&device->refcount, dma_async_device_cleanup);
- 	wait_for_completion(&device->done);
- }
-+EXPORT_SYMBOL(dma_async_device_unregister);
- 
- static int __init dma_bus_init(void)
- {
- 	mutex_init(&dma_list_mutex);
- 	return class_register(&dma_devclass);
- }
--
- subsys_initcall(dma_bus_init);
- 
--EXPORT_SYMBOL(dma_async_client_register);
--EXPORT_SYMBOL(dma_async_client_unregister);
--EXPORT_SYMBOL(dma_async_client_chan_request);
--EXPORT_SYMBOL(dma_async_memcpy_buf_to_buf);
--EXPORT_SYMBOL(dma_async_memcpy_buf_to_pg);
--EXPORT_SYMBOL(dma_async_memcpy_pg_to_pg);
--EXPORT_SYMBOL(dma_async_memcpy_complete);
--EXPORT_SYMBOL(dma_async_memcpy_issue_pending);
--EXPORT_SYMBOL(dma_async_device_register);
--EXPORT_SYMBOL(dma_async_device_unregister);
--EXPORT_SYMBOL(dma_chan_cleanup);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-gpio_direction_output-needs-an-initial-value-fix.patch
-git-avr32.patch
-8250-make-probing-for-txen-bug-a-config-option.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-blackfin-blackfin-i2c-driver-update-2.patch
+make-xfs-workqueues-nonfreezable.patch
+swsusp-use-inline-functions-for-changing-page-flags.patch
+swsusp-do-not-use-page-flags.patch
+mm-remove-unused-page-flags.patch
+fix-refrigerator-vs-thaw_process-race.patch
+swsusp-fix-error-paths-in-snapshot_open.patch
+swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
 documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+shrink_slab-handle-bad-shrinkers.patch
