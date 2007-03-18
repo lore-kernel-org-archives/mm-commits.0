@@ -1,62 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + gpio_direction_output-needs-an-initial-value-fix.patch added to -mm tree
-Date: Sun, 18 Mar 2007 00:37:42 -0800
-Message-ID: <200703180837.l2I8bg2k019485@shell0.pdx.osdl.net>
+Subject: - reduce-pnp-syslog-spam.patch removed from -mm tree
+Date: Sun, 18 Mar 2007 01:08:26 -0800
+Message-ID: <200703180908.l2I98QcG019942@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59920 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60344 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752203AbXCRIh6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 04:37:58 -0400
+	id S1753201AbXCRJIi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 05:08:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk
+To: david-b@pacbell.net, ambx1@neo.rr.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio_direction_output-needs-an-initial-value fix
-has been added to the -mm tree.  Its filename is
-     gpio_direction_output-needs-an-initial-value-fix.patch
+     reduce pnp syslog spam
+has been removed from the -mm tree.  Its filename was
+     reduce-pnp-syslog-spam.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gpio_direction_output-needs-an-initial-value fix
+Subject: reduce pnp syslog spam
 From: David Brownell <david-b@pacbell.net>
 
-Build fix:  sa1100/generic.c should already have included <asm/gpio.h>,
-but it didn't ... causing a build problem with a recent patch.
+Make some normal code paths in PNP stop issuing syslog spam.  Since PNP
+issues calls regardless of device capablities, it's no surprise when some
+of those devices don't support those calls!
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-sa1100/generic.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pnp/manager.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/mach-sa1100/generic.c~gpio_direction_output-needs-an-initial-value-fix arch/arm/mach-sa1100/generic.c
---- a/arch/arm/mach-sa1100/generic.c~gpio_direction_output-needs-an-initial-value-fix
-+++ a/arch/arm/mach-sa1100/generic.c
-@@ -27,6 +27,7 @@
- #include <asm/mach/map.h>
- #include <asm/mach/flash.h>
- #include <asm/irq.h>
-+#include <asm/gpio.h>
+diff -puN drivers/pnp/manager.c~reduce-pnp-syslog-spam drivers/pnp/manager.c
+--- a/drivers/pnp/manager.c~reduce-pnp-syslog-spam
++++ a/drivers/pnp/manager.c
+@@ -451,7 +451,7 @@ int pnp_auto_config_dev(struct pnp_dev *
+ 		return -EINVAL;
  
- #include "generic.h"
+ 	if(!pnp_can_configure(dev)) {
+-		pnp_info("Device %s does not support resource configuration.", dev->dev.bus_id);
++		pnp_dbg("Device %s does not support resource configuration.", dev->dev.bus_id);
+ 		return -ENODEV;
+ 	}
  
+@@ -482,7 +482,7 @@ int pnp_auto_config_dev(struct pnp_dev *
+ int pnp_start_dev(struct pnp_dev *dev)
+ {
+ 	if (!pnp_can_write(dev)) {
+-		pnp_info("Device %s does not support activation.", dev->dev.bus_id);
++		pnp_dbg("Device %s does not support activation.", dev->dev.bus_id);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -506,7 +506,7 @@ int pnp_start_dev(struct pnp_dev *dev)
+ int pnp_stop_dev(struct pnp_dev *dev)
+ {
+ 	if (!pnp_can_disable(dev)) {
+-		pnp_info("Device %s does not support disabling.", dev->dev.bus_id);
++		pnp_dbg("Device %s does not support disabling.", dev->dev.bus_id);
+ 		return -EINVAL;
+ 	}
+ 	if (dev->protocol->disable(dev)<0) {
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
 
-reduce-pnp-syslog-spam.patch
-rm-pointless-dmaengine-exports.patch
-gpio_direction_output-needs-an-initial-value.patch
+origin.patch
 gpio_direction_output-needs-an-initial-value-fix.patch
 git-avr32.patch
 8250-make-probing-for-txen-bug-a-config-option.patch
