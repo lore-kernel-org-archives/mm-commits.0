@@ -1,144 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - dio-invalidate-clean-pages-before-dio-write.patch removed from -mm tree
-Date: Sun, 18 Mar 2007 01:09:04 -0800
-Message-ID: <200703180909.l2I994fD019991@shell0.pdx.osdl.net>
+Subject: - savagefb-fix-compile-error-if-debugging-is-enabled.patch removed from -mm tree
+Date: Sun, 18 Mar 2007 01:09:25 -0800
+Message-ID: <200703180909.l2I99PMU020007@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60396 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60413 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753004AbXCRJJQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 05:09:16 -0400
+	id S1753124AbXCRJJ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 05:09:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach.brown@oracle.com, bcrl@kvack.org, leonid.i.ananiev@linux.intel.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dio: invalidate clean pages before dio write
+     savagefb: Fix compile error if debugging is enabled
 has been removed from the -mm tree.  Its filename was
-     dio-invalidate-clean-pages-before-dio-write.patch
+     savagefb-fix-compile-error-if-debugging-is-enabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dio: invalidate clean pages before dio write
-From: Zach Brown <zach.brown@oracle.com>
+Subject: savagefb: Fix compile error if debugging is enabled
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-This patch fixes a user-triggerable oops that was reported by Leonid
-Ananiev as archived at http://lkml.org/lkml/2007/2/8/337.
+SavagePrintRegs() requires struct savagefb_par.
 
-dio writes invalidate clean pages that intersect the written region so that
-subsequent buffered reads go to disk to read the new data.  If this fails
-the interface tries to tell the caller that the cache is inconsistent by
-returning EIO.
-
-Before this patch we had the problem where this invalidation failure would
-clobber -EIOCBQUEUED as it made its way from fs/direct-io.c to fs/aio.c. 
-Both fs/aio.c and bio completion call aio_complete() and we reference freed
-memory, usually oopsing.
-
-This patch addresses this problem by invalidating before the write so that
-we can cleanly return -EIO before ->direct_IO() has had a chance to return
--EIOCBQUEUED.
-
-There is a compromise here.  During the dio write we can fault in mmap()ed
-pages which intersect the written range with get_user_pages() if the user
-provided them for the source buffer.  This is a crazy thing to do, but we
-can make it mostly work in most cases by trying the invalidation again. 
-The compromise is that we won't return an error if this second invalidation
-fails if it's an AIO write and we have -EIOCBQUEUED.
-
-This was tested by having two processes race performing large O_DIRECT and
-buffered ordered writes.  Within minutes ext3 would see a race between
-ext3_releasepage() and jbd holding a reference on ordered data buffers and
-would cause invalidation to fail, panicing the box.  The test can be found
-in the 'aio_dio_bugs' test group in test.kernel.org/autotest.  After this
-patch the test passes.
-
-Signed-off-by: Zach Brown <zach.brown@oracle.com>
-Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Leonid Ananiev <leonid.i.ananiev@linux.intel.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   46 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 35 insertions(+), 11 deletions(-)
+ drivers/video/savage/savagefb_driver.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/filemap.c~dio-invalidate-clean-pages-before-dio-write mm/filemap.c
---- a/mm/filemap.c~dio-invalidate-clean-pages-before-dio-write
-+++ a/mm/filemap.c
-@@ -2379,7 +2379,8 @@ generic_file_direct_IO(int rw, struct ki
- 	struct file *file = iocb->ki_filp;
- 	struct address_space *mapping = file->f_mapping;
- 	ssize_t retval;
--	size_t write_len = 0;
-+	size_t write_len;
-+	pgoff_t end = 0; /* silence gcc */
+diff -puN drivers/video/savage/savagefb_driver.c~savagefb-fix-compile-error-if-debugging-is-enabled drivers/video/savage/savagefb_driver.c
+--- a/drivers/video/savage/savagefb_driver.c~savagefb-fix-compile-error-if-debugging-is-enabled
++++ a/drivers/video/savage/savagefb_driver.c
+@@ -509,7 +509,7 @@ static int common_calc_clock(long freq, 
+ #ifdef SAVAGEFB_DEBUG
+ /* This function is used to debug, it prints out the contents of s3 regs */
  
- 	/*
- 	 * If it's a write, unmap all mmappings of the file up-front.  This
-@@ -2388,23 +2389,46 @@ generic_file_direct_IO(int rw, struct ki
- 	 */
- 	if (rw == WRITE) {
- 		write_len = iov_length(iov, nr_segs);
-+		end = (offset + write_len - 1) >> PAGE_CACHE_SHIFT;
- 	       	if (mapping_mapped(mapping))
- 			unmap_mapping_range(mapping, offset, write_len, 0);
- 	}
+-static void SavagePrintRegs(void)
++static void SavagePrintRegs(struct savagefb_par *par)
+ {
+ 	unsigned char i;
+ 	int vgaCRIndex = 0x3d4;
+@@ -1538,7 +1538,7 @@ static int savagefb_set_par(struct fb_in
+ 	savagefb_set_fix(info);
+ 	savagefb_set_clip(info);
  
- 	retval = filemap_write_and_wait(mapping);
--	if (retval == 0) {
--		retval = mapping->a_ops->direct_IO(rw, iocb, iov,
--						offset, nr_segs);
--		if (rw == WRITE && mapping->nrpages) {
--			pgoff_t end = (offset + write_len - 1)
--						>> PAGE_CACHE_SHIFT;
--			int err = invalidate_inode_pages2_range(mapping,
-+	if (retval)
-+		goto out;
-+
-+	/*
-+	 * After a write we want buffered reads to be sure to go to disk to get
-+	 * the new data.  We invalidate clean cached page from the region we're
-+	 * about to write.  We do this *before* the write so that we can return
-+	 * -EIO without clobbering -EIOCBQUEUED from ->direct_IO().
-+	 */
-+	if (rw == WRITE && mapping->nrpages) {
-+		retval = invalidate_inode_pages2_range(mapping,
- 					offset >> PAGE_CACHE_SHIFT, end);
--			if (err)
--				retval = err;
--		}
-+		if (retval)
-+			goto out;
-+	}
-+
-+	retval = mapping->a_ops->direct_IO(rw, iocb, iov, offset, nr_segs);
-+	if (retval)
-+		goto out;
-+
-+	/*
-+	 * Finally, try again to invalidate clean pages which might have been
-+	 * faulted in by get_user_pages() if the source of the write was an
-+	 * mmap()ed region of the file we're writing.  That's a pretty crazy
-+	 * thing to do, so we don't support it 100%.  If this invalidation
-+	 * fails and we have -EIOCBQUEUED we ignore the failure.
-+	 */
-+	if (rw == WRITE && mapping->nrpages) {
-+		int err = invalidate_inode_pages2_range(mapping,
-+					      offset >> PAGE_CACHE_SHIFT, end);
-+		if (err && retval >= 0)
-+			retval = err;
- 	}
-+out:
- 	return retval;
+-	SavagePrintRegs();
++	SavagePrintRegs(par);
+ 	return 0;
  }
  
+@@ -2168,7 +2168,6 @@ static int __devinit savagefb_probe(stru
+ 	int video_len;
+ 
+ 	DBG("savagefb_probe");
+-	SavagePrintRegs();
+ 
+ 	info = framebuffer_alloc(sizeof(struct savagefb_par), &dev->dev);
+ 	if (!info)
 _
 
-Patches currently in -mm which might be from zach.brown@oracle.com are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-aio-use-flush_work.patch
-aio-is-unlikely.patch
+fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
+intelfb-fix-ring-space-calculation.patch
+nvidiafb-bring-back-generic-ddc-reading.patch
+fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
+fbdev-fix-obvious-bug-in-show_pan.patch
+neofb-fill-transp-msb_right-with-the-correct.patch
+atyfb-kill-dead-code.patch
+fbdev-mm-deferred-io-support.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-mm-deferred-io-support-fix-2.patch
+fbdev-hecuba-framebuffer-driver.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
