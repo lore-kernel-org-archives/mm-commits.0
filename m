@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-state-based-method-protect-against-tiny-size.patch added to -mm tree
-Date: Sat, 17 Mar 2007 23:49:59 -0800
-Message-ID: <200703180749.l2I7nx0M018362@shell0.pdx.osdl.net>
+Subject: + readahead-account-i-o-block-times-for-stock-readahead.patch added to -mm tree
+Date: Sat, 17 Mar 2007 23:50:03 -0800
+Message-ID: <200703180750.l2I7o302018374@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58694 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58697 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753145AbXCRHuI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 03:50:08 -0400
+	id S1753149AbXCRHuL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 03:50:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: state based method: protect against tiny size
+     readahead: account I/O block times for stock readahead
 has been added to the -mm tree.  Its filename is
-     readahead-state-based-method-protect-against-tiny-size.patch
+     readahead-account-i-o-block-times-for-stock-readahead.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: state based method: protect against tiny size
+Subject: readahead: account I/O block times for stock readahead
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Move the tiny I/O size protection code from limit_rala() to
-state_based_readahead().
-
-limit_rala() is also called by context based readahead, which has its own
-minimal readahead size.
+Account I/O block times for the stock readahead, too.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/readahead.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/readahead.c~readahead-state-based-method-protect-against-tiny-size mm/readahead.c
---- a/mm/readahead.c~readahead-state-based-method-protect-against-tiny-size
+diff -puN mm/readahead.c~readahead-account-i-o-block-times-for-stock-readahead mm/readahead.c
+--- a/mm/readahead.c~readahead-account-i-o-block-times-for-stock-readahead
 +++ a/mm/readahead.c
-@@ -1031,13 +1031,6 @@ static void limit_rala(unsigned long ra_
- 	unsigned long stream_shift;
- 
- 	/*
--	 * Protect against too small I/O sizes,
--	 * by mapping [0, 4*min] to [min, 4*min].
--	 */
--	if (*ra_size < 4 * MIN_RA_PAGES)
--		*ra_size = MIN_RA_PAGES + *ra_size * 3 / 4;
+@@ -1756,15 +1756,15 @@ EXPORT_SYMBOL_GPL(page_cache_readahead_a
+  */
+ void readahead_cache_hit(struct file_ra_state *ra, struct page *page)
+ {
+-	if (!prefer_adaptive_readahead())
+-		return;
 -
--	/*
- 	 * Apply basic upper limits.
- 	 */
- 	if (*ra_size > ra_max)
-@@ -1145,6 +1138,13 @@ state_based_readahead(struct address_spa
- 	if (!adjust_rala(&ra_size, &la_size))
- 		goto cancel_lookahead;
+ 	if (PageActive(page) || PageReferenced(page))
+ 		return;
  
-+	/*
-+	 * Protect against too small I/O sizes,
-+	 * by mapping [0, 4*min] to [min, 4*min].
-+	 */
-+	if (ra_size < 4 * MIN_RA_PAGES)
-+		ra_size = MIN_RA_PAGES + ra_size * 3 / 4;
+ 	if (!PageUptodate(page))
+ 		ra_account(ra, RA_EVENT_IO_BLOCK, 1);
+ 
++	if (!prefer_adaptive_readahead())
++		return;
 +
- 	growth_limit = req_size;
- 	growth_limit += ra_max / 16;
- 	growth_limit += 2 * ra_old;
+ 	if (!ra_has_index(ra, page->index))
+ 		return;
+ 
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
