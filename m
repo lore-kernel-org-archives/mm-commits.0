@@ -1,57 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - fix-rescan_partitions-to-return-errors-properly.patch removed from -mm tree
-Date: Sun, 18 Mar 2007 01:09:48 -0800
-Message-ID: <200703180909.l2I99mNG020039@shell0.pdx.osdl.net>
+Subject: - fix-read-past-end-of-array-in-md-linearc.patch removed from -mm tree
+Date: Sun, 18 Mar 2007 01:08:30 -0800
+Message-ID: <200703180908.l2I98UFs019945@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60450 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60457 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753144AbXCRJJz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 05:09:55 -0400
+	id S1753145AbXCRJKC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 05:10:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suzuki@in.ibm.com, mm-commits@vger.kernel.org
+To: adi@hexapodia.org, ego@in.ibm.com, neilb@cse.unsw.edu.au, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix rescan_partitions to return errors properly
+     fix read past end of array in md/linear.c
 has been removed from the -mm tree.  Its filename was
-     fix-rescan_partitions-to-return-errors-properly.patch
+     fix-read-past-end-of-array-in-md-linearc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix rescan_partitions to return errors properly
-From: suzuki <suzuki@in.ibm.com>
+Subject: fix read past end of array in md/linear.c
+From: Andy Isaacson <adi@hexapodia.org>
 
-The only error code which comes from the partition checkers is -1, when they
-finds an EIO.  As per the discussion, ENOMEM values were ignored, as they
-might scare the users.
+When iterating through an array, one must be careful to test one's index
+variable rather than another similarly-named variable.
 
-So, with the current code, we end up returning -1 and not EIO for the ioctl()
-calls.  Which doesn't give any clue to the user of what went wrong.
+The loop will read off the end of conf->disks[] in the following
+(pathological) case:
 
-Signed-off-by: Suzuki K P <suzuki@in.ibm.com>
+% dd bs=1 seek=840716287 if=/dev/zero of=d1 count=1
+% for i in 2 3 4; do dd if=/dev/zero of=d$i bs=1k count=$(($i+150)); done
+% ./vmlinux ubd0=root ubd1=d1 ubd2=d2 ubd3=d3 ubd4=d4
+# mdadm -C /dev/md0 --level=linear --raid-devices=4 /dev/ubd[1234]
+
+adding some printks, I saw this:
+[42949374.960000] hash_spacing = 821120
+[42949374.960000] cnt          = 4
+[42949374.960000] min_spacing  = 801
+[42949374.960000] j=0 size=820928 sz=820928
+[42949374.960000] i=0 sz=820928 hash_spacing=820928
+[42949374.960000] j=1 size=64 sz=64
+[42949374.960000] j=2 size=64 sz=128
+[42949374.960000] j=3 size=64 sz=192
+[42949374.960000] j=4 size=1515870810 sz=1515871002
+
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Acked-by: Neil Brown <neilb@cse.unsw.edu.au>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |    2 +-
+ drivers/md/linear.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/partitions/check.c~fix-rescan_partitions-to-return-errors-properly fs/partitions/check.c
---- a/fs/partitions/check.c~fix-rescan_partitions-to-return-errors-properly
-+++ a/fs/partitions/check.c
-@@ -541,7 +541,7 @@ int rescan_partitions(struct gendisk *di
- 	if (!get_capacity(disk) || !(state = check_partition(disk, bdev)))
- 		return 0;
- 	if (IS_ERR(state))	/* I/O error reading the partition table */
--		return PTR_ERR(state);
-+		return -EIO;
- 	for (p = 1; p < state->limit; p++) {
- 		sector_t size = state->parts[p].size;
- 		sector_t from = state->parts[p].from;
+diff -puN drivers/md/linear.c~fix-read-past-end-of-array-in-md-linearc drivers/md/linear.c
+--- a/drivers/md/linear.c~fix-read-past-end-of-array-in-md-linearc
++++ a/drivers/md/linear.c
+@@ -188,7 +188,7 @@ static linear_conf_t *linear_conf(mddev_
+ 	for (i=0; i < cnt-1 ; i++) {
+ 		sector_t sz = 0;
+ 		int j;
+-		for (j=i; i<cnt-1 && sz < min_spacing ; j++)
++		for (j = i; j < cnt - 1 && sz < min_spacing; j++)
+ 			sz += conf->disks[j].size;
+ 		if (sz >= min_spacing && sz < conf->hash_spacing)
+ 			conf->hash_spacing = sz;
 _
 
-Patches currently in -mm which might be from suzuki@in.ibm.com are
+Patches currently in -mm which might be from adi@hexapodia.org are
 
 origin.patch
