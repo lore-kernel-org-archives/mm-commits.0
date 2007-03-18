@@ -1,58 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - spi-at25-do-not-use-pointer-before-assignment.patch removed from -mm tree
-Date: Sun, 18 Mar 2007 01:09:31 -0800
-Message-ID: <200703180909.l2I99V7i020013@shell0.pdx.osdl.net>
+Subject: - ecryptfs-fix-possible-null-ptr-deref-in-ecryptfs_d_release.patch removed from -mm tree
+Date: Sun, 18 Mar 2007 01:09:38 -0800
+Message-ID: <200703180909.l2I99cMo020023@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60430 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60436 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753139AbXCRJJk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 05:09:40 -0400
+	id S1753138AbXCRJJp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 05:09:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SPI: at25: do not use pointer before assignment
+     eCryptfs: fix possible NULL ptr deref in ecryptfs_d_release()
 has been removed from the -mm tree.  Its filename was
-     spi-at25-do-not-use-pointer-before-assignment.patch
+     ecryptfs-fix-possible-null-ptr-deref-in-ecryptfs_d_release.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SPI: at25: do not use pointer before assignment
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: eCryptfs: fix possible NULL ptr deref in ecryptfs_d_release()
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Prevents a potential oops with CONFIG_SPI_DEBUG given flakey hardware or
-incorrect configuration.
+ecryptfs_d_release() first dereferences a pointer (via
+ecryptfs_dentry_to_lower()) and then afterwards checks to see if the
+pointer it just dereferenced is NULL (via ecryptfs_dentry_to_private()). 
+This patch moves all of the work done on the dereferenced pointer inside a
+block governed by the condition that the pointer is non-NULL.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/at25.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/dentry.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/spi/at25.c~spi-at25-do-not-use-pointer-before-assignment drivers/spi/at25.c
---- a/drivers/spi/at25.c~spi-at25-do-not-use-pointer-before-assignment
-+++ a/drivers/spi/at25.c
-@@ -291,7 +291,7 @@ static int at25_probe(struct spi_device 
- 	 */
- 	sr = spi_w8r8(spi, AT25_RDSR);
- 	if (sr < 0 || sr & AT25_SR_nRDY) {
--		dev_dbg(&at25->spi->dev, "rdsr --> %d (%02x)\n", sr, sr);
-+		dev_dbg(&spi->dev, "rdsr --> %d (%02x)\n", sr, sr);
- 		err = -ENXIO;
- 		goto fail;
+diff -puN fs/ecryptfs/dentry.c~ecryptfs-fix-possible-null-ptr-deref-in-ecryptfs_d_release fs/ecryptfs/dentry.c
+--- a/fs/ecryptfs/dentry.c~ecryptfs-fix-possible-null-ptr-deref-in-ecryptfs_d_release
++++ a/fs/ecryptfs/dentry.c
+@@ -78,18 +78,13 @@ struct kmem_cache *ecryptfs_dentry_info_
+  */
+ static void ecryptfs_d_release(struct dentry *dentry)
+ {
+-	struct dentry *lower_dentry;
+-
+-	lower_dentry = ecryptfs_dentry_to_lower(dentry);
+-	if (ecryptfs_dentry_to_private(dentry))
++	if (ecryptfs_dentry_to_private(dentry)) {
++		if (ecryptfs_dentry_to_lower(dentry)) {
++			mntput(ecryptfs_dentry_to_lower_mnt(dentry));
++			dput(ecryptfs_dentry_to_lower(dentry));
++		}
+ 		kmem_cache_free(ecryptfs_dentry_info_cache,
+ 				ecryptfs_dentry_to_private(dentry));
+-	if (lower_dentry) {
+-		struct vfsmount *lower_mnt =
+-			ecryptfs_dentry_to_lower_mnt(dentry);
+-
+-		mntput(lower_mnt);
+-		dput(lower_dentry);
  	}
+ 	return;
+ }
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-git-kbuild.patch
-git-netdev-all.patch
-8139too-fix-irq-problem-with-napi-netpoll.patch
-serial-allocate-minor-device-numbers-for.patch
+git-unionfs.patch
