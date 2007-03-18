@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + swsusp-fix-error-paths-in-snapshot_open.patch added to -mm tree
-Date: Sun, 18 Mar 2007 00:35:06 -0800
-Message-ID: <200703180835.l2I8Z6r5019426@shell0.pdx.osdl.net>
+Subject: + remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch added to -mm tree
+Date: Sun, 18 Mar 2007 00:35:59 -0800
+Message-ID: <200703180836.l2I8ZxkN019437@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59865 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59904 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750708AbXCRIfq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 04:35:46 -0400
+	id S1752137AbXCRIga (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 04:36:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, pavel@ucw.cz
+Cc: rpjday@mindspring.com, ben-linux@fluff.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     swsusp: fix error paths in snapshot_open
+     remove unused header file: arch/arm/mach-s3c2410/bast.h
 has been added to the -mm tree.  Its filename is
-     swsusp-fix-error-paths-in-snapshot_open.patch
+     remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: swsusp: fix error paths in snapshot_open
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: remove unused header file: arch/arm/mach-s3c2410/bast.h
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-We forget to increase device_available if there's an error in
-snapshot_open(), so the snapshot device cannot be open at all after
-snapshot_open() has returned an error.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/user.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ arch/arm/mach-s3c2410/bast.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN kernel/power/user.c~swsusp-fix-error-paths-in-snapshot_open kernel/power/user.c
---- a/kernel/power/user.c~swsusp-fix-error-paths-in-snapshot_open
-+++ a/kernel/power/user.c
-@@ -49,12 +49,14 @@ static int snapshot_open(struct inode *i
- 	if (!atomic_add_unless(&device_available, -1, 0))
- 		return -EBUSY;
- 
--	if ((filp->f_flags & O_ACCMODE) == O_RDWR)
-+	if ((filp->f_flags & O_ACCMODE) == O_RDWR) {
-+		atomic_inc(&device_available);
- 		return -ENOSYS;
--
--	if(create_basic_memory_bitmaps())
-+	}
-+	if(create_basic_memory_bitmaps()) {
-+		atomic_inc(&device_available);
- 		return -ENOMEM;
--
-+	}
- 	nonseekable_open(inode, filp);
- 	data = &snapshot_state;
- 	filp->private_data = data;
+diff -puN arch/arm/mach-s3c2410/bast.h~remove-unused-header-file-arch-arm-mach-s3c2410-basth /dev/null
+--- a/arch/arm/mach-s3c2410/bast.h
++++ /dev/null
+@@ -1,2 +0,0 @@
+-/* linux/arch/arm/mach-s3c2410/bast.h
+-extern void bast_init_irq(void);
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-swsusp-fix-resume-error-path-in-platform-mode.patch
-swsusp-disable-nonboot-cpus-before-entering-platform-suspend.patch
-software-suspend-fix-suspend-when-console-is-in.patch
-make-xfs-workqueues-nonfreezable.patch
-swsusp-use-inline-functions-for-changing-page-flags.patch
-swsusp-do-not-use-page-flags.patch
-mm-remove-unused-page-flags.patch
-fix-refrigerator-vs-thaw_process-race.patch
-swsusp-fix-error-paths-in-snapshot_open.patch
-swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-alsa.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+git-avr32.patch
+remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
+remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
+ppc-correct-apparently-misspelled-xmon-preprocessor.patch
+git-drm.patch
+git-mtd.patch
+remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
+remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-scsi-misc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+remove-unused-header-file-drivers-serial-crisv10h.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
+remove-unused-header-file-include-linux-elfnoteh.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
