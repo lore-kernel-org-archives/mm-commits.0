@@ -1,56 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - oom-fix-prevent-oom-from-killing-a-process-with-children-sibling-unkillable.patch removed from -mm tree
-Date: Sun, 18 Mar 2007 01:10:11 -0800
-Message-ID: <200703180910.l2I9ABOa020072@shell0.pdx.osdl.net>
+Subject: - fix-saa7146_clipping_mem-size.patch removed from -mm tree
+Date: Sun, 18 Mar 2007 01:10:24 -0800
+Message-ID: <200703180910.l2I9AOn6020087@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60494 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60511 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753156AbXCRJKW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 05:10:22 -0400
+	id S1753169AbXCRJK3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 05:10:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ankita@in.ibm.com, npiggin@suse.de, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: olaf@aepfle.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom fix: prevent oom from killing a process with children/sibling unkillable
+     fix SAA7146_CLIPPING_MEM size
 has been removed from the -mm tree.  Its filename was
-     oom-fix-prevent-oom-from-killing-a-process-with-children-sibling-unkillable.patch
+     fix-saa7146_clipping_mem-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: oom fix: prevent oom from killing a process with children/sibling unkillable
-From: Ankita Garg <ankita@in.ibm.com>
+Subject: fix SAA7146_CLIPPING_MEM size
+From: Olaf Hering <olaf@aepfle.de>
 
-Looking at oom_kill.c, found that the intention to not kill the selected
-process if any of its children/siblings has OOM_DISABLE set, is not being
-met.
+Limit the pci_alloc_consistent size to 128K PAGE_SIZE can be 64K, which
+leads to a 896K allocation.
 
-Signed-off-by: Ankita Garg <ankita@in.ibm.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
-Acked-by: William Irwin <wli@holomorphy.com>
+calculate_clipping_registers_rect() uses not more than 257 bytes because
+saa7146_video.c:s_fmt limits ov.nclips to 16
+
+But bttv-driver.c does not allow up to 2048 clips in win->clipcount
+btcx_screen_clips() may add 4 more clips.
+
+So a max array size of 131329 is enough.  Right now only 56K get allocated.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/media/saa7146_vv.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-fix-prevent-oom-from-killing-a-process-with-children-sibling-unkillable mm/oom_kill.c
---- a/mm/oom_kill.c~oom-fix-prevent-oom-from-killing-a-process-with-children-sibling-unkillable
-+++ a/mm/oom_kill.c
-@@ -320,7 +320,7 @@ static int oom_kill_task(struct task_str
- 	 * Don't kill the process if any threads are set to OOM_DISABLE
- 	 */
- 	do_each_thread(g, q) {
--		if (q->mm == mm && p->oomkilladj == OOM_DISABLE)
-+		if (q->mm == mm && q->oomkilladj == OOM_DISABLE)
- 			return 1;
- 	} while_each_thread(g, q);
+diff -puN include/media/saa7146_vv.h~fix-saa7146_clipping_mem-size include/media/saa7146_vv.h
+--- a/include/media/saa7146_vv.h~fix-saa7146_clipping_mem-size
++++ a/include/media/saa7146_vv.h
+@@ -239,7 +239,8 @@ void saa7146_res_free(struct saa7146_fh 
+ #define SAA7146_HPS_SYNC_PORT_B		0x01
  
+ /* some memory sizes */
+-#define SAA7146_CLIPPING_MEM	(14*PAGE_SIZE)
++/* see saa7146_hlp.c:calculate_clipping_registers_rect and bttv-driver.c:setup_window */
++#define SAA7146_CLIPPING_MEM	( ( ( 2048 + 4 ) * ( 2 * (2 * 16) ) ) + 1 )
+ 
+ /* some defines for the various clipping-modes */
+ #define SAA7146_CLIPPING_RECT		0x4
 _
 
-Patches currently in -mm which might be from ankita@in.ibm.com are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
-origin.patch
+git-powerpc.patch
+git-dvb.patch
+kbuild-override-build-timestamp.patch
+cleanup-variable-usage-in-mesh-interrupt-handler.patch
+keep-track-of-network-interface-renaming.patch
