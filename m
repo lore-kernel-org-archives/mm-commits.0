@@ -1,55 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - ufs2-tindirect-truncate-fix.patch removed from -mm tree
-Date: Sun, 18 Mar 2007 01:08:56 -0800
-Message-ID: <200703180908.l2I98uan019984@shell0.pdx.osdl.net>
+Subject: - spi-destroy-workqueue-after-spi_unregister_master.patch removed from -mm tree
+Date: Sun, 18 Mar 2007 01:09:08 -0800
+Message-ID: <200703180909.l2I9984J019994@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60386 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60398 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752203AbXCRJJI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 05:09:08 -0400
+	id S1753044AbXCRJJS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 05:09:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dushistov@mail.ru, hch@lst.de, mm-commits@vger.kernel.org
+To: chris.lesiak@licor.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs2: tindirect truncate fix
+     spi: destroy workqueue after spi_unregister_master
 has been removed from the -mm tree.  Its filename was
-     ufs2-tindirect-truncate-fix.patch
+     spi-destroy-workqueue-after-spi_unregister_master.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ufs2: tindirect truncate fix
-From: Evgeniy Dushistov <dushistov@mail.ru>
+Subject: spi: destroy workqueue after spi_unregister_master
+From: Chris Lesiak <chris.lesiak@licor.com>
 
-During modification of code to support UFS2 writing,
-the case with "three indirect" blocks in truncate path was missed,
-this patch fixes this situation.
+Fix a bug in the cleanup of an spi_bitbang bus.
 
-Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
-Acked-by: Christoph Hellwig <hch@lst.de>
+The workqueue associated with the bus was destroyed before the call to
+spi_unregister_master.  That meant that spi devices on that bus would be
+unable to do IO in their remove method.  The shutdown flag should have been
+able to prevent a segfault, but was never getting set.  By waiting to
+destroy the workqueue until after the master is unregistered, devices are
+able to do IO in their remove methods.  An added benefit is that neither
+the shutdown flag nor a wait for the queue of messages to empty is needed.
+
+Signed-off-by: Chris Lesiak <chris.lesiak@licor.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/truncate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi_bitbang.c       |   26 ++------------------------
+ include/linux/spi/spi_bitbang.h |    1 -
+ 2 files changed, 2 insertions(+), 25 deletions(-)
 
-diff -puN fs/ufs/truncate.c~ufs2-tindirect-truncate-fix fs/ufs/truncate.c
---- a/fs/ufs/truncate.c~ufs2-tindirect-truncate-fix
-+++ a/fs/ufs/truncate.c
-@@ -348,7 +348,7 @@ static int ufs_trunc_tindirect(struct in
- 	}
+diff -puN drivers/spi/spi_bitbang.c~spi-destroy-workqueue-after-spi_unregister_master drivers/spi/spi_bitbang.c
+--- a/drivers/spi/spi_bitbang.c~spi-destroy-workqueue-after-spi_unregister_master
++++ a/drivers/spi/spi_bitbang.c
+@@ -302,10 +302,6 @@ static void bitbang_work(struct work_str
+ 		setup_transfer = NULL;
  
- 	for (i = tindirect_block ; i < uspi->s_apb ; i++) {
--		tind = ubh_get_addr32 (tind_bh, i);
-+		tind = ubh_get_data_ptr(uspi, tind_bh, i);
- 		retry |= ufs_trunc_dindirect(inode, UFS_NDADDR + 
- 			uspi->s_apb + ((i + 1) << uspi->s_2apbshift), tind);
- 		ubh_mark_buffer_dirty(tind_bh);
+ 		list_for_each_entry (t, &m->transfers, transfer_list) {
+-			if (bitbang->shutdown) {
+-				status = -ESHUTDOWN;
+-				break;
+-			}
+ 
+ 			/* override or restore speed and wordsize */
+ 			if (t->speed_hz || t->bits_per_word) {
+@@ -410,8 +406,6 @@ int spi_bitbang_transfer(struct spi_devi
+ 	m->status = -EINPROGRESS;
+ 
+ 	bitbang = spi_master_get_devdata(spi->master);
+-	if (bitbang->shutdown)
+-		return -ESHUTDOWN;
+ 
+ 	spin_lock_irqsave(&bitbang->lock, flags);
+ 	if (!spi->max_speed_hz)
+@@ -507,28 +501,12 @@ EXPORT_SYMBOL_GPL(spi_bitbang_start);
+  */
+ int spi_bitbang_stop(struct spi_bitbang *bitbang)
+ {
+-	unsigned	limit = 500;
+-
+-	spin_lock_irq(&bitbang->lock);
+-	bitbang->shutdown = 0;
+-	while (!list_empty(&bitbang->queue) && limit--) {
+-		spin_unlock_irq(&bitbang->lock);
++	spi_unregister_master(bitbang->master);
+ 
+-		dev_dbg(bitbang->master->cdev.dev, "wait for queue\n");
+-		msleep(10);
+-
+-		spin_lock_irq(&bitbang->lock);
+-	}
+-	spin_unlock_irq(&bitbang->lock);
+-	if (!list_empty(&bitbang->queue)) {
+-		dev_err(bitbang->master->cdev.dev, "queue didn't empty\n");
+-		return -EBUSY;
+-	}
++	WARN_ON(!list_empty(&bitbang->queue));
+ 
+ 	destroy_workqueue(bitbang->workqueue);
+ 
+-	spi_unregister_master(bitbang->master);
+-
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(spi_bitbang_stop);
+diff -puN include/linux/spi/spi_bitbang.h~spi-destroy-workqueue-after-spi_unregister_master include/linux/spi/spi_bitbang.h
+--- a/include/linux/spi/spi_bitbang.h~spi-destroy-workqueue-after-spi_unregister_master
++++ a/include/linux/spi/spi_bitbang.h
+@@ -25,7 +25,6 @@ struct spi_bitbang {
+ 	spinlock_t		lock;
+ 	struct list_head	queue;
+ 	u8			busy;
+-	u8			shutdown;
+ 	u8			use_dma;
+ 
+ 	struct spi_master	*master;
 _
 
-Patches currently in -mm which might be from dushistov@mail.ru are
+Patches currently in -mm which might be from chris.lesiak@licor.com are
 
 origin.patch
