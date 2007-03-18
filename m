@@ -1,122 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - sched-implement-rsdl-cpu-scheduler-accounting-fixes.patch removed from -mm tree
-Date: Sat, 17 Mar 2007 23:52:59 -0800
-Message-ID: <200703180752.l2I7qxMd018443@shell0.pdx.osdl.net>
+Subject: + readahead-thrashing-recovery-method-check-unbalanced-aging.patch added to -mm tree
+Date: Sat, 17 Mar 2007 23:49:47 -0800
+Message-ID: <200703180749.l2I7nl0b018338@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58782 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58791 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753119AbXCRHxD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 03:53:03 -0400
+	id S1753156AbXCRHxG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 03:53:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kernel@kolivas.org, mingo@elte.hu, nickpiggin@yahoo.com.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     sched: rsdl accounting fixes
-has been removed from the -mm tree.  Its filename was
-     sched-implement-rsdl-cpu-scheduler-accounting-fixes.patch
+     readahead: thrashing recovery method: check unbalanced aging
+has been added to the -mm tree.  Its filename is
+     readahead-thrashing-recovery-method-check-unbalanced-aging.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: sched: rsdl accounting fixes
-From: Con Kolivas <kernel@kolivas.org>
+Subject: readahead: thrashing recovery method: check unbalanced aging
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Higher priority tasks should always preempt lower priority tasks if they
-are queued higher than their static priority as non-rt tasks.  Fix it.
+Always check for unbalanced aging in thrashing_recovery_readahead(), and
+account RA_EVENT_READAHEAD_MUTILATE/RA_EVENT_READAHEAD_THRASHING events.
 
-The deadline mechanism can be triggered before tasks' quota ever gets added
-to the runqueue priority level's quota.  Add 1 to the quota in anticipation
-of this.
+Unbalanced zone/node aging can come from abnormal system loads, or
+misconfigured NUMA policies.
 
-The deadline mechanism should only be triggered if the quota is overrun
-instead of as soon as the quota is expired allowing some aliasing errors in
-scheduler_tick accounting.  Fix that
+Thrashings are rare events, hence the cost of probe_page() is not a concern.
 
-Signed-off-by: Con Kolivas <kernel@kolivas.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   24 +++++++++++-------------
- 1 file changed, 11 insertions(+), 13 deletions(-)
+ mm/readahead.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN kernel/sched.c~sched-implement-rsdl-cpu-scheduler-accounting-fixes kernel/sched.c
---- a/kernel/sched.c~sched-implement-rsdl-cpu-scheduler-accounting-fixes
-+++ a/kernel/sched.c
-@@ -95,10 +95,9 @@ unsigned long long __attribute__((weak))
-  * provided it is not a realtime comparison.
-  */
- #define TASK_PREEMPTS_CURR(p, curr) \
--	(((p)->prio < (curr)->prio) || (((p)->prio == (curr)->prio) && \
-+	(((p)->prio < (curr)->prio) || (!rt_task(p) && \
- 		((p)->static_prio < (curr)->static_prio && \
--			((curr)->static_prio > (curr)->prio)) && \
--				!rt_task(p)))
-+			((curr)->static_prio > (curr)->prio))))
- 
- /*
-  * This is the time all tasks within the same priority round robin.
-@@ -3322,7 +3321,7 @@ static inline void major_prio_rotation(s
-  */
- static inline void rotate_runqueue_priority(struct rq *rq)
+diff -puN mm/readahead.c~readahead-thrashing-recovery-method-check-unbalanced-aging mm/readahead.c
+--- a/mm/readahead.c~readahead-thrashing-recovery-method-check-unbalanced-aging
++++ a/mm/readahead.c
+@@ -1546,14 +1546,11 @@ thrashing_recovery_readahead(struct addr
+ 				pgoff_t offset, unsigned long ra_max)
  {
--	int new_prio_level, remaining_quota;
-+	int new_prio_level;
- 	struct prio_array *array;
+ 	unsigned long ra_size;
++	int unbalanced_aging = probe_page(mapping, offset - 1);
  
- 	/*
-@@ -3333,7 +3332,6 @@ static inline void rotate_runqueue_prior
- 	if (unlikely(sched_find_first_bit(rq->dyn_bitmap) < rq->prio_level))
- 		return;
+-#ifdef CONFIG_DEBUG_READAHEAD
+-	if (probe_page(mapping, offset - 1))
+-		ra_account(ra, RA_EVENT_READAHEAD_MUTILATE,
+-						ra->readahead_index - offset);
+-	ra_account(ra, RA_EVENT_READAHEAD_THRASHING,
+-						ra->readahead_index - offset);
+-#endif
++	ra_account(ra, unbalanced_aging ? RA_EVENT_READAHEAD_MUTILATE :
++					  RA_EVENT_READAHEAD_THRASHING,
++					  ra->readahead_index - offset);
  
--	remaining_quota = rq_quota(rq, rq->prio_level);
- 	array = rq->active;
- 	if (rq->prio_level > MAX_PRIO - 2) {
- 		/* Major rotation required */
-@@ -3367,10 +3365,11 @@ static inline void rotate_runqueue_prior
- 	}
- 	rq->prio_level = new_prio_level;
- 	/*
--	 * While we usually rotate with the rq quota being 0, it is possible
--	 * to be negative so we subtract any deficit from the new level.
-+	 * As we are merging to a prio_level that may not have anything in
-+	 * its quota we add 1 to ensure the tasks get to run in schedule() to
-+	 * add their quota to it.
- 	 */
--	rq_quota(rq, new_prio_level) += remaining_quota;
-+	rq_quota(rq, new_prio_level) += 1;
- }
- 
- static void task_running_tick(struct rq *rq, struct task_struct *p)
-@@ -3396,12 +3395,11 @@ static void task_running_tick(struct rq 
- 	if (!--p->time_slice)
- 		task_expired_entitlement(rq, p);
- 	/*
--	 * The rq quota can become negative due to a task being queued in
--	 * scheduler without any quota left at that priority level. It is
--	 * cheaper to allow it to run till this scheduler tick and then
--	 * subtract it from the quota of the merged queues.
-+	 * We only employ the deadline mechanism if we run over the quota.
-+	 * It allows aliasing problems around the scheduler_tick to be
-+	 * less harmful.
- 	 */
--	if (!rt_task(p) && --rq_quota(rq, rq->prio_level) <= 0) {
-+	if (!rt_task(p) && --rq_quota(rq, rq->prio_level) < 0) {
- 		if (unlikely(p->first_time_slice))
- 			p->first_time_slice = 0;
- 		rotate_runqueue_priority(rq);
+ 	if (offset < ra->ra_index) {
+ 		/*
 _
 
-Patches currently in -mm which might be from kernel@kolivas.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
-sched-implement-rsdl-cpu-scheduler-accounting-fixes.patch
-sched-document-rsdl-cpu-scheduler.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-swap-prefetch-avoid-repeating-entry.patch
+readahead-kconfig-options.patch
+radixtree-introduce-scan-hole-data-functions.patch
+mm-introduce-probe_page.patch
+mm-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-insert-cond_resched-calls.patch
+readahead-minmax_ra_pages.patch
+readahead-events-accounting.patch
+readahead-rescue_pages.patch
+readahead-sysctl-parameters.patch
+readahead-min-max-sizes.patch
+readahead-state-based-method-aging-accounting.patch
+readahead-state-based-method-routines.patch
+readahead-state-based-method.patch
+readahead-state-based-method-check-node-id.patch
+readahead-state-based-method-decouple-readahead_ratio-from-growth_limit.patch
+readahead-state-based-method-cancel-lookahead-gracefully.patch
+readahead-context-based-method.patch
+readahead-initial-method-guiding-sizes.patch
+readahead-initial-method-thrashing-guard-size.patch
+readahead-initial-method-user-recommended-size.patch
+readahead-initial-method.patch
+readahead-backward-prefetching-method.patch
+readahead-thrashing-recovery-method.patch
+readahead-thrashing-recovery-method-check-unbalanced-aging.patch
+readahead-thrashing-recovery-method-refill-holes.patch
+readahead-call-scheme.patch
+readahead-call-scheme-cleanup.patch
+readahead-call-scheme-catch-thrashing-on-lookahead-time.patch
+readahead-laptop-mode.patch
+readahead-loop-case.patch
+readahead-nfsd-case.patch
+readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead.patch
+readahead-remove-parameter-ra_max-from-adjust_rala.patch
+readahead-state-based-method-protect-against-tiny-size.patch
+readahead-rename-state_based_readahead-to-clock_based_readahead.patch
+readahead-account-i-o-block-times-for-stock-readahead.patch
+readahead-rescue_pages-updates.patch
+readahead-remove-noaction-shrink-events.patch
+readahead-remove-size-limit-on-read_ahead_kb.patch
+readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
+readahead-partial-sendfile-fix.patch
+readahead-turn-on-by-default.patch
