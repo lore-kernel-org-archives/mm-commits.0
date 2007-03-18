@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-remove-parameter-ra_max-from-adjust_rala.patch added to -mm tree
-Date: Sat, 17 Mar 2007 23:49:57 -0800
-Message-ID: <200703180749.l2I7nvOq018359@shell0.pdx.osdl.net>
+Subject: + readahead-state-based-method-protect-against-tiny-size.patch added to -mm tree
+Date: Sat, 17 Mar 2007 23:49:59 -0800
+Message-ID: <200703180749.l2I7nx0M018362@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58690 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58694 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753144AbXCRHuG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 03:50:06 -0400
+	id S1753145AbXCRHuI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 03:50:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: remove parameter ra_max from adjust_rala*()
+     readahead: state based method: protect against tiny size
 has been added to the -mm tree.  Its filename is
-     readahead-remove-parameter-ra_max-from-adjust_rala.patch
+     readahead-state-based-method-protect-against-tiny-size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: remove parameter ra_max from adjust_rala*()
+Subject: readahead: state based method: protect against tiny size
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Remove the unused parameter @ra_max from adjust_rala() and
-adjust_rala_aggressive().
+Move the tiny I/O size protection code from limit_rala() to
+state_based_readahead().
+
+limit_rala() is also called by context based readahead, which has its own
+minimal readahead size.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ mm/readahead.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/readahead.c~readahead-remove-parameter-ra_max-from-adjust_rala mm/readahead.c
---- a/mm/readahead.c~readahead-remove-parameter-ra_max-from-adjust_rala
+diff -puN mm/readahead.c~readahead-state-based-method-protect-against-tiny-size mm/readahead.c
+--- a/mm/readahead.c~readahead-state-based-method-protect-against-tiny-size
 +++ a/mm/readahead.c
-@@ -1000,8 +1000,7 @@ static unsigned long ra_submit(struct fi
-  *	- @ra_size stores the estimated thrashing-threshold.
-  *	- @la_size stores the look-ahead size of previous request.
-  */
--static int adjust_rala(unsigned long ra_max,
--			unsigned long *ra_size, unsigned long *la_size)
-+static int adjust_rala(unsigned long *ra_size, unsigned long *la_size)
- {
- 	/*
- 	 * Cancel asynchrous read-ahead,
-@@ -1143,15 +1142,15 @@ state_based_readahead(struct address_spa
- 		goto cancel_lookahead;
- 	}
+@@ -1031,13 +1031,6 @@ static void limit_rala(unsigned long ra_
+ 	unsigned long stream_shift;
  
-+	if (!adjust_rala(&ra_size, &la_size))
-+		goto cancel_lookahead;
+ 	/*
+-	 * Protect against too small I/O sizes,
+-	 * by mapping [0, 4*min] to [min, 4*min].
+-	 */
+-	if (*ra_size < 4 * MIN_RA_PAGES)
+-		*ra_size = MIN_RA_PAGES + *ra_size * 3 / 4;
+-
+-	/*
+ 	 * Apply basic upper limits.
+ 	 */
+ 	if (*ra_size > ra_max)
+@@ -1145,6 +1138,13 @@ state_based_readahead(struct address_spa
+ 	if (!adjust_rala(&ra_size, &la_size))
+ 		goto cancel_lookahead;
+ 
++	/*
++	 * Protect against too small I/O sizes,
++	 * by mapping [0, 4*min] to [min, 4*min].
++	 */
++	if (ra_size < 4 * MIN_RA_PAGES)
++		ra_size = MIN_RA_PAGES + ra_size * 3 / 4;
 +
  	growth_limit = req_size;
  	growth_limit += ra_max / 16;
  	growth_limit += 2 * ra_old;
- 	if (growth_limit > ra_max)
- 	    growth_limit = ra_max;
- 
--	if (!adjust_rala(growth_limit, &ra_size, &la_size))
--		goto cancel_lookahead;
--
- 	limit_rala(growth_limit, la_old, &ra_size, &la_size);
- 
- 	/* ra_size in its _steady_ state reflects thrashing threshold */
-@@ -1345,8 +1344,8 @@ out_unlock:
-  * which is safe: the tailing look-ahead part is 'unsafe'. However it will be
-  * safeguarded by rescue_pages() when the previous chunks are lost.
-  */
--static void adjust_rala_aggressive(unsigned long ra_max,
--				unsigned long *ra_size, unsigned long *la_size)
-+static void adjust_rala_aggressive(unsigned long *ra_size,
-+				   unsigned long *la_size)
- {
- 	pgoff_t offset = *ra_size;
- 
-@@ -1463,12 +1462,12 @@ has_history_pages:
- 
- 	if (ra_size >= offset) {
- 		ra_size = offset;
--		adjust_rala_aggressive(ra_max, &ra_size, &la_size);
-+		adjust_rala_aggressive(&ra_size, &la_size);
- 		ra_set_class(ra, RA_CLASS_CONTEXT_AGGRESSIVE);
- 	} else {
- 		if (ra_size < ra_min)
- 		    ra_size = ra_min;
--		if (!adjust_rala(ra_max, &ra_size, &la_size))
-+		if (!adjust_rala(&ra_size, &la_size))
- 			return -1;
- 		ra_set_class(ra, RA_CLASS_CONTEXT);
- 	}
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
