@@ -1,71 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - reduce-pnp-syslog-spam.patch removed from -mm tree
-Date: Sun, 18 Mar 2007 01:08:26 -0800
-Message-ID: <200703180908.l2I98QcG019942@shell0.pdx.osdl.net>
+Subject: - rm-pointless-dmaengine-exports.patch removed from -mm tree
+Date: Sun, 18 Mar 2007 01:08:35 -0800
+Message-ID: <200703180908.l2I98ZBA019949@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60344 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60351 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753201AbXCRJIi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 05:08:38 -0400
+	id S1753211AbXCRJIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 05:08:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, ambx1@neo.rr.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, christopher.leech@intel.com, dan.j.williams@intel.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reduce pnp syslog spam
+     rm pointless dmaengine exports
 has been removed from the -mm tree.  Its filename was
-     reduce-pnp-syslog-spam.patch
+     rm-pointless-dmaengine-exports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reduce pnp syslog spam
+Subject: rm pointless dmaengine exports
 From: David Brownell <david-b@pacbell.net>
 
-Make some normal code paths in PNP stop issuing syslog spam.  Since PNP
-issues calls regardless of device capablities, it's no surprise when some
-of those devices don't support those calls!
+This removes several pointless exports from drivers/dma/dmaengine.c; the
+dma_async_memcpy_*() functions are inlined by <linux/dmaengine.h> so those
+exports are inappropriate.
+
+It also moves the existing EXPORT_SYMBOL declarations next to their functions,
+so it's now trivial to confirm one-to-one correspondence between exports and
+nonstatic symbols.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Adam Belay <ambx1@neo.rr.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Chris Leech <christopher.leech@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/manager.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/dma/dmaengine.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN drivers/pnp/manager.c~reduce-pnp-syslog-spam drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~reduce-pnp-syslog-spam
-+++ a/drivers/pnp/manager.c
-@@ -451,7 +451,7 @@ int pnp_auto_config_dev(struct pnp_dev *
- 		return -EINVAL;
+diff -puN drivers/dma/dmaengine.c~rm-pointless-dmaengine-exports drivers/dma/dmaengine.c
+--- a/drivers/dma/dmaengine.c~rm-pointless-dmaengine-exports
++++ a/drivers/dma/dmaengine.c
+@@ -176,6 +176,7 @@ void dma_chan_cleanup(struct kref *kref)
+ 	chan->client = NULL;
+ 	kref_put(&chan->device->refcount, dma_async_device_cleanup);
+ }
++EXPORT_SYMBOL(dma_chan_cleanup);
  
- 	if(!pnp_can_configure(dev)) {
--		pnp_info("Device %s does not support resource configuration.", dev->dev.bus_id);
-+		pnp_dbg("Device %s does not support resource configuration.", dev->dev.bus_id);
- 		return -ENODEV;
- 	}
- 
-@@ -482,7 +482,7 @@ int pnp_auto_config_dev(struct pnp_dev *
- int pnp_start_dev(struct pnp_dev *dev)
+ static void dma_chan_free_rcu(struct rcu_head *rcu)
  {
- 	if (!pnp_can_write(dev)) {
--		pnp_info("Device %s does not support activation.", dev->dev.bus_id);
-+		pnp_dbg("Device %s does not support activation.", dev->dev.bus_id);
- 		return -EINVAL;
- 	}
+@@ -261,6 +262,7 @@ struct dma_client *dma_async_client_regi
  
-@@ -506,7 +506,7 @@ int pnp_start_dev(struct pnp_dev *dev)
- int pnp_stop_dev(struct pnp_dev *dev)
+ 	return client;
+ }
++EXPORT_SYMBOL(dma_async_client_register);
+ 
+ /**
+  * dma_async_client_unregister - unregister a client and free the &dma_client
+@@ -287,6 +289,7 @@ void dma_async_client_unregister(struct 
+ 	kfree(client);
+ 	dma_chans_rebalance();
+ }
++EXPORT_SYMBOL(dma_async_client_unregister);
+ 
+ /**
+  * dma_async_client_chan_request - request DMA channels
+@@ -304,6 +307,7 @@ void dma_async_client_chan_request(struc
+ 	client->chans_desired = number;
+ 	dma_chans_rebalance();
+ }
++EXPORT_SYMBOL(dma_async_client_chan_request);
+ 
+ /**
+  * dma_async_device_register - registers DMA devices found
+@@ -346,6 +350,7 @@ int dma_async_device_register(struct dma
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(dma_async_device_register);
+ 
+ /**
+  * dma_async_device_cleanup - function called when all references are released
+@@ -390,23 +395,12 @@ void dma_async_device_unregister(struct 
+ 	kref_put(&device->refcount, dma_async_device_cleanup);
+ 	wait_for_completion(&device->done);
+ }
++EXPORT_SYMBOL(dma_async_device_unregister);
+ 
+ static int __init dma_bus_init(void)
  {
- 	if (!pnp_can_disable(dev)) {
--		pnp_info("Device %s does not support disabling.", dev->dev.bus_id);
-+		pnp_dbg("Device %s does not support disabling.", dev->dev.bus_id);
- 		return -EINVAL;
- 	}
- 	if (dev->protocol->disable(dev)<0) {
+ 	mutex_init(&dma_list_mutex);
+ 	return class_register(&dma_devclass);
+ }
+-
+ subsys_initcall(dma_bus_init);
+ 
+-EXPORT_SYMBOL(dma_async_client_register);
+-EXPORT_SYMBOL(dma_async_client_unregister);
+-EXPORT_SYMBOL(dma_async_client_chan_request);
+-EXPORT_SYMBOL(dma_async_memcpy_buf_to_buf);
+-EXPORT_SYMBOL(dma_async_memcpy_buf_to_pg);
+-EXPORT_SYMBOL(dma_async_memcpy_pg_to_pg);
+-EXPORT_SYMBOL(dma_async_memcpy_complete);
+-EXPORT_SYMBOL(dma_async_memcpy_issue_pending);
+-EXPORT_SYMBOL(dma_async_device_register);
+-EXPORT_SYMBOL(dma_async_device_unregister);
+-EXPORT_SYMBOL(dma_chan_cleanup);
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
