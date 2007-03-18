@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + usb-serial-io_edgeport-convert-to-generic-boolean.patch added to -mm tree
-Date: Sun, 18 Mar 2007 00:13:28 -0800
-Message-ID: <200703180813.l2I8DSZo019076@shell0.pdx.osdl.net>
+Subject: + usb-serial-whiteheat-convert-to-generic-boolean.patch added to -mm tree
+Date: Sun, 18 Mar 2007 00:13:52 -0800
+Message-ID: <200703180813.l2I8Dq7f019083@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59363 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59368 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753162AbXCRINf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 04:13:35 -0400
+	id S1753169AbXCRIN5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 04:13:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ricknu-0@student.ltu.se, greg@kroah.com
 
 
 The patch titled
-     usb/serial/io_edgeport: Convert to generic boolean
+     usb/serial/whiteheat: Convert to generic boolean
 has been added to the -mm tree.  Its filename is
-     usb-serial-io_edgeport-convert-to-generic-boolean.patch
+     usb-serial-whiteheat-convert-to-generic-boolean.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb/serial/io_edgeport: Convert to generic boolean
+Subject: usb/serial/whiteheat: Convert to generic boolean
 From: Richard Knutsson <ricknu-0@student.ltu.se>
 
 Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
@@ -33,453 +33,52 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_edgeport.c |  126 ++++++++++++++---------------
- drivers/usb/serial/io_edgeport.h |    6 -
- 2 files changed, 63 insertions(+), 69 deletions(-)
+ drivers/usb/serial/whiteheat.c |    8 ++++----
+ drivers/usb/serial/whiteheat.h |    4 ----
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/serial/io_edgeport.c~usb-serial-io_edgeport-convert-to-generic-boolean drivers/usb/serial/io_edgeport.c
---- a/drivers/usb/serial/io_edgeport.c~usb-serial-io_edgeport-convert-to-generic-boolean
-+++ a/drivers/usb/serial/io_edgeport.c
-@@ -111,7 +111,7 @@ struct edgeport_port {
+diff -puN drivers/usb/serial/whiteheat.c~usb-serial-whiteheat-convert-to-generic-boolean drivers/usb/serial/whiteheat.c
+--- a/drivers/usb/serial/whiteheat.c~usb-serial-whiteheat-convert-to-generic-boolean
++++ a/drivers/usb/serial/whiteheat.c
+@@ -1109,7 +1109,7 @@ static int firm_send_command (struct usb
+ 	command_port = port->serial->port[COMMAND_PORT];
+ 	command_info = usb_get_serial_port_data(command_port);
+ 	spin_lock_irqsave(&command_info->lock, flags);
+-	command_info->command_finished = FALSE;
++	command_info->command_finished = false;
+ 	
+ 	transfer_buffer = (__u8 *)command_port->write_urb->transfer_buffer;
+ 	transfer_buffer[0] = command;
+@@ -1124,12 +1124,12 @@ static int firm_send_command (struct usb
+ 	spin_unlock_irqrestore(&command_info->lock, flags);
  
- 	struct TxFifo		txfifo;			/* transmit fifo -- size will be maxTxCredits */
- 	struct urb		*write_urb;		/* write URB for this port */
--	char			write_in_progress;	/* TRUE while a write URB is outstanding */
-+	bool			write_in_progress;	/* 'true' while a write URB is outstanding */
- 	spinlock_t		ep_lock;
+ 	/* wait for the command to complete */
+-	wait_event_interruptible_timeout(command_info->wait_command, 
+-		(command_info->command_finished != FALSE), COMMAND_TIMEOUT);
++	wait_event_interruptible_timeout(command_info->wait_command,
++		(bool)command_info->command_finished, COMMAND_TIMEOUT);
  
- 	__u8			shadowLCR;		/* last LCR value received */
-@@ -123,11 +123,11 @@ struct edgeport_port {
- 	__u8			validDataMask;
- 	__u32			baudRate;
+ 	spin_lock_irqsave(&command_info->lock, flags);
  
--	char			open;
--	char			openPending;
--	char			commandPending;
--	char			closePending;
--	char			chaseResponsePending;
-+	bool			open;
-+	bool			openPending;
-+	bool			commandPending;
-+	bool			closePending;
-+	bool			chaseResponsePending;
+-	if (command_info->command_finished == FALSE) {
++	if (command_info->command_finished == false) {
+ 		dbg("%s - command timed out.", __FUNCTION__);
+ 		retval = -ETIMEDOUT;
+ 		goto exit;
+diff -puN drivers/usb/serial/whiteheat.h~usb-serial-whiteheat-convert-to-generic-boolean drivers/usb/serial/whiteheat.h
+--- a/drivers/usb/serial/whiteheat.h~usb-serial-whiteheat-convert-to-generic-boolean
++++ a/drivers/usb/serial/whiteheat.h
+@@ -20,10 +20,6 @@
+ #define __LINUX_USB_SERIAL_WHITEHEAT_H
  
- 	wait_queue_head_t	wait_chase;		/* for handling sleeping while waiting for chase to finish */
- 	wait_queue_head_t	wait_open;		/* for handling sleeping while waiting for open to finish */
-@@ -156,7 +156,7 @@ struct edgeport_serial {
- 	__u8			bulk_in_endpoint;		/* the bulk in endpoint handle */
- 	unsigned char *		bulk_in_buffer;			/* the buffer we use for the bulk in endpoint */
- 	struct urb *		read_urb;			/* our bulk read urb */
--	int			read_in_progress;
-+	bool			read_in_progress;
- 	spinlock_t		es_lock;
  
- 	__u8			bulk_out_endpoint;		/* the bulk out endpoint handle */
-@@ -631,14 +631,14 @@ static void edge_interrupt_callback (str
- 				if (edge_serial->rxBytesAvail > 0 &&
- 				    !edge_serial->read_in_progress) {
- 					dbg("%s - posting a read", __FUNCTION__);
--					edge_serial->read_in_progress = TRUE;
-+					edge_serial->read_in_progress = true;
- 
- 					/* we have pending bytes on the bulk in pipe, send a request */
- 					edge_serial->read_urb->dev = edge_serial->serial->dev;
- 					result = usb_submit_urb(edge_serial->read_urb, GFP_ATOMIC);
- 					if (result) {
- 						dev_err(&edge_serial->serial->dev->dev, "%s - usb_submit_urb(read bulk) failed with result = %d\n", __FUNCTION__, result);
--						edge_serial->read_in_progress = FALSE;
-+						edge_serial->read_in_progress = false;
- 					}
- 				}
- 				spin_unlock(&edge_serial->es_lock);
-@@ -695,13 +695,13 @@ static void edge_bulk_in_callback (struc
- 
- 	if (urb->status) {
- 		dbg("%s - nonzero read bulk status received: %d", __FUNCTION__, urb->status);
--		edge_serial->read_in_progress = FALSE;
-+		edge_serial->read_in_progress = false;
- 		return;
- 	}
- 
- 	if (urb->actual_length == 0) {
- 		dbg("%s - read bulk callback with no data", __FUNCTION__);
--		edge_serial->read_in_progress = FALSE;
-+		edge_serial->read_in_progress = false;
- 		return;
- 	}
- 
-@@ -725,10 +725,10 @@ static void edge_bulk_in_callback (struc
- 		status = usb_submit_urb(edge_serial->read_urb, GFP_ATOMIC);
- 		if (status) {
- 			dev_err(&urb->dev->dev, "%s - usb_submit_urb(read bulk) failed, status = %d\n", __FUNCTION__, status);
--			edge_serial->read_in_progress = FALSE;
-+			edge_serial->read_in_progress = false;
- 		}
- 	} else {
--		edge_serial->read_in_progress = FALSE;
-+		edge_serial->read_in_progress = false;
- 	}
- 
- 	spin_unlock(&edge_serial->es_lock);
-@@ -759,7 +759,7 @@ static void edge_bulk_out_data_callback 
- 	}
- 
- 	// Release the Write URB
--	edge_port->write_in_progress = FALSE;
-+	edge_port->write_in_progress = false;
- 
- 	// Check if more data needs to be sent
- 	send_more_port_data((struct edgeport_serial *)(usb_get_serial_data(edge_port->port->serial)), edge_port);
-@@ -802,7 +802,7 @@ static void edge_bulk_out_cmd_callback (
- 		tty_wakeup(tty);
- 
- 	/* we have completed the command */
--	edge_port->commandPending = FALSE;
-+	edge_port->commandPending = false;
- 	wake_up(&edge_port->wait_command);
- }
- 
-@@ -868,7 +868,7 @@ static int edge_open (struct usb_serial_
- 				  port0->bulk_in_buffer,
- 				  edge_serial->read_urb->transfer_buffer_length,
- 				  edge_bulk_in_callback, edge_serial);
--		edge_serial->read_in_progress = FALSE;
-+		edge_serial->read_in_progress = false;
- 
- 		/* start interrupt read for this edgeport
- 		 * this interrupt will continue as long as the edgeport is connected */
-@@ -890,26 +890,26 @@ static int edge_open (struct usb_serial_
- 	/* initialize our port settings */
- 	edge_port->txCredits            = 0;			/* Can't send any data yet */
- 	edge_port->shadowMCR            = MCR_MASTER_IE;	/* Must always set this bit to enable ints! */
--	edge_port->chaseResponsePending = FALSE;
-+	edge_port->chaseResponsePending = false;
- 
- 	/* send a open port command */
--	edge_port->openPending = TRUE;
--	edge_port->open        = FALSE;
-+	edge_port->openPending = true;
-+	edge_port->open        = false;
- 	response = send_iosp_ext_cmd (edge_port, IOSP_CMD_OPEN_PORT, 0);
- 
- 	if (response < 0) {
- 		dev_err(&port->dev, "%s - error sending open port command\n", __FUNCTION__);
--		edge_port->openPending = FALSE;
-+		edge_port->openPending = false;
- 		return -ENODEV;
- 	}
- 
- 	/* now wait for the port to be completely opened */
--	wait_event_timeout(edge_port->wait_open, (edge_port->openPending != TRUE), OPEN_TIMEOUT);
-+	wait_event_timeout(edge_port->wait_open, !edge_port->openPending, OPEN_TIMEOUT);
- 
--	if (edge_port->open == FALSE) {
-+	if (!edge_port->open) {
- 		/* open timed out */
- 		dbg("%s - open timedout", __FUNCTION__);
--		edge_port->openPending = FALSE;
-+		edge_port->openPending = false;
- 		return -ENODEV;
- 	}
- 
-@@ -928,7 +928,7 @@ static int edge_open (struct usb_serial_
- 
- 	/* Allocate a URB for the write */
- 	edge_port->write_urb = usb_alloc_urb (0, GFP_KERNEL);
--	edge_port->write_in_progress = FALSE;
-+	edge_port->write_in_progress = false;
- 
- 	if (!edge_port->write_urb) {
- 		dbg("%s - no memory", __FUNCTION__);
-@@ -966,7 +966,7 @@ static void block_until_chase_response(s
- 		lastCredits = edge_port->txCredits;
- 
- 		// Did we get our Chase response
--		if (edge_port->chaseResponsePending == FALSE) {
-+		if (!edge_port->chaseResponsePending) {
- 			dbg("%s - Got Chase Response", __FUNCTION__);
- 
- 			// did we get all of our credit back?
-@@ -985,7 +985,7 @@ static void block_until_chase_response(s
- 			// No activity.. count down.
- 			loop--;
- 			if (loop == 0) {
--				edge_port->chaseResponsePending = FALSE;
-+				edge_port->chaseResponsePending = false;
- 				dbg("%s - Chase TIMEOUT", __FUNCTION__);
- 				return;
- 			}
-@@ -1068,13 +1068,13 @@ static void edge_close (struct usb_seria
- 	// block until tx is empty
- 	block_until_tx_empty(edge_port);
- 
--	edge_port->closePending = TRUE;
-+	edge_port->closePending = true;
- 
- 	if ((!edge_serial->is_epic) ||
- 	    ((edge_serial->is_epic) &&
- 	     (edge_serial->epic_descriptor.Supports.IOSPChase))) {
- 		/* flush and chase */
--		edge_port->chaseResponsePending = TRUE;
-+		edge_port->chaseResponsePending = true;
- 
- 		dbg("%s - Sending IOSP_CMD_CHASE_PORT", __FUNCTION__);
- 		status = send_iosp_ext_cmd (edge_port, IOSP_CMD_CHASE_PORT, 0);
-@@ -1082,7 +1082,7 @@ static void edge_close (struct usb_seria
- 			// block until chase finished
- 			block_until_chase_response(edge_port);
- 		} else {
--			edge_port->chaseResponsePending = FALSE;
-+			edge_port->chaseResponsePending = false;
- 		}
- 	}
- 
-@@ -1094,10 +1094,10 @@ static void edge_close (struct usb_seria
- 		send_iosp_ext_cmd (edge_port, IOSP_CMD_CLOSE_PORT, 0);
- 	}
- 
--	//port->close = TRUE;
--	edge_port->closePending = FALSE;
--	edge_port->open = FALSE;
--	edge_port->openPending = FALSE;
-+	//port->close = true;
-+	edge_port->closePending = false;
-+	edge_port->open = false;
-+	edge_port->openPending = false;
- 
- 	usb_kill_urb(edge_port->write_urb);
- 
-@@ -1247,7 +1247,7 @@ static void send_more_port_data(struct e
- 	}
- 
- 	// lock this write
--	edge_port->write_in_progress = TRUE;
-+	edge_port->write_in_progress = true;
- 
- 	// get a pointer to the write_urb
- 	urb = edge_port->write_urb;
-@@ -1261,7 +1261,7 @@ static void send_more_port_data(struct e
- 	buffer = kmalloc (count+2, GFP_ATOMIC);
- 	if (buffer == NULL) {
- 		dev_err(&edge_port->port->dev, "%s - no more kernel memory...\n", __FUNCTION__);
--		edge_port->write_in_progress = FALSE;
-+		edge_port->write_in_progress = false;
- 		goto exit_send;
- 	}
- 	buffer[0] = IOSP_BUILD_DATA_HDR1 (edge_port->port->number - edge_port->port->serial->minor, count);
-@@ -1301,7 +1301,7 @@ static void send_more_port_data(struct e
- 	if (status) {
- 		/* something went wrong */
- 		dev_err(&edge_port->port->dev, "%s - usb_submit_urb(write bulk) failed, status = %d, data lost\n", __FUNCTION__, status);
--		edge_port->write_in_progress = FALSE;
-+		edge_port->write_in_progress = false;
- 
- 		/* revert the credits as something bad happened. */
- 		edge_port->txCredits += count;
-@@ -1332,7 +1332,7 @@ static int edge_write_room (struct usb_s
- 
- 	if (edge_port == NULL)
- 		return -ENODEV;
--	if (edge_port->closePending == TRUE)
-+	if (edge_port->closePending)
- 		return -ENODEV;
- 
- 	dbg("%s - port %d", __FUNCTION__, port->number);
-@@ -1371,7 +1371,7 @@ static int edge_chars_in_buffer (struct 
- 
- 	if (edge_port == NULL)
- 		return -ENODEV;
--	if (edge_port->closePending == TRUE)
-+	if (edge_port->closePending)
- 		return -ENODEV;
- 
- 	if (!edge_port->open) {
-@@ -1762,7 +1762,7 @@ static void edge_break (struct usb_seria
- 	    ((edge_serial->is_epic) &&
- 	     (edge_serial->epic_descriptor.Supports.IOSPChase))) {
- 		/* flush and chase */
--		edge_port->chaseResponsePending = TRUE;
-+		edge_port->chaseResponsePending = true;
- 
- 		dbg("%s - Sending IOSP_CMD_CHASE_PORT", __FUNCTION__);
- 		status = send_iosp_ext_cmd (edge_port, IOSP_CMD_CHASE_PORT, 0);
-@@ -1770,7 +1770,7 @@ static void edge_break (struct usb_seria
- 			// block until chase finished
- 			block_until_chase_response(edge_port);
- 		} else {
--			edge_port->chaseResponsePending = FALSE;
-+			edge_port->chaseResponsePending = false;
- 		}
- 	}
- 
-@@ -1952,13 +1952,13 @@ static void process_rcvd_status (struct 
- 				// Also, we currently clear flag and close the port regardless of content of above's Byte3.
- 				// We could choose to do something else when Byte3 says Timeout on Chase from Edgeport,
- 				// like wait longer in block_until_chase_response, but for now we don't. 
--				edge_port->chaseResponsePending = FALSE;
-+				edge_port->chaseResponsePending = false;
- 				wake_up (&edge_port->wait_chase);
- 				return;
- 
- 			case IOSP_EXT_STATUS_RX_CHECK_RSP:
- 				dbg("%s ========== Port %u CHECK_RSP Sequence = %02x =============\n", __FUNCTION__, edge_serial->rxPort, byte3 );
--				//Port->RxCheckRsp = TRUE;
-+				//Port->RxCheckRsp = true;
- 				return;
- 		}
- 	}
-@@ -1974,8 +1974,8 @@ static void process_rcvd_status (struct 
- 			change_port_settings (edge_port, edge_port->port->tty->termios);
- 
- 		/* we have completed the open */
--		edge_port->openPending = FALSE;
--		edge_port->open = TRUE;
-+		edge_port->openPending = false;
-+		edge_port->open = true;
- 		wake_up(&edge_port->wait_open);
- 		return;
- 	}
-@@ -1983,7 +1983,7 @@ static void process_rcvd_status (struct 
- 	// If port is closed, silently discard all rcvd status. We can
- 	// have cases where buffered status is received AFTER the close
- 	// port command is sent to the Edgeport.
--	if ((!edge_port->open ) || (edge_port->closePending)) {
-+	if (!edge_port->open || edge_port->closePending) {
- 		return;
- 	}
- 
-@@ -1991,14 +1991,14 @@ static void process_rcvd_status (struct 
- 		// Not currently sent by Edgeport
- 		case IOSP_STATUS_LSR:
- 			dbg("%s - Port %u LSR Status = %02x", __FUNCTION__, edge_serial->rxPort, byte2);
--			handle_new_lsr (edge_port, FALSE, byte2, 0);
-+			handle_new_lsr(edge_port, false, byte2, 0);
- 			break;
- 
- 		case IOSP_STATUS_LSR_DATA:
- 			dbg("%s - Port %u LSR Status = %02x, Data = %02x", __FUNCTION__, edge_serial->rxPort, byte2, byte3);
- 			// byte2 is LSR Register
- 			// byte3 is broken data byte
--			handle_new_lsr (edge_port, TRUE, byte2, byte3);
-+			handle_new_lsr(edge_port, true, byte2, byte3);
- 			break;
- 			//
- 			//	case IOSP_EXT_4_STATUS:
-@@ -2324,7 +2324,7 @@ static int write_cmd_usb (struct edgepor
- 		       usb_sndbulkpipe(edge_serial->serial->dev, edge_serial->bulk_out_endpoint),
- 		       buffer, length, edge_bulk_out_cmd_callback, edge_port);
- 
--	edge_port->commandPending = TRUE;
-+	edge_port->commandPending = true;
- 	status = usb_submit_urb(urb, GFP_ATOMIC);
- 
- 	if (status) {
-@@ -2339,9 +2339,9 @@ static int write_cmd_usb (struct edgepor
- 	// wait for command to finish
- 	timeout = COMMAND_TIMEOUT;
- #if 0
--	wait_event (&edge_port->wait_command, (edge_port->commandPending == FALSE));
-+	wait_event (&edge_port->wait_command, !edge_port->commandPending);
- 
--	if (edge_port->commandPending == TRUE) {
-+	if (edge_port->commandPending) {
- 		/* command timed out */
- 		dbg("%s - command timed out", __FUNCTION__);
- 		status = -EINVAL;
-@@ -2524,8 +2524,8 @@ static void change_port_settings (struct
- 
- 	dbg("%s - port %d", __FUNCTION__, edge_port->port->number);
- 
--	if ((!edge_port->open) &&
--	    (!edge_port->openPending)) {
-+	if (!edge_port->open &&
-+	    !edge_port->openPending) {
- 		dbg("%s - port not opened", __FUNCTION__);
- 		return;
- 	}
-@@ -2836,9 +2836,9 @@ static int edge_startup (struct usb_seri
- 	struct usb_device *dev;
- 	int i, j;
- 	int response;
--	int interrupt_in_found;
--	int bulk_in_found;
--	int bulk_out_found;
-+	bool interrupt_in_found;
-+	bool bulk_in_found;
-+	bool bulk_out_found;
- 	static __u32 descriptor[3] = {	EDGE_COMPATIBILITY_MASK0,
- 					EDGE_COMPATIBILITY_MASK1,
- 					EDGE_COMPATIBILITY_MASK2 };
-@@ -2936,14 +2936,14 @@ static int edge_startup (struct usb_seri
- 	if (edge_serial->is_epic) {
- 		/* EPIC thing, set up our interrupt polling now and our read urb, so
- 		 * that the device knows it really is connected. */
--		interrupt_in_found = bulk_in_found = bulk_out_found = FALSE;
-+		interrupt_in_found = bulk_in_found = bulk_out_found = false;
- 		for (i = 0; i < serial->interface->altsetting[0].desc.bNumEndpoints; ++i) {
- 			struct usb_endpoint_descriptor *endpoint;
- 			int buffer_size;
- 
- 			endpoint = &serial->interface->altsetting[0].endpoint[i].desc;
- 			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
--			if ((!interrupt_in_found) &&
-+			if (!interrupt_in_found &&
- 			    (usb_endpoint_is_int_in(endpoint))) {
- 				/* we found a interrupt in endpoint */
- 				dbg("found interrupt in");
-@@ -2972,10 +2972,10 @@ static int edge_startup (struct usb_seri
- 						 edge_serial,
- 						 endpoint->bInterval);
- 
--				interrupt_in_found = TRUE;
-+				interrupt_in_found = true;
- 			}
- 
--			if ((!bulk_in_found) &&
-+			if (!bulk_in_found &&
- 			    (usb_endpoint_is_bulk_in(endpoint))) {
- 				/* we found a bulk in endpoint */
- 				dbg("found bulk in");
-@@ -3001,19 +3001,19 @@ static int edge_startup (struct usb_seri
- 						  endpoint->wMaxPacketSize,
- 						  edge_bulk_in_callback,
- 						  edge_serial);
--				bulk_in_found = TRUE;
-+				bulk_in_found = true;
- 			}
- 
--			if ((!bulk_out_found) &&
-+			if (!bulk_out_found &&
- 			    (usb_endpoint_is_bulk_out(endpoint))) {
- 				/* we found a bulk out endpoint */
- 				dbg("found bulk out");
- 				edge_serial->bulk_out_endpoint = endpoint->bEndpointAddress;
--				bulk_out_found = TRUE;
-+				bulk_out_found = true;
- 			}
- 		}
- 
--		if ((!interrupt_in_found) || (!bulk_in_found) || (!bulk_out_found)) {
-+		if (!interrupt_in_found || !bulk_in_found || !bulk_out_found) {
- 			err ("Error - the proper endpoints were not found!");
- 			return -ENODEV;
- 		}
-diff -puN drivers/usb/serial/io_edgeport.h~usb-serial-io_edgeport-convert-to-generic-boolean drivers/usb/serial/io_edgeport.h
---- a/drivers/usb/serial/io_edgeport.h~usb-serial-io_edgeport-convert-to-generic-boolean
-+++ a/drivers/usb/serial/io_edgeport.h
-@@ -19,12 +19,6 @@
- #define MAX_RS232_PORTS		8	/* Max # of RS-232 ports per device */
- 
- /* typedefs that the insideout headers need */
--#ifndef TRUE
--	#define TRUE		(1)
--#endif
--#ifndef FALSE
--	#define FALSE		(0)
--#endif
- #ifndef LOW8
- 	#define LOW8(a)		((unsigned char)(a & 0xff))
- #endif
+-#define FALSE	0
+-#define TRUE	1
+-
+-
+ /* WhiteHEAT commands */
+ #define WHITEHEAT_OPEN			1	/* open the port */
+ #define WHITEHEAT_CLOSE			2	/* close the port */
 _
 
 Patches currently in -mm which might be from ricknu-0@student.ltu.se are
@@ -487,3 +86,4 @@ Patches currently in -mm which might be from ricknu-0@student.ltu.se are
 git-netdev-all.patch
 drivers-scsi-aic7xxx_old-convert-to-generic-boolean-values.patch
 usb-serial-io_edgeport-convert-to-generic-boolean.patch
+usb-serial-whiteheat-convert-to-generic-boolean.patch
