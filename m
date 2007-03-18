@@ -1,75 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - fix-process-crash-caused-by-randomisation-and-64k-pages.patch removed from -mm tree
-Date: Sun, 18 Mar 2007 01:10:16 -0800
-Message-ID: <200703180910.l2I9AGm6020078@shell0.pdx.osdl.net>
+Subject: - hrtimer-fixup-unlocked-access-to-wall_to_monotonic.patch removed from -mm tree
+Date: Sun, 18 Mar 2007 01:09:35 -0800
+Message-ID: <200703180909.l2I99ZG5020018@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60516 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60521 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753182AbXCRJKb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 05:10:31 -0400
+	id S1753183AbXCRJKj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 05:10:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: James.Bottomley@SteelEye.com, ak@suse.de, arjan@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix process crash caused by randomisation and 64k pages
+     hrtimer: fix up unlocked access to wall_to_monotonic
 has been removed from the -mm tree.  Its filename was
-     fix-process-crash-caused-by-randomisation-and-64k-pages.patch
+     hrtimer-fixup-unlocked-access-to-wall_to_monotonic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix process crash caused by randomisation and 64k pages
-From: James Bottomley <James.Bottomley@SteelEye.com>
+Subject: hrtimer: fix up unlocked access to wall_to_monotonic
+From: Thomas Gleixner <tglx@linutronix.de>
 
-This bug was seen on ppc64, but it could have occurred on any architecture
-with a page size of 64k or above.  The problem is that
-fs/binfmt_elf.c:randomize_stack_top() randomizes the stack to within 0x7ff
-pages.  On 4k page machines, this is 8MB; on 64k page boxes, this is 128MB.
- The problem is that the new binary layout (selected in
-arch_pick_mmap_layout) places the mapping segment 128MB or the stack rlimit
-away from the top of the process memory, whichever is larger.  If you chose
-an rlimit of less than 128MB (most defaults are in the 8Mb range) then you
-can end up having your entire stack randomized away.
+commit f4304ab21513b834c8fe3403927c60c2b81a72d7 (HZ free NTP) moved the
+access to wall_to_monotonic in hrtimer_get_softirq_time() out of the
+xtime_lock protection.
 
-The fix is to make randomize_stack_top() only steal at most 8MB, which this
-patch does.  However, I have to point out that even with this, your stack
-rlimit might not be exactly what you get if it's > 128MB, because you're
-still losing the random offset of up to 8MB.
+Move it back into the seq_lock section.
 
-The true fix should be to leave an explicit gap for the randomization plus
-a buffer when determining mmap_base, but that would involve fixing all the
-architectures.
-
-Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: John Stultz <johnstul@us.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/hrtimer.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_elf.c~fix-process-crash-caused-by-randomisation-and-64k-pages fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fix-process-crash-caused-by-randomisation-and-64k-pages
-+++ a/fs/binfmt_elf.c
-@@ -507,7 +507,7 @@ out:
- #define INTERPRETER_ELF 2
+diff -puN kernel/hrtimer.c~hrtimer-fixup-unlocked-access-to-wall_to_monotonic kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimer-fixup-unlocked-access-to-wall_to_monotonic
++++ a/kernel/hrtimer.c
+@@ -135,7 +135,7 @@ EXPORT_SYMBOL_GPL(ktime_get_ts);
+ static void hrtimer_get_softirq_time(struct hrtimer_cpu_base *base)
+ {
+ 	ktime_t xtim, tomono;
+-	struct timespec xts;
++	struct timespec xts, tom;
+ 	unsigned long seq;
  
- #ifndef STACK_RND_MASK
--#define STACK_RND_MASK 0x7ff		/* with 4K pages 8MB of VA */
-+#define STACK_RND_MASK (0x7ff >> (PAGE_SHIFT - 12))	/* 8MB of VA */
+ 	do {
+@@ -145,10 +145,11 @@ static void hrtimer_get_softirq_time(str
+ #else
+ 		xts = xtime;
  #endif
++		tom = wall_to_monotonic;
+ 	} while (read_seqretry(&xtime_lock, seq));
  
- static unsigned long randomize_stack_top(unsigned long stack_top)
+ 	xtim = timespec_to_ktime(xts);
+-	tomono = timespec_to_ktime(wall_to_monotonic);
++	tomono = timespec_to_ktime(tom);
+ 	base->clock_base[CLOCK_REALTIME].softirq_time = xtim;
+ 	base->clock_base[CLOCK_MONOTONIC].softirq_time =
+ 		ktime_add(xtim, tomono);
 _
 
-Patches currently in -mm which might be from James.Bottomley@SteelEye.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-git-scsi-misc.patch
-git-scsi-rc-fixes.patch
-fix--confusion-in-fusion-driver.patch
-introduce-config_has_dma.patch
+i386-trust-the-pm-timer-calibration-of-the-local-apic.patch
+git-ieee1394.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
