@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-call-scheme-cleanup.patch added to -mm tree
-Date: Sat, 17 Mar 2007 23:49:51 -0800
-Message-ID: <200703180749.l2I7npD7018345@shell0.pdx.osdl.net>
+Subject: + readahead-state-based-method-cancel-lookahead-gracefully.patch added to -mm tree
+Date: Sat, 17 Mar 2007 23:49:44 -0800
+Message-ID: <200703180749.l2I7niRr018335@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58681 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58684 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753138AbXCRHuA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 03:50:00 -0400
+	id S1753144AbXCRHuC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 18 Mar 2007 03:50:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     readahead: call scheme: cleanup
+     readahead: state based method: cancel lookahead gracefully
 has been added to the -mm tree.  Its filename is
-     readahead-call-scheme-cleanup.patch
+     readahead-state-based-method-cancel-lookahead-gracefully.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,61 +25,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: call scheme: cleanup
+Subject: readahead: state based method: cancel lookahead gracefully
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Merge two similar page_cache_readahead_adaptive() calls into one.
-
-No behavior change.
+When canceling lookahead, update ra->lookahead_index to the next invoke index.
+ So that we see a consistent state in the next time.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ mm/readahead.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/filemap.c~readahead-call-scheme-cleanup mm/filemap.c
---- a/mm/filemap.c~readahead-call-scheme-cleanup
-+++ a/mm/filemap.c
-@@ -934,17 +934,13 @@ void do_generic_mapping_read(struct addr
- find_page:
- 		page = find_get_page(mapping, index);
- 		if (prefer_adaptive_readahead()) {
--			if (unlikely(page == NULL)) {
--				ra.prev_page = prev_index;
--				page_cache_readahead_adaptive(mapping,
--						&ra, filp, NULL,
--						index, last_index - index);
--				page = find_get_page(mapping, index);
--			} else if (PageReadahead(page)) {
-+			if (!page || PageReadahead(page)) {
- 				ra.prev_page = prev_index;
- 				page_cache_readahead_adaptive(mapping,
- 						&ra, filp, page,
- 						index, last_index - index);
-+				if (!page)
-+					page = find_get_page(mapping, index);
- 			}
- 		}
- 		if (unlikely(page == NULL)) {
-@@ -1394,13 +1390,11 @@ struct page *filemap_fault(struct vm_are
- retry_find:
- 	page = find_lock_page(mapping, fdata->pgoff);
- 	if (prefer_adaptive_readahead() && VM_SequentialReadHint(vma)) {
--		if (!page) {
--			page_cache_readahead_adaptive(mapping, ra, file, NULL,
--							fdata->pgoff, 1);
--			page = find_lock_page(mapping, fdata->pgoff);
--		} else if (PageReadahead(page)) {
-+		if (!page || PageReadahead(page)) {
- 			page_cache_readahead_adaptive(mapping, ra, file, page,
- 							fdata->pgoff, 1);
-+			if (!page)
-+				page = find_lock_page(mapping, fdata->pgoff);
- 		}
+diff -puN mm/readahead.c~readahead-state-based-method-cancel-lookahead-gracefully mm/readahead.c
+--- a/mm/readahead.c~readahead-state-based-method-cancel-lookahead-gracefully
++++ a/mm/readahead.c
+@@ -1094,7 +1094,7 @@ state_based_readahead(struct address_spa
+ 
+ 	if (page && remain_space <= la_size) {
+ 		rescue_pages(page, la_size);
+-		return 0;
++		goto cancel_lookahead;
  	}
- 	if (!page) {
+ 
+ 	growth_limit = req_size;
+@@ -1104,7 +1104,7 @@ state_based_readahead(struct address_spa
+ 	    growth_limit = ra_max;
+ 
+ 	if (!adjust_rala(growth_limit, &ra_size, &la_size))
+-		return 0;
++		goto cancel_lookahead;
+ 
+ 	limit_rala(growth_limit, la_old, &ra_size, &la_size);
+ 
+@@ -1113,6 +1113,10 @@ state_based_readahead(struct address_spa
+ 	ra_set_size(ra, ra_size, la_size);
+ 
+ 	return ra_submit(ra, mapping, filp);
++
++cancel_lookahead:
++	ra->lookahead_index = ra->readahead_index;
++	return 0;
+ }
+ 
+ #endif /* CONFIG_ADAPTIVE_READAHEAD */
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
