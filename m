@@ -1,128 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: + prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch added to -mm tree
-Date: Mon, 19 Mar 2007 14:24:53 -0700
-Message-ID: <200703192124.l2JLOr92017673@shell0.pdx.osdl.net>
+Subject: + getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch added to -mm tree
+Date: Mon, 19 Mar 2007 14:26:26 -0700
+Message-ID: <200703192126.l2JLQR4B017712@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57218 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57293 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964868AbXCSV0I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 17:26:08 -0400
+	id S1030528AbXCSV1p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 17:27:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, lenb@kernel.org, tvignaud@mandriva.com
+Cc: dada1@cosmosbay.com, oleg@tv-sign.ru
 
 
 The patch titled
-     prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
+     getrusage(): fill ru_inblock and ru_oublock fields if possible
 has been added to the -mm tree.  Its filename is
-     prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+     getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: getrusage(): fill ru_inblock and ru_oublock fields if possible
+=46rom: Eric Dumazet <dada1@cosmosbay.com>
 
-Cc: Thierry Vignaud <tvignaud@mandriva.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+If CONFIG_TASK_IO_ACCOUNTING is defined, we update io accounting counte=
+rs for
+each task.
+
+This patch permits reporting of values using the well known getrusage()=
+=20
+syscall, filling ru_inblock and ru_oublock instead of null values.
+
+As TASK_IO_ACCOUNTING currently counts bytes counts, we approximate blo=
+cks
+count doing : nr_blocks =3D nr_bytes / 512
+
+Example of use :
+----------------------
+After patch is applied, /usr/bin/time command can now give a good=20
+approximation of IO that the process had to do.
+
+$ /usr/bin/time grep tototo /usr/include/*
+Command exited with non-zero status 1
+0.00user 0.02system 0:02.11elapsed 1%CPU (0avgtext+0avgdata 0maxresiden=
+t)k
+24288inputs+0outputs (0major+259minor)pagefaults 0swaps
+
+$ /usr/bin/time dd if=3D/dev/zero of=3D/tmp/testfile count=3D1000
+1000+0 enregistrements lus
+1000+0 enregistrements =E9crits
+512000 octets (512 kB) copi=E9s, 0,00326601 seconde, 157 MB/s
+0.00user 0.00system 0:00.00elapsed 80%CPU (0avgtext+0avgdata 0maxreside=
+nt)k
+0inputs+3000outputs (0major+299minor)pagefaults 0swaps
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/earlyquirk.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ include/linux/task_io_accounting_ops.h |   28 +++++++++++++++++++++++
+ kernel/sys.c                           |    7 +++++
+ 2 files changed, 35 insertions(+)
 
-diff -puN arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy arch/i386/kernel/acpi/earlyquirk.c
---- a/arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
-+++ a/arch/i386/kernel/acpi/earlyquirk.c
-@@ -21,12 +21,13 @@ static int __init nvidia_hpet_check(stru
- 
- static int __init check_bridge(int vendor, int device)
+diff -puN include/linux/task_io_accounting_ops.h~getrusage-fill-ru_inbl=
+ock-and-ru_oublock-fields-if-possible include/linux/task_io_accounting_=
+ops.h
+--- a/include/linux/task_io_accounting_ops.h~getrusage-fill-ru_inblock-=
+and-ru_oublock-fields-if-possible
++++ a/include/linux/task_io_accounting_ops.h
+@@ -10,11 +10,29 @@ static inline void task_io_account_read(
+ 	current->ioac.read_bytes +=3D bytes;
+ }
+=20
++/*
++ * We approximate number of blocks, because we account bytes only.
++ * A 'block' is 512 bytes
++ */
++static inline unsigned long task_io_get_inblock(const struct task_stru=
+ct *p)
++{
++	return p->ioac.read_bytes >> 9;
++}
++
+ static inline void task_io_account_write(size_t bytes)
  {
--	static int warned = 0;
-+	static int warned;
- #ifdef CONFIG_ACPI
- 	/* According to Nvidia all timer overrides are bogus unless HPET
- 	   is enabled. */
- 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
--		if (!warned && acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
-+		if (!warned && acpi_table_parse(ACPI_SIG_HPET,
-+						nvidia_hpet_check)) {
- 			warned = 1;
- 			acpi_skip_timer_override = 1;
- 			  printk(KERN_INFO "Nvidia board "
+ 	current->ioac.write_bytes +=3D bytes;
+ }
+=20
++/*
++ * We approximate number of blocks, because we account bytes only.
++ * A 'block' is 512 bytes
++ */
++static inline unsigned long task_io_get_oublock(const struct task_stru=
+ct *p)
++{
++	return p->ioac.write_bytes >> 9;
++}
++
+ static inline void task_io_account_cancelled_write(size_t bytes)
+ {
+ 	current->ioac.cancelled_write_bytes +=3D bytes;
+@@ -31,10 +49,20 @@ static inline void task_io_account_read(
+ {
+ }
+=20
++static inline unsigned long task_io_get_inblock(const struct task_stru=
+ct *p)
++{
++	return 0;
++}
++
+ static inline void task_io_account_write(size_t bytes)
+ {
+ }
+=20
++static inline unsigned long task_io_get_oublock(const struct task_stru=
+ct *p)
++{
++	return 0;
++}
++
+ static inline void task_io_account_cancelled_write(size_t bytes)
+ {
+ }
+diff -puN kernel/sys.c~getrusage-fill-ru_inblock-and-ru_oublock-fields-=
+if-possible kernel/sys.c
+--- a/kernel/sys.c~getrusage-fill-ru_inblock-and-ru_oublock-fields-if-p=
+ossible
++++ a/kernel/sys.c
+@@ -29,6 +29,7 @@
+ #include <linux/signal.h>
+ #include <linux/cn_proc.h>
+ #include <linux/getcpu.h>
++#include <linux/task_io_accounting_ops.h>
+=20
+ #include <linux/compat.h>
+ #include <linux/syscalls.h>
+@@ -2021,6 +2022,8 @@ static void k_getrusage(struct task_stru
+ 			r->ru_nivcsw =3D p->signal->cnivcsw;
+ 			r->ru_minflt =3D p->signal->cmin_flt;
+ 			r->ru_majflt =3D p->signal->cmaj_flt;
++			r->ru_inblock =3D task_io_get_inblock(p);
++			r->ru_oublock =3D task_io_get_oublock(p);
+=20
+ 			if (who =3D=3D RUSAGE_CHILDREN)
+ 				break;
+@@ -2032,6 +2035,8 @@ static void k_getrusage(struct task_stru
+ 			r->ru_nivcsw +=3D p->signal->nivcsw;
+ 			r->ru_minflt +=3D p->signal->min_flt;
+ 			r->ru_majflt +=3D p->signal->maj_flt;
++			r->ru_inblock +=3D task_io_get_inblock(p);
++			r->ru_oublock +=3D task_io_get_oublock(p);
+ 			t =3D p;
+ 			do {
+ 				utime =3D cputime_add(utime, t->utime);
+@@ -2040,6 +2045,8 @@ static void k_getrusage(struct task_stru
+ 				r->ru_nivcsw +=3D t->nivcsw;
+ 				r->ru_minflt +=3D t->min_flt;
+ 				r->ru_majflt +=3D t->maj_flt;
++				r->ru_inblock +=3D task_io_get_inblock(t);
++				r->ru_oublock +=3D task_io_get_oublock(t);
+ 				t =3D next_thread(t);
+ 			} while (t !=3D p);
+ 			break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-origin.patch
-machzwd-warning-fix.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-drm.patch
-git-drm-warning-fix.patch
-git-dvb.patch
-git-hid-fix.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-driver_bfin_serial_core-update.patch
-blackfin-blackfin-i2c-driver-update-2.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+optimize-timespec_trunc.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-const=
+ify-them.patch
+vfs-delay-the-dentry-name-generation-on-sockets-and.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
-lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
