@@ -1,118 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - wistron_btns-generic-keymap.patch removed from -mm tree
-Date: Mon, 19 Mar 2007 14:13:14 -0700
-Message-ID: <200703192113.l2JLDE6H017400@shell0.pdx.osdl.net>
+Subject: + remove-mmc_deselect_cards.patch added to -mm tree
+Date: Mon, 19 Mar 2007 14:19:41 -0700
+Message-ID: <200703192119.l2JLJfJt017550@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56613 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57071 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964839AbXCSVN1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 17:13:27 -0400
+	id S1753219AbXCSVXJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 17:23:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Eric.Piel@tremplin-utc.net, dtor@mail.ru, eric.piel@tremplin-utc.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bunk@stusta.de, drzeus@drzeus.cx
 
 
 The patch titled
-     wistron_btns: Generic keymap
-has been removed from the -mm tree.  Its filename was
-     wistron_btns-generic-keymap.patch
+     remove mmc_deselect_cards()
+has been added to the -mm tree.  Its filename is
+     remove-mmc_deselect_cards.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: wistron_btns: Generic keymap
-From: Eric Piel <Eric.Piel@tremplin-utc.net>
+Subject: remove mmc_deselect_cards()
+From: Adrian Bunk <bunk@stusta.de>
 
-It turns out that the mapping of the wistron code is always the same, the
-main present.  Therefore it's possible to write a generic keymap which
-would allow the use of unknown keyboard.  The user can select it specifying
-the parameter "keymap=generic".
+mmc_deselect_cards() is no longer used.
 
-Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/wistron_btns.c |   42 ++++++++++++++++++++++++++--
- 1 file changed, 40 insertions(+), 2 deletions(-)
+ drivers/mmc/core/mmc_ops.c |    5 -----
+ drivers/mmc/core/mmc_ops.h |    1 -
+ 2 files changed, 6 deletions(-)
 
-diff -puN drivers/input/misc/wistron_btns.c~wistron_btns-generic-keymap drivers/input/misc/wistron_btns.c
---- a/drivers/input/misc/wistron_btns.c~wistron_btns-generic-keymap
-+++ a/drivers/input/misc/wistron_btns.c
-@@ -58,7 +58,7 @@ MODULE_PARM_DESC(force, "Load even if co
+diff -puN drivers/mmc/core/mmc_ops.c~remove-mmc_deselect_cards drivers/mmc/core/mmc_ops.c
+--- a/drivers/mmc/core/mmc_ops.c~remove-mmc_deselect_cards
++++ a/drivers/mmc/core/mmc_ops.c
+@@ -53,11 +53,6 @@ int mmc_select_card(struct mmc_card *car
+ 	return _mmc_select_card(card->host, card);
+ }
  
- static char *keymap_name; /* = NULL; */
- module_param_named(keymap, keymap_name, charp, 0);
--MODULE_PARM_DESC(keymap, "Keymap name, if it can't be autodetected");
-+MODULE_PARM_DESC(keymap, "Keymap name, if it can't be autodetected [generic, 1557/MS2141]");
- 
- static struct platform_device *wistron_device;
- 
-@@ -562,6 +562,42 @@ static struct key_entry keymap_wistron_m
- 	{ KE_END, FE_UNTESTED }
- };
- 
-+static struct key_entry keymap_wistron_generic[] = {
-+	{ KE_KEY, 0x01, KEY_HELP },
-+	{ KE_KEY, 0x02, KEY_CONFIG },
-+	{ KE_KEY, 0x03, KEY_POWER },
-+	{ KE_KEY, 0x05, KEY_MEDIA }, /* Display switch */
-+	{ KE_KEY, 0x06, KEY_SCREEN }, /* Display on/off */
-+	{ KE_KEY, 0x08, KEY_MUTE },
-+	{ KE_KEY, 0x11, KEY_PROG1 },
-+	{ KE_KEY, 0x12, KEY_PROG2 },
-+	{ KE_KEY, 0x13, KEY_PROG3 },
-+	{ KE_KEY, 0x14, KEY_MAIL },
-+	{ KE_KEY, 0x15, KEY_WWW },
-+	{ KE_KEY, 0x20, KEY_VOLUMEUP },
-+	{ KE_KEY, 0x21, KEY_VOLUMEDOWN },
-+	{ KE_KEY, 0x22, KEY_REWIND },
-+	{ KE_KEY, 0x23, KEY_FORWARD },
-+	{ KE_KEY, 0x24, KEY_PLAYPAUSE },
-+	{ KE_KEY, 0x25, KEY_STOPCD },
-+	{ KE_KEY, 0x31, KEY_MAIL },
-+	{ KE_KEY, 0x36, KEY_WWW },
-+	{ KE_KEY, 0x37, KEY_SCREEN }, /* Display on/off */
-+	{ KE_KEY, 0x40, KEY_WLAN },
-+	{ KE_KEY, 0x49, KEY_CONFIG },
-+	{ KE_KEY, 0x4a, KEY_CLOSE }, /* lid close */
-+	{ KE_KEY, 0x4b, KEY_OPEN }, /* lid open */
-+	{ KE_KEY, 0x6a, KEY_CONFIG },
-+	{ KE_KEY, 0x6d, KEY_POWER },
-+	{ KE_KEY, 0x71, KEY_STOPCD },
-+	{ KE_KEY, 0x72, KEY_PLAYPAUSE },
-+	{ KE_KEY, 0x74, KEY_REWIND },
-+	{ KE_KEY, 0x78, KEY_FORWARD },
-+	{ KE_WIFI, 0x30, 0 },
-+	{ KE_BLUETOOTH, 0x44, 0 },
-+	{ KE_END, 0 }
-+};
-+
- /*
-  * If your machine is not here (which is currently rather likely), please send
-  * a list of buttons and their key codes (reported when loading this module
-@@ -880,15 +916,17 @@ static struct dmi_system_id dmi_ids[] __
- 
- static int __init select_keymap(void)
+-int mmc_deselect_cards(struct mmc_host *host)
+-{
+-	return _mmc_select_card(host, NULL);
+-}
+-
+ int mmc_go_idle(struct mmc_host *host)
  {
-+	dmi_check_system(dmi_ids);
- 	if (keymap_name != NULL) {
- 		if (strcmp (keymap_name, "1557/MS2141") == 0)
- 			keymap = keymap_wistron_ms2141;
-+		else if (strcmp (keymap_name, "generic") == 0)
-+			keymap = keymap_wistron_generic;
- 		else {
- 			printk(KERN_ERR "wistron_btns: Keymap unknown\n");
- 			return -EINVAL;
- 		}
- 	}
--	dmi_check_system(dmi_ids);
- 	if (keymap == NULL) {
- 		if (!force) {
- 			printk(KERN_ERR "wistron_btns: System unknown\n");
+ 	int err;
+diff -puN drivers/mmc/core/mmc_ops.h~remove-mmc_deselect_cards drivers/mmc/core/mmc_ops.h
+--- a/drivers/mmc/core/mmc_ops.h~remove-mmc_deselect_cards
++++ a/drivers/mmc/core/mmc_ops.h
+@@ -13,7 +13,6 @@
+ #define _MMC_MMC_OPS_H
+ 
+ int mmc_select_card(struct mmc_card *card);
+-int mmc_deselect_cards(struct mmc_host *host);
+ int mmc_go_idle(struct mmc_host *host);
+ int mmc_send_op_cond(struct mmc_host *host, u32 ocr, u32 *rocr);
+ int mmc_all_send_cid(struct mmc_host *host, u32 *cid);
 _
 
-Patches currently in -mm which might be from Eric.Piel@tremplin-utc.net are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-wistron_btns-generic-keymap.patch
+x86_p4_clockmod-must-select-cpu_freq_table.patch
+git-acpi.patch
+git-powerpc.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-mmc_deselect_cards.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-ubi.patch
+git-netdev-all.patch
+drivers-net-vioc-possible-cleanups.patch
+drivers-net-bonding-bond_maincmake-3-functions-static.patch
+net-uninline-skb_put-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+i386-x86_64-early_printkc-make-simnow_init-static.patch
+make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
+lguest-kconfig-and-headers.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
