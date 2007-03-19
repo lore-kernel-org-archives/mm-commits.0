@@ -1,156 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - fix-some-kallsyms_lookup-vs-rmmod-races.patch removed from -mm tree
-Date: Mon, 19 Mar 2007 15:40:44 -0700
-Message-ID: <200703192240.l2JMeiIt019623@shell0.pdx.osdl.net>
+Subject: - race-between-cat-proc-kallsyms-and-rmmod.patch removed from -mm tree
+Date: Mon, 19 Mar 2007 15:40:43 -0700
+Message-ID: <200703192240.l2JMehHd019620@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60011 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60014 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965150AbXCSWlW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 18:41:22 -0400
+	id S965145AbXCSWlY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 18:41:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, pmarques@grupopie.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix some kallsyms_lookup() vs rmmod races
+     Race between cat /proc/kallsyms and rmmod
 has been removed from the -mm tree.  Its filename was
-     fix-some-kallsyms_lookup-vs-rmmod-races.patch
+     race-between-cat-proc-kallsyms-and-rmmod.patch
 
 This patch was dropped because of utter confusion
 
 ------------------------------------------------------
-Subject: Fix some kallsyms_lookup() vs rmmod races
+Subject: Race between cat /proc/kallsyms and rmmod
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
-kallsyms_lookup() can call module_address_lookup() which iterates over
-modules list without module_mutex taken.  Comment at the top of
-module_address_lookup() says it's for oops resolution so races are
-irrelevant, but in some cases it's reachable from regular code:
+Iterating code of /proc/kallsyms calls module_get_kallsym() which grabs and
+drops module_mutex internally and returns "struct module *", module is
+removed, aforementioned "struct module *" is used in non-trivial way.
 
-BUG: unable to handle kernel paging request at virtual address f94fb19c
- printing eip:
-c0138097
-*pde = 33576067
-Oops: 0000 [#1]
-PREEMPT
-Modules linked in: ohci_hcd af_packet e1000 ehci_hcd uhci_hcd usbcore
-CPU:    0
-EIP:    0060:[<c0138097>]    Not tainted VLI
-EFLAGS: 00010246   (2.6.21-rc3-8b9909ded6922c33c221b105b26917780cfa497d #25)
-EIP is at module_address_lookup+0x43/0x24c
-eax: 00000000   ebx: 00000000   ecx: f94fb080   edx: f882e704
-esi: 00000000   edi: 00000000   ebp: 00000000   esp: d30b8e78
-ds: 007b   es: 007b   fs: 00d8  gs: 0033  ss: 0068
-Process cat (pid: 13274, ti=d30b8000 task=d2b50af0 task.ti=d30b8000)
-Stack: d30b8f44 d30b8f48 00008001 00000000 c039a23c d30b8ec4 00000000 d30b8f44
-       d30b8f48 c013876c d30b8f4c 00000000 cf544000 fffffff4 d38ebb7c c01880ff
-       d30b8f4c d30b8ec4 00000246 c0399600 00000001 00000001 00000000 c0399654
-Call Trace:
- [<c013876c>] kallsyms_lookup+0x5e/0x7c
- [<c01880ff>] proc_pid_wchan+0x38/0x76
- [<c01404fe>] __alloc_pages+0x4f/0x2f9
- [<c01891c6>] proc_info_read+0x6f/0xa8
- [<c015bbfd>] sys_fstat64+0x1e/0x23
- [<c01592d4>] vfs_read+0x7d/0xb5
- [<c0189157>] proc_info_read+0x0/0xa8
- [<c0159621>] sys_read+0x41/0x6a
- [<c0103e72>] sysenter_past_esp+0x5f/0x99
- =======================
-Code: 04 8b 51 04 0f 18 02 90 81 3d 4c 8d 39 c0 4c 8d 39 c0 74 3f 8b b9 18 01 00 00 8b 99 10 01 00 00 39 eb 77 07 8d 04 3b 39 c5 72 32 <8b> b1 1c 01 00 00 8b 81 14 01 00 00 39 c5 72 06 01 f0 39 c5 72
-EIP: [<c0138097>] module_address_lookup+0x43/0x24c SS:ESP 0068:d30b8e78
+Steps to reproduce:
+
+	modprobe/rmmod loop
+	cat /proc/kallsyms >/dev/null loop
+
+Copy all needed info under module_mutex.
+
+NOTE: this patch keeps module_mutex static.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Acked-by: Paulo Marques <pmarques@grupopie.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c            |    7 +++++++
- kernel/time/timer_list.c  |    6 ++++++
- kernel/time/timer_stats.c |    6 ++++++
- mm/slab.c                 |    3 +++
- 4 files changed, 22 insertions(+)
+ include/linux/module.h |   13 +++++++++----
+ kernel/kallsyms.c      |   32 +++++++++++++++++---------------
+ kernel/module.c        |   12 ++++++++----
+ 3 files changed, 34 insertions(+), 23 deletions(-)
 
-diff -puN fs/proc/base.c~fix-some-kallsyms_lookup-vs-rmmod-races fs/proc/base.c
---- a/fs/proc/base.c~fix-some-kallsyms_lookup-vs-rmmod-races
-+++ a/fs/proc/base.c
-@@ -61,6 +61,7 @@
- #include <linux/namei.h>
- #include <linux/mnt_namespace.h>
- #include <linux/mm.h>
-+#include <linux/module.h>
- #include <linux/smp_lock.h>
- #include <linux/rcupdate.h>
- #include <linux/kallsyms.h>
-@@ -286,7 +287,13 @@ static int proc_pid_wchan(struct task_st
+diff -puN include/linux/module.h~race-between-cat-proc-kallsyms-and-rmmod include/linux/module.h
+--- a/include/linux/module.h~race-between-cat-proc-kallsyms-and-rmmod
++++ a/include/linux/module.h
+@@ -370,10 +370,12 @@ struct module *module_text_address(unsig
+ struct module *__module_text_address(unsigned long addr);
+ int is_module_address(unsigned long addr);
  
- 	wchan = get_wchan(task);
+-/* Returns module and fills in value, defined and namebuf, or NULL if
++/* Returns 0 and fills in value, defined and namebuf, or -ERANGE if
+    symnum out of range. */
+-struct module *module_get_kallsym(unsigned int symnum, unsigned long *value,
+-				char *type, char *name, size_t namelen);
++int module_get_kallsym(unsigned int symnum, unsigned long *value, char *type,
++			char *name, size_t namelen,
++			char *module_name, size_t module_namelen,
++			int *exported);
  
-+	module_mutex_lock();
- 	sym_name = kallsyms_lookup(wchan, &size, &offset, &modname, namebuf);
-+	/*
-+	 * size, offset, modname aren't used, sym_name is copied into namebuf,
-+	 * so drop it now.
-+	 */
-+	module_mutex_unlock();
- 	if (sym_name)
- 		return sprintf(buffer, "%s", sym_name);
- 	return sprintf(buffer, "%lu", wchan);
-diff -puN kernel/time/timer_list.c~fix-some-kallsyms_lookup-vs-rmmod-races kernel/time/timer_list.c
---- a/kernel/time/timer_list.c~fix-some-kallsyms_lookup-vs-rmmod-races
-+++ a/kernel/time/timer_list.c
-@@ -44,7 +44,13 @@ static void print_name_offset(struct seq
- 	const char *sym_name;
- 	char *modname;
- 
-+	module_mutex_lock();
- 	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
-+	/*
-+	 * size, offset, modname aren't used, sym_name is copied into namebuf,
-+	 * so drop it now.
-+	 */
-+	module_mutex_unlock();
- 	if (sym_name)
- 		SEQ_printf(m, "%s", sym_name);
- 	else
-diff -puN kernel/time/timer_stats.c~fix-some-kallsyms_lookup-vs-rmmod-races kernel/time/timer_stats.c
---- a/kernel/time/timer_stats.c~fix-some-kallsyms_lookup-vs-rmmod-races
-+++ a/kernel/time/timer_stats.c
-@@ -262,7 +262,13 @@ static void print_name_offset(struct seq
- 	const char *sym_name;
- 	char *modname;
- 
-+	module_mutex_lock();
- 	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
-+	/*
-+	 * size, offset, modname aren't used, sym_name is copied into namebuf,
-+	 * so drop it now.
-+	 */
-+	module_mutex_unlock();
- 	if (sym_name)
- 		seq_printf(m, "%s", sym_name);
- 	else
-diff -puN mm/slab.c~fix-some-kallsyms_lookup-vs-rmmod-races mm/slab.c
---- a/mm/slab.c~fix-some-kallsyms_lookup-vs-rmmod-races
-+++ a/mm/slab.c
-@@ -4440,14 +4440,17 @@ static void show_symbol(struct seq_file 
- 	unsigned long offset, size;
- 	char namebuf[KSYM_NAME_LEN+1];
- 
-+	module_mutex_lock();
- 	name = kallsyms_lookup(address, &size, &offset, &modname, namebuf);
- 
- 	if (name) {
- 		seq_printf(m, "%s+%#lx/%#lx", name, offset, size);
- 		if (modname)
- 			seq_printf(m, " [%s]", modname);
-+		module_mutex_unlock();
- 		return;
- 	}
-+	module_mutex_unlock();
- #endif
- 	seq_printf(m, "%p", (void *)address);
+ /* Look for this name: can be of form module:name. */
+ unsigned long module_kallsyms_lookup_name(const char *name);
+@@ -530,7 +532,10 @@ static inline const char *module_address
+ static inline struct module *module_get_kallsym(unsigned int symnum,
+ 						unsigned long *value,
+ 						char *type, char *name,
+-						size_t namelen)
++						size_t namelen,
++						char *module_name,
++						size_t module_namelen,
++						int *exported)
+ {
+ 	return NULL;
  }
+diff -puN kernel/kallsyms.c~race-between-cat-proc-kallsyms-and-rmmod kernel/kallsyms.c
+--- a/kernel/kallsyms.c~race-between-cat-proc-kallsyms-and-rmmod
++++ a/kernel/kallsyms.c
+@@ -301,25 +301,22 @@ void __print_symbol(const char *fmt, uns
+ struct kallsym_iter
+ {
+ 	loff_t pos;
+-	struct module *owner;
+ 	unsigned long value;
+ 	unsigned int nameoff; /* If iterating in core kernel symbols */
+ 	char type;
+ 	char name[KSYM_NAME_LEN+1];
++	char module_name[MODULE_NAME_LEN + 1];
++	int exported;
+ };
+ 
+ static int get_ksymbol_mod(struct kallsym_iter *iter)
+ {
+-	iter->owner = module_get_kallsym(iter->pos - kallsyms_num_syms,
+-					 &iter->value, &iter->type,
+-					 iter->name, sizeof(iter->name));
+-	if (iter->owner == NULL)
++	if (module_get_kallsym(iter->pos - kallsyms_num_syms,
++				 &iter->value, &iter->type,
++				 iter->name, sizeof(iter->name),
++				 iter->module_name, sizeof(iter->module_name),
++				 &iter->exported) < 0)
+ 		return 0;
+-
+-	/* Label it "global" if it is exported, "local" if not exported. */
+-	iter->type = is_exported(iter->name, iter->owner)
+-		? toupper(iter->type) : tolower(iter->type);
+-
+ 	return 1;
+ }
+ 
+@@ -328,7 +325,7 @@ static unsigned long get_ksymbol_core(st
+ {
+ 	unsigned off = iter->nameoff;
+ 
+-	iter->owner = NULL;
++	iter->module_name[0] = '\0';
+ 	iter->value = kallsyms_addresses[iter->pos];
+ 
+ 	iter->type = kallsyms_get_symbol_type(off);
+@@ -392,12 +389,17 @@ static int s_show(struct seq_file *m, vo
+ 	if (!iter->name[0])
+ 		return 0;
+ 
+-	if (iter->owner)
++	if (iter->module_name[0]) {
++		char type;
++
++		/* Label it "global" if it is exported,
++		 * "local" if not exported. */
++		type = iter->exported ? toupper(iter->type) :
++					tolower(iter->type);
+ 		seq_printf(m, "%0*lx %c %s\t[%s]\n",
+ 			   (int)(2*sizeof(void*)),
+-			   iter->value, iter->type, iter->name,
+-			   module_name(iter->owner));
+-	else
++			   iter->value, type, iter->name, iter->module_name);
++	} else
+ 		seq_printf(m, "%0*lx %c %s\n",
+ 			   (int)(2*sizeof(void*)),
+ 			   iter->value, iter->type, iter->name);
+diff -puN kernel/module.c~race-between-cat-proc-kallsyms-and-rmmod kernel/module.c
+--- a/kernel/module.c~race-between-cat-proc-kallsyms-and-rmmod
++++ a/kernel/module.c
+@@ -2119,8 +2119,10 @@ const char *module_address_lookup(unsign
+ 	return NULL;
+ }
+ 
+-struct module *module_get_kallsym(unsigned int symnum, unsigned long *value,
+-				char *type, char *name, size_t namelen)
++int module_get_kallsym(unsigned int symnum, unsigned long *value, char *type,
++			char *name, size_t namelen,
++			char *module_name, size_t module_namelen,
++			int *exported)
+ {
+ 	struct module *mod;
+ 
+@@ -2131,13 +2133,15 @@ struct module *module_get_kallsym(unsign
+ 			*type = mod->symtab[symnum].st_info;
+ 			strlcpy(name, mod->strtab + mod->symtab[symnum].st_name,
+ 				namelen);
++			strlcpy(module_name, mod->name, module_namelen);
++			*exported = is_exported(name, mod);
+ 			mutex_unlock(&module_mutex);
+-			return mod;
++			return 0;
+ 		}
+ 		symnum -= mod->num_symtab;
+ 	}
+ 	mutex_unlock(&module_mutex);
+-	return NULL;
++	return -ERANGE;
+ }
+ 
+ static unsigned long mod_find_symname(struct module *mod, const char *name)
 _
 
 Patches currently in -mm which might be from adobriyan@sw.ru are
@@ -158,6 +186,7 @@ Patches currently in -mm which might be from adobriyan@sw.ru are
 origin.patch
 fix-race-between-proc_readdir-and-remove_proc_entry.patch
 proc-remove-pathetic-deleted-warn_on.patch
+race-between-cat-proc-kallsyms-and-rmmod.patch
 fix-some-kallsyms_lookup-vs-rmmod-races.patch
 fix-rmmod-read-write-races-in-proc-entries.patch
 proc-oom_score-oops-re-badness.patch
