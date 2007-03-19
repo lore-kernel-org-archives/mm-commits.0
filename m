@@ -1,254 +1,396 @@
 From: akpm@linux-foundation.org
-Subject: + getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch added to -mm tree
-Date: Mon, 19 Mar 2007 14:47:44 -0700
-Message-ID: <200703192147.l2JLli1a018367@shell0.pdx.osdl.net>
+Subject: + rtc-kconfig-cleanup.patch added to -mm tree
+Date: Mon, 19 Mar 2007 14:50:19 -0700
+Message-ID: <200703192150.l2JLoOPF018453@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58230 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58323 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030680AbXCSVsZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 17:48:25 -0400
+	id S1753477AbXCSVwP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 17:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, oleg@tv-sign.ru
+Cc: a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     getrusage(): fill ru_inblock and ru_oublock fields if possible
+     RTC Kconfig cleanup
 has been added to the -mm tree.  Its filename is
-     getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+     rtc-kconfig-cleanup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: getrusage(): fill ru_inblock and ru_oublock fields if possible
-=46rom: Eric Dumazet <dada1@cosmosbay.com>
+Subject: RTC Kconfig cleanup
+From: Alessandro Zummo <a.zummo@towertech.it>
 
-If CONFIG_TASK_IO_ACCOUNTING is defined, we update io accounting counte=
-rs for
-each task.
-
-This patch permits reporting of values using the well known getrusage()=
-=20
-syscall, filling ru_inblock and ru_oublock instead of null values.
-
-As TASK_IO_ACCOUNTING currently counts bytes counts, we approximate blo=
-cks
-count doing : nr_blocks =3D nr_bytes / 512
-
-Example of use :
-----------------------
-After patch is applied, /usr/bin/time command can now give a good=20
-approximation of IO that the process had to do.
-
-$ /usr/bin/time grep tototo /usr/include/*
-Command exited with non-zero status 1
-0.00user 0.02system 0:02.11elapsed 1%CPU (0avgtext+0avgdata 0maxresiden=
-t)k
-24288inputs+0outputs (0major+259minor)pagefaults 0swaps
-
-$ /usr/bin/time dd if=3D/dev/zero of=3D/tmp/testfile count=3D1000
-1000+0 enregistrements lus
-1000+0 enregistrements =E9crits
-512000 octets (512 kB) copi=E9s, 0,00326601 seconde, 157 MB/s
-0.00user 0.00system 0:00.00elapsed 80%CPU (0avgtext+0avgdata 0maxreside=
-nt)k
-0inputs+3000outputs (0major+299minor)pagefaults 0swaps
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h                  |    1=20
- include/linux/task_io_accounting_ops.h |   28 +++++++++++++++++++++++
- kernel/exit.c                          |    9 +++++++
- kernel/fork.c                          |    1=20
- kernel/sys.c                           |    7 +++++
- 5 files changed, 46 insertions(+)
+ drivers/rtc/Kconfig |  250 +++++++++++++++++++++---------------------
+ 1 files changed, 130 insertions(+), 120 deletions(-)
 
-diff -puN include/linux/sched.h~getrusage-fill-ru_inblock-and-ru_oubloc=
-k-fields-if-possible include/linux/sched.h
---- a/include/linux/sched.h~getrusage-fill-ru_inblock-and-ru_oublock-fi=
-elds-if-possible
-+++ a/include/linux/sched.h
-@@ -457,6 +457,7 @@ struct signal_struct {
- 	cputime_t utime, stime, cutime, cstime;
- 	unsigned long nvcsw, nivcsw, cnvcsw, cnivcsw;
- 	unsigned long min_flt, maj_flt, cmin_flt, cmaj_flt;
-+	unsigned long inblock, oublock, cinblock, coublock;
-=20
- 	/*
- 	 * Cumulative ns of scheduled CPU time for dead threads in the
-diff -puN include/linux/task_io_accounting_ops.h~getrusage-fill-ru_inbl=
-ock-and-ru_oublock-fields-if-possible include/linux/task_io_accounting_=
-ops.h
---- a/include/linux/task_io_accounting_ops.h~getrusage-fill-ru_inblock-=
-and-ru_oublock-fields-if-possible
-+++ a/include/linux/task_io_accounting_ops.h
-@@ -10,11 +10,29 @@ static inline void task_io_account_read(
- 	current->ioac.read_bytes +=3D bytes;
- }
-=20
-+/*
-+ * We approximate number of blocks, because we account bytes only.
-+ * A 'block' is 512 bytes
-+ */
-+static inline unsigned long task_io_get_inblock(const struct task_stru=
-ct *p)
-+{
-+	return p->ioac.read_bytes >> 9;
-+}
+diff -puN drivers/rtc/Kconfig~rtc-kconfig-cleanup drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-kconfig-cleanup
++++ a/drivers/rtc/Kconfig
+@@ -102,44 +102,26 @@ config RTC_INTF_DEV_UIE_EMUL
+ 	  driver does not expose RTC_UIE ioctls.  Those requests generate
+ 	  once-per-second update interrupts, used for synchronization.
+ 
+-comment "RTC drivers"
++config RTC_DRV_TEST
++	tristate "Test driver/device"
+ 	depends on RTC_CLASS
+-
+-# this 'CMOS' RTC driver is arch dependent because <asm-generic/rtc.h>
+-# requires <asm/mc146818rtc.h> defining CMOS_READ/CMOS_WRITE, and a
+-# global rtc_lock ... it's not yet just another platform_device.
+-
+-config RTC_DRV_CMOS
+-	tristate "PC-style 'CMOS' real time clock"
+-	depends on RTC_CLASS && (X86 || ALPHA || ARM26 || ARM \
+-		|| M32R || ATARI || POWERPC)
+-	help
+-	  Say "yes" here to get direct support for the real time clock
+-	  found in every PC or ACPI-based system, and some other boards.
+-	  Specifically the original MC146818, compatibles like those in
+-	  PC south bridges, the DS12887 or M48T86, some multifunction
+-	  or LPC bus chips, and so on.
+-
+-	  Your system will need to define the platform device used by
+-	  this driver, otherwise it won't be accessible.  This means
+-	  you can safely enable this driver if you don't know whether
+-	  or not your board has this kind of hardware.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-cmos.
+-
+-config RTC_DRV_X1205
+-	tristate "Xicor/Intersil X1205"
+-	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the
+-	  Xicor/Intersil X1205 RTC chip.
++	  RTC test driver. It's a software RTC which can be
++	  used to test the RTC subsystem APIs. It gets
++	  the time from the system clock.
++	  You want this driver only if you are doing development
++	  on the RTC subsystem. Please read the source code
++	  for further details.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-x1205.
++	  will be called rtc-test.
 +
- static inline void task_io_account_write(size_t bytes)
- {
- 	current->ioac.write_bytes +=3D bytes;
- }
-=20
-+/*
-+ * We approximate number of blocks, because we account bytes only.
-+ * A 'block' is 512 bytes
-+ */
-+static inline unsigned long task_io_get_oublock(const struct task_stru=
-ct *p)
-+{
-+	return p->ioac.write_bytes >> 9;
-+}
++comment "I2C RTC drivers"
++	depends on RTC_CLASS
+ 
+ config RTC_DRV_DS1307
+-	tristate "Dallas/Maxim DS1307 and similar I2C RTC chips"
++	tristate "Dallas/Maxim DS1307/37/38/39/40, ST M41T00"
+ 	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for various compatible RTC
+@@ -156,53 +138,55 @@ config RTC_DRV_DS1307
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1307.
+ 
+-config RTC_DRV_DS1553
+-	tristate "Dallas DS1553"
+-	depends on RTC_CLASS
++config RTC_DRV_DS1672
++	tristate "Dallas/Maxim DS1672"
++	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the
+-	  Dallas DS1553 timekeeping chip.
++	  Dallas/Maxim DS1672 timekeeping chip.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-ds1553.
++	  will be called rtc-ds1672.
+ 
+-config RTC_DRV_ISL1208
+-	tristate "Intersil 1208"
++config RTC_DRV_MAX6900
++	tristate "Maxim 6900"
+ 	depends on RTC_CLASS && I2C
+ 	help
+-	  If you say yes here you get support for the
+-	  Intersil 1208 RTC chip.
++	  If you say yes here you will get support for the
++	  Maxim MAX6900 I2C RTC chip.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-isl1208.
++	  will be called rtc-max6900.
+ 
+-config RTC_DRV_DS1672
+-	tristate "Dallas/Maxim DS1672"
++config RTC_DRV_RS5C372
++	tristate "Ricoh RS5C372A/B"
+ 	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the
+-	  Dallas/Maxim DS1672 timekeeping chip.
++	  Ricoh RS5C372A and RS5C372B RTC chips.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-ds1672.
++	  will be called rtc-rs5c372.
+ 
+-config RTC_DRV_DS1742
+-	tristate "Dallas DS1742/1743"
+-	depends on RTC_CLASS
++config RTC_DRV_ISL1208
++	tristate "Intersil 1208"
++	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the
+-	  Dallas DS1742/1743 timekeeping chip.
++	  Intersil 1208 RTC chip.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-ds1742.
++	  will be called rtc-isl1208.
+ 
+-config RTC_DRV_OMAP
+-	tristate "TI OMAP1"
+-	depends on RTC_CLASS && ( \
+-		ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 )
++config RTC_DRV_X1205
++	tristate "Xicor/Intersil X1205"
++	depends on RTC_CLASS && I2C
+ 	help
+-	  Say "yes" here to support the real time clock on TI OMAP1 chips.
+-	  This driver can also be built as a module called rtc-omap.
++	  If you say yes here you get support for the
++	  Xicor/Intersil X1205 RTC chip.
 +
- static inline void task_io_account_cancelled_write(size_t bytes)
- {
- 	current->ioac.cancelled_write_bytes +=3D bytes;
-@@ -31,10 +49,20 @@ static inline void task_io_account_read(
- {
- }
-=20
-+static inline unsigned long task_io_get_inblock(const struct task_stru=
-ct *p)
-+{
-+	return 0;
-+}
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-x1205.
+ 
+ config RTC_DRV_PCF8563
+ 	tristate "Philips PCF8563/Epson RTC8564"
+@@ -217,16 +201,20 @@ config RTC_DRV_PCF8563
+ 
+ config RTC_DRV_PCF8583
+ 	tristate "Philips PCF8583"
+-	depends on RTC_CLASS && I2C && ARCH_RPC
++	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the Philips PCF8583
+-	  RTC chip found on Acorn RiscPCs.  This driver supports the
++	  RTC chip found on Acorn RiscPCs. This driver supports the
+ 	  platform specific method of retrieving the current year from
+-	  the RTC's SRAM.
++	  the RTC's SRAM. It will work on other platforms with the same
++	  chip, but the year will probably have to be tweaked.
+ 
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-pcf8583.
+ 
++comment "SPI RTC drivers"
++	depends on RTC_CLASS
 +
- static inline void task_io_account_write(size_t bytes)
- {
- }
-=20
-+static inline unsigned long task_io_get_oublock(const struct task_stru=
-ct *p)
-+{
-+	return 0;
-+}
+ config RTC_DRV_RS5C348
+ 	tristate "Ricoh RS5C348A/B"
+ 	depends on RTC_CLASS && SPI
+@@ -237,15 +225,92 @@ config RTC_DRV_RS5C348
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-rs5c348.
+ 
+-config RTC_DRV_RS5C372
+-	tristate "Ricoh RS5C372A/B"
+-	depends on RTC_CLASS && I2C
++config RTC_DRV_MAX6902
++	tristate "Maxim 6902"
++	depends on RTC_CLASS && SPI
++	help
++	  If you say yes here you will get support for the
++	  Maxim MAX6902 SPI RTC chip.
 +
- static inline void task_io_account_cancelled_write(size_t bytes)
- {
- }
-diff -puN kernel/exit.c~getrusage-fill-ru_inblock-and-ru_oublock-fields=
--if-possible kernel/exit.c
---- a/kernel/exit.c~getrusage-fill-ru_inblock-and-ru_oublock-fields-if-=
-possible
-+++ a/kernel/exit.c
-@@ -42,6 +42,7 @@
- #include <linux/audit.h> /* for audit_free() */
- #include <linux/resource.h>
- #include <linux/blkdev.h>
-+#include <linux/task_io_accounting_ops.h>
-=20
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
-@@ -113,6 +114,8 @@ static void __exit_signal(struct task_st
- 		sig->nvcsw +=3D tsk->nvcsw;
- 		sig->nivcsw +=3D tsk->nivcsw;
- 		sig->sched_time +=3D tsk->sched_time;
-+		sig->inblock +=3D task_io_get_inblock(tsk);
-+		sig->oublock +=3D task_io_get_oublock(tsk);
- 		sig =3D NULL; /* Marker for below. */
- 	}
-=20
-@@ -1191,6 +1194,12 @@ static int wait_task_zombie(struct task_
- 			p->nvcsw + sig->nvcsw + sig->cnvcsw;
- 		psig->cnivcsw +=3D
- 			p->nivcsw + sig->nivcsw + sig->cnivcsw;
-+		psig->cinblock +=3D
-+			task_io_get_inblock(p) +
-+			sig->inblock + sig->cinblock;
-+		psig->coublock +=3D
-+			task_io_get_oublock(p) +
-+			sig->oublock + sig->coublock;
- 		spin_unlock_irq(&p->parent->sighand->siglock);
- 	}
-=20
-diff -puN kernel/fork.c~getrusage-fill-ru_inblock-and-ru_oublock-fields=
--if-possible kernel/fork.c
---- a/kernel/fork.c~getrusage-fill-ru_inblock-and-ru_oublock-fields-if-=
-possible
-+++ a/kernel/fork.c
-@@ -875,6 +875,7 @@ static inline int copy_signal(unsigned l
- 	sig->utime =3D sig->stime =3D sig->cutime =3D sig->cstime =3D cputime=
-_zero;
- 	sig->nvcsw =3D sig->nivcsw =3D sig->cnvcsw =3D sig->cnivcsw =3D 0;
- 	sig->min_flt =3D sig->maj_flt =3D sig->cmin_flt =3D sig->cmaj_flt =3D=
- 0;
-+	sig->inblock =3D sig->oublock =3D sig->cinblock =3D sig->coublock =3D=
- 0;
- 	sig->sched_time =3D 0;
- 	INIT_LIST_HEAD(&sig->cpu_timers[0]);
- 	INIT_LIST_HEAD(&sig->cpu_timers[1]);
-diff -puN kernel/sys.c~getrusage-fill-ru_inblock-and-ru_oublock-fields-=
-if-possible kernel/sys.c
---- a/kernel/sys.c~getrusage-fill-ru_inblock-and-ru_oublock-fields-if-p=
-ossible
-+++ a/kernel/sys.c
-@@ -29,6 +29,7 @@
- #include <linux/signal.h>
- #include <linux/cn_proc.h>
- #include <linux/getcpu.h>
-+#include <linux/task_io_accounting_ops.h>
-=20
- #include <linux/compat.h>
- #include <linux/syscalls.h>
-@@ -2021,6 +2022,8 @@ static void k_getrusage(struct task_stru
- 			r->ru_nivcsw =3D p->signal->cnivcsw;
- 			r->ru_minflt =3D p->signal->cmin_flt;
- 			r->ru_majflt =3D p->signal->cmaj_flt;
-+			r->ru_inblock =3D p->signal->cinblock;
-+			r->ru_oublock =3D p->signal->coublock;
-=20
- 			if (who =3D=3D RUSAGE_CHILDREN)
- 				break;
-@@ -2032,6 +2035,8 @@ static void k_getrusage(struct task_stru
- 			r->ru_nivcsw +=3D p->signal->nivcsw;
- 			r->ru_minflt +=3D p->signal->min_flt;
- 			r->ru_majflt +=3D p->signal->maj_flt;
-+			r->ru_inblock +=3D p->signal->inblock;
-+			r->ru_oublock +=3D p->signal->oublock;
- 			t =3D p;
- 			do {
- 				utime =3D cputime_add(utime, t->utime);
-@@ -2040,6 +2045,8 @@ static void k_getrusage(struct task_stru
- 				r->ru_nivcsw +=3D t->nivcsw;
- 				r->ru_minflt +=3D t->min_flt;
- 				r->ru_majflt +=3D t->maj_flt;
-+				r->ru_inblock +=3D task_io_get_inblock(t);
-+				r->ru_oublock +=3D task_io_get_oublock(t);
- 				t =3D next_thread(t);
- 			} while (t !=3D p);
- 			break;
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-max6902.
++
++comment "Platform RTC drivers"
++	depends on RTC_CLASS
++
++# this 'CMOS' RTC driver is arch dependent because <asm-generic/rtc.h>
++# requires <asm/mc146818rtc.h> defining CMOS_READ/CMOS_WRITE, and a
++# global rtc_lock ... it's not yet just another platform_device.
++
++config RTC_DRV_CMOS
++	tristate "PC-style 'CMOS'"
++	depends on RTC_CLASS && (X86 || ALPHA || ARM26 || ARM \
++		|| M32R || ATARI || POWERPC)
++	help
++	  Say "yes" here to get direct support for the real time clock
++	  found in every PC or ACPI-based system, and some other boards.
++	  Specifically the original MC146818, compatibles like those in
++	  PC south bridges, the DS12887 or M48T86, some multifunction
++	  or LPC bus chips, and so on.
++
++	  Your system will need to define the platform device used by
++	  this driver, otherwise it won't be accessible.  This means
++	  you can safely enable this driver if you don't know whether
++	  or not your board has this kind of hardware.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-cmos.
++
++config RTC_DRV_DS1553
++	tristate "Dallas DS1553"
++	depends on RTC_CLASS
+ 	help
+ 	  If you say yes here you get support for the
+-	  Ricoh RS5C372A and RS5C372B RTC chips.
++	  Dallas DS1553 timekeeping chip.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-rs5c372.
++	  will be called rtc-ds1553.
++
++config RTC_DRV_DS1742
++	tristate "Dallas DS1742/1743"
++	depends on RTC_CLASS
++	help
++	  If you say yes here you get support for the
++	  Dallas DS1742/1743 timekeeping chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-ds1742.
++
++config RTC_DRV_M48T86
++	tristate "ST M48T86/Dallas DS12887"
++	depends on RTC_CLASS
++	help
++	  If you say Y here you will get support for the
++	  ST M48T86 and Dallas DS12887 RTC chips.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-m48t86.
++
++config RTC_DRV_V3020
++	tristate "EM Microelectronic V3020"
++	depends on RTC_CLASS
++	help
++	  If you say yes here you will get support for the
++	  EM Microelectronic v3020 RTC chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-v3020.
++
++comment "on-CPU RTC drivers"
++	depends on RTC_CLASS
++
++config RTC_DRV_OMAP
++	tristate "TI OMAP1"
++	depends on RTC_CLASS && ( \
++		ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 )
++	help
++	  Say "yes" here to support the real time clock on TI OMAP1 chips.
++	  This driver can also be built as a module called rtc-omap.
+ 
+ config RTC_DRV_S3C
+ 	tristate "Samsung S3C series SoC RTC"
+@@ -263,16 +328,6 @@ config RTC_DRV_S3C
+ 	  This driver can also be build as a module. If so, the module
+ 	  will be called rtc-s3c.
+ 
+-config RTC_DRV_M48T86
+-	tristate "ST M48T86/Dallas DS12887"
+-	depends on RTC_CLASS
+-	help
+-	  If you say Y here you will get support for the
+-	  ST M48T86 and Dallas DS12887 RTC chips.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-m48t86.
+-
+ config RTC_DRV_EP93XX
+ 	tristate "Cirrus Logic EP93XX"
+ 	depends on RTC_CLASS && ARCH_EP93XX
+@@ -318,7 +373,7 @@ config RTC_DRV_PL031
+ 	depends on RTC_CLASS && ARM_AMBA
+ 	help
+ 	  If you say Y here you will get access to ARM AMBA
+-	  PrimeCell PL031 UART found on certain ARM SOCs.
++	  PrimeCell PL031 RTC found on certain ARM SOCs.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called rtc-pl031.
+@@ -329,51 +384,6 @@ config RTC_DRV_AT91RM9200
+ 	help
+ 	  Driver for the Atmel AT91RM9200's internal RTC (Realtime Clock).
+ 
+-config RTC_DRV_TEST
+-	tristate "Test driver/device"
+-	depends on RTC_CLASS
+-	help
+-	  If you say yes here you get support for the
+-	  RTC test driver. It's a software RTC which can be
+-	  used to test the RTC subsystem APIs. It gets
+-	  the time from the system clock.
+-	  You want this driver only if you are doing development
+-	  on the RTC subsystem. Please read the source code
+-	  for further details.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-test.
+-
+-config RTC_DRV_MAX6900
+-	tristate "Maxim 6900"
+-	depends on RTC_CLASS && I2C
+-	help
+-	  If you say yes here you will get support for the
+-	  Maxim MAX6900 I2C RTC chip.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-max6900.
+-
+-config RTC_DRV_MAX6902
+-	tristate "Maxim 6902"
+-	depends on RTC_CLASS && SPI
+-	help
+-	  If you say yes here you will get support for the
+-	  Maxim MAX6902 spi RTC chip.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-max6902.
+-
+-config RTC_DRV_V3020
+-	tristate "EM Microelectronic V3020"
+-	depends on RTC_CLASS
+-	help
+-	  If you say yes here you will get support for the
+-	  EM Microelectronic v3020 RTC chip.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-v3020.
+-
+ config RTC_DRV_BFIN
+ 	tristate "Blackfin On-Chip RTC"
+ 	depends on RTC_CLASS && BFIN
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from a.zummo@towertech.it are
 
-optimize-timespec_trunc.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-const=
-ify-them.patch
-vfs-delay-the-dentry-name-generation-on-sockets-and.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
+blackfin-on-chip-rtc-controller-driver.patch
+rtc-add-rtc-rs5c313-driver.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+rtc-remove-sys-class-rtc-dev.patch
+rtc-rtc-interfaces-dont-use-class_device.patch
+rtc-simplified-rtc-sysfs-attribute-handling.patch
+rtc-simplified-proc-driver-rtc-handling.patch
+rtc-remove-rest-of-class_device.patch
+rtc-suspend-resume-restores-system-clock.patch
+rtc-kconfig-cleanup.patch
