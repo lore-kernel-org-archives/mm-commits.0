@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + prevent-acpi-quirk-warning-mass-spamming-in-logs.patch added to -mm tree
-Date: Mon, 19 Mar 2007 14:24:51 -0700
-Message-ID: <200703192124.l2JLOpRt017667@shell0.pdx.osdl.net>
+Subject: + prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch added to -mm tree
+Date: Mon, 19 Mar 2007 14:24:53 -0700
+Message-ID: <200703192124.l2JLOr92017673@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57219 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57218 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964960AbXCSV0I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S964868AbXCSV0I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Mon, 19 Mar 2007 17:26:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tvignaud@mandriva.com, ak@suse.de, lenb@kernel.org
+Cc: akpm@linux-foundation.org, ak@suse.de, lenb@kernel.org, tvignaud@mandriva.com
 
 
 The patch titled
-     prevent ACPI quirk warning mass spamming in logs
+     prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
 has been added to the -mm tree.  Its filename is
-     prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
+     prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: prevent ACPI quirk warning mass spamming in logs
-From: Thierry Vignaud <tvignaud@mandriva.com>
+Subject: prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The following patch prevent this warning to be displayed again & again (eg:
-nine times on my NForce2 motherboard) and thus improve signal to noise
-ratio in logs.
-
-The ATI quirk below probably needs a similar "fix" but I don't have
-the hardware to test.
-
-Btw arch/x86_64/kernel/early-quirks.c::nvidia_bugs() would probably need to
-be synced (but I don't have an x86_64 NVidia motherboard to boot test it). 
-Still it shows the usefullity of the recent x86 merge thread.
-
-Signed-off-by: Thierry Vignaud <tvignaud@mandriva.com>
+Cc: Thierry Vignaud <tvignaud@mandriva.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/earlyquirk.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ arch/i386/kernel/acpi/earlyquirk.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs arch/i386/kernel/acpi/earlyquirk.c
---- a/arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs
+diff -puN arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy arch/i386/kernel/acpi/earlyquirk.c
+--- a/arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
 +++ a/arch/i386/kernel/acpi/earlyquirk.c
-@@ -21,11 +21,13 @@ static int __init nvidia_hpet_check(stru
+@@ -21,12 +21,13 @@ static int __init nvidia_hpet_check(stru
  
  static int __init check_bridge(int vendor, int device)
  {
-+	static int warned = 0;
+-	static int warned = 0;
++	static int warned;
  #ifdef CONFIG_ACPI
  	/* According to Nvidia all timer overrides are bogus unless HPET
  	   is enabled. */
  	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
--		if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
-+		if (!warned && acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
-+			warned = 1;
+-		if (!warned && acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
++		if (!warned && acpi_table_parse(ACPI_SIG_HPET,
++						nvidia_hpet_check)) {
+ 			warned = 1;
  			acpi_skip_timer_override = 1;
  			  printk(KERN_INFO "Nvidia board "
-                        "detected. Ignoring ACPI "
 _
 
-Patches currently in -mm which might be from tvignaud@mandriva.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
+origin.patch
+machzwd-warning-fix.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-drm.patch
+git-drm-warning-fix.patch
+git-dvb.patch
+git-hid-fix.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
 prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+driver_bfin_serial_core-update.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lists-add-list-splice-tail.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
