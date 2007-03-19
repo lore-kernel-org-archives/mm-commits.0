@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-fix-two-reported-pid-leaks.patch added to -mm tree
-Date: Sun, 18 Mar 2007 10:55:26 -0800
-Message-ID: <200703181855.l2IItQbc028442@shell0.pdx.osdl.net>
+Subject: + tty-remove-unnecessary-export-of-proc_clear_tty.patch added to -mm tree
+Date: Sun, 18 Mar 2007 22:33:09 -0800
+Message-ID: <200703190633.l2J6X9iT007882@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49291 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44384 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932960AbXCRSz3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 Mar 2007 14:55:29 -0400
+	id S965694AbXCSGd0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 02:33:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, catalin.marians@gmail.com
+Cc: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     tty: fix two reported pid leaks
+     tty: remove unnecessary export of proc_clear_tty
 has been added to the -mm tree.  Its filename is
-     tty-fix-two-reported-pid-leaks.patch
+     tty-remove-unnecessary-export-of-proc_clear_tty.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: fix two reported pid leaks
+Subject: tty: remove unnecessary export of proc_clear_tty
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-These leaks were reported by: Catalin Marinas <catalin.marians@gmail.com>
-and I have been able to very by inspection they are possible.
-
-When converting tty_io.c to store pids as struct pid pointers instead of
-pid_t values it appears I overlooked two places where we stop using the pid
-value.  The very obvious one is in do_tty_hangup, and the one the less
-obvious one in __proc_set_tty.
-
-When looking into the code __proc_set_tty only has pids that need to be put
-because of failures of other parts of the code to properly perform hangup
-processing.  Fixing the leak here in __proc_set_tty is easy and obviously
-correct so I am doing that first.
-
-Fixing the places that should be performing hangup processing is much less
-obviously correct.  So those I'm aiming those patches at -mm.  for now, so
-the can age a while before they are merged.
+All of the users of proc_clear_tty are compiled into the kernel so exporting
+this symbol appears gratuitous.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/char/tty_io.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/tty_io.c~tty-fix-two-reported-pid-leaks drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-fix-two-reported-pid-leaks
+diff -puN drivers/char/tty_io.c~tty-remove-unnecessary-export-of-proc_clear_tty drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-remove-unnecessary-export-of-proc_clear_tty
 +++ a/drivers/char/tty_io.c
-@@ -1374,6 +1374,8 @@ static void do_tty_hangup(struct work_st
- 	read_unlock(&tasklist_lock);
+@@ -3835,7 +3835,6 @@ void proc_clear_tty(struct task_struct *
+ 	p->signal->tty = NULL;
+ 	spin_unlock_irq(&p->sighand->siglock);
+ }
+-EXPORT_SYMBOL(proc_clear_tty);
  
- 	tty->flags = 0;
-+	put_pid(tty->session);
-+	put_pid(tty->pgrp);
- 	tty->session = NULL;
- 	tty->pgrp = NULL;
- 	tty->ctrl_status = 0;
-@@ -3839,6 +3841,9 @@ static struct pid *__proc_set_tty(struct
+ static struct pid *__proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
  {
- 	struct pid *old_pgrp;
- 	if (tty) {
-+		/* We should not have a session or pgrp to here but.... */
-+		put_pid(tty->session);
-+		put_pid(tty->pgrp);
- 		tty->session = get_pid(task_session(tsk));
- 		tty->pgrp = get_pid(task_pgrp(tsk));
- 	}
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -96,6 +72,10 @@ fix-race-between-proc_get_inode-and-remove_proc_entry.patch
 fix-race-between-proc_readdir-and-remove_proc_entry.patch
 procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
 tty-fix-two-reported-pid-leaks.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
 edac-k8-driver-coding-tidy.patch
 statically-initialize-struct-pid-for-swapper.patch
 explicitly-set-pgid-and-sid-of-init-process.patch
