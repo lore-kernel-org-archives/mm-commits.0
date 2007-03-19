@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-introduce-no_tty-and-use-it-in-selinux.patch added to -mm tree
-Date: Sun, 18 Mar 2007 22:33:13 -0800
-Message-ID: <200703190633.l2J6XDbL007892@shell0.pdx.osdl.net>
+Subject: + jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch added to -mm tree
+Date: Sun, 18 Mar 2007 22:33:51 -0800
+Message-ID: <200703190633.l2J6XpoF007959@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44393 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44405 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965687AbXCSGdm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 02:33:42 -0400
+	id S965694AbXCSGeA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 02:34:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk
+Cc: rpjday@mindspring.com, dwmw2@infradead.org
 
 
 The patch titled
-     tty: introduce no_tty and use it in selinux
+     JFFS2: Delete everything related to obsolete JFFS2_PROC option
 has been added to the -mm tree.  Its filename is
-     tty-introduce-no_tty-and-use-it-in-selinux.patch
+     jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,156 +25,216 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: introduce no_tty and use it in selinux
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: JFFS2: Delete everything related to obsolete JFFS2_PROC option
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-While researching the tty layer pid leaks I found a weird case in selinux when
-we drop a controlling tty because of inadequate permissions we don't do the
-normal hangup processing.  Which is a problem if it happens the session leader
-has exec'd something that can no longer access the tty.
+Delete everything related to the apparently non-existent kernel config
+option JFFS2_PROC.
 
-We already have code in the kernel to handle this case in the form of the
-TIOCNOTTY ioctl.  So this patch factors out a helper function that is the
-essence of that ioctl and calls it from the selinux code.
-
-This removes the inconsistency in handling dropping of a controlling tty and
-who knows it might even make some part of user space happy because it received
-a SIGHUP it was expecting.
-
-In addition since this removes the last user of proc_set_tty outside of
-tty_io.c proc_set_tty is made static and removed from tty.h
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c    |   19 +++++++++++++++----
- include/linux/tty.h      |    2 +-
- security/selinux/hooks.c |    7 +++----
- 3 files changed, 19 insertions(+), 9 deletions(-)
+ fs/jffs2/compr.c |  138 ---------------------------------------------
+ fs/jffs2/compr.h |   10 ---
+ 2 files changed, 148 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-introduce-no_tty-and-use-it-in-selinux drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-introduce-no_tty-and-use-it-in-selinux
-+++ a/drivers/char/tty_io.c
-@@ -154,6 +154,7 @@ int tty_ioctl(struct inode * inode, stru
- static int tty_fasync(int fd, struct file * filp, int on);
- static void release_tty(struct tty_struct *tty, int idx);
- static void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
-+static void proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
- 
- /**
-  *	alloc_tty_struct	-	allocate a tty object
-@@ -1558,6 +1559,18 @@ void disassociate_ctty(int on_exit)
- 	unlock_kernel();
+diff -puN fs/jffs2/compr.c~jffs2-delete-everything-related-to-obsolete-jffs2_proc fs/jffs2/compr.c
+--- a/fs/jffs2/compr.c~jffs2-delete-everything-related-to-obsolete-jffs2_proc
++++ a/fs/jffs2/compr.c
+@@ -268,144 +268,6 @@ int jffs2_unregister_compressor(struct j
+         return 0;
  }
  
-+/**
-+ *
-+ *	no_tty	- Ensure the current process does not have a controlling tty
-+ */
-+void no_tty(void)
-+{
-+	struct task_struct *tsk = current;
-+	if (tsk->signal->leader)
-+		disassociate_ctty(0);
-+	proc_clear_tty(tsk);
-+}
-+
- 
- /**
-  *	stop_tty	-	propogate flow control
-@@ -3280,9 +3293,7 @@ int tty_ioctl(struct inode * inode, stru
- 		case TIOCNOTTY:
- 			if (current->signal->tty != tty)
- 				return -ENOTTY;
--			if (current->signal->leader)
--				disassociate_ctty(0);
--			proc_clear_tty(current);
-+			no_tty();
- 			return 0;
- 		case TIOCSCTTY:
- 			return tiocsctty(tty, arg);
-@@ -3845,7 +3856,7 @@ static void __proc_set_tty(struct task_s
- 	tsk->signal->tty_old_pgrp = NULL;
- }
- 
--void proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
-+static void proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
- {
- 	spin_lock_irq(&tsk->sighand->siglock);
- 	__proc_set_tty(tsk, tty);
-diff -puN include/linux/tty.h~tty-introduce-no_tty-and-use-it-in-selinux include/linux/tty.h
---- a/include/linux/tty.h~tty-introduce-no_tty-and-use-it-in-selinux
-+++ a/include/linux/tty.h
-@@ -313,6 +313,7 @@ extern int tty_hung_up_p(struct file * f
- extern void do_SAK(struct tty_struct *tty);
- extern void __do_SAK(struct tty_struct *tty);
- extern void disassociate_ctty(int priv);
-+extern void no_tty(void);
- extern void tty_flip_buffer_push(struct tty_struct *tty);
- extern speed_t tty_get_baud_rate(struct tty_struct *tty);
- extern speed_t tty_termios_baud_rate(struct ktermios *termios);
-@@ -333,7 +334,6 @@ extern int tty_ioctl(struct inode *inode
- 
- extern dev_t tty_devnum(struct tty_struct *tty);
- extern void proc_clear_tty(struct task_struct *p);
--extern void proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
- extern struct tty_struct *get_current_tty(void);
- 
- extern struct mutex tty_mutex;
-diff -puN security/selinux/hooks.c~tty-introduce-no_tty-and-use-it-in-selinux security/selinux/hooks.c
---- a/security/selinux/hooks.c~tty-introduce-no_tty-and-use-it-in-selinux
-+++ a/security/selinux/hooks.c
-@@ -1758,12 +1758,11 @@ static inline void flush_unauthorized_fi
- 			}
- 		}
- 		file_list_unlock();
+-#ifdef CONFIG_JFFS2_PROC
 -
--		/* Reset controlling tty. */
--		if (drop_tty)
--			proc_set_tty(current, NULL);
- 	}
- 	mutex_unlock(&tty_mutex);
-+	/* Reset controlling tty. */
-+	if (drop_tty)
-+		no_tty();
+-#define JFFS2_STAT_BUF_SIZE 16000
+-
+-char *jffs2_list_compressors(void)
+-{
+-        struct jffs2_compressor *this;
+-        char *buf, *act_buf;
+-
+-        act_buf = buf = kmalloc(JFFS2_STAT_BUF_SIZE,GFP_KERNEL);
+-        list_for_each_entry(this, &jffs2_compressor_list, list) {
+-                act_buf += sprintf(act_buf, "%10s priority:%d ", this->name, this->priority);
+-                if ((this->disabled)||(!this->compress))
+-                        act_buf += sprintf(act_buf,"disabled");
+-                else
+-                        act_buf += sprintf(act_buf,"enabled");
+-                act_buf += sprintf(act_buf,"\n");
+-        }
+-        return buf;
+-}
+-
+-char *jffs2_stats(void)
+-{
+-        struct jffs2_compressor *this;
+-        char *buf, *act_buf;
+-
+-        act_buf = buf = kmalloc(JFFS2_STAT_BUF_SIZE,GFP_KERNEL);
+-
+-        act_buf += sprintf(act_buf,"JFFS2 compressor statistics:\n");
+-        act_buf += sprintf(act_buf,"%10s   ","none");
+-        act_buf += sprintf(act_buf,"compr: %d blocks (%d)  decompr: %d blocks\n", none_stat_compr_blocks,
+-                           none_stat_compr_size, none_stat_decompr_blocks);
+-        spin_lock(&jffs2_compressor_list_lock);
+-        list_for_each_entry(this, &jffs2_compressor_list, list) {
+-                act_buf += sprintf(act_buf,"%10s ",this->name);
+-                if ((this->disabled)||(!this->compress))
+-                        act_buf += sprintf(act_buf,"- ");
+-                else
+-                        act_buf += sprintf(act_buf,"+ ");
+-                act_buf += sprintf(act_buf,"compr: %d blocks (%d/%d)  decompr: %d blocks ", this->stat_compr_blocks,
+-                                   this->stat_compr_new_size, this->stat_compr_orig_size,
+-                                   this->stat_decompr_blocks);
+-                act_buf += sprintf(act_buf,"\n");
+-        }
+-        spin_unlock(&jffs2_compressor_list_lock);
+-
+-        return buf;
+-}
+-
+-char *jffs2_get_compression_mode_name(void)
+-{
+-        switch (jffs2_compression_mode) {
+-        case JFFS2_COMPR_MODE_NONE:
+-                return "none";
+-        case JFFS2_COMPR_MODE_PRIORITY:
+-                return "priority";
+-        case JFFS2_COMPR_MODE_SIZE:
+-                return "size";
+-        }
+-        return "unkown";
+-}
+-
+-int jffs2_set_compression_mode_name(const char *name)
+-{
+-        if (!strcmp("none",name)) {
+-                jffs2_compression_mode = JFFS2_COMPR_MODE_NONE;
+-                return 0;
+-        }
+-        if (!strcmp("priority",name)) {
+-                jffs2_compression_mode = JFFS2_COMPR_MODE_PRIORITY;
+-                return 0;
+-        }
+-        if (!strcmp("size",name)) {
+-                jffs2_compression_mode = JFFS2_COMPR_MODE_SIZE;
+-                return 0;
+-        }
+-        return 1;
+-}
+-
+-static int jffs2_compressor_Xable(const char *name, int disabled)
+-{
+-        struct jffs2_compressor *this;
+-        spin_lock(&jffs2_compressor_list_lock);
+-        list_for_each_entry(this, &jffs2_compressor_list, list) {
+-                if (!strcmp(this->name, name)) {
+-                        this->disabled = disabled;
+-                        spin_unlock(&jffs2_compressor_list_lock);
+-                        return 0;
+-                }
+-        }
+-        spin_unlock(&jffs2_compressor_list_lock);
+-        printk(KERN_WARNING "JFFS2: compressor %s not found.\n",name);
+-        return 1;
+-}
+-
+-int jffs2_enable_compressor_name(const char *name)
+-{
+-        return jffs2_compressor_Xable(name, 0);
+-}
+-
+-int jffs2_disable_compressor_name(const char *name)
+-{
+-        return jffs2_compressor_Xable(name, 1);
+-}
+-
+-int jffs2_set_compressor_priority(const char *name, int priority)
+-{
+-        struct jffs2_compressor *this,*comp;
+-        spin_lock(&jffs2_compressor_list_lock);
+-        list_for_each_entry(this, &jffs2_compressor_list, list) {
+-                if (!strcmp(this->name, name)) {
+-                        this->priority = priority;
+-                        comp = this;
+-                        goto reinsert;
+-                }
+-        }
+-        spin_unlock(&jffs2_compressor_list_lock);
+-        printk(KERN_WARNING "JFFS2: compressor %s not found.\n",name);
+-        return 1;
+-reinsert:
+-        /* list is sorted in the order of priority, so if
+-           we change it we have to reinsert it into the
+-           good place */
+-        list_del(&comp->list);
+-        list_for_each_entry(this, &jffs2_compressor_list, list) {
+-                if (this->priority < comp->priority) {
+-                        list_add(&comp->list, this->list.prev);
+-                        spin_unlock(&jffs2_compressor_list_lock);
+-                        return 0;
+-                }
+-        }
+-        list_add_tail(&comp->list, &jffs2_compressor_list);
+-        spin_unlock(&jffs2_compressor_list_lock);
+-        return 0;
+-}
+-
+-#endif
+-
+ void jffs2_free_comprbuf(unsigned char *comprbuf, unsigned char *orig)
+ {
+         if (orig != comprbuf)
+diff -puN fs/jffs2/compr.h~jffs2-delete-everything-related-to-obsolete-jffs2_proc fs/jffs2/compr.h
+--- a/fs/jffs2/compr.h~jffs2-delete-everything-related-to-obsolete-jffs2_proc
++++ a/fs/jffs2/compr.h
+@@ -76,16 +76,6 @@ int jffs2_decompress(struct jffs2_sb_inf
  
- 	/* Revalidate access to inherited open files. */
+ void jffs2_free_comprbuf(unsigned char *comprbuf, unsigned char *orig);
+ 
+-#ifdef CONFIG_JFFS2_PROC
+-int jffs2_enable_compressor_name(const char *name);
+-int jffs2_disable_compressor_name(const char *name);
+-int jffs2_set_compression_mode_name(const char *mode_name);
+-char *jffs2_get_compression_mode_name(void);
+-int jffs2_set_compressor_priority(const char *mode_name, int priority);
+-char *jffs2_list_compressors(void);
+-char *jffs2_stats(void);
+-#endif
+-
+ /* Compressor modules */
+ /* These functions will be called by jffs2_compressors_init/exit */
  
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-origin.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-i386-irq-kill-irq-compression.patch
-x86_64-irq-remove-extra-smp_processor_id-calling.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-fix-two-reported-pid-leaks.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-edac-k8-driver-coding-tidy.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-remove-the-likelypid-check-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+git-alsa.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+git-avr32.patch
+remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
+remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
+ppc-correct-apparently-misspelled-xmon-preprocessor.patch
+git-drm.patch
+git-mtd.patch
+jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
+remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
+remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-scsi-misc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+remove-unused-header-file-drivers-serial-crisv10h.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
+remove-unused-header-file-include-linux-elfnoteh.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
