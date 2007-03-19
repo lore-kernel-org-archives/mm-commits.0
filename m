@@ -1,148 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-fixup.patch added to -mm tree
-Date: Mon, 19 Mar 2007 15:28:59 -0700
-Message-ID: <200703192230.l2JMUv9o019455@shell0.pdx.osdl.net>
+Subject: - fix-some-kallsyms_lookup-vs-rmmod-races.patch removed from -mm tree
+Date: Mon, 19 Mar 2007 15:40:44 -0700
+Message-ID: <200703192240.l2JMeiIt019623@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59579 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60011 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965028AbXCSWbA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 18:31:00 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l2JMUxcD011154
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 19 Mar 2007 15:30:59 -0700
+	id S965150AbXCSWlW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 18:41:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-alsa-fixup
-has been added to the -mm tree.  Its filename is
-     git-alsa-fixup.patch
+     Fix some kallsyms_lookup() vs rmmod races
+has been removed from the -mm tree.  Its filename was
+     fix-some-kallsyms_lookup-vs-rmmod-races.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of utter confusion
 
 ------------------------------------------------------
-Subject: git-alsa-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix some kallsyms_lookup() vs rmmod races
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
+kallsyms_lookup() can call module_address_lookup() which iterates over
+modules list without module_mutex taken.  Comment at the top of
+module_address_lookup() says it's for oops resolution so races are
+irrelevant, but in some cases it's reachable from regular code:
+
+BUG: unable to handle kernel paging request at virtual address f94fb19c
+ printing eip:
+c0138097
+*pde = 33576067
+Oops: 0000 [#1]
+PREEMPT
+Modules linked in: ohci_hcd af_packet e1000 ehci_hcd uhci_hcd usbcore
+CPU:    0
+EIP:    0060:[<c0138097>]    Not tainted VLI
+EFLAGS: 00010246   (2.6.21-rc3-8b9909ded6922c33c221b105b26917780cfa497d #25)
+EIP is at module_address_lookup+0x43/0x24c
+eax: 00000000   ebx: 00000000   ecx: f94fb080   edx: f882e704
+esi: 00000000   edi: 00000000   ebp: 00000000   esp: d30b8e78
+ds: 007b   es: 007b   fs: 00d8  gs: 0033  ss: 0068
+Process cat (pid: 13274, ti=d30b8000 task=d2b50af0 task.ti=d30b8000)
+Stack: d30b8f44 d30b8f48 00008001 00000000 c039a23c d30b8ec4 00000000 d30b8f44
+       d30b8f48 c013876c d30b8f4c 00000000 cf544000 fffffff4 d38ebb7c c01880ff
+       d30b8f4c d30b8ec4 00000246 c0399600 00000001 00000001 00000000 c0399654
+Call Trace:
+ [<c013876c>] kallsyms_lookup+0x5e/0x7c
+ [<c01880ff>] proc_pid_wchan+0x38/0x76
+ [<c01404fe>] __alloc_pages+0x4f/0x2f9
+ [<c01891c6>] proc_info_read+0x6f/0xa8
+ [<c015bbfd>] sys_fstat64+0x1e/0x23
+ [<c01592d4>] vfs_read+0x7d/0xb5
+ [<c0189157>] proc_info_read+0x0/0xa8
+ [<c0159621>] sys_read+0x41/0x6a
+ [<c0103e72>] sysenter_past_esp+0x5f/0x99
+ =======================
+Code: 04 8b 51 04 0f 18 02 90 81 3d 4c 8d 39 c0 4c 8d 39 c0 74 3f 8b b9 18 01 00 00 8b 99 10 01 00 00 39 eb 77 07 8d 04 3b 39 c5 72 32 <8b> b1 1c 01 00 00 8b 81 14 01 00 00 39 c5 72 06 01 f0 39 c5 72
+EIP: [<c0138097>] module_address_lookup+0x43/0x24c SS:ESP 0068:d30b8e78
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/patch_sigmatel.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ fs/proc/base.c            |    7 +++++++
+ kernel/time/timer_list.c  |    6 ++++++
+ kernel/time/timer_stats.c |    6 ++++++
+ mm/slab.c                 |    3 +++
+ 4 files changed, 22 insertions(+)
 
-diff -puN sound/pci/hda/patch_sigmatel.c~git-alsa-fixup sound/pci/hda/patch_sigmatel.c
---- a/sound/pci/hda/patch_sigmatel.c~git-alsa-fixup
-+++ a/sound/pci/hda/patch_sigmatel.c
-@@ -530,17 +530,7 @@ static unsigned int macbook_pro_v1_pin_c
- 	0x02a19320, 0x400000fb
- };
+diff -puN fs/proc/base.c~fix-some-kallsyms_lookup-vs-rmmod-races fs/proc/base.c
+--- a/fs/proc/base.c~fix-some-kallsyms_lookup-vs-rmmod-races
++++ a/fs/proc/base.c
+@@ -61,6 +61,7 @@
+ #include <linux/namei.h>
+ #include <linux/mnt_namespace.h>
+ #include <linux/mm.h>
++#include <linux/module.h>
+ #include <linux/smp_lock.h>
+ #include <linux/rcupdate.h>
+ #include <linux/kallsyms.h>
+@@ -286,7 +287,13 @@ static int proc_pid_wchan(struct task_st
  
--<<<<<<< HEAD/sound/pci/hda/patch_sigmatel.c
--static unsigned int macbook_pro_v1_pin_configs[10] = {
--	0x0321e230, 0x03a1e020, 0x9017e110, 0x01014010,
--	0x01a19021, 0x0381e021, 0x1345e240, 0x13c5e22e,
--	0x02a19320, 0x400000fb
--};
--
- static unsigned int macbook_pro_v2_pin_configs[10] = {
--=======
--static unsigned int macbook_pro_v2_pin_configs[10] = {
-->>>>>>> /sound/pci/hda/patch_sigmatel.c
- 	0x0221401f, 0x90a70120, 0x01813024, 0x01014010,
- 	0x400000fd, 0x01016011, 0x1345e240, 0x13c5e22e,
- 	0x400000fc, 0x400000fb,
-@@ -550,17 +540,10 @@ static unsigned int *stac922x_brd_tbl[ST
- 	[STAC_D945_REF] = ref922x_pin_configs,
- 	[STAC_D945GTP3] = d945gtp3_pin_configs,
- 	[STAC_D945GTP5] = d945gtp5_pin_configs,
--<<<<<<< HEAD/sound/pci/hda/patch_sigmatel.c
--	[STAC_MACMINI] = d945gtp5_pin_configs,
--	[STAC_MACBOOK] = macbook_pin_configs,
--	[STAC_MACBOOK_PRO_V1] = macbook_pro_v1_pin_configs,
--	[STAC_MACBOOK_PRO_V2] = macbook_pro_v2_pin_configs,
--=======
- 	[STAC_MACMINI] = macbook_pro_v1_pin_configs,
- 	[STAC_MACBOOK] = macbook_pro_v1_pin_configs,
- 	[STAC_MACBOOK_PRO_V1] = macbook_pro_v1_pin_configs,
- 	[STAC_MACBOOK_PRO_V2] = macbook_pro_v2_pin_configs,
-->>>>>>> /sound/pci/hda/patch_sigmatel.c
- };
+ 	wchan = get_wchan(task);
  
- static const char *stac922x_models[STAC_922X_MODELS] = {
++	module_mutex_lock();
+ 	sym_name = kallsyms_lookup(wchan, &size, &offset, &modname, namebuf);
++	/*
++	 * size, offset, modname aren't used, sym_name is copied into namebuf,
++	 * so drop it now.
++	 */
++	module_mutex_unlock();
+ 	if (sym_name)
+ 		return sprintf(buffer, "%s", sym_name);
+ 	return sprintf(buffer, "%lu", wchan);
+diff -puN kernel/time/timer_list.c~fix-some-kallsyms_lookup-vs-rmmod-races kernel/time/timer_list.c
+--- a/kernel/time/timer_list.c~fix-some-kallsyms_lookup-vs-rmmod-races
++++ a/kernel/time/timer_list.c
+@@ -44,7 +44,13 @@ static void print_name_offset(struct seq
+ 	const char *sym_name;
+ 	char *modname;
+ 
++	module_mutex_lock();
+ 	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
++	/*
++	 * size, offset, modname aren't used, sym_name is copied into namebuf,
++	 * so drop it now.
++	 */
++	module_mutex_unlock();
+ 	if (sym_name)
+ 		SEQ_printf(m, "%s", sym_name);
+ 	else
+diff -puN kernel/time/timer_stats.c~fix-some-kallsyms_lookup-vs-rmmod-races kernel/time/timer_stats.c
+--- a/kernel/time/timer_stats.c~fix-some-kallsyms_lookup-vs-rmmod-races
++++ a/kernel/time/timer_stats.c
+@@ -262,7 +262,13 @@ static void print_name_offset(struct seq
+ 	const char *sym_name;
+ 	char *modname;
+ 
++	module_mutex_lock();
+ 	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
++	/*
++	 * size, offset, modname aren't used, sym_name is copied into namebuf,
++	 * so drop it now.
++	 */
++	module_mutex_unlock();
+ 	if (sym_name)
+ 		seq_printf(m, "%s", sym_name);
+ 	else
+diff -puN mm/slab.c~fix-some-kallsyms_lookup-vs-rmmod-races mm/slab.c
+--- a/mm/slab.c~fix-some-kallsyms_lookup-vs-rmmod-races
++++ a/mm/slab.c
+@@ -4440,14 +4440,17 @@ static void show_symbol(struct seq_file 
+ 	unsigned long offset, size;
+ 	char namebuf[KSYM_NAME_LEN+1];
+ 
++	module_mutex_lock();
+ 	name = kallsyms_lookup(address, &size, &offset, &modname, namebuf);
+ 
+ 	if (name) {
+ 		seq_printf(m, "%s+%#lx/%#lx", name, offset, size);
+ 		if (modname)
+ 			seq_printf(m, " [%s]", modname);
++		module_mutex_unlock();
+ 		return;
+ 	}
++	module_mutex_unlock();
+ #endif
+ 	seq_printf(m, "%p", (void *)address);
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-driver_bfin_serial_core-update.patch
-blackfin-blackfin-i2c-driver-update-2.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
-git-alsa-fixup.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+proc-remove-pathetic-deleted-warn_on.patch
+fix-some-kallsyms_lookup-vs-rmmod-races.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+proc-oom_score-oops-re-badness.patch
