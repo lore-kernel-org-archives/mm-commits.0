@@ -1,117 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - x86_p4_clockmod-must-select-cpu_freq_table.patch removed from -mm tree
-Date: Mon, 19 Mar 2007 14:03:37 -0800
-Message-ID: <200703192203.l2JM3b7W018895@shell0.pdx.osdl.net>
+Subject: + git-alsa-fixup.patch added to -mm tree
+Date: Mon, 19 Mar 2007 15:28:59 -0700
+Message-ID: <200703192230.l2JMUv9o019455@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58837 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59579 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030727AbXCSWHF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 18:07:05 -0400
+	id S965028AbXCSWbA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 18:31:00 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l2JMUxcD011154
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 19 Mar 2007 15:30:59 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, davej@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     X86_P4_CLOCKMOD must select CPU_FREQ_TABLE
-has been removed from the -mm tree.  Its filename was
-     x86_p4_clockmod-must-select-cpu_freq_table.patch
+     git-alsa-fixup
+has been added to the -mm tree.  Its filename is
+     git-alsa-fixup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: X86_P4_CLOCKMOD must select CPU_FREQ_TABLE
-From: Adrian Bunk <bunk@stusta.de>
+Subject: git-alsa-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-CONFIG_CPU_FREQ=y
-CONFIG_CPU_FREQ_TABLE=m
-CONFIG_X86_P4_CLOCKMOD=y
-
-arch/x86_64/kernel/built-in.o: In function `cpufreq_p4_verify':p4-clockmod.c:(.text.cpufreq_p4_verify+0x8): undefined reference to `cpufreq_frequency_table_verify'
-arch/x86_64/kernel/built-in.o: In function `cpufreq_p4_cpu_exit':p4-clockmod.c:(.text.cpufreq_p4_cpu_exit+0x8): undefined reference to `cpufreq_frequency_table_put_attr'
-arch/x86_64/kernel/built-in.o: In function `cpufreq_p4_cpu_init':p4-clockmod.c:(.text.cpufreq_p4_cpu_init+0x13b): undefined reference to `cpufreq_frequency_table_get_attr'
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Dave Jones <davej@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/cpufreq/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ sound/pci/hda/patch_sigmatel.c |   17 -----------------
+ 1 file changed, 17 deletions(-)
 
-diff -puN arch/x86_64/kernel/cpufreq/Kconfig~x86_p4_clockmod-must-select-cpu_freq_table arch/x86_64/kernel/cpufreq/Kconfig
---- a/arch/x86_64/kernel/cpufreq/Kconfig~x86_p4_clockmod-must-select-cpu_freq_table
-+++ a/arch/x86_64/kernel/cpufreq/Kconfig
-@@ -75,6 +75,7 @@ config X86_ACPI_CPUFREQ_PROC_INTF
- config X86_P4_CLOCKMOD
- 	tristate "Intel Pentium 4 clock modulation"
- 	depends on EMBEDDED
-+	select CPU_FREQ_TABLE
- 	help
- 	  This adds the clock modulation driver for Intel Pentium 4 / XEON
- 	  processors.  When enabled it will lower CPU temperature by skipping
+diff -puN sound/pci/hda/patch_sigmatel.c~git-alsa-fixup sound/pci/hda/patch_sigmatel.c
+--- a/sound/pci/hda/patch_sigmatel.c~git-alsa-fixup
++++ a/sound/pci/hda/patch_sigmatel.c
+@@ -530,17 +530,7 @@ static unsigned int macbook_pro_v1_pin_c
+ 	0x02a19320, 0x400000fb
+ };
+ 
+-<<<<<<< HEAD/sound/pci/hda/patch_sigmatel.c
+-static unsigned int macbook_pro_v1_pin_configs[10] = {
+-	0x0321e230, 0x03a1e020, 0x9017e110, 0x01014010,
+-	0x01a19021, 0x0381e021, 0x1345e240, 0x13c5e22e,
+-	0x02a19320, 0x400000fb
+-};
+-
+ static unsigned int macbook_pro_v2_pin_configs[10] = {
+-=======
+-static unsigned int macbook_pro_v2_pin_configs[10] = {
+->>>>>>> /sound/pci/hda/patch_sigmatel.c
+ 	0x0221401f, 0x90a70120, 0x01813024, 0x01014010,
+ 	0x400000fd, 0x01016011, 0x1345e240, 0x13c5e22e,
+ 	0x400000fc, 0x400000fb,
+@@ -550,17 +540,10 @@ static unsigned int *stac922x_brd_tbl[ST
+ 	[STAC_D945_REF] = ref922x_pin_configs,
+ 	[STAC_D945GTP3] = d945gtp3_pin_configs,
+ 	[STAC_D945GTP5] = d945gtp5_pin_configs,
+-<<<<<<< HEAD/sound/pci/hda/patch_sigmatel.c
+-	[STAC_MACMINI] = d945gtp5_pin_configs,
+-	[STAC_MACBOOK] = macbook_pin_configs,
+-	[STAC_MACBOOK_PRO_V1] = macbook_pro_v1_pin_configs,
+-	[STAC_MACBOOK_PRO_V2] = macbook_pro_v2_pin_configs,
+-=======
+ 	[STAC_MACMINI] = macbook_pro_v1_pin_configs,
+ 	[STAC_MACBOOK] = macbook_pro_v1_pin_configs,
+ 	[STAC_MACBOOK_PRO_V1] = macbook_pro_v1_pin_configs,
+ 	[STAC_MACBOOK_PRO_V2] = macbook_pro_v2_pin_configs,
+->>>>>>> /sound/pci/hda/patch_sigmatel.c
+ };
+ 
+ static const char *stac922x_models[STAC_922X_MODELS] = {
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
 git-acpi.patch
-git-powerpc.patch
+git-alsa.patch
 git-drm.patch
 git-dvb.patch
+git-gfs2-nmw.patch
 git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-mmc_deselect_cards.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 git-ubi.patch
 git-netdev-all.patch
-drivers-net-vioc-possible-cleanups.patch
-drivers-net-bonding-bond_maincmake-3-functions-static.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-rc-fixes.patch
 git-unionfs.patch
 git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-i386-x86_64-early_printkc-make-simnow_init-static.patch
-make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
-lguest-kconfig-and-headers.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
 revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+driver_bfin_serial_core-update.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lists-add-list-splice-tail.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
+git-alsa-fixup.patch
