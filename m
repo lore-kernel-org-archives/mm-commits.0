@@ -1,118 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - git-drm-warning-fix.patch removed from -mm tree
-Date: Mon, 19 Mar 2007 14:04:11 -0800
-Message-ID: <200703192204.l2JM4BqG018931@shell0.pdx.osdl.net>
+Subject: - powerpc-8xx-parenthesis-balance.patch removed from -mm tree
+Date: Mon, 19 Mar 2007 14:04:08 -0800
+Message-ID: <200703192204.l2JM48DO018928@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58756 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58757 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030698AbXCSWEP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 18:04:15 -0400
+	id S1030703AbXCSWEQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 18:04:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-drm-warning-fix
+     powerpc: 8xx parenthesis balance
 has been removed from the -mm tree.  Its filename was
-     git-drm-warning-fix.patch
+     powerpc-8xx-parenthesis-balance.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-drm-warning-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: powerpc: 8xx parenthesis balance
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-drivers/char/drm/drm_fops.c: In function 'drm_setup':
-drivers/char/drm/drm_fops.c:60: warning: comparison of distinct pointer types lacks a cast
+Balance parenthesis in powerpc 8xx header files.
 
-Unfortunately PAGE_SIZE has different types on different architectures.
-
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_fops.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/platforms/8xx/mpc86xads.h |    2 +-
+ arch/powerpc/platforms/8xx/mpc885ads.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/drm/drm_fops.c~git-drm-warning-fix drivers/char/drm/drm_fops.c
---- a/drivers/char/drm/drm_fops.c~git-drm-warning-fix
-+++ a/drivers/char/drm/drm_fops.c
-@@ -57,7 +57,7 @@ static int drm_setup(drm_device_t * dev)
- 	dev->magicfree.next = NULL;
+diff -puN arch/powerpc/platforms/8xx/mpc86xads.h~powerpc-8xx-parenthesis-balance arch/powerpc/platforms/8xx/mpc86xads.h
+--- a/arch/powerpc/platforms/8xx/mpc86xads.h~powerpc-8xx-parenthesis-balance
++++ a/arch/powerpc/platforms/8xx/mpc86xads.h
+@@ -37,7 +37,7 @@
+ #define CPM_MAP_ADDR		(get_immrbase() + MPC8xx_CPM_OFFSET)
+ #define CPM_IRQ_OFFSET		16     // for compability with cpm_uart driver
  
- 	/* prebuild the SAREA */
--	sareapage = max(SAREA_MAX, PAGE_SIZE);
-+	sareapage = max_t(unsigned, SAREA_MAX, PAGE_SIZE);
- 	i = drm_addmap(dev, 0, sareapage, _DRM_SHM, _DRM_CONTAINS_LOCK, &map);
- 	if (i != 0)
- 		return i;
+-#define PCMCIA_MEM_ADDR		(uint)0xff020000)
++#define PCMCIA_MEM_ADDR		((uint)0xff020000)
+ #define PCMCIA_MEM_SIZE		((uint)(64 * 1024))
+ 
+ /* Bits of interest in the BCSRs.
+diff -puN arch/powerpc/platforms/8xx/mpc885ads.h~powerpc-8xx-parenthesis-balance arch/powerpc/platforms/8xx/mpc885ads.h
+--- a/arch/powerpc/platforms/8xx/mpc885ads.h~powerpc-8xx-parenthesis-balance
++++ a/arch/powerpc/platforms/8xx/mpc885ads.h
+@@ -37,7 +37,7 @@
+ #define CPM_MAP_ADDR		(get_immrbase() + MPC8xx_CPM_OFFSET)
+ #define CPM_IRQ_OFFSET		16     // for compability with cpm_uart driver
+ 
+-#define PCMCIA_MEM_ADDR		(uint)0xff020000)
++#define PCMCIA_MEM_ADDR		((uint)0xff020000)
+ #define PCMCIA_MEM_SIZE		((uint)(64 * 1024))
+ 
+ /* Bits of interest in the BCSRs.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-driver_bfin_serial_core-update.patch
-blackfin-blackfin-i2c-driver-update-2.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+git-powerpc.patch
+blackfin-arch-balance-parenthesis-in-macros.patch
