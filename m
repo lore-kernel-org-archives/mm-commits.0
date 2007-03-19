@@ -1,184 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - i386-trust-the-pm-timer-calibration-of-the-local-apic.patch removed from -mm tree
-Date: Mon, 19 Mar 2007 14:03:54 -0800
-Message-ID: <200703192203.l2JM3sCs018911@shell0.pdx.osdl.net>
+Subject: - fix-atomicity-of-tif-update-in-flush_thread-for-x86_64.patch removed from -mm tree
+Date: Mon, 19 Mar 2007 14:03:51 -0800
+Message-ID: <200703192203.l2JM3pFM018908@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58721 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58745 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030693AbXCSWEG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 18:04:06 -0400
+	id S1030691AbXCSWEJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 18:04:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, ak@suse.de, rschultz@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: trust the PM-Timer calibration of the local APIC timer
+     Fix atomicity of TIF update in flush_thread() for x86_64
 has been removed from the -mm tree.  Its filename was
-     i386-trust-the-pm-timer-calibration-of-the-local-apic.patch
+     fix-atomicity-of-tif-update-in-flush_thread-for-x86_64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: trust the PM-Timer calibration of the local APIC timer
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Fix atomicity of TIF update in flush_thread() for x86_64
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-When PM-Timer is available for local APIC timer calibration we can skip the
-verification of the calibrated time value.  The resulting error is quite
-small on a bunch of evaluated platforms and is less harming than the
-observed false positives.
+Fix atomicity of TIF update in flush_thread() for x86_64
 
-We need to keep the verification on systems, which have no PM-Timer to
-avoid bogus local APIC timer calibrations in the range of factor 2-10,
-which can be observed when swicthing off the PM-timer support in the kernel
-configuration.
+Race :
 
-The wrong calibration values are probably caused by SMM code trying to
-emulate a PS/2 keyboard from a (maybe connected or not) USB keyboard.  This
-prohibits the accurate delivery of PIT interrupts, which are used to
-calibrate the local APIC timer.  Unfortunately we have no way to disable
-this BIOS misfeature in the early boot process.
+parent process executing :
+sys_ptrace()
+ (lock_kernel())
+ (ptrace_get_task_struct(pid))
+ arch_ptrace()
+   ptrace_detach()
+     ptrace_disable(child);
+       clear_singlestep(child);
+         clear_tsk_thread_flag(child, TIF_SINGLESTEP);
+         (which clears the TIF_SINGLESTEP flag atomically from a different
+	  process)
+ (put_task_struct(child))
+ (unlock_kernel())
 
-Add also the dropped cpu_relax() back to the wait loops.
+And at the same time, in the child process :
+sys_execve()
+ do_execve()
+   search_binary_handler()
+     load_elf_binary()
+       flush_old_exec()
+         flush_thread()
+           doing a non-atomic thread flag update
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Rebecca Schultz <rschultz@google.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Acked-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/apic.c |   78 +++++++++++++-------------------------
- 1 file changed, 27 insertions(+), 51 deletions(-)
+ arch/x86_64/kernel/process.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/kernel/apic.c~i386-trust-the-pm-timer-calibration-of-the-local-apic arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~i386-trust-the-pm-timer-calibration-of-the-local-apic
-+++ a/arch/i386/kernel/apic.c
-@@ -338,6 +338,7 @@ void __init setup_boot_APIC_clock(void)
- 	void (*real_handler)(struct clock_event_device *dev);
- 	unsigned long deltaj;
- 	long delta, deltapm;
-+	int pm_referenced = 0;
+diff -puN arch/x86_64/kernel/process.c~fix-atomicity-of-tif-update-in-flush_thread-for-x86_64 arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~fix-atomicity-of-tif-update-in-flush_thread-for-x86_64
++++ a/arch/x86_64/kernel/process.c
+@@ -382,14 +382,17 @@ void exit_thread(void)
+ void flush_thread(void)
+ {
+ 	struct task_struct *tsk = current;
+-	struct thread_info *t = current_thread_info();
  
- 	apic_printk(APIC_VERBOSE, "Using local APIC timer interrupts.\n"
- 		    "calibrating APIC timer ...\n");
-@@ -357,7 +358,8 @@ void __init setup_boot_APIC_clock(void)
- 	/* Let the interrupts run */
- 	local_irq_enable();
- 
--	while(lapic_cal_loops <= LAPIC_CAL_LOOPS);
-+	while (lapic_cal_loops <= LAPIC_CAL_LOOPS)
-+		cpu_relax();
- 
- 	local_irq_disable();
- 
-@@ -394,6 +396,7 @@ void __init setup_boot_APIC_clock(void)
- 			       "%lu (%ld)\n", (unsigned long) res, delta);
- 			delta = (long) res;
- 		}
-+		pm_referenced = 1;
+-	if (t->flags & _TIF_ABI_PENDING) {
+-		t->flags ^= (_TIF_ABI_PENDING | _TIF_IA32);
+-		if (t->flags & _TIF_IA32)
++	if (test_tsk_thread_flag(tsk, TIF_ABI_PENDING)) {
++		clear_tsk_thread_flag(tsk, TIF_ABI_PENDING);
++		if (test_tsk_thread_flag(tsk, TIF_IA32)) {
++			clear_tsk_thread_flag(tsk, TIF_IA32);
++		} else {
++			set_tsk_thread_flag(tsk, TIF_IA32);
+ 			current_thread_info()->status |= TS_COMPAT;
++		}
  	}
+-	t->flags &= ~_TIF_DEBUG;
++	clear_tsk_thread_flag(tsk, TIF_DEBUG);
  
- 	/* Calculate the scaled math multiplication factor */
-@@ -423,68 +426,41 @@ void __init setup_boot_APIC_clock(void)
- 		    calibration_result / (1000000 / HZ),
- 		    calibration_result % (1000000 / HZ));
- 
--
--	apic_printk(APIC_VERBOSE, "... verify APIC timer\n");
--
--	/*
--	 * Setup the apic timer manually
--	 */
- 	local_apic_timer_verify_ok = 1;
--	levt->event_handler = lapic_cal_handler;
--	lapic_timer_setup(CLOCK_EVT_MODE_PERIODIC, levt);
--	lapic_cal_loops = -1;
- 
--	/* Let the interrupts run */
--	local_irq_enable();
-+	/* We trust the pm timer based calibration */
-+	if (!pm_referenced) {
-+		apic_printk(APIC_VERBOSE, "... verify APIC timer\n");
- 
--	while(lapic_cal_loops <= LAPIC_CAL_LOOPS);
-+		/*
-+		 * Setup the apic timer manually
-+		 */
-+		levt->event_handler = lapic_cal_handler;
-+		lapic_timer_setup(CLOCK_EVT_MODE_PERIODIC, levt);
-+		lapic_cal_loops = -1;
- 
--	local_irq_disable();
-+		/* Let the interrupts run */
-+		local_irq_enable();
- 
--	/* Stop the lapic timer */
--	lapic_timer_setup(CLOCK_EVT_MODE_SHUTDOWN, levt);
-+		while(lapic_cal_loops <= LAPIC_CAL_LOOPS)
-+			cpu_relax();
- 
--	local_irq_enable();
-+		local_irq_disable();
- 
--	/* Jiffies delta */
--	deltaj = lapic_cal_j2 - lapic_cal_j1;
--	apic_printk(APIC_VERBOSE, "... jiffies delta = %lu\n", deltaj);
-+		/* Stop the lapic timer */
-+		lapic_timer_setup(CLOCK_EVT_MODE_SHUTDOWN, levt);
- 
--	/* Check, if the PM timer is available */
--	deltapm = lapic_cal_pm2 - lapic_cal_pm1;
--	apic_printk(APIC_VERBOSE, "... PM timer delta = %ld\n", deltapm);
-+		local_irq_enable();
- 
--	local_apic_timer_verify_ok = 0;
-+		/* Jiffies delta */
-+		deltaj = lapic_cal_j2 - lapic_cal_j1;
-+		apic_printk(APIC_VERBOSE, "... jiffies delta = %lu\n", deltaj);
- 
--	if (deltapm) {
--		if (deltapm > (pm_100ms - pm_thresh) &&
--		    deltapm < (pm_100ms + pm_thresh)) {
--			apic_printk(APIC_VERBOSE, "... PM timer result ok\n");
--			/* Check, if the jiffies result is consistent */
--			if (deltaj < LAPIC_CAL_LOOPS-2 ||
--			    deltaj > LAPIC_CAL_LOOPS+2) {
--				/*
--				 * Not sure, what we can do about this one.
--				 * When high resultion timers are active
--				 * and the lapic timer does not stop in C3
--				 * we are fine. Otherwise more trouble might
--				 * be waiting. -- tglx
--				 */
--				printk(KERN_WARNING "Global event device %s "
--				       "has wrong frequency "
--				       "(%lu ticks instead of %d)\n",
--				       global_clock_event->name, deltaj,
--				       LAPIC_CAL_LOOPS);
--			}
--			local_apic_timer_verify_ok = 1;
--		}
--	} else {
- 		/* Check, if the jiffies result is consistent */
--		if (deltaj >= LAPIC_CAL_LOOPS-2 &&
--		    deltaj <= LAPIC_CAL_LOOPS+2) {
-+		if (deltaj >= LAPIC_CAL_LOOPS-2 && deltaj <= LAPIC_CAL_LOOPS+2)
- 			apic_printk(APIC_VERBOSE, "... jiffies result ok\n");
--			local_apic_timer_verify_ok = 1;
--		}
-+		else
-+			local_apic_timer_verify_ok = 0;
- 	}
- 
- 	if (!local_apic_timer_verify_ok) {
+ 	tsk->thread.debugreg0 = 0;
+ 	tsk->thread.debugreg1 = 0;
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-git-ieee1394.patch
-log-reason-why-tsc-was-marked-unstable.patch
-optimize-timespec_trunc.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
+git-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+local_t-architecture-independant-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-non-optimized-architectures.patch
+linux-kernel-markers-documentation.patch
