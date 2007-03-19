@@ -1,187 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: + getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch added to -mm tree
-Date: Mon, 19 Mar 2007 14:26:26 -0700
-Message-ID: <200703192126.l2JLQR4B017712@shell0.pdx.osdl.net>
+Subject: - race-between-cat-proc-kallsyms-and-rmmod.patch removed from -mm tree
+Date: Mon, 19 Mar 2007 14:32:05 -0700
+Message-ID: <200703192132.l2JLW571017900@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57293 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57570 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030528AbXCSV1p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 17:27:45 -0400
+	id S1030584AbXCSVcs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 17:32:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, oleg@tv-sign.ru
+To: adobriyan@sw.ru, pmarques@grupopie.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     getrusage(): fill ru_inblock and ru_oublock fields if possible
-has been added to the -mm tree.  Its filename is
-     getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+     Race between cat /proc/kallsyms and rmmod
+has been removed from the -mm tree.  Its filename was
+     race-between-cat-proc-kallsyms-and-rmmod.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: getrusage(): fill ru_inblock and ru_oublock fields if possible
-=46rom: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Race between cat /proc/kallsyms and rmmod
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-If CONFIG_TASK_IO_ACCOUNTING is defined, we update io accounting counte=
-rs for
-each task.
+Iterating code of /proc/kallsyms calls module_get_kallsym() which grabs and
+drops module_mutex internally and returns "struct module *", module is
+removed, aforementioned "struct module *" is used in non-trivial way.
 
-This patch permits reporting of values using the well known getrusage()=
-=20
-syscall, filling ru_inblock and ru_oublock instead of null values.
+So, grab module_mutex for entire operation like /proc/modules does.
 
-As TASK_IO_ACCOUNTING currently counts bytes counts, we approximate blo=
-cks
-count doing : nr_blocks =3D nr_bytes / 512
+Steps to reproduce:
+	while true; do modprobe xfs; rmmod xfs; done
+		vs
+	while true; do cat /proc/kallsyms >/dev/null; done
 
-Example of use :
-----------------------
-After patch is applied, /usr/bin/time command can now give a good=20
-approximation of IO that the process had to do.
+[where xfs could be any module, I haven't tried]
 
-$ /usr/bin/time grep tototo /usr/include/*
-Command exited with non-zero status 1
-0.00user 0.02system 0:02.11elapsed 1%CPU (0avgtext+0avgdata 0maxresiden=
-t)k
-24288inputs+0outputs (0major+259minor)pagefaults 0swaps
+BUG: unable to handle kernel paging request at virtual address e19f808c
+ printing eip:
+c01dc361
+*pde = 1ff5f067
+*pte = 00000000
+Oops: 0000 [#1]
+PREEMPT
+Modules linked in:
+CPU:    0
+EIP:    0060:[<c01dc361>]    Not tainted VLI
+EFLAGS: 00010297   (2.6.21-rc3-8b9909ded6922c33c221b105b26917780cfa497d #2)
+EIP is at vsnprintf+0x2af/0x48c
+eax: e19f808c   ebx: ffffffff   ecx: e19f808c   edx: fffffffe
+esi: dbe7aa84   edi: dbe2bf3c   ebp: ffffffff   esp: dbe2bec4
+ds: 007b   es: 007b   fs: 00d8  gs: 0033  ss: 0068
+Process cat (pid: 7242, ti=dbe2b000 task=df5790b0 task.ti=dbe2b000)
+Stack: e19d6fde 00000000 00000010 00000008 ffffffff 00000001 00000598 dbe7aa68
+       0002f362 00000010 dbe7b000 00000000 ffffffff c034bbe0 dbe7aa68 dfd31880
+       dfa31e80 00001000 c01586b0 dbe2bf2c dbe2bf2c dfd31880 dfd31880 c01289f6
+Call Trace:
+ [<c01586b0>] seq_printf+0x2e/0x4b
+ [<c01289f6>] s_show+0x4b/0x7f
+ [<c0158c6e>] seq_read+0x196/0x278
+ [<c0158ad8>] seq_read+0x0/0x278
+ [<c0143c35>] vfs_read+0x72/0x93
+ [<c0143f1c>] sys_read+0x41/0x67
+ [<c0102486>] sysenter_past_esp+0x5f/0x85
+=======================
+Code: 74 24 28 73 03 c6 06 20 46 4d 85 ed 7f f1 e9 b9 00 00 00 8b 0f 81 f9 ff 0f 00 00 b8 ea 45 36 c0 0f 46 c8 8b 54 24 30 89 c8 eb 06 <80> 38 00 74 07 40 4a 83 fa ff 75 f4 29 c8 89 c3 89 e8 f6 44 24
+EIP: [<c01dc361>] vsnprintf+0x2af/0x48c SS:ESP 0068:dbe2bec4
 
-$ /usr/bin/time dd if=3D/dev/zero of=3D/tmp/testfile count=3D1000
-1000+0 enregistrements lus
-1000+0 enregistrements =E9crits
-512000 octets (512 kB) copi=E9s, 0,00326601 seconde, 157 MB/s
-0.00user 0.00system 0:00.00elapsed 80%CPU (0avgtext+0avgdata 0maxreside=
-nt)k
-0inputs+3000outputs (0major+299minor)pagefaults 0swaps
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Paulo Marques <pmarques@grupopie.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/task_io_accounting_ops.h |   28 +++++++++++++++++++++++
- kernel/sys.c                           |    7 +++++
- 2 files changed, 35 insertions(+)
+ include/linux/module.h |   14 ++++++++++++++
+ kernel/kallsyms.c      |    2 ++
+ kernel/module.c        |   15 +++++++++++----
+ 3 files changed, 27 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/task_io_accounting_ops.h~getrusage-fill-ru_inbl=
-ock-and-ru_oublock-fields-if-possible include/linux/task_io_accounting_=
-ops.h
---- a/include/linux/task_io_accounting_ops.h~getrusage-fill-ru_inblock-=
-and-ru_oublock-fields-if-possible
-+++ a/include/linux/task_io_accounting_ops.h
-@@ -10,11 +10,29 @@ static inline void task_io_account_read(
- 	current->ioac.read_bytes +=3D bytes;
- }
-=20
-+/*
-+ * We approximate number of blocks, because we account bytes only.
-+ * A 'block' is 512 bytes
-+ */
-+static inline unsigned long task_io_get_inblock(const struct task_stru=
-ct *p)
+diff -puN include/linux/module.h~race-between-cat-proc-kallsyms-and-rmmod include/linux/module.h
+--- a/include/linux/module.h~race-between-cat-proc-kallsyms-and-rmmod
++++ a/include/linux/module.h
+@@ -16,10 +16,24 @@
+ #include <linux/stringify.h>
+ #include <linux/kobject.h>
+ #include <linux/moduleparam.h>
++#include <linux/mutex.h>
+ #include <asm/local.h>
+ 
+ #include <asm/module.h>
+ 
++extern struct mutex module_mutex;
++#ifdef CONFIG_MODULES
++void module_mutex_lock(void);
++void module_mutex_unlock(void);
++#else
++static inline void module_mutex_lock(void)
 +{
-+	return p->ioac.read_bytes >> 9;
++}
++static inline void module_mutex_unlock(void)
++{
++}
++#endif
++
+ /* Not Yet Implemented */
+ #define MODULE_SUPPORTED_DEVICE(name)
+ 
+diff -puN kernel/kallsyms.c~race-between-cat-proc-kallsyms-and-rmmod kernel/kallsyms.c
+--- a/kernel/kallsyms.c~race-between-cat-proc-kallsyms-and-rmmod
++++ a/kernel/kallsyms.c
+@@ -375,6 +375,7 @@ static void *s_next(struct seq_file *m, 
+ 
+ static void *s_start(struct seq_file *m, loff_t *pos)
+ {
++	module_mutex_lock();
+ 	if (!update_iter(m->private, *pos))
+ 		return NULL;
+ 	return m->private;
+@@ -382,6 +383,7 @@ static void *s_start(struct seq_file *m,
+ 
+ static void s_stop(struct seq_file *m, void *p)
+ {
++	module_mutex_unlock();
+ }
+ 
+ static int s_show(struct seq_file *m, void *p)
+diff -puN kernel/module.c~race-between-cat-proc-kallsyms-and-rmmod kernel/module.c
+--- a/kernel/module.c~race-between-cat-proc-kallsyms-and-rmmod
++++ a/kernel/module.c
+@@ -62,9 +62,19 @@
+ static DEFINE_SPINLOCK(modlist_lock);
+ 
+ /* List of modules, protected by module_mutex AND modlist_lock */
+-static DEFINE_MUTEX(module_mutex);
++DEFINE_MUTEX(module_mutex);
+ static LIST_HEAD(modules);
+ 
++void module_mutex_lock(void)
++{
++	mutex_lock(&module_mutex);
 +}
 +
- static inline void task_io_account_write(size_t bytes)
- {
- 	current->ioac.write_bytes +=3D bytes;
- }
-=20
-+/*
-+ * We approximate number of blocks, because we account bytes only.
-+ * A 'block' is 512 bytes
-+ */
-+static inline unsigned long task_io_get_oublock(const struct task_stru=
-ct *p)
++void module_mutex_unlock(void)
 +{
-+	return p->ioac.write_bytes >> 9;
++	mutex_unlock(&module_mutex);
 +}
 +
- static inline void task_io_account_cancelled_write(size_t bytes)
+ static BLOCKING_NOTIFIER_HEAD(module_notify_list);
+ 
+ int register_module_notifier(struct notifier_block * nb)
+@@ -2124,19 +2134,16 @@ struct module *module_get_kallsym(unsign
  {
- 	current->ioac.cancelled_write_bytes +=3D bytes;
-@@ -31,10 +49,20 @@ static inline void task_io_account_read(
- {
+ 	struct module *mod;
+ 
+-	mutex_lock(&module_mutex);
+ 	list_for_each_entry(mod, &modules, list) {
+ 		if (symnum < mod->num_symtab) {
+ 			*value = mod->symtab[symnum].st_value;
+ 			*type = mod->symtab[symnum].st_info;
+ 			strlcpy(name, mod->strtab + mod->symtab[symnum].st_name,
+ 				namelen);
+-			mutex_unlock(&module_mutex);
+ 			return mod;
+ 		}
+ 		symnum -= mod->num_symtab;
+ 	}
+-	mutex_unlock(&module_mutex);
+ 	return NULL;
  }
-=20
-+static inline unsigned long task_io_get_inblock(const struct task_stru=
-ct *p)
-+{
-+	return 0;
-+}
-+
- static inline void task_io_account_write(size_t bytes)
- {
- }
-=20
-+static inline unsigned long task_io_get_oublock(const struct task_stru=
-ct *p)
-+{
-+	return 0;
-+}
-+
- static inline void task_io_account_cancelled_write(size_t bytes)
- {
- }
-diff -puN kernel/sys.c~getrusage-fill-ru_inblock-and-ru_oublock-fields-=
-if-possible kernel/sys.c
---- a/kernel/sys.c~getrusage-fill-ru_inblock-and-ru_oublock-fields-if-p=
-ossible
-+++ a/kernel/sys.c
-@@ -29,6 +29,7 @@
- #include <linux/signal.h>
- #include <linux/cn_proc.h>
- #include <linux/getcpu.h>
-+#include <linux/task_io_accounting_ops.h>
-=20
- #include <linux/compat.h>
- #include <linux/syscalls.h>
-@@ -2021,6 +2022,8 @@ static void k_getrusage(struct task_stru
- 			r->ru_nivcsw =3D p->signal->cnivcsw;
- 			r->ru_minflt =3D p->signal->cmin_flt;
- 			r->ru_majflt =3D p->signal->cmaj_flt;
-+			r->ru_inblock =3D task_io_get_inblock(p);
-+			r->ru_oublock =3D task_io_get_oublock(p);
-=20
- 			if (who =3D=3D RUSAGE_CHILDREN)
- 				break;
-@@ -2032,6 +2035,8 @@ static void k_getrusage(struct task_stru
- 			r->ru_nivcsw +=3D p->signal->nivcsw;
- 			r->ru_minflt +=3D p->signal->min_flt;
- 			r->ru_majflt +=3D p->signal->maj_flt;
-+			r->ru_inblock +=3D task_io_get_inblock(p);
-+			r->ru_oublock +=3D task_io_get_oublock(p);
- 			t =3D p;
- 			do {
- 				utime =3D cputime_add(utime, t->utime);
-@@ -2040,6 +2045,8 @@ static void k_getrusage(struct task_stru
- 				r->ru_nivcsw +=3D t->nivcsw;
- 				r->ru_minflt +=3D t->min_flt;
- 				r->ru_majflt +=3D t->maj_flt;
-+				r->ru_inblock +=3D task_io_get_inblock(t);
-+				r->ru_oublock +=3D task_io_get_oublock(t);
- 				t =3D next_thread(t);
- 			} while (t !=3D p);
- 			break;
+ 
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-optimize-timespec_trunc.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-const=
-ify-them.patch
-vfs-delay-the-dentry-name-generation-on-sockets-and.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
+origin.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+proc-remove-pathetic-deleted-warn_on.patch
+race-between-cat-proc-kallsyms-and-rmmod.patch
+fix-some-kallsyms_lookup-vs-rmmod-races.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+proc-oom_score-oops-re-badness.patch
