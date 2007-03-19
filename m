@@ -1,145 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - machzwd-warning-fix.patch removed from -mm tree
-Date: Mon, 19 Mar 2007 14:03:47 -0800
-Message-ID: <200703192203.l2JM3ldk018904@shell0.pdx.osdl.net>
+Subject: - i386-trust-the-pm-timer-calibration-of-the-local-apic.patch removed from -mm tree
+Date: Mon, 19 Mar 2007 14:03:54 -0800
+Message-ID: <200703192203.l2JM3sCs018911@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58711 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58721 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030688AbXCSWEA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 18:04:00 -0400
+	id S1030693AbXCSWEG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 18:04:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     machzwd warning fix
+     i386: trust the PM-Timer calibration of the local APIC timer
 has been removed from the -mm tree.  Its filename was
-     machzwd-warning-fix.patch
+     i386-trust-the-pm-timer-calibration-of-the-local-apic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: machzwd warning fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i386: trust the PM-Timer calibration of the local APIC timer
+From: Thomas Gleixner <tglx@linutronix.de>
 
-drivers/char/watchdog/machzwd.c: In function 'zf_ioctl':
-drivers/char/watchdog/machzwd.c:327: warning: passing argument 1 of 'zf_ping' makes integer from pointer without a cast
+When PM-Timer is available for local APIC timer calibration we can skip the
+verification of the calibrated time value.  The resulting error is quite
+small on a bunch of evaluated platforms and is less harming than the
+observed false positives.
 
-Also some coding-style repairs.
+We need to keep the verification on systems, which have no PM-Timer to
+avoid bogus local APIC timer calibrations in the range of factor 2-10,
+which can be observed when swicthing off the PM-timer support in the kernel
+configuration.
 
-Cc: Wim Van Sebroeck <wim@iguana.be>
+The wrong calibration values are probably caused by SMM code trying to
+emulate a PS/2 keyboard from a (maybe connected or not) USB keyboard.  This
+prohibits the accurate delivery of PIT interrupts, which are used to
+calibrate the local APIC timer.  Unfortunately we have no way to disable
+this BIOS misfeature in the early boot process.
+
+Add also the dropped cpu_relax() back to the wait loops.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/watchdog/machzwd.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ arch/i386/kernel/apic.c |   78 +++++++++++++-------------------------
+ 1 file changed, 27 insertions(+), 51 deletions(-)
 
-diff -puN drivers/char/watchdog/machzwd.c~machzwd-warning-fix drivers/char/watchdog/machzwd.c
---- a/drivers/char/watchdog/machzwd.c~machzwd-warning-fix
-+++ a/drivers/char/watchdog/machzwd.c
-@@ -314,21 +314,21 @@ static int zf_ioctl(struct inode *inode,
- {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
--	switch(cmd){
--		case WDIOC_GETSUPPORT:
--			if (copy_to_user(argp, &zf_info, sizeof(zf_info)))
--				return -EFAULT;
--			break;
--
--		case WDIOC_GETSTATUS:
--			return put_user(0, p);
--
--		case WDIOC_KEEPALIVE:
--			zf_ping(NULL);
--			break;
-+	switch (cmd) {
-+	case WDIOC_GETSUPPORT:
-+		if (copy_to_user(argp, &zf_info, sizeof(zf_info)))
-+			return -EFAULT;
-+		break;
-+
-+	case WDIOC_GETSTATUS:
-+		return put_user(0, p);
-+
-+	case WDIOC_KEEPALIVE:
-+		zf_ping(0);
-+		break;
+diff -puN arch/i386/kernel/apic.c~i386-trust-the-pm-timer-calibration-of-the-local-apic arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~i386-trust-the-pm-timer-calibration-of-the-local-apic
++++ a/arch/i386/kernel/apic.c
+@@ -338,6 +338,7 @@ void __init setup_boot_APIC_clock(void)
+ 	void (*real_handler)(struct clock_event_device *dev);
+ 	unsigned long deltaj;
+ 	long delta, deltapm;
++	int pm_referenced = 0;
  
--		default:
--			return -ENOTTY;
-+	default:
-+		return -ENOTTY;
+ 	apic_printk(APIC_VERBOSE, "Using local APIC timer interrupts.\n"
+ 		    "calibrating APIC timer ...\n");
+@@ -357,7 +358,8 @@ void __init setup_boot_APIC_clock(void)
+ 	/* Let the interrupts run */
+ 	local_irq_enable();
+ 
+-	while(lapic_cal_loops <= LAPIC_CAL_LOOPS);
++	while (lapic_cal_loops <= LAPIC_CAL_LOOPS)
++		cpu_relax();
+ 
+ 	local_irq_disable();
+ 
+@@ -394,6 +396,7 @@ void __init setup_boot_APIC_clock(void)
+ 			       "%lu (%ld)\n", (unsigned long) res, delta);
+ 			delta = (long) res;
+ 		}
++		pm_referenced = 1;
  	}
  
- 	return 0;
+ 	/* Calculate the scaled math multiplication factor */
+@@ -423,68 +426,41 @@ void __init setup_boot_APIC_clock(void)
+ 		    calibration_result / (1000000 / HZ),
+ 		    calibration_result % (1000000 / HZ));
+ 
+-
+-	apic_printk(APIC_VERBOSE, "... verify APIC timer\n");
+-
+-	/*
+-	 * Setup the apic timer manually
+-	 */
+ 	local_apic_timer_verify_ok = 1;
+-	levt->event_handler = lapic_cal_handler;
+-	lapic_timer_setup(CLOCK_EVT_MODE_PERIODIC, levt);
+-	lapic_cal_loops = -1;
+ 
+-	/* Let the interrupts run */
+-	local_irq_enable();
++	/* We trust the pm timer based calibration */
++	if (!pm_referenced) {
++		apic_printk(APIC_VERBOSE, "... verify APIC timer\n");
+ 
+-	while(lapic_cal_loops <= LAPIC_CAL_LOOPS);
++		/*
++		 * Setup the apic timer manually
++		 */
++		levt->event_handler = lapic_cal_handler;
++		lapic_timer_setup(CLOCK_EVT_MODE_PERIODIC, levt);
++		lapic_cal_loops = -1;
+ 
+-	local_irq_disable();
++		/* Let the interrupts run */
++		local_irq_enable();
+ 
+-	/* Stop the lapic timer */
+-	lapic_timer_setup(CLOCK_EVT_MODE_SHUTDOWN, levt);
++		while(lapic_cal_loops <= LAPIC_CAL_LOOPS)
++			cpu_relax();
+ 
+-	local_irq_enable();
++		local_irq_disable();
+ 
+-	/* Jiffies delta */
+-	deltaj = lapic_cal_j2 - lapic_cal_j1;
+-	apic_printk(APIC_VERBOSE, "... jiffies delta = %lu\n", deltaj);
++		/* Stop the lapic timer */
++		lapic_timer_setup(CLOCK_EVT_MODE_SHUTDOWN, levt);
+ 
+-	/* Check, if the PM timer is available */
+-	deltapm = lapic_cal_pm2 - lapic_cal_pm1;
+-	apic_printk(APIC_VERBOSE, "... PM timer delta = %ld\n", deltapm);
++		local_irq_enable();
+ 
+-	local_apic_timer_verify_ok = 0;
++		/* Jiffies delta */
++		deltaj = lapic_cal_j2 - lapic_cal_j1;
++		apic_printk(APIC_VERBOSE, "... jiffies delta = %lu\n", deltaj);
+ 
+-	if (deltapm) {
+-		if (deltapm > (pm_100ms - pm_thresh) &&
+-		    deltapm < (pm_100ms + pm_thresh)) {
+-			apic_printk(APIC_VERBOSE, "... PM timer result ok\n");
+-			/* Check, if the jiffies result is consistent */
+-			if (deltaj < LAPIC_CAL_LOOPS-2 ||
+-			    deltaj > LAPIC_CAL_LOOPS+2) {
+-				/*
+-				 * Not sure, what we can do about this one.
+-				 * When high resultion timers are active
+-				 * and the lapic timer does not stop in C3
+-				 * we are fine. Otherwise more trouble might
+-				 * be waiting. -- tglx
+-				 */
+-				printk(KERN_WARNING "Global event device %s "
+-				       "has wrong frequency "
+-				       "(%lu ticks instead of %d)\n",
+-				       global_clock_event->name, deltaj,
+-				       LAPIC_CAL_LOOPS);
+-			}
+-			local_apic_timer_verify_ok = 1;
+-		}
+-	} else {
+ 		/* Check, if the jiffies result is consistent */
+-		if (deltaj >= LAPIC_CAL_LOOPS-2 &&
+-		    deltaj <= LAPIC_CAL_LOOPS+2) {
++		if (deltaj >= LAPIC_CAL_LOOPS-2 && deltaj <= LAPIC_CAL_LOOPS+2)
+ 			apic_printk(APIC_VERBOSE, "... jiffies result ok\n");
+-			local_apic_timer_verify_ok = 1;
+-		}
++		else
++			local_apic_timer_verify_ok = 0;
+ 	}
+ 
+ 	if (!local_apic_timer_verify_ok) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
 git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-driver_bfin_serial_core-update.patch
-blackfin-blackfin-i2c-driver-update-2.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
