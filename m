@@ -1,69 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-8xx-parenthesis-balance.patch removed from -mm tree
-Date: Mon, 19 Mar 2007 14:04:08 -0800
-Message-ID: <200703192204.l2JM48DO018928@shell0.pdx.osdl.net>
+Subject: - libata-dont-whine-if-prereset-returns-enoent.patch removed from -mm tree
+Date: Mon, 19 Mar 2007 14:04:15 -0800
+Message-ID: <200703192204.l2JM4FPW018938@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58757 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58762 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030703AbXCSWEQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 18:04:16 -0400
+	id S1030699AbXCSWER (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 18:04:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: 8xx parenthesis balance
+     libata: don't whine if ->prereset() returns -ENOENT
 has been removed from the -mm tree.  Its filename was
-     powerpc-8xx-parenthesis-balance.patch
+     libata-dont-whine-if-prereset-returns-enoent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: 8xx parenthesis balance
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: libata: don't whine if ->prereset() returns -ENOENT
+From: Tejun Heo <htejun@gmail.com>
 
-Balance parenthesis in powerpc 8xx header files.
+->prereset() returns -ENOENT to tell libata that the port is empty and
+reset sequencing should be stopped.  This is not an error condition.
+Update ata_eh_reset() such that it sets device classes to ATA_DEV_NONE
+and return success in on -ENOENT.  This makes spurious error message
+go away.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+1.  I think these ports should be made dummy instead of returning
+   -ENOENT on prereset().  -ENOENT from prereset() was a hack to keep
+   ata_piix's behavior unchanged while converting it to new EH.  If no one
+   objcts, I'll convert similar usages to use dummy ports after new init
+   model and drop -ENOENT hack in #upstream.
+
+2.  -ENODEV sounds more appropriate.  Why have I used -ENOENT.  :-)
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/8xx/mpc86xads.h |    2 +-
- arch/powerpc/platforms/8xx/mpc885ads.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/libata-eh.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/8xx/mpc86xads.h~powerpc-8xx-parenthesis-balance arch/powerpc/platforms/8xx/mpc86xads.h
---- a/arch/powerpc/platforms/8xx/mpc86xads.h~powerpc-8xx-parenthesis-balance
-+++ a/arch/powerpc/platforms/8xx/mpc86xads.h
-@@ -37,7 +37,7 @@
- #define CPM_MAP_ADDR		(get_immrbase() + MPC8xx_CPM_OFFSET)
- #define CPM_IRQ_OFFSET		16     // for compability with cpm_uart driver
- 
--#define PCMCIA_MEM_ADDR		(uint)0xff020000)
-+#define PCMCIA_MEM_ADDR		((uint)0xff020000)
- #define PCMCIA_MEM_SIZE		((uint)(64 * 1024))
- 
- /* Bits of interest in the BCSRs.
-diff -puN arch/powerpc/platforms/8xx/mpc885ads.h~powerpc-8xx-parenthesis-balance arch/powerpc/platforms/8xx/mpc885ads.h
---- a/arch/powerpc/platforms/8xx/mpc885ads.h~powerpc-8xx-parenthesis-balance
-+++ a/arch/powerpc/platforms/8xx/mpc885ads.h
-@@ -37,7 +37,7 @@
- #define CPM_MAP_ADDR		(get_immrbase() + MPC8xx_CPM_OFFSET)
- #define CPM_IRQ_OFFSET		16     // for compability with cpm_uart driver
- 
--#define PCMCIA_MEM_ADDR		(uint)0xff020000)
-+#define PCMCIA_MEM_ADDR		((uint)0xff020000)
- #define PCMCIA_MEM_SIZE		((uint)(64 * 1024))
- 
- /* Bits of interest in the BCSRs.
+diff -puN drivers/ata/libata-eh.c~libata-dont-whine-if-prereset-returns-enoent drivers/ata/libata-eh.c
+--- a/drivers/ata/libata-eh.c~libata-dont-whine-if-prereset-returns-enoent
++++ a/drivers/ata/libata-eh.c
+@@ -1648,8 +1648,14 @@ static int ata_eh_reset(struct ata_port 
+ 		rc = prereset(ap, jiffies + ATA_EH_PRERESET_TIMEOUT);
+ 		if (rc) {
+ 			if (rc == -ENOENT) {
+-				ata_port_printk(ap, KERN_DEBUG, "port disabled. ignoring.\n");
++				ata_port_printk(ap, KERN_DEBUG,
++						"port disabled. ignoring.\n");
+ 				ap->eh_context.i.action &= ~ATA_EH_RESET_MASK;
++
++				for (i = 0; i < ATA_MAX_DEVICES; i++)
++					classes[i] = ATA_DEV_NONE;
++
++				rc = 0;
+ 			} else
+ 				ata_port_printk(ap, KERN_ERR,
+ 					"prereset failed (errno=%d)\n", rc);
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-git-powerpc.patch
-blackfin-arch-balance-parenthesis-in-macros.patch
+origin.patch
+git-libata-all.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+ata-ncq-is-broken-on-maxtor-6l250s0.patch
+introduce-config_has_dma.patch
