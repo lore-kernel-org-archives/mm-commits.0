@@ -1,119 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - fix-atomicity-of-tif-update-in-flush_thread-for-x86_64.patch removed from -mm tree
-Date: Mon, 19 Mar 2007 14:03:51 -0800
-Message-ID: <200703192203.l2JM3pFM018908@shell0.pdx.osdl.net>
+Subject: - git-drm-warning-fix.patch removed from -mm tree
+Date: Mon, 19 Mar 2007 14:04:11 -0800
+Message-ID: <200703192204.l2JM4BqG018931@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58745 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58756 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030691AbXCSWEJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 18:04:09 -0400
+	id S1030698AbXCSWEP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 18:04:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, ak@suse.de, rschultz@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix atomicity of TIF update in flush_thread() for x86_64
+     git-drm-warning-fix
 has been removed from the -mm tree.  Its filename was
-     fix-atomicity-of-tif-update-in-flush_thread-for-x86_64.patch
+     git-drm-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix atomicity of TIF update in flush_thread() for x86_64
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: git-drm-warning-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix atomicity of TIF update in flush_thread() for x86_64
+drivers/char/drm/drm_fops.c: In function 'drm_setup':
+drivers/char/drm/drm_fops.c:60: warning: comparison of distinct pointer types lacks a cast
 
-Race :
+Unfortunately PAGE_SIZE has different types on different architectures.
 
-parent process executing :
-sys_ptrace()
- (lock_kernel())
- (ptrace_get_task_struct(pid))
- arch_ptrace()
-   ptrace_detach()
-     ptrace_disable(child);
-       clear_singlestep(child);
-         clear_tsk_thread_flag(child, TIF_SINGLESTEP);
-         (which clears the TIF_SINGLESTEP flag atomically from a different
-	  process)
- (put_task_struct(child))
- (unlock_kernel())
-
-And at the same time, in the child process :
-sys_execve()
- do_execve()
-   search_binary_handler()
-     load_elf_binary()
-       flush_old_exec()
-         flush_thread()
-           doing a non-atomic thread flag update
-
-Signed-off-by: Rebecca Schultz <rschultz@google.com>
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Andi Kleen <ak@suse.de>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/process.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/char/drm/drm_fops.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/process.c~fix-atomicity-of-tif-update-in-flush_thread-for-x86_64 arch/x86_64/kernel/process.c
---- a/arch/x86_64/kernel/process.c~fix-atomicity-of-tif-update-in-flush_thread-for-x86_64
-+++ a/arch/x86_64/kernel/process.c
-@@ -382,14 +382,17 @@ void exit_thread(void)
- void flush_thread(void)
- {
- 	struct task_struct *tsk = current;
--	struct thread_info *t = current_thread_info();
+diff -puN drivers/char/drm/drm_fops.c~git-drm-warning-fix drivers/char/drm/drm_fops.c
+--- a/drivers/char/drm/drm_fops.c~git-drm-warning-fix
++++ a/drivers/char/drm/drm_fops.c
+@@ -57,7 +57,7 @@ static int drm_setup(drm_device_t * dev)
+ 	dev->magicfree.next = NULL;
  
--	if (t->flags & _TIF_ABI_PENDING) {
--		t->flags ^= (_TIF_ABI_PENDING | _TIF_IA32);
--		if (t->flags & _TIF_IA32)
-+	if (test_tsk_thread_flag(tsk, TIF_ABI_PENDING)) {
-+		clear_tsk_thread_flag(tsk, TIF_ABI_PENDING);
-+		if (test_tsk_thread_flag(tsk, TIF_IA32)) {
-+			clear_tsk_thread_flag(tsk, TIF_IA32);
-+		} else {
-+			set_tsk_thread_flag(tsk, TIF_IA32);
- 			current_thread_info()->status |= TS_COMPAT;
-+		}
- 	}
--	t->flags &= ~_TIF_DEBUG;
-+	clear_tsk_thread_flag(tsk, TIF_DEBUG);
- 
- 	tsk->thread.debugreg0 = 0;
- 	tsk->thread.debugreg1 = 0;
+ 	/* prebuild the SAREA */
+-	sareapage = max(SAREA_MAX, PAGE_SIZE);
++	sareapage = max_t(unsigned, SAREA_MAX, PAGE_SIZE);
+ 	i = drm_addmap(dev, 0, sareapage, _DRM_SHM, _DRM_CONTAINS_LOCK, &map);
+ 	if (i != 0)
+ 		return i;
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-powerpc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
-atomich-complete-atomic_long-operations-in-asm-generic.patch
-atomich-i386-type-safety-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+driver_bfin_serial_core-update.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lists-add-list-splice-tail.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
-atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
-local_t-architecture-independant-extension.patch
-local_t-alpha-extension.patch
-local_t-i386-extension.patch
-local_t-ia64-extension.patch
-local_t-mips-extension.patch
-local_t-parisc-cleanup.patch
 local_t-powerpc-extension.patch
-local_t-sparc64-cleanup.patch
-local_t-x86_64-extension.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-powerpc-optimization.patch
-linux-kernel-markers-i386-optimization.patch
-linux-kernel-markers-non-optimized-architectures.patch
-linux-kernel-markers-documentation.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
