@@ -1,74 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - fix-wrong-proc-iomem-on-sgi-altix.patch removed from -mm tree
-Date: Mon, 19 Mar 2007 14:03:40 -0800
-Message-ID: <200703192203.l2JM3eh2018898@shell0.pdx.osdl.net>
+Subject: - ia64-platform_kernel_launch_event-is-noop-on-generic-kernel.patch removed from -mm tree
+Date: Mon, 19 Mar 2007 14:03:44 -0800
+Message-ID: <200703192203.l2JM3iJR018901@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58695 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58700 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030685AbXCSWDt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 18:03:49 -0400
+	id S1030687AbXCSWDw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 18:03:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bwalle@suse.de, jlan@engr.sgi.com, jpk@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: jpk@sgi.com, bwalle@suse.de, horms@verge.net.au, jlan@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix wrong /proc/iomem on SGI Altix
+     ia64: platform_kernel_launch_event is noop on generic kernel
 has been removed from the -mm tree.  Its filename was
-     fix-wrong-proc-iomem-on-sgi-altix.patch
+     ia64-platform_kernel_launch_event-is-noop-on-generic-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix wrong /proc/iomem on SGI Altix
-From: Bernhard Walle <bwalle@suse.de>
+Subject: ia64: platform_kernel_launch_event is noop on generic kernel
+From: John Keller <jpk@sgi.com>
 
-In sn_io_slot_fixup(), the parent is re-set from the bus to
-io(port|mem)_resource because the address is changed in a way that it's not
-child of the bus any more.
+Add a missing #define for the platform_kernel_launch_event.  Without this
+fix, a call to platform_kernel_launch_event() becomes a noop on generic
+kernels.  SN systems require this fix to successfully kdump/kexec from
+certain hardware errors.
 
-However, only the root is set but not the parent/child/sibling relationship
-in the resource tree which causes 'cat /proc/iomem' to stop after this
-memory area.  Depding on the poition in the tree the iomem may be nearly
-completely empty.
-
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: John Keller <jpk@sgi.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
+[bwalle@suse.de: fix it]
+Signed-off-by: John Keller <jpk@sgi.com>
+Cc: Bernhard Walle <bwalle@suse.de>
+Acked-by: Simon Horman <horms@verge.net.au>
+Acked-by: Jay Lan <jlan@sgi.com>
 Acked-by: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/kernel/io_init.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ include/asm-ia64/machvec.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/ia64/sn/kernel/io_init.c~fix-wrong-proc-iomem-on-sgi-altix arch/ia64/sn/kernel/io_init.c
---- a/arch/ia64/sn/kernel/io_init.c~fix-wrong-proc-iomem-on-sgi-altix
-+++ a/arch/ia64/sn/kernel/io_init.c
-@@ -247,10 +247,18 @@ sn_io_slot_fixup(struct pci_dev *dev)
- 		addr = ((addr << 4) >> 4) | __IA64_UNCACHED_OFFSET;
- 		dev->resource[idx].start = addr;
- 		dev->resource[idx].end = addr + size;
-+
-+		/*
-+		 * if it's already in the device structure, remove it before
-+		 * inserting
-+		 */
-+		if (dev->resource[idx].parent && dev->resource[idx].parent->child)
-+			release_resource(&dev->resource[idx]);
-+
- 		if (dev->resource[idx].flags & IORESOURCE_IO)
--			dev->resource[idx].parent = &ioport_resource;
-+			insert_resource(&ioport_resource, &dev->resource[idx]);
- 		else
--			dev->resource[idx].parent = &iomem_resource;
-+			insert_resource(&iomem_resource, &dev->resource[idx]);
- 		/* If ROM, mark as shadowed in PROM */
- 		if (idx == PCI_ROM_RESOURCE)
- 			dev->resource[idx].flags |= IORESOURCE_ROM_BIOS_COPY;
+diff -puN include/asm-ia64/machvec.h~ia64-platform_kernel_launch_event-is-noop-on-generic-kernel include/asm-ia64/machvec.h
+--- a/include/asm-ia64/machvec.h~ia64-platform_kernel_launch_event-is-noop-on-generic-kernel
++++ a/include/asm-ia64/machvec.h
+@@ -168,6 +168,7 @@ extern void machvec_tlb_migrate_finish (
+ #  define platform_setup_msi_irq	ia64_mv.setup_msi_irq
+ #  define platform_teardown_msi_irq	ia64_mv.teardown_msi_irq
+ #  define platform_pci_fixup_bus	ia64_mv.pci_fixup_bus
++#  define platform_kernel_launch_event	ia64_mv.kernel_launch_event
+ # endif
+ 
+ /* __attribute__((__aligned__(16))) is required to make size of the
+@@ -269,6 +270,7 @@ struct ia64_machine_vector {
+ 	platform_setup_msi_irq,			\
+ 	platform_teardown_msi_irq,		\
+ 	platform_pci_fixup_bus,			\
++	platform_kernel_launch_event            \
+ }
+ 
+ extern struct ia64_machine_vector ia64_mv;
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from jpk@sgi.com are
 
 origin.patch
