@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-s3fbc-fix-a-use-before-check.patch added to -mm tree
-Date: Mon, 19 Mar 2007 23:34:15 -0800
-Message-ID: <200703200734.l2K7YFpr028515@shell0.pdx.osdl.net>
+Subject: + net-sunrpc-svcsockc-fix-a-check.patch added to -mm tree
+Date: Mon, 19 Mar 2007 23:38:44 -0800
+Message-ID: <200703200738.l2K7ciLK028573@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51677 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51736 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753340AbXCTHlD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Mar 2007 03:41:03 -0400
+	id S1753342AbXCTHmA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Mar 2007 03:42:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, adaplas@pol.net, santiago@crfreenet.org
+Cc: bunk@stusta.de, neilb@suse.de
 
 
 The patch titled
-     drivers/video/s3fb.c: fix a use-before-check
+     net/sunrpc/svcsock.c: fix a check
 has been added to the -mm tree.  Its filename is
-     drivers-video-s3fbc-fix-a-use-before-check.patch
+     net-sunrpc-svcsockc-fix-a-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/video/s3fb.c: fix a use-before-check
+Subject: net/sunrpc/svcsock.c: fix a check
 From: Adrian Bunk <bunk@stusta.de>
 
-NULL checks should be before the first dereference.
+The return value of kernel_recvmsg() should be assigned to "err", not
+compared with the random value of a never initialized "err" (and the "< 0"
+check wrongly always returned false since == comparisons never have a
+result < 0).
 
 Spotted by the Coverity checker.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Ondrej Zajicek <santiago@crfreenet.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3fb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/sunrpc/svcsock.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/s3fb.c~drivers-video-s3fbc-fix-a-use-before-check drivers/video/s3fb.c
---- a/drivers/video/s3fb.c~drivers-video-s3fbc-fix-a-use-before-check
-+++ a/drivers/video/s3fb.c
-@@ -1000,11 +1000,12 @@ err_enable_device:
- static void __devexit s3_pci_remove(struct pci_dev *dev)
- {
- 	struct fb_info *info = pci_get_drvdata(dev);
--	struct s3fb_info *par = info->par;
+diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-fix-a-check net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-fix-a-check
++++ a/net/sunrpc/svcsock.c
+@@ -779,8 +779,8 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
+ 	}
  
- 	if (info) {
- 
- #ifdef CONFIG_MTRR
-+		struct s3fb_info *par = info->par;
-+
- 		if (par->mtrr_reg >= 0) {
- 			mtrr_del(par->mtrr_reg, 0, 0);
- 			par->mtrr_reg = -1;
+ 	clear_bit(SK_DATA, &svsk->sk_flags);
+-	while ((err == kernel_recvmsg(svsk->sk_sock, &msg, NULL,
+-				      0, 0, MSG_PEEK | MSG_DONTWAIT)) < 0 ||
++	while ((err = kernel_recvmsg(svsk->sk_sock, &msg, NULL,
++				     0, 0, MSG_PEEK | MSG_DONTWAIT)) < 0 ||
+ 	       (skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err)) == NULL) {
+ 		if (err == -EAGAIN) {
+ 			svc_sock_received(svsk);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
 drivers-video-s3fbc-fix-a-use-before-check.patch
+net-sunrpc-svcsockc-fix-a-check.patch
 git-acpi.patch
 git-powerpc.patch
 git-drm.patch
@@ -89,6 +89,7 @@ drivers-scsi-aacraid-cleanups.patch
 remove-the-broken-scsi_acornscsi_3-driver.patch
 git-unionfs.patch
 drivers-usb-misc-iowarriorc-null-dereference.patch
+drivers-usb-input-gtcoc-fix-a-use-before-check.patch
 git-wireless.patch
 git-ipwireless_cs.patch
 arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
