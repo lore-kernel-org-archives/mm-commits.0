@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + net-sunrpc-svcsockc-fix-a-check.patch added to -mm tree
-Date: Mon, 19 Mar 2007 23:38:44 -0800
-Message-ID: <200703200738.l2K7ciLK028573@shell0.pdx.osdl.net>
+Subject: + drivers-usb-input-gtcoc-fix-a-use-before-check.patch added to -mm tree
+Date: Mon, 19 Mar 2007 23:34:50 -0800
+Message-ID: <200703200734.l2K7YoGN028522@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51736 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51752 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753342AbXCTHmA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Mar 2007 03:42:00 -0400
+	id S1753344AbXCTHnR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Mar 2007 03:43:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, neilb@suse.de
+Cc: bunk@stusta.de, gregkh@suse.de, jroberson@gtcocalcomp.com
 
 
 The patch titled
-     net/sunrpc/svcsock.c: fix a check
+     drivers/usb/input/gtco.c: fix a use-before-check
 has been added to the -mm tree.  Its filename is
-     net-sunrpc-svcsockc-fix-a-check.patch
+     drivers-usb-input-gtcoc-fix-a-use-before-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net/sunrpc/svcsock.c: fix a check
+Subject: drivers/usb/input/gtco.c: fix a use-before-check
 From: Adrian Bunk <bunk@stusta.de>
 
-The return value of kernel_recvmsg() should be assigned to "err", not
-compared with the random value of a never initialized "err" (and the "< 0"
-check wrongly always returned false since == comparisons never have a
-result < 0).
+NULL checks should be before the first dereference.
 
 Spotted by the Coverity checker.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Neil Brown <neilb@suse.de>
+Cc: "Jeremy A. Roberson" <jroberson@gtcocalcomp.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/input/gtco.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-fix-a-check net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-fix-a-check
-+++ a/net/sunrpc/svcsock.c
-@@ -779,8 +779,8 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
- 	}
+diff -puN drivers/usb/input/gtco.c~drivers-usb-input-gtcoc-fix-a-use-before-check drivers/usb/input/gtco.c
+--- a/drivers/usb/input/gtco.c~drivers-usb-input-gtcoc-fix-a-use-before-check
++++ a/drivers/usb/input/gtco.c
+@@ -1047,13 +1047,10 @@ static void gtco_disconnect(struct usb_i
  
- 	clear_bit(SK_DATA, &svsk->sk_flags);
--	while ((err == kernel_recvmsg(svsk->sk_sock, &msg, NULL,
--				      0, 0, MSG_PEEK | MSG_DONTWAIT)) < 0 ||
-+	while ((err = kernel_recvmsg(svsk->sk_sock, &msg, NULL,
-+				     0, 0, MSG_PEEK | MSG_DONTWAIT)) < 0 ||
- 	       (skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err)) == NULL) {
- 		if (err == -EAGAIN) {
- 			svc_sock_received(svsk);
+ 	/* Grab private device ptr */
+ 	struct gtco    *device = usb_get_intfdata (interface);
+-	struct input_dev *inputdev;
+-
+-	inputdev = device->inputdevice;
+ 
+ 	/* Now reverse all the registration stuff */
+ 	if (device) {
+-		input_unregister_device(inputdev);
++		input_unregister_device(device->inputdevice);
+ 		usb_kill_urb(device->urbinfo);
+ 		usb_free_urb(device->urbinfo);
+ 		usb_buffer_free(device->usbdev, REPORT_MAX_SIZE,
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
 drivers-video-s3fbc-fix-a-use-before-check.patch
-net-sunrpc-svcsockc-fix-a-check.patch
 git-acpi.patch
 git-powerpc.patch
 git-drm.patch
