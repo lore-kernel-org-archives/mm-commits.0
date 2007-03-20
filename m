@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-input-gtcoc-fix-a-use-before-check.patch added to -mm tree
-Date: Mon, 19 Mar 2007 23:34:50 -0800
-Message-ID: <200703200734.l2K7YoGN028522@shell0.pdx.osdl.net>
+Subject: + documentation-sysrqtxt-added-short-description-for-q-timerlist.patch added to -mm tree
+Date: Mon, 19 Mar 2007 23:45:46 -0800
+Message-ID: <200703200745.l2K7jkUD028674@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51752 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51882 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753344AbXCTHnR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Mar 2007 03:43:17 -0400
+	id S932133AbXCTHqn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Mar 2007 03:46:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, gregkh@suse.de, jroberson@gtcocalcomp.com
+Cc: hannes-kernel@saeurebad.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     drivers/usb/input/gtco.c: fix a use-before-check
+     Documentation/sysrq.txt: added short description for 'Q' (timerlist)
 has been added to the -mm tree.  Its filename is
-     drivers-usb-input-gtcoc-fix-a-use-before-check.patch
+     documentation-sysrqtxt-added-short-description-for-q-timerlist.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,104 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/usb/input/gtco.c: fix a use-before-check
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Documentation/sysrq.txt: added short description for 'Q' (timerlist)
+From: Johannes Weiner <hannes-kernel@saeurebad.de>
 
-NULL checks should be before the first dereference.
+I added the 'Q' to list. A short description in the `Ok, so what can I
+use them for'-section, on when or why to use it would be nice!
 
-Spotted by the Coverity checker.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Jeremy A. Roberson" <jroberson@gtcocalcomp.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Johannes Weiner <hannes-kernel@saeurebad.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/input/gtco.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ Documentation/sysrq.txt |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/usb/input/gtco.c~drivers-usb-input-gtcoc-fix-a-use-before-check drivers/usb/input/gtco.c
---- a/drivers/usb/input/gtco.c~drivers-usb-input-gtcoc-fix-a-use-before-check
-+++ a/drivers/usb/input/gtco.c
-@@ -1047,13 +1047,10 @@ static void gtco_disconnect(struct usb_i
+diff -puN Documentation/sysrq.txt~documentation-sysrqtxt-added-short-description-for-q-timerlist Documentation/sysrq.txt
+--- a/Documentation/sysrq.txt~documentation-sysrqtxt-added-short-description-for-q-timerlist
++++ a/Documentation/sysrq.txt
+@@ -93,6 +93,8 @@ On all -  write a character to /proc/sys
  
- 	/* Grab private device ptr */
- 	struct gtco    *device = usb_get_intfdata (interface);
--	struct input_dev *inputdev;
--
--	inputdev = device->inputdevice;
+ 'p'     - Will dump the current registers and flags to your console.
  
- 	/* Now reverse all the registration stuff */
- 	if (device) {
--		input_unregister_device(inputdev);
-+		input_unregister_device(device->inputdevice);
- 		usb_kill_urb(device->urbinfo);
- 		usb_free_urb(device->urbinfo);
- 		usb_buffer_free(device->usbdev, REPORT_MAX_SIZE,
++'q'     - Will dump a list of all running timers.
++
+ 'r'     - Turns off keyboard raw mode and sets it to XLATE.
+ 
+ 's'     - Will attempt to sync all mounted filesystems.
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from hannes-kernel@saeurebad.de are
 
-origin.patch
-drivers-video-s3fbc-fix-a-use-before-check.patch
-git-acpi.patch
-git-powerpc.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-mmc_deselect_cards.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-git-ubi.patch
-git-netdev-all.patch
-drivers-net-vioc-possible-cleanups.patch
-drivers-net-bonding-bond_maincmake-3-functions-static.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-drivers-usb-misc-iowarriorc-null-dereference.patch
-drivers-usb-input-gtcoc-fix-a-use-before-check.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-i386-x86_64-early_printkc-make-simnow_init-static.patch
-make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
-lguest-kconfig-and-headers.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-drivers-mfd-sm501c-fix-an-off-by-one.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+documentation-sysrqtxt-added-short-description-for-q-timerlist.patch
