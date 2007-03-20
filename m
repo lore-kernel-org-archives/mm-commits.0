@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-sm501c-fix-an-off-by-one.patch added to -mm tree
-Date: Mon, 19 Mar 2007 23:33:22 -0800
-Message-ID: <200703200733.l2K7XMQ0028512@shell0.pdx.osdl.net>
+Subject: + drivers-video-s3fbc-fix-a-use-before-check.patch added to -mm tree
+Date: Mon, 19 Mar 2007 23:34:15 -0800
+Message-ID: <200703200734.l2K7YFpr028515@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51636 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51677 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753337AbXCTHj7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Mar 2007 03:39:59 -0400
+	id S1753340AbXCTHlD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Mar 2007 03:41:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, ben-linux@fluff.org, vince@arm.linux.org.uk
+Cc: bunk@stusta.de, adaplas@pol.net, santiago@crfreenet.org
 
 
 The patch titled
-     drivers/mfd/sm501.c: fix an off-by-one
+     drivers/video/s3fb.c: fix a use-before-check
 has been added to the -mm tree.  Its filename is
-     drivers-mfd-sm501c-fix-an-off-by-one.patch
+     drivers-video-s3fbc-fix-a-use-before-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/mfd/sm501.c: fix an off-by-one
+Subject: drivers/video/s3fb.c: fix a use-before-check
 From: Adrian Bunk <bunk@stusta.de>
 
-Fix an off-by-one spotted by the Coverity checker.
+NULL checks should be before the first dereference.
+
+Spotted by the Coverity checker.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Vincent Sanders <vince@arm.linux.org.uk>
+Acked-by: Ondrej Zajicek <santiago@crfreenet.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/s3fb.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mfd/sm501.c~drivers-mfd-sm501c-fix-an-off-by-one drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~drivers-mfd-sm501c-fix-an-off-by-one
-+++ a/drivers/mfd/sm501.c
-@@ -319,7 +319,7 @@ int sm501_unit_power(struct device *dev,
+diff -puN drivers/video/s3fb.c~drivers-video-s3fbc-fix-a-use-before-check drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~drivers-video-s3fbc-fix-a-use-before-check
++++ a/drivers/video/s3fb.c
+@@ -1000,11 +1000,12 @@ err_enable_device:
+ static void __devexit s3_pci_remove(struct pci_dev *dev)
+ {
+ 	struct fb_info *info = pci_get_drvdata(dev);
+-	struct s3fb_info *par = info->par;
  
- 	mode &= 3;		/* get current power mode */
+ 	if (info) {
  
--	if (unit > ARRAY_SIZE(sm->unit_power)) {
-+	if (unit >= ARRAY_SIZE(sm->unit_power)) {
- 		dev_err(dev, "%s: bad unit %d\n", __FUNCTION__, unit);
- 		goto already;
- 	}
+ #ifdef CONFIG_MTRR
++		struct s3fb_info *par = info->par;
++
+ 		if (par->mtrr_reg >= 0) {
+ 			mtrr_del(par->mtrr_reg, 0, 0);
+ 			par->mtrr_reg = -1;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+drivers-video-s3fbc-fix-a-use-before-check.patch
 git-acpi.patch
 git-powerpc.patch
 git-drm.patch
