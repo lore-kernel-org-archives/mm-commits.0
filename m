@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hack-to-make-wireless-work.patch added to -mm tree
-Date: Mon, 19 Mar 2007 18:56:55 -0800
-Message-ID: <200703200256.l2K2ut6w024042@shell0.pdx.osdl.net>
+Subject: + mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch added to -mm tree
+Date: Mon, 19 Mar 2007 21:32:10 -0800
+Message-ID: <200703200532.l2K5WAbn026743@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42487 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47584 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966075AbXCTC5i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 22:57:38 -0400
+	id S933404AbXCTFcM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 20 Mar 2007 01:32:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jbenc@suse.cz, jeff@garzik.org, johannes@sipsolutions.net, linville@tuxdriver.com
+Cc: nickpiggin@yahoo.com.au
 
 
 The patch titled
-     hack-to-make-wireless-work
+     mm-dnp-invp-race-fix2
 has been added to the -mm tree.  Its filename is
-     hack-to-make-wireless-work.patch
+     mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,108 +25,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hack-to-make-wireless-work
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-dnp-invp-race-fix2
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-Workaround for this:
+The nopage vs invalidate race fix patch did not take care of truncating
+private COW pages. Mind you, I'm pretty sure this was previously racy
+even for regular truncate, not to mention vmtruncate_range.
 
-[  178.096000] fw_register_device: device_register failed
-[  178.096000] ipw2200: ipw2200-bss.fw request_firmware failed: Reason -19
-[  178.096000] ipw2200: Unable to load firmware: -19
-[  178.096000] ipw2200: failed to register network device
-[  178.096000] ipw2200: probe of 0000:06:0b.0 failed with error -5
 
-John W. Linville" <linville@tuxdriver.com>
-Cc: <jeff@garzik.org>
-Cc: <jbenc@suse.cz>
-Cc: <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/firmware_class.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN drivers/base/firmware_class.c~hack-to-make-wireless-work drivers/base/firmware_class.c
---- a/drivers/base/firmware_class.c~hack-to-make-wireless-work
-+++ a/drivers/base/firmware_class.c
-@@ -96,8 +96,8 @@ static int firmware_uevent(struct device
- 	struct firmware_priv *fw_priv = dev_get_drvdata(dev);
- 	int i = 0, len = 0;
+diff -puN mm/memory.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix mm/memory.c
+--- a/mm/memory.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix
++++ a/mm/memory.c
+@@ -1905,7 +1905,18 @@ int vmtruncate(struct inode * inode, lof
+ 	if (IS_SWAPFILE(inode))
+ 		goto out_busy;
+ 	i_size_write(inode, offset);
++
++	/*
++	 * unmap_mapping_range is called twice, first simply for efficiency
++	 * so that truncate_inode_pages does fewer single-page unmaps. However
++	 * after this first call, and before truncate_inode_pages finishes,
++	 * it is possible for private pages to be COWed, which remain after
++	 * truncate_inode_pages finishes, hence the second unmap_mapping_range
++	 * call must be made for correctness.
++	 */
++	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
+ 	truncate_inode_pages(mapping, offset);
++	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
+ 	goto out_truncate;
  
--	if (!test_bit(FW_STATUS_READY, &fw_priv->status))
--		return -ENODEV;
-+//	if (!test_bit(FW_STATUS_READY, &fw_priv->status))
-+//		return -ENODEV;
+ do_expand:
+@@ -1943,7 +1954,9 @@ int vmtruncate_range(struct inode *inode
  
- 	if (add_uevent_var(envp, num_envp, &i, buffer, buffer_size, &len,
- 			   "FIRMWARE=%s", fw_priv->fw_id))
+ 	mutex_lock(&inode->i_mutex);
+ 	down_write(&inode->i_alloc_sem);
++	unmap_mapping_range(mapping, offset, (end - offset), 1);
+ 	truncate_inode_pages_range(mapping, offset, end);
++	unmap_mapping_range(mapping, offset, (end - offset), 1);
+ 	inode->i_op->truncate_range(inode, offset, end);
+ 	up_write(&inode->i_alloc_sem);
+ 	mutex_unlock(&inode->i_mutex);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
 
 origin.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-hack-to-make-wireless-work.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch
 mm-merge-nopfn-into-fault-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-driver_bfin_serial_core-update.patch
-blackfin-blackfin-i2c-driver-update-2.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+splice-partial-write-handling-fix.patch
+as-fix-antic_expire-check.patch
+kblockd-use-flush_work.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched2-sched-domain-sysctl.patch
 lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+sched-remove-sleepavg-from-proc.patch
+sched-remove-noninteractive-flag.patch
+sched-implement-rsdl-cpu-scheduler.patch
+sched-document-rsdl-cpu-scheduler.patch
