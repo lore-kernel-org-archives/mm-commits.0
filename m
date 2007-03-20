@@ -1,73 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: + mm-merge-nopfn-into-fault-fix.patch added to -mm tree
-Date: Mon, 19 Mar 2007 17:44:25 -0700
-Message-ID: <200703200046.l2K0kMEX022122@shell0.pdx.osdl.net>
+Subject: - mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch removed from -mm tree
+Date: Mon, 19 Mar 2007 17:48:32 -0800
+Message-ID: <200703200148.l2K1mWDw022971@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37165 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39437 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030792AbXCTAqY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 20:46:24 -0400
+	id S965712AbXCTBsi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 21:48:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
+To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-merge-nopfn-into-fault-fix
-has been added to the -mm tree.  Its filename is
-     mm-merge-nopfn-into-fault-fix.patch
+     mm-debug-check-for-the-fault-vs-invalidate-race-tidy
+has been removed from the -mm tree.  Its filename was
+     mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-debug-check-for-the-fault-vs-invalidate-race.patch
 
 ------------------------------------------------------
-Subject: mm-merge-nopfn-into-fault-fix
+Subject: mm-debug-check-for-the-fault-vs-invalidate-race-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/char/mspec.c: In function `mspec_fault':
-drivers/char/mspec.c:195: error: structure has no member named `vma'
-drivers/char/mspec.c:229: error: structure has no member named `vma'
-drivers/char/mspec.c: At top level:
-drivers/char/mspec.c:237: warning: initialization from incompatible pointer type
-
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mspec.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/filemap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/mspec.c~mm-merge-nopfn-into-fault-fix drivers/char/mspec.c
---- a/drivers/char/mspec.c~mm-merge-nopfn-into-fault-fix
-+++ a/drivers/char/mspec.c
-@@ -187,12 +187,12 @@ mspec_close(struct vm_area_struct *vma)
-  * Creates a mspec page and maps it to user space.
-  */
- static struct page *
--mspec_fault(struct fault_data *fdata)
-+mspec_fault(struct vm_area_struct *vma, struct fault_data *fdata)
- {
- 	unsigned long paddr, maddr;
- 	unsigned long pfn;
- 	int index = fdata->pgoff;
--	struct vma_data *vdata = fdata->vma->vm_private_data;
-+	struct vma_data *vdata = vma->vm_private_data;
- 
- 	maddr = (volatile unsigned long) vdata->maddr[index];
- 	if (maddr == 0) {
-@@ -226,7 +226,7 @@ mspec_fault(struct fault_data *fdata)
- 	 * be because another thread has installed the pte first, so it
- 	 * is no problem.
- 	 */
--	vm_insert_pfn(fdata->vma, fdata->address, pfn);
-+	vm_insert_pfn(vma, fdata->address, pfn);
- 
- 	return NULL;
+diff -puN mm/filemap.c~mm-debug-check-for-the-fault-vs-invalidate-race-tidy mm/filemap.c
+--- a/mm/filemap.c~mm-debug-check-for-the-fault-vs-invalidate-race-tidy
++++ a/mm/filemap.c
+@@ -120,7 +120,6 @@ void __remove_from_page_cache(struct pag
+ 	page->mapping = NULL;
+ 	mapping->nrpages--;
+ 	__dec_zone_page_state(page, NR_FILE_PAGES);
+-
+ 	BUG_ON(page_mapped(page));
  }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,9 +80,10 @@ allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
 prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
 revert-ac97-fix-microphone-and-line_in-selection-logic.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
 mm-merge-nopfn-into-fault-fix.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
 driver_bfin_serial_core-update.patch
