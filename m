@@ -1,47 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch removed from -mm tree
-Date: Mon, 19 Mar 2007 17:48:32 -0800
-Message-ID: <200703200148.l2K1mWDw022971@shell0.pdx.osdl.net>
+Subject: + hack-to-make-wireless-work.patch added to -mm tree
+Date: Mon, 19 Mar 2007 18:56:55 -0800
+Message-ID: <200703200256.l2K2ut6w024042@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39437 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42487 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965712AbXCTBsi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Mar 2007 21:48:38 -0400
+	id S966075AbXCTC5i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 19 Mar 2007 22:57:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jbenc@suse.cz, jeff@garzik.org, johannes@sipsolutions.net, linville@tuxdriver.com
 
 
 The patch titled
-     mm-debug-check-for-the-fault-vs-invalidate-race-tidy
-has been removed from the -mm tree.  Its filename was
-     mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
+     hack-to-make-wireless-work
+has been added to the -mm tree.  Its filename is
+     hack-to-make-wireless-work.patch
 
-This patch was dropped because it was folded into mm-debug-check-for-the-fault-vs-invalidate-race.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: mm-debug-check-for-the-fault-vs-invalidate-race-tidy
+Subject: hack-to-make-wireless-work
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Nick Piggin <npiggin@suse.de>
+Workaround for this:
+
+[  178.096000] fw_register_device: device_register failed
+[  178.096000] ipw2200: ipw2200-bss.fw request_firmware failed: Reason -19
+[  178.096000] ipw2200: Unable to load firmware: -19
+[  178.096000] ipw2200: failed to register network device
+[  178.096000] ipw2200: probe of 0000:06:0b.0 failed with error -5
+
+John W. Linville" <linville@tuxdriver.com>
+Cc: <jeff@garzik.org>
+Cc: <jbenc@suse.cz>
+Cc: <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/base/firmware_class.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/filemap.c~mm-debug-check-for-the-fault-vs-invalidate-race-tidy mm/filemap.c
---- a/mm/filemap.c~mm-debug-check-for-the-fault-vs-invalidate-race-tidy
-+++ a/mm/filemap.c
-@@ -120,7 +120,6 @@ void __remove_from_page_cache(struct pag
- 	page->mapping = NULL;
- 	mapping->nrpages--;
- 	__dec_zone_page_state(page, NR_FILE_PAGES);
--
- 	BUG_ON(page_mapped(page));
- }
+diff -puN drivers/base/firmware_class.c~hack-to-make-wireless-work drivers/base/firmware_class.c
+--- a/drivers/base/firmware_class.c~hack-to-make-wireless-work
++++ a/drivers/base/firmware_class.c
+@@ -96,8 +96,8 @@ static int firmware_uevent(struct device
+ 	struct firmware_priv *fw_priv = dev_get_drvdata(dev);
+ 	int i = 0, len = 0;
  
+-	if (!test_bit(FW_STATUS_READY, &fw_priv->status))
+-		return -ENODEV;
++//	if (!test_bit(FW_STATUS_READY, &fw_priv->status))
++//		return -ENODEV;
+ 
+ 	if (add_uevent_var(envp, num_envp, &i, buffer, buffer_size, &len,
+ 			   "FIRMWARE=%s", fw_priv->fw_id))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +91,7 @@ git-scsi-rc-fixes.patch
 git-unionfs.patch
 git-wireless.patch
 git-wireless-fixup.patch
+hack-to-make-wireless-work.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 linux-sysdevh-needs-to-include-linux-moduleh.patch
 i386-vdso_prelink-warning-fix.patch
@@ -82,8 +101,6 @@ revert-ac97-fix-microphone-and-line_in-selection-logic.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
 mm-merge-nopfn-into-fault-fix.patch
-mm-debug-check-for-the-fault-vs-invalidate-race.patch
-mm-debug-check-for-the-fault-vs-invalidate-race-tidy.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
 driver_bfin_serial_core-update.patch
