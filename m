@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + smaps-add-clear_refs-file-to-clear-reference-cleanup.patch added to -mm tree
-Date: Wed, 21 Mar 2007 15:27:04 -0700
-Message-ID: <200703212227.l2LMR4ip005425@shell0.pdx.osdl.net>
+Subject: + yet-another-function-to-load-cr3-register.patch added to -mm tree
+Date: Wed, 21 Mar 2007 15:30:19 -0700
+Message-ID: <200703212230.l2LMUJoi005508@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56594 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56697 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965402AbXCUW1Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 18:27:25 -0400
+	id S933908AbXCUWah (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 18:30:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com, rientjes@google.com
+Cc: gcosta@redhat.com, ak@suse.de
 
 
 The patch titled
-     rename for_each_pmd
+     Yet another function to load cr3 register
 has been added to the -mm tree.  Its filename is
-     smaps-add-clear_refs-file-to-clear-reference-cleanup.patch
+     yet-another-function-to-load-cr3-register.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,143 +25,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rename for_each_pmd
-From: Matt Mackall <mpm@selenic.com>
+Subject: Yet another function to load cr3 register
+From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-This function caused me some confusion.  In keeping with the precedent in
-mm/memory.c, I've used pte_range instead of pmd.  While I was at it, I
-changed for_each_ to walk_ as we have another precedent of using for_each
-as a macro that can drive a for loop.
+There is (was) yet another function to load something into
+the cr3 register. We don't need it.
 
-[It'd be nice to give sensible names to these data structures some day. 
-For instance, the thing pointed at by a pmd_t is not a "page middle
-directory" but a "page table entry...table"?
-
-Ideally, we'd make a consistent distinction between "e"ntries and
-"d"irectories in the naming.  So a PGD would contain PGEs that pointed
-to...  that pointed to PTDs that contained PTEs.]
-
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   47 +++++++++++++++++++++++++------------------
- 1 files changed, 28 insertions(+), 19 deletions(-)
+ arch/x86_64/kernel/smp.c         |    2 +-
+ include/asm-x86_64/mmu_context.h |    9 ++-------
+ 2 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-add-clear_refs-file-to-clear-reference-cleanup fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-add-clear_refs-file-to-clear-reference-cleanup
-+++ a/fs/proc/task_mmu.c
-@@ -214,9 +214,9 @@ static int show_map(struct seq_file *m, 
- 	return show_map_internal(m, v, NULL);
+diff -puN arch/x86_64/kernel/smp.c~yet-another-function-to-load-cr3-register arch/x86_64/kernel/smp.c
+--- a/arch/x86_64/kernel/smp.c~yet-another-function-to-load-cr3-register
++++ a/arch/x86_64/kernel/smp.c
+@@ -76,7 +76,7 @@ static inline void leave_mm(int cpu)
+ 	if (read_pda(mmu_state) == TLBSTATE_OK)
+ 		BUG();
+ 	cpu_clear(cpu, read_pda(active_mm)->cpu_vm_mask);
+-	load_cr3(swapper_pg_dir);
++	write_cr3(__pa(swapper_pg_dir));
  }
  
--static void smaps_one_pmd(struct vm_area_struct *vma, pmd_t *pmd,
--			  unsigned long addr, unsigned long end,
--			  void *private)
-+static void smaps_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
-+			    unsigned long addr, unsigned long end,
-+			    void *private)
- {
- 	struct mem_size_stats *mss = private;
- 	pte_t *pte, ptent;
-@@ -254,9 +254,9 @@ static void smaps_one_pmd(struct vm_area
- 	cond_resched();
+ /*
+diff -puN include/asm-x86_64/mmu_context.h~yet-another-function-to-load-cr3-register include/asm-x86_64/mmu_context.h
+--- a/include/asm-x86_64/mmu_context.h~yet-another-function-to-load-cr3-register
++++ a/include/asm-x86_64/mmu_context.h
+@@ -22,11 +22,6 @@ static inline void enter_lazy_tlb(struct
+ #endif
  }
  
--static void clear_refs_one_pmd(struct vm_area_struct *vma, pmd_t *pmd,
--			       unsigned long addr, unsigned long end,
--			       void *private)
-+static void clear_refs_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
-+				 unsigned long addr, unsigned long end,
-+				 void *private)
+-static inline void load_cr3(pgd_t *pgd)
+-{
+-	asm volatile("movq %0,%%cr3" :: "r" (__pa(pgd)) : "memory");
+-}
+-
+ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next, 
+ 			     struct task_struct *tsk)
  {
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
-@@ -283,8 +283,8 @@ static void clear_refs_one_pmd(struct vm
- 	cond_resched();
- }
+@@ -39,7 +34,7 @@ static inline void switch_mm(struct mm_s
+ 		write_pda(active_mm, next);
+ #endif
+ 		cpu_set(cpu, next->cpu_vm_mask);
+-		load_cr3(next->pgd);
++		write_cr3(__pa(next->pgd));
  
--static inline void for_each_pmd_in_pud(struct pmd_walker *walker, pud_t *pud,
--				       unsigned long addr, unsigned long end)
-+static inline void walk_pmd_range(struct pmd_walker *walker, pud_t *pud,
-+				  unsigned long addr, unsigned long end)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-@@ -298,8 +298,8 @@ static inline void for_each_pmd_in_pud(s
+ 		if (unlikely(next->context.ldt != prev->context.ldt)) 
+ 			load_LDT_nolock(&next->context, cpu);
+@@ -54,7 +49,7 @@ static inline void switch_mm(struct mm_s
+ 			 * tlb flush IPI delivery. We must reload CR3
+ 			 * to make sure to use no freed page tables.
+ 			 */
+-			load_cr3(next->pgd);
++			write_cr3(__pa(next->pgd));
+ 			load_LDT_nolock(&next->context, cpu);
+ 		}
  	}
- }
- 
--static inline void for_each_pud_in_pgd(struct pmd_walker *walker, pgd_t *pgd,
--				       unsigned long addr, unsigned long end)
-+static inline void walk_pud_range(struct pmd_walker *walker, pgd_t *pgd,
-+				  unsigned long addr, unsigned long end)
- {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -309,15 +309,24 @@ static inline void for_each_pud_in_pgd(s
- 		next = pud_addr_end(addr, end);
- 		if (pud_none_or_clear_bad(pud))
- 			continue;
--		for_each_pmd_in_pud(walker, pud, addr, next);
-+		walk_pmd_range(walker, pud, addr, next);
- 	}
- }
- 
--static inline void for_each_pmd(struct vm_area_struct *vma,
--				void (*action)(struct vm_area_struct *, pmd_t *,
--					       unsigned long, unsigned long,
--					       void *),
--				void *private)
-+/*
-+ * walk_page_range - walk the page tables of a VMA with a callback
-+ * @vma - VMA to walk
-+ * @action - callback invoked for every bottom-level (PTE) page table
-+ * @private - private data passed to the callback function
-+ *
-+ * Recursively walk the page table for the memory area in a VMA, calling
-+ * a callback for every bottom-level (PTE) page table.
-+ */
-+static inline void walk_page_range(struct vm_area_struct *vma,
-+				   void (*action)(struct vm_area_struct *,
-+						  pmd_t *, unsigned long,
-+						  unsigned long, void *),
-+				   void *private)
- {
- 	unsigned long addr = vma->vm_start;
- 	unsigned long end = vma->vm_end;
-@@ -334,7 +343,7 @@ static inline void for_each_pmd(struct v
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd))
- 			continue;
--		for_each_pud_in_pgd(&walker, pgd, addr, next);
-+		walk_pud_range(&walker, pgd, addr, next);
- 	}
- }
- 
-@@ -345,7 +354,7 @@ static int show_smap(struct seq_file *m,
- 
- 	memset(&mss, 0, sizeof mss);
- 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
--		for_each_pmd(vma, smaps_one_pmd, &mss);
-+		walk_page_range(vma, smaps_pte_range, &mss);
- 	return show_map_internal(m, v, &mss);
- }
- 
-@@ -356,7 +365,7 @@ void clear_refs_smap(struct mm_struct *m
- 	down_read(&mm->mmap_sem);
- 	for (vma = mm->mmap; vma; vma = vma->vm_next)
- 		if (vma->vm_mm && !is_vm_hugetlb_page(vma))
--			for_each_pmd(vma, clear_refs_one_pmd, NULL);
-+			walk_page_range(vma, clear_refs_pte_range, NULL);
- 	flush_tlb_mm(mm);
- 	up_read(&mm->mmap_sem);
- }
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from gcosta@redhat.com are
 
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-cleanup.patch
+x86_64-remove-duplicated-code-for-reading-control-registers.patch
+yet-another-function-to-load-cr3-register.patch
