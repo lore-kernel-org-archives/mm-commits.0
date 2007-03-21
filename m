@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch added to -mm tree
-Date: Wed, 21 Mar 2007 15:32:47 -0700
-Message-ID: <200703212232.l2LMWl1h005569@shell0.pdx.osdl.net>
+Subject: + i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch added to -mm tree
+Date: Wed, 21 Mar 2007 15:32:49 -0700
+Message-ID: <200703212232.l2LMWnWk005572@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56807 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56808 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933287AbXCUWc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 18:32:59 -0400
+	id S933898AbXCUWdA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 18:33:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rusty@rustcorp.com.au, ak@suse.de
 
 
 The patch titled
-     i386 GDT cleanups: Use per-cpu variables for GDT, PDA
+     i386 GDT cleanups: Use per-cpu GDT immediately upon boot
 has been added to the -mm tree.  Its filename is
-     i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
+     i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,277 +25,354 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 GDT cleanups: Use per-cpu variables for GDT, PDA
+Subject: i386 GDT cleanups: Use per-cpu GDT immediately upon boot
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Allocating PDA and GDT at boot is a pain.  Using simple per-cpu variables adds
-happiness (although we need the GDT page-aligned for Xen, which we do in a
-followup patch).
+Now we are no longer dynamically allocating the GDT, we don't need the
+"cpu_gdt_table" at all: we can switch straight from "boot_gdt_table" to the
+per-cpu GDT.  This means initializing the cpu_gdt array in C.
+
+The boot CPU uses the per-cpu var directly, then in smp_prepare_cpus() it
+switches to the per-cpu copy just allocated.  For secondary CPUs, the
+early_gdt_descr is set to point directly to their per-cpu copy.
+
+For UP the code is very simple: it keeps using the "per-cpu" GDT as per SMP,
+but we never have to move.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/common.c        |   94 +++----------------------
- arch/i386/kernel/smpboot.c           |   21 -----
- arch/i386/mach-voyager/voyager_smp.c |   10 --
- include/asm-i386/desc.h              |    1 
- include/asm-i386/pda.h               |    7 -
- include/asm-i386/processor.h         |    2 
- 6 files changed, 20 insertions(+), 115 deletions(-)
+ arch/i386/kernel/cpu/common.c        |   72 +++++++++----------------
+ arch/i386/kernel/head.S              |   59 --------------------
+ arch/i386/kernel/smpboot.c           |   59 ++++++++++++++++----
+ arch/i386/lguest/lguest.c            |    8 +-
+ arch/i386/mach-voyager/voyager_smp.c |    6 --
+ include/asm-i386/desc.h              |    2 
+ include/asm-i386/processor.h         |    1 
+ 7 files changed, 79 insertions(+), 128 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/common.c~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda arch/i386/kernel/cpu/common.c
---- a/arch/i386/kernel/cpu/common.c~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda
+diff -puN arch/i386/kernel/cpu/common.c~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot arch/i386/kernel/cpu/common.c
+--- a/arch/i386/kernel/cpu/common.c~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot
 +++ a/arch/i386/kernel/cpu/common.c
-@@ -25,8 +25,10 @@
+@@ -25,7 +25,33 @@
  DEFINE_PER_CPU(struct Xgt_desc_struct, cpu_gdt_descr);
  EXPORT_PER_CPU_SYMBOL(cpu_gdt_descr);
  
--struct i386_pda *_cpu_pda[NR_CPUS] __read_mostly;
--EXPORT_SYMBOL(_cpu_pda);
-+DEFINE_PER_CPU(struct desc_struct, cpu_gdt[GDT_ENTRIES]);
+-DEFINE_PER_CPU(struct desc_struct, cpu_gdt[GDT_ENTRIES]);
++DEFINE_PER_CPU(struct desc_struct, cpu_gdt[GDT_ENTRIES]) = {
++	[GDT_ENTRY_KERNEL_CS] = { 0x0000ffff, 0x00cf9a00 },
++	[GDT_ENTRY_KERNEL_DS] = { 0x0000ffff, 0x00cf9200 },
++	[GDT_ENTRY_DEFAULT_USER_CS] = { 0x0000ffff, 0x00cffa00 },
++	[GDT_ENTRY_DEFAULT_USER_DS] = { 0x0000ffff, 0x00cff200 },
++	/*
++	 * Segments used for calling PnP BIOS have byte granularity.
++	 * They code segments and data segments have fixed 64k limits,
++	 * the transfer segment sizes are set at run time.
++	 */
++	[GDT_ENTRY_PNPBIOS_CS32] = { 0x0000ffff, 0x00409a00 },/* 32-bit code */
++	[GDT_ENTRY_PNPBIOS_CS16] = { 0x0000ffff, 0x00009a00 },/* 16-bit code */
++	[GDT_ENTRY_PNPBIOS_DS] = { 0x0000ffff, 0x00009200 }, /* 16-bit data */
++	[GDT_ENTRY_PNPBIOS_TS1] = { 0x00000000, 0x00009200 },/* 16-bit data */
++	[GDT_ENTRY_PNPBIOS_TS2] = { 0x00000000, 0x00009200 },/* 16-bit data */
++	/*
++	 * The APM segments have byte granularity and their bases
++	 * are set at run time.  All have 64k limits.
++	 */
++	[GDT_ENTRY_APMBIOS_BASE] = { 0x0000ffff, 0x00409a00 },/* 32-bit code */
++	/* 16-bit code */
++	[GDT_ENTRY_APMBIOS_BASE+1] = { 0x0000ffff, 0x00009a00 },
++	[GDT_ENTRY_APMBIOS_BASE+2] = { 0x0000ffff, 0x00409200 }, /* data */
 +
-+DEFINE_PER_CPU(struct i386_pda, _cpu_pda);
-+EXPORT_PER_CPU_SYMBOL(_cpu_pda);
++	[GDT_ENTRY_ESPFIX_SS] = { 0x00000000, 0x00c09200 },
++	[GDT_ENTRY_PDA] = { 0x00000000, 0x00c09200 }, /* set in setup_pda */
++};
  
- static int cachesize_override __cpuinitdata = -1;
- static int disable_x86_fxsr __cpuinitdata;
-@@ -609,52 +611,6 @@ struct pt_regs * __devinit idle_regs(str
- 	return regs;
- }
+ DEFINE_PER_CPU(struct i386_pda, _cpu_pda);
+ EXPORT_PER_CPU_SYMBOL(_cpu_pda);
+@@ -618,46 +644,6 @@ struct i386_pda boot_pda = {
+ 	.pcurrent = &init_task,
+ };
  
--static __cpuinit int alloc_gdt(int cpu)
+-static inline void set_kernel_fs(void)
 -{
--	struct Xgt_desc_struct *cpu_gdt_descr = &per_cpu(cpu_gdt_descr, cpu);
--	struct desc_struct *gdt;
--	struct i386_pda *pda;
--
--	gdt = (struct desc_struct *)cpu_gdt_descr->address;
--	pda = cpu_pda(cpu);
--
--	/*
--	 * This is a horrible hack to allocate the GDT.  The problem
--	 * is that cpu_init() is called really early for the boot CPU
--	 * (and hence needs bootmem) but much later for the secondary
--	 * CPUs, when bootmem will have gone away
--	 */
--	if (NODE_DATA(0)->bdata->node_bootmem_map) {
--		BUG_ON(gdt != NULL || pda != NULL);
--
--		gdt = alloc_bootmem_pages(PAGE_SIZE);
--		pda = alloc_bootmem(sizeof(*pda));
--		/* alloc_bootmem(_pages) panics on failure, so no check */
--
--		memset(gdt, 0, PAGE_SIZE);
--		memset(pda, 0, sizeof(*pda));
--	} else {
--		/* GDT and PDA might already have been allocated if
--		   this is a CPU hotplug re-insertion. */
--		if (gdt == NULL)
--			gdt = (struct desc_struct *)get_zeroed_page(GFP_KERNEL);
--
--		if (pda == NULL)
--			pda = kmalloc_node(sizeof(*pda), GFP_KERNEL, cpu_to_node(cpu));
--
--		if (unlikely(!gdt || !pda)) {
--			free_pages((unsigned long)gdt, 0);
--			kfree(pda);
--			return 0;
--		}
--	}
--
-- 	cpu_gdt_descr->address = (unsigned long)gdt;
--	cpu_pda(cpu) = pda;
--
--	return 1;
+-	/* Set %fs for this CPU's PDA.  Memory clobber is to create a
+-	   barrier with respect to any PDA operations, so the compiler
+-	   doesn't move any before here. */
+-	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
 -}
 -
- /* Initial PDA used by boot CPU */
- struct i386_pda boot_pda = {
- 	._pda = &boot_pda,
-@@ -670,31 +626,17 @@ static inline void set_kernel_fs(void)
- 	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
- }
- 
--/* Initialize the CPU's GDT and PDA.  The boot CPU does this for
--   itself, but secondaries find this done for them. */
--__cpuinit int init_gdt(int cpu, struct task_struct *idle)
-+/* Initialize the CPU's GDT and PDA.  This is either the boot CPU doing itself
-+   (still using cpu_gdt_table), or a CPU doing it for a secondary which
-+   will soon come up. */
-+__cpuinit void init_gdt(int cpu, struct task_struct *idle)
+-/* Initialize the CPU's GDT and PDA.  This is either the boot CPU doing itself
+-   (still using cpu_gdt_table), or a CPU doing it for a secondary which
+-   will soon come up. */
+-__cpuinit void init_gdt(int cpu, struct task_struct *idle)
+-{
+-	struct Xgt_desc_struct *cpu_gdt_descr = &per_cpu(cpu_gdt_descr, cpu);
+-	struct desc_struct *gdt = per_cpu(cpu_gdt, cpu);
+-	struct i386_pda *pda = &per_cpu(_cpu_pda, cpu);
+-
+- 	memcpy(gdt, cpu_gdt_table, GDT_SIZE);
+- 	cpu_gdt_descr->address = (unsigned long)gdt;
+-	cpu_gdt_descr->size = GDT_SIZE - 1;
+-
+-	pack_descriptor((u32 *)&gdt[GDT_ENTRY_PDA].a,
+-			(u32 *)&gdt[GDT_ENTRY_PDA].b,
+-			(unsigned long)pda, sizeof(*pda) - 1,
+-			0x80 | DESCTYPE_S | 0x2, 0); /* present read-write data segment */
+-
+-	memset(pda, 0, sizeof(*pda));
+-	pda->_pda = pda;
+-	pda->cpu_number = cpu;
+-	pda->pcurrent = idle;
+-}
+-
+-void __cpuinit cpu_set_gdt(int cpu)
+-{
+-	struct Xgt_desc_struct *cpu_gdt_descr = &per_cpu(cpu_gdt_descr, cpu);
+-
+-	load_gdt(cpu_gdt_descr);
+-	set_kernel_fs();
+-}
+-
+ /* Common CPU init for both boot and secondary CPUs */
+ static void __cpuinit _cpu_init(int cpu, struct task_struct *curr)
  {
- 	struct Xgt_desc_struct *cpu_gdt_descr = &per_cpu(cpu_gdt_descr, cpu);
--	struct desc_struct *gdt;
--	struct i386_pda *pda;
--
--	/* For non-boot CPUs, the GDT and PDA should already have been
--	   allocated. */
--	if (!alloc_gdt(cpu)) {
--		printk(KERN_CRIT "CPU%d failed to allocate GDT or PDA\n", cpu);
--		return 0;
--	}
--
--	gdt = (struct desc_struct *)cpu_gdt_descr->address;
--	pda = cpu_pda(cpu);
--
--	BUG_ON(gdt == NULL || pda == NULL);
-+	struct desc_struct *gdt = per_cpu(cpu_gdt, cpu);
-+	struct i386_pda *pda = &per_cpu(_cpu_pda, cpu);
- 
--	/*
--	 * Initialize the per-CPU GDT with the boot GDT,
--	 * and set up the GDT descriptor:
--	 */
-  	memcpy(gdt, cpu_gdt_table, GDT_SIZE);
-+ 	cpu_gdt_descr->address = (unsigned long)gdt;
- 	cpu_gdt_descr->size = GDT_SIZE - 1;
- 
- 	pack_descriptor((u32 *)&gdt[GDT_ENTRY_PDA].a,
-@@ -706,17 +648,12 @@ __cpuinit int init_gdt(int cpu, struct t
- 	pda->_pda = pda;
- 	pda->cpu_number = cpu;
- 	pda->pcurrent = idle;
--
--	return 1;
- }
- 
- void __cpuinit cpu_set_gdt(int cpu)
- {
- 	struct Xgt_desc_struct *cpu_gdt_descr = &per_cpu(cpu_gdt_descr, cpu);
- 
--	/* Reinit these anyway, even if they've already been done (on
--	   the boot CPU, this will transition from the boot gdt+pda to
--	   the real ones). */
- 	load_gdt(cpu_gdt_descr);
- 	set_kernel_fs();
- }
-@@ -804,13 +741,8 @@ void __cpuinit cpu_init(void)
+@@ -740,10 +726,6 @@ void __cpuinit cpu_init(void)
+ 	int cpu = smp_processor_id();
  	struct task_struct *curr = current;
  
- 	/* Set up the real GDT and PDA, so we can transition from the
--	   boot versions. */
--	if (!init_gdt(cpu, curr)) {
--		/* failed to allocate something; not much we can do... */
--		for (;;)
--			local_irq_enable();
--	}
--
-+	   boot_gdt_table & boot_pda. */
-+	init_gdt(cpu, curr);
- 	cpu_set_gdt(cpu);
+-	/* Set up the real GDT and PDA, so we can transition from the
+-	   boot_gdt_table & boot_pda. */
+-	init_gdt(cpu, curr);
+-	cpu_set_gdt(cpu);
  	_cpu_init(cpu, curr);
  }
-diff -puN arch/i386/kernel/smpboot.c~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda
+ 
+diff -puN arch/i386/kernel/head.S~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot arch/i386/kernel/head.S
+--- a/arch/i386/kernel/head.S~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot
++++ a/arch/i386/kernel/head.S
+@@ -599,67 +599,10 @@ idt_descr:
+ 	.word 0				# 32 bit align gdt_desc.address
+ ENTRY(early_gdt_descr)
+ 	.word GDT_ENTRIES*8-1
+-	.long cpu_gdt_table
++	.long per_cpu__cpu_gdt		/* Overwritten for secondary CPUs */
+ 
+-/*
+- * The boot_gdt_table must mirror the equivalent in setup.S and is
+- * used only for booting.
+- */
+ 	.align L1_CACHE_BYTES
+ ENTRY(boot_gdt_table)
+ 	.fill GDT_ENTRY_BOOT_CS,8,0
+ 	.quad 0x00cf9a000000ffff	/* kernel 4GB code at 0x00000000 */
+ 	.quad 0x00cf92000000ffff	/* kernel 4GB data at 0x00000000 */
+-
+-/*
+- * The Global Descriptor Table contains 32 quadwords, per-CPU.
+- */
+-	.align L1_CACHE_BYTES
+-ENTRY(cpu_gdt_table)
+-	.quad 0x0000000000000000	/* NULL descriptor */
+-	.quad 0x0000000000000000	/* 0x0b reserved */
+-	.quad 0x0000000000000000	/* 0x13 reserved */
+-	.quad 0x0000000000000000	/* 0x1b reserved */
+-	.quad 0x0000000000000000	/* 0x20 unused */
+-	.quad 0x0000000000000000	/* 0x28 unused */
+-	.quad 0x0000000000000000	/* 0x33 TLS entry 1 */
+-	.quad 0x0000000000000000	/* 0x3b TLS entry 2 */
+-	.quad 0x0000000000000000	/* 0x43 TLS entry 3 */
+-	.quad 0x0000000000000000	/* 0x4b reserved */
+-	.quad 0x0000000000000000	/* 0x53 reserved */
+-	.quad 0x0000000000000000	/* 0x5b reserved */
+-
+-	.quad 0x00cf9a000000ffff	/* 0x60 kernel 4GB code at 0x00000000 */
+-	.quad 0x00cf92000000ffff	/* 0x68 kernel 4GB data at 0x00000000 */
+-	.quad 0x00cffa000000ffff	/* 0x73 user 4GB code at 0x00000000 */
+-	.quad 0x00cff2000000ffff	/* 0x7b user 4GB data at 0x00000000 */
+-
+-	.quad 0x0000000000000000	/* 0x80 TSS descriptor */
+-	.quad 0x0000000000000000	/* 0x88 LDT descriptor */
+-
+-	/*
+-	 * Segments used for calling PnP BIOS have byte granularity.
+-	 * The code segments and data segments have fixed 64k limits,
+-	 * the transfer segment sizes are set at run time.
+-	 */
+-	.quad 0x00409a000000ffff	/* 0x90 32-bit code */
+-	.quad 0x00009a000000ffff	/* 0x98 16-bit code */
+-	.quad 0x000092000000ffff	/* 0xa0 16-bit data */
+-	.quad 0x0000920000000000	/* 0xa8 16-bit data */
+-	.quad 0x0000920000000000	/* 0xb0 16-bit data */
+-
+-	/*
+-	 * The APM segments have byte granularity and their bases
+-	 * are set at run time.  All have 64k limits.
+-	 */
+-	.quad 0x00409a000000ffff	/* 0xb8 APM CS    code */
+-	.quad 0x00009a000000ffff	/* 0xc0 APM CS 16 code (16 bit) */
+-	.quad 0x004092000000ffff	/* 0xc8 APM DS    data */
+-
+-	.quad 0x00c0920000000000	/* 0xd0 - ESPFIX SS */
+-	.quad 0x00cf92000000ffff	/* 0xd8 - PDA */
+-	.quad 0x0000000000000000	/* 0xe0 - unused */
+-	.quad 0x0000000000000000	/* 0xe8 - unused */
+-	.quad 0x0000000000000000	/* 0xf0 - unused */
+-	.quad 0x0000000000000000	/* 0xf8 - GDT entry 31: double-fault TSS */
+-
+diff -puN arch/i386/kernel/smpboot.c~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot
 +++ a/arch/i386/kernel/smpboot.c
-@@ -808,13 +808,7 @@ static int __cpuinit do_boot_cpu(int api
- 	if (IS_ERR(idle))
+@@ -440,12 +440,6 @@ static void __cpuinit start_secondary(vo
+ void __devinit initialize_secondary(void)
+ {
+ 	/*
+-	 * switch to the per CPU GDT we already set up
+-	 * in do_boot_cpu()
+-	 */
+-	cpu_set_gdt(current_thread_info()->cpu);
+-
+-	/*
+ 	 * We don't actually need to load the full TSS,
+ 	 * basically just the stack pointer and the eip.
+ 	 */
+@@ -787,6 +781,32 @@ static inline struct task_struct * alloc
+ #define alloc_idle_task(cpu) fork_idle(cpu)
+ #endif
+ 
++/* Initialize the CPU's GDT.  This is either the boot CPU doing itself
++   (still using the master per-cpu area), or a CPU doing it for a
++   secondary which will soon come up. */
++static __cpuinit void init_gdt(int cpu, struct task_struct *idle)
++{
++	struct Xgt_desc_struct *cpu_gdt_descr = &per_cpu(cpu_gdt_descr, cpu);
++	struct desc_struct *gdt = per_cpu(cpu_gdt, cpu);
++	struct i386_pda *pda = &per_cpu(_cpu_pda, cpu);
++
++ 	cpu_gdt_descr->address = (unsigned long)gdt;
++	cpu_gdt_descr->size = GDT_SIZE - 1;
++
++	pack_descriptor((u32 *)&gdt[GDT_ENTRY_PDA].a,
++			(u32 *)&gdt[GDT_ENTRY_PDA].b,
++			(unsigned long)pda, sizeof(*pda) - 1,
++			0x80 | DESCTYPE_S | 0x2, 0); /* present read-write data segment */
++
++	memset(pda, 0, sizeof(*pda));
++	pda->_pda = pda;
++	pda->cpu_number = cpu;
++	pda->pcurrent = idle;
++}
++
++/* Defined in head.S */
++extern struct Xgt_desc_struct early_gdt_descr;
++
+ static int __cpuinit do_boot_cpu(int apicid, int cpu)
+ /*
+  * NOTE - on most systems this is a PHYSICAL apic ID, but on multiquad
+@@ -809,6 +829,8 @@ static int __cpuinit do_boot_cpu(int api
  		panic("failed fork for CPU %d", cpu);
  
--	/* Pre-allocate and initialize the CPU's GDT and PDA so it
--	   doesn't have to do any memory allocation during the
--	   delicate CPU-bringup phase. */
--	if (!init_gdt(cpu, idle)) {
--		printk(KERN_INFO "Couldn't allocate GDT/PDA for CPU %d\n", cpu);
--		return -1;	/* ? */
--	}
-+	init_gdt(cpu, idle);
+ 	init_gdt(cpu, idle);
++	early_gdt_descr.address = (unsigned long)get_cpu_gdt_table(cpu);
++	start_pda = cpu_pda(cpu);
  
  	idle->thread.eip = (unsigned long) start_secondary;
  	/* start_eip had better be page-aligned! */
-@@ -940,7 +934,6 @@ static int __cpuinit __smp_prepare_cpu(i
- 	DECLARE_COMPLETION_ONSTACK(done);
- 	struct warm_boot_cpu_info info;
- 	int	apicid, ret;
--	struct Xgt_desc_struct *cpu_gdt_descr = &per_cpu(cpu_gdt_descr, cpu);
+@@ -1161,13 +1183,26 @@ void __init smp_prepare_cpus(unsigned in
+ 	smp_boot_cpus(max_cpus);
+ }
  
- 	apicid = x86_cpu_to_apicid[cpu];
- 	if (apicid == BAD_APICID) {
-@@ -948,18 +941,6 @@ static int __cpuinit __smp_prepare_cpu(i
- 		goto exit;
- 	}
- 
--	/*
--	 * the CPU isn't initialized at boot time, allocate gdt table here.
--	 * cpu_init will initialize it
--	 */
--	if (!cpu_gdt_descr->address) {
--		cpu_gdt_descr->address = get_zeroed_page(GFP_KERNEL);
--		if (!cpu_gdt_descr->address)
--			printk(KERN_CRIT "CPU%d failed to allocate GDT\n", cpu);
--			ret = -ENOMEM;
--			goto exit;
--	}
--
- 	info.complete = &done;
- 	info.apicid = apicid;
- 	info.cpu = cpu;
-diff -puN arch/i386/mach-voyager/voyager_smp.c~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda arch/i386/mach-voyager/voyager_smp.c
---- a/arch/i386/mach-voyager/voyager_smp.c~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda
-+++ a/arch/i386/mach-voyager/voyager_smp.c
-@@ -580,15 +580,7 @@ do_boot_cpu(__u8 cpu)
- 	/* init_tasks (in sched.c) is indexed logically */
- 	stack_start.esp = (void *) idle->thread.esp;
- 
--	/* Pre-allocate and initialize the CPU's GDT and PDA so it
--	   doesn't have to do any memory allocation during the
--	   delicate CPU-bringup phase. */
--	if (!init_gdt(cpu, idle)) {
--		printk(KERN_INFO "Couldn't allocate GDT/PDA for CPU %d\n", cpu);
--		cpucount--;
--		return;
--	}
--
-+	init_gdt(cpu, idle);
- 	irq_ctx_init(cpu);
- 
- 	/* Note: Don't modify initial ss override */
-diff -puN include/asm-i386/desc.h~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda include/asm-i386/desc.h
---- a/include/asm-i386/desc.h~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda
-+++ a/include/asm-i386/desc.h
-@@ -22,6 +22,7 @@ struct Xgt_desc_struct {
- 
- extern struct Xgt_desc_struct idt_descr;
- DECLARE_PER_CPU(struct Xgt_desc_struct, cpu_gdt_descr);
-+DECLARE_PER_CPU(struct desc_struct, cpu_gdt[GDT_ENTRIES]);
- extern struct Xgt_desc_struct early_gdt_descr;
- 
- static inline struct desc_struct *get_cpu_gdt_table(unsigned int cpu)
-diff -puN include/asm-i386/pda.h~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda include/asm-i386/pda.h
---- a/include/asm-i386/pda.h~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda
-+++ a/include/asm-i386/pda.h
-@@ -8,6 +8,7 @@
- 
- #include <linux/stddef.h>
- #include <linux/types.h>
-+#include <asm/percpu.h>
- 
- struct i386_pda
+-void __devinit smp_prepare_boot_cpu(void)
++/* Current gdt points %fs at the "master" per-cpu area: after this,
++ * it's on the real one. */
++static inline void switch_to_new_gdt(void)
  {
-@@ -18,10 +19,8 @@ struct i386_pda
- 	struct pt_regs *irq_regs;
- };
+-	cpu_set(smp_processor_id(), cpu_online_map);
+-	cpu_set(smp_processor_id(), cpu_callout_map);
+-	cpu_set(smp_processor_id(), cpu_present_map);
+-	cpu_set(smp_processor_id(), cpu_possible_map);
+-	per_cpu(cpu_state, smp_processor_id()) = CPU_ONLINE;
++	load_gdt(&per_cpu(cpu_gdt_descr, smp_processor_id()));
++	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
++}
++
++void __init smp_prepare_boot_cpu(void)
++{
++	unsigned int cpu = smp_processor_id();
++
++	init_gdt(cpu, current);
++	switch_to_new_gdt();
++
++	cpu_set(cpu, cpu_online_map);
++	cpu_set(cpu, cpu_callout_map);
++	cpu_set(cpu, cpu_present_map);
++	cpu_set(cpu, cpu_possible_map);
++	__get_cpu_var(cpu_state) = CPU_ONLINE;
+ }
  
--extern struct i386_pda *_cpu_pda[];
--
--#define cpu_pda(i)	(_cpu_pda[i])
--
-+DECLARE_PER_CPU(struct i386_pda, _cpu_pda);
-+#define cpu_pda(i)	(&per_cpu(_cpu_pda, (i)))
- #define pda_offset(field) offsetof(struct i386_pda, field)
+ #ifdef CONFIG_HOTPLUG_CPU
+diff -puN arch/i386/lguest/lguest.c~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot arch/i386/lguest/lguest.c
+--- a/arch/i386/lguest/lguest.c~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot
++++ a/arch/i386/lguest/lguest.c
+@@ -449,6 +449,9 @@ static void lguest_power_off(void)
+ 	hcall(LHCALL_CRASH, __pa("Power down"), 0, 0);
+ }
  
- extern void __bad_pda_field(void);
-diff -puN include/asm-i386/processor.h~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda
++/* From head.S */
++extern void setup_pda(void);
++
+ static __attribute_used__ __init void lguest_init(void)
+ {
+ 	paravirt_ops.name = "lguest";
+@@ -510,10 +513,7 @@ static __attribute_used__ __init void lg
+ 	init_pg_tables_end = __pa(pg0);
+ 
+ 	/* set up PDA descriptor */
+-	pack_descriptor((u32 *)&cpu_gdt_table[GDT_ENTRY_PDA].a,
+-			(u32 *)&cpu_gdt_table[GDT_ENTRY_PDA].b,
+-			(unsigned)&boot_pda, sizeof(boot_pda)-1,
+-			0x80 | DESCTYPE_S | 0x02, 0);
++	setup_pda();
+ 	load_gdt(&early_gdt_descr);
+ 	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
+ 
+diff -puN arch/i386/mach-voyager/voyager_smp.c~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot arch/i386/mach-voyager/voyager_smp.c
+--- a/arch/i386/mach-voyager/voyager_smp.c~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot
++++ a/arch/i386/mach-voyager/voyager_smp.c
+@@ -765,12 +765,6 @@ initialize_secondary(void)
+ #endif
+ 
+ 	/*
+-	 * switch to the per CPU GDT we already set up
+-	 * in do_boot_cpu()
+-	 */
+-	cpu_set_gdt(current_thread_info()->cpu);
+-
+-	/*
+ 	 * We don't actually need to load the full TSS,
+ 	 * basically just the stack pointer and the eip.
+ 	 */
+diff -puN include/asm-i386/desc.h~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot include/asm-i386/desc.h
+--- a/include/asm-i386/desc.h~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot
++++ a/include/asm-i386/desc.h
+@@ -12,8 +12,6 @@
+ 
+ #include <asm/mmu.h>
+ 
+-extern struct desc_struct cpu_gdt_table[GDT_ENTRIES];
+-
+ struct Xgt_desc_struct {
+ 	unsigned short size;
+ 	unsigned long address __attribute__((packed));
+diff -puN include/asm-i386/processor.h~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot include/asm-i386/processor.h
+--- a/include/asm-i386/processor.h~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot
 +++ a/include/asm-i386/processor.h
-@@ -743,7 +743,7 @@ extern unsigned long boot_option_idle_ov
+@@ -743,7 +743,6 @@ extern unsigned long boot_option_idle_ov
  extern void enable_sep_cpu(void);
  extern int sysenter_setup(void);
  
--extern int init_gdt(int cpu, struct task_struct *idle);
-+extern void init_gdt(int cpu, struct task_struct *idle);
+-extern void init_gdt(int cpu, struct task_struct *idle);
  extern void cpu_set_gdt(int);
  extern void secondary_cpu_init(void);
  
