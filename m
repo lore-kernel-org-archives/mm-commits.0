@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + char-cs5535_gpio-add-module_device_table.patch added to -mm tree
-Date: Wed, 21 Mar 2007 16:21:13 -0700
-Message-ID: <200703212321.l2LNLD3N006734@shell0.pdx.osdl.net>
+Date: Wed, 21 Mar 2007 16:21:34 -0700
+Message-ID: <200703212321.l2LNLZZ8006746@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58257 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58261 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753132AbXCUXVV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 19:21:21 -0400
+	id S1751334AbXCUXVk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 19:21:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: jirislaby@gmail.com, bgardner@wabtec.com, david-b@pacbell.net
 
 
 The patch titled
@@ -31,6 +31,8 @@ From: Jiri Slaby <jirislaby@gmail.com>
 cs5535_gpio, add MODULE_DEVICE_TABLE
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Ben Gardner <bgardner@wabtec.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
