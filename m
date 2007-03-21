@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + char-rocket-add-module_device_table.patch added to -mm tree
-Date: Wed, 21 Mar 2007 16:21:11 -0700
-Message-ID: <200703212321.l2LNLBYd006731@shell0.pdx.osdl.net>
+Subject: + char-cs5535_gpio-add-module_device_table.patch added to -mm tree
+Date: Wed, 21 Mar 2007 16:21:13 -0700
+Message-ID: <200703212321.l2LNLD3N006734@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58254 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58257 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750821AbXCUXVQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 19:21:16 -0400
+	id S1753132AbXCUXVV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 19:21:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: rocket, add MODULE_DEVICE_TABLE
+     Char: cs5535_gpio, add MODULE_DEVICE_TABLE
 has been added to the -mm tree.  Its filename is
-     char-rocket-add-module_device_table.patch
+     char-cs5535_gpio-add-module_device_table.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: rocket, add MODULE_DEVICE_TABLE
+Subject: Char: cs5535_gpio, add MODULE_DEVICE_TABLE
 From: Jiri Slaby <jirislaby@gmail.com>
 
-rocket, add MODULE_DEVICE_TABLE
+cs5535_gpio, add MODULE_DEVICE_TABLE
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+ drivers/char/cs5535_gpio.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/char/rocket.c~char-rocket-add-module_device_table drivers/char/rocket.c
---- a/drivers/char/rocket.c~char-rocket-add-module_device_table
-+++ a/drivers/char/rocket.c
-@@ -1848,6 +1848,12 @@ static void rp_flush_buffer(struct tty_s
+diff -puN drivers/char/cs5535_gpio.c~char-cs5535_gpio-add-module_device_table drivers/char/cs5535_gpio.c
+--- a/drivers/char/cs5535_gpio.c~char-cs5535_gpio-add-module_device_table
++++ a/drivers/char/cs5535_gpio.c
+@@ -44,6 +44,7 @@ static struct pci_device_id divil_pci[] 
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
+ 	{ } /* NULL entry */
+ };
++MODULE_DEVICE_TABLE(pci, divil_pci);
  
- #ifdef CONFIG_PCI
+ static struct cdev cs5535_gpio_cdev;
  
-+static struct pci_device_id __devinitdata rocket_pci_ids[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_RP, PCI_ANY_ID) },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(pci, rocket_pci_ids);
-+
- /*
-  *  Called when a PCI card is found.  Retrieves and stores model information,
-  *  init's aiopic and serial port hardware.
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
