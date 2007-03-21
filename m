@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-do_sync_file_range.patch added to -mm tree
-Date: Wed, 21 Mar 2007 16:54:25 -0700
-Message-ID: <200703212354.l2LNsPq5007480@shell0.pdx.osdl.net>
+Subject: + add-support-for-deferrable-timers-tidy.patch added to -mm tree
+Date: Wed, 21 Mar 2007 16:53:25 -0700
+Message-ID: <200703212353.l2LNrPiT007456@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59903 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60243 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934100AbXCUXyl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 19:54:41 -0400
+	id S965498AbXCVAAd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 20:00:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mark.fasheh@oracle.com, hch@lst.de
+Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk, johnstul@us.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, tglx@linutronix.de, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     Remove do_sync_file_range()
+     add-support-for-deferrable-timers-tidy
 has been added to the -mm tree.  Its filename is
-     remove-do_sync_file_range.patch
+     add-support-for-deferrable-timers-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,166 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove do_sync_file_range()
-From: Mark Fasheh <mark.fasheh@oracle.com>
+Subject: add-support-for-deferrable-timers-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove do_sync_file_range() and convert callers to just use
-do_sync_mapping_range().
+Whitespace repairs
 
-Signed-off-by: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c |    8 ++++----
- fs/sync.c           |    2 +-
- include/linux/fs.h  |    5 -----
- mm/filemap.c        |    8 ++++----
- 4 files changed, 9 insertions(+), 14 deletions(-)
+ include/linux/timer.h |    2 +-
+ kernel/timer.c        |   24 ++++++++++++------------
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/md/bitmap.c~remove-do_sync_file_range drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~remove-do_sync_file_range
-+++ a/drivers/md/bitmap.c
-@@ -1458,10 +1458,10 @@ int bitmap_create(mddev_t *mddev)
- 	bitmap->offset = mddev->bitmap_offset;
- 	if (file) {
- 		get_file(file);
--		do_sync_file_range(file, 0, LLONG_MAX,
--				   SYNC_FILE_RANGE_WAIT_BEFORE |
--				   SYNC_FILE_RANGE_WRITE |
--				   SYNC_FILE_RANGE_WAIT_AFTER);
-+		do_sync_mapping_range(file->f_mapping, 0, LLONG_MAX,
-+				      SYNC_FILE_RANGE_WAIT_BEFORE |
-+				      SYNC_FILE_RANGE_WRITE |
-+				      SYNC_FILE_RANGE_WAIT_AFTER);
+diff -puN include/linux/timer.h~add-support-for-deferrable-timers-tidy include/linux/timer.h
+--- a/include/linux/timer.h~add-support-for-deferrable-timers-tidy
++++ a/include/linux/timer.h
+@@ -45,7 +45,7 @@ extern struct tvec_t_base_s boot_tvec_ba
+ 		TIMER_INITIALIZER(_function, _expires, _data)
+ 
+ void fastcall init_timer(struct timer_list * timer);
+-void fastcall init_timer_deferrable(struct timer_list * timer);
++void fastcall init_timer_deferrable(struct timer_list *timer);
+ 
+ static inline void setup_timer(struct timer_list * timer,
+ 				void (*function)(unsigned long),
+diff -puN kernel/timer.c~add-support-for-deferrable-timers-tidy kernel/timer.c
+--- a/kernel/timer.c~add-support-for-deferrable-timers-tidy
++++ a/kernel/timer.c
+@@ -86,35 +86,35 @@ static DEFINE_PER_CPU(tvec_base_t *, tve
+  * The lowest bit of base ptr in timer is used as a flag to indicate
+  * 'deferrable' nature of the timer. Functions below help us manage that flag.
+  */
+-static inline struct tvec_t_base_s *tbase_get_base_ptr(
+-	struct tvec_t_base_s *base)
++static inline struct tvec_t_base_s *
++tbase_get_base_ptr(struct tvec_t_base_s *base)
+ {
+ 	return ((struct tvec_t_base_s *)
+ 			((unsigned long)base & (~TBASE_DEFERRABLE_FLAG)));
+ }
+ 
+-static inline unsigned long tbase_get_deferrable_flag(
+-	struct tvec_t_base_s *base)
++static inline unsigned long
++tbase_get_deferrable_flag(struct tvec_t_base_s *base)
+ {
+ 	return ((unsigned long)base & TBASE_DEFERRABLE_FLAG);
+ }
+ 
+-static inline struct tvec_t_base_s *tbase_set_deferrable_flag(
+-	struct tvec_t_base_s *base)
++static inline struct tvec_t_base_s *
++tbase_set_deferrable_flag(struct tvec_t_base_s *base)
+ {
+ 	return ((struct tvec_t_base_s *)
+ 			((unsigned long)base | TBASE_DEFERRABLE_FLAG));
+ }
+ 
+-static inline struct tvec_t_base_s *tbase_clear_deferrable_flag(
+-	struct tvec_t_base_s *base)
++static inline struct tvec_t_base_s *
++tbase_clear_deferrable_flag(struct tvec_t_base_s *base)
+ {
+ 	return ((struct tvec_t_base_s *)
+ 			((unsigned long)base & (~TBASE_DEFERRABLE_FLAG)));
+ }
+ 
+-static inline struct tvec_t_base_s *tbase_merge_deferrable_flag(
+-	struct tvec_t_base_s *base, unsigned long flag)
++static inline struct tvec_t_base_s *
++tbase_merge_deferrable_flag(struct tvec_t_base_s *base, unsigned long flag)
+ {
+ 	if (flag & TBASE_DEFERRABLE_FLAG)
+ 		return tbase_set_deferrable_flag(base);
+@@ -418,8 +418,8 @@ int __mod_timer(struct timer_list *timer
+ 			spin_unlock(&base->lock);
+ 			base = new_base;
+ 			spin_lock(&base->lock);
+-			timer->base =
+-				tbase_merge_deferrable_flag(new_base, tflag);
++			timer->base = tbase_merge_deferrable_flag(new_base,
++								tflag);
+ 		}
  	}
- 	/* read superblock from bitmap file (this sets bitmap->chunksize) */
- 	err = bitmap_read_sb(bitmap);
-diff -puN fs/sync.c~remove-do_sync_file_range fs/sync.c
---- a/fs/sync.c~remove-do_sync_file_range
-+++ a/fs/sync.c
-@@ -229,7 +229,7 @@ asmlinkage long sys_sync_file_range(int 
- 			!S_ISLNK(i_mode))
- 		goto out_put;
  
--	ret = do_sync_file_range(file, offset, endbyte, flags);
-+	ret = do_sync_mapping_range(file->f_mapping, offset, endbyte, flags);
- out_put:
- 	fput_light(file, fput_needed);
- out:
-diff -puN include/linux/fs.h~remove-do_sync_file_range include/linux/fs.h
---- a/include/linux/fs.h~remove-do_sync_file_range
-+++ a/include/linux/fs.h
-@@ -847,11 +847,6 @@ extern int fcntl_getlease(struct file *f
- /* fs/sync.c */
- extern int do_sync_mapping_range(struct address_space *mapping, loff_t offset,
- 			loff_t endbyte, unsigned int flags);
--static inline int do_sync_file_range(struct file *file, loff_t offset,
--			loff_t endbyte, unsigned int flags)
--{
--	return do_sync_mapping_range(file->f_mapping, offset, endbyte, flags);
--}
- 
- /* fs/locks.c */
- extern void locks_init_lock(struct file_lock *);
-diff -puN mm/filemap.c~remove-do_sync_file_range mm/filemap.c
---- a/mm/filemap.c~remove-do_sync_file_range
-+++ a/mm/filemap.c
-@@ -2119,10 +2119,10 @@ __generic_file_aio_write_nolock(struct k
- 		 * semantics.
- 		 */
- 		endbyte = pos + written_buffered - written - 1;
--		err = do_sync_file_range(file, pos, endbyte,
--					 SYNC_FILE_RANGE_WAIT_BEFORE|
--					 SYNC_FILE_RANGE_WRITE|
--					 SYNC_FILE_RANGE_WAIT_AFTER);
-+		err = do_sync_mapping_range(file->f_mapping, pos, endbyte,
-+					    SYNC_FILE_RANGE_WAIT_BEFORE|
-+					    SYNC_FILE_RANGE_WRITE|
-+					    SYNC_FILE_RANGE_WAIT_AFTER);
- 		if (err == 0) {
- 			written = written_buffered;
- 			invalidate_mapping_pages(mapping,
 _
 
-Patches currently in -mm which might be from mark.fasheh@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-ocfs2.patch
-turn-do_sync_file_range-into-do_sync_mapping_range.patch
-remove-do_sync_file_range.patch
+origin.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+hack-to-make-wireless-work.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+add-support-for-deferrable-timers-tidy.patch
+export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lists-add-list-splice-tail.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
