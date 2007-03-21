@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-disable-local-apic-timer-via-command-line-or-dmi.patch added to -mm tree
-Date: Wed, 21 Mar 2007 16:19:43 -0700
-Message-ID: <200703212319.l2LNJhNY006699@shell0.pdx.osdl.net>
+Subject: + frv-fix-unannotated-variable-declarations.patch added to -mm tree
+Date: Wed, 21 Mar 2007 16:34:54 -0700
+Message-ID: <200703212334.l2LNYsWo007043@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58284 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58799 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751220AbXCUXXS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 19:23:18 -0400
+	id S1753122AbXCUXfF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 19:35:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     i386: disable local apic timer via command line or dmi quirk
+     FRV: fix unannotated variable declarations
 has been added to the -mm tree.  Its filename is
-     i386-disable-local-apic-timer-via-command-line-or-dmi.patch
+     frv-fix-unannotated-variable-declarations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,142 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: disable local apic timer via command line or dmi quirk
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: FRV: fix unannotated variable declarations
+From: David Howells <dhowells@redhat.com>
 
-The local APIC timer stops to work in deeper C-States.  This is handled by
-the ACPI code and a broadcast mechanism in the clockevents / tick managment
-code.
+Fix unannotated variable declarations.  Variables that have allocation
+section annotations (such as __meminitdata) on their definitions must also
+have them on their declarations as not doing so may affect the addressing
+mode used by the compiler and may result in a linker error.
 
-Some systems do not expose the deeper C-States to the kernel, but switch
-into deeper C-States behind the kernels back.  This delays the local apic
-timer interrupts for ever and makes the systems unusable.
-
-Add a command line option to disable the local apic timer and a dmi
-quirk for known broken systems.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +
- arch/i386/kernel/apic.c             |   52 ++++++++++++++++++++++++++
- 2 files changed, 54 insertions(+)
+ include/linux/bootmem.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~i386-disable-local-apic-timer-via-command-line-or-dmi Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~i386-disable-local-apic-timer-via-command-line-or-dmi
-+++ a/Documentation/kernel-parameters.txt
-@@ -1117,6 +1117,8 @@ and is between 256 and 4096 characters. 
+diff -puN include/linux/bootmem.h~frv-fix-unannotated-variable-declarations include/linux/bootmem.h
+--- a/include/linux/bootmem.h~frv-fix-unannotated-variable-declarations
++++ a/include/linux/bootmem.h
+@@ -108,7 +108,7 @@ static inline void *alloc_remap(int nid,
+ #endif /* CONFIG_HAVE_ARCH_ALLOC_REMAP */
  
- 	nolapic		[IA-32,APIC] Do not enable or use the local APIC.
+ extern unsigned long __meminitdata nr_kernel_pages;
+-extern unsigned long nr_all_pages;
++extern unsigned long __meminitdata nr_all_pages;
  
-+	nolapic_timer	[IA-32,APIC] Do not use the local APIC timer.
-+
- 	noltlbs		[PPC] Do not use large page/tlb entries for kernel
- 			lowmem mapping on PPC40x.
- 
-diff -puN arch/i386/kernel/apic.c~i386-disable-local-apic-timer-via-command-line-or-dmi arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~i386-disable-local-apic-timer-via-command-line-or-dmi
-+++ a/arch/i386/kernel/apic.c
-@@ -28,6 +28,7 @@
- #include <linux/clockchips.h>
- #include <linux/acpi_pmtmr.h>
- #include <linux/module.h>
-+#include <linux/dmi.h>
- 
- #include <asm/atomic.h>
- #include <asm/smp.h>
-@@ -61,6 +62,8 @@ static int enable_local_apic __initdata 
- 
- /* Local APIC timer verification ok */
- static int local_apic_timer_verify_ok;
-+/* Disable local APIC timer from the kernel commandline or via dmi quirk */
-+static int local_apic_timer_disabled;
- 
- /*
-  * Debug level, exported for io_apic.c
-@@ -266,6 +269,32 @@ static void __devinit setup_APIC_timer(v
- }
- 
- /*
-+ * Detect systems with known broken BIOS implementations
-+ */
-+static int __init lapic_check_broken_bios(struct dmi_system_id *d)
-+{
-+	printk(KERN_NOTICE "%s detected: disabling lapic timer.\n",
-+		       d->ident);
-+	local_apic_timer_disabled = 1;
-+	return 0;
-+}
-+
-+static struct dmi_system_id __initdata broken_bios_dmi_table[] = {
-+	{
-+		/*
-+		 * BIOS exports only C1 state, but uses deeper power
-+		 * modes behind the kernels back.
-+		 */
-+		  .callback = lapic_check_broken_bios,
-+		  .ident = "HP nx6325",
-+		  .matches = {
-+			DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
-+		  },
-+	 },
-+	 {}
-+};
-+
-+/*
-  * In this functions we calibrate APIC bus clocks to the external timer.
-  *
-  * We want to do the calibration only once since we want to have local timer
-@@ -340,6 +369,22 @@ void __init setup_boot_APIC_clock(void)
- 	long delta, deltapm;
- 	int pm_referenced = 0;
- 
-+	/* Detect know broken systems */
-+	dmi_check_system(broken_bios_dmi_table);
-+
-+	/*
-+	 * The local apic timer can be disabled via the kernel
-+	 * commandline or from the dmi quirk above. Register the lapic
-+	 * timer as a dummy clock event source on SMP systems, so the
-+	 * broadcast mechanism is used. On UP systems simply ignore it.
-+	 */
-+	if (local_apic_timer_disabled) {
-+		/* No broadcast on UP ! */
-+		if (num_possible_cpus() > 1)
-+			setup_APIC_timer();
-+		return;
-+	}
-+
- 	apic_printk(APIC_VERBOSE, "Using local APIC timer interrupts.\n"
- 		    "calibrating APIC timer ...\n");
- 
-@@ -1179,6 +1224,13 @@ static int __init parse_nolapic(char *ar
- }
- early_param("nolapic", parse_nolapic);
- 
-+static int __init parse_disable_lapic_timer(char *arg)
-+{
-+	local_apic_timer_disabled = 1;
-+	return 0;
-+}
-+early_param("nolapic_timer", parse_disable_lapic_timer);
-+
- static int __init apic_set_verbosity(char *str)
- {
- 	if (strcmp("debug", str) == 0)
+ extern void *alloc_large_system_hash(const char *tablename,
+ 				     unsigned long bucketsize,
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-origin.patch
-documentation-sysrqtxt-added-short-description-for-q-timerlist.patch
-i386-disable-local-apic-timer-via-command-line-or-dmi.patch
-git-ieee1394.patch
-log-reason-why-tsc-was-marked-unstable.patch
-optimize-timespec_trunc.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
+frv-fix-unannotated-variable-declarations.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+romfs-printk-format-warnings.patch
+nommu-hide-vm_mm-in-nommu-mode.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+use-symbolic-constants-in-generic-lseek-code.patch
+use-use-seek_max-to-validate-user-lseek-arguments.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+workqueue-kill-noautorel-works.patch
+mutex-subsystem-synchro-test-module.patch
