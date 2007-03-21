@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-adapter-driver-ibm-iic-forgot-to-specify-physical-device.patch added to -mm tree
-Date: Wed, 21 Mar 2007 16:18:23 -0700
-Message-ID: <200703212318.l2LNINSC006681@shell0.pdx.osdl.net>
+Subject: + char-rocket-add-module_device_table.patch added to -mm tree
+Date: Wed, 21 Mar 2007 16:21:11 -0700
+Message-ID: <200703212321.l2LNLBYd006731@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58185 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58254 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933766AbXCUXSl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 19:18:41 -0400
+	id S1750821AbXCUXVQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 19:21:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bart.vanassche@gmail.com, khali@linux-fr.org
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     I2C adapter driver IBM IIC forgot to specify physical device
+     Char: rocket, add MODULE_DEVICE_TABLE
 has been added to the -mm tree.  Its filename is
-     i2c-adapter-driver-ibm-iic-forgot-to-specify-physical-device.patch
+     char-rocket-add-module_device_table.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: I2C adapter driver IBM IIC forgot to specify physical device
-From: Bart Van Assche <bart.vanassche@gmail.com>
+Subject: Char: rocket, add MODULE_DEVICE_TABLE
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8248
+rocket, add MODULE_DEVICE_TABLE
 
-IBM IIC driver prints following message to console:
-**WARNING** I2C adapter driver [IBM IIC] forgot to specify physical device; fix it!
-
-This patch makes the warning go away.
-
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-ibm_iic.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/char/rocket.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN drivers/i2c/busses/i2c-ibm_iic.c~i2c-adapter-driver-ibm-iic-forgot-to-specify-physical-device drivers/i2c/busses/i2c-ibm_iic.c
---- a/drivers/i2c/busses/i2c-ibm_iic.c~i2c-adapter-driver-ibm-iic-forgot-to-specify-physical-device
-+++ a/drivers/i2c/busses/i2c-ibm_iic.c
-@@ -730,6 +730,7 @@ static int __devinit iic_probe(struct oc
- 	adap->dev.parent = &ocp->dev;
- 	strcpy(adap->name, "IBM IIC");
- 	i2c_set_adapdata(adap, dev);
-+	adap->dev.parent = &ocp->dev;
- 	adap->id = I2C_HW_OCP;
- 	adap->class = I2C_CLASS_HWMON;
- 	adap->algo = &iic_algo;
+diff -puN drivers/char/rocket.c~char-rocket-add-module_device_table drivers/char/rocket.c
+--- a/drivers/char/rocket.c~char-rocket-add-module_device_table
++++ a/drivers/char/rocket.c
+@@ -1848,6 +1848,12 @@ static void rp_flush_buffer(struct tty_s
+ 
+ #ifdef CONFIG_PCI
+ 
++static struct pci_device_id __devinitdata rocket_pci_ids[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_RP, PCI_ANY_ID) },
++	{ }
++};
++MODULE_DEVICE_TABLE(pci, rocket_pci_ids);
++
+ /*
+  *  Called when a PCI card is found.  Retrieves and stores model information,
+  *  init's aiopic and serial port hardware.
 _
 
-Patches currently in -mm which might be from bart.vanassche@gmail.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-ocotea-board-ntpd-complains-that-the-frequency-error-exceeds-the-tolerance.patch
-i2c-adapter-driver-ibm-iic-forgot-to-specify-physical-device.patch
+char-rocket-add-module_device_table.patch
+char-cs5535_gpio-add-module_device_table.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+shrink_slab-handle-bad-shrinkers.patch
