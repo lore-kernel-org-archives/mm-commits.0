@@ -1,78 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch added to -mm tree
-Date: Tue, 20 Mar 2007 22:19:51 -0800
-Message-ID: <200703210619.l2L6Jq6S020334@shell0.pdx.osdl.net>
+Subject: - remove-the-likelypid-check-in-copy_process.patch removed from -mm tree
+Date: Wed, 21 Mar 2007 11:27:51 -0700
+Message-ID: <200703211827.l2LIRrsr032763@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50310 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48416 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752033AbXCUGUC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 02:20:02 -0400
+	id S933334AbXCUSb1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 14:31:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, ebiederm@xmission.com
+To: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmission.com, haveblue@us.ibm.com, oleg@tv-sign.ru, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     init hangs on tty_mutex
-has been added to the -mm tree.  Its filename is
-     tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+     Remove the likely(pid) check in copy_process
+has been removed from the -mm tree.  Its filename was
+     remove-the-likelypid-check-in-copy_process.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: init hangs on tty_mutex
-From: Hugh Dickins <hugh@veritas.com>
+Subject: Remove the likely(pid) check in copy_process
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-I get a hang at startup or shutdown: tiocsctty() holds tty_mutex, and
-now with Eric's tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-it can end up calling con_close(), which tries to take tty_mutex.
-So best revert that in hot-fixes, until Eric provides a better.
+Now that we pass in a struct pid parameter to copy_process() and even the
+swapper (pid_t == 0) has a valid struct pid, we no longer need this check.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Changelog:
+	Per Eric Biederman's comments, moved this out to a separate
+	patch for easier review.
+
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: <containers@lists.osdl.org>
 Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/fork.c |   34 ++++++++++++++++------------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix
-+++ a/drivers/char/tty_io.c
-@@ -2980,7 +2980,9 @@ static int tiocsctty(struct tty_struct *
- 			/*
- 			 * Steal it away
- 			 */
--			tty_vhangup(tty);
-+			read_lock(&tasklist_lock);
-+			session_clear_tty(tty->session);
-+			read_unlock(&tasklist_lock);
- 		} else {
- 			ret = -EPERM;
- 			goto unlock;
+diff -puN kernel/fork.c~remove-the-likelypid-check-in-copy_process kernel/fork.c
+--- a/kernel/fork.c~remove-the-likelypid-check-in-copy_process
++++ a/kernel/fork.c
+@@ -1237,26 +1237,24 @@ static struct task_struct *copy_process(
+ 		}
+ 	}
+ 
+-	if (likely(p->pid)) {
+-		add_parent(p);
+-		tracehook_init_task(p);
+-
+-		if (thread_group_leader(p)) {
+-			pid_t pgid = process_group(current);
+-			pid_t sid = process_session(current);
+-
+-			p->signal->tty = current->signal->tty;
+-			p->signal->pgrp = pgid;
+-			set_signal_session(p->signal, process_session(current));
+-			attach_pid(p, PIDTYPE_PGID, find_pid(pgid));
+-			attach_pid(p, PIDTYPE_SID, find_pid(sid));
++	add_parent(p);
++	tracehook_init_task(p);
+ 
+-			list_add_tail_rcu(&p->tasks, &init_task.tasks);
+-			__get_cpu_var(process_counts)++;
+-		}
+-		attach_pid(p, PIDTYPE_PID, pid);
+-		nr_threads++;
++	if (thread_group_leader(p)) {
++		pid_t pgid = process_group(current);
++		pid_t sid = process_session(current);
++
++		p->signal->tty = current->signal->tty;
++		p->signal->pgrp = pgid;
++		set_signal_session(p->signal, process_session(current));
++		attach_pid(p, PIDTYPE_PGID, find_pid(pgid));
++		attach_pid(p, PIDTYPE_SID, find_pid(sid));
++
++		list_add_tail_rcu(&p->tasks, &init_task.tasks);
++		__get_cpu_var(process_counts)++;
+ 	}
++	attach_pid(p, PIDTYPE_PID, pid);
++	nr_threads++;
+ 
+ 	total_forks++;
+ 	spin_unlock(&current->sighand->siglock);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
-origin.patch
-shmem-fix-bug-in-shmem_writepage.patch
-shmem-dont-release-lock-for-hole-punching.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-free-swap-space-of-reactivated-pages.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+attach_pid-with-struct-pid-parameter.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
