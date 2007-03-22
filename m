@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-kvm-conform-to-sucky-rdmsr-interface.patch added to -mm tree
-Date: Wed, 21 Mar 2007 22:22:56 -0800
-Message-ID: <200703220622.l2M6MucA013866@shell0.pdx.osdl.net>
+Subject: + lguest-clean-up-some-references-inittext-warnings.patch added to -mm tree
+Date: Wed, 21 Mar 2007 22:24:31 -0800
+Message-ID: <200703220624.l2M6OVvW013873@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41051 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41106 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752724AbXCVGXD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 02:23:03 -0400
+	id S1751797AbXCVGYg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 02:24:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, avi@qumranet.com
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     make KVM conform to sucky rdmsr interface
+     lguest: clean up some "references .init.text" warnings
 has been added to the -mm tree.  Its filename is
-     make-kvm-conform-to-sucky-rdmsr-interface.patch
+     lguest-clean-up-some-references-inittext-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make KVM conform to sucky rdmsr interface
+Subject: lguest: clean up some "references .init.text" warnings
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Grrr.... Andi refused to take my "rdmsr64" patch which moved to a
-function-like interface for MSRs, dismissing it as pointless churn.
+Thanks to Andrew for pointing these out.
 
-paravirt_ops cleanups changed a macro to an inline and spotted this
-kvm bug.
+This patch moves the parvirtprobe section into .init.data: it's only used in
+very very early boot, and for similar reasons, puts lguest_maybe_init and
+lguest_memory_setup in init.text.
+
+As well as fixing some warnings, this frees up a tiny bit more memory.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/vmx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/vmlinux.lds.S |   13 ++++++-------
+ arch/i386/lguest/lguest.c      |    5 +++--
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/kvm/vmx.c~make-kvm-conform-to-sucky-rdmsr-interface drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~make-kvm-conform-to-sucky-rdmsr-interface
-+++ a/drivers/kvm/vmx.c
-@@ -1127,7 +1127,7 @@ static int vmx_vcpu_setup(struct kvm_vcp
- 		u64 data;
- 		int j = vcpu->nmsrs;
+diff -puN arch/i386/kernel/vmlinux.lds.S~lguest-clean-up-some-references-inittext-warnings arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~lguest-clean-up-some-references-inittext-warnings
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -81,12 +81,6 @@ SECTIONS
+ 	CONSTRUCTORS
+ 	} :data
  
--		if (rdmsr_safe(index, &data_low, &data_high) < 0)
-+		if (rdmsr_safe(index, data_low, data_high) < 0)
- 			continue;
- 		if (wrmsr_safe(index, data_low, data_high) < 0)
- 			continue;
+-  .paravirtprobe : AT(ADDR(.paravirtprobe) - LOAD_OFFSET) {
+-  	__start_paravirtprobe = .;
+-	*(.paravirtprobe)
+-  	__stop_paravirtprobe = .;
+-  }
+-
+   . = ALIGN(4096);
+   .data_nosave : AT(ADDR(.data_nosave) - LOAD_OFFSET) {
+   	__nosave_begin = .;
+@@ -151,7 +145,12 @@ SECTIONS
+ 	*(.init.text)
+ 	_einittext = .;
+   }
+-  .init.data : AT(ADDR(.init.data) - LOAD_OFFSET) { *(.init.data) }
++  .init.data : AT(ADDR(.init.data) - LOAD_OFFSET) {
++	*(.init.data)
++  	__start_paravirtprobe = .;
++	*(.paravirtprobe)
++  	__stop_paravirtprobe = .;
++  }
+   . = ALIGN(16);
+   .init.setup : AT(ADDR(.init.setup) - LOAD_OFFSET) {
+   	__setup_start = .;
+diff -puN arch/i386/lguest/lguest.c~lguest-clean-up-some-references-inittext-warnings arch/i386/lguest/lguest.c
+--- a/arch/i386/lguest/lguest.c~lguest-clean-up-some-references-inittext-warnings
++++ a/arch/i386/lguest/lguest.c
+@@ -137,7 +137,7 @@ static struct notifier_block paniced = {
+ 	.notifier_call = lguest_panic
+ };
+ 
+-static char *lguest_memory_setup(void)
++static __init char *lguest_memory_setup(void)
+ {
+ 	/* We do this here because lockcheck barfs if before start_kernel */
+ 	atomic_notifier_chain_register(&panic_notifier_list, &paniced);
+@@ -550,7 +550,8 @@ static __attribute_used__ __init void lg
+ 	start_kernel();
+ }
+ 
+-asm("lguest_maybe_init:\n"
++asm(".section .init.text\n"
++    "lguest_maybe_init:\n"
+     "	cmpl $"__stringify(LGUEST_MAGIC_EBP)", %ebp\n"
+     "	jne 1f\n"
+     "	cmpl $"__stringify(LGUEST_MAGIC_EDI)", %edi\n"
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
+make-kvm-conform-to-sucky-rdmsr-interface.patch
 i386-vdso_prelink-warning-fix.patch
 cleanup-initialize-esp0-properly-all-the-time.patch
 lguest-preparation-export_symbol_gpl-5-functions.patch
@@ -68,6 +111,7 @@ lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patc
 lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
 lguest-the-host-code-lgko-pin-stack-page-optimization.patch
 lguest-guest-code.patch
+lguest-clean-up-some-references-inittext-warnings.patch
 lguest-makefile.patch
 lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
 lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
@@ -89,8 +133,6 @@ i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
 i386-gdt-cleanups-clean-up-cpu_init.patch
 i386-gdt-cleanups-cleanup-gdt-access.patch
 cleanup-rationalize-paravirt-wrappers.patch
-make-kvm-conform-to-sucky-rdmsr-interface.patch
-lguest-clean-up-some-lreferences-inittext-warnings.patch
 lguest-compile-hypervisors-into-the-lg-module-directly.patch
 use-x86_eflags_if-in-irqflagsh-lguest.patch
 module-use-krealloc.patch
