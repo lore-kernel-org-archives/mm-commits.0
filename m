@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt.patch added to -mm tree
-Date: Thu, 22 Mar 2007 14:34:47 -0700
-Message-ID: <200703222134.l2MLYlkE030897@shell0.pdx.osdl.net>
+Subject: + array_size-check-for-type-uml-fix.patch added to -mm tree
+Date: Thu, 22 Mar 2007 14:36:16 -0700
+Message-ID: <200703222136.l2MLaG8u030903@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52683 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52765 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161048AbXCVVe5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 17:34:57 -0400
+	id S1161049AbXCVVg0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 17:36:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sebastien.dugue@bull.net, ak@suse.de, rusty@rustcorp.com.au
+Cc: jdike@addtoit.com, jdike@linux.intel.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     i386 GDT cleanups: Rename boot_gdt_table to boot_gdt
+     uml: update UML definition of ARRAY_SIZE
 has been added to the -mm tree.  Its filename is
-     i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt.patch
+     array_size-check-for-type-uml-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,99 +25,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 GDT cleanups: Rename boot_gdt_table to boot_gdt
-From: Sebastien Dugue <sebastien.dugue@bull.net>
+Subject: uml: update UML definition of ARRAY_SIZE
+From: Jeff Dike <jdike@addtoit.com>
 
-Rename boot_gdt_table to boot_gdt to avoid the duplicate T(able).
+This is the minimal change needed to keep UML building with the new definition
+of ARRAY_SIZE.  It is defined in user_util.h so that userspace files, which
+can't include kernel.h, can still use ARRAY_SIZE.  However, since user_util.h
+is included everywhere, including kernel files, the token sequence of the
+expansion has to match.
 
-Signed-off-by: Sebastien Dugue <sebastien.dugue@bull.net>
+This patch copies enough from the kernel headers to make that happen.
+
+However, this is too gross to survive, and so is the entire header.  Future
+patches will make this header disappear, but this is a quick and simple fix
+for the problem in case there is a noticable lag between this patch and the
+more extensive patches which tidy this mess.
+
 Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/head.S       |    9 ++++-----
- arch/i386/kernel/trampoline.S |   12 ++++++------
- 2 files changed, 10 insertions(+), 11 deletions(-)
+ arch/um/include/user_util.h |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/head.S~i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt
-+++ a/arch/i386/kernel/head.S
-@@ -147,8 +147,7 @@ page_pde_offset = (__PAGE_OFFSET >> 20);
- /*
-  * Non-boot CPU entry point; entered from trampoline.S
-  * We can't lgdt here, because lgdt itself uses a data segment, but
-- * we know the trampoline has already loaded the boot_gdt_table GDT
-- * for us.
-+ * we know the trampoline has already loaded the boot_gdt for us.
-  *
-  * If cpu hotplug is not supported then this code can go in init section
-  * which will be freed later
-@@ -588,7 +587,7 @@ fault_msg:
- 	.word 0				# 32 bit align gdt_desc.address
- boot_gdt_descr:
- 	.word __BOOT_DS+7
--	.long boot_gdt_table - __PAGE_OFFSET
-+	.long boot_gdt - __PAGE_OFFSET
+diff -puN arch/um/include/user_util.h~array_size-check-for-type-uml-fix arch/um/include/user_util.h
+--- a/arch/um/include/user_util.h~array_size-check-for-type-uml-fix
++++ a/arch/um/include/user_util.h
+@@ -8,8 +8,19 @@
  
- 	.word 0				# 32-bit align idt_desc.address
- idt_descr:
-@@ -602,11 +601,11 @@ ENTRY(early_gdt_descr)
- 	.long per_cpu__cpu_gdt		/* Overwritten for secondary CPUs */
+ #include "sysdep/ptrace.h"
  
- /*
-- * The boot_gdt_table must mirror the equivalent in setup.S and is
-+ * The boot_gdt must mirror the equivalent in setup.S and is
-  * used only for booting.
-  */
- 	.align L1_CACHE_BYTES
--ENTRY(boot_gdt_table)
-+ENTRY(boot_gdt)
- 	.fill GDT_ENTRY_BOOT_CS,8,0
- 	.quad 0x00cf9a000000ffff	/* kernel 4GB code at 0x00000000 */
- 	.quad 0x00cf92000000ffff	/* kernel 4GB data at 0x00000000 */
-diff -puN arch/i386/kernel/trampoline.S~i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt arch/i386/kernel/trampoline.S
---- a/arch/i386/kernel/trampoline.S~i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt
-+++ a/arch/i386/kernel/trampoline.S
-@@ -29,7 +29,7 @@
-  *
-  *	TYPE              VALUE
-  *	R_386_32          startup_32_smp
-- *	R_386_32          boot_gdt_table
-+ *	R_386_32          boot_gdt
-  */
+-/* Copied from kernel.h */
+-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
++/* Copied from kernel.h and compiler-gcc.h */
++
++/* Force a compilation error if condition is true, but also produce a
++   result (of value 0 and type size_t), so the expression can be used
++   e.g. in a structure initializer (or where-ever else comma expressions
++   aren't permitted). */
++#define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
++
++/* &a[0] degrades to a pointer: a different type from an array */
++#define __must_be_array(a) \
++  BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0])))
++
++#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
  
- #include <linux/linkage.h>
-@@ -62,8 +62,8 @@ r_base = .
- 	 * to 32 bit.
- 	 */
- 
--	lidtl	boot_idt - r_base	# load idt with 0, 0
--	lgdtl	boot_gdt - r_base	# load gdt with whatever is appropriate
-+	lidtl	boot_idt_descr - r_base	# load idt with 0, 0
-+	lgdtl	boot_gdt_descr - r_base	# load gdt with whatever is appropriate
- 
- 	xor	%ax, %ax
- 	inc	%ax		# protected mode (PE) bit
-@@ -73,11 +73,11 @@ r_base = .
- 
- 	# These need to be in the same 64K segment as the above;
- 	# hence we don't use the boot_gdt_descr defined in head.S
--boot_gdt:
-+boot_gdt_descr:
- 	.word	__BOOT_DS + 7			# gdt limit
--	.long	boot_gdt_table-__PAGE_OFFSET	# gdt base
-+	.long	boot_gdt - __PAGE_OFFSET	# gdt base
- 
--boot_idt:
-+boot_idt_descr:
- 	.word	0				# idt limit = 0
- 	.long	0				# idt base = 0L
+ #define CATCH_EINTR(expr) while ((errno = 0, ((expr) < 0)) && (errno == EINTR))
  
 _
 
-Patches currently in -mm which might be from sebastien.dugue@bull.net are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt.patch
-futex-priority-based-wakeup.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
+div64_64-common-code.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+uml-fix-prototypes.patch
+array_size-check-for-type-uml-fix.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
