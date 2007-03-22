@@ -1,224 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - use-x86_eflags_if-in-irqflagsh-lguest.patch removed from -mm tree
-Date: Thu, 22 Mar 2007 01:20:11 -0800
-Message-ID: <200703220920.l2M9KB79017105@shell0.pdx.osdl.net>
+Subject: + setup_boot_apic_clock-irq-enable-fix.patch added to -mm tree
+Date: Thu, 22 Mar 2007 01:39:21 -0800
+Message-ID: <200703220939.l2M9dL0P017404@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46171 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46663 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030310AbXCVJUU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 05:20:20 -0400
+	id S965911AbXCVJjk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 05:39:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mingo@elte.hu, ak@suse.de, michal.k.k.piotrowski@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     Use X86_EFLAGS_IF in irqflags.h, lguest
-has been removed from the -mm tree.  Its filename was
-     use-x86_eflags_if-in-irqflagsh-lguest.patch
+     setup_boot_APIC_clock() irq-enable fix
+has been added to the -mm tree.  Its filename is
+     setup_boot_apic_clock-irq-enable-fix.patch
 
-This patch was dropped because of collateral damage from other droppage
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Use X86_EFLAGS_IF in irqflags.h, lguest
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: setup_boot_APIC_clock() irq-enable fix
+From: Ingo Molnar <mingo@elte.hu>
 
-Move X86_EFLAGS_IF et al out to a new header: processor-flags.h, so we can
-include it from irqflags.h and use it in raw_irqs_disabled_flags().
+latest -git triggers an irqtrace/lockdep warning of a leaked irqs-off
+condition:
 
-As a side-effect, we could now use these flags in .S files.
+  BUG: at kernel/fork.c:1033 copy_process()
 
-Lguest also modified to use the flags.
+after some debugging it turns out that commit ca1b940c accidentally left
+interrupts disabled - which trickled down all the way to the first time we
+fork a kernel thread and triggered the warning.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+the fix is to re-enable interrupts in the 'else' branch of
+setup_boot_APIC_clock()'s pmtimers calibration path.
+
+Reported-by: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/lguest/interrupts_and_traps.c |    4 +--
- arch/i386/lguest/lguest.c               |    5 +---
- include/asm-i386/irqflags.h             |    3 +-
- include/asm-i386/processor-flags.h      |   26 ++++++++++++++++++++++
- include/asm-i386/processor.h            |   22 ------------------
- 5 files changed, 33 insertions(+), 27 deletions(-)
+ arch/i386/kernel/apic.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/lguest/interrupts_and_traps.c~use-x86_eflags_if-in-irqflagsh-lguest arch/i386/lguest/interrupts_and_traps.c
---- a/arch/i386/lguest/interrupts_and_traps.c~use-x86_eflags_if-in-irqflagsh-lguest
-+++ a/arch/i386/lguest/interrupts_and_traps.c
-@@ -42,7 +42,7 @@ static void reflect_trap(struct lguest *
- 	   (it's always 0, since irqs are enabled when guest is running). */
- 	eflags = regs->eflags;
- 	get_user(irq_enable, &lg->lguest_data->irq_enabled);
--	eflags |= (irq_enable & 512);
-+	eflags |= (irq_enable & X86_EFLAGS_IF);
+diff -puN arch/i386/kernel/apic.c~setup_boot_apic_clock-irq-enable-fix arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~setup_boot_apic_clock-irq-enable-fix
++++ a/arch/i386/kernel/apic.c
+@@ -506,7 +506,8 @@ void __init setup_boot_APIC_clock(void)
+ 			apic_printk(APIC_VERBOSE, "... jiffies result ok\n");
+ 		else
+ 			local_apic_timer_verify_ok = 0;
+-	}
++	} else
++		local_irq_enable();
  
- 	push_guest_stack(lg, &gstack, eflags);
- 	push_guest_stack(lg, &gstack, regs->cs);
-@@ -86,7 +86,7 @@ void maybe_do_interrupt(struct lguest *l
- 	/* If they're halted, we re-enable interrupts. */
- 	if (lg->halted) {
- 		/* Re-enable interrupts. */
--		put_user(512, &lg->lguest_data->irq_enabled);
-+		put_user(X86_EFLAGS_IF, &lg->lguest_data->irq_enabled);
- 		lg->halted = 0;
- 	} else {
- 		/* Maybe they have interrupts disabled? */
-diff -puN arch/i386/lguest/lguest.c~use-x86_eflags_if-in-irqflagsh-lguest arch/i386/lguest/lguest.c
---- a/arch/i386/lguest/lguest.c~use-x86_eflags_if-in-irqflagsh-lguest
-+++ a/arch/i386/lguest/lguest.c
-@@ -107,9 +107,8 @@ static void fastcall irq_disable(void)
- 
- static void fastcall irq_enable(void)
- {
--	/* Linux i386 code expects bit 9 set. */
- 	/* FIXME: Check if interrupt pending... */
--	lguest_data.irq_enabled = 512;
-+	lguest_data.irq_enabled = X86_EFLAGS_IF;
- }
- 
- static void fastcall lguest_load_gdt(const struct Xgt_desc_struct *desc)
-@@ -394,7 +393,7 @@ static fastcall void lguest_write_idt_en
- 	extern const char start_##name[], end_##name[];		\
- 	asm("start_" #name ": " code "; end_" #name ":")
- DEF_LGUEST(cli, "movl $0," LGUEST_IRQ);
--DEF_LGUEST(sti, "movl $512," LGUEST_IRQ);
-+DEF_LGUEST(sti, "movl $"__stringify(X86_EFLAGS_IF)"," LGUEST_IRQ);
- DEF_LGUEST(popf, "movl %eax," LGUEST_IRQ);
- DEF_LGUEST(pushf, "movl " LGUEST_IRQ ",%eax");
- DEF_LGUEST(pushf_cli, "movl " LGUEST_IRQ ",%eax; movl $0," LGUEST_IRQ);
-diff -puN include/asm-i386/irqflags.h~use-x86_eflags_if-in-irqflagsh-lguest include/asm-i386/irqflags.h
---- a/include/asm-i386/irqflags.h~use-x86_eflags_if-in-irqflagsh-lguest
-+++ a/include/asm-i386/irqflags.h
-@@ -9,6 +9,7 @@
-  */
- #ifndef _ASM_IRQFLAGS_H
- #define _ASM_IRQFLAGS_H
-+#include <asm/processor-flags.h>
- 
- #ifndef __ASSEMBLY__
- static inline unsigned long native_save_fl(void)
-@@ -119,7 +120,7 @@ static inline unsigned long __raw_local_
- 
- static inline int raw_irqs_disabled_flags(unsigned long flags)
- {
--	return !(flags & (1 << 9));
-+	return !(flags & X86_EFLAGS_IF);
- }
- 
- static inline int raw_irqs_disabled(void)
-diff -puN /dev/null include/asm-i386/processor-flags.h
---- /dev/null
-+++ a/include/asm-i386/processor-flags.h
-@@ -0,0 +1,26 @@
-+#ifndef __ASM_I386_PROCESSOR_FLAGS_H
-+#define __ASM_I386_PROCESSOR_FLAGS_H
-+/* Various flags defined: can be included from assembler. */
-+
-+/*
-+ * EFLAGS bits
-+ */
-+#define X86_EFLAGS_CF	0x00000001 /* Carry Flag */
-+#define X86_EFLAGS_PF	0x00000004 /* Parity Flag */
-+#define X86_EFLAGS_AF	0x00000010 /* Auxillary carry Flag */
-+#define X86_EFLAGS_ZF	0x00000040 /* Zero Flag */
-+#define X86_EFLAGS_SF	0x00000080 /* Sign Flag */
-+#define X86_EFLAGS_TF	0x00000100 /* Trap Flag */
-+#define X86_EFLAGS_IF	0x00000200 /* Interrupt Flag */
-+#define X86_EFLAGS_DF	0x00000400 /* Direction Flag */
-+#define X86_EFLAGS_OF	0x00000800 /* Overflow Flag */
-+#define X86_EFLAGS_IOPL	0x00003000 /* IOPL mask */
-+#define X86_EFLAGS_NT	0x00004000 /* Nested Task */
-+#define X86_EFLAGS_RF	0x00010000 /* Resume Flag */
-+#define X86_EFLAGS_VM	0x00020000 /* Virtual Mode */
-+#define X86_EFLAGS_AC	0x00040000 /* Alignment Check */
-+#define X86_EFLAGS_VIF	0x00080000 /* Virtual Interrupt Flag */
-+#define X86_EFLAGS_VIP	0x00100000 /* Virtual Interrupt Pending */
-+#define X86_EFLAGS_ID	0x00200000 /* CPUID detection flag */
-+
-+#endif	/* __ASM_I386_PROCESSOR_FLAGS_H */
-diff -puN include/asm-i386/processor.h~use-x86_eflags_if-in-irqflagsh-lguest include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~use-x86_eflags_if-in-irqflagsh-lguest
-+++ a/include/asm-i386/processor.h
-@@ -21,6 +21,7 @@
- #include <asm/percpu.h>
- #include <linux/cpumask.h>
- #include <linux/init.h>
-+#include <asm/processor-flags.h>
- 
- /* flag for disabling the tsc */
- extern int tsc_disable;
-@@ -126,27 +127,6 @@ extern void detect_ht(struct cpuinfo_x86
- static inline void detect_ht(struct cpuinfo_x86 *c) {}
- #endif
- 
--/*
-- * EFLAGS bits
-- */
--#define X86_EFLAGS_CF	0x00000001 /* Carry Flag */
--#define X86_EFLAGS_PF	0x00000004 /* Parity Flag */
--#define X86_EFLAGS_AF	0x00000010 /* Auxillary carry Flag */
--#define X86_EFLAGS_ZF	0x00000040 /* Zero Flag */
--#define X86_EFLAGS_SF	0x00000080 /* Sign Flag */
--#define X86_EFLAGS_TF	0x00000100 /* Trap Flag */
--#define X86_EFLAGS_IF	0x00000200 /* Interrupt Flag */
--#define X86_EFLAGS_DF	0x00000400 /* Direction Flag */
--#define X86_EFLAGS_OF	0x00000800 /* Overflow Flag */
--#define X86_EFLAGS_IOPL	0x00003000 /* IOPL mask */
--#define X86_EFLAGS_NT	0x00004000 /* Nested Task */
--#define X86_EFLAGS_RF	0x00010000 /* Resume Flag */
--#define X86_EFLAGS_VM	0x00020000 /* Virtual Mode */
--#define X86_EFLAGS_AC	0x00040000 /* Alignment Check */
--#define X86_EFLAGS_VIF	0x00080000 /* Virtual Interrupt Flag */
--#define X86_EFLAGS_VIP	0x00100000 /* Virtual Interrupt Pending */
--#define X86_EFLAGS_ID	0x00200000 /* CPUID detection flag */
--
- static inline void native_cpuid(unsigned int *eax, unsigned int *ebx,
- 					 unsigned int *ecx, unsigned int *edx)
- {
+ 	if (!local_apic_timer_verify_ok) {
+ 		printk(KERN_WARNING
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-i386-vdso_prelink-warning-fix.patch
-cleanup-initialize-esp0-properly-all-the-time.patch
-lguest-preparation-export_symbol_gpl-5-functions.patch
-lguest-preparation-expose-futex-infrastructure.patch
-lguest-kconfig-and-headers.patch
-lguest-the-host-code-lgko.patch
-lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patch
-lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
-lguest-the-host-code-lgko-pin-stack-page-optimization.patch
-lguest-guest-code.patch
-lguest-clean-up-some-references-inittext-warnings.patch
-lguest-makefile.patch
-lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
-lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
-lguest-compile-hypervisors-into-the-lg-module-directly.patch
-lguest-dont-crash-host-on-nmi.patch
-lguest-trivial-guest-network-driver.patch
-lguest-trivial-guest-console-driver.patch
-lguest-trivial-guest-block-driver.patch
-lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch
-lguest-documentatation-and-example-launcher.patch
-lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch
-lguest-documentatation-and-example-launcher-bridging-support-in-example-codelguest-documentation-fixes.patch
-introduce-load_tls-to-the-for-loop.patch
-remove-unused-set_seg_base.patch
-clarify-config_reorder-explanation.patch
+origin.patch
+documentation-sysrqtxt-added-short-description-for-q-timerlist.patch
+i386-disable-local-apic-timer-via-command-line-or-dmi.patch
+lockdep-lockdep_depth-vs-debug_locks-re-bug-workqueue-leaked-lock.patch
+lockdep-debug_show_all_locks-debug_show_held_locks-vs-debug_locks.patch
+time-fix-formatting-in-proc-timer_list.patch
+setup_boot_apic_clock-irq-enable-fix.patch
+git-ieee1394.patch
+git-kvm.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+log-reason-why-tsc-was-marked-unstable.patch
 allow-per-cpu-variables-to-be-page-aligned.patch
-i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
-i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch
-i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
-i386-gdt-cleanups-clean-up-cpu_init.patch
-i386-gdt-cleanups-cleanup-gdt-access.patch
-use-x86_eflags_if-in-irqflagsh-lguest.patch
-module-use-krealloc.patch
-extend-print_symbol-capability.patch
-array_size-check-for-type.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+optimize-timespec_trunc.patch
 futex-restartable-futex_wait.patch
 futex-restartable-futex_wait-fix.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-____call_usermodehelper-dont-flush_signals.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+add-support-for-deferrable-timers.patch
+add-support-for-deferrable-timers-tidy.patch
+export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor.patch
+export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+lists-add-list-splice-tail.patch
+sched-remove-sleepavg-from-proc.patch
+sched-remove-noninteractive-flag.patch
+sched-implement-rsdl-cpu-scheduler.patch
+sched-document-rsdl-cpu-scheduler.patch
+sched-rsdl-improvements.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+futex_requeue_pi-optimization.patch
+sys_futex64-allows-64bit-futexes.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
