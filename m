@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dm-get-rid-of-first_clone-in-dm-crypt.patch added to -mm tree
-Date: Thu, 22 Mar 2007 14:51:50 -0700
-Message-ID: <200703222151.l2MLpoPK031230@shell0.pdx.osdl.net>
+Subject: + i386-clockevents-fix-breakage-on-geode-cyrix-pit.patch added to -mm tree
+Date: Thu, 22 Mar 2007 15:41:08 -0700
+Message-ID: <200703222241.l2MMf8tt032393@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53417 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55274 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161121AbXCVVwK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 17:52:10 -0400
+	id S1750934AbXCVWlX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 18:41:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: christophe@saout.de, agk@redhat.com, olaf.kirch@oracle.com
+Cc: tglx@linutronix.de, ak@suse.de, jordan.crouse@amd.com, mingo@elte.hu
 
 
 The patch titled
-     dm: get rid of first_clone in dm-crypt
+     i386: clockevents fix breakage on Geode/Cyrix PIT implementations
 has been added to the -mm tree.  Its filename is
-     dm-get-rid-of-first_clone-in-dm-crypt.patch
+     i386-clockevents-fix-breakage-on-geode-cyrix-pit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,115 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dm: get rid of first_clone in dm-crypt
-From: Christophe Saout <christophe@saout.de>
+Subject: i386: clockevents fix breakage on Geode/Cyrix PIT implementations
+From: Thomas Gleixner <tglx@linutronix.de>
 
-This gets rid of first_clone, which is not really needed.  Apparently, cloned
-bios used to share their bvec some time way in the past - this is no longer
-the case.  Contrarily, this even hurts us if we try to create a clone off
-first_clone after it has completed, and crypt_endio has destroyed its bvec.
+The PIT has no dedicated mode for shut down.  The only way to disable PIT
+is to put it into one shot mode.  AMD implementations of PIT on Geode (also
+observed on Cyrix) are confused by an "empty" transition from
+CLOCK_EVT_MODE_UNUSED to CLOCK_EVT_MODE_SHUTDOWN, which puts the PIT into
+one shot mode momentarily.
 
-Signed-off-by: Olaf Kirch <olaf.kirch@oracle.com>
-Acked-by: Christophe Saout <christophe@saout.de>
-Cc: Alasdair G Kergon <agk@redhat.com>
+I realized after staring helpless at the bug report
+http://bugzilla.kernel.org/show_bug.cgi?id=8027 for quite a while, that the
+only change, which might influence the bogomips calibration, is the above
+transition during the PIT initialization.
+
+Avoiding the unnecessary switch to oneshot and later to periodic mode fixes
+the weird bogomips value and also the resulting slowness.
+
+The fix is confirmed on OLPC and another Geode based box.
+
+Note: this is unrelated to the Dual Core problem discussed here:
+http://lkml.org/lkml/2007/3/17/48
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-crypt.c |   32 +++++---------------------------
- 1 files changed, 5 insertions(+), 27 deletions(-)
+ arch/i386/kernel/i8253.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/dm-crypt.c~dm-get-rid-of-first_clone-in-dm-crypt drivers/md/dm-crypt.c
---- a/drivers/md/dm-crypt.c~dm-get-rid-of-first_clone-in-dm-crypt
-+++ a/drivers/md/dm-crypt.c
-@@ -33,7 +33,6 @@
- struct crypt_io {
- 	struct dm_target *target;
- 	struct bio *base_bio;
--	struct bio *first_clone;
- 	struct work_struct work;
- 	atomic_t pending;
- 	int error;
-@@ -381,8 +380,7 @@ static int crypt_convert(struct crypt_co
-  * May return a smaller bio when running out of pages
-  */
- static struct bio *
--crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
--                   struct bio *base_bio, unsigned int *bio_vec_idx)
-+crypt_alloc_buffer(struct crypt_io *io, unsigned int size, unsigned int *bio_vec_idx)
- {
- 	struct crypt_config *cc = io->target->private;
- 	struct bio *clone;
-@@ -390,12 +388,7 @@ crypt_alloc_buffer(struct crypt_io *io, 
- 	gfp_t gfp_mask = GFP_NOIO | __GFP_HIGHMEM;
- 	unsigned int i;
+diff -puN arch/i386/kernel/i8253.c~i386-clockevents-fix-breakage-on-geode-cyrix-pit arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~i386-clockevents-fix-breakage-on-geode-cyrix-pit
++++ a/arch/i386/kernel/i8253.c
+@@ -47,9 +47,17 @@ static void init_pit_timer(enum clock_ev
+ 		outb(LATCH >> 8 , PIT_CH0);	/* MSB */
+ 		break;
  
--	if (base_bio) {
--		clone = bio_alloc_bioset(GFP_NOIO, base_bio->bi_max_vecs, cc->bs);
--		__bio_clone(clone, base_bio);
--	} else
--		clone = bio_alloc_bioset(GFP_NOIO, nr_iovecs, cc->bs);
--
-+	clone = bio_alloc_bioset(GFP_NOIO, nr_iovecs, cc->bs);
- 	if (!clone)
- 		return NULL;
- 
-@@ -498,9 +491,6 @@ static void dec_pending(struct crypt_io 
- 	if (!atomic_dec_and_test(&io->pending))
- 		return;
- 
--	if (io->first_clone)
--		bio_put(io->first_clone);
--
- 	bio_endio(io->base_bio, io->base_bio->bi_size, io->error);
- 
- 	mempool_free(io, cc->io_pool);
-@@ -618,8 +608,7 @@ static void process_write(struct crypt_i
- 	 * so repeat the whole process until all the data can be handled.
- 	 */
- 	while (remaining) {
--		clone = crypt_alloc_buffer(io, base_bio->bi_size,
--					   io->first_clone, &bvec_idx);
-+		clone = crypt_alloc_buffer(io, base_bio->bi_size, &bvec_idx);
- 		if (unlikely(!clone)) {
- 			dec_pending(io, -ENOMEM);
- 			return;
-@@ -635,21 +624,11 @@ static void process_write(struct crypt_i
- 		}
- 
- 		clone->bi_sector = cc->start + sector;
--
--		if (!io->first_clone) {
--			/*
--			 * hold a reference to the first clone, because it
--			 * holds the bio_vec array and that can't be freed
--			 * before all other clones are released
--			 */
--			bio_get(clone);
--			io->first_clone = clone;
--		}
--
- 		remaining -= clone->bi_size;
- 		sector += bio_sectors(clone);
- 
--		/* prevent bio_put of first_clone */
-+		/* Grab another reference to the io struct
-+		 * before we kick off the request */
- 		if (remaining)
- 			atomic_inc(&io->pending);
- 
-@@ -962,7 +941,6 @@ static int crypt_map(struct dm_target *t
- 	io = mempool_alloc(cc->io_pool, GFP_NOIO);
- 	io->target = ti;
- 	io->base_bio = bio;
--	io->first_clone = NULL;
- 	io->error = io->post_process = 0;
- 	atomic_set(&io->pending, 0);
- 	kcryptd_queue_io(io);
+-	case CLOCK_EVT_MODE_ONESHOT:
++	/*
++	 * Avoid unnecessary state transitions, as it confuses
++	 * Geode / Cyrix based boxen.
++	 */
+ 	case CLOCK_EVT_MODE_SHUTDOWN:
++		if (evt->mode == CLOCK_EVT_MODE_UNUSED)
++			break;
+ 	case CLOCK_EVT_MODE_UNUSED:
++		if (evt->mode == CLOCK_EVT_MODE_SHUTDOWN)
++			break;
++	case CLOCK_EVT_MODE_ONESHOT:
+ 		/* One shot setup */
+ 		outb_p(0x38, PIT_MODE);
+ 		udelay(10);
 _
 
-Patches currently in -mm which might be from christophe@saout.de are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-dm-call-clone_init-early.patch
-dm-do-not-access-the-bio-after-generic_make_request.patch
-dm-get-rid-of-first_clone-in-dm-crypt.patch
-dm-allocate-smaller-clones.patch
+origin.patch
+documentation-sysrqtxt-added-short-description-for-q-timerlist.patch
+i386-disable-local-apic-timer-via-command-line-or-dmi.patch
+time-fix-formatting-in-proc-timer_list.patch
+setup_boot_apic_clock-irq-enable-fix.patch
+i386-clockevents-fix-breakage-on-geode-cyrix-pit.patch
+git-ieee1394.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
