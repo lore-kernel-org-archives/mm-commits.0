@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-newstyle-hotplug-coldplug-support.patch added to -mm tree
-Date: Thu, 22 Mar 2007 14:14:49 -0700
-Message-ID: <200703222114.l2MLEnNh030510@shell0.pdx.osdl.net>
+Subject: + mtd-support-for-auto-locking-flash-on-power-up.patch added to -mm tree
+Date: Thu, 22 Mar 2007 14:31:16 -0700
+Message-ID: <200703222131.l2MLVGu1030823@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51957 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52525 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752658AbXCVVP6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 17:15:58 -0400
+	id S1161044AbXCVVbh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 17:31:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, James.Bottomley@steeleye.com, dbrownell@users.sourceforge.net, mjt@tls.msk.ru
+Cc: giometti@enneenne.com, dwmw2@infradead.org
 
 
 The patch titled
-     SCSI newstyle hotplug/coldplug support
+     MTD: support for auto locking flash on power up
 has been added to the -mm tree.  Its filename is
-     scsi-newstyle-hotplug-coldplug-support.patch
+     mtd-support-for-auto-locking-flash-on-power-up.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,162 +25,227 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SCSI newstyle hotplug/coldplug support
-From: David Brownell <david-b@pacbell.net>
+Subject: MTD: support for auto locking flash on power up
+From: Rodolfo Giometti <giometti@enneenne.com>
 
-This teaches scsi devices how to support "new style" hotplug/coldplug:
-using a modalias sysfs attribute for coldplug, and MODALIAS environment
-variable for hotplug.
+Auto unlock sectors on resume for auto locking flash on power up.
 
-It also updates the CH, SD, SR, and ST drivers with the aliases needed to
-drive them by that mechanism.  (Older OnStream devices use OSST not ST;
-left for someone else to sort out.  SG seems best loaded by KMOD.)
-
-Using this, I've seen pure new-style hotplugging drive the loading of all
-the relevant driver modules for usb storage devices: host controller,
-usb-storage, scsi core, sd_mod.  Previously, sd_mod never loaded.  (Except
-when using the obsolete old-style hotplug scripts ...  which are unusable
-on ~100 BogoMIPS embedded systems that only run busybox, but may have no
-options for lots of external storage other than USB.) Yep, this is a LOT
-faster too.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Michael Tokarev <mjt@tls.msk.ru>
+Signed-off-by: Rodolfo Giometti <giometti@enneenne.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ch.c         |    1 +
- drivers/scsi/scsi_sysfs.c |   23 +++++++++++++++++++++++
- drivers/scsi/sd.c         |    4 ++++
- drivers/scsi/sr.c         |    2 ++
- drivers/scsi/st.c         |    1 +
- 5 files changed, 31 insertions(+)
+ drivers/mtd/chips/cfi_cmdset_0001.c |   93 +++++++++++++++++++++++++-
+ include/linux/mtd/mtd.h             |    1 
+ 2 files changed, 91 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/ch.c~scsi-newstyle-hotplug-coldplug-support drivers/scsi/ch.c
---- a/drivers/scsi/ch.c~scsi-newstyle-hotplug-coldplug-support
-+++ a/drivers/scsi/ch.c
-@@ -38,6 +38,7 @@ MODULE_DESCRIPTION("device driver for sc
- MODULE_AUTHOR("Gerd Knorr <kraxel@bytesex.org>");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_CHARDEV_MAJOR(SCSI_CHANGER_MAJOR);
-+MODULE_ALIAS("scsi:type-08");		/* TYPE_MEDIUM_CHANGER */
+diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-support-for-auto-locking-flash-on-power-up drivers/mtd/chips/cfi_cmdset_0001.c
+--- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-support-for-auto-locking-flash-on-power-up
++++ a/drivers/mtd/chips/cfi_cmdset_0001.c
+@@ -15,6 +15,8 @@
+  *	- optimized write buffer method
+  * 02/05/2002	Christopher Hoover <ch@hpl.hp.com>/<ch@murgatroid.com>
+  *	- reworked lock/unlock/erase support for var size flash
++ * 21/03/2007   Rodolfo Giometti <giometti@linux.it>
++ * 	- auto unlock sectors on resume for auto locking flash on power up
+  */
  
- static int init = 1;
- module_param(init, int, 0444);
-diff -puN drivers/scsi/scsi_sysfs.c~scsi-newstyle-hotplug-coldplug-support drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~scsi-newstyle-hotplug-coldplug-support
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -277,6 +277,18 @@ static int scsi_bus_match(struct device 
- 	return (sdp->inq_periph_qual == SCSI_INQ_PQ_CON)? 1: 0;
+ #include <linux/module.h>
+@@ -30,6 +32,7 @@
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+ #include <linux/reboot.h>
++#include <linux/bitmap.h>
+ #include <linux/mtd/xip.h>
+ #include <linux/mtd/map.h>
+ #include <linux/mtd/mtd.h>
+@@ -220,6 +223,15 @@ static void fixup_use_write_buffers(stru
+ 	}
  }
  
-+/* for hotplug support: modprobe $MODALIAS */
-+static int scsi_uevent(struct device *dev, char **envp, int num_envp,
-+		char *buffer, int buffer_size)
++/*
++ * Some chips power-up with all sectors locked by default.
++ */
++static void fixup_use_powerup_lock(struct mtd_info *mtd, void *param)
 +{
-+	struct scsi_device *sdp = to_scsi_device(dev);
-+
-+	envp[0] = buffer;
-+	snprintf(buffer, buffer_size, "MODALIAS=scsi:type-%02x", (u8)sdp->type);
-+	envp[1] = NULL;
-+	return 0;
++	printk(KERN_INFO "Using auto-unlock on power-up/resume\n" );
++	mtd->flags |= MTD_STUPID_LOCK;
 +}
 +
- static int scsi_bus_suspend(struct device * dev, pm_message_t state)
+ static struct cfi_fixup cfi_fixup_table[] = {
+ #ifdef CMDSET0001_DISABLE_ERASE_SUSPEND_ON_WRITE
+ 	{ CFI_MFR_ANY, CFI_ID_ANY, fixup_intel_strataflash, NULL },
+@@ -232,6 +244,7 @@ static struct cfi_fixup cfi_fixup_table[
+ #endif
+ 	{ CFI_MFR_ST, 0x00ba, /* M28W320CT */ fixup_st_m28w320ct, NULL },
+ 	{ CFI_MFR_ST, 0x00bb, /* M28W320CB */ fixup_st_m28w320cb, NULL },
++	{ MANUFACTURER_INTEL, 0x891c,	      fixup_use_powerup_lock, NULL, },
+ 	{ 0, 0, NULL, NULL }
+ };
+ 
+@@ -460,6 +473,7 @@ static struct mtd_info *cfi_intelext_set
+ 			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].offset = (j*devsize)+offset;
+ 			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].erasesize = ersize;
+ 			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].numblocks = ernum;
++			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].lockmap = kmalloc(ernum / 8 + 1, GFP_KERNEL);
+ 		}
+ 		offset += (ersize * ernum);
+ 	}
+@@ -1825,8 +1839,7 @@ static void cfi_intelext_sync (struct mt
+ 	}
+ }
+ 
+-#ifdef DEBUG_LOCK_BITS
+-static int __xipram do_printlockstatus_oneblock(struct map_info *map,
++static int __xipram do_getlockstatus_oneblock(struct map_info *map,
+ 						struct flchip *chip,
+ 						unsigned long adr,
+ 						int len, void *thunk)
+@@ -1840,8 +1853,17 @@ static int __xipram do_printlockstatus_o
+ 	chip->state = FL_JEDEC_QUERY;
+ 	status = cfi_read_query(map, adr+(2*ofs_factor));
+ 	xip_enable(map, chip, 0);
++	return status;
++}
++
++#ifdef DEBUG_LOCK_BITS
++static int __xipram do_printlockstatus_oneblock(struct map_info *map,
++						struct flchip *chip,
++						unsigned long adr,
++						int len, void *thunk)
++{
+ 	printk(KERN_DEBUG "block status register for 0x%08lx is %x\n",
+-	       adr, status);
++	       adr, do_getlockstatus_oneblock(map, chip, adr, len, thunk));
+ 	return 0;
+ }
+ #endif
+@@ -2216,14 +2238,45 @@ static int cfi_intelext_get_user_prot_in
+ 
+ #endif
+ 
++static void cfi_intelext_save_locks(struct mtd_info *mtd)
++{
++	struct mtd_erase_region_info *region;
++	int block, status, i;
++	unsigned long adr;
++	size_t len;
++
++	for (i = 0; i < mtd->numeraseregions; i++) {
++		region = &mtd->eraseregions[i];
++		if (!region->lockmap)
++			continue;
++
++		for (block = 0; block < region->numblocks; block++){
++			len = region->erasesize;
++			adr = region->offset + block * len;
++
++			status = cfi_varsize_frob(mtd,
++					do_getlockstatus_oneblock, adr, len, 0);
++			if (status)
++				set_bit(block, region->lockmap);
++			else
++				clear_bit(block, region->lockmap);
++		}
++	}
++}
++
+ static int cfi_intelext_suspend(struct mtd_info *mtd)
  {
- 	struct device_driver *drv = dev->driver;
-@@ -332,6 +344,7 @@ static int scsi_bus_resume(struct device
- struct bus_type scsi_bus_type = {
-         .name		= "scsi",
-         .match		= scsi_bus_match,
-+	.uevent		= scsi_uevent,
- 	.suspend	= scsi_bus_suspend,
- 	.resume		= scsi_bus_resume,
- };
-@@ -571,6 +584,15 @@ show_sdev_iostat(iorequest_cnt);
- show_sdev_iostat(iodone_cnt);
- show_sdev_iostat(ioerr_cnt);
+ 	struct map_info *map = mtd->priv;
+ 	struct cfi_private *cfi = map->fldrv_priv;
++	struct cfi_pri_intelext *extp = cfi->cmdset_priv;
+ 	int i;
+ 	struct flchip *chip;
+ 	int ret = 0;
  
-+/* for coldplug support: modprobe $(cat .../modalias) */
-+static ssize_t
-+show_modalias(struct device *dev, struct device_attribute *attr, char *buf)
++	if ((mtd->flags & MTD_STUPID_LOCK)
++	    && extp && (extp->FeatureSupport & (1 << 5)))
++		cfi_intelext_save_locks(mtd);
++
+ 	for (i=0; !ret && i<cfi->numchips; i++) {
+ 		chip = &cfi->chips[i];
+ 
+@@ -2285,10 +2338,33 @@ static int cfi_intelext_suspend(struct m
+ 	return ret;
+ }
+ 
++static void cfi_intelext_restore_locks(struct mtd_info *mtd)
 +{
-+	struct scsi_device *sdev = to_scsi_device(dev);
++	struct mtd_erase_region_info *region;
++	int block, i;
++	unsigned long adr;
++	size_t len;
 +
-+	return snprintf(buf, 20, "scsi:type-%02x\n", (u8)sdev->type);
++	for (i = 0; i < mtd->numeraseregions; i++) {
++		region = &mtd->eraseregions[i];
++		if (!region->lockmap)
++			continue;
++
++		for (block = 0; block < region->numblocks; block++) {
++			len = region->erasesize;
++			adr = region->offset + block * len;
++
++			if (!test_bit(block, region->lockmap))
++				cfi_intelext_unlock(mtd, adr, len);
++		}
++	}
 +}
-+static DEVICE_ATTR(modalias, S_IRUGO, show_modalias, NULL);
- 
- /* Default template for device attributes.  May NOT be modified */
- static struct device_attribute *scsi_sysfs_sdev_attrs[] = {
-@@ -590,6 +612,7 @@ static struct device_attribute *scsi_sys
- 	&dev_attr_iorequest_cnt,
- 	&dev_attr_iodone_cnt,
- 	&dev_attr_ioerr_cnt,
-+	&dev_attr_modalias,
- 	NULL
- };
- 
-diff -puN drivers/scsi/sd.c~scsi-newstyle-hotplug-coldplug-support drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~scsi-newstyle-hotplug-coldplug-support
-+++ a/drivers/scsi/sd.c
-@@ -241,6 +241,10 @@ static struct scsi_driver sd_template = 
- 	.issue_flush		= sd_issue_flush,
- };
- 
-+MODULE_ALIAS("scsi:type-00");		/* TYPE_DISK */
-+MODULE_ALIAS("scsi:type-07");		/* TYPE_MOD */
-+MODULE_ALIAS("scsi:type-0e");		/* TYPE_RBC */
 +
+ static void cfi_intelext_resume(struct mtd_info *mtd)
+ {
+ 	struct map_info *map = mtd->priv;
+ 	struct cfi_private *cfi = map->fldrv_priv;
++	struct cfi_pri_intelext *extp = cfi->cmdset_priv;
+ 	int i;
+ 	struct flchip *chip;
+ 
+@@ -2307,6 +2383,10 @@ static void cfi_intelext_resume(struct m
+ 
+ 		spin_unlock(chip->mutex);
+ 	}
++
++	if ((mtd->flags & MTD_STUPID_LOCK)
++	    && extp && (extp->FeatureSupport & (1 << 5)))
++		cfi_intelext_restore_locks(mtd);
+ }
+ 
+ static int cfi_intelext_reset(struct mtd_info *mtd)
+@@ -2347,12 +2427,19 @@ static void cfi_intelext_destroy(struct 
+ {
+ 	struct map_info *map = mtd->priv;
+ 	struct cfi_private *cfi = map->fldrv_priv;
++	struct mtd_erase_region_info *region;
++	int i;
+ 	cfi_intelext_reset(mtd);
+ 	unregister_reboot_notifier(&mtd->reboot_notifier);
+ 	kfree(cfi->cmdset_priv);
+ 	kfree(cfi->cfiq);
+ 	kfree(cfi->chips[0].priv);
+ 	kfree(cfi);
++	for (i = 0; i < mtd->numeraseregions; i++) {
++		region = &mtd->eraseregions[i];
++		if (region->lockmap)
++			kfree(region->lockmap);
++	}
+ 	kfree(mtd->eraseregions);
+ }
+ 
+diff -puN include/linux/mtd/mtd.h~mtd-support-for-auto-locking-flash-on-power-up include/linux/mtd/mtd.h
+--- a/include/linux/mtd/mtd.h~mtd-support-for-auto-locking-flash-on-power-up
++++ a/include/linux/mtd/mtd.h
+@@ -53,6 +53,7 @@ struct mtd_erase_region_info {
+ 	u_int32_t offset;			/* At which this region starts, from the beginning of the MTD */
+ 	u_int32_t erasesize;		/* For this region */
+ 	u_int32_t numblocks;		/* Number of blocks of erasesize in this region */
++	unsigned long *lockmap;		/* If keeping bitmap of locks */
+ };
+ 
  /*
-  * Device no to disk mapping:
-  * 
-diff -puN drivers/scsi/sr.c~scsi-newstyle-hotplug-coldplug-support drivers/scsi/sr.c
---- a/drivers/scsi/sr.c~scsi-newstyle-hotplug-coldplug-support
-+++ a/drivers/scsi/sr.c
-@@ -62,6 +62,8 @@
- MODULE_DESCRIPTION("SCSI cdrom (sr) driver");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_BLOCKDEV_MAJOR(SCSI_CDROM_MAJOR);
-+MODULE_ALIAS("scsi:type-04");		/* TYPE_WORM */
-+MODULE_ALIAS("scsi:type-05");		/* TYPE_ROM */
- 
- #define SR_DISKS	256
- 
-diff -puN drivers/scsi/st.c~scsi-newstyle-hotplug-coldplug-support drivers/scsi/st.c
---- a/drivers/scsi/st.c~scsi-newstyle-hotplug-coldplug-support
-+++ a/drivers/scsi/st.c
-@@ -89,6 +89,7 @@ MODULE_AUTHOR("Kai Makisara");
- MODULE_DESCRIPTION("SCSI tape (st) driver");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_CHARDEV_MAJOR(SCSI_TAPE_MAJOR);
-+MODULE_ALIAS("scsi:type-01");		/* TYPE_TAPE */
- 
- /* Set 'perm' (4th argument) to 0 to disable module_param's definition
-  * of sysfs parameters (which module_param doesn't yet support).
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from giometti@enneenne.com are
 
-origin.patch
-8250-make-probing-for-txen-bug-a-config-option.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-blackfin-blackfin-i2c-driver-update-2.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-kconfig-cleanup.patch
+i2c-tsl2550-support.patch
+git-input.patch
+mtd-support-for-auto-locking-flash-on-power-up.patch
