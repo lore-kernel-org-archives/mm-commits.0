@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch added to -mm tree
-Date: Wed, 21 Mar 2007 16:53:29 -0700
-Message-ID: <200703212353.l2LNrTa6007462@shell0.pdx.osdl.net>
+Subject: + i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch added to -mm tree
+Date: Wed, 21 Mar 2007 17:05:25 -0800
+Message-ID: <200703220105.l2M15P73008842@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60247 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33641 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965499AbXCVAAj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 20:00:39 -0400
+	id S1751004AbXCVBFe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 21:05:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk, johnstul@us.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, tglx@linutronix.de, venkatesh.pallipadi@intel.com
+Cc: rusty@rustcorp.com.au, ak@suse.de
 
 
 The patch titled
-     export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy
+     i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot fix
 has been added to the -mm tree.  Its filename is
-     export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch
+     i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,118 +25,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot fix
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Sanity
+I'll just leave the comment, and try to pretend this never happened 8)
 
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq_ondemand.c |    2 +-
- include/linux/workqueue.h          |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/head.S |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/cpufreq/cpufreq_ondemand.c~export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy drivers/cpufreq/cpufreq_ondemand.c
---- a/drivers/cpufreq/cpufreq_ondemand.c~export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy
-+++ a/drivers/cpufreq/cpufreq_ondemand.c
-@@ -470,7 +470,7 @@ static inline void dbs_timer_init(struct
- 	dbs_info->enable = 1;
- 	ondemand_powersave_bias_init();
- 	dbs_info->sample_type = DBS_NORMAL_SAMPLE;
--	INIT_DELAYED_WORK_DEF(&dbs_info->work, do_dbs_timer);
-+	INIT_DELAYED_WORK_DEFERRABLE(&dbs_info->work, do_dbs_timer);
- 	queue_delayed_work_on(dbs_info->cpu, kondemand_wq, &dbs_info->work,
- 	                      delay);
- }
-diff -puN include/linux/workqueue.h~export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy include/linux/workqueue.h
---- a/include/linux/workqueue.h~export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy
-+++ a/include/linux/workqueue.h
-@@ -89,7 +89,7 @@ struct execute_work {
- 		init_timer(&(_work)->timer);			\
- 	} while (0)
+diff -puN arch/i386/kernel/head.S~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix arch/i386/kernel/head.S
+--- a/arch/i386/kernel/head.S~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix
++++ a/arch/i386/kernel/head.S
+@@ -601,6 +601,10 @@ ENTRY(early_gdt_descr)
+ 	.word GDT_ENTRIES*8-1
+ 	.long per_cpu__cpu_gdt		/* Overwritten for secondary CPUs */
  
--#define INIT_DELAYED_WORK_DEF(_work, _func)			\
-+#define INIT_DELAYED_WORK_DEFERRABLE(_work, _func)		\
- 	do {							\
- 		INIT_WORK(&(_work)->work, (_func));		\
- 		init_timer_deferrable(&(_work)->timer);		\
++/*
++ * The boot_gdt_table must mirror the equivalent in setup.S and is
++ * used only for booting.
++ */
+ 	.align L1_CACHE_BYTES
+ ENTRY(boot_gdt_table)
+ 	.fill GDT_ENTRY_BOOT_CS,8,0
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-hack-to-make-wireless-work.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
 i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-blackfin-blackfin-i2c-driver-update-2.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-add-support-for-deferrable-timers-tidy.patch
-export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+cleanup-initialize-esp0-properly-all-the-time.patch
+lguest-preparation-export_symbol_gpl-5-functions.patch
+lguest-preparation-expose-futex-infrastructure.patch
+lguest-kconfig-and-headers.patch
+lguest-the-host-code-lgko.patch
+lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patch
+lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
+lguest-the-host-code-lgko-pin-stack-page-optimization.patch
+lguest-guest-code.patch
+lguest-makefile.patch
+lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
+lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
+lguest-dont-crash-host-on-nmi.patch
+lguest-trivial-guest-network-driver.patch
+lguest-trivial-guest-console-driver.patch
+lguest-trivial-guest-block-driver.patch
+lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch
+lguest-documentatation-and-example-launcher.patch
+lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch
+lguest-documentatation-and-example-launcher-bridging-support-in-example-codelguest-documentation-fixes.patch
+introduce-load_tls-to-the-for-loop.patch
+remove-unused-set_seg_base.patch
+clarify-config_reorder-explanation.patch
+allow-per-cpu-variables-to-be-page-aligned.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
+i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch
+i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
+i386-gdt-cleanups-clean-up-cpu_init.patch
+i386-gdt-cleanups-cleanup-gdt-access.patch
+module-use-krealloc.patch
+extend-print_symbol-capability.patch
+array_size-check-for-type.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
+____call_usermodehelper-dont-flush_signals.patch
