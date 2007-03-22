@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nozomi-use-null-for-pointers.patch added to -mm tree
-Date: Wed, 21 Mar 2007 22:17:23 -0800
-Message-ID: <200703220617.l2M6HN10013771@shell0.pdx.osdl.net>
+Subject: + cpuidle-unsigned-bitfield.patch added to -mm tree
+Date: Wed, 21 Mar 2007 22:17:17 -0800
+Message-ID: <200703220617.l2M6HHen013762@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40860 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40879 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752261AbXCVGR2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 02:17:28 -0400
+	id S1752439AbXCVGSd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 02:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, greg@kroah.com
+Cc: randy.dunlap@oracle.com, lenb@kernel.org, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     nozomi: use NULL for pointers
+     cpuidle: unsigned bitfield
 has been added to the -mm tree.  Its filename is
-     nozomi-use-null-for-pointers.patch
+     cpuidle-unsigned-bitfield.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nozomi: use NULL for pointers
+Subject: cpuidle: unsigned bitfield
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Use NULL instead of 0 for pointers:
-drivers/char/nozomi.c:1028:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1029:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1031:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1032:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1034:70: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1035:70: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1037:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1039:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1040:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1042:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1043:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1045:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1046:68: warning: Using plain integer as NULL pointer
-drivers/char/nozomi.c:1048:64: warning: Using plain integer as NULL pointer
+A 1-bit bitfield has no room for a sign bit.
+drivers/cpuidle/governors/ladder.c:54:16: error: dubious bitfield without explicit `signed' or `unsigned'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/nozomi.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ drivers/cpuidle/governors/ladder.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/nozomi.c~nozomi-use-null-for-pointers drivers/char/nozomi.c
---- a/drivers/char/nozomi.c~nozomi-use-null-for-pointers
-+++ a/drivers/char/nozomi.c
-@@ -1025,27 +1025,27 @@ static char *interrupt2str(u16 interrupt
- 	static char buf[TMP_BUF_MAX];
- 	char *p = buf;
+diff -puN drivers/cpuidle/governors/ladder.c~cpuidle-unsigned-bitfield drivers/cpuidle/governors/ladder.c
+--- a/drivers/cpuidle/governors/ladder.c~cpuidle-unsigned-bitfield
++++ a/drivers/cpuidle/governors/ladder.c
+@@ -51,7 +51,7 @@ struct ladder_device_state {
  
--	interrupt & MDM_DL1 ? p += snprintf(p, TMP_BUF_MAX, "MDM_DL1 ") : 0;
--	interrupt & MDM_DL2 ? p += snprintf(p, TMP_BUF_MAX, "MDM_DL2 ") : 0;
-+	interrupt & MDM_DL1 ? p += snprintf(p, TMP_BUF_MAX, "MDM_DL1 ") : NULL;
-+	interrupt & MDM_DL2 ? p += snprintf(p, TMP_BUF_MAX, "MDM_DL2 ") : NULL;
- 
--	interrupt & MDM_UL1 ? p += snprintf(p, TMP_BUF_MAX, "MDM_UL1 ") : 0;
--	interrupt & MDM_UL2 ? p += snprintf(p, TMP_BUF_MAX, "MDM_UL2 ") : 0;
-+	interrupt & MDM_UL1 ? p += snprintf(p, TMP_BUF_MAX, "MDM_UL1 ") : NULL;
-+	interrupt & MDM_UL2 ? p += snprintf(p, TMP_BUF_MAX, "MDM_UL2 ") : NULL;
- 
--	interrupt & DIAG_DL1 ? p += snprintf(p, TMP_BUF_MAX, "DIAG_DL1 ") : 0;
--	interrupt & DIAG_DL2 ? p += snprintf(p, TMP_BUF_MAX, "DIAG_DL2 ") : 0;
-+	interrupt & DIAG_DL1 ? p += snprintf(p, TMP_BUF_MAX, "DIAG_DL1 ") : NULL;
-+	interrupt & DIAG_DL2 ? p += snprintf(p, TMP_BUF_MAX, "DIAG_DL2 ") : NULL;
- 
--	interrupt & DIAG_UL ? p += snprintf(p, TMP_BUF_MAX, "DIAG_UL ") : 0;
-+	interrupt & DIAG_UL ? p += snprintf(p, TMP_BUF_MAX, "DIAG_UL ") : NULL;
- 
--	interrupt & APP1_DL ? p += snprintf(p, TMP_BUF_MAX, "APP1_DL ") : 0;
--	interrupt & APP2_DL ? p += snprintf(p, TMP_BUF_MAX, "APP2_DL ") : 0;
-+	interrupt & APP1_DL ? p += snprintf(p, TMP_BUF_MAX, "APP1_DL ") : NULL;
-+	interrupt & APP2_DL ? p += snprintf(p, TMP_BUF_MAX, "APP2_DL ") : NULL;
- 
--	interrupt & APP1_UL ? p += snprintf(p, TMP_BUF_MAX, "APP1_UL ") : 0;
--	interrupt & APP2_UL ? p += snprintf(p, TMP_BUF_MAX, "APP2_UL ") : 0;
-+	interrupt & APP1_UL ? p += snprintf(p, TMP_BUF_MAX, "APP1_UL ") : NULL;
-+	interrupt & APP2_UL ? p += snprintf(p, TMP_BUF_MAX, "APP2_UL ") : NULL;
- 
--	interrupt & CTRL_DL ? p += snprintf(p, TMP_BUF_MAX, "CTRL_DL ") : 0;
--	interrupt & CTRL_UL ? p += snprintf(p, TMP_BUF_MAX, "CTRL_UL ") : 0;
-+	interrupt & CTRL_DL ? p += snprintf(p, TMP_BUF_MAX, "CTRL_DL ") : NULL;
-+	interrupt & CTRL_UL ? p += snprintf(p, TMP_BUF_MAX, "CTRL_UL ") : NULL;
- 
--	interrupt & RESET ? p += snprintf(p, TMP_BUF_MAX, "RESET ") : 0;
-+	interrupt & RESET ? p += snprintf(p, TMP_BUF_MAX, "RESET ") : NULL;
- 
- 	return buf;
- }
+ struct ladder_device {
+ 	struct ladder_device_state states[CPUIDLE_STATE_MAX];
+-	int bm_check:1;
++	unsigned int bm_check:1;
+ 	unsigned long bm_check_timestamp;
+ 	unsigned long bm_activity; /* FIXME: bm activity should be global */
+ 	int last_state_idx;
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
