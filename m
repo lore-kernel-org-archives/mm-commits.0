@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + power-management-force-pm_opsvalid-callback-to-be.patch added to -mm tree
-Date: Thu, 22 Mar 2007 09:37:34 -0800
-Message-ID: <200703221737.l2MHbYGR025798__49882.7157928192$1174585126$gmane$org@shell0.pdx.osdl.net>
+Subject: + fix-cpufreq_stats-attrs-removal.patch added to -mm tree
+Date: Thu, 22 Mar 2007 09:57:38 -0800
+Message-ID: <200703221757.l2MHvcMR026222@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41854 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42785 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934147AbXCVRiD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 13:38:03 -0400
+	id S934164AbXCVR5u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 13:57:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johannes@sipsolutions.net, greg@kroah.com, linux-pm@lists.linux-foundation.org, pavel@ucw.cz, rjw@sisk.pl
+Cc: malattia@linux.it, davej@codemonkey.org.uk
 
 
 The patch titled
-     power management: force pm_ops.valid callback to be assigned
+     fix cpufreq_stats attrs removal
 has been added to the -mm tree.  Its filename is
-     power-management-force-pm_opsvalid-callback-to-be.patch
+     fix-cpufreq_stats-attrs-removal.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,73 +25,118 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: power management: force pm_ops.valid callback to be assigned
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: fix cpufreq_stats attrs removal
+From: Mattia Dongili <malattia@linux.it>
 
-This patch changes the docs and behaviour from "all states valid" to "no
-states valid" if no .valid callback is assigned.  Users of pm_ops that only
-need mem sleep can assign pm_valid_only_mem without any overhead, others
-will require more elaborate callbacks.
+After modprobe/rmmod cpufreq/stats directory appears but doesn't get
+removed.
 
-Now that all users of pm_ops have a .valid callback this is a safe thing to
-do and prevents things from getting messy again as they were before.
+There are other symptoms to this same bug:
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: <linux-pm@lists.linux-foundation.org>
-Cc: Greg KH <greg@kroah.com>
+1. unload p4-clockmod: /sys/.../cpu0/cpufreq is removed all together
+2. load p4-clockmod: /sys/.../cpu0/cpufreq appears but no 'stats' subdir
+   (yes, cpufreq_stats is loaded)
+3. rmmod cpufreq_stats: Ooops!
+
+Call Trace:
+ [<c0183f5b>] remove_dir+0x33/0xc4
+ [<c0184fca>] remove_files+0x1a/0x28
+ [<c018503b>] sysfs_remove_group+0x63/0x71
+ [<f898c38d>] cpufreq_stat_cpu_callback+0x51/0x8a [cpufreq_stats]
+ [<f898c477>] cpufreq_stats_exit+0x47/0x4b [cpufreq_stats]
+ [<c012f145>] sys_delete_module+0x190/0x1b7
+ [<c0140073>] do_wp_page+0x231/0x3e7
+ [<c0102e17>] syscall_call+0x7/0xb
+
+The problem is cpufreq_stats doesn't know when a cpufreq driver is removed
+and doesn't cleanup.  I guess this affects any setup with cpufreq_stats.
+
+The attached patch seems to solve both symptoms and yes... it's quite
+invasive as it introduce one more cpufreq policy notification (REMOVED).
+
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pm.h  |   12 ++++++------
- kernel/power/main.c |    4 ++--
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/cpufreq/cpufreq.c       |    4 ++++
+ drivers/cpufreq/cpufreq_stats.c |   26 +++++++++++++++-----------
+ include/linux/cpufreq.h         |    1 +
+ 3 files changed, 20 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/pm.h~power-management-force-pm_opsvalid-callback-to-be include/linux/pm.h
---- a/include/linux/pm.h~power-management-force-pm_opsvalid-callback-to-be
-+++ a/include/linux/pm.h
-@@ -125,12 +125,12 @@ typedef int __bitwise suspend_disk_metho
-  * struct pm_ops - Callbacks for managing platform dependent suspend states.
-  * @valid: Callback to determine whether the given state can be entered.
-  * 	If %CONFIG_SOFTWARE_SUSPEND is set then %PM_SUSPEND_DISK is
-- *	always valid and never passed to this call.
-- *	If not assigned, all suspend states are advertised as valid
-- *	in /sys/power/state (but can still be rejected by prepare or enter.)
-- *	Since new states can be added for other platforms, you should
-- *	assign this callback. There is a %pm_valid_only_mem function
-- *	available if you only implemented mem sleep.
-+ *	always valid and never passed to this call. If not assigned,
-+ *	no suspend states are valid.
-+ *	Valid states are advertised in /sys/power/state but can still
-+ *	be rejected by prepare or enter if the conditions aren't right.
-+ *	There is a %pm_valid_only_mem function available that can be assigned
-+ *	to this if you only implement mem sleep.
-  *
-  * @prepare: Prepare the platform for the given suspend state. Can return a
-  *	negative error code if necessary.
-diff -puN kernel/power/main.c~power-management-force-pm_opsvalid-callback-to-be kernel/power/main.c
---- a/kernel/power/main.c~power-management-force-pm_opsvalid-callback-to-be
-+++ a/kernel/power/main.c
-@@ -186,8 +186,8 @@ static inline int valid_state(suspend_st
+diff -puN drivers/cpufreq/cpufreq.c~fix-cpufreq_stats-attrs-removal drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~fix-cpufreq_stats-attrs-removal
++++ a/drivers/cpufreq/cpufreq.c
+@@ -989,6 +989,10 @@ static int __cpufreq_remove_dev (struct 
  
- 	/* all other states need lowlevel support and need to be
- 	 * valid to the lowlevel implementation, no valid callback
--	 * implies that all are valid. */
--	if (!pm_ops || (pm_ops->valid && !pm_ops->valid(state)))
-+	 * implies that none are valid. */
-+	if (!pm_ops || !pm_ops->valid || !pm_ops->valid(state))
- 		return 0;
- 	return 1;
+ 	unlock_policy_rwsem_write(cpu);
+ 
++	/* notify of policy cancellation */
++	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
++			CPUFREQ_REMOVE, data);
++
+ 	kobject_unregister(&data->kobj);
+ 
+ 	kobject_put(&data->kobj);
+diff -puN drivers/cpufreq/cpufreq_stats.c~fix-cpufreq_stats-attrs-removal drivers/cpufreq/cpufreq_stats.c
+--- a/drivers/cpufreq/cpufreq_stats.c~fix-cpufreq_stats-attrs-removal
++++ a/drivers/cpufreq/cpufreq_stats.c
+@@ -257,18 +257,23 @@ static int
+ cpufreq_stat_notifier_policy (struct notifier_block *nb, unsigned long val,
+ 		void *data)
+ {
+-	int ret;
++	int ret = 0;
+ 	struct cpufreq_policy *policy = data;
+ 	struct cpufreq_frequency_table *table;
+ 	unsigned int cpu = policy->cpu;
+-	if (val != CPUFREQ_NOTIFY)
+-		return 0;
+-	table = cpufreq_frequency_get_table(cpu);
+-	if (!table)
+-		return 0;
+-	if ((ret = cpufreq_stats_create_table(policy, table)))
+-		return ret;
+-	return 0;
++	switch (val) {
++	case CPUFREQ_NOTIFY:
++		table = cpufreq_frequency_get_table(cpu);
++		if (!table)
++			break;
++		ret = cpufreq_stats_create_table(policy, table);
++		break;
++
++	case CPUFREQ_REMOVE:
++		cpufreq_stats_free_table(cpu);
++		break;
++	}
++	return ret;
  }
+ 
+ static int
+@@ -371,8 +376,7 @@ __exit cpufreq_stats_exit(void)
+ 			CPUFREQ_TRANSITION_NOTIFIER);
+ 	unregister_hotcpu_notifier(&cpufreq_stat_cpu_notifier);
+ 	for_each_online_cpu(cpu) {
+-		cpufreq_stat_cpu_callback(&cpufreq_stat_cpu_notifier,
+-						CPU_DEAD, (void *)(long)cpu);
++		cpufreq_stats_free_table(cpu);
+ 	}
+ }
+ 
+diff -puN include/linux/cpufreq.h~fix-cpufreq_stats-attrs-removal include/linux/cpufreq.h
+--- a/include/linux/cpufreq.h~fix-cpufreq_stats-attrs-removal
++++ a/include/linux/cpufreq.h
+@@ -96,6 +96,7 @@ struct cpufreq_policy {
+ #define CPUFREQ_ADJUST		(0)
+ #define CPUFREQ_INCOMPATIBLE	(1)
+ #define CPUFREQ_NOTIFY		(2)
++#define CPUFREQ_REMOVE		(3)
+ 
+ #define CPUFREQ_SHARED_TYPE_NONE (0) /* None */
+ #define CPUFREQ_SHARED_TYPE_HW	 (1) /* HW does needed coordination */
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from malattia@linux.it are
 
-origin.patch
-git-alsa.patch
-git-wireless.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-power-management-force-pm_opsvalid-callback-to-be.patch
+git-acpi.patch
+fix-cpufreq_stats-attrs-removal.patch
