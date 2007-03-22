@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-support-for-auto-locking-flash-on-power-up.patch added to -mm tree
-Date: Thu, 22 Mar 2007 14:31:16 -0700
-Message-ID: <200703222131.l2MLVGu1030823@shell0.pdx.osdl.net>
+Subject: + lguest-clean-up-some-references-inittext-warnings-2.patch added to -mm tree
+Date: Thu, 22 Mar 2007 14:32:28 -0700
+Message-ID: <200703222132.l2MLWSJ6030857@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52525 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52599 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161044AbXCVVbh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 17:31:37 -0400
+	id S965414AbXCVVcd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 17:32:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: giometti@enneenne.com, dwmw2@infradead.org
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     MTD: support for auto locking flash on power up
+     lguest: clean rest of linkage warnings (bar one)
 has been added to the -mm tree.  Its filename is
-     mtd-support-for-auto-locking-flash-on-power-up.patch
+     lguest-clean-up-some-references-inittext-warnings-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,227 +25,159 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MTD: support for auto locking flash on power up
-From: Rodolfo Giometti <giometti@enneenne.com>
+Subject: lguest: clean rest of linkage warnings (bar one)
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Auto unlock sectors on resume for auto locking flash on power up.
+My previous warning fix broke lguest if your text size wasn't correct to
+make the __start_paravirtprobe aligned correctly.  Put the separate
+paravirtprobe section back, but inside the init section so it gets
+discarded.
 
-Signed-off-by: Rodolfo Giometti <giometti@enneenne.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+It also fixes the remaining warnings, except one.  The code in modpost.c
+which needs to be taught that it's legal to link from .paravirtprobe to
+.init.text is horrible, and I'm pretty sure I'd just make it worse.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/cfi_cmdset_0001.c |   93 +++++++++++++++++++++++++-
- include/linux/mtd/mtd.h             |    1 
- 2 files changed, 91 insertions(+), 3 deletions(-)
+ arch/i386/kernel/vmlinux.lds.S |   12 ++++++------
+ arch/i386/lguest/core.c        |    2 +-
+ arch/i386/lguest/lg.h          |    2 +-
+ arch/i386/lguest/lguest.c      |    5 +++--
+ arch/i386/lguest/page_tables.c |    2 +-
+ 5 files changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-support-for-auto-locking-flash-on-power-up drivers/mtd/chips/cfi_cmdset_0001.c
---- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-support-for-auto-locking-flash-on-power-up
-+++ a/drivers/mtd/chips/cfi_cmdset_0001.c
-@@ -15,6 +15,8 @@
-  *	- optimized write buffer method
-  * 02/05/2002	Christopher Hoover <ch@hpl.hp.com>/<ch@murgatroid.com>
-  *	- reworked lock/unlock/erase support for var size flash
-+ * 21/03/2007   Rodolfo Giometti <giometti@linux.it>
-+ * 	- auto unlock sectors on resume for auto locking flash on power up
-  */
- 
- #include <linux/module.h>
-@@ -30,6 +32,7 @@
- #include <linux/delay.h>
- #include <linux/interrupt.h>
- #include <linux/reboot.h>
-+#include <linux/bitmap.h>
- #include <linux/mtd/xip.h>
- #include <linux/mtd/map.h>
- #include <linux/mtd/mtd.h>
-@@ -220,6 +223,15 @@ static void fixup_use_write_buffers(stru
- 	}
+diff -puN arch/i386/kernel/vmlinux.lds.S~lguest-clean-up-some-references-inittext-warnings-2 arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~lguest-clean-up-some-references-inittext-warnings-2
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -145,12 +145,7 @@ SECTIONS
+ 	*(.init.text)
+ 	_einittext = .;
+   }
+-  .init.data : AT(ADDR(.init.data) - LOAD_OFFSET) {
+-	*(.init.data)
+-  	__start_paravirtprobe = .;
+-	*(.paravirtprobe)
+-  	__stop_paravirtprobe = .;
+-  }
++  .init.data : AT(ADDR(.init.data) - LOAD_OFFSET) { *(.init.data) }
+   . = ALIGN(16);
+   .init.setup : AT(ADDR(.init.setup) - LOAD_OFFSET) {
+   	__setup_start = .;
+@@ -178,6 +173,11 @@ SECTIONS
+ 	*(.altinstr_replacement)
+   }
+   . = ALIGN(4);
++  .paravirtprobe : AT(ADDR(.paravirtprobe) - LOAD_OFFSET) {
++ 	__start_paravirtprobe = .;
++	*(.paravirtprobe)
++  	__stop_paravirtprobe = .;
++  }
+   .parainstructions : AT(ADDR(.parainstructions) - LOAD_OFFSET) {
+   	__start_parainstructions = .;
+ 	*(.parainstructions)
+diff -puN arch/i386/lguest/core.c~lguest-clean-up-some-references-inittext-warnings-2 arch/i386/lguest/core.c
+--- a/arch/i386/lguest/core.c~lguest-clean-up-some-references-inittext-warnings-2
++++ a/arch/i386/lguest/core.c
+@@ -112,7 +112,7 @@ free_some_pages:
+ 	return err;
  }
  
-+/*
-+ * Some chips power-up with all sectors locked by default.
-+ */
-+static void fixup_use_powerup_lock(struct mtd_info *mtd, void *param)
-+{
-+	printk(KERN_INFO "Using auto-unlock on power-up/resume\n" );
-+	mtd->flags |= MTD_STUPID_LOCK;
-+}
-+
- static struct cfi_fixup cfi_fixup_table[] = {
- #ifdef CMDSET0001_DISABLE_ERASE_SUSPEND_ON_WRITE
- 	{ CFI_MFR_ANY, CFI_ID_ANY, fixup_intel_strataflash, NULL },
-@@ -232,6 +244,7 @@ static struct cfi_fixup cfi_fixup_table[
- #endif
- 	{ CFI_MFR_ST, 0x00ba, /* M28W320CT */ fixup_st_m28w320ct, NULL },
- 	{ CFI_MFR_ST, 0x00bb, /* M28W320CB */ fixup_st_m28w320cb, NULL },
-+	{ MANUFACTURER_INTEL, 0x891c,	      fixup_use_powerup_lock, NULL, },
- 	{ 0, 0, NULL, NULL }
+-static __exit void unmap_hypervisor(void)
++static void unmap_hypervisor(void)
+ {
+ 	unsigned int i;
+ 
+diff -puN arch/i386/lguest/lg.h~lguest-clean-up-some-references-inittext-warnings-2 arch/i386/lguest/lg.h
+--- a/arch/i386/lguest/lg.h~lguest-clean-up-some-references-inittext-warnings-2
++++ a/arch/i386/lguest/lg.h
+@@ -38,7 +38,7 @@ struct lguest_regs
+ 	u32 ss;
  };
  
-@@ -460,6 +473,7 @@ static struct mtd_info *cfi_intelext_set
- 			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].offset = (j*devsize)+offset;
- 			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].erasesize = ersize;
- 			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].numblocks = ernum;
-+			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].lockmap = kmalloc(ernum / 8 + 1, GFP_KERNEL);
- 		}
- 		offset += (ersize * ernum);
- 	}
-@@ -1825,8 +1839,7 @@ static void cfi_intelext_sync (struct mt
- 	}
+-__exit void free_pagetables(void);
++void free_pagetables(void);
+ __init int init_pagetables(struct page **hype_page, int pages);
+ 
+ /* Full 4G segment descriptors, suitable for CS and DS. */
+diff -puN arch/i386/lguest/lguest.c~lguest-clean-up-some-references-inittext-warnings-2 arch/i386/lguest/lguest.c
+--- a/arch/i386/lguest/lguest.c~lguest-clean-up-some-references-inittext-warnings-2
++++ a/arch/i386/lguest/lguest.c
+@@ -550,7 +550,7 @@ static __attribute_used__ __init void lg
+ 	start_kernel();
  }
  
--#ifdef DEBUG_LOCK_BITS
--static int __xipram do_printlockstatus_oneblock(struct map_info *map,
-+static int __xipram do_getlockstatus_oneblock(struct map_info *map,
- 						struct flchip *chip,
- 						unsigned long adr,
- 						int len, void *thunk)
-@@ -1840,8 +1853,17 @@ static int __xipram do_printlockstatus_o
- 	chip->state = FL_JEDEC_QUERY;
- 	status = cfi_read_query(map, adr+(2*ofs_factor));
- 	xip_enable(map, chip, 0);
-+	return status;
-+}
-+
-+#ifdef DEBUG_LOCK_BITS
-+static int __xipram do_printlockstatus_oneblock(struct map_info *map,
-+						struct flchip *chip,
-+						unsigned long adr,
-+						int len, void *thunk)
-+{
- 	printk(KERN_DEBUG "block status register for 0x%08lx is %x\n",
--	       adr, status);
-+	       adr, do_getlockstatus_oneblock(map, chip, adr, len, thunk));
+-asm(".section .init.text\n"
++asm(".pushsection .init.text,\"ax\",@progbits\n"
+     "lguest_maybe_init:\n"
+     "	cmpl $"__stringify(LGUEST_MAGIC_EBP)", %ebp\n"
+     "	jne 1f\n"
+@@ -558,6 +558,7 @@ asm(".section .init.text\n"
+     "	jne 1f\n"
+     "	cmpl $"__stringify(LGUEST_MAGIC_ESI)", %esi\n"
+     "	je lguest_init\n"
+-    "1: ret");
++    "1: ret\n"
++    ".popsection");
+ extern void asmlinkage lguest_maybe_init(void);
+ paravirt_probe(lguest_maybe_init);
+diff -puN arch/i386/lguest/page_tables.c~lguest-clean-up-some-references-inittext-warnings-2 arch/i386/lguest/page_tables.c
+--- a/arch/i386/lguest/page_tables.c~lguest-clean-up-some-references-inittext-warnings-2
++++ a/arch/i386/lguest/page_tables.c
+@@ -377,7 +377,7 @@ __init int init_pagetables(struct page *
  	return 0;
  }
- #endif
-@@ -2216,14 +2238,45 @@ static int cfi_intelext_get_user_prot_in
  
- #endif
- 
-+static void cfi_intelext_save_locks(struct mtd_info *mtd)
-+{
-+	struct mtd_erase_region_info *region;
-+	int block, status, i;
-+	unsigned long adr;
-+	size_t len;
-+
-+	for (i = 0; i < mtd->numeraseregions; i++) {
-+		region = &mtd->eraseregions[i];
-+		if (!region->lockmap)
-+			continue;
-+
-+		for (block = 0; block < region->numblocks; block++){
-+			len = region->erasesize;
-+			adr = region->offset + block * len;
-+
-+			status = cfi_varsize_frob(mtd,
-+					do_getlockstatus_oneblock, adr, len, 0);
-+			if (status)
-+				set_bit(block, region->lockmap);
-+			else
-+				clear_bit(block, region->lockmap);
-+		}
-+	}
-+}
-+
- static int cfi_intelext_suspend(struct mtd_info *mtd)
+-__exit void free_pagetables(void)
++void free_pagetables(void)
  {
- 	struct map_info *map = mtd->priv;
- 	struct cfi_private *cfi = map->fldrv_priv;
-+	struct cfi_pri_intelext *extp = cfi->cmdset_priv;
- 	int i;
- 	struct flchip *chip;
- 	int ret = 0;
- 
-+	if ((mtd->flags & MTD_STUPID_LOCK)
-+	    && extp && (extp->FeatureSupport & (1 << 5)))
-+		cfi_intelext_save_locks(mtd);
-+
- 	for (i=0; !ret && i<cfi->numchips; i++) {
- 		chip = &cfi->chips[i];
- 
-@@ -2285,10 +2338,33 @@ static int cfi_intelext_suspend(struct m
- 	return ret;
+ 	free_hypervisor_pte_pages();
  }
- 
-+static void cfi_intelext_restore_locks(struct mtd_info *mtd)
-+{
-+	struct mtd_erase_region_info *region;
-+	int block, i;
-+	unsigned long adr;
-+	size_t len;
-+
-+	for (i = 0; i < mtd->numeraseregions; i++) {
-+		region = &mtd->eraseregions[i];
-+		if (!region->lockmap)
-+			continue;
-+
-+		for (block = 0; block < region->numblocks; block++) {
-+			len = region->erasesize;
-+			adr = region->offset + block * len;
-+
-+			if (!test_bit(block, region->lockmap))
-+				cfi_intelext_unlock(mtd, adr, len);
-+		}
-+	}
-+}
-+
- static void cfi_intelext_resume(struct mtd_info *mtd)
- {
- 	struct map_info *map = mtd->priv;
- 	struct cfi_private *cfi = map->fldrv_priv;
-+	struct cfi_pri_intelext *extp = cfi->cmdset_priv;
- 	int i;
- 	struct flchip *chip;
- 
-@@ -2307,6 +2383,10 @@ static void cfi_intelext_resume(struct m
- 
- 		spin_unlock(chip->mutex);
- 	}
-+
-+	if ((mtd->flags & MTD_STUPID_LOCK)
-+	    && extp && (extp->FeatureSupport & (1 << 5)))
-+		cfi_intelext_restore_locks(mtd);
- }
- 
- static int cfi_intelext_reset(struct mtd_info *mtd)
-@@ -2347,12 +2427,19 @@ static void cfi_intelext_destroy(struct 
- {
- 	struct map_info *map = mtd->priv;
- 	struct cfi_private *cfi = map->fldrv_priv;
-+	struct mtd_erase_region_info *region;
-+	int i;
- 	cfi_intelext_reset(mtd);
- 	unregister_reboot_notifier(&mtd->reboot_notifier);
- 	kfree(cfi->cmdset_priv);
- 	kfree(cfi->cfiq);
- 	kfree(cfi->chips[0].priv);
- 	kfree(cfi);
-+	for (i = 0; i < mtd->numeraseregions; i++) {
-+		region = &mtd->eraseregions[i];
-+		if (region->lockmap)
-+			kfree(region->lockmap);
-+	}
- 	kfree(mtd->eraseregions);
- }
- 
-diff -puN include/linux/mtd/mtd.h~mtd-support-for-auto-locking-flash-on-power-up include/linux/mtd/mtd.h
---- a/include/linux/mtd/mtd.h~mtd-support-for-auto-locking-flash-on-power-up
-+++ a/include/linux/mtd/mtd.h
-@@ -53,6 +53,7 @@ struct mtd_erase_region_info {
- 	u_int32_t offset;			/* At which this region starts, from the beginning of the MTD */
- 	u_int32_t erasesize;		/* For this region */
- 	u_int32_t numblocks;		/* Number of blocks of erasesize in this region */
-+	unsigned long *lockmap;		/* If keeping bitmap of locks */
- };
- 
- /*
 _
 
-Patches currently in -mm which might be from giometti@enneenne.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-i2c-tsl2550-support.patch
-git-input.patch
-mtd-support-for-auto-locking-flash-on-power-up.patch
+i386-vdso_prelink-warning-fix.patch
+cleanup-initialize-esp0-properly-all-the-time.patch
+lguest-preparation-export_symbol_gpl-5-functions.patch
+lguest-preparation-expose-futex-infrastructure.patch
+lguest-kconfig-and-headers.patch
+lguest-the-host-code-lgko.patch
+lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patch
+lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
+lguest-the-host-code-lgko-pin-stack-page-optimization.patch
+lguest-guest-code.patch
+lguest-clean-up-some-references-inittext-warnings.patch
+lguest-clean-up-some-references-inittext-warnings-2.patch
+lguest-makefile.patch
+lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
+lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
+lguest-compile-hypervisors-into-the-lg-module-directly.patch
+lguest-dont-crash-host-on-nmi.patch
+lguest-trivial-guest-network-driver.patch
+lguest-trivial-guest-console-driver.patch
+lguest-trivial-guest-block-driver.patch
+lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch
+lguest-documentatation-and-example-launcher.patch
+lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch
+lguest-documentatation-and-example-launcher-bridging-support-in-example-codelguest-documentation-fixes.patch
+introduce-load_tls-to-the-for-loop.patch
+remove-unused-set_seg_base.patch
+clarify-config_reorder-explanation.patch
+allow-per-cpu-variables-to-be-page-aligned.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
+i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch
+i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
+i386-gdt-cleanups-clean-up-cpu_init.patch
+i386-gdt-cleanups-cleanup-gdt-access.patch
+module-use-krealloc.patch
+extend-print_symbol-capability.patch
+array_size-check-for-type.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
+____call_usermodehelper-dont-flush_signals.patch
