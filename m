@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-move-remaining-useful-contents-of-user_utilh.patch added to -mm tree
-Date: Thu, 22 Mar 2007 14:44:37 -0700
-Message-ID: <200703222144.l2MLibI3031099@shell0.pdx.osdl.net>
+Subject: + uml-move-sigio-testing-to-sigioc.patch added to -mm tree
+Date: Thu, 22 Mar 2007 14:44:31 -0700
+Message-ID: <200703222144.l2MLiVvQ031090@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53094 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53077 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161105AbXCVVol (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 17:44:41 -0400
+	id S1161098AbXCVVof (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 17:44:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     uml: move remaining useful contents of user_util.h
+     uml: move SIGIO testing to sigio.c
 has been added to the -mm tree.  Its filename is
-     uml-move-remaining-useful-contents-of-user_utilh.patch
+     uml-move-sigio-testing-to-sigioc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,148 +25,365 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: move remaining useful contents of user_util.h
+Subject: uml: move SIGIO testing to sigio.c
 From: Jeff Dike <jdike@addtoit.com>
 
-Rescue the useful contents of the soon-to-be-gone user-util.h.
+This patch narrows the sigio interface.  The boot-time SIGIO testing used to
+be in start_up.c, which meant that pty_output_sigio and pty_close_sigio needed
+to be global.  By moving that code here, those can become static and the
+declarations moved from user_util.h.
 
-pty.c now gets ptsname from stdlib.h like it should have always done.
-
-CATCH_EINTR is now in os.h, although perhaps all usage should be under
-os-Linux at some point.
-
-get_pty is also in os.h.
-
-This patch restores the old definition of ARRAY_SIZE in user.h.  This file is
-included only in userspace files, so there will be no conflict with the
-kernel's new ARRAY_SIZE.  The copy of the kernel's ARRAY_SIZE and associated
-infrastructure is now gone.
+os_check_bugs is also here because it only does the SIGIO checking.  If it
+does more, it'll probably move back to start_up.c.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/pty.c           |    1 +
- arch/um/include/os.h            |    6 ++++++
- arch/um/include/user.h          |   19 ++++++++-----------
- arch/um/include/user_util.h     |   18 ------------------
- arch/um/os-Linux/sys-i386/tls.c |    1 +
- 5 files changed, 16 insertions(+), 29 deletions(-)
+ arch/um/include/user_util.h |    3 
+ arch/um/os-Linux/sigio.c    |  145 ++++++++++++++++++++++++++++++++++
+ arch/um/os-Linux/start_up.c |  145 ----------------------------------
+ 3 files changed, 145 insertions(+), 148 deletions(-)
 
-diff -puN arch/um/drivers/pty.c~uml-move-remaining-useful-contents-of-user_utilh arch/um/drivers/pty.c
---- a/arch/um/drivers/pty.c~uml-move-remaining-useful-contents-of-user_utilh
-+++ a/arch/um/drivers/pty.c
-@@ -4,6 +4,7 @@
-  */
- 
- #include <stdio.h>
-+#include <stdlib.h>
- #include <unistd.h>
- #include <string.h>
- #include <errno.h>
-diff -puN arch/um/include/os.h~uml-move-remaining-useful-contents-of-user_utilh arch/um/include/os.h
---- a/arch/um/include/os.h~uml-move-remaining-useful-contents-of-user_utilh
-+++ a/arch/um/include/os.h
-@@ -16,6 +16,8 @@
- #include "sysdep/tls.h"
- #include "sysdep/archsetjmp.h"
- 
-+#define CATCH_EINTR(expr) while ((errno = 0, ((expr) < 0)) && (errno == EINTR))
-+
- #define OS_TYPE_FILE 1
- #define OS_TYPE_DIR 2
- #define OS_TYPE_SYMLINK 3
-@@ -341,6 +343,10 @@ extern void maybe_sigio_broken(int fd, i
- extern void sig_handler_common_skas(int sig, void *sc_ptr);
- extern void user_signal(int sig, union uml_pt_regs *regs, int pid);
- 
-+/* sys-x86_64/prctl.c */
- extern int os_arch_prctl(int pid, int code, unsigned long *addr);
- 
-+/* tty.c */
-+int get_pty(void);
-+
- #endif
-diff -puN arch/um/include/user.h~uml-move-remaining-useful-contents-of-user_utilh arch/um/include/user.h
---- a/arch/um/include/user.h~uml-move-remaining-useful-contents-of-user_utilh
-+++ a/arch/um/include/user.h
-@@ -6,6 +6,14 @@
- #ifndef __USER_H__
- #define __USER_H__
- 
-+/*
-+ * The usual definition - copied here because the kernel provides its own,
-+ * fancier, type-safe, definition.  Using that one would require
-+ * copying too much infrastructure for my taste, so userspace files
-+ * get less checking than kernel files.
-+ */
-+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-+
- /* Both on kernelspace and userspace this will provide the size_t definition. It should, at
-  * least. But on userspace it won't hurt surely. */
- #include <linux/types.h>
-@@ -21,14 +29,3 @@ extern size_t strlcpy(char *, const char
- extern size_t strlcat(char *, const char *, size_t);
- 
- #endif
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/include/user_util.h~uml-move-remaining-useful-contents-of-user_utilh arch/um/include/user_util.h
---- a/arch/um/include/user_util.h~uml-move-remaining-useful-contents-of-user_utilh
+diff -puN arch/um/include/user_util.h~uml-move-sigio-testing-to-sigioc arch/um/include/user_util.h
+--- a/arch/um/include/user_util.h~uml-move-sigio-testing-to-sigioc
 +++ a/arch/um/include/user_util.h
-@@ -8,31 +8,13 @@
+@@ -51,9 +51,6 @@ extern unsigned long _stext, _etext, _sd
+ extern unsigned long _unprotected_end;
+ extern unsigned long brk_start;
  
- #include "sysdep/ptrace.h"
- 
--/* Copied from kernel.h and compiler-gcc.h */
+-extern int pty_output_sigio;
+-extern int pty_close_sigio;
 -
--/* Force a compilation error if condition is true, but also produce a
--   result (of value 0 and type size_t), so the expression can be used
--   e.g. in a structure initializer (or where-ever else comma expressions
--   aren't permitted). */
--#define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
--
--/* &a[0] degrades to a pointer: a different type from an array */
--#define __must_be_array(a) \
--  BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0])))
--
--#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
--
--#define CATCH_EINTR(expr) while ((errno = 0, ((expr) < 0)) && (errno == EINTR))
--
- extern int mode_tt;
- 
- extern int grantpt(int __fd);
- extern int unlockpt(int __fd);
--extern char *ptsname(int __fd);
- 
  extern void *add_signal_handler(int sig, void (*handler)(int));
- extern void input_cb(void (*proc)(void *), void *arg, int arg_len);
--extern int get_pty(void);
- extern int switcheroo(int fd, int prot, void *from, void *to, int size);
- extern void do_exec(int old_pid, int new_pid);
- extern void tracer_panic(char *msg, ...)
-diff -puN arch/um/os-Linux/sys-i386/tls.c~uml-move-remaining-useful-contents-of-user_utilh arch/um/os-Linux/sys-i386/tls.c
---- a/arch/um/os-Linux/sys-i386/tls.c~uml-move-remaining-useful-contents-of-user_utilh
-+++ a/arch/um/os-Linux/sys-i386/tls.c
-@@ -5,6 +5,7 @@
- #include <unistd.h>
+ extern int linux_main(int argc, char **argv);
+ extern void set_cmdline(char *cmd);
+diff -puN arch/um/os-Linux/sigio.c~uml-move-sigio-testing-to-sigioc arch/um/os-Linux/sigio.c
+--- a/arch/um/os-Linux/sigio.c~uml-move-sigio-testing-to-sigioc
++++ a/arch/um/os-Linux/sigio.c
+@@ -8,6 +8,7 @@
+ #include <termios.h>
+ #include <pty.h>
+ #include <signal.h>
++#include <fcntl.h>
+ #include <errno.h>
+ #include <string.h>
+ #include <sched.h>
+@@ -20,6 +21,7 @@
+ #include "sigio.h"
+ #include "os.h"
+ #include "um_malloc.h"
++#include "init.h"
  
- #include "sysdep/tls.h"
-+#include "user.h"
- #include "user_util.h"
+ /* Protected by sigio_lock(), also used by sigio_cleanup, which is an
+  * exitcall.
+@@ -320,6 +322,10 @@ out_close1:
+ 	close(l_write_sigio_fds[1]);
+ }
  
- /* Checks whether host supports TLS, and sets *tls_min according to the value
++/* Changed during early boot */
++static int pty_output_sigio = 0;
++static int pty_close_sigio = 0;
++
+ void maybe_sigio_broken(int fd, int read)
+ {
+ 	int err;
+@@ -357,3 +363,142 @@ static void sigio_cleanup(void)
+ }
+ 
+ __uml_exitcall(sigio_cleanup);
++
++/* Used as a flag during SIGIO testing early in boot */
++static volatile int got_sigio = 0;
++
++static void __init handler(int sig)
++{
++	got_sigio = 1;
++}
++
++struct openpty_arg {
++	int master;
++	int slave;
++	int err;
++};
++
++static void openpty_cb(void *arg)
++{
++	struct openpty_arg *info = arg;
++
++	info->err = 0;
++	if(openpty(&info->master, &info->slave, NULL, NULL, NULL))
++		info->err = -errno;
++}
++
++static int async_pty(int master, int slave)
++{
++	int flags;
++
++	flags = fcntl(master, F_GETFL);
++	if(flags < 0)
++		return -errno;
++
++	if((fcntl(master, F_SETFL, flags | O_NONBLOCK | O_ASYNC) < 0) ||
++	   (fcntl(master, F_SETOWN, os_getpid()) < 0))
++		return -errno;
++
++	if((fcntl(slave, F_SETFL, flags | O_NONBLOCK) < 0))
++		return -errno;
++
++	return(0);
++}
++
++static void __init check_one_sigio(void (*proc)(int, int))
++{
++	struct sigaction old, new;
++	struct openpty_arg pty = { .master = -1, .slave = -1 };
++	int master, slave, err;
++
++	initial_thread_cb(openpty_cb, &pty);
++	if(pty.err){
++		printk("openpty failed, errno = %d\n", -pty.err);
++		return;
++	}
++
++	master = pty.master;
++	slave = pty.slave;
++
++	if((master == -1) || (slave == -1)){
++		printk("openpty failed to allocate a pty\n");
++		return;
++	}
++
++	/* Not now, but complain so we now where we failed. */
++	err = raw(master);
++	if (err < 0)
++		panic("check_sigio : __raw failed, errno = %d\n", -err);
++
++	err = async_pty(master, slave);
++	if(err < 0)
++		panic("tty_fds : sigio_async failed, err = %d\n", -err);
++
++	if(sigaction(SIGIO, NULL, &old) < 0)
++		panic("check_sigio : sigaction 1 failed, errno = %d\n", errno);
++	new = old;
++	new.sa_handler = handler;
++	if(sigaction(SIGIO, &new, NULL) < 0)
++		panic("check_sigio : sigaction 2 failed, errno = %d\n", errno);
++
++	got_sigio = 0;
++	(*proc)(master, slave);
++
++	close(master);
++	close(slave);
++
++	if(sigaction(SIGIO, &old, NULL) < 0)
++		panic("check_sigio : sigaction 3 failed, errno = %d\n", errno);
++}
++
++static void tty_output(int master, int slave)
++{
++	int n;
++	char buf[512];
++
++	printk("Checking that host ptys support output SIGIO...");
++
++	memset(buf, 0, sizeof(buf));
++
++	while(os_write_file(master, buf, sizeof(buf)) > 0) ;
++	if(errno != EAGAIN)
++		panic("check_sigio : write failed, errno = %d\n", errno);
++	while(((n = os_read_file(slave, buf, sizeof(buf))) > 0) && !got_sigio) ;
++
++	if(got_sigio){
++		printk("Yes\n");
++		pty_output_sigio = 1;
++	}
++	else if(n == -EAGAIN) printk("No, enabling workaround\n");
++	else panic("check_sigio : read failed, err = %d\n", n);
++}
++
++static void tty_close(int master, int slave)
++{
++	printk("Checking that host ptys support SIGIO on close...");
++
++	close(slave);
++	if(got_sigio){
++		printk("Yes\n");
++		pty_close_sigio = 1;
++	}
++	else printk("No, enabling workaround\n");
++}
++
++void __init check_sigio(void)
++{
++	if((os_access("/dev/ptmx", OS_ACC_R_OK) < 0) &&
++	   (os_access("/dev/ptyp0", OS_ACC_R_OK) < 0)){
++		printk("No pseudo-terminals available - skipping pty SIGIO "
++		       "check\n");
++		return;
++	}
++	check_one_sigio(tty_output);
++	check_one_sigio(tty_close);
++}
++
++/* Here because it only does the SIGIO testing for now */
++void __init os_check_bugs(void)
++{
++	check_sigio();
++}
+diff -puN arch/um/os-Linux/start_up.c~uml-move-sigio-testing-to-sigioc arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-move-sigio-testing-to-sigioc
++++ a/arch/um/os-Linux/start_up.c
+@@ -553,148 +553,3 @@ int __init parse_iomem(char *str, int *a
+  out:
+ 	return 1;
+ }
+-
+-
+-/* Changed during early boot */
+-int pty_output_sigio = 0;
+-int pty_close_sigio = 0;
+-
+-/* Used as a flag during SIGIO testing early in boot */
+-static volatile int got_sigio = 0;
+-
+-static void __init handler(int sig)
+-{
+-	got_sigio = 1;
+-}
+-
+-struct openpty_arg {
+-	int master;
+-	int slave;
+-	int err;
+-};
+-
+-static void openpty_cb(void *arg)
+-{
+-	struct openpty_arg *info = arg;
+-
+-	info->err = 0;
+-	if(openpty(&info->master, &info->slave, NULL, NULL, NULL))
+-		info->err = -errno;
+-}
+-
+-static int async_pty(int master, int slave)
+-{
+-	int flags;
+-
+-	flags = fcntl(master, F_GETFL);
+-	if(flags < 0)
+-		return -errno;
+-
+-	if((fcntl(master, F_SETFL, flags | O_NONBLOCK | O_ASYNC) < 0) ||
+-	   (fcntl(master, F_SETOWN, os_getpid()) < 0))
+-		return -errno;
+-
+-	if((fcntl(slave, F_SETFL, flags | O_NONBLOCK) < 0))
+-		return -errno;
+-
+-	return(0);
+-}
+-
+-static void __init check_one_sigio(void (*proc)(int, int))
+-{
+-	struct sigaction old, new;
+-	struct openpty_arg pty = { .master = -1, .slave = -1 };
+-	int master, slave, err;
+-
+-	initial_thread_cb(openpty_cb, &pty);
+-	if(pty.err){
+-		printk("openpty failed, errno = %d\n", -pty.err);
+-		return;
+-	}
+-
+-	master = pty.master;
+-	slave = pty.slave;
+-
+-	if((master == -1) || (slave == -1)){
+-		printk("openpty failed to allocate a pty\n");
+-		return;
+-	}
+-
+-	/* Not now, but complain so we now where we failed. */
+-	err = raw(master);
+-	if (err < 0)
+-		panic("check_sigio : __raw failed, errno = %d\n", -err);
+-
+-	err = async_pty(master, slave);
+-	if(err < 0)
+-		panic("tty_fds : sigio_async failed, err = %d\n", -err);
+-
+-	if(sigaction(SIGIO, NULL, &old) < 0)
+-		panic("check_sigio : sigaction 1 failed, errno = %d\n", errno);
+-	new = old;
+-	new.sa_handler = handler;
+-	if(sigaction(SIGIO, &new, NULL) < 0)
+-		panic("check_sigio : sigaction 2 failed, errno = %d\n", errno);
+-
+-	got_sigio = 0;
+-	(*proc)(master, slave);
+-
+-	close(master);
+-	close(slave);
+-
+-	if(sigaction(SIGIO, &old, NULL) < 0)
+-		panic("check_sigio : sigaction 3 failed, errno = %d\n", errno);
+-}
+-
+-static void tty_output(int master, int slave)
+-{
+-	int n;
+-	char buf[512];
+-
+-	printk("Checking that host ptys support output SIGIO...");
+-
+-	memset(buf, 0, sizeof(buf));
+-
+-	while(os_write_file(master, buf, sizeof(buf)) > 0) ;
+-	if(errno != EAGAIN)
+-		panic("check_sigio : write failed, errno = %d\n", errno);
+-	while(((n = os_read_file(slave, buf, sizeof(buf))) > 0) && !got_sigio) ;
+-
+-	if(got_sigio){
+-		printk("Yes\n");
+-		pty_output_sigio = 1;
+-	}
+-	else if(n == -EAGAIN) printk("No, enabling workaround\n");
+-	else panic("check_sigio : read failed, err = %d\n", n);
+-}
+-
+-static void tty_close(int master, int slave)
+-{
+-	printk("Checking that host ptys support SIGIO on close...");
+-
+-	close(slave);
+-	if(got_sigio){
+-		printk("Yes\n");
+-		pty_close_sigio = 1;
+-	}
+-	else printk("No, enabling workaround\n");
+-}
+-
+-void __init check_sigio(void)
+-{
+-	if((os_access("/dev/ptmx", OS_ACC_R_OK) < 0) &&
+-	   (os_access("/dev/ptyp0", OS_ACC_R_OK) < 0)){
+-		printk("No pseudo-terminals available - skipping pty SIGIO "
+-		       "check\n");
+-		return;
+-	}
+-	check_one_sigio(tty_output);
+-	check_one_sigio(tty_close);
+-}
+-
+-void os_check_bugs(void)
+-{
+-	check_ptrace();
+-	check_sigio();
+-}
+-
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
