@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + setup_boot_apic_clock-irq-enable-fix.patch added to -mm tree
-Date: Thu, 22 Mar 2007 01:39:21 -0800
-Message-ID: <200703220939.l2M9dL0P017404@shell0.pdx.osdl.net>
+Subject: + fix-rmmod-read-write-races-in-proc-entries-fix.patch added to -mm tree
+Date: Thu, 22 Mar 2007 01:58:41 -0800
+Message-ID: <200703220958.l2M9wfxq017729@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46663 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47156 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965911AbXCVJjk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 05:39:40 -0400
+	id S933907AbXCVJ7W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 05:59:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, ak@suse.de, michal.k.k.piotrowski@gmail.com, tglx@linutronix.de
+Cc: adobriyan@sw.ru
 
 
 The patch titled
-     setup_boot_APIC_clock() irq-enable fix
+     Fix lseek on /proc/kcore
 has been added to the -mm tree.  Its filename is
-     setup_boot_apic_clock-irq-enable-fix.patch
+     fix-rmmod-read-write-races-in-proc-entries-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,104 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: setup_boot_APIC_clock() irq-enable fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: Fix lseek on /proc/kcore
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-latest -git triggers an irqtrace/lockdep warning of a leaked irqs-off
-condition:
-
-  BUG: at kernel/fork.c:1033 copy_process()
-
-after some debugging it turns out that commit ca1b940c accidentally left
-interrupts disabled - which trickled down all the way to the first time we
-fork a kernel thread and triggered the warning.
-
-the fix is to re-enable interrupts in the 'else' branch of
-setup_boot_APIC_clock()'s pmtimers calibration path.
-
-Reported-by: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/apic.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/proc/inode.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/apic.c~setup_boot_apic_clock-irq-enable-fix arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~setup_boot_apic_clock-irq-enable-fix
-+++ a/arch/i386/kernel/apic.c
-@@ -506,7 +506,8 @@ void __init setup_boot_APIC_clock(void)
- 			apic_printk(APIC_VERBOSE, "... jiffies result ok\n");
- 		else
- 			local_apic_timer_verify_ok = 0;
--	}
-+	} else
-+		local_irq_enable();
+diff -puN fs/proc/inode.c~fix-rmmod-read-write-races-in-proc-entries-fix fs/proc/inode.c
+--- a/fs/proc/inode.c~fix-rmmod-read-write-races-in-proc-entries-fix
++++ a/fs/proc/inode.c
+@@ -167,8 +167,9 @@ static loff_t proc_reg_llseek(struct fil
+ 	llseek = pde->proc_fops->llseek;
+ 	spin_unlock(&pde->pde_unload_lock);
  
- 	if (!local_apic_timer_verify_ok) {
- 		printk(KERN_WARNING
+-	if (llseek)
+-		rv = llseek(file, offset, whence);
++	if (!llseek)
++		llseek = default_llseek;
++	rv = llseek(file, offset, whence);
+ 
+ 	spin_lock(&pde->pde_unload_lock);
+ 	pde->pde_users--;
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-documentation-sysrqtxt-added-short-description-for-q-timerlist.patch
-i386-disable-local-apic-timer-via-command-line-or-dmi.patch
-lockdep-lockdep_depth-vs-debug_locks-re-bug-workqueue-leaked-lock.patch
-lockdep-debug_show_all_locks-debug_show_held_locks-vs-debug_locks.patch
-time-fix-formatting-in-proc-timer_list.patch
-setup_boot_apic_clock-irq-enable-fix.patch
-git-ieee1394.patch
-git-kvm.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-log-reason-why-tsc-was-marked-unstable.patch
-allow-per-cpu-variables-to-be-page-aligned.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-simplify-the-stacktrace-code.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-optimize-timespec_trunc.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-add-support-for-deferrable-timers.patch
-add-support-for-deferrable-timers-tidy.patch
-export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor.patch
-export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch
-aio-is-unlikely.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-sched-optimize-siblings-status-check-logic-in-wake_idle.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-lists-add-list-splice-tail.patch
-sched-remove-sleepavg-from-proc.patch
-sched-remove-noninteractive-flag.patch
-sched-implement-rsdl-cpu-scheduler.patch
-sched-document-rsdl-cpu-scheduler.patch
-sched-rsdl-improvements.patch
-futex-priority-based-wakeup.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-futex_requeue_pi-optimization.patch
-sys_futex64-allows-64bit-futexes.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+proc-remove-pathetic-deleted-warn_on.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+proc-oom_score-oops-re-badness.patch
