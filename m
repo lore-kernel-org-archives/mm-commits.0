@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-disable-local-apic-timer-via-command-line-or-dmi.patch added to -mm tree
-Date: Wed, 21 Mar 2007 17:07:35 -0800
-Message-ID: <200703220107.l2M17Zbo008889@shell0.pdx.osdl.net>
+Subject: + fix-extra-bios-invocation-during-resume.patch added to -mm tree
+Date: Wed, 21 Mar 2007 17:06:09 -0800
+Message-ID: <200703220106.l2M1698O008860@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33697 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33703 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750987AbXCVBJE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 21:09:04 -0400
+	id S1751345AbXCVBJb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 21:09:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, lenb@kernel.org, mingo@elte.hu
+Cc: pavel@ucw.cz, bunk@stusta.de, pavel@suse.cz, rjw@sisk.pl
 
 
 The patch titled
-     i386: disable local apic timer via command line or dmi quirk
+     fix extra BIOS invocation during resume
 has been added to the -mm tree.  Its filename is
-     i386-disable-local-apic-timer-via-command-line-or-dmi.patch
+     fix-extra-bios-invocation-during-resume.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,156 +25,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: disable local apic timer via command line or dmi quirk
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: fix extra BIOS invocation during resume
+From: Pavel Machek <pavel@ucw.cz>
 
-The local APIC timer stops to work in deeper C-States.  This is handled by
-the ACPI code and a broadcast mechanism in the clockevents / tick managment
-code.
+It causes extra moon icons blinking on x60, and breaks at least two other
+systems.
 
-Some systems do not expose the deeper C-States to the kernel, but switch
-into deeper C-States behind the kernels back.  This delays the local apic
-timer interrupts for ever and makes the systems unusable.
+During resume, we do not know that "reboot"/"shutdown" method was used, so
+we assume "plaform" and call BIOS, anyway...
 
-Add a command line option to disable the local apic timer and a dmi
-quirk for known broken systems.
+This is 2.6.21 material, and should fix 2 or 3 regressions from 2.6.20.
 
-Andi sayeth:
-
-  While not wrong by itself i think it is still better to use some heuristic
-  -- like "has battery in ACPI" With the DMI table if the problem is more wide
-  spread we will just continue extending it.
-
-  But anyways should be ok now for .21 although I'm not really happy with
-  it.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
-Grudgingly-acked-by: Andi Kleen <ak@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +
- arch/i386/kernel/apic.c             |   52 ++++++++++++++++++++++++++
- 2 files changed, 54 insertions(+)
+ kernel/power/disk.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~i386-disable-local-apic-timer-via-command-line-or-dmi Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~i386-disable-local-apic-timer-via-command-line-or-dmi
-+++ a/Documentation/kernel-parameters.txt
-@@ -1117,6 +1117,8 @@ and is between 256 and 4096 characters. 
+diff -puN kernel/power/disk.c~fix-extra-bios-invocation-during-resume kernel/power/disk.c
+--- a/kernel/power/disk.c~fix-extra-bios-invocation-during-resume
++++ a/kernel/power/disk.c
+@@ -241,18 +241,11 @@ static int software_resume(void)
+ 		goto Done;
+ 	}
  
- 	nolapic		[IA-32,APIC] Do not enable or use the local APIC.
+-	error = platform_prepare();
+-	if (error) {
+-		swsusp_free();
+-		goto Thaw;
+-	}
+-
+ 	pr_debug("PM: Reading swsusp image.\n");
  
-+	nolapic_timer	[IA-32,APIC] Do not use the local APIC timer.
-+
- 	noltlbs		[PPC] Do not use large page/tlb entries for kernel
- 			lowmem mapping on PPC40x.
+ 	error = swsusp_read();
+ 	if (error) {
+ 		swsusp_free();
+-		platform_finish();
+ 		goto Thaw;
+ 	}
  
-diff -puN arch/i386/kernel/apic.c~i386-disable-local-apic-timer-via-command-line-or-dmi arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~i386-disable-local-apic-timer-via-command-line-or-dmi
-+++ a/arch/i386/kernel/apic.c
-@@ -28,6 +28,7 @@
- #include <linux/clockchips.h>
- #include <linux/acpi_pmtmr.h>
- #include <linux/module.h>
-+#include <linux/dmi.h>
- 
- #include <asm/atomic.h>
- #include <asm/smp.h>
-@@ -61,6 +62,8 @@ static int enable_local_apic __initdata 
- 
- /* Local APIC timer verification ok */
- static int local_apic_timer_verify_ok;
-+/* Disable local APIC timer from the kernel commandline or via dmi quirk */
-+static int local_apic_timer_disabled;
- 
- /*
-  * Debug level, exported for io_apic.c
-@@ -266,6 +269,32 @@ static void __devinit setup_APIC_timer(v
- }
- 
- /*
-+ * Detect systems with known broken BIOS implementations
-+ */
-+static int __init lapic_check_broken_bios(struct dmi_system_id *d)
-+{
-+	printk(KERN_NOTICE "%s detected: disabling lapic timer.\n",
-+		       d->ident);
-+	local_apic_timer_disabled = 1;
-+	return 0;
-+}
-+
-+static struct dmi_system_id __initdata broken_bios_dmi_table[] = {
-+	{
-+		/*
-+		 * BIOS exports only C1 state, but uses deeper power
-+		 * modes behind the kernels back.
-+		 */
-+		  .callback = lapic_check_broken_bios,
-+		  .ident = "HP nx6325",
-+		  .matches = {
-+			DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
-+		  },
-+	 },
-+	 {}
-+};
-+
-+/*
-  * In this functions we calibrate APIC bus clocks to the external timer.
-  *
-  * We want to do the calibration only once since we want to have local timer
-@@ -340,6 +369,22 @@ void __init setup_boot_APIC_clock(void)
- 	long delta, deltapm;
- 	int pm_referenced = 0;
- 
-+	/* Detect know broken systems */
-+	dmi_check_system(broken_bios_dmi_table);
-+
-+	/*
-+	 * The local apic timer can be disabled via the kernel
-+	 * commandline or from the dmi quirk above. Register the lapic
-+	 * timer as a dummy clock event source on SMP systems, so the
-+	 * broadcast mechanism is used. On UP systems simply ignore it.
-+	 */
-+	if (local_apic_timer_disabled) {
-+		/* No broadcast on UP ! */
-+		if (num_possible_cpus() > 1)
-+			setup_APIC_timer();
-+		return;
-+	}
-+
- 	apic_printk(APIC_VERBOSE, "Using local APIC timer interrupts.\n"
- 		    "calibrating APIC timer ...\n");
- 
-@@ -1179,6 +1224,13 @@ static int __init parse_nolapic(char *ar
- }
- early_param("nolapic", parse_nolapic);
- 
-+static int __init parse_disable_lapic_timer(char *arg)
-+{
-+	local_apic_timer_disabled = 1;
-+	return 0;
-+}
-+early_param("nolapic_timer", parse_disable_lapic_timer);
-+
- static int __init apic_set_verbosity(char *str)
- {
- 	if (strcmp("debug", str) == 0)
+@@ -270,7 +263,6 @@ static int software_resume(void)
+ 	enable_nonboot_cpus();
+  Free:
+ 	swsusp_free();
+-	platform_finish();
+ 	device_resume();
+ 	resume_console();
+  Thaw:
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
 origin.patch
-documentation-sysrqtxt-added-short-description-for-q-timerlist.patch
-i386-disable-local-apic-timer-via-command-line-or-dmi.patch
-git-ieee1394.patch
-log-reason-why-tsc-was-marked-unstable.patch
-optimize-timespec_trunc.patch
-add-support-for-deferrable-timers.patch
-add-support-for-deferrable-timers-tidy.patch
-export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor.patch
-export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
+swsusp-fix-snapshot_s2ram-ioctl.patch
+fix-extra-bios-invocation-during-resume.patch
+make-xfs-workqueues-nonfreezable.patch
+fix-refrigerator-vs-thaw_process-race.patch
+swsusp-use-inline-functions-for-changing-page-flags.patch
+swsusp-do-not-use-page-flags.patch
+mm-remove-unused-page-flags.patch
+swsusp-fix-error-paths-in-snapshot_open.patch
+swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
