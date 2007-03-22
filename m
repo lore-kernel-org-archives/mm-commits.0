@@ -1,186 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - add-support-for-deferrable-timers-tidy.patch removed from -mm tree
-Date: Thu, 22 Mar 2007 03:18:46 -0800
-Message-ID: <200703221118.l2MBIkIs019068@shell0.pdx.osdl.net>
+Subject: + fdpic-fix-the-proc-pid-stat-representation-of-executable.patch added to -mm tree
+Date: Thu, 22 Mar 2007 09:22:37 -0800
+Message-ID: <200703221722.l2MHMbVV025522@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50472 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41045 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030463AbXCVLY1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 07:24:27 -0400
+	id S934131AbXCVRWq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 13:22:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@codemonkey.org.uk, johnstul@us.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     add-support-for-deferrable-timers-tidy
-has been removed from the -mm tree.  Its filename was
-     add-support-for-deferrable-timers-tidy.patch
+     FDPIC: fix the /proc/pid/stat representation of executable boundaries
+has been added to the -mm tree.  Its filename is
+     fdpic-fix-the-proc-pid-stat-representation-of-executable.patch
 
-This patch was dropped because it was folded into add-support-for-deferrable-timers.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: add-support-for-deferrable-timers-tidy
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: FDPIC: fix the /proc/pid/stat representation of executable boundaries
+From: David Howells <dhowells@redhat.com>
 
-Whitespace repairs
+Fix the /proc/pid/stat representation of executable boundaries.  It should
+show the bounds of the executable, but instead shows the bounds of the
+loader.
 
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: john stultz <johnstul@us.ibm.com>
+Before the patch is applied, the bug can be seen by examining, say, inetd:
+
+	# ps | grep inetd
+	  610         root          0   S   /usr/sbin/inetd -i
+	# cat /proc/610/maps
+	c0bb0000-c0bba788 r-xs 00000000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
+	c3180000-c31dede4 r-xs 00000000 00:0b 14582179  /lib/libuClibc-0.9.28.so
+	c328c000-c328ea00 rw-p 00008000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
+	c3290000-c329b6c0 rw-p 00000000 00:00 0
+	c32a0000-c32c0000 rwxp 00000000 00:00 0
+	c32d4000-c32d8000 rw-p 00000000 00:00 0
+	c3394000-c3398000 rw-p 00000000 00:00 0
+	c3458000-c345f464 r-xs 00000000 00:0b 16384612  /usr/sbin/inetd
+	c3470000-c34748f8 rw-p 00004000 00:0b 16384612  /usr/sbin/inetd
+	c34cc000-c34d0000 rw-p 00000000 00:00 0
+	c34d4000-c34d8000 rw-p 00000000 00:00 0
+	c34d8000-c34dc000 rw-p 00000000 00:00 0
+	# cat /proc/610/stat
+	610 (inetd) S 1 610 610 0 -1 256 0 0 0 0 0 8 0 0 19 0 1 0 94392000718
+	950272 0 4294967295 3233480704 3233523592 3274440352 3274439976
+ 	3273467584 0 0 4096 90115 3221712796 0 0 17 0 0 0 0
+
+The code boundaries are 3233480704 to 3233523592, which are:
+
+	(gdb) p/x 3233480704
+	$1 = 0xc0bb0000
+	(gdb) p/x 3233523592
+	$2 = 0xc0bba788
+
+Which corresponds to this line in the maps file:
+
+	c0bb0000-c0bba788 r-xs 00000000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
+
+Which is wrong.  After the patch is applied, the maps file is pretty much
+identical (there's some minor shuffling of the location of some of the
+anonymous VMAs), but the stat file is now:
+
+	# cat /proc/610/stat
+	610 (inetd) S 1 610 610 0 -1 256 0 0 0 0 0 7 0 0 18 0 1 0 94392000722
+	950272 0 4294967295 3276111872 3276141668 3274440352 3274439976
+	3273467584 0 0 4096 90115 3221712796 0 0 17 0 0 0 0
+
+The code boundaries are then 3276111872 to 3276141668, which are:
+
+	(gdb) p/x 3276111872
+	$1 = 0xc3458000
+	(gdb) p/x 3276141668
+	$2 = 0xc345f464
+
+And these correspond to this line in the maps file instead:
+
+	c3458000-c345f464 r-xs 00000000 00:0b 16384612  /usr/sbin/inetd
+
+Which is now correct.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timer.h |    2 +-
- kernel/timer.c        |   24 ++++++++++++------------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ fs/binfmt_elf_fdpic.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/timer.h~add-support-for-deferrable-timers-tidy include/linux/timer.h
---- a/include/linux/timer.h~add-support-for-deferrable-timers-tidy
-+++ a/include/linux/timer.h
-@@ -45,7 +45,7 @@ extern struct tvec_t_base_s boot_tvec_ba
- 		TIMER_INITIALIZER(_function, _expires, _data)
+diff -puN fs/binfmt_elf_fdpic.c~fdpic-fix-the-proc-pid-stat-representation-of-executable fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~fdpic-fix-the-proc-pid-stat-representation-of-executable
++++ a/fs/binfmt_elf_fdpic.c
+@@ -179,6 +179,8 @@ static int load_elf_fdpic_binary(struct 
+ 	int executable_stack;
+ 	int retval, i;
  
- void fastcall init_timer(struct timer_list * timer);
--void fastcall init_timer_deferrable(struct timer_list * timer);
-+void fastcall init_timer_deferrable(struct timer_list *timer);
++	kdebug("____ LOAD %d ____", current->pid);
++
+ 	memset(&exec_params, 0, sizeof(exec_params));
+ 	memset(&interp_params, 0, sizeof(interp_params));
  
- static inline void setup_timer(struct timer_list * timer,
- 				void (*function)(unsigned long),
-diff -puN kernel/timer.c~add-support-for-deferrable-timers-tidy kernel/timer.c
---- a/kernel/timer.c~add-support-for-deferrable-timers-tidy
-+++ a/kernel/timer.c
-@@ -86,35 +86,35 @@ static DEFINE_PER_CPU(tvec_base_t *, tve
-  * The lowest bit of base ptr in timer is used as a flag to indicate
-  * 'deferrable' nature of the timer. Functions below help us manage that flag.
-  */
--static inline struct tvec_t_base_s *tbase_get_base_ptr(
--	struct tvec_t_base_s *base)
-+static inline struct tvec_t_base_s *
-+tbase_get_base_ptr(struct tvec_t_base_s *base)
- {
- 	return ((struct tvec_t_base_s *)
- 			((unsigned long)base & (~TBASE_DEFERRABLE_FLAG)));
- }
+@@ -941,8 +943,11 @@ static int elf_fdpic_map_file_constdisp_
  
--static inline unsigned long tbase_get_deferrable_flag(
--	struct tvec_t_base_s *base)
-+static inline unsigned long
-+tbase_get_deferrable_flag(struct tvec_t_base_s *base)
- {
- 	return ((unsigned long)base & TBASE_DEFERRABLE_FLAG);
- }
+ 		if (mm) {
+ 			if (phdr->p_flags & PF_X) {
+-				mm->start_code = seg->addr;
+-				mm->end_code = seg->addr + phdr->p_memsz;
++				if (!mm->start_code) {
++					mm->start_code = seg->addr;
++					mm->end_code = seg->addr +
++						phdr->p_memsz;
++				}
+ 			} else if (!mm->start_data) {
+ 				mm->start_data = seg->addr;
+ #ifndef CONFIG_MMU
+@@ -1123,8 +1128,10 @@ static int elf_fdpic_map_file_by_direct_
  
--static inline struct tvec_t_base_s *tbase_set_deferrable_flag(
--	struct tvec_t_base_s *base)
-+static inline struct tvec_t_base_s *
-+tbase_set_deferrable_flag(struct tvec_t_base_s *base)
- {
- 	return ((struct tvec_t_base_s *)
- 			((unsigned long)base | TBASE_DEFERRABLE_FLAG));
- }
- 
--static inline struct tvec_t_base_s *tbase_clear_deferrable_flag(
--	struct tvec_t_base_s *base)
-+static inline struct tvec_t_base_s *
-+tbase_clear_deferrable_flag(struct tvec_t_base_s *base)
- {
- 	return ((struct tvec_t_base_s *)
- 			((unsigned long)base & (~TBASE_DEFERRABLE_FLAG)));
- }
- 
--static inline struct tvec_t_base_s *tbase_merge_deferrable_flag(
--	struct tvec_t_base_s *base, unsigned long flag)
-+static inline struct tvec_t_base_s *
-+tbase_merge_deferrable_flag(struct tvec_t_base_s *base, unsigned long flag)
- {
- 	if (flag & TBASE_DEFERRABLE_FLAG)
- 		return tbase_set_deferrable_flag(base);
-@@ -418,8 +418,8 @@ int __mod_timer(struct timer_list *timer
- 			spin_unlock(&base->lock);
- 			base = new_base;
- 			spin_lock(&base->lock);
--			timer->base =
--				tbase_merge_deferrable_flag(new_base, tflag);
-+			timer->base = tbase_merge_deferrable_flag(new_base,
-+								tflag);
- 		}
- 	}
- 
+ 		if (mm) {
+ 			if (phdr->p_flags & PF_X) {
+-				mm->start_code = maddr;
+-				mm->end_code = maddr + phdr->p_memsz;
++				if (!mm->start_code) {
++					mm->start_code = maddr;
++					mm->end_code = maddr + phdr->p_memsz;
++				}
+ 			} else if (!mm->start_data) {
+ 				mm->start_data = maddr;
+ 				mm->end_data = maddr + phdr->p_memsz;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-blackfin-blackfin-i2c-driver-update-2.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-add-support-for-deferrable-timers.patch
-add-support-for-deferrable-timers-tidy.patch
-export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+frv-fix-unannotated-variable-declarations.patch
+nommu-supply-get_unmapped_area-to-fix-nommu-sysv-shm.patch
+nommu-make-sysv-shm-nattch-work-correctly.patch
+fdpic-fix-the-proc-pid-stat-representation-of-executable.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+romfs-printk-format-warnings.patch
+nommu-hide-vm_mm-in-nommu-mode.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+use-symbolic-constants-in-generic-lseek-code.patch
+use-use-seek_max-to-validate-user-lseek-arguments.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+workqueue-kill-noautorel-works.patch
+mutex-subsystem-synchro-test-module.patch
