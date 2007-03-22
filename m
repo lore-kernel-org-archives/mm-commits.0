@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch added to -mm tree
-Date: Wed, 21 Mar 2007 17:05:25 -0800
-Message-ID: <200703220105.l2M15P73008842@shell0.pdx.osdl.net>
+Subject: + i386-disable-local-apic-timer-via-command-line-or-dmi.patch added to -mm tree
+Date: Wed, 21 Mar 2007 17:07:35 -0800
+Message-ID: <200703220107.l2M17Zbo008889@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33641 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33697 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751004AbXCVBFe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Mar 2007 21:05:34 -0400
+	id S1750987AbXCVBJE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 21 Mar 2007 21:09:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@suse.de
+Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, lenb@kernel.org, mingo@elte.hu
 
 
 The patch titled
-     i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot fix
+     i386: disable local apic timer via command line or dmi quirk
 has been added to the -mm tree.  Its filename is
-     i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
+     i386-disable-local-apic-timer-via-command-line-or-dmi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,74 +25,156 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot fix
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: i386: disable local apic timer via command line or dmi quirk
+From: Thomas Gleixner <tglx@linutronix.de>
 
-I'll just leave the comment, and try to pretend this never happened 8)
+The local APIC timer stops to work in deeper C-States.  This is handled by
+the ACPI code and a broadcast mechanism in the clockevents / tick managment
+code.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Some systems do not expose the deeper C-States to the kernel, but switch
+into deeper C-States behind the kernels back.  This delays the local apic
+timer interrupts for ever and makes the systems unusable.
+
+Add a command line option to disable the local apic timer and a dmi
+quirk for known broken systems.
+
+Andi sayeth:
+
+  While not wrong by itself i think it is still better to use some heuristic
+  -- like "has battery in ACPI" With the DMI table if the problem is more wide
+  spread we will just continue extending it.
+
+  But anyways should be ok now for .21 although I'm not really happy with
+  it.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Grudgingly-acked-by: Andi Kleen <ak@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/head.S |    4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/kernel-parameters.txt |    2 +
+ arch/i386/kernel/apic.c             |   52 ++++++++++++++++++++++++++
+ 2 files changed, 54 insertions(+)
 
-diff -puN arch/i386/kernel/head.S~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix
-+++ a/arch/i386/kernel/head.S
-@@ -601,6 +601,10 @@ ENTRY(early_gdt_descr)
- 	.word GDT_ENTRIES*8-1
- 	.long per_cpu__cpu_gdt		/* Overwritten for secondary CPUs */
+diff -puN Documentation/kernel-parameters.txt~i386-disable-local-apic-timer-via-command-line-or-dmi Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~i386-disable-local-apic-timer-via-command-line-or-dmi
++++ a/Documentation/kernel-parameters.txt
+@@ -1117,6 +1117,8 @@ and is between 256 and 4096 characters. 
  
-+/*
-+ * The boot_gdt_table must mirror the equivalent in setup.S and is
-+ * used only for booting.
+ 	nolapic		[IA-32,APIC] Do not enable or use the local APIC.
+ 
++	nolapic_timer	[IA-32,APIC] Do not use the local APIC timer.
++
+ 	noltlbs		[PPC] Do not use large page/tlb entries for kernel
+ 			lowmem mapping on PPC40x.
+ 
+diff -puN arch/i386/kernel/apic.c~i386-disable-local-apic-timer-via-command-line-or-dmi arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~i386-disable-local-apic-timer-via-command-line-or-dmi
++++ a/arch/i386/kernel/apic.c
+@@ -28,6 +28,7 @@
+ #include <linux/clockchips.h>
+ #include <linux/acpi_pmtmr.h>
+ #include <linux/module.h>
++#include <linux/dmi.h>
+ 
+ #include <asm/atomic.h>
+ #include <asm/smp.h>
+@@ -61,6 +62,8 @@ static int enable_local_apic __initdata 
+ 
+ /* Local APIC timer verification ok */
+ static int local_apic_timer_verify_ok;
++/* Disable local APIC timer from the kernel commandline or via dmi quirk */
++static int local_apic_timer_disabled;
+ 
+ /*
+  * Debug level, exported for io_apic.c
+@@ -266,6 +269,32 @@ static void __devinit setup_APIC_timer(v
+ }
+ 
+ /*
++ * Detect systems with known broken BIOS implementations
 + */
- 	.align L1_CACHE_BYTES
- ENTRY(boot_gdt_table)
- 	.fill GDT_ENTRY_BOOT_CS,8,0
++static int __init lapic_check_broken_bios(struct dmi_system_id *d)
++{
++	printk(KERN_NOTICE "%s detected: disabling lapic timer.\n",
++		       d->ident);
++	local_apic_timer_disabled = 1;
++	return 0;
++}
++
++static struct dmi_system_id __initdata broken_bios_dmi_table[] = {
++	{
++		/*
++		 * BIOS exports only C1 state, but uses deeper power
++		 * modes behind the kernels back.
++		 */
++		  .callback = lapic_check_broken_bios,
++		  .ident = "HP nx6325",
++		  .matches = {
++			DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
++		  },
++	 },
++	 {}
++};
++
++/*
+  * In this functions we calibrate APIC bus clocks to the external timer.
+  *
+  * We want to do the calibration only once since we want to have local timer
+@@ -340,6 +369,22 @@ void __init setup_boot_APIC_clock(void)
+ 	long delta, deltapm;
+ 	int pm_referenced = 0;
+ 
++	/* Detect know broken systems */
++	dmi_check_system(broken_bios_dmi_table);
++
++	/*
++	 * The local apic timer can be disabled via the kernel
++	 * commandline or from the dmi quirk above. Register the lapic
++	 * timer as a dummy clock event source on SMP systems, so the
++	 * broadcast mechanism is used. On UP systems simply ignore it.
++	 */
++	if (local_apic_timer_disabled) {
++		/* No broadcast on UP ! */
++		if (num_possible_cpus() > 1)
++			setup_APIC_timer();
++		return;
++	}
++
+ 	apic_printk(APIC_VERBOSE, "Using local APIC timer interrupts.\n"
+ 		    "calibrating APIC timer ...\n");
+ 
+@@ -1179,6 +1224,13 @@ static int __init parse_nolapic(char *ar
+ }
+ early_param("nolapic", parse_nolapic);
+ 
++static int __init parse_disable_lapic_timer(char *arg)
++{
++	local_apic_timer_disabled = 1;
++	return 0;
++}
++early_param("nolapic_timer", parse_disable_lapic_timer);
++
+ static int __init apic_set_verbosity(char *str)
+ {
+ 	if (strcmp("debug", str) == 0)
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-i386-vdso_prelink-warning-fix.patch
-cleanup-initialize-esp0-properly-all-the-time.patch
-lguest-preparation-export_symbol_gpl-5-functions.patch
-lguest-preparation-expose-futex-infrastructure.patch
-lguest-kconfig-and-headers.patch
-lguest-the-host-code-lgko.patch
-lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patch
-lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
-lguest-the-host-code-lgko-pin-stack-page-optimization.patch
-lguest-guest-code.patch
-lguest-makefile.patch
-lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
-lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
-lguest-dont-crash-host-on-nmi.patch
-lguest-trivial-guest-network-driver.patch
-lguest-trivial-guest-console-driver.patch
-lguest-trivial-guest-block-driver.patch
-lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch
-lguest-documentatation-and-example-launcher.patch
-lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch
-lguest-documentatation-and-example-launcher-bridging-support-in-example-codelguest-documentation-fixes.patch
-introduce-load_tls-to-the-for-loop.patch
-remove-unused-set_seg_base.patch
-clarify-config_reorder-explanation.patch
-allow-per-cpu-variables-to-be-page-aligned.patch
-i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
-i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch
-i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
-i386-gdt-cleanups-clean-up-cpu_init.patch
-i386-gdt-cleanups-cleanup-gdt-access.patch
-module-use-krealloc.patch
-extend-print_symbol-capability.patch
-array_size-check-for-type.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-____call_usermodehelper-dont-flush_signals.patch
+origin.patch
+documentation-sysrqtxt-added-short-description-for-q-timerlist.patch
+i386-disable-local-apic-timer-via-command-line-or-dmi.patch
+git-ieee1394.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+add-support-for-deferrable-timers.patch
+add-support-for-deferrable-timers-tidy.patch
+export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor.patch
+export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
