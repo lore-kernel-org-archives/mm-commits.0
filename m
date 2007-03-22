@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fdpic-fix-the-proc-pid-stat-representation-of-executable.patch added to -mm tree
-Date: Thu, 22 Mar 2007 09:22:37 -0800
-Message-ID: <200703221722.l2MHMbVV025522@shell0.pdx.osdl.net>
+Subject: + power-management-force-pm_opsvalid-callback-to-be.patch added to -mm tree
+Date: Thu, 22 Mar 2007 09:37:34 -0800
+Message-ID: <200703221737.l2MHbYGR025798__49882.7157928192$1174585126$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41045 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41854 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934131AbXCVRWq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 13:22:46 -0400
+	id S934147AbXCVRiD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 13:38:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: johannes@sipsolutions.net, greg@kroah.com, linux-pm@lists.linux-foundation.org, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     FDPIC: fix the /proc/pid/stat representation of executable boundaries
+     power management: force pm_ops.valid callback to be assigned
 has been added to the -mm tree.  Its filename is
-     fdpic-fix-the-proc-pid-stat-representation-of-executable.patch
+     power-management-force-pm_opsvalid-callback-to-be.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,139 +25,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: FDPIC: fix the /proc/pid/stat representation of executable boundaries
-From: David Howells <dhowells@redhat.com>
+Subject: power management: force pm_ops.valid callback to be assigned
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Fix the /proc/pid/stat representation of executable boundaries.  It should
-show the bounds of the executable, but instead shows the bounds of the
-loader.
+This patch changes the docs and behaviour from "all states valid" to "no
+states valid" if no .valid callback is assigned.  Users of pm_ops that only
+need mem sleep can assign pm_valid_only_mem without any overhead, others
+will require more elaborate callbacks.
 
-Before the patch is applied, the bug can be seen by examining, say, inetd:
+Now that all users of pm_ops have a .valid callback this is a safe thing to
+do and prevents things from getting messy again as they were before.
 
-	# ps | grep inetd
-	  610         root          0   S   /usr/sbin/inetd -i
-	# cat /proc/610/maps
-	c0bb0000-c0bba788 r-xs 00000000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
-	c3180000-c31dede4 r-xs 00000000 00:0b 14582179  /lib/libuClibc-0.9.28.so
-	c328c000-c328ea00 rw-p 00008000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
-	c3290000-c329b6c0 rw-p 00000000 00:00 0
-	c32a0000-c32c0000 rwxp 00000000 00:00 0
-	c32d4000-c32d8000 rw-p 00000000 00:00 0
-	c3394000-c3398000 rw-p 00000000 00:00 0
-	c3458000-c345f464 r-xs 00000000 00:0b 16384612  /usr/sbin/inetd
-	c3470000-c34748f8 rw-p 00004000 00:0b 16384612  /usr/sbin/inetd
-	c34cc000-c34d0000 rw-p 00000000 00:00 0
-	c34d4000-c34d8000 rw-p 00000000 00:00 0
-	c34d8000-c34dc000 rw-p 00000000 00:00 0
-	# cat /proc/610/stat
-	610 (inetd) S 1 610 610 0 -1 256 0 0 0 0 0 8 0 0 19 0 1 0 94392000718
-	950272 0 4294967295 3233480704 3233523592 3274440352 3274439976
- 	3273467584 0 0 4096 90115 3221712796 0 0 17 0 0 0 0
-
-The code boundaries are 3233480704 to 3233523592, which are:
-
-	(gdb) p/x 3233480704
-	$1 = 0xc0bb0000
-	(gdb) p/x 3233523592
-	$2 = 0xc0bba788
-
-Which corresponds to this line in the maps file:
-
-	c0bb0000-c0bba788 r-xs 00000000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
-
-Which is wrong.  After the patch is applied, the maps file is pretty much
-identical (there's some minor shuffling of the location of some of the
-anonymous VMAs), but the stat file is now:
-
-	# cat /proc/610/stat
-	610 (inetd) S 1 610 610 0 -1 256 0 0 0 0 0 7 0 0 18 0 1 0 94392000722
-	950272 0 4294967295 3276111872 3276141668 3274440352 3274439976
-	3273467584 0 0 4096 90115 3221712796 0 0 17 0 0 0 0
-
-The code boundaries are then 3276111872 to 3276141668, which are:
-
-	(gdb) p/x 3276111872
-	$1 = 0xc3458000
-	(gdb) p/x 3276141668
-	$2 = 0xc345f464
-
-And these correspond to this line in the maps file instead:
-
-	c3458000-c345f464 r-xs 00000000 00:0b 16384612  /usr/sbin/inetd
-
-Which is now correct.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: <linux-pm@lists.linux-foundation.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ include/linux/pm.h  |   12 ++++++------
+ kernel/power/main.c |    4 ++--
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~fdpic-fix-the-proc-pid-stat-representation-of-executable fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~fdpic-fix-the-proc-pid-stat-representation-of-executable
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -179,6 +179,8 @@ static int load_elf_fdpic_binary(struct 
- 	int executable_stack;
- 	int retval, i;
+diff -puN include/linux/pm.h~power-management-force-pm_opsvalid-callback-to-be include/linux/pm.h
+--- a/include/linux/pm.h~power-management-force-pm_opsvalid-callback-to-be
++++ a/include/linux/pm.h
+@@ -125,12 +125,12 @@ typedef int __bitwise suspend_disk_metho
+  * struct pm_ops - Callbacks for managing platform dependent suspend states.
+  * @valid: Callback to determine whether the given state can be entered.
+  * 	If %CONFIG_SOFTWARE_SUSPEND is set then %PM_SUSPEND_DISK is
+- *	always valid and never passed to this call.
+- *	If not assigned, all suspend states are advertised as valid
+- *	in /sys/power/state (but can still be rejected by prepare or enter.)
+- *	Since new states can be added for other platforms, you should
+- *	assign this callback. There is a %pm_valid_only_mem function
+- *	available if you only implemented mem sleep.
++ *	always valid and never passed to this call. If not assigned,
++ *	no suspend states are valid.
++ *	Valid states are advertised in /sys/power/state but can still
++ *	be rejected by prepare or enter if the conditions aren't right.
++ *	There is a %pm_valid_only_mem function available that can be assigned
++ *	to this if you only implement mem sleep.
+  *
+  * @prepare: Prepare the platform for the given suspend state. Can return a
+  *	negative error code if necessary.
+diff -puN kernel/power/main.c~power-management-force-pm_opsvalid-callback-to-be kernel/power/main.c
+--- a/kernel/power/main.c~power-management-force-pm_opsvalid-callback-to-be
++++ a/kernel/power/main.c
+@@ -186,8 +186,8 @@ static inline int valid_state(suspend_st
  
-+	kdebug("____ LOAD %d ____", current->pid);
-+
- 	memset(&exec_params, 0, sizeof(exec_params));
- 	memset(&interp_params, 0, sizeof(interp_params));
- 
-@@ -941,8 +943,11 @@ static int elf_fdpic_map_file_constdisp_
- 
- 		if (mm) {
- 			if (phdr->p_flags & PF_X) {
--				mm->start_code = seg->addr;
--				mm->end_code = seg->addr + phdr->p_memsz;
-+				if (!mm->start_code) {
-+					mm->start_code = seg->addr;
-+					mm->end_code = seg->addr +
-+						phdr->p_memsz;
-+				}
- 			} else if (!mm->start_data) {
- 				mm->start_data = seg->addr;
- #ifndef CONFIG_MMU
-@@ -1123,8 +1128,10 @@ static int elf_fdpic_map_file_by_direct_
- 
- 		if (mm) {
- 			if (phdr->p_flags & PF_X) {
--				mm->start_code = maddr;
--				mm->end_code = maddr + phdr->p_memsz;
-+				if (!mm->start_code) {
-+					mm->start_code = maddr;
-+					mm->end_code = maddr + phdr->p_memsz;
-+				}
- 			} else if (!mm->start_data) {
- 				mm->start_data = maddr;
- 				mm->end_data = maddr + phdr->p_memsz;
+ 	/* all other states need lowlevel support and need to be
+ 	 * valid to the lowlevel implementation, no valid callback
+-	 * implies that all are valid. */
+-	if (!pm_ops || (pm_ops->valid && !pm_ops->valid(state)))
++	 * implies that none are valid. */
++	if (!pm_ops || !pm_ops->valid || !pm_ops->valid(state))
+ 		return 0;
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
-frv-fix-unannotated-variable-declarations.patch
-nommu-supply-get_unmapped_area-to-fix-nommu-sysv-shm.patch
-nommu-make-sysv-shm-nattch-work-correctly.patch
-fdpic-fix-the-proc-pid-stat-representation-of-executable.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-romfs-printk-format-warnings.patch
-nommu-hide-vm_mm-in-nommu-mode.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-use-symbolic-constants-in-generic-lseek-code.patch
-use-use-seek_max-to-validate-user-lseek-arguments.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-workqueue-kill-noautorel-works.patch
-mutex-subsystem-synchro-test-module.patch
+origin.patch
+git-alsa.patch
+git-wireless.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+power-management-force-pm_opsvalid-callback-to-be.patch
