@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + array_size-check-for-type-uml-fix.patch added to -mm tree
-Date: Thu, 22 Mar 2007 14:36:16 -0700
-Message-ID: <200703222136.l2MLaG8u030903@shell0.pdx.osdl.net>
+Subject: + uml-move-remaining-useful-contents-of-user_utilh.patch added to -mm tree
+Date: Thu, 22 Mar 2007 14:44:37 -0700
+Message-ID: <200703222144.l2MLibI3031099@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52765 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53094 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161049AbXCVVg0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 17:36:26 -0400
+	id S1161105AbXCVVol (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 17:44:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, rusty@rustcorp.com.au
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     uml: update UML definition of ARRAY_SIZE
+     uml: move remaining useful contents of user_util.h
 has been added to the -mm tree.  Its filename is
-     array_size-check-for-type-uml-fix.patch
+     uml-move-remaining-useful-contents-of-user_utilh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,148 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: update UML definition of ARRAY_SIZE
+Subject: uml: move remaining useful contents of user_util.h
 From: Jeff Dike <jdike@addtoit.com>
 
-This is the minimal change needed to keep UML building with the new definition
-of ARRAY_SIZE.  It is defined in user_util.h so that userspace files, which
-can't include kernel.h, can still use ARRAY_SIZE.  However, since user_util.h
-is included everywhere, including kernel files, the token sequence of the
-expansion has to match.
+Rescue the useful contents of the soon-to-be-gone user-util.h.
 
-This patch copies enough from the kernel headers to make that happen.
+pty.c now gets ptsname from stdlib.h like it should have always done.
 
-However, this is too gross to survive, and so is the entire header.  Future
-patches will make this header disappear, but this is a quick and simple fix
-for the problem in case there is a noticable lag between this patch and the
-more extensive patches which tidy this mess.
+CATCH_EINTR is now in os.h, although perhaps all usage should be under
+os-Linux at some point.
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+get_pty is also in os.h.
+
+This patch restores the old definition of ARRAY_SIZE in user.h.  This file is
+included only in userspace files, so there will be no conflict with the
+kernel's new ARRAY_SIZE.  The copy of the kernel's ARRAY_SIZE and associated
+infrastructure is now gone.
+
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/user_util.h |   15 +++++++++++++--
- 1 files changed, 13 insertions(+), 2 deletions(-)
+ arch/um/drivers/pty.c           |    1 +
+ arch/um/include/os.h            |    6 ++++++
+ arch/um/include/user.h          |   19 ++++++++-----------
+ arch/um/include/user_util.h     |   18 ------------------
+ arch/um/os-Linux/sys-i386/tls.c |    1 +
+ 5 files changed, 16 insertions(+), 29 deletions(-)
 
-diff -puN arch/um/include/user_util.h~array_size-check-for-type-uml-fix arch/um/include/user_util.h
---- a/arch/um/include/user_util.h~array_size-check-for-type-uml-fix
+diff -puN arch/um/drivers/pty.c~uml-move-remaining-useful-contents-of-user_utilh arch/um/drivers/pty.c
+--- a/arch/um/drivers/pty.c~uml-move-remaining-useful-contents-of-user_utilh
++++ a/arch/um/drivers/pty.c
+@@ -4,6 +4,7 @@
+  */
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <unistd.h>
+ #include <string.h>
+ #include <errno.h>
+diff -puN arch/um/include/os.h~uml-move-remaining-useful-contents-of-user_utilh arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-move-remaining-useful-contents-of-user_utilh
++++ a/arch/um/include/os.h
+@@ -16,6 +16,8 @@
+ #include "sysdep/tls.h"
+ #include "sysdep/archsetjmp.h"
+ 
++#define CATCH_EINTR(expr) while ((errno = 0, ((expr) < 0)) && (errno == EINTR))
++
+ #define OS_TYPE_FILE 1
+ #define OS_TYPE_DIR 2
+ #define OS_TYPE_SYMLINK 3
+@@ -341,6 +343,10 @@ extern void maybe_sigio_broken(int fd, i
+ extern void sig_handler_common_skas(int sig, void *sc_ptr);
+ extern void user_signal(int sig, union uml_pt_regs *regs, int pid);
+ 
++/* sys-x86_64/prctl.c */
+ extern int os_arch_prctl(int pid, int code, unsigned long *addr);
+ 
++/* tty.c */
++int get_pty(void);
++
+ #endif
+diff -puN arch/um/include/user.h~uml-move-remaining-useful-contents-of-user_utilh arch/um/include/user.h
+--- a/arch/um/include/user.h~uml-move-remaining-useful-contents-of-user_utilh
++++ a/arch/um/include/user.h
+@@ -6,6 +6,14 @@
+ #ifndef __USER_H__
+ #define __USER_H__
+ 
++/*
++ * The usual definition - copied here because the kernel provides its own,
++ * fancier, type-safe, definition.  Using that one would require
++ * copying too much infrastructure for my taste, so userspace files
++ * get less checking than kernel files.
++ */
++#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
++
+ /* Both on kernelspace and userspace this will provide the size_t definition. It should, at
+  * least. But on userspace it won't hurt surely. */
+ #include <linux/types.h>
+@@ -21,14 +29,3 @@ extern size_t strlcpy(char *, const char
+ extern size_t strlcat(char *, const char *, size_t);
+ 
+ #endif
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/include/user_util.h~uml-move-remaining-useful-contents-of-user_utilh arch/um/include/user_util.h
+--- a/arch/um/include/user_util.h~uml-move-remaining-useful-contents-of-user_utilh
 +++ a/arch/um/include/user_util.h
-@@ -8,8 +8,19 @@
+@@ -8,31 +8,13 @@
  
  #include "sysdep/ptrace.h"
  
--/* Copied from kernel.h */
--#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-+/* Copied from kernel.h and compiler-gcc.h */
-+
-+/* Force a compilation error if condition is true, but also produce a
-+   result (of value 0 and type size_t), so the expression can be used
-+   e.g. in a structure initializer (or where-ever else comma expressions
-+   aren't permitted). */
-+#define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
-+
-+/* &a[0] degrades to a pointer: a different type from an array */
-+#define __must_be_array(a) \
-+  BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0])))
-+
-+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+-/* Copied from kernel.h and compiler-gcc.h */
+-
+-/* Force a compilation error if condition is true, but also produce a
+-   result (of value 0 and type size_t), so the expression can be used
+-   e.g. in a structure initializer (or where-ever else comma expressions
+-   aren't permitted). */
+-#define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
+-
+-/* &a[0] degrades to a pointer: a different type from an array */
+-#define __must_be_array(a) \
+-  BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0])))
+-
+-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+-
+-#define CATCH_EINTR(expr) while ((errno = 0, ((expr) < 0)) && (errno == EINTR))
+-
+ extern int mode_tt;
  
- #define CATCH_EINTR(expr) while ((errno = 0, ((expr) < 0)) && (errno == EINTR))
+ extern int grantpt(int __fd);
+ extern int unlockpt(int __fd);
+-extern char *ptsname(int __fd);
  
+ extern void *add_signal_handler(int sig, void (*handler)(int));
+ extern void input_cb(void (*proc)(void *), void *arg, int arg_len);
+-extern int get_pty(void);
+ extern int switcheroo(int fd, int prot, void *from, void *to, int size);
+ extern void do_exec(int old_pid, int new_pid);
+ extern void tracer_panic(char *msg, ...)
+diff -puN arch/um/os-Linux/sys-i386/tls.c~uml-move-remaining-useful-contents-of-user_utilh arch/um/os-Linux/sys-i386/tls.c
+--- a/arch/um/os-Linux/sys-i386/tls.c~uml-move-remaining-useful-contents-of-user_utilh
++++ a/arch/um/os-Linux/sys-i386/tls.c
+@@ -5,6 +5,7 @@
+ #include <unistd.h>
+ 
+ #include "sysdep/tls.h"
++#include "user.h"
+ #include "user_util.h"
+ 
+ /* Checks whether host supports TLS, and sets *tls_min according to the value
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
@@ -89,12 +182,12 @@ uml-handle-block-device-hotplug-errors.patch
 uml-driver-formatting-fixes.patch
 uml-driver-formatting-fixes-fix.patch
 uml-network-interface-hotplug-error-handling.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-uml-fix-prototypes.patch
 array_size-check-for-type-uml-fix.patch
+uml-fix-prototypes.patch
 uml-move-sigio-testing-to-sigioc.patch
 uml-create-archh.patch
 uml-create-as-layouth.patch
 uml-move-remaining-useful-contents-of-user_utilh.patch
 uml-remove-user_utilh.patch
 uml-add-missing-__init-declarations.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
