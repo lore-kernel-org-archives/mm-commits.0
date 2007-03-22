@@ -1,74 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - driver-core-handles-kobject_uevent-failure-while-device_add.patch removed from -mm tree
-Date: Wed, 21 Mar 2007 23:39:29 -0800
-Message-ID: <200703220739.l2M7dUBm015072@shell0.pdx.osdl.net>
+Subject: + lockdep-debug_show_all_locks-debug_show_held_locks-vs-debug_locks.patch added to -mm tree
+Date: Wed, 21 Mar 2007 23:42:19 -0800
+Message-ID: <200703220742.l2M7gJ9X015115@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43007 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43088 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753183AbXCVHkJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 03:40:09 -0400
+	id S1753177AbXCVHmr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 03:42:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@sw.ru, dmonakhov@openvz.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jarkao2@o2.pl, a.p.zijlstra@chello.nl, folkert@vanheusden.com, mingo@elte.hu, oleg@tv-sign.ru
 
 
 The patch titled
-     driver core: handles kobject_uevent failure while device_add
-has been removed from the -mm tree.  Its filename was
-     driver-core-handles-kobject_uevent-failure-while-device_add.patch
+     lockdep: debug_show_all_locks &  debug_show_held_locks vs. debug_locks
+has been added to the -mm tree.  Its filename is
+     lockdep-debug_show_all_locks-debug_show_held_locks-vs-debug_locks.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: driver core: handles kobject_uevent failure while device_add
-From: Dmitriy Monakhov <dmonakhov@sw.ru>
+Subject: lockdep: debug_show_all_locks &  debug_show_held_locks vs. debug_locks
+From: Jarek Poplawski <jarkao2@o2.pl>
 
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
-Cc: Greg KH <greg@kroah.com>
+lockdep's data shouldn't be used when debug_locks == 0 because it's not
+updated after this, so it's more misleading than helpful.
+
+PS: probably lockdep's current-> fields should be reset after it turns
+debug_locks off: so, after printing a bug report, but before return from
+exported functions, but there are really a lot of these possibilities (e.g.
+ after DEBUG_LOCKS_WARN_ON), so, something could be missed.  (Of course
+direct use of this fields isn't recommended either.)
+
+Reported-by: Folkert van Heusden <folkert@vanheusden.com>
+Inspired-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ kernel/lockdep.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/base/core.c~driver-core-handles-kobject_uevent-failure-while-device_add drivers/base/core.c
---- a/drivers/base/core.c~driver-core-handles-kobject_uevent-failure-while-device_add
-+++ a/drivers/base/core.c
-@@ -714,8 +714,11 @@ int device_add(struct device *dev)
- 		goto PMError;
- 	if ((error = bus_add_device(dev)))
- 		goto BusError;
--	if (!dev->uevent_suppress)
--		kobject_uevent(&dev->kobj, KOBJ_ADD);
-+	if (!dev->uevent_suppress) {
-+		error = kobject_uevent(&dev->kobj, KOBJ_ADD);
-+		if (error)
-+			goto UeventError;
+diff -puN kernel/lockdep.c~lockdep-debug_show_all_locks-debug_show_held_locks-vs-debug_locks kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-debug_show_all_locks-debug_show_held_locks-vs-debug_locks
++++ a/kernel/lockdep.c
+@@ -2742,6 +2742,10 @@ void debug_show_all_locks(void)
+ 	int count = 10;
+ 	int unlock = 1;
+ 
++	if (unlikely(!debug_locks)) {
++		printk("INFO: lockdep is turned off.\n");
++		return;
 +	}
- 	bus_attach_device(dev);
- 	if (parent)
- 		klist_add_tail(&dev->knode_parent, &parent->klist_children);
-@@ -735,6 +738,9 @@ int device_add(struct device *dev)
- 	kfree(class_name);
- 	put_device(dev);
- 	return error;
-+
-+ UeventError:
-+ 	bus_remove_device(dev);
-  BusError:
- 	device_pm_remove(dev);
-  PMError:
+ 	printk("\nShowing all locks held in the system:\n");
+ 
+ 	/*
+@@ -2785,6 +2789,10 @@ EXPORT_SYMBOL_GPL(debug_show_all_locks);
+ 
+ void debug_show_held_locks(struct task_struct *task)
+ {
++	if (unlikely(!debug_locks)) {
++		printk("INFO: lockdep is turned off.\n");
++		return;
++	}
+ 	lockdep_print_held_locks(task);
+ }
+ 
 _
 
-Patches currently in -mm which might be from dmonakhov@sw.ru are
+Patches currently in -mm which might be from jarkao2@o2.pl are
 
-driver-core-handles-kobject_uevent-failure-while-device_add.patch
-driver-core-handle-sysfs_op-failure-while-device_add.patch
-git-libata-all.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
-ext3-dirindex-error-pointer-issues.patch
-ext3-dirindex-error-pointer-issues-fix.patch
-floppy-handle-device_create_file-failure-while-init.patch
-splice-partial-write-handling-fix.patch
+lockdep-lockdep_depth-vs-debug_locks-re-bug-workqueue-leaked-lock.patch
+lockdep-debug_show_all_locks-debug_show_held_locks-vs-debug_locks.patch
