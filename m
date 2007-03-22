@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch removed from -mm tree
-Date: Thu, 22 Mar 2007 03:18:57 -0800
-Message-ID: <200703221118.l2MBIvko019071@shell0.pdx.osdl.net>
+Subject: - add-support-for-deferrable-timers-tidy.patch removed from -mm tree
+Date: Thu, 22 Mar 2007 03:18:46 -0800
+Message-ID: <200703221118.l2MBIkIs019068@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50304 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50472 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161048AbXCVLTs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 07:19:48 -0400
+	id S1030463AbXCVLY1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 07:24:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, davej@codemonkey.org.uk, johnstul@us.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy
+     add-support-for-deferrable-timers-tidy
 has been removed from the -mm tree.  Its filename was
-     export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch
+     add-support-for-deferrable-timers-tidy.patch
 
-This patch was dropped because it was folded into export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor.patch
+This patch was dropped because it was folded into add-support-for-deferrable-timers.patch
 
 ------------------------------------------------------
-Subject: export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy
+Subject: add-support-for-deferrable-timers-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Sanity
+Whitespace repairs
 
 Cc: Dave Jones <davej@codemonkey.org.uk>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -35,34 +35,82 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq_ondemand.c |    2 +-
- include/linux/workqueue.h          |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/timer.h |    2 +-
+ kernel/timer.c        |   24 ++++++++++++------------
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq_ondemand.c~export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy drivers/cpufreq/cpufreq_ondemand.c
---- a/drivers/cpufreq/cpufreq_ondemand.c~export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy
-+++ a/drivers/cpufreq/cpufreq_ondemand.c
-@@ -470,7 +470,7 @@ static inline void dbs_timer_init(struct
- 	dbs_info->enable = 1;
- 	ondemand_powersave_bias_init();
- 	dbs_info->sample_type = DBS_NORMAL_SAMPLE;
--	INIT_DELAYED_WORK_DEF(&dbs_info->work, do_dbs_timer);
-+	INIT_DELAYED_WORK_DEFERRABLE(&dbs_info->work, do_dbs_timer);
- 	queue_delayed_work_on(dbs_info->cpu, kondemand_wq, &dbs_info->work,
- 	                      delay);
- }
-diff -puN include/linux/workqueue.h~export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy include/linux/workqueue.h
---- a/include/linux/workqueue.h~export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy
-+++ a/include/linux/workqueue.h
-@@ -89,7 +89,7 @@ struct execute_work {
- 		init_timer(&(_work)->timer);			\
- 	} while (0)
+diff -puN include/linux/timer.h~add-support-for-deferrable-timers-tidy include/linux/timer.h
+--- a/include/linux/timer.h~add-support-for-deferrable-timers-tidy
++++ a/include/linux/timer.h
+@@ -45,7 +45,7 @@ extern struct tvec_t_base_s boot_tvec_ba
+ 		TIMER_INITIALIZER(_function, _expires, _data)
  
--#define INIT_DELAYED_WORK_DEF(_work, _func)			\
-+#define INIT_DELAYED_WORK_DEFERRABLE(_work, _func)		\
- 	do {							\
- 		INIT_WORK(&(_work)->work, (_func));		\
- 		init_timer_deferrable(&(_work)->timer);		\
+ void fastcall init_timer(struct timer_list * timer);
+-void fastcall init_timer_deferrable(struct timer_list * timer);
++void fastcall init_timer_deferrable(struct timer_list *timer);
+ 
+ static inline void setup_timer(struct timer_list * timer,
+ 				void (*function)(unsigned long),
+diff -puN kernel/timer.c~add-support-for-deferrable-timers-tidy kernel/timer.c
+--- a/kernel/timer.c~add-support-for-deferrable-timers-tidy
++++ a/kernel/timer.c
+@@ -86,35 +86,35 @@ static DEFINE_PER_CPU(tvec_base_t *, tve
+  * The lowest bit of base ptr in timer is used as a flag to indicate
+  * 'deferrable' nature of the timer. Functions below help us manage that flag.
+  */
+-static inline struct tvec_t_base_s *tbase_get_base_ptr(
+-	struct tvec_t_base_s *base)
++static inline struct tvec_t_base_s *
++tbase_get_base_ptr(struct tvec_t_base_s *base)
+ {
+ 	return ((struct tvec_t_base_s *)
+ 			((unsigned long)base & (~TBASE_DEFERRABLE_FLAG)));
+ }
+ 
+-static inline unsigned long tbase_get_deferrable_flag(
+-	struct tvec_t_base_s *base)
++static inline unsigned long
++tbase_get_deferrable_flag(struct tvec_t_base_s *base)
+ {
+ 	return ((unsigned long)base & TBASE_DEFERRABLE_FLAG);
+ }
+ 
+-static inline struct tvec_t_base_s *tbase_set_deferrable_flag(
+-	struct tvec_t_base_s *base)
++static inline struct tvec_t_base_s *
++tbase_set_deferrable_flag(struct tvec_t_base_s *base)
+ {
+ 	return ((struct tvec_t_base_s *)
+ 			((unsigned long)base | TBASE_DEFERRABLE_FLAG));
+ }
+ 
+-static inline struct tvec_t_base_s *tbase_clear_deferrable_flag(
+-	struct tvec_t_base_s *base)
++static inline struct tvec_t_base_s *
++tbase_clear_deferrable_flag(struct tvec_t_base_s *base)
+ {
+ 	return ((struct tvec_t_base_s *)
+ 			((unsigned long)base & (~TBASE_DEFERRABLE_FLAG)));
+ }
+ 
+-static inline struct tvec_t_base_s *tbase_merge_deferrable_flag(
+-	struct tvec_t_base_s *base, unsigned long flag)
++static inline struct tvec_t_base_s *
++tbase_merge_deferrable_flag(struct tvec_t_base_s *base, unsigned long flag)
+ {
+ 	if (flag & TBASE_DEFERRABLE_FLAG)
+ 		return tbase_set_deferrable_flag(base);
+@@ -418,8 +418,8 @@ int __mod_timer(struct timer_list *timer
+ 			spin_unlock(&base->lock);
+ 			base = new_base;
+ 			spin_lock(&base->lock);
+-			timer->base =
+-				tbase_merge_deferrable_flag(new_base, tflag);
++			timer->base = tbase_merge_deferrable_flag(new_base,
++								tflag);
+ 		}
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,7 +169,8 @@ rtc-add-rtc-rs5c313-driver-tidy.patch
 rtc-add-rtc-rs5c313-driver-is-busted.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor.patch
+add-support-for-deferrable-timers.patch
+add-support-for-deferrable-timers-tidy.patch
 export-deferrable-timer-through-workqueue-and-use-it-in-ondemand-governor-tidy.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
 lists-add-list-splice-tail.patch
