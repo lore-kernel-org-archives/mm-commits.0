@@ -1,302 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - uhci-fix-problem-caused-by-lack-of-terminating-qh.patch removed from -mm tree
-Date: Thu, 22 Mar 2007 12:21:34 -0800
-Message-ID: <200703222021.l2MKLYts029471@shell0.pdx.osdl.net>
+Subject: - drivers-usb-misc-iowarriorc-null-dereference.patch removed from -mm tree
+Date: Thu, 22 Mar 2007 12:21:26 -0800
+Message-ID: <200703222021.l2MKLQ8p029459@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49976 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50010 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932159AbXCVUWJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 16:22:09 -0400
+	id S934219AbXCVUXH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2007 16:23:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: oneukum@suse.de, bunk@stusta.de, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     UHCI: Fix problem caused by lack of terminating QH
+     drivers/usb/misc/iowarrior.c: NULL dereference
 has been removed from the -mm tree.  Its filename was
-     uhci-fix-problem-caused-by-lack-of-terminating-qh.patch
+     drivers-usb-misc-iowarriorc-null-dereference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: UHCI: Fix problem caused by lack of terminating QH
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: drivers/usb/misc/iowarrior.c: NULL dereference
+From: Oliver Neukum <oneukum@suse.de>
 
-This patch (as871) fixes a problem introduced by an earlier change.  It
-turns out that some systems really do need to have a terminating skeleton
-QH present whenever FSBR is on.  I don't know any way to tell which systems
-do need it and which don't; the easiest answer is to have it there always.
+Fix an oops upon allocation failures.
 
-This fixes the NumLock-hang bug reported by Jiri Slaby.
-
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Oliver Neukum <oneukum@suse.de>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/uhci-debug.c |   26 +++++---
- drivers/usb/host/uhci-hcd.c   |    3 -
- drivers/usb/host/uhci-q.c     |   94 ++++++++------------------------
- 3 files changed, 41 insertions(+), 82 deletions(-)
+ drivers/usb/misc/iowarrior.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/host/uhci-debug.c~uhci-fix-problem-caused-by-lack-of-terminating-qh drivers/usb/host/uhci-debug.c
---- a/drivers/usb/host/uhci-debug.c~uhci-fix-problem-caused-by-lack-of-terminating-qh
-+++ a/drivers/usb/host/uhci-debug.c
-@@ -145,7 +145,8 @@ static int uhci_show_urbp(struct urb_pri
- 	return out - buf;
- }
- 
--static int uhci_show_qh(struct uhci_qh *qh, char *buf, int len, int space)
-+static int uhci_show_qh(struct uhci_hcd *uhci,
-+		struct uhci_qh *qh, char *buf, int len, int space)
- {
- 	char *out = buf;
- 	int i, nurbs;
-@@ -190,6 +191,9 @@ static int uhci_show_qh(struct uhci_qh *
- 
- 	if (list_empty(&qh->queue)) {
- 		out += sprintf(out, "%*s  queue is empty\n", space, "");
-+		if (qh == uhci->skel_async_qh)
-+			out += uhci_show_td(uhci->term_td, out,
-+					len - (out - buf), 0);
- 	} else {
- 		struct urb_priv *urbp = list_entry(qh->queue.next,
- 				struct urb_priv, node);
-@@ -343,6 +347,7 @@ static int uhci_sprint_schedule(struct u
- 	struct list_head *tmp, *head;
- 	int nframes, nerrs;
- 	__le32 link;
-+	__le32 fsbr_link;
- 
- 	static const char * const qh_names[] = {
- 		"unlink", "iso", "int128", "int64", "int32", "int16",
-@@ -424,21 +429,22 @@ check_link:
- 
- 	out += sprintf(out, "Skeleton QHs\n");
- 
-+	fsbr_link = 0;
- 	for (i = 0; i < UHCI_NUM_SKELQH; ++i) {
- 		int cnt = 0;
--		__le32 fsbr_link = 0;
- 
- 		qh = uhci->skelqh[i];
- 		out += sprintf(out, "- skel_%s_qh\n", qh_names[i]); \
--		out += uhci_show_qh(qh, out, len - (out - buf), 4);
-+		out += uhci_show_qh(uhci, qh, out, len - (out - buf), 4);
- 
- 		/* Last QH is the Terminating QH, it's different */
- 		if (i == SKEL_TERM) {
- 			if (qh_element(qh) != LINK_TO_TD(uhci->term_td))
- 				out += sprintf(out, "    skel_term_qh element is not set to term_td!\n");
--			if (link == LINK_TO_QH(uhci->skel_term_qh))
--				goto check_qh_link;
--			continue;
-+			link = fsbr_link;
-+			if (!link)
-+				link = LINK_TO_QH(uhci->skel_term_qh);
-+			goto check_qh_link;
+diff -puN drivers/usb/misc/iowarrior.c~drivers-usb-misc-iowarriorc-null-dereference drivers/usb/misc/iowarrior.c
+--- a/drivers/usb/misc/iowarrior.c~drivers-usb-misc-iowarriorc-null-dereference
++++ a/drivers/usb/misc/iowarrior.c
+@@ -417,14 +417,14 @@ static ssize_t iowarrior_write(struct fi
+ 		if (!int_out_urb) {
+ 			retval = -ENOMEM;
+ 			dbg("%s Unable to allocate urb ", __func__);
+-			goto error;
++			goto error_no_urb;
  		}
- 
- 		head = &qh->node;
-@@ -448,7 +454,7 @@ check_link:
- 			qh = list_entry(tmp, struct uhci_qh, node);
- 			tmp = tmp->next;
- 			if (++cnt <= 10)
--				out += uhci_show_qh(qh, out,
-+				out += uhci_show_qh(uhci, qh, out,
- 						len - (out - buf), 4);
- 			if (!fsbr_link && qh->skel >= SKEL_FSBR)
- 				fsbr_link = LINK_TO_QH(qh);
-@@ -463,8 +469,6 @@ check_link:
- 			link = LINK_TO_QH(uhci->skel_async_qh);
- 		else if (!uhci->fsbr_is_on)
- 			;
--		else if (fsbr_link)
--			link = fsbr_link;
- 		else
- 			link = LINK_TO_QH(uhci->skel_term_qh);
- check_qh_link:
-@@ -573,8 +577,8 @@ static const struct file_operations uhci
- static inline void lprintk(char *buf)
- {}
- 
--static inline int uhci_show_qh(struct uhci_qh *qh, char *buf,
--		int len, int space)
-+static inline int uhci_show_qh(struct uhci_hcd *uhci,
-+		struct uhci_qh *qh, char *buf, int len, int space)
- {
- 	return 0;
- }
-diff -puN drivers/usb/host/uhci-hcd.c~uhci-fix-problem-caused-by-lack-of-terminating-qh drivers/usb/host/uhci-hcd.c
---- a/drivers/usb/host/uhci-hcd.c~uhci-fix-problem-caused-by-lack-of-terminating-qh
-+++ a/drivers/usb/host/uhci-hcd.c
-@@ -632,7 +632,8 @@ static int uhci_start(struct usb_hcd *hc
- 	 */
- 	for (i = SKEL_ISO + 1; i < SKEL_ASYNC; ++i)
- 		uhci->skelqh[i]->link = LINK_TO_QH(uhci->skel_async_qh);
--	uhci->skel_async_qh->link = uhci->skel_term_qh->link = UHCI_PTR_TERM;
-+	uhci->skel_async_qh->link = UHCI_PTR_TERM;
-+	uhci->skel_term_qh->link = LINK_TO_QH(uhci->skel_term_qh);
- 
- 	/* This dummy TD is to work around a bug in Intel PIIX controllers */
- 	uhci_fill_td(uhci->term_td, 0, uhci_explen(0) |
-diff -puN drivers/usb/host/uhci-q.c~uhci-fix-problem-caused-by-lack-of-terminating-qh drivers/usb/host/uhci-q.c
---- a/drivers/usb/host/uhci-q.c~uhci-fix-problem-caused-by-lack-of-terminating-qh
-+++ a/drivers/usb/host/uhci-q.c
-@@ -45,43 +45,27 @@ static inline void uhci_clear_next_inter
-  */
- static void uhci_fsbr_on(struct uhci_hcd *uhci)
- {
--	struct uhci_qh *fsbr_qh, *lqh, *tqh;
-+	struct uhci_qh *lqh;
- 
-+	/* The terminating skeleton QH always points back to the first
-+	 * FSBR QH.  Make the last async QH point to the terminating
-+	 * skeleton QH. */
- 	uhci->fsbr_is_on = 1;
- 	lqh = list_entry(uhci->skel_async_qh->node.prev,
- 			struct uhci_qh, node);
--
--	/* Find the first FSBR QH.  Linear search through the list is
--	 * acceptable because normally FSBR gets turned on as soon as
--	 * one QH needs it. */
--	fsbr_qh = NULL;
--	list_for_each_entry_reverse(tqh, &uhci->skel_async_qh->node, node) {
--		if (tqh->skel < SKEL_FSBR)
--			break;
--		fsbr_qh = tqh;
--	}
--
--	/* No FSBR QH means we must insert the terminating skeleton QH */
--	if (!fsbr_qh) {
--		uhci->skel_term_qh->link = LINK_TO_QH(uhci->skel_term_qh);
--		wmb();
--		lqh->link = uhci->skel_term_qh->link;
--
--	/* Otherwise loop the last QH to the first FSBR QH */
--	} else
--		lqh->link = LINK_TO_QH(fsbr_qh);
-+	lqh->link = LINK_TO_QH(uhci->skel_term_qh);
- }
- 
- static void uhci_fsbr_off(struct uhci_hcd *uhci)
- {
- 	struct uhci_qh *lqh;
- 
-+	/* Remove the link from the last async QH to the terminating
-+	 * skeleton QH. */
- 	uhci->fsbr_is_on = 0;
- 	lqh = list_entry(uhci->skel_async_qh->node.prev,
- 			struct uhci_qh, node);
--
--	/* End the async list normally and unlink the terminating QH */
--	lqh->link = uhci->skel_term_qh->link = UHCI_PTR_TERM;
-+	lqh->link = UHCI_PTR_TERM;
- }
- 
- static void uhci_add_fsbr(struct uhci_hcd *uhci, struct urb *urb)
-@@ -464,9 +448,8 @@ static void link_interrupt(struct uhci_h
-  */
- static void link_async(struct uhci_hcd *uhci, struct uhci_qh *qh)
- {
--	struct uhci_qh *pqh, *lqh;
-+	struct uhci_qh *pqh;
- 	__le32 link_to_new_qh;
--	__le32 *extra_link = &link_to_new_qh;
- 
- 	/* Find the predecessor QH for our new one and insert it in the list.
- 	 * The list of QHs is expected to be short, so linear search won't
-@@ -476,31 +459,17 @@ static void link_async(struct uhci_hcd *
- 			break;
- 	}
- 	list_add(&qh->node, &pqh->node);
--	qh->link = pqh->link;
--
--	link_to_new_qh = LINK_TO_QH(qh);
--
--	/* If this is now the first FSBR QH, take special action */
--	if (uhci->fsbr_is_on && pqh->skel < SKEL_FSBR &&
--			qh->skel >= SKEL_FSBR) {
--		lqh = list_entry(uhci->skel_async_qh->node.prev,
--				struct uhci_qh, node);
--
--		/* If the new QH is also the last one, we must unlink
--		 * the terminating skeleton QH and make the new QH point
--		 * back to itself. */
--		if (qh == lqh) {
--			qh->link = link_to_new_qh;
--			extra_link = &uhci->skel_term_qh->link;
--
--		/* Otherwise the last QH must point to the new QH */
--		} else
--			extra_link = &lqh->link;
--	}
- 
- 	/* Link it into the schedule */
-+	qh->link = pqh->link;
- 	wmb();
--	*extra_link = pqh->link = link_to_new_qh;
-+	link_to_new_qh = LINK_TO_QH(qh);
-+	pqh->link = link_to_new_qh;
-+
-+	/* If this is now the first FSBR QH, link the terminating skeleton
-+	 * QH to it. */
-+	if (pqh->skel < SKEL_FSBR && qh->skel >= SKEL_FSBR)
-+		uhci->skel_term_qh->link = link_to_new_qh;
- }
- 
- /*
-@@ -561,31 +530,16 @@ static void unlink_interrupt(struct uhci
-  */
- static void unlink_async(struct uhci_hcd *uhci, struct uhci_qh *qh)
- {
--	struct uhci_qh *pqh, *lqh;
-+	struct uhci_qh *pqh;
- 	__le32 link_to_next_qh = qh->link;
- 
- 	pqh = list_entry(qh->node.prev, struct uhci_qh, node);
--
--	/* If this is the first FSBQ QH, take special action */
--	if (uhci->fsbr_is_on && pqh->skel < SKEL_FSBR &&
--			qh->skel >= SKEL_FSBR) {
--		lqh = list_entry(uhci->skel_async_qh->node.prev,
--				struct uhci_qh, node);
--
--		/* If this QH is also the last one, we must link in
--		 * the terminating skeleton QH. */
--		if (qh == lqh) {
--			link_to_next_qh = LINK_TO_QH(uhci->skel_term_qh);
--			uhci->skel_term_qh->link = link_to_next_qh;
--			wmb();
--			qh->link = link_to_next_qh;
--
--		/* Otherwise the last QH must point to the new first FSBR QH */
--		} else
--			lqh->link = link_to_next_qh;
--	}
--
- 	pqh->link = link_to_next_qh;
-+
-+	/* If this was the old first FSBR QH, link the terminating skeleton
-+	 * QH to the next (new first FSBR) QH. */
-+	if (pqh->skel < SKEL_FSBR && qh->skel >= SKEL_FSBR)
-+		uhci->skel_term_qh->link = link_to_next_qh;
- 	mb();
- }
- 
-@@ -1217,7 +1171,7 @@ static int uhci_result_common(struct uhc
- 
- 				if (debug > 1 && errbuf) {
- 					/* Print the chain for debugging */
--					uhci_show_qh(urbp->qh, errbuf,
-+					uhci_show_qh(uhci, urbp->qh, errbuf,
- 							ERRBUF_LEN, 0);
- 					lprintk(errbuf);
- 				}
+ 		buf = usb_buffer_alloc(dev->udev, dev->report_size,
+ 				       GFP_KERNEL, &int_out_urb->transfer_dma);
+ 		if (!buf) {
+ 			retval = -ENOMEM;
+ 			dbg("%s Unable to allocate buffer ", __func__);
+-			goto error;
++			goto error_no_buffer;
+ 		}
+ 		usb_fill_int_urb(int_out_urb, dev->udev,
+ 				 usb_sndintpipe(dev->udev,
+@@ -459,7 +459,9 @@ static ssize_t iowarrior_write(struct fi
+ error:
+ 	usb_buffer_free(dev->udev, dev->report_size, buf,
+ 			int_out_urb->transfer_dma);
++error_no_buffer:
+ 	usb_free_urb(int_out_urb);
++error_no_urb:
+ 	atomic_dec(&dev->write_busy);
+ 	wake_up_interruptible(&dev->write_wait);
+ exit:
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from oneukum@suse.de are
 
 origin.patch
-git-hid.patch
+agp-prevent-probe-collision-of-sis-agp-and-amd64_agp.patch
+git-dvb.patch
