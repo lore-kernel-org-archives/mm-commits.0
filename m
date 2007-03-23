@@ -1,71 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - 8139too-fix-irq-problem-with-napi-netpoll.patch removed from -mm tree
-Date: Thu, 22 Mar 2007 17:02:22 -0800
-Message-ID: <200703230102.l2N12NRN002845@shell0.pdx.osdl.net>
+Subject: + ext-ea-block-reference-count-racing-fix-performance-fix.patch added to -mm tree
+Date: Thu, 22 Mar 2007 22:27:19 -0800
+Message-ID: <200703230627.l2N6RMqL007911@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59764 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39401 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932664AbXCWBCj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2007 21:02:39 -0400
+	id S1753242AbXCWGah (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 23 Mar 2007 02:30:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, davem@davemloft.net, jeff@garzik.org, romieu@fr.zoreil.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, cmm@us.ibm.com
 
 
 The patch titled
-     fix irq problem with NAPI + NETPOLL
-has been removed from the -mm tree.  Its filename was
-     8139too-fix-irq-problem-with-napi-netpoll.patch
+     "ext[34]: EA block reference count racing fix" performance fix
+has been added to the -mm tree.  Its filename is
+     ext-ea-block-reference-count-racing-fix-performance-fix.patch
 
-This patch was dropped because it was nacked by the maintainer
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix irq problem with NAPI + NETPOLL
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: "ext[34]: EA block reference count racing fix" performance fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-It seems netif_receive_skb() was designed not to call from irq context, but
-NAPI + NETPOLL break this rule.  If netif_receive_skb() was called from irq
-context, redirect to netif_rx() instead of processing the skb in that
-context.
+A little mistake in 8a2bfdcbfa441d8b0e5cb9c9a7f45f77f80da465 is making all
+transactions synchronous, which reduces ext3 performance to comical levels.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Francois Romieu <romieu@fr.zoreil.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/dev.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ fs/ext3/xattr.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN net/core/dev.c~8139too-fix-irq-problem-with-napi-netpoll net/core/dev.c
---- a/net/core/dev.c~8139too-fix-irq-problem-with-napi-netpoll
-+++ a/net/core/dev.c
-@@ -1759,8 +1759,15 @@ int netif_receive_skb(struct sk_buff *sk
- 	__be16 type;
- 
- 	/* if we've gotten here through NAPI, check netpoll */
--	if (skb->dev->poll && netpoll_rx(skb))
--		return NET_RX_DROP;
-+#ifdef CONFIG_NET_POLL_CONTROLLER
-+	if (skb->dev->poll && skb->dev->poll_controller) {
-+		/* NAPI poll might be called in irq context on NETPOLL */
-+		if (in_irq() || irqs_disabled())
-+			return netif_rx(skb);
-+		if (netpoll_rx(skb))
-+			return NET_RX_DROP;
-+	}
-+#endif
- 
- 	if (!skb->tstamp.tv64)
- 		net_timestamp(skb);
+diff -puN fs/ext3/xattr.c~ext-ea-block-reference-count-racing-fix-performance-fix fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~ext-ea-block-reference-count-racing-fix-performance-fix
++++ a/fs/ext3/xattr.c
+@@ -495,7 +495,8 @@ ext3_xattr_release_block(handle_t *handl
+ 		BHDR(bh)->h_refcount = cpu_to_le32(
+ 				le32_to_cpu(BHDR(bh)->h_refcount) - 1);
+ 		error = ext3_journal_dirty_metadata(handle, bh);
+-		handle->h_sync = 1;
++		if (IS_SYNC(inode))
++			handle->h_sync = 1;
+ 		DQUOT_FREE_BLOCK(inode, 1);
+ 		ea_bdebug(bh, "refcount now=%d; releasing",
+ 			  le32_to_cpu(BHDR(bh)->h_refcount));
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-kbuild.patch
+ext-ea-block-reference-count-racing-fix-performance-fix.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
 git-netdev-all.patch
-8139too-fix-irq-problem-with-napi-netpoll.patch
-serial-allocate-minor-device-numbers-for.patch
+git-net.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lists-add-list-splice-tail.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
