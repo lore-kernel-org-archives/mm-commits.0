@@ -1,134 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - net-uninline-skb_put-fix.patch removed from -mm tree
-Date: Sat, 24 Mar 2007 07:39:03 -0800
-Message-ID: <200703241539.l2OFd31V008579@shell0.pdx.osdl.net>
+Subject: + generic_serial-fix-decoding-of-baud-rate.patch added to -mm tree
+Date: Sat, 24 Mar 2007 10:19:33 -0800
+Message-ID: <200703241819.l2OIJXos011106@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42520 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46227 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932238AbXCXPmR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 24 Mar 2007 11:42:17 -0400
+	id S932403AbXCXSVp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 24 Mar 2007 14:21:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dsd@gentoo.org, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk, stable@kernel.org
 
 
 The patch titled
-     make net/core/skbuff.c:skb_over_panic() static
-has been removed from the -mm tree.  Its filename was
-     net-uninline-skb_put-fix.patch
+     generic_serial: fix decoding of baud rate
+has been added to the -mm tree.  Its filename is
+     generic_serial-fix-decoding-of-baud-rate.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: make net/core/skbuff.c:skb_over_panic() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: generic_serial: fix decoding of baud rate
+From: Daniel Drake <dsd@gentoo.org>
 
-skb_over_panic() can now become static.
+Commit d720bc4b8fc5d6d179ef094908d4fbb5e436ffad partially removed a private
+implementation of baud speed decoding.  However it doesn't seem to be
+complete: after the speed is decoded, it is still being used as an index to
+a local speed table (array overrun, no doubt).
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+This was found by Graham Murray who noticed it caused a 2.6.19 regression
+with the SX driver: https://bugs.gentoo.org/170554
+
+Signed-off-by: Daniel Drake <dsd@gentoo.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/skbuff.h |    2 --
- net/core/skbuff.c      |    3 +--
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/char/generic_serial.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN include/linux/skbuff.h~net-uninline-skb_put-fix include/linux/skbuff.h
---- a/include/linux/skbuff.h~net-uninline-skb_put-fix
-+++ a/include/linux/skbuff.h
-@@ -365,8 +365,6 @@ extern struct sk_buff *skb_copy_expand(c
- 				       gfp_t priority);
- extern int	       skb_pad(struct sk_buff *skb, int pad);
- #define dev_kfree_skb(a)	kfree_skb(a)
--extern void	      skb_over_panic(struct sk_buff *skb, int len,
--				     void *here);
- extern void	      skb_under_panic(struct sk_buff *skb, int len,
- 				      void *here);
- extern void	      skb_truesize_bug(struct sk_buff *skb);
-diff -puN net/core/skbuff.c~net-uninline-skb_put-fix net/core/skbuff.c
---- a/net/core/skbuff.c~net-uninline-skb_put-fix
-+++ a/net/core/skbuff.c
-@@ -84,7 +84,7 @@ static struct kmem_cache *skbuff_fclone_
-  *
-  *	Out of line support code for skb_put(). Not user callable.
-  */
--void skb_over_panic(struct sk_buff *skb, int sz, void *here)
-+static void skb_over_panic(struct sk_buff *skb, int sz, void *here)
+diff -puN drivers/char/generic_serial.c~generic_serial-fix-decoding-of-baud-rate drivers/char/generic_serial.c
+--- a/drivers/char/generic_serial.c~generic_serial-fix-decoding-of-baud-rate
++++ a/drivers/char/generic_serial.c
+@@ -710,12 +710,6 @@ void gs_close(struct tty_struct * tty, s
+ }
+ 
+ 
+-static unsigned int     gs_baudrates[] = {
+-  0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
+-  9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600
+-};
+-
+-
+ void gs_set_termios (struct tty_struct * tty, 
+                      struct ktermios * old_termios)
  {
- 	printk(KERN_EMERG "skb_over_panic: text:%p len:%d put:%d head:%p "
- 			  "data:%p tail:%p end:%p dev:%s\n",
-@@ -2097,7 +2097,6 @@ EXPORT_SYMBOL(skb_copy_and_csum_bits);
- EXPORT_SYMBOL(skb_copy_and_csum_dev);
- EXPORT_SYMBOL(skb_copy_bits);
- EXPORT_SYMBOL(skb_copy_expand);
--EXPORT_SYMBOL(skb_over_panic);
- EXPORT_SYMBOL(skb_pad);
- EXPORT_SYMBOL(skb_realloc_headroom);
- EXPORT_SYMBOL(skb_under_panic);
+@@ -771,7 +765,6 @@ void gs_set_termios (struct tty_struct *
+ 
+ 	baudrate = tty_get_baud_rate(tty);
+ 
+-	baudrate = gs_baudrates[baudrate];
+ 	if ((tiosp->c_cflag & CBAUD) == B38400) {
+ 		if (     (port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_HI)
+ 			baudrate = 57600;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from dsd@gentoo.org are
 
-origin.patch
-net-sunrpc-svcsockc-fix-a-check.patch
-git-acpi.patch
-git-powerpc.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-mmc_deselect_cards.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-git-ubi.patch
+generic_serial-fix-decoding-of-baud-rate.patch
 git-netdev-all.patch
-drivers-net-vioc-possible-cleanups.patch
-git-net.patch
-drivers-net-bonding-bond_maincmake-3-functions-static.patch
-net-uninline-skb_put-fix.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
 git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-i386-x86_64-early_printkc-make-simnow_init-static.patch
-make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
-lguest-kconfig-and-headers.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-drivers-mfd-sm501c-fix-an-off-by-one.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
