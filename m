@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + utsns-fix-config_uts_ns-behavior.patch added to -mm tree
-Date: Sun, 25 Mar 2007 00:54:54 -0800
-Message-ID: <200703250854.l2P8ssF6024167@shell0.pdx.osdl.net>
+Subject: + ppp-dont-leak-an-sk_buff-on-interface-destruction.patch added to -mm tree
+Date: Sun, 25 Mar 2007 00:59:16 -0800
+Message-ID: <200703250859.l2P8xGqd024240@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36763 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36834 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753493AbXCYIzA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 04:55:00 -0400
+	id S1753348AbXCYI7X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 04:59:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, ebiederm@xmission.com
+Cc: gl@dsa-ac.de, paulus@samba.org
 
 
 The patch titled
-     utsns: fix !CONFIG_UTS_NS behavior
+     ppp: don't leak an sk_buff on interface destruction
 has been added to the -mm tree.  Its filename is
-     utsns-fix-config_uts_ns-behavior.patch
+     ppp-dont-leak-an-sk_buff-on-interface-destruction.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: utsns: fix !CONFIG_UTS_NS behavior
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: ppp: don't leak an sk_buff on interface destruction
+From: Guennadi Liakhovetski <gl@dsa-ac.de>
 
-When CONFIG_UTS_NS=n, clone(CLONE_NEWUTS) quietly refuses.  So correctly does
-not unshare a new uts namespace, but also does not return -EINVAL.
+Signed-off-by: G. Liakhovetski <gl@dsa-ac.de>
+Cc: Paul Mackerras <paulus@samba.org>
 
-Fix this to return -EINVAL so the caller knows his request was denied.
+davem sayeth:
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+This is strange.
+
+The PPP generic layer seems to be very careful about it's handling of
+the ->xmit_pending packet.
+
+When a packet is added to ->xmit_pending, immediately ppp_push() is
+called, and ppp_push() gives the packet to the channels xmit function,
+and unless the xmit function returns zero the ->xmit_pending is reset
+to NULL because non-zero return from the channel xmit functions means
+that the driver took the packet.
+
+Now I checked irnet_ppp.c, which is the driver under scrutiny here,
+and it never ever returns zero, under any circumstance, it always
+return one.
+
+So the ->xmit_pending should always be NULL'd out by ppp_push().
+
+There is some funny BLOCK_WHEN_CONNECT code, which will return
+0 in certain cases, but that define it never set during the
+build.
+
+Nevermind... that code does get enabled. :(
+
+This looks like it might be a bug, perhaps you can only return zero
+from the transmit function when your queue really is full and you plan
+to wake things up properly when space appears (via
+ppp_output_wakeup()).  You can't return 0 because of an event which
+might never occur, that's what makes ->xmit_pending get stuck and
+leak.
+
+I'm really surprised this leak doesn't trigger already via the
+ppp_synctty.c and ppp_async.c drivers, perhaps they do something to
+make sure the transmitter gets purged properly when unregistering and
+therefore ->xmit_pending does not get left non-NULL at unregister
+time.
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/utsname.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/ppp_generic.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/utsname.h~utsns-fix-config_uts_ns-behavior include/linux/utsname.h
---- a/include/linux/utsname.h~utsns-fix-config_uts_ns-behavior
-+++ a/include/linux/utsname.h
-@@ -70,6 +70,8 @@ static inline int unshare_utsname(unsign
+diff -puN drivers/net/ppp_generic.c~ppp-dont-leak-an-sk_buff-on-interface-destruction drivers/net/ppp_generic.c
+--- a/drivers/net/ppp_generic.c~ppp-dont-leak-an-sk_buff-on-interface-destruction
++++ a/drivers/net/ppp_generic.c
+@@ -2544,6 +2544,9 @@ static void ppp_destroy_interface(struct
+ 	ppp->active_filter = NULL;
+ #endif /* CONFIG_PPP_FILTER */
  
- static inline int copy_utsname(int flags, struct task_struct *tsk)
- {
-+	if (flags & CLONE_NEWUTS)
-+		return -EINVAL;
- 	return 0;
++	if (ppp->xmit_pending)
++		kfree_skb(ppp->xmit_pending);
++
+ 	kfree(ppp);
  }
- static inline void put_uts_ns(struct uts_namespace *ns)
+ 
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from gl@dsa-ac.de are
 
-utsns-fix-config_uts_ns-behavior.patch
-implement-file-posix-capabilities.patch
-file-capabilities-accomodate-future-64-bit-caps.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-attach_pid-with-struct-pid-parameter.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
+origin.patch
+ppp-dont-leak-an-sk_buff-on-interface-destruction.patch
