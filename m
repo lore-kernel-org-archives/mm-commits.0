@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + delete-unused-header-file-math-emu-extendedh.patch added to -mm tree
-Date: Sun, 25 Mar 2007 01:27:41 -0800
-Message-ID: <200703250927.l2P9RfOl024661@shell0.pdx.osdl.net>
+Subject: + delete-unused-header-file-media-cs53l32ah.patch added to -mm tree
+Date: Sun, 25 Mar 2007 01:28:16 -0800
+Message-ID: <200703250928.l2P9SGBc024681@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37395 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37402 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933230AbXCYJ1v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 05:27:51 -0400
+	id S933265AbXCYJ2W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 05:28:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rpjday@mindspring.com
 
 
 The patch titled
-     Delete unused header file math-emu/extended.h
+     Delete unused header file media/cs53l32a.h
 has been added to the -mm tree.  Its filename is
-     delete-unused-header-file-math-emu-extendedh.patch
+     delete-unused-header-file-media-cs53l32ah.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,416 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Delete unused header file math-emu/extended.h
+Subject: Delete unused header file media/cs53l32a.h
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/math-emu/extended.h |  396 ----------------------------------
- 1 file changed, 396 deletions(-)
+ include/media/cs53l32a.h |   34 ----------------------------------
+ 1 file changed, 34 deletions(-)
 
-diff -puN include/math-emu/extended.h~delete-unused-header-file-math-emu-extendedh /dev/null
---- a/include/math-emu/extended.h
+diff -puN include/media/cs53l32a.h~delete-unused-header-file-media-cs53l32ah /dev/null
+--- a/include/media/cs53l32a.h
 +++ /dev/null
-@@ -1,396 +0,0 @@
--/* Software floating-point emulation.
--   Definitions for IEEE Extended Precision.
--   Copyright (C) 1999 Free Software Foundation, Inc.
--   This file is part of the GNU C Library.
--   Contributed by Jakub Jelinek (jj@ultra.linux.cz).
--
--   The GNU C Library is free software; you can redistribute it and/or
--   modify it under the terms of the GNU Library General Public License as
--   published by the Free Software Foundation; either version 2 of the
--   License, or (at your option) any later version.
--
--   The GNU C Library is distributed in the hope that it will be useful,
--   but WITHOUT ANY WARRANTY; without even the implied warranty of
--   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--   Library General Public License for more details.
--
--   You should have received a copy of the GNU Library General Public
--   License along with the GNU C Library; see the file COPYING.LIB.  If
--   not, write to the Free Software Foundation, Inc.,
--   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
--
--
--#ifndef    __MATH_EMU_EXTENDED_H__
--#define    __MATH_EMU_EXTENDED_H__
--
--#if _FP_W_TYPE_SIZE < 32
--#error "Here's a nickel, kid. Go buy yourself a real computer."
--#endif
--
--#if _FP_W_TYPE_SIZE < 64
--#define _FP_FRACTBITS_E         (4*_FP_W_TYPE_SIZE)
--#else
--#define _FP_FRACTBITS_E		(2*_FP_W_TYPE_SIZE)
--#endif
--
--#define _FP_FRACBITS_E		64
--#define _FP_FRACXBITS_E		(_FP_FRACTBITS_E - _FP_FRACBITS_E)
--#define _FP_WFRACBITS_E		(_FP_WORKBITS + _FP_FRACBITS_E)
--#define _FP_WFRACXBITS_E	(_FP_FRACTBITS_E - _FP_WFRACBITS_E)
--#define _FP_EXPBITS_E		15
--#define _FP_EXPBIAS_E		16383
--#define _FP_EXPMAX_E		32767
--
--#define _FP_QNANBIT_E		\
--	((_FP_W_TYPE)1 << (_FP_FRACBITS_E-2) % _FP_W_TYPE_SIZE)
--#define _FP_IMPLBIT_E		\
--	((_FP_W_TYPE)1 << (_FP_FRACBITS_E-1) % _FP_W_TYPE_SIZE)
--#define _FP_OVERFLOW_E		\
--	((_FP_W_TYPE)1 << (_FP_WFRACBITS_E % _FP_W_TYPE_SIZE))
--
--#if _FP_W_TYPE_SIZE < 64
--
--union _FP_UNION_E
--{
--   long double flt;
--   struct 
--   {
--#if __BYTE_ORDER == __BIG_ENDIAN
--      unsigned long pad1 : _FP_W_TYPE_SIZE;
--      unsigned long pad2 : (_FP_W_TYPE_SIZE - 1 - _FP_EXPBITS_E);
--      unsigned long sign : 1;
--      unsigned long exp : _FP_EXPBITS_E;
--      unsigned long frac1 : _FP_W_TYPE_SIZE;
--      unsigned long frac0 : _FP_W_TYPE_SIZE;
--#else
--      unsigned long frac0 : _FP_W_TYPE_SIZE;
--      unsigned long frac1 : _FP_W_TYPE_SIZE;
--      unsigned exp : _FP_EXPBITS_E;
--      unsigned sign : 1;
--#endif /* not bigendian */
--   } bits __attribute__((packed));
--};
--
--
--#define FP_DECL_E(X)		_FP_DECL(4,X)
--
--#define FP_UNPACK_RAW_E(X, val)				\
--  do {							\
--    union _FP_UNION_E _flo; _flo.flt = (val);		\
--							\
--    X##_f[2] = 0; X##_f[3] = 0;				\
--    X##_f[0] = _flo.bits.frac0;				\
--    X##_f[1] = _flo.bits.frac1;				\
--    X##_e  = _flo.bits.exp;				\
--    X##_s  = _flo.bits.sign;				\
--    if (!X##_e && (X##_f[1] || X##_f[0])		\
--        && !(X##_f[1] & _FP_IMPLBIT_E))			\
--      {							\
--        X##_e++;					\
--        FP_SET_EXCEPTION(FP_EX_DENORM);			\
--      }							\
--  } while (0)
--
--#define FP_UNPACK_RAW_EP(X, val)			\
--  do {							\
--    union _FP_UNION_E *_flo =				\
--    (union _FP_UNION_E *)(val);				\
--							\
--    X##_f[2] = 0; X##_f[3] = 0;				\
--    X##_f[0] = _flo->bits.frac0;			\
--    X##_f[1] = _flo->bits.frac1;			\
--    X##_e  = _flo->bits.exp;				\
--    X##_s  = _flo->bits.sign;				\
--    if (!X##_e && (X##_f[1] || X##_f[0])		\
--        && !(X##_f[1] & _FP_IMPLBIT_E))			\
--      {							\
--        X##_e++;					\
--        FP_SET_EXCEPTION(FP_EX_DENORM);			\
--      }							\
--  } while (0)
--
--#define FP_PACK_RAW_E(val, X)				\
--  do {							\
--    union _FP_UNION_E _flo;				\
--							\
--    if (X##_e) X##_f[1] |= _FP_IMPLBIT_E;		\
--    else X##_f[1] &= ~(_FP_IMPLBIT_E);			\
--    _flo.bits.frac0 = X##_f[0];				\
--    _flo.bits.frac1 = X##_f[1];				\
--    _flo.bits.exp   = X##_e;				\
--    _flo.bits.sign  = X##_s;				\
--							\
--    (val) = _flo.flt;					\
--  } while (0)
--
--#define FP_PACK_RAW_EP(val, X)				\
--  do {							\
--    if (!FP_INHIBIT_RESULTS)				\
--      {							\
--	union _FP_UNION_E *_flo =			\
--	  (union _FP_UNION_E *)(val);			\
--							\
--	if (X##_e) X##_f[1] |= _FP_IMPLBIT_E;		\
--	else X##_f[1] &= ~(_FP_IMPLBIT_E);		\
--	_flo->bits.frac0 = X##_f[0];			\
--	_flo->bits.frac1 = X##_f[1];			\
--	_flo->bits.exp   = X##_e;			\
--	_flo->bits.sign  = X##_s;			\
--      }							\
--  } while (0)
--
--#define FP_UNPACK_E(X,val)		\
--  do {					\
--    FP_UNPACK_RAW_E(X,val);		\
--    _FP_UNPACK_CANONICAL(E,4,X);	\
--  } while (0)
--
--#define FP_UNPACK_EP(X,val)		\
--  do {					\
--    FP_UNPACK_RAW_2_P(X,val);		\
--    _FP_UNPACK_CANONICAL(E,4,X);	\
--  } while (0)
--
--#define FP_PACK_E(val,X)		\
--  do {					\
--    _FP_PACK_CANONICAL(E,4,X);		\
--    FP_PACK_RAW_E(val,X);		\
--  } while (0)
--
--#define FP_PACK_EP(val,X)		\
--  do {					\
--    _FP_PACK_CANONICAL(E,4,X);		\
--    FP_PACK_RAW_EP(val,X);		\
--  } while (0)
--
--#define FP_ISSIGNAN_E(X)	_FP_ISSIGNAN(E,4,X)
--#define FP_NEG_E(R,X)		_FP_NEG(E,4,R,X)
--#define FP_ADD_E(R,X,Y)		_FP_ADD(E,4,R,X,Y)
--#define FP_SUB_E(R,X,Y)		_FP_SUB(E,4,R,X,Y)
--#define FP_MUL_E(R,X,Y)		_FP_MUL(E,4,R,X,Y)
--#define FP_DIV_E(R,X,Y)		_FP_DIV(E,4,R,X,Y)
--#define FP_SQRT_E(R,X)		_FP_SQRT(E,4,R,X)
--
+@@ -1,34 +0,0 @@
 -/*
-- * Square root algorithms:
-- * We have just one right now, maybe Newton approximation
-- * should be added for those machines where division is fast.
-- * This has special _E version because standard _4 square
-- * root would not work (it has to start normally with the
-- * second word and not the first), but as we have to do it
-- * anyway, we optimize it by doing most of the calculations
-- * in two UWtype registers instead of four.
-- */
-- 
--#define _FP_SQRT_MEAT_E(R, S, T, X, q)			\
--  do {							\
--    q = (_FP_W_TYPE)1 << (_FP_W_TYPE_SIZE - 1);		\
--    _FP_FRAC_SRL_4(X, (_FP_WORKBITS));			\
--    while (q)						\
--      {							\
--	T##_f[1] = S##_f[1] + q;			\
--	if (T##_f[1] <= X##_f[1])			\
--	  {						\
--	    S##_f[1] = T##_f[1] + q;			\
--	    X##_f[1] -= T##_f[1];			\
--	    R##_f[1] += q;				\
--	  }						\
--	_FP_FRAC_SLL_2(X, 1);				\
--	q >>= 1;					\
--      }							\
--    q = (_FP_W_TYPE)1 << (_FP_W_TYPE_SIZE - 1);		\
--    while (q)						\
--      {							\
--	T##_f[0] = S##_f[0] + q;			\
--	T##_f[1] = S##_f[1];				\
--	if (T##_f[1] < X##_f[1] || 			\
--	    (T##_f[1] == X##_f[1] &&			\
--	     T##_f[0] <= X##_f[0]))			\
--	  {						\
--	    S##_f[0] = T##_f[0] + q;			\
--	    S##_f[1] += (T##_f[0] > S##_f[0]);		\
--	    _FP_FRAC_DEC_2(X, T);			\
--	    R##_f[0] += q;				\
--	  }						\
--	_FP_FRAC_SLL_2(X, 1);				\
--	q >>= 1;					\
--      }							\
--    _FP_FRAC_SLL_4(R, (_FP_WORKBITS));			\
--    if (X##_f[0] | X##_f[1])				\
--      {							\
--	if (S##_f[1] < X##_f[1] || 			\
--	    (S##_f[1] == X##_f[1] &&			\
--	     S##_f[0] < X##_f[0]))			\
--	  R##_f[0] |= _FP_WORK_ROUND;			\
--	R##_f[0] |= _FP_WORK_STICKY;			\
--      }							\
--  } while (0)
+-    cs53l32a.h - definition for cs53l32a inputs and outputs
 -
--#define FP_CMP_E(r,X,Y,un)	_FP_CMP(E,4,r,X,Y,un)
--#define FP_CMP_EQ_E(r,X,Y)	_FP_CMP_EQ(E,4,r,X,Y)
+-    Copyright (C) 2006 Hans Verkuil (hverkuil@xs4all.nl)
 -
--#define FP_TO_INT_E(r,X,rsz,rsg)	_FP_TO_INT(E,4,r,X,rsz,rsg)
--#define FP_TO_INT_ROUND_E(r,X,rsz,rsg)	_FP_TO_INT_ROUND(E,4,r,X,rsz,rsg)
--#define FP_FROM_INT_E(X,r,rs,rt)	_FP_FROM_INT(E,4,X,r,rs,rt)
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
 -
--#define _FP_FRAC_HIGH_E(X)	(X##_f[2])
--#define _FP_FRAC_HIGH_RAW_E(X)	(X##_f[1])
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
 -
--#else   /* not _FP_W_TYPE_SIZE < 64 */
--union _FP_UNION_E
--{
--  long double flt /* __attribute__((mode(TF))) */ ;
--  struct {
--#if __BYTE_ORDER == __BIG_ENDIAN
--    unsigned long pad : (_FP_W_TYPE_SIZE - 1 - _FP_EXPBITS_E);
--    unsigned sign  : 1;
--    unsigned exp   : _FP_EXPBITS_E;
--    unsigned long frac : _FP_W_TYPE_SIZE;
--#else
--    unsigned long frac : _FP_W_TYPE_SIZE;
--    unsigned exp   : _FP_EXPBITS_E;
--    unsigned sign  : 1;
+-    You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-*/
+-
+-#ifndef _CS53L32A_H_
+-#define _CS53L32A_H_
+-
+-/* There are 2 physical inputs, but the second input can be
+-   placed in two modes, the first mode bypasses the PGA (gain),
+-   the second goes through the PGA. Hence there are three
+-   possible inputs to choose from. */
+-
+-/* CS53L32A HW inputs */
+-#define CS53L32A_IN0 0
+-#define CS53L32A_IN1 1
+-#define CS53L32A_IN2 2
+-
 -#endif
--  } bits;
--};
--
--#define FP_DECL_E(X)		_FP_DECL(2,X)
--
--#define FP_UNPACK_RAW_E(X, val)					\
--  do {								\
--    union _FP_UNION_E _flo; _flo.flt = (val);			\
--								\
--    X##_f0 = _flo.bits.frac;					\
--    X##_f1 = 0;							\
--    X##_e = _flo.bits.exp;					\
--    X##_s = _flo.bits.sign;					\
--    if (!X##_e && X##_f0 && !(X##_f0 & _FP_IMPLBIT_E))		\
--      {								\
--        X##_e++;						\
--        FP_SET_EXCEPTION(FP_EX_DENORM);				\
--      }								\
--  } while (0)
--
--#define FP_UNPACK_RAW_EP(X, val)				\
--  do {								\
--    union _FP_UNION_E *_flo =					\
--      (union _FP_UNION_E *)(val);				\
--								\
--    X##_f0 = _flo->bits.frac;					\
--    X##_f1 = 0;							\
--    X##_e = _flo->bits.exp;					\
--    X##_s = _flo->bits.sign;					\
--    if (!X##_e && X##_f0 && !(X##_f0 & _FP_IMPLBIT_E))		\
--      {								\
--        X##_e++;						\
--        FP_SET_EXCEPTION(FP_EX_DENORM);				\
--      }								\
--  } while (0)
--
--#define FP_PACK_RAW_E(val, X)					\
--  do {								\
--    union _FP_UNION_E _flo;					\
--								\
--    if (X##_e) X##_f0 |= _FP_IMPLBIT_E;				\
--    else X##_f0 &= ~(_FP_IMPLBIT_E);				\
--    _flo.bits.frac = X##_f0;					\
--    _flo.bits.exp  = X##_e;					\
--    _flo.bits.sign = X##_s;					\
--								\
--    (val) = _flo.flt;						\
--  } while (0)
--
--#define FP_PACK_RAW_EP(fs, val, X)				\
--  do {								\
--    if (!FP_INHIBIT_RESULTS)					\
--      {								\
--	union _FP_UNION_E *_flo =				\
--	  (union _FP_UNION_E *)(val);				\
--								\
--	if (X##_e) X##_f0 |= _FP_IMPLBIT_E;			\
--	else X##_f0 &= ~(_FP_IMPLBIT_E);			\
--	_flo->bits.frac = X##_f0;				\
--	_flo->bits.exp  = X##_e;				\
--	_flo->bits.sign = X##_s;				\
--      }								\
--  } while (0)
--
--
--#define FP_UNPACK_E(X,val)		\
--  do {					\
--    FP_UNPACK_RAW_E(X,val);		\
--    _FP_UNPACK_CANONICAL(E,2,X);	\
--  } while (0)
--
--#define FP_UNPACK_EP(X,val)		\
--  do {					\
--    FP_UNPACK_RAW_EP(X,val);		\
--    _FP_UNPACK_CANONICAL(E,2,X);	\
--  } while (0)
--
--#define FP_PACK_E(val,X)		\
--  do {					\
--    _FP_PACK_CANONICAL(E,2,X);		\
--    FP_PACK_RAW_E(val,X);		\
--  } while (0)
--
--#define FP_PACK_EP(val,X)		\
--  do {					\
--    _FP_PACK_CANONICAL(E,2,X);		\
--    FP_PACK_RAW_EP(val,X);		\
--  } while (0)
--
--#define FP_ISSIGNAN_E(X)	_FP_ISSIGNAN(E,2,X)
--#define FP_NEG_E(R,X)		_FP_NEG(E,2,R,X)
--#define FP_ADD_E(R,X,Y)		_FP_ADD(E,2,R,X,Y)
--#define FP_SUB_E(R,X,Y)		_FP_SUB(E,2,R,X,Y)
--#define FP_MUL_E(R,X,Y)		_FP_MUL(E,2,R,X,Y)
--#define FP_DIV_E(R,X,Y)		_FP_DIV(E,2,R,X,Y)
--#define FP_SQRT_E(R,X)		_FP_SQRT(E,2,R,X)
--
--/*
-- * Square root algorithms:
-- * We have just one right now, maybe Newton approximation
-- * should be added for those machines where division is fast.
-- * We optimize it by doing most of the calculations
-- * in one UWtype registers instead of two, although we don't
-- * have to.
-- */
--#define _FP_SQRT_MEAT_E(R, S, T, X, q)			\
--  do {							\
--    q = (_FP_W_TYPE)1 << (_FP_W_TYPE_SIZE - 1);		\
--    _FP_FRAC_SRL_2(X, (_FP_WORKBITS));			\
--    while (q)						\
--      {							\
--        T##_f0 = S##_f0 + q;				\
--        if (T##_f0 <= X##_f0)				\
--          {						\
--            S##_f0 = T##_f0 + q;			\
--            X##_f0 -= T##_f0;				\
--            R##_f0 += q;				\
--          }						\
--        _FP_FRAC_SLL_1(X, 1);				\
--        q >>= 1;					\
--      }							\
--    _FP_FRAC_SLL_2(R, (_FP_WORKBITS));			\
--    if (X##_f0)						\
--      {							\
--	if (S##_f0 < X##_f0)				\
--	  R##_f0 |= _FP_WORK_ROUND;			\
--	R##_f0 |= _FP_WORK_STICKY;			\
--      }							\
--  } while (0)
-- 
--#define FP_CMP_E(r,X,Y,un)	_FP_CMP(E,2,r,X,Y,un)
--#define FP_CMP_EQ_E(r,X,Y)	_FP_CMP_EQ(E,2,r,X,Y)
--
--#define FP_TO_INT_E(r,X,rsz,rsg)	_FP_TO_INT(E,2,r,X,rsz,rsg)
--#define FP_TO_INT_ROUND_E(r,X,rsz,rsg)	_FP_TO_INT_ROUND(E,2,r,X,rsz,rsg)
--#define FP_FROM_INT_E(X,r,rs,rt)	_FP_FROM_INT(E,2,X,r,rs,rt)
--
--#define _FP_FRAC_HIGH_E(X)	(X##_f1)
--#define _FP_FRAC_HIGH_RAW_E(X)	(X##_f0)
--
--#endif /* not _FP_W_TYPE_SIZE < 64 */
--
--#endif /* __MATH_EMU_EXTENDED_H__ */
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
@@ -445,6 +83,7 @@ git-powerpc.patch
 remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
 remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
 git-drm.patch
+delete-unused-header-file-media-cs53l32ah.patch
 git-mtd.patch
 jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
 mtd-delete-unused-header-file-linux-mtd-iflashh.patch
