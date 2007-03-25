@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + tty-minor-merge-correction.patch added to -mm tree
-Date: Sun, 25 Mar 2007 00:53:29 -0800
-Message-ID: <200703250853.l2P8rTRM024138@shell0.pdx.osdl.net>
+Subject: + pata_pdc202xx_old-lba48-bug.patch added to -mm tree
+Date: Sun, 25 Mar 2007 00:53:31 -0800
+Message-ID: <200703250853.l2P8rVrV024141@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36733 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36736 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753491AbXCYIxj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 04:53:39 -0400
+	id S1753499AbXCYIxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 04:53:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     tty: minor merge correction
+     pata_pdc202xx_old: LBA48 bug
 has been added to the -mm tree.  Its filename is
-     tty-minor-merge-correction.patch
+     pata_pdc202xx_old-lba48-bug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: minor merge correction
+Subject: pata_pdc202xx_old: LBA48 bug
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Its now used.. because we added the new definitions so enabled all the
-goodies on i386
+In LBA48 mode we have to help the controller to get anything to work.  The
+chip provides a register giving word counts meant for ATAPI use which we can
+use.  However we need to load the count in words not bytes..
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/termbits.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/pata_pdc202xx_old.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-i386/termbits.h~tty-minor-merge-correction include/asm-i386/termbits.h
---- a/include/asm-i386/termbits.h~tty-minor-merge-correction
-+++ a/include/asm-i386/termbits.h
-@@ -144,7 +144,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
--#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
+diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-lba48-bug drivers/ata/pata_pdc202xx_old.c
+--- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-lba48-bug
++++ a/drivers/ata/pata_pdc202xx_old.c
+@@ -22,7 +22,7 @@
+ #include <linux/libata.h>
  
+ #define DRV_NAME "pata_pdc202xx_old"
+-#define DRV_VERSION "0.4.2"
++#define DRV_VERSION "0.4.3"
+ 
+ static int pdc2026x_cable_detect(struct ata_port *ap)
+ {
+@@ -167,7 +167,7 @@ static void pdc2026x_bmdma_start(struct 
+ 	/* Cases the state machine will not complete correctly without help */
+ 	if ((tf->flags & ATA_TFLAG_LBA48) ||  tf->protocol == ATA_PROT_ATAPI_DMA)
+ 	{
+-		len = qc->nbytes;
++		len = qc->nbytes / 2;
+ 
+ 		if (tf->flags & ATA_TFLAG_WRITE)
+ 			len |= 0x06000000;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
