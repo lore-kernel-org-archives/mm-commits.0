@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + delete-unused-header-file-media-wm8775h.patch added to -mm tree
-Date: Sun, 25 Mar 2007 01:29:31 -0800
-Message-ID: <200703250929.l2P9TVV7024697@shell0.pdx.osdl.net>
+Subject: + fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch added to -mm tree
+Date: Sun, 25 Mar 2007 01:34:20 -0800
+Message-ID: <200703250934.l2P9YK6S024798@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37434 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37504 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933276AbXCYJ3j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 05:29:39 -0400
+	id S933307AbXCYJeZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 05:34:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, mchehab@infradead.org
+Cc: jbarnes@virtuousgeek.org, greg@kroah.com
 
 
 The patch titled
-     Delete unused header file media/wm8775.h
+     fix sysfs rom file creation for BIOS ROM shadows
 has been added to the -mm tree.  Its filename is
-     delete-unused-header-file-media-wm8775h.patch
+     fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,88 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Delete unused header file media/wm8775.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: fix sysfs rom file creation for BIOS ROM shadows
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+At one time, if a BIOS ROM shadow was detected for the boot video device
+(stored at offset 0xc0000), we'd set a special resource flag,
+IORESOURCE_ROM_SHADOW, so that the sysfs ROM file code could handle it
+properly.  That broke along the way somewhere though, so current kernels
+will be missing 'rom' files in sysfs if the video device doesn't have an
+explicit ROM BAR.
+
+This patch fixes the regression by moving the video fixup quirk to a little
+later in the boot cycle (to avoid having its work undone by PCI resource
+allocation) and checking in the PCI sysfs code whether a rom file should be
+created due to a shadow resource, which is also moved to a little later in
+the boot cycle so it will occur after the video fixup.  Tested and works on
+my i386 test box.
+
+Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/media/wm8775.h |   35 -----------------------------------
- 1 file changed, 35 deletions(-)
+ arch/i386/pci/fixup.c   |    2 +-
+ drivers/pci/pci-sysfs.c |    5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/media/wm8775.h~delete-unused-header-file-media-wm8775h /dev/null
---- a/include/media/wm8775.h
-+++ /dev/null
-@@ -1,35 +0,0 @@
--/*
--    wm8775.h - definition for wm8775 inputs and outputs
--
--    Copyright (C) 2006 Hans Verkuil (hverkuil@xs4all.nl)
--
--    This program is free software; you can redistribute it and/or modify
--    it under the terms of the GNU General Public License as published by
--    the Free Software Foundation; either version 2 of the License, or
--    (at your option) any later version.
--
--    This program is distributed in the hope that it will be useful,
--    but WITHOUT ANY WARRANTY; without even the implied warranty of
--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--    GNU General Public License for more details.
--
--    You should have received a copy of the GNU General Public License
--    along with this program; if not, write to the Free Software
--    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--*/
--
--#ifndef _WM8775_H_
--#define _WM8775_H_
--
--/* The WM8775 has 4 inputs and one output. Zero or more inputs
--   are multiplexed together to the output. Hence there are
--   16 combinations.
--   If only one input is active (the normal case) then the
--   input values 1, 2, 4 or 8 should be used. */
--
--#define WM8775_AIN1 1
--#define WM8775_AIN2 2
--#define WM8775_AIN3 4
--#define WM8775_AIN4 8
--
--#endif
+diff -puN arch/i386/pci/fixup.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows arch/i386/pci/fixup.c
+--- a/arch/i386/pci/fixup.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows
++++ a/arch/i386/pci/fixup.c
+@@ -354,7 +354,7 @@ static void __devinit pci_fixup_video(st
+ 		printk(KERN_DEBUG "Boot video device is %s\n", pci_name(pdev));
+ 	}
+ }
+-DECLARE_PCI_FIXUP_HEADER(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_video);
++DECLARE_PCI_FIXUP_FINAL(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_video);
+ 
+ /*
+  * Some Toshiba laptops need extra code to enable their TI TSB43AB22/A.
+diff -puN drivers/pci/pci-sysfs.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows
++++ a/drivers/pci/pci-sysfs.c
+@@ -620,7 +620,8 @@ int __must_check pci_create_sysfs_dev_fi
+ 		goto err_bin_file;
+ 
+ 	/* If the device has a ROM, try to expose it in sysfs. */
+-	if (pci_resource_len(pdev, PCI_ROM_RESOURCE)) {
++	if (pci_resource_len(pdev, PCI_ROM_RESOURCE) ||
++	    (pdev->resource[PCI_ROM_RESOURCE].flags & IORESOURCE_ROM_SHADOW)) {
+ 		rom_attr = kzalloc(sizeof(*rom_attr), GFP_ATOMIC);
+ 		if (rom_attr) {
+ 			pdev->rom_attr = rom_attr;
+@@ -695,4 +696,4 @@ static int __init pci_sysfs_init(void)
+ 	return 0;
+ }
+ 
+-__initcall(pci_sysfs_init);
++late_initcall(pci_sysfs_init);
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
 
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-powerpc.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
-git-drm.patch
-delete-unused-header-file-media-cs53l32ah.patch
-delete-unused-header-file-media-wm8775h.patch
-git-mtd.patch
-jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
-mtd-delete-unused-header-file-linux-mtd-iflashh.patch
-remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
-remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
-delete-unused-header-file-linux-sdla_frh.patch
-delete-unused-header-file-linux-if_wanpipe_commonh.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-scsi-misc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-delete-unused-header-file-math-emu-extendedh.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
+fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch
