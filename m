@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + delete-unused-header-file-media-cs53l32ah.patch added to -mm tree
-Date: Sun, 25 Mar 2007 01:29:22 -0800
-Message-ID: <200703250929.l2P9TMJI024691@shell0.pdx.osdl.net>
+Subject: + delete-unused-header-file-media-wm8775h.patch added to -mm tree
+Date: Sun, 25 Mar 2007 01:29:31 -0800
+Message-ID: <200703250929.l2P9TVV7024697@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37430 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37434 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933265AbXCYJ3e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 05:29:34 -0400
+	id S933276AbXCYJ3j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 05:29:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rpjday@mindspring.com, mchehab@infradead.org
 
 
 The patch titled
-     Delete unused header file media/cs53l32a.h
+     Delete unused header file media/wm8775.h
 has been added to the -mm tree.  Its filename is
-     delete-unused-header-file-media-cs53l32ah.patch
+     delete-unused-header-file-media-wm8775h.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Delete unused header file media/cs53l32a.h
+Subject: Delete unused header file media/wm8775.h
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
@@ -33,15 +33,15 @@ Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/media/cs53l32a.h |   34 ----------------------------------
- 1 file changed, 34 deletions(-)
+ include/media/wm8775.h |   35 -----------------------------------
+ 1 file changed, 35 deletions(-)
 
-diff -puN include/media/cs53l32a.h~delete-unused-header-file-media-cs53l32ah /dev/null
---- a/include/media/cs53l32a.h
+diff -puN include/media/wm8775.h~delete-unused-header-file-media-wm8775h /dev/null
+--- a/include/media/wm8775.h
 +++ /dev/null
-@@ -1,34 +0,0 @@
+@@ -1,35 +0,0 @@
 -/*
--    cs53l32a.h - definition for cs53l32a inputs and outputs
+-    wm8775.h - definition for wm8775 inputs and outputs
 -
 -    Copyright (C) 2006 Hans Verkuil (hverkuil@xs4all.nl)
 -
@@ -60,18 +60,19 @@ diff -puN include/media/cs53l32a.h~delete-unused-header-file-media-cs53l32ah /de
 -    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 -*/
 -
--#ifndef _CS53L32A_H_
--#define _CS53L32A_H_
+-#ifndef _WM8775_H_
+-#define _WM8775_H_
 -
--/* There are 2 physical inputs, but the second input can be
--   placed in two modes, the first mode bypasses the PGA (gain),
--   the second goes through the PGA. Hence there are three
--   possible inputs to choose from. */
+-/* The WM8775 has 4 inputs and one output. Zero or more inputs
+-   are multiplexed together to the output. Hence there are
+-   16 combinations.
+-   If only one input is active (the normal case) then the
+-   input values 1, 2, 4 or 8 should be used. */
 -
--/* CS53L32A HW inputs */
--#define CS53L32A_IN0 0
--#define CS53L32A_IN1 1
--#define CS53L32A_IN2 2
+-#define WM8775_AIN1 1
+-#define WM8775_AIN2 2
+-#define WM8775_AIN3 4
+-#define WM8775_AIN4 8
 -
 -#endif
 _
